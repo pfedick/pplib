@@ -1,0 +1,149 @@
+/*!\mainpage PPL6-Dokumentation
+\image html resource/ppl6-icon-256x256.png
+\section Einleitung
+PPL steht für "Patrick's Programming Library" und ist eine Sammlung nützlicher
+Funktionen und Klassen für C++-Anwendungen, geschrieben von Patrick Fedick <patrick@pfp.de>.
+Sie beinhaltet Funktionen aus verschiedenen Bereichen, wie
+
+- Datei- und Verzeichniss-Zugriff
+- Speicherverwaltung
+- Strings, Arrays, Listen, Trees
+- Multithreading
+- Sockets und Verschlüsselung
+- Internet
+- Datenbanken
+- Zeit, Datum und mathematische Funktionen
+- Grafik und Benutzeroberfläche
+- Sound
+
+Die erste Version erschien bereits im Jahr 1997 und bestand fast vollständig
+aus Assembler-Code für Windows. Seitdem wurde die Library mehrfach umstrukturiert und erweitert
+und besteht nun zum größten Teil aus plattform-unabhängigem C und C++-Code. Unterstützt werden
+folgende Systeme:
+
+- Linux (getestet unter Fedora 4-8, Suse 8,9, Debian 3.1, Ubuntu 8.10, 32- und 64-Bit)
+- FreeBSD (Version 5.x, 6.x, 7.x, 32- und 64-Bit)
+- Windows (32-Bit, Windows 2000 und XP, VisualStudio 2008)
+- Solaris (mit GCC-Compiler)
+
+Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz und darf somit fast
+uneingeschränkt auch in kommerziellen oder "closed source" Programmen verwendet werden. Die
+genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
+
+\section Inhalt
+
+- \subpage Installation
+- \subpage ppl6_usage "Verwendung"
+- \subpage PPLGroupDataTypes "Die speziellen Datentypen von PPL6"
+- \subpage ppl6 "PPL6 Namespace"
+- <a class="el" href="classes.html">Die Klassen</a>
+- <a class="el" href="modules.html">Übersicht der Module</a>
+	- \subpage PPL6_Features
+    - \subpage Errors
+    - \subpage PPLGroupThreads
+    - \subpage PPLGroupMemory
+    - \subpage PPLGroupMath
+    - \subpage PPLGroupDateTime
+    - \subpage PPLGroupStrings
+    - \subpage PPLGroupFileIO
+    - \subpage PPLGroupGrafik
+    - \subpage PPLGroupToolkit
+    - \subpage PPLGroupSound
+    - \subpage PPLGroupInternet
+    - \subpage PPLGroupDatabases
+    - \subpage PPL6_CRYPT
+    - \subpage PPL6_COMPRESSION
+    
+    
+- Sonstiges
+  - \subpage Dateiformate
+  - \subpage formatstring
+  - \subpage todo
+  - \subpage deprecated
+  
+- \subpage PPL6History
+- \subpage pplPageCredits
+- \subpage pplPageLicense
+
+
+\image html resource/ppl6-icon-48x48.png
+*/
+
+/*!\page pplPageLicense Copyright
+Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz.
+BSD steht für "Berkeley Software Distribution". Software unter der BSD-Lizenz darf frei
+verwendet werden und es ist erlaubt, sie zu kopieren, zu verändern und zu verbreiten.
+Ein Programmierer, der ein unter einer BSD-Lizenz veröffentlichtes Programm verändert
+und dann verbreitet, ist nicht verpflichtet, den Quellcode seines veränderten Programms
+mitzuveröffentlichen. Einzige Bedingung der BSD-Lizenz ist, dass der Copyright-Vermerk des
+ursprünglichen Programms nicht entfernt werden darf. Somit eignet sich unter der BSD-Lizenz
+stehende Software auch gut als Vorlage für kommerzielle Produkte.
+
+Ursprünglich enthielt die BSD-Lizenz eine sogenannte “advertising clause” (Werbungsklausel).
+Sie verpflichtet die Softwareentwickler dazu, beim Bewerben ihres Produkts den Namen des
+ursprünglichen Softwareautors zu nennen. Diese Klausel wurde jedoch entfernt, so dass die
+PPL-Library auch ohne Nennung in Werbematerialien verwendet werden darf.
+
+Der Wortlaut der Lizenz lautet folgendermassen:
+
+\include LICENSE.TXT
+
+Übersetzung:
+\code
+  Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+  All rights reserved.
+ 
+  Weiterverbreitung und Verwendung in nichtkompilierter oder kompilierter Form,
+  mit oder ohne Veränderung, sind unter den folgenden Bedingungen zulässig:
+
+*      * Weiterverbreitete nichtkompilierte Exemplare müssen das obige Copyright,
+        die Liste der Bedingungen und den folgenden Haftungsausschluss im Quelltext
+        enthalten.
+*      * Weiterverbreitete kompilierte Exemplare müssen das obige Copyright,
+        die Liste der Bedingungen und den folgenden Haftungsausschluss in der
+        Dokumentation und/oder anderen Materialien, die mit dem Exemplar verbreitet
+        werden, enthalten.
+*      * Weder der Name des Copyright-Inhabers noch die Namen der Beitragsleistenden
+        dürfen zum Kennzeichnen oder Bewerben von Produkten, die von dieser
+        Software abgeleitet wurden, ohne spezielle vorherige schriftliche
+        Genehmigung verwendet werden.
+
+  DIESE SOFTWARE WIRD VOM COPYRIGHT INHABER UND DEN BEITRAGSLEISTENDEN OHNE
+  JEGLICHE SPEZIELLE ODER IMPLIZIERTE GARANTIEN ZUR VERFÜGUNG GESTELLT, DIE
+  UNTER ANDEREM EINSCHLIESSEN: DIE IMPLIZIERTE GARANTIE DER VERWENDBARKEIT DER
+  SOFTWARE FÜR EINEN BESTIMMTEN ZWECK. AUF KEINEN FALL SIND DER COPYRIGHT
+  INHABER ODER DIE BEITRAGSLEISTENDEN FÜR IRGENDWELCHE DIREKTEN, INDIREKTEN,
+  ZUFÄLLIGEN, SPEZIELLEN, BEISPIELHAFTEN ODER FOLGENDEN SCHÄDEN (UNTER ANDEREM
+  VERSCHAFFEN VON ERSATZGÜTERN ODER -DIENSTLEISTUNGEN; EINSCHRÄNKUNG DER
+  NUTZUNGSFÄHIGKEIT; VERLUST VON NUTZUNGSFÄHIGKEIT; DATEN; PROFIT ODER
+  GESCHÄFTSUNTERBRECHUNG), WIE AUCH IMMER VERURSACHT UND UNTER WELCHER
+  VERPFLICHTUNG AUCH IMMER, OB IN VERTRAG, STRIKTER VERPFLICHTUNG ODER
+  UNERLAUBTE HANDLUNG (INKLUSIVE FAHRLÄSSIGKEIT) VERANTWORTLICH, AUF WELCHE
+  WEG SIE AUCH IMMER DURCH DIE BENUTZUNG DIESER SOFTWARE ENTSTANDEN SIND,
+  SOGAR, WENN SIE AUF DIE MÖGLICHKEIT EINES SOLCHEN SCHADENS HINGEWIESEN
+  WORDEN SIND.
+\endcode
+(Quelle der Übersetzung: http://de.wikipedia.org/wiki/BSD-Lizenz)
+*/
+
+/*!
+\namespace ppl6
+\brief Der Namensraum der PPL6-Library
+
+ppl6 ist der Namensraum für alle in der PPL6-Library enthaltenen Funktionen und Klassen.
+*/
+
+/*!\namespace ppl6::grafix
+\ingroup PPLGroupGrafik
+\brief Namensraum der Grafik-Funktionen
+
+Im Namespace ppl6::grafix sind alle Grafikfunktionen der Library enthalten.
+*/
+
+/*!\namespace ppl6::tk
+\ingroup PPLGroupGrafik
+\brief Namensraum des Grafik-Toolkits
+
+In diesem Namespace sind die Klassen des Toolkits enthalten, mit denen eine Benutzeroberfläche
+erstellt werden kann.
+*/ 
