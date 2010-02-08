@@ -1,0 +1,12 @@
+/*!\file
+ * \note
+ * Standardmäßig erwartet die Klasse bei Übergabe von "char *", "const char *" oder der CString-Klasse, dass
+ * die darin enthaltenen Strings \b UTF-8 kodiert sind. Dieses Verhalten kann man aber beliebig ändern.\n\n
+ * Mit der Funktion ppl6::SetGlobalEncoding kann man das Encoding für alle CWStrings auf globaler Ebene
+ * ändern, mit der Memberfunction ppl6::CWString::SetExtEncoding kann man die Kodierung für eine einzelne
+ * Instanz der CWString-Klasse ändern.
+ * 
+ * \see
+ * - ppl6::SetGlobalEncoding
+ * - ppl6::CWString::SetExtEncoding
+ */
