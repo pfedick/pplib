@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.12 $
- * $Date: 2010/11/18 20:17:30 $
- * $Id: CString.cpp,v 1.12 2010/11/18 20:17:30 pafe Exp $
+ * $Revision: 1.13 $
+ * $Date: 2011/04/12 10:07:31 $
+ * $Id: CString.cpp,v 1.13 2011/04/12 10:07:31 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -167,6 +167,19 @@ CString::CString(const CString &str)
 	Init();
 	//printf("Aufruf mit const char &str: %s\n",str);
 	Set(str.buffer);
+}
+
+CString::CString(const std::string &str)
+/*!
+ * \brief Konstruktor der String-Klasse
+ *
+ * Erzeugt einen neuen String mit dem Inhalt von \c str
+ * \param str ist eine Instanz der Standard Template String-Klasse.
+ */
+{
+	Init();
+	//printf("Aufruf mit const char &str: %s\n",str);
+	Set(str.c_str());
 }
 
 CString::CString(const CWString &str)
@@ -1924,6 +1937,12 @@ CString& CString::operator=(const CString* str)
 CString& CString::operator=(const CString& str)
 {
 	Set(str.buffer);
+	return *this;
+}
+
+CString& CString::operator=(const std::string& str)
+{
+	Set(str.c_str());
 	return *this;
 }
 

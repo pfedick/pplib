@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.17 $
- * $Date: 2010/12/17 12:59:49 $
- * $Id: CDateTime.cpp,v 1.17 2010/12/17 12:59:49 pafe Exp $
+ * $Revision: 1.20 $
+ * $Date: 2011/04/16 14:06:57 $
+ * $Id: CDateTime.cpp,v 1.20 2011/04/16 14:06:57 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -142,15 +142,15 @@ CDateTime::CDateTime()
  *
  * @param[in] datetime String mit Datum und Uhrzeit
  *
- * \exception
- * Enthält der String \p datetime ein ungültiges oder unbekanntes Datumsformat, wird eine
- * "InvalidFormat" Exception geworfen. Ausnahmen: Ist der String leer oder enthält nur den
+ * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
+ * ein ungültiges oder unbekanntes Datumsformat hat.
+ * Ausnahmen: Ist der String leer oder enthält nur den
  * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
 CDateTime::CDateTime(const ppl6::CString &datetime)
 {
 	type=CVar::CDATETIME;
-	if (!set(datetime)) throw Exception();
+	if (!set(datetime)) throw IllegalArgumentException();
 }
 
 /*!\brief Copy-Konstruktor
@@ -500,7 +500,8 @@ void CDateTime::setLongInt(ppluint64 i)
 	if (ii>59) ii=59;
 	if (hh>23) hh=23;
 	if (dd>31) dd=31;
-	if (mm<0) mm=1;
+	if (dd<1) dd=1;
+	if (mm<1) mm=1;
 	if (mm>12) mm=12;
 }
 
@@ -523,6 +524,13 @@ void CDateTime::setCurrentTime()
 	mm=tt.tm_mon+1;
 	yy=tt.tm_year+1900;
 	ms=0;
+#ifdef HAVE_GETTIMEOFDAY
+	struct timeval tv;
+	if (gettimeofday(&tv,NULL)==0) {
+		ms=tv.tv_usec/1000;
+	}
+
+#endif
 }
 
 
@@ -550,6 +558,7 @@ void CDateTime::setCurrentTime()
  * - \%H: Stunden als zweistellige Zahl (00 bis 23)
  * - \%M: Minuten als zweistellige Zahl (00 bis 59)
  * - \%S: Sekunden als zweistellige Zahl (00 bis 59)
+ * - \%*: Millisekunden als dreistellige Zahl (00 bis 999)
  * \par
  * Falls das im Objekt enthaltene Datum > 1900 ist, können weitere Formatanweisungen verwendet werden.
  * \par
@@ -558,9 +567,12 @@ void CDateTime::setCurrentTime()
  */
 ppl6::CString CDateTime::get(const ppl6::CString &format) const
 {
+	ppl6::CString Tmp;
 	ppl6::CString r=format;
+	Tmp.Setf("%03i",ms);
+	r.Replace("%*",Tmp);
+
 	if (yy<1900) {
-		ppl6::CString Tmp;
 		Tmp.Setf("%04i",yy);
 		r.Replace("%Y",Tmp);
 		Tmp.Setf("%02i",yy%100);
@@ -594,14 +606,14 @@ ppl6::CString CDateTime::get(const ppl6::CString &format) const
 	t.tm_isdst=-1;
 	mktime(&t);
 
-	size_t size=format.Len()*2+32;
+	size_t size=r.Len()*2+32;
 	char *b=(char*)malloc(size);
 	if (!b) {
 		ppl6::SetError(2);
 		return r;
 	}
-	if (strftime(b, size,(const char*)format, &t)==0) {
-		ppl6::SetError(348,"CDateTime::get(\"%s\")",(const char*)format);
+	if (strftime(b, size,(const char*)r, &t)==0) {
+		ppl6::SetError(348,"CDateTime::get(\"%s\")",(const char*)r);
 		return r;
 	}
 	r.Set(b);

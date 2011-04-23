@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/07/26 10:28:51 $
- * $Id: time.cpp,v 1.3 2010/07/26 10:28:51 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2011/04/16 14:02:00 $
+ * $Id: time.cpp,v 1.4 2011/04/16 14:02:00 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -960,8 +960,8 @@ CString MkRFC822Date (PPLTIME &t)
 	const char *month[]={ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 	// PPLTIME prüfen
-	if (t.day_of_week<0 || t.day_of_week>6) throw Exception(560,"MkRFC822Date: week<0 order week>6");
-	if (t.month<1 || t.month>12) throw Exception(560,"MkRFC822Date: month<0 order month>12");
+	if (t.day_of_week<0 || t.day_of_week>6) throw IllegalArgumentException("MkRFC822Date: week<0 order week>6");
+	if (t.month<1 || t.month>12) throw IllegalArgumentException("MkRFC822Date: month<0 order month>12");
 
 	s=day[t.day_of_week];
 	s+=", ";
@@ -1001,7 +1001,7 @@ CString MkRFC822Date (ppluint64 sec)
 {
 	PPLTIME t;
 	if (!sec) sec=GetTime();
-	if (GetTime(t,sec)!=sec) throw Exception(545);
+	if (GetTime(t,sec)!=sec) throw OperationFailedException();
 	return MkRFC822Date(t);
 	/*
 	if (localtime_r(&now,&tmstruct)) {

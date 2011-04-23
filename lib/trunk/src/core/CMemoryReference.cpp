@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.4 $
- * $Date: 2010/11/23 21:25:23 $
- * $Id: CMemoryReference.cpp,v 1.4 2010/11/23 21:25:23 pafe Exp $
+ * $Revision: 1.5 $
+ * $Date: 2011/04/16 14:02:00 $
+ * $Id: CMemoryReference.cpp,v 1.5 2011/04/16 14:02:00 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -308,14 +308,14 @@ CMemoryReference::operator CBinary() const
  *
  * @param [in] pos Auszulesendes Byte, beginnend mit 0.
  * @return Wert der Speicherstelle
- * \exception Exception::InvalidAdrdress Diese Exception wird geworfen, wenn die mit
+ * \exception OutOfBoundsEception Diese Exception wird geworfen, wenn die mit
  * \p pos angegebene Speicherstelle ausseralb des referenzierten Speichers liegt oder
  * kein Speicher referenziert ist.
  */
 unsigned char CMemoryReference::operator[](size_t pos) const
 {
 	if (ptr!=NULL && pos<s) return ((unsigned char*)ptr)[pos];
-	throw Exception(559);
+	throw OutOfBoundsEception();
 }
 
 

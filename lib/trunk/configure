@@ -612,6 +612,8 @@ SOUND_LIBS
 SOUND_CFLAGS
 GRAPHIC_LIBS
 GRAPHIC_CFLAGS
+report_have_libshout
+report_have_libogg
 report_have_ldns
 report_have_pthreads
 report_have_nasm
@@ -680,6 +682,12 @@ LTLIBICONV
 LIBICONV
 MAD_LIBS
 MAD_CFLAGS
+SHOUTCONFIG
+PKGCONFIG
+SHOUT_LIBS
+SHOUT_CFLAGS
+OGG_LIBS
+OGG_CFLAGS
 LAME_LIBS
 LAME_CFLAGS
 MPG123_LIBS
@@ -776,6 +784,10 @@ with_jpeg
 with_libcurl
 with_mpg123
 with_lame
+with_ogg
+with_ogg_libraries
+with_ogg_includes
+enable_oggtest
 with_libmad
 with_gnu_ld
 enable_rpath
@@ -809,9 +821,6 @@ LIBS
 CPPFLAGS
 CXX
 CXXFLAGS
-LDFLAGS
-LIBS
-CPPFLAGS
 CCC
 CPP
 XMKMF'
@@ -1437,6 +1446,7 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-largefile     omit support for large files
+  --disable-oggtest       Do not try to compile and run a test Ogg program
   --disable-rpath         do not hardcode runtime library paths
        --disable-freetypetest  Do not try to compile and run a test FreeType
                           program
@@ -1454,6 +1464,12 @@ Optional Packages:
   --with-libcurl=DIR      look for the curl library in DIR
   --with-mpg123[=PATH]     Prefix where libmpg123 is installed (optional)
   --with-lame[=DIR]       enable support for MP3 encoding with lame [in DIR]
+  --with-ogg=PFX          Prefix where libogg is installed (optional)
+  --with-ogg-libraries=DIR
+                          Directory where libogg library is installed
+                          (optional)
+  --with-ogg-includes=DIR Directory where libogg header files are installed
+                          (optional)
   --with-libmad[=DIR]     enable support for decoding of mp3 files [in DIR]
   --with-gnu-ld           assume the C compiler uses GNU ld default=no
   --with-libiconv-prefix[=DIR]  search for libiconv in DIR/include and DIR/lib
@@ -2930,6 +2946,17 @@ ac_config_headers="$ac_config_headers include/ppl6-unixconfig.h"
 
 
 
+
+# Configure paths for libogg
+# Jack Moffitt <jack@icecast.org> 10-21-2000
+# Shamelessly stolen from Owen Taylor and Manish Singh
+
+
+
+
+# XIPH_PATH_SHOUT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+# Test for libshout, and define SHOUT_CPPFLAGS SHOUT_CFLAGS SHOUT_LIBS, and
+# SHOUT_THREADSAFE
 
 
 # Make sure we can run config.sub.
@@ -9734,6 +9761,357 @@ $as_echo "no" >&6; }
 	fi
 
 
+report_have_libogg="no"
+
+# Check whether --with-ogg was given.
+if test "${with_ogg+set}" = set; then :
+  withval=$with_ogg; ogg_prefix="$withval"
+else
+  ogg_prefix=""
+fi
+
+
+# Check whether --with-ogg-libraries was given.
+if test "${with_ogg_libraries+set}" = set; then :
+  withval=$with_ogg_libraries; ogg_libraries="$withval"
+else
+  ogg_libraries=""
+fi
+
+
+# Check whether --with-ogg-includes was given.
+if test "${with_ogg_includes+set}" = set; then :
+  withval=$with_ogg_includes; ogg_includes="$withval"
+else
+  ogg_includes=""
+fi
+
+# Check whether --enable-oggtest was given.
+if test "${enable_oggtest+set}" = set; then :
+  enableval=$enable_oggtest;
+else
+  enable_oggtest=yes
+fi
+
+
+  if test "x$ogg_libraries" != "x" ; then
+    OGG_LIBS="-L$ogg_libraries"
+  elif test "x$ogg_prefix" = "xno" || test "x$ogg_prefix" = "xyes" ; then
+    OGG_LIBS=""
+  elif test "x$ogg_prefix" != "x" ; then
+    OGG_LIBS="-L$ogg_prefix/lib"
+  elif test "x$prefix" != "xNONE" ; then
+    OGG_LIBS="-L$prefix/lib"
+  fi
+
+  if test "x$ogg_prefix" != "xno" ; then
+    OGG_LIBS="$OGG_LIBS -logg"
+  fi
+
+  if test "x$ogg_includes" != "x" ; then
+    OGG_CFLAGS="-I$ogg_includes"
+  elif test "x$ogg_prefix" = "xno" || test "x$ogg_prefix" = "xyes" ; then
+    OGG_CFLAGS=""
+  elif test "x$ogg_prefix" != "x" ; then
+    OGG_CFLAGS="-I$ogg_prefix/include"
+  elif test "x$prefix" != "xNONE"; then
+    OGG_CFLAGS="-I$prefix/include"
+  fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Ogg" >&5
+$as_echo_n "checking for Ogg... " >&6; }
+  if test "x$ogg_prefix" = "xno" ; then
+    no_ogg="disabled"
+    enable_oggtest="no"
+  else
+    no_ogg=""
+  fi
+
+
+  if test "x$enable_oggtest" = "xyes" ; then
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS $OGG_CFLAGS"
+    LIBS="$LIBS $OGG_LIBS"
+      rm -f conf.oggtest
+      if test "$cross_compiling" = yes; then :
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ogg/ogg.h>
+
+int main ()
+{
+  system("touch conf.oggtest");
+  return 0;
+}
+
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  no_ogg=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+  fi
+
+  if test "x$no_ogg" = "xdisabled" ; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+     :
+  elif test "x$no_ogg" = "x" ; then
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_LIBOGG 1" >>confdefs.h
+
+	report_have_libogg="yes"
+
+
+
+  else
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+     if test -f conf.oggtest ; then
+       :
+     else
+       echo "*** Could not run Ogg test program, checking why..."
+       CFLAGS="$CFLAGS $OGG_CFLAGS"
+       LIBS="$LIBS $OGG_LIBS"
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdio.h>
+#include <ogg/ogg.h>
+
+int
+main ()
+{
+ return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+   echo "*** The test program compiled, but did not run. This usually means"
+       echo "*** that the run-time linker is not finding Ogg or finding the wrong"
+       echo "*** version of Ogg. If it is not finding Ogg, you'll need to set your"
+       echo "*** LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf to point"
+       echo "*** to the installed location  Also, make sure you have run ldconfig if that"
+       echo "*** is required on your system"
+       echo "***"
+       echo "*** If you have an old version installed, it is best to remove it, although"
+       echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
+else
+   echo "*** The test program failed to compile or link. See the file config.log for the"
+       echo "*** exact error that occured. This usually means Ogg was incorrectly installed"
+       echo "*** or that you have moved Ogg since it was installed."
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+       CFLAGS="$ac_save_CFLAGS"
+       LIBS="$ac_save_LIBS"
+     fi
+     OGG_CFLAGS=""
+     OGG_LIBS=""
+     :
+  fi
+
+
+  rm -f conf.oggtest
+
+
+report_have_libshout="no"
+xt_have_shout="no"
+SHOUT_THREADSAFE="no"
+SHOUT_CPPFLAGS=""
+SHOUT_CFLAGS=""
+SHOUT_LIBS=""
+
+# NB: PKG_CHECK_MODULES exits if pkg-config is unavailable on the target
+# system, so we can't use it.
+
+# seed pkg-config with the default libshout location
+PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-/usr/local/lib/pkgconfig}
+export PKG_CONFIG_PATH
+
+# Step 1: Use pkg-config if available
+# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKGCONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKGCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKGCONFIG="$PKGCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKGCONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKGCONFIG" && ac_cv_path_PKGCONFIG="no"
+  ;;
+esac
+fi
+PKGCONFIG=$ac_cv_path_PKGCONFIG
+if test -n "$PKGCONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG" >&5
+$as_echo "$PKGCONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists shout`
+then
+  SHOUT_CFLAGS=`$PKGCONFIG --variable=cflags_only shout`
+  SHOUT_CPPFLAGS=`$PKGCONFIG --variable=cppflags shout`
+  SHOUT_LIBS=`$PKGCONFIG --libs shout`
+  xt_have_shout="maybe"
+else
+  if test "$PKGCONFIG" != "no"
+  then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: $PKGCONFIG couldn't find libshout. Try adjusting PKG_CONFIG_PATH." >&5
+$as_echo "$as_me: $PKGCONFIG couldn't find libshout. Try adjusting PKG_CONFIG_PATH." >&6;}
+  fi
+  # pkg-config unavailable, try shout-config
+  # Extract the first word of "shout-config", so it can be a program name with args.
+set dummy shout-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_SHOUTCONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $SHOUTCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_SHOUTCONFIG="$SHOUTCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_SHOUTCONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_SHOUTCONFIG" && ac_cv_path_SHOUTCONFIG="no"
+  ;;
+esac
+fi
+SHOUTCONFIG=$ac_cv_path_SHOUTCONFIG
+if test -n "$SHOUTCONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SHOUTCONFIG" >&5
+$as_echo "$SHOUTCONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  if test "$SHOUTCONFIG" != "no" && test `$SHOUTCONFIG --package` = "libshout"
+  then
+    SHOUT_CPPFLAGS=`$SHOUTCONFIG --cppflags`
+    SHOUT_CFLAGS=`$SHOUTCONFIG --cflags-only`
+    SHOUT_LIBS=`$SHOUTCONFIG --libs`
+    xt_have_shout="maybe"
+  fi
+fi
+
+# Now try actually using libshout
+if test "$xt_have_shout" != "no"
+then
+  ac_save_CPPFLAGS="$CPPFLAGS"
+  ac_save_CFLAGS="$CFLAGS"
+  ac_save_LIBS="$LIBS"
+  CPPFLAGS="$CPPFLAGS $SHOUT_CPPFLAGS"
+  CFLAGS="$CFLAGS $SHOUT_CFLAGS"
+  LIBS="$SHOUT_LIBS $LIBS"
+  for ac_header in shout/shout.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "shout/shout.h" "ac_cv_header_shout_shout_h" "$ac_includes_default"
+if test "x$ac_cv_header_shout_shout_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SHOUT_SHOUT_H 1
+_ACEOF
+
+    ac_fn_c_check_func "$LINENO" "shout_new" "ac_cv_func_shout_new"
+if test "x$ac_cv_func_shout_new" = xyes; then :
+
+
+$as_echo "#define HAVE_LIBSHOUT 1" >>confdefs.h
+
+	report_have_libshout="yes"
+
+
+
+      xt_have_shout="yes"
+
+fi
+
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <shout/shout.h>
+#if SHOUT_THREADSAFE
+yes
+#endif
+
+_ACEOF
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "yes" >/dev/null 2>&1; then :
+  SHOUT_THREADSAFE="yes"
+fi
+rm -f conftest*
+
+
+fi
+
+done
+
+  CPPFLAGS="$ac_save_CPPFLAGS"
+  CFLAGS="$ac_save_CFLAGS"
+  LIBS="$ac_save_LIBS"
+fi
+
+if test "$xt_have_shout" != "yes"
+then
+  :
+fi
+
+
 
 am_save_CPPFLAGS="$CPPFLAGS"
 am_save_LIBS="$LIBS"
@@ -12955,6 +13333,8 @@ esac;
 
 
 
+
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:
 ******************************************************************************
 ** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
@@ -12978,6 +13358,8 @@ esac;
 **   Lame library:         $report_have_lame
 **   Libmad library:       $report_have_libmad
 **   mpg123 library:       $report_have_mpg123
+**   ogg library:          $report_have_libogg
+**   shout library:        $report_have_libshout
 **   Curl library:         $report_have_curl
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
@@ -13010,6 +13392,8 @@ $as_echo "
 **   Lame library:         $report_have_lame
 **   Libmad library:       $report_have_libmad
 **   mpg123 library:       $report_have_mpg123
+**   ogg library:          $report_have_libogg
+**   shout library:        $report_have_libshout
 **   Curl library:         $report_have_curl
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads

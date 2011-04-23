@@ -27,14 +27,15 @@ have_libmhash="no"
 	fi
 	if test "$libmhash_prefix" != "no"
 	then 
+		
     AC_LINK_IFELSE(
-      [[
+    	[AC_LANG_SOURCE ([[
          #include <mhash.h>
          int main()
          {
             void *handle=mhash_init(MHASH_MD5);
          }
-      ]],
+      ]]) ],
       [AC_MSG_RESULT(yes)
       	have_libmhash="yes"
       	AC_SUBST(LIBMHASH_LIBS)

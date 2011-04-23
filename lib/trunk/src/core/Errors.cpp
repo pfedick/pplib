@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.14 $
- * $Date: 2010/11/23 21:25:23 $
- * $Id: Errors.cpp,v 1.14 2010/11/23 21:25:23 pafe Exp $
+ * $Revision: 1.16 $
+ * $Date: 2011/04/16 16:25:12 $
+ * $Id: Errors.cpp,v 1.16 2011/04/16 16:25:12 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -603,7 +603,7 @@ static tr_str_array const char * errors[] = {
 		"Zugriff auf Datenbank verweigert",											// 539
 		"Datenbank konnte nicht angelegt werden",									// 540
 		"Unbekannter Parameter",													// 541
-		"Login auf Datenbank-Server fehlgeschlagen",								// 542
+		"Login fehlgeschlagen",														// 542
 		"Keine Datei geladen",														// 543
 		"Speicherbereich ist leer",													// 544
 		"Operation fehlgeschlagen",													// 545
@@ -624,6 +624,8 @@ static tr_str_array const char * errors[] = {
 		"Parameter ausserhalb des gültigen Bereichs",								// 560
 		"Gesuchte Grafik ist nicht in der MP3-Datei vorhanden",						// 561
 		"Hexadezimal-String kann nicht zum Binary konvertiert werden",				// 562
+		"Icecast Error",															// 563
+		"Feature ist nicht einkompiliert",											// 564
 		"unknown"																	//
 };
 
@@ -1458,120 +1460,6 @@ int TranslateErrno(int e)
 	return 3;
 }
 
-
-Exception::Exception()
-{
-	PPL_ERROR *t=GetErrorThreadPtr();
-	if (!t) {
-		err=0;
-		suberr=0;
-	} else {
-		err=t->err;
-		suberr=t->suberr;
-		ErrorText=t->ErrorText;
-	}
-}
-
-Exception::Exception(ppluint32 errorcode)
-{
-	err=errorcode;
-	suberr=0;
-	PPL_ERROR *t=GetErrorThreadPtr();
-	if (!t) return;
-	t->ErrorText.Clear();
-	t->err=errorcode;
-	t->suberr=0;
-}
-
-Exception::Exception(ppluint32 errorcode, const char *msg, ...)
-{
-	err=errorcode;
-	suberr=0;
-	if (msg) {
-		va_list args;
-		va_start(args, msg);
-		ErrorText.Vasprintf(msg,args);
-		va_end(args);
-	}
-	PPL_ERROR *t=GetErrorThreadPtr();
-	if (!t) return;
-	t->ErrorText=ErrorText;
-	t->err=err;
-	t->suberr=0;
-}
-
-Exception::Exception(ppluint32 errorcode, const CString &msg)
-{
-	err=errorcode;
-	suberr=0;
-	ErrorText=msg;
-	PPL_ERROR *t=GetErrorThreadPtr();
-	if (!t) return;
-	t->ErrorText=ErrorText;
-	t->err=err;
-	t->suberr=0;
-}
-
-Exception::Exception(ppluint32 errorcode, ppldd suberrorcode, const char *msg, ...)
-{
-	err=errorcode;
-	suberr=suberrorcode;
-	if (msg) {
-		va_list args;
-		va_start(args, msg);
-		ErrorText.Vasprintf(msg,args);
-		va_end(args);
-	}
-	PPL_ERROR *t=GetErrorThreadPtr();
-	if (!t) return;
-	t->ErrorText=ErrorText;
-	t->err=err;
-	t->suberr=suberr;
-}
-
-int Exception::code() const throw()
-{
-	return err;
-}
-
-int Exception::suberror() const throw()
-{
-	return suberr;
-}
-
-const char* Exception::text() const throw()
-{
-	return GetError(err);
-}
-
-const char* Exception::extendedText() const throw()
-{
-	return ErrorText.GetPtr();
-}
-
-CString Exception::toString() const throw()
-{
-	CString str;
-	str.Sprintf(tr("Error %u: %s"),err,GetError(err));
-	if (ErrorText.NotEmpty()) str.Concatf(" [%s]",(const char*)ErrorText);
-	return str;
-}
-
-void Exception::toError() const throw()
-{
-	PPL_ERROR *t=GetErrorThreadPtr();
-	if (!t) return;
-	t->ErrorText=ErrorText;
-	t->err=err;
-	t->suberr=suberr;
-}
-
-void Exception::print() const
-{
-	PrintDebug(tr("Exception: Error %u: %s"),err,GetError(err));
-	if (ErrorText.NotEmpty()) PrintDebug(" [%s]",(const char*)ErrorText);
-	PrintDebug ("\n");
-}
 
 } // end of namespace ppl
 

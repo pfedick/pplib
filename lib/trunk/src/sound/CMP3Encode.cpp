@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.5 $
- * $Date: 2010/06/23 11:05:19 $
- * $Id: CMP3Encode.cpp,v 1.5 2010/06/23 11:05:19 pafe Exp $
+ * $Revision: 1.6 $
+ * $Date: 2011/04/20 18:33:13 $
+ * $Id: CMP3Encode.cpp,v 1.6 2011/04/20 18:33:13 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -588,14 +588,20 @@ int CMP3Encode::FinishEncode()
 		SetError(218);
 		return 0;
 	}
-	if (!have_firstwave) {
-		SetError(217,"Nothing to encode");
-		return 0;
+
+	ppldd encodedbytes=0;
+	if (mp3buf) {
+		if (!have_firstwave) {
+			SetError(217,"Nothing to encode");
+			return 0;
+		}
+
+		encodedbytes=lame_encode_flush((lame_global_flags*)gfp,mp3buf,mp3bufsize);
+		if (encodedbytes) WriteEncodedBytes((char *)mp3buf,encodedbytes);
+	} else {
+		mp3buf=(unsigned char*)malloc(16192);
+		encodedbytes=lame_encode_flush((lame_global_flags*)gfp,mp3buf,16192);
 	}
-
-	ppldd encodedbytes=lame_encode_flush((lame_global_flags*)gfp,mp3buf,mp3bufsize);
-	if (encodedbytes) WriteEncodedBytes((char *)mp3buf,encodedbytes);
-
 	free (mp3buf);
 	mp3buf=NULL;
 	free(readcache);

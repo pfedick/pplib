@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.10 $
- * $Date: 2010/09/25 20:30:06 $
- * $Id: ppl6-sound.h,v 1.10 2010/09/25 20:30:06 pafe Exp $
+ * $Revision: 1.14 $
+ * $Date: 2011/04/17 11:59:29 $
+ * $Id: ppl6-sound.h,v 1.14 2011/04/17 11:59:29 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -417,6 +417,57 @@ class CID3Tag
 		~CID3Tag();
 };
 
+
+class CIcecast
+{
+	private:
+		void	*shout;
+		bool    bconnected;
+	public:
+		CIcecast();
+		~CIcecast();
+		void    translateError() const throw();
+		CString	getVersion(int *major=NULL, int *minor=NULL, int *patch=NULL) const;
+		CString version() const;
+		bool	connected();
+		void	setConnection(const CString &host, int port, const CString &password);
+		CString host() const;
+		int		port() const;
+		CString	password() const;
+		void	setMount(const CString &mount);
+		CString mount() const;
+		void	setName(const CString &name);
+		CString name() const;
+		void	setUrl(const CString &url);
+		CString url() const;
+		void	setGenre(const CString &genre);
+		CString genre() const;
+		void	setUser(const CString &user);
+		CString user() const;
+		void	setAgent(const CString &agent);
+		CString agent() const;
+		void	setDescription(const CString &description);
+		CString description() const;
+		void	setDumpfile(const CString &file);
+		CString dumpfile() const;
+		void	setAudioInfo(const CString &name, const CString &value);
+		CString audioInfo(const CString &name) const;
+		void	setPublic(bool makepublic);
+		void	setFormatMP3();
+		void	setFormatOGG();
+		void	setNonBlocking(bool flag);
+
+		void	connect();
+		void	disconnect();
+
+		void	send(const void *buffer, size_t bytes);
+		int		delay();
+		void	sync();
+
+		void	sendMetadata(const CString &name, const CString &value);
+		void	setTitle(const CString &title);
+
+};
 
 
 } // end of namespace ppl

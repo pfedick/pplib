@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.61 $
- * $Date: 2011/03/17 11:12:16 $
- * $Id: ppl6.h,v 1.61 2011/03/17 11:12:16 pafe Exp $
+ * $Revision: 1.63 $
+ * $Date: 2011/04/16 14:02:00 $
+ * $Id: ppl6.h,v 1.63 2011/04/16 14:02:00 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -40,8 +40,8 @@
 
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
-#define PPL_VERSION_BUILD	6
-#define PPL_RELEASEDATE		20110317
+#define PPL_VERSION_BUILD	7
+#define PPL_RELEASEDATE		20110416
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -73,6 +73,9 @@
 #ifdef  HAVE_STRINGS_H
 #include <strings.h>
 #endif
+
+#include <string>
+
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
@@ -114,6 +117,11 @@
 	#endif
 //#endif
 
+#ifdef PPL6LIB
+	#include "ppl6-exceptions.h"
+#else
+	#include <ppl6-exceptions.h>
+#endif
 
 namespace ppl6 {
 
@@ -296,8 +304,6 @@ class CMemFile;
 class CResource;
 class CHeap;
 class CBinary;
-
-class Exception;
 
 /*
 namespace Exception {
@@ -497,6 +503,7 @@ class CString : public CVar
 		CString(const wchar_t *str);
 		CString(CString *str);
 		CString(const CString &str);
+		CString(const std::string &str);
 		CString(const CWString &str);
 		CString(const CBinary &bin);
 
@@ -627,6 +634,7 @@ class CString : public CVar
 		CString& operator=(const char* str);
 		CString& operator=(const wchar_t* str);
 		CString& operator=(const CString *str);
+		CString& operator=(const std::string &str);
 		CString& operator=(const CString& str);
 		CString& operator=(const CWString& str);
 		CString& operator+=(const char* str);
@@ -1098,28 +1106,6 @@ class CDateTime : public CVar
 		bool operator>=(const CDateTime &other) const;
 		bool operator>(const CDateTime &other) const;
 
-};
-
-
-class Exception
-{
-	private:
-		ppluint32 err, suberr;
-		CString ErrorText;
-	public:
-		Exception();
-		Exception(ppluint32 errorcode);
-		Exception(ppluint32 errorcode, const char *msg, ...);
-		Exception(ppluint32 errorcode, const CString &msg);
-		Exception(ppluint32 errorcode, ppldd suberrorcode, const char *msg, ...);
-		Exception(ppluint32 errorcode, ppldd suberrorcode, const CString &msg);
-		int code() const throw();
-		int suberror() const throw();
-		const char* text() const throw();
-		const char* extendedText() const throw();
-		CString toString() const throw();
-		void toError() const throw();
-		void print() const;
 };
 
 

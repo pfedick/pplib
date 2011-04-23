@@ -28,8 +28,7 @@ report_have_zlib="no"
 		LIBS="$LIBS -lz"
 		ZLIB_LIBS="-lz"
 	fi
-    AC_LINK_IFELSE(
-      [[
+    AC_LINK_IFELSE( [AC_LANG_SOURCE([[
          #include <zlib.h>
          int main()
          {
@@ -40,7 +39,7 @@ report_have_zlib="no"
             int ret;
             ret=compress2((Bytef*)dest, (uLongf*)&destLen,(const Bytef*)source,sourceLen,5);
          }
-      ]],
+      ]]) ],
       [AC_MSG_RESULT(yes)
       AC_DEFINE(HAVE_LIBZ, 1, [ Define if you have zlib. ])
       AC_DEFINE(HAVE_ZLIB, 1, [ Define if you have zlib. ])

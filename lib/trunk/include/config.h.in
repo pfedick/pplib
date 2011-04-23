@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *  
  * $Author: pafe $
- * $Revision: 1.7 $
- * $Date: 2010/05/01 12:51:28 $
- * $Id: config.h.in,v 1.7 2010/05/01 12:51:28 pafe Exp $
+ * $Revision: 1.8 $
+ * $Date: 2011/04/12 19:16:34 $
+ * $Id: config.h.in,v 1.8 2011/04/12 19:16:34 pafe Exp $
  * 
  ******************************************************************************* 
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -261,7 +261,8 @@
 #undef HAVE_LIBMAD
 #undef HAVE_MPG123
 #undef HAVE_MPG123_H
-
+#undef HAVE_LIBSHOUT
+#undef HAVE_LIBOGG
 
 /*
  * pthread

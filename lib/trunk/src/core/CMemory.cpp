@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.4 $
- * $Date: 2010/11/23 21:25:23 $
- * $Id: CMemory.cpp,v 1.4 2010/11/23 21:25:23 pafe Exp $
+ * $Revision: 1.6 $
+ * $Date: 2011/04/16 14:02:00 $
+ * $Id: CMemory.cpp,v 1.6 2011/04/16 14:02:00 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -117,12 +117,14 @@ CMemory::~CMemory()
  * Objekts kopiert.
  *
  * @param[in] other Referenz auf eine andere CMemory- oder CMemoryReference-Klasse
+ *
+ * \exception OutOfMemoryException Diese Exception wird geworfen, wenn der Speicher nicht allokiert werden konnte
  */
 CMemory::CMemory(const CMemoryReference &other)
 {
 	if (other.ptr) {
 		ptr=::malloc(other.s);
-		if (!ptr) throw Exception(2);
+		if (!ptr) throw OutOfMemoryException();
 		memcpy(ptr,other.ptr,other.s);
 		s=other.s;
 	} else {
@@ -170,17 +172,17 @@ CMemory::CMemory(void *adr, size_t size)
  * der Größe \p size allokiert und diesen selbst verwaltet.
  *
  * @param[in] size Gewünschte Größe des Speicherblocks in Bytes
- * \exception Exception::OutOfMemory Diese Exception wird geworfen, wenn der Speicher nicht allokiert werden konnte
+ * \exception OutOfMemoryException Diese Exception wird geworfen, wenn der Speicher nicht allokiert werden konnte
  */
 CMemory::CMemory(size_t size)
 {
 	s=0;
 	ptr=::malloc(size);
-	if (!ptr) throw Exception(2);
+	if (!ptr) throw OutOfMemoryException();
 	s=size;
 }
 
-/*!\brief Speicherverwltung übernehmen
+/*!\brief Speicherverwaltung übernehmen
  *
  * \desc
  * Mit dieser Funktion wird der Klasse die Verwaltung des Speicherbereich mit der Adresse \p adr und der
@@ -361,14 +363,14 @@ CMemory::operator void*() const
  *
  * @param [in] pos Auszulesendes Byte, beginnend mit 0.
  * @return Wert der Speicherstelle
- * \exception Exception::InvalidAdrdress Diese Exception wird geworfen, wenn die mit
+ * \exception OutOfBoundsEception Diese Exception wird geworfen, wenn die mit
  * \p pos angegebene Speicherstelle ausseralb des referenzierten Speichers liegt oder
  * kein Speicher referenziert ist.
  */
 unsigned char CMemory::operator[](size_t pos) const
 {
 	if (ptr!=NULL && pos<s) return ((unsigned char*)ptr)[pos];
-	throw Exception(559);
+	throw OutOfBoundsEception();
 }
 
 /*!\brief Speicher allokieren

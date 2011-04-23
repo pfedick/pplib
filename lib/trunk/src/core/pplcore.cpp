@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/04/02 10:58:26 $
- * $Id: pplcore.cpp,v 1.3 2010/04/02 10:58:26 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2011/04/21 19:16:16 $
+ * $Id: pplcore.cpp,v 1.4 2011/04/21 19:16:16 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -48,7 +48,7 @@
 
 #include "ppl6.h"
 
-#define PPL_COPYRIGHT		"(c) Copyright by Patrick F.-Productions in 2005-2010"
+#define PPL_COPYRIGHT		"(c) Copyright by Patrick F.-Productions in 2005-2011"
 
 
 

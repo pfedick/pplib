@@ -16,10 +16,10 @@ TARGETBIN	= @bindir@
 TARGETINCLUDE	= @includedir@
 CC			= @CC@
 CXX			= @CXX@
-CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @openssl_includes@ @MYSQL_CFLAGS@ @PGSQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@
+CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @openssl_includes@ @MYSQL_CFLAGS@ @PGSQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@
 CPPFLAGS	= @CPPFLAGS@
 LDFLAGS		= @LDFLAGS@
-LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @PGSQL_LIBS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@
+LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @PGSQL_LIBS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@
 LIBNAME		= libppl6
 LIBDEBUG	= libppl6-debug
 DISTNAME	= ppl
@@ -60,6 +60,7 @@ RELEASE	= release/CAVLTree.o \
 	release/CTok.o \
 	release/CTree.o \
 	release/Errors.o \
+	release/Exception.o \
 	release/PFPFile.o \
 	release/WinSockErrors.o \
 	release/compat.o \
@@ -152,6 +153,7 @@ RELEASE	= release/CAVLTree.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
 	release/CID3Tag.o \
+	release/CIcecast.o \
 	release/CMP3Decode.o \
 	release/CMP3Decode_Lame.o \
 	release/CMP3Decode_LibMad.o \
@@ -189,6 +191,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/CTok.o \
 	debug/CTree.o \
 	debug/Errors.o \
+	debug/Exception.o \
 	debug/PFPFile.o \
 	debug/WinSockErrors.o \
 	debug/compat.o \
@@ -281,6 +284,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/tk_Widget.o \
 	debug/tk_Window.o \
 	debug/CID3Tag.o \
+	debug/CIcecast.o \
 	debug/CMP3Decode.o \
 	debug/CMP3Decode_Lame.o \
 	debug/CMP3Decode_LibMad.o \
@@ -318,6 +322,7 @@ CORE_RELEASE	=release/CAVLTree.o \
 	release/CTok.o \
 	release/CTree.o \
 	release/Errors.o \
+	release/Exception.o \
 	release/PFPFile.o \
 	release/WinSockErrors.o \
 	release/compat.o \
@@ -374,6 +379,7 @@ CORE_DEBUG	=debug/CAVLTree.o \
 	debug/CTok.o \
 	debug/CTree.o \
 	debug/Errors.o \
+	debug/Exception.o \
 	debug/PFPFile.o \
 	debug/WinSockErrors.o \
 	debug/compat.o \
@@ -454,6 +460,7 @@ INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 
 
 SOUND_RELEASE	=release/CID3Tag.o \
+	release/CIcecast.o \
 	release/CMP3Decode.o \
 	release/CMP3Decode_Lame.o \
 	release/CMP3Decode_LibMad.o \
@@ -462,6 +469,7 @@ SOUND_RELEASE	=release/CID3Tag.o \
 	release/mp3.o
 
 SOUND_DEBUG	=debug/CID3Tag.o \
+	debug/CIcecast.o \
 	debug/CMP3Decode.o \
 	debug/CMP3Decode_Lame.o \
 	debug/CMP3Decode_LibMad.o \
@@ -672,6 +680,7 @@ release/$(LIBNAME)-tk.a: Makefile release/make $(TK_RELEASE)
 install:	release/$(LIBNAME).a release/pplgenresource.o
 	-cp release/$(LIBNAME)*.a $(TARGETLIB)
 	-cp $(incdir)/ppl6.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-exceptions.h $(TARGETINCLUDE)
 	-cp $(incdir)/ppl6-grafix.h $(TARGETINCLUDE)
 	-rm -f $(TARGETINCLUDE)\ppl6-grafix6.h
 	-cp $(incdir)/ppl6-tk.h $(TARGETINCLUDE)
@@ -687,6 +696,7 @@ install:	release/$(LIBNAME).a release/pplgenresource.o
 install_debug: debug/$(LIBDEBUG).a debug/pplgenresource.o
 	-cp debug/$(LIBDEBUG)*.a $(TARGETLIB)
 	-cp $(incdir)/ppl6.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-exceptions.h $(TARGETINCLUDE)
 	-cp $(incdir)/ppl6-grafix.h $(TARGETINCLUDE)
 	-rm -f $(TARGETINCLUDE)\ppl6-grafix6.h
 	-cp $(incdir)/ppl6-tk*.h $(TARGETINCLUDE)
@@ -894,6 +904,11 @@ release/Errors.o:	$(srcdir)/core/Errors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unix
 	###############################################################################
 	# Compiling >>>core/Errors.cpp<<<
 	$(CXX) -Wall -O3 -o release/Errors.o -c $(srcdir)/core/Errors.cpp $(CFLAGS) 
+
+release/Exception.o:	$(srcdir)/core/Exception.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  	$(incdir)/ppl6-exceptions.h
+	###############################################################################
+	# Compiling >>>core/Exception.cpp<<<
+	$(CXX) -Wall -O3 -o release/Exception.o -c $(srcdir)/core/Exception.cpp $(CFLAGS) 
 
 release/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1423,6 +1438,11 @@ release/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-u
 	# Compiling >>>sound/CID3Tag.cpp<<<
 	$(CXX) -Wall -O3 -o release/CID3Tag.o -c $(srcdir)/sound/CID3Tag.cpp $(CFLAGS) 
 
+release/CIcecast.o:	$(srcdir)/sound/CIcecast.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CIcecast.cpp<<<
+	$(CXX) -Wall -O3 -o release/CIcecast.o -c $(srcdir)/sound/CIcecast.cpp $(CFLAGS) 
+
 release/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CMP3Decode.cpp<<<
@@ -1639,6 +1659,11 @@ debug/Errors.o:	$(srcdir)/core/Errors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixco
 	###############################################################################
 	# Compiling >>>core/Errors.cpp<<<
 	$(CXX) -Wall -O -o debug/Errors.o -c $(srcdir)/core/Errors.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/Exception.o:	$(srcdir)/core/Exception.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  	$(incdir)/ppl6-exceptions.h
+	###############################################################################
+	# Compiling >>>core/Exception.cpp<<<
+	$(CXX) -Wall -O -o debug/Exception.o -c $(srcdir)/core/Exception.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -2167,6 +2192,11 @@ debug/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-uni
 	###############################################################################
 	# Compiling >>>sound/CID3Tag.cpp<<<
 	$(CXX) -Wall -O -o debug/CID3Tag.o -c $(srcdir)/sound/CID3Tag.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/CIcecast.o:	$(srcdir)/sound/CIcecast.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CIcecast.cpp<<<
+	$(CXX) -Wall -O -o debug/CIcecast.o -c $(srcdir)/sound/CIcecast.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################

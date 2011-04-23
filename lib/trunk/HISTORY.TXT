@@ -1,6 +1,16 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
+Version 6.4.7
+  - CDateTime holt sich nun die Millisekunden via "gettimeofday",
+    sofern die Funktion vorhanden ist. Bei der Ausgabe mit
+    "get" wird nun der Platzhalter "%*" unterstützt, der durch die
+    Millisekunden ersetzt wird.
+  - Überarbeitung und Vereinfachung der Exception-Klasse
+  - Neue Klasse: CIcecast zum Streamen von MP3 oder OGG Dateien
+    an einen Icecast Server
+  - Update der Dokumentation auf Doxygen 1.7.3
+
 Version 6.4.6 vom 17.03.2011	(CVS-Tag: REL_6_4_6)
   - CAssocArray hat Copy-Konstruktor und Zuweisungsoperator für CArray
     erhalten.

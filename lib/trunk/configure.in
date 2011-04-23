@@ -39,6 +39,8 @@ sinclude(config/ax_gcc_archflag.m4)
 sinclude(config/ldns.m4)
 sinclude(config/mpg123.m4)
 sinclude(config/lame.m4)
+sinclude(config/ogg.m4)
+sinclude(config/shout.m4)
 
 AC_CANONICAL_TARGET
 
@@ -53,10 +55,6 @@ AX_GCC_ARCHFLAG
 
 
 AC_PROG_SED
-
-#AX_SLEEP
-
-
 
 AC_C_BIGENDIAN(
 	report_byteorder="BIG ENDIAN"
@@ -280,6 +278,22 @@ AC_CHECK_LIBMP3LAME([3.98.0],
 	report_have_lame="yes"
 	AC_SUBST(LAME_CFLAGS)
 	AC_SUBST(LAME_LIBS)
+	, :)
+
+report_have_libogg="no"
+XIPH_PATH_OGG(
+	AC_DEFINE(HAVE_LIBOGG, 1, [ Define if you have libogg. ])
+	report_have_libogg="yes"
+	AC_SUBST(OGG_CFLAGS)
+	AC_SUBST(OGG_LIBS)
+	, :)
+
+report_have_libshout="no"
+XIPH_PATH_SHOUT(
+	AC_DEFINE(HAVE_LIBSHOUT, 1, [ Define if you have libshout. ])
+	report_have_libshout="yes"
+	AC_SUBST(SHOUT_CFLAGS)
+	AC_SUBST(SHOUT_LIBS)
 	, :)
 
 
@@ -515,6 +529,8 @@ AC_SUBST(report_have_sybase)
 AC_SUBST(report_have_nasm)
 AC_SUBST(report_have_pthreads)
 AC_SUBST(report_have_ldns)
+AC_SUBST(report_have_libogg)
+AC_SUBST(report_have_libshout)
 
 
 dnl report configuration
@@ -540,7 +556,9 @@ AC_MSG_RESULT([
 **   SDL library:          $report_have_sdl		  
 **   Lame library:         $report_have_lame		  
 **   Libmad library:       $report_have_libmad	
-**   mpg123 library:       $report_have_mpg123	  
+**   mpg123 library:       $report_have_mpg123
+**   ogg library:          $report_have_libogg	  
+**   shout library:        $report_have_libshout
 **   Curl library:         $report_have_curl		  
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads

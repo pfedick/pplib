@@ -28,8 +28,7 @@ report_have_bzip2="no"
 		LIBS="$LIBS -lbz2"
 		BZ2_LIBS="-lbz2"
 	fi
-    AC_LINK_IFELSE(
-      [[
+    AC_LINK_IFELSE( [AC_LANG_SOURCE([[
          #include <bzlib.h>
          int main()
          {
@@ -44,7 +43,7 @@ report_have_bzip2="no"
                                       sourceLen, blockSize100k,
                                       verbosity, workFactor);
          }
-      ]],
+      ]]) ],
       [AC_MSG_RESULT(yes)
       AC_DEFINE(HAVE_BZIP2, 1, [ Define if you have bzip2. ])
       AC_SUBST(BZ2_CFLAGS)
