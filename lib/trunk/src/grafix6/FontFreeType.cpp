@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: FontFreeType.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/04/10 12:35:37 $
+ * $Id: FontFreeType.cpp,v 1.3 2010/04/10 12:35:37 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -207,7 +207,7 @@ int CFontEngineFreeType::DeleteFont(CFontFile *file)
 	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file->priv;
 	if (face) {
 		FT_Done_Face(face->face);
-		if (face->buffer) free(face->buffer);
+		free(face->buffer);
 		free(face);
 		file->priv=NULL;
 	}

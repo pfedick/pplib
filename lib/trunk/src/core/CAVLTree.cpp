@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.8 $
- * $Date: 2010/03/26 10:29:32 $
- * $Id: CAVLTree.cpp,v 1.8 2010/03/26 10:29:32 pafe Exp $
+ * $Revision: 1.9 $
+ * $Date: 2010/11/26 16:00:50 $
+ * $Id: CAVLTree.cpp,v 1.9 2010/11/26 16:00:50 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -377,7 +377,6 @@ void *CAVLTree::GetFirst()
 	current=NULL;
 	stack_height=0;
 	TREEITEM *node;
-	stack_height = 0;
 	node = root;
 	if (node != NULL)
 		while (node->left != NULL) {
@@ -1022,7 +1021,116 @@ void CAVLTree::SwapNodes(TREEITEM *item1, TREEITEM *item2)
 
 
 
+CAVLTree::Walker::Walker()
+{
+	current=NULL;
+	stack_height=0;
+}
 
+void CAVLTree::Reset(Walker &walk) const
+{
+	walk.current=NULL;
+	walk.stack_height=NULL;
+}
+
+void *CAVLTree::GetFirst(Walker &walk) const
+{
+	walk.current=NULL;
+	walk.stack_height=0;
+	TREEITEM *node;
+	node = root;
+	if (node != NULL)
+		while (node->left != NULL) {
+    		walk.stack[walk.stack_height++] = node;
+			node = node->left;
+		}
+	walk.current = node;
+	if (node) return (void*)node->data;
+	SetError(347);
+	return NULL;
+}
+
+void *CAVLTree::GetNext(Walker &walk) const
+{
+	TREEITEM *node=walk.current, *tmp;
+	if (node == NULL) {
+		return GetFirst(walk);
+	} else if (node->right != NULL) {
+		walk.stack[walk.stack_height++] = node;
+		node = node->right;
+		while (node->left != NULL) {
+			walk.stack[walk.stack_height++] = node;
+			node = node->left;
+		}
+	} else {
+		do {
+			if (walk.stack_height == 0) {
+				walk.current = NULL;
+				SetError(422);
+				return NULL;
+			}
+			tmp=node;
+			node = walk.stack[--walk.stack_height];
+		} while (tmp == node->right);
+	}
+	walk.current=node;
+	if (node) return (void*)node->data;
+	SetError(422);
+	return NULL;
+}
+
+void *CAVLTree::GetLast(Walker &walk) const
+{
+	TREEITEM *node;
+	walk.stack_height = 0;
+	node = root;
+	if (node != NULL)
+		while (node->right != NULL) {
+			walk.stack[walk.stack_height++] = node;
+			node = node->right;
+		}
+	walk.current = node;
+	if (node) return (void*)node->data;
+	SetError(347);
+	return NULL;
+}
+
+void *CAVLTree::GetPrevious(Walker &walk) const
+{
+	TREEITEM *node, *y;
+	node = walk.current;
+	if (node == NULL) {
+		return GetLast(walk);
+	} else if (node->left != NULL) {
+		walk.stack[walk.stack_height++] = node;
+		node = node->left;
+		while (node->right != NULL) {
+			walk.stack[walk.stack_height++] = node;
+			node=node->right;
+		}
+	} else {
+		do {
+			if (walk.stack_height == 0) {
+				walk.current = NULL;
+				SetError(422);
+				return NULL;
+			}
+			y = node;
+			node = walk.stack[--walk.stack_height];
+		} while (y == node->left);
+	}
+	walk.current = node;
+	if (node) return (void*)node->data;
+	SetError(422);
+	return NULL;
+}
+
+void *CAVLTree::GetCurrent(Walker &walk) const
+{
+	if (walk.current) return (void*)walk.current->data;
+	SetError(422);
+	return NULL;
+}
 
 
 }	// EOF namespace ppl6

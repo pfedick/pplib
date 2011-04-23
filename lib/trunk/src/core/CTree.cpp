@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/02/28 11:01:28 $
- * $Id: CTree.cpp,v 1.3 2010/02/28 11:01:28 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2011/02/18 10:00:53 $
+ * $Id: CTree.cpp,v 1.4 2011/02/18 10:00:53 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -1198,6 +1198,86 @@ CTreeItem *CTree::GetPrevious()
 CTreeItem *CTree::GetCurrent() const
 {
 	if (current) return current;
+	SetError(422);
+	return NULL;
+}
+
+
+
+/*!\brief Letztes Element aus dem Baum
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Pointer auf das letzte Element des Baums zurückgeliefert.
+ *
+ * \return Pointer auf das letzte Element des Baums oder NULL, wenn der Baum leer ist
+ */
+CTreeItem *CTree::GetLast(CTreeWalker &walk) const
+{
+	CTreeItem *node;
+	walk.stack_height = 0;
+	node = root;
+	if (node != NULL)
+		while (node->right != NULL) {
+			walk.stack[walk.stack_height++] = node;
+			node = node->right;
+		}
+	walk.current = node;
+	if (node) return node;
+	SetError(347);
+	return NULL;
+}
+
+/*!\brief Vorheriges Element aus dem Baum
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Pointer auf das vorherige Element des Baums zurückgeliefert.
+ * Somit kann der Baum sortiert rückwärts durchwandert werden.
+ *
+ * \return Pointer auf das vorherige Element des Baums oder NULL, wenn keine weiteren
+ * Elemente vorhanden sind. In diesesm Fall wird ausserdem der Fehlercode 422 gesetzt.
+ */
+CTreeItem *CTree::GetPrevious(CTreeWalker &walk) const
+{
+	CTreeItem *node, *y;
+	node = walk.current;
+	if (node == NULL) {
+		return GetLast(walk);
+	} else if (node->left != NULL) {
+		walk.stack[walk.stack_height++] = node;
+		node = node->left;
+		while (node->right != NULL) {
+			walk.stack[walk.stack_height++] = node;
+			node=node->right;
+		}
+	} else {
+		do {
+			if (walk.stack_height == 0) {
+				walk.current = NULL;
+				SetError(422);
+				return NULL;
+			}
+			y = node;
+			node = walk.stack[--walk.stack_height];
+		} while (y == node->left);
+	}
+	walk.current = node;
+	if (node) return node;
+	SetError(422);
+	return NULL;
+}
+
+/*!\brief Aktuelles Element des Baums
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Pointer auf das aktuelle Element des Baums zurückgeliefert.
+ * Dabei wird der Pointer nicht verändert.
+ *
+ * \return Pointer auf das aktuelle Element des Baums oder NULL, wenn kein
+ * Element mehr vorhanden ist. In diesesm Fall wird ausserdem der Fehlercode 422 gesetzt.
+ */
+CTreeItem *CTree::GetCurrent(CTreeWalker &walk) const
+{
+	if (walk.current) return walk.current;
 	SetError(422);
 	return NULL;
 }

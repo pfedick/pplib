@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/02/21 00:33:56 $
- * $Id: Font5.cpp,v 1.3 2010/02/21 00:33:56 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/04/10 12:35:37 $
+ * $Id: Font5.cpp,v 1.4 2010/04/10 12:35:37 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -242,7 +242,7 @@ int CFontEngineFont5::DeleteFont(CFontFile *file)
 		return 0;
 	}
 	PFPFile *f=(PFPFile *)file->priv;
-	if (f) delete f;
+	delete f;
 
 	return 1;
 }
@@ -575,7 +575,6 @@ int CFontEngineFont5::RenderInternal(PFPChunk *c, const CFont &font, CDrawable &
 		default:
 			SetError(1027);
 			return 0;
-			break;
 	};
 	int orgx=x;
 	int p=0;

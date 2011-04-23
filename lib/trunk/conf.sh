@@ -12,7 +12,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-pcre=/usr/local --with-x --with-openssl --with-mysql \
 			--with-libmhash=/usr/local --with-sybase=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm --with-pgsql \
-			--with-jpeg --with-png
+			--with-jpeg --with-png --with-mpg123=/usr/local
 		;;
 	MINGW32*:1.0.12*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
@@ -30,7 +30,7 @@ case "$SYS:$REL:$KERNEL" in
 		export CFLAGS="-DCURL_STATICLIB"
 		./configure --with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
 			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
-			--with-lame=/usr/local \
+			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-png=/usr/local --with-libmhash=/usr/local \
 			--with-libmcrypt-prefix=/usr/local \
 			--with-openssl=/mingw --with-libcurl
@@ -39,13 +39,13 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash \
-			--with-sybase=/usr/local --with-jpeg --with-png
+			--with-sybase=/usr --with-jpeg --with-png -with-mpg123
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-openssl --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-sybase=/usr/local --with-jpeg --with-png \
-			--with-libmhash 
+			--with-libmhash --with-mpg123
 		;;
 	*)
 		echo "Unknown host"

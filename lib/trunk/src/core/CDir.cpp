@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.4 $
- * $Date: 2010/03/26 09:15:49 $
- * $Id: CDir.cpp,v 1.4 2010/03/26 09:15:49 pafe Exp $
+ * $Revision: 1.6 $
+ * $Date: 2010/12/23 18:14:48 $
+ * $Id: CDir.cpp,v 1.6 2010/12/23 18:14:48 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -881,24 +881,19 @@ int CDir::Open(const char *path, Sort s)
 	Path.RTrim("/");
 	Path.RTrim("\\");
 	//printf ("Path=%s \n",(char*)Path);
-	CString Pattern=Path;
+	CWString Pattern=Path;
 	Pattern+="/*";
-	struct _finddatai64_t *data;
-	data=(_finddatai64_t *)calloc(1,sizeof(_finddatai64_t));
-	if (!data) {
-		SetError(2);
-		return 0;
-	}
-	intptr_t handle=_findfirsti64 ((const char*)Pattern, data);
+	struct _wfinddatai64_t data;
+	memset(&data,0,sizeof(data));
+
+	intptr_t handle=_wfindfirsti64 ((const wchar_t*)Pattern, &data);
 	if (handle<0) {
 		SetErrorFromErrno();
-		free(data);
 		return 0;
 	}
 	while (1==1) {
 		CDirEntry *de=new CDirEntry;
 		if (!de) {
-			free(data);
 			_findclose(handle);
 			SetError(2);
 			return 0;
@@ -907,22 +902,22 @@ int CDir::Open(const char *path, Sort s)
 		de->Attrib=0;
 		de->ATime=de->CTime=de->MTime=0;
 
-		de->Filename=data->name;
+		de->Filename=data.name;
 		de->Size=0;
-		de->File.Sprintf("%s/%s",(const char*)Path,data->name);		// Fileinfos holen
 		de->Path=Path;
-		de->Size=data->size;
+		de->File=de->Path+CString("/")+de->Filename;
+		de->Size=data.size;
 		de->Uid=0;
 		de->Gid=0;
 		de->Blocks=0;
 		de->BlockSize=0;
 		de->NumLinks=1;
 
-		if (data->attrib & _A_RDONLY) de->Attrib|=CPPLDIR_READONLY;
-		if (data->attrib & _A_HIDDEN) de->Attrib|=CPPLDIR_HIDDEN;
-		if (data->attrib & _A_SYSTEM) de->Attrib|=CPPLDIR_SYSTEM;
-		if (data->attrib & _A_ARCH) de->Attrib|=CPPLDIR_ARCHIV;
-		if (data->attrib & _A_SUBDIR) de->Attrib|=CPPLDIR_DIR;
+		if (data.attrib & _A_RDONLY) de->Attrib|=CPPLDIR_READONLY;
+		if (data.attrib & _A_HIDDEN) de->Attrib|=CPPLDIR_HIDDEN;
+		if (data.attrib & _A_SYSTEM) de->Attrib|=CPPLDIR_SYSTEM;
+		if (data.attrib & _A_ARCH) de->Attrib|=CPPLDIR_ARCHIV;
+		if (data.attrib & _A_SUBDIR) de->Attrib|=CPPLDIR_DIR;
 
 		de->AttrStr[1]=de->AttrStr[4]=de->AttrStr[7]='r';
 		if (de->Filename.Len()>4) {
@@ -935,18 +930,17 @@ int CDir::Open(const char *path, Sort s)
 
 		if (! (de->Attrib&CPPLDIR_READONLY)) de->AttrStr[2]=de->AttrStr[5]=de->AttrStr[8]='w';
 		if ( ( de->Attrib & (CPPLDIR_DIR|CPPLDIR_LINK) )==0) de->Attrib|=CPPLDIR_FILE;
-		de->ATime=data->time_access;
-		de->CTime=data->time_create;
-		de->MTime=data->time_write;
+		de->ATime=data.time_access;
+		de->CTime=data.time_create;
+		de->MTime=data.time_write;
 
 		if (de->Attrib&CPPLDIR_DIR) de->AttrStr[0]='d';
 		if (de->Attrib&CPPLDIR_LINK) de->AttrStr[0]='l';
 		Files.Add(de);
 		// Nächster Datensatz
-		if (_findnexti64(handle,data)<0) break;
+		if (_wfindnexti64(handle,&data)<0) break;
 	}
 	_findclose(handle);
-	free(data);
 	Resort(sort);
 	return 1;
 }

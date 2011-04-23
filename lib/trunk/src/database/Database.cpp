@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: Database.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.8 $
+ * $Date: 2010/10/16 13:35:42 $
+ * $Id: Database.cpp,v 1.8 2010/10/16 13:35:42 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -693,7 +693,6 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
 	return ExecArrayAll(result,String);
 }
 
-int Database::Save(const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude)
 /*!\brief Datensatz speichern
  *
  * \descr
@@ -715,6 +714,11 @@ int Database::Save(const char *method, const char *table, CAssocArray &a, const 
  * enthält. Das Keywort "where" muss nicht angegeben werden
  * \param[in] exclude Ein optionales assoziatives Array, was die Namen der Felder enthält, die nicht gespeichert werden
  * sollen. Muss verwendet werden, wenn in \p a Felder enthalten sind, die in der Tabelle \p table nicht existieren.
+ * \param[in] types Ein optionales assoziatives Array, was die Typen der zu speichernden Daten angibt.
+ * Hier wird zur Zeit nur "int" und "bit" interpretiert, was dazu führt, dass die Werte nicht in
+ * Anführungszeichen in den SQL-Query eingebaut werden. Alle anderen Typen werden wie bisher als String
+ * behandelt. Bei dem ASE von Sybase gibt es Probleme, wenn man versucht einen Ziffer in Anführungszeichen
+ * anzugeben, wenn das Feld als "numeric" oder "bit" definiert ist.
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \example
@@ -731,6 +735,7 @@ int Database::Save(const char *method, const char *table, CAssocArray &a, const 
  * \skip DB_Save_Example1
  * \until EOF
  */
+int Database::Save(const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude, const CAssocArray &types)
 {
 	if (!method) {
 		SetError(194,"const char *method");
@@ -744,7 +749,7 @@ int Database::Save(const char *method, const char *table, CAssocArray &a, const 
 		SetError(343);
 		return 0;
 	}
-	CString Keys, Vals, Key, Value, Method, Table, Query, Clause;
+	CString Keys, Vals, Key, Value, Method, Table, Query, Clause, Type;
 	Method=method;
 	Table=table;
 	Method.LCase();
@@ -759,22 +764,29 @@ int Database::Save(const char *method, const char *table, CAssocArray &a, const 
 			if (exclude.GetChar(Key)==NULL) {
 				Keys.Concat(Key);
 				Keys.Concat(",");
+				//printf ("Key=%s, Value=%s\n",(const char*)Key,(const char*)Value);
 				if (!Escape(Value)) return 0;
-				Vals.Concatf("\"%s\",",(const char*)Value);
+				Type=types.ToCString(Key);
+				Type.LCase();
+				if (Type=="int" || Type=="bit") Vals.Concatf("%s,",(const char*)Value);
+				else Vals.Concatf("\"%s\",",(const char*)Value);
 			}
 		}
 		Keys.Chop();
 		Vals.Chop();
 
 		Query.Setf("%s into %s (%s) values (%s)",(const char*)Method, (const char*)Table, (const char*)Keys, (const char*)Vals);
-		//printf ("Query: %s\n",(char*)Query);
+		//printf ("Query: %s\n",(const char*)Query);
 		return Exec(Query);
 	} else if (Method=="update") {
 		Query.Setf("%s %s set ",(const char*)Method, (const char*)Table);
 		while (a.GetNext(Key,Value)) {
 			if (!Escape(Value)) return 0;
 			if (exclude.GetChar(Key)==NULL) {
-				Query.Concatf("%s=\"%s\",",(const char*)Key,(const char*)Value);
+				Type=types.ToCString(Key);
+				Type.LCase();
+				if (Type=="int" || Type=="bit") Query.Concatf("%s=%s,",(const char*)Key,(const char*)Value);
+				else Query.Concatf("%s=\"%s\",",(const char*)Key,(const char*)Value);
 			}
 		}
 		Query.Chop();
@@ -1105,6 +1117,15 @@ int Database::StartTransaction()
  * Database::EndTransaction wird sie abgeschlossen und mit Database::CancelTransaction
  * abgebrochen.
  *
+ * Ab Version 6.4.3 der PPL-Library kann man Transaktionen verschachteln, in dem man
+ * Database::StartTransaction mehrfach aufruft. Mit Database::EndTransaction wird dann nur die
+ * innerste Transaktionsklammer abgeschlossen, mit Database::CancelTransaction entsprechend nur
+ * die innerste Transaktionsklammer zurückgerollt. Mit Database::CancelTransactionComplete
+ * läßt sich die komplette Transaktion bis zur äußersten Klammer zurückrollen. Bei der
+ * Verschachtelung von Transaktionen muss man darauf achten, dass immer eine gleiche Anzahl
+ * von Database::EndTransaction wie Database::StartTransaction geben muss, da sonst die Transaktion
+ * nicht vollständig geschlossen wird und es zu Datenbank Blockaden kommen kann.
+ *
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
@@ -1116,7 +1137,7 @@ int Database::EndTransaction()
 /*!\brief Transaktion beenden
  *
  * \descr
- * Mit diesem Befehl wird eine zuvor mit Database::StartTransaction begonnene Transaktion beendet.
+ * Mit diesem Befehl wird die zuletzt mit Database::StartTransaction begonnene Transaktion beendet.
  * Dadurch werden die innerhalb der Transaktion veränderten Daten endgültig in der Datenbank
  * gespeichert.
  *
@@ -1130,10 +1151,25 @@ int Database::EndTransaction()
 }
 
 int Database::CancelTransaction()
-/*!\brief Transaktion abbrechen
+/*!\brief Letzte Transaktion abbrechen
  *
  * \descr
- * Mit diesem Befehl wird eine zuvor mit Database::StartTransaction begonnene Transaktion abgebrochen.
+ * Mit diesem Befehl wird die letzte mit Database::StartTransaction begonnene Transaktion abgebrochen.
+ * Alle darin enthaltenen Änderungen sind unwirksam und werden nicht gespeichert.
+ *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
+ *
+ */
+{
+	SetError(180);
+	return 0;
+}
+
+int Database::CancelTransactionComplete()
+/*!\brief Transaktion vollständig abbrechen
+ *
+ * \descr
+ * Mit diesem Befehl wird die komplette Transaktion bis zur obersten Ebene zurückgerollt.
  * Alle darin enthaltenen Änderungen sind unwirksam und werden nicht gespeichert.
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0

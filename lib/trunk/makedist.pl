@@ -1,13 +1,13 @@
 #!/usr/bin/perl
-# $Id: makedist.pl,v 1.3 2010/02/12 21:34:49 pafe Exp $
+# $Id: makedist.pl,v 1.5 2010/10/16 14:09:17 pafe Exp $
 
 #  
 # CONTACT     : fedick@denic.de 
 # AUTHOR      : Patrick Fedick <fedick@denic.de> 
 # 
 # CREATED     : 2006/01/03 11:30:00 
-# REVISION    : $Revision: 1.3 $  
-# DATE        : $Date: 2010/02/12 21:34:49 $ 
+# REVISION    : $Revision: 1.5 $  
+# DATE        : $Date: 2010/10/16 14:09:17 $ 
 # 
 
 my $PACKAGE="PPL6";
@@ -63,13 +63,13 @@ if ($? != 0 ) {
 print "Erstelle Dokumentation...\n";
 print "Doxygen...\n";
 `mkdir -p tmp/$CVSTREE/documentation`;
-print `cd tmp/$CVSTREE; doxygen Doxyfile.latex`;
-print "ok, erstelle PDF...\n";
-print `cd tmp/$CVSTREE/documentation/latex; make`;
-print "Kopiere PDF nach documentation...\n";
-`mv tmp/$CVSTREE/documentation/latex/refman.pdf tmp/$CVSTREE/documentation/ppl6-manual.pdf`;
-print "ok, loesche ueberfluessige Dokumentation...\n";
-`cd tmp/$CVSTREE/documentation; rm -rf *.tmp latex man`;
+print `cd tmp/$CVSTREE; doxygen Doxyfile; cp docs/header-bg.png documentation/html`;
+#print "ok, erstelle PDF...\n";
+#print `cd tmp/$CVSTREE/documentation/latex; make`;
+#print "Kopiere PDF nach documentation...\n";
+#`mv tmp/$CVSTREE/documentation/latex/refman.pdf tmp/$CVSTREE/documentation/ppl6-manual.pdf`;
+#print "ok, loesche ueberfluessige Dokumentation...\n";
+#`cd tmp/$CVSTREE/documentation; rm -rf *.tmp latex man`;
 
 #print "Kopiere Doku...\n";
 #`mkdir -p tmp/$CVSTREE/documentation; cp documentation/*.pdf tmp/$CVSTREE/documentation; cd documentation; find html | cpio -pdmv ../tmp/$CVSTREE/documentation`;
@@ -86,8 +86,9 @@ cd dist/$DISTNAME
 tar -xf ../tmp.tar
 cd ..
 tar -cjf $DISTNAME-src.tar.bz2 --exclude documentation  $DISTNAME
+tar -cjf $DISTNAME.tar.bz2 $DISTNAME
 tar -cjf $DISTNAME-html.tar.bz2 $DISTNAME/documentation/html $DISTNAME/documentation/ppl6.tagfile
-tar -cjf $DISTNAME-pdf.tar.bz2 $DISTNAME/documentation/ppl6-manual.pdf
+#tar -cjf $DISTNAME-pdf.tar.bz2 $DISTNAME/documentation/ppl6-manual.pdf
 rm -rf tmp.tar $DISTNAME
 cd $PWD
 rm -rf tmp

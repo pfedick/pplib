@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/02/20 13:25:20 $
- * $Id: Blit.cpp,v 1.3 2010/02/20 13:25:20 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/06/17 07:25:53 $
+ * $Id: Blit.cpp,v 1.4 2010/06/17 07:25:53 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -82,16 +82,6 @@ static void *adr(const DRAWABLE_DATA &data, int x, int y)
 
 static int Blt_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y)
 {
-	/*
-	if (srect.width()==target.width && source.pitch==target.pitch) {
-		BLTDATA data;
-		data.src=(ppluint32*)adr(source,srect.left(),srect.top());
-		data.tgt=(ppluint32*)adr(target,x,y);
-		memcpy(data.tgt,data.src,source.pitch*srect.height());
-		return 1;
-
-	}
-	*/
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
 	data.src=(ppluint32*)adr(source,srect.left(),srect.top());

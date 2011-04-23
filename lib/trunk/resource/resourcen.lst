@@ -84,3 +84,9 @@ ID=35
 Name=PPL Liberation Mono
 File=liberationmono2.fnt5
 compression=none
+
+[50]
+ID=50
+Name=WikiParser Stylesheet
+File=wikistyle.css
+

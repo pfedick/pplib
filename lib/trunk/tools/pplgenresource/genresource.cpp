@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:44:12 $
- * $Id: genresource.cpp,v 1.2 2010/02/12 19:44:12 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/06/16 21:49:15 $
+ * $Id: genresource.cpp,v 1.3 2010/06/16 21:49:15 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -85,6 +85,8 @@ void helpConfig()
 			"# eingefügt wird\n"
 			"/* Copyright by ...*/\n"
 			"\n"
+			"# Es folgend die Sektionen für die einzelnen Dateien. Name oder Nummerierung\n"
+			"# der Sektionen spielt keine Rolle, müssen aber eindeutig sein.\n"
 			"[0]\n"
 			"# Erste Resource\n"
 			"\n"
@@ -99,6 +101,12 @@ void helpConfig()
 			"# Der File-Name enthält den Pfad und Namen der einzulesenden\n"
 			"# Datei, relativ zum Basispfad.\n"
 			"File=FILE\n"
+			"\n"
+			"# Optionale vorgegebene Komprimierung. Standardmaessig testet das Programm,\n"
+			"# welcher Komprimieralgorythmus am besten geeignet ist (Zlib, Bzip2,\n"
+			"# unkomprimiert). Mit diesem Parameter kann der gewünschte Algorythmus\n"
+			"# vorgegeben werden. Derzeit wird jedoch nur \"none\" unterstützt\n"
+			"# Compression=none\n"
 			"\n[1]\n# Naechste Resource\n...\n"
 			"-------------------------------------------------------------------------------\n"
 			);

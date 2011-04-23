@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CList.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/11/26 16:00:50 $
+ * $Id: CList.cpp,v 1.4 2010/11/26 16:00:50 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -488,41 +488,42 @@ int CGenericList::Delete(const void *data) {
 
 void CGenericList::Reset()
 {
-	pointer=first;
+	pointer=NULL;
 }
 
 
 void *CGenericList::GetFirst()
 {
-	pointer=first;
+	pointer=NULL;
 	return GetNext();
 }
 
 void *CGenericList::GetNext()
 {
-	if (!pointer) {
-		return NULL;
-	}
+	if (pointer==(void*)1) return NULL;	// Am Ende der Liste
+	if (!pointer) pointer=first;
+	if (!pointer) return NULL;			// Leere Liste
 	LISTENTRY *entry=(LISTENTRY *)pointer;
-	pointer=entry->next;
+	pointer=entry->next;				// Pointer auf nächstes Element
+	if (!pointer) pointer=(void *)1;	// Keine weiteren Elemente mehr
 	void *ret=entry->data;
 	return ret;
 }
 
 void *CGenericList::GetLast()
 {
-	pointer=last;
-	void *ret=GetPrevious();
-	return ret;
+	pointer=NULL;
+	return GetPrevious();
 }
 
 void *CGenericList::GetPrevious()
 {
-	if (!pointer) {
-		return NULL;
-	}
+	if (pointer==(void*)1) return NULL;	// Am Ende der Liste
+	if (!pointer) pointer=last;
+	if (!pointer) return NULL;			// Leere Liste
 	LISTENTRY *entry=(LISTENTRY *)pointer;
-	pointer=entry->last;
+	pointer=entry->last;				// Pointer auf vorhergehendes Element
+	if (!pointer) pointer=(void *)1;	// Keine weiteren Elemente mehr
 	void *ret=entry->data;
 	return ret;
 }
@@ -546,6 +547,53 @@ int CGenericList::SetDestroyFunction(int DestroyFunction(void *item,void *data),
 	this->DestroyFunction=DestroyFunction;
 	this->DestroyData=data;
 	return 1;
+}
+
+CGenericList::Walker::Walker()
+{
+	pointer=NULL;
+}
+
+void CGenericList::Reset(Walker &walk) const
+{
+	walk.pointer=NULL;
+}
+
+
+void *CGenericList::GetFirst(Walker &walk) const
+{
+	walk.pointer=NULL;
+	return GetNext(walk);
+}
+
+void *CGenericList::GetNext(Walker &walk) const
+{
+	if (walk.pointer==(void*)1) return NULL;	// Am Ende der Liste
+	if (!walk.pointer) walk.pointer=first;
+	if (!walk.pointer) return NULL;			// Leere Liste
+	LISTENTRY *entry=(LISTENTRY *)walk.pointer;
+	walk.pointer=entry->next;				// Pointer auf nächstes Element
+	if (!walk.pointer) walk.pointer=(void *)1;	// Keine weiteren Elemente mehr
+	void *ret=entry->data;
+	return ret;
+}
+
+void *CGenericList::GetLast(Walker &walk) const
+{
+	walk.pointer=NULL;
+	return GetPrevious(walk);
+}
+
+void *CGenericList::GetPrevious(Walker &walk) const
+{
+	if (walk.pointer==(void*)1) return NULL;	// Am Ende der Liste
+	if (!walk.pointer) walk.pointer=last;
+	if (!walk.pointer) return NULL;			// Leere Liste
+	LISTENTRY *entry=(LISTENTRY *)walk.pointer;
+	walk.pointer=entry->last;				// Pointer auf vorhergehendes Element
+	if (!walk.pointer) walk.pointer=(void *)1;	// Keine weiteren Elemente mehr
+	void *ret=entry->data;
+	return ret;
 }
 
 

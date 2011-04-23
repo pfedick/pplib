@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/03/22 11:32:03 $
- * $Id: CTCPSocket.cpp,v 1.3 2010/03/22 11:32:03 pafe Exp $
+ * $Revision: 1.5 $
+ * $Date: 2010/09/25 07:58:08 $
+ * $Id: CTCPSocket.cpp,v 1.5 2010/09/25 07:58:08 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -432,7 +432,7 @@ static int out_bind(const char *host, int port)
 		return 0;
 	}
 	if (n!=0) {
-		SetError(273,"Sourceport: %s, %s",host,gai_strerror(n));
+		SetError(273,"Sourceport: %s:%i, %s",host,port,gai_strerror(n));
 		return 0;
 	}
 	ressave=res;
@@ -506,7 +506,7 @@ int CTCPSocket::Connect(const char *host)
 	}
 	//printf ("Debug: host=%s, hostname=%s, portname=%s, port=%i\n",host,hostname.Get(0),portname,port);
 	if (port<=0) {
-        SetError(271);
+        SetError(271,"%s",host);
         return 0;
 	}
 	return Connect(hostname.Get(0),port);
@@ -2175,7 +2175,8 @@ int CTCPSocket::IsReadable()
  * Diese Funktion prüft, ob Daten eingegangen sind. Ist dies der Fall,
  * kehrt sie sofort wieder zurück. Andernfalls wartet sie solange, bis
  * Daten eingehen, maximal aber die mit \p seconds und \p useconds
- * angegebene Zeitspanne.
+ * angegebene Zeitspanne. Falls \p seconds und \p useconds Null sind, und
+ * keine Daten bereitstehen, kehrt die Funktion sofort zurück.
  * \par
  * Falls über die Funktion CTCPSocket::WatchThread ein Thread angegeben
  * wurde, kehrt die Funktion nicht nach erreichen des Timeouts zurück,
@@ -2306,6 +2307,8 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
  * Ist dies der Fall, kehrt sie sofort wieder zurück. Andernfalls wartet
  * sie solange, bis der Socket beschrieben werden kann, maximal aber die
  * mit \p seconds und \p useconds angegebene Zeitspanne.
+ * Falls \p seconds und \p useconds Null sind, und
+ * keine Daten gesendet werden können, kehrt die Funktion sofort zurück.
  * \par
  * Falls über die Funktion CTCPSocket::WatchThread ein Thread angegeben
  * wurde, kehrt die Funktion nicht nach erreichen des Timeouts zurück,

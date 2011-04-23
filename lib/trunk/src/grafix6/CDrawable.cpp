@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.1 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CDrawable.cpp,v 1.1 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.2 $
+ * $Date: 2010/07/26 10:28:51 $
+ * $Id: CDrawable.cpp,v 1.2 2010/07/26 10:28:51 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -152,7 +152,7 @@ CDrawable::CDrawable(const CDrawable &other)
  */
 CDrawable::CDrawable(const CDrawable &other, const Rect &rect)
 {
-	if (!copy(other,rect)) throw ppl6::Exception::InitialisationFailed();
+	if (!copy(other,rect)) throw ppl6::Exception();
 }
 
 /*!\brief Konstruktor mit Erstellung aus einem Speicherbereich
@@ -175,7 +175,7 @@ CDrawable::CDrawable(void *base, ppluint32 pitch, int width, int height, const R
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
-	if (!create(base,pitch,width,height,format)) throw ppl6::Exception::InitialisationFailed();
+	if (!create(base,pitch,width,height,format)) throw ppl6::Exception();
 }
 
 /*!\brief Destruktor der Klasse

@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.5 $
- * $Date: 2010/03/22 16:51:04 $
- * $Id: CAssocArray.cpp,v 1.5 2010/03/22 16:51:04 pafe Exp $
+ * $Revision: 1.7 $
+ * $Date: 2011/02/18 10:00:53 $
+ * $Id: CAssocArray.cpp,v 1.7 2011/02/18 10:00:53 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -234,7 +234,7 @@ void CArrayItem::Clear()
 
 
 CAssocArray::CAssocArray()
-/*!\brief Konstruktor der Assoziativen Arrays
+/*!\brief Konstruktor des Assoziativen Arrays
  *
  * \desc
  * Der Konstruktor prüft zuerst, ob das interne globale Initialisierungsflag für die Klasse
@@ -260,7 +260,7 @@ CAssocArray::CAssocArray()
 }
 
 CAssocArray::CAssocArray(const CAssocArray &a)
-/*!\brief Konstruktor der Assoziativen Arrays
+/*!\brief Konstruktor des Assoziativen Arrays
  *
  * \desc
  * Der Konstruktor prüft zuerst, ob das interne globale Initialisierungsflag für die Klasse
@@ -287,6 +287,36 @@ CAssocArray::CAssocArray(const CAssocArray &a)
 	}
 	Copy(a);
 }
+
+CAssocArray::CAssocArray(const CArray &a)
+/*!\brief Konstruktor des Assoziativen Arrays
+ *
+ * \desc
+ * Der Konstruktor prüft zuerst, ob das interne globale Initialisierungsflag für die Klasse
+ * schon gesetzt ist. Ist dies nicht der Fall, wird die Funktion PPLInit aufgerufen, die zum einen
+ * sicherstellt, dass die Funktion nicht parallel durch mehrere Threads aufgerufen wird und zum
+ * andern dafür sorgt, dass der Heap-Speicher für die Arrays initialisiert wird.
+ *
+ * \param[in] a Ein CArray, dessen Inhalt kopiert werden soll
+ */
+{
+	type=CVar::CASSOCARRAY;
+	num=0;
+	maxint=0;
+	if (!Heap) {
+		Cppl6Core *core=PPLInit();
+		if (!core) {
+			throw ppl6::GetError();
+		} else {
+			Heap=core->GetHeap_CArrayItem();
+			if (!Heap) {
+				throw ppl6::GetError();
+			}
+		}
+	}
+	Copy(a);
+}
+
 
 CAssocArray::CAssocArray(const CAssocArray *a)
 /*!\brief Konstruktor des Assoziativen Arrays
@@ -944,7 +974,6 @@ int CAssocArray::Count(bool recursive) const
 	CTreeWalker walk;
 	CArrayItem *p;
 	Tree.Reset(walk);
-	CAssocArray *a;
 	int c=num;
 	while ((p=(CArrayItem*)Tree.GetNext(walk))) {
 		if (p->type==datatype::ARRAY) c+=((CAssocArray*)p->value)->Count(recursive);
@@ -1922,6 +1951,95 @@ CAssocArray *CAssocArray::GetPreviousArray()
 {
 	CArrayItem *ptr;
 	while ((ptr=(CArrayItem*)Tree.GetPrevious())) {
+		if (ptr->type==datatype::ARRAY) return (CAssocArray*)ptr->value;
+	}
+	return NULL;
+}
+
+
+CAssocArray *CAssocArray::GetFirstArray(CTreeWalker &walk) const
+/*!\brief Erstes CAssocArray innerhalb dieses Arrays finden
+ *
+ * \desc
+ * Diese Funktion liefert das erste Element aus dem Array zurück, das vom Datentyp CAssocArray
+ * ist.
+ *
+ * \result Pointer auf das erste Array oder NULL, wenn das Array leer ist oder kein CAssocArray
+ * enthält.
+ *
+ * \see
+ * - CAssocArray::GetNextArray
+ * - CAssocArray::GetLastArray
+ * - CAssocArray::GetPreviousArray
+ * - CAssocArray::Reset
+ */
+{
+	Tree.Reset(walk);
+	return GetNextArray(walk);
+}
+
+CAssocArray *CAssocArray::GetNextArray(CTreeWalker &walk) const
+/*!\brief Nächstes CAssocArray innerhalb dieses Arrays finden
+ *
+ * \desc
+ * Diese Funktion liefert das nächste Element aus dem Array zurück, das vom Datentyp CAssocArray
+ * ist.
+ *
+ * \result Pointer auf das nächste Array oder NULL, wenn kein weiteres Array vorhanden ist.
+ *
+ * \see
+ * - CAssocArray::GetFirstArray
+ * - CAssocArray::GetLastArray
+ * - CAssocArray::GetPreviousArray
+ * - CAssocArray::Reset
+ */
+{
+	CArrayItem *ptr;
+	while ((ptr=(CArrayItem*)Tree.GetNext(walk))) {
+		if (ptr->type==datatype::ARRAY) return (CAssocArray*)ptr->value;
+	}
+	return NULL;
+}
+
+CAssocArray *CAssocArray::GetLastArray(CTreeWalker &walk) const
+/*!\brief Letztes CAssocArray innerhalb dieses Arrays finden
+ *
+ * \desc
+ * Diese Funktion liefert das letzte Element aus dem Array zurück, das vom Datentyp CAssocArray
+ * ist.
+ *
+ * \result Pointer auf das letzte Array oder NULL, wenn das Array leer ist oder kein CAssocArray
+ * enthält.
+ *
+ * \see
+ * - CAssocArray::GetFirstArray
+ * - CAssocArray::GetNextArray
+ * - CAssocArray::GetPreviousArray
+ * - CAssocArray::Reset
+ */
+{
+	Tree.Reset(walk);
+	return GetPreviousArray(walk);
+}
+
+CAssocArray *CAssocArray::GetPreviousArray(CTreeWalker &walk) const
+/*!\brief Vorheriges CAssocArray innerhalb dieses Arrays finden
+ *
+ * \desc
+ * Diese Funktion liefert das vorhergehende Element aus dem Array zurück, das vom Datentyp CAssocArray
+ * ist.
+ *
+ * \result Pointer auf das vorhergehende Array oder NULL, wenn kein weiteres Array vorhanden ist.
+ *
+ * \see
+ * - CAssocArray::GetFirstArray
+ * - CAssocArray::GetNextArray
+ * - CAssocArray::GetLastArray
+ * - CAssocArray::Reset
+ */
+{
+	CArrayItem *ptr;
+	while ((ptr=(CArrayItem*)Tree.GetPrevious(walk))) {
 		if (ptr->type==datatype::ARRAY) return (CAssocArray*)ptr->value;
 	}
 	return NULL;
@@ -3597,6 +3715,22 @@ CAssocArray& CAssocArray::operator=(const CAssocArray& a)
 {
 	Clear();
 	Copy(&a);
+	return *this;
+}
+
+CAssocArray& CAssocArray::operator=(const CArray& a)
+/*!\brief CArray kopieren
+ *
+ * \desc
+ * Mit diesem Operator wird der Inhalt eines CArray übernommen. Die Funktion ruft zunächst
+ * CAssocArray::Clear auf, so dass ebventuell bereits vorhandene Schlüssel gelöscht werden. Anschließend
+ * wird die Funktion CAssocArray::Copy aufgerufen.
+ *
+ * \param[in] a Referenz auf das Array, das kopiert werden soll
+ */
+{
+	Clear();
+	Copy(a);
 	return *this;
 }
 

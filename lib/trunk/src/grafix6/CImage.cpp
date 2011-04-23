@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CImage.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/07/26 10:28:51 $
+ * $Id: CImage.cpp,v 1.3 2010/07/26 10:28:51 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -136,7 +136,7 @@ CImage::CImage(int width, int height, const RGBFormat &format)
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
-	if (!create(width,height,format)) throw Exception::InitialisationFailed();
+	if (!create(width,height,format)) throw Exception();
 }
 
 /*!\brief Grafik aus einer Datei laden
@@ -155,8 +155,8 @@ CImage::CImage(int width, int height, const RGBFormat &format)
 CImage::CImage(const CString &Filename, const RGBFormat &format)
 {
 	CFile ff;
-	if (!ff.Open(Filename,"rb")) throw Exception::FileOpenFailed();
-	if (!load(ff,format)) throw Exception::ImageLoadFailed();
+	if (!ff.Open(Filename,"rb")) throw Exception();
+	if (!load(ff,format)) throw Exception();
 }
 
 /*!\brief Grafik aus einer geöffneten Datei laden
@@ -172,7 +172,7 @@ CImage::CImage(const CString &Filename, const RGBFormat &format)
  */
 CImage::CImage(CFileObject &file, const RGBFormat &format)
 {
-	if (!load(file,format)) throw Exception::ImageLoadFailed();
+	if (!load(file,format)) throw Exception();
 }
 
 /*!\brief Grafik aus einem Speicherbereich laden
@@ -188,7 +188,7 @@ CImage::CImage(CFileObject &file, const RGBFormat &format)
  */
 CImage::CImage(const CMemoryReference &mem, const RGBFormat &format)
 {
-	if (!load(mem,format)) throw Exception::ImageLoadFailed();
+	if (!load(mem,format)) throw Exception();
 }
 
 /*!\brief Destruktor der Klasse

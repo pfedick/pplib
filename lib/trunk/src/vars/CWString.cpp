@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/02/22 15:42:06 $
- * $Id: CWString.cpp,v 1.3 2010/02/22 15:42:06 pafe Exp $
+ * $Revision: 1.8 $
+ * $Date: 2010/11/17 23:18:28 $
+ * $Id: CWString.cpp,v 1.8 2010/11/17 23:18:28 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -593,7 +593,7 @@ void CWString::ImportBuffer(wchar_t *buffer, size_t bytes)
  *
  * Danach prüft die Funktion noch die tatsächliche Länge des Strings durch Aufruf der
  * Funktion ReCalcLen, für den Fall dass mehr Speicher allokiert wurde, als
- * tatsächlich gebraucht wurde. Zum Abschluss wird noch ein Change-Event ausgelöst.
+ * tatsächlich gebraucht wurde.
  *
  * Falls der String vor Aufruf dieser Funktion noch Daten enthalten hat, werden diese
  * ordnungsgemäß gelöscht.
@@ -781,7 +781,6 @@ int CWString::Set(const char *text, int bytes)
 	buffer[ret]=0;
 	len=ret;
 	bufferused=len*sizeof(wchar_t)+4;
-	Change();
 	return 1;
 #endif
 
@@ -1438,6 +1437,30 @@ int CWString::IsNumeric() const
 	}
 	return 1;
 }
+
+/*!\brief Prüft, ob der String einen Integer Wert enthält
+ *
+ * \desc
+ * Diese Funktion prüft, ob im String einen integer Wert enthält, also nur die Ziffern
+ * 0-9 und optional ein Minus am Anfang enthalten sind
+ *
+ * @return Ist der String ein Integer, wird 1 zurückgegeben. Ist er es nicht oder ist der String
+ * leer, wird 0 zurückgegeben.
+ */
+int CWString::IsInteger() const
+{
+	int c;
+	if (!len) return 0;
+	for (ppluint32 i=0;i<len;i++) {
+		c=buffer[i];
+		if (c<'0' || c>'9') {
+			if (c=='-' && i==0) continue;		// Minus am Anfang ist erlaubt
+			return 0;
+		}
+	}
+	return 1;
+}
+
 
 
 int CWString::IsEmpty() const
@@ -2562,6 +2585,15 @@ CWString& CWString::Replace(const CWString &str, const CWString &byStr)
 	return *this;
 }
 
+CWString& CWString::ReplaceLetterList(const CWString &letters, wchar_t replacement)
+{
+	for (size_t i=0;i<len;i++) {
+		for (size_t o=0;o<letters.len;o++) {
+			if (buffer[i]==letters.buffer[o]) buffer[i]=replacement;
+		}
+	}
+	return *this;
+}
 
 int CWString::StrCmp(const char *str, int size) const
 /*!\brief Führt einen Vergleich mit einem anderen String durch
@@ -2570,11 +2602,8 @@ int CWString::StrCmp(const char *str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (!str) return 2;
 	CWString s=str;
-	if (size) return wcsncmp(buffer,s.buffer,(size_t)size);
-	return wcscmp(buffer,s.buffer);
+	return StrCmp(s.buffer,size);
 }
 
 int CWString::StrCmp(const wchar_t *str, int size) const
@@ -2584,11 +2613,11 @@ int CWString::StrCmp(const wchar_t *str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (!str) return 2;
-	CWString s=str;
-	if (size) return wcsncmp(buffer,s.buffer,(size_t)size);
-	return wcscmp(buffer,s.buffer);
+	const wchar_t *mystr=buffer;
+	if (!mystr) mystr=L"";
+	if (!str) str=L"";
+	if (size) return wcsncmp(mystr,str,(size_t)size);
+	return wcscmp(mystr,str);
 }
 
 int CWString::StrCmp(const CWString &str, int size) const
@@ -2598,10 +2627,7 @@ int CWString::StrCmp(const CWString &str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (!str.buffer) return 2;
-	if (size) return wcsncmp(buffer,str.buffer,(size_t)size);
-	return wcscmp(buffer,str.buffer);
+	return StrCmp(str.buffer,size);
 }
 
 int CWString::StrCmp(const CString &str, int size) const
@@ -2611,11 +2637,8 @@ int CWString::StrCmp(const CString &str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (str.IsEmpty()) return 2;
 	CWString s=str;
-	if (size) return wcsncmp(buffer,s.buffer,(size_t)size);
-	return wcscmp(buffer,s.buffer);
+	return StrCmp(s.buffer,size);
 }
 
 int CWString::StrCaseCmp(const char *str, int size) const
@@ -2625,22 +2648,8 @@ int CWString::StrCaseCmp(const char *str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (!str) return 2;
 	CWString s=str;
-#ifdef HAVE_WCSCASECMP
-	if (size) return wcsncasecmp(buffer,s.buffer,(size_t)size);
-	return wcscasecmp(buffer,s.buffer);
-#elif WIN32
-	if (size) return wcsnicmp(buffer,s.buffer,(size_t)size);
-	return wcsicmp(buffer,s.buffer);
-#else
-	CWString b=buffer;
-	s.LCase();
-	b.LCase();
-	if (size) return wcsncmp(b.buffer,s.buffer,(size_t)size);
-	return wcscmp(b.buffer,s.buffer);
-#endif
+	return StrCaseCmp(s.buffer,size);
 }
 
 int CWString::StrCaseCmp(const wchar_t *str, int size) const
@@ -2650,16 +2659,17 @@ int CWString::StrCaseCmp(const wchar_t *str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (!str) return 2;
+	const wchar_t *mystr=buffer;
+	if (!mystr) mystr=L"";
+	if (!str) str=L"";
 #ifdef HAVE_WCSCASECMP
-	if (size) return wcsncasecmp(buffer,str,(size_t)size);
-	return wcscasecmp(buffer,str);
+	if (size) return wcsncasecmp(mystr,str,(size_t)size);
+	return wcscasecmp(mystr,str);
 #elif WIN32
-	if (size) return wcsnicmp(buffer,str,(size_t)size);
-	return wcsicmp(buffer,str);
+	if (size) return wcsnicmp(mystr,str,(size_t)size);
+	return wcsicmp(mystr,str);
 #else
-	CWString b=buffer;
+	CWString b=mystr;
 	CWString s=str;
 	s.LCase();
 	b.LCase();
@@ -2676,23 +2686,7 @@ int CWString::StrCaseCmp(const CWString &str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (!str.buffer) return 2;
-#ifdef HAVE_WCSCASECMP
-	if (size) return wcsncasecmp(buffer,str.buffer,(size_t)size);
-	return wcscasecmp(buffer,str.buffer);
-#elif WIN32
-	if (size) return wcsnicmp(buffer,str.buffer,(size_t)size);
-	return wcsicmp(buffer,str.buffer);
-#else
-	CWString s=str;
-	CWString b=buffer;
-	s.LCase();
-	b.LCase();
-	if (size) return wcsncmp(b.buffer,s.buffer,(size_t)size);
-	return wcscmp(b.buffer,s.buffer);
-
-#endif
+	return StrCaseCmp(str.buffer,size);
 }
 
 int CWString::StrCaseCmp(const CString &str, int size) const
@@ -2702,23 +2696,8 @@ int CWString::StrCaseCmp(const CString &str, int size) const
  * Return-Wert.
  */
 {
-	if (!buffer) return -2;
-	if (str.IsEmpty()) return 2;
 	CWString s=str;
-#ifdef HAVE_WCSCASECMP
-	if (size) return wcsncasecmp(buffer,s.buffer,(size_t)size);
-	return wcscasecmp(buffer,s.buffer);
-#elif WIN32
-	if (size) return wcsnicmp(buffer,s.buffer,(size_t)size);
-	return wcsicmp(buffer,s.buffer);
-#else
-	CWString b=buffer;
-	s.LCase();
-	b.LCase();
-	if (size) return wcsncmp(b.buffer,s.buffer,(size_t)size);
-	return wcscmp(b.buffer,s.buffer);
-
-#endif
+	return StrCaseCmp(s.buffer,size);
 }
 
 
@@ -3329,121 +3308,14 @@ CWString& CWString::operator+=(const CString& str)
 }
 
 
-bool CWString::operator==(const char *str)
-{
-	if (!str) return false;
-	if (!len) return false;
-	if (StrCmp(str)==0) return true;
-	return false;
-}
-
-bool CWString::operator!=(const char *str)
-{
-	if (!str) return true;
-	if (!len) return true;
-	if (StrCmp(str)==0) return false;
-	return true;
-}
-
-bool CWString::operator<(const char *str)
-{
-	if (len==0 && str!=NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)<0) return true;
-	return false;
-}
-
-bool CWString::operator<=(const char *str)
-{
-	if (len==0 && str!=NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)<=0) return true;
-	return false;
-}
-
-bool CWString::operator>(const char *str)
-{
-	if (len>0 && str==NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)>0) return true;
-	return false;
-}
-
-bool CWString::operator>=(const char *str)
-{
-	if (len>0 && str==NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)>=0) return true;
-	return false;
-}
-
-
-bool CWString::operator==(CWString *str)
-{
-	if (!str) return false;
-	if (!len) return false;
-	if (StrCmp(str)==0) return true;
-	return false;
-}
-
-bool CWString::operator!=(CWString *str)
-{
-	if (!str) return true;
-	if (!len) return true;
-	if (StrCmp(str)==0) return false;
-	return true;
-}
-
-bool CWString::operator<(CWString *str)
-{
-	if (len==0 && str!=NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)<0) return true;
-	return false;
-}
-
-bool CWString::operator<=(CWString *str)
-{
-	if (len==0 && str!=NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)<=0) return true;
-	return false;
-}
-
-bool CWString::operator>(CWString *str)
-{
-	if (len>0 && str==NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)>0) return true;
-	return false;
-}
-
-bool CWString::operator>=(CWString *str)
-{
-	if (len>0 && str==NULL) return true;
-	if (!len) return false;
-	if (!str) return false;
-	if (StrCmp(str)>=0) return true;
-	return false;
-}
-
 bool CWString::operator==(CWString &str)
 {
-	if (!len) return false;
 	if (StrCmp(str)==0) return true;
 	return false;
 }
 
 bool CWString::operator!=(CWString &str)
 {
-	if (!len) return true;
 	if (StrCmp(str)==0) return false;
 	return true;
 }

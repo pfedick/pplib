@@ -1,25 +1,11 @@
-/*!\defgroup PPLGroupOldDatabases Datenbanken (alt)
-\brief Alte Datenbank-Klassen
-
-\desc
-Die nachfolgenden Klassen und Funktionen können verwendet werden, um auf verschiedene Datenbanken
-zuzugreifen. Mit Version 6.3.0 der Library wurden diese jedoch vollständig überarbeitet und
-in einem eigenen Namespace reimplementiert. Die neuen Klassen und Funktionen (siehe \ref PPLGroupDatabases)
-sind den alten vorzuziehen.
-
-\deprecated
-Die hier beschriebenen Klassen und Funktionen sind veraltet. Bitte stattdessen
-\ref PPLGroupDatabases "die neuen Klassen und Funktionen" verwenden!
-*/
-
-/*!\defgroup PPLGroupDatabases Datenbanken (neu, ab 6.3.0)
+/*!\defgroup PPLGroupDatabases Datenbanken
 \brief Datenbank-Klassen
 
 \desc
 Die nachfolgenden Klassen und Funktionen können verwendet werden, um auf verschiedene Datenbanken
 zuzugreifen. Es handelt sich dabei um neue Funktionen, die mit Version 6.3.0 eingeführt wurden.
 Sie wurden vollständig überarbeitet und im eigenen Namespace "ppl6::db"
-reimplementiert. Die neuen Klassen und Funktionen sind den alten vorzuziehen.
+reimplementiert. Die alten Klassen wurden mit Version 6.4.3 entfernt.
 
 \par Verwendung:
 Um Queries auf einer Datenbank auszuführen, muss zunächst eine Verbindung hergestellt werden. Im einfachsten

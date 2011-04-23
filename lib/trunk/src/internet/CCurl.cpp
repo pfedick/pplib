@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CCurl.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2011/02/22 10:29:14 $
+ * $Id: CCurl.cpp,v 1.4 2011/02/22 10:29:14 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -152,6 +152,7 @@ CCurl::CCurl()
 			errorbuffer[0]=0;
 			curl_easy_setopt((CURL*)handle,CURLOPT_ERRORBUFFER,errorbuffer);
 		}
+
 	#endif
 }
 
@@ -338,6 +339,34 @@ int CCurl::SetUserPassword(const char *username, const char *password)
 	#endif
 }
 
+int CCurl::SetUsername(const CString &username)
+{
+	#ifdef HAVE_LIBCURL
+		if (!handle) {
+			SetError(353);
+			return 0;
+		}
+		return SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_USERNAME, (const char*)username));
+	#else
+		SetError(356);
+		return 0;
+	#endif
+}
+
+int CCurl::SetPassword(const CString &password)
+{
+	#ifdef HAVE_LIBCURL
+		if (!handle) {
+			SetError(353);
+			return 0;
+		}
+		return SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_PASSWORD, (const char*)password));
+	#else
+		SetError(356);
+		return 0;
+	#endif
+}
+
 int CCurl::SetProxy(const char *proxy, int port)
 {
 	#ifdef HAVE_LIBCURL
@@ -395,6 +424,60 @@ int CCurl::SetTimeout(int seconds)
 		return 0;
 	#endif
 }
+
+
+int	CCurl::SetMaximumPersistantConnects(int value)
+{
+#ifdef HAVE_LIBCURL
+	if (!handle) {
+		SetError(353);
+		return 0;
+	}
+	long t=value;
+	return SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_MAXCONNECTS, t));
+#else
+	SetError(356);
+	return 0;
+#endif
+
+}
+
+int CCurl::Reset()
+{
+#ifdef HAVE_LIBCURL
+	if (!handle) {
+		SetError(353);
+		return 0;
+	}
+	if (post) curl_formfree((curl_httppost*) post);
+	post=NULL;
+	if (headers) curl_slist_free_all((struct curl_slist *)headers);
+	headers=NULL;
+
+	if (handle) {
+		curl_easy_cleanup((CURL *) handle );
+		handle=NULL;
+	}
+	handle=curl_easy_init();
+	if (!handle) {
+		SetError(353);
+		return 0;
+	}
+	curl_easy_setopt((CURL*)handle,CURLOPT_COOKIEJAR,"");
+	if (resultbuffer) free(resultbuffer);
+	resultbuffer=NULL;
+	errorbuffer[0]=0;
+	curl_easy_setopt((CURL*)handle,CURLOPT_ERRORBUFFER,errorbuffer);
+
+
+
+	return 1;
+#else
+	SetError(356);
+	return 0;
+#endif
+}
+
 
 int CCurl::Escape(CString &string)
 {
@@ -518,6 +601,12 @@ int CCurl::Get()
 			SetError(353);
 			return 0;
 		}
+		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEDATA,this);
+		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEFUNCTION,write_function);
+		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEHEADER,this);
+		curl_easy_setopt((CURL*)handle,CURLOPT_HEADERFUNCTION,header_function);
+
+
 		if (GetCall.IsEmpty()) GetCall=Url;
 		if (GetCall.IsEmpty()) {
 			SetError(537);
@@ -529,10 +618,6 @@ int CCurl::Get()
 		if (!SetOptOk(curl_easy_setopt((CURL*)handle,CURLOPT_HTTPGET,a))) return 0;
 		// Falls der Server Redirects sendet. folgen wir diesen:
 		if (!SetOptOk(curl_easy_setopt((CURL*)handle,CURLOPT_FOLLOWLOCATION,a))) return 0;
-		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEDATA,this);
-		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEFUNCTION,write_function);
-		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEHEADER,this);
-		curl_easy_setopt((CURL*)handle,CURLOPT_HEADERFUNCTION,header_function);
 
 		if (headers) {
 			curl_easy_setopt((CURL*)handle, CURLOPT_HTTPHEADER, headers);
@@ -543,12 +628,19 @@ int CCurl::Get()
 		Header="";
 		call_send.Notify(NULL);
 		aboard=false;
-		if (!SetOptOk(curl_easy_perform((CURL*)handle))) {
+		int ret=curl_easy_perform((CURL*)handle);
+		if (!SetOptOk(ret)) {
 			PushError();
 			call_done.Notify(NULL);
 			PopError();
 			return 0;
 		}
+		a=0;
+		long num_connects=0, num_redirects=0;
+		ret=curl_easy_getinfo((CURL*)handle, CURLINFO_NUM_CONNECTS, &num_connects);
+		ret=curl_easy_getinfo((CURL*)handle, CURLINFO_REDIRECT_COUNT, &num_redirects);
+
+		if (log) log->Printf(ppl6::LOG::DEBUG,5,"ppl6::CCurl","Get",__FILE__,__LINE__,"New Connects: %i, Redirects: %i",((int)num_connects), (int)num_redirects);
 		call_done.Notify(NULL);
 		return 1;
 	#else
@@ -604,6 +696,23 @@ size_t CCurl::StoreResult(void *ptr, size_t bytes, int type)
 	#endif
 	return -1;
 }
+
+CString CCurl::GetLastURL()
+{
+#ifdef HAVE_LIBCURL
+	if (!handle) {
+		SetError(353);
+		return "";
+	}
+	char *u;
+	if (!SetOptOk(curl_easy_getinfo((CURL*)handle, CURLINFO_EFFECTIVE_URL , &u))) return "";
+	return u;
+#else
+	SetError(356);
+	return "";
+#endif
+}
+
 
 int CCurl::GetResultBuffer(void **buffer, size_t *size)
 {

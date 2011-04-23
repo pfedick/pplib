@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: GenericResult.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/10/22 13:48:09 $
+ * $Id: GenericResult.cpp,v 1.4 2010/10/22 13:48:09 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -132,7 +132,7 @@ GenericResult::GenericResult()
 {
 	mem=new CMemMan();
 	if (mem) {
-		mem->SetDefaultGrow(8192);
+		mem->SetDefaultGrow(65536);
 	}
 	res_lastrow=0;
 	fieldnames=NULL;
@@ -181,6 +181,11 @@ void GenericResult::Clear()
 	lastinsertid=0;
 	affectedrows=0;
 	num_fields=0;
+}
+
+void GenericResult::SetBufferGrowSize(size_t bytes)
+{
+	if (mem) mem->SetDefaultGrow(bytes);
 }
 
 void *GenericResult::Malloc(size_t size)

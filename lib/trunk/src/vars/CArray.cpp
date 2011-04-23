@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:47 $
- * $Id: CArray.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ * $Revision: 1.10 $
+ * $Date: 2011/03/17 11:10:26 $
+ * $Id: CArray.cpp,v 1.10 2011/03/17 11:10:26 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -161,6 +161,20 @@ int CArray::Add(const char *value, int bytes)
 	return Set(num,value,bytes);
 }
 
+int CArray::Addf(const char *fmt, ...)
+{
+	if (!fmt) {
+		SetError(194,"const char *fmt");
+		return 0;
+	}
+	CString value;
+	va_list args;
+	va_start(args, fmt);
+	value.Vasprintf(fmt,args);
+	va_end(args);
+	return Set(num,value);
+}
+
 int CArray::Add(int value)
 {
 	CString v;
@@ -263,6 +277,15 @@ void CArray::List() const
 	for (ppldd i=0;i<num;i++) {
 		PrintDebug ("%6u: %s\n",i,r[i].value);
 	}
+}
+
+
+CString CArray::GetString(ppldd index) const
+{
+	CString s;
+	ROW *r=(ROW*)rows;
+	if (index<num) s=r[index].value;
+	return s;
 }
 
 const char *CArray::Get(ppldd index) const
@@ -483,6 +506,199 @@ CArray *File2Array(CFile &file, char *trenn)
 	if (!a) return NULL;
 	a->File2Array(file,trenn);
 	return a;
+}
+
+
+class ArraySort : private CAVLTree
+{
+	public:
+		~ArraySort();
+		virtual int	Compare(const void *value1, const void *value2) const;
+		virtual int DestroyValue(void *item) const;
+		int			Add(const CString &s);
+		void		Reset();
+		CString		*GetNext();
+		CString		*GetPrevious();
+};
+
+ArraySort::~ArraySort()
+{
+	Clear();
+}
+
+int ArraySort::Compare(const void *value1, const void *value2) const
+{
+	CString *s1=(CString*)value1;
+	CString *s2=(CString*)value2;
+	if (*s2 < *s1) return -1;
+	if (*s2 > *s1) return 1;
+	return 0;
+}
+
+int ArraySort::DestroyValue(void *item) const
+{
+	CString *s=(CString*)item;
+	delete s;
+	return 1;
+}
+
+int ArraySort::Add(const CString &s)
+{
+	CString *a=new CString(s);
+	if (!a) {
+		SetError(2);
+		return 0;
+	}
+	if (!CAVLTree::Add(a)) {
+		PushError();
+		delete a;
+		PopError();
+		return 0;
+	}
+	return 1;
+}
+
+void ArraySort::Reset()
+{
+	CAVLTree::Reset();
+}
+
+
+CString *ArraySort::GetNext()
+{
+	return (CString *)CAVLTree::GetNext();
+}
+
+CString *ArraySort::GetPrevious()
+{
+	return (CString *)CAVLTree::GetPrevious();
+}
+
+CArray Sort(const CArray &a)
+{
+	CArray r;
+	ArraySort s;
+	for (int i=0;i<a.Num();i++) {
+		s.Add(a.GetString(i));
+	}
+	s.Reset();
+	CString *n;
+	while ((n=s.GetNext())) {
+		r.Add(*n);
+	}
+
+	return r;
+}
+
+
+void CArray::Sort()
+{
+	ArraySort s;
+	for (ppldd i=0;i<num;i++) {
+		s.Add(GetString(i));
+	}
+	s.Reset();
+	Clear();
+	CString *n;
+	while ((n=s.GetNext())) {
+		Add(*n);
+	}
+
+}
+
+void CArray::MakeUnique()
+{
+	ppl6::CAssocArray a;
+	Reset();
+	const char *value;
+	while ((value=GetNext())) {
+		a.Add(value,"1");
+	}
+	Clear();
+	a.Reset();
+	ppl6::CString Key,Value;
+	while (a.GetNext(Key,Value)) {
+		Add(Key);
+	}
+}
+
+CString CArray::Implode(const CString &trenn) const
+{
+	CString ret;
+	for (ppldd i=0;i<num;i++) {
+		if (i) ret+=trenn;
+		ret+=GetString(i);
+	}
+	return ret;
+}
+
+
+CArray &CArray::fromArgs(int argc, const char **argv)
+{
+	Clear();
+	for (int i=0;i<argc;i++) {
+		Add(argv[i]);
+	}
+	return *this;
+}
+
+CArray &CArray::fromArgs(const CString &args)
+{
+	Clear();
+	CWString buffer(args);
+	CWString arg;
+	// Kommandozeile in argc und argv[] umwandeln
+
+	size_t l=buffer.Len();
+	Add(args);
+	bool inDoubleQuote=false;
+	bool inSingleQuote=false;
+	size_t start=0;
+	for (size_t i=0;i<l;i++) {
+		if(buffer[i]==34 && inDoubleQuote==false && inSingleQuote==false) {
+			if (i==0) {
+				inDoubleQuote=true;
+				start=i+1;
+			}
+			else if (buffer[i-1]!='\\') {
+				inDoubleQuote=true;
+				start=i+1;
+			}
+		} else if(buffer[i]=='\'' && inDoubleQuote==false && inSingleQuote==false) {
+				if (i==0) {
+					inSingleQuote=true;
+					start=i+1;
+				}
+				else if (buffer[i-1]!='\\') {
+					inSingleQuote=true;
+					start=i+1;
+				}
+
+		} else if(buffer[i]==34 && inDoubleQuote==true && buffer[i-1]!='\\') {
+			inDoubleQuote=false;
+			arg=buffer.Mid(start,i-start);
+			if (arg.NotEmpty()) Add(arg);
+
+			//if(argv[argc][0]!=0) argc++;
+			start=i+1;
+		} else if(buffer[i]=='\'' && inSingleQuote==true && buffer[i-1]!='\\') {
+			inSingleQuote=false;
+			arg=buffer.Mid(start,i-start);
+			if (arg.NotEmpty()) Add(arg);
+
+			//if(argv[argc][0]!=0) argc++;
+			start=i+1;
+		} else if((buffer[i]==' ' || buffer[i]=='\t') && inDoubleQuote==false && inSingleQuote==false) {
+			arg=Trim(buffer.Mid(start,i-start));
+			if (arg.NotEmpty()) Add(arg);
+			start=i+1;
+		}
+	}
+	if (start<l) {
+		arg=Trim(buffer.Mid(start,l-start));
+		if (arg.NotEmpty()) Add(arg);
+	}
+	return *this;
 }
 
 

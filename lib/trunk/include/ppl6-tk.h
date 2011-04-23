@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/02/24 07:58:06 $
- * $Id: ppl6-tk.h,v 1.3 2010/02/24 07:58:06 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/04/13 17:47:00 $
+ * $Id: ppl6-tk.h,v 1.4 2010/04/13 17:47:00 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -269,30 +269,37 @@ class Window : public Widget
 #undef TRANSPARENT
 #endif
 
+
+
 class Frame : public Widget
 {
 	public:
-		enum Framestyle {
-			UPSET,
-			INSET,
-			FLAT,
-			TRANSPARENT
+		enum Shadow {
+			Plain		= 0x0010,
+			Raised		= 0x0020,
+			Sunken		= 0x0030
+		};
+
+		enum Shape {
+				NoFrame	= 0,
+				Box		= 0x0001,
+				Panel	= 0x0002
 		};
 
 	private:
 		CWString	Text;
 		CFont		Font;
 		Color		foreground, background;
-		int	Style;
+		int			myStyle;
 
 
 	public:
-		Frame(Widget *parent=NULL, Framestyle style=UPSET);
+		Frame(Widget *parent=NULL, int style=Plain|Box);
 		virtual ~Frame();
 		CString text() const;
 		void setText(const CString &text);
-		Framestyle style() const;
-		void setFramestyle(Framestyle style);
+		int framestyle() const;
+		void setFramestyle(int style);
 		Color color() const;
 		void setColor(const Color &c);
 		Color backgroundColor() const;
@@ -317,16 +324,16 @@ class Button : public Widget
 		CWString	Text;
 		CFont		Font;
 		Color		foreground, background;
-		int	Style;
+		int			myStyle;
 
 
 	public:
-		Button(Widget *parent=NULL, Buttonstyle style=DEFAULT);
+		Button(Widget *parent=NULL, int style=DEFAULT);
 		virtual ~Button();
 		CString text() const;
 		void setText(const CString &text);
-		Buttonstyle style() const;
-		void setButtonstyle(Buttonstyle style);
+		int style() const;
+		void setButtonstyle(int style);
 		Color color() const;
 		void setColor(const Color &c);
 		Color backgroundColor() const;

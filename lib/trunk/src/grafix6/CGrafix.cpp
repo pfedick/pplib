@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CGrafix.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/07/26 10:28:51 $
+ * $Id: CGrafix.cpp,v 1.3 2010/07/26 10:28:51 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -112,7 +112,7 @@ CGrafix::CGrafix()
 	GlobalMutex.Lock();
 	if (pplgfx) {
 		GlobalMutex.Unlock();
-		throw Exception::ExistingCGrafixInstance();
+		throw Exception(196,"CGrafix");
 	}
 	alphatab=NULL;
 	engine=NULL;

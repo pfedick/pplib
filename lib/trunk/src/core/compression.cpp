@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: compression.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/07/15 21:20:07 $
+ * $Id: compression.cpp,v 1.3 2010/07/15 21:20:07 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -773,13 +773,13 @@ int CCompression::Compress(CBinary &out, const CVar &object, bool copy)
 {
 	int type=object.DataType();
 	if (type==CVar::CBINARY) {
-		const CBinary &bin=dynamic_cast<const CBinary&>(object);
+		const CBinary &bin=static_cast<const CBinary&>(object);
 		return Compress(out,bin.GetPtr(),bin.Size(),copy);
 	} else if (type==CVar::CSTRING) {
-		const CString &str=dynamic_cast<const CString&>(object);
+		const CString &str=static_cast<const CString&>(object);
 		return Compress(out,str.GetPtr(),str.Size(),copy);
 	} else if (type==CVar::CWSTRING) {
-		const CWString &wstr=dynamic_cast<const CWString&>(object);
+		const CWString &wstr=static_cast<const CWString&>(object);
 		return Compress(out,wstr.GetBuffer(),wstr.Size(),copy);
 	}
 	SetError(337);

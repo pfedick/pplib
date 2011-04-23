@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CFileObject.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/07/15 21:20:07 $
+ * $Id: CFileObject.cpp,v 1.3 2010/07/15 21:20:07 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -250,15 +250,15 @@ size_t CFileObject::Write (const CVar &object, size_t bytes)
 {
 	int t=object.DataType();
 	if (t==CVar::CBINARY) {
-			const CBinary &bin= dynamic_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
+			const CBinary &bin= static_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
 			if (bytes==0 || bytes>bin.Size()) bytes=bin.Size();
 			return Fwrite(bin.GetPtr(),1,bytes);
 	} else if (t==CVar::CSTRING) {
-			const CString &str= dynamic_cast<const CString&>(object);  // Objekt zu CString umwandeln
+			const CString &str= static_cast<const CString&>(object);  // Objekt zu CString umwandeln
 			if (bytes==0 || bytes>str.Size()) bytes=str.Size();
 			return Fwrite((void*)str.GetPtr(),1,bytes);
 	} else if (t==CVar::CWSTRING) {
-			const CWString &wstr= dynamic_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
+			const CWString &wstr= static_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
 			if (bytes==0 || bytes>wstr.Size()) bytes=wstr.Size();
 			return Fwrite((void*)wstr.GetBuffer(),1,bytes);
 	}
@@ -359,14 +359,14 @@ size_t CFileObject::Read (CVar &target, size_t bytes)
 	if (err) PushError();
 	int t=target.DataType();
 	if (t==CVar::CBINARY) {
-			CBinary &bin= dynamic_cast<CBinary&>(target);  // Objekt zu CBinary umwandeln
+			CBinary &bin= static_cast<CBinary&>(target);  // Objekt zu CBinary umwandeln
 			bin.Set(buffer,b);
 			bin.ManageMemory();
 	} else if (t==CVar::CSTRING) {
-			CString &str= dynamic_cast<CString&>(target);  // Objekt zu CString umwandeln
+			CString &str= static_cast<CString&>(target);  // Objekt zu CString umwandeln
 			str.ImportBuffer((char*)buffer,bytes+4);
 	} else if (t==CVar::CWSTRING) {
-			CWString &wstr= dynamic_cast<CWString&>(target);  // Objekt zu CWString umwandeln
+			CWString &wstr= static_cast<CWString&>(target);  // Objekt zu CWString umwandeln
 			((char*)buffer)[b+1]=0;
 			((char*)buffer)[b+2]=0;
 			((char*)buffer)[b+3]=0;
@@ -702,16 +702,16 @@ int CFileObject::Load(CVar &object)
 	buffer[by]=0;
 	int t=object.DataType();
 	if (t==CVar::CBINARY) {
-			CBinary &bin= dynamic_cast< CBinary&>(object);  // Objekt zu CBinary umwandeln
+			CBinary &bin= static_cast< CBinary&>(object);  // Objekt zu CBinary umwandeln
 			bin.Set(buffer,by);
 			bin.ManageMemory();
 			return 1;
 	} else if (t==CVar::CSTRING) {
-			CString &str= dynamic_cast<CString&>(object);  // Objekt zu CString umwandeln
+			CString &str= static_cast<CString&>(object);  // Objekt zu CString umwandeln
 			str.ImportBuffer((char*)buffer,by+1);
 			return 1;
 	} else if (t==CVar::CWSTRING) {
-			CWString &wstr= dynamic_cast<CWString&>(object);  // Objekt zu CWString umwandeln
+			CWString &wstr= static_cast<CWString&>(object);  // Objekt zu CWString umwandeln
 			wstr.ImportBuffer((wchar_t*)buffer,by+1);
 			return 1;
 	}

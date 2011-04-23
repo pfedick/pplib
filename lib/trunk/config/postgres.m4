@@ -26,7 +26,7 @@ then
 		ifelse([$3], , :, [$3])
 	else
 		AC_MSG_CHECKING(pgsql libraries)
-		PGSQL_LIBS="-L`${pg_config} --libdir` -lpq"
+		PGSQL_LIBS="-L `${pg_config} --libdir` `${pg_config} --libs` -lpq "
 		AC_MSG_RESULT($PGSQL_LIBS)
 		AC_MSG_CHECKING(pgsql includes)
 		PGSQL_CFLAGS="-I`${pg_config} --includedir`"

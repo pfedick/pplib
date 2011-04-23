@@ -19,4 +19,3 @@ sh genMakefile.in
 $ACLOCAL
 $AUTOMAKE --add-missing
 $AUTOCONF
-$AUTOCONF tinyconf.in > tinyconf

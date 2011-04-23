@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.4 $
- * $Date: 2010/02/22 12:59:43 $
- * $Id: CString.cpp,v 1.4 2010/02/22 12:59:43 pafe Exp $
+ * $Revision: 1.12 $
+ * $Date: 2010/11/18 20:17:30 $
+ * $Id: CString.cpp,v 1.12 2010/11/18 20:17:30 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -709,22 +709,35 @@ int CString::IsNumeric() const
 {
 	int c;
 	if (!len) return 0;
-	int minus=0;
-	int komma=0;
-	int punkt=0;
 	for (ppluint32 i=0;i<len;i++) {
 		c=buffer[i];
 		if (c<'0' || c>'9') {
 			if (c!='.' && c!=',' && c!='-') return 0;
-			if (c=='.') punkt++;
-			if (c==',') komma++;
-			if (c=='-') minus++;
 		}
 	}
-	if (minus>1) return 0;
-	if (punkt>1) return 0;
-	if (komma>1) return 0;
+	return 1;
+}
 
+/*!\brief Prüft, ob der String einen Integer Wert enthält
+ *
+ * \desc
+ * Diese Funktion prüft, ob im String einen integer Wert enthält, also nur die Ziffern
+ * 0-9 und optional ein Minus am Anfang enthalten sind
+ *
+ * @return Ist der String ein Integer, wird 1 zurückgegeben. Ist er es nicht oder ist der String
+ * leer, wird 0 zurückgegeben.
+ */
+int CString::IsInteger() const
+{
+	int c;
+	if (!len) return 0;
+	for (ppluint32 i=0;i<len;i++) {
+		c=buffer[i];
+		if (c<'0' || c>'9') {
+			if (c=='-' && i==0) continue;		// Minus am Anfang ist erlaubt
+			return 0;
+		}
+	}
 	return 1;
 }
 
@@ -1148,10 +1161,11 @@ void CString::UCWords()
  */
 int CString::StrCmp(const char *str, int size) const
 {
-	if (!buffer) return -2;
-	if (!str) return 2;
-	if (size) return strncmp(buffer,str,size);
-	return strcmp(buffer,str);
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	if (!str) str="";
+	if (size) return strncmp(mystr,str,size);
+	return strcmp(mystr,str);
 }
 
 //! \brief Führt einen Vergleich mit einem anderen String durch
@@ -1161,11 +1175,12 @@ int CString::StrCmp(const char *str, int size) const
  */
 int CString::StrCmp(const CString &str, int size) const
 {
-	if (!buffer) return -2;
-	if (!str.len) return 2;
-	if (!str.buffer) return 2;
-	if (size) return strncmp(buffer,str.buffer,size);
-	return strcmp(buffer,str.buffer);
+	const char *mystr=buffer;
+	const char *otherstr=str.buffer;
+	if (!mystr) mystr="";
+	if (!otherstr) otherstr="";
+	if (size) return strncmp(mystr,otherstr,size);
+	return strcmp(mystr,otherstr);
 }
 
 //! \brief Führt einen Vergleich mit einem anderen String durch, wobei Gross-/Kleinschreibung ignoriert wird
@@ -1175,10 +1190,11 @@ int CString::StrCmp(const CString &str, int size) const
  */
 int CString::StrCaseCmp(const char *str, int size) const
 {
-	if (!buffer) return -2;
-	if (!str) return 2;
-	if (size) return strncasecmp(buffer,str,size);
-	return strcasecmp(buffer,str);
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	if (!str) str="";
+	if (size) return strncasecmp(mystr,str,size);
+	return strcasecmp(mystr,str);
 }
 
 //! \brief Führt einen Vergleich mit einem anderen String durch, wobei Gross-/Kleinschreibung ignoriert wird
@@ -1188,11 +1204,12 @@ int CString::StrCaseCmp(const char *str, int size) const
  */
 int CString::StrCaseCmp(const CString &str, int size) const
 {
-	if (!buffer) return -2;
-	if (!str.len) return 2;
-	if (!str.buffer) return 2;
-	if (size) return strncasecmp(buffer,str.buffer,size);
-	return strcasecmp(buffer,str.buffer);
+	const char *mystr=buffer;
+	const char *otherstr=str.buffer;
+	if (!mystr) mystr="";
+	if (!otherstr) otherstr="";
+	if (size) return strncasecmp(mystr,otherstr,size);
+	return strcasecmp(mystr,otherstr);
 }
 
 //! \brief Ersetzt einen Teilstring durch einen anderen
@@ -1352,6 +1369,69 @@ CString CString::SubStr(ppluint32 start, ppluint32 len) const
 	return ms;
 }
 
+int CString::PregMatch(const ppl6::CString &expression, CArray &res) const
+{
+#ifndef HAVE_PCRE
+	SetError(276);
+	return 0;
+#else
+	res.Clear();
+	if (expression.IsEmpty()) return 0;
+	if (!buffer) return 0;
+	if (!len) return 0;
+	int ret=0;
+	char *r=strdup(expression.GetPtr()+1);
+	int flags=0;
+	// letzten Slash in regex finden
+	char *options=strrchr(r,'/');
+	if (options) {
+		options[0]=0;
+		options++;
+		if (strchr(options,'i')) flags|=PCRE_CASELESS;
+		if (strchr(options,'m')) flags|=PCRE_MULTILINE;
+		if (strchr(options,'x')) flags|=PCRE_EXTENDED;
+		if (strchr(options,'s')) flags|=PCRE_DOTALL;
+		if (strchr(options,'8')) flags|=PCRE_UTF8;
+		if (strchr(options,'a')) flags|=PCRE_ANCHORED;
+		if (strchr(options,'u')) flags|=PCRE_UNGREEDY;
+	}
+	// Wenn das System auf UTF-8 eingestellt ist, setzen wir das UTF8-Flag automatisch
+	if (instrcase(setlocale(LC_CTYPE,NULL),"UTF-8",0)>=0) flags|=PCRE_UTF8;
+	const char *perr;
+	char *tmp;
+	int re,erroffset, ovector[32];
+	int perrorcode;
+	pcre *reg;
+	//printf ("r=%s, flags=%i\n",r,flags);
+	CString__PregMatch_Restart:
+	reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
+	if (reg) {
+		bzero(ovector,30*sizeof(int));
+		if ((re=pcre_exec(reg, NULL, (char*) buffer,len,0, 0, ovector, 30))>=0) {
+			ret=1;
+			for (int i=0;i<14;i++) {
+				tmp=NULL;
+				pcre_get_substring(buffer,ovector,30,i,(const char**)&tmp);
+				if (tmp) {
+					//printf("tmp[%i]=%s\n",i,tmp);
+					res.Set(i,tmp);
+					pcre_free_substring(tmp);
+				}
+			}
+		} else if ((flags&PCRE_UTF8)==PCRE_UTF8 && (re==PCRE_ERROR_BADUTF8 || re==PCRE_ERROR_BADUTF8_OFFSET)) {
+			// Wir haben ungültiges UTF_8
+			//printf ("ungültiges UTF-8");
+			// Vielleicht matched es ohne UTF-8-Flag
+			flags-=PCRE_UTF8;
+			free(reg);
+			goto CString__PregMatch_Restart;
+		}
+		free(reg);
+	}
+	free(r);
+	return ret;
+#endif
+}
 
 /*! \brief Der String wird anhand einer Regular Expression durchsucht
  *
@@ -1376,62 +1456,7 @@ int CString::PregMatch(const char *expr, CArray *res)
 		if (!matches) matches=new CArray;
 		res=matches;
 	}
-	res->Clear();
-	if (!expr) return 0;
-	if (!buffer) return 0;
-	if (!len) return 0;
-	int ret=0;
-	char *r=strdup(expr+1);
-	int flags=0;
-	// letzten Slash in regex finden
-	char *options=strrchr(r,'/');
-	if (options) {
-		options[0]=0;
-		options++;
-		if (strchr(options,'i')) flags|=PCRE_CASELESS;
-		if (strchr(options,'m')) flags|=PCRE_MULTILINE;
-		if (strchr(options,'x')) flags|=PCRE_EXTENDED;
-		if (strchr(options,'s')) flags|=PCRE_DOTALL;
-		if (strchr(options,'8')) flags|=PCRE_UTF8;
-		if (strchr(options,'a')) flags|=PCRE_ANCHORED;
-		if (strchr(options,'u')) flags|=PCRE_UNGREEDY;
-	}
-	// Wenn das System auf UTF-8 eingestellt ist, setzen wir das UTF8-Flag automatisch
-	if (instrcase(setlocale(LC_CTYPE,NULL),"UTF-8",0)>=0) flags|=PCRE_UTF8;
-	const char *perr;
-	char *tmp;
-	int re,erroffset, ovector[32];
-	int perrorcode;
-	pcre *reg;
-	//printf ("r=%s, flags=%i\n",r,flags);
-CString__PregMatch_Restart:
-	reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
-	if (reg) {
-		bzero(ovector,30*sizeof(int));
-		if ((re=pcre_exec(reg, NULL, (char*) buffer,len,0, 0, ovector, 30))>=0) {
-			ret=1;
-			for (int i=0;i<14;i++) {
-				tmp=NULL;
-				pcre_get_substring(buffer,ovector,30,i,(const char**)&tmp);
-				if (tmp) {
-					//printf("tmp[%i]=%s\n",i,tmp);
-					res->Set(i,tmp);
-					pcre_free_substring(tmp);
-				}
-			}
-		} else if ((flags&PCRE_UTF8)==PCRE_UTF8 && (re==PCRE_ERROR_BADUTF8 || re==PCRE_ERROR_BADUTF8_OFFSET)) {
-			// Wir haben ungültiges UTF_8
-			//printf ("ungültiges UTF-8");
-			// Vielleicht matched es ohne UTF-8-Flag
-			flags-=PCRE_UTF8;
-			free(reg);
-			goto CString__PregMatch_Restart;
-		}
-		free(reg);
-	}
-
-	free(r);
-	return ret;
+	return PregMatch(expr,*res);
 	#endif
 }
 
@@ -1739,55 +1764,121 @@ char CString::operator[](int pos) const
 
 bool CString::operator==(const char *str) const
 {
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
 	if (!str) return false;
-	if (!buffer) return false;
-	if (strcmp(buffer,str)==0) return true;
+	if (strcmp(mystr,str)==0) return true;
 	return false;
 }
 
 bool CString::operator!=(const char *str) const
 {
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
 	if (!str) return true;
-	if (!buffer) return true;
-	if (strcmp(buffer,str)==0) return false;
+	if (strcmp(mystr,str)==0) return false;
 	return true;
 }
 
 bool CString::operator<(const char *str) const
 {
-	if (buffer==NULL && str!=NULL) return true;
-	if (!buffer) return false;
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
 	if (!str) return false;
-	if (strcmp(buffer,str)<0) return true;
+	if (strcmp(mystr,str)<0) return true;
 	return false;
 }
 
 bool CString::operator<=(const char *str) const
 {
-	if (buffer==NULL && str!=NULL) return true;
-	if (!buffer) return false;
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
 	if (!str) return false;
-	if (strcmp(buffer,str)<=0) return true;
+	if (strcmp(mystr,str)<=0) return true;
 	return false;
 }
 
 bool CString::operator>(const char *str) const
 {
-	if (buffer!=NULL && str==NULL) return true;
-	if (!buffer) return false;
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
 	if (!str) return false;
-	if (strcmp(buffer,str)>0) return true;
+	if (strcmp(mystr,str)>0) return true;
 	return false;
 }
 
 bool CString::operator>=(const char *str) const
 {
-	if (buffer!=NULL && str==NULL) return true;
-	if (!buffer) return false;
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
 	if (!str) return false;
-	if (strcmp(buffer,str)>=0) return true;
+	if (strcmp(mystr,str)>=0) return true;
 	return false;
 }
+
+
+bool CString::operator<(const CString &str) const
+{
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	const char *otherstr=str.buffer;
+	if (!otherstr) otherstr="";
+	if (strcmp(mystr,otherstr)<0) return true;
+	return false;
+}
+
+bool CString::operator<=(const CString &str) const
+{
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	const char *otherstr=str.buffer;
+	if (!otherstr) otherstr="";
+	if (strcmp(mystr,otherstr)<=0) return true;
+	return false;
+
+}
+
+bool CString::operator==(const CString &str) const
+{
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	const char *otherstr=str.buffer;
+	if (!otherstr) otherstr="";
+	if (strcmp(mystr,otherstr)==0) return true;
+	return false;
+}
+
+bool CString::operator!=(const CString &str) const
+{
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	const char *otherstr=str.buffer;
+	if (!otherstr) otherstr="";
+	if (strcmp(mystr,otherstr)!=0) return true;
+	return false;
+}
+
+bool CString::operator>=(const CString &str) const
+{
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	const char *otherstr=str.buffer;
+	if (!otherstr) otherstr="";
+	if (strcmp(mystr,otherstr)>=0) return true;
+	return false;
+}
+
+bool CString::operator>(const CString &str) const
+{
+	const char *mystr=buffer;
+	if (!mystr) mystr="";
+	const char *otherstr=str.buffer;
+	if (!otherstr) otherstr="";
+	if (strcmp(mystr,otherstr)>0) return true;
+	return false;
+}
+
+
 
 CString& CString::operator=(const char* str)
 {
@@ -2275,38 +2366,7 @@ int CString::TranscodeText(const char *text, int size, const char *fromcharset, 
 	#endif
 }
 
-/*
-CString CString::operator+(const char *str) const
-{
-	CString ms;
-	ms.Set(buffer);
-	ms.Concat(str);
-	return ms;
-}
-*/
-
-/*
-CString& CString::operator+(const CString& str) const
-{
-	CString ms;
-	ms.Set(buffer);
-	ms.Concat(str);
-	return &ms;
-}
-*/
-
-/*
-CString CString::operator+(const CString& str) const
-{
-	CString ms;
-	ms.Set(buffer);
-	ms.Concat(str);
-	return ms;
-}
-
-*/
-
-const CString operator+(const CString &str1, const CString& str2)
+CString operator+(const CString &str1, const CString& str2)
 {
 	//mstring to return, assign the string
 	CString ms = str1;
@@ -2314,7 +2374,7 @@ const CString operator+(const CString &str1, const CString& str2)
 	return ms;
 }
 
-const CString operator+(const char *str1, const CString& str2)
+CString operator+(const char *str1, const CString& str2)
 {
 	//mstring to return, assign the string
 	CString ms = str1;
@@ -2322,12 +2382,16 @@ const CString operator+(const char *str1, const CString& str2)
 	return ms;
 }
 
-const CString operator+(const CString &str1, const char *str2)
+CString operator+(const CString &str1, const char *str2)
 {
 	//mstring to return, assign the string
 	CString ms = str1;
 	ms+=str2;
 	return ms;
 }
+
+
+
+
 
 } // EOF namespace ppl6

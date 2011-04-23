@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CResource.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/06/16 21:49:15 $
+ * $Id: CResource.cpp,v 1.3 2010/06/16 21:49:15 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -609,6 +609,7 @@ int CResource::GenerateResourceHeader(const char *basispfad, const char *configf
 		const char *id=conf.Get("ID");
 		const char *name=conf.Get("Name");
 		const char *filename=conf.Get("File");
+		const char *compression=conf.Get("compression");
 		havesection=conf.NextSection();
 		if (!filename) continue;
 		if (strlen(filename)<2) continue;
@@ -622,6 +623,18 @@ int CResource::GenerateResourceHeader(const char *basispfad, const char *configf
 			ppluint32 size=0;
 			int type=0;
 			printf ("%s: ",filename);
+			if (compression) {
+				CString forcecomp=LCase(Trim(compression));
+				if (forcecomp=="none") {
+					buffer=ff.Load();
+					printf ("Forced no compression: %u Bytes\n",(ppluint32)ff.Size());
+					Output(&out,atoi(id),name,filename,(ppluint32)ff.Size(),buffer,(ppluint32)ff.Size(),0);
+					free(buffer);
+					continue;
+				}
+				printf ("Unbekannter Kompressionsalgorithmus für ID %s: >>%s<<\n",id,(const char*)forcecomp);
+				return 0;
+			}
 			if (Compress(&ff,&buffer,&size,&type)) {
 				Output(&out,atoi(id),name,filename,(ppluint32)ff.Size(),buffer,size,type);
 				free(buffer);

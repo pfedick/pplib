@@ -3,9 +3,9 @@
 ; * Web: http://www.pfp.de/ppl/
 ; *
 ; * $Author: pafe $
-; * $Revision: 1.2 $
-; * $Date: 2010/02/12 19:43:56 $
-; * $Id: blt.asm,v 1.2 2010/02/12 19:43:56 pafe Exp $
+; * $Revision: 1.6 $
+; * $Date: 2010/11/17 23:41:34 $
+; * $Id: blt.asm,v 1.6 2010/11/17 23:41:34 pafe Exp $
 ; *
 ;/*******************************************************************************
 ; * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -42,7 +42,13 @@
 %include "src/asm/common.asminc"
 
 
-SECTION .data
+SECTION .bss
+; Copy-Buffer
+ALIGN 64
+; Der statische Copy-Buffer ist NICHT Threadsafe!!!!
+tbuf:         resb    2048
+
+
 SECTION .text
 
 struc BLTDATA
@@ -73,8 +79,6 @@ endstruc
 		push rsi
 	%endif
 	push rbx					; rbx, r10 und r11 retten
-	push r10
-	push r11
 	mov eax, 0xff000000
 	pxor mm6,mm6
 	movd mm3,eax				;// Fuer Or-Maske, damit Alpha-Channel immer ff ist
@@ -134,8 +138,6 @@ endstruc
 		jnz .aYLoop
 	emms
 	xor rax,rax
-	pop r11
-	pop r10
 	inc rax					; Returnwert auf 1 setzen
 	pop rbx
 	%if win64=1
@@ -215,6 +217,126 @@ endstruc
 		ret
 %endif
 
+%if elf64=1 || win64=1
+CopyBuffered:
+	; Input:
+	;	rsi: Quelladresse
+	;	rdi: Zieladresse
+	;	rcx: Anzahl Bytes
+	; Register rax, rcx und rdx, sowie MMX-Register mm0-mm7 werden verändert.
+	; Die aufrufende Prozedur muss diese gegebenenfalls "retten" und am Ende "emms" aufrufen.
+
+	mov rdx,rcx
+	shr rdx,11					; Anzahl 2048 Blöcke berechnen
+	jz .end2048loop				; Es gibt keine, zu wenig Bytes
+		.loop2k:				; Copy 2k into temporary buffer
+			push rdi
+			mov rdi, tbuf
+			mov eax, 32			; 2048 Byte in 64-Byte-Häppchen = 32 Durchgänge
+			.loopMemToL1:
+				prefetchnta [rsi+64]	; Prefetch next loop, non-temporal
+				prefetchnta [rsi+96]
+				movq mm1, [rsi] 		; Read in source data
+				movq mm2, [rsi+8]
+				movq mm3, [rsi+16]
+				movq mm4, [rsi+24]
+				movq mm5, [rsi+32]
+				movq mm6, [rsi+40]
+				movq mm7, [rsi+48]
+				movq mm0, [rsi+56]
+
+				movq [rdi], mm1 		; Store into L1-Cache
+				movq [rdi+8], mm2
+				movq [rdi+16], mm3
+				movq [rdi+24], mm4
+				movq [rdi+32], mm5
+				movq [rdi+40], mm6
+				movq [rdi+48], mm7
+				movq [rdi+56], mm0
+				add rsi, 64
+				add rdi, 64
+				dec eax
+			jnz .loopMemToL1
+			pop rdi 				; Now copy from L1 to system memory
+			push rsi
+			mov rsi, tbuf
+			mov eax, 32			; 2048 Byte in 64-Byte-Häppchen = 32 Durchgänge
+			.loopL1ToMem:
+				movq mm1, [rsi] 		; Read in L1-Cache
+				movq mm2, [rsi+8]
+				movq mm3, [rsi+16]
+				movq mm4, [rsi+24]
+				movq mm5, [rsi+32]
+				movq mm6, [rsi+40]
+				movq mm7, [rsi+48]
+				movq mm0, [rsi+56]
+
+				movntq [rdi], mm1 		; Store into Memory
+				movntq [rdi+8], mm2
+				movntq [rdi+16], mm3
+				movntq [rdi+24], mm4
+				movntq [rdi+32], mm5
+				movntq [rdi+40], mm6
+				movntq [rdi+48], mm7
+				movntq [rdi+56], mm0
+				add rsi, 64
+				add rdi, 64
+				dec eax
+			jnz .loopL1ToMem
+			pop rsi
+
+			.next:
+			dec rdx
+			jnz .loop2k
+
+		.end2048loop:
+			and rcx,2047			; Restliche Bytes maskieren
+			mov rdx,rcx
+			shr rdx,6				; Anzahl 64-Byte-Blöcke berechnen
+			jz .rest
+				.loop64Byte:
+					prefetchnta [rsi+64]	; Prefetch next loop, non-temporal
+					prefetchnta [rsi+96]
+					movq mm1, [rsi] 		; Read in source data
+					movq mm2, [rsi+8]
+					movq mm3, [rsi+16]
+					movq mm4, [rsi+24]
+					movq mm5, [rsi+32]
+					movq mm6, [rsi+40]
+					movq mm7, [rsi+48]
+					movq mm0, [rsi+56]
+
+					movntq [rdi], mm1 		; Store into Memory
+					movntq [rdi+8], mm2
+					movntq [rdi+16], mm3
+					movntq [rdi+24], mm4
+					movntq [rdi+32], mm5
+					movntq [rdi+40], mm6
+					movntq [rdi+48], mm7
+					movntq [rdi+56], mm0
+
+					add rdi,64
+					add rsi,64
+					dec rdx
+				jnz .loop64Byte
+
+			.rest:
+			and rcx,63				; Restliche Bytes maskieren
+			push rcx
+			shr rcx,2				; Durch 4 Teilen
+			jz .no4Byte
+				rep movsd			; Kopieren
+			.no4Byte:
+			pop rcx
+			and rcx,3
+			jz .end
+				rep movsb
+			.end:
+
+		ret
+%endif
+
+
 ;/*********************************************************************
 ;/** ASM_Blt32                                                       **
 ;/**                                                                 **
@@ -231,26 +353,29 @@ endstruc
 		push rdi
 		push rsi
 	%endif
-		;push rbx				; rbx wird nicht benutzt
+		push rbx				; rbx wird nicht benutzt
 		mov r8d,[rcx+width]		; Breite nach r8d
-		mov eax,[rcx+pitchsrc]	; Pitch der Quelle nach eax
-		mov r9d,r8d				; Breite nach r9 kopieren
-		mov edx,[rcx+pitchtgt]	; Pitch des Ziels nach edx
-		shl r9d,2
+		mov r10d,[rcx+pitchsrc]	; Pitch der Quelle nach r10
+		shl r8,2				; Breite * 4
+		mov r11d,[rcx+pitchtgt]	; Pitch des Ziels nach r11
 		mov rdi,[rcx+tgt]		; Zieladresse nach rdi
-		sub eax,r9d				; Breite*4 muss von SourcePitch abgezogen werden
-		sub edx,r9d				; Breite*4 muss von TargetPitch abgezogen werden
+		sub r10,r8				; Breite*4 muss von SourcePitch abgezogen werden
+		sub r11,r8				; Breite*4 muss von TargetPitch abgezogen werden
 		mov rsi,[rcx+src]		; Quelladresse nach rsi
 		mov r9d,[rcx+height]	; Höhe nach r9d
-		.loop:
-			mov ecx,r8d			; Breite aus r8d holen
-			rep movsd
-			add rdi,rdx
-			add rsi,rax
-			dec r9d
-		jnz .loop
-		;emms					; Wir haben keine MMX-Register verwendet
-		;pop rbx
+
+	.loopLine:
+
+		mov rcx,r8				; Breite nach rcx
+		call CopyBuffered
+		add rsi,r10				; Nächste Zeile
+		add rdi,r11
+		dec r9d
+	jnz .loopLine
+
+	.end:
+		emms					; Wir haben keine MMX-Register verwendet
+		pop rbx
 		xor rax,rax
 	%if win64=1
 		pop rsi

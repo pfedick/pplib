@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CMHash.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/11/24 09:19:46 $
+ * $Id: CMHash.cpp,v 1.4 2010/11/24 09:19:46 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -586,13 +586,13 @@ int CMHash::AddData(const CVar &data)
 {
 	int type=data.DataType();
 	if (type==CVar::CBINARY) {
-		const CBinary &bin=dynamic_cast<const CBinary&>(data);
+		const CBinary &bin=static_cast<const CBinary&>(data);
 		return AddData(bin.GetPtr(),bin.Size());
 	} else if (type==CVar::CSTRING) {
-		const CString &str=dynamic_cast<const CString&>(data);
+		const CString &str=static_cast<const CString&>(data);
 		return AddData(str.GetPtr(),str.Size());
 	} else if (type==CVar::CWSTRING) {
-		const CWString &wstr=dynamic_cast<const CWString&>(data);
+		const CWString &wstr=static_cast<const CWString&>(data);
 		return AddData(wstr.GetBuffer(),wstr.Size());
 	}
 	SetError(337);
@@ -711,31 +711,31 @@ int CMHash::GetResult(CVar &result)
 	}
 	mhash_deinit((MHASH)handle, buffer);
 	handle=NULL;
+	// Bereit machen, für nächste Hash-Berechnung
+	Init(algo);
 	// Nun schauen wir mal, worin wir das Ergebnis speichern sollen
 	int type=result.DataType();
 	if (type==CVar::CBINARY) {
-		CBinary &bin=dynamic_cast<CBinary&>(result);
+		CBinary &bin=static_cast<CBinary&>(result);
 		bin.Clear();
 		bin.Copy(buffer,blocksize);
 	} else if (type==CVar::CSTRING) {
-		CString &str=dynamic_cast<CString&>(result);
+		CString &str=static_cast<CString&>(result);
 		str.Clear();
 		for(int i=0;i<blocksize;i++) str.Concatf("%02x",buffer[i]);
 	} else if (type==CVar::CWSTRING) {
-		CWString &str=dynamic_cast<CWString&>(result);
+		CWString &str=static_cast<CWString&>(result);
 		str.Clear();
 		for(int i=0;i<blocksize;i++) str.Concatf("%02x",buffer[i]);
 	} else if (type==CVar::CINT) {
 		if (blocksize!=4) {
-			Reset();
 			free(buffer);
 			SetError(532);
 			return 0;
 		}
-		CInt &i=dynamic_cast<CInt&>(result);
+		CInt &i=static_cast<CInt&>(result);
 		i=*((int*)buffer);
 	} else {
-		Reset();
 		free(buffer);
 		SetError(337);
 		return 0;

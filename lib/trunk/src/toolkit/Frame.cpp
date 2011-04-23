@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:47 $
- * $Id: Frame.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/04/13 17:47:00 $
+ * $Id: Frame.cpp,v 1.3 2010/04/13 17:47:00 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -55,10 +55,10 @@ namespace ppl6 {
 namespace tk {
 
 
-Frame::Frame(Widget *parent, Framestyle style)
+Frame::Frame(Widget *parent, int style)
 : Widget(parent)
 {
-	Style=style;
+	myStyle=style;
 	background.setColor(230,235,230);
 
 }

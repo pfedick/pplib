@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:47 $
- * $Id: CBinary.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ * $Revision: 1.5 $
+ * $Date: 2010/11/23 21:25:23 $
+ * $Id: CBinary.cpp,v 1.5 2010/11/23 21:25:23 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -278,13 +278,13 @@ int CBinary::Set(const CVar& object)
 {
 	int t=object.DataType();
 	if (t==CVar::CBINARY) {
-			const CBinary &bin= dynamic_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
+			const CBinary &bin= static_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
 			return Set(bin.GetPtr(),bin.Size());
 	} else if (t==CVar::CSTRING) {
-			const CString &str= dynamic_cast<const CString&>(object);  // Objekt zu CString umwandeln
+			const CString &str= static_cast<const CString&>(object);  // Objekt zu CString umwandeln
 			return Set((void*)str.GetPtr(),str.Size());
 	} else if (t==CVar::CWSTRING) {
-			const CWString &wstr= dynamic_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
+			const CWString &wstr= static_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
 			return Set((void*)wstr.GetBuffer(),wstr.Size());
 	}
 	SetError(337);
@@ -296,13 +296,13 @@ int CBinary::Copy(const CVar& object)
 {
 	int t=object.DataType();
 	if (t==CVar::CBINARY) {
-			const CBinary &bin= dynamic_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
+			const CBinary &bin= static_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
 			return Copy(bin.GetPtr(),bin.Size());
 	} else if (t==CVar::CSTRING) {
-			const CString &str= dynamic_cast<const CString&>(object);  // Objekt zu CString umwandeln
+			const CString &str= static_cast<const CString&>(object);  // Objekt zu CString umwandeln
 			return Copy(str.GetPtr(),str.Size());
 	} else if (t==CVar::CWSTRING) {
-			const CWString &wstr= dynamic_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
+			const CWString &wstr= static_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
 			return Copy(wstr.GetBuffer(),wstr.Size());
 	}
 	SetError(337);
@@ -580,6 +580,57 @@ CBinary::operator CMemoryReference () const
 	return CMemoryReference(ptr,size);
 }
 
+CString CBinary::ToHex() const
+{
+	unsigned char *buff=(unsigned char*)ptr;
+	CString str;
+	for(size_t i=0;i<size;i++) str.Concatf("%02x",buff[i]);
+	return str;
+}
+
+int	CBinary::FromHex(const CString &s)
+{
+	ClearInternal();
+	if (s.IsEmpty()) return 1;
+	const unsigned char *p=(const unsigned char *)s.GetPtr();
+	unsigned char *t;
+	size_t bytes=s.Len();
+	if ((bytes&1)==1) {
+		SetError(562,"ungerade Anzahl Zeichen");
+		return 0;
+	}
+	ptr=malloc(bytes>>1);
+	if (!ptr) {
+		SetError(2);
+		return 0;
+	}
+	t=(unsigned char*)ptr;
+	size=bytes>>1;
+	unsigned char value;
+	for (size_t source=0, target=0;source<bytes;source+=2,target++) {
+		unsigned char first=p[source];
+		unsigned char second=p[source+1];
+		if (first>='0' && first<='9') value=(first-'0');
+		else if (first>='a' && first<='f') value=(first-'a'+10);
+		else if (first>='A' && first<='F') value=(first-'A'+10);
+		else {
+			ClearInternal();
+			SetError(562,"ungültiges Zeichen im String");
+			return 0;
+		}
+		value=value<<4;
+		if (second>='0' && second<='9') value|=(second-'0');
+		else if (second>='a' && second<='f') value|=(second-'a'+10);
+		else if (second>='A' && second<='F') value|=(second-'A'+10);
+		else {
+			ClearInternal();
+			SetError(562,"ungültiges Zeichen im String");
+			return 0;
+		}
+		t[target]=value;
+	}
+	return 1;
+}
 
 } // EOF namespace ppl6
 

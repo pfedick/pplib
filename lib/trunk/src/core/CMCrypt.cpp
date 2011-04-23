@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CMCrypt.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/07/15 21:20:07 $
+ * $Id: CMCrypt.cpp,v 1.3 2010/07/15 21:20:07 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -1227,7 +1227,7 @@ bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
 	if (!MC.Init(algo,mode)) return 0;
 	if (!MC.SetKey(key)) return 0;
 	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)dynamic_cast<const CBinary&>(IV)).Size()>0) {
+	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
 		if (!MC.SetIV(IV)) return 0;
 	}
 	return MC.Crypt(buffer);
@@ -1244,7 +1244,7 @@ int CMCrypt::Crypt(CBinary &buffer, const char *key, Algorithm algo, Mode mode, 
 	if (!MC.Init(algo,mode)) return 0;
 	if (!MC.SetKey(key)) return 0;
 	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)dynamic_cast<const CBinary&>(IV)).Size()>0) {
+	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
 		if (!MC.SetIV(IV)) return 0;
 	}
 	return MC.Crypt(buffer);
@@ -1302,7 +1302,7 @@ bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
 	if (!MC.Init(algo,mode)) return 0;
 	if (!MC.SetKey(key)) return 0;
 	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)dynamic_cast<const CBinary&>(IV)).Size()>0) {
+	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
 		if (!MC.SetIV(IV)) return 0;
 	}
 	return MC.Decrypt(buffer);
@@ -1320,7 +1320,7 @@ int CMCrypt::Decrypt(CBinary &buffer, const char *key, Algorithm algo, Mode mode
 	if (!MC.Init(algo,mode)) return 0;
 	if (!MC.SetKey(key)) return 0;
 	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)dynamic_cast<const CBinary&>(IV)).Size()>0) {
+	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
 		if (!MC.SetIV(IV)) return 0;
 	}
 	return MC.Decrypt(buffer);

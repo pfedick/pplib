@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:47 $
- * $Id: CVar.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/07/20 21:08:34 $
+ * $Id: CVar.cpp,v 1.4 2010/07/20 21:08:34 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -71,15 +71,15 @@ void Machwas(const CVar &object)
 {
 	int t=object.DataType();
 	if (t==CVar::CBINARY) {
-			const CBinary &bin= dynamic_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
+			const CBinary &bin= static_cast<const CBinary&>(object);  // Objekt zu CBinary umwandeln
 			printf ("Es ist ein CBinary mit %i Bytes an Daten\n",bin.Size());
 			return;
 	} else if (t==CVar::CSTRING) {
-			const CString &str= dynamic_cast<const CString&>(object);  // Objekt zu CString umwandeln
+			const CString &str= static_cast<const CString&>(object);  // Objekt zu CString umwandeln
 			printf ("Es ist ein CString mit folgendem Inhalt: %s\n",(char*)str);
 			return;
 	} else if (t==CVar::CWSTRING) {
-			const CWString &wstr= dynamic_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
+			const CWString &wstr= static_cast<const CWString&>(object);  // Objekt zu CWString umwandeln
 			printf ("Es ist ein CWString mit folgendem Inhalt: %s\n",(char*)wstr);
 			return;
 	}
@@ -130,6 +130,10 @@ void Machwas(const CVar &object)
  * \brief Klasse vom Typ CBool
  */
 
+/*!\var CVar::PPLDataType CVar::CDATETIME
+ * \brief Klasse vom Typ CDateTime
+ */
+
 
 CVar::CVar()
 /*!\brief Konstruktor der Klasse
@@ -150,15 +154,6 @@ CVar::CVar(const CVar &copy)
 }
 
 
-
-CVar::~CVar()
-/*!\brief Destruktor der Klasse
- *
- *
- */
-{
-
-}
 
 CVar& CVar::operator=(const CVar& var)
 {

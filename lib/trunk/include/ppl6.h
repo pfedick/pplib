@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.19 $
- * $Date: 2010/03/27 20:53:06 $
- * $Id: ppl6.h,v 1.19 2010/03/27 20:53:06 pafe Exp $
+ * $Revision: 1.61 $
+ * $Date: 2011/03/17 11:12:16 $
+ * $Id: ppl6.h,v 1.61 2011/03/17 11:12:16 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -40,8 +40,8 @@
 
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
-#define PPL_VERSION_BUILD	0
-#define PPL_RELEASEDATE		20100326
+#define PPL_VERSION_BUILD	6
+#define PPL_RELEASEDATE		20110317
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -297,6 +297,9 @@ class CResource;
 class CHeap;
 class CBinary;
 
+class Exception;
+
+/*
 namespace Exception {
 	class InvalidAddress {};
 	class OutOfMemory {};
@@ -310,6 +313,7 @@ namespace Exception {
 	class InvalidParameter {};
 	class FunctionFailed {};
 };
+*/
 
 
 class CMemoryReference
@@ -334,6 +338,7 @@ class CMemoryReference
 		CMemoryReference &operator=(const CBinary &bin);
 		operator void*() const;
 		operator CBinary() const;
+		CString toHex() const;
 		unsigned char operator[](size_t pos) const;
 };
 
@@ -354,6 +359,7 @@ public:
 	void *copy(void *adr, size_t size);
 	void *copy(const CMemoryReference &other);
 	void *copy(const CBinary &bin);
+	void *fromHex(const CString &hex);
 	void *malloc(size_t size);
 	void *calloc(size_t size);
 	void free();
@@ -376,7 +382,8 @@ class CVar
 			CBINARY		=6,
 			CWSTRING	=8,
 			CARRAY		=9,
-			CBOOL		=10
+			CBOOL		=10,
+			CDATETIME	=11,
 		};
 	protected:
 		ppluint8		type;
@@ -384,7 +391,6 @@ class CVar
 	public:
 		CVar();
 		CVar(const CVar &copy);
-		virtual ~CVar();
 		int DataType() const;
 		int IsType(int type) const;
 		CVar& operator=(const CVar& var);
@@ -514,6 +520,7 @@ class CString : public CVar
 		int Reserve(ppluint32 size);
 
 		int IsNumeric() const;
+		int IsInteger() const;
 		int IsEmpty() const;
 		int NotEmpty() const;
 
@@ -589,6 +596,7 @@ class CString : public CVar
 		int Find(const char* str, int pos) const;
 
 		int PregMatch(const char *expression, CArray *res=NULL);
+		int PregMatch(const CString &expression, CArray &res) const;
 		const char *GetMatch(int index) const;
 		int PregReplace(const char *expression, const char *replace, int maxreplace=0);
 		int PregReplace(const char *expression, CString &replace, int maxreplace=0);
@@ -624,8 +632,6 @@ class CString : public CVar
 		CString& operator+=(const char* str);
 		CString& operator+=(int c);
 		CString& operator+=(const CString& str);
-		//CString operator+(const char* str) const;
-		CString operator+(const CString& str) const;
 		CString& operator=(const CBinary& str);
 
 		bool operator<(const char* str) const;
@@ -634,6 +640,15 @@ class CString : public CVar
 		bool operator!=(const char* str) const;
 		bool operator>=(const char* str) const;
 		bool operator>(const char* str) const;
+
+		bool operator<(const CString &str) const;
+		bool operator<=(const CString &str) const;
+		bool operator==(const CString &str) const;
+		bool operator!=(const CString &str) const;
+		bool operator>=(const CString &str) const;
+		bool operator>(const CString &str) const;
+
+
 #ifdef WITH_QT
 		CString(const QString &q) {
 			Init();
@@ -683,16 +698,13 @@ class CString : public CVar
 //		int operator==(const char *str);
 
 };
-const CString operator+(const CString &str1, const CString& str2);
-const CString operator+(const char *str1, const CString& str2);
-const CString operator+(const CString &str1, const char *str2);
+CString operator+(const CString &str1, const CString& str2);
+CString operator+(const char *str1, const CString& str2);
+CString operator+(const CString &str1, const char *str2);
 
 int	SetGlobalEncoding(const char *encoding);
-int InWstr (const wchar_t * string, const wchar_t * such, unsigned int start);
-int IsTrue(const wchar_t *value);
 
-
-class CWString : public ppl6::CVar
+class CWString : public CVar
 {
 	private:
 		CArray		*matches;
@@ -739,6 +751,7 @@ class CWString : public ppl6::CVar
 
 
 		int IsNumeric() const;
+		int IsInteger() const;
 		// liefert true (!=0) zurueck, wenn der String leer ist
 		int IsEmpty() const;
 		int NotEmpty() const;
@@ -839,6 +852,7 @@ class CWString : public ppl6::CVar
 		int Find(const CWString &search, int pos) const;
 		CWString& Replace(const char* str, const char* byStr);
 		CWString& Replace(const CWString &str, const CWString &byStr);
+		CWString& ReplaceLetterList(const CWString &letters, wchar_t replacement);
 
 		int ToInt() const;
 		ppluint32 ToUInt() const;
@@ -879,20 +893,6 @@ class CWString : public ppl6::CVar
 		CWString& operator+=(const wchar_t c);
 		CWString& operator+=(const CWString& str);
 		CWString& operator+=(const CString& str);
-
-		bool operator<(const char* str);
-		bool operator<=(const char* str);
-		bool operator==(const char* str);
-		bool operator!=(const char* str);
-		bool operator>=(const char* str);
-		bool operator>(const char* str);
-
-		bool operator<(CWString *str);
-		bool operator<=(CWString *str);
-		bool operator==(CWString* str);
-		bool operator!=(CWString* str);
-		bool operator>=(CWString* str);
-		bool operator>(CWString* str);
 
 		bool operator<(CWString &str);
 		bool operator<=(CWString &str);
@@ -1016,6 +1016,8 @@ class CBinary : public CVar
 		char	Get(size_t pos) const;
 		void	HexDump() const;
 		void	HexDump(CString &s) const;
+		CString ToHex() const;
+		int		FromHex(const CString &s);
 
 		CBinary& operator=(CFileObject& file);
 		CBinary& operator=(const CBinary& bin);
@@ -1027,6 +1029,97 @@ class CBinary : public CVar
 		char operator[](size_t pos) const;
 		operator CMemoryReference() const;
 
+};
+
+
+class CDateTime : public CVar
+{
+	private:
+		ppluint16 yy;
+		ppluint16 ms;
+		ppluint8 mm;
+		ppluint8 dd;
+		ppluint8 hh;
+		ppluint8 ii;
+		ppluint8 ss;
+
+	public:
+		CDateTime();
+		CDateTime(const CString &datetime);
+		CDateTime(const CDateTime &other);
+
+		void setTime_t(ppluint64 t);
+		void setLongInt(ppluint64 i);
+		int set(const CString &datetime);
+		void set(const CDateTime &other);
+		int set(const CString &date, const CString &time);
+		int setDate(const CString &date);
+		int setTime(const CString &time);
+		void set(int year, int month, int day, int hour=0, int minute=0, int sec=0, int msec=0);
+		void setCurrentTime();
+		void print() const;
+		void clear();
+		bool notEmpty() const;
+		bool isEmpty() const;
+		bool isLeapYear() const;
+
+		CString get(const CString &format="%Y-%m-%d %H:%M:%S") const;
+		CString getDate(const CString &format="%Y-%m-%d") const;
+		CString getTime(const CString &format="%H:%M:%S") const;
+		CString getISO8601() const;
+		CString getISO8601withMsec() const;
+		ppluint64 time_t() const;
+		ppluint64 longInt() const;
+
+		int year() const;
+		int month() const;
+		int day() const;
+		int hour() const;
+		int minute() const;
+		int second() const;
+		int millisecond() const;
+
+		pplint64 diffSeconds(const CDateTime &other) const;
+		int compareSeconds(const CDateTime &other, int tolerance=0) const;
+
+		CDateTime& operator=(const CString &datetime);
+		CDateTime& operator=(const CDateTime &other);
+
+
+		static bool isLeapYear(int year);
+		static CDateTime currentTime();
+
+		operator CString() const;
+
+		bool operator<(const CDateTime &other) const;
+		bool operator<=(const CDateTime &other) const;
+		bool operator==(const CDateTime &other) const;
+		bool operator!=(const CDateTime &other) const;
+		bool operator>=(const CDateTime &other) const;
+		bool operator>(const CDateTime &other) const;
+
+};
+
+
+class Exception
+{
+	private:
+		ppluint32 err, suberr;
+		CString ErrorText;
+	public:
+		Exception();
+		Exception(ppluint32 errorcode);
+		Exception(ppluint32 errorcode, const char *msg, ...);
+		Exception(ppluint32 errorcode, const CString &msg);
+		Exception(ppluint32 errorcode, ppldd suberrorcode, const char *msg, ...);
+		Exception(ppluint32 errorcode, ppldd suberrorcode, const CString &msg);
+		int code() const throw();
+		int suberror() const throw();
+		const char* text() const throw();
+		const char* extendedText() const throw();
+		CString toString() const throw();
+		void toError() const throw();
+		void print() const;
 };
 
 
@@ -1875,7 +1968,7 @@ class CMemSpace
 class CMemMan
 {
 	private:
-		CMutex	mutex;
+		//CMutex	mutex;
 		void		*first, *last;
 		ppluint32	growth;
 		ppluint64	size, size_used, size_free;
@@ -1895,6 +1988,7 @@ class CMemMan
 		void Clear();
 		void *Malloc(ppldd size, bool clear=false);
 		void *Calloc(ppldd size);
+		void *Calloc(size_t nmemb, size_t size);
 		char *Strdup(const char *str);
 		char *Strndup(const char *str, size_t size);
 		void Free(void *adr);
@@ -1927,6 +2021,18 @@ class CTreeController
 
 class CAVLTree : public CTreeController
 {
+	public:
+		class Walker
+		{
+			friend class CAVLTree;
+			private:
+				TREEITEM	*current;
+				TREEITEM	*stack[AVL_MAX_HEIGHT];
+				size_t		stack_height;
+			public:
+				Walker();
+		};
+
 	private:
 		TREEITEM	*root;
 		size_t		count;
@@ -1968,6 +2074,14 @@ class CAVLTree : public CTreeController
 		void		*GetCurrent();
 		//int			ListNodes(CCallback *callback);
 		void		PrintNodes(const TREEITEM *node=NULL) const;
+
+		void		Reset(Walker &walk) const;
+		void		*GetFirst(Walker &walk) const;
+		void		*GetNext(Walker &walk) const;
+		void		*GetLast(Walker &walk) const;
+		void		*GetPrevious(Walker &walk) const;
+		void		*GetCurrent(Walker &walk) const;
+
 };
 
 class CTree;
@@ -1984,7 +2098,8 @@ class CTreeItem
 	public:
 		CTreeItem();
 		virtual ~CTreeItem();
-		virtual int CompareNode(CTreeItem *item);		int				IsTrue(const char *key) const;
+		virtual int CompareNode(CTreeItem *item);
+		int				IsTrue(const char *key) const;
 		int				IsFalse(const char *key) const;
 
 		virtual int CompareValue(void *value);
@@ -2043,6 +2158,9 @@ class CTree
 		void		Reset(CTreeWalker &walk) const;
 		CTreeItem	*GetFirst(CTreeWalker &walk) const;
 		CTreeItem	*GetNext(CTreeWalker &walk) const;
+		CTreeItem	*GetLast(CTreeWalker &walk) const;
+		CTreeItem	*GetPrevious(CTreeWalker &walk) const;
+		CTreeItem	*GetCurrent(CTreeWalker &walk) const;
 
 		CTreeItem	*GetCurrent() const;
 		int			ListNodes(CCallback *callback) const;
@@ -2110,10 +2228,10 @@ class CTree
 	ppldd peekt (const char *Adresse);
 	ppldd peekd (const char *Adresse);
 	ppld64 peekd64 (const char *Adresse);
-	void pokes (char * adresse, char * string);
-	void pokesz (char * adresse, char * string);
-	void pokesn (char * adresse, char * string, long laenge);
-	void pokesnz (char * adresse, char * string, long laenge);
+	void pokes (char * adresse, const char * string);
+	void pokesz (char * adresse, const char * string);
+	void pokesn (char * adresse, const char * string, long laenge);
+	void pokesnz (char * adresse, const char * string, long laenge);
 	// Network-Byte-Order
 	void PokeN8 (char *Adresse, ppluint32 Wert);
 	void PokeN16 (char *Adresse, ppluint32 Wert);
@@ -2180,10 +2298,23 @@ class CTree
 	CWString Mid(const CWString &str, size_t start, size_t num=(size_t)-1);
 	CWString SubStr(const CWString &str, size_t start, size_t num=(size_t)-1);
 
+	CString ToString(const char *fmt, ...);
+	CString Replace(const CString &string, const CString &search, const CString &replace);
+	int InWstr (const wchar_t * string, const wchar_t * such, unsigned int start);
+	int IsTrue(const wchar_t *value);
+
+	int PregMatch(const CString &expression, const CString &subject);
+	int PregMatch(const CString &expression, const CString &subject, CArray &matches);
+
+	CBinary Hex2Binary(const CString &hex);
+	CMemory Hex2Memory(const CString &hex);
+	CString ToHex(const CBinary &bin);
+	CString ToHex(const CMemoryReference &bin);
+
 	CBinary FromBase64(const CString &str);
 	CString ToBase64(const CString &str);
 	CString ToBase64(const CBinary &bin);
-	CString EscapeHTMLTags(const ppl6::CString &html);
+	CString EscapeHTMLTags(const CString &html);
 
 
 
@@ -2334,6 +2465,7 @@ class CArray : public CVar
 		int Copy(const CAssocArray *a);
 		int Num() const;
 		int Add(const char *value, int bytes=-1);
+		int Addf(const char *fmt, ...);
 		int Add(int value);
 		int Add(const CString &value, int bytes=-1);
 		int Add(const CWString &value, int chars=-1);
@@ -2343,11 +2475,13 @@ class CArray : public CVar
 			// Der String "text" wird anhand des Trennzeichens "trenn" aufgesplittet und in das
 			// Array gespeichert. Ist "limit" gesetzt, besteht das Array anschliessend aus "limit"
 			// Elementen, wobei das letzte Element den Rest des Strings enthaelt.
+		CString Implode(const CString &trenn=CString("\n")) const;
 		int Text2Array(const char *text, const char *trenn);
 		int Text2Array(const CString &text, const char *trenn);
 		int File2Array(CFileObject &ff, const char *trenn);
 		int File2Array(const char *filename, const char *trenn);
 		const char *Get(ppldd index) const;
+		CString GetString(ppldd index) const;
 		const char *GetRandom() const;
 		void List() const;
 		const char *operator[](ppldd index) const;
@@ -2362,6 +2496,10 @@ class CArray : public CVar
 		const char *Pop();		// Holt das letzte Element aus dem Array heraus
 		int  Push(const char *value, int bytes=-1);
 		int  Unshift(const char *value, int bytes=-1);
+		void Sort();
+		void MakeUnique();
+		CArray &fromArgs(int argc, const char **argv);
+		CArray &fromArgs(const CString &args);
 };
 
 CArray *Explode(const char *text, const char *trenn, int limit=0, bool skipemptylines=false);
@@ -2370,6 +2508,8 @@ CArray *Text2Array(const char *text, const char *trenn);
 CArray *Text2Array(const CString &text, const char *trenn);
 CArray *File2Array(const char *filename, const char *trenn);
 CArray *File2Array(CFileObject &file, const char *trenn);
+
+CArray Sort(const CArray &a);
 
 #define PPL_ARRAY_CHAR			1
 #define PPL_ARRAY_INT			2
@@ -2410,6 +2550,7 @@ class CAssocArray : public CVar
 		//@{
 		CAssocArray();
 		CAssocArray(const CAssocArray &a);
+		CAssocArray(const CArray &a);
 		CAssocArray(const CAssocArray *a);
 		~CAssocArray();
 		//@}
@@ -2538,6 +2679,11 @@ class CAssocArray : public CVar
 		CAssocArray		*GetLastArray();
 		CAssocArray		*GetPreviousArray();
 
+		CAssocArray		*GetFirstArray(CTreeWalker &walk) const;
+		CAssocArray		*GetNextArray(CTreeWalker &walk) const;
+		CAssocArray		*GetLastArray(CTreeWalker &walk) const;
+		CAssocArray		*GetPreviousArray(CTreeWalker &walk) const;
+
 		int				GetFirstArray(CAssocArray &res);
 		int				GetNextArray(CAssocArray &res);
 		int				GetLastArray(CAssocArray &res);
@@ -2576,6 +2722,7 @@ class CAssocArray : public CVar
 		//@{
 		const char *operator[](const char *key) const;
 		CAssocArray& operator=(const CAssocArray& a);
+		CAssocArray& operator=(const CArray& a);
 		CAssocArray& operator=(const CAssocArray *a);
 		CAssocArray& operator=(CDirEntry& d);
 		CAssocArray& operator=(CDirEntry *d);
@@ -2695,6 +2842,16 @@ class CList
 //! \brief Listen-Klasse für beliebige Elemente
 class CGenericList
 {
+	public:
+		class Walker
+		{
+			friend class CGenericList;
+			private:
+				void		*pointer;
+			public:
+				Walker();
+		};
+
 	private:
 		void *first, *last;
 		void *pointer;
@@ -2718,6 +2875,12 @@ class CGenericList
 		void *GetNext();
 		void *GetLast();
 		void *GetPrevious();
+
+		void Reset(Walker &walk) const;
+		void *GetFirst(Walker &walk) const;
+		void *GetNext(Walker &walk) const;
+		void *GetLast(Walker &walk) const;
+		void *GetPrevious(Walker &walk) const;
 
 		virtual int Destroy(void *data);
 		int SetDestroyFunction(int DestroyFunction(void *item,void *data),void *data);
@@ -2887,9 +3050,9 @@ class CResolver
 		int setDNSSECAnchor(const CString &anchor);
 		int setDNSSECAnchor(const CArray &anchors);
 		int setDNSSECAnchorFromFile(const CString &filename);
-		int setDNSSECAnchorFromFile(ppl6::CFileObject &file);
+		int setDNSSECAnchorFromFile(CFileObject &file);
 
-		int query(ppl6::CAssocArray &r, const CString &label, Type t=A, Class c=CLASS_IN);
+		int query(CAssocArray &r, const CString &label, Type t=A, Class c=CLASS_IN);
 };
 
 
@@ -3174,11 +3337,15 @@ class CCurl
 		int		SetURL(const char *url);
 		int		SetReferer(const char *url);
 		int		SetUserPassword(const char *username, const char *password);
+		int		SetUsername(const CString &username);
+		int		SetPassword(const CString &password);
 		int		SetUserPassword(const char *userpassword);	// Format: username:password
 		int		SetProxy(const char *proxy, int port);
 		int		SetHttpVersion(CCurl::HTTPVERSION version);
 		int		SetTimeout(int seconds);
 		int		SetHeader(const char *name, const char *value);
+		int		SetMaximumPersistantConnects(int value);
+		int		Reset();
 		int		ClearHeader();
 		int		Get();
 		int		Get(const char *parameter);
@@ -3189,6 +3356,7 @@ class CCurl
 		CString	GetResultBuffer();
 		int		GetHeader(CString &str);
 		CString GetHeader();
+		CString GetLastURL();
 		const char *GetURL();
 		int		Escape(CString &target, CAssocArray &source);
 		int		Escape(CString &string);
@@ -3314,398 +3482,7 @@ class CHostsAllow
 		void SetLogfile(CLog *log=NULL);
 };
 
-ppluint32 IP2Int(ppl6::CString &ip);
-
-/*******************************************************************
- * Datenbanken
- *******************************************************************/
-
-
-/****************************************************************************
- * DATABASES
- ****************************************************************************/
-#define MAXDBNAMELEN 256
-#define PPL_DB_INTERNAL     1
-#define PPL_DB_MYSQL        2
-#define PPL_DB_ODBC         3
-#define PPL_DB_POSTGRESS    4
-#define PPL_DB_MAXDB        4
-
-
-
-
-typedef struct structDataBase {
-	char host[MAXDBNAMELEN];
-	int   port;
-	char name[MAXDBNAMELEN];
-	char login[MAXDBNAMELEN];
-	char password[MAXDBNAMELEN];
-} PPL_DATABASE;
-
-
-#define PPL_DB_RESULT       void*
-
-namespace DBFIELDTYPE {
-    enum {
-		UNKNOWN		=0,
-        STRING		=1,
-		INT,
-		FLOAT,
-		BINARY,
-		BIT,
-		INVALID
-
-    };
-}
-
-//! \brief Klasse zum Speichern von Datenbank-Ergebnissen
-class CDBResult
-{
-	private:
-		CMemMan *mem;
-		int affected_rows;
-		int rows;
-		int fields;
-		void *fieldnames;
-		void *firstrow;
-		void *lastrow;
-		void *index;
-		void *row;
-		int rowpointer;
-		int res_lastrow;
-		CAssocArray *res_lastfetch;
-		CArray *res_lastfieldfetch;
-
-		int ToString(CString *res, void *field, int type);
-
-	public:
-		CDBResult();
-		~CDBResult();
-		void SetAffectedRows(int rows);
-		void Clear();
-		int SetNumFields(int num);
-		int SetFieldName(int num, const char* name, int type);
-		int SetFieldName(int num, const char* name, int namelength, int type);
-		int NewRow();
-		int StoreField(int num, void *data, int size);
-		int BuildIndex();
-		void *Malloc(size_t size);
-		void *Calloc(size_t size);
-		void Free(void *ptr);
-		ppluint64	GetUsedMem();
-		const char * GetFieldName(int num);
-		int GetFieldNum(const char *name);
-		int GetFieldType(const char *name);
-		int GetFieldType(int num);
-		CAssocArray		*FetchArray();
-		CAssocArray		*FetchArray(int row);
-		int				FetchArray(CAssocArray *result);
-		int				FetchArray(CAssocArray *result, int row);
-		CArray			*FetchFields();
-		CArray			*FetchFields(int row);
-		int				FetchFields(CArray *result);
-		int				FetchFields(CArray *result, int row);
-
-		const char *Result(int row, const char *field);
-		const char *Result(int row, int field);
-		int SetRow(int row);
-		int Reset();
-		int NumRows();
-		int NumFields();
-		int NumAffectedRows();
-};
-
-class CDBPool;
-class CDBPoolEx;
-
-//! \brief Basisklasse für Datenbanken
-class CDBWrapper : public ppl6::CListItem
-{
-	friend class CDBPool;
-	friend class CDBPoolEx;
-	private:
-		bool				poollock;
-		CDBPool				*pool;
-		CDBPoolEx			*poolex;
-		CString				Hash;
-
-	private:
-		virtual PPL_DB_RESULT DoExec(const char *query);
-		CAssocArray *ExecArrayIntern(const char *query);
-		CAssocArray *ExecArrayAllIntern(const char *query);
-		int ExecArrayIntern(CAssocArray *result, const char *query);
-		int ExecArrayAllIntern(CAssocArray *result, const char *query);
-
-	protected:
-		CMutex	mutex;
-		void    LogQuery(const char *query, float duration);
-		void	UpdateLastPing();
-		void	UpdateLastUse();
-		void	ClearLastUse();
-		ppluint64			lastuse;
-		ppluint64			lastping;
-
-	public:
-		bool connected;
-		CLog *Log;
-
-		void	SetLogfile(CLog *log=NULL);
-
-		CDBWrapper();
-		virtual ~CDBWrapper();
-		virtual int		Connect(CAssocArray *dbdata);
-		virtual int     Connect(PPL_DATABASE *dbdata);
-		virtual int		Reconnect();
-		//virtual int     Connect(CAssocArray *dbdata);
-		virtual int     Close();
-		virtual int     SelectDB(const char *databasename);
-		virtual int     SelectDB(CString *databasename);
-		PPL_DB_RESULT   Exec(const char *query, ... );
-		PPL_DB_RESULT   Exec(CString *query);
-		virtual CAssocArray *ExecArray(const char *query, ...);
-		virtual CAssocArray *ExecArray(CString *query);
-		virtual CAssocArray *ExecArrayAll(const char *query, ...);
-		virtual CAssocArray *ExecArrayAll(CString *query);
-		virtual int ExecArray(CAssocArray *result, const char *query, ...);
-		virtual int ExecArray(CAssocArray *result, CString *query);
-		virtual int ExecArrayAll(CAssocArray *result, const char *query, ...);
-		virtual int ExecArrayAll(CAssocArray *result, CString *query);
-		virtual int ExecArrayAll(CAssocArray &result, CString &query);
-
-		virtual ppldd   NumRows(PPL_DB_RESULT result);
-		virtual ppldd   NumFields(PPL_DB_RESULT result);
-		virtual int     FreeResult(PPL_DB_RESULT result);
-		virtual char    *Result(PPL_DB_RESULT result, ppldd row, char *field);
-		virtual char    *ResultByNo(PPL_DB_RESULT result, ppldd row, ppldd field);
-		virtual ppldds  FieldNum(PPL_DB_RESULT result, char *field);
-		virtual const char *FieldName(PPL_DB_RESULT result, int num);
-		virtual int		FieldType(PPL_DB_RESULT result, int num);
-		virtual int		FieldType(PPL_DB_RESULT result, char *field);
-		virtual CAssocArray  *FetchArray(PPL_DB_RESULT result, ppldds row=-1);
-		virtual int		FetchArray(CAssocArray *array, PPL_DB_RESULT result, ppldds row=-1);
-		virtual void    PrintResult(PPL_DB_RESULT res);
-		virtual int     Ping();
-		virtual char    *EscapeString(char *string, size_t length=0);
-		virtual int		EscapeString(CString *str);
-		virtual ppld64  GetInsertID();	// Returns ID from autoincrement field
-		virtual int		NumAffectedRows(PPL_DB_RESULT result);
-		virtual int		Save(const char *method, const char *table, CAssocArray *a, const char *clause=NULL, CAssocArray *exclude=NULL);
-		virtual int		InsertKey(const char *table, CAssocArray *a, const char *keyname, ppluint64 *id, CAssocArray *exclude=NULL);
-		virtual int		InsertKey(const char *table, CAssocArray *a, const char *keyname, int *id, CAssocArray *exclude=NULL);
-		virtual void	SetMaxRows(ppldd rows);
-		virtual int		ReadKeyValue(CAssocArray *res, const char *query, const char *keyname, const char *valname=NULL);
-};
-
-CDBWrapper *ConnectDatabase(CAssocArray *dbdata);
-
-//!\brief MySQL-Klasse
-class CDBMySQL : public CDBWrapper {
-	private:
-		CAssocArray condata;
-		void    *mysql;
-		ppld64  lastinsertid;
-		PPL_DB_RESULT DoExec(const char *query);
-
-	public:
-		CDBMySQL();
-		~CDBMySQL();
-		int     Connect(PPL_DATABASE *dbdata);
-		int		Connect(CAssocArray *dbdata);
-		int		Reconnect();
-		//int     Connect(CAssocArray *dbdata);
-		int     ConnectCreate(PPL_DATABASE *dbdata);
-		int     Connect(char *dbname);              // Connect to embedded Server
-		int     ConnectCreate(char *dbname);        // Connect to embedded Server
-		int     Close();
-		int     SelectDB(const char *databasename);
-		int     SelectDB(CString *databasename);
-		ppldd   NumRows(PPL_DB_RESULT result);
-		int     FreeResult(PPL_DB_RESULT result);
-		char    *Result(PPL_DB_RESULT result, ppldd row, char *field);
-		char    *ResultByNo(PPL_DB_RESULT result, ppldd row, ppldd field);
-		ppldds  FieldNum(PPL_DB_RESULT result, char *field);
-		int		FetchArray(CAssocArray *array, PPL_DB_RESULT result, ppldds row=-1);
-		CAssocArray  *FetchArray(PPL_DB_RESULT result, ppldds row=-1);
-
-		void    PrintResult(PPL_DB_RESULT res);
-		int     Ping();
-		char    *EscapeString(char *string, size_t length=0);
-		virtual int		EscapeString(CString *str);
-		ppld64  GetInsertID();                      // Returns ID from autoincrement field
-		ppldd   Errno();
-		const char *Error();
-};
-
-//! \brief Sybase-Klasse
-class CDBSybase : public CDBWrapper {
-	private:
-		void    *conn;
-		ppld64  lastinsertid;
-		ppldd	maxrows;
-		int		affected_rows;
-		PPL_DB_RESULT DoExec(const char *query);
-		PPL_DB_RESULT FetchResult(const char *query);
-		int StoreField(CDBResult *res, int field, int type, void *data, int size);
-
-	public:
-		CString	syberror;
-		CString	syberrorLong;
-
-		CDBSybase();
-		~CDBSybase();
-		int		Connect(CAssocArray *dbdata);
-		int     Close();
-		int     SelectDB(const char *databasename);
-		int     SelectDB(CString *databasename);
-		ppldd	NumRows(PPL_DB_RESULT result);
-		ppldd	NumFields(PPL_DB_RESULT result);
-		int     FreeResult(PPL_DB_RESULT result);
-		char    *Result(PPL_DB_RESULT result, ppldd row, char *field);
-		char    *ResultByNo(PPL_DB_RESULT result, ppldd row, ppldd field);
-		ppldds  FieldNum(PPL_DB_RESULT result, char *field);
-		const char *FieldName(PPL_DB_RESULT result, int num);
-		int		FieldType(PPL_DB_RESULT result, int num);
-		int		FieldType(PPL_DB_RESULT result, char *field);
-		int		FetchArray(CAssocArray *array, PPL_DB_RESULT result, ppldds row=-1);
-		CAssocArray  *FetchArray(PPL_DB_RESULT result, ppldds row=-1);
-		void    PrintResult(PPL_DB_RESULT res);
-		int     Ping();
-		char    *EscapeString(char *string, size_t length=0);
-		ppld64  GetInsertID();                      // Returns ID from autoincrement field
-		ppldd   Errno();
-		const char *Error();
-		int		NumAffectedRows(PPL_DB_RESULT result);
-		void	SetMaxRows(ppldd rows);
-};
-
-int	SybaseGetMaxConnects();
-int	SybaseSetMaxConnects(int max);
-int SybaseSetVersion(int version);
-int SybaseSetLocale(const char *locale, const char *dateformat);
-
-
-
-
-
-#ifdef HAVE_POSTGRES
-/*
-class CDBPostgres : public CDBWrapper {
-    private:
-		void    *conn;
-		char    *options;
-		ppld64  lastinsertid;
-	public:
-		CDBPostgres();
-		CDBPostgres(ppldd buffersize);
-		~CDBPostgres();
-		int     Connect(PPL_DATABASE *dbdata);
-		int     Close();
-		ppldd   NumRows(PPL_DB_RESULT result);
-		int     FreeResult(PPL_DB_RESULT result);
-		char    *Result(PPL_DB_RESULT result, ppldd row, char *field);
-		char    *ResultByNo(PPL_DB_RESULT result, ppldd row, ppldd field);
-		ppldds  FieldNum(PPL_DB_RESULT result, char *field);
-		int		*FetchArray(CAssocArray *result, PPL_DB_RESULT result, ppldds row=-1);
-		void    PrintResult(PPL_DB_RESULT res);
-		int     Ping();
-		char    *EscapeString(char *string, size_t length=0);
-		ppld64  GetInsertID();	// Returns ID from autoincrement field
-		ppldd   Errno();
-		const char *Error();
-};
-typedef CDBPostgres CpplDBPostgres;
-*/
-#endif // HAVE_POSTGRES
-
-class CDBPool : public CTreeItem
-{
-	friend class CDBPoolEx;
-	private:
-		CMutex		Mutex;
-		CList		Used, Free;
-		CAssocArray	ConnectParam;
-		CString		Name;
-		CString		Hash;
-		CLog		*Log;
-		int			Id;
-		int			Min, Max;
-		int			MinSpare, MaxSpare;
-		int			Grow;
-		int			Timeout;
-		int			KeepAlive;
-		bool		IsInit;
-		double		LastCheck;
-		CDBWrapper *New();
-		int CalcHash(CString *hash, CAssocArray *param);
-
-	public:
-		CDBPool();
-		~CDBPool();
-		virtual int CompareNode(CTreeItem *item2);
-		virtual int CompareValue(void *value);
-
-		int Init(CAssocArray *connect, CAssocArray *options=NULL, const char *name=NULL);
-
-		CDBWrapper *Get(bool wait=false, int ms=0);
-		int Release(CDBWrapper *db);
-		int Destroy(CDBWrapper *db);
-		void CheckPool();
-		int ClearUsedPool(bool destroy=false);
-		int ClearFreePool(bool destroy=false);
-		int GetStatus(CAssocArray *status=NULL);
-		void SetLogfile(CLog *log);
-};
-
-class CDBPoolEx
-{
-	private:
-		CMutex		Mutex;
-		CTree		Databases;
-		CLog		*Log;
-		CThread		*CheckThread;
-		int			DefaultTimeout;
-		int			DefaultKeepAlive;
-		int			DefaultMax;
-		int			DefaultMin;
-		int			DefaultMinSpare;
-		int			DefaultMaxSpare;
-		int			DefaultGrow;
-
-		CDBPool		*FindPoolByName(const char *name);
-	public:
-		CDBPoolEx();
-		~CDBPoolEx();
-
-		void ClearPools(bool free=true, bool used=false);
-		int SetDefaultTimeout(int seconds);
-		int SetDefaultKeepAlive(int seconds);
-		int SetDefaultMin(int nr);
-		int SetDefaultMax(int nr);
-		int SetDefaultMinSpare(int nr);
-		int SetDefaultMaxSpare(int nr);
-		int SetDefaultGrow(int nr);
-
-		int DefineDatabase(int id, const char *name, CAssocArray *connect, CAssocArray *options=NULL);
-		int DeleteDatabase(int id);
-
-		CDBWrapper *Get(CString *name, bool wait=false, int ms=0);
-		CDBWrapper *Get(const char *name, bool wait=false, int ms=0);
-		CDBWrapper *Get(int id=0, bool wait=false, int ms=0);
-		int Release(CDBWrapper *db);
-		int Destroy(CDBWrapper *db);
-
-		CDBPool *GetPool(int id);
-		CDBPool *GetPool(const char *name);
-		CDBPool *GetPool(CString *name);
-
-		void CheckPool();
-		int GetStatus(CAssocArray *status=NULL);
-		void SetLogfile(CLog *log);
-
-		int StartPoolCheck(int intervall=10000);
-		int StopPoolCheck();
-};
-
+ppluint32 IP2Int(CString &ip);
 
 //! \brief PPL-Resourcen
 class CResource
@@ -4022,6 +3799,73 @@ class CApplication
 		virtual int Main();
 };
 
+
+class CWikiParser
+{
+	private:
+		int ispre;
+		int ullevel;
+		int ollevel;
+		int indexcount;
+		int intable;
+		int inrow;
+		int indentlevel;
+		bool doxyparamsStarted;
+		bool indexenabled;
+
+		CAssocArray index;
+		CString incol;
+		CString ret;
+		CArray nowiki;
+		int nowikicount;
+		bool nobr;
+
+		int precount;
+		CAssocArray pre;
+		int sourcecount;
+		CArray source;
+
+		CArray diagrams;
+
+
+		void init();
+		int renderInternal(const CString &Source, CString &Html);
+		void extractNoWiki(CString &Text);
+		void extractSourcecode(CString &Text);
+		void extractDiagrams(CString &Text);
+		void parseHeadlines(CString &Line);
+		int parseUL(CString &Line);
+		int parseOL(CString &Line);
+		int parseIndent(CString &Line);
+
+		void parseDoxygen(CString &Line);
+		void doxygenChapter(CString &Line, const CString &Name);
+		void parseAutoPRE(CString &Line);
+		void parseTable(CString &Line);
+		void parseLinks(CString &Line);
+		void buildIndex(CString &Html);
+		void finalize();
+		void finalizeNoWiki();
+		void finalizePRE();
+		void finalizeSource();
+		void finalizeDiagrams();
+
+	protected:
+		virtual void customParseLinks(CString &Line);
+
+	public:
+
+		CWikiParser();
+		virtual ~CWikiParser();
+		int render(const CString &Source, CString &Html);
+		int renderBody(const CString &Source, CString &Html);
+		CString render(const CString &Source);
+		CString renderBody(const CString &Source);
+		CString header();
+		void setIndexEnabled(bool enabled);
+		static CString xmlDiagram2HTML(const CString &xml);
+		virtual int getHeader(CString &Html);
+};
 
 };	// EOF namespace ppl6
 

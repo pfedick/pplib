@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CSurface.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/07/26 10:28:51 $
+ * $Id: CSurface.cpp,v 1.3 2010/07/26 10:28:51 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -68,8 +68,7 @@ CSurface::CSurface(const CSurface &other)
 	gfxengine=NULL;
 	lockcount=0;
 	flags=DefaultFlags;
-
-	if (!copy(other)) throw Exception::CopyFailed();
+	if (!copy(other)) throw Exception();
 }
 
 CSurface::CSurface(int width, int height, const RGBFormat &format, SurfaceFlags flags)
@@ -80,7 +79,7 @@ CSurface::CSurface(int width, int height, const RGBFormat &format, SurfaceFlags 
 	s.setSize(width,height);
 	this->flags=flags;
 	this->format=format;
-	if (!create()) throw Exception::FunctionFailed();
+	if (!create()) throw Exception();
 }
 
 CSurface::~CSurface()

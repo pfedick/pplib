@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: MySQL.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/10/16 13:35:42 $
+ * $Id: MySQL.cpp,v 1.4 2010/10/16 13:35:42 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -522,6 +522,7 @@ MySQL::MySQL()
 	mysql=NULL;
 	maxrows=0;
 	affectedrows=0;
+	transactiondepth=0;
 }
 
 MySQL::~MySQL()
@@ -824,6 +825,9 @@ Result *MySQL::Query(const CString &query)
 			mutex.Unlock();
 			return res;
 		}
+		PushError();
+		delete res;
+		PopError();
 	}
 	mutex.Unlock();
 	return NULL;
@@ -899,7 +903,17 @@ int MySQL::StartTransaction()
 	SetError(511,"MySQL");
 	return 0;
 #else
-	if (Exec("BEGIN")) return 1;
+	if (transactiondepth==0) {	// Neue Transaktion
+		if (Exec("BEGIN")) {
+			transactiondepth++;
+			return 1;
+		}
+	} else {
+		if (Execf("SAVEPOINT LEVEL%i",transactiondepth)) {
+			transactiondepth++;
+			return 1;
+		}
+	}
 	return 0;
 #endif
 }
@@ -910,7 +924,17 @@ int MySQL::EndTransaction()
 	SetError(511,"MySQL");
 	return 0;
 #else
-	if (Exec("COMMIT")) return 1;
+	if (transactiondepth==1) {
+		if (Exec("COMMIT")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		if (Execf("RELEASE SAVEPOINT LEVEL%i",transactiondepth-1)) {
+			transactiondepth--;
+			return 1;
+		}
+	}
 	return 0;
 #endif
 }
@@ -921,10 +945,35 @@ int MySQL::CancelTransaction()
 	SetError(511,"MySQL");
 	return 0;
 #else
-	if (Exec("ROLLBACK")) return 1;
+	if (transactiondepth==1) {
+		if (Exec("ROLLBACK")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		if (Execf("ROLLBACK TO SAVEPOINT LEVEL%i",transactiondepth-1)) {
+			transactiondepth--;
+			return 1;
+		}
+	}
 	return 0;
 #endif
 }
+
+int MySQL::CancelTransactionComplete()
+{
+#ifndef HAVE_MYSQL
+	SetError(511,"MySQL");
+	return 0;
+#else
+	if (Exec("ROLLBACK")) {
+		transactiondepth=0;
+		return 1;
+	}
+	return 0;
+#endif
+}
+
 
 int MySQL::CreateDatabase(const char *name)
 {

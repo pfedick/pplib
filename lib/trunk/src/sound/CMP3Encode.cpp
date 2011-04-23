@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:56 $
- * $Id: CMP3Encode.cpp,v 1.2 2010/02/12 19:43:56 pafe Exp $
+ * $Revision: 1.5 $
+ * $Date: 2010/06/23 11:05:19 $
+ * $Id: CMP3Encode.cpp,v 1.5 2010/06/23 11:05:19 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -60,6 +60,27 @@
 #define ENCODESAMPLES	100000
 
 namespace ppl6 {
+
+
+#ifdef DEBUG
+	#define debugprinterror() ppl6::PushError(); { \
+		ppl6::CString debugerror, debugdate; \
+		ppl6::Error2String(debugerror); \
+		ppl6::MkDate(debugdate,"%d.%m.%Y-%H:%M:%S",ppl6::GetTime()); \
+		printf ("%s.%i [%s:%i] ",(const char*)debugdate,(int)(ppl6::GetMilliSeconds()%1000),__FILE__,__LINE__); \
+		printf ("%s",(const char*)debugerror); } ppl6::PopError();
+
+	#define debugprintf(format, ...) ppl6::PushError(); { \
+		ppl6::CString debugdate; \
+		ppl6::MkDate(debugdate,"%d.%m.%Y-%H:%M:%S",ppl6::GetTime()); \
+		printf ("%s.%i [%s:%i] ",(const char*)debugdate,(int)(ppl6::GetMilliSeconds()%1000),__FILE__,__LINE__); \
+		printf (format, ##__VA_ARGS__); } ppl6::PopError();
+#else
+	#define debugprintf(format, ...) {}
+	#define debugprinterror() {}
+#endif
+
+
 
 /*!\class CMP3Encode
  * \ingroup PPLGroupSound
@@ -174,9 +195,10 @@ void CMP3Encode::SetVBR(int min, int max, int quality)
 			min=max;
 			max=tmp;
 		}
-		lame_set_VBR((lame_global_flags*)gfp, vbr_rh);
-		lame_set_VBR_q((lame_global_flags*)gfp, quality);
 		lame_set_quality((lame_global_flags*)gfp,quality);
+		lame_set_VBR((lame_global_flags*)gfp, vbr_mtrh);
+		lame_set_VBR_q((lame_global_flags*)gfp, quality);
+		lame_set_VBR_quality((lame_global_flags*)gfp, (float)quality);
 		lame_set_VBR_min_bitrate_kbps((lame_global_flags*)gfp, min);
 		lame_set_VBR_max_bitrate_kbps((lame_global_flags*)gfp, max);
 	}
@@ -432,7 +454,7 @@ int CMP3Encode::EncodeFile(CFileObject *file)
 	return 1;
 }
 
-int CMP3Encode::EncodeFile(CMP3Decode *decode, CFileObject *source)
+int CMP3Encode::EncodeFile(CMP3Decode *decode)
 {
 	PPL_MPEG_HEADER mpg;
 	if (!started) {

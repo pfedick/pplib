@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: functions.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.9 $
+ * $Date: 2011/02/18 13:42:23 $
+ * $Id: functions.cpp,v 1.9 2011/02/18 13:42:23 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -711,7 +711,7 @@ float PeekFloat(const char *Adresse)
 	#endif
 }
 
-void pokes (char * adresse, char * string)
+void pokes (char * adresse, const char * string)
 {
   char *_a;
   size_t _l;
@@ -720,19 +720,19 @@ void pokes (char * adresse, char * string)
   strncpy (_a,string,_l);
 }
 
-void pokesz (char * adresse, char * string)
+void pokesz (char * adresse, const char * string)
 {
   char *_a;
   _a=adresse;
   strcpy (_a,string);
 }
 
-void pokesn (char * adresse, char * string, long laenge)
+void pokesn (char * adresse, const char * string, long laenge)
 {
   strncpy (adresse,string,laenge);
 }
 
-void pokesnz (char * adresse, char * string, long laenge)
+void pokesnz (char * adresse, const char * string, long laenge)
 {
   strncpy (adresse,string,laenge);
   adresse[laenge]=0;
@@ -1217,7 +1217,7 @@ int MkDir(const char *path, mode_t mode, int recursive)
 	while ((t=tok.GetNext())) {
 		s.Concat(t);
 
-		printf ("t: %s, s: %s\n",t,s.GetPtr());
+		//printf ("t: %s, s: %s\n",t,s.GetPtr());
 		// Prüfen, ob das Verzeichnis da ist.
 		if (!IsDir((char*)s.GetPtr())) {
 #ifdef _WIN32
@@ -1287,7 +1287,6 @@ int RectToString(RECT *r, CString *s)
 	s->Setf("%i,%i,%i,%i",r->left,r->top,r->right,r->bottom);
 	return 1;
 }
-
 
 
 

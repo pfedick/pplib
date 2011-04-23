@@ -1,6 +1,116 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
+Version 6.4.6 vom 17.03.2011	(CVS-Tag: REL_6_4_6)
+  - CAssocArray hat Copy-Konstruktor und Zuweisungsoperator für CArray
+    erhalten.
+  - CDateTime vollständig dokumentiert
+  - CDir verwendet nun unter Windows die Wide-Character-Funktionen
+    zum Einlesen eines Verzeichnisses. Dadurch sollte es jetzt keine
+    Probleme mehr mit Nicht-US-ASCII-Zeichen im Dateinamen geben.
+  - Bugfix in CWikiParser: Bei der Darstellung von Sourcecode fehlt
+    das schließende "</div>".
+  - CTree hat neue const-Funktionen zum Rückwärtsdurchwandern des
+    Baums mittels CTreeWalker
+  - CAssocArray hat neue const-Funktionen zum Durchwandern des
+    Baums mittels CTreeWalker
+  - CCurl: Neue Funktionen: SetMaximumPersistantConnects, Reset
+  - CArray hat neue Funktionen: MakeUnique und fromArgs
+  - configure: Erkennung von Postgres überarbeitet
+    
+Version 6.4.5 vom 28.11.2010	(CVS-Tag: REL_6_4_5)
+  - Bugfix in Sybase::Query: Bei einem Fehlerhaften Query wurde das
+    Result-Set nicht gelöscht 
+  - Bugfix in Sybase::SetResultBufferGrowSize: Es fehlte ein #IFDEF,
+    wodurch das Kompilieren unmöglich war, wenn keine Sybase- oder
+    FreeTDS-Libs installiert waren
+  - Funktion PregMatch ist nun als eigenständige Funktion ausserhalb
+    der String-Klasse vorhanden
+  - CWString: Neue Funktion CWString::ReplaceLetterList
+  - CBinary hat jetzt eine "ToHex"-Export-Funktion, die seinen Inhalt
+    als String mit Hexwerten zurückgibt. Mit "FromHex" kann ein
+    Hex-String wieder importiert werden.
+  - CMemoryReference hat ebenfalls "toHex"-Funktion erhalten,
+    CMemory die Funktion "fromHex"
+  - CMHash Bugfix: CMHash::GetResult hat die Klasse nicht korrekt
+    reinitialisiert, so dass ein erneuter Aufruf falsche Werte
+    zurückgegeben hat.
+  - Bugfix SybaseResult::FetchResultSet. Es wurde nicht geprüft,
+    ob überhaupt ein Result vorhanden ist.
+
+Version 6.4.4 vom 01.11.2010	(CVS-Tag: REL_6_4_4)
+  - CDateTime::diffSeconds: Ermittelt die Differenz zweier CDateTime
+    Werte in Sekunden
+  - CDateTime::compareSeconds: Vergleicht zwei CDateTime-Werte auf
+    Sekundenbasis anhand einer definierbaren Toleranz
+  - CArray hat nun Sort-Funktion zum Sortieren der Werte
+  - CArray hat nun Implode-Funktion, um das Array in einen String zu
+    konvertieren
+  - Bugfix Postgres.cpp läßt sich wieder kompilieren
+  - Sybase-Datenbankklasse überarbeitet. Sie verwendet jetzt eine
+    eigene optimierte Result-Klasse und nicht mehr GenericResult.
+    Queries mit einem großen Result-Set können nun iterativ mit
+    FetchArray oder FetchFields durchlaufen werden, ohne dass zunächst
+    das komplette Result-Set in den Speicher geladen werden muss.
+
+Version 6.4.3 vom 16.10.2010	(CVS-Tag: REL_6_4_3)
+  - Update auf Doxygen 1.7.x, Anpassungen am Layout
+  - Alte Datenbank-Klassen entfernt
+  - Bugfix in CGenericList: Die Liste kann nun auch Rückwärts
+    durchlaufen werden. Zuvor wurde dabei immer nur das erste Element der
+    Liste zurückgegeben.
+  - Bugfix in der Berechnung der Anzahl Frames bei einer MP3-Datei mit
+    variabler Bitrate
+  - Bugfix in CID3Tag: Framegröße bei ID3v2-Tags Version 2.3 wird nun korrekt
+    interpretiert.
+  - Bugfix CString::IsNumeric: Komma, Punkt und Minus wurden falsch interpretiert
+  - Bugfix db::Sybase::Escape: Es wird nun ein korrekter Returnwert zurückgegeben
+  - db::Database::Save: Funktion akzeptiert jetzt einen sechsten optionalen
+    Parameter, über den man die Variablen-Typen angeben kann.
+  - db::Database: Transaktionen können nun verschachtelt werden
+  
+Version 6.4.2 vom 19.08.2010	(CVS-Tag: REL_6_4_2)
+  - ppl6::db::Sybase::GetInsertID funktioniert nun
+  - ppl6::CString: Zusätzliche PregMatch-Funktion, die als "const" deklariert
+    ist
+
+Version 6.4.1 vom 27.07.2010	(CVS-Tag: REL_6_4_1)
+  - configure prüft nun, ob "_FILE_OFFSET_BITS" definiert werden muss, um
+    grosse Dateien verwenden zu können
+  - configure prüft nun optional, ob die Library mpg123 installiert ist
+  - configure: Überprüfung von libmp3lame wurde in eigene Datei ausgelagert.
+    Zusätzlich wird nun geprüft, ob lame die neue hip_decode-Funktion
+    unterstützt. 
+  - CMP3Decode fungiert nun als Basisklasse für verschiedene Dekoder, kann jedoch
+    nach wie vor genauso benutzt werden, wie bisher. Optional kann mit der Funktion
+    CMP3Decode::Init angegeben werden, welcher Dekoder benutzt werden soll. Wird dies
+    nicht gemacht, wird standardmäßig nun Mad oder mpg123 verwendet, jenachdem
+    was installiert ist.
+  - Neue MP3-Dekoder auf Basis der mpg123 Bibliothek
+  - Bugfix in CWString::Set. Die Funktion konnte nicht kompiliert werden,
+    wenn keine libiconv vorhanden war.
+  - pplgenresource kennt jetzt Parameter "compression" in der Konfigurations-
+    datei
+  - Grafikfunktion Blt verwendet nun optimierte Copy-Funktion unter
+    Verwendung von MMX, SSE und dem L1-Cache der CPU
+  - Bugfix in den Vergleichs-Operatoren und -Funktionen der String-Klassen.
+    Es wurde bisher nicht berücksichtigt, dass zwei leere Strings auch dann
+    identisch sind, wenn die Buffer noch nicht allokiert sind. Im Gegenteil,
+    es wurde sogar explizit geprüft, ob einer der beiden Buffer auf NULL zeigt,
+    und in dessen Abhängigkeit ein bestimmer Returncode gegeben (z.B. +2 oder
+    -2). Das Verhalten wurde jetzt so geändert, dass bei einem NULL-Pointer
+    ein leerer String angenommen wird und der Vergleich mit dem anderen String
+    auf jeden Fall durchgeführt wird.
+  - CString: Vergleichsoperatoren für CString hinzugefügt
+  - CWString: Vergleichsoperatoren mit "const char*" und "CWString*" entfernt.
+    In beiden Fällen wird der Kompiler jetzt eine automatische Typ-
+    konvertierung zu CWString durchführen.
+  - CDateTime: Neue Klasse zum Speichern von Datum und Uhrzeit
+  - CVar hat keinen virtuellen Destruktor mehr. Alle davon abgeleiteten Klassen
+    benötigen dadurch weniger Speicher. Es muss nun aber static_cast statt
+    dynamic_cast verwendet werden, wenn zwischen den Datentypen gecastet wird.
+  - Exceptions überarbeitet: Es gibt jetzt nurnoch eine Exception-Klasse
+    
 Version 6.4.0 vom 30.03.2010	(CVS-Tag: REL_6_4_0)
   - Copyrights auf 2010 aktualisiert
   - Bugfix in der 64-Bit-Version der Font-Assembler-Routinen

@@ -16,14 +16,14 @@ TARGETBIN	= @bindir@
 TARGETINCLUDE	= @includedir@
 CC			= @CC@
 CXX			= @CXX@
-CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @openssl_includes@ @MYSQL_CFLAGS@ @PGSQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@
+CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @openssl_includes@ @MYSQL_CFLAGS@ @PGSQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@
 CPPFLAGS	= @CPPFLAGS@
 LDFLAGS		= @LDFLAGS@
-LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @PGSQL_LIBS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@
+LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @PGSQL_LIBS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@
 LIBNAME		= libppl6
 LIBDEBUG	= libppl6-debug
 DISTNAME	= ppl
-VERSION     = 6.4.0
+VERSION     = 6.4.6
 ASM			= @ASM@ @ASMFLAGS@
 ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@	
 ###########################################################################
@@ -75,6 +75,7 @@ RELEASE	= release/CAVLTree.o \
 	release/CAssocArray.o \
 	release/CBinary.o \
 	release/CBool.o \
+	release/CDateTime.o \
 	release/CInt.o \
 	release/CString.o \
 	release/CVar.o \
@@ -92,15 +93,10 @@ RELEASE	= release/CAVLTree.o \
 	release/CSocketMessage.o \
 	release/CTCPSocket.o \
 	release/CUDPSocket.o \
+	release/CWikiParser.o \
 	release/openssl.o \
 	release/resolver.o \
 	release/socket.o \
-	release/db_CDBMySQL.o \
-	release/db_CDBPool.o \
-	release/db_CDBPostgres.o \
-	release/db_CDBResult.o \
-	release/db_CDBSybase.o \
-	release/db_CDBWrapper.o \
 	release/db_Database.o \
 	release/db_GenericResult.o \
 	release/db_MySQL.o \
@@ -157,6 +153,9 @@ RELEASE	= release/CAVLTree.o \
 	release/tk_Window.o \
 	release/CID3Tag.o \
 	release/CMP3Decode.o \
+	release/CMP3Decode_Lame.o \
+	release/CMP3Decode_LibMad.o \
+	release/CMP3Decode_Mpg123.o \
 	release/CMP3Encode.o \
 	release/mp3.o
 
@@ -205,6 +204,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/CAssocArray.o \
 	debug/CBinary.o \
 	debug/CBool.o \
+	debug/CDateTime.o \
 	debug/CInt.o \
 	debug/CString.o \
 	debug/CVar.o \
@@ -222,15 +222,10 @@ DEBUG	= debug/CAVLTree.o \
 	debug/CSocketMessage.o \
 	debug/CTCPSocket.o \
 	debug/CUDPSocket.o \
+	debug/CWikiParser.o \
 	debug/openssl.o \
 	debug/resolver.o \
 	debug/socket.o \
-	debug/db_CDBMySQL.o \
-	debug/db_CDBPool.o \
-	debug/db_CDBPostgres.o \
-	debug/db_CDBResult.o \
-	debug/db_CDBSybase.o \
-	debug/db_CDBWrapper.o \
 	debug/db_Database.o \
 	debug/db_GenericResult.o \
 	debug/db_MySQL.o \
@@ -287,6 +282,9 @@ DEBUG	= debug/CAVLTree.o \
 	debug/tk_Window.o \
 	debug/CID3Tag.o \
 	debug/CMP3Decode.o \
+	debug/CMP3Decode_Lame.o \
+	debug/CMP3Decode_LibMad.o \
+	debug/CMP3Decode_Mpg123.o \
 	debug/CMP3Encode.o \
 	debug/mp3.o
 
@@ -335,6 +333,7 @@ CORE_RELEASE	=release/CAVLTree.o \
 	release/CAssocArray.o \
 	release/CBinary.o \
 	release/CBool.o \
+	release/CDateTime.o \
 	release/CInt.o \
 	release/CString.o \
 	release/CVar.o \
@@ -390,6 +389,7 @@ CORE_DEBUG	=debug/CAVLTree.o \
 	debug/CAssocArray.o \
 	debug/CBinary.o \
 	debug/CBool.o \
+	debug/CDateTime.o \
 	debug/CInt.o \
 	debug/CString.o \
 	debug/CVar.o \
@@ -408,6 +408,7 @@ INET_RELEASE	=release/CCurl.o \
 	release/CSocketMessage.o \
 	release/CTCPSocket.o \
 	release/CUDPSocket.o \
+	release/CWikiParser.o \
 	release/openssl.o \
 	release/resolver.o \
 	release/socket.o
@@ -420,6 +421,7 @@ INET_DEBUG	=debug/CCurl.o \
 	debug/CSocketMessage.o \
 	debug/CTCPSocket.o \
 	debug/CUDPSocket.o \
+	debug/CWikiParser.o \
 	debug/openssl.o \
 	debug/resolver.o \
 	debug/socket.o
@@ -432,6 +434,7 @@ INET_NOSSL_RELEASE	=release/nossl_CCurl.o \
 	release/nossl_CSocketMessage.o \
 	release/nossl_CTCPSocket.o \
 	release/nossl_CUDPSocket.o \
+	release/nossl_CWikiParser.o \
 	release/nossl_openssl.o \
 	release/nossl_resolver.o \
 	release/nossl_socket.o
@@ -444,6 +447,7 @@ INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 	debug/nossl_CSocketMessage.o \
 	debug/nossl_CTCPSocket.o \
 	debug/nossl_CUDPSocket.o \
+	debug/nossl_CWikiParser.o \
 	debug/nossl_openssl.o \
 	debug/nossl_resolver.o \
 	debug/nossl_socket.o
@@ -451,22 +455,22 @@ INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 
 SOUND_RELEASE	=release/CID3Tag.o \
 	release/CMP3Decode.o \
+	release/CMP3Decode_Lame.o \
+	release/CMP3Decode_LibMad.o \
+	release/CMP3Decode_Mpg123.o \
 	release/CMP3Encode.o \
 	release/mp3.o
 
 SOUND_DEBUG	=debug/CID3Tag.o \
 	debug/CMP3Decode.o \
+	debug/CMP3Decode_Lame.o \
+	debug/CMP3Decode_LibMad.o \
+	debug/CMP3Decode_Mpg123.o \
 	debug/CMP3Encode.o \
 	debug/mp3.o
 
 
-DATABASE_RELEASE	=release/db_CDBMySQL.o \
-	release/db_CDBPool.o \
-	release/db_CDBPostgres.o \
-	release/db_CDBResult.o \
-	release/db_CDBSybase.o \
-	release/db_CDBWrapper.o \
-	release/db_Database.o \
+DATABASE_RELEASE	=release/db_Database.o \
 	release/db_GenericResult.o \
 	release/db_MySQL.o \
 	release/db_Pool.o \
@@ -475,13 +479,7 @@ DATABASE_RELEASE	=release/db_CDBMySQL.o \
 	release/db_Result.o \
 	release/db_Sybase.o
 
-DATABASE_DEBUG	=debug/db_CDBMySQL.o \
-	debug/db_CDBPool.o \
-	debug/db_CDBPostgres.o \
-	debug/db_CDBResult.o \
-	debug/db_CDBSybase.o \
-	debug/db_CDBWrapper.o \
-	debug/db_Database.o \
+DATABASE_DEBUG	=debug/db_Database.o \
 	debug/db_GenericResult.o \
 	debug/db_MySQL.o \
 	debug/db_Pool.o \
@@ -721,6 +719,7 @@ html:
 	-rm -rf documentation/html
 	-mkdir -p documentation/html
 	-doxygen Doxyfile
+	-cp docs/header-bg.png documentation/html
 	
 pdf:
 	-mkdir -p documentation
@@ -972,6 +971,11 @@ release/CBool.o:	$(srcdir)/vars/CBool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixco
 	# Compiling >>>vars/CBool.cpp<<<
 	$(CXX) -Wall -O3 -o release/CBool.o -c $(srcdir)/vars/CBool.cpp $(CFLAGS) 
 
+release/CDateTime.o:	$(srcdir)/vars/CDateTime.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CDateTime.cpp<<<
+	$(CXX) -Wall -O3 -o release/CDateTime.o -c $(srcdir)/vars/CDateTime.cpp $(CFLAGS) 
+
 release/CInt.o:	$(srcdir)/vars/CInt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CInt.cpp<<<
@@ -1059,6 +1063,11 @@ release/CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdi
 	# Compiling >>>internet/CUDPSocket.cpp<<<
 	$(CXX) -Wall -O3 -o release/CUDPSocket.o -c $(srcdir)/internet/CUDPSocket.cpp $(CFLAGS) 
 
+release/CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O3 -o release/CWikiParser.o -c $(srcdir)/internet/CWikiParser.cpp $(CFLAGS) 
+
 release/openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/openssl.cpp<<<
@@ -1115,6 +1124,11 @@ release/nossl_CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $
 	# Compiling >>>internet/CUDPSocket.cpp<<<
 	$(CXX) -Wall -O3 -o release/nossl_CUDPSocket.o -c $(srcdir)/internet/CUDPSocket.cpp $(CFLAGS) -D NO_SSL
 
+release/nossl_CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CWikiParser.o -c $(srcdir)/internet/CWikiParser.cpp $(CFLAGS) -D NO_SSL
+
 release/nossl_openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/openssl.cpp<<<
@@ -1131,36 +1145,6 @@ release/nossl_socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)
 	$(CXX) -Wall -O3 -o release/nossl_socket.o -c $(srcdir)/internet/socket.cpp $(CFLAGS) -D NO_SSL
 
 ### DATABASE
-release/db_CDBMySQL.o:	$(srcdir)/database/CDBMySQL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBMySQL.cpp<<<
-	$(CXX) -Wall -O3 -o release/db_CDBMySQL.o -c $(srcdir)/database/CDBMySQL.cpp $(CFLAGS) 
-
-release/db_CDBPool.o:	$(srcdir)/database/CDBPool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBPool.cpp<<<
-	$(CXX) -Wall -O3 -o release/db_CDBPool.o -c $(srcdir)/database/CDBPool.cpp $(CFLAGS) 
-
-release/db_CDBPostgres.o:	$(srcdir)/database/CDBPostgres.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBPostgres.cpp<<<
-	$(CXX) -Wall -O3 -o release/db_CDBPostgres.o -c $(srcdir)/database/CDBPostgres.cpp $(CFLAGS) 
-
-release/db_CDBResult.o:	$(srcdir)/database/CDBResult.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBResult.cpp<<<
-	$(CXX) -Wall -O3 -o release/db_CDBResult.o -c $(srcdir)/database/CDBResult.cpp $(CFLAGS) 
-
-release/db_CDBSybase.o:	$(srcdir)/database/CDBSybase.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBSybase.cpp<<<
-	$(CXX) -Wall -O3 -o release/db_CDBSybase.o -c $(srcdir)/database/CDBSybase.cpp $(CFLAGS) 
-
-release/db_CDBWrapper.o:	$(srcdir)/database/CDBWrapper.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBWrapper.cpp<<<
-	$(CXX) -Wall -O3 -o release/db_CDBWrapper.o -c $(srcdir)/database/CDBWrapper.cpp $(CFLAGS) 
-
 release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Database.cpp<<<
@@ -1444,6 +1428,21 @@ release/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/
 	# Compiling >>>sound/CMP3Decode.cpp<<<
 	$(CXX) -Wall -O3 -o release/CMP3Decode.o -c $(srcdir)/sound/CMP3Decode.cpp $(CFLAGS) 
 
+release/CMP3Decode_Lame.o:	$(srcdir)/sound/CMP3Decode_Lame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Lame.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Decode_Lame.o -c $(srcdir)/sound/CMP3Decode_Lame.cpp $(CFLAGS) 
+
+release/CMP3Decode_LibMad.o:	$(srcdir)/sound/CMP3Decode_LibMad.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_LibMad.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Decode_LibMad.o -c $(srcdir)/sound/CMP3Decode_LibMad.cpp $(CFLAGS) 
+
+release/CMP3Decode_Mpg123.o:	$(srcdir)/sound/CMP3Decode_Mpg123.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Mpg123.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Decode_Mpg123.o -c $(srcdir)/sound/CMP3Decode_Mpg123.cpp $(CFLAGS) 
+
 release/CMP3Encode.o:	$(srcdir)/sound/CMP3Encode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CMP3Encode.cpp<<<
@@ -1717,6 +1716,11 @@ debug/CBool.o:	$(srcdir)/vars/CBool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconf
 	# Compiling >>>vars/CBool.cpp<<<
 	$(CXX) -Wall -O -o debug/CBool.o -c $(srcdir)/vars/CBool.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/CDateTime.o:	$(srcdir)/vars/CDateTime.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CDateTime.cpp<<<
+	$(CXX) -Wall -O -o debug/CDateTime.o -c $(srcdir)/vars/CDateTime.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/CInt.o:	$(srcdir)/vars/CInt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CInt.cpp<<<
@@ -1804,6 +1808,11 @@ debug/CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdir)
 	# Compiling >>>internet/CUDPSocket.cpp<<<
 	$(CXX) -Wall -O -o debug/CUDPSocket.o -c $(srcdir)/internet/CUDPSocket.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O -o debug/CWikiParser.o -c $(srcdir)/internet/CWikiParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/openssl.cpp<<<
@@ -1860,6 +1869,11 @@ debug/nossl_CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(i
 	# Compiling >>>internet/CUDPSocket.cpp<<<
 	$(CXX) -Wall -O -o debug/nossl_CUDPSocket.o -c $(srcdir)/internet/CUDPSocket.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL
 
+debug/nossl_CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CWikiParser.o -c $(srcdir)/internet/CWikiParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL
+
 debug/nossl_openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/openssl.cpp<<<
@@ -1876,36 +1890,6 @@ debug/nossl_socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/p
 	$(CXX) -Wall -O -o debug/nossl_socket.o -c $(srcdir)/internet/socket.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL
 
 ### DATABASE
-debug/db_CDBMySQL.o:	$(srcdir)/database/CDBMySQL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBMySQL.cpp<<<
-	$(CXX) -Wall -O -o debug/db_CDBMySQL.o -c $(srcdir)/database/CDBMySQL.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/db_CDBPool.o:	$(srcdir)/database/CDBPool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBPool.cpp<<<
-	$(CXX) -Wall -O -o debug/db_CDBPool.o -c $(srcdir)/database/CDBPool.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/db_CDBPostgres.o:	$(srcdir)/database/CDBPostgres.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBPostgres.cpp<<<
-	$(CXX) -Wall -O -o debug/db_CDBPostgres.o -c $(srcdir)/database/CDBPostgres.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/db_CDBResult.o:	$(srcdir)/database/CDBResult.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBResult.cpp<<<
-	$(CXX) -Wall -O -o debug/db_CDBResult.o -c $(srcdir)/database/CDBResult.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/db_CDBSybase.o:	$(srcdir)/database/CDBSybase.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBSybase.cpp<<<
-	$(CXX) -Wall -O -o debug/db_CDBSybase.o -c $(srcdir)/database/CDBSybase.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/db_CDBWrapper.o:	$(srcdir)/database/CDBWrapper.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
-	###############################################################################
-	# Compiling >>>database/CDBWrapper.cpp<<<
-	$(CXX) -Wall -O -o debug/db_CDBWrapper.o -c $(srcdir)/database/CDBWrapper.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Database.cpp<<<
@@ -2188,6 +2172,21 @@ debug/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/pp
 	###############################################################################
 	# Compiling >>>sound/CMP3Decode.cpp<<<
 	$(CXX) -Wall -O -o debug/CMP3Decode.o -c $(srcdir)/sound/CMP3Decode.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/CMP3Decode_Lame.o:	$(srcdir)/sound/CMP3Decode_Lame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Lame.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Decode_Lame.o -c $(srcdir)/sound/CMP3Decode_Lame.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/CMP3Decode_LibMad.o:	$(srcdir)/sound/CMP3Decode_LibMad.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_LibMad.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Decode_LibMad.o -c $(srcdir)/sound/CMP3Decode_LibMad.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/CMP3Decode_Mpg123.o:	$(srcdir)/sound/CMP3Decode_Mpg123.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Mpg123.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Decode_Mpg123.o -c $(srcdir)/sound/CMP3Decode_Mpg123.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/CMP3Encode.o:	$(srcdir)/sound/CMP3Encode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################

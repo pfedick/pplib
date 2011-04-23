@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.62)
-AC_INIT([ppl], [6.4.0], [patrick@pfp.de], [ppl-6.4.0-src.tar.bz2])
+AC_INIT([ppl], [6.4.6], [patrick@pfp.de], [ppl-6.4.6-src.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
 AC_CONFIG_SRCDIR([include/ppl6.h])
@@ -37,6 +37,8 @@ sinclude(config/ax_gcc_x86_cpuid.m4)
 sinclude(config/ax_check_compiler_flags.m4)
 sinclude(config/ax_gcc_archflag.m4)
 sinclude(config/ldns.m4)
+sinclude(config/mpg123.m4)
+sinclude(config/lame.m4)
 
 AC_CANONICAL_TARGET
 
@@ -53,6 +55,7 @@ AX_GCC_ARCHFLAG
 AC_PROG_SED
 
 #AX_SLEEP
+
 
 
 AC_C_BIGENDIAN(
@@ -125,7 +128,8 @@ AC_SIZEOF_TYPE(fpos_t)
 AC_CHECK_SIZEOF(fpos_t, 4)
 
 
-
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
 
 
 #--------------------------------------------------------------------
@@ -261,44 +265,23 @@ LIBCURL_CHECK_CONFIG("yes",7.14.1,
 	report_have_curl="yes",:)
 
 
-am_save_CPPFLAGS="$CPPFLAGS"
-am_save_LIBS="$LIBS"
-am_save_LDFLAGS="$LDFLAGS"
+report_have_mpg123="no"
+AC_CHECK_LIBMPG123([1.0.0],
+            AC_DEFINE(HAVE_MPG123, 1, [ Define if you have mpg123 library. ])
+            report_have_mpg123="yes"
+			AC_SUBST(MPG123_CFLAGS)
+			AC_SUBST(MPG123_LIBS)
+            ,
+            )
 
 report_have_lame="no"
-have_LAME="no"
-AC_ARG_WITH(lame,
-  [[  --with-lame[=DIR]       enable support for reencoding with lame [in DIR]]])
-if test "$with_lame" != "no"
-then
-  if test -n "$with_lame" -a "$with_lame" != "yes"
-  then
-    CPPFLAGS="$CPPFLAGS -I$with_lame/include"
-    LDFLAGS="$LDFLAGS -L$with_lame/lib"
-  fi
-  AC_CHECK_HEADER(lame/lame.h, [
-    have_LAME="maybe",
-    AC_DEFINE(HAVE_LAME_LAME_H, 1, [Use <lame/lame.h> instead of <lame.h>])
-    ], [
-    AC_CHECK_HEADER(lame.h, [
-    have_LAME="maybe"])])
-  if test "$have_LAME" != "no"
-  then
-    LIBS="$LIBS -L$with_lame/lib -lmp3lame -lm"
-    AC_CHECK_LIB(mp3lame, lame_encode_flush_nogap, [
-      report_have_lame="yes"
-      LAME_LIBS="-L$with_lame/lib -lmp3lame -lm"
-      LAME_CFLAGS="-I$with_lame/include"
-      AC_SUBST(LAME_CFLAGS)
-	  AC_SUBST(LAME_LIBS)
-      
-      AC_DEFINE(HAVE_LAME, 1, [Define if you have the LAME MP3 library])
-      ], [report_have_lame="no"], -lm)
-  fi
-fi
-CPPFLAGS=$am_save_CPPFLAGS
-LIBS=$am_save_LIBS
-LDFLAGS=$am_save_LDFLAGS
+AC_CHECK_LIBMP3LAME([3.98.0],
+	AC_DEFINE(HAVE_LAME, 1, [ Define if you have lame. ])
+	report_have_lame="yes"
+	AC_SUBST(LAME_CFLAGS)
+	AC_SUBST(LAME_LIBS)
+	, :)
+
 
 am_save_CPPFLAGS="$CPPFLAGS"
 am_save_LIBS="$LIBS"
@@ -556,7 +539,8 @@ AC_MSG_RESULT([
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl		  
 **   Lame library:         $report_have_lame		  
-**   Libmad library:       $report_have_libmad		  
+**   Libmad library:       $report_have_libmad	
+**   mpg123 library:       $report_have_mpg123	  
 **   Curl library:         $report_have_curl		  
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads

@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/03/26 09:15:49 $
- * $Id: ppl6-db.h,v 1.3 2010/03/26 09:15:49 pafe Exp $
+ * $Revision: 1.7 $
+ * $Date: 2010/10/27 14:19:13 $
+ * $Id: ppl6-db.h,v 1.7 2010/10/27 14:19:13 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -130,6 +130,7 @@ class GenericResult : public Result
 		void		*Calloc(size_t size);
 		void		Free(void *ptr);
 		ppluint64	GetUsedMem();
+		void		SetBufferGrowSize(size_t bytes);
 
 		virtual	void Clear();
 		virtual pplint64 Rows();
@@ -198,7 +199,7 @@ class Database
 		int ExecArray(CAssocArray &result, const CString &query);
 		int ExecArrayAllf(CAssocArray &result, const char *query, ...);
 		int ExecArrayAll(CAssocArray &result, const CString &query);
-		int Save(const char *method, const char *table, CAssocArray &a, const char *clause=NULL, const CAssocArray &exclude=CAssocArray());
+		int Save(const char *method, const char *table, CAssocArray &a, const char *clause=NULL, const CAssocArray &exclude=CAssocArray(), const CAssocArray &types=CAssocArray());
 		int	ReadKeyValue(CAssocArray &res, const char *query, const char *keyname, const char *valname=NULL);
 		ppluint64 InsertKey(const char *table, CAssocArray &a, const char *keyname, const CAssocArray &exclude=CAssocArray());
 
@@ -219,6 +220,7 @@ class Database
 		virtual int		StartTransaction();
 		virtual int		EndTransaction();
 		virtual int		CancelTransaction();
+		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
 
 };
@@ -230,6 +232,7 @@ class MySQL : public Database
 		ppluint64 	lastinsertid;
 		pplint64	affectedrows;
 		ppluint64	maxrows;
+		int			transactiondepth;
 		CAssocArray condata;
 		CMutex		mutex;
 
@@ -253,23 +256,22 @@ class MySQL : public Database
 		virtual int		StartTransaction();
 		virtual int		EndTransaction();
 		virtual int		CancelTransaction();
+		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
 };
 
-class Sybase : public Database
+class Sybase : public ppl6::db::Database
 {
 	private:
 		CMutex		mutex;
 		CAssocArray condata;
 		void		*conn;
 		ppluint64	lastinsertid;
-		ppluint64	affectedrows;
 		ppluint64	maxrows;
+		pplint64	rows_affected;
+		int			transactiondepth;
 		bool		connected;
 
-		//PPL_DB_RESULT DoExec(const char *query);
-		int FetchResult(Result *res, const char *query);
-		int StoreField(Result *res, int field, int type, void *data, int size);
 
 	public:
 		Sybase();
@@ -285,7 +287,7 @@ class Sybase : public Database
 		virtual int		Disconnect();
 		virtual int		SelectDB(const char *databasename);
 		virtual int 	Exec(const CString &query);
-		virtual Result	*Query(const CString &query);
+		virtual ppl6::db::Result	*Query(const CString &query);
 		virtual void	SetMaxRows(ppluint64 rows);
 		virtual int     Ping();
 		virtual int		Escape(CString &str);
@@ -294,13 +296,14 @@ class Sybase : public Database
 		virtual int		StartTransaction();
 		virtual int		EndTransaction();
 		virtual int		CancelTransaction();
+		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
 
 		static int	GetMaxConnects();
 		static int	SetMaxConnects(int max);
 		static int SetVersion(int version);
 		static int SetLocale(const char *locale, const char *dateformat);
-
+		static void SetResultBufferGrowSize(size_t bytes);
 };
 
 
@@ -311,6 +314,7 @@ class Postgres : public Database
 		ppluint64 	lastinsertid;
 		pplint64	affectedrows;
 		ppluint64	maxrows;
+		int			transactiondepth;
 		CAssocArray condata;
 		CMutex		mutex;
 
@@ -335,6 +339,7 @@ class Postgres : public Database
 		virtual int		StartTransaction();
 		virtual int		EndTransaction();
 		virtual int		CancelTransaction();
+		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
 };
 

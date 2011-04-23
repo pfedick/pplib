@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CFilter_JPEG.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/04/03 19:56:24 $
+ * $Id: CFilter_JPEG.cpp,v 1.3 2010/04/03 19:56:24 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -388,9 +388,9 @@ int CFilter_JPEG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 					}
 				} else {
 					for (x=0;x<cinfo.output_width;x++) {
-						rot=peekb(buffer+x*3);
+						rot=peekb(buffer+x*3+2);
 						gruen=peekb(buffer+x*3+1);
-						blau=peekb(buffer+x*3+2);
+						blau=peekb(buffer+x*3);
 						surface.putPixel(x,y,Color(rot,gruen,blau));
 					}
 				}

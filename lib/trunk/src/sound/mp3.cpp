@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:56 $
- * $Id: mp3.cpp,v 1.2 2010/02/12 19:43:56 pafe Exp $
+ * $Revision: 1.5 $
+ * $Date: 2010/09/25 17:29:02 $
+ * $Id: mp3.cpp,v 1.5 2010/09/25 17:29:02 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -131,16 +131,17 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 		&& buffer[6]<0x80 && buffer[7]<0x80 && buffer[8]<0x80 && buffer[9]<0x80) { // Jepp
 		// Laenge des Headers berechnen;
 		mpg->start=buffer[9] + (buffer[8]<<7) + (buffer[7]<<14) + (buffer[6]<<21) + 10;
+		//printf ("   ID3v2-Tag gefunden, Start der Daten bei: %u\n",mpg->start);
 	}
 
-	buffer=(unsigned char *)file->Map(mpg->start,1024);
+	//buffer=(unsigned char *)file->Map(mpg->start,1024);
 	p=0;
-
 
 	// Jetzt den ersten MP3-Header suchen
 	p=FindNextHeader(file,mpg->start,mpg);
 	if (p<0) RETVAL(false);
 	mpg->start=(ppldd)p;
+	//printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
 
 	// Jetzt noch das Ende der Daten suchen
 	mpg->end=(ppldd)file->Lof()-1;
@@ -158,10 +159,10 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 
 	if (mpg->layer==1) {
 		if (mpg->frequency>0)
-			mpg->framesize=12 * mpg->bitrate*1000 / mpg->frequency + mpg->padding;
+			mpg->framesize=12 * mpg->bitrate*1000 / (mpg->frequency + mpg->padding);
 	} else {
 		if (mpg->frequency>0)
-			mpg->framesize=144 * mpg->bitrate*1000 / mpg->frequency + mpg->padding;
+			mpg->framesize=144 * mpg->bitrate*1000 / (mpg->frequency + mpg->padding);
 	}
 	if (mpg->framesize) mpg->frames=mpg->size/mpg->framesize;
 	if (mpg->bitrate>0) {
@@ -172,16 +173,59 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 	//mpg->samples=0;
 	CheckVBR(file,mpg);
 
-
-	DLOG ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u",mpg->start+p,mpg->version,mpg->layer);
-	DLOG ("   Bitrate: %ukbit",mpg->bitrate);
-	DLOG ("   Frequency: %u Hz, %s",mpg->frequency,mpg_channels[mpg->stereo]);
-	DLOG ("   Framesize: %u = %u Frames",mpg->framesize, mpg->frames);
-	DLOG ("   Length: %u ms, %u s",mpg->mslength,mpg->length);
-	DLOG ("   Samples: %u, Datasize: %u",mpg->samples,mpg->size);
-
+	/*
+	printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
+	printf ("   Bitrate: %ukbit\n",mpg->bitrate);
+	printf ("   Frequency: %u Hz, %s\n",mpg->frequency,mpg_channels[mpg->stereo]);
+	printf ("   Framesize: %u = %u Frames\n",mpg->framesize, mpg->frames);
+	printf ("   Length: %u ms, %u s\n",mpg->mslength,mpg->length);
+	printf ("   Samples: %u, Datasize: %u\n",mpg->samples,mpg->size);
+	*/
 	RETVAL(true);
 }
+
+void MpegHeader2Array(ppl6::CAssocArray &a, const PPL_MPEG_HEADER *mpg)
+{
+	a.Clear();
+	if (!mpg) return;
+	a.Setf("start","%u",mpg->start);
+	a.Setf("end","%u",mpg->end);
+	a.Setf("size","%u",mpg->size);
+	a.Setf("filesize","%u",mpg->filesize);
+	a.Setf("version","%i",mpg->version);
+	a.Setf("layer","%i",mpg->layer);
+	a.Setf("error_protection","%i",mpg->error_protection);
+	a.Setf("bitrate_index","%i",mpg->bitrate_index);
+	a.Setf("bitrate","%i",mpg->bitrate);
+	a.Setf("frequency_index","%i",mpg->frequency_index);
+	a.Setf("frequency","%i",mpg->frequency);
+	a.Setf("padding","%i",mpg->padding);
+	a.Setf("extension","%i",mpg->extension);
+	a.Setf("mode","%i",mpg->mode);
+	a.Setf("mode_ext","%i",mpg->mode_ext);
+	a.Setf("copyright","%i",mpg->copyright);
+	a.Setf("original","%i",mpg->original);
+	a.Setf("emphasis","%i",mpg->emphasis);
+	a.Setf("stereo","%i",mpg->stereo);
+	a.Setf("framesize","%i",mpg->framesize);
+	a.Setf("frames","%i",mpg->frames);
+	a.Setf("mslength","%u",mpg->mslength);
+	a.Setf("length","%u",mpg->length);
+	a.Setf("samples","%u",mpg->samples);
+	a.Setf("vbr","%i",mpg->vbr);
+}
+
+void PrintMpegHeader(const PPL_MPEG_HEADER *mpg)
+{
+	printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
+	printf ("   Bitrate: %ukbit\n",mpg->bitrate);
+	printf ("   Frequency: %u Hz, %s\n",mpg->frequency,mpg_channels[mpg->stereo]);
+	printf ("   Framesize: %u = %u Frames\n",mpg->framesize, mpg->frames);
+	printf ("   Length: %u ms, %u s\n",mpg->mslength,mpg->length);
+	printf ("   Samples: %u, Datasize: %u\n",mpg->samples,mpg->size);
+	printf ("   Start: %u, End: %u\n",mpg->start,mpg->end);
+}
+
 
 bool IsMPEGHeader(char *header)
 /*!\ingroup PPLGroupSound
@@ -218,11 +262,13 @@ static pplint64 FindNextHeader(CFileObject *file, pplint64 pos,PPL_MPEG_HEADER *
 	buffer=file->Map(pos,1024);
 	if (!buffer) return -1;
 	p=0;
+	//printf ("FindNextHeader ab Pos: %llu\n",pos+p);
 	// Jetzt den ersten MP3-Header suchen
 	pplint64 filesize=file->Size();
 	while (pos+p+4<filesize) {
 		header=buffer+p;
 		temp=((header[0]&255)<<24)+((header[1]&255)<<16)+((header[2]&255)<<8)+(header[3]&255);
+		//printf ("Pos: %llu, Header: %X\n",pos+p,temp);
 		// 11111111111110111011000000000100
 		// aaaaaaaaaaabbccdeeeeff
 		// a=11 Bits sync, alle gesetzt
@@ -232,7 +278,7 @@ static pplint64 FindNextHeader(CFileObject *file, pplint64 pos,PPL_MPEG_HEADER *
 		// e=bitrate index, wobei 0000 und 1111 nicht erlaubt sind
 		// f=sample rate, wobei 11 nicht erlaubt ist
 		if ((temp&0xffe00000)==0xffe00000) {		// 11 gesetzte Bits nacheinander
-			//printf ("Pos: %llu, Header: %X\n",pos+p,temp);
+			//printf ("Match\n");
 			// Ist der Header gültig?
 			mpg->version=MPEGVersion[(header[1] >> 3 & 0x3)];
 			mpg->layer = 4 - ((header[1] >> 1) & 0x3);
@@ -263,7 +309,6 @@ static pplint64 FindNextHeader(CFileObject *file, pplint64 pos,PPL_MPEG_HEADER *
 						mpg->framesize=12 * mpg->bitrate*1000 / mpg->frequency + mpg->padding;
 					else if (mpg->frequency>0)
 						mpg->framesize=144 * mpg->bitrate*1000 / mpg->frequency + mpg->padding;
-
 					return pos;
 			}
 		}
@@ -285,6 +330,7 @@ static void CheckVBR(CFileObject *file, PPL_MPEG_HEADER *mpg)
 	// Bitrate. In diesem Fall muss das mpg->vbr Frag auf true gesetzt,
 	// und die Länge manuell berechnet werden (alle Frames einlesen)
 	PPL_MPEG_HEADER m;
+	memset(&m,0,sizeof(m));
 	ppldd frames=0;
 	int lastbitrate;
 	pplint64 pos;
@@ -305,8 +351,8 @@ static void CheckVBR(CFileObject *file, PPL_MPEG_HEADER *mpg)
 		}
 		if (frames>50 && mpg->vbr==false) break;
 		while (1) {
-			pos+=mpg->framesize;
-			if (!mpg->framesize) pos+=4;
+			pos+=m.framesize;
+			if (!m.framesize) pos+=4;
 			pos=FindNextHeader(file,pos,&m);
 			if ((pos<0) || pos>mpg->end) break;
 			if (m.layer==mpg->layer && m.version==mpg->version) break;

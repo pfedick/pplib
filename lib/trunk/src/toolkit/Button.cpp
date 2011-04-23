@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:47 $
- * $Id: Button.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/04/13 17:47:00 $
+ * $Id: Button.cpp,v 1.3 2010/04/13 17:47:00 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -55,12 +55,12 @@ namespace ppl6 {
 namespace tk {
 
 
-Button::Button(Widget *parent, Buttonstyle style)
+Button::Button(Widget *parent, int style)
 : Widget(parent)
 {
 	background.setColor(230,235,230);
 	foreground.setColor(255,255,255);
-	Style=style;
+	myStyle=style;
 	Text="Button";
 	Font.setAntialias(true);
 	Font.setSize(14);

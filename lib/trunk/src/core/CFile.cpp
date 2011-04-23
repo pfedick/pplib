@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CFile.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/07/15 21:20:07 $
+ * $Id: CFile.cpp,v 1.4 2010/07/15 21:20:07 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -83,6 +83,16 @@
 #ifdef DeleteFile
 #undef DeleteFile
 #endif
+
+#ifdef CopyFile
+#undef CopyFile
+#endif
+
+
+#ifdef MoveFile
+#undef MoveFile
+#endif
+
 #endif
 #include "ppl6.h"
 
@@ -1543,16 +1553,16 @@ int CFile::LoadFile(CVar &object, const char *filename)
 	buffer[by]=0;
 	int t=object.DataType();
 	if (t==CVar::CBINARY) {
-			CBinary &bin= dynamic_cast< CBinary&>(object);  // Objekt zu CBinary umwandeln
+			CBinary &bin= static_cast< CBinary&>(object);  // Objekt zu CBinary umwandeln
 			bin.Set(buffer,by);
 			bin.ManageMemory();
 			return 1;
 	} else if (t==CVar::CSTRING) {
-			CString &str= dynamic_cast<CString&>(object);  // Objekt zu CString umwandeln
+			CString &str= static_cast<CString&>(object);  // Objekt zu CString umwandeln
 			str.ImportBuffer((char*)buffer,by+1);
 			return 1;
 	} else if (t==CVar::CWSTRING) {
-			CWString &wstr= dynamic_cast<CWString&>(object);  // Objekt zu CWString umwandeln
+			CWString &wstr= static_cast<CWString&>(object);  // Objekt zu CWString umwandeln
 			wstr.ImportBuffer((wchar_t*)buffer,by+1);
 			return 1;
 	}
@@ -1712,6 +1722,7 @@ int CFile::CopyFile(const char *oldfile, const char *newfile)
 	return 1;
 }
 
+
 int CFile::MoveFile(const char *oldfile, const char *newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
@@ -1735,6 +1746,8 @@ int CFile::MoveFile(const char *oldfile, const char *newfile)
 	return 0;
 	*/
 }
+
+
 
 int CFile::RenameFile(const char *oldfile, const char *newfile)
 /*!\ingroup PPLGroupFileIO

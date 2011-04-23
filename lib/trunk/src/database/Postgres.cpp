@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: Postgres.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/10/21 09:53:12 $
+ * $Id: Postgres.cpp,v 1.4 2010/10/21 09:53:12 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -331,6 +331,7 @@ Postgres::Postgres()
 	lastinsertid=0;
 	affectedrows=0;
 	maxrows=0;
+	transactiondepth=0;
 }
 
 Postgres::~Postgres()
@@ -658,7 +659,17 @@ int Postgres::StartTransaction()
 	SetError(511,"Postgres");
 	return 0;
 #else
-	if (Exec("BEGIN")) return 1;
+	if (transactiondepth==0) {	// Neue Transaktion
+		if (Exec("BEGIN")) {
+			transactiondepth++;
+			return 1;
+		}
+	} else {
+		if (Execf("SAVEPOINT LEVEL%i",transactiondepth)) {
+			transactiondepth++;
+			return 1;
+		}
+	}
 	return 0;
 #endif
 }
@@ -669,7 +680,17 @@ int Postgres::EndTransaction()
 	SetError(511,"Postgres");
 	return 0;
 #else
-	if (Exec("COMMIT")) return 1;
+	if (transactiondepth==1) {
+		if (Exec("COMMIT")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		if (Execf("RELEASE SAVEPOINT LEVEL%i",transactiondepth-1)) {
+			transactiondepth--;
+			return 1;
+		}
+	}
 	return 0;
 #endif
 }
@@ -680,7 +701,31 @@ int Postgres::CancelTransaction()
 	SetError(511,"Postgres");
 	return 0;
 #else
-	if (Exec("ROLLBACK")) return 1;
+	if (transactiondepth==1) {
+		if (Exec("ROLLBACK")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		if (Execf("ROLLBACK TO SAVEPOINT LEVEL%i",transactiondepth-1)) {
+			transactiondepth--;
+			return 1;
+		}
+	}
+	return 0;
+#endif
+}
+
+int Postgres::CancelTransactionComplete()
+{
+#ifndef HAVE_POSTGRES
+	SetError(511,"Postgres");
+	return 0;
+#else
+	if (Exec("ROLLBACK")) {
+		transactiondepth=0;
+		return 1;
+	}
 	return 0;
 #endif
 }

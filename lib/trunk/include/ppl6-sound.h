@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:57 $
- * $Id: ppl6-sound.h,v 1.2 2010/02/12 19:43:57 pafe Exp $
+ * $Revision: 1.10 $
+ * $Date: 2010/09/25 20:30:06 $
+ * $Id: ppl6-sound.h,v 1.10 2010/09/25 20:30:06 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -125,6 +125,9 @@ typedef struct tagMPEGHeader{
 	bool vbr;
 } PPL_MPEG_HEADER;
 
+void MpegHeader2Array(ppl6::CAssocArray &a, const PPL_MPEG_HEADER *mpg);
+void PrintMpegHeader(const PPL_MPEG_HEADER *mpg);
+
 //!\brief Struktur zum Speichern des Fortschritts bei einem MP3-Encode-Vorgang
 typedef struct tagSOUNDPROGRESS{
 	void	*data;
@@ -196,7 +199,7 @@ class CMP3Encode
 		int StartEncode(CFileObject *output=NULL);
 		int StartEncode(int frequency, int channels);
 		int EncodeFile(CFileObject *file);
-		int EncodeFile(CMP3Decode *file, CFileObject *source);
+		int EncodeFile(CMP3Decode *file);
 		int EncodeBuffer(SAMPLE *left, SAMPLE *right, int num, void *mp3buf, int buffersize);
 		int EncodeBuffer(STEREOSAMPLE *buffer, int num, void *mp3buf, int buffersize);
 		int FlushBuffer(void *mp3buf, int buffersize);
@@ -217,43 +220,117 @@ class CMP3Encode
 bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg);
 
 
+// Basisklasse
 class CMP3Decode
+{
+	private:
+		CMP3Decode	*decoder;
+	public:
+		CMP3Decode();
+		virtual ~CMP3Decode();
+		int Init(const char *engine=NULL);
+		virtual void Clear();
+		virtual int LoadFile(const CString &filename);
+		virtual int LoadFile(CFileObject &file);
+		virtual int GetMpegHeader(PPL_MPEG_HEADER *mpg);
+		virtual int Start();
+		virtual int Stop();
+		virtual int Decode(int num, SAMPLE *left, SAMPLE *right);
+};
+
+class CMP3DecodeLibMad : public CMP3Decode
 {
 //!\brief Klasse zum Dekodieren von MP3-Files
 	private:
 		PPL_MPEG_HEADER	mpg;
 		CMutex	mutex;
 		CFileObject	*ff;
+		CFile		*file;
 		void		*mad;
 		ppluint32	FrameCount;
 		ppluint8	*readbuffer;
 		SAMPLE		*out_left, *out_right;
 		int			out_offset, out_samples, out_size;
-
-		bool		closefile;
 		bool		isRunning;
 		bool		loop;
 
 		int FillDecodeBuffer();
 
 	public:
-		CMP3Decode();
-		~CMP3Decode();
+		CMP3DecodeLibMad();
+		~CMP3DecodeLibMad();
 
 		bool DoFilter;
 
-		void Clear();
-		int LoadFile(char *filename);
-		int LoadFile(CFileObject *file);
-		int GetMpegHeader(PPL_MPEG_HEADER *mpg);
-		int Start();
-		int Stop();
-		int Decode(int num, SAMPLE *left, SAMPLE *right);
+		virtual void Clear();
+		virtual int LoadFile(const CString &filename);
+		virtual int LoadFile(CFileObject &file);
+		virtual int GetMpegHeader(PPL_MPEG_HEADER *mpg);
+		virtual int Start();
+		virtual int Stop();
+		virtual int Decode(int num, SAMPLE *left, SAMPLE *right);
 			// Falls der Returnwert < num ist, sind keine weiteren
 			// Daten mehr vorhanden und die restlichen Samples sind 0.
 };
 
+class CMP3DecodeLibMpg123 : public CMP3Decode
+{
+	private:
+		PPL_MPEG_HEADER	mpg;
+		CFileObject	*ff;
+		CFile		*file;
+		void		*hh;
+		ppluint8	*readbuffer;
+		ppluint8	*outbuffer;
+		size_t		out_offset, out_size;
 
+		bool isInitialized;
+		bool		isRunning;
+		bool		needInput;
+
+		int FillDecodeBuffer();
+
+	public:
+		CMP3DecodeLibMpg123();
+		~CMP3DecodeLibMpg123();
+		virtual void Clear();
+		virtual int LoadFile(const CString &filename);
+		virtual int LoadFile(CFileObject &file);
+		virtual int GetMpegHeader(PPL_MPEG_HEADER *mpg);
+		virtual int Start();
+		virtual int Stop();
+		virtual int Decode(int num, SAMPLE *left, SAMPLE *right);
+};
+
+/*
+class CMP3DecodeLibLame : public CMP3Decode
+{
+	private:
+		CMutex		Mutex;
+		PPL_MPEG_HEADER	mpg;
+		CFileObject	*ff;
+		CFile		*file;
+		void		*lame;
+		ppluint8	*readbuffer;
+		SAMPLE		*out_left, *out_right;
+		int			out_offset, out_samples, out_size;
+
+		bool isInitialized;
+		bool		isRunning;
+		bool		needInput;
+
+	public:
+		CMP3DecodeLibLame();
+		~CMP3DecodeLibLame();
+		virtual void Clear();
+		virtual int LoadFile(const CString &filename);
+		virtual int LoadFile(CFileObject &file);
+		virtual int GetMpegHeader(PPL_MPEG_HEADER *mpg);
+		virtual int Start();
+		virtual int Stop();
+		virtual int Decode(int num, SAMPLE *left, SAMPLE *right);
+};
+*/
 
 class CID3Frame
 {
@@ -282,7 +359,7 @@ class CID3Tag
 		CID3Frame	*firstFrame, *lastFrame;
 		int		AddFrame(CID3Frame *Frame);
 		void	CopyAndDecodeText(CString &s, CID3Frame *frame, int offset) const;
-		void	Decode(CID3Frame *frame, int offset, int encoding, CString &target) const;
+		int	Decode(CID3Frame *frame, int offset, int encoding, CString &target) const;
 
 	public:
 		CID3Tag();
@@ -334,7 +411,9 @@ class CID3Tag
 		CString GetAlbum() const;
 		CString GetTrack() const;
 		CString GetBPM() const;
-
+		int GetPicture(int type, CBinary &bin) const;
+		int SetPicture(int type, const CBinary &bin, const CString &MimeType);
+		void RemovePicture(int type);
 		~CID3Tag();
 };
 

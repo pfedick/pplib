@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: Sybase.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.18 $
+ * $Date: 2011/02/11 11:18:19 $
+ * $Id: Sybase.cpp,v 1.18 2011/02/11 11:18:19 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -74,10 +74,30 @@ namespace db {
  * Mit dieser Klasse kann eine Verbindung zu einer Sybase-Datenbank aufgebaut werden, um darüber
  * SQL-Queries durchzuführen.
  *
+ * \attention
+ * Eine Reihe von Funktionen in einem Result werden durch Sybase nicht unterstützt und daher
+ * von der Klasse emuliert. Dazu wird das komplette Result-Set in den Hauptspeicher geladen.
+ * Dies kann bei Selects mit vielen Ergebniszeilen sehr langsam sein und eine
+ * große Menge an Speicher kosten.
+ * \par
+ * Folgende Funktionen sind davon betroffen und sollten nicht verwendet werden:
+ * - db::Result::Rows
+ * - db::Result::Get
+ * - db::Result::FetchArray mit Angabe einer Zeilennummer
+ * - db::Result::FetchFields mit Angabe einer Zeilennummer
+ * - db::Result::Seek
+ *
  * \example
  * \dontinclude db_examples.cpp
  * \skip DB_Sybase_Example1
  * \until EOF
+ * \par
+ * Liefert ein Select eine große Ergebnismenge, sollte man auf den Aufruf von db::Result::Rows verzichten und stattdessen
+ * durch das Ergebnis durchiterieren:
+ * \dontinclude db_examples.cpp
+ * \skip DB_Sybase_Example2
+ * \until EOF
+ *
  */
 
 
@@ -92,6 +112,7 @@ static CMutex refmutex;
 static int maxconnects=0;
 static CString default_locale;
 static CString default_dateformat;
+static size_t resultBufferGrowSize=2048;
 #endif
 
 
@@ -224,6 +245,566 @@ CS_RETCODE csmsg_callback(CS_CONTEXT *cp, CS_CLIENTMSG *msgp)
 }
 
 
+class SybaseResult : public ppl6::db::Result
+{
+	friend class Sybase;
+	private:
+		pplint64	num_rows, num_affected, num_fields;
+		pplint64	current_row;
+		bool 		bRowsCounted;
+		CS_COMMAND	*cmd;
+		CLog		*Log;
+		CString		Query;
+		CMemMan		mem;
+		CArray		FieldNames;
+		CAssocArray	ResultSet;
+
+		// Der Speicher der nachfolgenden Variablen wird in CMemMan allokiert
+	    CS_INT *lengths;
+	    CS_SMALLINT *indicators;
+	    char **tmp_buffer;
+	    unsigned char *numerics;
+		int *ppl_type;
+	    CS_INT *types;
+	    CS_DATAFMT *datafmt;
+	    CS_RETCODE last_retcode;
+
+
+		int			FetchResultFields();
+		int			FetchResultSet();
+
+	public:
+		SybaseResult();
+		~SybaseResult();
+		virtual	void Clear();
+		virtual pplint64 Affected();
+		virtual int Fields();
+		virtual const char *FieldName(int field);
+		virtual Result::Type	FieldType(int field);
+		virtual int FieldNum(const char *fieldname);
+		virtual Result::Type	FieldType(const char *fieldname);
+		virtual int		Seek(pplint64 row);
+		virtual CAssocArray  FetchArray(pplint64 row=-1);
+		virtual int		FetchArray(CAssocArray &array, pplint64 row=-1);
+		virtual pplint64 Rows();
+		virtual CArray  FetchFields(pplint64 row=-1);
+		virtual int		FetchFields(CArray &array, pplint64 row=-1);
+		virtual const char *Get(pplint64 row, const char *fieldname);
+		virtual const char *Get(pplint64 row, int field);
+
+		/*
+		virtual void    PrintResult();
+		*/
+};
+
+SybaseResult::SybaseResult()
+{
+	bRowsCounted=false;
+	num_rows=0;
+	num_affected=0;
+	num_fields=0;
+	cmd=NULL;
+	Log=NULL;
+	lengths=NULL;
+	indicators=NULL;
+	numerics=NULL;
+	tmp_buffer=NULL;
+	ppl_type=NULL;
+	types=NULL;
+	datafmt=NULL;
+	last_retcode=0;
+	current_row=0;
+}
+
+SybaseResult::~SybaseResult()
+{
+	Clear();
+}
+
+void SybaseResult::Clear()
+{
+	bRowsCounted=false;
+	num_rows=0;
+	num_affected=0;
+	num_fields=0;
+	Log=NULL;
+	if (cmd) {
+		CS_RETCODE retcode;
+		CS_INT restype;
+
+		//ct_cancel(NULL, cmd, CS_CANCEL_CURRENT);
+		ct_cancel(NULL, cmd, CS_CANCEL_ALL);
+		while ((retcode = ct_results(cmd, &restype))==CS_SUCCEED) {
+			ct_cancel(NULL, cmd, CS_CANCEL_ALL);
+		}
+		cmd=NULL;
+	}
+	mem.Clear();
+	lengths=NULL;
+	indicators=NULL;
+	numerics=NULL;
+	tmp_buffer=NULL;
+	ppl_type=NULL;
+	types=NULL;
+	datafmt=NULL;
+	last_retcode=0;
+	FieldNames.Clear();
+	ResultSet.Clear();
+	current_row=0;
+}
+
+
+
+int SybaseResult::FetchResultFields()
+{
+#ifndef HAVE_SYBASE
+	SetError(511,"Sybase");
+	return 0;
+#else
+	CS_INT fields;
+	//CS_INT retcode;
+	if (Log) Log->Printf(LOG::DEBUG,5,"ppl6::db::SybaseResult","FetchFields",__FILE__,__LINE__,"Query=%s)",(const char*)Query);
+	if (ct_res_info(cmd, CS_NUMDATA, &fields, CS_UNUSED, NULL)!=CS_SUCCEED) {
+		return 0;
+	}
+	num_fields=fields;
+
+	tmp_buffer = (char **) mem.Calloc(num_fields,sizeof(char *));
+	datafmt = (CS_DATAFMT *) mem.Calloc(num_fields,sizeof(CS_DATAFMT));
+	ppl_type = (int *) mem.Calloc(num_fields,sizeof(int));
+	lengths = (CS_INT *) mem.Calloc(num_fields,sizeof(CS_INT));
+	indicators = (CS_SMALLINT *) mem.Calloc(num_fields,sizeof(CS_INT));
+	numerics = (unsigned char *) mem.Calloc(num_fields,sizeof(unsigned char));
+
+	for (int i=0; i<num_fields; i++) {
+		ct_describe(cmd, i+1, &datafmt[i]);
+		ppl_type[i]=ppl6::db::Result::Unknown;
+		switch (datafmt[i].datatype) {
+			case CS_CHAR_TYPE:
+			case CS_VARCHAR_TYPE:
+			case CS_TEXT_TYPE:
+			case CS_IMAGE_TYPE:
+				datafmt[i].maxlength++;
+				ppl_type[i]=ppl6::db::Result::String;
+				//result->numerics[i] = 0;
+				break;
+			case CS_BINARY_TYPE:
+	            case CS_VARBINARY_TYPE:
+	                datafmt[i].maxlength *= 2;
+	                datafmt[i].maxlength++;
+	                //result->numerics[i] = 0;
+					ppl_type[i]=ppl6::db::Result::Binary;
+	                break;
+	            case CS_BIT_TYPE:
+	            case CS_TINYINT_TYPE:
+	                datafmt[i].maxlength = 4;
+					ppl_type[i]=ppl6::db::Result::Integer;
+	                //result->numerics[i] = 1;
+	                break;
+	            case CS_SMALLINT_TYPE:
+	                datafmt[i].maxlength = 7;
+					ppl_type[i]=ppl6::db::Result::Integer;
+	                //result->numerics[i] = 1;
+	                break;
+	            case CS_INT_TYPE:
+	                datafmt[i].maxlength = 12;
+					ppl_type[i]=ppl6::db::Result::Integer;
+	                //result->numerics[i] = 1;
+	                break;
+	            case CS_REAL_TYPE:
+	            case CS_FLOAT_TYPE:
+	                datafmt[i].maxlength = 24;
+					ppl_type[i]=ppl6::db::Result::Decimal;
+	                //result->numerics[i] = 2;
+	                break;
+	            case CS_MONEY_TYPE:
+	            case CS_MONEY4_TYPE:
+	                datafmt[i].maxlength = 24;
+					ppl_type[i]=ppl6::db::Result::Decimal;
+	                //result->numerics[i] = 2;
+	                break;
+	            case CS_DATETIME_TYPE:
+	            case CS_DATETIME4_TYPE:
+	                datafmt[i].maxlength = 30;
+					ppl_type[i]=ppl6::db::Result::Integer;
+	                //result->numerics[i] = 0;
+	                break;
+	            case CS_NUMERIC_TYPE:
+	            case CS_DECIMAL_TYPE:
+	                datafmt[i].maxlength = datafmt[i].precision + 3;
+					ppl_type[i]=ppl6::db::Result::Decimal;
+	                /* numeric(10) vs numeric(10, 1) */
+	                //result->numerics[i] = (result->datafmt[i].scale == 0) ? 3 : 2;
+	                break;
+	            default:
+	                datafmt[i].maxlength++;
+					ppl_type[i]=ppl6::db::Result::String;
+	                //result->numerics[i] = 0;
+	                break;
+	        }
+			tmp_buffer[i] = (char *)mem.Calloc(1,datafmt[i].maxlength);
+	        datafmt[i].datatype = CS_CHAR_TYPE;
+	        datafmt[i].format = CS_FMT_NULLTERM;
+	        ct_bind(cmd, i+1, &datafmt[i], tmp_buffer[i], &lengths[i], &indicators[i]);
+			//sybres->SetFieldName(i,result->datafmt[i].name,result->datafmt[i].namelen,ppl6::db::Result::String);
+	        FieldNames.Set(i,datafmt[i].name,datafmt[i].namelen);
+
+			if (Log) Log->Printf(LOG::DEBUG,5,"ppl6::db::Sybase","FetchResult",__FILE__,__LINE__,"Field %i: Type: %i, Name: %s, Maxlength: %i",
+				i,ppl_type[i],FieldName(i),datafmt[i].maxlength);
+		}
+		return 1;
+#endif
+
+}
+
+pplint64 SybaseResult::Affected()
+{
+	return num_affected;
+}
+
+int SybaseResult::Fields()
+{
+	return num_fields;
+}
+
+const char *SybaseResult::FieldName(int field)
+{
+	if (field>=num_fields) {
+		SetError(183,"%i",field);
+		return NULL;
+	}
+	return FieldNames.Get(field);
+}
+
+ppl6::db::Result::Type SybaseResult::FieldType(int field)
+{
+	if (field>=num_fields) {
+		SetError(183,"%i",field);
+		return Error;
+	}
+	return (Type)ppl_type[field];
+}
+
+int SybaseResult::FieldNum(const char *fieldname)
+{
+	for (int i=0;i<num_fields;i++) {
+		if (strcmp(FieldNames.Get(i),fieldname)==0) return i;
+	}
+	SetError(183,"%s",fieldname);
+	return -1;
+}
+
+ppl6::db::Result::Type SybaseResult::FieldType(const char *fieldname)
+{
+	int field=FieldNum(fieldname);
+	if (field<0) return Result::Unknown;
+	return FieldType(field);
+}
+
+/*!\brief Internen Zeiger auf die gewünschte Ergebniszeile setzen
+ *
+ * Mit dieser Funktion wird der interne Datenzeiger auf die gewünschte Zeile \p row gesetzt,
+ * so dass diese beim nächsten Aufruf von Result::FetchArray zurückgeliefert wird.
+ *
+ * @param[in] row Die gewünschte Zeile
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ *
+ * \attention
+ * Sybase verfügt über keine Seek-Funktion. Daher wird das komplette Result-Set in
+ * den Speicher geladen um das Kommando dort ausführen zu können.
+ * Dies kann bei Selects mit vielen Ergebniszeilen sehr langsam sein und eine
+ * große Menge an Speicher kosten.
+ * \par
+ * Wenn möglich sollte der Aufruf dieser Funktion vermieden werden!
+ *
+ */
+int SybaseResult::Seek(pplint64 row)
+{
+	if (!bRowsCounted) {
+		if (!FetchResultSet()) return 0;
+	}
+	if (row>=0 && row<num_rows) {
+		current_row=row;
+		return 1;
+	}
+	SetError(362,"SybaseResult::Seek(row=%llu)",row);
+	return 0;
+}
+
+CAssocArray SybaseResult::FetchArray(pplint64 row)
+{
+	CAssocArray a;
+	FetchArray(a,row);
+	return a;
+}
+
+/*!\brief Anzahl Zeilen im Ergebnis
+ *
+ * Diese Funktion liefert die Anzahl Zeilen im Ergebnis des vorhergehenden Selects zurück.
+ * @return Anzahl Zeilen (rows). Im Fehlerfall wird -1 zurückgegeben.
+ *
+ * \attention
+ * Sybase verfügt über keine Funktion, mit der die Anzahl Zeilen im Ergebnis ermittelt werden
+ * können. Daher wird das komplette Result-Set in den Speicher geladen und so die Zeilen
+ * gezählt. Dies kann bei Selects mit vielen Ergebniszeilen sehr langsam sein und eine
+ * große Menge an Speicher kosten.
+ * \par
+ * Wenn möglich sollte der Aufruf dieser Funktion vermieden werden!
+ *
+ * \see
+ * Result::Fields gibt die Anzahl Spalten im Ergebnis zurück
+ */
+pplint64 SybaseResult::Rows()
+{
+	if (!bRowsCounted) {
+		if (!FetchResultSet()) return 0;
+	}
+	return ResultSet.Count();
+}
+
+int SybaseResult::FetchResultSet()
+{
+	ResultSet.Clear();
+	num_rows=0;
+	current_row=0;
+	bRowsCounted=false;
+	if (!cmd) {
+		ppl6::SetError(300,"SybaseResult::FetchArray");
+		return 0;
+	}
+
+	// Zeile holen
+	ppl6::CString Key;
+	CS_RETCODE retcode;
+	CS_INT restype;
+	while ((retcode = ct_results(cmd, &restype))==CS_SUCCEED) {
+		switch ((int) restype) {
+			case CS_COMPUTE_RESULT:
+			case CS_CURSOR_RESULT:
+			case CS_PARAM_RESULT:
+			case CS_ROW_RESULT:
+			case CS_STATUS_RESULT:
+				if (ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL)==CS_SUCCEED) {
+					ppl6::CAssocArray array;
+					for (int i=0; i<num_fields; i++) {
+						array.Set(FieldNames.Get(i),tmp_buffer[i],lengths[i]);
+					}
+					Key.Setf("%llu",num_rows);
+					ResultSet.Set(Key,array);
+					num_rows++;
+				}
+				break;
+			case CS_CMD_FAIL: {
+				CS_INT row_count;
+				if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
+					num_affected=(pplint64)row_count;
+				}
+				SetError(138,"SybaseResult::FetchArray");
+				return 0;
+			}
+			case CS_CMD_SUCCEED:
+			case CS_CMD_DONE: {
+				CS_INT row_count;
+				if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
+					num_affected=(pplint64)row_count;					}
+				bRowsCounted=true;
+			}
+			/* Fall through */
+			case CS_COMPUTEFMT_RESULT:
+			case CS_ROWFMT_RESULT:
+			case CS_DESCRIBE_RESULT:
+			case CS_MSG_RESULT:
+				return 1;
+				break;
+			default:
+				printf ("Ups, restype=%i\n",restype);
+		}
+	}
+	ppl6::SetError(300,"SybaseResult::FetchArray");
+	return 0;
+}
+
+int SybaseResult::FetchArray(CAssocArray &array, pplint64 row)
+{
+	array.Clear();
+	if (row>=0) {
+		if (!bRowsCounted) {
+			if (!FetchResultSet()) return 0;
+		}
+	}
+	if (ResultSet.Count()) {
+		CString Key;
+		if (row<0) row=current_row;
+		Key.Setf("%llu",row);
+		ppl6::CAssocArray *r=ResultSet.GetArray(Key);
+		if (!r) {
+			ppl6::SetError(300,"SybaseResult::FetchArray");
+			return 0;
+		}
+		array.Copy(r);
+		current_row=row+1;
+		return 1;
+	}
+	// Zeile holen
+	CS_RETCODE retcode;
+	CS_INT restype;
+	while ((retcode = ct_results(cmd, &restype))==CS_SUCCEED) {
+		switch ((int) restype) {
+			case CS_COMPUTE_RESULT:
+			case CS_CURSOR_RESULT:
+			case CS_PARAM_RESULT:
+			case CS_ROW_RESULT:
+			case CS_STATUS_RESULT:
+				if (ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL)==CS_SUCCEED) {
+					for (int i=0; i<num_fields; i++) {
+						array.Set(FieldNames.Get(i),tmp_buffer[i],lengths[i]);
+						//if (Log) Log->Printf(LOG::DEBUG,10,"ppl6::db::Sybase","FetchResult",__FILE__,__LINE__,"Row: %i, Feld %i, Length: %i: >>>%s<<<, UsedMem: %llu",
+						//		z,i,result->lengths[i],result->tmp_buffer[i],sybres->GetUsedMem());
+					}
+					return 1;
+				}
+				return 0;
+				break;
+			case CS_CMD_FAIL: {
+				CS_INT row_count;
+				if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
+					num_affected=(pplint64)row_count;
+				}
+				SetError(138,"SybaseResult::FetchArray");
+				return 0;
+			}
+            case CS_CMD_SUCCEED:
+            case CS_CMD_DONE: {
+					CS_INT row_count;
+					if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
+						num_affected=(pplint64)row_count;					}
+				}
+				/* Fall through */
+			case CS_COMPUTEFMT_RESULT:
+			case CS_ROWFMT_RESULT:
+			case CS_DESCRIBE_RESULT:
+			case CS_MSG_RESULT:
+				ppl6::SetError(300,"SybaseResult::FetchArray");
+				return 0;
+				break;
+			default:
+				printf ("Ups, restype=%i\n",restype);
+		}
+	}
+	ppl6::SetError(300,"SybaseResult::FetchArray");
+	return 0;
+}
+
+CArray SybaseResult::FetchFields(pplint64 row)
+{
+	CArray a;
+	FetchFields(a,row);
+	return a;
+}
+
+int SybaseResult::FetchFields(CArray &array, pplint64 row)
+{
+	array.Clear();
+	if (row>=0) {
+		if (!bRowsCounted) {
+			if (!FetchResultSet()) return 0;
+		}
+	}
+	if (ResultSet.Count()) {
+		CString Key;
+		if (row<0) row=current_row;
+		Key.Setf("%llu",row);
+		ppl6::CAssocArray *r=ResultSet.GetArray(Key);
+		if (!r) {
+			ppl6::SetError(300,"SybaseResult::FetchArray");
+			return 0;
+		}
+		for (int i=0; i<num_fields; i++) {
+			array.Set(i,r->Get(FieldNames.Get(i)));
+		}
+		current_row=row+1;
+		return 1;
+	}
+	// Zeile holen
+	CS_RETCODE retcode;
+	CS_INT restype;
+	while ((retcode = ct_results(cmd, &restype))==CS_SUCCEED) {
+		switch ((int) restype) {
+			case CS_COMPUTE_RESULT:
+			case CS_CURSOR_RESULT:
+			case CS_PARAM_RESULT:
+			case CS_ROW_RESULT:
+			case CS_STATUS_RESULT:
+				if (ct_fetch(cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL)==CS_SUCCEED) {
+					for (int i=0; i<num_fields; i++) {
+						array.Set(i,tmp_buffer[i],lengths[i]);
+						//if (Log) Log->Printf(LOG::DEBUG,10,"ppl6::db::Sybase","FetchResult",__FILE__,__LINE__,"Row: %i, Feld %i, Length: %i: >>>%s<<<, UsedMem: %llu",
+						//		z,i,result->lengths[i],result->tmp_buffer[i],sybres->GetUsedMem());
+					}
+					return 1;
+				}
+				return 0;
+				break;
+			case CS_CMD_FAIL: {
+				CS_INT row_count;
+				if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
+					num_affected=(pplint64)row_count;
+				}
+				SetError(138,"SybaseResult::FetchArray");
+				return 0;
+			}
+            case CS_CMD_SUCCEED:
+            case CS_CMD_DONE: {
+					CS_INT row_count;
+					if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
+						num_affected=(pplint64)row_count;					}
+				}
+				/* Fall through */
+			case CS_COMPUTEFMT_RESULT:
+			case CS_ROWFMT_RESULT:
+			case CS_DESCRIBE_RESULT:
+			case CS_MSG_RESULT:
+				ppl6::SetError(300,"SybaseResult::FetchArray");
+				return 0;
+				break;
+			default:
+				printf ("Ups, restype=%i\n",restype);
+		}
+	}
+	ppl6::SetError(300,"SybaseResult::FetchArray");
+	return 0;
+}
+
+const char *SybaseResult::Get(pplint64 row, const char *fieldname)
+{
+	if (!Seek(row)) return 0;
+	CString Key;
+	if (row<0) row=current_row;
+	Key.Setf("%llu",row);
+	ppl6::CAssocArray *r=ResultSet.GetArray(Key);
+	if (!r) {
+		ppl6::SetError(300,"SybaseResult::FetchArray");
+		return NULL;
+	}
+	return r->Get(fieldname);
+}
+
+const char *SybaseResult::Get(pplint64 row, int field)
+{
+	if (!Seek(row)) return 0;
+	CString Key;
+	if (row<0) row=current_row;
+	Key.Setf("%llu",row);
+	ppl6::CAssocArray *r=ResultSet.GetArray(Key);
+	if (!r) {
+		ppl6::SetError(300,"SybaseResult::FetchArray");
+		return NULL;
+	}
+	return r->Get(FieldName(field));
+}
+
+
+
 #endif
 
 Sybase::Sybase()
@@ -231,7 +812,9 @@ Sybase::Sybase()
 #ifdef HAVE_SYBASE
 	lastServerMsgNumber=0;
 	connected=false;
+	transactiondepth=0;
 	maxrows=0;
+	rows_affected=0;
 	conn=malloc(sizeof(SYBCONNECT));
 	if (!conn) {
 		SetError(2,"malloc conn");
@@ -303,17 +886,24 @@ Sybase::Sybase()
 			// Daher prüfen wir den erstmal Returncode nicht.
 			// TODO: Configure soll ein Define zur Erkennung von FreeTDS liefern, dann kann die
 			// Prüfung abhängig vom Flag erfolgen
-			ret=cs_locale(context,CS_SET,locale,CS_LC_ALL,(CS_VOID*)default_locale.GetPtr(),CS_NULLTERM,NULL);
-			/*
+
+			ret=cs_locale(context,CS_SET,locale,CS_SYB_LANG_CHARSET,(CS_VOID*)default_locale.GetPtr(),CS_NULLTERM,NULL);
+			//ret=cs_locale(context,CS_SET,locale,CS_SYB_LANG,(CS_VOID*)"german",CS_NULLTERM,NULL);
+
+			//ret=cs_locale(context,CS_SET,locale,CS_LC_ALL,(CS_VOID*)default_locale.GetPtr(),CS_NULLTERM,NULL);
+			//ret=cs_locale(context,CS_SET,locale,CS_SYB_CHARSET,(CS_VOID*)default_locale.GetPtr(),CS_NULLTERM,NULL);
+			//ret=cs_locale(context,CS_SET,locale,CS_SYB_LANG,(CS_VOID*)default_locale.GetPtr(),CS_NULLTERM,NULL);
+			//ret=cs_locale(context,CS_SET,locale,CS_SYB_CHARSET,(CS_VOID*)default_locale.GetPtr(),CS_NULLTERM,NULL);
+
 			if (ret!=CS_SUCCEED) {
 				cs_loc_drop(context,locale);
 				locale=NULL;
 				cs_ctx_drop(context);
 				refmutex.Unlock();
-				SetError(296,"cs_locale: %s",default_locale);
+				SetError(296,"cs_locale: %s",(const char*)default_locale);
 				return;
 			}
-			*/
+
 		}
 
 
@@ -474,7 +1064,7 @@ int Sybase::Connect(const CAssocArray &params)
 	const char *host=params.Get("host");
 	tmp=params.Get("port");
 	unsigned int port=0;
-	if (tmp) port=atoi(tmp);
+	if (tmp) port=ppl6::atoi(tmp);
 	const char *user=params.Get("user");
 	const char *password=params.Get("password");
 	const char *dbname=params.Get("dbname");
@@ -686,14 +1276,14 @@ int Sybase::Exec(const CString &query)
 	SetError(511,"Sybase");
 	return 0;
 #else
-	Result *res=Query(query);
+	db::Result *res=Query(query);
 	if (!res) return 0;
 	delete res;
 	return 1;
 #endif
 }
 
-Result *Sybase::Query(const CString &query)
+ppl6::db::Result *Sybase::Query(const CString &query)
 {
 #ifndef HAVE_SYBASE
 	SetError(511,"Sybase");
@@ -704,6 +1294,7 @@ Result *Sybase::Query(const CString &query)
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Query",__FILE__,__LINE__,"Sybase::Query(const char *query=%s)",(const char *)query);
 
 	mutex.Lock();
+	rows_affected=0;
 	SYBCONNECT *sc=(SYBCONNECT*)conn;
 	if (!sc->conn) {
 		mutex.Unlock();
@@ -713,14 +1304,34 @@ Result *Sybase::Query(const CString &query)
 	}
 	syberror="";
 	t_start=getmicrotime();
+	CS_RETCODE cs_ret;
 	if (ct_command(sc->cmd, CS_LANG_CMD, (CS_CHAR*)query.GetPtr(), CS_NULLTERM, CS_UNUSED)!=CS_SUCCEED) {
 		SetError(138,"ct_command: %s, syberror: %s",(const char*)query,(const char*)syberror);
 		mutex.Unlock();
 		if (Log) Log->LogError(4);
 		return NULL;
 	}
-	if (ct_send(sc->cmd)!=CS_SUCCEED) {
-		SetError(138,"ct_send: %s, syberror: %s",(const char*)query,(const char*)syberror);
+	cs_ret=ct_send(sc->cmd);
+	if (cs_ret!=CS_SUCCEED) {
+		ppl6::CString s;
+		switch (cs_ret) {
+			case CS_FAIL:
+				s="CS_FAIL";
+				break;
+			case CS_CANCELED:
+				s="CS_CANCELED";
+				break;
+			case CS_PENDING:
+				s="CS_PENDING";
+				break;
+			case CS_BUSY:
+				s="CS_BUSY";
+				break;
+			default:
+				s="unknown";
+				break;
+		}
+		SetError(138,"ct_send: %s, %s, syberror: %s",(const char*)query,(const char*)s, (const char*)syberror);
 		mutex.Unlock();
 		if (Log) Log->LogError(4);
 		return NULL;
@@ -729,20 +1340,28 @@ Result *Sybase::Query(const CString &query)
 	CS_RETCODE retcode;
 	CS_INT restype;
 	int status=0;
-	GenericResult *ret=new GenericResult;
+	SybaseResult *ret=new SybaseResult;
+	ret->Query=query;
+	ret->Log=Log;
+	ret->mem.SetDefaultGrow(resultBufferGrowSize);
 	while ((retcode = ct_results(sc->cmd, &restype))==CS_SUCCEED) {
 		switch ((int) restype) {
-			case CS_CMD_FAIL:
+			case CS_CMD_FAIL: {
+				CS_INT row_count;
+				if (ct_res_info(sc->cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
+					ret->num_affected = (pplint64)row_count;
+					rows_affected=ret->num_affected;
+				}
+			}
 			default:
                 status = PPLSYB_FAILURE;
-				ret=NULL;
                 break;
             case CS_CMD_SUCCEED:
             case CS_CMD_DONE: {
 					CS_INT row_count;
 					if (ct_res_info(sc->cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
-						affectedrows = (pplint64)row_count;
-						ret->SetAffectedRows((pplint64)row_count);
+						ret->num_affected = (pplint64)row_count;
+						rows_affected=ret->num_affected;
 					}
 				}
 				/* Fall through */
@@ -758,17 +1377,30 @@ Result *Sybase::Query(const CString &query)
 			case CS_PARAM_RESULT:
 			case CS_ROW_RESULT:
 			case CS_STATUS_RESULT:
+				ret->cmd=sc->cmd;
+				LogQuery(query,(float)(getmicrotime()-t_start));
+				UpdateLastUse();
+				mutex.Unlock();
+				if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Query",__FILE__,__LINE__,"Sybase::Query OK)");
+				ret->FetchResultFields();
+				return (ppl6::db::Result*) ret;
+
+				/*
 				if (!FetchResult(ret,query)) {
 					ct_cancel(NULL, sc->cmd, CS_CANCEL_ALL);
 				}
+				*/
 				status = PPLSYB_RESULTS;
 				break;
 		}
 
 		if (status==PPLSYB_FAILURE) {
-            ct_cancel(NULL, sc->cmd, CS_CANCEL_ALL);
 			SetError(138,"ct_results: %s, syberror: %s",(const char*)query,(const char*)syberror);
+			PushError();
+			delete ret;
+			ct_cancel(NULL, sc->cmd, CS_CANCEL_ALL);
 			mutex.Unlock();
+			PopError();
 			if (Log) Log->LogError(4);
 			return NULL;
         }
@@ -777,142 +1409,8 @@ Result *Sybase::Query(const CString &query)
 	UpdateLastUse();
 	mutex.Unlock();
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Query",__FILE__,__LINE__,"Sybase::Query OK)");
-	return (Result*) ret;
+	return (ppl6::db::Result*) ret;
 
-#endif
-}
-
-int Sybase::FetchResult(Result *res, const char *query)
-/*!\brief Interne Funktion zum Auslesen der Server-Antwort
- *
- */
-{
-#ifndef HAVE_SYBASE
-	SetError(511,"Sybase");
-	return 0;
-#else
-	if (!res) {
-		SetError(2);
-		return 0;
-	}
-	SYBCONNECT *sc=(SYBCONNECT*)conn;
-	GenericResult *sybres=(GenericResult *)res;
-	int num_fields;
-	CS_INT retcode;
-	CLog *Log=GetLogfile();
-	if (Log) Log->Printf(LOG::DEBUG,5,"ppl6::db::Sybase","FetchResult",__FILE__,__LINE__,"Sybase::FetchResult(Result *res, const char *query=%s)",query);
-	/* The following (if unbuffered) is more or less the equivalent of mysql_store_result().
-	 * fetch all rows from the server into the row buffer, thus:
-	 * 1)  Being able to fire up another query without explicitly reading all rows
-	 * 2)  Having numrows accessible
-	 */
-	if (ct_res_info(sc->cmd, CS_NUMDATA, &num_fields, CS_UNUSED, NULL)!=CS_SUCCEED) {
-		return 0;
-	}
-
-	sybase_result *result;
-	result = (sybase_result *) sybres->Malloc(sizeof(sybase_result));
-
-	sybres->SetNumFields(num_fields);
-	result->tmp_buffer = (char **) sybres->Calloc(sizeof(char *)*num_fields);
-	result->datafmt = (CS_DATAFMT *) sybres->Calloc(sizeof(CS_DATAFMT)*num_fields);
-	result->ppl_type = (int *) sybres->Calloc(sizeof(int)*num_fields);
-	result->lengths = (CS_INT *) sybres->Calloc(sizeof(CS_INT)*num_fields);
-	result->indicators = (CS_SMALLINT *) sybres->Calloc(sizeof(CS_INT)*num_fields);
-	result->numerics = (unsigned char *) sybres->Calloc(sizeof(unsigned char)*num_fields);
-
-	for (int i=0; i<num_fields; i++) {
-		ct_describe(sc->cmd, i+1, &result->datafmt[i]);
-		result->ppl_type[i]=Result::Unknown;
-        switch (result->datafmt[i].datatype) {
-            case CS_CHAR_TYPE:
-            case CS_VARCHAR_TYPE:
-            case CS_TEXT_TYPE:
-            case CS_IMAGE_TYPE:
-                result->datafmt[i].maxlength++;
-				result->ppl_type[i]=Result::String;
-                //result->numerics[i] = 0;
-                break;
-            case CS_BINARY_TYPE:
-            case CS_VARBINARY_TYPE:
-                result->datafmt[i].maxlength *= 2;
-                result->datafmt[i].maxlength++;
-                //result->numerics[i] = 0;
-				result->ppl_type[i]=Result::Binary;
-                break;
-            case CS_BIT_TYPE:
-            case CS_TINYINT_TYPE:
-                result->datafmt[i].maxlength = 4;
-				result->ppl_type[i]=Result::Integer;
-                //result->numerics[i] = 1;
-                break;
-            case CS_SMALLINT_TYPE:
-                result->datafmt[i].maxlength = 7;
-				result->ppl_type[i]=Result::Integer;
-                //result->numerics[i] = 1;
-                break;
-            case CS_INT_TYPE:
-                result->datafmt[i].maxlength = 12;
-				result->ppl_type[i]=Result::Integer;
-                //result->numerics[i] = 1;
-                break;
-            case CS_REAL_TYPE:
-            case CS_FLOAT_TYPE:
-                result->datafmt[i].maxlength = 24;
-				result->ppl_type[i]=Result::Decimal;
-                //result->numerics[i] = 2;
-                break;
-            case CS_MONEY_TYPE:
-            case CS_MONEY4_TYPE:
-                result->datafmt[i].maxlength = 24;
-				result->ppl_type[i]=Result::Decimal;
-                //result->numerics[i] = 2;
-                break;
-            case CS_DATETIME_TYPE:
-            case CS_DATETIME4_TYPE:
-                result->datafmt[i].maxlength = 30;
-				result->ppl_type[i]=Result::Integer;
-                //result->numerics[i] = 0;
-                break;
-            case CS_NUMERIC_TYPE:
-            case CS_DECIMAL_TYPE:
-                result->datafmt[i].maxlength = result->datafmt[i].precision + 3;
-				result->ppl_type[i]=Result::Decimal;
-                /* numeric(10) vs numeric(10, 1) */
-                //result->numerics[i] = (result->datafmt[i].scale == 0) ? 3 : 2;
-                break;
-            default:
-                result->datafmt[i].maxlength++;
-				result->ppl_type[i]=Result::String;
-                //result->numerics[i] = 0;
-                break;
-        }
-		result->tmp_buffer[i] = (char *)sybres->Malloc(result->datafmt[i].maxlength);
-        result->datafmt[i].datatype = CS_CHAR_TYPE;
-        result->datafmt[i].format = CS_FMT_NULLTERM;
-        ct_bind(sc->cmd, i+1, &result->datafmt[i], result->tmp_buffer[i], &result->lengths[i], &result->indicators[i]);
-		//res->SetFieldName(i,result->datafmt[i].name,result->datafmt[i].namelen,result->ppl_type[i]);
-		sybres->SetFieldName(i,result->datafmt[i].name,result->datafmt[i].namelen,Result::String);
-
-
-		if (Log) Log->Printf(LOG::DEBUG,5,"ppl6::db::Sybase","FetchResult",__FILE__,__LINE__,"Field %i: Type: %i, Name: %s, Maxlength: %i",
-			i,result->ppl_type[i],sybres->FieldName(i),result->datafmt[i].maxlength);
-	}
-
-	int z=0;
-	while ((retcode=ct_fetch(sc->cmd, CS_UNUSED, CS_UNUSED, CS_UNUSED, NULL))==CS_SUCCEED) {
-		sybres->NewRow();
-		for (int i=0; i<num_fields; i++) {
-			if (Log) Log->Printf(LOG::DEBUG,10,"ppl6::db::Sybase","FetchResult",__FILE__,__LINE__,"Feld %i, Length: %i: >>>%s<<<",i,result->lengths[i],result->tmp_buffer[i]);
-			sybres->StoreField(i,result->tmp_buffer[i],result->lengths[i]);
-		}
-		z++;
-		if (maxrows>0 && (ppldd)z>=maxrows) break;
-	}
-	sybres->SetAffectedRows(z);
-	sybres->BuildIndex();
-	if (Log) Log->Printf(LOG::DEBUG,5,"ppl6::db::Sybase","FetchResult",__FILE__,__LINE__,"Allocated Memory: %llu Bytes",sybres->GetUsedMem());
-	return 1;
 #endif
 }
 
@@ -980,7 +1478,7 @@ int Sybase::Escape(CString &str)
 		tmp++;
 	}
 	str=n;
-	return 0;
+	return 1;
 #endif
 }
 
@@ -990,7 +1488,11 @@ ppluint64 Sybase::GetInsertID()
 	SetError(511,"Sybase");
 	return 0;
 #else
-	return 0;
+	ppl6::db::Result *res=Query("select @@identity as id");
+	if (!res) return 0;
+	ppluint64 id=(ppluint64) ppl6::atoll(res->Get(0,"id"));
+	delete res;
+	return id;
 #endif
 }
 
@@ -1010,7 +1512,17 @@ int Sybase::StartTransaction()
 	SetError(511,"Sybase");
 	return 0;
 #else
-	if (Exec("BEGIN TRANSACTION")) return 1;
+	if (transactiondepth==0) {	// Neue Transaktion
+		if (Exec("BEGIN TRANSACTION")) {
+			transactiondepth++;
+			return 1;
+		}
+	} else {
+		if (Execf("SAVE TRANSACTION LEVEL%i",transactiondepth)) {
+			transactiondepth++;
+			return 1;
+		}
+	}
 	return 0;
 #endif
 }
@@ -1021,7 +1533,15 @@ int Sybase::EndTransaction()
 	SetError(511,"Sybase");
 	return 0;
 #else
-	if (Exec("COMMIT TRANSACTION")) return 1;
+	if (transactiondepth==1) {
+		if (Exec("COMMIT TRANSACTION")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		transactiondepth--;
+		return 1;
+	}
 	return 0;
 #endif
 }
@@ -1032,7 +1552,31 @@ int Sybase::CancelTransaction()
 	SetError(511,"Sybase");
 	return 0;
 #else
-	if (Exec("ROLLBACK TRANSACTION")) return 1;
+	if (transactiondepth==1) {
+		if (Exec("ROLLBACK TRANSACTION")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		if (Execf("ROLLBACK TRANSACTION LEVEL%i",transactiondepth-1)) {
+			transactiondepth--;
+			return 1;
+		}
+	}
+	return 0;
+#endif
+}
+
+int Sybase::CancelTransactionComplete()
+{
+#ifndef HAVE_SYBASE
+	SetError(511,"Sybase");
+	return 0;
+#else
+	if (Exec("ROLLBACK TRANSACTION")) {
+		transactiondepth=0;
+		return 1;
+	}
 	return 0;
 #endif
 }
@@ -1204,6 +1748,14 @@ int Sybase::SetLocale(const char *locale, const char *dateformat)
 	default_dateformat.Clear();
 	if (dateformat) default_dateformat=dateformat;
 	return 1;
+#endif
+}
+
+
+void Sybase::SetResultBufferGrowSize(size_t bytes)
+{
+#ifdef HAVE_SYBASE
+	resultBufferGrowSize=bytes;
 #endif
 }
 

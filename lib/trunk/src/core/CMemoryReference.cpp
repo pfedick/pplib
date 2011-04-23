@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CMemoryReference.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/11/23 21:25:23 $
+ * $Id: CMemoryReference.cpp,v 1.4 2010/11/23 21:25:23 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -315,8 +315,25 @@ CMemoryReference::operator CBinary() const
 unsigned char CMemoryReference::operator[](size_t pos) const
 {
 	if (ptr!=NULL && pos<s) return ((unsigned char*)ptr)[pos];
-	throw Exception::InvalidAddress();
+	throw Exception(559);
 }
 
+
+/*!\brief Speicherbereich als Hexwerte in einem String exportieren
+ *
+ * \desc
+ * Der referenzierte Speicherbereich wird als String mit Hexadezimalwerten
+ * exportiert, wobei jedes Byte als zwei Zeichen langer Hexadezimalwert
+ * dargestellt wird.
+ *
+ * @return String mit Hexadezimal-Werten
+ */
+CString CMemoryReference::toHex() const
+{
+	unsigned char *buff=(unsigned char*)ptr;
+	CString str;
+	for(size_t i=0;i<s;i++) str.Concatf("%02x",buff[i]);
+	return str;
+}
 
 }	// EOF namespace ppl6

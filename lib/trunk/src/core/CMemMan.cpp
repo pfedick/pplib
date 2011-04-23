@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CMemMan.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/10/27 14:19:13 $
+ * $Id: CMemMan.cpp,v 1.4 2010/10/27 14:19:13 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -114,7 +114,6 @@ CMemMan::~CMemMan()
 
 void CMemMan::Clear()
 {
-	mutex.Lock();
 	MEMMAN *d,*m=(MEMMAN*)first;
 	while (m) {
 		d=m;
@@ -125,14 +124,11 @@ void CMemMan::Clear()
 	size=0;
 	size_used=0;
 	size_free=0;
-	mutex.Unlock();
 }
 
 void CMemMan::SetDefaultGrow(ppluint32 bytes)
 {
-	mutex.Lock();
 	growth=bytes;
-	mutex.Unlock();
 }
 
 void *CMemMan::Malloc(ppldd size, bool clear)
@@ -141,10 +137,9 @@ void *CMemMan::Malloc(ppldd size, bool clear)
 	// size wird auf 16 Byte gerundet
 	size=(size+15)&(0xffffffff-15);
 	// Gibt es einen Speicherblock, der gro� genug ist?
-	mutex.Lock();
 	void *ret=NULL;
 	MEMSLOT *slot;
-	MEMMAN *block=(MEMMAN*)first;
+	MEMMAN *block=(MEMMAN*)last;
 	while (block) {
 		if (block->biggest_block>=size) {
 			// Wir haben einen, jetzt m�ssen wir die passende
@@ -154,13 +149,12 @@ void *CMemMan::Malloc(ppldd size, bool clear)
 				if (slot->size>=size) {
 					// Passende Stelle gefunden
 					ret=AllocateSlot(block,slot,size,clear);
-					mutex.Unlock();
 					return ret;
 				}
 				slot=slot->next;
 			}
 		}
-		block=block->next;
+		block=block->previous;
 	}
 	// Nix freies gefunden, wir allokieren neuen Speicher
 	ppluint32 bytes=growth;
@@ -198,7 +192,6 @@ void *CMemMan::Malloc(ppldd size, bool clear)
 	slot->block=block;
 	slot->crc=CRC(slot);
 	ret=AllocateSlot(block,slot,size,clear);
-	mutex.Unlock();
 	return ret;
 }
 
@@ -298,6 +291,11 @@ void *CMemMan::Calloc(ppldd size)
 	return Malloc(size,true);
 }
 
+void *CMemMan::Calloc(size_t nmemb, size_t size)
+{
+	return Malloc(nmemb*size,true);
+}
+
 char *CMemMan::Strdup(const char *str)
 {
 	if (!str) return NULL;
@@ -326,7 +324,6 @@ void CMemMan::Free(void *a)
 	if (!adr) return;
 	MEMSLOT *slot=(MEMSLOT*)(adr-sizeof_memslot);
 	MEMMAN *block=slot->block;
-	mutex.Lock();
 
 	// Handelt es sich um g�ltigen Speicherbereich?
 	try {
@@ -354,10 +351,8 @@ void CMemMan::Free(void *a)
 		}
 	}
 	catch (...) {
-		mutex.Unlock();
 		return;
 	}
-	mutex.Unlock();
 }
 
 ppluint64 CMemMan::GetFreeMem()

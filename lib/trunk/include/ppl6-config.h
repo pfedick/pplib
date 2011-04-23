@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *  
  * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/03/21 15:45:07 $
- * $Id: ppl6-config.h,v 1.3 2010/03/21 15:45:07 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/04/07 16:47:20 $
+ * $Id: ppl6-config.h,v 1.4 2010/04/07 16:47:20 pafe Exp $
  * 
  ******************************************************************************* 
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -158,8 +158,15 @@
 	#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
 	#include <windows.h>
 	#ifdef DeleteFile
-	#undef DeleteFile
+		#undef DeleteFile
 	#endif
+	#ifdef CopyFile
+		#undef CopyFile
+	#endif
+	#ifdef MoveFile
+		#undef MoveFile
+	#endif
+
 
 #endif
 

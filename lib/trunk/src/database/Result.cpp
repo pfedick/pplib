@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: Result.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/10/27 14:19:13 $
+ * $Id: Result.cpp,v 1.3 2010/10/27 14:19:13 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -176,10 +176,8 @@ int Result::Export(CAssocArray &array)
 {
 	array.Clear();
 	CAssocArray row;
-	pplint64 rows=Rows();
-	for (pplint64 r=0;r<rows;r++) {
-		if (FetchArray(row,r)) array.Set("[]",row);
-		else return 0;
+	while (FetchArray(row)) {
+		array.Set("[]",row);
 	}
 	return 1;
 }

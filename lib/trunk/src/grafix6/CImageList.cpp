@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: CImageList.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.3 $
+ * $Date: 2010/07/26 10:28:51 $
+ * $Id: CImageList.cpp,v 1.3 2010/07/26 10:28:51 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -68,27 +68,27 @@ CImageList::CImageList()
 
 CImageList::CImageList(const CImageList &other)
 {
-	if (!copy(other)) throw Exception::CopyFailed();
+	if (!copy(other)) throw Exception();
 }
 
 CImageList::CImageList(const CDrawable &draw, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(draw,icon_width,icon_height,method)) throw Exception::ImageLoadFailed();
+	if (!load(draw,icon_width,icon_height,method)) throw Exception();
 }
 
 CImageList::CImageList(const CString &Filename, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(Filename,icon_width,icon_height,method)) throw Exception::ImageLoadFailed();
+	if (!load(Filename,icon_width,icon_height,method)) throw Exception();
 }
 
 CImageList::CImageList(CFileObject &file, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(file,icon_width,icon_height,method)) throw Exception::ImageLoadFailed();
+	if (!load(file,icon_width,icon_height,method)) throw Exception();
 }
 
 CImageList::CImageList(const CMemoryReference &mem, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(mem,icon_width,icon_height,method)) throw Exception::ImageLoadFailed();
+	if (!load(mem,icon_width,icon_height,method)) throw Exception();
 }
 
 CImageList::~CImageList()
@@ -240,7 +240,7 @@ Color CImageList::diffuseColor() const
 
 CImageList &CImageList::operator=(const CImageList &other)
 {
-	if (!copy(other)) throw Exception::CopyFailed();
+	if (!copy(other)) throw Exception();
 	return *this;
 }
 

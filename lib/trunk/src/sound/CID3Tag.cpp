@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:56 $
- * $Id: CID3Tag.cpp,v 1.2 2010/02/12 19:43:56 pafe Exp $
+ * $Revision: 1.10 $
+ * $Date: 2010/10/10 05:24:36 $
+ * $Id: CID3Tag.cpp,v 1.10 2010/10/10 05:24:36 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -50,6 +50,9 @@
 
 #include "ppl6.h"
 #include "ppl6-sound.h"
+
+
+//#define ID3DEBUG
 
 namespace ppl6 {
 
@@ -478,7 +481,7 @@ int CID3Tag::Load(CFileObject *File)
 		return 0;
 	}
 	#ifdef ID3DEBUG
-		printf ("Lade File: %s\n",(char*)Filename);
+		printf ("Lade File: %s\n",(const char*)Filename);
 	#endif
 	if (strncmp(adr,"ID3",3)!=0) {
 		SetError(402,"Kein \"ID3\"-Header");
@@ -518,7 +521,9 @@ int CID3Tag::Load(CFileObject *File)
 	while (1) {
 		adr=File->Map(p,10);
 		if (!adr) break;
-		//HexDump(adr,10);
+#ifdef ID3DEBUG
+		HexDump((void*)adr,10);
+#endif
 		if (peek32(adr)==0) break;
 		Frame=new CID3Frame;
 		Frame->ID[0]=adr[0];
@@ -527,8 +532,11 @@ int CID3Tag::Load(CFileObject *File)
 		Frame->ID[3]=adr[3];
 		Frame->ID[4]=0;
 		Frame->Flags=PeekN16(adr+8);
-		//Frame->Size=peek8(adr+7)|(peek8(adr+6)<<7)|(peek8(adr+5)<<14)|(peek8(adr+4)<<21);
-		Frame->Size=peek8(adr+7)|(peek8(adr+6)<<7)|(peek8(adr+5)<<14)|(peek8(adr+4)<<21);
+		if (version==4) {
+			Frame->Size=peek8(adr+7)|(peek8(adr+6)<<7)|(peek8(adr+5)<<14)|(peek8(adr+4)<<21);
+		} else {
+			Frame->Size=peek8(adr+7)|(peek8(adr+6)<<8)|(peek8(adr+5)<<16)|(peek8(adr+4)<<24);
+		}
 		if (!Frame->Size) {
 			delete Frame;
 			break;
@@ -584,7 +592,7 @@ int CID3Tag::AddFrame(CID3Frame *Frame)
 
 		}
 
-		printf ("Adding Frame %s, %i Bytes: %s=%s\n",Frame->ID, Frame->Size, content, content2);
+		printf ("Adding Frame %s, %i Bytes, Flags: %i: %s=%s\n",Frame->ID, Frame->Size, Frame->Flags, content, content2);
 	#endif
 
 	return 1;
@@ -1431,6 +1439,103 @@ CString CID3Tag::GetBPM() const
 }
 
 
+int CID3Tag::GetPicture(int type, CBinary &bin) const
+{
+	CString name="APIC";
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(name.StrCmp(frame->ID)==0) {
+			// Wir haben ein Picture
+			ppl6::CString MimeType;
+			int encoding=Peek8(frame->data);
+			int offset=Decode(frame,1,encoding,MimeType);
+			if ((int)Peek8(frame->data+offset)==type) {
+				ppl6::CString Description;
+				offset=Decode(frame,offset+1,encoding,Description);
+				//printf ("Mimetype: >>>%s<<<, offset: %i\n",(const char*)MimeType,offset);
+				bin.Copy(frame->data+offset,frame->Size-offset);
+				return 1;
+			}
+			return 1;
+		}
+		frame=frame->nextFrame;
+	}
+	SetError(561);
+	return 0;
+}
+
+int CID3Tag::SetPicture(int type, const CBinary &bin, const CString &MimeType)
+{
+	bool exists=false;
+	CString name="APIC";
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(name.StrCmp(frame->ID)==0) {
+			// Wir haben ein Picture
+			ppl6::CString MimeType;
+			int encoding=Peek8(frame->data);
+			int offset=Decode(frame,1,encoding,MimeType);
+			if ((int)Peek8(frame->data+offset)==type) {
+				exists=true;
+				delete (frame->data);
+				frame->data=NULL;
+				frame->Size=0;
+				break;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	if (!frame) {
+		frame=new CID3Frame(name);
+		if (!frame) {
+			SetError(2);
+			return 0;
+		}
+	}
+	frame->Flags=0;
+	frame->data=(char*)malloc(bin.Size()+MimeType.Size()+4);
+	if (!frame->data) {
+		if (!exists) {
+			delete frame;
+			SetError(2);
+			return 0;
+		}
+	}
+	frame->Size=bin.Size()+MimeType.Size()+4;
+	Poke8(frame->data,0);
+	pokesz(frame->data+1,MimeType.GetPtr());
+	Poke8(frame->data+2+MimeType.Size(),type);
+	Poke8(frame->data+3+MimeType.Size(),0);
+	memcpy(frame->data+4+MimeType.Size(),bin.GetPtr(),bin.Size());
+
+	if (!exists) {
+		AddFrame(frame);
+	}
+	return 1;
+}
+
+void CID3Tag::RemovePicture(int type)
+{
+	CString name="APIC";
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(name.StrCmp(frame->ID)==0) {
+			// Wir haben ein Picture
+			ppl6::CString MimeType;
+			int encoding=Peek8(frame->data);
+			int offset=Decode(frame,1,encoding,MimeType);
+			if ((int)Peek8(frame->data+offset)==type) {
+				delete (frame->data);
+				frame->data=NULL;
+				frame->Size=0;
+				DeleteFrame(frame);
+				return;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+}
+
 /*!\brief Text eines Frames dekodieren und in einen String kopieren
  *
  * \desc
@@ -1453,9 +1558,9 @@ void CID3Tag::CopyAndDecodeText(CString &s, CID3Frame *frame, int offset) const
 }
 
 
-void CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target) const
+int CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target) const
 {
-	size_t size;
+	size_t size=0;
 	const char *data=frame->data+offset;
 	if (encoding==0) {
 		size=strlen(data);
@@ -1478,6 +1583,7 @@ void CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target
 		if (size+offset>frame->Size) size=frame->Size-offset;
 		target.TranscodeText(data,size,"ISO-8859-1","UTF-8");
 	}
+	return offset+size+1;
 }
 
 }	// EOF namespace ppl6

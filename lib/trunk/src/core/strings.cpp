@@ -3,9 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: strings.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Revision: 1.4 $
+ * $Date: 2010/11/23 21:25:23 $
+ * $Id: strings.cpp,v 1.4 2010/11/23 21:25:23 pafe Exp $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -76,6 +76,10 @@
 	#include <ctype.h>
 #endif
 
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN		// Keine MFCs
 	#include <time.h>
@@ -86,6 +90,10 @@
 	#include <direct.h>
 #endif
 
+#ifdef HAVE_PCRE
+#define PCRE_STATIC
+#include <pcre.h>
+#endif
 
 #include "ppl6.h"
 
@@ -252,6 +260,98 @@ CWString SubStr(const CWString &str, size_t start, size_t num)
 	return str.Mid(start,num);
 }
 
+CString Replace(const CString &string, const CString &search, const CString &replace)
+{
+	CString Tmp=string;
+	Tmp.Replace(search,replace);
+	return Tmp;
+}
+
+CString ToString(const char *fmt, ...)
+{
+	CString String;
+	va_list args;
+	va_start(args, fmt);
+	String.VaSprintf(fmt,args);
+	va_end(args);
+	return String;
+}
+
+
+
+int PregMatch(const CString &expression, const CString &subject)
+{
+	CArray matches;
+	return PregMatch(expression,subject,matches);
+}
+
+int PregMatch(const CString &expression, const CString &subject, CArray &matches)
+{
+#ifndef HAVE_PCRE
+	SetError(276);
+	return 0;
+#else
+	matches.Clear();
+	if (expression.IsEmpty()) return 0;
+	if (subject.IsEmpty()) return 0;
+	int ret=0;
+	char *r=strdup(expression.GetPtr()+1);
+	int flags=0;
+	// letzten Slash in regex finden
+	char *options=strrchr(r,'/');
+	if (options) {
+		options[0]=0;
+		options++;
+		if (strchr(options,'i')) flags|=PCRE_CASELESS;
+		if (strchr(options,'m')) flags|=PCRE_MULTILINE;
+		if (strchr(options,'x')) flags|=PCRE_EXTENDED;
+		if (strchr(options,'s')) flags|=PCRE_DOTALL;
+		if (strchr(options,'8')) flags|=PCRE_UTF8;
+		if (strchr(options,'a')) flags|=PCRE_ANCHORED;
+		if (strchr(options,'u')) flags|=PCRE_UNGREEDY;
+	}
+	// Wenn das System auf UTF-8 eingestellt ist, setzen wir das UTF8-Flag automatisch
+	if (instrcase(setlocale(LC_CTYPE,NULL),"UTF-8",0)>=0) flags|=PCRE_UTF8;
+	const char *perr;
+	const char *buffer=subject.GetPtr();
+	int len=subject.Len();
+	char *tmp;
+	int re,erroffset, ovector[32];
+	int perrorcode;
+	pcre *reg;
+	//printf ("r=%s, flags=%i\n",r,flags);
+	CString__PregMatch_Restart:
+	reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
+	if (reg) {
+		bzero(ovector,30*sizeof(int));
+		if ((re=pcre_exec(reg, NULL, buffer,len,0, 0, ovector, 30))>=0) {
+			ret=1;
+			for (int i=0;i<14;i++) {
+				tmp=NULL;
+				pcre_get_substring(buffer,ovector,30,i,(const char**)&tmp);
+				if (tmp) {
+					//printf("tmp[%i]=%s\n",i,tmp);
+					matches.Set(i,tmp);
+					pcre_free_substring(tmp);
+				}
+			}
+		} else if ((flags&PCRE_UTF8)==PCRE_UTF8 && (re==PCRE_ERROR_BADUTF8 || re==PCRE_ERROR_BADUTF8_OFFSET)) {
+			// Wir haben ungültiges UTF_8
+			//printf ("ungültiges UTF-8");
+			// Vielleicht matched es ohne UTF-8-Flag
+			flags-=PCRE_UTF8;
+			free(reg);
+			goto CString__PregMatch_Restart;
+		}
+		free(reg);
+	}
+	free(r);
+	return ret;
+#endif
+
+}
+
+
 
 /*
 ** Translation Table as described in RFC1113
@@ -390,6 +490,30 @@ CString EscapeHTMLTags(const ppl6::CString &html)
 	s.Replace("<","&lt;");
 	s.Replace(">","&gt;");
 	return s;
+}
+
+CBinary Hex2Binary(const CString &hex)
+{
+	CBinary b;
+	b.FromHex(hex);
+	return b;
+}
+
+CMemory Hex2Memory(const CString &hex)
+{
+	CMemory b;
+	b.fromHex(hex);
+	return b;
+}
+
+CString ToHex(const CBinary &bin)
+{
+	return bin.ToHex();
+}
+
+CString ToHex(const CMemoryReference &bin)
+{
+	return bin.toHex();
 }
 
 
