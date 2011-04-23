@@ -28,7 +28,7 @@ then
 				NASMFLAGS="-f win64"
 				NASMDEBUGFLAGS="-g"
 				;;
-			x86_64)
+			x86_64|amd64)
 				NASMFLAGS="-f elf64"
 				NASMDEBUGFLAGS="-g"
 				;;

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
  * Web: http://www.pfp.de/ppl/
  *  
- * $Author: patrick $
- * $Revision: 1.8 $
- * $Date: 2008/04/15 19:39:31 $
- * $Id: GrafixEngineDX9.h,v 1.8 2008/04/15 19:39:31 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:57 $
+ * $Id: GrafixEngineDX9.h,v 1.2 2010/02/12 19:43:57 pafe Exp $
  * 
  ******************************************************************************* 
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.19 $
- * $Date: 2009/10/06 10:50:09 $
- * $Id: CArray.cpp,v 1.19 2009/10/06 10:50:09 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: CArray.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,7 +93,6 @@ void CArray::Clear()
 		maxnum=0;
 		num=0;
 		pos=0;
-		Change();
 	}
 }
 
@@ -187,12 +186,11 @@ int CArray::Add(const CWString &value, int chars)
 	return Set(num,(const char*)s.GetPtr());
 }
 
-int CArray::Add(CArray &a)
+int CArray::Add(const CArray &a)
 {
-	a.Reset();
-	const char *value;
-	while ((value=a.GetNext())) {
-		if (!Set(num,value)) return 0;
+	ROW *r=(ROW*)a.rows;
+	for (ppluint32 i=0;i<a.num;i++) {
+		if (!Set(num,r[i].value)) return 0;
 	}
 	return 1;
 }
@@ -243,7 +241,6 @@ int CArray::Set(ppldd index, const char *value, int bytes)
 		SetError(2);
 		return 0;
 	}
-	Change();
 	return 1;
 }
 
@@ -410,7 +407,6 @@ const char *CArray::Shift()
 			else r[i].value=NULL;
 		}
 		num--;
-		Change();
 	}
 	return ret;
 }
@@ -443,7 +439,6 @@ const char *CArray::Pop()
 	char *ret=r[num-1].value;
 	r[num-1].value=NULL;
 	num--;
-	Change();
 	return ret;
 }
 

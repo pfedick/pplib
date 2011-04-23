@@ -1,14 +1,14 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
- *  
- * $Author: patrick $
- * $Revision: 1.10 $
- * $Date: 2009/01/05 16:46:06 $
- * $Id: Label.cpp,v 1.10 2009/01/05 16:46:06 patrick Exp $
- * 
- ******************************************************************************* 
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ *
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: Label.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ *
+ *******************************************************************************
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ using namespace ppl6::grafix;
 namespace ppl6 {
 namespace tk {
 
+#ifdef TODO
 /*!\class Label
  * \ingroup PPLGroupToolkit
  * \brief Ein Beschriftungselement
@@ -133,7 +134,7 @@ int Label::Paint()
 			s->Rect(0,0,w-1,h-1,c->frame.border_shadow);
 			break;
 
-		default:	
+		default:
 			if (Caption.Len()) {
 				DIMENSION d;
 				s->TextSize(&Font,&d,&Caption);
@@ -145,6 +146,6 @@ int Label::Paint()
 }
 
 
-
+#endif
 }	// EOF namespace tk
 }	// EOF namespace ppl6

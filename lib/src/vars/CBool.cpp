@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.9 $
- * $Date: 2009/06/11 10:24:07 $
- * $Id: CBool.cpp,v 1.9 2009/06/11 10:24:07 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: CBool.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -166,28 +166,24 @@ CBool& CBool::operator=(const char* str)
 	if (str) {
 		if(atoi(str)) value=true;
 	}
-	Change();
 	return *this;
 }
 
 CBool& CBool::operator=(const CString &str)
 {
 	value=(bool)(str);
-	Change();
 	return *this;
 }
 
 CBool& CBool::operator=(const int val)
 {
 	if (val) value=true; else value=false;
-	Change();
 	return *this;
 }
 
 CBool& CBool::operator=(const bool val)
 {
 	value=val;
-	Change();
 	return *this;
 }
 
@@ -195,14 +191,12 @@ CBool& CBool::operator=(const CInt &val)
 {
 	if ((int)val) value=true;
 	else value=false;
-	Change();
 	return *this;
 }
 
 CBool& CBool::operator=(const CBool &val)
 {
 	value=val.value;
-	Change();
 	return *this;
 }
 

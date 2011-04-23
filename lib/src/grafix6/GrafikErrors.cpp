@@ -1,14 +1,14 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
- *  
- * $Author: patrick $
- * $Revision: 1.10 $
- * $Date: 2009/12/12 18:53:08 $
- * $Id: GrafikErrors.cpp,v 1.10 2009/12/12 18:53:08 patrick Exp $
- * 
- ******************************************************************************* 
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ *
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: GrafikErrors.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ *
+ *******************************************************************************
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@ static const char * errors[] = {
         "ppl6::grafix: Surface konnte nicht entsperrt werden",						// 1010
         "ppl6::grafix: Surface konnte nicht rotiert werden (flip)",					// 1011
         "ppl6::grafix: Grafikoperation wird nicht unterstützt",						// 1012
-        "ppl6::grafix: Farbformat des Surface wird nicht unterstützt",				// 1013
+        "ppl6::grafix: Farbformat wird nicht unterstützt",							// 1013
         "ppl6::grafix: Grafikoperation fehlgeschlagen",								// 1014
         "ppl6::grafix: Quellsurface nicht angegeben",								// 1015
         "ppl6::grafix: Blitting liegt ausserhalb des Clipping-Bereichs",			// 1016
@@ -122,8 +122,16 @@ static const char * errors[] = {
 		"ppl6::grafix: Ungültiger Grafik-Adapter",									// 1064
 		"ppl6::grafix: Unbekanntes Farbformat",										// 1065
 		"ppl6::grafix: Grafik-Modus ist ungültig oder steht nicht zur Verfügung",	// 1066
-		"ppl6::grafix: Ungültige Bitmap-Größe",										// 1067
-		
+		"ppl6::grafix: Quellgrafik ist ungültig",									// 1067
+		"ppl6::grafix: Keine GFXEngine angegeben",									// 1068
+		"ppl6::grafix: Grafik enthält keine Daten",									// 1069
+		"ppl6::grafix: Koordinaten sind ausserhalb des Zeichenbereichs",			// 1070
+		"ppl6::grafix: Keine Grafik-Engine verfügbar",								// 1071
+		"ppl6::grafix: Surface/Widget ist nicht mit einer GFXEngine verbunden",		// 1072
+		"ppl6::grafix: Surface/Widget wurde nicht mit dieser GFXEngine erstellt",	// 1073
+		"ppl6::grafix: Ungültiges Surface, keine Engine-spezifischen Daten",		// 1074
+		"ppl6::grafix: Unbekannter Surface-Type",									// 1075
+		"ppl6::grafik: Ungültige Breite oder Höhe der Grafik",						// 1076
 		"unknown"											//
 };
 

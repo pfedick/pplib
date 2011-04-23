@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.43 $
- * $Date: 2009/12/22 10:33:34 $
- * $Id: CString.cpp,v 1.43 2009/12/22 10:33:34 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.4 $
+ * $Date: 2010/02/22 12:59:43 $
+ * $Id: CString.cpp,v 1.4 2010/02/22 12:59:43 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -276,7 +276,6 @@ void CString::ImportBuffer(char *buffer, size_t bytes)
 	buffer[bytes-1]=0;
 	buffersize=bytes;
 	ReCalcLen();
-	Change();
 }
 
 
@@ -339,7 +338,6 @@ void CString::Set(const char *text, int bytes)
 {
 	if (!text) {
 		Clear();
-		Change();
 		return;
 	}
 	int l;
@@ -349,7 +347,6 @@ void CString::Set(const char *text, int bytes)
 		strncpy(buffer,text,l);
 		len=l;
 		buffer[len]=0;
-		Change();
 		return;
 	}
 	if (buffer) free(buffer);
@@ -369,7 +366,6 @@ void CString::Set(const char *text, int bytes)
 		len=l;
 		buffer[len]=0;
 	}
-	Change();
 }
 
 void CString::Set(const wchar_t *text, int bytes)
@@ -389,7 +385,6 @@ void CString::Set(const wchar_t *text, int bytes)
 {
 	if (!text) {
 		Clear();
-		Change();
 		return;
 	}
 	CWString w;
@@ -412,7 +407,6 @@ void CString::Set(const CString *str, int bytes)
 {
 	if (!str) {
 		Clear();
-		Change();
 		return;
 	}
 	Set((const char*)str->GetPtr(), bytes);
@@ -432,7 +426,6 @@ void CString::Set(const CString &str, int bytes)
  */{
 	if (str.IsEmpty()) {
 		Clear();
-		Change();
 		return;
 	}
 	Set((const char*)str.GetPtr(), bytes);
@@ -453,7 +446,6 @@ void CString::Set(const CWString &str, int bytes)
 {
 	if (str.IsEmpty()) {
 		Clear();
-		Change();
 		return;
 	}
 	CWString s;
@@ -592,7 +584,6 @@ void CString::Clear()
 	matches=NULL;
 	buffer=NULL;
 	buffersize=len=0;
-	Change();
 }
 
 /*!
@@ -791,7 +782,6 @@ void CString::Concat(const char *text, int bytes)
 		strncat(buffer,text,l);
 		len+=l;
 		buffer[len]=0;
-		Change();
 		return;
 	}
 	char *t=(char*)realloc(buffer,len+l+4);
@@ -806,7 +796,6 @@ void CString::Concat(const char *text, int bytes)
 	strncat(buffer,text,l);
 	len+=l;
 	buffer[len]=0;
-	Change();
 }
 
 //! \brief Fügt einen String an das Ende des vorhandenen an
@@ -947,9 +936,7 @@ void CString::Trim()
 			if (start>0)
 				memmove(buffer,buffer+start,ende-start+2);
 		}
-		size_t oldlen=len;
 		len=strlen(buffer);
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -972,9 +959,7 @@ void CString::Chomp()
 			if (start>0)
 				memmove(buffer,buffer+start,ende-start+2);
 		}
-		size_t oldlen=len;
 		len=strlen(buffer);
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -987,7 +972,6 @@ void CString::Chop(int chars)
 			if (len<c) c=len;
 			len-=c;
 			buffer[len]=0;
-			Change();
 		}
 	}
 }
@@ -1010,9 +994,7 @@ void CString::LTrim()
 			if (start>0)
 				memmove(buffer,buffer+start,len-start+2);
 		}
-		size_t oldlen=len;
 		len=strlen(buffer);
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1033,9 +1015,7 @@ void CString::RTrim()
 			}
 			buffer[ende+1]=0;
 		}
-		size_t oldlen=len;
 		len=strlen(buffer);
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1065,9 +1045,7 @@ void CString::LTrim(const char *str)
 			if (start>0)
 				memmove(buffer,buffer+start,len-start+2);
 		}
-		size_t oldlen=len;
 		len=strlen(buffer);
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1096,9 +1074,7 @@ void CString::RTrim(const char *str)
 			}
 			buffer[ende+1]=0;
 		}
-		size_t oldlen=len;
 		len=strlen(buffer);
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1183,7 +1159,7 @@ int CString::StrCmp(const char *str, int size) const
  * zurückgegeben, ist er identisch, wird 0 zurückgegeben, ist er größer, erfolgt ein positiver
  * Return-Wert.
  */
-int CString::StrCmp(CString &str, int size) const
+int CString::StrCmp(const CString &str, int size) const
 {
 	if (!buffer) return -2;
 	if (!str.len) return 2;
@@ -1210,7 +1186,7 @@ int CString::StrCaseCmp(const char *str, int size) const
  * zurückgegeben, ist er identisch, wird 0 zurückgegeben, ist er größer, erfolgt ein positiver
  * Return-Wert.
  */
-int CString::StrCaseCmp(CString &str, int size) const
+int CString::StrCaseCmp(const CString &str, int size) const
 {
 	if (!buffer) return -2;
 	if (!str.len) return 2;
@@ -1318,7 +1294,19 @@ CString CString::Right(ppluint32 len) const
 	return ms;
 }
 
-// \brief erstellt einen neuen String ab der Position \start mit \a len Zeichen
+/*!\brief String-Ausschnitt
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Ausschnitt des vorhandenen Strings ab der Position \p start mit einer Länge von
+ * \p len Bytes (nicht Zeichen!) in einen neuen String kopiert und zurückgegeben.
+ *
+ * @param start Startposition innerhalb des Strings
+ * @param len Optionale Angabe der Länge. Wird der Parameter nicht angegeben, wird der String ab der Startposition \p start
+ * bis zum Ende kopiert
+ * @return Neuer String, der den gewünschten Ausschnitt enthält. Ist \p start größer als
+ * der vorhandene String, wird ein leerer String zurückgegeben. Ist \p start + \p len größer als
+ * der vorhandene String, wird nur der Teil ab \p start bis zum Ende zurückgegeben.
+ */
 CString CString::Mid(ppluint32 start, ppluint32 len) const
 {
 	CString ms;
@@ -1335,6 +1323,19 @@ CString CString::Mid(ppluint32 start, ppluint32 len) const
 	return ms;
 }
 
+/*!\brief String-Ausschnitt
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Ausschnitt des vorhandenen Strings ab der Position \p start mit einer Länge von
+ * \p len Bytes (nicht Zeichen!) in einen neuen String kopiert und zurückgegeben.
+ *
+ * @param start Startposition innerhalb des Strings
+ * @param len Optionale Angabe der Länge. Wird der Parameter nicht angegeben, wird der String ab der Startposition \p start
+ * bis zum Ende kopiert
+ * @return Neuer String, der den gewünschten Ausschnitt enthält. Ist \p start größer als
+ * der vorhandene String, wird ein leerer String zurückgegeben. Ist \p start + \p len größer als
+ * der vorhandene String, wird nur der Teil ab \p start bis zum Ende zurückgegeben.
+ */
 CString CString::SubStr(ppluint32 start, ppluint32 len) const
 {
 	CString ms;
@@ -1682,7 +1683,7 @@ void CString::TrimR(ppluint32 chars)
 	buffer[len]=0;
 }
 
-int CString::Instr(CString &str, int pos) const
+int CString::Instr(const CString &str, int pos) const
 {
 	if (!str.buffer) return -1;
 	return instr(buffer,str.buffer,pos);
@@ -1693,6 +1694,11 @@ int CString::Instr(const char *str, int pos) const
 	return instr(buffer,str,pos);
 }
 
+int CString::InstrCase(const CString &str, int pos) const
+{
+	if (!str.buffer) return -1;
+	return instrcase(buffer,str.buffer,pos);
+}
 
 /*!
  * Liefert mit PregMatch gefundene Ergebnisse zurück

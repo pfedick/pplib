@@ -1,14 +1,14 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
- *  
- * $Author: patrick $
- * $Revision: 1.43 $
- * $Date: 2009/01/08 16:51:48 $
- * $Id: ppl6-tk.h,v 1.43 2009/01/08 16:51:48 patrick Exp $
- * 
- ******************************************************************************* 
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ *
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/02/24 07:58:06 $
+ * $Id: ppl6-tk.h,v 1.3 2010/02/24 07:58:06 pafe Exp $
+ *
+ *******************************************************************************
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,6 @@
 		#include "ppl6-grafix.h"
 	#else
 		#include <ppl6-grafix.h>
-		//#include <ppl6-tk.h>
 	#endif
 #endif
 
@@ -61,490 +60,285 @@
 namespace ppl6 {
 namespace tk {
 
-namespace SYSKEY {
-enum {
-	CONTROL_LEFT=		0x00000001,
-	CONTROL_RIGHT=		0x00000002,
-	CONTROL=			0x00000003,
-	SHIFT_LEFT=			0x00000004,
-	SHIFT_RIGHT=		0x00000008,
-	SHIFT=				0x0000000c,
-	ALT=				0x00000010,
-	ALTGR=				0x00000020,
-	LBUTTON=			0x00000040,
-	MBUTTON=			0x00000080,
-	RBUTTON=			0x00000100,
-	XBUTTON1=			0x00000200,
-	XBUTTON2=			0x00000400,
-	CAPSLOCK=			0x00001000,
-	INSERT=				0x00002000,
-	NUMLOCK=			0x00010000,
-};
-}
+using namespace ppl6::grafix;
 
-namespace EVENTTYPE {
-enum {
-	MOUSEMOTION=1,
-	MOUSEDOWN,
-	MOUSEUP,
-	MOUSEENTER,
-	MOUSELEAVE,
-	KEYDOWN,
-	KEYUP
-};
-}
-
-namespace ALIGNMENT {
-enum ALIGNMENT {
-	NONE=0,
-	LEFT=1,
-	RIGHT=2,
-	CENTER=3
-};
-}
-
-namespace KEY {
-enum KEY {
-	UNKNOWN=0,
-	Left,
-	Right,
-	Up,
-	Down,
-	Home,
-	End,
-	Insert,
-	Delete,
-	PageUp,
-	PageDown,
-	Backspace,
-	Esc,
-	Tab,
-	Print,
-	ScrollLock,
-	Pause,
-	F1,
-	F2,
-	F3,
-	F4,
-	F5,
-	F6,
-	F7,
-	F8,
-	F9,
-	F10,
-	F11,
-	F12,
-	ShiftLeft,
-	ShiftRight,
-	ControlLeft,
-	ControlRight,
-	Alt,
-	AltGr,
-	CapsLock,
-	NumLock,
-	Return,
-	Break
-};
-}
-
-namespace WIDGETSTYLE {
-	enum WIDGETSTYLE {
-		DEFAULT=0,
-		UPSET,
-		INSET,
-		SIMPLE,
-		BUTTON,
-		PPLWINDOW,
-		FLAT
-	};
-}
-
-typedef struct {
-	ppl6::grafix::COLOR background;
-	ppl6::grafix::COLOR border;
-	ppl6::grafix::COLOR caption;
-	ppl6::grafix::COLOR background_inactive;
-	ppl6::grafix::COLOR border_inactive;
-	ppl6::grafix::COLOR caption_inactive;
-	ppl6::grafix::COLOR text;
-} WINDOWCOLOR;
-
-typedef struct {
-	ppl6::grafix::COLOR caption;
-	ppl6::grafix::COLOR caption_background;
-	ppl6::grafix::COLOR background;
-	ppl6::grafix::COLOR border_light;
-	ppl6::grafix::COLOR border_shadow;
-} WIDGETCOLOR;
-
-typedef struct {
-	ppl6::grafix::COLOR background;
-	ppl6::grafix::COLOR caption;
-	ppl6::grafix::COLOR caption_inactive;
-	ppl6::grafix::COLOR background_inactive;
-	ppl6::grafix::COLOR border_light;
-	ppl6::grafix::COLOR border_shadow;
-} TABCOLOR;
-
-typedef struct {
-	WINDOWCOLOR window;
-	WIDGETCOLOR button;
-	WIDGETCOLOR	frame;
-	WIDGETCOLOR	panel;
-	WIDGETCOLOR	input;
-	TABCOLOR	tab;
-	ppl6::grafix::COLOR scrollbar_background;
-	ppl6::grafix::COLOR scrollbar_highlight;
-} COLORSTYLE;
-
-
-typedef struct tagEvent {
-	int type;
-	int syskey;
-	int ascii;
-	int x,y,buttons;
-} EVENT;
-
-
-
-class CEvent
+class Event
 {
-	private:
-		CEvent	*handler;
 	public:
-		CEvent();
-		virtual ~CEvent();
-		int SetEventHandler(CEvent *handler);
-		
-		virtual int AppActivate(CEvent *object);
-		virtual int AppInactivate(CEvent *object);
-		virtual int WindowCloseRequest(CEvent *object);
-		virtual int WindowClose(CEvent *object);
-		virtual int WindowResize(CEvent *object, int width, int height);
-		virtual int WindowMove(CEvent *object, int x, int y);
-		virtual int GotFocus(CEvent *object);
-		virtual int LostFocus(CEvent *object);
-		virtual int MouseEnter(CEvent *object);
-		virtual int MouseLeave(CEvent *object);
-		virtual int MouseMove(CEvent *object, int x, int y, int buttons);
-		virtual int MouseDown(CEvent *object, int x, int y, int buttons);
-		virtual int MouseUp(CEvent *object, int x, int y, int buttons);
-		virtual int MouseClick(CEvent *object, int x, int y, int buttons);
-		virtual int MouseDblClick(CEvent *object, int x, int y, int buttons);
-		virtual int MouseEvent(CEvent *object, int x, int y, int buttons);
-		virtual int KeyDown(CEvent *object, int unicode, int buttons, int keycode);
-		virtual int KeyUp(CEvent *object, int unicode, int buttons, int keycode);
-		virtual int Message(CEvent *object, ppl6::CAssocArray *msg);
+		enum Type {
+			Unknown=0,
+			MouseEnter,
+			MouseMove,
+			MouseLeave,
+			MouseDown,
+			MouseUp,
+			MouseDblClick,
+			MouseWheel,
+			KeyDown,
+			KeyUp,
+			Show,
+			Close,
+			Resize,
+			Move,
+			FocusIn,
+			FocusOut,
+		};
+	private:
+		Type t;
+		bool accepted;
+
+	public:
+		Event();
+		Event(Type t);
+		virtual ~Event();
+
+		Type type() const;
+		void ignore();
+		void accept();
+		bool isIgnored() const;
+		bool isAccepted() const;
+
+
 };
 
-typedef struct tagWIDGET
+class MouseEvent : public Event
 {
-	int x,y;
-	int width, height;
-} WIDGET;
-
-class CWidget : public CEvent, public CListItem, public CCallback
-{
-	friend class ppl6::grafix::CGrafix;
-	friend class CWindow;
-	friend class SubWindow;
 	private:
-		WIDGET	w;
-		RECT	client;
-		POINT	absolute;
-		CWidget *parent;
-		CWidget *lastevent;
-		CWidget	*moveevent;
-		int		movebuttons;
-		POINT	lastmovepoint;
-		COLORSTYLE	*colors;
-		
-		CList	childs;
-		//CGrafix	*widgetgfx;
-		ppl6::grafix::CSurface *surface, *ownsurface;
+	public:
+
+};
+
+
+class EventHandler
+{
+	private:
+		EventHandler *handler;
+	public:
+		EventHandler();
+		virtual ~EventHandler();
+		int setEventHandler(EventHandler *handler);
+
+		virtual void mouseMoveEvent(MouseEvent *event);
+		virtual void mouseDownEvent(MouseEvent *event);
+		virtual void mouseUpEvent(MouseEvent *event);
+		virtual void mouseDblClickEvent(MouseEvent *event);
+		//virtual void mouseClickEvent(MouseEvent *event);
+		virtual void mouseEnterEvent(MouseEvent *event);
+		virtual void mouseLeaveEvent(MouseEvent *event);
+};
+
+class Widget : public CListItem
+{
+	friend class Window;
+	public:
+			enum WindowFlags {
+			NoBorder					=	0x00000001,
+			Resizeable					=	0x00000002,
+			AllowDrop					=	0x00000004,
+			TopMost						=	0x00000008,
+			PositionDefault				=	0x00000010,
+			HasCaption					=	0x00000020,
+			Fullscreen					=	0x00000040,
+			MinimizeButton				=	0x00000080,
+			MaximizeButton				=	0x00000100,
+			SystemMenue					=	0x00000200,
+			Backbuffer					=	0x00010000,
+			TrippleBuffer				=	0x00020000,
+			Hardware					=	0x00040000,
+			Lockable					=	0x00080000,
+			VideoMemory					=	0x00100000,
+			WaitVsync					=	0x00200000,
+			ZBuffer						=	0x00400000,
+			StencilBuffer				=	0x00800000,
+			SoftwareVertexProcessing	=	0x01000000,
+			Multithreaded				=	0x02000000,
+			FPUPreserve					=	0x04000000,
+
+			DefaultWindow				=	Resizeable|AllowDrop|PositionDefault|HasCaption|MinimizeButton|MaximizeButton|SystemMenue|Hardware|Lockable|VideoMemory|WaitVsync
+		};
+
+	private:
+		Widget *parent;
+		void *engineprivate;
+		GFXEngine *gfxengine;
+		RGBFormat	format;
+		CString WindowTitle;
+		CImage WindowIcon;
+		CList childs;
+
+		Point p;
+		Size s;
+		WindowFlags windowflags;
+		bool visible;
+		bool enabled;
+		bool iswindow;
+		ppluint32 lockcount;
+		CDrawable draw;
+
 		bool	needsredraw;
 		bool	child_needsredraw;
-		bool	created;
-		
-		void ClientNeedsRedraw();
-		int Redraw();
+		bool	topMost;
 
-		void StartMove(CWidget *w, int buttons);
-		
-	public:
-		int			CID;
-		CString		Name;
-		CBool		Enabled;
-		CBool		Visible;
-		CBool		TopMost;
-		CInt		Flags;
-		CInt		RGBFormat;
-		
-		ppl6::grafix::CGrafix		*gfx;
-		
-		CWidget();
-		virtual ~CWidget();
-		//int InitGrafix(CGrafix *g);
-		void PaintChilds();
-		void PaintNormalChilds();
-		void PaintTopMostChilds();
-		int AddChild(CWidget *w);
-		CWidget* GetFirstChild();
-		CWidget* GetNextChild();
-		
-		int DispatchMouseEvent(EVENT *e);
-		int DispatchKeyEvent(int event, int unicode, int buttons, int keycode);
-		
-		int RedrawIfNeeded();
-		
-		void NeedRedraw();
-		
-		int SetPosition (int x, int y);
-		int SetSize(int width, int height);
-		int Create(int x, int y, int width, int height);
-		virtual int CreateOwnSurface();
-		int CreateOwnSurface(int flags, int rgbformat);
-		ppl6::grafix::CSurface *GetSurface();
-		ppl6::grafix::CSurface *GetParentSurface();
-		COLORSTYLE	*GetColors();
-		int X();
-		int Y();
-		int Width();
-		int Height();
-		int ClientX();
-		int ClientY();
-		int ClientWidth();
-		int ClientHeight();
-		virtual int Paint();
-		virtual void Callback(void *data);
-		
-		void GetClientRect(RECT *r);
-		void GetObjectRect(RECT *r);
-		void SetClientRect(int left, int top, int right, int bottom);
-		void ToTop(CWidget *widget=NULL);
-		void SetKeyFocus();
-		void ReleaseKeyFocus();
-		int HaveKeyFocus();
-
-		void PrintStatus(int ebene);
-		int SendMessageToSiblings(ppl6::CAssocArray *msg);
-		int SendMessageToChilds(ppl6::CAssocArray *msg);
-		int SendMessage(CWidget *target, ppl6::CAssocArray *msg);
-		int SendMessage(unsigned int msg, void *param1, void *param2);
-		void SetModal();
-		int CheckModal();
-};
-
-class Button;
-class Label;
-class Input;
-class Frame;
-class CheckBox;
-class RadioButton;
-class SubWindow;
-
-class CWindow : public CWidget
-{
-	friend class SubWindow;
-	private:
-		EVENT lastevent;
-		COLORSTYLE	defaultcolors;
-		POINT captionend;
-		Button *close_button;
+		void clientNeedsRedraw();
+		int redraw();
 
 	public:
-		CInt	Style;
-		CBool	Transparent;
-		bool	ExternalGraphicThread;
-		CWString Caption;
-		ppl6::grafix::CFont		Font;
-		ppl6::grafix::CImage	IconSmall;
-		
-		CWindow();
-		virtual ~CWindow();
-		
-		void InitColors();
-		virtual int	CreateOwnSurface();
-		virtual int Load();
-		virtual void Callback(void *data);
-		virtual int Paint();
-		virtual int MouseClick(CEvent *object, int x, int y, int buttons);
-		
+		Widget(Widget *parent=NULL);
+		virtual ~Widget();
+		WindowFlags windowFlags() const;
+		void setWindowFlags(WindowFlags f);
+
+		Point pos() const;
+		Size size() const;
+		int width() const;
+		int height() const;
+		int x() const;
+		int y() const;
+		bool isVisible() const;
+		bool isEnabled() const;
+		Widget *parentWidget() const;
+		Widget *window() const;
+		Rect clientRect() const;
+		CDrawable drawable() const;
+		void *enginePrivate() const;
+		void setEnginePrivate(void *ptr);
+		GFXEngine *gfxEngine() const;
+		void setGfxEngine(GFXEngine *engine);
+		RGBFormat rgbFormat() const;
+		void setRGBFormat(const RGBFormat &format);
+
+		CString windowTitle() const;
+		void setWindowTitle(const CString &title);
+		CImage windowIcon() const;
+		void setWindowIcon(const CDrawable &icon);
+
+		void setX(int x);
+		void setY(int y);
+		void setPos(int x, int y);
+		void setPos(const Point &p);
+		void setWidth(int width);
+		void setHeight(int height);
+		void setSize(int width, int height);
+		void setSize(const Size &s);
+
+		int beginScene();
+		int endScene();
+		int blt(const CSurface &source, const Rect &srect=Rect(), int x=0, int y=0);
+		int bltAlpha(const CSurface &source, const Rect &srect=Rect(), int x=0, int y=0);
+		//int beginSprites();
+		//int drawSprite(CSurface &source, const Rect &srect=Rect(), int x=0, int y=0, Color=0xffffffff);
+		//int endSprites();
+
+
+		CDrawable getDrawable();
+		void releaseDrawable(const CDrawable &draw);
+
+		int addChild(Widget *w);
+		Widget* getFirstChild();
+		Widget* getNextChild();
+		void toTop(Widget *widget=NULL);
+		void paintChilds();
+		void paintNormalChilds();
+		void paintTopMostChilds();
+		int redrawIfNeeded();
+		void needRedraw();
+
+
+
+		virtual int paint();
+
 };
 
-class SubWindow : public CWindow
+class Window : public Widget
 {
 	private:
-		
+
 	public:
-		SubWindow();
-		virtual ~SubWindow();
-		int CreateOwnSurface();
-		virtual void Callback(void *data);
-		virtual int MouseDown(CEvent *object, int x, int y, int buttons);
-		//virtual int Paint();
+	private:
+
+
+	public:
+		Window(Widget *parent=NULL, WindowFlags flags=(WindowFlags)(Window::DefaultWindow));
+		virtual ~Window();
+		bool show();
+		bool close();
+
 };
 
+#ifdef TRANSPARENT
+#undef TRANSPARENT
+#endif
 
-class Frame : public CWidget
+class Frame : public Widget
 {
 	public:
-		Frame();
+		enum Framestyle {
+			UPSET,
+			INSET,
+			FLAT,
+			TRANSPARENT
+		};
+
+	private:
+		CWString	Text;
+		CFont		Font;
+		Color		foreground, background;
+		int	Style;
+
+
+	public:
+		Frame(Widget *parent=NULL, Framestyle style=UPSET);
 		virtual ~Frame();
-		CWString Caption;
-		CInt	Style;
-		ppl6::grafix::CFont	Font;
-		CBool	Transparent;
-		virtual int Paint();
-		virtual void Callback(void *data);
+		CString text() const;
+		void setText(const CString &text);
+		Framestyle style() const;
+		void setFramestyle(Framestyle style);
+		Color color() const;
+		void setColor(const Color &c);
+		Color backgroundColor() const;
+		void setBackgroundColor(const Color &c);
+		CFont font() const;
+		void setFont(const CFont &font);
+
+		virtual int paint();
+
 };
 
-class Area : public CWidget
+class Button : public Widget
 {
 	public:
-		CBool	ShowBorder;
-		ppl6::grafix::COLOR	Color;
+		enum Buttonstyle {
+			DEFAULT,
+			FLAT,
+			TRANSPARENT
+		};
 
-		Area();
-		virtual ~Area();
-		virtual int Paint();
-		virtual void Callback(void *data);
-};
-
-
-class Label : public CWidget
-{
-	public:
-		Label();
-		virtual ~Label();
-		CWString Caption;
-		CInt	Style;
-		ppl6::grafix::CFont	Font;
-		CBool	Transparent;
-	virtual int Paint();
-	virtual void Callback(void *data);
-};
-	
-	class Button : public CWidget
-	{
-		private:
-			bool pressed;
-			
-		public:
-			Button();
-			virtual ~Button();
-			virtual void Callback(void *data);
-			virtual int Paint();
-			virtual int MouseDown(CEvent *object, int x, int y, int buttons);
-			virtual int MouseUp(CEvent *object, int x, int y, int buttons);
-			virtual int MouseLeave(CEvent *object);
-			
-			
-			ppl6::grafix::CFont	Font;
-			CWString Caption;
-			CInt	Align;
-			ppl6::grafix::CImage	Image;	
-	};
-	
-	class Input : public CWidget
-	{
-		private:
-			ppl6::CCronjob cron;
-			int	cursor;
-			bool insertmode;
-			bool blink;
-
-		public:
-			Input();
-			virtual ~Input();
-			virtual int MouseDown(CEvent *object, int x, int y, int buttons);
-			virtual void Callback(void *data);
-			virtual int Paint();
-			virtual int KeyDown(CEvent *object, int unicode, int buttons, int keycode);
-			virtual int GotFocus(CEvent *object);
-			virtual int LostFocus(CEvent *object);
-			virtual int Message(CEvent *object, ppl6::CAssocArray *msg);
-
-			
-			ppl6::grafix::CFont	Font;
-			CWString Text;			
-			
-	};
-
-class RadioButton : public  CWidget
-{
 	private:
-	public:
-		RadioButton();
-		virtual ~RadioButton();
-		CBool	Checked;
-		ppl6::grafix::CFont	Font;
-		CWString Caption;			
+		CWString	Text;
+		CFont		Font;
+		Color		foreground, background;
+		int	Style;
 
-		virtual int Paint();
-		virtual int Message(CEvent *object, ppl6::CAssocArray *msg);
-		virtual void Callback(void *data);
-		virtual int MouseDown(CEvent *object, int x, int y, int buttons);
+
+	public:
+		Button(Widget *parent=NULL, Buttonstyle style=DEFAULT);
+		virtual ~Button();
+		CString text() const;
+		void setText(const CString &text);
+		Buttonstyle style() const;
+		void setButtonstyle(Buttonstyle style);
+		Color color() const;
+		void setColor(const Color &c);
+		Color backgroundColor() const;
+		void setBackgroundColor(const Color &c);
+		CFont font() const;
+		void setFont(const CFont &font);
+
+		virtual int paint();
 
 };
 
-class CheckBox : public  CWidget
-{
-	private:
-	public:
-		CheckBox();
-		virtual ~CheckBox();
-		CBool	Checked;
-		ppl6::grafix::CFont	Font;
-		CWString Caption;			
 
-		virtual int Paint();
-		virtual void Callback(void *data);
-		virtual int MouseDown(CEvent *object, int x, int y, int buttons);
-
-};
-
-class Picture : public CWidget
-{
-	public:
-		Picture();
-		virtual ~Picture();
-		ppl6::grafix::CImage	Image;
-		CInt	Style;
-		virtual int Paint();
-		virtual void Callback(void *data);
-};
-
-
-class TabItem : public CWidget
-{
-	public:
-		ppl6::grafix::CImage	Image;
-		ppl6::grafix::CFont	Font;
-		CWString Caption;
-
-		TabItem();
-		virtual ~TabItem();
-		virtual void Callback(void *data);
-};
-
-class Tab : public CWidget
-{
-	private:
-		int	activetab;
-
-	public:
-		Tab();
-		virtual ~Tab();
-		CInt	Style;
-		virtual void Callback(void *data);
-		int AddTab(TabItem *item);
-
-		virtual int Paint();
-		virtual int MouseDown(CEvent *object, int x, int y, int buttons);
-};
-
-	
 }	// EOF namespace tk
 }	// EOF namespace ppl6
 

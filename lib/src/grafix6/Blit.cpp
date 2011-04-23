@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.16 $
- * $Date: 2009/02/08 09:55:35 $
- * $Id: Blit.cpp,v 1.16 2009/02/08 09:55:35 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/02/20 13:25:20 $
+ * $Id: Blit.cpp,v 1.3 2010/02/20 13:25:20 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,7 @@
 #endif
 #include "ppl6.h"
 #include "ppl6-grafix.h"
+#include "grafix6.h"
 
 //#undef HAVE_NASM
 #ifdef HAVE_X86_ASSEMBLER
@@ -72,204 +73,168 @@ namespace ppl6 {
 namespace grafix {
 
 
-static int Blt_32 (struct tagSURFACE *target, struct tagSURFACE *source, RECT *srect, int x, int y)
+static void *adr(const DRAWABLE_DATA &data, int x, int y)
 {
-	if (!target->Lock(target)) return 0;
-	if (!source->Lock(source)) {
-		PushError();
-		target->Unlock(target);
-		PopError();
-		return 0;
+	if (x<data.width && y<data.height) return data.base8+(y*data.pitch)+(x*data.rgbformat.bitdepth()/8);
+	return NULL;
+}
+
+
+static int Blt_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y)
+{
+	/*
+	if (srect.width()==target.width && source.pitch==target.pitch) {
+		BLTDATA data;
+		data.src=(ppluint32*)adr(source,srect.left(),srect.top());
+		data.tgt=(ppluint32*)adr(target,x,y);
+		memcpy(data.tgt,data.src,source.pitch*srect.height());
+		return 1;
+
 	}
+	*/
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)(source->base8+srect->top*source->pitch8+srect->left*source->bytes_per_pixel);;
-	data.tgt=(ppluint32*)(target->base8+y*target->pitch8+x*target->bytes_per_pixel);
-	data.width=srect->right-srect->left;
-	data.height=srect->bottom-srect->top;
-	data.pitchsrc=source->pitch8;
-	data.pitchtgt=target->pitch8;
+	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
+	data.tgt=(ppluint32*)adr(target,x,y);
+	data.width=srect.width();
+	data.height=srect.height();
+	data.pitchsrc=source.pitch;
+	data.pitchtgt=target.pitch;
 	if (ASM_Blt32(&data)) {
-		source->Unlock(source);
-		target->Unlock(target);
 		return 1;
 	}
+	return 0;
 #endif
-	ppldb *q, *z;
-
-	q=source->base8+srect->top*source->pitch8+srect->left*source->bitdepth/8;
-	z=target->base8+y*target->pitch8+x*target->bitdepth/8;
-	int mywidth=srect->right-srect->left;
+	ppluint8 *q, *z;
+	q=(ppluint8 *)adr(source,srect.left(),srect.top());
+	z=(ppluint8 *)adr(target,x,y);
+	int mywidth=srect.width()*target.rgbformat.bytesPerPixel();
 	int yy;
-
-	mywidth=mywidth*target->bitdepth/8;
-	for (yy=srect->top;yy<srect->bottom;yy++) {
+	for (yy=0;yy<srect.height();yy++) {
 		memmove (z,q,mywidth);
-		q+=source->pitch8;
-		z+=target->pitch8;
+		q+=source.pitch;
+		z+=target.pitch;
 	}
-	source->Unlock(source);
-	target->Unlock(target);
 	return 1;
 }
 
-static int BltColorKey_32 (struct tagSURFACE *target, struct tagSURFACE *source, RECT *srect, int x, int y, COLOR c)
+static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y)
 {
-	if (!target->Lock(target)) return 0;
-	if (!source->Lock(source)) {
-		PushError();
-		target->Unlock(target);
-		PopError();
-		return 0;
-	}
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)(source->base8+srect->top*source->pitch8+srect->left*source->bytes_per_pixel);;
-	data.tgt=(ppluint32*)(target->base8+y*target->pitch8+x*target->bytes_per_pixel);
-	data.width=srect->right-srect->left;
-	data.height=srect->bottom-srect->top;
-	data.pitchsrc=source->pitch8;
-	data.pitchtgt=target->pitch8;
-	data.color=c;
-	if (ASM_BltColorKey32(&data)) {
-		source->Unlock(source);
-		target->Unlock(target);
-		return 1;
-	}
-#endif
-	ppluint32 *q, *z;
-	COLOR qc;
-	q=(ppluint32*)(source->base8+srect->top*source->pitch8+srect->left*source->bitdepth/8);
-	z=(ppluint32*)(target->base8+y*target->pitch8+x*target->bitdepth/8);
-	int yy, xx;
-	int width=srect->right-srect->left;
-	for (yy=srect->top;yy<srect->bottom;yy++) {
-		for (xx=0;xx<width;xx++) {
-			qc=q[xx];
-			if (qc!=c) z[xx]=qc;
-		}
-		q+=source->pitch32;
-		z+=target->pitch32;
-	}
-	source->Unlock(source);
-	target->Unlock(target);
-	return 1;
-}
-
-static int AlphaBlt_32 (struct tagSURFACE *target, struct tagSURFACE *source, RECT *srect, int x, int y)
-{
-	if (!target->Lock(target)) return 0;
-	if (!source->Lock(source)) {
-		PushError();
-		target->Unlock(target);
-		PopError();
-		return 0;
-	}
-#ifdef HAVE_X86_ASSEMBLER
-	BLTDATA data;
-	data.src=(ppluint32*)(source->base8+srect->top*source->pitch8+srect->left*source->bytes_per_pixel);;
-	data.tgt=(ppluint32*)(target->base8+y*target->pitch8+x*target->bytes_per_pixel);
-	data.width=srect->right-srect->left;
-	data.height=srect->bottom-srect->top;
-	data.pitchsrc=source->pitch8;
-	data.pitchtgt=target->pitch8;
+	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
+	data.tgt=(ppluint32*)adr(target,x,y);
+	data.width=srect.width();
+	data.height=srect.height();
+	data.pitchsrc=source.pitch;
+	data.pitchtgt=target.pitch;
 	if (ASM_AlphaBlt32(&data)) {
-		source->Unlock(source);
-		target->Unlock(target);
 		return 1;
 	}
+	return 0;
 #endif
-	ppldd r,g,b,alpha1,alpha2,ptgt,psrc;
+	ppldd alpha1,psrc;
 	ppluint32 *src, *tgt;
-	src=(ppluint32*)(source->base8+srect->top*source->pitch8+srect->left*source->bytes_per_pixel);
-	tgt=(ppluint32*)(target->base8+y*target->pitch8+x*target->bytes_per_pixel);
-	int width=srect->right-srect->left;
+	src=(ppluint32*)adr(source,srect.left(),srect.top());
+	tgt=(ppluint32*)adr(target,x,y);
+	int width=srect.width();
 	int yy, xx;
-	char *alphatab=target->alphatab;
-	for (yy=srect->top;yy<=srect->bottom;yy++) {
-		for (xx=0;xx<=width;xx++) {
+	if (!alphatab) return 0;
+
+	for (yy=0;yy<srect.height();yy++) {
+		for (xx=0;xx<width;xx++) {
 			psrc=src[xx];
 			if (psrc) {
 				if ((psrc&0xff000000)==0xff000000) tgt[xx]=psrc;
 				else {
 					alpha1=psrc>>24;
-					ptgt=tgt[xx];
-					alpha2=(255-alpha1)<<8;
-					alpha1=alpha1<<8;
-					r=alphatab[alpha1+(psrc&255)]+alphatab[alpha2+(ptgt&255)];
-					psrc=psrc>>8;
-					ptgt=ptgt>>8;
-					g=alphatab[alpha1+(psrc&255)]+alphatab[alpha2+(ptgt&255)];
-					psrc=psrc>>8;
-					ptgt=ptgt>>8;
-					b=alphatab[alpha1+(psrc&255)]+alphatab[alpha2+(ptgt&255)];
-					tgt[xx]=r+(g<<8)+(b<<16);
+					tgt[xx]=target.fn->RGBBlend255(tgt[xx],psrc,alpha1);
 				}
 			}
 		}
-		src+=source->pitch32;
-		tgt+=target->pitch32;
+		src+=(source.pitch>>2);
+		tgt+=(target.pitch>>2);
 	}
-	source->Unlock(source);
-	target->Unlock(target);
 	return 1;
 }
 
-static int BltDiffuse_32 (struct tagSURFACE *target, struct tagSURFACE *source, RECT *srect, int x, int y, COLOR c)
-{
-	if (!target->Lock(target)) return 0;
-	if (!source->Lock(source)) {
-		PushError();
-		target->Unlock(target);
-		PopError();
-		return 0;
-	}
 
+
+static int BltColorKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c)
+{
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)(source->base8+srect->top*source->pitch8+srect->left*source->bytes_per_pixel);;
-	data.tgt=(ppluint32*)(target->base8+y*target->pitch8+x*target->bytes_per_pixel);
-	data.width=srect->right-srect->left;
-	data.height=srect->bottom-srect->top;
-	data.pitchsrc=source->pitch8;
-	data.pitchtgt=target->pitch8;
+	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
+	data.tgt=(ppluint32*)adr(target,x,y);
+	data.width=srect.width();
+	data.height=srect.height();
+	data.pitchsrc=source.pitch;
+	data.pitchtgt=target.pitch;
 	data.color=c;
-	if (ASM_BltDiffuse32(&data)) {
-		source->Unlock(source);
-		target->Unlock(target);
+	if (ASM_BltColorKey32(&data)) {
 		return 1;
 	}
 #endif
+	ppluint32 *q, *z;
+	SurfaceColor qc;
+	q=(ppluint32*)adr(source,srect.left(),srect.top());
+	z=(ppluint32*)adr(target,x,y);
+	int pitch_tgt=target.pitch>>2;
+	int pitch_src=source.pitch>>2;
+	int yy, xx;
+	int width=srect.width();
+	for (yy=0;yy<srect.height();yy++) {
+		for (xx=0;xx<width;xx++) {
+			qc=q[xx];
+			if (qc!=c) z[xx]=qc;
+		}
+		q+=pitch_src;
+		z+=pitch_tgt;
+	}
+	return 1;
+}
 
-
+static int BltDiffuse_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c)
+{
+#ifdef HAVE_X86_ASSEMBLER
+	BLTDATA data;
+	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
+	data.tgt=(ppluint32*)adr(target,x,y);
+	data.width=srect.width();
+	data.height=srect.height();
+	data.pitchsrc=source.pitch;
+	data.pitchtgt=target.pitch;
+	data.color=c;
+	if (ASM_BltDiffuse32(&data)) {
+		return 1;
+	}
+	return 0;
+#endif
 	ppluint32 *z;
 	ppluint8 *q;
-	COLOR qc;
-
-	q=(ppluint8*)(source->base8+srect->top*source->pitch8+srect->left*source->bitdepth/8);
-	z=(ppluint32*)(target->base8+y*target->pitch8+x*target->bitdepth/8);
+	SurfaceColor qc;
+	q=(ppluint8*)adr(source,srect.left(),srect.top());
+	z=(ppluint32*)adr(target,x,y);
+	int pitch32=target.pitch>>2;
 	int yy, xx;
-	int width=srect->right-srect->left;
-	for (yy=srect->top;yy<srect->bottom;yy++) {
+	int width=srect.width();
+	for (yy=0;yy<srect.height();yy++) {
 		for (xx=0;xx<width;xx++) {
 			qc=q[xx];
 			if (qc) {
 				if (qc==0xff) z[xx]=c;
 				else {
-					z[xx]=target->RGBBlend255(z[xx],c,qc);
+					z[xx]=target.fn->RGBBlend255(z[xx],c,qc);
 				}
 			}
 		}
-		q+=source->pitch8;
-		z+=target->pitch32;
+		q+=source.pitch;
+		z+=pitch32;
 	}
-	source->Unlock(source);
-	target->Unlock(target);
 	return 1;
 }
 
 
-int CGrafix::InitBlits(SURFACE *s)
 /*!\brief Blitting-Funktionen initialisieren
  *
  * \desc
@@ -292,329 +257,432 @@ int CGrafix::InitBlits(SURFACE *s)
  * Farbformate von der verwendeten Grafik-Engine unterstüzt werden.
  *
  */
+int CGrafix::InitBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
-	switch (s->rgbformat) {
+	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
 		case RGBFormat::A8B8G8R8:
 		case RGBFormat::X8B8G8R8:
 		case RGBFormat::X8R8G8B8:
-			if (!s->Blt) s->Blt=Blt_32;
-			s->BltSoftware=Blt_32;
-			if (!s->AlphaBlt) s->AlphaBlt=AlphaBlt_32;
-			s->AlphaBltSoftware=AlphaBlt_32;
-			if (!s->BltColorKey) s->BltColorKey=BltColorKey_32;
-			s->BltColorKeySoftware=BltColorKey_32;
-			if (!s->BltDiffuse) s->BltDiffuse=BltDiffuse_32;
-			s->BltDiffuseSoftware=BltDiffuse_32;
-
+			fn->Blt=Blt_32;
+			fn->BltAlpha=BltAlpha_32;
+			fn->BltColorKey=BltColorKey_32;
+			fn->BltDiffuse=BltDiffuse_32;
 			return 1;
 		case RGBFormat::GREY8:
 		case RGBFormat::A8:
 			return 1;
 
 	}
-	SetError(1013,"RGBFormat=%s (%i)",GetRGBFormatName(s->rgbformat),s->rgbformat);
+	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
 	return 0;
 }
 
 
-int CSurface::CheckBltClipping (int *x, int *y, RECT * r)
-/*!\brief Überprüft, ob eine Blit-Aktion in den Clipping-Bereich passt.
+/*!\brief Überprüft, ob eine Blit-Aktion in den Zeichenbereich passt.
  *
  * \desc
- * Diese Funktion prüft, ob das zu zeichnende Rechteck überhaupt in den aktuellen
- * Clipping-Bereich der Oberfläche passt. Dabei wird das Quellrechteck bei Bedarf
- * angepasst.
+ * Diese Funktion prüft, ob das zu zeichnende Rechteck überhaupt in die aktuelle
+ * Zeichenfläche. Dabei wird das Quellrechteck bei Bedarf angepasst.
  *
- * \param[in,out] x Pointer auf die X-Koordinate der Zielposition
- * \param[in,out] y Pointer auf die Y-Koordinate der Zielposition
- * \param[in,out] r Pointer auf das Quell-Rechteck
+ * \param[in,out] x X-Koordinate der Zielposition
+ * \param[in,out] y Y-Koordinate der Zielposition
+ * \param[in,out] r Quell-Rechteck
  *
  * \return
- * Die Funktion liefert 0 zurück, wenn das Rechteck komplett ausserhalb des aktuellen
- * Clipping-Bereichs liegt, oder 1, wenn es ganz oder zumindest teilweise innerhalb des
- * Clipping-Bereichs liegt. In letzterem Fall werden die Koordinaten \p x, \p y und die
+ * Die Funktion liefert 0 zurück, wenn das Rechteck komplett ausserhalb der
+ * Zeichenfläche liegt, oder 1, wenn es ganz oder zumindest teilweise innerhalb der
+ * Zeichenfläche liegt. In letzterem Fall werden die Koordinaten \p x, \p y und die
  * Dimensionen des Rechtecks \p r so angepasst, dass durch die nachfolgende Blt-Funktion
- * nur der Sichtbare Bereich an die korrekte Position gezeichnet wird.
+ * nur der sichtbare Bereich an die korrekte Position gezeichnet wird.
  */
+int CDrawable::fitRect(int &x, int &y, Rect &r)
 {
-	int width,height;
-	width=r->right-r->left;
-	height=r->bottom-r->top;
-
-	// Falls x oder y komplett ausserhalb des Clipping-Bereichs liegt,
-	// braucht nichts ausgegeben werden
-	if (*x+width<s.clipper.left || *x>=s.clipper.right) return 0;
-	if (*y+height<s.clipper.top || *y>=s.clipper.bottom) return 0;
-
-
-	// Koordinaten bei Bedarf korrigieren
-	if (*x<s.clipper.left || *x+r->right >= s.clipper.right) {
-		if (*x<s.clipper.left) {
-			r->left=r->left-*x+s.clipper.left;
-			*x=s.clipper.left;
-		}
-		if (*x+width>=s.clipper.right) {
-			r->right=r->left-*x+s.clipper.right;
-		}
-	}
-	if (*y<s.clipper.top || *y+r->bottom >= s.clipper.bottom) {
-		if (*y<s.clipper.top) {
-			r->top=r->top-*y+s.clipper.top;
-			*y=s.clipper.top;
-		}
-		if (*y+height>=s.clipper.bottom) {
-			r->bottom=r->top-*y+s.clipper.bottom;
-		}
-	}
+	Rect screen(0,0,data.width,data.height);
+	Rect object(x,y,r.width(),r.height());
+	Rect i=screen.intersected(object);		// TODO: Das ist falsch
+	if (i.isNull()) return 0;
+	int shiftx=i.x()-object.x();
+	int shifty=i.y()-object.y();
+	x+=shiftx;
+	y+=shifty;
+	r.setWidth(i.width());
+	r.setHeight(i.height());
+	r.setX(r.x()+shiftx);
+	r.setY(r.y()+shifty);
 	return 1;
 }
 
-int CSurface::Blt(CSurface *source, RECT *srect, int x, int y)
 /*!\brief Rechteck 1:1 kopieren
  *
- */
-{
-	if (!source) {
-		SetError(1015,"Blt");
-		return 0;
-	}
-	// Quellrechteck
-	RECT q;
-	if (srect) {
-		q.left=srect->left;
-		q.top=srect->top;
-		q.right=srect->right;
-		q.bottom=srect->bottom;
-		if (q.left<0) q.left=0;
-		if (q.right>source->s.width) q.right=source->s.width;
-		if (q.top<0) q.top=0;
-		if (q.bottom>source->s.height) q.bottom=source->s.height;
-	} else {
-		q.left=0;
-		q.top=0;
-		q.right=source->s.width;
-		q.bottom=source->s.height;
-	}
-
-	// Clipping pruefen
-	int xx=x+s.originx, yy=y+s.originy;
-	if (!CheckBltClipping(&xx, &yy, &q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (q.right-q.left==0 || q.bottom-q.top==0) {
-		SetError(1016);
-		return 0;
-	}
-	// Wenn Quell- und Ziel-Surface die gleiche Engine benutzen, verwenden wir Blt
-	if (engine==source->engine) {
-		if (s.Blt) return s.Blt(&s,&source->s,&q,xx,yy);
-	}
-	if (s.BltSoftware) return s.BltSoftware(&s,&source->s,&q,xx,yy);
-	SetError(1012,"Blt");
-	return 0;
-}
-
-int CSurface::BltColorKey(CSurface *source, COLOR c, RECT *srect, int x, int y)
-/*!\brief Rechteck unter Berücksichtigung einer transparenten Farbe kopieren
+ * \desc
+ * Mit dieser Funktion wird die Quellzeichenfläche \p source
+ * an die Position \p x / \p y der Zielzeichenfläche kopiert, wobei alle Farbinformationen 1:1 übernommen werden.
+ * Es wird weder Alphablending (siehe CDrawable::bltAlpha) noch Colorkeying (siehe
+ * CDrawable::bltColorKey) verwendet.
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
  *
- */
-{
-	if (!source) {
-		SetError(1015,"Blt");
-		return 0;
-	}
-	// Quellrechteck
-	RECT q;
-	if (srect) {
-		q.left=srect->left;
-		q.top=srect->top;
-		q.right=srect->right;
-		q.bottom=srect->bottom;
-		if (q.left<0) q.left=0;
-		if (q.right>source->s.width) q.right=source->s.width;
-		if (q.top<0) q.top=0;
-		if (q.bottom>source->s.height) q.bottom=source->s.height;
-	} else {
-		q.left=0;
-		q.top=0;
-		q.right=source->s.width;
-		q.bottom=source->s.height;
-	}
-
-	// Clipping pruefen
-	int xx=x+s.originx, yy=y+s.originy;
-	if (!CheckBltClipping(&xx, &yy, &q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (q.right-q.left==0 || q.bottom-q.top==0) {
-		SetError(1016);
-		return 0;
-	}
-	// Wenn Quell- und Ziel-Surface die gleiche Engine benutzen, verwenden wir Blt
-	if (engine==source->engine) {
-		if (s.BltColorKey) return s.BltColorKey(&s,&source->s,&q,xx,yy,c);
-	}
-	if (s.BltColorKeySoftware) return s.BltColorKeySoftware(&s,&source->s,&q,xx,yy,c);
-	SetError(1012,"Blt");
-	return 0;
-}
-
-int CSurface::AlphaBlt(CSurface *source, RECT *srect, int x, int y)
-/*!\brief Rechteck unter Berücksichtigung des Alpha-Kanals kopieren
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] x Optionale X-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter nicht
+ *            angegeben, wird 0 verwendet.
+ * \param[in] y Optionale Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter
+ *            nicht angegebenm wird 0 verwendet.
  *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
+int CDrawable::blt(const CDrawable &source, int x, int y)
 {
-	if (!source) {
-		SetError(1015,"Blt");
-		return 0;
-	}
-	// Quellrechteck
-	RECT q;
-	if (srect) {
-		q.left=srect->left;
-		q.top=srect->top;
-		q.right=srect->right;
-		q.bottom=srect->bottom;
-		if (q.left<0) q.left=0;
-		if (q.right>source->s.width) q.right=source->s.width;
-		if (q.top<0) q.top=0;
-		if (q.bottom>source->s.height) q.bottom=source->s.height;
-	} else {
-		q.left=0;
-		q.top=0;
-		q.right=source->s.width;
-		q.bottom=source->s.height;
-	}
-
-	// Clipping pruefen
-	int xx=x+s.originx, yy=y+s.originy;
-	if (!CheckBltClipping(&xx, &yy, &q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (q.right-q.left==0 || q.bottom-q.top==0) {
-		SetError(1016);
-		return 0;
-	}
-	// Wenn Quell- und Ziel-Surface die gleiche Engine benutzen, verwenden wir Blt
-	if (engine==source->engine) {
-		if (s.AlphaBlt) return s.AlphaBlt(&s,&source->s,&q,xx,yy);
-	}
-	if (s.AlphaBltSoftware) return s.AlphaBltSoftware(&s,&source->s,&q,xx,yy);
-	SetError(1012,"AlphaBlt");
-	return 0;
+	return blt(source,source.rect(),x,y);
 }
 
-int CSurface::BltDiffuse(CSurface *source, COLOR c, RECT *srect, int x, int y)
-/*!\brief Rechteck anhand der Intensität der Quellfarbe kopieren
- *
- */
-{
-	if (!source) {
-		SetError(1015,"Blt");
-		return 0;
-	}
-	// Source muss bestimmtes Farbformat haben
-	if (source->s.rgbformat!=RGBFormat::GREY8 && source->s.rgbformat!=RGBFormat::A8) {
-		SetError(1019,"BltDiffuse benötigt GREY8 oder A8");
-		return 0;
-	}
-	// Quellrechteck
-	RECT q;
-	if (srect) {
-		q.left=srect->left;
-		q.top=srect->top;
-		q.right=srect->right;
-		q.bottom=srect->bottom;
-		if (q.left<0) q.left=0;
-		if (q.right>source->s.width) q.right=source->s.width;
-		if (q.top<0) q.top=0;
-		if (q.bottom>source->s.height) q.bottom=source->s.height;
-	} else {
-		q.left=0;
-		q.top=0;
-		q.right=source->s.width;
-		q.bottom=source->s.height;
-	}
-
-	// Clipping pruefen
-	int xx=x+s.originx, yy=y+s.originy;
-	if (!CheckBltClipping(&xx, &yy, &q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (q.right-q.left==0 || q.bottom-q.top==0) {
-		SetError(1016);
-		return 0;
-	}
-	// Wenn Quell- und Ziel-Surface die gleiche Engine benutzen, verwenden wir BltDiffuse
-	if (engine==source->engine) {
-		if (s.BltDiffuse) return s.BltDiffuse(&s,&source->s,&q,xx,yy,c);
-	}
-	if (s.BltDiffuseSoftware) return s.BltDiffuseSoftware(&s,&source->s,&q,xx,yy,c);
-	SetError(1012,"BltDiffuse");
-	return 0;
-}
-
-
-int CSurface::BeginSprites()
-/*!\brief Zeichnen von Sprites initialisieren (nur DirectX)
- *
- * @return
- */
-{
-	if (s.BeginSprites) return s.BeginSprites(&s);
-	return 1;
-}
-
-int CSurface::EndSprites()
-/*!\brief Zeichnen von Sprites beenden (nur DirectX)
- *
- * @return
- */
-{
-	if (s.EndSprites) return s.EndSprites(&s);
-	return 1;
-}
-
-int CSurface::DrawSprite(CSurface *source, RECT *srect, int x, int y, COLOR c)
-/*!\brief Sprite-Engine zum Kopieren eines Rechtecks mit Alpha-Kanal verwenden
+/*!\brief Rechteck 1:1 kopieren
  *
  * \desc
- * Diese Funktion verwendet die Sprite-Engine der verwendeten Grafik-Engine, um ein Rechteck
- * zu kopieren. Dies wird zur Zeit von der DirectX9-Engine unterstützt und hat den Vorteil, dass
- * der komplette Kopiervorgang durch die Grafik-Hardware durchgeführt wird und somit sehr schnell ist.
+ * Mit dieser Funktion wird der Ausschnitt \p srect aus der Quellzeichenfläche \p source
+ * an die Position \p x / \p y kopiert, wobei alle Farbinformationen 1:1 übernommen werden.
+ * Es wird weder Alphablending (siehe CDrawable::bltAlpha) noch Colorkeying (siehe
+ * CDrawable::bltColorKey) verwendet. Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert,
+ * andernfalls nur der angegebene Ausschnitt.
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
  *
- * Vor Nutzung dieser Funktion muss zunächst CSurface::BeginSprites aufegrufen werden und danach,
- * wenn alle Sprites gezeichnet wurden, CSurface::EndSprites. Dazwischen sollten keine weiteren
- * Grafik-Funktionen aufgerufen werden. Insbesondere sollte die Oberfläche nicht gelockt werden
- * (CSurface::Lock).
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
+ * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  *
- * @param[in] source Pointer auf die Quell-Oberfläche
- * @param[in] srect Pointer auf eine RECT-Struktur, die den zu kopierenden Ausschnitt aus der
- * Quell-Oberfläche definiert. Ist dieser Parameter NULL, wird die komplette Quell-Oberfläche
- * kopiert.
- * @param[in] x Ziel-Koordinate der linken oberen Ecke
- * @param[in] y Ziel-Koordinate der linken oberen Ecke
- * @param[in] c Modulator für Farbe und Alpha-Kanal der Quellgrafik. Ein Wert von 0xffffffff (=Default)
- * erhält alle Parameter.
- * @return Die Funktion gibt 1 zurück, wenn das Sprite gezeichnet wurde, sonst 0.
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+int CDrawable::blt(const CDrawable &source, const Rect &srect, int x, int y)
+{
+	if (source.isEmpty()) {
+		SetError(1067);
+		return 0;
+	}
+	// Quellrechteck
+	Rect q;
+	if (srect.isNull()) {
+		q=source.rect();
+	} else {
+		q=srect;
+		if (q.left()<0) q.setLeft(0);
+		if (q.width()>source.width()) q.setWidth(source.width());
+		if (q.top()<0) q.setTop(0);
+		if (q.height()>source.height()) q.setHeight(source.height());
+	}
+	if (!fitRect(x,y,q)) {
+		SetError(1016);
+		return 0;
+	}
+	if (fn->Blt) return fn->Blt(data,source.data,q,x,y);
+	SetError(1012,"Blt");
+	return 0;
+}
+
+int CDrawable::bltDiffuse(const CDrawable &source, int x, int y,const Color &c)
+/*!\brief Rechteck anhand der Intensität der Quellfarbe kopieren
  *
- * \remarks
- * Sollte die Grafik-Engine diese Funktion nicht unterstützen, wird automatisch auf CSurface::AlphaBlt
- * zurückgegriffen.
- * \attention
- * Anders als bei allen anderen Blt-Funktionen wird hier der Clipping-Bereich nicht geprüft!
+ * \desc
+ * Mit dieser Funktion wird die Quellzeichenfläche \p source
+ * an die Position \p x / \p y kopiert, wobei die Intensität der Quellpixel geprüft wird und
+ * diese in gleicher Intensität mit der angegebenen Farbe \c gezeichnet werden. Bei
+ * halbtransparenten Pixeln wird die Farbe mit dem Hintergrund gemischt. Die Funktion ist daher
+ * zum Zeichnen von einfarbigen Grafiken unterschiedlicher Intensität gedacht (z.B. grafische Elemente
+ * einer GUI).
+ * \par
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
+ *
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] c Die gewünschte Pixelfarbe
+ *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ *
  */
 {
-	// Wenn Quell- und Ziel-Surface die gleiche Engine benutzen, verwenden wir DrawSprite
-	if (engine==source->engine && s.DrawSprite!=NULL) return s.DrawSprite(&s,x,y,&source->s,srect,c);
-	return AlphaBlt(source,srect,x,y);
+	return bltDiffuse(source,source.rect(),x,y,c);
 }
+
+/*!\brief Rechteck anhand der Intensität der Quellfarbe kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird der Ausschnitt \p srect aus der Quellzeichenfläche \p source
+ * an die Position \p x / \p y kopiert, wobei die Intensität der Quellpixel geprüft wird und
+ * diese in gleicher Intensität mit der angegebenen Farbe \c gezeichnet werden. Bei
+ * halbtransparenten Pixeln wird die Farbe mit dem Hintergrund gemischt. Die Funktion ist daher
+ * zum Zeichnen von einfarbigen Grafiken unterschiedlicher Intensität gedacht (z.B. grafische Elemente
+ * einer GUI).
+ * \par
+ * Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert, andernfalls nur der angegebene Ausschnitt.
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
+ *
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
+ * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] c Die gewünschte Pixelfarbe
+ *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ *
+ */
+int CDrawable::bltDiffuse(const CDrawable &source, const Rect &srect, int x, int y,const Color &c)
+{
+	if (source.isEmpty()) {
+		SetError(1067);
+		return 0;
+	}
+	// Quellrechteck
+	Rect q;
+	if (srect.isNull()) {
+		q=source.rect();
+	} else {
+		q=srect;
+		if (q.left()<0) q.setLeft(0);
+		if (q.width()>source.width()) q.setWidth(source.width());
+		if (q.top()<0) q.setTop(0);
+		if (q.height()>source.height()) q.setHeight(source.height());
+	}
+	if (!fitRect(x,y,q)) {
+		SetError(1016);
+		return 0;
+	}
+	if (fn->BltDiffuse) return fn->BltDiffuse(data,source.data,q,x,y,rgb(c));
+	SetError(1012,"Blt");
+	return 0;
+}
+
+/*!\brief Rechteck unter Berücksichtigung einer transparenten Schlüsselfarbe kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird die Quellzeichenfläche \p source
+ * an die Position \p x / \p y unter Berücksichtigung der Schlüsselfarbe \p c kopiert.
+ * Pixel, die der Farbe \c entsprechen, bleiben dabei vollständig transparent, alle anderen
+ * Pixel werden wie bei CDrawable::blt 1:1 kopiert.
+ * \par
+  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
+ *
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
+ *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+int CDrawable::bltColorKey(const CDrawable &source, int x, int y,const Color &c)
+{
+	return bltColorKey(source,source.rect(),x,y,c);
+}
+
+/*!\brief Rechteck unter Berücksichtigung einer transparenten Schlüsselfarbe kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird der Ausschnitt \p srect aus der Quellzeichenfläche \p source
+ * an die Position \p x / \p y unter Berücksichtigung der Schlüsselfarbe \p c kopiert.
+ * Pixel, die der Farbe \c entsprechen, bleiben dabei vollständig transparent, alle anderen
+ * Pixel werden wie bei CDrawable::blt 1:1 kopiert.
+ * \par
+ * Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert, andernfalls nur der angegebene Ausschnitt.
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
+ *
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
+ * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
+ *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+int CDrawable::bltColorKey(const CDrawable &source, const Rect &srect, int x, int y,const Color &c)
+{
+	if (source.isEmpty()) {
+		SetError(1067);
+		return 0;
+	}
+	// Quellrechteck
+	Rect q;
+	if (srect.isNull()) {
+		q=source.rect();
+	} else {
+		q=srect;
+		if (q.left()<0) q.setLeft(0);
+		if (q.width()>source.width()) q.setWidth(source.width());
+		if (q.top()<0) q.setTop(0);
+		if (q.height()>source.height()) q.setHeight(source.height());
+	}
+	if (!fitRect(x,y,q)) {
+		SetError(1016);
+		return 0;
+	}
+	if (fn->BltColorKey) return fn->BltColorKey(data,source.data,q,x,y,rgb(c));
+	SetError(1012,"Blt");
+	return 0;
+}
+
+/*!\brief Rechteck unter Berücksichtigung des Alpha-Kanals kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird die Quellzeichenfläche \p source
+ * an die Position \p x / \p y unter Berücksichtigung des Alphakanals der Quelle kopiert.
+ * Der Alphakanal bestimmt die Transparenz eines Pixels. Ist sie 0, wird der Pixel nicht
+ * kopiert, bei einem Wert von 255 wird er 1:1 kopiert. Dazwischen wird die Farbe abhängig
+ * vom Transparenz-Wert mit dem Hintergrund vermischt.
+ * \par
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
+ *
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
+ *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+int CDrawable::bltAlpha(const CDrawable &source, int x, int y)
+{
+	return bltAlpha(source,source.rect(),x,y);
+}
+
+/*!\brief Rechteck unter Berücksichtigung des Alpha-Kanals kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird der Ausschnitt \p srect aus der Quellzeichenfläche \p source
+ * an die Position \p x / \p y unter Berücksichtigung des Alphakanals der Quelle kopiert.
+ * Der Alphakanal bestimmt die Transparenz eines Pixels. Ist sie 0, wird der Pixel nicht
+ * kopiert, bei einem Wert von 255 wird er 1:1 kopiert. Dazwischen wird die Farbe abhängig
+ * vom Transparenz-Wert mit dem Hintergrund vermischt.
+ * \par
+ * Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert, andernfalls nur der angegebene Ausschnitt.
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe CDrawable::fitRect).
+ *
+ * \param[in] source Die Quellzeichenfläche
+ * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
+ * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
+ * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
+ *
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+int CDrawable::bltAlpha(const CDrawable &source, const Rect &srect, int x, int y)
+{
+	if (source.isEmpty()) {
+		SetError(1067);
+		return 0;
+	}
+	// Quellrechteck
+	Rect q;
+	if (srect.isNull()) {
+		q=source.rect();
+	} else {
+		q=srect;
+		if (q.left()<0) q.setLeft(0);
+		if (q.width()>source.width()) q.setWidth(source.width());
+		if (q.top()<0) q.setTop(0);
+		if (q.height()>source.height()) q.setHeight(source.height());
+	}
+	if (!fitRect(x,y,q)) {
+		SetError(1016);
+		return 0;
+	}
+	if (fn->BltAlpha) return fn->BltAlpha(data,source.data,q,x,y);
+	SetError(1012,"Blt");
+	return 0;
+}
+
+/*!\brief Grafik aus einer Image-Liste kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird eine Grafik aus einer Image-Liste (siehe CImageList) kopiert.
+ * Jenachdem welche Zeichenmethode in der Image-Liste definiert ist, wird dazu entweder
+ * CDrawable::blt, CDrawable::bltDiffuse, CDrawable::bltColorKey oder CDrawable::bltAlpha
+ * verwendet.
+ *
+ * @param iml Image-Liste
+ * @param nr Nummer der Grafik innerhalb der Image-Liste
+ * @param x X-Koordinate der Zielposition
+ * @param y Y-Koordinate der Zielposition
+ *
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+int CDrawable::draw(const CImageList &iml, int nr, int x, int y)
+{
+	Rect r=iml.getRect(nr);
+	if (r.isNull()) {
+		return 0;
+	}
+	switch ((int)iml.method) {
+		case CImageList::BLT:
+			return blt(iml,r,x,y);
+			break;
+		case CImageList::ALPHABLT:
+			return bltAlpha(iml,r,x,y);
+			break;
+		case CImageList::COLORKEY:
+			return bltColorKey(iml,r,x,y,iml.colorkey);
+			break;
+		case CImageList::DIFFUSE:
+			return bltDiffuse(iml,r,x,y,iml.diffuse);
+			break;
+	}
+	SetError(1042,"%i",(int)iml.drawMethod());
+	return 0;
+}
+
+/*!\brief Grafik aus einer Image-Liste kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird eine Grafik aus einer Image-Liste (siehe CImageList) kopiert.
+ * Jenachdem welche Zeichenmethode in der Image-Liste definiert ist, wird dazu entweder
+ * CDrawable::blt, CDrawable::bltDiffuse, CDrawable::bltColorKey oder CDrawable::bltAlpha
+ * verwendet. Ist die Methode CImageList::DIFFUSE, wird die Farbe \p diffuse statt der
+ * in der Image-Liste definierten Farbe verwendet.
+ *
+ * @param iml Image-Liste
+ * @param nr Nummer der Grafik innerhalb der Image-Liste
+ * @param x X-Koordinate der Zielposition
+ * @param y Y-Koordinate der Zielposition
+ * @param diffuse Farbwert, sofern die Diffuse Zeichenmethode verwendet wird. Bei allen
+ * anderen Zeichenmethoden wird der Parameter ignoriert.
+ *
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+int CDrawable::draw(const CImageList &iml, int nr, int x, int y, const Color &diffuse)
+{
+	Rect r=iml.getRect(nr);
+	if (r.isNull()) {
+		return 0;
+	}
+	switch ((int)iml.method) {
+		case CImageList::BLT:
+			return blt(iml,r,x,y);
+			break;
+		case CImageList::ALPHABLT:
+			return bltAlpha(iml,r,x,y);
+			break;
+		case CImageList::COLORKEY:
+			return bltColorKey(iml,r,x,y,iml.colorkey);
+			break;
+		case CImageList::DIFFUSE:
+			return bltDiffuse(iml,r,x,y,diffuse);
+			break;
+	}
+	SetError(1042,"%i",(int)iml.drawMethod());
+	return 0;
+}
+
+int CDrawable::draw(const CSprite &sprite, int nr, int x, int y)
+{
+	return sprite.draw(*this,x,y,nr);
+}
+
 
 
 } // EOF namespace grafix
 } // EOF namespace ppl6
+

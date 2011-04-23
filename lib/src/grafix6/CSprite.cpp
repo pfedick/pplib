@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.3 $
- * $Date: 2009/06/21 15:46:22 $
- * $Id: CSprite.cpp,v 1.3 2009/06/21 15:46:22 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CSprite.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,9 +131,8 @@ Eindeutige ID der Textur, in der Regel eine fortlaufende Nummer. Wird als Refere
 verwendet.
 </li>
 <li><b>RGB-Format</b>\n
-Eine eindeutige Nummer, die das Farbformat der Grafikdaten angibt. Ist identisch mit der Enumeration
-im Namespace ppl6::grafix::RGBFormat und hat in der Regel den Wert 9, der für A8R8G8B8, also jeweils
-8 Bit für den Alpha-, Rot-, Grün- und Blau-Wert
+Eine eindeutige Nummer, die das Farbformat der Grafikdaten angibt. Folgende Formate sind definiert:
+- 9: A8R8G8B8
 </li>
 <li><b>Bittiefe</b>\n
 Die Bittiefe eines einzelnen Farbwertes. Ist abhängig vom RGB-Format und in der Regel 32 Bit.
@@ -163,7 +162,8 @@ class SpriteTexture : public CListItem
 public:
 	int id;
 	int width, height;
-	int rgbformat, bitdepth;
+	int bitdepth;
+	RGBFormat rgbformat;
 	CSurface *surface;
 
 	SpriteTexture()
@@ -222,6 +222,7 @@ public:
  * \brief Liste aller Sprites
  */
 
+
 CSprite::CSprite()
 /*!\brief Konstruktor der Klasse
  *
@@ -239,10 +240,10 @@ CSprite::~CSprite()
  * Texturen und Speicherbereiche der Klasse wieder freigegeben werden.
  */
 {
-	Clear();
+	clear();
 }
 
-void CSprite::Clear()
+void CSprite::clear()
 /*!\brief Speicherbereiche der Klasse wieder freigeben
  *
  * \desc
@@ -254,7 +255,7 @@ void CSprite::Clear()
 	SpriteList.Clear(true);
 }
 
-CSurface *CSprite::FindTexture(int id)
+CSurface *CSprite::findTexture(int id)
 /*!\brief Textur anhand ihrer ID finden
  *
  * \desc
@@ -272,7 +273,7 @@ CSurface *CSprite::FindTexture(int id)
 	return NULL;
 }
 
-int CSprite::LoadIndex(PFPChunk *chunk)
+int CSprite::loadIndex(PFPChunk *chunk)
 /*!\brief Laden des Sprite-Index
  *
  * \desc
@@ -291,7 +292,7 @@ int CSprite::LoadIndex(PFPChunk *chunk)
 	for (int i=0;i<num;i++) {
 		item=new SpriteIndexItem;
 		item->id=Peek32(p+0);
-		item->surface=FindTexture(Peek16(p+4));
+		item->surface=findTexture(Peek16(p+4));
 		if (!item->surface) {
 			delete item;
 			SetError(1059,"Verweis auf nicht vorhandene Textur");
@@ -305,8 +306,10 @@ int CSprite::LoadIndex(PFPChunk *chunk)
 		item->Pivot.y=Peek16(p+14+2);
 		item->Offset.x=Peek16(p+18+0);
 		item->Offset.y=Peek16(p+18+2);
+		/*
 		PrintDebug("Id: %i, (%i/%i)-(%i/%i)\n",
 			item->id,item->r.left,item->r.top,item->r.right,item->r.bottom);
+			*/
 		if (!SpriteList.Add(item)) {
 			PushError();
 			delete item;
@@ -318,7 +321,7 @@ int CSprite::LoadIndex(PFPChunk *chunk)
 	return 1;
 }
 
-int CSprite::LoadTexture(PFPChunk *chunk, int flags)
+int CSprite::loadTexture(PFPChunk *chunk, CSurface::SurfaceFlags flags)
 /*!\brief Laden eines Texture-Chunks
  *
  * \desc
@@ -344,7 +347,15 @@ int CSprite::LoadTexture(PFPChunk *chunk, int flags)
 	SpriteTexture *tex=new SpriteTexture;
 	// Zunächst lesen wir dem Header
 	tex->id=Peek16(buffer+0);
-	tex->rgbformat=Peek8(buffer+2);
+	int rgbformat=Peek8(buffer+2);
+	switch (rgbformat) {
+		case 9: tex->rgbformat=RGBFormat::A8R8G8B8;
+				break;
+		default:
+			delete tex;
+			SetError(1013,"CSprite");
+			return 0;
+	}
 	tex->bitdepth=Peek8(buffer+3);
 	tex->width=Peek16(buffer+4);
 	tex->height=Peek16(buffer+6);
@@ -352,33 +363,34 @@ int CSprite::LoadTexture(PFPChunk *chunk, int flags)
 	CBinary uncompressed;
 	if (!Comp.Uncompress(uncompressed,buffer+8,0,false)) {
 		delete tex;
-		SetError(1059);
+		ExtendError(1059);
 		return 0;
 	}
 	buffer=(char*)uncompressed.GetPtr();
 	// Nun erstellen wir ein neues Surface
-	tex->surface=gfx->CreateSurface("Sprite",tex->width,tex->height,tex->rgbformat,flags);
+	tex->surface=new CSurface(tex->width,tex->height,tex->rgbformat,flags);
 	if (!tex->surface) {
 		PushError();
 		delete tex;
 		PopError();
 		return 0;
 	}
-	if (!tex->surface->Lock()) {
+	CDrawable draw;
+	if (!tex->surface->lock(draw)) {
 		PushError();
 		delete tex;
 		PopError();
 		return 0;
 	}
-	COLOR c;
 	for (int y=0;y<tex->height;y++) {
 		for (int x=0;x<tex->width;x++) {
-			c=Peek32(buffer);
-			tex->surface->PutPixel(x,y,c);
-			buffer+=4;
+			if (tex->rgbformat==RGBFormat::A8R8G8B8) {
+				draw.putPixel(x,y,Color(Peek8(buffer+2),Peek8(buffer+1),Peek8(buffer),Peek8(buffer+3)));
+				buffer+=4;
+			}
 		}
 	}
-	tex->surface->Unlock();
+	tex->surface->unlock();
 	if (!TextureList.Add(tex)) {
 		PushError();
 		delete tex;
@@ -388,7 +400,7 @@ int CSprite::LoadTexture(PFPChunk *chunk, int flags)
 	return 1;
 }
 
-int CSprite::Load(const char *filename, int flags)
+int CSprite::load(const CString &filename, CSurface::SurfaceFlags flags)
 /*!\brief Laden einer Textur-Datei
  *
  * \desc
@@ -403,10 +415,10 @@ int CSprite::Load(const char *filename, int flags)
 {
 	CFile ff;
 	if (!ff.Open(filename,"rb")) return 0;
-	return Load(&ff,flags);
+	return load(ff,flags);
 }
 
-int CSprite::Load(CFileObject *ff, int flags)
+int CSprite::load(CFileObject &ff, CSurface::SurfaceFlags flags)
 /*!\brief Laden einer Textur-Datei
  *
  * \desc
@@ -419,13 +431,9 @@ int CSprite::Load(CFileObject *ff, int flags)
  * im Fehlerfall 0 (false). Im Fehlerfall wird ein entsprechender Fehlercode gesetzt.
  */
 {
-	if (!ff) {
-		SetError(194);
-		return 0;
-	}
 	PFPFile File;
-	Clear();
-	if (!File.Load(ff)) return 0;
+	clear();
+	if (!File.Load(&ff)) return 0;
 	int major, minor;
 	File.GetVersion(&major,&minor);
 	if (strcmp(File.GetID(),"TEXS")!=0 || major!=1 || minor!=0) {
@@ -436,20 +444,20 @@ int CSprite::Load(CFileObject *ff, int flags)
 	PFPChunk *chunk;
 	chunk=File.FindFirstChunk("SURF");
 	while (chunk) {
-		if (!LoadTexture(chunk, flags)) return 0;
+		if (!loadTexture(chunk, flags)) return 0;
 		chunk=File.FindNextChunk();
 	}
 	// Index Chunks laden
 	chunk=File.FindFirstChunk("INDX");
 	while (chunk) {
-		if (!LoadIndex(chunk)) return 0;
+		if (!loadIndex(chunk)) return 0;
 		chunk=File.FindNextChunk();
 	}
 	return 1;
 }
 
 
-int CSprite::Draw(CSurface *target, int x, int y, int id)
+int CSprite::draw(CSurface &target, int x, int y, int id) const
 /*!\brief Sprite darstellen
  *
  * \desc
@@ -462,22 +470,54 @@ int CSprite::Draw(CSurface *target, int x, int y, int id)
  * \returns Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	if (!target) {
-		SetError(194);
-		return 0;
-	}
 	// Sprite im Index finden
 	SpriteIndexItem *item=(SpriteIndexItem*)SpriteList.Find(&id);
 	if (!item) {
 		SetError(1060,"%i",id);
 		return 0;
 	}
+	/*
 	return target->DrawSprite(item->surface,&item->r,
 		x+item->Offset.x-item->Pivot.x,
 		y+item->Offset.y-item->Pivot.y);
+	*/
+	return 1;
 }
 
-int CSprite::NumTextures()
+int CSprite::draw(CDrawable &target, int x, int y, int id) const
+/*!\brief Sprite darstellen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein beliebiges Sprite auf dem Ziel-Surface angezeigt.
+ *
+ * \param[in] target Ziel-Surface
+ * \param[in] x X-Koordinate, bei der das Sprite gezeichnet werden soll
+ * \param[in] y Y-Koordinate, bei der das Sprite gezeichnet werden soll
+ * \param[in] id ID des anzuzeigenden Sprites
+ * \returns Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ */
+{
+	// Sprite im Index finden
+	SpriteIndexItem *item=(SpriteIndexItem*)SpriteList.Find(&id);
+	if (!item) {
+		SetError(1060,"%i",id);
+		return 0;
+	}
+	CDrawable draw;
+	item->surface->lock(draw);
+	Rect r(item->r);
+	target.bltAlpha(draw,r,x+item->Offset.x-item->Pivot.x, y+item->Offset.y-item->Pivot.y);
+	item->surface->unlock();
+
+	/*
+	return target->DrawSprite(item->surface,&item->r,
+		x+item->Offset.x-item->Pivot.x,
+		y+item->Offset.y-item->Pivot.y);
+	*/
+	return 1;
+}
+
+int CSprite::numTextures() const
 /*!\brief Anzahl Texturen in der Klasse
  *
  * \desc
@@ -488,7 +528,7 @@ int CSprite::NumTextures()
 	return TextureList.Num();
 }
 
-int CSprite::NumSprites()
+int CSprite::numSprites() const
 /*!\brief Anzahl Sprites in der Klasse
  *
  * \desc

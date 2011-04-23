@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.16 $
- * $Date: 2009/07/17 22:43:49 $
- * $Id: CFilter_JPEG.cpp,v 1.16 2009/07/17 22:43:49 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CFilter_JPEG.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,6 @@
 #include "ppl6.h"
 #include "ppl6-grafix.h"
 
-
 #ifdef HAVE_JPEG
 #undef INT32
 
@@ -60,6 +59,7 @@ extern "C" {
 #include <jpeglib.h>
 #include <jerror.h>
 }
+
 
 namespace ppl6 {
 namespace grafix {
@@ -271,10 +271,10 @@ CFilter_JPEG::~CFilter_JPEG()
 {
 }
 
-int CFilter_JPEG::Ident(CFileObject *file, IMAGE *img)
+int CFilter_JPEG::Ident(CFileObject &file, IMAGE &img)
 {
 	bool ret=false;
-	const char *address=file->Map(0,256);
+	const char *address=file.Map(0,256);
 	if (address==NULL) {
 		SetError(1018);
 		return false;
@@ -299,28 +299,28 @@ int CFilter_JPEG::Ident(CFileObject *file, IMAGE *img)
 	cinfo.src = (struct jpeg_source_mgr *) cinfo.mem->alloc_small ((j_common_ptr) &cinfo, JPOOL_PERMANENT,sizeof(SOURCE_MGR));
 
 
-	init_sourcemgr((SOURCE_MGR*) cinfo.src,file,this);
+	init_sourcemgr((SOURCE_MGR*) cinfo.src,&file,this);
 
 
 	if(jpeg_read_header(&cinfo,false)==JPEG_HEADER_OK) {
 
 		if (cinfo.jpeg_color_space==JCS_UNKNOWN) {
-			img->bitdepth=0;
-			img->colors=0;
+			img.bitdepth=0;
+			img.colors=0;
 		}else if (cinfo.jpeg_color_space==JCS_GRAYSCALE) {
-			img->bitdepth=8;
-			img->colors=256;
-			img->format=RGBFormat::GREY8;
+			img.bitdepth=8;
+			img.colors=256;
+			img.format=RGBFormat::GREY8;
 		} else {
-			img->bitdepth=24;
-			img->colors=0x1000000;
-			img->format=RGBFormat::R8G8B8;
+			img.bitdepth=24;
+			img.colors=0x1000000;
+			img.format=RGBFormat::X8R8G8B8;
 		}
 
-		if (img->bitdepth>0) {
-			img->width=cinfo.image_width;
-			img->height=cinfo.image_height;
-			img->pitch=0;
+		if (img.bitdepth>0) {
+			img.width=cinfo.image_width;
+			img.height=cinfo.image_height;
+			img.pitch=0;
 			ret=true;
 		}
 	}
@@ -332,21 +332,13 @@ int CFilter_JPEG::Ident(CFileObject *file, IMAGE *img)
 }
 
 
-int CFilter_JPEG::Load(CFileObject * file, CSurface *surface, IMAGE *img)
+int CFilter_JPEG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 {
 	ppldd buffersize,x,y,rot,gruen,blau;
 	char *buffer;
 	SetError(0);
-	const char *address=file->Map(0,256);
+	const char *address=file.Map(0,256);
 	if (address==NULL) {
-		return false;
-	}
-	if (surface==NULL) {
-		SetError(147);
-		return false;
-	}
-	if (img==NULL) {
-		SetError(136);
 		return false;
 	}
 
@@ -375,7 +367,7 @@ int CFilter_JPEG::Load(CFileObject * file, CSurface *surface, IMAGE *img)
 
 	cinfo.src = (struct jpeg_source_mgr *) cinfo.mem->alloc_small ((j_common_ptr) &cinfo, JPOOL_PERMANENT,sizeof(SOURCE_MGR));
 
-	init_sourcemgr((SOURCE_MGR*) cinfo.src,file,this);
+	init_sourcemgr((SOURCE_MGR*) cinfo.src,&file,this);
 
 
 	if(jpeg_read_header(&cinfo,false)==JPEG_HEADER_OK) {
@@ -385,31 +377,26 @@ int CFilter_JPEG::Load(CFileObject * file, CSurface *surface, IMAGE *img)
 		buffer=(char *)malloc(buffersize);
 		if (buffer!=NULL) {
 			y=0;
-			if (surface->Lock()) {
-				while (cinfo.output_scanline < cinfo.output_height) {
-					jpeg_read_scanlines (&cinfo,(unsigned char **)&buffer,1);
-					rot=gruen=blau=0;
+			while (cinfo.output_scanline < cinfo.output_height) {
+				jpeg_read_scanlines (&cinfo,(unsigned char **)&buffer,1);
+				rot=gruen=blau=0;
 
-					if (img->bitdepth==8) {
-						for (x=0;x<cinfo.output_width;x++) {
-							rot=peekb(buffer+x);
-							surface->PutPixel(x,y,surface->RGB(rot,rot,rot));
-						}
-					} else {
-						for (x=0;x<cinfo.output_width;x++) {
-							rot=peekb(buffer+x*3);
-							gruen=peekb(buffer+x*3+1);
-							blau=peekb(buffer+x*3+2);
-							surface->PutPixel(x,y,surface->RGB(rot,gruen,blau));
-						}
+				if (img.bitdepth==8) {
+					for (x=0;x<cinfo.output_width;x++) {
+						rot=peekb(buffer+x);
+						surface.putPixel(x,y,Color(rot,rot,rot));
 					}
-					y++;
+				} else {
+					for (x=0;x<cinfo.output_width;x++) {
+						rot=peekb(buffer+x*3);
+						gruen=peekb(buffer+x*3+1);
+						blau=peekb(buffer+x*3+2);
+						surface.putPixel(x,y,Color(rot,gruen,blau));
+					}
 				}
-				surface->Unlock();
-				SetError(0);
-			} else {
-				SetError(145);
+				y++;
 			}
+			SetError(0);
 			free (buffer);
 		} else {	// kein Buffer
 			SetError(2);
@@ -422,19 +409,10 @@ int CFilter_JPEG::Load(CFileObject * file, CSurface *surface, IMAGE *img)
 
 }
 
-int CFilter_JPEG::Save (CSurface * surface, CFileObject * file, RECT *area, CAssocArray *param)
+int CFilter_JPEG::Save (const CDrawable &surface, CFileObject &file, CAssocArray *param)
 {
-	ppldd farbe;
 	int x,y;
 	char *buffer;
-	if (surface==NULL) {
-		SetError(147);
-		return false;
-	}
-	if (file==NULL) {
-		SetError(72);
-		return false;
-	}
 
 	int	quality=85;		// 0-100									default=85
 	int	smooth=0;		// 0-100, 0=off, 1=minimal, 100=maximal		default=0
@@ -455,7 +433,7 @@ int CFilter_JPEG::Save (CSurface * surface, CFileObject * file, RECT *area, CAss
 	if (smooth<0) smooth=0;
 	if (smooth>100) smooth=100;
 
-	buffer=(char *)malloc(surface->GetWidth()*3);	// Buffer fuer Scanline
+	buffer=(char *)malloc(surface.width()*3);	// Buffer fuer Scanline
 	if (buffer==0) { SetError(2); return false;}
 
 	struct jpeg_compress_struct cinfo;
@@ -474,10 +452,10 @@ int CFilter_JPEG::Save (CSurface * surface, CFileObject * file, RECT *area, CAss
 	dest->pub.init_destination = init_destination;
 	dest->pub.empty_output_buffer = empty_output_buffer;
 	dest->pub.term_destination = term_destination;
-	dest->file=file;
+	dest->file=&file;
 
-	cinfo.image_width=surface->GetWidth();
-	cinfo.image_height=surface->GetHeight();
+	cinfo.image_width=surface.width();
+	cinfo.image_height=surface.height();
 	cinfo.input_components=3;
 	cinfo.in_color_space=JCS_RGB;
 	jpeg_set_defaults(&cinfo);
@@ -487,22 +465,17 @@ int CFilter_JPEG::Save (CSurface * surface, CFileObject * file, RECT *area, CAss
 	cinfo.smoothing_factor=smooth;
 
 	jpeg_start_compress(&cinfo,true);
-
-	if (surface->Lock()) {
-		for (y=0;y<surface->GetHeight();y++) {
-			for (x=0;x<surface->GetWidth();x++) {
-				farbe=surface->Surface2RGB(surface->GetPixel(x,y));
-				buffer[x*3]=(ppldb)(farbe&255);
-				buffer[x*3+1]=(ppldb)((farbe>>8)&255);
-				buffer[x*3+2]=(ppldb)((farbe>>16)&255);
-			}
-			jpeg_write_scanlines(&cinfo,row_pointer,1);
+	Color farbe;
+	for (y=0;y<surface.height();y++) {
+		for (x=0;x<surface.width();x++) {
+			farbe=surface.getPixel(x,y);
+			buffer[x*3]=(ppldb)farbe.blue();
+			buffer[x*3+1]=(ppldb)farbe.green();
+			buffer[x*3+2]=(ppldb)farbe.red();
 		}
-		surface->Unlock();
-		SetError(0);
-	} else {
-		SetError(145);
+		jpeg_write_scanlines(&cinfo,row_pointer,1);
 	}
+	SetError(0);
 
 	jpeg_finish_compress(&cinfo);
 	jpeg_destroy_compress(&cinfo);
@@ -511,14 +484,14 @@ int CFilter_JPEG::Save (CSurface * surface, CFileObject * file, RECT *area, CAss
 	return false;
 }
 
-const char *CFilter_JPEG::GetName()
+CString CFilter_JPEG::Name()
 {
 	return "JPG";
 }
 
-const char *CFilter_JPEG::GetDescription()
+CString CFilter_JPEG::Description()
 {
-	return "Jpeg";
+	return "JPEG";
 }
 
 

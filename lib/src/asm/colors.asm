@@ -2,13 +2,13 @@
 ;/* This file is part of "Patrick's Programming Library", Version 6 (PPL6).
 ; * Web: http://www.pfp.de/ppl/
 ; *
-; * $Author: patrick $
-; * $Revision: 1.6 $
-; * $Date: 2009/02/07 16:58:17 $
-; * $Id: colors.asm,v 1.6 2009/02/07 16:58:17 patrick Exp $
+; * $Author: pafe $
+; * $Revision: 1.2 $
+; * $Date: 2010/02/12 19:43:56 $
+; * $Id: colors.asm,v 1.2 2010/02/12 19:43:56 pafe Exp $
 ; *
 ;/*******************************************************************************
-; * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+; * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
 ; * All rights reserved.
 ; *
 ; * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 ; *******************************************************************************/
 
 ;/*********************************************************************
-;/** blt.asm                                                         **
+;/** color.asm                                                       **
 ;/*********************************************************************
 
 %include "src/asm/common.asminc"
@@ -198,44 +198,4 @@ SECTION .text
 
 
 
-;/*****************************************************************************
-;/** int AlphaPixelFast_32 (SURFACE *surface, int x, int y, COLOR color)     **
-;/*****************************************************************************
-
-%if elf64=1
-	global AlphaPixelFast_32
-	AlphaPixelFast_32:			; surface=rdi, x=rsi, y=rdx, color=rcx
-		; Zunächst benötigen wir die Surface-Adresse und den Farbwert des Ziels in mm2
-		imul edx, [rdi+SURFACE.pitch]	; y*pitch
-
-		; Wir betrachten zunächst den Alpha-Wert
-		movd mm3,ecx					; Farbe nach mm3
-		add rdx,[rdi+SURFACE.base]		; plus Basisadresse
-		shr ecx,24						; Alpha jetzt in cl
-		mov eax, dword [rdx+rsi*4]		; Pixel einlesen
-		jz .end							; AlphaWert 0?
-			inc cl
-			jz .useForeground			; Wenn Alpha=255 ist, dann Wird der Farbwert ohne Blending geschrieben
-				movd mm2,eax			; Hintergrund nach mm2
-				pxor mm6,mm6			; mm6 benötigen wir für PUNPCKLBW und muß 0 sein
-				movd mm0,ecx			; Alphachannel nach mm0
-				punpcklbw mm3,mm6		; Farbe in mm3 ist jetzt: 0a0r0g0b
-				punpcklbw mm2,mm6		; Hintergrund in mm2: 0a0r0g0b
-				pshufw mm0,mm0,0		; Multiplikator in alle 4 16-Bit Werte
-				psubsw mm3,mm2			; src-dst mit Vorzeichen
-				mov eax,0xff
-				pmullw mm3,mm0			; Farbe mit Multiplikator multiplizieren
-				movd mm7,eax
-				psraw mm3,8				; Das Ergebnis müssen wir unter Berücksichtigung des Vorzeichens durch 256 teilen...
-				pshufw mm7,mm7,0		; 0x00ff00ff00ff00ff in mm7 zum Maskieren
-				paddsw mm3,mm2			; Und den Hintergrund dazuaddieren
-				pand mm3,mm7			; Die oberen Bytes ausmaskieren
-				packuswb mm3,mm6		; die 4 16-Bit Farbwerte in 32Bit unterbringen
-			.useForeground:
-			movd dword [rdx+rsi*4], mm3
-			movd eax,mm3
-		.end:
-		emms
-		ret
-%endif
 

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.10 $
- * $Date: 2009/06/22 13:10:31 $
- * $Id: CFilter_TGA.cpp,v 1.10 2009/06/22 13:10:31 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CFilter_TGA.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,16 +114,10 @@ CFilter_TGA::~CFilter_TGA()
 {
 }
 
-int CFilter_TGA::Ident(CFileObject *file, IMAGE *img)
+int CFilter_TGA::Ident(CFileObject &file, IMAGE &img)
 {
 	TGAHEAD tgafield, *tga=&tgafield;
-
-	if (file==NULL ||img==NULL) {
-        SetError(136);
-        return false;
-    }
-
-    const char *address=file->Map(0,256);
+    const char *address=file.Map(0,256);
     if (address==NULL) return false;
 	PeekHeader(address,tga);
 	//PrintTGAHeader(tga);
@@ -135,11 +129,11 @@ int CFilter_TGA::Ident(CFileObject *file, IMAGE *img)
 		(tga->ImageDescriptor==32 || tga->ImageDescriptor==0) &&
 		(tga->PixelDepth==24 || tga->PixelDepth==32) &&
 		(tga->ImageType==2	|| tga->ImageType==10) ) {
-			img->width=(ppldd)tga->Width;
-			img->height=(ppldd)tga->Height;
-			img->bitdepth=(ppldd)tga->PixelDepth;
-			img->pitch=img->width*img->bitdepth/8;
-			img->colors=(ppldd)256*256*256;
+			img.width=(ppldd)tga->Width;
+			img.height=(ppldd)tga->Height;
+			img.bitdepth=(ppldd)tga->PixelDepth;
+			img.pitch=img.width*img.bitdepth/8;
+			img.colors=(ppldd)256*256*256;
 			SetError(0);
 			//printf ("ok\n");
 			return true;
@@ -150,35 +144,25 @@ int CFilter_TGA::Ident(CFileObject *file, IMAGE *img)
 	return false;
 }
 
-int CFilter_TGA::Load(CFileObject * file, CSurface *surface, IMAGE *img)
+int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 {
 	TGAHEAD tgafield, *tga=&tgafield;
-	ppluint8 	* b1, * b2;
+	ppluint8 	* b1;
 	ppldd   gby,by;
-	ppldd	farbwert;
-
-	if (file==NULL || surface==NULL ||img==NULL) {
-        SetError(136);
-        return false;
-    }
-    ppluint8 *address=(ppluint8*)file->Map();
+	Color	farbwert;
+    ppluint8 *address=(ppluint8*)file.Map();
 	if (address==NULL) {SetError(2); return false; }
 
 	PeekHeader((char*)address,tga);
 
 	//S2i *data=(S2i *)surface->internaldata;
 	//CSurface *PriSurf=((DD2i *) (data->dd_internaldata))->PrimarySurface;
-	gby=img->height*img->pitch;
+	gby=img.height*img.pitch;
     by=gby;
 
 	//printf ("width: %u, height: %u, bitdepth: %u\n",surface->width, surface->height, surface->bitdepth);
     //printf ("img->width: %u, img->height: %u, img->bitdepth: %u\n",img->width, img->height, img->bitdepth);
 
-	b2=(ppluint8*)surface->Lock();
-	if (!b2) {
-		SetError(145);
-		return false;
-	}
 	b1=address+18+tga->IDLength;
 	ppldd mpl=3;
 
@@ -187,97 +171,88 @@ int CFilter_TGA::Load(CFileObject * file, CSurface *surface, IMAGE *img)
 			//printf ("Lese unkomprimierte Bilddaten...\n");
 			if (tga->PixelDepth==32) mpl=4;
 			if (tga->ImageDescriptor==0) {
-				for (int y=(img->height-1);y>=0;y++) {
-                	for (int x=0;x<img->width;x++) {
-                    	farbwert=surface->RGB(b1[x*mpl+2], b1[x*mpl+1], b1[x*mpl] );
-                    	surface->PutPixel (x,y,farbwert);
+				for (int y=(img.height-1);y>=0;y++) {
+                	for (int x=0;x<img.width;x++) {
+                    	farbwert=Color(b1[x*mpl+2], b1[x*mpl+1], b1[x*mpl] );
+                    	surface.putPixel (x,y,farbwert);
                 	}
-                	b1+=img->pitch;
+                	b1+=img.pitch;
             	}
 
 			} else {
-				for (int y=0;y<img->height;y++) {
-                	for (int x=0;x<img->width;x++) {
-                    	farbwert=surface->RGB(b1[x*mpl+2], b1[x*mpl+1], b1[x*mpl] );
-                    	surface->PutPixel (x,y,farbwert);
+				for (int y=0;y<img.height;y++) {
+                	for (int x=0;x<img.width;x++) {
+                    	farbwert=Color(b1[x*mpl+2], b1[x*mpl+1], b1[x*mpl] );
+                    	surface.putPixel (x,y,farbwert);
                 	}
-                	b1+=img->pitch;
+                	b1+=img.pitch;
             	}
 			}
-			SetError(0);
-            surface->Unlock();
             return true;
 			break;
 
 		case 10:				// Komprimierte Daten
-			//printf ("Lese komprimierte Bilddaten...\n");
-			surface->CLS(surface->RGB(255,255,255));
 			int y=0,x=0,byte1,repeat;
 			int zeilen=0;
 			int ym=1;
 
-			if (tga->ImageDescriptor==0) {ym=-1; y=img->height-1; }
+			if (tga->ImageDescriptor==0) {ym=-1; y=img.height-1; }
 
 
-			while (zeilen<img->height) {
+			while (zeilen<img.height) {
 				byte1=peekb((char*)b1++);
 				repeat=(byte1&127)+1;
 				if (byte1&128) {	// Bit 7 gesetzt, es folgt daher ein Farbwert zur Wiederholung
 					if (tga->PixelDepth==24) {
 						//printf ("Addiere 3 Byte dazu\n");
-						farbwert=surface->RGB(b1[2], b1[1], b1[0] );
+						farbwert=Color(b1[2], b1[1], b1[0] );
 						b1+=3;
 					} else {
-						farbwert=surface->RGB(b1[2], b1[1], b1[0] ) + (b1[3]<<24);
+						farbwert=Color(b1[2], b1[1], b1[0],b1[3]);
 						b1+=4;
 					}
 					//printf ("%u mal gleiche Farbe: %u\n",repeat,farbwert);
 					for (int i=0;i<repeat;i++) {
-						surface->PutPixel(x++,y,farbwert);
-						if (x>=img->width) { x=0;y+=ym; zeilen++;}
+						surface.putPixel(x++,y,farbwert);
+						if (x>=img.width) { x=0;y+=ym; zeilen++;}
 
 					}
 				} else {			// Bit 7 geloescht, es folgen unkomprimierte Daten
 					//printf ("%u mal verschiedene Farben\n",repeat);
 					for (int i=0;i<repeat;i++) {
 						if (tga->PixelDepth==24) {
-							farbwert=surface->RGB(b1[2], b1[1], b1[0] );
+							farbwert=Color(b1[2], b1[1], b1[0] );
 							b1+=3;
 						} else {
-							farbwert=surface->RGB(b1[2], b1[1], b1[0] ) + (b1[3]<<24);
+							farbwert=Color(b1[2], b1[1], b1[0],b1[3]);
 							b1+=4;
 						}
-						surface->PutPixel(x++,y,farbwert);
-						if (x>=img->width) { x=0;y+=ym; zeilen++;}
+						surface.putPixel(x++,y,farbwert);
+						if (x>=img.width) { x=0;y+=ym; zeilen++;}
 					}
 				}
 			}
-
-			SetError(0);
-			surface->Unlock();
 			return true;
 			break;
 
 	} // end switch
 
-
-	surface->Unlock();
 	SetError(33);
 	return false;
 }
 
-int CFilter_TGA::Save (CSurface * surface, CFileObject * file, RECT *r, CAssocArray *param)
+int CFilter_TGA::Save (const CDrawable &surface, CFileObject &file, CAssocArray *param)
 {
 	SetError(1020);
 	return false;
 }
 
-const char *CFilter_TGA::GetName()
+CString CFilter_TGA::Name()
 {
 	return "TGA";
 }
 
-const char *CFilter_TGA::GetDescription()
+CString CFilter_TGA::Description()
 {
 	return "TGA (Loader only)";
 }
@@ -285,3 +260,5 @@ const char *CFilter_TGA::GetDescription()
 
 } // EOF namespace grafix
 } // EOF namespace ppl6
+
+

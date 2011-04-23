@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.12 $
- * $Date: 2009/11/26 18:33:50 $
- * $Id: CInt.cpp,v 1.12 2009/11/26 18:33:50 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: CInt.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -176,21 +176,18 @@ bool CInt::operator!=(int val) const
 CInt& CInt::operator=(const char* str)
 {
 	if (str) value=atoi(str);
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator=(const CString &str)
 {
 	value=(int)(str);
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator=(const int val)
 {
 	value=val;
-	Change();
 	return *this;
 }
 
@@ -198,21 +195,18 @@ CInt& CInt::operator=(const int val)
 CInt& CInt::operator=(const CInt &val)
 {
 	value=val.value;
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator+=(const int val)
 {
 	value+=val;
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator|=(const int val)
 {
 	value|=val;
-	Change();
 	return *this;
 }
 
@@ -220,28 +214,24 @@ CInt& CInt::operator|=(const int val)
 CInt CInt::operator+(const int val)
 {
 	value+=val;
-	Change();
 	return *this;
 }
 
 CInt CInt::operator+(const CInt &val)
 {
 	value+=val.value;
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator++()
 {
 	value++;
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator--()
 {
 	value--;
-	Change();
 	return *this;
 }
 
@@ -249,21 +239,18 @@ CInt& CInt::operator--()
 CInt& CInt::operator+=(const CInt &val)
 {
 	value+=val.value;
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator-=(const int val)
 {
 	value-=val;
-	Change();
 	return *this;
 }
 
 CInt& CInt::operator-=(const CInt &val)
 {
 	value-=val.value;
-	Change();
 	return *this;
 }
 

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
  * Web: http://www.pfp.de/ppl/
  *  
- * $Author: patrick $
- * $Revision: 1.37 $
- * $Date: 2009/01/02 00:36:30 $
- * $Id: ppl6-config.h,v 1.37 2009/01/02 00:36:30 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/03/21 15:45:07 $
+ * $Id: ppl6-config.h,v 1.3 2010/03/21 15:45:07 pafe Exp $
  * 
  ******************************************************************************* 
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@
 
 #define HAVE_OPENSSL
 //#define HAVE_LIBCURL
-#define HAVE_SDL
+//#define HAVE_SDL
 #define HAVE_X86_ASSEMBLER
 
 
@@ -92,7 +92,9 @@
 #define HAVE_ERRNO_H
 #endif
 
-
+#ifndef HAVE_MATH_H
+#define HAVE_MATH_H
+#endif
 
 
 #ifndef MB_CUR_MAX

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.43 $
- * $Date: 2009/12/22 10:33:34 $
- * $Id: CWString.cpp,v 1.43 2009/12/22 10:33:34 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/02/22 15:42:06 $
+ * $Id: CWString.cpp,v 1.3 2010/02/22 15:42:06 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -621,7 +621,6 @@ void CWString::ImportBuffer(wchar_t *buffer, size_t bytes)
 	this->buffer=buffer;
 	buffersize=bytes;
 	ReCalcLen();
-	Change();
 }
 
 void CWString::Clear()
@@ -641,7 +640,6 @@ void CWString::Clear()
 	buffersize=len=bufferused=0;
 	extbuffer=NULL;
 	extbuffersize=0;
-	Change();
 }
 
 
@@ -792,7 +790,6 @@ int CWString::Set(const char *text, int bytes)
 #else
 	if (!text) {
 		Clear();
-		Change();
 		return 1;
 	}
 	if ((!iconvimport) && (!InitImportEncoding(extencoding))) return 0;
@@ -823,7 +820,6 @@ int CWString::Set(const char *text, int bytes)
 	((wchar_t*)outbuf)[0]=0;
 	len=wcslen(buffer);
 	bufferused=len*sizeof(wchar_t)+4;
-	Change();
 	return 1;
 #endif
 }
@@ -843,7 +839,6 @@ int CWString::Set(const wchar_t *text, int size)
 {
 	if (!text) {
 		Clear();
-		Change();
 		return 1;
 	}
 	size_t inbytes, inchars;
@@ -864,7 +859,6 @@ int CWString::Set(const wchar_t *text, int size)
 	buffer[inchars]=0;
 	len=inchars;
 	bufferused=len*sizeof(wchar_t)+4;
-	Change();
 	return 1;
 }
 
@@ -1076,7 +1070,6 @@ int CWString::Import(const char *encoding, void *buffer, int bytes)
 	((wchar_t*)outbuf)[0]=0;
 	len=wcslen(this->buffer);
 	bufferused=len*sizeof(wchar_t)+4;
-	Change();
 	return 1;
 #endif
 }
@@ -1113,6 +1106,26 @@ int CWString::Setf(const char *fmt, ...)
     SetError(259);
     return 0;
 }
+
+int CWString::Setf(const wchar_t *fmt, ...)
+//! \brief Erzeugt einen formatierten String
+{
+	va_list args;
+	va_start(args, fmt);
+	char *buff=NULL;
+	// TODO: Verwendung von vswprintf statt vasprintf
+	CString f=fmt;
+	if (vasprintf (&buff, (const char*)f, args)>0 && buff!=NULL) {
+		int ret=Set(buff);
+		va_end(args);
+	    return ret;
+	}
+	va_end(args);
+    if (buff) free(buff);
+    SetError(259);
+    return 0;
+}
+
 
 int CWString::Sprintf(const char *fmt, ...)
 //! \brief Erzeugt einen formatierten String
@@ -1244,7 +1257,6 @@ int CWString::Concat(const char *text, int bytes)
 	((wchar_t*)outbuf)[0]=0;
 	len=wcslen(buffer);
 	bufferused=len*sizeof(wchar_t)+4;
-	Change();
 	return 1;
 #endif
 }
@@ -1280,7 +1292,6 @@ int CWString::Concat(const wchar_t *text, int size)
 	buffer[len+inchars]=0;
 	len=len+inchars;
 	bufferused=len*sizeof(wchar_t)+4;
-	Change();
 	return 1;
 }
 int CWString::Concatf(const char *fmt, ...)
@@ -1299,6 +1310,26 @@ int CWString::Concatf(const char *fmt, ...)
     if (buff) free(buff);
     return 0;
 }
+int CWString::Concatf(const wchar_t *fmt, ...)
+//! \brief Fügt einen formatierten String an das Ende des vorhandenen an
+{
+	va_list args;
+	va_start(args, fmt);
+	char *buff=NULL;
+	// TODO: Verwendung von vswprintf statt vasprintf
+	CString f=fmt;
+	if (vasprintf (&buff, (const char*)f, args)>0 && buff!=NULL) {
+		int ret=Concat(buff);
+		va_end(args);
+		free(buff);
+		return ret;
+	}
+	va_end(args);
+    if (buff) free(buff);
+    return 0;
+}
+
+
 int CWString::Concat(CString *str, int bytes)
 //! \brief Fügt einen String an das Ende des vorhandenen an
 {
@@ -1711,7 +1742,6 @@ void CWString::StripSlashes()
 	if (len!=np) {
 		len=np;
 		bufferused=len*sizeof(wchar_t)+4;
-		Change();
 	}
 }
 
@@ -1817,12 +1847,8 @@ void CWString::Trim()
 			if (start>0)
 				memmove(buffer,buffer+start,(ende-start+2)*sizeof(wchar_t));
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) {
-			Change();
-		}
 	}
 }
 
@@ -1844,10 +1870,8 @@ void CWString::LTrim()
 			if (start>0)
 				memmove(buffer,buffer+start,(len-start+2)*sizeof(wchar_t));
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1868,10 +1892,8 @@ void CWString::RTrim()
 			}
 			buffer[ende+1]=0;
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1894,12 +1916,8 @@ void CWString::Trim(wchar_t c)
 			if (start>0)
 				memmove(buffer,buffer+start,(ende-start+2)*sizeof(wchar_t));
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) {
-			Change();
-		}
 	}
 }
 
@@ -1921,10 +1939,8 @@ void CWString::LTrim(wchar_t c)
 			if (start>0)
 				memmove(buffer,buffer+start,(len-start+2)*sizeof(wchar_t));
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1945,10 +1961,8 @@ void CWString::RTrim(wchar_t c)
 			}
 			buffer[ende+1]=0;
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -1981,10 +1995,8 @@ void CWString::LTrim(const char *str)
 			if (start>0)
 				memmove(buffer,buffer+start,(len-start+2)*sizeof(wchar_t));
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -2016,10 +2028,8 @@ void CWString::RTrim(const char *str)
 			}
 			buffer[ende+1]=0;
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -2050,10 +2060,8 @@ void CWString::Chomp()
 			if (start>0)
 				memmove(buffer,buffer+start,ende-start+2);
 		}
-		size_t oldlen=len;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
-		if (len!=oldlen) Change();
 	}
 }
 
@@ -2062,13 +2070,11 @@ void CWString::Chop(int chars)
 {
 	if (buffer) {
 		if (len>0) {
-			size_t oldlen=len;
 			size_t c=(size_t)chars;
 			if (len<c) c=len;
 			len-=c;
 			buffer[len]=0;
 			bufferused=len*sizeof(wchar_t)+4;
-			if (len!=oldlen) Change();
 		}
 	}
 }
@@ -2084,11 +2090,9 @@ void CWString::Cut(int position)
 	size_t c=(size_t)position;
 	if (!len) return;
 	if (c>len) return;
-	size_t oldlen=len;
 	buffer[c]=0;
 	len=c;
 	bufferused=len*sizeof(wchar_t)+4;
-	if (len!=oldlen) Change();
 }
 
 
@@ -2102,11 +2106,9 @@ void CWString::TrimL(int chars)
 	size_t c=(size_t)chars;
 	if (c>len) c=len;
 	memmove(buffer,buffer+chars,(len-chars)*sizeof(wchar_t));
-	size_t oldlen=len;
 	len-=chars;
 	buffer[len]=0;
 	bufferused=len*sizeof(wchar_t)+4;
-	if (len!=oldlen) Change();
 }
 
 void CWString::TrimR(int chars)
@@ -2117,11 +2119,9 @@ void CWString::TrimR(int chars)
 	if (!len) return;
 	size_t c=(size_t)chars;
 	if (c>len) c=len;
-	size_t oldlen=len;
 	len-=chars;
 	buffer[len]=0;
 	bufferused=len*sizeof(wchar_t)+4;
-	if (len!=oldlen) Change();
 }
 
 void CWString::LCase()
@@ -2145,16 +2145,13 @@ void CWString::LCase()
 {
 	if (!buffer) return;
 	wchar_t c,wc;
-	bool ch=false;
 	for (size_t i=0;i<len;i++) {
 		wc=buffer[i];
 		c=towlower(wc);
 		if (c!=(wchar_t)WEOF) {
-			if (c!=wc) ch=true;
 			buffer[i]=c;
 		}
 	}
-	if (ch)	Change();
 }
 
 void CWString::UCase()
@@ -2178,16 +2175,13 @@ void CWString::UCase()
 {
 	if (!buffer) return;
 	wchar_t c,wc;
-	bool ch=false;
 	for (size_t i=0;i<len;i++) {
 		wc=buffer[i];
 		c=towupper(wc);
 		if (c!=(wchar_t)WEOF) {
-			if (c!=wc) ch=true;
 			buffer[i]=c;
 		}
 	}
-	if (ch)	Change();
 }
 
 void CWString::UCWords()
@@ -2200,14 +2194,12 @@ void CWString::UCWords()
 {
 	if (!buffer) return;
 	wchar_t c,wc;
-	bool ch=false;
 	bool wordstart=true;
 	for (size_t i=0;i<len;i++) {
 		wc=buffer[i];
 		if (wordstart) {
 			c=towupper(wc);
 			if (c!=(wchar_t)WEOF) {
-				if (c!=wc) ch=true;
 				buffer[i]=c;
 			}
 		}
@@ -2217,7 +2209,6 @@ void CWString::UCWords()
 			wordstart=false;
 		}
 	}
-	if (ch)	Change();
 }
 
 
@@ -3513,6 +3504,7 @@ wchar_t CWString::operator[](int pos)
  */
 {
 	if (!len) return 0;
+	if (!buffer) return 0;
 	if (pos>(int)len) return 0;
 	if (pos<0) pos=(int)len+pos;
 	if (pos<0) return 0;

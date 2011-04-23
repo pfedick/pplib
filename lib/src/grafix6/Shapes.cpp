@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.14 $
- * $Date: 2009/02/13 11:27:09 $
- * $Id: Shapes.cpp,v 1.14 2009/02/13 11:27:09 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/02/20 13:25:20 $
+ * $Id: Shapes.cpp,v 1.3 2010/02/20 13:25:20 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +65,8 @@ extern "C" {
 namespace ppl6 {
 namespace grafix {
 
+static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color);
+
 /*
 static int ClearScreen_16 (SURFACE *surface, COLOR color)
 {
@@ -81,95 +83,75 @@ static int ClearScreen_16 (SURFACE *surface, COLOR color)
 }
 */
 
-static int ClearScreen_8 (SURFACE *surface, COLOR color)
+static void ClearScreen_8 (DRAWABLE_DATA &data, SurfaceColor c)
 {
-	if (!surface->Lock(surface)) return 0;
 	int x,y;
 	ppluint8 *adr;
-	adr=surface->base8;
-	for (y=0;y<surface->height;y++) {
-		for (x=0;x<surface->width;x++) adr[x]=(ppluint8)color;
-		adr+=surface->pitch8;
+	adr=data.base8;
+	for (y=0;y<data.height;y++) {
+		for (x=0;x<data.width;x++) adr[x]=(ppluint8)c;
+		adr+=data.pitch;
 	}
-	surface->Unlock(surface);
-	return 1;
 }
 
-static int ClearScreen_32 (SURFACE *surface, COLOR color)
+static void ClearScreen_32 (DRAWABLE_DATA &data, SurfaceColor c)
 {
-	if (!surface->Lock(surface)) return 0;
+	FillRect_32(data,Rect(0,0,data.width,data.height),c);
+	/*
 	int x,y;
-	ppldd *adr32;
-	adr32=surface->base32;
-	for (y=0;y<surface->height;y++) {
-		for (x=0;x<surface->width;x++) adr32[x]=(ppldd)color;
-		adr32+=surface->pitch32;
+	ppluint32 *adr32;
+	adr32=data.base32;
+	ppluint32 pitch32=data.pitch>>2;
+	for (y=0;y<data.height;y++) {
+		for (x=0;x<data.width;x++) adr32[x]=(ppluint32)c;
+		adr32+=pitch32;
 	}
-	surface->Unlock(surface);
-	return 1;
+	*/
 }
 
 
-static int Rect_32 (SURFACE *surface, RECT *r, COLOR Farbe)
+static void DrawRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 {
-	//DLOGLEVEL(8) ("%u->CSurface::Box_32(%u,%u,%u,%u,%u,%u)",data->sclass,x1,y1,x2,y2,Farbe,Flags);
-	int y,x;
-	if (r->left<surface->clipper.left || r->top<surface->clipper.top || r->right>=surface->clipper.right || r->bottom>=surface->clipper.bottom) {
-		y=r->bottom-1;
-		for (x=r->left;x<r->right;x++) {
-			surface->PutPixel(surface,x,r->top,Farbe);
-			surface->PutPixel(surface,x,y,Farbe);
-		}
-		x=r->right-1;
-		for (y=r->top;y<r->bottom;y++) {
-			surface->PutPixel(surface,r->left,y,Farbe);
-			surface->PutPixel(surface,x,y,Farbe);
-		}
-
-		return 1;
-	}
-
-	ppldd * pp;
-	ppldd pitch32=surface->pitch32;
-	pp=surface->base32+r->top*pitch32;
-	for (x=r->left;x<r->right;x++) pp[x]=(ppldd)Farbe;
-	x=r->right-1;
-	for (y=r->top+1;y<r->bottom;y++) {
+	int x,y;
+	ppluint32 * pp;
+	ppluint32 pitch32=data.pitch>>2;
+	pp=data.base32+r.top()*pitch32+r.left();
+	for (x=0;x<r.width();x++) pp[x]=(ppldd)color;
+	x=r.width()-1;
+	for (y=1;y<r.height();y++) {
 		pp+=pitch32;
-		pp[r->left]=(ppldd)Farbe;
-		pp[x]=(ppldd)Farbe;
+		pp[0]=(ppldd)color;
+		pp[x]=(ppldd)color;
 	}
-	for (x=r->left;x<r->right;x++) pp[x]=(ppldd)Farbe;
-	return 1;
+	for (x=0;x<r.width();x++) pp[x]=(ppldd)color;
 }
 
-static int FillRect_32 (SURFACE *data, RECT *r, COLOR Farbe)
+static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 {
-	//DLOGLEVEL(8) ("%u->CSurface::Box_32(%u,%u,%u,%u,%u,%u)",data->sclass,x1,y1,x2,y2,Farbe,Flags);
-
-	if (!data->Surface->FitRect (r)) return 0;
+	Rect s(0,0,data.width,data.height);
+	Rect in=s.intersected(r);
+	if (in.isNull()) return;
 	#ifdef HAVE_X86_ASSEMBLER
 		RECTDATA d;
-		d.tgt=(ppluint32*)(data->base8+r->top*data->pitch8+r->left*data->bytes_per_pixel);
-		d.width=r->right-r->left;
-		d.height=r->bottom-r->top;
-		d.pitch=data->pitch8;
-		d.color=Farbe;
+		d.tgt=data.base8+in.top()*data.pitch+in.left()*data.rgbformat.bytesPerPixel();
+		d.width=in.width();
+		d.height=in.height();
+		d.pitch=data.pitch;
+		d.color=color;
 		ASM_FillRect32(&d);
 	#else
-		ppldd * pp;
-		ppldds y,x;
-		ppldd pitch32=data->pitch32;
-		pp=data->base32+r->top*pitch32;
-		for (y=r->top;y<r->bottom;y++) {
-			for (x=r->left;x<r->right;x++) pp[x]=(ppldd)Farbe;
+		ppluint32 * pp;
+		int y,x;
+		ppluint32 pitch32=data.pitch>>2;
+		pp=data.base32+in.top()*pitch32;
+		for (y=in.top();y<=in.bottom();y++) {
+			for (x=in.left();x<=in.right();x++) pp[x]=(ppldd)color;
 			pp+=pitch32;
 		}
 	#endif
-	return 1;
 }
 
-
+/*
 static int Xchange_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR farbe, COLOR ersatzfarbe)
 {
 	ppldds y,x;
@@ -243,12 +225,13 @@ static int Negativ_32 (SURFACE* data, int x1, int y1, int x2, int y2)
 	}
 	return 1;
 }
+*/
 
-int CGrafix::InitShapes(SURFACE *s)
+int CGrafix::InitShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 /*!\brief Initialisiert Funktionen zur Behandlung von Rechtecken
  *
  * \desc
- * Diese Funktion initialisiert eine Reihe von Funktionen zur bearbeitung von Rechtecken.
+ * Diese Funktion initialisiert eine Reihe von Funktionen zur Bearbeitung von Rechtecken.
  * Dabei handelt es sich um die Funktionen:
  * - CLS
  * - Rect
@@ -257,33 +240,96 @@ int CGrafix::InitShapes(SURFACE *s)
  * - Invert
  * - Negativ
  *
- * @param[in] s Pointer auf die SURFACE-Struktur der Oberfläche
+ * @param[in] format Das gewünschte Farbformat
+ * @param[in] fn Pointer auf die Struktur mit den Funktionen
  * @return Liefert 1 zurück, wenn das Farbformat unterstützt wird, sonst 0
  */
 {
-	switch (s->rgbformat) {
+	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
 		case RGBFormat::A8B8G8R8:
 		case RGBFormat::X8B8G8R8:
 		case RGBFormat::X8R8G8B8:
-			if (!s->CLS) s->CLS=ClearScreen_32;
-			if (!s->Rect) s->Rect=Rect_32;
-			if (!s->FillRect) s->FillRect=FillRect_32;
-			if (!s->Xchange) s->Xchange=Xchange_32;
-			if (!s->Invert) s->Invert=Invert_32;
-			if (!s->Negativ) s->Negativ=Negativ_32;
+			fn->CLS=ClearScreen_32;
+			fn->DrawRect=DrawRect_32;
+			fn->FillRect=FillRect_32;
+			//fn->Xchange=Xchange_32;
+			//fn->Invert=Invert_32;
+			//fn->Negativ=Negativ_32;
 			return 1;
 		case RGBFormat::A8:
 		case RGBFormat::GREY8:
-			if (!s->CLS) s->CLS=ClearScreen_8;
+			fn->CLS=ClearScreen_8;
 			return 1;
 	}
-	SetError(1013,"RGBFormat=%s (%i)",GetRGBFormatName(s->rgbformat),s->rgbformat);
+	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
 	return 0;
 }
 
+/*!\brief Grafik löschen
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird die komplette Grafik gelöscht und mit
+ * der Angegebenen Farbe \c gefüllt.
+ *
+ * \param[in] c Farbwert
+ */
+void CDrawable::cls(const Color &c)
+{
+	if (fn->FillRect) {
+		fn->FillRect(data,Rect(0,0,data.width,data.height),rgb(c));
+		return;
+	}
+	if (fn->CLS) fn->CLS(data,rgb(c));
+}
 
-int CSurface::Rect(int x1, int y1, int x2, int y2, COLOR c)
+/*!\brief Grafik löschen
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird die komplette Grafik gelöscht, indem
+ * der Speicherbereich mit 0 beschrieben wird. Optional kann die Funktion
+ * auch mit einem Farbwert aufgerufen werden (siehe CDrawable::cls(const Color &c)).
+ */
+void CDrawable::cls()
+{
+	if (fn->FillRect) {
+		fn->FillRect(data,Rect(0,0,data.width,data.height),0);
+		return;
+	}
+	if (fn->CLS) fn->CLS(data,0);
+}
+
+
+/*!\brief Rechteck zeichnen
+ *
+ * \desc
+ * Diese Funktion zeichnet ein Rechteck an die gewünschte Position
+ *
+ * @param[in] rect Koordinaten des Rechtecks
+ * @param[in] c Farbe des Rechtecks
+ */
+void CDrawable::drawRect(const Rect &rect, const Color &c)
+{
+	int y1,x1,y2,x2;
+	if (rect.left()<0 || rect.top()<0 || rect.right()>=data.width || rect.bottom()>=data.height) {
+		y1=rect.y1();
+		y2=rect.y2();
+		for (x1=rect.x1();x1<rect.right();x1++) {
+			putPixel(x1,y1,c);
+			putPixel(x1,y2,c);
+		}
+		x1=rect.x1();
+		x2=rect.x2();
+		for (y1=rect.top();y1<rect.bottom();y1++) {
+			putPixel(x1,y1,c);
+			putPixel(x2,y1,c);
+		}
+		return;
+	}
+	if (fn->DrawRect) fn->DrawRect(data,rect,rgb(c));
+}
+
+
 /*!\brief Rechteck zeichnen
  *
  * \desc
@@ -294,25 +340,31 @@ int CSurface::Rect(int x1, int y1, int x2, int y2, COLOR c)
  * @param[in] x2 X-Koordinate der unteren rechten Ecke
  * @param[in] y2 Y-Koordinate der unteren rechten Ecke
  * @param[in] c Farbe des Rechtecks
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
- *
  */
+void CDrawable::drawRect(int x1, int y1, int x2, int y2, const Color &c)
 {
-	RECT r;
-	r.left=x1+s.originx;
-	r.top=y1+s.originy;
-	r.right=x2+1+s.originx;
-	r.bottom=y2+1+s.originy;
-	if (s.Rect) return s.Rect(&s,&r,c);
-	SetError(1012,"Rect");
-	return 0;
+	Rect r;
+	r.setCoords(x1,y1,x2,y2);
+	drawRect(r,c);
+	//if (fn->DrawRect) fn->DrawRect(data,r,RGB(c));
 }
 
-int CSurface::FillRect(int x1, int y1, int x2, int y2, COLOR c)
+
+
+/*!\brief Ausgefülltes Rechteck zeichnen
+ *
+ * \desc
+ * Diese Funktion zeichnet ein ausgefülltes Rechteck in der Farbe \p c an die gewünschte Position
+ *
+ * @param[in] rect Koordinaten des Rechtecks
+ * @param[in] c Farbe des Rechtecks
+ *
+ */
+void CDrawable::fillRect(const Rect &rect, const Color &c)
+{
+	if (fn->FillRect) fn->FillRect(data,rect,rgb(c));
+}
+
 /*!\brief Ausgefülltes Rechteck zeichnen
  *
  * \desc
@@ -323,255 +375,59 @@ int CSurface::FillRect(int x1, int y1, int x2, int y2, COLOR c)
  * @param[in] x2 X-Koordinate der unteren rechten Ecke
  * @param[in] y2 Y-Koordinate der unteren rechten Ecke
  * @param[in] c Farbe des Rechtecks
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
  *
  */
+void CDrawable::fillRect(int x1, int y1, int x2, int y2, const Color &c)
 {
-	RECT r;
-	r.left=x1+s.originx;
-	r.top=y1+s.originy;
-	r.right=x2+1+s.originx;
-	r.bottom=y2+1+s.originy;
-	if (s.FillRect) return s.FillRect(&s,&r,c);
-	SetError(1012,"Rect");
-	return 0;
+	Rect r;
+	r.setCoords(x1,y1,x2,y2);
+	if (fn->FillRect) fn->FillRect(data,r,rgb(c));
 }
 
-int CSurface::Rect(int x1, int y1, int x2, int y2)
-/*!\brief Rechteck zeichnen
- *
- * \desc
- * Diese Funktion zeichnet ein Rechteck an die gewünschte Position. Als Farbe wird die
- * mit CSurface::SetColor gesetzt Farbe verwendet.
- *
- * @param[in] x1 X-Koordinate der oberen linken Ecke
- * @param[in] y1 Y-Koordinate der oberen linken Ecke
- * @param[in] x2 X-Koordinate der unteren rechten Ecke
- * @param[in] y2 Y-Koordinate der unteren rechten Ecke
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
- */
-{
-	RECT r;
-	r.left=x1+s.originx;
-	r.top=y1+s.originy;
-	r.right=x2+1+s.originx;
-	r.bottom=y2+1+s.originy;
-	if (s.Rect) return s.Rect(&s,&r,s.lastcolor);
-	SetError(1012,"Rect");
-	return 0;
-}
-
-int CSurface::FillRect(int x1, int y1, int x2, int y2)
-/*!\brief Ausgefülltes Rechteck zeichnen
- *
- * \desc
- * Diese Funktion zeichnet ein ausgefülltes Rechteck an die gewünschte Position. Als Farbe wird die
- * mit CSurface::SetColor gesetzt Farbe verwendet.
- *
- * @param[in] x1 X-Koordinate der oberen linken Ecke
- * @param[in] y1 Y-Koordinate der oberen linken Ecke
- * @param[in] x2 X-Koordinate der unteren rechten Ecke
- * @param[in] y2 Y-Koordinate der unteren rechten Ecke
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
- */
-{
-	RECT r;
-	r.left=x1+s.originx;
-	r.top=y1+s.originy;
-	r.right=x2+1+s.originx;
-	r.bottom=y2+1+s.originy;
-	if (s.FillRect) return s.FillRect(&s,&r,s.lastcolor);
-	SetError(1012,"Rect");
-	return 0;
-}
-
-int CSurface::Rect(RECT *r)
-/*!\brief Rechteck zeichnen
- *
- * \desc
- * Diese Funktion zeichnet ein Rechteck an die gewünschte Position. Als Farbe wird die
- * mit CSurface::SetColor gesetzt Farbe verwendet.
- *
- * @param[in] r Pointer auf eine RECT-Struktur mit den gewünschten Koordinaten.
- * Dabei ist darauf zu achten, dass die Koordinaten für die rechte untere Ecke und einen Pixel
- * erhöht sein müssen.
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
- */
-{
-	if (!r) return 0;
-	RECT rr;
-	rr.left=r->left+s.originx;
-	rr.top=r->top+s.originy;
-	rr.right=r->right+s.originx;
-	rr.bottom=r->bottom+s.originy;
-	if (s.Rect) return s.Rect(&s,&rr,s.lastcolor);
-	SetError(1012,"Rect");
-	return 0;
-}
-
-int CSurface::FillRect(RECT *r)
-/*!\brief Ausgefülltes Rechteck zeichnen
- *
- * \desc
- * Diese Funktion zeichnet ein ausgefülltes Rechteck an die gewünschte Position. Als Farbe wird die
- * mit CSurface::SetColor gesetzt Farbe verwendet.
- *
- * @param[in] r Pointer auf eine RECT-Struktur mit den gewünschten Koordinaten.
- * Dabei ist darauf zu achten, dass die Koordinaten für die rechte untere Ecke und einen Pixel
- * erhöht sein müssen.
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
- */
-{
-	if (!r) return 0;
-	RECT rr;
-	rr.left=r->left+s.originx;
-	rr.top=r->top+s.originy;
-	rr.right=r->right+s.originx;
-	rr.bottom=r->bottom+s.originy;
-	if (s.FillRect) return s.FillRect(&s,&rr,s.lastcolor);
-	SetError(1012,"Rect");
-	return 0;
-}
-
-int CSurface::Rect(RECT *r, COLOR c)
-/*!\brief Rechteck zeichnen
- *
- * \desc
- * Diese Funktion zeichnet ein Rechteck an die gewünschte Position.
- *
- * @param[in] r Pointer auf eine RECT-Struktur mit den gewünschten Koordinaten.
- * Dabei ist darauf zu achten, dass die Koordinaten für die rechte untere Ecke und einen Pixel
- * erhöht sein müssen.
- * @param[in] c Farbe des Rechtecks
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
- */
-{
-	if (!r) return 0;
-	RECT rr;
-	rr.left=r->left+s.originx;
-	rr.top=r->top+s.originy;
-	rr.right=r->right+s.originx;
-	rr.bottom=r->bottom+s.originy;
-	if (s.Rect) return s.Rect(&s,&rr,c);
-	SetError(1012,"Rect");
-	return 0;
-}
-
-int CSurface::FillRect(RECT *r, COLOR c)
-/*!\brief Ausgefülltes Rechteck zeichnen
- *
- * \desc
- * Diese Funktion zeichnet ein ausgefülltes Rechteck an die gewünschte Position.
- *
- * @param[in] r Pointer auf eine RECT-Struktur mit den gewünschten Koordinaten.
- * Dabei ist darauf zu achten, dass die Koordinaten für die rechte untere Ecke und einen Pixel
- * erhöht sein müssen.
- * @param[in] c Farbe des Rechtecks
- * @return Die Funktion liefert 1 zurück, wenn das Rechteck gezeichnet werden konnte, sonst 0.
- *
- * \remarks
- * Falls zuvor die Funktion CSurface::SetOrigin aufgerufen wurde, werden die Dort festgelegten Koordinaten
- * zum x- und y-Wert hinzuaddiert.
- */
-{
-	if (!r) return 0;
-	RECT rr;
-	rr.left=r->left+s.originx;
-	rr.top=r->top+s.originy;
-	rr.right=r->right+s.originx;
-	rr.bottom=r->bottom+s.originy;
-	if (s.FillRect) return s.FillRect(&s,&rr,c);
-	SetError(1012,"Rect");
-	return 0;
-}
-
-
-int CSurface::Xchange(int x1, int y1, int x2, int y2, COLOR color, COLOR ersatzfarbe)
+void CDrawable::xchange(const Rect &rect, const Color &color, const Color &replace)
 /*!\brief Farben ersetzen
  *
  * \desc
  * Mit dieser Funktion werden sämtliche Pixel innerhalb eines Rechtecks, die der Farbe \p color
- * entsprechen, durch die \p ersatzfarbe ersetzt
- * @param[in] x1 X-Koordinate der oberen linken Ecke
- * @param[in] y1 Y-Koordinate der oberen linken Ecke
- * @param[in] x2 X-Koordinate der unteren rechten Ecke
- * @param[in] y2 Y-Koordinate der unteren rechten Ecke
+ * entsprechen, durch die Ersatzfarbe \p replace ersetzt
+ * @param[in] rect Koordinaten des Rechtecks
  * @param color Alte Farbe
- * @param ersatzfarbe Neu Farbe
- * @return Die Funktion gibt ber Erfolg 1 zurück, sonst 0.
+ * @param replace Neu Farbe
  */
 {
-	if (s.Xchange) return s.Xchange(&s,x1+s.originx,y1+s.originy,x2+s.originx,y2+s.originy,color,ersatzfarbe);
-	SetError(1012,"Xchange");
-	return 0;
+	if (fn->Xchange) fn->Xchange(data,rect,rgb(color),rgb(replace));
 }
 
-int CSurface::Invert(int x1, int y1, int x2, int y2, COLOR color1, COLOR color2)
+void CDrawable::invert(const Rect &rect, const Color &color1, const Color &color2)
 /*!\brief Farben vertauschen
  *
  * \desc
  * Mit dieser Funktion werden sämtliche Pixel innerhalb eines Rechtecks, die der Farbe \p color1
  * entsprechen, durch \p color2 ersetzt, und alle Farben mit dem Farbwert \p color2 werden durch
  * \p color1 ersetzt.
- * @param[in] x1 X-Koordinate der oberen linken Ecke
- * @param[in] y1 Y-Koordinate der oberen linken Ecke
- * @param[in] x2 X-Koordinate der unteren rechten Ecke
- * @param[in] y2 Y-Koordinate der unteren rechten Ecke
+ * @param[in] rect Koordinaten des Rechtecks
  * @param[in] color1 Erste Farbe
  * @param[in] color2 Zweite Farbe
- * @return Die Funktion gibt ber Erfolg 1 zurück, sonst 0.
  */
 {
-	if (s.Invert) return s.Invert(&s,x1+s.originx,y1+s.originy,x2+s.originx,y2+s.originy,color1,color2);
-	SetError(1012,"Invert");
-	return 0;
+	if (fn->Invert) fn->Invert(data,rect,rgb(color1),rgb(color2));
 }
 
-int CSurface::Negativ(int x1, int y1, int x2, int y2)
+void CDrawable::negativ(const Rect &rect)
 /*!\brief Negativ-Farben erstellen
  *
  * \desc
  * Mit dieser Funktion werden sämtliche Pixel innerhalb eines Rechtecks durch ihren negativen Wert
  * ersetzt.
  *
- * @param[in] x1 X-Koordinate der oberen linken Ecke
- * @param[in] y1 Y-Koordinate der oberen linken Ecke
- * @param[in] x2 X-Koordinate der unteren rechten Ecke
- * @param[in] y2 Y-Koordinate der unteren rechten Ecke
- * @return Die Funktion gibt ber Erfolg 1 zurück, sonst 0.
+ * @param[in] rect Koordinaten des Rechtecks
  */
 {
-	if (s.Negativ) return s.Negativ(&s,x1+s.originx,y1+s.originy,x2+s.originx,y2+s.originy);
-	SetError(1012,"Negativ");
-	return 0;
+	if (fn->Negativ) fn->Negativ(data,rect);
 }
 
 
-void CSurface::FloodFill (int x, int y, COLOR color, COLOR border)
+void CDrawable::floodFill (int x, int y, const Color &color, const Color &border)
 /*!\brief Fläche mit Farbe füllen
  *
  * \desc
@@ -605,10 +461,10 @@ void CSurface::FloodFill (int x, int y, COLOR color, COLOR border)
 	int i;
 	leftLimit = (-1);
 	for (i = x; (i >= 0); i--) {
-		if (this->GetPixel(i, y) == border) {
+		if (getPixel(i, y) == border) {
 			break;
 		}
-		this->PutPixel(i, y, color);
+		putPixel(i, y, color);
 		leftLimit = i;
 	}
 	if (leftLimit == (-1)) {
@@ -616,11 +472,11 @@ void CSurface::FloodFill (int x, int y, COLOR color, COLOR border)
 	}
 	/* Seek right */
 	rightLimit = x;
-	for (i = (x+1); (i < s.width); i++) {
-		if (this->GetPixel(i, y) == border) {
+	for (i = (x+1); (i < data.width); i++) {
+		if (getPixel(i, y) == border) {
 			break;
 		}
-		this->PutPixel(i, y, color);
+		putPixel(i, y, color);
 		rightLimit = i;
 	}
 	/* Look at lines above and below and start paints */
@@ -628,11 +484,11 @@ void CSurface::FloodFill (int x, int y, COLOR color, COLOR border)
 	if (y > 0) {
 		lastBorder = 1;
 		for (i = leftLimit; (i <= rightLimit); i++) {
-			ppldd c;
-			c = this->GetPixel(i, y-1);
+			Color c;
+			c = getPixel(i, y-1);
 			if (lastBorder) {
 				if ((c != border) && (c != color)) {
-					FloodFill(i, y-1,color,border);
+					floodFill(i, y-1,color,border);
 					lastBorder = 0;
 				}
 			} else if ((c == border) || (c == color)) {
@@ -641,14 +497,14 @@ void CSurface::FloodFill (int x, int y, COLOR color, COLOR border)
 		}
 	}
 	/* Below */
-	if (y < ((s.height) - 1)) {
+	if (y < ((data.height) - 1)) {
 		lastBorder = 1;
 		for (i = leftLimit; (i <= rightLimit); i++) {
-			ppldd c;
-			c = this->GetPixel(i, y+1);
+			Color c;
+			c = getPixel(i, y+1);
 			if (lastBorder) {
 				if ((c != border) && (c != color)) {
-					FloodFill(i, y+1,color,border);
+					floodFill(i, y+1,color,border);
 					lastBorder = 0;
 				}
 			} else if ((c == border) || (c == color)) {
@@ -662,61 +518,63 @@ void CSurface::FloodFill (int x, int y, COLOR color, COLOR border)
 /**************************************************************************
  * Kreise: Elipse, Circle                                                 *
  **************************************************************************/
-void CSurface::Elipse (int x, int y, int radiusx, int radiusy, COLOR Farbe, int Flags)
+void CDrawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fill)
 {
 	int d;
 	int i,x1,y1,x2=0,y2=0;
 	for (i=0;i<1025;i++) {
-		x1 = x + (sinus1024(i) * radiusx/1024);
-		y1 = y + (cosinus1024(i) * radiusy/1024);
+		x1 = x + (sinus1024(i) * radx/1024);
+		y1 = y + (cosinus1024(i) * rady/1024);
 		if (i > 0) {
 			d=abs(x2-x1)+abs(y2-y1);
 			if (d > 1)
-				Line (x1, y1, x2, y2, Farbe);
+				line (x1, y1, x2, y2, c);
 			else if (d==1)
-				PutPixel (x1,y1,Farbe);
+				putPixel (x1,y1,c);
 		}
 		x2 = x1;
 		y2 = y1;
 	}
-	if (Flags &1) FloodFill (x, y, Farbe, Farbe);
+	if (fill) floodFill (x, y, c, c);
 }
 
-void CSurface::Elipse (int x, int y, int radiusx, int radiusy, COLOR Farbe, int Flags, COLOR Fuellfarbe, int startwinkel, int endwinkel)
+//void CSurface::Elipse (int x, int y, int radiusx, int radiusy, COLOR Farbe, int Flags, COLOR Fuellfarbe, int startwinkel, int endwinkel)
+void CDrawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fill, const Color &fillcolor, int start, int end)
 {
 	int d;
 	int i,x1,y1,x2,y2;
-	if (startwinkel!=endwinkel) {
-		x2 = x + (sinus1024(startwinkel) * radiusx/1024);
-		y2 = y + (cosinus1024(startwinkel) * radiusy/1024);
-		PutPixel (x2,y2,Farbe);
+	if (start!=end) {
+		x2 = x + (sinus1024(start) * radx/1024);
+		y2 = y + (cosinus1024(start) * rady/1024);
+		putPixel (x2,y2,c);
 
-		for (i=startwinkel;i<endwinkel+1;i++) {
-			x1 = x + (sinus1024(i) * radiusx/1024);
-			y1 = y + (cosinus1024(i) * radiusy/1024);
+		for (i=start;i<end+1;i++) {
+			x1 = x + (sinus1024(i) * radx/1024);
+			y1 = y + (cosinus1024(i) * rady/1024);
 			if (i > 0) {
 				d=abs(x2-x1)+abs(y2-y1);
 				if (d > 1)
-					Line (x1, y1, x2, y2, Farbe);
+					line (x1, y1, x2, y2, c);
 				else if (d==1)
-					PutPixel (x1,y1,Farbe);
+					putPixel (x1,y1,c);
 			}
 			x2 = x1;
 			y2 = y1;
 		}
-		if (Flags &1) {
-			x1 = x + (sinus1024((startwinkel+endwinkel)/2) * (radiusx-2)/1024);
-			y1 = y + (cosinus1024((startwinkel+endwinkel)/2) * (radiusy-2)/1024);
-			FloodFill (x1, y1, Fuellfarbe, Farbe);
+		if (fill) {
+			x1 = x + (sinus1024((start+end)/2) * (radx-2)/1024);
+			y1 = y + (cosinus1024((start+end)/2) * (rady-2)/1024);
+			floodFill (x1, y1, fillcolor, c);
 		}
 	}
 }
 
-void CSurface::Circle (int x, int y, int radius, COLOR Farbe, int Flags)
+void CDrawable::circle (int x, int y, int rad, const Color &c, bool fill)
 {
-	Elipse(x,y,radius,radius,Farbe,Flags);
+	elipse(x,y,rad,rad,c,fill);
 }
 
+/*
 void CSurface::Polygon (int count, POINT *points, COLOR color, int Flags)
 {
 	POINT *p=points;
@@ -732,44 +590,41 @@ void CSurface::Polygon (int count, POINT *points, COLOR color, int Flags)
 		Line (points->x,points->y,color);
 	}
 }
+*/
 
-void CSurface::ColorGradient(int x1, int y1, int x2, int y2, COLOR color1, COLOR color2, int direction)
+void CDrawable::colorGradient(const Rect &rect, const Color &c1, const Color &c2, int direction)
 {
-	RGBA col1, col2;
-	Surface2RGB(color1,&col1);
-	Surface2RGB(color2,&col2);
-	ColorGradient(x1,y1,x2,y2,&col1,&col2,direction);
+	colorGradient(rect.x1(), rect.y1(), rect.x2(), rect.y2(),c1,c2,direction);
 }
 
-void CSurface::ColorGradient(int x1, int y1, int x2, int y2, RGBA *color1, RGBA *color2, int direction)
+void CDrawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, const Color &c2, int direction)
 {
-	RGBA c;
+	Color c;
 	ppldd w1,w2;
 	int range;
-	c.alpha=255;
+	c.setAlpha(255);
 	if (direction==0) {
 		range=x2-x1+1;
 		for (ppldds x=0; x<range; x++) {
 			w1=range-x;
 			w2=x;
-			c.red=(ppldb)((color1->red*w1/range)+(color2->red*w2/range));
-			c.green=(ppldb)((color1->green*w1/range)+(color2->green*w2/range));
-			c.blue=(ppldb)((color1->blue*w1/range)+(color2->blue*w2/range));
-			Line(x1+x,y1,x1+x,y2,RGB(&c));
+			c.setRed((c1.red()*w1/range)+(c2.red()*w2/range));
+			c.setGreen((c1.green()*w1/range)+(c2.green()*w2/range));
+			c.setBlue((c1.blue()*w1/range)+(c2.blue()*w2/range));
+			line(x1+x,y1,x1+x,y2,c);
 		}
 	} else {
 		range=y2-y1+1;
 		for (ppldds y=0; y<range; y++) {
 			w1=range-y;
 			w2=y;
-			c.red=(ppldb)((color1->red*w1/range)+(color2->red*w2/range));
-			c.green=(ppldb)((color1->green*w1/range)+(color2->green*w2/range));
-			c.blue=(ppldb)((color1->blue*w1/range)+(color2->blue*w2/range));
-			Line(x1,y1+y,x2,y1+y,RGB(&c));
+			c.setRed((c1.red()*w1/range)+(c2.red()*w2/range));
+			c.setGreen((c1.green()*w1/range)+(c2.green()*w2/range));
+			c.setBlue((c1.blue()*w1/range)+(c2.blue()*w2/range));
+			line(x1,y1+y,x2,y1+y,c);
 		}
 	}
 }
-
 
 } // EOF namespace grafix
 } // EOF namespace ppl6

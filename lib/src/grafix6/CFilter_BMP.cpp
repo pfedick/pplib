@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.12 $
- * $Date: 2009/06/22 13:10:31 $
- * $Id: CFilter_BMP.cpp,v 1.12 2009/06/22 13:10:31 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CFilter_BMP.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@
 #endif
 #include "ppl6.h"
 #include "ppl6-grafix.h"
-
 
 namespace ppl6 {
 namespace grafix {
@@ -107,9 +106,9 @@ CFilter_BMP::~CFilter_BMP()
 {
 }
 
-int CFilter_BMP::Ident(CFileObject *file, IMAGE *img)
+int CFilter_BMP::Ident(CFileObject &file, IMAGE &img)
 {
-	const char *address=file->Map(0,256);
+	const char *address=file.Map(0,256);
 	if (address==NULL) {
 		SetError(1018);
 		return false;
@@ -126,30 +125,30 @@ int CFilter_BMP::Ident(CFileObject *file, IMAGE *img)
 				SetError(1018,"Komprimiertes BMP wird nicht unterstuetzt");
 				return false;
 			}
-			img->format=RGBFormat::unknown;
-			img->width=peekd(bmia+4);
-			img->height=peekd(bmia+8);
-			img->bitdepth=peekw(bmia+14);
-			if (img->bitdepth!=8 && img->bitdepth!=24 && img->bitdepth!=32) {
+			img.format=RGBFormat::unknown;
+			img.width=peekd(bmia+4);
+			img.height=peekd(bmia+8);
+			img.bitdepth=peekw(bmia+14);
+			if (img.bitdepth!=8 && img.bitdepth!=24 && img.bitdepth!=32) {
 				SetError(1018,"bitdepth wird nicht unterstützt");
 				return false;
 			}
-			img->pitch=img->width*img->bitdepth/8;
-			if (img->bitdepth==24) {
-				if ((img->pitch & 3) != 0)
-					img->pitch=((img->pitch+3)/4)*4;
+			img.pitch=img.width*img.bitdepth/8;
+			if (img.bitdepth==24) {
+				if ((img.pitch & 3) != 0)
+					img.pitch=((img.pitch+3)/4)*4;
 			}
-			if (img->bitdepth==8) {
-				img->colors=256;
-				img->format=RGBFormat::Palette;
+			if (img.bitdepth==8) {
+				img.colors=256;
+				img.format=RGBFormat::Palette;
 			}
-			if (img->bitdepth==16) {
-				img->colors=65536;
-				img->format=RGBFormat::R5G6B5;
+			if (img.bitdepth==16) {
+				img.colors=65536;
+				img.format=RGBFormat::R5G6B5;
 			}
-			if (img->bitdepth==24 || img->bitdepth==32) {
-				img->colors=256*256*256;
-				img->format=RGBFormat::X8R8G8B8;
+			if (img.bitdepth==24 || img.bitdepth==32) {
+				img.colors=256*256*256;
+				img.format=RGBFormat::X8R8G8B8;
 			}
 			SetError(0);
 			return true;
@@ -159,21 +158,14 @@ int CFilter_BMP::Ident(CFileObject *file, IMAGE *img)
 	return false;
 }
 
-int CFilter_BMP::Load(CFileObject * file, CSurface *surface, IMAGE *img)
+int CFilter_BMP::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 {
 	RGBQUAD * rgbq,*basergbq;
-	ppluint8 * b1, * b2, *bmia;
+	ppluint8 * b1, *bmia;
 	ppldd gby,by,sourcebytesperline;
-	ppldd farbwert;
 	ppldb pixel;
 
-	if (file==NULL || surface==NULL ||img==NULL) {
-		SetError(136);
-		return false;
-	}
-
-
-	ppluint8 *address=(ppluint8 *)file->Map();
+	ppluint8 *address=(ppluint8 *)file.Map();
 	if (address==NULL) {
 		SetError(2);
 		return false;
@@ -185,34 +177,28 @@ int CFilter_BMP::Load(CFileObject * file, CSurface *surface, IMAGE *img)
 	bmia=address+14;
 	//data->transparent=-1;
 
-    gby=img->height*img->pitch;
+    gby=img.height*img.pitch;
     by=gby;
-    if (img->bitdepth==8) by+=256*4;
-
-    b2=(ppluint8*)surface->Lock();
-	if (!b2) {
-		SetError(145);
-		return false;
-	}
+    if (img.bitdepth==8) by+=256*4;
 
 
     b1= (address+peekd((char *)(address+10)));
 
 	int x,y;
-	switch (img->bitdepth) {
+	switch (img.bitdepth) {
 		case 8:					// 8-Bit
 			if (peekd((char *)(bmia+16))==0) {	// nur unkomprimiert
-				sourcebytesperline=img->pitch;
+				sourcebytesperline=img.pitch;
 				if ((sourcebytesperline & 3) != 0)
 					sourcebytesperline=((sourcebytesperline+3)/4)*4;
-
+				ppluint8 *b2=(ppluint8*)surface.adr();
 				// Ist eine Umwandlung der Bittiefe notwendig?
-				if (surface->GetBitdepth()==img->bitdepth) { // nein
+				if (surface.bitdepth()==img.bitdepth) { // nein
 					int i;
-					for (i=0;i<(ppldds)img->height;i++) {
-						memcpy((char *)(b2+i*img->pitch),
-							(char *)(b1+(img->height-1-i)*sourcebytesperline),
-							img->pitch);
+					for (i=0;i<(ppldds)img.height;i++) {
+						memcpy((char *)(b2+i*img.pitch),
+							(char *)(b1+(img.height-1-i)*sourcebytesperline),
+							img.pitch);
 					}
 					rgbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER));
 					for (i=0;i<256;i++) {
@@ -220,75 +206,59 @@ int CFilter_BMP::Load(CFileObject * file, CSurface *surface, IMAGE *img)
 						//surface->SetColor(i,rgbq->rgbRed,rgbq->rgbGreen, rgbq->rgbBlue);
 						rgbq++;
 					}
-					surface->Unlock();
-					SetError(0);
 					return true;
 				}
 				// Surface hat eine hoehere Bittiefe, jeder Pixel muss
 				// umgerechnet werden
-				b1=b1+img->height*sourcebytesperline;
+				b1=b1+img.height*sourcebytesperline;
 				basergbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER))-1;
 				//Debug.Printf ("basergbq=%u\n",basergbq);
 
-				for (int y=0;y<img->height;y++) {
+				for (int y=0;y<img.height;y++) {
 					b1-=sourcebytesperline;
-					for (int x=0;x<img->width;x++) {
+					for (int x=0;x<img.width;x++) {
 						pixel=b1[x];
 						rgbq= basergbq+pixel;
-						farbwert=surface->RGB(rgbq->rgbRed,
-														   rgbq->rgbGreen,
-														   rgbq->rgbBlue);
-						surface->PutPixel(x,y,farbwert);
+						surface.putPixel(x,y,Color(rgbq->rgbRed, rgbq->rgbGreen, rgbq->rgbBlue,255));
 					}
 
 				}
-				surface->Unlock();
-				SetError(0);
 				return true;
 			}
 			break;
 		case 24:			// 24-Bit
-			b1=b1+img->height*img->pitch;
+			b1=b1+img.height*img.pitch;
 			//DLOGLEVEL(8) ("PriSurf=%u",PriSurf);
 
-			for (y=0;y<img->height;y++) {
-				b1-=img->pitch;
-				for (x=0;x<img->width;x++) {
-					farbwert=surface->RGB(b1[x*3+2], b1[x*3+1], b1[x*3] );
-					surface->PutPixel (x,y,farbwert);
+			for (y=0;y<img.height;y++) {
+				b1-=img.pitch;
+				for (x=0;x<img.width;x++) {
+					surface.putPixel (x,y,Color(b1[x*3+2], b1[x*3+1], b1[x*3+0], 255));
 				}
 			}
-			SetError(0);
-			surface->Unlock();
 			return true;
 		case 32:			// 32-Bit
-            b1=b1+img->height*img->pitch;
-            for (y=0;y<img->height;y++) {
-                b1-=img->pitch;
-                for (x=0;x<img->width;x++) {
-                    farbwert=surface->RGB(b1[x*4+2], b1[x*4+1], b1[x*4+0], b1[x*4+3]);
-                    //farbwert=surface->RGB(b1[x*4+0], 0, 0 );
-                    surface->PutPixel (x,y,farbwert);
+            b1=b1+img.height*img.pitch;
+            for (y=0;y<img.height;y++) {
+                b1-=img.pitch;
+                for (x=0;x<img.width;x++) {
+                    surface.putPixel (x,y,Color(b1[x*4+2], b1[x*4+1], b1[x*4+0], b1[x*4+3]));
                 }
             }
-            SetError(0);
-            surface->Unlock();
             return true;
 
 
 	} // end switch
-
-	surface->Unlock();
 	SetError(33);
 	return false;
 }
 
-int CFilter_BMP::Save (CSurface * surface, CFileObject * file, RECT *area, CAssocArray *param)
+int CFilter_BMP::Save (const CDrawable &surface, CFileObject &file, CAssocArray *param)
 {
 	char *bmia, *bmh, *img;
-	ppldd pixel;
+	Color pixel;
 	ppldd bpp, bfOffBits;
-	if (surface->GetBitdepth()>8) {
+	if (surface.bitdepth()>8) {
 		bpp=3;
 		bfOffBits=54;
 	} else {
@@ -299,7 +269,7 @@ int CFilter_BMP::Save (CSurface * surface, CFileObject * file, RECT *area, CAsso
 	}
 
 
-	ppldd size=bfOffBits+(surface->GetWidth()*surface->GetHeight())*bpp;
+	ppldd size=bfOffBits+(surface.width()*surface.height())*bpp;
 	char *buffer=(char *)malloc(size);
 	if (buffer!=NULL) {
 		bmh=buffer;
@@ -311,8 +281,8 @@ int CFilter_BMP::Save (CSurface * surface, CFileObject * file, RECT *area, CAsso
 		poked(bmh+10,54);				// bfOffBits=Beginn der Bitmap
 
 		poked(bmia+0,40);				// biSize
-		poked(bmia+4,surface->GetWidth());	// biWidth
-		poked(bmia+8,surface->GetHeight());	// biHeight
+		poked(bmia+4,surface.width());	// biWidth
+		poked(bmia+8,surface.height());	// biHeight
 		pokew(bmia+12,1);				// biPlanes
 		pokew(bmia+14,bpp*8);			// biBitCount
 		poked(bmia+16,0);				// biCompression
@@ -323,45 +293,37 @@ int CFilter_BMP::Save (CSurface * surface, CFileObject * file, RECT *area, CAsso
 		poked(bmia+36,0);				// biClrImportant
 
 		img=bmh+bfOffBits;
-		if (surface->GetBitdepth()==8) {		// Palette speichern
+		if (surface.bitdepth()==8) {		// Palette speichern
 			// Hier fehlt noch der Code, um die Palette zu speichern.
 			// Ausserdem muss noch geprueft werden, an welcher Position die
 			// Palette im BMP-File gespeichert werden muss, und was sich
 			// am Header alles aendert.
 		}
-
-		surface->Lock();
-
-		for (int y=(surface->GetHeight()-1);y>=0;y--) {
-			if (surface->GetBitdepth()>8) {
-				for (int x=0;x<(surface->GetWidth());x++) {
-					pixel=surface->Surface2RGB(surface->GetPixel(x,y));
-					img[x*bpp]=(ppldb)((pixel>>16)&255);		// blau
-					img[x*bpp+1]=(ppldb)((pixel>>8)&255);	// gruen
-					img[x*bpp+2]=(ppldb)(pixel&255);			// rot
-				}
-			}else {
-				for (int x=0;x<(surface->GetWidth());x++) {
-					img[x]=(ppldb)surface->GetPixel(x,y);
+		for (int y=(surface.height()-1);y>=0;y--) {
+			if (surface.bitdepth()>8) {
+				for (int x=0;x<(surface.width());x++) {
+					pixel=surface.getPixel(x,y);
+					img[x*bpp]=(ppldb)pixel.blue();
+					img[x*bpp+1]=(ppldb)pixel.green();
+					img[x*bpp+2]=(ppldb)pixel.red();
 				}
 			}
-			img+=surface->GetWidth()*bpp;
+			img+=surface.width()*bpp;
 
 		}
-		surface->Unlock();
-		file->Write(buffer,size);
+		file.Write(buffer,size);
 	}
 	free (buffer);
 	SetError(0);
 	return true;
 }
 
-const char *CFilter_BMP::GetName()
+CString CFilter_BMP::Name()
 {
 	return "BMP";
 }
 
-const char *CFilter_BMP::GetDescription()
+CString CFilter_BMP::Description()
 {
 	return "Windows Bitmap-Dateien";
 }

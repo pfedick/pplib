@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.18 $
- * $Date: 2009/11/17 19:59:19 $
- * $Id: CTCPSocket.cpp,v 1.18 2009/11/17 19:59:19 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/03/22 11:32:03 $
+ * $Id: CTCPSocket.cpp,v 1.3 2010/03/22 11:32:03 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -2026,7 +2026,50 @@ int CTCPSocket::IsWriteable()
 	return 0;
 
 #else
-	SetError(219);
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+    if (!connected) {
+        SetError(275);
+        return 0;
+    }
+	fd_set rset, wset, eset;
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&wset);
+	struct timeval timeout;
+	timeout.tv_sec=0;
+	timeout.tv_usec=0;
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		DispatchErrno();
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		SetError(453);
+		return 0;
+	}
+
+	if (FD_ISSET(s->sd,&wset)) {
+		return 1;
+	}
+	/*
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		// Kommt hier ein Fehler zurück?
+		if (ret<0) {
+			DispatchErrno();
+			return 0;
+		}
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			SetError(308);	// EPIPE
+			return 0;
+		}
+	}
+	*/
+	SetError(451);
 	return 0;
 #endif
 }
@@ -2083,8 +2126,44 @@ int CTCPSocket::IsReadable()
 	return 1;
 
 #else
-	SetError(219);
-	return 0;
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+    if (!connected) {
+        SetError(275);
+        return 0;
+    }
+	fd_set rset, wset, eset;
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&rset);
+	struct timeval timeout;
+	timeout.tv_sec=0;
+	timeout.tv_usec=0;
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		DispatchErrno();
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		SetError(453);
+		return 0;
+	}
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, buf,1, MSG_PEEK);
+		// Kommt hier ein Fehler zurück?
+		if (ret<0) {
+			DispatchErrno();
+			return 0;
+		}
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			SetError(308);	// EPIPE
+			return 0;
+		}
+	}
+	return 1;
 #endif
 
 }
@@ -2166,7 +2245,56 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 	}
 	return 0;
 #else
-	SetError(219);
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+    if (!connected) {
+        SetError(275);
+        return 0;
+    }
+	fd_set rset, wset, eset;
+	struct timeval timeout;
+	while (1) {
+		timeout.tv_sec=seconds;
+		timeout.tv_usec=useconds;
+
+		FD_ZERO(&rset);
+		FD_ZERO(&wset);
+		FD_ZERO(&eset);
+		FD_SET(s->sd,&rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
+		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+		if (ret<0) {
+			DispatchErrno();
+			return 0;
+		}
+		if (FD_ISSET(s->sd,&eset)) {
+			SetError(453);
+			return 0;
+		}
+		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+		if (FD_ISSET(s->sd,&rset)) {
+			char buf[2];
+			ret=recv(s->sd, buf,1, MSG_PEEK);
+			// Kommt hier ein Fehler zurück?
+			if (ret<0) {
+				DispatchErrno();
+				return 0;
+			}
+			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+			if (ret==0) {
+				SetError(308);	// EPIPE
+				return 0;
+			}
+			return 1;
+		}
+		if (thread) {
+			if (thread->ThreadShouldStop()) {
+				SetError(336);
+				return 0;
+			}
+		} else {
+			SetError(174);	// Timeout
+			return 0;
+		}
+	}
 	return 0;
 #endif
 }
@@ -2251,7 +2379,60 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
 	}
 	return 0;
 #else
-	SetError(219);
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+    if (!connected) {
+        SetError(275);
+        return 0;
+    }
+	fd_set rset, wset, eset;
+	struct timeval timeout;
+	while (1) {
+		timeout.tv_sec=seconds;
+		timeout.tv_usec=useconds;
+
+		FD_ZERO(&rset);
+		FD_ZERO(&wset);
+		FD_ZERO(&eset);
+		FD_SET(s->sd,&wset);	// Wir wollen nur prüfen, ob wir schreiben können
+		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+		if (ret<0) {
+			DispatchErrno();
+			return 0;
+		}
+		if (FD_ISSET(s->sd,&eset)) {
+			SetError(453);
+			return 0;
+		}
+		if (FD_ISSET(s->sd,&wset)) {
+			return 1;
+		}
+		/*
+		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+		if (FD_ISSET(s->sd,&rset)) {
+			char buf[2];
+			ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+			// Kommt hier ein Fehler zurück?
+			if (ret<0) {
+				DispatchErrno();
+				return 0;
+			}
+			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+			if (ret==0) {
+				SetError(308);	// EPIPE
+				return 0;
+			}
+		}
+		*/
+		if (thread) {
+			if (thread->ThreadShouldStop()) {
+				SetError(336);
+				return 0;
+			}
+		} else {
+			SetError(174);	// Timeout
+			return 0;
+		}
+	}
 	return 0;
 #endif
 }

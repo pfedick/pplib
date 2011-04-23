@@ -5,14 +5,26 @@ Die aktuelle Version und Dokumentation der Library ist hier zu finden:
 
     http://www.pfp.de/ppl
 
-Die Sourcen sind dort in den Formaten ".tar.bz2" (für UNIX) und ".zip" (für
-Windows) zu finden.
+Die Sourcen sind dort im Format ".tar.bz2" zu finden. Unter Unix kann dieses Archiv mit tar
+oder gtar ausgepackt werden (<code>tar -xjf ppl*.tar.bz2</code>), unter Windows eignet sich
+zum Beispiel <a href="http://http://www.7-zip.org/">7-Zip</a>.
+
+
+\section inst1a CVS
+Der Quellcode der Library wird bei <a href="https://sourceforge.net/projects/pplib">SourceForge.net</a>
+gehostet und kann wie nachfolgend beschrieben als anonymous aus dem CVS-Repository ausgecheckt werden.
+Bei der Frage nach dem Passwort für anonymous einfach Return drücken:
+
+\code
+cvs -d:pserver:anonymous@pplib.cvs.sourceforge.net:/cvsroot/pplib login
+cvs -z3 -d:pserver:anonymous@pplib.cvs.sourceforge.net:/cvsroot/pplib co -P lib 
+\endcode
 
 \section inst2 Installation unter UNIX 
 
 Die Library wird mit einem configure-script ausgeliefert, in dem alle optionalen
 Features ausgewählt werden können. Um eine Basisversion zu erhalten reicht oftmals ein
-einfaches configure aus:
+einfaches configure ohne Parameter aus:
 
 \code
 ./configure
@@ -44,7 +56,7 @@ Alle weiteren Details sind im configure zu finden, wenn man es mit "./configure 
 aufruft.
 
 \section inst3 Installation unter Windows
-Die PPL6-Library wird mit einem Projekt-File für Visual Studio .NET 2003 ausgeliefert,
+Die PPL6-Library wird mit einem Projekt-File für Visual Studio .NET 2008 ausgeliefert,
 jedoch sind manuelle Einstellungen erforderlich, um sie auf die eigenen Bedürfnisse
 anzupassen. Dazu sind insbesondere Pfade zu den gewünschten Libraries und Header-Dateien
 zu setzen, sowie die Defines in der Datei "include/ppl6-config.h" anzupassen.

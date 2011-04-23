@@ -531,6 +531,18 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\src\asm\pixel.asm"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="NASM"
+							ObjectFileName="&quot;$(IntDir)\asm_$(InputName).obj&quot;"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\src\asm\rect.asm"
 					>
 					<FileConfiguration
@@ -699,19 +711,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\toolkit\CEvent.cpp"
-					>
-				</File>
-				<File
 					RelativePath=".\src\toolkit\Checkbox.cpp"
 					>
 				</File>
 				<File
-					RelativePath=".\src\toolkit\CWidget.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\toolkit\CWindow.cpp"
+					RelativePath=".\src\toolkit\Event.cpp"
 					>
 				</File>
 				<File
@@ -744,6 +748,14 @@
 				</File>
 				<File
 					RelativePath=".\src\toolkit\Tab.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\toolkit\Widget.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\toolkit\Window.cpp"
 					>
 				</File>
 			</Filter>
@@ -811,15 +823,7 @@
 					>
 				</File>
 				<File
-					RelativePath=".\src\grafix6\CEngine.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\grafix6\CEngineDX9.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\grafix6\CEngineSDL.cpp"
+					RelativePath=".\src\grafix6\CDrawable.cpp"
 					>
 				</File>
 				<File
@@ -891,6 +895,18 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\grafix6\GFXEngine.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\grafix6\GFXEngineDX9.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\grafix6\GFXEngineSDL.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\grafix6\GrafikErrors.cpp"
 					>
 				</File>
@@ -903,7 +919,27 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\grafix6\Point.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\grafix6\Point3D.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\grafix6\Rect.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\grafix6\RGBFormat.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\grafix6\Shapes.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\grafix6\Size.cpp"
 					>
 				</File>
 			</Filter>

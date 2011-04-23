@@ -74,15 +74,28 @@ then
 	if test "$isfreetds" = "yes"
 	then
 		msg="yes, via FreeTDS"
+		AC_MSG_RESULT($msg)
+		
 		AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS Library. ])
 		
+		# most systems require the program be linked with librt library to use
+		# the function clock_gettime
+		my_save_LIBS="$LIBS"
+		LIBS=""
+		AC_CHECK_LIB(rt,clock_gettime)
+		LIBRT=$LIBS
+		LIBS="$my_save_LIBS"
+		AC_SUBST(LIBRT)
+		AC_CHECK_FUNCS(clock_gettime)
+				
+		SYBASE_LIBS="$SYBASE_LIBS $LIBRT"		
 	else
 		msg="yes, native Sybase Library"
+		AC_MSG_RESULT($msg)
 		SYBASE_LIBS="$SYBASE_LIBS -lpthread"
 	fi
 	if test "$have_sybase" = "yes"
 	then
-		AC_MSG_RESULT($msg)
 		SYBASE_CFLAGS="-I$sybprefix/include"
 		AC_MSG_CHECKING(sybase libraries)
 		AC_MSG_RESULT($SYBASE_LIBS)

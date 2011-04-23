@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.19 $
- * $Date: 2009/06/11 19:52:57 $
- * $Id: FontFreeType.cpp,v 1.19 2009/06/11 19:52:57 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: FontFreeType.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,14 +46,14 @@
 #include <string.h>
 #endif
 
+#include "ppl6-grafix.h"
+#include "grafix6.h"
+
 #ifdef HAVE_FREETYPE2
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #endif
 
-#include "ppl6.h"
-#include "ppl6-grafix.h"
-#include "grafix6.h"
 
 //#undef HAVE_X86_ASSEMBLER
 
@@ -78,7 +78,7 @@ typedef struct tagFreeTypeEngineData {
 } FREETYPE_ENGINE_DATA;
 
 typedef struct tagFreeTypeFaceData {
-	const FT_Byte *buffer;
+	FT_Byte *buffer;
 	FT_Face	face;
 	int		kerning;
 } FREETYPE_FACE_DATA;
@@ -172,7 +172,7 @@ CFontFile *CFontEngineFreeType::LoadFont(CFileObject *file, const char *fontname
 		SetError(2);
 		return NULL;
 	}
-	face->buffer=(const FT_Byte *)file->Load();
+	face->buffer=(FT_Byte *)file->Load();
 	int size=(int)file->Size();
 	int error = FT_New_Memory_Face(f->ftlib, face->buffer, size, 0, &face->face );
 	if (error!=0) {
@@ -185,7 +185,7 @@ CFontFile *CFontEngineFreeType::LoadFont(CFileObject *file, const char *fontname
 	CFontFile *ff=new CFontFile;
 	ff->Name=fontname;
 	ff->engine=this;
-	ff->ptr=face;
+	ff->priv=face;
 	return ff;
 #endif
 }
@@ -204,58 +204,39 @@ int CFontEngineFreeType::DeleteFont(CFontFile *file)
 		SetError(1029);
 		return 0;
 	}
-	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file->ptr;
+	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file->priv;
 	if (face) {
 		FT_Done_Face(face->face);
+		if (face->buffer) free(face->buffer);
 		free(face);
-		file->ptr=NULL;
+		file->priv=NULL;
 	}
 	return 1;
 #endif
 }
 
-int CFontEngineFreeType::Unselect(CFont *font)
+int CFontEngineFreeType::Render(CFontFile *file, const CFont &font, CDrawable &surface, int x, int y, const CWString &text, const Color &color)
 {
 #ifndef HAVE_FREETYPE2
 	SetError(1035);
 	return 0;
 #else
-	return 1;
-#endif
-}
-
-int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, const char *text, COLOR color)
-{
-	if (!text) {
-		SetError(194,"int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, ==> char *text <==, COLOR color)");
-		return 0;
-	}
-	CWString s=text;
-	return Render(font,surface,x,y,&s,color);
-}
-
-int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, CWString *text, COLOR color)
-{
-#ifndef HAVE_FREETYPE2
-	SetError(1035);
-	return 0;
-#else
-	if (font==NULL || font->file==NULL || font->file->ptr==NULL) {
+	if (file==NULL || file->priv==NULL) {
 		SetError(1033);
 		return 0;
 	}
-	SURFACE *s=surface->GetSurfaceParams();
-	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)font->file->ptr;
+	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file->priv;
 
-	int error=FT_Set_Pixel_Sizes(face->face,0,font->Size+2);
+	int error=FT_Set_Pixel_Sizes(face->face,0,font.size()+2);
 	if (error!=0) {
 		return 0;
 	}
 
 	void (*BltGlyph) (GLYPH *surface)=NULL;
 	GLYPH g;
-	g.color=color;
-	switch (s->rgbformat) {
+	//Color color=font.color();
+	g.color=surface.rgb(color);
+	switch (surface.rgbformat()) {
 		case RGBFormat::X8R8G8B8:
 		case RGBFormat::X8B8G8R8:
 		case RGBFormat::A8R8G8B8:
@@ -263,8 +244,8 @@ int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, CW
 			//BltGlyph=BltGlyph_M8_32;
 			break;
 	};
-	s->lastx=x;
-	s->lasty=y;
+	int lastx=x;
+	//int lasty=y;
 	int orgx=x;
 	int orgy=y;
 	int code;
@@ -273,19 +254,19 @@ int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, CW
 	FT_Vector		kerning;
 	ppldb v=0;
 	int p=0;
-	while ((code=text->GetChar(p))&0xff) {
+	while ((code=text[p])) {
 		p++;
 		y=orgy;
 		if (code==10) {											// Newline
-			s->lastx=x=orgx;
-			orgy+=((int)font->Size)+2;
+			lastx=x=orgx;
+			orgy+=font.size()+2;
 			y=orgy;
 			last_glyph=0;
 		} else {
 			glyph_index=FT_Get_Char_Index(face->face,code);
 			if (!glyph_index) continue;
 			// Antialiasing
-			if (font->Antialias) {
+			if (font.antialias()) {
 				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER);
 			} else {
 				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
@@ -304,13 +285,12 @@ int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, CW
 
 			} else {
 				char *glyph=(char *)slot->bitmap.buffer;
-				if (font->Antialias) {
+				if (font.antialias()) {
 					for (int gy=0;gy<slot->bitmap.rows;gy++) {
 						for (int gx=0;gx<slot->bitmap.width;gx++) {
 							v=glyph[gx];
 							if (v>0) {
-								surface->BlendPixel(x+gx,y+gy,color,v);
-								//surface->PutPixel(x+gx,y+gy,color);
+								surface.blendPixel(x+gx,y+gy,color,v);
 							}
 						}
 						glyph+=slot->bitmap.pitch;
@@ -326,7 +306,7 @@ int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, CW
 								bytecount++;
 							}
 							if(v&128) {
-								surface->PutPixel(x+gx,y+gy,color);
+								surface.putPixel(x+gx,y+gy,color);
 							}
 							v=v<<1;
 							bitcount--;
@@ -342,28 +322,75 @@ int CFontEngineFreeType::Render(CFont *font, CSurface *surface, int x, int y, CW
 			last_glyph=glyph_index;
 		}
 	}
-	s->lastx=x;
-	s->lasty=y;
 	return 1;
 #endif
 }
 
-int CFontEngineFreeType::Measure(CFont *font, const char *text, DIMENSION *measure)
+Size CFontEngineFreeType::Measure(CFontFile *file, const CFont &font, const CWString &text)
 {
-	if (!text) {
-		SetError(194,"int CFontEngineFreeType::Measure(CFont *font, ==> char *text <==, DIMENSION *measure)");
-		return 0;
+	Size s;
+#ifndef HAVE_FREETYPE2
+	SetError(1035);
+	return s;
+#else
+	if (file==NULL || file->priv==NULL) {
+		SetError(1033);
+		return s;
 	}
-	CWString s=text;
-	return Measure(font,&s,measure);
+	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file->priv;
+
+	int error=FT_Set_Pixel_Sizes(face->face,0,font.size()+2);
+	if (error!=0) {
+		return s;
+	}
+
+	int lastx=0;
+	int orgx=0;
+	int orgy=0;
+	int code;
+	int x=0,y=0;
+	FT_GlyphSlot slot=face->face->glyph;
+	FT_UInt			glyph_index, last_glyph=0;
+	FT_Vector		kerning;
+	int p=0;
+	while ((code=text[p])) {
+		p++;
+		y=orgy;
+		if (code==10) {											// Newline
+			lastx=x=orgx;
+			orgy+=font.size()+2;
+			y=orgy;
+			last_glyph=0;
+		} else {
+			glyph_index=FT_Get_Char_Index(face->face,code);
+			if (!glyph_index) continue;
+			// Antialiasing
+			if (font.antialias()) {
+				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER);
+			} else {
+				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
+			}
+			if (error!=0) continue;
+			x=x+slot->bitmap_left;
+			y=y-slot->bitmap_top;
+			if (face->kerning>0 && last_glyph>0) {
+				error=FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
+				if (error==0) {
+					x+=(kerning.x>>6);
+				}
+			}
+			x+=(slot->advance.x>>6);
+			if (x>s.width()) s.setWidth(x);
+			last_glyph=glyph_index;
+		}
+	}
+	s.setHeight(orgy+font.size()+2);
+	return s;
+#endif
 }
 
-int CFontEngineFreeType::Measure(CFont *font, CWString *text, DIMENSION *measure)
-{
-	SetError(1024,"Measure");
-	return 0;
-}
 
 
 } // EOF namespace grafix
 } // EOF namespace ppl6
+

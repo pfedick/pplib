@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.27 $
- * $Date: 2009/06/22 08:35:09 $
- * $Id: compression.cpp,v 1.27 2009/06/22 08:35:09 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: compression.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -786,6 +786,29 @@ int CCompression::Compress(CBinary &out, const CVar &object, bool copy)
 	return 0;
 }
 
+int CCompression::Compress(CMemory &out, const CMemoryReference &in)
+/*!\brief Komprimierung eines Speicherbereichs in ein CMemory-Objekt
+ *
+ * \descr
+ * Mit dieser Version der Compress-Funktion wird der durch \p in referenzierte
+ * Speicher komprimiert und das Ergebnis in \p out gespeichert.
+ * \par
+ * Diese Funktion unterstützt das Prefix-Flag (siehe CCompression::UsePrefix).
+ *
+ * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein von CMemoryReferemce abgeleitetes Objekt, das den zu
+ * komprimierenden Speicherbereich repräsentiert.
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
+ * komprimierten Daten kann \p out entnommen werden.
+ *
+ */
+{
+	CBinary o;
+	if (!Compress(o,in.adr(),in.size())) return 0;
+	out.copy(o);
+	return 1;
+}
+
 int CCompression::Uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm method)
 /*!\brief Dekomprimierung eines Speicherbereiches in einen anderen
  *
@@ -855,6 +878,31 @@ int CCompression::Uncompress(CBinary &out, const CBinary &object, bool copy)
 	return Uncompress(out,object.GetPtr(),object.Size(),copy);
 }
 
+int CCompression::Uncompress(CMemory &out, const CMemoryReference &in)
+/*!\brief Dekomprimierung eines Speicherbereichs in ein CMemory-Objekt
+ *
+ * \descr
+ * Mit dieser Version der Compress-Funktion wird der durch \p in referenzierte
+ * Speicherbereich dekomprimiert und das Ergebnis im CMemory-Objekt
+ * \p out gespeichert.
+ * \par
+ * Diese Funktion unterstützt das Prefix-Flag (siehe CCompression::UsePrefix).
+ *
+ * @param[out] out CMemory-Objekt, in dem die entpackten Daten gespeichert werden sollen
+ * @param[in] in CMemoryReferemce-Objekt, das die komprimierten Daten enthält.
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
+ * unkomprimierten Daten kann \p out entnommen werden.
+ */
+{
+	CBinary o;
+	if (!Uncompress(o,in.adr(),in.size())) return 0;
+	out.copy(o);
+	return 1;
+}
+
+
+
+
 int CCompression::Uncompress(CBinary &out, const void *ptr, size_t size, bool copy)
 /*!\brief Dekomprimierung eines Speicherbereichs in ein CBinary Objekt
  *
@@ -910,7 +958,7 @@ int CCompression::Uncompress(CBinary &out, const void *ptr, size_t size, bool co
 		char *buffer=(char*)ptr;
 		int flag=Peek8(buffer);
 		size_t size_unc=Peek32(buffer+1);
-		//size_t size_comp=Peek32(buffer+5);
+		size_t size_comp=Peek32(buffer+5);
 		//printf ("Flag: %i, unc: %u, comp: %u\n",flag,size_unc, size_comp);
 		if (uncbuffer) free(uncbuffer);
 		uncbuffer=malloc(size_unc);
@@ -919,7 +967,7 @@ int CCompression::Uncompress(CBinary &out, const void *ptr, size_t size, bool co
 			return 0;
 		}
 		size_t dstlen=size_unc;
-		if (!Uncompress(uncbuffer,&dstlen,buffer+9,size-9,(Algorithm)(flag&7))) {
+		if (!Uncompress(uncbuffer,&dstlen,buffer+9,size_comp,(Algorithm)(flag&7))) {
 			free(uncbuffer);
 			uncbuffer=NULL;
 			return 0;
@@ -1006,6 +1054,35 @@ int Compress(CBinary &out, const CVar &in, CCompression::Algorithm method, CComp
 	return 1;
 }
 
+/*!\ingroup PPL6_COMPRESSION
+ * \brief Speicherbereich komprimieren
+ *
+ * \desc
+ * Mit dieser Funktion wird der durch \p in referenzierte Speicher
+ * mit der Komprimierungsmethode \p method und dem Komprimierungslevel \p level komprimiert
+ * und das Ergebnis im CMemory-Objekt \p out gespeichert.
+ *
+ * Speicherbereich komprimieren
+ *
+ * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein von CMemoryReference abgeleitetes Objekt mit den zu komprimierenden Daten
+ * @param[in] method Die gewünschte Komprimierungsmethode (siehe CCompression::Algorithm)
+ * @param[in] level Der gewünschte Komprimierungslevel (siehe CCompression::Level)
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
+ * komprimierten Daten kann \p out entnommen werden.
+ *
+ * \see CCompression
+ * @return
+ */
+int Compress(CMemory &out, const CMemoryReference &in, CCompression::Algorithm method, CCompression::Level level)
+{
+	CCompression comp;
+	if (!comp.Init(method,level)) return 0;
+	comp.UsePrefix(CCompression::Prefix_V2);
+	if (!comp.Compress(out,in)) return 0;
+	return 1;
+}
+
 int Compress(CBinary &out, const void *buffer, size_t size, CCompression::Algorithm method, CCompression::Level level)
 /*!\ingroup PPL6_COMPRESSION
  * \relatesalso CCompression
@@ -1038,7 +1115,6 @@ int Compress(CBinary &out, const void *buffer, size_t size, CCompression::Algori
 	return 1;
 }
 
-int Uncompress(CBinary &out, const CBinary &in)
 /*!\ingroup PPL6_COMPRESSION
  * \relatesalso CCompression
  * \brief Daten dekomprimieren
@@ -1059,6 +1135,35 @@ int Uncompress(CBinary &out, const CBinary &in)
  *
  * \see CCompression
  */
+int Uncompress(CBinary &out, const CBinary &in)
+{
+	CCompression comp;
+	comp.UsePrefix(CCompression::Prefix_V2);
+	if (!comp.Uncompress(out,in)) return 0;
+	return 1;
+}
+
+/*!\ingroup PPL6_COMPRESSION
+ * \relatesalso CCompression
+ * \brief Daten dekomprimieren
+ *
+ * \descr
+ * Mit dieser Funktion werden die in \p in enthaltenen komprimierten Daten
+ * entpackt und das Ergebnis im CMemory-Objekt \p out gespeichert.
+ * \par
+ * Die Funktion geht davon aus, dass die komprimierten Daten mit einem
+ * Version 2 Prefix beginnen (siehe \ref CCompression_Prefix). Ist dies nicht der
+ * Fall, sollte statt dieser Funktion die Klasse CCompression verwendet werden,
+ * deren CCompression::Uncompress-Funktionen auch Dekomprimierung ohne Prefix
+ * unterstützen.
+ *
+ * @param[out] out CMemory-Objekt, in dem die entpackten Daten gespeichert werden sollen
+ * @param[in] in Ein CMemoryReference-Objekt, das die komprimierten Daten enthält
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
+ *
+ * \see CCompression
+ */
+int Uncompress(CMemory &out, const CMemoryReference &in)
 {
 	CCompression comp;
 	comp.UsePrefix(CCompression::Prefix_V2);
@@ -1066,6 +1171,7 @@ int Uncompress(CBinary &out, const CBinary &in)
 	return 1;
 
 }
+
 
 int Uncompress(CBinary &out, const void *buffer, size_t size)
 /*!\ingroup PPL6_COMPRESSION
@@ -1125,6 +1231,34 @@ int CompressZlib(CBinary &out, const CVar &in, CCompression::Level level)
 {
 	return Compress(out,in,CCompression::Algo_ZLIB,level);
 }
+
+int CompressZlib(CMemory &out, const CMemoryReference &in, CCompression::Level level)
+/*!\ingroup PPL6_COMPRESSION
+ * \relatesalso CCompression
+ * \brief Daten mit ZLib komprimieren
+ *
+ * \descr
+ * Mit dieser Funktion wird der durch \p in referenzierte Speicherbereich
+ * mit der Komprimierungsmethode ZLib und dem Komprimierungslevel \p level komprimiert
+ * und das Ergebnis im CMemory-Objekt \p out gespeichert.
+ * \par
+ * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
+ * \ref CCompression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
+ * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
+ *
+ * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein CMemoryReference-Objekt mit den zu komprimierenden Daten.
+ * @param[in] level Der gewünschte Komprimierungslevel (siehe CCompression::Level). Der Default ist
+ * CCompression::Level_High
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
+ * komprimierten Daten kann \p out entnommen werden.
+ *
+ * \see CCompression
+ */
+{
+	return Compress(out,in,CCompression::Algo_ZLIB,level);
+}
+
 
 int CompressZlib(CBinary &out, const void *buffer, size_t size, CCompression::Level level)
 /*!\ingroup PPL6_COMPRESSION
@@ -1209,6 +1343,33 @@ int CompressBZip2(CBinary &out, const void *buffer, size_t size, CCompression::L
  */
 {
 	return Compress(out, buffer, size, CCompression::Algo_BZIP2, level);
+}
+
+int CompressBZip2(CMemory &out, const CMemoryReference &in, CCompression::Level level)
+/*!\ingroup PPL6_COMPRESSION
+ * \relatesalso CCompression
+ * \brief Daten mit BZip2 komprimieren
+ *
+ * \descr
+ * Mit dieser Funktion wird der durch \p in referenzierte Speicherbereich
+ * mit der Komprimierungsmethode BZip2 und dem Komprimierungslevel \p level komprimiert
+ * und das Ergebnis im CMemory-Objekt \p out gespeichert.
+ * \par
+ * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
+ * \ref CCompression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
+ * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
+ *
+ * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein CMemoryReference-Objekt mit den zu komprimierenden Daten.
+ * @param[in] level Der gewünschte Komprimierungslevel (siehe CCompression::Level). Der Default ist
+ * CCompression::Level_High
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
+ * komprimierten Daten kann \p out entnommen werden.
+ *
+ * \see CCompression
+ */
+{
+	return Compress(out,in,CCompression::Algo_BZIP2,level);
 }
 
 

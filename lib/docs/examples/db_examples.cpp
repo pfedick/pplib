@@ -342,4 +342,4 @@ ppl6::db::Result *DB_GenericResult_Example1(const CString &Query) {
 } // EOF
 
 
-}
+

@@ -3,7 +3,7 @@ dnl Zusaetzliche Macros
 
 #######################################################
 # AX_FPOS_ISSTRUCT
-# Prüft, ob fpos_t ein scalar oder eine structure ist
+# Prï¿½ft, ob fpos_t ein scalar oder eine structure ist
 #######################################################
 AC_DEFUN([AX_FPOS_ISSTRUCT],[
 AC_MSG_CHECKING(if fpos_t is struct or scalar)
@@ -30,7 +30,7 @@ AC_LANG_POP(C++)
 
 #######################################################
 # AX_TM_HAS_GMTOFF
-# Prüft, ob die structure "tm" das Element "tm_gmtoff"
+# Prï¿½ft, ob die structure "tm" das Element "tm_gmtoff"
 # hat
 #######################################################
 AC_DEFUN([AX_TM_HAS_GMTOFF],[

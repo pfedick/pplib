@@ -7,6 +7,9 @@ Internet-Klassen und Funktionen
 
 /*!\defgroup PPLGroupGrafik Grafik
 \brief Grafik-Klassen und Funktionen
+
+\desc
+Die nachfolgenden Klassen dienen zum Erstellen und Verwalten von Bitmap-Grafiken.
 */
 
 /*!\defgroup PPLGroupSound Sound

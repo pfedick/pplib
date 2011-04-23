@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.6 $
- * $Date: 2009/01/24 23:54:39 $
- * $Id: grafix6.h,v 1.6 2009/01/24 23:54:39 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:57 $
+ * $Id: grafix6.h,v 1.2 2010/02/12 19:43:57 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,10 +40,9 @@
 
 // Font-Blitter
 typedef struct tagGLYPH {
-	char *data;
+	const char *data;
 	char *target;
 	ppluint32 pitch;
-	pplint32 advance;
 	pplint32 color;
 } GLYPH;
 
@@ -52,6 +51,13 @@ extern "C" {
 	int BltGlyph_M1_32 (GLYPH *g);
 	int BltGlyph_AA8_32 (GLYPH *g);
 	int BltGlyph_AA2_32 (GLYPH *g);
+	int BltGlyph_AA4_32 (GLYPH *g);
+}
+
+namespace ppl6 {
+namespace grafix {
+	extern char *alphatab;
+}
 }
 
 

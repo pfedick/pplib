@@ -2,13 +2,13 @@
 ;/* This file is part of "Patrick's Programming Library", Version 6 (PPL6).
 ; * Web: http://www.pfp.de/ppl/
 ; *
-; * $Author: patrick $
-; * $Revision: 1.9 $
-; * $Date: 2009/01/25 01:03:38 $
-; * $Id: rect.asm,v 1.9 2009/01/25 01:03:38 patrick Exp $
+; * $Author: pafe $
+; * $Revision: 1.2 $
+; * $Date: 2010/02/12 19:43:56 $
+; * $Id: rect.asm,v 1.2 2010/02/12 19:43:56 pafe Exp $
 ; *
 ;/*******************************************************************************
-; * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+; * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
 ; * All rights reserved.
 ; *
 ; * Redistribution and use in source and binary forms, with or without
@@ -39,45 +39,16 @@
 ;/** rect.asm                                                         **
 ;/*********************************************************************
 
+%include "src/asm/common.asminc"
+
+
 SECTION .data
 SECTION .text
 
-%define elf64 0
-%define win64 0
-%define elf32 0
-%define win32 0
-
-%ifidn __OUTPUT_FORMAT__, elf64
-%ifidn __BITS__, 64
-%define elf64 1
-%endif
-%endif
-
-%ifidn __OUTPUT_FORMAT__, elf32
-%ifidn __BITS__, 32
-%define elf32 1
-%endif
-%endif
-
-%ifidn __OUTPUT_FORMAT__, win64
-%ifidn __BITS__, 64
-%define win64 1
-%endif
-%endif
-
-%ifidn __OUTPUT_FORMAT__, win32
-%ifidn __BITS__, 32
-%define win32 1
-%endif
-%endif
 
 
 struc RECTDATA
-%ifidn __BITS__, 32
-	tgt:		resd	1			; ebp+0
-%elifidn __BITS__,  64
-	tgt:		resq	1			; ebp+0
-%endif
+	tgt:		PTR		1			; ebp+0
 	width:		resd	1			; ebp+4
 	height:		resd	1			; ebp+8
 	pitch:		resd	1			; ebp+12

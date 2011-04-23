@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.12 $
- * $Date: 2009/08/25 18:06:03 $
- * $Id: CLog.cpp,v 1.12 2009/08/25 18:06:03 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.5 $
+ * $Date: 2010/03/30 09:24:02 $
+ * $Id: CLog.cpp,v 1.5 2010/03/30 09:24:02 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -191,7 +191,8 @@ int CLog::GetLogLevel(int facility)
 
 void CLog::Print (int facility, int level, const char * text)
 {
-	if (facility<0 || facility>=NUMFACILITIES || level<0 || text==NULL) return;
+	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (text==NULL) return;
 	mutex.Lock();
 	Output(facility,level,NULL,NULL,NULL,0,text,true);
 	mutex.Unlock();
@@ -199,7 +200,8 @@ void CLog::Print (int facility, int level, const char * text)
 
 void CLog::Print (int facility, int level, const char *file, int line, const char * text)
 {
-	if (facility<0 || facility>=NUMFACILITIES || level<0 || text==NULL) return;
+	if (!shouldPrint(NULL,NULL,file,line,facility,level)) return;
+	if (text==NULL) return;
 	//CString s;
 	//s.Sprintf("[%s:%i] %s",file, line, text);
 	mutex.Lock();
@@ -209,7 +211,8 @@ void CLog::Print (int facility, int level, const char *file, int line, const cha
 
 void CLog::Print (int facility, int level, const char *module, const char *function, const char *file, int line, const char * text)
 {
-	if (facility<0 || facility>=NUMFACILITIES || level<0 || text==NULL) return;
+	if (!shouldPrint(module,function,file,line,facility,level)) return;
+	if (text==NULL) return;
 	mutex.Lock();
 	Output(facility,level,module,function,file,line,text,true);
 	mutex.Unlock();
@@ -217,6 +220,7 @@ void CLog::Print (int facility, int level, const char *module, const char *funct
 
 void CLog::Printfs (int facility, int level, const char *fmt, ... )
 {
+	if (fmt==NULL) return;
 	CString s;
 	va_list args;
 	va_start(args, fmt);
@@ -227,6 +231,7 @@ void CLog::Printfs (int facility, int level, const char *fmt, ... )
 
 void CLog::Printf (int facility, int level, const char *file, int line, const char *fmt, ... )
 {
+	if (fmt==NULL) return;
 	CString s;
 	va_list args;
 	va_start(args, fmt);
@@ -237,6 +242,7 @@ void CLog::Printf (int facility, int level, const char *file, int line, const ch
 
 void CLog::Printf (int facility, int level, const char *module, const char *function, const char *file, int line, const char *fmt, ... )
 {
+	if (!shouldPrint(module,function,file,line,facility,level)) return;
 	CString s;
 	va_list args;
 	va_start(args, fmt);
@@ -262,8 +268,9 @@ void CLog::Printfs (int level, const char *fmt, ... )
 }
 
 
-void CLog::PrintArray (int facility, int level, CAssocArray *a, const char *fmt, ... )
+void CLog::PrintArray (int facility, int level, const CAssocArray *a, const char *fmt, ... )
 {
+	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
 	CString s;
 	va_list args;
 	va_start(args, fmt);
@@ -275,8 +282,9 @@ void CLog::PrintArray (int facility, int level, CAssocArray *a, const char *fmt,
 	mutex.Unlock();
 }
 
-void CLog::PrintArray (int facility, int level, const char *module, const char *function, const char *file, int line, CAssocArray *a, const char *fmt, ... )
+void CLog::PrintArray (int facility, int level, const char *module, const char *function, const char *file, int line, const CAssocArray *a, const char *fmt, ... )
 {
+	if (!shouldPrint(module,function,file,line,facility,level)) return;
 	CString s;
 	va_list args;
 	va_start(args, fmt);
@@ -288,8 +296,9 @@ void CLog::PrintArray (int facility, int level, const char *module, const char *
 	mutex.Unlock();
 }
 
-void CLog::PrintArraySingleLine (int facility, int level, const char *module, const char *function, const char *file, int line, CAssocArray *a, const char *fmt, ... )
+void CLog::PrintArraySingleLine (int facility, int level, const char *module, const char *function, const char *file, int line, const CAssocArray *a, const char *fmt, ... )
 {
+	if (!shouldPrint(module,function,file,line,facility,level)) return;
 	CString s;
 	va_list args;
 	va_start(args, fmt);
@@ -303,21 +312,22 @@ void CLog::PrintArraySingleLine (int facility, int level, const char *module, co
 	mutex.Unlock();
 }
 
-void CLog::OutputArray(int facility, int level, const char *module, const char *function, const char *file, int line, CAssocArray *a, const char *prefix, CString *Out)
+void CLog::OutputArray(int facility, int level, const char *module, const char *function, const char *file, int line, const CAssocArray *a, const char *prefix, CString *Out)
 {
 	CString key, pre, out;
 	if (prefix) key.Sprintf("%s/",prefix);
 
 	if (!a) return;
 	if (!Out) Out=&out;
-	a->Reset();
+	CTreeWalker walk;
+	a->Reset(walk);
 	ARRAY_RESULT row;
 	CString *string;
 	CAssocArray *array;
 	CBinary *binary;
 	const char *k;
 	void *pointer;
-	while ((row=a->GetNext())) {
+	while ((row=a->GetNext(walk))) {
 		k=a->GetKey(row);
 		if ((string=a->GetString(row))) {
 			Out->Concatf("%s%s=%s\n",(const char*)key,k,string->GetPtr());
@@ -344,7 +354,8 @@ void CLog::HexDump (const void * address, int bytes)
 
 void CLog::HexDump (int facility, int level, const void * address, int bytes)
 {
-	if (facility<0 || facility>=NUMFACILITIES || level<0 || address==NULL) return;
+	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (address==NULL) return;
 	mutex.Lock();
 
 	CString line;
@@ -432,12 +443,7 @@ void CLog::LogError (int facility, int level, const char *module, const char *fu
 
 void CLog::Output(int facility, int level, const char *module, const char *function, const char *file, int line, const char *buffer, bool printdate)
 {
-	if (facility<1 || facility>=NUMFACILITIES) return;
 	PushError();
-	if (IsFiltered(module,function,file,line,level)) {
-		PopError();
-		return;
-	}
 	CString bf;
 	char d[20], z[20];
 	if (printdate) {
@@ -593,6 +599,17 @@ void CLog::DeleteFilter(const char *file, int line)
 	FilterFile->Delete(Name);
 }
 
+
+bool CLog::shouldPrint(const char *module, const char *function, const char *file, int line, int facility, int level)
+{
+	if (facility<1 || facility>=NUMFACILITIES) return false;
+	bool ret=true;
+	ppl6::PushError();
+	if (IsFiltered(module,function,file,line,level)) ret=false;
+	ppl6::PopError();
+	return ret;
+}
+
 int CLog::IsFiltered(const char *module, const char *function, const char *file, int line, int level)
 {
 	CString Name;
@@ -641,7 +658,8 @@ void CLog::CheckRotate(int facility)
 	CString f1,f2;
 	if (inrotate) return;
 	if (rotate_mechanism==1) {
-		if ((ppluint64)logff[facility].Size()>maxsize) {
+		pplint64 size=logff[facility].Size();
+		if (size>0 && (ppluint64)size>maxsize) {
 			inrotate=true;
 			Output(facility,0,"ppl6::CLog","CheckRotate",__FILE__,__LINE__,"Logfile Rotated");
 			logff[facility].Close();

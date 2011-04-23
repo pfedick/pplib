@@ -113,7 +113,7 @@ INDEX
 ===========================================================================
 6. Copyright
 
-   PPL6 is copyright by Patrick Fedick <patrick@pfp.de> in 2005-2008
+   PPL6 is copyright by Patrick Fedick <patrick@pfp.de> in 2005-2010
    All rights reserved.
 
 ===========================================================================

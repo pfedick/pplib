@@ -2,13 +2,13 @@
 ;/* This file is part of "Patrick's Programming Library", Version 6 (PPL6).
 ; * Web: http://www.pfp.de/ppl/
 ; *
-; * $Author: patrick $
-; * $Revision: 1.7 $
-; * $Date: 2009/03/28 23:42:27 $
-; * $Id: cpu.asm,v 1.7 2009/03/28 23:42:27 patrick Exp $
+; * $Author: pafe $
+; * $Revision: 1.2 $
+; * $Date: 2010/02/12 19:43:56 $
+; * $Id: cpu.asm,v 1.2 2010/02/12 19:43:56 pafe Exp $
 ; *
 ;/*******************************************************************************
-; * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+; * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
 ; * All rights reserved.
 ; *
 ; * Redistribution and use in source and binary forms, with or without
@@ -39,34 +39,7 @@
 ;/** asm_cpu.asm                                                     **
 ;/*********************************************************************
 
-%define elf64 0
-%define win64 0
-%define elf32 0
-%define win32 0
-
-%ifidn __OUTPUT_FORMAT__, elf64
-%ifidn __BITS__, 64
-%define elf64 1
-%endif
-%endif
-
-%ifidn __OUTPUT_FORMAT__, elf32
-%ifidn __BITS__, 32
-%define elf32 1
-%endif
-%endif
-
-%ifidn __OUTPUT_FORMAT__, win64
-%ifidn __BITS__, 64
-%define win64 1
-%endif
-%endif
-
-%ifidn __OUTPUT_FORMAT__, win32
-%ifidn __BITS__, 32
-%define win32 1
-%endif
-%endif
+%include "src/asm/common.asminc"
 
 
 global HaveMMX

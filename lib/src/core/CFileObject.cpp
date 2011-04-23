@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.10 $
- * $Date: 2009/08/25 18:06:03 $
- * $Id: CFileObject.cpp,v 1.10 2009/08/25 18:06:03 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CFileObject.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -715,6 +715,7 @@ int CFileObject::Load(CVar &object)
 			wstr.ImportBuffer((wchar_t*)buffer,by+1);
 			return 1;
 	}
+	free(buffer);
 	SetError(337);
 	return 0;
 }

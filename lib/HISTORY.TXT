@@ -1,7 +1,91 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
-Version 6.3.3					(CVS-Tag: REL_6_3_3, Branch: RELENG_6_3)
+Version 6.4.0 vom 30.03.2010	(CVS-Tag: REL_6_4_0)
+  - Copyrights auf 2010 aktualisiert
+  - Bugfix in der 64-Bit-Version der Font-Assembler-Routinen
+  - MkRFC822Date wurde überarbeitet und liefert nun gemäß RFC 822 die
+    englischen Bezeichnungen für Tag und Monat zurück. Ausserdem wurden einige
+    veraltete Funktions-Alternativen entfernt.
+  - GetHostByName wurde geändert. Ursprünglich hat die Funktion intern einen
+    einzelnen Aufruf der Systemfunktion getaddrinfo gemacht. In neueren libc
+    Bibliotheken scheint sich jedoch das Verhalten geändert zu haben. Hier
+    werden AAAA-Records nur dann zurückgegeben, wenn auf dem lokalen host
+    auch eine globales IPv6-Interface konfiguriert ist. Zu beobachten auf
+    Ubuntu 9.10 nach Einspielen der Updates am 13.01.2009. Die Funktion wurde
+    daher geändert und ruft getaddrinfo nun zweimal auf, einmal für IPv4/INET
+    und einmal für IPv6/INET6.
+  - nasm wird jetzt auch auf 64-Bit FreeBSD-Systemen gefunden
+  - CArray: Aufruf von Add(CArray &a) wurde geändert in Add(const CArray &a)
+  - Memory-Leak in CFileObject::Load behoben
+  - CVar und alle davon abgeleiteten Klassen: Callback-Funktionalität entfernt.
+    Dadurch ist die Klasse bei Änderungen am Datenwert nicht nur schneller,
+    sondern der Speicherbedarf auch um 8 Byte (32-Bit-Prozessoren) bzw. 16 Byte
+    (64-Bit Prozessoren) kleiner.
+  - CResolver: Neue Klasse für Nameserver-Abfragen auf Basis der ldns-Library
+    von nlnetlabs.nl (http://www.nlnetlabs.nl/projects/ldns/) (Ist noch in
+    Arbeit!)
+  - CString:
+    - Neue Funktion InstrCase
+    - Parameter zu Instr und StrCmp sind nun als const deklariert
+  - Calc unterstützt nun Potenzen (^) und erwartet eine Referenz anstelle
+    eines Pointers als zweiten Parameter. Ausserdem wird als Dezimal-
+    Trennzeichen nun auch Komma akzeptiert
+  - CSocketMessage hat nun Copy-Funktion und Copy-Konstruktor
+  - CAVLTree hat neue Funktion "Remove", die ein Element nur aus dem Baum
+    entfernt, aber nicht dessen Speicher löscht
+  - CMutex::Wait und CMutex::Signal funktionieren nun auch unter Windows
+  - CAssocArray: Reset, GetFirst und GetNext akzeptieren nun ein CTreeWalker
+    Objekt und sind als const deklariert
+  - CAssocArray: List und Count sind nun als const deklariert
+  - CLog: Array-Parameter bei PrintArray-Funktionen ist jetzt als const
+    deklariert
+  - CTCPSocket: Funktionen IsWriteable, IsReadable, WaitForIncomingData und
+    WaitForOutgoingData sind jetzt auch für Windows implementiert.
+  - CAVLTree: Einige Funktionen sind nun als "const" deklariert
+  - CAVLTree: Kritischen Fehler in der Funktion "Clear" behoben, der
+    zu Segmentation Fault und Memory-Leaks führen konnte.
+  - CLog: Es wird nun immer _vor_ der Verarbeitung der Daten geprüft, ob
+    sie auszugeben sind und nicht erst später. Das führt insbesondere beim
+    Loggen von grossen CAssocArrays oder Hexdumps, die nicht ausgegeben
+    werden müssen, zu drastischen Performance-Verbesserungen
+  - db::CPool: Bugfix in Funktion "Get". Parameter "wait" wurde nicht beachtet,
+    Funktion lief in einer Endlosschleife, wenn das Pool-Limit erreicht war.
+  - FreeTDS: configure prüft nun, ob Compiler -lrt benötigt
+  - Fehler in CLog::CheckRotate behoben
+  - Komplett-Überarbeitung der Grafik-Funktionen im neuen Namespace ppl6::grafix. 
+    Alle Zeichenfunktionen basieren jetzt auf der Basisklasse CDrawable, die
+    auch ohne Initialisierung der Grafik-Engine benutzt werden kann. Die
+    Überarbeitung ist noch nicht abgeschlossen.
+    
+    Neue Klassen der Grafik-Engine:
+      - Point
+      - Point3D
+      - Size
+      - Rect
+      - RGBFormat (ist jetzt keine Enumeration mehr!)
+      - Color
+      - AdapterCaps
+      - AdapterIdentifier
+      - AdapterMode
+      - GFXEngine (Basisklasse für alle Grafik-Engines)
+         - GFXEngineSoftware
+         - GFXEngineDX9
+         - GFXEngineSDL
+      - CDrawable
+      - CImage
+      - CImageList
+    Überarbeitete Klassen:
+      - CSurface
+      - CGrafix
+      - CSprite
+      - CFont
+      - CFilter (und alle davon abgeleiteten Klassen)
+      - CFontFile
+      - CFontEngine (und alle davon abgeleiteten Klassen)
+  
+
+Version 6.3.3 vom 12.02.2010	(CVS-Tag: REL_6_3_3, Branch: RELENG_6_3)
   - Visual C++ 2008 Kompatibilität wiederhergestellt
   - Doppelte Funktionen in functions.cpp und strings.cpp eliminiert
   - Neue Klassen zum Verwalten eines einzelnen Speicherblocks:

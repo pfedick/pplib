@@ -251,5 +251,6 @@ berücksichtigt werden.
 - LibMad (http://mad.sourceforge.net/)
 - Curl (http://curl.haxx.se/)
 - OpenSSL (http://www.openssl.org/)
+- LDNS (http://www.nlnetlabs.nl/projects/ldns/)
 
- */
+*/

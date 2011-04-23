@@ -1,15 +1,18 @@
 #!/bin/sh
 
+ANTIALIASING=--aa2
+
+
 genfontfile() {
 	rm -f $FILE
 	font5maker -t $FILE -q $FONTPATH/$REGULAR -s $SIZE --mono1 -n $NAME --zlib
-	font5maker -t $FILE -q $FONTPATH/$REGULAR -s $SIZE --aa2 -n $NAME --zlib
+	font5maker -t $FILE -q $FONTPATH/$REGULAR -s $SIZE $ANTIALIASING -n $NAME --zlib
 	font5maker -t $FILE -q $FONTPATH/$BOLD -s $SIZE --mono1 --isbold -n $NAME --zlib
-	font5maker -t $FILE -q $FONTPATH/$BOLD -s $SIZE --aa2 --isbold -n $NAME --zlib
+	font5maker -t $FILE -q $FONTPATH/$BOLD -s $SIZE $ANTIALIASING --isbold -n $NAME --zlib
 	font5maker -t $FILE -q $FONTPATH/$ITALIC -s $SIZE --mono1 --isitalic -n $NAME --zlib
-	font5maker -t $FILE -q $FONTPATH/$ITALIC -s $SIZE --aa2 --isitalic -n $NAME --zlib
+	font5maker -t $FILE -q $FONTPATH/$ITALIC -s $SIZE $ANTIALIASING --isitalic -n $NAME --zlib
 	font5maker -t $FILE -q $FONTPATH/$BOLDITALIC -s $SIZE --mono1 --isbold --isitalic -n $NAME --zlib
-	font5maker -t $FILE -q $FONTPATH/$BOLDITALIC -s $SIZE --aa2 --isbold --isitalic -n $NAME --zlib
+	font5maker -t $FILE -q $FONTPATH/$BOLDITALIC -s $SIZE $ANTIALIASING --isbold --isitalic -n $NAME --zlib
 }
 
 

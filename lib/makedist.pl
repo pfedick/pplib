@@ -1,17 +1,17 @@
 #!/usr/bin/perl
-# $Id: makedist.pl,v 1.14 2009/08/20 16:35:46 patrick Exp $
+# $Id: makedist.pl,v 1.3 2010/02/12 21:34:49 pafe Exp $
 
 #  
 # CONTACT     : fedick@denic.de 
 # AUTHOR      : Patrick Fedick <fedick@denic.de> 
 # 
 # CREATED     : 2006/01/03 11:30:00 
-# REVISION    : $Revision: 1.14 $  
-# DATE        : $Date: 2009/08/20 16:35:46 $ 
+# REVISION    : $Revision: 1.3 $  
+# DATE        : $Date: 2010/02/12 21:34:49 $ 
 # 
 
 my $PACKAGE="PPL6";
-my $CVSTREE="ppl/ppl6";
+my $CVSTREE="lib";
 my $TAG=$ARGV[0];
 
 if (!$TAG) {
@@ -51,7 +51,7 @@ chomp($PWD);
 my $err=`mkdir -p tmp
 cd tmp
 rm -rf $CVSTREE
-cvs -d :ext:patrick\@cvs.pfp.de:/var/cvsroot checkout -r $TAG $CVSTREE 2>&1`;
+cvs -z3 -d:pserver:anonymous\@pplib.cvs.sourceforge.net:/cvsroot/pplib co -P -r $TAG $CVSTREE 2>&1`;
 
 if ($? != 0 ) {
 	print "ERROR: Version konnte nicht aus dem CVS geholt werden!\n";
@@ -80,7 +80,7 @@ print `mkdir -p dist
 rm -rf dist/$DISTNAME*
 mkdir -p dist/$DISTNAME
 cd tmp/$CVSTREE
-tar -cf $PWD/dist/tmp.tar --exclude *.core --exclude CVS --exclude config --exclude .cvsignore configure Makefile.in ppl6-config.in *.TXT VERSION conf*.sh src include Doxyfile Doxyfile.latex docs documentation autoconf tests *.sln *.vcproj ppl6.ico resource/res.h  resource/ppl6-icon-256x256.png resource/ppl6-icon-32x32.png tools/pplgenresource
+tar -cf $PWD/dist/tmp.tar --exclude *.core --exclude CVS --exclude config --exclude .cvsignore configure Makefile.in ppl6-config.in *.TXT VERSION src include Doxyfile Doxyfile.latex docs documentation autoconf *.sln *.vcproj ppl6.ico resource/res.h  resource/ppl6-icon-256x256.png resource/ppl6-icon-32x32.png tools/pplgenresource
 cd $PWD
 cd dist/$DISTNAME
 tar -xf ../tmp.tar

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.10 $
- * $Date: 2009/06/22 13:10:31 $
- * $Id: CFilter_GIF.cpp,v 1.10 2009/06/22 13:10:31 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CFilter_GIF.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@
 #endif
 #include "ppl6.h"
 #include "ppl6-grafix.h"
-
 
 namespace ppl6 {
 namespace grafix {
@@ -118,7 +117,7 @@ static int GetDataBlock (CFileObject *fd, unsigned char *buf);
 static int GetCode (CFileObject *fd, int code_size, int flag);
 static int LWZReadByte (CFileObject *fd, int flag, int input_code_size);
 //static void ReadImage (gdImagePtr im, FILE *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore);
-static void ReadImage (CSurface *surface, CFileObject *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore);
+static void ReadImage (CDrawable &surface, CFileObject *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore);
 
 static int ZeroDataBlock;
 
@@ -337,92 +336,88 @@ static int LWZReadByte(CFileObject *fd, int flag, int input_code_size)
        return code;
 }
 
-static void ReadImage (CSurface *surface, CFileObject *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore)
+static void ReadImage (CDrawable &surface, CFileObject *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore)
 {
-       unsigned char   c;
-       int             v;
-       int             xpos = 0, ypos = 0, pass = 0;
+	unsigned char   c;
+	int             v;
+	int             xpos = 0, ypos = 0, pass = 0;
 
-       /* Stash the color map into the image */
-	   /*
+	/* Stash the color map into the image */
+	/*
        for (i=0; (i<gdMaxColors); i++) {
                im->red[i] = cmap[CM_RED][i];
                im->green[i] = cmap[CM_GREEN][i];
                im->blue[i] = cmap[CM_BLUE][i];
                im->open[i] = 1;
        }
-	   */
-       /* Many (perhaps most) of these colors will remain marked open. */
-       //im->colorsTotal = gdMaxColors;
-       /*
-       **  Initialize the Compression routines
-       */
-       if (! ReadOK(fd,&c,1)) {
-               return;
-       }
-       if (LWZReadByte(fd, TRUE, c) < 0) {
-               return;
-       }
+	 */
+	/* Many (perhaps most) of these colors will remain marked open. */
+	//im->colorsTotal = gdMaxColors;
+	/*
+	 **  Initialize the Compression routines
+	 */
+	if (! ReadOK(fd,&c,1)) {
+		return;
+	}
+	if (LWZReadByte(fd, TRUE, c) < 0) {
+		return;
+	}
 
-       /*
-       **  If this is an "uninteresting picture" ignore it.
-       */
-       if (ignore) {
-               while (LWZReadByte(fd, FALSE, c) >= 0)
-                       ;
-               return;
-       }
-	   if (surface->Lock()) {
-
-			while ((v = LWZReadByte(fd,FALSE,c)) >= 0 ) {
-               /* This how we recognize which colors are actually used. */
-			   /*
+	/*
+	 **  If this is an "uninteresting picture" ignore it.
+	 */
+	if (ignore) {
+		while (LWZReadByte(fd, FALSE, c) >= 0)
+			;
+		return;
+	}
+	while ((v = LWZReadByte(fd,FALSE,c)) >= 0 ) {
+		/* This how we recognize which colors are actually used. */
+		/*
                if (im->open[v]) {
                        im->open[v] = 0;
                }
-			   */
-			   surface->PutPixel(xpos,ypos,surface->RGB(cmap[CM_RED][v],cmap[CM_GREEN][v],cmap[CM_BLUE][v]));
-               //gdImageSetPixel(im, xpos, ypos, v);
-               ++xpos;
-               if (xpos == len) {
-                       xpos = 0;
-                       if (interlace) {
-                               switch (pass) {
-                               case 0:
-                               case 1:
-                                       ypos += 8; break;
-                               case 2:
-                                       ypos += 4; break;
-                               case 3:
-                                       ypos += 2; break;
-                               }
+		 */
+		surface.putPixel(xpos,ypos,Color(cmap[CM_RED][v],cmap[CM_GREEN][v],cmap[CM_BLUE][v]));
+		//gdImageSetPixel(im, xpos, ypos, v);
+		++xpos;
+		if (xpos == len) {
+			xpos = 0;
+			if (interlace) {
+				switch (pass) {
+					case 0:
+					case 1:
+						ypos += 8; break;
+					case 2:
+						ypos += 4; break;
+					case 3:
+						ypos += 2; break;
+				}
 
-                               if (ypos >= height) {
-                                       ++pass;
-                                       switch (pass) {
-                                       case 1:
-                                               ypos = 4; break;
-                                       case 2:
-                                               ypos = 2; break;
-                                       case 3:
-                                               ypos = 1; break;
-                                       default:
-                                               goto fini;
-                                       }
-                               }
-                       } else {
-                               ++ypos;
-                       }
-               }
-               if (ypos >= height)
-                       break;
+				if (ypos >= height) {
+					++pass;
+					switch (pass) {
+						case 1:
+							ypos = 4; break;
+						case 2:
+							ypos = 2; break;
+						case 3:
+							ypos = 1; break;
+						default:
+							goto fini;
+					}
+				}
+			} else {
+				++ypos;
 			}
-	   }
-
-fini:
-       if (LWZReadByte(fd,FALSE,c)>=0) {
-               /* Ignore extra */
-       }
+		}
+		if (ypos >= height)
+			break;
+	}
+	fini:
+	if (LWZReadByte(fd,FALSE,c)>=0) {
+		/* Ignore extra */
+	}
 }
 
 
@@ -434,9 +429,9 @@ CFilter_GIF::~CFilter_GIF()
 {
 }
 
-int CFilter_GIF::Ident(CFileObject *file, IMAGE *img)
+int CFilter_GIF::Ident(CFileObject &file, IMAGE &img)
 {
-	const char *address=file->Map(0,256);
+	const char *address=file.Map(0,256);
 	const char *lsdb;
 	char b;
 	if (address==NULL) {
@@ -450,13 +445,13 @@ int CFilter_GIF::Ident(CFileObject *file, IMAGE *img)
 	}
 	lsdb=address+6;
 
-	img->width=peekw(lsdb);
-	img->height=peekw(lsdb+2);
+	img.width=peekw(lsdb);
+	img.height=peekw(lsdb+2);
 	b=(ppldb)peekb(lsdb+4);
-	img->bitdepth=((b>>4)&7)+1;
-	img->format=RGBFormat::Palette;
-	img->colors=256;
-	img->pitch=0;
+	img.bitdepth=((b>>4)&7)+1;
+	img.format=RGBFormat::Palette;
+	img.colors=256;
+	img.pitch=0;
 	//img->pfp.header_version=0;
 	if (strncmp(address+3,"89a",3)==0) {							// GIF89a
 		return 1;
@@ -468,7 +463,7 @@ int CFilter_GIF::Ident(CFileObject *file, IMAGE *img)
 	return 0;
 }
 
-int CFilter_GIF::Load(CFileObject * fd, CSurface *surface, IMAGE *img)
+int CFilter_GIF::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 {
 	int imageNumber;
 	int BitPixel;
@@ -486,11 +481,11 @@ int CFilter_GIF::Load(CFileObject * fd, CSurface *surface, IMAGE *img)
 	int             imageCount = 0;
 	char            version[4];
 	ZeroDataBlock = FALSE;
-
+	CFileObject *fd=&file;
 	imageNumber = 1;
-	fd->Seek((ppldd)0);
+	file.Seek(0);
 
-	if (! ReadOK(fd,buf,6)) {
+	if (!ReadOK(fd,buf,6)) {
 		SetError(1021);
 		return false;
 	}
@@ -592,9 +587,11 @@ int CFilter_GIF::Load(CFileObject * fd, CSurface *surface, IMAGE *img)
 					BitSet(buf[8], INTERLACE),
 					imageCount != imageNumber);
 			if (Transparent != (-1)) {
-				surface->SetColorKey(surface->RGB(localColorMap[CM_RED][Transparent],
+				/*
+				surface.SetColorKey(Color(localColorMap[CM_RED][Transparent],
 						localColorMap[CM_GREEN][Transparent],
 						localColorMap[CM_BLUE][Transparent]));
+						*/
 			}
 
 		} else {
@@ -603,25 +600,25 @@ int CFilter_GIF::Load(CFileObject * fd, CSurface *surface, IMAGE *img)
 					BitSet(buf[8], INTERLACE),
 					imageCount != imageNumber);
 			if (Transparent != (-1)) {
-				surface->SetColorKey(surface->RGB(0,0,0));
+				//surface.SetColorKey(surface->RGB(0,0,0));
 			}
 		}
 	}
 	return 1;
 }
 
-int CFilter_GIF::Save (CSurface * surface, CFileObject * file, RECT *area, CAssocArray *param)
+int CFilter_GIF::Save (const CDrawable &surface, CFileObject &file, CAssocArray *param)
 {
 	SetError(1020);
 	return false;
 }
 
-const char *CFilter_GIF::GetName()
+CString CFilter_GIF::Name()
 {
 	return "GIF";
 }
 
-const char *CFilter_GIF::GetDescription()
+CString CFilter_GIF::Description()
 {
 	return "GIF";
 }

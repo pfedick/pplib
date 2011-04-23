@@ -3,7 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ppl6 - Visual Studio 2008", "ppl6 - Visual Studio 2008.vcproj", "{444AB0EF-5091-437D-A63B-91FC0C626645}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sissis Abenteuer", "..\..\games\SissisAbenteuer\Sissis Abenteuer.vcproj", "{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "grafix", "tests\grafix.vcproj", "{B8221EB4-3829-42E6-B440-550FFAEDF19B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{444AB0EF-5091-437D-A63B-91FC0C626645} = {444AB0EF-5091-437D-A63B-91FC0C626645}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,15 +30,15 @@ Global
 		{444AB0EF-5091-437D-A63B-91FC0C626645}.Release|Win32.Build.0 = Release|Win32
 		{444AB0EF-5091-437D-A63B-91FC0C626645}.Release|Win64.ActiveCfg = Release|Win32
 		{444AB0EF-5091-437D-A63B-91FC0C626645}.Release|Win64.Build.0 = Release|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Debug|Win32.Build.0 = Debug|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Debug|Win64.ActiveCfg = Debug|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Minimal|Win32.ActiveCfg = Release|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Minimal|Win32.Build.0 = Release|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Minimal|Win64.ActiveCfg = Release|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Release|Win32.ActiveCfg = Release|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Release|Win32.Build.0 = Release|Win32
-		{308B8F6D-41CA-406B-8B15-FEFC940A3AE4}.Release|Win64.ActiveCfg = Release|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Debug|Win32.Build.0 = Debug|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Debug|Win64.ActiveCfg = Debug|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Minimal|Win32.ActiveCfg = Release|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Minimal|Win32.Build.0 = Release|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Minimal|Win64.ActiveCfg = Release|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Release|Win32.ActiveCfg = Release|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Release|Win32.Build.0 = Release|Win32
+		{B8221EB4-3829-42E6-B440-550FFAEDF19B}.Release|Win64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

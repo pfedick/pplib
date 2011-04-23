@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.7 $
- * $Date: 2009/12/13 12:53:07 $
- * $Id: CMemory.cpp,v 1.7 2009/12/13 12:53:07 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CMemory.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -131,6 +131,22 @@ CMemory::CMemory(const CMemoryReference &other)
 	}
 }
 
+/*!\brief Konstruktor mit Kopieren aus einem CBinary-Objekt
+ *
+ * \desc
+ * Mit diesem Konstruktor wird der Speicher eines CBinary-Objekts
+ * kopiert.
+ *
+ * @param[in] bin Referenz auf ein CBinary-Objekt
+ *
+ */
+CMemory::CMemory(const CBinary &bin)
+{
+	ptr=NULL;
+	s=0;
+	copy(bin.GetPtr(),bin.GetSize());
+}
+
 /*!\brief Konstruktor mit Angabe einer Speicheradresse und Größe
  *
  * \desc
@@ -200,6 +216,22 @@ void CMemory::set(const CMemoryReference &other)
 	copy(other);
 }
 
+/*!\brief Speicherbereich von einem CBinary-Objekt kopieren.
+ *
+ * \desc
+ * Mit dieser Funktion wird der Speicher eines CBinary-Objekts
+ * kopiert. Sie ist identisch zu CMemory::copy.
+ *
+ * @param[in] bin Referenz auf ein CBinary-Objekt
+ *
+ * \note
+ * Falls die Klasse vor Aufruf bereits Speicher verwaltet hat, wird dieser zuerst freigegeben.
+ */
+void CMemory::set(const CBinary &bin)
+{
+	copy(bin.GetPtr(),bin.GetSize());
+}
+
 /*!\brief Speicherbereich kopieren
  *
  * \desc
@@ -237,6 +269,7 @@ void *CMemory::copy(void *adr, size_t size)
 		SetError(357);
 		return NULL;
 	}
+	s=size;
 	return ptr;
 }
 
@@ -259,6 +292,22 @@ void *CMemory::copy(const CMemoryReference &other)
 	return copy(other.ptr, other.s);
 }
 
+/*!\brief Speicherbereich von einem CBinary-Objekt kopieren.
+ *
+ * \desc
+ * Mit dieser Funktion wird der Speicher eines CBinary-Objekts
+ * kopiert. Sie ist identisch zu CMemory::copy.
+ *
+ * @param[in] bin Referenz auf ein CBinary-Objekt
+ *
+ * \note
+ * Falls die Klasse vor Aufruf bereits Speicher verwaltet hat, wird dieser zuerst freigegeben.
+ */
+void *CMemory::copy(const CBinary &bin)
+{
+	return copy(bin.GetPtr(),bin.GetSize());
+}
+
 /*!\brief Speicherreferenz von anderem CMemory-Objekt kopieren
  *
  * \desc
@@ -274,6 +323,22 @@ CMemory &CMemory::operator=(const CMemoryReference &other)
 	return *this;
 }
 
+/*!\brief Speicherbereich von einem CBinary-Objekt kopieren.
+ *
+ * \desc
+ * Mit dieser Funktion wird der Speicher eines CBinary-Objekts
+ * kopiert. Sie ist identisch zu CMemory::copy.
+ *
+ * @param[in] bin Referenz auf ein CBinary-Objekt
+ *
+ * \note
+ * Falls die Klasse vor Aufruf bereits Speicher verwaltet hat, wird dieser zuerst freigegeben.
+ */
+CMemory &CMemory::operator=(const CBinary &bin)
+{
+	copy(bin.GetPtr(),bin.GetSize());
+	return *this;
+}
 
 /*!\brief Adresse des Speicherblocks auslesen
  *

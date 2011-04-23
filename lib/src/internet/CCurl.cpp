@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.13 $
- * $Date: 2009/08/24 13:07:48 $
- * $Id: CCurl.cpp,v 1.13 2009/08/24 13:07:48 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CCurl.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -221,6 +221,12 @@ int CCurl::SetOptOk(int ret)
 			case CURLE_OPERATION_TIMEOUTED:
 				myerr=174;
 				break;
+			case CURLE_COULDNT_RESOLVE_HOST:
+				myerr=273;
+				break;
+			case CURLE_COULDNT_CONNECT:
+				myerr=274;
+				break;
 			default:
 				myerr=354;
 		}
@@ -380,7 +386,9 @@ int CCurl::SetTimeout(int seconds)
 			SetError(353);
 			return 0;
 		}
-		long t=seconds;
+		long t=1;
+		curl_easy_setopt((CURL*)handle, CURLOPT_NOSIGNAL, t);	// Curl soll keine Signals verwenden
+		t=seconds;
 		return SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_TIMEOUT, t));
 	#else
 		SetError(356);

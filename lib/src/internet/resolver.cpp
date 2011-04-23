@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.11 $
- * $Date: 2009/02/13 11:06:34 $
- * $Id: resolver.cpp,v 1.11 2009/02/13 11:06:34 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: resolver.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -119,6 +119,51 @@ CString GetHostname()
 
 }
 
+static int GetHostByNameInternal(const char *name, CAssocArray *Result, int family)
+{
+		int n;
+		struct addrinfo hints, *res, *ressave;
+		CBinary bin;
+		bzero(&hints,sizeof(struct addrinfo));
+		hints.ai_family=family;
+		hints.ai_socktype=SOCK_STREAM;
+		if ((n=getaddrinfo(name,NULL,&hints,&res))!=0) {
+			SetError(273,"%s, %s",name,gai_strerror(n));
+			return 0;
+		}
+		ressave=res;
+		if (Result) {
+			Result->Clear();
+			CAssocArray ip;
+			//int e, conres;
+			char hbuf[NI_MAXHOST];
+			do {
+				if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
+					ip.Clear();
+					bin.Clear();
+					bin.Set(res->ai_addr,res->ai_addrlen);
+					ip.Set("ip",hbuf);
+					ip.Set("name",name);
+					if (res->ai_family==AF_INET) {
+						ip.Set("type","AF_INET");
+					} else if (res->ai_family==AF_INET6) {
+						ip.Set("type","AF_INET6");
+					}
+					ip.Set("ai_addr",&bin);
+					ip.Setf("ai_addrlen","%i",res->ai_addrlen);
+					ip.Setf("ai_family","%i",res->ai_family);
+					ip.Setf("ai_protocol","%i",res->ai_protocol);
+					ip.Setf("ai_socktype","%i",res->ai_socktype);
+					Result->Set("[]",&ip);
+				}
+			} while ((res=res->ai_next)!=NULL);
+		}
+		freeaddrinfo(ressave);
+		return 1;
+	//#endif
+}
+
+
 int GetHostByName(const char *name, CAssocArray *Result)
 /*!\brief Hostauflösung anhand des Namens
  * \ingroup PPLGroupInternet
@@ -159,6 +204,15 @@ int GetHostByName(const char *name, CAssocArray *Result)
  *
  * \since Diese Klasse wurde mit Version 6.0.12 eingeführt
  * \since Ab Version 6.0.19 werden die ai_*-Parameter zurückgegeben
+ *
+ * \note
+ * Ursprünglich hat die Funktion intern einen einzelnen Aufruf der Systemfunktion getaddrinfo gemacht.
+ * In neueren libc Bibliotheken scheint sich jedoch das Verhalten geändert zu haben.
+ * Hier werden AAAA-Records nur dann zurückgegeben, wenn auf dem lokalen host auch eine globales
+ * IPv6-Interface konfiguriert ist. Zu beobachten auf Ubuntu 9.10 nach Einspielen der Updates am 13.01.2009.
+ * Die Funktion wurde daher geändert und ruft getaddrinfo nun zweimal auf, einmal für IPv4/INET und
+ * einmal für IPv6/INET6.
+ *
  */
 {
 	if (!name) {
@@ -169,47 +223,11 @@ int GetHostByName(const char *name, CAssocArray *Result)
 	#ifdef _WIN32
 		InitWSA();
 	#endif
-		int n;
-		struct addrinfo hints, *res, *ressave;
-		CBinary bin;
-		bzero(&hints,sizeof(struct addrinfo));
-		hints.ai_family=AF_UNSPEC;
-		hints.ai_socktype=SOCK_STREAM;
-		if ((n=getaddrinfo(name,NULL,&hints,&res))!=0) {
-			SetError(273,"%s, %s",name,gai_strerror(n));
-			return 0;
-		}
-		ressave=res;
-		if (Result) {
-			Result->Clear();
-			CAssocArray ip;
-			//int e, conres;
-			char hbuf[NI_MAXHOST];
-			do {
-				if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
-					ip.Clear();
-					bin.Clear();
-					bin.Set(res->ai_addr,res->ai_addrlen);
-					ip.Set("ip",hbuf);
-					ip.Set("name",name);
-					if (res->ai_family==AF_INET) {
-						ip.Set("type","AF_INET");
-					} else if (res->ai_family==AF_INET6) {
-						ip.Set("type","AF_INET6");
-					}
-					ip.Set("ai_addr",&bin);
-					ip.Setf("ai_addrlen","%i",res->ai_addrlen);
-					ip.Setf("ai_family","%i",res->ai_family);
-					ip.Setf("ai_protocol","%i",res->ai_protocol);
-					ip.Setf("ai_socktype","%i",res->ai_socktype);
-					Result->Set("[]",&ip);
-				}
-			} while ((res=res->ai_next)!=NULL);
-		}
-		freeaddrinfo(ressave);
-		return 1;
-	//#endif
+	int ret=GetHostByNameInternal(name,Result,AF_INET);
+	ret+=GetHostByNameInternal(name,Result,AF_INET6);
+	return ret;
 }
+
 
 int GetHostByAddr(const char *addr, CAssocArray *Result)
 /*!\brief Reverse-Lookup anhand einer IP-Adresse

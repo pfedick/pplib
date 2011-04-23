@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.7 $
- * $Date: 2009/08/24 15:01:52 $
- * $Id: Pool.cpp,v 1.7 2009/08/24 15:01:52 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.4 $
+ * $Date: 2010/03/26 16:11:03 $
+ * $Id: Pool.cpp,v 1.4 2010/03/26 16:11:03 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -452,7 +452,7 @@ int Pool::SetOption(const CString &Name, const CString &Value)
 Database *Pool::New()
 {
 	if (Log) Log->Printf(ppl6::LOG::DEBUG,4,"ppl6::db::Pool","New",__FILE__,__LINE__,"%i:%s: Neuen Connect erstellen",Id,(const char*)Name);
-	// Einen neuen Connect gibts nur, wenn Max==0 ist
+	// Einen neuen Connect gibts nur, wenn Max>0 ist
 	if (Max>0) {
 		// Oder die Anzahl Connects insgesammt kleiner als Max sind
 		if (Used.Num()+Free.Num()>=Max) {
@@ -476,7 +476,8 @@ Database *Pool::New()
  * \param[in] wait Optionales Flag, das angibt, ob die Funktion warten soll, wenn das Maximum an
  * Connects für diesen Pool bereits erreicht ist.
  * \param[in] ms Ein optionaler Wert, der in Kombination mit dem \p wait-Flag angibt, wieviele
- * Millisekunden gewartet werden soll, bevor mit einem Timeout abgebrochen wird.
+ * Millisekunden gewartet werden soll, bevor mit einem Timeout abgebrochen wird. Ist der Wert 0,
+ * wird endlos gewartet.
  * \returns Die Funktion gibt entweder ein gültiges Handle für die Datenbank zurück, oder im
  * Fehlerfall NULL.
  *
@@ -527,13 +528,18 @@ Database *Pool::Get(bool wait, int ms)
 	while (1) {
 		p=New();
 		if (p) break;
+		if (!wait) {
+			Mutex.Unlock();
+			if (Log) Log->LogError("ppl6::db::Pool","Get",__FILE__,__LINE__);
+			return NULL;
+		}
 		if (p==NULL && GetErrorCode()!=442) {
 			Mutex.Unlock();
 			if (Log) Log->LogError("ppl6::db::Pool","Get",__FILE__,__LINE__);
 			return NULL;
 		}
 		if (ms) {
-			if (start+diff>=ppl6::getmicrotime()) {
+			if (start+diff<ppl6::getmicrotime()) {
 				SetError(442,"Timeout");
 				Mutex.Unlock();
 				if (Log) Log->LogError("ppl6::db::Pool","Get",__FILE__,__LINE__);

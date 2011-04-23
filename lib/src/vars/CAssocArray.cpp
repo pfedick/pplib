@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.50 $
- * $Date: 2009/11/25 19:33:09 $
- * $Id: CAssocArray.cpp,v 1.50 2009/11/25 19:33:09 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.5 $
+ * $Date: 2010/03/22 16:51:04 $
+ * $Id: CAssocArray.cpp,v 1.5 2010/03/22 16:51:04 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -244,6 +244,8 @@ CAssocArray::CAssocArray()
  */
 {
 	type=CVar::CASSOCARRAY;
+	num=0;
+	maxint=0;
 	if (!Heap) {
 		Cppl6Core *core=PPLInit();
 		if (!core) {
@@ -255,8 +257,6 @@ CAssocArray::CAssocArray()
 			}
 		}
 	}
-	num=0;
-	maxint=0;
 }
 
 CAssocArray::CAssocArray(const CAssocArray &a)
@@ -272,6 +272,8 @@ CAssocArray::CAssocArray(const CAssocArray &a)
  */
 {
 	type=CVar::CASSOCARRAY;
+	num=0;
+	maxint=0;
 	if (!Heap) {
 		Cppl6Core *core=PPLInit();
 		if (!core) {
@@ -283,8 +285,6 @@ CAssocArray::CAssocArray(const CAssocArray &a)
 			}
 		}
 	}
-	num=0;
-	maxint=0;
 	Copy(a);
 }
 
@@ -301,6 +301,8 @@ CAssocArray::CAssocArray(const CAssocArray *a)
  */
 {
 	type=CVar::CASSOCARRAY;
+	num=0;
+	maxint=0;
 	if (!Heap) {
 		Cppl6Core *core=PPLInit();
 		if (!core) {
@@ -312,8 +314,6 @@ CAssocArray::CAssocArray(const CAssocArray *a)
 			}
 		}
 	}
-	num=0;
-	maxint=0;
 	Copy(a);
 }
 
@@ -487,10 +487,9 @@ void CAssocArray::Clear()
 	Tree.Clear(true);
 	num=0;
 	maxint=0;
-	Change();
 }
 
-void CAssocArray::List(const char *prefix)
+void CAssocArray::List(const char *prefix) const
 /*!\brief Inhalt des Arrays ausgeben
  *
  * \desc
@@ -538,9 +537,10 @@ prefix/pointer1=POINTER 3217221904 (0xbfc2e910)
 	CString key;
 	CString pre;
 	if (prefix) key.Sprintf("%s/",prefix);
-	Tree.Reset();
+	CTreeWalker walk;
+	Tree.Reset(walk);
 	CArrayItem *p;
-	while ((p=(CArrayItem*)Tree.GetNext())) {
+	while ((p=(CArrayItem*)Tree.GetNext(walk))) {
 		if (p->type==datatype::CSTRING) {
 			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)p->key.GetPtr(),(const char*)((CString*)p->value)->GetPtr());
 		} else if (p->type==datatype::CWSTRING) {
@@ -554,7 +554,6 @@ prefix/pointer1=POINTER 3217221904 (0xbfc2e910)
 			PrintDebug("%s%s=POINTER %llu (0x%llx)\n",(const char*)key,(const char*)p->key.GetPtr(),(ppluint64)(size_t)(p->value), (ppluint64)(size_t)(p->value));
 		}
 	}
-	Tree.Reset();
 }
 
 int CAssocArray::Validate(const char *prefix)
@@ -929,7 +928,7 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 	return p;
 }
 
-int CAssocArray::Count(bool recursive)
+int CAssocArray::Count(bool recursive) const
 /*!\brief Anzahl Schlüssel zählen
  *
  * \desc
@@ -942,16 +941,18 @@ int CAssocArray::Count(bool recursive)
  */
 {
 	if (!recursive) return num;
-	Reset();
+	CTreeWalker walk;
+	CArrayItem *p;
+	Tree.Reset(walk);
 	CAssocArray *a;
 	int c=num;
-	while ((a=(CAssocArray*)GetNextArray())) {
-		c+=a->Count(true);
+	while ((p=(CArrayItem*)Tree.GetNext(walk))) {
+		if (p->type==datatype::ARRAY) c+=((CAssocArray*)p->value)->Count(recursive);
 	}
 	return c;
 }
 
-int CAssocArray::Count(const char *key, bool recursive)
+int CAssocArray::Count(const char *key, bool recursive) const
 /*!\brief Anzahl Schlüssel für ein bestimmtes Element zählen
  *
  * \desc
@@ -1042,7 +1043,6 @@ int CAssocArray::Set(const char *key, const char *value, int size)
 	CString *str=new CString;
 	if (!str) {
 		SetError(2);
-		Change();
 		return 0;
 	}
 	str->Set(value,size);
@@ -1050,14 +1050,12 @@ int CAssocArray::Set(const char *key, const char *value, int size)
 	if (!ptr) {
 		PushError();
 		delete str;
-		Change();
 		PopError();
 		return 0;
 	}
 	ptr->Clear();
 	ptr->value=str;
 	ptr->type=datatype::CSTRING;
-	Change();
 	return 1;
 }
 
@@ -1106,7 +1104,6 @@ int CAssocArray::Set(const char *key, const CWString &value, int size)
 	CWString *str=new CWString;
 	if (!str) {
 		SetError(2);
-		Change();
 		return 0;
 	}
 	str->Set(value,size);
@@ -1114,14 +1111,12 @@ int CAssocArray::Set(const char *key, const CWString &value, int size)
 	if (!ptr) {
 		PushError();
 		delete str;
-		Change();
 		PopError();
 		return 0;
 	}
 	ptr->Clear();
 	ptr->value=str;
 	ptr->type=datatype::CWSTRING;
-	Change();
 	return 1;
 }
 
@@ -1164,14 +1159,12 @@ int CAssocArray::Set(const char *key, const CAssocArray &array)
 	}
 	CArrayItem *ptr=(CArrayItem*)CreateTree(key);
 	if (!ptr) {
-		Change();
 		return 0;
 	}
 	ptr->Clear();
 	CAssocArray *a=new CAssocArray;
 	if (!a) {
 		SetError(2);
-		Change();
 		return 0;
 	}
 	ptr->type=datatype::ARRAY;
@@ -1184,7 +1177,6 @@ int CAssocArray::Set(const char *key, const CAssocArray &array)
 		ptr->value=NULL;
 		ptr->type=0;
 	}
-	Change();
 	return ret;
 }
 
@@ -1218,20 +1210,17 @@ int CAssocArray::Set(const char *key, CAssocArray *array, bool copy)
 	}
 	CArrayItem *ptr=(CArrayItem*)CreateTree(key);
 	if (!ptr) {
-		Change();
 		return 0;
 	}
 	ptr->Clear();
 	if (!copy) {
 		ptr->value=array;
 		ptr->type=datatype::ARRAY;
-		Change();
 		return 1;
 	}
 	CAssocArray *a=new CAssocArray;
 	if (!a) {
 		SetError(2);
-		Change();
 		return 0;
 	}
 	ptr->type=datatype::ARRAY;
@@ -1244,7 +1233,6 @@ int CAssocArray::Set(const char *key, CAssocArray *array, bool copy)
 		ptr->value=NULL;
 		ptr->type=0;
 	}
-	Change();
 	return ret;
 }
 
@@ -1273,20 +1261,17 @@ int CAssocArray::Set(const char *key, const CArray &array)
 	}
 	CArrayItem *ptr=(CArrayItem*)CreateTree(key);
 	if (!ptr) {
-		Change();
 		return 0;
 	}
 	ptr->Clear();
 	CAssocArray *a=new CAssocArray;
 	if (!a) {
 		SetError(2);
-		Change();
 		return 0;
 	}
 	ptr->type=datatype::ARRAY;
 	ptr->value=a;
 	int ret=a->Copy(array);
-	Change();
 	return ret;
 }
 
@@ -1298,14 +1283,12 @@ int CAssocArray::Set(const char *key, const CBinary &bin)
 	}
 	CArrayItem *ptr=(CArrayItem*)CreateTree(key);
 	if (!ptr) {
-		Change();
 		return 0;
 	}
 	ptr->Clear();
 	CBinary *a=new CBinary;
 	if (!a) {
 		SetError(2);
-		Change();
 		return 0;
 	}
 	ptr->type=datatype::BINARY;
@@ -1318,7 +1301,6 @@ int CAssocArray::Set(const char *key, const CBinary &bin)
 		ptr->value=NULL;
 		ptr->type=0;
 	}
-	Change();
 	return ret;
 }
 
@@ -1352,20 +1334,17 @@ int CAssocArray::Set(const char *key, CBinary *bin, bool copy)
 	}
 	CArrayItem *ptr=(CArrayItem*)CreateTree(key);
 	if (!ptr) {
-		Change();
 		return 0;
 	}
 	ptr->Clear();
 	if (!copy) {
 		ptr->value=bin;
 		ptr->type=datatype::BINARY;
-		Change();
 		return 1;
 	}
 	CBinary *a=new CBinary;
 	if (!a) {
 		SetError(2);
-		Change();
 		return 0;
 	}
 	ptr->type=datatype::BINARY;
@@ -1378,7 +1357,6 @@ int CAssocArray::Set(const char *key, CBinary *bin, bool copy)
 		ptr->value=NULL;
 		ptr->type=0;
 	}
-	Change();
 	return ret;
 }
 
@@ -1407,13 +1385,11 @@ int CAssocArray::SetPointer(const char *key, const void *pointer)
 	}
 	CArrayItem *ptr=(CArrayItem*)CreateTree(key);
 	if (!ptr) {
-		Change();
 		return 0;
 	}
 	ptr->Clear();
 	ptr->value=(void*)pointer;
 	ptr->type=datatype::POINTER;
-	Change();
 	return 1;
 }
 
@@ -1450,7 +1426,6 @@ int CAssocArray::Concat(const char *key, const char *value, const char *concat, 
 	v.Set(value,size);
 	CArrayItem *ptr=(CArrayItem*)CreateTree(key);
 	if (!ptr) {
-		Change();
 		return 0;
 	}
 	if (ptr->type!=datatype::CSTRING) {
@@ -1460,7 +1435,6 @@ int CAssocArray::Concat(const char *key, const char *value, const char *concat, 
 	if (!str) {
 		str=new CString;
 		if (!str) {
-			Change();
 			SetError(2);
 			return 0;
 		}
@@ -1469,7 +1443,6 @@ int CAssocArray::Concat(const char *key, const char *value, const char *concat, 
 	}
 	if (str->Len()) str->Concat(concat);
 	str->Concat(v);
-	Change();
 	return 1;
 }
 
@@ -1645,21 +1618,18 @@ int CAssocArray::Copy(const CArray &a)
 		key.Sprintf("%i",i);
 		ptr=(CArrayItem*)CreateTree((const char*)key.GetPtr());
 		if (!ptr) {
-			Change();
 			return 0;
 		}
 		ptr->Clear();
 		CString *str=new CString;
 		if (!str) {
 			SetError(2);
-			Change();
 			return 0;
 		}
 		ptr->value=str;
 		ptr->type=datatype::CSTRING;
 		str->Set(value);
 	}
-	Change();
 	return 1;
 }
 
@@ -1705,7 +1675,6 @@ int CAssocArray::Delete(const char *key)
 	}
 	delete ptr;
 	num--;
-	Change();
 	return 1;
 }
 
@@ -1813,6 +1782,22 @@ ARRAY_RESULT CAssocArray::GetPrevious()
  */
 {
 	return (ARRAY_RESULT)Tree.GetPrevious();
+}
+
+void CAssocArray::Reset(CTreeWalker &walk) const
+{
+	Tree.Reset(walk);
+}
+
+ARRAY_RESULT CAssocArray::GetFirst(CTreeWalker &walk) const
+{
+	Tree.Reset(walk);
+	return GetNext(walk);
+}
+
+ARRAY_RESULT CAssocArray::GetNext(CTreeWalker &walk) const
+{
+	return (ARRAY_RESULT)Tree.GetNext(walk);
 }
 
 int CAssocArray::GetFirstArray(CAssocArray &res)

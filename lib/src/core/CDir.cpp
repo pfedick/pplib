@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.21 $
- * $Date: 2009/10/02 07:21:41 $
- * $Id: CDir.cpp,v 1.21 2009/10/02 07:21:41 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.4 $
+ * $Date: 2010/03/26 09:15:49 $
+ * $Id: CDir.cpp,v 1.4 2010/03/26 09:15:49 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -446,7 +446,7 @@ CString CDir::CurrentPath()
 class CDirSortIgnoreCase : public CTreeController
 {
 	public:
-		virtual int	Compare(const void *value1, const void *value2)	{
+		virtual int	Compare(const void *value1, const void *value2)	const {
 			CDirEntry *e1=(CDirEntry*) value1;
 			CDirEntry *e2=(CDirEntry*) value2;
 			int cmp=e1->Filename.StrCaseCmp(e2->Filename);
@@ -454,10 +454,10 @@ class CDirSortIgnoreCase : public CTreeController
 			if (cmp>0) return -1;
 			return 0;
 		}
-		virtual int GetValue(const void *item, CString &buffer)	{
+		virtual int GetValue(const void *item, CString &buffer)	const {
 			return 0;
 		}
-		virtual int DestroyValue(void *item) {
+		virtual int DestroyValue(void *item) const {
 			return 1;
 		}
 };
@@ -465,7 +465,7 @@ class CDirSortIgnoreCase : public CTreeController
 class CDirSort : public CTreeController
 {
 	public:
-		virtual int	Compare(const void *value1, const void *value2)	{
+		virtual int	Compare(const void *value1, const void *value2)	const {
 			CDirEntry *e1=(CDirEntry*) value1;
 			CDirEntry *e2=(CDirEntry*) value2;
 			int cmp=e1->Filename.StrCmp(e2->Filename);
@@ -473,10 +473,10 @@ class CDirSort : public CTreeController
 			if (cmp>0) return -1;
 			return 0;
 		}
-		virtual int GetValue(const void *item, CString &buffer)	{
+		virtual int GetValue(const void *item, CString &buffer)	const {
 			return 0;
 		}
-		virtual int DestroyValue(void *item) {
+		virtual int DestroyValue(void *item) const {
 			return 1;
 		}
 };
@@ -484,17 +484,17 @@ class CDirSort : public CTreeController
 class CDirSortMTime : public CTreeController
 {
 	public:
-		virtual int	Compare(const void *value1, const void *value2)	{
+		virtual int	Compare(const void *value1, const void *value2)	const {
 			CDirEntry *e1=(CDirEntry*) value1;
 			CDirEntry *e2=(CDirEntry*) value2;
 			if (e1->MTime<e2->MTime) return 1;
 			if (e1->MTime>e2->MTime) return -1;
 			return 0;
 		}
-		virtual int GetValue(const void *item, CString &buffer)	{
+		virtual int GetValue(const void *item, CString &buffer)	const {
 			return 0;
 		}
-		virtual int DestroyValue(void *item) {
+		virtual int DestroyValue(void *item) const {
 			return 1;
 		}
 };
@@ -961,14 +961,14 @@ int CDir::Open(const char *path, Sort s)
 	Path.RTrim("\\");
 	DIR *dir=opendir((const char*)Path);
 	if (!dir) {
-		SetErrorFromErrno();
+		ppl6::SetErrorFromErrno("Verzeichnis: %s",(const char*)Path);
 		return 0;
 	}
 	struct dirent d;
 	struct dirent *result;
 	while (1==1) {
 		if (readdir_r(dir,&d,&result)!=0) {
-			SetErrorFromErrno();
+			ppl6::SetErrorFromErrno("Verzeichnis: %s",(const char*)Path);
 			closedir(dir);
 			return 0;
 		}

@@ -1,14 +1,14 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
- *  
- * $Author: patrick $
- * $Revision: 1.5 $
- * $Date: 2008/04/15 20:36:32 $
- * $Id: Picture.cpp,v 1.5 2008/04/15 20:36:32 patrick Exp $
- * 
- ******************************************************************************* 
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ *
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: Picture.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ *
+ *******************************************************************************
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ using namespace ppl6::grafix;
 namespace ppl6 {
 namespace tk {
 
+#ifdef TODO
 /*!\class Picture
  * \ingroup PPLGroupToolkit
  */
@@ -117,7 +118,7 @@ int Picture::Paint()
 	return 1;
 }
 
-
+#endif
 
 }
 }

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.20 $
- * $Date: 2009/10/06 10:50:09 $
- * $Id: CBinary.cpp,v 1.20 2009/10/06 10:50:09 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: CBinary.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -114,6 +114,12 @@ CBinary::CBinary(const CBinary& bin)
 	Copy((CBinary&)bin);
 }
 
+CBinary::CBinary(const CMemoryReference& mem)
+{
+	InitInternal();
+	Copy(mem);
+}
+
 
 CBinary::CBinary(const CString& str)
 {
@@ -139,7 +145,6 @@ void CBinary::ClearInternal()
 void CBinary::Clear()
 {
 	ClearInternal();
-	Change();
 }
 
 void CBinary::ManageMemory()
@@ -166,8 +171,20 @@ int CBinary::Set(void *ptr, size_t size)
 	ClearInternal();
 	this->ptr=ptr;
 	this->size=size;
-	Change();
 	return 1;
+}
+
+int CBinary::Set(const CMemoryReference &mem)
+{
+	ClearInternal();
+	this->ptr=mem.adr();
+	this->size=mem.size();
+	return 1;
+}
+
+int CBinary::Copy(const CMemoryReference &mem)
+{
+	return Copy(mem.adr(),mem.size());
 }
 
 int CBinary::Copy(const char *str)
@@ -189,12 +206,10 @@ int CBinary::Copy(const void *ptr, size_t size)
 	if (size) {
 		data=malloc(size);
 		if (!data) {
-			Change();
 			SetError(2,"CBinary::Copy(void *ptr, size_t size=%llu)",(ppluint64)size);
 			return 0;
 		}
 		if (!memcpy(data, ptr, size)) {
-			Change();
 			SetError(357,"CBinary::Copy(void *ptr, size_t size=%llu)",(ppluint64)size);
 			free(data);
 			data=NULL;
@@ -203,7 +218,6 @@ int CBinary::Copy(const void *ptr, size_t size)
 		this->ptr=data;
 		this->size=size;
 	}
-	Change();
 	return 1;
 }
 
@@ -251,7 +265,6 @@ int CBinary::Set(CFileObject& file)
 	data=file.Load();
 	if (!data) {
 		PushError();
-		Change();
 		PopError();
 		return 0;
 	}
@@ -384,6 +397,12 @@ CBinary& CBinary::operator=(const char *str)
 CBinary& CBinary::operator=(const CString& str)
 {
 	Copy(str);
+	return *this;
+}
+
+CBinary& CBinary::operator=(const CMemoryReference& mem)
+{
+	Copy(mem);
 	return *this;
 }
 
@@ -555,6 +574,12 @@ void CBinary::HexDump(CString &s) const
 		s.Concatf("%s\n",buff);
 	}
 }
+
+CBinary::operator CMemoryReference () const
+{
+	return CMemoryReference(ptr,size);
+}
+
 
 } // EOF namespace ppl6
 

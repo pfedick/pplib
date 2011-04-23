@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.4 $
- * $Date: 2009/09/05 17:06:20 $
- * $Id: PoolEx.cpp,v 1.4 2009/09/05 17:06:20 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/03/26 09:15:49 $
+ * $Id: PoolEx.cpp,v 1.3 2010/03/26 09:15:49 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -88,7 +88,7 @@ class PoolCheck : public CThread
  *
  */
 
-int PoolTree::Compare (const void *value1, const void *value2)
+int PoolTree::Compare (const void *value1, const void *value2) const
 {
 	Pool *p1=(Pool*)value1;
 	Pool *p2=(Pool*)value2;
@@ -97,14 +97,14 @@ int PoolTree::Compare (const void *value1, const void *value2)
 	return 0;
 }
 
-int PoolTree::DestroyValue (void *item)
+int PoolTree::DestroyValue (void *item) const
 {
 	Pool *p=(Pool*)item;
 	if (p) delete p;
 	return 1;
 }
 
-int PoolTree::GetValue (const void *item, CString &buffer)
+int PoolTree::GetValue (const void *item, CString &buffer) const
 {
 	Pool *p=(Pool*)item;
 	if (!p) return 0;

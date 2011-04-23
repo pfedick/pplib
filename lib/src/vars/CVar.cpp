@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.13 $
- * $Date: 2009/11/26 18:33:50 $
- * $Id: CVar.cpp,v 1.13 2009/11/26 18:33:50 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: CVar.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,9 +50,10 @@ namespace ppl6 {
  * \brief Basisklasse für alle weiteren Datentypen
  *
  * \desc
- * Diese Klasse wird als Basisklasse für alle weiteren Datentypen verwendet.
- * Sie bietet die Möglichkeit eine Callback-Klasse zu definieren, deren Callback-Funktion immer dann
- * aufgerufen wird, wenn sich am Inhalt der Klasse etwas geändert hat.
+ * Diese Klasse wird als Basisklasse für alle weiteren Datentypen verwendet. Als einzige
+ * Information speichert sie den Typ der Variablen. Dieser wird von allen
+ * abgeleiteten Klassen mit einem Wert belegt, der aussagt, um welchen Datentyp es sich handelt.
+ * Dazu wurde die Klasse ebenfalls um die Enumeration CVar::PPLDataType erweitert.
  *
  * \see
  * - CInt
@@ -62,10 +63,6 @@ namespace ppl6 {
  * - CArray
  * - CAssocArray
  * - CBinary
- *
- * Seit Version 6.3.0 hat die Klasse einen zusätzlichen Parameter \p type. Dieser wird von allen
- * abgeleiteten Klassen mit einem Wert belegt, der aussagt, um welchen Datentyp es sich handelt.
- * Dazu wurde die Klasse ebenfalls um die Enumeration CVar::PPLDataType erweitert.
  *
  * \example
  *
@@ -137,22 +134,18 @@ void Machwas(const CVar &object)
 CVar::CVar()
 /*!\brief Konstruktor der Klasse
  *
- * Der Konstruktor initialisiert die Callback-Funktionalität mit NULL
+ * Der Konstruktor initialisiert den Typ der Klasse mit CVar::UNKNOWN
  */
 {
-	callback=NULL;
-	callback_data=NULL;
 	type=CVar::UNKNOWN;
 }
 
 CVar::CVar(const CVar &copy)
 /*!\brief Copy-Konstruktor der Klasse
  *
- * Der Konstruktor initialisiert die Callback-Funktionalität mit NULL
+ * Der Konstruktor kopiert den Datentyp der anderen Klasse.
  */
 {
-	callback=copy.callback;
-	callback_data=copy.callback_data;
 	type=copy.type;
 }
 
@@ -161,16 +154,14 @@ CVar::CVar(const CVar &copy)
 CVar::~CVar()
 /*!\brief Destruktor der Klasse
  *
- * Falls eine Callback-Funktion installiert wurde, wird diese wieder auf NULL gesetzt.
+ *
  */
 {
-	DeleteCallback();
+
 }
 
 CVar& CVar::operator=(const CVar& var)
 {
-	callback=var.callback;
-	callback_data=var.callback_data;
 	type=var.type;
 	return *this;
 }
@@ -195,59 +186,6 @@ int CVar::IsType(int type) const
 	return 0;
 }
 
-void CVar::SetCallback(CCallback *c, void *data)
-/*!\brief Callback-Klasse setzen
- *
- * Mit dieser Funktion wird eine Callback-Klasse gesetzt. Dabei kann es sich um eine beliebige Klasse
- * handeln, die von ppl6::CCallback abgeleitet wurde und deren Funktion "CCallback::Callback"
- * implementiert wurde. Die Callback-Funktion der Klasse wird immer dann aufgerufen, wenn sich
- * der Wert des Datentyps ändert.
- *
- * \param[in] c Pointer auf die Callback-Klasse. Zeigt dieser auf NULL, wird die Callback-Funktionalität abgeschaltet, im
- * Prinzip das gleiche, als hätte man CVar::DeleteCallback aufgerufen.
- * \param[in] data Ein optionaler Pointer auf Daten, die bei Aufruf der Callback-Funktion übergeben werden sollen.
- *
- * \see CCallback
- */
-{
-	if (!c) {
-		callback=NULL;
-		callback_data=NULL;
-	}
-	callback=c;
-	callback_data=data;
-}
-
-void CVar::DeleteCallback()
-/*!\brief Callback löschen
- *
- * Eine zuvor gesetzte Callback-Klasse wird abgeschaltet
- */
-{
-	callback=NULL;
-	callback_data=NULL;
-}
-
-void CVar::Change()
-/*!\brief Callback initiieren
- *
- * Diese Funktion wird immer dann aufgerufen, wenn sich am Inhalt der Datenklasse etwas geändert hat.
- * Sie prüft, ob eine Callback-Klasse gesetzt wurde (siehe CVar::SetCallback) und ruft deren Callback-Funktion auf.
- *
- * \see
- * - CVar::SetCallback
- * - CCallback
- */
-{
-	if (callback) {
-		try {
-			callback->Callback(callback_data);
-		}
-		catch(...) {  // Handle all exceptions
-			DeleteCallback();
-		}
-	}
-}
 
 } // EOF namespace ppl6
 

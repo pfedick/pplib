@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.14 $
- * $Date: 2009/06/27 19:26:06 $
- * $Id: CAVLTree.cpp,v 1.14 2009/06/27 19:26:06 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.8 $
+ * $Date: 2010/03/26 10:29:32 $
+ * $Id: CAVLTree.cpp,v 1.8 2010/03/26 10:29:32 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,7 +75,7 @@ static CHeap *Heap=NULL;
  * \par
  * Dafür kann die Klasse aber nicht direkt verwendet werden, es muss zunächst eine
  * Ableitung erstellt werden, in der mindestens die virtuelle Funktion CAVLTree::Compare
- * implementiert werden muss. Optional könne auch noch CAVLTree::DestroyValue und
+ * implementiert werden muss. Optional können auch noch CAVLTree::DestroyValue und
  * CAVLTree::GetValue implementiert werden.
  * \par
  * Als Alternative kann auch eine Klasse von CTreeController abgeleitet werden, in der die
@@ -155,7 +155,7 @@ CAVLTree::~CAVLTree()
 }
 
 
-int	CAVLTree::Compare(const void *value1, const void *value2)
+int	CAVLTree::Compare(const void *value1, const void *value2) const
 /*!\brief Zwei Elemente des Baums vergleichen
  *
  * \desc
@@ -217,7 +217,7 @@ class MyTree : public ppl6::CAVLTree
 }
 
 
-int CAVLTree::GetValue(const void *item, CString &buffer)
+int CAVLTree::GetValue(const void *item, CString &buffer) const
 /*!\brief Daten als String ausgeben
  *
  * Diese Funktion wird durch CAVLTree::PrintNodes aufgerufen, um den Inhalt des Baums
@@ -238,9 +238,10 @@ int CAVLTree::GetValue(const void *item, CString &buffer)
 	return 0;
 }
 
-int CAVLTree::DestroyValue(void *item)
+int CAVLTree::DestroyValue(void *item) const
 /*!\brief Datenelement löschen
  *
+ * \desc
  * Diese Funktion wird aufgerufen, wenn ein Wert aus dem Baum gelöscht werden soll,
  * bzw. wenn der komplette Baum gelöscht wird. Da jeder Baum andere Daten enthalten kann,
  * muss die Methode für jeden Datentyp reimplementiert werden.
@@ -257,11 +258,35 @@ int CAVLTree::DestroyValue(void *item)
 	return 0;
 }
 
+/*!\brief Duplikate erlauben
+ *
+ * \desc
+ * Mit dieser Funktion kann festgelegt werden, ob Elemente mit gleichem Schlüssel im Baum
+ * erlaubt sind. Normalerweise ist dies nicht der Fall. Dabei gilt zu beachten, dass einige
+ * Funktionen möglicherweise unerwartet funktionieren. So wird CAVLTree::Find immer nur das
+ * erste Element finden können, ebenso CAVLTree::Delete oder CAVLTree::Remove.
+ *
+ * @param allow Mit \c true werden Duplikate erlaubt, mit \c false nicht. Werden bei einem
+ * bereits gefüllten Baum nachträglich Duplikate verboten, hat dies keine Auswirkung auf
+ * bereits vorhandene Duplikate.
+ */
 void CAVLTree::AllowDupes(bool allow)
 {
 	dupes=allow;
 }
 
+/*!\brief Kontrollklasse festlegen
+ *
+ * \desc
+ * Bei Verwendung der CAVLTree-Klasse wird üblicherweise eine eigene Klasse davon abgeleitet und
+ * mindestens die virtuelle Funktion CAVLTree::Compare, optional auch CAVLTree::DestroyValue und
+ * CAVLTree::GetValue reimplementiert. Es gibt jedoch auch die Möglichkeit CAVLTree ohne
+ * Ableitung zu verwenden. Dazu muss die eigene Klasse von CTreeController abgeleitet werden
+ * und dessen Pointer mit dieser Funktion an die CAVLTree-Klasse übergeben werden.
+ *
+ * @param[in] c Pointer auf eine von CTreeController abgeleitete Klasse, die mindestens die
+ * virtuelle Funktion CTreeController::Compare implementiert hat.
+ */
 void CAVLTree::SetTreeController(CTreeController *c)
 {
 	controller=c;
@@ -288,18 +313,23 @@ void CAVLTree::Clear()
  *
  * \desc
  * Mit dieser Funktion wird der Inhalt des Baums gelöscht und sämtlicher durch die Elemente
- * belegter Speicher wieder freigegeben. Dazu wird für jedes Element die virtuelle Funktion
- * CAVLTree::DestroyValue aufgerufen.
+ * belegter Speicher wieder freigegeben. Dazu wird für jedes Element zunächst CAVLTree::DeleteNode und
+ * dann die virtuelle Funktion CAVLTree::DestroyValue aufgerufen. Zuletzt wiird noch der duch den
+ * Knoten selbst belegte Speicher wieder freigegeben.
  * \attention
- * Bei einer abgeleiteten Klasse muss diese Funktion durch den Konstruktor aufgerufen werden,
+ * Bei einer abgeleiteten Klasse muss diese Funktion durch den Destruktor aufgerufen werden,
  * um sicherzustellen, dass alle Elemente gelöscht werden.
  *
  */
 {
 	//printf ("Clear wurde aufgerufen, root ist: %u\n",root);
+	TREEITEM *node;
 	while (root) {
 		//printf ("Root ist: %u\n",root);
-		DeleteNode(root);
+		node=root;
+		DeleteNode(node);		// Element aus dem Baum entfernen
+		if (node->data)	DestroyValue((void*)node->data);	// Vom Inhalt belegten Speicher freigeben
+		Heap->Free(node);			// Vom Knoten belegten Speicher freigeben
 	}
 	root=NULL;
 	count=0;
@@ -319,7 +349,7 @@ void CAVLTree::Reset()
 	stack_height=0;
 }
 
-void CAVLTree::PrintNodes(const TREEITEM *node)
+void CAVLTree::PrintNodes(const TREEITEM *node) const
 {
 	CString Buffer;
 	if (!node) {
@@ -476,7 +506,7 @@ void *CAVLTree::GetCurrent()
 	return NULL;
 }
 
-TREEITEM *CAVLTree::FindNode(const void *value)
+TREEITEM *CAVLTree::FindNode(const void *value) const
 /*!\brief Wert im Baum finden
  *
  * \desc
@@ -502,7 +532,7 @@ TREEITEM *CAVLTree::FindNode(const void *value)
 	return NULL;
 }
 
-void *CAVLTree::Find(const void *value)
+void *CAVLTree::Find(const void *value) const
 /*!\brief Element im Baum finden
  *
  * \desc
@@ -601,11 +631,14 @@ int CAVLTree::Delete(const void *value)
  * \par
  * Beim Löschen des Elements wird auch die virtuelle Funktion CAVLTree::DestroyValue
  * aufgerufen. Diese muss sicherstellen, dass der durch das Element belegte Speicher
- * ebenfall freigegeben wird.
+ * ebenfalls freigegeben wird.
+ * \par Falls das Element nur aus dem Baum entfernt werden, aber der durch das Element
+ * belegte Speicher erhalten bleiben soll, kann stattdessen die Funktion CAVLTree::Remove
+ * aufgerufen werden.
  *
  * \param[in] value Pointer auf den zu löschenden Wert
  * \returns Wurde das Element erfolgreich gelöscht, gibt die Funktion true (1) zurück,
- * sonst false (0) und ein entsprechender Fehlercode wird gesetzt,
+ * sonst false (0) und ein entsprechender Fehlercode wird gesetzt.
  */
 {
 	TREEITEM *item=FindNode(value);
@@ -613,14 +646,49 @@ int CAVLTree::Delete(const void *value)
 		SetError(421);
 		return 0;
 	}
-	return DeleteNode(item);
+	if (DeleteNode(item)) {
+		if (item->data)	DestroyValue((void*)item->data);
+		Heap->Free(item);
+		return 1;
+	}
+	return 0;
+}
+
+int CAVLTree::Remove(const void *value)
+/*!\brief Element aus dem AVL-Baum entfernen
+ *
+ * \desc
+ * Diese Funktion sucht zunächst ob der angegebene Wert im Baum enthalten ist und
+ * löscht anschließend das gefundene Element aus dem Baum. Dabei ist sichergestellt,
+ * dass der Baum stets sortiert und ausgewogen ist.
+ * \par
+ * Mit dieser Funktion wird das Element nur aus dem AVL-Baum entfernt, der durch das Element
+ * belegte Speicher wird jedoch nicht freigegeben. Falls dies gewünscht ist, kann stattdessen
+ * die Funktion CAVLTree::Delete aufgerufen werden.
+ *
+ * \param[in] value Pointer auf den zu entfernenden Wert
+ * \returns Wurde das Element erfolgreich entfernt, gibt die Funktion true (1) zurück,
+ * sonst false (0) und ein entsprechender Fehlercode wird gesetzt.
+ */
+{
+	TREEITEM *item=FindNode(value);
+	if (!item) {
+		SetError(421);
+		return 0;
+	}
+	if (DeleteNode(item)) {
+		Heap->Free(item);
+		return 1;
+	}
+	return 0;
 }
 
 int CAVLTree::DeleteNode(TREEITEM *item)
 /*!\brief Interne Funktion, die das tatsächliche Löschen vornimmt
  *
- * Dies ist eine interne Funktion, die den tatsächlichen Löschvorgang vornimmt.
- * Sie wird von CAVLTree::Delete aufgerufen.
+ * Dies ist eine interne Funktion, die den tatsächlichen Löschvorgang aus dem AVL-Baum vornimmt.
+ * Der Inhalt des Knotens \p item und auch der Knoten selbst werden dabei nicht
+ * gelöscht, dies muss die Aufrufende Funktion vornehmen. Sie wird von CAVLTree::Delete aufgerufen.
  *
  * \param[in] item Pointer auf die Verwaltungsstruktur des Baumelements
  * \return Wurde das Element erfolgreich gelöscht, gibt die Funktion true (1) zurück,
@@ -648,8 +716,8 @@ int CAVLTree::DeleteNode(TREEITEM *item)
 	father=item->parent;
 	if((!item->left)&&(!item->right)) {
 		if(item==root) {
-			DestroyValue((void*)item->data);
-			Heap->Free(item);
+			//DestroyValue((void*)item->data);
+			//Heap->Free(item);
 			root=NULL;
 			count--;
 			Reset();
@@ -663,8 +731,8 @@ int CAVLTree::DeleteNode(TREEITEM *item)
 				father->balance--;
 			}
 			UpDelete(father);
-			DestroyValue((void*)item->data);
-			Heap->Free(item);
+			//DestroyValue((void*)item->data);
+			//Heap->Free(item);
 			count--;
 			Reset();
 			return(1);
@@ -689,8 +757,8 @@ int CAVLTree::DeleteNode(TREEITEM *item)
 		sohn->parent=NULL;
 		root=sohn;
 	}
-	DestroyValue((void*)item->data);
-	Heap->Free(item);
+	//DestroyValue((void*)item->data);
+	//Heap->Free(item);
 	count--;
 	Reset();
 	return(1);

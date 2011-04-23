@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.11 $
- * $Date: 2009/07/19 08:34:51 $
- * $Id: CList.cpp,v 1.11 2009/07/19 08:34:51 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CList.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -313,7 +313,7 @@ CListItem *CList::GetPrevious()
  * \return Anzahl Elemente oder 0, wenn die Liste leer ist. Bei einer leeren Liste wird
  * ausserdem der Fehlercode 416 gesetzt.
  */
-int CList::Num()
+int CList::Num() const
 {
 	if (!counter) SetError(416);
 	return counter;

@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.24 $
- * $Date: 2009/12/12 18:53:08 $
- * $Id: Fonts.cpp,v 1.24 2009/12/12 18:53:08 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: Fonts.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,21 +45,255 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl6.h"
-#include "ppl6-grafix.h"
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
 
+#include "ppl6-grafix.h"
 
 namespace ppl6 {
 namespace grafix {
 
-/*!\class CFontFile
- * \brief Interne Klasse zur Verwaltung aller geladener Font-Dateien
+/*!\class CFont
  * \ingroup PPLGroupGrafik
+ * \brief Repräsentiert die verschiedenen Parameter eines Fonts
+ *
+ * @return
+ */
+
+CFont::CFont()
+{
+	Name="PPL Liberation Sans";
+	fontSize=12;
+	flags=0;
+	ori=0;
+}
+
+CFont::CFont(const CFont &other)
+{
+	Name=other.Name;
+	cForeground=other.cForeground;
+	cBorder=other.cBorder;
+	cShadow=other.cShadow;
+	fontSize=other.fontSize;
+	flags=other.flags;
+	ori=other.ori;
+}
+
+CFont &CFont::operator=(const CFont &other)
+{
+	Name=other.Name;
+	cForeground=other.cForeground;
+	cBorder=other.cBorder;
+	cShadow=other.cShadow;
+	fontSize=other.fontSize;
+	flags=other.flags;
+	ori=other.ori;
+	return *this;
+}
+
+CString CFont::name() const
+{
+	return Name;
+}
+
+Color CFont::color() const
+{
+	return cForeground;
+}
+
+Color CFont::borderColor() const
+{
+	return cBorder;
+}
+
+Color CFont::shadowColor() const
+{
+	return cShadow;
+}
+
+bool CFont::bold() const
+{
+	if (flags&fBold) return true;
+	return false;
+}
+
+bool CFont::italic() const
+{
+	if (flags&fItalic) return true;
+	return false;
+}
+
+bool CFont::antialias() const
+{
+	if (flags&fAntialias) return true;
+	return false;
+}
+
+bool CFont::drawBorder() const
+{
+	if (flags&fDrawBorder) return true;
+	return false;
+}
+
+bool CFont::drawShadow() const
+{
+	if (flags&fDrawShadow) return true;
+	return false;
+}
+
+bool CFont::drawUnderline() const
+{
+	if (flags&fUnderline) return true;
+	return false;
+}
+
+int CFont::size() const
+{
+	return fontSize;
+}
+
+CFont::Orientation CFont::orientation() const
+{
+	return (Orientation)ori;
+}
+
+int CFont::setName(const CString &name)
+{
+	// TODO: Pr�fen, ob der Font existiert
+	Name=name;
+	return 1;
+}
+
+void CFont::setColor(const Color &c)
+{
+	cForeground=c;
+}
+
+void CFont::setBorderColor(const Color &c)
+{
+	cBorder=c;
+}
+
+void CFont::setShadowColor(const Color &c)
+{
+	cShadow=c;
+}
+
+void CFont::setColors(const Color &Foreground, const Color &Border, const Color Shadow)
+{
+	cForeground=Foreground;
+	cBorder=Border;
+	cShadow=Shadow;
+}
+
+void CFont::setBold(bool enable)
+{
+	if (!enable) flags&=(0xff-fBold);
+	else flags|=fBold;
+}
+
+void CFont::setItalic(bool enable)
+{
+	if (!enable) flags&=(0xff-fItalic);
+	else flags|=fItalic;
+}
+
+void CFont::setAntialias(bool enable)
+{
+	if (!enable) flags&=(0xff-fAntialias);
+	else flags|=fAntialias;
+}
+
+void CFont::setDrawBorder(bool enable)
+{
+	if (!enable) flags&=(0xff-fDrawBorder);
+	else flags|=fDrawBorder;
+}
+
+void CFont::setDrawShadow(bool enable)
+{
+	if (!enable) flags&=(0xff-fDrawShadow);
+	else flags|=fDrawShadow;
+}
+
+void CFont::setDrawUnderline(bool enable)
+{
+	if (!enable) flags&=(0xff-fUnderline);
+	else flags|=fUnderline;
+}
+
+void CFont::setMonospace(bool enable)
+{
+	if (!enable) flags&=(0xff-fMonospace);
+	else flags|=fMonospace;
+}
+
+void CFont::setSize(int size)
+{
+	fontSize=size;
+}
+
+void CFont::setOrientation(Orientation o)
+{
+	ori=o;
+}
+
+Size CFont::measure(const CWString &text) const
+{
+	Size s;
+	CGrafix *gfx=GetGrafix();
+	if (!gfx) return s;
+	CFontFile *file=gfx->FindFont(Name);
+	if (!file) return s;
+	if (!file->engine) return s;
+	return file->engine->Measure(file,*this,text);
+}
+
+Size CFont::measure(const char *fmt, ...) const
+{
+	CWString s;
+	va_list args;
+	va_start(args, fmt);
+	s.Vasprintf(fmt,args);
+	va_end(args);
+	return measure(s);
+}
+
+
+
+bool operator!= (const CFont &f1, const CFont &f2)
+{
+	if (f1.Name==f2.Name) return false;
+	if (f1.fontSize==f2.fontSize) return false;
+	if (f1.flags==f2.flags) return false;
+	if (f1.cForeground==f2.cForeground) return false;
+	if (f1.cBorder==f2.cBorder) return false;
+	if (f1.cShadow==f2.cShadow) return false;
+	if (f1.ori==f2.ori) return false;
+	return true;
+}
+
+bool operator== (const CFont &f1, const CFont &f2)
+{
+	if (f1.Name!=f2.Name) return false;
+	if (f1.fontSize!=f2.fontSize) return false;
+	if (f1.flags!=f2.flags) return false;
+	if (f1.cForeground!=f2.cForeground) return false;
+	if (f1.cBorder!=f2.cBorder) return false;
+	if (f1.cShadow!=f2.cShadow) return false;
+	if (f1.ori!=f2.ori) return false;
+	return true;
+}
+
+
+
+/*!\class CFontFile
+ * \ingroup PPLGroupGrafik
+ * \brief Interne Klasse zur Verwaltung aller geladener Font-Dateien
  */
 CFontFile::CFontFile()
 {
-	ptr=NULL;
-	size=0;
 	engine=NULL;
 	priv=NULL;
 }
@@ -68,6 +302,24 @@ CFontFile::~CFontFile()
 {
 	if (engine) engine->DeleteFont(this);
 }
+
+int CFontFile::CompareNode(CTreeItem *item)
+{
+	CFontFile *cf=(CFontFile*)item;
+	if (cf->Name<Name) return -1;
+	if (cf->Name>Name) return 1;
+	return 0;
+}
+
+int CFontFile::CompareValue(void *value)
+{
+	CString *s=(CString *)value;
+	if (*s<Name) return -1;
+	if (*s>Name) return 1;
+	return 0;
+}
+
+
 
 
 int CGrafix::AddFontEngine(CFontEngine *engine)
@@ -114,15 +366,18 @@ int CGrafix::LoadFont(const char *filename, const char *fontname)
 	return LoadFont(&ff,fontname);
 }
 
+int CGrafix::LoadFont(const CMemoryReference &memory, const char *fontname)
+{
+	CMemFile ff(memory);
+	return LoadFont(&ff,fontname);
+}
+
 int CGrafix::LoadFont(CFileObject *ff, const char *fontname)
 {
 	if (!ff) {
 		SetError(194,"int LoadFont(==> CFileObject *ff <==, const char *fontname)");
 		return 0;
 	}
-	// Falls ein Font mit gleichem Namen geladen ist, löschen wir
-	// diesen zuerst
-	//TODO: DeleteFont(fontname);
 
 	Mutex.Lock();
 	// Passenden Filter finden
@@ -138,7 +393,13 @@ int CGrafix::LoadFont(CFileObject *ff, const char *fontname)
 				Mutex.Unlock();
 				return 0;
 			}
-			if (!Fonts.Add(font)) {
+			// Falls ein Font mit gleichem Namen geladen ist, löschen wir
+			// diesen zuerst
+			CString search=font->Name;
+			CFontFile *oldfile=(CFontFile*)FontList.Find(&search);
+			if (oldfile) delete oldfile;
+
+			if (!FontList.Add(font)) {
 				PushError();
 				delete (font);
 				PopError();
@@ -156,65 +417,93 @@ int CGrafix::LoadFont(CFileObject *ff, const char *fontname)
 	return 0;
 }
 
-int CGrafix::LoadFont(CResource *res, int i, const char *fontname)
+int CGrafix::UnloadFont(const CString &fontname)
 {
-	if (!res) {
-		SetError(194,"int LoadFont(==> CResource *res <==, int i, const char *fontname)");
-		return 0;
-	}
-	CFileObject *ff=res->GetFile(i);
-	if (!ff) return 0;
-	int ret=LoadFont(ff,fontname);
-	PushError();
-	delete ff;
-	PopError();
-	return ret;
-}
-
-int CGrafix::LoadFont(CResource *res, const char *name, const char *fontname)
-{
-	if (!res) {
-		SetError(194,"int LoadFont(==> CResource *res <==, const char *name, const char *fontname)");
-		return 0;
-	}
-	if (!name) {
-		SetError(194,"int LoadFont(CResource *res, ==> const char *name <==, const char *fontname)");
-		return 0;
-	}
-	CFileObject *ff=res->GetFile((char*)name);
-	if (!ff) return 0;
-	int ret=LoadFont(ff,fontname);
-	PushError();
-	delete ff;
-	PopError();
-	return ret;
-}
-
-int CGrafix::DeleteFont(const char *name)
-{
-	SetError(1031);
-	return 0;
-}
-
-CFontFile *CGrafix::FindFont(const char *name)
-{
+	CFontFile *file=FindFont(fontname);
+	if (!file) return 0;
 	Mutex.Lock();
-	Fonts.Reset();
-	CFontFile *font;
-	while ((font=(CFontFile*)Fonts.GetNext())) {
-		if (font->Name==name) {
-			Mutex.Unlock();
-			return font;
+	delete file;
+	Mutex.Unlock();
+	return 1;
+}
+
+CFontFile *CGrafix::FindFont(const CString &fontname)
+{
+	CString search=fontname;
+	Mutex.Lock();
+	CFontFile *font=(CFontFile*)FontList.Find(&search);
+	Mutex.Unlock();
+	if (!font) {
+		SetError(1032,"%s",(const char*)fontname);
+		return NULL;
+	}
+	return font;
+}
+
+CFontFile *CGrafix::FindFont(const CFont &font)
+{
+	return FindFont(font.name());
+}
+
+
+/*!\brief Text ausgeben
+ *
+ * \desc
+ * Mit dieser Funktion wird der Text \p text auf der Grafik an den
+ * Koordinaten \p x und \p y unter Verwendeung des Fonts \p font ausgegeben.
+ *
+ * @param font Zu verwendende Font-Parameter
+ * @param x X-Koordinate
+ * @param y Y-Koordinate
+ * @param text Der auszugebende Text
+ */
+void CDrawable::print(const CFont &font, int x, int y, const CWString &text)
+{
+	CGrafix *gfx=GetGrafix();
+	if (!gfx) return;
+	CFontFile *file=gfx->FindFont(font.name());
+	if (!file) return;
+	if (font.drawShadow()) {
+		file->engine->Render(file,font,*this,x+2,y+2,text,font.shadowColor());
+	}
+	if (font.drawBorder()) {
+		for (int a=-1;a<2;a++) {
+			for (int b=-1;b<2;b++) {
+				file->engine->Render(file,font,*this,x+a,y+b,text,font.borderColor());
+			}
 		}
 	}
-	Mutex.Unlock();
-	SetError(1032,"%s",name);
-	return NULL;
+	file->engine->Render(file,font,*this,x,y,text,font.color());
 }
 
+/*!\brief Formatierten Text ausgeben
+ *
+ * \desc
+ * Mit dieser Funktion wird zunächst ein Text anhand des Formatstrings
+ * \p fmt erstellt und dann auf der Grafik an den
+ * Koordinaten \p x und \p y unter Verwendeung des Fonts \p font ausgegeben.
+ *
+ * @param font Zu verwendende Font-Parameter
+ * @param x X-Koordinate
+ * @param y Y-Koordinate
+ * @param fmt Formatstring
+ * @param ... optionale Parameter für den Formatstring
+ */
+void CDrawable::printf(const CFont &font, int x, int y, const char *fmt, ...)
+{
+	CWString s;
+	va_list args;
+	va_start(args, fmt);
+	s.Vasprintf(fmt,args);
+	va_end(args);
+	print(font,x,y,s);
+}
+
+
+
 /*!\class CFontEngine
- * \brief Basisklasse für Font-Engines
  * \ingroup PPLGroupGrafik
+ * \brief Basisklasse für Font-Engines
  *
  * \see
  * - CFontEngineFont5
@@ -255,299 +544,20 @@ int CFontEngine::DeleteFont(CFontFile *file)
 	return 0;
 }
 
-int CFontEngine::Render(CFont *font, CSurface *surface, int x, int y, const char *text, COLOR color)
+int CFontEngine::Render(CFontFile *file, const CFont &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color)
 {
 	SetError(1024,"Render");
 	return 0;
 }
 
-int CFontEngine::Measure(CFont *font, const char *text, DIMENSION *measure)
+Size CFontEngine::Measure(CFontFile *file, const CFont &font, const CWString &text)
 {
 	SetError(1024,"Measure");
-	return 0;
+	return Size();
 }
 
-int CFontEngine::Render(CFont *font, CSurface *surface, int x, int y, CWString *text, COLOR color)
-{
-	SetError(1024,"Render");
-	return 0;
-}
-
-int CFontEngine::Measure(CFont *font, CWString *text, DIMENSION *measure)
-{
-	SetError(1024,"Measure");
-	return 0;
-}
-
-
-int CFontEngine::Unselect(CFont *font)
-{
-	SetError(1024,"Unselect");
-	return 0;
-}
-
-ppluint16 *CFontEngine::ToUTF16(char *text)
-{
-	CIconv Iconv;
-	if (!Iconv.Init("UTF-8","UTF-16")) return 0;
-	ppluint16 *t=(ppluint16 *)Iconv.Transcode((const char*)text,0);
-	//HexDump(t,strlen(text)*2+4);
-	return t;
-}
-
-
-int CSurface::Printf(CFont *font, int x, int y, const char *text, ...)
-{
-	CString String;
-	va_list args;
-	va_start(args, text);
-	String.VaSprintf(text,args);
-	va_end(args);
-	return Print(font,x,y,(const char*)String);
-}
-
-int CSurface::Print(int x, int y, const char *text)
-{
-	return Print(&Font,x,y,text);
-}
-
-int CSurface::Print(int x, int y, CWString *text)
-{
-	return Print(&Font,x,y,text);
-}
-
-int CSurface::Printf(int x, int y, const char *text, ...)
-{
-	CString String;
-	va_list args;
-	va_start(args, text);
-	String.VaSprintf(text,args);
-	va_end(args);
-	return Print(&Font,x,y,(const char*)String);
-}
-
-int CSurface::Print(const char *text)
-{
-	return Print(&Font,s.lastx,s.lasty,text);
-}
-
-int CSurface::Print(CWString *text)
-{
-	return Print(&Font,s.lastx,s.lasty,text);
-}
-
-int CSurface::Printf(const char *text, ...)
-{
-	CString String;
-	va_list args;
-	va_start(args, text);
-	String.VaSprintf(text,args);
-	va_end(args);
-	return Print(&Font,s.lastx,s.lasty,(const char*)String);
-}
-
-int CSurface::Print(CFont *font, int x, int y, const char *text)
-{
-	if (!font) {
-		SetError(1030);
-		return 0;
-	}
-	if (!font->engine) {		// Dürfte nie vorkommen
-		SetError(1025);
-		return 0;
-	}
-	font->gfx=gfx;
-	if (font->Shadow) font->engine->Render(font,this,x+1,y+1,text,font->shadow_color);
-
-	else if (font->Border) {
-		for (int yy=-1;yy<2;yy++) {
-			for (int xx=-1;xx<2;xx++) {
-				font->engine->Render(font,this,x+xx,y+yy,text,font->border_color);
-			}
-		}
-	}
-
-	return font->engine->Render(font,this,x,y,text,font->color);
-}
-
-int CSurface::Print(CFont *font, int x, int y, CWString *text)
-{
-	if (!font) {
-		SetError(1030);
-		return 0;
-	}
-	if (!font->engine) {		// Dürfte nie vorkommen
-		SetError(1025);
-		return 0;
-	}
-	font->gfx=gfx;
-	if (font->Shadow) font->engine->Render(font,this,x+1,y+1,text,font->shadow_color);
-
-	else if (font->Border) {
-		for (int yy=-1;yy<2;yy++) {
-			for (int xx=-1;xx<2;xx++) {
-				font->engine->Render(font,this,x+xx,y+yy,text,font->border_color);
-			}
-		}
-	}
-
-	return font->engine->Render(font,this,x,y,text,font->color);
-}
-
-int CSurface::CharWidth(CFont *font, wchar_t c)
-{
-	CWString s;
-	s.SetChar(c);
-	DIMENSION d;
-	if (!TextSize(font,&d,&s)) return 0;
-	return d.width;
-}
-
-int CSurface::CharHeight(CFont *font, wchar_t c)
-{
-	CWString s;
-	s.SetChar(c);
-	DIMENSION d;
-	if (!TextSize(font,&d,&s)) return 0;
-	return d.height;
-}
-
-int CSurface::TextSize(CFont *font, DIMENSION *d, const char *text)
-{
-	if (!font) {
-		SetError(1030);
-		return 0;
-	}
-	if (!font->engine) {		// Dürfte nie vorkommen
-		SetError(1025);
-		return 0;
-	}
-	font->gfx=gfx;
-	return font->engine->Measure(font,text,d);
-}
-
-int CSurface::TextSize(CFont *font, DIMENSION *d, CWString *text)
-{
-	if (!font) {
-		SetError(1030);
-		return 0;
-	}
-	if (!font->engine) {		// Dürfte nie vorkommen
-		SetError(1025);
-		return 0;
-	}
-	font->gfx=gfx;
-	return font->engine->Measure(font,text,d);
-}
-
-
-int CSurface::TextSizef(CFont *font, DIMENSION *d, const char *text, ...)
-{
-	CString String;
-	va_list args;
-	va_start(args, text);
-	String.VaSprintf(text,args);
-	va_end(args);
-	return TextSize(font,d,(const char*)String);
-}
-
-int CSurface::TextSizef(DIMENSION *d, const char *text, ...)
-{
-	CString String;
-	va_list args;
-	va_start(args, text);
-	String.VaSprintf(text,args);
-	va_end(args);
-	return TextSize(&Font,d,(const char*)String);
-}
-
-int CSurface::TextSize(DIMENSION *d, const char *text)
-{
-	return TextSize(&Font,d,text);
-}
-
-
-/*!\class CFont
- * \brief Klasse zur Einstellung verschiedener Font-Parameter
- * \ingroup PPLGroupGrafik
- */
-
-CFont::CFont()
-{
-	priv=NULL;
-	engine=NULL;
-	gfx=GetGrafix();
-	file=NULL;
-	Reset();
-	Orientation.SetCallback(this,&Orientation);
-	Size.SetCallback(this,&Size);
-	Bold.SetCallback(this,&Bold);
-	Italic.SetCallback(this,&Italic);
-	Antialias.SetCallback(this,&Antialias);
-	Underline.SetCallback(this,&Underline);
-	Shadow.SetCallback(this,&Shadow);
-	Border.SetCallback(this,&Border);
-	Name.SetCallback(this,&Name);
-}
-
-void CFont::Callback(void *data)
-{
-	if (data==&Name) {
-		CString Tmp=Name;
-		LoadFont(Name);
-	} else {
-		if (engine) engine->Unselect(this);
-	}
-	Change();
-}
-
-int CFont::LoadFont(const char *name)
-{
-	if (!gfx) {
-		gfx=GetGrafix();
-		if (!gfx) {
-			PushError();
-			Name=OldName;
-			PopError();
-			return 0;
-		}
-	}
-	CFontFile *f=gfx->FindFont(name);
-	if (!f) {
-		PushError();
-		Name=OldName;
-		PopError();
-		return 0;
-	}
-	OldName=name;
-	Name.DeleteCallback();
-	Name=name;
-	Name.SetCallback(this,&Name);
-	if (engine) engine->Unselect(this);
-	file=f;
-	engine=f->engine;
-	return 1;
-}
-
-int CFont::Reset()
-{
-	Orientation=ORIENTATION::BASE;
-	Size=12;
-	Bold=false;
-	Italic=false;
-	Antialias=true;
-	Underline=false;
-	color=0;
-	shadow_color=0;
-	border_color=0;
-	Shadow=false;
-	Border=false;
-	LoadFont("PPL Liberation Sans");
-	return 1;
-}
 
 
 
 } // EOF namespace grafix
 } // EOF namespace ppl6
-

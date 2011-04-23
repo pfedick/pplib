@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.19 $
- * $Date: 2009/08/21 11:52:21 $
- * $Id: ppl6-db.h,v 1.19 2009/08/21 11:52:21 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/03/26 09:15:49 $
+ * $Id: ppl6-db.h,v 1.3 2010/03/26 09:15:49 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -385,9 +385,9 @@ class Pool
 class PoolTree : public CAVLTree
 {
 	public:
-		virtual int Compare (const void *value1, const void *value2);
-		virtual int DestroyValue (void *item);
-		virtual int GetValue (const void *item, CString &buffer);
+		virtual int Compare (const void *value1, const void *value2) const;
+		virtual int DestroyValue (void *item) const;
+		virtual int GetValue (const void *item, CString &buffer) const;
 };
 
 class PoolEx

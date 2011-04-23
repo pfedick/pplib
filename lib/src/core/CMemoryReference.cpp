@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.1 $
- * $Date: 2009/12/13 12:53:07 $
- * $Id: CMemoryReference.cpp,v 1.1 2009/12/13 12:53:07 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CMemoryReference.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -109,6 +109,20 @@ CMemoryReference::CMemoryReference(const CMemoryReference &other)
 {
 	ptr=other.ptr;
 	s=other.s;
+}
+
+/*!\brief Copy-Konstruktor von einem CBinary-Objekt
+ *
+ * \desc
+ * Mit diesem Konstruktor wird eine Referenz auf den Speicherbereich eines
+ * CBinary-Objekts übernommen.
+ *
+ * @param[in] bin Referenz auf ein CBinary-Objekt
+ */
+CMemoryReference::CMemoryReference(const CBinary &bin)
+{
+	ptr=bin.GetPtr();
+	s=bin.GetSize();
 }
 
 /*!\brief Konstruktor mit Angabe einer Speicheradresse und Größe
@@ -215,6 +229,20 @@ void CMemoryReference::set(const CMemoryReference &other)
 	s=other.s;
 }
 
+/*!\brief Referenz auf Speicherbereich eines CBinary-Objekts übernehmen
+ *
+ * \desc
+ * Mit dieser Funktion wird eine Referenz auf den Speicherbereich eines
+ * CBinary-Objekts übernommen.
+  *
+ * @param[in] bin Referenz auf ein CBinary-Objekt.
+ */
+void CMemoryReference::set(const CBinary &bin)
+{
+	ptr=bin.GetPtr();
+	s=bin.GetSize();
+}
+
 /*!\brief Speicherreferenz von anderem CMemoryReference-Objekt übernehmen
  *
  * \desc
@@ -231,6 +259,21 @@ CMemoryReference &CMemoryReference::operator=(const CMemoryReference &other)
 	return *this;
 }
 
+/*!\brief Speicherreferenz von einem CBinary-Objekt übernehmen
+ *
+ * \desc
+ * Mit diesem Operator wird eine Referenz auf den Speicherbereich eines
+ * CBinary-Objekts übernommen.
+ *
+ * @param[in] other Referenz auf ein CBinary-Objekt.
+ * @return Referenz auf das Objekt
+ */
+CMemoryReference &CMemoryReference::operator=(const CBinary &bin)
+{
+	ptr=bin.GetPtr();
+	s=bin.GetSize();
+	return *this;
+}
 
 /*!\brief Adresse des Speicherblocks auslesen
  *
@@ -242,6 +285,18 @@ CMemoryReference &CMemoryReference::operator=(const CMemoryReference &other)
 CMemoryReference::operator void*() const
 {
 	return ptr;
+}
+
+/*!\brief Referenz auf den Speicherbereich als CBinary-Objekt zurückgeben
+ *
+ * \desc
+ * Den Referenzierten Speicher als CBinary-Objekt zurückgeben.
+ *
+ * @return CBinary-Objekt mit Referenz auf den Speicherbereich dieses Objekts
+ */
+CMemoryReference::operator CBinary() const
+{
+	return CBinary(*this);
 }
 
 /*!\brief Einzelnes Byte aus dem Speicherbereich kopieren

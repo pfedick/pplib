@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.8 $
- * $Date: 2009/01/25 01:03:38 $
- * $Id: Lines.cpp,v 1.8 2009/01/25 01:03:38 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: Lines.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,20 +52,18 @@
 namespace ppl6 {
 namespace grafix {
 
-static int Line_32_Secure (SURFACE *data, int x1, int y1, int x2, int y2, COLOR color)
+/*
+static void Line_32 (DRAWABLE_DATA &data, int x1, int y1, int x2, int y2, SurfaceColor color)
 {
-	//DLOGLEVEL(9) ("%u->Surface::Line_32_Secure(%u,%u,%u,%u,%08X)",data->sclass,x1,y1,x2,y2,color);
-	ppldds xx1,xx2,yy1,yy2,Farbe,StepX,StepY;
-	ppldd * pp;
-
-	ppldb	*base=data->base8;
-	ppldd		pitch=data->pitch8;
-	ppldd		pitch32=data->pitch32;
+	GRAFIX_FUNCTIONS *fn=data.fn;
+	if (!fn->PutPixel) return;
+	ppldds xx1,xx2,yy1,yy2,StepX,StepY;
+	//ppldd * pp;
 
 	// Sonderfall 1: Anfangs- und Endkoordinaten sind identisch
 	if (x1==x2 && y1==y2) {
-		data->PutPixel(data,x1,y1,color);
-		return 1;
+		fn->PutPixel(data,x1,y1,color);
+		return;
 	}
 
 	// Zuerst sorgen wir dafuer, dass die Linie immer von links nach rechts gezeichnet
@@ -82,75 +80,135 @@ static int Line_32_Secure (SURFACE *data, int x1, int y1, int x2, int y2, COLOR 
 		xx2=x2;
 		yy2=y2;
 	}
-	Farbe=color;
 
 	// Danach wird der Steigungswert in X- und Y-Richtung berechnet
 
 	StepX=xx2-xx1;
 	StepY=abs(yy2-yy1);
 
-	// Manchmal wird der Endpunkt nicht gezeichnet
-	//PutPixel_32 (data,x2,y2,color);
-
 	if (StepX==0) {
 		// Sonderfall 2: Gerade Vertikale Linie
 		int yylow=lowest(yy1,yy2);
 		for (int i=0;i<=StepY;i++) {
-			data->PutPixel(data,xx1,i+yylow,Farbe);
+			fn->PutPixel(data,xx1,i+yylow,color);
 		}
-		return 1;
+		return;
 	}
 	if (StepY==0) {
 		// Sonderfall 3: Gerade Horizontale Linie
 		int xxlow=lowest(xx1,xx2);
-		for (int i=0;i<=StepX;i++) data->PutPixel(data,xxlow+i,yy1,Farbe);
-		return 1;
+		for (int i=0;i<=StepX;i++) fn->PutPixel(data,xxlow+i,yy1,color);
+		return;
 	}
 
 	// Startposition berechnen
-	// TODO: PutPixel_32_Secure muss noch eingebaut werden!
-	pp=(ppldd *) (base+yy1*pitch+(xx1<<2));
 	if (StepX<StepY) {
 		if (yy1<yy2) {	// Fall 1
 			int x=0;
 			for (int i=0;i<=StepY;i++) {
-				x=i*StepX/StepY;
-				pp[x]=(ppldd)Farbe;
-				pp+=pitch32;
+				x=xx1+(i*StepX/StepY);
+				fn->PutPixel(data,x,yy1,color);
+				yy1++;
 			}
-			return 1;
+			return;
 		} else {		// Fall 4
 			int x=0;
 			for (int i=0;i<=StepY;i++) {
-				x=i*StepX/StepY;
-				pp[x]=(ppldd)Farbe;
-				pp-=pitch32;
+				x=xx1+(i*StepX/StepY);
+				fn->PutPixel(data,x,yy1,color);
+				yy1--;
 			}
-			return 1;
+			return;
 		}
 	} else {
 		if (yy1<yy2) {	// Fall 2
 			int y=0,yy=0;
 			for (int i=0;i<=StepX;i++) {
-				y=i*StepY/StepX;
-				if (y>yy) {pp+=pitch32; yy=y;}
-				pp[i]=(ppldd)Farbe;
+				y=yy1+(i*StepY/StepX);
+				if (y>yy) {yy1++; yy=y;}
+				fn->PutPixel(data,xx1+i,y,color);
 			}
-			return 1;
+			return;
 		} else {		// Fall 3
 			int y=0,yy=0;
 			for (int i=0;i<=StepX;i++) {
-				y=i*StepY/StepX;
-				if (y>yy) {pp-=pitch32; yy=y;}
-				pp[i]=(ppldd)Farbe;
+				y=yy1+(i*StepY/StepX);
+				if (y>yy) {yy1--; yy=y;}
+				fn->PutPixel(data,xx1+i,y,color);
 			}
-			return 1;
+			return;
 		}
 	}
-	return 1;
+	return;
+}
+*/
+
+
+/* signum function */
+static int sgn(int x){
+  return (x > 0) ? 1 : (x < 0) ? -1 : 0;
 }
 
+/* Bresenham Algorithmus */
+static void Line_32 (DRAWABLE_DATA &data, int xstart, int ystart, int xend, int yend, SurfaceColor color)
+{
+	int x, y, t, dx, dy, incx, incy, pdx, pdy, ddx, ddy, es, el, err;
 
+	/* Entfernung in beiden Dimensionen berechnen */
+	dx = xend - xstart;
+	dy = yend - ystart;
+
+	/* Vorzeichen des Inkrements bestimmen */
+	incx = sgn(dx);
+	incy = sgn(dy);
+	if(dx<0) dx = -dx;
+	if(dy<0) dy = -dy;
+
+	/* feststellen, welche Entfernung größer ist */
+	if (dx>dy)
+	{
+		/* x ist schnelle Richtung */
+		pdx=incx; pdy=0;    /* pd. ist Parallelschritt */
+		ddx=incx; ddy=incy; /* dd. ist Diagonalschritt */
+		es =dy;   el =dx;   /* Fehlerschritte schnell, langsam */
+	} else
+	{
+		/* y ist schnelle Richtung */
+		pdx=0;    pdy=incy; /* pd. ist Parallelschritt */
+		ddx=incx; ddy=incy; /* dd. ist Diagonalschritt */
+		es =dx;   el =dy;   /* Fehlerschritte schnell, langsam */
+	}
+
+	/* Initialisierungen vor Schleifenbeginn */
+	x = xstart;
+	y = ystart;
+	err = el/2;
+	data.fn->PutPixel(data,x,y,color);
+
+	/* Pixel berechnen */
+	for(t=0; t<el; ++t) /* t zaehlt die Pixel, el ist auch Anzahl */
+	{
+		/* Aktualisierung Fehlerterm */
+		err -= es;
+		if(err<0)
+		{
+			/* Fehlerterm wieder positiv (>=0) machen */
+			err += el;
+			/* Schritt in langsame Richtung, Diagonalschritt */
+			x += ddx;
+			y += ddy;
+		} else
+		{
+			/* Schritt in schnelle Richtung, Parallelschritt */
+			x += pdx;
+			y += pdy;
+		}
+		data.fn->PutPixel(data,x,y,color);
+	}
+} /* gbham() */
+
+
+/*
 static int Line_32 (SURFACE *data, int x1, int y1, int x2, int y2, COLOR color)
 {
 	//DLOGLEVEL(9) ("%u->Surface::Line_32(%u,%u,%u,%u,%08X)",data->sclass,x1,y1,x2,y2,color);
@@ -258,6 +316,7 @@ static int Line_32 (SURFACE *data, int x1, int y1, int x2, int y2, COLOR color)
 	}
 	return 1;
 }
+*/
 
 static void SwapFloat(float *w1, float *w2)
 {
@@ -283,13 +342,14 @@ static float WuInvFrac(float value)
 }
 
 
-static void WuLine (SURFACE *surface, float x1, float y1, float x2, float y2,COLOR color)
+static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2, SurfaceColor color)
 {
 	float grad, xd,yd;//,length,xm,ym;
 	float xgap,xend,yend,yf,xf,ygap;
 	float brightness1, brightness2;
 
-	if (!surface->BlendPixel) return;
+	GRAFIX_FUNCTIONS *fn=data.fn;
+	if (!fn->BlendPixel) return;
 
 	ppldds x,ix1,ix2,iy1,iy2,y;
 
@@ -316,8 +376,8 @@ static void WuLine (SURFACE *surface, float x1, float y1, float x2, float y2,COL
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
-		surface->BlendPixel(surface,ix1,iy1,color,brightness1);
-		surface->BlendPixel(surface,ix1,iy1+1,color,brightness2);
+		fn->BlendPixel(data,ix1,iy1,color,(int)(brightness1*255));
+		fn->BlendPixel(data,ix1,iy1+1,color,(int)(brightness2*255));
 
 		yf=yend+grad;
 
@@ -332,19 +392,19 @@ static void WuLine (SURFACE *surface, float x1, float y1, float x2, float y2,COL
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
-		surface->BlendPixel(surface,ix2,iy2,color,brightness1);
-		surface->BlendPixel(surface,ix2,iy2+1,color,brightness2);
+		fn->BlendPixel(data,ix2,iy2,color,(int)(brightness1*255));
+		fn->BlendPixel(data,ix2,iy2+1,color,(int)(brightness2*255));
 
 		// Main Loop
 		for (x=ix1+1; x<ix2; x++) {
 			brightness1=WuInvFrac(yf);
 			brightness2=WuFrac(yf);
-			surface->BlendPixel(surface,x,(ppldds)yf,color,brightness1);
-			surface->BlendPixel(surface,x,(ppldds)yf+1,color,brightness2);
+			fn->BlendPixel(data,x,(int)yf,color,(int)(brightness1*255));
+			fn->BlendPixel(data,x,(int)yf+1,color,(int)(brightness2*255));
 			yf=yf+grad;
 		}
 
-	} else {										// check line gradient							==> Vertikale Linie
+	} else {						// check line gradient							==> Vertikale Linie
 		if (y1>y2) {				// Wenn Linie von rechts nach links gezeichnet wird, tauschen
 			SwapFloat(&x1,&x2);		// wir einfach die Koordinaten
 			SwapFloat(&y1,&y2);
@@ -364,8 +424,8 @@ static void WuLine (SURFACE *surface, float x1, float y1, float x2, float y2,COL
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
-		surface->BlendPixel(surface,ix1,iy1,color,brightness1);
-		surface->BlendPixel(surface,ix1+1,iy1,color,brightness2);
+		fn->BlendPixel(data,ix1,iy1,color,(int)(brightness1*255));
+		fn->BlendPixel(data,ix1+1,iy1,color,(int)(brightness2*255));
 
 		xf=xend+grad;
 
@@ -380,22 +440,22 @@ static void WuLine (SURFACE *surface, float x1, float y1, float x2, float y2,COL
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
-		surface->BlendPixel(surface,ix2,iy2,color,brightness1);
-		surface->BlendPixel(surface,ix2+1,iy2,color,brightness2);
+		fn->BlendPixel(data,ix2,iy2,color,(int)(brightness1*255));
+		fn->BlendPixel(data,ix2+1,iy2,color,(int)(brightness2*255));
 
 		// Main Loop
 		for (y=iy1+1; y<iy2; y++) {
 			brightness1=WuInvFrac(xf);
 			brightness2=WuFrac(xf);
-			surface->BlendPixel(surface,(ppldds)xf,y,color,brightness1);
-			surface->BlendPixel(surface,(ppldds)xf+1,y,color,brightness2);
+			fn->BlendPixel(data,(int)xf,y,color,(int)(brightness1*255));
+			fn->BlendPixel(data,(int)xf+1,y,color,(int)(brightness2*255));
 			xf=xf+grad;
 		}
 
 	}
 }
 
-static void WuLineThick (SURFACE *surface, float x1, float y1, float x2, float y2,COLOR color, int strength)
+static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2, SurfaceColor color, int strength)
 {
 	float grad, xd,yd;//,length,xm,ym;
 	float xgap,xend,yend,yf,xf,ygap;
@@ -403,7 +463,8 @@ static void WuLineThick (SURFACE *surface, float x1, float y1, float x2, float y
 
 	ppldds x,ix1,ix2,iy1,iy2,y;
 
-	if (!surface->BlendPixel) return;
+	GRAFIX_FUNCTIONS *fn=data.fn;
+	if (!fn->BlendPixel) return;
 
 	xd=(x2-x1);						// Breite und Hoehe der Linie
 	yd=(y2-y1);
@@ -432,9 +493,9 @@ static void WuLineThick (SURFACE *surface, float x1, float y1, float x2, float y
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
-		surface->BlendPixel(surface,ix1,iy1,color,brightness1);
-		for (int i=1;i<strength;i++) surface->BlendPixel(surface,ix1,iy1+i,color,1.0f);
-		surface->BlendPixel(surface,ix1,iy1+strength,color,brightness2);
+		fn->BlendPixel(data,ix1,iy1,color,(int)(brightness1*255));
+		for (int i=1;i<strength;i++) fn->BlendPixel(data,ix1,iy1+i,color,255);
+		fn->BlendPixel(data,ix1,iy1+strength,color,(int)(brightness2*255));
 
 		yf=yend+grad;
 
@@ -449,17 +510,17 @@ static void WuLineThick (SURFACE *surface, float x1, float y1, float x2, float y
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
-		surface->BlendPixel(surface,ix2,iy2,color,brightness1);
-		for (int i=1;i<strength;i++) surface->BlendPixel(surface,ix2,iy2+i,color,1.0f);
-		surface->BlendPixel(surface,ix2,iy2+strength,color,brightness2);
+		fn->BlendPixel(data,ix2,iy2,color,(int)(brightness1*255));
+		for (int i=1;i<strength;i++) fn->BlendPixel(data,ix2,iy2+i,color,255);
+		fn->BlendPixel(data,ix2,iy2+strength,color,(int)(brightness2*255));
 
 		// Main Loop
 		for (x=ix1+1; x<ix2; x++) {
 			brightness1=WuInvFrac(yf);
 			brightness2=WuFrac(yf);
-			surface->BlendPixel(surface,x,(ppldds)yf,color,brightness1);
-			for (int i=1;i<strength;i++) surface->BlendPixel(surface,x,(ppldds)yf+i,color,1.0f);
-			surface->BlendPixel(surface,x,(ppldds)yf+strength,color,brightness2);
+			fn->BlendPixel(data,x,(ppldds)yf,color,(int)(brightness1*255));
+			for (int i=1;i<strength;i++) fn->BlendPixel(data,x,(ppldds)yf+i,color,255);
+			fn->BlendPixel(data,x,(ppldds)yf+strength,color,(int)(brightness2*255));
 			yf=yf+grad;
 		}
 
@@ -487,9 +548,9 @@ static void WuLineThick (SURFACE *surface, float x1, float y1, float x2, float y
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
-		surface->BlendPixel(surface,ix1,iy1,color,brightness1);
-		for (int i=1;i<strength;i++) surface->BlendPixel(surface,ix1+i,iy1,color,1.0f);
-		surface->BlendPixel(surface,ix1+strength,iy1,color,brightness2);
+		fn->BlendPixel(data,ix1,iy1,color,(int)(brightness1*255));
+		for (int i=1;i<strength;i++) fn->BlendPixel(data,ix1+i,iy1,color,255);
+		fn->BlendPixel(data,ix1+strength,iy1,color,(int)(brightness2*255));
 
 		xf=xend+grad;
 
@@ -504,43 +565,43 @@ static void WuLineThick (SURFACE *surface, float x1, float y1, float x2, float y
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
-		surface->BlendPixel(surface,ix2,iy2,color,brightness1);
-		for (int i=1;i<strength;i++) surface->BlendPixel(surface,ix2+i,iy2,color,1.0f);
-		surface->BlendPixel(surface,ix2+strength,iy2,color,brightness2);
+		fn->BlendPixel(data,ix2,iy2,color,(int)(brightness1*255));
+		for (int i=1;i<strength;i++) fn->BlendPixel(data,ix2+i,iy2,color,255);
+		fn->BlendPixel(data,ix2+strength,iy2,color,(int)(brightness2*255));
 
 		// Main Loop
 		for (y=iy1+1; y<iy2; y++) {
 			brightness1=WuInvFrac(xf);
 			brightness2=WuFrac(xf);
-			surface->BlendPixel(surface,(ppldds)xf,y,color,brightness1);
-			for (int i=1;i<strength;i++) surface->BlendPixel(surface,(ppldds)xf+i,y,color,1.0f);
-			surface->BlendPixel(surface,(ppldds)xf+strength,y,color,brightness2);
+			fn->BlendPixel(data,(ppldds)xf,y,color,(int)(brightness1*255));
+			for (int i=1;i<strength;i++) fn->BlendPixel(data,(ppldds)xf+i,y,color,255);
+			fn->BlendPixel(data,(ppldds)xf+strength,y,color,(int)(brightness2*255));
 			xf=xf+grad;
 		}
 
 	}
 }
 
-static int LineAA (SURFACE *surface, int x1, int y1, int x2, int y2,COLOR color, int strength)
+static void LineAA (DRAWABLE_DATA &data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength)
 {
 	if (strength==1) {
-		WuLine(surface,(float)x1,(float)y1,(float)x2,(float)y2,color);
+		WuLine(data,(float)x1,(float)y1,(float)x2,(float)y2,color);
 	} else {
-		WuLineThick(surface,(float)x1,(float)y1,(float)x2,(float)y2,color,strength);
+		WuLineThick(data,(float)x1,(float)y1,(float)x2,(float)y2,color,strength);
 	}
-	return 1;
+	return;
 }
 
 
-int CGrafix::InitLines(SURFACE *s)
+int CGrafix::InitLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
-	switch (s->rgbformat) {
+	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
 		case RGBFormat::A8B8G8R8:
 		case RGBFormat::X8B8G8R8:
 		case RGBFormat::X8R8G8B8:
-			if (!s->LineAA) s->LineAA=LineAA;
-			if (!s->Line) s->Line=Line_32;
+			fn->LineAA=LineAA;
+			fn->Line=Line_32;
 			return 1;
 
 		case RGBFormat::A8:
@@ -548,56 +609,30 @@ int CGrafix::InitLines(SURFACE *s)
 			return 1;
 
 	}
-	SetError(1013,"RGBFormat=%s (%i)",GetRGBFormatName(s->rgbformat),s->rgbformat);
+	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
 	return 0;
-
 }
 
-int CSurface::Line(int x1, int y1, int x2, int y2, COLOR c)
+void CDrawable::line (int x1, int y1, int x2, int y2, const Color &c)
 {
-	s.lastcolor=c;
-	s.lastx=x2;
-	s.lasty=y2;
-	if (s.Line) return s.Line(&s,x1+s.originx,y1+s.originy,x2+s.originx,y2+s.originy,c);
-	SetError(1012,"Line");
-	return 0;
+	if (fn->Line) fn->Line(data,x1,y1,x2,y2,rgb(c));
 }
 
-int CSurface::Line(int x2, int y2, COLOR c)
+void CDrawable::line (const Point &start, const Point &end, const Color &c)
 {
-	s.lastcolor=c;
-	if (s.Line) {
-		int ret=s.Line(&s,s.lastx+s.originx,s.lasty+s.originy,x2+s.originx,y2+s.originy,c);
-		s.lastx=x2;
-		s.lasty=y2;
-		return ret;
-	}
-	SetError(1012,"Line");
-	return 0;
+	if (fn->Line) fn->Line(data,start.x(), start.y(), end.x(), end.y(), rgb(c));
 }
 
-int CSurface::LineAA(int x1, int y1, int x2, int y2, COLOR c, int strength)
+void CDrawable::lineAA (int x1, int y1, int x2, int y2, const Color &c, int strength)
 {
-	s.lastcolor=c;
-	s.lastx=x2;
-	s.lasty=y2;
-	if (s.LineAA) return s.LineAA(&s,x1+s.originx,y1+s.originy,x2+s.originx,y2+s.originy,c,strength);
-	SetError(1012,"Line");
-	return 0;
+	if (fn->LineAA) fn->LineAA(data,x1,y1,x2,y2,rgb(c),strength);
 }
 
-int CSurface::LineAA(int x2, int y2, COLOR c, int strength)
+void CDrawable::lineAA (const Point &start, const Point &end, const Color &c, int strength)
 {
-	s.lastcolor=c;
-	if (s.LineAA) {
-		int ret=s.LineAA(&s,s.lastx+s.originx,s.lasty+s.originy,x2+s.originx,y2+s.originy,c,strength);
-		s.lastx=x2;
-		s.lasty=y2;
-		return ret;
-	}
-	SetError(1012,"Line");
-	return 0;
+	if (fn->LineAA) fn->LineAA(data,start.x(), start.y(), end.x(), end.y(), rgb(c), strength);
 }
+
 
 
 } // EOF namespace grafix

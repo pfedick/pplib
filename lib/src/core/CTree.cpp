@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.41 $
- * $Date: 2009/11/25 19:33:09 $
- * $Id: CTree.cpp,v 1.41 2009/11/25 19:33:09 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.3 $
+ * $Date: 2010/02/28 11:01:28 $
+ * $Id: CTree.cpp,v 1.3 2010/02/28 11:01:28 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -319,6 +319,8 @@ CTree::CTree()
 	root=NULL;
 	current=NULL;
 	stack_height=0;
+	memset(stack,0,AVL_MAX_HEIGHT*sizeof(CTreeItem*));
+	//for (int i=0;i<AVL_MAX_HEIGHT;i++) stack[i]=NULL;
 }
 
 CTree::~CTree()

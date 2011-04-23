@@ -33,7 +33,17 @@ then
 		fi
 		if test "$have_tds" == "yes"
 			AC_MSG_RESULT(yes)
-			FREETDS_LIBS="-L$tdsprefix/lib -ltds"
+			# most systems require the program be linked with librt library to use
+			# the function clock_gettime 
+			my_save_LIBS="$LIBS"
+			LIBS=""
+			AC_CHECK_LIB(rt,clock_gettime)
+			LIBRT=$LIBS
+			LIBS="$my_save_LIBS"
+			AC_SUBST(LIBRT)
+			AC_CHECK_FUNCS(clock_gettime)
+		
+			FREETDS_LIBS="-L$tdsprefix/lib -ltds $LIBRT"
 			FREETDS_CFLAGS="-I$tdsprefix/include"
 			AC_MSG_CHECKING(freetds libraries)
 			AC_MSG_RESULT($FREETDS_LIBS)

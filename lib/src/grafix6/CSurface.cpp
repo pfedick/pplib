@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.24 $
- * $Date: 2009/02/08 09:55:35 $
- * $Id: CSurface.cpp,v 1.24 2009/02/08 09:55:35 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: CSurface.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,313 +45,246 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+//#ifdef HAVE_MATH_H
+#include <math.h>
+//#endif
 #include "ppl6.h"
 #include "ppl6-grafix.h"
-
 
 namespace ppl6 {
 namespace grafix {
 
-/*!\class CSurface
- * \brief Klasse für Zeichenflächen innerhalb der Hardware oder des Hauptspeichers
- * \ingroup PPLGroupGrafik
- */
-
-
 CSurface::CSurface()
 {
-	// Wir initialisieren die SURFACE-Struktur mit NULL
-	memset(&s,0,sizeof(SURFACE));
-	s.Surface=this;
-	engine=NULL;
+	engineprivate=NULL;
+	gfxengine=NULL;
+	lockcount=0;
+	flags=DefaultFlags;
+}
+
+CSurface::CSurface(const CSurface &other)
+{
+	engineprivate=NULL;
+	gfxengine=NULL;
+	lockcount=0;
+	flags=DefaultFlags;
+
+	if (!copy(other)) throw Exception::CopyFailed();
+}
+
+CSurface::CSurface(int width, int height, const RGBFormat &format, SurfaceFlags flags)
+{
+	engineprivate=NULL;
+	gfxengine=NULL;
+	lockcount=0;
+	s.setSize(width,height);
+	this->flags=flags;
+	this->format=format;
+	if (!create()) throw Exception::FunctionFailed();
 }
 
 CSurface::~CSurface()
 {
-	if (s.DestroySurface) s.DestroySurface(&s);
-	if (!engine) {		// Software-Surface
-		if (s.base) free(s.base);
+	if (!engineprivate) return;
+	if (gfxengine) {
+		gfxengine->destroySurface(*this);
 	}
-	if (s.EngineSpecific) free(s.EngineSpecific);
 }
 
-SURFACE *CSurface::GetSurfaceParams()
+int CSurface::copy(const CSurface &other)
 {
-	return &s;
-}
-
-const char *CSurface::GetName()
-{
-	return (const char*)Name;
-}
-
-CGrafix *CSurface::GetGrafix()
-{
-	return gfx;
-}
-
-int CSurface::SetCaption(const char *title)
-{
-	Caption=title;
-	if (s.SetCaption) return s.SetCaption(&s,title);
-	return 1;
-}
-
-const char *CSurface::GetCaption()
-{
-	return (const char*)Caption;
-}
-
-int CSurface::Flip()
-{
-	if (s.Flip) return s.Flip(&s);
-	return 1;
-}
-
-unsigned char *CSurface::Lock()
-{
-	if (s.Lock) {
-		if (s.Lock(&s)) return s.base8;
-		return NULL;
+	if (engineprivate) {
+		// Bisheriges Surface löschen
+		clear();
 	}
-	s.lockcount++;
-	return s.base8;
-}
+	// Neues Surface mit gleichen Parametern wie other erstellen
+	s=other.s;
+	format=other.format;
+	flags=other.flags;
+	if (!create()) return 0;
+	// Beide Surfaces locken
+	bool selflocked=false;
+	if (other.gfxengine) {
+		CDrawable olddraw,newdraw;
+		if (other.lockcount>0) {
+			olddraw=other.draw;
+		} else {
+			// Wir müssen die lock-Funktion der Klasse umgehen, da wir sonst
+			// das zu kopierende Surface nicht als const deklarieren können
+			if (!other.gfxengine->lockSurface((CSurface&)other,olddraw)) return 0;
+			selflocked=true;
+		}
+		if (!lock(newdraw)) {
+			if (selflocked) {
+				PushError();
+				other.gfxengine->unlockSurface((CSurface&)other);
+				PopError();
+			}
+			return 0;
+		}
+		// Grafik kopieren
+		newdraw.blt(olddraw);
 
-int CSurface::Unlock()
-{
-	if (s.Unlock) return s.Unlock(&s);
-	if (s.lockcount>0) s.lockcount--;
+		// Beide Surfaces entsperren
+		if (selflocked) {
+			other.gfxengine->unlockSurface((CSurface&)other);
+		}
+		unlock();
+	}
 	return 1;
 }
 
-int CSurface::IsLocked()
+void CSurface::clear()
 {
-	return s.lockcount;
+	if (!engineprivate) return;
+	if (gfxengine) {
+		if (lockcount>0) {
+			gfxengine->unlockSurface(*this);
+		}
+		gfxengine->destroySurface(*this);
+	}
+
+	engineprivate=NULL;
+	gfxengine=NULL;
+	lockcount=0;
+	flags=DefaultFlags;
 }
 
-int CSurface::CLS(COLOR c)
+Size CSurface::size() const
 {
-	s.lastcolor=c;
-	if (s.CLS) return s.CLS(&s,c);
-	SetError(1012,"CLS");
-	return 0;
+	return s;
 }
 
-int CSurface::BeginScene()
+int CSurface::width() const
 {
-	if (s.BeginScene) return s.BeginScene(&s);
-	return 1;
+	return s.width();
 }
 
-int CSurface::EndScene()
+int CSurface::height() const
 {
-	if (s.EndScene) return s.EndScene(&s);
-	return 1;
+	return s.height();
+}
+
+void CSurface::setWidth(int width)
+{
+	if (!engineprivate)	s.setWidth(width);
+}
+
+void CSurface::setHeight(int height)
+{
+	if (!engineprivate) s.setHeight(height);
+}
+
+void CSurface::setSize(int width, int height)
+{
+	if (!engineprivate) s.setSize(width,height);
+}
+
+void CSurface::setSize(const Size &s)
+{
+	if (!engineprivate) this->s=s;
+}
+
+CSurface::SurfaceFlags CSurface::surfaceFlags() const
+{
+	return flags;
+}
+
+void CSurface::setSurfaceFlags(SurfaceFlags f)
+{
+	if (!engineprivate) flags=f;
+}
+
+RGBFormat CSurface::rgbFormat() const
+{
+	return format;
+}
+
+void CSurface::setRGBFormat(const RGBFormat &format)
+{
+	if (!engineprivate) this->format=format;
+}
+
+void *CSurface::enginePrivate() const
+{
+	return engineprivate;
+}
+
+void CSurface::setEnginePrivate(void *ptr)
+{
+	engineprivate=ptr;
+}
+
+GFXEngine *CSurface::gfxEngine() const
+{
+	return gfxengine;
+}
+
+void CSurface::setGfxEngine(GFXEngine *engine)
+{
+	gfxengine=engine;
 }
 
 
-int CSurface::FitRect (RECT * r)
-/*!\brief Passt das Rechteck in das aktuelle Clipping?
- *
- * \desc
- * Diese Funktion prueft, ob die Koordinaten in rect in das
- * Clipping des Surface passen und passt sie ggfs. an.
- * Ausserdem werden die Koordinaten so gedreht, dass die
- * niedrigere in x1, bzw. y2 gespeichert wird
- */
+int CSurface::create(int width, int height, const RGBFormat &format, SurfaceFlags flags)
 {
-	//DLOG ("%u->CSurface::FitRect(RECT=%u)",this,r);
-	if (r==NULL) {
-		SetError(112);
+	if (engineprivate) {
+		SetError(1061);
 		return 0;
 	}
-	//DLOG ("  rect=(%u/%u)-(%u/%u)",r->left,r->top,r->right,r->bottom);
+	s.setSize(width,height);
+	this->format=format;
+	this->flags=flags;
+	return create();
+}
 
-	ppldd _t;
-	if (r->right<r->left) {
-		_t=r->right;
-		r->right=r->left;
-		r->left=_t;
-	}
-	if (r->bottom<r->top) {
-		_t=r->bottom;
-		r->bottom=r->top;
-		r->top=_t;
-	}
-	if (r->left >= s.clipper.right || r->top >= s.clipper.bottom ||
-		r->right < s.clipper.left || r->bottom <s.clipper.top) {
-		SetError(107);
+int CSurface::create()
+{
+	if (engineprivate) {
+		SetError(1061);
 		return 0;
 	}
-	if (r->left<s.clipper.left) r->left=s.clipper.left;
-	if (r->top<s.clipper.top) r->top=s.clipper.top;
-	if (r->right>s.clipper.right) r->right=s.clipper.right;
-	if (r->bottom>s.clipper.bottom) r->bottom=s.clipper.bottom;
+	CGrafix *gfx=GetGrafix();
+	if (!gfx) return 0;
+	if (!gfx->CreateSurface(*this)) return 0;
 	return 1;
 }
 
 
-int CSurface::GetWidth()
-{
-	return s.width;
-}
 
-int CSurface::GetHeight()
+int CSurface::lock(CDrawable &draw)
 {
-	return s.height;
-}
-
-int CSurface::GetBitdepth()
-{
-	return s.bitdepth;
-}
-int CSurface::GetRGBFormat()
-{
-	return s.rgbformat;
-}
-
-void CSurface::SetOrigin(int x, int y)
-{
-	s.originx=x;
-	s.originy=y;
-}
-
-void CSurface::SetClipper(int x1, int y1, int x2, int y2)
-{
-	s.clipper.left=x1;
-	s.clipper.top=y1;
-	s.clipper.right=x2;
-	s.clipper.bottom=y2;
-	if (s.clipper.left<0) s.clipper.left=0;
-	if (s.clipper.top<0) s.clipper.top=0;
-	if (s.clipper.right>s.width) s.clipper.right=s.width;
-	if (s.clipper.bottom>s.height) s.clipper.bottom=s.height;
-}
-
-void CSurface::SetClipper(RECT *r)
-{
-	if (!r) return;
-	s.clipper.left=r->left;
-	s.clipper.top=r->top;
-	s.clipper.right=r->right;
-	s.clipper.bottom=r->bottom;
-	if (s.clipper.left<0) s.clipper.left=0;
-	if (s.clipper.top<0) s.clipper.top=0;
-	if (s.clipper.right>s.width) s.clipper.right=s.width;
-	if (s.clipper.bottom>s.height) s.clipper.bottom=s.height;
-}
-
-void CSurface::SetClipper(POINT *p1, POINT *p2)
-{
-	if (!p1) return;
-	if (!p2) return;
-	s.clipper.left=p1->x;
-	s.clipper.top=p1->y;
-	s.clipper.right=p2->x;
-	s.clipper.bottom=p2->y;
-	if (s.clipper.left<0) s.clipper.left=0;
-	if (s.clipper.top<0) s.clipper.top=0;
-	if (s.clipper.right>s.width) s.clipper.right=s.width;
-	if (s.clipper.bottom>s.height) s.clipper.bottom=s.height;
-}
-
-void CSurface::GetClipper(RECT *r)
-{
-	if (!r) return;
-	r->left=s.clipper.left;
-	r->top=s.clipper.top;
-	r->right=s.clipper.right;
-	r->bottom=s.clipper.bottom;
-}
-
-void CSurface::UnsetClipper()
-{
-	s.clipper.left=0;
-	s.clipper.top=0;
-	s.clipper.right=s.width;
-	s.clipper.bottom=s.height;
-}
-
-int CSurface::CheckClipping(int x, int y)
-{
-	x+=s.originx;
-	y+=s.originy;
-	if (x<s.clipper.left || x>=s.clipper.right || y<s.clipper.top || y>=s.clipper.right) return 0;
-	return 1;
-}
-
-int CSurface::CheckClipping(POINT *p)
-{
-	if (!p) return 0;
-	return CheckClipping(p->x,p->y);
-	//if (p->x<s.clipper.left || p->x>=s.clipper.right || p->y<s.clipper.top || p->y>=s.clipper.right) return 0;
-	//return 1;
-}
-
-int CSurface::CheckClipping (int x, int y, RECT * r)
-{
-	if (!r) return 0;
-	if (x<r->left || x>=r->right || y<r->top || y>=r->right) return 0;
-	return 1;
-
-}
-
-int CSurface::CheckClipping (POINT *p, RECT * r)
-{
-	if (!p) return 0;
-	if (!r) return 0;
-	if (p->x<r->left || p->x>=r->right || p->y<r->top || p->y>=r->right) return 0;
-	return 1;
-}
-
-int CSurface::MoveCursor(int x, int y)
-{
-	s.lastx=x;
-	s.lasty=y;
-	return 1;
-}
-
-int CSurface::GetMousePosition(POINT *p)
-{
-	if (!engine) {
+	if (!gfxengine) {
+		SetError(1072);
 		return 0;
 	}
-	return engine->GetMousePosition(this,p);
+	if (lockcount==0) {
+		if (!gfxengine->lockSurface(*this,this->draw)) return 0;
+	}
+	lockcount++;
+	draw=this->draw;
+	return 1;
 }
 
-int CSurface::SendMessage(void *object, CAssocArray *msg)
-/*!\brief Nachricht schicken
- * \param[in] object Ein Pointer auf ein beliebiges Objekt. In der Regel zeigt dieses
- * auf ein von ppl6::tk::CWidget abgeleitetes Objekt. Der Parameter ist optional.
- * \param[in] msg Ein optionaler Pointer auf ein Assoziatives Array. Dieses darf nicht
- * statisch deklariert worden sein, sondern mit "new". Es wird nach Verarbeitung
- * der Nachricht automatisch gelöscht.
- */
+int CSurface::unlock()
 {
-	if (!engine) {
+	if (!gfxengine) {
+		SetError(1072);
 		return 0;
 	}
-	return engine->SendEvent(this,object,msg);
-}
-
-int CSurface::SendMessage(unsigned int msg, void *param1, void *param2)
-/*!\brief Nachricht schicken
- *
- * Mit dieser Funktion kann eine Systemspezifische Nachricht an das Fenster geschickt werden.
- * Unter Windows ruft die Funktion "PostMessage" auf, übergibt \p msg als Nachrichtennummer,
- * \p param1 als WPARAM und \p param2 als LPARAM.
- *
- * \param[in] msg Systemspezifische Nachrichtennummer
- * \param[in] param1 Pointer auf optionalen Parameter
- * \param[in] param2 Pointer auf zweiten optionalen Parameter
- */
-{
-	if (s.PostMessage) return s.PostMessage(&s,msg,param1,param2);
-	return 0;
+	if (lockcount>0) {
+		lockcount--;
+		if (lockcount==0) {
+			if (!gfxengine->unlockSurface(*this)) {
+				lockcount=1;
+				return 0;
+			}
+		}
+	}
+	return 1;
 }
 
 
-} // EOF namespace grafix
-} // EOF namespace ppl6
 
+}	// EOF namespace grafix
+}	// EOF namespace ppl6

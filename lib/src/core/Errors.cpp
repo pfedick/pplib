@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.45 $
- * $Date: 2009/12/28 10:10:51 $
- * $Id: Errors.cpp,v 1.45 2009/12/28 10:10:51 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.5 $
+ * $Date: 2010/02/18 12:01:56 $
+ * $Id: Errors.cpp,v 1.5 2010/02/18 12:01:56 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -607,6 +607,12 @@ static tr_str_array const char * errors[] = {
 		"Keine Datei geladen",														// 543
 		"Speicherbereich ist leer",													// 544
 		"Operation fehlgeschlagen",													// 545
+		"Resolver: Query fehlgeschlagen",											// 546
+		"Resolver: Antwort konnte nicht geparsed werden",							// 547
+		"Resolver: Initialisierung fehlgeschlagen",									// 548
+		"Resolver: Ungültiges Label",												// 549
+		"Resolver: ldns-Library ist nicht einkompiliert",							// 550
+		"Resolver: DNSSEC-Schlüssel konnte nicht eingelesen werden",				// 551
 		"unknown"																	//
 };
 

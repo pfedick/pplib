@@ -1,14 +1,14 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
- *  
- * $Author: patrick $
- * $Revision: 1.1 $
- * $Date: 2009/01/08 16:51:48 $
- * $Id: Tab.cpp,v 1.1 2009/01/08 16:51:48 patrick Exp $
- * 
- ******************************************************************************* 
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ *
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: Tab.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
+ *
+ *******************************************************************************
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,6 +55,7 @@ using namespace ppl6::grafix;
 namespace ppl6 {
 namespace tk {
 
+#ifdef TODO
 /*!\class TabItem
  * \ingroup PPLGroupToolkit
  * \brief Element eines Tab-Elements
@@ -121,7 +122,7 @@ int Tab::Paint()
 	if (!c) return 0;
 	int w=Width();
 	int h=Height();
-	// Zunächst berechnen wir, wie hoch die Tabkante sein muss
+	// Zunï¿½chst berechnen wir, wie hoch die Tabkante sein muss
 	CWidget *child;
 	TabItem *tab;
 	DIMENSION d;
@@ -131,7 +132,7 @@ int Tab::Paint()
 		if (child->CID==0xffff0009) {
 			// Wir haben ein TabItem
 			tab=(TabItem*)child;
-			// Schaun wir mal, wieviel Platz die Überschrift braucht
+			// Schaun wir mal, wieviel Platz die ï¿½berschrift braucht
 			s->TextSize(&tab->Font,&d,&tab->Caption);
 			if (d.height>y1) y1=d.height;
 		}
@@ -167,9 +168,9 @@ int Tab::Paint()
 				s->Line(x2,5,x2,y1-1,c->tab.border_shadow);
 			}
 
-			
+
 			s->Print(&tab->Font,x1+2,4,&tab->Caption);
-			
+
 
 			x1=x2+1;
 			tabnum++;
@@ -188,6 +189,6 @@ int Tab::MouseDown(CEvent *object, int x, int y, int buttons)
 	return 1;
 }
 
-	
+#endif
 }	// EOF namespace tk
 }	// EOF namespace ppl6

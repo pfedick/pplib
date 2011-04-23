@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.15 $
- * $Date: 2009/11/04 14:48:01 $
- * $Id: CSocketMessage.cpp,v 1.15 2009/11/04 14:48:01 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.7 $
+ * $Date: 2010/03/26 11:51:32 $
+ * $Id: CSocketMessage.cpp,v 1.7 2010/03/26 11:51:32 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,12 +78,61 @@ CSocketMessage::CSocketMessage()
 	Version=1;
 	UseCompression=true;
 	Id=0;
+	SupportMsgChannel=false;
+}
+
+CSocketMessage::CSocketMessage(const CSocketMessage &other)
+{
+	datatype=0;
+	data=NULL;
+	size=0;
+	commandId=0;
+	incoming_data=NULL;
+	incoming_size=0;
+	incoming_type=0;
+	ClientSupportsCompression=false;
+	Version=1;
+	UseCompression=true;
+	SupportMsgChannel=false;
+	Id=0;
+	Copy(other);
 }
 
 CSocketMessage::~CSocketMessage()
 {
 	Clear();
 }
+
+void CSocketMessage::Copy(const CSocketMessage &other)
+{
+	Copy(&other);
+}
+
+void CSocketMessage::Copy(const CSocketMessage *other)
+{
+	Clear();
+	if (!other) return;
+	datatype=other->datatype;
+	size=other->size;
+	incoming_size=other->incoming_size;
+	incoming_type=other->incoming_type;
+	commandId=other->commandId;
+	Id=other->Id;
+	Version=other->Version;
+	UseCompression=other->UseCompression;
+	data=other->data;
+	incoming_data=NULL;
+	if (incoming_size) {
+		incoming_data=malloc(incoming_size+1);
+		if (!incoming_data) {
+			incoming_size=0;
+		} else {
+			memcpy(incoming_data,other->incoming_data,incoming_size);
+		}
+	}
+}
+
+
 
 void CSocketMessage::EnableCompression()
 {
@@ -118,7 +167,6 @@ void CSocketMessage::SetId(int id)
 
 int CSocketMessage::SetData(const char *msg)
 {
-	Clear();
 	if (!msg) {
 		SetError(194,"char *msg");
 		return 0;
@@ -128,20 +176,18 @@ int CSocketMessage::SetData(const char *msg)
 	return 1;
 }
 
-int CSocketMessage::SetData(CString &msg)
+int CSocketMessage::SetData(const CString &msg)
 {
-	Clear();
 	//printf ("SetData: msg->size()=%i, Ptr=>>%s<<\n",msg->Size(),msg->GetPtr());
 	datatype=PPL_STRING;
-	data=&msg;
+	data=(void*)&msg;
 	return 1;
 }
 
-int CSocketMessage::SetData(CAssocArray &msg)
+int CSocketMessage::SetData(const CAssocArray &msg)
 {
-	Clear();
 	datatype=PPL_ASSOCARRAY;
-	data=&msg;
+	data=(void*)&msg;
 	return 1;
 }
 
@@ -254,19 +300,11 @@ int CSocketMessage::GetData(CAssocArray &a)
 
 int CSocketMessage::GetId()
 {
-	if (!incoming_data) {
-		SetError(338);
-		return 0;
-	}
 	return Id;
 }
 
 int CSocketMessage::GetCommandId()
 {
-	if (!incoming_data) {
-		SetError(338);
-		return 0;
-	}
 	return commandId;
 }
 
@@ -293,6 +331,27 @@ int CSocketMessage::SetVersion(int version)
 	return 0;
 }
 
+void CSocketMessage::EnableMsgChannel()
+{
+	SupportMsgChannel=true;
+}
+
+void CSocketMessage::DisableMsgChannel()
+{
+	SupportMsgChannel=false;
+}
+
+bool CSocketMessage::isCompressionSupported() const
+{
+	return ClientSupportsCompression;
+}
+
+bool CSocketMessage::isMsgChannelSupported() const
+{
+	return SupportMsgChannel;
+}
+
+
 int CTCPSocket::Write(CSocketMessage &msg)
 /*!\brief Nachricht verschicken
  *
@@ -301,6 +360,7 @@ int CTCPSocket::Write(CSocketMessage &msg)
  * \copydoc PPLSocketMessage
  */
 {
+	if (log) log->Printf(LOG::DEBUG,4,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"Schreibe CSocketMessage");
 	CCompression comp(CCompression::Algo_ZLIB,CCompression::Level_High);
 	CBinary compressed;
 	char header[24];
@@ -308,6 +368,7 @@ int CTCPSocket::Write(CSocketMessage &msg)
 	bzero(header,24);
 	int flags=0;
 	if (msg.UseCompression) flags|=2;		// Bit 1: Client supports ZLib
+	if (msg.SupportMsgChannel) flags|=4;	// Bit 2: Client supports MsgChannel
 	bool freedata=false;
 	void *data=NULL;
 	void *send=NULL;
@@ -318,7 +379,9 @@ int CTCPSocket::Write(CSocketMessage &msg)
 	//msg->Dump();
 	switch (msg.datatype) {
 		case PPL_ASSOCARRAY:
+			if (log) log->Printf(LOG::DEBUG,6,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"Exportiere CAssocArray, ermittle Speicherbedarf...");
 			msg.size=((CAssocArray*)(msg.data))->Size();
+			if (log) log->Printf(LOG::DEBUG,6,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"Exportiere CAssocArray mit %u Bytes", (ppluint32)msg.size);
 			data=malloc(msg.size);
 			freedata=true;
 			if (!((CAssocArray*)(msg.data))->ExportBinary(data,msg.size,&size)) {
@@ -327,6 +390,7 @@ int CTCPSocket::Write(CSocketMessage &msg)
 				PopError();
 				return 0;
 			}
+			if (log) log->Printf(LOG::DEBUG,6,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"Exportiere CAssocArray fertig");
 			msg.size=size;
 			//printf ("Type: PPL_ASSOCARRAY, %i Bytes\n",msg.size);
 			break;
@@ -349,15 +413,19 @@ int CTCPSocket::Write(CSocketMessage &msg)
 	//ppl6::HexDump(data,msg->size);
 	if (msg.size>64 && msg.ClientSupportsCompression==true && msg.UseCompression==true) {
 		//printf ("Verwende Komprimierung\n");
+		if (log) log->Printf(LOG::DEBUG,4,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"Komprimiere Daten mit %u Bytes", (ppluint32)msg.size);
 		if (!comp.Compress(compressed,data,msg.size,false)) {
+			if (log) log->Printf(LOG::DEBUG,4,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"fehlgeschlagen, sende unkomprimiert");
 			size=msg.size;
 			send=data;
 		} else {
 			send=compressed.GetPtr();
 			//msg.size=compressed.Size();
 			size=compressed.Size();
+			if (log) log->Printf(LOG::DEBUG,4,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"Komprimierte Groesse: %u Bytes", (ppluint32)size);
 			if (size>msg.size) {
 				// Nachricht ist komprimiert größer als unkomprimiert, wir senden daher unkomprimiert
+				if (log) log->Printf(LOG::DEBUG,4,"ppl6::CTCPSocket","Write",__FILE__,__LINE__,"Nachricht ist komprimiert groesser, sende unkomprimiert");
 				size=msg.size;
 				send=data;
 			} else {
@@ -468,6 +536,10 @@ int CTCPSocket::WaitForMessage(CSocketMessage &msg, int timeout)
 			}
 		}
 		bzero(msgbuffer,24);
+		if (!WaitForIncomingData(0,100000)) {
+			if (GetErrorCode()==174) continue;
+			return 0;
+		}
 #ifdef DEBUGOUT
 		printf ("%010.3f CTCPSocket::WaitForMessage: Lese 20 Bytes\n",ppl6::GetMicrotime());
 #endif
@@ -529,6 +601,9 @@ int CTCPSocket::WaitForMessage(CSocketMessage &msg, int timeout)
 			msg.ClientSupportsCompression=true;
 		}
 		else msg.ClientSupportsCompression=false;
+		if (flags&4) msg.SupportMsgChannel=true;
+		else msg.SupportMsgChannel=false;
+
 		//printf ("crc ok\n");
 		msg.Clear();
 		msg.Version=version;

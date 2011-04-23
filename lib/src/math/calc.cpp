@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.10 $
- * $Date: 2009/09/05 07:33:21 $
- * $Id: calc.cpp,v 1.10 2009/09/05 07:33:21 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.6 $
+ * $Date: 2010/02/24 23:39:42 $
+ * $Id: calc.cpp,v 1.6 2010/02/24 23:39:42 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,11 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+
 #include "ppl6.h"
 
 namespace ppl6 {
@@ -52,7 +57,25 @@ static double Eval(CString &s)
 	double d1, d2,r;
 	CString p1,p2,rep;
 	CArray Param;
-	while (s.PregMatch("/([-+]{0,1}[0-9\\.]+)\\*([-+]{0,1}[0-9\\.]+)/",&Param)) {		// *
+	//printf ("ppl6::Calc::Eval(%s)\n",(const char*)s);
+	while (s.PregMatch("/([-+]{0,1}[0-9\\.,]+)\\^([-+]{0,1}[0-9\\.,]+)/",&Param)) {		// ^
+		p1=Param[1];
+		p2=Param[2];
+		d1=p1.ToDouble();
+		d2=p2.ToDouble();
+		r=pow(d1,d2);
+		//printf ("Match: %s ^ %s = %f\n",Param[1],Param[2],r);
+		rep.Sprintf("%s^%s",Param[1],Param[2]);
+		rep.PregEscape();
+		rep.Shr('/',1);
+		rep+="/";
+		if (r<0.0) p1.Sprintf("%f",r);
+		else p1.Sprintf("+%f",r);
+		s.PregReplace((const char*)rep,(const char*)p1);
+		//printf ("rep=%s, p1=%s, s=%s\n",(const char*)rep,(const char*)p1,s.GetPtr());
+	}
+
+	while (s.PregMatch("/([-+]{0,1}[0-9\\.,]+)\\*([-+]{0,1}[0-9\\.,]+)/",&Param)) {		// *
 		p1=Param[1];
 		p2=Param[2];
 		d1=p1.ToDouble();
@@ -66,9 +89,9 @@ static double Eval(CString &s)
 		if (r<0.0) p1.Sprintf("%f",r);
 		else p1.Sprintf("+%f",r);
 		s.PregReplace((const char*)rep,(const char*)p1);
-		//printf ("rep=%s, p1=%s, s=%s\n",(char*)rep,(char*)p1,s->GetPtr());
+		//printf ("rep=%s, p1=%s, s=%s\n",(const char*)rep,(const char*)p1,s.GetPtr());
 	}
-	while (s.PregMatch("/([-+]{0,1}[0-9\\.]+)\\/([-+]{0,1}[0-9\\.]+)/",&Param)) {		// /
+	while (s.PregMatch("/([-+]{0,1}[0-9\\.,]+)\\/([-+]{0,1}[0-9\\.,]+)/",&Param)) {		// /
 		p1=Param[1];
 		p2=Param[2];
 		d1=p1.ToDouble();
@@ -82,9 +105,9 @@ static double Eval(CString &s)
 		if (r<0.0) p1.Sprintf("%f",r);
 		else p1.Sprintf("+%f",r);
 		s.PregReplace((const char*)rep,(const char*)p1);
-		//printf ("rep=%s, p1=%s, s=%s\n",(char*)rep,(char*)p1,s->GetPtr());
+		//printf ("rep=%s, p1=%s, s=%s\n",(const char*)rep,(const char*)p1,s.GetPtr());
 	}
-	while (s.PregMatch("/([-+]{0,1}[0-9\\.]+)\\+([-+]{0,1}[0-9\\.]+)/",&Param)) {		// +
+	while (s.PregMatch("/([-+]{0,1}[0-9\\.,]+)\\+([-+]{0,1}[0-9\\.,]+)/",&Param)) {		// +
 		p1=Param[1];
 		p2=Param[2];
 		d1=p1.ToDouble();
@@ -98,9 +121,9 @@ static double Eval(CString &s)
 		if (r<0.0) p1.Sprintf("%f",r);
 		else p1.Sprintf("+%f",r);
 		s.PregReplace((const char*)rep,(const char*)p1);
-		//printf ("rep=%s, p1=%s, s=%s\n",(char*)rep,(char*)p1,s->GetPtr());
+		//printf ("rep=%s, p1=%s, s=%s\n",(const char*)rep,(const char*)p1,s.GetPtr());
 	}
-	while (s.PregMatch("/([-+]{0,1}[0-9\\.]+)\\-([-+]{0,1}[0-9\\.]+)/",&Param)) {		// -
+	while (s.PregMatch("/([-+]{0,1}[0-9\\.,]+)\\-([-+]{0,1}[0-9\\.,]+)/",&Param)) {		// -
 		p1=Param[1];
 		p2=Param[2];
 		d1=p1.ToDouble();
@@ -114,12 +137,12 @@ static double Eval(CString &s)
 		if (r<0.0) p1.Sprintf("%f",r);
 		else p1.Sprintf("+%f",r);
 		s.PregReplace((const char*)rep,(const char*)p1);
-		//printf ("rep=%s, p1=%s, s=%s\n",(char*)rep,(char*)p1,s->GetPtr());
+		//printf ("rep=%s, p1=%s, s=%s\n",(const char*)rep,(const char*)p1,s.GetPtr());
 	}
 	return s.ToDouble();
 }
 
-static int ResolveKlammer(CString &s, double *res)
+static int ResolveKlammer(CString &s, double &res)
 {
 	CString sub,t;
 	double r;
@@ -155,7 +178,7 @@ static int ResolveKlammer(CString &s, double *res)
 			goto startpunkt;
 		}
 	}
-	*res=s.ToDouble();
+	res=s.ToDouble();
 	return 1;
 }
 
@@ -198,12 +221,8 @@ Formel: 3*(7+4/2-(88-(32*3)*2))+3*5/(2.5+4)
 Ergebnis: 341.307692
 \endcode
  */
-int Calc(CString &str, double *result)
+int Calc(const CString &str, double &result)
 {
-	if (!result) {
-		SetError(194,"Calc(CString &str, ==> double *result <==)");
-		return 0;
-	}
 	CString s;
 	s="(";
 	s+=str;
@@ -213,14 +232,10 @@ int Calc(CString &str, double *result)
 }
 
 //! \overload Calc(CString &str, double *res)
-int Calc(const char *str, double *result)
+int Calc(const char *str, double &result)
 /*!\ingroup PPLGroupMath
  */
 {
-	if (!result) {
-		SetError(194,"Calc(CString str, ==> double *result <==)");
-		return 0;
-	}
 	CString s;
 	s="(";
 	s+=str;

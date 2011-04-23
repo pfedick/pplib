@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.454 $
- * $Date: 2009/12/28 10:10:51 $
- * $Id: ppl6.h,v 1.454 2009/12/28 10:10:51 patrick Exp $
+ * $Author: pafe $
+ * $Revision: 1.19 $
+ * $Date: 2010/03/27 20:53:06 $
+ * $Id: ppl6.h,v 1.19 2010/03/27 20:53:06 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,9 @@
 #define _PPL6_INCLUDE
 
 #define PPL_VERSION_MAJOR	6
-#define PPL_VERSION_MINOR	3
-#define PPL_VERSION_BUILD	3
-#define PPL_RELEASEDATE		20091208
+#define PPL_VERSION_MINOR	4
+#define PPL_VERSION_BUILD	0
+#define PPL_RELEASEDATE		20100326
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -321,6 +321,7 @@ class CMemoryReference
 	public:
 		CMemoryReference();
 		CMemoryReference(const CMemoryReference &other);
+		CMemoryReference(const CBinary &bin);
 		CMemoryReference(void *adr, size_t size);
 		bool isNull() const;
 		bool isEmpty() const;
@@ -328,8 +329,11 @@ class CMemoryReference
 		void *adr() const;
 		void set(void *adr, size_t size);
 		void set(const CMemoryReference &other);
+		void set(const CBinary &bin);
 		CMemoryReference &operator=(const CMemoryReference &other);
+		CMemoryReference &operator=(const CBinary &bin);
 		operator void*() const;
+		operator CBinary() const;
 		unsigned char operator[](size_t pos) const;
 };
 
@@ -340,17 +344,21 @@ private:
 public:
 	CMemory();
 	CMemory(const CMemoryReference &other);
+	CMemory(const CBinary &bin);
 	CMemory(void *adr, size_t size);
 	CMemory(size_t size);
 	~CMemory();
 	void set(void *adr, size_t size);
 	void set(const CMemoryReference &other);
+	void set(const CBinary &bin);
 	void *copy(void *adr, size_t size);
 	void *copy(const CMemoryReference &other);
+	void *copy(const CBinary &bin);
 	void *malloc(size_t size);
 	void *calloc(size_t size);
 	void free();
 	CMemory &operator=(const CMemoryReference &other);
+	CMemory &operator=(const CBinary &bin);
 	operator void*() const;
 	unsigned char operator[](size_t pos) const;
 };
@@ -358,10 +366,6 @@ public:
 //! \brief Basisklasse für verschiedene Datentypen
 class CVar
 {
-	private:
-		CCallback	*callback;
-		void		*callback_data;
-
 	public:
 
 		enum PPLDataType {
@@ -375,19 +379,14 @@ class CVar
 			CBOOL		=10
 		};
 	protected:
-		PPLDataType		type;
+		ppluint8		type;
 
 	public:
 		CVar();
 		CVar(const CVar &copy);
 		virtual ~CVar();
-		void SetCallback(CCallback *c, void *data=NULL);
-		//void ChangeHandler(void (*ChangeHandler)(void *object, int id),int id=0);
-		void Change();
-		void DeleteCallback();
 		int DataType() const;
 		int IsType(int type) const;
-
 		CVar& operator=(const CVar& var);
 };
 
@@ -495,7 +494,7 @@ class CString : public CVar
 		CString(const CWString &str);
 		CString(const CBinary &bin);
 
-		virtual ~CString();
+		~CString();
 
 		void *operator new (size_t size);
 		void operator delete (void *ptr, size_t size);
@@ -567,11 +566,12 @@ class CString : public CVar
 		void Shr(char c, int size);
 		void Shl(char c, int size);
 		int StrCmp(const char *str, int size=0) const;
-		int StrCmp(CString &str, int size=0) const;
+		int StrCmp(const CString &str, int size=0) const;
 		int StrCaseCmp(const char *str, int size=0) const;
-		int StrCaseCmp(CString &str, int size=0) const;
+		int StrCaseCmp(const CString &str, int size=0) const;
 		int Instr(const char *str, int pos=0) const;
-		int Instr(CString &str, int pos=0) const;
+		int Instr(const CString &str, int pos=0) const;
+		int InstrCase(const CString &str, int pos=0) const;
 
 		CString& Repeat(int num);
 		CString& Repeat(const char *str, int num);
@@ -723,7 +723,7 @@ class CWString : public ppl6::CVar
 		CWString(const wchar_t c);
 
 
-		virtual ~CWString();
+		~CWString();
 		void ImportBuffer(wchar_t *buffer, size_t bytes);
 
 		int	SetExtEncoding(const char *encoding);
@@ -759,7 +759,8 @@ class CWString : public ppl6::CVar
 
 
 		int Setf(const char *fmt, ...);
-		virtual int Sprintf(const char *fmt, ...);
+		int Setf(const wchar_t *fmt, ...);
+		int Sprintf(const char *fmt, ...);
 		int VaSprintf(const char *fmt, va_list args);
 		int Vasprintf(const char *fmt, va_list args);
 
@@ -777,6 +778,7 @@ class CWString : public ppl6::CVar
 		int Concat(CString str, int bytes=-1);
 		int Concat(CWString str, int size=-1);
 		int Concatf(const char *fmt, ...);
+		int Concatf(const wchar_t *fmt, ...);
 		int ConcatChar(wchar_t c);
 
 		int Import(const char *encoding, void *buffer, int bytes=-1);
@@ -985,12 +987,15 @@ class CBinary : public CVar
 		CBinary(const CBinary &bin);
 		CBinary(const CString &str);
 		CBinary(const CWString &str);
+		CBinary(const CMemoryReference &mem);
 		CBinary(const char *str);
 
 		void	Clear();
 		int		Set(void *ptr, size_t size);
 		int		Set(CFileObject &file);
 		int		Set(const CVar& object);
+		int		Set(const CMemoryReference &memory);
+		int		Copy(const CMemoryReference &memory);
 		int		Copy(const void *ptr, size_t size);
 		int		Copy(const char *str);
 		int		Copy(CFileObject& file);
@@ -1016,9 +1021,11 @@ class CBinary : public CVar
 		CBinary& operator=(const CBinary& bin);
 		CBinary& operator=(const CBinary* bin);
 		CBinary& operator=(const CString& str);
+		CBinary& operator=(const CMemoryReference& mem);
 		CBinary& operator=(const CWString& str);
 		CBinary& operator=(const char *str);
 		char operator[](size_t pos) const;
+		operator CMemoryReference() const;
 
 };
 
@@ -1035,7 +1042,7 @@ class CMutex
 		int Lock();
 		int Unlock();
 		int TryLock();
-		int Wait(int microseconds=0);
+		int Wait(int milliseconds=0);
 		int Signal();
 };
 
@@ -1407,21 +1414,26 @@ class CCompression
 
 		int Compress(CBinary &out, const void *ptr, size_t size, bool copy=true);
 		int Compress(CBinary &out, const CVar &object, bool copy=true);
+		int Compress(CMemory &out, const CMemoryReference &in);
 		int Compress(void *dst, size_t *dstlen, const void *src, size_t size);
 		int Uncompress(CBinary &out, const CBinary &data, bool copy=true);
+		int Uncompress(CMemory &out, const CMemoryReference &in);
 		int Uncompress(CBinary &out, const void *data, size_t size=0, bool copy=true);
 		int Uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm method=Unknown);
 };
 
 int Compress(CBinary &out, const CVar &in, CCompression::Algorithm method, CCompression::Level level=CCompression::Level_Default);
 int Compress(CBinary &out, const void *buffer, size_t size, CCompression::Algorithm method, CCompression::Level level=CCompression::Level_Default);
+int Compress(CMemory &out, const CMemoryReference &in, CCompression::Algorithm method, CCompression::Level level=CCompression::Level_Default);
 int CompressZlib(CBinary &out, const CVar &in, CCompression::Level level=CCompression::Level_High);
 int CompressZlib(CBinary &out, const void *buffer, size_t size, CCompression::Level level=CCompression::Level_High);
+int CompressZlib(CMemory &out, const CMemoryReference &in, CCompression::Level level=CCompression::Level_Default);
 int CompressBZip2(CBinary &out, const CVar &in, CCompression::Level level=CCompression::Level_High);
 int CompressBZip2(CBinary &out, const void *buffer, size_t size, CCompression::Level level=CCompression::Level_High);
+int CompressBZip2(CMemory &out, const CMemoryReference &in, CCompression::Level level=CCompression::Level_Default);
 int Uncompress(CBinary &out, const CBinary &in);
 int Uncompress(CBinary &out, const void *buffer, size_t size);
-
+int Uncompress(CMemory &out, const CMemoryReference &in);
 
 
 //! \brief Signals
@@ -1630,9 +1642,10 @@ class CLog
 		int			generations;
 		bool		inrotate;
 
+		bool		shouldPrint(const char *module, const char *function, const char *file, int line, int facility, int level);
 		int			IsFiltered(const char *module, const char *function, const char *file, int line, int level);
 		void		Output(int facility, int level, const char *module, const char *function, const char *file, int line, const char *buffer, bool printdate=true);
-		void		OutputArray(int facility, int level, const char *module, const char *function, const char *file, int line, CAssocArray *a, const char *prefix, CString *Out=NULL);
+		void		OutputArray(int facility, int level, const char *module, const char *function, const char *file, int line, const CAssocArray *a, const char *prefix, CString *Out=NULL);
 		void		CheckRotate(int facility);
 
 	public:
@@ -1650,9 +1663,9 @@ class CLog
 		void Print (int facility, int level, const char *file, int line, const char *text);
 		void Print (int facility, int level, const char *module, const char *function, const char *file, int line, const char *text);
 		void Print (int level, const char *text);
-		void PrintArray (int facility, int level, CAssocArray *a, const char *fmt, ...);
-		void PrintArray (int facility, int level, const char *module, const char *function, const char *file, int line, CAssocArray *a, const char *fmt, ...);
-		void PrintArraySingleLine (int facility, int level, const char *module, const char *function, const char *file, int line, CAssocArray *a, const char *fmt, ...);
+		void PrintArray (int facility, int level, const CAssocArray *a, const char *fmt, ...);
+		void PrintArray (int facility, int level, const char *module, const char *function, const char *file, int line, const CAssocArray *a, const char *fmt, ...);
+		void PrintArraySingleLine (int facility, int level, const char *module, const char *function, const char *file, int line, const CAssocArray *a, const char *fmt, ...);
 		void Printfs (int level, const char *fmt, ... );
 		void Printfs (int facility, int level, const char *fmt, ... );
 		void Printf (int facility, int level, const char *file, int line, const char *fmt, ... );
@@ -1907,9 +1920,9 @@ class CTreeController
 {
 	public:
 		virtual ~CTreeController() {};
-		virtual int	Compare(const void *value1, const void *value2) = 0;
-		virtual int GetValue(const void *item, CString &buffer) = 0;
-		virtual int DestroyValue(void *item) = 0;
+		virtual int	Compare(const void *value1, const void *value2) const = 0;
+		virtual int GetValue(const void *item, CString &buffer) const = 0;
+		virtual int DestroyValue(void *item) const = 0;
 };
 
 class CAVLTree : public CTreeController
@@ -1927,15 +1940,15 @@ class CAVLTree : public CTreeController
 		void		UpDelete(TREEITEM *node);
 		TREEITEM	*Rotate(TREEITEM *kn);
 		void		SwapNodes(TREEITEM *item1, TREEITEM *item2);
-		void		ListNodes(CCallback *callback, TREEITEM *node);
+		//void		ListNodes(CCallback *callback, TREEITEM *node);
 		int			DeleteNode(TREEITEM *item);
 
 	public:
 		CAVLTree();
 		virtual ~CAVLTree();
-		virtual int	Compare(const void *value1, const void *value2);
-		virtual int GetValue(const void *item, CString &buffer);
-		virtual int DestroyValue(void *item);
+		virtual int	Compare(const void *value1, const void *value2) const;
+		virtual int GetValue(const void *item, CString &buffer) const;
+		virtual int DestroyValue(void *item) const;
 
 		void		SetTreeController(CTreeController *c);
 		void		AllowDupes(bool allow);
@@ -1943,8 +1956,9 @@ class CAVLTree : public CTreeController
 		void		Clear();
 		int			Add(const void *value);
 		int			Delete(const void *value);
-		void		*Find(const void *value);
-		TREEITEM	*FindNode(const void *value);
+		int			Remove(const void *value);
+		void		*Find(const void *value) const;
+		TREEITEM	*FindNode(const void *value) const;
 		void		*FindOrAdd(const void *item);
 		void		Reset();
 		void		*GetFirst();
@@ -1952,8 +1966,8 @@ class CAVLTree : public CTreeController
 		void		*GetLast();
 		void		*GetPrevious();
 		void		*GetCurrent();
-		int			ListNodes(CCallback *callback);
-		void		PrintNodes(const TREEITEM *node=NULL);
+		//int			ListNodes(CCallback *callback);
+		void		PrintNodes(const TREEITEM *node=NULL) const;
 };
 
 class CTree;
@@ -2195,6 +2209,7 @@ class CTree
 // time.cpp
 	ppluint64 GetTime(PPLTIME *t);
 	ppluint64 GetTime(PPLTIME *t, ppluint64 tt);
+	ppluint64 GetTime(PPLTIME &t, ppluint64 tt);
 	ppluint64 GetTime();
 	ppluint64 GetMilliSeconds();
 	int datum (char *str1);
@@ -2231,11 +2246,13 @@ class CTree
 	CString MkISO8601Date (ppluint64 sec);
 	CString MkISO8601Date (PPLTIME *t=NULL);
 
+	CString MkRFC822Date (PPLTIME &t);
+	CString MkRFC822Date (ppluint64 sec=0);
+	/*
 	char *MkRFC822Date (char *buffer, size_t size_t, ppluint64 sec);
-	CString MkRFC822Date (PPLTIME *t=NULL);
-	CString MkRFC822Date (ppluint64 sec);
 	const char *MkRFC822Date (CString &buffer, ppluint64 sec);
 	const char *MkRFC822Date (CString &buffer, PPLTIME *t=NULL);
+	*/
 
 	const char *MkDate (CString &buffer, const char *format, ppluint64 sec);
 	CString MkDate(const char *format, ppluint64 sec);
@@ -2279,8 +2296,8 @@ class CTree
 	pplint32	saturate(pplint32 wert, pplint32 min, pplint32 max);
 	ppluint32	crc32(const char* text);
 	ppluint32	crc32(const void* buffer, int size);
-	int			Calc(CString &str, double *result);
-	int			Calc(const char *str, double *result);
+	int			Calc(const CString &str, double &result);
+	int			Calc(const char *str, double &result);
 
 
 // ident.cpp
@@ -2320,7 +2337,7 @@ class CArray : public CVar
 		int Add(int value);
 		int Add(const CString &value, int bytes=-1);
 		int Add(const CWString &value, int chars=-1);
-		int Add(CArray &a);
+		int Add(const CArray &a);
 		int Explode(const char *text, const char *trenn, int limit=0, bool skipemptylines=false);
 		int Explode(const CString &text, const char *trenn, int limit=0, bool skipemptylines=false);
 			// Der String "text" wird anhand des Trennzeichens "trenn" aufgesplittet und in das
@@ -2399,9 +2416,9 @@ class CAssocArray : public CVar
 
 		//!\name Informationen ausgeben/auslesen
 		//@{
-		void	List(const char *prefix=NULL);
-		int		Count(bool recursive=false);
-		int		Count(const char *key, bool recursive=false);
+		void	List(const char *prefix=NULL) const;
+		int		Count(bool recursive=false) const;
+		int		Count(const char *key, bool recursive=false) const;
 		int		Validate(const char *prefix=NULL);
 		//@}
 
@@ -2510,6 +2527,11 @@ class CAssocArray : public CVar
 		ARRAY_RESULT	GetNext();
 		ARRAY_RESULT	GetLast();
 		ARRAY_RESULT	GetPrevious();
+
+		void			Reset(CTreeWalker &walk) const;
+		ARRAY_RESULT	GetFirst(CTreeWalker &walk) const;
+		ARRAY_RESULT	GetNext(CTreeWalker &walk) const;
+
 
 		CAssocArray		*GetFirstArray();
 		CAssocArray		*GetNextArray();
@@ -2665,7 +2687,7 @@ class CList
 		CListItem	*GetLast();
 		CListItem	*GetPrevious();
 		void		Reset();
-		int			Num();
+		int			Num() const;
 		int			CheckConsistency();
 };
 
@@ -2803,6 +2825,74 @@ class CDir
  ***************************************************************************************************/
 
 
+class CResolver
+{
+	private:
+		void *res;
+		void *packet;
+
+		int InitInternal();
+
+	public:
+		// Quelle: http://en.wikipedia.org/wiki/List_of_DNS_record_types
+		enum Type {
+			A=1,
+			NS=2,
+			CNAME=5,
+			MX=15,
+			SOA=6,
+			PTR=12,
+			TXT=16,
+			AAAA=28,
+			NAPTR=35,
+			SRV=33,
+			DS=43,
+			DNSKEY=48,
+			NSEC=47,
+			NSEC3=50,
+			RRSIG=46,
+			OPT=41,
+			TSIG=250
+		};
+
+		enum Class {
+			/** the Internet */
+			CLASS_IN    = 1,
+			/** Chaos class */
+			CLASS_CH    = 3,
+			/** Hesiod (Dyer 87) */
+			CLASS_HS    = 4,
+			/** None class, dynamic update */
+			CLASS_NONE      = 254,
+			/** Any class */
+			CLASS_ANY   = 255,
+			CLASS_FIRST     = 0,
+			CLASS_LAST      = 65535,
+			CLASS_COUNT     = CLASS_LAST - CLASS_FIRST + 1
+		};
+
+		CResolver();
+		//CResolver(const CResolver &other);
+		~CResolver();
+		static CString typeName(Type t);
+		static CString className(Class c);
+
+		void setTimeout(int seconds, int microseconds);
+		void setDnssecEnabled(bool flag);
+		void setEdnsUdpSize(size_t s);
+		size_t ednsUdpSize() const;
+		bool dnssecEnabled() const;
+		int setNameservers(const CArray &list);
+		int setNameserver(const CString &server);
+		int setDNSSECAnchor(const CString &anchor);
+		int setDNSSECAnchor(const CArray &anchors);
+		int setDNSSECAnchorFromFile(const CString &filename);
+		int setDNSSECAnchorFromFile(ppl6::CFileObject &file);
+
+		int query(ppl6::CAssocArray &r, const CString &label, Type t=A, Class c=CLASS_IN);
+};
+
+
 int GetHostByName(const char *name, CAssocArray *Result);
 int GetHostByAddr(const char *addr, CAssocArray *Result);
 CString GetHostname();
@@ -2872,18 +2962,24 @@ class CSocketMessage
 		int			Id;
 		int			Version;
 		bool		UseCompression;
+		bool		SupportMsgChannel;
 
 	public:
 		bool		ClientSupportsCompression;
 
 		CSocketMessage();
+		CSocketMessage(const CSocketMessage &other);
+
 		virtual ~CSocketMessage();
+		void Copy(const CSocketMessage &other);
+		void Copy(const CSocketMessage *other);
+
 		void Clear();
 		void SetCommandId(int id);
 		void SetId(int id);
-		int SetData(CString &msg);
+		int SetData(const CString &msg);
 		int SetData(const char *msg);
-		int SetData(CAssocArray &msg);
+		int SetData(const CAssocArray &msg);
 		int GetData(CString &msg);
 		const char*GetData();
 		int GetData(CAssocArray &msg);
@@ -2896,6 +2992,10 @@ class CSocketMessage
 		int SetVersion(int version);
 		void EnableCompression();
 		void DisableCompression();
+		void EnableMsgChannel();
+		void DisableMsgChannel();
+		bool isCompressionSupported() const;
+		bool isMsgChannelSupported() const;
 };
 
 //! \brief TCP-Socket-Klasse

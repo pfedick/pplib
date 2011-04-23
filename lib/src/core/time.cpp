@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: time.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -142,8 +142,7 @@ int datum (char *str1)
 	return 0;
 }
 
-/*! \fn ppl6::GetTime(PPLTIME *t)
- * \ingroup PPLGroupDateTime
+/*!\ingroup PPLGroupDateTime
  * \brief Liefert die aktuelle Unixtime in einer Struktur zurück
  *
  * Liefert die aktuelle Unix-Zeit als Return-Wert zurück, sowie aufgeschlüsselt in der
@@ -164,6 +163,25 @@ ppluint64 GetTime(PPLTIME *t)
 	time(&now);
 	if (t) GetTime(t,now);
 	return (ppluint64) now;
+}
+
+/*!\ingroup PPLGroupDateTime
+ * \brief Liefert die aktuelle Unixtime in einer Struktur zurück
+ *
+ * Liefert die aktuelle Unix-Zeit als Return-Wert zurück, sowie aufgeschlüsselt in der
+ * Struktur PPLTIME.
+ *
+ * \param t Referenz aif eine Struktur vom Typ PPLTIME.
+ * \returns Bei Erfolg wird die Zeit seit 1.1.1970, 00:00 Uhr in Sekunden zurückgegeben,
+ * sowie die Struktur PPLTIME gefüllt.
+ * Tritt ein Fehler auf, wird ((ppluint64)-1) zurückgegeben und errno entsprechend gesetzt.
+ *
+ */
+ppluint64 GetTime(PPLTIME &t)
+{
+	time_t now;
+	time(&now);
+	return GetTime(t,now);
 }
 
 /*! \fn ppl6::GetTime (PPLTIME *t, ppluint64 now)
@@ -207,6 +225,49 @@ ppluint64 GetTime(PPLTIME *t, ppluint64 now)
 	#else
 		t->gmt_offset=0;
 		t->have_gmt_offset=0;
+	#endif
+	return now;
+}
+
+/*!\ingroup PPLGroupDateTime
+ * \brief Wandelt Unix-Zeit in die Struktur PPLTIME um
+ *
+ * Wandelt die angegebene Unix-Zeit in eine Struktur vom Typ PPLTIME um.
+ *
+ * \param t Referenz auf Eine PPLTIME-Struktur
+ * \param now enthält die Sekunden seit 1970, die in die PPLTIME-Struktur umgewandelt werden
+ * sollen.
+ * \returns Bei Erfolg werden die über den Parameter \a now angegebenen Sekunden
+ * zurückgeliefert und die Struktur PPLTIME wird gefüllt, Bei Auftreten eines Fehlers
+ * wird 0 zurückgegeben.
+ *
+ * \see ppl6::GetTime()
+ * \see ppl6::GetTime(PPLTIME *t)
+ *
+ */
+ppluint64 GetTime(PPLTIME &t, ppluint64 now)
+{
+	struct tm tmstruct;
+	time_t n=(time_t)now;
+	if (!localtime_r(&n,&tmstruct)) {
+		return 0;
+	}
+	t.year=tmstruct.tm_year+1900;
+	t.month=tmstruct.tm_mon+1;
+	t.day=tmstruct.tm_mday;
+	t.hour=tmstruct.tm_hour;
+	t.min=tmstruct.tm_min;
+	t.sec=tmstruct.tm_sec;
+	t.epoch=now;
+	t.day_of_week=tmstruct.tm_wday;
+	t.day_of_year=tmstruct.tm_yday;
+	t.summertime=tmstruct.tm_isdst;
+	#ifdef STRUCT_TM_HAS_GMTOFF
+		t.gmt_offset=tmstruct.tm_gmtoff;
+		t.have_gmt_offset=1;
+	#else
+		t.gmt_offset=0;
+		t.have_gmt_offset=0;
 	#endif
 	return now;
 }
@@ -837,83 +898,122 @@ CString MkISO8601Date (PPLTIME *t)
 	return s;
 }
 
-char *MkRFC822Date (char *buffer, int size, ppluint64 sec)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	if (!buffer) {
-		SetError(194,"char *buffer");
-		return NULL;
-	}
-	if (size<60) {
-		SetError(140,"Minimale Groesse: 60");
-		return NULL;
-	}
-	time_t now=(time_t)sec;
-	struct tm tmstruct;
-	if (!sec) time(&now);
-	if (localtime_r(&now,&tmstruct)) {
-		if (strftime(buffer,size,"%a, %d %b %Y %H:%M:%S %z",&tmstruct)) {
-			return buffer;
-		}
-	}
-	free(buffer);
-	return NULL;
-}
+/*
+ * date-time   =  [ day "," ] date time        ; dd mm yy
+                                                 ;  hh:mm:ss zzz
 
-CString MkRFC822Date (PPLTIME *t)
+     day         =  "Mon"  / "Tue" /  "Wed"  / "Thu"
+                 /  "Fri"  / "Sat" /  "Sun"
+
+     date        =  1*2DIGIT month 2DIGIT        ; day month year
+                                                 ;  e.g. 20 Jun 82
+
+     month       =  "Jan"  /  "Feb" /  "Mar"  /  "Apr"
+                 /  "May"  /  "Jun" /  "Jul"  /  "Aug"
+                 /  "Sep"  /  "Oct" /  "Nov"  /  "Dec"
+
+     time        =  hour zone                    ; ANSI and Military
+
+     hour        =  2DIGIT ":" 2DIGIT [":" 2DIGIT]
+                                                 ; 00:00:00 - 23:59:59
+
+     zone        =  "UT"  / "GMT"                ; Universal Time
+                                                 ; North American : UT
+                 /  "EST" / "EDT"                ;  Eastern:  - 5/ - 4
+                 /  "CST" / "CDT"                ;  Central:  - 6/ - 5
+                 /  "MST" / "MDT"                ;  Mountain: - 7/ - 6
+                 /  "PST" / "PDT"                ;  Pacific:  - 8/ - 7
+                 /  1ALPHA                       ; Military: Z = UT;
+                                                 ;  A:-1; (J not used)
+                                                 ;  M:-12; N:+1; Y:+12
+                 / ( ("+" / "-") 4DIGIT )        ; Local differential
+                                                 ;  hours+min. (HHMM)
+ *
+ */
+
+
+CString MkRFC822Date (PPLTIME &t)
 /*!\ingroup PPLGroupDateTime
+ * \brief Datumstring nach RFC-822 (Mailformat) erzeugen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Datummstring nach RFC-822 erzeugt, wie er im Header einer Email verwendet wird.
+ * Das Format lautet:
+ * \code
+ * weekday, day month year time zone
+ * \endcode
+ * und hat folgende Bedeutung:
+ * - weekday: Name des Wochentags ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+ * - day: Tag des Monats mit ein oder zwei Ziffern
+ * - month: Name des Monats ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+ * - year: Das Jahr mit 4 Ziffern
+ * - time: Stunde:Minute:Sekunde (hh:mm:ss), jeweils mit zwei Ziffern und Doppelpunkt getrennt
+ * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
+ *
+ * \param[in] t Eine PPLTIME-Struktur, der die Datumsinformationen entnommen werden
+ *
+ * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur ungültig ist.
  */
 {
 	CString s;
-	if (t) MkRFC822Date(s,GetTime(t));
-	else MkRFC822Date(s);
+	const char *day[]={ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char *month[]={ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+
+	// PPLTIME prüfen
+	if (t.day_of_week<0 || t.day_of_week>6) throw Exception::FunctionFailed();
+	if (t.month<1 || t.month>12) throw Exception::FunctionFailed();
+
+	s=day[t.day_of_week];
+	s+=", ";
+	s.Concatf("%i ",t.day);
+	s+=month[t.month-1];
+	s.Concatf(" %04i %02i:%02i:%02i ",t.year,t.hour,t.min,t.sec);
+	if (t.have_gmt_offset) {
+		if (t.gmt_offset>=0) s.Concatf("+%02i%02i",abs(t.gmt_offset/3600),abs(t.gmt_offset%3600));
+		else s.Concatf("-%02i%02i",abs(t.gmt_offset/3600),abs(t.gmt_offset%3600));
+	}
 	return s;
 }
 
 CString MkRFC822Date (ppluint64 sec)
 /*!\ingroup PPLGroupDateTime
+ * \brief Datumstring nach RFC-822 (Mailformat) erzeugen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Datummstring nach RFC-822 erzeugt, wie er im Header einer Email verwendet wird.
+ * Das Format lautet:
+ * \code
+ * weekday, day month year time zone
+ * \endcode
+ * und hat folgende Bedeutung:
+ * - weekday: Name des Wochentags ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+ * - day: Tag des Monats mit ein oder zwei Ziffern
+ * - month: Name des Monats ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+ * - year: Das Jahr mit 4 Ziffern
+ * - time: Stunde:Minute:Sekunde (hh:mm:ss), jeweils mit zwei Ziffern und Doppelpunkt getrennt
+ * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
+ *
+ * \param[in] sec Ein Optionaler Parameter mit Sekunden seit 1970. Ist er 0 oder wird nicht angegeben, wird die
+ * aktuelle Zeit verwendet.
+ *
+ * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur ungültig ist.
  */
 {
-	PPLTIME tt;
-	GetTime(&tt,sec);
-	return MkRFC822Date(&tt);
-}
-
-const char *MkRFC822Date (CString &buffer, ppluint64 sec)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	char *b=(char*)malloc(128);
-	if (!b) {
-		SetError(2);
-		return NULL;
+	PPLTIME t;
+	if (!sec) sec=GetTime();
+	if (GetTime(t,sec)!=sec) throw Exception::FunctionFailed();
+	return MkRFC822Date(t);
+	/*
+	if (localtime_r(&now,&tmstruct)) {
+		char buffer[60];
+		if (strftime(buffer,60,"%a, %d %b %Y %H:%M:%S %z",&tmstruct)) {
+			return buffer;
+		}
 	}
-	if (!MkRFC822Date(b,128,sec)) {
-		free(b);
-		return NULL;
-	}
-	buffer.Set(b);
-	free(b);
-	return buffer;
+	throw Exception::FunctionFailed();
+	*/
 }
 
-const char *MkRFC822Date (CString &buffer, PPLTIME *t)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	if (t) MkRFC822Date(buffer,GetTime(t));
-	else MkRFC822Date(buffer);
-	return buffer;
-}
-
-const char *MkRFC822Date (CString &buffer)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	ppluint64 sec=GetTime();
-	return MkRFC822Date(buffer,sec);
-}
 
 ppluint64 MkTime(const char *iso8601date, PPLTIME *t)
 /*!\ingroup PPLGroupDateTime
