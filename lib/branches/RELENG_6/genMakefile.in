@@ -1,0 +1,458 @@
+#!/bin/sh
+
+SED=sed
+SRCDIR="src"
+LIBNAME="libppl6"
+DEFINES="-DPPL6LIB"
+DISTNAME="ppl"
+VERSION=`cat VERSION`
+
+
+######################################################################################################################
+# Functions
+######################################################################################################################
+
+find_c_files() {
+	# $1=Verzeichnis
+	# $2=Subject
+	# $3=FLAGS
+	# $4=PREFIX
+	# $5=Zusaetzliche Header-Dependencies
+	
+	COMPILE_RELEASE="$COMPILE_RELEASE
+### $2"
+	COMPILE_DEBUG="$COMPILE_DEBUG
+### $2"
+	d=`pwd`
+	cd $SRCDIR/$1
+	FOUND_RELEASE=""
+	FOUND_DEBUG=""
+	filelist=`ls *.cpp *.c 2>/dev/null`
+	for file in $filelist; do
+		BASENAME=`echo $file | $SED -e "s;.cpp\$;;" | $SED -e "s;.c\$;;" `
+		SOURCEN="$SOURCEN $1/$file"
+		if [ -n "$FOUND_RELEASE" ] ; then
+			FOUND_RELEASE="$FOUND_RELEASE \\
+	release/$4$BASENAME.o"
+			FOUND_DEBUG="$FOUND_DEBUG \\
+	debug/$4$BASENAME.o"
+		else
+			FOUND_RELEASE="release/$4$BASENAME.o"
+			FOUND_DEBUG="debug/$4$BASENAME.o"
+		fi
+		###RELEASE="$RELEASE release/$4$BASENAME.o"
+		
+		NOTE="Compiling >>>$1/$file<<<"
+		if test "$1/$file" = "core/resourcen.cpp"
+		then
+			NOTE="$NOTE ***** This could take some time! *****"
+		fi
+		ADDITIONAL_DEPENDENCY=""
+		if test "$1/$file" = "grafix6/CGrafix.cpp"
+		then
+			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl6-tk.h"
+		fi
+		if test "$1/$file" = "grafix6/CEngine.cpp"
+		then
+			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl6-tk.h"
+		fi
+		if test "$1/$file" = "grafix6/CEngineSDL.cpp"
+		then
+			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl6-tk.h"
+		fi
+
+		if test "$1/$file" = "core/Exception.cpp"
+		then
+			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl6-exceptions.h"
+		fi
+
+		COMPILE_RELEASE="$COMPILE_RELEASE
+release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl6.h \$(incdir)/ppl6-unixconfig.h Makefile $5 $ADDITIONAL_DEPENDENCY
+	###############################################################################
+	# $NOTE
+	\$(CXX) -Wall -O3 -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
+"
+
+		COMPILE_DEBUG="$COMPILE_DEBUG
+debug/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl6.h \$(incdir)/ppl6-unixconfig.h Makefile $5 $ADDITIONAL_DEPENDENCY
+	###############################################################################
+	# $NOTE
+	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3
+"
+
+	done
+	cd $d
+}
+
+
+find_asm_files() {
+	# $1=Verzeichnis
+	# $2=Subject
+	COMPILE_RELEASE="$COMPILE_RELEASE
+### $2"
+	COMPILE_DEBUG="$COMPILE_DEBUG
+### $2"
+	d=`pwd`
+	cd $SRCDIR/$1
+	filelist=`ls *.asm *.c 2>/dev/null`
+	for file in $filelist; do
+		BASENAME=`echo $file | $SED -e "s;.asm\$;;" `
+		SOURCEN="$SOURCEN $1/$file"
+		if [ -n "$ASM_RELEASE" ] ; then
+			ASM_RELEASE="$ASM_RELEASE \\
+		release/asm_$BASENAME.o"
+			ASM_DEBUG="$ASM_DEBUG \\
+		debug/asm_$BASENAME.o"
+		else
+			ASM_RELEASE="release/asm_$BASENAME.o"
+			ASM_DEBUG="debug/asm_$BASENAME.o"
+		fi
+		
+		NOTE="Compiling >>>$1/$file<<<"
+		COMPILE_RELEASE="$COMPILE_RELEASE
+release/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
+	###############################################################################
+	# $NOTE
+	\$(ASM) -o release/asm_$BASENAME.o -l release/asm_$BASENAME.lst \$(srcdir)/$1/$file
+"
+
+		COMPILE_DEBUG="$COMPILE_DEBUG
+debug/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
+	###############################################################################
+	# $NOTE
+	\$(ASM) \$(ASMDEBUGFLAGS) -o debug/asm_$BASENAME.o  -l debug/asm_$BASENAME.lst \$(srcdir)/$1/$file -D_DEBUG -DDEBUG=DEBUG
+"
+
+	done
+	cd $d
+}
+
+
+
+find_c_files "core" "CORE"
+CORE_RELEASE=$FOUND_RELEASE
+CORE_DEBUG=$FOUND_DEBUG
+RELEASE="$FOUND_RELEASE"
+DEBUG="$FOUND_DEBUG"
+
+find_c_files "vars" "VARS"
+CORE_RELEASE="$CORE_RELEASE \\
+	$FOUND_RELEASE"
+CORE_DEBUG="$CORE_DEBUG \\
+	$FOUND_DEBUG"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
+
+
+find_c_files "math" "MATH"
+CORE_RELEASE="$CORE_RELEASE \\
+	$FOUND_RELEASE"
+CORE_DEBUG="$CORE_DEBUG \\
+	$FOUND_DEBUG"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
+
+
+find_c_files "internet" "INTERNET"
+INET_RELEASE="$FOUND_RELEASE"
+INET_DEBUG="$FOUND_DEBUG"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
+
+find_c_files "internet" "INTERNET" "-D NO_SSL" "nossl_"
+INET_NOSSL_RELEASE="$FOUND_RELEASE"
+INET_NOSSL_DEBUG="$FOUND_DEBUG"
+
+find_c_files "database" "DATABASE" "" "db_" "\$(incdir)/ppl6-db.h"
+DATABASE_RELEASE="$FOUND_RELEASE"
+DATABASE_DEBUG="$FOUND_DEBUG"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
+
+
+find_c_files "grafix6" "GRAFIX6" "" "gfx6_" "\$(incdir)/ppl6-grafix.h"
+GRAFIX_RELEASE="$FOUND_RELEASE"
+GRAFIX_DEBUG="$FOUND_DEBUG"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
+
+find_c_files "toolkit" "GRAFIX6" "" "tk_" "\$(incdir)/ppl6-grafix.h \$(incdir)/ppl6-tk.h"
+GRAFIX_RELEASE="$GRAFIX_RELEASE \\
+	$FOUND_RELEASE"
+GRAFIX_DEBUG="$GRAFIX_DEBUG \\
+	$FOUND_DEBUG"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
+
+
+find_c_files "sound" "SOUND"
+SOUND_RELEASE="$FOUND_RELEASE"
+SOUND_DEBUG="$FOUND_DEBUG"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
+
+###find_c_files "toolkit" "TK"
+###TK_RELEASE="$FOUND_RELEASE"
+###TK_DEBUG="$FOUND_DEBUG"
+###RELEASE="$RELEASE \\
+###	$FOUND_RELEASE"
+###DEBUG="$DEBUG \\
+###	$FOUND_DEBUG"
+
+find_asm_files "asm" "ASM"
+
+
+######################################################################################################################
+# Makefile.in Header
+######################################################################################################################
+
+echo "###########################################################################
+###
+### PPL6 Makefile
+###
+###########################################################################
+### Global Options
+###########################################################################
+srcdir 	= @srcdir@/src
+VPATH	= @srcdir@
+incdir	= @srcdir@/include
+
+prefix	= @prefix@
+exec_prefix	= @exec_prefix@
+TARGETLIB	= @libdir@
+TARGETBIN	= @bindir@
+TARGETINCLUDE	= @includedir@
+CC			= @CC@
+CXX			= @CXX@
+CFLAGS		=  -I\${incdir} $DEFINES @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @openssl_includes@ @MYSQL_CFLAGS@ @PGSQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@
+CPPFLAGS	= @CPPFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @PGSQL_LIBS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@
+LIBNAME		= $LIBNAME
+LIBDEBUG	= $LIBNAME-debug
+DISTNAME	= ${DISTNAME}
+VERSION     = ${VERSION}
+ASM			= @ASM@ @ASMFLAGS@
+ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@	
+###########################################################################
+### Object Files
+###########################################################################
+
+RELEASE	= $RELEASE
+
+DEBUG	= $DEBUG
+
+CORE_RELEASE	=$CORE_RELEASE
+
+CORE_DEBUG	=$CORE_DEBUG
+
+INET_RELEASE	=$INET_RELEASE
+
+INET_DEBUG	=$INET_DEBUG
+
+INET_NOSSL_RELEASE	=$INET_NOSSL_RELEASE
+
+INET_NOSSL_DEBUG	=$INET_NOSSL_DEBUG
+
+
+SOUND_RELEASE	=$SOUND_RELEASE
+
+SOUND_DEBUG	=$SOUND_DEBUG
+
+
+DATABASE_RELEASE	=$DATABASE_RELEASE
+
+DATABASE_DEBUG	=$DATABASE_DEBUG
+
+GRAFIX_RELEASE	=$GRAFIX_RELEASE
+
+GRAFIX_DEBUG	=$GRAFIX_DEBUG
+
+TK_RELEASE	=$TK_RELEASE
+
+TK_DEBUG	=$TK_DEBUG
+
+ASM_OBJ_RELEASE	=	$ASM_RELEASE
+ASM_OBJ_DEBUG	=	$ASM_DEBUG
+
+
+@HAVE_X86_ASSEMBLER@
+
+###########################################################################
+### Targets
+###########################################################################
+
+
+release: release/\$(LIBNAME).a
+
+debug: debug/\$(LIBDEBUG).a
+
+all:	install_debug install
+
+debug/\$(LIBDEBUG).a: debug/make \$(DEBUG) \$(ASM_DEBUG) debug/\$(LIBDEBUG)-core.a \
+	debug/\$(LIBDEBUG)-sound.a \
+	debug/\$(LIBDEBUG)-database.a \
+	debug/\$(LIBDEBUG)-inet.a \
+	debug/\$(LIBDEBUG)-inet-nossl.a \
+	debug/\$(LIBDEBUG)-grafix.a	
+	ar -r debug/\$(LIBDEBUG).a \$(DEBUG) \$(ASM_DEBUG)
+
+release/\$(LIBNAME).a: release/make \$(RELEASE) \$(ASM_RELEASE) release/\$(LIBNAME)-core.a \
+	release/\$(LIBNAME)-sound.a \
+	release/\$(LIBNAME)-database.a \
+	release/\$(LIBNAME)-inet.a \
+	release/\$(LIBNAME)-inet-nossl.a \
+	release/\$(LIBNAME)-grafix.a
+	ar -r release/\$(LIBNAME).a \$(RELEASE) \$(ASM_RELEASE)
+
+debug/make:
+	-mkdir -p debug
+	-touch debug/make
+
+release/make:
+	-mkdir -p release
+	-touch release/make
+
+debug/\$(LIBDEBUG)-core.a: Makefile debug/make \$(CORE_DEBUG) \$(ASM_DEBUG)
+	ar -r debug/\$(LIBDEBUG)-core.a \$(CORE_DEBUG) \$(ASM_DEBUG)
+
+release/\$(LIBNAME)-core.a: Makefile release/make \$(CORE_RELEASE) \$(ASM_RELEASE)
+	ar -r release/\$(LIBNAME)-core.a \$(CORE_RELEASE) \$(ASM_RELEASE)
+
+debug/\$(LIBDEBUG)-sound.a: Makefile debug/make \$(SOUND_DEBUG)
+	ar -r debug/\$(LIBDEBUG)-sound.a \$(SOUND_DEBUG)
+
+release/\$(LIBNAME)-sound.a: Makefile release/make \$(SOUND_RELEASE)
+	ar -r release/\$(LIBNAME)-sound.a \$(SOUND_RELEASE)
+
+debug/\$(LIBDEBUG)-database.a: Makefile debug/make \$(DATABASE_DEBUG)
+	ar -r debug/\$(LIBDEBUG)-database.a \$(DATABASE_DEBUG)
+
+release/\$(LIBNAME)-database.a: Makefile release/make \$(DATABASE_RELEASE)
+	ar -r release/\$(LIBNAME)-database.a \$(DATABASE_RELEASE)
+
+debug/\$(LIBDEBUG)-inet.a: Makefile debug/make \$(INET_DEBUG)
+	ar -r debug/\$(LIBDEBUG)-inet.a \$(INET_DEBUG)
+
+release/\$(LIBNAME)-inet.a: Makefile release/make \$(INET_RELEASE)
+	ar -r release/\$(LIBNAME)-inet.a \$(INET_RELEASE)
+
+debug/\$(LIBDEBUG)-inet-nossl.a: Makefile debug/make \$(INET_NOSSL_DEBUG)
+	ar -r debug/\$(LIBDEBUG)-inet-nossl.a \$(INET_NOSSL_DEBUG)
+
+release/\$(LIBNAME)-inet-nossl.a: Makefile release/make \$(INET_NOSSL_RELEASE)
+	ar -r release/\$(LIBNAME)-inet-nossl.a \$(INET_NOSSL_RELEASE)
+
+debug/\$(LIBDEBUG)-grafix.a: Makefile debug/make \$(GRAFIX_DEBUG)
+	ar -r debug/\$(LIBDEBUG)-grafix.a \$(GRAFIX_DEBUG)
+
+release/\$(LIBNAME)-grafix.a: Makefile release/make \$(GRAFIX_RELEASE)
+	ar -r release/\$(LIBNAME)-grafix.a \$(GRAFIX_RELEASE)
+
+debug/\$(LIBDEBUG)-tk.a: Makefile debug/make \$(TK_DEBUG)
+	ar -r debug/\$(LIBDEBUG)-tk.a \$(TK_DEBUG)
+
+release/\$(LIBNAME)-tk.a: Makefile release/make \$(TK_RELEASE)
+	ar -r release/\$(LIBNAME)-tk.a \$(TK_RELEASE)
+	
+install:	release/\$(LIBNAME).a release/pplgenresource.o
+	-cp release/\$(LIBNAME)*.a \$(TARGETLIB)
+	-cp \$(incdir)/ppl6.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-exceptions.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-grafix.h \$(TARGETINCLUDE)
+	-rm -f \$(TARGETINCLUDE)\ppl6-grafix6.h
+	-cp \$(incdir)/ppl6-tk.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-sound.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-crypt.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-db.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-unixconfig.h \$(TARGETINCLUDE)/ppl6-config.h
+	-chmod a+x ppl6-config  
+	-cp ppl6-config \$(TARGETBIN)
+	\$(CXX) -o release/pplgenresource release/pplgenresource.o \`ppl6-config --libs release\` -lstdc++
+	-cp release/pplgenresource \$(TARGETBIN)
+
+install_debug: debug/\$(LIBDEBUG).a debug/pplgenresource.o
+	-cp debug/\$(LIBDEBUG)*.a \$(TARGETLIB)
+	-cp \$(incdir)/ppl6.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-exceptions.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-grafix.h \$(TARGETINCLUDE)
+	-rm -f \$(TARGETINCLUDE)\ppl6-grafix6.h
+	-cp \$(incdir)/ppl6-tk*.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-sound.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-crypt.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-db.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl6-unixconfig.h \$(TARGETINCLUDE)/ppl6-config.h
+	-chmod a+x ppl6-config
+	-cp ppl6-config \$(TARGETBIN)
+	\$(CXX) -o debug/pplgenresource debug/pplgenresource.o \`ppl6-config --libs debug\` -lstdc++	
+
+clean:
+	-rm -rf release
+	-rm -rf debug
+	-rm -rf documentation
+
+distclean: clean
+	-rm -rf \$(incdir)/ppl6-unixconfig.h \$(incdir)/config.h config.log config.status autom4te.cache configure.scan
+
+configure: genConfigure genMakefile.in configure.in
+	-sh genConfigure
+
+Makefile:
+	-sh genMakefile.in
+	
+doku: html pdf
+
+html:
+	-mkdir -p documentation
+	-rm -rf documentation/html
+	-mkdir -p documentation/html
+	-doxygen Doxyfile
+	-cp docs/header-bg.png documentation/html
+	
+pdf:
+	-mkdir -p documentation
+	-rm -rf documentation/latex
+	-mkdir -p documentation/latex
+	-doxygen Doxyfile.latex
+	-cd documentation/latex; make; mv refman.pdf ../ppl6-manual.pdf
+
+release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp
+	\$(CXX) -Wall -c -o release/pplgenresource.o tools/pplgenresource/genresource.cpp \$(CFLAGS)
+
+debug/pplgenresource.o: debug/make Makefile tools/pplgenresource/genresource.cpp
+	\$(CXX) -Wall -c -o debug/pplgenresource.o tools/pplgenresource/genresource.cpp \$(CFLAGS)
+
+
+res:
+	-pplgenresource -b resource -c resource/resourcen.lst -t resource/res.h -l PPL6_RESOURCES
+	-rm -f debug/resourcen.o release/resourcen.o
+
+
+###########################################################################
+### Compile Release Files
+###########################################################################
+$COMPILE_RELEASE
+
+###########################################################################
+### Compile Debug Files
+###########################################################################
+$COMPILE_DEBUG
+
+
+" > Makefile.in
+
+
