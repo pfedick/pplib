@@ -3,19 +3,20 @@ dnl Zusaetzliche Macros
 
 #######################################################
 # AX_FPOS_ISSTRUCT
-# Pr�ft, ob fpos_t ein scalar oder eine structure ist
+# Prüft, ob fpos_t ein scalar oder eine structure ist
 #######################################################
 AC_DEFUN([AX_FPOS_ISSTRUCT],[
 AC_MSG_CHECKING(if fpos_t is struct or scalar)
 AC_LANG_PUSH(C++)
 
-AC_COMPILE_IFELSE(
-[[#include <stdio.h>
+
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <stdio.h>
 int main(void){
 fpos_t f;
 f.__pos=1;
 }
-]],
+]]) ],
 AC_DEFINE(FPOS_T_STRUCT,1,)
 AC_MSG_RESULT(struct),
 AC_MSG_RESULT(scalar)
@@ -30,20 +31,20 @@ AC_LANG_POP(C++)
 
 #######################################################
 # AX_TM_HAS_GMTOFF
-# Pr�ft, ob die structure "tm" das Element "tm_gmtoff"
+# Prüft, ob die structure "tm" das Element "tm_gmtoff"
 # hat
 #######################################################
 AC_DEFUN([AX_TM_HAS_GMTOFF],[
 AC_MSG_CHECKING(if struct tm hast tm_gmtoff)
 AC_LANG_PUSH(C++)
 
-AC_COMPILE_IFELSE(
-[[#include <time.h>
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([[
+#include <time.h>
 int main(void){
 struct tm tt;
 tt.tm_gmtoff=1;
 }
-]],
+]]) ],
 AC_DEFINE(STRUCT_TM_HAS_GMTOFF,1,)
 AC_MSG_RESULT(yes),
 AC_MSG_RESULT(no)

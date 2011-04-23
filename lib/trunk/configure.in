@@ -1,48 +1,50 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.62)
-AC_INIT([ppl], [6.4.6], [patrick@pfp.de], [ppl-6.4.6-src.tar.bz2])
+AC_PREREQ(2.68)
+AC_INIT([ppl], [7.0.0], [patrick@pfp.de], [ppl-7.0.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
-AC_CONFIG_SRCDIR([include/ppl6.h])
-AC_CONFIG_SRCDIR([src/core/pplcore.cpp])
-AC_CONFIG_SRCDIR([src/core/functions.cpp])
-AC_CONFIG_SRCDIR([src/math/math.cpp])
+AC_CONFIG_SRCDIR([include/ppl7.h])
+AC_CONFIG_SRCDIR([include/config.h.in])
+#AC_CONFIG_SRCDIR([src/core/pplcore.cpp])
+#AC_CONFIG_SRCDIR([src/core/functions.cpp])
+#AC_CONFIG_SRCDIR([src/math/math.cpp])
 
 AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([ppl6-config])
+AC_CONFIG_FILES([ppl7-config])
 AC_CONFIG_HEADERS([include/config.h])
-AC_CONFIG_HEADERS([include/ppl6-unixconfig.h])
+AC_CONFIG_HEADERS([include/ppl7-unixconfig.h])
 
-sinclude(config/openssl.m4)
-sinclude(config/libcurl.m4)
-sinclude(config/mysql.m4)
-sinclude(config/postgres.m4)
-sinclude(config/freetype.m4)
-sinclude(config/pcre.m4)
-sinclude(config/png.m4)
-sinclude(config/jpeg.m4)
-sinclude(config/pthreads.m4)
-sinclude(config/sdl.m4)
-sinclude(config/sybase.m4)
-#sinclude(config/yasm.m4)
-sinclude(config/nasm.m4)
+sinclude(autoconf/openssl.m4)
+sinclude(autoconf/libcurl.m4)
+sinclude(autoconf/mysql.m4)
+sinclude(autoconf/postgres.m4)
+sinclude(autoconf/freetype.m4)
+sinclude(autoconf/pcre.m4)
+sinclude(autoconf/png.m4)
+sinclude(autoconf/jpeg.m4)
+sinclude(autoconf/pthreads.m4)
+###sinclude(autoconf/sdl.m4)
+###sinclude(autoconf/sybase.m4)
+sinclude(autoconf/nasm.m4)
 sinclude(autoconf/lib-link.m4)
-sinclude(config/iconv.m4)
-sinclude(config/bzip2.m4)
-sinclude(config/zlib.m4)
-sinclude(config/libmcrypt.m4)
-sinclude(config/libmhash.m4)
-sinclude(config/checkfuncs.m4)
-sinclude(config/ax_gcc_x86_cpuid.m4)
-sinclude(config/ax_check_compiler_flags.m4)
-sinclude(config/ax_gcc_archflag.m4)
-sinclude(config/ldns.m4)
-sinclude(config/mpg123.m4)
-sinclude(config/lame.m4)
+sinclude(autoconf/iconv.m4)
+sinclude(autoconf/bzip2.m4)
+sinclude(autoconf/zlib.m4)
+sinclude(autoconf/libmcrypt.m4)
+sinclude(autoconf/libmhash.m4)
+sinclude(autoconf/checkfuncs.m4)
+sinclude(autoconf/ax_gcc_x86_cpuid.m4)
+sinclude(autoconf/ax_check_compiler_flags.m4)
+sinclude(autoconf/ax_gcc_archflag.m4)
+sinclude(autoconf/ldns.m4)
+sinclude(autoconf/mpg123.m4)
+sinclude(autoconf/lame.m4)
 sinclude(config/ogg.m4)
 sinclude(config/shout.m4)
 
 AC_CANONICAL_TARGET
+
+AM_INIT_AUTOMAKE
 
 OLD_CFLAGS=$CFLAGS
 # Checks for programs.
@@ -152,14 +154,6 @@ AX_FPOS_ISSTRUCT()
 
 AX_TM_HAS_GMTOFF()
 
-# X11
-report_have_x="no"
-AC_PATH_X
-
-if test "$have_x" == "yes" ; then
-	report_have_x="yes"
-	AC_DEFINE(HAVE_X11, 1, [ Define if you have X11. ])
-fi
 AC_PATH_XTRA
 
 
@@ -296,48 +290,9 @@ XIPH_PATH_SHOUT(
 	AC_SUBST(SHOUT_LIBS)
 	, :)
 
-
-am_save_CPPFLAGS="$CPPFLAGS"
-am_save_LIBS="$LIBS"
-am_save_LDFLAGS="$LDFLAGS"
 report_have_libmad="no"
-have_MAD="no",
-AC_ARG_WITH(libmad,
-  [[  --with-libmad[=DIR]     enable support for decoding of mp3 files [in DIR]]])
-if test "$with_libmad" != "no"
-then
-  if test -n "$with_libmad" -a "$with_libmad" != "yes"
-  then
-    CPPFLAGS="$CPPFLAGS -I$with_libmad/include"
-    LDFLAGS="$LDFLAGS -L$with_libmad/lib"
-  fi
-  AC_CHECK_HEADER(mad.h, [
-    have_MAD="maybe",
-    AC_DEFINE(HAVE_MAD_H, 1, [Use <lame/lame.h> instead of <lame.h>])
-    ], [
-    AC_CHECK_HEADER(mad.h, [
-    have_MAD="maybe"])])
-  if test "$have_MAD" != "no"
-  then
-    LIBS="$LIBS -L$with_libmad/lib -lmad -lm"
-    AC_CHECK_LIB(mad, mad_stream_buffer, [
-      report_have_libmad="yes"
-      MAD_LIBS="-L$with_libmad/lib -lmad -lm"
-      MAD_CFLAGS="-I$with_libmad/include"
-      AC_SUBST(MAD_CFLAGS)
-	  AC_SUBST(MAD_LIBS)
-      
-      AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have the libmad library])
-      ], [report_have_libmad="no"], -lm)
-  fi
-fi
-CPPFLAGS=$am_save_CPPFLAGS
-LIBS=$am_save_LIBS
-LDFLAGS=$am_save_LDFLAGS
-
 
 report_have_iconv="no"
-
 AM_ICONV
 if test "$am_cv_func_iconv_works" = "yes" 
 then
@@ -358,7 +313,7 @@ AC_CHECK_FUNC(sin,,[AC_CHECK_LIB(m,sin)])
 
 # PCRE vorhanden?
 report_have_pcre="no"
-AX_PATH_LIB_PCRE([6.0],
+AX_PATH_LIB_PCRE([7.0],
             AC_DEFINE(HAVE_PCRE, 1, [ Define if you have pcre. ])
             report_have_pcre="yes"
 			AC_SUBST(PCRE_CFLAGS)
@@ -380,13 +335,13 @@ AC_CHECK_FT2(9.0.0,
 
 dnl Check for SDL
 report_have_sdl="no"
-SDL_VERSION=1.2.10
-AM_PATH_SDL($SDL_VERSION,
-	AC_DEFINE(HAVE_SDL, 1, [ Define if you have sdl. ])
-	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $SDL_CFLAGS"
-	GRAPHIC_LIBS="$GRAPHIC_LIBS $SDL_LIBS"
-	report_have_sdl="yes"
-	, :)
+###SDL_VERSION=1.2.10
+###AM_PATH_SDL($SDL_VERSION,
+###	AC_DEFINE(HAVE_SDL, 1, [ Define if you have sdl. ])
+###	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $SDL_CFLAGS"
+###	GRAPHIC_LIBS="$GRAPHIC_LIBS $SDL_LIBS"
+###	report_have_sdl="yes"
+###	, :)
 
 report_have_png="no"
 AC_CHECK_LIBPNG([1.2],
@@ -413,13 +368,13 @@ AC_CHECK_PGSQL([7.0],
 			AC_SUBST(PGSQL_LIBS),
             :)
 
-report_have_sybase="no"
-AC_CHECK_SYBASE([],
-            AC_DEFINE(HAVE_SYBASE, 1, [ Define if you have Sybase Open Client CT-library. ])
-            report_have_sybase="yes"
-			AC_SUBST(SYBASE_CFLAGS)
-			AC_SUBST(SYBASE_LIBS),
-            :)
+report_have_freetds="no"
+###AC_CHECK_FREETDS([],
+###            AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS library. ])
+###            report_have_freetds="yes"
+###			AC_SUBST(FREETDS_CFLAGS)
+###			AC_SUBST(FREETDS_LIBS),
+###            :)
 
 report_have_ldns="no"
 AX_PATH_LIB_LDNS([1.6.3],
@@ -550,13 +505,13 @@ AC_MSG_RESULT([
 ** Supported Libraries:       		Databases:
 **   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
 **   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
-**   PNG library:          $report_have_png		  Sybase Open Client:   $report_have_sybase
+**   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
 **   JPEG library:         $report_have_jpeg
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl		  
 **   Lame library:         $report_have_lame		  
 **   Libmad library:       $report_have_libmad	
-**   mpg123 library:       $report_have_mpg123
+**   mpg123 library:       $report_have_mpg123	  
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
 **   Curl library:         $report_have_curl		  

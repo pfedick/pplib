@@ -1,31 +1,30 @@
-PPL6 - README
+PPLib - Patrick's Programming Library
 ===========================================================================
 
 INDEX
 
-1. What is PPL6?
+1. What is PPLib?
 2. Installation
 2.1 UNIX
 2.2 Windows
 3. Usage
-3.1 Unix
-3.2 Windows
 4. Documentation
 5. Credits
 6. Copyright
 7. Licence
 
 ===========================================================================
-1. What is PPL6?
+1. What is PPLib?
 
-   PPL stands for "Patrick's Programming Library" and is a collection of
-   usefull functions and classes for C++ applications, written by Patrick
-   Fedick. It covers file and directory functions, strings and arrays,
-   time, math, threads, graphics and sound.
+   PPLib (or PPL) stands for "Patrick's Programming Library" and is a
+   collection of functions and classes for C++ applications, written by
+   Patrick Fedick. It covers file and directory functions, strings and
+   arrays, time, math, threads, graphics, sound, database access and
+   internet communication.
 
    You can find the newest version and documentation of this library under
 
-       http://www.pfp.de/ppl
+       http://www.pfp.de/pplib
 
 
 ===========================================================================
@@ -41,7 +40,7 @@ INDEX
 
     The configure script tries to find out on what system the library
     should be compiled and what optional libraries are available of
-    which ppl can make use of (e.g. graphic libraries or databases).
+    which PPLib can make use of (e.g. graphic libraries or databases).
 
     If it does not find a library of which you know that it is
     installed somewhere, you can manually set a search path for it
@@ -58,42 +57,32 @@ INDEX
     options.
 
 2.2 Windows
-    PPL comes with project files for Microsoft Visual Studio .NET 2003,
+    PPLib comes with project files for Microsoft Visual Studio .NET 2003,
     but you have to do some manual configuration to adapt it to your
     system.
 
-
+   For more details and examples about installation, please read the HTML
+   documentation. 
+   
 ===========================================================================
 3. Usage
 
-   To make use of the functions in ppl6 you have to do two things:
-      1. include the required header files in your program, e.g.
-         #include <ppl6.h>
-         #include <ppl6-grafix.h>
-      2. include the required compiler options in your makefile,
-         which is different on unix and windows platforms (see below).
-
-   After including the header files, you can access the functions either
-   by typing "ppl6::FUNCTIONNAME" everytime you need something from the
-   lib, or by writing "using namespace ppl6;" somewhere in your header
-   or program files. Please keep in mind, that in this case all functions
-   from ppl6 are visible in the global namespace and it is possible that
-   you get conflicting function names.
- 
-3.1 Unix
-3.2 Windows
+   How to use the functions and classes if PPLib is described in the
+   HTML documentation.
 
 ===========================================================================
 4. Documentation
 
-   Documentation is available in HTML and PDF on the PPL webpage:
+   Documentation is available in HTML and can be found in the subdirectory
+   "documentation/html" of the source distribution and and online on the
+   PPLib webpage:
    
-        http://www.pfp.de/ppl
+        http://www.pfp.de/pplib
 
 ===========================================================================
 5. Credits
 
-   Some parts of PPL includes code from other projects or can make use of
+   Some parts of PPLib includes code from other projects or can make use of
    third party libraries.
    - MD5-Hash calculation
      Copyright RSA Data Security, Inc. MD5 Message-Digest Algorithm)
@@ -113,7 +102,7 @@ INDEX
 ===========================================================================
 6. Copyright
 
-   PPL6 is copyright by Patrick Fedick <patrick@pfp.de> in 2005-2010
+   PPLib is copyright by Patrick Fedick <patrick@pfp.de> in 2005-2011
    All rights reserved.
 
 ===========================================================================
