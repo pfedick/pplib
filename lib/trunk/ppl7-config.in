@@ -1,0 +1,241 @@
+#!/bin/sh
+
+DEFS="@DEFS@"
+CFLAGS="@CFLAGS@ @PTHREAD_CFLAGS@"
+CPPFLAGS="@CPPFLAGS@"
+LDFLAGS="@LDFLAGS@"
+LIBS="@LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @openssl_libs@ @ICONV_LIBS@"
+LIBS+=" @MYSQL_LIBS@ @PGSQL_LIBS@ @LIBCURL@  @MPG123_LIBS@ @LAME_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@"
+### LIBS+="  @SYBASE_LIBS@  @MAD_LIBS@ "
+LIBNAME="libppl7"
+LIBDEBUG="libppl7-debug"
+VERSION="@PACKAGE_VERSION@"
+SRCDIR=@SRCDIR@
+
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+TARGETLIB="@libdir@"
+TARGETINCLUDE="@includedir@"
+
+
+usage()
+{
+	cat <<EOF
+Usage: ppl-config [OPTIONS] [LIBRARIES]
+Options:
+	[--prefix[=DIR]]
+	[--exec-prefix[=DIR]]
+	[--version]
+	[--libs]
+	[--cflags]
+	[--ppllib]
+	[--features]
+	[--archive]
+Libraries:
+	release | debug	
+EOF
+	exit $1
+}
+
+if test $# -eq 0; then
+	usage 1 1>&2
+fi
+
+lib_ppl=yes
+basename=libppl7
+libname=ppl7
+
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix=*)
+      prefix=$optarg
+      if test $exec_prefix_set = no ; then
+        exec_prefix=$optarg
+      fi
+      ;;
+    --prefix)
+      echo_prefix=yes
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      exec_prefix_set=yes
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=yes
+      ;;
+    --version)
+      echo $VERSION
+      ;;
+    --cflags)
+      echo_cflags=yes
+      ;;
+    --libs)
+      echo_libs=yes
+      ;;
+    --archive)
+      echo_archive=yes
+      ;;
+    --ppllib)
+      echo_ppllib=yes
+      ;;
+    release)
+      lib_ppl=yes
+      basename=libppl7
+      libname=ppl7
+      objects=release
+      ;;
+    debug)
+      lib_ppl_debug=yes
+      basename=libppl7-debug
+      libname=ppl7-debug
+      objects=debug
+      ;;
+    source)
+      usesource=yes
+      ;;
+    --features)
+      listfeatures=yes
+      ;;
+    *)
+      usage 1 1>&2
+      ;;
+  esac
+  shift
+done
+
+if test "$echo_prefix" = "yes"; then
+	echo $prefix
+fi
+
+if test "$echo_exec_prefix" = "yes"; then
+	echo $exec_prefix
+fi
+
+if test "$listfeatures" = "yes"; then
+	if [ "@report_have_zlib@" = "yes" ]; then
+		echo "zlib"
+	fi
+	if [ "@report_have_bzip2@" = "yes" ]; then
+		echo "bzip2"
+	fi
+	if [ "@report_have_png@" = "yes" ]; then
+		echo "png"
+	fi
+	if [ "@report_have_jpeg@" = "yes" ]; then
+		echo "jpeg"
+	fi
+	if [ "@report_have_freetype2@" = "yes" ]; then
+		echo "freetype2"
+	fi
+	if [ "@report_have_sdl@" = "yes" ]; then
+		echo "sdl"
+	fi
+	if [ "@report_have_lame@" = "yes" ]; then
+		echo "lame"
+	fi
+	if [ "@report_have_libmad@" = "yes" ]; then
+		echo "mad"
+	fi
+	if [ "@report_have_curl@" = "yes" ]; then
+		echo "curl"
+	fi
+	if [ "@report_have_openssl@" = "yes" ]; then
+		echo "openssl"
+	fi
+	if [ "@report_have_pcre@" = "yes" ]; then
+		echo "pcre"
+	fi
+	if [ "@report_have_iconv@" = "yes" ]; then
+		echo "iconv"
+	fi
+	if [ "@report_have_libmcrypt@" = "yes" ]; then
+		echo "mcrypt"
+	fi
+	if [ "@report_have_libmhash@" = "yes" ]; then
+		echo "mhash"
+	fi
+	if [ "@report_have_mysql@" = "yes" ]; then
+		echo "mysql"
+	fi
+	if [ "@report_have_postgres@" = "yes" ]; then
+		echo "postgres"
+	fi
+	if [ "@report_have_sybase@" = "yes" ]; then
+		echo "sybase"
+	fi
+	if [ "@report_have_nasm@" = "yes" ]; then
+		echo "nasm"
+	fi
+	if [ "@report_have_pthreads@" = "yes" ]; then
+		echo "pthreads"
+	fi
+	if [ "@report_have_ldns@" = "yes" ]; then
+		echo "ldns"
+	fi
+	
+	exit
+fi
+
+PPLLIB="$prefix/lib/$basename.a"
+if test "$usesource" != "yes"; then
+	ARCHIVE="$PPLLIB $LIBS"
+	LIBS="-L$TARGETLIB -l$libname $LIBS"
+fi
+
+
+if test "$echo_cflags" = "yes"; then
+  	src=""
+	if test "$usesource" = "yes"; then
+		src="-I$SRCDIR/include"
+	fi
+    echo "$src$CFLAGS -I$TARGETINCLUDE"
+fi
+
+if test "$echo_libs" = "yes"; then
+      my_glib_libs=
+      libdirs=
+      for i in $LIBS ; do
+          if test -z "$my_glib_libs" ; then
+            my_glib_libs="$i"
+          else
+            my_glib_libs="$my_glib_libs $i"
+          fi
+      done
+      	src=""
+		if test "$usesource" = "yes"; then
+			src="$SRCDIR/$objects/$basename.a"
+		fi
+
+      echo $src $libdirs $my_glib_libs 
+fi      
+
+if test "$echo_archive" = "yes"; then
+      my_glib_libs=
+      libdirs=
+      for i in $ARCHIVE ; do
+          if test -z "$my_glib_libs" ; then
+            my_glib_libs="$i"
+          else
+            my_glib_libs="$my_glib_libs $i"
+          fi
+      done
+      	src=""
+		if test "$usesource" = "yes"; then
+			src="$SRCDIR/$objects/$basename.a"
+		fi
+
+      echo $src $libdirs $my_glib_libs 
+fi      
+
+
+if test "$echo_ppllib" = "yes"; then
+  echo $PPLLIB
+fi
+
