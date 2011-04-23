@@ -1,11 +1,11 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7). 
  * Web: http://www.pfp.de/ppl/
  *  
  * $Author: patrick $
  * $Revision: 1.2 $
  * $Date: 2011/03/18 21:25:46 $
- * $Id: prolog.h,v 1.2 2011/03/18 21:25:46 patrick Exp $
+ * $Id: ppl7-unixconfig.h.in,v 1.2 2011/03/18 21:25:46 patrick Exp $
  * 
  ******************************************************************************* 
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
@@ -34,17 +34,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
+ 
 #ifndef _PPL7_CONFIG
-	#ifdef PPL7LIB
-		#ifdef HAVE_CONFIG_H
-			#include "config.h"
-		#else
-			#ifdef _WIN32
-				#include "ppl7-config.h"
-			#endif
-		#endif
-	#else
-		#include <ppl7-config.h>
-	#endif
+#define _PPL7_CONFIG
+
+#undef HAVE_SYS_TYPES_H
+#undef HAVE_STDLIB_H
+#undef HAVE_STDIO_H
+#undef HAVE_STRINGS_H
+#undef HAVE_STDARG_H
+
+#undef MINGW32
+
+#undef size_t
+
+
+/*
+ * Type definitions
+ */
+
+#define ppluint8	undefined
+#define pplint8		undefined
+#define ppluint16	undefined
+#define pplint16	undefined
+#define ppluint32	undefined
+#define pplint32	undefined
+#define ppluint64	undefined
+#define pplint64	undefined
+
+#define pplfloat	float
+#define ppldouble	double
+#define pplbool		bool
+#define pplchar		char
+#define ppluchar	unsigned char
+#define ppliptr		undefined
+
+
 #endif

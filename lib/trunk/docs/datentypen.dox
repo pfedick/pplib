@@ -1,6 +1,6 @@
 /*! \defgroup PPLGroupDataTypes Datentypen
  * \section DatenTypIntegers Integers
-PPL6 verwendet in vielen Fällen spezielle Datentypen, um sicherzustellen, dass
+PPL7 verwendet in vielen Fällen spezielle Datentypen, um sicherzustellen, dass
 diese auf allen Platformen gleich groß sind. Diese sind:
 <table>
 <tr><th>Datentyp</th><th>Beschreibung</th></tr>
@@ -15,42 +15,36 @@ diese auf allen Platformen gleich groß sind. Diese sind:
 </table>
 
 \section DatenTypOther Andere Datenstrukturen
-\li \link ppl6::CVar CVar: Basisklasse für die nachfolgenden Datenstrukturen\endlink \n
+\li \link ppl7::CVar CVar: Basisklasse für die nachfolgenden Datenstrukturen\endlink \n
 Die Basisklasse bietet die Möglichkeit eine Callback-Klasse zu definieren, deren
 Callback-Funktion immer dann aufgerufen wird, wenn sich am Inhalt
 der Klasse etwas geändert hat.
 
-\li \link ppl6::CString String-Klasse \endlink \n
-Die String-Klasse ppl6::CString wird zum Verwalten von beliebig großen Strings verwendet
+\li \link ppl7::String String-Klasse \endlink \n
+Die String-Klasse ppl7::String wird zum Verwalten von beliebig großen Strings verwendet
 
-\li \link ppl6::CWString String-Klasse für Wide-Characters (Unicode) \endlink \n
-Die String-Klasse ppl6::CWString wird zum Verwalten von beliebig großen Unicode-Strings verwendet
-
-\li \link ppl6::CInt Integer-Klasse \endlink \n
-In der Integer-Klasse können einfache Integer-Werte gespeichert werden.
-
-\li \link ppl6::CBool Bool-Klasse \endlink \n
-In der Bool-Klasse können einfache Boolean-Werte (true, false) gespeichert werden.
-
-\li \link ppl6::CArray Einfache Arrays \endlink \n
-Die Klasse ppl6::CArray wird für einfache zweidimensionale Array verwendet, wobei der
+\li \link ppl7::Array Einfache Arrays mit Strings\endlink \n
+Die Klasse ppl7::Array wird für einfache zweidimensionale Array verwendet, wobei der
 Schlüssel eine laufende Nummer ist und der Wert ein String.
 
-\li \link ppl6::CAssocArray Komplexe Assoziative Arrays \endlink \n
-Die Klasse ppl6::CAssocArray wird für komplexe mehrdimensionale Arrays verwendet, wobei
+\li \link ppl7::AssocArray Komplexe Assoziative Arrays \endlink \n
+Die Klasse ppl7::AssocArray wird für komplexe mehrdimensionale Arrays verwendet, wobei
 der Schlüssel ein String oder eine Nummer sein kann. Der Wert kann verschiedene Datentypen
-beinhalten. Unterstützt wird zur Zeit char*, CString, CWString, CAssocArray, CBinary
-und void*.
-Die Klasse ppl6::CArray kann ebenfalls in ein Assoziatives Array kopiert werden, wobei sie
+beinhalten. Unterstützt wird zur Zeit String, AssocArray, ByteArray und void*.
+Die Klasse ppl7::Array kann ebenfalls in ein Assoziatives Array kopiert werden, wobei sie
 jedoch in ein Assoziatives Array umgewandelt wird.
 
-\li \link ppl6::CBinary Ein Datentyp zum Speichern von binären Daten \endlink \n
-Die Klasse ppl6::CBinary wird zum speichern von Binären Daten verwendet. 
+\li \link ppl7::ByteArray Ein Datentyp zum Speichern von binären Daten \endlink \n
+Die Klasse ppl7::ByteArray wird zum Speichern von Binären Daten verwendet. 
+
+\li \link ppl7::ByteArrayPtr Ein Datentyp zum Speichern von Pointern \endlink \n
+Die Klasse ppl7::ByteArrayPtr wird zum Speichern von Pointern auf beliebige Speicherbereiche
+verwendet. Sie dient als Basisklasse für ppl7::ByteArray. 
 */
 
 
 
-/*!\class ppl6::datatype
+/*!\class ppl7::datatype
 \brief Datentypen der PPL-Library
 
 \ingroup PPLGroupDataTypes

@@ -1,14 +1,14 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7). 
  * Web: http://www.pfp.de/ppl/
  *  
- * $Author: pafe $
- * $Revision: 1.8 $
- * $Date: 2011/04/12 19:16:34 $
- * $Id: config.h.in,v 1.8 2011/04/12 19:16:34 pafe Exp $
+ * $Author: patrick $
+ * $Revision: 1.3 $
+ * $Date: 2011/04/21 19:49:03 $
+ * $Id: config.h.in,v 1.3 2011/04/21 19:49:03 patrick Exp $
  * 
  ******************************************************************************* 
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -263,6 +263,7 @@
 #undef HAVE_MPG123_H
 #undef HAVE_LIBSHOUT
 #undef HAVE_LIBOGG
+
 
 /*
  * pthread

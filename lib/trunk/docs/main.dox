@@ -1,5 +1,5 @@
-/*!\mainpage PPL6-Dokumentation
-\image html resource/ppl6-icon-256x256.png
+/*!\mainpage PPLib-Dokumentation
+\image html resource/ppl7-icon-256x256.png
 \section Einleitung
 PPL steht für "Patrick's Programming Library" und ist eine Sammlung nützlicher
 Funktionen und Klassen für C++-Anwendungen, geschrieben von Patrick Fedick <patrick@pfp.de>.
@@ -33,12 +33,12 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 \section Inhalt
 
 - \subpage Installation
-- \subpage ppl6_usage "Verwendung"
-- \subpage PPLGroupDataTypes "Die speziellen Datentypen von PPL6"
-- \subpage ppl6 "PPL6 Namespace"
+- \subpage ppl7_usage "Verwendung"
+- \subpage PPLGroupDataTypes "Die speziellen Datentypen von PPLib"
+- \subpage ppl7 "PPL7 Namespace"
 - <a class="el" href="classes.html">Die Klassen</a>
 - <a class="el" href="modules.html">Übersicht der Module</a>
-	- \subpage PPL6_Features
+	- \subpage PPL7_Features
     - \subpage Errors
     - \subpage PPLGroupThreads
     - \subpage PPLGroupMemory
@@ -51,8 +51,8 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
     - \subpage PPLGroupSound
     - \subpage PPLGroupInternet
     - \subpage PPLGroupDatabases
-    - \subpage PPL6_CRYPT
-    - \subpage PPL6_COMPRESSION
+    - \subpage PPL7_CRYPT
+    - \subpage PPL7_COMPRESSION
     
     
 - Sonstiges
@@ -61,12 +61,12 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
   - \subpage todo
   - \subpage deprecated
   
-- \subpage PPL6History
+- \subpage PPLHistory
 - \subpage pplPageCredits
 - \subpage pplPageLicense
 
 
-\image html resource/ppl6-icon-48x48.png
+\image html resource/ppl7-icon-48x48.png
 */
 
 /*!\page pplPageLicense Copyright
@@ -90,7 +90,7 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 
 Übersetzung:
 \code
-  Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+  Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
   All rights reserved.
  
   Weiterverbreitung und Verwendung in nichtkompilierter oder kompilierter Form,
@@ -127,20 +127,20 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 */
 
 /*!
-\namespace ppl6
-\brief Der Namensraum der PPL6-Library
+\namespace ppl7
+\brief Der Namensraum der PPLib-Library
 
-ppl6 ist der Namensraum für alle in der PPL6-Library enthaltenen Funktionen und Klassen.
+ppl7 ist der Namensraum für alle in der PPLib-Library Version 7 enthaltenen Funktionen und Klassen.
 */
 
-/*!\namespace ppl6::grafix
+/*!\namespace ppl7::grafix
 \ingroup PPLGroupGrafik
 \brief Namensraum der Grafik-Funktionen
 
-Im Namespace ppl6::grafix sind alle Grafikfunktionen der Library enthalten.
+Im Namespace ppl7::grafix sind alle Grafikfunktionen der Library enthalten.
 */
 
-/*!\namespace ppl6::tk
+/*!\namespace ppl7::tk
 \ingroup PPLGroupGrafik
 \brief Namensraum des Grafik-Toolkits
 
