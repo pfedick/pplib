@@ -5,7 +5,7 @@
  * $Author: patrick $
  * $Revision: 1.7 $
  * $Date: 2011/04/23 10:34:49 $
- * $Id: Array.cpp,v 1.7 2011/04/23 10:34:49 patrick Exp $
+ * $Id$
  * $Id$
  * $Url$
  *
