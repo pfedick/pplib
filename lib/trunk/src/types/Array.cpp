@@ -6,7 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
- * $Url$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
