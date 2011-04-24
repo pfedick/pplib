@@ -290,6 +290,7 @@ clean:
 	-rm -rf release
 	-rm -rf debug
 	-rm -rf documentation
+	-rm -rf tests/bin
 
 distclean: clean
 	-rm -rf \$(incdir)/ppl7-unixconfig.h \$(incdir)/config.h config.log config.status autom4te.cache configure.scan
@@ -308,6 +309,9 @@ html:
 	-mkdir -p documentation/html
 	-doxygen Doxyfile
 
+test:
+	- cd tests; make run
+	 
 
 #release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp
 #	\$(CXX) -Wall -c -o release/pplgenresource.o tools/pplgenresource/genresource.cpp \$(CFLAGS)

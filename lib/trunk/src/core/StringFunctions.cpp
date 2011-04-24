@@ -184,10 +184,47 @@ ByteArray FromBase64(const String &str)
 
 String StripSlashes(const String &str)
 {
-
+	String ret=str;
+	ret.stripSlashes();
+	return ret;
 }
 
+String Trim(const String &str)
+{
+	String ret=str;
+	ret.trim();
+	return ret;
+}
 
+String UpperCase(const String &str)
+{
+	String ret=str;
+	ret.upperCase();
+	return ret;
+}
+
+String LowerCase(const String &str)
+{
+	String ret=str;
+	ret.lowerCase();
+	return ret;
+}
+
+int StrCmp(const String &s1, const String &s2)
+{
+	int cmp=s1.strcmp(s2);
+	if (cmp<0) return -1;
+	if (cmp>0) return 1;
+	return 0;
+}
+
+int StrCaseCmp(const String &s1, const String &s2)
+{
+	int cmp=s1.strcasecmp(s2);
+	if (cmp<0) return -1;
+	if (cmp>0) return 1;
+	return 0;
+}
 
 
 /*! \brief Sucht nach Zeichen in einem String
@@ -307,6 +344,68 @@ ssize_t Instrcase (const wchar_t * haystack, const wchar_t * needle, size_t star
 	free(myHaystack);
 	free(myNeedle);
 	return (-1);
+}
+
+ssize_t Instr (const String &haystack, const String &needle, size_t start)
+{
+	return haystack.instr(needle,start);
+}
+
+ssize_t InstrCase (const String &haystack, const String &needle, size_t start)
+{
+	return haystack.instrCase(needle,start);
+}
+
+String Left(const String &str, size_t num)
+{
+	return str.left(num);
+}
+
+String Right(const String &str, size_t num)
+{
+	return str.right(num);
+}
+
+String Mid(const String &str, size_t start, size_t num)
+{
+	return str.mid(start,num);
+}
+
+String SubStr(const String &str, size_t start, size_t num)
+{
+	return str.substr(start,num);
+}
+
+String ToString(const char *fmt, ...)
+{
+	String str;
+	va_list args;
+	va_start(args, fmt);
+	str.vasprintf(fmt,args);
+	va_end(args);
+	return str;
+}
+
+String Replace(const String &string, const String &search, const String &replace)
+{
+	String Tmp=string;
+	Tmp.replace(search,replace);
+	return Tmp;
+}
+
+bool IsTrue(const String &str)
+{
+	return str.isTrue();
+}
+
+bool PregMatch(const String &expression, const String &subject)
+{
+	return subject.pregMatch(expression);
+}
+
+bool PregMatch(const String &expression, const String &subject, Array &matches)
+{
+	return subject.pregMatch(expression,matches);
 }
 
 

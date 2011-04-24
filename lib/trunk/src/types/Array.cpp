@@ -169,18 +169,10 @@ void Array::set(size_t index, const String &value)
 	ROW *r;
 	if (index>=maxnum) {
 		// Array muss vergroessert werden
-		void *newrows=realloc(rows,(index+10)*sizeof(ROW));
-		if (!newrows) {
-			throw OutOfMemoryException();
-		}
-		r=(ROW*)newrows;
-		for (size_t i=maxnum;i<index+10;i++) {
-			r[i].value=NULL;
-		}
-		rows=newrows;
-		maxnum=index+10;
+		reserve(index+10);
 	}
 	r=(ROW*)rows;
+	if ((index+1)>num) num=index+1;
 	if (value.notEmpty()) {
 		if (r[index].value==NULL) {
 			r[index].value=new String;
@@ -194,6 +186,25 @@ void Array::set(size_t index, const String &value)
 		}
 	}
 }
+
+void Array::reserve (size_t size)
+{
+	if (size>=maxnum) {
+		ROW *r;
+		// Array muss vergroessert werden
+		void *newrows=realloc(rows,(size+1)*sizeof(ROW));
+		if (!newrows) {
+			throw OutOfMemoryException();
+		}
+		r=(ROW*)newrows;
+		for (size_t i=maxnum;i<size+1;i++) {
+			r[i].value=NULL;
+		}
+		rows=newrows;
+		maxnum=size+1;
+	}
+}
+
 
 void Array::setf(size_t index, const char *fmt, ...)
 {
@@ -210,6 +221,17 @@ size_t Array::count() const
 {
 	return num;
 }
+
+size_t Array::size() const
+{
+	return num;
+}
+
+size_t Array::capacity() const
+{
+	return maxnum;
+}
+
 
 void Array::list(const String &prefix) const
 {
@@ -247,6 +269,77 @@ String Array::operator[](size_t index) const
 	if (index<num && r[index].value!=NULL) return r[index].value;
 	return String();
 }
+
+Array& Array::operator=(const Array &other)
+{
+	copy(other);
+	return *this;
+}
+
+Array& Array::operator+=(const Array &other)
+{
+	add(other);
+	return *this;
+}
+
+
+void Array::reset()
+{
+	pos=0;
+}
+
+String Array::getFirst()
+{
+	pos=0;
+	return getNext();
+}
+
+String Array::getNext()
+{
+	ROW *r=(ROW*)rows;
+	if (pos<num) {
+		String *s=r[pos].value;
+		pos++;
+		if (s!=NULL) return s;
+		return L"";
+	}
+	throw OutOfBoundsEception();
+}
+
+String Array::shift()
+{
+	String ret;;
+	if (num) {
+		ROW *r=(ROW*)rows;
+		if (num>0 && r[0].value!=NULL) {
+			ret=r[0].value;
+			delete r[0].value;
+		}
+		for (size_t i=0;i<num-1;i++) {
+			r[i].value=r[i+1].value;
+		}
+		num--;
+		r[num].value=NULL;
+	}
+	return ret;
+}
+
+String Array::pop()
+{
+	if (!num) {
+		return L"";
+	}
+	ROW *r=(ROW*)rows;
+	String ret;
+	if (r[num-1].value!=NULL) {
+		ret=r[num-1].value;
+		delete r[num-1].value;
+		r[num-1].value=NULL;
+	}
+	num--;
+	return ret;
+}
+
 
 String Array::getRandom() const
 {
@@ -369,7 +462,12 @@ Array &Array::fromArgs(const String &args)
 }
 
 
-
+Array operator+(const Array &a1, const Array& a2)
+{
+	Array ret(a1);
+	ret.add(a2);
+	return ret;
+}
 
 
 

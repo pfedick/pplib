@@ -429,10 +429,25 @@ class Array : public Variant
 		void clear();
 		void set(size_t index, const String &value);
 		void setf(size_t index, const char *fmt, ...);
+		void insert(size_t index, const String &value);
+		void insert(size_t index, const wchar_t *value, size_t size=(size_t)-1);
+		void insert(size_t index, const Array &other);
+		void insertf(size_t index, const char *fmt, ...);
+
+		void reset();
+		String getFirst();
+		String getNext();
+		String shift();		// Holt das erste Element aus dem Array heraus
+		String pop();		// Holt das letzte Element aus dem Array heraus
+
+
 
 		String get(size_t index) const;
 		String getRandom() const;
 		size_t count() const;
+		size_t size() const;
+		size_t capacity() const;
+		void reserve (size_t size);
 		void list(const String &prefix=String()) const;
 		void sort();
 		void makeUnique();
@@ -444,8 +459,12 @@ class Array : public Variant
 
 		String operator[](size_t index) const;
 		Array& operator=(const Array &other);
+		Array& operator+=(const Array &other);
 
 };
+
+Array operator+(const Array &a1, const Array& a2);
+
 
 class DateTime : public Variant
 {

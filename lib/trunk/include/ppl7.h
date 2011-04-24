@@ -154,8 +154,8 @@ String ToString(const char *fmt, ...);
 String Replace(const String &string, const String &search, const String &replace);
 bool IsTrue(const String &str);
 
-int PregMatch(const String &expression, const String &subject);
-int PregMatch(const String &expression, const String &subject, Array &matches);
+bool PregMatch(const String &expression, const String &subject);
+bool PregMatch(const String &expression, const String &subject, Array &matches);
 
 
 size_t rand(size_t min, size_t max);
