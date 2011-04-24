@@ -47,6 +47,7 @@
 #endif
 
 #include <string>
+#include <iostream>
 
 #ifndef true
 #define true 1
@@ -294,10 +295,6 @@ class String : public Variant
 		void Cut(const char *letter);
 		void Shr(char c, int size);
 		void Shl(char c, int size);
-		int Instr(const CString &str, int pos=0) const;
-		int InstrCase(const CString &str, int pos=0) const;
-
-
 
 		 */
 
@@ -406,11 +403,13 @@ String operator+(const String &str1, const std::string &str2);
 String operator+(const std::wstring &str1, const String& str2);
 String operator+(const String &str1, const std::wstring &str2);
 
+std::ostream& operator<<(std::ostream& s, const String &str);
+
 class Array : public Variant
 {
 	private:
-		size_t num;
-		size_t maxnum;
+		size_t numElements;
+		size_t numCapacity;
 		size_t pos;
 		void *rows;
 
@@ -422,7 +421,6 @@ class Array : public Variant
 
 		void add(const String &value);
 		void add(const String &value, size_t size);
-		void add(const wchar_t *value, size_t size=(size_t)-1);
 		void add(const Array &other);
 		void copy(const Array &other);
 		void addf(const char *fmt, ...);
@@ -430,23 +428,23 @@ class Array : public Variant
 		void set(size_t index, const String &value);
 		void setf(size_t index, const char *fmt, ...);
 		void insert(size_t index, const String &value);
-		void insert(size_t index, const wchar_t *value, size_t size=(size_t)-1);
 		void insert(size_t index, const Array &other);
 		void insertf(size_t index, const char *fmt, ...);
+		String erase(size_t index);
 
 		void reset();
-		String getFirst();
-		String getNext();
+		const String &getFirst();
+		const String &getNext();
 		String shift();		// Holt das erste Element aus dem Array heraus
 		String pop();		// Holt das letzte Element aus dem Array heraus
-
-
-
-		String get(size_t index) const;
-		String getRandom() const;
+		const String &get(size_t index) const;
+		const String &getRandom() const;
+		const wchar_t *getPtr(size_t index) const;
+		const wchar_t *getRandomPtr() const;
 		size_t count() const;
 		size_t size() const;
 		size_t capacity() const;
+		bool empty() const;
 		void reserve (size_t size);
 		void list(const String &prefix=String()) const;
 		void sort();
@@ -457,7 +455,7 @@ class Array : public Variant
 		Array &explode(const String &text, const String &delimiter=L"\n", size_t limit=0, bool skipemptylines=false);
 		String implode(const String &delimiter="\n") const;
 
-		String operator[](size_t index) const;
+		const String &operator[](size_t index) const;
 		Array& operator=(const Array &other);
 		Array& operator+=(const Array &other);
 

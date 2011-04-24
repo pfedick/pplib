@@ -55,12 +55,70 @@ TEST_F(ArrayTest, add3Elements) {
 			a1.add(L"Second Line");
 			a1.add(L"Third Line");
 			ASSERT_EQ((size_t)3,a1.count()) << "Array does not contain 3 elements";
-			ASSERT_EQ(ppl7::String(L"First Line"),a1.get(1)) << "Element 1 has wrong value";
-			ASSERT_EQ(ppl7::String(L"Second Line"),a1.get(2)) << "Element 2 has wrong value";
-			ASSERT_EQ(ppl7::String(L"Third Line"),a1.get(3)) << "Element 3 has wrong value";
+			ASSERT_EQ(ppl7::String(L"First Line"),a1.get(0)) << "Element 1 has wrong value";
+			ASSERT_EQ(ppl7::String(L"Second Line"),a1.get(1)) << "Element 2 has wrong value";
+			ASSERT_EQ(ppl7::String(L"Third Line"),a1.get(2)) << "Element 3 has wrong value";
 	}
 	);
 }
+
+TEST_F(ArrayTest, count) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.add(L"First Line");
+			a1.add(L"Second Line");
+			a1.add(L"Third Line");
+			ASSERT_EQ((size_t)3,a1.count()) << "Array does not contain 3 elements";
+	}
+	);
+}
+
+TEST_F(ArrayTest, countAfterSet) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.set(11,L"First Line");
+			ASSERT_EQ((size_t)12,a1.count()) << "Array does not contain 12 elements";
+	}
+	);
+}
+
+TEST_F(ArrayTest, set) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.set(9,L"Element Ten");
+			ASSERT_EQ((size_t)10,a1.count()) << "Array does not contain 10 elements";
+			a1.set(2,L"Element Three");
+			ASSERT_EQ((size_t)10,a1.count()) << "Array does not contain 10 elements";
+			ASSERT_EQ(ppl7::String(L"Element Ten"),a1.get(9)) << "Element 9 has wrong value";
+			ASSERT_EQ(ppl7::String(L""),a1.get(3)) << "Element 3 has wrong value";
+			ASSERT_EQ(ppl7::String(L"Element Three"),a1.get(2)) << "Element 2 has wrong value";
+	}
+	);
+}
+
+
+TEST_F(ArrayTest, capacityTest) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.reserve(20);
+			ASSERT_EQ((size_t)20,a1.capacity()) << "Capacity is not 20";
+			a1.set(20,L"Element 21");	// Capacity must be increased
+			ASSERT_GT(a1.capacity(),(size_t)20) << "Capacity was not increased";
+			ASSERT_EQ(ppl7::String(L"Element 21"),a1.get(20)) << "Element 20 has wrong value";
+	}
+	);
+}
+
+TEST_F(ArrayTest, empty) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			ASSERT_EQ(true,a1.empty()) << "Array should be empty";
+			a1.add(L"Element 0");
+			ASSERT_EQ(false,a1.empty()) << "Array should not be empty";
+	}
+	);
+}
+
 
 }
 

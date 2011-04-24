@@ -2775,6 +2775,11 @@ String operator+(const String &str1, const std::wstring &str2)
 }
 
 
+std::ostream& operator<<(std::ostream& s, const String &str)
+{
+	ByteArray a=str.toUtf8();
+	return s.write((const char*)a.adr(),a.size());
+}
 
 } // EOF namespace ppl7
 
