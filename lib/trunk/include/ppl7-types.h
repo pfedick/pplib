@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
- * $Revision: 1.31 $
- * $Date: 2011/04/23 10:34:49 $
- * $Id: ppl7-types.h,v 1.31 2011/04/23 10:34:49 patrick Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
@@ -410,37 +410,65 @@ class Array : public Variant
 	private:
 		size_t numElements;
 		size_t numCapacity;
-		size_t pos;
 		void *rows;
 
 	public:
+		class Iterator
+		{
+			friend class Array;
+			private:
+			size_t pos;
+			public:
+				Iterator();
+		};
+
+		//! @name Konstruktoren und Destruktor
+		//@{
 		Array();
 		Array(const Array &other);
 		Array(const String &str, const String &delimiter=String("\n"), size_t limit=0, bool skipemptylines=false);
 		~Array();
+		//@}
 
+		//! @name Elemente hinzufügen/verändern
+		//@{
 		void add(const String &value);
 		void add(const String &value, size_t size);
 		void add(const Array &other);
 		void copy(const Array &other);
 		void addf(const char *fmt, ...);
-		void clear();
 		void set(size_t index, const String &value);
 		void setf(size_t index, const char *fmt, ...);
 		void insert(size_t index, const String &value);
 		void insert(size_t index, const Array &other);
 		void insertf(size_t index, const char *fmt, ...);
-		String erase(size_t index);
+		Array &fromArgs(int argc, const char **argv);
+		Array &fromArgs(const String &args);
+		Array &explode(const String &text, const String &delimiter=L"\n", size_t limit=0, bool skipemptylines=false);
+		//@}
 
-		void reset();
-		const String &getFirst();
-		const String &getNext();
-		String shift();		// Holt das erste Element aus dem Array heraus
-		String pop();		// Holt das letzte Element aus dem Array heraus
+		//! @name Elemente löschen
+		//@{
+		void clear();
+		String erase(size_t index);
+		//@}
+
+		//! @name Elemente auslesen
+		//@{
 		const String &get(size_t index) const;
 		const String &getRandom() const;
 		const wchar_t *getPtr(size_t index) const;
 		const wchar_t *getRandomPtr() const;
+		void reset(Iterator &it);
+		const String &getFirst(Iterator &it);
+		const String &getNext(Iterator &it);
+		String shift();		// Holt das erste Element aus dem Array heraus
+		String pop();		// Holt das letzte Element aus dem Array heraus
+		String implode(const String &delimiter="\n") const;
+		//@}
+
+		//! @name Sonstiges
+		//@{
 		size_t count() const;
 		size_t size() const;
 		size_t capacity() const;
@@ -449,16 +477,14 @@ class Array : public Variant
 		void list(const String &prefix=String()) const;
 		void sort();
 		void makeUnique();
-		Array &fromArgs(int argc, const char **argv);
-		Array &fromArgs(const String &args);
+		//@}
 
-		Array &explode(const String &text, const String &delimiter=L"\n", size_t limit=0, bool skipemptylines=false);
-		String implode(const String &delimiter="\n") const;
-
+		//! @name Operatoren
+		//@{
 		const String &operator[](size_t index) const;
 		Array& operator=(const Array &other);
 		Array& operator+=(const Array &other);
-
+		//@}
 };
 
 Array operator+(const Array &a1, const Array& a2);

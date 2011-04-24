@@ -1,13 +1,13 @@
 #!/usr/bin/perl
-# $Id: makedist.pl,v 1.5 2010/10/16 14:09:17 pafe Exp $
+# $Id$
 
 #  
 # CONTACT     : fedick@denic.de 
 # AUTHOR      : Patrick Fedick <fedick@denic.de> 
 # 
 # CREATED     : 2006/01/03 11:30:00 
-# REVISION    : $Revision: 1.5 $  
-# DATE        : $Date: 2010/10/16 14:09:17 $ 
+# REVISION    : $Revision$  
+# DATE        : $Date$ 
 # 
 
 my $PACKAGE="PPL6";

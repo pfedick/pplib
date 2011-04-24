@@ -308,6 +308,7 @@ html:
 	-rm -rf documentation/html
 	-mkdir -p documentation/html
 	-doxygen Doxyfile
+	-cp docs/header-bg.png documentation/html
 
 test:
 	- cd tests; make run

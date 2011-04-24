@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7). 
  * Web: http://www.pfp.de/ppl/
  *  
- * $Author: patrick $
- * $Revision: 1.2 $
- * $Date: 2011/03/18 21:25:46 $
- * $Id: ppl7-unixconfig.h.in,v 1.2 2011/03/18 21:25:46 patrick Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  * 
  ******************************************************************************* 
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>

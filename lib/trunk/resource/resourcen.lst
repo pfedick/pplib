@@ -3,6 +3,12 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
  * Web: http://www.pfp.de/ppl/
  *
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
+ *
  ******************************************************************************* 
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
@@ -37,20 +43,20 @@ Name=License
 File=../LICENSE.TXT
 [2]
 ID=2
-Name=PPL6Icon48
-File=ppl6-icon-48x48.png
+Name=PPL7Icon48
+File=ppl7-icon-48x48.png
 [3]
 ID=3
-Name=PPL6Icon32
-File=ppl6-icon-32x32.png
+Name=PPL7Icon32
+File=ppl7-icon-32x32.png
 [4]
 ID=4
-Name=PPL6Icon16
-File=ppl6-icon-16x16.png
+Name=PPL7Icon16
+File=ppl7-icon-16x16.png
 [5]
 ID=5
-Name=PPL6Icon128
-File=ppl6-icon-128x128.png
+Name=PPL7Icon128
+File=ppl7-icon-128x128.png
 
 [11]
 ID=11
