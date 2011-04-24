@@ -6,6 +6,8 @@
  * $Revision: 1.7 $
  * $Date: 2011/04/23 10:34:49 $
  * $Id: Array.cpp,v 1.7 2011/04/23 10:34:49 patrick Exp $
+ * $Id$
+ * $Url$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
@@ -84,7 +86,6 @@ Array::Array()
 	type=ARRAY;
 	numElements=0;
 	numCapacity=0;
-	pos=0;
 	rows=NULL;
 }
 
@@ -100,7 +101,6 @@ Array::Array(const Array &other)
 	type=ARRAY;
 	numElements=0;
 	numCapacity=0;
-	pos=0;
 	rows=NULL;
 	add(other);
 }
@@ -126,7 +126,6 @@ Array::Array(const String &str, const String &delimiter, size_t limit, bool skip
 	type=ARRAY;
 	numElements=0;
 	numCapacity=0;
-	pos=0;
 	rows=NULL;
 	explode(str,delimiter,limit,skipemptylines);
 }
@@ -163,7 +162,6 @@ void Array::clear()
 	rows=NULL;
 	numCapacity=0;
 	numElements=0;
-	pos=0;
 }
 
 /*!\brief Array kopieren
@@ -549,6 +547,24 @@ const String &Array::get(size_t index) const
 	return EmptyString;
 }
 
+/*!\brief Zufälliges Element auslesen
+ *
+ * \desc
+ * Gibt eine Referenz auf ein zufälliges Element des Arrays zurück.
+ *
+ * @return Referenz auf ein zufälliges Elements des Arrays.
+ * Ist das Array leer, wird immer ein leerer String zurückgegeben.
+ */
+const String &Array::getRandom() const
+{
+	if (!numElements) return EmptyString;
+	ROW *r=(ROW*)rows;
+	size_t index=ppl7::rand(0,numElements-1);
+	if (index<numElements && r[index].value!=NULL) return *r[index].value;
+	return EmptyString;
+}
+
+
 /*!\brief wchar_t Pointer auf ein Element auslesen
  *
  * \desc
@@ -567,6 +583,14 @@ const wchar_t *Array::getPtr(size_t index) const
 	return L"";
 }
 
+/*!\brief Zufälliges Element als wchar_t Pointer auslesen
+ *
+ * \desc
+ * Gibt einen wchar_t Pointer auf ein zufälliges Element des Arrays zurück.
+ *
+ * @return Pointer auf den Wide-Character-String (Unicode) eines zufälligen Elements des Arrays.
+ * Ist das Array leer, wird immer ein leerer String zurückgegeben.
+ */
 const wchar_t *Array::getRandomPtr() const
 {
 	if (!numElements) return String();
@@ -584,12 +608,31 @@ const String &Array::operator[](size_t index) const
 	return EmptyString;
 }
 
+/*!\brief Inhalt eines anderen Arrays übernehmen
+ *
+ * \desc
+ * Wie bei der Funktion Array::copy wird der aktuelle Inhalt des Arrays gelöscht und der
+ * Inhalt des Arrays \p other übernommen.
+ *
+ * @param other Zu kopierendes Array
+ * @return Referenz auf das Array
+ */
 Array& Array::operator=(const Array &other)
 {
 	copy(other);
 	return *this;
 }
 
+/*!\brief Inhalt eines anderen Arrays hinzufügen
+ *
+ * \desc
+ * Wie bei der Funktion Array::add wird der Inhalt des Arrays \p other am Ende des
+ * bestehenden Arrays angefügt.
+ *
+ * @param other Zu kopierendes Array
+ * @return Referenz auf das Array
+ * \see Array::add(const Array &other)
+ */
 Array& Array::operator+=(const Array &other)
 {
 	add(other);
@@ -597,23 +640,23 @@ Array& Array::operator+=(const Array &other)
 }
 
 
-void Array::reset()
+void Array::reset(Iterator &it)
 {
-	pos=0;
+	it.pos=0;
 }
 
-const String &Array::getFirst()
+const String &Array::getFirst(Iterator &it)
 {
-	pos=0;
-	return getNext();
+	it.pos=0;
+	return getNext(it);
 }
 
-const String &Array::getNext()
+const String &Array::getNext(Iterator &it)
 {
 	ROW *r=(ROW*)rows;
-	if (pos<numElements) {
-		String *s=r[pos].value;
-		pos++;
+	if (it.pos<numElements) {
+		String *s=r[it.pos].value;
+		it.pos++;
 		if (s!=NULL) return *s;
 		return EmptyString;
 	}
@@ -655,15 +698,28 @@ String Array::pop()
 }
 
 
-const String &Array::getRandom() const
-{
-	if (!numElements) return EmptyString;
-	ROW *r=(ROW*)rows;
-	size_t index=ppl7::rand(0,numElements-1);
-	if (index<numElements && r[index].value!=NULL) return *r[index].value;
-	return EmptyString;
-}
-
+/*!\brief Array aus String erzeugen
+ *
+ * \desc
+ * Der String \p text wird anhand des Trennzeichens \p delimiter in einzelne Elemente zerlegt, die
+ * wiederum an das Array angefügt werden
+ *
+ * @param text Zu parsender String
+ * @param delimiter Trennzeichen oder Trennstring
+ * @param limit Maximale Anzahl Elemente, normalerweise unbegrenzt
+ * @param skipemptylines Leere Elemente überspringen. Folgen zwei Trennzeichen hintereinander, würde
+ * normalerweise ein leeres Element in das Array eingefügt. Durch setzen dieses Parameters auf \c true
+ * werden keine leeren Elemente eingefügt.
+ *
+ * @return Referenz auf das Array
+ *
+ * \note
+ * Vorhandene Elemente im Array gehen durch Aufruf dieser Funktion nicht verloren, die neuen Werte werden
+ * am Ende angehangen.
+ *
+ * \see
+ * Array::implode ist die Umkehrfunktion zu dieser
+ */
 Array &Array::explode(const String &text, const String &delimiter, size_t limit, bool skipemptylines)
 {
 	if (text.isEmpty()) return *this;
@@ -695,18 +751,35 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 	return *this;
 }
 
-
-String Array::implode(const String &trenn) const
+/*!\brief Array zu einem String zusammenfügen
+ *
+ * \desc
+ * Der Inhalt des Arrays wird zu einem String zusammengefügt, wobei das im Parameter \p delimiter
+ * angegebene Zeichen oder String als Trennzeichen verwendet wird.
+ *
+ * @param delimiter Trennzeichen oder String
+ * @return Zusammengesetzter String mit dem Inhalt des Arrays
+ */
+String Array::implode(const String &delimiter) const
 {
 	String ret;
 	for (size_t i=0;i<numElements;i++) {
-		if (i) ret+=trenn;
+		if (i) ret+=delimiter;
 		ret+=get(i);
 	}
 	return ret;
 }
 
 
+/*!\brief Array aus den Aufrufparametern des Programms erzeugen
+ *
+ * \desc
+ * Ein Array wird aus den Aufrufparametern des Programms erstellt.
+ *
+ * @param argc Anzahl Parameter
+ * @param argv Pointer auf ein Array mit C-Strings
+ * @return Gibt eine Referenz auf das Array zurück.
+ */
 Array &Array::fromArgs(int argc, const char **argv)
 {
 	clear();
@@ -716,6 +789,14 @@ Array &Array::fromArgs(int argc, const char **argv)
 	return *this;
 }
 
+/*!\brief Array aus dem Aufrufstring des Programms erzeugen
+ *
+ * \desc
+ * Ein Array wird aus dem Aufrufstring des Programms erstellt.
+ *
+ * @param args Aufrufstring
+ * @return Gibt eine Referenz auf das Array zurück.
+ */
 Array &Array::fromArgs(const String &args)
 {
 	clear();
@@ -792,6 +873,20 @@ Array operator+(const Array &a1, const Array& a2)
 	Array ret(a1);
 	ret.add(a2);
 	return ret;
+}
+
+/*!\class Array::Iterator
+ * \brief Iterator zum Durchwandern eines String Array
+ *
+ * \desc
+ * Diese Klasse wird als Iterator zum Durchwandern eines Array verwendet.
+ * Sie wird als Parameter zu den Funktionen Array::reset, Array::getFirst und Array::getNext
+ * erwartet.
+ */
+
+Array::Iterator::Iterator()
+{
+	pos=0;
 }
 
 
