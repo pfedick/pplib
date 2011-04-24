@@ -2,11 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: patrick $
+ * $Author$
  * $Revision: 1.7 $
  * $Date: 2011/04/23 10:34:49 $
- * $Id$
- * $Id$
+ * $Id: Array.cpp 27 2011-04-24 14:37:26Z pafe $
  * $Url$
  *
  *******************************************************************************
