@@ -315,6 +315,7 @@ void Array::insert(size_t index, const String &value)
 			r[i].value=r[i-1].value;
 		}
 		numElements++;
+		r[index].value=NULL;
 	}
 	// Den neuen Wert einfügen
 	set(index,value);
@@ -514,7 +515,7 @@ void Array::list(const String &prefix) const
 			PrintDebug("Array ist leer\n");
 		}
 		for (size_t i=0;i<numElements;i++) {
-			if (r[i].value!=NULL) PrintDebug ("%6zu: %ls\n",i,(const wchar_t*)r[i].value);
+			if (r[i].value!=NULL) PrintDebug ("%6zu: %ls\n",i,(const wchar_t*)r[i].value->getPtr());
 
 		}
 	} else {
@@ -522,7 +523,7 @@ void Array::list(const String &prefix) const
 			PrintDebug("Array \"%ls\" ist leer\n", (const wchar_t*)prefix);
 		}
 		for (size_t i=0;i<numElements;i++) {
-			if (r[i].value!=NULL) PrintDebug ("%ls, %6zu: %ls\n",(const wchar_t*)prefix, i,(const wchar_t*)r[i].value);
+			if (r[i].value!=NULL) PrintDebug ("%ls, %6zu: %ls\n",(const wchar_t*)prefix, i,(const wchar_t*)r[i].value->getPtr());
 		}
 
 	}
