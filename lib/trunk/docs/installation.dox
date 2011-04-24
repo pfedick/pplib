@@ -10,14 +10,12 @@ oder gtar ausgepackt werden (<code>tar -xjf ppl*.tar.bz2</code>), unter Windows 
 zum Beispiel <a href="http://http://www.7-zip.org/">7-Zip</a>.
 
 
-\section inst1a CVS
+\section inst1a SVN
 Der Quellcode der Library wird bei <a href="https://sourceforge.net/projects/pplib">SourceForge.net</a>
-gehostet und kann wie nachfolgend beschrieben als anonymous aus dem CVS-Repository ausgecheckt werden.
-Bei der Frage nach dem Passwort für anonymous einfach Return drücken:
+gehostet und kann wie nachfolgend beschrieben dem Subversion-Repository ausgecheckt werden.
 
 \code
-cvs -d:pserver:anonymous@pplib.cvs.sourceforge.net:/cvsroot/pplib login
-cvs -z3 -d:pserver:anonymous@pplib.cvs.sourceforge.net:/cvsroot/pplib co -P lib 
+svn co https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk ppl7
 \endcode
 
 \section inst2 Installation unter UNIX 
