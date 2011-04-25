@@ -67,6 +67,35 @@ namespace ppl7 {
  *
  */
 
+/*!\var Array::numElements
+ * \brief Anzahl Elemente im Array
+ *
+ * \desc
+ * Diese Variable enthält die tatsächliche Anzahl Elemente im Array
+ */
+
+/*!\var Array::numCapacity
+ * \brief Maximale Anzahl Elemente im Array
+ *
+ * \desc
+ * Diese Variable enthält die maximal mögliche Anzahl Elemente im Array, ohne dass
+ * Speicher reallokiert werden muss. Wird dieser Wert überschritten, wird das Array
+ * durch Reallokation von Speicher vergrößert.
+ * \see
+ * - Array::capacity: Mit dieser Funktion kann die Variable ausgelesen werden
+ * - Array::reserve: Speicher wird vorab für eine beliebige Anzahl Elemente allokiert
+ */
+
+/*!\var Array::rows
+ * \brief Array mit den Datenelementen
+ *
+ * \desc
+ * Diese Variable enthält einen Pointer auf die interne Datenstruktur, die die Werte
+ * der einzelnen Elemente enthält. Die Größe des Speicherbereichs ergibt sich aus der
+ * maximalen Anzahl Elemente im Array (Array::numCapacity) multipliziert mit der größe der
+ * Datenstruktur für jedes Element.
+ */
+
 
 typedef struct {
 	String *value;
@@ -174,6 +203,7 @@ void Array::clear()
 void Array::copy(const Array &other)
 {
 	clear();
+	reserve(other.numElements);
 	ROW *r=(ROW*)other.rows;
 	for (size_t i=0;i<other.numElements;i++) {
 		if (r[i].value!=NULL) set(i,*r[i].value);
@@ -191,6 +221,7 @@ void Array::add(const Array &other)
 {
 	ROW *r=(ROW*)other.rows;
 	size_t first=numElements;
+	reserve(numElements+other.numElements);
 	for (size_t i=0;i<other.numElements;i++) {
 		if (r[i].value!=NULL) set(first+i,*r[i].value);
 	}
@@ -601,56 +632,91 @@ const wchar_t *Array::getRandomPtr() const
 }
 
 
-const String &Array::operator[](size_t index) const
-{
-	ROW *r=(ROW*)rows;
-	if (index<numElements && r[index].value!=NULL) return *r[index].value;
-	return EmptyString;
-}
-
-/*!\brief Inhalt eines anderen Arrays übernehmen
+/*!\brief Iterator auf den Anfang setzen
  *
  * \desc
- * Wie bei der Funktion Array::copy wird der aktuelle Inhalt des Arrays gelöscht und der
- * Inhalt des Arrays \p other übernommen.
+ * Mit diesem Befehl wird der Iterator zum Durchwandern des Arrays auf das erste Element gesetzt
  *
- * @param other Zu kopierendes Array
- * @return Referenz auf das Array
- */
-Array& Array::operator=(const Array &other)
-{
-	copy(other);
-	return *this;
+ * @param it Iterator
+ *
+ * \example
+ * \code
+ppl7::Array a1(L"red green blue yellow black white",L" ");
+ppl7::Array::Iterator it;
+ppl7::String value;
+a1.reset(it);
+try {
+	while (1) {
+		value=a1.getNext(it);
+		value.printnl();
+	}
+} catch (ppl7::OutOfBoundsEception) {
+	printf ("Keine weiteren Elemente\n");
 }
-
-/*!\brief Inhalt eines anderen Arrays hinzufügen
- *
- * \desc
- * Wie bei der Funktion Array::add wird der Inhalt des Arrays \p other am Ende des
- * bestehenden Arrays angefügt.
- *
- * @param other Zu kopierendes Array
- * @return Referenz auf das Array
- * \see Array::add(const Array &other)
+ * \endcode
  */
-Array& Array::operator+=(const Array &other)
-{
-	add(other);
-	return *this;
-}
-
-
 void Array::reset(Iterator &it)
 {
 	it.pos=0;
 }
 
+/*!\brief Referenz auf das erste Element mittels Iterator auslesen
+ *
+ * \desc
+ * Der Iterator \p it wird auf das erste Element gesetzt. Dieses gibt die Funktion zurück und
+ * erhöht den Iterator auf das nächste Element.
+ *
+ * @param it Iterator
+ * @return Wert des ersten Elements
+ * \exception OutOfBoundsEception: Wird geworfen, wenn das Array leer ist
+ *
+ * \example
+ * \code
+ppl7::Array a1(L"red green blue yellow black white",L" ");
+ppl7::Array::Iterator it;
+ppl7::String value;
+a1.reset(it);
+try {
+	while (1) {
+		value=a1.getNext(it);
+		value.printnl();
+	}
+} catch (ppl7::OutOfBoundsEception) {
+	printf ("Keine weiteren Elemente\n");
+}
+ * \endcode
+ */
 const String &Array::getFirst(Iterator &it)
 {
 	it.pos=0;
 	return getNext(it);
 }
 
+/*!\brief Referenz auf das nächste Element mittels Iterator auslesen
+ *
+ * \desc
+ * Der Iterator \p it wird auf das erste Element gesetzt. Dieses gibt die Funktion zurück und
+ * erhöht den Iterator auf das nächste Element.
+ *
+ * @param it Iterator
+ * @return Wert des ersten Elements
+ * \exception OutOfBoundsEception: Wird geworfen, wenn das Array leer ist
+ * \example
+ * \code
+ppl7::Array a1(L"red green blue yellow black white",L" ");
+ppl7::Array::Iterator it;
+ppl7::String value;
+a1.reset(it);
+try {
+	while (1) {
+		value=a1.getNext(it);
+		value.printnl();
+	}
+} catch (ppl7::OutOfBoundsEception) {
+	printf ("Keine weiteren Elemente\n");
+}
+ * \endcode
+ */
 const String &Array::getNext(Iterator &it)
 {
 	ROW *r=(ROW*)rows;
@@ -663,29 +729,82 @@ const String &Array::getNext(Iterator &it)
 	throw OutOfBoundsEception();
 }
 
-String Array::shift()
+/*!\brief Das erste Element aus dem Array holen
+ *
+ * \desc
+ * Das erste Element des Arrays (also das mit dem Index 0) wird aus
+ * dem Array entfernt und als String zurückgegeben. Der Rest des Arrays wird um
+ * eine Position nach vorne gerückt. Ist das Array leer, wird eine
+ * Exception geworfen.
+ *
+ * @return String mit dem Wert, der aus dem Array entfernt wurde
+ * \exception OutOfBoundsEception: Wird geworfen, wenn der gewünschte Index größer als
+ * die Anzahl Elemente im Array ist.
+ * \note
+ * Bei großen Arrays ist diese Operation recht teuer, da alle nachfolgenden Elemente
+ * um eine Position nach vorne gerückt werden müssen.
+ */
+String Array::erase(size_t index)
 {
-	String ret;;
-	if (numElements) {
-		ROW *r=(ROW*)rows;
-		if (numElements>0 && r[0].value!=NULL) {
-			ret=r[0].value;
-			delete r[0].value;
-		}
-		for (size_t i=0;i<numElements-1;i++) {
-			r[i].value=r[i+1].value;
-		}
-		numElements--;
-		r[numElements].value=NULL;
+	if (index>=numElements) throw OutOfBoundsEception();
+	String ret;
+	ROW *r=(ROW*)rows;
+	if (r[index].value!=NULL) {
+		ret=r[index].value;
+		delete r[index].value;
 	}
+	for (size_t i=index;i<numElements-1;i++) {
+		r[i].value=r[i+1].value;
+	}
+	numElements--;
+	r[numElements].value=NULL;
 	return ret;
 }
 
+/*!\brief Das erste Element aus dem Array holen
+ *
+ * \desc
+ * Das erste Element des Arrays (also das mit dem Index 0) wird aus
+ * dem Array entfernt und als String zurückgegeben. Der Rest des Arrays wird um
+ * eine Position nach vorne gerückt. Ist das Array leer, wird eine
+ * Exception geworfen.
+ *
+ * @return String mit dem Wert, der aus dem Array entfernt wurde
+ * \exception EmptyDataException: Wird geworfen, wenn das Array leer ist
+ * \note
+ * Bei großen Arrays ist diese Operation recht teuer, da alle nachfolgenden Elemente
+ * um eine Position nach vorne gerückt werden müssen.
+ */
+String Array::shift()
+{
+	if (!numElements) throw EmptyDataException();
+	String ret;
+	ROW *r=(ROW*)rows;
+	if (r[0].value!=NULL) {
+		ret=r[0].value;
+		delete r[0].value;
+	}
+	for (size_t i=0;i<numElements-1;i++) {
+		r[i].value=r[i+1].value;
+	}
+	numElements--;
+	r[numElements].value=NULL;
+	return ret;
+}
+
+/*!\brief Das letzte Element aus dem Array holen
+ *
+ * \desc
+ * Das letzte Element des Arrays (also das mit dem höchsten Index) wird aus
+ * dem Array entfernt und als String zurückgegeben. Ist das Array leer, wird eine
+ * Exception geworfen.
+ *
+ * @return String mit dem Wert, der aus dem Array entfernt wurde
+ * \exception EmptyDataException: Wird geworfen, wenn das Array leer ist
+ */
 String Array::pop()
 {
-	if (!numElements) {
-		return L"";
-	}
+	if (!numElements) throw EmptyDataException();
 	ROW *r=(ROW*)rows;
 	String ret;
 	if (r[numElements-1].value!=NULL) {
@@ -729,25 +848,28 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 	size_t count=0;
 	wchar_t *etext=(wchar_t*)text.getPtr();
 	while (1) {
-		count++;
 		p=Instr(etext,(const wchar_t*)delimiter,0);
 		if (p>=0) {
 			if (p==0 && skipemptylines==true) {
 				etext+=t;
 				continue;
 			}
-			if (limit>0 && count==limit) {
-				add((wchar_t*)etext);
+			count++;
+			if (limit>0 && count>limit) {
 				return *this;
 			}
 			add((wchar_t*)etext,p);
 			etext=etext+p+t;
 		} else {
-			if (skipemptylines==false || wcslen(etext)>0) add(etext);
+			if (skipemptylines==false || wcslen(etext)>0) {
+				count++;
+				if (limit==0 || count<=limit) {
+					add(etext);
+				}
+			}
 			return *this;
 		}
 	}
-
 	return *this;
 }
 
@@ -856,6 +978,129 @@ Array &Array::fromArgs(const String &args)
 	return *this;
 }
 
+/*!\brief Elemente nach ihrem Wert sortieren
+ *
+ * \desc
+ * Die einzelnen Elemente des Arrays werden alphabetisch sortiert. Duplikate bleiben erhalten
+ */
+void Array::sort()
+{
+
+}
+
+/*!\brief Elemente nach ihrem Wert sortieren, Duplikate entfernen
+ *
+ * \desc
+ * Die einzelnen Elemente des Arrays werden alphabetisch sortiert. Duplikate werden entfernt.
+ */
+void Array::sortUnique()
+{
+
+}
+
+/*!\brief Duplikate entfernen
+ *
+ * \desc
+ * Elemente, die mehrfach im Array vorkommen, werden entfernt. Die Reihenfolge der Elemente
+ * bleibt bestehen.
+ *
+ * \note
+ * In Version 6.x.x der Bibliothek hat die Funktion die Elemente zusätzlich alphabetisch sortiert,
+ * was jetzt nicht mehr der Fall ist.
+ */
+void Array::makeUnique()
+{
+
+}
+
+
+
+/*!\brief Element aus dem Array auslesen
+ *
+ *
+ * \desc
+ * Gibt das Element an Position \p index des Arrays als Referenz zurück. Ist \p index größer als die Anzahl
+ * Elemente des Arrays, wird eine Exception geworfen.
+ *
+ * @param index Gewünschtes Element
+ * @return Referenz auf den Inhalt des Elements
+ * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ */
+const String &Array::operator[](size_t index) const
+{
+	ROW *r=(ROW*)rows;
+	if (index>=numElements) throw OutOfBoundsEception();
+	if (r[index].value!=NULL) return *r[index].value;
+	return EmptyString;
+}
+
+/*!\brief Inhalt eines anderen Arrays übernehmen
+ *
+ * \desc
+ * Wie bei der Funktion Array::copy wird der aktuelle Inhalt des Arrays gelöscht und der
+ * Inhalt des Arrays \p other übernommen.
+ *
+ * @param other Zu kopierendes Array
+ * @return Referenz auf das Array
+ */
+Array& Array::operator=(const Array &other)
+{
+	copy(other);
+	return *this;
+}
+
+/*!\brief Inhalt eines anderen Arrays hinzufügen
+ *
+ * \desc
+ * Wie bei der Funktion Array::add wird der Inhalt des Arrays \p other am Ende des
+ * bestehenden Arrays angefügt.
+ *
+ * @param other Zu kopierendes Array
+ * @return Referenz auf das Array
+ * \see Array::add(const Array &other)
+ */
+Array& Array::operator+=(const Array &other)
+{
+	add(other);
+	return *this;
+}
+
+/*!\brief Prüfen, ob zwei Arrays identisch sind
+ *
+ * \desc
+ * Mit dem Operator "==" wird geprüft, ob zwei Arrays inhaltlich identisch sind.
+ * Dazu wird die Gesamtlänge des Arrays sowie jedes einzelne Element miteinander
+ * verglichen.
+ *
+ * @param other Referenz auf ein zweites Array
+ * @return Liefert \c true zurück, wenn beide Arrays identisch sind, sonst \c false.
+ */
+bool Array::operator==(const Array &other)
+{
+	if (numElements!=other.numElements) return false;
+	for (size_t i=0;i<numElements;i++)
+		if (get(i)!=other.get(i)) return false;
+	return true;
+}
+
+/*!\brief Prüfen, ob zwei Arrays unterschiedlich sind
+ *
+ * \desc
+ * Mit dem Operator "!=" wird geprüft, ob zwei Arrays inhaltlich unterschiedlich sind.
+ * Dazu wird die Gesamtlänge des Arrays sowie jedes einzelne Element miteinander
+ * verglichen.
+ *
+ * @param other Referenz auf ein zweites Array
+ * @return Liefert \c true zurück, wenn beide Arrays unterschiedlich sind, sonst \c false.
+ */
+bool Array::operator!=(const Array &other)
+{
+	if (numElements!=other.numElements) return true;
+	for (size_t i=0;i<numElements;i++)
+		if (get(i)!=other.get(i)) return true;
+	return false;
+}
+
 
 /*!\brief Zwei Arrays zusammenaddieren
  * \relates Array
@@ -874,6 +1119,7 @@ Array operator+(const Array &a1, const Array& a2)
 	ret.add(a2);
 	return ret;
 }
+
 
 /*!\class Array::Iterator
  * \brief Iterator zum Durchwandern eines String Array

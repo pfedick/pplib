@@ -98,7 +98,9 @@ PPLNORMALEXCEPTION(AlreadyConnectedException);
 PPLNORMALEXCEPTION(NoConnectionException);
 PPLPARAMETERISEDEXCEPTION(TooManyInstancesException);
 PPLPARAMETERISEDEXCEPTION(InvalidDateException);
-
+PPLNORMALEXCEPTION(NoThreadSupportException);
+PPLNORMALEXCEPTION(ThreadStartException);
+PPLNORMALEXCEPTION(ThreadOperationFailedException);
 
 
 }	// EOF namespace ppl7

@@ -48,6 +48,9 @@
 /* Define as 1 if you have unistd.h. */
 #undef HAVE_UNISTD_H
 
+/* Define, if we have Thread Local Space */
+#undef HAVE_TLS
+
 #undef HAVE_MKTIME
 #undef size_t
 #undef wchar_t

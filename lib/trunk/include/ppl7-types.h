@@ -435,8 +435,8 @@ class Array : public Variant
 		void add(const String &value);
 		void add(const String &value, size_t size);
 		void add(const Array &other);
-		void copy(const Array &other);
 		void addf(const char *fmt, ...);
+		void copy(const Array &other);
 		void set(size_t index, const String &value);
 		void setf(size_t index, const char *fmt, ...);
 		void insert(size_t index, const String &value);
@@ -451,6 +451,8 @@ class Array : public Variant
 		//@{
 		void clear();
 		String erase(size_t index);
+		String shift();
+		String pop();
 		//@}
 
 		//! @name Elemente auslesen
@@ -462,8 +464,6 @@ class Array : public Variant
 		void reset(Iterator &it);
 		const String &getFirst(Iterator &it);
 		const String &getNext(Iterator &it);
-		String shift();		// Holt das erste Element aus dem Array heraus
-		String pop();		// Holt das letzte Element aus dem Array heraus
 		String implode(const String &delimiter="\n") const;
 		//@}
 
@@ -476,6 +476,7 @@ class Array : public Variant
 		void reserve (size_t size);
 		void list(const String &prefix=String()) const;
 		void sort();
+		void sortUnique();
 		void makeUnique();
 		//@}
 
@@ -484,6 +485,8 @@ class Array : public Variant
 		const String &operator[](size_t index) const;
 		Array& operator=(const Array &other);
 		Array& operator+=(const Array &other);
+		bool operator==(const Array &other);
+		bool operator!=(const Array &other);
 		//@}
 };
 

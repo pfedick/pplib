@@ -39,6 +39,58 @@ TEST_F(ArrayTest, ConstructorFromString) {
 	);
 }
 
+TEST_F(ArrayTest, ConstructorfromOtherArray) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red green blue yellow black white",L" ");
+			ppl7::Array a2(a1);
+			ASSERT_EQ((size_t)6,a2.count()) << "Array does not contain 6 elements";
+	}
+	);
+}
+
+TEST_F(ArrayTest, OperatorEQ) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red green blue yellow black white",L" ");
+			ppl7::Array a2(a1);
+			ASSERT_TRUE(a1==a2) << "Array is not equal";
+			ASSERT_FALSE(a1!=a2) << "Array is equal";
+	}
+	);
+}
+
+TEST_F(ArrayTest, OperatorNE) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red green blue yellow black white",L" ");
+			ppl7::Array a2(a1);
+			a2.set(2,"cyan");
+			ASSERT_TRUE(a1!=a2) << "Array is equal";
+			ASSERT_FALSE(a1==a2) << "Array is not equal";
+	}
+	);
+}
+
+TEST_F(ArrayTest, OperatorCopy) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red green blue yellow black white",L" ");
+			ppl7::Array a2;
+			a2=a1;
+			ASSERT_TRUE(a1==a2) << "Array is not equal";
+	}
+	);
+}
+
+TEST_F(ArrayTest, OperatorPlusEqual) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red green blue yellow black white",L" ");
+			ppl7::Array a2(L"cyan grey magenta mint",L" ");
+			a1+=a2;
+			ASSERT_EQ((size_t)10,a1.count()) << "Array does not contain 10 elements";
+			ppl7::String merged=a1.implode(" ");
+			ASSERT_EQ(ppl7::String(L"red green blue yellow black white cyan grey magenta mint"),merged) << "Elements with wrong value";
+	}
+	);
+}
+
 TEST_F(ArrayTest, add1Element) {
 	ASSERT_NO_THROW({
 			ppl7::Array a1;
@@ -94,6 +146,21 @@ TEST_F(ArrayTest, set) {
 			ASSERT_EQ(ppl7::String(L"Element Three"),a1.get(2)) << "Element 2 has wrong value";
 	}
 	);
+}
+
+TEST_F(ArrayTest, get) {
+	ppl7::Array a1(L"red green blue yellow black white",L" ");
+	ASSERT_EQ(ppl7::String(L"red"),a1.get(0)) << "Element 0 has wrong value";
+	ASSERT_EQ(ppl7::String(L"green"),a1.get(1)) << "Element 1 has wrong value";
+	ASSERT_EQ(ppl7::String(L"blue"),a1.get(2)) << "Element 2 has wrong value";
+	ASSERT_EQ(ppl7::String(L"yellow"),a1.get(3)) << "Element 3 has wrong value";
+	ASSERT_EQ(ppl7::String(L"black"),a1.get(4)) << "Element 4 has wrong value";
+	ASSERT_EQ(ppl7::String(L"white"),a1.get(5)) << "Element 5 has wrong value";
+}
+
+TEST_F(ArrayTest, getOutOfBounds) {
+	ppl7::Array a1(L"red green blue yellow black white",L" ");
+	ASSERT_THROW(a1.get(30),ppl7::OutOfBoundsEception);
 }
 
 
@@ -183,6 +250,92 @@ TEST_F(ArrayTest, insertAfterEnd) {
 	}
 	);
 }
+
+TEST_F(ArrayTest, forwardWalkIterator) {
+	ppl7::Array a1(L"red green blue yellow black white",L" ");
+	ppl7::Array::Iterator it;
+	a1.reset(it);
+	ASSERT_EQ(ppl7::String(L"red"),a1.getNext(it)) << "Element 0 has wrong value";
+	ASSERT_EQ(ppl7::String(L"green"),a1.getNext(it)) << "Element 1 has wrong value";
+	ASSERT_EQ(ppl7::String(L"blue"),a1.getNext(it)) << "Element 2 has wrong value";
+	ASSERT_EQ(ppl7::String(L"yellow"),a1.getNext(it)) << "Element 3 has wrong value";
+	ASSERT_EQ(ppl7::String(L"black"),a1.getNext(it)) << "Element 4 has wrong value";
+	ASSERT_EQ(ppl7::String(L"white"),a1.getNext(it)) << "Element 5 has wrong value";
+	ASSERT_THROW(a1.getNext(it),ppl7::OutOfBoundsEception);
+}
+
+TEST_F(ArrayTest, explode) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.explode(L"red green blue yellow black white",L" ");
+			ASSERT_EQ((size_t)6,a1.count()) << "Array does not contain 6 elements";
+			ppl7::String merged=a1.implode(" ");
+			ASSERT_EQ(ppl7::String(L"red green blue yellow black white"),merged) << "Elements with wrong value";
+	}
+	);
+}
+
+TEST_F(ArrayTest, explodeWithEmptyElements) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.explode(L"red green blue   yellow black white",L" ",0,false);
+			ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
+			ASSERT_EQ(ppl7::String(L"blue"),a1.get(2)) << "Element 2 has wrong value";
+			ASSERT_EQ(ppl7::String(L""),a1.get(3)) << "Element 3 has wrong value";
+			ASSERT_EQ(ppl7::String(L""),a1.get(4)) << "Element 4 has wrong value";
+			ASSERT_EQ(ppl7::String(L"yellow"),a1.get(5)) << "Element 5 has wrong value";
+			ppl7::String merged=a1.implode(" ");
+			ASSERT_EQ(ppl7::String(L"red green blue   yellow black white"),merged) << "Elements with wrong value";
+	}
+	);
+}
+
+TEST_F(ArrayTest, explodeWithoutEmptyElements) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.explode(L"red green blue   yellow black white",L" ",0,true);
+			ASSERT_EQ((size_t)6,a1.count()) << "Array does not contain 6 elements";
+			ASSERT_EQ(ppl7::String(L"blue"),a1.get(2)) << "Element 2 has wrong value";
+			ASSERT_EQ(ppl7::String(L"yellow"),a1.get(3)) << "Element 3 has wrong value";
+			ppl7::String merged=a1.implode(" ");
+			ASSERT_EQ(ppl7::String(L"red green blue yellow black white"),merged) << "Elements with wrong value";
+	}
+	);
+}
+
+TEST_F(ArrayTest, explodeWithLimitWithinEmptyLines1) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.explode(L"red green blue   yellow black white",L" ",4,true);
+			ASSERT_EQ((size_t)4,a1.count()) << "Array does not contain 6 elements";
+			ASSERT_EQ(ppl7::String(L"blue"),a1.get(2)) << "Element 2 has wrong value";
+			ASSERT_EQ(ppl7::String(L"yellow"),a1.get(3)) << "Element 3 has wrong value";
+	}
+	);
+}
+
+TEST_F(ArrayTest, explodeWithLimitWithinEmptyLines2) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1;
+			a1.explode(L"red green blue   yellow black white",L" ",4,false);
+			ASSERT_EQ((size_t)4,a1.count()) << "Array does not contain 6 elements";
+			ASSERT_EQ(ppl7::String(L"blue"),a1.get(2)) << "Element 2 has wrong value";
+			ASSERT_EQ(ppl7::String(L""),a1.get(3)) << "Element 3 has wrong value";
+	}
+	);
+}
+
+
+TEST_F(ArrayTest, implode) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red green blue yellow black white",L" ");
+			ppl7::String merged=a1.implode(" ");
+			ASSERT_EQ(ppl7::String(L"red green blue yellow black white"),merged) << "Elements with wrong value";
+	}
+	);
+}
+
+
 }
 
 

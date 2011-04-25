@@ -161,21 +161,204 @@ bool PregMatch(const String &expression, const String &subject, Array &matches);
 size_t rand(size_t min, size_t max);
 
 
- //! \brief Synchronisation von Threads
- class Mutex
- {
- 	private:
- 		void *handle;
+//! \brief Synchronisation von Threads
+class Mutex
+{
+	private:
+		void *handle;
 
- 	public:
- 		Mutex() throw(OutOfMemoryException);
- 		~Mutex() throw();
- 		int lock() throw();
- 		int unlock() throw();
- 		int tryLock() throw();
- 		int wait(int milliseconds=0) throw();
- 		int signal() throw();
- };
+	public:
+		Mutex() throw(OutOfMemoryException);
+		~Mutex() throw();
+		int lock() throw();
+		int unlock() throw();
+		int tryLock() throw();
+		int wait(int milliseconds=0) throw();
+		int signal() throw();
+};
+
+
+// Threads
+ppluint64 ThreadID();
+void	*GetTLSData();
+void	SetTLSData(void *data);
+ppluint64	StartThread(void (*start_routine)(void *),void *data=NULL);
+
+class Thread
+{
+	private:
+		Mutex	threadmutex;
+		ppluint64	threadId;
+		void *threaddata;
+		int flags;
+		int IsRunning;
+		int IsSuspended;
+		int deleteMe;
+		int myPriority;
+
+	public:
+
+		enum Priority {
+			UNKNOWN=0,
+			LOWEST,
+			BELOW_NORMAL,
+			NORMAL,
+			ABOVE_NORMAL,
+			HIGHEST
+		};
+
+		Thread();
+		virtual ~Thread();
+		void	threadSuspend();
+		void	threadResume();
+		void	threadStop();
+		void	threadSignalStop();
+		void	threadStart();
+		void	threadStartUp();
+		int		threadIsRunning();
+		int		threadIsSuspended();
+		int		threadGetFlags();
+		ppluint64  threadGetID();
+		int		threadShouldStop();
+		void	threadWaitSuspended(int msec=0);
+		void	threadDeleteOnExit(int flag=1);
+		int		threadShouldDeleteOnExit();
+		int		threadSetPriority(int priority);
+		int		threadGetPriority();
+		void	threadIdle();
+		int		threadSetStackSize(size_t size=0);
+		size_t	threadGetStackSize();
+		size_t	threadGetMinimumStackSize();
+
+		virtual void threadMain();
+};
+
+
+void ThreadSetPriority(Thread::Priority priority);
+Thread::Priority ThreadGetPriority();
+
+
+
+
+
+class Heap
+{
+	private:
+		void		*blocks;
+		size_t		elementSize, increaseSize, incCount;
+		size_t		mem_allocated;
+		size_t		mem_used;
+
+		void		increase(size_t num);
+		void		cleanup();
+
+	public:
+		PPLNORMALEXCEPTION(NotInitializedException);
+		PPLNORMALEXCEPTION(AlreadyInitializedException);
+		PPLNORMALEXCEPTION(HeapCorruptedException);
+		PPLNORMALEXCEPTION(ElementNotInHeapException);
+
+
+
+		Heap();
+		Heap(size_t elementsize, size_t startnum, size_t increase);
+		~Heap();
+		void clear();
+		void init(size_t elementsize, size_t startnum, size_t increase);
+		void *malloc();
+		void *calloc();
+		void free(void *element);
+		size_t memoryUsed() const;
+		size_t memoryAllocated() const;
+		void dump() const;
+};
+
+// ***************************************************************************
+// AVL-Trees
+// ***************************************************************************
+#ifndef AVL_MAX_HEIGHT
+#define AVL_MAX_HEIGHT 32
+#endif
+
+typedef struct tagTREEITEM {
+		const void *data;
+		struct tagTREEITEM *left, *right, *parent;
+		signed char balance;
+} TREEITEM;
+
+class AVLTreeController
+{
+	public:
+		virtual ~AVLTreeController() {};
+		virtual int	compare(const void *value1, const void *value2) const = 0;
+		virtual int getValue(const void *item, String &buffer) const = 0;
+		virtual int destroyValue(void *item) const = 0;
+};
+
+
+class AVLTree : public AVLTreeController
+{
+	public:
+		class Iterator
+		{
+			friend class AVLTree;
+			private:
+			TREEITEM	*current;
+			TREEITEM	*stack[AVL_MAX_HEIGHT];
+			size_t		stack_height;
+			public:
+			Iterator();
+		};
+
+	private:
+		Heap		MyHeap;
+		TREEITEM	*root;
+		size_t		numElements;
+		TREEITEM	*current;
+		TREEITEM	*stack[AVL_MAX_HEIGHT];
+		size_t		stack_height;
+		AVLTreeController	*controller;
+		bool		dupes;
+
+		void		upInsert(TREEITEM *node);
+		void		upDelete(TREEITEM *node);
+		TREEITEM	*rotate(TREEITEM *kn);
+		void		swapNodes(TREEITEM *item1, TREEITEM *item2);
+		int			deleteNode(TREEITEM *item);
+
+	public:
+		PPLNORMALEXCEPTION(NoTreeControllerException);
+		PPLNORMALEXCEPTION(DuplicateItemException);
+		PPLNORMALEXCEPTION(ItemNotFoundException);
+		PPLNORMALEXCEPTION(DeleteFailedException);
+
+		AVLTree();
+		virtual ~AVLTree();
+		virtual int	compare(const void *value1, const void *value2) const;
+		virtual int getValue(const void *item, String &buffer) const;
+		virtual int destroyValue(void *item) const;
+
+		void		setTreeController(AVLTreeController *c);
+		void		allowDupes(bool allow);
+		size_t		num() const;
+		size_t		count() const;
+		void		clear();
+		void		add(const void *value);
+		void		erase(const void *value);
+		void		remove(const void *value);
+		void		*find(const void *value) const;
+		TREEITEM	*findNode(const void *value) const;
+		void		*findOrAdd(const void *item);
+		void		printNodes(const TREEITEM *node=NULL) const;
+
+		void		reset(Iterator &it) const;
+		void		*getFirst(Iterator &it) const;
+		void		*getNext(Iterator &it) const;
+		void		*getLast(Iterator &it) const;
+		void		*getPrevious(Iterator &it) const;
+		void		*getCurrent(Iterator &it) const;
+
+};
 
 
 

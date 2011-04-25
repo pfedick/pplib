@@ -34,10 +34,13 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 ### Object Files
 ###########################################################################
 
-RELEASE	= release/Exceptions.o \
+RELEASE	= release/AVLTree.o \
+	release/Exceptions.o \
 	release/Functions.o \
+	release/Heap.o \
 	release/Mutex.o \
 	release/StringFunctions.o \
+	release/Threads.o \
 	release/type_Array.o \
 	release/type_ByteArray.o \
 	release/type_ByteArrayPtr.o \
@@ -53,10 +56,13 @@ RELEASE	= release/Exceptions.o \
 	 \
 	release/sound_Icecast.o
 
-DEBUG	= debug/Exceptions.o \
+DEBUG	= debug/AVLTree.o \
+	debug/Exceptions.o \
 	debug/Functions.o \
+	debug/Heap.o \
 	debug/Mutex.o \
 	debug/StringFunctions.o \
+	debug/Threads.o \
 	debug/type_Array.o \
 	debug/type_ByteArray.o \
 	debug/type_ByteArrayPtr.o \
@@ -137,6 +143,7 @@ clean:
 	-rm -rf release
 	-rm -rf debug
 	-rm -rf documentation
+	-rm -rf tests/bin
 
 distclean: clean
 	-rm -rf $(incdir)/ppl7-unixconfig.h $(incdir)/config.h config.log config.status autom4te.cache configure.scan
@@ -154,7 +161,11 @@ html:
 	-rm -rf documentation/html
 	-mkdir -p documentation/html
 	-doxygen Doxyfile
+	-cp docs/header-bg.png documentation/html
 
+test:
+	- cd tests; make run
+	 
 
 #release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp
 #	$(CXX) -Wall -c -o release/pplgenresource.o tools/pplgenresource/genresource.cpp $(CFLAGS)
@@ -173,6 +184,11 @@ html:
 ###########################################################################
 
 ### CORE
+release/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/AVLTree.cpp<<<
+	$(CXX) -Wall -O3 -o release/AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) 
+
 release/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Exceptions.cpp<<<
@@ -183,6 +199,11 @@ release/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>core/Functions.cpp<<<
 	$(CXX) -Wall -O3 -o release/Functions.o -c $(srcdir)/core/Functions.cpp $(CFLAGS) 
 
+release/Heap.o:	$(srcdir)/core/Heap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Heap.cpp<<<
+	$(CXX) -Wall -O3 -o release/Heap.o -c $(srcdir)/core/Heap.cpp $(CFLAGS) 
+
 release/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Mutex.cpp<<<
@@ -192,6 +213,11 @@ release/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $
 	###############################################################################
 	# Compiling >>>core/StringFunctions.cpp<<<
 	$(CXX) -Wall -O3 -o release/StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp $(CFLAGS) 
+
+release/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Threads.cpp<<<
+	$(CXX) -Wall -O3 -o release/Threads.o -c $(srcdir)/core/Threads.cpp $(CFLAGS) 
 
 ### TYPES
 release/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
@@ -257,6 +283,11 @@ release/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/
 ###########################################################################
 
 ### CORE
+debug/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/AVLTree.cpp<<<
+	$(CXX) -Wall -O -o debug/AVLTree.o -c $(srcdir)/core/AVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Exceptions.cpp<<<
@@ -267,6 +298,11 @@ debug/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	# Compiling >>>core/Functions.cpp<<<
 	$(CXX) -Wall -O -o debug/Functions.o -c $(srcdir)/core/Functions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/Heap.o:	$(srcdir)/core/Heap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Heap.cpp<<<
+	$(CXX) -Wall -O -o debug/Heap.o -c $(srcdir)/core/Heap.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Mutex.cpp<<<
@@ -276,6 +312,11 @@ debug/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(i
 	###############################################################################
 	# Compiling >>>core/StringFunctions.cpp<<<
 	$(CXX) -Wall -O -o debug/StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Threads.cpp<<<
+	$(CXX) -Wall -O -o debug/Threads.o -c $(srcdir)/core/Threads.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### TYPES
 debug/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
