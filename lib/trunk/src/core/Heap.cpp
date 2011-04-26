@@ -89,6 +89,8 @@ typedef struct tagHeapBlock {
  * soll, wenn kein Speicher mehr frei ist. Initial kann dabei auch schon Speicher allokiert
  * werden.
  *
+ * Die Wachstumsgröße selbst wächst bei jeder Vergrößerung um 30%.
+ *
  */
 
 
@@ -102,11 +104,12 @@ typedef struct tagHeapBlock {
 Heap::Heap()
 {
 	blocks=NULL;
-	elementSize=0;
+	myElementSize=0;
 	increaseSize=0;
 	blocksAllocated=0;
 	blocksUsed=0;
 	freeCount=0;
+	myGrowPercent=30;
 	mem_allocated=sizeof(Heap);
 	mem_used=sizeof(Heap);
 }
@@ -120,17 +123,19 @@ Heap::Heap()
  * @param startnum Anzahl Elemente, für die sofort Speicher allokiert werden soll
  * @param increase Anzahl Elemente, um die der Heap wachsen soll, wenn keine Elemente mehr
  * frei sind.
+ * @param growpercent Optional: Wachstumsrate der Speichervergrößerung (Default=30%)
  * \exception OutOfMemoryException: Wird geworfen, wenn nicht genug Speicher verfügbar ist, um den
  * Heap anzulegen.
  */
-Heap::Heap(size_t elementsize, size_t startnum, size_t increase)
+Heap::Heap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent)
 {
 	blocks=NULL;
-	elementSize=0;
+	myElementSize=0;
 	increaseSize=0;
 	blocksAllocated=0;
 	blocksUsed=0;
 	freeCount=0;
+	myGrowPercent=growpercent;
 	mem_allocated=sizeof(Heap);
 	mem_used=sizeof(Heap);
 	init(elementsize, startnum, increase);
@@ -160,9 +165,9 @@ void Heap::clear()
 	HEAPBLOCK *next, *bl=(HEAPBLOCK*)blocks;
 	while (bl) {
 		next=bl->next;
-		free(bl->elbuffer);
-		free(bl->buffer);
-		free(bl);
+		::free(bl->elbuffer);
+		::free(bl->buffer);
+		::free(bl);
 		bl=next;
 	}
 	freeCount=0;
@@ -188,7 +193,7 @@ size_t Heap::capacity() const
 	return blocksAllocated;
 }
 
-/*!\brief Anzahl belegterElemente
+/*!\brief Anzahl belegter Elemente
  *
  * \desc
  * Liefert die Anzahl Elemente zurück, die derzeit in Verwendung sind.
@@ -198,6 +203,18 @@ size_t Heap::capacity() const
 size_t Heap::count() const
 {
 	return blocksUsed;
+}
+
+/*!\brief Größe der Elemente
+ *
+ * \desc
+ * Liefert die Größe eines Elementes in Bytes zurück
+ *
+ * @return Größe in Bytes
+ */
+size_t Heap::elementSize() const
+{
+	return myElementSize;
 }
 
 /*!\Speicher reservieren
@@ -211,7 +228,7 @@ size_t Heap::count() const
  * @param num Anzahl Elemente, für die Speicher vorab allokiert werden soll
  *
  * \note Falls schon Speicher allokiert wurde, wird die Anzahl der bereits allokierten Elemente
- * mit \p num verreichnet und nur die Differenz zusätzlich reserviert.
+ * mit \p num verrechnet und nur die Differenz zusätzlich reserviert.
  */
 void Heap::reserve(size_t num)
 {
@@ -233,18 +250,20 @@ void Heap::reserve(size_t num)
  * @param startnum Anzahl Elemente, für die sofort Speicher allokiert werden soll
  * @param increase Anzahl Elemente, um die der Heap wachsen soll, wenn keine Elemente mehr
  * frei sind.
+ * @param growpercent Optional: Wachstumsrate der Speichervergrößerung (Default=30%)
  * \exception OutOfMemoryException: Wird geworfen, wenn nicht genug Speicher verfügbar ist, um den
  * Heap anzulegen.
  */
-void Heap::init(size_t elementsize, size_t startnum, size_t increase)
+void Heap::init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent)
 {
-	if (elementSize) throw AlreadyInitializedException();
+	if (myElementSize) throw AlreadyInitializedException();
 	//Elementsize auf 4 Byte aufrunden
 	if (!elementsize) throw IllegalArgumentException("elementsize");
 	elementsize=(elementsize+3)&0xfffffffc;
 
-	this->elementSize=elementsize;
+	this->myElementSize=elementsize;
 	this->increaseSize=increase;
+	myGrowPercent=growpercent;
 	if (startnum) this->increase(startnum);
 }
 
@@ -267,16 +286,16 @@ void Heap::increase(size_t num)
 	bl->next=NULL;
 	bl->num_free=num;
 	bl->previous=NULL;
-	bl->buffer=::malloc(elementSize*num);
+	bl->buffer=::malloc(myElementSize*num);
 	if (!bl->buffer) {
-		free(bl);
+		::free(bl);
 		throw OutOfMemoryException();
 	}
-	bl->bufferend=(ppluint8*)bl->buffer+elementSize*num;
+	bl->bufferend=(ppluint8*)bl->buffer+myElementSize*num;
 	bl->free=(HEAPELEMENT *)::malloc(sizeof(HEAPELEMENT)*num);
 	if (!bl->free) {
-		free(bl->buffer);
-		free(bl);
+		::free(bl->buffer);
+		::free(bl);
 		throw OutOfMemoryException();
 	}
 	bl->elbuffer=bl->free;
@@ -287,7 +306,7 @@ void Heap::increase(size_t num)
 		t->previous=prev;
 		t->next=&bl->free[i+1];
 		t->ptr=buffer;
-		buffer+=elementSize;
+		buffer+=myElementSize;
 		prev=t;
 	}
 	bl->free[num-1].next=NULL;
@@ -295,8 +314,7 @@ void Heap::increase(size_t num)
 	if (bl->next) bl->next->previous=bl;
 	blocks=bl;
 	blocksAllocated+=num;
-	increaseSize+=(increaseSize*30/100);
-	mem_allocated+=sizeof(HEAPBLOCK)+elementSize*num+sizeof(HEAPELEMENT)*num;
+	mem_allocated+=sizeof(HEAPBLOCK)+myElementSize*num+sizeof(HEAPELEMENT)*num;
 	mem_used+=sizeof(HEAPBLOCK);
 }
 
@@ -316,7 +334,7 @@ void Heap::increase(size_t num)
 void *Heap::calloc()
 {
 	void *block=malloc();
-	memset(block,0,elementSize);
+	memset(block,0,myElementSize);
 	return block;
 }
 
@@ -335,7 +353,7 @@ void *Heap::calloc()
  */
 void *Heap::malloc()
 {
-	if (!elementSize) throw NotInitializedException();
+	if (!myElementSize) throw NotInitializedException();
 	while (1) {
 		// Den nächsten freien Block suchen
 		HEAPBLOCK *bl=(HEAPBLOCK*)blocks;
@@ -346,7 +364,7 @@ void *Heap::malloc()
 				bl->free=bl->free->next;
 				if(bl->free) bl->free->previous=NULL;
 				bl->num_free--;
-				mem_used+=elementSize+sizeof(HEAPELEMENT);
+				mem_used+=myElementSize+sizeof(HEAPELEMENT);
 				blocksUsed++;
 				return el->ptr;
 			}
@@ -354,6 +372,7 @@ void *Heap::malloc()
 		}
 		// Speicher muss vergroessert werden
 		increase(increaseSize);
+		increaseSize+=(increaseSize*myGrowPercent/100);
 	}
 }
 
@@ -366,19 +385,19 @@ void *Heap::malloc()
  * @param mem Pointer auf den freizugebenden Speicherbereich
  *
  * \exception Heap::HeapCorruptedException: könnte auftreten, wenn der interne Speicher des
- * Heaps, in dem die Elemente verwaltet werden, überschrieben wird.
+ * Heaps, in dem die Elemente verwaltet werden, überschrieben wurde.
  * \exception Heap::ElementNotInHeapException: Der mit \p mem referenzierte Speicherblock
  * wurde nicht über diesen Heap allokiert.
  */
 void Heap::free(void *mem)
 {
-	if (!elementSize) throw NotInitializedException();
+	if (!myElementSize) throw NotInitializedException();
 	HEAPBLOCK *bl=(HEAPBLOCK*)blocks;
 	while (bl) {
 		if (mem>=bl->buffer && mem<=bl->bufferend) {
 			// Nummer des Blocks errechnen
 			HEAPELEMENT *el=bl->elbuffer;
-			int element=(ppluint32)((ppluint8*)mem-(ppluint8*)bl->buffer)/elementSize;
+			int element=(ppluint32)((ppluint8*)mem-(ppluint8*)bl->buffer)/myElementSize;
 			if(el[element].ptr!=mem) {
 				// Hier stimmt was nicht!!!!
 				throw HeapCorruptedException();
@@ -389,7 +408,7 @@ void Heap::free(void *mem)
 			if (bl->free) bl->free->previous=&el[element];
 			bl->free=&el[element];
 			bl->num_free++;
-			mem_used-=(elementSize+sizeof(HEAPELEMENT));
+			mem_used-=(myElementSize+sizeof(HEAPELEMENT));
 			//if (bl->num_free==bl->elements) cleanup();
 			blocksUsed--;
 			freeCount++;
@@ -408,6 +427,7 @@ void Heap::free(void *mem)
  * Diese Funktion prüft, ob der Heap ungenutze Speicherbereiche verwaltet und gibt diese
  * frei. Das schließt Speicherbereiche, die mit Heap::reserve reserviert wurden, mit ein.
  * Die Funktion wird automatisch nach 1000 Aufrufen von Heap::free aufgerufen.
+ * Ein freier Speicherblock wird in Reserve gehalten.
  */
 void Heap::cleanup()
 {
@@ -422,11 +442,12 @@ void Heap::cleanup()
 				blocksAllocated-=bl->elements;
 				if (bl->previous) bl->previous->next=bl->next;
 				if (bl->next) bl->next->previous=bl->previous;
-				mem_allocated-=sizeof(HEAPBLOCK)+elementSize*bl->elements+sizeof(HEAPELEMENT)*bl->elements;
+				mem_allocated-=sizeof(HEAPBLOCK)+myElementSize*bl->elements+sizeof(HEAPELEMENT)*bl->elements;
 				mem_used-=sizeof(HEAPBLOCK);
-				free(bl->buffer);
-				free(bl->elbuffer);
-				free(bl);
+				::free(bl->buffer);
+				::free(bl->elbuffer);
+				::free(bl);
+				if (bl==(HEAPBLOCK*)blocks) blocks=next;
 			}
 			flag=true;
 		}
@@ -471,13 +492,13 @@ void Heap::dump() const
 {
 	HEAPBLOCK *bl=(HEAPBLOCK*)blocks;
 	PrintDebug ("Dump Heap (0x%tx, ",(ptrdiff_t)this);
-	PrintDebug ("Elementsize: %zu):\n", elementSize);
+	PrintDebug ("Elementsize: %zu):\n", myElementSize);
 	PrintDebug ("Memory allocated: %zu Bytes, Memory used: %zu Bytes, Memory free: %zu Bytes\n",
 			mem_allocated, mem_used, (mem_allocated-mem_used));
 	PrintDebug ("Blocks allocated: %zu, Blocks used: %zu, freeCount: %zu\n",
 			blocksAllocated, blocksUsed, freeCount);
 	while (bl) {
-		PrintDebug ("HEAPBLOCK: elements: %zu, free: %zu, Bytes allocated: %zu\n",bl->elements, bl->num_free, bl->elements*elementSize);
+		PrintDebug ("HEAPBLOCK: elements: %zu, free: %zu, Bytes allocated: %zu\n",bl->elements, bl->num_free, bl->elements*myElementSize);
 		bl=bl->next;
 	}
 }

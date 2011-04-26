@@ -7,9 +7,16 @@ CFLAGS	= -ggdb -Wall  `ppl7-config --cflags debug` $(EXTRA_CFLAGS)
 LIB		= `ppl7-config --libs debug` -lgtest -lstdc++
 
 
-run: bin bin/strings bin/array
-	bin/strings
+all: heap array string
+
+heap: bin/heap
+	bin/heap
+
+array: bin/array
 	bin/array
+
+string: bin/string
+	bin/string
 
 bin:
 	mkdir -p bin
@@ -19,6 +26,9 @@ bin/strings: bin src/strings.cpp Makefile
 
 bin/array: bin src/array.cpp Makefile
 	$(CC) -o bin/array src/array.cpp $(CFLAGS) $(LIB)
+
+bin/heap: bin src/heap.cpp Makefile
+	$(CC) -o bin/heap src/heap.cpp $(CFLAGS) $(LIB)
 
 clean:
 	-rm -rf bin

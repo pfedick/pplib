@@ -245,7 +245,8 @@ class Heap
 {
 	private:
 		void		*blocks;
-		size_t		elementSize, increaseSize;
+		size_t		myElementSize, increaseSize;
+		size_t		myGrowPercent;
 		size_t		blocksAllocated, blocksUsed;
 		size_t		mem_allocated;
 		size_t		mem_used;
@@ -262,10 +263,10 @@ class Heap
 
 
 		Heap();
-		Heap(size_t elementsize, size_t startnum, size_t increase);
+		Heap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
 		~Heap();
 		void clear();
-		void init(size_t elementsize, size_t startnum, size_t increase);
+		void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
 		void *malloc();
 		void *calloc();
 		void free(void *element);
@@ -274,6 +275,7 @@ class Heap
 		void dump() const;
 		size_t capacity() const;
 		size_t count() const;
+		size_t elementSize() const;
 		void reserve(size_t num);
 		void cleanup();
 };
