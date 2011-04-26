@@ -245,12 +245,13 @@ class Heap
 {
 	private:
 		void		*blocks;
-		size_t		elementSize, increaseSize, incCount;
+		size_t		elementSize, increaseSize;
+		size_t		blocksAllocated, blocksUsed;
 		size_t		mem_allocated;
 		size_t		mem_used;
+		size_t		freeCount;
 
 		void		increase(size_t num);
-		void		cleanup();
 
 	public:
 		PPLNORMALEXCEPTION(NotInitializedException);
@@ -271,6 +272,10 @@ class Heap
 		size_t memoryUsed() const;
 		size_t memoryAllocated() const;
 		void dump() const;
+		size_t capacity() const;
+		size_t count() const;
+		void reserve(size_t num);
+		void cleanup();
 };
 
 // ***************************************************************************
