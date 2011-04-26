@@ -57,7 +57,6 @@ namespace ppl7 {
 
 
 /*!\class AVLTreeController
- * \ingroup PPLGroupDataTypes
  * \brief Virtuelle Basisklasse für AVLTrees
  *
  * \desc
@@ -157,7 +156,6 @@ class MyTree : public ppl6::AVLTree
 
 /*!\class AVLTree
  * \brief AVL-Bäume mit nichtypisierten Elementen
- * \ingroup PPLGroupDataTypes
  *
  * \desc
  * Diese Klasse kann zur Verwaltung beliebiger Elemente in einem sortierten AVL-Baum

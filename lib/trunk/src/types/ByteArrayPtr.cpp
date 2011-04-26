@@ -48,7 +48,7 @@ namespace ppl7 {
 
 
 /*!\class ByteArrayPtr
- * \ingroup PPLGroupMemory
+ * \ingroup PPLGroupDataTypes
  * \brief Referenz auf einen Speicherbereich
  *
  * \desc

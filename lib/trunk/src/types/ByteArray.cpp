@@ -56,7 +56,7 @@ namespace ppl7 {
 
 
 /*!\class ByteArray
- * \ingroup PPLGroupMemory
+ * \ingroup PPLGroupDataTypes
  * \brief Verwaltung eines einzelnen Speicherblocks
  *
  * \desc
