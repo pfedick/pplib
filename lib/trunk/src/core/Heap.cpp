@@ -2,11 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 32 $
- * $Date: 2011-04-24 20:16:39 +0000 (So, 24 Apr 2011) $
- * $Id: Array.cpp 32 2011-04-24 20:16:39Z pafe $
- * $URL: https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk/src/types/Array.cpp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
