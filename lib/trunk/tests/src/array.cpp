@@ -335,6 +335,54 @@ TEST_F(ArrayTest, implode) {
 	);
 }
 
+TEST_F(ArrayTest, sortWithDupes) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red white green blue red yellow black white",L" ");
+			ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
+			a1.sort();
+			ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
+			ppl7::String merged=a1.implode(" ");
+			ASSERT_EQ(ppl7::String(L"black blue green red red white white yellow"),merged) << "Elements with wrong value";
+	}
+	);
+}
+
+TEST_F(ArrayTest, sortReverse) {
+	ASSERT_NO_THROW({
+			ppl7::Array a1(L"red white green blue red yellow black white",L" ");
+			ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
+			a1.sortReverse();
+			ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
+			ppl7::String merged=a1.implode(" ");
+			ASSERT_EQ(ppl7::String(L"yellow white white red red green blue black"),merged) << "Elements with wrong value";
+	}
+	);
+}
+
+TEST_F(ArrayTest, sortWithoutDupes) {
+	ppl7::Array a1(L"red white green blue red yellow black white",L" ");
+	ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
+	ASSERT_NO_THROW({
+		a1.sortUnique();
+	});
+	ASSERT_EQ((size_t)6,a1.count()) << "Array does not contain 6 elements";
+	ppl7::String merged=a1.implode(" ");
+	ASSERT_EQ(ppl7::String(L"black blue green red white yellow"),merged) << "Elements with wrong value";
+
+}
+
+TEST_F(ArrayTest, makeUnique) {
+	ppl7::Array a1(L"red white green blue red yellow black white",L" ");
+	ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
+	ASSERT_NO_THROW({
+		a1.makeUnique();
+	});
+	ASSERT_EQ((size_t)6,a1.count()) << "Array does not contain 6 elements";
+	ppl7::String merged=a1.implode(" ");
+	ASSERT_EQ(ppl7::String(L"red white green blue yellow black"),merged) << "Elements with wrong value";
+}
+
+
 
 }
 

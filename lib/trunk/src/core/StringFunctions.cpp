@@ -189,6 +189,14 @@ String StripSlashes(const String &str)
 	return ret;
 }
 
+/*!\brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
+ * \relates String
+ *
+ * \desc
+ * Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
+ * @param str Eingabe-String
+ * @return Neuer String
+ */
 String Trim(const String &str)
 {
 	String ret=str;
@@ -227,15 +235,21 @@ int StrCaseCmp(const String &s1, const String &s2)
 }
 
 
-/*! \brief Sucht nach Zeichen in einem String
- *
+/*!\brief Sucht nach Zeichen in einem String
+ * \relates String
  * \code
-int instr (char * string, char * such, unsigned int start);
+ssize_t Instr (const char * haystack, const char * needle, size_t start);
+ssize_t Instr (const wchar_t * haystack, const wchar_t * needle, size_t start);
+ssize_t Instr (const String &haystack, const String &needle, size_t start);
+ssize_t Instrcase (const char * haystack, const char * needle, size_t start);
+ssize_t Instrcase (const wchar_t * haystack, const wchar_t * needle, size_t start);
+ssize_t Instrcase (const String &haystack, const String &needle, size_t start);
+
 
 \endcode
  * Diese Funktionen suchen nach einer Zeichenkette innerhalb eines Strings, wobei
- * die Funktion \c instr zwischen Gross- und Kleinschreibung unterschiedet, und
- * die Funktion \c instrcase nicht.
+ * die Funktion \c Instr zwischen Gross- und Kleinschreibung unterschiedet, und
+ * die Funktion \c Instrcase nicht.
  *
  * \param haystack ist ein Pointer auf einen Null-terminierten String, der
  * den zu durchsuchenden String enthält.
@@ -262,7 +276,8 @@ ssize_t Instr (const char * haystack, const char * needle, size_t start)
 }
 
 
-/*! \brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
+/*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
+ * \relates String
  *
  * \copydoc Instr (const char * haystack, const char * needle, size_t start)
  */
@@ -280,7 +295,8 @@ ssize_t Instrcase (const char * haystack, const char * needle, size_t start)
 	return (-1);
 }
 
-/*! \brief Sucht nach Zeichen in einem String
+/*!\brief Sucht nach Zeichen in einem String
+ * \relates String
  *
  * \copydoc Instr (const char * haystack, const char * needle, size_t start)
  */
@@ -298,7 +314,8 @@ ssize_t Instr (const wchar_t * haystack, const wchar_t * needle, size_t start)
 	return (-1);
 }
 
-/*! \brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
+/*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
+ * \relates String
  *
  * \copydoc Instr (const char * haystack, const char * needle, size_t start)
  */
@@ -346,11 +363,21 @@ ssize_t Instrcase (const wchar_t * haystack, const wchar_t * needle, size_t star
 	return (-1);
 }
 
+/*!\brief Sucht nach Zeichen in einem String
+ * \relates String
+ *
+ * \copydoc Instr (const char * haystack, const char * needle, size_t start)
+ */
 ssize_t Instr (const String &haystack, const String &needle, size_t start)
 {
 	return haystack.instr(needle,start);
 }
 
+/*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
+ * \relates String
+ *
+ * \copydoc Instr (const char * haystack, const char * needle, size_t start)
+ */
 ssize_t InstrCase (const String &haystack, const String &needle, size_t start)
 {
 	return haystack.instrCase(needle,start);
@@ -398,14 +425,52 @@ bool IsTrue(const String &str)
 	return str.isTrue();
 }
 
+
+/*!\brief Der String wird anhand einer Regular Expression durchsucht
+ * \relates String
+ *
+ * \desc
+ * Durchsucht den String \p subject anhand der Perl-Expression \p expression
+ * und gibt \c true zurück, wenn die Expression auf den String matched.
+ *
+ * \param[in] expression Ist eine Perl-kompatible Regular Expression, die mit Slash (/) beginnt und
+ * endet. Optional können nach dem schließenden Slash folgende Optionen angegeben werden:
+ * \copydoc pregexpr.dox
+ * \param[in] subject Der String, auf den die Regular Expression angewendet werden soll
+ * \return Liefert \c true zurück, wenn ein Match gefunden wurde, ansonsten \c false
+ * \remarks
+ * Der String wird intern zuerst nach UTF-8 kodiert, bevor die pcre-Funktionen aufgerufen werden.
+ * \note
+ * \copydoc pcrenote.dox
+ */
 bool PregMatch(const String &expression, const String &subject)
 {
 	return subject.pregMatch(expression);
 }
 
-bool PregMatch(const String &expression, const String &subject, Array &matches)
+/*!\brief Der String wird anhand einer Regular Expression durchsucht
+ * \relates String
+ *
+ * \desc
+ * Durchsucht den String anhand einer Perl-Expression und liefert die die zu kopierenden Werte (Capture)
+ * in einem Array zurück.
+ *
+ * \param[in] expression Ist eine Perl-kompatible Regular Expression, die mit Slash (/) beginnt und
+ * endet. Optional können nach dem schließenden Slash folgende Optionen angegeben werden:
+ * \copydoc pregexpr.dox
+ * \param[in] subject Der String, auf den die Regular Expression angewendet werden soll
+ * \param[out] matches Array, dass die zu kopierenden Werte aufnimmt.
+ * \param[in] maxmatches Optionaler Parameter, der die maximale Anzahl zu kopierender Werte aufnimmt
+ * (Default=16).
+ * \return Liefert \c true(1) zurück, wenn ein Match gefunden wurde, ansonsten \c false(0)
+ * \remarks
+ * Der String wird intern zuerst nach UTF-8 kodiert, bevor die pcre-Funktionen aufgerufen werden.
+ * \note
+ * \copydoc pcrenote.dox
+ */
+bool PregMatch(const String &expression, const String &subject, Array &matches, size_t maxmatches)
 {
-	return subject.pregMatch(expression,matches);
+	return subject.pregMatch(expression,matches, maxmatches);
 }
 
 

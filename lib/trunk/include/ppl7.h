@@ -155,9 +155,10 @@ String Replace(const String &string, const String &search, const String &replace
 bool IsTrue(const String &str);
 
 bool PregMatch(const String &expression, const String &subject);
-bool PregMatch(const String &expression, const String &subject, Array &matches);
+bool PregMatch(const String &expression, const String &subject, Array &matches, size_t maxmatches=16);
 
-
+Array Sort(const Array &array, bool unique=false);
+Array SortReverse(const Array &array, bool unique=false);
 size_t rand(size_t min, size_t max);
 
 
@@ -299,7 +300,7 @@ class AVLTreeController
 		virtual ~AVLTreeController() {};
 		virtual int	compare(const void *value1, const void *value2) const = 0;
 		virtual int getValue(const void *item, String &buffer) const = 0;
-		virtual int destroyValue(void *item) const = 0;
+		virtual void destroyValue(void *item) const = 0;
 };
 
 
@@ -340,7 +341,7 @@ class AVLTree : public AVLTreeController
 		virtual ~AVLTree();
 		virtual int	compare(const void *value1, const void *value2) const;
 		virtual int getValue(const void *item, String &buffer) const;
-		virtual int destroyValue(void *item) const;
+		virtual void destroyValue(void *item) const;
 
 		void		setTreeController(AVLTreeController *c);
 		void		allowDupes(bool allow);
@@ -349,7 +350,7 @@ class AVLTree : public AVLTreeController
 		void		clear();
 		void		add(const void *value);
 		void		erase(const void *value);
-		void		remove(const void *value);
+		void		*remove(const void *value);
 		void		*find(const void *value) const;
 		TREEITEM	*findNode(const void *value) const;
 		void		*findOrAdd(const void *item);
@@ -364,7 +365,63 @@ class AVLTree : public AVLTreeController
 
 };
 
+template <class T> class Tree : private AVLTree
+{
+	public:
+		Tree() {};
+		Tree(const T &other) {
 
+		}
+		virtual int	compare(const void *value1, const void *value2) const
+		{
+			const T *v1=(const T*)value1;
+			const T *v2=(const T*)value2;
+			if (*v1<*v2) return -1;
+			if (*v1>*v2) return 1;
+			return 0;
+		}
+		virtual void destroyValue(void *item) const
+		{
+			T *i=(T*) item;
+			delete i;
+		}
+		void		allowDupes(bool allow)
+		{
+			AVLTree::allowDupes(allow);
+		}
+		size_t		count() const
+		{
+			return AVLTree::count();
+		}
+		void		clear()
+		{
+			AVLTree::clear();
+		}
+		void		add(const T &value)
+		{
+			T *v=new T;
+			*v=value;
+			AVLTree::add((void *)v);
+		}
+		void		erase(const T &value)
+		{
+			AVLTree::erase((void*)&value);
+
+		}
+		T	remove(const T &value)
+		{
+			T *v=AVLTree::remove((void*)&value);
+			T ret=*v;
+			delete v;
+			return ret;
+		}
+		const T& find(const T &value) const
+		{
+			T *v=AVLTree::find((void*)&value);
+		}
+
+
+};
 
 
 

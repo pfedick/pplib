@@ -476,6 +476,7 @@ class Array : public Variant
 		void reserve (size_t size);
 		void list(const String &prefix=String()) const;
 		void sort();
+		void sortReverse();
 		void sortUnique();
 		void makeUnique();
 		//@}

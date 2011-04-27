@@ -2276,6 +2276,9 @@ bool String::pregMatch(const String &expression) const
 \param[in] expression Ist eine Perl-kompatible Regular Expression, die mit Slash (/) beginnt und
 endet. Optional können nach dem schließenden Slash folgende Optionen angegeben werden:
 \copydoc pregexpr.dox
+\param[out] matches Array, dass die zu kopierenden Werte aufnimmt.
+\param[in] maxmatches Optionaler Parameter, der die maximale Anzahl zu kopierender Werte aufnimmt
+(Default=16).
 \return Liefert \c true(1) zurück, wenn ein Match gefunden wurde, ansonsten \c false(0)
 \remarks
 Der String wird intern zuerst nach UTF-8 kodiert, bevor die pcre-Funktionen aufgerufen werden.
@@ -2310,18 +2313,19 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		int ovectorsize=(maxmatches+1)*2;
 		int *ovector=(int*)malloc(ovectorsize*sizeof(int));
 		int perrorcode;
+		matches.clear();
 		pcre *reg;
 		//printf ("r=%s, flags=%i\n",r,flags);
 		reg=pcre_compile2((const char*)expr,flags,&perrorcode,&perr, &erroffset, NULL);
 		if (!reg) throw IllegalRegularExpressionException();
 		memset(ovector,0,30*sizeof(int));
 		if ((re=pcre_exec(reg, NULL, (const char*) utf8,utf8.size(),0, 0, ovector, ovectorsize))>=0) {
-			for (int i=0;i<14;i++) {
+			for (size_t i=0;i<maxmatches;i++) {
 				const char *tmp=NULL;
 				pcre_get_substring((const char*)utf8,ovector,ovectorsize,i,(const char**)&tmp);
 				if (tmp) {
-					printf("tmp[%i]=%s\n",i,tmp);
-					//res->Set(i,tmp);
+					//printf("tmp[%i]=%s\n",i,tmp);
+					matches.add(tmp);
 					pcre_free_substring(tmp);
 				}
 			}

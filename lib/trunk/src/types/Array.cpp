@@ -978,40 +978,7 @@ Array &Array::fromArgs(const String &args)
 	return *this;
 }
 
-/*!\brief Elemente nach ihrem Wert sortieren
- *
- * \desc
- * Die einzelnen Elemente des Arrays werden alphabetisch sortiert. Duplikate bleiben erhalten
- */
-void Array::sort()
-{
 
-}
-
-/*!\brief Elemente nach ihrem Wert sortieren, Duplikate entfernen
- *
- * \desc
- * Die einzelnen Elemente des Arrays werden alphabetisch sortiert. Duplikate werden entfernt.
- */
-void Array::sortUnique()
-{
-
-}
-
-/*!\brief Duplikate entfernen
- *
- * \desc
- * Elemente, die mehrfach im Array vorkommen, werden entfernt. Die Reihenfolge der Elemente
- * bleibt bestehen.
- *
- * \note
- * In Version 6.x.x der Bibliothek hat die Funktion die Elemente zusätzlich alphabetisch sortiert,
- * was jetzt nicht mehr der Fall ist.
- */
-void Array::makeUnique()
-{
-
-}
 
 
 
@@ -1136,5 +1103,222 @@ Array::Iterator::Iterator()
 }
 
 
+
+
+class ArraySort : private AVLTree
+{
+	private:
+		Iterator it;
+	public:
+		~ArraySort();
+		virtual int	compare(const void *value1, const void *value2) const;
+		virtual void destroyValue(void *item) const;
+		void		add(const String &s);
+		void		reset();
+		String		*getNext();
+		String		*getPrevious();
+		void		allowDupes(bool allow);
+		bool		exists(const String &s) const;
+};
+
+ArraySort::~ArraySort()
+{
+	clear();
+}
+
+int ArraySort::compare(const void *value1, const void *value2) const
+{
+	String *s1=(String*)value1;
+	String *s2=(String*)value2;
+	if (*s2 < *s1) return -1;
+	if (*s2 > *s1) return 1;
+	return 0;
+}
+
+void ArraySort::destroyValue(void *item) const
+{
+	String *s=(String*)item;
+	delete s;
+}
+
+void ArraySort::allowDupes(bool allow)
+{
+	AVLTree::allowDupes(allow);
+}
+
+void ArraySort::add(const String &s)
+{
+	String *a=new String(s);
+	AVLTree::add((void*)a);
+}
+
+void ArraySort::reset()
+{
+	AVLTree::reset(it);
+}
+
+
+String *ArraySort::getNext()
+{
+	return (String *)AVLTree::getNext(it);
+}
+
+String *ArraySort::getPrevious()
+{
+	return (String *)AVLTree::getPrevious(it);
+}
+
+bool ArraySort::exists(const String &s) const
+{
+	if (AVLTree::find((void*)&s)) return true;
+	return false;
+}
+
+/*!\brief Elemente nach ihrem Wert sortieren
+ *
+ * \desc
+ * Die einzelnen Elemente des Arrays werden alphabetisch sortiert. Duplikate bleiben erhalten
+ */
+void Array::sort()
+{
+	ArraySort s;
+	s.allowDupes(true);
+	for (size_t i=0;i<numElements;i++) {
+		s.add(get(i));
+	}
+	s.reset();
+	clear();
+	String *n;
+	while ((n=s.getNext())) {
+		add(*n);
+	}
+}
+
+/*!\brief Elemente nach ihrem Wert in umgekehrter Reihenfolge sortieren
+ *
+ * \desc
+ * Die einzelnen Elemente des Arrays werden in umgekehrter alphabetischer Reihenfolge
+ * sortiert. Duplikate bleiben erhalten.
+ */
+void Array::sortReverse()
+{
+	ArraySort s;
+	s.allowDupes(true);
+	for (size_t i=0;i<numElements;i++) {
+		s.add(get(i));
+	}
+	s.reset();
+	clear();
+	String *n;
+	while ((n=s.getPrevious())) {
+		add(*n);
+	}
+}
+
+/*!\brief Elemente nach ihrem Wert sortieren, Duplikate entfernen
+ *
+ * \desc
+ * Die einzelnen Elemente des Arrays werden alphabetisch sortiert. Duplikate werden entfernt.
+ */
+void Array::sortUnique()
+{
+	ArraySort s;
+	s.allowDupes(false);
+	for (size_t i=0;i<numElements;i++) {
+		try {
+			s.add(get(i));
+		} catch (ppl7::AVLTree::DuplicateItemException) {
+
+		}
+	}
+	s.reset();
+	clear();
+	String *n;
+	while ((n=s.getNext())) {
+		add(*n);
+	}
+}
+
+/*!\brief Duplikate entfernen
+ *
+ * \desc
+ * Elemente, die mehrfach im Array vorkommen, werden entfernt. Die Reihenfolge der Elemente
+ * bleibt bestehen.
+ *
+ * \note
+ * In Version 6.x.x der Bibliothek hat die Funktion die Elemente zusätzlich alphabetisch sortiert,
+ * was jetzt nicht mehr der Fall ist.
+ */
+void Array::makeUnique()
+{
+	String value;
+	ArraySort s;
+	s.allowDupes(false);
+	for (size_t i=0;i<numElements;i++) {
+		value=get(i);
+		if (s.exists(value)) {
+			erase(i);
+			i--;
+		} else {
+			s.add(value);
+		}
+	}
+}
+
+/*!\brief Inhalt eines Arrays alphabetisch sortieren
+ * \relates Array
+ *
+ * \desc
+ * Die einzelnen Elemente des Arrays \p array werden alphabetisch sortiert.
+ *
+ * \param array Das zu sortierende Array
+ * \param unique Optionaler Parameter: true=Duplikate werden entfernt
+ * false=Duplikate bleiben erhalten (Default)
+ * \return Sortieres Array
+ */
+Array Sort(const Array &array, bool unique)
+{
+	Array ret;
+	ArraySort s;
+	s.allowDupes(!unique);
+	size_t num=array.count();
+	for (size_t i=0;i<num;i++) {
+		s.add(array.get(i));
+	}
+	s.reset();
+	String *n;
+	while ((n=s.getNext())) {
+		ret.add(*n);
+	}
+	return ret;
+}
+
+/*!\brief Inhalt eines Arrays in umgekehrter Reihenfolge sortieren
+ * \relates Array
+ *
+ * \desc
+ * Die einzelnen Elemente des Arrays \p array werden in alphabetisch umgekehrter Reihenfolge sortiert.
+ *
+ * \param array Das zu sortierende Array
+ * \param unique Optionaler Parameter: true=Duplikate werden entfernt
+ * false=Duplikate bleiben erhalten (Default)
+ * \return Sortieres Array
+ */
+Array SortReverse(const Array &array, bool unique)
+{
+	Array ret;
+	ArraySort s;
+	s.allowDupes(!unique);
+	size_t num=array.count();
+	for (size_t i=0;i<num;i++) {
+		s.add(array.get(i));
+	}
+	s.reset();
+	String *n;
+	while ((n=s.getPrevious())) {
+		ret.add(*n);
+	}
+	return ret;
+}
 
 } // EOF namespace ppl7

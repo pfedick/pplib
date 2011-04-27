@@ -133,8 +133,7 @@ class MyTree : public ppl6::AVLTree
  *
  * @param[in] item Pointer auf die Daten des Knotens
  * @param[out] buffer String, in dem die textuelle Darstellung der Daten erfolgen soll.
- * @return Bei Erfolg soll die Funktion 1 zurückgeben, im Fehlerfall 0. Wird 0 zurückgegeben,
- * wird der Knoten nicht ausgegeben.
+ * @return Bei erfolgreichem Aufruf muss die Funktion 1 zurückgeben, sonst 0.
  */
 
 
@@ -148,9 +147,6 @@ class MyTree : public ppl6::AVLTree
  *
  * @param item Pointer auf die zu löschenden Daten. Der Pointer zeigt direkt auf die
  * Daten des Knotens, nicht auf die Verwaltungsdaten des Knotens.
- * @return Die Funktion sollte 1 bei erfolgreichem Löschen zurückgeben, im Fehlerfall 0.
- * Allerdings wird der Rückgabewert gegenwärtig nicht geprüft, so dass gegebenenfalls
- * unbemerkt ein Memory-Leak entstehen kann.
  */
 
 
@@ -220,7 +216,6 @@ class MyTree : public ppl6::AVLTree
  */
 
 
-__thread Heap *avlHeap=NULL;
 
 /*!\brief Konstruktor
  *
@@ -265,10 +260,10 @@ int AVLTree::getValue(const void *item, String &buffer) const
 	throw NoTreeControllerException();
 }
 
-int AVLTree::destroyValue(void *item) const
+void AVLTree::destroyValue(void *item) const
 {
-	if (controller) return controller->destroyValue(item);
-	throw NoTreeControllerException();
+	if (controller) controller->destroyValue(item);
+	else throw NoTreeControllerException();
 }
 
 /*!\brief Duplikate erlauben
@@ -437,8 +432,6 @@ void *AVLTree::find(const void *value) const
  * durch Aufruf der Funktion AVLTree::AllowDupes aktiviert werden.
  *
  * \param[in] value Pointer auf den hinzuzufügenden Wert
- * \return Wurde das Element erfolgreich hinzugefügt, gibt die Funktion true (1) zurück,
- * sonst false (0) und ein entsprechender Fehlercode wird gesetzt,
  * \exception EmptyDataException: Wird geworfen, wenn der Parameter \p value auf NULL zeigt
  * \exception OutOfMemoryException: Keine Speicher mehr verfügbar
  */
@@ -495,8 +488,9 @@ void AVLTree::add(const void *value)
  * aufgerufen werden.
  *
  * \param[in] value Pointer auf den zu löschenden Wert
- * \returns Wurde das Element erfolgreich gelöscht, gibt die Funktion true (1) zurück,
- * sonst false (0) und ein entsprechender Fehlercode wird gesetzt.
+ * \exception AVLTree::ItemNotFoundException: Das Element wurde nicht gefunden
+ * \exception AVLTree::DeleteFailedException: Der Knoten konnte nicht gelöscht werden, der Baum
+ * ist wahrscheinlich beschädigt.
  */
 void AVLTree::erase(const void *value)
 {
@@ -522,16 +516,21 @@ void AVLTree::erase(const void *value)
  * die Funktion AVLTree::Delete aufgerufen werden.
  *
  * \param[in] value Pointer auf den zu entfernenden Wert
- * \returns Wurde das Element erfolgreich entfernt, gibt die Funktion true (1) zurück,
- * sonst false (0) und ein entsprechender Fehlercode wird gesetzt.
+ * \return Wurde das Element erfolgreich entfernt, gibt die Funktion einen Pointer auf
+ * die Daten des Elements zurück. Im Fehlerfall wird eine Exception geworfen.
+ * \exception AVLTree::ItemNotFoundException: Das Element wurde nicht gefunden
+ * \exception AVLTree::DeleteFailedException: Der Knoten konnte nicht gelöscht werden, der Baum
+ * ist wahrscheinlich beschädigt.
  */
-void AVLTree::remove(const void *value)
+void * AVLTree::remove(const void *value)
 {
+	void *ret=NULL;
 	TREEITEM *item=findNode(value);
 	if (!item) throw ItemNotFoundException();
+	ret=(void*)item->data;
 	if (deleteNode(item)) {
 		MyHeap.free(item);
-		return;
+		return ret;
 	}
 	throw DeleteFailedException();
 }
