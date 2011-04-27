@@ -160,21 +160,21 @@ class MyTree : public ppl6::AVLTree
  * \desc
  * Diese Klasse kann zur Verwaltung beliebiger Elemente in einem sortierten AVL-Baum
  * verwendet werden. Die Elemente sind dabei beliebig und werden nur durch ihren
- * Pointer referenziert. Im Gegensatz zu CTree werden die zur Baumstruktur benötigten Daten
- * von der Klasse selbst verwaltet und sind nicht Bestandteil der einzelnen Elemente.
+ * Pointer referenziert. Die für die Baumstruktur benötigten Daten werden mittels
+ * Heap von der Klasse selbst verwaltet, die Applikation braucht sich darum also nicht zu
+ * kümmern.
  * \par
- * Dafür kann die Klasse aber nicht direkt verwendet werden, es muss zunächst eine
- * Ableitung erstellt werden, in der mindestens die virtuelle Funktion AVLTree::Compare
- * implementiert werden muss. Optional können auch noch AVLTree::DestroyValue und
- * AVLTree::GetValue implementiert werden.
+ * Die Klasse kann nicht sofort verwendet werden. Da der Datentyp nicht bekannt ist,
+ * muss zunächst eine Ableitung erstellt werden und die individuelle Vergleichsfunktion
+ * (ACLTree::compare) implementiert werden. Optional können auch noch die Funktionen
+ * AVLTree::DestroyValue und AVLTree::GetValue implementiert werden.
  * \par
- * Als Alternative kann auch eine Klasse von CTreeController abgeleitet werden, in der die
- * genannten Funktionen implementiert werden. Diese wird über AVLTree::SetTreeController
+ * Als Alternative kann auch eine Klasse von AVLTreeController abgeleitet werden, in der die
+ * genannten Funktionen implementiert werden. Diese wird über AVLTree::setTreeController
  * der AVL-Klasse mitgeteilt, wodurch fortan deren Methoden verwendet werden.
  *
- * \attention Die Klasse verwaltet keinen eigenen Mutex und ist somit nicht Thread-sicher.
- * Die Aufrufende Anwendung muss selbst sicherstellen, dass die Klasse nicht gleichzeitig
- * von mehreren Threads verwendet wird.
+ * \attention Die Klasse verwaltet keinen eigenen Mutex, die Anwendung muss sich
+ * also selbst um Threadsicherheit kümmern.
  *
  */
 
@@ -186,15 +186,32 @@ class MyTree : public ppl6::AVLTree
  * \brief Anzahl Knoten im Baum
  */
 
-/*!\var AVLTree::current
+
+/*!\class AVLTree::Iterator
+ * \brief %Iterator zum Durchwandern eines AVL-Baums mit der Klasse AVLTree.
+ *
+ * \desc
+ * Dieser %Iterator wird zum Durchwandern eines AVL-Baums mit der Klasse AVLTree benötigt.
+ *
+ * \see
+ * - AVLTree::reset
+ * - AVLTree::getFirst
+ * - AVLTree::getNext
+ * - AVLTree::getLast
+ * - AVLTree::getPrevious
+ * - AVLTree::getCurrent
+ *
+ */
+
+/*!\var AVLTree::Iterator::current
  * \brief Aktueller Knoten beim Durchwandern des Baums
  */
 
-/*!\var AVLTree::stack
+/*!\var AVLTree::Iterator::stack
  * \brief Alle Knoten oberhalb von current
  */
 
-/*!\var AVLTree::stack_height
+/*!\var AVLTree::Iterator::stack_height
  * \brief Anzahl Knoten im Stack
  */
 
@@ -217,8 +234,6 @@ AVLTree::AVLTree()
 	controller=0;
 	numElements=0;
 	root=NULL;
-	current=NULL;
-	stack_height=0;
 	dupes=false;
 }
 
@@ -340,8 +355,6 @@ void AVLTree::clear()
 	}
 	root=NULL;
 	numElements=0;
-	current=NULL;
-	stack_height=0;
 }
 
 /*!\brief Elemente des Baumes ausgeben
@@ -868,6 +881,9 @@ AVLTree::Iterator::Iterator()
 /*!\brief Iterator auf erstes Element zurücksetzen
  *
  * \desc
+ * Durch Aufruf dieser Funktion wird der angegebene %Iterator \p it zurückgesetzt.
+ * Wird als nächstes AVLTree::getNext aufgerufen, wird das erste Element des
+ * Baumes zurückgegeben, bei Aufruf von AVLTree::getPrevious das letzte.
  *
  * @param it Iterator
  */

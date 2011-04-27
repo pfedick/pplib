@@ -321,9 +321,6 @@ class AVLTree : public AVLTreeController
 		Heap		MyHeap;
 		TREEITEM	*root;
 		size_t		numElements;
-		TREEITEM	*current;
-		TREEITEM	*stack[AVL_MAX_HEIGHT];
-		size_t		stack_height;
 		AVLTreeController	*controller;
 		bool		dupes;
 
