@@ -237,6 +237,7 @@ int StrCaseCmp(const String &s1, const String &s2)
 
 /*!\brief Sucht nach Zeichen in einem String
  * \relates String
+ *
  * \code
 ssize_t Instr (const char * haystack, const char * needle, size_t start);
 ssize_t Instr (const wchar_t * haystack, const wchar_t * needle, size_t start);
@@ -244,9 +245,8 @@ ssize_t Instr (const String &haystack, const String &needle, size_t start);
 ssize_t Instrcase (const char * haystack, const char * needle, size_t start);
 ssize_t Instrcase (const wchar_t * haystack, const wchar_t * needle, size_t start);
 ssize_t Instrcase (const String &haystack, const String &needle, size_t start);
-
-
 \endcode
+ * \desc
  * Diese Funktionen suchen nach einer Zeichenkette innerhalb eines Strings, wobei
  * die Funktion \c Instr zwischen Gross- und Kleinschreibung unterschiedet, und
  * die Funktion \c Instrcase nicht.
@@ -260,6 +260,7 @@ ssize_t Instrcase (const String &haystack, const String &needle, size_t start);
  * \return Wird der String \p needle gefunden, wird seine Position zurückgegeben. Befindet sich der
  * String gleich an erster Stelle des Suchstrings, wird 0 zurückgegeben. Wird der String nicht gefunden,
  * wird -1 zurückgegeben.
+ *
  */
 ssize_t Instr (const char * haystack, const char * needle, size_t start)
 {
@@ -279,7 +280,7 @@ ssize_t Instr (const char * haystack, const char * needle, size_t start)
 /*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
  * \relates String
  *
- * \copydoc Instr (const char * haystack, const char * needle, size_t start)
+ * \copydoc Instr(const char * haystack, const char * needle, size_t start)
  */
 ssize_t Instrcase (const char * haystack, const char * needle, size_t start)
 {
@@ -298,7 +299,7 @@ ssize_t Instrcase (const char * haystack, const char * needle, size_t start)
 /*!\brief Sucht nach Zeichen in einem String
  * \relates String
  *
- * \copydoc Instr (const char * haystack, const char * needle, size_t start)
+ * \copydoc Instr(const char * haystack, const char * needle, size_t start)
  */
 ssize_t Instr (const wchar_t * haystack, const wchar_t * needle, size_t start)
 {
@@ -317,7 +318,7 @@ ssize_t Instr (const wchar_t * haystack, const wchar_t * needle, size_t start)
 /*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
  * \relates String
  *
- * \copydoc Instr (const char * haystack, const char * needle, size_t start)
+ * \copydoc Instr(const char * haystack, const char * needle, size_t start)
  */
 ssize_t Instrcase (const wchar_t * haystack, const wchar_t * needle, size_t start)
 {
@@ -366,7 +367,7 @@ ssize_t Instrcase (const wchar_t * haystack, const wchar_t * needle, size_t star
 /*!\brief Sucht nach Zeichen in einem String
  * \relates String
  *
- * \copydoc Instr (const char * haystack, const char * needle, size_t start)
+ * \copydoc Instr(const char * haystack, const char * needle, size_t start)
  */
 ssize_t Instr (const String &haystack, const String &needle, size_t start)
 {
@@ -376,7 +377,7 @@ ssize_t Instr (const String &haystack, const String &needle, size_t start)
 /*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
  * \relates String
  *
- * \copydoc Instr (const char * haystack, const char * needle, size_t start)
+ * \copydoc Instr(const char * haystack, const char * needle, size_t start)
  */
 ssize_t InstrCase (const String &haystack, const String &needle, size_t start)
 {
