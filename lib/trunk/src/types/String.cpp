@@ -153,9 +153,10 @@ void String::setGlobalEncoding(const char *encoding) throw(NullPointerException,
  */
 
 
-/*!\brief Konstruktor
+/*!\brief Konstruktor für leeren String
  *
- * @return
+ * \desc
+ * Es wird ein leerer String erstellt.
  */
 String::String() throw()
 {
@@ -165,6 +166,17 @@ String::String() throw()
 	s=0;
 }
 
+/*!\brief Konstruktor aus C-String
+ *
+ * \desc
+ * Ein String wird aus einem C-String erstellt.
+ *
+ * @param str C-String mit 0-Byte am Ende
+ * @exception OutOfMemoryException
+ * @exception UnsupportedFeatureException
+ * @exception UnsupportedCharacterEncodingException
+ * @exception CharacterEncodingException
+ */
 String::String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
 	type=STRING;
@@ -174,6 +186,14 @@ String::String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureEx
 	set(str);
 }
 
+/*!\brief Konstruktor aus Wide-Character-String
+ *
+ * \desc
+ * Ein String wird aus einem Wide-Character-String erstellt.
+ *
+ * @param str Wide-Character-String, der mit einem 0-Wert Endet
+ * @exception OutOfMemoryException
+ */
 String::String(const wchar_t *str) throw(OutOfMemoryException)
 {
 	type=STRING;
@@ -183,6 +203,16 @@ String::String(const wchar_t *str) throw(OutOfMemoryException)
 	set(str);
 }
 
+/*!\brief Konstruktor aus Wide-Character-String mit bestimmer Länge
+ *
+ * \desc
+ * Ein String wird aus dem Wide-Character-String \p str erstellt, von dem maximal
+ * \p size Zeichen übernommen werden.
+ *
+ * @param str Wide-Character-String, der mit einem 0-Wert Endet
+ * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
+ * @exception OutOfMemoryException
+ */
 String::String(const wchar_t *str, size_t size) throw(OutOfMemoryException)
 {
 	type=STRING;
@@ -192,6 +222,14 @@ String::String(const wchar_t *str, size_t size) throw(OutOfMemoryException)
 	set(str,size);
 }
 
+/*!\brief Konstruktor aus String-Pointer
+ *
+ * \desc
+ * Ein String wird aus einem anderen String erstellt.
+ *
+ * @param str Pointer auf einen anderen String
+ * @exception OutOfMemoryException
+ */
 String::String(const String *str) throw(OutOfMemoryException)
 {
 	type=STRING;
@@ -201,6 +239,14 @@ String::String(const String *str) throw(OutOfMemoryException)
 	set(str);
 }
 
+/*!\brief Konstruktor aus anderem String (Copy-Konstruktor)
+ *
+ * \desc
+ * Ein String wird aus einem anderen String erstellt.
+ *
+ * @param str Referenz auf einen anderen String
+ * @exception OutOfMemoryException
+ */
 String::String(const String &str) throw(OutOfMemoryException)
 {
 	type=STRING;
@@ -210,6 +256,17 @@ String::String(const String &str) throw(OutOfMemoryException)
 	set(str);
 }
 
+/*!\brief Konstruktor aus Standard-Template String
+ *
+ * \desc
+ * Ein String wird aus einem String der Standard-Template-Library (STL) erstellt.
+ *
+ * @param str Referenz auf String der STL
+ * @exception OutOfMemoryException
+ * @exception UnsupportedFeatureException
+ * @exception UnsupportedCharacterEncodingException
+ * @exception CharacterEncodingException
+ */
 String::String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
 	type=STRING;
@@ -219,7 +276,15 @@ String::String(const std::string &str) throw(OutOfMemoryException, UnsupportedFe
 	set(str.data(),str.size());
 }
 
-String::String(const std::wstring &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+/*!\brief Konstruktor aus Standard-Template Wide-String
+ *
+ * \desc
+ * Ein String wird aus einem Wide-String der Standard-Template-Library (STL) erstellt.
+ *
+ * @param str Referenz auf Wide-String der STL
+ * @exception OutOfMemoryException
+ */
+String::String(const std::wstring &str) throw(OutOfMemoryException)
 {
 	type=STRING;
 	ptr=NULL;

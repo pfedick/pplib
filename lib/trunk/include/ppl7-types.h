@@ -178,7 +178,7 @@ class String : public Variant
 		String(const String *str) throw(OutOfMemoryException);
 		String(const String &str) throw(OutOfMemoryException);
 		String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String(const std::wstring &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
+		String(const std::wstring &str) throw(OutOfMemoryException);
 		~String() throw();
 #ifdef WITH_QT
 		String(const QString &q) {

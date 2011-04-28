@@ -124,6 +124,131 @@ TEST_F(StringTest, CapacityAndReserve) {
 	ASSERT_TRUE(s1.capacity()==128) << "capacity did not return 128";
 }
 
+TEST_F(StringTest, len) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.len(),(size_t)42) << "String has unexpected size";
+}
+
+TEST_F(StringTest, length) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.length(),(size_t)42) << "String has unexpected size";
+}
+
+TEST_F(StringTest, size) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.size(),(size_t)42) << "String has unexpected size";
+}
+
+TEST_F(StringTest, isEmpty) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ppl7::String s2;
+	ASSERT_EQ(s1.isEmpty(),false) << "String is empty";
+	ASSERT_EQ(s2.isEmpty(),true) << "String not empty";
+}
+
+TEST_F(StringTest, notEmpty) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ppl7::String s2;
+	ASSERT_EQ(s1.notEmpty(),true) << "String is not empty";
+	ASSERT_EQ(s2.notEmpty(),false) << "String is empty";
+}
+
+TEST_F(StringTest, isNumeric) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+	s1.set(L"");
+	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+	s1.set(L"12345abcd");
+	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+	s1.set(L"12345");
+	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	s1.set(L"123.451,12");
+	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	s1.set(L"-123.451,12");
+	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	s1.set(L"-123.451,12-9");
+	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+}
+
+TEST_F(StringTest, isInteger) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+	s1.set(L"");
+	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+	s1.set(L"12345abcd");
+	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+	s1.set(L"12345");
+	ASSERT_EQ(s1.isInteger(),true) << "String should be an integer";
+	s1.set(L"-12345");
+	ASSERT_EQ(s1.isInteger(),true) << "String should be an integer";
+	s1.set(L"123-451");
+	ASSERT_EQ(s1.isInteger(),false) << "String should be an integer";
+	s1.set(L"123.451,12");
+	ASSERT_EQ(s1.isInteger(),false) << "String should be an integer";
+	s1.set(L"-123.451,12");
+	ASSERT_EQ(s1.isInteger(),false) << "String should be an integer";
+	s1.set(L"-123.451,12-9");
+	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+}
+
+TEST_F(StringTest, isTrue) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	s1.set(L"");
+	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	s1.set(L"12345abcd");
+	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	s1.set(L"1");
+	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	s1.set(L"12345");
+	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	s1.set(L"true");
+	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	s1.set(L"wahr");
+	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	s1.set(L"ja");
+	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	s1.set(L"yes");
+	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	s1.set(L"false");
+	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	s1.set(L"falsch");
+	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	s1.set(L"nein");
+	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	s1.set(L"no");
+	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+}
+
+TEST_F(StringTest, isFalse) {
+	ppl7::String s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"12345abcd");
+	ASSERT_EQ(s1.isFalse(),true) << "String should not be false";
+	s1.set(L"12345");
+	ASSERT_EQ(s1.isFalse(),true) << "String should not be false";
+	s1.set(L"0");
+	ASSERT_EQ(s1.isFalse(),true) << "String should not be false";
+	s1.set(L"true");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"wahr");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"ja");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"yes");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"false");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"falsch");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"nein");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	s1.set(L"no");
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+}
+
 
 TEST_F(StringTest, chopRight) {
 	ppl7::String s1(L"A test string with unicode characters: äöü");

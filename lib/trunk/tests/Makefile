@@ -7,7 +7,7 @@ CFLAGS	= -ggdb -Wall  `ppl7-config --cflags debug` $(EXTRA_CFLAGS)
 LIB		= `ppl7-config --libs debug` -lgtest -lstdc++
 
 
-all: heap array string
+all: heap array strings
 
 heap: bin/heap
 	bin/heap
@@ -15,8 +15,8 @@ heap: bin/heap
 array: bin/array
 	bin/array
 
-string: bin/string
-	bin/string
+strings: bin/strings
+	bin/strings
 
 bin:
 	mkdir -p bin
