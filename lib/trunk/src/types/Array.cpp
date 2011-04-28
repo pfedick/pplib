@@ -1149,7 +1149,12 @@ void ArraySort::allowDupes(bool allow)
 void ArraySort::add(const String &s)
 {
 	String *a=new String(s);
-	AVLTree::add((void*)a);
+	try {
+		AVLTree::add((void*)a);
+	} catch (...) {
+		delete a;
+		throw;
+	}
 }
 
 void ArraySort::reset()
