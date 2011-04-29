@@ -217,7 +217,7 @@ size_t Heap::elementSize() const
 	return myElementSize;
 }
 
-/*!\Speicher reservieren
+/*!\brief Speicher reservieren
  *
  * \desc
  * Mit dieser Funktion kann vorab Speicher für eine bestimmte Anzahl Elemente reserviert werden.

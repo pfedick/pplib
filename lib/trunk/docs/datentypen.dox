@@ -15,7 +15,7 @@ diese auf allen Platformen gleich groß sind. Diese sind:
 </table>
 
 \section DatenTypOther Andere Datenstrukturen
-\li \link ppl7::CVar CVar: Basisklasse für die nachfolgenden Datenstrukturen\endlink \n
+\li \link ppl7::Var Var: Basisklasse für die nachfolgenden Datenstrukturen\endlink \n
 Die Basisklasse bietet die Möglichkeit eine Callback-Klasse zu definieren, deren
 Callback-Funktion immer dann aufgerufen wird, wenn sich am Inhalt
 der Klasse etwas geändert hat.
