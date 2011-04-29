@@ -453,10 +453,11 @@ bool String::isNumeric() const
 	for (size_t i=0;i<stringlen;i++) {
 		c=((wchar_t*)ptr)[i];
 		if (c<'0' || c>'9') {
-			if (c!='.' && c!=',' && c!='-') return 0;
+			if (c!='.' && c!=',' && c!='-') return false;
+			if (c=='-' && i>0) return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 /*!\brief Prüft, ob der String einen Integer Wert enthält
@@ -476,10 +477,10 @@ bool String::isInteger() const
 		c=((wchar_t*)ptr)[i];
 		if (c<'0' || c>'9') {
 			if (c=='-' && i==0) continue;		// Minus am Anfang ist erlaubt
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 /*!\brief Prüft, ob der String "wahr" ist
@@ -541,6 +542,9 @@ bool String::isFalse() const
  * \exception UnsupportedFeatureException
  * \exception UnsupportedCharacterEncodingException
  * \exception CharacterEncodingException
+ *
+ * \note
+ * Multibyte-Characters zählen als ein Zeichen.
  *
  */
 String & String::set(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
@@ -691,6 +695,50 @@ String & String::set(const String &str, size_t size) throw(OutOfMemoryException)
 	return set((wchar_t*)str.ptr,inbytes);
 }
 
+/*!\brief Wert eines Strings der STL übernehmen
+ *
+ * \desc
+ * Mit dieser Funktion wird der Inhalt des STL-Strings \p str übernommen.
+ *
+ * \param str Referenz auf einen String der Standard Template Library (STL)
+ * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
+ * \return Referenz auf den String
+ * \exception OutOfMemoryException
+ */
+String & String::set(const std::string &str, size_t size) throw(OutOfMemoryException)
+{
+	size_t inbytes;
+	if (size!=(size_t)-1) inbytes=size;
+	else inbytes=str.length();
+	if (inbytes>str.length()) inbytes=str.length();
+	return set((const char*)str.c_str(),inbytes);
+}
+
+/*!\brief Wert eines Wide-Strings der STL übernehmen
+ *
+ * \desc
+ * Mit dieser Funktion wird der Inhalt des STL-Wide-Strings \p str übernommen.
+ *
+ * \param str Referenz auf einen Wide-String der Standard Template Library (STL)
+ * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
+ * \return Referenz auf den String
+ * \exception OutOfMemoryException
+ */
+String & String::set(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+{
+	size_t inbytes;
+	if (size!=(size_t)-1) inbytes=size;
+	else inbytes=str.length();
+	if (inbytes>str.length()) inbytes=str.length();
+	return set(str.c_str(),inbytes);
+}
+
+
+
 /*! \brief Erzeugt einen formatierten String
  *
  * \desc
@@ -813,7 +861,10 @@ String & String::append(const wchar_t *str, size_t size) throw(OutOfMemoryExcept
 		return *this;
 	}
 	size_t inchars;
-	if (size!=(size_t)-1) inchars=size;
+	if (size!=(size_t)-1) {
+		inchars=size;
+		if (inchars>wcslen(str)) inchars=wcslen(str);
+	}
 	else inchars=wcslen(str);
 	size_t outbytes=(inchars+stringlen)*sizeof(wchar_t)+4;
 	if (outbytes>=s) {
@@ -851,7 +902,7 @@ String & String::append(const char *str, size_t size) throw(OutOfMemoryException
 {
 	String a;
 	a.set(str,size);
-	return append((wchar_t*)a.ptr,a.stringlen);
+	return append((wchar_t*)a.ptr,size);
 }
 
 /*!\brief Fügt einen als Pointer übergebenen String an das Ende des bestehenden an
@@ -871,7 +922,7 @@ String & String::append(const char *str, size_t size) throw(OutOfMemoryException
 String & String::append(const String *str, size_t size) throw(OutOfMemoryException)
 {
 	if (!str) return *this;
-	return append((wchar_t*)str->ptr,str->stringlen);
+	return append((wchar_t*)str->ptr,size);
 }
 
 /*!\brief Fügt einen String an das Ende des bestehenden an
@@ -888,7 +939,45 @@ String & String::append(const String *str, size_t size) throw(OutOfMemoryExcepti
  */
 String & String::append(const String &str, size_t size) throw(OutOfMemoryException)
 {
-	return append((wchar_t*)str.ptr,str.stringlen);
+	return append((wchar_t*)str.ptr,size);
+}
+
+/*!\brief Fügt einen std::string an das Ende des bestehenden an
+ *
+ * \desc
+ * Fügt einen std::string an das Ende des bestehenden an.
+ *
+ * \param[in] str Referenz auf ein String-Objekt der STL
+ * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+ *
+ * \return Referenz auf den String
+ *
+ * \exception OutOfMemoryException
+ */
+String & String::append(const std::string &str, size_t size) throw(OutOfMemoryException)
+{
+	String a;
+	a.set(str,size);
+	return append((wchar_t*)a.ptr,a.stringlen);
+}
+
+/*!\brief Fügt einen std::wstring an das Ende des bestehenden an
+ *
+ * \desc
+ * Fügt einen std::wstring an das Ende des bestehenden an.
+ *
+ * \param[in] str Referenz auf ein Wide-String-Objekt der STL
+ * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+ *
+ * \return Referenz auf den String
+ *
+ * \exception OutOfMemoryException
+ */
+String & String::append(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+{
+	String a;
+	a.set(str,size);
+	return append((wchar_t*)a.ptr,a.stringlen);
 }
 
 
@@ -976,7 +1065,9 @@ String & String::prepend(const wchar_t *str, size_t size) throw(OutOfMemoryExcep
 		return *this;
 	}
 	size_t inchars;
-	if (size!=(size_t)-1) inchars=size;
+	if (size!=(size_t)-1 && size<=wcslen(str)) {
+		inchars=size;
+	}
 	else inchars=wcslen(str);
 	size_t outbytes=(inchars+stringlen)*sizeof(wchar_t)+4;
 	if (outbytes>=s) {
@@ -1014,7 +1105,9 @@ String & String::prepend(const String *str, size_t size) throw(OutOfMemoryExcept
 		set(str,size);
 		return *this;
 	}
-	return prepend(str->ptr,str->stringlen);
+	String a;
+	a.set(str,size);
+	return prepend(a.ptr,a.stringlen);
 }
 
 /*!\brief Fügt einen String am Anfang des bestehenden Strings ein
@@ -1035,7 +1128,55 @@ String & String::prepend(const String &str, size_t size) throw(OutOfMemoryExcept
 		set(str,size);
 		return *this;
 	}
-	return prepend(str.ptr,str.stringlen);
+	String a;
+	a.set(str,size);
+	return prepend(a.ptr,a.stringlen);
+}
+
+/*!\brief Fügt einen std::string der STL am Anfang des bestehenden Strings ein
+ *
+ * \desc
+ * Fügt einen std::string der Standard Template Library am Anfang des bestehenden Strings ein
+ *
+ * \param[in] str Referenz auf einen std::string
+ * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+ *
+ * \return Referenz auf den String
+ *
+ * \exception OutOfMemoryException
+ */
+String & String::prepend(const std::string &str, size_t size) throw(OutOfMemoryException)
+{
+	if (!ptr) {
+		set(str,size);
+		return *this;
+	}
+	String a;
+	a.set(str,size);
+	return prepend(a.ptr,a.stringlen);
+}
+
+/*!\brief Fügt einen std::wstring der STL am Anfang des bestehenden Strings ein
+ *
+ * \desc
+ * Fügt einen std::wstring der Standard Template Library am Anfang des bestehenden Strings ein
+ *
+ * \param[in] str Referenz auf einen std::wstring
+ * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+ *
+ * \return Referenz auf den String
+ *
+ * \exception OutOfMemoryException
+ */
+String & String::prepend(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+{
+	if (!ptr) {
+		set(str,size);
+		return *this;
+	}
+	String a;
+	a.set(str,size);
+	return prepend(a.ptr,a.stringlen);
 }
 
 /*!\brief Fügt einen C-String am Anfang des bestehenden Strings ein

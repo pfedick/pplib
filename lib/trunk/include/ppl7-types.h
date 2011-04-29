@@ -227,6 +227,8 @@ class String : public Variant
 		String & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(wchar_t c) throw(OutOfMemoryException);
 		String & setf(const char *fmt, ...);
 
@@ -234,6 +236,8 @@ class String : public Variant
 		String & append(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & append(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & append(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & append(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & append(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & appendf(const char *fmt, ...);
 		String & append(wchar_t c) throw(OutOfMemoryException);
 
@@ -241,6 +245,8 @@ class String : public Variant
 		String & prepend(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prepend(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prepend(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & prepend(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & prepend(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prependf(const char *fmt, ...);
 		String & prepend(wchar_t c) throw(OutOfMemoryException);
 
@@ -284,23 +290,10 @@ class String : public Variant
 
 	    bool pregMatch(const String &expression) const;
 	    bool pregMatch(const String &expression, Array &matches, size_t maxmatches=16) const;
-
-
 		//@}
-
-		/* TODO:
-		 *
-
-
-		void Cut(const char *letter);
-		void Shr(char c, int size);
-		void Shl(char c, int size);
-
-		 */
 
 		//! @name String ausgeben und auslesen
 		//@{
-
 		void print(bool withNewline=false) const throw();
 		void printnl() const throw();
 		void hexDump() const;

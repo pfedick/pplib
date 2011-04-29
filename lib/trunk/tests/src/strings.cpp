@@ -226,19 +226,19 @@ TEST_F(StringTest, isFalse) {
 	s1.set(L"");
 	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
 	s1.set(L"12345abcd");
-	ASSERT_EQ(s1.isFalse(),true) << "String should not be false";
+	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
 	s1.set(L"12345");
-	ASSERT_EQ(s1.isFalse(),true) << "String should not be false";
+	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
 	s1.set(L"0");
-	ASSERT_EQ(s1.isFalse(),true) << "String should not be false";
+	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
 	s1.set(L"true");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
 	s1.set(L"wahr");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
 	s1.set(L"ja");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
 	s1.set(L"yes");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
 	s1.set(L"false");
 	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
 	s1.set(L"falsch");
@@ -247,6 +247,387 @@ TEST_F(StringTest, isFalse) {
 	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
 	s1.set(L"no");
 	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
+}
+
+
+TEST_F(StringTest, setConstCharWithoutSize) {
+	ppl7::String s2(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set("äöü, a test string with unicode characters");
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ(s1.size(),(size_t)42) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setConstCharWithSize) {
+	ppl7::String s2(L"äöü, a tes");
+	ppl7::String s1;
+	s1.set("äöü, a test string with unicode characters",10);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)10,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setConstWChartWithoutSize) {
+	ppl7::String s2(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(L"äöü, a test string with unicode characters");
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ(s1.size(),(size_t)42) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setConstWChartWithSize) {
+	ppl7::String s2(L"äöü, a tes");
+	ppl7::String s1;
+	s1.set(L"äöü, a test string with unicode characters",10);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)10,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setStringPtrWithoutSize) {
+	ppl7::String s2(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(&s2);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ(s1.size(),(size_t)42) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setStringPtrWithSize) {
+	ppl7::String s2(L"äöü, a tes");
+	ppl7::String s3(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(&s3,10);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)10,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setStringRefWithoutSize) {
+	ppl7::String s2(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(s2);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ(s1.size(),(size_t)42) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setStringRefWithSize) {
+	ppl7::String s2(L"äöü, a tes");
+	ppl7::String s3(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(s3,10);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)10,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setSTDStringRefWithoutSize) {
+	ppl7::String s2(L"äöü, a test string with unicode characters");
+	std::string s3("äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(s3);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ(s1.size(),(size_t)42) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setSTDStringRefWithSize) {
+	ppl7::String s2(L"äöü, a tes");
+	std::string s3("äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(s3,10);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)10,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setSTDWStringRefWithoutSize) {
+	ppl7::String s2(L"äöü, a test string with unicode characters");
+	std::wstring s3(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(s3);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ(s1.size(),(size_t)42) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setSTDWStringRefWithSize) {
+	ppl7::String s2(L"äöü, a tes");
+	std::wstring s3(L"äöü, a test string with unicode characters");
+	ppl7::String s1;
+	s1.set(s3,10);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)10,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setf) {
+	ppl7::String s2(L"Ein Test, 42, Wide, 10000");
+	ppl7::String s1;
+	s1.setf("Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)25,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setWchart) {
+	ppl7::String s2(L"a");
+	ppl7::String s1;
+	s1.set((wchar_t)'a');
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)1,s1.size()) << "String has unexpected length";
+}
+
+static void test_vasprintf(ppl7::String &str,const char *fmt,...)
+{
+	va_list args;
+	va_start(args, fmt);
+	str.vasprintf(fmt,args);
+	va_end(args);
+}
+
+
+TEST_F(StringTest, vasprintf) {
+	ppl7::String s2(L"Ein Test, 42, Wide, 10000");
+	ppl7::String s1;
+	test_vasprintf(s1,"Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)25,s1.size()) << "String has unexpected length";
+}
+
+
+TEST_F(StringTest, appendConstWchartWithoutSize) {
+	ppl7::String expected(L"First Part äöü, äöü Second Part");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.append(L"äöü Second Part");
+
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendConstWchartWithSize) {
+	ppl7::String expected(L"First Part äöü, äöü S");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.append(L"äöü Second Part",5);
+
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendConstCharPtrWithoutSize) {
+	ppl7::String expected(L"First Part äöü, äöü Second Part");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.append("äöü Second Part");
+
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendConstCharPtrWithSize) {
+	ppl7::String expected(L"First Part äöü, äöü S");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.append("äöü Second Part",5);
+
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStringPtrWithoutSize) {
+	ppl7::String expected(L"First Part äöü, äöü Second Part");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.append(&s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStringPtrWithSize) {
+	ppl7::String expected(L"First Part äöü, äöü S");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.append(&s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStringWithoutSize) {
+	ppl7::String expected(L"First Part äöü, äöü Second Part");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.append(s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStringWithSize) {
+	ppl7::String expected(L"First Part äöü, äöü S");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.append(s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStdStringWithoutSize) {
+	ppl7::String expected(L"First Part äöü, äöü Second Part");
+	ppl7::String s1(L"First Part äöü, ");
+	std::string s2("äöü Second Part");
+	s1.append(s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStdStringWithSize) {
+	ppl7::String expected(L"First Part äöü, äöü S");
+	ppl7::String s1(L"First Part äöü, ");
+	std::string s2("äöü Second Part");
+	s1.append(s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStdWStringWithoutSize) {
+	ppl7::String expected(L"First Part äöü, äöü Second Part");
+	ppl7::String s1(L"First Part äöü, ");
+	std::wstring s2(L"äöü Second Part");
+	s1.append(s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendStdWStringWithSize) {
+	ppl7::String expected(L"First Part äöü, äöü S");
+	ppl7::String s1(L"First Part äöü, ");
+	std::wstring s2(L"äöü Second Part");
+	s1.append(s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendf) {
+	ppl7::String expected(L"First Part äöü, Ein Test, 42, Wide, 10000");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.appendf("Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)41,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, appendWchart) {
+	ppl7::String expected(L"First Part äöü, a");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.append((wchar_t)'a');
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)17,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependConstWchartWithoutSize) {
+	ppl7::String expected(L"äöü Second PartFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.prepend(L"äöü Second Part");
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependConstWchartWithSize) {
+	ppl7::String expected(L"äöü SFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.prepend(L"äöü Second Part",5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependConstCharPtrWithoutSize) {
+	ppl7::String expected(L"äöü Second PartFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.prepend("äöü Second Part");
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependConstCharPtrWithSize) {
+	ppl7::String expected(L"äöü SFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.prepend("äöü Second Part",5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStringPtrWithoutSize) {
+	ppl7::String expected(L"äöü Second PartFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.prepend(&s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStringPtrWithSize) {
+	ppl7::String expected(L"äöü SFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.prepend(&s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStringWithoutSize) {
+	ppl7::String expected(L"äöü Second PartFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.prepend(s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStringWithSize) {
+	ppl7::String expected(L"äöü SFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	ppl7::String s2(L"äöü Second Part");
+	s1.prepend(s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStdStringWithoutSize) {
+	ppl7::String expected(L"äöü Second PartFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	std::string s2("äöü Second Part");
+	s1.prepend(s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStdStringWithSize) {
+	ppl7::String expected(L"äöü SFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	std::string s2("äöü Second Part");
+	s1.prepend(s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStdWStringWithoutSize) {
+	ppl7::String expected(L"äöü Second PartFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	std::wstring s2(L"äöü Second Part");
+	s1.prepend(s2);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependStdWStringWithSize) {
+	ppl7::String expected(L"äöü SFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	std::wstring s2(L"äöü Second Part");
+	s1.prepend(s2,5);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependf) {
+	ppl7::String expected(L"Ein Test, 42, Wide, 10000First Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.prependf("Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)41,s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prependWchart) {
+	ppl7::String expected(L"aFirst Part äöü, ");
+	ppl7::String s1(L"First Part äöü, ");
+	s1.prepend((wchar_t)'a');
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)17,s1.size()) << "String has unexpected length";
 }
 
 
