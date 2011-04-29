@@ -1482,7 +1482,7 @@ void String::printnl() const throw()
 void String::hexDump() const
 {
 	if (stringlen==0) throw EmptyDataException();
-	printf ("HEXDUMP of String: %zi Bytes starting at Address %p:\n",stringlen*sizeof(wchar_t),ptr);
+	PrintDebug ("HEXDUMP of String: %zi Bytes starting at Address %p:\n",stringlen*sizeof(wchar_t),ptr);
 	HexDump(ptr,stringlen*sizeof(wchar_t),true);
 }
 
