@@ -145,6 +145,12 @@ clean:
 	-rm -rf documentation
 	-rm -rf tests/bin
 
+deinstall:
+	-rm -f $(TARGETINCLUDE)/ppl7*.h
+	-rm -f $(TARGETLIB)/$(LIBDEBUG)*.a
+	-rm -f $(TARGETLIB)/$(LIBNAME)*.a
+	-rm -f $(TARGETBIN)/ppl7-config
+	
 distclean: clean
 	-rm -rf $(incdir)/ppl7-unixconfig.h $(incdir)/config.h config.log config.status autom4te.cache configure.scan
 
@@ -164,7 +170,7 @@ html:
 	-cp docs/header-bg.png documentation/html
 
 test:
-	- cd tests; make run
+	- cd tests; make all
 	 
 
 #release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp

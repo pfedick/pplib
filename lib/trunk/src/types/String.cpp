@@ -1271,6 +1271,42 @@ String & String::prepend(wchar_t c) throw(OutOfMemoryException)
 ByteArray String::toUtf8() const
 {
 	if (stringlen==0) return ByteArray();
+#ifndef HAVE_ICONV
+	throw UnsupportedFeatureException();
+#else
+	return toEncoding("UTF-8");
+#endif
+}
+
+
+/*!\brief String in Lokale Kodierung umwandeln
+ *
+ * \desc
+ * Mit dieser Funktion wird der Inhalt des Strings in in die lokale Kodierung des
+ * Betriebssystems umgewandelt, bzw. den Zeichensatz, der über "setlocale" eingestellt
+ * wurde. Das Ergebnis wird als ByteArray zurückgegeben.
+ *
+ * @return ByteArray mit der lokalen Repräsentation des Strings.
+ *
+ * \example
+ * Die aktuelle Lokalisierungs-Einstellung für die String-Konvertierung kann folgendermassen
+ * abgefragt werden:
+\code
+printf ("Lokalisierung: %s\n",setlocale(LC_CTYPE,NULL);
+\endcode
+ * Und folgendermassen kann sie gesetzt werden:
+\code
+if (!setlocale(LC_CTYPE, "de_DE.ISO8859-15")) {
+	printf ("setlocale fehlgeschlagen\n");
+	throw std::exception();
+}
+printf ("Lokalisierung: %s\n",setlocale(LC_CTYPE,NULL);
+\endcode
+ *
+ */
+ByteArray String::toLocalEncoding() const
+{
+	if (stringlen==0) return ByteArray();
 #ifdef HAVE_WCSTOMBS
 	size_t buffersize=stringlen*4+8;
 	char *buffer=(char*)malloc(buffersize);
@@ -1479,11 +1515,16 @@ void String::printnl() const throw()
 	print(true);
 }
 
+/*!\brief Hexdump des Strings ausgeben
+ *
+ * \desc
+ * Mit dieser zu Debug-Zwecken gedachten Funktion wird der Inhalt des
+ * Strings als HexDump auf der Konsole ausgegeben.
+ */
 void String::hexDump() const
 {
-	if (stringlen==0) throw EmptyDataException();
-	PrintDebug ("HEXDUMP of String: %zi Bytes starting at Address %p:\n",stringlen*sizeof(wchar_t),ptr);
-	HexDump(ptr,stringlen*sizeof(wchar_t),true);
+	PrintDebug ("HEXDUMP of String %p: %zi Bytes starting at Address %p:\n",this,stringlen*sizeof(wchar_t),ptr);
+	if (stringlen) HexDump(ptr,stringlen*sizeof(wchar_t),true);
 }
 
 /*!\brief String übernehmen
@@ -2702,8 +2743,8 @@ String::operator double() const
 
 String::operator std::string() const
 {
-	ByteArray utf8=toUtf8();
-	return std::string((const char*)utf8,utf8.size());
+	ByteArray ba=toLocalEncoding();
+	return std::string((const char*)ba,ba.size());
 }
 
 String::operator std::wstring() const

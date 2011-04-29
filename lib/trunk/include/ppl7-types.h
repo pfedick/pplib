@@ -302,6 +302,7 @@ class String : public Variant
 		const wchar_t* getPtr() const;
 
 		ByteArray toUtf8() const;
+		ByteArray toLocalEncoding() const;
 		ByteArray toEncoding(const char *encoding) const;
 		String getUtf8MD5() const;
 		String getMD5() const;
@@ -486,6 +487,81 @@ class Array : public Variant
 
 Array operator+(const Array &a1, const Array& a2);
 
+
+
+class AssocArray : public Variant
+{
+	private:
+	public:
+		//!\name Konstruktoren und Destruktoren
+		//@{
+		AssocArray();
+		AssocArray(const AssocArray &other);
+		AssocArray(const Array &a);
+		~AssocArray();
+		//@}
+
+		//!\name Informationen ausgeben/auslesen
+		//@{
+		size_t count(bool recursive=false) const;
+		size_t count(const String &key, bool recursive=false) const;
+		void list(const String &prefix=L"") const;
+		//@}
+
+		//!\name Werte setzen
+		//@{
+		void add(const Array &other);
+		void add(const AssocArray &other);
+		void set(const String &key, const String &value);
+		void set(const String &key, const Array &value);
+		void set(const String &key, const AssocArray &value);
+		void setf(const String &key, const char *fmt, ...);
+		void copy(const AssocArray &other);
+		void copy(const Array &other);
+		//@}
+
+		//!\name Werte erweitern (nur Strings)
+		//@{
+		void concat(const String &key, const String &value, const String &concat=L"\n");
+		void concatf(const String &key, const String &concat, const char *fmt, ...);
+		//@}
+
+		//!\name Werte löschen
+		//@{
+		void clear();
+		void erase(const String &key);
+		//@}
+
+		//!\name Import und Export von Daten
+		//@{
+		int	fromTemplate(const String &templ, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
+		int	fromConfig(const String &content, const String &splitchar=L":", const String &concat=L"\n", bool dotrim=false);
+		void toTemplate(String &s, const String &prefix=L"", const String &linedelimiter=L"\n", const String &splitchar=L"=");
+			int	exportBinary(void *buffer, size_t buffersize, size_t *realsize);
+		int exportBinary(ByteArray &buffer);
+		int	importBinary(const void *buffer, int buffersize);
+		int	importBinary(const ByteArrayPtr &buffer);
+		//@}
+
+		//!\name Werte direkt auslesen
+		//@{
+		const String	&getString(const String &key) const;
+		const Variant	&get(const String &key) const;
+		//@}
+
+		//!\name Array durchwandern
+		//@{
+
+		//@}
+
+		//!\name Operatoren
+		//@{
+		const Variant &operator[](const String key) const;
+		AssocArray& operator=(const AssocArray& other);
+		AssocArray& operator+=(const AssocArray& other);
+		AssocArray& operator=(const Array& array);
+		//@}
+};
 
 class DateTime : public Variant
 {
