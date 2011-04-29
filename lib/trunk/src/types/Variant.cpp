@@ -131,19 +131,17 @@ bool Variant::isByteArrayPtr() const
 }
 
 
-String& Variant::toString()
+const String& Variant::toString() const
 {
 	if (type!=STRING) throw TypeConversionException();
-	return static_cast<String&>(*this);
+	return static_cast<const String&>(*this);
 }
 
-/*
-Array& Variant::toArray()
+const Array& Variant::toArray() const
 {
 	if (type!=ARRAY) throw TypeConversionException();
-	//return static_cast<Array&>(*this);
+	return static_cast<const Array&>(*this);
 }
-*/
 
 /*
 AssocArray& Variant::toAssocArray()
@@ -153,18 +151,17 @@ AssocArray& Variant::toAssocArray()
 }
 */
 
-ByteArray& Variant::toByteArray()
+const ByteArray& Variant::toByteArray() const
 {
-	if (type!=ASSOCARRAY) throw TypeConversionException();
-	return static_cast<ByteArray&>(*this);
+	if (type!=BYTEARRAY) throw TypeConversionException();
+	return static_cast<const ByteArray&>(*this);
 }
 
-ByteArrayPtr& Variant::toByteArrayPtr()
+const ByteArrayPtr& Variant::toByteArrayPtr() const
 {
-	if (type!=ASSOCARRAY) throw TypeConversionException();
-	return static_cast<ByteArrayPtr&>(*this);
+	if (type!=BYTEARRAYPTR && type!=BYTEARRAY) throw TypeConversionException();
+	return static_cast<const ByteArrayPtr&>(*this);
 }
-
 
 
 } // EOF namespace ppl7

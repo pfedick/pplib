@@ -92,12 +92,11 @@ class Variant
 		bool isAssocArray() const;
 		bool isByteArray() const;
 		bool isByteArrayPtr() const;
-		String& toString();
-		Array& toArray();
-		AssocArray& toAssocArray();
-		ByteArray& toByteArray();
-		ByteArrayPtr& toByteArrayPtr();
-
+		const String& toString() const;
+		const Array& toArray() const;
+		const AssocArray& toAssocArray() const;
+		const ByteArray& toByteArray() const;
+		const ByteArrayPtr& toByteArrayPtr() const;
 };
 
 class ByteArrayPtr : public Variant
