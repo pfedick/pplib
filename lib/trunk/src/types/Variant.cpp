@@ -143,13 +143,11 @@ const Array& Variant::toArray() const
 	return static_cast<const Array&>(*this);
 }
 
-/*
-AssocArray& Variant::toAssocArray()
+const AssocArray& Variant::toAssocArray() const
 {
 	if (type!=ASSOCARRAY) throw TypeConversionException();
-	//return static_cast<AssocArray&>(*this);
+	return static_cast<const AssocArray&>(*this);
 }
-*/
 
 const ByteArray& Variant::toByteArray() const
 {
