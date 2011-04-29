@@ -73,7 +73,7 @@ static ppluint32	instance=0;
  * \example
  * Das folgende Beispiel zeigt einen einfachen Fall, wie eine MP3-Datei an einen
  * Icecast-Server gestreamt werden kann.
- * \include Icecast.cpp
+ * \include IcecastExample.cpp
  * \par
  * Nach Starten des Streams, sind folgende Informationen dem Icecast-Server zu entnehmen:
  * \image html icecast_status.png

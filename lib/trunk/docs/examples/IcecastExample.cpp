@@ -1,11 +1,11 @@
-#include <ppl6.h>
-#include <ppl6-sound.h>
+#include <ppl7.h>
+#include <ppl7-sound.h>
 
 
 int main(int argc, char **argv)
 {
-	ppl6::Icecast ice;	// Icecast-Objekt anlegen
-	ppl6::File file;
+	ppl7::Icecast ice;	// Icecast-Objekt anlegen
+	ppl7::File file;
 
 	// Version der libshout ausgeben
 	printf ("libshout-Version: %s\n",(const char*)ice.version());
