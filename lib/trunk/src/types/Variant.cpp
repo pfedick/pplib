@@ -167,6 +167,7 @@ Variant::Variant()
 	type=UNKNOWN;
 }
 
+
 /*!\brief Liefert den Datentyp des Objekts zurück
  *
  * \desc

@@ -87,6 +87,7 @@ class Variant
 		//! @name Basisfuktionen des Datentyps Variant
 		//@{
 		Variant();
+		virtual ~Variant() {};
 		int dataType() const;
 		bool isType(int type) const;
 		bool isString() const;
@@ -502,6 +503,7 @@ Array operator+(const Array &a1, const Array& a2);
 class AssocArray : public Variant
 {
 	private:
+
 	public:
 		//!\name Konstruktoren und Destruktoren
 		//@{

@@ -289,6 +289,7 @@ class Heap
 #endif
 
 typedef struct tagTREEITEM {
+		const void *key;
 		const void *data;
 		struct tagTREEITEM *left, *right, *parent;
 		signed char balance;
@@ -365,59 +366,34 @@ class AVLTree : public AVLTreeController
 
 };
 
-template <class T> class Tree : private AVLTree
+template <class K, class T> class Tree
 {
+	private:
+		class TreeItem {
+			K key;
+			T value;
+			TreeItem *left, *right, *parent;
+			signed char balance;
+		};
 	public:
 		Tree() {};
-		Tree(const T &other) {
 
-		}
-		virtual int	compare(const void *value1, const void *value2) const
+		int	compare(const K &key1, const K &key2) const
 		{
-			const T *v1=(const T*)value1;
-			const T *v2=(const T*)value2;
-			if (*v1<*v2) return -1;
-			if (*v1>*v2) return 1;
+			if (key1<key2) return -1;
+			if (key1>key2) return 1;
 			return 0;
 		}
-		virtual void destroyValue(void *item) const
+		void	add(const K &key, const T &value)
 		{
-			T *i=(T*) item;
-			delete i;
 		}
-		void		allowDupes(bool allow)
+		void	erase(const K &key)
 		{
-			AVLTree::allowDupes(allow);
-		}
-		size_t		count() const
-		{
-			return AVLTree::count();
-		}
-		void		clear()
-		{
-			AVLTree::clear();
-		}
-		void		add(const T &value)
-		{
-			T *v=new T;
-			*v=value;
-			AVLTree::add((void *)v);
-		}
-		void		erase(const T &value)
-		{
-			AVLTree::erase((void*)&value);
 
 		}
-		T	remove(const T &value)
+		const T& find(const K &key) const
 		{
-			T *v=AVLTree::remove((void*)&value);
-			T ret=*v;
-			delete v;
-			return ret;
-		}
-		const T& find(const T &value) const
-		{
-			T *v=AVLTree::find((void*)&value);
+
 		}
 
 
