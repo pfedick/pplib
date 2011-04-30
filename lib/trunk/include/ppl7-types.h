@@ -71,12 +71,12 @@ class Variant
 
 		enum Type {
 			UNKNOWN		=0,
-			INT			=2,
+			//INT			=2,
 			STRING		=4,
 			ASSOCARRAY	=5,
 			BYTEARRAY	=6,
 			ARRAY		=9,
-			BOOL		=10,
+			//BOOL		=10,
 			DATETIME	=11,
 			BYTEARRAYPTR	=12
 		};
@@ -86,17 +86,22 @@ class Variant
 	public:
 		Variant();
 		int dataType() const;
-		bool isType(int type) const;
+		bool isType(Variant::Type type) const;
 		bool isString() const;
 		bool isArray() const;
 		bool isAssocArray() const;
 		bool isByteArray() const;
 		bool isByteArrayPtr() const;
 		const String& toString() const;
+		String& toString();
 		const Array& toArray() const;
+		Array& toArray();
 		const AssocArray& toAssocArray() const;
+		AssocArray& toAssocArray();
 		const ByteArray& toByteArray() const;
+		ByteArray& toByteArray();
 		const ByteArrayPtr& toByteArrayPtr() const;
+		ByteArrayPtr& toByteArrayPtr();
 };
 
 class ByteArrayPtr : public Variant
@@ -452,11 +457,13 @@ class Array : public Variant
 		//@{
 		const String &get(size_t index) const;
 		const String &getRandom() const;
+		String &get(size_t index);
+		String &getRandom();
 		const wchar_t *getPtr(size_t index) const;
 		const wchar_t *getRandomPtr() const;
-		void reset(Iterator &it);
-		const String &getFirst(Iterator &it);
-		const String &getNext(Iterator &it);
+		void reset(Iterator &it) const;
+		const String &getFirst(Iterator &it) const;
+		const String &getNext(Iterator &it) const;
 		String implode(const String &delimiter="\n") const;
 		//@}
 
@@ -476,6 +483,7 @@ class Array : public Variant
 
 		//! @name Operatoren
 		//@{
+		String &operator[](size_t index);
 		const String &operator[](size_t index) const;
 		Array& operator=(const Array &other);
 		Array& operator+=(const Array &other);
