@@ -15,10 +15,8 @@ diese auf allen Platformen gleich groß sind. Diese sind:
 </table>
 
 \section DatenTypOther Andere Datenstrukturen
-\li \link ppl7::Var Var: Basisklasse für die nachfolgenden Datenstrukturen\endlink \n
-Die Basisklasse bietet die Möglichkeit eine Callback-Klasse zu definieren, deren
-Callback-Funktion immer dann aufgerufen wird, wenn sich am Inhalt
-der Klasse etwas geändert hat.
+\li \link ppl7::Variant Variant:\endlink Basisklasse für die nachfolgenden Datenstrukturen \n
+
 
 \li \link ppl7::String String-Klasse \endlink \n
 Die String-Klasse ppl7::String wird zum Verwalten von beliebig großen Strings verwendet
@@ -29,10 +27,8 @@ Schlüssel eine laufende Nummer ist und der Wert ein String.
 
 \li \link ppl7::AssocArray Komplexe Assoziative Arrays \endlink \n
 Die Klasse ppl7::AssocArray wird für komplexe mehrdimensionale Arrays verwendet, wobei
-der Schlüssel ein String oder eine Nummer sein kann. Der Wert kann verschiedene Datentypen
-beinhalten. Unterstützt wird zur Zeit String, AssocArray, ByteArray und void*.
-Die Klasse ppl7::Array kann ebenfalls in ein Assoziatives Array kopiert werden, wobei sie
-jedoch in ein Assoziatives Array umgewandelt wird.
+der Schlüssel ein String oder eine Nummer sein kann. Der Wert kann alle hier aufgeführten Datentypen
+beinhalten.
 
 \li \link ppl7::ByteArray Ein Datentyp zum Speichern von binären Daten \endlink \n
 Die Klasse ppl7::ByteArray wird zum Speichern von Binären Daten verwendet. 

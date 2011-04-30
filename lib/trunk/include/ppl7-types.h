@@ -84,9 +84,11 @@ class Variant
 		ppluint8		type;
 
 	public:
+		//! @name Basisfuktionen des Datentyps Variant
+		//@{
 		Variant();
 		int dataType() const;
-		bool isType(Variant::Type type) const;
+		bool isType(int type) const;
 		bool isString() const;
 		bool isArray() const;
 		bool isAssocArray() const;
@@ -102,6 +104,7 @@ class Variant
 		ByteArray& toByteArray();
 		const ByteArrayPtr& toByteArrayPtr() const;
 		ByteArrayPtr& toByteArrayPtr();
+		//@}
 };
 
 class ByteArrayPtr : public Variant

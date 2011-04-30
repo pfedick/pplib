@@ -144,6 +144,7 @@ void String::setGlobalEncoding(const char *encoding) throw(NullPointerException,
  * \ingroup PPLGroupStrings
  * \brief String-Klasse
  *
+ * \desc
  * Diese Klasse kann verwendet werden, um beliebige Strings zu speichern und zu verarbeiten. Dabei
  * braucht sich der Anwender keine Gedanken um den verwendeten Speicher zu machen.
  * Die einzelnen Zeichen des Strings werden intern im Unicode-Format gespeichert. Bei Übernahme eines

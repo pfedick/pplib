@@ -94,7 +94,6 @@ namespace ppl7 {
  * - DateTime
  *
  * \example
- *
  * \code
 void Machwas(const Variant &object)
 {
@@ -153,10 +152,15 @@ void Machwas(const Variant &object)
  */
 
 
+/*!\var Variant::type
+ * \brief Variable, zum Speichern des Datentyps
+ */
+
 /*!\brief Konstruktor der Klasse
  *
  * \desc
- * Der Konstruktor initialisiert den Typ der Klasse mit Variant::UNKNOWN
+ * Der Konstruktor initialisiert den Typ der Klasse mit Variant::UNKNOWN.
+ * Es ist aufgabe der abgeleiteten Klasse den korrekten Datentyp zu setzen.
  */
 Variant::Variant()
 {
@@ -183,7 +187,7 @@ int Variant::dataType() const
  * @return Liefert \c true zurück, wenn es sich um den angegebenen Datentyp \p type handelt,
  * sonst \c false.
  */
-bool Variant::isType(Variant::Type type) const
+bool Variant::isType(int type) const
 {
 	if (this->type==type) return true;
 	return false;

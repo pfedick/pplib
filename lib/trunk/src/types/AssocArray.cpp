@@ -55,5 +55,40 @@
 
 namespace ppl7 {
 
+/*!\class AssocArray
+ * \ingroup PPLGroupDataTypes
+ * \brief Komplexes mehrdimensionales Array mit Strings als Schlüssel
+ *
+ * \desc
+ * Die Klasse AssocArray dient als Container für beliebige Key-Value-Paare. Ein Schlüssel
+ * (Key) besteht aus einem String, der aus beliebigen Zeichen bestehen kann. Ein Value kann
+ * veschiedene Datentypen enthalten. Gegenwärtig werden neben Strings auch Arrays, Binaries und
+ * Pointer unterstützt.
+ * \par
+ * Die Schlüssel werden sortiert in einem AVL-Baum verwaltet (siehe CTree, CTreeItem, CArrayItem), so dass auch bei
+ * sehr großen Arrays eine schnelle Verarbeitung gewährleistet ist. Gross-/Kleinschreibung wird dabei
+ * ignoriert, der Schlüssel "TEST" wäre also identisch mit "test" oder "Test".
+ * \par
+ * Mehrdimensionale Arrays sind möglich, indem einem Schlüssel als Wert einfach ein anderes Array
+ * zugeordnet wird. In einem solchen Array kann jedes Element direkt angesprochen werden, indem man
+ * die einzelnen Schlüssel durch Slash (/) getrennt zu einem einzigen Schlüssel zusammenfasst.
+ * \par
+ * Mehrdimensionale Arrays werden automatisch generiert. Gibt man bei einem leeren Array dem Schlüssel
+ * <tt>"ebene1/ebene2/key"</tt> einen Wert, werden automatisch folgende Aktionen ausgeführt:
+ * - Es wird ein neues Array generiert und mit dem Schlüssel "ebene1" in das Array eingefügt
+ * - In das Array "ebene1" wird ein weiteres neues Array mit dem Schlüssel "ebene2" eingefügt
+ * - In das Array "ebene2" wird der eigentliche Wert unter dem Schlüssel "key" eingefügt
+ *
+ * \par Beispiel:
+ * \code
+ * ppl7::AssocArray a;
+ * // Wert setzen
+ * a.set("ebene1/ebene2/key","Ein Wert");
+ * // Wert auslesen
+ * a.get("ebene1/ebene2/key").toString().printnl();
+ * \endcode
+ *
+ */
+
 
 } // EOF namespace ppl7

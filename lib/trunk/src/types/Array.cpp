@@ -560,11 +560,11 @@ void Array::list(const String &prefix) const
 	}
 }
 
-/*!\brief Element auslesen
+/*!\brief Element als Konstante auslesen
  *
  * \desc
- * Gibt das Element an Position \p index des Arrays als Referenz zurück. Ist \p index größer als die Anzahl
- * Elemente des Arrays, wird eine Exception geworfen.
+ * Gibt das Element an Position \p index des Arrays als Referenz zurück, dessen Inhalt nicht
+ * verändert werden kann. Ist \p index größer als die Anzahl Elemente des Arrays, wird eine Exception geworfen.
  *
  * @param index Gewünschtes Element
  * @return Referenz auf den Inhalt des Elements
@@ -578,10 +578,29 @@ const String &Array::get(size_t index) const
 	return EmptyString;
 }
 
-/*!\brief Zufälliges Element auslesen
+/*!\brief Element auslesen
  *
  * \desc
- * Gibt eine Referenz auf ein zufälliges Element des Arrays zurück.
+ * Gibt das Element an Position \p index des Arrays als Referenz zurück. Ist \p index größer als die Anzahl
+ * Elemente des Arrays, wird eine Exception geworfen.
+ *
+ * @param index Gewünschtes Element
+ * @return Referenz auf den Inhalt des Elements
+ * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ */
+String &Array::get(size_t index)
+{
+	ROW *r=(ROW*)rows;
+	if (index>=numElements) throw OutOfBoundsEception();
+	if (r[index].value!=NULL) return *r[index].value;
+	return EmptyString;
+}
+
+/*!\brief Zufälliges Element als Konstante auslesen
+ *
+ * \desc
+ * Gibt eine Referenz auf ein zufälliges Element des Arrays zurück, dessen Inhalt nicht verändert
+ * werden kann.
  *
  * @return Referenz auf ein zufälliges Elements des Arrays.
  * Ist das Array leer, wird immer ein leerer String zurückgegeben.
@@ -595,6 +614,22 @@ const String &Array::getRandom() const
 	return EmptyString;
 }
 
+/*!\brief Zufälliges Element auslesen
+ *
+ * \desc
+ * Gibt eine Referenz auf ein zufälliges Element des Arrays zurück.
+ *
+ * @return Referenz auf ein zufälliges Elements des Arrays.
+ * Ist das Array leer, wird immer ein leerer String zurückgegeben.
+ */
+String &Array::getRandom()
+{
+	if (!numElements) return EmptyString;
+	ROW *r=(ROW*)rows;
+	size_t index=ppl7::rand(0,numElements-1);
+	if (index<numElements && r[index].value!=NULL) return *r[index].value;
+	return EmptyString;
+}
 
 /*!\brief wchar_t Pointer auf ein Element auslesen
  *
@@ -655,7 +690,7 @@ try {
 }
  * \endcode
  */
-void Array::reset(Iterator &it)
+void Array::reset(Iterator &it) const
 {
 	it.pos=0;
 }
@@ -686,7 +721,7 @@ try {
 }
  * \endcode
  */
-const String &Array::getFirst(Iterator &it)
+const String &Array::getFirst(Iterator &it) const
 {
 	it.pos=0;
 	return getNext(it);
@@ -717,7 +752,7 @@ try {
 }
  * \endcode
  */
-const String &Array::getNext(Iterator &it)
+const String &Array::getNext(Iterator &it) const
 {
 	ROW *r=(ROW*)rows;
 	if (it.pos<numElements) {
@@ -979,15 +1014,29 @@ Array &Array::fromArgs(const String &args)
 }
 
 
-
-
-
 /*!\brief Element aus dem Array auslesen
- *
  *
  * \desc
  * Gibt das Element an Position \p index des Arrays als Referenz zurück. Ist \p index größer als die Anzahl
  * Elemente des Arrays, wird eine Exception geworfen.
+ *
+ * @param index Gewünschtes Element
+ * @return Referenz auf den Inhalt des Elements
+ * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ */
+String &Array::operator[](size_t index)
+{
+	ROW *r=(ROW*)rows;
+	if (index>=numElements) throw OutOfBoundsEception();
+	if (r[index].value!=NULL) return *r[index].value;
+	return EmptyString;
+}
+
+/*!\brief Element aus dem Array als Konstante auslesen
+ *
+ * \desc
+ * Gibt das Element an Position \p index des Arrays als Referenz zurück, dessen Inhalt nicht verändert werden
+ * kann. Ist \p index größer als die Anzahl Elemente des Arrays, wird eine Exception geworfen.
  *
  * @param index Gewünschtes Element
  * @return Referenz auf den Inhalt des Elements
@@ -1000,6 +1049,7 @@ const String &Array::operator[](size_t index) const
 	if (r[index].value!=NULL) return *r[index].value;
 	return EmptyString;
 }
+
 
 /*!\brief Inhalt eines anderen Arrays übernehmen
  *
