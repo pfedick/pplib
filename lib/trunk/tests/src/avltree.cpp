@@ -44,16 +44,21 @@ TEST_F(AVLTreeTest, add) {
 
 TEST_F(AVLTreeTest, addWordlist) {
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
+	ppl7::PrintDebugTime ("Wortliste in String laden\n");
 	ppl7::String Wordlist(wordlist);
 	ppl7::Array list;
+	list.reserve(10010);
+	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
 	list.explode(Wordlist,"\n");
+	ppl7::PrintDebugTime ("done\n");
 	size_t total=list.count();
 	ASSERT_EQ(10000,list.count()) << "List has unexpected size";
+	ppl7::PrintDebugTime ("Wortliste in AVLTree laden\n");
 	for (size_t i=0;i<total;i++) {
 		myMap.add(list[i],L"");
 	}
 	ASSERT_EQ(total,myMap.count()) << "Tree has unexpected size";
-
+	ppl7::PrintDebugTime ("done\n");
 	/*
 	myMap.add(L"key1",L"value1");
 	ASSERT_EQ((size_t)1,myMap.count()) << "Tree has unexpected size";

@@ -171,6 +171,7 @@ namespace ppl7 {
 
 // Functions
 void PrintDebug(const char *format, ...);
+void PrintDebugTime(const char *format, ...);
 void SetGlobalOutput(int type);
 
 

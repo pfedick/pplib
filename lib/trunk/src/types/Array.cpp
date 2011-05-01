@@ -881,9 +881,10 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 	ssize_t p;
 	size_t t=delimiter.len();
 	size_t count=0;
+	const wchar_t *del=(const wchar_t *)delimiter;
 	wchar_t *etext=(wchar_t*)text.getPtr();
 	while (1) {
-		p=Instr(etext,(const wchar_t*)delimiter,0);
+		p=Instr(etext,del,0);
 		if (p>=0) {
 			if (p==0 && skipemptylines==true) {
 				etext+=t;

@@ -71,6 +71,7 @@
 #include <limits.h>
 #endif
 
+#include "ppl7.h"
 
 namespace ppl7 {
 
@@ -118,6 +119,44 @@ void PrintDebug(const char *format, ...)
 #endif
 	} else {
 		printf("%s",buff);
+	}
+	free(buff);
+}
+
+/*!\brief Interne Funktion zur Ausgabe von Text
+ *
+ * Diese Funktion dient als Ersatz für "printf" und wird intern von einigen Funktionen/Klasse zur
+ * Ausgabe von Text verwendet. Über die Funktion SetGlobalOutput kann bestimmt werden, ob dieser
+ * Text per STDOUT auf die Konsole ausgegeben werden soll oder beispielsweise im Debugger von
+ * VisualStudio unter Windows.
+ *
+ * \param[in] format Formatstring für den Text
+ * \param[in] ...    Optionale Parameter, die im Formatstring eingesetzt werden sollen
+ */
+void PrintDebugTime(const char *format, ...)
+{
+	if (!format) return;
+	char *buff=NULL;
+	va_list args;
+	va_start(args, format);
+	if (vasprintf (&buff, format, args)<0) {
+		va_end(args);
+		return;
+	}
+	va_end(args);
+	if (!buff) return;
+	DateTime now;
+	now.setCurrentTime();
+	String Time=now.getISO8601withMsec();
+	Time+=": ";
+
+	if (printdebug==1) {
+#ifdef WIN32
+		OutputDebugString((const char*)Time.toLocalEncoding());
+		OutputDebugString(buff);
+#endif
+	} else {
+		printf("%ls%s",(const wchar_t*)Time,buff);
 	}
 	free(buff);
 }

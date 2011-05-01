@@ -105,6 +105,12 @@ void Exception::copyText(const char *str) throw()
 	ErrorText=strdup(str);
 }
 
+void Exception::copyText(const wchar_t *str) throw()
+{
+	free(ErrorText);
+	ErrorText=NULL;
+}
+
 void Exception::copyText(const char *fmt, va_list args) throw()
 {
 	free(ErrorText);
