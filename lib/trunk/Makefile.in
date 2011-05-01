@@ -42,6 +42,7 @@ RELEASE	= release/AVLTree.o \
 	release/StringFunctions.o \
 	release/Threads.o \
 	release/type_Array.o \
+	release/type_AssocArray.o \
 	release/type_ByteArray.o \
 	release/type_ByteArrayPtr.o \
 	release/type_DateTime.o \
@@ -64,6 +65,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/StringFunctions.o \
 	debug/Threads.o \
 	debug/type_Array.o \
+	debug/type_AssocArray.o \
 	debug/type_ByteArray.o \
 	debug/type_ByteArrayPtr.o \
 	debug/type_DateTime.o \
@@ -113,6 +115,7 @@ install:	release/$(LIBNAME).a
 	-cp release/$(LIBNAME)*.a $(TARGETLIB)
 	-cp $(incdir)/ppl7.h $(TARGETINCLUDE)
 	-cp $(incdir)/ppl7-types.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl7-algorithms.h $(TARGETINCLUDE)
 	-cp $(incdir)/ppl7-exceptions.h $(TARGETINCLUDE)
 #	-cp $(incdir)/ppl7-inet.h $(TARGETINCLUDE)
 #	-cp $(incdir)/ppl7-grafix.h $(TARGETINCLUDE)
@@ -128,6 +131,7 @@ install_debug: debug/$(LIBDEBUG).a
 	-cp debug/$(LIBDEBUG)*.a $(TARGETLIB)
 	-cp $(incdir)/ppl7.h $(TARGETINCLUDE)
 	-cp $(incdir)/ppl7-types.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl7-algorithms.h $(TARGETINCLUDE)
 	-cp $(incdir)/ppl7-exceptions.h $(TARGETINCLUDE)
 #	-cp $(incdir)/ppl7-inet.h $(TARGETINCLUDE)
 #	-cp $(incdir)/ppl7-grafix.h $(TARGETINCLUDE)
@@ -190,7 +194,7 @@ test:
 ###########################################################################
 
 ### CORE
-release/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+release/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  	$(incdir)/ppl7-algorithms.h
 	###############################################################################
 	# Compiling >>>core/AVLTree.cpp<<<
 	$(CXX) -Wall -O3 -o release/AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) 
@@ -230,6 +234,11 @@ release/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	###############################################################################
 	# Compiling >>>types/Array.cpp<<<
 	$(CXX) -Wall -O3 -o release/type_Array.o -c $(srcdir)/types/Array.cpp $(CFLAGS) 
+
+release/type_AssocArray.o:	$(srcdir)/types/AssocArray.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
+	###############################################################################
+	# Compiling >>>types/AssocArray.cpp<<<
+	$(CXX) -Wall -O3 -o release/type_AssocArray.o -c $(srcdir)/types/AssocArray.cpp $(CFLAGS) 
 
 release/type_ByteArray.o:	$(srcdir)/types/ByteArray.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
@@ -289,7 +298,7 @@ release/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/
 ###########################################################################
 
 ### CORE
-debug/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+debug/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  	$(incdir)/ppl7-algorithms.h
 	###############################################################################
 	# Compiling >>>core/AVLTree.cpp<<<
 	$(CXX) -Wall -O -o debug/AVLTree.o -c $(srcdir)/core/AVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
@@ -329,6 +338,11 @@ debug/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	###############################################################################
 	# Compiling >>>types/Array.cpp<<<
 	$(CXX) -Wall -O -o debug/type_Array.o -c $(srcdir)/types/Array.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/type_AssocArray.o:	$(srcdir)/types/AssocArray.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
+	###############################################################################
+	# Compiling >>>types/AssocArray.cpp<<<
+	$(CXX) -Wall -O -o debug/type_AssocArray.o -c $(srcdir)/types/AssocArray.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/type_ByteArray.o:	$(srcdir)/types/ByteArray.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################

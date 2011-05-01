@@ -7,16 +7,19 @@ CFLAGS	= -ggdb -Wall  `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
 
 
-all: heap array strings
+all: heap array strings avltree
 
-heap: bin bin/heap
+heap: bin/heap
 	bin/heap
 
-array: bin bin/array
+array: bin/array
 	bin/array
 
-strings: bin bin/strings
+strings: bin/strings
 	bin/strings
+
+avltree: bin/avltree
+	bin/avltree
 
 	
 bin/strings: src/strings.cpp Makefile
@@ -30,6 +33,10 @@ bin/array: src/array.cpp Makefile
 bin/heap: src/heap.cpp Makefile
 	mkdir -p bin
 	$(CC) -o bin/heap src/heap.cpp $(CFLAGS) $(LIB)
+
+bin/avltree: src/avltree.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/avltree src/avltree.cpp $(CFLAGS) $(LIB)
 
 clean:
 	-rm -rf bin

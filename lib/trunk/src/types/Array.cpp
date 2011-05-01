@@ -1153,7 +1153,7 @@ Array::Iterator::Iterator()
 }
 
 
-
+#ifdef DONE
 
 class ArraySort : private AVLTree
 {
@@ -1375,5 +1375,7 @@ Array SortReverse(const Array &array, bool unique)
 	}
 	return ret;
 }
+
+#endif
 
 } // EOF namespace ppl7

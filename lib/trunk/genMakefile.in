@@ -59,6 +59,11 @@ find_c_files() {
 			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl7-tk.h"
 		fi
 
+		if test "$1/$file" = "core/AVLTree.cpp"
+		then
+			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl7-algorithms.h"
+		fi
+
 		COMPILE_RELEASE="$COMPILE_RELEASE
 release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-unixconfig.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
@@ -260,6 +265,7 @@ install:	release/\$(LIBNAME).a
 	-cp release/\$(LIBNAME)*.a \$(TARGETLIB)
 	-cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl7-algorithms.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
 #	-cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
 #	-cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
@@ -275,6 +281,7 @@ install_debug: debug/\$(LIBDEBUG).a
 	-cp debug/\$(LIBDEBUG)*.a \$(TARGETLIB)
 	-cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl7-algorithms.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
 #	-cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
 #	-cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)

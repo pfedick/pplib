@@ -95,19 +95,6 @@
 	#include <ppl7-exceptions.h>
 #endif
 
-
-namespace ppl7 {
-
-
-}
-
-// Inlcude PPL7 Data-Types
-#ifdef PPL7LIB
-	#include "ppl7-types.h"
-#else
-	#include <ppl7-types.h>
-#endif
-
 //#ifndef MINGW32
 	#ifdef _WIN32
 		#define bzero ZeroMemory
@@ -116,6 +103,66 @@ namespace ppl7 {
 		#define mode_t ppluint32
 	#endif
 //#endif
+
+
+namespace ppl7 {
+
+ class Heap
+ {
+ 	private:
+ 		void		*blocks;
+ 		size_t		myElementSize, increaseSize;
+ 		size_t		myGrowPercent;
+ 		size_t		blocksAllocated, blocksUsed;
+ 		size_t		mem_allocated;
+ 		size_t		mem_used;
+ 		size_t		freeCount;
+
+ 		void		increase(size_t num);
+
+ 	public:
+ 		PPLNORMALEXCEPTION(NotInitializedException);
+ 		PPLNORMALEXCEPTION(AlreadyInitializedException);
+ 		PPLNORMALEXCEPTION(HeapCorruptedException);
+ 		PPLNORMALEXCEPTION(ElementNotInHeapException);
+
+
+
+ 		Heap();
+ 		Heap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
+ 		~Heap();
+ 		void clear();
+ 		void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
+ 		void *malloc();
+ 		void *calloc();
+ 		void free(void *element);
+ 		size_t memoryUsed() const;
+ 		size_t memoryAllocated() const;
+ 		void dump() const;
+ 		size_t capacity() const;
+ 		size_t count() const;
+ 		size_t elementSize() const;
+ 		void reserve(size_t num);
+ 		void cleanup();
+ };
+
+
+}
+ // Inlcude PPL7 Algorithms
+ #ifdef PPL7LIB
+ 	#include "ppl7-algorithms.h"
+ #else
+ 	#include <ppl7-algorithms.h>
+ #endif
+
+
+// Inlcude PPL7 Data-Types
+#ifdef PPL7LIB
+	#include "ppl7-types.h"
+#else
+	#include <ppl7-types.h>
+#endif
+
 
 
 
@@ -240,164 +287,6 @@ Thread::Priority ThreadGetPriority();
 
 
 
-
-
-class Heap
-{
-	private:
-		void		*blocks;
-		size_t		myElementSize, increaseSize;
-		size_t		myGrowPercent;
-		size_t		blocksAllocated, blocksUsed;
-		size_t		mem_allocated;
-		size_t		mem_used;
-		size_t		freeCount;
-
-		void		increase(size_t num);
-
-	public:
-		PPLNORMALEXCEPTION(NotInitializedException);
-		PPLNORMALEXCEPTION(AlreadyInitializedException);
-		PPLNORMALEXCEPTION(HeapCorruptedException);
-		PPLNORMALEXCEPTION(ElementNotInHeapException);
-
-
-
-		Heap();
-		Heap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
-		~Heap();
-		void clear();
-		void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
-		void *malloc();
-		void *calloc();
-		void free(void *element);
-		size_t memoryUsed() const;
-		size_t memoryAllocated() const;
-		void dump() const;
-		size_t capacity() const;
-		size_t count() const;
-		size_t elementSize() const;
-		void reserve(size_t num);
-		void cleanup();
-};
-
-// ***************************************************************************
-// AVL-Trees
-// ***************************************************************************
-#ifndef AVL_MAX_HEIGHT
-#define AVL_MAX_HEIGHT 32
-#endif
-
-typedef struct tagTREEITEM {
-		const void *key;
-		const void *data;
-		struct tagTREEITEM *left, *right, *parent;
-		signed char balance;
-} TREEITEM;
-
-class AVLTreeController
-{
-	public:
-		virtual ~AVLTreeController() {};
-		virtual int	compare(const void *value1, const void *value2) const = 0;
-		virtual int getValue(const void *item, String &buffer) const = 0;
-		virtual void destroyValue(void *item) const = 0;
-};
-
-
-class AVLTree : public AVLTreeController
-{
-	public:
-		class Iterator
-		{
-			friend class AVLTree;
-			private:
-			TREEITEM	*current;
-			TREEITEM	*stack[AVL_MAX_HEIGHT];
-			size_t		stack_height;
-			public:
-			Iterator();
-		};
-
-	private:
-		Heap		MyHeap;
-		TREEITEM	*root;
-		size_t		numElements;
-		AVLTreeController	*controller;
-		bool		dupes;
-
-		void		upInsert(TREEITEM *node);
-		void		upDelete(TREEITEM *node);
-		TREEITEM	*rotate(TREEITEM *kn);
-		void		swapNodes(TREEITEM *item1, TREEITEM *item2);
-		int			deleteNode(TREEITEM *item);
-
-	public:
-		PPLNORMALEXCEPTION(NoTreeControllerException);
-		PPLNORMALEXCEPTION(DuplicateItemException);
-		PPLNORMALEXCEPTION(ItemNotFoundException);
-		PPLNORMALEXCEPTION(DeleteFailedException);
-
-		AVLTree();
-		virtual ~AVLTree();
-		virtual int	compare(const void *value1, const void *value2) const;
-		virtual int getValue(const void *item, String &buffer) const;
-		virtual void destroyValue(void *item) const;
-
-		void		setTreeController(AVLTreeController *c);
-		void		allowDupes(bool allow);
-		size_t		num() const;
-		size_t		count() const;
-		void		clear();
-		void		add(const void *value);
-		void		erase(const void *value);
-		void		*remove(const void *value);
-		void		*find(const void *value) const;
-		TREEITEM	*findNode(const void *value) const;
-		void		*findOrAdd(const void *item);
-		void		printNodes(const TREEITEM *node=NULL) const;
-
-		void		reset(Iterator &it) const;
-		void		*getFirst(Iterator &it) const;
-		void		*getNext(Iterator &it) const;
-		void		*getLast(Iterator &it) const;
-		void		*getPrevious(Iterator &it) const;
-		void		*getCurrent(Iterator &it) const;
-
-};
-
-template <class K, class T> class Tree
-{
-	private:
-		class TreeItem {
-			K key;
-			T value;
-			TreeItem *left, *right, *parent;
-			signed char balance;
-		};
-	public:
-		Tree() {};
-
-		int	compare(const K &key1, const K &key2) const
-		{
-			if (key1<key2) return -1;
-			if (key1>key2) return 1;
-			return 0;
-		}
-		void	add(const K &key, const T &value)
-		{
-		}
-		void	erase(const K &key)
-		{
-
-		}
-		const T& find(const K &key) const
-		{
-
-		}
-
-
-};
 
 
 

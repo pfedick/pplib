@@ -101,6 +101,8 @@ PPLPARAMETERISEDEXCEPTION(InvalidDateException);
 PPLNORMALEXCEPTION(NoThreadSupportException);
 PPLNORMALEXCEPTION(ThreadStartException);
 PPLNORMALEXCEPTION(ThreadOperationFailedException);
+PPLNORMALEXCEPTION(ItemNotFoundException);
+PPLNORMALEXCEPTION(DuplicateItemException);
 
 
 }	// EOF namespace ppl7
