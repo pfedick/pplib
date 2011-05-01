@@ -157,14 +157,11 @@ AVLTreeAlgorithm::AVLTreeAlgorithm()
 /*!\brief Destruktor
  *
  * \desc
- * Der Destruktor ruft die CTree::Clear Funktion auf.
- * \attention
- * Bei einer abgeleiteten Klasse muss der Destruktor ebenfalls implementiert werden und die Funktion
- * AVLTreeAlgorithm::Clear aufrufen, um sicherzustellen, dass alle Elemente gelöscht werden.
+ * Der Destruktor hat gegenwärtig keine Funktion, da die Klasse selbst keinen Speicher
+ * verwaltet.
  */
 AVLTreeAlgorithm::~AVLTreeAlgorithm()
 {
-	//clear();
 }
 
 
@@ -1122,7 +1119,7 @@ int main(int argc, const char**argv)
  *
  */
 
-/*!\fn T& AVLTree::find(const K &key)
+/*!\fn T& AVLTree::find(const K &key) const
  * \brief Element finden
  *
  * \desc
@@ -1135,6 +1132,17 @@ int main(int argc, const char**argv)
  * \exception ItemNotFoundException: Wird geworfen, wenn der gesuchte Schlüssel im Baum nicht vorhanden ist.
  *
  */
+
+/*!\fn bool AVLTree::exists(const K &key) const
+ * \brief Prüft, ob ein bestimmter Schlüssel vorhanden ist.
+ *
+ * \desc
+ * Mit dieser Funktion wird geprüft, ob ein Element mit dem Schlüssel \p key im Baum vorhanden ist.
+ *
+ * \param key Referenz auf den gesuchten Schlüssel
+ * \return Gibt \c true zurück, wenn der Schlüssel vorhanden ist, sonst \c false.
+ */
+
 
 /*!\fn T& AVLTree::operator[](const K &key) const
  * \brief Element finden
@@ -1160,7 +1168,7 @@ int main(int argc, const char**argv)
  * \exception ItemNotFoundException: Wird geworfen, wenn der gesuchte Schlüssel im Baum nicht vorhanden ist.
  */
 
-/*!\fn Pair AVLTree::getFirst(Iterator &it) const
+/*!\fn bool AVLTree::getFirst(Iterator &it) const
  * \brief Erstes Element aus dem Baum
  *
  * \desc
@@ -1168,19 +1176,17 @@ int main(int argc, const char**argv)
  *
  * @param it %Iterator
  *
- * \return Klasse mit einem Key-Value-Paar
- * \exception OutOfBoundsEception: Baum ist leer oder es gibt keine weiteren Elemente
+ * \return Gibt \c true zurück, wenn ein Element gefunden wurde, sonst  \c false.
  */
 
-/*!\fn Pair AVLTree::getNext(Iterator &it) const
+/*!\fn bool AVLTree::getNext(Iterator &it) const
  * \brief Nächstes Element auslesen
  *
  * \desc
  * Mit dieser Funktion wird das nächste Key-Value-Paar des Baums zurückgeliefert.
  *
  * @param it %Iterator
- * \return Klasse mit einem Key-Value-Paar
- * \exception OutOfBoundsEception: Baum ist leer oder es gibt keine weiteren Elemente
+ * \return Gibt \c true zurück, wenn ein Element gefunden wurde, sonst  \c false.
  * \example
  * \code
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
@@ -1191,22 +1197,15 @@ int main(int argc, const char**argv)
 	myMap.add(L"abc",L"value4");
 	// Iterator definieren
 	ppl7::AVLTree<ppl7::String, ppl7::String>::Iterator it;
-	// Klasse für Key-Value-Paare definieren
-	ppl7::AVLTree<ppl7::String, ppl7::String>::Pair pair;
 	myMap.reset(it);
-	while (1) {
-		try {
-			pair=myMap.getNext(it);
-			printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-				(const wchar_t*)pair.key(), (const wchar_t*)pair.value());
-		} catch (ppl7::OutOfBoundsEception) {
-			printf ("No further elements\n");
-		}
+	while (myMap.getNext(it)) {
+		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
+			(const wchar_t*)it.key(), (const wchar_t*)it.value());
 	}
  * \endcode
  */
 
-/*!\fn Pair AVLTree::getLast(Iterator &it) const
+/*!\fn bool AVLTree::getLast(Iterator &it) const
  * \brief Letztes Element aus dem Baum
  *
  * \desc
@@ -1214,11 +1213,10 @@ int main(int argc, const char**argv)
  *
  * @param it %Iterator
  *
- * \return Klasse mit einem Key-Value-Paar
- * \exception OutOfBoundsEception: Baum ist leer oder es gibt keine weiteren Elemente
+ * \return Gibt \c true zurück, wenn ein Element gefunden wurde, sonst  \c false.
  */
 
-/*!\fn Pair AVLTree::getPrevious(Iterator &it) const
+/*!\fn bool AVLTree::getPrevious(Iterator &it) const
  * \brief Verhergehendes Element aus dem Baum
  *
  * \desc
@@ -1226,11 +1224,10 @@ int main(int argc, const char**argv)
  *
  * @param it %Iterator
  *
- * \return Klasse mit einem Key-Value-Paar
- * \exception OutOfBoundsEception: Baum ist leer oder es gibt keine weiteren Elemente
+ * \return Gibt \c true zurück, wenn ein Element gefunden wurde, sonst  \c false.
  */
 
-/*!\fn Pair AVLTree::getCurrent(Iterator &it) const
+/*!\fn bool AVLTree::getCurrent(Iterator &it) const
  * \brief Aktuelles Element aus dem Baum
  *
  * \desc
@@ -1238,20 +1235,7 @@ int main(int argc, const char**argv)
  *
  * @param it %Iterator
  *
- * \return Klasse mit einem Key-Value-Paar
- * \exception OutOfBoundsEception: Baum ist leer oder es gibt keine weiteren Elemente
- */
-
-/*!\fn Pair AVLTree::getRoot() const
- * \brief Basisknoten auslesen
- *
- * \desc
- * Mit dieser Funktion wird das Key-Value-Paar des Basisknotens des Baums zurückgeliefert.
- *
- * @param it %Iterator
- *
- * \return Klasse mit einem Key-Value-Paar
- * \exception OutOfBoundsEception: Baum ist leer oder es gibt keine weiteren Elemente
+ * \return Gibt \c true zurück, wenn ein Element gefunden wurde, sonst  \c false.
  */
 
 }	// EOF namespace ppl7

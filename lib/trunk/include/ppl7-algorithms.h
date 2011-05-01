@@ -127,26 +127,19 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			if (item->right) clearRecursive((TreeItem*)item->right);
 		}
 	public:
-		typedef AVLTreeAlgorithm::Iterator Iterator;
-		class Pair {
+		class Iterator : public AVLTreeAlgorithm::Iterator
+		{
+			friend class AVLTree;
 			private:
-				const K *myKey;
-				T *myValue;
+				const K* Key;
+				T *Value;
 			public:
-				Pair() {
-					myKey=NULL; myValue=NULL;
-				}
-				Pair(const Pair &other) {
-					myKey=other.myKey; myValue=other.myValue;
-				}
-				Pair(const K &key, T &value)
-				{
-					myKey=&key;
-					myValue=&value;
-				}
-				const K& key() const { return *myKey; }
-				T& value() const {return *myValue; }
+				const K& key() const
+				{ return *Key; }
+				T& value() const
+				{ return *Value; }
 		};
+
 		AVLTree() {
 			MyHeap.init(sizeof(TreeItem),0,100);
 		};
@@ -183,7 +176,8 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			try {
 				AVLTreeAlgorithm::addNode(item);
 			} catch (...) {
-				delete item;
+				item->~TreeItem();
+				MyHeap.free(item);
 				throw;
 			}
 			//printf ("Elements in Heap: %zu\n",MyHeap.count());
@@ -195,6 +189,15 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
 			if (!found) throw ItemNotFoundException();
 			return found->value;
+		}
+
+		bool exists(const K &key) const
+		{
+			TreeItem search, *found;
+			search.key=key;
+			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
+			if (!found) return false;
+			return true;
 		}
 
 		T& operator[](const K &key) const
@@ -242,41 +245,45 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		{
 			AVLTreeAlgorithm::reset(it);
 		}
-		Pair getFirst(Iterator &it) const
+		bool getFirst(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getFirst(it);
-			if (!item) throw OutOfBoundsEception();
-			return Pair(item->key, item->value);
+			if (!item) return false;
+			it.Key=&item->key;
+			it.Value=&item->value;
+			return true;
 		}
-		Pair getNext(Iterator &it) const
+		bool getNext(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getNext(it);
-			if (!item) throw OutOfBoundsEception();
-			return Pair(item->key, item->value);
+			if (!item) return false;
+			it.Key=&item->key;
+			it.Value=&item->value;
+			return true;
 		}
-		Pair getLast(Iterator &it) const
+		bool getLast(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getLast(it);
-			if (!item) throw OutOfBoundsEception();
-			return Pair(item->key, item->value);
+			if (!item) return false;
+			it.Key=&item->key;
+			it.Value=&item->value;
+			return true;
 		}
-		Pair getPrevious(Iterator &it) const
+		bool getPrevious(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getPrevious(it);
-			if (!item) throw OutOfBoundsEception();
-			return Pair(item->key, item->value);
+			if (!item) return false;
+			it.Key=&item->key;
+			it.Value=&item->value;
+			return true;
 		}
-		Pair getCurrent(Iterator &it) const
+		bool getCurrent(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getCurrent(it);
-			if (!item) throw OutOfBoundsEception();
-			return Pair(item->key, item->value);
-		}
-		Pair getRoot() const
-		{
-			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getRoot();
-			if (!item) throw OutOfBoundsEception();
-			return Pair(item->key, item->value);
+			if (!item) return false;
+			it.Key=&item->key;
+			it.Value=&item->value;
+			return true;
 		}
 
 

@@ -67,32 +67,29 @@ TEST_F(AVLTreeTest, getNext) {
 	myMap.add(L"abc",L"value4");
 	ASSERT_EQ((size_t)5,myMap.count()) << "Tree has unexpected size";
 	ppl7::AVLTree<ppl7::String, ppl7::String>::Iterator it;
-	ppl7::AVLTree<ppl7::String, ppl7::String>::Pair pair;
 	myMap.reset(it);
 
-	ASSERT_NO_THROW({
-		pair=myMap.getNext(it);
-		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-				(const wchar_t*)pair.key(), (const wchar_t*)pair.value());
-		pair=myMap.getNext(it);
-		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-				(const wchar_t*)pair.key(), (const wchar_t*)pair.value());
-		pair=myMap.getNext(it);
-		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-				(const wchar_t*)pair.key(), (const wchar_t*)pair.value());
-		pair=myMap.getNext(it);
-		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-				(const wchar_t*)pair.key(), (const wchar_t*)pair.value());
-		pair=myMap.getNext(it);
-		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-				(const wchar_t*)pair.key(), (const wchar_t*)pair.value());
+	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
+	ASSERT_EQ(ppl7::String(L"abc"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String(L"value4"),it.value()) << "value has unexpected value";
 
-	});
+	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
+	ASSERT_EQ(ppl7::String(L"findme"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String(L"success"),it.value()) << "value has unexpected value";
 
-	ASSERT_THROW({
-		myMap.getNext(it);
-	},ppl7::OutOfBoundsEception);
+	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
+	ASSERT_EQ(ppl7::String(L"key1"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String(L"value1"),it.value()) << "value has unexpected value";
 
+	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
+	ASSERT_EQ(ppl7::String(L"key3"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String(L"value3"),it.value()) << "value has unexpected value";
+
+	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
+	ASSERT_EQ(ppl7::String(L"other"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String(L"value2"),it.value()) << "value has unexpected value";
+
+	ASSERT_EQ(false, myMap.getNext(it)) << "getNext has not returned false";
 }
 
 }	// EOF namespace

@@ -1153,82 +1153,6 @@ Array::Iterator::Iterator()
 }
 
 
-#ifdef DONE
-
-class ArraySort : private AVLTree
-{
-	private:
-		Iterator it;
-	public:
-		~ArraySort();
-		virtual int	compare(const void *value1, const void *value2) const;
-		virtual void destroyValue(void *item) const;
-		void		add(const String &s);
-		void		reset();
-		String		*getNext();
-		String		*getPrevious();
-		void		allowDupes(bool allow);
-		bool		exists(const String &s) const;
-};
-
-ArraySort::~ArraySort()
-{
-	clear();
-}
-
-int ArraySort::compare(const void *value1, const void *value2) const
-{
-	String *s1=(String*)value1;
-	String *s2=(String*)value2;
-	if (*s2 < *s1) return -1;
-	if (*s2 > *s1) return 1;
-	return 0;
-}
-
-void ArraySort::destroyValue(void *item) const
-{
-	String *s=(String*)item;
-	delete s;
-}
-
-void ArraySort::allowDupes(bool allow)
-{
-	AVLTree::allowDupes(allow);
-}
-
-void ArraySort::add(const String &s)
-{
-	String *a=new String(s);
-	try {
-		AVLTree::add((void*)a);
-	} catch (...) {
-		delete a;
-		throw;
-	}
-}
-
-void ArraySort::reset()
-{
-	AVLTree::reset(it);
-}
-
-
-String *ArraySort::getNext()
-{
-	return (String *)AVLTree::getNext(it);
-}
-
-String *ArraySort::getPrevious()
-{
-	return (String *)AVLTree::getPrevious(it);
-}
-
-bool ArraySort::exists(const String &s) const
-{
-	if (AVLTree::find((void*)&s)) return true;
-	return false;
-}
-
 /*!\brief Elemente nach ihrem Wert sortieren
  *
  * \desc
@@ -1236,16 +1160,16 @@ bool ArraySort::exists(const String &s) const
  */
 void Array::sort()
 {
-	ArraySort s;
+	ppl7::AVLTree<ppl7::String, int> s;
 	s.allowDupes(true);
 	for (size_t i=0;i<numElements;i++) {
-		s.add(get(i));
+		s.add(get(i),i);
 	}
-	s.reset();
+	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	s.reset(it);
 	clear();
-	String *n;
-	while ((n=s.getNext())) {
-		add(*n);
+	while (s.getNext(it)) {
+		add(it.key());
 	}
 }
 
@@ -1257,16 +1181,16 @@ void Array::sort()
  */
 void Array::sortReverse()
 {
-	ArraySort s;
+	ppl7::AVLTree<ppl7::String, int> s;
 	s.allowDupes(true);
 	for (size_t i=0;i<numElements;i++) {
-		s.add(get(i));
+		s.add(get(i),i);
 	}
-	s.reset();
+	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	s.reset(it);
 	clear();
-	String *n;
-	while ((n=s.getPrevious())) {
-		add(*n);
+	while (s.getPrevious(it)) {
+		add(it.key());
 	}
 }
 
@@ -1277,20 +1201,20 @@ void Array::sortReverse()
  */
 void Array::sortUnique()
 {
-	ArraySort s;
+	ppl7::AVLTree<ppl7::String, int> s;
 	s.allowDupes(false);
 	for (size_t i=0;i<numElements;i++) {
 		try {
-			s.add(get(i));
-		} catch (ppl7::AVLTree::DuplicateItemException) {
+			s.add(get(i),i);
+		} catch (ppl7::DuplicateItemException) {
 
 		}
 	}
-	s.reset();
+	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	s.reset(it);
 	clear();
-	String *n;
-	while ((n=s.getNext())) {
-		add(*n);
+	while (s.getNext(it)) {
+		add(it.key());
 	}
 }
 
@@ -1307,7 +1231,7 @@ void Array::sortUnique()
 void Array::makeUnique()
 {
 	String value;
-	ArraySort s;
+	ppl7::AVLTree<ppl7::String, int> s;
 	s.allowDupes(false);
 	for (size_t i=0;i<numElements;i++) {
 		value=get(i);
@@ -1315,7 +1239,7 @@ void Array::makeUnique()
 			erase(i);
 			i--;
 		} else {
-			s.add(value);
+			s.add(value,i);
 		}
 	}
 }
@@ -1334,16 +1258,20 @@ void Array::makeUnique()
 Array Sort(const Array &array, bool unique)
 {
 	Array ret;
-	ArraySort s;
+	ppl7::AVLTree<ppl7::String, int> s;
 	s.allowDupes(!unique);
 	size_t num=array.count();
 	for (size_t i=0;i<num;i++) {
-		s.add(array.get(i));
+		try {
+			s.add(array.get(i),i);
+		} catch (ppl7::DuplicateItemException) {
+
+		}
 	}
-	s.reset();
-	String *n;
-	while ((n=s.getNext())) {
-		ret.add(*n);
+	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	s.reset(it);
+	while (s.getNext(it)) {
+		ret.add(it.key());
 	}
 	return ret;
 }
@@ -1362,20 +1290,22 @@ Array Sort(const Array &array, bool unique)
 Array SortReverse(const Array &array, bool unique)
 {
 	Array ret;
-	ArraySort s;
+	ppl7::AVLTree<ppl7::String, int> s;
 	s.allowDupes(!unique);
 	size_t num=array.count();
 	for (size_t i=0;i<num;i++) {
-		s.add(array.get(i));
+		try {
+			s.add(array.get(i),i);
+		} catch (ppl7::DuplicateItemException) {
+
+		}
 	}
-	s.reset();
-	String *n;
-	while ((n=s.getPrevious())) {
-		ret.add(*n);
+	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	s.reset(it);
+	while (s.getPrevious(it)) {
+		ret.add(it.key());
 	}
 	return ret;
 }
-
-#endif
 
 } // EOF namespace ppl7
