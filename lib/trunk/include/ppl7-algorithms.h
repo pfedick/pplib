@@ -134,10 +134,21 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 				const K* Key;
 				T *Value;
 			public:
+				Iterator()
+				{
+					Key=NULL;
+					Value=NULL;
+				}
 				const K& key() const
-				{ return *Key; }
+				{
+					if (!Key) throw NullPointerException();
+					return *Key;
+				}
 				T& value() const
-				{ return *Value; }
+				{
+					if (!Value) throw NullPointerException();
+					return *Value;
+				}
 		};
 
 		AVLTree() {

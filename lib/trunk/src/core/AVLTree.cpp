@@ -891,110 +891,6 @@ AVLTreeAlgorithm::Node *AVLTreeAlgorithm::getRoot() const
 }
 
 
-#ifdef DONE
-void AVLTreeAlgorithm::destroyValue(void *item) const
-{
-	throw MissingCompareOperator();
-}
-
-
-/*!\brief Baum leeren
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Baums gelöscht und sämtlicher durch die Elemente
- * belegter Speicher wieder freigegeben. Dazu wird für jedes Element zunächst AVLTreeAlgorithm::DeleteNode und
- * dann die virtuelle Funktion AVLTreeAlgorithm::DestroyValue aufgerufen. Zuletzt wiird noch der duch den
- * Knoten selbst belegte Speicher wieder freigegeben.
- * \attention
- * Bei einer abgeleiteten Klasse muss diese Funktion durch den Destruktor aufgerufen werden,
- * um sicherzustellen, dass alle Elemente gelöscht werden.
- *
- */
-void AVLTreeAlgorithm::clear()
-{
-	//printf ("Clear wurde aufgerufen, root ist: %u\n",root);
-	TreeItem *node;
-	while (root) {
-		//printf ("Root ist: %u\n",root);
-		node=root;
-		deleteNode(node);		// Element aus dem Baum entfernen
-		destroyValue(node);		// Vom Inhalt belegten Speicher freigeben
-		MyHeap.free(node);		// Vom Knoten belegten Speicher freigeben
-	}
-	root=NULL;
-	numElements=0;
-}
-
-
-/*!\brief Element anhand eines Wertes löschen
- *
- * \desc
- * Diese Funktion sucht zunächst ob der angegebene Wert im Baum enthalten ist und
- * löscht anschließend das gefundene Element. Dabei ist sichergestellt,
- * dass der Baum stets sortiert und ausgewogen ist.
- * \par
- * Beim Löschen des Elements wird auch die virtuelle Funktion AVLTreeAlgorithm::DestroyValue
- * aufgerufen. Diese muss sicherstellen, dass der durch das Element belegte Speicher
- * ebenfalls freigegeben wird.
- * \par Falls das Element nur aus dem Baum entfernt werden, aber der durch das Element
- * belegte Speicher erhalten bleiben soll, kann stattdessen die Funktion AVLTreeAlgorithm::Remove
- * aufgerufen werden.
- *
- * \param[in] value Pointer auf den zu löschenden Wert
- * \exception AVLTreeAlgorithm::ItemNotFoundException: Das Element wurde nicht gefunden
- * \exception AVLTreeAlgorithm::DeleteFailedException: Der Knoten konnte nicht gelöscht werden, der Baum
- * ist wahrscheinlich beschädigt.
- */
-void AVLTreeAlgorithm::erase(const void *value)
-{
-	TREEITEM *item=findNode(value);
-	if (!item) throw ItemNotFoundException();
-	if (deleteNode(item)) {
-		if (item->data)	destroyValue((void*)item->data);
-		MyHeap.free(item);
-		return;
-	}
-	throw DeleteFailedException();
-}
-
-/*!\brief Element aus dem AVL-Baum entfernen
- *
- * \desc
- * Diese Funktion sucht zunächst ob der angegebene Wert im Baum enthalten ist und
- * löscht anschließend das gefundene Element aus dem Baum. Dabei ist sichergestellt,
- * dass der Baum stets sortiert und ausgewogen ist.
- * \par
- * Mit dieser Funktion wird das Element nur aus dem AVL-Baum entfernt, der durch das Element
- * belegte Speicher wird jedoch nicht freigegeben. Falls dies gewünscht ist, kann stattdessen
- * die Funktion AVLTreeAlgorithm::Delete aufgerufen werden.
- *
- * \param[in] value Pointer auf den zu entfernenden Wert
- * \return Wurde das Element erfolgreich entfernt, gibt die Funktion einen Pointer auf
- * die Daten des Elements zurück. Im Fehlerfall wird eine Exception geworfen.
- * \exception AVLTreeAlgorithm::ItemNotFoundException: Das Element wurde nicht gefunden
- * \exception AVLTreeAlgorithm::DeleteFailedException: Der Knoten konnte nicht gelöscht werden, der Baum
- * ist wahrscheinlich beschädigt.
- */
-void * AVLTreeAlgorithm::remove(const void *value)
-{
-	void *ret=NULL;
-	TREEITEM *item=findNode(value);
-	if (!item) throw ItemNotFoundException();
-	ret=(void*)item->data;
-	if (deleteNode(item)) {
-		MyHeap.free(item);
-		return ret;
-	}
-	throw DeleteFailedException();
-}
-#endif
-
-
-#ifdef TODO
-
-
-
-#endif
 
 /*!\class AVLTree
  * \brief Template für AVL-Bäume
@@ -1002,6 +898,10 @@ void * AVLTreeAlgorithm::remove(const void *value)
  * \desc
  * Hierbei handelt es sich um ein generisches Template für binäre Bäume, die nach dem AVL-Algorithmus
  * aufgebaut sind.
+ * \par
+ * Die Datentypen für Schlüssel und Wert sind getrennt voneinander beliebig definierbar. Einzige
+ * Voraussetzung für den Schlüssel ist, dass er über die Vergleichoperatoren "<", ">" und "="
+ * verfügt.
  *
  * \example
  * Das nachfolgende Beispiel zeigt, wie das Template verwendet werden kann, um einen Baum von
@@ -1022,6 +922,16 @@ int main(int argc, const char**argv)
 	} catch (ppl7::ItemNotFoundException) {
 		printf ("Element wurde nicht gefunden\n");
 	}
+
+	// Iterator definieren
+    ppl7::AVLTree<ppl7::String, ppl7::String>::Iterator it;
+
+    // Alle Elemente per Iterator ausgeben
+    myMap.reset(it);
+    while (myMap.getNext(it)) {
+        printf ("Found Key >>%ls<< with Value >>%ls<<\n",
+            (const wchar_t*)it.key(), (const wchar_t*)it.value());
+    }
 	return 0;
 }
  * \endcode
@@ -1033,8 +943,29 @@ int main(int argc, const char**argv)
  * \brief Einzelnes Baumelement
  *
  * \desc
- *
+ * Mit dieser Klasse wird ein einzelnes Element des AVL-Baums repräsentiert.
  */
+
+/*!\var AVLTree::TreeItem::key
+ * \brief Schlüsselwert des Elements
+ */
+
+/*!\var AVLTree::TreeItem::value
+ * \brief Datenwert des Elements
+ */
+
+/*!\fn void *AVLTree::TreeItem::operator new (size_t, void *p)
+ * \brief Speicher für den Knoten zuweisen
+ *
+ * \desc
+ * Der Speicher für die Knoten wird über einen Heap der Klasse AVLTree verwaltet und
+ * über diesen Operator der Klasse zugewiesen.
+ * Die AVLTree Klasse sorgt dafür, dass beim Löschen eines Knotens der Destruktor der
+ * Klasse aufgerufen wird, damit auch der Speicher des Schlüssels und des Wertes
+ * freigegeben wird.
+ */
+
+
 
 /*!\var AVLTree::MyHeap
  * \brief Speicherverwaltung der Knoten
@@ -1237,5 +1168,57 @@ int main(int argc, const char**argv)
  *
  * \return Gibt \c true zurück, wenn ein Element gefunden wurde, sonst  \c false.
  */
+
+
+
+/*!\class AVLTree::Iterator
+ * \brief %Iterator für AVLTree
+ *
+ * \desc
+ * Dieser %Iterator wird zum Durchwandern eines AVLTree benötigt.
+ *
+ * \example
+ * Beispiel zur Verwendung des Iterators:
+ * \code
+	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
+	myMap.add(L"key1",L"value1");
+	myMap.add(L"other",L"value2");
+	myMap.add(L"findme",L"success");
+	myMap.add(L"key3",L"value3");
+	myMap.add(L"abc",L"value4");
+	// Iterator definieren
+	ppl7::AVLTree<ppl7::String, ppl7::String>::Iterator it;
+	myMap.reset(it);
+	while (myMap.getNext(it)) {
+		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
+			(const wchar_t*)it.key(), (const wchar_t*)it.value());
+	}
+ * \endcode
+ */
+
+/*!\fn const K& AVLTree::Iterator::key() const
+ * \brief Schlüsselwert auslesen
+ *
+ * \desc
+ * Mit dieser Funktion wird der Wert des aktuellen Schlüssels ausgelesen.
+ *
+ * \return Gibt eine Referenz auf den Schlüssel zurück
+ *
+ * \exception NullPointerException: Wird geworfen, wenn der Iterator auf kein gültiges Element
+ * eines AVLTree zeigt.
+ */
+
+/*!\fn T& AVLTree::Iterator::value() const
+ * \brief Datenwert des Elements auslesen
+ *
+ * \desc
+ * Mit dieser Funktion wird der Datenwert des aktuellen Schlüssels ausgelesen.
+ *
+ * \return Gibt eine Referenz auf den Datenwert zurück
+ *
+ * \exception NullPointerException: Wird geworfen, wenn der Iterator auf kein gültiges Element
+ * eines AVLTree zeigt.
+ */
+
 
 }	// EOF namespace ppl7
