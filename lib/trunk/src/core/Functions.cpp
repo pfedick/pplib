@@ -106,7 +106,10 @@ void PrintDebug(const char *format, ...)
 	char *buff=NULL;
 	va_list args;
 	va_start(args, format);
-	vasprintf (&buff, format, args);
+	if (vasprintf (&buff, format, args)<0) {
+		va_end(args);
+		return;
+	}
 	va_end(args);
 	if (!buff) return;
 	if (printdebug==1) {
