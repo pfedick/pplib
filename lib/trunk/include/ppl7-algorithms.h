@@ -2,11 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 56 $
- * $Date: 2011-04-30 12:15:56 +0000 (Sa, 30 Apr 2011) $
- * $Id: ppl7-types.h 56 2011-04-30 12:15:56Z pafe $
- * $URL: $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
