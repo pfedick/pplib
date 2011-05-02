@@ -114,6 +114,17 @@ TEST_F(ArrayTest, add3Elements) {
 	);
 }
 
+TEST_F(ArrayTest, add100000Elements) {
+	ppl7::Array a1;
+	ppl7::PrintDebugTime ("add 100000 Elements\n");
+	for (int i=0;i<100000;i++) {
+		a1.add(L"Bart Simpson");
+	}
+	ppl7::PrintDebugTime ("done\n");
+	ASSERT_EQ((size_t)100000,a1.count()) << "Array does not contain 100000 elements";
+}
+
+
 TEST_F(ArrayTest, count) {
 	ASSERT_NO_THROW({
 			ppl7::Array a1;

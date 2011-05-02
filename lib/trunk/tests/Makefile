@@ -34,9 +34,13 @@ bin/heap: src/heap.cpp Makefile
 	mkdir -p bin
 	$(CC) -o bin/heap src/heap.cpp $(CFLAGS) $(LIB)
 
-bin/avltree: src/avltree.cpp Makefile
+bin/avltree: src/avltree.cpp Makefile bin/wordlist.o
 	mkdir -p bin
-	$(CC) -o bin/avltree src/avltree.cpp $(CFLAGS) $(LIB)
+	$(CC) -o bin/avltree bin/wordlist.o src/avltree.cpp $(CFLAGS) $(LIB)
+
+bin/wordlist.o: src/wordlist.cpp
+	mkdir -p bin
+	$(CC) -Wall -O -o bin/wordlist.o -c src/wordlist.cpp $(CFLAGS)
 
 clean:
 	-rm -rf bin

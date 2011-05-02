@@ -5,21 +5,25 @@
 #include <locale.h>
 #include <ppl7.h>
 #include <gtest/gtest.h>
-#include "wordlist.h"
 
 
+extern const wchar_t *wordlist;
+
+ppl7::Array Wordlist;
 
 namespace {
 
 // The fixture for testing class Foo.
 class AVLTreeTest : public ::testing::Test {
 	protected:
+
 	AVLTreeTest() {
 		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
+
 	}
 	virtual ~AVLTreeTest() {
 
@@ -42,31 +46,37 @@ TEST_F(AVLTreeTest, add) {
 	ASSERT_EQ((size_t)2,myMap.count()) << "Tree has unexpected size";
 }
 
-TEST_F(AVLTreeTest, addWordlist) {
+TEST_F(AVLTreeTest, addAndDeleteWordlist) {
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String Wordlist(wordlist);
-	ppl7::Array list;
-	list.reserve(10010);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	list.explode(Wordlist,"\n");
-	ppl7::PrintDebugTime ("done\n");
-	size_t total=list.count();
-	ASSERT_EQ(10000,list.count()) << "List has unexpected size";
+	size_t total=Wordlist.count();
+	myMap.reserve(total+10);
+	ASSERT_EQ((size_t)125346,Wordlist.count()) << "List has unexpected size";
 	ppl7::PrintDebugTime ("Wortliste in AVLTree laden\n");
 	for (size_t i=0;i<total;i++) {
-		myMap.add(list[i],L"");
+		myMap.add(Wordlist[i],L"");
 	}
 	ASSERT_EQ(total,myMap.count()) << "Tree has unexpected size";
 	ppl7::PrintDebugTime ("done\n");
-	/*
-	myMap.add(L"key1",L"value1");
-	ASSERT_EQ((size_t)1,myMap.count()) << "Tree has unexpected size";
-	myMap.add(L"other",L"value2");
-	ASSERT_EQ((size_t)2,myMap.count()) << "Tree has unexpected size";
-	*/
+	ppl7::PrintDebugTime ("Wortliste aus AVLTree loeschen\n");
+	for (size_t i=0;i<total;i++) {
+		myMap.erase(Wordlist[i]);
+	}
+	ppl7::PrintDebugTime ("done\n");
+	ASSERT_EQ((size_t)0,myMap.count()) << "Tree has unexpected size";
 
 }
+
+TEST_F(AVLTreeTest, addAndClearWordlist) {
+	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
+	size_t total=Wordlist.count();
+	myMap.reserve(total+10);
+	for (size_t i=0;i<total;i++) {
+		myMap.add(Wordlist[i],L"");
+	}
+	myMap.clear();
+	ASSERT_EQ((size_t)0,myMap.count()) << "Tree has unexpected size";
+}
+
 
 TEST_F(AVLTreeTest, find) {
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
@@ -126,5 +136,15 @@ TEST_F(AVLTreeTest, getNext) {
 int main (int argc, char**argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
+
+	ppl7::PrintDebugTime ("Wortliste in String laden\n");
+	ppl7::String w(wordlist);
+	Wordlist.reserve(130000);
+	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
+	Wordlist.explode(w,L"\n");
+	ppl7::PrintDebugTime ("done\n");
+
+
+
 	return RUN_ALL_TESTS();
 }

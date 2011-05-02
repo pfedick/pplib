@@ -437,6 +437,7 @@ class Array : public Variant
 		//@{
 		void add(const String &value);
 		void add(const String &value, size_t size);
+		void add(const wchar_t *value, size_t size);
 		void add(const Array &other);
 		void addf(const char *fmt, ...);
 		void copy(const Array &other);
