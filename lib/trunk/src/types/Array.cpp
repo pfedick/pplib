@@ -249,7 +249,24 @@ void Array::add(const String &value)
  */
 void Array::add(const String &value, size_t size)
 {
-	set(numElements,value.left(size));
+	String str;
+	str.set(value,size);
+	set(numElements,str);
+}
+
+/*!\brief Teilstring anhängen
+ *
+ * \desc
+ * Der Inhalt des Strings \p value und der Länge \p size wird dem Array hinzugefügt.
+ *
+ * @param value String
+ * @param size Größe des Strings
+ */
+void Array::add(const wchar_t *value, size_t size)
+{
+	String str;
+	str.set(value,size);
+	set(numElements,str);
 }
 
 /*!\brief Formatierten String anhängen
@@ -433,6 +450,7 @@ void Array::insertf(size_t index, const char *fmt, ...)
 void Array::reserve (size_t size)
 {
 	if (size>numCapacity) {
+		//PrintDebugTime ("Array::reserve von %zu auf %zu Elemente\n",numCapacity,size);
 		ROW *r;
 		// Array muss vergroessert werden
 		void *newrows=realloc(rows,(size)*sizeof(ROW));
@@ -883,19 +901,24 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 	size_t count=0;
 	const wchar_t *del=(const wchar_t *)delimiter;
 	wchar_t *etext=(wchar_t*)text.getPtr();
+	wchar_t * _t;
+	String str;
 	while (1) {
-		p=Instr(etext,del,0);
-		if (p>=0) {
+		_t=wcsstr(etext,del);
+		if (_t) {
+			p=_t-etext;
 			if (p==0 && skipemptylines==true) {
 				etext+=t;
 				continue;
 			}
-			count++;
 			if (limit>0 && count>limit) {
 				return *this;
 			}
-			add((wchar_t*)etext,p);
+			str.set(etext,p);
+			//add(etext,p);
+			set(numElements,str);
 			etext=etext+p+t;
+			count++;
 		} else {
 			if (skipemptylines==false || wcslen(etext)>0) {
 				count++;
