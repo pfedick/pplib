@@ -91,4 +91,233 @@ namespace ppl7 {
  */
 
 
+/*!\class AssocArray::ArrayKey
+ * \brief Datentyp für Schlüssel
+ *
+ * \desc
+ * Das AssocArray verwendet einen eigenen von der String-Klasse abgeleiteten Datentyp. Dieser
+ * unterscheidet sich von der String-Klasse nur durch die Vergleichoperatoren. Diese behandelt
+ * rein nummerische Schlüssel anders als alphanummerische.
+ *
+ */
+
+AssocArray::ArrayKey::ArrayKey(const String &other)
+{
+	set(other);
+}
+
+/*!\brief Generische Vergleichfunktion
+ *
+ * \desc
+ * Diese Funktion vergleicht den eigenen Wert mit dem aus \p str. Sind Beide Strings nummerisch,
+ * wird ein nummerischer Vergleich durchgeführt, andernfalls ein Stringvergleich. Die Funktion wird
+ * von den Vergleichoperatoren aufgerufen.
+ *
+ * @param str Vergleichswert
+ * @return Liefert folgende Werte zurück:
+ * - 0: Beide Werte sind identisch
+ * - -1: Der angegebene Wert \p str ist kleiner als der eigene
+ * - 1: Der angegebene Wert \p str ist größer als der eigene
+ */
+int AssocArray::ArrayKey::compare(const ArrayKey &str) const
+{
+	if (isNumeric()==true && str.isNumeric()==true) {
+		pplint64 v1=toInt64();
+		pplint64 v2=str.toInt64();
+		if (v2>v1) return 1;
+		if (v2<v1) return -1;
+		return 0;
+	}
+	int cmp=strcasecmp(str);
+	if (cmp==0) return 0;
+	if (cmp<0) return 1;
+	return -1;
+}
+
+AssocArray::ArrayKey& AssocArray::ArrayKey::operator=(const String &str)
+{
+	set(str);
+	return *this;
+}
+
+bool AssocArray::ArrayKey::operator<(const ArrayKey &str) const
+{
+	int c=compare(str);
+	if (c<0) return true;
+	return false;
+}
+bool AssocArray::ArrayKey::operator<=(const ArrayKey &str) const
+{
+	int c=compare(str);
+	if (c<=0) return true;
+	return false;
+}
+
+bool AssocArray::ArrayKey::operator==(const ArrayKey &str) const
+{
+	int c=compare(str);
+	if (c==0) return true;
+	return false;
+}
+
+bool AssocArray::ArrayKey::operator!=(const ArrayKey &str) const
+{
+	int c=compare(str);
+	if (c!=0) return true;
+	return false;
+}
+
+bool AssocArray::ArrayKey::operator>=(const ArrayKey &str) const
+{
+	int c=compare(str);
+	if (c>=0) return true;
+	return false;
+}
+
+bool AssocArray::ArrayKey::operator>(const ArrayKey &str) const
+{
+	int c=compare(str);
+	if (c>0) return true;
+	return false;
+}
+
+
+/*!\brief Konstruktor des Assoziativen Arrays
+ *
+ * \desc
+ * Initialisiert die Instanz mit 0 und initialisiert den AVL-Baum.
+ */
+AssocArray::AssocArray()
+{
+	type=Variant::ASSOCARRAY;
+	maxint=0;
+	num=0;
+}
+
+/*!\brief Destruktor der Klasse
+ *
+ * \desc
+ * Der Destruktor ruft die Funktion AssocArray::clear auf, um alle vorhandenen Elemente zu
+ * löschen.
+ */
+AssocArray::~AssocArray()
+{
+	clear();
+}
+
+/*!\brief Interne Funktion zum Suchen eines Elements
+ *
+ * \desc
+ * Diese Funktion zerlegt den angegebenen Schlüssel (\p key) in seine einzelnen Elemente.
+ * Als Trennzeichen wird wie bei einer Unix-Pfadangabe der Slash (/) verwendet. Die Funktion
+ * sucht zunächst nach dem erste Element des Schlüssels im eigenen Baum. Ist dies vorhanden
+ * und handelt es sich bei dessen Datentyp wieder um ein AssocArray, wird deren
+ * findInternal-Funktion mit dem restlichen Schlüssel rekursiv aufgerufen. Dies geschieht
+ * solange, bis das letzte Element des Keys gefunden wurde.
+ *
+ * \param[in] key String mit dem gesuchten Schlüssel
+ * \return Konnte der Schlüssel gefunden werden, wir der Pointer auf das Element (Variant)
+ * zurückgegeben. Wurde der Schlüssel nicht gefunden, wird eine Exception geworfen
+ * \exception InvalidKeyException: Wird geworfen, wenn der Schlüssel ungültig oder leer ist
+ * \exception KeyNotFoundException: Wird geworfen, wenn der Schlüssel nicht vorhanden ist
+ * \note
+ * Die Funktion wird von allen Get...- und Concat-Funktionen verwendet.
+ */
+Variant *AssocArray::findInternal(const ArrayKey &key) const
+{
+	Array tok(key,L"/",0,true);
+	if (tok.count()==0) throw InvalidKeyException(key);
+	String firstkey=tok.shift();
+	ArrayKey rest=tok.implode("/");
+	Variant *p;
+	try {
+		p=Tree.find(firstkey);
+	} catch (ItemNotFoundException) {
+		throw KeyNotFoundException();
+	}
+	// Ist noch was im Pfad rest?
+	if (tok.count()>1) {			// Ja, koennen wir iterieren?
+		if (p->isAssocArray()) {
+			return ((AssocArray*)p)->findInternal(rest);
+		} else {
+			throw KeyNotFoundException();
+		}
+	}
+	return p;
+}
+
+
+/*!\brief Interne Funktion, die ein Element im Baum sucht oder anlegt
+ *
+ * \desc
+ * Diese Funktion durchsucht den Baum nach dem gewünschten Element. Ist es vorhanden, wird dessen Pointer
+ * zurückgeliefert, wenn nicht, wird es angelegt, jedoch ohne Daten. Bei verschachtelten Schlüsseln wird
+ * die Funktion rekursiv aufgerufen, bis das letzte Element erreicht ist. Die Funktion wird intern von allen
+ * Funktionen verwendet, die Daten in das Array speichern.
+ *
+ * \param[in] key Pointer auf den Namen des Schlüssels
+ * \return Bei Erfolg liefert die Funktion einen Pointer auf das gewünschte Element zurück.
+ * Im Fehlerfall wird eine Exception geworfen.
+ *
+ * \exception InvalidKeyException: Wird geworfen, wenn der Schlüssel ungültig oder leer ist
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ *
+ * \remarks Bei der Angabe eines verschachtelten Schlüssels kann es vorkommen, dass bereits vorhandene
+ * Elemente überschrieben werden. Beispiel:
+ *
+ * Das Element <tt>ebene1/schlüssel1</tt> ist im Baum bereits vorhanden und beinhaltet einen String. Nun wird
+ * das neue Element <tt>ebene1/schlüssel1/unterschlüssel1</tt> angelegt. Da Schlüssel eindeutig sein müssen,
+ * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
+ */
+Variant *AssocArray::createTree(const ArrayKey &key)
+{
+	Array tok(key,L"/",0,true);
+	if (tok.count()==0) throw InvalidKeyException(key);
+	String firstkey=tok.shift();
+	ArrayKey rest=tok.implode("/");
+	if (firstkey=="[]") {
+		firstkey.setf("%llu",maxint);
+		maxint++;
+	}
+	// Begint Firstkey mit einer Zahl?
+	if (firstkey.isNumeric()) {
+		ppluint64 keyint=firstkey.toInt64();
+		if (keyint>=maxint) maxint=keyint+1;
+	}
+
+	Variant *p;
+	try {
+		p=Tree.find(firstkey);
+	} catch (ItemNotFoundException) {
+		p=NULL;
+	}
+	if (p) {
+		// Ist noch was im Pfad rest?
+		if (tok.count()>0) {          // Ja, koennen wir iterieren?
+			if (p->isAssocArray()==false) {
+				delete (p);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
+				p=new AssocArray;
+			}
+			p=((AssocArray*)p)->createTree(rest);
+		}
+		// Nein, wir haben die Zielposition gefunden
+		return p;
+	}
+
+	// Key ist nicht in diesem Array, wir legen ihn an
+	p=new AssocArray;
+	Tree.add(firstkey,p);
+
+	// Ist noch was im Pfad rest?
+	if (tok.count()>0) {          // Ja, wir erstellen ein Array und iterieren
+		p=new AssocArray;
+		p=((AssocArray*)p)->createTree(rest);
+	}
+	num++;
+	return p;
+}
+
+
+
+
 } // EOF namespace ppl7

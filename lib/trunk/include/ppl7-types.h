@@ -500,13 +500,39 @@ class Array : public Variant
 
 Array operator+(const Array &a1, const Array& a2);
 
-
-
 class AssocArray : public Variant
 {
 	private:
+		class ArrayKey : public String
+		{
+			private:
+				int compare(const ArrayKey &str) const;
+			public:
+				ArrayKey(const String &other);
+				ArrayKey& operator=(const String &str);
+				bool operator<(const ArrayKey &str) const;
+				bool operator<=(const ArrayKey &str) const;
+				bool operator==(const ArrayKey &str) const;
+				bool operator!=(const ArrayKey &str) const;
+				bool operator>=(const ArrayKey &str) const;
+				bool operator>(const ArrayKey &str) const;
+		};
+
+
+		ppluint64		maxint;
+		size_t			num;
+		ppl7::AVLTree<ArrayKey, Variant *> Tree;
+
+
+		Variant *findInternal(const ArrayKey &key) const;
+		Variant *createTree(const ArrayKey &key);
+
 
 	public:
+		PPLPARAMETERISEDEXCEPTION(InvalidKeyException);
+		PPLNORMALEXCEPTION(KeyNotFoundException);
+
+
 		//!\name Konstruktoren und Destruktoren
 		//@{
 		AssocArray();
