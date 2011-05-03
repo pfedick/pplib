@@ -65,6 +65,7 @@ class Array;
 class AssocArray;
 class ByteArray;
 class ByteArrayPtr;
+class DateTime;
 
 class Variant
 {
@@ -76,6 +77,7 @@ class Variant
 			STRING		=4,
 			ASSOCARRAY	=5,
 			BYTEARRAY	=6,
+			//POINTER		=7,
 			ARRAY		=9,
 			//BOOL		=10,
 			DATETIME	=11,
@@ -96,6 +98,7 @@ class Variant
 		bool isAssocArray() const;
 		bool isByteArray() const;
 		bool isByteArrayPtr() const;
+		bool isDateTime() const;
 		const String& toString() const;
 		String& toString();
 		const Array& toArray() const;
@@ -106,6 +109,8 @@ class Variant
 		ByteArray& toByteArray();
 		const ByteArrayPtr& toByteArrayPtr() const;
 		ByteArrayPtr& toByteArrayPtr();
+		const DateTime& toDateTime() const;
+		DateTime& toDateTime();
 		//@}
 };
 
@@ -508,6 +513,7 @@ class AssocArray : public Variant
 			private:
 				int compare(const ArrayKey &str) const;
 			public:
+				ArrayKey();
 				ArrayKey(const String &other);
 				ArrayKey& operator=(const String &str);
 				bool operator<(const ArrayKey &str) const;
@@ -553,7 +559,11 @@ class AssocArray : public Variant
 		void add(const Array &other);
 		void add(const AssocArray &other);
 		void set(const String &key, const String &value);
+		void set(const String &key, const String &value, size_t size);
 		void set(const String &key, const Array &value);
+		void set(const String &key, const DateTime &value);
+		void set(const String &key, const ByteArray &value);
+		void set(const String &key, const ByteArrayPtr &value);
 		void set(const String &key, const AssocArray &value);
 		void setf(const String &key, const char *fmt, ...);
 		void copy(const AssocArray &other);
@@ -577,9 +587,10 @@ class AssocArray : public Variant
 		int	fromTemplate(const String &templ, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
 		int	fromConfig(const String &content, const String &splitchar=L":", const String &concat=L"\n", bool dotrim=false);
 		void toTemplate(String &s, const String &prefix=L"", const String &linedelimiter=L"\n", const String &splitchar=L"=");
-			int	exportBinary(void *buffer, size_t buffersize, size_t *realsize);
-		int exportBinary(ByteArray &buffer);
-		int	importBinary(const void *buffer, int buffersize);
+		size_t binarySize() const;
+		int	exportBinary(void *buffer, size_t buffersize, size_t *realsize) const;
+		int exportBinary(ByteArray &buffer) const;
+		int	importBinary(const void *buffer, size_t buffersize);
 		int	importBinary(const ByteArrayPtr &buffer);
 		//@}
 

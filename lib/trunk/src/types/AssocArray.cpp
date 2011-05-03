@@ -101,6 +101,11 @@ namespace ppl7 {
  *
  */
 
+AssocArray::ArrayKey::ArrayKey()
+{
+
+}
+
 AssocArray::ArrayKey::ArrayKey(const String &other)
 {
 	set(other);
@@ -205,6 +210,22 @@ AssocArray::~AssocArray()
 	clear();
 }
 
+/*!\brief Inhalt des Arrays löschen
+ *
+ * \desc
+ * Mit dieser Funktion wird der komplette Inhalt des Arrays gelöscht. Dabei der Destruktor für jedes
+ * vorhandene Element aufgerufen, der wiederum sicherstellt, dass die darin enthaltenen Daten
+ * ordnungsgemäß gelöscht werden.
+ *
+ */
+void AssocArray::clear()
+{
+	Tree.clear();
+	num=0;
+	maxint=0;
+}
+
+
 /*!\brief Interne Funktion zum Suchen eines Elements
  *
  * \desc
@@ -227,7 +248,7 @@ Variant *AssocArray::findInternal(const ArrayKey &key) const
 {
 	Array tok(key,L"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
-	String firstkey=tok.shift();
+	ArrayKey firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
 	Variant *p;
 	try {
@@ -305,19 +326,220 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 	}
 
 	// Key ist nicht in diesem Array, wir legen ihn an
-	p=new AssocArray;
-	Tree.add(firstkey,p);
 
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {          // Ja, wir erstellen ein Array und iterieren
 		p=new AssocArray;
+		Tree.add(firstkey,p);
 		p=((AssocArray*)p)->createTree(rest);
+	} else {
+		p=new Variant;
+		Tree.add(firstkey,p);
 	}
 	num++;
 	return p;
 }
 
+/*!\brief Anzahl Schlüssel zählen
+ *
+ * \desc
+ * Diese Funktion liefert die Anzahl Schlüssel auf dieser Ebene des Array zurück.
+ *
+ * \param[in] recursive Falls recursive auf true gesetzt wird die Funktion rekusriv für jeden
+ * Schlüssel aufgerufen, dessen Wert ebenfalls ein Array ist.
+ *
+ * \returns Anzahl Schlüssel
+ */
+size_t AssocArray::count(bool recursive) const
+{
+	if (!recursive) return num;
+	ppl7::AVLTree<ArrayKey, Variant *>::Iterator it;
+	Variant *p;
+	Tree.reset(it);
+	size_t c=num;
+	while (Tree.getNext(it)) {
+		p=it.value();
+		if (p->isAssocArray()) c+=((AssocArray*)p)->count(recursive);
+	}
+	return c;
+}
 
+/*!\brief Anzahl Schlüssel für ein bestimmtes Element zählen
+ *
+ * \desc
+ * Diese Funktion liefert die Anzahl Schlüssel zurück, die in dem angegebenen Key enthalten sind.
+ *
+ * \param[in] key Schlüssel-Name eines Assoziativen Arrays innerhalb dieses Arrays
+ * \param[in] recursive Falls recursive auf true gesetzt wird die Funktion rekusriv für jeden
+ * Schlüssel aufgerufen, dessen Wert ebenfalls ein Array ist.
+ *
+ * \returns Anzahl Schlüssel
+ */
+size_t AssocArray::count(const String &key, bool recursive) const
+{
+	Variant *p;
+	try {
+		p=findInternal(key);
+	} catch (KeyNotFoundException) {
+		return 0;
+	}
+	if (p->isAssocArray()) return ((AssocArray*)p)->count(recursive);
+	return 1;
+}
+
+/*!\brief Inhalt des Arrays ausgeben
+ *
+ * \desc
+ * Diese Funktion dient Debugging-Zwecken. Der Aufruf bewirkt, dass der Inhalt des kompletten Arrays auf
+ * STDOUT ausgegeben wird.
+ *
+ * \param[in] prefix Optionaler Text, der bei der Ausgabe jedem Element vorangestellt wird
+ *
+ * \par Beispiel:
+ * \code
+ppl7::AssocArray a;
+ppl7::Binary bin;
+bin.load("main.cpp");
+
+a.set("key1","value1");
+a.set("array1/unterkey1","value2");
+a.set("array1/unterkey2","value3");
+a.set("array1/noch ein array/unterkey1","value4");
+a.set("array1/unterkey2","value5");
+a.set("key2","value6");
+a.set("dateien/main.cpp",bin);
+a.set("array2/unterkey1","value7");
+a.set("array2/unterkey2","value8");
+a.set("array2/unterkey1","value9");
+a.list("prefix");
+\endcode
+	Ausgabe:
+\code
+prefix/array1/noch ein array/unterkey1=value4
+prefix/array1/unterkey1=value2
+prefix/array1/unterkey2=value5
+prefix/array2/unterkey1=value9
+prefix/array2/unterkey2=value8
+prefix/dateien/main.cpp=Binary, 806 Bytes
+prefix/key1=value1
+prefix/key2=value6
+\endcode
+ *
+ * \remarks Die Funktion gibt nur "lesbare" Element aus. Enthält das Array Pointer oder Binaries, wird das Element zwar
+ * ausgegeben, jedoch werden als Wert nur Meta-Informationen ausgegeben (Datentyp, Pointer, Größe).
+ */
+void AssocArray::list(const String &prefix) const
+{
+	String key;
+	String pre;
+	if (prefix) key=prefix+L"/";
+	ppl7::AVLTree<ArrayKey, Variant *>::Iterator it;
+	Tree.reset(it);
+	Variant *p;
+	while ((Tree.getNext(it))) {
+		p=it.value();
+		if (p->isString()) {
+			PrintDebug("%ls%ls=%ls\n",(const wchar_t*)key,(const wchar_t*)it.key(),(const wchar_t*)((String*)p)->getPtr());
+		} else if (p->isByteArray()) {
+			PrintDebug("%ls%ls=ByteArray, %zu Bytes\n",(const wchar_t*)key,(const wchar_t*)it.key(),((ByteArray*)p)->size());
+		} else if (p->isByteArrayPtr()) {
+			PrintDebug("%ls%ls=ByteArrayPtr, %zu Bytes\n",(const wchar_t*)key,(const wchar_t*)it.key(),((ByteArrayPtr*)p)->size());
+		} else if (p->isAssocArray()) {
+			pre.setf("%ls%ls",(const wchar_t*)key,(const wchar_t*)it.key());
+			((AssocArray*)p)->list(pre);
+			/*
+		} else if (p->type==datatype::POINTER) {
+			PrintDebug("%s%s=POINTER %llu (0x%llx)\n",(const char*)key,(const char*)p->key.GetPtr(),(ppluint64)(size_t)(p->value), (ppluint64)(size_t)(p->value));
+			*/
+		} else if (p->isDateTime()) {
+			PrintDebug("%ls%ls=DateTime %s\n",(const wchar_t*)key,(const wchar_t*)it.key(), (const wchar_t*) ((DateTime*)p)->getISO8601withMsec());
+		}
+	}
+}
+
+void AssocArray::set(const String &key, const String &value)
+{
+	Variant *p=createTree(key);
+	delete p;
+	p=new String(value);
+}
+
+void AssocArray::set(const String &key, const String &value, size_t size)
+{
+	Variant *p=createTree(key);
+	delete p;
+	p=new String;
+	((String*)p)->set(value,size);
+}
+
+void AssocArray::set(const String &key, const DateTime &value)
+{
+	Variant *p=createTree(key);
+	delete p;
+	p=new DateTime(value);
+}
+
+void AssocArray::set(const String &key, const ByteArray &value)
+{
+	Variant *p=createTree(key);
+	delete p;
+	p=new ByteArray(value);
+}
+
+void AssocArray::set(const String &key, const ByteArrayPtr &value)
+{
+	Variant *p=createTree(key);
+	delete p;
+	p=new ByteArrayPtr(value);
+}
+
+void AssocArray::set(const String &key, const Array &value)
+{
+	Variant *p=createTree(key);
+	delete p;
+	p=new Array(value);
+}
+
+void AssocArray::set(const String &key, const AssocArray &value)
+{
+	Variant *p=createTree(key);
+	delete p;
+	p=new AssocArray(value);
+}
+
+/*!\brief Formatierten String hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt eines formatierten Strings dem Array hinzu.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] fmt Pointer auf den Format-String des Wertes
+ * \param[in] ... Beliebig viele Parameter, die vom Formatstring verwendet werden
+ */
+void AssocArray::setf(const String &key, const char *fmt, ...)
+{
+	String value;
+	va_list args;
+	va_start(args, fmt);
+	value.vasprintf(fmt,args);
+	va_end(args);
+	Variant *p=createTree(key);
+	delete p;
+	p=new String(value);
+}
+
+const String& AssocArray::getString(const String &key) const
+{
+	const Variant *ptr=findInternal(key);
+	if (ptr->isString()) return ptr->toString();
+	throw TypeConversionException();
+}
+
+const Variant& AssocArray::get(const String &key) const
+{
+	const Variant *ptr=findInternal(key);
+	return *ptr;
+}
 
 
 } // EOF namespace ppl7

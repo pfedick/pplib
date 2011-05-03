@@ -260,6 +260,19 @@ bool Variant::isByteArrayPtr() const
 	return false;
 }
 
+/*!\brief Prüft, ob es sich um den Datentyp DateTime handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp DateTime handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp DateTime handelt, sonst \c false.
+ */
+bool Variant::isDateTime() const
+{
+	if (type==DATETIME) return true;
+	return false;
+}
+
 /*!\brief Typkonvertierung zu: const String
  *
  * \desc
@@ -420,6 +433,38 @@ ByteArrayPtr& Variant::toByteArrayPtr()
 {
 	if (type!=BYTEARRAYPTR && type!=BYTEARRAY) throw TypeConversionException();
 	return static_cast<ByteArrayPtr&>(*this);
+}
+
+/*!\brief Typkonvertierung zu: const DateTime
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der Variant zu einem DateTime konvertiert, das nicht verändert werden kann.
+ * Dies ist jedoch nur erfolgreich, wenn es sich bei diesem Datentyp auch um ein DateTime handelt.
+ * Ist dies nicht der Fall, wird eine Exception geworfen.
+ *
+ * @return Referenz auf DateTime
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein DateTime handelt.
+ */
+const DateTime& Variant::toDateTime() const
+{
+	if (type!=DATETIME) throw TypeConversionException();
+	return static_cast<const DateTime&>(*this);
+}
+
+/*!\brief Typkonvertierung zu: DateTime
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der Variant zu einem DateTime konvertiert.
+ * Dies ist jedoch nur erfolgreich, wenn es sich bei diesem Datentyp auch um ein DateTime handelt.
+ * Ist dies nicht der Fall, wird eine Exception geworfen.
+ *
+ * @return Referenz auf ByteArrayPtr
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein DateTime handelt.
+ */
+DateTime& Variant::toDateTime()
+{
+	if (type!=DATETIME) throw TypeConversionException();
+	return static_cast<DateTime&>(*this);
 }
 
 
