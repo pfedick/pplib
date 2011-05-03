@@ -502,9 +502,11 @@ void AssocArray::set(const String &key, const Array &value)
 
 void AssocArray::set(const String &key, const AssocArray &value)
 {
+	/*
 	Variant *p=createTree(key);
 	delete p;
 	p=new AssocArray(value);
+	*/
 }
 
 /*!\brief Formatierten String hinzufügen

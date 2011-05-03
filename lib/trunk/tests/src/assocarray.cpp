@@ -38,6 +38,23 @@ TEST_F(AssocArrayTest, ConstructorSimple) {
 
 }
 
+TEST_F(AssocArrayTest, addStrings) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
+	a.set(L"array1/unterkey1",L"value2");
+	a.set(L"array1/unterkey2",L"value3");
+	a.set(L"array1/noch ein array/unterkey1",L"value4");
+	a.set(L"array1/unterkey2",L"value5");
+	a.set(L"key2",L"value6");
+	//a.set(L"dateien/main.cpp",&bin);
+	a.set(L"array2/unterkey1",L"value7");
+	a.set(L"array2/unterkey2",L"value8");
+	a.set(L"array2/unterkey1",L"value9");
+	});
+	//a.list();
+}
+
 
 }	// EOF namespace
 
