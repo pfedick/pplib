@@ -523,15 +523,24 @@ class AssocArray : public Variant
 				bool operator>=(const ArrayKey &str) const;
 				bool operator>(const ArrayKey &str) const;
 		};
+		class ValueNode
+		{
+			public:
+				Variant *value;
+
+				ValueNode() {value=NULL; }
+				ValueNode(const ValueNode &other) {value=other.value; }
+				~ValueNode() {delete value; }
+		};
 
 
 		ppluint64		maxint;
 		size_t			num;
-		ppl7::AVLTree<ArrayKey, Variant *> Tree;
+		ppl7::AVLTree<ArrayKey, ValueNode> Tree;
 
 
-		Variant *findInternal(const ArrayKey &key) const;
-		Variant *createTree(const ArrayKey &key);
+		ValueNode *findInternal(const ArrayKey &key) const;
+		ValueNode *createTree(const ArrayKey &key);
 
 
 	public:

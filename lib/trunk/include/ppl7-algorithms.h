@@ -179,7 +179,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
  			MyHeap.reserve(num);
  		}
 
-		void	add(const K &key, const T &value)
+		T& add(const K &key, const T &value)
 		{
 			TreeItem *item=new (MyHeap.malloc())TreeItem;
 			item->key=key;
@@ -191,6 +191,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 				MyHeap.free(item);
 				throw;
 			}
+			return item->value;
 			//printf ("Elements in Heap: %zu\n",MyHeap.count());
 		}
 		T& find(const K &key) const

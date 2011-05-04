@@ -244,21 +244,23 @@ void AssocArray::clear()
  * \note
  * Die Funktion wird von allen Get...- und Concat-Funktionen verwendet.
  */
-Variant *AssocArray::findInternal(const ArrayKey &key) const
+AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
 {
 	Array tok(key,L"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
 	ArrayKey firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
-	Variant *p;
+	ValueNode *p;
 	try {
-		p=Tree.find(firstkey);
+		ValueNode &node=Tree.find(firstkey);
+		p=&node;
+
 	} catch (ItemNotFoundException) {
 		throw KeyNotFoundException();
 	}
 	// Ist noch was im Pfad rest?
 	if (tok.count()>1) {			// Ja, koennen wir iterieren?
-		if (p->isAssocArray()) {
+		if (p->value->isAssocArray()) {
 			return ((AssocArray*)p)->findInternal(rest);
 		} else {
 			throw KeyNotFoundException();
@@ -290,7 +292,7 @@ Variant *AssocArray::findInternal(const ArrayKey &key) const
  * das neue Element <tt>ebene1/schlüssel1/unterschlüssel1</tt> angelegt. Da Schlüssel eindeutig sein müssen,
  * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
  */
-Variant *AssocArray::createTree(const ArrayKey &key)
+AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key)
 {
 	Array tok(key,L"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
@@ -307,9 +309,10 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 		if (keyint>=maxint) maxint=keyint+1;
 	}
 
-	Variant *p=NULL;
+	ValueNode *p=NULL;
 	try {
-		p=Tree.find(firstkey);
+		ValueNode &node=Tree.find(firstkey);
+		p=&node;
 	} catch (ItemNotFoundException) {
 		//printf ("Item not found\n");
 		p=NULL;
@@ -317,9 +320,9 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 	if (p) {
 		// Ist noch was im Pfad rest?
 		if (tok.count()>0) {          // Ja, koennen wir iterieren?
-			if (p->isAssocArray()==false) {
-				delete (p);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
-				p=new AssocArray;
+			if (p->value->isAssocArray()==false) {
+				delete (p->value);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
+				p->value=new AssocArray;
 			}
 			p=((AssocArray*)p)->createTree(rest);
 		}
@@ -328,17 +331,18 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 	}
 
 	// Key ist nicht in diesem Array, wir legen ihn an
-
+	ValueNode newnode;
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {          // Ja, wir erstellen ein Array und iterieren
 		//printf ("Iteration\n");
-		p=new AssocArray;
-		Tree.add(firstkey,p);
-		p=((AssocArray*)p)->createTree(rest);
+		newnode.value=new AssocArray;
+		ValueNode &node=Tree.add(firstkey,newnode);
+		p=((AssocArray*)node.value)->createTree(rest);
 	} else {
 		//printf ("Neuen Variant anlegen\n");
-		p=new Variant;
-		Tree.add(firstkey,p);
+		newnode.value=new Variant;
+		ValueNode &node=Tree.add(firstkey,newnode);
+		p=&node;
 	}
 	num++;
 	return p;
@@ -357,12 +361,12 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 size_t AssocArray::count(bool recursive) const
 {
 	if (!recursive) return num;
-	ppl7::AVLTree<ArrayKey, Variant *>::Iterator it;
+	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Variant *p;
 	Tree.reset(it);
 	size_t c=num;
 	while (Tree.getNext(it)) {
-		p=it.value();
+		p=it.value().value;
 		if (p->isAssocArray()) c+=((AssocArray*)p)->count(recursive);
 	}
 	return c;
@@ -381,13 +385,13 @@ size_t AssocArray::count(bool recursive) const
  */
 size_t AssocArray::count(const String &key, bool recursive) const
 {
-	Variant *p;
+	ValueNode *p;
 	try {
 		p=findInternal(key);
 	} catch (KeyNotFoundException) {
 		return 0;
 	}
-	if (p->isAssocArray()) return ((AssocArray*)p)->count(recursive);
+	if (p->value->isAssocArray()) return ((AssocArray*)p->value)->count(recursive);
 	return 1;
 }
 
@@ -437,12 +441,11 @@ void AssocArray::list(const String &prefix) const
 	String key;
 	String pre;
 	if (prefix) key=prefix+L"/";
-	ppl7::AVLTree<ArrayKey, Variant *>::Iterator it;
+	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
 	Variant *p;
 	while ((Tree.getNext(it))) {
-		printf("Item mit Key %ls, Typ: %i\n",(const wchar_t *)it.key(),it.value()->dataType());
-		p=it.value();
+		p=it.value().value;
 		if (p->isString()) {
 			PrintDebug("%ls%ls=%ls\n",(const wchar_t*)key,(const wchar_t*)it.key(),(const wchar_t*)((String*)p)->getPtr());
 		} else if (p->isByteArray()) {
@@ -458,51 +461,53 @@ void AssocArray::list(const String &prefix) const
 			*/
 		} else if (p->isDateTime()) {
 			PrintDebug("%ls%ls=DateTime %s\n",(const wchar_t*)key,(const wchar_t*)it.key(), (const wchar_t*) ((DateTime*)p)->getISO8601withMsec());
+		} else {
+			PrintDebug("%ls%ls=UnknownDataType Id=%i\n",(const wchar_t*)key,(const wchar_t*)it.key(),p->dataType());
 		}
 	}
 }
 
 void AssocArray::set(const String &key, const String &value)
 {
-	Variant *p=createTree(key);
-	delete p;
-	p=new String(value);
+	ValueNode *p=createTree(key);
+	delete p->value;
+	p->value=new String(value);
 }
 
 void AssocArray::set(const String &key, const String &value, size_t size)
 {
-	Variant *p=createTree(key);
-	delete p;
-	p=new String;
-	((String*)p)->set(value,size);
+	ValueNode *p=createTree(key);
+	delete p->value;
+	p->value=new String;
+	((String*)p->value)->set(value,size);
 }
 
 void AssocArray::set(const String &key, const DateTime &value)
 {
-	Variant *p=createTree(key);
-	delete p;
-	p=new DateTime(value);
+	ValueNode *p=createTree(key);
+	delete p->value;
+	p->value=new DateTime(value);
 }
 
 void AssocArray::set(const String &key, const ByteArray &value)
 {
-	Variant *p=createTree(key);
-	delete p;
-	p=new ByteArray(value);
+	ValueNode *p=createTree(key);
+	delete p->value;
+	p->value=new ByteArray(value);
 }
 
 void AssocArray::set(const String &key, const ByteArrayPtr &value)
 {
-	Variant *p=createTree(key);
-	delete p;
-	p=new ByteArrayPtr(value);
+	ValueNode *p=createTree(key);
+	delete p->value;
+	p->value=new ByteArrayPtr(value);
 }
 
 void AssocArray::set(const String &key, const Array &value)
 {
-	Variant *p=createTree(key);
-	delete p;
-	p=new Array(value);
+	ValueNode *p=createTree(key);
+	delete p->value;
+	p->value=new Array(value);
 }
 
 void AssocArray::set(const String &key, const AssocArray &value)
@@ -530,22 +535,23 @@ void AssocArray::setf(const String &key, const char *fmt, ...)
 	va_start(args, fmt);
 	value.vasprintf(fmt,args);
 	va_end(args);
-	Variant *p=createTree(key);
-	delete p;
-	p=new String(value);
+	ValueNode *p=createTree(key);
+	delete p->value;
+	p->value=new String(value);
 }
 
 const String& AssocArray::getString(const String &key) const
 {
-	const Variant *ptr=findInternal(key);
-	if (ptr->isString()) return ptr->toString();
+	ValueNode *node=findInternal(key);
+	Variant *p=node->value;
+	if (p->isString()) return p->toString();
 	throw TypeConversionException();
 }
 
 const Variant& AssocArray::get(const String &key) const
 {
-	const Variant *ptr=findInternal(key);
-	return *ptr;
+	ValueNode *node=findInternal(key);
+	return *node->value;
 }
 
 
