@@ -296,6 +296,7 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 	if (tok.count()==0) throw InvalidKeyException(key);
 	String firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
+	//printf ("firstkey=%ls, rest=%ls\n",(const wchar_t *)firstkey,(const wchar_t *)rest);
 	if (firstkey=="[]") {
 		firstkey.setf("%llu",maxint);
 		maxint++;
@@ -306,10 +307,11 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 		if (keyint>=maxint) maxint=keyint+1;
 	}
 
-	Variant *p;
+	Variant *p=NULL;
 	try {
 		p=Tree.find(firstkey);
 	} catch (ItemNotFoundException) {
+		//printf ("Item not found\n");
 		p=NULL;
 	}
 	if (p) {
@@ -329,10 +331,12 @@ Variant *AssocArray::createTree(const ArrayKey &key)
 
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {          // Ja, wir erstellen ein Array und iterieren
+		//printf ("Iteration\n");
 		p=new AssocArray;
 		Tree.add(firstkey,p);
 		p=((AssocArray*)p)->createTree(rest);
 	} else {
+		//printf ("Neuen Variant anlegen\n");
 		p=new Variant;
 		Tree.add(firstkey,p);
 	}
@@ -437,6 +441,7 @@ void AssocArray::list(const String &prefix) const
 	Tree.reset(it);
 	Variant *p;
 	while ((Tree.getNext(it))) {
+		printf("Item mit Key %ls, Typ: %i\n",(const wchar_t *)it.key(),it.value()->dataType());
 		p=it.value();
 		if (p->isString()) {
 			PrintDebug("%ls%ls=%ls\n",(const wchar_t*)key,(const wchar_t*)it.key(),(const wchar_t*)((String*)p)->getPtr());
