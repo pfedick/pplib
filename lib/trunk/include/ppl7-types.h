@@ -528,9 +528,9 @@ class AssocArray : public Variant
 			public:
 				Variant *value;
 
-				ValueNode() {value=NULL; }
-				ValueNode(const ValueNode &other) {value=other.value; }
-				~ValueNode() {delete value; }
+				ValueNode();
+				ValueNode(const ValueNode &other);
+				~ValueNode();
 		};
 
 

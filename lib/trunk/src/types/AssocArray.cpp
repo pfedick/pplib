@@ -187,6 +187,23 @@ bool AssocArray::ArrayKey::operator>(const ArrayKey &str) const
 }
 
 
+AssocArray::ValueNode::ValueNode()
+{
+	value=NULL;
+}
+
+AssocArray::ValueNode::ValueNode(const ValueNode &other)
+{
+	value=other.value;
+}
+
+AssocArray::ValueNode::~ValueNode()
+{
+	if (value!=NULL) delete value;
+}
+
+
+
 /*!\brief Konstruktor des Assoziativen Arrays
  *
  * \desc
@@ -335,14 +352,18 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key)
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {          // Ja, wir erstellen ein Array und iterieren
 		//printf ("Iteration\n");
-		newnode.value=new AssocArray;
+		newnode.value=NULL;
 		ValueNode &node=Tree.add(firstkey,newnode);
+		node.value=new AssocArray;
 		p=((AssocArray*)node.value)->createTree(rest);
 	} else {
 		//printf ("Neuen Variant anlegen\n");
-		newnode.value=new Variant;
+		newnode.value=NULL;
 		ValueNode &node=Tree.add(firstkey,newnode);
-		p=&node;
+		node.value=new Variant;
+		//printf ("AssocArray::createTree, node adr=%tu\n",(ptrdiff_t)&node);
+		p=(ValueNode*)&node;
+		//printf ("AssocArray::createTree, p=%tu\n",(ptrdiff_t)p);
 	}
 	num++;
 	return p;

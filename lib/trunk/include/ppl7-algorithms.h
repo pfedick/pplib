@@ -192,7 +192,6 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 				throw;
 			}
 			return item->value;
-			//printf ("Elements in Heap: %zu\n",MyHeap.count());
 		}
 		T& find(const K &key) const
 		{
