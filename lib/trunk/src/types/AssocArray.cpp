@@ -481,11 +481,21 @@ void AssocArray::list(const String &prefix) const
 			PrintDebug("%s%s=POINTER %llu (0x%llx)\n",(const char*)key,(const char*)p->key.GetPtr(),(ppluint64)(size_t)(p->value), (ppluint64)(size_t)(p->value));
 			*/
 		} else if (p->isDateTime()) {
-			PrintDebug("%ls%ls=DateTime %s\n",(const wchar_t*)key,(const wchar_t*)it.key(), (const wchar_t*) ((DateTime*)p)->getISO8601withMsec());
+			PrintDebug("%ls%ls=DateTime %ls\n",(const wchar_t*)key,(const wchar_t*)it.key(), (const wchar_t*) ((DateTime*)p)->getISO8601withMsec());
 		} else {
 			PrintDebug("%ls%ls=UnknownDataType Id=%i\n",(const wchar_t*)key,(const wchar_t*)it.key(),p->dataType());
 		}
 	}
+}
+
+void AssocArray::reserve(size_t num)
+{
+	Tree.reserve(num);
+}
+
+size_t AssocArray::capacity() const
+{
+	return Tree.capacity();
 }
 
 void AssocArray::set(const String &key, const String &value)
@@ -573,6 +583,41 @@ Variant& AssocArray::get(const String &key) const
 {
 	ValueNode *node=findInternal(key);
 	return *node->value;
+}
+
+/*!\brief Einzelnen Schlüssel löschen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein einzelner Schlüssel aus dem Array gelöscht.
+ *
+ * \param[in] key Pointer auf den Namen des zu löschenden Schlüssels
+ *
+ * \returns Bei Erfolg liefert die die Funktion true (1) zurück, im Fehlerfall false (0).*
+ */
+void AssocArray::erase(const String &key)
+{
+	Array tok(key,L"/",0,true);
+	if (tok.count()==0) throw InvalidKeyException(key);
+	ArrayKey firstkey=tok.shift();
+	ArrayKey rest=tok.implode("/");
+	ValueNode *p;
+	try {
+		ValueNode &node=Tree.find(firstkey);
+		p=&node;
+
+	} catch (ItemNotFoundException) {
+		throw KeyNotFoundException();
+	}
+	// Ist noch was im Pfad rest?
+	if (tok.count()>1) {			// Ja, koennen wir iterieren?
+		if (p->value->isAssocArray()) {
+			return ((AssocArray*)p)->erase(rest);
+		} else {
+			throw KeyNotFoundException();
+		}
+	}
+	Tree.erase(firstkey);
+	num--;
 }
 
 

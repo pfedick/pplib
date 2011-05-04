@@ -74,10 +74,32 @@ TEST_F(AssocArrayTest, addStringsMultiLevels) {
 	a.set(L"array2/unterkey1",L"value9");
 
 	});
-	a.list();
+	//a.list();
 	ASSERT_EQ((size_t)4,a.count()) << "Unexpected size of AssocArray";
 	ASSERT_EQ((size_t)10,a.count(true)) << "Unexpected size of AssocArray";
 }
+
+TEST_F(AssocArrayTest, addMixed) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
+	a.set(L"key2",L"value6");
+	ppl7::DateTime now;
+	now.setCurrentTime();
+	printf("Time: %ls\n",(const wchar_t *)now.getISO8601withMsec());
+	a.set(L"time",now);
+	ppl7::ByteArray ba(1234);
+	ppl7::ByteArrayPtr bap=ba;
+	a.set(L"bytearray",ba);
+	a.set(L"bytearrayptr",bap);
+
+	ppl7::Array a1(L"red green blue yellow black white",L" ");
+	a.set(L"array1",a1);
+
+	});
+	a.list();
+}
+
 
 TEST_F(AssocArrayTest, getAssocArray) {
 	ppl7::AssocArray a;
@@ -102,6 +124,31 @@ TEST_F(AssocArrayTest, getAssocArray) {
 	ASSERT_EQ((size_t)2,a3.count()) << "Unexpected size of AssocArray";
 
 	});
+}
+
+TEST_F(AssocArrayTest, addAndDeleteWordlist) {
+	ppl7::AssocArray a;
+	size_t total=Wordlist.count();
+	a.reserve(total+10);
+	ppl7::PrintDebugTime ("Loading wordlist\n");
+	ppl7::String empty;
+	for (size_t i=0;i<total;i++) {
+		a.set(Wordlist[i],empty);
+	}
+	ppl7::PrintDebugTime ("done\n");
+	//ASSERT_EQ(total,a.count()) << "Tree has unexpected size";
+
+	ppl7::PrintDebugTime ("Wortliste aus AVLTree loeschen\n");
+	for (size_t i=0;i<total;i++) {
+		try {
+			a.erase(Wordlist[i]);
+		} catch (ppl7::AssocArray::KeyNotFoundException) {
+
+		}
+	}
+	ppl7::PrintDebugTime ("done\n");
+	ASSERT_EQ((size_t)0,a.count()) << "Tree has unexpected size";
+
 }
 
 }	// EOF namespace
