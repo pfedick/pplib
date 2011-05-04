@@ -369,6 +369,7 @@ AssocArray& Variant::toAssocArray()
 	return static_cast<AssocArray&>(*this);
 }
 
+
 /*!\brief Typkonvertierung zu: const ByteArray
  *
  * \desc

@@ -55,9 +55,54 @@ TEST_F(AssocArrayTest, addStringsLevel1) {
 	a.set(L"array2/unterkey1",L"value9");
 	*/
 	});
-	a.list();
+	ASSERT_EQ((size_t)2,a.count()) << "Unexpected size of AssocArray";
+	//a.list();
 }
 
+TEST_F(AssocArrayTest, addStringsMultiLevels) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
+	a.set(L"key2",L"value6");
+	a.set(L"array1/unterkey1",L"value2");
+	a.set(L"array1/unterkey2",L"value3");
+	a.set(L"array1/noch ein array/unterkey1",L"value4");
+	a.set(L"array1/unterkey2",L"value5");
+	a.set(L"key2",L"value6");
+	a.set(L"array2/unterkey1",L"value7");
+	a.set(L"array2/unterkey2",L"value8");
+	a.set(L"array2/unterkey1",L"value9");
+
+	});
+	a.list();
+	ASSERT_EQ((size_t)4,a.count()) << "Unexpected size of AssocArray";
+	ASSERT_EQ((size_t)10,a.count(true)) << "Unexpected size of AssocArray";
+}
+
+TEST_F(AssocArrayTest, getAssocArray) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
+	a.set(L"key2",L"value6");
+	a.set(L"array1/unterkey1",L"value2");
+	a.set(L"array1/unterkey2",L"value3");
+	a.set(L"array1/noch ein array/unterkey1",L"value4");
+	a.set(L"array1/unterkey2",L"value5");
+	a.set(L"key2",L"value6");
+	//a.set(L"dateien/main.cpp",&bin);
+	a.set(L"array2/unterkey1",L"value7");
+	a.set(L"array2/unterkey2",L"value8");
+	a.set(L"array2/unterkey1",L"value9");
+
+	});
+	ASSERT_NO_THROW({
+	ppl7::AssocArray &a2=a.get(L"array1").toAssocArray();
+	ASSERT_EQ((size_t)3,a2.count()) << "Unexpected size of AssocArray";
+	ppl7::AssocArray &a3=a.get(L"array2").toAssocArray();
+	ASSERT_EQ((size_t)2,a3.count()) << "Unexpected size of AssocArray";
+
+	});
+}
 
 }	// EOF namespace
 

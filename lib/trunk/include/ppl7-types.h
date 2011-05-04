@@ -605,8 +605,9 @@ class AssocArray : public Variant
 
 		//!\name Werte direkt auslesen
 		//@{
-		const String	&getString(const String &key) const;
-		const Variant	&get(const String &key) const;
+		String	&getString(const String &key) const;
+		Variant	&get(const String &key) const;
+
 		//@}
 
 		//!\name Array durchwandern

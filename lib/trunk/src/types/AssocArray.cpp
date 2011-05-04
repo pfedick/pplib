@@ -341,7 +341,7 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key)
 				delete (p->value);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
 				p->value=new AssocArray;
 			}
-			p=((AssocArray*)p)->createTree(rest);
+			p=((AssocArray*)p->value)->createTree(rest);
 		}
 		// Nein, wir haben die Zielposition gefunden
 		return p;
@@ -461,7 +461,7 @@ void AssocArray::list(const String &prefix) const
 {
 	String key;
 	String pre;
-	if (prefix) key=prefix+L"/";
+	if (prefix.notEmpty()) key=prefix+L"/";
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
 	Variant *p;
@@ -561,7 +561,7 @@ void AssocArray::setf(const String &key, const char *fmt, ...)
 	p->value=new String(value);
 }
 
-const String& AssocArray::getString(const String &key) const
+String& AssocArray::getString(const String &key) const
 {
 	ValueNode *node=findInternal(key);
 	Variant *p=node->value;
@@ -569,7 +569,7 @@ const String& AssocArray::getString(const String &key) const
 	throw TypeConversionException();
 }
 
-const Variant& AssocArray::get(const String &key) const
+Variant& AssocArray::get(const String &key) const
 {
 	ValueNode *node=findInternal(key);
 	return *node->value;
