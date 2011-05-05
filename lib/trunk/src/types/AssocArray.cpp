@@ -503,6 +503,11 @@ void AssocArray::list(const String &prefix) const
 		} else if (p->type==datatype::POINTER) {
 			PrintDebug("%s%s=POINTER %llu (0x%llx)\n",(const char*)key,(const char*)p->key.GetPtr(),(ppluint64)(size_t)(p->value), (ppluint64)(size_t)(p->value));
 			*/
+		} else if (p->isArray()) {
+			const Array &a=(const Array &)*p;
+			for (size_t i=0;i<a.size();i++) {
+				PrintDebug("%ls%ls/Array(%zu)=%ls\n",(const wchar_t*)key,(const wchar_t*)it.key(),i,(const wchar_t*)a[i]);
+			}
 		} else if (p->isDateTime()) {
 			PrintDebug("%ls%ls=DateTime %ls\n",(const wchar_t*)key,(const wchar_t*)it.key(), (const wchar_t*) ((DateTime*)p)->getISO8601withMsec());
 		} else {

@@ -154,7 +154,7 @@ TEST_F(AssocArrayTest, addAndDeleteWordlist) {
 TEST_F(AssocArrayTest, fromTemplate) {
 	ppl7::AssocArray a1, a2;
 	ppl7::String Template(L"key=line1\n"
-			"key = line2\n"
+			"key = line2 \n"
 			"foo  =  bar\n"
 			"words=20\n"
 			" blah=blubb\n"
@@ -163,8 +163,18 @@ TEST_F(AssocArrayTest, fromTemplate) {
 		a1.fromTemplate(Template,L"\n",L"=",L"\n",false);
 		a2.fromTemplate(Template,L"\n",L"=",L"\n",true);
 	});
-	a1.list(L"a1");
-	a2.list(L"a2");
+	ASSERT_EQ(ppl7::String(L"line1\n line2 "),a1.getString(L"key")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"  bar"),a1.getString(L"foo")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"20"),a1.getString(L"words")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"blubb"),a1.getString(L"blah")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"world"),a1.getString(L"hello")) << "unexpected value";
+
+
+	ASSERT_EQ(ppl7::String(L"line1\nline2"),a2.getString(L"key")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"bar"),a2.getString(L"foo")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"20"),a2.getString(L"words")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"blubb"),a2.getString(L"blah")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"world"),a2.getString(L"hello")) << "unexpected value";
 
 }
 
