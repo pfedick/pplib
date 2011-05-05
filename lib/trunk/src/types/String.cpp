@@ -3029,7 +3029,7 @@ String operator+(const String &str1, const std::wstring &str2)
 
 std::ostream& operator<<(std::ostream& s, const String &str)
 {
-	ByteArray a=str.toUtf8();
+	ByteArray a=str.toLocalEncoding();
 	return s.write((const char*)a.adr(),a.size());
 }
 

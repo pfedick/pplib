@@ -475,7 +475,7 @@ class Array : public Variant
 		void reset(Iterator &it) const;
 		const String &getFirst(Iterator &it) const;
 		const String &getNext(Iterator &it) const;
-		String implode(const String &delimiter="\n") const;
+		String implode(const Stri		ng &delimiter="\n") const;
 		//@}
 
 		//! @name Sonstiges
@@ -540,19 +540,20 @@ class AssocArray : public Variant
 
 
 		ValueNode *findInternal(const ArrayKey &key) const;
-		ValueNode *createTree(const ArrayKey &key);
+		ValueNode *createTree(const ArrayKey &key, Variant *var);
 
 
 	public:
 		PPLPARAMETERISEDEXCEPTION(InvalidKeyException);
 		PPLNORMALEXCEPTION(KeyNotFoundException);
 
+		typedef ppl7::AVLTree<ArrayKey, ValueNode>::Iterator Iterator;
+
 
 		//!\name Konstruktoren und Destruktoren
 		//@{
 		AssocArray();
 		AssocArray(const AssocArray &other);
-		AssocArray(const Array &a);
 		~AssocArray();
 		//@}
 
@@ -567,7 +568,6 @@ class AssocArray : public Variant
 
 		//!\name Werte setzen
 		//@{
-		void add(const Array &other);
 		void add(const AssocArray &other);
 		void set(const String &key, const String &value);
 		void set(const String &key, const String &value, size_t size);
@@ -576,15 +576,14 @@ class AssocArray : public Variant
 		void set(const String &key, const ByteArray &value);
 		void set(const String &key, const ByteArrayPtr &value);
 		void set(const String &key, const AssocArray &value);
+		void set(const String &key, const Variant &value);
 		void setf(const String &key, const char *fmt, ...);
-		void copy(const AssocArray &other);
-		void copy(const Array &other);
 		//@}
 
 		//!\name Werte erweitern (nur Strings)
 		//@{
-		void concat(const String &key, const String &value, const String &concat=L"\n");
-		void concatf(const String &key, const String &concat, const char *fmt, ...);
+		void append(const String &key, const String &value, const String &concat=L"");
+		void appendf(const String &key, const String &concat, const char *fmt, ...);
 		//@}
 
 		//!\name Werte löschen
@@ -595,8 +594,8 @@ class AssocArray : public Variant
 
 		//!\name Import und Export von Daten
 		//@{
-		int	fromTemplate(const String &templ, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
-		int	fromConfig(const String &content, const String &splitchar=L":", const String &concat=L"\n", bool dotrim=false);
+		size_t	fromTemplate(const String &templ, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
+		size_t	fromConfig(const String &content, const String &splitchar=L":", const String &concat=L"\n", bool dotrim=false);
 		void toTemplate(String &s, const String &prefix=L"", const String &linedelimiter=L"\n", const String &splitchar=L"=");
 		size_t binarySize() const;
 		int	exportBinary(void *buffer, size_t buffersize, size_t *realsize) const;
@@ -609,20 +608,29 @@ class AssocArray : public Variant
 		//@{
 		String	&getString(const String &key) const;
 		Variant	&get(const String &key) const;
+		bool	exists(const String &key) const;
 
 		//@}
 
 		//!\name Array durchwandern
 		//@{
+		void reset(Iterator &it) const;
+		Variant &getFirst(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		Variant &getNext(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		Variant &getLast(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		Variant &getPrevious(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
 
+		bool getFirst(Iterator &it, String &key, String &value) const;
+		bool getNext(Iterator &it, String &key, String &value) const;
+		bool getLast(Iterator &it, String &key, String &value) const;
+		bool getPrevious(Iterator &it, String &key, String &value) const;
 		//@}
 
 		//!\name Operatoren
 		//@{
-		const Variant &operator[](const String key) const;
+		Variant &operator[](const String &key) const;
 		AssocArray& operator=(const AssocArray& other);
 		AssocArray& operator+=(const AssocArray& other);
-		AssocArray& operator=(const Array& array);
 		//@}
 };
 

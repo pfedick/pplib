@@ -151,6 +151,23 @@ TEST_F(AssocArrayTest, addAndDeleteWordlist) {
 
 }
 
+TEST_F(AssocArrayTest, fromTemplate) {
+	ppl7::AssocArray a1, a2;
+	ppl7::String Template(L"key=line1\n"
+			"key = line2\n"
+			"foo  =  bar\n"
+			"words=20\n"
+			" blah=blubb\n"
+			"hello=world");
+	ASSERT_NO_THROW({
+		a1.fromTemplate(Template,L"\n",L"=",L"\n",false);
+		a2.fromTemplate(Template,L"\n",L"=",L"\n",true);
+	});
+	a1.list(L"a1");
+	a2.list(L"a2");
+
+}
+
 }	// EOF namespace
 
 int main (int argc, char**argv)

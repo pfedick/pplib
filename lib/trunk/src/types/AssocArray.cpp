@@ -49,6 +49,7 @@
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+#include <ostream>
 
 #include "ppl7.h"
 
@@ -135,8 +136,8 @@ int AssocArray::ArrayKey::compare(const ArrayKey &str) const
 	}
 	int cmp=strcasecmp(str);
 	if (cmp==0) return 0;
-	if (cmp<0) return 1;
-	return -1;
+	if (cmp<0) return -1;
+	return 1;
 }
 
 AssocArray::ArrayKey& AssocArray::ArrayKey::operator=(const String &str)
@@ -214,6 +215,25 @@ AssocArray::AssocArray()
 	type=Variant::ASSOCARRAY;
 	maxint=0;
 	num=0;
+}
+
+/*!\brief Copy-Konstruktor des Assoziativen Arrays
+ *
+ * \desc
+ * Macht eine Kopie des Assoziativen Arrays \p other.
+ *
+ * \param[in] other Referenz auf zu kopierendes Assoziatives Array
+ *
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
+AssocArray::AssocArray(const AssocArray &other)
+{
+	type=Variant::ASSOCARRAY;
+	maxint=0;
+	num=0;
+	add(other);
 }
 
 /*!\brief Destruktor der Klasse
@@ -296,6 +316,7 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
  * Funktionen verwendet, die Daten in das Array speichern.
  *
  * \param[in] key Pointer auf den Namen des Schlüssels
+ * \param[in] var Pointer auf die Daten, die unter diesem Schlüssel abgelegt werden sollen
  * \return Bei Erfolg liefert die Funktion einen Pointer auf das gewünschte Element zurück.
  * Im Fehlerfall wird eine Exception geworfen.
  *
@@ -309,7 +330,7 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
  * das neue Element <tt>ebene1/schlüssel1/unterschlüssel1</tt> angelegt. Da Schlüssel eindeutig sein müssen,
  * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
  */
-AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key)
+AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 {
 	Array tok(key,L"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
@@ -341,9 +362,11 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key)
 				delete (p->value);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
 				p->value=new AssocArray;
 			}
-			p=((AssocArray*)p->value)->createTree(rest);
+			return ((AssocArray*)p->value)->createTree(rest,var);
 		}
 		// Nein, wir haben die Zielposition gefunden
+		delete p->value;
+		p->value=var;
 		return p;
 	}
 
@@ -355,12 +378,12 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key)
 		newnode.value=NULL;
 		ValueNode &node=Tree.add(firstkey,newnode);
 		node.value=new AssocArray;
-		p=((AssocArray*)node.value)->createTree(rest);
+		p=((AssocArray*)node.value)->createTree(rest,var);
 	} else {
 		//printf ("Neuen Variant anlegen\n");
 		newnode.value=NULL;
 		ValueNode &node=Tree.add(firstkey,newnode);
-		node.value=new Variant;
+		node.value=var;
 		//printf ("AssocArray::createTree, node adr=%tu\n",(ptrdiff_t)&node);
 		p=(ValueNode*)&node;
 		//printf ("AssocArray::createTree, p=%tu\n",(ptrdiff_t)p);
@@ -488,66 +511,236 @@ void AssocArray::list(const String &prefix) const
 	}
 }
 
+/*!\brief Speicher reservieren
+ *
+ * \desc
+ * Mit dieser Funktion kann vorab Speicher für eine bestimmte Anzahl Elemente reserviert werden.
+ * Der Aufruf dieser Funktion ist immer dann sinnvoll, wenn schon vorher bekannt ist, wieviele
+ * Elemente benötigt werden, insbesondere, wenn sehr viele Elemente benötigt werden.
+ *
+ * @param num Anzahl Elemente, für die Speicher vorab allokiert werden soll
+ *
+ * \note Falls schon Speicher allokiert wurde, wird die Anzahl der bereits allokierten Elemente
+ * mit \p num verrechnet und nur die Differenz zusätzlich reserviert.
+ */
 void AssocArray::reserve(size_t num)
 {
 	Tree.reserve(num);
 }
 
+/*!\brief Aktuelle Kapazität des %AssocArrays
+ *
+ * \desc
+ * Gibt zurück, wieviele Elemente diese Ebene des Assoziativen Arrays verwalten kann,
+ * ohne dass neuer Speicher allokiert werden muss.
+ *
+ * \return Anzahl Elemente
+ */
 size_t AssocArray::capacity() const
 {
 	return Tree.capacity();
 }
 
+/*!\brief %String hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt eines Strings dem Array hinzu.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Wert
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
 void AssocArray::set(const String &key, const String &value)
 {
-	ValueNode *p=createTree(key);
-	delete p->value;
-	p->value=new String(value);
+	String *var=new String(value);
+	try {
+		//std::cout << L"key="<<key << ", value="<<value << std::endl;
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
 }
 
+/*!\brief %String mit bestimmter Länge hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt die ersten \p size Zeichen des Strings \p value unter dem
+ * Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Wert
+ * \param[in] size Anzahl Zeichen, die aus dem String \p value übernommen werden sollen
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
 void AssocArray::set(const String &key, const String &value, size_t size)
 {
-	ValueNode *p=createTree(key);
-	delete p->value;
-	p->value=new String;
-	((String*)p->value)->set(value,size);
+	String *var=new String(value);
+	var->set(value,size);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
 }
 
+/*!\brief %DateTime hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den in \p value angegebenen Zeitstempel unter dem
+ * Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Zeitstempel
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
 void AssocArray::set(const String &key, const DateTime &value)
 {
-	ValueNode *p=createTree(key);
-	delete p->value;
-	p->value=new DateTime(value);
+	DateTime *var=new DateTime(value);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
 }
 
+/*!\brief %ByteArray hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt des ByteArrays \p value
+ * unter dem Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Daten
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
 void AssocArray::set(const String &key, const ByteArray &value)
 {
-	ValueNode *p=createTree(key);
-	delete p->value;
-	p->value=new ByteArray(value);
+	ByteArray *var=new ByteArray(value);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
 }
 
+/*!\brief %ByteArrayPtr hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt des ByteArrayPtrs \p value
+ * unter dem Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Daten
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
 void AssocArray::set(const String &key, const ByteArrayPtr &value)
 {
-	ValueNode *p=createTree(key);
-	delete p->value;
-	p->value=new ByteArrayPtr(value);
+	ByteArrayPtr *var=new ByteArrayPtr(value);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
 }
 
+/*!\brief %Array hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt des Arrays \p value
+ * unter dem Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Daten
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
 void AssocArray::set(const String &key, const Array &value)
 {
-	ValueNode *p=createTree(key);
-	delete p->value;
-	p->value=new Array(value);
+	Array *var=new Array(value);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
 }
 
+/*!\brief %AssocArray hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt des AssocArrays \p value
+ * unter dem Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Daten
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
 void AssocArray::set(const String &key, const AssocArray &value)
 {
-	/*
-	Variant *p=createTree(key);
-	delete p;
-	p=new AssocArray(value);
-	*/
+	AssocArray *var=new AssocArray(value);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
+}
+
+/*!\brief %Variant hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt des Variants \p value
+ * unter dem Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Daten
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception TypeConversionException: Der Datentyp des Variants wurde nicht
+ * erkannt oder wird nicht unterstützt.
+ */
+void AssocArray::set(const String &key, const Variant &value)
+{
+	switch (value.dataType()) {
+		case Variant::STRING:
+			set(key,static_cast<const String&>(value));
+			return;
+		case Variant::ASSOCARRAY:
+			set(key,static_cast<const AssocArray&>(value));
+			return;
+		case Variant::BYTEARRAY:
+			set(key,static_cast<const ByteArray&>(value));
+			return;
+		case Variant::ARRAY:
+			set(key,static_cast<const Array&>(value));
+			return;
+		case Variant::DATETIME:
+			set(key,static_cast<const DateTime&>(value));
+			return;
+		case Variant::BYTEARRAYPTR:
+			set(key,static_cast<const ByteArrayPtr&>(value));
+			return;
+	}
+	throw TypeConversionException();
 }
 
 /*!\brief Formatierten String hinzufügen
@@ -558,19 +751,183 @@ void AssocArray::set(const String &key, const AssocArray &value)
  * \param[in] key Name des Schlüssels
  * \param[in] fmt Pointer auf den Format-String des Wertes
  * \param[in] ... Beliebig viele Parameter, die vom Formatstring verwendet werden
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
  */
 void AssocArray::setf(const String &key, const char *fmt, ...)
 {
-	String value;
+	String *var=new String;
 	va_list args;
 	va_start(args, fmt);
-	value.vasprintf(fmt,args);
+	var->vasprintf(fmt,args);
 	va_end(args);
-	ValueNode *p=createTree(key);
-	delete p->value;
-	p->value=new String(value);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
 }
 
+/*!\brief %String verlängern
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt des Strings \p value an den bereits vorhandenen
+ * Wert des Schlüssels \p key an. Falls der optionale Parameter \p concat einen Wert
+ * enthält, wird dieser als Trennung zwischen bestehendem und neuem String verwendet.
+ * War der Schlüssel bisher nicht vorhanden, wird ein neuer angelegt.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Wert
+ * \param[in] concat Trennzeichen (Optional, Default=keins)
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception TypeConversionException: Schlüssel ist bereits vorhanden, enthält aber keinen String
+ */
+void AssocArray::append(const String &key, const String &value, const String &concat)
+{
+	ValueNode *node=NULL;
+	try {
+		node=findInternal(key);
+	} catch (KeyNotFoundException) {
+		set(key,value);
+		return;
+	}
+	/*
+	if (node->value==NULL) {
+		set(key,value);
+		return;
+	}
+	*/
+	if (node->value->isString()==false) {
+		throw TypeConversionException();
+	}
+	if (concat.notEmpty()) ((String*)node->value)->append(concat);
+	((String*)node->value)->append(value);
+}
+
+/*!\brief %String mit Formatiertem String verlängern
+ *
+ * \desc
+ * Diese Funktion erstellt zuerst einen neuen String anhand des Formatstrings
+ * \p fmt und der zusätzlichen optionalen Parameter. Dieser wird an den bereits vorhandenen
+ * Wert des Schlüssels \p key angehangen. Falls der optionale Parameter \p concat einen Wert
+ * enthält, wird dieser als Trennung zwischen bestehendem und neuem String verwendet.
+ * War der Schlüssel bisher nicht vorhanden, wird ein neuer angelegt.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] concat Trennzeichen (Optional, Default=keins)
+ * \param[in] fmt Formatstring
+ * \param[in] ... Optionale Parameter
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception TypeConversionException: Schlüssel ist bereits vorhanden, enthält aber keinen String
+ */
+void AssocArray::appendf(const String &key, const String &concat, const char *fmt, ...)
+{
+	String var;
+	va_list args;
+	va_start(args, fmt);
+	var.vasprintf(fmt,args);
+	va_end(args);
+
+	ValueNode *node=NULL;
+	try {
+		node=findInternal(key);
+	} catch (KeyNotFoundException) {
+		set(key,var);
+	}
+	if (node->value->isString()==false) {
+		throw TypeConversionException();
+	}
+	if (concat.notEmpty()) ((String*)node->value)->append(concat);
+	((String*)node->value)->append(var);
+}
+
+/*!\brief %AssocArray kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird der komplette Inhalt des Assoziativen Arrays \p other
+ * in dieses hineinkopiert. Das Array wird vorher nicht gelöscht, so dass vorhandene
+ * Schlüssel erhalten bleiben. Gibt es in \p other jedoch gleichnamige Schlüssel,
+ * werden die bisherigen Werte überschrieben.
+ *
+ * \param[in] a Das zu kopierende AssocArray
+ *
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
+void AssocArray::add(const AssocArray &other)
+{
+	Tree.reserve(num+other.num);	// Speicher vorab reservieren
+	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
+	other.Tree.reset(it);
+	Variant *p;
+	while ((other.Tree.getNext(it))) {
+		p=it.value().value;
+		set(it.key(),*p);
+	}
+}
+
+
+
+
+/*!\brief Schlüssel auslesen
+ *
+ * \desc
+ * Diese Funktion liefert den Wert des Schlüssels \p key als Variant zurück. Dieser kann
+ * von der aufrufenden Anwendung in den jeweiligen Datentyp umgewandelt werden.
+ *
+ * @param key Name des Schlüssels
+ * @return Referenz auf einen Variant mit dem Wert des Schlüssels
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+ * \example
+ * Der Variant kann z.B. folgendermaßen in einen String umgewandelt werden:
+ * \code
+ppl7::String &str=a.get(L"key1").toString();
+\endcode
+ */
+Variant& AssocArray::get(const String &key) const
+{
+	ValueNode *node=findInternal(key);
+	return *node->value;
+}
+
+/*!\brief Schlüssel vorhanden
+ *
+ * \desc
+ * Diese Funktion prüft, ob der Schlüssels \p key im Assoziativen Array enthalten ist.
+ *
+ * @param key Name des Schlüssels
+ * @return Liefert \c true zurück, wenn der Schlüssel vorhanden ist, sonst \c false
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
+bool AssocArray::exists(const String &key) const
+{
+	try {
+		findInternal(key);
+	} catch (KeyNotFoundException) {
+		return false;
+	}
+	return true;
+}
+
+/*!\brief String auslesen
+ *
+ * \desc
+ * Diese Funktion liefert den Wert des Schlüssels \p key als String zurück, sofern
+ * der Schlüssel auch tatsächlich einen String enthält.
+ *
+ * @param key Name des Schlüssels
+ * @return Referenz auf einen String mit dem Wert des Schlüssels
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+ */
 String& AssocArray::getString(const String &key) const
 {
 	ValueNode *node=findInternal(key);
@@ -579,11 +936,6 @@ String& AssocArray::getString(const String &key) const
 	throw TypeConversionException();
 }
 
-Variant& AssocArray::get(const String &key) const
-{
-	ValueNode *node=findInternal(key);
-	return *node->value;
-}
 
 /*!\brief Einzelnen Schlüssel löschen
  *
@@ -620,5 +972,306 @@ void AssocArray::erase(const String &key)
 	num--;
 }
 
+/*!\brief Zeiger für das Durchwandern des Arrays zurücksetzen
+ *
+ * \desc
+ * Mit dieser Funktion wird der Iterator \p it, der zum Durchwandern des Arrays mit den
+ * Funktion AssocArray::getNext und AssocArray::getPrevious benötigt wird,
+ * auf den Anfang zurückgesetzt.
+ *
+ * \param[in] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ *
+ */
+void AssocArray::reset(Iterator &it) const
+{
+	Tree.reset(it);
+}
+
+/*!\brief Erstes Element zurückgeben
+ *
+ * \desc
+ * Diese Funktion liefert das erste Element des Arrays zurück. Falls der optionale Parameter
+ * \p type verwendet wird, liefert die Funktion das erste Element dieses Typs zurück.
+ *
+ * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
+ * @return Referenz auf das gefundene Element
+ * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
+ * wurde und eine weiteren Elemente mehr vorhanden sind.
+ */
+Variant &AssocArray::getFirst(Iterator &it, Variant::Type type) const
+{
+	Tree.reset(it);
+	return getNext(it,type);
+}
+
+/*!\brief Nächstes Element zurückgeben
+ *
+ * \desc
+ * Diese Funktion liefert das nächste Element des Arrays zurück. Falls der optionale Parameter
+ * \p type verwendet wird, liefert die Funktion das nächste Element dieses Typs zurück.
+ *
+ * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
+ * @return Referenz auf das gefundene Element
+ * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
+ * wurde und eine weiteren Elemente mehr vorhanden sind.
+ */
+Variant &AssocArray::getNext(Iterator &it, Variant::Type type) const
+{
+	while (1) {
+		if (!Tree.getNext(it)) throw OutOfBoundsEception();
+		if (type==Variant::UNKNOWN) return *it.value().value;
+		if (type==it.value().value->dataType()) return *it.value().value;
+	}
+}
+
+/*!\brief Letztes Element zurückgeben
+ *
+ * \desc
+ * Diese Funktion liefert das letzte Element des Arrays zurück. Falls der optionale Parameter
+ * \p type verwendet wird, liefert die Funktion das letzte Element dieses Typs zurück.
+ *
+ * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
+ * @return Referenz auf das gefundene Element
+ * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
+ * wurde und eine weiteren Elemente mehr vorhanden sind.
+ */
+Variant &AssocArray::getLast(Iterator &it, Variant::Type type) const
+{
+	Tree.reset(it);
+	return getPrevious(it,type);
+}
+
+/*!\brief Vorhergehendes Element zurückgeben
+ *
+ * \desc
+ * Diese Funktion liefert das vorhergehende Element des Arrays zurück. Falls der optionale Parameter
+ * \p type verwendet wird, liefert die Funktion das vorhergehende Element dieses Typs zurück.
+ *
+ * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
+ * @return Referenz auf das gefundene Element
+ * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
+ * wurde und eine weiteren Elemente mehr vorhanden sind.
+ */
+Variant &AssocArray::getPrevious(Iterator &it, Variant::Type type) const
+{
+	while (1) {
+		if (!Tree.getPrevious(it)) throw OutOfBoundsEception();
+		if (type==Variant::UNKNOWN) return *it.value().value;
+		if (type==it.value().value->dataType()) return *it.value().value;
+	}
+}
+
+/*!\brief Ersten %String im %Array finden und Key und Value in Strings speichern
+ *
+ * \desc
+ * Diese Funktion sucht den ersten %String im %Array und speichert dessen
+ * Schlüssel im Parameter \p key und den Wert in \p value;
+ *
+ * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
+ * @param[out] value String, in dem der Wert gespeichert werden soll.
+ * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
+ */
+bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
+{
+	Tree.reset(it);
+	return getNext(it,key,value);
+}
+
+/*!\brief Nächsten %String im %Array finden und Key und Value in Strings speichern
+ *
+ * \desc
+ * Diese Funktion sucht den nächsten %String im %Array und speichert dessen
+ * Schlüssel im Parameter \p key und den Wert in \p value;
+ *
+ * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
+ * @param[out] value String, in dem der Wert gespeichert werden soll.
+ * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
+ */
+bool AssocArray::getNext(Iterator &it, String &key, String &value) const
+{
+	while (1) {
+		if (!Tree.getNext(it)) return false;
+		if (it.value().value->isString()) {
+			key.set(it.key());
+			value.set(it.value().value->toString());
+			return true;
+		}
+	}
+}
+
+/*!\brief Letzten %String im %Array finden und Key und Value in Strings speichern
+ *
+ * \desc
+ * Diese Funktion sucht den letzten %String im %Array und speichert dessen
+ * Schlüssel im Parameter \p key und den Wert in \p value;
+ *
+ * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
+ * @param[out] value String, in dem der Wert gespeichert werden soll.
+ * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
+ */
+bool AssocArray::getLast(Iterator &it, String &key, String &value) const
+{
+	Tree.reset(it);
+	return getPrevious(it,key,value);
+}
+
+/*!\brief Vorhergehenden %String im %Array finden und Key und Value in Strings speichern
+ *
+ * \desc
+ * Diese Funktion sucht den vorhergehenden %String im %Array und speichert dessen
+ * Schlüssel im Parameter \p key und den Wert in \p value;
+ *
+ * @param[in,out] it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
+ * @param[out] key String, in dem der Name des Schlüssels gespeichert werden soll
+ * @param[out] value String, in dem der Wert gespeichert werden soll.
+ * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
+ */
+bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
+{
+	while (1) {
+		if (!Tree.getPrevious(it)) return false;
+		if (it.value().value->isString()) {
+			key.set(it.key());
+			value.set(it.value().value->toString());
+			return true;
+		}
+	}
+}
+
+/*! \brief Wandelt ein Key-Value Template in ein Assoziatives Array um
+ *
+ * \desc
+ * Diese Funktion wandelt einen Text mit Key-Value-Paaren in ein
+ * Assoziatives Array um. Leere Zeilen oder Zeilen mit Raute (#)
+ * am Anfang (Kommentarzeilen) werden ignoriert.
+ *
+ * \param[in] templ String mit den Key-Value-Paaren
+ * \param[in] linedelimiter Das Zeichen, was als Zeilenende interpretiert werden soll. Default ist \c Newline
+ * \param[in] splitchar Das Zeichen, was als Trennzeichen zwischen Schlüssel (Key) und Wert (Value)
+ * interpretiert werden soll. Der Default ist das Gleichheitszeichen (=)
+ * \param[in] concat Ist concat gesetzt und kommen im Text mehrere identische Schlüssel vor, werden die Werte
+ * zu einem String zusammengeführt, wobei als Trennzeichen \c concat verwendet wird. Ist concat leer,
+ * wird ein vorhandener Schlüssel überschrieben. Der Default ist, dass Werte mit gleichem Schlüssel mit
+ * Newline aneinander gehangen werden.
+ * \param[in] dotrim Ist \c dotrim=true, werden einzelnen Werte vor dem Einfügen ins Array mit der Funktion
+ * Trim getrimmt, also Leerzeilen, Tabs und Zeilenumbrüche am Anfang und Ende gelöscht. Der Default
+ * ist \c false.
+ *
+ * \return Die Funktion gibt die Anzahl gelesener Key-Value-Paare zurück, oder 0, wenn der Text
+ * keine verwertbaren Zeilen enthielt.
+ *
+ * \note Falls das Array vor dem Aufruf dieser Funktion bereits Datensätze enthielt, werden diese
+ * nicht gelöscht. Die Funktion kann also benutzt werden, um Werte aus verschiedenen Templates in ein
+ * einziges Array einzulesen. Soll das Array geleert werden, muß vorher die Funktion AssocArray::clear
+ * aufgerufen werden.
+ *
+ * \see Um Konfigurationsdateien mit verschiedenen Abschnitten (z.B. .ini-Dateien) in ein
+ * Assoziatives Array einzulesen, gibt es die Member-Funktion
+ * AssocArray::fromConfig
+ *
+ */
+size_t AssocArray::fromTemplate(const String &templ, const String &linedelimiter, const String &splitchar, const String &concat, bool dotrim)
+{
+	String Row, Line;
+	Array a;
+	Array::Iterator it;
+	String Key,Value;
+	size_t rows=0;
+	ssize_t p;
+	size_t ssc=splitchar.size();
+	a.explode(templ,linedelimiter);
+	a.reset(it);
+	while (1) {
+		try {
+			Line=a.getNext(it);
+		} catch (OutOfBoundsEception) {
+			return rows;
+		}
+		Row=Trim(Line);
+		if (Row.len()>0 && Row[(size_t)0]!=L'#') { // Leere Zeilen und Kommentare ignorieren
+			Row=Line;
+			p=Row.instr(splitchar);
+			if (p>0) {
+				Key=Trim(Row.left(p));
+				Value=Row.mid(p+ssc);
+				if (dotrim) Value.trim();
+				//printf ("Key=%ls\nValue=%ls\n",(const wchar_t *)Key, (const wchar_t *)Value);
+				if (concat.notEmpty()) {
+					append(Key, Value, concat);
+				} else {
+					set(Key,Value);
+				}
+				rows++;
+			}
+		}
+	}
+	return rows;
+}
+
+
+/*!\brief Schlüssel auslesen
+ *
+ * \desc
+ * Dieser Operator liefert den Wert des Schlüssels \p key als Variant zurück. Dieser kann
+ * von der aufrufenden Anwendung in den jeweiligen Datentyp umgewandelt werden.
+ *
+ * @param key Name des Schlüssels
+ * @return Referenz auf den einen Variant mit dem Wert des Schlüssels
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+ */
+Variant &AssocArray::operator[](const String &key) const
+{
+	ValueNode *node=findInternal(key);
+	return *node->value;
+}
+
+/*!\brief Assoziatives Array kopieren
+ *
+ * \desc
+ * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other übernommen.
+ * Der bisherige Inhalt dieses Arrays geht verloren.
+ *
+ * @param other Zu kopierendes assoziatives Array
+ * @return Referenz auf dieses Array
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ *
+ */
+AssocArray& AssocArray::operator=(const AssocArray& other)
+{
+	clear();
+	add(other);
+	return *this;
+}
+
+/*!\brief Assoziatives Array hinzufügen
+ *
+ * \desc
+ * Mit diesem Operator wird der Inhalt das Assoziativen Arrays \p other dem eigenen
+ * Array hinzugefügt. Das Array wird vorher nicht gelöscht, so dass vorhandene
+ * Schlüssel erhalten bleiben. Gibt es in \p other jedoch gleichnamige Schlüssel,
+ * werden die bisherigen Werte überschrieben.
+ *
+ * @param other Zu kopierendes assoziatives Array
+ * @return Referenz auf dieses Array
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ *
+ */
+AssocArray& AssocArray::operator+=(const AssocArray& other)
+{
+	add(other);
+	return *this;
+}
 
 } // EOF namespace ppl7
