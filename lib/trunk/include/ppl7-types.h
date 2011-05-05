@@ -475,7 +475,7 @@ class Array : public Variant
 		void reset(Iterator &it) const;
 		const String &getFirst(Iterator &it) const;
 		const String &getNext(Iterator &it) const;
-		String implode(const Stri		ng &delimiter="\n") const;
+		String implode(const String &delimiter="\n") const;
 		//@}
 
 		//! @name Sonstiges
