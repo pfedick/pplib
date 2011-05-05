@@ -38,11 +38,3 @@ Die Klasse ppl7::ByteArrayPtr wird zum Speichern von Pointern auf beliebige Spei
 verwendet. Sie dient als Basisklasse für ppl7::ByteArray. 
 */
 
-
-
-/*!\class ppl7::datatype
-\brief Datentypen der PPL-Library
-
-\ingroup PPLGroupDataTypes
-*/
-
