@@ -1549,6 +1549,30 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	throw ExportBufferToSmallException();
 }
 
+/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
+ *
+ * \desc
+ * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
+ * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
+ *
+ * \param[in,out] buffer %ByteArray, in dem die exportierten Daten gespeichert werden sollen
+ *
+ * \attention
+ * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
+ * werden folgende Typen unterstützt:
+ * - String (Wird als UTF-8 exportiert)
+ * - Array
+ * - AssocArray
+ * - ByteArray
+ * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
+ * - DateTime
+ * \see
+ * - AssocArray::binarySize
+ * - AssocArray::importBinary
+ *
+ * \note
+ * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
+ */
 void AssocArray::exportBinary(ByteArray &buffer) const
 {
 	buffer.free();
@@ -1557,6 +1581,99 @@ void AssocArray::exportBinary(ByteArray &buffer) const
 	buffer.malloc(size);
 	exportBinary((void*)buffer.adr(),buffer.size(),NULL);
 }
+
+/*!\brief Daten aus einem vorherigen Export wieder importieren
+ *
+ * \desc
+ * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
+ * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
+ * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
+ *
+ * \param[in] bin Referenz auf ByteArray oder ByteArrayPtr mit den zu importierenden Daten
+ *
+ * \see
+ * - CAssocArray::exportBinary
+ * - CAssocArray::binarySize
+ */
+void AssocArray::importBinary(const ByteArrayPtr &bin)
+{
+	importBinary(bin.adr(),bin.size());
+}
+
+/*!\brief Daten aus einem vorherigen Export wieder importieren
+ *
+ * \desc
+ * Mit dieser Funktion kann ein zuvor mit AssocArray::exportBinary exportiertes Assoziatives %Array wieder
+ * importiert werden. Falls im %Array bereits Daten vorhanden sind, werden diese nicht gelöscht, können aber
+ * überschrieben werden, wenn es im Export gleichnamige Schlüssel gibt.
+ *
+ * \param[in] buffer Pointer auf den Puffer, der die zu importierenden Daten enthält
+ * \param[in] buffersize Größe des Puffers
+ * \exception ImportFailedException
+ *
+ * \see
+ * - AssocArray::exportBinary
+ * - AssocArray::binarySize
+ */
+size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
+{
+	if (!buffer) throw IllegalArgumentException();
+	if (buffersize==0) IllegalArgumentException();
+	const char *ptr=(const char*)buffer;
+	size_t p=0;
+	if (buffersize<8 || strncmp((const char*)ptr,"PPLASOC",7)!=0) {
+		throw ImportFailedException();
+	}
+	p+=7;
+	int type;
+	size_t keylen,vallen,bytes;
+	String key;
+	DateTime dt;
+	AssocArray na;
+	ByteArray nb;
+	while (p<buffersize && (type=PeekN8(ptr+p))!=0) {
+		p++;
+		keylen=PeekN16(ptr+p);
+		p+=2;
+		key.set(ptr+p,keylen);
+		p+=keylen;
+		switch (type) {
+			case Variant::STRING:
+				vallen=PeekN32(ptr+p);
+				p+=4;
+				set(key,(const char*)ptr+p,vallen);
+				p+=vallen;
+				break;
+			case Variant::ASSOCARRAY:
+				na.clear();
+				bytes=na.importBinary(ptr+p,buffersize-p);
+				p+=bytes;
+				set(key,na);
+				break;
+			case Variant::BYTEARRAY:
+				vallen=PeekN32(ptr+p);
+				p+=4;
+				nb.free();
+				nb.copy(ptr+p,vallen);
+				p+=vallen;
+				set(key,nb);
+				break;
+			case Variant::DATETIME:
+				vallen=PeekN32(ptr+p);
+				p+=4;
+				dt.setLongInt(PeekN64(ptr+p));
+				p+=vallen;
+				set(key,dt);
+				break;
+			default:
+				return 0;
+		};
+	}
+	p++;
+	return p;
+}
+
+
 
 /*!\brief Schlüssel auslesen
  *

@@ -250,7 +250,7 @@ void ByteArray::useadr(void *adr, size_t size)
  * \note
  * Falls die Klasse vor Aufruf bereits Speicher verwaltet hat, wird dieser zuerst freigegeben.
  */
-void *ByteArray::copy(void *adr, size_t size)
+void *ByteArray::copy(const void *adr, size_t size)
 {
 	::free(ptr);
 	s=0;

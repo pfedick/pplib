@@ -207,6 +207,268 @@ void HexDump(const void *address, size_t bytes)
 }
 
 
+void Poke8 (void *Adresse, ppluint32 Wert)
+{
+	((ppluint8*)Adresse)[0]=(ppluint8)(Wert & 255);
+}
+
+void Poke16 (void *Adresse, ppluint32 Wert)
+{
+	#ifdef __BIG_ENDIAN__
+		((ppluint8*)Adresse)[0]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >>8)&255);
+	#else
+		((ppluint16*)Adresse)[0]=(ppluint16)(Wert & 0xffff);
+	#endif
+
+}
+
+void Poke24 (void *Adresse, ppluint32 Wert)
+{
+	((ppluint8*)Adresse)[0]=(ppluint8)(Wert & 255);
+	((ppluint8*)Adresse)[1]=(ppluint8)((Wert >>8)&255);
+	((ppluint8*)Adresse)[2]=(ppluint8)((Wert >>16)&255);
+}
+
+void Poke32 (void *Adresse, ppluint32 Wert)
+{
+	#ifdef __BIG_ENDIAN__
+		((ppluint8*)Adresse)[0]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >>8)&255);
+		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >>16)&255);
+		((ppluint8*)Adresse)[3]=(ppluint8)((Wert >>24)&255);
+	#else
+		((ppluint32*)Adresse)[0]=Wert;
+	#endif
+}
+
+void Poke64 (void *Adresse, ppluint64 Wert)
+{
+	#ifdef __BIG_ENDIAN__
+		((ppluint8*)Adresse)[0]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >>8)&255);
+		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >>16)&255);
+		((ppluint8*)Adresse)[3]=(ppluint8)((Wert >>24)&255);
+		((ppluint8*)Adresse)[4]=(ppluint8)((Wert >>32)&255);
+		((ppluint8*)Adresse)[5]=(ppluint8)((Wert >>40)&255);
+		((ppluint8*)Adresse)[6]=(ppluint8)((Wert >>48)&255);
+		((ppluint8*)Adresse)[7]=(ppluint8)((Wert >>56)&255);
+	#else
+		((ppluint64*)Adresse)[0]=Wert;
+	#endif
+}
+
+void PokeFloat(void *Adresse, float Wert)
+{
+	#ifdef __BIG_ENDIAN__
+		((float*)Adresse)[0]=Wert;
+	#else
+		((float*)Adresse)[0]=Wert;
+	#endif
+}
+
+ppluint32 Peek8 (const void *Adresse)
+{
+	return (ppluint32)((ppluint8*)Adresse)[0];
+}
+
+ppluint32 Peek16 (const void * Adresse)
+{
+	#ifdef __BIG_ENDIAN__
+		ppluint8 wert1,wert2;
+		wert1=((ppluint8*)Adresse)[0];
+		wert2=((ppluint8*)Adresse)[1];
+		return((ppluint32) (ppluint32)wert1+((ppluint32)wert2<<8));
+	#else
+		return (ppluint32) ((ppluint16*)Adresse)[0];
+	#endif
+}
+
+ppluint32 Peek24 (const void *Adresse)
+{
+	ppluint8 wert1,wert2,wert3;
+	wert1=((ppluint8*)Adresse)[0];
+	wert2=((ppluint8*)Adresse)[1];
+	wert3=((ppluint8*)Adresse)[2];
+	return((ppluint32) wert1+(wert2<<8)+(wert3<<16));
+}
+
+ppluint32 Peek32 (const void *Adresse)
+{
+	#ifdef __BIG_ENDIAN__
+		ppluint8 wert1,wert2,wert3,wert4;
+		wert1=((ppluint8*)Adresse)[0];
+		wert2=((ppluint8*)Adresse)[1];
+		wert3=((ppluint8*)Adresse)[2];
+		wert4=((ppluint8*)Adresse)[3];
+
+		return((ppluint32) (ppluint32)wert1+((ppluint32)wert2<<8)+((ppluint32)wert3<<16)+((ppluint32)wert4<<24));
+	#else
+		return (ppluint32) ((ppluint32*)Adresse)[0];
+	#endif
+}
+
+ppluint64 Peek64 (const char *Adresse)
+{
+	#ifdef __BIG_ENDIAN__
+		ppluint8 wert1,wert2,wert3,wert4,wert5,wert6,wert7,wert8;
+		wert1=((ppluint8*)Adresse)[0];
+		wert2=((ppluint8*)Adresse)[1];
+		wert3=((ppluint8*)Adresse)[2];
+		wert4=((ppluint8*)Adresse)[3];
+		wert5=((ppluint8*)Adresse)[4];
+		wert6=((ppluint8*)Adresse)[5];
+		wert7=((ppluint8*)Adresse)[6];
+		wert8=((ppluint8*)Adresse)[7];
+
+		return((ppluint64) (ppluint64)wert1+((ppluint64)wert2<<8)+((ppluint64)wert3<<16)+((ppluint64)wert4<<24)+((ppluint64)wert5<<32)+((ppluint64)wert6<<40)+((ppluint64)wert7<<48)+((ppluint64)wert8<<56));
+	#else
+		return (ppluint64) ((ppluint64*)Adresse)[0];
+	#endif
+}
+
+float PeekFloat(const void *Adresse)
+{
+	#ifdef __BIG_ENDIAN__
+		return (float)((float*)Adresse)[0];
+	#else
+		return (float)((float*)Adresse)[0];
+	#endif
+}
+
+// Network-Byte-Order
+void PokeN8 (void *Adresse, ppluint32 Wert)
+{
+	((ppluint8*)Adresse)[0]=(ppluint8)(Wert & 255);
+}
+
+void PokeN16 (void *Adresse, ppluint32 Wert)
+{
+	#ifdef __BIG_ENDIAN__
+		// Direktes schreiben löst bei unalignten Adressen unter Solaris einen Bus-Error aus
+		//((ppluint16*)Adresse)[0]=(ppluint16)(Wert & 0xffff);
+		((ppluint8*)Adresse)[1]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 8)&255);
+	#else
+		((ppluint8*)Adresse)[1]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 8)&255);
+	#endif
+
+}
+
+void PokeN32 (char *Adresse, ppluint32 Wert)
+{
+	#ifdef __BIG_ENDIAN__
+		// Direktes schreiben löst bei unalignten Adressen unter Solaris einen Bus-Error aus
+		//((ppluint32*)Adresse)[0]=Wert;
+		((ppluint8*)Adresse)[3]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >> 8)&255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >> 16)&255);
+		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 24)&255);
+	#else
+		((ppluint8*)Adresse)[3]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >> 8)&255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >> 16)&255);
+		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 24)&255);
+	#endif
+
+}
+
+void PokeN64 (char *Adresse, ppluint64 Wert)
+{
+	#ifdef __BIG_ENDIAN__
+		// Direktes schreiben löst bei unalignten Adressen unter Solaris einen Bus-Error aus
+		//((ppluint64*)Adresse)[0]=Wert;
+		((ppluint8*)Adresse)[7]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[6]=(ppluint8)((Wert >>8)&255);
+		((ppluint8*)Adresse)[5]=(ppluint8)((Wert >>16)&255);
+		((ppluint8*)Adresse)[4]=(ppluint8)((Wert >>24)&255);
+		((ppluint8*)Adresse)[3]=(ppluint8)((Wert >>32)&255);
+		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >>40)&255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >>48)&255);
+		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >>56)&255);
+	#else
+		((ppluint8*)Adresse)[7]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[6]=(ppluint8)((Wert >>8)&255);
+		((ppluint8*)Adresse)[5]=(ppluint8)((Wert >>16)&255);
+		((ppluint8*)Adresse)[4]=(ppluint8)((Wert >>24)&255);
+		((ppluint8*)Adresse)[3]=(ppluint8)((Wert >>32)&255);
+		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >>40)&255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >>48)&255);
+		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >>56)&255);
+	#endif
+}
+
+ppluint32 PeekN8 (const char *Adresse)
+{
+	return (ppluint32)((ppluint8*)Adresse)[0];
+}
+
+ppluint32 PeekN16 (const char * Adresse)
+{
+	#ifdef __BIG_ENDIAN__
+		ppluint8 wert1,wert2;
+		wert1=((ppluint8*)Adresse)[1];
+		wert2=((ppluint8*)Adresse)[0];
+		return((ppluint32) (ppluint32)wert1+((ppluint32)wert2<<8));
+
+	#else
+		ppluint8 wert1,wert2;
+		wert1=((ppluint8*)Adresse)[1];
+		wert2=((ppluint8*)Adresse)[0];
+		return((ppluint32) (ppluint32)wert1+((ppluint32)wert2<<8));
+	#endif
+}
+
+ppluint32 PeekN32 (const char *Adresse)
+{
+	#ifdef __BIG_ENDIAN__
+		ppluint8 wert1,wert2,wert3,wert4;
+		wert1=((ppluint8*)Adresse)[3];
+		wert2=((ppluint8*)Adresse)[2];
+		wert3=((ppluint8*)Adresse)[1];
+		wert4=((ppluint8*)Adresse)[0];
+		return((ppluint32) (ppluint32)wert1+((ppluint32)wert2<<8)+((ppluint32)wert3<<16)+((ppluint32)wert4<<24));
+
+	#else
+		ppluint8 wert1,wert2,wert3,wert4;
+		wert1=((ppluint8*)Adresse)[3];
+		wert2=((ppluint8*)Adresse)[2];
+		wert3=((ppluint8*)Adresse)[1];
+		wert4=((ppluint8*)Adresse)[0];
+ 		return((ppluint32) (ppluint32)wert1+((ppluint32)wert2<<8)+((ppluint32)wert3<<16)+((ppluint32)wert4<<24));
+	#endif
+}
+
+ppluint64 PeekN64 (const char *Adresse)
+{
+	#ifdef __BIG_ENDIAN__
+		ppluint8 wert1,wert2,wert3,wert4,wert5,wert6,wert7,wert8;
+		wert1=((ppluint8*)Adresse)[7];
+		wert2=((ppluint8*)Adresse)[6];
+		wert3=((ppluint8*)Adresse)[5];
+		wert4=((ppluint8*)Adresse)[4];
+		wert5=((ppluint8*)Adresse)[3];
+		wert6=((ppluint8*)Adresse)[2];
+		wert7=((ppluint8*)Adresse)[1];
+		wert8=((ppluint8*)Adresse)[0];
+		return((ppluint64) (ppluint64)wert1+((ppluint64)wert2<<8)+((ppluint64)wert3<<16)+((ppluint64)wert4<<24)+((ppluint64)wert5<<32)+((ppluint64)wert6<<40)+((ppluint64)wert7<<48)+((ppluint64)wert8<<56));
+
+	#else
+		ppluint8 wert1,wert2,wert3,wert4,wert5,wert6,wert7,wert8;
+		wert1=((ppluint8*)Adresse)[7];
+		wert2=((ppluint8*)Adresse)[6];
+		wert3=((ppluint8*)Adresse)[5];
+		wert4=((ppluint8*)Adresse)[4];
+		wert5=((ppluint8*)Adresse)[3];
+		wert6=((ppluint8*)Adresse)[2];
+		wert7=((ppluint8*)Adresse)[1];
+		wert8=((ppluint8*)Adresse)[0];
+ 		return((ppluint64) (ppluint64)wert1+((ppluint64)wert2<<8)+((ppluint64)wert3<<16)+((ppluint64)wert4<<24)+((ppluint64)wert5<<32)+((ppluint64)wert6<<40)+((ppluint64)wert7<<48)+((ppluint64)wert8<<56));
+	#endif
+}
+
+
 } // EOF namespace ppl7
 
 

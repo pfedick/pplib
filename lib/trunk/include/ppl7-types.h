@@ -178,7 +178,7 @@ public:
 	ByteArray(size_t size);
 	~ByteArray();
 	void useadr(void *adr, size_t size);
-	void *copy(void *adr, size_t size);
+	void *copy(const void *adr, size_t size);
 	void *copy(const ByteArrayPtr &other);
 	void *append(void *adr, size_t size);
 	void *append(const ByteArrayPtr &other);
@@ -567,6 +567,7 @@ class AssocArray : public Variant
 		PPLPARAMETERISEDEXCEPTION(InvalidKeyException);
 		PPLNORMALEXCEPTION(KeyNotFoundException);
 		PPLNORMALEXCEPTION(ExportBufferToSmallException);
+		PPLNORMALEXCEPTION(ImportFailedException);
 
 		typedef ppl7::AVLTree<ArrayKey, ValueNode>::Iterator Iterator;
 
@@ -622,8 +623,8 @@ class AssocArray : public Variant
 		size_t binarySize() const;
 		void exportBinary(void *buffer, size_t buffersize, size_t *realsize) const;
 		void exportBinary(ByteArray &buffer) const;
-		int	importBinary(const void *buffer, size_t buffersize);
-		int	importBinary(const ByteArrayPtr &buffer);
+		size_t importBinary(const void *buffer, size_t buffersize);
+		void importBinary(const ByteArrayPtr &buffer);
 		//@}
 
 		//!\name Werte direkt auslesen
