@@ -183,7 +183,9 @@ class datatype {
 			ARRAY		=5, /*!< CAssocArray-Klasse */
 			BINARY		=6, /*!< CBinary-Klasse */
 			POINTER		=7, /*!< void-pointer */
-			CWSTRING	=8  /*!< CWString-Klasse */
+			CWSTRING	=8, /*!< CWString-Klasse */
+			CARRAY		=9,	/*!< CArray-Klasse */
+			DATETIME	=10	/*!< CDateTime-Klasse */
 		};
 };
 
@@ -2563,6 +2565,7 @@ class CAssocArray : public CVar
 		int		Set(const char *key, const CDirEntry &d);
 		int		Set(const char *key, const CBinary &bin);
 		int		Set(const char *key, CBinary *bin, bool copy=true);
+		int		Set(const char *key, const CDateTime &date);
 		int		SetPointer(const char *key, const void *ptr);
 		int		Copy(const CAssocArray *a);
 		int		Copy(const CAssocArray &a);
@@ -2606,6 +2609,7 @@ class CAssocArray : public CVar
         const char		*Get (const char *key) const;
         const char		*Getf (const char *fmt, ...) const;
 		CString			*GetString(const char *key) const;
+		CDateTime		GetDateTime(const char *key) const;
 		CString			*GetStringf(const char *fmt, ...) const;
 		CString			*GetCString(const char *key) const;
 		CString			*GetCStringf(const char *fmt, ...) const;

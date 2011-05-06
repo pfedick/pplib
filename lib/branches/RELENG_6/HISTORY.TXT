@@ -10,6 +10,8 @@ Version 6.4.7
   - Neue Klasse: CIcecast zum Streamen von MP3 oder OGG Dateien
     an einen Icecast Server
   - Update der Dokumentation auf Doxygen 1.7.3
+  - CAssocArray unterstützt nun CDateTime und kann CWString Im- und
+    Exportieren (es erfolgt eine Konvertierung nach UTF-8)
 
 Version 6.4.6 vom 17.03.2011	(CVS-Tag: REL_6_4_6)
   - CAssocArray hat Copy-Konstruktor und Zuweisungsoperator für CArray

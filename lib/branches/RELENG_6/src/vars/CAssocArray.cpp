@@ -177,6 +177,7 @@ void CArrayItem::Clear()
 	if (type==datatype::CSTRING) delete (static_cast<CString*>(value));
 	if (type==datatype::CWSTRING) delete (static_cast<CWString*>(value));
 	if (type==datatype::BINARY) delete (static_cast<CBinary*>(value));
+	if (type==datatype::DATETIME) delete (static_cast<CDateTime*>(value));
 	type=0;
 	value=0;
 }
@@ -575,6 +576,8 @@ prefix/pointer1=POINTER 3217221904 (0xbfc2e910)
 			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)p->key.GetPtr(),(const char*)((CString*)p->value)->GetPtr());
 		} else if (p->type==datatype::CWSTRING) {
 			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)p->key.GetPtr(),(const char*)((CWString*)p->value)->GetPtr());
+		} else if (p->type==datatype::DATETIME) {
+			PrintDebug("%s%s=CDateTime: %s\n",(const char*)key,(const char*)p->key.GetPtr(),(const char*)((CDateTime*)p->value)->getISO8601withMsec());
 		} else if (p->type==datatype::BINARY) {
 			PrintDebug("%s%s=CBinary, %llu Bytes\n",(const char*)key,(const char*)p->key.GetPtr(),(ppluint64)((CBinary*)p->value)->Size());
 		} else if (p->type==datatype::ARRAY) {
@@ -816,17 +819,13 @@ int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
 			p+=4;
 			if (p+vallen<buffersize) strncpy(ptr+p,((CString*)a->value)->GetPtr(),vallen);
 			p+=vallen;
-		/*
-		 * TODO: wchar_t ist Betriebssystem und Platform-abhängig. Es muss ein einheitliches
-		 * Format übertragen werden
-		 *
 		} else if (a->type==datatype::CWSTRING) {
-			vallen=((CWString*)a->value)->Size();
+			CString utf8=*((CWString*)a);
+			vallen=utf8.Size();
 			if (p+4<buffersize) ppl6::PokeN32(ptr+p,vallen);
 			p+=4;
-			if (p+vallen<buffersize) memcpy(ptr+p,((CWString*)a->value)->GetBuffer(),vallen);
+			if (p+vallen<buffersize) strncpy(ptr+p,utf8.GetPtr(),vallen);
 			p+=vallen;
-		*/
 		} else if (a->type==datatype::ARRAY) {
 			int asize=0;
 			((CAssocArray*)a->value)->ExportBinary(ptr+p,buffersize-p,&asize);
@@ -836,6 +835,12 @@ int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
 			if (p+4<buffersize) ppl6::PokeN32(ptr+p,vallen);
 			p+=4;
 			if (p+vallen<buffersize) strncpy(ptr+p,(char*)a->value,vallen);
+			p+=vallen;
+		} else if (a->type==datatype::DATETIME) {
+			vallen=8;
+			if (p+4<buffersize) ppl6::PokeN32(ptr+p,vallen);
+			p+=4;
+			if (p+vallen<buffersize) PokeN64(ptr+p,((CDateTime*)a)->longInt());
 			p+=vallen;
 		} else if (a->type==datatype::BINARY) {
 			vallen=((CBinary*)a->value)->Size();
@@ -916,6 +921,8 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 	p+=7;
 	int type,keylen,vallen,bytes;
 	CString key;
+	CWString ws;
+	CDateTime dt;
 	CAssocArray *na;
 	CBinary *nb;
 	while (p<buffersize && (type=PeekN8(ptr+p))!=0) {
@@ -932,9 +939,13 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 				Set(key,(const char*)ptr+p,vallen);
 				p+=vallen;
 				break;
-			/*
-			case datatype::CWTRING:
-				*/
+			case datatype::CWSTRING:
+				vallen=PeekN32(ptr+p);
+				p+=4;
+				ws.Set((const char*)ptr+p,vallen);
+				Set(key,ws);
+				p+=vallen;
+				break;
 			case datatype::ARRAY:
 				na=new CAssocArray;
 				bytes=na->ImportBinary(ptr+p,buffersize-p);
@@ -949,6 +960,13 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 				nb->Copy(ptr+p,vallen);
 				p+=vallen;
 				Set(key,nb,false);
+				break;
+			case datatype::DATETIME:
+				vallen=PeekN32(ptr+p);
+				p+=4;
+				dt.setLongInt(PeekN64(ptr+p));
+				p+=vallen;
+				Set(key,dt);
 				break;
 			default:
 				return 0;
@@ -1422,7 +1440,30 @@ int CAssocArray::SetPointer(const char *key, const void *pointer)
 	return 1;
 }
 
-
+int	CAssocArray::Set(const char *key, const CDateTime &date)
+{
+	if (!key) {
+		SetError(194,"const char *key");
+		return 0;
+	}
+	CDateTime *var=new CDateTime;
+	if (!var) {
+		SetError(2);
+		return 0;
+	}
+	var->set(date);
+	CArrayItem *ptr=(CArrayItem *)CreateTree(key);
+	if (!ptr) {
+		PushError();
+		delete var;
+		PopError();
+		return 0;
+	}
+	ptr->Clear();
+	ptr->value=var;
+	ptr->type=datatype::DATETIME;
+	return 1;
+}
 
 int CAssocArray::Concat(const char *key, const char *value, const char *concat, int size)
 /*!\brief String-Wert eines Schlüssels erweitern
@@ -3866,6 +3907,24 @@ CString CAssocArray::ToCString(const char *key) const
 	SetError(303);
 	return r;
 }
+
+CDateTime CAssocArray::GetDateTime(const char *key) const
+{
+	CDateTime r;
+	CArrayItem *ptr=(CArrayItem *)GetValue(key);
+	if (!ptr) return r;
+	if (ptr->value==NULL) {
+		SetError(450);
+		return r;
+	}
+	if (ptr->type==datatype::DATETIME) {
+		r=*(CDateTime*)ptr->value;
+		return r;
+	}
+	SetError(303);
+	return r;
+}
+
 
 CWString CAssocArray::ToCWString(const char *key) const
 {
