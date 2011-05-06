@@ -210,6 +210,32 @@ Array SortReverse(const Array &array, bool unique=false);
 size_t rand(size_t min, size_t max);
 
 
+// Speicherzugriff
+void Poke8 (void *Adresse, ppluint32 Wert);
+void Poke16 (void *Adresse, ppluint32 Wert);
+void Poke24 (void *Adresse, ppluint32 Wert);
+void Poke32 (void *Adresse, ppluint32 Wert);
+void Poke64 (void *Adresse, ppluint64 Wert);
+void PokeFloat(void *Adresse, float Wert);
+ppluint32 Peek8 (const void *Adresse);
+ppluint32 Peek16 (const void *Adresse);
+ppluint32 Peek24 (const void *Adresse);
+ppluint32 Peek32 (const void *Adresse);
+ppluint64 Peek64 (const void *Adresse);
+float	PeekFloat(const void *Adresse);
+
+// Network-Byte-Order
+void PokeN8 (void *Adresse, ppluint32 Wert);
+void PokeN16 (void *Adresse, ppluint32 Wert);
+void PokeN32 (void *Adresse, ppluint32 Wert);
+void PokeN64 (void *Adresse, ppluint64 Wert);
+
+ppluint32 PeekN8 (const void *Adresse);
+ppluint32 PeekN16 (const void *Adresse);
+ppluint32 PeekN32 (const void *Adresse);
+ppluint64 PeekN64 (const void *Adresse);
+
+
 //! \brief Synchronisation von Threads
 class Mutex
 {

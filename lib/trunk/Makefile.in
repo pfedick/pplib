@@ -46,6 +46,7 @@ RELEASE	= release/AVLTree.o \
 	release/type_ByteArray.o \
 	release/type_ByteArrayPtr.o \
 	release/type_DateTime.o \
+	release/type_Pointer.o \
 	release/type_String.o \
 	release/type_Variant.o \
 	release/crc32.o \
@@ -69,6 +70,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/type_ByteArray.o \
 	debug/type_ByteArrayPtr.o \
 	debug/type_DateTime.o \
+	debug/type_Pointer.o \
 	debug/type_String.o \
 	debug/type_Variant.o \
 	debug/crc32.o \
@@ -100,11 +102,11 @@ all:	install_debug install
 debug/$(LIBDEBUG).a: debug/make $(DEBUG) $(ASM_DEBUG)
 	ar -r debug/$(LIBDEBUG).a $(DEBUG) $(ASM_DEBUG)
 	-chmod a+x ppl7-config
-	
+
 release/$(LIBNAME).a: release/make $(RELEASE) $(ASM_RELEASE)
 	ar -r release/$(LIBNAME).a $(RELEASE) $(ASM_RELEASE)
 	-chmod a+x ppl7-config
-	
+
 debug/make:
 	-mkdir -p debug
 	-touch debug/make
@@ -257,6 +259,11 @@ release/type_DateTime.o:	$(srcdir)/types/DateTime.cpp $(incdir)/ppl7.h $(incdir)
 	# Compiling >>>types/DateTime.cpp<<<
 	$(CXX) -Wall -O3 -o release/type_DateTime.o -c $(srcdir)/types/DateTime.cpp $(CFLAGS) 
 
+release/type_Pointer.o:	$(srcdir)/types/Pointer.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
+	###############################################################################
+	# Compiling >>>types/Pointer.cpp<<<
+	$(CXX) -Wall -O3 -o release/type_Pointer.o -c $(srcdir)/types/Pointer.cpp $(CFLAGS) 
+
 release/type_String.o:	$(srcdir)/types/String.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
 	# Compiling >>>types/String.cpp<<<
@@ -360,6 +367,11 @@ debug/type_DateTime.o:	$(srcdir)/types/DateTime.cpp $(incdir)/ppl7.h $(incdir)/p
 	###############################################################################
 	# Compiling >>>types/DateTime.cpp<<<
 	$(CXX) -Wall -O -o debug/type_DateTime.o -c $(srcdir)/types/DateTime.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/type_Pointer.o:	$(srcdir)/types/Pointer.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
+	###############################################################################
+	# Compiling >>>types/Pointer.cpp<<<
+	$(CXX) -Wall -O -o debug/type_Pointer.o -c $(srcdir)/types/Pointer.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/type_String.o:	$(srcdir)/types/String.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################

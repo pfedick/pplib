@@ -1401,23 +1401,6 @@ String String::getMD5() const
  *
  * \desc
  * Mit dieser Funktion kann der Unicode-Wert eines einzelnen Zeichens an der Position
- * \p pos ausgelesen werden, wobei 0 dem ersten Zeichen entspricht.
- *
- * @param pos Position des Zeichens innerhalb des Strings
- * @return Unicode-Wert des Zeichens
- * \exception OutOfBoundsEception Wird geworfen, wenn die angegebene Position \p pos
- * ausserhalb des Strings liegt oder der String leer ist.
- */
-wchar_t String::get(size_t pos) const
-{
-	if (stringlen>pos) return ((wchar_t*)ptr)[pos];
-	throw OutOfBoundsEception();
-}
-
-/*!\brief Einzelnes Zeichen auslesen
- *
- * \desc
- * Mit dieser Funktion kann der Unicode-Wert eines einzelnen Zeichens an der Position
  * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
  * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
  * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
@@ -1430,26 +1413,8 @@ wchar_t String::get(size_t pos) const
  */
 wchar_t String::get(ssize_t pos) const
 {
-	if (pos>0 && stringlen>(size_t)pos) return ((wchar_t*)ptr)[pos];
+	if (pos>=0 && stringlen>(size_t)pos) return ((wchar_t*)ptr)[pos];
 	if (pos<0 && (size_t)(0-pos)<stringlen) return ((wchar_t*)ptr)[stringlen+pos];
-	throw OutOfBoundsEception();
-}
-
-
-/*!\brief Einzelnes Zeichen auslesen
- *
- * \desc
- * Mit diesem Operator kann der Unicode-Wert eines einzelnen Zeichens an der Position
- * \p pos ausgelesen werden, wobei 0 dem ersten Zeichen entspricht.
- *
- * @param pos Position des Zeichens innerhalb des Strings
- * @return Unicode-Wert des Zeichens
- * \exception OutOfBoundsEception Wird geworfen, wenn die angegebene Position \p pos
- * ausserhalb des Strings liegt oder der String leer ist.
- */
-wchar_t String::operator[](size_t pos) const
-{
-	if (stringlen>pos) return ((wchar_t*)ptr)[pos];
 	throw OutOfBoundsEception();
 }
 
@@ -1470,7 +1435,7 @@ wchar_t String::operator[](size_t pos) const
  */
 wchar_t String::operator[](ssize_t pos) const
 {
-	if (pos>0 && stringlen>(size_t)pos) return ((wchar_t*)ptr)[pos];
+	if (pos>=0 && stringlen>(size_t)pos) return ((wchar_t*)ptr)[pos];
 	if (pos<0 && (size_t)(0-pos)<stringlen) return ((wchar_t*)ptr)[stringlen+pos];
 	throw OutOfBoundsEception();
 }

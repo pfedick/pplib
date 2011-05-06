@@ -58,35 +58,45 @@ namespace ppl7 {
 
 /*!\class AssocArray
  * \ingroup PPLGroupDataTypes
- * \brief Komplexes mehrdimensionales Array mit Strings als Schlüssel
+ * \brief Komplexes mehrdimensionales %Array mit Strings als Schlüssel
  *
  * \desc
  * Die Klasse AssocArray dient als Container für beliebige Key-Value-Paare. Ein Schlüssel
  * (Key) besteht aus einem String, der aus beliebigen Zeichen bestehen kann. Ein Value kann
- * veschiedene Datentypen enthalten. Gegenwärtig werden neben Strings auch Arrays, Binaries und
- * Pointer unterstützt.
+ * veschiedene Datentypen enthalten. Gegenwärtig werden folgende Datentypen unterstützt:
+ * - String
+ * - Array
+ * - ByteArray
+ * - ByteArrayPtr
+ * - AssocArray
+ * - DateTime
  * \par
- * Die Schlüssel werden sortiert in einem AVL-Baum verwaltet (siehe CTree, CTreeItem, CArrayItem), so dass auch bei
- * sehr großen Arrays eine schnelle Verarbeitung gewährleistet ist. Gross-/Kleinschreibung wird dabei
+ * Die Schlüssel werden sortiert in einem AVL-Baum verwaltet (siehe AVLTree), so dass auch bei
+ * sehr großen Arrays eine schnelle Verarbeitung gewährleistet ist. Gross-/Kleinschreibung wird
  * ignoriert, der Schlüssel "TEST" wäre also identisch mit "test" oder "Test".
  * \par
  * Mehrdimensionale Arrays sind möglich, indem einem Schlüssel als Wert einfach ein anderes Array
  * zugeordnet wird. In einem solchen Array kann jedes Element direkt angesprochen werden, indem man
  * die einzelnen Schlüssel durch Slash (/) getrennt zu einem einzigen Schlüssel zusammenfasst.
  * \par
- * Mehrdimensionale Arrays werden automatisch generiert. Gibt man bei einem leeren Array dem Schlüssel
+ * Mehrdimensionale Arrays werden automatisch generiert. Gibt man bei einem leeren %Array dem Schlüssel
  * <tt>"ebene1/ebene2/key"</tt> einen Wert, werden automatisch folgende Aktionen ausgeführt:
- * - Es wird ein neues Array generiert und mit dem Schlüssel "ebene1" in das Array eingefügt
- * - In das Array "ebene1" wird ein weiteres neues Array mit dem Schlüssel "ebene2" eingefügt
- * - In das Array "ebene2" wird der eigentliche Wert unter dem Schlüssel "key" eingefügt
+ * - Es wird ein neues AssocArray generiert und mit dem Schlüssel "ebene1" in das %Array eingefügt
+ * - In das %Array "ebene1" wird ein weiteres neues %Array mit dem Schlüssel "ebene2" eingefügt
+ * - In das %Array "ebene2" wird der eigentliche Wert unter dem Schlüssel "key" eingefügt
  *
  * \par Beispiel:
+ * Einen Wert setzen und wieder auslesen:
  * \code
  * ppl7::AssocArray a;
  * // Wert setzen
  * a.set("ebene1/ebene2/key","Ein Wert");
  * // Wert auslesen
  * a.get("ebene1/ebene2/key").toString().printnl();
+ * \endcode
+ * Durch ein AssocArray durchiterieren:
+ * \code
+ *
  * \endcode
  *
  */
@@ -283,6 +293,7 @@ void AssocArray::clear()
  */
 AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
 {
+	//printf ("AssocArray::findInternal (key=%ls)\n",(const wchar_t*)key);
 	Array tok(key,L"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
 	ArrayKey firstkey=tok.shift();
@@ -296,9 +307,9 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
 		throw KeyNotFoundException();
 	}
 	// Ist noch was im Pfad rest?
-	if (tok.count()>1) {			// Ja, koennen wir iterieren?
+	if (tok.count()>0) {			// Ja, koennen wir iterieren?
 		if (p->value->isAssocArray()) {
-			return ((AssocArray*)p)->findInternal(rest);
+			return ((AssocArray*)p->value)->findInternal(rest);
 		} else {
 			throw KeyNotFoundException();
 		}
@@ -488,7 +499,9 @@ void AssocArray::list(const String &prefix) const
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
 	Variant *p;
+
 	while ((Tree.getNext(it))) {
+		//printf ("AssocArray::list(%ls)\n",(const wchar_t*)prefix);
 		p=it.value().value;
 		if (p->isString()) {
 			PrintDebug("%ls%ls=%ls\n",(const wchar_t*)key,(const wchar_t*)it.key(),(const wchar_t*)((String*)p)->getPtr());
@@ -499,10 +512,8 @@ void AssocArray::list(const String &prefix) const
 		} else if (p->isAssocArray()) {
 			pre.setf("%ls%ls",(const wchar_t*)key,(const wchar_t*)it.key());
 			((AssocArray*)p)->list(pre);
-			/*
-		} else if (p->type==datatype::POINTER) {
-			PrintDebug("%s%s=POINTER %llu (0x%llx)\n",(const char*)key,(const char*)p->key.GetPtr(),(ppluint64)(size_t)(p->value), (ppluint64)(size_t)(p->value));
-			*/
+		} else if (p->isPointer()) {
+			PrintDebug("%ls%ls=Pointer, %tu\n",(const wchar_t*)key,(const wchar_t*)it.key(),(ptrdiff_t)((Pointer*)p)->ptr());
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
 			for (size_t i=0;i<a.size();i++) {
@@ -709,6 +720,29 @@ void AssocArray::set(const String &key, const AssocArray &value)
 	}
 }
 
+/*!\brief %Pointer hinzufügen
+ *
+ * \desc
+ * Diese Funktion fügt den Inhalt des Pointers \p value
+ * unter dem Schlüssel \p key in das Assoziative Array ein.
+ *
+ * \param[in] key Name des Schlüssels
+ * \param[in] value Daten
+ * \exception std::bad_alloc: Kein Speicher mehr frei
+ * \exception OutOfMemoryException: Kein Speicher mehr frei
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ */
+void AssocArray::set(const String &key, const Pointer &value)
+{
+	Pointer *var=new Pointer(value);
+	try {
+		createTree(key,var);
+	} catch (...) {
+		delete var;
+		throw;
+	}
+}
+
 /*!\brief %Variant hinzufügen
  *
  * \desc
@@ -743,6 +777,9 @@ void AssocArray::set(const String &key, const Variant &value)
 			return;
 		case Variant::BYTEARRAYPTR:
 			set(key,static_cast<const ByteArrayPtr&>(value));
+			return;
+		case Variant::POINTER:
+			set(key,static_cast<const Pointer&>(value));
 			return;
 	}
 	throw TypeConversionException();
@@ -938,6 +975,7 @@ String& AssocArray::getString(const String &key) const
 	ValueNode *node=findInternal(key);
 	Variant *p=node->value;
 	if (p->isString()) return p->toString();
+	printf ("String mit key %ls ist vom Typ: %i\n",(const wchar_t*)key,p->dataType());
 	throw TypeConversionException();
 }
 
@@ -1172,13 +1210,13 @@ bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
  * \return Die Funktion gibt die Anzahl gelesener Key-Value-Paare zurück, oder 0, wenn der Text
  * keine verwertbaren Zeilen enthielt.
  *
- * \note Falls das Array vor dem Aufruf dieser Funktion bereits Datensätze enthielt, werden diese
+ * \note Falls das %Array vor dem Aufruf dieser Funktion bereits Datensätze enthielt, werden diese
  * nicht gelöscht. Die Funktion kann also benutzt werden, um Werte aus verschiedenen Templates in ein
- * einziges Array einzulesen. Soll das Array geleert werden, muß vorher die Funktion AssocArray::clear
+ * einziges %Array einzulesen. Soll das %Array geleert werden, muß vorher die Funktion AssocArray::clear
  * aufgerufen werden.
  *
  * \see Um Konfigurationsdateien mit verschiedenen Abschnitten (z.B. .ini-Dateien) in ein
- * Assoziatives Array einzulesen, gibt es die Member-Funktion
+ * Assoziatives %Array einzulesen, gibt es die Member-Funktion
  * AssocArray::fromConfig
  *
  */
@@ -1200,7 +1238,7 @@ size_t AssocArray::fromTemplate(const String &templ, const String &linedelimiter
 			return rows;
 		}
 		Row=Trim(Line);
-		if (Row.len()>0 && Row[(size_t)0]!=L'#') { // Leere Zeilen und Kommentare ignorieren
+		if (Row.len()>0 && Row[0]!=L'#') { // Leere Zeilen und Kommentare ignorieren
 			Row=Line;
 			p=Row.instr(splitchar);
 			if (p>0) {
@@ -1220,6 +1258,305 @@ size_t AssocArray::fromTemplate(const String &templ, const String &linedelimiter
 	return rows;
 }
 
+
+/*! \brief Wandelt eine Konfigurationsdatei in ein Assoziatives Array um
+ *
+ * \desc
+ * Diese Funktion wandelt einen Konfigurations-Text mit mehreren Abschnitten
+ * im Key-Value-Format in ein Assoziatives %Array um. Ein Abschnitt beginnt immer mit einem Keywort
+ * in Eckigen klammern und enthält Key-Value-Paare. Zeilen mit Raute (#) am Anfang werden als
+ * Kommentarzeilen interpretiert und ignoriert.
+ * \par Beispiel einer Konfigurationsdatei
+ * \code
+[Abschnitt_1]
+# Kommentarzeile, die überlesen wird
+key1: value1
+key2: value2
+[Abschnitt_2]
+key1: value1
+key2: value2
+\endcode
+ *
+ * \param[in] content Ein String, dre die zu parsende Konfiguration enthält.
+ * \param[in] linedelimiter Das Zeichen, was als Zeilenende interpretiert werden soll. Default ist \c Newline
+ * \param[in] splitchar Das Zeichen, was als Trennzeichen zwischen Schlüssel (Key) und Wert (Value)
+ * interpretiert werden soll. Der Default ist das Gleichheitszeichen (=)
+ * \param[in] concat Ist concat gesetzt und kommen im Text mehrere identische Schlüssel vor, werden die Werte
+ * zu einem String zusammengeführt, wobei als Trennzeichen \c concat verwendet wird. Ist concat NULL,
+ * wird ein vorhandener Schlüssel überschrieben. Der Default ist, dass gleiche Schlüssel mit Newline
+ * aneinander gehangen werden.
+ * \param[in] dotrim Ist \c dotrim=true, werden einzelnen Werte vor dem Einfügen ins Array mit der Funktion
+ * Trim getrimmt, also Leerzeilen, Tabs und Zeilenumbrüche am Anfang und Ende gelöscht. Der Default
+ * ist \c false.
+ *
+ * \return Die Funktion gibt die Anzahl gelesener Key-Value-Paare zurück, oder 0, wenn der Text
+ * keine verwertbaren Zeilen enthielt.
+ *
+ * \note Falls das %Array vor dem Aufruf dieser Funktion bereits Datensätze enthielt, werden diese
+ * nicht gelöscht. Die Funktion kann also benutzt werden, um Werte aus verschiedenen Templates in ein
+ * einziges %Array einzulesen. Soll das %Array geleert werden, muß vorher die Funktion AssocArray::clear
+ * aufgerufen werden.
+ */
+size_t AssocArray::fromConfig(const String &content, const String &linedelimiter, const String &splitchar, const String &concat, bool dotrim)
+{
+	String Row, Line, Section;
+	Array a;
+	Array::Iterator it;
+	String Key,Value;
+	size_t rows=0;
+	ssize_t p;
+	size_t ssc=splitchar.size();
+	a.explode(content,linedelimiter);
+	a.reset(it);
+	while (1) {
+		try {
+			Line=a.getNext(it);
+		} catch (OutOfBoundsEception) {
+			return rows;
+		}
+		Row=Trim(Line);
+		if (Row.len()>0 && Row[0]!=L'#') { // Leere Zeilen und Kommentare ignorieren
+			if (Row[0]==L'[' && Row[-1]==L']') {
+				Section=Row.mid(1,Row.len()-2);
+				Section.lowerCase();
+				Section.trim();
+			} else {
+				Row=Line;
+				p=Row.instr(splitchar);
+				if (p>0) {
+					Key=Section;
+					if (Key.notEmpty()) Key+="/";
+					Key+=Trim(Row.left(p));
+					Value=Row.mid(p+ssc);
+					if (dotrim) Value.trim();
+					//printf ("Key=%ls\nValue=%ls\n",(const wchar_t *)Key, (const wchar_t *)Value);
+					if (concat.notEmpty()) {
+						append(Key, Value, concat);
+					} else {
+						set(Key,Value);
+					}
+					rows++;
+				}
+			}
+		}
+	}
+	return rows;
+}
+
+
+/*!\brief Inhalt des Assoziativen Arrays in ein Template exportieren
+ *
+ * \desc
+ * Mit dieser Funktion wird der textuelle Inhalt des Arrays als Template im Key-Value-Format in einem String
+ * abgelegt.
+ * Pointer oder Binäre Daten werden ignoriert.
+ *
+ * \param[out] s %String, in dem das Template gespeichert werden soll. Der %String wird von der Funktion nicht gelöscht,
+ * der Inhalt des Arrays wird angehangen!
+ * \param[in] prefix Optionaler Prefix, der jedem Key vorangestellt werden soll
+ * \param[in] linedelimiter Optionaler Pointer auf einen String, der am Zeilenende ausgegeben werden soll. Der
+ *            Default ist ein einzelnes Newline.
+ * \param[in] splitchar Optionaler Pointer auf einen String, der als Trennzeichen zwischen Schlüssel und Wert
+ *            verwendet werden soll. Der Default ist ein Gleichheitszeichen.
+ * \par Beispiel
+\code
+#include <stdio.h>
+#include <string.h>
+#include <ppl7.h>
+
+int main(int argc, char **argv)
+{
+	ppl7::AssocArray a;
+	ppl7::ByteArray bin;
+	ppl7::String out;
+	bin.load("main.cpp");
+	a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
+	a.set("array1/unterkey1","value2");
+	a.set("array1/unterkey2","value3");
+	a.set("array1/noch ein array/unterkey1","value4");
+	a.set("array1/unterkey2","value5");
+	a.set("key2","value6");
+	a.set("dateien/main.cpp",&bin);
+	a.set("array2/unterkey1","value7");
+	a.set("array2/unterkey2","value8");
+	a.set("array2/unterkey1","value9");
+	a.toTemplate(&out,"foo");
+	out.printnl();
+}
+\endcode
+Ergebnis:
+\code
+foo/array1/noch ein array/unterkey1=value4
+foo/array1/unterkey1=value2
+foo/array1/unterkey2=value5
+foo/array2/unterkey1=value9
+foo/array2/unterkey2=value8
+foo/key1=Dieser Wert geht über
+foo/key1=mehrere Zeilen
+foo/key2=value6
+\endcode
+	An diesem Beispiel sieht man, dass Pointer- und ByteArray-Werte nicht exportiert werden und Werte, die Zeilenumbrüche
+	enthalten, werden auf mehrere Key-Value-Paare aufgesplittet. Die Importfunktion (AssocArray::fromTemplate,
+	AssocArray::fromConfig) fügen diese wieder zu einer einzelnen Variable mit Zeilenumbruch
+	zusammen.
+ */
+void AssocArray::toTemplate(String &s, const String &prefix, const String &linedelimiter, const String &splitchar)
+{
+	String	key, pre, value, index;
+	Array		Tok;
+	if (prefix.notEmpty()) key=prefix+"/";
+	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
+	Tree.reset(it);
+	Variant *p;
+	while ((Tree.getNext(it))) {
+		p=it.value().value;
+		if (p->isString()) {
+			Tok.clear();
+			Tok.explode(p->toString(),L"\n");
+			for (size_t i=0;i<Tok.size();i++) {
+				s+=key+it.key()+splitchar+Tok[i]+linedelimiter;
+			}
+		} else if (p->isAssocArray()) {
+			pre.setf("%ls%ls",(const wchar_t*)key,(const wchar_t*)it.key());
+			((AssocArray*)p)->toTemplate(s,pre,linedelimiter,splitchar);
+		} else if (p->isArray()) {
+			const Array &a=(const Array &)*p;
+			for (size_t i=0;i<a.size();i++) {
+				Tok.clear();
+				Tok.explode(a[i],L"\n");
+				index.setf("%zu",i);
+				for (size_t z=0;z<Tok.size();z++) {
+					s+=key+it.key()+"/"+index+splitchar+Tok[z]+linedelimiter;
+				}
+			}
+		} else if (p->isDateTime()) {
+			s+=key+it.key()+splitchar+((DateTime*)p)->getISO8601withMsec()+linedelimiter;
+		}
+	}
+}
+
+/*!\brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
+ *
+ * \desc
+ * Diese Funktion liefert die Anzahl Bytes zurück, die für den Buffer der Funktion AssocArray::exportBinary
+ * erforderlich sind. Es kann dadurch ein ausreichend großer Puffer vor Aufruf der Funktion exportBinary
+ * angelegt werden.
+ *
+ * \return Anzahl Bytes oder 0 im Fehlerfall
+ *
+ * \see
+ * - AssocArray::exportBinary
+ * - AssocArray::importBinary
+ */
+size_t AssocArray::binarySize() const
+{
+	size_t size;
+	exportBinary(NULL,0, &size);
+	return size;
+}
+
+/*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
+ *
+ * \desc
+ * Mit dieser Funktion kann der komplette Inhalt des Arrays in einem plattform-unabhängigem binären Format abgelegt
+ * werden, das sich zum Speichern in einer Datei oder zum Übertragen über das Internet eignet.
+ *
+ * \param[in] buffer Pointer auf einen ausreichend großen Puffer. Die Größe des benötigten Puffers
+ *            kann zuvor mit der Funktion AssocArray::binarySize ermittelt werden. Wird als Buffer NULL
+ *            übergeben, wird in der Variable \p realsize ebenfalls die Anzahl Bytes zurückgegeben
+ * \param[in] buffersize Die Größe des Puffers in Bytes
+ * \param[out] realsize In dieser Variable wird gespeichert, wieviele Bytes tatsächlich für den Export
+ *            verwendet wurden
+ * \exception ExportBufferToSmallException: Wird geworfen, wenn \p buffersize nicht groß genug ist, um
+ * das Assoziative Array vollständig exportieren zu können.
+ *
+ * \attention
+ * Es muss daran gedacht werden, dass nicht alle Datentypen exportiert werden können. Gegenwärtig
+ * werden folgende Typen unterstützt:
+ * - String (Wird als UTF-8 exportiert)
+ * - Array
+ * - AssocArray
+ * - ByteArray
+ * - ByteArrayPtr (wird in ein ByteArray umgewandelt!)
+ * - DateTime
+ * \see
+ * - AssocArray::binarySize
+ * - AssocArray::importBinary
+ *
+ * \note
+ * Das exportierte Binary ist komptibel mit dem Assoziativen Array der PPL-Version 6
+ */
+void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize) const
+{
+	char *ptr=(char*)buffer;
+	*realsize=0;
+	size_t p=0;
+	size_t keylen;
+	size_t vallen=0;
+	ByteArray key, utf8;
+	if (!buffer) buffersize=0;
+	if (p+7<buffersize) strncpy(ptr,"PPLASOC",7);
+	p+=7;
+	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
+	Tree.reset(it);
+	Variant *a;
+	while ((Tree.getNext(it))) {
+		a=it.value().value;
+		if (p<buffersize) {
+			if (a->isByteArrayPtr()) PokeN8(ptr+p,Variant::BYTEARRAY);
+			else PokeN8(ptr+p,a->dataType());
+		}
+		p++;
+		key=it.key().toUtf8();
+		keylen=key.size();
+		if (p+4<buffersize) PokeN16(ptr+p,keylen);
+		p+=2;
+		if (p+keylen<buffersize) strncpy(ptr+p,(const char*)key,keylen);
+		p+=keylen;
+		if (a->isString()) {
+			utf8=((String*)a)->toUtf8();
+			vallen=utf8.size();
+			if (p+4<buffersize) PokeN32(ptr+p,vallen);
+			p+=4;
+			if (p+vallen<buffersize) strncpy(ptr+p,(const char*)utf8,vallen);
+			p+=vallen;
+		} else if (a->isAssocArray()) {
+			size_t asize=0;
+			((AssocArray*)a)->exportBinary(ptr+p,buffersize-p,&asize);
+			p+=asize;
+		} else if (a->isDateTime()) {
+			vallen=8;
+			if (p+4<buffersize) PokeN32(ptr+p,vallen);
+			p+=4;
+			if (p+vallen<buffersize) PokeN64(ptr+p,((DateTime*)a)->longInt());
+			p+=vallen;
+		} else if (a->isByteArray()==true || a->isByteArrayPtr()==true) {
+			vallen=((ByteArrayPtr*)a)->size();
+			if (p+4<buffersize) PokeN32(ptr+p,vallen);
+			p+=4;
+			if (p+vallen<buffersize) memcpy(ptr+p,((ByteArrayPtr*)a)->adr(),vallen);
+			p+=vallen;
+		} else {
+			vallen=0;
+			if (p+4<buffersize) PokeN32(ptr+p,0);
+			p+=4;
+		}
+	}
+	if (p<buffersize) PokeN8(ptr+p,0);
+	p++;
+	if (realsize)*realsize=p;
+	if (buffersize==0 || buffersize<=p) return;
+	throw ExportBufferToSmallException();
+}
+
+void AssocArray::exportBinary(ByteArray &buffer) const
+{
+	buffer.free();
+	size_t size;
+	exportBinary(NULL,0, &size);
+	buffer.malloc(size);
+	exportBinary((void*)buffer.adr(),buffer.size(),NULL);
+}
 
 /*!\brief Schlüssel auslesen
  *

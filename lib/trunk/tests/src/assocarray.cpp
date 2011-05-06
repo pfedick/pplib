@@ -43,17 +43,7 @@ TEST_F(AssocArrayTest, addStringsLevel1) {
 	ASSERT_NO_THROW({
 	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
 	a.set(L"key2",L"value6");
-	/*
-	a.set(L"array1/unterkey1",L"value2");
-	a.set(L"array1/unterkey2",L"value3");
-	a.set(L"array1/noch ein array/unterkey1",L"value4");
-	a.set(L"array1/unterkey2",L"value5");
-	a.set(L"key2",L"value6");
-	//a.set(L"dateien/main.cpp",&bin);
-	a.set(L"array2/unterkey1",L"value7");
-	a.set(L"array2/unterkey2",L"value8");
-	a.set(L"array2/unterkey1",L"value9");
-	*/
+
 	});
 	ASSERT_EQ((size_t)2,a.count()) << "Unexpected size of AssocArray";
 	//a.list();
@@ -62,67 +52,81 @@ TEST_F(AssocArrayTest, addStringsLevel1) {
 TEST_F(AssocArrayTest, addStringsMultiLevels) {
 	ppl7::AssocArray a;
 	ASSERT_NO_THROW({
-	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
-	a.set(L"key2",L"value6");
-	a.set(L"array1/unterkey1",L"value2");
-	a.set(L"array1/unterkey2",L"value3");
-	a.set(L"array1/noch ein array/unterkey1",L"value4");
-	a.set(L"array1/unterkey2",L"value5");
-	a.set(L"key2",L"value6");
-	a.set(L"array2/unterkey1",L"value7");
-	a.set(L"array2/unterkey2",L"value8");
-	a.set(L"array2/unterkey1",L"value9");
-
+		a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
+		a.set(L"key2",L"value6");
+		a.set(L"array1/unterkey1",L"value2");
+		a.set(L"array1/unterkey2",L"value3");
+		a.set(L"array1/noch ein array/unterkey1",L"value4");
+		a.set(L"array1/unterkey2",L"value5");
+		a.set(L"key2",L"value7");
+		a.set(L"array2/unterkey1",L"value7");
+		a.set(L"array2/unterkey2",L"value8");
+		a.set(L"array2/unterkey1",L"value9");
 	});
 	//a.list();
 	ASSERT_EQ((size_t)4,a.count()) << "Unexpected size of AssocArray";
 	ASSERT_EQ((size_t)10,a.count(true)) << "Unexpected size of AssocArray";
+	ASSERT_EQ(ppl7::String(L"Dieser Wert geht über\nmehrere Zeilen"),a.getString(L"key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value7"),a.getString(L"key2")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value5"),a.getString(L"array1/unterkey2")) << "unexpected value";
 }
 
 TEST_F(AssocArrayTest, addMixed) {
 	ppl7::AssocArray a;
-	ASSERT_NO_THROW({
-	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
-	a.set(L"key2",L"value6");
 	ppl7::DateTime now;
-	now.setCurrentTime();
-	printf("Time: %ls\n",(const wchar_t *)now.getISO8601withMsec());
-	a.set(L"time",now);
-	ppl7::ByteArray ba(1234);
-	ppl7::ByteArrayPtr bap=ba;
-	a.set(L"bytearray",ba);
-	a.set(L"bytearrayptr",bap);
-
-	ppl7::Array a1(L"red green blue yellow black white",L" ");
-	a.set(L"array1",a1);
-
+	ASSERT_NO_THROW({
+		a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
+		a.set(L"key2",L"value6");
+		now.setCurrentTime();
+		a.set(L"time",now);
+		ppl7::ByteArray ba(1234);
+		ppl7::ByteArrayPtr bap=ba;
+		a.set(L"bytearray",ba);
+		a.set(L"bytearrayptr",bap);
+		ppl7::Array a1(L"red green blue yellow black white",L" ");
+		a.set(L"array1",a1);
 	});
-	a.list();
+	ASSERT_EQ(now,a.get(L"time").toDateTime()) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"Dieser Wert geht über\nmehrere Zeilen"),a.getString(L"key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value6"),a.getString(L"key2")) << "unexpected value";
+	ppl7::String s=a.get(L"array1").toArray().implode(" ");
+	ASSERT_EQ(ppl7::String(L"red green blue yellow black white"),s) << "unexpected value";
+
+	//a.list();
+}
+
+TEST_F(AssocArrayTest, append) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+		a.set(L"key",L"Dieser Wert geht über\nmehrere Zeilen");
+		a.append(L"key",L"Noch eine Zeile",L"\n");
+	});
+	ASSERT_EQ((size_t)1,a.count()) << "Unexpected size of AssocArray";
+	ASSERT_EQ(ppl7::String(L"Dieser Wert geht über\nmehrere Zeilen\nNoch eine Zeile"),a.getString(L"key")) << "unexpected value";
+	//a.list();
 }
 
 
 TEST_F(AssocArrayTest, getAssocArray) {
 	ppl7::AssocArray a;
 	ASSERT_NO_THROW({
-	a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
-	a.set(L"key2",L"value6");
-	a.set(L"array1/unterkey1",L"value2");
-	a.set(L"array1/unterkey2",L"value3");
-	a.set(L"array1/noch ein array/unterkey1",L"value4");
-	a.set(L"array1/unterkey2",L"value5");
-	a.set(L"key2",L"value6");
-	//a.set(L"dateien/main.cpp",&bin);
-	a.set(L"array2/unterkey1",L"value7");
-	a.set(L"array2/unterkey2",L"value8");
-	a.set(L"array2/unterkey1",L"value9");
-
+		a.set(L"key1",L"Dieser Wert geht über\nmehrere Zeilen");
+		a.set(L"key2",L"value6");
+		a.set(L"array1/unterkey1",L"value2");
+		a.set(L"array1/unterkey2",L"value3");
+		a.set(L"array1/noch ein array/unterkey1",L"value4");
+		a.set(L"array1/unterkey2",L"value5");
+		a.set(L"key2",L"value6");
+		//a.set(L"dateien/main.cpp",&bin);
+		a.set(L"array2/unterkey1",L"value7");
+		a.set(L"array2/unterkey2",L"value8");
+		a.set(L"array2/unterkey1",L"value9");
 	});
 	ASSERT_NO_THROW({
-	ppl7::AssocArray &a2=a.get(L"array1").toAssocArray();
-	ASSERT_EQ((size_t)3,a2.count()) << "Unexpected size of AssocArray";
-	ppl7::AssocArray &a3=a.get(L"array2").toAssocArray();
-	ASSERT_EQ((size_t)2,a3.count()) << "Unexpected size of AssocArray";
-
+		ppl7::AssocArray &a2=a.get(L"array1").toAssocArray();
+		ASSERT_EQ((size_t)3,a2.count()) << "Unexpected size of AssocArray";
+		ppl7::AssocArray &a3=a.get(L"array2").toAssocArray();
+		ASSERT_EQ((size_t)2,a3.count()) << "Unexpected size of AssocArray";
 	});
 }
 
@@ -177,6 +181,49 @@ TEST_F(AssocArrayTest, fromTemplate) {
 	ASSERT_EQ(ppl7::String(L"world"),a2.getString(L"hello")) << "unexpected value";
 
 }
+
+TEST_F(AssocArrayTest, fromConfig) {
+	ppl7::AssocArray a1, a2;
+	ppl7::String Template(L"[Abschnitt_1]\n"
+			"key =line1\n"
+			"key = line2 \n"
+			"foo  =  bar\n"
+			"words=20\n"
+			"# Kommentarzeile, die überlesen wird\n"
+			"key1=value1\n"
+			"key2=value2\n"
+			"[Abschnitt_2]\n"
+			"key1=value3\n"
+			"key2=value4\n"
+			" blah=  blubb \n"
+			"hello=world");
+	ASSERT_NO_THROW({
+		a1.fromConfig(Template,L"\n",L"=",L"\n",false);
+		a2.fromConfig(Template,L"\n",L"=",L"\n",true);
+	});
+	//a1.list(L"a1");
+
+	ASSERT_EQ(ppl7::String(L"line1\n line2 "),a1.getString(L"Abschnitt_1/key")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"  bar"),a1.getString(L"Abschnitt_1/foo")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"20"),a1.getString(L"Abschnitt_1/words")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value1"),a1.getString(L"Abschnitt_1/key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value2"),a1.getString(L"Abschnitt_1/key2")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"  blubb "),a1.getString(L"Abschnitt_2/blah")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"world"),a1.getString(L"Abschnitt_2/hello")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value3"),a1.getString(L"Abschnitt_2/key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value4"),a1.getString(L"Abschnitt_2/key2")) << "unexpected value";
+
+	ASSERT_EQ(ppl7::String(L"line1\nline2"),a2.getString(L"Abschnitt_1/key")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"bar"),a2.getString(L"Abschnitt_1/foo")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"20"),a2.getString(L"Abschnitt_1/words")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value1"),a2.getString(L"Abschnitt_1/key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value2"),a2.getString(L"Abschnitt_1/key2")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"blubb"),a2.getString(L"Abschnitt_2/blah")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"world"),a2.getString(L"Abschnitt_2/hello")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value3"),a2.getString(L"Abschnitt_2/key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String(L"value4"),a2.getString(L"Abschnitt_2/key2")) << "unexpected value";
+}
+
 
 }	// EOF namespace
 

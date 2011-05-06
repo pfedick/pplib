@@ -273,6 +273,19 @@ bool Variant::isDateTime() const
 	return false;
 }
 
+/*!\brief Prüft, ob es sich um den Datentyp Pointer handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Pointer DateTime handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Pointer DateTime handelt, sonst \c false.
+ */
+bool Variant::isPointer() const
+{
+	if (type==POINTER) return true;
+	return false;
+}
+
 /*!\brief Typkonvertierung zu: const String
  *
  * \desc
@@ -466,6 +479,38 @@ DateTime& Variant::toDateTime()
 {
 	if (type!=DATETIME) throw TypeConversionException();
 	return static_cast<DateTime&>(*this);
+}
+
+/*!\brief Typkonvertierung zu: const Pointer
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der Variant zu einem Pointer konvertiert, das nicht verändert werden kann.
+ * Dies ist jedoch nur erfolgreich, wenn es sich bei diesem Datentyp auch um ein Pointer handelt.
+ * Ist dies nicht der Fall, wird eine Exception geworfen.
+ *
+ * @return Referenz auf DateTime
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein Pointer handelt.
+ */
+const Pointer& Variant::toPointer() const
+{
+	if (type!=POINTER) throw TypeConversionException();
+	return static_cast<const Pointer&>(*this);
+}
+
+/*!\brief Typkonvertierung zu: Pointer
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der Variant zu einem Pointer konvertiert.
+ * Dies ist jedoch nur erfolgreich, wenn es sich bei diesem Datentyp auch um ein Pointer handelt.
+ * Ist dies nicht der Fall, wird eine Exception geworfen.
+ *
+ * @return Referenz auf ByteArrayPtr
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein Pointer handelt.
+ */
+Pointer& Variant::toPointer()
+{
+	if (type!=POINTER) throw TypeConversionException();
+	return static_cast<Pointer&>(*this);
 }
 
 

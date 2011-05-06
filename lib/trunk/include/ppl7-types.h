@@ -66,6 +66,7 @@ class AssocArray;
 class ByteArray;
 class ByteArrayPtr;
 class DateTime;
+class Pointer;
 
 class Variant
 {
@@ -77,7 +78,7 @@ class Variant
 			STRING		=4,
 			ASSOCARRAY	=5,
 			BYTEARRAY	=6,
-			//POINTER		=7,
+			POINTER		=7,
 			ARRAY		=9,
 			//BOOL		=10,
 			DATETIME	=11,
@@ -99,6 +100,7 @@ class Variant
 		bool isByteArray() const;
 		bool isByteArrayPtr() const;
 		bool isDateTime() const;
+		bool isPointer() const;
 		const String& toString() const;
 		String& toString();
 		const Array& toArray() const;
@@ -111,7 +113,27 @@ class Variant
 		ByteArrayPtr& toByteArrayPtr();
 		const DateTime& toDateTime() const;
 		DateTime& toDateTime();
+		const Pointer& toPointer() const;
+		Pointer& toPointer();
 		//@}
+};
+
+class Pointer : public Variant
+{
+	private:
+		void *myptr;
+	public:
+		Pointer();
+		Pointer(const Pointer &other);
+		Pointer(void *ptr);
+		bool isNull() const;
+		const void *ptr() const;
+		operator const void*() const;
+		operator const char*() const;
+		operator const unsigned char*() const;
+		void set(const void *ptr);
+		Pointer &operator=(const Pointer &other);
+		Pointer &operator=(const void *ptr);
 };
 
 class ByteArrayPtr : public Variant
@@ -312,7 +334,6 @@ class String : public Variant
 		void printnl() const throw();
 		void hexDump() const;
 		wchar_t get(ssize_t pos) const;
-		wchar_t get(size_t pos) const;
 		const wchar_t* getPtr() const;
 
 		ByteArray toUtf8() const;
@@ -350,7 +371,6 @@ class String : public Variant
 		operator std::wstring() const;
 
 		wchar_t operator[](ssize_t pos) const;
-		wchar_t operator[](size_t pos) const;
 
 		String& operator=(const char* str);
 		String& operator=(const wchar_t* str);
@@ -546,6 +566,7 @@ class AssocArray : public Variant
 	public:
 		PPLPARAMETERISEDEXCEPTION(InvalidKeyException);
 		PPLNORMALEXCEPTION(KeyNotFoundException);
+		PPLNORMALEXCEPTION(ExportBufferToSmallException);
 
 		typedef ppl7::AVLTree<ArrayKey, ValueNode>::Iterator Iterator;
 
@@ -576,6 +597,7 @@ class AssocArray : public Variant
 		void set(const String &key, const ByteArray &value);
 		void set(const String &key, const ByteArrayPtr &value);
 		void set(const String &key, const AssocArray &value);
+		void set(const String &key, const Pointer &value);
 		void set(const String &key, const Variant &value);
 		void setf(const String &key, const char *fmt, ...);
 		//@}
@@ -595,11 +617,11 @@ class AssocArray : public Variant
 		//!\name Import und Export von Daten
 		//@{
 		size_t	fromTemplate(const String &templ, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
-		size_t	fromConfig(const String &content, const String &splitchar=L":", const String &concat=L"\n", bool dotrim=false);
+		size_t	fromConfig(const String &content, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
 		void toTemplate(String &s, const String &prefix=L"", const String &linedelimiter=L"\n", const String &splitchar=L"=");
 		size_t binarySize() const;
-		int	exportBinary(void *buffer, size_t buffersize, size_t *realsize) const;
-		int exportBinary(ByteArray &buffer) const;
+		void exportBinary(void *buffer, size_t buffersize, size_t *realsize) const;
+		void exportBinary(ByteArray &buffer) const;
 		int	importBinary(const void *buffer, size_t buffersize);
 		int	importBinary(const ByteArrayPtr &buffer);
 		//@}
