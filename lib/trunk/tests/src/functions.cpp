@@ -46,34 +46,65 @@
 namespace {
 
 // The fixture for testing class Foo.
-class FunctionsTest : public ::testing::Test {
+class PeekAndPokeTest : public ::testing::Test {
 	protected:
-	FunctionsTest() {
+	PeekAndPokeTest() {
 		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
 	}
-	virtual ~FunctionsTest() {
+	virtual ~PeekAndPokeTest() {
 
 	}
 };
 
-TEST_F(FunctionsTest, Poke8) {
+TEST_F(PeekAndPokeTest, PokeFloat) {
+	unsigned char buffer[8]={0,0,0,0,0,0,0,0};
+	ppl7::PokeFloat(buffer,54785.957031);
+	ASSERT_EQ(0xf5,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0x01,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0x56,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0x47,buffer[3]) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, PeekFloat) {
+	unsigned char buffer[8]={0xf5,0x01,0x56,0x47,0,0,0,0};
+	float f=ppl7::PeekFloat(buffer);
+	ASSERT_EQ((float)54785.957031,f) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, Poke8) {
 	unsigned char buffer[32];
 	memset(buffer,0,32);
 	ppl7::Poke8(buffer,123);
 	ASSERT_EQ(123,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
 	ppl7::Poke8(buffer,1);
 	ASSERT_EQ(1,buffer[0]) << "Unexpected Value";
 	ppl7::Poke8(buffer,255);
 	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
 	ppl7::Poke8(buffer,129);
 	ASSERT_EQ(129,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
 }
 
-TEST_F(FunctionsTest, Poke16) {
+TEST_F(PeekAndPokeTest, Poke16) {
 	unsigned char buffer[32];
 	memset(buffer,0,32);
 	ppl7::Poke16(buffer,123);
@@ -85,9 +116,16 @@ TEST_F(FunctionsTest, Poke16) {
 	ppl7::Poke16(buffer,256);
 	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
 	ASSERT_EQ(1,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
 }
 
-TEST_F(FunctionsTest, Poke24) {
+TEST_F(PeekAndPokeTest, Poke24) {
 	unsigned char buffer[32];
 	memset(buffer,0,32);
 	ppl7::Poke24(buffer,123);
@@ -109,9 +147,15 @@ TEST_F(FunctionsTest, Poke24) {
 	ASSERT_EQ(0xa4,buffer[0]) << "Unexpected Value";
 	ASSERT_EQ(0xe9,buffer[1]) << "Unexpected Value";
 	ASSERT_EQ(0x2a,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
 }
 
-TEST_F(FunctionsTest, Poke32) {
+TEST_F(PeekAndPokeTest, Poke32) {
 	unsigned char buffer[32];
 	memset(buffer,0,32);
 	ppl7::Poke32(buffer,123);
@@ -119,27 +163,359 @@ TEST_F(FunctionsTest, Poke32) {
 	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
 	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
 	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
 	memset(buffer,0,32);
 	ppl7::Poke32(buffer,65535);
 	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
 	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
 	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
 	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
 	memset(buffer,0,32);
 	ppl7::Poke32(buffer,0xffffffff);
 	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
 	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
 	ASSERT_EQ(255,buffer[2]) << "Unexpected Value";
 	ASSERT_EQ(255,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
 	memset(buffer,0,32);
 	ppl7::Poke32(buffer,0xf02ae9a4);
 	ASSERT_EQ(0xa4,buffer[0]) << "Unexpected Value";
 	ASSERT_EQ(0xe9,buffer[1]) << "Unexpected Value";
 	ASSERT_EQ(0x2a,buffer[2]) << "Unexpected Value";
 	ASSERT_EQ(0xf0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+}
+
+TEST_F(PeekAndPokeTest, Poke64) {
+	unsigned char buffer[32];
+	memset(buffer,0,32);
+	ppl7::Poke64(buffer,123);
+	ASSERT_EQ(123,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+	memset(buffer,0,32);
+	ppl7::Poke64(buffer,65535);
+	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::Poke64(buffer,0xffffffff);
+	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::Poke64(buffer,0xf02ae9a4);
+	ASSERT_EQ(0xa4,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0xe9,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0x2a,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0xf0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::Poke64(buffer,0xffffffffffffffff);
+	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::Poke64(buffer,0xa1379deef02ae9a4);
+	ASSERT_EQ(0xa4,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0xe9,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0x2a,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0xf0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0xee,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0x9d,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0x37,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0xa1,buffer[7]) << "Unexpected Value";
 }
 
 
+TEST_F(PeekAndPokeTest, PokeN8) {
+	unsigned char buffer[32];
+	memset(buffer,0,32);
+	ppl7::PokeN8(buffer,123);
+	ASSERT_EQ(123,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+	ppl7::PokeN8(buffer,1);
+	ASSERT_EQ(1,buffer[0]) << "Unexpected Value";
+	ppl7::PokeN8(buffer,255);
+	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
+	ppl7::PokeN8(buffer,129);
+	ASSERT_EQ(129,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+}
+
+TEST_F(PeekAndPokeTest, PokeN16) {
+	unsigned char buffer[32];
+	memset(buffer,0,32);
+	ppl7::PokeN16(buffer,123);
+	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(123,buffer[1]) << "Unexpected Value";
+	ppl7::PokeN16(buffer,65535);
+	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
+	ppl7::PokeN16(buffer,256);
+	ASSERT_EQ(1,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+}
+
+TEST_F(PeekAndPokeTest, PokeN32) {
+	unsigned char buffer[32];
+	memset(buffer,0,32);
+	ppl7::PokeN32(buffer,123);
+	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(123,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::PokeN32(buffer,65535);
+	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::PokeN32(buffer,0xffffffff);
+	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::PokeN32(buffer,0xf02ae9a4);
+	ASSERT_EQ(0xa4,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0xe9,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0x2a,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0xf0,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[7]) << "Unexpected Value";
+
+}
+
+TEST_F(PeekAndPokeTest, PokeN64) {
+	unsigned char buffer[32];
+	memset(buffer,0,32);
+	ppl7::PokeN64(buffer,123);
+	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(123,buffer[7]) << "Unexpected Value";
+	memset(buffer,0,32);
+	ppl7::PokeN64(buffer,65535);
+	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::PokeN64(buffer,0xffffffff);
+	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::PokeN64(buffer,0xf02ae9a4);
+	ASSERT_EQ(0xa4,buffer[7]) << "Unexpected Value";
+	ASSERT_EQ(0xe9,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0x2a,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0xf0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0,buffer[0]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::PokeN64(buffer,0xffffffffffffffff);
+	ASSERT_EQ(255,buffer[0]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(255,buffer[7]) << "Unexpected Value";
+
+	memset(buffer,0,32);
+	ppl7::PokeN64(buffer,0xa1379deef02ae9a4);
+	ASSERT_EQ(0xa4,buffer[7]) << "Unexpected Value";
+	ASSERT_EQ(0xe9,buffer[6]) << "Unexpected Value";
+	ASSERT_EQ(0x2a,buffer[5]) << "Unexpected Value";
+	ASSERT_EQ(0xf0,buffer[4]) << "Unexpected Value";
+	ASSERT_EQ(0xee,buffer[3]) << "Unexpected Value";
+	ASSERT_EQ(0x9d,buffer[2]) << "Unexpected Value";
+	ASSERT_EQ(0x37,buffer[1]) << "Unexpected Value";
+	ASSERT_EQ(0xa1,buffer[0]) << "Unexpected Value";
+}
+
+
+TEST_F(PeekAndPokeTest, Peek8) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint32)0xa4,ppl7::Peek8(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0,ppl7::Peek8(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0xff,ppl7::Peek8(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, Peek16) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint32)0xe9a4,ppl7::Peek16(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0,ppl7::Peek16(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0xffff,ppl7::Peek16(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, Peek24) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint32)0x2ae9a4,ppl7::Peek24(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0,ppl7::Peek24(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0xffffff,ppl7::Peek24(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, Peek32) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint32)0xf02ae9a4,ppl7::Peek32(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0,ppl7::Peek32(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0xffffffff,ppl7::Peek32(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, Peek64) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint64)0xa1479deef02ae9a4,ppl7::Peek64(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint64)0,ppl7::Peek64(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint64)0xffffffffffffffff,ppl7::Peek64(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, PeekN8) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint32)0xa4,ppl7::PeekN8(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0,ppl7::PeekN8(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0xff,ppl7::PeekN8(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, PeekN16) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint32)0xa4e9,ppl7::PeekN16(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0,ppl7::PeekN16(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0xffff,ppl7::PeekN16(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, PeekN32) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint32)0xa4e92af0,ppl7::PeekN32(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0,ppl7::PeekN32(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint32)0xffffffff,ppl7::PeekN32(buffer3)) << "Unexpected Value";
+}
+
+TEST_F(PeekAndPokeTest, PeekN64) {
+	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
+	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
+	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
+	ASSERT_EQ((ppluint64)0xa4e92af0ee9d47a1,ppl7::PeekN64(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((ppluint64)0,ppl7::PeekN64(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((ppluint64)0xffffffffffffffff,ppl7::PeekN64(buffer3)) << "Unexpected Value";
+}
 
 }
 
