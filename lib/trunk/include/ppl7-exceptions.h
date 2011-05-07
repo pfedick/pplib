@@ -103,6 +103,7 @@ PPLNORMALEXCEPTION(ThreadStartException);
 PPLNORMALEXCEPTION(ThreadOperationFailedException);
 PPLNORMALEXCEPTION(ItemNotFoundException);
 PPLNORMALEXCEPTION(DuplicateItemException);
+PPLNORMALEXCEPTION(UnsupportedDataTypeException);
 
 
 }	// EOF namespace ppl7

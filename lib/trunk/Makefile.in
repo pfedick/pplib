@@ -36,8 +36,11 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 
 RELEASE	= release/AVLTree.o \
 	release/Exceptions.o \
+	release/File.o \
+	release/FileObject.o \
 	release/Functions.o \
 	release/Heap.o \
+	release/MemFile.o \
 	release/Mutex.o \
 	release/StringFunctions.o \
 	release/Threads.o \
@@ -60,8 +63,11 @@ RELEASE	= release/AVLTree.o \
 
 DEBUG	= debug/AVLTree.o \
 	debug/Exceptions.o \
+	debug/File.o \
+	debug/FileObject.o \
 	debug/Functions.o \
 	debug/Heap.o \
+	debug/MemFile.o \
 	debug/Mutex.o \
 	debug/StringFunctions.o \
 	debug/Threads.o \
@@ -208,6 +214,16 @@ release/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/p
 	# Compiling >>>core/Exceptions.cpp<<<
 	$(CXX) -Wall -O3 -o release/Exceptions.o -c $(srcdir)/core/Exceptions.cpp $(CFLAGS) 
 
+release/File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/File.cpp<<<
+	$(CXX) -Wall -O3 -o release/File.o -c $(srcdir)/core/File.cpp $(CFLAGS) 
+
+release/FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/FileObject.cpp<<<
+	$(CXX) -Wall -O3 -o release/FileObject.o -c $(srcdir)/core/FileObject.cpp $(CFLAGS) 
+
 release/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Functions.cpp<<<
@@ -217,6 +233,11 @@ release/Heap.o:	$(srcdir)/core/Heap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptio
 	###############################################################################
 	# Compiling >>>core/Heap.cpp<<<
 	$(CXX) -Wall -O3 -o release/Heap.o -c $(srcdir)/core/Heap.cpp $(CFLAGS) 
+
+release/MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/MemFile.cpp<<<
+	$(CXX) -Wall -O3 -o release/MemFile.o -c $(srcdir)/core/MemFile.cpp $(CFLAGS) 
 
 release/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
@@ -317,6 +338,16 @@ debug/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>core/Exceptions.cpp<<<
 	$(CXX) -Wall -O -o debug/Exceptions.o -c $(srcdir)/core/Exceptions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/File.cpp<<<
+	$(CXX) -Wall -O -o debug/File.o -c $(srcdir)/core/File.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/FileObject.cpp<<<
+	$(CXX) -Wall -O -o debug/FileObject.o -c $(srcdir)/core/FileObject.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Functions.cpp<<<
@@ -326,6 +357,11 @@ debug/Heap.o:	$(srcdir)/core/Heap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions
 	###############################################################################
 	# Compiling >>>core/Heap.cpp<<<
 	$(CXX) -Wall -O -o debug/Heap.o -c $(srcdir)/core/Heap.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/MemFile.cpp<<<
+	$(CXX) -Wall -O -o debug/MemFile.o -c $(srcdir)/core/MemFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################

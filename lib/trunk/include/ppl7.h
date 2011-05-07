@@ -313,8 +313,141 @@ void ThreadSetPriority(Thread::Priority priority);
 Thread::Priority ThreadGetPriority();
 
 
+class FileObject
+{
+	private:
+		String MyFilename;
+
+	public:
+		enum SeekOrigin {
+			SEEKCUR=1,
+			SEEKEND,
+			SEEKSET
+		};
+		//! @name Exceptions
+		//@{
+		PPLNORMALEXCEPTION(UnimplementedVirtualFunctionException);
+		PPLNORMALEXCEPTION(FileNotOpenException);
+		PPLNORMALEXCEPTION(FileSeekException);
+		PPLNORMALEXCEPTION(ReadException);
+		PPLNORMALEXCEPTION(WriteException);
+		PPLNORMALEXCEPTION(EndOfFileException);
+		//@}
+
+		FileObject();
+		virtual ~FileObject();
+
+		void				setFilename(const char *filename, ...);
+		void				setFilename(const String &filename);
+		const String&		filename() const;
+
+		size_t				write (const void * source, size_t bytes, ppluint64 fileposition);
+		size_t				write (const void * source, size_t bytes);
+		size_t				write (const ByteArrayPtr &object, size_t bytes=0);
+		size_t				read (void * target, size_t bytes, ppluint64 fileposition);
+		size_t				read (void * target, size_t bytes);
+		size_t				read (ByteArray &target, size_t bytes);
+		ppluint64			copy (FileObject &quellfile, ppluint64 quelloffset, ppluint64 bytes, ppluint64 zieloffset);
+		ppluint64			copy (FileObject &quellfile, ppluint64 bytes);
+		int					gets (String &buffer, size_t num=1024);
+		int					getws (String &buffer, size_t num=1024);
+		char *				gets (char *buffer, size_t num=1024);
+		wchar_t*			getws (wchar_t *buffer, size_t num=1024);
+		String				gets (size_t num=1024);
+		String				getws (size_t num=1024);
+		int					putsf (const char *fmt, ... );
+		int					puts (const String &str);
+		int					putws (const String &str);
+		pplint64			lof() const;
+		const char			*map();
+		char				*load();
+		int					load(ByteArray &target);
+
+		// Virtuelle Funktionen
+		virtual int			close ();
+		virtual int			seek (ppluint64 position);
+		virtual	int			fseek (ppluint64 offset, SeekOrigin origin);
+		virtual pplint64	ftell();
+		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
+		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
+		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
+		virtual char *		fgets (char *buffer, size_t num=1024);
+		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual	int			putc (int c);
+		virtual	int			getc();
+		virtual	int			putwc (wchar_t c);
+		virtual	wchar_t		getwc();
+		virtual int			puts (const char *str);
+		virtual int			putws (const wchar_t *str);
+		virtual bool		eof() const;
+		virtual pplint64	size() const;
+		virtual const char	*map(ppluint64 position, size_t size);
+		virtual char		*mapRW(ppluint64 position, size_t size);
+		virtual	void		unmap();
+		virtual void		setMapReadAhead(size_t bytes);
+		virtual int			getFileNo() const;
+		virtual int			flush();
+		virtual int			sync();
+		virtual int			truncate(ppluint64 length);
+		virtual bool		isOpen() const;
+		virtual int			lockShared(bool block=true);
+		virtual int			lockExclusive(bool block=true);
+		virtual int			unlock();
+};
 
 
+class MemFile : public FileObject
+{
+	private:
+		char * buffer;
+		size_t	mysize;
+		size_t	pos;
+		char * MemBase;
+
+	public:
+
+		MemFile ();
+		MemFile (void * adresse, size_t size);
+		MemFile (const ByteArrayPtr &memory);
+		~MemFile();
+
+		int			open(void * adresse, size_t size);
+		int			open(const ByteArrayPtr &memory);
+		char		*adr(size_t adresse);
+
+		// Virtuelle Funktionen
+		virtual int			close ();
+		virtual int			seek (ppluint64 position);
+		virtual	int			fseek (ppluint64 offset, SeekOrigin origin);
+		virtual pplint64	ftell();
+		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
+		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
+		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
+		virtual char *		fgets (char *buffer, size_t num=1024);
+		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual	int			putc (int c);
+		virtual	int			getc();
+		virtual	int			putwc (wchar_t c);
+		virtual	wchar_t		getwc();
+		virtual int			puts (const char *str);
+		virtual int			putws (const wchar_t *str);
+		virtual bool		eof() const;
+		virtual pplint64	size() const;
+		virtual const char	*map(ppluint64 position, size_t size);
+		virtual char		*mapRW(ppluint64 position, size_t size);
+		virtual	void		unmap();
+		virtual void		setMapReadAhead(size_t bytes);
+		//virtual int			GetFileNo() const;
+		virtual int			flush();
+		virtual int			sync();
+		//virtual int			Truncate(ppluint64 length);
+		virtual bool		isOpen() const;
+		//virtual int			LockShared(bool block=true);
+		//virtual int			LockExclusive(bool block=true);
+		//virtual int			Unlock();
+
+
+};
 
 
  };	// EOF namespace ppl7
