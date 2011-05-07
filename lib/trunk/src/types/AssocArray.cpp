@@ -94,11 +94,39 @@ namespace ppl7 {
  * // Wert auslesen
  * a.get("ebene1/ebene2/key").toString().printnl();
  * \endcode
+ * \par
  * Durch ein AssocArray durchiterieren:
  * \code
- *
+void IterateArray(const ppl7::AssocArray &a)
+{
+	ppl7::AssocArray::Iterator it;
+	a.reset(it);
+	try {
+		while (1) {
+			const ppl7::Variant &var=a.getNext(it);
+			if (var.isString()) {
+				cout << "Key: " << it.key() << ", Value: " << var.toString() << endl;
+			}
+		}
+	} catch (OutOfBoundsEception) {
+		cout << "Ende erreicht" << endl;
+	}
+}
  * \endcode
- *
+ * \par
+ * Wenn von vorneherein bekannt ist, dass im Array nur Strings vorhanden sind, kann man auch noch auf diese
+ * Weise durchiterieren:
+ * \code
+void IterateArray(const ppl7::AssocArray &a)
+{
+	ppl7::AssocArray::Iterator it;
+	ppl7::String Key, Value;
+	a.reset(it);
+	while (a.GetNext(it,Key,Value)) {
+		cout << "Key: " << Key << ", Value: " << Value << endl;
+	}
+}
+ * \endcode
  */
 
 

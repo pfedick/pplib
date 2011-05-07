@@ -911,7 +911,7 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 				etext+=t;
 				continue;
 			}
-			if (limit>0 && count>limit) {
+			if (limit>0 && count>=limit) {
 				return *this;
 			}
 			str.set(etext,p);

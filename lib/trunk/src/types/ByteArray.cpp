@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
@@ -90,15 +91,6 @@ namespace ppl7 {
  * Diese Klasse wurde mit Version 6.3.3 eingeführt
  */
 
-/*!\var ByteArray::manage
- * \brief Flag, das die Verwaltung des Speichers regelt.
- *
- * \desc
- * Enthält dieses Flag \c true, wird der Speicher von der ByteArray-Klasse verwaltet. Das heisst
- * beim Aufruf des Konstruktors oder Aufruf einer Funktion, die eine Änderung des Speicherblocks
- * bewirkt, wird der zuvor referenzierte Speicher freigegeben.
- */
-
 /*!\brief Konstruktor ohne Argumente
  *
  * \desc
@@ -108,8 +100,8 @@ namespace ppl7 {
 ByteArray::ByteArray()
 {
 	type=BYTEARRAY;
-	ptr=NULL;
-	s=0;
+	ptradr=NULL;
+	ptrsize=0;
 }
 
 /*!\brief Destruktor der Klasse
@@ -120,8 +112,8 @@ ByteArray::ByteArray()
  */
 ByteArray::~ByteArray()
 {
-	::free(ptr);
-	ptr=NULL;
+	::free(ptradr);
+	ptradr=NULL;
 }
 
 /*!\brief Copy-Konstruktor
@@ -135,15 +127,15 @@ ByteArray::~ByteArray()
 ByteArray::ByteArray(const ByteArrayPtr &other)
 {
 	type=BYTEARRAY;
-	if (other.ptr) {
-		ptr=::malloc(other.s+1);
-		if (!ptr) throw OutOfMemoryException();
-		memcpy(ptr,other.ptr,other.s);
-		s=other.s;
-		((char*)ptr)[s]=0;
+	if (other.ptradr) {
+		ptradr=::malloc(other.ptrsize+1);
+		if (!ptradr) throw OutOfMemoryException();
+		memcpy(ptradr,other.ptradr,other.ptrsize);
+		ptrsize=other.ptrsize;
+		((char*)ptradr)[ptrsize]=0;
 	} else {
-		ptr=NULL;
-		s=0;
+		ptradr=NULL;
+		ptrsize=0;
 	}
 }
 
@@ -158,15 +150,15 @@ ByteArray::ByteArray(const ByteArrayPtr &other)
 ByteArray::ByteArray(const ByteArray &other)
 {
 	type=BYTEARRAY;
-	if (other.ptr) {
-		ptr=::malloc(other.s+1);
-		if (!ptr) throw OutOfMemoryException();
-		memcpy(ptr,other.ptr,other.s);
-		s=other.s;
-		((char*)ptr)[s]=0;
+	if (other.ptradr) {
+		ptradr=::malloc(other.ptrsize+1);
+		if (!ptradr) throw OutOfMemoryException();
+		memcpy(ptradr,other.ptradr,other.ptrsize);
+		ptrsize=other.ptrsize;
+		((char*)ptradr)[ptrsize]=0;
 	} else {
-		ptr=NULL;
-		s=0;
+		ptradr=NULL;
+		ptrsize=0;
 	}
 }
 
@@ -183,8 +175,8 @@ ByteArray::ByteArray(const ByteArray &other)
 ByteArray::ByteArray(void *adr, size_t size)
 {
 	type=BYTEARRAY;
-	ptr=NULL;
-	s=0;
+	ptradr=NULL;
+	ptrsize=0;
 	copy(adr,size);
 }
 
@@ -200,11 +192,11 @@ ByteArray::ByteArray(void *adr, size_t size)
 ByteArray::ByteArray(size_t size)
 {
 	type=BYTEARRAY;
-	s=0;
-	ptr=::malloc(size+1);
-	if (!ptr) throw OutOfMemoryException();
-	s=size;
-	((char*)ptr)[s]=0;
+	ptrsize=0;
+	ptradr=::malloc(size+1);
+	if (!ptradr) throw OutOfMemoryException();
+	ptrsize=size;
+	((char*)ptradr)[ptrsize]=0;
 }
 
 /*!\brief Speicherverwaltung übernehmen
@@ -227,9 +219,9 @@ ByteArray::ByteArray(size_t size)
  */
 void ByteArray::useadr(void *adr, size_t size)
 {
-	::free(ptr);
-	ptr=adr;
-	s=size;
+	::free(ptradr);
+	ptradr=adr;
+	ptrsize=size;
 }
 
 
@@ -252,25 +244,25 @@ void ByteArray::useadr(void *adr, size_t size)
  */
 void *ByteArray::copy(const void *adr, size_t size)
 {
-	::free(ptr);
-	s=0;
-	ptr=NULL;
+	::free(ptradr);
+	ptrsize=0;
+	ptradr=NULL;
 	if (adr==NULL || size==0) {
 		throw NullPointerException();
 	}
-	ptr=::malloc(size+1);
-	if (!ptr) {
+	ptradr=::malloc(size+1);
+	if (!ptradr) {
 		throw OutOfMemoryException();
 	}
-	if (memcpy(ptr,adr,size)!=ptr) {
-		::free(ptr);
-		ptr=NULL;
-		s=0;
+	if (memcpy(ptradr,adr,size)!=ptradr) {
+		::free(ptradr);
+		ptradr=NULL;
+		ptrsize=0;
 		throw Exception();
 	}
-	s=size;
-	((char*)ptr)[s]=0;
-	return ptr;
+	ptrsize=size;
+	((char*)ptradr)[ptrsize]=0;
+	return ptradr;
 }
 
 /*!\brief Speicherbereich aus einem anderen ByteArray-Objekt kopieren
@@ -293,7 +285,7 @@ void *ByteArray::copy(const void *adr, size_t size)
  */
 void *ByteArray::copy(const ByteArrayPtr &other)
 {
-	return copy(other.ptr, other.s);
+	return copy(other.ptradr, other.ptrsize);
 }
 
 /*!\brief Speicherbereich anhängen
@@ -319,21 +311,21 @@ void *ByteArray::append(void *adr, size_t size)
 		throw NullPointerException();
 	}
 
-	if (!ptr) return copy(adr,size);
-	size_t newsize=s+size;
-	void *p=::realloc(ptr,newsize+1);
+	if (!ptradr) return copy(adr,size);
+	size_t newsize=ptrsize+size;
+	void *p=::realloc(ptradr,newsize+1);
 	if (!p) throw OutOfMemoryException();
-	ptr=p;
-	void *target=(char*)ptr+s;
+	ptradr=p;
+	void *target=(char*)ptradr+ptrsize;
 	if (memcpy(target,adr,size)!=target) {
-		::free(ptr);
-		ptr=NULL;
-		s=0;
+		::free(ptradr);
+		ptradr=NULL;
+		ptrsize=0;
 		throw Exception();
 	}
-	s=newsize;
-	((char*)ptr)[s]=0;
-	return ptr;
+	ptrsize=newsize;
+	((char*)ptradr)[ptrsize]=0;
+	return ptradr;
 }
 
 /*!\brief Speicherbereich aus einem ByteArray-Objekt anhängen
@@ -356,7 +348,7 @@ void *ByteArray::append(void *adr, size_t size)
  */
 void *ByteArray::append(const ByteArrayPtr &other)
 {
-	return append(other.ptr, other.s);
+	return append(other.ptradr, other.ptrsize);
 }
 
 /*!\brief Speicherbereich davor hängen
@@ -382,28 +374,28 @@ void *ByteArray::prepend(void *adr, size_t size)
 		throw NullPointerException();
 	}
 
-	if (!ptr) return copy(adr,size);
-	size_t newsize=s+size;
+	if (!ptradr) return copy(adr,size);
+	size_t newsize=ptrsize+size;
 	void *p=::malloc(newsize+1);
 	if (!p) throw OutOfMemoryException();
 	if (memcpy(p,adr,size)!=p) {
-		::free(ptr);
-		ptr=NULL;
-		s=0;
+		::free(ptradr);
+		ptradr=NULL;
+		ptrsize=0;
 		throw Exception();
 	}
 	void *target=(char*)p+size;
-	if (memcpy(target,ptr,s)!=target) {
-		::free(ptr);
-		ptr=NULL;
-		s=0;
+	if (memcpy(target,ptradr,ptrsize)!=target) {
+		::free(ptradr);
+		ptradr=NULL;
+		ptrsize=0;
 		throw Exception();
 	}
-	::free(ptr);
-	ptr=p;
-	s=newsize;
-	((char*)ptr)[s]=0;
-	return ptr;
+	::free(ptradr);
+	ptradr=p;
+	ptrsize=newsize;
+	((char*)ptradr)[ptrsize]=0;
+	return ptradr;
 }
 
 /*!\brief Speicherbereich aus einem ByteArray-Objekt davorhängen
@@ -426,7 +418,7 @@ void *ByteArray::prepend(void *adr, size_t size)
  */
 void *ByteArray::prepend(const ByteArrayPtr &other)
 {
-	return prepend(other.ptr, other.s);
+	return prepend(other.ptradr, other.ptrsize);
 }
 
 
@@ -445,7 +437,7 @@ void *ByteArray::prepend(const ByteArrayPtr &other)
  */
 ByteArray &ByteArray::operator=(const ByteArrayPtr &other)
 {
-	copy(other.ptr, other.s);
+	copy(other.ptradr, other.ptrsize);
 	return *this;
 }
 
@@ -460,7 +452,7 @@ ByteArray &ByteArray::operator=(const ByteArrayPtr &other)
  */
 ByteArray::operator const void*() const
 {
-	return ptr;
+	return ptradr;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -474,7 +466,7 @@ ByteArray::operator const void*() const
  */
 ByteArray::operator const unsigned char*() const
 {
-	return (const unsigned char*)ptr;
+	return (const unsigned char*)ptradr;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -488,7 +480,7 @@ ByteArray::operator const unsigned char*() const
  */
 ByteArray::operator const char*() const
 {
-	return (const char*)ptr;
+	return (const char*)ptradr;
 }
 
 /*!\brief Einzelnes Byte aus dem Speicherbereich kopieren
@@ -506,7 +498,7 @@ ByteArray::operator const char*() const
  */
 unsigned char ByteArray::operator[](size_t pos) const
 {
-	if (ptr!=NULL && pos<s) return ((unsigned char*)ptr)[pos];
+	if (ptradr!=NULL && pos<ptrsize) return ((unsigned char*)ptradr)[pos];
 	throw OutOfBoundsEception();
 }
 
@@ -524,15 +516,15 @@ unsigned char ByteArray::operator[](size_t pos) const
  */
 void *ByteArray::malloc(size_t size)
 {
-	::free(ptr);
-	ptr=::malloc(size+1);
-	if (ptr) {
-		s=size;
+	::free(ptradr);
+	ptradr=::malloc(size+1);
+	if (ptradr) {
+		ptrsize=size;
 	} else {
 		throw OutOfMemoryException();
 	}
-	((char*)ptr)[s]=0;
-	return ptr;
+	((char*)ptradr)[ptrsize]=0;
+	return ptradr;
 }
 
 /*!\brief Speicher allokieren und mit 0 initialisieren
@@ -550,15 +542,15 @@ void *ByteArray::malloc(size_t size)
  */
 void *ByteArray::calloc(size_t size)
 {
-	::free(ptr);
-	ptr=::calloc(size+1,1);
-	if (ptr) {
-		s=size;
+	::free(ptradr);
+	ptradr=::calloc(size+1,1);
+	if (ptradr) {
+		ptrsize=size;
 	} else {
 		throw OutOfMemoryException();
 	}
-	((char*)ptr)[s]=0;
-	return ptr;
+	((char*)ptradr)[ptrsize]=0;
+	return ptradr;
 }
 
 /*!\brief Speicher freigeben
@@ -570,16 +562,30 @@ void *ByteArray::calloc(size_t size)
  */
 void ByteArray::free()
 {
-	::free(ptr);
-	ptr=NULL;
-	s=0;
+	::free(ptradr);
+	ptradr=NULL;
+	ptrsize=0;
+}
+
+/*!\brief Speicher freigeben
+ *
+ * \desc
+ * Wird der Speicher vom ByteArray-Objekt verwaltet, wird dieser durch Aufruf dieser Funktion
+ * wieder freigegeben. Bei nichtverwaltetem Speicher wird lediglich die interne Referenz auf
+ * NULL gesetzt, aber der Speicher nicht freigegeben.
+ */
+void ByteArray::clear()
+{
+	::free(ptradr);
+	ptradr=NULL;
+	ptrsize=0;
 }
 
 void *ByteArray::fromHex(const String &hex)
 {
-	::free(ptr);
-	ptr=NULL;
-	s=0;
+	::free(ptradr);
+	ptradr=NULL;
+	ptrsize=0;
 	if (hex.isEmpty()) {
 		throw IllegalArgumentException("Empty string");
 	}
@@ -590,11 +596,11 @@ void *ByteArray::fromHex(const String &hex)
 	if ((chars&1)==1) {
 		throw IllegalArgumentException("uneven number of characters");
 	}
-	ptr=::malloc((chars>>1)+1);
-	if (!ptr) throw OutOfMemoryException();
-	t=(unsigned char*)ptr;
-	s=chars>>1;
-	((char*)ptr)[s]=0;
+	ptradr=::malloc((chars>>1)+1);
+	if (!ptradr) throw OutOfMemoryException();
+	t=(unsigned char*)ptradr;
+	ptrsize=chars>>1;
+	((char*)ptradr)[ptrsize]=0;
 	unsigned char value;
 	for (size_t source=0, target=0;source<chars;source+=2,target++) {
 		wchar_t first=hex[source];
@@ -603,8 +609,8 @@ void *ByteArray::fromHex(const String &hex)
 		else if (first>='a' && first<='f') value=(first-'a'+10);
 		else if (first>='A' && first<='F') value=(first-'A'+10);
 		else {
-			::free(ptr);
-			ptr=NULL;s=0;
+			::free(ptradr);
+			ptradr=NULL;ptrsize=0;
 			throw IllegalArgumentException("invalid chars in input string");
 		}
 		value=value<<4;
@@ -612,13 +618,13 @@ void *ByteArray::fromHex(const String &hex)
 		else if (second>='a' && second<='f') value|=(second-'a'+10);
 		else if (second>='A' && second<='F') value|=(second-'A'+10);
 		else {
-			::free(ptr);
-			ptr=NULL;s=0;
+			::free(ptradr);
+			ptradr=NULL;ptrsize=0;
 			throw IllegalArgumentException("invalid chars in input string");
 		}
 		t[target]=value;
 	}
-	return ptr;
+	return ptradr;
 }
 
 }	// EOF namespace ppl7

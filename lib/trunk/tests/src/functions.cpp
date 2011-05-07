@@ -2,10 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 75 $
- * $Date: 2011-05-04 19:35:00 +0000 (Mi, 04 Mai 2011) $
- * $Id: Variant.cpp 75 2011-05-04 19:35:00Z pafe $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>

@@ -7,7 +7,12 @@ CFLAGS	= -ggdb -Wall  `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
 
 
-all: heap array strings avltree assocarray
+all: heap array strings avltree assocarray pointer datetime bytearray bytearrayptr functions
+
+clean:
+	-rm -rf bin
+	-rm *.core
+
 
 heap: bin/heap
 	bin/heap
@@ -24,7 +29,42 @@ avltree: bin/avltree
 assocarray: bin/assocarray
 	bin/assocarray
 
-	
+pointer: bin/pointer
+	bin/pointer
+
+datetime: bin/datetime
+	bin/datetime
+
+bytearray: bin/bytearray
+	bin/bytearray
+
+bytearrayptr: bin/bytearrayptr
+	bin/bytearrayptr
+
+functions: bin/functions
+	bin/functions
+
+
+bin/functions: src/functions.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/functions src/functions.cpp $(CFLAGS) $(LIB)
+
+bin/pointer: src/pointer.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/pointer src/pointer.cpp $(CFLAGS) $(LIB)
+
+bin/datetime: src/datetime.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/datetime src/datetime.cpp $(CFLAGS) $(LIB)
+
+bin/bytearray: src/bytearray.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/bytearray src/bytearray.cpp $(CFLAGS) $(LIB)
+
+bin/bytearrayptr: src/bytearrayptr.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/bytearrayptr src/bytearrayptr.cpp $(CFLAGS) $(LIB)
+
 bin/strings: src/strings.cpp Makefile
 	mkdir -p bin
 	$(CC) -o bin/strings src/strings.cpp $(CFLAGS) $(LIB)
@@ -50,6 +90,4 @@ bin/assocarray: src/assocarray.cpp Makefile bin/wordlist.o
 	$(CC) -o bin/assocarray bin/wordlist.o src/assocarray.cpp $(CFLAGS) $(LIB)
 
 
-clean:
-	-rm -rf bin
 

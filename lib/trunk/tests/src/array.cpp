@@ -355,7 +355,7 @@ TEST_F(ArrayTest, explodeWithLimitWithinEmptyLines1) {
 	ASSERT_NO_THROW({
 			ppl7::Array a1;
 			a1.explode(L"red green blue   yellow black white",L" ",4,true);
-			ASSERT_EQ((size_t)4,a1.count()) << "Array does not contain 6 elements";
+			ASSERT_EQ((size_t)4,a1.count()) << "Array does not contain 4 elements";
 			ASSERT_EQ(ppl7::String(L"blue"),a1.get(2)) << "Element 2 has wrong value";
 			ASSERT_EQ(ppl7::String(L"yellow"),a1.get(3)) << "Element 3 has wrong value";
 	}
@@ -366,7 +366,7 @@ TEST_F(ArrayTest, explodeWithLimitWithinEmptyLines2) {
 	ASSERT_NO_THROW({
 			ppl7::Array a1;
 			a1.explode(L"red green blue   yellow black white",L" ",4,false);
-			ASSERT_EQ((size_t)4,a1.count()) << "Array does not contain 6 elements";
+			ASSERT_EQ((size_t)4,a1.count()) << "Array does not contain 4 elements";
 			ASSERT_EQ(ppl7::String(L"blue"),a1.get(2)) << "Element 2 has wrong value";
 			ASSERT_EQ(ppl7::String(L""),a1.get(3)) << "Element 3 has wrong value";
 	}

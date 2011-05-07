@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
@@ -68,14 +69,14 @@ namespace ppl7 {
  * - ByteArray
  */
 
-/*!\var ByteArrayPtr::ptr
+/*!\var ByteArrayPtr::ptradr
  * \brief Pointer auf den referenzierten Speicherbereich
  *
  * \desc
  * Pointer auf den referenzierten Speicherbereich
  */
 
-/*!\var ByteArrayPtr::s
+/*!\var ByteArrayPtr::ptrsize
  * \brief Größe des referenzierten Speicherbereichs
  *
  * \desc
@@ -91,8 +92,8 @@ namespace ppl7 {
 ByteArrayPtr::ByteArrayPtr()
 {
 	type=BYTEARRAYPTR;
-	ptr=NULL;
-	s=0;
+	ptradr=NULL;
+	ptrsize=0;
 }
 
 /*!\brief Copy-Konstruktor
@@ -106,8 +107,8 @@ ByteArrayPtr::ByteArrayPtr()
 ByteArrayPtr::ByteArrayPtr(const ByteArrayPtr &other)
 {
 	type=BYTEARRAYPTR;
-	ptr=other.ptr;
-	s=other.s;
+	ptradr=other.ptradr;
+	ptrsize=other.ptrsize;
 }
 
 /*!\brief Konstruktor mit Angabe einer Speicheradresse und Größe
@@ -122,8 +123,8 @@ ByteArrayPtr::ByteArrayPtr(const ByteArrayPtr &other)
 ByteArrayPtr::ByteArrayPtr(void *adr, size_t size)
 {
 	type=BYTEARRAYPTR;
-	ptr=adr;
-	s=size;
+	ptradr=adr;
+	ptrsize=size;
 }
 
 /*!\brief Prüfen, ob Speicher referenziert ist
@@ -138,7 +139,7 @@ ByteArrayPtr::ByteArrayPtr(void *adr, size_t size)
  */
 bool ByteArrayPtr::isNull() const
 {
-	if (!ptr) return true;
+	if (!ptradr) return true;
 	return false;
 }
 
@@ -154,8 +155,8 @@ bool ByteArrayPtr::isNull() const
  */
 bool ByteArrayPtr::isEmpty() const
 {
-	if (!ptr) return true;
-	if (!s) return true;
+	if (!ptradr) return true;
+	if (!ptrsize) return true;
 	return false;
 }
 
@@ -169,7 +170,7 @@ bool ByteArrayPtr::isEmpty() const
  */
 size_t ByteArrayPtr::size() const
 {
-	return s;
+	return ptrsize;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -181,8 +182,21 @@ size_t ByteArrayPtr::size() const
  */
 const void *ByteArrayPtr::adr() const
 {
-	return ptr;
+	return ptradr;
 }
+
+/*!\brief Adresse des Speicherblocks auslesen
+ *
+ * \desc
+ * Mit dieser Funktion wird die Adresse des Speicherblocks ausgelesen
+ *
+ * @return Adresse des Speicherblocks
+ */
+const void *ByteArrayPtr::ptr() const
+{
+	return ptradr;
+}
+
 
 /*!\brief Referenz auf Speicherbereich setzen
  *
@@ -197,8 +211,8 @@ const void *ByteArrayPtr::adr() const
  */
 void ByteArrayPtr::use(void *adr, size_t size)
 {
-	ptr=adr;
-	s=size;
+	ptradr=adr;
+	ptrsize=size;
 }
 
 /*!\brief Referenz auf Speicherbereich von einer anderen ByteArrayPtr-Instanz kopieren
@@ -211,8 +225,8 @@ void ByteArrayPtr::use(void *adr, size_t size)
  */
 void ByteArrayPtr::use(const ByteArrayPtr &other)
 {
-	ptr=other.ptr;
-	s=other.s;
+	ptradr=other.ptradr;
+	ptrsize=other.ptrsize;
 }
 
 /*!\brief Speicherreferenz von anderem ByteArrayPtr-Objekt übernehmen
@@ -226,8 +240,8 @@ void ByteArrayPtr::use(const ByteArrayPtr &other)
  */
 ByteArrayPtr &ByteArrayPtr::operator=(const ByteArrayPtr &other)
 {
-	ptr=other.ptr;
-	s=other.s;
+	ptradr=other.ptradr;
+	ptrsize=other.ptrsize;
 	return *this;
 }
 
@@ -241,7 +255,7 @@ ByteArrayPtr &ByteArrayPtr::operator=(const ByteArrayPtr &other)
  */
 ByteArrayPtr::operator const void*() const
 {
-	return ptr;
+	return ptradr;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -253,7 +267,7 @@ ByteArrayPtr::operator const void*() const
  */
 ByteArrayPtr::operator const unsigned char*() const
 {
-	return (const unsigned char*)ptr;
+	return (const unsigned char*)ptradr;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -265,7 +279,7 @@ ByteArrayPtr::operator const unsigned char*() const
  */
 ByteArrayPtr::operator const char*() const
 {
-	return (const char*)ptr;
+	return (const char*)ptradr;
 }
 
 /*!\brief Einzelnes Byte aus dem Speicherbereich auslesen
@@ -283,20 +297,20 @@ ByteArrayPtr::operator const char*() const
  */
 unsigned char ByteArrayPtr::operator[](size_t pos) const
 {
-	if (ptr!=NULL && pos<s) return ((unsigned char*)ptr)[pos];
+	if (ptradr!=NULL && pos<ptrsize) return ((unsigned char*)ptradr)[pos];
 	throw OutOfBoundsEception();
 }
 
 
 void ByteArrayPtr::set(size_t pos, unsigned char value)
 {
-	if (pos<s) ((unsigned char*)ptr)[pos]=value;
+	if (pos<ptrsize) ((unsigned char*)ptradr)[pos]=value;
 	else throw OutOfBoundsEception();
 }
 
 unsigned char ByteArrayPtr::get(size_t pos) const
 {
-	if (ptr!=NULL && pos<s) return ((unsigned char*)ptr)[pos];
+	if (ptradr!=NULL && pos<ptrsize) return ((unsigned char*)ptradr)[pos];
 	throw OutOfBoundsEception();
 }
 
@@ -312,9 +326,9 @@ unsigned char ByteArrayPtr::get(size_t pos) const
  */
 String ByteArrayPtr::toHex() const
 {
-	unsigned char *buff=(unsigned char*)ptr;
+	unsigned char *buff=(unsigned char*)ptradr;
 	String str;
-	for(size_t i=0;i<s;i++) str.appendf("%02x",buff[i]);
+	for(size_t i=0;i<ptrsize;i++) str.appendf("%02x",buff[i]);
 	return str;
 }
 
@@ -334,15 +348,15 @@ String ByteArrayPtr::toBase64() const
 
 ppluint32 ByteArrayPtr::crc32() const
 {
-	if (s==0) throw EmptyDataException();
-	return Crc32(ptr,s);
+	if (ptrsize==0) throw EmptyDataException();
+	return Crc32(ptradr,ptrsize);
 }
 
 void ByteArrayPtr::hexDump() const
 {
-	if (s==0) throw EmptyDataException();
-	printf ("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n",s,ptr);
-	HexDump(ptr,s,true);
+	if (ptrsize==0) throw EmptyDataException();
+	PrintDebug ("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n",ptrsize,ptradr);
+	HexDump(ptradr,ptrsize,true);
 }
 
 

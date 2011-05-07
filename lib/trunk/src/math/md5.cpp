@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
@@ -445,10 +446,10 @@ String ByteArrayPtr::md5() const
 {
 	String ret;
 	char tmp[33];
-	if (ptr==NULL || s==0 ) throw EmptyDataException();
+	if (ptradr==NULL || ptrsize==0 ) throw EmptyDataException();
 	MD5_CTX ctx;
 	MD5Init(&ctx);
-	MD5Update(&ctx,(const unsigned char *)ptr,s);
+	MD5Update(&ctx,(const unsigned char *)ptradr,ptrsize);
 	MD5End(&ctx, tmp);
 	tmp[32]=0;
 	ret=tmp;

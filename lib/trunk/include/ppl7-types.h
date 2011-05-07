@@ -140,8 +140,8 @@ class ByteArrayPtr : public Variant
 {
 	friend class ByteArray;
 	private:
-		void *ptr;
-		size_t s;
+		void *ptradr;
+		size_t ptrsize;
 	public:
 		ByteArrayPtr();
 		ByteArrayPtr(const ByteArrayPtr &other);
@@ -150,6 +150,7 @@ class ByteArrayPtr : public Variant
 		bool isEmpty() const;
 		size_t size() const;
 		const void *adr() const;
+		const void *ptr() const;
 		void use(void *adr, size_t size);
 		void use(const ByteArrayPtr &other);
 		ByteArrayPtr &operator=(const ByteArrayPtr &other);
@@ -189,6 +190,7 @@ public:
 	void *malloc(size_t size);
 	void *calloc(size_t size);
 	void free();
+	void clear();
 	ByteArray &operator=(const ByteArrayPtr &other);
 	operator const void*() const;
 	operator const unsigned char*() const;
