@@ -230,6 +230,15 @@ void HexDump(const void *address, size_t bytes)
  * \par
  * Mehr Informationen zu Big- und Little-Endian sind in der Wikipedia zu finden:
  * http://de.wikipedia.org/wiki/Byte-Reihenfolge
+ * \par Verwendung
+ * In der Regel wird man mit den durch die Sprache C/C++ bereitgestellten Mitteln
+ * auf den Speicher zugreifen, da dies die optimalste und performanteste Art und Weise ist,
+ * und man sich um die Architektur des Rechners keine Gedanken machen muss.
+ * \par
+ * Aber immer dann, wenn man binäre Daten mit anderen Rechnern austauschen muss, deren
+ * Architektur man nicht kenn, empfiehlt es sich ein einheitliches Speicherformat zu verwenden.
+ * So verwendet beispielsweise die Klasse AssocArray bei ihren Im- und Export-Funktionen
+ * PeekN und PokeN zur Darstellung aller Integer-Werte.
  *
  */
 
@@ -244,6 +253,7 @@ void HexDump(const void *address, size_t bytes)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void Poke8 (void *Adresse, ppluint32 Wert)
 {
@@ -260,6 +270,7 @@ void Poke8 (void *Adresse, ppluint32 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void Poke16 (void *Adresse, ppluint32 Wert)
 {
@@ -282,6 +293,7 @@ void Poke16 (void *Adresse, ppluint32 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void Poke24 (void *Adresse, ppluint32 Wert)
 {
@@ -300,6 +312,7 @@ void Poke24 (void *Adresse, ppluint32 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void Poke32 (void *Adresse, ppluint32 Wert)
 {
@@ -323,6 +336,7 @@ void Poke32 (void *Adresse, ppluint32 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void Poke64 (void *Adresse, ppluint64 Wert)
 {
@@ -350,6 +364,7 @@ void Poke64 (void *Adresse, ppluint64 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void PokeFloat(void *Adresse, float Wert)
 {
@@ -369,6 +384,7 @@ void PokeFloat(void *Adresse, float Wert)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint32 Peek8 (const void *Adresse)
 {
@@ -384,6 +400,7 @@ ppluint32 Peek8 (const void *Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint32 Peek16 (const void * Adresse)
 {
@@ -406,6 +423,7 @@ ppluint32 Peek16 (const void * Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint32 Peek24 (const void *Adresse)
 {
@@ -425,6 +443,7 @@ ppluint32 Peek24 (const void *Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint32 Peek32 (const void *Adresse)
 {
@@ -450,6 +469,7 @@ ppluint32 Peek32 (const void *Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint64 Peek64 (const void *Adresse)
 {
@@ -479,6 +499,7 @@ ppluint64 Peek64 (const void *Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 float PeekFloat(const void *Adresse)
 {
@@ -499,6 +520,7 @@ float PeekFloat(const void *Adresse)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void PokeN8 (void *Adresse, ppluint32 Wert)
 {
@@ -515,6 +537,7 @@ void PokeN8 (void *Adresse, ppluint32 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void PokeN16 (void *Adresse, ppluint32 Wert)
 {
@@ -540,6 +563,7 @@ void PokeN16 (void *Adresse, ppluint32 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void PokeN32 (void *Adresse, ppluint32 Wert)
 {
@@ -569,6 +593,7 @@ void PokeN32 (void *Adresse, ppluint32 Wert)
  *
  * @param Adresse Speicheradresse, in die geschrieben werden soll
  * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 void PokeN64 (void *Adresse, ppluint64 Wert)
 {
@@ -604,6 +629,7 @@ void PokeN64 (void *Adresse, ppluint64 Wert)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint32 PeekN8 (const void *Adresse)
 {
@@ -619,6 +645,7 @@ ppluint32 PeekN8 (const void *Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint32 PeekN16 (const void * Adresse)
 {
@@ -645,6 +672,7 @@ ppluint32 PeekN16 (const void * Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint32 PeekN32 (const void *Adresse)
 {
@@ -675,6 +703,7 @@ ppluint32 PeekN32 (const void *Adresse)
  *
  * @param Adresse Speicheradresse, aus der gelesen werden soll
  * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
  */
 ppluint64 PeekN64 (const void *Adresse)
 {
