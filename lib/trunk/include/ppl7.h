@@ -437,16 +437,96 @@ class MemFile : public FileObject
 		virtual char		*mapRW(ppluint64 position, size_t size);
 		virtual	void		unmap();
 		virtual void		setMapReadAhead(size_t bytes);
-		//virtual int			GetFileNo() const;
+		//virtual int		GetFileNo() const;
 		virtual int			flush();
 		virtual int			sync();
-		//virtual int			Truncate(ppluint64 length);
+		//virtual int		Truncate(ppluint64 length);
 		virtual bool		isOpen() const;
-		//virtual int			LockShared(bool block=true);
-		//virtual int			LockExclusive(bool block=true);
-		//virtual int			Unlock();
+		//virtual int		LockShared(bool block=true);
+		//virtual int		LockExclusive(bool block=true);
+		//virtual int		Unlock();
+};
+
+class File : public FileObject
+{
+	private:
+		void * ff;
+		char * MapBase;
+		ppluint64	LastMapStart;
+		ppluint64	LastMapSize;
+		int			LastMapProtection;
+		ppluint64	ReadAhead;
+		char * buffer;
+		ppluint64	mysize;
+		ppluint64	pos;
+		bool isPopen;
+
+		int munmap(void *addr, size_t len);
+		void *mmap(ppluint64 position, size_t size, int prot, int flags);
 
 
+	public:
+		File ();
+		File (const String &filename, const char * mode="rb");
+		File (const char * filename, const char * mode="rb");
+		File (FILE * handle);
+		virtual ~File();
+
+		int			open (const String &filename, const char * mode="rb");
+		int			open (const char * filename, const char * mode="rb", ...);
+		int			open (FILE * handle);
+		int			openTemp(const char *filetemplate, ...);
+		int			popen(const char *command, const char *mode, ...);
+		int			popen(const String &command, const char *mode);
+		int			erase();
+
+		// Virtuelle Funktionen
+		virtual int			close ();
+		virtual int			seek (ppluint64 position);
+		virtual	int			fseek (ppluint64 offset, int origin);
+		virtual pplint64	ftell();
+		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
+		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
+		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
+		virtual char *		fgets (char *buffer, size_t num=1024);
+		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual	int			putc (int c);
+		virtual	int			getc();
+		virtual	int			putwc (wchar_t c);
+		virtual	wchar_t		getwc();
+		virtual int			puts (const char *str);
+		virtual int			putws (const wchar_t *str);
+		virtual bool		eof() const;
+		virtual pplint64	size() const;
+		virtual const char	*map(ppluint64 position, size_t size);
+		virtual char		*mapRW(ppluint64 position, size_t size);
+		virtual	void		unmap();
+		virtual int			getFileNo() const;
+		virtual void		setMapReadAhead(size_t bytes);
+		virtual int			flush();
+		virtual int			sync();
+		virtual int			truncate(ppluint64 length);
+		virtual bool		isOpen() const;
+		virtual int			lockShared(bool block=true);
+		virtual int			lockExclusive(bool block=true);
+		virtual int			unlock();
+
+
+		// Static Functions
+		static int Truncate(const String &filename, ppluint64 bytes);
+		static int Exists(const String &filename);
+		static int CopyFile(const String &oldfile, const String &newfile);
+		static int MoveFile(const String &oldfile, const String &newfile);
+		static int LoadFile(ByteArray &object, const String &filename);
+		static void *LoadFile(const String &filename, size_t *size=NULL);
+		static int DeleteFile(const String &filename);
+		static int TouchFile(const String &filename);
+		static int WriteFile(const void *content, size_t size, const String &filename);
+		static int WriteFile(const ByteArrayPtr &object, const String &filename);
+		static int RenameFile(const String &oldfile, const String &newfile);
+		static int FileAttr(int attr, const String &filename);
+		static int Chmod(const String &filename, int attr);
+		//static int Stat(const char *filename, CDirEntry &result);
 };
 
 

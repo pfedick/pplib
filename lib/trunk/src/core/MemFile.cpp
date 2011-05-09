@@ -86,10 +86,11 @@ namespace ppl7 {
  * \ingroup PPLGroupFileIO
  * \brief Simulation von Dateizugriffen im Hauptspeicher
  *
+ * \desc
  * Mit dieser von CFileObject abgeleiteten Klasse können Dateizugriffe im Hauptspeicher simuliert werden.
  * Sie ist hauptsächlich zum Lesen von Daten gedacht, z.B. aus einer Resourcendatei. Zwar können auch
  * Daten geschrieben werden, jedoch nicht über die initiale Größe des Speicherbereichs hinaus.
- *
+ * \par
  * Der zu verwendende Speicherbereich kann entweder über den Konstruktor abgegeben werden (siehe
  * MemFile::MemFile (void * adresse, size_t size) ) oder über die Funktion MemFile::Open.
  *
