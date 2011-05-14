@@ -415,8 +415,23 @@ void File::close()
 		if (ret==0) throwErrno(filename());
 		return;
 	}
-	throw FileNotOpenException();
+	//throw FileNotOpenException();
 }
+
+/*!\brief Prüfen, ob eine Datei geöffnet ist
+ *
+ * \header \#include <ppl7.h>
+ * \desc
+ * Mit dieser Funktion kann geprüft werden, ob die mit File assoziierte Datei
+ * gerade geöffnet ist.
+ * \return Die Funktion liefert \p true zurück, wenn die Datei offen ist, ansonsten \p false.
+ */
+bool File::isOpen() const
+{
+	if (ff!=NULL) return true;
+	return false;
+}
+
 
 /*!\brief Größe der geöffneten Datei
  *
@@ -814,6 +829,26 @@ wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 #endif
 }
 
+int File::munmap(void *addr, size_t len)
+{
+	if (!addr) return 1;
+#ifdef HAVE_MMAP
+	::munmap(addr, len);
+#else
+	if ((LastMapProtection&2)) {			// Speicher war schreibbar und muss
+		if (Seek(LastMapStart)) {		// Zurückgeschrieben werden
+			fwrite(MapBase,1,len);
+		}
+	}
+	free (MapBase);
+#endif
+	LastMapStart=LastMapSize=0;
+	MapBase=NULL;
+	LastMapProtection=0;
+	return 1;
+}
+
+
 #ifdef TODO
 
 int File::Puts (const char *str)
@@ -1117,21 +1152,6 @@ int File::Truncate(ppluint64 length)
 	SetError(246,"File::Truncate");
 	return 0;
 }
-
-bool File::IsOpen() const
-/*!\brief Prüfen, ob eine Datei geöffnet ist
- *
- * \header \#include <ppl7.h>
- * \desc
- * Mit dieser Funktion kann geprüft werden, ob die mit File assoziierte Datei
- * gerade geöffnet ist.
- * \return Die Funktion liefert \p true zurück, wenn die Datei offen ist, ansonsten \p false.
- */
-{
-	if (ff!=NULL) return true;
-	return false;
-}
-
 
 int File::LockExclusive(bool block)
 /*!\brief Datei exklusiv sperren
@@ -1444,25 +1464,6 @@ void *File::mmap(ppluint64 position, size_t size, int prot, int flags)
 	return NULL;
 #endif
 
-}
-
-int File::munmap(void *addr, size_t len)
-{
-	if (!addr) return 1;
-#ifdef HAVE_MMAP
-	::munmap(addr, len);
-#else
-	if ((LastMapProtection&2)) {			// Speicher war schreibbar und muss
-		if (Seek(LastMapStart)) {		// Zurückgeschrieben werden
-			Fwrite(MapBase,1,len);
-		}
-	}
-	free (MapBase);
-#endif
-	LastMapStart=LastMapSize=0;
-	MapBase=NULL;
-	LastMapProtection=0;
-	return 1;
 }
 
 

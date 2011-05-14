@@ -7,7 +7,8 @@ CFLAGS	= -ggdb -Wall  `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
 
 
-all: heap array strings avltree assocarray pointer datetime bytearray bytearrayptr functions
+all: heap array strings avltree assocarray pointer datetime bytearray bytearrayptr \
+	functions file
 
 clean:
 	-rm -rf bin
@@ -16,6 +17,9 @@ clean:
 
 heap: bin/heap
 	bin/heap
+
+file: bin/file
+	bin/file
 
 array: bin/array
 	bin/array
@@ -89,5 +93,8 @@ bin/assocarray: src/assocarray.cpp Makefile bin/wordlist.o
 	mkdir -p bin
 	$(CC) -o bin/assocarray bin/wordlist.o src/assocarray.cpp $(CFLAGS) $(LIB)
 
+bin/file: src/file.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/file src/file.cpp $(CFLAGS) $(LIB)
 
 

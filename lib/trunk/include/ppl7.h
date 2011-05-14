@@ -526,6 +526,9 @@ class File : public FileObject
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
 		virtual char *		fgets (char *buffer, size_t num=1024);
 		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual ppluint64	size() const;
+		virtual bool		isOpen() const;
+		/*
 		virtual	int			putc (int c);
 		virtual	int			getc();
 		virtual	int			putwc (wchar_t c);
@@ -533,7 +536,6 @@ class File : public FileObject
 		virtual int			puts (const char *str);
 		virtual int			putws (const wchar_t *str);
 		virtual bool		eof() const;
-		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
 		virtual char		*mapRW(ppluint64 position, size_t size);
 		virtual	void		unmap();
@@ -542,10 +544,11 @@ class File : public FileObject
 		virtual int			flush();
 		virtual int			sync();
 		virtual int			truncate(ppluint64 length);
-		virtual bool		isOpen() const;
+
 		virtual int			lockShared(bool block=true);
 		virtual int			lockExclusive(bool block=true);
 		virtual int			unlock();
+		*/
 
 
 		// Static Functions
