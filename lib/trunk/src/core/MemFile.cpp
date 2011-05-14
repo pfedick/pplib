@@ -153,7 +153,6 @@ MemFile::~MemFile()
 	if (buffer) free(buffer);
 }
 
-int MemFile::open (void * adresse, size_t size)
 /*!\brief Speicherbereich öffnen
  *
  * Mit dieser Funktion wird die simulierte Datei im Hauptspeicher geöffnet. Dazu muss mit
@@ -163,16 +162,13 @@ int MemFile::open (void * adresse, size_t size)
  *
  * @param adresse Pointer auf den zu verwendenden Speicherbereich
  * @param size Größe des Speicherbereichs
- * \return Die Funktion gibt bei Erfolg 1 zurück, im Fehlerfall 0. Ein Fehler kann nur auftreten,
- * wenn einer der Parameter \p adresse oder \p size einen Nullwert aufweisen.
  */
-
+void MemFile::open (void * adresse, size_t size)
 {
 	if (adresse==NULL || size==0) throw IllegalArgumentException();
 	MemBase=(char*)adresse;
 	mysize=size;
 	pos=0;
-	return 1;
 }
 
 /*!\brief Speicherbereich öffnen
@@ -183,16 +179,13 @@ int MemFile::open (void * adresse, size_t size)
  * Speicherbereich simuliert.
  *
  * @param memory Referenz auf eine ByteArrayPtr-Klasse, die den zu verwendenden Speicherbereich enthält
- * \return Die Funktion gibt bei Erfolg 1 zurück, im Fehlerfall 0. Ein Fehler kann nur auftreten,
- * wenn einer der Parameter \p adresse oder \p size einen Nullwert aufweisen.
  */
-int MemFile::open(const ByteArrayPtr &memory)
+void MemFile::open(const ByteArrayPtr &memory)
 {
 	if (memory.isEmpty()) throw IllegalArgumentException();
 	MemBase=(char*)memory.adr();
 	mysize=memory.size();
 	pos=0;
-	return 1;
 }
 
 bool MemFile::isOpen() const
@@ -201,7 +194,7 @@ bool MemFile::isOpen() const
 	return false;
 }
 
-int MemFile::close()
+void MemFile::close()
 {
 	MemBase=NULL;
 	mysize=0;
@@ -210,10 +203,9 @@ int MemFile::close()
 		free (buffer);
 		buffer=0;
 	}
-	return 1;
 }
 
-pplint64 MemFile::size () const
+ppluint64 MemFile::size () const
 {
 	if (MemBase!=NULL) {
 		return (pplint64)mysize;
@@ -221,46 +213,46 @@ pplint64 MemFile::size () const
 	throw FileNotOpenException();
 }
 
-int MemFile::seek(ppluint64 position)
+ppluint64 MemFile::seek(ppluint64 position)
 {
 	if (MemBase!=NULL) {
 		if (position<mysize) {
 			pos=position;
 		} else {
-			return 0;
+			throw OverflowException();
 		}
-		return 1;
+		return position;
 	}
 	throw FileNotOpenException();
 }
 
-int	 MemFile::fseek (ppluint64 offset, SeekOrigin origin )
+ppluint64 MemFile::fseek (ppluint64 offset, SeekOrigin origin )
 {
 	if (MemBase!=NULL) {
-		//suberr=::fseek(ff,offset,origin);
-		//if (suberr==0) {
+		ppluint64 oldpos=pos;
 		switch (origin) {
 			case SEEKCUR:
 				pos+=offset;
-				if (pos>mysize) return 1;
-				if (pos<0) {pos=0;return 1; }
+				if (pos>mysize) return pos;
+				if (pos<0) {pos=0;return pos; }
 				break;
 			case SEEKEND:
 				pos=mysize-offset;
-				if (pos>mysize) return 1;
-				if (pos<0) {pos=0; return 1;}
+				if (pos>mysize) return pos;
+				if (pos<0) {pos=0; return pos;}
 				break;
 			case SEEKSET:
 				pos=offset;
-				if (pos<0) {pos=0; return 1;}
-				if (pos>mysize) return 1;
+				if (pos<0) {pos=0; return pos;}
+				if (pos>mysize) return pos;
 		}
+		pos=oldpos;
 		throw FileSeekException();
 	}
 	throw FileNotOpenException();
 }
 
-pplint64 MemFile::ftell()
+ppluint64 MemFile::ftell()
 {
 	if (MemBase!=NULL) {
 		return pos;
@@ -301,7 +293,7 @@ ppluint64 MemFile::doCopy (FileObject &quellfile, ppluint64 bytes)
 	}
 	if (quellfile.size()>quellfile.ftell()) {
 		if (quellfile.ftell()+(pplint64)bytes>quellfile.size()) {
-			bytes=(ppluint64)quellfile.lof()-(ppluint64)quellfile.ftell();
+			bytes=(ppluint64)quellfile.size()-(ppluint64)quellfile.ftell();
 		}
 		ppluint64 rest=bytes;
 		ppluint32 by;

@@ -332,6 +332,29 @@ class FileObject
 		PPLNORMALEXCEPTION(ReadException);
 		PPLNORMALEXCEPTION(WriteException);
 		PPLNORMALEXCEPTION(EndOfFileException);
+		PPLPARAMETERISEDEXCEPTION(FileOpenException);
+		PPLPARAMETERISEDEXCEPTION(FileNotFoundException);				// ENOENT
+		PPLNORMALEXCEPTION(InvalidArgumentsException);					// EINVAL
+		PPLPARAMETERISEDEXCEPTION(InvalidFileNameException);			// ENOTDIR, ENAMETOOLONG, ELOOP
+		PPLPARAMETERISEDEXCEPTION(PermissionDeniedException);			// EACCESS, EPERM
+		PPLPARAMETERISEDEXCEPTION(ReadOnlyException);					// EROFS
+		PPLPARAMETERISEDEXCEPTION(NoRegularFileException);				// EISDIR
+		PPLNORMALEXCEPTION(TooManyOpenFilesException);					// EMFILE
+		PPLPARAMETERISEDEXCEPTION(UnsupportedFileOperationException);	// EOPNOTSUPP
+		PPLPARAMETERISEDEXCEPTION(TooManySymbolicLinksException);		// ELOOP
+		PPLNORMALEXCEPTION(FilesystemFullException);					// ENOSPC
+		PPLNORMALEXCEPTION(QuotaExceededException);						// EDQUOT
+		PPLNORMALEXCEPTION(IOErrorException);							// EIO
+		PPLNORMALEXCEPTION(BadFiledescriptorException);					// EABDF
+		PPLNORMALEXCEPTION(BadAddressException);						// EFAULT
+		PPLNORMALEXCEPTION(OverflowException);							// EOVERFLOW
+		PPLNORMALEXCEPTION(FileExistsException);						// EEXIST
+		PPLNORMALEXCEPTION(OperationBlockedException);					// EAGAIN
+		PPLNORMALEXCEPTION(DeadlockException);							// EDEADLK
+		PPLNORMALEXCEPTION(OperationInterruptedException);				// EINTR
+		PPLNORMALEXCEPTION(TooManyLocksException);						// ENOLCK
+		PPLNORMALEXCEPTION(IllegalOperationOnPipeException);			// ESPIPE
+
 		//@}
 
 		FileObject();
@@ -358,16 +381,15 @@ class FileObject
 		int					putsf (const char *fmt, ... );
 		int					puts (const String &str);
 		int					putws (const String &str);
-		pplint64			lof() const;
 		const char			*map();
 		char				*load();
 		int					load(ByteArray &target);
 
 		// Virtuelle Funktionen
-		virtual int			close ();
-		virtual int			seek (ppluint64 position);
-		virtual	int			fseek (ppluint64 offset, SeekOrigin origin);
-		virtual pplint64	ftell();
+		virtual void		close ();
+		virtual ppluint64	seek (ppluint64 position);
+		virtual	ppluint64	fseek (ppluint64 offset, SeekOrigin origin);
+		virtual ppluint64	ftell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
@@ -380,7 +402,7 @@ class FileObject
 		virtual int			puts (const char *str);
 		virtual int			putws (const wchar_t *str);
 		virtual bool		eof() const;
-		virtual pplint64	size() const;
+		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
 		virtual char		*mapRW(ppluint64 position, size_t size);
 		virtual	void		unmap();
@@ -411,15 +433,15 @@ class MemFile : public FileObject
 		MemFile (const ByteArrayPtr &memory);
 		~MemFile();
 
-		int			open(void * adresse, size_t size);
-		int			open(const ByteArrayPtr &memory);
+		void		open(void * adresse, size_t size);
+		void		open(const ByteArrayPtr &memory);
 		char		*adr(size_t adresse);
 
 		// Virtuelle Funktionen
-		virtual int			close ();
-		virtual int			seek (ppluint64 position);
-		virtual	int			fseek (ppluint64 offset, SeekOrigin origin);
-		virtual pplint64	ftell();
+		virtual void		close();
+		virtual ppluint64	seek (ppluint64 position);
+		virtual	ppluint64	fseek (ppluint64 offset, SeekOrigin origin);
+		virtual ppluint64	ftell();
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
@@ -432,7 +454,7 @@ class MemFile : public FileObject
 		virtual int			puts (const char *str);
 		virtual int			putws (const wchar_t *str);
 		virtual bool		eof() const;
-		virtual pplint64	size() const;
+		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
 		virtual char		*mapRW(ppluint64 position, size_t size);
 		virtual	void		unmap();
@@ -465,26 +487,40 @@ class File : public FileObject
 		void *mmap(ppluint64 position, size_t size, int prot, int flags);
 
 
+
 	public:
+		PPLNORMALEXCEPTION(IllegalFilemodeException);
+		enum FileMode {
+			READ=1,
+			WRITE,
+			READWRITE,
+			APPEND,
+		};
+	private:
+		const char *fmode(FileMode mode);
+		static void throwErrno(const String &filename);
+
+	public:
+
+
 		File ();
-		File (const String &filename, const char * mode="rb");
-		File (const char * filename, const char * mode="rb");
+		File (const String &filename, FileMode mode=READ);
 		File (FILE * handle);
 		virtual ~File();
 
-		int			open (const String &filename, const char * mode="rb");
-		int			open (const char * filename, const char * mode="rb", ...);
-		int			open (FILE * handle);
-		int			openTemp(const char *filetemplate, ...);
-		int			popen(const char *command, const char *mode, ...);
-		int			popen(const String &command, const char *mode);
-		int			erase();
+		void		open (const String &filename, FileMode mode=READ);
+		void		open (const char * filename, FileMode mode=READ, ...);
+		void		open (FILE * handle);
+		void		openTemp(const char *filetemplate, ...);
+		void		popen(const char *command, FileMode mode=READ, ...);
+		void		popen(const String &command, FileMode mode=READ);
+		void		erase();
 
 		// Virtuelle Funktionen
-		virtual int			close ();
-		virtual int			seek (ppluint64 position);
-		virtual	int			fseek (ppluint64 offset, int origin);
-		virtual pplint64	ftell();
+		virtual void		close ();
+		virtual ppluint64	seek (ppluint64 position);
+		virtual	ppluint64	fseek (ppluint64 offset, int origin);
+		virtual ppluint64	ftell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
@@ -497,7 +533,7 @@ class File : public FileObject
 		virtual int			puts (const char *str);
 		virtual int			putws (const wchar_t *str);
 		virtual bool		eof() const;
-		virtual pplint64	size() const;
+		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
 		virtual char		*mapRW(ppluint64 position, size_t size);
 		virtual	void		unmap();

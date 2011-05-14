@@ -527,19 +527,6 @@ int FileObject::putws (const String &str)
 	return putws((const wchar_t*)str);
 }
 
-/*!\brief Größe der geöffneten Datei
- *
- * Diese Funktion liefert die Größe der geöffneten Datei in Bytes zurück.
- * \return Größe der Datei in Bytes, oder -1, wenn ein Fehler aufgetreten ist.
- *
- * \note Die Funktion ruft selbst nur die Funktion FileObject::Size auf, die daher
- * aus Geschwindigkeitsgründen vorzuziehen ist.
- */
-pplint64 FileObject::lof() const
-{
-	return size();
-}
-
 /*!\brief Datei in den Speicher mappen
  *
  * Mit dieser Funktion wird der komplette Inhalt der Datei in den Speicher gemapped.
@@ -556,7 +543,7 @@ pplint64 FileObject::lof() const
  */
 const char *FileObject::map()
 {
-	return map(0,(size_t)lof());
+	return map(0,(size_t)size());
 }
 
 /*!\brief Den kompletten Inhalt der Datei laden
@@ -572,7 +559,7 @@ const char *FileObject::map()
  */
 char *FileObject::load()
 {
-	ppluint64 s=lof();
+	ppluint64 s=size();
 	char *b=(char*)malloc((size_t)s+1);
 	if (!b) throw OutOfMemoryException();
 	ppluint64 r=read(b,(size_t)s,0);
@@ -598,18 +585,18 @@ char *FileObject::load()
 int FileObject::load(ByteArray &object)
 {
 	if (!isOpen()) throw FileNotOpenException();
-	ppluint64 size=lof();
+	ppluint64 mysize=size();
 	seek(0);
-	char *buffer=(char*)malloc((size_t)size+1);
+	char *buffer=(char*)malloc((size_t)mysize+1);
 	if (!buffer) throw OutOfMemoryException();
-	size_t by=fread(buffer,1,(size_t)size);
-	if (by!=size) {
+	size_t by=fread(buffer,1,(size_t)mysize);
+	if (by!=mysize) {
 		free(buffer);
 		return 0;
 	}
 	buffer[by]=0;
 	object.clear();
-	object.use(buffer,size);
+	object.use(buffer,mysize);
 	return 1;
 }
 
@@ -624,10 +611,8 @@ int FileObject::load(ByteArray &object)
  * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch FileObject::Flush
  * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen.
  *
- * \return Bei  Erfolg  wird  1  zurückgegeben, im Fehlerfall 0.
- * In jedem Fall ist kein weiterer Zugriff auf den Stream möglich.
  */
-int FileObject::close ()
+void FileObject::close ()
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -637,12 +622,13 @@ int FileObject::close ()
  * Diese Funktion bewegt den internen Dateizeiger auf die gewünschte Stelle
  *
  * \param[in] position Gewünschte Position innerhalb der Datei
- * \return Liefert 1 zurück, wenn der Dateizeiger erfolgreich auf die gewünschte
- * Position bewegt werden konnte, sonst 0. Bei Auftreten eines Fehlers kann
- * sich die Dateiposition dennoch geändert haben und sollte daher mit FileObject::Ftell
- * abgefragt werden.
+ * \return Liefert die neue Position zurück, wenn der Dateizeiger erfolgreich auf
+ * die gewünschte Position bewegt werden konnte.
+ * Im Fehlerfall wird eine Exception geworfen. Die Position des Schreib-/Lesezeigers
+ * ist in diesem Fall undefiniert und sollte mittels FileObject::ftell verifiziert
+ * werden.
  */
-int FileObject::seek (ppluint64 position)
+ppluint64 FileObject::seek (ppluint64 position)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -659,12 +645,16 @@ int FileObject::seek (ppluint64 position)
  * @param offset Anzahl Bytes, die gesprungen werden soll.
  * @param origin Gibt die Richtung an, in die der Dateizeiger bewegt werden soll. Es kann einen
  * der folgenden Werte annehmen:
- * - SEEK_SET \p offset wird vom Beginn der Datei berechnet
- * - SEEK_CUR \p offset wird von der aktuellen Dateiposition gerechnet
- * - SEEK_END \p offset wird vom Ende der Datei aus nach vorne berechnet
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * - SEEKSET \p offset wird vom Beginn der Datei berechnet
+ * - SEEKCUR \p offset wird von der aktuellen Dateiposition gerechnet
+ * - SEEKEND \p offset wird vom Ende der Datei aus nach vorne berechnet
+ * \return Liefert die neue Position zurück, wenn der Dateizeiger erfolgreich auf
+ * die gewünschte Position bewegt werden konnte.
+ * Im Fehlerfall wird eine Exception geworfen. Die Position des Schreib-/Lesezeigers
+ * ist in diesem Fall undefiniert und sollte mittels FileObject::ftell verifiziert
+ * werden.
  */
-int FileObject::fseek (ppluint64 offset, SeekOrigin origin)
+ppluint64 FileObject::fseek (ppluint64 offset, SeekOrigin origin)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -675,7 +665,7 @@ int FileObject::fseek (ppluint64 offset, SeekOrigin origin)
  *
  * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird -1 zurückgegeben.
  */
-pplint64 FileObject::ftell()
+ppluint64 FileObject::ftell()
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -881,12 +871,12 @@ bool FileObject::eof() const
 
 /*!\brief Größe der geöffneten Datei
  *
+ * \desc
  * Diese Funktion liefert die Größe der geöffneten Datei in Bytes zurück.
- * \return Größe der Datei in Bytes, oder -1, wenn ein Fehler aufgetreten ist.
+ * \return Größe der Datei in Bytes. Falls Fehler auftreten, wird eine Exception geworfen.
  *
- * \note Die Funktion ist FileObject::Lof vorzuziehen.
  */
-pplint64 FileObject::size() const
+ppluint64 FileObject::size() const
 {
 	throw UnimplementedVirtualFunctionException();
 }
