@@ -384,11 +384,12 @@ class FileObject
 		const char			*map();
 		char				*load();
 		int					load(ByteArray &target);
+		String				md5();
 
 		// Virtuelle Funktionen
 		virtual void		close ();
 		virtual ppluint64	seek (ppluint64 position);
-		virtual	ppluint64	fseek (ppluint64 offset, SeekOrigin origin);
+		virtual	ppluint64	fseek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	ftell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
@@ -440,7 +441,7 @@ class MemFile : public FileObject
 		// Virtuelle Funktionen
 		virtual void		close();
 		virtual ppluint64	seek (ppluint64 position);
-		virtual	ppluint64	fseek (ppluint64 offset, SeekOrigin origin);
+		virtual	ppluint64	fseek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	ftell();
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
@@ -519,7 +520,7 @@ class File : public FileObject
 		// Virtuelle Funktionen
 		virtual void		close ();
 		virtual ppluint64	seek (ppluint64 position);
-		virtual	ppluint64	fseek (ppluint64 offset, int origin);
+		virtual	ppluint64	fseek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	ftell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);

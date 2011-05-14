@@ -74,6 +74,63 @@ TEST_F(FileReadTest, openNonexisting) {
 	ASSERT_THROW(f1.open("nonexisting.txt"), ppl7::File::FileNotFoundException);
 }
 
+TEST_F(FileReadTest, openExisting) {
+	ppl7::File f1;
+	ASSERT_NO_THROW(f1.open("../LICENSE.TXT"));
+}
+
+TEST_F(FileReadTest, size) {
+	ppl7::File f1;
+	f1.open("../LICENSE.TXT");
+	ASSERT_EQ((ppluint64)1540,f1.size());
+	ppl7::File f2;
+	f2.open("src/testfile.txt");
+	ASSERT_EQ((ppluint64)1592096,f2.size());
+
+}
+
+TEST_F(FileReadTest, openAndClose) {
+	ppl7::File f1;
+	f1.open("../LICENSE.TXT");
+	ASSERT_EQ((ppluint64)1540,f1.size());
+	f1.close();
+	f1.open("src/testfile.txt");
+	ASSERT_EQ((ppluint64)1592096,f1.size());
+
+}
+
+TEST_F(FileReadTest, md5) {
+	ppl7::File f1;
+	f1.open("src/testfile.txt");
+	ppl7::String digest=f1.md5();
+	ASSERT_EQ(ppl7::String(L"f386e5ea10bc186b633eaf6ba9a20d8c"),digest);
+}
+
+TEST_F(FileReadTest, seekAndTell) {
+	ppl7::File f1;
+	f1.open("src/testfile.txt");
+	f1.seek(45678);
+	ASSERT_EQ((ppluint64)45678,f1.ftell());
+	f1.seek(100);
+	ASSERT_EQ((ppluint64)100,f1.ftell());
+	f1.seek(1024*1024);
+	ASSERT_EQ((ppluint64)1024*1024,f1.ftell());
+}
+
+TEST_F(FileReadTest, fseekAndTell) {
+	ppl7::File f1;
+	f1.open("src/testfile.txt");
+	f1.fseek(45678,ppl7::File::SEEKSET);
+	ASSERT_EQ((ppluint64)45678,f1.ftell());
+	f1.fseek(100,ppl7::File::SEEKCUR);
+	ASSERT_EQ((ppluint64)45778,f1.ftell());
+	f1.fseek(-1000,ppl7::File::SEEKCUR);
+	ASSERT_EQ((ppluint64)44778,f1.ftell());
+	f1.fseek(-1000,ppl7::File::SEEKEND);
+	ASSERT_EQ((ppluint64)1591096,f1.ftell());
+}
+
+
 
 }
 

@@ -601,15 +601,15 @@ ppluint64 File::seek(ppluint64 position)
  * @return Bei Erfolg gibt die Funktion die tatsächliche Position zurück,
  * im Fehlerfall wird eine Exception geworfen.
  */
-ppluint64 File::fseek (ppluint64 offset, int origin )
+ppluint64 File::fseek (pplint64 offset, SeekOrigin origin )
 {
 	int suberr;
 	if (ff!=NULL) {
 		#ifdef WIN32FILES
 			int o=FILE_BEGIN;
-			if (origin==SEEK_CUR) o=FILE_CURRENT;
-			if (origin==SEEK_END) o=FILE_END;
-			if (origin==SEEK_SET) o=FILE_BEGIN;
+			if (origin==SEEKCUR) o=FILE_CURRENT;
+			if (origin==SEEKEND) o=FILE_END;
+			if (origin==SEEKSET) o=FILE_BEGIN;
 			LARGE_INTEGER in,out;
 			in.QuadPart=offset;
 			if (SetFilePointerEx((HANDLE)ff,in,&out,o)) {
@@ -623,7 +623,21 @@ ppluint64 File::fseek (ppluint64 offset, int origin )
 			p=(fpos_t) offset;
 			suberr=::fseeko((FILE*)ff,p,origin);
 		#else
-			suberr=::fseek((FILE*)ff,(long)offset,origin);
+			int o=0;
+			switch (origin) {
+				case File::SEEKCUR:
+					o=SEEK_CUR;
+					break;
+				case File::SEEKSET:
+					o=SEEK_SET;
+					break;
+				case File::SEEKEND:
+					o=SEEK_END;
+					break;
+				default:
+					throw IllegalArgumentException();
+			}
+			suberr=::fseek((FILE*)ff,(long)offset,o);
 		#endif
 		if (suberr==0) {
 			pos=ftell();

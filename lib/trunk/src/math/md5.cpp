@@ -456,6 +456,34 @@ String ByteArrayPtr::md5() const
 	return ret;
 }
 
+String FileObject::md5()
+{
+	String ret;
+	if (!isOpen()) throw FileNotOpenException();
+	char *buffer=(char*) malloc(1024*1024);
+	if (!buffer) throw OutOfMemoryException();
+	char tmp[33];
+	MD5_CTX ctx;
+	MD5Init(&ctx);
+	ppluint64 oldpos=ftell();
+	seek(0);
+	ppluint64 s=size();
+	ppluint64 p=0;
+	size_t len=1024*1024;
+	while (p<s) {
+		if (p+len>s) len=s-p;
+		fread(buffer,1,len);
+		p+=len;
+		MD5Update(&ctx,(const unsigned char *)buffer,len);
+	}
+	free(buffer);
+	seek(oldpos);
+	MD5End(&ctx, tmp);
+	tmp[32]=0;
+	ret=tmp;
+	return ret;
+}
+
 
 
 /*

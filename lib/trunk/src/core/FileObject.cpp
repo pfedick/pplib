@@ -654,7 +654,7 @@ ppluint64 FileObject::seek (ppluint64 position)
  * ist in diesem Fall undefiniert und sollte mittels FileObject::ftell verifiziert
  * werden.
  */
-ppluint64 FileObject::fseek (ppluint64 offset, SeekOrigin origin)
+ppluint64 FileObject::fseek (pplint64 offset, SeekOrigin origin)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -990,7 +990,7 @@ int FileObject::lockShared(bool block)
  * gesperrt werden kann (block=true) oder sofort mit einer Fehlermeldung
  * zurückkehren soll (block=false).
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- *
+ *int o=0;
  * \see Siehe auch FileObject::LockShared und FileObject::Unlock
  */
 int FileObject::lockExclusive(bool block)

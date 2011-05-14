@@ -226,7 +226,7 @@ ppluint64 MemFile::seek(ppluint64 position)
 	throw FileNotOpenException();
 }
 
-ppluint64 MemFile::fseek (ppluint64 offset, SeekOrigin origin )
+ppluint64 MemFile::fseek (pplint64 offset, SeekOrigin origin )
 {
 	if (MemBase!=NULL) {
 		ppluint64 oldpos=pos;
