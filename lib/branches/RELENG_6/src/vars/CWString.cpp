@@ -3377,7 +3377,7 @@ wchar_t CWString::operator[](int pos)
 {
 	if (!len) return 0;
 	if (!buffer) return 0;
-	if (pos>(int)len) return 0;
+	if (pos>=(int)len) return 0;
 	if (pos<0) pos=(int)len+pos;
 	if (pos<0) return 0;
 	return buffer[pos];
@@ -3399,7 +3399,7 @@ wchar_t CWString::GetChar(int pos) const
  */
 {
 	if (!len) return 0;
-	if (pos>(int)len) return 0;
+	if (pos>=(int)len) return 0;
 	if (pos<0) pos=(int)len+pos;
 	if (pos<0) return 0;
 	return buffer[pos];
