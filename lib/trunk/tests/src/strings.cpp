@@ -754,6 +754,95 @@ TEST_F(StringTest, repeated) {
 	ASSERT_TRUE(s2==s3) << "String has unexpected value";
 }
 
+TEST_F(StringTest, trimLeft) {
+	ppl7::String s1(L"\n\n    abc  \n");
+	s1.trimLeft();
+	ASSERT_EQ((size_t)6,s1.size());
+	ASSERT_EQ(ppl7::String(L"abc  \n"),s1);
+}
+
+TEST_F(StringTest, trimRight) {
+	ppl7::String s1(L" \n  abc  \n");
+	s1.trimRight();
+	ASSERT_EQ((size_t)7,s1.size());
+	ASSERT_EQ(ppl7::String(L" \n  abc"),s1);
+}
+
+TEST_F(StringTest, trim) {
+	ppl7::String s1(L"\n\n    abc  \n");
+	s1.trim();
+	ASSERT_EQ((size_t)3,s1.size());
+	ASSERT_EQ(ppl7::String(L"abc"),s1);
+}
+
+TEST_F(StringTest, trimLeftEmptyResult) {
+	ppl7::String s1(L"\n\n   \n   \n");
+	s1.trimLeft();
+	ASSERT_EQ((size_t)0,s1.size());
+	ASSERT_EQ(ppl7::String(L""),s1);
+}
+
+TEST_F(StringTest, trimRightEmptyResult) {
+	ppl7::String s1(L"\n\n   \n   \n");
+	s1.trimRight();
+	ASSERT_EQ((size_t)0,s1.size());
+	ASSERT_EQ(ppl7::String(L""),s1);
+}
+
+TEST_F(StringTest, trimEmptyResult) {
+	ppl7::String s1(L"\n\n   \n   \n");
+	s1.trim();
+	ASSERT_EQ((size_t)0,s1.size());
+	ASSERT_EQ(ppl7::String(L""),s1);
+}
+
+TEST_F(StringTest, trimLeftChars) {
+	ppl7::String s1(L"\n\n    abc  \n");
+	s1.trimLeft(L" \n");
+	ASSERT_EQ((size_t)6,s1.size());
+	ASSERT_EQ(ppl7::String(L"abc  \n"),s1);
+}
+
+TEST_F(StringTest, trimRightChars) {
+	ppl7::String s1(L" \n  abc  \n");
+	s1.trimRight(L" \n");
+	ASSERT_EQ((size_t)7,s1.size());
+	ASSERT_EQ(ppl7::String(L" \n  abc"),s1);
+}
+
+TEST_F(StringTest, trimChars) {
+	ppl7::String s1(L"\n\n    abc  \n");
+	s1.trim(L" \n");
+	ASSERT_EQ((size_t)3,s1.size());
+	ASSERT_EQ(ppl7::String(L"abc"),s1);
+}
+
+TEST_F(StringTest, trimLeftCharsEmptyResult) {
+	ppl7::String s1(L"\n\n   \n   \n");
+	s1.trimLeft(L" \n");
+	ASSERT_EQ((size_t)0,s1.size());
+	ASSERT_EQ(ppl7::String(L""),s1);
+}
+
+TEST_F(StringTest, trimRightCharsEmptyResult) {
+	ppl7::String s1(L"\n\n   \n   \n");
+	s1.trimRight(L" \n");
+	ASSERT_EQ((size_t)0,s1.size());
+	ASSERT_EQ(ppl7::String(L""),s1);
+}
+
+TEST_F(StringTest, trimEmptyCharsResult) {
+	ppl7::String s1(L"\n\n   \n   \n");
+	s1.trim(L" \n");
+	ASSERT_EQ((size_t)0,s1.size());
+	ASSERT_EQ(ppl7::String(L""),s1);
+}
+
+TEST_F(StringTest, strcmpEmpty) {
+	ppl7::String s1(L"");
+	ppl7::String s2(L"");
+	ASSERT_EQ(s1,s2);
+}
 
 }
 
