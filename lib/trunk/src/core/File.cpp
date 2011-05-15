@@ -704,7 +704,7 @@ size_t File::fread(void * ptr, size_t size, size_t nmemb)
 	if (ptr==NULL) throw IllegalArgumentException();
 	size_t by=::fread(ptr,size,nmemb,(FILE*)ff);
 	pos+=(by*size);
-	if (by<nmemb) {
+	if (by==0) {
 		if (::feof((FILE*)ff)) throw EndOfFileException();
 		throwErrno(filename());
 	}
@@ -775,7 +775,7 @@ ppluint64 File::doCopy (FileObject &quellfile, ppluint64 bytes)
 
 /*!\brief String lesen
  *
- * Gets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
+ * %fgets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
  * sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt nach einem
  * EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
  * er in dem Puffer gespeichert. Am Ende der gelesenen Daten wird ein
@@ -837,7 +837,7 @@ wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 		if (::feof((FILE*)ff)) throw EndOfFileException();
 		else throwErrno(filename());
 	}
-	ppluint64 by=(ppluint64)wcslen(buffer);
+	ppluint64 by=(ppluint64)wcslen(buffer)*sizeof(wchar_t);
 	pos+=by;
 	return buffer;
 #endif

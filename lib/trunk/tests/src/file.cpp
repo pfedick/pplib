@@ -130,6 +130,75 @@ TEST_F(FileReadTest, fseekAndTell) {
 	ASSERT_EQ((ppluint64)1591096,f1.ftell());
 }
 
+TEST_F(FileReadTest, fread1024) {
+	ppl7::File f1;
+	ppl7::ByteArray ba;
+	ba.malloc(1024);
+	f1.open("src/testfile.txt");
+	f1.fread((void*)ba.adr(),1,1024);
+	//ba.hexDump();
+	ASSERT_EQ(ppl7::String(L"21ab51148e28167d5ce13bee07493a56"),ba.md5());
+	// load the next chunk
+	f1.fread((void*)ba.adr(),1,1024);
+	//ba.hexDump();
+	ASSERT_EQ(ppl7::String(L"468f6fd12d69be054643ef2ca1a19cba"),ba.md5());
+}
+
+TEST_F(FileReadTest, freadUntilEof) {
+	ppl7::File f1;
+	ppl7::ByteArray ba;
+	ba.malloc(1024);
+	f1.open("src/testfile.txt");
+	ppluint64 bytes=0;
+	ASSERT_THROW({
+		while (1) {
+			bytes+=f1.fread((void*)ba.adr(),1,1024);
+		}
+	}, ppl7::File::EndOfFileException);
+	ASSERT_EQ((ppluint64) 1592096, bytes);
+}
+
+TEST_F(FileReadTest, fgets) {
+	ppl7::File f1;
+	ppl7::ByteArray ba;
+	ba.malloc(1024);
+	char *buffer=(char*)ba.adr();
+	f1.open("src/testfile.txt");
+	char *ret;
+	ASSERT_NO_THROW({
+		ret=f1.fgets(buffer,1024);
+	});
+	ASSERT_EQ(ret, buffer);
+	size_t len=strlen(ret);
+	//printf (">>%s<< len=%zi\n",ret,strlen(ret));
+	ASSERT_EQ((size_t) 47, len);
+}
+
+TEST_F(FileReadTest, gets) {
+	ppl7::File f1;
+	ppl7::String s;
+	f1.open("src/testfile.txt");
+	ASSERT_NO_THROW({
+		s=f1.gets();
+	});
+	s.trimRight();
+	ASSERT_EQ(ppl7::String(L"                    GNU GENERAL PUBLIC LICENSE"),s);
+	ASSERT_NO_THROW({
+		s=f1.gets();
+	});
+	s.trimRight();
+	ASSERT_EQ(ppl7::String(L"                       Version 2, June 1991"),s);
+	ASSERT_NO_THROW({
+		s=f1.gets();
+	});
+	s.trimRight();
+	ASSERT_EQ(ppl7::String(L""),s);
+	ASSERT_NO_THROW({
+		s=f1.gets();
+	});
+	s.trimRight();
+	ASSERT_EQ(ppl7::String(L" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"),s);
+}
 
 
 }
