@@ -1688,8 +1688,8 @@ int String::strcmp(const String &str, size_t size) const
 {
 	const wchar_t *mystr=ptr;
 	const wchar_t *otherstr=str.ptr;
-	if (!mystr) mystr=L"";
-	if (!otherstr) otherstr=L"";
+	if (stringlen==0) mystr=L"";
+	if (str.stringlen==0) otherstr=L"";
 	if (size!=(size_t)-1) return wcsncmp(mystr,otherstr,size);
 	return wcscmp(mystr,otherstr);
 }
@@ -1708,8 +1708,8 @@ int String::strcasecmp(const String &str, size_t size) const
 {
 	const wchar_t *mystr=ptr;
 	const wchar_t *otherstr=str.ptr;
-	if (!mystr) mystr=L"";
-	if (!otherstr) otherstr=L"";
+	if (stringlen==0) mystr=L"";
+	if (str.stringlen==0) otherstr=L"";
 #ifdef HAVE_WCSCASECMP
 	if (size) return wcsncasecmp(mystr,otherstr,size);
 	return wcscasecmp(mystr,otherstr);
@@ -1907,15 +1907,16 @@ void String::trimRight()
 {
 	if (ptr!=NULL && stringlen>0) {
 		size_t i,ende;
-		ende=stringlen;
-		for (i=0;i<stringlen;i++) {
-			if (ptr[i]==13 || ptr[i]==10 || ptr[i]==32 || ptr[i]=='\t') {
-				//if (s==0) start=i+1;
-			} else {
+		wchar_t w;
+		ende=0;
+		for (i=stringlen;i>0;i--) {
+			w=ptr[i-1];
+			if (w!=13 && w!=10 && w!=32 && w!='\t') {
 				ende=i;
+				break;
 			}
 		}
-		ptr[ende+1]=0;
+		ptr[ende]=0;
 		stringlen=wcslen(ptr);
 		ptr[stringlen]=0;
 	}
@@ -1954,11 +1955,13 @@ void String::trimRight(const String &chars)
 	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
 		size_t i,ende,z;
 		int match;
-		ende=stringlen;
-		for (i=0;i<stringlen;i++) {
+		wchar_t w;
+		ende=0;
+		for (i=stringlen;i>0;i--) {
+			w=ptr[i-1];
 			match=0;
 			for (z=0;z<chars.stringlen;z++) {
-				if (ptr[i]==chars.ptr[z]) {
+				if (w==chars.ptr[z]) {
 					//if (s==0) start=i+1;
 					match=1;
 					break;
@@ -1966,9 +1969,10 @@ void String::trimRight(const String &chars)
 			}
 			if (!match) {
 				ende=i;
+				break;
 			}
 		}
-		ptr[ende+1]=0;
+		ptr[ende]=0;
 		stringlen=wcslen(ptr);
 	}
 }
