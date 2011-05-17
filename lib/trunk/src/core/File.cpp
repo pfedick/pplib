@@ -1411,7 +1411,7 @@ void File::erase()
 	String Filename=filename();
 	close();
 	if (Filename.size()>0) {
-		DeleteFile(Filename);
+		deleteFile(Filename);
 	}
 }
 

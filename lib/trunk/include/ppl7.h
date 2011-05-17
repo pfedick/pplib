@@ -549,19 +549,19 @@ class File : public FileObject
 
 
 		// Static Functions
-		static int Truncate(const String &filename, ppluint64 bytes);
-		static int Exists(const String &filename);
-		static int CopyFile(const String &oldfile, const String &newfile);
-		static int MoveFile(const String &oldfile, const String &newfile);
-		static int LoadFile(ByteArray &object, const String &filename);
-		static void *LoadFile(const String &filename, size_t *size=NULL);
-		static int DeleteFile(const String &filename);
-		static int TouchFile(const String &filename);
-		static int WriteFile(const void *content, size_t size, const String &filename);
-		static int WriteFile(const ByteArrayPtr &object, const String &filename);
-		static int RenameFile(const String &oldfile, const String &newfile);
-		static int FileAttr(int attr, const String &filename);
-		static int Chmod(const String &filename, int attr);
+		static int truncate(const String &filename, ppluint64 bytes);
+		static int exists(const String &filename);
+		static int copyFile(const String &oldfile, const String &newfile);
+		static int moveFile(const String &oldfile, const String &newfile);
+		static int loadFile(ByteArray &object, const String &filename);
+		static void *loadFile(const String &filename, size_t *size=NULL);
+		static int deleteFile(const String &filename);
+		static int touchFile(const String &filename);
+		static int writeFile(const void *content, size_t size, const String &filename);
+		static int writeFile(const ByteArrayPtr &object, const String &filename);
+		static int renameFile(const String &oldfile, const String &newfile);
+		static int fileAttr(int attr, const String &filename);
+		static int chmod(const String &filename, int attr);
 		//static int Stat(const char *filename, CDirEntry &result);
 };
 
