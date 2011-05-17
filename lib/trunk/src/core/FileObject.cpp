@@ -357,17 +357,6 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
 	return (doCopy (quellfile,bytes));
 }
 
-char * FileObject::gets (char *buffer, size_t num)
-{
-	return fgets(buffer,num);
-}
-
-wchar_t* FileObject::getws (wchar_t *buffer, size_t num)
-{
-	return fgetws(buffer,num);
-}
-
-
 /*!\brief String lesen
  *
  * Gets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
@@ -389,7 +378,7 @@ int FileObject::gets (String &buffer, size_t num)
 	if (!b) throw OutOfMemoryException();
 	char *ret;
 	try {
-		ret=fgets(b,num);
+		ret=gets(b,num);
 	} catch (...) {
 		free(b);
 		throw;
@@ -445,7 +434,7 @@ int FileObject::getws (String &buffer, size_t num)
 	if (!b) throw OutOfMemoryException();
 	wchar_t *ret;
 	try {
-		ret=fgetws(b,num);
+		ret=getws(b,num);
 	} catch (...) {
 		free(b);
 		throw;
@@ -490,7 +479,7 @@ String FileObject::getws (size_t num)
  * @param ... Optionale Parameter, die im Formatierungsstring verwendet werden.
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
-int FileObject::putsf (const char *fmt, ... )
+void FileObject::putsf (const char *fmt, ... )
 {
 	if (!fmt) throw IllegalArgumentException();
 	String str;
@@ -498,7 +487,7 @@ int FileObject::putsf (const char *fmt, ... )
 	va_start(args, fmt);
 	str.vasprintf(fmt, args);
 	va_end(args);
-	return puts(str);
+	puts(str);
 }
 
 /*!\brief String schreiben
@@ -509,7 +498,7 @@ int FileObject::putsf (const char *fmt, ... )
  * @param str String-Objekt mit den zu schreibenden Daten
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
-int FileObject::puts (const String &str)
+void FileObject::puts (const String &str)
 {
 	return puts((const char*)str.toLocalEncoding());
 }
@@ -522,7 +511,7 @@ int FileObject::puts (const String &str)
  * @param str String-Objekt mit den zu schreibenden Daten
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
-int FileObject::putws (const String &str)
+void FileObject::putws (const String &str)
 {
 	return putws((const wchar_t*)str);
 }
@@ -654,7 +643,7 @@ ppluint64 FileObject::seek (ppluint64 position)
  * ist in diesem Fall undefiniert und sollte mittels FileObject::ftell verifiziert
  * werden.
  */
-ppluint64 FileObject::fseek (pplint64 offset, SeekOrigin origin)
+ppluint64 FileObject::seek (pplint64 offset, SeekOrigin origin)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -665,7 +654,7 @@ ppluint64 FileObject::fseek (pplint64 offset, SeekOrigin origin)
  *
  * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird -1 zurückgegeben.
  */
-ppluint64 FileObject::ftell()
+ppluint64 FileObject::tell()
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -744,7 +733,7 @@ ppluint64 FileObject::doCopy (FileObject &quellfile, ppluint64 bytes)
  * @param num Anzahl zu lesender Zeichen
  * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
  */
-char *FileObject::fgets (char *buffer, size_t num)
+char *FileObject::gets (char *buffer, size_t num)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -766,7 +755,7 @@ char *FileObject::fgets (char *buffer, size_t num)
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-wchar_t *FileObject::fgetws (wchar_t *buffer, size_t num)
+wchar_t *FileObject::getws (wchar_t *buffer, size_t num)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -779,7 +768,7 @@ wchar_t *FileObject::fgetws (wchar_t *buffer, size_t num)
  * @param str Pointer auf den zu schreibenden String
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
-int FileObject::puts (const char *str)
+void FileObject::puts (const char *str)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -796,7 +785,7 @@ int FileObject::puts (const char *str)
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  *
  */
-int FileObject::putws (const wchar_t *str)
+void FileObject::putws (const wchar_t *str)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -810,7 +799,7 @@ int FileObject::putws (const wchar_t *str)
  * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
  * im Fehlerfall -1;
  */
-int FileObject::putc (int c)
+void FileObject::putc (int c)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -837,7 +826,7 @@ int FileObject::getc()
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-int FileObject::putwc (wchar_t c)
+void FileObject::putwc (wchar_t c)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -905,7 +894,7 @@ int FileObject::getFileNo() const
  *
  * @return Bei erfolgreicher Ausführung wird 1 zurückgegeben, ansonsten 0.
  */
-int FileObject::flush()
+void FileObject::flush()
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -928,7 +917,7 @@ int FileObject::flush()
  *
  * @since Die Funktion wurde mit Version 6.2.5 eingeführt
  */
-int FileObject::sync()
+void FileObject::sync()
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -944,9 +933,8 @@ int FileObject::sync()
  * Der Dateizeiger wird nicht verändert. Die Datei muss zum Schreiben geöffnet sein.
  *
  * @param length Position, an der die Datei abgeschnitten werden soll.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int FileObject::truncate(ppluint64 length)
+void FileObject::truncate(ppluint64 length)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -974,9 +962,9 @@ bool FileObject::isOpen() const
  * zurückkehren soll (block=false).
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  *
- * \see Siehe auch FileObject::LockExclusive und FileObject::Unlock
+ * \see Siehe auch FileObject::lockExclusive und FileObject::Unlock
  */
-int FileObject::lockShared(bool block)
+void FileObject::lockShared(bool block)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -991,9 +979,9 @@ int FileObject::lockShared(bool block)
  * zurückkehren soll (block=false).
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  *int o=0;
- * \see Siehe auch FileObject::LockShared und FileObject::Unlock
+ * \see Siehe auch FileObject::lockShared und FileObject::Unlock
  */
-int FileObject::lockExclusive(bool block)
+void FileObject::lockExclusive(bool block)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -1006,9 +994,9 @@ int FileObject::lockExclusive(bool block)
  *
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  *
- * \see Siehe auch FileObject::LockShared und FileObject::LockExclusive
+ * \see Siehe auch FileObject::lockShared und FileObject::lockExclusive
  */
-int FileObject::unlock()
+void FileObject::unlock()
 {
 	throw UnimplementedVirtualFunctionException();
 }

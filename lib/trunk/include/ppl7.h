@@ -374,13 +374,11 @@ class FileObject
 		ppluint64			copy (FileObject &quellfile, ppluint64 bytes);
 		int					gets (String &buffer, size_t num=1024);
 		int					getws (String &buffer, size_t num=1024);
-		char *				gets (char *buffer, size_t num=1024);
-		wchar_t*			getws (wchar_t *buffer, size_t num=1024);
 		String				gets (size_t num=1024);
 		String				getws (size_t num=1024);
-		int					putsf (const char *fmt, ... );
-		int					puts (const String &str);
-		int					putws (const String &str);
+		void				putsf (const char *fmt, ... );
+		void				puts (const String &str);
+		void				putws (const String &str);
 		const char			*map();
 		char				*load();
 		int					load(ByteArray &target);
@@ -389,19 +387,19 @@ class FileObject
 		// Virtuelle Funktionen
 		virtual void		close ();
 		virtual ppluint64	seek (ppluint64 position);
-		virtual	ppluint64	fseek (pplint64 offset, SeekOrigin origin);
-		virtual ppluint64	ftell();
+		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
+		virtual ppluint64	tell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
-		virtual char *		fgets (char *buffer, size_t num=1024);
-		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
-		virtual	int			putc (int c);
+		virtual char *		gets (char *buffer, size_t num=1024);
+		virtual wchar_t*	getws (wchar_t *buffer, size_t num=1024);
+		virtual void		puts (const char *str);
+		virtual void		putws (const wchar_t *str);
+		virtual	void		putc (int c);
 		virtual	int			getc();
-		virtual	int			putwc (wchar_t c);
+		virtual	void		putwc (wchar_t c);
 		virtual	wchar_t		getwc();
-		virtual int			puts (const char *str);
-		virtual int			putws (const wchar_t *str);
 		virtual bool		eof() const;
 		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
@@ -409,13 +407,13 @@ class FileObject
 		virtual	void		unmap();
 		virtual void		setMapReadAhead(size_t bytes);
 		virtual int			getFileNo() const;
-		virtual int			flush();
-		virtual int			sync();
-		virtual int			truncate(ppluint64 length);
+		virtual void		flush();
+		virtual void		sync();
+		virtual void		truncate(ppluint64 length);
 		virtual bool		isOpen() const;
-		virtual int			lockShared(bool block=true);
-		virtual int			lockExclusive(bool block=true);
-		virtual int			unlock();
+		virtual void		lockShared(bool block=true);
+		virtual void		lockExclusive(bool block=true);
+		virtual void		unlock();
 };
 
 
@@ -441,19 +439,19 @@ class MemFile : public FileObject
 		// Virtuelle Funktionen
 		virtual void		close();
 		virtual ppluint64	seek (ppluint64 position);
-		virtual	ppluint64	fseek (pplint64 offset, SeekOrigin origin);
-		virtual ppluint64	ftell();
+		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
+		virtual ppluint64	tell();
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
-		virtual char *		fgets (char *buffer, size_t num=1024);
-		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
-		virtual	int			putc (int c);
+		virtual char *		gets (char *buffer, size_t num=1024);
+		virtual wchar_t*	getws (wchar_t *buffer, size_t num=1024);
+		virtual	void		putc (int c);
 		virtual	int			getc();
-		virtual	int			putwc (wchar_t c);
+		virtual	void		putwc (wchar_t c);
 		virtual	wchar_t		getwc();
-		virtual int			puts (const char *str);
-		virtual int			putws (const wchar_t *str);
+		virtual void		puts (const char *str);
+		virtual void		putws (const wchar_t *str);
 		virtual bool		eof() const;
 		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
@@ -461,8 +459,8 @@ class MemFile : public FileObject
 		virtual	void		unmap();
 		virtual void		setMapReadAhead(size_t bytes);
 		//virtual int		GetFileNo() const;
-		virtual int			flush();
-		virtual int			sync();
+		virtual void		flush();
+		virtual void		sync();
 		//virtual int		Truncate(ppluint64 length);
 		virtual bool		isOpen() const;
 		//virtual int		LockShared(bool block=true);
@@ -500,6 +498,7 @@ class File : public FileObject
 	private:
 		const char *fmode(FileMode mode);
 		static void throwErrno(const String &filename);
+		void throwErrno();
 
 	public:
 
@@ -520,36 +519,33 @@ class File : public FileObject
 		// Virtuelle Funktionen
 		virtual void		close ();
 		virtual ppluint64	seek (ppluint64 position);
-		virtual	ppluint64	fseek (pplint64 offset, SeekOrigin origin);
-		virtual ppluint64	ftell();
+		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
+		virtual ppluint64	tell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
 		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
-		virtual char *		fgets (char *buffer, size_t num=1024);
-		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual char *		gets (char *buffer, size_t num=1024);
+		virtual wchar_t*	getws (wchar_t *buffer, size_t num=1024);
 		virtual ppluint64	size() const;
 		virtual bool		isOpen() const;
-		/*
-		virtual	int			putc (int c);
+		virtual void		puts (const char *str);
+		virtual void		putws (const wchar_t *str);
+		virtual	void		putc (int c);
 		virtual	int			getc();
-		virtual	int			putwc (wchar_t c);
+		virtual	void		putwc (wchar_t c);
 		virtual	wchar_t		getwc();
-		virtual int			puts (const char *str);
-		virtual int			putws (const wchar_t *str);
 		virtual bool		eof() const;
+		virtual int			getFileNo() const;
+		virtual void		flush();
+		virtual void		sync();
+		virtual void		truncate(ppluint64 length);
+		virtual void		lockShared(bool block=true);
+		virtual void		lockExclusive(bool block=true);
+		virtual void		unlock();
+		virtual void		setMapReadAhead(size_t bytes);
 		virtual const char	*map(ppluint64 position, size_t size);
 		virtual char		*mapRW(ppluint64 position, size_t size);
 		virtual	void		unmap();
-		virtual int			getFileNo() const;
-		virtual void		setMapReadAhead(size_t bytes);
-		virtual int			flush();
-		virtual int			sync();
-		virtual int			truncate(ppluint64 length);
-
-		virtual int			lockShared(bool block=true);
-		virtual int			lockExclusive(bool block=true);
-		virtual int			unlock();
-		*/
 
 
 		// Static Functions

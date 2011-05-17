@@ -226,7 +226,7 @@ ppluint64 MemFile::seek(ppluint64 position)
 	throw FileNotOpenException();
 }
 
-ppluint64 MemFile::fseek (pplint64 offset, SeekOrigin origin )
+ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 {
 	if (MemBase!=NULL) {
 		ppluint64 oldpos=pos;
@@ -252,7 +252,7 @@ ppluint64 MemFile::fseek (pplint64 offset, SeekOrigin origin )
 	throw FileNotOpenException();
 }
 
-ppluint64 MemFile::ftell()
+ppluint64 MemFile::tell()
 {
 	if (MemBase!=NULL) {
 		return pos;
@@ -291,9 +291,9 @@ ppluint64 MemFile::doCopy (FileObject &quellfile, ppluint64 bytes)
 		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
 		if (buffer==NULL) throw OutOfMemoryException();
 	}
-	if (quellfile.size()>quellfile.ftell()) {
-		if (quellfile.ftell()+(pplint64)bytes>quellfile.size()) {
-			bytes=(ppluint64)quellfile.size()-(ppluint64)quellfile.ftell();
+	if (quellfile.size()>quellfile.tell()) {
+		if (quellfile.tell()+(pplint64)bytes>quellfile.size()) {
+			bytes=(ppluint64)quellfile.size()-(ppluint64)quellfile.tell();
 		}
 		ppluint64 rest=bytes;
 		ppluint32 by;
@@ -307,7 +307,7 @@ ppluint64 MemFile::doCopy (FileObject &quellfile, ppluint64 bytes)
 	return bytes;
 }
 
-char *MemFile::fgets (char *buffer1, size_t num)
+char *MemFile::gets (char *buffer1, size_t num)
 {
 	if (MemBase!=NULL) {
 		if (pos>=mysize) throw EndOfFileException();
@@ -330,7 +330,7 @@ char *MemFile::fgets (char *buffer1, size_t num)
 	throw FileNotOpenException();
 }
 
-wchar_t *MemFile::fgetws (wchar_t *buffer1, size_t num)
+wchar_t *MemFile::getws (wchar_t *buffer1, size_t num)
 {
 	if (MemBase!=NULL) {
 		if (pos>=mysize) throw EndOfFileException();
@@ -353,40 +353,40 @@ wchar_t *MemFile::fgetws (wchar_t *buffer1, size_t num)
 	throw FileNotOpenException();
 }
 
-int MemFile::puts (const char *str)
+void MemFile::puts (const char *str)
 {
 	if (MemBase!=NULL) {
 		fwrite ((void*)str,1,(ppluint32)strlen(str));
-		return 1;
+		return;
 	}
 	throw FileNotOpenException();
 }
 
-int MemFile::putws (const wchar_t *str)
+void MemFile::putws (const wchar_t *str)
 {
 	if (MemBase!=NULL) {
 		fwrite (str,1,(ppluint32)wcslen(str)*sizeof(wchar_t));
-		return 1;
+		return;
 	}
 	throw FileNotOpenException();
 }
 
-int MemFile::putc(int c)
+void MemFile::putc(int c)
 {
 	if (MemBase!=NULL) {
 		MemBase[pos++]=(ppluint8)c;
-		return c;
+		return;
 	}
 	throw FileNotOpenException();
 }
 
-int MemFile::putwc(wchar_t c)
+void MemFile::putwc(wchar_t c)
 {
 	if (MemBase!=NULL) {
 		wchar_t *a=(wchar_t*)(MemBase+pos);
 		pos++;
 		a[0]=c;
-		return c;
+		return;
 	}
 	throw FileNotOpenException();
 }
@@ -452,14 +452,14 @@ void MemFile::unmap()
 }
 
 
-int MemFile::flush()
+void MemFile::flush()
 {
-	return 1;
+	return;
 }
 
-int MemFile::sync()
+void MemFile::sync()
 {
-	return 1;
+	return;
 }
 
 

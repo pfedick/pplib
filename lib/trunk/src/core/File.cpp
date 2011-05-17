@@ -295,6 +295,11 @@ void File::throwErrno(const String &filename)
 	}
 }
 
+void File::throwErrno()
+{
+	throwErrno(filename());
+}
+
 /*!\brief Datei öffnen
  *
  * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
@@ -570,11 +575,11 @@ ppluint64 File::seek(ppluint64 position)
 			int ret;
 			if ((ret=::fsetpos((FILE*)ff,&p))!=0) {
 				int errnosave=errno;
-				pos=ftell();
+				pos=tell();
 				errno=errnosave;
 				throwErrno(filename());
 			}
-			pos=ftell();
+			pos=tell();
 		#endif
 		if (pos!=position) throw FileSeekException();
 		return pos;
@@ -601,7 +606,7 @@ ppluint64 File::seek(ppluint64 position)
  * @return Bei Erfolg gibt die Funktion die tatsächliche Position zurück,
  * im Fehlerfall wird eine Exception geworfen.
  */
-ppluint64 File::fseek (pplint64 offset, SeekOrigin origin )
+ppluint64 File::seek (pplint64 offset, SeekOrigin origin )
 {
 	int suberr;
 	if (ff!=NULL) {
@@ -640,7 +645,7 @@ ppluint64 File::fseek (pplint64 offset, SeekOrigin origin )
 			suberr=::fseek((FILE*)ff,(long)offset,o);
 		#endif
 		if (suberr==0) {
-			pos=ftell();
+			pos=tell();
 			return pos;
 		}
 		throwErrno(filename());
@@ -656,7 +661,7 @@ ppluint64 File::fseek (pplint64 offset, SeekOrigin origin )
  * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird eine
  * Exception geworfen
  */
-ppluint64 File::ftell()
+ppluint64 File::tell()
 {
 	if (ff!=NULL) {
 		#ifdef WIN32FILES
@@ -756,9 +761,9 @@ ppluint64 File::doCopy (FileObject &quellfile, ppluint64 bytes)
 		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
 		if (buffer==NULL) throw OutOfMemoryException();
 	}
-	if (quellfile.size()>quellfile.ftell()) {
-		if ((quellfile.ftell()+(ppluint64)bytes)>quellfile.size()) {
-			bytes=quellfile.size()-quellfile.ftell();
+	if (quellfile.size()>quellfile.tell()) {
+		if ((quellfile.tell()+(ppluint64)bytes)>quellfile.size()) {
+			bytes=quellfile.size()-quellfile.tell();
 		}
 		ppluint64 rest=bytes;
 		ppluint64 by;
@@ -787,7 +792,7 @@ ppluint64 File::doCopy (FileObject &quellfile, ppluint64 bytes)
  * @param num Anzahl zu lesender Zeichen
  * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
  */
-char * File::fgets (char *buffer, size_t num)
+char * File::gets (char *buffer, size_t num)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (buffer==NULL) throw IllegalArgumentException();
@@ -822,12 +827,12 @@ char * File::fgets (char *buffer, size_t num)
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  *
  */
-wchar_t *File::fgetws (wchar_t *buffer, size_t num)
+wchar_t *File::getws (wchar_t *buffer, size_t num)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (buffer==NULL) throw IllegalArgumentException();
 #ifndef HAVE_FGETWS
-	throw UnsupportedFeatureException("ppl7::File::fgetws: No fgetws available");
+	throw UnsupportedFeatureException("ppl7::File::getws: No fgetws available");
 #else
 	int suberr;
 	wchar_t *res;
@@ -843,29 +848,6 @@ wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 #endif
 }
 
-int File::munmap(void *addr, size_t len)
-{
-	if (!addr) return 1;
-#ifdef HAVE_MMAP
-	::munmap(addr, len);
-#else
-	if ((LastMapProtection&2)) {			// Speicher war schreibbar und muss
-		if (Seek(LastMapStart)) {		// Zurückgeschrieben werden
-			fwrite(MapBase,1,len);
-		}
-	}
-	free (MapBase);
-#endif
-	LastMapStart=LastMapSize=0;
-	MapBase=NULL;
-	LastMapProtection=0;
-	return 1;
-}
-
-
-#ifdef TODO
-
-int File::Puts (const char *str)
 /*!\brief String schreiben
  *
  * Puts schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
@@ -874,21 +856,18 @@ int File::Puts (const char *str)
  * @param str Pointer auf den zu schreibenden String
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
+void File::puts (const char *str)
 {
-	if (ff==NULL) {
-		SetError(72);
-		return 0;
-	}
+	if (ff==NULL) throw FileNotOpenException();
+	if (str==NULL) throw IllegalArgumentException();
 	if (fputs(str,(FILE*)ff)!=EOF) {
 		pos+=strlen(str);
-		if (pos>this->size) this->size=pos;
-		return 1;
+		if (pos>mysize) mysize=pos;
+		return;
 	}
-	SetError(TranslateErrno(errno),errno);
-	return 0;
+	throwErrno(filename());
 }
 
-int File::Putws (const wchar_t *str)
 /*!\brief Wide-Character String schreiben
  *
  * Puts schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
@@ -900,26 +879,23 @@ int File::Putws (const wchar_t *str)
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
+void File::putws (const wchar_t *str)
 {
-	if (ff==NULL) {
-		SetError(72);
-		return 0;
-	}
+	if (ff==NULL) throw FileNotOpenException();
+	if (str==NULL) throw IllegalArgumentException();
 #ifndef HAVE_FPUTWS
-		SetError(246);
-		return 0;
+	throw UnsupportedFeatureException("ppl7::File::putws: No fputws available");
 #else
 	if (fputws(str,(FILE*)ff)!=-1) {
 		pos+=wcslen(str)*sizeof(wchar_t);
-		if (pos>this->size) this->size=pos;
-		return 1;
+		if (pos>mysize) mysize=pos;
+		return;
 	}
-	SetError(TranslateErrno(errno),errno);
-	return 0;
+	throwErrno(filename());
 #endif
 }
 
-int File::Putc(int c)
+
 /*!\brief Zeichen schreiben
  *
  * Putc schreibt das Zeichen \p c, umgesetzt in ein unsigned char,
@@ -928,23 +904,18 @@ int File::Putc(int c)
  * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
  * im Fehlerfall -1;
  */
+void File::putc(int c)
 {
-	int ret;
-	if (ff) {
-		ret=fputc(c,(FILE*)ff);
-		if (ret!=EOF) {
-			pos++;
-			if (pos>this->size) this->size=pos;
-			return ret;
-		}
-		SetError(TranslateErrno(errno),errno);
-		return -1;
+	if (ff==NULL) throw FileNotOpenException();
+	int	ret=fputc(c,(FILE*)ff);
+	if (ret!=EOF) {
+		pos++;
+		if (pos>mysize) mysize=pos;
+		return;
 	}
-	SetError(72);
-	return -1;
+	throwErrno();
 }
 
-int File::Getc()
 /*!\brief Zeichen lesen
  *
  * Getc liest das  nächste Zeichen aus der Datei und gibt seinen unsigned char Wert gecastet
@@ -952,22 +923,18 @@ int File::Getc()
  * @return Bei Erfolg wird der Wert des gelesenen Zeichens zurückgegeben, im
  * Fehlerfall -1.
  */
+int File::getc()
 {
-	int ret;
-	if (ff) {
-		ret=fgetc((FILE*)ff);
-		if (ret!=EOF) {
-			pos++;
-			return ret;
-		}
-		SetError(TranslateErrno(errno),errno);
-		return -1;
+	if (ff==NULL) throw FileNotOpenException();
+	int ret=fgetc((FILE*)ff);
+	if (ret!=EOF) {
+		pos++;
+		return ret;
 	}
-	SetError(72);
-	return -1;
+	throwErrno();
+	return 0;
 }
 
-int File::Putwc(wchar_t c)
 /*!\brief Wide-Character Zeichen schreiben
  *
  * Putwc schreibt das Wide-Character Zeichen \p c in den Ausgabestrom.
@@ -978,28 +945,22 @@ int File::Putwc(wchar_t c)
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
+void File::putwc(wchar_t c)
 {
-	if (ff) {
+	if (ff==NULL) throw FileNotOpenException();
 #ifndef HAVE_FPUTWC
-		SetError(246);
-		return -1;
+	throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
 #else
-		wint_t ret;
-		ret=fputwc(c,(FILE*)ff);
-		if (ret!=WEOF) {
-			pos+=sizeof(wchar_t);
-			if (pos>this->size) this->size=pos;
-			return ret;
-		}
-		SetError(TranslateErrno(errno),errno);
-		return -1;
-#endif
+	wint_t ret=fputwc(c,(FILE*)ff);
+	if (ret!=WEOF) {
+		pos+=sizeof(wchar_t);
+		if (pos>mysize) mysize=pos;
+		return;
 	}
-	SetError(72);
-	return -1;
+	throwErrno();
+#endif
 }
 
-int File::Getwc()
 /*!\brief Wide-Character Zeichen lesen
  *
  * Getwc liest das nächste Zeichen aus der Datei und gibt seinen Wert als Integer
@@ -1010,27 +971,22 @@ int File::Getwc()
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
+wchar_t File::getwc()
 {
-	if (ff) {
+	if (ff==NULL) throw FileNotOpenException();
 #ifndef HAVE_FGETWC
-		SetError(246);
-		return -1;
+	throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
 #else
-		wint_t ret;
-		ret=fgetwc((FILE*)ff);
-		if (ret!=WEOF) {
-			pos+=sizeof(wchar_t);
-			return(int) ret;
-		}
-		SetError(TranslateErrno(errno),errno);
-		return -1;
-#endif
+	wint_t ret=fgetwc((FILE*)ff);
+	if (ret!=WEOF) {
+		pos+=sizeof(wchar_t);
+		return(wchar_t) ret;
 	}
-	SetError(72);
-	return -1;
+	throwErrno();
+	return 0;
+#endif
 }
 
-bool File::Eof() const
 /*!\brief Prüfen, ob Dateiende erreicht ist
  *
  * Die Funktion prüft, ob das Dateiende erreicht wurde
@@ -1038,34 +994,28 @@ bool File::Eof() const
  * @return Liefert \c true zurück, wenn das Dateiende erreicht wurde, sonst \c false.
  * Falls die Datei nicht geöffnet war, wird ebenfalls \c false zurückgegeben.
  */
+bool File::eof() const
 {
-	if (ff!=NULL) {
-		if (feof((FILE*)ff)!=0) return true;
-		return false;
-
-	}
-	SetError(72);
+	if (ff==NULL) throw FileNotOpenException();
+	if (feof((FILE*)ff)!=0) return true;
 	return false;
 }
 
-int File::GetFileNo() const
 /*!\brief Filenummer der Datei
  *
  * Die Funktion liefert den Dateideskriptor als Integer zurück, wie er
  * von den Systemfunktionen open , read , write und close genutzt wird.
  *
- * @return Liefert die Filenummer zurück, oder -1, wenn die Datei nicht
- * geöffnet war.
+ * @return Liefert die Filenummer zurück. Ist keine Datei geöffnet, wird eine
+ * Exception geworfen.
  */
+int File::getFileNo() const
 {
-	if (!ff) {
-		return -1;
-	}
+	if (ff==NULL) throw FileNotOpenException();
 	return fileno((FILE*)ff);
 }
 
 
-int File::Flush()
 /*!\brief Gepufferte Daten schreiben
  *
  * Die Funktion Flush bewirkt, dass alle gepufferten Daten des aktuellen Streams
@@ -1077,20 +1027,17 @@ int File::Flush()
  *
  * @return Bei erfolgreicher Ausführung wird 1 zurückgegeben, ansonsten 0.
  */
+void File::flush()
 {
-	if (ff!=NULL) {
-		#ifdef WIN32FILES
-			FlushFileBuffers((HANDLE)ff);
-		#else
-			if (fflush((FILE*)ff)==0) return 1;
-			SetError(TranslateErrno(errno),errno);
-			return 0;
-		#endif
-	}
-	return 0;
+	if (ff==NULL) throw FileNotOpenException();
+	#ifdef WIN32FILES
+		FlushFileBuffers((HANDLE)ff);
+	#else
+		if (fflush((FILE*)ff)==0) return;
+		throwErrno();
+	#endif
 }
 
-int File::Sync()
 /*!\brief Dateiänderungen sofort auf die Platte schreiben
  *
  * \desc
@@ -1109,30 +1056,18 @@ int File::Sync()
  *
  * @since Die Funktion wurde mit Version 6.2.5 eingeführt
  */
+void File::sync()
 {
-	if (ff!=NULL) {
-		#ifdef WIN32FILES
-			SetError(513);
-			return 0;
-		#else
+	if (ff==NULL) throw FileNotOpenException();
 #ifdef HAVE_FSYNC
-		int ret;
-		ret=fsync(fileno((FILE*)ff));
-		if (ret==0) return 1;
-		SetErrorFromErrno("File::Sync");
-		return 0;
+	int ret=fsync(fileno((FILE*)ff));
+	if (ret==0) return;
+	throwErrno();
 #else
-			SetError(513);
-			return 0;
+	throw UnsupportedFeatureException("ppl7::File::sync: No fsync available");
 #endif
-		#endif
-
-	}
-	SetError(239);
-	return 0;
 }
 
-int File::Truncate(ppluint64 length)
 /*!\brief Datei abschneiden
  *
  * Die Funktionen Truncate bewirkt, dass die aktuell geöffnete Datei auf eine Größe von
@@ -1146,28 +1081,24 @@ int File::Truncate(ppluint64 length)
  * @param length Position, an der die Datei abgeschnitten werden soll.
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
+void File::truncate(ppluint64 length)
 {
-	if (!ff) {
-		SetError(72);
-		return 0;
+	if (ff==NULL) throw FileNotOpenException();
+#ifdef HAVE_FTRUNCATE
+	int fd=fileno((FILE*)ff);
+	int ret=::ftruncate(fd,(off_t)length);
+	if (ret==0) {
+		mysize=length;
+		if (pos>mysize) seek(mysize);
+		return;
 	}
-	#ifdef HAVE_FTRUNCATE
-		int fd=fileno((FILE*)ff);
-		int ret=ftruncate(fd,(off_t)length);
-		if (ret==0) {
-			size=length;
-			if (pos>size) Seek(size);
-			return 1;
-		}
-		SetError(TranslateErrno(errno),errno);
-		//SetError(282,errno);
-		return 0;
-	#endif
-	SetError(246,"File::Truncate");
-	return 0;
+	throwErrno();
+#else
+	throw UnsupportedFeatureException("ppl7::File::truncate: No ftruncate available");
+#endif
 }
 
-int File::LockExclusive(bool block)
+
 /*!\brief Datei exklusiv sperren
  *
  * Mit LockExclusive wird die Datei exklusiv zum Schreiben gesperrt. Andere
@@ -1178,46 +1109,36 @@ int File::LockExclusive(bool block)
  * zurückkehren soll (block=false).
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  *
- * \see Siehe auch File::LockShared und File::Unlock
- */
+* \see Siehe auch File::LockShared und File::Unlock
+*/
+void File::lockExclusive(bool block)
 {
-	if (!ff) {
-		SetError(72);
-		return 0;
-	}
-	#if defined HAVE_FCNTL
-		int fd=fileno((FILE*)ff);
-		int cmd=F_SETLK;
-		if (block) cmd=F_SETLKW;
-		struct flock f;
-		f.l_start=0;
-		f.l_len=0;
-		f.l_whence=0;
-		f.l_pid=getpid();
-		f.l_type=F_WRLCK;
-    	int ret=fcntl(fd,cmd,&f);
-    	if (ret!=-1) return 1;
-    	SetError(TranslateErrno(errno),errno);
-    	return 0;
-
-	#elif defined HAVE_FLOCK
-		int fd=fileno((FILE*)ff);
-		int flags=LOCK_EX;
-		if (!block) flags|=LOCK_NB;
-		int ret=flock(fd,flags);
-		if (ret==0) return 1;
-		SetError(TranslateErrno(errno),errno);
-		return 0;
-	#elif defined _WIN32
-		// Argh, mir scheint dafür muss die komplette Klasse umgeschrieben
-		// werden auf die Windows-spezifischen Funktionen :-(
-		// return 1;
-	#endif
-	SetError(246,"File::LockExclusive");
-	return 0;
+	if (ff==NULL) throw FileNotOpenException();
+#if defined HAVE_FCNTL
+	int fd=fileno((FILE*)ff);
+	int cmd=F_SETLK;
+	if (block) cmd=F_SETLKW;
+	struct flock f;
+	f.l_start=0;
+	f.l_len=0;
+	f.l_whence=0;
+	f.l_pid=getpid();
+	f.l_type=F_WRLCK;
+	int ret=fcntl(fd,cmd,&f);
+	if (ret!=-1) return;
+	throwErrno();
+#elif defined HAVE_FLOCK
+	int fd=fileno((FILE*)ff);
+	int flags=LOCK_EX;
+	if (!block) flags|=LOCK_NB;
+	int ret=flock(fd,flags);
+	if (ret==0) return;
+	throwErrno();
+#else
+	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+#endif
 }
 
-int File::LockShared(bool block)
 /*!\brief Datei zum Lesen sperren
  *
  * Mit LockShared wird die Datei zum Lesen gesperrt. Andere Prozesse können weiterhin
@@ -1230,42 +1151,37 @@ int File::LockShared(bool block)
  *
  * \see Siehe auch File::LockExclusive und File::Unlock
  */
+void File::lockShared(bool block)
 {
-	if (!ff) {
-		SetError(72);
-		return 0;
-	}
-	#if defined HAVE_FCNTL
-		int fd=fileno((FILE*)ff);
-		int cmd=F_SETLK;
-		if (block) cmd=F_SETLKW;
-		struct flock f;
-		f.l_start=0;
-		f.l_len=0;
-		f.l_whence=0;
-		f.l_pid=getpid();
-		f.l_type=F_RDLCK;
-    	int ret=fcntl(fd,cmd,&f);
-    	if (ret!=-1) return 1;
-    	SetError(TranslateErrno(errno),errno);
-    	return 0;
+	if (ff==NULL) throw FileNotOpenException();
+#if defined HAVE_FCNTL
+	int fd=fileno((FILE*)ff);
+	int cmd=F_SETLK;
+	if (block) cmd=F_SETLKW;
+	struct flock f;
+	f.l_start=0;
+	f.l_len=0;
+	f.l_whence=0;
+	f.l_pid=getpid();
+	f.l_type=F_RDLCK;
+	int ret=fcntl(fd,cmd,&f);
+	if (ret!=-1) return;
+	throwErrno();
 
-	#elif defined HAVE_FLOCK
-		int fd=fileno((FILE*)ff);
-		int flags=LOCK_SH;
-		if (!block) flags|=LOCK_NB;
-		int ret=flock(fd,flags);
-		if (ret==0) return 1;
-		SetError(TranslateErrno(errno),errno);
-		return 0;
-	#elif defined _WIN32
-		//return 1;	// siehe oben
-	#endif
-	SetError(246,"File::LockShared");
-	return 0;
+#elif defined HAVE_FLOCK
+	int fd=fileno((FILE*)ff);
+	int flags=LOCK_SH;
+	if (!block) flags|=LOCK_NB;
+	int ret=flock(fd,flags);
+	if (ret==0) return;
+	throwErrno();
+#else
+	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+
+#endif
 }
 
-int File::Unlock()
+void File::unlock()
 /*!\brief Dateisperre aufheben
  *
  * Mit Unlock wird eine mit LockShared oder LockExclusive eingerichtete
@@ -1277,40 +1193,30 @@ int File::Unlock()
  * \see Siehe auch File::LockShared und File::LockExclusive
  */
 {
-	if (!ff) {
-		SetError(72);
-		return 0;
-	}
-	#if defined HAVE_FCNTL
-		int fd=fileno((FILE*)ff);
-		struct flock f;
-		f.l_start=0;
-		f.l_len=0;
-		f.l_whence=0;
-		f.l_pid=getpid();
-		f.l_type=F_UNLCK;
-    	int ret=fcntl(fd,F_SETLKW,&f);
-    	if (ret!=-1) return 1;
-    	SetError(TranslateErrno(errno),errno);
-    	return 0;
+	if (ff==NULL) throw FileNotOpenException();
+#if defined HAVE_FCNTL
+	int fd=fileno((FILE*)ff);
+	struct flock f;
+	f.l_start=0;
+	f.l_len=0;
+	f.l_whence=0;
+	f.l_pid=getpid();
+	f.l_type=F_UNLCK;
+	int ret=fcntl(fd,F_SETLKW,&f);
+	if (ret!=-1) return;
+	throwErrno();
 
-	#elif defined HAVE_FLOCK
-		int fd=fileno((FILE*)ff);
-		int ret=flock(fd,LOCK_UN);
-		if (ret==0) return 1;
-		if (errno==EBADF) SetError(72);		// The argument fd is an invalid descriptor
-		else if (errno==EINVAL) SetError(279);	// The argument fd refers to an object other than a file.
-		else if (errno==EOPNOTSUPP) SetError(278);	// The argument fd refers to an object that does not support file locking.
-		else SetError(281,errno);
-		return 0;
-	#elif defined _WIN32
-		//return 1;	// siehe oben
-	#endif
-	SetError(246,"File::Unlock");
-	return 0;
+#elif defined HAVE_FLOCK
+	int fd=fileno((FILE*)ff);
+	int ret=flock(fd,LOCK_UN);
+	if (ret==0) return;
+	throwErrno();
+#else
+	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+#endif
 }
 
-void File::SetMapReadAhead(size_t bytes)
+void File::setMapReadAhead(size_t bytes)
 /*!\brief Minimalgröße des Speicherblocks bei Zugriffen mit FileObject::Map
  *
  * Falls mit Map viele aufeinanderfolgende kleine Speicherblöcke gemapped werden,
@@ -1324,7 +1230,7 @@ void File::SetMapReadAhead(size_t bytes)
 	ReadAhead=bytes;
 }
 
-const char *File::Map(ppluint64 position, size_t bytes)
+
 /*!\brief Datei in den Speicher mappen
  *
  * \descr
@@ -1344,13 +1250,10 @@ const char *File::Map(ppluint64 position, size_t bytes)
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
  * in dem sich die Datei befindet, im Fehlerfall NULL.
  */
+const char *File::map(ppluint64 position, size_t bytes)
 {
-	if (!ff) {
-		SetError(72);
-		return 0;
-	}
-
-	if (position+bytes<=size) {
+	if (ff==NULL) throw FileNotOpenException();
+	if (position+bytes<=mysize) {
 		if (MapBase!=NULL) {
 			if (LastMapStart==position) {	// Dateiausschnitt schon gemapped?
 				if (bytes<=LastMapSize) return MapBase;
@@ -1361,16 +1264,14 @@ const char *File::Map(ppluint64 position, size_t bytes)
 		LastMapStart=position;
 		if (ReadAhead>0 && bytes<ReadAhead) {
 			bytes=ReadAhead;
-			if (position+(ppluint64)bytes>size) bytes=(size_t)(size-position);
+			if (position+(ppluint64)bytes>mysize) bytes=(size_t)(mysize-position);
 		}
 		LastMapSize=bytes;
 		return (const char*)this->mmap(position,bytes,1,0);
 	}
-	SetError(517);
-	return NULL;
+	throw OverflowException();
 }
 
-char *File::MapRW(ppluint64 position, size_t bytes)
 /*!\brief Datei Les- und Schreibbar in den Speicher mappen
  *
  * \descr
@@ -1392,12 +1293,10 @@ char *File::MapRW(ppluint64 position, size_t bytes)
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
  * in dem sich die Datei befindet, im Fehlerfall NULL.
  */
+char *File::mapRW(ppluint64 position, size_t bytes)
 {
-	if (!ff) {
-		SetError(72);
-		return 0;
-	}
-	if (position+bytes<=size) {
+	if (ff==NULL) throw FileNotOpenException();
+	if (position+bytes<=mysize) {
 		if (MapBase!=NULL) {
 			if ((LastMapProtection&2)) {	// Schon als read/write gemapped?
 				if (LastMapStart==position) {	// Dateiausschnitt schon gemapped?
@@ -1409,18 +1308,38 @@ char *File::MapRW(ppluint64 position, size_t bytes)
 		}
 		if (ReadAhead>0 && bytes<ReadAhead) {
 			bytes=ReadAhead;
-			if (position+bytes>size) bytes=(size_t)(size-position);
+			if (position+bytes>mysize) bytes=(size_t)(mysize-position);
 		}
 		return (char*)this->mmap(position,bytes,3,0);
 	}
-	SetError(517);
-	return NULL;
+	throw OverflowException();
 }
 
-void File::Unmap()
+void File::unmap()
 {
 	this->munmap(MapBase, (size_t)LastMapSize);
 }
+
+
+int File::munmap(void *addr, size_t len)
+{
+	if (!addr) return 1;
+#ifdef HAVE_MMAP
+	::munmap(addr, len);
+#else
+	if ((LastMapProtection&2)) {			// Speicher war schreibbar und muss
+		if (seek(LastMapStart)) {		// Zurückgeschrieben werden
+			fwrite(MapBase,1,len);
+		}
+	}
+	free (MapBase);
+#endif
+	LastMapStart=LastMapSize=0;
+	MapBase=NULL;
+	LastMapProtection=0;
+	return 1;
+}
+
 
 static int __pagesize=0;
 
@@ -1446,9 +1365,9 @@ void *File::mmap(ppluint64 position, size_t size, int prot, int flags)
 
 	void *adr=::mmap(NULL, size, mflags,MAP_PRIVATE, fileno((FILE*)ff), (off_t) position);
 	if (adr==MAP_FAILED) {
-		SetError(TranslateErrno(errno),errno);
 		MapBase=NULL;
 		LastMapSize=0;
+		throwErrno();
 		return NULL;
 	}
 	LastMapSize=size;
@@ -1460,28 +1379,25 @@ void *File::mmap(ppluint64 position, size_t size, int prot, int flags)
 #else
 	size_t bytes;
 	char *adr=(char*)malloc((size_t)size+1);
-	if (adr) {
-		if (pos!=position) Seek((ppldd)position);
-		bytes=Fread(adr,1,size);
-		if (!bytes) {
-			free(adr);
-			return 0;
-		}
-		adr[bytes]=0;
-		MapBase=adr;
-		LastMapSize=bytes;
-		LastMapProtection=prot;
-		LastMapStart=position;
-		return (MapBase);
+	if (!adr) throw OutOfMemoryException();
+	if (pos!=position) seek((ppldd)position);
+	try {
+		bytes=fread(adr,1,size);
+	} catch (...) {
+		free(adr);
+		throw;
 	}
-	SetError(2);
-	return NULL;
+	adr[bytes]=0;
+	MapBase=adr;
+	LastMapSize=bytes;
+	LastMapProtection=prot;
+	LastMapStart=position;
+	return (MapBase);
 #endif
 
 }
 
 
-int File::erase()
 /*!\brief Geöffnete Datei löschen
  *
  * Mit dieser Funktion wird die aktuelle Datei zunächst geschlossen und dann
@@ -1489,19 +1405,18 @@ int File::erase()
  *
  * @return Bei Erfolg liefert die Funktion 1 zurück, sonst 0.
  */
+void File::erase()
 {
-	if (IsOpen()) {
-		CString Filename=GetFilename();
-		Close();
-		if (Filename.Len()>0) {
-			return DeleteFile(Filename);
-		}
-		SetError(243);
-		return 0;
+	if (ff==NULL) throw FileNotOpenException();
+	String Filename=filename();
+	close();
+	if (Filename.size()>0) {
+		DeleteFile(Filename);
 	}
-	throw FileNotOpenException();
 }
 
+
+#ifdef TODO
 
 // ####################################################################
 // Statische Funktionen
