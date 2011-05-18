@@ -549,18 +549,19 @@ class File : public FileObject
 
 
 		// Static Functions
-		static int truncate(const String &filename, ppluint64 bytes);
-		static int exists(const String &filename);
-		static int copyFile(const String &oldfile, const String &newfile);
-		static int moveFile(const String &oldfile, const String &newfile);
-		static int loadFile(ByteArray &object, const String &filename);
-		static void *loadFile(const String &filename, size_t *size=NULL);
+		static void load(ByteArray &object, const String &filename);
+		static void *load(const String &filename, size_t *size=NULL);
+		static void truncate(const String &filename, ppluint64 bytes);
+		static bool exists(const String &filename);
+
+		static void copy(const String &oldfile, const String &newfile);
+		static void move(const String &oldfile, const String &newfile);
 		static int deleteFile(const String &filename);
-		static int touchFile(const String &filename);
-		static int writeFile(const void *content, size_t size, const String &filename);
-		static int writeFile(const ByteArrayPtr &object, const String &filename);
-		static int renameFile(const String &oldfile, const String &newfile);
-		static int fileAttr(int attr, const String &filename);
+		static int touch(const String &filename);
+		static int save(const void *content, size_t size, const String &filename);
+		static int save(const ByteArrayPtr &object, const String &filename);
+		static int rename(const String &oldfile, const String &newfile);
+		static int attr(int attr, const String &filename);
 		static int chmod(const String &filename, int attr);
 		//static int Stat(const char *filename, CDirEntry &result);
 };

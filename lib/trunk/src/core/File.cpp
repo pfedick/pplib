@@ -1416,13 +1416,10 @@ void File::erase()
 }
 
 
-#ifdef TODO
-
 // ####################################################################
 // Statische Funktionen
 // ####################################################################
 
-int File::LoadFile(CVar &object, const char *filename)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei öffnen und den kompletten Inhalt in ein Objekt laden
  *
@@ -1436,41 +1433,21 @@ int File::LoadFile(CVar &object, const char *filename)
  * @param[in] filename Der Dateiname
  * @return Liefert 1 zurück, wenn die Datei geöffnet und der Inhalt geladen werden konnte, sonst 0.
  */
+void File::load(ByteArray &object, const String &filename)
 {
 	File ff;
-	if (!ff.Open(filename,"rb")) return 0;
-	size_t size=(size_t)ff.Size();
-	char *buffer=(char*)malloc((size_t)ff.size+1);
-	if (!buffer) {
-		SetError(2);
-		return 0;
-	}
-	size_t by=ff.Fread(buffer,1,size);
-	if (by!=size) {
+	ff.open(filename);
+	char *buffer=(char*)malloc((size_t)ff.mysize+1);
+	if (!buffer) throw OutOfMemoryException();
+	size_t by=ff.fread(buffer,1,ff.mysize);
+	if (by!=ff.mysize) {
 		free(buffer);
-		return 0;
+		throw ReadException();
 	}
 	buffer[by]=0;
-	int t=object.DataType();
-	if (t==CVar::CBINARY) {
-			CBinary &bin= static_cast< CBinary&>(object);  // Objekt zu CBinary umwandeln
-			bin.Set(buffer,by);
-			bin.ManageMemory();
-			return 1;
-	} else if (t==CVar::CSTRING) {
-			CString &str= static_cast<CString&>(object);  // Objekt zu CString umwandeln
-			str.ImportBuffer((char*)buffer,by+1);
-			return 1;
-	} else if (t==CVar::CWSTRING) {
-			CWString &wstr= static_cast<CWString&>(object);  // Objekt zu CWString umwandeln
-			wstr.ImportBuffer((wchar_t*)buffer,by+1);
-			return 1;
-	}
-	SetError(337);
-	return 0;
+	object.use(buffer,by);
 }
 
-void *File::LoadFile(const char *filename, size_t *size)
 /*!\ingroup PPLGroupFileIO
  * \brief Kompletten Inhalt einer Datei laden
  *
@@ -1484,26 +1461,22 @@ void *File::LoadFile(const char *filename, size_t *size)
  * die Datei geladen wurde. Der Aufrufer ist dafür verantwortlich, dass der Speicher nach Gebrauch
  * mit \c free wieder freigegeben wird. Im Fehlerfall wird NULL zurückgegeben.
  */
+void *File::load(const String &filename, size_t *size)
 {
 	File ff;
-	if (!ff.Open(filename,"rb")) return 0;
-	size_t s=(size_t)ff.Size();
-	char *buffer=(char*)malloc(s+1);
-	if (!buffer) {
-		SetError(2);
-		return NULL;
-	}
-	size_t by=ff.Fread(buffer,1,s);
-	if (by!=s) {
+	ff.open(filename);
+	char *buffer=(char*)malloc((size_t)ff.mysize+1);
+	if (!buffer) throw OutOfMemoryException();
+	size_t by=ff.fread(buffer,1,ff.mysize);
+	if (by!=ff.mysize) {
 		free(buffer);
-		return NULL;
+		throw ReadException();
 	}
 	if (size) *size=by;
 	buffer[by]=0;
 	return buffer;
 }
 
-int File::Truncate(const char *filename, ppluint64 bytes)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei abschneiden
  *
@@ -1517,18 +1490,17 @@ int File::Truncate(const char *filename, ppluint64 bytes)
  * @param bytes Position, an der die Datei abgeschnitten werden soll.
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
+void File::truncate(const String &filename, ppluint64 bytes)
 {
-	#ifdef HAVE_TRUNCATE
-		// truncate-Funktion vorhanden
-		if (truncate(filename,(off_t)bytes)==0) return 1;
-		SetError(TranslateErrno(errno),errno);
-		return 0;
-	#endif
-	SetError(246,"File::Truncate");
-	return 0;
+#ifdef HAVE_TRUNCATE
+	// truncate-Funktion vorhanden
+	if (::truncate((const char*)filename.toLocalEncoding(),(off_t)bytes)==0) return;
+	throwErrno(filename);
+#else
+	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+#endif
 }
 
-int File::Exists(const char * fmt, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Prüfen, ob eine Datei existiert
  *
@@ -1540,31 +1512,20 @@ int File::Exists(const char * fmt, ...)
  * werden sollen
  * \return Ist die Datei forhanden, gibt die Funktion 1 zurück, andernfalls 0.
  */
+bool File::exists(const String &filename)
 {
-	char *buff;
-	va_list args;
-	va_start(args, fmt);
-	if (vasprintf (&buff, (char*)fmt, args)<0 || buff==NULL) {
-		// Nicht genuegend RAM
-		SetError(2);
-		return 0;
-	}
-	va_end(args);
-	int ret=0;
 	FILE *fd=NULL;
 	//printf ("buffer=%s\n",buff);
-	fd=fopen(buff,"rb");		// Versuchen die Datei zu oeffnen
+	fd=fopen((const char*)filename.toLocalEncoding(),"rb");		// Versuchen die Datei zu oeffnen
 	if (fd) {
-		ret=1;
 		fclose(fd);
-	} else {
-		SetError(9,buff);
+		return true;
 	}
-	free(buff);	// Buffer wieder freigeben
-	return ret;
+	return false;
 }
 
-int File::CopyFile(const char *oldfile, const char *newfile)
+#ifdef TODO
+
 /*!\ingroup PPLGroupFileIO
  * \brief Datei kopieren
  *
@@ -1577,6 +1538,7 @@ int File::CopyFile(const char *oldfile, const char *newfile)
  * \param newfile Name der Zieldatei.
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
+int File::copy(const String &oldfile, const String &newfile)
 {
 	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
 	File f1, f2;
