@@ -329,14 +329,16 @@ void File::open (const String &filename, FileMode mode)
  *
  * \return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
  */
-void File::open (const char * filename, FileMode mode, ...)
+void File::open (const char * filename, FileMode mode)
 {
-	if (!filename) throw IllegalArgumentException();
-	String str;
-	va_list args;
-	va_start(args, mode);
-	str.vasprintf(filename,args);
-	open(str,mode);
+	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
+	close();
+	if ((ff=(FILE*)::fopen(filename,fmode(mode)))==NULL) {
+		throwErrno(filename);
+	}
+	mysize=size();
+	seek(0);
+	setFilename(filename);
 }
 
 /*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
@@ -350,20 +352,23 @@ void File::open (const char * filename, FileMode mode, ...)
  * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
  * @param[in] ... Optionale Parameter
  */
-void File::openTemp(const char *filetemplate, ...)
+void File::openTemp(const char *filetemplate)
+{
+	if (filetemplate==NULL || strlen(filetemplate)==0) throw IllegalArgumentException();
+	String t=filetemplate;
+	openTemp(t);
+}
+
+void File::openTemp(const String &filetemplate)
 {
 	#ifdef HAVE_MKSTEMP
 		close();
-		String t;
-		va_list args;
-		va_start(args, filetemplate);
-		t.vasprintf(filetemplate,args);
-		va_end(args);
+		ByteArray tmpname=filetemplate.toLocalEncoding();
 
-		int f=::mkstemp((char*)((const char*)t.toLocalEncoding()));
-		if (f<0) throwErrno(t);
+		int f=::mkstemp((char*)((const char*)tmpname));
+		if (f<0) throwErrno(filetemplate);
 		FILE *ff=::fdopen(f, "r+b");
-		if (!ff) throwErrno(t);
+		if (!ff) throwErrno(filetemplate);
 		try {
 			open(ff);
 		} catch (...) {
@@ -375,7 +380,7 @@ void File::openTemp(const char *filetemplate, ...)
 			}
 			throw;
 		}
-		setFilename(t);
+		setFilename((const char*)tmpname);
 	#else
 		throw UnsupportedFeatureException("ppl7::File::openTemp, no mkstemp available");
 	#endif
@@ -516,14 +521,17 @@ void File::popen (const String &command, FileMode mode)
  *
  * @return Bei Erfolg liefert die Funktion 1 zurück, sonst 0
  */
-void File::popen (const char * command, FileMode mode, ...)
+void File::popen (const char * command, FileMode mode)
 {
-	String f;
-	va_list args;
-	va_start(args, mode);
-	f.vasprintf(command,args);
-	va_end(args);
-	return popen(f,mode);
+	if (command==NULL || strlen(command)==0) throw IllegalArgumentException();
+	close();
+	if ((ff=(FILE*)::popen(command,fmode(mode)))==NULL) {
+		throwErrno(command);
+	}
+	isPopen=true;
+	mysize=size();
+	seek(0);
+	setFilename(command);
 }
 
 void File::open (FILE * handle)
@@ -536,8 +544,8 @@ void File::open (FILE * handle)
  * Ein Fehler kann nur auftreten, wenn das übergebene Filehandle selbst NULL ist.
  */
 {
-	close();
 	if (handle==NULL) throw IllegalArgumentException();
+	close();
 	ff=handle;
 	mysize=size();
 	seek(0);
@@ -709,6 +717,9 @@ size_t File::fread(void * ptr, size_t size, size_t nmemb)
 	if (ptr==NULL) throw IllegalArgumentException();
 	size_t by=::fread(ptr,size,nmemb,(FILE*)ff);
 	pos+=(by*size);
+	if (by!=nmemb) {
+		if (::ferror((FILE*)ff)) throwErrno(filename());
+	}
 	if (by==0) {
 		if (::feof((FILE*)ff)) throw EndOfFileException();
 		throwErrno(filename());
@@ -1411,7 +1422,7 @@ void File::erase()
 	String Filename=filename();
 	close();
 	if (Filename.size()>0) {
-		deleteFile(Filename);
+		remove(Filename);
 	}
 }
 
@@ -1435,6 +1446,25 @@ void File::erase()
  */
 void File::load(ByteArray &object, const String &filename)
 {
+	load(object,(const char*)filename.toLocalEncoding());
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Datei öffnen und den kompletten Inhalt in ein Objekt laden
+ *
+ * Mit dieser Funktion wird eine Datei zum Lesen geöffnet und der komplette Inhalt in das
+ * angegebene Objekt geladen. Unterstützt werden zur Zeit folgende Objekte:
+ * - CString
+ * - CWString
+ * - CBinary
+ *
+ * @param[out] object Das gewünschte Zielobjekt
+ * @param[in] filename Der Dateiname
+ * @return Liefert 1 zurück, wenn die Datei geöffnet und der Inhalt geladen werden konnte, sonst 0.
+ */
+void File::load(ByteArray &object, const char *filename)
+{
+	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
 	File ff;
 	ff.open(filename);
 	char *buffer=(char*)malloc((size_t)ff.mysize+1);
@@ -1446,6 +1476,11 @@ void File::load(ByteArray &object, const String &filename)
 	}
 	buffer[by]=0;
 	object.use(buffer,by);
+}
+
+void *File::load(const String &filename, size_t *size)
+{
+	return load((const char*)filename.toLocalEncoding(),size);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1461,8 +1496,9 @@ void File::load(ByteArray &object, const String &filename)
  * die Datei geladen wurde. Der Aufrufer ist dafür verantwortlich, dass der Speicher nach Gebrauch
  * mit \c free wieder freigegeben wird. Im Fehlerfall wird NULL zurückgegeben.
  */
-void *File::load(const String &filename, size_t *size)
+void *File::load(const char *filename, size_t *size)
 {
+	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
 	File ff;
 	ff.open(filename);
 	char *buffer=(char*)malloc((size_t)ff.mysize+1);
@@ -1502,15 +1538,39 @@ void File::truncate(const String &filename, ppluint64 bytes)
 }
 
 /*!\ingroup PPLGroupFileIO
+ * \brief Datei abschneiden
+ *
+ * Die Funktionen Truncate bewirkt, dass die mit \p filename angegebene Datei
+ * an der Position \p bytes abgeschnitten wird.
+ *
+ * Wenn die Datei vorher größer war, gehen überschüssige Daten verloren. Wenn die Datei
+ * vorher kleiner war, wird sie vergrößert und die zusätzlichen Bytes werden als Nullen geschrieben.
+ *
+ * @param filename Der Name der gewünschten Datei
+ * @param bytes Position, an der die Datei abgeschnitten werden soll.
+ * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+void File::truncate(const char*filename, ppluint64 bytes)
+{
+	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
+#ifdef HAVE_TRUNCATE
+	// truncate-Funktion vorhanden
+	if (::truncate(filename,(off_t)bytes)==0) return;
+	throwErrno(filename);
+#else
+	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
+#endif
+}
+
+/*!\ingroup PPLGroupFileIO
  * \brief Prüfen, ob eine Datei existiert
  *
- * Mit Exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
+ * \desc
+ * Mit %exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
  *
- * \param fmt Name der gewünschten Datei oder ein Formatstring, falls der Dateiname anhand
- * von weiteren Parametern zusammengesetzt werden muss
- * \param ... Optionale weitere Parameter, die in den vorhergehenden Formatstring \p fmt eingesetzt
+ * \param filename Name der gewünschten Datei
  * werden sollen
- * \return Ist die Datei forhanden, gibt die Funktion 1 zurück, andernfalls 0.
+ * \return Ist die Datei forhanden, gibt die Funktion \c true zurück, andernfalls \c false.
  */
 bool File::exists(const String &filename)
 {
@@ -1524,7 +1584,28 @@ bool File::exists(const String &filename)
 	return false;
 }
 
-#ifdef TODO
+/*!\ingroup PPLGroupFileIO
+ * \brief Prüfen, ob eine Datei existiert
+ *
+ * \desc
+ * Mit %exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
+ *
+ * \param filename Name der gewünschten Datei
+ * werden sollen
+ * \return Ist die Datei forhanden, gibt die Funktion \c true zurück, andernfalls \c false.
+ */
+bool File::exists(const char *filename)
+{
+	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
+	FILE *fd=NULL;
+	//printf ("buffer=%s\n",buff);
+	fd=fopen(filename,"rb");		// Versuchen die Datei zu oeffnen
+	if (fd) {
+		fclose(fd);
+		return true;
+	}
+	return false;
+}
 
 /*!\ingroup PPLGroupFileIO
  * \brief Datei kopieren
@@ -1536,56 +1617,39 @@ bool File::exists(const String &filename)
  *
  * \param oldfile Name der zu kopierenden Datei
  * \param newfile Name der Zieldatei.
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception
  */
-int File::copy(const String &oldfile, const String &newfile)
+void File::copy(const String &oldfile, const String &newfile)
 {
-	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
+	if (oldfile==newfile) throw IllegalArgumentException();
 	File f1, f2;
-	if (!f1.Open(oldfile,"rb")) return 0;
-	if (!f2.Open(oldfile,"wb")) return 0;
-	pplint64 bsize=1024*1024;
-	if (f1.Size()<bsize) bsize=f1.Size();
+	f1.open(oldfile,READ);
+	f2.open(oldfile,WRITE);
+	ppluint64 bsize=1024*1024;
+	if (f1.mysize<bsize) bsize=f1.mysize;
 	void *buffer=malloc((size_t)bsize);
-	if (!buffer) {
-		SetError(2);
-		return 0;
-	}
-	ppluint64 rest=f1.Size();
+	if (!buffer) throw OutOfMemoryException();
+	ppluint64 rest=f1.mysize;
 	ppluint64 bytes, done;
 	while (rest) {
 		bytes=bsize;
 		if (bytes>rest) bytes=rest;
-		done=f1.Read(buffer,(int)bytes);
+		done=f1.fread(buffer,1,bytes);
 		if (done!=bytes) {
-			SetError(TranslateErrno(errno),errno);
-			PushError();
-			f2.Close();
-			unlink(newfile);
+			// Sollte eigentlich nicht vorkommen
+			f2.close();
+			remove(newfile);
 			free(buffer);
-			PopError();
-			return 0;
+			throw ReadException();
 		}
-		done=f2.Write(buffer,(int)bytes);
-		if (done!=bytes) {
-			SetError(TranslateErrno(errno),errno);
-			PushError();
-			f2.Close();
-			unlink(newfile);
-			free(buffer);
-			PopError();
-			return 0;
-		}
+		done=f2.fwrite(buffer,1,bytes);
 		rest-=bytes;
 	}
-	f1.Close();
-	f2.Close();
+	f1.close();
+	f2.close();
 	free(buffer);
-	return 1;
 }
 
-
-int File::MoveFile(const char *oldfile, const char *newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
  *
@@ -1599,19 +1663,12 @@ int File::MoveFile(const char *oldfile, const char *newfile)
  * \param newfile Neuer Name
  * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
+void File::move(const String &oldfile, const String &newfile)
 {
-	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
-	return RenameFile(oldfile,newfile);
-	/*
-	if (rename(oldfile,newfile)==0) return 1;
-	SetErrorFromErrno("%s => %s",oldfile,newfile);
-	return 0;
-	*/
+	if (oldfile==newfile) throw IllegalArgumentException();
+	rename(oldfile,newfile);
 }
 
-
-
-int File::RenameFile(const char *oldfile, const char *newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
  *
@@ -1625,30 +1682,82 @@ int File::RenameFile(const char *oldfile, const char *newfile)
  * \param newfile Neuer Name
  * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
+void File::rename(const char *oldfile, const char *newfile)
 {
-	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
-	if (rename(oldfile,newfile)==0) {
+	if (oldfile==NULL || newfile==NULL) throw NullPointerException();
+	if (strcmp(oldfile,newfile)==0) throw IllegalArgumentException();
+	String desc;
+	desc.setf("rename %s => %s",oldfile,newfile);
+	if (::rename(oldfile,newfile)==0) {
 		FILE *fd=NULL;
 		//printf ("buffer=%s\n",buff);
-		fd=fopen(oldfile,"rb");		// Versuchen die Datei zu oeffnen
+		fd=fopen(oldfile,"rb");		// Ist die alte Datei noch da?
 		if (fd) {
+			// Ja, wir löschen sie manuell
 			fclose(fd);
-			if (unlink(oldfile)==0) return 1;
-			SetErrorFromErrno("%s => %s",oldfile,newfile);
+			if (unlink(oldfile)==0) return;
+			int saveerrno=errno;
 			unlink(newfile);
-			return 0;
+			errno=saveerrno;
+			throwErrno(desc);
 		}
-		return 1;
+		return;
 	}
 	if (errno==EXDEV) {	// oldfile und newfile befinden sich nicht im gleichen Filesystem.
-		if (!File::CopyFile(oldfile,newfile)) return 0;
-		if (unlink(oldfile)==0) return 1;
+		copy(oldfile,newfile);
+		if (unlink(oldfile)==0) return;
 	}
-	SetErrorFromErrno("%s => %s",oldfile,newfile);
-	return 0;
+	throwErrno(desc);
 }
 
-int File::TouchFile(const char *filename, ...)
+/*!\ingroup PPLGroupFileIO
+ * \brief Datei verschieben oder umbenennen
+ *
+ * Mit dieser Funktion wird die Datei \p oldfile zu \p newfile umbenannt. Sie ist identisch mit
+ * File::RenameFile. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
+ * Filesystem liegt, da in diesem Fall nur die Verzeichniseinträge geändert werden müssen.
+ * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::CopyFile
+ * gefolgt von File::DeleteFile aufgerufen.
+ *
+ * \param oldfile Name der zu verschiebenden bzw. umzubenennenden Datei
+ * \param newfile Neuer Name
+ * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ */
+void File::rename(const String &oldfile, const String &newfile)
+{
+	File::rename((const char*)oldfile.toLocalEncoding(),(const char*)newfile.toLocalEncoding());
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Datei löschen
+ *
+ * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
+ *
+ * \param filename Name der gewünschten Datei
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Ein Fehler kann auftreten, wenn die
+ * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
+ */
+void File::remove(const char *filename)
+{
+	if (!filename) throw NullPointerException();
+	if (::unlink(filename)==0) return;
+	throwErrno(filename);
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Datei löschen
+ *
+ * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
+ *
+ * \param filename Name der gewünschten Datei
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Ein Fehler kann auftreten, wenn die
+ * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
+ */
+void File::remove(const String &filename)
+{
+	remove((const char*)filename.toLocalEncoding());
+}
+
 /*!\ingroup PPLGroupFileIO
  * \brief Leere Datei anlegen oder die Zeitstempel des letzten Zugriffs aktualisieren
  *
@@ -1662,55 +1771,35 @@ int File::TouchFile(const char *filename, ...)
  * werden sollen
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
+void File::touch(const char *filename)
 {
+	if (!filename) throw NullPointerException();
 	File ff;
-	char *buff=NULL;
-	va_list args;
-	va_start(args, filename);
-	vasprintf (&buff, (char*)filename, args);
-	va_end(args);
-	if (!buff) {
-		return 0;
-	}
-	int ret=0;
-	if (ff.Open(buff,"w")) {
-		ret=1;
-	}
-	free(buff);
-	return ret;
+	ff.open(filename,READWRITE);
 }
 
-int File::DeleteFile(const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
- * \brief Datei löschen
+ * \brief Leere Datei anlegen oder die Zeitstempel des letzten Zugriffs aktualisieren
  *
- * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
+ * TouchFile arbeitet ähnlich wie das Unix-Lommando \c touch. Ist die angegebene Datei
+ * \p filename noch nicht vorhanden, wird sie als leere Datei angelegt. Ist sie bereits vorhanden,
+ * wird der Zeitstempel des letzen Zugriffs aktualisiert.
  *
  * \param filename Name der gewünschten Datei oder ein Formatstring, falls der Dateiname anhand
  * von weiteren Parametern zusammengesetzt werden muss
  * \param ... Optionale weitere Parameter, die in den vorhergehenden Formatstring \p filename eingesetzt
  * werden sollen
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Ein Fehler kann auftreten, wenn die
- * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
+void File::touch(const String &filename)
 {
-	File ff;
-	char *buff=NULL;
-	va_list args;
-	va_start(args, filename);
-	vasprintf (&buff, (char*)filename, args);
-	va_end(args);
-	if (!buff) {
-		return 0;
-	}
-	int ret=0;
-	if (unlink(buff)==0) ret=1;
-	else SetErrorFromErrno(buff);
-	free(buff);
-	return ret;
+	touch((const char*)filename.toLocalEncoding());
 }
 
-int File::WriteFile(const void *content, size_t size, const char *filename, ...)
+#ifdef TODO
+
+
+int File::save(const void *content, size_t size, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Daten in Datei schreiben
  *
@@ -1745,7 +1834,7 @@ int File::WriteFile(const void *content, size_t size, const char *filename, ...)
 	return ret;
 }
 
-int File::WriteFile(const CVar &object, const char *filename, ...)
+int File::save(const CVar &object, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Daten eines von CVar abgeleiteten Objekts in Datei schreiben
  *

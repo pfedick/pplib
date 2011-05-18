@@ -360,7 +360,7 @@ class FileObject
 		FileObject();
 		virtual ~FileObject();
 
-		void				setFilename(const char *filename, ...);
+		void				setFilename(const char *filename);
 		void				setFilename(const String &filename);
 		const String&		filename() const;
 
@@ -509,10 +509,11 @@ class File : public FileObject
 		virtual ~File();
 
 		void		open (const String &filename, FileMode mode=READ);
-		void		open (const char * filename, FileMode mode=READ, ...);
+		void		open (const char * filename, FileMode mode=READ);
 		void		open (FILE * handle);
-		void		openTemp(const char *filetemplate, ...);
-		void		popen(const char *command, FileMode mode=READ, ...);
+		void		openTemp(const String &filetemplate);
+		void		openTemp(const char *filetemplate);
+		void		popen(const char *command, FileMode mode=READ);
 		void		popen(const String &command, FileMode mode=READ);
 		void		erase();
 
@@ -550,19 +551,30 @@ class File : public FileObject
 
 		// Static Functions
 		static void load(ByteArray &object, const String &filename);
+		static void load(ByteArray &object, const char *filename);
 		static void *load(const String &filename, size_t *size=NULL);
+		static void *load(const char *filename, size_t *size=NULL);
 		static void truncate(const String &filename, ppluint64 bytes);
+		static void truncate(const char *filename, ppluint64 bytes);
 		static bool exists(const String &filename);
-
+		static bool exists(const char *filename);
 		static void copy(const String &oldfile, const String &newfile);
 		static void move(const String &oldfile, const String &newfile);
-		static int deleteFile(const String &filename);
-		static int touch(const String &filename);
-		static int save(const void *content, size_t size, const String &filename);
-		static int save(const ByteArrayPtr &object, const String &filename);
-		static int rename(const String &oldfile, const String &newfile);
+		static void rename(const String &oldfile, const String &newfile);
+		static void rename(const char *oldfile, const char *newfile);
+
+		static void remove(const String &filename);
+		static void remove(const char *filename);
+		static void touch(const String &filename);
+		static void touch(const char *filename);
+		static void save(const void *content, size_t size, const String &filename);
+		static void save(const void *content, size_t size, const char *filename);
+		static void save(const ByteArrayPtr &object, const String &filename);
+		static void save(const ByteArrayPtr &object, const char *filename);
 		static int attr(int attr, const String &filename);
-		static int chmod(const String &filename, int attr);
+		static int attr(int attr, const char *filename);
+		static void chmod(const String &filename, int attr);
+		static void chmod(const char *filename, int attr);
 		//static int Stat(const char *filename, CDirEntry &result);
 };
 

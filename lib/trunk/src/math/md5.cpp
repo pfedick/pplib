@@ -465,7 +465,7 @@ String FileObject::md5()
 	char tmp[33];
 	MD5_CTX ctx;
 	MD5Init(&ctx);
-	ppluint64 oldpos=ftell();
+	ppluint64 oldpos=tell();
 	seek(0);
 	ppluint64 s=size();
 	ppluint64 p=0;

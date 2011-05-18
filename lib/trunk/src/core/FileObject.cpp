@@ -136,16 +136,13 @@ FileObject::~FileObject()
  * \param[in] filename Ein Formatstring oder der Dateiname
  * \param[in] ... beliebig viele Parameter, sofern \p filename ein Formatstring ist
  */
-void FileObject::setFilename(const char *filename, ...)
+void FileObject::setFilename(const char *filename)
 {
 	if (!filename) {
 		MyFilename.clear();
 		return;
 	}
-	va_list args;
-	va_start(args, filename);
-	MyFilename.vasprintf(filename, args);
-	va_end(args);
+	MyFilename=filename;
 }
 
 /*!\brief Dateiname festlegen
