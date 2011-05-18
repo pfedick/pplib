@@ -1,33 +1,33 @@
  /*!\file
- * - \b ppl6::FILEATTR::ISUID \n
+ * - \b ppl7::FileAttr::ISUID \n
  *   Setze Benutzerkennung bei Ausführung
- * - \b ppl6::FILEATTR::ISGID \n
+ * - \b ppl7::FileAttr::ISGID \n
  *   Setze Benutzerkennung bei Ausführung
- * - \b ppl6::FILEATTR::ISVTX oder \b FILEATTR::STICKY \n
+ * - \b ppl7::FileAttr::ISVTX oder \b FILEATTR::STICKY \n
  *   Setze ’Sticky-Bit’.
  *   Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
  *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
  *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
  *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
- * - \b ppl6::FILEATTR::USR_READ \n
+ * - \b ppl7::FileAttr::USR_READ \n
  *   Leserechte für Eigentümer
- * - \b ppl6::FILEATTR::USR_WRITE \n
+ * - \b ppl7::FileAttr::USR_WRITE \n
  *   Schreibrechte für Eigentümer
- * - \b ppl6::FILEATTR::USR_EXECUTE \n
+ * - \b ppl7::FileAttr::USR_EXECUTE \n
  *   Ausführrechte  für Eigentümer. Handelt es sich um ein Verzeichnis, darf
  *   der Eigentümer das Verzeichnis durchsuchen
- * - \b ppl6::FILEATTR::GRP_READ \n
+ * - \b ppl7::FileAttr::GRP_READ \n
  *   Leserechte für Gruppe
- * - \b ppl6::FILEATTR::GRP_WRITE \n
+ * - \b ppl7::FileAttr::GRP_WRITE \n
  *   Schreibrechte für Gruppe
- * - \b ppl6::FILEATTR::GRP_EXECUTE \n
+ * - \b ppl7::FileAttr::GRP_EXECUTE \n
  *   Ausführrechte  für Gruppe. Handelt es sich um ein Verzeichnis, darf
  *   die Gruppe das Verzeichnis durchsuchen
- * - \b ppl6::FILEATTR::OTH_READ \n
+ * - \b ppl7::FileAttr::OTH_READ \n
  *   Leserechte für andere
- * - \b ppl6::FILEATTR::OTH_WRITE \n
+ * - \b ppl7::FileAttr::OTH_WRITE \n
  *   Schreibrechte für andere
- * - \b ppl6::FILEATTR::OTH_EXECUTE \n
+ * - \b ppl7::FileAttr::OTH_EXECUTE \n
  *   Ausführrechte  für andere. Handelt es sich um ein Verzeichnis, dürfen
  *   andere das Verzeichnis durchsuchen
  */

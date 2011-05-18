@@ -313,6 +313,35 @@ void ThreadSetPriority(Thread::Priority priority);
 Thread::Priority ThreadGetPriority();
 
 
+
+class FileAttr {
+	public:
+		enum Attributes {
+			IFFILE		= 0x10000,
+			IFSOCK		= 0x20000,
+			IFDIR		= 0x40000,
+			IFLINK		= 0x80000,
+			ISUID		= 0x4000,
+			ISGID		= 0x2000,
+			ISVTX		= 0x1000,
+			STICKY		= 0x1000,
+			USR_READ	= 0x0400,
+			USR_WRITE	= 0x0200,
+			USR_EXECUTE	= 0x0100,
+			GRP_READ	= 0x0040,
+			GRP_WRITE	= 0x0020,
+			GRP_EXECUTE	= 0x0010,
+			OTH_READ	= 0x0004,
+			OTH_WRITE	= 0x0002,
+			OTH_EXECUTE	= 0x0001,
+			CHMOD_755	= 0x0755,
+			CHMOD_644	= 0x0644,
+			NONE		= 0
+		};
+};
+
+class DirEntry;
+
 class FileObject
 {
 	private:
@@ -571,12 +600,43 @@ class File : public FileObject
 		static void save(const void *content, size_t size, const char *filename);
 		static void save(const ByteArrayPtr &object, const String &filename);
 		static void save(const ByteArrayPtr &object, const char *filename);
-		static int attr(int attr, const String &filename);
-		static int attr(int attr, const char *filename);
-		static void chmod(const String &filename, int attr);
-		static void chmod(const char *filename, int attr);
-		//static int Stat(const char *filename, CDirEntry &result);
+		static void chmod(const String &filename, FileAttr::Attributes attr);
+		static void chmod(const char *filename, FileAttr::Attributes attr);
+		static void stat(const char *filename, DirEntry &result);
+		static void stat(const String &filename, DirEntry &result);
 };
+
+
+class DirEntry
+{
+	public:
+		DirEntry();
+		DirEntry(const DirEntry& other);
+		String		Filename;
+		String		Path;
+		String		File;
+		ppluint64	Size;
+		FileAttr::Attributes Attrib;
+		ppluint32	Uid;
+		ppluint32	Gid;
+		ppluint32	Blocks;
+		ppluint32	BlockSize;
+		ppluint32	NumLinks;
+		String		AttrStr;
+		DateTime	ATime, CTime, MTime;
+		int			isDir();
+		int			isFile();
+		int			isLink();
+		int			isHidden();
+		int			isReadOnly();
+		int			isArchiv();
+		int			isSystem();
+		int			copy(DirEntry *dir);
+		DirEntry& operator=(const DirEntry& other);
+		int			toArray(AssocArray &a) const;
+		void		print(const char *label=NULL);
+};
+
 
 
  };	// EOF namespace ppl7

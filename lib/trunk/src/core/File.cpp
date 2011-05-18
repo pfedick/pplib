@@ -1796,10 +1796,7 @@ void File::touch(const String &filename)
 	touch((const char*)filename.toLocalEncoding());
 }
 
-#ifdef TODO
 
-
-int File::save(const void *content, size_t size, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Daten in Datei schreiben
  *
@@ -1815,26 +1812,13 @@ int File::save(const void *content, size_t size, const char *filename, ...)
  * werden sollen
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
+void File::save(const void *content, size_t size, const char *filename)
 {
 	File ff;
-	char *buff=NULL;
-	va_list args;
-	va_start(args, filename);
-	vasprintf (&buff, (char*)filename, args);
-	va_end(args);
-	if (!buff) {
-		SetError(2);
-		return 0;
-	}
-	int ret=0;
-	if (ff.Open(buff,"wb")) {
-		if (ff.Fwrite(content,1,size)==size) ret=1;
-	}
-	free(buff);
-	return ret;
+	ff.open(filename,WRITE);
+	ff.fwrite(content,1,size);
 }
 
-int File::save(const CVar &object, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Daten eines von CVar abgeleiteten Objekts in Datei schreiben
  *
@@ -1851,98 +1835,55 @@ int File::save(const CVar &object, const char *filename, ...)
  * werden sollen
  * \return Bei Erfolg gibt die Funktion die Anzahl geschriebender Bytes zurück, im Fehlerfall 0.
  */
+void File::save(const ByteArrayPtr &object, const char *filename)
 {
 	File ff;
-	char *buff=NULL;
-	va_list args;
-	va_start(args, filename);
-	vasprintf (&buff, (char*)filename, args);
-	va_end(args);
-	if (!buff) {
-		SetError(2);
-		return 0;
-	}
-	int ret=0;
-	if (ff.Open(buff,"wb")) {
-		ret=ff.Write(object);
-	}
-	free(buff);
-	return ret;
+	ff.open(filename,WRITE);
+	ff.fwrite(object.ptr(),1,object.size());
 }
 
 
-/*!\namespace FILEATTR
+/*!\class FileAttr
  * \ingroup PPLGroupFileIO
  * \brief Definitionen der Datei-Attribute
  *
  * \desc
- * Der Namespace FILEATTR enthält die Definitionen der Datei-Attribute. Folgende Werte
- * sind enthalten:
+ * Die Klasse FileAttr enthält die Definitionen der Datei-Attribute, die mit
+ * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
+ * Folgende Werte sind enthalten:
  *
  * \copydoc FileAttribute.dox
  *
- * \see ppl7::FileAttr
- * \see ppl7::Chmod
- *
  */
 
-static mode_t translate_fileattr(int attr)
+static mode_t translate_FileAttr(FileAttr::Attributes attr)
 {
 	mode_t m=0;
 #ifdef _WIN32
-	if (attr&FILEATTR::USR_READ) m|=_S_IREAD;
-	if (attr&FILEATTR::USR_WRITE) m|=_S_IWRITE;
-	if (attr&FILEATTR::GRP_READ) m|=_S_IREAD;
-	if (attr&FILEATTR::GRP_WRITE) m|=_S_IWRITE;
-	if (attr&FILEATTR::OTH_READ) m|=_S_IREAD;
-	if (attr&FILEATTR::OTH_WRITE) m|=_S_IWRITE;
+	if (attr&FileAttr::USR_READ) m|=_S_IREAD;
+	if (attr&FileAttr::USR_WRITE) m|=_S_IWRITE;
+	if (attr&FileAttr::GRP_READ) m|=_S_IREAD;
+	if (attr&FileAttr::GRP_WRITE) m|=_S_IWRITE;
+	if (attr&FileAttr::OTH_READ) m|=_S_IREAD;
+	if (attr&FileAttr::OTH_WRITE) m|=_S_IWRITE;
 
 #else
-	if (attr&FILEATTR::ISUID) m+=S_ISUID;
-	if (attr&FILEATTR::ISGID) m+=S_ISGID;
-	if (attr&FILEATTR::STICKY) m+=S_ISVTX;
-	if (attr&FILEATTR::USR_READ) m+=S_IRUSR;
-	if (attr&FILEATTR::USR_WRITE) m+=S_IWUSR;
-	if (attr&FILEATTR::USR_EXECUTE) m+=S_IXUSR;
-	if (attr&FILEATTR::GRP_READ) m+=S_IRGRP;
-	if (attr&FILEATTR::GRP_WRITE) m+=S_IWGRP;
-	if (attr&FILEATTR::GRP_EXECUTE) m+=S_IXGRP;
-	if (attr&FILEATTR::OTH_READ) m+=S_IROTH;
-	if (attr&FILEATTR::OTH_WRITE) m+=S_IWOTH;
-	if (attr&FILEATTR::OTH_EXECUTE) m+=S_IXOTH;
+	if (attr&FileAttr::ISUID) m+=S_ISUID;
+	if (attr&FileAttr::ISGID) m+=S_ISGID;
+	if (attr&FileAttr::STICKY) m+=S_ISVTX;
+	if (attr&FileAttr::USR_READ) m+=S_IRUSR;
+	if (attr&FileAttr::USR_WRITE) m+=S_IWUSR;
+	if (attr&FileAttr::USR_EXECUTE) m+=S_IXUSR;
+	if (attr&FileAttr::GRP_READ) m+=S_IRGRP;
+	if (attr&FileAttr::GRP_WRITE) m+=S_IWGRP;
+	if (attr&FileAttr::GRP_EXECUTE) m+=S_IXGRP;
+	if (attr&FileAttr::OTH_READ) m+=S_IROTH;
+	if (attr&FileAttr::OTH_WRITE) m+=S_IWOTH;
+	if (attr&FileAttr::OTH_EXECUTE) m+=S_IXOTH;
 #endif
 	return m;
 }
 
-int File::FileAttr(int attr, const char *filename, ...)
-/*! \brief Setz die Attribute einer exisitierenden Datei
- * \ingroup PPLGroupFileIO
- *
- * \desc
- * Mit dieser Funktion können die Zugriffsattribute einer existierenden Datei
- * gesetzt werden.
- *
- * \param attr Ein Wert, der die Attribute enthält
- * \copydoc FileAttribute.dox
- * \param filename Der Dateinamen oder ein Formatstring für den Dateinamen
- * \param ... Optionale Parameter für den Formatstring
- * \return Bei Erfolg gibt die Funktion true (1) zurück, im Fehlerfall wird ein
- * Fehlercode gesetzt, der mit den PPL-Fehlerfunktionen abgefragt werden kann, und die
- * Funktion gibt false (0) zurück.
- *
- * \see Chmod
- * \version 6.0.16
- */
-{
-	CString f;
-	va_list args;
-	va_start(args, filename);
-	f.VaSprintf(filename,args);
-	va_end(args);
-	return Chmod((const char*)f,attr);
-}
-
-int File::Chmod(const char *filename, int attr)
 /*! \brief Setz die Attribute einer exisitierenden Datei
  * \ingroup PPLGroupFileIO
  *
@@ -1960,21 +1901,71 @@ int File::Chmod(const char *filename, int attr)
  * \see FileAttr
  * \version 6.0.16
  */
+void File::chmod(const char *filename, FileAttr::Attributes attr)
 {
-	mode_t m=translate_fileattr(attr);
+	mode_t m=translate_FileAttr(attr);
 #ifdef _WIN32
-	if (_chmod(filename,m)==0) return 1;
+	if (_chmod(filename,m)==0) return;
 #else
-	if (chmod(filename,m)==0) return 1;
+	if (::chmod(filename,m)==0) return;
 #endif
-	SetErrorFromErrno("%s",filename);
-	return 0;
+	throwErrno(filename);
 }
 
-
-int File::Stat(const char *filename, CDirEntry &out)
+void File::stat(const char *filename, DirEntry &out)
 {
-	return ppl7::Stat(filename,&out);
+	if (!filename) throw NullPointerException();
+#ifdef _WIN32
+	struct _stat st;
+	String File=filename;
+	File.Replace("/","\\");
+	if (_stat((const char*)File.toLocalEncoding(),&st)!=0) throwErrno(filename);
+#else
+	struct stat st;
+	if (::stat(filename,&st)!=0) throwErrno(filename);
+#endif
+	out.ATime.setTime_t(st.st_atime);
+	out.CTime.setTime_t(st.st_ctime);
+	out.MTime.setTime_t(st.st_mtime);
+	out.Attrib=FileAttr::NONE;
+	out.Size=st.st_size;
+	out.File.set(filename);
+	out.Path=GetPath(out.File);
+	out.Filename=GetFilename(out.File);
+
+
+	if (st.st_mode & S_IFDIR) out.Attrib|=FileAttr::IFDIR;
+	if (st.st_mode & S_IFREG) out.Attrib|=FileAttr::IFFILE;
+	if (st.st_mode & S_IFLNK) out.Attrib|=FileAttr::IFLINK;
+	if (st.st_mode & S_IFSOCK) out.Attrib|=FileAttr::IFSOCK;
+
+	//#if ( defined (WIN32) || defined (__DJGPP__) )
+#ifdef _WIN32
+	if (st.st_mode & _S_IREAD) data->AttrStr[1]='r';
+	if (st.st_mode & _S_IWRITE) data->AttrStr[2]='w';
+	if (st.st_mode & _S_IEXEC) data->AttrStr[3]='x';
+#else
+#ifndef __DJGPP__
+	if (st.st_mode & S_IFLNK) data->Attrib|=CPPLDIR_LINK;
+#endif
+	if (st.st_mode & S_IRUSR) data->AttrStr[1]='r';
+	if (st.st_mode & S_IWUSR) data->AttrStr[2]='w';
+	if (st.st_mode & S_IXUSR) data->AttrStr[3]='x';
+	if (st.st_mode & S_ISUID) data->AttrStr[3]='s';
+
+	if (st.st_mode & S_IRGRP) data->AttrStr[4]='r';
+	if (st.st_mode & S_IWGRP) data->AttrStr[5]='w';
+	if (st.st_mode & S_IXGRP) data->AttrStr[6]='x';
+	if (st.st_mode & S_ISGID) data->AttrStr[6]='s';
+
+	if (st.st_mode & S_IROTH) data->AttrStr[7]='r';
+	if (st.st_mode & S_IWOTH) data->AttrStr[8]='w';
+	if (st.st_mode & S_IXOTH) data->AttrStr[9]='x';
+#endif
+
+	if (data->Attrib&CPPLDIR_DIR) data->AttrStr[0]='d';
+	if (data->Attrib&CPPLDIR_LINK) data->AttrStr[0]='l';
+	return 1;
 }
 
 #endif
