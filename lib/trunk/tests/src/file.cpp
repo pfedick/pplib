@@ -61,6 +61,20 @@ class FileReadTest : public ::testing::Test {
 	}
 };
 
+class FileStaticTest : public ::testing::Test {
+	protected:
+	FileStaticTest() {
+		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+			printf ("setlocale fehlgeschlagen\n");
+			throw std::exception();
+		}
+		ppl7::String::setGlobalEncoding("UTF-8");
+	}
+	virtual ~FileStaticTest() {
+
+	}
+};
+
 TEST_F(FileReadTest, ConstructorSimple) {
 	ASSERT_NO_THROW({
 		ppl7::File f1;
@@ -198,6 +212,16 @@ TEST_F(FileReadTest, gets) {
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"),s);
+}
+
+
+TEST_F(FileStaticTest, stat) {
+	ppl7::DirEntry d;
+	ASSERT_NO_THROW({
+		ppl7::File::stat("../LICENSE.TXT",d);
+	});
+
+
 }
 
 

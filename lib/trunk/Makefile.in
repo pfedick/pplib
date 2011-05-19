@@ -35,6 +35,8 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 ###########################################################################
 
 RELEASE	= release/AVLTree.o \
+	release/Dir.o \
+	release/DirEntry.o \
 	release/Exceptions.o \
 	release/File.o \
 	release/FileObject.o \
@@ -62,6 +64,8 @@ RELEASE	= release/AVLTree.o \
 	release/sound_Icecast.o
 
 DEBUG	= debug/AVLTree.o \
+	debug/Dir.o \
+	debug/DirEntry.o \
 	debug/Exceptions.o \
 	debug/File.o \
 	debug/FileObject.o \
@@ -209,6 +213,16 @@ release/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>core/AVLTree.cpp<<<
 	$(CXX) -Wall -O3 -o release/AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) 
 
+release/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Dir.cpp<<<
+	$(CXX) -Wall -O3 -o release/Dir.o -c $(srcdir)/core/Dir.cpp $(CFLAGS) 
+
+release/DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/DirEntry.cpp<<<
+	$(CXX) -Wall -O3 -o release/DirEntry.o -c $(srcdir)/core/DirEntry.cpp $(CFLAGS) 
+
 release/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Exceptions.cpp<<<
@@ -332,6 +346,16 @@ debug/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	###############################################################################
 	# Compiling >>>core/AVLTree.cpp<<<
 	$(CXX) -Wall -O -o debug/AVLTree.o -c $(srcdir)/core/AVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Dir.cpp<<<
+	$(CXX) -Wall -O -o debug/Dir.o -c $(srcdir)/core/Dir.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/DirEntry.cpp<<<
+	$(CXX) -Wall -O -o debug/DirEntry.o -c $(srcdir)/core/DirEntry.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################

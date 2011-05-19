@@ -1930,44 +1930,103 @@ void File::stat(const char *filename, DirEntry &out)
 	out.Attrib=FileAttr::NONE;
 	out.Size=st.st_size;
 	out.File.set(filename);
-	out.Path=GetPath(out.File);
-	out.Filename=GetFilename(out.File);
+	out.Path=File::getPath(out.File);
+	out.Filename=File::getFilename(out.File);
+	out.AttrStr.set(L"----------");
+	out.Uid=st.st_uid;
+	out.Gid=st.st_gid;
+	out.Blocks=st.st_blocks;
+	out.BlockSize=st.st_blksize;
+	out.NumLinks=st.st_nlink;
 
+	if (st.st_mode & S_IFDIR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFDIR);
+	if (st.st_mode & S_IFREG) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFFILE);
+	if (st.st_mode & S_IFLNK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFLINK);
+	if (st.st_mode & S_IFSOCK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFSOCK);
 
-	if (st.st_mode & S_IFDIR) out.Attrib|=FileAttr::IFDIR;
-	if (st.st_mode & S_IFREG) out.Attrib|=FileAttr::IFFILE;
-	if (st.st_mode & S_IFLNK) out.Attrib|=FileAttr::IFLINK;
-	if (st.st_mode & S_IFSOCK) out.Attrib|=FileAttr::IFSOCK;
-
-	//#if ( defined (WIN32) || defined (__DJGPP__) )
 #ifdef _WIN32
-	if (st.st_mode & _S_IREAD) data->AttrStr[1]='r';
-	if (st.st_mode & _S_IWRITE) data->AttrStr[2]='w';
-	if (st.st_mode & _S_IEXEC) data->AttrStr[3]='x';
+	if (st.st_mode & _S_IREAD) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_READ);
+	if (st.st_mode & _S_IWRITE) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_WRITE);
+	if (st.st_mode & _S_IEXEC) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_EXECUTE);
 #else
-#ifndef __DJGPP__
-	if (st.st_mode & S_IFLNK) data->Attrib|=CPPLDIR_LINK;
-#endif
-	if (st.st_mode & S_IRUSR) data->AttrStr[1]='r';
-	if (st.st_mode & S_IWUSR) data->AttrStr[2]='w';
-	if (st.st_mode & S_IXUSR) data->AttrStr[3]='x';
-	if (st.st_mode & S_ISUID) data->AttrStr[3]='s';
+	if (st.st_mode & S_IRUSR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_READ);
+	if (st.st_mode & S_IWUSR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_WRITE);
+	if (st.st_mode & S_IXUSR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_EXECUTE);
+	if (st.st_mode & S_ISUID) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::ISUID);
 
-	if (st.st_mode & S_IRGRP) data->AttrStr[4]='r';
-	if (st.st_mode & S_IWGRP) data->AttrStr[5]='w';
-	if (st.st_mode & S_IXGRP) data->AttrStr[6]='x';
-	if (st.st_mode & S_ISGID) data->AttrStr[6]='s';
+	if (st.st_mode & S_IRGRP) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::GRP_READ);
+	if (st.st_mode & S_IWGRP) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::GRP_WRITE);
+	if (st.st_mode & S_IXGRP) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::GRP_EXECUTE);
+	if (st.st_mode & S_ISGID) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::ISGID);
 
-	if (st.st_mode & S_IROTH) data->AttrStr[7]='r';
-	if (st.st_mode & S_IWOTH) data->AttrStr[8]='w';
-	if (st.st_mode & S_IXOTH) data->AttrStr[9]='x';
+	if (st.st_mode & S_IROTH) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::OTH_READ);
+	if (st.st_mode & S_IWOTH) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::OTH_WRITE);
+	if (st.st_mode & S_IXOTH) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::OTH_EXECUTE);
 #endif
 
-	if (data->Attrib&CPPLDIR_DIR) data->AttrStr[0]='d';
-	if (data->Attrib&CPPLDIR_LINK) data->AttrStr[0]='l';
-	return 1;
+	if (out.Attrib&FileAttr::IFDIR) out.AttrStr.set(0,L'd');
+	if (out.Attrib&FileAttr::IFLINK) out.AttrStr.set(0,L'l');
+
+	if (out.Attrib&FileAttr::USR_READ) out.AttrStr.set(1,L'r');
+	if (out.Attrib&FileAttr::USR_WRITE) out.AttrStr.set(2,L'w');
+	if (out.Attrib&FileAttr::USR_EXECUTE) out.AttrStr.set(3,L'x');
+	if (out.Attrib&FileAttr::ISUID) out.AttrStr.set(3,L's');
+
+	if (out.Attrib&FileAttr::GRP_READ) out.AttrStr.set(4,L'r');
+	if (out.Attrib&FileAttr::GRP_WRITE) out.AttrStr.set(5,L'w');
+	if (out.Attrib&FileAttr::GRP_EXECUTE) out.AttrStr.set(6,L'x');
+	if (out.Attrib&FileAttr::ISGID) out.AttrStr.set(6,L's');
+
+	if (out.Attrib&FileAttr::OTH_READ) out.AttrStr.set(7,L'r');
+	if (out.Attrib&FileAttr::OTH_WRITE) out.AttrStr.set(8,L'w');
+	if (out.Attrib&FileAttr::OTH_EXECUTE) out.AttrStr.set(9,L'x');
 }
 
-#endif
+/*!\brief Pfad ohne Dateinamen
+ *
+ * \desc
+ * Diese Funktion liefert den Verzeichnisnamen eines Strings zurück, der Pfad und Dateinamen
+ * enthält. Lautet der String beispielsweise "/home/patrick/svn/ppl7/README.TXT" liefert die Funktion
+ * "/home/patrick/svn/ppl7/" zurück.
+ *
+ * @param path Pfad mit Dateinamen
+ * @return String mit dem Pfad
+ */
+String File::getPath(const String &path)
+{
+	size_t i,l,pos;
+	char c;
+	l=path.len();
+	pos=0;
+	for (i=0;i<l;i++) {
+		c=path[i];
+		if (c=='/' || c==':' || c=='\\') pos=i;
+	}
+	return path.left(pos);
+}
+
+/*!\brief Dateinamen ohne Pfad
+ *
+ * \desc
+ * Diese Funktion liefert den Dateinamen eines Strings zurück, der Pfad und Dateinamen
+ * enthält. Lautet der String beispielsweise "/home/patrick/svn/ppl7/README.TXT" liefert die Funktion
+ * "README.TXT" zurück.
+ *
+ * @param path Pfad mit Dateinamen
+ * @return String mit dem Dateinamen
+ */
+String File::getFilename(const String &path)
+{
+	size_t i,l,pos;
+	char c;
+	l=path.len();
+	pos=0;
+	for (i=0;i<l;i++) {
+		c=path[i];
+		if (c=='/' || c==':' || c=='\\') pos=i+1;
+	}
+	return path.mid(pos);
+}
+
 
 } // end of namespace ppl7

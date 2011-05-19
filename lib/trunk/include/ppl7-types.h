@@ -268,6 +268,7 @@ class String : public Variant
 		String & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(wchar_t c) throw(OutOfMemoryException);
+		String & set(size_t position, wchar_t c) throw(OutOfMemoryException);
 		String & setf(const char *fmt, ...);
 
 		String & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);

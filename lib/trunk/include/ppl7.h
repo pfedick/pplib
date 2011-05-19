@@ -604,6 +604,8 @@ class File : public FileObject
 		static void chmod(const char *filename, FileAttr::Attributes attr);
 		static void stat(const char *filename, DirEntry &result);
 		static void stat(const String &filename, DirEntry &result);
+		static String getPath(const String &path);
+		static String getFilename(const String &path);
 };
 
 
@@ -624,16 +626,15 @@ class DirEntry
 		ppluint32	NumLinks;
 		String		AttrStr;
 		DateTime	ATime, CTime, MTime;
-		int			isDir();
-		int			isFile();
-		int			isLink();
-		int			isHidden();
-		int			isReadOnly();
-		int			isArchiv();
-		int			isSystem();
-		int			copy(DirEntry *dir);
+		bool		isDir();
+		bool		isFile();
+		bool		isLink();
+		bool		isHidden();
+		bool		isReadOnly();
+		bool		isArchiv();
+		bool		isSystem();
 		DirEntry& operator=(const DirEntry& other);
-		int			toArray(AssocArray &a) const;
+		void		toArray(AssocArray &a) const;
 		void		print(const char *label=NULL);
 };
 
