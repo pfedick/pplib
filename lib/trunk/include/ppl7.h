@@ -342,6 +342,23 @@ class FileAttr {
 
 class DirEntry;
 
+#ifdef putc
+#undef putc
+#endif
+
+#ifdef puts
+#undef puts
+#endif
+
+#ifdef getc
+#undef getc
+#endif
+
+#ifdef gets
+#undef gets
+#endif
+
+
 class FileObject
 {
 	private:
@@ -401,9 +418,9 @@ class FileObject
 		size_t				read (ByteArray &target, size_t bytes);
 		ppluint64			copy (FileObject &quellfile, ppluint64 quelloffset, ppluint64 bytes, ppluint64 zieloffset);
 		ppluint64			copy (FileObject &quellfile, ppluint64 bytes);
-		int					gets (String &buffer, size_t num=1024);
-		int					getws (String &buffer, size_t num=1024);
-		String				gets (size_t num=1024);
+		virtual int			getString (String &buffer, size_t num=1024);
+		int					getWideString (String &buffer, size_t num=1024);
+		String				getString (size_t num=1024);
 		String				getws (size_t num=1024);
 		void				putsf (const char *fmt, ... );
 		void				puts (const String &str);
@@ -629,10 +646,9 @@ class DirEntry
 		bool		isDir();
 		bool		isFile();
 		bool		isLink();
-		bool		isHidden();
-		bool		isReadOnly();
-		bool		isArchiv();
-		bool		isSystem();
+		bool		isReadable();
+		bool		isWritable();
+		bool		isExecutable();
 		DirEntry& operator=(const DirEntry& other);
 		void		toArray(AssocArray &a) const;
 		void		print(const char *label=NULL);

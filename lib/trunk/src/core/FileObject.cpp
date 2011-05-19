@@ -368,7 +368,7 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Der Inhalt von \p buffer
  * ist im Fehlerfall undefiniert.
  */
-int FileObject::gets (String &buffer, size_t num)
+int FileObject::getString (String &buffer, size_t num)
 {
 	if (!num) throw IllegalArgumentException();
 	char *b=(char*)malloc(num+1);
@@ -401,10 +401,10 @@ int FileObject::gets (String &buffer, size_t num)
  * @return Die Funktion gibt ein CString-Objekt mit den gelesenen Daten zurück.
  * Im Fehlerfall ist das Objekt leer (CString::IsEmpty()).
  */
-String FileObject::gets (size_t num)
+String FileObject::getString (size_t num)
 {
 	String s;
-	gets(s,num);
+	getString(s,num);
 	return s;
 }
 
@@ -424,7 +424,7 @@ String FileObject::gets (size_t num)
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Der Inhalt von \p buffer
  * ist im Fehlerfall undefiniert.
  */
-int FileObject::getws (String &buffer, size_t num)
+int FileObject::getWideString (String &buffer, size_t num)
 {
 	if (!num) throw IllegalArgumentException();
 	wchar_t *b=(wchar_t*)malloc((num+1)*sizeof(wchar_t));
@@ -462,7 +462,7 @@ int FileObject::getws (String &buffer, size_t num)
 String FileObject::getws (size_t num)
 {
 	String s;
-	getws(s,num);
+	getWideString(s,num);
 	return s;
 }
 

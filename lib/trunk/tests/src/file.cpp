@@ -124,24 +124,24 @@ TEST_F(FileReadTest, seekAndTell) {
 	ppl7::File f1;
 	f1.open("src/testfile.txt");
 	f1.seek(45678);
-	ASSERT_EQ((ppluint64)45678,f1.ftell());
+	ASSERT_EQ((ppluint64)45678,f1.tell());
 	f1.seek(100);
-	ASSERT_EQ((ppluint64)100,f1.ftell());
+	ASSERT_EQ((ppluint64)100,f1.tell());
 	f1.seek(1024*1024);
-	ASSERT_EQ((ppluint64)1024*1024,f1.ftell());
+	ASSERT_EQ((ppluint64)1024*1024,f1.tell());
 }
 
-TEST_F(FileReadTest, fseekAndTell) {
+TEST_F(FileReadTest, seek) {
 	ppl7::File f1;
 	f1.open("src/testfile.txt");
-	f1.fseek(45678,ppl7::File::SEEKSET);
-	ASSERT_EQ((ppluint64)45678,f1.ftell());
-	f1.fseek(100,ppl7::File::SEEKCUR);
-	ASSERT_EQ((ppluint64)45778,f1.ftell());
-	f1.fseek(-1000,ppl7::File::SEEKCUR);
-	ASSERT_EQ((ppluint64)44778,f1.ftell());
-	f1.fseek(-1000,ppl7::File::SEEKEND);
-	ASSERT_EQ((ppluint64)1591096,f1.ftell());
+	f1.seek(45678,ppl7::File::SEEKSET);
+	ASSERT_EQ((ppluint64)45678,f1.tell());
+	f1.seek(100,ppl7::File::SEEKCUR);
+	ASSERT_EQ((ppluint64)45778,f1.tell());
+	f1.seek(-1000,ppl7::File::SEEKCUR);
+	ASSERT_EQ((ppluint64)44778,f1.tell());
+	f1.seek(-1000,ppl7::File::SEEKEND);
+	ASSERT_EQ((ppluint64)1591096,f1.tell());
 }
 
 TEST_F(FileReadTest, fread1024) {
@@ -172,7 +172,7 @@ TEST_F(FileReadTest, freadUntilEof) {
 	ASSERT_EQ((ppluint64) 1592096, bytes);
 }
 
-TEST_F(FileReadTest, fgets) {
+TEST_F(FileReadTest, getsInBuffer) {
 	ppl7::File f1;
 	ppl7::ByteArray ba;
 	ba.malloc(1024);
@@ -180,7 +180,7 @@ TEST_F(FileReadTest, fgets) {
 	f1.open("src/testfile.txt");
 	char *ret;
 	ASSERT_NO_THROW({
-		ret=f1.fgets(buffer,1024);
+		ret=f1.gets(buffer,1024);
 	});
 	ASSERT_EQ(ret, buffer);
 	size_t len=strlen(ret);
@@ -188,27 +188,27 @@ TEST_F(FileReadTest, fgets) {
 	ASSERT_EQ((size_t) 47, len);
 }
 
-TEST_F(FileReadTest, gets) {
+TEST_F(FileReadTest, getsAsString) {
 	ppl7::File f1;
 	ppl7::String s;
 	f1.open("src/testfile.txt");
 	ASSERT_NO_THROW({
-		s=f1.gets();
+		s=f1.getString(1024);
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L"                    GNU GENERAL PUBLIC LICENSE"),s);
 	ASSERT_NO_THROW({
-		s=f1.gets();
+		s=f1.getString();
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L"                       Version 2, June 1991"),s);
 	ASSERT_NO_THROW({
-		s=f1.gets();
+		s=f1.getString();
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L""),s);
 	ASSERT_NO_THROW({
-		s=f1.gets();
+		s=f1.getString();
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"),s);

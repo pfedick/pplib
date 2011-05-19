@@ -740,6 +740,24 @@ String & String::set(const std::wstring &str, size_t size) throw(OutOfMemoryExce
 }
 
 
+/*!\brief Einzelnes Zeichen ersetzen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein einzelnes Zeichen eines Strings an der Position
+ * \p position durch das Zeichen \p c ersetzt.
+ *
+ * @param position Position innerhalb des Strings (Zählung beginnt bei 0)
+ * @param c Unicode-Wert, der gesetzt werden soll
+ * @return Referenz auf den String
+ * \throw OutOfBoundsEception: Wird geworfen, wenn \p position größer ist, als die
+ * Länge des Strings
+ */
+String & String::set(size_t position, wchar_t c) throw(OutOfBoundsEception)
+{
+	if (position>=stringlen) throw OutOfBoundsEception();
+	ptr[position]=c;
+	return *this;
+}
 
 /*! \brief Erzeugt einen formatierten String
  *

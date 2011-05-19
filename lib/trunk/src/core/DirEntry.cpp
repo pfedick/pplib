@@ -259,68 +259,36 @@ bool DirEntry::isFile()
 	return 0;
 }
 
-bool DirEntry::isLink()
 /*!\brief Ist aktueller Eintrag ein Link?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag ein Link ist.
  *
  * \return Liefert true (1) oder false (0) zurück.
  */
+bool DirEntry::isLink()
 {
 	if (Attrib&FileAttr::IFLINK) return true;
 	return 0;
 }
 
-bool DirEntry::isHidden()
-/*!\brief Ist aktueller Eintrag versteckt?
- *
- * Die Funktion prüft, ob der aktuelle Directory-Eintrag eine versteckte Datei
- * oder ein versteckzes Verzeichnis ist.
- *
- * \return Liefert true (1) oder false (0) zurück.
- */
+bool DirEntry::isReadable()
 {
-	if (Attrib&CPPLDIR_HIDDEN) return 1;
+	if (Attrib&FileAttr::USR_READ) return true;
 	return 0;
 }
 
-bool DirEntry::isReadOnly()
-/*!\brief Ist aktueller Eintrag nur lesbar?
- *
- * Die Funktion prüft, ob der aktuelle Directory-Eintrag nur lesbar ist (Read-Only).
- *
- * \return Liefert true (1) oder false (0) zurück.
- */
-
+bool DirEntry::isWritable()
 {
-	if (Attrib&CPPLDIR_READONLY) return 1;
+	if (Attrib&FileAttr::USR_WRITE) return true;
 	return 0;
 }
 
-bool DirEntry::isArchiv()
-/*!\brief Hat aktueller Eintrag Archiv-Flag?
- *
- * Die Funktion prüft, ob der aktuelle Directory-Eintrag ein gesetztes
- * Archiv-Flag hat.
- *
- * \return Liefert true (1) oder false (0) zurück.
- */
+bool DirEntry::isExecutable()
 {
-	if (Attrib&CPPLDIR_ARCHIV) return 1;
+	if (Attrib&FileAttr::USR_EXECUTE) return true;
 	return 0;
 }
 
-bool DirEntry::isSystem()
-/*!\brief Ist aktueller Eintrag eine Systemdatei?
- *
- * Die Funktion prüft, ob der aktuelle Directory-Eintrag eine Systemdatei ist.
- *
- * \return Liefert true (1) oder false (0) zurück.
- */
-{
-	if (Attrib&CPPLDIR_SYSTEM) return 1;
-	return 0;
-}
 
 
 void DirEntry::toArray(AssocArray &a) const
