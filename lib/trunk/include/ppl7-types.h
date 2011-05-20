@@ -677,6 +677,7 @@ class DateTime : public Variant
 		DateTime(const DateTime &other);
 
 		void setTime_t(ppluint64 t);
+		void setEpoch(ppluint64 t);
 		void setLongInt(ppluint64 i);
 		int set(const String &datetime);
 		void set(const DateTime &other);
@@ -697,6 +698,7 @@ class DateTime : public Variant
 		String getISO8601() const;
 		String getISO8601withMsec() const;
 		ppluint64 time_t() const;
+		ppluint64 epoch() const;
 		ppluint64 longInt() const;
 
 		int year() const;

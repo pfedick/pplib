@@ -103,6 +103,29 @@ namespace ppl7 {
  *
  */
 
+
+/*!\enum FileObject::SeekOrigin
+ * \brief Ausgangsbasis für Bewegung des Dateizeigers
+ *
+ * \desc
+ * Diese Enumeration definiert die Ausgahgsbasis für Bewegungen des Dateizeigers
+ * miitels der Funktion FileObject::seek
+ *
+ */
+
+/*!\var FileObject::SeekOrigin FileObject::SEEKCUR
+ * \brief Ausgehend von der aktuellen Position des Dateizeigers
+ */
+
+/*!\var FileObject::SeekOrigin FileObject::SEEKEND
+ * \brief Ausgehend vom Ende der Datei
+ */
+
+/*!\var FileObject::SeekOrigin FileObject::SEEKSET
+ * \brief Ausgehend vom Anfang der Datei
+ */
+
+
 /*!\brief Konstruktor der Klasse
  *
  * \desc
@@ -635,6 +658,18 @@ int FileObject::load(ByteArray &object)
  *
  */
 void FileObject::close ()
+{
+	throw UnimplementedVirtualFunctionException();
+}
+
+
+/*!\brief Dateizeiger an den Anfang der Datei bringen
+ *
+ * \desc
+ * Diese Funktion bewegt den internen Dateizeiger an den Anfang der Datei
+ *
+ */
+void FileObject::rewind ()
 {
 	throw UnimplementedVirtualFunctionException();
 }

@@ -140,6 +140,117 @@ namespace ppl7 {
  */
 
 
+ /*!\class FileAttr
+ * \ingroup PPLGroupFileIO
+ * \brief Definitionen der Datei-Attribute
+ *
+ * \desc
+ * Die Klasse FileAttr enthält die Definitionen der Datei-Attribute, die mit
+ * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
+ *
+ */
+
+/*!\enum FileAttr::Attributes
+ * \brief Definitionen der Datei-Attribute
+ *
+ * \desc
+ * Diese Enumeration enthält die Definitionen der Datei-Attribute, die mit
+ * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
+ *
+ */
+
+/*!\var FileAttr::Attributes FileAttr::IFFILE
+ * \brief reguläre Datei
+ */
+
+/*!\var FileAttr::Attributes FileAttr::IFSOCK
+ * \brief Socket
+ */
+
+
+/*!\var FileAttr::Attributes FileAttr::IFDIR
+ * \brief Verzeichnis
+ */
+
+/*!\var FileAttr::Attributes FileAttr::IFLINK
+ * \brief Symlink
+ */
+
+/*!\var FileAttr::Attributes FileAttr::ISUID
+ * \brief SUID-Bit
+ */
+
+/*!\var FileAttr::Attributes FileAttr::ISGID
+ * \brief SGID-Bit
+ *
+ * Das SGID-Bit     (ISGID)     hat      verschiedene      besondere
+ *      Nutzungsmöglichkeiten:  Für  ein  Verzeichnis bedeutet es, das die BSD-
+ *      Semantik Anwendung findet: Dateien, die in ihm  erzeugt  werden,  erben
+ *      die  Gruppen-ID  des  Verzeichnisses und nicht die effektive Gruppen-ID
+ *      des erzeugenden Prozesses, und dort erzeugte  Verzeichnisse  haben  das
+ *      SGID-Bit ebenfalls gesetzt. Für eine Datei, bei der das Bit für Gruppe‐
+ *      nausführungsrechte (GRP_EXECUTE) nicht gesetzt ist, bedeutet es erzwungenes
+ *      Locken von Datei/Datensatz.
+ *
+ */
+
+/*!\var FileAttr::Attributes FileAttr::ISVTX
+ * \brief Sticky-Bit
+ *
+ * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
+ *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
+ *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
+ *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
+ */
+
+/*!\var FileAttr::Attributes FileAttr::STICKY
+ * \brief Sticky-Bit
+ *
+ * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
+ *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
+ *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
+ *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
+ */
+
+/*!\var FileAttr::Attributes FileAttr::USR_READ
+ * \brief Leserechte für Eigentümer
+ */
+
+/*!\var FileAttr::Attributes FileAttr::USR_WRITE
+ * \brief Schreibrechte für Eigentümer
+ */
+
+/*!\var FileAttr::Attributes FileAttr::USR_EXECUTE
+ * \brief Ausführrechte  für Eigentümer. Handelt es sich um ein Verzeichnis, darf der Eigentümer das Verzeichnis durchsuchen
+ */
+
+/*!\var FileAttr::Attributes FileAttr::GRP_READ
+ * \brief Leserechte für Gruppe
+ */
+
+/*!\var FileAttr::Attributes FileAttr::GRP_WRITE
+ * \brief Schreibrechte für Gruppe
+ */
+
+/*!\var FileAttr::Attributes FileAttr::GRP_EXECUTE
+ * \brief Ausführrechte  für Gruppe. Handelt es sich um ein Verzeichnis, darf die Gruppe das Verzeichnis durchsuchen
+ */
+
+/*!\var FileAttr::Attributes FileAttr::OTH_READ
+ * \brief Leserechte für andere
+ */
+
+/*!\var FileAttr::Attributes FileAttr::OTH_WRITE
+ * \brief Schreibrechte für andere
+ */
+
+/*!\var FileAttr::Attributes FileAttr::OTH_EXECUTE
+ * \brief Ausführrechte  für andere. Handelt es sich um ein Verzeichnis, dürfen andere das Verzeichnis durchsuchen
+ */
+
+
+
+
 /*!\brief Konstruktor der Klasse
  *
  * \desc
@@ -246,11 +357,12 @@ const char *File::fmode(FileMode mode)
  * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
  * "errno"-Variablen die passende Exception zu werfen.
  *
+ * @param e Errorcode aus der errno-Variablen
  * @param filename Dateiname, bei der der Fehler aufgetreten ist
  */
-void File::throwErrno(const String &filename)
+void File::throwErrno(int e,const String &filename)
 {
-	switch (errno) {
+	switch (e) {
 		case ENOMEM: throw OutOfMemoryException();
 		case EINVAL: throw InvalidArgumentsException();
 		case ENOTDIR:
@@ -290,10 +402,12 @@ void File::throwErrno(const String &filename)
  * \desc
  * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
  * "errno"-Variablen die passende Exception zu werfen.
+ *
+ * @param e Errorcode aus der errno-Variablen
  */
-void File::throwErrno()
+void File::throwErrno(int e)
 {
-	throwErrno(filename());
+	File::throwErrno(e,filename());
 }
 
 /*!\brief Datei öffnen
@@ -311,7 +425,7 @@ void File::open (const String &filename, FileMode mode)
 	// fopen stuerzt ab, wenn filename leer ist
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	if ((ff=(FILE*)::fopen((const char*)filename.toLocalEncoding(),fmode(mode)))==NULL) {
-		throwErrno(filename);
+		throwErrno(errno,filename);
 	}
 	mysize=size();
 	seek(0);
@@ -320,6 +434,7 @@ void File::open (const String &filename, FileMode mode)
 
 /*!\brief Datei zum Lesen oder Schreiben öffnen
  *
+ * \desc
  * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
  *
  * \param filename Dateiname als C-String
@@ -332,7 +447,7 @@ void File::open (const char * filename, FileMode mode)
 	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
 	close();
 	if ((ff=(FILE*)::fopen(filename,fmode(mode)))==NULL) {
-		throwErrno(filename);
+		throwErrno(errno,filename);
 	}
 	mysize=size();
 	seek(0);
@@ -341,6 +456,7 @@ void File::open (const char * filename, FileMode mode)
 
 /*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
  *
+ * \desc
  * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
  * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
  * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
@@ -361,6 +477,7 @@ void File::openTemp(const char *filetemplate)
 
 /*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
  *
+ * \desc
  * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
  * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
  * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
@@ -378,9 +495,9 @@ void File::openTemp(const String &filetemplate)
 		ByteArray tmpname=filetemplate.toLocalEncoding();
 
 		int f=::mkstemp((char*)((const char*)tmpname));
-		if (f<0) throwErrno(filetemplate);
+		if (f<0) throwErrno(errno,filetemplate);
 		FILE *ff=::fdopen(f, "r+b");
-		if (!ff) throwErrno(filetemplate);
+		if (!ff) throwErrno(errno,filetemplate);
 		try {
 			open(ff);
 		} catch (...) {
@@ -437,7 +554,7 @@ void File::close()
 		ff=NULL;
 		mysize=0;
 		pos=0;
-		if (ret==0) throwErrno(filename());
+		if (ret==0) throwErrno(errno,filename());
 		return;
 	}
 	//throw FileNotOpenException();
@@ -457,12 +574,12 @@ ppluint64 File::size () const
 			BY_HANDLE_FILE_INFORMATION info;
 			if (GetFileInformationByHandle((HANDLE)ff,&info))
 				return (((ppluint64)info.nFileSizeHigh)<<32)+info.nFileSizeLow;
-			throwErrno(filename());	// ???
+			throwErrno(errno,filename());	// ???
 		#else
 			struct stat buf;
 			if ((::fstat (fileno((FILE*)ff),&buf))==0)
 				return ((ppluint64)buf.st_size);
-			throwErrno(filename());
+			throwErrno(errno,filename());
 		#endif
 	}
 	throw FileNotOpenException();
@@ -490,7 +607,7 @@ void File::popen (const String &command, FileMode mode)
 	if (command.isEmpty()) throw IllegalArgumentException();
 
 	if ((ff=(FILE*)::popen((const char*)command.toLocalEncoding(),fmode(mode)))==NULL) {
-		throwErrno(command);
+		throwErrno(errno,command);
 	}
 	isPopen=true;
 	mysize=size();
@@ -520,7 +637,7 @@ void File::popen (const char * command, FileMode mode)
 	if (command==NULL || strlen(command)==0) throw IllegalArgumentException();
 	close();
 	if ((ff=(FILE*)::popen(command,fmode(mode)))==NULL) {
-		throwErrno(command);
+		throwErrno(errno,command);
 	}
 	isPopen=true;
 	mysize=size();
@@ -546,6 +663,16 @@ void File::open (FILE * handle)
 	setFilename("FILE");
 }
 
+
+void File::rewind ()
+{
+	if (ff!=NULL) {
+		pos=0;
+		return;
+	}
+	throw FileNotOpenException();
+}
+
 ppluint64 File::seek(ppluint64 position)
 {
 	if (ff!=NULL) {
@@ -569,7 +696,7 @@ ppluint64 File::seek(ppluint64 position)
 				int errnosave=errno;
 				pos=tell();
 				errno=errnosave;
-				throwErrno(filename());
+				throwErrno(errno,filename());
 			}
 			pos=tell();
 		#endif
@@ -621,7 +748,7 @@ ppluint64 File::seek (pplint64 offset, SeekOrigin origin )
 			pos=tell();
 			return pos;
 		}
-		throwErrno(filename());
+		throwErrno(errno,filename());
 	}
 	throw FileNotOpenException();
 	return 0;
@@ -640,7 +767,7 @@ ppluint64 File::tell()
 			return 0;
 		#else
 			fpos_t p;
-			if (fgetpos((FILE*)ff,&p)!=0) throwErrno(filename());
+			if (fgetpos((FILE*)ff,&p)!=0) throwErrno(errno,filename());
 			ppluint64 ret;
 			#ifdef FPOS_T_STRUCT
 				ret=(pplint64)p.__pos;
@@ -660,11 +787,11 @@ size_t File::fread(void * ptr, size_t size, size_t nmemb)
 	size_t by=::fread(ptr,size,nmemb,(FILE*)ff);
 	pos+=(by*size);
 	if (by!=nmemb) {
-		if (::ferror((FILE*)ff)) throwErrno(filename());
+		if (::ferror((FILE*)ff)) throwErrno(errno,filename());
 	}
 	if (by==0) {
 		if (::feof((FILE*)ff)) throw EndOfFileException();
-		throwErrno(filename());
+		throwErrno(errno,filename());
 	}
 	return by;
 }
@@ -676,7 +803,7 @@ size_t File::fwrite(const void * ptr, size_t size, size_t nmemb)
 	size_t by=::fwrite(ptr,size,nmemb,(FILE*)ff);
 	pos+=(by*size);
 	if (pos>this->mysize) this->mysize=pos;
-	if (by<nmemb) throwErrno(filename());
+	if (by<nmemb) throwErrno(errno,filename());
 	return by;
 }
 
@@ -690,7 +817,7 @@ char * File::fgets (char *buffer, size_t num)
 	if (res==NULL) {
 		suberr=::ferror((FILE*)ff);
 		if (::feof((FILE*)ff)) throw EndOfFileException();
-		else throwErrno(filename());
+		else throwErrno(errno,filename());
 	}
 	ppluint64 by=(ppluint64)strlen(buffer);
 	pos+=by;
@@ -710,7 +837,7 @@ wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 	if (res==NULL) {
 		suberr=::ferror((FILE*)ff);
 		if (::feof((FILE*)ff)) throw EndOfFileException();
-		else throwErrno(filename());
+		else throwErrno(errno,filename());
 	}
 	ppluint64 by=(ppluint64)wcslen(buffer)*sizeof(wchar_t);
 	pos+=by;
@@ -727,7 +854,7 @@ void File::fputs (const char *str)
 		if (pos>mysize) mysize=pos;
 		return;
 	}
-	throwErrno(filename());
+	throwErrno(errno,filename());
 }
 
 void File::fputws (const wchar_t *str)
@@ -742,7 +869,7 @@ void File::fputws (const wchar_t *str)
 		if (pos>mysize) mysize=pos;
 		return;
 	}
-	throwErrno(filename());
+	throwErrno(errno,filename());
 #endif
 }
 
@@ -756,7 +883,7 @@ void File::fputc(int c)
 		if (pos>mysize) mysize=pos;
 		return;
 	}
-	throwErrno();
+	throwErrno(errno);
 }
 
 int File::fgetc()
@@ -767,7 +894,7 @@ int File::fgetc()
 		pos++;
 		return ret;
 	}
-	throwErrno();
+	throwErrno(errno);
 	return 0;
 }
 
@@ -783,7 +910,7 @@ void File::fputwc(wchar_t c)
 		if (pos>mysize) mysize=pos;
 		return;
 	}
-	throwErrno();
+	throwErrno(errno);
 #endif
 }
 
@@ -798,7 +925,7 @@ wchar_t File::fgetwc()
 		pos+=sizeof(wchar_t);
 		return(wchar_t) ret;
 	}
-	throwErrno();
+	throwErrno(errno);
 	return 0;
 #endif
 }
@@ -824,7 +951,7 @@ void File::flush()
 		FlushFileBuffers((HANDLE)ff);
 	#else
 		if (fflush((FILE*)ff)==0) return;
-		throwErrno();
+		throwErrno(errno);
 	#endif
 }
 
@@ -834,7 +961,7 @@ void File::sync()
 #ifdef HAVE_FSYNC
 	int ret=fsync(fileno((FILE*)ff));
 	if (ret==0) return;
-	throwErrno();
+	throwErrno(errno);
 #else
 	throw UnsupportedFeatureException("ppl7::File::sync: No fsync available");
 #endif
@@ -851,7 +978,7 @@ void File::truncate(ppluint64 length)
 		if (pos>mysize) seek(mysize);
 		return;
 	}
-	throwErrno();
+	throwErrno(errno);
 #else
 	throw UnsupportedFeatureException("ppl7::File::truncate: No ftruncate available");
 #endif
@@ -873,14 +1000,14 @@ void File::lockExclusive(bool block)
 	f.l_type=F_WRLCK;
 	int ret=fcntl(fd,cmd,&f);
 	if (ret!=-1) return;
-	throwErrno();
+	throwErrno(errno);
 #elif defined HAVE_FLOCK
 	int fd=fileno((FILE*)ff);
 	int flags=LOCK_EX;
 	if (!block) flags|=LOCK_NB;
 	int ret=flock(fd,flags);
 	if (ret==0) return;
-	throwErrno();
+	throwErrno(errno);
 #else
 	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
 #endif
@@ -901,7 +1028,7 @@ void File::lockShared(bool block)
 	f.l_type=F_RDLCK;
 	int ret=fcntl(fd,cmd,&f);
 	if (ret!=-1) return;
-	throwErrno();
+	throwErrno(errno);
 
 #elif defined HAVE_FLOCK
 	int fd=fileno((FILE*)ff);
@@ -909,7 +1036,7 @@ void File::lockShared(bool block)
 	if (!block) flags|=LOCK_NB;
 	int ret=flock(fd,flags);
 	if (ret==0) return;
-	throwErrno();
+	throwErrno(errno);
 #else
 	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
 
@@ -929,13 +1056,13 @@ void File::unlock()
 	f.l_type=F_UNLCK;
 	int ret=fcntl(fd,F_SETLKW,&f);
 	if (ret!=-1) return;
-	throwErrno();
+	throwErrno(errno);
 
 #elif defined HAVE_FLOCK
 	int fd=fileno((FILE*)ff);
 	int ret=flock(fd,LOCK_UN);
 	if (ret==0) return;
-	throwErrno();
+	throwErrno(errno);
 #else
 	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
 #endif
@@ -1043,7 +1170,7 @@ void *File::mmap(ppluint64 position, size_t size, int prot, int flags)
 	if (adr==MAP_FAILED) {
 		MapBase=NULL;
 		LastMapSize=0;
-		throwErrno();
+		throwErrno(errno);
 		return NULL;
 	}
 	LastMapSize=size;
@@ -1198,7 +1325,7 @@ void File::truncate(const String &filename, ppluint64 bytes)
 #ifdef HAVE_TRUNCATE
 	// truncate-Funktion vorhanden
 	if (::truncate((const char*)filename.toLocalEncoding(),(off_t)bytes)==0) return;
-	throwErrno(filename);
+	throwErrno(errno,filename);
 #else
 	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
 #endif
@@ -1223,7 +1350,7 @@ void File::truncate(const char*filename, ppluint64 bytes)
 #ifdef HAVE_TRUNCATE
 	// truncate-Funktion vorhanden
 	if (::truncate(filename,(off_t)bytes)==0) return;
-	throwErrno(filename);
+	throwErrno(errno,filename);
 #else
 	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
 #endif
@@ -1366,7 +1493,7 @@ void File::rename(const char *oldfile, const char *newfile)
 			int saveerrno=errno;
 			unlink(newfile);
 			errno=saveerrno;
-			throwErrno(desc);
+			throwErrno(errno,desc);
 		}
 		return;
 	}
@@ -1374,7 +1501,7 @@ void File::rename(const char *oldfile, const char *newfile)
 		copy(oldfile,newfile);
 		if (unlink(oldfile)==0) return;
 	}
-	throwErrno(desc);
+	throwErrno(errno,desc);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1408,7 +1535,7 @@ void File::remove(const char *filename)
 {
 	if (!filename) throw NullPointerException();
 	if (::unlink(filename)==0) return;
-	throwErrno(filename);
+	throwErrno(errno,filename);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1510,19 +1637,6 @@ void File::save(const ByteArrayPtr &object, const char *filename)
 }
 
 
-/*!\class FileAttr
- * \ingroup PPLGroupFileIO
- * \brief Definitionen der Datei-Attribute
- *
- * \desc
- * Die Klasse FileAttr enthält die Definitionen der Datei-Attribute, die mit
- * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
- * Folgende Werte sind enthalten:
- *
- * \copydoc FileAttribute.dox
- *
- */
-
 static mode_t translate_FileAttr(FileAttr::Attributes attr)
 {
 	mode_t m=0;
@@ -1560,7 +1674,6 @@ static mode_t translate_FileAttr(FileAttr::Attributes attr)
  *
  * \param filename Der Dateinamen
  * \param attr Die Attribute
- * \copydoc FileAttribute.dox
  * \return Bei Erfolg gibt die Funktion true (1) zurück, im Fehlerfall wird ein
  * Fehlercode gesetzt, der mit den PPL-Fehlerfunktionen abgefragt werden kann, und die
  * Funktion gibt false (0) zurück.
@@ -1576,7 +1689,7 @@ void File::chmod(const char *filename, FileAttr::Attributes attr)
 #else
 	if (::chmod(filename,m)==0) return;
 #endif
-	throwErrno(filename);
+	throwErrno(errno,filename);
 }
 
 /*!\brief Informationen zu einer Datei oder Verzeichnis
@@ -1612,10 +1725,10 @@ void File::stat(const char *filename, DirEntry &out)
 	struct _stat st;
 	String File=filename;
 	File.Replace("/","\\");
-	if (_stat((const char*)File.toLocalEncoding(),&st)!=0) throwErrno(filename);
+	if (_stat((const char*)File.toLocalEncoding(),&st)!=0) throwErrno(errno,filename);
 #else
 	struct stat st;
-	if (::stat(filename,&st)!=0) throwErrno(filename);
+	if (::stat(filename,&st)!=0) throwErrno(errno,filename);
 #endif
 	out.ATime.setTime_t(st.st_atime);
 	out.CTime.setTime_t(st.st_ctime);

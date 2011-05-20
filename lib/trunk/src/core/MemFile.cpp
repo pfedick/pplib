@@ -213,6 +213,16 @@ ppluint64 MemFile::size () const
 	throw FileNotOpenException();
 }
 
+void MemFile::rewind ()
+{
+	if (MemBase!=NULL) {
+		pos=0;
+		return;
+	}
+	throw FileNotOpenException();
+}
+
+
 ppluint64 MemFile::seek(ppluint64 position)
 {
 	if (MemBase!=NULL) {

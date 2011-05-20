@@ -73,6 +73,7 @@ struct tm * localtime_r(const time_t *clock, struct tm *result);
 
 /*!\class DateTime
  * \ingroup PPLGroupDataTypes
+ * \ingroup PPLGroupDateTime
  * \brief Datenobjekt zum Speichern von Datum und Uhrzeit
  *
  * \desc
@@ -473,6 +474,34 @@ void DateTime::setTime_t(ppluint64 t)
 	ms=0;
 }
 
+/*!\brief Datum aus Unix-Timestamp übernehmen
+ *
+ * \desc
+ * Mit dieser Funktion werden Datum und Uhrzeit aus einem Unix-Timestamp übernommen (Sekunden seit 1970),
+ * wie ihn Beispielsweise die C-Funktion "time()" zurückliefert. Es ist daher nicht möglich ein Datum vor
+ * 1970 zu setzen.
+ *
+ * @param t 64-Bit Integer mit den Sekunden seit 1970.
+ * \see http://de.wikipedia.org/wiki/Unixzeit
+ */
+void DateTime::setEpoch(ppluint64 t)
+{
+	struct tm tt, *r;
+	if (t==0) {
+		clear();
+		return;
+	}
+	::time_t tp=(::time_t)t;
+	r=localtime_r(&tp,&tt);
+	ss=tt.tm_sec;
+	ii=tt.tm_min;
+	hh=tt.tm_hour;
+	dd=tt.tm_mday;
+	mm=tt.tm_mon+1;
+	yy=tt.tm_year+1900;
+	ms=0;
+}
+
 /*!\brief Datum aus einem 64-Bit-Integer übernehmen
  *
  * \desc
@@ -752,6 +781,30 @@ String DateTime::getISO8601withMsec() const
  * @return Sekunden seit 1970 oder 0, wenn das Datum sich nicht umrechnen läßt, z.B. wenn das Jahr vor 1970 liegt.
  */
 ppluint64 DateTime::time_t() const
+{
+	if (yy<1900) return 0;
+	struct tm t;
+	t.tm_sec=ss;
+	t.tm_min=ii;
+	t.tm_hour=hh;
+	t.tm_mday=dd;
+	t.tm_mon=mm-1;
+	t.tm_year=yy-1900;
+	t.tm_isdst=-1;
+	return (ppluint64)mktime(&t);
+}
+
+/*!\brief Datum in Unix-Timestamp umrechnen
+ *
+ * \desc
+ * Mit dieser Funktion wird das in der Variablen enthaltene Datum und Uhrzeit in einen
+ * Unix-Timestamp umgerechnet (Sekunden seit 1970).
+ *
+ * @return Sekunden seit 1970 oder 0, wenn das Datum sich nicht umrechnen läßt, z.B. wenn das Jahr vor 1970 liegt.
+ *
+ * \see http://de.wikipedia.org/wiki/Unixzeit
+ */
+ppluint64 DateTime::epoch() const
 {
 	if (yy<1900) return 0;
 	struct tm t;

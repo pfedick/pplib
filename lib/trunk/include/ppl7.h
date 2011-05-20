@@ -456,6 +456,7 @@ class FileObject
 		virtual ppluint64	seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
+		virtual void		rewind();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
 		virtual char *		fgets (char *buffer, size_t num);
@@ -504,6 +505,7 @@ class MemFile : public FileObject
 
 		// Virtuelle Funktionen
 		virtual void		close();
+		virtual void		rewind();
 		virtual ppluint64	seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
@@ -561,8 +563,8 @@ class File : public FileObject
 		};
 	private:
 		const char *fmode(FileMode mode);
-		static void throwErrno(const String &filename);
-		void throwErrno();
+		static void throwErrno(int e, const String &filename);
+		void throwErrno(int e);
 
 	public:
 
@@ -583,6 +585,7 @@ class File : public FileObject
 
 		// Virtuelle Funktionen
 		virtual void		close ();
+		virtual void		rewind();
 		virtual ppluint64	seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();

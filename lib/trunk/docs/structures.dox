@@ -4,7 +4,8 @@
  *  
  */
 
-/*! \struct ppl7::PPLTIME
+/*!\struct ppl7::PPLTIME
+ * \ingroup PPLGroupDateTime
  * 
  * In dieser Struktur wird ein Datum in seine einzelnen Bestandteile zerlegt, wie Jahr, Monat, Tag,
  * Stunden, Minuten und Sekunden.
