@@ -2,11 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 103 $
- * $Date: 2011-05-18 19:14:55 +0000 (Mi, 18 Mai 2011) $
- * $Id: File.cpp 103 2011-05-18 19:14:55Z pafe $
- * $URL: https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk/src/core/File.cpp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
