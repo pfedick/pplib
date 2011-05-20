@@ -172,7 +172,7 @@ TEST_F(FileReadTest, freadUntilEof) {
 	ASSERT_EQ((ppluint64) 1592096, bytes);
 }
 
-TEST_F(FileReadTest, getsInBuffer) {
+TEST_F(FileReadTest, fgets) {
 	ppl7::File f1;
 	ppl7::ByteArray ba;
 	ba.malloc(1024);
@@ -180,7 +180,7 @@ TEST_F(FileReadTest, getsInBuffer) {
 	f1.open("src/testfile.txt");
 	char *ret;
 	ASSERT_NO_THROW({
-		ret=f1.gets(buffer,1024);
+		ret=f1.fgets(buffer,1024);
 	});
 	ASSERT_EQ(ret, buffer);
 	size_t len=strlen(ret);
@@ -193,22 +193,22 @@ TEST_F(FileReadTest, getsAsString) {
 	ppl7::String s;
 	f1.open("src/testfile.txt");
 	ASSERT_NO_THROW({
-		s=f1.getString(1024);
+		s=f1.gets(1024);
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L"                    GNU GENERAL PUBLIC LICENSE"),s);
 	ASSERT_NO_THROW({
-		s=f1.getString();
+		s=f1.gets();
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L"                       Version 2, June 1991"),s);
 	ASSERT_NO_THROW({
-		s=f1.getString();
+		s=f1.gets();
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L""),s);
 	ASSERT_NO_THROW({
-		s=f1.getString();
+		s=f1.gets();
 	});
 	s.trimRight();
 	ASSERT_EQ(ppl7::String(L" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"),s);

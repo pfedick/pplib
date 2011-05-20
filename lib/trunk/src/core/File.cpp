@@ -765,7 +765,7 @@ size_t File::fwrite(const void * ptr, size_t size, size_t nmemb)
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
  */
-ppluint64 File::doCopy (FileObject &quellfile, ppluint64 bytes)
+ppluint64 File::fcopy (FileObject &quellfile, ppluint64 bytes)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (buffer==NULL) {
@@ -803,7 +803,7 @@ ppluint64 File::doCopy (FileObject &quellfile, ppluint64 bytes)
  * @param num Anzahl zu lesender Zeichen
  * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
  */
-char * File::gets (char *buffer, size_t num)
+char * File::fgets (char *buffer, size_t num)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (buffer==NULL) throw IllegalArgumentException();
@@ -838,7 +838,7 @@ char * File::gets (char *buffer, size_t num)
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  *
  */
-wchar_t *File::getws (wchar_t *buffer, size_t num)
+wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (buffer==NULL) throw IllegalArgumentException();
@@ -867,11 +867,11 @@ wchar_t *File::getws (wchar_t *buffer, size_t num)
  * @param str Pointer auf den zu schreibenden String
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
-void File::puts (const char *str)
+void File::fputs (const char *str)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (str==NULL) throw IllegalArgumentException();
-	if (fputs(str,(FILE*)ff)!=EOF) {
+	if (::fputs(str,(FILE*)ff)!=EOF) {
 		pos+=strlen(str);
 		if (pos>mysize) mysize=pos;
 		return;
@@ -890,14 +890,14 @@ void File::puts (const char *str)
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-void File::putws (const wchar_t *str)
+void File::fputws (const wchar_t *str)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (str==NULL) throw IllegalArgumentException();
 #ifndef HAVE_FPUTWS
 	throw UnsupportedFeatureException("ppl7::File::putws: No fputws available");
 #else
-	if (fputws(str,(FILE*)ff)!=-1) {
+	if (::fputws(str,(FILE*)ff)!=-1) {
 		pos+=wcslen(str)*sizeof(wchar_t);
 		if (pos>mysize) mysize=pos;
 		return;
@@ -915,10 +915,10 @@ void File::putws (const wchar_t *str)
  * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
  * im Fehlerfall -1;
  */
-void File::putc(int c)
+void File::fputc(int c)
 {
 	if (ff==NULL) throw FileNotOpenException();
-	int	ret=fputc(c,(FILE*)ff);
+	int	ret=::fputc(c,(FILE*)ff);
 	if (ret!=EOF) {
 		pos++;
 		if (pos>mysize) mysize=pos;
@@ -934,10 +934,10 @@ void File::putc(int c)
  * @return Bei Erfolg wird der Wert des gelesenen Zeichens zurückgegeben, im
  * Fehlerfall -1.
  */
-int File::getc()
+int File::fgetc()
 {
 	if (ff==NULL) throw FileNotOpenException();
-	int ret=fgetc((FILE*)ff);
+	int ret=::fgetc((FILE*)ff);
 	if (ret!=EOF) {
 		pos++;
 		return ret;
@@ -956,13 +956,13 @@ int File::getc()
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-void File::putwc(wchar_t c)
+void File::fputwc(wchar_t c)
 {
 	if (ff==NULL) throw FileNotOpenException();
 #ifndef HAVE_FPUTWC
 	throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
 #else
-	wint_t ret=fputwc(c,(FILE*)ff);
+	wint_t ret=::fputwc(c,(FILE*)ff);
 	if (ret!=WEOF) {
 		pos+=sizeof(wchar_t);
 		if (pos>mysize) mysize=pos;
@@ -982,13 +982,13 @@ void File::putwc(wchar_t c)
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-wchar_t File::getwc()
+wchar_t File::fgetwc()
 {
 	if (ff==NULL) throw FileNotOpenException();
 #ifndef HAVE_FGETWC
 	throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
 #else
-	wint_t ret=fgetwc((FILE*)ff);
+	wint_t ret=::fgetwc((FILE*)ff);
 	if (ret!=WEOF) {
 		pos+=sizeof(wchar_t);
 		return(wchar_t) ret;

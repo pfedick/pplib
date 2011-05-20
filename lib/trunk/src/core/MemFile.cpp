@@ -284,7 +284,7 @@ size_t MemFile::fwrite(const void *ptr, size_t size, size_t nmemb)
 }
 
 
-ppluint64 MemFile::doCopy (FileObject &quellfile, ppluint64 bytes)
+ppluint64 MemFile::fcopy (FileObject &quellfile, ppluint64 bytes)
 {
 	if (MemBase==NULL) throw FileNotOpenException();
 	if (buffer==NULL) {
@@ -307,7 +307,7 @@ ppluint64 MemFile::doCopy (FileObject &quellfile, ppluint64 bytes)
 	return bytes;
 }
 
-char *MemFile::gets (char *buffer1, size_t num)
+char *MemFile::fgets (char *buffer1, size_t num)
 {
 	if (MemBase!=NULL) {
 		if (pos>=mysize) throw EndOfFileException();
@@ -330,7 +330,7 @@ char *MemFile::gets (char *buffer1, size_t num)
 	throw FileNotOpenException();
 }
 
-wchar_t *MemFile::getws (wchar_t *buffer1, size_t num)
+wchar_t *MemFile::fgetws (wchar_t *buffer1, size_t num)
 {
 	if (MemBase!=NULL) {
 		if (pos>=mysize) throw EndOfFileException();
@@ -353,7 +353,7 @@ wchar_t *MemFile::getws (wchar_t *buffer1, size_t num)
 	throw FileNotOpenException();
 }
 
-void MemFile::puts (const char *str)
+void MemFile::fputs (const char *str)
 {
 	if (MemBase!=NULL) {
 		fwrite ((void*)str,1,(ppluint32)strlen(str));
@@ -362,7 +362,7 @@ void MemFile::puts (const char *str)
 	throw FileNotOpenException();
 }
 
-void MemFile::putws (const wchar_t *str)
+void MemFile::fputws (const wchar_t *str)
 {
 	if (MemBase!=NULL) {
 		fwrite (str,1,(ppluint32)wcslen(str)*sizeof(wchar_t));
@@ -371,7 +371,7 @@ void MemFile::putws (const wchar_t *str)
 	throw FileNotOpenException();
 }
 
-void MemFile::putc(int c)
+void MemFile::fputc(int c)
 {
 	if (MemBase!=NULL) {
 		MemBase[pos++]=(ppluint8)c;
@@ -380,7 +380,7 @@ void MemFile::putc(int c)
 	throw FileNotOpenException();
 }
 
-void MemFile::putwc(wchar_t c)
+void MemFile::fputwc(wchar_t c)
 {
 	if (MemBase!=NULL) {
 		wchar_t *a=(wchar_t*)(MemBase+pos);
@@ -391,7 +391,7 @@ void MemFile::putwc(wchar_t c)
 	throw FileNotOpenException();
 }
 
-int MemFile::getc()
+int MemFile::fgetc()
 {
 	if (MemBase!=NULL) {
 		return MemBase[pos++];
@@ -399,7 +399,7 @@ int MemFile::getc()
 	throw FileNotOpenException();
 }
 
-wchar_t MemFile::getwc()
+wchar_t MemFile::fgetwc()
 {
 	if (MemBase!=NULL) {
 		wchar_t *a=(wchar_t*)(MemBase+pos);

@@ -332,7 +332,7 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 quelloffset, ppluin
 {
 	if (!quellfile.seek(quelloffset)) return 0;
 	if (!seek(zieloffset)) return 0;
-	return (doCopy (quellfile,bytes));
+	return (fcopy (quellfile,bytes));
 }
 
 /*!\brief Daten aus einer anderen Datei kopieren
@@ -351,7 +351,7 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 quelloffset, ppluin
  */
 ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
 {
-	return (doCopy (quellfile,bytes));
+	return (fcopy (quellfile,bytes));
 }
 
 /*!\brief String lesen
@@ -368,14 +368,14 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Der Inhalt von \p buffer
  * ist im Fehlerfall undefiniert.
  */
-int FileObject::getString (String &buffer, size_t num)
+int FileObject::gets (String &buffer, size_t num)
 {
 	if (!num) throw IllegalArgumentException();
 	char *b=(char*)malloc(num+1);
 	if (!b) throw OutOfMemoryException();
 	char *ret;
 	try {
-		ret=gets(b,num);
+		ret=fgets(b,num);
 	} catch (...) {
 		free(b);
 		throw;
@@ -401,12 +401,20 @@ int FileObject::getString (String &buffer, size_t num)
  * @return Die Funktion gibt ein CString-Objekt mit den gelesenen Daten zurück.
  * Im Fehlerfall ist das Objekt leer (CString::IsEmpty()).
  */
-String FileObject::getString (size_t num)
+String FileObject::gets (size_t num)
 {
 	String s;
-	getString(s,num);
+	gets(s,num);
 	return s;
 }
+
+String FileObject::gets ()
+{
+	String s;
+	gets(s,1024);
+	return s;
+}
+
 
 /*!\brief Wide-Character String lesen
  *
@@ -424,14 +432,14 @@ String FileObject::getString (size_t num)
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Der Inhalt von \p buffer
  * ist im Fehlerfall undefiniert.
  */
-int FileObject::getWideString (String &buffer, size_t num)
+int FileObject::getws (String &buffer, size_t num)
 {
 	if (!num) throw IllegalArgumentException();
 	wchar_t *b=(wchar_t*)malloc((num+1)*sizeof(wchar_t));
 	if (!b) throw OutOfMemoryException();
 	wchar_t *ret;
 	try {
-		ret=getws(b,num);
+		ret=fgetws(b,num);
 	} catch (...) {
 		free(b);
 		throw;
@@ -462,7 +470,7 @@ int FileObject::getWideString (String &buffer, size_t num)
 String FileObject::getws (size_t num)
 {
 	String s;
-	getWideString(s,num);
+	getws(s,num);
 	return s;
 }
 
@@ -711,7 +719,7 @@ size_t FileObject::fwrite(const void * ptr, size_t size, size_t nmemb)
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
  */
-ppluint64 FileObject::doCopy (FileObject &quellfile, ppluint64 bytes)
+ppluint64 FileObject::fcopy (FileObject &quellfile, ppluint64 bytes)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -730,7 +738,7 @@ ppluint64 FileObject::doCopy (FileObject &quellfile, ppluint64 bytes)
  * @param num Anzahl zu lesender Zeichen
  * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
  */
-char *FileObject::gets (char *buffer, size_t num)
+char *FileObject::fgets (char *buffer, size_t num)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -752,7 +760,7 @@ char *FileObject::gets (char *buffer, size_t num)
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-wchar_t *FileObject::getws (wchar_t *buffer, size_t num)
+wchar_t *FileObject::fgetws (wchar_t *buffer, size_t num)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -765,7 +773,7 @@ wchar_t *FileObject::getws (wchar_t *buffer, size_t num)
  * @param str Pointer auf den zu schreibenden String
  * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
-void FileObject::puts (const char *str)
+void FileObject::fputs (const char *str)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -782,7 +790,7 @@ void FileObject::puts (const char *str)
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  *
  */
-void FileObject::putws (const wchar_t *str)
+void FileObject::fputws (const wchar_t *str)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -796,7 +804,7 @@ void FileObject::putws (const wchar_t *str)
  * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
  * im Fehlerfall -1;
  */
-void FileObject::putc (int c)
+void FileObject::fputc (int c)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -808,7 +816,7 @@ void FileObject::putc (int c)
  * @return Bei Erfolg wird der Wert des gelesenen Zeichens zurückgegeben, im
  * Fehlerfall -1.
  */
-int FileObject::getc()
+int FileObject::fgetc()
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -823,7 +831,7 @@ int FileObject::getc()
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-void FileObject::putwc (wchar_t c)
+void FileObject::fputwc (wchar_t c)
 {
 	throw UnimplementedVirtualFunctionException();
 }
@@ -838,7 +846,7 @@ void FileObject::putwc (wchar_t c)
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  */
-wchar_t FileObject::getwc()
+wchar_t FileObject::fgetwc()
 {
 	throw UnimplementedVirtualFunctionException();
 }

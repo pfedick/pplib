@@ -88,6 +88,39 @@
 #endif
 
 
+#ifdef putc
+#undef putc
+#endif
+
+#ifdef putwc
+#undef putwc
+#endif
+
+#ifdef puts
+#undef puts
+#endif
+
+#ifdef putws
+#undef putws
+#endif
+
+#ifdef getc
+#undef getc
+#endif
+
+#ifdef getwc
+#undef getwc
+#endif
+
+#ifdef gets
+#undef gets
+#endif
+
+#ifdef getws
+#undef getws
+#endif
+
+
 // Exceptions
 #ifdef PPL7LIB
 	#include "ppl7-exceptions.h"
@@ -342,21 +375,6 @@ class FileAttr {
 
 class DirEntry;
 
-#ifdef putc
-#undef putc
-#endif
-
-#ifdef puts
-#undef puts
-#endif
-
-#ifdef getc
-#undef getc
-#endif
-
-#ifdef gets
-#undef gets
-#endif
 
 
 class FileObject
@@ -418,9 +436,10 @@ class FileObject
 		size_t				read (ByteArray &target, size_t bytes);
 		ppluint64			copy (FileObject &quellfile, ppluint64 quelloffset, ppluint64 bytes, ppluint64 zieloffset);
 		ppluint64			copy (FileObject &quellfile, ppluint64 bytes);
-		virtual int			getString (String &buffer, size_t num=1024);
-		int					getWideString (String &buffer, size_t num=1024);
-		String				getString (size_t num=1024);
+		int					gets (String &buffer, size_t num=1024);
+		int					getws (String &buffer, size_t num=1024);
+		String				gets (size_t num);
+		String				gets ();
 		String				getws (size_t num=1024);
 		void				putsf (const char *fmt, ... );
 		void				puts (const String &str);
@@ -437,15 +456,15 @@ class FileObject
 		virtual ppluint64	tell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
-		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
-		virtual char *		gets (char *buffer, size_t num=1024);
-		virtual wchar_t*	getws (wchar_t *buffer, size_t num=1024);
-		virtual void		puts (const char *str);
-		virtual void		putws (const wchar_t *str);
-		virtual	void		putc (int c);
-		virtual	int			getc();
-		virtual	void		putwc (wchar_t c);
-		virtual	wchar_t		getwc();
+		virtual ppluint64	fcopy (FileObject &quellfile, ppluint64 bytes);
+		virtual char *		fgets (char *buffer, size_t num);
+		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual void		fputs (const char *str);
+		virtual void		fputws (const wchar_t *str);
+		virtual	void		fputc (int c);
+		virtual	int			fgetc();
+		virtual	void		fputwc (wchar_t c);
+		virtual	wchar_t		fgetwc();
 		virtual bool		eof() const;
 		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
@@ -487,17 +506,17 @@ class MemFile : public FileObject
 		virtual ppluint64	seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
-		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
+		virtual ppluint64	fcopy (FileObject &quellfile, ppluint64 bytes);
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
-		virtual char *		gets (char *buffer, size_t num=1024);
-		virtual wchar_t*	getws (wchar_t *buffer, size_t num=1024);
-		virtual	void		putc (int c);
-		virtual	int			getc();
-		virtual	void		putwc (wchar_t c);
-		virtual	wchar_t		getwc();
-		virtual void		puts (const char *str);
-		virtual void		putws (const wchar_t *str);
+		virtual char *		fgets (char *buffer, size_t num);
+		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual	void		fputc (int c);
+		virtual	int			fgetc();
+		virtual	void		fputwc (wchar_t c);
+		virtual	wchar_t		fgetwc();
+		virtual void		fputs (const char *str);
+		virtual void		fputws (const wchar_t *str);
 		virtual bool		eof() const;
 		virtual ppluint64	size() const;
 		virtual const char	*map(ppluint64 position, size_t size);
@@ -568,19 +587,19 @@ class File : public FileObject
 		virtual ppluint64	seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
-		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
-		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
-		virtual ppluint64	doCopy (FileObject &quellfile, ppluint64 bytes);
-		virtual char *		gets (char *buffer, size_t num=1024);
-		virtual wchar_t*	getws (wchar_t *buffer, size_t num=1024);
 		virtual ppluint64	size() const;
 		virtual bool		isOpen() const;
-		virtual void		puts (const char *str);
-		virtual void		putws (const wchar_t *str);
-		virtual	void		putc (int c);
-		virtual	int			getc();
-		virtual	void		putwc (wchar_t c);
-		virtual	wchar_t		getwc();
+		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
+		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
+		virtual ppluint64	fcopy (FileObject &quellfile, ppluint64 bytes);
+		virtual char *		fgets (char *buffer, size_t num);
+		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
+		virtual void		fputs (const char *str);
+		virtual void		fputws (const wchar_t *str);
+		virtual	void		fputc (int c);
+		virtual	int			fgetc();
+		virtual	void		fputwc (wchar_t c);
+		virtual	wchar_t		fgetwc();
 		virtual bool		eof() const;
 		virtual int			getFileNo() const;
 		virtual void		flush();
