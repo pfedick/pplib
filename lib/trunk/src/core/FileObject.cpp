@@ -112,7 +112,7 @@ namespace ppl7 {
  */
 FileObject::FileObject()
 {
-
+	buffer=NULL;
 }
 
 /*!\brief Destruktor der Klasse
@@ -122,7 +122,10 @@ FileObject::FileObject()
  */
 FileObject::~FileObject()
 {
-
+	if (buffer) {
+		free(buffer);
+		buffer=NULL;
+	}
 }
 
 /*!\brief Dateiname festlegen
@@ -177,6 +180,7 @@ const String& FileObject::filename() const
 
 /*!\brief Daten schreiben
  *
+ * \desc
  * Mit dieser Funktion wird ein beliebiger Speicherbereich auf den Datenträger
  * geschrieben. Die Funktion ist nicht virtuell und existiert nur in der Basisklasse.
  * Sie ruft die virtuellen Funktionen Seek und Fwrite auf, um den
@@ -186,7 +190,7 @@ const String& FileObject::filename() const
  * @param bytes Anzahl zu schreibender Bytes
  * @param fileposition Position in der Datei, an der die Daten gespeichert werden solle
  * @return Bei Erfolg liefert die Funktion die Anzahl geschriebener Bytes zurück, im
- * Fehlerfall 0
+ * Fehlerfall wird eine Exception geworfen.
  */
 size_t FileObject::write (const void * source, size_t bytes, ppluint64 fileposition)
 {
@@ -196,6 +200,7 @@ size_t FileObject::write (const void * source, size_t bytes, ppluint64 fileposit
 
 /*!\brief Daten schreiben
  *
+ * \desc
  * Mit dieser Funktion wird ein beliebiger Speicherbereich auf den Datenträger
  * geschrieben. Die Funktion ist nicht virtuell und existiert nur in der Basisklasse.
  * Sie ruft die virtuellen Funktionen Seek und Fwrite auf, um den
@@ -204,7 +209,7 @@ size_t FileObject::write (const void * source, size_t bytes, ppluint64 fileposit
  * @param source Pointer auf den Speicherbereich, der geschrieben werden soll
  * @param bytes Anzahl zu schreibender Bytes
  * @return Bei Erfolg liefert die Funktion die Anzahl geschriebener Bytes zurück, im
- * Fehlerfall 0
+ * Fehlerfall wird eine Exception geworfen.
  */
 size_t FileObject::write (const void * source, size_t bytes)
 {
@@ -213,6 +218,7 @@ size_t FileObject::write (const void * source, size_t bytes)
 
 /*!\brief Daten eines von Variant abgeleiteten Objekts schreiben
  *
+ * \desc
  * Mit dieser Funktion wird der Speicherinhalt eines Variant-Objekts auf den Datenträger
  * geschrieben. Die Funktion ist nicht virtuell und existiert nur in der Basisklasse.
  * Sie ruft die virtuellen Funktionen Seek und fwrite auf, um den
@@ -221,12 +227,8 @@ size_t FileObject::write (const void * source, size_t bytes)
  * @param object Das zu speichernde Variant Objekt
  * @param bytes Anzahl zu schreibender Bytes
  * @return Bei Erfolg liefert die Funktion die Anzahl geschriebener Bytes zurück, im
- * Fehlerfall 0
+ * Fehlerfall wird eine Exception geworfen.
  *
- * \note Folgende Variant Datentypen werden derzeit unterstützt:
- * - CString
- * - CWString (Falls \p bytes verwendet wird, sollt es ein vielfaches von sizeof(wchar_t) sein
- * - CBinary
  */
 size_t FileObject::write (const ByteArrayPtr &object, size_t bytes)
 {
@@ -237,6 +239,7 @@ size_t FileObject::write (const ByteArrayPtr &object, size_t bytes)
 
 /*!\brief Daten lesen
  *
+ * \desc
  * Mit dieser Funktion wird beliebiger Bereich der geöffneten Datei in den Hauptspeicher
  * geladen. Die Funktion ist nicht virtuell und existiert nur in der Basisklasse.
  * Sie ruft die virtuellen Funktionen Seek und Fread auf, um den eigentlichen
@@ -248,9 +251,7 @@ size_t FileObject::write (const ByteArrayPtr &object, size_t bytes)
  * @param fileposition Position in der Datei, an der die Daten gelesen werden sollen
  * @return Bei Erfolg liefert die Funktion die Anzahl gelesender Bytes zurück.
  * Wenn  ein Fehler  auftritt  oder  das
- * Dateiende erreicht ist, wird eine kleinere Zahl oder 0 zurückgegeben. Falls
- * das Dateiende erreicht wurde oder ein anderer Fehler aufgetreten ist,
- * kann der Fehlercode über den üblichen Weg ausgelesen werden.
+ * Dateiende erreicht ist, wird eine Exception geworfen.
  */
 size_t FileObject::read (void * target, size_t bytes, ppluint64 fileposition)
 {
@@ -260,6 +261,7 @@ size_t FileObject::read (void * target, size_t bytes, ppluint64 fileposition)
 
 /*!\brief Daten lesen
  *
+ * \desc
  * Diese Funktion liest \p bytes Bytes ab der aktuellen Position des Dateistroms
  * und speichert sie im Hauptspeicher an der duch \p target bestimmten Position.
  * Die Funktion ist nicht virtuell und existiert nur in der Basisklasse.
@@ -271,9 +273,7 @@ size_t FileObject::read (void * target, size_t bytes, ppluint64 fileposition)
  * @param bytes Anzahl zu lesender Bytes
  * @return Bei Erfolg liefert die Funktion die Anzahl gelesender Bytes zurück.
  * Wenn  ein Fehler  auftritt  oder  das
- * Dateiende erreicht ist, wird eine kleinere Zahl oder 0 zurückgegeben. Falls
- * das Dateiende erreicht wurde oder ein anderer Fehler aufgetreten ist,
- * kann der Fehlercode über den üblichen Weg ausgelesen werden.
+ * Dateiende erreicht ist, wird eine Exception geworfen.
  */
 size_t FileObject::read (void * target, size_t bytes)
 {
@@ -282,6 +282,7 @@ size_t FileObject::read (void * target, size_t bytes)
 
 /*!\brief Daten in ein Objekt einlesen
  *
+ * \desc
  * Diese Funktion liest \p bytes Bytes ab der aktuellen Position des Dateistroms
  * und speichert sie im Objekt \p target.
  *
@@ -294,14 +295,7 @@ size_t FileObject::read (void * target, size_t bytes)
  * @param bytes Anzahl zu lesender Bytes
  * @return Bei Erfolg liefert die Funktion die Anzahl gelesender Bytes zurück.
  * Wenn  ein Fehler  auftritt  oder  das
- * Dateiende erreicht ist, wird eine kleinere Zahl oder 0 zurückgegeben. Falls
- * das Dateiende erreicht wurde oder ein anderer Fehler aufgetreten ist,
- * kann der Fehlercode über den üblichen Weg ausgelesen werden.
- *
- * \note Folgende Variant Datentypen werden derzeit unterstützt:
- * - CString
- * - CWString (\p bytes sollte hier ein vielfaches von sizeof(wchar_t) sein)
- * - CBinary
+ * Dateiende erreicht ist, wird eine Exception geworfen.
  *
  */
 size_t FileObject::read (ByteArray &target, size_t bytes)
@@ -314,6 +308,7 @@ size_t FileObject::read (ByteArray &target, size_t bytes)
 
 /*!\brief Daten aus einer anderen Datei kopieren
  *
+ * \desc
  * Mit dieser Funktion kann ein Datenblock aus einer anderen Datei in diese
  * hineinkopiert werden. Dabei werden \p bytes Bytes ab der Position \p quelloffset der
  * Quelldatei \p quellfile gelesen an die Position \p zieloffset dieser Datei kopiert.
@@ -323,7 +318,7 @@ size_t FileObject::read (ByteArray &target, size_t bytes)
  * @param bytes Anzahl zu kopierender Bytes
  * @param zieloffset Position in dieser Datei, an die die Daten geschrieben werden sollen
  * @return Bei Erfolg liefert die Funktion die Anzahl kopierter Bytes zurück.
- * Im Fehlerfall kann der Wert auch keiner als die Anzahl Bytes sein oder auch 0.
+ * Im Fehlerfall wird eine Exception geworfen.
  *
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
@@ -332,11 +327,31 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 quelloffset, ppluin
 {
 	if (!quellfile.seek(quelloffset)) return 0;
 	if (!seek(zieloffset)) return 0;
-	return (fcopy (quellfile,bytes));
+
+	if (buffer==NULL) {
+		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
+		if (buffer==NULL) throw OutOfMemoryException();
+	}
+	if (quellfile.size()>quellfile.tell()) {
+		if ((quellfile.tell()+(ppluint64)bytes)>quellfile.size()) {
+			bytes=quellfile.size()-quellfile.tell();
+		}
+		ppluint64 rest=bytes;
+		ppluint64 by;
+		while (rest>0) {
+			by=rest;
+			if (by>COPYBYTES_BUFFERSIZE) by=COPYBYTES_BUFFERSIZE;
+			by=quellfile.read (buffer,(size_t)by);
+			write (buffer,(size_t)by);
+			rest-=by;
+		}
+	}
+	return bytes;
 }
 
 /*!\brief Daten aus einer anderen Datei kopieren
  *
+ * \desc
  * Mit dieser Funktion kann ein Datenblock aus einer anderen Datei in diese
  * hineinkopiert werden. Die Daten werden dabei ab dem aktuellen Dateipositionszeiger
  * des \p quellfile an den aktuellen Zeiger dieser Datei kopiert.
@@ -344,18 +359,19 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 quelloffset, ppluin
  * @param quellfile Das Dateiobjekt, aus dem gelesen werden soll
  * @param bytes Anzahl zu kopierender Bytes
  * @return Bei Erfolg liefert die Funktion die Anzahl kopierter Bytes zurück.
- * Im Fehlerfall kann der Wert auch keiner als die Anzahl Bytes sein oder auch 0.
+ * Im Fehlerfall wird eine Exception geworfen.
  *
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
  */
 ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
 {
-	return (fcopy (quellfile,bytes));
+	return (copy (quellfile,0,bytes,0));
 }
 
 /*!\brief String lesen
  *
+ * \desc
  * Gets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
  * sie im String-Objekt \p buffer. Das Lesen stoppt nach einem
  * EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
@@ -365,8 +381,8 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
  * @param buffer String-Objekt, in dem die gelesenen Daten gespeichert werden
  * sollen.
  * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Der Inhalt von \p buffer
- * ist im Fehlerfall undefiniert.
+ * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall wird eine Exception geworfen.
+ * Der Inhalt von \p buffer ist im Fehlerfall undefiniert.
  */
 int FileObject::gets (String &buffer, size_t num)
 {
@@ -391,6 +407,7 @@ int FileObject::gets (String &buffer, size_t num)
 
 /*!\brief String lesen
  *
+ * \desc
  * Gets liest höchstens \p num minus ein Zeichen aus der Datei und liefert deren
  * Inhalt als String-Objekt zurück. Das Lesen stoppt nach einem
  * EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
@@ -398,8 +415,8 @@ int FileObject::gets (String &buffer, size_t num)
  * 0-Byte angehangen.
  *
  * @param num Anzahl zu lesender Zeichen
- * @return Die Funktion gibt ein CString-Objekt mit den gelesenen Daten zurück.
- * Im Fehlerfall ist das Objekt leer (CString::IsEmpty()).
+ * @return Die Funktion gibt ein String-Objekt mit den gelesenen Daten zurück.
+ * Im Fehlerfall wird eine Exception geworfen.
  */
 String FileObject::gets (size_t num)
 {
@@ -408,16 +425,10 @@ String FileObject::gets (size_t num)
 	return s;
 }
 
-String FileObject::gets ()
-{
-	String s;
-	gets(s,1024);
-	return s;
-}
-
 
 /*!\brief Wide-Character String lesen
  *
+ * \desc
  * Gets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
  * sie im Wide-Character-String-Objekt \p buffer. Das Lesen stoppt nach einem
  * WEOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
@@ -429,8 +440,8 @@ String FileObject::gets ()
  * @param num Anzahl zu lesender Zeichen. Hierbei handelt es sich tatsächlich um
  * Zeichen, nicht um Bytes. Die Anzahl zu lesender Bytes wird intern mit der Formel
  * \p num * \c sizeof(wchar_t) errechnet.
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Der Inhalt von \p buffer
- * ist im Fehlerfall undefiniert.
+ * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall wird eine Exception geworfen.
+ * Der Inhalt von \p buffer ist im Fehlerfall undefiniert.
  */
 int FileObject::getws (String &buffer, size_t num)
 {
@@ -455,6 +466,7 @@ int FileObject::getws (String &buffer, size_t num)
 
 /*!\brief Wide-Character String lesen
  *
+ * \desc
  * Gets liest höchstens \p num minus ein Zeichen aus der Datei liefert sie als
  * Wide-Character-String-Objekt zurück. Das Lesen stoppt nach einem
  * WEOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
@@ -464,8 +476,8 @@ int FileObject::getws (String &buffer, size_t num)
  * @param num Anzahl zu lesender Zeichen. Hierbei handelt es sich tatsächlich um
  * Zeichen, nicht um Bytes. Die Anzahl zu lesender Bytes wird intern mit der Formel
  * \p num * \c sizeof(wchar_t) errechnet.
- * @return Die Funktion gibt ein CWString-Objekt mit den gelesenen Daten zurück.
- * Im Fehlerfall ist das Objekt leer (CString::IsEmpty()).
+ * @return Die Funktion gibt ein String-Objekt mit den gelesenen Daten zurück.
+ * Im Fehlerfall wird eine Exception geworfen.
  */
 String FileObject::getws (size_t num)
 {
@@ -477,12 +489,13 @@ String FileObject::getws (size_t num)
 
 /*!\brief Formatierten String schreiben
  *
+ * \desc
  * Putsf schreibt das Ergebnis nach Kontrolle des Formatierungsstrings \p fmt und
  * Einsetzen der optionalen Parameter ohne sein nachfolgendes 0-Byte in den Ausgabestrom.
  *
  * @param fmt Pointer auf den Formatierungsstring
  * @param ... Optionale Parameter, die im Formatierungsstring verwendet werden.
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void FileObject::putsf (const char *fmt, ... )
 {
@@ -497,11 +510,12 @@ void FileObject::putsf (const char *fmt, ... )
 
 /*!\brief String schreiben
  *
+ * \desc
  * Diese Funktion schreibt den Inhalt des String-Objekts \p str
  * ohne sein nachfolgendes 0-Byte in den Ausgabestrom.
  *
  * @param str String-Objekt mit den zu schreibenden Daten
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void FileObject::puts (const String &str)
 {
@@ -510,11 +524,12 @@ void FileObject::puts (const String &str)
 
 /*!\brief Wide-Character-String schreiben
  *
+ * \desc
  * Diese Funktion schreibt den Inhalt des Wide-Character-String-Objekts \p str
  * ohne sein nachfolgendes 0-Byte in den Ausgabestrom.
  *
  * @param str String-Objekt mit den zu schreibenden Daten
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void FileObject::putws (const String &str)
 {
@@ -523,17 +538,18 @@ void FileObject::putws (const String &str)
 
 /*!\brief Datei in den Speicher mappen
  *
+ * \desc
  * Mit dieser Funktion wird der komplette Inhalt der Datei in den Speicher gemapped.
  * Falls das Betriebssystem <a href="http://en.wikipedia.org/wiki/Mmap">mmap</a> versteht,
  * wird dieser verwendet. Dabei wird die Datei nicht sofort komplett in den Speicher
  * geladen, sondern nur die Teile, die gerade benötigt werden. Steht \c mmap nicht
  * zur Verfügung, wird die Datei in den Hauptspeicher geladen. Die File-Klasse kümmert
  * sich selbst daraum, dass der Speicher auch wieder freigegeben wird.
- *
+ * \par
  * Ein mit Map gemappter Speicher darf nur gelesen, aber nicht beschrieben werden!
  *
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
- * in dem sich die Datei befindet, im Fehlerfall NULL.
+ * in dem sich die Datei befindet, im Fehlerfall wirft die Funktion eine Exception
  */
 const char *FileObject::map()
 {
@@ -542,6 +558,7 @@ const char *FileObject::map()
 
 /*!\brief Den kompletten Inhalt der Datei laden
  *
+ * \desc
  * Mit dieser Funktion wird der komplette Inhalt der geöffneten Datei in den
  * Hauptspeicher geladen. Der benötigte Speicher wird von der Funktion
  * automatisch allokiert und muss vom Aufrufer nach Gebrauch mit \c free wieder
@@ -549,14 +566,20 @@ const char *FileObject::map()
  *
  * @return Pointer auf den Speicherbereich mit dem Inhalt der Datei. Dieser muss
  * vom Aufrufer nach Gebrauch mit \c free selbst wieder freigegeben werden.
- * Im Fehlerfall wird NULL.
+ * Im Fehlerfall wird eine Exception geworfen.
  */
 char *FileObject::load()
 {
 	ppluint64 s=size();
 	char *b=(char*)malloc((size_t)s+1);
 	if (!b) throw OutOfMemoryException();
-	ppluint64 r=read(b,(size_t)s,0);
+	ppluint64 r=0;
+	try {
+		r=read(b,(size_t)s,0);
+	} catch (...) {
+		free(b);
+		throw;
+	}
 	if (r!=s) {
 		free(b);
 		return NULL;
@@ -567,11 +590,9 @@ char *FileObject::load()
 
 /*!\brief Den kompletten Inhalt der Datei in ein Objekt laden
  *
+ * \desc
  * Mit dieser Funktion wird der komplette Inhalt der geöffneten Datei in das
- * angegebene Objekt geladen. Unterstützt werden zur Zeit folgende Objekte:
- * - CString
- * - CWString
- * - CBinary
+ * angegebene ByteArray \p object geladen.
  *
  * @param[out] object Das gewünschte Zielobjekt
  * @return Liefert 1 zurück, wenn der Inhalt geladen werden konnte, sonst 0.
@@ -583,7 +604,13 @@ int FileObject::load(ByteArray &object)
 	seek(0);
 	char *buffer=(char*)malloc((size_t)mysize+1);
 	if (!buffer) throw OutOfMemoryException();
-	size_t by=fread(buffer,1,(size_t)mysize);
+	size_t by=0;
+	try {
+		by=fread(buffer,1,(size_t)mysize);
+	} catch (...) {
+		free(buffer);
+		throw;
+	}
 	if (by!=mysize) {
 		free(buffer);
 		return 0;
@@ -599,9 +626,10 @@ int FileObject::load(ByteArray &object)
 
 /*!\brief Datei schließen
  *
+ * \desc
  * Diese Funktion schließt die aktuell geöffnete Datei. Sie wird automatisch vom Destruktor der
  * Klasse aufgerufen, so dass ihr expliziter Aufruf nicht erforderlich ist.
- *
+ * \par
  * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch FileObject::Flush
  * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen.
  *
@@ -613,6 +641,7 @@ void FileObject::close ()
 
 /*!\brief Dateizeiger auf gewünschte Stelle bringen
  *
+ * \desc
  * Diese Funktion bewegt den internen Dateizeiger auf die gewünschte Stelle
  *
  * \param[in] position Gewünschte Position innerhalb der Datei
@@ -629,7 +658,8 @@ ppluint64 FileObject::seek (ppluint64 position)
 
 /*!\brief Dateizeiger auf gewünschte Stelle bringen
  *
- * Die Funktion Fseek setzt den Dateipositionszeiger für den Stream. Die neue Position,
+ * \desc
+ * Die Funktion %seek setzt den Dateipositionszeiger für den Stream. Die neue Position,
  * gemessen in Byte, wird erreicht durch addieren von  \p offset  zu  der  Position,  die  durch  \p origin
  * angegeben  ist. Wenn \p origin auf SEEK_SET, SEEK_CUR, oder SEEK_END, gesetzt ist, ist der Offset relativ
  * zum Dateianfang, der aktuellen Position, oder dem Dateiende.
@@ -655,9 +685,11 @@ ppluint64 FileObject::seek (pplint64 offset, SeekOrigin origin)
 
 /*!\brief Aktuelle Dateiposition ermitteln
  *
- * Die Funktion Ftell liefert den aktuellen Wert des Dateipositionszeigers für  den  Stream zurück.
+ * \desc
+ * Die Funktion %tell liefert den aktuellen Wert des Dateipositionszeigers für  den  Stream zurück.
  *
- * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird -1 zurückgegeben.
+ * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird eine
+ * Exception geworfen
  */
 ppluint64 FileObject::tell()
 {
@@ -666,7 +698,8 @@ ppluint64 FileObject::tell()
 
 /*!\brief Lesen eines Datenstroms
  *
- * Die  Funktion  Fread  liest \p nmemb Datenelemente vom Dateistrom und speichert
+ * \desc
+ * Die  Funktion  %fread  liest \p nmemb Datenelemente vom Dateistrom und speichert
  * es an  der  Speicherposition,  die  durch \p ptr bestimmt ist.  Jedes davon ist
  * \ size Byte lang.
  *
@@ -675,11 +708,10 @@ ppluint64 FileObject::tell()
  * Bytes Speicher reserviert haben.
  * @param[in] size Größe der zu lesenden Datenelemente
  * @param[in] nmemb Anzahl zu lesender Datenelemente
- * @return Fread  gibt die Anzahl der erfolgreich gelesenen Elemente zurück
- * (nicht die Anzahl  der  Zeichen).   Wenn  ein Fehler  auftritt  oder  das
- * Dateiende erreicht ist, wird eine kleinere Zahl oder 0 zurückgegeben. Falls
- * das Dateiende erreicht wurde oder ein anderer Fehler aufgetreten ist,
- * kann der Fehlercode über den üblichen Weg ausgelesen werden.
+ * @return %fread  gibt die Anzahl der erfolgreich gelesenen Elemente zurück
+ * (nicht die Anzahl  der  Zeichen).  Wenn  ein Fehler  auftritt  oder  das
+ * Dateiende erreicht ist, wird eine Exception geworfen.
+ * \exception EndOfFileException: Wird geworfen, wenn das Dateiende erreicht wurde
  */
 size_t FileObject::fread(void * ptr, size_t size, size_t nmemb)
 {
@@ -688,15 +720,15 @@ size_t FileObject::fread(void * ptr, size_t size, size_t nmemb)
 
 /*!\brief Schreiben eines Datenstroms
  *
- * Die Funktion Fwrite schreibt \p nmemb Datenelemente der Größe \p size Bytes,
+ * \desc
+ * Die Funktion %fwrite schreibt \p nmemb Datenelemente der Größe \p size Bytes,
  * in  den  Dateistrom. Sie werden von der Speicherstelle, die durch \p ptr angegeben ist, gelesen.
  *
  * @param ptr Pointer auf den Beginn des zu schreibenden Speicherbereiches.
  * @param size Größe der zu schreibenden Datenelemente
  * @param nmemb Anzahl zu schreibender Datenelemente
- * @return Fwrite gibt die Anzahl der erfolgreich geschriebenen Elemente zurück (nicht die
- * Anzahl der Zeichen). Wenn ein Fehler auftritt, wird eine kleinere Zahl oder 0 zurückgegeben.
- * Der Fehler kann auf dem üblichen Weg ausgelesen werden.
+ * @return %fwrite gibt die Anzahl der erfolgreich geschriebenen Elemente zurück (nicht die
+ * Anzahl der Zeichen). Wenn ein Fehler auftritt, wird eine Exception geworfen.
  *
  */
 size_t FileObject::fwrite(const void * ptr, size_t size, size_t nmemb)
@@ -705,38 +737,22 @@ size_t FileObject::fwrite(const void * ptr, size_t size, size_t nmemb)
 }
 
 
-/*!\brief Daten aus einer anderen Datei kopieren
- *
- * Mit dieser Funktion kann ein Datenblock aus einer anderen Datei in diese
- * hineinkopiert werden. Die Daten werden dabei ab dem aktuellen Dateipositionszeiger
- * des \p quellfile an den aktuellen Zeiger dieser Datei kopiert.
- *
- * @param quellfile Das Dateiobjekt, aus dem gelesen werden soll
- * @param bytes Anzahl zu kopierender Bytes
- * @return Bei Erfolg liefert die Funktion die Anzahl kopierter Bytes zurück.
- * Im Fehlerfall kann der Wert auch keiner als die Anzahl Bytes sein oder auch 0.
- *
- * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
- * der gelesenen Daten.
- */
-ppluint64 FileObject::fcopy (FileObject &quellfile, ppluint64 bytes)
-{
-	throw UnimplementedVirtualFunctionException();
-}
-
 /*!\brief String lesen
  *
- * Gets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
+ * \desc
+ * %fgets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
  * sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt nach einem
  * EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
  * er in dem Puffer gespeichert. Am Ende der gelesenen Daten wird ein
  * 0-Byte angehangen.
  *
+ *
  * @param buffer Pointer auf den Speicherbereich, in den die gelesenen Daten
  * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
  * sein und mindestens \p num Bytes groß sein.
  * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
+ * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall wird eine
+ * Exception geworfen.
  */
 char *FileObject::fgets (char *buffer, size_t num)
 {
@@ -745,7 +761,9 @@ char *FileObject::fgets (char *buffer, size_t num)
 
 /*!\brief Wide-Character String lesen
  *
- * Gets liest höchstens \p num minus ein Zeichen (nicht Bytes) aus der Datei
+ * \desc
+ * %fgwets liest höchstens \p num minus ein Zeichen (nicht Bytes)
+ * eines Wide-Character-Strings aus der Datei
  * und speichert sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt
  * nach einem EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird,
  * wird er in dem Puffer gespeichert. Am Ende der gelesenen Daten wird ein
@@ -755,7 +773,8 @@ char *FileObject::fgets (char *buffer, size_t num)
  * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
  * sein und mindestens \p num * \c sizeof(wchar_t) Bytes groß sein.
  * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
+ * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall wird eine
+ * Exception geworfen.
  *
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
@@ -767,11 +786,12 @@ wchar_t *FileObject::fgetws (wchar_t *buffer, size_t num)
 
 /*!\brief String schreiben
  *
- * Puts schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
+ * \desc
+ * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
  * den Ausgabestrom.
  *
  * @param str Pointer auf den zu schreibenden String
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  */
 void FileObject::fputs (const char *str)
 {
@@ -780,11 +800,12 @@ void FileObject::fputs (const char *str)
 
 /*!\brief Wide-Character String schreiben
  *
- * Puts schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
+ * \desc
+ * %fputs schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
  * den Ausgabestrom.
  *
  * @param str Pointer auf den zu schreibenden String
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  *
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
@@ -798,11 +819,11 @@ void FileObject::fputws (const wchar_t *str)
 
 /*!\brief Zeichen schreiben
  *
- * Putc schreibt das Zeichen \p c, umgesetzt in ein unsigned char,
+ * \desc
+ * %fputc schreibt das Zeichen \p c, umgesetzt in ein unsigned char,
  * in den Ausgabestrom.
  * @param c Zu schreibendes Zeichen
- * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
- * im Fehlerfall -1;
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  */
 void FileObject::fputc (int c)
 {
@@ -811,10 +832,11 @@ void FileObject::fputc (int c)
 
 /*!\brief Zeichen lesen
  *
- * Getc liest das  nächste Zeichen aus der Datei und gibt seinen unsigned char Wert gecastet
+ * \desc
+ * %fgetc liest das  nächste Zeichen aus der Datei und gibt seinen unsigned char Wert gecastet
  * in einem int zurück.
  * @return Bei Erfolg wird der Wert des gelesenen Zeichens zurückgegeben, im
- * Fehlerfall -1.
+ * Fehlerfall wird eine Exception geworfen.
  */
 int FileObject::fgetc()
 {
@@ -823,13 +845,13 @@ int FileObject::fgetc()
 
 /*!\brief Wide-Character Zeichen schreiben
  *
- * Putwc schreibt das Wide-Character Zeichen \p c in den Ausgabestrom.
+ * \desc
+ * %fputwc schreibt das Wide-Character Zeichen \p c in den Ausgabestrom.
  * @param c Zu schreibendes Zeichen
- * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
- * im Fehlerfall -1;
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  *
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
- * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
+ * verfügbar.
  */
 void FileObject::fputwc (wchar_t c)
 {
@@ -838,13 +860,14 @@ void FileObject::fputwc (wchar_t c)
 
 /*!\brief Wide-Character Zeichen lesen
  *
- * Getwc liest das nächste Zeichen aus der Datei und gibt seinen Wert als Integer
+ * \desc
+ * %fgetwc liest das nächste Wide-Character Zeichen aus der Datei und gibt seinen Wert als Integer
  * zurück.
  * @return Bei Erfolg wird das gelesene Zeichen als Integer Wert zurückgegeben,
- * im Fehlerfall -1;
+ * im Fehlerfall wird eine Exception geworfen.
  *
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
- * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
+ * verfügbar.
  */
 wchar_t FileObject::fgetwc()
 {
@@ -853,10 +876,11 @@ wchar_t FileObject::fgetwc()
 
 /*!\brief Prüfen, ob Dateiende erreicht ist
  *
+ * \desc
  * Die Funktion prüft, ob das Dateiende erreicht wurde
  *
  * @return Liefert \c true zurück, wenn das Dateiende erreicht wurde, sonst \c false
- * Falls die Datei nicht geöffnet war, wird ebenfalls \c false zurückgegeben.
+ * Falls die Datei nicht geöffnet war, wird wird eine Exception geworfen.
  */
 bool FileObject::eof() const
 {
@@ -877,11 +901,12 @@ ppluint64 FileObject::size() const
 
 /*!\brief Filenummer der Datei
  *
+ * \desc
  * Die Funktion liefert den Dateideskriptor als Integer zurück, wie er
  * von den Systemfunktionen open , read , write und close genutzt wird.
  *
- * @return Liefert die Filenummer zurück, oder -1, wenn die Datei nicht
- * geöffnet war.
+ * @return Liefert die Filenummer zurück oder wirft eine Exception,
+ * wenn die Datei nicht geöffnet war.
  */
 int FileObject::getFileNo() const
 {
@@ -890,14 +915,15 @@ int FileObject::getFileNo() const
 
 /*!\brief Gepufferte Daten schreiben
  *
+ * \desc
  * Die Funktion Flush bewirkt, dass alle gepufferten Daten des aktuellen Streams
  * mittels der zugrundeliegenden write-Funktion geschrieben werden. Der Status
  * des Streams wird dabei nicht berührt. Die Daten werden nicht zwangsweise auch
  * physikalisch auf die Platte geschrieben, sie können noch immer aus Performancegründen
  * vom Kernel oder Treiber gecached werden. Um 100 Prozent sicher zu gehen, kann man
- * die Funktion FileObject::Sync verwenden.
+ * die Funktion FileObject::sync verwenden.
  *
- * @return Bei erfolgreicher Ausführung wird 1 zurückgegeben, ansonsten 0.
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  */
 void FileObject::flush()
 {
@@ -917,10 +943,8 @@ void FileObject::flush()
  * werden, unter Umständen sogar nach jedem Schreibzugriff.
  *
  * @return Die Funktion kehrt erst zurück, wenn alle Daten vollständig geschrieben wurden und liefert dann true (1)
- * zurück. Können die Daten nicht geschrieben werden, liefert sie false (0) zurück und ein entsprechender
- * Fehlercode wird gesetzt.
- *
- * @since Die Funktion wurde mit Version 6.2.5 eingeführt
+ * zurück. Können die Daten nicht geschrieben werden, wird eine Exception
+ * geworfen.
  */
 void FileObject::sync()
 {
@@ -929,6 +953,7 @@ void FileObject::sync()
 
 /*!\brief Datei abschneiden
  *
+ * \desc
  * Die Funktionen Truncate bewirkt, dass die aktuell geöffnete Datei auf eine Größe von
  * exakt \p length Bytes abgeschnitten wird.
  *
@@ -938,6 +963,7 @@ void FileObject::sync()
  * Der Dateizeiger wird nicht verändert. Die Datei muss zum Schreiben geöffnet sein.
  *
  * @param length Position, an der die Datei abgeschnitten werden soll.
+ * \return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  */
 void FileObject::truncate(ppluint64 length)
 {
@@ -948,8 +974,8 @@ void FileObject::truncate(ppluint64 length)
  *
  * \header \#include <ppl7.h>
  * \desc
- * Mit dieser Funktion kann geprüft werden, ob die mit CFile assoziierte Datei
- * gerade geöffnet ist.
+ * Mit dieser Funktion kann geprüft werden, ob die mit diesem Objekt
+ * assoziierte Datei gerade geöffnet ist.
  * \return Die Funktion liefert \p true zurück, wenn die Datei offen ist, ansonsten \p false.
  */
 bool FileObject::isOpen() const
@@ -959,15 +985,16 @@ bool FileObject::isOpen() const
 
 /*!\brief Datei zum Lesen sperren
  *
+ * \desc
  * Mit LockShared wird die Datei zum Lesen gesperrt. Andere Prozesse können weiterhin
  * auf die Datei zugreifen, allerdings ebenfalls nur lesend.
  *
  * @param block Gibt an, ob die Funktion warten soll (blocken), bis die Datei
  * gesperrt werden kann (block=true) oder sofort mit einer Fehlermeldung
  * zurückkehren soll (block=false).
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  *
- * \see Siehe auch FileObject::lockExclusive und FileObject::Unlock
+ * \see Siehe auch File::LockExclusive und File::Unlock
  */
 void FileObject::lockShared(bool block)
 {
@@ -976,16 +1003,17 @@ void FileObject::lockShared(bool block)
 
 /*!\brief Datei exklusiv sperren
  *
+ * \desc
  * Mit LockExclusive wird die Datei exklusiv zum Schreiben gesperrt. Andere
  * Prozesse können nicht auf die Datei zugreifen, solange die Sperre besteht.
  *
  * @param block Gibt an, ob die Funktion warten soll (blocken), bis die Datei
  * gesperrt werden kann (block=true) oder sofort mit einer Fehlermeldung
  * zurückkehren soll (block=false).
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- *int o=0;
- * \see Siehe auch FileObject::lockShared und FileObject::Unlock
- */
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
+ *
+* \see Siehe auch File::LockShared und File::Unlock
+*/
 void FileObject::lockExclusive(bool block)
 {
 	throw UnimplementedVirtualFunctionException();
@@ -993,11 +1021,12 @@ void FileObject::lockExclusive(bool block)
 
 /*!\brief Dateisperre aufheben
  *
- * Mit Unlock wird eine mit LockShared oder LockExclusive eingerichtete
+ * \desc
+ * Mit Unlock wird eine mit lockShared oder lockExclusive eingerichtete
  * Sperre wieder aufgehoben, so dass auch andere Prozesse wieder uneingeschränkt
  * auf die Datei zugreifen können.
  *
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  *
  * \see Siehe auch FileObject::lockShared und FileObject::lockExclusive
  */
@@ -1008,6 +1037,7 @@ void FileObject::unlock()
 
 /*!\brief Minimalgröße des Speicherblocks bei Zugriffen mit FileObject::Map
  *
+ * \desc
  * Falls mit Map viele aufeinanderfolgende kleine Speicherblöcke gemapped werden,
  * ist es sinnvoll größere Blöcke zu laden, die dann bereits im Cache bzw. Hauptspeicher
  * liegen, wenn sie gebraucht werden. Mit dieser Funktion kann bestimmt werden, wie
@@ -1022,7 +1052,7 @@ void FileObject::setMapReadAhead(size_t bytes)
 
 /*!\brief Datei Read-Only in den Speicher mappen
  *
- * \descr
+ * \desc
  * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped.
  * Falls das Betriebssystem <a href="http://en.wikipedia.org/wiki/Mmap">mmap</a> versteht,
  * wird dieser verwendet. Dabei wird der gewünschte Datenblock nicht sofort komplett
@@ -1037,7 +1067,7 @@ void FileObject::setMapReadAhead(size_t bytes)
  * @param[in] position Die gewünschte Startposition innerhalb der Datei
  * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
- * in dem sich die Datei befindet, im Fehlerfall NULL.
+ * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
  */
 const char *FileObject::map(ppluint64 position, size_t size)
 {
@@ -1046,7 +1076,7 @@ const char *FileObject::map(ppluint64 position, size_t size)
 
 /*!\brief Datei Les- und Schreibbar in den Speicher mappen
  *
- * \descr
+ * \desc
  * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped.
  * Falls das Betriebssystem <a href="http://en.wikipedia.org/wiki/Mmap">mmap</a> versteht,
  * wird dieser verwendet. Dabei wird der gewünschte Datenblock nicht sofort komplett
@@ -1055,20 +1085,27 @@ const char *FileObject::map(ppluint64 position, size_t size)
  * Die File-Klasse kümmert sich selbst daraum, dass der Speicher nach Gebrauch wieder
  * zurück in die Datei geschrieben und freigegeben wird.
  * \par
- * Ein mit MapRW gemappter Speicher darf sowohl gelesen als auch beschrieben werden!
+ * Ein mit %mapRW gemappter Speicher darf sowohl gelesen als auch beschrieben werden!
  * Bevor mit anderen Funktionen auf den gleichen Speicher zugegriffen werden soll
  * (insbesondere schreibend), muss die Funktion FileObject::Unmap aufgerufen werden.
  *
  * @param[in] position Die gewünschte Startposition innerhalb der Datei
  * @param[in] size Die Anzahl Bytes, die gemapped werden sollen.
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
- * in dem sich die Datei befindet, im Fehlerfall NULL.
+ * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
  */
 char *FileObject::mapRW(ppluint64 position, size_t size)
 {
 	throw UnimplementedVirtualFunctionException();
 }
 
+/*!\brief Mapping aufheben
+ *
+ * \desc
+ * Ein mit map oder mapRW eingerichtetes Mapping einer Datei in den Hauptspeicher
+ * wird wieder aufgehoben.
+ *
+ */
 void FileObject::unmap()
 {
 	throw UnimplementedVirtualFunctionException();

@@ -284,29 +284,6 @@ size_t MemFile::fwrite(const void *ptr, size_t size, size_t nmemb)
 }
 
 
-ppluint64 MemFile::fcopy (FileObject &quellfile, ppluint64 bytes)
-{
-	if (MemBase==NULL) throw FileNotOpenException();
-	if (buffer==NULL) {
-		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
-		if (buffer==NULL) throw OutOfMemoryException();
-	}
-	if (quellfile.size()>quellfile.tell()) {
-		if (quellfile.tell()+(pplint64)bytes>quellfile.size()) {
-			bytes=(ppluint64)quellfile.size()-(ppluint64)quellfile.tell();
-		}
-		ppluint64 rest=bytes;
-		ppluint32 by;
-
-		while (rest>0) {
-			by=quellfile.fread (buffer,1,COPYBYTES_BUFFERSIZE);
-			write (buffer,by);
-			rest-=by;
-		}
-	}
-	return bytes;
-}
-
 char *MemFile::fgets (char *buffer1, size_t num)
 {
 	if (MemBase!=NULL) {

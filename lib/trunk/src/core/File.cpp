@@ -112,37 +112,6 @@ namespace ppl7 {
  * Mit dieser Klasse können Dateien geladen, verändert und gespeichert werden.
  * Sie dient als Wrapper-Klasse für die Low-Level Funktionen des Betriebssystems.
  *
- *
- * \section ppl7_File_Filemodi Dateimodi
- * Die File-Klasse unterstützt folgende Dateimodi:
- * <ul>
-<li><b>r</b><br>Open text file for reading.  The stream is positioned at the beginning of the file.
-</li>
-<li><b>r+</b><br>Open for reading and writing.  The stream is positioned at the beginning of the file.
-</li>
-<li><b>w</b><br>Truncate  file to zero length or create text file for writing.  The stream is positioned at the beginning
-of the file.
-</li>
-<li><b>w+</b><br>
-Open for reading and writing.  The file is created if it does not exist, otherwise it is truncated. The
-stream is positioned at the beginning of the file.
-</li>
-<li><b>a</b><br>Open  for  appending  (writing at end of file).  The file is created if it does not exist.
-The stream is positioned at the end of the file.
-</li>
-<li><b>a+</b><br>Open for reading and appending (writing at end of file).  The file is
-created if it does not exist.   The  initial  file  position for reading is at the beginning of
-the file, but output is always appended to the end of the file.
-</li>
-<li><b>b</b> (Optionaler Zusatzparameter)<br>
-The mode string can also include the letter ‘‘b’’ either as a last character or as a character between the char-
-       acters in any of the two-character strings described above.  This is strictly for compatibility with C89 and has
-       no effect; the ‘‘b’’ is ignored on all POSIX conforming systems, including Linux.  (Other systems may treat text
-       files  and  binary files differently, and adding the ‘‘b’’ may be a good idea if you do I/O to a binary file and
-       expect that your program may be ported to non-Unix environments.)
-       </li>
-</ul>
- *
  */
 
 
@@ -171,8 +140,12 @@ The mode string can also include the letter ‘‘b’’ either as a last chara
  */
 
 
+/*!\brief Konstruktor der Klasse
+ *
+ * \desc
+ * Konstruktor der Klasse
+ */
 File::File ()
-//! \brief Konstruktor der Klasse
 {
 	#ifdef USEWIN32
 		hf=0;
@@ -180,14 +153,12 @@ File::File ()
 	MapBase=NULL;
 	ff=NULL;
 	mysize=pos=0;
-	buffer=NULL;
 	LastMapStart=LastMapSize=0;
 	LastMapProtection=0;
 	ReadAhead=0;
 	isPopen=false;
 }
 
-File::File (const String &filename, FileMode mode)
 /*!\brief Konstruktor der Klasse mit gleichzeitigem Öffnen einer Datei
  *
  * Konstruktor der Klasse, mit dem gleichzeitig eine Datei geöffnet wird.
@@ -195,6 +166,7 @@ File::File (const String &filename, FileMode mode)
  * @param[in] mode Zugriffsmodus. Defaultmäßig wird die Datei zum binären Lesen
  * geöffnet (siehe \ref ppl7_File_Filemodi)
  */
+File::File (const String &filename, FileMode mode)
 {
 	MapBase=NULL;
 	#ifdef USEWIN32
@@ -202,7 +174,6 @@ File::File (const String &filename, FileMode mode)
 	#endif
 	ff=NULL;
 	mysize=pos=0;
-	buffer=NULL;
 	LastMapStart=LastMapSize=0;
 	LastMapProtection=0;
 	ReadAhead=0;
@@ -210,13 +181,17 @@ File::File (const String &filename, FileMode mode)
 	open (filename,mode);
 }
 
-
+/*!\brief Konstruktor mit Übernahme eines C-Filehandles
+ *
+ * \desc
+ * Konstruktor der Klasse mit Übernahme eines C-Filehandles einer bereits mit ::fopen geöffneten Datei.
+ *
+ * @param[in] handle File-Handle
+ */
 File::File (FILE * handle)
-//! \brief Konstruktor der Klasse mit Übernahme eines C-Filehandles einer bereits geöffneten Datei
 {
 	MapBase=NULL;
 	ff=NULL;
-	buffer=NULL;
 	mysize=pos=0;
 	LastMapStart=LastMapSize=0;
 	LastMapProtection=0;
@@ -230,14 +205,29 @@ File::File (FILE * handle)
 	}
 }
 
+/*!\brief Destruktor der Klasse
+ *
+ * \desc
+ * Der Destruktor der Klasse sorgt dafür, dass eine noch geöffnete Datei geschlossen wird und
+ * alle Systemresourcen wieder freigegeben werden.
+ */
+
 File::~File()
-//! \brief Destruktor der Klasse
 {
 	if (ff!=NULL) {
 		close();
 	}
 }
 
+/*!\brief C-Filemode-String
+ *
+ * \desc
+ * Diese interne Funktion gibt den zum Datemodus \p mode passenden C-Filemode-String
+ * zurück.
+ *
+ * @param mode Filemodus aus der Enumeration FileMode
+ * @return C-String
+ */
 const char *File::fmode(FileMode mode)
 {
 	switch (mode) {
@@ -295,6 +285,12 @@ void File::throwErrno(const String &filename)
 	}
 }
 
+/*!\brief Exception anhand errno-Variable werfen
+ *
+ * \desc
+ * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
+ * "errno"-Variablen die passende Exception zu werfen.
+ */
 void File::throwErrno()
 {
 	throwErrno(filename());
@@ -302,10 +298,12 @@ void File::throwErrno()
 
 /*!\brief Datei öffnen
  *
+ * \desc
  * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
  * @param[in] filename Dateiname
  * @param mode Zugriffsmodus
- * @return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
+ *
+ * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void File::open (const String &filename, FileMode mode)
 {
@@ -324,10 +322,10 @@ void File::open (const String &filename, FileMode mode)
  *
  * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
  *
- * \param filename Dateiname
+ * \param filename Dateiname als C-String
  * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref ppl7_File_Filemodi)
  *
- * \return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
+ * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void File::open (const char * filename, FileMode mode)
 {
@@ -350,7 +348,9 @@ void File::open (const char * filename, FileMode mode)
  * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0666 erzeugt.
  *
  * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
- * @param[in] ... Optionale Parameter
+ * als C-String
+ *
+ * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void File::openTemp(const char *filetemplate)
 {
@@ -359,6 +359,18 @@ void File::openTemp(const char *filetemplate)
 	openTemp(t);
 }
 
+/*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
+ *
+ * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
+ * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
+ * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
+ * durch eine Zeichenkette ersetzt, die diesen Dateinamen eindeutig  macht.
+ * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0666 erzeugt.
+ *
+ * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
+ *
+ * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
+ */
 void File::openTemp(const String &filetemplate)
 {
 	#ifdef HAVE_MKSTEMP
@@ -392,9 +404,12 @@ void File::openTemp(const String &filetemplate)
  * Diese Funktion schließt die aktuell geöffnete Datei. Sie wird automatisch vom Destruktor der
  * Klasse aufgerufen, so dass ihr expliziter Aufruf nicht erforderlich ist.
  * \par
- * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch FileObject::Flush
- * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen.
+ * Wenn  der  Stream  zur  Ausgabe  eingerichtet  war,  werden  gepufferte  Daten  zuerst  durch
+ * FileObject::flush
+ * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen, alle Systemressourcen werden
+ * freigegeben.
  *
+ * \return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void File::close()
 {
@@ -405,9 +420,9 @@ void File::close()
 	setFilename(L"");
 	if (ff!=NULL) {
 		int ret=1;
-		if (buffer!=0) {
+		if (buffer!=NULL) {
 			free (buffer);
-			buffer=0;
+			buffer=NULL;
 		}
 		#ifdef WIN32FILES
 			CloseHandle((HANDLE)ff);
@@ -428,14 +443,6 @@ void File::close()
 	//throw FileNotOpenException();
 }
 
-/*!\brief Prüfen, ob eine Datei geöffnet ist
- *
- * \header \#include <ppl7.h>
- * \desc
- * Mit dieser Funktion kann geprüft werden, ob die mit File assoziierte Datei
- * gerade geöffnet ist.
- * \return Die Funktion liefert \p true zurück, wenn die Datei offen ist, ansonsten \p false.
- */
 bool File::isOpen() const
 {
 	if (ff!=NULL) return true;
@@ -443,13 +450,6 @@ bool File::isOpen() const
 }
 
 
-/*!\brief Größe der geöffneten Datei
- *
- * Diese Funktion liefert die Größe der geöffneten Datei in Bytes zurück.
- * \return Größe der Datei in Bytes, oder -1, wenn ein Fehler aufgetreten ist.
- *
- * \note Die Funktion ist File::Lof vorzuziehen
- */
 ppluint64 File::size () const
 {
 	if (ff!=NULL) {
@@ -481,11 +481,8 @@ ppluint64 File::size () const
  * der ein Shell-Kommandozeile enthält.  Dieses Kommando  wird  an \c /bin/sh
  * unter Verwendung des Flags \c -c übergeben. Interpretation, falls nötig, wird von
  * der Shell durchgeführt.
- * \param[in] mode Das Argument \p mode ist ein Zeiger auf einen mit NULL
- * beendeten  String,  der  entweder  ‘r’  für  Lesen  oder  ‘w’ für
- * Schreiben sein muss.
- *
- * @return Bei Erfolg liefert die Funktion 1 zurück, sonst 0
+ * \param[in] mode Dateimodus
+ * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void File::popen (const String &command, FileMode mode)
 {
@@ -514,12 +511,9 @@ void File::popen (const String &command, FileMode mode)
  * der ein Shell-Kommandozeile enthält.  Dieses Kommando  wird  an \c /bin/sh
  * unter Verwendung des Flags \c -c übergeben. Interpretation, falls nötig, wird von
  * der Shell durchgeführt.
- * \param[in] mode Das Argument \p mode ist ein Zeiger auf einen mit NULL
- * beendeten  String,  der  entweder  ‘r’  für  Lesen  oder  ‘w’ für
- * Schreiben sein muss.
- * \param[in] ... Optionale Parameter
+ * \param[in] mode Dateimodus
  *
- * @return Bei Erfolg liefert die Funktion 1 zurück, sonst 0
+ * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
 void File::popen (const char * command, FileMode mode)
 {
@@ -534,15 +528,15 @@ void File::popen (const char * command, FileMode mode)
 	setFilename(command);
 }
 
-void File::open (FILE * handle)
 /*!\brief Bereits geöffnete Datei übernehmen
  *
  * Mit dieser Funktion kann eine mit der C-Funktion \c fopen bereits geöffnete Datei
  * übernommen werden.
+ *
  * @param[in] handle Das Filehandle
- * @return Liefert 1 zurück, wenn das Filehandle erfolgreich übernommen wurde, sonst 0.
- * Ein Fehler kann nur auftreten, wenn das übergebene Filehandle selbst NULL ist.
+ * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
+void File::open (FILE * handle)
 {
 	if (handle==NULL) throw IllegalArgumentException();
 	close();
@@ -552,16 +546,6 @@ void File::open (FILE * handle)
 	setFilename("FILE");
 }
 
-/*!\brief Dateizeiger auf gewünschte Stelle bringen
- *
- * Diese Funktion bewegt den internen Dateizeiger auf die gewünschte Stelle
- *
- * \param[in] position Gewünschte Position innerhalb der Datei
- * \return Liefert 1 zurück, wenn der Dateizeiger erfolgreich auf die gewünschte
- * Position bewegt werden konnte, sonst 0. Bei Auftreten eines Fehlers kann
- * sich die Dateiposition dennoch geändert haben und sollte daher mit File::Ftell
- * abgefragt werden.
- */
 ppluint64 File::seek(ppluint64 position)
 {
 	if (ff!=NULL) {
@@ -595,25 +579,6 @@ ppluint64 File::seek(ppluint64 position)
 	throw FileNotOpenException();
 }
 
-
-/*!\brief Dateizeiger auf gewünschte Stelle bringen
- *
- * Die Funktion Fseek setzt den Dateipositionszeiger für den Stream. Die neue Position,
- * gemessen in Byte, wird erreicht durch addieren von  \p offset  zu  der  Position,  die  durch  \p origin
- * angegeben  ist. Wenn \p origin auf SEEK_SET, SEEK_CUR, oder SEEK_END, gesetzt ist, ist der Offset relativ
- * zum Dateianfang, der aktuellen Position, oder dem Dateiende.
- *
- * Ein  erfolgreicher  Aufruf  der  Funktion fseek  löscht  den Dateiendezeiger für den Stream.
- *
- * @param offset Anzahl Bytes, die gesprungen werden soll.
- * @param origin Gibt die Richtung an, in die der Dateizeiger bewegt werden soll. Es kann einen
- * der folgenden Werte annehmen:
- * - SEEK_SET \p offset wird vom Beginn der Datei berechnet
- * - SEEK_CUR \p offset wird von der aktuellen Dateiposition gerechnet
- * - SEEK_END \p offset wird vom Ende der Datei aus nach vorne berechnet
- * @return Bei Erfolg gibt die Funktion die tatsächliche Position zurück,
- * im Fehlerfall wird eine Exception geworfen.
- */
 ppluint64 File::seek (pplint64 offset, SeekOrigin origin )
 {
 	int suberr;
@@ -662,13 +627,6 @@ ppluint64 File::seek (pplint64 offset, SeekOrigin origin )
 	return 0;
 }
 
-/*!\brief Aktuelle Dateiposition ermitteln
- *
- * Die Funktion Ftell liefert den aktuellen Wert des Dateipositionszeigers für  den  Stream zurück.
- *
- * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird eine
- * Exception geworfen
- */
 ppluint64 File::tell()
 {
 	if (ff!=NULL) {
@@ -695,22 +653,6 @@ ppluint64 File::tell()
 	throw FileNotOpenException();
 }
 
-/*!\brief Lesen eines Datenstroms
- *
- * Die  Funktion  Fread  liest \p nmemb Datenelemente vom Dateistrom und speichert
- * es an  der  Speicherposition,  die  durch \p ptr bestimmt ist.  Jedes davon ist
- * \ size Byte lang.
- *
- * @param[out] ptr Pointer auf den Speicherbereich, in den die gelesenen Daten
- * abgelegt werden sollen. Der Aufrufer muss vorher mindestens \p size * \p nmemb
- * Bytes Speicher reserviert haben.
- * @param[in] size Größe der zu lesenden Datenelemente
- * @param[in] nmemb Anzahl zu lesender Datenelemente
- * @return Fread  gibt die Anzahl der erfolgreich gelesenen Elemente zurück
- * (nicht die Anzahl  der  Zeichen).  Wenn  ein Fehler  auftritt  oder  das
- * Dateiende erreicht ist, wird eine Exception geworfen.
- * \exception EndOfFileException: Wird geworfen, wenn das Dateiende erreicht wurde
- */
 size_t File::fread(void * ptr, size_t size, size_t nmemb)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -727,19 +669,6 @@ size_t File::fread(void * ptr, size_t size, size_t nmemb)
 	return by;
 }
 
-/*!\brief Schreiben eines Datenstroms
- *
- * Die Funktion Fwrite schreibt \p nmemb Datenelemente der Größe \p size Bytes,
- * in  den  Dateistrom. Sie werden von der Speicherstelle, die durch \p ptr angegeben ist, gelesen.
- *
- * @param ptr Pointer auf den Beginn des zu schreibenden Speicherbereiches.
- * @param size Größe der zu schreibenden Datenelemente
- * @param nmemb Anzahl zu schreibender Datenelemente
- * @return Fwrite gibt die Anzahl der erfolgreich geschriebenen Elemente zurück (nicht die
- * Anzahl der Zeichen). Wenn ein Fehler auftritt, wird eine kleinere Zahl oder 0 zurückgegeben.
- * Der Fehler kann auf dem üblichen Weg ausgelesen werden.
- *
- */
 size_t File::fwrite(const void * ptr, size_t size, size_t nmemb)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -751,58 +680,6 @@ size_t File::fwrite(const void * ptr, size_t size, size_t nmemb)
 	return by;
 }
 
-/*!\brief Daten aus einer anderen Datei kopieren
- *
- * Mit dieser Funktion kann ein Datenblock aus einer anderen Datei in diese
- * hineinkopiert werden. Die Daten werden dabei ab dem aktuellen Dateipositionszeiger
- * des \p quellfile an den aktuellen Zeiger dieser Datei kopiert.
- *
- * @param quellfile Das Dateiobjekt, aus dem gelesen werden soll
- * @param bytes Anzahl zu kopierender Bytes
- * @return Bei Erfolg liefert die Funktion die Anzahl kopierter Bytes zurück.
- * Im Fehlerfall kann der Wert auch keiner als die Anzahl Bytes sein oder auch 0.
- *
- * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
- * der gelesenen Daten.
- */
-ppluint64 File::fcopy (FileObject &quellfile, ppluint64 bytes)
-{
-	if (ff==NULL) throw FileNotOpenException();
-	if (buffer==NULL) {
-		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
-		if (buffer==NULL) throw OutOfMemoryException();
-	}
-	if (quellfile.size()>quellfile.tell()) {
-		if ((quellfile.tell()+(ppluint64)bytes)>quellfile.size()) {
-			bytes=quellfile.size()-quellfile.tell();
-		}
-		ppluint64 rest=bytes;
-		ppluint64 by;
-		while (rest>0) {
-			by=rest;
-			if (by>COPYBYTES_BUFFERSIZE) by=COPYBYTES_BUFFERSIZE;
-			by=quellfile.read (buffer,(size_t)by);
-			write (buffer,(size_t)by);
-			rest-=by;
-		}
-	}
-	return bytes;
-}
-
-/*!\brief String lesen
- *
- * %fgets liest höchstens \p num minus ein Zeichen aus der Datei und speichert
- * sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt nach einem
- * EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird, wird
- * er in dem Puffer gespeichert. Am Ende der gelesenen Daten wird ein
- * 0-Byte angehangen.
- *
- * @param buffer Pointer auf den Speicherbereich, in den die gelesenen Daten
- * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
- * sein und mindestens \p num Bytes groß sein.
- * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
- */
 char * File::fgets (char *buffer, size_t num)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -820,24 +697,6 @@ char * File::fgets (char *buffer, size_t num)
 	return buffer;
 }
 
-/*!\brief Wide-Character String lesen
- *
- * Gets liest höchstens \p num minus ein Zeichen (nicht Bytes) aus der Datei
- * und speichert sie in dem Puffer, auf den \p buffer zeigt. Das Lesen stoppt
- * nach einem EOF oder Zeilenvorschub. Wenn ein Zeilenvorschub gelesen wird,
- * wird er in dem Puffer gespeichert. Am Ende der gelesenen Daten wird ein
- * 0-Byte angehangen.
- *
- * @param buffer Pointer auf den Speicherbereich, in den die gelesenen Daten
- * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
- * sein und mindestens \p num * \c sizeof(wchar_t) Bytes groß sein.
- * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall NULL.
- *
- * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
- * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
- *
- */
 wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -859,14 +718,6 @@ wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 #endif
 }
 
-/*!\brief String schreiben
- *
- * Puts schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
- * den Ausgabestrom.
- *
- * @param str Pointer auf den zu schreibenden String
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
- */
 void File::fputs (const char *str)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -879,17 +730,6 @@ void File::fputs (const char *str)
 	throwErrno(filename());
 }
 
-/*!\brief Wide-Character String schreiben
- *
- * Puts schreibt die Zeichenkette \p str ohne sein nachfolgendes 0-Byte in
- * den Ausgabestrom.
- *
- * @param str Pointer auf den zu schreibenden String
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
- *
- * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
- * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
- */
 void File::fputws (const wchar_t *str)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -907,14 +747,6 @@ void File::fputws (const wchar_t *str)
 }
 
 
-/*!\brief Zeichen schreiben
- *
- * Putc schreibt das Zeichen \p c, umgesetzt in ein unsigned char,
- * in den Ausgabestrom.
- * @param c Zu schreibendes Zeichen
- * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
- * im Fehlerfall -1;
- */
 void File::fputc(int c)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -927,13 +759,6 @@ void File::fputc(int c)
 	throwErrno();
 }
 
-/*!\brief Zeichen lesen
- *
- * Getc liest das  nächste Zeichen aus der Datei und gibt seinen unsigned char Wert gecastet
- * in einem int zurück.
- * @return Bei Erfolg wird der Wert des gelesenen Zeichens zurückgegeben, im
- * Fehlerfall -1.
- */
 int File::fgetc()
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -946,16 +771,6 @@ int File::fgetc()
 	return 0;
 }
 
-/*!\brief Wide-Character Zeichen schreiben
- *
- * Putwc schreibt das Wide-Character Zeichen \p c in den Ausgabestrom.
- * @param c Zu schreibendes Zeichen
- * @return Bei Erfolg wird das geschriebende Zeichen als Integer Wert zurückgegeben,
- * im Fehlerfall -1;
- *
- * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
- * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
- */
 void File::fputwc(wchar_t c)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -972,16 +787,6 @@ void File::fputwc(wchar_t c)
 #endif
 }
 
-/*!\brief Wide-Character Zeichen lesen
- *
- * Getwc liest das nächste Zeichen aus der Datei und gibt seinen Wert als Integer
- * zurück.
- * @return Bei Erfolg wird das gelesene Zeichen als Integer Wert zurückgegeben,
- * im Fehlerfall -1;
- *
- * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
- * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
- */
 wchar_t File::fgetwc()
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -998,13 +803,6 @@ wchar_t File::fgetwc()
 #endif
 }
 
-/*!\brief Prüfen, ob Dateiende erreicht ist
- *
- * Die Funktion prüft, ob das Dateiende erreicht wurde
- *
- * @return Liefert \c true zurück, wenn das Dateiende erreicht wurde, sonst \c false.
- * Falls die Datei nicht geöffnet war, wird ebenfalls \c false zurückgegeben.
- */
 bool File::eof() const
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1012,14 +810,6 @@ bool File::eof() const
 	return false;
 }
 
-/*!\brief Filenummer der Datei
- *
- * Die Funktion liefert den Dateideskriptor als Integer zurück, wie er
- * von den Systemfunktionen open , read , write und close genutzt wird.
- *
- * @return Liefert die Filenummer zurück. Ist keine Datei geöffnet, wird eine
- * Exception geworfen.
- */
 int File::getFileNo() const
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1027,17 +817,6 @@ int File::getFileNo() const
 }
 
 
-/*!\brief Gepufferte Daten schreiben
- *
- * Die Funktion Flush bewirkt, dass alle gepufferten Daten des aktuellen Streams
- * mittels der zugrundeliegenden write-Funktion geschrieben werden. Der Status
- * des Streams wird dabei nicht berührt. Die Daten werden nicht zwangsweise auch
- * physikalisch auf die Platte geschrieben, sie können noch immer aus Performancegründen
- * vom Kernel oder Treiber gecached werden. Um 100 Prozent sicher zu gehen, kann man
- * die Funktion File::Sync verwenden.
- *
- * @return Bei erfolgreicher Ausführung wird 1 zurückgegeben, ansonsten 0.
- */
 void File::flush()
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1049,24 +828,6 @@ void File::flush()
 	#endif
 }
 
-/*!\brief Dateiänderungen sofort auf die Platte schreiben
- *
- * \desc
- * Für gewöhnlich cached das Betriebssysteme Schreibzugriffe auf die Festplatte, um die Performance
- * zu steigern. Je nach Filesystem und Betriebssystem können zwischen Schreibzugriff der Software bis zum
- * tatsächlichen Schreiben auf die Festplatte zwischen einigen wenigen Sekunden bis zu einer Minute vergehen!
- * Tritt in diesem Zeitraum ein System-Crash oder Stromausfall auf, führt dies unweigerlich zu Datenverlust.
- *
- * Ein Aufruf dieser Funktion bewirkt, dass alle Dateiänderungen sofort auf die Festplatte
- * geschrieben werden. Sie sollte daher vor dem Schließen einer kritischen Datei mit File::Close aufgerufen
- * werden, unter Umständen sogar nach jedem Schreibzugriff.
- *
- * @return Die Funktion kehrt erst zurück, wenn alle Daten vollständig geschrieben wurden und liefert dann true (1)
- * zurück. Können die Daten nicht geschrieben werden, liefert sie false (0) zurück und ein entsprechender
- * Fehlercode wird gesetzt.
- *
- * @since Die Funktion wurde mit Version 6.2.5 eingeführt
- */
 void File::sync()
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1079,19 +840,6 @@ void File::sync()
 #endif
 }
 
-/*!\brief Datei abschneiden
- *
- * Die Funktionen Truncate bewirkt, dass die aktuell geöffnete Datei auf eine Größe von
- * exakt \p length Bytes abgeschnitten wird.
- *
- * Wenn die Datei vorher größer war, gehen überschüssige Daten verloren. Wenn die Datei
- * vorher kleiner war, wird sie vergrößert und die zusätzlichen Bytes werden als Nullen geschrieben.
- *
- * Der Dateizeiger wird nicht verändert. Die Datei muss zum Schreiben geöffnet sein.
- *
- * @param length Position, an der die Datei abgeschnitten werden soll.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
 void File::truncate(ppluint64 length)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1110,18 +858,6 @@ void File::truncate(ppluint64 length)
 }
 
 
-/*!\brief Datei exklusiv sperren
- *
- * Mit LockExclusive wird die Datei exklusiv zum Schreiben gesperrt. Andere
- * Prozesse können nicht auf die Datei zugreifen, solange die Sperre besteht.
- *
- * @param block Gibt an, ob die Funktion warten soll (blocken), bis die Datei
- * gesperrt werden kann (block=true) oder sofort mit einer Fehlermeldung
- * zurückkehren soll (block=false).
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- *
-* \see Siehe auch File::LockShared und File::Unlock
-*/
 void File::lockExclusive(bool block)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1150,18 +886,6 @@ void File::lockExclusive(bool block)
 #endif
 }
 
-/*!\brief Datei zum Lesen sperren
- *
- * Mit LockShared wird die Datei zum Lesen gesperrt. Andere Prozesse können weiterhin
- * auf die Datei zugreifen, allerdings ebenfalls nur lesend.
- *
- * @param block Gibt an, ob die Funktion warten soll (blocken), bis die Datei
- * gesperrt werden kann (block=true) oder sofort mit einer Fehlermeldung
- * zurückkehren soll (block=false).
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- *
- * \see Siehe auch File::LockExclusive und File::Unlock
- */
 void File::lockShared(bool block)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1193,16 +917,6 @@ void File::lockShared(bool block)
 }
 
 void File::unlock()
-/*!\brief Dateisperre aufheben
- *
- * Mit Unlock wird eine mit LockShared oder LockExclusive eingerichtete
- * Sperre wieder aufgehoben, so dass auch andere Prozesse wieder uneingeschränkt
- * auf die Datei zugreifen können.
- *
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- *
- * \see Siehe auch File::LockShared und File::LockExclusive
- */
 {
 	if (ff==NULL) throw FileNotOpenException();
 #if defined HAVE_FCNTL
@@ -1228,39 +942,11 @@ void File::unlock()
 }
 
 void File::setMapReadAhead(size_t bytes)
-/*!\brief Minimalgröße des Speicherblocks bei Zugriffen mit FileObject::Map
- *
- * Falls mit Map viele aufeinanderfolgende kleine Speicherblöcke gemapped werden,
- * ist es sinnvoll größere Blöcke zu laden, die dann bereits im Cache bzw. Hauptspeicher
- * liegen, wenn sie gebraucht werden. Mit dieser Funktion kann bestimmt werden, wie
- * viele Daten im Voraus gemapped werden sollen.
- *
- * @param bytes Anzahl Bytes, die im Voraus gemapped werden sollen.
- */
 {
 	ReadAhead=bytes;
 }
 
 
-/*!\brief Datei in den Speicher mappen
- *
- * \descr
- * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped.
- * Falls das Betriebssystem <a href="http://en.wikipedia.org/wiki/Mmap">mmap</a> versteht,
- * wird dieser verwendet. Dabei wird der gewünschte Datenblock nicht sofort komplett
- * in den Speicher geladen, sondern nur der Teil, auf den gerade zugegriffen wird.
- * Steht \c mmap nicht zur Verfügung, wird die Datei in den Hauptspeicher geladen.
- * Die File-Klasse kümmert sich selbst daraum, dass der Speicher auch wieder freigegeben
- * wird.
- * \par
- * Ein mit Map gemappter Speicher darf nur gelesen, aber nicht beschrieben werden! Falls
- * auch geschrieben werden soll, ist die Funktion File::MapRW zu verwenden.
- *
- * @param[in] position Die gewünschte Startposition innerhalb der Datei
- * @param[in] bytes Die Anzahl Bytes, die gemapped werden sollen.
- * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
- * in dem sich die Datei befindet, im Fehlerfall NULL.
- */
 const char *File::map(ppluint64 position, size_t bytes)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1283,27 +969,6 @@ const char *File::map(ppluint64 position, size_t bytes)
 	throw OverflowException();
 }
 
-/*!\brief Datei Les- und Schreibbar in den Speicher mappen
- *
- * \descr
- * Mit dieser Funktion wird ein Teil der Datei in den Speicher gemapped.
- * Falls das Betriebssystem <a href="http://en.wikipedia.org/wiki/Mmap">mmap</a> versteht,
- * wird dieser verwendet. Dabei wird der gewünschte Datenblock nicht sofort komplett
- * in den Speicher geladen, sondern nur der Teil, auf den gerade zugegriffen wird.
- * Steht \c mmap nicht zur Verfügung, wird die Datei in den Hauptspeicher geladen.
- * Die File-Klasse kümmert sich selbst daraum, dass der Speicher nach Gebrauch wieder
- * zurück in die Datei geschrieben und freigegeben wird.
- * \par
- * Ein mit MapRW gemappter Speicher darf sowohl gelesen als auch beschrieben werden!
- * Bevor mit anderen Funktionen auf den gleichen Speicher zugegriffen werden soll
- * (insbesondere schreibend), muss die Funktion File::Unmap aufgerufen werden.
- *
- *
- * @param[in] position Die gewünschte Startposition innerhalb der Datei
- * @param[in] bytes Die Anzahl Bytes, die gemapped werden sollen.
- * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
- * in dem sich die Datei befindet, im Fehlerfall NULL.
- */
 char *File::mapRW(ppluint64 position, size_t bytes)
 {
 	if (ff==NULL) throw FileNotOpenException();
@@ -1411,10 +1076,11 @@ void *File::mmap(ppluint64 position, size_t size, int prot, int flags)
 
 /*!\brief Geöffnete Datei löschen
  *
+ * \desc
  * Mit dieser Funktion wird die aktuelle Datei zunächst geschlossen und dann
  * gelöscht.
  *
- * @return Bei Erfolg liefert die Funktion 1 zurück, sonst 0.
+ * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  */
 void File::erase()
 {
@@ -1434,6 +1100,7 @@ void File::erase()
 /*!\ingroup PPLGroupFileIO
  * \brief Datei öffnen und den kompletten Inhalt in ein Objekt laden
  *
+ * \desc
  * Mit dieser Funktion wird eine Datei zum Lesen geöffnet und der komplette Inhalt in das
  * angegebene Objekt geladen. Unterstützt werden zur Zeit folgende Objekte:
  * - CString
@@ -1912,6 +1579,32 @@ void File::chmod(const char *filename, FileAttr::Attributes attr)
 	throwErrno(filename);
 }
 
+/*!\brief Informationen zu einer Datei oder Verzeichnis
+ *
+ * \desc
+ * Mit dieser statischen Funktion können Informationen zu einer Datei oder einem
+ * Verzeichnis ausgelesen werden.
+ *
+ * @param filename Dateiname
+ * @param out Objekt, in dem die Daten gespeichert werden
+ * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
+ */
+void File::stat(const String &filename, DirEntry &result)
+{
+	stat((const char*)filename.toLocalEncoding(),result);
+}
+
+/*!\brief Informationen zu einer Datei oder Verzeichnis
+ *
+ * \desc
+ * Mit dieser statischen Funktion können Informationen zu einer Datei oder einem
+ * Verzeichnis ausgelesen werden.
+ *
+ * @param filename Dateiname
+ * @param out Objekt, in dem die Daten gespeichert werden
+ * \throw NullPointerException: Wird geworfen, wenn \p filename auf NULL zeigt
+ * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
+ */
 void File::stat(const char *filename, DirEntry &out)
 {
 	if (!filename) throw NullPointerException();
@@ -1939,10 +1632,10 @@ void File::stat(const char *filename, DirEntry &out)
 	out.BlockSize=st.st_blksize;
 	out.NumLinks=st.st_nlink;
 
-	if (st.st_mode & S_IFDIR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFDIR);
-	if (st.st_mode & S_IFREG) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFFILE);
-	if (st.st_mode & S_IFLNK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFLINK);
-	if (st.st_mode & S_IFSOCK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFSOCK);
+	if ((st.st_mode & S_IFDIR)==S_IFDIR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFDIR);
+	if ((st.st_mode & S_IFREG)==S_IFREG) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFFILE);
+	if ((st.st_mode & S_IFLNK)==S_IFLNK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFLINK);
+	if ((st.st_mode & S_IFSOCK)==S_IFSOCK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFSOCK);
 
 #ifdef _WIN32
 	if (st.st_mode & _S_IREAD) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_READ);
@@ -1964,8 +1657,9 @@ void File::stat(const char *filename, DirEntry &out)
 	if (st.st_mode & S_IXOTH) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::OTH_EXECUTE);
 #endif
 
-	if (out.Attrib&FileAttr::IFDIR) out.AttrStr.set(0,L'd');
 	if (out.Attrib&FileAttr::IFLINK) out.AttrStr.set(0,L'l');
+	if (out.Attrib&FileAttr::IFDIR) out.AttrStr.set(0,L'd');
+
 
 	if (out.Attrib&FileAttr::USR_READ) out.AttrStr.set(1,L'r');
 	if (out.Attrib&FileAttr::USR_WRITE) out.AttrStr.set(2,L'w');

@@ -382,6 +382,9 @@ class FileObject
 	private:
 		String MyFilename;
 
+	protected:
+		char * buffer;
+
 	public:
 		enum SeekOrigin {
 			SEEKCUR=1,
@@ -438,8 +441,7 @@ class FileObject
 		ppluint64			copy (FileObject &quellfile, ppluint64 bytes);
 		int					gets (String &buffer, size_t num=1024);
 		int					getws (String &buffer, size_t num=1024);
-		String				gets (size_t num);
-		String				gets ();
+		String				gets (size_t num=1024);
 		String				getws (size_t num=1024);
 		void				putsf (const char *fmt, ... );
 		void				puts (const String &str);
@@ -456,7 +458,6 @@ class FileObject
 		virtual ppluint64	tell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
-		virtual ppluint64	fcopy (FileObject &quellfile, ppluint64 bytes);
 		virtual char *		fgets (char *buffer, size_t num);
 		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
 		virtual void		fputs (const char *str);
@@ -506,7 +507,6 @@ class MemFile : public FileObject
 		virtual ppluint64	seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
-		virtual ppluint64	fcopy (FileObject &quellfile, ppluint64 bytes);
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
 		virtual char *		fgets (char *buffer, size_t num);
@@ -542,7 +542,6 @@ class File : public FileObject
 		ppluint64	LastMapSize;
 		int			LastMapProtection;
 		ppluint64	ReadAhead;
-		char * buffer;
 		ppluint64	mysize;
 		ppluint64	pos;
 		bool isPopen;
@@ -591,7 +590,6 @@ class File : public FileObject
 		virtual bool		isOpen() const;
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
 		virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
-		virtual ppluint64	fcopy (FileObject &quellfile, ppluint64 bytes);
 		virtual char *		fgets (char *buffer, size_t num);
 		virtual wchar_t*	fgetws (wchar_t *buffer, size_t num=1024);
 		virtual void		fputs (const char *str);

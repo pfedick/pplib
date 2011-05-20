@@ -310,9 +310,14 @@ void DirEntry::toArray(AssocArray &a) const
 	a.setf("size","%llu",Size);
 	a.setf("attrib","%u",Attrib);
 	a.set("attribstr",AttrStr);
-	a.setf("atime","%llu",ATime.time_t());
-	a.setf("ctime","%llu",CTime.time_t());
-	a.setf("mtime","%llu",MTime.time_t());
+	a.setf("uid","%u",Uid);
+	a.setf("gid","%u",Gid);
+	a.setf("blocks","%u",Blocks);
+	a.setf("blocksize","%u",BlockSize);
+	a.setf("numlinks","%u",NumLinks);
+	a.set("atime",ATime);
+	a.set("ctime",CTime);
+	a.set("mtime",MTime);
 }
 
 /*!\brief Verzeichniseintrag ausgeben

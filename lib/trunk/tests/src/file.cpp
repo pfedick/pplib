@@ -220,6 +220,7 @@ TEST_F(FileStaticTest, stat) {
 	ASSERT_NO_THROW({
 		ppl7::File::stat("../LICENSE.TXT",d);
 	});
+	d.print();
 
 
 }
