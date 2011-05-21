@@ -674,6 +674,55 @@ class DirEntry
 		void		print(const char *label=NULL);
 };
 
+class Dir
+{
+	public:
+		enum Sort {
+			SORT_NONE,
+			SORT_FILENAME,
+			SORT_FILENAME_IGNORCASE,
+			SORT_ATIME,
+			SORT_CTIME,
+			SORT_SIZE,
+		};
+	private:
+		//ppl7::AVLTree<ArrayKey, ValueNode> Tree;
+		//CGenericList Files;
+		//CAVLTree Tree;
+		Sort sort;
+		String Path;
+
+	public:
+		PPLNORMALEXCEPTION(PathnameTooLongException);
+		PPLNORMALEXCEPTION(NonexistingPathException);
+		PPLNORMALEXCEPTION(PermissionDeniedException);
+
+		//typedef ppl7::List<ArrayKey, ValueNode>::Iterator Iterator;
+
+		Dir();
+		Dir(const char *path, Sort s=SORT_NONE);
+		~Dir();
+		int open(const char *path, Sort s=SORT_NONE);
+		int open(const String &path, Sort s=SORT_NONE);
+		void resort(Sort s);
+		void reset();
+		void clear();
+		size_t num() const;
+		const DirEntry &getFirst();
+		const DirEntry &getNext();
+		const DirEntry &getFirstPattern(const char *pattern, bool ignorecase=false);
+		const DirEntry &getNextPattern(const char *pattern, bool ignorecase=false);
+		const DirEntry &getFirstRegExp(const char *regexp);
+		const DirEntry &getNextRegExp(const char *regexp);
+
+		void print();
+		static String currentPath();
+		//static CString HomePath();
+		//static CString TempPath();
+
+};
+
+
 
 
  };	// EOF namespace ppl7

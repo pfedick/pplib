@@ -301,6 +301,66 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 
 };
 
+template <class K> class List
+{
+	private:
+		Heap		MyHeap;
+		class ListItem {
+			friend class List;
+			private:
+				K item;
+				ListItem *previous, *next;
+			public:
+				void *operator new(size_t, void *p) { return p;}
+		};
+		ListItem *first, *last;
+	public:
+		class Iterator
+		{
+			friend class List;
+			private:
+				const K* item;
+			public:
+		};
+
+		List() {
+			first=NULL;
+			last=NULL;
+			MyHeap.init(sizeof(ListItem),0,100);
+		}
+		~List() {
+			clear();
+		}
+		void clear() {
+
+		}
+ 		size_t capacity() const
+ 		{
+ 			return MyHeap.capacity();
+ 		}
+ 		size_t itemSize() const
+ 		{
+ 			return sizeof(ListItem);
+ 		}
+ 		void reserve(size_t num)
+ 		{
+ 			MyHeap.reserve(num);
+ 		}
+
+		K& add(const K &item)
+		{
+			ListItem *it=new (MyHeap.malloc())ListItem;
+			it->item=item;
+			it->previous=last;
+			it->next=NULL;
+			if (last) last->next=it;
+			if (!first) first=it;
+			last=it;
+			return it->item;
+		}
+
+};
+
 
 }	// EOF namespace ppl7
 

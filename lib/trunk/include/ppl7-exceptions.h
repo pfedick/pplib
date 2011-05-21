@@ -78,7 +78,7 @@ class Exception : std::exception
 	};
 
 
-
+PPLNORMALEXCEPTION(UnknownException);
 PPLNORMALEXCEPTION(OutOfMemoryException);
 PPLNORMALEXCEPTION(NullPointerException);
 PPLPARAMETERISEDEXCEPTION(UnsupportedFeatureException);
