@@ -141,7 +141,7 @@ THREADDATA * GetThreadData()
 /*!\ingroup PPLGroupThreads
  */
 {
-#ifdef HAVE_TLS
+#if defined(HAVE_TLS) && defined(HAVE_PTHREADS)
 	if (myThreadData==NULL) {
 		myThreadData = new THREADDATA;
 		memset(myThreadData,0,sizeof(THREADDATA));
@@ -171,7 +171,7 @@ THREADDATA * GetThreadData()
 	return ptr;
 #elif defined  _WIN32
 	THREADDATA *ptr;
-	Win32ThreadMutex.Lock();
+	Win32ThreadMutex.lock();
 	if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
 		Win32ThreadTLS=TlsAlloc();
 		if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
@@ -193,7 +193,7 @@ THREADDATA * GetThreadData()
 			exit(0);
 		}
 	}
-	Win32ThreadMutex.Unlock();
+	Win32ThreadMutex.unlock();
 	return ptr;
 #else
 	throw NoThreadSupportException();
@@ -304,21 +304,23 @@ void ThreadSetPriority(Thread::Priority priority)
 	HANDLE h=GetCurrentProcess();
 	int p=GetThreadPriority(h);
 	switch(priority) {
-		case THREAD_PRIORITY::LOWEST:
+		case Thread::LOWEST:
 			p=THREAD_PRIORITY_LOWEST;
 			break;
-		case THREAD_PRIORITY::BELOW_NORMAL:
+		case Thread::BELOW_NORMAL:
 			p=THREAD_PRIORITY_BELOW_NORMAL;
 			break;
-		case THREAD_PRIORITY::NORMAL:
+		case Thread::NORMAL:
 			p=THREAD_PRIORITY_NORMAL;
 			break;
-		case THREAD_PRIORITY::ABOVE_NORMAL:
+		case Thread::ABOVE_NORMAL:
 			p=THREAD_PRIORITY_ABOVE_NORMAL;
 			break;
-		case THREAD_PRIORITY::HIGHEST:
+		case Thread::HIGHEST:
 			p=THREAD_PRIORITY_HIGHEST;
 			break;
+		default:
+			throw IllegalArgumentException();
 	}
 	if (!SetThreadPriority(h,p)) throw ThreadOperationFailedException();
 #elif defined HAVE_PTHREADS

@@ -370,17 +370,25 @@ void File::throwErrno(int e,const String &filename)
 		case EACCES:
 		case EPERM: throw PermissionDeniedException(filename);
 		case ENOENT: throw FileNotFoundException(filename);
+#ifdef ELOOP
 		case ELOOP: throw TooManySymbolicLinksException(filename);
+#endif
 		case EISDIR: throw NoRegularFileException(filename);
 		case EROFS: throw ReadOnlyException(filename);
 		case EMFILE: throw TooManyOpenFilesException();
+#ifdef EOPNOTSUPP
 		case EOPNOTSUPP: throw UnsupportedFileOperationException(filename);
+#endif
 		case ENOSPC: throw FilesystemFullException();
+#ifdef EDQUOT
 		case EDQUOT: throw QuotaExceededException();
+#endif
 		case EIO: throw IOErrorException();
 		case EBADF: throw BadFiledescriptorException();
 		case EFAULT: throw BadAddressException();
+#ifdef EOVERFLOW
 		case EOVERFLOW: throw OverflowException();
+#endif
 		case EEXIST: throw FileExistsException();
 		case EAGAIN: throw OperationBlockedException();
 		case EDEADLK: throw DeadlockException();
@@ -1183,7 +1191,7 @@ void *File::mmap(ppluint64 position, size_t size, int prot, int flags)
 	size_t bytes;
 	char *adr=(char*)malloc((size_t)size+1);
 	if (!adr) throw OutOfMemoryException();
-	if (pos!=position) seek((ppldd)position);
+	if (pos!=position) seek(position);
 	try {
 		bytes=fread(adr,1,size);
 	} catch (...) {
@@ -1721,14 +1729,14 @@ void File::stat(const String &filename, DirEntry &result)
 void File::stat(const char *filename, DirEntry &out)
 {
 	if (!filename) throw NullPointerException();
-#ifdef _WIN32
-	struct _stat st;
-	String File=filename;
-	File.Replace("/","\\");
-	if (_stat((const char*)File.toLocalEncoding(),&st)!=0) throwErrno(errno,filename);
-#else
+#ifdef HAVE_STAT
 	struct stat st;
 	if (::stat(filename,&st)!=0) throwErrno(errno,filename);
+#elif defined _WIN32
+	struct _stat st;
+	String File=filename;
+	File.replace("/","\\");
+	if (_stat((const char*)File.toLocalEncoding(),&st)!=0) throwErrno(errno,filename);
 #endif
 	out.ATime.setTime_t(st.st_atime);
 	out.CTime.setTime_t(st.st_ctime);
@@ -1741,14 +1749,23 @@ void File::stat(const char *filename, DirEntry &out)
 	out.AttrStr.set(L"----------");
 	out.Uid=st.st_uid;
 	out.Gid=st.st_gid;
+#ifndef WIN32
 	out.Blocks=st.st_blocks;
 	out.BlockSize=st.st_blksize;
+#else
+	out.Blocks=0;
+	out.BlockSize=0;
+#endif
 	out.NumLinks=st.st_nlink;
 
 	if ((st.st_mode & S_IFDIR)==S_IFDIR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFDIR);
 	if ((st.st_mode & S_IFREG)==S_IFREG) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFFILE);
+#ifdef S_IFLNK
 	if ((st.st_mode & S_IFLNK)==S_IFLNK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFLINK);
+#endif
+#ifdef S_IFSOCK
 	if ((st.st_mode & S_IFSOCK)==S_IFSOCK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFSOCK);
+#endif
 
 #ifdef _WIN32
 	if (st.st_mode & _S_IREAD) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_READ);

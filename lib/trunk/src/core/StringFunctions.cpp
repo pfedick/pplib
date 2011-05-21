@@ -278,6 +278,26 @@ ssize_t Instr (const char * haystack, const char * needle, size_t start)
 }
 
 
+static const char *mystrcasestr(const char *haystack, const char *needle)
+{
+    char c, sc;
+    size_t len;
+
+    if ((c = *needle++) != 0) {
+        c = tolower((unsigned char)c);
+        len = strlen(needle);
+        do {
+            do {
+                if ((sc = *haystack++) == 0)
+                    return (NULL);
+            } while ((char)tolower((unsigned char)sc) != c);
+        } while (strncasecmp(haystack, needle, len) != 0);
+        haystack--;
+    }
+    return ((char *)haystack);
+}
+
+
 /*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung
  * \relates String
  *
@@ -289,7 +309,11 @@ ssize_t Instrcase (const char * haystack, const char * needle, size_t start)
 	if (!needle) return -1;
 	const char * _t;
 	if (start<strlen(haystack)) {
+#ifdef HAVE_STRCASESTR
 		_t=strcasestr((haystack+start),needle);
+#else
+		_t=mystrcasestr((haystack+start),needle);
+#endif
 		if (_t!=NULL) {
 			return ((long)(_t-haystack));
 		}
