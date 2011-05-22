@@ -35,6 +35,7 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 ###########################################################################
 
 RELEASE	= release/AVLTree.o \
+	release/Compat.o \
 	release/Dir.o \
 	release/DirEntry.o \
 	release/Exceptions.o \
@@ -64,6 +65,7 @@ RELEASE	= release/AVLTree.o \
 	release/sound_Icecast.o
 
 DEBUG	= debug/AVLTree.o \
+	debug/Compat.o \
 	debug/Dir.o \
 	debug/DirEntry.o \
 	debug/Exceptions.o \
@@ -213,6 +215,11 @@ release/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>core/AVLTree.cpp<<<
 	$(CXX) -Wall -O3 -o release/AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) 
 
+release/Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Compat.cpp<<<
+	$(CXX) -Wall -O3 -o release/Compat.o -c $(srcdir)/core/Compat.cpp $(CFLAGS) 
+
 release/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Dir.cpp<<<
@@ -346,6 +353,11 @@ debug/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	###############################################################################
 	# Compiling >>>core/AVLTree.cpp<<<
 	$(CXX) -Wall -O -o debug/AVLTree.o -c $(srcdir)/core/AVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Compat.cpp<<<
+	$(CXX) -Wall -O -o debug/Compat.o -c $(srcdir)/core/Compat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
