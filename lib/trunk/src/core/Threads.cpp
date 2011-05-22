@@ -185,7 +185,7 @@ THREADDATA * GetThreadData()
 		memset(ptr,0,sizeof(THREADDATA));
 		ptr->thread=GetCurrentProcess();
 		GlobalThreadMutex.lock();
-		ptr->threadid=global_thread_id;
+		ptr->threadId=global_thread_id;
 		global_thread_id++;
 		GlobalThreadMutex.unlock();
 		if (!TlsSetValue(Win32ThreadTLS,ptr)) {
@@ -273,7 +273,7 @@ ppluint64 StartThread(void (*start_routine)(void *),void *data)
 	global_thread_id++;
 	GlobalThreadMutex.unlock();
 #ifdef _WIN32
-	t->thread=CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)ThreadProc,this,NULL,&t->dwThreadID);
+	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,&ts,0,&t->dwThreadID);
 	if (t->thread!=NULL) {
 		return t->threadId;
 	}
@@ -380,6 +380,7 @@ Thread::Priority ThreadGetPriority()
 		case THREAD_PRIORITY_HIGHEST:
 			return Thread::HIGHEST;
 	}
+	return Thread::UNKNOWN;
 #elif defined HAVE_PTHREADS
 	struct sched_param s;
 	pthread_t p=pthread_self();

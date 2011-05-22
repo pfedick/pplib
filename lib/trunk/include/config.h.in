@@ -92,6 +92,7 @@
 #undef HAVE_STRINGS_H
 #undef HAVE_STRING_H
 #undef HAVE_STRNCASECMP
+#undef HAVE_STRCASECMP
 #undef HAVE_STRSTR
 #undef HAVE_STRCASESTR
 #undef HAVE_TIME_H
@@ -186,6 +187,7 @@
 #undef HAVE_FTRUNCATE
 #undef HAVE_STRCMP
 #undef HAVE_STRNCMP
+#undef HAVE_STRNLEN
 #undef HAVE_BCOPY
 #undef HAVE_SYNC
 #undef HAVE_FSYNC
@@ -198,6 +200,13 @@
 #undef HAVE_CLOSEDIR
 #undef HAVE_READDIR
 #undef HAVE_READDIR_R
+#undef HAVE_HTOL
+#undef HAVE_HTOLL
+#undef HAVE_ATOI
+#undef HAVE_ATOL
+#undef HAVE_ATOLL
+#undef HAVE_ATOF
+
 
 
 #undef HAVE_GETHOSTNAME

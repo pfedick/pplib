@@ -201,10 +201,10 @@ AC_FUNC_VPRINTF
 AC_FUNC_VSNPRINTF
 AC_CHECK_FUNCS([bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket vasprintf asprintf])
 AC_CHECK_FUNCS([gethostname sethostname getdomainname setdomainname uname])
-AC_CHECK_FUNCS([strcasecmp strdup strerror strncasecmp strndup strstr strcasestr strcmp strncmp])
+AC_CHECK_FUNCS([strcasecmp strlen strnlen strdup strerror strncasecmp strndup strstr strcasestr strcmp strncmp])
 AC_CHECK_FUNCS([strncpy strlcpy strncat strlcat])
 AC_CHECK_FUNCS([strtok strtok_r])
-AC_CHECK_FUNCS([atoll strtoll])
+AC_CHECK_FUNCS([htol atoll atoi atol atof strtoll])
 AC_CHECK_FUNCS([flock fcntl truncate ftruncate sync fsync])
 AC_CHECK_FUNCS([fgets fputs fgetws fputws fputc fgetc fputwc fgetwc mmap munmap sysconf pagesize])
 AC_CHECK_FUNCS([usleep nanosleep localtime localtime_r])

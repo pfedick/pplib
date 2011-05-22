@@ -15,16 +15,28 @@ case "$SYS:$REL:$KERNEL" in
 			--with-jpeg --with-png --with-mpg123=/usr/local \
 			--with-ogg=/usr/local
 		;;
-	MINGW32*:1.0.12*)
+	MINGW32*:1.0.16*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
 		export CFLAGS="-DCURL_STATICLIB"
-		./configure --with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
+		echo "Building for MinGW 1.0.16 - 32 Bit"
+		
+			#		preprocessor definitions will be in effect:
+			# * #define _WIN64 1 (also WIN64, __WIN64, and __WIN64__)
+			# * #define __MINGW64__ 1
+			# * #define __x86_64 1 (also __x86_64__)
+			# * #define __amd64 1 (also __amd64__)
+			#Be sure to use "-m32" or "-m64" at both the compile stage and the link stage. 
+		
+		./configure \
+			--build=i686-w64-mingw32 \
+			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
 			--with-nasm --with-libiconv-prefix=/mingw --with-libmad=/mingw \
-			--with-lame=/mingw --with-jpeg=/mingw --with-png=/mingw \
-			--with-libmcrypt-prefix=/mingw --with-libmhash=/mingw \
+			--with-lame=/mingw --with-mpg123=/mingw \
+			--with-jpeg=/mingw --with-png=/mingw --with-libmhash=/mingw \
+			--with-libmcrypt-prefix=/mingw \
 			--with-openssl=/mingw --with-libcurl \
-			--with-ogg=/usr/local
+			--with-ogg=/mingw
 		;;
 	MINGW32*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"

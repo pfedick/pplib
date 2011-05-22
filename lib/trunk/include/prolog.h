@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
+ * $URL$
  * 
  ******************************************************************************* 
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
@@ -48,3 +49,4 @@
 		#include <ppl7-config.h>
 	#endif
 #endif
+#include "compat.h"
