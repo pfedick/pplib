@@ -39,9 +39,34 @@
 #ifndef COMPAT_H_
 #define COMPAT_H_
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+
+#ifdef  HAVE_STRINGS_H
+#include <strings.h>
+#endif
+
+#include <string>
+
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+
 namespace ppl7 {
 namespace compat {
 
+char * trim (char * text);
+char *strtolower (char * text);
+char *strtoupper (char * text);
 const char *strcasestr(const char *haystack, const char *needle);
 int strcasecmp(const char *s1, const char *s2);
 int strncasecmp(const char *s1, const char *s2, size_t n);

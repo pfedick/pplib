@@ -83,6 +83,65 @@
 namespace ppl7 {
 namespace compat {
 
+/*! \brief Unnötige Zeichen am Anfang und Ende eines Textes löschen
+ *
+ * Die \c trim-Funktion löscht alle Leerzeilen, Tabs, Linefeeds und Returns am
+ * Zeilenanfang und -ende.
+ *
+ * \param text Ein Pointer auf einen Null-terminierten String
+ * \return Die Funktion gibt NULL zurück, wenn der Parameter \c text NULL war.
+ * Ansonsten wird der durch \c text übergebene Pointer zurückgegeben.
+ * \warning Die Funktion allokiert keinen neuen Speicher, sondern modifiziert den Text innerhalb des
+ * übergebenen Pointers. Soll der Originaltext erhalten bleiben, muß dieser vorher gesichert werden.
+ * \see Siehe auch die Funktion trimchar, die ein einzelnes definierbares Zeichen am Anfang und Ende
+ * löscht.
+ */
+char * trim (char * text)
+{
+	size_t l,i,start,ende,s;
+	if (!text) return NULL;
+
+	l=strlen(text);
+	if (l>0) {
+		start=0; s=0;
+		ende=l;
+		for (i=0;i<l;i++) {
+			if (text[i]==13||text[i]==10||text[i]==32||text[i]=='\t') {
+				if (s==0) start=i+1;
+			} else {
+				s=1; ende=i;
+			}
+		}
+		text [ende+1]=0;
+		if (start==0) return (text);
+		memmove(text,text+start,ende-start+2);
+		return (text);
+	}
+    return (text);
+}
+
+char *strtolower (char * text)
+{
+	size_t i,l;
+	if (text != NULL) {
+		l=strlen(text);
+		for (i=0;i<l;i++)
+			text[i]=tolower(text[i]);
+	}
+	return text;
+}
+
+char *strtoupper (char * text)
+{
+	size_t i,l;
+	if (text != NULL) {
+		l=strlen(text);
+		for (i=0;i<l;i++)
+			text[i]=toupper(text[i]);
+	}
+	return text;
+}
+
 /*!\brief Findet das erste Auftauchen einer Zeichenkette in einem String
  */
 const char *strcasestr(const char *haystack, const char *needle)
