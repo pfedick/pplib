@@ -92,44 +92,6 @@ void SetGlobalOutput(int type)
 	printdebug=type;
 }
 
-
-static int myvasprintf(char **buff, const char *fmt, va_list args)
-{
-	#if defined HAVE_VASPRINTF
-		return ::vasprintf(buff,fmt,args);
-	#elif defined HAVE_WORKING_VSNPRINTF
-		char tb[4];
-		int size=vsnprintf(tb,1,fmt,args);
-		char *b=(char*)malloc(size+2);
-		if (b) {
-			vsnprintf(b,size+1,fmt,args);
-			*buff=b;
-			return size;
-		} else {
-			*buff=NULL;
-			return 0;
-		}
-	#elif defined _WIN32
-		// Feststellen, wie groß der String werden würde
-		int size=_vscprintf(fmt,args);
-		// Buffer allocieren
-		char *b=(char*)malloc(size+2);
-		if (b) {
-			_vsnprintf(b,size+1,fmt,args);
-			*buff=b;
-			return size;
-		} else {
-			*buff=NULL;
-			return 0;
-		}
-
-	#else
-		#pragma error No working vasprintf!!!
-		*buff=NULL;
-		return 0;
-    #endif
-}
-
 /*!\brief Interne Funktion zur Ausgabe von Text
  *
  * Diese Funktion dient als Ersatz für "printf" und wird intern von einigen Funktionen/Klasse zur
@@ -146,7 +108,11 @@ void PrintDebug(const char *format, ...)
 	char *buff=NULL;
 	va_list args;
 	va_start(args, format);
-	if (myvasprintf (&buff, format, args)<0) {
+#ifdef HAVE_VASPRINTF
+	if (vasprintf (&buff, format, args)<0) {
+#else
+	if (compat::vasprintf (&buff, format, args)<0) {
+#endif
 		va_end(args);
 		return;
 	}
@@ -178,7 +144,11 @@ void PrintDebugTime(const char *format, ...)
 	char *buff=NULL;
 	va_list args;
 	va_start(args, format);
-	if (myvasprintf (&buff, format, args)<0) {
+#ifdef HAVE_VASPRINTF
+	if (vasprintf (&buff, format, args)<0) {
+#else
+	if (compat::vasprintf (&buff, format, args)<0) {
+#endif
 		va_end(args);
 		return;
 	}

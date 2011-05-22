@@ -29,6 +29,7 @@ case "$SYS:$REL:$KERNEL" in
 			#Be sure to use "-m32" or "-m64" at both the compile stage and the link stage. 
 		
 		./configure \
+			--prefix=/mingw \
 			--build=i686-w64-mingw32 \
 			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
 			--with-nasm --with-libiconv-prefix=/mingw --with-libmad=/mingw \

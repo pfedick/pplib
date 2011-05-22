@@ -788,7 +788,11 @@ String & String::setf(const char *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	char *buff=NULL;
+#ifdef HAVE_VASPRINTF
 	if (::vasprintf (&buff, (char*)fmt, args)>0 && buff!=NULL) {
+#else
+	if (compat::vasprintf (&buff, (char*)fmt, args)>0 && buff!=NULL) {
+#endif
 		try {
 			set(buff);
 			free(buff);
@@ -847,7 +851,11 @@ void MyFunction(const char *fmt, ...)
 String & String::vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException)
 {
 	char *buff=NULL;
+#ifdef HAVE_VASPRINTF
 	if (::vasprintf (&buff, (char*)fmt, args)>0 && buff!=NULL) {
+#else
+	if (compat::vasprintf (&buff, (char*)fmt, args)>0 && buff!=NULL) {
+#endif
 		try {
 			set(buff);
 			free(buff);
@@ -1029,7 +1037,11 @@ String & String::appendf(const char *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	char *buff=NULL;
+#ifdef HAVE_VASPRINTF
 	if (::vasprintf (&buff, (const char*)fmt, args)>0 && buff!=NULL) {
+#else
+	if (compat::vasprintf (&buff, (const char*)fmt, args)>0 && buff!=NULL) {
+#endif
 		try {
 			String a;
 			a.set(buff);
@@ -1244,7 +1256,11 @@ String & String::prependf(const char *fmt, ...)
 	va_list args;
 	va_start(args, fmt);
 	char *buff=NULL;
+#ifdef HAVE_VASPRINTF
 	if (::vasprintf (&buff, (const char*)fmt, args)>0 && buff!=NULL) {
+#else
+	if (compat::vasprintf (&buff, (const char*)fmt, args)>0 && buff!=NULL) {
+#endif
 		try {
 			String a;
 			a.set(buff);
