@@ -593,7 +593,7 @@ String & String::set(const char *str, size_t size) throw(OutOfMemoryException, U
 		throw UnsupportedCharacterEncodingException();
 	}
 	char *outbuf=(char*)ptr;
-	HexDump(str,inbytes);
+	//HexDump(str,inbytes);
 	size_t res=iconv(iconvimport, (ICONV_CONST char **)&str, &inbytes,
 				(char**)&outbuf, &outbytes);
 	iconv_close(iconvimport);
@@ -1402,7 +1402,7 @@ ByteArray String::toEncoding(const char *encoding) const
 	char *inbuffer=(char*)ptr;
 	size_t inbytes=stringlen*sizeof(wchar_t);
 
-	hexDump();
+	//hexDump();
 
 	size_t res=iconv((iconv_t)iconv_handle, (ICONV_CONST char **)&inbuffer, &inbytes,
 			(char**)&b, &outbytes);
