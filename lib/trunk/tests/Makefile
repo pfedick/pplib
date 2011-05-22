@@ -8,7 +8,7 @@ LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
 
 
 all: heap array strings avltree assocarray pointer datetime bytearray bytearrayptr \
-	functions file
+	functions file list
 
 clean:
 	-rm -rf bin
@@ -47,6 +47,9 @@ bytearrayptr: bin/bytearrayptr
 
 functions: bin/functions
 	bin/functions
+
+list: bin/list
+	bin/list
 
 
 bin/functions: src/functions.cpp Makefile
@@ -97,4 +100,6 @@ bin/file: src/file.cpp Makefile
 	mkdir -p bin
 	$(CC) -o bin/file src/file.cpp $(CFLAGS) $(LIB)
 
-
+bin/list: src/list.cpp Makefile bin/wordlist.o
+	mkdir -p bin
+	$(CC) -o bin/list bin/wordlist.o src/list.cpp $(CFLAGS) $(LIB)

@@ -309,7 +309,8 @@ template <class K> class List
 			friend class List;
 			private:
 				K item;
-				ListItem *previous, *next;
+				ListItem *previous, *next, *original;
+				List *owner;
 			public:
 				void *operator new(size_t, void *p) { return p;}
 		};
@@ -319,8 +320,10 @@ template <class K> class List
 		{
 			friend class List;
 			private:
-				const K* item;
+				ListItem* item;
+				bool	init;
 			public:
+				Iterator() {item=NULL; init=false;}
 		};
 
 		List() {
@@ -331,9 +334,7 @@ template <class K> class List
 		~List() {
 			clear();
 		}
-		void clear() {
 
-		}
  		size_t capacity() const
  		{
  			return MyHeap.capacity();
@@ -351,13 +352,85 @@ template <class K> class List
 		{
 			ListItem *it=new (MyHeap.malloc())ListItem;
 			it->item=item;
+			it->original=it;
 			it->previous=last;
 			it->next=NULL;
+			it->owner=this;
 			if (last) last->next=it;
 			if (!first) first=it;
 			last=it;
 			return it->item;
 		}
+
+		size_t		num() const
+		{
+			return MyHeap.count();
+		}
+		size_t		count() const
+		{
+			return MyHeap.count();
+		}
+
+		void		clear()
+		{
+			ListItem *it;
+			while (first) {
+				it=first;
+				first=it->next;
+				it->~ListItem();
+			}
+			MyHeap.clear();
+		}
+
+		void	reset(Iterator &it) const
+		{
+			it.item=NULL;
+			it.init=false;
+		}
+		const K& getFirst(Iterator &it) const
+		{
+			it.item=first;
+			it.init=true;
+			return getNext(it);
+		}
+		const K& getNext(Iterator &it) const
+		{
+			if (!it.init) {
+				it.item=first;
+				it.init=true;
+			}
+			ListItem *item=it.item;
+			if (!item) {
+				throw EndOfListException();
+			}
+			it.item=item->next;
+			return item->item;
+		}
+		const K& getLast(Iterator &it) const
+		{
+			it.item=last;
+			it.init=true;
+			return getPrevious(it);
+		}
+		const K& getPrevious(Iterator &it) const
+		{
+			if (!it.init) {
+				it.item=last;
+				it.init=true;
+			}
+			ListItem *item=it.item;
+			if (!item) {
+				throw EndOfListException();
+			}
+			it.item=item->previous;
+			return item->item;
+		}
+		const K& getCurrent(Iterator &it) const
+		{
+			if (it.item) return *it.item;
+			throw EndOfListException();
+		}
+
 
 };
 
