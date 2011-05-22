@@ -309,7 +309,7 @@ void AVLTreeAlgorithm::addNode(Node *item)
 		cmp=compare(*cur,*item);
 		if (cmp==0 && dupes==false) {
 			throw DuplicateItemException();
-		} else if (cmp<0) cur=cur->left;
+		} else if (cmp<=0) cur=cur->left;
 		else cur=cur->right;
 	}
 	item->parent=node;
