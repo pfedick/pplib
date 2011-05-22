@@ -563,11 +563,10 @@ class File : public FileObject
 		};
 	private:
 		const char *fmode(FileMode mode);
-		static void throwErrno(int e, const String &filename);
 		void throwErrno(int e);
 
 	public:
-
+		static void throwErrno(int e, const String &filename);
 
 		File ();
 		File (const String &filename, FileMode mode=READ);
@@ -683,14 +682,25 @@ class Dir
 			SORT_FILENAME_IGNORCASE,
 			SORT_ATIME,
 			SORT_CTIME,
+			SORT_MTIME,
 			SORT_SIZE,
 		};
 	private:
+		ppl7::List<DirEntry> Files;
+		ppl7::List<const DirEntry*> SortedFiles;
 		//ppl7::AVLTree<ArrayKey, ValueNode> Tree;
 		//CGenericList Files;
 		//CAVLTree Tree;
 		Sort sort;
 		String Path;
+
+		void resortMTime();
+		void resortCTime();
+		void resortATime();
+		void resortSize();
+		void resortFilename();
+		void resortFilenameIgnoreCase();
+		void resortNone();
 
 	public:
 		PPLNORMALEXCEPTION(PathnameTooLongException);
@@ -702,12 +712,13 @@ class Dir
 		Dir();
 		Dir(const char *path, Sort s=SORT_NONE);
 		~Dir();
-		int open(const char *path, Sort s=SORT_NONE);
-		int open(const String &path, Sort s=SORT_NONE);
+		void open(const char *path, Sort s=SORT_NONE);
+		void open(const String &path, Sort s=SORT_NONE);
 		void resort(Sort s);
 		void reset();
 		void clear();
 		size_t num() const;
+		size_t count() const;
 		const DirEntry &getFirst();
 		const DirEntry &getNext();
 		const DirEntry &getFirstPattern(const char *pattern, bool ignorecase=false);
@@ -716,6 +727,7 @@ class Dir
 		const DirEntry &getNextRegExp(const char *regexp);
 
 		void print();
+		void print(const DirEntry &de);
 		static String currentPath();
 		//static CString HomePath();
 		//static CString TempPath();
