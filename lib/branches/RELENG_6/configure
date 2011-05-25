@@ -8963,15 +8963,15 @@ have_libmhash="no"
 	if test "$libmhash_prefix" != "no"
 	then
 
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
- ([
+
          #include <mhash.h>
          int main()
          {
             void *handle=mhash_init(MHASH_MD5);
          }
-      ])
+
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
