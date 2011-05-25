@@ -28,8 +28,7 @@ have_libmhash="no"
 	if test "$libmhash_prefix" != "no"
 	then 
 		
-    AC_LINK_IFELSE(
-    	[AC_LANG_SOURCE ([[
+	AC_LINK_IFELSE( [AC_LANG_SOURCE([[
          #include <mhash.h>
          int main()
          {
