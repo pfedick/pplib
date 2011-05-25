@@ -41,7 +41,7 @@
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
 #define PPL_VERSION_BUILD	7
-#define PPL_RELEASEDATE		20110416
+#define PPL_RELEASEDATE		20110525
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
