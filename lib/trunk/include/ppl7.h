@@ -688,9 +688,6 @@ class Dir
 	private:
 		ppl7::List<DirEntry> Files;
 		ppl7::List<const DirEntry*> SortedFiles;
-		//ppl7::AVLTree<ArrayKey, ValueNode> Tree;
-		//CGenericList Files;
-		//CAVLTree Tree;
 		Sort sort;
 		String Path;
 
@@ -707,7 +704,7 @@ class Dir
 		PPLNORMALEXCEPTION(NonexistingPathException);
 		PPLNORMALEXCEPTION(PermissionDeniedException);
 
-		//typedef ppl7::List<ArrayKey, ValueNode>::Iterator Iterator;
+		typedef ppl7::List<const DirEntry*>::Iterator Iterator;
 
 		Dir();
 		Dir(const char *path, Sort s=SORT_NONE);
@@ -715,19 +712,18 @@ class Dir
 		void open(const char *path, Sort s=SORT_NONE);
 		void open(const String &path, Sort s=SORT_NONE);
 		void resort(Sort s);
-		void reset();
 		void clear();
 		size_t num() const;
 		size_t count() const;
-		const DirEntry &getFirst();
-		const DirEntry &getNext();
-		const DirEntry &getFirstPattern(const char *pattern, bool ignorecase=false);
-		const DirEntry &getNextPattern(const char *pattern, bool ignorecase=false);
-		const DirEntry &getFirstRegExp(const char *regexp);
-		const DirEntry &getNextRegExp(const char *regexp);
-
-		void print();
-		void print(const DirEntry &de);
+		void reset(Iterator &it) const;
+		const DirEntry &getFirst(Iterator &it) const;
+		const DirEntry &getNext(Iterator &it) const;
+		const DirEntry &getFirstPattern(Iterator &it, const String &pattern, bool ignorecase=false) const;
+		const DirEntry &getNextPattern(Iterator &it, const String &pattern, bool ignorecase=false) const;
+		const DirEntry &getFirstRegExp(Iterator &it, const String &regexp) const;
+		const DirEntry &getNextRegExp(Iterator &it, const String &regexp) const;
+		void print() const;
+		void print(const DirEntry &de) const;
 		static String currentPath();
 		//static CString HomePath();
 		//static CString TempPath();

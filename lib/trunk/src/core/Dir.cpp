@@ -211,22 +211,18 @@ Dir::~Dir()
 /*!\brief Verzeichnisliste löschen
  *
  * \desc
- * Wird diese Funktion nach CDir::Open aufgerufen, wird die interne Dateiliste
- * wieder gelöscht. Die Funktion wird automatisch vom Destruktor und zu Beginn
- * von CDir::Open, so dass sich ein manueller Aufruf der Funktion in der Regel
+ * Wird diese Funktion nach Dir::open aufgerufen, wird die interne Dateiliste
+ * wieder gelöscht und der durch die Klasse belegte Speicher freigegeben.
+ * Die Funktion wird automatisch vom Destruktor und zu Beginn
+ * von Dir::open, so dass sich ein manueller Aufruf der Funktion in der Regel
  * erübrigt.
  */
 void Dir::clear()
 {
-	/*
-	CDirEntry *de;
-	Files.Reset();
-	while ((de=(CDirEntry*)Files.GetNext())) {
-		delete de;
-	}
-	Files.Clear();
-	Tree.Clear();
-	*/
+	Files.clear();
+	SortedFiles.clear();
+	Path.clear();
+	sort=SORT_NONE;
 }
 
 #if defined _WIN32
@@ -351,7 +347,7 @@ void Dir::open(const char *path, Sort s)
  *
  * \param[in] de Pointer auf einen Verzeichniseintrag
  */
-void Dir::print(const DirEntry &de)
+void Dir::print(const DirEntry &de) const
 {
 	printf ("%ls %3i ",(const wchar_t*)de.AttrStr,de.NumLinks);
 	printf ("%5i %5i ",de.Uid, de.Gid);
@@ -365,7 +361,7 @@ void Dir::print(const DirEntry &de)
  * Mit dieser Funktion wird das mit CDir::Open ausgewählte Verzeichnis
  * auf STDOUT ausgegeben.
  */
-void Dir::print()
+void Dir::print() const
 {
 	ppl7::List<const DirEntry*>::Iterator it;
 	const DirEntry *de;
@@ -613,122 +609,51 @@ void Dir::resortSize()
 	}
 }
 
-#ifdef TODO
-
-class CDirSortIgnoreCase : public CTreeController
-{
-	public:
-		virtual int	Compare(const void *value1, const void *value2)	const {
-			CDirEntry *e1=(CDirEntry*) value1;
-			CDirEntry *e2=(CDirEntry*) value2;
-			int cmp=e1->Filename.StrCaseCmp(e2->Filename);
-			if (cmp<0) return 1;
-			if (cmp>0) return -1;
-			return 0;
-		}
-		virtual int GetValue(const void *item, CString &buffer)	const {
-			return 0;
-		}
-		virtual int DestroyValue(void *item) const {
-			return 1;
-		}
-};
-
-class CDirSort : public CTreeController
-{
-	public:
-		virtual int	Compare(const void *value1, const void *value2)	const {
-			CDirEntry *e1=(CDirEntry*) value1;
-			CDirEntry *e2=(CDirEntry*) value2;
-			int cmp=e1->Filename.StrCmp(e2->Filename);
-			if (cmp<0) return 1;
-			if (cmp>0) return -1;
-			return 0;
-		}
-		virtual int GetValue(const void *item, CString &buffer)	const {
-			return 0;
-		}
-		virtual int DestroyValue(void *item) const {
-			return 1;
-		}
-};
-
-class CDirSortMTime : public CTreeController
-{
-	public:
-		virtual int	Compare(const void *value1, const void *value2)	const {
-			CDirEntry *e1=(CDirEntry*) value1;
-			CDirEntry *e2=(CDirEntry*) value2;
-			if (e1->MTime<e2->MTime) return 1;
-			if (e1->MTime>e2->MTime) return -1;
-			return 0;
-		}
-		virtual int GetValue(const void *item, CString &buffer)	const {
-			return 0;
-		}
-		virtual int DestroyValue(void *item) const {
-			return 1;
-		}
-};
-
-
-
-
-
-
-void CDir::Reset()
 /*!\brief Zeiger auf den ersten Eintrag des Verzeichnisses
  *
  * \desc
- * Mit dieser Funktion wird der interne Zeiger auf den ersten Eintrag
- * im Verzeichnis gesetzt. Der nächste Aufruf von einer der "GetNext..."-Funktionen
+ * Mit dieser Funktion wird der Zeiger des Iterators \p it auf den ersten Eintrag
+ * im Verzeichnis gesetzt. Der nächste Aufruf von einer der "getNext..."-Funktionen
  * würde somit den ersten Eintrag zurückliefern.
+ * \param it Iterator vom Typ ppl7::Dir::Iterator
  */
+void Dir::reset(Iterator &it) const
 {
-	Files.Reset();
-	Tree.Reset();
+	SortedFiles.reset(it);
 }
 
-CDirEntry *CDir::GetFirst()
 /*!\brief Erster Verzeichniseintrag
  *
  * \desc
  * Durch Aufruf dieser Funktion wird der interne Zeiger auf die erste gefundene Datei gesetzt und ein Pointer
  * auf dessen CDirEntry-Struktur zurückgegeben. Alle weiteren Dateien können mit CDir::GetNext ausgelesen werden.
  * \par
- * Die Reihenfolge der durch CDir::GetFirst und CDir::GetNext zurückgelieferten Dateien hängt von
- * der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort und CDir::Open
- *
- * @return Pointer auf die erste Datei des Verzeichnisses, oder NULL wenn das Verzeichnis leer ist oder kein
- * gültiges Verzeichnis ausgewählt wurde.
+ * Die Reihenfolge der durch Dir::getFirst und Dir::getNext zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
+ * \param it Iterator vom Typ ppl7::Dir::Iterator
+ * @return Referenz auf die erste Datei des Verzeichnisses.
  */
+const DirEntry &Dir::getFirst(Iterator &it) const
 {
-	Reset();
-	return GetNext();
+	return *SortedFiles.getFirst(it);
 }
 
-CDirEntry *CDir::GetNext()
 /*!\brief Nächster Verzeichniseintrag
  *
  * \desc
  * Diese Funktion liefert die nächste Datei aus dem geöffneten Verzeichnis zurück.
  * \par
- * Die Reihenfolge der durch CDir::GetFirst und CDir::GetNext zurückgelieferten Dateien hängt von
- * der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort und CDir::Open
+ * Die Reihenfolge der durch Dir::getFirst und Dir::getNext zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
  *
- * @return Pointer auf die nächste Datei des Verzeichnisses, oder NULL, wenn keine weiteren Dateien
- * vorhanden sind, das Verzeichnis leer ist oder kein gültiges Verzeichnis ausgewählt wurde.
+ * \param it Iterator vom Typ ppl7::Dir::Iterator
+ * @return Referenz auf die nächste Datei des Verzeichnisses.
  */
+const DirEntry &Dir::getNext(Iterator &it) const
 {
-	if (sort==Sort_None) {
-		return (CDirEntry*) Files.GetNext();
-	} else {
-		return (CDirEntry*) Tree.GetNext();
-	}
-	return NULL;
+	return *SortedFiles.getNext(it);
 }
 
-CDirEntry *CDir::GetFirstPattern(const char *pattern, bool ignorecase)
 /*!\brief Erster Verzeichniseintrag, der zu einem bestimmten Muster passt
  *
  * \desc
@@ -739,6 +664,7 @@ CDirEntry *CDir::GetFirstPattern(const char *pattern, bool ignorecase)
  * Die Reihenfolge der durch CDir::GetFirstPattern und CDir::GetNextPattern zurückgelieferten Dateien hängt von
  * der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort und CDir::Open
  *
+ * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] pattern Ein beliebiges Suchpattern, wie es auch beim Unix-Befehl "ls" oder mit
  * "dir" unter Windows angegeben werden kann. Dabei sind die Wildcards "*" und "?" erlaubt.
  * Das Sternchen "*" steht dabei für beliebig viele Zeichen, das Fragezeichen "?" für ein einzelnes.
@@ -750,12 +676,12 @@ CDirEntry *CDir::GetFirstPattern(const char *pattern, bool ignorecase)
  * NULL wenn keine Datei passt, das Verzeichnis leer ist oder kein
  * gültiges Verzeichnis ausgewählt wurde.
  */
+const DirEntry &Dir::getFirstPattern(Iterator &it, const String &pattern, bool ignorecase) const
 {
-	Reset();
-	return GetNextPattern(pattern, ignorecase);
+	reset(it);
+	return getNextPattern(it, pattern, ignorecase);
 }
 
-CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
 /*!\brief Nächster Verzeichniseintrag, der zu einem bestimmten Muster passt
  *
  * \desc
@@ -765,6 +691,7 @@ CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
  * Die Reihenfolge der durch CDir::GetFirstPattern und CDir::GetNextPattern zurückgelieferten Dateien hängt von
  * der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort und CDir::Open
  *
+ * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] pattern Ein beliebiges Suchpattern, wie es auch beim Unix-Befehl "ls" oder mit
  * "dir" unter Windows angegeben werden kann. Dabei sind die Wildcards "*" und "?" erlaubt.
  * Das Sternchen "*" steht dabei für beliebig viele Zeichen, das Fragezeichen "?" für ein einzelnes.
@@ -776,38 +703,29 @@ CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
  * vorhanden sind, die auf das Muster passen, das Verzeichnis leer ist oder kein gültiges
  * Verzeichnis ausgewählt wurde.
  */
+const DirEntry &Dir::getNextPattern(Iterator &it, const String &pattern, bool ignorecase) const
 {
-	CDirEntry *de;
-	CString Name, Pattern;
+	const DirEntry *de;
+	String Pattern;
 	Pattern=pattern;
-	Pattern.PregEscape();
-	Pattern.Replace("\\*",".*");
-	Pattern.Replace("\\?",".");
+	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	Pattern.pregEscape();
+	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	Pattern.replace("\\*",".*");
+	Pattern.replace("\\?",".");
 	Pattern="/^"+Pattern;
 	Pattern+="$/";
 	if (ignorecase) Pattern+="i";
-	//printf ("Pattern: %s\n",(const char*)Pattern);
+	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
 	while (1) {
-		if (sort==Sort_None) {
-			de=(CDirEntry*) Files.GetNext();
-		} else {
-			de=(CDirEntry*) Tree.GetNext();
-		}
-		if (!de) {
-			//printf ("Ende des Verzeichnisses\n");
-			return NULL;
-		}
+		de=SortedFiles.getNext(it);
+		if (!de) throw EndOfListException();
 		// Patternmatch
-		Name=de->Filename;
-		if (Name.PregMatch(Pattern)) {
-			//printf ("Match\n");
-			return de;
-		}
-		//printf ("Kein Match: %s\n",(const char *)Name);
+		//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
+		if (de->Filename.pregMatch(Pattern)) return *de;
 	}
 }
 
-CDirEntry *CDir::GetFirstRegExp(const char *regexp)
 /*!\brief Erster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
  *
  * \desc
@@ -819,18 +737,19 @@ CDirEntry *CDir::GetFirstRegExp(const char *regexp)
  * Dateien hängt von der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort
  * und CDir::Open
  *
+ * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] regexp Eine beliebige Perl kompatible Regular Expression. Beispiel:"/^*.txt$/i"
  *
  * @return Pointer auf die erste Datei des Verzeichnisses, oder NULL wenn das Verzeichnis leer ist,
  * kein Dateiname auf die angegebene Regular Expression passt oder kein
  * gültiges Verzeichnis ausgewählt wurde.
  */
+const DirEntry &Dir::getFirstRegExp(Iterator &it, const String &regexp) const
 {
-	Reset();
-	return GetNextRegExp(regexp);
+	reset(it);
+	return getNextRegExp(it,regexp);
 }
 
-CDirEntry *CDir::GetNextRegExp(const char *regexp)
 /*!\brief Nächster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
  *
  * \desc
@@ -842,33 +761,24 @@ CDirEntry *CDir::GetNextRegExp(const char *regexp)
  * Dateien hängt von der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort
  * und CDir::Open
  *
+ * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] regexp Eine beliebige Perl kompatible Regular Expression. Beispiel:"/^*.txt$/i"
  *
  * @return Pointer auf die nächste Datei des Verzeichnisses, oder NULL wenn das Verzeichnis leer ist,
  * kein weiterer Dateiname auf die angegebene Regular Expression passt oder kein
  * gültiges Verzeichnis ausgewählt wurde.
  */
+const DirEntry &Dir::getNextRegExp(Iterator &it, const String &regexp) const
 {
-	CDirEntry *de;
-	CString Name;
+	const DirEntry *de;
 	while (1) {
-		if (sort==Sort_None) {
-			de=(CDirEntry*) Files.GetNext();
-		} else {
-			de=(CDirEntry*) Tree.GetNext();
-		}
-		if (!de) return NULL;
+		de=SortedFiles.getNext(it);
+		if (!de) throw EndOfListException();
 		// Patternmatch
-		Name=de->Filename;
-		if (Name.PregMatch(regexp)) return de;
+		if (de->Filename.pregMatch(regexp)) return *de;
 	}
 }
 
-
-
-
-
-#endif
 
 
 } // EOF namespace ppl7

@@ -95,34 +95,34 @@ TEST_F(FileReadTest, openExisting) {
 
 TEST_F(FileReadTest, size) {
 	ppl7::File f1;
-	f1.open("../LICENSE.TXT");
+	f1.open("testdata/LICENSE.TXT");
 	ASSERT_EQ((ppluint64)1540,f1.size());
 	ppl7::File f2;
-	f2.open("src/testfile.txt");
+	f2.open("testdata/testfile.txt");
 	ASSERT_EQ((ppluint64)1592096,f2.size());
 
 }
 
 TEST_F(FileReadTest, openAndClose) {
 	ppl7::File f1;
-	f1.open("../LICENSE.TXT");
+	f1.open("testdata/LICENSE.TXT");
 	ASSERT_EQ((ppluint64)1540,f1.size());
 	f1.close();
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	ASSERT_EQ((ppluint64)1592096,f1.size());
 
 }
 
 TEST_F(FileReadTest, md5) {
 	ppl7::File f1;
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	ppl7::String digest=f1.md5();
 	ASSERT_EQ(ppl7::String(L"f386e5ea10bc186b633eaf6ba9a20d8c"),digest);
 }
 
 TEST_F(FileReadTest, seekAndTell) {
 	ppl7::File f1;
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	f1.seek(45678);
 	ASSERT_EQ((ppluint64)45678,f1.tell());
 	f1.seek(100);
@@ -133,7 +133,7 @@ TEST_F(FileReadTest, seekAndTell) {
 
 TEST_F(FileReadTest, seek) {
 	ppl7::File f1;
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	f1.seek(45678,ppl7::File::SEEKSET);
 	ASSERT_EQ((ppluint64)45678,f1.tell());
 	f1.seek(100,ppl7::File::SEEKCUR);
@@ -148,7 +148,7 @@ TEST_F(FileReadTest, fread1024) {
 	ppl7::File f1;
 	ppl7::ByteArray ba;
 	ba.malloc(1024);
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	f1.fread((void*)ba.adr(),1,1024);
 	//ba.hexDump();
 	ASSERT_EQ(ppl7::String(L"21ab51148e28167d5ce13bee07493a56"),ba.md5());
@@ -162,7 +162,7 @@ TEST_F(FileReadTest, freadUntilEof) {
 	ppl7::File f1;
 	ppl7::ByteArray ba;
 	ba.malloc(1024);
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	ppluint64 bytes=0;
 	ASSERT_THROW({
 		while (1) {
@@ -177,7 +177,7 @@ TEST_F(FileReadTest, fgets) {
 	ppl7::ByteArray ba;
 	ba.malloc(1024);
 	char *buffer=(char*)ba.adr();
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	char *ret;
 	ASSERT_NO_THROW({
 		ret=f1.fgets(buffer,1024);
@@ -191,7 +191,7 @@ TEST_F(FileReadTest, fgets) {
 TEST_F(FileReadTest, getsAsString) {
 	ppl7::File f1;
 	ppl7::String s;
-	f1.open("src/testfile.txt");
+	f1.open("testdata/testfile.txt");
 	ASSERT_NO_THROW({
 		s=f1.gets(1024);
 	});
@@ -218,9 +218,11 @@ TEST_F(FileReadTest, getsAsString) {
 TEST_F(FileStaticTest, stat) {
 	ppl7::DirEntry d;
 	ASSERT_NO_THROW({
-		ppl7::File::stat("../LICENSE.TXT",d);
+		ppl7::File::stat("testdata/LICENSE.TXT",d);
 	});
-	d.print();
+	ASSERT_EQ((size_t)1540,d.Size);
+	ASSERT_EQ(ppl7::String(L"testdata/LICENSE.TXT"),d.File);
+	//d.print();
 
 
 }
