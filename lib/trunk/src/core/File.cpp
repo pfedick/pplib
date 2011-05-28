@@ -1419,7 +1419,6 @@ bool File::exists(const char *filename)
  *
  * \param oldfile Name der zu kopierenden Datei
  * \param newfile Name der Zieldatei.
- * \exception
  */
 void File::copy(const String &oldfile, const String &newfile)
 {

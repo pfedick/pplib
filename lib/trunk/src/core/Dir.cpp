@@ -112,30 +112,42 @@ namespace ppl7 {
  *
  */
 
-/*!\enum CDir::Sort
+/*!\enum Dir::Sort
  * \brief Sortiermöglichkeiten
  *
  * In dieser Enumeration sind die verschiedenen Sortiermöglichkeiten definiert:
  */
 
-/*!\var CDir::Sort CDir::Sort_None
+/*!\var Dir::Sort Dir::SORT_NONE
  * Keine Sortierung. Die Reihenfolge der Dateien hängt fom Betriebs- und Filesystem ab.
  */
 
-/*!\var CDir::Sort CDir::Sort_Filename
+/*!\var Dir::Sort Dir::SORT_FILENAME
  * Es wird eine Sortierung anhand der Dateinamen vorgenommen. Dabei wird Groß- und Kleinschreibung
  * beachtet. Dateien, die mit einem Großbuchstaben beginnen, werden zuerst aufgelistet, danach
  * Dateien mit Kleinbuchstaben.
  */
 
-/*!\var CDir::Sort CDir::Sort_Filename_IgnoreCase
+/*!\var Dir::Sort Dir::SORT_FILENAME_IGNORCASE
  * Es wird eine Sortierung anhand der Dateinamen vorgenommen. Dabei wird Groß- und Kleinschreibung
  * ignoriert. Dateien mit Großbuchstaben und Kleinbuchstaben werden vermischt ausgegeben, wobei
  * jedoch die Alphabetische Reihenfolge erhalten bleibt.
  */
 
-/*!\var CDir::Sort CDir::Sort_Date
- * Es wird eine Sortierung nach dem Datum der letzten Modifizierung vorgenommen.
+/*!\var Dir::Sort Dir::SORT_ATIME
+ * Es wird eine Sortierung nach dem Datum des letzten Zugriffs vorgenommen.
+ */
+
+/*!\var Dir::Sort Dir::SORT_MTIME
+ * Es wird eine Sortierung nach dem Datum der letzten Modifikation vorgenommen.
+ */
+
+/*!\var Dir::Sort Dir::SORT_CTIME
+ * Es wird eine Sortierung nach dem Datum der letzten Modifikation vorgenommen.
+ */
+
+/*!\var Dir::Sort Dir::SORT_SIZE
+ * Es wird eine Sortierung nach der Größe der Datei vorgenommen.
  */
 
 
@@ -172,7 +184,11 @@ String Dir::currentPath()
 	}
 }
 
-
+/*!\brief Konstruktor der Klasse
+ *
+ * \desc
+ * Konstruktor der Klasse, ohne ein Verzeichnis zu öffnen.
+ */
 Dir::Dir()
 {
 	sort=SORT_NONE;
@@ -225,9 +241,9 @@ void Dir::clear()
 	sort=SORT_NONE;
 }
 
-#if defined _WIN32
 void Dir::open(const char *path, Sort s)
 {
+#if defined _WIN32
 	clear();
 	sort=s;
 	Path=path;
@@ -297,10 +313,7 @@ void Dir::open(const char *path, Sort s)
 	_findclose(handle);
 	Resort(sort);
 	return 1;
-}
 #elif defined HAVE_OPENDIR
-void Dir::open(const char *path, Sort s)
-{
 	clear();
 	sort=s;
 	Path=path;
@@ -328,14 +341,10 @@ void Dir::open(const char *path, Sort s)
 	}
 	closedir(dir);
 	resort(sort);
-}
 #else
-void Dir::open(const char *path, Sort s)
-{
 	throw UnsupportedFeatureException("Dir::open");
-}
-
 #endif
+}
 
 
 /*!\brief Verzeichnis-Eintrag auf STDOUT ausgeben
