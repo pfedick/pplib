@@ -2507,14 +2507,21 @@ bool String::pregMatch(const String &expression) const
 			if (::strchr(options,'a')) flags|=PCRE_ANCHORED;
 			if (::strchr(options,'u')) flags|=PCRE_UNGREEDY;
 		}
+		/*
+		printf ("String Dump:\n");
+		utf8.hexDump();
+		printf ("Expression Dump:\n");
+		expr.hexDump();
+		*/
 		const char *perr;
 		int re,erroffset, ovector[32];
 		int perrorcode;
 		pcre *reg;
-		//printf ("r=%s, flags=%i\n",r,flags);
-		reg=pcre_compile2((const char*)expr,flags,&perrorcode,&perr, &erroffset, NULL);
+		//printf ("expr=>>%s<<, flags=%i\n",((const char*)expr+1),flags);
+		reg=pcre_compile2(((const char*)expr+1),flags,&perrorcode,&perr, &erroffset, NULL);
 		if (!reg) throw IllegalRegularExpressionException();
 		memset(ovector,0,30*sizeof(int));
+		//printf ("text=>>%s<<, size=%zi\n",(const char*)utf8,utf8.size());
 		if ((re=pcre_exec(reg, NULL, (const char*) utf8,utf8.size(),0, 0, ovector, 30))>=0) {
 			return true;
 		}
@@ -2568,7 +2575,7 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		matches.clear();
 		pcre *reg;
 		//printf ("r=%s, flags=%i\n",r,flags);
-		reg=pcre_compile2((const char*)expr,flags,&perrorcode,&perr, &erroffset, NULL);
+		reg=pcre_compile2(((const char*)expr+1),flags,&perrorcode,&perr, &erroffset, NULL);
 		if (!reg) throw IllegalRegularExpressionException();
 		memset(ovector,0,30*sizeof(int));
 		if ((re=pcre_exec(reg, NULL, (const char*) utf8,utf8.size(),0, 0, ovector, ovectorsize))>=0) {
