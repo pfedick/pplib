@@ -844,6 +844,35 @@ TEST_F(StringTest, strcmpEmpty) {
 	ASSERT_EQ(s1,s2);
 }
 
+TEST_F(StringTest, pregMatchPositive) {
+	ppl7::String s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
+	ppl7::String expr(L"/^Lorem.*$/s");
+	ASSERT_TRUE(s1.pregMatch(expr));
+	expr.set(L"/^Lorem.*$/is");
+	ASSERT_TRUE(s1.pregMatch(expr));
+	expr.set(L"/consectetuer/");
+	ASSERT_TRUE(s1.pregMatch(expr));
+	expr.set(L"/^.*consectetuer.*$/s");
+	ASSERT_TRUE(s1.pregMatch(expr));
+	expr.set(L"/^.*mus\\.$/m");
+	ASSERT_TRUE(s1.pregMatch(expr));
+}
+
+TEST_F(StringTest, pregMatchNegativ) {
+	ppl7::String s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
+	ppl7::String expr(L"/^Looorem.*$/s");
+	ASSERT_FALSE(s1.pregMatch(expr));
+	expr.set(L"/^ipsum.*$/is");
+	ASSERT_FALSE(s1.pregMatch(expr));
+	expr.set(L"/patrick/");
+	ASSERT_FALSE(s1.pregMatch(expr));
+	expr.set(L"/^.*patrick.*$/s");
+	ASSERT_FALSE(s1.pregMatch(expr));
+	expr.set(L"/^.*mus\\.$/");
+	ASSERT_FALSE(s1.pregMatch(expr));
+}
+
+
 }
 
 
