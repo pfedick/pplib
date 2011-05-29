@@ -269,6 +269,31 @@ ppluint32 PeekN32 (const void *Adresse);
 ppluint64 PeekN64 (const void *Adresse);
 
 
+// cpu.cpp
+namespace CPUCAPS {
+	enum {
+		NONE			= 0x00000000,
+		HAVE_CPUID		= 0x00000001,
+		HAVE_MMX		= 0x00000002,
+		HAVE_MMX2		= 0x00000004,
+		HAVE_3DNow		= 0x00000008,
+		HAVE_3DNow2		= 0x00000010,
+		HAVE_SSE		= 0x00000020,
+		HAVE_SSE2		= 0x00000040,
+		HAVE_AMD64		= 0x00000080
+	};
+}
+
+typedef struct {
+	ppluint32	caps;							// Struktur kann um weitere Informationen erweitert werden
+	ppluint32	bits;
+
+} CPUCaps;
+
+ppluint32 GetCPUCaps (CPUCaps *cpu);				// Wenn cpu=NULL ist, werden nur die Caps zur�ckgegeben
+
+
+
 //! \brief Synchronisation von Threads
 class Mutex
 {

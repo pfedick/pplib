@@ -47,6 +47,7 @@ RELEASE	= release/AVLTree.o \
 	release/Mutex.o \
 	release/StringFunctions.o \
 	release/Threads.o \
+	release/cpu.o \
 	release/type_Array.o \
 	release/type_AssocArray.o \
 	release/type_ByteArray.o \
@@ -77,6 +78,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/Mutex.o \
 	debug/StringFunctions.o \
 	debug/Threads.o \
+	debug/cpu.o \
 	debug/type_Array.o \
 	debug/type_AssocArray.o \
 	debug/type_ByteArray.o \
@@ -94,8 +96,8 @@ DEBUG	= debug/AVLTree.o \
 	 \
 	debug/sound_Icecast.o
 
-ASM_OBJ_RELEASE	=	
-ASM_OBJ_DEBUG	=	
+ASM_OBJ_RELEASE	=	release/asm_cpu.o
+ASM_OBJ_DEBUG	=	debug/asm_cpu.o
 
 
 @HAVE_X86_ASSEMBLER@
@@ -275,6 +277,11 @@ release/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>core/Threads.cpp<<<
 	$(CXX) -Wall -O3 -o release/Threads.o -c $(srcdir)/core/Threads.cpp $(CFLAGS) 
 
+release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O3 -o release/cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) 
+
 ### TYPES
 release/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
@@ -343,6 +350,11 @@ release/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/
 	$(CXX) -Wall -O3 -o release/sound_Icecast.o -c $(srcdir)/sound/Icecast.cpp $(CFLAGS) 
 
 ### ASM
+release/asm_cpu.o:	$(srcdir)/asm/cpu.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/cpu.asm<<<
+	$(ASM) -o release/asm_cpu.o -l release/asm_cpu.lst $(srcdir)/asm/cpu.asm
+
 
 ###########################################################################
 ### Compile Debug Files
@@ -414,6 +426,11 @@ debug/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	# Compiling >>>core/Threads.cpp<<<
 	$(CXX) -Wall -O -o debug/Threads.o -c $(srcdir)/core/Threads.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O -o debug/cpu.o -c $(srcdir)/core/cpu.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 ### TYPES
 debug/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
@@ -482,6 +499,11 @@ debug/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/pp
 	$(CXX) -Wall -O -o debug/sound_Icecast.o -c $(srcdir)/sound/Icecast.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### ASM
+debug/asm_cpu.o:	$(srcdir)/asm/cpu.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/cpu.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_cpu.o  -l debug/asm_cpu.lst $(srcdir)/asm/cpu.asm -D_DEBUG -DDEBUG=DEBUG
+
 
 
 
