@@ -205,6 +205,10 @@ ppluint32 HaveSSE() {
 }
 
 ppluint32 GetASMBits() {
+	if (sizeof(void*)==16) return 16;
+	if (sizeof(void*)==32) return 32;
+	if (sizeof(void*)==64) return 64;
+	if (sizeof(void*)==128) return 128;
 	return 0;
 }
 
