@@ -45,12 +45,18 @@ global HaveMMX2
 global Have3DNow
 global Have3DNow2
 global HaveSSE
+global HaveSSE2
+global HaveSSE3
+global HaveSSE4a
 
 global _HaveMMX
 global _HaveMMX2
 global _Have3DNow
 global _Have3DNow2
 global _HaveSSE
+global _HaveSSE2
+global _HaveSSE3
+global _HaveSSE4a
 
 
 SECTION .data
@@ -111,10 +117,9 @@ SECTION .text
 		pushfq						; save updated Eflags
 		pop rax						; transfers Eflags into EAX
 		xor eax,edx					; updated Eflags and original differ?
-		jz NO_CPUID					; no fiffer, bit 21 can't be toggled
+		jz NO_CPUID					; no differ, bit 21 can't be toggled
 			xor rax,rax
 			mov al,1
-			mov dl,1
 			ret
 		NO_CPUID:
 			xor rax,rax
@@ -138,7 +143,7 @@ SECTION .text
 		pushfd						; save updated Eflags
 		pop eax						; transfers Eflags into EAX
 		xor eax,edx					; updated Eflags and original differ?
-		jz NO_CPUID					; no fiffer, bit 21 can't be toggled
+		jz NO_CPUID					; no differ, bit 21 can't be toggled
 			mov eax,1
 			ret
 		NO_CPUID:
@@ -152,17 +157,13 @@ HaveMMX:
 _HaveMMX:
 	; test whether extended function 80000001h is supported
 	mov eax, 80000000h		; call extended function 80000000h
+	push rbx
 	cpuid
+	pop rbx
 	cmp eax, 80000000h		; supports functions > 80000000h?
 	jbe HaveMMX_NO_EXTENDED
-		; test if function 80000001h indicates MMX support
-		mov eax, 80000001h	; call extended function 80000001h
-		cpuid				; reports back extended feature flags
-		test edx, 800000h	; bit 23 in extended features
-		jz HaveMMX_NO_3DNow			; if set, MMX is supported
-			mov eax,1
-			ret
-	HaveMMX_NO_3DNow:
+		mov eax,1
+		ret
 	HaveMMX_NO_EXTENDED:
 	xor eax,eax
 	ret
@@ -171,6 +172,7 @@ HaveMMX2:
 _HaveMMX2:
 		; test whether extended function 80000001h is supported
 		mov eax, 80000000h			; call extended function 80000000h
+		push rbx
 		cpuid
 		cmp eax, 80000000h			; supports functions > 80000000h?
 		jbe HaveMMX2_NO_EXTENDED
@@ -180,9 +182,11 @@ _HaveMMX2:
 			test edx, 400000h		; bit 22 in extended features
 			jz HaveMMX2_NO_3DNow	; if set, MMX Extension is supported
 				mov eax,1
+				pop rbx
 				ret
 		HaveMMX2_NO_3DNow:
 		HaveMMX2_NO_EXTENDED:
+		pop rbx
 		xor eax,eax
 		ret
 
@@ -190,6 +194,7 @@ Have3DNow:
 _Have3DNow:
 		; test whether extended function 80000001h is supported
 		mov eax, 80000000h			; call extended function 80000000h
+		push rbx
 		cpuid
 		cmp eax, 80000000h			; supports functions > 80000000h?
 		jbe Have3DNow_NO			; no 3DNow! support either
@@ -199,15 +204,18 @@ _Have3DNow:
 			test edx, 80000000h	; bit 31 in extended features
 			jz Have3DNow_NO			; if set, 3DNow! is supported
 				mov eax,1
+				pop rbx
 				ret
 		Have3DNow_NO:
 		xor eax,eax
+		pop rbx
 		ret
 
 Have3DNow2:
 _Have3DNow2:
 		;test whether extended function 80000001h is supported
 		mov eax, 80000000h			; call extended function 80000000h
+		push rbx
 		cpuid
 		cmp eax, 80000000h			; supports functions > 80000000h?
 		jbe Have3DNow2_NO
@@ -217,21 +225,75 @@ _Have3DNow2:
 			test edx, 40000000h	; bit 30 in extended features
 			jz Have3DNow2_NO		; if set, 3DNow! Extension is supported
 				mov eax,1
+				pop rbx
 				ret
 		Have3DNow2_NO:
 		xor eax,eax
+		pop rbx
 		ret
 
 HaveSSE:
 _HaveSSE:
 		xor edx,edx
-		mov eax, 2				; standard feature flags auslesen
+		push rbx
+		mov eax, 1				; standard feature flags auslesen
 		cpuid
 		test edx, 2000000h		; bit 25 in extended features
 		jz NO_SSE				; if set, SSE is supported
 			mov eax,1
+			pop rbx
 			ret
 		NO_SSE:
 		xor eax,eax
+		pop rbx
 		ret
+
+HaveSSE2:
+_HaveSSE2:
+		xor edx,edx
+		push rbx
+		mov eax, 1				; standard feature flags auslesen
+		cpuid
+		test edx, 4000000h		; bit 26 in extended features
+		jz NO_SSE2				; if set, SSE2 is supported
+			mov eax,1
+			pop rbx
+			ret
+		NO_SSE2:
+		xor eax,eax
+		pop rbx
+		ret
+
+HaveSSE3:
+_HaveSSE3:
+		xor edx,edx
+		push rbx
+		mov eax, 1				; standard feature flags auslesen
+		cpuid
+		test ecx, 000001h		; bit 0 in ecx
+		jz NO_SSE3				; if set, SSE2 is supported
+			mov eax,1
+			pop rbx
+			ret
+		NO_SSE3:
+		pop rbx
+		xor eax,eax
+		ret
+
+HaveSSE4a:
+_HaveSSE4a:
+		xor edx,edx
+		push rbx
+		mov eax, 80000001h			; call extended function 80000000h
+		cpuid
+		test ecx, 000040h		; bit 6 in ecx
+		jz NO_SSE4a				; if set, SSE2 is supported
+			mov eax,1
+			pop rbx
+			ret
+		NO_SSE4a:
+		xor eax,eax
+		pop rbx
+		ret
+
 

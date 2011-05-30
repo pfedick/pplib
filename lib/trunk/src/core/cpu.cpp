@@ -59,6 +59,9 @@ extern "C" {
 	ppluint32 Have3DNow();
 	ppluint32 Have3DNow2();
 	ppluint32 HaveSSE();
+	ppluint32 HaveSSE2();
+	ppluint32 HaveSSE3();
+	ppluint32 HaveSSE4a();
 }
 #endif
 
@@ -224,6 +227,18 @@ static ppluint32 GetASMBits()
 #endif
 
 
+
+String binaryString(ppluint64 value)
+{
+	String ret;
+	for (int i=63;i>=0;i--) {
+		if (value&((ppluint64)1<<i)) ret+="1";
+		else ret+="0";
+	}
+	return ret;
+}
+
+
 ppluint32 GetCPUCaps (CPUCaps *cpu)
 {
 	ppluint32 caps=0;
@@ -234,7 +249,16 @@ ppluint32 GetCPUCaps (CPUCaps *cpu)
 		if (Have3DNow()) caps|=CPUCAPS::HAVE_3DNow;
 		if (Have3DNow2()) caps|=CPUCAPS::HAVE_3DNow2;
 		if (HaveSSE()) caps|=CPUCAPS::HAVE_SSE;
+		if (HaveSSE2()) caps|=CPUCAPS::HAVE_SSE2;
+		if (HaveSSE3()) caps|=CPUCAPS::HAVE_SSE3;
+		if (HaveSSE4a()) caps|=CPUCAPS::HAVE_SSE4a;
+
 	}
+	printf ("caps=%i = %ls\n",caps,(const wchar_t*)binaryString(caps));
+	//int bits=HaveSSE2();
+	//printf ("cpuid 1: %x\n",bits);
+
+
 	if (cpu) {
 		cpu->caps=caps;
 		cpu->bits=GetASMBits();
