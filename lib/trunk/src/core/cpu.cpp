@@ -53,178 +53,21 @@
 #ifdef HAVE_X86_ASSEMBLER
 extern "C" {
 	ppluint32 GetASMBits();
-	ppluint32 HaveCPUID();
-	ppluint32 HaveMMX();
-	ppluint32 HaveMMX2();
-	ppluint32 Have3DNow();
-	ppluint32 Have3DNow2();
-	ppluint32 HaveSSE();
-	ppluint32 HaveSSE2();
-	ppluint32 HaveSSE3();
-	ppluint32 HaveSSE4a();
+	ppluint32 PPL7_GetCpuCaps();
 }
-#endif
-
-namespace ppl7 {
-
-
-#ifndef HAVE_X86_ASSEMBLER
-
-static ppluint32 HaveCPUID()
+#else
+static ppluint32 PPL7_GetCpuCaps()
 {
-	ppluint32 retv=0;
-	#ifdef _WIN32
-	__asm {
-		// check whether CPUID is supported
-		// (bit 21 of Eflags can be toggled)
-		// cli							// Interupts abschalten
-		pushfd						// save Eflags
-		pop eax						// transfers Eflags into EAX
-		mov edx, eax				// save original Flags
-		xor eax, 00200000h			// toggle bit 21
-		push eax					// put new value of stack
-		popfd						// transfer new value to Eflags
-		pushfd						// save updated Eflags
-		pop eax						// transfers Eflags into EAX
-		xor eax,edx					// updated Eflags and original differ?
-		jz NO_CPUID					// no fiffer, bit 21 can't be toggled
-			mov retv,1
-		NO_CPUID:
-		// sti							// Interupts wieder zulassen
-	}
-	#endif
-	return retv;
-}
-
-static ppluint32 HaveMMX()
-{
-	ppluint32 retv=0;
-	#ifdef _WIN32
-	if (!HaveCPUID()) return false;
-	__asm {
-		// test whether extended function 80000001h is supported
-		mov eax, 80000000h		// call extended function 80000000h
-		cpuid
-		cmp eax, 80000000h		// supports functions > 80000000h?
-		jbe NO_EXTENDED
-			// test if function 80000001h indicates MMX support
-			mov eax, 80000001h	// call extended function 80000001h
-			cpuid				// reports back extended feature flags
-			test edx, 800000h	// bit 23 in extended features
-			jz NO_3DNow			// if set, MMX is supported
-				mov retv,1
-		NO_3DNow:
-		NO_EXTENDED:
-		// sti							// Interupts wieder zulassen
-	}
-	#endif
-	return retv;
-}
-
-static ppluint32 HaveMMX2()
-{
-	ppluint32 retv=0;
-	#ifdef _WIN32
-	if (!HaveCPUID()) return false;
-	__asm {
-		// test whether extended function 80000001h is supported
-		mov eax, 80000000h		// call extended function 80000000h
-		cpuid
-		cmp eax, 80000000h		// supports functions > 80000000h?
-		jbe NO_EXTENDED
-			// test if function 80000001h indicates MMX Extension support
-			mov eax, 80000001h	// call extended function 80000001h
-			cpuid				// reports back extended feature flags
-			test edx, 400000h	// bit 22 in extended features
-			jz NO_3DNow			// if set, MMX Extension is supported
-				mov retv,1
-		NO_3DNow:
-		NO_EXTENDED:
-		// sti							// Interupts wieder zulassen
-	}
-	#endif
-	return retv;
-}
-
-static ppluint32 Have3DNow()
-{
-	ppluint32 retv=0;
-	#ifdef _WIN32
-	if (!HaveCPUID()) return false;
-	__asm {
-		// test whether extended function 80000001h is supported
-		mov eax, 80000000h		// call extended function 80000000h
-		cpuid
-		cmp eax, 80000000h		// supports functions > 80000000h?
-		jbe NO_EXTENDED			// no 3DNow! support either
-			// test if function 80000001h indicates 3DNow! support
-			mov eax, 80000001h	// call extended function 80000001h
-			cpuid				// reports back extended feature flags
-			test edx, 80000000h	// bit 31 in extended features
-			jz NO_3DNow			// if set, 3DNow! is supported
-				mov retv,1
-		NO_3DNow:
-		NO_EXTENDED:
-		// sti							// Interupts wieder zulassen
-	}
-	#endif
-	return retv;
-}
-
-static ppluint32 Have3DNow2()
-{
-	ppluint32 retv=0;
-	#ifdef _WIN32
-	if (!HaveCPUID()) return false;
-	__asm {
-		// test whether extended function 80000001h is supported
-		mov eax, 80000000h		// call extended function 80000000h
-		cpuid
-		cmp eax, 80000000h		// supports functions > 80000000h?
-		jbe NO_EXTENDED
-			// test if function 80000001h indicates 3DNow! Extension support
-			mov eax, 80000001h	// call extended function 80000001h
-			cpuid				// reports back extended feature flags
-			test edx, 40000000h	// bit 30 in extended features
-			jz NO_3DNow			// if set, 3DNow! Extension is supported
-				mov retv,1
-		NO_3DNow:
-		NO_EXTENDED:
-		// sti							// Interupts wieder zulassen
-	}
-	#endif
-	return retv;
-}
-
-static ppluint32 HaveSSE()
-{
-	ppluint32 retv=0;
-	#ifdef _WIN32
-	if (!HaveCPUID()) return false;
-	__asm {
-		xor edx,edx
-		mov eax, 2				// standard feature flags auslesen
-		cpuid
-		test edx, 2000000h		// bit 25 in extended features
-		jz NO_SSE				// if set, SSE is supported
-			mov retv,1
-		NO_SSE:
-		// sti							// Interupts wieder zulassen
-	}
-	#endif
-	return retv;
+	return 0;
 }
 
 static ppluint32 GetASMBits()
 {
-	if (sizeof(void*)==16) return 16;
-	if (sizeof(void*)==32) return 32;
-	if (sizeof(void*)==64) return 64;
-	if (sizeof(void*)==128) return 128;
 	return 0;
 }
-
 #endif
+
+namespace ppl7 {
 
 
 
@@ -241,19 +84,7 @@ String binaryString(ppluint64 value)
 
 ppluint32 GetCPUCaps (CPUCaps *cpu)
 {
-	ppluint32 caps=0;
-	if (HaveCPUID()) {
-		caps|=CPUCAPS::HAVE_CPUID;
-		if (HaveMMX()) caps|=CPUCAPS::HAVE_MMX;
-		if (HaveMMX2()) caps|=CPUCAPS::HAVE_MMX2;
-		if (Have3DNow()) caps|=CPUCAPS::HAVE_3DNow;
-		if (Have3DNow2()) caps|=CPUCAPS::HAVE_3DNow2;
-		if (HaveSSE()) caps|=CPUCAPS::HAVE_SSE;
-		if (HaveSSE2()) caps|=CPUCAPS::HAVE_SSE2;
-		if (HaveSSE3()) caps|=CPUCAPS::HAVE_SSE3;
-		if (HaveSSE4a()) caps|=CPUCAPS::HAVE_SSE4a;
-
-	}
+	ppluint32 caps=PPL7_GetCpuCaps();
 	printf ("caps=%i = %ls\n",caps,(const wchar_t*)binaryString(caps));
 	//int bits=HaveSSE2();
 	//printf ("cpuid 1: %x\n",bits);
