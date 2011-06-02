@@ -37,7 +37,7 @@
 ; *******************************************************************************/
 
 
-%include "src/asm/common.asminc"
+%include "src/asm/common.asm"
 
 
 global HaveMMX
