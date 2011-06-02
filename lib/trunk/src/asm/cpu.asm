@@ -231,14 +231,19 @@ _PPL7_GetCpuCaps:
 	.NO_SSSE3:
 	; SSE4.1
 	test ecx, BIT19		; bit 19 in extended features
-	jz .NO_SSE41		; if set, SSSE3 is supported
+	jz .NO_SSE41		; if set, SSE4.1 is supported
 		or edi,0x400
 	.NO_SSE41:
 	; SSE4.2
-	test ecx, BIT20		; bit 19 in extended features
-	jz .NO_SSE42		; if set, SSSE3 is supported
+	test ecx, BIT20		; bit 15 in extended features
+	jz .NO_SSE42		; if set, SSE4.2 is supported
 		or edi,0x800
 	.NO_SSE42:
+	; AES
+	test ecx, BIT25		; bit 25 in extended features
+	jz .NO_AES		; if set, AES is supported
+		or edi,0x2000
+	.NO_AES:
 
 	; Extended Function vorhanden?
 	mov eax, 80000000h		; call extended function 80000000h
