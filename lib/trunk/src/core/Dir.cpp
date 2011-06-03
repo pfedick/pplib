@@ -575,28 +575,6 @@ void Dir::resortATime()
 	return;
 }
 
-/*
-void Dir::resortATime()
-{
-	ppl7::List<DirEntry>::Iterator it;
-
-	std::multimap<DateTime,const DirEntry*> sorter;
-	std::multimap<DateTime,const DirEntry*>::iterator sortit;
-
-	Files.reset(it);
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			sorter.insert(std::pair<DateTime,const DirEntry*>(de.ATime,&de));
-		}
-	} catch (EndOfListException) {
-
-	}
-	for ( sortit=sorter.begin() ; sortit != sorter.end(); sortit++ )
-		SortedFiles.add((*sortit).second);
-}
-*/
-
 void Dir::resortSize()
 {
 	ppl7::List<DirEntry>::Iterator it;

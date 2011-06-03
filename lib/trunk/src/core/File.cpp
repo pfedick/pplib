@@ -351,7 +351,7 @@ const char *File::fmode(FileMode mode)
 	}
 }
 
-/*!\brief Exception anhand errno-Variable werfen
+/*!\brief %Exception anhand errno-Variable werfen
  *
  * \desc
  * Diese Funktion wird intern verwendet, um nach Auftreten eines Fehlers, anhand der globalen
@@ -1233,18 +1233,15 @@ void File::erase()
 // ####################################################################
 
 /*!\ingroup PPLGroupFileIO
- * \brief Datei öffnen und den kompletten Inhalt in ein Objekt laden
+ * \brief Datei in ein ByteArray laden
  *
  * \desc
- * Mit dieser Funktion wird eine Datei zum Lesen geöffnet und der komplette Inhalt in das
- * angegebene Objekt geladen. Unterstützt werden zur Zeit folgende Objekte:
- * - CString
- * - CWString
- * - CBinary
+ * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
+ * kompletten Inhalt in das ByteArray \p object geladen.
  *
  * @param[out] object Das gewünschte Zielobjekt
  * @param[in] filename Der Dateiname
- * @return Liefert 1 zurück, wenn die Datei geöffnet und der Inhalt geladen werden konnte, sonst 0.
+ * @return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::load(ByteArray &object, const String &filename)
 {
@@ -1252,17 +1249,15 @@ void File::load(ByteArray &object, const String &filename)
 }
 
 /*!\ingroup PPLGroupFileIO
- * \brief Datei öffnen und den kompletten Inhalt in ein Objekt laden
+ * \brief Datei in ein ByteArray laden
  *
- * Mit dieser Funktion wird eine Datei zum Lesen geöffnet und der komplette Inhalt in das
- * angegebene Objekt geladen. Unterstützt werden zur Zeit folgende Objekte:
- * - CString
- * - CWString
- * - CBinary
+ * \desc
+ * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
+ * kompletten Inhalt in das ByteArray \p object geladen.
  *
  * @param[out] object Das gewünschte Zielobjekt
  * @param[in] filename Der Dateiname
- * @return Liefert 1 zurück, wenn die Datei geöffnet und der Inhalt geladen werden konnte, sonst 0.
+ * @return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::load(ByteArray &object, const char *filename)
 {
@@ -1280,6 +1275,69 @@ void File::load(ByteArray &object, const char *filename)
 	object.use(buffer,by);
 }
 
+/*!\ingroup PPLGroupFileIO
+ * \brief Datei in einen String laden
+ *
+ * \desc
+ * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
+ * kompletten Inhalt in den String \p object geladen.
+ *
+ * @param[out] object Der String, in den der Dateiinhalt geladen werden soll.
+ * @param[in] filename Der Dateiname
+ * @return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ */
+void File::load(String &object, const String &filename)
+{
+	load(object,(const char*)filename.toLocalEncoding());
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Datei in einen String laden
+ *
+ * \desc
+ * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
+ * kompletten Inhalt in den String \p object geladen.
+ *
+ * @param[out] object Der String, in den der Dateiinhalt geladen werden soll.
+ * @param[in] filename Der Dateiname
+ * @return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ */
+void File::load(String &object, const char *filename)
+{
+	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
+	File ff;
+	ff.open(filename);
+	char *buffer=(char*)malloc((size_t)ff.mysize+1);
+	if (!buffer) throw OutOfMemoryException();
+	size_t by=ff.fread(buffer,1,ff.mysize);
+	if (by!=ff.mysize) {
+		free(buffer);
+		throw ReadException();
+	}
+	buffer[by]=0;
+	try {
+		object.set(buffer,by);
+	} catch (...) {
+		free(buffer);
+		throw;
+	}
+	free(buffer);
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Kompletten Inhalt einer Datei laden
+ *
+ * \desc
+ * Mit dieser Funktion wird die Datei \p filename zum Lesen geöffnet und der komplette Inhalt in den
+ * Speicher geladen.
+ *
+ * @param[in] filename Der Dateiname
+ * @param[out] size Wird ein Pointer auf \p size übergeben, wird darin die Größe der geladenen
+ * Datei gespeichert.
+ * @return Bei Erfolg liefert die Funktion einen Pointer auf den Speicherbereich zurück, in den
+ * die Datei geladen wurde. Der Aufrufer ist dafür verantwortlich, dass der Speicher nach Gebrauch
+ * mit \c free wieder freigegeben wird. Im Fehlerfall wird eine Exception geworfen.
+ */
 void *File::load(const String &filename, size_t *size)
 {
 	return load((const char*)filename.toLocalEncoding(),size);
@@ -1288,7 +1346,8 @@ void *File::load(const String &filename, size_t *size)
 /*!\ingroup PPLGroupFileIO
  * \brief Kompletten Inhalt einer Datei laden
  *
- * Mit dieser Funktion wird eine Datei zum Lesen geöffnet und der komplette Inhalt in den
+ * \desc
+ * Mit dieser Funktion wird die Datei \p filename zum Lesen geöffnet und der komplette Inhalt in den
  * Speicher geladen.
  *
  * @param[in] filename Der Dateiname
@@ -1296,7 +1355,7 @@ void *File::load(const String &filename, size_t *size)
  * Datei gespeichert.
  * @return Bei Erfolg liefert die Funktion einen Pointer auf den Speicherbereich zurück, in den
  * die Datei geladen wurde. Der Aufrufer ist dafür verantwortlich, dass der Speicher nach Gebrauch
- * mit \c free wieder freigegeben wird. Im Fehlerfall wird NULL zurückgegeben.
+ * mit \c free wieder freigegeben wird. Im Fehlerfall wird eine Exception geworfen.
  */
 void *File::load(const char *filename, size_t *size)
 {
@@ -1318,15 +1377,16 @@ void *File::load(const char *filename, size_t *size)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei abschneiden
  *
- * Die Funktionen Truncate bewirkt, dass die mit \p filename angegebene Datei
+ * \desc
+ * Die Funktionen %truncate bewirkt, dass die mit \p filename angegebene Datei
  * an der Position \p bytes abgeschnitten wird.
- *
+ * \par
  * Wenn die Datei vorher größer war, gehen überschüssige Daten verloren. Wenn die Datei
  * vorher kleiner war, wird sie vergrößert und die zusätzlichen Bytes werden als Nullen geschrieben.
  *
  * @param filename Der Name der gewünschten Datei
  * @param bytes Position, an der die Datei abgeschnitten werden soll.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::truncate(const String &filename, ppluint64 bytes)
 {
@@ -1342,15 +1402,16 @@ void File::truncate(const String &filename, ppluint64 bytes)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei abschneiden
  *
- * Die Funktionen Truncate bewirkt, dass die mit \p filename angegebene Datei
+ * \desc
+ * Die Funktionen %truncate bewirkt, dass die mit \p filename angegebene Datei
  * an der Position \p bytes abgeschnitten wird.
- *
+ * \par
  * Wenn die Datei vorher größer war, gehen überschüssige Daten verloren. Wenn die Datei
  * vorher kleiner war, wird sie vergrößert und die zusätzlichen Bytes werden als Nullen geschrieben.
  *
  * @param filename Der Name der gewünschten Datei
  * @param bytes Position, an der die Datei abgeschnitten werden soll.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::truncate(const char*filename, ppluint64 bytes)
 {
@@ -1454,15 +1515,16 @@ void File::copy(const String &oldfile, const String &newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
  *
+ * \desc
  * Mit dieser Funktion wird die Datei \p oldfile zu \p newfile umbenannt. Sie ist identisch mit
- * File::RenameFile. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
+ * File::rename. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
  * Filesystem liegt, da in diesem Fall nur die Verzeichniseinträge geändert werden müssen.
- * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::CopyFile
- * gefolgt von File::DeleteFile aufgerufen.
+ * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::copy
+ * gefolgt von File::remove aufgerufen.
  *
  * \param oldfile Name der zu verschiebenden bzw. umzubenennenden Datei
  * \param newfile Neuer Name
- * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::move(const String &oldfile, const String &newfile)
 {
@@ -1473,15 +1535,16 @@ void File::move(const String &oldfile, const String &newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
  *
+ * \desc
  * Mit dieser Funktion wird die Datei \p oldfile zu \p newfile umbenannt. Sie ist identisch mit
- * File::RenameFile. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
+ * File::move. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
  * Filesystem liegt, da in diesem Fall nur die Verzeichniseinträge geändert werden müssen.
- * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::CopyFile
- * gefolgt von File::DeleteFile aufgerufen.
+ * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::copy
+ * gefolgt von File::remove aufgerufen.
  *
  * \param oldfile Name der zu verschiebenden bzw. umzubenennenden Datei
  * \param newfile Neuer Name
- * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::rename(const char *oldfile, const char *newfile)
 {
@@ -1514,15 +1577,16 @@ void File::rename(const char *oldfile, const char *newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
  *
+ * \desc
  * Mit dieser Funktion wird die Datei \p oldfile zu \p newfile umbenannt. Sie ist identisch mit
- * File::RenameFile. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
+ * File::move. Beide Funktionen arbeiten am effizientesten, wenn die Zieldatei im gleichen
  * Filesystem liegt, da in diesem Fall nur die Verzeichniseinträge geändert werden müssen.
  * Ist dies nicht der Fall, wird automatisch die wesentlich langsamere Funktion File::CopyFile
  * gefolgt von File::DeleteFile aufgerufen.
  *
  * \param oldfile Name der zu verschiebenden bzw. umzubenennenden Datei
  * \param newfile Neuer Name
- * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::rename(const String &oldfile, const String &newfile)
 {
@@ -1532,10 +1596,12 @@ void File::rename(const String &oldfile, const String &newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei löschen
  *
+ * \desc
  * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
  *
  * \param filename Name der gewünschten Datei
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Ein Fehler kann auftreten, wenn die
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ * Ein Fehler kann auftreten, wenn die
  * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
  */
 void File::remove(const char *filename)
@@ -1548,10 +1614,12 @@ void File::remove(const char *filename)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei löschen
  *
+ * \desc
  * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
  *
  * \param filename Name der gewünschten Datei
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Ein Fehler kann auftreten, wenn die
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ * Ein Fehler kann auftreten, wenn die
  * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
  */
 void File::remove(const String &filename)
@@ -1562,15 +1630,13 @@ void File::remove(const String &filename)
 /*!\ingroup PPLGroupFileIO
  * \brief Leere Datei anlegen oder die Zeitstempel des letzten Zugriffs aktualisieren
  *
+ * \desc
  * TouchFile arbeitet ähnlich wie das Unix-Lommando \c touch. Ist die angegebene Datei
  * \p filename noch nicht vorhanden, wird sie als leere Datei angelegt. Ist sie bereits vorhanden,
  * wird der Zeitstempel des letzen Zugriffs aktualisiert.
  *
- * \param filename Name der gewünschten Datei oder ein Formatstring, falls der Dateiname anhand
- * von weiteren Parametern zusammengesetzt werden muss
- * \param ... Optionale weitere Parameter, die in den vorhergehenden Formatstring \p filename eingesetzt
- * werden sollen
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \param filename Name der gewünschten Datei
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::touch(const char *filename)
 {
@@ -1582,15 +1648,13 @@ void File::touch(const char *filename)
 /*!\ingroup PPLGroupFileIO
  * \brief Leere Datei anlegen oder die Zeitstempel des letzten Zugriffs aktualisieren
  *
+ * \desc
  * TouchFile arbeitet ähnlich wie das Unix-Lommando \c touch. Ist die angegebene Datei
  * \p filename noch nicht vorhanden, wird sie als leere Datei angelegt. Ist sie bereits vorhanden,
  * wird der Zeitstempel des letzen Zugriffs aktualisiert.
  *
- * \param filename Name der gewünschten Datei oder ein Formatstring, falls der Dateiname anhand
- * von weiteren Parametern zusammengesetzt werden muss
- * \param ... Optionale weitere Parameter, die in den vorhergehenden Formatstring \p filename eingesetzt
- * werden sollen
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \param filename Name der gewünschten Datei
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::touch(const String &filename)
 {
@@ -1601,17 +1665,35 @@ void File::touch(const String &filename)
 /*!\ingroup PPLGroupFileIO
  * \brief Daten in Datei schreiben
  *
+ * \desc
  * Mit dieser Funktion werden \p size Bytes aus dem Speicherbereich beginnend bei
  * \p content in die Datei \p filename geschrieben. War die Datei bereits vorhanden,
  * wird sie überschrieben.
  *
  * \param content Pointer auf den Speicherbereich, der in die Datei geschrieben werdem soll
  * \param size Anzahl zu schreibender Bytes
- * \param filename Name der gewünschten Datei oder ein Formatstring, falls der Dateiname anhand
- * von weiteren Parametern zusammengesetzt werden muss
- * \param ... Optionale weitere Parameter, die in den vorhergehenden Formatstring \p filename eingesetzt
- * werden sollen
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \param filename Name der gewünschten Datei
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ */
+void File::save(const void *content, size_t size, const String &filename)
+{
+	File ff;
+	ff.open(filename,WRITE);
+	ff.fwrite(content,1,size);
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Daten in Datei schreiben
+ *
+ * \desc
+ * Mit dieser Funktion werden \p size Bytes aus dem Speicherbereich beginnend bei
+ * \p content in die Datei \p filename geschrieben. War die Datei bereits vorhanden,
+ * wird sie überschrieben.
+ *
+ * \param content Pointer auf den Speicherbereich, der in die Datei geschrieben werdem soll
+ * \param size Anzahl zu schreibender Bytes
+ * \param filename Name der gewünschten Datei
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::save(const void *content, size_t size, const char *filename)
 {
@@ -1621,22 +1703,35 @@ void File::save(const void *content, size_t size, const char *filename)
 }
 
 /*!\ingroup PPLGroupFileIO
- * \brief Daten eines von CVar abgeleiteten Objekts in Datei schreiben
+ * \brief Daten eines von ByteArrayPtr Objekts in Datei schreiben
  *
- * Mit dieser Funktion wird der Speicher des von CVar abgeleiteten Objekts \p object
- * in die Datei \p filename geschrieben. War die Datei bereits vorhanden, wird sie überschrieben.
+ * \desc
+ * Mit dieser Funktion wird der Speicher auf den der ByteArrayPtr \p object
+ * zeigt in die Datei \p filename geschrieben. War die Datei bereits vorhanden, wird sie überschrieben.
  *
- * \param object Ein von CVar abgeleitetes Objekt. Derzeit werden folgende Objekte unterstützt_
- * - CString
- * - CWString
- * - CBinary
- * \param filename Name der gewünschten Datei oder ein Formatstring, falls der Dateiname anhand
- * von weiteren Parametern zusammengesetzt werden muss
- * \param ... Optionale weitere Parameter, die in den vorhergehenden Formatstring \p filename eingesetzt
- * werden sollen
- * \return Bei Erfolg gibt die Funktion die Anzahl geschriebender Bytes zurück, im Fehlerfall 0.
+ * \param object Ein ByteArrayPtrm der auf den zu speichernden Speicherbereich zeigt.
+ * \param filename Name der gewünschten Datei
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  */
 void File::save(const ByteArrayPtr &object, const char *filename)
+{
+	File ff;
+	ff.open(filename,WRITE);
+	ff.fwrite(object.ptr(),1,object.size());
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Daten eines von ByteArrayPtr Objekts in Datei schreiben
+ *
+ * \desc
+ * Mit dieser Funktion wird der Speicher auf den der ByteArrayPtr \p object
+ * zeigt in die Datei \p filename geschrieben. War die Datei bereits vorhanden, wird sie überschrieben.
+ *
+ * \param object Ein ByteArrayPtrm der auf den zu speichernden Speicherbereich zeigt.
+ * \param filename Name der gewünschten Datei
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ */
+void File::save(const ByteArrayPtr &object, const String &filename)
 {
 	File ff;
 	ff.open(filename,WRITE);
@@ -1681,12 +1776,9 @@ static mode_t translate_FileAttr(FileAttr::Attributes attr)
  *
  * \param filename Der Dateinamen
  * \param attr Die Attribute
- * \return Bei Erfolg gibt die Funktion true (1) zurück, im Fehlerfall wird ein
- * Fehlercode gesetzt, der mit den PPL-Fehlerfunktionen abgefragt werden kann, und die
- * Funktion gibt false (0) zurück.
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  *
- * \see FileAttr
- * \version 6.0.16
+ * \see FileAttr::Attributes
  */
 void File::chmod(const char *filename, FileAttr::Attributes attr)
 {
@@ -1699,14 +1791,34 @@ void File::chmod(const char *filename, FileAttr::Attributes attr)
 	throwErrno(errno,filename);
 }
 
+/*! \brief Setz die Attribute einer exisitierenden Datei
+ * \ingroup PPLGroupFileIO
+ *
+ * \desc
+ * Mit dieser Funktion können die Zugriffsattribute einer existierenden Datei
+ * gesetzt werden.
+ *
+ * \param filename Der Dateinamen
+ * \param attr Die Attribute
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ *
+ * \see FileAttr::Attributes
+ */
+void File::chmod(const String &filename, FileAttr::Attributes attr)
+{
+	chmod((const char*)filename.toLocalEncoding(),attr);
+}
+
 /*!\brief Informationen zu einer Datei oder Verzeichnis
  *
  * \desc
- * Mit dieser statischen Funktion können Informationen zu einer Datei oder einem
- * Verzeichnis ausgelesen werden.
+ * Mit dieser statischen Funktion können Informationen zur Datei oder
+ * Verzeichnis \p filename ausgelesen werden. Das Ergebnis wird in
+ * \p result gespeichert.
  *
  * @param filename Dateiname
- * @param out Objekt, in dem die Daten gespeichert werden
+ * @param result Objekt, in dem die Daten gespeichert werden
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
  */
 void File::stat(const String &filename, DirEntry &result)
@@ -1717,15 +1829,17 @@ void File::stat(const String &filename, DirEntry &result)
 /*!\brief Informationen zu einer Datei oder Verzeichnis
  *
  * \desc
- * Mit dieser statischen Funktion können Informationen zu einer Datei oder einem
- * Verzeichnis ausgelesen werden.
+ * Mit dieser statischen Funktion können Informationen zur Datei oder
+ * Verzeichnis \p filename ausgelesen werden. Das Ergebnis wird in
+ * \p result gespeichert.
  *
  * @param filename Dateiname
- * @param out Objekt, in dem die Daten gespeichert werden
+ * @param result Objekt, in dem die Daten gespeichert werden
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  * \throw NullPointerException: Wird geworfen, wenn \p filename auf NULL zeigt
  * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
  */
-void File::stat(const char *filename, DirEntry &out)
+void File::stat(const char *filename, DirEntry &result)
 {
 	if (!filename) throw NullPointerException();
 #ifdef HAVE_STAT
@@ -1737,72 +1851,72 @@ void File::stat(const char *filename, DirEntry &out)
 	File.replace("/","\\");
 	if (_stat((const char*)File.toLocalEncoding(),&st)!=0) throwErrno(errno,filename);
 #endif
-	out.ATime.setTime_t(st.st_atime);
-	out.CTime.setTime_t(st.st_ctime);
-	out.MTime.setTime_t(st.st_mtime);
-	out.Attrib=FileAttr::NONE;
-	out.Size=st.st_size;
-	out.File.set(filename);
-	out.Path=File::getPath(out.File);
-	out.Filename=File::getFilename(out.File);
-	out.AttrStr.set(L"----------");
-	out.Uid=st.st_uid;
-	out.Gid=st.st_gid;
+	result.ATime.setTime_t(st.st_atime);
+	result.CTime.setTime_t(st.st_ctime);
+	result.MTime.setTime_t(st.st_mtime);
+	result.Attrib=FileAttr::NONE;
+	result.Size=st.st_size;
+	result.File.set(filename);
+	result.Path=File::getPath(result.File);
+	result.Filename=File::getFilename(result.File);
+	result.AttrStr.set(L"----------");
+	result.Uid=st.st_uid;
+	result.Gid=st.st_gid;
 #ifndef WIN32
-	out.Blocks=st.st_blocks;
-	out.BlockSize=st.st_blksize;
+	result.Blocks=st.st_blocks;
+	result.BlockSize=st.st_blksize;
 #else
-	out.Blocks=0;
-	out.BlockSize=0;
+	result.Blocks=0;
+	result.BlockSize=0;
 #endif
-	out.NumLinks=st.st_nlink;
+	result.NumLinks=st.st_nlink;
 
-	if ((st.st_mode & S_IFDIR)==S_IFDIR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFDIR);
-	if ((st.st_mode & S_IFREG)==S_IFREG) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFFILE);
+	if ((st.st_mode & S_IFDIR)==S_IFDIR) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::IFDIR);
+	if ((st.st_mode & S_IFREG)==S_IFREG) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::IFFILE);
 #ifdef S_IFLNK
-	if ((st.st_mode & S_IFLNK)==S_IFLNK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFLINK);
+	if ((st.st_mode & S_IFLNK)==S_IFLNK) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::IFLINK);
 #endif
 #ifdef S_IFSOCK
-	if ((st.st_mode & S_IFSOCK)==S_IFSOCK) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::IFSOCK);
+	if ((st.st_mode & S_IFSOCK)==S_IFSOCK) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::IFSOCK);
 #endif
 
 #ifdef _WIN32
-	if (st.st_mode & _S_IREAD) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_READ);
-	if (st.st_mode & _S_IWRITE) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_WRITE);
-	if (st.st_mode & _S_IEXEC) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_EXECUTE);
+	if (st.st_mode & _S_IREAD) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::USR_READ);
+	if (st.st_mode & _S_IWRITE) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::USR_WRITE);
+	if (st.st_mode & _S_IEXEC) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::USR_EXECUTE);
 #else
-	if (st.st_mode & S_IRUSR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_READ);
-	if (st.st_mode & S_IWUSR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_WRITE);
-	if (st.st_mode & S_IXUSR) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::USR_EXECUTE);
-	if (st.st_mode & S_ISUID) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::ISUID);
+	if (st.st_mode & S_IRUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::USR_READ);
+	if (st.st_mode & S_IWUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::USR_WRITE);
+	if (st.st_mode & S_IXUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::USR_EXECUTE);
+	if (st.st_mode & S_ISUID) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::ISUID);
 
-	if (st.st_mode & S_IRGRP) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::GRP_READ);
-	if (st.st_mode & S_IWGRP) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::GRP_WRITE);
-	if (st.st_mode & S_IXGRP) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::GRP_EXECUTE);
-	if (st.st_mode & S_ISGID) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::ISGID);
+	if (st.st_mode & S_IRGRP) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::GRP_READ);
+	if (st.st_mode & S_IWGRP) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::GRP_WRITE);
+	if (st.st_mode & S_IXGRP) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::GRP_EXECUTE);
+	if (st.st_mode & S_ISGID) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::ISGID);
 
-	if (st.st_mode & S_IROTH) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::OTH_READ);
-	if (st.st_mode & S_IWOTH) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::OTH_WRITE);
-	if (st.st_mode & S_IXOTH) out.Attrib=(FileAttr::Attributes)(out.Attrib|FileAttr::OTH_EXECUTE);
+	if (st.st_mode & S_IROTH) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::OTH_READ);
+	if (st.st_mode & S_IWOTH) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::OTH_WRITE);
+	if (st.st_mode & S_IXOTH) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::OTH_EXECUTE);
 #endif
 
-	if (out.Attrib&FileAttr::IFLINK) out.AttrStr.set(0,L'l');
-	if (out.Attrib&FileAttr::IFDIR) out.AttrStr.set(0,L'd');
+	if (result.Attrib&FileAttr::IFLINK) result.AttrStr.set(0,L'l');
+	if (result.Attrib&FileAttr::IFDIR) result.AttrStr.set(0,L'd');
 
 
-	if (out.Attrib&FileAttr::USR_READ) out.AttrStr.set(1,L'r');
-	if (out.Attrib&FileAttr::USR_WRITE) out.AttrStr.set(2,L'w');
-	if (out.Attrib&FileAttr::USR_EXECUTE) out.AttrStr.set(3,L'x');
-	if (out.Attrib&FileAttr::ISUID) out.AttrStr.set(3,L's');
+	if (result.Attrib&FileAttr::USR_READ) result.AttrStr.set(1,L'r');
+	if (result.Attrib&FileAttr::USR_WRITE) result.AttrStr.set(2,L'w');
+	if (result.Attrib&FileAttr::USR_EXECUTE) result.AttrStr.set(3,L'x');
+	if (result.Attrib&FileAttr::ISUID) result.AttrStr.set(3,L's');
 
-	if (out.Attrib&FileAttr::GRP_READ) out.AttrStr.set(4,L'r');
-	if (out.Attrib&FileAttr::GRP_WRITE) out.AttrStr.set(5,L'w');
-	if (out.Attrib&FileAttr::GRP_EXECUTE) out.AttrStr.set(6,L'x');
-	if (out.Attrib&FileAttr::ISGID) out.AttrStr.set(6,L's');
+	if (result.Attrib&FileAttr::GRP_READ) result.AttrStr.set(4,L'r');
+	if (result.Attrib&FileAttr::GRP_WRITE) result.AttrStr.set(5,L'w');
+	if (result.Attrib&FileAttr::GRP_EXECUTE) result.AttrStr.set(6,L'x');
+	if (result.Attrib&FileAttr::ISGID) result.AttrStr.set(6,L's');
 
-	if (out.Attrib&FileAttr::OTH_READ) out.AttrStr.set(7,L'r');
-	if (out.Attrib&FileAttr::OTH_WRITE) out.AttrStr.set(8,L'w');
-	if (out.Attrib&FileAttr::OTH_EXECUTE) out.AttrStr.set(9,L'x');
+	if (result.Attrib&FileAttr::OTH_READ) result.AttrStr.set(7,L'r');
+	if (result.Attrib&FileAttr::OTH_WRITE) result.AttrStr.set(8,L'w');
+	if (result.Attrib&FileAttr::OTH_EXECUTE) result.AttrStr.set(9,L'x');
 }
 
 /*!\brief Pfad ohne Dateinamen

@@ -96,8 +96,10 @@ DEBUG	= debug/AVLTree.o \
 	 \
 	debug/sound_Icecast.o
 
-ASM_OBJ_RELEASE	=	release/asm_cpu.o
-ASM_OBJ_DEBUG	=	debug/asm_cpu.o
+ASM_OBJ_RELEASE	=	release/asm_common.o \
+		release/asm_cpu.o
+ASM_OBJ_DEBUG	=	debug/asm_common.o \
+		debug/asm_cpu.o
 
 
 @HAVE_X86_ASSEMBLER@
@@ -350,6 +352,11 @@ release/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/
 	$(CXX) -Wall -O3 -o release/sound_Icecast.o -c $(srcdir)/sound/Icecast.cpp $(CFLAGS) 
 
 ### ASM
+release/asm_common.o:	$(srcdir)/asm/common.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/common.asm<<<
+	$(ASM) -o release/asm_common.o -l release/asm_common.lst $(srcdir)/asm/common.asm
+
 release/asm_cpu.o:	$(srcdir)/asm/cpu.asm Makefile
 	###############################################################################
 	# Compiling >>>asm/cpu.asm<<<
@@ -499,6 +506,11 @@ debug/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/pp
 	$(CXX) -Wall -O -o debug/sound_Icecast.o -c $(srcdir)/sound/Icecast.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### ASM
+debug/asm_common.o:	$(srcdir)/asm/common.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/common.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_common.o  -l debug/asm_common.lst $(srcdir)/asm/common.asm -D_DEBUG -DDEBUG=DEBUG
+
 debug/asm_cpu.o:	$(srcdir)/asm/cpu.asm Makefile
 	###############################################################################
 	# Compiling >>>asm/cpu.asm<<<

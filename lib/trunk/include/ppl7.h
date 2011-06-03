@@ -648,6 +648,8 @@ class File : public FileObject
 		// Static Functions
 		static void load(ByteArray &object, const String &filename);
 		static void load(ByteArray &object, const char *filename);
+		static void load(String &object, const String &filename);
+		static void load(String &object, const char *filename);
 		static void *load(const String &filename, size_t *size=NULL);
 		static void *load(const char *filename, size_t *size=NULL);
 		static void truncate(const String &filename, ppluint64 bytes);
