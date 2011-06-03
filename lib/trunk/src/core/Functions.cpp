@@ -584,6 +584,18 @@ void PokeN32 (void *Adresse, ppluint32 Wert)
 		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >> 16)&255);
 		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 24)&255);
 	#else
+		/*
+#ifdef HAVE_X86_ASSEMBLER
+#if __GNUC__ > 3
+		asm(".intel_syntax noprefix\n"
+			"bswap eax\n"
+			": : \"eax\"(Wert) :"
+			".att_syntax prefix\n"
+
+				);
+#endif
+#endif
+*/
 		((ppluint8*)Adresse)[3]=(ppluint8)(Wert & 255);
 		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >> 8)&255);
 		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >> 16)&255);
