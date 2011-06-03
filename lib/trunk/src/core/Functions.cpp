@@ -584,10 +584,18 @@ void PokeN32 (void *Adresse, ppluint32 Wert)
 		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >> 16)&255);
 		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 24)&255);
 	#else
+#if __GNUC__ > 3
 		((ppluint8*)Adresse)[3]=(ppluint8)(Wert & 255);
 		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >> 8)&255);
 		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >> 16)&255);
 		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 24)&255);
+
+#else
+		((ppluint8*)Adresse)[3]=(ppluint8)(Wert & 255);
+		((ppluint8*)Adresse)[2]=(ppluint8)((Wert >> 8)&255);
+		((ppluint8*)Adresse)[1]=(ppluint8)((Wert >> 16)&255);
+		((ppluint8*)Adresse)[0]=(ppluint8)((Wert >> 24)&255);
+#endif
 	#endif
 
 }
