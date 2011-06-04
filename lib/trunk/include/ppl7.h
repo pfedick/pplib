@@ -741,6 +741,7 @@ class Dir
 
 		Dir();
 		Dir(const char *path, Sort s=SORT_NONE);
+		Dir(const String &path, Sort s=SORT_NONE);
 		~Dir();
 		void open(const char *path, Sort s=SORT_NONE);
 		void open(const String &path, Sort s=SORT_NONE);
@@ -755,11 +756,19 @@ class Dir
 		const DirEntry &getNextPattern(Iterator &it, const String &pattern, bool ignorecase=false) const;
 		const DirEntry &getFirstRegExp(Iterator &it, const String &regexp) const;
 		const DirEntry &getNextRegExp(Iterator &it, const String &regexp) const;
+
+		bool getFirst(DirEntry &e, Iterator &it) const;
+		bool getNext(DirEntry &e, Iterator &it) const;
+		bool getFirstPattern(DirEntry &e, Iterator &it, const String &pattern, bool ignorecase=false) const;
+		bool getNextPattern(DirEntry &e, Iterator &it, const String &pattern, bool ignorecase=false) const;
+		bool getFirstRegExp(DirEntry &e, Iterator &it, const String &regexp) const;
+		bool getNextRegExp(DirEntry &e, Iterator &it, const String &regexp) const;
+
 		void print() const;
 		void print(const DirEntry &de) const;
 		static String currentPath();
-		//static CString HomePath();
-		//static CString TempPath();
+		static String homePath();
+		static String tempPath();
 
 };
 

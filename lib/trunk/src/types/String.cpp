@@ -2523,8 +2523,10 @@ bool String::pregMatch(const String &expression) const
 		memset(ovector,0,30*sizeof(int));
 		//printf ("text=>>%s<<, size=%zi\n",(const char*)utf8,utf8.size());
 		if ((re=pcre_exec(reg, NULL, (const char*) utf8,utf8.size(),0, 0, ovector, 30))>=0) {
+			pcre_free(reg);
 			return true;
 		}
+		pcre_free(reg);
 		return false;
 #endif
 }
@@ -2588,9 +2590,10 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 					pcre_free_substring(tmp);
 				}
 			}
-
+			pcre_free(reg);
 			return true;
 		}
+		pcre_free(reg);
 		return false;
 #endif
 }

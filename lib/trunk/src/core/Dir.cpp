@@ -92,7 +92,6 @@
 
 namespace ppl7 {
 
-
 /*!\class Dir
  * \ingroup PPLGroupFileIO
  * \brief Klasse zum Durchsuchen von Verzeichnissen
@@ -101,25 +100,73 @@ namespace ppl7 {
  * Die Klasse Dir wird zum Lesen von Verzeichnissen verwendet. Dazu muss man zunächst mit
  * Dir::open ein Verzeichnis öffnen oder das gewünschte Verzeichnis gleich im Konstruktor
  * angeben. Anschließend kann man mit den Funktionen Dir::getFirst und Dir::getNext die
- * einzelnen Dateien auslesen. Diese sind bereits nach Dateiname sortiert. Mit dem
- * Befehl Dir::resort kann man aber jederzeit eine andere Sortierung einstellen oder diese
- * ganz abschalten.
+ * einzelnen Dateien auslesen.
+ * \par
+ * Sofern man beim Öffnen des Verzeichnis nicht explizit eine Sortiermethode angegeben hat,
+ * sind die Dateien unsortiert, bzw. in der Reihenfolge, wie das Betriebssystem sie
+ * zurückgegeben hat. Mit dem Befehl Dir::resort kann man aber jederzeit eine andere
+ * Sortierung einstellen.
  * \par
  * Möchte man nur Dateien, die einem bestimmten Muster (Pattern) entsprechen, kann man
  * statt Dir::getFirst und Dir::getNext auch Dir::getFirstPattern und Dir::getNextPattern
  * verwenden, oder falls mal Regular Expressions verwenden möchte, Dir::getFirstRegExp und
  * Dir::getNextRegExp.
+ * \example
+ * Das folgende Beispiel zeigt, wie das Homeverzeichnis des aktuellen
+ * Benutzers ermittelt wird, und dessen Dateien alphabetisch sortiert
+ * ausgegeben werden:
+ * \code
+#include <ppl7.h>
+int main(int argc, char **argv)
+{
+	// Homeverzeichnis des Users ermitteln
+	ppl7::String Home=ppl7::Dir::homePath();
+	// Verzeichnis öffnen, Dateien nach Dateiname sortieren
+	ppl7::Dir d(Home, ppl7::Dir::SORT_FILENAME);
+	// Iterator zum Durchwandern des Verzeichnisses anlegen
+	ppl7::Dir::Iterator it;
+	d.reset(it);
+	// Variable zum Aufnehmen der Dateinformationen
+	ppl7::DirEntry e;
+
+	// Wir benötigen einen Try-Block, da ppl7::Dir::getNext eine Exception wirft,
+	// wenn das Ende der Dateiliste erreicht ist
+	try {
+		while (1) {
+			// Nächsten Eintrag holen
+			e=d.getNext(it);
+			// Dateinamen ausgeben
+			std::cout << "Datei: " << e.Filename << "\n";
+
+		}
+	} catch (ppl7::EndOfListException) {
+		std::cout << "Ende\n";
+	}
+	return 0;
+\endcode
+ * \par
+ * Falls wir die Exceptions umgehen wollen, läßt sich die Schleife auch so
+ * realisieren:
+\code
+	ppl7::DirEntry e;
+	while (d.getNext(e,it)) {
+		std::cout << "Datei: " << e.Filename << "\n";
+	}
+\endcode
  *
  */
 
 /*!\enum Dir::Sort
  * \brief Sortiermöglichkeiten
  *
- * In dieser Enumeration sind die verschiedenen Sortiermöglichkeiten definiert:
+ * In dieser Enumeration sind die verschiedenen Sortiermöglichkeiten definiert,
+ * die als Parameter der Funktionen Dir::open, Dir::resort und des Konstruktors
+ * der Klasse Dir verwendet werden können.
  */
 
+
 /*!\var Dir::Sort Dir::SORT_NONE
- * Keine Sortierung. Die Reihenfolge der Dateien hängt fom Betriebs- und Filesystem ab.
+ * Keine Sortierung. Die Reihenfolge der Dateien hängt vom Betriebs- und Filesystem ab.
  */
 
 /*!\var Dir::Sort Dir::SORT_FILENAME
@@ -140,10 +187,14 @@ namespace ppl7 {
 
 /*!\var Dir::Sort Dir::SORT_MTIME
  * Es wird eine Sortierung nach dem Datum der letzten Modifikation vorgenommen.
+ * Dieser Zeitstempel ändert sich nur bei Neuanlage der Datei oder des Verzeichnisses,
+ * oder wenn ein Schreibzugriff stattgefunden hat.
  */
 
 /*!\var Dir::Sort Dir::SORT_CTIME
- * Es wird eine Sortierung nach dem Datum der letzten Modifikation vorgenommen.
+ * Es wird eine Sortierung nach dem Datum der letzten Statusänderung vorgenommen.
+ * Eine Statusänderung besteht nicht nur bei Neuanlage und Schreibzugriff, sondern
+ * auch bei Änderung der Zugriffsrechte oder Verlinkung.
  */
 
 /*!\var Dir::Sort Dir::SORT_SIZE
@@ -151,10 +202,63 @@ namespace ppl7 {
  */
 
 
+/*!\typedef ppl7::List<const DirEntry*>::Iterator Dir::Iterator;
+ * \brief Iterator zum Durchwandern der Verzeichnisliste
+ *
+ * \desc
+ * Dieser Iterator wird benötigt, wenn man die Verzeichnisliste mit Dir::getNext oder
+ * den verwandten Befehlen durchwandern will.
+ * \example
+\code
+	ppl7::String Home=ppl7::Dir::homePath();
+	ppl7::Dir d(Home, ppl7::Dir::SORT_FILENAME);
+	// Iterator zum Durchwandern des Verzeichnisses anlegen
+	ppl7::Dir::Iterator it;
+	d.reset(it);
+	ppl7::DirEntry e;
+	while (d.getNext(e,it)) {
+		std::cout << "Datei: " << e.Filename << "\n";
+	}
+\endcode
+ */
+
+
+
+/*!\var ppl7::List<DirEntry> ppl7::Dir::Files
+ * \brief Interne Liste mit den eingelesenen, unsortierten Verzeichniseinträgen
+ *
+ * \desc
+ * Interne Liste mit den eingelesenen, unsortierten Verzeichniseinträgen
+ *
+ */
+
+/*!\var ppl7::Dir::SortedFiles
+ * \brief Interne sortierte Liste mit Pointern auf die Verzeichniseinträgen
+ *
+ * \desc
+ * Interne sortierte Liste mit Pointern auf die Verzeichniseinträgen
+ */
+
+/*!\var ppl7::Dir::sort
+ * \brief Aktuelle Sortiermethode
+ *
+ * \desc
+ * Aktuelle Sortiermethode
+ */
+
+/*!\var ppl7::Dir::Path
+ * \brief Pfad des aktuell geöffneten Verzeichnisses
+ *
+ * \desc
+ * Pfad des aktuell geöffneten Verzeichnisses
+ */
+
+
 /*!\ingroup PPLGroupFileIO
  * \brief Aktuelles Verzeichnis
  *
- * Diese Funktion liefert das aktuelle Verzeichnis zurück.
+ * \desc
+ * Diese statische Funktion liefert das aktuelle Verzeichnis zurück.
  *
  * \return String mit dem aktuellen Verzeichnis
  */
@@ -184,6 +288,61 @@ String Dir::currentPath()
 	}
 }
 
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Homeverzeichnis des aktuellen Users
+ *
+ * \desc
+ * Diese statische Funktion liefert das Homeverzeichnis des aktuellen Benutzers
+ * zurück.
+ *
+ * \return String mit dem Verzeichnis
+ * \exception UnsupportedFeatureException Wird geworfen, wenn das Homeverzeichnis
+ * nicht ermittelt werden kann.
+ */
+String Dir::homePath()
+{
+	String ret;
+#ifdef _WIN32
+	char *homeDir = getenv("HOMEPATH");
+	char *homeDrive = getenv("HOMEDRIVE");
+	ret.set("%s\\%s",homeDrive, homePath);
+	return ret;
+#endif
+	char *homeDir = getenv("HOME");
+	if (homeDir!=NULL && strlen(homeDir)>0) {
+		ret.set(homeDir);
+		return ret;
+	}
+	throw UnsupportedFeatureException("Dir::homePath");
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \brief Verzeichnis für temporäre Dateien
+ *
+ * \desc
+ * Diese statische Funktion liefert das Verzeichnis zurück, in dem
+ * temporäre Dateien abgelegt werden können.
+ *
+ * \return String mit dem Verzeichnis
+ */
+String Dir::tempPath()
+{
+#ifdef _WIN32
+	TCHAR TempPath[MAX_PATH];
+	GetTempPath(MAX_PATH, TempPath);
+	return String(TempPath);
+#endif
+	const char *dir = getenv("TMPDIR");
+	if (dir!=NULL && strlen(dir)>0) return String(dir);
+#ifdef P_tmpdir
+	dir=P_tmpdir;
+#endif
+	if (dir!=NULL && strlen(dir)>0) return String(dir);
+	return String("/tmp");
+}
+
+
 /*!\brief Konstruktor der Klasse
  *
  * \desc
@@ -198,10 +357,11 @@ Dir::Dir()
  *
  * \desc
  * Der Konstruktor sorgt dafür, dass die internen Variablen und Datenstrukturen
- * initialisert werden. Optional kann auch schon mit dem Parameter \p path ein
- * zu öffnender Pfad angegeben werden und mit \p s eine Sortierreihenfolge.
+ * initialisert werden. Mit dem Parameter \p path wird das zu öffnende
+ * Verzeichni angegeben. Optional kann mit \p s eine Sortierreihenfolge vorgegeben
+ * werden. Ohne Angabe des Parameters findet keine Sortierung statt.
  *
- * @param[in] path Zu öffnender Pfad (siehe auch CDir::Open)
+ * @param[in] path Zu öffnender Pfad (siehe auch Dir::open)
  * @param[in] s gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
  * verwendet.
  */
@@ -211,6 +371,23 @@ Dir::Dir(const char *path, Sort s)
 	if (path) open(path,s);
 }
 
+/*!\brief Konstruktor der Klasse
+ *
+ * \desc
+ * Der Konstruktor sorgt dafür, dass die internen Variablen und Datenstrukturen
+ * initialisert werden. Mit dem Parameter \p path wird das zu öffnende
+ * Verzeichni angegeben. Optional kann mit \p s eine Sortierreihenfolge vorgegeben
+ * werden. Ohne Angabe des Parameters findet keine Sortierung statt.
+ *
+ * @param[in] path Zu öffnender Pfad (siehe auch Dir::open)
+ * @param[in] s gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
+ * verwendet.
+ */
+Dir::Dir(const String &path, Sort s)
+{
+	sort=s;
+	if (path.notEmpty()) open(path,s);
+}
 
 
 /*!\brief Destruktor der Klasse
@@ -230,7 +407,7 @@ Dir::~Dir()
  * Wird diese Funktion nach Dir::open aufgerufen, wird die interne Dateiliste
  * wieder gelöscht und der durch die Klasse belegte Speicher freigegeben.
  * Die Funktion wird automatisch vom Destruktor und zu Beginn
- * von Dir::open, so dass sich ein manueller Aufruf der Funktion in der Regel
+ * von Dir::open aufgerufen, so dass sich ein manueller Aufruf der Funktion in der Regel
  * erübrigt.
  */
 void Dir::clear()
@@ -241,134 +418,32 @@ void Dir::clear()
 	sort=SORT_NONE;
 }
 
-void Dir::open(const char *path, Sort s)
-{
-#if defined _WIN32
-	clear();
-	sort=s;
-	Path=path;
-	Path.Trim();
-	Path.RTrim("/");
-	Path.RTrim("\\");
-	//printf ("Path=%s \n",(char*)Path);
-	CWString Pattern=Path;
-	Pattern+="/*";
-	struct _wfinddatai64_t data;
-	memset(&data,0,sizeof(data));
-
-	intptr_t handle=_wfindfirsti64 ((const wchar_t*)Pattern, &data);
-	if (handle<0) {
-		SetErrorFromErrno();
-		return 0;
-	}
-	while (1==1) {
-		CDirEntry *de=new CDirEntry;
-		if (!de) {
-			_findclose(handle);
-			SetError(2);
-			return 0;
-		}
-		strcpy (de->AttrStr,"----------");
-		de->Attrib=0;
-		de->ATime=de->CTime=de->MTime=0;
-
-		de->Filename=data.name;
-		de->Size=0;
-		de->Path=Path;
-		de->File=de->Path+CString("/")+de->Filename;
-		de->Size=data.size;
-		de->Uid=0;
-		de->Gid=0;
-		de->Blocks=0;
-		de->BlockSize=0;
-		de->NumLinks=1;
-
-		if (data.attrib & _A_RDONLY) de->Attrib|=CPPLDIR_READONLY;
-		if (data.attrib & _A_HIDDEN) de->Attrib|=CPPLDIR_HIDDEN;
-		if (data.attrib & _A_SYSTEM) de->Attrib|=CPPLDIR_SYSTEM;
-		if (data.attrib & _A_ARCH) de->Attrib|=CPPLDIR_ARCHIV;
-		if (data.attrib & _A_SUBDIR) de->Attrib|=CPPLDIR_DIR;
-
-		de->AttrStr[1]=de->AttrStr[4]=de->AttrStr[7]='r';
-		if (de->Filename.Len()>4) {
-			CString suf=de->Filename.Right(4);
-			suf.LCase();
-			if (suf.StrCmp(".exe")==0 ||
-				suf.StrCmp(".com")==0 ||
-				suf.StrCmp(".bat")==0 ) de->AttrStr[3]=de->AttrStr[6]=de->AttrStr[9]='x';
-		}
-
-		if (! (de->Attrib&CPPLDIR_READONLY)) de->AttrStr[2]=de->AttrStr[5]=de->AttrStr[8]='w';
-		if ( ( de->Attrib & (CPPLDIR_DIR|CPPLDIR_LINK) )==0) de->Attrib|=CPPLDIR_FILE;
-		de->ATime=data.time_access;
-		de->CTime=data.time_create;
-		de->MTime=data.time_write;
-
-		if (de->Attrib&CPPLDIR_DIR) de->AttrStr[0]='d';
-		if (de->Attrib&CPPLDIR_LINK) de->AttrStr[0]='l';
-		Files.Add(de);
-		// Nächster Datensatz
-		if (_wfindnexti64(handle,&data)<0) break;
-	}
-	_findclose(handle);
-	Resort(sort);
-	return 1;
-#elif defined HAVE_OPENDIR
-	clear();
-	sort=s;
-	Path=path;
-	Path.trim();
-	Path.trimRight("/");
-	Path.trimRight("\\");
-	DIR *dir=opendir((const char*)Path.toLocalEncoding());
-	if (!dir) {
-		File::throwErrno(errno,path);
-	}
-	struct dirent d;
-	struct dirent *result;
-	DirEntry de;
-	String CurrentFile;
-	while (1==1) {
-		if (readdir_r(dir,&d,&result)!=0) {
-			int e=errno;
-			closedir(dir);
-			File::throwErrno(e,path);
-		}
-		if (result==NULL) break;
-		CurrentFile=Path+"/"+String(d.d_name);
-		File::stat(CurrentFile,de);
-		Files.add(de);
-	}
-	closedir(dir);
-	resort(sort);
-#else
-	throw UnsupportedFeatureException("Dir::open");
-#endif
-}
-
-
 /*!\brief Verzeichnis-Eintrag auf STDOUT ausgeben
  *
+ * \desc
  * Mit dieser Funktion kann ein Verzeichniseintrag auf STDOUT ausgegeben werden.
  * Die Ausgabe ist ähnlich der des "ls"-Befehls unter Unix, enthält jedoch
  * nicht die Benutzerrechte. Die Funktion wurde hauptsächlich zu Debuggingzwecken
  * eingebaut.
  *
- * \param[in] de Pointer auf einen Verzeichniseintrag
+ * \param[in] de Referenz auf einen Verzeichniseintrag
  */
 void Dir::print(const DirEntry &de) const
 {
 	printf ("%ls %3i ",(const wchar_t*)de.AttrStr,de.NumLinks);
 	printf ("%5i %5i ",de.Uid, de.Gid);
-	printf ("%10llu ",de.Size);
+	printf ("%10zu ",de.Size);
 	printf ("%ls %ls\n",(const wchar_t*)de.MTime.get(),(const wchar_t*)de.Filename);
 }
 
 
 /*!\brief Verzeichnis auf STDOUT ausgeben
  *
- * Mit dieser Funktion wird das mit CDir::Open ausgewählte Verzeichnis
- * auf STDOUT ausgegeben.
+ * \desc
+ * Mit dieser Funktion wird das mit Dir::open oder im Konstruktor ausgewählte Verzeichnis
+ * auf STDOUT ausgegeben. Die Ausgabe ist ähnlich der des "ls"-Befehls unter Unix, enthält jedoch
+ * nicht die Benutzerrechte. Die Funktion wurde hauptsächlich zu Debuggingzwecken
+ * eingebaut.
  */
 void Dir::print() const
 {
@@ -391,9 +466,11 @@ void Dir::print() const
 /*!\brief Anzahl Dateien
  *
  * \desc
- * Diese Funktion liefert die Anzahl Dateien im geöffneten Verzeichnis zurück. Sie
- * gibt daher erst nach Aufruf von CDir::Open einen korrekten Wert zurück.
- * @return
+ * Diese Funktion liefert die Anzahl Einträge im geöffneten Verzeichnis zurück. Sie
+ * gibt daher erst nach Aufruf von Dir::open einen korrekten Wert zurück. Einträge können
+ * nicht nur Dateien sein, sondern auch Verzeichnisse und Symlinks.
+ *
+ * @return Anzahl Einträge im geöffneten Verzeichnis
  */
 size_t Dir::num() const
 {
@@ -403,9 +480,11 @@ size_t Dir::num() const
 /*!\brief Anzahl Dateien
  *
  * \desc
- * Diese Funktion liefert die Anzahl Dateien im geöffneten Verzeichnis zurück. Sie
- * gibt daher erst nach Aufruf von CDir::Open einen korrekten Wert zurück.
- * @return
+ * Diese Funktion liefert die Anzahl Einträge im geöffneten Verzeichnis zurück. Sie
+ * gibt daher erst nach Aufruf von Dir::open einen korrekten Wert zurück. Einträge können
+ * nicht nur Dateien sein, sondern auch Verzeichnisse und Symlinks.
+ *
+ * @return Anzahl Einträge im geöffneten Verzeichnis
  */
 size_t Dir::count() const
 {
@@ -416,18 +495,16 @@ size_t Dir::count() const
 /*!\brief Sortierung ändern
  *
  * \desc
- * Durch Aufruf dieser Funktion kann die Sortierreihenfolge für die Get...-Befehle
+ * Durch Aufruf dieser Funktion kann die Sortierreihenfolge für die get...-Befehle
  * geändert werden. Standardmäßig werden die Dateien unsortiert zurückgegeben.
  * Die Reihenfolge hängt somit im Wesentlichen davon ab, in welcher Reihenfolge
  * die Dateien erstellt wurden, aber auch von Betriebs- und Filesystemabhängigen
  * Vorgängen.
  * \par
- * Die Sortierreihenfolge läßt sich jedoch jederzeit ändern, auch nach Aufruf
- * der CDir::Open Funktion.
- * \param[in] s Die gewünschte Sortierreihenfolge. Siehe dazu auch CDir::Sort
- * \note
- * Durch Aufruf dieser Funktion wird der interne Zeiger für die Get-Funktionen
- * wieder auf den ersten Eintrag des Verzeichnisses zurückgesetzt.
+ * Die Sortierreihenfolge läßt sich jederzeit durch Aufruf dieser Funktion ändern.
+ *
+ * \param[in] s Die gewünschte Sortierreihenfolge. Siehe dazu auch die Enumeration Dir::Sort
+ * \exception IllegalArgumentException Wird geworfen, wenn eine ungültige Sortiermethode angegeben wird
  */
 
 void Dir::resort(Sort s)
@@ -446,6 +523,13 @@ void Dir::resort(Sort s)
 	sort=s;
 }
 
+/*!\brief Dateien unsortiert belassen
+ *
+ * \desc
+ * Diese interne Funktion kopiert lediglich das von Dir::open eingescannte Verzeichnis
+ * unsortiert in die von den Iterationsfunktionen verwendete Liste. Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
 void Dir::resortNone()
 {
 	ppl7::List<DirEntry>::Iterator it;
@@ -461,6 +545,14 @@ void Dir::resortNone()
 	return;
 }
 
+/*!\brief Dateien nach Dateiname sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach Dateiname, unter Beachtung von Gross-/Kleinschreibung.
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
 void Dir::resortFilename()
 {
 	ppl7::List<DirEntry>::Iterator it;
@@ -484,6 +576,14 @@ void Dir::resortFilename()
 	}
 }
 
+/*!\brief Dateien nach Dateiname sortieren, Gross-/Kleinschreibung wird ignoriert
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach Dateiname, wobei Gross-/Kleinschreibung ignoriert wird.
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
 void Dir::resortFilenameIgnoreCase()
 {
 	ppl7::List<DirEntry>::Iterator it;
@@ -509,6 +609,18 @@ void Dir::resortFilenameIgnoreCase()
 	}
 }
 
+/*!\brief Dateien nach Modifizierungsdatum sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach dem Modifikations-Zeitstempel der Dateien. Dieser Zeitstempel ändert sich
+ * nur bei Neuanlage der Datei oder des Verzeichnisses, oder wenn ein Schreibzugriff
+ * stattgefunden hat.
+ * Falls mehrere Dateien den gleichen Zeitstempel haben, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
 void Dir::resortMTime()
 {
 	ppl7::List<DirEntry>::Iterator it;
@@ -531,6 +643,18 @@ void Dir::resortMTime()
 
 }
 
+/*!\brief Dateien nach Datum der letzten Statusänderung sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach dem Zeitstempel der letzten Statusänderung der Dateien. Eine Statusänderung
+ * besteht nicht nur bei Neuanlage und Schreibzugriff, sondern auch bei Änderung
+ * der Zugriffsrechte oder Verlinkung.
+ * Falls mehrere Dateien den gleichen Zeitstempel haben, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
 void Dir::resortCTime()
 {
 	ppl7::List<DirEntry>::Iterator it;
@@ -553,6 +677,16 @@ void Dir::resortCTime()
 	return;
 }
 
+/*!\brief Dateien nach Datum des letzten Zugriffs sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach dem Zeitstempel des letzten Zugriffs auf die Datei.
+ * Falls mehrere Dateien den gleichen Zeitstempel haben, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
 void Dir::resortATime()
 {
 	ppl7::List<DirEntry>::Iterator it;
@@ -575,6 +709,16 @@ void Dir::resortATime()
 	return;
 }
 
+/*!\brief Dateien nach Dateigröße sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach der Größe der Dateien. Falls mehrere Dateien mit gleicher Größe vorhanden
+ * sind, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
 void Dir::resortSize()
 {
 	ppl7::List<DirEntry>::Iterator it;
@@ -612,13 +756,14 @@ void Dir::reset(Iterator &it) const
 /*!\brief Erster Verzeichniseintrag
  *
  * \desc
- * Durch Aufruf dieser Funktion wird der interne Zeiger auf die erste gefundene Datei gesetzt und ein Pointer
- * auf dessen CDirEntry-Struktur zurückgegeben. Alle weiteren Dateien können mit CDir::GetNext ausgelesen werden.
+ * Durch Aufruf dieser Funktion wird der Iterator \p it auf den ersten Verzeichniseintrag gesetzt und
+ * dessen Daten zurückgegeben. Alle weiteren Einträge können mit Dir::getNext ausgelesen werden.
  * \par
  * Die Reihenfolge der durch Dir::getFirst und Dir::getNext zurückgelieferten Dateien hängt von
  * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
  * \param it Iterator vom Typ ppl7::Dir::Iterator
  * @return Referenz auf die erste Datei des Verzeichnisses.
+ * \exception EndOfListException Wird geworfen, wenn keine Einträge im geöffneten Verzeichnis vorhanden sind.
  */
 const DirEntry &Dir::getFirst(Iterator &it) const
 {
@@ -628,13 +773,15 @@ const DirEntry &Dir::getFirst(Iterator &it) const
 /*!\brief Nächster Verzeichniseintrag
  *
  * \desc
- * Diese Funktion liefert die nächste Datei aus dem geöffneten Verzeichnis zurück.
+ * Durch Aufruf dieser Funktion wird der Iterator \p it auf den nächsten Verzeichniseintrag gesetzt und
+ * dessen Daten zurückgegeben.
  * \par
  * Die Reihenfolge der durch Dir::getFirst und Dir::getNext zurückgelieferten Dateien hängt von
  * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
  *
  * \param it Iterator vom Typ ppl7::Dir::Iterator
  * @return Referenz auf die nächste Datei des Verzeichnisses.
+ * \exception EndOfListException Wird geworfen, wenn das Ende der Liste erreicht wurde.
  */
 const DirEntry &Dir::getNext(Iterator &it) const
 {
@@ -644,12 +791,12 @@ const DirEntry &Dir::getNext(Iterator &it) const
 /*!\brief Erster Verzeichniseintrag, der zu einem bestimmten Muster passt
  *
  * \desc
- * Durch Aufruf dieser Funktion wird die erste Datei aus dem Verzeichnis zurückgeliefert, die
- * zu dem angegebenen Muster \p pattern passt. Alle weiteren Dateien können mit CDir::GetNextPattern
- * ausgelesen werden.
+ * Durch Aufruf dieser Funktion wird der Iterator \p it auf die erste Datei gesetzt, die
+ * zu dem angegebenen Muster \p pattern passt. Die Daten der Datei werden als Referenz zurückgegeben.
+ * Alle weiteren Dateien können mit Dir::getNextPattern ausgelesen werden.
  * \par
- * Die Reihenfolge der durch CDir::GetFirstPattern und CDir::GetNextPattern zurückgelieferten Dateien hängt von
- * der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort und CDir::Open
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort, Dir::open
  *
  * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] pattern Ein beliebiges Suchpattern, wie es auch beim Unix-Befehl "ls" oder mit
@@ -657,11 +804,10 @@ const DirEntry &Dir::getNext(Iterator &it) const
  * Das Sternchen "*" steht dabei für beliebig viele Zeichen, das Fragezeichen "?" für ein einzelnes.
  * \param[in] ignorecase Wird diese Variable auf "true" gesetzt, wird Groß- und Kleinschreibung
  * ignoriert. Wird als Pattern beispielsweise "*.TXT" angegeben, würde auch "*.txt" passen.
- * Der Default ist "false"
+ * Der Default ist "false".
  *
- * @return Pointer auf die erste Datei des Verzeichnisses, die zum angegebenen Muster passt, oder
- * NULL wenn keine Datei passt, das Verzeichnis leer ist oder kein
- * gültiges Verzeichnis ausgewählt wurde.
+ * @return Referenz auf die erste Datei des Verzeichnisses.
+ * \exception EndOfListException Wird geworfen, wenn keine Einträge im geöffneten Verzeichnis vorhanden sind.
  */
 const DirEntry &Dir::getFirstPattern(Iterator &it, const String &pattern, bool ignorecase) const
 {
@@ -672,11 +818,11 @@ const DirEntry &Dir::getFirstPattern(Iterator &it, const String &pattern, bool i
 /*!\brief Nächster Verzeichniseintrag, der zu einem bestimmten Muster passt
  *
  * \desc
- * Diese Funktion liefert die nächste Datei aus dem geöffneten Verzeichnis zurück, die
-  * zu dem angegebenen Muster \p pattern passt.
+ * Durch Aufruf dieser Funktion wird der Iterator \p it auf den nächsten Verzeichniseintrag gesetzt,
+ * der  zu dem angegebenen Muster \p pattern passt, und dessen Daten zurückgegeben.
  * \par
- * Die Reihenfolge der durch CDir::GetFirstPattern und CDir::GetNextPattern zurückgelieferten Dateien hängt von
- * der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort und CDir::Open
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort, Dir::open
  *
  * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] pattern Ein beliebiges Suchpattern, wie es auch beim Unix-Befehl "ls" oder mit
@@ -686,9 +832,8 @@ const DirEntry &Dir::getFirstPattern(Iterator &it, const String &pattern, bool i
  * ignoriert. Wird als Pattern beispielsweise "*.TXT" angegeben, würde auch "*.txt" passen.
  * Der Default ist "false"
  *
- * @return Pointer auf die nächste Datei des Verzeichnisses, oder NULL, wenn keine weiteren Dateien
- * vorhanden sind, die auf das Muster passen, das Verzeichnis leer ist oder kein gültiges
- * Verzeichnis ausgewählt wurde.
+ * @return Referenz auf die nächste Datei des Verzeichnisses.
+ * \exception EndOfListException Wird geworfen, wenn das Ende der Liste erreicht wurde.
  */
 const DirEntry &Dir::getNextPattern(Iterator &it, const String &pattern, bool ignorecase) const
 {
@@ -716,20 +861,18 @@ const DirEntry &Dir::getNextPattern(Iterator &it, const String &pattern, bool ig
 /*!\brief Erster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
  *
  * \desc
- * Durch Aufruf dieser Funktion wird die erste Datei aus dem Verzeichnis zurückgeliefert, die
- * zu der angegebenen Regular Expression \p regexp passt. Alle weiteren Dateien können mit
- * CDir::GetNextRegExp ausgelesen werden.
+ * Durch Aufruf dieser Funktion wird der Iterator \p it auf die erste Datei gesetzt, die
+ * zu der angegebenen Regular Expression \p regexp passt. Die Daten der Datei werden als Referenz zurückgegeben.
+ * Alle weiteren Dateien können mit Dir::getNextRegExp ausgelesen werden.
  * \par
- * Die Reihenfolge der durch CDir::GetFirstRegExp und CDir::GetNextRegExp zurückgelieferten
- * Dateien hängt von der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort
- * und CDir::Open
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort, Dir::open
  *
  * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] regexp Eine beliebige Perl kompatible Regular Expression. Beispiel:"/^*.txt$/i"
  *
- * @return Pointer auf die erste Datei des Verzeichnisses, oder NULL wenn das Verzeichnis leer ist,
- * kein Dateiname auf die angegebene Regular Expression passt oder kein
- * gültiges Verzeichnis ausgewählt wurde.
+ * @return Referenz auf die erste Datei des Verzeichnisses.
+ * \exception EndOfListException Wird geworfen, wenn keine Einträge im geöffneten Verzeichnis vorhanden sind.
  */
 const DirEntry &Dir::getFirstRegExp(Iterator &it, const String &regexp) const
 {
@@ -740,20 +883,17 @@ const DirEntry &Dir::getFirstRegExp(Iterator &it, const String &regexp) const
 /*!\brief Nächster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
  *
  * \desc
- * Diese Funktion liefert die nächste Datei aus dem geöffneten Verzeichnis zurück, die
- * zu der angegebenen Regular Expression \p regexp passt.
- *
+ * Durch Aufruf dieser Funktion wird der Iterator \p it auf den nächsten Verzeichniseintrag gesetzt,
+ * der zu der angegebenen Regular Expression \p regexp passt, und dessen Daten zurückgegeben.
  * \par
- * Die Reihenfolge der durch CDir::GetFirstRegExp und CDir::GetNextRegExp zurückgelieferten
- * Dateien hängt von der eingestellten Sortierung ab. Siehe dazu CDir::Sort, CDir::Resort
- * und CDir::Open
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort, Dir::open
  *
  * \param[in] it Iterator vom Typ ppl7::Dir::Iterator
  * \param[in] regexp Eine beliebige Perl kompatible Regular Expression. Beispiel:"/^*.txt$/i"
  *
- * @return Pointer auf die nächste Datei des Verzeichnisses, oder NULL wenn das Verzeichnis leer ist,
- * kein weiterer Dateiname auf die angegebene Regular Expression passt oder kein
- * gültiges Verzeichnis ausgewählt wurde.
+ * @return Referenz auf die nächste Datei des Verzeichnisses.
+ * \exception EndOfListException Wird geworfen, wenn das Ende der Liste erreicht wurde.
  */
 const DirEntry &Dir::getNextRegExp(Iterator &it, const String &regexp) const
 {
@@ -767,5 +907,331 @@ const DirEntry &Dir::getNextRegExp(Iterator &it, const String &regexp) const
 }
 
 
+
+/*!\brief Erster Verzeichniseintrag
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der Iterator \p it auf die erste gefundene Datei gesetzt.
+ * Deren Daten werden in das DirEntry Objekt \p e kopiert.
+ * Alle weiteren Dateien können mit Dir::getNext ausgelesen werden.
+ * \par
+ * Die Reihenfolge der durch Dir::getFirst und Dir::getNext zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
+ * \param[out] e Objekt, in dem die Daten der Datei gespeichert werden sollen
+ * \param[in,out] it Iterator vom Typ ppl7::Dir::Iterator
+ * @return Gibt \c true zurück, wenn eine Datei im Verzeichnis vorhanden war, sonst \c false.
+ * Falls ein Fehler auftritt, kann auch eine Exception geworfen werden.
+ */
+bool Dir::getFirst(DirEntry &e, Iterator &it) const
+{
+	try {
+		e=*SortedFiles.getFirst(it);
+		return true;
+	} catch (EndOfListException) {
+		return false;
+	}
+}
+
+/*!\brief Nächster Verzeichniseintrag
+ *
+ * \desc
+ * Diese Funktion kopiert die nächste Datei aus dem geöffneten Verzeichnis in das DirEntry Objekt
+ * \p e
+ * \par
+ * Die Reihenfolge der durch Dir::getFirst und Dir::getNext zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
+ * \param[out] e Objekt, in dem die Daten der Datei gespeichert werden sollen
+ * \param[in,out] it Iterator vom Typ ppl7::Dir::Iterator
+ * @return Gibt \c true zurück, wenn eine Datei im Verzeichnis vorhanden war, sonst \c false.
+ * Falls ein Fehler auftritt, kann auch eine Exception geworfen werden.
+ */
+bool Dir::getNext(DirEntry &e, Iterator &it) const
+{
+	try {
+		e=*SortedFiles.getNext(it);
+		return true;
+	} catch (EndOfListException) {
+		return false;
+	}
+}
+
+/*!\brief Erster Verzeichniseintrag, der zu einem bestimmten Muster passt
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird die erste Datei aus dem Verzeichnis,
+ * die zu dem angegebenen Muster \p pattern passt, in das DirEntry Objekt
+ * \p e kopiert. Alle weiteren Dateien können mit Dir::getNextPattern
+ * ausgelesen werden.
+ * \par
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
+ *
+ * \param[out] e Objekt, in dem die Daten der Datei gespeichert werden sollen
+ * \param[in,out] it Iterator vom Typ ppl7::Dir::Iterator
+ * \param[in] pattern Ein beliebiges Suchpattern, wie es auch beim Unix-Befehl "ls" oder mit
+ * "dir" unter Windows angegeben werden kann. Dabei sind die Wildcards "*" und "?" erlaubt.
+ * Das Sternchen "*" steht dabei für beliebig viele Zeichen, das Fragezeichen "?" für ein einzelnes.
+ * \param[in] ignorecase Wird diese Variable auf "true" gesetzt, wird Groß- und Kleinschreibung
+ * ignoriert. Wird als Pattern beispielsweise "*.TXT" angegeben, würde auch "*.txt" passen.
+ * Der Default ist "false"
+ *
+ * @return Gibt \c true zurück, wenn eine Datei im Verzeichnis vorhanden war, sonst \c false.
+ * Falls ein Fehler auftritt, kann auch eine Exception geworfen werden.
+ */
+bool Dir::getFirstPattern(DirEntry &e, Iterator &it, const String &pattern, bool ignorecase) const
+{
+	reset(it);
+	return getNextPattern(e, it, pattern, ignorecase);
+}
+
+/*!\brief Nächster Verzeichniseintrag, der zu einem bestimmten Muster passt
+ *
+ * \desc
+ * Diese Funktion kopiert die nächste Datei aus dem geöffneten Verzeichnis,
+ * die zu dem angegebenen Muster \p pattern passt, in das DirEntry Objekt \p e
+ * \par
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
+ *
+ * \param[out] e Objekt, in dem die Daten der Datei gespeichert werden sollen
+ * \param[in,out] it Iterator vom Typ ppl7::Dir::Iterator
+ * \param[in] pattern Ein beliebiges Suchpattern, wie es auch beim Unix-Befehl "ls" oder mit
+ * "dir" unter Windows angegeben werden kann. Dabei sind die Wildcards "*" und "?" erlaubt.
+ * Das Sternchen "*" steht dabei für beliebig viele Zeichen, das Fragezeichen "?" für ein einzelnes.
+ * \param[in] ignorecase Wird diese Variable auf "true" gesetzt, wird Groß- und Kleinschreibung
+ * ignoriert. Wird als Pattern beispielsweise "*.TXT" angegeben, würde auch "*.txt" passen.
+ * Der Default ist "false"
+ *
+ * @return Gibt \c true zurück, wenn eine Datei im Verzeichnis vorhanden war, sonst \c false.
+ * Falls ein Fehler auftritt, kann auch eine Exception geworfen werden.
+ */
+bool Dir::getNextPattern(DirEntry &e, Iterator &it, const String &pattern, bool ignorecase) const
+{
+	const DirEntry *de;
+	String Pattern;
+	Pattern=pattern;
+	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	Pattern.pregEscape();
+	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	Pattern.replace("\\*",".*");
+	Pattern.replace("\\?",".");
+	Pattern="/^"+Pattern;
+	Pattern+="$/";
+	if (ignorecase) Pattern+="i";
+	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	try {
+		while (1) {
+			de=SortedFiles.getNext(it);
+			if (!de) return false;
+			// Patternmatch
+			//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
+			if (de->Filename.pregMatch(Pattern)) {
+				e=*de;
+				return true;
+			}
+		}
+	} catch (EndOfListException) {
+		return false;
+	}
+}
+
+/*!\brief Erster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird die erste Datei aus dem Verzeichnis,
+ * die zu der angegebenen Regular Expression \p regexp passt, in das DirEntry Objekt
+ * \p e kopiert. Alle weiteren Dateien können mit Dir::getNextPattern
+ * ausgelesen werden.
+ * \par
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
+ *
+ * \param[out] e Objekt, in dem die Daten der Datei gespeichert werden sollen
+ * \param[in,out] it Iterator vom Typ ppl7::Dir::Iterator
+ * \param[in] regexp Eine beliebige Perl kompatible Regular Expression. Beispiel:"/^*.txt$/i"
+ *
+ * @return Gibt \c true zurück, wenn eine Datei im Verzeichnis vorhanden war, sonst \c false.
+ * Falls ein Fehler auftritt, kann auch eine Exception geworfen werden.
+ */
+bool Dir::getFirstRegExp(DirEntry &e, Iterator &it, const String &regexp) const
+{
+	reset(it);
+	return getNextRegExp(e,it,regexp);
+}
+
+/*!\brief Nächster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
+ *
+ * \desc
+ * Diese Funktion kopiert die nächste Datei aus dem geöffneten Verzeichnis, die
+ * zu der angegebenen Regular Expression \p regexp passt, in das DirEntry Objekt
+ * \p e.
+ *
+ * \par
+ * Die Reihenfolge der durch Dir::getFirstPattern und Dir::getNextPattern zurückgelieferten Dateien hängt von
+ * der eingestellten Sortierung ab. Siehe dazu Dir::resort und Dir::open
+ *
+ * \param[out] e Objekt, in dem die Daten der Datei gespeichert werden sollen
+ * \param[in,out] it Iterator vom Typ ppl7::Dir::Iterator
+ * \param[in] regexp Eine beliebige Perl kompatible Regular Expression. Beispiel:"/^*.txt$/i"
+ *
+ * @return Gibt \c true zurück, wenn eine Datei im Verzeichnis vorhanden war, sonst \c false.
+ * Falls ein Fehler auftritt, kann auch eine Exception geworfen werden.
+ */
+bool Dir::getNextRegExp(DirEntry &e, Iterator &it, const String &regexp) const
+{
+	const DirEntry *de;
+	try {
+		while (1) {
+			de=SortedFiles.getNext(it);
+			if (!de) return false;
+			// Patternmatch
+			if (de->Filename.pregMatch(regexp)) {
+				e=*de;
+				return true;
+			}
+		}
+	} catch (EndOfListException) {
+		return false;
+	}
+}
+
+
+/*!\brief Verzeichnis einlesen
+ *
+ * \desc
+ * Mit dieser Funktion wird das mit \p path angegebene Verzeichnis geöffnet,
+ * eingelesen und mit der Sortiermethode \p s sortiert.
+ *
+ * @param[in] path Zu öffnender Pfad (siehe auch CDir::Open)
+ * @param[in] s gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
+ * verwendet.
+ * @return Die Funktion hat keinen Rückgabewert. Bei Auftreten eines Fehlers wird
+ * eine Exception geworfen.
+ */
+void Dir::open(const String &path, Sort s)
+{
+	open((const char*)path.toLocalEncoding(),s);
+}
+
+/*!\brief Verzeichnis einlesen
+ *
+ * \desc
+ * Mit dieser Funktion wird das mit \p path angegebene Verzeichnis geöffnet,
+ * eingelesen und mit der Sortiermethode \p s sortiert.
+ *
+ * @param[in] path Zu öffnender Pfad (siehe auch CDir::Open)
+ * @param[in] s gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
+ * verwendet.
+ * @return Die Funktion hat keinen Rückgabewert. Bei Auftreten eines Fehlers wird
+ * eine Exception geworfen.
+ */
+void Dir::open(const char *path, Sort s)
+{
+#if defined _WIN32
+	clear();
+	sort=s;
+	Path=path;
+	Path.trim();
+	Path.trimRight("/");
+	Path.trimRight("\\");
+	String Pattern=Path;
+	// Pattern+="/*";  <= Dieses Konstrukt bringt Doxygen durcheinander :-(
+	// Es führt dazu, dass die komplette Doku in dieser Datei nicht generiert
+	// wird. Es wird aber auch kein Fehler angezeigt :-( This is a bug, not a feature.
+	Pattern+="/";
+	Pattern+="*";
+		struct _wfinddatai64_t data;
+		memset(&data,0,sizeof(data));
+
+		intptr_t handle=_wfindfirsti64 ((const wchar_t*)Pattern, &data);
+		if (handle<0) {
+			SetErrorFromErrno();
+			return 0;
+		}
+		while (1==1) {
+			CDirEntry *de=new CDirEntry;
+			if (!de) {
+				_findclose(handle);
+				SetError(2);
+				return 0;
+			}
+			strcpy (de->AttrStr,"----------");
+			de->Attrib=0;
+			de->ATime=de->CTime=de->MTime=0;
+
+			de->Filename=data.name;
+			de->Size=0;
+			de->Path=Path;
+			de->File=de->Path+CString("/")+de->Filename;
+			de->Size=data.size;
+			de->Uid=0;
+			de->Gid=0;
+			de->Blocks=0;
+			de->BlockSize=0;
+			de->NumLinks=1;
+
+			if (data.attrib & _A_RDONLY) de->Attrib|=CPPLDIR_READONLY;
+			if (data.attrib & _A_HIDDEN) de->Attrib|=CPPLDIR_HIDDEN;
+			if (data.attrib & _A_SYSTEM) de->Attrib|=CPPLDIR_SYSTEM;
+			if (data.attrib & _A_ARCH) de->Attrib|=CPPLDIR_ARCHIV;
+			if (data.attrib & _A_SUBDIR) de->Attrib|=CPPLDIR_DIR;
+
+			de->AttrStr[1]=de->AttrStr[4]=de->AttrStr[7]='r';
+			if (de->Filename.Len()>4) {
+				CString suf=de->Filename.Right(4);
+				suf.LCase();
+				if (suf.StrCmp(".exe")==0 ||
+					suf.StrCmp(".com")==0 ||
+					suf.StrCmp(".bat")==0 ) de->AttrStr[3]=de->AttrStr[6]=de->AttrStr[9]='x';
+			}
+
+			if (! (de->Attrib&CPPLDIR_READONLY)) de->AttrStr[2]=de->AttrStr[5]=de->AttrStr[8]='w';
+			if ( ( de->Attrib & (CPPLDIR_DIR|CPPLDIR_LINK) )==0) de->Attrib|=CPPLDIR_FILE;
+			de->ATime=data.time_access;
+			de->CTime=data.time_create;
+			de->MTime=data.time_write;
+
+			if (de->Attrib&CPPLDIR_DIR) de->AttrStr[0]='d';
+			if (de->Attrib&CPPLDIR_LINK) de->AttrStr[0]='l';
+			Files.Add(de);
+			// Nächster Datensatz
+			if (_wfindnexti64(handle,&data)<0) break;
+		}
+		_findclose(handle);
+		Resort(sort);
+		return 1;
+		*/
+#elif defined HAVE_OPENDIR
+	clear();
+	sort=s;
+	Path=path;
+	Path.trim();
+	Path.trimRight("/");
+	Path.trimRight("\\");
+	DIR *dir=opendir((const char*)Path.toLocalEncoding());
+	if (!dir) {
+		File::throwErrno(errno,path);
+	}
+	struct dirent d;
+	struct dirent *result;
+	DirEntry de;
+	String CurrentFile;
+	while (1==1) {
+		if (readdir_r(dir,&d,&result)!=0) {
+			int e=errno;
+			closedir(dir);
+			File::throwErrno(e,path);
+		}
+		if (result==NULL) break;
+		CurrentFile=Path+"/"+String(d.d_name);
+		File::stat(CurrentFile,de);
+		Files.add(de);
+	}
+	closedir(dir);
+	resort(sort);
+#else
+	throw UnsupportedFeatureException("Dir::open");
+#endif
+}
 
 } // EOF namespace ppl7
