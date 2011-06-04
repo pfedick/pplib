@@ -86,18 +86,38 @@ typedef struct tagMemGroup {
 static size_t mysize=(sizeof(MEMGROUP)+15)^15;
 
 
+/*!\brief Konstruktor der Klasse
+ *
+ * \desc
+ * Der Konstruktor initialisiert die internen Variablen.
+ *
+ */
 MemoryGroup::MemoryGroup()
 {
 	first=last=NULL;
-	totalSize=0;
+	totalSize=sizeof(MemoryGroup);
 	totalBlocks=0;
 }
 
+/*!\brief Destruktor der Klasse
+ *
+ * \desc
+ * Der Destruktor ruft die Funktion MemoryGroup::clear auf und stellt somit sicher, dass
+ * sämtlicher durch die Klasse allokierte Speicher wieder freigegeben wird.
+ */
 MemoryGroup::~MemoryGroup()
 {
 	clear();
 }
 
+
+/*!\brief Kompletten Speicher freigeben
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion werden sämtliche Speicherblöcke freigegeben, die über diese
+ * Klasse allokiert wurden. Eventuell noch vorhandene Pointer auf Speicherbereiche dieser
+ * Klasse werden ungültig.
+ */
 void MemoryGroup::clear()
 {
 	MEMGROUP *m;
@@ -107,10 +127,19 @@ void MemoryGroup::clear()
 		free(m);
 	}
 	first=last=NULL;
-	totalSize=0;
+	totalSize=sizeof(MemoryGroup);
 	totalBlocks=0;
 }
 
+/*!\brief Speicherblock zur Liste hinzufügen
+ *
+ * \desc
+ * Mit dieser internen Funktion wird ein Speicherblock zur Verwaltungsliste hinzugefügt.
+ * Ausserdem werden die internen Zähler für Anzahl Speicherblöcke und Gesamtspeichergröße
+ * hochgezählt.
+ *
+ * @param[in] block Pointer auf den Speicherblock
+ */
 void MemoryGroup::addToList(void *block)
 {
 	MEMGROUP* m=(MEMGROUP*)block;
@@ -123,6 +152,15 @@ void MemoryGroup::addToList(void *block)
 	totalBlocks++;
 }
 
+/*!\brief Speicherblock aus der Liste entfernen
+ *
+ * \desc
+ * Mit dieser internen Funktion wird ein Speicherblock aus der Verwaltungsliste entfernt.
+ * Ausserdem werden die internen Zähler für Anzahl Speicherblöcke und Gesamtspeichergröße
+ * runtergezählt.
+ *
+ * @param[in] block Pointer auf den Speicherblock
+ */
 void MemoryGroup::removeFromList(void *block)
 {
 	MEMGROUP* m=(MEMGROUP*)block;
@@ -135,6 +173,15 @@ void MemoryGroup::removeFromList(void *block)
 }
 
 
+/*!\brief Speicher allokieren
+ *
+ * \desc
+ * Mit dieser Funktion wird ein neuer Speicherblock allokiert.
+ *
+ * @param size Gewünschte Größe des Speicherblocks in Bytes
+ * \return Pointer auf den Beginn des Speicherblocks
+ * \exception OutOfMemoryException wird geworfen, wenn kein Speicher mehr frei ist
+ */
 void *MemoryGroup::malloc(size_t size)
 {
 	if (!size) throw IllegalArgumentException();
@@ -146,6 +193,15 @@ void *MemoryGroup::malloc(size_t size)
 	return m->adr;
 }
 
+/*!\brief Speicher allokieren und löschen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein neuer Speicherblock allokiert und mit 0-Bytes initialisiert.
+ *
+ * @param size Gewünschte Größe des Speicherblocks in Bytes
+ * \return Pointer auf den Beginn des Speicherblocks
+ * \exception OutOfMemoryException wird geworfen, wenn kein Speicher mehr frei ist
+ */
 void *MemoryGroup::calloc(size_t size)
 {
 	if (!size) throw IllegalArgumentException();
@@ -157,6 +213,16 @@ void *MemoryGroup::calloc(size_t size)
 	return m->adr;
 }
 
+/*!\brief String kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird ein neuer Speicherblock allokiert, der groß genug ist, um
+ * den String \p str aufzunehmen. Anschließend wird der String in den neuen Speicherblock kopiert.
+ *
+ * @param str Pointer auf einen C-String, der mit einem 0-Byte terminiert sein muß.
+ * \return Pointer auf den Beginn des Speicherblocks
+ * \exception OutOfMemoryException wird geworfen, wenn kein Speicher mehr frei ist
+ */
 char *MemoryGroup::strdup(const char *str)
 {
 	if (!str) throw NullPointerException();
@@ -171,9 +237,47 @@ char *MemoryGroup::strdup(const char *str)
 	return (char*)m->adr;
 }
 
+/*!\brief Teilstring kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird ein neuer Speicherblock mit der Größe \p size allokiert. Anschließend
+ * werden die ersten \p size Bytes des Strings \p str in den neuen Speicherblock kopiert.
+ *
+ * @param str Pointer auf einen C-String
+ * @param size Anzahl Bytes, die kopiert werden sollen
+ * \return Pointer auf den Beginn des Speicherblocks
+ * \exception OutOfMemoryException wird geworfen, wenn kein Speicher mehr frei ist
+ */
+char *MemoryGroup::strndup(const char *str, size_t size)
+{
+	if (!str) throw NullPointerException();
+	MEMGROUP *m=(MEMGROUP*)::malloc(mysize+size+1);
+	if (!m) throw OutOfMemoryException();
+	m->adr=(char*)m+mysize;
+	memcpy(m->adr,str,size);
+	((char*)m->adr)[size]=0;
+	m->size=size+1;
+	addToList(m);
+	return (char*)m->adr;
+}
 
+/*!\brief Speicherblock verkleinern oder vergrößern
+ *
+ * \desc
+ * Mit dieser Funktion wird ein vorhandener Speicherblock verkleinert oder vergrößert. Der
+ * Speicherblock \p adr muß zuvor über diese Klasse allokiert worden sein.
+ *
+ * @param adr Pointer auf vorhandenen Speicherblock
+ * @param size Neue Größe in Bytes
+ * \return Pointer auf den Beginn des neuen Speicherblocks
+ * \exception OutOfMemoryException wird geworfen, wenn kein Speicher mehr frei ist
+ * \exception IllegalMemoryAddressException wird geworfen, wenn der Speicherblock nicht über diese
+ * Klasse allokiert wurde
+ * \exception NullPointerException wird geworfen, wenn \p adr auf NULL zeigt
+ */
 void *MemoryGroup::realloc(void *adr, size_t size)
 {
+	if (!adr) throw NullPointerException();
 	MEMGROUP *m=(MEMGROUP*)((char*)adr-mysize);
 	// Sicherstellen, dass der Speicherblock von dieser Klasse verwaltet wird
 	if (m->adr!=adr)  throw IllegalMemoryAddressException();
@@ -190,20 +294,48 @@ void *MemoryGroup::realloc(void *adr, size_t size)
 	return m->adr;
 }
 
+/*!\brief Speicherblock freigeben
+ *
+ * \desc
+ * Mit dieser Funktion wird ein vorhandener Speicherblock wieder freigegeben.
+ * der Speicherblock \p adr muß zuvor über diese Klasse allokiert worden sein.
+ * @param adr Pointer auf vorhandenen Speicherblock
+ * \exception IllegalMemoryAddressException wird geworfen, wenn der Speicherblock nicht über diese
+ * Klasse allokiert wurde
+ * \exception NullPointerException wird geworfen, wenn \p adr auf NULL zeigt
+ */
 void MemoryGroup::free(void *adr)
 {
+	if (!adr) throw NullPointerException();
 	MEMGROUP *m=(MEMGROUP*)((char*)adr-mysize);
 	// Sicherstellen, dass der Speicherblock von dieser Klasse verwaltet wird
 	if (m->adr!=adr)  throw IllegalMemoryAddressException();
 	removeFromList(m);
-	free(m);
+	::free(m);
 }
 
+/*!\brief Anzahl Speicherblöcke
+ *
+ * \desc
+ * Mit dieser Funktion kann abgefragt werdenm, wieviele Speicherblöcke zur Zeit von der
+ * Klasse allokiert sind.
+ *
+ * @return Anzahl Speicherblöcke
+ */
 size_t MemoryGroup::count() const
 {
 	return totalBlocks;
 }
 
+/*!\brief Belegter Speicher
+ *
+ * \desc
+ * Diese Funktion liefert die Anzahl Bytes zurück, die aktuell von der Klasse belegt werden.
+ * Diese errechnen sich aus dem Speicher für die Klasse selbst (=sizeof(MemoryGroup)) plus die
+ * allokierten Speicherblöcke und die Verwaltungsstruktur pro Speicherblock.
+ *
+ * @return Belegter Speicher in Bytes
+ */
 size_t MemoryGroup::size() const
 {
 	return totalSize;

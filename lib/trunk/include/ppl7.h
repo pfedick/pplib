@@ -197,6 +197,7 @@ class MemoryGroup
 		 void *realloc(void *adr, size_t size);
 		 void free(void *adr);
 		 char *strdup(const char *string);
+		 char *strndup(const char *string, size_t size);
 		 size_t count() const;
 		 size_t size() const;
 };
