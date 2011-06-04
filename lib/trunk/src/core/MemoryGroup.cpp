@@ -83,7 +83,7 @@ typedef struct tagMemGroup {
 	struct tagMemGroup *previous, *next;
 } MEMGROUP;
 
-static size_t mysize=(sizeof(MEMGROUP)+15)^15;
+static size_t mysize=(sizeof(MEMGROUP)+15)&(((size_t)-1)^15);
 
 
 /*!\brief Konstruktor der Klasse
@@ -138,7 +138,7 @@ void MemoryGroup::clear()
  * Ausserdem werden die internen Zähler für Anzahl Speicherblöcke und Gesamtspeichergröße
  * hochgezählt.
  *
- * @param[in] block Pointer auf den Speicherblock
+ * @param[in] block Pointer auf die Verwaltungsstruktur des Speicherblocks
  */
 void MemoryGroup::addToList(void *block)
 {
@@ -159,7 +159,7 @@ void MemoryGroup::addToList(void *block)
  * Ausserdem werden die internen Zähler für Anzahl Speicherblöcke und Gesamtspeichergröße
  * runtergezählt.
  *
- * @param[in] block Pointer auf den Speicherblock
+ * @param[in] block Pointer auf die Verwaltungsstruktur des Speicherblocks
  */
 void MemoryGroup::removeFromList(void *block)
 {
