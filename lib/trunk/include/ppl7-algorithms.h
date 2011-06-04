@@ -379,6 +379,7 @@ template <class K> class List
 				first=it->next;
 				it->~ListItem();
 			}
+			last=NULL;
 			MyHeap.clear();
 		}
 
