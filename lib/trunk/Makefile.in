@@ -62,7 +62,10 @@ RELEASE	= release/AVLTree.o \
 	release/random.o \
 	 \
 	 \
-	 \
+	release/gfx_Point.o \
+	release/gfx_Point3D.o \
+	release/gfx_Rect.o \
+	release/gfx_Size.o \
 	 \
 	release/sound_Icecast.o
 
@@ -94,7 +97,10 @@ DEBUG	= debug/AVLTree.o \
 	debug/random.o \
 	 \
 	 \
-	 \
+	debug/gfx_Point.o \
+	debug/gfx_Point3D.o \
+	debug/gfx_Rect.o \
+	debug/gfx_Size.o \
 	 \
 	debug/sound_Icecast.o
 
@@ -351,6 +357,26 @@ release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 ### INTERNET
 ### DATABASE
 ### GRAFIX
+release/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Point.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Point.o -c $(srcdir)/grafix/Point.cpp $(CFLAGS) 
+
+release/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Point3D.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp $(CFLAGS) 
+
+release/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Rect.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp $(CFLAGS) 
+
+release/gfx_Size.o:	$(srcdir)/grafix/Size.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Size.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Size.o -c $(srcdir)/grafix/Size.cpp $(CFLAGS) 
+
 ### GRAFIX
 ### SOUND
 release/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-sound.h 
@@ -510,6 +536,26 @@ debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 ### INTERNET
 ### DATABASE
 ### GRAFIX
+debug/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Point.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Point.o -c $(srcdir)/grafix/Point.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Point3D.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Rect.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_Size.o:	$(srcdir)/grafix/Size.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Size.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Size.o -c $(srcdir)/grafix/Size.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 ### GRAFIX
 ### SOUND
 debug/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-sound.h 
