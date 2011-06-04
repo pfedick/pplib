@@ -7,7 +7,7 @@ CFLAGS	= -ggdb -Wall  `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
 
 
-all: heap array strings avltree assocarray pointer datetime bytearray bytearrayptr \
+all: memoryheap memorygroup array strings avltree assocarray pointer datetime bytearray bytearrayptr \
 	functions file dir list
 
 clean:
@@ -15,8 +15,11 @@ clean:
 	-rm *.core
 
 
-heap: bin/heap
-	bin/heap
+memoryheap: bin/memoryheap
+	bin/memoryheap
+
+memorygroup: bin/memorygroup
+	bin/memorygroup
 
 file: bin/file
 	bin/file
@@ -83,9 +86,13 @@ bin/array: src/array.cpp Makefile
 	mkdir -p bin
 	$(CC) -o bin/array src/array.cpp $(CFLAGS) $(LIB)
 
-bin/heap: src/heap.cpp Makefile
+bin/memoryheap: src/memoryheap.cpp Makefile
 	mkdir -p bin
-	$(CC) -o bin/heap src/heap.cpp $(CFLAGS) $(LIB)
+	$(CC) -o bin/memoryheap src/memoryheap.cpp $(CFLAGS) $(LIB)
+
+bin/memorygroup: src/memorygroup.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/memorygroup src/memorygroup.cpp $(CFLAGS) $(LIB)
 
 bin/avltree: src/avltree.cpp Makefile bin/wordlist.o
 	mkdir -p bin

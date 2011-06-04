@@ -47,57 +47,57 @@
 namespace {
 
 // The fixture for testing class Foo.
-class HeapTest : public ::testing::Test {
+class MemoryHeapTest : public ::testing::Test {
 	protected:
-	HeapTest() {
+	MemoryHeapTest() {
 		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
 	}
-	virtual ~HeapTest() {
+	virtual ~MemoryHeapTest() {
 
 	}
 };
 
-TEST_F(HeapTest, ConstructorSimple) {
-	ppl7::Heap h1;
+TEST_F(MemoryHeapTest, ConstructorSimple) {
+	ppl7::MemoryHeap h1;
 	ASSERT_EQ(h1.capacity(),(size_t)0) << "capacity is not 0";
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
-	ASSERT_EQ(h1.memoryAllocated(),(size_t)sizeof(ppl7::Heap)) << "memoryAllocated is not sizeof(Heap)";
-	ASSERT_EQ(h1.memoryUsed(),(size_t)sizeof(ppl7::Heap)) << "memoryUsed is not sizeof(Heap)";
+	ASSERT_EQ(h1.memoryAllocated(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryAllocated is not sizeof(MemoryHeap)";
+	ASSERT_EQ(h1.memoryUsed(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryUsed is not sizeof(MemoryHeap)";
 	ASSERT_EQ(h1.elementSize(),(size_t)0) << "elementSize is not 0";
 }
 
-TEST_F(HeapTest, ConstructorWithInit) {
-	ppl7::Heap h1(32,100,100);
+TEST_F(MemoryHeapTest, ConstructorWithInit) {
+	ppl7::MemoryHeap h1(32,100,100);
 	ASSERT_EQ(h1.capacity(),(size_t)100) << "capacity is not 100";
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
-	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl7::Heap)) << "memoryAllocated is greater than sizeof(Heap)";
-	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl7::Heap)) << "memoryUsed is not greater than sizeof(Heap)";
+	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryAllocated is greater than sizeof(MemoryHeap)";
+	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryUsed is not greater than sizeof(MemoryHeap)";
 	ASSERT_EQ(h1.elementSize(),(size_t)32) << "elementSize is not 32";
 }
 
-TEST_F(HeapTest, Init) {
-	ppl7::Heap h1;
+TEST_F(MemoryHeapTest, Init) {
+	ppl7::MemoryHeap h1;
 	h1.init(32,100,100);
 	ASSERT_EQ(h1.capacity(),(size_t)100) << "capacity is not 100";
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
-	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl7::Heap)) << "memoryAllocated is greater than sizeof(Heap)";
-	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl7::Heap)) << "memoryUsed is not greater than sizeof(Heap)";
+	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryAllocated is greater than sizeof(MemoryHeap)";
+	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryUsed is not greater than sizeof(MemoryHeap)";
 	ASSERT_EQ(h1.elementSize(),(size_t)32) << "elementSize is not 32";
 }
 
-TEST_F(HeapTest, malloc) {
-	ppl7::Heap h1(32,100,100);
+TEST_F(MemoryHeapTest, malloc) {
+	ppl7::MemoryHeap h1(32,100,100);
 	void *ptr=h1.malloc();
 	ASSERT_TRUE(ptr!=NULL) << "malloc failed";
 	ASSERT_EQ(h1.count(),(size_t)1) << "count is not 1";
 }
 
-TEST_F(HeapTest, 101malloc) {
-	ppl7::Heap h1(32,100,100,30);
+TEST_F(MemoryHeapTest, 101malloc) {
+	ppl7::MemoryHeap h1(32,100,100,30);
 	for (int i=0;i<101;i++) {
 		void *ptr=h1.malloc();
 		ASSERT_TRUE(ptr!=NULL) << "malloc failed";
@@ -108,8 +108,8 @@ TEST_F(HeapTest, 101malloc) {
 
 }
 
-TEST_F(HeapTest, 1000malloc) {
-	ppl7::Heap h1(32,100,100,30);
+TEST_F(MemoryHeapTest, 1000malloc) {
+	ppl7::MemoryHeap h1(32,100,100,30);
 	for (int i=0;i<1000;i++) {
 		void *ptr=h1.malloc();
 		ASSERT_TRUE(ptr!=NULL) << "malloc failed";
@@ -120,8 +120,8 @@ TEST_F(HeapTest, 1000malloc) {
 
 }
 
-TEST_F(HeapTest, 1000calloc) {
-	ppl7::Heap h1(32,100,100,30);
+TEST_F(MemoryHeapTest, 1000calloc) {
+	ppl7::MemoryHeap h1(32,100,100,30);
 	for (int i=0;i<1000;i++) {
 		void *ptr=h1.calloc();
 		ASSERT_TRUE(ptr!=NULL) << "calloc failed";
@@ -132,8 +132,8 @@ TEST_F(HeapTest, 1000calloc) {
 
 }
 
-TEST_F(HeapTest, 1000malloc1000free) {
-	ppl7::Heap h1(32,100,100,30);
+TEST_F(MemoryHeapTest, 1000malloc1000free) {
+	ppl7::MemoryHeap h1(32,100,100,30);
 	void *ptr[1000];
 	for (int i=0;i<1000;i++) {
 		ptr[i]=h1.malloc();
@@ -147,8 +147,8 @@ TEST_F(HeapTest, 1000malloc1000free) {
 	ASSERT_EQ(h1.capacity(),(size_t)1002) << "capacity is not 1002";
 }
 
-TEST_F(HeapTest, 2000malloc1500free) {
-	ppl7::Heap h1(32,100,100,30);
+TEST_F(MemoryHeapTest, 2000malloc1500free) {
+	ppl7::MemoryHeap h1(32,100,100,30);
 	void *ptr[2000];
 	for (int i=0;i<2000;i++) {
 		ptr[i]=h1.malloc();
@@ -163,8 +163,8 @@ TEST_F(HeapTest, 2000malloc1500free) {
 	ASSERT_EQ(h1.capacity(),(size_t)1973) << "capacity is not 1973";
 }
 
-TEST_F(HeapTest, 1000mallocfreeCleanup) {
-	ppl7::Heap h1(32,100,100,30);
+TEST_F(MemoryHeapTest, 1000mallocfreeCleanup) {
+	ppl7::MemoryHeap h1(32,100,100,30);
 	void *ptr[1000];
 	for (int i=0;i<1000;i++) {
 		ptr[i]=h1.malloc();
@@ -180,16 +180,16 @@ TEST_F(HeapTest, 1000mallocfreeCleanup) {
 	ASSERT_EQ(h1.capacity(),(size_t)284) << "capacity is not 284";
 }
 
-TEST_F(HeapTest, reserve2000) {
-	ppl7::Heap h1(32,0,100,30);
+TEST_F(MemoryHeapTest, reserve2000) {
+	ppl7::MemoryHeap h1(32,0,100,30);
 	h1.reserve(2000);
 	//h1.dump();
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
 	ASSERT_EQ(h1.capacity(),(size_t)2000) << "capacity is not 2000";
 }
 
-TEST_F(HeapTest, reserve2000and3000) {
-	ppl7::Heap h1(32,0,100,30);
+TEST_F(MemoryHeapTest, reserve2000and3000) {
+	ppl7::MemoryHeap h1(32,0,100,30);
 	h1.reserve(2000);
 	h1.reserve(3000);
 	//h1.dump();
@@ -197,8 +197,8 @@ TEST_F(HeapTest, reserve2000and3000) {
 	ASSERT_EQ(h1.capacity(),(size_t)3000) << "capacity is not 2000";
 }
 
-TEST_F(HeapTest, clear) {
-	ppl7::Heap h1(32,0,100,30);
+TEST_F(MemoryHeapTest, clear) {
+	ppl7::MemoryHeap h1(32,0,100,30);
 	for (int i=0;i<1000;i++) {
 		void *ptr=h1.calloc();
 		ASSERT_TRUE(ptr!=NULL) << "calloc failed";

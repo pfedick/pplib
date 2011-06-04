@@ -140,7 +140,7 @@
 
 namespace ppl7 {
 
- class Heap
+ class MemoryHeap
  {
  	private:
  		void		*blocks;
@@ -161,9 +161,9 @@ namespace ppl7 {
 
 
 
- 		Heap();
- 		Heap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
- 		~Heap();
+ 		MemoryHeap();
+ 		MemoryHeap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
+ 		~MemoryHeap();
  		void clear();
  		void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
  		void *malloc();
@@ -178,6 +178,28 @@ namespace ppl7 {
  		void reserve(size_t num);
  		void cleanup();
  };
+
+class MemoryGroup
+{
+	private:
+		 void *first, *last;
+		 size_t totalSize;
+		 size_t totalBlocks;
+
+		 void addToList(void *block);
+		 void removeFromList(void *block);
+	public:
+		 MemoryGroup();
+		 ~MemoryGroup();
+		 void clear();
+		 void *malloc(size_t size);
+		 void *calloc(size_t size);
+		 void *realloc(void *adr, size_t size);
+		 void free(void *adr);
+		 char *strdup(const char *string);
+		 size_t count() const;
+		 size_t size() const;
+};
 
 
 }

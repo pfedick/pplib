@@ -72,7 +72,7 @@ typedef struct tagHeapBlock {
 } HEAPBLOCK;
 
 
-/*!\class Heap
+/*!\class MemoryHeap
  * \ingroup PPLGroupMemory
  * \brief Speicherverwaltung in Heaps
  *
@@ -84,7 +84,7 @@ typedef struct tagHeapBlock {
  * verhindert, dass der Speicher zu sehr fragmentiert wird.
  *
  * Bevor die Klasse verwendet werden kann, muss sie zunächst mittels Konstruktor oder
- * der Funktion Heap::init initialisiert werden. Dabei muss insbesondere die Größe
+ * der Funktion MemoryHeap::init initialisiert werden. Dabei muss insbesondere die Größe
  * der Elemente angegeben werden und die Anzahl Elemente, um die der Heap jeweils wachsen
  * soll, wenn kein Speicher mehr frei ist. Initial kann dabei auch schon Speicher allokiert
  * werden.
@@ -97,11 +97,11 @@ typedef struct tagHeapBlock {
 /*!\brief Konstruktor
  *
  * \desc
- * Bei Verwendung dieses Konstruktors muss anschließend die Funktion Heap::init
+ * Bei Verwendung dieses Konstruktors muss anschließend die Funktion MemoryHeap::init
  * aufgerufen werden.
  *
  */
-Heap::Heap()
+MemoryHeap::MemoryHeap()
 {
 	blocks=NULL;
 	myElementSize=0;
@@ -110,8 +110,8 @@ Heap::Heap()
 	blocksUsed=0;
 	freeCount=0;
 	myGrowPercent=30;
-	mem_allocated=sizeof(Heap);
-	mem_used=sizeof(Heap);
+	mem_allocated=sizeof(MemoryHeap);
+	mem_used=sizeof(MemoryHeap);
 }
 
 /*!\brief Konstruktor mit Initialisierung
@@ -127,7 +127,7 @@ Heap::Heap()
  * \exception OutOfMemoryException: Wird geworfen, wenn nicht genug Speicher verfügbar ist, um den
  * Heap anzulegen.
  */
-Heap::Heap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent)
+MemoryHeap::MemoryHeap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent)
 {
 	blocks=NULL;
 	myElementSize=0;
@@ -136,8 +136,8 @@ Heap::Heap(size_t elementsize, size_t startnum, size_t increase, size_t growperc
 	blocksUsed=0;
 	freeCount=0;
 	myGrowPercent=growpercent;
-	mem_allocated=sizeof(Heap);
-	mem_used=sizeof(Heap);
+	mem_allocated=sizeof(MemoryHeap);
+	mem_used=sizeof(MemoryHeap);
 	init(elementsize, startnum, increase);
 }
 
@@ -147,7 +147,7 @@ Heap::Heap(size_t elementsize, size_t startnum, size_t increase, size_t growperc
  * Der Destruktor sorgt dafür, dass der komplette durch den Heap belegte Speicher
  * freigegeben wird.
  */
-Heap::~Heap()
+MemoryHeap::~MemoryHeap()
 {
 	clear();
 }
@@ -156,11 +156,11 @@ Heap::~Heap()
  *
  * \desc
  * Sämtlicher durch den Heap belegte Speicher wird freigegeben. Alle durch
- * Heap::malloc oder Heap:calloc allokierten Speicherblöcke verlieren ihre Gültigkeit und
+ * MemoryHeap::malloc oder Heap:calloc allokierten Speicherblöcke verlieren ihre Gültigkeit und
  * dürfen nicht mehr verwendet werden.
  *
  */
-void Heap::clear()
+void MemoryHeap::clear()
 {
 	HEAPBLOCK *next, *bl=(HEAPBLOCK*)blocks;
 	while (bl) {
@@ -174,8 +174,8 @@ void Heap::clear()
 	blocksAllocated=0;
 	blocksUsed=0;
 	blocks=NULL;
-	mem_allocated=sizeof(Heap);
-	mem_used=sizeof(Heap);
+	mem_allocated=sizeof(MemoryHeap);
+	mem_used=sizeof(MemoryHeap);
 }
 
 /*!\brief Derzeitige Kapazität des Heaps
@@ -183,12 +183,12 @@ void Heap::clear()
  * \desc
  * Mit dieser Funktion kann abgefragt werden wieviele Elemente insgesamt allokiert werden
  * können, ohne dass neue Speicherblöcke vom Betriebssystem angefordert werden müssen.
- * Wieviele davon tatsächlich schon verbraucht sind, kann mittels Heap::count() abgefragt
+ * Wieviele davon tatsächlich schon verbraucht sind, kann mittels MemoryHeap::count() abgefragt
  * werden.
  *
  * @return Anzahl Elemente, für die Speicher vorrätig ist
  */
-size_t Heap::capacity() const
+size_t MemoryHeap::capacity() const
 {
 	return blocksAllocated;
 }
@@ -200,7 +200,7 @@ size_t Heap::capacity() const
  *
  * @return Anzahl Elemente
  */
-size_t Heap::count() const
+size_t MemoryHeap::count() const
 {
 	return blocksUsed;
 }
@@ -212,7 +212,7 @@ size_t Heap::count() const
  *
  * @return Größe in Bytes
  */
-size_t Heap::elementSize() const
+size_t MemoryHeap::elementSize() const
 {
 	return myElementSize;
 }
@@ -230,7 +230,7 @@ size_t Heap::elementSize() const
  * \note Falls schon Speicher allokiert wurde, wird die Anzahl der bereits allokierten Elemente
  * mit \p num verrechnet und nur die Differenz zusätzlich reserviert.
  */
-void Heap::reserve(size_t num)
+void MemoryHeap::reserve(size_t num)
 {
 	if (num>blocksAllocated) {
 		size_t grow=num-blocksAllocated;
@@ -254,7 +254,7 @@ void Heap::reserve(size_t num)
  * \exception OutOfMemoryException: Wird geworfen, wenn nicht genug Speicher verfügbar ist, um den
  * Heap anzulegen.
  */
-void Heap::init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent)
+void MemoryHeap::init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent)
 {
 	if (myElementSize) throw AlreadyInitializedException();
 	//Elementsize auf 4 Byte aufrunden
@@ -278,7 +278,7 @@ void Heap::init(size_t elementsize, size_t startnum, size_t increase, size_t gro
  * Heap anzulegen.
  *
  */
-void Heap::increase(size_t num)
+void MemoryHeap::increase(size_t num)
 {
 	HEAPBLOCK *bl=(HEAPBLOCK*)::malloc(sizeof(HEAPBLOCK));
 	if (!bl) throw OutOfMemoryException();
@@ -331,7 +331,7 @@ void Heap::increase(size_t num)
  * Heap anzulegen.
  *
  */
-void *Heap::calloc()
+void *MemoryHeap::calloc()
 {
 	void *block=malloc();
 	memset(block,0,myElementSize);
@@ -351,7 +351,7 @@ void *Heap::calloc()
  * Heap anzulegen.
  *
  */
-void *Heap::malloc()
+void *MemoryHeap::malloc()
 {
 	if (!myElementSize) throw NotInitializedException();
 	while (1) {
@@ -379,17 +379,17 @@ void *Heap::malloc()
 /*!\brief Speicher freigeben
  *
  * \desc
- * Speicher, der zuvor mit Heap::malloc oder Heap::calloc allokiert wurde, wird wieder
+ * Speicher, der zuvor mit MemoryHeap::malloc oder MemoryHeap::calloc allokiert wurde, wird wieder
  * freigegeben.
  *
  * @param mem Pointer auf den freizugebenden Speicherbereich
  *
- * \exception Heap::HeapCorruptedException: könnte auftreten, wenn der interne Speicher des
+ * \exception MemoryHeap::HeapCorruptedException: könnte auftreten, wenn der interne Speicher des
  * Heaps, in dem die Elemente verwaltet werden, überschrieben wurde.
- * \exception Heap::ElementNotInHeapException: Der mit \p mem referenzierte Speicherblock
+ * \exception MemoryHeap::ElementNotInHeapException: Der mit \p mem referenzierte Speicherblock
  * wurde nicht über diesen Heap allokiert.
  */
-void Heap::free(void *mem)
+void MemoryHeap::free(void *mem)
 {
 	if (!myElementSize) throw NotInitializedException();
 	HEAPBLOCK *bl=(HEAPBLOCK*)blocks;
@@ -425,11 +425,11 @@ void Heap::free(void *mem)
  *
  * \desc
  * Diese Funktion prüft, ob der Heap ungenutze Speicherbereiche verwaltet und gibt diese
- * frei. Das schließt Speicherbereiche, die mit Heap::reserve reserviert wurden, mit ein.
- * Die Funktion wird automatisch nach 1000 Aufrufen von Heap::free aufgerufen.
+ * frei. Das schließt Speicherbereiche, die mit MemoryHeap::reserve reserviert wurden, mit ein.
+ * Die Funktion wird automatisch nach 1000 Aufrufen von MemoryHeap::free aufgerufen.
  * Ein freier Speicherblock wird in Reserve gehalten.
  */
-void Heap::cleanup()
+void MemoryHeap::cleanup()
 {
 	// Wenn mehr als ein Block komplett leer ist, geben wir ihn frei
 	HEAPBLOCK *next, *bl=(HEAPBLOCK*)blocks;
@@ -464,7 +464,7 @@ void Heap::cleanup()
  *
  * @return Anzahl Byte
  */
-size_t Heap::memoryUsed() const
+size_t MemoryHeap::memoryUsed() const
 {
 	return mem_used;
 }
@@ -477,7 +477,7 @@ size_t Heap::memoryUsed() const
  *
  * @return Anzahl Byte
  */
-size_t Heap::memoryAllocated() const
+size_t MemoryHeap::memoryAllocated() const
 {
 	return mem_allocated;
 }
@@ -488,7 +488,7 @@ size_t Heap::memoryAllocated() const
  * Diese Funktion gibt einige Debug-Informationen zum Heap aus, insbesondere Anzahl
  * und Größe der durch den Heap verwalteten Speicherblöcke.
  */
-void Heap::dump() const
+void MemoryHeap::dump() const
 {
 	HEAPBLOCK *bl=(HEAPBLOCK*)blocks;
 	PrintDebug ("Dump Heap (0x%tx, ",(ptrdiff_t)this);

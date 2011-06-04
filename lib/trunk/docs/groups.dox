@@ -42,7 +42,7 @@ Die nachfolgenden Klassen dienen zum Erstellen und Verwalten von Bitmap-Grafiken
 */
 
 
-/*!\defgroup PPL6_Features Unterstützte Features der Library
+/*!\defgroup PPL7_Features Unterstützte Features der Library
 \brief Unterstützte Features der PPL-Library
 
 Mit den nachfolgenden statischen Funktionen der Cppl6Core-Klasse kann überprüft
@@ -58,7 +58,7 @@ Die Funktionen wurden mit Version 6.3.0 eingeführt.
 */
 
 
-/*!\defgroup PPL6_CRYPT Verschlüsselung und Hashes
+/*!\defgroup PPL7_CRYPT Verschlüsselung und Hashes
 \brief Verschlüsselung und Hashes
 
 \descr
@@ -77,7 +77,7 @@ Die Klassen und Funktionen wurden mit Version 6.3.0 eingeführt.
 */
 
 
-/*!\defgroup PPL6_COMPRESSION Datenkomprimierung
+/*!\defgroup PPL7_COMPRESSION Datenkomprimierung
 \brief Komprimierung von Daten
 
 \descr

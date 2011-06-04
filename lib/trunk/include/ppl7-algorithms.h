@@ -120,7 +120,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			public:
 				void *operator new(size_t, void *p) { return p;}
 		};
-		Heap		MyHeap;
+		MemoryHeap		MyHeap;
 		void clearRecursive(TreeItem *item) {
 			if (item->left) clearRecursive((TreeItem*)item->left);
 			item->~TreeItem();
@@ -304,7 +304,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 template <class K> class List
 {
 	private:
-		Heap		MyHeap;
+		MemoryHeap		MyHeap;
 		class ListItem {
 			friend class List;
 			private:
