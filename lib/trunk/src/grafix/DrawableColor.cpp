@@ -180,7 +180,6 @@ static SurfaceColor RGBBlend_32 (SurfaceColor ground, SurfaceColor top, float in
 
 
 
-#ifdef DONE
 /*!\brief Farbe in einen Farbformatspezifischen Wert umrechnen
  *
  * \desc
@@ -215,10 +214,8 @@ SurfaceColor Drawable::rgb(int r, int g, int b, int alpha) const
 	return 0;
 }
 
-#endif
 
-#ifdef DONE
-int CGrafix::InitColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
+void Grafix::initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
 	switch (format) {
 		/*
@@ -265,7 +262,7 @@ int CGrafix::InitColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->Surface2RGB=Surface2RGB_A8R8G8B8;
 			fn->RGBBlend=RGBBlend_32;
 			fn->RGBBlend255=RGBBlend_32_255;
-			return 1;
+			return;
 		case RGBFormat::B8G8R8:
 		case RGBFormat::A8B8G8R8:
 		case RGBFormat::X8B8G8R8:
@@ -273,7 +270,7 @@ int CGrafix::InitColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->Surface2RGB=Surface2RGB_A8B8G8R8;
 			fn->RGBBlend=RGBBlend_32;
 			fn->RGBBlend255=RGBBlend_32_255;
-			return 1;
+			return;
 			/*
 		case RGBFormat::R3G3B2:
 			data.RGB=RGB_R3G3B2;
@@ -286,17 +283,16 @@ int CGrafix::InitColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->RGB=RGB_GREY8;
 			fn->Surface2RGB=Surface2RGB_GREY8;
 			fn->RGBBlend=RGBBlend_NULL;
-			return 1;
+			return;
 		default:
 			fn->RGB=RGB_NULL;
 			fn->Surface2RGB=Surface2RGB_NULL;
 			fn->RGBBlend=RGBBlend_NULL;
 	}
-	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
-	return 0;
+	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const wchar_t*)format.name(),format.format());
 }
 
-#endif
+
 
 
 

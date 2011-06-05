@@ -573,12 +573,12 @@ class Grafix
 		void InitErrors();
 		void InitAlphatab();
 
-		int InitFunctions(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		int InitColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		int InitPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		int InitShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		int InitLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		int InitBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		void initFunctions(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		void initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		void initPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		void initShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		void initLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		void initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
 
 
 	public:
