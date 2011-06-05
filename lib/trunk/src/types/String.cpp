@@ -2692,6 +2692,100 @@ bool String::operator>(const String &str) const
 }
 
 
+/*!\brief Kleiner als
+ *
+ * \desc
+ * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters kleiner dem des
+ * rechten ist.
+ *
+ * @param str Zu vergleichender String
+ * @return Liefert \c true oder \c false zurück
+ */
+bool String::operator<(const wchar_t *str) const
+{
+	if (strcmp(str)<0) return true;
+	return false;
+}
+
+/*!\brief Kleiner oder gleich
+ *
+ * \desc
+ * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters kleiner oder gleich
+ * dem des rechten ist.
+ *
+ * @param str Zu vergleichender String
+ * @return Liefert \c true oder \c false zurück
+ */
+bool String::operator<=(const wchar_t *str) const
+{
+	if (strcmp(str)<=0) return true;
+	return false;
+}
+
+/*!\brief Gleich
+ *
+ * \desc
+ * Dieser Operator liefert \c true zurück, wenn der Wert des linken Parameters mit dem des
+ * rechten identisch ist.
+ *
+ * @param str Zu vergleichender String
+ * @return Liefert \c true oder \c false zurück
+ */
+bool String::operator==(const wchar_t *str) const
+{
+	if (strcmp(str)==0) return true;
+	return false;
+}
+
+/*!\brief Ungleich
+ *
+ * \desc
+ * Dieser Operator liefert \c true zurück, wenn der Wert des linken Parameters nicht dem des
+ * rechten entspricht.
+ *
+ * @param str Zu vergleichender String
+ * @return Liefert \c true oder \c false zurück
+ */
+bool String::operator!=(const wchar_t *str) const
+{
+	if (strcmp(str)==0) return false;
+	return true;
+
+}
+
+/*!\brief Größer oder gleich
+ *
+ * \desc
+ * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters größer oder
+ * gleich dem des rechten ist.
+ *
+ * @param str Zu vergleichender String
+ * @return Liefert \c true oder \c false zurück
+ */
+bool String::operator>=(const wchar_t *str) const
+{
+	if (strcmp(str)>=0) return true;
+	return false;
+}
+
+/*!\brief Größer als
+ *
+ * \desc
+ * Dieser Operator liefert true zurück, wenn der Wert des linken Parameters größer
+ * dem des rechten ist.
+ *
+ * @param str Zu vergleichender String
+ * @return Liefert \c true oder \c false zurück
+ */
+bool String::operator>(const wchar_t *str) const
+{
+	if (strcmp(str)>0) return true;
+	return false;
+}
+
+
+
+
 const wchar_t * String::getPtr() const
 {
 	if (ptr==NULL || stringlen==0) return L"";

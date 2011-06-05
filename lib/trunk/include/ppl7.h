@@ -447,7 +447,6 @@ class FileObject
 		};
 		//! @name Exceptions
 		//@{
-		PPLNORMALEXCEPTION(UnimplementedVirtualFunctionException);
 		PPLNORMALEXCEPTION(FileNotOpenException);
 		PPLNORMALEXCEPTION(FileSeekException);
 		PPLNORMALEXCEPTION(ReadException);

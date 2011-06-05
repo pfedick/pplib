@@ -50,6 +50,35 @@
 namespace ppl7 {
 namespace grafix {
 
+
+PPLPARAMETERISEDEXCEPTION(UnknownColorFormatException);
+PPLPARAMETERISEDEXCEPTION(UnsupportedColorFormatException);
+PPLNORMALEXCEPTION(NoGrafixEngineException);
+
+
+// Microsoft kompatible Strukturen
+typedef struct _RECT {
+		long left;
+		long top;
+		long right;
+		long bottom;
+} RECT, *PRECT;
+
+typedef struct tagPOINT {
+		long x;
+		long y;
+} POINT, *PPOINT;
+
+
+
+typedef struct tagSIZE {
+		long cx;
+		long cy;
+} SIZE, *PSIZE;
+
+
+typedef ppluint32 SurfaceColor;
+
 class Point
 {
 	public:
@@ -96,14 +125,16 @@ class Point3D
 	private:
 
 	public:
-		int x,y,pz;
+		int x,y,z;
 		Point3D();
 		Point3D(int x, int y, int z);
+		Point3D(const Point3D &other);
 		bool isNull() const;
 		void setX(int x);
 		void setY(int y);
 		void setZ(int z);
 		void setPoint(int x, int y, int z);
+		void setPoint(const Point3D &other);
 		Point3D &operator*= (double factor);
 		Point3D &operator+= (const Point3D &point);
 		Point3D &operator-= (const Point3D &point);
@@ -119,9 +150,6 @@ const Point3D operator- (const Point3D &p1, const Point3D &p2);
 const Point3D operator- (const Point3D &point);
 const Point3D operator/ (const Point3D &point, double divisor);
 
-
-#ifdef DONE
-
 class Size
 {
 	public:
@@ -129,6 +157,7 @@ class Size
 
 		Size();
 		Size(int width, int height);
+		Size(const Size &other);
 		bool isNull() const;
 		bool isEmpty() const;
 		bool isValid() const;
@@ -158,11 +187,11 @@ class Rect
 	friend bool operator== (const Rect &r1, const Rect &r2);
 
 	private:
+	public:
 		int x1,y1;
 		int x2,y2;
-	public:
 		Rect();
-		Rect(const Point &topLeft, const Point &bottomRight);
+		Rect(const Point &p1, const Point &p2);
 		Rect(int x, int y, int width, int height);
 		Rect(const Rect &r);
 
@@ -186,9 +215,11 @@ class Rect
 
 		void setTopLeft(const Point &topLeft);
 		void setBottomRight(const Point &bottomRight);
+		void setRect(const RECT &r);
 		void setRect(const Rect &r);
 		void setRect(int x, int y, int width, int height);
 		void setCoords(int x1, int y1, int x2, int y2);
+		void setCoords(const Point &p1, const Point &p2);
 		void setLeft(int left);
 		void setRight(int right);
 		void setTop(int top);
@@ -203,6 +234,81 @@ class Rect
 bool operator!= (const Rect &r1, const Rect &r2);
 bool operator== (const Rect &r1, const Rect &r2);
 
+class RGBFormat
+{
+private:
+	int f;
+public:
+	enum Identifier {
+		unknown=0,
+		Palette,
+		R5G6B5,
+		B5G6R5,
+		X1R5G5B5,
+		X1B5G5R5,
+		X4R4G4B4,
+		A1R5G5B5,
+		A1B5G5R5,
+		A4R4G4B4,
+		R8G8B8,
+		B8G8R8,
+		A8R8G8B8,
+		A8B8G8R8,
+		R3G3B2,
+		A8,
+		A8R3G3B2,
+		X8R8G8B8,
+		X8B8G8R8,
+		GREY8,
+		GREYALPHA32,
+		X16R16G16B16,
+		A16R16G16B16,
+
+		MaxIdentifiers
+	};
+
+	RGBFormat();
+	RGBFormat(Identifier id);
+	RGBFormat(const String &Identifier);
+
+	void setFormat(Identifier id);
+	void setFormat(const String &Identifier);
+
+	int format() const;
+	String name() const;
+	int bitdepth() const;
+	int bytesPerPixel() const;
+	int bitsPerPixel() const;
+
+	RGBFormat &operator=(Identifier id);
+	operator int() const;
+
+	friend bool operator!= (const RGBFormat &r1, const RGBFormat &r2);
+	friend bool operator== (const RGBFormat &r1, const RGBFormat &r2);
+	friend bool operator== (const RGBFormat &r1, RGBFormat::Identifier r2);
+	friend bool operator!= (const RGBFormat &r1, RGBFormat::Identifier r2);
+	friend bool operator== (RGBFormat::Identifier r1, const RGBFormat &r2);
+	friend bool operator!= (RGBFormat::Identifier r1, const RGBFormat &r2);
+
+};
+
+bool operator!= (const RGBFormat &r1, const RGBFormat &r2);
+bool operator== (const RGBFormat &r1, const RGBFormat &r2);
+bool operator== (const RGBFormat &r1, RGBFormat::Identifier r2);
+bool operator!= (const RGBFormat &r1, RGBFormat::Identifier r2);
+bool operator== (RGBFormat::Identifier r1, const RGBFormat &r2);
+bool operator!= (RGBFormat::Identifier r1, const RGBFormat &r2);
+
+
+typedef struct {
+	int			width;
+	int			height;
+	int			pitch;
+	int			bitdepth;
+	int			colors;
+	RGBFormat	format;
+} IMAGE;
+
 
 class Color
 {
@@ -212,7 +318,6 @@ class Color
 	friend const Color operator* (float factor, const Color &size);
 
 	private:
-		int Clamp(int value);
 #ifdef __LITTLE_ENDIAN__
 union  {
 	struct { ppluint8 r,g,b,a; };
@@ -321,7 +426,7 @@ class Drawable
 	private:
 		GRAFIX_FUNCTIONS	*fn;
 		DRAWABLE_DATA		data;
-		int initFunctions(const RGBFormat &format);
+		void initFunctions(const RGBFormat &format);
 
 	public:
 		/** @name Konstruktoren
@@ -340,9 +445,9 @@ class Drawable
 		GRAFIX_FUNCTIONS *getFunctions();
 		DRAWABLE_DATA *getData();
 
-		int copy(const Drawable &other);
-		int copy(const Drawable &other, const Rect &rect);
-		int create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
+		void copy(const Drawable &other);
+		void copy(const Drawable &other, const Rect &rect);
+		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
 		Drawable &operator=(const Drawable &other);
 
 		Rect rect() const;
@@ -416,12 +521,14 @@ class Drawable
 		void	lineAA(const Point &start, const Point &end, const Color &c, int strength=1);
 		//@}
 
+#ifdef DONE
 		/** @name Textausgabe
 		 */
 		//@{
 		void	print(const Font &font, int x, int y, const String &text);
 		void	printf(const Font &font, int x, int y, const char *fmt, ...);
 		//@}
+#endif
 
 		/** @name Blit-Funktionen
 		 * Kopieren von Grafiken mit verschiedenen Methoden
@@ -442,7 +549,173 @@ class Drawable
 		int draw(const Sprite &sprite, int nr, int x, int y);
 		//@}
 };
+
+class ImageFilter;
+
+class Grafix
+{
+	private:
+		Mutex		myMutex;
+		/*
+		CList		FontEngines;
+		CTree		FontList;
+		CList		ImageFilter;
+		*/
+		ImageFilter		*filter_png;
+		ImageFilter		*filter_jpeg;
+		ImageFilter		*filter_bmp;
+		ImageFilter		*filter_gif;
+		ImageFilter		*filter_ppm;
+		ImageFilter		*filter_tga;
+		RGBFormat	PrimaryRGBFormat;
+
+
+		void InitErrors();
+		void InitAlphatab();
+
+		int InitFunctions(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		int InitColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		int InitPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		int InitShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		int InitLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+		int InitBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+
+
+	public:
+		Grafix();
+		~Grafix();
+
+		/*
+		ImageList	Toolbar;
+		ImageList	ButtonSymbolsSmall;
+		ImageList	Icons32;
+		*/
+
+
+		GRAFIX_FUNCTIONS *getGrafixFunctions(const RGBFormat &format);
+
+		// Image-Filter und Loader
+		int addImageFilter(ImageFilter *filter);
+		int unloadImageFilter(ImageFilter *filter);
+		ImageFilter *findImageFilter(const String &name);
+		ImageFilter *findImageFilter(FileObject &ff, IMAGE &img);
+
+		// Fonts
+		/*
+		int addFontEngine(FontEngine *engine);
+		int loadFont(const String &filename, const String &fontname=String());
+		int loadFont(FileObject &ff, const String &fontname=String());
+		int loadFont(const ByteArrayPtr &memory, const String &fontname=String());
+		int unloadFont(const String &fontname);
+		FontFile *findFont(const String &fontname);
+		FontFile *findFont(const Font &font);
+		*/
+
+};
+
+Grafix *GetGrafix();
+
+
+
+
+class ImageFilter
+{
+	private:
+
+	public:
+		PPLNORMALEXCEPTION(IllegalImageFormatException);
+		PPLNORMALEXCEPTION(EmptyImageException);
+
+		ImageFilter();
+		virtual ~ImageFilter();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const Rect &area, const AssocArray &param=AssocArray());
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
+
+		void saveFile (const Drawable &surface, const String &filename, const Rect &area, const AssocArray &param=AssocArray());
+		void saveFile (const Drawable &surface, const String &filename, const AssocArray &param=AssocArray());
+};
+
+class ImageFilter_PNG : public ImageFilter
+{
+	public:
+		ImageFilter_PNG();
+		virtual ~ImageFilter_PNG();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
+};
+
+#ifdef DONE
+
+class ImageFilter_BMP : public ImageFilter
+{
+	public:
+		ImageFilter_BMP();
+		virtual ~ImageFilter_BMP();
+		virtual int Ident(CFileObject &file, IMAGE &img);
+		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
+		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
+		virtual CString Name();
+		virtual CString Description();
+};
+
+class ImageFilter_GIF : public ImageFilter
+{
+	public:
+		ImageFilter_GIF();
+		virtual ~ImageFilter_GIF();
+		virtual int Ident(CFileObject &file, IMAGE &img);
+		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
+		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
+		virtual CString Name();
+		virtual CString Description();
+};
+
+class ImageFilter_JPEG : public ImageFilter
+{
+	public:
+		ImageFilter_JPEG();
+		virtual ~ImageFilter_JPEG();
+		virtual int Ident(CFileObject &file, IMAGE &img);
+		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
+		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
+		virtual CString Name();
+		virtual CString Description();
+};
+
+class ImageFilter_PPM : public ImageFilter
+{
+	public:
+		ImageFilter_PPM();
+		virtual ~ImageFilter_PPM();
+		virtual int Ident(CFileObject &file, IMAGE &img);
+		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
+		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
+		virtual CString Name();
+		virtual CString Description();
+};
+
+class ImageFilter_TGA : public ImageFilter
+{
+	public:
+		ImageFilter_TGA();
+		virtual ~ImageFilter_TGA();
+		virtual int Ident(CFileObject &file, IMAGE &img);
+		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
+		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
+		virtual CString Name();
+		virtual CString Description();
+};
+
 #endif
+
+
 
 } // EOF namespace grafix
 } // end of namespace ppl7

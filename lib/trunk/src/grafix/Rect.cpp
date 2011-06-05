@@ -57,159 +57,135 @@ namespace grafix {
 /*!\class Rect
  * \ingroup PPLGroupGrafik
  * \brief Repräsentiert ein Rechteck in einem zweidimensionalen Koordinatensystem
+ *
+ * \desc
+ * By convention, the right and bottom edges of the rectangle are normally considered exclusive.
+ * In other words, the pixel whose coordinates are ( right, bottom ) lies immediately outside of
+ * the rectangle. For example, when RECT is passed to the FillRect function, the rectangle is filled
+ * up to, but not including, the right column and bottom row of pixels.
+ *
  */
 
 Rect::Rect()
 {
-	rx=0;
-	ry=0;
-	rw=0;
-	rh=0;
+	x1=0;
+	y1=0;
+	x2=0;
+	y2=0;
 }
 
-Rect::Rect(const Point &topLeft, const Point &bottomRight)
+Rect::Rect(const Point &p1, const Point &p2)
 {
-	rx=topLeft.x();
-	ry=topLeft.y();
-	rw=bottomRight.x()-rx+1;
-	rh=bottomRight.y()-ry+1;
+	x1=p1.x;
+	y1=p1.y;
+	x2=p2.x;
+	y2=p2.y;
+}
+
+Rect::Rect(const Rect &other)
+{
+	x1=other.x1;
+	y1=other.y1;
+	x2=other.x2;
+	y2=other.y2;
 }
 
 Rect::Rect(int x, int y, int width, int height)
 {
-	rx=x;
-	ry=y;
-	rw=width;
-	rh=height;
-}
-
-Rect::Rect(const RECT &r)
-{
-	rx=r.left;
-	ry=r.top;
-	rw=r.right-r.left+1;
-	rh=r.bottom-r.top+1;
+	x1=x;
+	y1=y;
+	x2=x+width;
+	y2=y+height;
 }
 
 
 bool Rect::isNull() const
 {
-	if (rw==0 && rh==0) return true;
+	if (x1==x2 && y1==y2) return true;
 	return false;
 }
 
 int Rect::left() const
 {
-	return rx;
+	return x1;
 }
 
 int Rect::right() const
 {
-	return rx+rw-1;
+	return x2-1;
 }
 
 int Rect::top() const
 {
-	return ry;
+	return y1;
 }
 
 int Rect::bottom() const
 {
-	return ry+rh-1;
+	return y2-1;
 }
 
 int Rect::width() const
 {
-	return rw;
+	return x2-x1;
 }
 
 int Rect::height() const
 {
-	return rh;
+	return y2-y1;
 }
-
-int Rect::x() const
-{
-	return rx;
-}
-
-int Rect::y() const
-{
-	return ry;
-}
-
-int Rect::x1() const
-{
-	return rx;
-}
-
-int Rect::y1() const
-{
-	return ry;
-}
-
-int Rect::x2() const
-{
-	return rx+rw-1;
-}
-
-int Rect::y2() const
-{
-	return ry+rh-1;
-}
-
 
 Size Rect::size() const
 {
-	return Size(rw,rh);
+	return Size(x2-x1,y2-y1);
 }
 
 Point Rect::topLeft() const
 {
-	return Point(rx,ry);
+	return Point(x1,y1);
 }
 
 Point Rect::topRight() const
 {
-	return Point(rx+rw-1,ry);
+	return Point(x2,y1);
 }
 
 Point Rect::bottomLeft() const
 {
-	return Point(rx,ry+rh-1);
+	return Point(x1,y2);
 }
 
 Point Rect::bottomRight() const
 {
-	return Point(rx+rw-1,ry+rh-1);
+	return Point(x2,y2);
 }
 
 Rect Rect::normalized () const
 {
 	Rect r;
-	if (rw>=0) {
-		r.rx=rx;
-		r.rw=rw;
+	if (x2>=x1) {
+		r.x1=x1;
+		r.x2=x2;
 	} else {
-		r.rw=abs(rw);
-		r.rx=rx-r.rw;
+		r.x1=x2;
+		r.x2=x1;
 	}
-	if (rh>=0) {
-		r.ry=ry;
-		r.rh=rh;
+	if (y2>=y1) {
+		r.y1=y1;
+		r.y2=y2;
 	} else {
-		r.rh=abs(rh);
-		r.ry=ry-r.rh;
+		r.y1=y2;
+		r.y2=y1;
 	}
 	return r;
 }
 
 bool Rect::intersects(const Rect &other)
 {
-	return (other.left()< right()
-			&& other.right() > left()
-			&& other.top() < bottom()
-			&& other.bottom() > top());
+	return (other.x1< x2
+			&& other.x2 > x1
+			&& other.y1 < y2
+			&& other.y2 > y1);
 
 }
 
@@ -235,111 +211,129 @@ Rect Rect::intersected(const Rect &other)
 	if (isNull()) return r;
 	if (other.isNull()) return r;
 	if (!intersects(other)) return r;
-	r.setLeft(max(left(),other.left()));
-	r.setTop(max(top(),other.top()));
-	r.setRight(min(right(),other.right()));
-	r.setBottom(min(bottom(),other.bottom()));
+	r.x1=max(x1,other.x1);
+	r.y1=max(y1,other.y1);
+	r.x2=min(x2,other.x2);
+	r.y2=min(y2,other.y2);
 	return r;
 }
 
 void Rect::setTopLeft(const Point &topLeft)
 {
-	rx=topLeft.x();
-	ry=topLeft.y();
+	x1=topLeft.x;
+	y1=topLeft.y;
 }
 
 void Rect::setBottomRight(const Point &bottomRight)
 {
-	rw=bottomRight.x()-rx+1;
-	rh=bottomRight.y()-ry+1;
+	x2=bottomRight.x;
+	y2=bottomRight.y;
 }
 
 void Rect::setRect(int x, int y, int width, int height)
 {
-	rx=x;
-	ry=y;
-	rw=width;
-	rh=height;
+	x1=x;
+	y1=y;
+	x2=x+width-1;
+	y2=y+height-1;
 }
 
 void Rect::setRect(const RECT &r)
 {
-	rx=r.left;
-	ry=r.top;
-	rw=r.right-r.left+1;
-	rh=r.bottom-r.top+1;
+	x1=r.left;
+	y1=r.top;
+	x2=r.right;
+	y2=r.bottom;
 }
+
+
+void Rect::setRect(const Rect &other)
+{
+	x1=other.x1;
+	y1=other.y1;
+	x2=other.x2;
+	y2=other.y2;
+}
+
 
 void Rect::setCoords(int x1, int y1, int x2, int y2)
 {
-	rx=x1;
-	ry=y1;
-	rw=x2-x1+1;
-	rh=y2-y1+1;
+	this->x1=x1;
+	this->y1=y1;
+	this->x2=x2;
+	this->y2=y2;
+}
+
+void Rect::setCoords(const Point &p1, const Point &p2)
+{
+	x1=p1.x;
+	y1=p1.y;
+	x2=p2.x;
+	y2=p2.y;
 }
 
 void Rect::setLeft(int left)
 {
-	rx=left;
+	x1=left;
 }
 
 void Rect::setRight(int right)
 {
-	rw=right-rx+1;
+	x2=right;
 }
 
 void Rect::setTop(int top)
 {
-	ry=top;
+	y1=top;
 }
 
 void Rect::setBottom(int bottom)
 {
-	rh=bottom-ry+1;
+	y2=bottom;
 }
 
 void Rect::setX(int x)
 {
-	rx=x;
+	x1=x;
 }
 
 void Rect::setY(int y)
 {
-	ry=y;
+	x2=y;
 }
 
 void Rect::setSize(const Size &size)
 {
-	rw=size.width();
-	rh=size.height();
+	x2=x1+size.width;
+	y2=y1+size.height;
 }
 
 void Rect::setWidth(int width)
 {
-	rw=width;
+	x2=x1+width;
 }
 
 void Rect::setHeight(int height)
 {
-	rh=height;
+	y2=y1+height;
 }
 
 
 bool operator!= (const Rect &r1, const Rect &r2)
 {
-	if (r1.rx!=r2.rx) return true;
-	if (r1.ry!=r2.ry) return true;
-	if (r1.rw!=r2.rw) return true;
-	if (r1.rh!=r2.rh) return true;
+	if (r1.x1!=r2.x1) return true;
+	if (r1.y1!=r2.y1) return true;
+	if (r1.x2!=r2.x2) return true;
+	if (r1.y2!=r2.y2) return true;
 	return false;
 }
 
 bool operator== (const Rect &r1, const Rect &r2)
 {
-	if (r1.rx!=r2.rx) return false;
-	if (r1.ry!=r2.ry) return false;
-	if (r1.rw!=r2.rw) return false;
-	if (r1.rh!=r2.rh) return false;
+	if (r1.x1!=r2.x1) return false;
+	if (r1.y1!=r2.y1) return false;
+	if (r1.x2!=r2.x2) return false;
+	if (r1.y2!=r2.y2) return false;
 	return true;
 }
 

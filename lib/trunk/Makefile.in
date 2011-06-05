@@ -62,8 +62,14 @@ RELEASE	= release/AVLTree.o \
 	release/random.o \
 	 \
 	 \
+	release/gfx_Color.o \
+	release/gfx_Drawable.o \
+	release/gfx_DrawableColor.o \
+	release/gfx_ImageFilter.o \
+	release/gfx_ImageFilter_PNG.o \
 	release/gfx_Point.o \
 	release/gfx_Point3D.o \
+	release/gfx_RGBFormat.o \
 	release/gfx_Rect.o \
 	release/gfx_Size.o \
 	 \
@@ -97,8 +103,14 @@ DEBUG	= debug/AVLTree.o \
 	debug/random.o \
 	 \
 	 \
+	debug/gfx_Color.o \
+	debug/gfx_Drawable.o \
+	debug/gfx_DrawableColor.o \
+	debug/gfx_ImageFilter.o \
+	debug/gfx_ImageFilter_PNG.o \
 	debug/gfx_Point.o \
 	debug/gfx_Point3D.o \
+	debug/gfx_RGBFormat.o \
 	debug/gfx_Rect.o \
 	debug/gfx_Size.o \
 	 \
@@ -357,6 +369,31 @@ release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 ### INTERNET
 ### DATABASE
 ### GRAFIX
+release/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Color.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Color.o -c $(srcdir)/grafix/Color.cpp $(CFLAGS) 
+
+release/gfx_Drawable.o:	$(srcdir)/grafix/Drawable.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Drawable.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Drawable.o -c $(srcdir)/grafix/Drawable.cpp $(CFLAGS) 
+
+release/gfx_DrawableColor.o:	$(srcdir)/grafix/DrawableColor.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/DrawableColor.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_DrawableColor.o -c $(srcdir)/grafix/DrawableColor.cpp $(CFLAGS) 
+
+release/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp $(CFLAGS) 
+
+release/gfx_ImageFilter_PNG.o:	$(srcdir)/grafix/ImageFilter_PNG.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_PNG.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_PNG.o -c $(srcdir)/grafix/ImageFilter_PNG.cpp $(CFLAGS) 
+
 release/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/Point.cpp<<<
@@ -366,6 +403,11 @@ release/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/p
 	###############################################################################
 	# Compiling >>>grafix/Point3D.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp $(CFLAGS) 
+
+release/gfx_RGBFormat.o:	$(srcdir)/grafix/RGBFormat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/RGBFormat.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_RGBFormat.o -c $(srcdir)/grafix/RGBFormat.cpp $(CFLAGS) 
 
 release/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -536,6 +578,31 @@ debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 ### INTERNET
 ### DATABASE
 ### GRAFIX
+debug/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Color.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Color.o -c $(srcdir)/grafix/Color.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_Drawable.o:	$(srcdir)/grafix/Drawable.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Drawable.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Drawable.o -c $(srcdir)/grafix/Drawable.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_DrawableColor.o:	$(srcdir)/grafix/DrawableColor.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/DrawableColor.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_DrawableColor.o -c $(srcdir)/grafix/DrawableColor.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter_PNG.o:	$(srcdir)/grafix/ImageFilter_PNG.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_PNG.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter_PNG.o -c $(srcdir)/grafix/ImageFilter_PNG.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/Point.cpp<<<
@@ -545,6 +612,11 @@ debug/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	###############################################################################
 	# Compiling >>>grafix/Point3D.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_RGBFormat.o:	$(srcdir)/grafix/RGBFormat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/RGBFormat.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_RGBFormat.o -c $(srcdir)/grafix/RGBFormat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################

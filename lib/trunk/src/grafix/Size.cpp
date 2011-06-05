@@ -62,148 +62,135 @@ namespace grafix {
 
 Size::Size()
 {
-	w=0;
-	h=0;
+	width=0;
+	height=0;
 }
 
 Size::Size(int width, int height)
 {
-	w=width;
-	h=height;
+	this->width=width;
+	this->height=height;
 }
 
-int Size::height() const
+Size::Size(const Size &other)
 {
-	return h;
+	width=other.width;
+	height=other.height;
 }
 
-int Size::width() const
-{
-	return w;
-}
 
 bool Size::isNull() const
 {
-	if (h==0 && w==0) return true;
+	if (height==0 && width==0) return true;
 	return false;
 }
 
 bool Size::isEmpty() const
 {
-	if (h==0 || w==0) return true;
+	if (height==0 || width==0) return true;
 	return false;
 }
 
 bool Size::isValid() const
 {
-	if (w<0) return false;
-	if (h<0) return false;
+	if (width<0) return false;
+	if (height<0) return false;
 	return true;
-}
-
-int &Size::rheight()
-{
-	return h;
-}
-
-int &Size::rwidth()
-{
-	return w;
 }
 
 void Size::setHeight(int height)
 {
-	h=height;
+	this->height=height;
 }
 
 void Size::setWidth(int width)
 {
-	w=width;
+	this->width=width;
 }
 
 void Size::setSize(int width, int height)
 {
-	w=width;
-	h=height;
+	this->width=width;
+	this->height=height;
 }
 
-void Size::setSize(const Size &s)
+void Size::setSize(const Size &other)
 {
-	w=s.w;
-	h=s.h;
+	width=other.width;
+	height=other.height;
 }
 
 
 Size &Size::operator*= (double factor)
 {
-	w=(int)(w*factor);
-	h=(int)(h*factor);
+	width=(int)(width*factor);
+	height=(int)(height*factor);
 	return *this;
 }
 
 Size &Size::operator+= (const Size &size)
 {
-	w+=size.w;
-	h+=size.h;
+	width+=size.width;
+	height+=size.height;
 	return *this;
 }
 
 Size &Size::operator-= (const Size &size)
 {
-	w-=size.w;
-	h-=size.h;
+	width-=size.width;
+	height-=size.height;
 	return *this;
 }
 
 Size &Size::operator/= (double divisor)
 {
-	w=(int)(w/divisor);
-	h=(int)(h/divisor);
+	width=(int)(width/divisor);
+	height=(int)(height/divisor);
 	return *this;
 }
 
 bool operator!= (const Size &s1, const Size &s2)
 {
-	if (s1.w!=s2.w) return true;
-	if (s1.h!=s2.h) return true;
+	if (s1.width!=s2.width) return true;
+	if (s1.height!=s2.height) return true;
 	return false;
 }
 
 bool operator== (const Size & s1, const Size &s2)
 {
-	if (s1.w!=s2.w) return false;
-	if (s1.h!=s2.h) return false;
+	if (s1.width!=s2.width) return false;
+	if (s1.height!=s2.height) return false;
 	return true;
 }
 
 const Size operator* (const Size &size, double factor)
 {
-	return Size((int)(size.w*factor), (int)(size.h*factor));
+	return Size((int)(size.width*factor), (int)(size.height*factor));
 }
 
 const Size operator* (double factor, const Size &size)
 {
-	return Size((int)(size.w*factor), (int)(size.h*factor));
+	return Size((int)(size.width*factor), (int)(size.height*factor));
 }
 
 const Size operator+ (const Size &s1, const Size &s2)
 {
-	return Size(s1.w+s2.w,s1.h+s2.h);
+	return Size(s1.width+s2.width,s1.height+s2.height);
 }
 
 const Size operator- (const Size &s1, const Size &s2)
 {
-	return Size(s1.w-s2.w,s1.h-s2.h);
+	return Size(s1.width-s2.width,s1.height-s2.height);
 }
 
 const Size operator- (const Size &size)
 {
-	return Size(0-size.w,0-size.h);
+	return Size(0-size.width,0-size.height);
 }
 
 const Size operator/ (const Size &size, double divisor)
 {
-	return Size((int)(size.w/divisor), (int)(size.h*divisor));
+	return Size((int)(size.width/divisor), (int)(size.height*divisor));
 }
 
 

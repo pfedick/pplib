@@ -396,6 +396,14 @@ class String : public Variant
 		bool operator!=(const String &str) const;
 		bool operator>=(const String &str) const;
 		bool operator>(const String &str) const;
+
+		bool operator<(const wchar_t *str) const;
+		bool operator<=(const wchar_t *str) const;
+		bool operator==(const wchar_t *str) const;
+		bool operator!=(const wchar_t *str) const;
+		bool operator>=(const wchar_t *str) const;
+		bool operator>(const wchar_t *str) const;
+
 		//@}
 
 #ifdef WITH_QT

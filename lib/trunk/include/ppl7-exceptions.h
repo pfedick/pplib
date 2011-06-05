@@ -108,6 +108,8 @@ PPLNORMALEXCEPTION(ItemNotFromThisListException);
 PPLNORMALEXCEPTION(EndOfListException);
 PPLNORMALEXCEPTION(IllegalMemoryAddressException);
 
+PPLNORMALEXCEPTION(UnimplementedVirtualFunctionException);
+
 
 
 }	// EOF namespace ppl7

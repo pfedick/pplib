@@ -9,24 +9,24 @@
  * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
+ * Coyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
+ *     * Redistributions of source code must retain the above coyright
  *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
+ *     * Redistributions in binary form must reproduce the above coyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its
+ *     * Neither the name of the coyright holder nor the names of its
  *       contributors may be used to endorse or promote products derived
  *       from this software without specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY THE COyRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER AND CONTRIBUTORS BE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COyRIGHT HOLDER AND CONTRIBUTORS BE
  * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
@@ -63,9 +63,9 @@ namespace grafix {
  * Zum Speichern der Koordinaten werden Integer (Ganzzahlen) verwendet.
  * \par
  * Ein Punkt wird durch seine X-, Y- und Z-Koordinate definiert, die mit den Funktionen
- * setX(), setY() und setZ() gesetzt und mit x(), y() und z() ausgelesen werden können.
- * Dir Funktionen rx(), ry() und rz() liefern Referenzen auf die Koordinaten und erlauben es so die Werte direkt
- * zu manipulieren.
+ * setX(), setY(), setZ() oder setPoint(). Die Koordinaten können über Point3D.x, Point3D.y
+ * und Point3D.z aber auch direkt angesprochen werden.
+ *
  * \par
  * Beispiele:
  * \code
@@ -75,9 +75,9 @@ namespace grafix {
  p2.setX(4);
  p2.setY(12);
  p2.setZ(6);
- p3.rx()=4;
- p3.ry()=12;
- p3.rz()=6;
+ p3.x=4;
+ p3.y=12;
+ p3.z=6;
  * \endcode
  * \par
  * Ein Punkt kann auch als Vektor benutzt werden. Bei Addition und Subtraktion wird jede Komponente separat berechnet.
@@ -90,15 +90,15 @@ namespace grafix {
  */
 
 
-/*!\var Point3D::px
+/*!\var Point3D::x
  * \brief Speichert die X-Koordinate des Punktes
  */
 
-/*!\var Point3D::py
+/*!\var Point3D::y
  * \brief Speichert die Y-Koordinate des Punktes
  */
 
-/*!\var Point3D::pz
+/*!\var Point3D::z
  * \brief Speichert die Z-Koordinate des Punktes
  */
 
@@ -109,9 +109,9 @@ namespace grafix {
  */
 Point3D::Point3D()
 {
-	px=0;
-	py=0;
-	pz=0;
+	x=0;
+	y=0;
+	z=0;
 }
 
 /*!\brief Konstruktor mit Initialisierung auf die angegebenen Koordinaten
@@ -124,9 +124,23 @@ Point3D::Point3D()
  */
 Point3D::Point3D(int x, int y, int z)
 {
-	px=x;
-	py=y;
-	pz=z;
+	x=x;
+	y=y;
+	z=z;
+}
+
+/*!\brief Konstruktor mit Kopierfunktion
+ *
+ * \desc
+ * Mit diesem Konstruktor werden die Daten eines anderen Point3D übernommen.
+ *
+ * @param other Referenz auf einen anderen Point3D
+ */
+Point3D::Point3D(const Point3D &other)
+{
+	x=other.x;
+	y=other.y;
+	z=other.z;
 }
 
 /*!\brief Liefert \c true zurück, wenn x, y und z 0 sind.
@@ -139,99 +153,10 @@ Point3D::Point3D(int x, int y, int z)
  */
 bool Point3D::isNull() const
 {
-	if (px==0 && py==0 && pz==0) return true;
+	if (x==0 && y==0 && z==0) return true;
 	return false;
 }
 
-/*!\brief Gibt die X-Koordinate zurück
- *
- * \desc
- * Diese Funktion liefert die aktuelle X-Koordinate des Punktes zurück.
- * \return
- * Wert der X-Koordinaten.
- */
-int Point3D::x() const
-{
-	return px;
-}
-
-/*!\brief Gibt die Y-Koordinate zurück
- *
- * \desc
- * Diese Funktion liefert die aktuelle Y-Koordinate des Punktes zurück.
- * \return
- * Wert der Y-Koordinaten.
- */
-int Point3D::y() const
-{
-	return py;
-}
-
-/*!\brief Gibt die Z-Koordinate zurück
- *
- * \desc
- * Diese Funktion liefert die aktuelle Z-Koordinate des Punktes zurück.
- * \return
- * Wert der Y-Koordinaten.
- */
-int Point3D::z() const
-{
-	return pz;
-}
-
-/*!\brief Gibt eine Referenz auf die X-Koordinate zurück
- *
- * \desc
- * Diese Funktion liefert eine Referenz auf die X-Koordinate des Punktes, so dass diese auch ausserhalb der Klasse verändert
- * werden kann.
- * \return
- * Referenz auf die X-Koordinate.
- * \example
- * \code
- * ppl6::Point3D p;
- * p.rx()++;
- * \endcode
- */
-int &Point3D::rx()
-{
-	return px;
-}
-
-/*!\brief Gibt eine Referenz auf die Y-Koordinate zurück
- *
- * \desc
- * Diese Funktion liefert eine Referenz auf die Y-Koordinate des Punktes, so dass diese auch ausserhalb der Klasse verändert
- * werden kann.
- * \return
- * Referenz auf die Y-Koordinate.
- * \example
- * \code
- * ppl6::Point3D p;
- * p.ry()++;
- * \endcode
- */
-int &Point3D::ry()
-{
-	return py;
-}
-
-/*!\brief Gibt eine Referenz auf die Z-Koordinate zurück
- *
- * \desc
- * Diese Funktion liefert eine Referenz auf die Z-Koordinate des Punktes, so dass diese auch ausserhalb der Klasse verändert
- * werden kann.
- * \return
- * Referenz auf die Z-Koordinate.
- * \example
- * \code
- * ppl6::Point3D p;
- * p.rz()++;
- * \endcode
- */
-int &Point3D::rz()
-{
-	return pz;
-}
 
 /*!\brief X-Koordinate setzen
  *
@@ -241,7 +166,7 @@ int &Point3D::rz()
  */
 void Point3D::setX(int x)
 {
-	px=x;
+	x=x;
 }
 
 /*!\brief Y-Koordinate setzen
@@ -252,7 +177,7 @@ void Point3D::setX(int x)
  */
 void Point3D::setY(int y)
 {
-	py=y;
+	y=y;
 }
 
 /*!\brief Z-Koordinate setzen
@@ -263,7 +188,7 @@ void Point3D::setY(int y)
  */
 void Point3D::setZ(int z)
 {
-	pz=z;
+	z=z;
 }
 
 
@@ -277,9 +202,23 @@ void Point3D::setZ(int z)
  */
 void Point3D::setPoint(int x, int y, int z)
 {
-	px=x;
-	py=y;
-	pz=z;
+	x=x;
+	y=y;
+	z=z;
+}
+
+/*!\brief Anderen Point3D kopieren
+ *
+ * \desc
+ * Mit dieser Funktion werden die Daten des Point3D \p other übernommen.
+ *
+ * @param other Referenz auf einen anderen Point3D
+ */
+void Point3D::setPoint(const Point3D &other)
+{
+	x=other.x;
+	y=other.y;
+	z=other.z;
 }
 
 /*!\brief Multiplikation mit einem Faktor
@@ -293,9 +232,9 @@ void Point3D::setPoint(int x, int y, int z)
  */
 Point3D &Point3D::operator*= (double factor)
 {
-	px=(int)(px*factor);
-	py=(int)(py*factor);
-	pz=(int)(pz*factor);
+	x=(int)(x*factor);
+	y=(int)(y*factor);
+	z=(int)(z*factor);
 	return *this;
 }
 
@@ -310,9 +249,9 @@ Point3D &Point3D::operator*= (double factor)
  */
 Point3D &Point3D::operator+= (const Point3D &point)
 {
-	px+=point.px;
-	py+=point.py;
-	pz+=point.pz;
+	x+=point.x;
+	y+=point.y;
+	z+=point.z;
 	return *this;
 }
 
@@ -327,9 +266,9 @@ Point3D &Point3D::operator+= (const Point3D &point)
  */
 Point3D &Point3D::operator-= (const Point3D &point)
 {
-	px-=point.px;
-	py-=point.py;
-	pz-=point.pz;
+	x-=point.x;
+	y-=point.y;
+	z-=point.z;
 	return *this;
 }
 
@@ -344,56 +283,56 @@ Point3D &Point3D::operator-= (const Point3D &point)
  */
 Point3D &Point3D::operator/= (double divisor)
 {
-	px=(int)(px/divisor);
-	py=(int)(py/divisor);
-	pz=(int)(pz/divisor);
+	x=(int)(x/divisor);
+	y=(int)(y/divisor);
+	z=(int)(z/divisor);
 	return *this;
 }
 
 bool operator!= (const Point3D &p1, const Point3D &p2)
 {
-	if (p1.px!=p2.px) return true;
-	if (p1.py!=p2.py) return true;
-	if (p1.pz!=p2.pz) return true;
+	if (p1.x!=p2.x) return true;
+	if (p1.y!=p2.y) return true;
+	if (p1.z!=p2.z) return true;
 	return false;
 }
 
 bool operator== (const Point3D &p1, const Point3D &p2)
 {
-	if (p1.px!=p2.px) return false;
-	if (p1.py!=p2.py) return false;
-	if (p1.pz!=p2.pz) return false;
+	if (p1.x!=p2.x) return false;
+	if (p1.y!=p2.y) return false;
+	if (p1.z!=p2.z) return false;
 	return true;
 }
 
 const Point3D operator* (const Point3D &point, double factor)
 {
-	return Point3D ((int)(point.px*factor),(int)(point.py*factor), (int)(point.pz*factor));
+	return Point3D ((int)(point.x*factor),(int)(point.y*factor), (int)(point.z*factor));
 }
 
 const Point3D operator* (double factor, const Point3D &point)
 {
-	return Point3D ((int)(point.px*factor),(int)(point.py*factor), (int)(point.pz*factor));
+	return Point3D ((int)(point.x*factor),(int)(point.y*factor), (int)(point.z*factor));
 }
 
 const Point3D operator+ (const Point3D &p1, const Point3D &p2)
 {
-	return Point3D (p1.px+p2.px,p1.py+p2.py,p1.pz+p2.pz);
+	return Point3D (p1.x+p2.x,p1.y+p2.y,p1.z+p2.z);
 }
 
 const Point3D operator- (const Point3D &p1, const Point3D &p2)
 {
-	return Point3D (p1.px-p2.px,p1.py-p2.py,p1.pz-p2.pz);
+	return Point3D (p1.x-p2.x,p1.y-p2.y,p1.z-p2.z);
 }
 
 const Point3D operator- (const Point3D &point)
 {
-	return Point3D (0-point.px,0-point.py,0-point.pz);
+	return Point3D (0-point.x,0-point.y,0-point.z);
 }
 
 const Point3D operator/ (const Point3D &point, double divisor)
 {
-	return Point3D ((int)(point.px/divisor),(int)(point.py/divisor),(int)(point.pz/divisor));
+	return Point3D ((int)(point.x/divisor),(int)(point.y/divisor),(int)(point.z/divisor));
 }
 
 } // EOF namespace grafix
