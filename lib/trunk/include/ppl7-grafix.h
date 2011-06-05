@@ -535,18 +535,18 @@ class Drawable
 		 */
 		//@{
 		int fitRect(int &x, int &y, Rect &r);
-		int blt(const Drawable &source, int x=0, int y=0);
-		int blt(const Drawable &source, const Rect &srect, int x=0, int y=0);
-		int bltDiffuse(const Drawable &source, int x=0, int y=0, const Color &c=Color());
-		int bltDiffuse(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
-		int bltColorKey(const Drawable &source, int x=0, int y=0, const Color &c=Color());
-		int bltColorKey(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
-		int bltAlpha(const Drawable &source, int x=0, int y=0);
-		int bltAlpha(const Drawable &source, const Rect &srect, int x=0, int y=0);
+		void blt(const Drawable &source, int x=0, int y=0);
+		void blt(const Drawable &source, const Rect &srect, int x=0, int y=0);
+		void bltDiffuse(const Drawable &source, int x=0, int y=0, const Color &c=Color());
+		void bltDiffuse(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
+		void bltColorKey(const Drawable &source, int x=0, int y=0, const Color &c=Color());
+		void bltColorKey(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
+		void bltAlpha(const Drawable &source, int x=0, int y=0);
+		void bltAlpha(const Drawable &source, const Rect &srect, int x=0, int y=0);
 
-		int draw(const ImageList &iml, int nr, int x, int y);
-		int draw(const ImageList &iml, int nr, int x, int y, const Color &diffuse);
-		int draw(const Sprite &sprite, int nr, int x, int y);
+		void draw(const ImageList &iml, int nr, int x, int y);
+		void draw(const ImageList &iml, int nr, int x, int y, const Color &diffuse);
+		void draw(const Sprite &sprite, int nr, int x, int y);
 		//@}
 };
 

@@ -72,6 +72,8 @@ extern "C" {
 namespace ppl7 {
 namespace grafix {
 
+extern char *alphatab;
+
 
 static void *adr(const DRAWABLE_DATA &data, int x, int y)
 {
@@ -320,7 +322,7 @@ int Drawable::fitRect(int &x, int &y, Rect &r)
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::blt(const Drawable &source, int x, int y)
+void Drawable::blt(const Drawable &source, int x, int y)
 {
 	return blt(source,source.rect(),x,y);
 }
@@ -343,7 +345,7 @@ int Drawable::blt(const Drawable &source, int x, int y)
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::blt(const Drawable &source, const Rect &srect, int x, int y)
+void Drawable::blt(const Drawable &source, const Rect &srect, int x, int y)
 {
 	if (source.isEmpty()) {
 		SetError(1067);
@@ -369,7 +371,7 @@ int Drawable::blt(const Drawable &source, const Rect &srect, int x, int y)
 	return 0;
 }
 
-int Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
+void Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
 /*!\brief Rechteck anhand der Intensität der Quellfarbe kopieren
  *
  * \desc
@@ -418,7 +420,7 @@ int Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  */
-int Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int y,const Color &c)
+void Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int y,const Color &c)
 {
 	if (source.isEmpty()) {
 		SetError(1067);
@@ -462,7 +464,7 @@ int Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int y
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::bltColorKey(const Drawable &source, int x, int y,const Color &c)
+void Drawable::bltColorKey(const Drawable &source, int x, int y,const Color &c)
 {
 	return bltColorKey(source,source.rect(),x,y,c);
 }
@@ -487,7 +489,7 @@ int Drawable::bltColorKey(const Drawable &source, int x, int y,const Color &c)
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int y,const Color &c)
+void Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int y,const Color &c)
 {
 	if (source.isEmpty()) {
 		SetError(1067);
@@ -532,7 +534,7 @@ int Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int 
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::bltAlpha(const Drawable &source, int x, int y)
+void Drawable::bltAlpha(const Drawable &source, int x, int y)
 {
 	return bltAlpha(source,source.rect(),x,y);
 }
@@ -558,7 +560,7 @@ int Drawable::bltAlpha(const Drawable &source, int x, int y)
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::bltAlpha(const Drawable &source, const Rect &srect, int x, int y)
+void Drawable::bltAlpha(const Drawable &source, const Rect &srect, int x, int y)
 {
 	if (source.isEmpty()) {
 		SetError(1067);
@@ -599,7 +601,7 @@ int Drawable::bltAlpha(const Drawable &source, const Rect &srect, int x, int y)
  *
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::draw(const ImageList &iml, int nr, int x, int y)
+void Drawable::draw(const ImageList &iml, int nr, int x, int y)
 {
 	Rect r=iml.getRect(nr);
 	if (r.isNull()) {
@@ -641,23 +643,23 @@ int Drawable::draw(const ImageList &iml, int nr, int x, int y)
  *
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int Drawable::draw(const CImageList &iml, int nr, int x, int y, const Color &diffuse)
+void Drawable::draw(const ImageList &iml, int nr, int x, int y, const Color &diffuse)
 {
 	Rect r=iml.getRect(nr);
 	if (r.isNull()) {
 		return 0;
 	}
 	switch ((int)iml.method) {
-		case CImageList::BLT:
+		case ImageList::BLT:
 			return blt(iml,r,x,y);
 			break;
-		case CImageList::ALPHABLT:
+		case ImageList::ALPHABLT:
 			return bltAlpha(iml,r,x,y);
 			break;
-		case CImageList::COLORKEY:
+		case ImageList::COLORKEY:
 			return bltColorKey(iml,r,x,y,iml.colorkey);
 			break;
-		case CImageList::DIFFUSE:
+		case ImageList::DIFFUSE:
 			return bltDiffuse(iml,r,x,y,diffuse);
 			break;
 	}
@@ -665,9 +667,9 @@ int Drawable::draw(const CImageList &iml, int nr, int x, int y, const Color &dif
 	return 0;
 }
 
-int Drawable::draw(const CSprite &sprite, int nr, int x, int y)
+void Drawable::draw(const Sprite &sprite, int nr, int x, int y)
 {
-	return sprite.draw(*this,x,y,nr);
+	sprite.draw(*this,x,y,nr);
 }
 
 
