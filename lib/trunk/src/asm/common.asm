@@ -2,10 +2,10 @@
 ;/* This file is part of "Patrick's Programming Library", Version 7 (PPL7).
 ; * Web: http://www.pfp.de/ppl/
 ; *
-; * $Author: pafe $
-; * $Revision: 1.2 $
-; * $Date: 2010/02/12 19:43:56 $
-; * $Id: common.asminc,v 1.2 2010/02/12 19:43:56 pafe Exp $
+; * $Author$
+; * $Revision$
+; * $Date$
+; * $Id$
 ; * $URL$
 ; *
 ;/*******************************************************************************
