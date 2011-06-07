@@ -60,6 +60,11 @@ PPLNORMALEXCEPTION(DuplicateGrafixEngineException);
 PPLPARAMETERISEDEXCEPTION(FunctionUnavailableException);
 PPLNORMALEXCEPTION(InvalidImageSizeException);
 PPLNORMALEXCEPTION(UnknownImageFormatException);
+PPLNORMALEXCEPTION(FontEngineInitializationException);
+PPLNORMALEXCEPTION(InvalidFontException);
+PPLNORMALEXCEPTION(NoSuitableFontEngineException);
+PPLNORMALEXCEPTION(FontNotFoundException);
+
 
 
 // Microsoft kompatible Strukturen
@@ -426,6 +431,80 @@ typedef struct GRAFIX_FUNCTIONS {
 class ImageList;
 class Sprite;
 
+class Font
+{
+	friend bool operator!= (const Font &f1, const Font &f2);
+	friend bool operator== (const Font &f1, const Font &f2);
+
+	private:
+		enum FontFlags {
+			fBold=1,
+			fItalic=2,
+			fAntialias=4,
+			fDrawBorder=8,
+			fDrawShadow=16,
+			fUnderline=32,
+			fMonospace=64
+		};
+
+		String Name;
+		Color	cForeground;
+		Color	cBorder;
+		Color	cShadow;
+		ppluint16	fontSize;
+		ppluint8	flags;
+		ppluint8	ori;
+	public:
+		enum Orientation {
+			LEFT =1,
+			MIDDLE,
+			RIGHT,
+			TOP,
+			BOTTOM,
+			BASE
+		};
+
+
+		Font();
+		Font(const Font &other);
+
+		const String &name() const;
+		Color color() const;
+		Color borderColor() const;
+		Color shadowColor() const;
+		bool bold() const;
+		bool italic() const;
+		bool antialias() const;
+		bool drawBorder() const;
+		bool drawShadow() const;
+		bool drawUnderline() const;
+		bool monospace() const;
+		int size() const;
+		Orientation orientation() const;
+		Size measure(const String &text) const;
+
+		int setName(const String &name);
+		void setColor(const Color &c);
+		void setBorderColor(const Color &c);
+		void setShadowColor(const Color &c);
+		void setColors(const Color &Foreground, const Color &Border, const Color Shadow);
+		void setBold(bool enable);
+		void setItalic(bool enable);
+		void setAntialias(bool enable);
+		void setDrawBorder(bool enable);
+		void setDrawShadow(bool enable);
+		void setDrawUnderline(bool enable);
+		void setMonospace(bool enable);
+		void setSize(int size);
+		void setOrientation(Orientation o);
+
+		Font &operator=(const Font &other);
+};
+bool operator!= (const Font &f1, const Font &f2);
+bool operator== (const Font &f1, const Font &f2);
+
+
+
 class Drawable
 {
 	friend class Image;
@@ -527,14 +606,12 @@ class Drawable
 		void	lineAA(const Point &start, const Point &end, const Color &c, int strength=1);
 		//@}
 
-#ifdef DONE
 		/** @name Textausgabe
 		 */
 		//@{
 		void	print(const Font &font, int x, int y, const String &text);
 		void	printf(const Font &font, int x, int y, const char *fmt, ...);
 		//@}
-#endif
 
 		/** @name Blit-Funktionen
 		 * Kopieren von Grafiken mit verschiedenen Methoden
@@ -648,6 +725,8 @@ class ImageList : public Image
 
 
 class ImageFilter;
+class FontEngine;
+class FontFile;
 
 class Grafix
 {
@@ -659,6 +738,8 @@ class Grafix
 		CList		ImageFilter;
 		*/
 		List<ImageFilter*>	ImageFilterList;
+		List<FontEngine*>	FontEngineList;
+		AVLTree<String, FontFile*> FontList;
 
 		ImageFilter		*filter_png;
 		ImageFilter		*filter_jpeg;
@@ -699,19 +780,82 @@ class Grafix
 		ImageFilter *findImageFilter(FileObject &ff, IMAGE &img);
 
 		// Fonts
-		/*
-		int addFontEngine(FontEngine *engine);
-		int loadFont(const String &filename, const String &fontname=String());
-		int loadFont(FileObject &ff, const String &fontname=String());
-		int loadFont(const ByteArrayPtr &memory, const String &fontname=String());
-		int unloadFont(const String &fontname);
+		void addFontEngine(FontEngine *engine);
+		void loadFont(const String &filename, const String &fontname=String());
+		void loadFont(FileObject &ff, const String &fontname=String());
+		void loadFont(const ByteArrayPtr &memory, const String &fontname=String());
+		void unloadFont(const String &fontname);
 		FontFile *findFont(const String &fontname);
 		FontFile *findFont(const Font &font);
-		*/
-
 };
 
 Grafix *GetGrafix();
+
+
+
+
+class FontFile
+{
+	friend class Grafix;
+	private:
+	public:
+		String Name;
+		ByteArray Memory;
+		FontEngine *engine;
+		void *priv;
+
+		FontFile();
+		virtual ~FontFile();
+};
+
+class FontEngine
+{
+	friend class Grafix;
+	private:
+	public:
+		FontEngine();
+		virtual ~FontEngine();
+
+		virtual int init();
+		virtual int ident(FileObject &file);
+		virtual FontFile *loadFont(FileObject &file, const String &fontname);
+		virtual void deleteFont(FontFile *file);
+		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
+		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+};
+
+/*
+class FontEngineFont5 : public FontEngine
+{
+	private:
+		PFPChunk *SelectFont(FontFile *file, const Font &font);
+		int RenderInternal(PFPChunk *c, const Font &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color);
+
+	public:
+		FontEngineFont5();
+		virtual ~FontEngineFont5();
+		virtual int Init();
+		virtual int Ident(CFileObject *file);
+		virtual FontFile *LoadFont(CFileObject *file, const char *fontname);
+		virtual int DeleteFont(FontFile *file);
+		virtual int Render(FontFile *file, const Font &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color);
+		virtual Size Measure(FontFile *file, const Font &font, const CWString &text);
+};
+*/
+class FontEngineFreeType : public FontEngine
+{
+	private:
+		void *ft;
+	public:
+		FontEngineFreeType();
+		virtual ~FontEngineFreeType();
+		virtual int init();
+		virtual int ident(FileObject &file);
+		virtual FontFile *loadFont(FileObject &file, const String &fontname);
+		virtual void deleteFont(FontFile *file);
+		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
+		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+};
 
 
 

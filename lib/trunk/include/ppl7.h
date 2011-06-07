@@ -795,9 +795,150 @@ class Dir
 };
 
 
+class Compression
+{
+	public:
+		enum Algorithm {
+			Algo_NONE=0,
+			Algo_ZLIB,
+			Algo_BZIP2,
+			Unknown=256
+		};
+
+		enum Level {
+			Level_Fast=0,
+			Level_Normal,
+			Level_Default,
+			Level_High
+		};
+
+		enum Prefix {
+			Prefix_None=0,
+			Prefix_V1,
+			Prefix_V2,
+		};
+	private:
+		void *buffer;
+		void *uncbuffer;
+		Algorithm aaa;
+		Level lll;
+		Prefix prefix;
+
+		int DoNone(void *dst, size_t *dstlen, const void *src, size_t size);
+		int DoZlib(void *dst, size_t *dstlen, const void *src, size_t size);
+		int DoBzip2(void *dst, size_t *dstlen, const void *src, size_t size);
+
+		int UnNone (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		int UnZlib (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		int UnBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen);
 
 
- };	// EOF namespace ppl7
+	public:
+
+		Compression();
+		Compression(Algorithm method, Level level);
+		~Compression();
+		int init(Algorithm method, Level level);
+		void usePrefix(Prefix prefix);
+
+		int compress(ByteArray &out, const void *ptr, size_t size);
+		int compress(ByteArray &out, const ByteArrayPtr &in);
+		int compress(void *dst, size_t *dstlen, const void *src, size_t size);
+		int uncompress(ByteArray &out, const ByteArrayPtr &data);
+		int uncompress(ByteArray &out, const void *data, size_t size=0);
+		int uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen);
+};
+
+int Compress(ByteArray &out, const void *buffer, size_t size, Compression::Algorithm method, Compression::Level level=Compression::Level_Default);
+int Compress(ByteArray &out, const ByteArrayPtr &in, Compression::Algorithm method, Compression::Level level=Compression::Level_Default);
+int CompressZlib(ByteArray &out, const void *buffer, size_t size, Compression::Level level=Compression::Level_High);
+int CompressZlib(ByteArray &out, const ByteArrayPtr &in, Compression::Level level=Compression::Level_Default);
+int CompressBZip2(ByteArray &out, const void *buffer, size_t size, Compression::Level level=Compression::Level_High);
+int CompressBZip2(ByteArray &out, const ByteArrayPtr &in, Compression::Level level=Compression::Level_Default);
+int Uncompress(ByteArray &out, const ByteArrayPtr &in);
+int Uncompress(ByteArray &out, const void *buffer, size_t size);
+
+
+
+
+
+class PFPChunk
+{
+	friend class PFPFile;
+	private:
+		String chunkname;
+		void *chunkdata;
+		size_t chunksize;
+	public:
+		PFPChunk();
+		~PFPChunk();
+		void setName(const String &chunkname);
+		void setData(const void *ptr, size_t size);
+		void setData(const ByteArrayPtr &data);
+		void setData(const String &s);
+		void setData(const char *s);
+		size_t size();
+		const void *data();
+		const String &name();
+};
+
+class PFPFile
+{
+	private:
+		List<PFPChunk*> Chunks;
+		char id[5];
+		ppluint8 mainversion, subversion;
+		Compression::Algorithm comp;
+		String findchunk;
+
+		int setParam(const char *chunkname, const char *data);
+
+
+	public:
+		Mutex	myMutex;
+
+		PFPFile();
+		virtual ~PFPFile();
+		void clear();
+		int setAuthor(const char *author);
+		int setCopyright(const char *copy);
+		int setDescription(const char *descr);
+		int setName(const char *name);
+		int setVersion(int main=0, int sub=0);
+		int setId(const char *id);
+		int save(const char *filename);
+		int addChunk(PFPChunk *chunk);
+		int deleteChunk(PFPChunk *chunk);
+		int deleteChunk(const char *chunkname);
+		PFPChunk *findFirstChunk(const char *chunkname);
+		PFPChunk *findNextChunk(const char *chunkname=NULL);
+		virtual void list();
+		int setCompression(Compression::Algorithm type);
+
+		int load(FileObject &ff);
+		int load(const String &file);
+
+		virtual int loadRequest(const char *id, int mainversion ,int subversion);
+
+		const char *getName();
+		const char *getDescription();
+		const char *getAuthor();
+		const char *getCopyright();
+		void getVersion(int *main, int *sub);
+		const char *getID();
+		int getMainVersion();
+		int getSubVersion();
+		Compression::Algorithm getCompression();
+
+		void reset();
+		PFPChunk *getFirst();
+		PFPChunk *getNext();
+
+};
+
+
+
+};	// EOF namespace ppl7
 
 
  #endif	// #ifndef _PPL7_INCLUDE
