@@ -1,14 +1,15 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: Pixel.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -46,11 +47,12 @@
 #include <string.h>
 #endif
 
-#include "ppl6-grafix.h"
-#include "grafix6.h"
+#include "ppl7.h"
+#include "ppl7-grafix.h"
+//#include "grafix6.h"
 
 
-namespace ppl6 {
+namespace ppl7 {
 namespace grafix {
 
 extern "C" {
@@ -127,33 +129,32 @@ static void BlendPixel_32 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor
 
 
 /*******************************************************************
- * CDrawable
+ * Drawable
  *******************************************************************/
 
 
-void CDrawable::putPixel(int x, int y, const Color &c)
+void Drawable::putPixel(int x, int y, const Color &c)
 {
 	if (fn->PutPixel) fn->PutPixel(data,x,y,rgb(c));
 
 }
 
-void CDrawable::putPixel(const Point &p, const Color &c)
+void Drawable::putPixel(const Point &p, const Color &c)
 {
-	if (fn->PutPixel) fn->PutPixel(data,p.x(),p.y(),rgb(c));
+	if (fn->PutPixel) fn->PutPixel(data,p.x,p.y,rgb(c));
 }
 
-void CDrawable::alphaPixel(int x, int y, const Color &c)
+void Drawable::alphaPixel(int x, int y, const Color &c)
 {
 	if (fn->AlphaPixel) fn->AlphaPixel(data,x,y,rgb(c));
-	//Color screen=fn->Surface2RGB(fn->GetPixel(data,x,y));
 }
 
-void CDrawable::alphaPixel(const Point &p, const Color &c)
+void Drawable::alphaPixel(const Point &p, const Color &c)
 {
-	if (fn->AlphaPixel) fn->AlphaPixel(data,p.x(),p.y(),rgb(c));
+	if (fn->AlphaPixel) fn->AlphaPixel(data,p.x,p.y,rgb(c));
 }
 
-Color CDrawable::blendPixel(int x, int y, const Color &c, float brightness)
+Color Drawable::blendPixel(int x, int y, const Color &c, float brightness)
 {
 	if (x<0 || y<0 || x>=data.width || y>=data.height) return Color();
 	if (!fn->GetPixel) return Color();
@@ -165,7 +166,7 @@ Color CDrawable::blendPixel(int x, int y, const Color &c, float brightness)
 	return fn->Surface2RGB(color);
 }
 
-Color CDrawable::blendPixel(int x, int y, const Color &c, int brightness)
+Color Drawable::blendPixel(int x, int y, const Color &c, int brightness)
 {
 	if (x<0 || y<0 || x>=data.width || y>=data.height) return Color();
 	SurfaceColor color,screen=fn->GetPixel(data,x,y);
@@ -175,19 +176,19 @@ Color CDrawable::blendPixel(int x, int y, const Color &c, int brightness)
 	return fn->Surface2RGB(color);
 }
 
-Color CDrawable::getPixel(int x, int y) const
+Color Drawable::getPixel(int x, int y) const
 {
 	SurfaceColor color=fn->GetPixel(data,x,y);
 	return fn->Surface2RGB(color);
 }
 
-Color CDrawable::getPixel(const Point &p) const
+Color Drawable::getPixel(const Point &p) const
 {
-	SurfaceColor color=fn->GetPixel(data,p.x(),p.y());
+	SurfaceColor color=fn->GetPixel(data,p.x,p.y);
 	return fn->Surface2RGB(color);
 }
 
-int CGrafix::InitPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
+void Grafix::initPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
 	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
@@ -199,7 +200,7 @@ int CGrafix::InitPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::GREYALPHA32:
 			fn->PutPixel=PutPixel_32;
 			fn->GetPixel=GetPixel_32;
-			return 1;
+			return;
 		case RGBFormat::R5G6B5:			// 16-Bit
 		case RGBFormat::B5G6R5:
 		case RGBFormat::X1R5G5B5:
@@ -211,14 +212,14 @@ int CGrafix::InitPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::A8R3G3B2:
 			fn->PutPixel=PutPixel_16;
 			fn->GetPixel=GetPixel_16;
+			return;
 		case RGBFormat::A8:				// 8-Bit
 		case RGBFormat::GREY8:
 			fn->PutPixel=PutPixel_8;
 			fn->GetPixel=GetPixel_8;
-			return 1;
+			return;
 	}
-	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
-	return 0;
+	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const wchar_t*)format.name(),format.format());
 }
 
 } // EOF namespace grafix

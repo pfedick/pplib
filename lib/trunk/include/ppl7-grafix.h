@@ -54,6 +54,9 @@ namespace grafix {
 PPLPARAMETERISEDEXCEPTION(UnknownColorFormatException);
 PPLPARAMETERISEDEXCEPTION(UnsupportedColorFormatException);
 PPLNORMALEXCEPTION(NoGrafixEngineException);
+PPLNORMALEXCEPTION(EmptyDrawableException);
+PPLNORMALEXCEPTION(UnknownBltMethodException);
+PPLPARAMETERISEDEXCEPTION(FunctionUnavailableException);
 
 
 // Microsoft kompatible Strukturen
@@ -422,7 +425,7 @@ class Sprite;
 
 class Drawable
 {
-	friend class CImage;
+	friend class Image;
 	private:
 		GRAFIX_FUNCTIONS	*fn;
 		DRAWABLE_DATA		data;
@@ -550,6 +553,96 @@ class Drawable
 		//@}
 };
 
+class Image : public Drawable
+{
+	private:
+		ByteArray	myMemory;
+	public:
+		/** @name Konstruktoren
+		 */
+		//@{
+		Image();
+		Image(const Image &other);
+		Image(const Drawable &other);
+		Image(int width, int height, const RGBFormat &format);
+		Image(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
+		Image(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
+		Image(const ByteArrayPtr &mem, const RGBFormat &format=RGBFormat::unknown);
+		~Image();
+		//@}
+
+		/** @name Verschiedenes
+		 */
+		//@{
+		int create(int width, int height, const RGBFormat &format);
+		int create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
+		int load(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
+		int load(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
+		int load(const ByteArrayPtr &Mem, const RGBFormat &format=RGBFormat::unknown);
+		int copy(const Drawable &other);
+		int copy(const Drawable &other, const Rect &rect);
+		int copy(const Image &other);
+		Image &operator=(const Drawable &other);
+		Image &operator=(const Image &other);
+		size_t numBytes() const;
+		ByteArrayPtr memory() const;
+		operator ByteArrayPtr() const;
+		//@}
+
+};
+
+class ImageList : public Image
+{
+	friend class Drawable;
+	public:
+		enum DRAWMETHOD {
+			BLT=1,
+			COLORKEY,
+			ALPHABLT,
+			DIFFUSE
+		};
+	private:
+		int		width, height, numIcons;
+		int		numX, numY;
+		Color	colorkey;
+		Color	diffuse;
+		DRAWMETHOD method;
+
+	public:
+
+		ImageList();
+		ImageList(const ImageList &other);
+		ImageList(const Drawable &draw, int icon_width, int icon_height, DRAWMETHOD method);
+		ImageList(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method);
+		ImageList(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method);
+		ImageList(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method);
+		~ImageList();
+
+		void clear();
+		void setDrawMethod(DRAWMETHOD method);
+		void setColorKey(const Color &key);
+		void setDiffuseColor(const Color &c);
+		void setIconSize(int width, int height);
+
+		int copy(const ImageList &other);
+		int load(const Drawable &draw,int icon_width, int icon_height, DRAWMETHOD method);
+		int load(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method);
+		int load(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method);
+		int load(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method);
+
+		int num() const;
+		Size iconSize() const;
+		Rect getRect(int nr) const;
+		DRAWMETHOD drawMethod() const;
+		Drawable getDrawable(int nr) const;
+		Color colorKey() const;
+		Color diffuseColor() const;
+
+		ImageList &operator=(const ImageList &other);
+
+};
+
+
 class ImageFilter;
 
 class Grafix
@@ -658,11 +751,11 @@ class ImageFilter_BMP : public ImageFilter
 	public:
 		ImageFilter_BMP();
 		virtual ~ImageFilter_BMP();
-		virtual int Ident(CFileObject &file, IMAGE &img);
-		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
-		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
-		virtual CString Name();
-		virtual CString Description();
+		virtual int Ident(FileObject &file, IMAGE &img);
+		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
+		virtual String Name();
+		virtual String Description();
 };
 
 class ImageFilter_GIF : public ImageFilter
@@ -670,11 +763,11 @@ class ImageFilter_GIF : public ImageFilter
 	public:
 		ImageFilter_GIF();
 		virtual ~ImageFilter_GIF();
-		virtual int Ident(CFileObject &file, IMAGE &img);
-		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
-		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
-		virtual CString Name();
-		virtual CString Description();
+		virtual int Ident(FileObject &file, IMAGE &img);
+		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
+		virtual String Name();
+		virtual String Description();
 };
 
 class ImageFilter_JPEG : public ImageFilter
@@ -682,11 +775,11 @@ class ImageFilter_JPEG : public ImageFilter
 	public:
 		ImageFilter_JPEG();
 		virtual ~ImageFilter_JPEG();
-		virtual int Ident(CFileObject &file, IMAGE &img);
-		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
-		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
-		virtual CString Name();
-		virtual CString Description();
+		virtual int Ident(FileObject &file, IMAGE &img);
+		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
+		virtual String Name();
+		virtual String Description();
 };
 
 class ImageFilter_PPM : public ImageFilter
@@ -694,11 +787,11 @@ class ImageFilter_PPM : public ImageFilter
 	public:
 		ImageFilter_PPM();
 		virtual ~ImageFilter_PPM();
-		virtual int Ident(CFileObject &file, IMAGE &img);
-		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
-		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
-		virtual CString Name();
-		virtual CString Description();
+		virtual int Ident(FileObject &file, IMAGE &img);
+		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
+		virtual String Name();
+		virtual String Description();
 };
 
 class ImageFilter_TGA : public ImageFilter
@@ -706,11 +799,11 @@ class ImageFilter_TGA : public ImageFilter
 	public:
 		ImageFilter_TGA();
 		virtual ~ImageFilter_TGA();
-		virtual int Ident(CFileObject &file, IMAGE &img);
-		virtual int Load(CFileObject &file, CDrawable &surface, IMAGE &img);
-		virtual int Save (const CDrawable &surface, CFileObject &file, CAssocArray *param=NULL);
-		virtual CString Name();
-		virtual CString Description();
+		virtual int Ident(FileObject &file, IMAGE &img);
+		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
+		virtual String Name();
+		virtual String Description();
 };
 
 #endif

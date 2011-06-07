@@ -1,14 +1,15 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.4 $
- * $Date: 2010/06/17 07:25:53 $
- * $Id: Blit.cpp,v 1.4 2010/06/17 07:25:53 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -241,12 +242,11 @@ static int BltDiffuse_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, co
  * Schwarz-Weiss-Bildes verwendet wird, um eine bestimmte Farbe zu zeichnen (CSurface::BltDiffuse).
  *
  * @param[in] s Pointer auf die SURFACE-Struktur der Oberfläche.
- * @return Liefert 1 zurück, wenn die Funktionen erfolgreich initialisiert wurden, 0, wenn das Farbformat
+ * \exception UnsupportedColorFormatException Wird geworfen, wenn das Farbformat \p format
  * nicht unterstützt wird.
  *
  * \remarks
- * Gegenwärtig werden nur Farbformate mit einer Tiefe von 32 Bit unterstützt, jedoch könnten andere
- * Farbformate von der verwendeten Grafik-Engine unterstüzt werden.
+ * Gegenwärtig werden nur Farbformate mit einer Tiefe von 32 Bit unterstützt.
  *
  */
 void Grafix::initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
@@ -312,7 +312,8 @@ int Drawable::fitRect(int &x, int &y, Rect &r)
  * Es wird weder Alphablending (siehe Drawable::bltAlpha) noch Colorkeying (siehe
  * Drawable::bltColorKey) verwendet.
  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] x Optionale X-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter nicht
@@ -320,7 +321,8 @@ int Drawable::fitRect(int &x, int &y, Rect &r)
  * \param[in] y Optionale Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche. Wird der Parameter
  *            nicht angegebenm wird 0 verwendet.
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  */
 void Drawable::blt(const Drawable &source, int x, int y)
 {
@@ -336,21 +338,20 @@ void Drawable::blt(const Drawable &source, int x, int y)
  * Drawable::bltColorKey) verwendet. Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert,
  * andernfalls nur der angegebene Ausschnitt.
  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
  * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  */
 void Drawable::blt(const Drawable &source, const Rect &srect, int x, int y)
 {
-	if (source.isEmpty()) {
-		SetError(1067);
-		return 0;
-	}
+	if (source.isEmpty()) throw EmptyDrawableException();
 	// Quellrechteck
 	Rect q;
 	if (srect.isNull()) {
@@ -362,13 +363,9 @@ void Drawable::blt(const Drawable &source, const Rect &srect, int x, int y)
 		if (q.top()<0) q.setTop(0);
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
-	if (!fitRect(x,y,q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (fn->Blt) return fn->Blt(data,source.data,q,x,y);
-	SetError(1012,"Blt");
-	return 0;
+	if (!fitRect(x,y,q)) return;
+	if (!fn->Blt) throw FunctionUnavailableException("Drawable::blt");
+	fn->Blt(data,source.data,q,x,y);
 }
 
 void Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
@@ -383,14 +380,16 @@ void Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
  * einer GUI).
  * \par
  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] c Die gewünschte Pixelfarbe
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  *
  */
 {
@@ -409,7 +408,8 @@ void Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
  * \par
  * Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert, andernfalls nur der angegebene Ausschnitt.
  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
@@ -417,15 +417,13 @@ void Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
  * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] c Die gewünschte Pixelfarbe
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  *
  */
 void Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int y,const Color &c)
 {
-	if (source.isEmpty()) {
-		SetError(1067);
-		return 0;
-	}
+	if (source.isEmpty()) throw EmptyDrawableException();
 	// Quellrechteck
 	Rect q;
 	if (srect.isNull()) {
@@ -437,13 +435,9 @@ void Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int 
 		if (q.top()<0) q.setTop(0);
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
-	if (!fitRect(x,y,q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (fn->BltDiffuse) return fn->BltDiffuse(data,source.data,q,x,y,rgb(c));
-	SetError(1012,"Blt");
-	return 0;
+	if (!fitRect(x,y,q)) return;
+	if (!fn->BltDiffuse) FunctionUnavailableException("Drawable::bltDiffuse");
+	fn->BltDiffuse(data,source.data,q,x,y,rgb(c));
 }
 
 /*!\brief Rechteck unter Berücksichtigung einer transparenten Schlüsselfarbe kopieren
@@ -454,15 +448,17 @@ void Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int 
  * Pixel, die der Farbe \c entsprechen, bleiben dabei vollständig transparent, alle anderen
  * Pixel werden wie bei Drawable::blt 1:1 kopiert.
  * \par
-  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  */
 void Drawable::bltColorKey(const Drawable &source, int x, int y,const Color &c)
 {
@@ -479,7 +475,8 @@ void Drawable::bltColorKey(const Drawable &source, int x, int y,const Color &c)
  * \par
  * Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert, andernfalls nur der angegebene Ausschnitt.
  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
@@ -487,14 +484,12 @@ void Drawable::bltColorKey(const Drawable &source, int x, int y,const Color &c)
  * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  */
 void Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int y,const Color &c)
 {
-	if (source.isEmpty()) {
-		SetError(1067);
-		return 0;
-	}
+	if (source.isEmpty()) throw EmptyDrawableException();
 	// Quellrechteck
 	Rect q;
 	if (srect.isNull()) {
@@ -506,13 +501,9 @@ void Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int
 		if (q.top()<0) q.setTop(0);
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
-	if (!fitRect(x,y,q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (fn->BltColorKey) return fn->BltColorKey(data,source.data,q,x,y,rgb(c));
-	SetError(1012,"Blt");
-	return 0;
+	if (!fitRect(x,y,q)) return;
+	if (!fn->BltColorKey) FunctionUnavailableException("Drawable::bltColorKey");
+	fn->BltColorKey(data,source.data,q,x,y,rgb(c));
 }
 
 /*!\brief Rechteck unter Berücksichtigung des Alpha-Kanals kopieren
@@ -525,14 +516,16 @@ void Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int
  * vom Transparenz-Wert mit dem Hintergrund vermischt.
  * \par
  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] x X-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  */
 void Drawable::bltAlpha(const Drawable &source, int x, int y)
 {
@@ -550,7 +543,8 @@ void Drawable::bltAlpha(const Drawable &source, int x, int y)
  * \par
  * Falls \p srect 0 ist, wird die komplette Quellzeichenfläche kopiert, andernfalls nur der angegebene Ausschnitt.
  * Falls die Quelle nicht in die Zielzeichenfläche passt, wird nur der passende Teil kopiert
- * (siehe Drawable::fitRect).
+ * (siehe Drawable::fitRect). Falls die Quelle komplett außerhalb der Zeichenfläche liegt,
+ * passiert nichts.
  *
  * \param[in] source Die Quellzeichenfläche
  * \param[in] srect Rechteckiger Ausschnitt aus der Quellzeichenfläche, der kopiert werden soll
@@ -558,14 +552,12 @@ void Drawable::bltAlpha(const Drawable &source, int x, int y)
  * \param[in] y Y-Koordinate der linken oberen Ecke in der Zielzeichenfläche
  * \param[in] c Die gewünschte Schlüsselfarbe (ColorKey)
  *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
  */
 void Drawable::bltAlpha(const Drawable &source, const Rect &srect, int x, int y)
 {
-	if (source.isEmpty()) {
-		SetError(1067);
-		return 0;
-	}
+	if (source.isEmpty()) throw EmptyDrawableException();
 	// Quellrechteck
 	Rect q;
 	if (srect.isNull()) {
@@ -577,13 +569,9 @@ void Drawable::bltAlpha(const Drawable &source, const Rect &srect, int x, int y)
 		if (q.top()<0) q.setTop(0);
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
-	if (!fitRect(x,y,q)) {
-		SetError(1016);
-		return 0;
-	}
-	if (fn->BltAlpha) return fn->BltAlpha(data,source.data,q,x,y);
-	SetError(1012,"Blt");
-	return 0;
+	if (!fitRect(x,y,q)) return;
+	if (!fn->BltAlpha) FunctionUnavailableException("Drawable::bltAlpha");
+	fn->BltAlpha(data,source.data,q,x,y);
 }
 
 /*!\brief Grafik aus einer Image-Liste kopieren
@@ -599,30 +587,28 @@ void Drawable::bltAlpha(const Drawable &source, const Rect &srect, int x, int y)
  * @param x X-Koordinate der Zielposition
  * @param y Y-Koordinate der Zielposition
  *
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * \exception EmptyDrawableException Der Parameter \p source enthält keinen darstellbaren Inhalt
+ * \exception FunctionUnavailableException Funktion wird für das eingestellte Farbformat nicht unterstützt
+ * \exception UnknownBltMethodException Die Zeichenmethode der ImageList ist unbekannt
  */
 void Drawable::draw(const ImageList &iml, int nr, int x, int y)
 {
 	Rect r=iml.getRect(nr);
-	if (r.isNull()) {
-		return 0;
-	}
 	switch ((int)iml.method) {
 		case ImageList::BLT:
-			return blt(iml,r,x,y);
-			break;
+			blt(iml,r,x,y);
+			return;
 		case ImageList::ALPHABLT:
-			return bltAlpha(iml,r,x,y);
-			break;
+			bltAlpha(iml,r,x,y);
+			return;
 		case ImageList::COLORKEY:
-			return bltColorKey(iml,r,x,y,iml.colorkey);
-			break;
+			bltColorKey(iml,r,x,y,iml.colorkey);
+			return;
 		case ImageList::DIFFUSE:
-			return bltDiffuse(iml,r,x,y,iml.diffuse);
-			break;
+			bltDiffuse(iml,r,x,y,iml.diffuse);
+			return;
 	}
-	SetError(1042,"%i",(int)iml.drawMethod());
-	return 0;
+	throw UnknownBltMethodException();
 }
 
 /*!\brief Grafik aus einer Image-Liste kopieren
@@ -646,32 +632,29 @@ void Drawable::draw(const ImageList &iml, int nr, int x, int y)
 void Drawable::draw(const ImageList &iml, int nr, int x, int y, const Color &diffuse)
 {
 	Rect r=iml.getRect(nr);
-	if (r.isNull()) {
-		return 0;
-	}
 	switch ((int)iml.method) {
 		case ImageList::BLT:
-			return blt(iml,r,x,y);
-			break;
+			blt(iml,r,x,y);
+			return;
 		case ImageList::ALPHABLT:
-			return bltAlpha(iml,r,x,y);
-			break;
+			bltAlpha(iml,r,x,y);
+			return;
 		case ImageList::COLORKEY:
-			return bltColorKey(iml,r,x,y,iml.colorkey);
-			break;
+			bltColorKey(iml,r,x,y,iml.colorkey);
+			return;
 		case ImageList::DIFFUSE:
-			return bltDiffuse(iml,r,x,y,diffuse);
-			break;
+			bltDiffuse(iml,r,x,y,diffuse);
+			return;
 	}
-	SetError(1042,"%i",(int)iml.drawMethod());
-	return 0;
+	throw UnknownBltMethodException();
 }
 
+#ifdef DONE
 void Drawable::draw(const Sprite &sprite, int nr, int x, int y)
 {
 	sprite.draw(*this,x,y,nr);
 }
-
+#endif
 
 
 } // EOF namespace grafix

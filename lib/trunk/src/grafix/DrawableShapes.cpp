@@ -1,14 +1,15 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/02/20 13:25:20 $
- * $Id: Shapes.cpp,v 1.3 2010/02/20 13:25:20 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,8 +46,13 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl6.h"
-#include "ppl6-grafix.h"
+
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+
+#include "ppl7.h"
+#include "ppl7-grafix.h"
 
 #ifdef HAVE_X86_ASSEMBLER
 typedef struct {
@@ -62,7 +68,7 @@ extern "C" {
 }
 #endif
 
-namespace ppl6 {
+namespace ppl7 {
 namespace grafix {
 
 static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color);
@@ -116,14 +122,14 @@ static void DrawRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 	ppluint32 * pp;
 	ppluint32 pitch32=data.pitch>>2;
 	pp=data.base32+r.top()*pitch32+r.left();
-	for (x=0;x<r.width();x++) pp[x]=(ppldd)color;
+	for (x=0;x<r.width();x++) pp[x]=(ppluint32)color;
 	x=r.width()-1;
 	for (y=1;y<r.height();y++) {
 		pp+=pitch32;
-		pp[0]=(ppldd)color;
-		pp[x]=(ppldd)color;
+		pp[0]=(ppluint32)color;
+		pp[x]=(ppluint32)color;
 	}
-	for (x=0;x<r.width();x++) pp[x]=(ppldd)color;
+	for (x=0;x<r.width();x++) pp[x]=(ppluint32)color;
 }
 
 static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
@@ -145,7 +151,7 @@ static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 		ppluint32 pitch32=data.pitch>>2;
 		pp=data.base32+in.top()*pitch32;
 		for (y=in.top();y<=in.bottom();y++) {
-			for (x=in.left();x<=in.right();x++) pp[x]=(ppldd)color;
+			for (x=in.left();x<=in.right();x++) pp[x]=(ppluint32)color;
 			pp+=pitch32;
 		}
 	#endif
@@ -154,20 +160,20 @@ static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 /*
 static int Xchange_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR farbe, COLOR ersatzfarbe)
 {
-	ppldds y,x;
+	pplint32 y,x;
 	RECT r;
-	ppldds breite;
+	pplint32 breite;
 	ppldb * pp;
-	ppldd * ppw;
+	ppluint32 * ppw;
 
 	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
 	if (!data->Surface->FitRect (&r)) return 0;
 	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(ppldd *)pp;
+	ppw=(ppluint32 *)pp;
 	breite=r.right-r.left+1;
 	for (y=r.top;y<r.bottom+1;y++) {
 		for (x=0;x<breite;x++) {
-			if (ppw[x]==(ppldd)farbe) ppw[x]=(ppldd)ersatzfarbe;
+			if (ppw[x]==(ppluint32)farbe) ppw[x]=(ppluint32)ersatzfarbe;
 		}
 		ppw+=data->pitch32;
 	}
@@ -177,16 +183,16 @@ static int Xchange_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR farb
 static int Invert_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR color1, COLOR color2)
 {
 	COLOR pixel;
-	ppldds y,x;
+	pplint32 y,x;
 	RECT r;
-	ppldds breite;
+	pplint32 breite;
 	ppldb * pp;
-	ppldd * ppw;
+	ppluint32 * ppw;
 
 	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
 	if (!data->Surface->FitRect (&r)) return 0;
 	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(ppldd *)pp;
+	ppw=(ppluint32 *)pp;
 	breite=r.right-r.left+1;
 	for (y=r.top;y<r.bottom+1;y++) {
 		for (x=0;x<breite;x++) {
@@ -202,16 +208,16 @@ static int Invert_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR color
 static int Negativ_32 (SURFACE* data, int x1, int y1, int x2, int y2)
 {
 	RGBA pixel;
-	ppldds y,x;
+	pplint32 y,x;
 	RECT r;
-	ppldds breite;
+	pplint32 breite;
 	ppldb * pp;
-	ppldd * ppw;
+	ppluint32 * ppw;
 
 	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
 	if (!data->Surface->FitRect (&r)) return 0;
 	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(ppldd *)pp;
+	ppw=(ppluint32 *)pp;
 	breite=r.right-r.left+1;
 	for (y=r.top;y<r.bottom+1;y++) {
 		for (x=0;x<breite;x++) {
@@ -227,7 +233,6 @@ static int Negativ_32 (SURFACE* data, int x1, int y1, int x2, int y2)
 }
 */
 
-int CGrafix::InitShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 /*!\brief Initialisiert Funktionen zur Behandlung von Rechtecken
  *
  * \desc
@@ -244,6 +249,7 @@ int CGrafix::InitShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
  * @param[in] fn Pointer auf die Struktur mit den Funktionen
  * @return Liefert 1 zurück, wenn das Farbformat unterstützt wird, sonst 0
  */
+void Grafix::initShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
 	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
@@ -256,14 +262,13 @@ int CGrafix::InitShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			//fn->Xchange=Xchange_32;
 			//fn->Invert=Invert_32;
 			//fn->Negativ=Negativ_32;
-			return 1;
+			return;
 		case RGBFormat::A8:
 		case RGBFormat::GREY8:
 			fn->CLS=ClearScreen_8;
-			return 1;
+			return;
 	}
-	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
-	return 0;
+	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const wchar_t*)format.name(),format.format());
 }
 
 /*!\brief Grafik löschen
@@ -274,7 +279,7 @@ int CGrafix::InitShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
  *
  * \param[in] c Farbwert
  */
-void CDrawable::cls(const Color &c)
+void Drawable::cls(const Color &c)
 {
 	if (fn->FillRect) {
 		fn->FillRect(data,Rect(0,0,data.width,data.height),rgb(c));
@@ -288,9 +293,9 @@ void CDrawable::cls(const Color &c)
  * \desc
  * Durch Aufruf dieser Funktion wird die komplette Grafik gelöscht, indem
  * der Speicherbereich mit 0 beschrieben wird. Optional kann die Funktion
- * auch mit einem Farbwert aufgerufen werden (siehe CDrawable::cls(const Color &c)).
+ * auch mit einem Farbwert aufgerufen werden (siehe Drawable::cls(const Color &c)).
  */
-void CDrawable::cls()
+void Drawable::cls()
 {
 	if (fn->FillRect) {
 		fn->FillRect(data,Rect(0,0,data.width,data.height),0);
@@ -308,19 +313,19 @@ void CDrawable::cls()
  * @param[in] rect Koordinaten des Rechtecks
  * @param[in] c Farbe des Rechtecks
  */
-void CDrawable::drawRect(const Rect &rect, const Color &c)
+void Drawable::drawRect(const Rect &rect, const Color &c)
 {
 	int y1,x1,y2,x2;
 	if (rect.left()<0 || rect.top()<0 || rect.right()>=data.width || rect.bottom()>=data.height) {
-		y1=rect.y1();
-		y2=rect.y2();
-		for (x1=rect.x1();x1<rect.right();x1++) {
+		y1=rect.y1;
+		y2=rect.y2;
+		for (x1=rect.x1;x1<rect.x2;x1++) {
 			putPixel(x1,y1,c);
 			putPixel(x1,y2,c);
 		}
-		x1=rect.x1();
-		x2=rect.x2();
-		for (y1=rect.top();y1<rect.bottom();y1++) {
+		x1=rect.x1;
+		x2=rect.x2;
+		for (y1=rect.y1;y1<rect.y2;y1++) {
 			putPixel(x1,y1,c);
 			putPixel(x2,y1,c);
 		}
@@ -341,7 +346,7 @@ void CDrawable::drawRect(const Rect &rect, const Color &c)
  * @param[in] y2 Y-Koordinate der unteren rechten Ecke
  * @param[in] c Farbe des Rechtecks
  */
-void CDrawable::drawRect(int x1, int y1, int x2, int y2, const Color &c)
+void Drawable::drawRect(int x1, int y1, int x2, int y2, const Color &c)
 {
 	Rect r;
 	r.setCoords(x1,y1,x2,y2);
@@ -360,7 +365,7 @@ void CDrawable::drawRect(int x1, int y1, int x2, int y2, const Color &c)
  * @param[in] c Farbe des Rechtecks
  *
  */
-void CDrawable::fillRect(const Rect &rect, const Color &c)
+void Drawable::fillRect(const Rect &rect, const Color &c)
 {
 	if (fn->FillRect) fn->FillRect(data,rect,rgb(c));
 }
@@ -377,14 +382,14 @@ void CDrawable::fillRect(const Rect &rect, const Color &c)
  * @param[in] c Farbe des Rechtecks
  *
  */
-void CDrawable::fillRect(int x1, int y1, int x2, int y2, const Color &c)
+void Drawable::fillRect(int x1, int y1, int x2, int y2, const Color &c)
 {
 	Rect r;
 	r.setCoords(x1,y1,x2,y2);
 	if (fn->FillRect) fn->FillRect(data,r,rgb(c));
 }
 
-void CDrawable::xchange(const Rect &rect, const Color &color, const Color &replace)
+void Drawable::xchange(const Rect &rect, const Color &color, const Color &replace)
 /*!\brief Farben ersetzen
  *
  * \desc
@@ -398,7 +403,7 @@ void CDrawable::xchange(const Rect &rect, const Color &color, const Color &repla
 	if (fn->Xchange) fn->Xchange(data,rect,rgb(color),rgb(replace));
 }
 
-void CDrawable::invert(const Rect &rect, const Color &color1, const Color &color2)
+void Drawable::invert(const Rect &rect, const Color &color1, const Color &color2)
 /*!\brief Farben vertauschen
  *
  * \desc
@@ -413,7 +418,7 @@ void CDrawable::invert(const Rect &rect, const Color &color1, const Color &color
 	if (fn->Invert) fn->Invert(data,rect,rgb(color1),rgb(color2));
 }
 
-void CDrawable::negativ(const Rect &rect)
+void Drawable::negativ(const Rect &rect)
 /*!\brief Negativ-Farben erstellen
  *
  * \desc
@@ -427,7 +432,7 @@ void CDrawable::negativ(const Rect &rect)
 }
 
 
-void CDrawable::floodFill (int x, int y, const Color &color, const Color &border)
+void Drawable::floodFill (int x, int y, const Color &color, const Color &border)
 /*!\brief Fläche mit Farbe füllen
  *
  * \desc
@@ -518,13 +523,13 @@ void CDrawable::floodFill (int x, int y, const Color &color, const Color &border
 /**************************************************************************
  * Kreise: Elipse, Circle                                                 *
  **************************************************************************/
-void CDrawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fill)
+void Drawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fill)
 {
 	int d;
-	int i,x1,y1,x2=0,y2=0;
-	for (i=0;i<1025;i++) {
-		x1 = x + (sinus1024(i) * radx/1024);
-		y1 = y + (cosinus1024(i) * rady/1024);
+	int x1,y1,x2=0,y2=0;
+	for (float i=0.0f;i<1.0f;i++) {
+		x1 = x + (sinf(i) * (float)radx);
+		y1 = y + (cosf(i) * (float)rady);
 		if (i > 0) {
 			d=abs(x2-x1)+abs(y2-y1);
 			if (d > 1)
@@ -539,18 +544,20 @@ void CDrawable::elipse (int x, int y, int radx, int rady, const Color &c, bool f
 }
 
 //void CSurface::Elipse (int x, int y, int radiusx, int radiusy, COLOR Farbe, int Flags, COLOR Fuellfarbe, int startwinkel, int endwinkel)
-void CDrawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fill, const Color &fillcolor, int start, int end)
+void Drawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fill, const Color &fillcolor, int start, int end)
 {
 	int d;
-	int i,x1,y1,x2,y2;
-	if (start!=end) {
-		x2 = x + (sinus1024(start) * radx/1024);
-		y2 = y + (cosinus1024(start) * rady/1024);
+	int x1,y1,x2,y2;
+	float st=(float)start/360.0f;
+	float en=(float)end/360.0f;
+	if (st!=en) {
+		x2 = x + (sinf(st) * (float)radx);
+		y2 = y + (cosf(st) * (float)rady);
 		putPixel (x2,y2,c);
 
-		for (i=start;i<end+1;i++) {
-			x1 = x + (sinus1024(i) * radx/1024);
-			y1 = y + (cosinus1024(i) * rady/1024);
+		for (float i=start;i<end+1;i++) {
+			x1 = x + (sinf(i) * radx);
+			y1 = y + (cosf(i) * rady);
 			if (i > 0) {
 				d=abs(x2-x1)+abs(y2-y1);
 				if (d > 1)
@@ -562,14 +569,14 @@ void CDrawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fi
 			y2 = y1;
 		}
 		if (fill) {
-			x1 = x + (sinus1024((start+end)/2) * (radx-2)/1024);
-			y1 = y + (cosinus1024((start+end)/2) * (rady-2)/1024);
+			x1 = x + (sinf((start+end)/2) * (float)(radx-2));
+			y1 = y + (cosf((start+end)/2) * (float)(rady-2));
 			floodFill (x1, y1, fillcolor, c);
 		}
 	}
 }
 
-void CDrawable::circle (int x, int y, int rad, const Color &c, bool fill)
+void Drawable::circle (int x, int y, int rad, const Color &c, bool fill)
 {
 	elipse(x,y,rad,rad,c,fill);
 }
@@ -592,20 +599,20 @@ void CSurface::Polygon (int count, POINT *points, COLOR color, int Flags)
 }
 */
 
-void CDrawable::colorGradient(const Rect &rect, const Color &c1, const Color &c2, int direction)
+void Drawable::colorGradient(const Rect &rect, const Color &c1, const Color &c2, int direction)
 {
-	colorGradient(rect.x1(), rect.y1(), rect.x2(), rect.y2(),c1,c2,direction);
+	colorGradient(rect.x1, rect.y1, rect.x2-1, rect.y2-1,c1,c2,direction);
 }
 
-void CDrawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, const Color &c2, int direction)
+void Drawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, const Color &c2, int direction)
 {
 	Color c;
-	ppldd w1,w2;
+	ppluint32 w1,w2;
 	int range;
 	c.setAlpha(255);
 	if (direction==0) {
 		range=x2-x1+1;
-		for (ppldds x=0; x<range; x++) {
+		for (pplint32 x=0; x<range; x++) {
 			w1=range-x;
 			w2=x;
 			c.setRed((c1.red()*w1/range)+(c2.red()*w2/range));
@@ -615,7 +622,7 @@ void CDrawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, c
 		}
 	} else {
 		range=y2-y1+1;
-		for (ppldds y=0; y<range; y++) {
+		for (pplint32 y=0; y<range; y++) {
 			w1=range-y;
 			w2=y;
 			c.setRed((c1.red()*w1/range)+(c2.red()*w2/range));
@@ -627,5 +634,5 @@ void CDrawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, c
 }
 
 } // EOF namespace grafix
-} // EOF namespace ppl6
+} // EOF namespace ppl7
 

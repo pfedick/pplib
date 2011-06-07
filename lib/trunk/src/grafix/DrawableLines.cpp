@@ -1,14 +1,15 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.2 $
- * $Date: 2010/02/12 19:43:48 $
- * $Id: Lines.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,11 +46,11 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl6.h"
-#include "ppl6-grafix.h"
+#include "ppl7.h"
+#include "ppl7-grafix.h"
 
 
-namespace ppl6 {
+namespace ppl7 {
 namespace grafix {
 
 /*
@@ -57,7 +58,7 @@ static void Line_32 (DRAWABLE_DATA &data, int x1, int y1, int x2, int y2, Surfac
 {
 	GRAFIX_FUNCTIONS *fn=data.fn;
 	if (!fn->PutPixel) return;
-	ppldds xx1,xx2,yy1,yy2,StepX,StepY;
+	pplint32 xx1,xx2,yy1,yy2,StepX,StepY;
 	//ppldd * pp;
 
 	// Sonderfall 1: Anfangs- und Endkoordinaten sind identisch
@@ -328,7 +329,7 @@ static void SwapFloat(float *w1, float *w2)
 
 static float WuTrunc(float value)			// Ganzzahligen Wert von Value zur�ckgeben
 {
-	return (float)((ppldds)value);
+	return (float)((pplint32)value);
 }
 
 static float WuFrac(float value)			// Kommastellen zurueckgeben
@@ -351,12 +352,12 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 	GRAFIX_FUNCTIONS *fn=data.fn;
 	if (!fn->BlendPixel) return;
 
-	ppldds x,ix1,ix2,iy1,iy2,y;
+	pplint32 x,ix1,ix2,iy1,iy2,y;
 
 	xd=(x2-x1);						// Breite und Hoehe der Linie
 	yd=(y2-y1);
 
-	if (abs((ppldds)xd)>abs((ppldds)yd)) {			// check line gradient							==> Horizontale Linie
+	if (abs((pplint32)xd)>abs((pplint32)yd)) {			// check line gradient							==> Horizontale Linie
 		if (x1>x2) {				// Wenn Linie von rechts nach links gezeichnet wird, tauschen
 			SwapFloat(&x1,&x2);		// wir einfach die Koordinaten
 			SwapFloat(&y1,&y2);
@@ -371,8 +372,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		xgap=WuInvFrac(x1+0.5f);
 
-		ix1=(ppldds)xend;
-		iy1=(ppldds)yend;
+		ix1=(pplint32)xend;
+		iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -387,8 +388,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		xgap=WuInvFrac(x2-0.5f);
 
-		ix2=(ppldds)xend;
-		iy2=(ppldds)yend;
+		ix2=(pplint32)xend;
+		iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -419,8 +420,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		ygap=WuInvFrac(y1+0.5f);
 
-		ix1=(ppldds)xend;
-		iy1=(ppldds)yend;
+		ix1=(pplint32)xend;
+		iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -435,8 +436,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		ygap=WuInvFrac(y2-0.5f);
 
-		ix2=(ppldds)xend;
-		iy2=(ppldds)yend;
+		ix2=(pplint32)xend;
+		iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -461,7 +462,7 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 	float xgap,xend,yend,yf,xf,ygap;
 	float brightness1, brightness2;
 
-	ppldds x,ix1,ix2,iy1,iy2,y;
+	pplint32 x,ix1,ix2,iy1,iy2,y;
 
 	GRAFIX_FUNCTIONS *fn=data.fn;
 	if (!fn->BlendPixel) return;
@@ -469,7 +470,7 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 	xd=(x2-x1);						// Breite und Hoehe der Linie
 	yd=(y2-y1);
 
-	if (abs((ppldds)xd)>abs((ppldds)yd)) {			// check line gradient							==> Horizontale Linie
+	if (abs((pplint32)xd)>abs((pplint32)yd)) {			// check line gradient							==> Horizontale Linie
 		// Zuerst korrigieren wir die Start- und Zielkoordinaten, damit die Linie mittig ist
 		y1-=strength/2;
 		y2-=strength/2;
@@ -488,8 +489,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		xgap=WuInvFrac(x1+0.5f);
 
-		ix1=(ppldds)xend;
-		iy1=(ppldds)yend;
+		ix1=(pplint32)xend;
+		iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -505,8 +506,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		xgap=WuInvFrac(x2-0.5f);
 
-		ix2=(ppldds)xend;
-		iy2=(ppldds)yend;
+		ix2=(pplint32)xend;
+		iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -518,9 +519,9 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 		for (x=ix1+1; x<ix2; x++) {
 			brightness1=WuInvFrac(yf);
 			brightness2=WuFrac(yf);
-			fn->BlendPixel(data,x,(ppldds)yf,color,(int)(brightness1*255));
-			for (int i=1;i<strength;i++) fn->BlendPixel(data,x,(ppldds)yf+i,color,255);
-			fn->BlendPixel(data,x,(ppldds)yf+strength,color,(int)(brightness2*255));
+			fn->BlendPixel(data,x,(pplint32)yf,color,(int)(brightness1*255));
+			for (int i=1;i<strength;i++) fn->BlendPixel(data,x,(pplint32)yf+i,color,255);
+			fn->BlendPixel(data,x,(pplint32)yf+strength,color,(int)(brightness2*255));
 			yf=yf+grad;
 		}
 
@@ -543,8 +544,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		ygap=WuInvFrac(y1+0.5f);
 
-		ix1=(ppldds)xend;
-		iy1=(ppldds)yend;
+		ix1=(pplint32)xend;
+		iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -560,8 +561,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		ygap=WuInvFrac(y2-0.5f);
 
-		ix2=(ppldds)xend;
-		iy2=(ppldds)yend;
+		ix2=(pplint32)xend;
+		iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -573,9 +574,9 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 		for (y=iy1+1; y<iy2; y++) {
 			brightness1=WuInvFrac(xf);
 			brightness2=WuFrac(xf);
-			fn->BlendPixel(data,(ppldds)xf,y,color,(int)(brightness1*255));
-			for (int i=1;i<strength;i++) fn->BlendPixel(data,(ppldds)xf+i,y,color,255);
-			fn->BlendPixel(data,(ppldds)xf+strength,y,color,(int)(brightness2*255));
+			fn->BlendPixel(data,(pplint32)xf,y,color,(int)(brightness1*255));
+			for (int i=1;i<strength;i++) fn->BlendPixel(data,(pplint32)xf+i,y,color,255);
+			fn->BlendPixel(data,(pplint32)xf+strength,y,color,(int)(brightness2*255));
 			xf=xf+grad;
 		}
 
@@ -593,7 +594,7 @@ static void LineAA (DRAWABLE_DATA &data, int x1, int y1, int x2, int y2, Surface
 }
 
 
-int CGrafix::InitLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
+void Grafix::initLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
 	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
@@ -602,39 +603,38 @@ int CGrafix::InitLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::X8R8G8B8:
 			fn->LineAA=LineAA;
 			fn->Line=Line_32;
-			return 1;
+			return;
 
 		case RGBFormat::A8:
 		case RGBFormat::GREY8:
-			return 1;
+			return;
 
 	}
-	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
-	return 0;
+	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const wchar_t*)format.name(),format.format());
 }
 
-void CDrawable::line (int x1, int y1, int x2, int y2, const Color &c)
+void Drawable::line (int x1, int y1, int x2, int y2, const Color &c)
 {
 	if (fn->Line) fn->Line(data,x1,y1,x2,y2,rgb(c));
 }
 
-void CDrawable::line (const Point &start, const Point &end, const Color &c)
+void Drawable::line (const Point &start, const Point &end, const Color &c)
 {
-	if (fn->Line) fn->Line(data,start.x(), start.y(), end.x(), end.y(), rgb(c));
+	if (fn->Line) fn->Line(data,start.x, start.y, end.x, end.y, rgb(c));
 }
 
-void CDrawable::lineAA (int x1, int y1, int x2, int y2, const Color &c, int strength)
+void Drawable::lineAA (int x1, int y1, int x2, int y2, const Color &c, int strength)
 {
 	if (fn->LineAA) fn->LineAA(data,x1,y1,x2,y2,rgb(c),strength);
 }
 
-void CDrawable::lineAA (const Point &start, const Point &end, const Color &c, int strength)
+void Drawable::lineAA (const Point &start, const Point &end, const Color &c, int strength)
 {
-	if (fn->LineAA) fn->LineAA(data,start.x(), start.y(), end.x(), end.y(), rgb(c), strength);
+	if (fn->LineAA) fn->LineAA(data,start.x, start.y, end.x, end.y, rgb(c), strength);
 }
 
 
 
 } // EOF namespace grafix
-} // EOF namespace ppl6
+} // EOF namespace ppl7
 
