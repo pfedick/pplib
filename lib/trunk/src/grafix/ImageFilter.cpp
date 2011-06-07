@@ -53,7 +53,6 @@
 namespace ppl7 {
 namespace grafix {
 
-#ifdef DONE
 
 /*!\brief Image-Filter registrieren
  *
@@ -61,9 +60,9 @@ namespace grafix {
  * Mit dieser Funktion wird ein neuer Image-Filter registriert. Ein Image-Filter ist
  * eine von ImageFilter abgeleitete Klasse, die in der Lage ist ein bestimmtes Grafikformat
  * zu lesen und optional auch zu schreiben.
- * Der Filter muss mit "new" angelegt worden sein. CGrafix übernimmt dessen
+ * Der Filter muss mit "new" angelegt worden sein. Grafix übernimmt dessen
  * Verwaltung, dass heisst die Klasse kümmert sich auch um das Löschen. Mit
- * CGrafix::UnloadFilter kann ein Filter von der Anwendung manuell wieder entfernt
+ * Grafix::UnloadFilter kann ein Filter von der Anwendung manuell wieder entfernt
  * werden.
  *
  * \param[in] filter Pointer auf den zu registrierenden Filter
@@ -72,41 +71,41 @@ namespace grafix {
  *
  * \see
  * - ImageFilter
- * - CGrafix::UnloadFilter
- * - CGrafix::FindFilter
+ * - Grafix::UnloadFilter
+ * - Grafix::FindFilter
  */
-int CGrafix::AddFilter(ImageFilter *filter)
+void Grafix::addImageFilter(ImageFilter *filter)
 {
-	int ret;
-	Mutex.Lock();
-	ret=ImageFilter.Add(filter);
-	Mutex.Unlock();
-	if (!ret) {
-		ExtendError(1003);
+	myMutex.lock();
+	try {
+		ImageFilterList.add(filter);
+	} catch (...) {
+		myMutex.unlock();
+		throw;
 	}
-	return ret;
+	myMutex.unlock();
 }
 
 /*!\brief Image-Filter entfernen
  *
  * \desc
- * Mit dieser Funktion wird ein zuvor mit CGrafix::AddFilter registrierter Image-Filter
+ * Mit dieser Funktion wird ein zuvor mit Grafix::AddFilter registrierter Image-Filter
  * aus der Grafik-Engine entfernt. Der Filter selbst wird jedoch nicht gelöscht, darum
  * muss sich die Anwendung kümmern.
  *
  * \param[in] filter Pointer auf den zu entfernenden Image-Filter
  * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CGrafix::UnloadFilter(ImageFilter *filter)
+void Grafix::unloadImageFilter(ImageFilter *filter)
 {
-	int ret;
-	Mutex.Lock();
-	ret=ImageFilter.Delete(filter);
-	Mutex.Unlock();
-	if (!ret) {
-		ExtendError(1004);
+	myMutex.lock();
+	try {
+		ImageFilterList.erase(filter);
+	} catch (...) {
+		myMutex.unlock();
+		throw;
 	}
-	return ret;
+	myMutex.unlock();
 }
 
 /*!\brief Filter anhand seines Namens finden
@@ -119,21 +118,22 @@ int CGrafix::UnloadFilter(ImageFilter *filter)
  * \return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
  * zurück, im Fehlerfall NULL.
  */
-ImageFilter *CGrafix::FindFilter(const CString &name)
+ImageFilter *Grafix::findImageFilter(const String &name)
 {
+	List<ImageFilter*>::Iterator it;
 	ImageFilter *f;
-	Mutex.Lock();
+	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
-	ImageFilter.Reset();
-	while ((f=(ImageFilter*)ImageFilter.GetPrevious())) {
-		if (StrCaseCmp(name,f->Name())==0) {
-			Mutex.Unlock();
+	ImageFilterList.reset(it);
+	while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
+		if (name.strcasecmp(f->name())==0) {
+			myMutex.unlock();
 			return f;
 		}
 	}
-	Mutex.Unlock();
-	SetError(1006,"%s", (const char*)name);
-	return NULL;
+	myMutex.unlock();
+	throw UnknownImageFormatException();
+
 }
 
 /*!\brief Filter anhand des Inhalts einer geöffneten Datei finden
@@ -148,151 +148,25 @@ ImageFilter *CGrafix::FindFilter(const CString &name)
  * \return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
  * zurück, im Fehlerfall NULL.
  */
-ImageFilter *CGrafix::FindFilter(CFileObject &ff, IMAGE &img)
+ImageFilter *Grafix::findImageFilter(FileObject &ff, IMAGE &img)
 {
-	ImageFilter *filter;
-	Mutex.Lock();
+	List<ImageFilter*>::Iterator it;
+	ImageFilter *f;
+	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
-	ImageFilter.Reset();
-	while ((filter=(ImageFilter*)ImageFilter.GetPrevious())) {
-		if (filter->Ident(ff,img)==1) break;
+	ImageFilterList.reset(it);
+	while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
+		if (f->ident(ff,img)==1) {
+			myMutex.unlock();
+			return f;
+		}
 	}
-	Mutex.Unlock();
-	if (!filter) {
-		SetError(1017);
-		return NULL;
-	}
-	return filter;
+	myMutex.unlock();
+	throw UnknownImageFormatException();
 }
 
-/*!\brief Filter anhand des Inhalts einer geöffneten Datei finden
- *
- * \desc
- * Mit dieser Funktion kann ein registrierter Filter anhand des Inhalts einer
- * bereits geöffneten Datei gefunden werden. Dazu wird die Funktion ImageFilter::Ident
- * von jedem registrierten Filter aufgerufen, bis einer signalisiert, dass er das
- * Format verarbeiten kann.
- *
- * \param[in] ff Pointer auf die geöffnete Datei
- * \return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
- * zurück, im Fehlerfall NULL.
- */
-ImageFilter *CGrafix::FindFilter(CFileObject *ff, IMAGE &img)
-{
-	if (!ff) {
-		SetError(194);
-		return NULL;
-	}
-	return FindFilter(*ff, img);
-}
 
-/*
-CSurface *CGrafix::Load(CResource *res, int id, int flags, const RGBFormat &rgbformat, ImageFilter *filter)
-{
-	if (!res) {
-		SetError(194);
-		return NULL;
-	}
-	CFileObject *ff;
-	ff=res->GetFile(id);
-	if (!ff) return NULL;
-	CSurface *s=Load(ff,flags,rgbformat,filter);
-	PushError();
-	delete ff;
-	PopError();
-	return s;
-}
 
-CSurface *CGrafix::Load(CResource *res, const char *name, int flags, const RGBFormat &rgbformat, ImageFilter *filter)
-{
-	if (!res) {
-		SetError(194);
-		return NULL;
-	}
-	if (!name) {
-		SetError(194);
-		return NULL;
-	}
-	CFileObject *ff;
-	ff=res->GetFile(name);
-	if (!ff) return NULL;
-	CSurface *s=Load(ff,flags,rgbformat,filter);
-	PushError();
-	delete ff;
-	PopError();
-	return s;
-}
-
-CSurface *CGrafix::Load(const CString &filename, int flags, const RGBFormat &rgbformat, ImageFilter *filter)
-{
-	CFile ff;
-	if (!ff.Open(filename,"rb")) return NULL;
-	return Load(&ff,flags,rgbformat, filter);
-}
-
-CSurface *CGrafix::Load(const CMemory &memory, int flags, const RGBFormat &rgbformat, ImageFilter *filter)
-{
-	CMemFile ff;
-	if (!ff.Open(memory)) return NULL;
-	return Load(&ff,flags,rgbformat, filter);
-}
-
-CSurface *CGrafix::Load(CFileObject &ff, int flags, const RGBFormat &rgbformat, ImageFilter *filter)
-{
-	IMAGE img;
-	if (!filter) {
-		filter=FindFilter(ff);
-		if (!filter) return NULL;
-	} else {
-		if (!filter->Ident(ff,img)) return 0;
-	}
-	RGBFormat format=rgbformat;
-	if ((flags&Surface::Flags::ConvertColors) && rgbformat==RGBFormat::unknown) format=PrimaryRGBFormat;
-	if (format==RGBFormat::unknown) format=img.format;
-	// TODO:
-	// CSurface *surface=CreateSurface("img",img.width,img.height,format,flags);
-	CSurface *surface=NULL;
-	if (!surface) return NULL;
-	if (!filter->Load(ff,surface,img)) {
-		PushError();
-		delete surface;
-		PopError();
-		return NULL;
-	}
-	return surface;
-}
-
-CSurface *CGrafix::Load(CFileObject *ff, int flags, const RGBFormat &rgbformat, ImageFilter *filter)
-{
-	if (!ff) {
-		SetError(194);
-		return NULL;
-	}
-	IMAGE img;
-	if (!filter) {
-		filter=FindFilter(ff);
-		if (!filter) return NULL;
-	} else {
-		if (!filter->Ident(*ff,img)) return 0;
-	}
-	RGBFormat format=rgbformat;
-	if ((flags&Surface::Flags::ConvertColors) && rgbformat==RGBFormat::unknown) format=PrimaryRGBFormat;
-	if (format==RGBFormat::unknown) format=img.format;
-	// TODO:
-	// CSurface *surface=CreateSurface("img",img.width,img.height,format,flags);
-	CSurface *surface=NULL;
-	if (!surface) return NULL;
-	if (!filter->Load(*ff,surface,img)) {
-		PushError();
-		delete surface;
-		PopError();
-		return NULL;
-	}
-	return surface;
-}
-*/
-
-#endif
 
 /*!\class ImageFilter
  * \ingroup PPLGroupGrafik

@@ -52,62 +52,62 @@
 //#include "grafix6.h"
 
 
-namespace ppl6 {
+namespace ppl7 {
 namespace grafix {
 
-/*!\class CImageList
+/*!\class ImageList
  * \ingroup PPLGroupGrafik
  * \brief Ein Container für eine Grafik mit mehreren gleichgroßen Icons
  * @return
  */
 
-CImageList::CImageList()
+ImageList::ImageList()
 {
 	method=BLT;
 	width=height=numIcons=0;
 	numX=numY=0;
 }
 
-CImageList::CImageList(const CImageList &other)
+ImageList::ImageList(const ImageList &other)
 {
-	if (!copy(other)) throw Exception();
+	copy(other);
 }
 
-CImageList::CImageList(const CDrawable &draw, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(const Drawable &draw, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(draw,icon_width,icon_height,method)) throw Exception();
+	load(draw,icon_width,icon_height,method);
 }
 
-CImageList::CImageList(const CString &Filename, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(Filename,icon_width,icon_height,method)) throw Exception();
+	load(Filename,icon_width,icon_height,method);
 }
 
-CImageList::CImageList(CFileObject &file, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(file,icon_width,icon_height,method)) throw Exception();
+	load(file,icon_width,icon_height,method);
 }
 
-CImageList::CImageList(const CMemoryReference &mem, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!load(mem,icon_width,icon_height,method)) throw Exception();
+	load(mem,icon_width,icon_height,method);
 }
 
-CImageList::~CImageList()
+ImageList::~ImageList()
 {
 
 }
 
-void CImageList::clear()
+void ImageList::clear()
 {
 	method=BLT;
 	width=height=numIcons=0;
 	numX=numY=0;
 }
 
-int CImageList::copy(const CImageList &other)
+void ImageList::copy(const ImageList &other)
 {
-	if (!CImage::copy(other)) return 0;
+	Image::copy(other);
 	width=other.width;
 	height=other.height;
 	numIcons=other.numIcons;
@@ -116,101 +116,89 @@ int CImageList::copy(const CImageList &other)
 	method=other.method;
 	numX=other.numX;
 	numY=other.numY;
-	return 1;
 }
 
-int CImageList::load(const CDrawable &draw,int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(const Drawable &draw,int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!CImage::copy(draw)) return 0;
+	Image::copy(draw);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=CImage::width()/width;
-	numY=CImage::height()/height;
+	numX=Image::width()/width;
+	numY=Image::height()/height;
 	numIcons=numX*numY;
-	return 1;
 }
 
-int CImageList::load(const CString &Filename, int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!CImage::load(Filename)) return 0;
+	Image::load(Filename);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=CImage::width()/width;
-	numY=CImage::height()/height;
+	numX=Image::width()/width;
+	numY=Image::height()/height;
 	numIcons=numX*numY;
-	return 1;
 }
 
-int CImageList::load(CFileObject &file, int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!CImage::load(file)) return 0;
+	Image::load(file);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=CImage::width()/width;
-	numY=CImage::height()/height;
+	numX=Image::width()/width;
+	numY=Image::height()/height;
 	numIcons=numX*numY;
-	return 1;
 }
 
-int CImageList::load(const CMemoryReference &mem, int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	if (!CImage::load(mem)) return 0;
+	Image::load(mem);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=CImage::width()/width;
-	numY=CImage::height()/height;
+	numX=Image::width()/width;
+	numY=Image::height()/height;
 	numIcons=numX*numY;
-	return 1;
 }
 
 
-void CImageList::setDrawMethod(DRAWMETHOD method)
+void ImageList::setDrawMethod(DRAWMETHOD method)
 {
 	this->method=method;
 }
 
-void CImageList::setColorKey(const Color &key)
+void ImageList::setColorKey(const Color &key)
 {
 	colorkey=key;
 }
 
-void CImageList::setDiffuseColor(const Color &c)
+void ImageList::setDiffuseColor(const Color &c)
 {
 	diffuse=c;
 }
 
-void CImageList::setIconSize(int width, int height)
+void ImageList::setIconSize(int width, int height)
 {
 	this->width=width;
 	this->height=height;
 }
 
 
-int CImageList::num() const
+size_t ImageList::num() const
 {
 	return numIcons;
 }
 
-Size CImageList::iconSize() const
+Size ImageList::iconSize() const
 {
 	return Size(width,height);
 }
 
-Rect CImageList::getRect(int nr) const
+Rect ImageList::getRect(size_t nr) const
 {
 	Rect r;
-	if (!numIcons) {
-		SetError(1043);
-		return r;
-	}
-	if (nr>=numIcons) {
-		SetError(1044,"Nummer: %i, Liste: 0-%i",nr,numIcons-1);
-		return r;
-	}
+	if (numIcons==0 || nr>=numIcons) throw OutOfBoundsEception();
 	int h,w;
 	h=nr/numX;
 	w=nr%numX;
@@ -218,31 +206,30 @@ Rect CImageList::getRect(int nr) const
 	return r;
 }
 
-CImageList::DRAWMETHOD CImageList::drawMethod() const
+ImageList::DRAWMETHOD ImageList::drawMethod() const
 {
 	return method;
 }
 
-CDrawable CImageList::getDrawable(int nr) const
+Drawable ImageList::getDrawable(size_t nr) const
 {
 	Rect r=getRect(nr);
-	if (r.isNull()) return CDrawable();
-	return CDrawable(*this,r);
+	return Drawable(*this,r);
 }
 
-Color CImageList::colorKey() const
+Color ImageList::colorKey() const
 {
 	return colorkey;
 }
 
-Color CImageList::diffuseColor() const
+Color ImageList::diffuseColor() const
 {
 	return diffuse;
 }
 
-CImageList &CImageList::operator=(const CImageList &other)
+ImageList &ImageList::operator=(const ImageList &other)
 {
-	if (!copy(other)) throw Exception();
+	copy(other);
 	return *this;
 }
 
@@ -250,4 +237,4 @@ CImageList &CImageList::operator=(const CImageList &other)
 
 
 } // EOF namespace grafix
-} // EOF namespace ppl6
+} // EOF namespace ppl7

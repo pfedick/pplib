@@ -362,6 +362,21 @@ template <class K> class List
 			return it->item;
 		}
 
+		void erase(const K &item)
+		{
+			ListItem *it=first;
+			while (it) {
+				if (it->item==item) {
+					if (it->previous) it->previous->next=it->next;
+					if (it->next) it->next->previous=it->previous;
+					if (it==first) first=it->next;
+					if (it==last) last=it->previous;
+					return;
+				}
+				it=it->next;
+			}
+		}
+
 		size_t		num() const
 		{
 			return MyHeap.count();

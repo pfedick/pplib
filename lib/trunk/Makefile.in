@@ -69,8 +69,11 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_DrawableLines.o \
 	release/gfx_DrawablePixel.o \
 	release/gfx_DrawableShapes.o \
+	release/gfx_Grafix.o \
+	release/gfx_Image.o \
 	release/gfx_ImageFilter.o \
 	release/gfx_ImageFilter_PNG.o \
+	release/gfx_ImageList.o \
 	release/gfx_Point.o \
 	release/gfx_Point3D.o \
 	release/gfx_RGBFormat.o \
@@ -114,8 +117,11 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_DrawableLines.o \
 	debug/gfx_DrawablePixel.o \
 	debug/gfx_DrawableShapes.o \
+	debug/gfx_Grafix.o \
+	debug/gfx_Image.o \
 	debug/gfx_ImageFilter.o \
 	debug/gfx_ImageFilter_PNG.o \
+	debug/gfx_ImageList.o \
 	debug/gfx_Point.o \
 	debug/gfx_Point3D.o \
 	debug/gfx_RGBFormat.o \
@@ -422,6 +428,16 @@ release/gfx_DrawableShapes.o:	$(srcdir)/grafix/DrawableShapes.cpp $(incdir)/ppl7
 	# Compiling >>>grafix/DrawableShapes.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_DrawableShapes.o -c $(srcdir)/grafix/DrawableShapes.cpp $(CFLAGS) 
 
+release/gfx_Grafix.o:	$(srcdir)/grafix/Grafix.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Grafix.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Grafix.o -c $(srcdir)/grafix/Grafix.cpp $(CFLAGS) 
+
+release/gfx_Image.o:	$(srcdir)/grafix/Image.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Image.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Image.o -c $(srcdir)/grafix/Image.cpp $(CFLAGS) 
+
 release/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter.cpp<<<
@@ -431,6 +447,11 @@ release/gfx_ImageFilter_PNG.o:	$(srcdir)/grafix/ImageFilter_PNG.cpp $(incdir)/pp
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_PNG.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_PNG.o -c $(srcdir)/grafix/ImageFilter_PNG.cpp $(CFLAGS) 
+
+release/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageList.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageList.o -c $(srcdir)/grafix/ImageList.cpp $(CFLAGS) 
 
 release/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -676,6 +697,16 @@ debug/gfx_DrawableShapes.o:	$(srcdir)/grafix/DrawableShapes.cpp $(incdir)/ppl7.h
 	# Compiling >>>grafix/DrawableShapes.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_DrawableShapes.o -c $(srcdir)/grafix/DrawableShapes.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/gfx_Grafix.o:	$(srcdir)/grafix/Grafix.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Grafix.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Grafix.o -c $(srcdir)/grafix/Grafix.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_Image.o:	$(srcdir)/grafix/Image.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Image.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Image.o -c $(srcdir)/grafix/Image.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter.cpp<<<
@@ -685,6 +716,11 @@ debug/gfx_ImageFilter_PNG.o:	$(srcdir)/grafix/ImageFilter_PNG.cpp $(incdir)/ppl7
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_PNG.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageFilter_PNG.o -c $(srcdir)/grafix/ImageFilter_PNG.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageList.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageList.o -c $(srcdir)/grafix/ImageList.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################

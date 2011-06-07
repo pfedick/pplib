@@ -56,7 +56,10 @@ PPLPARAMETERISEDEXCEPTION(UnsupportedColorFormatException);
 PPLNORMALEXCEPTION(NoGrafixEngineException);
 PPLNORMALEXCEPTION(EmptyDrawableException);
 PPLNORMALEXCEPTION(UnknownBltMethodException);
+PPLNORMALEXCEPTION(DuplicateGrafixEngineException);
 PPLPARAMETERISEDEXCEPTION(FunctionUnavailableException);
+PPLNORMALEXCEPTION(InvalidImageSizeException);
+PPLNORMALEXCEPTION(UnknownImageFormatException);
 
 
 // Microsoft kompatible Strukturen
@@ -574,14 +577,14 @@ class Image : public Drawable
 		/** @name Verschiedenes
 		 */
 		//@{
-		int create(int width, int height, const RGBFormat &format);
-		int create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
-		int load(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
-		int load(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
-		int load(const ByteArrayPtr &Mem, const RGBFormat &format=RGBFormat::unknown);
-		int copy(const Drawable &other);
-		int copy(const Drawable &other, const Rect &rect);
-		int copy(const Image &other);
+		void create(int width, int height, const RGBFormat &format);
+		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
+		void load(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
+		void load(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
+		void load(const ByteArrayPtr &Mem, const RGBFormat &format=RGBFormat::unknown);
+		void copy(const Drawable &other);
+		void copy(const Drawable &other, const Rect &rect);
+		void copy(const Image &other);
 		Image &operator=(const Drawable &other);
 		Image &operator=(const Image &other);
 		size_t numBytes() const;
@@ -602,7 +605,8 @@ class ImageList : public Image
 			DIFFUSE
 		};
 	private:
-		int		width, height, numIcons;
+		size_t	numIcons;
+		int		width, height;
 		int		numX, numY;
 		Color	colorkey;
 		Color	diffuse;
@@ -624,17 +628,17 @@ class ImageList : public Image
 		void setDiffuseColor(const Color &c);
 		void setIconSize(int width, int height);
 
-		int copy(const ImageList &other);
-		int load(const Drawable &draw,int icon_width, int icon_height, DRAWMETHOD method);
-		int load(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method);
-		int load(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method);
-		int load(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method);
+		void copy(const ImageList &other);
+		void load(const Drawable &draw,int icon_width, int icon_height, DRAWMETHOD method);
+		void load(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method);
+		void load(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method);
+		void load(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method);
 
-		int num() const;
+		size_t num() const;
 		Size iconSize() const;
-		Rect getRect(int nr) const;
+		Rect getRect(size_t nr) const;
 		DRAWMETHOD drawMethod() const;
-		Drawable getDrawable(int nr) const;
+		Drawable getDrawable(size_t nr) const;
 		Color colorKey() const;
 		Color diffuseColor() const;
 
@@ -654,6 +658,8 @@ class Grafix
 		CTree		FontList;
 		CList		ImageFilter;
 		*/
+		List<ImageFilter*>	ImageFilterList;
+
 		ImageFilter		*filter_png;
 		ImageFilter		*filter_jpeg;
 		ImageFilter		*filter_bmp;
@@ -663,8 +669,7 @@ class Grafix
 		RGBFormat	PrimaryRGBFormat;
 
 
-		void InitErrors();
-		void InitAlphatab();
+		void initAlphatab();
 
 		void initFunctions(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
 		void initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
@@ -688,8 +693,8 @@ class Grafix
 		GRAFIX_FUNCTIONS *getGrafixFunctions(const RGBFormat &format);
 
 		// Image-Filter und Loader
-		int addImageFilter(ImageFilter *filter);
-		int unloadImageFilter(ImageFilter *filter);
+		void addImageFilter(ImageFilter *filter);
+		void unloadImageFilter(ImageFilter *filter);
 		ImageFilter *findImageFilter(const String &name);
 		ImageFilter *findImageFilter(FileObject &ff, IMAGE &img);
 

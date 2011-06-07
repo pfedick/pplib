@@ -52,10 +52,10 @@
 //#include "grafix6.h"
 
 
-namespace ppl6 {
+namespace ppl7 {
 namespace grafix {
 
-/*!\class CImage
+/*!\class Image
  * \ingroup PPLGroupGrafik
  * \brief Eine Bitmap-Grafik im Hauptspeicher
  *
@@ -68,8 +68,8 @@ namespace grafix {
  * using namespace ppl6::grafix;
  *
  * int main(int argc, char **argv) {
- * 	CGrafix gfx;									// Grafik-Engine initialisieren
- * 	CImage Image(640,480,RGBFormat::A8R8G8B8);	// Image erzeugen
+ * 	Grafix gfx;									// Grafik-Engine initialisieren
+ * 	Image Image(640,480,RGBFormat::A8R8G8B8);	// Image erzeugen
  * 	Image.CLS(Color(255,255,255));				// Weisser Hintergrund
  * 	Image.DrawRect(Rect(10,10,100,100),Color(0));	// Schwarzes Rechteck mit einer Breite und Höhe von 100 Pixel
  * 	CFont Font;
@@ -85,13 +85,13 @@ namespace grafix {
 /*!\brief Konstruktor der Klasse
  *
  * \desc
- * Mit diesem Konstruktor wird ein leeres CImage erstellt. Bevor es verwendet werden kann, muss
- * zunächst mit CImage::create eine neue Grafik erstellt, mit CImage::copy eine Grafik von einem anderen
- * CImage oder CDrawable kopiert oder mit CImage::load eine Grafik aus einer Datei oder einem
+ * Mit diesem Konstruktor wird ein leeres Image erstellt. Bevor es verwendet werden kann, muss
+ * zunächst mit Image::create eine neue Grafik erstellt, mit Image::copy eine Grafik von einem anderen
+ * Image oder Drawable kopiert oder mit Image::load eine Grafik aus einer Datei oder einem
  * Speicherbereich geladen werden.
  *
  */
-CImage::CImage()
+Image::Image()
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
@@ -100,11 +100,11 @@ CImage::CImage()
 /*!\brief Copy-Konstruktor
  *
  * \desc
- * Mit diesem Konstruktor wird eine Kopie eines anderen CImage erstellt.
+ * Mit diesem Konstruktor wird eine Kopie eines anderen Image erstellt.
  *
- * @param other Anderes CImage
+ * @param other Anderes Image
  */
-CImage::CImage(const CImage &other)
+Image::Image(const Image &other)
 {
 	copy(other);
 }
@@ -112,11 +112,11 @@ CImage::CImage(const CImage &other)
 /*!\brief Copy-Konstruktor
  *
  * \desc
- * Mit diesem Konstruktor wird eine Kopie eines CDrawable erstellt.
+ * Mit diesem Konstruktor wird eine Kopie eines Drawable erstellt.
  *
- * @param other Ein CDrawable, von dem kopiert werden soll
+ * @param other Ein Drawable, von dem kopiert werden soll
  */
-CImage::CImage(const CDrawable &other)
+Image::Image(const Drawable &other)
 {
 	copy(other);
 }
@@ -133,11 +133,11 @@ CImage::CImage(const CDrawable &other)
  * \exception Exception::InitialisationFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht erstellt werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-CImage::CImage(int width, int height, const RGBFormat &format)
+Image::Image(int width, int height, const RGBFormat &format)
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
-	if (!create(width,height,format)) throw Exception();
+	create(width,height,format);
 }
 
 /*!\brief Grafik aus einer Datei laden
@@ -153,11 +153,11 @@ CImage::CImage(int width, int height, const RGBFormat &format)
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-CImage::CImage(const CString &Filename, const RGBFormat &format)
+Image::Image(const String &Filename, const RGBFormat &format)
 {
-	CFile ff;
-	if (!ff.Open(Filename,"rb")) throw Exception();
-	if (!load(ff,format)) throw Exception();
+	File ff;
+	ff.open(Filename,File::READ);
+	load(ff,format);
 }
 
 /*!\brief Grafik aus einer geöffneten Datei laden
@@ -171,9 +171,9 @@ CImage::CImage(const CString &Filename, const RGBFormat &format)
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-CImage::CImage(CFileObject &file, const RGBFormat &format)
+Image::Image(FileObject &file, const RGBFormat &format)
 {
-	if (!load(file,format)) throw Exception();
+	load(file,format);
 }
 
 /*!\brief Grafik aus einem Speicherbereich laden
@@ -187,9 +187,9 @@ CImage::CImage(CFileObject &file, const RGBFormat &format)
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-CImage::CImage(const CMemoryReference &mem, const RGBFormat &format)
+Image::Image(const ByteArrayPtr &mem, const RGBFormat &format)
 {
-	if (!load(mem,format)) throw Exception();
+	load(mem,format);
 }
 
 /*!\brief Destruktor der Klasse
@@ -199,35 +199,29 @@ CImage::CImage(const CMemoryReference &mem, const RGBFormat &format)
  * freigegeben wird.
  *
  */
-CImage::~CImage()
+Image::~Image()
 {
 	// Passiert alles automatisch
 }
 
-/*!\brief Grafik von einem CDrawable kopieren
+/*!\brief Grafik von einem Drawable kopieren
  *
  * \desc
- * Grafik von einem anderen CDrawable kopieren.
+ * Grafik von einem anderen Drawable kopieren.
  *
- * @param other Anderes CDrawable
+ * @param other Anderes Drawable
  * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::copy(const CDrawable &other)
+void Image::copy(const Drawable &other)
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
-	// Das andere CDrawable kann auch einen Ausschnitt aus einem größeren Bild
+	// Das andere Drawable kann auch einen Ausschnitt aus einem größeren Bild
 	// repräsentieren, daher kopieren wir die Pixeldaten Zeilenweise
 	size_t size=other.data.width*other.data.height*(other.data.rgbformat.bitdepth()/8);
-	if (!size) {
-		SetError(1067);
-		return 0;
-	}
+	if (!size) throw EmptyDrawableException();
 	data.base=myMemory.malloc(size);
-	if (!data.base) {
-		SetError(2);
-		return 0;
-	}
+	if (!data.base) throw OutOfMemoryException();
 	data.fn=other.data.fn;
 	fn=other.fn;
 	data.width=other.data.width;
@@ -242,45 +236,43 @@ int CImage::copy(const CDrawable &other)
 		qq+=other.data.pitch;
 		tt+=data.pitch;
 	}
-	return 1;
 }
 
-/*!\brief Grafikausschnitt von einem CDrawable kopieren
+/*!\brief Grafikausschnitt von einem Drawable kopieren
  *
  * \desc
- * Grafikausschnitt von einem anderen CDrawable kopieren.
+ * Grafikausschnitt von einem anderen Drawable kopieren.
  *
- * @param other Anderes CDrawable
+ * @param other Anderes Drawable
  * @param rect Gewünschter Ausschnitt
  * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::copy(const CDrawable &other, const Rect &rect)
+void Image::copy(const Drawable &other, const Rect &rect)
 {
-	return copy(CDrawable(other,rect));
+	copy(Drawable(other,rect));
 }
 
 /*!\brief Grafik kopieren
  *
  * \desc
- * Grafik von einem anderen CImage kopieren.
+ * Grafik von einem anderen Image kopieren.
  *
- * @param other Anderes CImage
+ * @param other Anderes Image
  * @return Im Erfolgsfall gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::copy(const CImage &other)
+void Image::copy(const Image &other)
 {
+	memset(&data,0,sizeof(data));
+	fn=NULL;
 	if (!myMemory.copy(other.myMemory)) {
-		memset(&data,0,sizeof(data));
-		fn=NULL;
-		return 0;
+		throw OutOfMemoryException();
 	}
 	memcpy(&data,&other.data,sizeof(data));
 	fn=other.fn;
-	data.base=myMemory.adr();
-	return 1;
+	data.base=(void*)myMemory.adr();
 }
 
-/*!\brief Neues CImage erstellen
+/*!\brief Neues Image erstellen
  *
  * \desc
  * Mit dieser Funktion wird eine neue Grafik mit der Größe \p width * \p height und dem
@@ -291,47 +283,30 @@ int CImage::copy(const CImage &other)
  * @param format Farbformat der Grafik
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::create(int width, int height, const RGBFormat &format)
+void Image::create(int width, int height, const RGBFormat &format)
 {
 	memset(&data,0,sizeof(data));
 	myMemory.free();
 
-	if (format==RGBFormat::unknown) {
-		SetError(1065);
-		return 0;
+	if (format==RGBFormat::unknown || format>=RGBFormat::MaxIdentifiers) {
+		throw UnknownColorFormatException();
 	}
-	if (width>65535 || height>65535) {
-		SetError(1076);
-	}
+	if (width>65535 || height>65535 || width<1 || height<1) throw InvalidImageSizeException();
 	size_t size=width*height*(format.bytesPerPixel());
-	if (!size) {
-		SetError(1076);
-		return 0;
-	}
 	data.base=myMemory.calloc(size);
-	if (!data.base) {
-		SetError(2);
-		return 0;
-	}
+	if (!data.base) throw OutOfMemoryException();
 	data.pitch=width*(format.bitdepth()/8);
 	data.rgbformat=format;
 	data.width=width;
 	data.height=height;
-	if (!initFunctions(data.rgbformat)) {
-		PushError();
-		memset(&data,0,sizeof(data));
-		myMemory.free();
-		PopError();
-		return 0;
-	}
-	return 1;
+	initFunctions(data.rgbformat);
 }
 
-/*!\brief Neues CImage aus einem Speicherbereich erstellen
+/*!\brief Neues Image aus einem Speicherbereich erstellen
  *
  * \desc
  * Mit dieser Funktion wird eine neue Grafik anhand des angegebenen Speicherbereichs erstellt.
- * Dabei wird zunächst eine neues CImage erstellt und die Bilddaten des angegebenen Speicherbereichs
+ * Dabei wird zunächst eine neues Image erstellt und die Bilddaten des angegebenen Speicherbereichs
  * hineinkopiert.
  *
  * @param base Speicheradresse
@@ -341,9 +316,9 @@ int CImage::create(int width, int height, const RGBFormat &format)
  * @param format Farbformat
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format)
+void Image::create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format)
 {
-	return copy(CDrawable(base,pitch,width,height,format));
+	copy(Drawable(base,pitch,width,height,format));
 }
 
 /*!\brief Grafik aus einer Datei laden
@@ -356,11 +331,11 @@ int CImage::create(void *base, ppluint32 pitch, int width, int height, const RGB
  * verwendet. Andernfalls werden die Originalfarben der Grafikdatei in das angegebene Format konvertiert.
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::load(const CString &Filename, const RGBFormat &format)
+void Image::load(const String &Filename, const RGBFormat &format)
 {
-	CFile ff;
-	if (!ff.Open(Filename,"rb")) return 0;
-	return load(ff,format);
+	File ff;
+	ff.open(Filename,File::READ);
+	load(ff,format);
 }
 
 /*!\brief Grafik aus einem Speicherbereich laden
@@ -373,10 +348,10 @@ int CImage::load(const CString &Filename, const RGBFormat &format)
  * verwendet. Andernfalls werden die Originalfarben der Grafikdatei in das angegebene Format konvertiert.
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::load(const CMemoryReference &Mem, const RGBFormat &format)
+void Image::load(const ByteArrayPtr &Mem, const RGBFormat &format)
 {
-	CMemFile ff(Mem);
-	return load(ff,format);
+	MemFile ff(Mem);
+	load(ff,format);
 }
 
 /*!\brief Grafik aus einer geöffneten Datei laden
@@ -389,17 +364,14 @@ int CImage::load(const CMemoryReference &Mem, const RGBFormat &format)
  * verwendet. Andernfalls werden die Originalfarben der Grafikdatei in das angegebene Format konvertiert.
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CImage::load(CFileObject &file, const RGBFormat &format)
+void Image::load(FileObject &file, const RGBFormat &format)
 {
-	CGrafix *gfx=GetGrafix();
-	if (!gfx) return 0;
+	Grafix *gfx=GetGrafix();
 	IMAGE img;
-	CFilter *filter=gfx->FindFilter(file,img);
-	if (!filter) return 0;
+	ImageFilter *filter=gfx->findImageFilter(file,img);
 	if (format!=RGBFormat::unknown) img.format=format;
-	if (!create(img.width,img.height,img.format)) return 0;
-	if (!filter->Load(file,*this,img)) return 0;
-	return 1;
+	create(img.width,img.height,img.format);
+	filter->load(file,*this,img);
 }
 
 /*!\brief Anzahl Bytes, die durch diese Grafik belegt sind
@@ -409,7 +381,7 @@ int CImage::load(CFileObject &file, const RGBFormat &format)
  *
  * @return Anzahl Bytes
  */
-size_t CImage::numBytes() const
+size_t Image::numBytes() const
 {
 	return myMemory.size();
 }
@@ -418,12 +390,12 @@ size_t CImage::numBytes() const
 /*!\brief Grafik kopieren
  *
  * \desc
- * Mit diesem Operator wird eine Kopie des angegebenen CDrawable \p other erstellt.
+ * Mit diesem Operator wird eine Kopie des angegebenen Drawable \p other erstellt.
  *
- * @param other Ein CDrawable, von dem die Kopie angefertigt werden soll
- * @return Liefert eine Referenz auf dieses CImage zurück.
+ * @param other Ein Drawable, von dem die Kopie angefertigt werden soll
+ * @return Liefert eine Referenz auf dieses Image zurück.
  */
-CImage &CImage::operator=(const CDrawable &other)
+Image &Image::operator=(const Drawable &other)
 {
 	copy(other);
 	return *this;
@@ -432,12 +404,12 @@ CImage &CImage::operator=(const CDrawable &other)
 /*!\brief Grafik kopieren
  *
  * \desc
- * Mit diesem Operator wird eine Kopie des angegebenen CImage \p other erstellt.
+ * Mit diesem Operator wird eine Kopie des angegebenen Image \p other erstellt.
  *
- * @param other Ein CImage, von dem die Kopie angefertigt werden soll
- * @return Liefert eine Referenz auf dieses CImage zurück.
+ * @param other Ein Image, von dem die Kopie angefertigt werden soll
+ * @return Liefert eine Referenz auf dieses Image zurück.
  */
-CImage &CImage::operator=(const CImage &other)
+Image &Image::operator=(const Image &other)
 {
 	copy(other);
 	return *this;
@@ -447,11 +419,11 @@ CImage &CImage::operator=(const CImage &other)
  *
  * \desc
  * Mit dieser Funktion kann eine Referenz des Speicherbereich der Grafik
- * als CMemoryReference-Objekt geholt werden.
+ * als ByteArrayPtr-Objekt geholt werden.
  *
- * @return CMemoryReference-Objekt mit referenz auf den Speicherbereich der Grafik
+ * @return ByteArrayPtr-Objekt mit referenz auf den Speicherbereich der Grafik
  */
-CMemoryReference CImage::memory() const
+ByteArrayPtr Image::memory() const
 {
 	return myMemory;
 }
@@ -460,11 +432,11 @@ CMemoryReference CImage::memory() const
  *
  * \desc
  * Mit dieser Funktion kann eine Referenz des Speicherbereich der Grafik
- * als CMemoryReference-Objekt geholt werden.
+ * als ByteArrayPtr-Objekt geholt werden.
  *
- * @return CMemoryReference-Objekt mit referenz auf den Speicherbereich der Grafik
+ * @return ByteArrayPtr-Objekt mit referenz auf den Speicherbereich der Grafik
  */
-CImage::operator CMemoryReference() const
+Image::operator ByteArrayPtr() const
 {
 	return myMemory;
 }

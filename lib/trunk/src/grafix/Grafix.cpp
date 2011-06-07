@@ -53,10 +53,10 @@
 #include "ppl7.h"
 #include "ppl7-grafix.h"
 
-namespace ppl6 {
+namespace ppl7 {
 namespace grafix {
 
-/*!\class CGrafix
+/*!\class Grafix
  * \ingroup PPLGroupGrafik
  * \brief Hauptklasse für alle Grafik-Operationen
  *
@@ -68,98 +68,103 @@ namespace grafix {
  * Ohne weiteres Zutun verwendet die PPL-Library nur Software-Routinen für die
  * Grafik-Funktionen. Die Darstellung von Fenstern oder Vollbildanwendungen sind
  * nicht möglich. Falls dies gewünscht ist, muss die Anwendung zunächst die
- * gewünschte Grafik-Engine initialisieren und mit CGrafix::UseEngine anmelden.
+ * gewünschte Grafik-Engine initialisieren und mit Grafix::UseEngine anmelden.
  * Siehe dazu auch die Basisklasse für Grafikengines GFXEngine, sowie die
  * davon abgeleiteten Klassen GFXEngineDX9 und GFXEngineSDL.
  *
  * \par Grafik-Filter
  * Ein Grafik-Filter ist eine von CFilter abgeleitete Klasse, mit der man ein bestimmtes
  * Grafikformat lesen oder schreiben kann. Die PPL-Library bringt bereits Filter für
- * die Format PNG, JPEG, GIF, BMP, PPM und TGA mit, die bei Initialisierung von CGrafix
+ * die Format PNG, JPEG, GIF, BMP, PPM und TGA mit, die bei Initialisierung von Grafix
  * automatisch eingebunden werden. Bringt die Anwendung weitere Filter mit, müssen
- * diese mit CGrafix::AddFilter registriert werden.
+ * diese mit Grafix::AddFilter registriert werden.
  *
  * \par Fonts
  * Genau wie bei den Grafikfiltern gibt es auch Klassen für verschiedene Font-Formate.
  * Die Basisklasse hierfür ist CFontEngine. PPL bringt bereits eine Engine für das eigene
  * Font5-Format mit, sowie für die FreeType-Library, mit der unter anderem Fonts im TrueType
  * oder OpenType Format dargestellt werden können. Um weitere Engines hinzuzufügen,
- * muss die Funktion CGrafix::AddFontEngine aufgerufen werden.
+ * muss die Funktion Grafix::AddFontEngine aufgerufen werden.
  * \par
  * Standardmäßig sind ist der freie Font "Liberation Sans" und "Liberation Mono" im
  * Font5-Format in einigen Auflösungen enthalten. Um weitere Fonts zu laden muss
- * die Funktion CGrafix::LoadFont verwendet werden.
+ * die Funktion Grafix::LoadFont verwendet werden.
  *
- * \exception Exception::ExistingCGrafixInstance Wird geworfen, wenn versucht wird eine zweite
+ * \exception Exception::ExistingGrafixInstance Wird geworfen, wenn versucht wird eine zweite
  * Instanz der Klasse zu erstellen
  */
 
-static CGrafix *pplgfx=NULL;
+static Grafix *pplgfx=NULL;
 char *alphatab=NULL;
 
 static GRAFIX_FUNCTIONS functions[RGBFormat::MaxIdentifiers];
 
 
-CGrafix *GetGrafix()
+Grafix *GetGrafix()
 {
 	if (pplgfx) return pplgfx;
-	SetError(1040);
-	return NULL;
+	throw NoGrafixEngineException();
 }
 
 
-CGrafix::CGrafix()
+Grafix::Grafix()
 {
-	GlobalMutex.Lock();
 	if (pplgfx) {
-		GlobalMutex.Unlock();
-		throw DuplicateInstanceException("CGrafix");
+		throw DuplicateGrafixEngineException();
 	}
 	alphatab=NULL;
-	engine=NULL;
 	filter_png=NULL;
 	filter_jpeg=NULL;
 	filter_bmp=NULL;
 	filter_gif=NULL;
 	filter_ppm=NULL;
 	filter_tga=NULL;
-	InitErrors();
-	InitAlphatab();
+	initAlphatab();
 
 	// Farbformat-abhängige Funktionen initialisieren
 	for (int i=0;i<RGBFormat::MaxIdentifiers;i++) {
-		InitFunctions(RGBFormat((RGBFormat::Identifier)i),&functions[i]);
+		try {
+			initFunctions(RGBFormat((RGBFormat::Identifier)i),&functions[i]);
+		} catch (UnsupportedColorFormatException) {
+
+		}
 	}
 
 	pplgfx=this;
-	GlobalMutex.Unlock();
 
 
 	// Standardfilter anlegen
-	filter_bmp=new CFilter_BMP;
+	/*
+	filter_bmp=new ImageFilter_BMP;
 	AddFilter(filter_bmp);
-	filter_gif=new CFilter_GIF;
+	filter_gif=new ImageFilter_GIF;
 	AddFilter(filter_gif);
-
+*/
 #ifdef HAVE_PNG
-	filter_png=new CFilter_PNG;
-	AddFilter(filter_png);
+	filter_png=new ImageFilter_PNG;
+	addImageFilter(filter_png);
 #endif
+	/*
 #ifdef HAVE_JPEG
-	filter_jpeg=new CFilter_JPEG;
+	filter_jpeg=new ImageFilter_JPEG;
 	AddFilter(filter_jpeg);
 #endif
-	filter_ppm=new CFilter_PPM;
+	filter_ppm=new ImageFilter_PPM;
 	AddFilter(filter_ppm);
-	filter_tga=new CFilter_TGA;
+	filter_tga=new ImageFilter_TGA;
 	AddFilter(filter_tga);
+*/
 
+	/*
 	CFontEngineFont5 *font5=new CFontEngineFont5;
 	AddFontEngine(font5);
 #ifdef HAVE_FREETYPE2
 	CFontEngineFreeType *freetype=new CFontEngineFreeType;
 	AddFontEngine(freetype);
 #endif
+*/
+
+	/*
 	CResource *res=GetPPLResource();
 
 	LoadFont(res->GetMemory(34),"PPL Liberation Sans");
@@ -169,104 +174,73 @@ CGrafix::CGrafix()
 	Toolbar.load(res->GetMemory(14),16,16,CImageList::ALPHABLT);
 	Icons32.load(res->GetMemory(13),32,32,CImageList::ALPHABLT);
 	ButtonSymbolsSmall.load(res->GetMemory(12),9,9,CImageList::DIFFUSE);
-	pplgfx=this;
+	*/
 }
 
 
-CGrafix::~CGrafix()
+Grafix::~Grafix()
 {
+	/*
 	FontList.Clear(true);
 	FontEngines.Clear(true);
 	ImageFilter.Clear(true);
+	*/
 	if (alphatab) free(alphatab);
 }
 
-void CGrafix::InitAlphatab()
+void Grafix::initAlphatab()
 {
-	ppldd alpha,i,a;
+	ppluint32 alpha,i,a;
 	alphatab=(char*)malloc(65536);
-	if (!alphatab) {
-		SetError(2);
-		return;
-	}
+	if (!alphatab) throw OutOfMemoryException();
 	for (alpha=0;alpha<256;alpha++) {
 		for (i=0;i<256;i++) {
 			a=alpha<<8;
-			alphatab[a+i]=(ppldb)((i*alpha)>>8);
+			alphatab[a+i]=(ppluint8)((i*alpha)>>8);
 		}
 	}
 }
 
 
-int CGrafix::InitFunctions(const RGBFormat &format,GRAFIX_FUNCTIONS *fn)
+void Grafix::initFunctions(const RGBFormat &format,GRAFIX_FUNCTIONS *fn)
 {
 	memset(fn,0,sizeof(GRAFIX_FUNCTIONS));
-	InitColors(format,fn);
-	InitPixel(format,fn);
-	InitShapes(format,fn);
-	InitLines(format,fn);
-	InitBlits(format,fn);
-	//fn->supported=1;
-	return 1;
+	try {
+		initColors(format,fn);
+	} catch (UnsupportedColorFormatException) {
+
+	}
+	try {
+		initPixel(format,fn);
+	} catch (UnsupportedColorFormatException) {
+
+	}
+	try {
+		initShapes(format,fn);
+	} catch (UnsupportedColorFormatException) {
+
+	}
+	try {
+		initLines(format,fn);
+	} catch (UnsupportedColorFormatException) {
+
+	}
+	try {
+		initBlits(format,fn);
+	} catch (UnsupportedColorFormatException) {
+
+	}
 }
 
-GRAFIX_FUNCTIONS *CGrafix::GetGrafixFunctions(const RGBFormat &format)
+GRAFIX_FUNCTIONS *Grafix::getGrafixFunctions(const RGBFormat &format)
 {
-	GRAFIX_FUNCTIONS *fn=&functions[format];
-	/*
-	if (!fn->supported) {
-		SetError(1013);
-		return NULL;
-	}
-	*/
-	return fn;
+	if (format >= RGBFormat::MaxIdentifiers) throw UnknownColorFormatException();
+	return &functions[format];
 }
 
 
-int CGrafix::UseEngine(GFXEngine *engine)
-{
-	if (!engine) {
-		SetError(1068);
-		return 0;
-	}
 
-	Mutex.Lock();
-	if (this->engine) {
-		Mutex.Unlock();
-		SetError(1001);
-		return 0;
-	}
-	// Die Engine muss vorher initialisiert worden sein
-	if (engine->isInit()==false) {
-		Mutex.Unlock();
-		SetError(1002);
-		return 0;
-	}
-	this->engine=engine;
-	Mutex.Unlock();
-	return 1;
-}
 
-bool CGrafix::CreateWindow(tk::Widget &widget)
-{
-	if (!engine) {
-		SetError(1071);
-		return false;
-	}
-	return engine->createWindow(widget);
-}
-
-bool CGrafix::CreateSurface(CSurface &surface)
-{
-	if (!(surface.flags&CSurface::Hardware)) {
-		return software.createSurface(surface);
-	}
-	if (!engine) {
-		SetError(1071);
-		return false;
-	}
-	return engine->createSurface(surface);
-}
 
 } // EOF namespace grafix
-} // EOF namespace ppl6
+} // EOF namespace ppl7
