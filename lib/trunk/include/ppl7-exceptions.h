@@ -107,8 +107,8 @@ PPLNORMALEXCEPTION(UnsupportedDataTypeException);
 PPLNORMALEXCEPTION(ItemNotFromThisListException);
 PPLNORMALEXCEPTION(EndOfListException);
 PPLNORMALEXCEPTION(IllegalMemoryAddressException);
-
 PPLNORMALEXCEPTION(UnimplementedVirtualFunctionException);
+PPLNORMALEXCEPTION(UnknownCompressionMethodException);
 
 
 

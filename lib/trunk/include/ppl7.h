@@ -886,53 +886,59 @@ class PFPFile
 {
 	private:
 		List<PFPChunk*> Chunks;
-		char id[5];
+		String id;
 		ppluint8 mainversion, subversion;
 		Compression::Algorithm comp;
-		String findchunk;
 
-		int setParam(const char *chunkname, const char *data);
+
+		void setParam(const String &chunkname, const String &data);
 
 
 	public:
+		class Iterator : public  List<PFPChunk*>::Iterator
+		{
+			public:
+			String findchunk;
+		};
+
 		Mutex	myMutex;
 
 		PFPFile();
 		virtual ~PFPFile();
 		void clear();
-		int setAuthor(const char *author);
-		int setCopyright(const char *copy);
-		int setDescription(const char *descr);
-		int setName(const char *name);
-		int setVersion(int main=0, int sub=0);
-		int setId(const char *id);
-		int save(const char *filename);
-		int addChunk(PFPChunk *chunk);
-		int deleteChunk(PFPChunk *chunk);
-		int deleteChunk(const char *chunkname);
-		PFPChunk *findFirstChunk(const char *chunkname);
-		PFPChunk *findNextChunk(const char *chunkname=NULL);
-		virtual void list();
-		int setCompression(Compression::Algorithm type);
+		void setAuthor(const String &author);
+		void setCopyright(const String &copy);
+		void setDescription(const String &descr);
+		void setName(const String &name);
+		void setVersion(int main=0, int sub=0);
+		void setId(const String &id);
+		void save(const char *filename);
+		void addChunk(PFPChunk *chunk);
+		void deleteChunk(PFPChunk *chunk);
+		void deleteChunk(const String &chunkname);
+		PFPChunk *findFirstChunk(Iterator &it, const String &chunkname) const;
+		PFPChunk *findNextChunk(Iterator &it, const String &chunkname) const;
+		virtual void list() const;
+		void setCompression(Compression::Algorithm type);
 
-		int load(FileObject &ff);
-		int load(const String &file);
+		void load(FileObject &ff);
+		void load(const String &file);
 
 		virtual int loadRequest(const char *id, int mainversion ,int subversion);
 
-		const char *getName();
-		const char *getDescription();
-		const char *getAuthor();
-		const char *getCopyright();
-		void getVersion(int *main, int *sub);
-		const char *getID();
-		int getMainVersion();
-		int getSubVersion();
-		Compression::Algorithm getCompression();
+		String getName() const;
+		String getDescription() const;
+		String getAuthor() const;
+		String getCopyright() const;
+		void getVersion(int *main, int *sub) const;
+		const String &getID() const;
+		int getMainVersion() const;
+		int getSubVersion() const;
+		Compression::Algorithm getCompression() const;
 
-		void reset();
-		PFPChunk *getFirst();
-		PFPChunk *getNext();
+		void reset(Iterator &it) const;
+		PFPChunk *getFirst(Iterator &it) const;
+		PFPChunk *getNext(Iterator &it) const;
 
 };
 

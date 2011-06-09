@@ -308,9 +308,9 @@ PFPFile::PFPFile()
  * \since Version 6.1.0
  */
 {
-	strcpy(id,"UNKN");
+	id=L"UNKN";
 	mainversion=subversion=0;
-	comp=CCompression::Algo_NONE;
+	comp=Compression::Algo_NONE;
 }
 
 PFPFile::~PFPFile()
@@ -322,75 +322,346 @@ PFPFile::~PFPFile()
  * \since Version 6.1.0
  */
 {
-	Clear();
+	clear();
 }
 
-void PFPFile::Clear()
+void PFPFile::clear()
 /*!\brief Inhalt der Klasse löschen
  *
+ * \desc
  * Mit dieser Funktion werden alle Chunks im Speicher freigegeben und die Klasse auf den
  * Ursprungszustand zurückgesetzt, das heisst sie ist anschließend leer
  *
- * \since Version 6.1.0
  */
 {
-	Chunks.Clear(true);
-	strcpy(id,"UNKN");
+	List<PFPChunk*>::Iterator it;
+	Chunks.reset(it);
+	PFPChunk *c;
+	while ((c=Chunks.getNext(it))) {
+		delete c;
+	}
+	Chunks.clear();
+	id=L"UNKN";
 	mainversion=subversion=0;
-	comp=CCompression::Algo_NONE;
+	comp=Compression::Algo_NONE;
 }
 
-int PFPFile::SetVersion(int main, int sub)
+void PFPFile::setVersion(int main, int sub)
 /*!\brief Version setzen
  *
- * Mit dieser Funktion wird die Version des PFP-Files gesetzt
+ * \desc
+ * Mit dieser Funktion wird die Version des PFP-Files gesetzt.
  *
- * \param main Hauptversion
- * \param sub Unterversion
- * \returns Die Funktion liefert 1 zurück, wenn die Version erfolgreich gesetzt werden konnte,
- * oder 0 bei einem Fehler. Ein Fehler kann nur auftreten, wenn eine der Versionskomponenten
- * kleiner 0 oder größer 255 ist.
+ * \param main Hauptversion, Wert zwischen 0 und 255
+ * \param sub Unterversion, Wert zwischen 0 und 255
+ * \exception IllegalArgumentException Wird geworfen, wenn \p main oder \p sub ausserhalb des gültigen Bereichs liegen.
  *
  * \remarks
  * Haupt- und Unterversion werden jeweils in einem einzelnen Byte gespeichert. Daher darf die
  * Version nicht größer als 255 werden.
  *
- * \since Version 6.1.0
  */
 {
-	if (main<0 || main>255 || sub<0 || sub>255) {
-		SetError(431);
-		return 0;
-	}
+	if (main<0 || main>255 || sub<0 || sub>255) throw IllegalArgumentException();
 	mainversion=(ppluint8)(main&0xff);
 	subversion=(ppluint8)(sub&0xff);
-	return 1;
 }
 
-int PFPFile::SetId(const char *id)
+void PFPFile::setId(const String &id)
 /*!\brief ID des PFP-Files setzen
  *
  * Mit dieser Version wird die ID des PFP-Files festgelegt. Eine ID muss zwingend 4 Byte lang
  * sein und darf nur US-ASCII-Zeichen enthalten.
  *
  * \param id Pointer auf einen 4-Byte langen String, der mit 0 terminiert ist.
- * \returns Bei Erfolg gibt die Funktion true (1) zurück, sonst false (0).
+ * \exception IllegalArgumentException Wird geworfen, wenn die \p id einen ungültigen Wert enthält
  *
  * \since Version 6.1.0
  */
 {
-	if (!id) {
-		SetError(194,"int PFPFile::SetId(const char *id)");
-		return 0;
+	if (id.len()!=4) throw IllegalArgumentException();
+	for (size_t i=0;i<4;i++) {
+		wchar_t c=id[i];
+		if (c<32 || c>127) throw IllegalArgumentException();
 	}
-	int l=strlen(id);
-	if (l!=4) {
-		SetError(429,"%i",l);
-		return 0;
-	}
-	strcpy(this->id,id);
-	return 1;
+	this->id=id;
 }
+
+void PFPFile::setCompression(Compression::Algorithm type)
+/*!\brief Kompression einstellen
+ *
+ * \desc
+ * Mit dieser Funktion wird festgelegt ob und welche Kompression beim Speichern verwendet werden
+ * soll.
+ *
+ * \param type Ein Wert, der die Art der Kompression angibt. Mögliche Werte sind:
+ * - CCompression::Algo_NONE - Keine Komprimierung
+ * - CCompression::Algo_ZLIB - Komprimierung mit Zlib
+ * - CCompression::Algo_BZIP2 - Komprimierung mit Bzip2
+ *
+ * \exception UnknownCompressionMethodException Wird geworfen, wenn \p type einen ungültigen Wert enthält.
+ */
+{
+	if (type>2 || type<0) throw UnknownCompressionMethodException();
+	comp=type;
+}
+
+void PFPFile::setParam(const String &chunkname, const String &data)
+/*!\brief Interne Funktion zum Speichern von vordefinierten Chunks
+ *
+ * \desc
+ * Diese Funktion wird intern verwendet, um die vordefinierten Text-Chunks zu speichern. Sie
+ * stellt sicher, dass jeder Chunk nur einmal vorkommt.
+ *
+ * \param chunkname Pointer auf den Namen des Chunks.
+ * \param data Pointer auf den zu setzenden Text-String
+ * \returns Bei Erfolg gibt die Funktion true (1) zurück, sonst false (0).
+ * \see Die Funktion wird intern von folgenden Funktionen aufgerufen:
+ * - PFPFile::SetName
+ * - PFPFile::SetAuthor
+ * - PFPFile::SetDescription
+ * - PFPFile::SetCopyright
+ *
+ * \since Version 6.1.0
+ */
+{
+	deleteChunk(chunkname);
+	PFPChunk *c=new PFPChunk;
+	try {
+		c->setName(chunkname);
+		c->setData(data);
+		addChunk(c);
+	} catch (...) {
+		delete c;
+		throw;
+	}
+}
+
+void PFPFile::setAuthor(const String &author)
+/*!\brief Author setzen
+ *
+ * Mit dieser Funktion wird automatisch ein Author-Chunk ("AUTH") angelegt. Dabei ist sichergestellt,
+ * dass der Chunk nur ein einziges mal in der Datei vorkommt.
+ *
+ * \param author Pointer auf einen Null-terminierten String mit dem Namen des Authors
+ * \see
+ * - PFPFile::SetAuthor
+ * - PFPFile::SetCopyright
+ * - PFPFile::SetDescription
+ * - PFPFile::SetName
+ *
+ */
+{
+	setParam(L"AUTH",author);
+}
+
+void PFPFile::setCopyright(const String &copy)
+/*!\brief Copyright setzen
+ *
+ * Mit dieser Funktion wird automatisch ein Copyright-Chunk ("COPY") angelegt. Dabei ist sichergestellt,
+ * dass der Chunk nur ein einziges mal in der Datei vorkommt.
+ *
+ * \param copy Pointer auf einen Null-terminierten String mit dem Copyright-Text
+ *
+ * \see
+ * - PFPFile::SetAuthor
+ * - PFPFile::SetCopyright
+ * - PFPFile::SetDescription
+ * - PFPFile::SetName
+ *
+ */
+{
+	setParam(L"COPY",copy);
+}
+
+void PFPFile::setDescription(const String &descr)
+/*!\brief Description setzen
+ *
+ * Mit dieser Funktion wird automatisch ein Description-Chunk ("DESC") angelegt. Dabei ist sichergestellt,
+ * dass der Chunk nur ein einziges mal in der Datei vorkommt.
+ *
+ * \param descr Pointer auf einen Null-terminierten String mit der Beschreibung
+ * \see
+ * - PFPFile::SetAuthor
+ * - PFPFile::SetCopyright
+ * - PFPFile::SetDescription
+ * - PFPFile::SetName
+ *
+ */
+{
+	setParam(L"DESC",descr);
+}
+
+void PFPFile::setName(const String &name)
+/*!\brief Name setzen
+ *
+ * \desc
+ * Mit dieser Funktion wird automatisch ein Namens-Chunk ("NAME") angelegt. Dabei ist sichergestellt,
+ * dass der Chunk nur ein einziges mal in der Datei vorkommt.
+ *
+ * \param name Pointer auf einen Null-terminierten String mit dem Namen des Files
+ * \see
+ * - PFPFile::SetAuthor
+ * - PFPFile::SetCopyright
+ * - PFPFile::SetDescription
+ * - PFPFile::SetName
+ */
+{
+	setParam(L"NAME",name);
+}
+
+String PFPFile::getName() const
+/*!\brief Namen holen
+ *
+ * \desc
+ * Diese Funktion liefert einen Pointer auf den Namen des Files zurück.
+ * \returns Pointer auf den Namen oder NULL, wenn es keinen "NAME"-Chunk in der Datei gibt.
+ * \see
+ * - PFPFile::GetAuthor
+ * - PFPFile::GetCopyright
+ * - PFPFile::GetDescription
+ * - PFPFile::GetName
+ *
+ * \since Version 6.1.0
+ */
+{
+	Iterator it;
+	PFPChunk *chunk=findFirstChunk(it,L"NAME");
+	if (!chunk) return String();
+	return String((char*)chunk->chunkdata);
+}
+
+String PFPFile::getDescription() const
+/*!\brief Pointer auf die Description holen
+ *
+ * Diese Funktion liefert einen Pointer auf die Beschreibung zurück.
+ * \returns Pointer auf die Beschreibung oder NULL, wenn es keinen "DESC"-Chunk in der Datei gibt.
+ *
+ * \see
+ * - PFPFile::GetAuthor
+ * - PFPFile::GetCopyright
+ * - PFPFile::GetDescription
+ * - PFPFile::GetName
+ *
+ * \since Version 6.1.0
+ */
+{
+	Iterator it;
+	PFPChunk *chunk=findFirstChunk(it,L"DESC");
+	if (!chunk) return String();
+	return String((char*)chunk->chunkdata);
+}
+
+String PFPFile::getAuthor() const
+/*!\brief Pointer auf den Author holen
+ *
+ * Diese Funktion liefert einen Pointer auf den Author zurück
+ * \returns Pointer auf den Author oder NULL, wenn es keinen "AUTH"-Chunk in der Datei gibt.
+ * \see
+ * - PFPFile::GetAuthor
+ * - PFPFile::GetCopyright
+ * - PFPFile::GetDescription
+ * - PFPFile::GetName
+ *
+ * \since Version 6.1.0
+ */
+{
+	Iterator it;
+	PFPChunk *chunk=findFirstChunk(it,L"AUTH");
+	if (!chunk) return String();
+	return String((char*)chunk->chunkdata);
+}
+
+String PFPFile::getCopyright() const
+/*!\brief Pointer auf den Copyright-String holen
+ *
+ * Diese Funktion liefert einen Pointer auf den Copyright-Text des Files zurück.
+ * \returns Pointer auf das Copyright oder NULL, wenn es keinen "COPY"-Chunk in der Datei gibt.
+ * \see
+ * - PFPFile::GetAuthor
+ * - PFPFile::GetCopyright
+ * - PFPFile::GetDescription
+ * - PFPFile::GetName
+ *
+ * \since Version 6.1.0
+ */
+{
+	Iterator it;
+	PFPChunk *chunk=findFirstChunk(it,L"COPY");
+	if (!chunk) return String();
+	return String((char*)chunk->chunkdata);
+}
+
+void PFPFile::getVersion(int *main, int *sub) const
+/*!\brief Version auslesen
+ *
+ * Mit dieser Funktion wird die Version der Datei in die beiden Parameter kopiert
+ * \param[out] main Pointer auf eine Integer-Variable, in der die Hauptversion geschrieben
+ * werden soll
+ * \param[out] sub Pointer auf eine Integer-Variable, in der die Unterversion geschrieben
+ * werden soll
+ *
+ * \since Version 6.1.0
+ *
+ */
+{
+	if (main) *main=mainversion;
+	if (sub) *sub=subversion;
+}
+
+const String &PFPFile::getID() const
+/*!\brief ID auslesen
+ *
+ * Diese Funktion liefert einen Pointer auf die ID der Datei zurück
+ * \returns Pointer auf die ID der Datei. Diese ist immer 4 Byte groß und mit einem 0-Byte
+ * terminiert
+ *
+ * \since Version 6.1.0
+ */
+{
+	return id;
+}
+
+int PFPFile::getMainVersion() const
+/*!\brief Hauptversion auslesen
+ *
+ * Mit dieser Funktion wird die Hauptversion der Datei ausgelesen.
+ * \returns Hauptversion als Interger
+ *
+ * \since Version 6.1.0
+ */
+{
+	return mainversion;
+}
+
+int PFPFile::getSubVersion() const
+/*!\brief Unterversion auslesen
+ *
+ * Mit dieser Funktion wird die Unterversion der Datei ausgelesen.
+ * \returns Unterversion als Interger
+ *
+ * \since Version 6.1.0
+ *
+ */
+{
+	return subversion;
+}
+
+Compression::Algorithm PFPFile::getCompression() const
+/*!\brief Kompressionsverfahren auslesen
+ *
+ * Mit dieser Funktion wird das eingestellte Kompressionsverfahren
+ * ausgelesen.
+ * \returns ID des Kompressionsverfahrens
+ *
+ * \see PFPFile::SetCompression
+ * \since Version 6.1.0
+ *
+ */
+{
+	return comp;
+}
+
 
 int PFPFile::Save(const char *filename)
 /*!\brief PFP-File speichern
@@ -657,7 +928,7 @@ int PFPFile::DeleteChunk(const char *chunkname)
 	return 1;
 }
 
-PFPChunk *PFPFile::FindFirstChunk(const char *chunkname)
+PFPChunk *PFPFile::findFirstChunk(Iterator &it, const String &chunkname) const
 /*!\brief Ersten Chunk mit einem bestimmten Namen finden
  *
  * Mit dieser und der Funktion PFPFile::FindNextChunk kann man sich durch alle Chunks mit einem
@@ -674,18 +945,13 @@ PFPChunk *PFPFile::FindFirstChunk(const char *chunkname)
  * - PFPFile::GetFirst
  * - PFPFile::GetNext
  *
- * \since Version 6.1.0
  */
 {
-	if (!chunkname) {
-		SetError(194,"int PFPFile::DeleteChunk(const char *chunkname)");
-		return 0;
-	}
-	Chunks.Reset();
-	return FindNextChunk(chunkname);
+	Chunks.reset(it);
+	return findNextChunk(it,chunkname);
 }
 
-PFPChunk *PFPFile::FindNextChunk(const char *chunkname)
+PFPChunk *PFPFile::findNextChunk(Iterator &it, const String &chunkname) const
 /*!\brief Nächsten Chunk mit einem bestimmten Namen finden
  *
  * Mit dieser und der Funktion PFPFile::FindFirstChunk kann man sich durch alle Chunks mit einem
@@ -707,25 +973,21 @@ PFPChunk *PFPFile::FindNextChunk(const char *chunkname)
  */
 {
 	PFPChunk *chunk;
-	if (chunkname) {
-		if (findchunk.StrCmp((char*)chunkname)!=0) {
-			findchunk=chunkname;
-			findchunk.UCase();
-			Chunks.Reset();
+	if (chunkname.notEmpty()) {
+		it.findchunk=chunkname;
+	}
+	if (it.findchunk.len()!=4) throw IllegalArgumentException();
+	try {
+		while ((chunk=(PFPChunk*)Chunks.getNext(it))) {
+			if (it.findchunk==chunk->chunkname) return chunk;
 		}
+	} catch (...) {
+
 	}
-	if (findchunk.Len()==0) {
-		SetError(430,"PFPChunk *PFPFile::FindNextChunk(const char *chunkname)");
-		return NULL;
-	}
-	while ((chunk=(PFPChunk*)Chunks.GetNext())) {
-		if (findchunk.StrCmp(chunk->chunkname)==0) return chunk;
-	}
-	ExtendError(428);
 	return NULL;
 }
 
-void PFPFile::Reset()
+void PFPFile::reset(Iterator &it) const
 /*!\brief Zeiger zum Durchwandern der Chunks zurücksetzen
  *
  * Mit dieser Funktion wird der Zeiger, der beim Durchwandern der Chunks mit den Funktionen
@@ -741,10 +1003,10 @@ void PFPFile::Reset()
  * \since Version 6.1.0
  */
 {
-	Chunks.Reset();
+	Chunks.reset(it);
 }
 
-PFPChunk *PFPFile::GetFirst()
+PFPChunk *PFPFile::getFirst(Iterator &it) const
 /*!\brief Pointer auf ersten Chunk holen
  *
  * Diese Funktion liefert einen Pointer auf den ersten Chunk in der Datei zurück.
@@ -760,11 +1022,11 @@ PFPChunk *PFPFile::GetFirst()
  * \since Version 6.1.0
  */
 {
-	Chunks.Reset();
-	return GetNext();
+	Chunks.reset(it);
+	return getNext(it);
 }
 
-PFPChunk *PFPFile::GetNext()
+PFPChunk *PFPFile::getNext(Iterator &it) const
 /*!\brief Pointer auf nächsten Chunk holen
  *
  * Diese Funktion liefert einen Pointer auf den nächsten Chunk in der Datei zurück.
@@ -781,13 +1043,11 @@ PFPChunk *PFPFile::GetNext()
  * \since Version 6.1.0
  */
 {
-	PFPChunk *c=(PFPChunk*)Chunks.GetNext();
-	if (c) return c;
-	ExtendError(428);
-	return NULL;
+	PFPChunk *c=(PFPChunk*)Chunks.getNext(it);
+	return c;
 }
 
-void PFPFile::List()
+void PFPFile::list() const
 /*!\brief Chunks auf STDOUT auflisten
  *
  * Diese Funktion listet die Namen und Größen aller Chunks auf STDOUT aus.
@@ -796,7 +1056,7 @@ void PFPFile::List()
  */
 {
 	printf("PFP-File Version 3 ============================================\n");
-	printf("ID: %s, Version: %i.%i, Komprimierung: ",id,mainversion,subversion);
+	printf("ID: %ls, Version: %i.%i, Komprimierung: ",(const wchar_t*)id,mainversion,subversion);
 	switch(comp) {
 		case 0: printf ("keine\n");
 			break;
@@ -807,346 +1067,21 @@ void PFPFile::List()
 		default: printf ("unbekannt\n");
 			break;
 	}
-	const char *tmp;
-	if ((tmp=GetName())) printf("Name:        %s\n",tmp);
-	if ((tmp=GetAuthor())) printf("Author:      %s\n",tmp);
-	if ((tmp=GetDescription())) printf("Description: %s\n",tmp);
-	if ((tmp=GetCopyright())) printf("Copyright:   %s\n",tmp);
+	String Tmp;
+	Tmp=getName();        if (Tmp.notEmpty()) printf("Name:        %ls\n",(const wchar_t*)Tmp);
+	Tmp=getAuthor();      if (Tmp.notEmpty()) printf("Author:      %ls\n",(const wchar_t*)Tmp);
+	Tmp=getDescription(); if (Tmp.notEmpty()) printf("Description: %ls\n",(const wchar_t*)Tmp);
+	Tmp=getCopyright();   if (Tmp.notEmpty()) printf("Copyright:   %ls\n",(const wchar_t*)Tmp);
 
-	Chunks.Reset();
+	Iterator it;
+	Chunks.reset(it);
 	PFPChunk *chunk;
 	printf ("\nChunks:\n");
-	while((chunk=(PFPChunk*)Chunks.GetNext())) {
-		printf ("  %s: %i Bytes\n",chunk->chunkname,chunk->size);
+	while((chunk=(PFPChunk*)Chunks.getNext(it))) {
+		printf ("  %ls: %zi Bytes\n",(const wchar_t*)chunk->chunkname,chunk->chunksize);
 	}
 	printf("===============================================================\n");
 }
-
-int PFPFile::SetCompression(CCompression::Algorithm type)
-/*!\brief Kompression einstellen
- *
- * Mit dieser Funktion wird festgelegt ob und welche Kompression beim Speichern verwendet werden
- * soll.
- *
- * \param type Ein Wert, der die Art der Kompression angibt. Mögliche Werte sind:
- * - CCompression::Algo_NONE - Keine Komprimierung
- * - CCompression::Algo_ZLIB - Komprimierung mit Zlib
- * - CCompression::Algo_BZIP2 - Komprimierung mit Bzip2
- * \returns Die Funktion liefert true(1) zurück, wenn die Komprimierungsmethode erfolgreich
- * gesetzt werden konnt, sonst false (0)
- *
- * \since Version 6.1.0
- */
-{
-	if (type>2 || type<0) {
-		SetError(67,"%i",type);
-		return 0;
-	}
-	comp=type;
-	return 1;
-}
-
-int PFPFile::SetParam(const char *chunkname, const char *data)
-/*!\brief Interne Funktion zum Speichern von vordefinierten Chunks
- *
- * Diese Funktion wird intern verwendet, um die vordefinierten Text-Chunks zu speichern. Sie
- * stellt sicher, dass jeder Chunk nur einmal vorkommt.
- *
- * \param chunkname Pointer auf den Namen des Chunks.
- * \param data Pointer auf den zu setzenden Text-String
- * \returns Bei Erfolg gibt die Funktion true (1) zurück, sonst false (0).
- * \see Die Funktion wird intern von folgenden Funktionen aufgerufen:
- * - PFPFile::SetName
- * - PFPFile::SetAuthor
- * - PFPFile::SetDescription
- * - PFPFile::SetCopyright
- *
- * \since Version 6.1.0
- */
-{
-	DeleteChunk(chunkname);
-	PFPChunk *c=new PFPChunk;
-	if (!c->SetName(chunkname)) {
-		PushError();
-		delete c;
-		PopError();
-		return 0;
-	}
-	if (!c->SetData(data)) {
-		PushError();
-		delete c;
-		PopError();
-		return 0;
-	}
-	if (!AddChunk(c)) {
-		PushError();
-		delete c;
-		PopError();
-		return 0;
-	}
-	return 1;
-}
-
-int PFPFile::SetAuthor(const char *author)
-/*!\brief Author setzen
- *
- * Mit dieser Funktion wird automatisch ein Author-Chunk ("AUTH") angelegt. Dabei ist sichergestellt,
- * dass der Chunk nur ein einziges mal in der Datei vorkommt.
- *
- * \param author Pointer auf einen Null-terminierten String mit dem Namen des Authors
- * \returns Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0). Ein entsprechender
- * Fehlercode wird gesetzt.
- * \see
- * - PFPFile::SetAuthor
- * - PFPFile::SetCopyright
- * - PFPFile::SetDescription
- * - PFPFile::SetName
- *
- * \since Version 6.1.0
- */
-{
-	if (!author) {
-		SetError(194,"int PFPFile::SetAuthor(const char *author)");
-		return 0;
-	}
-	return SetParam("AUTH",author);
-}
-
-int PFPFile::SetCopyright(const char *copy)
-/*!\brief Copyright setzen
- *
- * Mit dieser Funktion wird automatisch ein Copyright-Chunk ("COPY") angelegt. Dabei ist sichergestellt,
- * dass der Chunk nur ein einziges mal in der Datei vorkommt.
- *
- * \param copy Pointer auf einen Null-terminierten String mit dem Copyright-Text
- * \returns Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0). Ein entsprechender
- * Fehlercode wird gesetzt.
- *
- * \see
- * - PFPFile::SetAuthor
- * - PFPFile::SetCopyright
- * - PFPFile::SetDescription
- * - PFPFile::SetName
- *
- * \since Version 6.1.0
- */
-{
-	if (!copy) {
-		SetError(194,"int PFPFile::SetCopyright(const char *copy)");
-		return 0;
-	}
-	return SetParam("COPY",copy);
-}
-
-int PFPFile::SetDescription(const char *descr)
-/*!\brief Description setzen
- *
- * Mit dieser Funktion wird automatisch ein Description-Chunk ("DESC") angelegt. Dabei ist sichergestellt,
- * dass der Chunk nur ein einziges mal in der Datei vorkommt.
- *
- * \param descr Pointer auf einen Null-terminierten String mit der Beschreibung
- * \returns Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0). Ein entsprechender
- * Fehlercode wird gesetzt.
- * \see
- * - PFPFile::SetAuthor
- * - PFPFile::SetCopyright
- * - PFPFile::SetDescription
- * - PFPFile::SetName
- *
- * \since Version 6.1.0
- */
-{
-	if (!descr) {
-		SetError(194,"int PFPFile::SetDescription(const char *descr)");
-		return 0;
-	}
-	return SetParam("DESC",descr);
-}
-
-int PFPFile::SetName(const char *name)
-/*!\brief Name
- *
- * Mit dieser Funktion wird automatisch ein Namens-Chunk ("NAME") angelegt. Dabei ist sichergestellt,
- * dass der Chunk nur ein einziges mal in der Datei vorkommt.
- *
- * \param name Pointer auf einen Null-terminierten String mit dem Namen des Files
- * \returns Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0). Ein entsprechender
- * Fehlercode wird gesetzt.
- * \see
- * - PFPFile::SetAuthor
- * - PFPFile::SetCopyright
- * - PFPFile::SetDescription
- * - PFPFile::SetName
- *
- * \since Version 6.1.0
- */
-{
-	if (!name) {
-		SetError(194,"int PFPFile::SetName(const char *name)");
-		return 0;
-	}
-	return SetParam("NAME",name);
-}
-
-const char *PFPFile::GetName()
-/*!\brief Pointer auf den Namen holen
- *
- * Diese Funktion liefert einen Pointer auf den Namen des Files zurück.
- * \returns Pointer auf den Namen oder NULL, wenn es keinen "NAME"-Chunk in der Datei gibt.
- * \see
- * - PFPFile::GetAuthor
- * - PFPFile::GetCopyright
- * - PFPFile::GetDescription
- * - PFPFile::GetName
- *
- * \since Version 6.1.0
- */
-{
-	PFPChunk *chunk=FindFirstChunk("NAME");
-	if (!chunk) {
-		SetError(428,"NAME");
-		return NULL;
-	}
-	return (const char*) chunk->data;
-}
-
-const char *PFPFile::GetDescription()
-/*!\brief Pointer auf die Description holen
- *
- * Diese Funktion liefert einen Pointer auf die Beschreibung zurück.
- * \returns Pointer auf die Beschreibung oder NULL, wenn es keinen "DESC"-Chunk in der Datei gibt.
- *
- * \see
- * - PFPFile::GetAuthor
- * - PFPFile::GetCopyright
- * - PFPFile::GetDescription
- * - PFPFile::GetName
- *
- * \since Version 6.1.0
- */
-{
-	PFPChunk *chunk=FindFirstChunk("DESC");
-	if (!chunk) {
-		SetError(428,"DESC");
-		return NULL;
-	}
-	return (const char*) chunk->data;
-}
-
-const char *PFPFile::GetAuthor()
-/*!\brief Pointer auf den Author holen
- *
- * Diese Funktion liefert einen Pointer auf den Author zurück
- * \returns Pointer auf den Author oder NULL, wenn es keinen "AUTH"-Chunk in der Datei gibt.
- * \see
- * - PFPFile::GetAuthor
- * - PFPFile::GetCopyright
- * - PFPFile::GetDescription
- * - PFPFile::GetName
- *
- * \since Version 6.1.0
- */
-{
-	PFPChunk *chunk=FindFirstChunk("AUTH");
-	if (!chunk) {
-		SetError(428,"AUTH");
-		return NULL;
-	}
-	return (const char*) chunk->data;
-}
-
-const char *PFPFile::GetCopyright()
-/*!\brief Pointer auf den Copyright-String holen
- *
- * Diese Funktion liefert einen Pointer auf den Copyright-Text des Files zurück.
- * \returns Pointer auf das Copyright oder NULL, wenn es keinen "COPY"-Chunk in der Datei gibt.
- * \see
- * - PFPFile::GetAuthor
- * - PFPFile::GetCopyright
- * - PFPFile::GetDescription
- * - PFPFile::GetName
- *
- * \since Version 6.1.0
- */
-{
-	PFPChunk *chunk=FindFirstChunk("COPY");
-	if (!chunk) {
-		SetError(428,"COPY");
-		return NULL;
-	}
-	return (const char*) chunk->data;
-}
-
-void PFPFile::GetVersion(int *main, int *sub)
-/*!\brief Version auslesen
- *
- * Mit dieser Funktion wird die Version der Datei in die beiden Parameter kopiert
- * \param[out] main Pointer auf eine Integer-Variable, in der die Hauptversion geschrieben
- * werden soll
- * \param[out] sub Pointer auf eine Integer-Variable, in der die Unterversion geschrieben
- * werden soll
- *
- * \since Version 6.1.0
- *
- */
-{
-	if (main) *main=mainversion;
-	if (sub) *sub=subversion;
-}
-
-const char *PFPFile::GetID()
-/*!\brief ID auslesen
- *
- * Diese Funktion liefert einen Pointer auf die ID der Datei zurück
- * \returns Pointer auf die ID der Datei. Diese ist immer 4 Byte groß und mit einem 0-Byte
- * terminiert
- *
- * \since Version 6.1.0
- */
-{
-	return id;
-}
-
-int PFPFile::GetMainVersion()
-/*!\brief Hauptversion auslesen
- *
- * Mit dieser Funktion wird die Hauptversion der Datei ausgelesen.
- * \returns Hauptversion als Interger
- *
- * \since Version 6.1.0
- */
-{
-	return mainversion;
-}
-
-int PFPFile::GetSubVersion()
-/*!\brief Unterversion auslesen
- *
- * Mit dieser Funktion wird die Unterversion der Datei ausgelesen.
- * \returns Unterversion als Interger
- *
- * \since Version 6.1.0
- *
- */
-{
-	return subversion;
-}
-
-CCompression::Algorithm PFPFile::GetCompression()
-/*!\brief Kompressionsverfahren auslesen
- *
- * Mit dieser Funktion wird das eingestellte Kompressionsverfahren
- * ausgelesen.
- * \returns ID des Kompressionsverfahrens
- *
- * \see PFPFile::SetCompression
- * \since Version 6.1.0
- *
- */
-{
-	return comp;
-}
-
 
 int PFPFile::Load(const char *file)
 /*!\brief PFP-File laden
@@ -1326,7 +1261,6 @@ int PFPFile::LoadRequest(const char *id, int mainversion ,int subversion)
  * darf, oder false (0), wenn er abgebrochen werden soll. Optional kann auch ein Fehlercode
  * gesetzt werden. Wird dies nicht gemacht, setzt die Ladefunktion den Fehlercode 435.
  *
- * \since Version 6.1.0
  */
 {
 	return 1;
