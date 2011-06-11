@@ -824,24 +824,23 @@ class FontEngine
 		virtual Size measure(const FontFile &file, const Font &font, const String &text);
 };
 
-/*
 class FontEngineFont5 : public FontEngine
 {
 	private:
-		PFPChunk *SelectFont(FontFile *file, const Font &font);
-		int RenderInternal(PFPChunk *c, const Font &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color);
+		PFPChunk *selectFont(FontFile *file, const Font &font);
+		int renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 
 	public:
 		FontEngineFont5();
 		virtual ~FontEngineFont5();
-		virtual int Init();
-		virtual int Ident(CFileObject *file);
-		virtual FontFile *LoadFont(CFileObject *file, const char *fontname);
-		virtual int DeleteFont(FontFile *file);
-		virtual int Render(FontFile *file, const Font &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color);
-		virtual Size Measure(FontFile *file, const Font &font, const CWString &text);
+		virtual int init();
+		virtual int ident(FileObject *file);
+		virtual FontFile *loadFont(FileObject &file, const String &fontname);
+		virtual void deleteFont(FontFile *file);
+		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
+		virtual Size measure(const FontFile &file, const Font &font, const String &text);
 };
-*/
+
 class FontEngineFreeType : public FontEngine
 {
 	private:

@@ -878,13 +878,13 @@ class Compression
 		Level lll;
 		Prefix prefix;
 
-		int DoNone(void *dst, size_t *dstlen, const void *src, size_t size);
-		int DoZlib(void *dst, size_t *dstlen, const void *src, size_t size);
-		int DoBzip2(void *dst, size_t *dstlen, const void *src, size_t size);
+		int doNone(void *dst, size_t *dstlen, const void *src, size_t size);
+		int doZlib(void *dst, size_t *dstlen, const void *src, size_t size);
+		int doBzip2(void *dst, size_t *dstlen, const void *src, size_t size);
 
-		int UnNone (void *dst, size_t *dstlen, const void *src, size_t srclen);
-		int UnZlib (void *dst, size_t *dstlen, const void *src, size_t srclen);
-		int UnBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		int unNone (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		int unZlib (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		int unBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen);
 
 
 	public:
@@ -892,7 +892,7 @@ class Compression
 		Compression();
 		Compression(Algorithm method, Level level=Level_Default);
 		~Compression();
-		int init(Algorithm method, Level level=Level_Default);
+		void init(Algorithm method, Level level=Level_Default);
 		void usePrefix(Prefix prefix);
 
 		int compress(ByteArray &out, const void *ptr, size_t size);
