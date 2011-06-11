@@ -109,6 +109,13 @@ PPLNORMALEXCEPTION(EndOfListException);
 PPLNORMALEXCEPTION(IllegalMemoryAddressException);
 PPLNORMALEXCEPTION(UnimplementedVirtualFunctionException);
 PPLNORMALEXCEPTION(UnknownCompressionMethodException);
+PPLNORMALEXCEPTION(IllegalChunkException);
+PPLNORMALEXCEPTION(ChunkNotFoundException);
+PPLNORMALEXCEPTION(EmptyFileException);
+PPLNORMALEXCEPTION(CompressionFailedException);
+PPLNORMALEXCEPTION(DecompressionFailedException);
+PPLNORMALEXCEPTION(InvalidFormatException);
+PPLNORMALEXCEPTION(AccessDeniedByInstanceException);
 
 
 

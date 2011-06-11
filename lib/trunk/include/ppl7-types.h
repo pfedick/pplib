@@ -668,6 +668,26 @@ class AssocArray : public Variant
 		//@}
 };
 
+
+//! \brief Eine Struktur zum Erfassen von Uhrzeit und Datum
+typedef struct tagTime {
+	ppluint64	epoch;
+	int			year;
+	int			month;
+	int			day;
+	int			hour;
+	int			min;
+	int			sec;
+	int			day_of_week;
+	int			day_of_year;
+	int			summertime;
+	int			gmt_offset;
+	int			have_gmt_offset;
+} PPLTIME;
+
+//! \brief Datentyp für Unix-Time
+typedef ppluint64 ppl_time_t;
+
 class DateTime : public Variant
 {
 	private:

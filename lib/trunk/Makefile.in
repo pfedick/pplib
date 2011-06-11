@@ -49,6 +49,7 @@ RELEASE	= release/AVLTree.o \
 	release/PFPFile.o \
 	release/StringFunctions.o \
 	release/Threads.o \
+	release/Time.o \
 	release/cpu.o \
 	release/type_Array.o \
 	release/type_AssocArray.o \
@@ -102,6 +103,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/PFPFile.o \
 	debug/StringFunctions.o \
 	debug/Threads.o \
+	debug/Time.o \
 	debug/cpu.o \
 	debug/type_Array.o \
 	debug/type_AssocArray.o \
@@ -342,6 +344,11 @@ release/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	###############################################################################
 	# Compiling >>>core/Threads.cpp<<<
 	$(CXX) -Wall -O3 -o release/Threads.o -c $(srcdir)/core/Threads.cpp $(CFLAGS) 
+
+release/Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Time.cpp<<<
+	$(CXX) -Wall -O3 -o release/Time.o -c $(srcdir)/core/Time.cpp $(CFLAGS) 
 
 release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
@@ -636,6 +643,11 @@ debug/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	###############################################################################
 	# Compiling >>>core/Threads.cpp<<<
 	$(CXX) -Wall -O -o debug/Threads.o -c $(srcdir)/core/Threads.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Time.cpp<<<
+	$(CXX) -Wall -O -o debug/Time.o -c $(srcdir)/core/Time.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################

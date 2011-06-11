@@ -663,7 +663,18 @@ Compression::Algorithm PFPFile::getCompression() const
 }
 
 
-int PFPFile::Save(const char *filename)
+void PFPFile::saveChunk(char *buffer, size_t &pp, PFPChunk *chunk)
+{
+	for (int i=0;i<4;i++) Poke8(buffer+pp+i,chunk->chunkname[i]);
+	Poke32(buffer+pp+4,chunk->chunksize+8);
+	pp+=8;
+	if (chunk->chunksize) {
+		memcpy(buffer+pp,chunk->chunkdata,chunk->chunksize);
+		pp+=chunk->chunksize;
+	}
+}
+
+void PFPFile::save(const String &filename)
 /*!\brief PFP-File speichern
  *
  * Mit dieser Funktion wird der Inhalt der PFPFile-Klasse in eine Datei geschrieben.
@@ -673,9 +684,7 @@ int PFPFile::Save(const char *filename)
  *
  * \param filename Die Funktion bekommt als einzigen Parameter einen Pointer auf den Dateinamen.
  * Es ist zu beachten, dass eine eventuell vorhandene gleichnamige Datei überschrieben wird.
- * \returns Konnte die Datei erfolgreich gespeichert werden, gibt die Funktion true (1) zurück,
- * sonst false (0). Ein entsprechender Fehlercode, der Auskunft über die Art des Fehlers gibt,
- * wird gesetzt.
+ * \exception EmptyFileException Das File enthält keine Chunks, es gibt nichts zu speichern
  *
  * \remarks
  * Die Funktion stellt sicher, dass die Chunks in einer bestimmten Reihenfolge geschrieben
@@ -690,143 +699,112 @@ int PFPFile::Save(const char *filename)
  */
 {
 	// Gespeichert wird nur, wenn die Datei Chunks enthält
-	if (Chunks.Num()==0) {
-		SetError(425,"Datei kann nicht gespeichert werden");
-		return 0;
-	}
-	CFile ff;
+	if (Chunks.num()==0) throw EmptyFileException();
+	File ff;
 	// Wir benötigen zuerst die Gesamtgröße aller Chunks
-	int size=24;
-	Chunks.Reset();
+	size_t size=24;
+	Iterator it;
+	Chunks.reset(it);
 	PFPChunk *chunk;
-	while((chunk=(PFPChunk*)Chunks.GetNext())) {
-		size+=8;
-		size+=chunk->size;
+	try {
+		while((chunk=(PFPChunk*)Chunks.getNext(it))) {
+			size+=8;
+			size+=chunk->chunksize;
+		}
+	} catch (...) {
+
 	}
 	// plus ENDF-Chunk
 	size+=8;
 
 	// Datei zusammenbauen
 	char *p=(char*)malloc(size);
-	if (!p) {
-		SetError(2);
-		return 0;
-	}
-	int hsize=24;
+	if (!p) throw OutOfMemoryException();
+	size_t hsize=24;
 	strcpy(p,"PFP-File");
-	poke8(p+8,3);
-	poke8(p+9,hsize);
-	strncpy(p+10,id,4);
-	poke8(p+15,mainversion);
-	poke8(p+14,subversion);
-	poke8(p+16,comp);
-	poke8(p+17,0);
-	poke8(p+18,0);
-	poke8(p+19,0);
-	poke32(p+20,(ppluint32)GetTime());
+	Poke8(p+8,3);
+	Poke8(p+9,hsize);
+	for (int i=0;i<4;i++) Poke8(p+10+i,id[i]);
+	Poke8(p+15,mainversion);
+	Poke8(p+14,subversion);
+	Poke8(p+16,comp);
+	Poke8(p+17,0);
+	Poke8(p+18,0);
+	Poke8(p+19,0);
+	Poke32(p+20,(ppluint32)GetTime());
 
-	int pp=hsize;
+	size_t pp=hsize;
 	// Chunks zusammenfassen
 	// Zuerst die vordefinierten, die wir am Anfang des Files wollen
-	Chunks.Reset();
-	chunk=FindFirstChunk("NAME");
-	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
-		poke32(p+pp+4,chunk->size+8);
-		memcpy(p+pp+8,chunk->data,chunk->size);
-		pp+=8;
-		pp+=chunk->size;
-	}
-	chunk=FindFirstChunk("AUTH");
-	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
-		poke32(p+pp+4,chunk->size+8);
-		memcpy(p+pp+8,chunk->data,chunk->size);
-		pp+=8;
-		pp+=chunk->size;
-	}
-	chunk=FindFirstChunk("DESC");
-	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
-		poke32(p+pp+4,chunk->size+8);
-		memcpy(p+pp+8,chunk->data,chunk->size);
-		pp+=8;
-		pp+=chunk->size;
-	}
-	chunk=FindFirstChunk("COPY");
-	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
-		poke32(p+pp+4,chunk->size+8);
-		memcpy(p+pp+8,chunk->data,chunk->size);
-		pp+=8;
-		pp+=chunk->size;
-	}
-
-
+	Chunks.reset(it);
+	chunk=findFirstChunk(it,L"NAME");
+	if (chunk) saveChunk(p,pp,chunk);
+	chunk=findFirstChunk(it,L"AUTH");
+	if (chunk) saveChunk(p,pp,chunk);
+	chunk=findFirstChunk(it,L"DESC");
+	if (chunk) saveChunk(p,pp,chunk);
+	chunk=findFirstChunk(it,L"COPY");
+	if (chunk) saveChunk(p,pp,chunk);
 	// Restliche Chunks
-	Chunks.Reset();
-	while((chunk=(PFPChunk*)Chunks.GetNext())) {
-		CString cn=chunk->chunkname;
-		// Vordefinierte Chunks müssen übergangen werden, da diese weiter oben schon
-		// ausgelesen wurden
-		if (cn!="NAME" && cn!="AUTH" && cn!="DESC" && cn!="COPY") {
-			strncpy(p+pp,chunk->chunkname,4);
-			poke32(p+pp+4,chunk->size+8);
-			if (chunk->size) {
-				memcpy(p+pp+8,chunk->data,chunk->size);
-				pp+=chunk->size;
+	Chunks.reset(it);
+	try {
+		while((chunk=(PFPChunk*)Chunks.getNext(it))) {
+			String cn=chunk->chunkname;
+			// Vordefinierte Chunks müssen übergangen werden, da diese weiter oben schon
+			// ausgelesen wurden
+			if (cn!="NAME" && cn!="AUTH" && cn!="DESC" && cn!="COPY") {
+				saveChunk(p,pp,chunk);
 			}
-			pp+=8;
 		}
+	} catch (...) {
+
 	}
 	strncpy(p+pp,"ENDF",4);
-	poke32(p+pp+4,0);
+	Poke32(p+pp+4,0);
 	pp+=8;
 
 	void *save=NULL;
-	int savesize=pp-hsize;
+	size_t savesize=pp-hsize;
 	// Komprimierung?
-	CCompression c;
+	Compression c;
 	if (comp) {
 		size_t dstlen=savesize+64;
 		save=malloc(dstlen);
 		if (!save) {
 			free(p);
-			SetError(2);
-			return 0;
+			throw OutOfMemoryException();
 		}
-		c.Init(comp,CCompression::Level_High);
-		if (!c.Compress(save,&dstlen,p+hsize,savesize)) {
+		c.init(comp,Compression::Level_High);
+		if (!c.compress(save,&dstlen,p+hsize,savesize)) {
 			free(save);
 			free(p);
-			return 0;
+			throw CompressionFailedException();
 		}
 		savesize=dstlen;
 	}
-	if (!ff.Open((char*)filename,"wb")) {
-		PushError();
+	try {
+		ff.open(filename,File::WRITE);
+	} catch (...) {
 		if (save) free(save);
 		free(p);
-		PopError();
-		return 0;
+		throw;
 	}
-	ff.Write(p,hsize);
+	ff.write(p,hsize);
 	if (comp) {
 		char t[8];
-		poke32(t,pp-hsize);
-		poke32(t+4,savesize);
-		ff.Write(t,8);
-		ff.Write(save,savesize);
+		Poke32(t,pp-hsize);
+		Poke32(t+4,savesize);
+		ff.write(t,8);
+		ff.write(save,savesize);
 	} else {
-		ff.Write(p+hsize,pp-hsize);
+		ff.write(p+hsize,pp-hsize);
 	}
-	ff.Close();
+	ff.close();
 	if (save) free(save);
 	free(p);
-	return 1;
 }
 
-int PFPFile::AddChunk(PFPChunk *chunk)
+void PFPFile::addChunk(PFPChunk *chunk)
 /*!\brief Chunk hinzufügen
  *
  * Mit dieser Funktion wird ein neuer Chunk in die Klasse hinzugefügt. Der Chunk muss von der
@@ -858,22 +836,12 @@ int PFPFile::AddChunk(PFPChunk *chunk)
  * \since Version 6.1.0
  */
 {
-	if (!chunk) {
-		SetError(194,"int PFPFile::AddChunk(PFPChunk *chunk)");
-		return 0;
-	}
-	if (strcmp(chunk->chunkname,"UNKN")==0) {
-		SetError(426);
-		return 0;
-	}
-	if (!Chunks.Add(chunk)) {
-		ExtendError(427);
-		return 0;
-	}
-	return 1;
+	if (!chunk) throw NullPointerException();
+	if (chunk->chunkname=="UNKN") throw IllegalArgumentException();
+	Chunks.add(chunk);
 }
 
-int PFPFile::DeleteChunk(PFPChunk *chunk)
+void PFPFile::deleteChunk(PFPChunk *chunk)
 /*!\brief Bestimmten Chunk löschen
  *
  * Mit dieser Funktion wird ein bestimmter Chunk aus der Klasse gelöscht.
@@ -889,14 +857,11 @@ int PFPFile::DeleteChunk(PFPChunk *chunk)
  * \since Version 6.1.0
  */
 {
-	if (!chunk) {
-		SetError(194,"int PFPFile::DeleteChunk(PFPChunk *chunk)");
-		return 0;
-	}
-	return Chunks.Delete(chunk);
+	if (!chunk) throw NullPointerException();
+	Chunks.erase (chunk);
 }
 
-int PFPFile::DeleteChunk(const char *chunkname)
+void PFPFile::deleteChunk(const String &chunkname)
 /*!\brief Chunk nach Namen löschen
  *
  * Mit dieser Funktion werden alle Chunks gelöscht, die den angegebenen Namen haben
@@ -911,21 +876,22 @@ int PFPFile::DeleteChunk(const char *chunkname)
  * \since Version 6.1.0
  */
 {
-	if (!chunkname) {
-		SetError(194,"int PFPFile::DeleteChunk(const char *chunkname)");
-		return 0;
+	if (chunkname.len()!=4) throw IllegalArgumentException();
+	String s=chunkname;
+	s.upperCase();
+	for (size_t i=0;i<4;i++) {
+		wchar_t c=s[i];
+		if (c<32 || c>127) throw IllegalArgumentException();
 	}
+	Iterator it;
 	PFPChunk *chunk;
 	int ret=0;
-	while ((chunk=FindFirstChunk(chunkname))) {
+	while ((chunk=findFirstChunk(it,s))) {
+		Chunks.erase (chunk);
 		delete chunk;
 		ret=1;
 	}
-	if (!ret) {
-		SetError(428);
-		return 0;
-	}
-	return 1;
+	if (!ret) throw ChunkNotFoundException();
 }
 
 PFPChunk *PFPFile::findFirstChunk(Iterator &it, const String &chunkname) const
@@ -1083,7 +1049,7 @@ void PFPFile::list() const
 	printf("===============================================================\n");
 }
 
-int PFPFile::Load(const char *file)
+void PFPFile::load(const String &file)
 /*!\brief PFP-File laden
  *
  * Mit dieser Funktion wird ein PFP-File in die Klasse geladen. Dabei wird zuerst der Header geladen
@@ -1103,16 +1069,12 @@ int PFPFile::Load(const char *file)
  * \since Version 6.1.0
  */
 {
-	if (!file) {
-		SetError(194,"int PFPFile::Load(const char *file)");
-		return 0;
-	}
-	CFile ff;
-	if (!ff.Open((char*)file,"rb")) return 0;
-	return Load(&ff);
+	File ff;
+	ff.open(file,File::READ);
+	load(ff);
 }
 
-int PFPFile::Load(CFileObject *ff)
+void PFPFile::load(FileObject &ff)
 /*!\brief PFP-File laden
  *
  * Mit dieser Funktion wird ein PFP-File in die Klasse geladen. Dabei wird zuerst der Header geladen
@@ -1135,119 +1097,91 @@ int PFPFile::Load(CFileObject *ff)
  * \since Version 6.1.0
  */
 {
-	if (!ff) {
-		SetError(194,"int PFPFile::Load(CFile *ff)");
-		return 0;
+	const char *p;
+	try {
+		p=ff.map(0,24);
+	} catch (File::OverflowException) {
+		throw InvalidFormatException();
 	}
-	const char *p=ff->Map(0,24);
-	if (!p) {
-		ExtendError(432);
-		return 0;
-	}
-	if (strncmp(p,"PFP-File",8)!=0) {
-		SetError(432);
-		return 0;
-	}
-	if (Peek8(p+8)!=3) {
-		SetError(432);
-		return 0;
-	}
-	ppluint32 z,fsize;
+	if (strncmp(p,"PFP-File",8)!=0) throw InvalidFormatException();
+	if (Peek8(p+8)!=3) throw InvalidFormatException();
+	size_t z,fsize;
 	// Wir haben ein gültiges PFP-File, aber dürfen wir es auch laden?
 	char tmpid[5];
 	tmpid[4]=0;
 	strncpy(tmpid,p+10,4);
 	int t1,t2;
-	t1=peek8(p+15);
-	t2=peek8(p+14);
-	SetError(0);
-	if (!LoadRequest(tmpid,t1,t2)) {
-		if (GetErrorCode()==0) SetError(435);
-		return 0;
+	t1=Peek8(p+15);
+	t2=Peek8(p+14);
+	if (!loadRequest(tmpid,t1,t2)) {
+		throw AccessDeniedByInstanceException();
 	}
-	Clear();
-	strncpy(id,p+10,4);
-	mainversion=peek8(p+15);
-	subversion=peek8(p+14);
-	comp=(CCompression::Algorithm)peek8(p+16);
-	int hsize=peek8(p+9);
+	clear();
+	id.set(p+10,4);
+	mainversion=Peek8(p+15);
+	subversion=Peek8(p+14);
+	comp=(Compression::Algorithm)Peek8(p+16);
+	size_t hsize=Peek8(p+9);
 	char *u=NULL;
 	if (comp) {
-		p=(char*)ff->Map(hsize,8);
-		if (!p) {
-			PushError();
-			Clear();
-			PopError();
-			ExtendError(433);
-			return 0;
-		}
-		ppluint32 sizeunk=peek32(p);
-		ppluint32 sizecomp=peek32(p+4);
-		p=ff->Map(hsize+8,sizecomp);
-		if (!p) {
-			PushError();
-			Clear();
-			PopError();
-			ExtendError(433);
-			return 0;
-		}
+		p=(char*)ff.map(hsize,8);
+		if (!p) throw File::ReadException();
+		size_t sizeunk=Peek32(p);
+		size_t sizecomp=Peek32(p+4);
+		p=ff.map(hsize+8,sizecomp);
+		if (!p) throw File::ReadException();
 		u=(char*)malloc(sizeunk+1);
-		if (!u) {
-			Clear();
-			SetError(2);
-			return 0;
-		}
+		if (!u) throw OutOfMemoryException();
 		size_t dstlen=sizeunk;
-		CCompression c;
-		if (!c.Uncompress(u,&dstlen,p,sizecomp,comp)) {
+		Compression c;
+		try {
+			c.init(comp);
+			c.uncompress(u,&dstlen,p,sizecomp);
+		} catch (...) {
 			free(u);
-			PushError();
-			Clear();
-			PopError();
-			ExtendError(433);
-			return 0;
+			clear();
+			throw;
 		}
 		if (dstlen!=sizeunk) {
 			free(u);
-			Clear();
-			SetError(433,"Längendifferenz nach Dekomprimierung");
-			return 0;
+			clear();
+			throw DecompressionFailedException();
 		}
 		u[dstlen]=0;
 		p=u;
 		fsize=dstlen;
 	} else {
-		p=ff->Map();
+		p=ff.map();
 		p+=hsize;
-		fsize=(int)ff->Size()-hsize;
+		fsize=ff.size()-hsize;
 	}
 	// Wir haben nun den ersten Chunk ab Pointer p
 	z=0;
-	char tmp[5];
-	tmp[4]=0;
-	ppluint32 size=0;
-	int e=0;
-	while ((z+=size)<fsize) {
-		size=peek32(p+z+4);
-		if (strncmp(p+z,"ENDF",4)==0) break;
-		if (!size) break;
-		// Falls z+size über das Ende der Datei geht, stimmt mit diesem Chunk was nicht
-		if (z+size>fsize) break;
-		strncpy(tmp,p+z,4);
-		PFPChunk *chunk=new PFPChunk;
-		if (!chunk->SetName(tmp)) { e++; continue; }
-		if (!chunk->SetData(p+z+8,size-8)) { e++; continue; }
-		if (!AddChunk(chunk)) continue;
+	size_t size=0;
+	String Chunkname;
+	try {
+		while ((z+=size)<fsize) {
+			size=Peek32(p+z+4);
+			if (strncmp(p+z,"ENDF",4)==0) break;
+			if (!size) break;
+			// Falls z+size über das Ende der Datei geht, stimmt mit diesem Chunk was nicht
+			if (z+size>fsize) break;
+			PFPChunk *chunk=new PFPChunk;
+			if (!chunk) throw OutOfMemoryException();
+			Chunkname.set(p+z,4);
+			chunk->setName(Chunkname);
+			chunk->setData(p+z+8,size-8);
+			addChunk(chunk);
+		}
+	} catch (...) {
+		if (u) free(u);
+		clear();
+		throw;
 	}
 	if (u) free(u);
-	if (e) {
-		SetError(434,"%i",e);
-		return 0;
-	}
-	return 1;
 }
 
-int PFPFile::LoadRequest(const char *id, int mainversion ,int subversion)
+int PFPFile::loadRequest(const String  &id, int mainversion ,int subversion)
 /*!\brief Ladevorgang bestätigen
  *
  * Diese Funktion wird bei jedem Ladevorgang aufgerufen. Falls die Anwendung eine Klasse definiert

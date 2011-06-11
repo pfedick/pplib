@@ -321,6 +321,60 @@ typedef struct {
 
 ppluint32 GetCPUCaps (CPUCaps *cpu);				// Wenn cpu=NULL ist, werden nur die Caps zur�ckgegeben
 
+// Time
+ppl_time_t GetTime(PPLTIME *t);
+ppl_time_t GetTime(PPLTIME *t, ppl_time_t tt);
+ppl_time_t GetTime(PPLTIME &t, ppl_time_t tt);
+ppl_time_t GetTime();
+int USleep(ppluint64 microseconds);		// 1 sec = 1000000 microseconds
+int MSleep(ppluint64 milliseconds);		// 1 sec = 1000 milliseconds
+int SSleep(ppluint64 seconds);
+double GetMicrotime();
+ppluint64 GetMilliSeconds();
+
+//void datumsauswertung (pplchar * d, pplchar * dat);
+/*
+ppluint64 Datum2Sekunden(char *datum, char *zeit);
+ppluint64 GetUTC(char *datum, char *zeit);
+const char * UTC2Date(ppluint64 sec, char *datum, char *uhrzeit);
+ppldd Sekunden2Datum(ppluint64 sec, ppldd *datum, ppldd *uhrzeit);
+ppluint64 MkTime(const char *year, const char *month, const char *day, const char *hour=NULL, const char *min=NULL, const char *sec=NULL);
+ppluint64 MkTime(int year, int month, int day, int hour=0, int min=0, int sec=0);
+ppluint64 MkTime(String *year, String *month, String *day, String *hour, String *min, String *sec);
+ppluint64 MkTime(const String &year, const String &month, const String &day, const String &hour="0", const String &min="0", const String &sec="0");
+ppluint64 MkTime(const char *iso8601date, PPLTIME *t=NULL);
+ppluint64 MkTime(String *iso8601date, PPLTIME *t=NULL);
+
+const char *MkISO8601Date (String &buffer, ppluint64 sec);
+const char *MkISO8601Date (String &buffer, PPLTIME *t=NULL);
+char *MkISO8601Date (char *buffer, size_t size, ppluint64 sec);
+char *MkISO8601Date (char *buffer, size_t size, PPLTIME *t=NULL);
+String MkISO8601Date (ppluint64 sec);
+String MkISO8601Date (PPLTIME *t=NULL);
+
+String MkRFC822Date (PPLTIME &t);
+String MkRFC822Date (ppluint64 sec=0);
+
+const char *MkDate (String &buffer, const char *format, ppluint64 sec);
+String MkDate(const char *format, ppluint64 sec);
+String Long2Date(const char *format, int value);
+char *MkDate (char *buffer, int size, const char *format, ppluint64 sec);
+*/
+
+//! \brief Timer-Klasse
+class Timer
+{
+	private:
+		double startzeit, endzeit, myduration;
+	public:
+		Timer();
+		~Timer();
+		double start();
+		double stop();
+		double currentDuration();
+		double duration();
+};
+
 
 
 //! \brief Synchronisation von Threads
@@ -836,9 +890,9 @@ class Compression
 	public:
 
 		Compression();
-		Compression(Algorithm method, Level level);
+		Compression(Algorithm method, Level level=Level_Default);
 		~Compression();
-		int init(Algorithm method, Level level);
+		int init(Algorithm method, Level level=Level_Default);
 		void usePrefix(Prefix prefix);
 
 		int compress(ByteArray &out, const void *ptr, size_t size);
@@ -892,6 +946,7 @@ class PFPFile
 
 
 		void setParam(const String &chunkname, const String &data);
+		void saveChunk(char *buffer, size_t &pp, PFPChunk *chunk);
 
 
 	public:
@@ -912,7 +967,7 @@ class PFPFile
 		void setName(const String &name);
 		void setVersion(int main=0, int sub=0);
 		void setId(const String &id);
-		void save(const char *filename);
+		void save(const String &filename);
 		void addChunk(PFPChunk *chunk);
 		void deleteChunk(PFPChunk *chunk);
 		void deleteChunk(const String &chunkname);
@@ -924,7 +979,7 @@ class PFPFile
 		void load(FileObject &ff);
 		void load(const String &file);
 
-		virtual int loadRequest(const char *id, int mainversion ,int subversion);
+		virtual int loadRequest(const String &id, int mainversion ,int subversion);
 
 		String getName() const;
 		String getDescription() const;
