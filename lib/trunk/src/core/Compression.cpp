@@ -60,7 +60,7 @@
 namespace ppl7 {
 
 /*!\class Compression
- * \ingroup PPL6_COMPRESSION
+ * \ingroup PPL7_COMPRESSION
  * \brief Komprimierung und Dekomprimierung von Daten
  *
  * \descr
@@ -363,7 +363,7 @@ void Compression::init(Algorithm method, Level level)
 	lll=level;
 }
 
-int Compression::doNone(void *dst, size_t *dstlen, const void *src, size_t size)
+void Compression::doNone(void *dst, size_t *dstlen, const void *src, size_t size)
 /*!\brief Keine Komprimierung verwenden
  *
  * \descr
@@ -375,20 +375,19 @@ int Compression::doNone(void *dst, size_t *dstlen, const void *src, size_t size)
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Speicherbereich, den komprimiert werden soll
  * @param[in] size Länge des zu komprimierenden Speicherbereichs
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die komprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
  */
 {
 	if (*dstlen<size) {
-		SetError(235);
-		return 0;		// Buffer für Komprimierung zu klein
+		*dstlen=size;
+		throw BufferTooSmallException();
 	}
 	memcpy(dst,src,size);
 	*dstlen=size;
-	return 1;
 }
 
-int Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size)
+void Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size)
 /*!\brief Zlib-Komprimierung verwenden
  *
  * \descr
@@ -400,13 +399,15 @@ int Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size)
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Speicherbereich, den komprimiert werden soll
  * @param[in] size Länge des zu komprimierenden Speicherbereichs
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception UnsupportedFeatureException Zlib wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die komprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
  */
 {
 #ifndef HAVE_LIBZ
-	SetError(237);
-	return 0;
+	throw UnsupportedFeatureException("Zlib");
 #else
 	uLongf dstlen_zlib;
 	int zcomplevel;
@@ -428,24 +429,18 @@ int Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size)
 	int res=::compress2((Bytef*)dst,(uLongf *)&dstlen_zlib,(const Bytef*)src,size,zcomplevel);
 	if (res==Z_OK) {
 		*dstlen=(ppluint32)dstlen_zlib;
-		return 1;
+		return;
 	} else if (res==Z_MEM_ERROR) {
-		SetError(2);
-		return 0;
+		throw OutOfMemoryException();
 	} else if (res==Z_BUF_ERROR) {
-		SetError(235);
 		*dstlen=(ppluint32)dstlen_zlib;
-		return 0;
-	} else if (res==Z_STREAM_ERROR) {
-		SetError(225);
-		return 0;
-	}
-	SetError(225);
-	return 0;
+		throw BufferTooSmallException();
+	} else if (res==Z_STREAM_ERROR) throw CompressionFailedException();
+	throw CompressionFailedException();
 #endif
 }
 
-int Compression::doBzip2(void *dst, size_t *dstlen, const void *src, size_t size)
+void Compression::doBzip2(void *dst, size_t *dstlen, const void *src, size_t size)
 /*!\brief Bzip2-Komprimierung verwenden
  *
  * \descr
@@ -457,13 +452,15 @@ int Compression::doBzip2(void *dst, size_t *dstlen, const void *src, size_t size
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Speicherbereich, den komprimiert werden soll
  * @param[in] size Länge des zu komprimierenden Speicherbereichs
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception UnsupportedFeatureException Bzip2 wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die komprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
  */
 {
 #ifndef HAVE_BZIP2
-	SetError(237);
-	return 0;
+	throw UnsupportedFeatureException("Bzip2");
 #else
 	int zcomplevel;
 	switch (lll) {
@@ -483,19 +480,17 @@ int Compression::doBzip2(void *dst, size_t *dstlen, const void *src, size_t size
 	int ret=BZ2_bzBuffToBuffCompress((char*)dst,(unsigned int *)dstlen,(char*)src,
 		size,zcomplevel,0,30);
 	if (ret==BZ_OK) {
-		return 1;
+		return;
 	} else if (ret==BZ_MEM_ERROR) {
-		SetError(2);
+		throw OutOfMemoryException();
 	} else if (ret==BZ_OUTBUFF_FULL) {
-		SetError(236);
-	} else {
-		SetError(225);
+		throw BufferTooSmallException();
 	}
-	return 0;
+	throw CompressionFailedException();
 #endif
 }
 
-int Compression::unNone (void *dst, size_t *dstlen, const void *src, size_t srclen)
+void Compression::unNone (void *dst, size_t *dstlen, const void *src, size_t srclen)
 /*!\brief Speicherbereich ohne Dekompression kopieren
  *
  * \descr
@@ -507,20 +502,19 @@ int Compression::unNone (void *dst, size_t *dstlen, const void *src, size_t srcl
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Anfang des Speicherbereichs, der die komprimierten Daten enthält
  * @param[in] srclen Länge der komprimierten Daten
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die komprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
  */
 {
 	if (*dstlen<srclen) {
-		SetError(236);
-		return 0;		// Buffer für Dekomprimierung zu klein
+		*dstlen=srclen;
+		throw BufferTooSmallException();
 	}
 	memcpy(dst,src,srclen);
 	*dstlen=srclen;
-	return 1;
 }
 
-int Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t srclen)
+void Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t srclen)
 /*!\brief Zlib-Komprimierte Daten entpacken
  *
  * \descr
@@ -532,13 +526,17 @@ int Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t srcl
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Anfang des Speicherbereichs, der die komprimierten Daten enthält
  * @param[in] srclen Länge der komprimierten Daten
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception UnsupportedFeatureException Zlib wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die komprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+ * @exception CorruptedDataException Die zu dekomprimierenden Daten sind korrupt, unvollständig
+ * oder nicht mit erwarteten Algorithmus komprimiert.
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
  */
 {
 #ifndef HAVE_LIBZ
-	SetError(237);
-	return 0;
+	throw UnsupportedFeatureException("Zlib");
 #else
 	ppluint32 d;
 	uLongf dstlen_zlib;
@@ -547,21 +545,20 @@ int Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t srcl
 	int ret=::uncompress((Bytef*)dst,&dstlen_zlib,(const Bytef*) src,srclen);
 	if (ret==Z_OK) {
 		*dstlen=(ppluint32)dstlen_zlib;
-		return 1;
+		return;
 	} else if (ret==Z_MEM_ERROR) {
-		SetError(2);
+		throw OutOfMemoryException();
 	} else if (ret==Z_BUF_ERROR) {
-		SetError(236);
+		*dstlen=(ppluint32)dstlen_zlib;
+		throw BufferTooSmallException();
 	} else if (ret==Z_DATA_ERROR) {
-		SetError(534);
-	} else {
-		SetError(216);
+		throw CorruptedDataException();
 	}
-	return 0;
+	throw DecompressionFailedException();
 #endif
 }
 
-int Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen)
+void Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen)
 /*!\brief Bzip2-Komprimierte Daten entpacken
  *
  * \descr
@@ -573,27 +570,29 @@ int Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t src
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Anfang des Speicherbereichs, der die komprimierten Daten enthält
  * @param[in] srclen Länge der komprimierten Daten
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception UnsupportedFeatureException Bzip2 wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die komprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+ * @exception CorruptedDataException Die zu dekomprimierenden Daten sind korrupt, unvollständig
+ * oder nicht mit erwarteten Algorithmus komprimiert.
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
  */
 {
 #ifndef HAVE_BZIP2
-	SetError(237);
-	return 0;
+	throw UnsupportedFeatureException("Bzip2");
 #else
 	int ret=BZ2_bzBuffToBuffDecompress((char*)dst,(unsigned int*)dstlen,(char*)src,srclen,0,0);
 	if (ret==BZ_OK) {
-		return 1;
+		return;
 	} else if (ret==BZ_MEM_ERROR) {
-		SetError(2);
+		throw OutOfMemoryException();
 	} else if (ret==BZ_OUTBUFF_FULL) {
-		SetError(236);
+		throw BufferTooSmallException();
 	} else if (ret==BZ_DATA_ERROR || ret==BZ_DATA_ERROR_MAGIC || ret==BZ_UNEXPECTED_EOF) {
-		SetError(534);
-	} else {
-		SetError(216);
+		throw CorruptedDataException();
 	}
-	return 0;
+	throw DecompressionFailedException();
 #endif
 }
 
@@ -601,7 +600,7 @@ int Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t src
 
 
 
-int Compression::compress(void *dst, size_t *dstlen, const void *src, size_t srclen)
+void Compression::compress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm a)
 /*!\brief Komprimierung eines Speicherbereiches in einen anderen
  *
  * \descr
@@ -619,74 +618,74 @@ int Compression::compress(void *dst, size_t *dstlen, const void *src, size_t src
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Speicherbereich, den komprimiert werden soll
  * @param[in] srclen Länge des zu komprimierenden Speicherbereichs
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception NullPointerException Einer der übergebenen Parameter (\p dst, \p dstlen oder \p src) zeigt auf NULL
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die komprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
  *
  * \note
  * Die Funktion prüft lediglich welche Komprimierungsmethode eingestellt wurde und ruft dann eine
- * der privaten Funktionen Compression::DoNone, Compression::DoZlib oder Compression::DoBzip2 auf.
+ * der privaten Funktionen Compression::doNone, Compression::doZlib oder Compression::doBzip2 auf.
  */
 {
-	if ((!src) || (!dst)) {
-		SetError(194);
-		return 0;
-	}
-	switch (aaa) {
-		case Algo_NONE: return DoNone(dst,dstlen,src,srclen);
-		case Algo_ZLIB: return DoZlib(dst,dstlen,src,srclen);
-		case Algo_BZIP2: return DoBzip2(dst,dstlen,src,srclen);
-		default:
-			SetError(67);
-			return 0;
+	if ((!src) || (!dst)) throw NullPointerException();
+	if (dstlen==NULL) throw NullPointerException();
+	if (a==Unknown) a=aaa;
+	switch (a) {
+		case Algo_NONE:
+			doNone(dst,dstlen,src,srclen);
+			return;
+		case Algo_ZLIB:
+			doZlib(dst,dstlen,src,srclen);
+			return;
+		case Algo_BZIP2:
+			doBzip2(dst,dstlen,src,srclen);
+			return;
+		default: throw UnsupportedFeatureException();
 	}
 }
 
-int Compression::Compress(CBinary &out, const void *ptr, size_t size, bool copy)
-/*!\brief Komprimierung eines Speicherbereiches in ein CBinary Objekt
+ByteArrayPtr Compression::compress(const void *ptr, size_t size)
+/*!\brief Komprimierung eines Speicherbereiches
  *
  * \descr
  * Mit dieser Version der Compress-Funktion wird ein Speicherbereich \p ptr mit einer Länge
- * von \p size Bytes komprimiert und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * Der optionale Parameter \p copy bestimmt, ob in CBinary eine Kopie der komprimierten
- * Daten abgelegt wird oder nur ein Pointer auf den internen Buffer der Compression-Klasse.
+ * von \p size Bytes komprimiert und das Ergebnis als ByteArrayPtr-Objekt zurückgegeben.
+ * Dieses enthält eine Referenz auf Speicherbereich der Compression-Klasse, die nur solange
+ * gültig ist, wie die Compression-Klasse existiert und keine neue (De-)Komprimierung
+ * durchgeführt wurde.
  * \par
- * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
+ * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
  *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
  * @param[in] ptr Pointer auf den Speicherbereich, den komprimiert werden soll
  * @param[in] size Länge des zu komprimierenden Speicherbereichs
- * @param[in] copy Zeigt an, ob die komprimierten Daten in das CBinary-Objekt \p out
- * kopiert (=true) werden sollen oder darin nur eine Referenz auf den Buffer der
- * Compression-Klasse abgelegt wird (=false). Letzters ist schneller und spart Speicher,
- * es muss jedoch darauf geachtet werden, dass mit der Instanz von Compression keine weiteren
- * Aktionen ausgeführt werden und sich auch nicht gelöscht wird, solange das \p out
- * noch verwendet wird!
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
+ * @return Bei Erfolg wird ein ByteArrayPtr mit einer Referenz auf den komprimierten
+ * Speicher zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug oder die
+ * zu komprimierenden Daten lassen sich nicht komprimieren.
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
  *
  */
 {
 	if (buffer) free(buffer);
 	size_t dstlen=size+64;
 	buffer=malloc(dstlen+9);
+	if (!buffer) throw OutOfMemoryException();
 	char *tgt=(char*)buffer+9;
-	if (!buffer) {
-		SetError(2);
-		return 0;
-	}
-	if (!Compress(tgt,&dstlen,ptr,size)) {
-		return 0;
-	}
+	compress(tgt,&dstlen,ptr,size);
 	if (prefix==Prefix_None) {
-		if (copy) return out.Copy(tgt,dstlen);
-		return out.Set(tgt,dstlen);
+		return ByteArrayPtr(tgt,dstlen);
 	} else if (prefix==Prefix_V1) {
 		char *prefix=(char*)buffer;
 		Poke8(prefix,(aaa&7));	// Nur die unteren 3 Bits sind gültig, Rest 0
 		Poke32(prefix+1,size);	// Größe Unkomprimiert
 		Poke32(prefix+5,dstlen);// Größe Komprimiert
-		if (copy) return out.Copy(prefix,dstlen+9);
-		return out.Set(prefix,dstlen+9);
+		return ByteArrayPtr(prefix,dstlen+9);
 	} else if (prefix==Prefix_V2) {
 		// Zuerst prüfen wir, wieviel Bytes wir für die jeweiligen Blöcke brauchen
 		int b_unc=4, b_comp=4;
@@ -705,86 +704,98 @@ int Compression::Compress(CBinary &out, const void *ptr, size_t size, bool copy)
 
 		// Daten unkomprimiert
 		if (b_unc==1) {
-			ppl6::Poke8(prefix+1,size);
+			Poke8(prefix+1,size);
 			p2=prefix+2;
 		} else if (b_unc==2) {
-			ppl6::Poke16(prefix+1,size);
+			Poke16(prefix+1,size);
 			p2=prefix+3;
 			flag|=16;
 		} else if (b_unc==3) {
-			ppl6::Poke24(prefix+1,size);
+			Poke24(prefix+1,size);
 			p2=prefix+4;
 			flag|=32;
 		} else {
-			ppl6::Poke32(prefix+1,size);
+			Poke32(prefix+1,size);
 			p2=prefix+5;
 			flag|=(16+32);
 		}
 
 		// Daten komprimiert
 		if (b_comp==1) {
-			ppl6::Poke8(p2,size);
+			Poke8(p2,size);
 		} else if (b_unc==2) {
-			ppl6::Poke16(p2,size);
+			Poke16(p2,size);
 			flag|=64;
 		} else if (b_unc==3) {
-			ppl6::Poke24(p2,size);
+			Poke24(p2,size);
 			flag|=128;
 		} else {
-			ppl6::Poke32(p2,size);
+			Poke32(p2,size);
 			flag|=(128+64);
 		}
-		ppl6::Poke8(prefix,flag);
-		if (copy) return out.Copy(prefix,dstlen+bytes);
-		return out.Set(prefix,dstlen+bytes);
+		Poke8(prefix,flag);
+		return ByteArrayPtr(prefix,dstlen+bytes);
 	}
 	// Bis hierhin sollte es nicht kommen
-	SetError(533);
-	return 0;
+	throw UnknownException();
 }
 
-int Compression::Compress(CBinary &out, const CVar &object, bool copy)
-/*!\brief Komprimierung eines von CVar abgeleiteten Objektes in ein CBinary Objekt
+ByteArrayPtr Compression::compress(const ByteArrayPtr &in)
+/*!\brief Komprimierung eines Speicherbereiches
  *
  * \descr
- * Mit dieser Version der Compress-Funktion wird Speicher des Objektes \p object
- * komprimiert und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * Der optionale Parameter \p copy bestimmt, ob in CBinary eine Kopie der komprimierten
- * Daten abgelegt wird oder nur ein Pointer auf den internen Buffer der Compression-Klasse.
- * \p object kann ein CString, CWString oder CBinary sein.
+ * Mit dieser Version der Compress-Funktion wird der von \p in referenzierte Speicherbereich
+ * komprimiert und das Ergebnis als ByteArrayPtr-Objekt zurückgegeben.
+ * Dieses enthält eine Referenz auf Speicherbereich der Compression-Klasse, die nur solange
+ * gültig ist, wie die Compression-Klasse existiert und keine neue (De-)Komprimierung
+ * durchgeführt wurde.
  * \par
- * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
+ * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
  *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] object Ein von CVar abgeleitetes Objekt mit den zu komprimierenden Daten.
- * Zur Zeit werden folgende Datentypen unterstützt: CString, CWString, CBinary
- * @param[in] copy Zeigt an, ob die komprimierten Daten in das CBinary-Objekt \p out
- * kopiert (=true) werden sollen oder darin nur eine Referenz auf den Buffer der
- * Compression-Klasse abgelegt wird (=false). Letzters ist schneller und spart Speicher,
- * es muss jedoch darauf geachtet werden, dass mit der Instanz von Compression keine weiteren
- * Aktionen ausgeführt werden und sich auch nicht gelöscht wird, solange das \p out
- * noch verwendet wird!
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
+ * @param[in] ptr Pointer auf den Speicherbereich, den komprimiert werden soll
+ * @param[in] size Länge des zu komprimierenden Speicherbereichs
+ * @return Bei Erfolg wird ein ByteArrayPtr mit einer Referenz auf den komprimierten
+ * Speicher zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug oder die
+ * zu komprimierenden Daten lassen sich nicht komprimieren.
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
  *
  */
 {
-	int type=object.DataType();
-	if (type==CVar::CBINARY) {
-		const CBinary &bin=static_cast<const CBinary&>(object);
-		return Compress(out,bin.GetPtr(),bin.Size(),copy);
-	} else if (type==CVar::CSTRING) {
-		const CString &str=static_cast<const CString&>(object);
-		return Compress(out,str.GetPtr(),str.Size(),copy);
-	} else if (type==CVar::CWSTRING) {
-		const CWString &wstr=static_cast<const CWString&>(object);
-		return Compress(out,wstr.GetBuffer(),wstr.Size(),copy);
-	}
-	SetError(337);
-	return 0;
+	return compress(in.ptr(),in.size());
 }
 
-int Compression::Compress(CMemory &out, const CMemoryReference &in)
+void Compression::compress(ByteArray &out, const void *ptr, size_t size)
+/*!\brief Komprimierung eines Speicherbereiches in ein ByteArray Objekt
+ *
+ * \descr
+ * Mit dieser Version der Compress-Funktion wird ein Speicherbereich \p ptr mit einer Länge
+ * von \p size Bytes komprimiert und das Ergebnis im ByteArray-Objekt \p out gespeichert.
+ * Der optionale Parameter \p copy bestimmt, ob in CBinary eine Kopie der komprimierten
+ * Daten abgelegt wird oder nur ein Pointer auf den internen Buffer der Compression-Klasse.
+ * \par
+ * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+ *
+ * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] ptr Pointer auf den Speicherbereich, den komprimiert werden soll
+ * @param[in] size Länge des zu komprimierenden Speicherbereichs
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug oder die
+ * zu komprimierenden Daten lassen sich nicht komprimieren.
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
+ *
+ */
+{
+	ByteArrayPtr r=compress(ptr,size);
+	out.copy(r);
+}
+
+void Compression::compress(ByteArray &out, const ByteArrayPtr &in)
 /*!\brief Komprimierung eines Speicherbereichs in ein CMemory-Objekt
  *
  * \descr
@@ -793,21 +804,22 @@ int Compression::Compress(CMemory &out, const CMemoryReference &in)
  * \par
  * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
  *
- * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein von CMemoryReferemce abgeleitetes Objekt, das den zu
+ * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein von ByteArray oder ByteArrayPtr abgeleitetes Objekt, das den zu
  * komprimierenden Speicherbereich repräsentiert.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug oder die
+ * zu komprimierenden Daten lassen sich nicht komprimieren.
+ * @exception CompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht komprimiert werden
  *
  */
 {
-	CBinary o;
-	if (!Compress(o,in.adr(),in.size())) return 0;
-	out.copy(o);
-	return 1;
+	compress(out,in.adr(),in.size());
 }
 
-int Compression::Uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm method)
+void Compression::uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm a)
 /*!\brief Dekomprimierung eines Speicherbereiches in einen anderen
  *
  * \descr
@@ -825,105 +837,57 @@ int Compression::Uncompress(void *dst, size_t *dstlen, const void *src, size_t s
  * enthält und nach erfolgreichem Aufruf Anzahl tatsächlich benötigter Bytes
  * @param[in] src Pointer auf den Anfang des Speicherbereichs, der die komprimierten Daten enthält
  * @param[in] srclen Länge der komprimierten Daten
- * @param[in] method Optionaler Parameter, der die Kompressionsmethode angibt. Wird er nicht
- * angegeben, werden die Einstellung verwendet, die beim Aufruf von Compression::Init bzw. über
- * den Konstruktor Compression::Compression(Algorithm method, Level level) angegeben wurde.
- * @return Bei Erfolg gibt die Funktion 1 zurück und die tatsächlich benötigten Bytes können
- * der Variablen \p dstlen entnommen werden. Im Fehlerfall gibt die Funktion 0 zurück.
+ * @exception NullPointerException Einer der übergebenen Parameter (\p dst, \p dstlen oder \p src) zeigt auf NULL
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der Puffer \p dst ist zu klein, um die dekomprimierten Daten aufzunehmen.
+ * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
  *
  * \note
  * Die Funktion prüft lediglich welche Komprimierungsmethode eingestellt wurde und ruft dann eine
- * der privaten Funktionen Compression::UnNone, Compression::UnZlib oder Compression::UnBzip2 auf.
+ * der privaten Funktionen Compression::unNone, Compression::unZlib oder Compression::unBzip2 auf.
  */
 {
-	if ((!src) || (!dst)) {
-		SetError(194);
-		return 0;
-	}
-	if (method==Unknown) method=aaa;
-	switch (method) {
-		case Algo_NONE: return UnNone(dst,dstlen,src,srclen);
-		case Algo_ZLIB: return UnZlib(dst,dstlen,src,srclen);
-		case Algo_BZIP2: return UnBzip2(dst,dstlen,src,srclen);
+	if ((!src) || (!dst)) throw NullPointerException();
+	if (dstlen==NULL) throw NullPointerException();
+	if (a==Unknown) a=aaa;
+	switch (a) {
+		case Algo_NONE:
+			unNone(dst,dstlen,src,srclen);
+			return;
+		case Algo_ZLIB:
+			unZlib(dst,dstlen,src,srclen);
+			return;
+		case Algo_BZIP2:
+			unBzip2(dst,dstlen,src,srclen);
+			return;
 		default:
-			SetError(67);
-			return 0;
+			throw UnsupportedFeatureException();
 	}
 }
-int Compression::Uncompress(CBinary &out, const CBinary &object, bool copy)
-/*!\brief Dekomprimierung eines CBinary Objektes
- *
- * \descr
- * Mit dieser Version der Compress-Funktion wird Speicher des Objektes \p object
- * entpackt und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * Der optionale Parameter \p copy bestimmt, ob in CBinary eine Kopie der komprimierten
- * Daten abgelegt wird oder nur ein Pointer auf den internen Buffer der Compression-Klasse.
- * \par
- * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
- *
- * @param[out] out CBinary-Objekt, in dem die entpackten Daten gespeichert werden sollen
- * @param[in] object CBinary-Objekt, das die komprimierten Daten enthält.
- * @param[in] copy Zeigt an, ob die komprimierten Daten in das CBinary-Objekt \p out
- * kopiert (=true) werden sollen oder darin nur eine Referenz auf den Buffer der
- * Compression-Klasse abgelegt wird (=false). Letzters ist schneller und spart Speicher,
- * es muss jedoch darauf geachtet werden, dass mit der Instanz von Compression keine weiteren
- * Aktionen ausgeführt werden und sich auch nicht gelöscht wird, solange das \p out
- * noch verwendet wird!
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * unkomprimierten Daten kann \p out entnommen werden.
- */
-{
-	return Uncompress(out,object.GetPtr(),object.Size(),copy);
-}
 
-int Compression::Uncompress(CMemory &out, const CMemoryReference &in)
-/*!\brief Dekomprimierung eines Speicherbereichs in ein CMemory-Objekt
- *
- * \descr
- * Mit dieser Version der Compress-Funktion wird der durch \p in referenzierte
- * Speicherbereich dekomprimiert und das Ergebnis im CMemory-Objekt
- * \p out gespeichert.
- * \par
- * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
- *
- * @param[out] out CMemory-Objekt, in dem die entpackten Daten gespeichert werden sollen
- * @param[in] in CMemoryReferemce-Objekt, das die komprimierten Daten enthält.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * unkomprimierten Daten kann \p out entnommen werden.
- */
-{
-	CBinary o;
-	if (!Uncompress(o,in.adr(),in.size())) return 0;
-	out.copy(o);
-	return 1;
-}
-
-
-
-
-int Compression::Uncompress(CBinary &out, const void *ptr, size_t size, bool copy)
+ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 /*!\brief Dekomprimierung eines Speicherbereichs in ein CBinary Objekt
  *
  * \descr
  * Mit dieser Version der Compress-Funktion wird der durch \p ptr angegebene
  * Speicherbereich mit einer Länge von \p size Bytes dekomprimiert und die entpackten
- * Daten im CBinary-Objekt \p out gespeichert.
- * Der optionale Parameter \p copy bestimmt, ob in CBinary eine Kopie der komprimierten
- * Daten abgelegt wird oder nur ein Pointer auf den internen Buffer der Compression-Klasse.
+ * Daten als ByteArrayPtr zurückgegeben.
  * \par
  * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
  *
- * @param[out] out CBinary-Objekt, in dem die entpackten Daten gespeichert werden sollen
  * @param[in] ptr Pointer auf den Beginn des zu entpackenden Speicherbereichs
  * @param[in] size Größe des komprimierten Speicherbereichs
- * @param[in] copy Zeigt an, ob die komprimierten Daten in das CBinary-Objekt \p out
- * kopiert (=true) werden sollen oder darin nur eine Referenz auf den Buffer der
- * Compression-Klasse abgelegt wird (=false). Letzters ist schneller und spart Speicher,
- * es muss jedoch darauf geachtet werden, dass mit der Instanz von Compression keine weiteren
- * Aktionen ausgeführt werden und sich auch nicht gelöscht wird, solange das \p out
- * noch verwendet wird!
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * unkomprimierten Daten kann \p out entnommen werden.
+ * @return Bei Erfolg wird ein ByteArrayPtr mit einer Referenz auf den dekomprimierten
+ * Speicher zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
+ *
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug.
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+ *
  */
 {
 	if (uncbuffer) free(uncbuffer);
@@ -933,23 +897,19 @@ int Compression::Uncompress(CBinary &out, const void *ptr, size_t size, bool cop
 		while (1) {
 			if (uncbuffer) free(uncbuffer);
 			uncbuffer=malloc(bsize);
-			if (!uncbuffer) {
-				SetError(2);
-				return 0;
-			}
+			if (!uncbuffer) throw OutOfMemoryException();
 			// Wir prüfen, ob das Ergebnis in den Buffer passt
 			size_t dstlen=bsize;
-			if (!Uncompress(uncbuffer,&dstlen,ptr,size,aaa)) {
-				if (GetErrorCode()!=236) {
-					free(uncbuffer);
-					uncbuffer=NULL;
-					return 0;
-				}
+			try {
+				uncompress(uncbuffer,&dstlen,ptr,size);
+				return ByteArrayPtr(uncbuffer,dstlen);
+			} catch (BufferTooSmallException) {
 				// Der Buffer war nicht gross genug, wir vergrößern ihn
 				bsize+=size;
-			} else {	// Dekomprimierung erfolgreich
-				if (copy) return out.Copy(uncbuffer,dstlen);
-				else return out.Set(uncbuffer,dstlen);
+			} catch (...) {
+				free(uncbuffer);
+				uncbuffer=NULL;
+				throw;
 			}
 		}
 	} else if (prefix==Prefix_V1) {
@@ -960,26 +920,22 @@ int Compression::Uncompress(CBinary &out, const void *ptr, size_t size, bool cop
 		//printf ("Flag: %i, unc: %u, comp: %u\n",flag,size_unc, size_comp);
 		if (uncbuffer) free(uncbuffer);
 		uncbuffer=malloc(size_unc);
-		if (!uncbuffer) {
-			SetError(2);
-			return 0;
-		}
+		if (!uncbuffer) throw OutOfMemoryException();
 		size_t dstlen=size_unc;
-		if (!Uncompress(uncbuffer,&dstlen,buffer+9,size_comp,(Algorithm)(flag&7))) {
+		try {
+			uncompress(uncbuffer,&dstlen,buffer+9,size_comp,(Algorithm)(flag&7));
+			return ByteArrayPtr(uncbuffer,dstlen);
+		} catch (...) {
 			free(uncbuffer);
 			uncbuffer=NULL;
-			return 0;
+			throw;
 		}
-		// Dekomprimierung erfolgreich
-		if (copy) return out.Copy(uncbuffer,dstlen);
-		else return out.Set(uncbuffer,dstlen);
 	} else if (prefix==Prefix_V2) {
 		char *buffer=(char*)ptr;
 		int flag=Peek8(buffer);
 		Algorithm a=(Algorithm)(flag&7);
 		if ((flag&8)==0) {	// Bit 3 muss aber gesetzt sein
-			SetError(535);
-			return 0;
+			throw CorruptedDataException();
 		}
 		int b_unc=4, b_comp=4;
 		if ((flag&48)==0) b_unc=1;
@@ -999,60 +955,98 @@ int Compression::Uncompress(CBinary &out, const void *ptr, size_t size, bool cop
 
 		if (uncbuffer) free(uncbuffer);
 		uncbuffer=malloc(size_unc);
-		if (!uncbuffer) {
-			SetError(2);
-			return 0;
-		}
+		if (!uncbuffer) throw OutOfMemoryException();
 		size_t dstlen=size_unc;
 		size_t bytes=1+b_unc+b_comp;
-		if (!Uncompress(uncbuffer,&dstlen,buffer+bytes,size-bytes,a)) {
+		try {
+			uncompress(uncbuffer,&dstlen,buffer+bytes,size-bytes,a);
+			return ByteArrayPtr(uncbuffer,dstlen);
+		} catch (...) {
 			free(uncbuffer);
 			uncbuffer=NULL;
-			return 0;
+			throw;
 		}
-		// Dekomprimierung erfolgreich
-		if (copy) return out.Copy(uncbuffer,dstlen);
-		else return out.Set(uncbuffer,dstlen);
 	}
-	SetError(533);
-	return 0;
+	throw DecompressionFailedException();
 }
 
-
-int Compress(CBinary &out, const CVar &in, Compression::Algorithm method, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten komprimieren
+ByteArrayPtr Compression::uncompress(const ByteArrayPtr &in)
+/*!\brief Dekomprimierung eines Speicherbereichs in ein CBinary Objekt
  *
  * \descr
- * Mit dieser Funktion wird der Speicher des von CVar abgeleiteten Objektes \p in
- * mit der Komprimierungsmethode \p method und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \p in kann ein CString, CWString oder CBinary sein.
+ * Mit dieser Version der Compress-Funktion wird der durch \p ptr angegebene
+ * Speicherbereich mit einer Länge von \p size Bytes dekomprimiert und die entpackten
+ * Daten als ByteArrayPtr zurückgegeben.
  * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
+ * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
  *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein von CVar abgeleitetes Objekt mit den zu komprimierenden Daten.
- * Zur Zeit werden folgende Datentypen unterstützt: CString, CWString, CBinary
- * @param[in] method Die gewünschte Komprimierungsmethode (siehe Compression::Algorithm)
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
+ * @param[in] in Referenz auf den zu dekomprimierenden Speicher
+ * @return Bei Erfolg wird ein ByteArrayPtr mit einer Referenz auf den dekomprimierten
+ * Speicher zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
  *
- * \see Compression
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug.
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+ *
  */
 {
-	Compression comp;
-	if (!comp.Init(method,level)) return 0;
-	comp.UsePrefix(Compression::Prefix_V2);
-	if (!comp.Compress(out,in)) return 0;
-	return 1;
+	return compress(in.ptr(),in.size());
 }
 
-/*!\ingroup PPL6_COMPRESSION
+void Compression::uncompress(ByteArray &out, const void *ptr, size_t size)
+/*!\brief Dekomprimierung eines Speicherbereichs in ein CBinary Objekt
+ *
+ * \descr
+ * Mit dieser Version der Compress-Funktion wird der durch \p ptr angegebene
+ * Speicherbereich mit einer Länge von \p size Bytes dekomprimiert und die entpackten
+ * Daten im CBinary-Objekt \p out gespeichert.
+ * \par
+ * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::UsePrefix).
+ *
+ * @param[out] out CBinary-Objekt, in dem die entpackten Daten gespeichert werden sollen
+ * @param[in] ptr Pointer auf den Beginn des zu entpackenden Speicherbereichs
+ * @param[in] size Größe des komprimierten Speicherbereichs
+ *
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug.
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+ *
+ */
+{
+	ByteArrayPtr b=uncompress(ptr, size);
+	out.copy(b);
+}
+
+void Compression::uncompress(ByteArray &out, const ByteArrayPtr &object)
+/*!\brief Dekomprimierung eines ByteArrayPtr Objektes
+ *
+ * \descr
+ * Mit dieser Version der Compress-Funktion wird Speicher des Objektes \p object
+ * entpackt und das Ergebnis im ByteArray-Objekt \p out gespeichert.
+ * \par
+ * Diese Funktion unterstützt das Prefix-Flag (siehe Compression::usePrefix).
+ *
+ * @param[out] out ByteArray-Objekt, in dem die entpackten Daten gespeichert werden sollen
+ * @param[in] object ByteArrayPtr-Objekt, das auf die komprimierten Daten zeigt.
+ *
+ * @exception UnsupportedFeatureException Der eingestellte Komprimier-Algorithmus wird nicht unterstützt
+ * @exception OutOfMemoryException Nicht genug Speicher verfügbar
+ * @exception BufferTooSmallException Der intern zum komprimieren verwendete Puffer
+ * ist zu klein. Sollte dieser Fall auftreten, handelt es sich um einen Bug.
+ * @exception DecompressionFailedException Ein unerwarteter Fehler ist aufgetreten, die Daten konnten nicht dekomprimiert werden
+ *
+ */
+{
+	uncompress(out,object.ptr(), object.size());
+}
+
+
+
+/*!\ingroup PPL7_COMPRESSION
  * \brief Speicherbereich komprimieren
  *
  * \desc
@@ -1062,58 +1056,23 @@ int Compress(CBinary &out, const CVar &in, Compression::Algorithm method, Compre
  *
  * Speicherbereich komprimieren
  *
- * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein von CMemoryReference abgeleitetes Objekt mit den zu komprimierenden Daten
+ * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein von ByteArrayPtr abgeleitetes Objekt mit den zu komprimierenden Daten
  * @param[in] method Die gewünschte Komprimierungsmethode (siehe Compression::Algorithm)
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
  *
  * \see Compression
  * @return
  */
-int Compress(CMemory &out, const CMemoryReference &in, Compression::Algorithm method, Compression::Level level)
+void Compress(ByteArray &out, const ByteArrayPtr &in, Compression::Algorithm method, Compression::Level level)
 {
 	Compression comp;
-	if (!comp.Init(method,level)) return 0;
-	comp.UsePrefix(Compression::Prefix_V2);
-	if (!comp.Compress(out,in)) return 0;
-	return 1;
+	comp.init(method,level);
+	comp.usePrefix(Compression::Prefix_V2);
+	comp.compress(out,in);
 }
 
-int Compress(CBinary &out, const void *buffer, size_t size, Compression::Algorithm method, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten komprimieren
- *
- * \descr
- * Mit dieser Funktion wird der durch \p buffer angegebene Speicherbereich mit einer Länge von
- * \p size Bytes mit der Komprimierungsmethode \p method und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
- *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] buffer Pointer auf den zu komprimierenden Speicherbereich
- * @param[in] size Größe des zu komprimierenden Speicherbereichs
- * @param[in] method Die gewünschte Komprimierungsmethode (siehe Compression::Algorithm)
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level)
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
- *
- * \see Compression
- */
-{
-	Compression comp;
-	if (!comp.Init(method,level)) return 0;
-	comp.UsePrefix(Compression::Prefix_V2);
-	if (!comp.Compress(out,buffer,size)) return 0;
-	return 1;
-}
-
-/*!\ingroup PPL6_COMPRESSION
+/*!\ingroup PPL7_COMPRESSION
  * \relatesalso Compression
  * \brief Daten dekomprimieren
  *
@@ -1133,105 +1092,16 @@ int Compress(CBinary &out, const void *buffer, size_t size, Compression::Algorit
  *
  * \see Compression
  */
-int Uncompress(CBinary &out, const CBinary &in)
+void Uncompress(ByteArray &out, const ByteArrayPtr &in)
 {
 	Compression comp;
-	comp.UsePrefix(Compression::Prefix_V2);
-	if (!comp.Uncompress(out,in)) return 0;
-	return 1;
-}
-
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten dekomprimieren
- *
- * \descr
- * Mit dieser Funktion werden die in \p in enthaltenen komprimierten Daten
- * entpackt und das Ergebnis im CMemory-Objekt \p out gespeichert.
- * \par
- * Die Funktion geht davon aus, dass die komprimierten Daten mit einem
- * Version 2 Prefix beginnen (siehe \ref Compression_Prefix). Ist dies nicht der
- * Fall, sollte statt dieser Funktion die Klasse Compression verwendet werden,
- * deren Compression::Uncompress-Funktionen auch Dekomprimierung ohne Prefix
- * unterstützen.
- *
- * @param[out] out CMemory-Objekt, in dem die entpackten Daten gespeichert werden sollen
- * @param[in] in Ein CMemoryReference-Objekt, das die komprimierten Daten enthält
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
- *
- * \see Compression
- */
-int Uncompress(CMemory &out, const CMemoryReference &in)
-{
-	Compression comp;
-	comp.UsePrefix(Compression::Prefix_V2);
-	if (!comp.Uncompress(out,in)) return 0;
-	return 1;
-
+	comp.usePrefix(Compression::Prefix_V2);
+	comp.uncompress(out,in);
 }
 
 
-int Uncompress(CBinary &out, const void *buffer, size_t size)
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten dekomprimieren
- *
- * \descr
- * Mit dieser Funktion werden die komprimierten Daten in \p buffer mit einer Länge
- * von \p size Bytes entpackt und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \par
- * Die Funktion geht davon aus, dass die komprimierten Daten mit einem
- * Version 2 Prefix beginnen (siehe \ref Compression_Prefix). Ist dies nicht der
- * Fall, sollte statt dieser Funktion die Klasse Compression verwendet werden,
- * deren Compression::Uncompress-Funktionen auch Dekomprimierung ohne Prefix
- * unterstützen.
- *
- * @param[out] out CBinary-Objekt, in dem die entpackten Daten gespeichert werden sollen
- * @param[in] buffer Pointer auf den Beginn des komprimierten Speicherbereichs
- * @param[in] size Länge des komprimierten Speicherbnereichs in Byte
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
- *
- * \see Compression
- *
- */
-{
-	Compression comp;
-	comp.UsePrefix(Compression::Prefix_V2);
-	if (!comp.Uncompress(out,buffer,size)) return 0;
-	return 1;
-}
-
-int CompressZlib(CBinary &out, const CVar &in, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten mit ZLib komprimieren
- *
- * \descr
- * Mit dieser Funktion wird der Speicher des von CVar abgeleiteten Objektes \p in
- * mit der Komprimierungsmethode ZLib und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \p in kann ein CString, CWString oder CBinary sein.
- * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
- *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein von CVar abgeleitetes Objekt mit den zu komprimierenden Daten.
- * Zur Zeit werden folgende Datentypen unterstützt: CString, CWString, CBinary
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level). Der Default ist
- * Compression::Level_High
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
- *
- * \see Compression
- */
-{
-	return Compress(out,in,Compression::Algo_ZLIB,level);
-}
-
-int CompressZlib(CMemory &out, const CMemoryReference &in, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
+void CompressZlib(ByteArray &out, const ByteArrayPtr &in, Compression::Level level)
+/*!\ingroup PPL7_COMPRESSION
  * \relatesalso Compression
  * \brief Daten mit ZLib komprimieren
  *
@@ -1244,107 +1114,20 @@ int CompressZlib(CMemory &out, const CMemoryReference &in, Compression::Level le
  * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
  * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
  *
- * @param[out] out CMemory-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein CMemoryReference-Objekt mit den zu komprimierenden Daten.
+ * @param[out] out ByteArray-Objekt, in dem die komprimierten Daten gespeichert werden sollen
+ * @param[in] in Ein ByteArrayPtr-Objekt mit den zu komprimierenden Daten.
  * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level). Der Default ist
  * Compression::Level_High
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
  *
  * \see Compression
  */
 {
-	return Compress(out,in,Compression::Algo_ZLIB,level);
+	Compress(out,in,Compression::Algo_ZLIB,level);
 }
 
 
-int CompressZlib(CBinary &out, const void *buffer, size_t size, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten mit ZLib komprimieren
- *
- * \descr
- * Mit dieser Funktion wird der durch \p buffer angegebene Speicherbereich mit einer Länge von
- * \p size Bytes mit der Komprimierungsmethode ZLib und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
- *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] buffer Pointer auf den zu komprimierenden Speicherbereich
- * @param[in] size Größe des zu komprimierenden Speicherbereichs
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level). Der Default ist
- * Compression::Level_High
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
- *
- * \see Compression
- */
-{
-	return Compress(out, buffer, size, Compression::Algo_ZLIB, level);
-}
-
-int CompressBZip2(CBinary &out, const CVar &in, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten mit BZip2 komprimieren
- *
- * \descr
- * Mit dieser Funktion wird der Speicher des von CVar abgeleiteten Objektes \p in
- * mit der Komprimierungsmethode BZip2 und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \p in kann ein CString, CWString oder CBinary sein.
- * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
- *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] in Ein von CVar abgeleitetes Objekt mit den zu komprimierenden Daten.
- * Zur Zeit werden folgende Datentypen unterstützt: CString, CWString, CBinary
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level). Der Default ist
- * Compression::Level_High
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
- *
- * \see Compression
- */
-{
-	return Compress(out,in,Compression::Algo_BZIP2,level);
-}
-
-int CompressBZip2(CBinary &out, const void *buffer, size_t size, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
- * \relatesalso Compression
- * \brief Daten mit BZip2 komprimieren
- *
- * \descr
- * Mit dieser Funktion wird der durch \p buffer angegebene Speicherbereich mit einer Länge von
- * \p size Bytes mit der Komprimierungsmethode BZip2 und dem Komprimierungslevel \p level komprimiert
- * und das Ergebnis im CBinary-Objekt \p out gespeichert.
- * \par
- * Die Funktion stellt den komprimierten Daten automatisch einen Version 2 Prefix voran (siehe
- * \ref Compression_Prefix), so dass die komprimierten Daten durch Aufruf der Funktion
- * Uncompress ohne Angabe der Kompressionsmethod wieder entpackt werden kann.
- *
- * @param[out] out CBinary-Objekt, in dem die komprimierten Daten gespeichert werden sollen
- * @param[in] buffer Pointer auf den zu komprimierenden Speicherbereich
- * @param[in] size Größe des zu komprimierenden Speicherbereichs
- * @param[in] level Der gewünschte Komprimierungslevel (siehe Compression::Level). Der Default ist
- * Compression::Level_High
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Die Länge der
- * komprimierten Daten kann \p out entnommen werden.
- *
- * \see Compression
- */
-{
-	return Compress(out, buffer, size, Compression::Algo_BZIP2, level);
-}
-
-int CompressBZip2(CMemory &out, const CMemoryReference &in, Compression::Level level)
-/*!\ingroup PPL6_COMPRESSION
+void CompressBZip2(ByteArray &out, const ByteArrayPtr &in, Compression::Level level)
+/*!\ingroup PPL7_COMPRESSION
  * \relatesalso Compression
  * \brief Daten mit BZip2 komprimieren
  *
@@ -1367,7 +1150,7 @@ int CompressBZip2(CMemory &out, const CMemoryReference &in, Compression::Level l
  * \see Compression
  */
 {
-	return Compress(out,in,Compression::Algo_BZIP2,level);
+	Compress(out,in,Compression::Algo_BZIP2,level);
 }
 
 

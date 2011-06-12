@@ -116,6 +116,8 @@ PPLNORMALEXCEPTION(CompressionFailedException);
 PPLNORMALEXCEPTION(DecompressionFailedException);
 PPLNORMALEXCEPTION(InvalidFormatException);
 PPLNORMALEXCEPTION(AccessDeniedByInstanceException);
+PPLNORMALEXCEPTION(BufferTooSmallException);
+PPLNORMALEXCEPTION(CorruptedDataException);
 
 
 

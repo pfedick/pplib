@@ -878,13 +878,13 @@ class Compression
 		Level lll;
 		Prefix prefix;
 
-		int doNone(void *dst, size_t *dstlen, const void *src, size_t size);
-		int doZlib(void *dst, size_t *dstlen, const void *src, size_t size);
-		int doBzip2(void *dst, size_t *dstlen, const void *src, size_t size);
+		void doNone(void *dst, size_t *dstlen, const void *src, size_t size);
+		void doZlib(void *dst, size_t *dstlen, const void *src, size_t size);
+		void doBzip2(void *dst, size_t *dstlen, const void *src, size_t size);
 
-		int unNone (void *dst, size_t *dstlen, const void *src, size_t srclen);
-		int unZlib (void *dst, size_t *dstlen, const void *src, size_t srclen);
-		int unBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		void unNone (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		void unZlib (void *dst, size_t *dstlen, const void *src, size_t srclen);
+		void unBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen);
 
 
 	public:
@@ -895,24 +895,23 @@ class Compression
 		void init(Algorithm method, Level level=Level_Default);
 		void usePrefix(Prefix prefix);
 
-		int compress(ByteArray &out, const void *ptr, size_t size);
-		int compress(ByteArray &out, const ByteArrayPtr &in);
-		int compress(void *dst, size_t *dstlen, const void *src, size_t size);
-		int uncompress(ByteArray &out, const ByteArrayPtr &data);
-		int uncompress(ByteArray &out, const void *data, size_t size=0);
-		int uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen);
+		void compress(void *dst, size_t *dstlen, const void *src, size_t size, Algorithm a=Unknown);
+		void compress(ByteArray &out, const void *ptr, size_t size);
+		void compress(ByteArray &out, const ByteArrayPtr &in);
+		ByteArrayPtr compress(const void *ptr, size_t size);
+		ByteArrayPtr compress(const ByteArrayPtr &in);
+
+		void uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm a=Unknown);
+		void uncompress(ByteArray &out, const ByteArrayPtr &data);
+		void uncompress(ByteArray &out, const void *data, size_t size=0);
+		ByteArrayPtr uncompress(const void *ptr, size_t size);
+		ByteArrayPtr uncompress(const ByteArrayPtr &in);
 };
 
-int Compress(ByteArray &out, const void *buffer, size_t size, Compression::Algorithm method, Compression::Level level=Compression::Level_Default);
-int Compress(ByteArray &out, const ByteArrayPtr &in, Compression::Algorithm method, Compression::Level level=Compression::Level_Default);
-int CompressZlib(ByteArray &out, const void *buffer, size_t size, Compression::Level level=Compression::Level_High);
-int CompressZlib(ByteArray &out, const ByteArrayPtr &in, Compression::Level level=Compression::Level_Default);
-int CompressBZip2(ByteArray &out, const void *buffer, size_t size, Compression::Level level=Compression::Level_High);
-int CompressBZip2(ByteArray &out, const ByteArrayPtr &in, Compression::Level level=Compression::Level_Default);
-int Uncompress(ByteArray &out, const ByteArrayPtr &in);
-int Uncompress(ByteArray &out, const void *buffer, size_t size);
-
-
+void Compress(ByteArray &out, const ByteArrayPtr &in, Compression::Algorithm method, Compression::Level level=Compression::Level_Default);
+void CompressZlib(ByteArray &out, const ByteArrayPtr &in, Compression::Level level=Compression::Level_Default);
+void CompressBZip2(ByteArray &out, const ByteArrayPtr &in, Compression::Level level=Compression::Level_Default);
+void Uncompress(ByteArray &out, const ByteArrayPtr &in);
 
 
 
