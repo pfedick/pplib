@@ -61,9 +61,11 @@ PPLPARAMETERISEDEXCEPTION(FunctionUnavailableException);
 PPLNORMALEXCEPTION(InvalidImageSizeException);
 PPLNORMALEXCEPTION(UnknownImageFormatException);
 PPLNORMALEXCEPTION(FontEngineInitializationException);
+PPLNORMALEXCEPTION(FontEngineUninitializedException);
 PPLNORMALEXCEPTION(InvalidFontException);
 PPLNORMALEXCEPTION(NoSuitableFontEngineException);
 PPLNORMALEXCEPTION(FontNotFoundException);
+PPLNORMALEXCEPTION(InvalidFontEngineException);
 
 
 
@@ -816,7 +818,7 @@ class FontEngine
 		FontEngine();
 		virtual ~FontEngine();
 
-		virtual int init();
+		virtual void init();
 		virtual int ident(FileObject &file);
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
@@ -827,14 +829,14 @@ class FontEngine
 class FontEngineFont5 : public FontEngine
 {
 	private:
-		PFPChunk *selectFont(FontFile *file, const Font &font);
-		int renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
+		PFPChunk *selectFont(const FontFile &file, const Font &font);
+		void renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 
 	public:
 		FontEngineFont5();
 		virtual ~FontEngineFont5();
-		virtual int init();
-		virtual int ident(FileObject *file);
+		virtual void init();
+		virtual int ident(FileObject &file);
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
 		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
@@ -848,7 +850,7 @@ class FontEngineFreeType : public FontEngine
 	public:
 		FontEngineFreeType();
 		virtual ~FontEngineFreeType();
-		virtual int init();
+		virtual void init();
 		virtual int ident(FileObject &file);
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);

@@ -978,6 +978,9 @@ class PFPFile
 		void load(FileObject &ff);
 		void load(const String &file);
 
+		bool ident(FileObject &ff);
+		bool ident(const String &file);
+
 		virtual int loadRequest(const String &id, int mainversion ,int subversion);
 
 		String getName() const;

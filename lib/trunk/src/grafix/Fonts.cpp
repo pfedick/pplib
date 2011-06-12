@@ -316,7 +316,7 @@ FontFile::~FontFile()
 void Grafix::addFontEngine(FontEngine *engine)
 {
 	if (!engine) throw NullPointerException();
-	if (!engine->init()) throw FontEngineInitializationException();
+	engine->init();
 	myMutex.lock();
 	try {
 		FontEngineList.add(engine);
@@ -324,6 +324,7 @@ void Grafix::addFontEngine(FontEngine *engine)
 		myMutex.unlock();
 		throw;
 	}
+	myMutex.unlock();
 }
 
 void Grafix::loadFont(const String &filename, const String &fontname)
@@ -490,7 +491,7 @@ FontEngine::~FontEngine()
 {
 }
 
-int FontEngine::init()
+void FontEngine::init()
 {
 	throw UnimplementedVirtualFunctionException();
 }

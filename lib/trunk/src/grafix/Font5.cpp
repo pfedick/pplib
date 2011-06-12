@@ -54,6 +54,23 @@
 
 //#undef HAVE_X86_ASSEMBLER
 
+// Font-Blitter
+typedef struct tagGLYPH {
+	const char *data;
+	char *target;
+	ppluint32 pitch;
+	pplint32 color;
+} GLYPH;
+
+extern "C" {
+	int BltGlyph_M8_32 (GLYPH *g);
+	int BltGlyph_M1_32 (GLYPH *g);
+	int BltGlyph_AA8_32 (GLYPH *g);
+	int BltGlyph_AA2_32 (GLYPH *g);
+	int BltGlyph_AA4_32 (GLYPH *g);
+}
+
+
 namespace ppl7 {
 namespace grafix {
 
@@ -158,74 +175,54 @@ Position= 12 + Anzahl Sprungtabellen * 8 + Anzahl Chars in jeder Sprungtabelle *
 \endcode
 
  */
-#ifdef DONE
 
-/*!\class CFontEngineFont5
+
+/*!\class FontEngineFont5
  * \ingroup PPLGroupGrafik
  * \brief Font-Engine für PFP Version 5 Fonts
  */
 
-CFontEngineFont5::CFontEngineFont5()
+FontEngineFont5::FontEngineFont5()
 {
 }
 
-CFontEngineFont5::~CFontEngineFont5()
+FontEngineFont5::~FontEngineFont5()
 {
 }
 
-int CFontEngineFont5::Init()
+void FontEngineFont5::init()
 {
-	return 1;
+	// Es gibt nichts zu tun
 }
 
-int CFontEngineFont5::Ident(CFileObject *file)
+int FontEngineFont5::ident(FileObject &file)
 {
-	if (!file) {
-		SetError(1027);
-		return 0;
-	}
-	PFPSTRUCT pfp;
-	if (!ident(*file, &pfp)) {
-		SetError(1027);
-		return 0;
-	}
-	if (strncasecmp((char*)pfp.file_id,"FONT",4)!=0) {
-		SetError(1027);
-		return 0;
-	}
-	if (pfp.mainversion==5 && pfp.subversion==0) {
-		return 1;
-	}
-	SetError(1027);
+	PFPFile ff;
+	if (!ff.ident(file)) return 0;
+	if (ff.getID()!=L"FONT") return 0;
+	if (ff.getMainVersion()==5 && ff.getSubVersion()==0) return 1;
 	return 0;
 }
 
-CFontFile *CFontEngineFont5::LoadFont(CFileObject *file, const char *fontname)
+FontFile *FontEngineFont5::loadFont(FileObject &file, const String &fontname)
 {
 	PFPFile *File = new PFPFile;
-	if (!File->Load(file)) {
-		PushError();
+	if (!File) throw OutOfMemoryException();
+	try {
+		File->load(file);
+	} catch (...) {
 		delete File;
-		PopError();
-		return NULL;
+		throw;
 	}
-	if (strcmp(File->GetID(),"FONT")!=0 || File->GetMainVersion()!=5 || File->GetSubVersion()!=0) {
+	if (File->getID()!=L"FONT") throw InvalidFontException();
+	if (File->getMainVersion()==5 && File->getSubVersion()==0) throw InvalidFontException();
+	FontFile *ff=new FontFile;
+	if (!ff) {
 		delete File;
-		SetError(1027);
-		return NULL;
+		throw OutOfMemoryException();
 	}
-	CFontFile *ff=new CFontFile;
-	if (fontname) ff->Name=fontname;
-	else {
-		const char *tmp=File->GetName();
-		if (!tmp) {
-			delete ff;
-			delete File;
-			SetError(1028);
-			return NULL;
-		}
-		ff->Name=tmp;
-	}
+	if (fontname.notEmpty()) ff->Name=fontname;
+	else ff->Name=File->getName();
 	ff->engine=this;
 	// Wir Speichern nicht den Speicherblock der Daten, sondern nur den
 	// Pointer auf das PFPFile
@@ -233,20 +230,14 @@ CFontFile *CFontEngineFont5::LoadFont(CFileObject *file, const char *fontname)
 	return ff;
 }
 
-int CFontEngineFont5::DeleteFont(CFontFile *file)
+void FontEngineFont5::deleteFont(FontFile *file)
 {
-	if (!file) {
-		SetError(194,"int CFont5::DeleteFont(CFontFile *file)");
-		return 0;
-	}
-	if (file->engine!=this) {
-		SetError(1029);
-		return 0;
-	}
+	if (!file) throw NullPointerException();
+	if (file->engine!=this) throw InvalidFontEngineException();
 	PFPFile *f=(PFPFile *)file->priv;
 	delete f;
-
-	return 1;
+	file->priv=NULL;
+	file->engine=NULL;
 }
 
 
@@ -254,8 +245,8 @@ int CFontEngineFont5::DeleteFont(CFontFile *file)
 extern "C" {
 void BltGlyph_M8_32 (GLYPH *g)
 {
-	pplint16 width=peek16(g->data);
-	pplint16 height=peek16(g->data+2);
+	pplint16 width=Peek16(g->data);
+	pplint16 height=Peek16(g->data+2);
 	const char *bitmap=g->data+10;
 	ppluint32 *t=(ppluint32 *)g->target;
 	int pitch=g->pitch>>2;
@@ -275,10 +266,10 @@ void BltGlyph_M8_32 (GLYPH *g)
 
 static int DrawGlyphMono8(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=peek16(glyph);
-	pplint16 height=peek16(glyph+2);
-	pplint16 bearingx=peek16(glyph+4);
-	pplint16 bearingy=peek16(glyph+6);
+	pplint16 width=Peek16(glyph);
+	pplint16 height=Peek16(glyph+2);
+	pplint16 bearingx=Peek16(glyph+4);
+	pplint16 bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -298,10 +289,10 @@ static int DrawGlyphMono8(DRAWABLE_DATA &data, const char *glyph, int x, int y, 
 
 static int DrawGlyphMono1(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=peek16(glyph);
-	pplint16 height=peek16(glyph+2);
-	pplint16 bearingx=peek16(glyph+4);
-	pplint16 bearingy=peek16(glyph+6);
+	pplint16 width=Peek16(glyph);
+	pplint16 height=Peek16(glyph+2);
+	pplint16 bearingx=Peek16(glyph+4);
+	pplint16 bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -309,7 +300,7 @@ static int DrawGlyphMono1(DRAWABLE_DATA &data, const char *glyph, int x, int y, 
 
 	const char *bitmap=glyph+10;
 	int v=0;
-	ppldb bitcount=0;
+	ppluint8 bitcount=0;
 	for (int yy=0;yy<height;yy++) {
 		for (int xx=0;xx<width;xx++) {
 			if (!bitcount) {
@@ -329,10 +320,10 @@ static int DrawGlyphMono1(DRAWABLE_DATA &data, const char *glyph, int x, int y, 
 
 static int DrawGlyphAA2(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=peek16(glyph);
-	pplint16 height=peek16(glyph+2);
-	pplint16 bearingx=peek16(glyph+4);
-	pplint16 bearingy=peek16(glyph+6);
+	pplint16 width=Peek16(glyph);
+	pplint16 height=Peek16(glyph+2);
+	pplint16 bearingx=Peek16(glyph+4);
+	pplint16 bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -340,7 +331,7 @@ static int DrawGlyphAA2(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 	const char *bitmap=glyph+10;
 	int v=0, v2=0;
-	ppldb bitcount=0;
+	ppluint8 bitcount=0;
 	for (int yy=0;yy<height;yy++) {
 		for (int xx=0;xx<width;xx++) {
 			if (!bitcount) {
@@ -362,10 +353,10 @@ static int DrawGlyphAA2(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 static int DrawGlyphAA4(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=peek16(glyph);
-	pplint16 height=peek16(glyph+2);
-	pplint16 bearingx=peek16(glyph+4);
-	pplint16 bearingy=peek16(glyph+6);
+	pplint16 width=Peek16(glyph);
+	pplint16 height=Peek16(glyph+2);
+	pplint16 bearingx=Peek16(glyph+4);
+	pplint16 bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -373,7 +364,7 @@ static int DrawGlyphAA4(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 	const char *bitmap=glyph+10;
 	int v=0, v2=0;
-	ppldb bitcount=0;
+	ppluint8 bitcount=0;
 	for (int yy=0;yy<height;yy++) {
 		for (int xx=0;xx<width;xx++) {
 			if (!bitcount) {
@@ -394,10 +385,10 @@ static int DrawGlyphAA4(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 static int DrawGlyphAA8(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=peek16(glyph);
-	pplint16 height=peek16(glyph+2);
-	pplint16 bearingx=peek16(glyph+4);
-	pplint16 bearingy=peek16(glyph+6);
+	pplint16 width=Peek16(glyph);
+	pplint16 height=Peek16(glyph+2);
+	pplint16 bearingx=Peek16(glyph+4);
+	pplint16 bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -415,89 +406,78 @@ static int DrawGlyphAA8(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 	return 1;
 }
 
-PFPChunk *CFontEngineFont5::SelectFont(CFontFile *file, const CFont &font)
+PFPChunk *FontEngineFont5::selectFont(const FontFile &file, const Font &font)
 {
-	if (file==NULL || file->priv==NULL) {
-		SetError(1033);
-		return NULL;
-	}
-	PFPFile *f=(PFPFile *)file->priv;
+	if (file.priv==NULL) throw NullPointerException();
+	PFPFile *f=(PFPFile *)file.priv;
 	PFPChunk *c;
 	const char *header;
 
 	// Wir mussen zuerst den passenden Chunk finden
-	f->Mutex.Lock();
-	f->Reset();
+	f->myMutex.lock();
+	PFPFile::Iterator it;
+	f->reset(it);
 	int flags=0;
 	if (font.antialias()) flags|=1;
 	if (font.bold()) flags|=2;
 	if (font.italic()) flags|=4;
 
-	while ((c=f->FindNextChunk("FACE"))) {
-		header=(const char*)c->Data();
+	while ((c=f->findNextChunk(it,L"FACE"))) {
+		header=(const char*)c->data();
 		if (!header) continue;
-		if (((int)peek16(header+2))==(int)font.size() && (int)peek8(header)==flags) {
+		if (((int)Peek16(header+2))==(int)font.size() && (int)Peek8(header)==flags) {
 			break;
 		}
 	}
-	f->Mutex.Unlock();
-	if (!c) {
-		SetError(1034);
-		return 0;
-	}
+	f->myMutex.unlock();
 	return c;
 }
 
 static const char *FindJumpTable(const char *header, int *start, int *end, int code)
 {
-	int numJumpTables=peek16(header+10);
+	int numJumpTables=Peek16(header+10);
 	const char *jumpindex=header+12;
 	for (int ii=0;ii<numJumpTables;ii++) {
-		*start=peek16(jumpindex);
-		*end=peek16(jumpindex+2);
+		*start=Peek16(jumpindex);
+		*end=Peek16(jumpindex+2);
 		if (code>=*start && code<=*end) {
-			return header+peek32(jumpindex+4);
+			return header+Peek32(jumpindex+4);
 		}
 		jumpindex+=8;
 	}
 	return NULL;
 }
 
-int CFontEngineFont5::Render(CFontFile *file, const CFont &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color)
+void FontEngineFont5::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
 {
-	if (file==NULL || file->priv==NULL) {
-		SetError(1033);
-		return 0;
-	}
-	PFPChunk *c=SelectFont(file,font);
-	if (c) return RenderInternal(c,font,draw,x,y,text,color);
+	PFPChunk *c=selectFont(file,font);
+	if (c) renderInternal(c,font,draw,x,y,text,color);
 	if (font.bold()) {
-		CFont f=font;
+		Font f=font;
 		f.setBold(false);
-		c=SelectFont(file,f);
+		c=selectFont(file,f);
 		if (c) {
-			RenderInternal(c,font,draw,x,y,text,color);
-			return RenderInternal(c,font,draw,x+1,y,text,color);
+			renderInternal(c,font,draw,x,y,text,color);
+			return renderInternal(c,font,draw,x+1,y,text,color);
 		}
 	}
-	return 0;
-
+	throw InvalidFontException();
 }
 
-int CFontEngineFont5::RenderInternal(PFPChunk *c, const CFont &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color)
+void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
 {
 	DRAWABLE_DATA *data=draw.getData();
-	const char *header=(char*)c->Data();
+	const char *header=(char*)c->data();
 	const char *jump=NULL;
 	const char *glyph;
-	int pixelformat=peek8(header+1);
+	int pixelformat=Peek8(header+1);
 	int code;
 	int start=0;
 	int end=0;
 	pplint16 bearingy, bearingx, width, height, advance;
 	pplint16 MaxHeight, MaxBearingY;
-	MaxHeight=peek16(header+6);
-	MaxBearingY=peekw(header+4);
+	MaxHeight=Peek16(header+6);
+	MaxBearingY=Peek16(header+4);
 
 	int lastx=x;
 	int lasty=y;
@@ -575,13 +555,12 @@ int CFontEngineFont5::RenderInternal(PFPChunk *c, const CFont &font, CDrawable &
 			ErsatzGlyph=DrawGlyphAA4;
 			break;
 		default:
-			SetError(1027);
-			return 0;
+			throw InvalidFontException();
 	};
 	int orgx=x;
 	int p=0;
 	bool drawn;
-	if (font.orientation()==CFont::TOP) {
+	if (font.orientation()==Font::TOP) {
 		lasty+=MaxBearingY;
 	}
 
@@ -595,24 +574,24 @@ int CFontEngineFont5::RenderInternal(PFPChunk *c, const CFont &font, CDrawable &
 			if (32<start || 32>end) jump=FindJumpTable(header,&start,&end,32);
 			if (!jump) continue;
 			// Glyph holen
-			glyph=header+peek32(jump+((32-start)<<2));
+			glyph=header+Peek32(jump+((32-start)<<2));
 			if (glyph) {
-				advance=peek16(glyph+8);
+				advance=Peek16(glyph+8);
 				lastx+=advance*4;
 			}
 		} else {											// Rest
 			if (code<start || code>end) jump=FindJumpTable(header,&start,&end,code);
 			if (!jump) continue;
 			// Glyph holen
-			glyph=header+peek32(jump+((code-start)<<2));
+			glyph=header+Peek32(jump+((code-start)<<2));
 			if (glyph) {
 				drawn=false;
-				advance=peek16(glyph+8);
+				advance=Peek16(glyph+8);
 				if (BltGlyph) {
-					width=peek16(glyph);
-					height=peek16(glyph+2);
-					bearingy=peek16(glyph+6);
-					bearingx=peek16(glyph+4);
+					width=Peek16(glyph);
+					height=Peek16(glyph+2);
+					bearingy=Peek16(glyph+6);
+					bearingx=Peek16(glyph+4);
 					x=lastx+bearingx;
 					y=lasty-bearingy;
 					if (x>=0 && x+width<draw.width()
@@ -633,20 +612,16 @@ int CFontEngineFont5::RenderInternal(PFPChunk *c, const CFont &font, CDrawable &
 			}
 		}
 	}
-	return 1;
 }
 
-Size CFontEngineFont5::Measure(CFontFile *file, const CFont &font, const CWString &text)
+Size FontEngineFont5::measure(const FontFile &file, const Font &font, const String &text)
 {
 	Size s;
-	if (file==NULL || file->priv==NULL) {
-		SetError(1033);
-		return s;
-	}
+	if (file.priv==NULL) throw NullPointerException();
 	//PFPFile *f=(PFPFile *)file->priv;
-	PFPChunk *c=SelectFont(file,font);
+	PFPChunk *c=selectFont(file,font);
 	if (!c) return s;
-	const char *header=(char*)c->Data();
+	const char *header=(char*)c->data();
 	const char *jump=NULL;
 	const char *glyph;
 	int code;
@@ -654,8 +629,8 @@ Size CFontEngineFont5::Measure(CFontFile *file, const CFont &font, const CWStrin
 	int end=0;
 	pplint16 bearingy, bearingx, width, height, advance;
 	pplint16 MaxHeight, MaxBearingY;
-	MaxHeight=peek16(header+6);
-	MaxBearingY=peekw(header+4);
+	MaxHeight=Peek16(header+6);
+	MaxBearingY=Peek16(header+4);
 
 	int p=0;
 	int miny=0, maxy=0;
@@ -669,26 +644,26 @@ Size CFontEngineFont5::Measure(CFontFile *file, const CFont &font, const CWStrin
 			if (32<start || 32>end) jump=FindJumpTable(header,&start,&end,32);
 			if (!jump) continue;
 			// Glyph holen
-			glyph=header+peek32(jump+((32-start)<<2));
+			glyph=header+Peek32(jump+((32-start)<<2));
 			if (glyph) {
-				advance=peek16(glyph+8);
+				advance=Peek16(glyph+8);
 				x+=advance*4;
 			}
 		} else { 												// Rest
 			if (code<start || code>end) jump=FindJumpTable(header,&start,&end,code);
 			if (!jump) continue;
 			// Glyph holen
-			glyph=header+peek32(jump+((code-start)<<2));
+			glyph=header+Peek32(jump+((code-start)<<2));
 			if (glyph) {
-				width=peek16(glyph);
-				height=peek16(glyph);
-				bearingy=peek16(glyph+6);
-				bearingx=peek16(glyph+4);
-				advance=peek16(glyph+8);
+				width=Peek16(glyph);
+				height=Peek16(glyph);
+				bearingy=Peek16(glyph+6);
+				bearingx=Peek16(glyph+4);
+				advance=Peek16(glyph+8);
 				x+=advance;
 				if (y-bearingy < miny) miny=y-bearingy;
 				if (y-bearingy+height > maxy) maxy=y-bearingy+height;
-				if (x>s.width()) s.setWidth(x);
+				if (x>s.width) s.width=x;
 			}
 		}
 	}
@@ -697,7 +672,7 @@ Size CFontEngineFont5::Measure(CFontFile *file, const CFont &font, const CWStrin
 }
 
 
-#endif
+
 
 
 } // EOF namespace grafix

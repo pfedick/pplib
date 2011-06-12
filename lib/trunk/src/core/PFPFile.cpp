@@ -1051,6 +1051,64 @@ void PFPFile::list() const
 	printf("===============================================================\n");
 }
 
+
+/*!\brief Prüfen, ob es sich um ein PFP-File handelt
+ *
+ * \desc
+ * Diese Funktion prüft, ob es sich bei der Datei mit dem Namen \p file um eine Datei
+ * im \ref PFPFileVersion3 PFP-Format Version 3 handelt. Ist dies der Fall, wird deren
+ * ID und Version eingelesen.
+ *
+ * @param file Dateiname
+ * @return Gibt \c true zurück, wenn es sich um eine Datei im PFP-Format handelt. Deren
+ * ID kann anschließend mit PFPFile::getID ausgelesen werden, Version mit PFPFile::getVersion bzw.
+ * PFPFile::getMainVersion und PFPFile::getSubVersion. Handelt es sich nicht um eine Datei
+ * im PFP-Format, gibt die Funktion \c false zurück. Es wird keine Exception geworfen.
+ */
+bool PFPFile::ident(const String &file)
+{
+	File ff;
+	try {
+		ff.open(file,File::READ);
+	} catch (...) {
+		return false;
+	}
+	return ident(ff);
+}
+
+/*!\brief Prüfen, ob es sich um ein PFP-File handelt
+ *
+ * \desc
+ * Diese Funktion prüft, ob es sich bei der geöffneten Datei \p ff um eine Datei
+ * im \ref PFPFileVersion3 PFP-Format Version 3 handelt. Ist dies der Fall, wird deren
+ * ID und Version eingelesen.
+ *
+ * @param ff Referenz auf eine geöffnete Datei
+ * @return Gibt \c true zurück, wenn es sich um eine Datei im PFP-Format handelt. Deren
+ * ID kann anschließend mit PFPFile::getID ausgelesen werden, Version mit PFPFile::getVersion bzw.
+ * PFPFile::getMainVersion und PFPFile::getSubVersion. Handelt es sich nicht um eine Datei
+ * im PFP-Format, gibt die Funktion \c false zurück. Es wird keine Exception geworfen.
+ */
+bool PFPFile::ident(FileObject &ff)
+{
+	try {
+		const char *p;
+		p=ff.map(0,24);
+		if (strncmp(p,"PFP-File",8)!=0) throw InvalidFormatException();
+		if (Peek8(p+8)!=3) return false;
+		id.set(p+10,4);
+		mainversion=Peek8(p+15);
+		subversion=Peek8(p+14);
+		comp=(Compression::Algorithm)Peek8(p+16);
+		return true;
+	} catch (...) {
+		return false;
+	}
+	return true;
+}
+
+
+
 void PFPFile::load(const String &file)
 /*!\brief PFP-File laden
  *
