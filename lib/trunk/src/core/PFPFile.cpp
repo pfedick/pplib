@@ -774,11 +774,13 @@ void PFPFile::save(const String &filename)
 			free(p);
 			throw OutOfMemoryException();
 		}
-		c.init(comp,Compression::Level_High);
-		if (!c.compress(save,&dstlen,p+hsize,savesize)) {
+		try {
+			c.init(comp,Compression::Level_High);
+			c.compress(save,&dstlen,p+hsize,savesize);
+		} catch (...) {
 			free(save);
 			free(p);
-			throw CompressionFailedException();
+			throw;
 		}
 		savesize=dstlen;
 	}

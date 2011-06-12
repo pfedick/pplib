@@ -892,6 +892,18 @@ class ImageFilter_PNG : public ImageFilter
 		virtual String description();
 };
 
+class ImageFilter_JPEG : public ImageFilter
+{
+	public:
+		ImageFilter_JPEG();
+		virtual ~ImageFilter_JPEG();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
+};
+
 #ifdef DONE
 
 class ImageFilter_BMP : public ImageFilter
@@ -918,17 +930,6 @@ class ImageFilter_GIF : public ImageFilter
 		virtual String Description();
 };
 
-class ImageFilter_JPEG : public ImageFilter
-{
-	public:
-		ImageFilter_JPEG();
-		virtual ~ImageFilter_JPEG();
-		virtual int Ident(FileObject &file, IMAGE &img);
-		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
-		virtual String Name();
-		virtual String Description();
-};
 
 class ImageFilter_PPM : public ImageFilter
 {

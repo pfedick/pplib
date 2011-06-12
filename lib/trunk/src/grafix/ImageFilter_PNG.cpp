@@ -116,78 +116,82 @@ String ImageFilter_PNG::description()
 
 int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 {
-	const char *address=file.map(0,256);
-	file.seek(0);
-	if (address==NULL) return 0;
+	try {
+		const char *address=file.map(0,256);
+		file.seek(0);
+		if (address==NULL) return 0;
 
-	if (png_sig_cmp((png_byte*)address, 0, 8)!=0) { // Ist es ein PNG-File?
+		if (png_sig_cmp((png_byte*)address, 0, 8)!=0) { // Ist es ein PNG-File?
+			return 0;
+		}
+		png_structp png_ptr = png_create_read_struct
+				(PNG_LIBPNG_VER_STRING, NULL ,NULL, NULL);
+		if (!png_ptr) return 0;
+
+		png_infop info_ptr = png_create_info_struct(png_ptr);
+		if (!info_ptr) {
+			png_destroy_read_struct(&png_ptr,(png_infopp)NULL, (png_infopp)NULL);
+			return 0;
+		}
+		png_infop end_info = png_create_info_struct(png_ptr);
+		if (!end_info) {
+			png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+			return 0;
+		}
+		png_set_read_fn(png_ptr,(voidp) &file, (png_rw_ptr) user_read_data);
+		//png_set_write_fn(png_structp write_ptr, voidp write_io_ptr, png_rw_ptr write_data_fn,
+		//    png_flush_ptr output_flush_fn);
+		png_read_info(png_ptr, info_ptr);
+		img.width=png_get_image_width(png_ptr, info_ptr);
+		img.height=png_get_image_height(png_ptr, info_ptr);
+		img.bitdepth=png_get_bit_depth(png_ptr, info_ptr);
+		img.colors=0;
+		img.pitch=png_get_rowbytes(png_ptr, info_ptr);
+		//img->pfp.header_version=0;
+		bool supported=true;
+		img.format=RGBFormat::unknown;
+		if (img.bitdepth!=8) supported=false;		// Nur 8-Bit/Farbwert wird unterstützt
+
+		switch (png_get_color_type(png_ptr, info_ptr)) {
+			case PNG_COLOR_TYPE_GRAY:
+				img.bitdepth=8;
+				img.colors=256;
+				img.format=RGBFormat::GREY8;
+				break;
+			case PNG_COLOR_TYPE_PALETTE:
+				img.bitdepth=8;
+				img.colors=256;
+				img.format=RGBFormat::Palette;
+				//supported=false;
+				break;
+			case PNG_COLOR_TYPE_RGB:
+				img.colors=0xffffff;
+				img.bitdepth=24;
+				img.format=RGBFormat::X8R8G8B8;
+				break;
+			case PNG_COLOR_TYPE_RGB_ALPHA:
+				img.colors=0xffffff;
+				img.bitdepth=32;
+				img.format=RGBFormat::A8R8G8B8;
+				break;
+			case PNG_COLOR_TYPE_GRAY_ALPHA:
+				img.colors=256;
+				img.bitdepth=32;
+				img.format=RGBFormat::GREYALPHA32;
+		};
+
+		if (png_get_interlace_type(png_ptr,info_ptr)!=PNG_INTERLACE_NONE) {	// Interlaced wird nicht unterstützt
+			supported=false;
+		}
+
+		png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+		if (!supported) {
+			return 0;
+		}
+		return 1;
+	} catch (...) {
 		return 0;
 	}
-	png_structp png_ptr = png_create_read_struct
-       (PNG_LIBPNG_VER_STRING, NULL ,NULL, NULL);
-    if (!png_ptr) return 0;
-
-    png_infop info_ptr = png_create_info_struct(png_ptr);
-    if (!info_ptr) {
-        png_destroy_read_struct(&png_ptr,(png_infopp)NULL, (png_infopp)NULL);
-        return 0;
-    }
-    png_infop end_info = png_create_info_struct(png_ptr);
-    if (!end_info) {
-        png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
-        return 0;
-    }
-	png_set_read_fn(png_ptr,(voidp) &file, (png_rw_ptr) user_read_data);
-    //png_set_write_fn(png_structp write_ptr, voidp write_io_ptr, png_rw_ptr write_data_fn,
-    //    png_flush_ptr output_flush_fn);
-	png_read_info(png_ptr, info_ptr);
-	img.width=png_get_image_width(png_ptr, info_ptr);
-    img.height=png_get_image_height(png_ptr, info_ptr);
-    img.bitdepth=png_get_bit_depth(png_ptr, info_ptr);
-	img.colors=0;
-	img.pitch=png_get_rowbytes(png_ptr, info_ptr);
-	//img->pfp.header_version=0;
-	bool supported=true;
-	img.format=RGBFormat::unknown;
-	if (img.bitdepth!=8) supported=false;		// Nur 8-Bit/Farbwert wird unterstützt
-
-	switch (png_get_color_type(png_ptr, info_ptr)) {
-		case PNG_COLOR_TYPE_GRAY:
-			img.bitdepth=8;
-			img.colors=256;
-			img.format=RGBFormat::GREY8;
-			break;
-		case PNG_COLOR_TYPE_PALETTE:
-			img.bitdepth=8;
-			img.colors=256;
-			img.format=RGBFormat::Palette;
-			//supported=false;
-			break;
-		case PNG_COLOR_TYPE_RGB:
-			img.colors=0xffffff;
-			img.bitdepth=24;
-			img.format=RGBFormat::X8R8G8B8;
-			break;
-		case PNG_COLOR_TYPE_RGB_ALPHA:
-			img.colors=0xffffff;
-			img.bitdepth=32;
-			img.format=RGBFormat::A8R8G8B8;
-			break;
-		case PNG_COLOR_TYPE_GRAY_ALPHA:
-			img.colors=256;
-			img.bitdepth=32;
-			img.format=RGBFormat::GREYALPHA32;
-	};
-
-	if (png_get_interlace_type(png_ptr,info_ptr)!=PNG_INTERLACE_NONE) {	// Interlaced wird nicht unterstützt
-		supported=false;
-	}
-
-	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-	if (!supported) {
-		return 0;
-	}
-	return 1;
 }
 
 void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)

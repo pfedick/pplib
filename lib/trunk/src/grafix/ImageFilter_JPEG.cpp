@@ -45,8 +45,8 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#include "ppl6.h"
-#include "ppl6-grafix.h"
+#include "ppl7.h"
+#include "ppl7-grafix.h"
 
 #ifdef HAVE_JPEG
 #undef INT32
@@ -61,7 +61,7 @@ extern "C" {
 }
 
 
-namespace ppl6 {
+namespace ppl7 {
 namespace grafix {
 
 /*!\class ppl6::grafix::CFilter_JPEG
@@ -96,28 +96,28 @@ typedef enum {
 typedef struct {
   struct jpeg_source_mgr pub;	/* public fields */
 
-  CFilter_JPEG		*img;			/* source stream */
-  CFileObject			*file;
-  bool				start_of_file;
-  ppldd				pos;			// Position in der Datei
+  ImageFilter_JPEG		*img;			/* source stream */
+  FileObject			*file;
+  bool					start_of_file;
+  size_t				pos;			// Position in der Datei
 } SOURCE_MGR;
 
 static char EOI_Marker[]={
-	(ppldb)0xFF,
-	(ppldb)JPEG_EOI
+	(ppluint8)0xFF,
+	(ppluint8)JPEG_EOI
 };
 
 METHODDEF(void)
 init_source (j_decompress_ptr cinfo)
 {
-	ppldd nbytes;
+	size_t nbytes;
 	SOURCE_MGR *src=(SOURCE_MGR*)cinfo->src;
-	CFileObject *file=src->file;
+	FileObject *file=src->file;
 	nbytes=PREREAD;
-	src->pub.next_input_byte=(ppldb*)file->Map(0,PREREAD);
+	src->pub.next_input_byte=(ppluint8*)file->map(0,PREREAD);
 	if (!src->pub.next_input_byte) {
 		ERREXIT(cinfo, JERR_INPUT_EMPTY);
-		src->pub.next_input_byte=(ppldb*)EOI_Marker;
+		src->pub.next_input_byte=(ppluint8*)EOI_Marker;
 		nbytes=2;
 	}
 	src->pub.bytes_in_buffer = nbytes;
@@ -130,21 +130,21 @@ init_source (j_decompress_ptr cinfo)
 METHODDEF(boolean)
 fill_input_buffer (j_decompress_ptr cinfo)
 {
-	ppldd nbytes;
+	size_t nbytes;
 	SOURCE_MGR *src=(SOURCE_MGR*)cinfo->src;
-	CFileObject *file=src->file;
-	if (file->Size()<READBUFFER) {	// Datei ist kleiner als 100 KB, daher komplett in den
+	FileObject *file=src->file;
+	if (file->size()<READBUFFER) {	// Datei ist kleiner als 100 KB, daher komplett in den
 									// Speicher laden
-		nbytes=(ppldd)file->Size()-(ppldd)src->pos;
+		nbytes=file->size()-src->pos;
 	} else {
-		nbytes=(ppldd)file->Size()-(ppldd)src->pos;	// Datei ist groesser, daher in 100000-Bytes-Haeppchen laden
+		nbytes=file->size()-src->pos;	// Datei ist groesser, daher in 100000-Bytes-Haeppchen laden
 		if (nbytes>READBUFFER) nbytes=READBUFFER;
 	}
 
-	src->pub.next_input_byte=(ppldb*)file->Map(src->pos,nbytes);
+	src->pub.next_input_byte=(ppluint8*)file->map(src->pos,nbytes);
 	if (!src->pub.next_input_byte) {
 		ERREXIT(cinfo, JERR_INPUT_EMPTY);
-		src->pub.next_input_byte=(ppldb*)EOI_Marker;
+		src->pub.next_input_byte=(ppluint8*)EOI_Marker;
 		nbytes=2;
 	}
 	src->pub.bytes_in_buffer = nbytes;
@@ -187,7 +187,7 @@ term_source (j_decompress_ptr cinfo)
 }
 
 
-static void init_sourcemgr (SOURCE_MGR* src, CFileObject *file, CFilter_JPEG *klasse)
+static void init_sourcemgr (SOURCE_MGR* src, FileObject *file, ImageFilter_JPEG *klasse)
 {
 
 	src->pub.init_source = init_source;
@@ -210,7 +210,7 @@ static void init_sourcemgr (SOURCE_MGR* src, CFileObject *file, CFilter_JPEG *kl
 typedef struct {
 	struct jpeg_destination_mgr pub; /* public fields */
 
-	CFileObject	*file;
+	FileObject	*file;
 	char		*buffer;
 } DEST_MGR;
 
@@ -221,8 +221,8 @@ init_destination (j_compress_ptr cinfo)
 	DEST_MGR *dest = (DEST_MGR*) cinfo->dest;
 	// Allocate the output buffer --- it will be released when done with image
 	dest->buffer = (char *) (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,  OUTPUT_BUF_SIZE * sizeof(JOCTET));
-	dest->file->Seek((ppldd)0);
-	dest->pub.next_output_byte = (ppldb*)dest->buffer;
+	dest->file->seek(0);
+	dest->pub.next_output_byte = (ppluint8*)dest->buffer;
 	dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
 }
 
@@ -237,11 +237,10 @@ empty_output_buffer (j_compress_ptr cinfo)
       (size_t) OUTPUT_BUF_SIZE)
 	ERREXIT(cinfo, JERR_FILE_WRITE);
 	*/
-	if (dest->file->Write(dest->buffer,OUTPUT_BUF_SIZE)!=OUTPUT_BUF_SIZE)
+	if (dest->file->write(dest->buffer,OUTPUT_BUF_SIZE)!=OUTPUT_BUF_SIZE)
 		ERREXIT(cinfo, JERR_FILE_WRITE);
-	dest->pub.next_output_byte = (ppldb*)dest->buffer;
+	dest->pub.next_output_byte = (ppluint8*)dest->buffer;
 	dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
-
 	return TRUE;
 }
 
@@ -255,98 +254,94 @@ term_destination (j_compress_ptr cinfo)
 
 	/* Write any data remaining in the buffer */
 	if (datacount > 0) {
-		if (dest->file->Write(dest->buffer,(ppldd)datacount)!=datacount)
+		if (dest->file->write(dest->buffer,datacount)!=datacount)
 			ERREXIT(cinfo, JERR_FILE_WRITE);
 	}
 }
 
 
-CFilter_JPEG::CFilter_JPEG()
+ImageFilter_JPEG::ImageFilter_JPEG()
 /*!\brief Konstruktor der Klasse
  */
 {
 }
 
-CFilter_JPEG::~CFilter_JPEG()
+ImageFilter_JPEG::~ImageFilter_JPEG()
 {
 }
 
-int CFilter_JPEG::Ident(CFileObject &file, IMAGE &img)
+int ImageFilter_JPEG::ident(FileObject &file, IMAGE &img)
 {
-	bool ret=false;
-	const char *address=file.Map(0,256);
-	if (address==NULL) {
-		SetError(1018);
-		return false;
-	}
-
-	if (peekb(address)!=0xff  ||
-		peekb(address+1)!=0xd8 ||
-		peekb(address+2)!=0xff) {
-		SetError(1018);
-		return false;
-	}
-	//if (ppl_peekd(address)!=0xe0ffd8ff || ppl_peekw(address+4)!=0x1000 ) return false;
-	//if (strncmp ((char *)address+6,"JFIF",4)!=0) return false;
-
-	struct jpeg_decompress_struct cinfo;
-	struct jpeg_error_mgr jerr;
-	//SOURCE_MGR* src;
-
-	cinfo.err=jpeg_std_error(&jerr);
-	jpeg_create_decompress(&cinfo);
-
-	cinfo.src = (struct jpeg_source_mgr *) cinfo.mem->alloc_small ((j_common_ptr) &cinfo, JPOOL_PERMANENT,sizeof(SOURCE_MGR));
-
-
-	init_sourcemgr((SOURCE_MGR*) cinfo.src,&file,this);
-
-
-	if(jpeg_read_header(&cinfo,false)==JPEG_HEADER_OK) {
-
-		if (cinfo.jpeg_color_space==JCS_UNKNOWN) {
-			img.bitdepth=0;
-			img.colors=0;
-		}else if (cinfo.jpeg_color_space==JCS_GRAYSCALE) {
-			img.bitdepth=8;
-			img.colors=256;
-			img.format=RGBFormat::GREY8;
-		} else {
-			img.bitdepth=24;
-			img.colors=0x1000000;
-			img.format=RGBFormat::X8R8G8B8;
-		}
-
-		if (img.bitdepth>0) {
-			img.width=cinfo.image_width;
-			img.height=cinfo.image_height;
-			img.pitch=0;
-			ret=true;
-		}
-	}
-	jpeg_destroy_decompress(&cinfo);
-	if (!ret) {
-		SetError(1018);
-	}
-	return ret;
-}
-
-
-int CFilter_JPEG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
-{
-	ppldd buffersize,x,y,rot,gruen,blau;
-	char *buffer;
-	SetError(0);
-	const char *address=file.Map(0,256);
-	if (address==NULL) {
-		return false;
-	}
-
-	if (peekb(address)!=0xff  ||
-		peekb(address+1)!=0xd8 ||
-		peekb(address+2)!=0xff) {
-			SetError(88);
+	try {
+		bool ret=false;
+		const char *address=file.map(0,256);
+		if (address==NULL) {
 			return false;
+		}
+
+		if (Peek8(address)!=0xff  ||
+				Peek8(address+1)!=0xd8 ||
+				Peek8(address+2)!=0xff) {
+			return false;
+		}
+		//if (ppl_peekd(address)!=0xe0ffd8ff || ppl_peekw(address+4)!=0x1000 ) return false;
+		//if (strncmp ((char *)address+6,"JFIF",4)!=0) return false;
+
+		struct jpeg_decompress_struct cinfo;
+		struct jpeg_error_mgr jerr;
+		//SOURCE_MGR* src;
+
+		cinfo.err=jpeg_std_error(&jerr);
+		jpeg_create_decompress(&cinfo);
+
+		cinfo.src = (struct jpeg_source_mgr *) cinfo.mem->alloc_small ((j_common_ptr) &cinfo, JPOOL_PERMANENT,sizeof(SOURCE_MGR));
+
+
+		init_sourcemgr((SOURCE_MGR*) cinfo.src,&file,this);
+
+
+		if(jpeg_read_header(&cinfo,false)==JPEG_HEADER_OK) {
+
+			if (cinfo.jpeg_color_space==JCS_UNKNOWN) {
+				img.bitdepth=0;
+				img.colors=0;
+			}else if (cinfo.jpeg_color_space==JCS_GRAYSCALE) {
+				img.bitdepth=8;
+				img.colors=256;
+				img.format=RGBFormat::GREY8;
+			} else {
+				img.bitdepth=24;
+				img.colors=0x1000000;
+				img.format=RGBFormat::X8R8G8B8;
+			}
+
+			if (img.bitdepth>0) {
+				img.width=cinfo.image_width;
+				img.height=cinfo.image_height;
+				img.pitch=0;
+				ret=true;
+			}
+		}
+		jpeg_destroy_decompress(&cinfo);
+		return ret;
+	} catch (...) {
+		return false;
+	}
+}
+
+
+void ImageFilter_JPEG::load(FileObject &file, Drawable &surface, IMAGE &img)
+{
+	size_t buffersize;
+	ppluint32 x,y,rot,gruen,blau;
+	char *buffer;
+	const char *address=file.map(0,256);
+	if (address==NULL) throw NullPointerException();
+
+	if (Peek8(address)!=0xff  ||
+		Peek8(address+1)!=0xd8 ||
+		Peek8(address+2)!=0xff) {
+			throw IllegalImageFormatException();
 	}
 
 	/*
@@ -375,41 +370,34 @@ int CFilter_JPEG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 		jpeg_start_decompress(&cinfo);
 		buffersize=cinfo.output_width * cinfo.output_components;
 		buffer=(char *)malloc(buffersize);
-		if (buffer!=NULL) {
-			y=0;
-			while (cinfo.output_scanline < cinfo.output_height) {
-				jpeg_read_scanlines (&cinfo,(unsigned char **)&buffer,1);
-				rot=gruen=blau=0;
+		if (!buffer) throw OutOfMemoryException();
+		y=0;
+		while (cinfo.output_scanline < cinfo.output_height) {
+			jpeg_read_scanlines (&cinfo,(unsigned char **)&buffer,1);
+			rot=gruen=blau=0;
 
-				if (img.bitdepth==8) {
-					for (x=0;x<cinfo.output_width;x++) {
-						rot=peekb(buffer+x);
-						surface.putPixel(x,y,Color(rot,rot,rot));
-					}
-				} else {
-					for (x=0;x<cinfo.output_width;x++) {
-						rot=peekb(buffer+x*3+2);
-						gruen=peekb(buffer+x*3+1);
-						blau=peekb(buffer+x*3);
-						surface.putPixel(x,y,Color(rot,gruen,blau));
-					}
+			if (img.bitdepth==8) {
+				for (x=0;x<cinfo.output_width;x++) {
+					rot=Peek8(buffer+x);
+					surface.putPixel(x,y,Color(rot,rot,rot));
 				}
-				y++;
+			} else {
+				for (x=0;x<cinfo.output_width;x++) {
+					rot=Peek8(buffer+x*3+2);
+					gruen=Peek8(buffer+x*3+1);
+					blau=Peek8(buffer+x*3);
+					surface.putPixel(x,y,Color(rot,gruen,blau));
+				}
 			}
-			SetError(0);
-			free (buffer);
-		} else {	// kein Buffer
-			SetError(2);
+			y++;
 		}
+		free (buffer);
 		//jpeg_finish_decompress(&cinfo);
 	}
 	jpeg_destroy_decompress(&cinfo);
-	if (GetErrorCode()==0) return true;
-	return false;
-
 }
 
-int CFilter_JPEG::Save (const CDrawable &surface, CFileObject &file, CAssocArray *param)
+void ImageFilter_JPEG::save (const Drawable &surface, FileObject &file, const AssocArray &param)
 {
 	int x,y;
 	char *buffer;
@@ -420,21 +408,19 @@ int CFilter_JPEG::Save (const CDrawable &surface, CFileObject &file, CAssocArray
 	bool optimized=false;		//									default=false
 	int	dct_method=JDCT_ISLOW;	//									default=JDCT_ISLOW
 
-	if (param) {
-		const char *tmp;
-		if ((tmp=param->Get("quality")))quality=ppl6::atoi(tmp);
-		if ((tmp=param->Get("smooth")))smooth=ppl6::atoi(tmp);
-		if ((tmp=param->Get("force_baseline"))) force_baseline=ppl6::IsTrue(tmp);
-		if ((tmp=param->Get("optimized"))) optimized=ppl6::IsTrue(tmp);
-		if ((tmp=param->Get("dct_method"))) dct_method=ppl6::atoi(tmp);
-	}
+	if (param.exists(L"quality")) quality=param.getString(L"quality").toInt();
+	if (param.exists(L"smooth")) smooth=param.getString(L"smooth").toInt();
+	if (param.exists(L"force_baseline")) force_baseline=param.getString(L"force_baseline").toBool();
+	if (param.exists(L"optimized")) optimized=param.getString(L"optimized").toBool();
+	if (param.exists(L"dct_method")) dct_method=param.getString(L"dct_method").toInt();
+
 	if (quality<0) quality=0;
 	if (quality>100) quality=100;
 	if (smooth<0) smooth=0;
 	if (smooth>100) smooth=100;
 
 	buffer=(char *)malloc(surface.width()*3);	// Buffer fuer Scanline
-	if (buffer==0) { SetError(2); return false;}
+	if (buffer==0) throw OutOfMemoryException();
 
 	struct jpeg_compress_struct cinfo;
 	struct jpeg_error_mgr jerr;
@@ -469,32 +455,28 @@ int CFilter_JPEG::Save (const CDrawable &surface, CFileObject &file, CAssocArray
 	for (y=0;y<surface.height();y++) {
 		for (x=0;x<surface.width();x++) {
 			farbe=surface.getPixel(x,y);
-			buffer[x*3]=(ppldb)farbe.blue();
-			buffer[x*3+1]=(ppldb)farbe.green();
-			buffer[x*3+2]=(ppldb)farbe.red();
+			buffer[x*3]=(ppluint8)farbe.blue();
+			buffer[x*3+1]=(ppluint8)farbe.green();
+			buffer[x*3+2]=(ppluint8)farbe.red();
 		}
 		jpeg_write_scanlines(&cinfo,row_pointer,1);
 	}
-	SetError(0);
-
 	jpeg_finish_compress(&cinfo);
 	jpeg_destroy_compress(&cinfo);
 	free (buffer);
-	if (GetErrorCode()==0) return true;
-	return false;
 }
 
-CString CFilter_JPEG::Name()
+String ImageFilter_JPEG::name()
 {
-	return "JPG";
+	return L"JPG";
 }
 
-CString CFilter_JPEG::Description()
+String ImageFilter_JPEG::description()
 {
-	return "JPEG";
+	return L"JPEG";
 }
 
 
 } // EOF namespace grafix
-} // EOF namespace ppl6
+} // EOF namespace ppl7
 #endif // _HAVE_JPEG
