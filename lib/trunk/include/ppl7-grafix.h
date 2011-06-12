@@ -878,8 +878,8 @@ class ImageFilter
 		virtual String name();
 		virtual String description();
 
-		void saveFile (const Drawable &surface, const String &filename, const Rect &area, const AssocArray &param=AssocArray());
-		void saveFile (const Drawable &surface, const String &filename, const AssocArray &param=AssocArray());
+		void saveFile (const String &filename, const Drawable &surface, const Rect &area, const AssocArray &param=AssocArray());
+		void saveFile (const String &filename, const Drawable &surface, const AssocArray &param=AssocArray());
 };
 
 class ImageFilter_PNG : public ImageFilter

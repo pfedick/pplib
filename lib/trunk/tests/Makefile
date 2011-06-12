@@ -8,12 +8,19 @@ LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
 
 
 all: memoryheap memorygroup array strings avltree assocarray pointer datetime bytearray bytearrayptr \
-	functions file dir list
+	functions file dir list \
+	grafix_imagefilter \
+	gfxreftest
 
 clean:
-	-rm -rf bin
+	-rm -rf bin tmp.grafixtest.png
 	-rm *.core
 
+grafix_imagefilter: bin/grafix_imagefilter
+	bin/grafix_imagefilter
+
+gfxreftest: bin/gfxreftest
+	bin/gfxreftest
 
 memoryheap: bin/memoryheap
 	bin/memoryheap
@@ -117,3 +124,12 @@ bin/dir: src/dir.cpp Makefile
 bin/list: src/list.cpp Makefile bin/wordlist.o
 	mkdir -p bin
 	$(CC) -o bin/list bin/wordlist.o src/list.cpp $(CFLAGS) $(LIB)
+
+bin/gfxreftest: src/gfxreftest.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/gfxreftest src/gfxreftest.cpp $(CFLAGS) $(LIB)
+
+bin/grafix_imagefilter: src/grafix_imagefilter.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/grafix_imagefilter src/grafix_imagefilter.cpp $(CFLAGS) $(LIB)
+	

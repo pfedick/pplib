@@ -3,10 +3,9 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 89 $
- * $Date: 2011-05-07 12:03:12 +0200 (Sa, 07. Mai 2011) $
- * $Id: MemoryHeap.cpp 89 2011-05-07 10:03:12Z pafe $
- * $URL: https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk/tests/src/MemoryHeap.cpp $
+ * $Revision: 108 $
+ * $Date: 2011-05-20 16:55:16 +0200 (Fr, 20. Mai 2011) $
+ * $Id: file.cpp 108 2011-05-20 14:55:16Z pafe $
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
@@ -36,46 +35,56 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include "../include/prolog.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include "../include/ppl7.h"
+#include "../include/ppl7-grafix.h"
 #include <gtest/gtest.h>
 
 namespace {
 
 // The fixture for testing class Foo.
-class MemoryGroupTest : public ::testing::Test {
+class GrafixImageFilterTest : public ::testing::Test {
 	protected:
-	MemoryGroupTest() {
+	ppl7::grafix::Grafix gfx;
+	GrafixImageFilterTest() {
 		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
+
 	}
-	virtual ~MemoryGroupTest() {
+	virtual ~GrafixImageFilterTest() {
 
 	}
 };
 
-TEST_F(MemoryGroupTest, ConstructorSimple) {
-	ppl7::MemoryGroup g1;
-	ASSERT_EQ((size_t)0,g1.count());
-	ASSERT_LT((size_t)0,g1.size());
+
+TEST_F(GrafixImageFilterTest, loadpng) {
+	ppl7::grafix::Image img;
+	ASSERT_NO_THROW({
+		img.load("testdata/test.png");
+	});
+	ASSERT_EQ(120,img.width());
+	ASSERT_EQ(95,img.height());
+	ASSERT_EQ(32,img.bitdepth());
+	ASSERT_EQ(ppl7::grafix::RGBFormat::X8R8G8B8,img.rgbformat());
+
+	ppl7::grafix::ImageFilter_PNG png;
+	png.saveFile("save.png",img);
+
 }
 
-
-
-
 }	// EOF namespace
-
-
 
 int main (int argc, char**argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
+

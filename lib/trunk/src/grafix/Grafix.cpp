@@ -144,11 +144,11 @@ Grafix::Grafix()
 	filter_png=new ImageFilter_PNG;
 	addImageFilter(filter_png);
 #endif
-	/*
 #ifdef HAVE_JPEG
 	filter_jpeg=new ImageFilter_JPEG;
-	AddFilter(filter_jpeg);
+	addImageFilter(filter_jpeg);
 #endif
+	/*
 	filter_ppm=new ImageFilter_PPM;
 	AddFilter(filter_ppm);
 	filter_tga=new ImageFilter_TGA;

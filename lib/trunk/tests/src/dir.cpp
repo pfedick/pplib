@@ -56,7 +56,7 @@ class DirTest : public ::testing::Test {
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
-		expectedNum=9;
+		expectedNum=21;
 		if (ppl7::File::exists("testdata/.svn")) expectedNum++;
 		if (ppl7::File::exists("testdata/.")) expectedNum++;
 		if (ppl7::File::exists("testdata/..")) expectedNum++;
@@ -151,6 +151,10 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ((size_t)1540,e.Size);
 
 	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"LiberationSans-Bold.ttf"),e.Filename);
+	ASSERT_EQ((size_t)140252,e.Size);
+
+	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"afile.txt"),e.Filename);
 	ASSERT_EQ((size_t)13040,e.Size);
 
@@ -170,9 +174,54 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ(ppl7::String(L"ppl7-icon-64x64.png"),e.Filename);
 	ASSERT_EQ((size_t)8685,e.Size);
 
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"reference.png"),e.Filename);
+	ASSERT_EQ((size_t)231923,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.bmp"),e.Filename);
+	ASSERT_EQ((size_t)34254,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.gif"),e.Filename);
+	ASSERT_EQ((size_t)10117,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.jpg"),e.Filename);
+	ASSERT_EQ((size_t)7835,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.pcx"),e.Filename);
+	ASSERT_EQ((size_t)33872,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.png"),e.Filename);
+	ASSERT_EQ((size_t)23150,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.ppm"),e.Filename);
+	ASSERT_EQ((size_t)34244,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.tga"),e.Filename);
+	ASSERT_EQ((size_t)30032,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.tif"),e.Filename);
+	ASSERT_EQ((size_t)26704,e.Size);
+
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"unittest.bmp"),e.Filename);
+	ASSERT_EQ((size_t)16438,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"unittest.png"),e.Filename);
+	ASSERT_EQ((size_t)1572,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"zfile.txt"),e.Filename);
@@ -200,6 +249,9 @@ TEST_F(DirTest, dirWalkFilename2) {
 	ASSERT_EQ((size_t)1540,e.Size);
 
 	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"LiberationSans-Bold.ttf"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
 	ASSERT_EQ(ppl7::String(L"afile.txt"),e.Filename);
 	ASSERT_EQ((size_t)13040,e.Size);
 
@@ -220,8 +272,41 @@ TEST_F(DirTest, dirWalkFilename2) {
 	ASSERT_EQ((size_t)8685,e.Size);
 
 	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"reference.png"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.bmp"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.gif"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.jpg"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.pcx"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.png"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.ppm"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.tga"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test.tif"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
 	ASSERT_EQ(ppl7::String(L"testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"unittest.bmp"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"unittest.png"),e.Filename);
 
 	ASSERT_TRUE(d1.getNext(e,it));
 	ASSERT_EQ(ppl7::String(L"zfile.txt"),e.Filename);
@@ -233,6 +318,29 @@ TEST_F(DirTest, dirWalkFilename2) {
 
 }
 
+/*
+-rw-r--r--  1 patrick  admins     1540 22 Mai 11:31 LICENSE.TXT
+-rw-r--r--  1 patrick  admins     1572 12 Jun 16:37 unittest.png
+-rw-r--r--  1 patrick  admins     6519 28 Mai 11:04 file3.txt
+-rw-r--r--  1 patrick  admins     6519 28 Mai 11:04 file2.txt
+-rw-r--r--  1 patrick  admins     6519 28 Mai 11:04 file1.txt
+-rw-r--r--  1 patrick  admins     7835 12 Jun 16:37 test.jpg
+-rwxr-xr-x  1 patrick  admins     8685 22 Mai 11:31 ppl7-icon-64x64.png
+-rw-r--r--  1 patrick  admins     9819 28 Mai 11:09 zfile.txt
+-rw-r--r--  1 patrick  admins    10117 12 Jun 16:37 test.gif
+-rw-r--r--  1 patrick  admins    13040 28 Mai 11:08 afile.txt
+-rw-r--r--  1 patrick  admins    13719 28 Mai 11:03 File1.txt
+-rw-r--r--  1 patrick  admins    16438 12 Jun 16:37 unittest.bmp
+-rw-r--r--  1 patrick  admins    23150 12 Jun 16:37 test.png
+-rw-r--r--  1 patrick  admins    26704 12 Jun 16:37 test.tif
+-rw-r--r--  1 patrick  admins    30032 12 Jun 16:37 test.tga
+-rw-r--r--  1 patrick  admins    33872 12 Jun 16:37 test.pcx
+-rw-r--r--  1 patrick  admins    34244 12 Jun 16:37 test.ppm
+-rw-r--r--  1 patrick  admins    34254 12 Jun 16:37 test.bmp
+-rw-r--r--  1 patrick  admins   140252 12 Jun 16:37 LiberationSans-Bold.ttf
+-rw-r--r--  1 patrick  admins   231923 12 Jun 16:37 reference.png
+-rw-r--r--  1 patrick  admins  1592096 22 Mai 11:31 testfile.txt
+*/
 
 TEST_F(DirTest, dirWalkSize) {
 	ppl7::Dir d1("testdata", ppl7::Dir::SORT_SIZE);
@@ -248,6 +356,10 @@ TEST_F(DirTest, dirWalkSize) {
 	ASSERT_EQ((size_t)1540,e.Size);
 
 	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"unittest.png"),e.Filename);
+	ASSERT_EQ((size_t)1572,e.Size);
+
+	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"file2.txt"),e.Filename);
 	ASSERT_EQ((size_t)6519,e.Size);
 
@@ -260,12 +372,20 @@ TEST_F(DirTest, dirWalkSize) {
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.jpg"),e.Filename);
+	ASSERT_EQ((size_t)7835,e.Size);
+
+	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"ppl7-icon-64x64.png"),e.Filename);
 	ASSERT_EQ((size_t)8685,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"zfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)9819,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.gif"),e.Filename);
+	ASSERT_EQ((size_t)10117,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"afile.txt"),e.Filename);
@@ -275,6 +395,42 @@ TEST_F(DirTest, dirWalkSize) {
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"File1.txt"),e.Filename);
 	ASSERT_EQ((size_t)13719,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"unittest.bmp"),e.Filename);
+	ASSERT_EQ((size_t)16438,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.png"),e.Filename);
+	ASSERT_EQ((size_t)23150,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.tif"),e.Filename);
+	ASSERT_EQ((size_t)26704,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.tga"),e.Filename);
+	ASSERT_EQ((size_t)30032,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.pcx"),e.Filename);
+	ASSERT_EQ((size_t)33872,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.ppm"),e.Filename);
+	ASSERT_EQ((size_t)34244,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test.bmp"),e.Filename);
+	ASSERT_EQ((size_t)34254,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"LiberationSans-Bold.ttf"),e.Filename);
+	ASSERT_EQ((size_t)140252,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"reference.png"),e.Filename);
+	ASSERT_EQ((size_t)231923,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"testfile.txt"),e.Filename);

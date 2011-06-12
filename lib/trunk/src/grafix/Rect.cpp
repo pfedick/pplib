@@ -299,7 +299,7 @@ void Rect::setX(int x)
 
 void Rect::setY(int y)
 {
-	x2=y;
+	y1=y;
 }
 
 void Rect::setSize(const Size &size)

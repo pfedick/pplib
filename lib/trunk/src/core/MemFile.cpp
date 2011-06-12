@@ -415,6 +415,12 @@ char *MemFile::adr(size_t adresse)
 	throw FileNotOpenException();
 }
 
+void MemFile::setMapReadAhead(size_t bytes)
+{
+
+}
+
+
 const char *MemFile::map(ppluint64 position, size_t bytes)
 {
 	if (MemBase==NULL) throw FileNotOpenException();

@@ -195,7 +195,7 @@ if test "$echo_cflags" = "yes"; then
 	if test "$usesource" = "yes"; then
 		src="-I$SRCDIR/include"
 	fi
-    echo "$src$CFLAGS -I$TARGETINCLUDE"
+    echo "$src $CFLAGS -I$TARGETINCLUDE"
 fi
 
 if test "$echo_libs" = "yes"; then

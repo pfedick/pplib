@@ -93,6 +93,15 @@ static int Blt_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rec
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
 	data.pitchtgt=target.pitch;
+	/*
+	printf ("Blt src=%lx\n",data.src);
+	printf ("Blt tgt=%lx\n",data.tgt);
+	printf ("width=%i\n",data.width);
+	printf ("height=%i\n",data.height);
+	printf ("pitchsrc=%i\n",data.pitchsrc);
+	printf ("pitchtgt=%i\n",data.pitchtgt);
+	*/
+
 	if (ASM_Blt32(&data)) {
 		return 1;
 	}
@@ -292,15 +301,22 @@ int Drawable::fitRect(int &x, int &y, Rect &r)
 	Rect screen(0,0,data.width,data.height);
 	Rect object(x,y,r.width(),r.height());
 	Rect i=screen.intersected(object);		// TODO: Das ist falsch
+
+	//::printf ("Drawable::fitRect screen (%i/%i)-(%i/%i)\n", screen.x1, screen.y1, screen.x2, screen.y2);
+	//::printf ("Drawable::fitRect object (%i/%i)-(%i/%i)\n", object.x1, object.y1, object.x2, object.y2);
+	//::printf ("Drawable::fitRect i (%i/%i)-(%i/%i)\n", i.x1, i.y1, i.x2, i.y2);
+
 	if (i.isNull()) return 0;
 	int shiftx=i.x1-object.x1;
 	int shifty=i.y1-object.y1;
 	x+=shiftx;
 	y+=shifty;
-	r.setWidth(i.width());
-	r.setHeight(i.height());
-	r.setX(r.x1+shiftx);
-	r.setY(r.y1+shifty);
+
+	r.x1+=shiftx;
+	r.y1+=shifty;
+	r.x2=r.x1+i.width();
+	r.y2=r.y1+i.height();
+	//::printf ("Drawable::fitRect r (%i/%i)-(%i/%i)\n", r.x1, r.y1, r.x2, r.y2);
 	return 1;
 }
 
@@ -363,7 +379,9 @@ void Drawable::blt(const Drawable &source, const Rect &srect, int x, int y)
 		if (q.top()<0) q.setTop(0);
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
+	//::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
 	if (!fitRect(x,y,q)) return;
+	//::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
 	if (!fn->Blt) throw FunctionUnavailableException("Drawable::blt");
 	fn->Blt(data,source.data,q,x,y);
 }

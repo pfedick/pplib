@@ -125,11 +125,19 @@ ImageFilter *Grafix::findImageFilter(const String &name)
 	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
 	ImageFilterList.reset(it);
-	while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
-		if (name.strcasecmp(f->name())==0) {
-			myMutex.unlock();
-			return f;
+	try {
+		while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
+			if (name.strcasecmp(f->name())==0) {
+				myMutex.unlock();
+				return f;
+			}
 		}
+	} catch (EndOfListException) {
+		myMutex.unlock();
+		throw UnknownImageFormatException();
+	} catch (...) {
+		myMutex.unlock();
+		throw;
 	}
 	myMutex.unlock();
 	throw UnknownImageFormatException();
@@ -155,12 +163,21 @@ ImageFilter *Grafix::findImageFilter(FileObject &ff, IMAGE &img)
 	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
 	ImageFilterList.reset(it);
-	while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
-		if (f->ident(ff,img)==1) {
-			myMutex.unlock();
-			return f;
+	try {
+		while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
+			if (f->ident(ff,img)==1) {
+				myMutex.unlock();
+				return f;
+			}
 		}
+	} catch (EndOfListException) {
+		myMutex.unlock();
+		throw UnknownImageFormatException();
+	} catch (...) {
+		myMutex.unlock();
+		throw;
 	}
+
 	myMutex.unlock();
 	throw UnknownImageFormatException();
 }
@@ -239,14 +256,14 @@ void ImageFilter::save (const Drawable &surface, FileObject &file, const AssocAr
 	throw UnimplementedVirtualFunctionException();
 }
 
-void ImageFilter::saveFile (const Drawable &surface, const String &filename, const AssocArray &param)
+void ImageFilter::saveFile (const String &filename, const Drawable &surface, const AssocArray &param)
 {
 	File ff;
 	ff.open(filename,File::WRITE);
 	save(surface,ff,param);
 }
 
-void ImageFilter::saveFile (const Drawable &surface, const String &filename, const Rect &area, const AssocArray &param)
+void ImageFilter::saveFile (const String &filename, const Drawable &surface, const Rect &area, const AssocArray &param)
 {
 	Drawable draw=surface.getDrawable(area);
 	File ff;
