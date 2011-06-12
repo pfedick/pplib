@@ -79,6 +79,7 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_Grafix.o \
 	release/gfx_Image.o \
 	release/gfx_ImageFilter.o \
+	release/gfx_ImageFilter_BMP.o \
 	release/gfx_ImageFilter_JPEG.o \
 	release/gfx_ImageFilter_PNG.o \
 	release/gfx_ImageList.o \
@@ -135,6 +136,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_Grafix.o \
 	debug/gfx_Image.o \
 	debug/gfx_ImageFilter.o \
+	debug/gfx_ImageFilter_BMP.o \
 	debug/gfx_ImageFilter_JPEG.o \
 	debug/gfx_ImageFilter_PNG.o \
 	debug/gfx_ImageList.o \
@@ -494,6 +496,11 @@ release/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(i
 	# Compiling >>>grafix/ImageFilter.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp $(CFLAGS) 
 
+release/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp $(CFLAGS) 
+
 release/gfx_ImageFilter_JPEG.o:	$(srcdir)/grafix/ImageFilter_JPEG.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_JPEG.cpp<<<
@@ -802,6 +809,11 @@ debug/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(inc
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_ImageFilter_JPEG.o:	$(srcdir)/grafix/ImageFilter_JPEG.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################

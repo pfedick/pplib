@@ -383,9 +383,9 @@ void ImageFilter_JPEG::load(FileObject &file, Drawable &surface, IMAGE &img)
 				}
 			} else {
 				for (x=0;x<cinfo.output_width;x++) {
-					rot=Peek8(buffer+x*3+2);
+					rot=Peek8(buffer+x*3+0);
 					gruen=Peek8(buffer+x*3+1);
-					blau=Peek8(buffer+x*3);
+					blau=Peek8(buffer+x*3+2);
 					surface.putPixel(x,y,Color(rot,gruen,blau));
 				}
 			}

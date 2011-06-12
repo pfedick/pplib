@@ -906,19 +906,20 @@ class ImageFilter_JPEG : public ImageFilter
 		virtual String description();
 };
 
-#ifdef DONE
 
 class ImageFilter_BMP : public ImageFilter
 {
 	public:
 		ImageFilter_BMP();
 		virtual ~ImageFilter_BMP();
-		virtual int Ident(FileObject &file, IMAGE &img);
-		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
-		virtual String Name();
-		virtual String Description();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
 };
+
+#ifdef DONE
 
 class ImageFilter_GIF : public ImageFilter
 {
