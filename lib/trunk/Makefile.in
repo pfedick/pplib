@@ -82,9 +82,12 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_Image.o \
 	release/gfx_ImageFilter.o \
 	release/gfx_ImageFilter_BMP.o \
+	release/gfx_ImageFilter_GIF.o \
 	release/gfx_ImageFilter_ImageMagick.o \
 	release/gfx_ImageFilter_JPEG.o \
 	release/gfx_ImageFilter_PNG.o \
+	release/gfx_ImageFilter_PPM.o \
+	release/gfx_ImageFilter_TGA.o \
 	release/gfx_ImageList.o \
 	release/gfx_Point.o \
 	release/gfx_Point3D.o \
@@ -142,9 +145,12 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_Image.o \
 	debug/gfx_ImageFilter.o \
 	debug/gfx_ImageFilter_BMP.o \
+	debug/gfx_ImageFilter_GIF.o \
 	debug/gfx_ImageFilter_ImageMagick.o \
 	debug/gfx_ImageFilter_JPEG.o \
 	debug/gfx_ImageFilter_PNG.o \
+	debug/gfx_ImageFilter_PPM.o \
+	debug/gfx_ImageFilter_TGA.o \
 	debug/gfx_ImageList.o \
 	debug/gfx_Point.o \
 	debug/gfx_Point3D.o \
@@ -517,6 +523,11 @@ release/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/pp
 	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp $(CFLAGS) 
 
+release/gfx_ImageFilter_GIF.o:	$(srcdir)/grafix/ImageFilter_GIF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_GIF.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_GIF.o -c $(srcdir)/grafix/ImageFilter_GIF.cpp $(CFLAGS) 
+
 release/gfx_ImageFilter_ImageMagick.o:	$(srcdir)/grafix/ImageFilter_ImageMagick.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_ImageMagick.cpp<<<
@@ -531,6 +542,16 @@ release/gfx_ImageFilter_PNG.o:	$(srcdir)/grafix/ImageFilter_PNG.cpp $(incdir)/pp
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_PNG.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_PNG.o -c $(srcdir)/grafix/ImageFilter_PNG.cpp $(CFLAGS) 
+
+release/gfx_ImageFilter_PPM.o:	$(srcdir)/grafix/ImageFilter_PPM.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_PPM.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_PPM.o -c $(srcdir)/grafix/ImageFilter_PPM.cpp $(CFLAGS) 
+
+release/gfx_ImageFilter_TGA.o:	$(srcdir)/grafix/ImageFilter_TGA.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_TGA.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_TGA.o -c $(srcdir)/grafix/ImageFilter_TGA.cpp $(CFLAGS) 
 
 release/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -846,6 +867,11 @@ debug/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7
 	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/gfx_ImageFilter_GIF.o:	$(srcdir)/grafix/ImageFilter_GIF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_GIF.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter_GIF.o -c $(srcdir)/grafix/ImageFilter_GIF.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/gfx_ImageFilter_ImageMagick.o:	$(srcdir)/grafix/ImageFilter_ImageMagick.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_ImageMagick.cpp<<<
@@ -860,6 +886,16 @@ debug/gfx_ImageFilter_PNG.o:	$(srcdir)/grafix/ImageFilter_PNG.cpp $(incdir)/ppl7
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_PNG.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageFilter_PNG.o -c $(srcdir)/grafix/ImageFilter_PNG.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter_PPM.o:	$(srcdir)/grafix/ImageFilter_PPM.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_PPM.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter_PPM.o -c $(srcdir)/grafix/ImageFilter_PPM.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter_TGA.o:	$(srcdir)/grafix/ImageFilter_TGA.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_TGA.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter_TGA.o -c $(srcdir)/grafix/ImageFilter_TGA.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################

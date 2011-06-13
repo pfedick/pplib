@@ -120,6 +120,7 @@ Grafix::Grafix()
 	filter_ppm=NULL;
 	filter_tga=NULL;
 	filter_magick=NULL;
+	filter_tiff=NULL;
 	initAlphatab();
 
 	// Farbformat-abhängige Funktionen initialisieren
@@ -135,12 +136,19 @@ Grafix::Grafix()
 
 
 	// Standardfilter anlegen
+#ifdef HAVE_IMAGEMAGICK
+	/*
+	filter_magick=new ImageFilter_ImageMagick;
+	addImageFilter(filter_magick);
+	*/
+#endif
+
+
 	filter_bmp=new ImageFilter_BMP;
 	addImageFilter(filter_bmp);
-	/*
 	filter_gif=new ImageFilter_GIF;
-	AddFilter(filter_gif);
-*/
+	addImageFilter(filter_gif);
+
 #ifdef HAVE_PNG
 	filter_png=new ImageFilter_PNG;
 	addImageFilter(filter_png);
@@ -149,16 +157,16 @@ Grafix::Grafix()
 	filter_jpeg=new ImageFilter_JPEG;
 	addImageFilter(filter_jpeg);
 #endif
-#ifdef HAVE_IMAGEMAGICK
-	filter_magick=new ImageFilter_ImageMagick;
-	addImageFilter(filter_magick);
+#ifdef HAVE_TIFF
+	filter_tiff=new ImageFilter_TIFF;
+	addImageFilter(filter_tiff);
 #endif
 	/*
 	filter_ppm=new ImageFilter_PPM;
-	AddFilter(filter_ppm);
+	addImageFilter(filter_ppm);
 	filter_tga=new ImageFilter_TGA;
-	AddFilter(filter_tga);
-*/
+	addImageFilter(filter_tga);
+	*/
 
 
 	FontEngineFont5 *font5=new FontEngineFont5;
@@ -192,12 +200,10 @@ Grafix::~Grafix()
 		FontEngineList.erase(engine);
 		delete engine;
 	}
-	/*
 	if (filter_magick) {
 		ImageFilterList.erase(filter_magick);
 		delete filter_magick;
 	}
-	*/
 
 	if (filter_png) {
 		ImageFilterList.erase(filter_png);
@@ -211,13 +217,23 @@ Grafix::~Grafix()
 		ImageFilterList.erase(filter_bmp);
 		delete filter_bmp;
 	}
+	if (filter_gif) {
+		ImageFilterList.erase(filter_gif);
+		delete filter_gif;
+	}
+	if (filter_ppm) {
+		ImageFilterList.erase(filter_ppm);
+		delete filter_ppm;
+	}
+	if (filter_tga) {
+		ImageFilterList.erase(filter_tga);
+		delete filter_tga;
+	}
+	if (filter_tiff) {
+		ImageFilterList.erase(filter_tiff);
+		delete filter_tiff;
+	}
 
-	//ImageFilterList.erase(filter_gif);
-	//delete filter_gif;
-	//ImageFilterList.erase(filter_ppm);
-	//delete filter_ppm;
-	//ImageFilterList.erase(filter_tga);
-	//delete filter_tga
 
 
 

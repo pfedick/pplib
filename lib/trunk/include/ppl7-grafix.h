@@ -744,6 +744,7 @@ class Grafix
 		ImageFilter		*filter_gif;
 		ImageFilter		*filter_ppm;
 		ImageFilter		*filter_tga;
+		ImageFilter		*filter_tiff;
 		ImageFilter		*filter_magick;
 		RGBFormat	PrimaryRGBFormat;
 
@@ -920,6 +921,18 @@ class ImageFilter_BMP : public ImageFilter
 		virtual String description();
 };
 
+class ImageFilter_TIFF : public ImageFilter
+{
+	public:
+		ImageFilter_TIFF();
+		virtual ~ImageFilter_TIFF();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
+};
+
 class ImageFilter_ImageMagick : public ImageFilter
 {
 	public:
@@ -933,18 +946,17 @@ class ImageFilter_ImageMagick : public ImageFilter
 };
 
 
-#ifdef DONE
 
 class ImageFilter_GIF : public ImageFilter
 {
 	public:
 		ImageFilter_GIF();
 		virtual ~ImageFilter_GIF();
-		virtual int Ident(FileObject &file, IMAGE &img);
-		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
-		virtual String Name();
-		virtual String Description();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
 };
 
 
@@ -953,11 +965,11 @@ class ImageFilter_PPM : public ImageFilter
 	public:
 		ImageFilter_PPM();
 		virtual ~ImageFilter_PPM();
-		virtual int Ident(FileObject &file, IMAGE &img);
-		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
-		virtual String Name();
-		virtual String Description();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
 };
 
 class ImageFilter_TGA : public ImageFilter
@@ -965,14 +977,14 @@ class ImageFilter_TGA : public ImageFilter
 	public:
 		ImageFilter_TGA();
 		virtual ~ImageFilter_TGA();
-		virtual int Ident(FileObject &file, IMAGE &img);
-		virtual int Load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual int Save (const Drawable &surface, FileObject &file, CAssocArray *param=NULL);
-		virtual String Name();
-		virtual String Description();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
 };
 
-#endif
+
 
 
 
