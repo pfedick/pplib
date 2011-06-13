@@ -177,7 +177,7 @@ TEST_F(DirTest, dirWalkFilename) {
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"reference.png"),e.Filename);
-	ASSERT_EQ((size_t)231923,e.Size);
+	ASSERT_EQ((size_t)239844,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"test.bmp"),e.Filename);
@@ -430,7 +430,7 @@ TEST_F(DirTest, dirWalkSize) {
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"reference.png"),e.Filename);
-	ASSERT_EQ((size_t)231923,e.Size);
+	ASSERT_EQ((size_t)239844,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"testfile.txt"),e.Filename);

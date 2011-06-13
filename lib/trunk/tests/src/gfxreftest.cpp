@@ -506,12 +506,14 @@ int LoadFonts(Drawable &surface, int &num)
 	num++;
 	printf ("Test %i: Loading Font-Files... ", num);
 	bool failed=false;
+	Grafix *gfx=GetGrafix();
 	try {
-
-		Grafix *gfx=GetGrafix();
+		gfx->loadFont("../resource/liberationsans2.fnt5","Default");
+		gfx->loadFont("../resource/liberationmono2.fnt5","PPL Liberation Mono");
 		gfx->loadFont("../resource/liberationsans8.fnt5","PPL Liberation Sans 8");
 		gfx->loadFont("../resource/liberationsans2.fnt5","PPL Liberation Sans 2");
 		gfx->loadFont("testdata/LiberationSans-Bold.ttf","PPL Liberation Sans Bold TTF");
+
 
 		/*
 	if (!gfx->LoadFont("../../fonts/freesans4.fnt5","PPL FreeSans 4")) {
@@ -527,14 +529,16 @@ int LoadFonts(Drawable &surface, int &num)
 
 	} catch (Exception &e) {
 		printf ("failed! %s\n",e.what());
+		gfx->listFonts();
 		return 0;
 	}
-
 	if (failed ){
 		printf ("failed!\n");
+		gfx->listFonts();
 		return 0;
 	}
 	printf ("ok\n");
+	gfx->listFonts();
 	return 1;
 }
 
@@ -1100,7 +1104,11 @@ void PresentImage(Drawable &surface,const Image &Image, const String &Type, int 
 	surface.line(x+123,y,x+123,y+98,Color(128,128,128));
 	surface.line(x+1,y+98,x+123,y+98,Color(128,128,128));
 
-	//surface.print(Font,x+70,y+12,Type);
+	try {
+		surface.print(Font,x+70,y+12,Type);
+	} catch (...) {
+
+	}
 
 }
 
@@ -1394,7 +1402,7 @@ int main(int argc, char **argv)
 	DoTGA(Image,count);
 
 	DoLoadIcons(Icons,count);
-	/*
+
 	DoAlphaBlt(Image,count,Icons);
 	DoBlt(Image,count,Icons);
 	DoDiffuseBlt(Image,count);
@@ -1402,7 +1410,7 @@ int main(int argc, char **argv)
 	DoButton(Image,count);
 	BltClipping(Image,count,Icons);
 	DoSprites(Image,count);
-	*/
+
 
 	Drawable Draw(Image,Rect(60,60,10,10));
 	Draw.cls(Color(255,0,0));

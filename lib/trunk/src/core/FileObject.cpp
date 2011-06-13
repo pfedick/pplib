@@ -278,7 +278,7 @@ size_t FileObject::write (const ByteArrayPtr &object, size_t bytes)
  */
 size_t FileObject::read (void * target, size_t bytes, ppluint64 fileposition)
 {
-	if (!seek(fileposition)) return 0;
+	if (seek(fileposition)!=fileposition) return 0;
 	return fread(target,1,bytes);
 }
 

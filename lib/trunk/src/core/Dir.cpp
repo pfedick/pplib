@@ -37,7 +37,6 @@
  *******************************************************************************/
 
 
-
 #include "prolog.h"
 
 #include <stdio.h>
@@ -448,16 +447,11 @@ void Dir::print(const DirEntry &de) const
 void Dir::print() const
 {
 	ppl7::List<const DirEntry*>::Iterator it;
-	const DirEntry *de;
 	printf ("Directory Listing: %ls\n",(const wchar_t*)Path);
 	printf ("Total Files: %zu\n",num());
 	SortedFiles.reset(it);
-	try {
-		while ((de=SortedFiles.getNext(it))) {
-			print(*de);
-		}
-	} catch (EndOfListException) {
-
+	while (SortedFiles.getNext(it)) {
+		print(*it.value());
 	}
 
 }
@@ -534,13 +528,8 @@ void Dir::resortNone()
 {
 	ppl7::List<DirEntry>::Iterator it;
 	Files.reset(it);
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			SortedFiles.add(&de);
-		}
-	} catch (EndOfListException) {
-
+	while (Files.getNext(it)) {
+		SortedFiles.add(&it.value());
 	}
 	return;
 }
@@ -561,13 +550,9 @@ void Dir::resortFilename()
 	AVLTree<String, const DirEntry*> sorter;
 	sorter.allowDupes(true);
 	String filename;
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			sorter.add(de.Filename,&de);
-		}
-	} catch (EndOfListException) {
-
+	while (Files.getNext(it)) {
+		const DirEntry &de=it.value();
+		sorter.add(de.Filename,&de);
 	}
 	AVLTree<String, const DirEntry*>::Iterator sortit;
 	sorter.reset(sortit);
@@ -592,15 +577,11 @@ void Dir::resortFilenameIgnoreCase()
 	AVLTree<String, const DirEntry*> sorter;
 	sorter.allowDupes(true);
 	String filename;
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			filename.set(de.Filename);
-			filename.lowerCase();
-			sorter.add(filename,&de);
-		}
-	} catch (EndOfListException) {
-
+	while (Files.getNext(it)) {
+		const DirEntry &de=it.value();
+		filename.set(de.Filename);
+		filename.lowerCase();
+		sorter.add(filename,&de);
 	}
 	AVLTree<String, const DirEntry*>::Iterator sortit;
 	sorter.reset(sortit);
@@ -627,13 +608,9 @@ void Dir::resortMTime()
 	AVLTree<DateTime, const DirEntry*> sorter;
 	sorter.allowDupes(true);
 	Files.reset(it);
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			sorter.add(de.MTime,&de);
-		}
-	} catch (EndOfListException) {
-
+	while (Files.getNext(it)) {
+		const DirEntry &de=it.value();
+		sorter.add(de.MTime,&de);
 	}
 	AVLTree<DateTime, const DirEntry*>::Iterator sortit;
 	sorter.reset(sortit);
@@ -661,13 +638,9 @@ void Dir::resortCTime()
 	AVLTree<DateTime, const DirEntry*> sorter;
 	sorter.allowDupes(true);
 	Files.reset(it);
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			sorter.add(de.CTime,&de);
-		}
-	} catch (EndOfListException) {
-
+	while (Files.getNext(it)) {
+		const DirEntry &de=it.value();
+		sorter.add(de.CTime,&de);
 	}
 	AVLTree<DateTime, const DirEntry*>::Iterator sortit;
 	sorter.reset(sortit);
@@ -693,13 +666,9 @@ void Dir::resortATime()
 	AVLTree<DateTime, const DirEntry*> sorter;
 	sorter.allowDupes(true);
 	Files.reset(it);
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			sorter.add(de.ATime,&de);
-		}
-	} catch (EndOfListException) {
-
+	while (Files.getNext(it)) {
+		const DirEntry &de=it.value();
+		sorter.add(de.ATime,&de);
 	}
 	AVLTree<DateTime, const DirEntry*>::Iterator sortit;
 	sorter.reset(sortit);
@@ -725,13 +694,9 @@ void Dir::resortSize()
 	AVLTree<ppluint64, const DirEntry*> sorter;
 	sorter.allowDupes(true);
 	Files.reset(it);
-	try {
-		while (1) {
-			const DirEntry &de=Files.getNext(it);
-			sorter.add(de.Size,&de);
-		}
-	} catch (EndOfListException) {
-
+	while (Files.getNext(it)) {
+		const DirEntry &de=it.value();
+		sorter.add(de.Size,&de);
 	}
 	AVLTree<ppluint64, const DirEntry*>::Iterator sortit;
 	sorter.reset(sortit);
@@ -767,7 +732,8 @@ void Dir::reset(Iterator &it) const
  */
 const DirEntry &Dir::getFirst(Iterator &it) const
 {
-	return *SortedFiles.getFirst(it);
+	if (SortedFiles.getFirst(it)) return *it.value();
+	throw EndOfListException();
 }
 
 /*!\brief Nächster Verzeichniseintrag
@@ -785,7 +751,8 @@ const DirEntry &Dir::getFirst(Iterator &it) const
  */
 const DirEntry &Dir::getNext(Iterator &it) const
 {
-	return *SortedFiles.getNext(it);
+	if (SortedFiles.getNext(it)) return *it.value();
+	throw EndOfListException();
 }
 
 /*!\brief Erster Verzeichniseintrag, der zu einem bestimmten Muster passt
@@ -849,13 +816,13 @@ const DirEntry &Dir::getNextPattern(Iterator &it, const String &pattern, bool ig
 	Pattern+="$/";
 	if (ignorecase) Pattern+="i";
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
-	while (1) {
-		de=SortedFiles.getNext(it);
-		if (!de) throw EndOfListException();
+	while (SortedFiles.getNext(it)) {
+		de=it.value();
 		// Patternmatch
 		//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
 		if (de->Filename.pregMatch(Pattern)) return *de;
 	}
+	throw EndOfListException();
 }
 
 /*!\brief Erster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
@@ -898,12 +865,12 @@ const DirEntry &Dir::getFirstRegExp(Iterator &it, const String &regexp) const
 const DirEntry &Dir::getNextRegExp(Iterator &it, const String &regexp) const
 {
 	const DirEntry *de;
-	while (1) {
-		de=SortedFiles.getNext(it);
-		if (!de) throw EndOfListException();
+	while (SortedFiles.getNext(it)) {
+		de=it.value();
 		// Patternmatch
 		if (de->Filename.pregMatch(regexp)) return *de;
 	}
+	throw EndOfListException();
 }
 
 
@@ -924,12 +891,9 @@ const DirEntry &Dir::getNextRegExp(Iterator &it, const String &regexp) const
  */
 bool Dir::getFirst(DirEntry &e, Iterator &it) const
 {
-	try {
-		e=*SortedFiles.getFirst(it);
-		return true;
-	} catch (EndOfListException) {
-		return false;
-	}
+	if (!SortedFiles.getFirst(it)) return false;
+	e=*it.value();
+	return true;
 }
 
 /*!\brief Nächster Verzeichniseintrag
@@ -947,12 +911,10 @@ bool Dir::getFirst(DirEntry &e, Iterator &it) const
  */
 bool Dir::getNext(DirEntry &e, Iterator &it) const
 {
-	try {
-		e=*SortedFiles.getNext(it);
-		return true;
-	} catch (EndOfListException) {
-		return false;
-	}
+	if (!SortedFiles.getNext(it)) return false;
+	e=*it.value();
+	return true;
+
 }
 
 /*!\brief Erster Verzeichniseintrag, der zu einem bestimmten Muster passt
@@ -1019,20 +981,17 @@ bool Dir::getNextPattern(DirEntry &e, Iterator &it, const String &pattern, bool 
 	Pattern+="$/";
 	if (ignorecase) Pattern+="i";
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
-	try {
-		while (1) {
-			de=SortedFiles.getNext(it);
-			if (!de) return false;
-			// Patternmatch
-			//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
-			if (de->Filename.pregMatch(Pattern)) {
-				e=*de;
-				return true;
-			}
+	while (SortedFiles.getNext(it)) {
+		de=it.value();
+		// Patternmatch
+		//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
+		if (de->Filename.pregMatch(Pattern)) {
+			e=*de;
+			return true;
 		}
-	} catch (EndOfListException) {
-		return false;
 	}
+	return false;
+
 }
 
 /*!\brief Erster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
@@ -1080,19 +1039,15 @@ bool Dir::getFirstRegExp(DirEntry &e, Iterator &it, const String &regexp) const
 bool Dir::getNextRegExp(DirEntry &e, Iterator &it, const String &regexp) const
 {
 	const DirEntry *de;
-	try {
-		while (1) {
-			de=SortedFiles.getNext(it);
-			if (!de) return false;
-			// Patternmatch
-			if (de->Filename.pregMatch(regexp)) {
-				e=*de;
-				return true;
-			}
+	while (SortedFiles.getNext(it)) {
+		de=it.value();
+		// Patternmatch
+		if (de->Filename.pregMatch(regexp)) {
+			e=*de;
+			return true;
 		}
-	} catch (EndOfListException) {
-		return false;
 	}
+	return false;
 }
 
 

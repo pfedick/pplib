@@ -307,6 +307,7 @@ template <class K> class List
 		MemoryHeap		MyHeap;
 		class ListItem {
 			friend class List;
+			friend class List::Iterator;
 			private:
 				K item;
 				ListItem *previous, *next, *original;
@@ -324,6 +325,11 @@ template <class K> class List
 				bool	init;
 			public:
 				Iterator() {item=NULL; init=false;}
+				K& value() const
+				{
+					if (!item) throw NullPointerException();
+					return item->item;
+				}
 		};
 
 		List() {
@@ -398,53 +404,48 @@ template <class K> class List
 			MyHeap.clear();
 		}
 
-		void	reset(Iterator &it) const
+		void	reset(Iterator &it) const throw()
 		{
 			it.item=NULL;
 			it.init=false;
 		}
-		const K& getFirst(Iterator &it) const
+		bool	getFirst(Iterator &it) const throw()
 		{
 			it.item=first;
 			it.init=true;
-			return getNext(it);
+			if (first) return true;
+			return false;
 		}
-		const K& getNext(Iterator &it) const
+		bool	getNext(Iterator &it) const throw()
 		{
 			if (!it.init) {
 				it.item=first;
 				it.init=true;
+			} else {
+				it.item=it.item->next;
 			}
 			ListItem *item=it.item;
-			if (!item) {
-				throw EndOfListException();
-			}
-			it.item=item->next;
-			return item->item;
+			if (!item) return false;
+			return true;
 		}
-		const K& getLast(Iterator &it) const
+		bool	getLast(Iterator &it) const throw()
 		{
 			it.item=last;
 			it.init=true;
-			return getPrevious(it);
+			if (last) return true;
+			return false;
 		}
-		const K& getPrevious(Iterator &it) const
+		bool	getPrevious(Iterator &it) const throw()
 		{
 			if (!it.init) {
 				it.item=last;
 				it.init=true;
+			} else {
+				it.item=it.item->previous;
 			}
 			ListItem *item=it.item;
-			if (!item) {
-				throw EndOfListException();
-			}
-			it.item=item->previous;
-			return item->item;
-		}
-		const K& getCurrent(Iterator &it) const
-		{
-			if (it.item) return *it.item;
-			throw EndOfListException();
+			if (!item) return false;
+			return true;
 		}
 
 

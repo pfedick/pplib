@@ -134,9 +134,9 @@ Grafix::Grafix()
 
 
 	// Standardfilter anlegen
-	/*
 	filter_bmp=new ImageFilter_BMP;
-	AddFilter(filter_bmp);
+	addImageFilter(filter_bmp);
+	/*
 	filter_gif=new ImageFilter_GIF;
 	AddFilter(filter_gif);
 */
@@ -155,14 +155,13 @@ Grafix::Grafix()
 	AddFilter(filter_tga);
 */
 
-	/*
-	CFontEngineFont5 *font5=new CFontEngineFont5;
-	AddFontEngine(font5);
+
+	FontEngineFont5 *font5=new FontEngineFont5;
+	addFontEngine(font5);
 #ifdef HAVE_FREETYPE2
-	CFontEngineFreeType *freetype=new CFontEngineFreeType;
-	AddFontEngine(freetype);
+	FontEngineFreeType *freetype=new FontEngineFreeType;
+	addFontEngine(freetype);
 #endif
-*/
 
 	/*
 	CResource *res=GetPPLResource();
@@ -186,6 +185,30 @@ Grafix::~Grafix()
 	ImageFilter.Clear(true);
 	*/
 	if (alphatab) free(alphatab);
+
+	List<FontEngine*>::Iterator it;
+	FontEngine *engine;
+	while (FontEngineList.getFirst(it)) {
+		engine=it.value();
+		FontEngineList.erase(engine);
+		delete engine;
+	}
+	ImageFilterList.erase(filter_png);
+	delete filter_png;
+	ImageFilterList.erase(filter_jpeg);
+	delete filter_jpeg;
+	ImageFilterList.erase(filter_bmp);
+	delete filter_bmp;
+	//ImageFilterList.erase(filter_gif);
+	//delete filter_gif;
+	//ImageFilterList.erase(filter_ppm);
+	//delete filter_ppm;
+	//ImageFilterList.erase(filter_tga);
+	//delete filter_tga
+
+
+
+
 }
 
 void Grafix::initAlphatab()

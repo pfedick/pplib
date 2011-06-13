@@ -120,6 +120,17 @@ FontEngineFreeType::~FontEngineFreeType()
 #endif
 }
 
+String FontEngineFreeType::name() const
+{
+	return L"FontEngineFreeType";
+}
+
+String FontEngineFreeType::description() const
+{
+	return "Rendering of TrueType and OpenType fonts";
+}
+
+
 void FontEngineFreeType::init()
 {
 #ifndef HAVE_FREETYPE2
@@ -137,18 +148,18 @@ void FontEngineFreeType::init()
 #endif
 }
 
-int FontEngineFreeType::ident(FileObject &file)
+int FontEngineFreeType::ident(FileObject &file) throw()
 {
 #ifndef HAVE_FREETYPE2
-	throw UnsupportedFeatureException("Freetype2");
+	return 0;
 #else
 	FREETYPE_ENGINE_DATA *f=(FREETYPE_ENGINE_DATA*)ft;
-	if (!f) throw FontEngineUninitializedException();
+	if (!f) return 0;
 	const FT_Byte *buffer=(const FT_Byte *)file.map();
 	size_t size=file.size();
 	FT_Face face;
 	int error = FT_New_Memory_Face(f->ftlib, buffer, size, 0, &face );
-	if (error!=0) throw InvalidFontException();
+	if (error!=0) return 0;
 	FT_Done_Face(face);
 	return 1;
 #endif

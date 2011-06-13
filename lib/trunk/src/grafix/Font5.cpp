@@ -190,17 +190,30 @@ FontEngineFont5::~FontEngineFont5()
 {
 }
 
+String FontEngineFont5::name() const
+{
+	return L"FontEngineFont5";
+}
+
+String FontEngineFont5::description() const
+{
+	return "Rendering of PPLib Version 5 Fonts";
+}
+
+
 void FontEngineFont5::init()
 {
 	// Es gibt nichts zu tun
 }
 
-int FontEngineFont5::ident(FileObject &file)
+int FontEngineFont5::ident(FileObject &file) throw()
 {
 	PFPFile ff;
 	if (!ff.ident(file)) return 0;
 	if (ff.getID()!=L"FONT") return 0;
-	if (ff.getMainVersion()==5 && ff.getSubVersion()==0) return 1;
+	if (ff.getMainVersion()==5 && ff.getSubVersion()==0) {
+		return 1;
+	}
 	return 0;
 }
 
@@ -215,7 +228,7 @@ FontFile *FontEngineFont5::loadFont(FileObject &file, const String &fontname)
 		throw;
 	}
 	if (File->getID()!=L"FONT") throw InvalidFontException();
-	if (File->getMainVersion()==5 && File->getSubVersion()==0) throw InvalidFontException();
+	if (File->getMainVersion()!=5 || File->getSubVersion()!=0) throw InvalidFontException();
 	FontFile *ff=new FontFile;
 	if (!ff) {
 		delete File;

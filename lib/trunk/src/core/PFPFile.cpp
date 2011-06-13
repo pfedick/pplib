@@ -336,9 +336,8 @@ void PFPFile::clear()
 {
 	List<PFPChunk*>::Iterator it;
 	Chunks.reset(it);
-	PFPChunk *c;
-	while ((c=Chunks.getNext(it))) {
-		delete c;
+	while (Chunks.getNext(it)) {
+		delete it.value();
 	}
 	Chunks.clear();
 	id=L"UNKN";
@@ -945,12 +944,9 @@ PFPChunk *PFPFile::findNextChunk(Iterator &it, const String &chunkname) const
 		it.findchunk=chunkname;
 	}
 	if (it.findchunk.len()!=4) throw IllegalArgumentException();
-	try {
-		while ((chunk=(PFPChunk*)Chunks.getNext(it))) {
-			if (it.findchunk==chunk->chunkname) return chunk;
-		}
-	} catch (...) {
-
+	while (Chunks.getNext(it)) {
+		chunk=it.value();
+		if (it.findchunk==chunk->chunkname) return chunk;
 	}
 	return NULL;
 }
@@ -1011,8 +1007,8 @@ PFPChunk *PFPFile::getNext(Iterator &it) const
  * \since Version 6.1.0
  */
 {
-	PFPChunk *c=(PFPChunk*)Chunks.getNext(it);
-	return c;
+	if (Chunks.getNext(it)) return it.value();
+	return NULL;
 }
 
 void PFPFile::list() const
@@ -1045,7 +1041,8 @@ void PFPFile::list() const
 	Chunks.reset(it);
 	PFPChunk *chunk;
 	printf ("\nChunks:\n");
-	while((chunk=(PFPChunk*)Chunks.getNext(it))) {
+	while(Chunks.getNext(it)) {
+		chunk=it.value();
 		printf ("  %ls: %zi Bytes\n",(const wchar_t*)chunk->chunkname,chunk->chunksize);
 	}
 	printf("===============================================================\n");
@@ -1094,7 +1091,7 @@ bool PFPFile::ident(FileObject &ff)
 	try {
 		const char *p;
 		p=ff.map(0,24);
-		if (strncmp(p,"PFP-File",8)!=0) throw InvalidFormatException();
+		if (strncmp(p,"PFP-File",8)!=0) return false;
 		if (Peek8(p+8)!=3) return false;
 		id.set(p+10,4);
 		mainversion=Peek8(p+15);
@@ -1104,7 +1101,6 @@ bool PFPFile::ident(FileObject &ff)
 	} catch (...) {
 		return false;
 	}
-	return true;
 }
 
 

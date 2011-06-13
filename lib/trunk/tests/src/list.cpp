@@ -112,10 +112,16 @@ TEST_F(ListTest, getNext) {
 
 	ppl7::List<ppl7::String>::Iterator it;
 	myList.reset(it);
-	ASSERT_EQ(ppl7::String(L"Item 1"),myList.getNext(it));
-	ASSERT_EQ(ppl7::String(L"Item 2"),myList.getNext(it));
-	ASSERT_EQ(ppl7::String(L"Item 3"),myList.getNext(it));
-	ASSERT_THROW(myList.getNext(it), ppl7::EndOfListException);
+	ASSERT_EQ(true,myList.getNext(it));
+	ASSERT_EQ(ppl7::String(L"Item 1"),it.value());
+
+	ASSERT_EQ(true,myList.getNext(it));
+	ASSERT_EQ(ppl7::String(L"Item 2"),it.value());
+
+	ASSERT_EQ(true,myList.getNext(it));
+	ASSERT_EQ(ppl7::String(L"Item 3"),it.value());
+
+	ASSERT_EQ(false,myList.getNext(it));
 }
 
 TEST_F(ListTest, getPrevious) {
@@ -126,10 +132,16 @@ TEST_F(ListTest, getPrevious) {
 
 	ppl7::List<ppl7::String>::Iterator it;
 	myList.reset(it);
-	ASSERT_EQ(ppl7::String(L"Item 3"),myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String(L"Item 2"),myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String(L"Item 1"),myList.getPrevious(it));
-	ASSERT_THROW(myList.getNext(it), ppl7::EndOfListException);
+	ASSERT_EQ(true,myList.getPrevious(it));
+	ASSERT_EQ(ppl7::String(L"Item 3"),it.value());
+
+	ASSERT_EQ(true,myList.getPrevious(it));
+	ASSERT_EQ(ppl7::String(L"Item 2"),it.value());
+
+	ASSERT_EQ(true,myList.getPrevious(it));
+	ASSERT_EQ(ppl7::String(L"Item 1"),it.value());
+
+	ASSERT_EQ(false,myList.getPrevious(it));
 }
 
 TEST_F(ListTest, addWordlist) {

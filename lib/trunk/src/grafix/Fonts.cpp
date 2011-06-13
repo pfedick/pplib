@@ -65,7 +65,7 @@ namespace grafix {
 
 Font::Font()
 {
-	Name=L"unknown";
+	Name=L"Default";
 	fontSize=12;
 	flags=0;
 	ori=0;
@@ -347,35 +347,48 @@ void Grafix::loadFont(FileObject &ff, const String &fontname)
 	// Passenden Filter finden
 	FontEngineList.reset(it);
 	FontEngine *engine;
-	while ((engine=FontEngineList.getPrevious(it))) {
-		if (engine->ident(ff)) {
-			FontFile *font=engine->loadFont(ff, fontname);
-			if (!font) throw InvalidFontException();
-			// Falls ein Font mit gleichem Namen geladen ist, löschen wir
-			// diesen zuerst
-			try {
-				FontFile *old=FontList.find(font->Name);
-				if (old) {
-					FontList.erase(font->Name);
-					old->engine->deleteFont(old);
+	int id;
+	try {
+		while (FontEngineList.getPrevious(it)) {
+			engine=it.value();
+			id=engine->ident(ff);
+			if (id==1) {
+
+				FontFile *font=engine->loadFont(ff, fontname);
+				if (!font) throw InvalidFontException();
+				// Falls ein Font mit gleichem Namen geladen ist, löschen wir
+				// diesen zuerst
+				try {
+					FontFile *old=FontList.find(font->Name);
+					if (old) {
+						FontList.erase(font->Name);
+						old->engine->deleteFont(old);
+					}
+				} catch (ItemNotFoundException) {
+					// Das macht nix
+				} catch (...) {
+					font->engine->deleteFont(font);
+					myMutex.unlock();
+					throw;
 				}
-			} catch (ItemNotFoundException) {
-				// Das macht nix
-			} catch (...) {
-				font->engine->deleteFont(font);
+				try {
+					FontList.add(font->Name,font);
+				} catch (...) {
+					font->engine->deleteFont(font);
+					myMutex.unlock();
+					throw;
+				}
 				myMutex.unlock();
-				throw;
+				return;
 			}
-			try {
-				FontList.add(font->Name,font);
-			} catch (...) {
-				font->engine->deleteFont(font);
-				myMutex.unlock();
-				throw;
-			}
-			myMutex.unlock();
-			return;
 		}
+	} catch (EndOfListException) {
+		myMutex.unlock();
+		fontname.print();
+		throw NoSuitableFontEngineException();
+	} catch (...) {
+		myMutex.unlock();
+		throw;
 	}
 	myMutex.unlock();
 	throw NoSuitableFontEngineException();
@@ -412,6 +425,19 @@ FontFile *Grafix::findFont(const String &fontname)
 		throw;
 	}
 	throw FontNotFoundException();
+}
+
+void Grafix::listFonts()
+{
+	myMutex.lock();
+	printf ("Available Fonts:\n");
+	AVLTree<String, FontFile*>::Iterator it;
+	FontList.reset(it);
+	while (FontList.getNext(it)) {
+		FontFile *ff=it.value();
+		printf ("    %ls, Engine: %ls\n",(const wchar_t*)ff->Name, (const wchar_t*)ff->engine->name());
+	}
+	myMutex.unlock();
 }
 
 FontFile *Grafix::findFont(const Font &font)
@@ -496,9 +522,9 @@ void FontEngine::init()
 	throw UnimplementedVirtualFunctionException();
 }
 
-int FontEngine::ident(FileObject &ff)
+int FontEngine::ident(FileObject &ff) throw()
 {
-	throw UnimplementedVirtualFunctionException();
+	return 0;
 }
 
 FontFile *FontEngine::loadFont(FileObject &ff, const String &fontname)
@@ -521,6 +547,15 @@ Size FontEngine::measure(const FontFile &file, const Font &font, const String &t
 	throw UnimplementedVirtualFunctionException();
 }
 
+String FontEngine::name() const
+{
+	throw UnimplementedVirtualFunctionException();
+}
+
+String FontEngine::description() const
+{
+	throw UnimplementedVirtualFunctionException();
+}
 
 
 

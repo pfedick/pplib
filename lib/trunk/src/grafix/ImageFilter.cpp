@@ -164,7 +164,8 @@ ImageFilter *Grafix::findImageFilter(FileObject &ff, IMAGE &img)
 	// Wir gehen die Liste rückwärts durch
 	ImageFilterList.reset(it);
 	try {
-		while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
+		while (ImageFilterList.getPrevious(it)) {
+			f=it.value();
 			if (f->ident(ff,img)==1) {
 				myMutex.unlock();
 				return f;

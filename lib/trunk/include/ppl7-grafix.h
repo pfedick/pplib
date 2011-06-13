@@ -789,6 +789,7 @@ class Grafix
 		void unloadFont(const String &fontname);
 		FontFile *findFont(const String &fontname);
 		FontFile *findFont(const Font &font);
+		void listFonts();
 };
 
 Grafix *GetGrafix();
@@ -819,11 +820,13 @@ class FontEngine
 		virtual ~FontEngine();
 
 		virtual void init();
-		virtual int ident(FileObject &file);
+		virtual int ident(FileObject &file) throw();
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
 		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+		virtual String name() const;
+		virtual String description() const;
 };
 
 class FontEngineFont5 : public FontEngine
@@ -836,11 +839,13 @@ class FontEngineFont5 : public FontEngine
 		FontEngineFont5();
 		virtual ~FontEngineFont5();
 		virtual void init();
-		virtual int ident(FileObject &file);
+		virtual int ident(FileObject &file) throw();
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
 		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+		virtual String name() const;
+		virtual String description() const;
 };
 
 class FontEngineFreeType : public FontEngine
@@ -851,11 +856,13 @@ class FontEngineFreeType : public FontEngine
 		FontEngineFreeType();
 		virtual ~FontEngineFreeType();
 		virtual void init();
-		virtual int ident(FileObject &file);
+		virtual int ident(FileObject &file) throw();
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
 		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+		virtual String name() const;
+		virtual String description() const;
 };
 
 
