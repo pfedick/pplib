@@ -118,6 +118,10 @@ PPLNORMALEXCEPTION(InvalidFormatException);
 PPLNORMALEXCEPTION(AccessDeniedByInstanceException);
 PPLNORMALEXCEPTION(BufferTooSmallException);
 PPLNORMALEXCEPTION(CorruptedDataException);
+PPLNORMALEXCEPTION(FailedToLoadResourceException);
+PPLNORMALEXCEPTION(InvalidResourceException);
+PPLNORMALEXCEPTION(ResourceNotFoundException);
+
 
 
 

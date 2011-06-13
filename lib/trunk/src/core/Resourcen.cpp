@@ -1,4 +1,3 @@
-[prefix]
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
@@ -10,7 +9,7 @@
  * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,62 +36,42 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-[1]
-ID=1
-Name=License
-File=../LICENSE.TXT
-[2]
-ID=2
-Name=PPL7Icon48
-File=ppl7-icon-48x48.png
-[3]
-ID=3
-Name=PPL7Icon32
-File=ppl7-icon-32x32.png
-[4]
-ID=4
-Name=PPL7Icon16
-File=ppl7-icon-16x16.png
-[5]
-ID=5
-Name=PPL7Icon128
-File=ppl7-icon-128x128.png
+#include "prolog.h"
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#include "ppl7.h"
+#include "ppl7-grafix.h"
+//#include "grafix.h"
+#ifdef WIN32
+#pragma message( "*** Kompiliere Resourcen, das kann eine Weile dauern..." )
+#endif
 
-[11]
-ID=11
-Name=MimeTypes
-File=mimetypes.png
-[12]
-ID=12
-Name=ButtonSymbols
-File=ButtonSymbols.png
-[13]
-ID=13
-Name=Icons
-File=icons.png
-[14]
-ID=14
-Name=Toolbar
-File=toolbar.png
-[15]
-ID=15
-Name=Cursor
-File=cursor.png
+namespace ppl7 {
+#include "../resource/res.h"
 
-[34]
-ID=34
-Name=PPL Liberation Sans
-File=liberationsans2.fnt5
-compression=none
+static Resource *Resource=NULL;
 
-[35]
-ID=35
-Name=PPL Liberation Mono
-File=liberationmono2.fnt5
-compression=none
+static int PPLExitResource(void *data)
+{
+	if (Resource) delete Resource;
+	Resource=NULL;
+	return 1;
+}
 
-[50]
-ID=50
-Name=WikiParser Stylesheet
-File=wikistyle.css
+Resource *GetPPLResource()
+{
+	if (!Resource) {
+		Resource *r;
+		r=new CResource;
+		r->useMemory(PPL6_RESOURCES,sizeof(PPL6_RESOURCES));
+		Resource=r;
+		atexit(PPLExitResource);
+		Resource=r;
+	}
+	return Resource;
+}
 
+
+
+}	// EOF namespace ppl7

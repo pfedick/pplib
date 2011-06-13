@@ -999,6 +999,55 @@ class PFPFile
 
 };
 
+//! \brief PPL-Resourcen
+class Resource
+{
+	private:
+		MemoryHeap	heap;
+		int count;
+		int maxid, minid;
+		int major, minor;
+		ByteArray memory;
+		ByteArrayPtr memref;
+		void *firstchunk;
+
+		void checkResource(const ByteArrayPtr &memory);
+		void parse();
+		void uncompress(void *resource);
+
+		void *find(int id);
+		void *find(const String &name);
+
+	public:
+		Resource();
+		~Resource();
+		void clear();
+		void load(const String &filename);
+		void load(FileObject &file);
+		void load(const ByteArrayPtr &memory);
+			/* Bei Load wird die gesamte Datei in den Speicher geladen und erst
+			 * beim Loeschen der Resource wieder freigegeben. Die angegebene Datei
+			 * kann vorher geschlossen werden
+			 */
+		void useMemory(const ByteArrayPtr &memory);
+		void useMemory(void *ptr, size_t size);
+			/* Wird UseMemory benutzt, muss ein Pointer auf einen Speicherbereich
+			 * angegeben werden, der seine Gueltigkeit nicht verlieren darf,
+			 * solange die Instanz von Resource existiert.
+			 */
+
+		FileObject *getFile(int id);
+		FileObject *getFile(const String &name);
+		ByteArrayPtr getMemory(int id);
+		ByteArrayPtr getMemory(const String &name);
+
+		static Resource *getPPLResource();
+		static int generateResourceHeader(const String &basispfad, const String &configfile, const String &targetfile, const String &label);
+};
+
+Resource *GetPPLResource();
+
+
 
 
 };	// EOF namespace ppl7

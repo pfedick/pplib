@@ -48,6 +48,8 @@ RELEASE	= release/AVLTree.o \
 	release/MemoryHeap.o \
 	release/Mutex.o \
 	release/PFPFile.o \
+	release/Resource.o \
+	release/Resourcen.o \
 	release/StringFunctions.o \
 	release/Threads.o \
 	release/Time.o \
@@ -105,6 +107,8 @@ DEBUG	= debug/AVLTree.o \
 	debug/MemoryHeap.o \
 	debug/Mutex.o \
 	debug/PFPFile.o \
+	debug/Resource.o \
+	debug/Resourcen.o \
 	debug/StringFunctions.o \
 	debug/Threads.o \
 	debug/Time.o \
@@ -345,6 +349,16 @@ release/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
 	$(CXX) -Wall -O3 -o release/PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) 
+
+release/Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Resource.cpp<<<
+	$(CXX) -Wall -O3 -o release/Resource.o -c $(srcdir)/core/Resource.cpp $(CFLAGS) 
+
+release/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Resourcen.cpp<<<
+	$(CXX) -Wall -O3 -o release/Resourcen.o -c $(srcdir)/core/Resourcen.cpp $(CFLAGS) 
 
 release/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################
@@ -659,6 +673,16 @@ debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
 	$(CXX) -Wall -O -o debug/PFPFile.o -c $(srcdir)/core/PFPFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Resource.cpp<<<
+	$(CXX) -Wall -O -o debug/Resource.o -c $(srcdir)/core/Resource.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Resourcen.cpp<<<
+	$(CXX) -Wall -O -o debug/Resourcen.o -c $(srcdir)/core/Resourcen.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile  
 	###############################################################################

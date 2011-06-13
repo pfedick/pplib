@@ -1243,7 +1243,7 @@ int DoTGA(Drawable &surface, int &num)
 int DoButton(Drawable &surface, int &num)
 {
 	num++;
-	printf ("Test %i: TGA-Load... ", num);
+	printf ("Test %i: Button... ", num);
 	bool failed=false;
 
 	try {
@@ -1289,7 +1289,7 @@ int DoButton(Drawable &surface, int &num)
 		//draw.draw(gfx->Toolbar,0,8,8);
 
 		Font Font;
-		Font.setName("PPL FreeSans 4");
+		//Font.setName("PPL FreeSans 4");
 		Font.setAntialias(true);
 		Font.setSize(14);
 		Font.setBold(false);
