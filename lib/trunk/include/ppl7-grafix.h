@@ -734,11 +734,6 @@ class Grafix
 {
 	private:
 		Mutex		myMutex;
-		/*
-		CList		FontEngines;
-		CTree		FontList;
-		CList		ImageFilter;
-		*/
 		List<ImageFilter*>	ImageFilterList;
 		List<FontEngine*>	FontEngineList;
 		AVLTree<String, FontFile*> FontList;
@@ -749,6 +744,7 @@ class Grafix
 		ImageFilter		*filter_gif;
 		ImageFilter		*filter_ppm;
 		ImageFilter		*filter_tga;
+		ImageFilter		*filter_magick;
 		RGBFormat	PrimaryRGBFormat;
 
 
@@ -766,11 +762,9 @@ class Grafix
 		Grafix();
 		~Grafix();
 
-		/*
 		ImageList	Toolbar;
 		ImageList	ButtonSymbolsSmall;
 		ImageList	Icons32;
-		*/
 
 
 		GRAFIX_FUNCTIONS *getGrafixFunctions(const RGBFormat &format);
@@ -926,6 +920,19 @@ class ImageFilter_BMP : public ImageFilter
 		virtual String description();
 };
 
+class ImageFilter_ImageMagick : public ImageFilter
+{
+	public:
+		ImageFilter_ImageMagick();
+		virtual ~ImageFilter_ImageMagick();
+		virtual int ident(FileObject &file, IMAGE &img);
+		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
+		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
+		virtual String name();
+		virtual String description();
+};
+
+
 #ifdef DONE
 
 class ImageFilter_GIF : public ImageFilter
@@ -974,4 +981,5 @@ class ImageFilter_TGA : public ImageFilter
 
 
 #endif // _PPL7_INCLUDE_GRAFIX
+
 

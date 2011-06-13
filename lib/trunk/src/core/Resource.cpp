@@ -211,6 +211,21 @@ void Resource::parse()
 	}
 }
 
+void Resource::list()
+{
+	RESCHUNK *res=(RESCHUNK *)firstchunk;
+	printf ("List of Ressources\n");
+	if (!res) {
+		printf ("  no entries\n");
+		return;
+	}
+	while (res) {
+		printf ("   - ID: %i, Name: %ls, Size: %tu\n",res->id, (const wchar_t*)res->name,res->size_u);
+		res=res->next;
+	}
+
+}
+
 void *Resource::find(int id)
 {
 	RESCHUNK *res=(RESCHUNK *)firstchunk;
@@ -243,47 +258,37 @@ void *Resource::find(const String &name)
 	throw ResourceNotFoundException();
 }
 
-CMemoryReference Resource::GetMemory(int id)
+ByteArrayPtr Resource::getMemory(int id)
 {
-	CMemoryReference m;
-	RESCHUNK *res=(RESCHUNK *)Find(id);
-	if (!res) return m;
-	m.set(res->data,res->size_u);
+	ByteArrayPtr m;
+	RESCHUNK *res=(RESCHUNK *)find(id);
+	m.use(res->data,res->size_u);
 	return m;
 }
 
-CMemoryReference Resource::GetMemory(const char *name)
+ByteArrayPtr Resource::getMemory(const String &name)
 {
-	CMemoryReference m;
-	RESCHUNK *res=(RESCHUNK *)Find(name);
-	if (!res) return m;
-	m.set(res->data,res->size_u);
+	ByteArrayPtr m;
+	RESCHUNK *res=(RESCHUNK *)find(name);
+	m.use(res->data,res->size_u);
 	return m;
 }
 
-CFileObject *Resource::GetFile(int id)
+FileObject *Resource::getFile(int id)
 {
-	RESCHUNK *res=(RESCHUNK *)Find(id);
-	if (!res) return NULL;
-	CMemFile *ff=new CMemFile();
-	if(!ff->Open(res->data,res->size_u)) {
-		delete ff;
-		return NULL;
-	}
-	ff->SetFilename(res->name);
+	RESCHUNK *res=(RESCHUNK *)find(id);
+	MemFile *ff=new MemFile();
+	ff->open(res->data,res->size_u);
+	ff->setFilename(res->name);
 	return ff;
 }
 
-CFileObject *Resource::GetFile(const char *name)
+FileObject *Resource::getFile(const String &name)
 {
-	RESCHUNK *res=(RESCHUNK *)Find(name);
-	if (!res) return NULL;
-	CMemFile *ff=new CMemFile();
-	if(!ff->Open(res->data,res->size_u)) {
-		delete ff;
-		return NULL;
-	}
-	ff->SetFilename(res->name);
+	RESCHUNK *res=(RESCHUNK *)find(name);
+	MemFile *ff=new MemFile();
+	ff->open(res->data,res->size_u);
+	ff->setFilename(res->name);
 	return ff;
 }
 
@@ -293,49 +298,41 @@ void Resource::uncompress(void *resource)
 	RESCHUNK *res=(RESCHUNK*)resource;
 	size_t bufferlen=res->size_u;
 	void *buffer=malloc(bufferlen);
-	if (!buffer) {
-		SetError(2);
-		return 0;
+	if (!buffer) throw OutOfMemoryException();
+	try {
+		comp.uncompress(buffer, &bufferlen,res->uncompressed,res->size_c,(Compression::Algorithm)res->compression);
+	} catch (...) {
+		free(buffer);
+		throw;
 	}
-
-	if (comp.Uncompress(buffer, &bufferlen,res->uncompressed,res->size_c,
-		(CCompression::Algorithm)res->compression)) {
-		res->data=buffer;
-		res->clearbuffer=1;
-		return 1;
-	}
-	free(buffer);
-	return 0;
-
+	res->data=buffer;
+	res->clearbuffer=1;
 }
 
 /*********************************************************************************
  * Resourcen generieren
  *********************************************************************************/
 
-static void IncludeHelp(CFileObject *out, const char *configfile)
+static void IncludeHelp(FileObject &out, const String &configfile)
 {
-	ppl6::Cppl6Core *core=ppl6::PPLInit();
-	CString copyright=core->GetCopyright();
-	CString version=core->GetVersion();
-	CString now;
-	MkISO8601Date(now);
-	out->Putsf(
+	DateTime now;
+	now.setCurrentTime();
+	out.putsf(
 		"/*********************************************************\n"
-		" * PPL6 Resourcen Generator Version %s\n"
+		" * PPL7 Resourcen Generator Version %i.%i.%i\n"
 		" * %s\n"
-		"",(const char*)version,(const char*)copyright
+		"",PPL_VERSION_MAJOR,PPL_VERSION_MINOR,PPL_VERSION_BUILD,PPL_COPYRIGHT
 	);
 
-	out->Putsf(
+	out.putsf(
 		" *\n"
-		" * File generation: %s\n"
-		" * Config: %s\n"
+		" * File generation: %ls\n"
+		" * Config: %ls\n"
 		" *********************************************************/\n\n",
-		(const char*)now, configfile
+		(const wchar_t*)now.get(), (const wchar_t*)configfile
 	);
-	out->Putsf(
-		"/* File-Format:\n"
+	out.puts(
+		L"/* File-Format:\n"
 		" *    Byte 0-5: ID \"PPLRES\"                              (6 Byte)\n"
 		" *    Byte 6:   0-Byte                                   (1 Byte)\n"
 		" *    Byte 7:   Major Version (6)                        (1 Byte)\n"
@@ -358,72 +355,71 @@ static void IncludeHelp(CFileObject *out, const char *configfile)
 		);
 }
 
-static void BufferOut(CFileObject *out, const char *buffer, int bytes)
+static void BufferOut(FileObject &out, const char *buffer, int bytes)
 {
 	static int c=0;
 	static char clear[25]="";
-	CString utf8;
+	ppluint8 byte;
 	for (int i=0;i<bytes;i++) {
-		out->Putsf("0x%02x,",(ppldb)buffer[i]);
-		if(buffer[i]>31 && buffer[i]!='\\' && buffer[i]!='/')clear[c]=buffer[i];
+		byte=(ppluint8)buffer[i];
+		out.putsf("0x%02x,",byte);
+		if(byte>31 && byte<128 && byte!='\\' && byte!='/') clear[c]=byte;
 		else clear[c]='.';
 		c++;
 		clear[c]=0;
 		if (c>15) {
 			c=0;
-			utf8=clear;
-			utf8.Transcode("ISO-8859-1","UTF-8");
-			out->Putsf(" // %s\n    ",(const char*)utf8);
+			out.putsf(" // %s\n    ",clear);
 			clear[0]=0;
 		}
 	}
 	if (!bytes) {
 		for (int i=c;i<16;i++) {
-			out->Puts("     ");
+			out.puts("     ");
 		}
 		c=0;
-		utf8=clear;
-		utf8.Transcode("ISO-8859-1","UTF-8");
-		out->Putsf(" // %s\n    ",(const char*)utf8);
+		out.putsf(" // %s\n    ",clear);
 		clear[0]=0;
 	}
 }
 
-static void Output(CFileObject *ff, int resid, const char *name, const char *filename, int size_u, char *buffer, int bytes, int compressiontype)
+static void Output(FileObject &ff, int resid, const String &name, const String &filename, int size_u, char *buffer, int bytes, int compressiontype)
 {
 	char *buf=(char*)malloc(64);
-	if (!buf) return;
-	ppluint32 chunksize=bytes+strlen(name)+17;
-	poke32(buf+0,chunksize);
-	poke16(buf+4,resid);
-	poke32(buf+6,size_u);
-	poke32(buf+10,bytes);
-	poke8(buf+14,compressiontype);
-	poke8(buf+15,17+strlen(name));
+	if (!buf) throw OutOfMemoryException();
+	ByteArray nameUtf8=name.toUtf8();
+
+	ppluint32 chunksize=bytes+nameUtf8.size()+17;
+	Poke32(buf+0,chunksize);
+	Poke16(buf+4,resid);
+	Poke32(buf+6,size_u);
+	Poke32(buf+10,bytes);
+	Poke8(buf+14,compressiontype);
+	Poke8(buf+15,17+nameUtf8.size());
 	BufferOut(ff,buf,16);
-	BufferOut(ff,name,strlen(name)+1);
+	BufferOut(ff,nameUtf8,nameUtf8.size()+1);
 	//BufferOut(ff,filename,strlen(filename)+1);
 	BufferOut(ff,buffer,bytes);
 	free(buf);
 }
 
-static int Compress(CFileObject *ff, char **buffer, ppluint32 *size, int *type)
+static int Compress(FileObject &ff, char **buffer, size_t *size, int *type)
 {
-	CCompression comp;
-	ppluint32 size_u=(ppluint32)ff->Size();
-	char *source=(char*)ff->Map();			// Komplette Datei mappen
+	Compression comp;
+	size_t size_u=(size_t)ff.size();
+	char *source=(char*)ff.map();			// Komplette Datei mappen
 
 	size_t size_c=size_u+2048;
 	size_t size_zlib=size_c;
 	size_t size_bz2=size_c;
 	char *buf=(char*)malloc(size_c);
-	if (!buf) return 0;
+	if (!buf) throw OutOfMemoryException();
 	// Zuerst Zlib
-	comp.Init(CCompression::Algo_ZLIB,CCompression::Level_High);
-	comp.Compress(buf,&size_zlib,source,size_u);
+	comp.init(Compression::Algo_ZLIB,Compression::Level_High);
+	comp.compress(buf,&size_zlib,source,size_u);
 	// Dann Bzip2
-	comp.Init(CCompression::Algo_BZIP2,CCompression::Level_High);
-	comp.Compress(buf,&size_bz2,source,size_u);
+	comp.init(Compression::Algo_BZIP2,Compression::Level_High);
+	comp.compress(buf,&size_bz2,source,size_u);
 	// Was war kleiner?
 	if (size_u<=size_bz2 && size_u<=size_zlib) {
 		free(buf);
@@ -442,8 +438,8 @@ static int Compress(CFileObject *ff, char **buffer, ppluint32 *size, int *type)
 		return 1;
 	}
 	size_zlib=size_c;
-	comp.Init(CCompression::Algo_ZLIB,CCompression::Level_High);
-	comp.Compress(buf,&size_zlib,source,size_u);
+	comp.init(Compression::Algo_ZLIB,Compression::Level_High);
+	comp.compress(buf,&size_zlib,source,size_u);
 	printf ("Using zlib: %u Bytes von %u Bytes (bzip2: %u Bytes)\n",(ppluint32)size_zlib,(ppluint32)size_u,(ppluint32)size_bz2);
 	*buffer=buf;
 	*size=size_zlib;
@@ -451,14 +447,13 @@ static int Compress(CFileObject *ff, char **buffer, ppluint32 *size, int *type)
 	return 1;
 }
 
-int Resource::GenerateResourceHeader(const char *basispfad, const char *configfile, const char *targetfile, const char *label)
+void Resource::generateResourceHeader(const String &basispfad, const String &configfile, const String &targetfile, const String &label)
 {
+	throw UnsupportedFeatureException("Resource::generateResourceHeader");
+#ifdef DONE
 	char section[12];
-	if ((!configfile) || strlen(configfile)==0) {
-		SetError(194,"configfile ist NULL oder leer");
-		return 0;
-	}
-	CConfig conf;
+	if (configfile.isEmpty()) throw IllegalArgumentException();
+	Config conf;
 	if (!conf.Load(configfile)) {
 		return 0;
 	}
@@ -561,12 +556,12 @@ int Resource::GenerateResourceHeader(const char *basispfad, const char *configfi
 	BufferOut(&out,NULL,0);
 	out.Puts("0\n};\n");
 	if (suffix) out.Write((void*)suffix,strlen(suffix));
-	return 1;
+#endif
 }
 
 Resource *Resource::getPPLResource()
 {
-	return ppl6::GetPPLResource();
+	return GetPPLResource();
 }
 
 

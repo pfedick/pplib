@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <locale.h>
+#include <math.h>
 #include "../include/prolog.h"
 #include "../include/ppl7.h"
 #include "../include/ppl7-grafix.h"
@@ -73,13 +74,14 @@ int DoLines(Drawable &surface, int &num)
 		surface.line(40,45,90,45,blue);
 		surface.line(40,55,90,55,blue);
 
+		float pi=3.1415926535f;
+		float rad=pi/180.0f;
+
 		int x,y;
-		for (int w=0;w<1024;w+=16) {
-			/*TODO:
-		x=sinus1024(w)*50/1024;
-		y=cosinus1024(w)*50/1024;
-		surface.line(460,60,460+x,60+y,white);
-			 */
+		for (float w=0;w<360;w+=10) {
+			x=sinf(w*rad)*50;
+			y=cosf(w*rad)*50;
+			surface.line(460,60,460+x,60+y,white);
 		}
 
 		// Checks
@@ -137,14 +139,14 @@ int DoLinesAA(Drawable &surface, int &num)
 		if (c!=Color(0xff3f3f3f)) failed=true;
 		//printf (" c=%x ",c);
 
-		int x,y;
+		float pi=3.1415926535f;
+		float rad=pi/180.0f;
 
-		for (int w=0;w<1024;w+=16) {
-			/*TODO:
-		x=ppl6::sinus1024(w)*50/1024;
-		y=ppl6::cosinus1024(w)*50/1024;
-		surface.lineAA(560,60,560+x,60+y,white);
-			 */
+		int x,y;
+		for (float w=0;w<360;w+=10) {
+			x=sinf(w*rad)*50;
+			y=cosf(w*rad)*50;
+			surface.lineAA(560,60,560+x,60+y,white);
 		}
 
 	} catch (Exception &e) {
@@ -278,22 +280,23 @@ int DoPutPixel(Drawable &surface, int &num)
 	try {
 		Color white(255,255,255);
 		// Sinuskurve erzeugen
-		int s=0;
+		float s=0;
+		float pi=3.1415926535f;
+		float rad=pi/180.0f;
+
 		for (int x=0;x<640;x++) {
-			/*TODO:
-		int y=ppl6::sinus1024(s);
-		s+=10;
-		surface.blendPixel(x-1,15+(y*15/1024),white,200);
-		surface.blendPixel(x-2,15+(y*15/1024),white,150);
-		surface.blendPixel(x-3,15+(y*15/1024),white,100);
-		surface.blendPixel(x-4,15+(y*15/1024),white,50);
-		surface.blendPixel(x+1,15+(y*15/1024),white,200);
-		surface.blendPixel(x+2,15+(y*15/1024),white,150);
-		surface.blendPixel(x+3,15+(y*15/1024),white,100);
-		surface.blendPixel(x+4,15+(y*15/1024),white,50);
-		surface.putPixel(x,15+(y*15/1024),white);
-		if (surface.getPixel(x,15+(y*15/1024))!=white) failed=true;
-			 */
+			float y=sinf(s*rad);
+			s+=pi;
+			surface.blendPixel(x-1,15+(y*15),white,200);
+			surface.blendPixel(x-2,15+(y*15),white,150);
+			surface.blendPixel(x-3,15+(y*15),white,100);
+			surface.blendPixel(x-4,15+(y*15),white,50);
+			surface.blendPixel(x+1,15+(y*15),white,200);
+			surface.blendPixel(x+2,15+(y*15),white,150);
+			surface.blendPixel(x+3,15+(y*15),white,100);
+			surface.blendPixel(x+4,15+(y*15),white,50);
+			surface.putPixel(x,15+(y*15),white);
+			if (surface.getPixel(x,15+(y*15))!=white) failed=true;
 		}
 
 	} catch (Exception &e) {
@@ -508,8 +511,6 @@ int LoadFonts(Drawable &surface, int &num)
 	bool failed=false;
 	Grafix *gfx=GetGrafix();
 	try {
-		gfx->loadFont("../resource/liberationsans2.fnt5","Default");
-		gfx->loadFont("../resource/liberationmono2.fnt5","PPL Liberation Mono");
 		gfx->loadFont("../resource/liberationsans8.fnt5","PPL Liberation Sans 8");
 		gfx->loadFont("../resource/liberationsans2.fnt5","PPL Liberation Sans 2");
 		gfx->loadFont("testdata/LiberationSans-Bold.ttf","PPL Liberation Sans Bold TTF");
@@ -728,23 +729,13 @@ int DoAlphaBlt(Drawable &surface, int &num, Image &Icons)
 	try {
 		Color c;
 		Grafix *gfx=GetGrafix();
-		/*TODO:
-	ppl6::CResource *res=ppl6::GetPPLResource();
-	if (!res) {
-		failed=true;
-		ppl6::PrintError();
-	} else {
+		Resource *res=GetPPLResource();
 		Image Img;
-		if (!Img.load(res->GetMemory(5))) {
-			failed=true;
-			ppl6::PrintError();
-		} else {
-			surface.bltAlpha(Img,Rect(),(640-128)/2,340);
-		}
-	}
-	Rect r(0,0,32,32);
-	surface.bltAlpha(Icons,r,600,120);
-		 */
+		Img.load(res->getMemory(5));
+		surface.bltAlpha(Img,Rect(),(640-128)/2,340);
+		Rect r(0,0,32,32);
+		surface.bltAlpha(Icons,r,600,120);
+
 
 		/*
 	// Eckpunkte prüfen
@@ -809,20 +800,22 @@ int DoAlphaBlt(Drawable &surface, int &num, Image &Icons)
 	//printf ("Farbe: %x\n",c);
 		 */
 
-		/*TODO:
-	int x,y,i=0;
-	for (int w=0;w<1024;w+=32) {
-		x=ppl6::sinus1024(w)*60/1024;
-		y=ppl6::cosinus1024(w)*50/1024;
-		surface.draw(gfx->Icons32,i++,460+x,200+y);
-	}
-	i=0;
-	for (int w=0;w<1024;w+=16) {
-		x=ppl6::sinus1024(w)*100/1024;
-		y=ppl6::cosinus1024(w)*90/1024;
-		surface.draw(gfx->Toolbar,i++,468+x,208+y);
-	}
-		 */
+		float pi=3.1415926535f;
+		float rad=pi/180.0f;
+		int x,y;
+		int i=0;
+		for (float w=0;w<360;w+=15) {
+			x=(int)(sinf(w * rad)*60.0f);
+			y=(int)(cosf(w * rad)*50.0f);
+			surface.draw(gfx->Icons32,i++,460+x,200+y);
+		}
+		i=0;
+		for (float w=0.0f;w<360.0f;w+=6.0f) {
+			x=sinf(w*rad)*100;
+			y=cosf(w*rad)*90;
+			surface.draw(gfx->Toolbar,i++,468+x,208+y);
+		}
+
 
 	} catch (Exception &e) {
 		printf ("failed! %s\n",e.what());
@@ -853,25 +846,25 @@ int DoDiffuseBlt(Drawable &surface, int &num)
 		surface.line(225,296,225,395,Color(128,128,255));
 		surface.line(26,395,225,395,Color(128,128,255));
 
-		/*TODO:
-	surface.draw(gfx->ButtonSymbolsSmall,0,60,300,Color(255,255,255));
-	surface.draw(gfx->ButtonSymbolsSmall,1,80,300,Color(255,200,100));
-	surface.draw(gfx->ButtonSymbolsSmall,2,100,300,Color(238,85,193));
-	surface.draw(gfx->ButtonSymbolsSmall,3,120,300,Color(0,255,0));
-	surface.draw(gfx->ButtonSymbolsSmall,4,140,300,Color(0,255,255));
-	surface.draw(gfx->ButtonSymbolsSmall,5,160,300,Color(0,0,255));
-	surface.draw(gfx->ButtonSymbolsSmall,6,180,300,Color(255,0,255));
 
-	surface.draw(gfx->ButtonSymbolsSmall,7,60,320,Color(255,0,0));
-	surface.draw(gfx->ButtonSymbolsSmall,8,80,320,Color(64,128,64));
-	surface.draw(gfx->ButtonSymbolsSmall,9,100,320,Color(64,128,255));
-	surface.draw(gfx->ButtonSymbolsSmall,21,120,320,Color(255,255,255));
-	surface.draw(gfx->ButtonSymbolsSmall,20,140,320,Color(255,255,255));
+		surface.draw(gfx->ButtonSymbolsSmall,0,60,300,Color(255,255,255));
+		surface.draw(gfx->ButtonSymbolsSmall,1,80,300,Color(255,200,100));
+		surface.draw(gfx->ButtonSymbolsSmall,2,100,300,Color(238,85,193));
+		surface.draw(gfx->ButtonSymbolsSmall,3,120,300,Color(0,255,0));
+		surface.draw(gfx->ButtonSymbolsSmall,4,140,300,Color(0,255,255));
+		surface.draw(gfx->ButtonSymbolsSmall,5,160,300,Color(0,0,255));
+		surface.draw(gfx->ButtonSymbolsSmall,6,180,300,Color(255,0,255));
 
-	c=surface.getPixel(64,304); if (!c.match(0xffffffff)) failed=true;
-	c=surface.getPixel(82,303); if (!c.match(0xffd0a689)) failed=true;
-	c=surface.getPixel(105,307); if (!c.match(0xffa44cdb)) failed=true;
-		 */
+		surface.draw(gfx->ButtonSymbolsSmall,7,60,320,Color(255,0,0));
+		surface.draw(gfx->ButtonSymbolsSmall,8,80,320,Color(64,128,64));
+		surface.draw(gfx->ButtonSymbolsSmall,9,100,320,Color(64,128,255));
+		surface.draw(gfx->ButtonSymbolsSmall,21,120,320,Color(255,255,255));
+		surface.draw(gfx->ButtonSymbolsSmall,20,140,320,Color(255,255,255));
+
+		c=surface.getPixel(64,304); if (!c.match(0xffffffff)) failed=true;
+		c=surface.getPixel(82,303); if (!c.match(0xffd0a689)) failed=true;
+		c=surface.getPixel(105,307); if (!c.match(0xffa44cdb)) failed=true;
+
 
 	} catch (Exception &e) {
 		printf ("failed! %s\n",e.what());
@@ -1283,9 +1276,8 @@ int DoButton(Drawable &surface, int &num)
 			}
 		}
 
-		/*TODO:
-	draw.draw(gfx->Toolbar,24,x1+4,y1+(y2-y1-16)/2);
-		 */
+		draw.draw(gfx->Toolbar,24,x1+4,y1+(y2-y1-16)/2);
+
 		//draw.draw(gfx->Toolbar,0,8,8);
 
 		Font Font;

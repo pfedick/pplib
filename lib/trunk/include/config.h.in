@@ -293,6 +293,7 @@
 #undef HAVE_TIFF
 #undef HAVE_JPEG
 #undef HAVE_PNG
+#undef HAVE_IMAGEMAGICK
 #undef HAVE_FREETYPE2
 #undef HAVE_SDL
 #undef HAVE_X11

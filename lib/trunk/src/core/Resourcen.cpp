@@ -48,28 +48,27 @@
 #endif
 
 namespace ppl7 {
+
 #include "../resource/res.h"
 
-static Resource *Resource=NULL;
+static Resource *pplResource=NULL;
 
-static int PPLExitResource(void *data)
+static void PPLExitResource()
 {
-	if (Resource) delete Resource;
-	Resource=NULL;
-	return 1;
+	if (pplResource) delete pplResource;
+	pplResource=NULL;
 }
 
 Resource *GetPPLResource()
 {
-	if (!Resource) {
+	if (!pplResource) {
 		Resource *r;
-		r=new CResource;
-		r->useMemory(PPL6_RESOURCES,sizeof(PPL6_RESOURCES));
-		Resource=r;
+		r=new Resource;
+		r->useMemory(PPL7_RESOURCES,sizeof(PPL7_RESOURCES));
+		pplResource=r;
 		atexit(PPLExitResource);
-		Resource=r;
 	}
-	return Resource;
+	return pplResource;
 }
 
 

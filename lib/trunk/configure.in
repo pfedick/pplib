@@ -39,8 +39,10 @@ sinclude(autoconf/ax_gcc_archflag.m4)
 sinclude(autoconf/ldns.m4)
 sinclude(autoconf/mpg123.m4)
 sinclude(autoconf/lame.m4)
-sinclude(config/ogg.m4)
-sinclude(config/shout.m4)
+sinclude(autoconf/ogg.m4)
+sinclude(autoconf/shout.m4)
+sinclude(autoconf/imagemagick.m4)
+
 
 AC_CANONICAL_TARGET
 
@@ -292,6 +294,8 @@ XIPH_PATH_SHOUT(
 
 report_have_libmad="no"
 
+
+
 report_have_iconv="no"
 AM_ICONV
 if test "$am_cv_func_iconv_works" = "yes" 
@@ -350,6 +354,15 @@ AC_CHECK_LIBPNG([1.2],
 			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $PNG_CFLAGS"
 			GRAPHIC_LIBS="$GRAPHIC_LIBS $PNG_LIBS",
            :)
+
+report_have_libimlib="no"
+AX_PATH_LIB_IMLIB([1.9.0],
+	AC_DEFINE(HAVE_IMAGEMAGICK, 1, [ Define if you have imlib. ])
+	report_have_libimlib="yes"
+	AC_SUBST(IMLIB_CFLAGS)
+	AC_SUBST(IMLIB_LIBS)
+	, :)
+
 
 report_have_mysql="no"
 AC_CHECK_MYSQL([4.0],
@@ -502,6 +515,7 @@ AC_SUBST(report_have_pthreads)
 AC_SUBST(report_have_ldns)
 AC_SUBST(report_have_libogg)
 AC_SUBST(report_have_libshout)
+AC_SUBST(report_have_libimlib)
 
 
 dnl report configuration
@@ -523,6 +537,7 @@ AC_MSG_RESULT([
 **   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
 **   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
 **   JPEG library:         $report_have_jpeg
+**   ImageMagick library:  $report_have_libimlib
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl		  
 **   Lame library:         $report_have_lame		  

@@ -612,6 +612,7 @@ SOUND_LIBS
 SOUND_CFLAGS
 GRAPHIC_LIBS
 GRAPHIC_CFLAGS
+report_have_libimlib
 report_have_libshout
 report_have_libogg
 report_have_ldns
@@ -656,6 +657,9 @@ PGSQL_CFLAGS
 mysqlconfig
 MYSQL_LIBS
 MYSQL_CFLAGS
+imlibconfig
+IMLIB_LIBS
+IMLIB_CFLAGS
 pngconfig
 FT2_LIBS
 FT2_CFLAGS
@@ -828,6 +832,7 @@ with_ft_prefix
 with_ft_exec_prefix
 enable_freetypetest
 with_png
+with_imlib
 with_mysql
 with_pgsql
 with_libldns
@@ -1518,6 +1523,7 @@ Optional Packages:
        --with-ft-exec-prefix=PREFIX
                           Exec prefix where FreeType is installed (optional)
   --with-png[=PATH]     Prefix where libpng is installed (optional)
+  --with-imlib[=PATH]      Prefix where ImageMagick is installed (default=autodetected)
   --with-mysql[=PATH]     Prefix where mysql is installed (optional)
   --with-pgsql[=PATH]     Prefix where PostgreSQL is installed (optional)
   --with-libldns[=PATH]  Prefix where LDNS-Library from netlabs.nl is installed
@@ -3023,6 +3029,19 @@ ac_config_headers="$ac_config_headers include/ppl7-unixconfig.h"
 
 
 
+
+
+
+# Configure paths for libogg
+# Jack Moffitt <jack@icecast.org> 10-21-2000
+# Shamelessly stolen from Owen Taylor and Manish Singh
+
+
+
+
+# XIPH_PATH_SHOUT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
+# Test for libshout, and define SHOUT_CPPFLAGS SHOUT_CFLAGS SHOUT_LIBS, and
+# SHOUT_THREADSAFE
 
 
 
@@ -11827,6 +11846,8 @@ fi
 
 report_have_libmad="no"
 
+
+
 report_have_iconv="no"
 
       if test "X$prefix" = "XNONE"; then
@@ -13610,6 +13631,111 @@ $as_echo "#define HAVE_PNG 1" >>confdefs.h
 
 
 
+report_have_libimlib="no"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking lib ImageMagick" >&5
+$as_echo_n "checking lib ImageMagick... " >&6; }
+
+
+# Check whether --with-imlib was given.
+if test "${with_imlib+set}" = set; then :
+  withval=$with_imlib; imlib_prefix="$withval"
+else
+  imlib_prefix=""
+fi
+
+
+
+if test "$imlib_prefix" != "no"
+then
+	save_path=$PATH
+	if test -n "$imlib_prefix"
+	then
+		if test "$imlib_prefix" != "yes"
+		then
+			PATH=$imlib_prefix:$PATH
+			export PATH
+		fi
+	fi
+	echo "Suche nach imlib, imlib_prefix=$imlib_prefix, PATH: $PATH"
+	# Extract the first word of "MagickWand-config", so it can be a program name with args.
+set dummy MagickWand-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_imlibconfig+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $imlibconfig in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_imlibconfig="$imlibconfig" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_imlibconfig="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+imlibconfig=$ac_cv_path_imlibconfig
+if test -n "$imlibconfig"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $imlibconfig" >&5
+$as_echo "$imlibconfig" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+	PATH=$save_path
+	echo "imlibconfig=$imlibconfig"
+	if test  ! -x "$imlibconfig"  ; then
+		imlibconfig=""
+	fi
+
+	if test  -z "$imlibconfig"
+	then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		:
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $imlibconfig" >&5
+$as_echo "yes: $imlibconfig" >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking imlib libraries" >&5
+$as_echo_n "checking imlib libraries... " >&6; }
+		IMLIB_LIBS=`${imlibconfig} --libs`
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $IMLIB_LIBS" >&5
+$as_echo "$IMLIB_LIBS" >&6; }
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking imlib includes" >&5
+$as_echo_n "checking imlib includes... " >&6; }
+		IMLIB_CFLAGS=`${imlibconfig} --cflags`
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $IMLIB_CFLAGS" >&5
+$as_echo "$IMLIB_CFLAGS" >&6; }
+
+$as_echo "#define HAVE_IMAGEMAGICK 1" >>confdefs.h
+
+	report_have_libimlib="yes"
+
+
+
+	fi
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not configured" >&5
+$as_echo "not configured" >&6; }
+fi
+
+
+
 report_have_mysql="no"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for MySQL" >&5
@@ -14542,6 +14668,7 @@ esac;
 
 
 
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:
 ******************************************************************************
 ** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
@@ -14560,6 +14687,7 @@ esac;
 **   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
 **   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
 **   JPEG library:         $report_have_jpeg
+**   ImageMagick library:  $report_have_libimlib
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
@@ -14594,6 +14722,7 @@ $as_echo "
 **   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
 **   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
 **   JPEG library:         $report_have_jpeg
+**   ImageMagick library:  $report_have_libimlib
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame

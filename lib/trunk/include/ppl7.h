@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@
 #define PPL_VERSION_MINOR	0
 #define PPL_VERSION_BUILD	0
 #define PPL_RELEASEDATE		20110421
+#define PPL_COPYRIGHT		"Copyright (c) 2011 by Patrick Fedick"
 
 // Inlcude PPL7 configuration file
 #ifndef _PPL7_CONFIG
@@ -594,7 +595,6 @@ class FileObject
 class MemFile : public FileObject
 {
 	private:
-		char * buffer;
 		size_t	mysize;
 		size_t	pos;
 		char * MemBase;
@@ -1022,6 +1022,7 @@ class Resource
 		Resource();
 		~Resource();
 		void clear();
+		void list();
 		void load(const String &filename);
 		void load(FileObject &file);
 		void load(const ByteArrayPtr &memory);
@@ -1042,7 +1043,7 @@ class Resource
 		ByteArrayPtr getMemory(const String &name);
 
 		static Resource *getPPLResource();
-		static int generateResourceHeader(const String &basispfad, const String &configfile, const String &targetfile, const String &label);
+		static void generateResourceHeader(const String &basispfad, const String &configfile, const String &targetfile, const String &label);
 };
 
 Resource *GetPPLResource();

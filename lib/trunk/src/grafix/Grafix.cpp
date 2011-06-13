@@ -119,6 +119,7 @@ Grafix::Grafix()
 	filter_gif=NULL;
 	filter_ppm=NULL;
 	filter_tga=NULL;
+	filter_magick=NULL;
 	initAlphatab();
 
 	// Farbformat-abhängige Funktionen initialisieren
@@ -148,6 +149,10 @@ Grafix::Grafix()
 	filter_jpeg=new ImageFilter_JPEG;
 	addImageFilter(filter_jpeg);
 #endif
+#ifdef HAVE_IMAGEMAGICK
+	filter_magick=new ImageFilter_ImageMagick;
+	addImageFilter(filter_magick);
+#endif
 	/*
 	filter_ppm=new ImageFilter_PPM;
 	AddFilter(filter_ppm);
@@ -163,17 +168,13 @@ Grafix::Grafix()
 	addFontEngine(freetype);
 #endif
 
-	/*
-	CResource *res=GetPPLResource();
+	Resource *res=GetPPLResource();
 
-	LoadFont(res->GetMemory(34),"PPL Liberation Sans");
-	LoadFont(res->GetMemory(35),"PPL Liberation Mono");
-
-
-	Toolbar.load(res->GetMemory(14),16,16,CImageList::ALPHABLT);
-	Icons32.load(res->GetMemory(13),32,32,CImageList::ALPHABLT);
-	ButtonSymbolsSmall.load(res->GetMemory(12),9,9,CImageList::DIFFUSE);
-	*/
+	loadFont(res->getMemory(34),"Default");
+	loadFont(res->getMemory(35),"Default Mono");
+	Toolbar.load(res->getMemory(14),16,16,ImageList::ALPHABLT);
+	Icons32.load(res->getMemory(13),32,32,ImageList::ALPHABLT);
+	ButtonSymbolsSmall.load(res->getMemory(12),9,9,ImageList::DIFFUSE);
 }
 
 
@@ -181,8 +182,6 @@ Grafix::~Grafix()
 {
 	/*
 	FontList.Clear(true);
-	FontEngines.Clear(true);
-	ImageFilter.Clear(true);
 	*/
 	if (alphatab) free(alphatab);
 
@@ -193,12 +192,26 @@ Grafix::~Grafix()
 		FontEngineList.erase(engine);
 		delete engine;
 	}
-	ImageFilterList.erase(filter_png);
-	delete filter_png;
-	ImageFilterList.erase(filter_jpeg);
-	delete filter_jpeg;
-	ImageFilterList.erase(filter_bmp);
-	delete filter_bmp;
+	/*
+	if (filter_magick) {
+		ImageFilterList.erase(filter_magick);
+		delete filter_magick;
+	}
+	*/
+
+	if (filter_png) {
+		ImageFilterList.erase(filter_png);
+		delete filter_png;
+	}
+	if (filter_jpeg) {
+		ImageFilterList.erase(filter_jpeg);
+		delete filter_jpeg;
+	}
+	if (filter_bmp) {
+		ImageFilterList.erase(filter_bmp);
+		delete filter_bmp;
+	}
+
 	//ImageFilterList.erase(filter_gif);
 	//delete filter_gif;
 	//ImageFilterList.erase(filter_ppm);

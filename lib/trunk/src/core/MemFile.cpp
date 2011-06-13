@@ -100,7 +100,6 @@ MemFile::MemFile ()
 {
 	mysize=0;
 	pos=0;
-	buffer=NULL;
 	MemBase=NULL;
 }
 
@@ -121,7 +120,6 @@ MemFile::MemFile (void * adresse, size_t size)
 	#endif
 
 	MemBase=NULL;
-	buffer=NULL;
 	pos=0;
 	open(adresse,size);
 }
@@ -139,7 +137,6 @@ MemFile::MemFile (const ByteArrayPtr &memory)
 {
 	if (memory.isEmpty()) {
 		MemBase=NULL;
-		buffer=NULL;
 		pos=0;
 		return;
 	}
@@ -150,7 +147,7 @@ MemFile::MemFile (const ByteArrayPtr &memory)
 
 MemFile::~MemFile()
 {
-	if (buffer) free(buffer);
+
 }
 
 /*!\brief Speicherbereich öffnen
