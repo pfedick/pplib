@@ -42,6 +42,7 @@ sinclude(autoconf/lame.m4)
 sinclude(autoconf/ogg.m4)
 sinclude(autoconf/shout.m4)
 sinclude(autoconf/imagemagick.m4)
+sinclude(autoconf/tiff.m4)
 
 
 AC_CANONICAL_TARGET
@@ -248,6 +249,15 @@ AC_CHECK_LIBJPEG([1.2],
 			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
 			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS",
            :)
+
+report_have_libtiff="no"
+AC_CHECK_LIBJPEG([1.2],
+            AC_DEFINE(HAVE_TIFF, 1, [ Define if you have libtiff. ])
+            report_have_libtiff="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $TIFF_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $TIFF_LIBS",
+           :)
+
 
 report_have_curl="no"
 LIBCURL_CHECK_CONFIG("yes",7.14.1,
@@ -516,6 +526,7 @@ AC_SUBST(report_have_ldns)
 AC_SUBST(report_have_libogg)
 AC_SUBST(report_have_libshout)
 AC_SUBST(report_have_libimlib)
+AC_SUBST(report_have_libtiff)
 
 
 dnl report configuration
@@ -538,6 +549,7 @@ AC_MSG_RESULT([
 **   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
 **   JPEG library:         $report_have_jpeg
 **   ImageMagick library:  $report_have_libimlib
+**   TIFF library:         $report_have_libtiff
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl		  
 **   Lame library:         $report_have_lame		  

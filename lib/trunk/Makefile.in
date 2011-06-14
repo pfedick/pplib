@@ -88,6 +88,7 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_ImageFilter_PNG.o \
 	release/gfx_ImageFilter_PPM.o \
 	release/gfx_ImageFilter_TGA.o \
+	release/gfx_ImageFilter_TIFF.o \
 	release/gfx_ImageList.o \
 	release/gfx_Point.o \
 	release/gfx_Point3D.o \
@@ -151,6 +152,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_ImageFilter_PNG.o \
 	debug/gfx_ImageFilter_PPM.o \
 	debug/gfx_ImageFilter_TGA.o \
+	debug/gfx_ImageFilter_TIFF.o \
 	debug/gfx_ImageList.o \
 	debug/gfx_Point.o \
 	debug/gfx_Point3D.o \
@@ -553,6 +555,11 @@ release/gfx_ImageFilter_TGA.o:	$(srcdir)/grafix/ImageFilter_TGA.cpp $(incdir)/pp
 	# Compiling >>>grafix/ImageFilter_TGA.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_TGA.o -c $(srcdir)/grafix/ImageFilter_TGA.cpp $(CFLAGS) 
 
+release/gfx_ImageFilter_TIFF.o:	$(srcdir)/grafix/ImageFilter_TIFF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_TIFF.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_TIFF.o -c $(srcdir)/grafix/ImageFilter_TIFF.cpp $(CFLAGS) 
+
 release/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageList.cpp<<<
@@ -896,6 +903,11 @@ debug/gfx_ImageFilter_TGA.o:	$(srcdir)/grafix/ImageFilter_TGA.cpp $(incdir)/ppl7
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_TGA.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageFilter_TGA.o -c $(srcdir)/grafix/ImageFilter_TGA.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter_TIFF.o:	$(srcdir)/grafix/ImageFilter_TIFF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_TIFF.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter_TIFF.o -c $(srcdir)/grafix/ImageFilter_TIFF.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################

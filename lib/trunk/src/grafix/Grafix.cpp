@@ -161,12 +161,11 @@ Grafix::Grafix()
 	filter_tiff=new ImageFilter_TIFF;
 	addImageFilter(filter_tiff);
 #endif
-	/*
 	filter_ppm=new ImageFilter_PPM;
 	addImageFilter(filter_ppm);
+
 	filter_tga=new ImageFilter_TGA;
 	addImageFilter(filter_tga);
-	*/
 
 
 	FontEngineFont5 *font5=new FontEngineFont5;

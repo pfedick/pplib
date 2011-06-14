@@ -1199,7 +1199,7 @@ int DoPPM(Drawable &surface, int &num)
 	Image Img;
 	try {
 		Img.load("testdata/test.ppm",RGBFormat::A8R8G8B8);
-		PresentImage(surface, Img,"PPM",100,220);
+		PresentImage(surface, Img,"PPM",10+4*90,310);
 	} catch (Exception &e) {
 		printf ("failed! %s\n",e.what());
 		return 0;
@@ -1221,6 +1221,28 @@ int DoTGA(Drawable &surface, int &num)
 	try {
 		Img.load("testdata/test.tga",RGBFormat::A8R8G8B8);
 		PresentImage(surface, Img,"TGA",10+5*90,340);
+	} catch (Exception &e) {
+		printf ("failed! %s\n",e.what());
+		return 0;
+	}
+	if (failed ){
+		printf ("failed!\n");
+		return 0;
+	}
+	printf ("ok\n");
+	return 1;
+}
+
+
+int DoTIFF(Drawable &surface, int &num)
+{
+	num++;
+	printf ("Test %i: TIFF-Load... ", num);
+	bool failed=false;
+	Image Img;
+	try {
+		Img.load("testdata/test.tif",RGBFormat::A8R8G8B8);
+		PresentImage(surface, Img,"TIFF",10+6*90,370);
 	} catch (Exception &e) {
 		printf ("failed! %s\n",e.what());
 		return 0;
@@ -1392,6 +1414,7 @@ int main(int argc, char **argv)
 	DoGIF(Image,count);
 	DoPPM(Image,count);
 	DoTGA(Image,count);
+	DoTIFF(Image,count);
 
 	DoLoadIcons(Icons,count);
 

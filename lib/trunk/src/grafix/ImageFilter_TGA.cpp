@@ -51,41 +51,40 @@
 namespace ppl7 {
 namespace grafix {
 
-/*!\class CFilter_TGA
+/*!\class ImageFilter_TGA
  * \ingroup PPLGroupGrafik
  * \brief Import-Filter für TGA-Dateien
  */
 
-#ifdef DONE
 typedef struct _TgaHeader {
-	ppldb IDLength;		/* 00h Size of Image ID field */
-	ppldb ColorMapType;	/* 01h Color map type */
-	ppldb ImageType;		/* 02h Image type code */
-	ppldw CMapStart;		/* 03h Color map origin */
-	ppldw CMapLength;	/* 05h Color map length */
-	ppldb CMapDepth;		/* 07h Depth of color map entries */
-	ppldw XOffset;		/* 08h X origin of image */
-	ppldw YOffset;		/* 0Ah Y origin of image */
-	ppldw Width;		/* 0Ch Width of image */
-	ppldw Height;		/* 0Eh Height of image */
-	ppldb PixelDepth;	/* 10h Image pixel size */
-	ppldb ImageDescriptor;	/* 11h Image descriptor byte */
+	ppluint8 IDLength;		/* 00h Size of Image ID field */
+	ppluint8 ColorMapType;	/* 01h Color map type */
+	ppluint8 ImageType;		/* 02h Image type code */
+	ppluint16 CMapStart;		/* 03h Color map origin */
+	ppluint16 CMapLength;	/* 05h Color map length */
+	ppluint8 CMapDepth;		/* 07h Depth of color map entries */
+	ppluint16 XOffset;		/* 08h X origin of image */
+	ppluint16 YOffset;		/* 0Ah Y origin of image */
+	ppluint16 Width;		/* 0Ch Width of image */
+	ppluint16 Height;		/* 0Eh Height of image */
+	ppluint8 PixelDepth;	/* 10h Image pixel size */
+	ppluint8 ImageDescriptor;	/* 11h Image descriptor byte */
 } TGAHEAD;
 
 static void PeekHeader(const char *address, TGAHEAD *tga)
 {
-	tga->IDLength=(ppldb)peekb(address+0);
-	tga->ColorMapType=(ppldb)peekb(address+1);
-	tga->ImageType=(ppldb)peekb(address+2);
-	tga->CMapStart=(ppldw)peekw(address+3);
-	tga->CMapLength=(ppldw)peekw(address+5);
-	tga->CMapDepth=(ppldb)peekb(address+7);
-	tga->XOffset=(ppldw)peekw(address+8);
-	tga->YOffset=(ppldw)peekw(address+10);
-	tga->Width=(ppldw)peekw(address+12);
-	tga->Height=(ppldw)peekw(address+14);
-	tga->PixelDepth=(ppldb)peekb(address+16);
-	tga->ImageDescriptor=(ppldb)peekb(address+17);
+	tga->IDLength=(ppluint8)Peek8(address+0);
+	tga->ColorMapType=(ppluint8)Peek8(address+1);
+	tga->ImageType=(ppluint8)Peek8(address+2);
+	tga->CMapStart=(ppluint16)Peek16(address+3);
+	tga->CMapLength=(ppluint16)Peek16(address+5);
+	tga->CMapDepth=(ppluint8)Peek8(address+7);
+	tga->XOffset=(ppluint16)Peek16(address+8);
+	tga->YOffset=(ppluint16)Peek16(address+10);
+	tga->Width=(ppluint16)Peek16(address+12);
+	tga->Height=(ppluint16)Peek16(address+14);
+	tga->PixelDepth=(ppluint8)Peek8(address+16);
+	tga->ImageDescriptor=(ppluint8)Peek8(address+17);
 }
 
 /*
@@ -106,52 +105,51 @@ static void PrintTGAHeader(TGAHEAD *tga)
 }
 */
 
-CFilter_TGA::CFilter_TGA()
+ImageFilter_TGA::ImageFilter_TGA()
 {
 }
 
-CFilter_TGA::~CFilter_TGA()
+ImageFilter_TGA::~ImageFilter_TGA()
 {
 }
 
-int CFilter_TGA::Ident(CFileObject &file, IMAGE &img)
+int ImageFilter_TGA::ident(FileObject &file, IMAGE &img)
 {
-	TGAHEAD tgafield, *tga=&tgafield;
-    const char *address=file.Map(0,256);
-    if (address==NULL) return false;
-	PeekHeader(address,tga);
-	//PrintTGAHeader(tga);
+	try {
+		TGAHEAD tgafield, *tga=&tgafield;
+		const char *address=file.map(0,256);
+		if (address==NULL) return 0;
+		PeekHeader(address,tga);
+		//PrintTGAHeader(tga);
 
-	//printf ("Pruefe auf TGA... ");
+		//printf ("Pruefe auf TGA... ");
 
-	if (tga->IDLength==0 &&
-		tga->ColorMapType==0 &&
-		(tga->ImageDescriptor==32 || tga->ImageDescriptor==0) &&
-		(tga->PixelDepth==24 || tga->PixelDepth==32) &&
-		(tga->ImageType==2	|| tga->ImageType==10) ) {
-			img.width=(ppldd)tga->Width;
-			img.height=(ppldd)tga->Height;
-			img.bitdepth=(ppldd)tga->PixelDepth;
+		if (tga->IDLength==0 &&
+				tga->ColorMapType==0 &&
+				(tga->ImageDescriptor==32 || tga->ImageDescriptor==0) &&
+				(tga->PixelDepth==24 || tga->PixelDepth==32) &&
+				(tga->ImageType==2	|| tga->ImageType==10) ) {
+			img.width=(ppluint32)tga->Width;
+			img.height=(ppluint32)tga->Height;
+			img.bitdepth=(ppluint32)tga->PixelDepth;
 			img.pitch=img.width*img.bitdepth/8;
-			img.colors=(ppldd)256*256*256;
-			SetError(0);
-			//printf ("ok\n");
-			return true;
+			img.colors=(ppluint32)256*256*256;
+			return 1;
 
+		}
+	} catch (...) {
+		return 0;
 	}
-	//printf ("failed\n");
-	SetError(20);
-	return false;
+	return 0;
 }
 
-int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
+void ImageFilter_TGA::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
 	TGAHEAD tgafield, *tga=&tgafield;
 	ppluint8 	* b1;
-	ppldd   gby,by;
+	ppluint32   gby,by;
 	Color	farbwert;
-    ppluint8 *address=(ppluint8*)file.Map();
-	if (address==NULL) {SetError(2); return false; }
+    ppluint8 *address=(ppluint8*)file.map();
 
 	PeekHeader((char*)address,tga);
 
@@ -164,7 +162,7 @@ int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
     //printf ("img->width: %u, img->height: %u, img->bitdepth: %u\n",img->width, img->height, img->bitdepth);
 
 	b1=address+18+tga->IDLength;
-	ppldd mpl=3;
+	ppluint32 mpl=3;
 
 	switch (tga->ImageType) {
 		case 2:					// Unkomprimierte Daten
@@ -188,8 +186,7 @@ int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
                 	b1+=img.pitch;
             	}
 			}
-            return true;
-			break;
+            return;
 
 		case 10:				// Komprimierte Daten
 			int y=0,x=0,byte1,repeat;
@@ -200,7 +197,7 @@ int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 
 
 			while (zeilen<img.height) {
-				byte1=peekb((char*)b1++);
+				byte1=Peek8((char*)b1++);
 				repeat=(byte1&127)+1;
 				if (byte1&128) {	// Bit 7 gesetzt, es folgt daher ein Farbwert zur Wiederholung
 					if (tga->PixelDepth==24) {
@@ -232,32 +229,28 @@ int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 					}
 				}
 			}
-			return true;
-			break;
+			return;
 
 	} // end switch
-
-	SetError(33);
-	return false;
+	throw UnknownImageFormatException();
 }
 
-int CFilter_TGA::Save (const CDrawable &surface, CFileObject &file, CAssocArray *param)
+void ImageFilter_TGA::save (const Drawable &surface, FileObject &file, const AssocArray &param)
 {
-	SetError(1020);
-	return false;
+	throw UnsupportedFeatureException("ImageFilter_TGA::save");
 }
 
-CString CFilter_TGA::Name()
+String ImageFilter_TGA::name()
 {
-	return "TGA";
+	return L"TGA";
 }
 
-CString CFilter_TGA::Description()
+String ImageFilter_TGA::description()
 {
-	return "TGA (Loader only)";
+	return L"TGA (Loader only)";
 }
 
-#endif
+
 } // EOF namespace grafix
 } // EOF namespace ppl7
 

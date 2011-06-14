@@ -612,6 +612,7 @@ SOUND_LIBS
 SOUND_CFLAGS
 GRAPHIC_LIBS
 GRAPHIC_CFLAGS
+report_have_libtiff
 report_have_libimlib
 report_have_libshout
 report_have_libogg
@@ -3042,6 +3043,7 @@ ac_config_headers="$ac_config_headers include/ppl7-unixconfig.h"
 # XIPH_PATH_SHOUT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 # Test for libshout, and define SHOUT_CPPFLAGS SHOUT_CFLAGS SHOUT_LIBS, and
 # SHOUT_THREADSAFE
+
 
 
 
@@ -10838,6 +10840,98 @@ $as_echo "no" >&6; }
 	fi
 
 
+report_have_libtiff="no"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libjpeg" >&5
+$as_echo_n "checking for libjpeg... " >&6; }
+
+
+# Check whether --with-jpeg was given.
+if test "${with_jpeg+set}" = set; then :
+  withval=$with_jpeg; jpeg_prefix="$withval"
+else
+  jpeg_prefix="no"
+fi
+
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpng" >&5
+$as_echo_n "checking for libpng... " >&6; }
+	if test "$jpeg_prefix" != "no"
+	then
+
+		am_save_CPPFLAGS="$CPPFLAGS"
+		am_save_LIBS="$LIBS"
+		am_save_LDFLAGS="$LDFLAGS"
+
+		LIBS="$LIBS -L/usr/local/lib -L/usr/lib"
+		CFLAGS="$CFLAGS -I/usr/local/include -I/usr/include"
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for jpeg_finish_decompress in -ljpeg" >&5
+$as_echo_n "checking for jpeg_finish_decompress in -ljpeg... " >&6; }
+if ${ac_cv_lib_jpeg_jpeg_finish_decompress+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ljpeg  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char jpeg_finish_decompress ();
+int
+main ()
+{
+return jpeg_finish_decompress ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_jpeg_jpeg_finish_decompress=yes
+else
+  ac_cv_lib_jpeg_jpeg_finish_decompress=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jpeg_jpeg_finish_decompress" >&5
+$as_echo "$ac_cv_lib_jpeg_jpeg_finish_decompress" >&6; }
+if test "x$ac_cv_lib_jpeg_jpeg_finish_decompress" = xyes; then :
+  JPEG_LIBS="-ljpeg"
+			JPEG_CFLAGS=""
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_TIFF 1" >>confdefs.h
+
+            report_have_libtiff="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $TIFF_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $TIFF_LIBS"
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+			:
+		:
+fi
+
+		CPPFLAGS="$am_save_CPPFLAGS"
+		LIBS="$am_save_LIBS"
+		LDFLAGS="$am_save_LDFLAGS"
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		:
+	fi
+
+
+
 report_have_curl="no"
 
 
@@ -14669,6 +14763,7 @@ esac;
 
 
 
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:
 ******************************************************************************
 ** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
@@ -14688,6 +14783,7 @@ esac;
 **   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
 **   JPEG library:         $report_have_jpeg
 **   ImageMagick library:  $report_have_libimlib
+**   TIFF library:         $report_have_libtiff
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
@@ -14723,6 +14819,7 @@ $as_echo "
 **   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
 **   JPEG library:         $report_have_jpeg
 **   ImageMagick library:  $report_have_libimlib
+**   TIFF library:         $report_have_libtiff
 **   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
