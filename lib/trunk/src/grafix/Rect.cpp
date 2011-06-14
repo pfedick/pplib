@@ -234,8 +234,8 @@ void Rect::setRect(int x, int y, int width, int height)
 {
 	x1=x;
 	y1=y;
-	x2=x+width-1;
-	y2=y+height-1;
+	x2=x+width;
+	y2=y+height;
 }
 
 void Rect::setRect(const RECT &r)

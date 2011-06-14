@@ -171,8 +171,13 @@ void ImageFilter_TIFF::load(FileObject &file, Drawable &surface, IMAGE &img)
 	    closeproc, sizeproc, NULL, NULL);
 	if (tif==NULL) throw UnknownImageFormatException();
 	uint32 w, h;
+	uint16 o;
 	TIFFGetField(tif, TIFFTAG_IMAGEWIDTH, &w);
 	TIFFGetField(tif, TIFFTAG_IMAGELENGTH, &h);
+	TIFFGetField(tif, TIFFTAG_ORIENTATION, &o);
+
+	//printf ("Orientation: %i\n",o);
+
 	size_t npixels = w * h;
 	uint32* raster = (uint32*) _TIFFmalloc(npixels * sizeof (uint32));
 	if (raster == NULL) {
