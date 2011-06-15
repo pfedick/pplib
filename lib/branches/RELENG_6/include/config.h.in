@@ -288,7 +288,7 @@
  * Databases
  */
 #undef HAVE_MYSQL
-#undef HAVE_POSTGRES
+#undef HAVE_POSTGRESQL
 #undef HAVE_FREETDS
 #undef HAVE_SYBASE
 

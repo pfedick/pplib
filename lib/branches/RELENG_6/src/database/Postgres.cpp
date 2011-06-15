@@ -57,7 +57,7 @@
 #include "ppl6.h"
 #include "ppl6-db.h"
 
-#ifdef HAVE_POSTGRES
+#ifdef HAVE_POSTGRESQL
 #include <libpq-fe.h>
 #endif
 
@@ -65,7 +65,7 @@ namespace ppl6 {
 namespace db {
 
 
-#ifdef HAVE_POSTGRES
+#ifdef HAVE_POSTGRESQL
 class PostgresResult : public Result
 {
 	friend class Postgres;
@@ -336,7 +336,7 @@ Postgres::Postgres()
 
 Postgres::~Postgres()
 {
-#ifdef HAVE_POSTGRES
+#ifdef HAVE_POSTGRESQL
 	PushError();
 	if (conn) Disconnect();
 	PopError();
@@ -345,7 +345,7 @@ Postgres::~Postgres()
 
 int Postgres::Connect(const CAssocArray &params)
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -400,7 +400,7 @@ int Postgres::ConnectCreate(const CAssocArray &params)
 
 int Postgres::Reconnect()
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -426,7 +426,7 @@ int Postgres::Reconnect()
 
 int Postgres::Disconnect()
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -447,7 +447,7 @@ int Postgres::Disconnect()
 
 int Postgres::SelectDB(const char *databasename)
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -486,7 +486,7 @@ int Postgres::SelectDB(const char *databasename)
  */
 void *Postgres::Pgsql_Query(const CString &query)
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return NULL;
 #else
@@ -524,7 +524,7 @@ void *Postgres::Pgsql_Query(const CString &query)
 
 int Postgres::Exec(const CString &query)
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -549,7 +549,7 @@ int Postgres::Exec(const CString &query)
 
 Result *Postgres::Query(const CString &query)
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return NULL;
 #else
@@ -593,7 +593,7 @@ void Postgres::SetMaxRows(ppluint64 rows)
 
 int Postgres::Ping()
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -616,7 +616,7 @@ int Postgres::Ping()
 
 int Postgres::Escape(CString &str)
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -655,7 +655,7 @@ pplint64 Postgres::GetAffectedRows()
 
 int Postgres::StartTransaction()
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -676,7 +676,7 @@ int Postgres::StartTransaction()
 
 int Postgres::EndTransaction()
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -697,7 +697,7 @@ int Postgres::EndTransaction()
 
 int Postgres::CancelTransaction()
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -718,7 +718,7 @@ int Postgres::CancelTransaction()
 
 int Postgres::CancelTransactionComplete()
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
@@ -732,7 +732,7 @@ int Postgres::CancelTransactionComplete()
 
 int Postgres::CreateDatabase(const char *name)
 {
-#ifndef HAVE_POSTGRES
+#ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
