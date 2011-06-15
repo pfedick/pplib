@@ -50,7 +50,7 @@ AC_DEFUN([AX_LIB_POSTGRESQL],
 [
     AC_ARG_WITH([postgresql],
         AS_HELP_STRING([--with-postgresql=@<:@ARG@:>@],
-            [use PostgreSQL library @<:@default=yes@:>@, optionally specify path to pg_config]
+            [use PostgreSQL library @<:@default=no@:>@, optionally specify path to pg_config]
         ),
         [
         if test "$withval" = "no"; then
@@ -62,7 +62,7 @@ AC_DEFUN([AX_LIB_POSTGRESQL],
             PG_CONFIG="$withval"
         fi
         ],
-        [want_postgresql="yes"]
+        [want_postgresql="no"]
     )
 
     POSTGRESQL_CFLAGS=""
