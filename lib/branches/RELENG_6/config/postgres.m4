@@ -78,6 +78,9 @@ AC_DEFUN([AX_LIB_POSTGRESQL],
         if test -z "$PG_CONFIG" -o test; then
             AC_PATH_PROG([PG_CONFIG], [pg_config], [])
         fi
+        if test -d "$PG_CONFIG"; then
+        	PG_CONFIG="$PG_CONFIG/bin/pg_config"
+        fi
 
         if test ! -x "$PG_CONFIG"; then
             AC_MSG_ERROR([$PG_CONFIG does not exist or it is not an exectuable file])
