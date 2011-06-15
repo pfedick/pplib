@@ -12443,6 +12443,9 @@ fi
 
 
         fi
+        if test -d "$PG_CONFIG"; then
+        	PG_CONFIG="$PG_CONFIG/bin/pg_config"
+        fi
 
         if test ! -x "$PG_CONFIG"; then
             as_fn_error $? "$PG_CONFIG does not exist or it is not an exectuable file" "$LINENO" 5
