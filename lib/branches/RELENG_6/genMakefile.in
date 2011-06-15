@@ -70,14 +70,14 @@ find_c_files() {
 release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl6.h \$(incdir)/ppl6-unixconfig.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O3 -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
+	\$(CXX) -Wall -O3 -o release/$4$BASENAME.o -c \$(CFLAGS) $3 \$(srcdir)/$1/$file
 "
 
 		COMPILE_DEBUG="$COMPILE_DEBUG
 debug/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl6.h \$(incdir)/ppl6-unixconfig.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3
+	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3 \$(srcdir)/$1/$file
 "
 
 	done
