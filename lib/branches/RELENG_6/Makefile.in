@@ -30,9 +30,9 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 ### Object Files
 ###########################################################################
 
-RELEASE	= release/CAVLTree.o \
-	release/CApplication.o \
+RELEASE	= release/CApplication.o \
 	release/CArchiv.o \
+	release/CAVLTree.o \
 	release/CConfig.o \
 	release/CCrontab.o \
 	release/CDebug.o \
@@ -45,14 +45,17 @@ RELEASE	= release/CAVLTree.o \
 	release/CList.o \
 	release/CLog.o \
 	release/CMCrypt.o \
-	release/CMHash.o \
 	release/CMemFile.o \
 	release/CMemMan.o \
-	release/CMemSpace.o \
 	release/CMemory.o \
 	release/CMemoryReference.o \
+	release/CMemSpace.o \
+	release/CMHash.o \
 	release/CMutex.o \
 	release/CNotifyHandler.o \
+	release/compat.o \
+	release/compression.o \
+	release/cpu.o \
 	release/CQueue.o \
 	release/CResource.o \
 	release/CSignal.o \
@@ -61,17 +64,14 @@ RELEASE	= release/CAVLTree.o \
 	release/CTree.o \
 	release/Errors.o \
 	release/Exception.o \
-	release/PFPFile.o \
-	release/WinSockErrors.o \
-	release/compat.o \
-	release/compression.o \
-	release/cpu.o \
 	release/functions.o \
 	release/ident.o \
+	release/PFPFile.o \
 	release/pplcore.o \
 	release/resourcen.o \
 	release/strings.o \
 	release/time.o \
+	release/WinSockErrors.o \
 	release/CArray.o \
 	release/CAssocArray.o \
 	release/CBinary.o \
@@ -108,8 +108,8 @@ RELEASE	= release/CAVLTree.o \
 	release/db_Sybase.o \
 	release/gfx6_Blit.o \
 	release/gfx6_CDrawable.o \
-	release/gfx6_CFilter.o \
 	release/gfx6_CFilter_BMP.o \
+	release/gfx6_CFilter.o \
 	release/gfx6_CFilter_GIF.o \
 	release/gfx6_CFilter_JPEG.o \
 	release/gfx6_CFilter_PNG.o \
@@ -118,9 +118,9 @@ RELEASE	= release/CAVLTree.o \
 	release/gfx6_CGrafix.o \
 	release/gfx6_CImage.o \
 	release/gfx6_CImageList.o \
+	release/gfx6_Colors.o \
 	release/gfx6_CSprite.o \
 	release/gfx6_CSurface.o \
-	release/gfx6_Colors.o \
 	release/gfx6_Font4.o \
 	release/gfx6_Font5.o \
 	release/gfx6_FontFreeType.o \
@@ -132,10 +132,10 @@ RELEASE	= release/CAVLTree.o \
 	release/gfx6_GrafikErrors.o \
 	release/gfx6_Lines.o \
 	release/gfx6_Pixel.o \
-	release/gfx6_Point.o \
 	release/gfx6_Point3D.o \
-	release/gfx6_RGBFormat.o \
+	release/gfx6_Point.o \
 	release/gfx6_Rect.o \
+	release/gfx6_RGBFormat.o \
 	release/gfx6_Shapes.o \
 	release/gfx6_Size.o \
 	release/tk_Area.o \
@@ -152,8 +152,8 @@ RELEASE	= release/CAVLTree.o \
 	release/tk_Tab.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
-	release/CID3Tag.o \
 	release/CIcecast.o \
+	release/CID3Tag.o \
 	release/CMP3Decode.o \
 	release/CMP3Decode_Lame.o \
 	release/CMP3Decode_LibMad.o \
@@ -161,9 +161,9 @@ RELEASE	= release/CAVLTree.o \
 	release/CMP3Encode.o \
 	release/mp3.o
 
-DEBUG	= debug/CAVLTree.o \
-	debug/CApplication.o \
+DEBUG	= debug/CApplication.o \
 	debug/CArchiv.o \
+	debug/CAVLTree.o \
 	debug/CConfig.o \
 	debug/CCrontab.o \
 	debug/CDebug.o \
@@ -176,14 +176,17 @@ DEBUG	= debug/CAVLTree.o \
 	debug/CList.o \
 	debug/CLog.o \
 	debug/CMCrypt.o \
-	debug/CMHash.o \
 	debug/CMemFile.o \
 	debug/CMemMan.o \
-	debug/CMemSpace.o \
 	debug/CMemory.o \
 	debug/CMemoryReference.o \
+	debug/CMemSpace.o \
+	debug/CMHash.o \
 	debug/CMutex.o \
 	debug/CNotifyHandler.o \
+	debug/compat.o \
+	debug/compression.o \
+	debug/cpu.o \
 	debug/CQueue.o \
 	debug/CResource.o \
 	debug/CSignal.o \
@@ -192,17 +195,14 @@ DEBUG	= debug/CAVLTree.o \
 	debug/CTree.o \
 	debug/Errors.o \
 	debug/Exception.o \
-	debug/PFPFile.o \
-	debug/WinSockErrors.o \
-	debug/compat.o \
-	debug/compression.o \
-	debug/cpu.o \
 	debug/functions.o \
 	debug/ident.o \
+	debug/PFPFile.o \
 	debug/pplcore.o \
 	debug/resourcen.o \
 	debug/strings.o \
 	debug/time.o \
+	debug/WinSockErrors.o \
 	debug/CArray.o \
 	debug/CAssocArray.o \
 	debug/CBinary.o \
@@ -239,8 +239,8 @@ DEBUG	= debug/CAVLTree.o \
 	debug/db_Sybase.o \
 	debug/gfx6_Blit.o \
 	debug/gfx6_CDrawable.o \
-	debug/gfx6_CFilter.o \
 	debug/gfx6_CFilter_BMP.o \
+	debug/gfx6_CFilter.o \
 	debug/gfx6_CFilter_GIF.o \
 	debug/gfx6_CFilter_JPEG.o \
 	debug/gfx6_CFilter_PNG.o \
@@ -249,9 +249,9 @@ DEBUG	= debug/CAVLTree.o \
 	debug/gfx6_CGrafix.o \
 	debug/gfx6_CImage.o \
 	debug/gfx6_CImageList.o \
+	debug/gfx6_Colors.o \
 	debug/gfx6_CSprite.o \
 	debug/gfx6_CSurface.o \
-	debug/gfx6_Colors.o \
 	debug/gfx6_Font4.o \
 	debug/gfx6_Font5.o \
 	debug/gfx6_FontFreeType.o \
@@ -263,10 +263,10 @@ DEBUG	= debug/CAVLTree.o \
 	debug/gfx6_GrafikErrors.o \
 	debug/gfx6_Lines.o \
 	debug/gfx6_Pixel.o \
-	debug/gfx6_Point.o \
 	debug/gfx6_Point3D.o \
-	debug/gfx6_RGBFormat.o \
+	debug/gfx6_Point.o \
 	debug/gfx6_Rect.o \
+	debug/gfx6_RGBFormat.o \
 	debug/gfx6_Shapes.o \
 	debug/gfx6_Size.o \
 	debug/tk_Area.o \
@@ -283,8 +283,8 @@ DEBUG	= debug/CAVLTree.o \
 	debug/tk_Tab.o \
 	debug/tk_Widget.o \
 	debug/tk_Window.o \
-	debug/CID3Tag.o \
 	debug/CIcecast.o \
+	debug/CID3Tag.o \
 	debug/CMP3Decode.o \
 	debug/CMP3Decode_Lame.o \
 	debug/CMP3Decode_LibMad.o \
@@ -292,9 +292,9 @@ DEBUG	= debug/CAVLTree.o \
 	debug/CMP3Encode.o \
 	debug/mp3.o
 
-CORE_RELEASE	=release/CAVLTree.o \
-	release/CApplication.o \
+CORE_RELEASE	=release/CApplication.o \
 	release/CArchiv.o \
+	release/CAVLTree.o \
 	release/CConfig.o \
 	release/CCrontab.o \
 	release/CDebug.o \
@@ -307,14 +307,17 @@ CORE_RELEASE	=release/CAVLTree.o \
 	release/CList.o \
 	release/CLog.o \
 	release/CMCrypt.o \
-	release/CMHash.o \
 	release/CMemFile.o \
 	release/CMemMan.o \
-	release/CMemSpace.o \
 	release/CMemory.o \
 	release/CMemoryReference.o \
+	release/CMemSpace.o \
+	release/CMHash.o \
 	release/CMutex.o \
 	release/CNotifyHandler.o \
+	release/compat.o \
+	release/compression.o \
+	release/cpu.o \
 	release/CQueue.o \
 	release/CResource.o \
 	release/CSignal.o \
@@ -323,17 +326,14 @@ CORE_RELEASE	=release/CAVLTree.o \
 	release/CTree.o \
 	release/Errors.o \
 	release/Exception.o \
-	release/PFPFile.o \
-	release/WinSockErrors.o \
-	release/compat.o \
-	release/compression.o \
-	release/cpu.o \
 	release/functions.o \
 	release/ident.o \
+	release/PFPFile.o \
 	release/pplcore.o \
 	release/resourcen.o \
 	release/strings.o \
 	release/time.o \
+	release/WinSockErrors.o \
 	release/CArray.o \
 	release/CAssocArray.o \
 	release/CBinary.o \
@@ -349,9 +349,9 @@ CORE_RELEASE	=release/CAVLTree.o \
 	release/md5.o \
 	release/random.o
 
-CORE_DEBUG	=debug/CAVLTree.o \
-	debug/CApplication.o \
+CORE_DEBUG	=debug/CApplication.o \
 	debug/CArchiv.o \
+	debug/CAVLTree.o \
 	debug/CConfig.o \
 	debug/CCrontab.o \
 	debug/CDebug.o \
@@ -364,14 +364,17 @@ CORE_DEBUG	=debug/CAVLTree.o \
 	debug/CList.o \
 	debug/CLog.o \
 	debug/CMCrypt.o \
-	debug/CMHash.o \
 	debug/CMemFile.o \
 	debug/CMemMan.o \
-	debug/CMemSpace.o \
 	debug/CMemory.o \
 	debug/CMemoryReference.o \
+	debug/CMemSpace.o \
+	debug/CMHash.o \
 	debug/CMutex.o \
 	debug/CNotifyHandler.o \
+	debug/compat.o \
+	debug/compression.o \
+	debug/cpu.o \
 	debug/CQueue.o \
 	debug/CResource.o \
 	debug/CSignal.o \
@@ -380,17 +383,14 @@ CORE_DEBUG	=debug/CAVLTree.o \
 	debug/CTree.o \
 	debug/Errors.o \
 	debug/Exception.o \
-	debug/PFPFile.o \
-	debug/WinSockErrors.o \
-	debug/compat.o \
-	debug/compression.o \
-	debug/cpu.o \
 	debug/functions.o \
 	debug/ident.o \
+	debug/PFPFile.o \
 	debug/pplcore.o \
 	debug/resourcen.o \
 	debug/strings.o \
 	debug/time.o \
+	debug/WinSockErrors.o \
 	debug/CArray.o \
 	debug/CAssocArray.o \
 	debug/CBinary.o \
@@ -459,8 +459,8 @@ INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 	debug/nossl_socket.o
 
 
-SOUND_RELEASE	=release/CID3Tag.o \
-	release/CIcecast.o \
+SOUND_RELEASE	=release/CIcecast.o \
+	release/CID3Tag.o \
 	release/CMP3Decode.o \
 	release/CMP3Decode_Lame.o \
 	release/CMP3Decode_LibMad.o \
@@ -468,8 +468,8 @@ SOUND_RELEASE	=release/CID3Tag.o \
 	release/CMP3Encode.o \
 	release/mp3.o
 
-SOUND_DEBUG	=debug/CID3Tag.o \
-	debug/CIcecast.o \
+SOUND_DEBUG	=debug/CIcecast.o \
+	debug/CID3Tag.o \
 	debug/CMP3Decode.o \
 	debug/CMP3Decode_Lame.o \
 	debug/CMP3Decode_LibMad.o \
@@ -498,8 +498,8 @@ DATABASE_DEBUG	=debug/db_Database.o \
 
 GRAFIX_RELEASE	=release/gfx6_Blit.o \
 	release/gfx6_CDrawable.o \
-	release/gfx6_CFilter.o \
 	release/gfx6_CFilter_BMP.o \
+	release/gfx6_CFilter.o \
 	release/gfx6_CFilter_GIF.o \
 	release/gfx6_CFilter_JPEG.o \
 	release/gfx6_CFilter_PNG.o \
@@ -508,9 +508,9 @@ GRAFIX_RELEASE	=release/gfx6_Blit.o \
 	release/gfx6_CGrafix.o \
 	release/gfx6_CImage.o \
 	release/gfx6_CImageList.o \
+	release/gfx6_Colors.o \
 	release/gfx6_CSprite.o \
 	release/gfx6_CSurface.o \
-	release/gfx6_Colors.o \
 	release/gfx6_Font4.o \
 	release/gfx6_Font5.o \
 	release/gfx6_FontFreeType.o \
@@ -522,10 +522,10 @@ GRAFIX_RELEASE	=release/gfx6_Blit.o \
 	release/gfx6_GrafikErrors.o \
 	release/gfx6_Lines.o \
 	release/gfx6_Pixel.o \
-	release/gfx6_Point.o \
 	release/gfx6_Point3D.o \
-	release/gfx6_RGBFormat.o \
+	release/gfx6_Point.o \
 	release/gfx6_Rect.o \
+	release/gfx6_RGBFormat.o \
 	release/gfx6_Shapes.o \
 	release/gfx6_Size.o \
 	release/tk_Area.o \
@@ -545,8 +545,8 @@ GRAFIX_RELEASE	=release/gfx6_Blit.o \
 
 GRAFIX_DEBUG	=debug/gfx6_Blit.o \
 	debug/gfx6_CDrawable.o \
-	debug/gfx6_CFilter.o \
 	debug/gfx6_CFilter_BMP.o \
+	debug/gfx6_CFilter.o \
 	debug/gfx6_CFilter_GIF.o \
 	debug/gfx6_CFilter_JPEG.o \
 	debug/gfx6_CFilter_PNG.o \
@@ -555,9 +555,9 @@ GRAFIX_DEBUG	=debug/gfx6_Blit.o \
 	debug/gfx6_CGrafix.o \
 	debug/gfx6_CImage.o \
 	debug/gfx6_CImageList.o \
+	debug/gfx6_Colors.o \
 	debug/gfx6_CSprite.o \
 	debug/gfx6_CSurface.o \
-	debug/gfx6_Colors.o \
 	debug/gfx6_Font4.o \
 	debug/gfx6_Font5.o \
 	debug/gfx6_FontFreeType.o \
@@ -569,10 +569,10 @@ GRAFIX_DEBUG	=debug/gfx6_Blit.o \
 	debug/gfx6_GrafikErrors.o \
 	debug/gfx6_Lines.o \
 	debug/gfx6_Pixel.o \
-	debug/gfx6_Point.o \
 	debug/gfx6_Point3D.o \
-	debug/gfx6_RGBFormat.o \
+	debug/gfx6_Point.o \
 	debug/gfx6_Rect.o \
+	debug/gfx6_RGBFormat.o \
 	debug/gfx6_Shapes.o \
 	debug/gfx6_Size.o \
 	debug/tk_Area.o \
@@ -755,11 +755,6 @@ res:
 ###########################################################################
 
 ### CORE
-release/CAVLTree.o:	$(srcdir)/core/CAVLTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/CAVLTree.cpp<<<
-	$(CXX) -Wall -O3 -o release/CAVLTree.o -c $(srcdir)/core/CAVLTree.cpp $(CFLAGS) 
-
 release/CApplication.o:	$(srcdir)/core/CApplication.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CApplication.cpp<<<
@@ -769,6 +764,11 @@ release/CArchiv.o:	$(srcdir)/core/CArchiv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-un
 	###############################################################################
 	# Compiling >>>core/CArchiv.cpp<<<
 	$(CXX) -Wall -O3 -o release/CArchiv.o -c $(srcdir)/core/CArchiv.cpp $(CFLAGS) 
+
+release/CAVLTree.o:	$(srcdir)/core/CAVLTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CAVLTree.cpp<<<
+	$(CXX) -Wall -O3 -o release/CAVLTree.o -c $(srcdir)/core/CAVLTree.cpp $(CFLAGS) 
 
 release/CConfig.o:	$(srcdir)/core/CConfig.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -830,11 +830,6 @@ release/CMCrypt.o:	$(srcdir)/core/CMCrypt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-un
 	# Compiling >>>core/CMCrypt.cpp<<<
 	$(CXX) -Wall -O3 -o release/CMCrypt.o -c $(srcdir)/core/CMCrypt.cpp $(CFLAGS) 
 
-release/CMHash.o:	$(srcdir)/core/CMHash.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/CMHash.cpp<<<
-	$(CXX) -Wall -O3 -o release/CMHash.o -c $(srcdir)/core/CMHash.cpp $(CFLAGS) 
-
 release/CMemFile.o:	$(srcdir)/core/CMemFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMemFile.cpp<<<
@@ -844,11 +839,6 @@ release/CMemMan.o:	$(srcdir)/core/CMemMan.cpp $(incdir)/ppl6.h $(incdir)/ppl6-un
 	###############################################################################
 	# Compiling >>>core/CMemMan.cpp<<<
 	$(CXX) -Wall -O3 -o release/CMemMan.o -c $(srcdir)/core/CMemMan.cpp $(CFLAGS) 
-
-release/CMemSpace.o:	$(srcdir)/core/CMemSpace.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/CMemSpace.cpp<<<
-	$(CXX) -Wall -O3 -o release/CMemSpace.o -c $(srcdir)/core/CMemSpace.cpp $(CFLAGS) 
 
 release/CMemory.o:	$(srcdir)/core/CMemory.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -860,6 +850,16 @@ release/CMemoryReference.o:	$(srcdir)/core/CMemoryReference.cpp $(incdir)/ppl6.h
 	# Compiling >>>core/CMemoryReference.cpp<<<
 	$(CXX) -Wall -O3 -o release/CMemoryReference.o -c $(srcdir)/core/CMemoryReference.cpp $(CFLAGS) 
 
+release/CMemSpace.o:	$(srcdir)/core/CMemSpace.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemSpace.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMemSpace.o -c $(srcdir)/core/CMemSpace.cpp $(CFLAGS) 
+
+release/CMHash.o:	$(srcdir)/core/CMHash.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMHash.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMHash.o -c $(srcdir)/core/CMHash.cpp $(CFLAGS) 
+
 release/CMutex.o:	$(srcdir)/core/CMutex.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMutex.cpp<<<
@@ -869,6 +869,21 @@ release/CNotifyHandler.o:	$(srcdir)/core/CNotifyHandler.cpp $(incdir)/ppl6.h $(i
 	###############################################################################
 	# Compiling >>>core/CNotifyHandler.cpp<<<
 	$(CXX) -Wall -O3 -o release/CNotifyHandler.o -c $(srcdir)/core/CNotifyHandler.cpp $(CFLAGS) 
+
+release/compat.o:	$(srcdir)/core/compat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compat.cpp<<<
+	$(CXX) -Wall -O3 -o release/compat.o -c $(srcdir)/core/compat.cpp $(CFLAGS) 
+
+release/compression.o:	$(srcdir)/core/compression.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compression.cpp<<<
+	$(CXX) -Wall -O3 -o release/compression.o -c $(srcdir)/core/compression.cpp $(CFLAGS) 
+
+release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O3 -o release/cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) 
 
 release/CQueue.o:	$(srcdir)/core/CQueue.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -910,31 +925,6 @@ release/Exception.o:	$(srcdir)/core/Exception.cpp $(incdir)/ppl6.h $(incdir)/ppl
 	# Compiling >>>core/Exception.cpp<<<
 	$(CXX) -Wall -O3 -o release/Exception.o -c $(srcdir)/core/Exception.cpp $(CFLAGS) 
 
-release/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/PFPFile.cpp<<<
-	$(CXX) -Wall -O3 -o release/PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) 
-
-release/WinSockErrors.o:	$(srcdir)/core/WinSockErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/WinSockErrors.cpp<<<
-	$(CXX) -Wall -O3 -o release/WinSockErrors.o -c $(srcdir)/core/WinSockErrors.cpp $(CFLAGS) 
-
-release/compat.o:	$(srcdir)/core/compat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/compat.cpp<<<
-	$(CXX) -Wall -O3 -o release/compat.o -c $(srcdir)/core/compat.cpp $(CFLAGS) 
-
-release/compression.o:	$(srcdir)/core/compression.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/compression.cpp<<<
-	$(CXX) -Wall -O3 -o release/compression.o -c $(srcdir)/core/compression.cpp $(CFLAGS) 
-
-release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -O3 -o release/cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) 
-
 release/functions.o:	$(srcdir)/core/functions.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/functions.cpp<<<
@@ -944,6 +934,11 @@ release/ident.o:	$(srcdir)/core/ident.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixco
 	###############################################################################
 	# Compiling >>>core/ident.cpp<<<
 	$(CXX) -Wall -O3 -o release/ident.o -c $(srcdir)/core/ident.cpp $(CFLAGS) 
+
+release/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PFPFile.cpp<<<
+	$(CXX) -Wall -O3 -o release/PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) 
 
 release/pplcore.o:	$(srcdir)/core/pplcore.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -964,6 +959,11 @@ release/time.o:	$(srcdir)/core/time.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconf
 	###############################################################################
 	# Compiling >>>core/time.cpp<<<
 	$(CXX) -Wall -O3 -o release/time.o -c $(srcdir)/core/time.cpp $(CFLAGS) 
+
+release/WinSockErrors.o:	$(srcdir)/core/WinSockErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/WinSockErrors.cpp<<<
+	$(CXX) -Wall -O3 -o release/WinSockErrors.o -c $(srcdir)/core/WinSockErrors.cpp $(CFLAGS) 
 
 ### VARS
 release/CArray.o:	$(srcdir)/vars/CArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
@@ -1211,15 +1211,15 @@ release/gfx6_CDrawable.o:	$(srcdir)/grafix6/CDrawable.cpp $(incdir)/ppl6.h $(inc
 	# Compiling >>>grafix6/CDrawable.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx6_CDrawable.o -c $(srcdir)/grafix6/CDrawable.cpp $(CFLAGS) 
 
-release/gfx6_CFilter.o:	$(srcdir)/grafix6/CFilter.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix6/CFilter.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx6_CFilter.o -c $(srcdir)/grafix6/CFilter.cpp $(CFLAGS) 
-
 release/gfx6_CFilter_BMP.o:	$(srcdir)/grafix6/CFilter_BMP.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_BMP.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx6_CFilter_BMP.o -c $(srcdir)/grafix6/CFilter_BMP.cpp $(CFLAGS) 
+
+release/gfx6_CFilter.o:	$(srcdir)/grafix6/CFilter.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter.o -c $(srcdir)/grafix6/CFilter.cpp $(CFLAGS) 
 
 release/gfx6_CFilter_GIF.o:	$(srcdir)/grafix6/CFilter_GIF.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
@@ -1261,6 +1261,11 @@ release/gfx6_CImageList.o:	$(srcdir)/grafix6/CImageList.cpp $(incdir)/ppl6.h $(i
 	# Compiling >>>grafix6/CImageList.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx6_CImageList.o -c $(srcdir)/grafix6/CImageList.cpp $(CFLAGS) 
 
+release/gfx6_Colors.o:	$(srcdir)/grafix6/Colors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Colors.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Colors.o -c $(srcdir)/grafix6/Colors.cpp $(CFLAGS) 
+
 release/gfx6_CSprite.o:	$(srcdir)/grafix6/CSprite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CSprite.cpp<<<
@@ -1270,11 +1275,6 @@ release/gfx6_CSurface.o:	$(srcdir)/grafix6/CSurface.cpp $(incdir)/ppl6.h $(incdi
 	###############################################################################
 	# Compiling >>>grafix6/CSurface.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx6_CSurface.o -c $(srcdir)/grafix6/CSurface.cpp $(CFLAGS) 
-
-release/gfx6_Colors.o:	$(srcdir)/grafix6/Colors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix6/Colors.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx6_Colors.o -c $(srcdir)/grafix6/Colors.cpp $(CFLAGS) 
 
 release/gfx6_Font4.o:	$(srcdir)/grafix6/Font4.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
@@ -1331,25 +1331,25 @@ release/gfx6_Pixel.o:	$(srcdir)/grafix6/Pixel.cpp $(incdir)/ppl6.h $(incdir)/ppl
 	# Compiling >>>grafix6/Pixel.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx6_Pixel.o -c $(srcdir)/grafix6/Pixel.cpp $(CFLAGS) 
 
-release/gfx6_Point.o:	$(srcdir)/grafix6/Point.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix6/Point.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx6_Point.o -c $(srcdir)/grafix6/Point.cpp $(CFLAGS) 
-
 release/gfx6_Point3D.o:	$(srcdir)/grafix6/Point3D.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Point3D.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx6_Point3D.o -c $(srcdir)/grafix6/Point3D.cpp $(CFLAGS) 
 
-release/gfx6_RGBFormat.o:	$(srcdir)/grafix6/RGBFormat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+release/gfx6_Point.o:	$(srcdir)/grafix6/Point.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
-	# Compiling >>>grafix6/RGBFormat.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx6_RGBFormat.o -c $(srcdir)/grafix6/RGBFormat.cpp $(CFLAGS) 
+	# Compiling >>>grafix6/Point.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Point.o -c $(srcdir)/grafix6/Point.cpp $(CFLAGS) 
 
 release/gfx6_Rect.o:	$(srcdir)/grafix6/Rect.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Rect.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx6_Rect.o -c $(srcdir)/grafix6/Rect.cpp $(CFLAGS) 
+
+release/gfx6_RGBFormat.o:	$(srcdir)/grafix6/RGBFormat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/RGBFormat.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_RGBFormat.o -c $(srcdir)/grafix6/RGBFormat.cpp $(CFLAGS) 
 
 release/gfx6_Shapes.o:	$(srcdir)/grafix6/Shapes.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
@@ -1433,15 +1433,15 @@ release/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl
 	$(CXX) -Wall -O3 -o release/tk_Window.o -c $(srcdir)/toolkit/Window.cpp $(CFLAGS) 
 
 ### SOUND
-release/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>sound/CID3Tag.cpp<<<
-	$(CXX) -Wall -O3 -o release/CID3Tag.o -c $(srcdir)/sound/CID3Tag.cpp $(CFLAGS) 
-
 release/CIcecast.o:	$(srcdir)/sound/CIcecast.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CIcecast.cpp<<<
 	$(CXX) -Wall -O3 -o release/CIcecast.o -c $(srcdir)/sound/CIcecast.cpp $(CFLAGS) 
+
+release/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CID3Tag.cpp<<<
+	$(CXX) -Wall -O3 -o release/CID3Tag.o -c $(srcdir)/sound/CID3Tag.cpp $(CFLAGS) 
 
 release/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1510,11 +1510,6 @@ release/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
 ###########################################################################
 
 ### CORE
-debug/CAVLTree.o:	$(srcdir)/core/CAVLTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/CAVLTree.cpp<<<
-	$(CXX) -Wall -O -o debug/CAVLTree.o -c $(srcdir)/core/CAVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/CApplication.o:	$(srcdir)/core/CApplication.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CApplication.cpp<<<
@@ -1524,6 +1519,11 @@ debug/CArchiv.o:	$(srcdir)/core/CArchiv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unix
 	###############################################################################
 	# Compiling >>>core/CArchiv.cpp<<<
 	$(CXX) -Wall -O -o debug/CArchiv.o -c $(srcdir)/core/CArchiv.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/CAVLTree.o:	$(srcdir)/core/CAVLTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CAVLTree.cpp<<<
+	$(CXX) -Wall -O -o debug/CAVLTree.o -c $(srcdir)/core/CAVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/CConfig.o:	$(srcdir)/core/CConfig.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1585,11 +1585,6 @@ debug/CMCrypt.o:	$(srcdir)/core/CMCrypt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unix
 	# Compiling >>>core/CMCrypt.cpp<<<
 	$(CXX) -Wall -O -o debug/CMCrypt.o -c $(srcdir)/core/CMCrypt.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/CMHash.o:	$(srcdir)/core/CMHash.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/CMHash.cpp<<<
-	$(CXX) -Wall -O -o debug/CMHash.o -c $(srcdir)/core/CMHash.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/CMemFile.o:	$(srcdir)/core/CMemFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMemFile.cpp<<<
@@ -1599,11 +1594,6 @@ debug/CMemMan.o:	$(srcdir)/core/CMemMan.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unix
 	###############################################################################
 	# Compiling >>>core/CMemMan.cpp<<<
 	$(CXX) -Wall -O -o debug/CMemMan.o -c $(srcdir)/core/CMemMan.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/CMemSpace.o:	$(srcdir)/core/CMemSpace.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/CMemSpace.cpp<<<
-	$(CXX) -Wall -O -o debug/CMemSpace.o -c $(srcdir)/core/CMemSpace.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/CMemory.o:	$(srcdir)/core/CMemory.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1615,6 +1605,16 @@ debug/CMemoryReference.o:	$(srcdir)/core/CMemoryReference.cpp $(incdir)/ppl6.h $
 	# Compiling >>>core/CMemoryReference.cpp<<<
 	$(CXX) -Wall -O -o debug/CMemoryReference.o -c $(srcdir)/core/CMemoryReference.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/CMemSpace.o:	$(srcdir)/core/CMemSpace.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemSpace.cpp<<<
+	$(CXX) -Wall -O -o debug/CMemSpace.o -c $(srcdir)/core/CMemSpace.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/CMHash.o:	$(srcdir)/core/CMHash.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMHash.cpp<<<
+	$(CXX) -Wall -O -o debug/CMHash.o -c $(srcdir)/core/CMHash.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/CMutex.o:	$(srcdir)/core/CMutex.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMutex.cpp<<<
@@ -1624,6 +1624,21 @@ debug/CNotifyHandler.o:	$(srcdir)/core/CNotifyHandler.cpp $(incdir)/ppl6.h $(inc
 	###############################################################################
 	# Compiling >>>core/CNotifyHandler.cpp<<<
 	$(CXX) -Wall -O -o debug/CNotifyHandler.o -c $(srcdir)/core/CNotifyHandler.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/compat.o:	$(srcdir)/core/compat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compat.cpp<<<
+	$(CXX) -Wall -O -o debug/compat.o -c $(srcdir)/core/compat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/compression.o:	$(srcdir)/core/compression.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compression.cpp<<<
+	$(CXX) -Wall -O -o debug/compression.o -c $(srcdir)/core/compression.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O -o debug/cpu.o -c $(srcdir)/core/cpu.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/CQueue.o:	$(srcdir)/core/CQueue.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1665,31 +1680,6 @@ debug/Exception.o:	$(srcdir)/core/Exception.cpp $(incdir)/ppl6.h $(incdir)/ppl6-
 	# Compiling >>>core/Exception.cpp<<<
 	$(CXX) -Wall -O -o debug/Exception.o -c $(srcdir)/core/Exception.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/PFPFile.cpp<<<
-	$(CXX) -Wall -O -o debug/PFPFile.o -c $(srcdir)/core/PFPFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/WinSockErrors.o:	$(srcdir)/core/WinSockErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/WinSockErrors.cpp<<<
-	$(CXX) -Wall -O -o debug/WinSockErrors.o -c $(srcdir)/core/WinSockErrors.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/compat.o:	$(srcdir)/core/compat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/compat.cpp<<<
-	$(CXX) -Wall -O -o debug/compat.o -c $(srcdir)/core/compat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/compression.o:	$(srcdir)/core/compression.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/compression.cpp<<<
-	$(CXX) -Wall -O -o debug/compression.o -c $(srcdir)/core/compression.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -O -o debug/cpu.o -c $(srcdir)/core/cpu.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/functions.o:	$(srcdir)/core/functions.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/functions.cpp<<<
@@ -1699,6 +1689,11 @@ debug/ident.o:	$(srcdir)/core/ident.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconf
 	###############################################################################
 	# Compiling >>>core/ident.cpp<<<
 	$(CXX) -Wall -O -o debug/ident.o -c $(srcdir)/core/ident.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PFPFile.cpp<<<
+	$(CXX) -Wall -O -o debug/PFPFile.o -c $(srcdir)/core/PFPFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/pplcore.o:	$(srcdir)/core/pplcore.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1719,6 +1714,11 @@ debug/time.o:	$(srcdir)/core/time.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig
 	###############################################################################
 	# Compiling >>>core/time.cpp<<<
 	$(CXX) -Wall -O -o debug/time.o -c $(srcdir)/core/time.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/WinSockErrors.o:	$(srcdir)/core/WinSockErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/WinSockErrors.cpp<<<
+	$(CXX) -Wall -O -o debug/WinSockErrors.o -c $(srcdir)/core/WinSockErrors.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### VARS
 debug/CArray.o:	$(srcdir)/vars/CArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
@@ -1966,15 +1966,15 @@ debug/gfx6_CDrawable.o:	$(srcdir)/grafix6/CDrawable.cpp $(incdir)/ppl6.h $(incdi
 	# Compiling >>>grafix6/CDrawable.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx6_CDrawable.o -c $(srcdir)/grafix6/CDrawable.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/gfx6_CFilter.o:	$(srcdir)/grafix6/CFilter.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix6/CFilter.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter.o -c $(srcdir)/grafix6/CFilter.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/gfx6_CFilter_BMP.o:	$(srcdir)/grafix6/CFilter_BMP.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_BMP.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx6_CFilter_BMP.o -c $(srcdir)/grafix6/CFilter_BMP.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx6_CFilter.o:	$(srcdir)/grafix6/CFilter.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter.o -c $(srcdir)/grafix6/CFilter.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx6_CFilter_GIF.o:	$(srcdir)/grafix6/CFilter_GIF.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
@@ -2016,6 +2016,11 @@ debug/gfx6_CImageList.o:	$(srcdir)/grafix6/CImageList.cpp $(incdir)/ppl6.h $(inc
 	# Compiling >>>grafix6/CImageList.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx6_CImageList.o -c $(srcdir)/grafix6/CImageList.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/gfx6_Colors.o:	$(srcdir)/grafix6/Colors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Colors.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Colors.o -c $(srcdir)/grafix6/Colors.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/gfx6_CSprite.o:	$(srcdir)/grafix6/CSprite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CSprite.cpp<<<
@@ -2025,11 +2030,6 @@ debug/gfx6_CSurface.o:	$(srcdir)/grafix6/CSurface.cpp $(incdir)/ppl6.h $(incdir)
 	###############################################################################
 	# Compiling >>>grafix6/CSurface.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx6_CSurface.o -c $(srcdir)/grafix6/CSurface.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/gfx6_Colors.o:	$(srcdir)/grafix6/Colors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix6/Colors.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Colors.o -c $(srcdir)/grafix6/Colors.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx6_Font4.o:	$(srcdir)/grafix6/Font4.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
@@ -2086,25 +2086,25 @@ debug/gfx6_Pixel.o:	$(srcdir)/grafix6/Pixel.cpp $(incdir)/ppl6.h $(incdir)/ppl6-
 	# Compiling >>>grafix6/Pixel.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx6_Pixel.o -c $(srcdir)/grafix6/Pixel.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/gfx6_Point.o:	$(srcdir)/grafix6/Point.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix6/Point.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Point.o -c $(srcdir)/grafix6/Point.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/gfx6_Point3D.o:	$(srcdir)/grafix6/Point3D.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Point3D.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx6_Point3D.o -c $(srcdir)/grafix6/Point3D.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/gfx6_RGBFormat.o:	$(srcdir)/grafix6/RGBFormat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+debug/gfx6_Point.o:	$(srcdir)/grafix6/Point.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
-	# Compiling >>>grafix6/RGBFormat.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_RGBFormat.o -c $(srcdir)/grafix6/RGBFormat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	# Compiling >>>grafix6/Point.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Point.o -c $(srcdir)/grafix6/Point.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx6_Rect.o:	$(srcdir)/grafix6/Rect.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Rect.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx6_Rect.o -c $(srcdir)/grafix6/Rect.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx6_RGBFormat.o:	$(srcdir)/grafix6/RGBFormat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/RGBFormat.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_RGBFormat.o -c $(srcdir)/grafix6/RGBFormat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx6_Shapes.o:	$(srcdir)/grafix6/Shapes.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
@@ -2188,15 +2188,15 @@ debug/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl6-
 	$(CXX) -Wall -O -o debug/tk_Window.o -c $(srcdir)/toolkit/Window.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### SOUND
-debug/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
-	###############################################################################
-	# Compiling >>>sound/CID3Tag.cpp<<<
-	$(CXX) -Wall -O -o debug/CID3Tag.o -c $(srcdir)/sound/CID3Tag.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/CIcecast.o:	$(srcdir)/sound/CIcecast.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CIcecast.cpp<<<
 	$(CXX) -Wall -O -o debug/CIcecast.o -c $(srcdir)/sound/CIcecast.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CID3Tag.cpp<<<
+	$(CXX) -Wall -O -o debug/CID3Tag.o -c $(srcdir)/sound/CID3Tag.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################

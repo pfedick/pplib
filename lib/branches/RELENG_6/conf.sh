@@ -11,7 +11,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --with-libmad=/usr/local --with-lame=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl --with-mysql \
 			--with-libmhash=/usr/local --with-sybase=/usr/local \
-			--with-libiconv-prefix=/usr/local --with-nasm --with-pgsql \
+			--with-libiconv-prefix=/usr/local --with-nasm --with-postgresql=yes  \
 			--with-jpeg --with-png --with-mpg123=/usr/local \
 			--with-ogg=/usr/local
 		;;
@@ -41,13 +41,13 @@ case "$SYS:$REL:$KERNEL" in
 	Linux:*generic*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
-			--with-libmhash --with-ogg=/usr \
+			--with-libmhash --with-ogg=/usr --with-postgresql=yes \
 			--with-sybase=/usr --with-jpeg --with-png -with-mpg123
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-openssl --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
-			--with-sybase=/usr/local --with-jpeg --with-png \
+			--with-sybase=/usr/local --with-postgresql=yes --with-jpeg --with-png \
 			--with-libmhash --with-mpg123 --with-ogg=/usr
 		;;
 	*)
