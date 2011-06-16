@@ -464,14 +464,18 @@ static const char *FindJumpTable(const char *header, int *start, int *end, int c
 void FontEngineFont5::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
 {
 	PFPChunk *c=selectFont(file,font);
-	if (c) renderInternal(c,font,draw,x,y,text,color);
+	if (c) {
+		renderInternal(c,font,draw,x,y,text,color);
+		return;
+	}
 	if (font.bold()) {
 		Font f=font;
 		f.setBold(false);
 		c=selectFont(file,f);
 		if (c) {
 			renderInternal(c,font,draw,x,y,text,color);
-			return renderInternal(c,font,draw,x+1,y,text,color);
+			renderInternal(c,font,draw,x+1,y,text,color);
+			return;
 		}
 	}
 	throw InvalidFontException();
@@ -571,13 +575,14 @@ void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &dr
 			throw InvalidFontException();
 	};
 	int orgx=x;
-	int p=0;
+	size_t p=0;
 	bool drawn;
 	if (font.orientation()==Font::TOP) {
 		lasty+=MaxBearingY;
 	}
-
-	while ((code=text[p])) {
+	size_t textlen=text.len();
+	while (p<textlen) {
+		code=text[p];
 		//printf ("code[%i]= %i\n",p,code);
 		p++;
 		if (code==10) {											// Newline
