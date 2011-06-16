@@ -1000,5 +1000,11 @@ int MySQL::CreateDatabase(const char *name)
 #endif
 }
 
+CString	MySQL::databaseType() const
+{
+	return CString("MySQL");
+}
+
+
 }	// EOF namespace db
 }	// EOF namespace ppl6

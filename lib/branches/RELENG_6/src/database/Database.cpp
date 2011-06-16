@@ -1198,5 +1198,22 @@ int Database::CreateDatabase(const char *name)
 	return 0;
 }
 
+/*!\brief Typ der Datenbank
+ *
+ * \desc
+ * Diese Funktion gibt einen String mit dem Typ der Datenbank zurück. Der String kann einen der folgenden
+ * Werte enthalten:
+ * - MySQL
+ * - Postgres
+ * - Sybase
+ * - unknown
+ *
+ * @return String mit dem Typ der Datenbank
+ */
+CString	Database::databaseType() const
+{
+	return CString("unknown");
+}
+
 }	// EOF namespace db
 }	// EOF namespace ppl6

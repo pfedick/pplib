@@ -1592,6 +1592,12 @@ int Sybase::CreateDatabase(const char *name)
 }
 
 
+CString	Sybase::databaseType() const
+{
+	return CString("Sybase");
+}
+
+
 /*
  * Statische Member-Funktionen
  */

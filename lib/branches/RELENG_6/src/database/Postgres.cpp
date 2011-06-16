@@ -742,6 +742,11 @@ int Postgres::CreateDatabase(const char *name)
 #endif
 }
 
+CString	Postgres::databaseType() const
+{
+	return CString("Postgres");
+}
+
 
 }	// EOF namespace db
 }	// EOF namespace ppl6

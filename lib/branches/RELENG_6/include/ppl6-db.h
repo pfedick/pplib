@@ -222,6 +222,7 @@ class Database
 		virtual int		CancelTransaction();
 		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
+		virtual CString	databaseType() const;
 
 };
 
@@ -258,6 +259,7 @@ class MySQL : public Database
 		virtual int		CancelTransaction();
 		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
+		virtual CString	databaseType() const;
 };
 
 class Sybase : public ppl6::db::Database
@@ -298,6 +300,7 @@ class Sybase : public ppl6::db::Database
 		virtual int		CancelTransaction();
 		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
+		virtual CString	databaseType() const;
 
 		static int	GetMaxConnects();
 		static int	SetMaxConnects(int max);
@@ -341,6 +344,7 @@ class Postgres : public Database
 		virtual int		CancelTransaction();
 		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
+		virtual CString	databaseType() const;
 };
 
 Database *Connect(const CAssocArray &params);
