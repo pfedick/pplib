@@ -650,10 +650,12 @@ Size FontEngineFont5::measure(const FontFile &file, const Font &font, const Stri
 	MaxHeight=Peek16(header+6);
 	MaxBearingY=Peek16(header+4);
 
-	int p=0;
+	size_t p=0;
 	int miny=0, maxy=0;
 	int x=0,y=0;
-	while ((code=text[p])) {
+	size_t textlen=text.len();
+	while (p<textlen) {
+		code=text[p];
 		p++;
 		if (code==10) {											// Newline
 			y+=MaxHeight;

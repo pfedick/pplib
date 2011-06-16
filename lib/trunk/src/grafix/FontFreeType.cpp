@@ -242,8 +242,10 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
 	ppluint8 v=0;
-	int p=0;
-	while ((code=text[p])) {
+	size_t p=0;
+	size_t textlen=text.len();
+	while (p<textlen) {
+		code=text[p];
 		p++;
 		y=orgy;
 		if (code==10) {											// Newline
@@ -333,8 +335,10 @@ Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const S
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
-	int p=0;
-	while ((code=text[p])) {
+	size_t p=0;
+	size_t textlen=text.len();
+	while (p<textlen) {
+		code=text[p];
 		p++;
 		y=orgy;
 		if (code==10) {											// Newline
