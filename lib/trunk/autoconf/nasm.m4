@@ -3,9 +3,9 @@ dnl AC_CHECK_NASM([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 AC_DEFUN([AC_CHECK_NASM],[
 
 AC_ARG_WITH([nasm],
-	[  --with-nasm[[=PATH]]      Prefix where nasm is installed (default=autodetected)],
+	[  --with-nasm[[=PATH]]      Prefix where nasm is installed (optional)],
 	[nasm_prefix="$withval"],
-	[nasm_prefix=""])
+	[nasm_prefix="no"])
 
 if test "$nasm_prefix" != "no"
 then
