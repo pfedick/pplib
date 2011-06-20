@@ -93,6 +93,15 @@ PPLNORMALEXCEPTION(LoginRefusedException);
 PPLNORMALEXCEPTION(AlreadyConnectedException);
 PPLNORMALEXCEPTION(NoConnectionException);
 PPLPARAMETERISEDEXCEPTION(TooManyInstancesException);
+PPLPARAMETERISEDEXCEPTION(InvalidDateException);
+PPLNORMALEXCEPTION(NoThreadSupportException);
+PPLNORMALEXCEPTION(ThreadStartException);
+PPLNORMALEXCEPTION(ThreadOperationFailedException);
+PPLNORMALEXCEPTION(ItemNotFoundException);
+PPLNORMALEXCEPTION(DuplicateItemException);
+PPLNORMALEXCEPTION(UnsupportedDataTypeException);
+PPLNORMALEXCEPTION(ItemNotFromThisListException);
+PPLNORMALEXCEPTION(EndOfListException);
 
 
 
