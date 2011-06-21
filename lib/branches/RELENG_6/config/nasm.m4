@@ -11,7 +11,7 @@ if test "$nasm_prefix" != "no"
 then
 	if test "$nasm_prefix" != "yes"
 	then
-		nasm="$yasm_prefix/bin/nasm"
+		nasm="$nasm_prefix/bin/nasm"
 	else
 		AC_PATH_PROG(nasm,nasm)
 	fi
