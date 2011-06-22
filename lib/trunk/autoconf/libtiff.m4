@@ -1,5 +1,6 @@
 dnl AC_CHECK_LIBTIFF([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 AC_DEFUN([AC_CHECK_LIBTIFF],[
+AC_MSG_CHECKING(for libtiff)
 
 AC_ARG_WITH([libtiff],
 	[  --with-libtiff[[=PATH]]     Prefix where libtiff is installed (optional)],
@@ -29,12 +30,14 @@ AC_ARG_WITH([libtiff],
 			AC_CHECK_LIB(tiff,TIFFClientOpen,
 				TIFF_LIBS=$intLIBTIFF_LIBS
 				TIFF_CFLAGS=$intLIBTIFF_CFLAGS
-				
+				AC_MSG_RESULT(yes)
 				ifelse([$2], , :, [$2])
 				,
+				AC_MSG_RESULT(no)
 				ifelse([$3], , :, [$3])
 			:)
 		,
+			AC_MSG_RESULT(no)
 			ifelse([$3], , :, [$3])
 		)
 		CPPFLAGS="$am_save_CPPFLAGS"
