@@ -56,7 +56,8 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
-			--with-sybase=/usr --with-jpeg --with-png -with-mpg123
+			--with-sybase=/usr --with-jpeg --with-png \
+			--with-libtiff=/usr --with-mpg123
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
