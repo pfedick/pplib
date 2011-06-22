@@ -251,7 +251,7 @@ AC_CHECK_LIBJPEG([1.2],
            :)
 
 report_have_libtiff="no"
-AC_CHECK_LIBJPEG([1.2],
+AC_CHECK_LIBTIFF([1.2],
             AC_DEFINE(HAVE_TIFF, 1, [ Define if you have libtiff. ])
             report_have_libtiff="yes"
 			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $TIFF_CFLAGS"
