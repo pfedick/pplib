@@ -384,12 +384,11 @@ AC_CHECK_MYSQL([4.0],
 
 
 report_have_postgres="no"
-AC_CHECK_PGSQL([7.0],
-            AC_DEFINE(HAVE_POSTGRES, 1, [ Define if you have Postgres. ])
-            report_have_postgres="yes"
-			AC_SUBST(PGSQL_CFLAGS)
-			AC_SUBST(PGSQL_LIBS),
-            :)
+AX_LIB_POSTGRESQL([8.0])
+if test "$found_postgresql" = "yes"; then
+	report_have_postgres="yes"
+fi
+
 
 report_have_freetds="no"
 ###AC_CHECK_FREETDS([],
