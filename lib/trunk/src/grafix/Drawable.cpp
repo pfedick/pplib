@@ -156,6 +156,27 @@ Drawable::Drawable(const Drawable &other, const Rect &rect)
 	copy(other,rect);
 }
 
+/*!\brief Copy-Konstruktor mit Bildausschnitt
+ *
+ * \desc
+ * Mit diesem Konstruktor wird der Bildausschnitt \p rect aus dem Drawable \p other
+ * kopiert.
+ *
+ * @param other Ein anderes Drawable
+ * @param p Koordinate der linken oberen Ecke
+ * @param s Breite und Höhe
+ *
+ * \exception ppl6::Exception::InitialisationFailed Diese Exception wird geworfen,
+ * wenn das Drawable nicht kopiert werden kann. Die genaue Ursache kann über den Fehlercode
+ * ausgelesen werden.
+ */
+Drawable::Drawable(const Drawable &other, const Point &p, const Size &s)
+{
+	Rect r(p,s);
+	copy(other,r);
+}
+
+
 /*!\brief Konstruktor mit Erstellung aus einem Speicherbereich
  *
  * \desc
@@ -273,6 +294,25 @@ void Drawable::copy(const Drawable &other, const Rect &rect)
 	fn=other.fn;
 	data.fn=fn;
 }
+
+/*!\brief Ausschnitt von einem anderen Drawable kopieren
+ *
+ * \desc
+ * Mit dieser Funktion wird der Bildausschnitt, der bei der Koordinate \p p beginnt
+ * und eine Größe von \p s hat, aus dem Drawable \p other
+ * kopiert.
+ *
+ * @param other Ein anderes Drawable
+ * @param p Koordinate der linken oberen Ecke
+ * @param s Breite und Höhe
+ *
+ */
+void Drawable::copy(const Drawable &other, const Point &p, const Size &s)
+{
+	Rect r(p,s);
+	copy(other,r);
+}
+
 
 /*!\brief Drawable anhand einer Speicheradresse initialisieren
  *
@@ -477,6 +517,11 @@ Drawable Drawable::getDrawable(const Rect &rect) const
 Drawable Drawable::getDrawable(int x1, int y1, int x2, int y2) const
 {
 	return Drawable(*this,Rect(x1,y1,x2-x1+1,y2-y1+1));
+}
+
+Drawable Drawable::getDrawable(const Point &p, const Size &s) const
+{
+	return Drawable(*this,p,s);
 }
 
 /*!\brief Speicheradresse der Grafik

@@ -368,6 +368,22 @@ template <class K> class List
 			return it->item;
 		}
 
+		K& push_front(const K &item)
+				{
+					ListItem *it=new (MyHeap.malloc())ListItem;
+					it->item=item;
+					it->original=it;
+					it->previous=NULL;
+					it->next=first;
+					it->owner=this;
+					if (first) first->previous=it;
+					if (!last) last=it;
+					first=it;
+					return it->item;
+				}
+
+
+
 		void erase(const K &item)
 		{
 			ListItem *it=first;

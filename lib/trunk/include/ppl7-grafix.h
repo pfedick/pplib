@@ -205,6 +205,7 @@ class Rect
 		int x2,y2;
 		Rect();
 		Rect(const Point &p1, const Point &p2);
+		Rect(const Point &p, const Size &s);
 		Rect(int x, int y, int width, int height);
 		Rect(const Rect &r);
 
@@ -522,6 +523,7 @@ class Drawable
 		Drawable();
 		Drawable(const Drawable &other);
 		Drawable(const Drawable &other, const Rect &rect);
+		Drawable(const Drawable &other, const Point &p, const Size &s);
 		Drawable(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
 		~Drawable();
 		//@}
@@ -534,6 +536,7 @@ class Drawable
 
 		void copy(const Drawable &other);
 		void copy(const Drawable &other, const Rect &rect);
+		void copy(const Drawable &other, const Point &p, const Size &s);
 		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
 		Drawable &operator=(const Drawable &other);
 
@@ -552,6 +555,7 @@ class Drawable
 		void	cls();
 		Drawable getDrawable() const;
 		Drawable getDrawable(const Rect &rect) const;
+		Drawable getDrawable(const Point &p, const Size &s) const;
 		Drawable getDrawable(int x1, int y1, int x2, int y2) const;
 		//@}
 

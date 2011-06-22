@@ -82,6 +82,14 @@ Rect::Rect(const Point &p1, const Point &p2)
 	y2=p2.y;
 }
 
+Rect::Rect(const Point &p, const Size &s)
+{
+	x1=p.x;
+	y1=p.y;
+	x2=x1+s.width;
+	y2=y1+s.height;
+}
+
 Rect::Rect(const Rect &other)
 {
 	x1=other.x1;
