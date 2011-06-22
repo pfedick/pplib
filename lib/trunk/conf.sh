@@ -11,8 +11,9 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --with-libmad=/usr/local --with-lame=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl --with-mysql \
 			--with-libmhash=/usr/local --with-sybase=/usr/local \
-			--with-libiconv-prefix=/usr/local --with-nasm --with-pgsql \
-			--with-jpeg --with-png --with-mpg123=/usr/local \
+			--with-libiconv-prefix=/usr/local --with-nasm  \
+			--with-jpeg --with-png --with-libtiff=/usr/local \
+			--with-mpg123=/usr/local \
 			--with-ogg=/usr/local
 		;;
 	MINGW32*:1.0.16*)
