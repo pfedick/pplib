@@ -42,7 +42,7 @@ sinclude(autoconf/lame.m4)
 sinclude(autoconf/ogg.m4)
 sinclude(autoconf/shout.m4)
 sinclude(autoconf/imagemagick.m4)
-sinclude(autoconf/tiff.m4)
+sinclude(autoconf/libtiff.m4)
 
 
 AC_CANONICAL_TARGET
