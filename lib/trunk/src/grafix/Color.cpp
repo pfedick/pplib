@@ -581,7 +581,7 @@ bool operator== (const Color &c1, const Color &c2)
 const Color operator* (const Color &color, float factor)
 {
 	if (factor<0) factor=0.0f;
-	return Color(clamp(color.r*factor),clamp(color.g*factor),clamp(color.b*factor),color.a);
+	return Color(clamp((float)color.r*factor),clamp((float)color.g*factor),clamp((float)color.b*factor),color.a);
 }
 
 /*!\brief Multiplikation einer Farbe mit einem Faktor
@@ -601,7 +601,7 @@ const Color operator* (const Color &color, float factor)
 const Color operator* (float factor, const Color &color)
 {
 	if (factor<0) factor=0.0;
-	return Color(clamp(color.r*factor),clamp(color.g*factor),clamp(color.b*factor),color.a);
+	return Color(clamp((float)color.r*factor),clamp((float)color.g*factor),clamp((float)color.b*factor),color.a);
 }
 
 
