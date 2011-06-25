@@ -66,6 +66,7 @@ PPLNORMALEXCEPTION(InvalidFontException);
 PPLNORMALEXCEPTION(NoSuitableFontEngineException);
 PPLNORMALEXCEPTION(FontNotFoundException);
 PPLNORMALEXCEPTION(InvalidFontEngineException);
+PPLNORMALEXCEPTION(InvalidSpriteException);
 
 
 
@@ -989,6 +990,70 @@ class ImageFilter_TGA : public ImageFilter
 };
 
 
+
+
+class Sprite
+{
+	private:
+		class SpriteTexture
+		{
+		public:
+			int id;
+			int width, height;
+			int bitdepth;
+			RGBFormat rgbformat;
+			Image surface;
+
+			SpriteTexture()
+			{
+				id=0;
+			}
+			~SpriteTexture()
+			{
+			}
+		};
+
+		class SpriteIndexItem
+		{
+		public:
+			int id;
+			const Drawable *surface;
+			Rect r;
+			Point Pivot;
+			Point Offset;
+
+			SpriteIndexItem()
+			{
+				id=0;
+				surface=NULL;
+			}
+			SpriteIndexItem(const SpriteIndexItem &other)
+			{
+				id=other.id;
+				surface=other.surface;
+				r=other.r;
+				Pivot=other.Pivot;
+				Offset=other.Offset;
+			}
+
+		};
+		AVLTree<int,SpriteTexture> TextureList;
+		AVLTree<int,SpriteIndexItem> SpriteList;
+
+		void loadTexture(PFPChunk *chunk);
+		void loadIndex(PFPChunk *chunk);
+		const Drawable *findTexture(int id) const;
+
+	public:
+		Sprite();
+		~Sprite();
+		void load(const String &filename);
+		void load(FileObject &ff);
+		void clear();
+		void draw(Drawable &target, int x, int y, int id) const;
+		int numTextures() const;
+		int numSprites() const;
+};
 
 
 

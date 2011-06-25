@@ -95,6 +95,7 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_RGBFormat.o \
 	release/gfx_Rect.o \
 	release/gfx_Size.o \
+	release/gfx_Sprite.o \
 	 \
 	release/sound_Icecast.o
 
@@ -159,6 +160,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_RGBFormat.o \
 	debug/gfx_Rect.o \
 	debug/gfx_Size.o \
+	debug/gfx_Sprite.o \
 	 \
 	debug/sound_Icecast.o
 
@@ -590,6 +592,11 @@ release/gfx_Size.o:	$(srcdir)/grafix/Size.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>grafix/Size.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_Size.o -c $(srcdir)/grafix/Size.cpp $(CFLAGS) 
 
+release/gfx_Sprite.o:	$(srcdir)/grafix/Sprite.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Sprite.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Sprite.o -c $(srcdir)/grafix/Sprite.cpp $(CFLAGS) 
+
 ### GRAFIX
 ### SOUND
 release/sound_Icecast.o:	$(srcdir)/sound/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-sound.h 
@@ -938,6 +945,11 @@ debug/gfx_Size.o:	$(srcdir)/grafix/Size.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	###############################################################################
 	# Compiling >>>grafix/Size.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_Size.o -c $(srcdir)/grafix/Size.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_Sprite.o:	$(srcdir)/grafix/Sprite.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Sprite.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Sprite.o -c $(srcdir)/grafix/Sprite.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### GRAFIX
 ### SOUND

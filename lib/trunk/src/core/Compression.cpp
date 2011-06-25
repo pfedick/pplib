@@ -958,6 +958,7 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 		if (!uncbuffer) throw OutOfMemoryException();
 		size_t dstlen=size_unc;
 		size_t bytes=1+b_unc+b_comp;
+		printf ("dstlen= %u, bytes=%u, size=%u\n",(int)dstlen,(int)bytes,(int)size);
 		try {
 			uncompress(uncbuffer,&dstlen,buffer+bytes,size-bytes,a);
 			return ByteArrayPtr(uncbuffer,dstlen);
@@ -992,7 +993,7 @@ ByteArrayPtr Compression::uncompress(const ByteArrayPtr &in)
  *
  */
 {
-	return compress(in.ptr(),in.size());
+	return uncompress(in.ptr(),in.size());
 }
 
 void Compression::uncompress(ByteArray &out, const void *ptr, size_t size)
