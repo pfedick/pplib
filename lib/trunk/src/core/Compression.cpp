@@ -722,15 +722,15 @@ ByteArrayPtr Compression::compress(const void *ptr, size_t size)
 
 		// Daten komprimiert
 		if (b_comp==1) {
-			Poke8(p2,size);
+			Poke8(p2,dstlen);
 		} else if (b_unc==2) {
-			Poke16(p2,size);
+			Poke16(p2,dstlen);
 			flag|=64;
 		} else if (b_unc==3) {
-			Poke24(p2,size);
+			Poke24(p2,dstlen);
 			flag|=128;
 		} else {
-			Poke32(p2,size);
+			Poke32(p2,dstlen);
 			flag|=(128+64);
 		}
 		Poke8(prefix,flag);

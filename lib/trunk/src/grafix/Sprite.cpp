@@ -55,7 +55,7 @@ namespace grafix {
 
 /*!\page PFPSpriteTexture1 Format PFP Sprite-Textures, Version 1
  *
-Eine Texture-Sprite-Datei wird zum Speichern von Sprites verwendet, die mit der Klasse ppl6::grafix::Sprite
+Eine Texture-Sprite-Datei wird zum Speichern von Sprites verwendet, die mit der Klasse ppl7::grafix::Sprite
 geladen und dargestellt werden können. Dabei werden viele einzelne kleine Sprite-Grafiken auf einer
 oder mehreren größeren Texturen zusammengefasst.
 Die Datei verwendet als Basisformat das \ref PFPFileVersion3 "PFP-File-Format Version 3" mit seinen Chunks.
@@ -382,9 +382,8 @@ void Sprite::draw(Drawable &target, int x, int y, int id) const
 {
 	// Sprite im Index finden
 	const SpriteIndexItem &item=SpriteList.find(id);
-	Drawable draw;
-	Rect r(item.r);
-	target.bltAlpha(draw,r,x+item.Offset.x-item.Pivot.x, y+item.Offset.y-item.Pivot.y);
+
+	target.bltAlpha(*item.surface,item.r,x+item.Offset.x-item.Pivot.x, y+item.Offset.y-item.Pivot.y);
 }
 
 int Sprite::numTextures() const
