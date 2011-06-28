@@ -159,6 +159,7 @@ class ByteArrayPtr : public Variant
 		operator const unsigned char*() const;
 		String toHex() const;
 		String toBase64() const;
+		const char* toCharPtr() const;
 		String md5() const;
 		ppluint32 crc32() const;
 		unsigned char operator[](size_t pos) const;
@@ -356,6 +357,7 @@ class String : public Variant
 		unsigned long long toUnsignedLongLong() const;
 		float toFloat() const;
 		double toDouble() const;
+		const wchar_t * toWchart() const;
 		//@}
 
 		//! @name Operatoren

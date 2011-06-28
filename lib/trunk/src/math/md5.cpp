@@ -431,7 +431,6 @@ static char * MD5Data (const unsigned char *data, size_t len, char *buf)
 }
 
 
-String ByteArrayPtr::md5() const
 /*!\brief MD5-Summe berechnen
  *
  * Diese Funktion berechnet die MD5-Summe der binären Daten und gibt diese als
@@ -443,6 +442,7 @@ String ByteArrayPtr::md5() const
  * bei der Berechnung der MD5-Summe ein Fehler aufgetreten ist.
  *
  */
+String ByteArrayPtr::md5() const
 {
 	String ret;
 	char tmp[33];

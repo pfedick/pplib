@@ -345,7 +345,25 @@ String ByteArrayPtr::toBase64() const
 	return ToBase64(*this);
 }
 
+/*!\brief Adresse des Speicherblocks auslesen
+ *
+ * \desc
+ * Mit diesem Operator wird die Adresse des Speicherblocks ausgelesen
+ *
+ * @return Adresse des Speicherblocks
+ */
+const char* ByteArrayPtr::toCharPtr() const
+{
+	return (const char*)ptradr;
+}
 
+/*!\brief CRC32-Prüfsumme berechnen
+ *
+ * \desc
+ * Diese Funktion liefert die CRC32-Prüfsumme des Speicherbereichs zurück.
+ *
+ * @return CRC32-Prüfsumme
+ */
 ppluint32 ByteArrayPtr::crc32() const
 {
 	if (ptrsize==0) throw EmptyDataException();
