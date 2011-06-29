@@ -252,8 +252,8 @@ void Sprite::loadIndex(PFPChunk *chunk)
 		item.surface=findTexture(Peek16(p+4));
 		item.r.x1=Peek16(p+6+0);
 		item.r.y1=Peek16(p+6+2);
-		item.r.x2=Peek16(p+6+4);
-		item.r.y2=Peek16(p+6+6);
+		item.r.x2=Peek16(p+6+4)+1;
+		item.r.y2=Peek16(p+6+6)+1;
 		item.Pivot.x=Peek16(p+14+0);
 		item.Pivot.y=Peek16(p+14+2);
 		item.Offset.x=Peek16(p+18+0);
@@ -349,7 +349,6 @@ void Sprite::load(FileObject &ff)
 	PFPFile File;
 	clear();
 	File.load(ff);
-	File.list();
 	int major, minor;
 	File.getVersion(&major,&minor);
 	if (File.getID()!=L"TEXS" || major!=1 || minor!=0) throw InvalidSpriteException();
