@@ -8,6 +8,8 @@ Version 6.4.8
     die Länge der komprimierten Daten geschrieben
   - Bugfix in Datenbank-Connect-Funktion. Fehlerhaften "ifdef" für
     Postgres korrigiert
+  - Bugfix in Postgres-Escape-Funktion. Das letzte Zeichen des
+    Strings wird nun nicht mehr abgeschnitten.
 
 Version 6.4.7 vom 25.05.2011	(CVS-Tag: REL_6_4_7)
   - CDateTime holt sich nun die Millisekunden via "gettimeofday",

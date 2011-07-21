@@ -632,13 +632,15 @@ int Postgres::Escape(CString &str)
 	int error;
 	size_t newlength=PQescapeStringConn((PGconn*)conn,buf,(const char*)str,str.Len(),&error);
 	if (error==0) {
-		str.ImportBuffer(buf,newlength);
 		mutex.Unlock();
+		//ppl6::HexDump(buf,newlength);
+		str.Set(buf,newlength);
+		free(buf);
 		return 1;
 	}
+	mutex.Unlock();
 	free(buf);
 	SetError(355,0,PQerrorMessage((PGconn*)conn));
-	mutex.Unlock();
 	return 0;
 #endif
 }
