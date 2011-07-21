@@ -118,7 +118,7 @@ Database *Connect(const CAssocArray &params)
 			db=new Sybase;
 		}
 	#endif
-	#ifdef HAVE_POSTGRES
+	#ifdef HAVE_POSTGRESQL
 		if (type=="postgres") {
 			db=new Postgres;
 		}

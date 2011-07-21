@@ -6,6 +6,8 @@ Version 6.4.8
   - Bugfix in Compression-Klasse: bei Verwendung des V2-Prefix
     wurde beim Komprimieren statt Länge der unkomprimierten Daten
     die Länge der komprimierten Daten geschrieben
+  - Bugfix in Datenbank-Connect-Funktion. Fehlerhaften "ifdef" für
+    Postgres korrigiert
 
 Version 6.4.7 vom 25.05.2011	(CVS-Tag: REL_6_4_7)
   - CDateTime holt sich nun die Millisekunden via "gettimeofday",
