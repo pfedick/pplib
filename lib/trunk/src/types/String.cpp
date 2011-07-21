@@ -506,6 +506,7 @@ bool String::isTrue() const
 	if (strcasecmp("wahr")==0) return true;
 	if (strcasecmp("ja")==0) return true;
 	if (strcasecmp("yes")==0) return true;
+	if (strcasecmp("t")==0) return true;
 	return false;
 }
 
