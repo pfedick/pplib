@@ -3492,6 +3492,7 @@ int CAssocArray::IsTrue(const char *key) const
 		if (str->StrCaseCmp((char*)"yes")==0) return 1;
 		if (str->StrCaseCmp((char*)"ja")==0) return 1;
 		if (str->StrCaseCmp((char*)"on")==0) return 1;
+		if (str->StrCaseCmp((char*)"t")==0) return 1;
 	} else if (ptr->type==datatype::CWSTRING) {
 		CWString *str=(CWString*)ptr->value;
 		if (str->Len()==0) return 0;
@@ -3501,6 +3502,7 @@ int CAssocArray::IsTrue(const char *key) const
 		if (str->StrCaseCmp((char*)"yes")==0) return 1;
 		if (str->StrCaseCmp((char*)"ja")==0) return 1;
 		if (str->StrCaseCmp((char*)"on")==0) return 1;
+		if (str->StrCaseCmp((char*)"t")==0) return 1;
 	}
 	return 0;
 }

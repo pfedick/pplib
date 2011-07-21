@@ -185,6 +185,7 @@ int IsTrue(const wchar_t *value)
 	if (s.StrCaseCmp("wahr")==0) return 1;
 	if (s.StrCaseCmp("ja")==0) return 1;
 	if (s.StrCaseCmp("yes")==0) return 1;
+	if (s.StrCaseCmp("t")==0) return 1;
 	return 0;
 }
 
