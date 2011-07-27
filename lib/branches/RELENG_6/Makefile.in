@@ -23,7 +23,7 @@ LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2
 LIBNAME		= libppl6
 LIBDEBUG	= libppl6-debug
 DISTNAME	= ppl
-VERSION     = 6.4.7
+VERSION     = 6.4.8
 ASM			= @ASM@ @ASMFLAGS@
 ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@	
 ###########################################################################
