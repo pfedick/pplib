@@ -517,7 +517,7 @@ void *Postgres::Pgsql_Query(const CString &query)
 			mutex.Lock();
 		}
 	}
-	SetError(138,0,PQresultErrorMessage(res));
+	SetError(138,0,"%s",PQresultErrorMessage(res));
 	return NULL;
 #endif
 }
