@@ -507,7 +507,8 @@ void *Postgres::Pgsql_Query(const CString &query)
 			affectedrows=ppl6::atoll(PQcmdTuples(res));
 			return res;
 		}
-		PQclear(res);
+		SetError(138,0,"%s",PQresultErrorMessage(res));
+		if (res) PQclear(res);
 		if (PQstatus((PGconn*)conn) != CONNECTION_OK) {
 			mutex.Unlock();
 			if (!Reconnect()) {
@@ -515,9 +516,8 @@ void *Postgres::Pgsql_Query(const CString &query)
 				return NULL;
 			}
 			mutex.Lock();
-		}
+		} else break;
 	}
-	SetError(138,0,"%s",PQresultErrorMessage(res));
 	return NULL;
 #endif
 }
