@@ -603,7 +603,9 @@ void CLog::DeleteFilter(const char *file, int line)
 bool CLog::shouldPrint(const char *module, const char *function, const char *file, int line, int facility, int level)
 {
 	if (facility<1 || facility>=NUMFACILITIES) return false;
+	if (debuglevel[facility]<level) return false;				// Wenn der Debuglevel kleiner ist, brauchen wir nicht weiter machen
 	bool ret=true;
+
 	ppl6::PushError();
 	if (IsFiltered(module,function,file,line,level)) ret=false;
 	ppl6::PopError();
