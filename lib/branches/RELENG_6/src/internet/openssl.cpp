@@ -1005,43 +1005,42 @@ int CSSL::Init(int method)
 		Shutdown();
 		Mutex.Lock();
 		if (!method) method=CSSL::SSLv23;
-		::SSL_METHOD *ssl_method=NULL;
 		switch (method) {
 			case CSSL::SSLv2:
-				ssl_method=SSLv2_method();
+				ctx=SSL_CTX_new(SSLv2_method());
 				break;
 			case CSSL::SSLv2client:
-				ssl_method=SSLv2_client_method();
+				ctx=SSL_CTX_new(SSLv2_client_method());
 				break;
 			case CSSL::SSLv2server:
-				ssl_method=SSLv2_server_method();
+				ctx=SSL_CTX_new(SSLv2_server_method());
 				break;
 			case CSSL::SSLv3:
-				ssl_method=SSLv3_method();
+				ctx=SSL_CTX_new(SSLv3_method());
 				break;
 			case CSSL::SSLv3client:
-				ssl_method=SSLv3_client_method();
+				ctx=SSL_CTX_new(SSLv3_client_method());
 				break;
 			case CSSL::SSLv3server:
-				ssl_method=SSLv3_server_method();
+				ctx=SSL_CTX_new(SSLv3_server_method());
 				break;
 			case CSSL::SSLv23:
-				ssl_method=SSLv2_method();
+				ctx=SSL_CTX_new(SSLv2_method());
 				break;
 			case CSSL::SSLv23client:
-				ssl_method=SSLv23_client_method();
+				ctx=SSL_CTX_new(SSLv23_client_method());
 				break;
 			case CSSL::SSLv23server:
-				ssl_method=SSLv23_server_method();
+				ctx=SSL_CTX_new(SSLv23_server_method());
 				break;
 			case CSSL::TLSv1:
-				ssl_method=TLSv1_method();
+				ctx=SSL_CTX_new(TLSv1_method());
 				break;
 			case CSSL::TLSv1client:
-				ssl_method=TLSv1_client_method();
+				ctx=SSL_CTX_new(TLSv1_client_method());
 				break;
 			case CSSL::TLSv1server:
-				ssl_method=TLSv1_server_method();
+				ctx=SSL_CTX_new(TLSv1_server_method());
 				break;
 			default:
 				SetError(320);
@@ -1049,13 +1048,6 @@ int CSSL::Init(int method)
 				return 0;
 				break;
 		};
-
-		if (!ssl_method) {
-			SetError(319,"SSLv3_client_method");
-			Mutex.Unlock();
-			return 0;
-		}
-		ctx=SSL_CTX_new(ssl_method);
 		if (!ctx) {
 			SetError(319,"SSL_CTX_new");
 			Mutex.Unlock();
