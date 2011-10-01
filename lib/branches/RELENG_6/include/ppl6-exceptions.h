@@ -51,6 +51,7 @@ class Exception : std::exception
 		Exception() throw();
 		Exception(const Exception &other) throw();
 		Exception& operator= (const Exception &other) throw();
+		Exception(const CString &msg);
 		Exception(const char *msg, ...);
 		virtual ~Exception() throw();
 		virtual const char* what() const throw();

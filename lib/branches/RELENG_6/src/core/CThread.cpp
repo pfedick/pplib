@@ -377,6 +377,33 @@ int ThreadGetPriority()
 	return THREAD_PRIORITY::UNKNOWN;
 }
 
+class FunctionThread : public CThread
+{
+	public:
+		void (*start_routine)(void *);
+		void *data;
+		virtual void ThreadMain(void *param) {
+			start_routine(data);
+		}
+
+};
+
+ppluint64 StartThread(void (*start_routine)(void *),void *data)
+{
+	FunctionThread *t=new FunctionThread;
+	t->start_routine=start_routine;
+	t->data=data;
+	t->ThreadDeleteOnExit(1);
+	if (!t->ThreadStart(NULL)) {
+		ppl6::PushError();
+		delete t;
+		ppl6::PopError();
+		return 0;
+	}
+	return t->ThreadGetID();
+}
+
+
 /*!\class CThread
  * \ingroup PPLGroupThreads
  * \brief Klasse zum Verwalten von Threads

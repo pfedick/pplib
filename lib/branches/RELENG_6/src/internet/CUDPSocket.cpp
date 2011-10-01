@@ -437,7 +437,7 @@ int CUDPSocket::Bind(const char *host, int port)
 		s->proto=6;
 		s->ipname=NULL;
 		s->port=port;
-		s->addrlen=0;
+		//s->addrlen=0;
 	}
 	PPLSOCKET *s=(PPLSOCKET*)socket;
 	//if (s->sd) Disconnect();
@@ -510,7 +510,7 @@ int CUDPSocket::Bind(const char *host, int port)
 				return 0;
     		}
     		s->sd=listenfd;
-    		s->addrlen=0;
+    		//s->addrlen=0;
     		//connected=1;
     		return 1;
 		}
@@ -524,7 +524,7 @@ int CUDPSocket::Bind(const char *host, int port)
 		return 0;
 	}
 	s->sd=listenfd;
-	s->addrlen=addrlen;
+	//s->addrlen=addrlen;
 	//connected=1;
 	return 1;
 }

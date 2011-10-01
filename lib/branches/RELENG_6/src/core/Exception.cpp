@@ -104,6 +104,11 @@ Exception::Exception(const char *msg, ...)
 	}
 }
 
+Exception::Exception(const CString &msg)
+{
+	ErrorText=strdup((const char*)msg);
+}
+
 void Exception::copyText(const char *str) throw()
 {
 	free(ErrorText);

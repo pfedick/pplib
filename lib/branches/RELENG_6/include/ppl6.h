@@ -1558,6 +1558,8 @@ namespace THREAD_PRIORITY {
 int ThreadSetPriority(int priority);
 int ThreadGetPriority();
 
+ppluint64	StartThread(void (*start_routine)(void *),void *data=NULL);
+
 //! \brief Thread-Klasse
 class CThread
 {

@@ -680,7 +680,7 @@ int CTCPSocket::Connect(const char *host, int port)
 		s->proto=0;
 		s->ipname=NULL;
 		s->port=0;
-		s->addrlen=0;
+		//s->addrlen=0;
 	}
 	PPLSOCKET *s=(PPLSOCKET*)socket;
 	if (s->ipname) free(s->ipname);
@@ -779,7 +779,7 @@ int CTCPSocket::Connect(const char *host, int port)
 	}
 	if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Connect ok, Descriptor: %i\n",host,port,sockfd);
 	s->sd=sockfd;
-	s->addrlen=res->ai_addrlen;
+	//s->addrlen=res->ai_addrlen;
 	HostName=host;
 	PortNum=port;
 	connected=1;
@@ -1661,6 +1661,8 @@ int CTCPSocket::Bind(const char *host, int port)
  * \desc
  * Diese Funktion muss aufgerufen werden, bevor man mit CTCPSocket::Listen einen TCP-Server starten kann. Dabei wird mit \p host
  * die IP-Adresse festgelegt, auf die sich der Server binden soll und mit \p port der TCP-Port.
+ * Die Funktion kann mehrfach aufgerufen werden, um den Socket an mehrere Adressen oder Ports zu
+ * binden.
  *
  * @param[in] host IP-Adresse, Hostname, "*" oder NULL. Bei Angabe von "*" oder NULL bindet sich der Socket auf alle
  * Interfaces des Servers.
@@ -1681,12 +1683,16 @@ int CTCPSocket::Bind(const char *host, int port)
 		s->proto=6;
 		s->ipname=NULL;
 		s->port=port;
-		s->addrlen=0;
+		//s->addrlen=0;
 	}
+#ifdef _WIN32
+	SOCKET	listenfd;
+#else
+	int listenfd;
+#endif
+
 	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->sd) Disconnect();
-	if (s->ipname) free(s->ipname);
-	s->ipname=NULL;
+	if (s->sd) listenfd=s->sd;
 
 	struct addrinfo hints, *res, *ressave;
 	bzero(&hints, sizeof(struct addrinfo));
@@ -1695,11 +1701,6 @@ int CTCPSocket::Bind(const char *host, int port)
 	hints.ai_socktype=SOCK_STREAM;
 	int n;
 	int on=1;
-	#ifdef _WIN32
-		SOCKET	listenfd;
-	#else
-		int listenfd;
-	#endif
 	// Prüfen, ob host ein Wildcard ist
 	if (host!=NULL && strlen(host)==0) host=NULL;
 	if (host!=NULL && host[0]=='*') host=NULL;
@@ -1754,7 +1755,7 @@ int CTCPSocket::Bind(const char *host, int port)
 				return 0;
     		}
     		s->sd=listenfd;
-    		s->addrlen=0;
+    		//s->addrlen=0;
     		connected=1;
     		return 1;
 		}
@@ -1768,7 +1769,7 @@ int CTCPSocket::Bind(const char *host, int port)
 		return 0;
 	}
 	s->sd=listenfd;
-	s->addrlen=addrlen;
+	//s->addrlen=addrlen;
 	connected=1;
 	return 1;
 }

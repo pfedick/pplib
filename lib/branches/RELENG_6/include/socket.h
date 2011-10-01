@@ -54,7 +54,7 @@ typedef struct tagPPLSocket {
 	int proto;
 	char *ipname;
 	int port;
-	int addrlen;
+	//int addrlen;
 } PPLSOCKET;
 
 
