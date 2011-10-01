@@ -43,6 +43,7 @@ sinclude(autoconf/ogg.m4)
 sinclude(autoconf/shout.m4)
 sinclude(autoconf/imagemagick.m4)
 sinclude(autoconf/libtiff.m4)
+sinclude(autoconf/libmicrohttpd.m4)
 
 
 AC_CANONICAL_TARGET
@@ -228,6 +229,17 @@ AC_CHECK_FUNCS([clock_gettime])
 dnl Checks for programs.
 
 dnl Checks for libraries.
+
+report_have_libmicrohttpd="no"
+AM_LIBMICROHTTPD(,
+            AC_DEFINE(HAVE_LIBMICROHTTPD, 1, [ Define if you have libmicrohttpd. ])
+            report_have_libmicrohttpd="yes"
+            AC_SUBST(LIBMICROHTTPD_CFLAGS)
+			AC_SUBST(LIBMICROHTTPD_LIBS)
+            
+            ,
+            :)
+
 
 report_have_libmcrypt="no"
 AM_PATH_LIBMCRYPT([2.5.7],
@@ -526,6 +538,7 @@ AC_SUBST(report_have_libogg)
 AC_SUBST(report_have_libshout)
 AC_SUBST(report_have_libimlib)
 AC_SUBST(report_have_libtiff)
+AC_SUBST(report_have_libmicrohttpd)
 
 
 dnl report configuration
@@ -556,7 +569,8 @@ AC_MSG_RESULT([
 **   mpg123 library:       $report_have_mpg123	  
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
-**   Curl library:         $report_have_curl		  
+**   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd		  
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
 **   ICONV:                $report_have_iconv

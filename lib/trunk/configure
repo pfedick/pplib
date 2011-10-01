@@ -612,6 +612,7 @@ SOUND_LIBS
 SOUND_CFLAGS
 GRAPHIC_LIBS
 GRAPHIC_CFLAGS
+report_have_libmicrohttpd
 report_have_libtiff
 report_have_libimlib
 report_have_libshout
@@ -697,6 +698,8 @@ LIBMHASH_LIBS
 LIBMCRYPT_LIBS
 LIBMCRYPT_CFLAGS
 LIBMCRYPT_CONFIG
+LIBMICROHTTPD_LIBS
+LIBMICROHTTPD_CFLAGS
 LIBOBJS
 X_EXTRA_LIBS
 X_LIBS
@@ -811,6 +814,7 @@ with_gcc_arch
 enable_portable_binary
 enable_largefile
 with_x
+with_libmicrohttpd
 with_libmcrypt_prefix
 with_libmhash
 with_jpeg
@@ -1497,6 +1501,7 @@ Optional Packages:
   --with-gcc-arch=<arch>  use architecture <arch> for gcc -march/-mtune,
                           instead of guessing
   --with-x                use the X Window System
+  --with-libmicrohttpd[=PATH]     Prefix where libmicrohttpd is installed (optional)
   --with-libmcrypt-prefix=PFX   Prefix where libmcrypt is installed (optional)
   --with-libmhash[=PATH]     Prefix where libmhash is installed (optional)
   --with-jpeg[=PATH]     Prefix where libjpeg is installed (optional)
@@ -3093,6 +3098,8 @@ ac_config_headers="$ac_config_headers include/ppl7-unixconfig.h"
 # XIPH_PATH_SHOUT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 # Test for libshout, and define SHOUT_CPPFLAGS SHOUT_CFLAGS SHOUT_LIBS, and
 # SHOUT_THREADSAFE
+
+
 
 
 
@@ -10389,6 +10396,83 @@ done
 
 
 
+report_have_libmicrohttpd="no"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmicrohttpd library and headers" >&5
+$as_echo_n "checking for libmicrohttpd library and headers... " >&6; }
+
+# Check whether --with-libmicrohttpd was given.
+if test "${with_libmicrohttpd+set}" = set; then :
+  withval=$with_libmicrohttpd; libmicrohttpd_prefix="$withval"
+else
+  libmicrohttpd_prefix="no"
+fi
+
+
+
+if test "$libmicrohttpd_prefix" != "no"
+then
+	am_save_CPPFLAGS="$CPPFLAGS"
+	am_save_LIBS="$LIBS"
+	am_save_LDFLAGS="$LDFLAGS"
+	LIBS="$LIBS -lmicrohttpd"
+	LIBMICROHTTPD_LIBS="-lmicrohttpd"
+	LIBMICROHTTPD_CFLAGS=""
+
+	if test "$libmicrohttpd_prefix" != "yes"
+	then
+		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
+		CPPFLAGS="-I$libmicrohttpd_prefix/include"
+		LIBMICROHTTPD_LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
+		LIBMICROHTTPD_CFLAGS="-I$libmicrohttpd_prefix/include"
+	fi
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+         #include <microhttpd.h>
+         int main()
+         {
+         	struct MHD_Daemon* daemon;
+         	MHD_stop_daemon(daemon);
+         }
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_LIBMICROHTTPD 1" >>confdefs.h
+
+            report_have_libmicrohttpd="yes"
+
+
+
+
+
+
+else
+
+      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+        :
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+	CPPFLAGS=$am_save_CPPFLAGS
+	LIBS=$am_save_LIBS
+	LDFLAGS=$am_save_LDFLAGS
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	:
+fi
+
+
+
+
+
 report_have_libmcrypt="no"
 
 # Check whether --with-libmcrypt-prefix was given.
@@ -14904,6 +14988,7 @@ esac;
 
 
 
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:
 ******************************************************************************
 ** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
@@ -14932,6 +15017,7 @@ esac;
 **   ogg library:          $report_have_libogg
 **   shout library:        $report_have_libshout
 **   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
 **   ICONV:                $report_have_iconv
@@ -14968,6 +15054,7 @@ $as_echo "
 **   ogg library:          $report_have_libogg
 **   shout library:        $report_have_libshout
 **   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
 **   ICONV:                $report_have_iconv

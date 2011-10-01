@@ -14,7 +14,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-jpeg --with-png --with-libtiff=/usr/local \
 			--with-mpg123=/usr/local \
-			--with-ogg=/usr/local
+			--with-ogg=/usr/local \
+			--with-libmicrohttpd=/usr/local
 		;;
 	MINGW32*:1.0.16*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
