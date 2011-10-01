@@ -16,14 +16,14 @@ TARGETBIN	= @bindir@
 TARGETINCLUDE	= @includedir@
 CC			= @CC@
 CXX			= @CXX@
-CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @openssl_includes@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@
+CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @openssl_includes@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@ @LIBMICROHTTPD_CFLAGS@
 CPPFLAGS	= @CPPFLAGS@
 LDFLAGS		= @LDFLAGS@
-LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@
+LIBS		= @openssl_libs@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@ @LIBMICROHTTPD_LIBS@
 LIBNAME		= libppl6
 LIBDEBUG	= libppl6-debug
 DISTNAME	= ppl
-VERSION     = 6.4.8
+VERSION     = 6.4.9
 ASM			= @ASM@ @ASMFLAGS@
 ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@	
 ###########################################################################
@@ -98,6 +98,7 @@ RELEASE	= release/CAVLTree.o \
 	release/openssl.o \
 	release/resolver.o \
 	release/socket.o \
+	release/webserver.o \
 	release/db_Database.o \
 	release/db_GenericResult.o \
 	release/db_MySQL.o \
@@ -229,6 +230,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/openssl.o \
 	debug/resolver.o \
 	debug/socket.o \
+	debug/webserver.o \
 	debug/db_Database.o \
 	debug/db_GenericResult.o \
 	debug/db_MySQL.o \
@@ -417,7 +419,8 @@ INET_RELEASE	=release/CCurl.o \
 	release/CWikiParser.o \
 	release/openssl.o \
 	release/resolver.o \
-	release/socket.o
+	release/socket.o \
+	release/webserver.o
 
 INET_DEBUG	=debug/CCurl.o \
 	debug/CHostsAllow.o \
@@ -430,7 +433,8 @@ INET_DEBUG	=debug/CCurl.o \
 	debug/CWikiParser.o \
 	debug/openssl.o \
 	debug/resolver.o \
-	debug/socket.o
+	debug/socket.o \
+	debug/webserver.o
 
 INET_NOSSL_RELEASE	=release/nossl_CCurl.o \
 	release/nossl_CHostsAllow.o \
@@ -443,7 +447,8 @@ INET_NOSSL_RELEASE	=release/nossl_CCurl.o \
 	release/nossl_CWikiParser.o \
 	release/nossl_openssl.o \
 	release/nossl_resolver.o \
-	release/nossl_socket.o
+	release/nossl_socket.o \
+	release/nossl_webserver.o
 
 INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 	debug/nossl_CHostsAllow.o \
@@ -456,7 +461,8 @@ INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 	debug/nossl_CWikiParser.o \
 	debug/nossl_openssl.o \
 	debug/nossl_resolver.o \
-	debug/nossl_socket.o
+	debug/nossl_socket.o \
+	debug/nossl_webserver.o
 
 
 SOUND_RELEASE	=release/CID3Tag.o \
@@ -1098,6 +1104,11 @@ release/socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-
 	# Compiling >>>internet/socket.cpp<<<
 	$(CXX) -Wall -O3 -o release/socket.o -c $(CFLAGS)  $(srcdir)/internet/socket.cpp
 
+release/webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O3 -o release/webserver.o -c $(CFLAGS)  $(srcdir)/internet/webserver.cpp
+
 ### INTERNET
 release/nossl_CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1158,6 +1169,11 @@ release/nossl_socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)
 	###############################################################################
 	# Compiling >>>internet/socket.cpp<<<
 	$(CXX) -Wall -O3 -o release/nossl_socket.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/socket.cpp
+
+release/nossl_webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_webserver.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/webserver.cpp
 
 ### DATABASE
 release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
@@ -1853,6 +1869,11 @@ debug/socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-un
 	# Compiling >>>internet/socket.cpp<<<
 	$(CXX) -Wall -O -o debug/socket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/socket.cpp
 
+debug/webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O -o debug/webserver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/webserver.cpp
+
 ### INTERNET
 debug/nossl_CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -1913,6 +1934,11 @@ debug/nossl_socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/p
 	###############################################################################
 	# Compiling >>>internet/socket.cpp<<<
 	$(CXX) -Wall -O -o debug/nossl_socket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/socket.cpp
+
+debug/nossl_webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_webserver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/webserver.cpp
 
 ### DATABASE
 debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 

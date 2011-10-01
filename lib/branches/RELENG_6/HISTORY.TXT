@@ -7,6 +7,7 @@ Version 6.4.9
     Socket an mehrere Adressen oder Ports zu binden.
   - Funktion StartThread, um einen einen Thread ohne Verwendung der
     Klasse CThread zu starten
+  - Webserver-Klasse, die auf libmicrohttpd aufsetzt 
 
 Version 6.4.8 vom 27.07.2011	(CVS-Tag: REL_6_4_8)
   - Datenbankklassen: Neue Funktion "databaseType"

@@ -3273,6 +3273,46 @@ class CUDPSocket
 
 };
 
+class Webserver
+{
+	private:
+		void *daemon;
+		int port;
+		ppl6::CAssocArray res;
+		CTCPSocket Socket;
+
+	public:
+		class Request {
+			friend class Webserver;
+			private:
+
+			public:
+				void *connection;
+
+				ppl6::CString url;
+				ppl6::CString method;
+				ppl6::CString version;
+				ppl6::CAssocArray header;
+				ppl6::CAssocArray data;
+		};
+		Webserver();
+		~Webserver();
+		void bind(const ppl6::CString &adr, int port);
+		void start();
+		void stop();
+		int queueResponse(const Request &req, ppl6::CString &text);
+
+		virtual int request(Request &req);
+
+
+
+
+		PPLPARAMETERISEDEXCEPTION(CouldNotBindToSocket);
+		PPLNORMALEXCEPTION(NoAddressSpecified);
+		PPLNORMALEXCEPTION(CouldNotStartDaemon);
+
+};
+
 
 class CCurl;
 

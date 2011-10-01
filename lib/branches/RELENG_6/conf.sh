@@ -13,7 +13,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libmhash=/usr/local --with-sybase=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm   \
 			--with-jpeg --with-png --with-mpg123=/usr/local \
-			--with-ogg=/usr/local
+			--with-ogg=/usr/local --with-libmicrohttpd=/usr/local
 		;;
 	MINGW32*:1.0.12*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
@@ -43,13 +43,13 @@ case "$SYS:$REL:$KERNEL" in
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql=/usr/local/pgsql/bin/pg_config \
-			--with-sybase=/usr --with-jpeg --with-png -with-mpg123
+			--with-sybase=/usr --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-openssl --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-sybase=/usr/local --with-postgresql=/usr/local/pgsql/bin/pg_config \
-			--with-jpeg --with-png \
+			--with-jpeg --with-png --with-libmicrohttpd \
 			--with-libmhash --with-mpg123 --with-ogg=/usr
 		;;
 	*)
