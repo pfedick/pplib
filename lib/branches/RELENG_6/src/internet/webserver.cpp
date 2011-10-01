@@ -115,8 +115,8 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 
 
 
-	printf ("Upload Size: %i\n",(int)*upload_data_size);
-	ppl6::HexDump((void*)upload_data,*upload_data_size);
+	//printf ("Upload Size: %i\n",(int)*upload_data_size);
+	//ppl6::HexDump((void*)upload_data,*upload_data_size);
 
 
 	return w->request(*r);
