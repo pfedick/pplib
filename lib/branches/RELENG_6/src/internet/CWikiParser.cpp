@@ -239,6 +239,7 @@ ergibt:
 CWikiParser::CWikiParser()
 {
 	init();
+	indexenabled=true;
 }
 
 CWikiParser::~CWikiParser()
@@ -271,7 +272,6 @@ void CWikiParser::init()
 	source.Clear();
 	indentlevel=0;
 	doxyparamsStarted=false;
-	indexenabled=true;
 }
 
 
@@ -371,8 +371,10 @@ void CWikiParser::setIndexEnabled(bool enabled)
 	indexenabled=enabled;
 }
 
-
-
+void CWikiParser::setBaseURI(const CString &Uri)
+{
+	BaseURI=Uri;
+}
 
 void CWikiParser::extractNoWiki(ppl6::CString &Text)
 {
@@ -735,6 +737,7 @@ void CWikiParser::parseTable(ppl6::CString &Line)
 
 void CWikiParser::parseLinks(ppl6::CString &Line)
 {
+	ppl6::CString Tmp;
 	// Escapete Klammern merken
 	Line.Replace("\\[","___@1___");
 	Line.Replace("\\]","___@2___");
@@ -763,6 +766,16 @@ void CWikiParser::parseLinks(ppl6::CString &Line)
 
 	Line.PregReplace("/\\[(ftp:\\/\\/.*?)\\s(.*?)\\]/i","<a href=\"$1\">$2</a>");
 	Line.PregReplace("/\\[(ftp:\\/\\/.*?)\\]/i","<a href=\"$1\">$1</a>");
+
+	// Wiki-Links
+	while (Line.PregMatch("/^(.*?)\\[\\[(.*?)\\s+(.*?)\\]\\](.*?)$/")) {
+		if (BaseURI.NotEmpty()) {
+			Tmp.Setf("%s<a href=%s%s>%s</a>%s",Line.GetMatch(1),(const char*)BaseURI,Line.GetMatch(2),Line.GetMatch(3),Line.GetMatch(4));
+		} else {
+			Tmp.Setf("%s<a href=%s>%s</a>%s",Line.GetMatch(1),Line.GetMatch(2),Line.GetMatch(3),Line.GetMatch(4));
+		}
+		Line=Tmp;
+	}
 
 	// Escapete Klammern zurückwandeln
 	Line.Replace("___@1___","[");

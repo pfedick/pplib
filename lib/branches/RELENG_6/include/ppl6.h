@@ -3848,6 +3848,7 @@ class CWikiParser
 		CAssocArray index;
 		CString incol;
 		CString ret;
+		CString BaseURI;
 		CArray nowiki;
 		int nowikicount;
 		bool nobr;
@@ -3895,6 +3896,7 @@ class CWikiParser
 		CString renderBody(const CString &Source);
 		CString header();
 		void setIndexEnabled(bool enabled);
+		void setBaseURI(const CString &Uri);
 		static CString xmlDiagram2HTML(const CString &xml);
 		virtual int getHeader(CString &Html);
 };
