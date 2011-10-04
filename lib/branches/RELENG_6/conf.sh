@@ -13,6 +13,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libmhash=/usr/local --with-sybase=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm   \
 			--with-jpeg --with-png --with-mpg123=/usr/local \
+			--with-libgcrypt-prefix \
+			--with-libgnutls-prefix \
 			--with-ogg=/usr/local --with-libmicrohttpd=/usr/local
 		;;
 	MINGW32*:1.0.12*)
@@ -43,13 +45,17 @@ case "$SYS:$REL:$KERNEL" in
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql=/usr/local/pgsql/bin/pg_config \
-			--with-sybase=/usr --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd
+			--with-libgcrypt-prefix \
+			--with-libgnutls-prefix \
+			--with-sybase=/usr --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd=/usr/local
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-openssl --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-sybase=/usr/local --with-postgresql=/usr/local/pgsql/bin/pg_config \
-			--with-jpeg --with-png --with-libmicrohttpd \
+			--with-libgcrypt-prefix \
+			--with-libgnutls-prefix \
+			--with-jpeg --with-png --with-libmicrohttpd=/usr/local \
 			--with-libmhash --with-mpg123 --with-ogg=/usr
 		;;
 	*)

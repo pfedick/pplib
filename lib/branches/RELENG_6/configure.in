@@ -41,6 +41,8 @@ sinclude(config/mpg123.m4)
 sinclude(config/lame.m4)
 sinclude(config/ogg.m4)
 sinclude(config/shout.m4)
+sinclude(config/libgcrypt.m4)
+sinclude(config/libgnutls.m4)
 sinclude(config/libmicrohttpd.m4)
 
 AC_CANONICAL_TARGET
@@ -233,6 +235,20 @@ dnl Checks for programs.
 
 dnl Checks for libraries.
 
+
+report_have_libgcrypt="no"
+AM_PATH_LIBGCRYPT(,
+            AC_DEFINE(HAVE_LIBGCRYPT, 1, [ Define if you have libgcrypt. ])
+            report_have_libgcrypt="yes"
+			,
+			:)
+
+report_have_libgnutls="no"
+AM_PATH_LIBGNUTLS(,
+            AC_DEFINE(HAVE_LIBGNUTLS, 1, [ Define if you have libgnutls. ])
+            report_have_libgnutls="yes"
+			,
+			:)
 
 report_have_libmicrohttpd="no"
 AM_LIBMICROHTTPD(,
@@ -572,6 +588,8 @@ AC_MSG_RESULT([
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
 **   Curl library:         $report_have_curl
+**   Libgcrypt:            $report_have_libgcrypt
+**   Libgnutls:            $report_have_libgnutls
 **   Libmicrohttpd:        $report_have_libmicrohttpd		  
 **   OpenSSL:              $report_have_openssl		Threads:
 **   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
