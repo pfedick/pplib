@@ -12,13 +12,13 @@ then
 	am_save_CPPFLAGS="$CPPFLAGS"
 	am_save_LIBS="$LIBS"
 	am_save_LDFLAGS="$LDFLAGS"
-	LIBS="$LIBS -lmicrohttpd"
+	LIBS="$LIBS -lmicrohttpd -pthread"
 	LIBMICROHTTPD_LIBS="-lmicrohttpd"
 	LIBMICROHTTPD_CFLAGS=""
 	
 	if test "$libmicrohttpd_prefix" != "yes"
 	then
-		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
+		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd -pthread"
 		CPPFLAGS="-I$libmicrohttpd_prefix/include"
 		LIBMICROHTTPD_LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
 		LIBMICROHTTPD_CFLAGS="-I$libmicrohttpd_prefix/include"
