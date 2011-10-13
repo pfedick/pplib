@@ -693,6 +693,117 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
 	return ExecArrayAll(result,String);
 }
 
+/*!\brief Query zum Speichern des Datensatzes generieren
+ *
+ * \descr
+ * Diese Funktion generiert aus den im Assoziativen Array \p a vorhandenen Feldern und Werten in Abhängigkeit der
+ * Methode \p method einen SQL-Query für die Tabelle \p table. Soll ein
+ * Update durchgeführt werden, muss zusätzlich noch eine Where-Klausel mit dem Parameter \p clause angegeben werden.
+ * Enthalten die Daten in \p a Felder, die in der Tabelle \p table nicht vorhanden sind, muss zusätzlich noch das
+ * Array \p exclude angegeben werden, dass die zu ignorierenden Feldnamen enthält.
+ * \par
+ * Die Daten in \p a werden vor dem Einsetzen in den Query korrekt Escaped.
+ *
+ * \param[out] Query String, in dem der Query gespeichert werden soll
+ * \param[in] method Die Methode, mit der der Datensatz in die Datenbank geschrieben werden soll. In Frage kommen:
+ * - \b INSERT
+ * - \b UPDATE
+ * - \b REPLACE
+ * \param[in] table Name der Tabelle
+ * \param[in] a Ein Assoziatives Array mit den zu speichernden Feldern
+ * \param[in] clause Ein Optionaler Parameter, der bei \b UPDATE angegeben werden muss und die Where-Klausel
+ * enthält. Das Keywort "where" muss nicht angegeben werden
+ * \param[in] exclude Ein optionales assoziatives Array, was die Namen der Felder enthält, die nicht gespeichert werden
+ * sollen. Muss verwendet werden, wenn in \p a Felder enthalten sind, die in der Tabelle \p table nicht existieren.
+ * \param[in] types Ein optionales assoziatives Array, was die Typen der zu speichernden Daten angibt.
+ * Hier wird zur Zeit nur "int" und "bit" interpretiert, was dazu führt, dass die Werte nicht in
+ * Anführungszeichen in den SQL-Query eingebaut werden. Alle anderen Typen werden wie bisher als String
+ * behandelt. Bei dem ASE von Sybase gibt es Probleme, wenn man versucht einen Ziffer in Anführungszeichen
+ * anzugeben, wenn das Feld als "numeric" oder "bit" definiert ist.
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ *
+ * \example
+ * Das folgende Beispiel zeigt, wie mit Hilfe von Save ein Datensatz mit UPDATE aktualisiert wird. Es wird
+ * von folgender Tabellendefinition ausgegangen:
+\verbatim
+   userid    int4 not null primary key,
+   vorname   varchar(64) nut null,
+   nachname  varchar(64) nut null,
+   email     varchar(128) nut null
+\endverbatim
+ * \par
+ * \dontinclude db_examples.cpp
+ * \skip DB_Save_Example1
+ * \until EOF
+ */
+int Database::SaveGenQuery(CString &Query, const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude, const CAssocArray &types)
+{
+	if (!method) {
+		SetError(194,"const char *method");
+		return 0;
+	}
+	if (!table) {
+		SetError(194,"const char *table");
+		return 0;
+	}
+	if (a.Count()==0) {
+		SetError(343);
+		return 0;
+	}
+	CString Keys, Vals, Key, Value, Method, Table, Clause, Type;
+	Query.Clear();
+	Method=method;
+	Table=table;
+	Method.LCase();
+	if (Table.Len()==0) {
+		SetError(344);
+		return 0;
+	}
+	if (clause) Clause=clause;
+	a.Reset();
+	if (Method=="insert" || Method=="replace") {
+		while (a.GetNext(Key,Value)) {
+			if (exclude.GetChar(Key)==NULL) {
+				Keys.Concat(Key);
+				Keys.Concat(",");
+				//printf ("Key=%s, Value=%s\n",(const char*)Key,(const char*)Value);
+				if (!Escape(Value)) return 0;
+				Type=types.ToCString(Key);
+				Type.LCase();
+				if (Type=="int" || Type=="bit") Vals.Concatf("%s,",(const char*)Value);
+				else Vals.Concatf("\"%s\",",(const char*)Value);
+			}
+		}
+		Keys.Chop();
+		Vals.Chop();
+
+		Query.Setf("%s into %s (%s) values (%s)",(const char*)Method, (const char*)Table, (const char*)Keys, (const char*)Vals);
+		//printf ("Query: %s\n",(const char*)Query);
+		return 1;
+	} else if (Method=="update") {
+		Query.Setf("%s %s set ",(const char*)Method, (const char*)Table);
+		while (a.GetNext(Key,Value)) {
+			if (!Escape(Value)) return 0;
+			if (exclude.GetChar(Key)==NULL) {
+				Type=types.ToCString(Key);
+				Type.LCase();
+				if (Type=="int" || Type=="bit") Query.Concatf("%s=%s,",(const char*)Key,(const char*)Value);
+				else Query.Concatf("%s=\"%s\",",(const char*)Key,(const char*)Value);
+			}
+		}
+		Query.Chop();
+		Clause.Trim();
+		if (Clause.Len()>0) {
+			Query.Concat(" ");
+			if (!Clause.PregMatch("/^where\\s/i")) Query.Concat("where ");
+			Query.Concat(Clause);
+		}
+		return 1;
+	}
+	SetError(345,(const char*)Method);
+	return 0;
+}
+
 /*!\brief Datensatz speichern
  *
  * \descr
@@ -737,69 +848,9 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
  */
 int Database::Save(const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude, const CAssocArray &types)
 {
-	if (!method) {
-		SetError(194,"const char *method");
-		return 0;
-	}
-	if (!table) {
-		SetError(194,"const char *table");
-		return 0;
-	}
-	if (a.Count()==0) {
-		SetError(343);
-		return 0;
-	}
-	CString Keys, Vals, Key, Value, Method, Table, Query, Clause, Type;
-	Method=method;
-	Table=table;
-	Method.LCase();
-	if (Table.Len()==0) {
-		SetError(344);
-		return 0;
-	}
-	if (clause) Clause=clause;
-	a.Reset();
-	if (Method=="insert" || Method=="replace") {
-		while (a.GetNext(Key,Value)) {
-			if (exclude.GetChar(Key)==NULL) {
-				Keys.Concat(Key);
-				Keys.Concat(",");
-				//printf ("Key=%s, Value=%s\n",(const char*)Key,(const char*)Value);
-				if (!Escape(Value)) return 0;
-				Type=types.ToCString(Key);
-				Type.LCase();
-				if (Type=="int" || Type=="bit") Vals.Concatf("%s,",(const char*)Value);
-				else Vals.Concatf("\"%s\",",(const char*)Value);
-			}
-		}
-		Keys.Chop();
-		Vals.Chop();
-
-		Query.Setf("%s into %s (%s) values (%s)",(const char*)Method, (const char*)Table, (const char*)Keys, (const char*)Vals);
-		//printf ("Query: %s\n",(const char*)Query);
-		return Exec(Query);
-	} else if (Method=="update") {
-		Query.Setf("%s %s set ",(const char*)Method, (const char*)Table);
-		while (a.GetNext(Key,Value)) {
-			if (!Escape(Value)) return 0;
-			if (exclude.GetChar(Key)==NULL) {
-				Type=types.ToCString(Key);
-				Type.LCase();
-				if (Type=="int" || Type=="bit") Query.Concatf("%s=%s,",(const char*)Key,(const char*)Value);
-				else Query.Concatf("%s=\"%s\",",(const char*)Key,(const char*)Value);
-			}
-		}
-		Query.Chop();
-		Clause.Trim();
-		if (Clause.Len()>0) {
-			Query.Concat(" ");
-			if (!Clause.PregMatch("/^where\\s/i")) Query.Concat("where ");
-			Query.Concat(Clause);
-		}
-		return Exec(Query);
-	}
-	SetError(345,(const char*)Method);
-	return 0;
+	CString Query;
+	if (!SaveGenQuery(Query,method,table,a,clause,exclude,types)) return 0;
+	return Exec(Query);
 }
 
 int Database::ReadKeyValue(CAssocArray &res, const char *query, const char *keyname, const char *valname)

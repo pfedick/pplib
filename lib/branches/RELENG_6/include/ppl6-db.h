@@ -200,6 +200,7 @@ class Database
 		int ExecArrayAllf(CAssocArray &result, const char *query, ...);
 		int ExecArrayAll(CAssocArray &result, const CString &query);
 		int Save(const char *method, const char *table, CAssocArray &a, const char *clause=NULL, const CAssocArray &exclude=CAssocArray(), const CAssocArray &types=CAssocArray());
+		int SaveGenQuery(CString &Query, const char *method, const char *table, CAssocArray &a, const char *clause=NULL, const CAssocArray &exclude=CAssocArray(), const CAssocArray &types=CAssocArray());
 		int	ReadKeyValue(CAssocArray &res, const char *query, const char *keyname, const char *valname=NULL);
 		ppluint64 InsertKey(const char *table, CAssocArray &a, const char *keyname, const CAssocArray &exclude=CAssocArray());
 
