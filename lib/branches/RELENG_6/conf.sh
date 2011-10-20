@@ -41,17 +41,17 @@ case "$SYS:$REL:$KERNEL" in
 			--with-ogg=/usr/local
 		;;
 	Linux:*generic*)
-		./configure --with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl \
+		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql=/usr/local/pgsql/bin/pg_config \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \
-			--with-sybase=/usr --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd=/usr/local
+			--with-sybase=/usr --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
-			--with-openssl --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
+			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-sybase=/usr/local --with-postgresql=/usr/local/pgsql/bin/pg_config \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \

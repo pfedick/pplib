@@ -1006,6 +1006,7 @@ int CSSL::Init(int method)
 		Mutex.Lock();
 		if (!method) method=CSSL::SSLv23;
 		switch (method) {
+#ifndef OPENSSL_NO_SSL2
 			case CSSL::SSLv2:
 				ctx=SSL_CTX_new(SSLv2_method());
 				break;
@@ -1015,6 +1016,7 @@ int CSSL::Init(int method)
 			case CSSL::SSLv2server:
 				ctx=SSL_CTX_new(SSLv2_server_method());
 				break;
+#endif
 			case CSSL::SSLv3:
 				ctx=SSL_CTX_new(SSLv3_method());
 				break;
@@ -1025,7 +1027,7 @@ int CSSL::Init(int method)
 				ctx=SSL_CTX_new(SSLv3_server_method());
 				break;
 			case CSSL::SSLv23:
-				ctx=SSL_CTX_new(SSLv2_method());
+				ctx=SSL_CTX_new(SSLv23_method());
 				break;
 			case CSSL::SSLv23client:
 				ctx=SSL_CTX_new(SSLv23_client_method());
