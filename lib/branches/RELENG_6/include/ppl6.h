@@ -3300,7 +3300,7 @@ class Webserver
 		void bind(const ppl6::CString &adr, int port);
 		void start();
 		void stop();
-		int queueResponse(const Request &req, ppl6::CString &text);
+		int queueResponse(const Request &req, const ppl6::CString &text);
 
 		virtual int request(Request &req);
 

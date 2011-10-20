@@ -99,19 +99,28 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
                           size_t *upload_data_size, void **con_cls)
 {
 	Webserver::Request * r = (Webserver::Request*)*con_cls;
+	//printf ("answer_to_connection, url=%s, method=%s, versimn=%s\n",url,method,version);
+	//HexDump((void*)upload_data, *upload_data_size);
 	if (!r) {
+		//printf ("answer_to_connection, new Request\n");
 		r=new Webserver::Request;
 		r->connection=connection;
 		r->url=url;
 		r->method=method;
 		r->version=version;
+		*con_cls=r;
+		return MHD_YES;
 
-		MHD_get_connection_values (connection,MHD_HEADER_KIND,KeyValueIterator,&r->header);
-
-
+	} else {
+		//printf ("answer_to_connection, bestehender Request\n");
 	}
 	Webserver *w=(Webserver*) cls;
 	MHD_get_connection_values (connection,MHD_GET_ARGUMENT_KIND,KeyValueIterator,&r->data);
+	MHD_get_connection_values (connection,MHD_HEADER_KIND,KeyValueIterator,&r->header);
+
+
+
+	//r->data.List("data");
 
 
 
@@ -119,8 +128,10 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	//ppl6::HexDump((void*)upload_data,*upload_data_size);
 
 
-	return w->request(*r);
-	//return MHD_YES;
+	int ret=w->request(*r);
+	delete (r);
+
+	return MHD_YES;
 }
 
 #endif
@@ -180,7 +191,7 @@ void Webserver::stop()
 }
 
 
-int Webserver::queueResponse(const Request &req, ppl6::CString &text)
+int Webserver::queueResponse(const Request &req, const ppl6::CString &text)
 {
 #ifdef HAVE_LIBMICROHTTPD
 	struct MHD_Response *response;
