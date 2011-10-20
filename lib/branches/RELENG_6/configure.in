@@ -14,6 +14,7 @@ AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_HEADERS([include/ppl6-unixconfig.h])
 
 sinclude(config/openssl.m4)
+sinclude(config/ax_check_openssl.m4)
 sinclude(config/libcurl.m4)
 sinclude(config/mysql.m4)
 sinclude(config/postgres.m4)
@@ -396,7 +397,10 @@ AX_PATH_LIB_PCRE([6.0],
             )
 
 report_have_openssl="no"
-AC_CHECK_OPENSSL
+AX_CHECK_OPENSSL(
+	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
+	report_have_openssl="yes"
+	, :)
 
 
 report_have_freetype2="no"
