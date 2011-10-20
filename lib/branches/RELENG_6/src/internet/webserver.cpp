@@ -186,7 +186,9 @@ int Webserver::queueResponse(const Request &req, ppl6::CString &text)
 	struct MHD_Response *response;
 	int ret;
 	response = MHD_create_response_from_buffer (text.Size(),
-			(void *) text.GetPtr(), MHD_RESPMEM_PERSISTENT);
+			(void *) text.GetPtr(), MHD_RESPMEM_MUST_COPY);
+	MHD_add_response_header (response, "Content-Type", "text/html");
+
 	ret = MHD_queue_response ((struct MHD_Connection *)req.connection, MHD_HTTP_OK, response);
 	MHD_destroy_response (response);
 	return ret;
