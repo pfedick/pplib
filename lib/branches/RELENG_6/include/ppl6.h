@@ -3278,8 +3278,10 @@ class Webserver
 	private:
 		void *daemon;
 		int port;
-		ppl6::CAssocArray res;
+		CAssocArray res;
 		CTCPSocket Socket;
+		bool basicAuthentication;
+		CString realm;
 
 	public:
 		class Request {
@@ -3288,21 +3290,26 @@ class Webserver
 
 			public:
 				void *connection;
-
-				ppl6::CString url;
-				ppl6::CString method;
-				ppl6::CString version;
-				ppl6::CAssocArray header;
-				ppl6::CAssocArray data;
+				CString url;
+				CString method;
+				CString version;
+				CAssocArray header;
+				CAssocArray data;
+				CAssocArray auth;
 		};
 		Webserver();
 		~Webserver();
-		void bind(const ppl6::CString &adr, int port);
+		void bind(const CString &adr, int port);
 		void start();
 		void stop();
-		int queueResponse(const Request &req, const ppl6::CString &text);
+		void requireBasicAuthentication(bool enable, const CString &realm);
+		bool useBasicAuthentication() const;
+		int queueResponse(const Request &req, const CString &text);
+		int queueBasicAuthFailedResponse(const Request &req);
 
 		virtual int request(Request &req);
+		virtual int authenticate(const CString &username, const CString &password, Request &req);
+		virtual CString getDenyMessage();
 
 
 

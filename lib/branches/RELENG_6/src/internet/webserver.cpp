@@ -115,6 +115,22 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 		//printf ("answer_to_connection, bestehender Request\n");
 	}
 	Webserver *w=(Webserver*) cls;
+	if (w->useBasicAuthentication()) {
+		char *pass=NULL;
+		char *user = MHD_basic_auth_get_username_password (connection, &pass);
+		int auth=0;
+		if (user!=NULL) {
+			auth=w->authenticate(user,pass, *r);
+			free(user);
+			if (pass) free(pass);
+		}
+		if (!auth) {
+			return w->queueBasicAuthFailedResponse(*r);
+		}
+
+	}
+
+
 	MHD_get_connection_values (connection,MHD_GET_ARGUMENT_KIND,KeyValueIterator,&r->data);
 	MHD_get_connection_values (connection,MHD_HEADER_KIND,KeyValueIterator,&r->header);
 
@@ -140,8 +156,7 @@ Webserver::Webserver()
 {
 	daemon=NULL;
 	port=80;
-
-
+	basicAuthentication=false;
 }
 
 Webserver::~Webserver()
@@ -209,6 +224,23 @@ int Webserver::queueResponse(const Request &req, const ppl6::CString &text)
 
 }
 
+int Webserver::queueBasicAuthFailedResponse(const Request &req)
+{
+#ifdef HAVE_LIBMICROHTTPD
+	struct MHD_Response *response;
+	int ret;
+	CString msg=getDenyMessage();
+	response = MHD_create_response_from_buffer (msg.Size(),
+			(void *) msg.GetPtr(), MHD_RESPMEM_MUST_COPY);
+	ret = MHD_queue_basic_auth_fail_response ((struct MHD_Connection *)req.connection, (const char*)realm, response);
+	MHD_destroy_response (response);
+	return ret;
+#else
+	throw UnsupportedFeatureException("libmicrohttpd");
+#endif
+
+}
+
 int Webserver::request(Request &req)
 {
 	ppl6::CString Answer,text;
@@ -233,5 +265,42 @@ int Webserver::request(Request &req)
 	return queueResponse(req,Answer);
 }
 
+void Webserver::requireBasicAuthentication(bool enable, const CString &realm)
+{
+	basicAuthentication=enable;
+	this->realm=realm;
+}
+
+bool Webserver::useBasicAuthentication() const
+{
+	return basicAuthentication;
+}
+
+
+/*!\brief Callback: Benutzer authentisieren
+ *
+ * \desc
+ * Diese Funktion wird bei jedem Seitenaufruf aufgerufen, wenn Passwort-Authentisierung aktiviert wurde (siehe
+ * Webserver::requireBasicAuthentication). Der Benutzername und das Passwort werden als Parameter übergeben,
+ * der Returnwert der Funktion zeigt an, ob der Zugriff gewährt wird oder nicht.
+ *
+ * @param username String mit dem Benutzernamen
+ * @param password String mit dem Passwort des Benutzers im Klartext
+ *
+ * @return Die Funktion muss 1 zurückgeben, wenn der Zugriff gewährt wird, andernfalls 0.
+ */
+int Webserver::authenticate(const CString &username, const CString &password, Request &req)
+{
+	return 0;
+}
+
+
+CString Webserver::getDenyMessage()
+{
+	CString text;
+	text="<html><body>\n<h1>Permission Denied</h1>\n";
+	text+="</body></html>\n";
+	return text;
+}
 
 } // EOF namespace ppl6
