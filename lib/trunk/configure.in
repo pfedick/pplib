@@ -14,7 +14,7 @@ AC_CONFIG_FILES([ppl7-config])
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_HEADERS([include/ppl7-unixconfig.h])
 
-sinclude(autoconf/openssl.m4)
+sinclude(autoconf/ax_check_openssl.m4)
 sinclude(autoconf/libcurl.m4)
 sinclude(autoconf/mysql.m4)
 sinclude(autoconf/postgres.m4)
@@ -348,7 +348,10 @@ AX_PATH_LIB_PCRE([7.0],
             )
 
 report_have_openssl="no"
-AC_CHECK_OPENSSL
+AX_CHECK_OPENSSL(
+	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
+	report_have_openssl="yes"
+	, :)
 
 
 report_have_freetype2="no"
