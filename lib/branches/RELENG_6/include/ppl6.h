@@ -3276,12 +3276,15 @@ class CUDPSocket
 class Webserver
 {
 	private:
-		void *daemon;
-		int port;
-		CAssocArray res;
-		CTCPSocket Socket;
-		bool basicAuthentication;
-		CString realm;
+		CSSL		SSL;
+		void		*daemon;
+		int			port;
+		CAssocArray	res;
+		CTCPSocket	Socket;
+		bool		basicAuthentication;
+		bool		sslEnabled;
+		CString		realm;
+		CString		sslkey, sslcert;
 
 	public:
 		class Request {
@@ -3300,6 +3303,8 @@ class Webserver
 		Webserver();
 		~Webserver();
 		void bind(const CString &adr, int port);
+		void loadCertificate(const CString &certificate, const CString &privatekey, const CString &password);
+		void enableSSL(bool enable);
 		void start();
 		void stop();
 		void requireBasicAuthentication(bool enable, const CString &realm);
@@ -3315,8 +3320,10 @@ class Webserver
 
 
 		PPLPARAMETERISEDEXCEPTION(CouldNotBindToSocket);
+		PPLPARAMETERISEDEXCEPTION(InvalidSSLCertificate);
 		PPLNORMALEXCEPTION(NoAddressSpecified);
 		PPLNORMALEXCEPTION(CouldNotStartDaemon);
+		PPLNORMALEXCEPTION(SSLInitializationFailed);
 
 };
 

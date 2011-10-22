@@ -157,6 +157,7 @@ Webserver::Webserver()
 	daemon=NULL;
 	port=80;
 	basicAuthentication=false;
+	sslEnabled=false;
 }
 
 Webserver::~Webserver()
@@ -175,18 +176,66 @@ void Webserver::bind(const ppl6::CString &adr, int port)
 #endif
 }
 
+void Webserver::loadCertificate(const CString &certificate, const CString &privatekey, const CString &password)
+{
+	CString e;
+	/*
+	if (!SSL.LoadCertificate(certificate,privatekey,password)) {
+		Error2String(e);
+		throw InvalidSSLCertificate(e);
+	}
+	*/
+	if (!CFile::LoadFile(sslkey,privatekey)) {
+		Error2String(e);
+		throw InvalidSSLCertificate(e);
+	}
+	if (!CFile::LoadFile(sslcert,certificate)) {
+		Error2String(e);
+		throw InvalidSSLCertificate(e);
+	}
+
+}
+
+void Webserver::enableSSL(bool enable)
+{
+	/*
+	if (enable) {
+		if (!SSL.Init(ppl6::CSSL::SSLv3)) throw SSLInitializationFailed();
+	}
+	*/
+	sslEnabled=enable;
+}
+
+
+
 void Webserver::start()
 {
 #ifdef HAVE_LIBMICROHTTPD
 	int sd=Socket.GetDescriptor();
 	if (!sd) throw NoAddressSpecified();
 	::listen(sd,5);
-	daemon=MHD_start_daemon (
-		MHD_USE_THREAD_PER_CONNECTION, 8090, NULL,NULL, answer_to_connection,this,
-		MHD_OPTION_LISTEN_SOCKET,
-		sd,
-		MHD_OPTION_END
+
+	if (!sslEnabled) {
+		daemon=MHD_start_daemon (
+				MHD_USE_THREAD_PER_CONNECTION, 8090, NULL,NULL, answer_to_connection,this,
+				MHD_OPTION_LISTEN_SOCKET,
+				sd,
+				MHD_OPTION_END
 		);
+	} else {
+		daemon=MHD_start_daemon (
+				MHD_USE_THREAD_PER_CONNECTION | MHD_USE_SSL,
+				8090, NULL,NULL, answer_to_connection,this,
+				MHD_OPTION_LISTEN_SOCKET,
+				sd,
+				MHD_OPTION_HTTPS_MEM_KEY,
+				(const char*)sslkey,
+				MHD_OPTION_HTTPS_MEM_CERT,
+				(const char*)sslcert,
+				MHD_OPTION_END
+		);
+
+	}
 
 	if (!daemon) throw CouldNotStartDaemon();
 #else
