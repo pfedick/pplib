@@ -2659,7 +2659,7 @@ ac_config_headers="$ac_config_headers include/ppl6-unixconfig.h"
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 7
+#serial 8
 
 # This is what autoupdate's m4 run will expand.  It fires
 # the warning (with _au_warn_XXX), outputs it into the
@@ -12165,6 +12165,12 @@ $as_echo_n "checking whether compiling and linking against OpenSSL works... " >&
     LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
     LIBS="$OPENSSL_LIBS $LIBS"
     CPPFLAGS="$OPENSSL_INCLUDES $CPPFLAGS"
+    case "${host_cpu}-${host_os}" in
+		*mingw32*)
+			LIBS="$LIBS -lwsock2 -luser32"
+			;;
+	esac
+
     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <openssl/ssl.h>
