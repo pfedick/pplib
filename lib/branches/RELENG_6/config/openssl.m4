@@ -66,49 +66,49 @@ AC_MSG_CHECKING(for OpenSSL)
               [
   --with-openssl-includes=DIR
                           Find OpenSSL headers in DIR],
-              [openssl_includes="$withval"],
-              [openssl_includes=""])
+              [OPENSSL_INCLUDES="$withval"],
+              [OPENSSL_INCLUDES=""])
 
   AC_ARG_WITH([openssl-libs],
               [
   --with-openssl-libs=DIR
                           Find OpenSSL libraries in DIR],
-              [openssl_libs="$withval"],
-              [openssl_libs=""])
+              [OPENSSL_LIBS="$withval"],
+              [OPENSSL_LIBS=""])
 
   if test "$openssl" != "no"
   then
 	if test "$openssl" != "yes"
 	then
-		if test -z "$openssl_includes" 
+		if test -z "$OPENSSL_INCLUDES" 
 		then
-			openssl_includes="$openssl/include"
+			OPENSSL_INCLUDES="$openssl/include"
 		fi
-		if test -z "$openssl_libs" 
+		if test -z "$OPENSSL_LIBS" 
 		then
-			openssl_libs="$openssl/lib"
+			OPENSSL_LIBS="$openssl/lib"
 		fi
 	fi
-    AC_FIND_OPENSSL([$openssl_includes], [$openssl_libs])
+    AC_FIND_OPENSSL([$OPENSSL_INCLUDES], [$OPENSSL_LIBS])
     #force VIO use
     AC_MSG_RESULT(yes)
-    openssl_libs="-L$OPENSSL_LIB -lssl -lcrypto"
+    OPENSSL_LIBS="-L$OPENSSL_LIB -lssl -lcrypto"
     case "${host_cpu}-${host_os}" in
         *solaris*)
-		openssl_libs="$openssl_libs -ldl"
+		OPENSSL_LIBS="$OPENSSL_LIBS -ldl"
         ;;
 	esac
     
-    # Don't set openssl_includes to /usr/include as this gives us a lot of
+    # Don't set OPENSSL_INCLUDES to /usr/include as this gives us a lot of
     # compiler warnings when using gcc 3.x
-    openssl_includes=""
+    OPENSSL_INCLUDES=""
     if test "$OPENSSL_INCLUDE" != "-I/usr/include"
     then
-	openssl_includes="$OPENSSL_INCLUDE"
+	OPENSSL_INCLUDES="$OPENSSL_INCLUDE"
     fi
     if test "$OPENSSL_KERBEROS_INCLUDE"
     then
-    	openssl_includes="$openssl_includes -I$OPENSSL_KERBEROS_INCLUDE"
+    	OPENSSL_INCLUDES="$OPENSSL_INCLUDES -I$OPENSSL_KERBEROS_INCLUDE"
     fi
     AC_DEFINE([HAVE_OPENSSL], [1], [OpenSSL])
 	report_have_openssl="yes"
@@ -125,18 +125,18 @@ AC_MSG_CHECKING(for OpenSSL)
       echo "You can't use the --all-static link option when using openssl."
       exit 1
     fi
-    NON_THREADED_CLIENT_LIBS="$NON_THREADED_CLIENT_LIBS $openssl_libs"
+    NON_THREADED_CLIENT_LIBS="$NON_THREADED_CLIENT_LIBS $OPENSSL_LIBS"
   else
     AC_MSG_RESULT(no)
-	if test ! -z "$openssl_includes"
+	if test ! -z "$OPENSSL_INCLUDES"
 	then
 		AC_MSG_ERROR(Can't have --with-openssl-includes without --with-openssl);
 	fi
-	if test ! -z "$openssl_libs"
+	if test ! -z "$OPENSSL_LIBS"
 	then
 		AC_MSG_ERROR(Can't have --with-openssl-libs without --with-openssl);
 	fi
   fi
-  AC_SUBST(openssl_libs)
-  AC_SUBST(openssl_includes)
+  AC_SUBST(OPENSSL_LIBS)
+  AC_SUBST(OPENSSL_INCLUDES)
 ])

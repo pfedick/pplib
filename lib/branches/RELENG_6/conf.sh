@@ -37,7 +37,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-png=/usr/local --with-libmhash=/usr/local \
 			--with-libmcrypt-prefix=/usr/local \
-			--with-openssl=/mingw --with-libcurl \
+			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local
 		;;
 	Linux:*generic*)
