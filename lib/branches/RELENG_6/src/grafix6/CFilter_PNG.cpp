@@ -303,7 +303,7 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 
 			png_get_tRNS(png_ptr, info_ptr, NULL, &num_trans, NULL);
 
-			if (info_ptr->num_trans>0) {
+			if (num_trans>0) {
 				r=pal[num_trans-1].red;
 				g=pal[num_trans-1].green;
 				b=pal[num_trans-1].blue;
