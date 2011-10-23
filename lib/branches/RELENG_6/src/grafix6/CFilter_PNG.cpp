@@ -48,6 +48,11 @@
 #include "ppl6.h"
 #include "ppl6-grafix.h"
 
+#ifdef HAVE_LIBZ
+#include <zlib.h>
+#endif
+
+
 #ifdef HAVE_PNG
 #include <png.h>
 

@@ -137,7 +137,7 @@ CUDPSocket::~CUDPSocket()
 	if (!s) {
 		return;
 	}
-    if (s->sd>-1) ppl_closesocket(s->sd);
+    if ((int)s->sd>-1) ppl_closesocket(s->sd);
 	free(s);
 }
 
@@ -237,7 +237,7 @@ int CUDPSocket::SendTo(const char *host, int port, const void *buffer, int bytes
 		socket=malloc(sizeof(PPLSOCKET));
 		s=(PPLSOCKET*)socket;
 		s->sd=-1;
-	} else if (s->sd>-1) {
+	} else if ((int)s->sd>-1) {
 		ppl_closesocket(s->sd);
 	}
 	s->sd=::socket(domain,SOCK_DGRAM,protocol);
