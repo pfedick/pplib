@@ -105,6 +105,12 @@ AC_DEFUN([AX_CHECK_OPENSSL], [
     LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
     LIBS="$OPENSSL_LIBS $LIBS"
     CPPFLAGS="$OPENSSL_INCLUDES $CPPFLAGS"
+    case "${host_cpu}-${host_os}" in
+		*mingw32*)
+			LIBS="$LIBS -lwsock32 -luser32"
+			;;
+	esac
+		
     AC_LINK_IFELSE(
         [AC_LANG_PROGRAM([#include <openssl/ssl.h>], [SSL_new(NULL)])],
         [
