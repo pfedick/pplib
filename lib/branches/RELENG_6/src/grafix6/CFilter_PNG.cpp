@@ -144,21 +144,21 @@ int CFilter_PNG::Ident(CFileObject &file, IMAGE &img)
         SetError(1018);
         return 0;
     }
-	png_set_read_fn(png_ptr,(voidp) &file, (png_rw_ptr) user_read_data);
+	png_set_read_fn(png_ptr,&file, (png_rw_ptr) user_read_data);
     //png_set_write_fn(png_structp write_ptr, voidp write_io_ptr, png_rw_ptr write_data_fn,
     //    png_flush_ptr output_flush_fn);
 	png_read_info(png_ptr, info_ptr);
-	img.width=info_ptr->width;
-    img.height=info_ptr->height;
-    img.bitdepth=info_ptr->pixel_depth;			// Bits per Pixel
+		img.width=png_get_image_width(png_ptr, info_ptr);
+		img.height=png_get_image_height(png_ptr, info_ptr);
+		img.bitdepth=png_get_bit_depth(png_ptr, info_ptr);
 	img.colors=0;
-	img.pitch=(info_ptr->pixel_depth/8)*info_ptr->width;	// Bits per Pixel;
+		img.pitch=png_get_rowbytes(png_ptr, info_ptr);
 	//img->pfp.header_version=0;
 	bool supported=true;
 	img.format=RGBFormat::unknown;
-	if (info_ptr->bit_depth!=8) supported=false;		// Nur 8-Bit/Farbwert wird unterstützt
+		if (img.bitdepth!=8) supported=false;		// Nur 8-Bit/Farbwert wird unterstützt
 
-	switch (info_ptr->color_type) {
+		switch (png_get_color_type(png_ptr, info_ptr)) {
 		case PNG_COLOR_TYPE_GRAY:
 			img.bitdepth=8;
 			img.colors=256;
@@ -186,7 +186,7 @@ int CFilter_PNG::Ident(CFileObject &file, IMAGE &img)
 			img.format=RGBFormat::GREYALPHA32;
 	};
 
-	if (info_ptr->interlace_type!=PNG_INTERLACE_NONE) {	// Interlaced wird nicht unterstützt
+		if (png_get_interlace_type(png_ptr,info_ptr)!=PNG_INTERLACE_NONE) {	// Interlaced wird nicht unterstützt
 		supported=false;
 	}
 
@@ -218,7 +218,7 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
         return false;
     }
 
-	png_set_read_fn(png_ptr,(voidp) &file, (png_rw_ptr) user_read_data);
+	png_set_read_fn(png_ptr, &file, (png_rw_ptr) user_read_data);
 
     //png_set_write_fn(png_structp write_ptr, voidp write_io_ptr, png_rw_ptr write_data_fn,
     //    png_flush_ptr output_flush_fn);
@@ -234,10 +234,10 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 	RGBFormat zformat=surface.rgbformat();		// Zielformat holen
 
 	if (row_pointer!=NULL) {
-		switch (info_ptr->color_type) {
+		switch (png_get_color_type(png_ptr, info_ptr)) {
 
 		case PNG_COLOR_TYPE_RGB_ALPHA:
-			bpp=info_ptr->pixel_depth/8;
+			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
 			for (y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
 				for (x=0;x<img.width;x++) {
@@ -250,7 +250,7 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 			}
 			break;
 		case PNG_COLOR_TYPE_RGB:
-			bpp=info_ptr->pixel_depth/8;
+			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
 			for (y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
 				for (x=0;x<img.width;x++) {
@@ -262,7 +262,7 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 			}
 			break;
 		case PNG_COLOR_TYPE_GRAY:
-			bpp=info_ptr->pixel_depth/8;
+			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
 			// Ist das Zielformat auch Greyscale?
 			if (zformat==RGBFormat::A8 || zformat==RGBFormat::GREY8) {
 				for (y=0;y<img.height;y++) {
@@ -283,7 +283,7 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 			}
 			break;
 		case PNG_COLOR_TYPE_GRAY_ALPHA:
-			bpp=info_ptr->pixel_depth/8;
+			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
 			for (y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
 				for (x=0;x<img.width;x++) {
@@ -295,7 +295,7 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 			break;
 		case PNG_COLOR_TYPE_PALETTE:
 			int trans=info_ptr->num_trans-1;
-			bpp=info_ptr->pixel_depth/8;
+			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
 			png_colorp pal=info_ptr->palette;
 			if (info_ptr->num_trans>0) {
 				r=pal[trans].red;
@@ -408,7 +408,7 @@ int CFilter_PNG::Save (const CDrawable &surface, CFileObject &file, CAssocArray 
 	}
 
 	//png_set_read_fn(png_ptr,(voidp) file, (png_rw_ptr) user_read_data);
-	png_set_write_fn(png_ptr,(voidp) &file, (png_rw_ptr) user_write_data, (png_flush_ptr) user_flush_data);
+	png_set_write_fn(png_ptr, &file, (png_rw_ptr) user_write_data, (png_flush_ptr) user_flush_data);
 
 	// Compression-Level setzen
 
