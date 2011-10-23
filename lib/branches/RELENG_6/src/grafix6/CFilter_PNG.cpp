@@ -184,6 +184,7 @@ int CFilter_PNG::Ident(CFileObject &file, IMAGE &img)
 			img.colors=256;
 			img.bitdepth=32;
 			img.format=RGBFormat::GREYALPHA32;
+			break;
 	};
 
 		if (png_get_interlace_type(png_ptr,info_ptr)!=PNG_INTERLACE_NONE) {	// Interlaced wird nicht unterstützt
@@ -294,13 +295,18 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 			}
 			break;
 		case PNG_COLOR_TYPE_PALETTE:
-			int trans=info_ptr->num_trans-1;
+			int num_trans=0;
 			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
-			png_colorp pal=info_ptr->palette;
+			png_colorp pal;
+			int num_palette;
+			png_get_PLTE(png_ptr, info_ptr, &pal,&num_palette);
+
+			png_get_tRNS(png_ptr, info_ptr, NULL, &num_trans, NULL);
+
 			if (info_ptr->num_trans>0) {
-				r=pal[trans].red;
-				g=pal[trans].green;
-				b=pal[trans].blue;
+				r=pal[num_trans-1].red;
+				g=pal[num_trans-1].green;
+				b=pal[num_trans-1].blue;
 				//surface->SetColorKey(surface->RGB(r,g,b,0));
 			}
 			for (y=0;y<img.height;y++) {
@@ -310,8 +316,8 @@ int CFilter_PNG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 					r=pal[a].red;
 					g=pal[a].green;
 					b=pal[a].blue;
-					if (info_ptr->num_trans>0) {
-						if (a==trans) a=0; else a=255;
+					if (num_trans>0) {
+						if (a==num_trans-1) a=0; else a=255;
 					} else a=255;
 					surface.putPixel(x,y,Color(r,g,b,a));
 				}
@@ -382,10 +388,12 @@ int CFilter_PNG::Save (const CDrawable &surface, CFileObject &file, CAssocArray 
 		case COLORTYPE::GRAY_ALPHA:
 			colortype=PNG_COLOR_TYPE_GRAY_ALPHA;
 			pitch=width*2;
+			break;
 		default:
 			colortype=PNG_COLOR_TYPE_RGB;
 			png_color_type=COLORTYPE::RGB;
 			pitch=width*3;
+			break;
 	};
 
 
