@@ -667,8 +667,10 @@ pngconfig
 FT2_LIBS
 FT2_CFLAGS
 FT2_CONFIG
-openssl_includes
-openssl_libs
+OPENSSL_LDFLAGS
+OPENSSL_LIBS
+OPENSSL_INCLUDES
+PKG_CONFIG
 pcreconfig
 PCRE_LIBS
 PCRE_CFLAGS
@@ -833,8 +835,6 @@ with_bzip2
 with_zlib
 with_pcre
 with_openssl
-with_openssl_includes
-with_openssl_libs
 with_ft_prefix
 with_ft_exec_prefix
 enable_freetypetest
@@ -1521,13 +1521,7 @@ Optional Packages:
   --with-bzip2[=PATH]     Prefix where bzip2 is installed (optional)
   --with-zlib[=PATH]     Prefix where zlib is installed (optional)
   --with-pcre[=PATH]      Prefix where pcre is installed (default=autodetected)
-  --with-openssl=DIR      Include the OpenSSL support
-
-  --with-openssl-includes=DIR
-                          Find OpenSSL headers in DIR
-
-  --with-openssl-libs=DIR
-                          Find OpenSSL libraries in DIR
+  --with-openssl=DIR      root of the OpenSSL directory
        --with-ft-prefix=PREFIX Prefix where FreeType is installed (optional)
        --with-ft-exec-prefix=PREFIX
                           Exec prefix where FreeType is installed (optional)
@@ -2699,7 +2693,60 @@ ac_config_headers="$ac_config_headers include/config.h"
 ac_config_headers="$ac_config_headers include/ppl7-unixconfig.h"
 
 
+# ===========================================================================
+#     http://www.gnu.org/software/autoconf-archive/ax_check_openssl.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_CHECK_OPENSSL([action-if-found[, action-if-not-found]])
+#
+# DESCRIPTION
+#
+#   Look for OpenSSL in a number of default spots, or in a user-selected
+#   spot (via --with-openssl).  Sets
+#
+#     OPENSSL_INCLUDES to the include directives required
+#     OPENSSL_LIBS to the -l directives required
+#     OPENSSL_LDFLAGS to the -L or -R flags required
+#
+#   and calls ACTION-IF-FOUND or ACTION-IF-NOT-FOUND appropriately
+#
+#   This macro sets OPENSSL_INCLUDES such that source files should use the
+#   openssl/ directory in include directives:
+#
+#     #include <openssl/hmac.h>
+#
+# LICENSE
+#
+#   Copyright (c) 2009,2010 Zmanda Inc. <http://www.zmanda.com/>
+#   Copyright (c) 2009,2010 Dustin J. Mitchell <dustin@zmanda.com>
+#
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved. This file is offered as-is, without any
+#   warranty.
 
+#serial 8
+
+# This is what autoupdate's m4 run will expand.  It fires
+# the warning (with _au_warn_XXX), outputs it into the
+# updated configure.ac (with AC_DIAGNOSE), and then outputs
+# the replacement expansion.
+
+
+# This is an auxiliary macro that is also run when
+# autoupdate runs m4.  It simply calls m4_warning, but
+# we need a wrapper so that each warning is emitted only
+# once.  We break the quoting in m4_warning's argument in
+# order to expand this macro's arguments, not AU_DEFUN's.
+
+
+# Finally, this is the expansion that is picked up by
+# autoconf.  It tells the user to run autoupdate, and
+# then outputs the replacement expansion.  We do not care
+# about autoupdate's warning because that contains
+# information on what to do *after* running autoupdate.
 
 
 
@@ -13376,155 +13423,163 @@ fi
 
 report_have_openssl="no"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL" >&5
-$as_echo_n "checking for OpenSSL... " >&6; }
+    found=false
 
 # Check whether --with-openssl was given.
 if test "${with_openssl+set}" = set; then :
-  withval=$with_openssl; openssl="$withval"
+  withval=$with_openssl;
+            case "$withval" in
+            "" | y | ye | yes | n | no)
+            as_fn_error $? "Invalid --with-openssl value" "$LINENO" 5
+              ;;
+            *) ssldirs="$withval"
+              ;;
+            esac
+
 else
-  openssl=no
-fi
 
-
-
-# Check whether --with-openssl-includes was given.
-if test "${with_openssl_includes+set}" = set; then :
-  withval=$with_openssl_includes; openssl_includes="$withval"
+            # if pkg-config is installed and openssl has installed a .pc file,
+            # then use that information and don't search ssldirs
+            # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
 else
-  openssl_includes=""
-fi
-
-
-
-# Check whether --with-openssl-libs was given.
-if test "${with_openssl_libs+set}" = set; then :
-  withval=$with_openssl_libs; openssl_libs="$withval"
-else
-  openssl_libs=""
-fi
-
-
-  if test "$openssl" != "no"
-  then
-	if test "$openssl" != "yes"
-	then
-		if test -z "$openssl_includes"
-		then
-			openssl_includes="$openssl/include"
-		fi
-		if test -z "$openssl_libs"
-		then
-			openssl_libs="$openssl/lib"
-		fi
-	fi
-
-  incs="$openssl_includes"
-  libs="$openssl_libs"
-  case "$incs---$libs" in
-    ---)
-      for d in /usr/ssl/include /usr/local/ssl/include /usr/include \
-/usr/include/ssl /opt/ssl/include /opt/openssl/include \
-/usr/local/ssl/include /usr/local/include /usr/freeware/include ; do
-       if test -f $d/openssl/ssl.h  ; then
-         OPENSSL_INCLUDE=-I$d
-       fi
-      done
-
-      for d in /usr/ssl/lib /usr/local/ssl/lib /usr/lib/openssl \
-/usr/lib /usr/lib64 /opt/ssl/lib /opt/openssl/lib \
-/usr/freeware/lib32 /usr/local/lib/ ; do
-      # Just to be safe, we test for ".so" anyway
-      if test -f $d/libssl.a || test -f $d/libssl.so || test -f $d/libssl$shrext_cmds ; then
-        OPENSSL_LIB=$d
-      fi
-      done
-      ;;
-    ---* | *---)
-      as_fn_error $? "if either 'includes' or 'libs' is specified, both must be specified" "$LINENO" 5
-      ;;
-    * )
-      if test -f $incs/openssl/ssl.h  ; then
-        OPENSSL_INCLUDE=-I$incs
-      fi
-      # Just to be safe, we test for ".so" anyway
-      if test -f $libs/libssl.a || test -f $libs/libssl.so || test -f $libs/libssl$shrext_cmds ; then
-        OPENSSL_LIB=$libs
-      fi
-      ;;
-  esac
-
-  # On RedHat 9 we need kerberos to compile openssl
-  for d in /usr/kerberos/include
-  do
-   if test -f $d/krb5.h  ; then
-     OPENSSL_KERBEROS_INCLUDE="$d"
-   fi
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
   done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
 
 
- if test -z "$OPENSSL_LIB" -o -z "$OPENSSL_INCLUDE" ; then
-   echo "Could not find an installation of OpenSSL"
-   if test -n "$OPENSSL_LIB" ; then
-    if test "$TARGET_LINUX" = "true"; then
-      echo "Looks like you've forgotten to install OpenSSL development RPM"
-    fi
-   fi
-  exit 1
- fi
+            if test x"$PKG_CONFIG" != x""; then
+                OPENSSL_LDFLAGS=`$PKG_CONFIG openssl --libs-only-L 2>/dev/null`
+                if test $? = 0; then
+                    OPENSSL_LIBS=`$PKG_CONFIG openssl --libs-only-l 2>/dev/null`
+                    OPENSSL_INCLUDES=`$PKG_CONFIG openssl --cflags-only-I 2>/dev/null`
+                    found=true
+                fi
+            fi
+
+            # no such luck; use some default ssldirs
+            if ! $found; then
+                ssldirs="/usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr"
+            fi
 
 
-    #force VIO use
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+fi
+
+
+
+    # note that we #include <openssl/foo.h>, so the OpenSSL headers have to be in
+    # an 'openssl' subdirectory
+
+    if ! $found; then
+        OPENSSL_INCLUDES=
+        for ssldir in $ssldirs; do
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for openssl/ssl.h in $ssldir" >&5
+$as_echo_n "checking for openssl/ssl.h in $ssldir... " >&6; }
+            if test -f "$ssldir/include/openssl/ssl.h"; then
+                OPENSSL_INCLUDES="-I$ssldir/include"
+                OPENSSL_LDFLAGS="-L$ssldir/lib"
+                OPENSSL_LIBS="-lssl -lcrypto"
+                found=true
+                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    openssl_libs="-L$OPENSSL_LIB -lssl -lcrypto"
+                break
+            else
+                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            fi
+        done
+
+        # if the file wasn't found, well, go ahead and try the link anyway -- maybe
+        # it will just work!
+    fi
+
+    # try the preprocessor and linker with our new flags,
+    # being careful not to pollute the global LIBS, LDFLAGS, and CPPFLAGS
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether compiling and linking against OpenSSL works" >&5
+$as_echo_n "checking whether compiling and linking against OpenSSL works... " >&6; }
+    echo "Trying link with OPENSSL_LDFLAGS=$OPENSSL_LDFLAGS;" \
+        "OPENSSL_LIBS=$OPENSSL_LIBS; OPENSSL_INCLUDES=$OPENSSL_INCLUDES" >&5
+
+    save_LIBS="$LIBS"
+    save_LDFLAGS="$LDFLAGS"
+    save_CPPFLAGS="$CPPFLAGS"
+    LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
+    LIBS="$OPENSSL_LIBS $LIBS"
+    CPPFLAGS="$OPENSSL_INCLUDES $CPPFLAGS"
     case "${host_cpu}-${host_os}" in
-        *solaris*)
-		openssl_libs="$openssl_libs -ldl"
-        ;;
+		*mingw32*)
+			LIBS="$LIBS -lwsock32 -luser32"
+			;;
 	esac
 
-    # Don't set openssl_includes to /usr/include as this gives us a lot of
-    # compiler warnings when using gcc 3.x
-    openssl_includes=""
-    if test "$OPENSSL_INCLUDE" != "-I/usr/include"
-    then
-	openssl_includes="$OPENSSL_INCLUDE"
-    fi
-    if test "$OPENSSL_KERBEROS_INCLUDE"
-    then
-    	openssl_includes="$openssl_includes -I$OPENSSL_KERBEROS_INCLUDE"
-    fi
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <openssl/ssl.h>
+int
+main ()
+{
+SSL_new(NULL)
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_OPENSSL 1" >>confdefs.h
 
 	report_have_openssl="yes"
 
-    # openssl-devel-0.9.6 requires dlopen() and we can't link staticly
-    # on many platforms (We should actually test this here, but it's quite
-    # hard) to do as we are doing libtool for linking.
-    using_static=""
-    case "$CLIENT_EXTRA_LDFLAGS " in
-	*-all-static*) using_static="yes" ;;
-    esac
-    if test "$using_static" = "yes"
-    then
-      echo "You can't use the --all-static link option when using openssl."
-      exit 1
-    fi
-    NON_THREADED_CLIENT_LIBS="$NON_THREADED_CLIENT_LIBS $openssl_libs"
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+
+else
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	if test ! -z "$openssl_includes"
-	then
-		as_fn_error $? "Can't have --with-openssl-includes without --with-openssl" "$LINENO" 5;
-	fi
-	if test ! -z "$openssl_libs"
-	then
-		as_fn_error $? "Can't have --with-openssl-libs without --with-openssl" "$LINENO" 5;
-	fi
-  fi
+            :
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+    CPPFLAGS="$save_CPPFLAGS"
+    LDFLAGS="$save_LDFLAGS"
+    LIBS="$save_LIBS"
+
+
 
 
 

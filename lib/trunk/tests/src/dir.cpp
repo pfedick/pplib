@@ -56,7 +56,7 @@ class DirTest : public ::testing::Test {
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
-		expectedNum=21;
+		expectedNum=23;
 		if (ppl7::File::exists("testdata/.svn")) expectedNum++;
 		if (ppl7::File::exists("testdata/.")) expectedNum++;
 		if (ppl7::File::exists("testdata/..")) expectedNum++;
@@ -180,6 +180,14 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ((size_t)239844,e.Size);
 
 	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test-pal-trans.png"),e.Filename);
+	ASSERT_EQ((size_t)8957,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test-pal.png"),e.Filename);
+	ASSERT_EQ((size_t)8976,e.Size);
+
+	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"test.bmp"),e.Filename);
 	ASSERT_EQ((size_t)34254,e.Size);
 
@@ -195,9 +203,11 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ(ppl7::String(L"test.pcx"),e.Filename);
 	ASSERT_EQ((size_t)33872,e.Size);
 
+
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"test.png"),e.Filename);
 	ASSERT_EQ((size_t)23150,e.Size);
+
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"test.ppm"),e.Filename);
@@ -273,6 +283,13 @@ TEST_F(DirTest, dirWalkFilename2) {
 
 	ASSERT_TRUE(d1.getNext(e,it));
 	ASSERT_EQ(ppl7::String(L"reference.png"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test-pal-trans.png"),e.Filename);
+
+	ASSERT_TRUE(d1.getNext(e,it));
+	ASSERT_EQ(ppl7::String(L"test-pal.png"),e.Filename);
+
 
 	ASSERT_TRUE(d1.getNext(e,it));
 	ASSERT_EQ(ppl7::String(L"test.bmp"),e.Filename);
@@ -378,6 +395,15 @@ TEST_F(DirTest, dirWalkSize) {
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"ppl7-icon-64x64.png"),e.Filename);
 	ASSERT_EQ((size_t)8685,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test-pal-trans.png"),e.Filename);
+	ASSERT_EQ((size_t)8957,e.Size);
+
+	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String(L"test-pal.png"),e.Filename);
+	ASSERT_EQ((size_t)8976,e.Size);
+
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String(L"zfile.txt"),e.Filename);

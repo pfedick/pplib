@@ -9,7 +9,7 @@ case "$SYS:$REL:$KERNEL" in
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --with-libmad=/usr/local --with-lame=/usr/local \
-			--with-pcre=/usr/local --with-x --with-openssl --with-mysql \
+			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
 			--with-libmhash=/usr/local --with-sybase=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-jpeg --with-png --with-libtiff=/usr/local \
