@@ -541,7 +541,7 @@ void AssocArray::list(const String &prefix) const
 			pre.setf("%ls%ls",(const wchar_t*)key,(const wchar_t*)it.key());
 			((AssocArray*)p)->list(pre);
 		} else if (p->isPointer()) {
-			PrintDebug("%ls%ls=Pointer, %tu\n",(const wchar_t*)key,(const wchar_t*)it.key(),(ptrdiff_t)((Pointer*)p)->ptr());
+			PrintDebug("%ls%ls=Pointer, %tu\n",(const wchar_t*)key,(const wchar_t*)it.key(),(std::ptrdiff_t)((Pointer*)p)->ptr());
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
 			for (size_t i=0;i<a.size();i++) {

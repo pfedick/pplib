@@ -151,15 +151,15 @@ void Resource::checkResource(const ByteArrayPtr &memory)
 	if (memory.size()<9) throw InvalidResourceException();
 	// Die ersten 9 Bytes müssen folgende Werte haben:
 	// 0x50,0x50,0x4c,0x52,0x45,0x53,0x00,0x06,0x00
-	if (memory[0]!=0x50) throw InvalidResourceException();
-	if (memory[1]!=0x50) throw InvalidResourceException();
-	if (memory[2]!=0x4c) throw InvalidResourceException();
-	if (memory[3]!=0x52) throw InvalidResourceException();
-	if (memory[4]!=0x45) throw InvalidResourceException();
-	if (memory[5]!=0x53) throw InvalidResourceException();
-	if (memory[6]!=0x00) throw InvalidResourceException();
-	if (memory[7]!=0x06) throw InvalidResourceException();
-	if (memory[8]!=0x00) throw InvalidResourceException();
+	if (memory[(size_t)0]!=0x50) throw InvalidResourceException();
+	if (memory[(size_t)1]!=0x50) throw InvalidResourceException();
+	if (memory[(size_t)2]!=0x4c) throw InvalidResourceException();
+	if (memory[(size_t)3]!=0x52) throw InvalidResourceException();
+	if (memory[(size_t)4]!=0x45) throw InvalidResourceException();
+	if (memory[(size_t)5]!=0x53) throw InvalidResourceException();
+	if (memory[(size_t)6]!=0x00) throw InvalidResourceException();
+	if (memory[(size_t)7]!=0x06) throw InvalidResourceException();
+	if (memory[(size_t)8]!=0x00) throw InvalidResourceException();
 }
 
 void Resource::parse()

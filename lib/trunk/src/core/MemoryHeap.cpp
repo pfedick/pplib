@@ -491,7 +491,7 @@ size_t MemoryHeap::memoryAllocated() const
 void MemoryHeap::dump() const
 {
 	HEAPBLOCK *bl=(HEAPBLOCK*)blocks;
-	PrintDebug ("Dump Heap (0x%tx, ",(ptrdiff_t)this);
+	PrintDebug ("Dump Heap (0x%tx, ",(std::ptrdiff_t)this);
 	PrintDebug ("Elementsize: %zu):\n", myElementSize);
 	PrintDebug ("Memory allocated: %zu Bytes, Memory used: %zu Bytes, Memory free: %zu Bytes\n",
 			mem_allocated, mem_used, (mem_allocated-mem_used));
