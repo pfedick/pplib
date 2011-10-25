@@ -1661,8 +1661,7 @@ int CTCPSocket::Bind(const char *host, int port)
  * \desc
  * Diese Funktion muss aufgerufen werden, bevor man mit CTCPSocket::Listen einen TCP-Server starten kann. Dabei wird mit \p host
  * die IP-Adresse festgelegt, auf die sich der Server binden soll und mit \p port der TCP-Port.
- * Die Funktion kann mehrfach aufgerufen werden, um den Socket an mehrere Adressen oder Ports zu
- * binden.
+ * Es ist nicht möglich einen Socket auf mehrere Adressen zu binden.
  *
  * @param[in] host IP-Adresse, Hostname, "*" oder NULL. Bei Angabe von "*" oder NULL bindet sich der Socket auf alle
  * Interfaces des Servers.
@@ -1686,13 +1685,15 @@ int CTCPSocket::Bind(const char *host, int port)
 		//s->addrlen=0;
 	}
 #ifdef _WIN32
-	SOCKET	listenfd;
+	SOCKET	listenfd=0;
 #else
-	int listenfd;
+	int listenfd=0;
 #endif
 
 	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->sd) listenfd=s->sd;
+	if (s->sd) Disconnect();
+	if (s->ipname) free(s->ipname);
+	s->ipname=NULL;
 
 	struct addrinfo hints, *res, *ressave;
 	bzero(&hints, sizeof(struct addrinfo));
