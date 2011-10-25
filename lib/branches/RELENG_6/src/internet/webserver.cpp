@@ -255,7 +255,7 @@ void Webserver::stop()
 }
 
 
-int Webserver::queueResponse(const Request &req, const ppl6::CString &text)
+int Webserver::queueResponse(const Request &req, const ppl6::CString &text, int httpStatus)
 {
 #ifdef HAVE_LIBMICROHTTPD
 	struct MHD_Response *response;
@@ -264,7 +264,7 @@ int Webserver::queueResponse(const Request &req, const ppl6::CString &text)
 			(void *) text.GetPtr(), MHD_RESPMEM_MUST_COPY);
 	MHD_add_response_header (response, "Content-Type", "text/html");
 
-	ret = MHD_queue_response ((struct MHD_Connection *)req.connection, MHD_HTTP_OK, response);
+	ret = MHD_queue_response ((struct MHD_Connection *)req.connection, httpStatus, response);
 	MHD_destroy_response (response);
 	return ret;
 #else

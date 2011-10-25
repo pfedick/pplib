@@ -3309,7 +3309,7 @@ class Webserver
 		void stop();
 		void requireBasicAuthentication(bool enable, const CString &realm);
 		bool useBasicAuthentication() const;
-		int queueResponse(const Request &req, const CString &text);
+		int queueResponse(const Request &req, const CString &text, int httpStatus=200);
 		int queueBasicAuthFailedResponse(const Request &req);
 
 		virtual int request(Request &req);
