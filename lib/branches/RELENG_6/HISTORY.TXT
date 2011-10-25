@@ -3,8 +3,6 @@ PPL6 - HISTORY
 
 Version 6.4.9
   - Kompatibilitätsprobleme mit OpenSSL 1.x.x behoben
-  - CTCPSocket::Bind kann nun mehrfach aufgerufen werden, um einen
-    Socket an mehrere Adressen oder Ports zu binden.
   - Funktion StartThread, um einen einen Thread ohne Verwendung der
     Klasse CThread zu starten
   - Webserver-Klasse, die auf libmicrohttpd aufsetzt 
