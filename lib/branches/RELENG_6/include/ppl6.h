@@ -3282,7 +3282,7 @@ class Webserver
 		CAssocArray	res;
 		CTCPSocket	Socket;
 		bool		basicAuthentication;
-		bool		sslEnabled;
+		bool		SSLEnabled;
 		CString		realm;
 		CString		sslkey, sslcert;
 
@@ -3305,6 +3305,7 @@ class Webserver
 		void bind(const CString &adr, int port);
 		void loadCertificate(const CString &certificate, const CString &privatekey, const CString &password);
 		void enableSSL(bool enable);
+		bool sslEnabled() const;
 		void start();
 		void stop();
 		void requireBasicAuthentication(bool enable, const CString &realm);

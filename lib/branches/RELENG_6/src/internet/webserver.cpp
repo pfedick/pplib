@@ -157,7 +157,7 @@ Webserver::Webserver()
 	daemon=NULL;
 	port=80;
 	basicAuthentication=false;
-	sslEnabled=false;
+	SSLEnabled=false;
 }
 
 Webserver::~Webserver()
@@ -203,10 +203,13 @@ void Webserver::enableSSL(bool enable)
 		if (!SSL.Init(ppl6::CSSL::SSLv3)) throw SSLInitializationFailed();
 	}
 	*/
-	sslEnabled=enable;
+	SSLEnabled=enable;
 }
 
-
+bool Webserver::sslEnabled() const
+{
+	return SSLEnabled;
+}
 
 void Webserver::start()
 {
@@ -215,7 +218,7 @@ void Webserver::start()
 	if (!sd) throw NoAddressSpecified();
 	::listen(sd,5);
 
-	if (!sslEnabled) {
+	if (!SSLEnabled) {
 		daemon=MHD_start_daemon (
 				MHD_USE_THREAD_PER_CONNECTION, 8090, NULL,NULL, answer_to_connection,this,
 				MHD_OPTION_LISTEN_SOCKET,
