@@ -280,6 +280,7 @@ int CResource::Parse()
 	catch (...) {
 		return 0;
 	}
+	return 0;
 }
 
 void *CResource::Find(int id)

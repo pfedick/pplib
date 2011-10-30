@@ -294,7 +294,7 @@ int CDirEntry::Copy(CDirEntry *dir)
 	File=dir->File;
 	Size=dir->Size;
 	Attrib=dir->Attrib;
-	strncpy(AttrStr,dir->AttrStr,sizeof(AttrStr));
+	strncpy(AttrStr,(const char*)dir->AttrStr,sizeof(AttrStr));
 	ATime=dir->ATime;
 	CTime=dir->CTime;
 	MTime=dir->MTime;
@@ -740,6 +740,7 @@ CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
 		}
 		//printf ("Kein Match: %s\n",(const char *)Name);
 	}
+	return NULL;
 }
 
 CDirEntry *CDir::GetFirstRegExp(const char *regexp)
@@ -797,6 +798,7 @@ CDirEntry *CDir::GetNextRegExp(const char *regexp)
 		Name=de->Filename;
 		if (Name.PregMatch(regexp)) return de;
 	}
+	return NULL;
 }
 
 

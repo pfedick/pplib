@@ -277,6 +277,7 @@ int	 CMemFile::Fseek (ppluint64 offset, int origin )
 				pos=offset;
 				if (pos<0) {pos=0; return 1;}
 				if (pos>size) return 1;
+				break;
 		}
 		return 0;
 	}

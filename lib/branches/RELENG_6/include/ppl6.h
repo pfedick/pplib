@@ -41,7 +41,7 @@
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
 #define PPL_VERSION_BUILD	9
-#define PPL_RELEASEDATE		20110907
+#define PPL_RELEASEDATE		20111030
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -3301,7 +3301,7 @@ class Webserver
 				CAssocArray auth;
 		};
 		Webserver();
-		~Webserver();
+		virtual ~Webserver();
 		void bind(const CString &adr, int port);
 		void loadCertificate(const CString &certificate, const CString &privatekey, const CString &password);
 		void enableSSL(bool enable);
