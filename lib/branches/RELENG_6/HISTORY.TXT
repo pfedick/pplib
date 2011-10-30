@@ -1,9 +1,9 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
-Version 6.4.9
+Version 6.4.9  vom 30.10.2011	(CVS-Tag: REL_6_4_9)
   - Kompatibilitätsprobleme mit OpenSSL 1.x.x behoben
-  - Funktion StartThread, um einen einen Thread ohne Verwendung der
+  - Funktion StartThread, um einen Thread ohne Verwendung der
     Klasse CThread zu starten
   - Webserver-Klasse, die auf libmicrohttpd aufsetzt 
 
