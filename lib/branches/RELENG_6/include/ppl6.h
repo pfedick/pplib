@@ -40,8 +40,8 @@
 
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
-#define PPL_VERSION_BUILD	9
-#define PPL_RELEASEDATE		20111030
+#define PPL_VERSION_BUILD	10
+#define PPL_RELEASEDATE		20111110
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -3392,6 +3392,7 @@ class CCurl
 		int		SetTimeout(int seconds);
 		int		SetHeader(const char *name, const char *value);
 		int		SetMaximumPersistantConnects(int value);
+		int		EnableSignals(bool enable);
 		int		Reset();
 		int		ClearHeader();
 		int		Get();

@@ -137,6 +137,10 @@ CCurl::CCurl()
 		}
 		curl_easy_setopt((CURL*)handle,CURLOPT_COOKIEJAR,"");
 
+		long t=1;
+		curl_easy_setopt((CURL*)handle, CURLOPT_NOSIGNAL, t);	// Curl soll keine Signals verwenden
+
+
 		log=NULL;
 		post=NULL;
 		last=NULL;
@@ -237,6 +241,34 @@ int CCurl::SetOptOk(int ret)
 		SetError(356);
 		return 0;
 	#endif
+}
+
+
+/*!\brief Signal-Handler ein- oder ausschalten
+ *
+ * \desc
+ * Signals werden innerhalb der Curl-Bibliothek zur Implementierung von Timeouts bei DNS-Abfragen verwendet.
+ * Verwendet die Anwendung mehrere Threads, sollte die Verwendung von Signals deaktiviert werden
+ * (siehe http://curl.haxx.se/libcurl/c/libcurl-tutorial.html#Multi-threading). Seit Version 6.4.10 der
+ * PPLib sind die Signals in der CCurl-Klasse standardmässig deaktiviert.
+ * \par
+ * Ist dieses Verhalten nicht gewünscht, muss die Verwendendung von Signals explizit aktiviert werden.
+ *
+ * @param enable true=Signals sind zugelassen, false=keine Signals (Default)
+ * @return
+ */
+int CCurl::EnableSignals(bool enable)
+{
+#ifdef HAVE_LIBCURL
+	long t;
+	if (enable==true) t=0;
+	else t=1;
+	return SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_NOSIGNAL, t));
+#else
+	SetError(356);
+	return 0;
+#endif
+
 }
 
 int CCurl::SetBrowser(const char *cbrowser)
