@@ -305,15 +305,16 @@ String Dir::homePath()
 #ifdef _WIN32
 	char *homeDir = getenv("HOMEPATH");
 	char *homeDrive = getenv("HOMEDRIVE");
-	ret.set("%s\\%s",homeDrive, homePath);
+	ret.setf("%s\\%s",homeDrive, homeDir);
 	return ret;
-#endif
+#else
 	char *homeDir = getenv("HOME");
 	if (homeDir!=NULL && strlen(homeDir)>0) {
 		ret.set(homeDir);
 		return ret;
 	}
 	throw UnsupportedFeatureException("Dir::homePath");
+#endif
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1082,81 +1083,7 @@ void Dir::open(const String &path, Sort s)
  */
 void Dir::open(const char *path, Sort s)
 {
-#if defined _WIN32
-	clear();
-	sort=s;
-	Path=path;
-	Path.trim();
-	Path.trimRight("/");
-	Path.trimRight("\\");
-	String Pattern=Path;
-	// Pattern+="/*";  <= Dieses Konstrukt bringt Doxygen durcheinander :-(
-	// Es führt dazu, dass die komplette Doku in dieser Datei nicht generiert
-	// wird. Es wird aber auch kein Fehler angezeigt :-( This is a bug, not a feature.
-	Pattern+="/";
-	Pattern+="*";
-		struct _wfinddatai64_t data;
-		memset(&data,0,sizeof(data));
-
-		intptr_t handle=_wfindfirsti64 ((const wchar_t*)Pattern, &data);
-		if (handle<0) {
-			SetErrorFromErrno();
-			return 0;
-		}
-		while (1==1) {
-			CDirEntry *de=new CDirEntry;
-			if (!de) {
-				_findclose(handle);
-				SetError(2);
-				return 0;
-			}
-			strcpy (de->AttrStr,"----------");
-			de->Attrib=0;
-			de->ATime=de->CTime=de->MTime=0;
-
-			de->Filename=data.name;
-			de->Size=0;
-			de->Path=Path;
-			de->File=de->Path+CString("/")+de->Filename;
-			de->Size=data.size;
-			de->Uid=0;
-			de->Gid=0;
-			de->Blocks=0;
-			de->BlockSize=0;
-			de->NumLinks=1;
-
-			if (data.attrib & _A_RDONLY) de->Attrib|=CPPLDIR_READONLY;
-			if (data.attrib & _A_HIDDEN) de->Attrib|=CPPLDIR_HIDDEN;
-			if (data.attrib & _A_SYSTEM) de->Attrib|=CPPLDIR_SYSTEM;
-			if (data.attrib & _A_ARCH) de->Attrib|=CPPLDIR_ARCHIV;
-			if (data.attrib & _A_SUBDIR) de->Attrib|=CPPLDIR_DIR;
-
-			de->AttrStr[1]=de->AttrStr[4]=de->AttrStr[7]='r';
-			if (de->Filename.Len()>4) {
-				CString suf=de->Filename.Right(4);
-				suf.LCase();
-				if (suf.StrCmp(".exe")==0 ||
-					suf.StrCmp(".com")==0 ||
-					suf.StrCmp(".bat")==0 ) de->AttrStr[3]=de->AttrStr[6]=de->AttrStr[9]='x';
-			}
-
-			if (! (de->Attrib&CPPLDIR_READONLY)) de->AttrStr[2]=de->AttrStr[5]=de->AttrStr[8]='w';
-			if ( ( de->Attrib & (CPPLDIR_DIR|CPPLDIR_LINK) )==0) de->Attrib|=CPPLDIR_FILE;
-			de->ATime=data.time_access;
-			de->CTime=data.time_create;
-			de->MTime=data.time_write;
-
-			if (de->Attrib&CPPLDIR_DIR) de->AttrStr[0]='d';
-			if (de->Attrib&CPPLDIR_LINK) de->AttrStr[0]='l';
-			Files.Add(de);
-			// Nächster Datensatz
-			if (_wfindnexti64(handle,&data)<0) break;
-		}
-		_findclose(handle);
-		Resort(sort);
-		return 1;
-		*/
-#elif defined HAVE_OPENDIR
+#ifdef HAVE_OPENDIR
 	clear();
 	sort=s;
 	Path=path;
@@ -1172,13 +1099,17 @@ void Dir::open(const char *path, Sort s)
 	DirEntry de;
 	String CurrentFile;
 	while (1==1) {
+#ifdef HAVE_READDIR_R
 		if (readdir_r(dir,&d,&result)!=0) {
 			int e=errno;
 			closedir(dir);
 			File::throwErrno(e,path);
 		}
+#else
+		result=readdir(dir);
+#endif
 		if (result==NULL) break;
-		CurrentFile=Path+"/"+String(d.d_name);
+		CurrentFile=Path+"/"+String(result->d_name);
 		File::stat(CurrentFile,de);
 		Files.add(de);
 	}

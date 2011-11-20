@@ -50,6 +50,10 @@
 namespace ppl7 {
 namespace grafix {
 
+#ifdef RGB
+#undef RGB
+#endif
+
 
 PPLPARAMETERISEDEXCEPTION(UnknownColorFormatException);
 PPLPARAMETERISEDEXCEPTION(UnsupportedColorFormatException);

@@ -61,6 +61,7 @@ namespace grafix {
  * \brief Import-Filter für TIFF-Dateien
  */
 
+#ifdef HAVE_TIFF
 static tsize_t readproc(thandle_t handle, tdata_t data, tsize_t size)
 {
 	FileObject *ff=(FileObject*) handle;
@@ -115,11 +116,14 @@ static toff_t sizeproc(thandle_t handle)
 	return ff->size();
 }
 
+#endif
 
 ImageFilter_TIFF::ImageFilter_TIFF()
 {
+#ifdef HAVE_TIFF
 	TIFFSetWarningHandler(NULL);
 	TIFFSetErrorHandler(NULL);
+#endif
 }
 
 ImageFilter_TIFF::~ImageFilter_TIFF()

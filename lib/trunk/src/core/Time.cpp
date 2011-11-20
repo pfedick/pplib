@@ -110,7 +110,7 @@ ppl_time_t time(ppl_time_t *timer)
 static Mutex LocalTimeMutex;
 struct tm * localtime_r(const time_t *clock, struct tm *result)
 {
-	LocalTimeMutex.Lock();
+	LocalTimeMutex.lock();
 #ifdef MINGW32
 	struct tm *ttt=localtime(clock);
 #elif defined _WIN32
@@ -121,10 +121,10 @@ struct tm * localtime_r(const time_t *clock, struct tm *result)
 #endif
 	if (ttt) {
 		memcpy(result,ttt,sizeof(struct tm));
-		LocalTimeMutex.Unlock();
+		LocalTimeMutex.unlock();
 		return result;
 	}
-	LocalTimeMutex.Unlock();
+	LocalTimeMutex.unlock();
 	return NULL;
 }
 
