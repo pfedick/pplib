@@ -527,42 +527,64 @@ Color::operator pplint32() const
 	return c;
 }
 
+bool Color::operator<(const Color &other) const
+{
+	if (c<other.c) return true;
+	return false;
+}
 
+bool Color::operator<=(const Color &other) const
+{
+	if (c<=other.c) return true;
+	return false;
+}
 
 /*!\brief Vergleich zweier Farben
  *
  * \desc
  * Mit den Operatoren \p == und \p != können zwei Farbwerte miteinander verglichen werden.
  *
- * @param c1 Erster Farbwert
- * @param c2 Zweiter Farbwert
+ * @param other Anderer Farbwert
  * @return Bei Verwendung des Operators \p == wird \c true zurückgegeben, wenn beide Farbwerte
  * identisch sind und \c false, wenn dies nicht der Fall ist. Bei Verwendung des Operators
  * \p != wird \c true zurückgegeben, wenn die Farbwerte unterschiedlich sind und \c false, wenn
  * sie identisch sind.
  */
-bool operator!= (const Color &c1, const Color &c2)
+bool Color::operator==(const Color &other) const
+		{
+	if (c==other.c) return true;
+	return false;
+		}
+
+/*!\brief Vergleich zweier Farben
+ *
+ * \desc
+ * Mit den Operatoren \p == und \p != können zwei Farbwerte miteinander verglichen werden.
+ *
+ * @param other Anderer Farbwert
+ * @return Bei Verwendung des Operators \p == wird \c true zurückgegeben, wenn beide Farbwerte
+ * identisch sind und \c false, wenn dies nicht der Fall ist. Bei Verwendung des Operators
+ * \p != wird \c true zurückgegeben, wenn die Farbwerte unterschiedlich sind und \c false, wenn
+ * sie identisch sind.
+ */
+bool Color::operator!=(const Color &other) const
+		{
+	if (c!=other.c) return true;
+	return false;
+		}
+
+bool Color::operator>=(const Color &other) const
+		{
+	if (c>=other.c) return true;
+	return false;
+		}
+
+bool Color::operator>(const Color &other) const
 {
-	if (c1.c!=c2.c) return true;
+	if (c>other.c) return true;
 	return false;
 }
 
-/*!\brief Farbwert als 32-Bit-Wert auslesen
- *
- * \desc
- * Mit diesem Operator kann der Farbwert der Klasse als 32-Bit-Wert ausgelesen werden.
- *
- * @return 32-Bit Farbwert mit folgendem Aufbau:
- * - das unterste Byte enthält den rot-Wert
- * - das zweite Byte enthält den grün-Wert
- * - Byte 3 enthält den Blau-Wert
- * - Byte 4 den Alpha-Wert
- */
-bool operator== (const Color &c1, const Color &c2)
-{
-	if (c1.c==c2.c) return true;
-	return false;
-}
 
 /*!\brief Multiplikation einer Farbe mit einem Faktor
  *
@@ -604,7 +626,13 @@ const Color operator* (float factor, const Color &color)
 	return Color(clamp((float)color.r*factor),clamp((float)color.g*factor),clamp((float)color.b*factor),color.a);
 }
 
-
+std::ostream& operator<<(std::ostream& s, const Color &c)
+{
+	String t;
+	t.setf("RGB(red=%i, green=%i, blue=%i, alpha=%i)",c.red(), c.green(), c.blue(), c.alpha());
+	ByteArray a=t.toLocalEncoding();
+	return s.write((const char*)a.adr(),a.size());
+}
 
 } // EOF namespace grafix
 } // EOF namespace ppl7

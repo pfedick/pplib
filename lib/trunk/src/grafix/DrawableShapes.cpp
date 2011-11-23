@@ -251,6 +251,7 @@ static int Negativ_32 (SURFACE* data, int x1, int y1, int x2, int y2)
  */
 void Grafix::initShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
+	if (!fn) throw NullPointerException();
 	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
 		case RGBFormat::A8B8G8R8:
@@ -281,6 +282,7 @@ void Grafix::initShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
  */
 void Drawable::cls(const Color &c)
 {
+	if (!fn) throw EmptyDrawableException();
 	if (fn->FillRect) {
 		fn->FillRect(data,Rect(0,0,data.width,data.height),rgb(c));
 		return;
@@ -297,6 +299,7 @@ void Drawable::cls(const Color &c)
  */
 void Drawable::cls()
 {
+	if (!fn) throw EmptyDrawableException();
 	if (fn->FillRect) {
 		fn->FillRect(data,Rect(0,0,data.width,data.height),0);
 		return;
@@ -315,6 +318,7 @@ void Drawable::cls()
  */
 void Drawable::drawRect(const Rect &rect, const Color &c)
 {
+	if (!fn) throw EmptyDrawableException();
 	int y1,x1,y2,x2;
 	if (rect.left()<0 || rect.top()<0 || rect.right()>=data.width || rect.bottom()>=data.height) {
 		y1=rect.y1;
@@ -348,6 +352,7 @@ void Drawable::drawRect(const Rect &rect, const Color &c)
  */
 void Drawable::drawRect(int x1, int y1, int x2, int y2, const Color &c)
 {
+	if (!fn) throw EmptyDrawableException();
 	Rect r;
 	r.setCoords(x1,y1,x2,y2);
 	drawRect(r,c);
@@ -367,6 +372,7 @@ void Drawable::drawRect(int x1, int y1, int x2, int y2, const Color &c)
  */
 void Drawable::fillRect(const Rect &rect, const Color &c)
 {
+	if (!fn) throw EmptyDrawableException();
 	if (fn->FillRect) fn->FillRect(data,rect,rgb(c));
 }
 
@@ -384,6 +390,7 @@ void Drawable::fillRect(const Rect &rect, const Color &c)
  */
 void Drawable::fillRect(int x1, int y1, int x2, int y2, const Color &c)
 {
+	if (!fn) throw EmptyDrawableException();
 	Rect r;
 	r.setCoords(x1,y1,x2,y2);
 	if (fn->FillRect) fn->FillRect(data,r,rgb(c));
@@ -400,6 +407,7 @@ void Drawable::xchange(const Rect &rect, const Color &color, const Color &replac
  * @param replace Neu Farbe
  */
 {
+	if (!fn) throw EmptyDrawableException();
 	if (fn->Xchange) fn->Xchange(data,rect,rgb(color),rgb(replace));
 }
 
@@ -415,6 +423,7 @@ void Drawable::invert(const Rect &rect, const Color &color1, const Color &color2
  * @param[in] color2 Zweite Farbe
  */
 {
+	if (!fn) throw EmptyDrawableException();
 	if (fn->Invert) fn->Invert(data,rect,rgb(color1),rgb(color2));
 }
 
@@ -428,6 +437,7 @@ void Drawable::negativ(const Rect &rect)
  * @param[in] rect Koordinaten des Rechtecks
  */
 {
+	if (!fn) throw EmptyDrawableException();
 	if (fn->Negativ) fn->Negativ(data,rect);
 }
 
@@ -456,6 +466,7 @@ void Drawable::floodFill (int x, int y, const Color &color, const Color &border)
  * \endcode
  */
 {
+	if (!fn) throw EmptyDrawableException();
 	/*
 	 * Quelle des Codes: GD-Library Version 1.2
 	 */
@@ -525,6 +536,7 @@ void Drawable::floodFill (int x, int y, const Color &color, const Color &border)
  **************************************************************************/
 void Drawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fill)
 {
+	if (!fn) throw EmptyDrawableException();
 	int d;
 	int x1,y1,x2=0,y2=0;
 	for (float i=0.0f;i<1.0f;i++) {
@@ -546,6 +558,7 @@ void Drawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fi
 //void CSurface::Elipse (int x, int y, int radiusx, int radiusy, COLOR Farbe, int Flags, COLOR Fuellfarbe, int startwinkel, int endwinkel)
 void Drawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fill, const Color &fillcolor, int start, int end)
 {
+	if (!fn) throw EmptyDrawableException();
 	int d;
 	int x1,y1,x2,y2;
 	float st=(float)start/360.0f;
@@ -578,6 +591,7 @@ void Drawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fil
 
 void Drawable::circle (int x, int y, int rad, const Color &c, bool fill)
 {
+	if (!fn) throw EmptyDrawableException();
 	elipse(x,y,rad,rad,c,fill);
 }
 
@@ -606,6 +620,7 @@ void Drawable::colorGradient(const Rect &rect, const Color &c1, const Color &c2,
 
 void Drawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, const Color &c2, int direction)
 {
+	if (!fn) throw EmptyDrawableException();
 	Color c;
 	ppluint32 w1,w2;
 	int range;

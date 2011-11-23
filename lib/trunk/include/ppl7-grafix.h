@@ -331,8 +331,6 @@ typedef struct {
 
 class Color
 {
-	friend bool operator!= (const Color &c1, const Color &c2);
-	friend bool operator== (const Color &c1, const Color &c2);
 	friend const Color operator* (const Color &size, float factor);
 	friend const Color operator* (float factor, const Color &size);
 
@@ -380,13 +378,18 @@ union  {
 		Color &operator*= (float factor);
 		operator ppluint32() const;
 		operator pplint32() const;
+
+		bool operator<(const Color &other) const;
+		bool operator<=(const Color &other) const;
+		bool operator==(const Color &other) const;
+		bool operator!=(const Color &other) const;
+		bool operator>=(const Color &other) const;
+		bool operator>(const Color &other) const;
 };
 
-bool operator!= (const Color &c1, const Color &c2);
-bool operator== (const Color &c1, const Color &c2);
 const Color operator* (const Color &color, float factor);
 const Color operator* (float factor, const Color &color);
-
+std::ostream& operator<<(std::ostream& s, const Color &c);
 
 
 
