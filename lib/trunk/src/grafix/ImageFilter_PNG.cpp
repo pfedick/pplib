@@ -238,7 +238,9 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 		switch (png_get_color_type(png_ptr, info_ptr)) {
 
 		case PNG_COLOR_TYPE_RGB_ALPHA:
-			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
+			//bpp=png_get_bit_depth(png_ptr, info_ptr);
+			bpp=4;	// TODO: Bittiefe kann auch 16 Bit pro Farbkanal sein
+			//printf ("PNG RGBA, bpp=%i\n",bpp);
 			for (y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
 				for (x=0;x<img.width;x++) {
@@ -251,7 +253,8 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 			}
 			break;
 		case PNG_COLOR_TYPE_RGB:
-			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
+			//bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
+			bpp=3;
 			for (y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
 				for (x=0;x<img.width;x++) {
@@ -263,7 +266,8 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 			}
 			break;
 		case PNG_COLOR_TYPE_GRAY:
-			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
+			//bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
+			bpp=1;
 			// Ist das Zielformat auch Greyscale?
 			if (zformat==RGBFormat::A8 || zformat==RGBFormat::GREY8) {
 				for (y=0;y<img.height;y++) {
@@ -284,7 +288,8 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 			}
 			break;
 		case PNG_COLOR_TYPE_GRAY_ALPHA:
-			bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
+			bpp=2;
+			//bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
 			for (y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
 				for (x=0;x<img.width;x++) {

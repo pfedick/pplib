@@ -1397,7 +1397,6 @@ int main(int argc, char **argv)
 	DoRGBBlend(Image,count);
 	DoColorGradient(Image,count);
 	DoPutPixel(Image,count);
-	/*
 	DoAlphaPixel(Image,count);
 	DoLines(Image,count);
 	DoLinesAA(Image,count);
@@ -1432,7 +1431,7 @@ int main(int argc, char **argv)
 	Draw.cls(Color(255,0,0));
 	Image.putPixel(60,60,Color(255,255,255));
 	Image.putPixel(70,70,Color(255,255,255));
-	*/
+
 	png.saveFile("tmp.grafixtest.png", Image);
 
 	return 0;

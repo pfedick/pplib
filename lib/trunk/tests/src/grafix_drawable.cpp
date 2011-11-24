@@ -55,6 +55,8 @@ class GrafixDrawableTest : public ::testing::Test {
 	protected:
 	ppl7::grafix::Grafix gfx;
 	ppl7::grafix::Image surface;
+	Color transparent,black,white,red,green,blue;
+
 
 	GrafixDrawableTest() {
 		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
@@ -64,6 +66,12 @@ class GrafixDrawableTest : public ::testing::Test {
 		ppl7::String::setGlobalEncoding("UTF-8");
 		surface.create(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
 		surface.cls();
+		transparent.setColor(0,0,0,0);
+		black.setColor(0,0,0,255);
+		white.setColor(255,255,255,255);
+		red.setColor(93,0,0,255);
+		green.setColor(0,93,0,255);
+		blue.setColor(0,0,93,255);
 
 
 	}
@@ -74,44 +82,153 @@ class GrafixDrawableTest : public ::testing::Test {
 
 
 TEST_F(GrafixDrawableTest, cls) {
-	Color c;
-	Color transparent(0,0,0,0);
-	Color black(0,0,0,255);
-	Color white(255,255,255,255);
-	Color red(93,0,0,255);
-	Color green(0,93,0,255);
-	Color blue(0,0,93,255);
-
 	surface.cls(transparent);
-	ASSERT_EQ(transparent,surface.getPixel(0,0));
-	ASSERT_EQ(transparent,surface.getPixel(333,111));
-	ASSERT_EQ(transparent,surface.getPixel(639,479));
+	EXPECT_EQ(transparent,surface.getPixel(0,0));
+	EXPECT_EQ(transparent,surface.getPixel(333,111));
+	EXPECT_EQ(transparent,surface.getPixel(639,479));
 
 	surface.cls(black);
-	ASSERT_EQ(black,surface.getPixel(0,0));
-	ASSERT_EQ(black,surface.getPixel(333,111));
-	ASSERT_EQ(black,surface.getPixel(639,479));
+	EXPECT_EQ(black,surface.getPixel(0,0));
+	EXPECT_EQ(black,surface.getPixel(333,111));
+	EXPECT_EQ(black,surface.getPixel(639,479));
 
 	surface.cls(white);
-	ASSERT_EQ(white,surface.getPixel(0,0));
-	ASSERT_EQ(white,surface.getPixel(333,111));
-	ASSERT_EQ(white,surface.getPixel(639,479));
+	EXPECT_EQ(white,surface.getPixel(0,0));
+	EXPECT_EQ(white,surface.getPixel(333,111));
+	EXPECT_EQ(white,surface.getPixel(639,479));
 
 	surface.cls(red);
-	ASSERT_EQ(red,surface.getPixel(0,0));
-	ASSERT_EQ(red,surface.getPixel(333,111));
-	ASSERT_EQ(red,surface.getPixel(639,479));
+	EXPECT_EQ(red,surface.getPixel(0,0));
+	EXPECT_EQ(red,surface.getPixel(333,111));
+	EXPECT_EQ(red,surface.getPixel(639,479));
 
 	surface.cls(green);
-	ASSERT_EQ(green,surface.getPixel(0,0));
-	ASSERT_EQ(green,surface.getPixel(333,111));
-	ASSERT_EQ(green,surface.getPixel(639,479));
+	EXPECT_EQ(green,surface.getPixel(0,0));
+	EXPECT_EQ(green,surface.getPixel(333,111));
+	EXPECT_EQ(green,surface.getPixel(639,479));
 
 	surface.cls(blue);
-	ASSERT_EQ(blue,surface.getPixel(0,0));
-	ASSERT_EQ(blue,surface.getPixel(333,111));
-	ASSERT_EQ(blue,surface.getPixel(639,479));
+	EXPECT_EQ(blue,surface.getPixel(0,0));
+	EXPECT_EQ(blue,surface.getPixel(333,111));
+	EXPECT_EQ(blue,surface.getPixel(639,479));
 }
+
+TEST_F(GrafixDrawableTest, lines) {
+	Color c[10];
+	c[0]=transparent;
+	c[1]=black;
+	c[2]=white;
+	c[3]=red;
+	c[4]=green;
+	c[5]=blue;
+	for (int i=0;i<=5;i++) {
+		Color color=c[i];
+		int x=i*50;
+		int y;
+
+		// Senkrechte Linie
+		y=25;
+		surface.line(x,y-20,x,y+20,color);
+		EXPECT_EQ(transparent,surface.getPixel(x,y-21));
+		EXPECT_EQ(transparent,surface.getPixel(x-1,y-20));
+		EXPECT_EQ(transparent,surface.getPixel(x+1,y-20));
+		EXPECT_EQ(color,surface.getPixel(x,y-20));
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x,y+20));
+		EXPECT_EQ(transparent,surface.getPixel(x,y+21));
+		EXPECT_EQ(transparent,surface.getPixel(x-1,y+20));
+		EXPECT_EQ(transparent,surface.getPixel(x+1,y+20));
+
+		// Waagerechte linie
+		y=50;
+		surface.line(x-20,y,x+20,y,color);
+		EXPECT_EQ(transparent,surface.getPixel(x-21,y));
+		EXPECT_EQ(transparent,surface.getPixel(x-20,y-1));
+		EXPECT_EQ(transparent,surface.getPixel(x-20,y+1));
+		EXPECT_EQ(color,surface.getPixel(x-20,y));
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x+20,y));
+		EXPECT_EQ(transparent,surface.getPixel(x+21,y));
+		EXPECT_EQ(transparent,surface.getPixel(x+20,y-1));
+		EXPECT_EQ(transparent,surface.getPixel(x+20,y+1));
+
+		// x1
+		y=75;
+		surface.line(x-20,y-20,x+20,y+20,color);
+		EXPECT_EQ(transparent,surface.getPixel(x-21,y-21));
+		EXPECT_EQ(transparent,surface.getPixel(x-21,y-20));
+		EXPECT_EQ(transparent,surface.getPixel(x-19,y-20));
+		EXPECT_EQ(color,surface.getPixel(x-20,y-20));
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x+20,y+20));
+		EXPECT_EQ(transparent,surface.getPixel(x+21,y+21));
+		EXPECT_EQ(transparent,surface.getPixel(x+21,y+20));
+		EXPECT_EQ(transparent,surface.getPixel(x+19,y+20));
+
+		// x2
+		y=75;
+		surface.line(x+20,y-20,x-20,y+20,color);
+		EXPECT_EQ(transparent,surface.getPixel(x+21,y-21));
+		EXPECT_EQ(transparent,surface.getPixel(x+21,y-20));
+		EXPECT_EQ(transparent,surface.getPixel(x+19,y-20));
+		EXPECT_EQ(color,surface.getPixel(x+20,y-20));
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x-20,y+20));
+		EXPECT_EQ(transparent,surface.getPixel(x-21,y+21));
+		EXPECT_EQ(transparent,surface.getPixel(x-21,y+20));
+		EXPECT_EQ(transparent,surface.getPixel(x-19,y+20));
+
+
+		// x
+		y=125;
+		surface.line(x,y,x+5,y-20,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x+5,y-20));
+
+		y=175;
+		surface.line(x,y,x+20,y-5,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x+20,y-5));
+
+		y=200;
+		surface.line(x,y,x+20,y+7,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x+20,y+7));
+
+		y=225;
+		surface.line(x,y,x+5,y+20,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x+5,y+20));
+
+		y=275;
+		surface.line(x,y,x-7,y+20,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x-7,y+20));
+
+		y=325;
+		surface.line(x,y,x-20,y+8,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x-20,y+8));
+
+		y=375;
+		surface.line(x,y,x-20,y-7,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x-20,y-7));
+
+		y=425;
+		surface.line(x,y,x-4,y-20,color);
+		EXPECT_EQ(color,surface.getPixel(x,y));
+		EXPECT_EQ(color,surface.getPixel(x-4,y-20));
+
+	}
+
+
+	/*
+	ImageFilter_PNG png;
+	png.saveFile("tmp.grafix.drawable.lines.png", surface);
+	*/
+}
+
 
 }	// EOF namespace
 
@@ -120,4 +237,5 @@ int main (int argc, char**argv)
 	::testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
+
 

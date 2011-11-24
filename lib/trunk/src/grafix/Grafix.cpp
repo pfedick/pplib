@@ -233,10 +233,7 @@ Grafix::~Grafix()
 		delete filter_tiff;
 	}
 
-
-
-
-
+	if (pplgfx==this) pplgfx=NULL;
 }
 
 void Grafix::initAlphatab()
