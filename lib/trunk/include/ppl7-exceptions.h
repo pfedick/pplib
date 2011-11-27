@@ -64,7 +64,7 @@ class Exception : std::exception
 
 #define STR_VALUE(arg)      #arg
 #define PPLNORMALEXCEPTION(name)	class name : public ppl7::Exception { public: \
-		virtual const char* what() const throw() { return STR_VALUE(name); } \
+		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
 	};
 #define PPLPARAMETERISEDEXCEPTION(name)	class name : public ppl7::Exception { public: \
 	name() {}; \
@@ -74,7 +74,7 @@ class Exception : std::exception
 	name(const char *msg, ...) {  \
 		va_list args; va_start(args, msg); copyText(msg,args); \
 		va_end(args); } \
-		virtual const char* what() const throw() { return STR_VALUE(name); } \
+		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
 	};
 
 
