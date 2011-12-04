@@ -1003,7 +1003,6 @@ class PFPFile
 class Resource
 {
 	private:
-		MemoryHeap	heap;
 		int count;
 		int maxid, minid;
 		int major, minor;

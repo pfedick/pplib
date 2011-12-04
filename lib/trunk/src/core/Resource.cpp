@@ -47,17 +47,41 @@
 
 namespace ppl7 {
 
-typedef struct tagChunk {
-	struct tagChunk *next;
-	int		id;
-	String	name;
-	ppluint32	size_u;
-	ppluint32	size_c;
-	int			compression;
-	void	*data;
-	const void	*uncompressed;
-	int			clearbuffer;
-} RESCHUNK;
+class ResourceChunk
+{
+		friend class Resource;
+	private:
+		ResourceChunk *next;
+		int		id;
+		String	name;
+		ppluint32	size_u;
+		ppluint32	size_c;
+		int			compression;
+		void	*data;
+		const void	*uncompressed;
+		int			clearbuffer;
+
+	public:
+		ResourceChunk();
+		~ResourceChunk();
+};
+
+ResourceChunk::ResourceChunk()
+{
+	next=NULL;
+	id=0;
+	size_u=0;
+	size_c=0;
+	compression=0;
+	data=NULL;
+	uncompressed=NULL;
+	clearbuffer=0;
+}
+
+ResourceChunk::~ResourceChunk()
+{
+	if(clearbuffer) free(data);
+}
 
 Resource::Resource()
 {
@@ -75,14 +99,13 @@ Resource::~Resource()
 
 void Resource::clear()
 {
-	RESCHUNK *res=(RESCHUNK *)firstchunk;
-	while (res) {
-		if (res->clearbuffer) free(res->data);
-		res->clearbuffer=0;
-		res->data=NULL;
-		res=res->next;
+	ResourceChunk *res;
+	ResourceChunk *next=(ResourceChunk *)firstchunk;
+	while (next) {
+		res=next;
+		next=next->next;
+		delete (res);
 	}
-	heap.clear();
 	memory.free();
 	memref.use(NULL,0);
 	firstchunk=NULL;
@@ -114,9 +137,7 @@ void Resource::load(FileObject &file)
 		memref=memory;
 		parse();
 	} catch (...) {
-		memory.free();
-		memref.use(NULL,0);
-		heap.clear();
+		clear();
 		throw;
 	}
 }
@@ -178,10 +199,9 @@ void Resource::parse()
 		b=b+size;
 		size=Peek32(b);
 	}
-	heap.init(sizeof(RESCHUNK),count+1,10);
 	b=(const char*)memref.adr()+9;
 	size=Peek32(b);
-	RESCHUNK *lastres=NULL;
+	ResourceChunk *lastres=NULL;
 	while (size) {
 		int id=Peek16(b+4);
 		if(id<minid) minid=id;
@@ -191,7 +211,7 @@ void Resource::parse()
 		int type=Peek8(b+14);
 		int off=Peek8(b+15);
 		const char *name=b+16;
-		RESCHUNK *res=(RESCHUNK*)heap.malloc();
+		ResourceChunk *res=new ResourceChunk();
 		if (!res) throw OutOfMemoryException();
 		if (!firstchunk) firstchunk=res;
 		if(lastres) lastres->next=res;
@@ -213,7 +233,7 @@ void Resource::parse()
 
 void Resource::list()
 {
-	RESCHUNK *res=(RESCHUNK *)firstchunk;
+	ResourceChunk *res=(ResourceChunk *)firstchunk;
 	printf ("List of Ressources\n");
 	if (!res) {
 		printf ("  no entries\n");
@@ -228,7 +248,7 @@ void Resource::list()
 
 void *Resource::find(int id)
 {
-	RESCHUNK *res=(RESCHUNK *)firstchunk;
+	ResourceChunk *res=(ResourceChunk *)firstchunk;
 	if (!firstchunk) throw ResourceNotFoundException();
 	while (res) {
 		if (res->id==id) {
@@ -244,7 +264,7 @@ void *Resource::find(int id)
 
 void *Resource::find(const String &name)
 {
-	RESCHUNK *res=(RESCHUNK *)firstchunk;
+	ResourceChunk *res=(ResourceChunk *)firstchunk;
 	if (!firstchunk) throw ResourceNotFoundException();
 	while (res) {
 		if (res->name==name) {
@@ -261,7 +281,7 @@ void *Resource::find(const String &name)
 ByteArrayPtr Resource::getMemory(int id)
 {
 	ByteArrayPtr m;
-	RESCHUNK *res=(RESCHUNK *)find(id);
+	ResourceChunk *res=(ResourceChunk *)find(id);
 	m.use(res->data,res->size_u);
 	return m;
 }
@@ -269,14 +289,14 @@ ByteArrayPtr Resource::getMemory(int id)
 ByteArrayPtr Resource::getMemory(const String &name)
 {
 	ByteArrayPtr m;
-	RESCHUNK *res=(RESCHUNK *)find(name);
+	ResourceChunk *res=(ResourceChunk *)find(name);
 	m.use(res->data,res->size_u);
 	return m;
 }
 
 FileObject *Resource::getFile(int id)
 {
-	RESCHUNK *res=(RESCHUNK *)find(id);
+	ResourceChunk *res=(ResourceChunk *)find(id);
 	MemFile *ff=new MemFile();
 	ff->open(res->data,res->size_u);
 	ff->setFilename(res->name);
@@ -285,7 +305,7 @@ FileObject *Resource::getFile(int id)
 
 FileObject *Resource::getFile(const String &name)
 {
-	RESCHUNK *res=(RESCHUNK *)find(name);
+	ResourceChunk *res=(ResourceChunk *)find(name);
 	MemFile *ff=new MemFile();
 	ff->open(res->data,res->size_u);
 	ff->setFilename(res->name);
@@ -295,7 +315,7 @@ FileObject *Resource::getFile(const String &name)
 void Resource::uncompress(void *resource)
 {
 	Compression comp;
-	RESCHUNK *res=(RESCHUNK*)resource;
+	ResourceChunk *res=(ResourceChunk*)resource;
 	size_t bufferlen=res->size_u;
 	void *buffer=malloc(bufferlen);
 	if (!buffer) throw OutOfMemoryException();
