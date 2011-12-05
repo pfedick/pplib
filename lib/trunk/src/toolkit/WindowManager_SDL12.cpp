@@ -1,8 +1,7 @@
-#define HAVE_SDL
-#include <ppl7.h>
-#include <ppl7-grafix.h>
+#include "ppl7.h""
+#include "ppl7-grafix.h"
 #include "ppl7-tk.h"
-#ifdef HAVE_SDL
+#ifdef HAVE_SDL12
 #include <SDL/SDL.h>
 #endif
 
@@ -15,7 +14,7 @@ using namespace ppl7::grafix;
 
 static WindowManager_SDL *wm=NULL;
 
-#ifdef HAVE_SDL
+#ifdef HAVE_SDL12
 
 typedef struct {
 	SDL_Surface *surface;
@@ -148,7 +147,6 @@ static SDL_COLORFORMAT RGBFormat2SDL(const RGBFormat &format)
 
 	return f;
 }
-#endif
 
 
 
@@ -529,7 +527,7 @@ void WindowManager_SDL::createSurface(Widget &w, int width, int height, const RG
 	w.setSize(width,height);
 }
 
-
+#endif
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7
