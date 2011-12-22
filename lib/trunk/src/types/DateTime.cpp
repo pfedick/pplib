@@ -1094,7 +1094,7 @@ int DateTime::compareSeconds(const DateTime &other, int tolerance) const
  */
 DateTime& DateTime::operator=(const String &datetime)
 {
-	if (!set(datetime)) throw Exception();
+	if (!set(datetime)) throw InvalidDateException(datetime);
 	return *this;
 }
 
