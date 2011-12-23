@@ -505,7 +505,7 @@ Database *Pool::Get(bool wait, int ms)
 			Mutex.Unlock();
 			if (Log) Log->Printf(ppl6::LOG::DEBUG,5,"ppl6::db::Pool","Get",__FILE__,__LINE__,"Freie Verbindung im Pool gefunden, prüfe Funktionalität (Ping)");
 			if (!p->Ping()) {				// Datenbank noch verbunden?
-				if (Log) Log->Printf(ppl6::LOG::DEBUG,5,"ppl6::db::Pool","Get",__FILE__,__LINE__,"Ping fehlgeschlagen, trenne Verbindung");
+				if (Log) Log->Printf(ppl6::LOG::DEBUG,5,"ppl6::db::Pool","Get",__FILE__,__LINE__,"Ping fehlgeschlagen, trenne Verbindung, Fehler: %i: %s[%s]",ppl6::GetErrorCode(),ppl6::GetError(), ppl6::GetExtendedError());
 				Mutex.Lock();
 				Free.Delete(p);
 				delete p;

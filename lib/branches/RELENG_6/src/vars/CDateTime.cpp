@@ -1040,7 +1040,7 @@ int CDateTime::compareSeconds(const CDateTime &other, int tolerance) const
  */
 CDateTime& CDateTime::operator=(const ppl6::CString &datetime)
 {
-	if (!set(datetime)) throw Exception();
+	if (!set(datetime)) throw InvalidDateException(datetime);
 	return *this;
 }
 
