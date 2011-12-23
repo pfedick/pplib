@@ -1456,6 +1456,13 @@ int Sybase::Ping()
 		if (Log) Log->LogError(4);
 		return 0;
 	}
+	if (ct_cancel(NULL, sc->cmd, CS_CANCEL_ALL) !=CS_SUCCEED) {
+		SetError(138,"ct_cancel: %s, syberror: %s",(const char*)query,(const char*)syberror);
+		mutex.Unlock();
+		if (Log) Log->LogError(4);
+		return 0;
+	}
+
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Ping",__FILE__,__LINE__,"Ok");
 	mutex.Unlock();
 	return 1;
