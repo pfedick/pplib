@@ -1068,7 +1068,7 @@ void AssocArray::reset(Iterator &it) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return Referenz auf das gefundene Element
  * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und eine weiteren Elemente mehr vorhanden sind.
+ * wurde und keine weiteren Elemente mehr vorhanden sind.
  */
 Variant &AssocArray::getFirst(Iterator &it, Variant::Type type) const
 {
@@ -1086,7 +1086,7 @@ Variant &AssocArray::getFirst(Iterator &it, Variant::Type type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return Referenz auf das gefundene Element
  * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und eine weiteren Elemente mehr vorhanden sind.
+ * wurde und keine weiteren Elemente mehr vorhanden sind.
  */
 Variant &AssocArray::getNext(Iterator &it, Variant::Type type) const
 {
@@ -1107,7 +1107,7 @@ Variant &AssocArray::getNext(Iterator &it, Variant::Type type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return Referenz auf das gefundene Element
  * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und eine weiteren Elemente mehr vorhanden sind.
+ * wurde und keine weiteren Elemente mehr vorhanden sind.
  */
 Variant &AssocArray::getLast(Iterator &it, Variant::Type type) const
 {
@@ -1125,7 +1125,7 @@ Variant &AssocArray::getLast(Iterator &it, Variant::Type type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return Referenz auf das gefundene Element
  * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und eine weiteren Elemente mehr vorhanden sind.
+ * wurde und keine weiteren Elemente mehr vorhanden sind.
  */
 Variant &AssocArray::getPrevious(Iterator &it, Variant::Type type) const
 {

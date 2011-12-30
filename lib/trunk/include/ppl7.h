@@ -42,7 +42,7 @@
 #define PPL_VERSION_MAJOR	7
 #define PPL_VERSION_MINOR	0
 #define PPL_VERSION_BUILD	0
-#define PPL_RELEASEDATE		20110421
+#define PPL_RELEASEDATE		20111230
 #define PPL_COPYRIGHT		"Copyright (c) 2011 by Patrick Fedick"
 
 // Inlcude PPL7 configuration file
@@ -1048,6 +1048,14 @@ class Resource
 Resource *GetPPLResource();
 
 
+class PerlHelper
+{
+	public:
+		static String escapeString(const String &s);
+		static String escapeRegExp(const String &s);
+		static String toHash(const AssocArray &a, const String &s);
+
+};
 
 
 };	// EOF namespace ppl7
