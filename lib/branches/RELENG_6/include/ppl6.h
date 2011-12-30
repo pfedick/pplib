@@ -40,8 +40,8 @@
 
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
-#define PPL_VERSION_BUILD	10
-#define PPL_RELEASEDATE		20111110
+#define PPL_VERSION_BUILD	11
+#define PPL_RELEASEDATE		20111230
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -3915,6 +3915,15 @@ class CWikiParser
 		void setBaseURI(const CString &Uri);
 		static CString xmlDiagram2HTML(const CString &xml);
 		virtual int getHeader(CString &Html);
+};
+
+class PerlHelper
+{
+	public:
+		static CString escapeString(const CString &s);
+		static CString escapeRegExp(const CString &s);
+		static CString toHash(const CAssocArray &a, const CString &s);
+
 };
 
 };	// EOF namespace ppl6

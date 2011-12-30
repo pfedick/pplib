@@ -6,6 +6,7 @@ Version 6.4.11
   - Kritischer Bugfix in Sybase::Ping: Result wurde nicht freigegeben, wodurch
     nachfolgende Operationen blockiert und die Verbindung somit
     unbrauchbar wurde
+  - Neue Klasse: PerlHelper
 
 Version 6.4.10  vom 10.11.2011	(CVS-Tag: REL_6_4_10)
   - CCurl-Klasse: Signals werden nun standardmäßig deaktiviert,
