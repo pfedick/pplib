@@ -407,6 +407,10 @@ template <class K> class List
 		{
 			return MyHeap.count();
 		}
+		size_t		size() const
+		{
+			return MyHeap.count();
+		}
 
 		void		clear()
 		{
