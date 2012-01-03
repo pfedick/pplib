@@ -304,6 +304,9 @@ int CDateTime::set(const ppl6::CString &datetime)
 		set(m.GetString(1).ToInt(),
 				m.GetString(2).ToInt(),
 				m.GetString(3).ToInt());
+	} else if (d.PregMatch("/^null$/i",&m)) {
+		clear();
+		return 1;
 	} else {
 		clear();
 		ppl6::SetError(558,"%s",(const char*)datetime);
@@ -417,9 +420,15 @@ int CDateTime::setTime(const ppl6::CString &time)
  * werden, aus 13 oder 12345 würde 12 werden. Dieses Verhalten wird sich in einer späteren Version noch ändern!
  * Geplant ist, dass bei Überlauf eines Wertes die anderen automatisch angepasst werden, so dass z.B. aus
  * dem 32.12.2010 automatisch der 01.01.2011 wird.
+ * \par
+ * Wird bei \p year, \p month und \p day der Wert "0" angegeben, wird der Timestamp auf 0 gesetzt.
  */
 void CDateTime::set(int year, int month, int day, int hour, int minute, int sec, int msec)
 {
+	if (year==0 && month==0 && day==0) {
+		clear();
+		return;
+	}
 	yy=year;
 	if (year<0) yy=0;
 	if (year>9999) yy=9999;
