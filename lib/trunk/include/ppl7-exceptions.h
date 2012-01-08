@@ -98,6 +98,7 @@ PPLNORMALEXCEPTION(AlreadyConnectedException);
 PPLNORMALEXCEPTION(NoConnectionException);
 PPLPARAMETERISEDEXCEPTION(TooManyInstancesException);
 PPLPARAMETERISEDEXCEPTION(InvalidDateException);
+PPLPARAMETERISEDEXCEPTION(DateOutOfRangeException);
 PPLNORMALEXCEPTION(NoThreadSupportException);
 PPLNORMALEXCEPTION(ThreadStartException);
 PPLNORMALEXCEPTION(ThreadOperationFailedException);

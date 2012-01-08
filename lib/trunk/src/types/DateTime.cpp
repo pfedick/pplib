@@ -942,6 +942,73 @@ int DateTime::millisecond() const
 	return ms;
 }
 
+/*!\brief Die Wochennummer als Integer auslesen, Berechnung nach ISO 8601
+ *
+ * \desc
+ * Diese Funktion berechnet anhand des Datums die Wochennummer innerhalb
+ * des Jahres und gibt diese als Integer zurück. Die Zählweise richtet sich
+ * dabei nach ISO 8601:
+ *   - Jeden Montag und nur montags beginnt eine neue Kalenderwoche.
+ *   - Die erste Kalenderwoche ist diejenige, die mindestens vier Tage des neuen Jahres enthält.
+ * \par
+ * Diese Zählweise ist die in Europa gebräuchliche.
+ *
+ * \see CDateTime::week
+ *
+ * @return Integer-Wert mit dem Jahr
+ */
+int DateTime::weekISO8601() const
+{
+	if (yy<1900) throw DateOutOfRangeException("year < 1900 [%i]",yy);
+	struct tm t;
+	t.tm_sec=0;
+	t.tm_min=0;
+	t.tm_hour=12;
+	t.tm_mday=dd;
+	t.tm_mon=mm-1;
+	t.tm_year=yy-1900;
+	t.tm_isdst=-1;
+	::time_t clock=mktime(&t);
+	gmtime_r(&clock, &t);
+	char buffer[10];
+	if (strftime(buffer, 10, "%V", &t)==0) {
+		throw InvalidDateException();
+	}
+	return atoi(buffer);
+}
+
+/*!\brief Die Wochennummer als Integer auslesen
+ *
+ * \desc
+ * Diese Funktion berechnet anhand des Datums die Wochennummer innerhalb
+ * des Jahres und gibt diese als Integer zurück. Die Zählweise entspricht der in
+ * den USA, Australien und vielen weiteren Ländern, in der sich die Tradition des
+ * Judentums, Christentums und Islams erhalten hat. Dabei gilt folgende Regel:
+ * - Jeden Sonntag beginnt eine neue Kalenderwoche
+ * - Am 1. Januar beginnt stets – unabhängig vom Wochentag – die 1. Kalenderwoche
+ *
+ * @return Integer-Wert mit dem Jahr
+ */
+int DateTime::week() const
+{
+	if (yy<1900) throw DateOutOfRangeException("year < 1900 [%i]",yy);
+	struct tm t;
+	t.tm_sec=0;
+	t.tm_min=0;
+	t.tm_hour=12;
+	t.tm_mday=dd;
+	t.tm_mon=mm-1;
+	t.tm_year=yy-1900;
+	t.tm_isdst=-1;
+	::time_t clock=mktime(&t);
+	gmtime_r(&clock, &t);
+	char buffer[10];
+	if (strftime(buffer, 10, "%U", &t)==0) {
+		throw InvalidDateException();
+	}
+	return atoi(buffer);
+}
+
 //@}
 
 //!\name Verschiedenes

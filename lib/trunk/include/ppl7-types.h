@@ -738,6 +738,9 @@ class DateTime : public Variant
 		int minute() const;
 		int second() const;
 		int millisecond() const;
+		int week() const;
+		int weekISO8601() const;
+
 
 		pplint64 diffSeconds(const DateTime &other) const;
 		int compareSeconds(const DateTime &other, int tolerance=0) const;
