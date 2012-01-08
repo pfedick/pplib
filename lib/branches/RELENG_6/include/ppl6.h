@@ -1088,6 +1088,8 @@ class CDateTime : public CVar
 		int minute() const;
 		int second() const;
 		int millisecond() const;
+		int week() const;
+		int weekISO8601() const;
 
 		pplint64 diffSeconds(const CDateTime &other) const;
 		int compareSeconds(const CDateTime &other, int tolerance=0) const;

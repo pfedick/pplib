@@ -7,6 +7,10 @@ Version 6.4.11
     nachfolgende Operationen blockiert und die Verbindung somit
     unbrauchbar wurde
   - Neue Klasse: PerlHelper
+  - CDateTime verarbeitet nun auch "null" oder das Datum "0000-00-00".
+    Beides wird als "0" interpretiert.
+  - CDateTime hat neue Funktionen zum Abfragen der Kalenderwoche:
+    week() und weekISO8601()
 
 Version 6.4.10  vom 10.11.2011	(CVS-Tag: REL_6_4_10)
   - CCurl-Klasse: Signals werden nun standardmäßig deaktiviert,
