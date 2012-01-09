@@ -68,6 +68,10 @@ namespace ppl6 {
 struct tm * localtime_r(const time_t *clock, struct tm *result);
 #endif
 
+#ifndef HAVE_GMTIME_R
+struct tm *gmtime_r(const time_t *timep, struct tm *result);
+#endif
+
 
 /*!\class CDateTime
  * \ingroup PPLGroupDataTypes
