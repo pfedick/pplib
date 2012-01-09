@@ -70,6 +70,10 @@ namespace ppl7 {
 struct tm * localtime_r(const time_t *clock, struct tm *result);
 #endif
 
+#ifndef HAVE_GMTIME_R
+struct tm *gmtime_r(const time_t *timep, struct tm *result);
+#endif
+
 
 /*!\class DateTime
  * \ingroup PPLGroupDataTypes

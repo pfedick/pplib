@@ -105,9 +105,11 @@ ppl_time_t time(ppl_time_t *timer)
 */
 
 
-#ifndef HAVE_LOCALTIME_R
-
+#if ! defined (HAVE_LOCALTIME_R) || ! defined (HAVE_GMTIME_R)
 static Mutex LocalTimeMutex;
+#endif
+
+#ifndef HAVE_LOCALTIME_R
 struct tm * localtime_r(const time_t *clock, struct tm *result)
 {
 	LocalTimeMutex.lock();
@@ -127,9 +129,32 @@ struct tm * localtime_r(const time_t *clock, struct tm *result)
 	LocalTimeMutex.unlock();
 	return NULL;
 }
+#endif
+
+#ifndef HAVE_GMTIME_R
+struct tm *gmtime_r(const time_t *timep, struct tm *result)
+{
+	LocalTimeMutex.lock();
+#ifdef MINGW32
+	struct tm *ttt=gmtime(timep);
+#elif defined _WIN32
+	__time64_t a=*timep;
+	struct tm *ttt=_gmtime64(&a);
+#else
+	struct tm *ttt=localtime(timep);
+#endif
+	if (ttt) {
+		memcpy(result,ttt,sizeof(struct tm));
+		LocalTimeMutex.unlock();
+		return (result);
+	}
+	LocalTimeMutex.unlock();
+	return (NULL);
+}
 
 
 #endif
+
 
 int datum (char *str1)
 {
