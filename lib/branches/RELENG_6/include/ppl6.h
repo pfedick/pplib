@@ -2309,6 +2309,9 @@ class CTree
 	CString EscapeHTMLTags(const CString &html);
 	CString UnescapeHTMLTags(const CString &html);
 
+	CString UrlDecode(const ppl6::CString &text);
+	CString UrlEncode(const ppl6::CString &text);
+
 
 
 // compatibility functions

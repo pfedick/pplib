@@ -527,5 +527,134 @@ CString ToHex(const CMemoryReference &bin)
 }
 
 
+/*!\brief String zur Verwendung in einer URL umwandeln
+ *
+ * \desc
+ * Mit dieser statischen Funktion kann ein beliebiger String so umkodiert werden, dass er als
+ * Parameter in einer URL verwendet werden kann. Dabei werden alle Spaces durch "+" ersetzt
+ * und alle nicht alphanummerischen Zeichen mit Ausnahme von "-_.!~*'()" in ihre Hex-Werte
+ * mit vorangestelltem Prozentzeichen.
+ *
+ * @param text Der zu kodierende Text
+ * @return Der URL-kodierte Text
+ *
+ * \example
+ * \code
+ * ppl6::CString text="Hallo Welt! 1+1=2";
+ * printf("%s\n",(const char*)ppl6::urlEncode(text));
+ * \endcode
+ * ergibt:
+ * \verbatim
+Hallo+Welt!+1%2B1%3D2
+\endverbatim
+ * \see
+ * Mit urlDecode kann der Kodierte String wieder dekodiert werden
+ */
+CString UrlEncode(const CString &text)
+{
+	const char *source=text.GetPtr();
+	ppl6::CString ret;
+	static const char *digits = "0123456789ABCDEF";
+	unsigned char ch;
+	while (*source)
+	{
+		ch = (unsigned char)*source;
+		if (*source == ' ') {
+			ret+="+";
+		}
+		else if (
+				(ch>='a' && ch<='z')
+				|| (ch>='A' && ch<='Z')
+				|| (ch>='0' && ch<='9')
+				|| (strchr("-_.!~*'()", ch))
+				) {
+			ret+=ch;
+		}
+		else {
+			ret+="%";
+			ret+= digits[(ch >> 4) & 0x0F];
+			ret+= digits[       ch & 0x0F];
+		}
+		source++;
+	}
+	return ret;
+}
+
+static int HexPairValue(const char * code) {
+  int value = 0;
+  const char * pch = code;
+  for (;;) {
+    int digit = *pch++;
+    if (digit >= '0' && digit <= '9') {
+      value += digit - '0';
+    }
+    else if (digit >= 'A' && digit <= 'F') {
+      value += digit - 'A' + 10;
+    }
+    else if (digit >= 'a' && digit <= 'f') {
+      value += digit - 'a' + 10;
+    }
+    else {
+      return -1;
+    }
+    if (pch == code + 2)
+      return value;
+    value <<= 4;
+  }
+}
+
+/*!\brief URL-kodierten String dekodieren
+ *
+ * \desc
+ * Mit dieser statischen Funktion kann ein URL-kodierter String dekodiert werden.
+ *
+ * @param text Der zu URL-kodierte String
+ * @return Der dekodierte String
+ *
+ * \example
+ * \code
+ * ppl6::CString text="Hallo+Welt!+1%2B1%3D2";
+ * printf("%s\n",(const char*)ppl6::urlDecode(text));
+ * \endcode
+ * ergibt:
+ * \verbatim
+Hallo Welt! 1+1=2";
+\endverbatim
+ * \see
+ * Mit urlEncode kann ein unkodierter String kodiert werden.
+ */
+CString UrlDecode(const CString &text)
+{
+	const char *source=text.GetPtr();
+	ppl6::CString ret;
+
+	while (*source) {
+		switch (*source) {
+			case '+':
+				ret+=" ";
+				break;
+			case '%':
+				if (source[1] && source[2]) {
+					int value = HexPairValue(source + 1);
+					if (value >= 0) {
+						ret+=value;
+						source += 2;
+					}
+					else {
+						ret+="?";
+					}
+				}
+				else {
+					ret+="?";
+				}
+				break;
+			default:
+				ret+=*source;
+		}
+		source++;
+	}
+	return ret;
+}
+
 
 }	// EOF namespace ppl6
