@@ -492,6 +492,16 @@ CString EscapeHTMLTags(const ppl6::CString &html)
 	return s;
 }
 
+CString UnescapeHTMLTags(const ppl6::CString &html)
+{
+	ppl6::CString s;
+	s=html;
+	s.Replace("&amp","&");
+	s.Replace("&lt;","<");
+	s.Replace("&gt;",">");
+	return s;
+}
+
 CBinary Hex2Binary(const CString &hex)
 {
 	CBinary b;

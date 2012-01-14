@@ -2307,6 +2307,7 @@ class CTree
 	CString ToBase64(const CString &str);
 	CString ToBase64(const CBinary &bin);
 	CString EscapeHTMLTags(const CString &html);
+	CString UnescapeHTMLTags(const CString &html);
 
 
 
