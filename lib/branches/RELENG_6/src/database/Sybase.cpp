@@ -608,7 +608,9 @@ int SybaseResult::FetchResultSet()
 				if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
 					num_affected=(pplint64)row_count;					}
 				bRowsCounted=true;
+				/* no break */
 			}
+			/* no break */
 			/* Fall through */
 			case CS_COMPUTEFMT_RESULT:
 			case CS_ROWFMT_RESULT:
@@ -618,6 +620,7 @@ int SybaseResult::FetchResultSet()
 				break;
 			default:
 				printf ("Ups, restype=%i\n",restype);
+				break;
 		}
 	}
 	ppl6::SetError(300,"SybaseResult::FetchArray");
@@ -679,6 +682,7 @@ int SybaseResult::FetchArray(CAssocArray &array, pplint64 row)
 					if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
 						num_affected=(pplint64)row_count;					}
 				}
+				/* no break */
 				/* Fall through */
 			case CS_COMPUTEFMT_RESULT:
 			case CS_ROWFMT_RESULT:
@@ -689,6 +693,7 @@ int SybaseResult::FetchArray(CAssocArray &array, pplint64 row)
 				break;
 			default:
 				printf ("Ups, restype=%i\n",restype);
+				break;
 		}
 	}
 	ppl6::SetError(300,"SybaseResult::FetchArray");
@@ -759,6 +764,7 @@ int SybaseResult::FetchFields(CArray &array, pplint64 row)
 					if (ct_res_info(cmd, CS_ROW_COUNT, &row_count, CS_UNUSED, NULL)==CS_SUCCEED) {
 						num_affected=(pplint64)row_count;					}
 				}
+				/* no break */
 				/* Fall through */
 			case CS_COMPUTEFMT_RESULT:
 			case CS_ROWFMT_RESULT:
@@ -769,6 +775,7 @@ int SybaseResult::FetchFields(CArray &array, pplint64 row)
 				break;
 			default:
 				printf ("Ups, restype=%i\n",restype);
+				break;
 		}
 	}
 	ppl6::SetError(300,"SybaseResult::FetchArray");
@@ -1153,6 +1160,7 @@ int Sybase::Connect(const CAssocArray &params)
 				break;
 			default:
 				e=77;
+				break;
 		};
 		//printf ("conn 3\n");
 		SetError(e,"Host: %s, Port: %i, Interface: %s, Sybase-Error: %s",host,port,interface,(const char*)syberror);
@@ -1353,6 +1361,7 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 					rows_affected=ret->num_affected;
 				}
 			}
+			/* no break */
 			default:
                 status = PPLSYB_FAILURE;
                 break;
@@ -1364,6 +1373,7 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 						rows_affected=ret->num_affected;
 					}
 				}
+				/* no break */
 				/* Fall through */
 			case CS_COMPUTEFMT_RESULT:
 			case CS_ROWFMT_RESULT:
@@ -1433,7 +1443,7 @@ int Sybase::Ping()
 	CString query="select 1 as result";
 	CLog *Log=GetLogfile();
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Ping",__FILE__,__LINE__,"Prüfe Verbindung");
-	double t_start;
+	double t_start=0.0f;
 	mutex.Lock();
 	SYBCONNECT *sc=(SYBCONNECT*)conn;
 	if (!sc->conn) {

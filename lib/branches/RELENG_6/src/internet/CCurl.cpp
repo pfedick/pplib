@@ -234,6 +234,7 @@ int CCurl::SetOptOk(int ret)
 				break;
 			default:
 				myerr=354;
+				break;
 		}
 		SetError(myerr,"%s",e);
 		return 0;
