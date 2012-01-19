@@ -54,6 +54,12 @@ namespace ppl6 {
 
 static ppluint32 InitialBuffersize=64;
 
+
+void CString::setInitialBuffersize(ppluint32 size)
+{
+	InitialBuffersize=size;
+}
+
 //!\brief Interner Heap-Speicher für CString
 static CHeap *Heap=NULL;
 
@@ -850,6 +856,11 @@ int CString::Reserve(ppluint32 size)
 		buffer[0]=0;
 	}
 	return 1;
+}
+
+int CString::Capacity() const
+{
+	return buffersize;
 }
 
 void CString::ReCalcLen()

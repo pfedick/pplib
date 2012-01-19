@@ -11,6 +11,8 @@ Version 6.4.11
     Beides wird als "0" interpretiert.
   - CDateTime hat neue Funktionen zum Abfragen der Kalenderwoche:
     week() und weekISO8601()
+  - Neue Funktion CString::setInitialBuffersize
+  - Fehlende Funktion CString::Capacity implementiert
 
 Version 6.4.10  vom 10.11.2011	(CVS-Tag: REL_6_4_10)
   - CCurl-Klasse: Signals werden nun standardmäßig deaktiviert,

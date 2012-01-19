@@ -527,15 +527,17 @@ class CString : public CVar
 		// Reserviert Speicher fuer den String. Ein eventuell schon vorhandener
 		// String geht dabei nicht verloren
 		int Reserve(ppluint32 size);
+		// Liefert die maximale Groesse des Strings zurueck, ohne dass neuer
+		// Speicher reallokiert werden muss
+		int Capacity() const;
+		static void setInitialBuffersize(ppluint32 size);
+
 
 		int IsNumeric() const;
 		int IsInteger() const;
 		int IsEmpty() const;
 		int NotEmpty() const;
 
-		// Liefert die maximale Groesse des Strings zurueck, ohne dass neuer
-		// Speicher reallokiert werden muss
-		int Capacity() const;
 
 		void Print(bool attach_newline=false) const;
 		void HexDump() const;
