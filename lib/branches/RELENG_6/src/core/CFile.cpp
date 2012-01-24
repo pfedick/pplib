@@ -246,7 +246,7 @@ int CFile::Open (const CString &filename, const char * mode)
  * @return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
  */
 {
-	return Open(filename.GetPtr(),mode);
+	return Open("%s",filename.GetPtr(),mode);
 }
 
 int CFile::Open (const char * filename, const char * mode, ...)
