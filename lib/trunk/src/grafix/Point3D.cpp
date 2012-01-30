@@ -124,9 +124,9 @@ Point3D::Point3D()
  */
 Point3D::Point3D(int x, int y, int z)
 {
-	x=x;
-	y=y;
-	z=z;
+	this->x=x;
+	this->y=y;
+	this->z=z;
 }
 
 /*!\brief Konstruktor mit Kopierfunktion
@@ -166,7 +166,7 @@ bool Point3D::isNull() const
  */
 void Point3D::setX(int x)
 {
-	x=x;
+	this->x=x;
 }
 
 /*!\brief Y-Koordinate setzen
@@ -177,7 +177,7 @@ void Point3D::setX(int x)
  */
 void Point3D::setY(int y)
 {
-	y=y;
+	this->y=y;
 }
 
 /*!\brief Z-Koordinate setzen
@@ -188,7 +188,7 @@ void Point3D::setY(int y)
  */
 void Point3D::setZ(int z)
 {
-	z=z;
+	this->z=z;
 }
 
 
@@ -202,9 +202,9 @@ void Point3D::setZ(int z)
  */
 void Point3D::setPoint(int x, int y, int z)
 {
-	x=x;
-	y=y;
-	z=z;
+	this->x=x;
+	this->y=y;
+	this->z=z;
 }
 
 /*!\brief Anderen Point3D kopieren

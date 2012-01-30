@@ -103,7 +103,6 @@ static void   MD5Update (MD5_CTX *, const unsigned char *, size_t);
 static void   MD5Pad (MD5_CTX *);
 static void   MD5Final (unsigned char [16], MD5_CTX *);
 static char * MD5End(MD5_CTX *, char *);
-static char * MD5Data(const unsigned char *data, size_t size, char *buffer33);
 
 
 
@@ -420,14 +419,18 @@ static char * MD5End(MD5_CTX *ctx, char *buf)
 }
 
 
-static char * MD5Data (const unsigned char *data, size_t len, char *buf)
+String Md5 (const void *buffer, size_t size)
 /*!\ingroup PPLGroupMath
  */
 {
-    MD5_CTX ctx;
-    MD5Init(&ctx);
-    MD5Update(&ctx,data,len);
-    return MD5End(&ctx, buf);
+	char tmp[33];
+	if (buffer==NULL || size==0 ) throw EmptyDataException();
+	MD5_CTX ctx;
+	MD5Init(&ctx);
+	MD5Update(&ctx,(const unsigned char *)buffer,size);
+	MD5End(&ctx, tmp);
+	tmp[32]=0;
+	return String(tmp);
 }
 
 

@@ -1101,6 +1101,7 @@ bool PFPFile::ident(FileObject &ff)
 	} catch (...) {
 		return false;
 	}
+	return false;
 }
 
 
@@ -1156,7 +1157,7 @@ void PFPFile::load(FileObject &ff)
 	const char *p;
 	try {
 		p=ff.map(0,24);
-	} catch (File::OverflowException) {
+	} catch (File::OverflowException &) {
 		throw InvalidFormatException();
 	}
 	if (strncmp(p,"PFP-File",8)!=0) throw InvalidFormatException();

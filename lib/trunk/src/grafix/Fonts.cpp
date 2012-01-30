@@ -382,7 +382,7 @@ void Grafix::loadFont(FileObject &ff, const String &fontname)
 				return;
 			}
 		}
-	} catch (EndOfListException) {
+	} catch (EndOfListException &) {
 		myMutex.unlock();
 		fontname.print();
 		throw NoSuitableFontEngineException();
@@ -418,7 +418,7 @@ FontFile *Grafix::findFont(const String &fontname)
 		FontFile *file=FontList.find(fontname);
 		myMutex.unlock();
 		if (file) return file;
-	} catch (ItemNotFoundException) {
+	} catch (ItemNotFoundException &) {
 		myMutex.unlock();
 	} catch (...) {
 		myMutex.unlock();

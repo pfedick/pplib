@@ -197,6 +197,7 @@ int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 	} catch (...) {
 		return 0;
 	}
+	return 0;
 }
 
 void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
@@ -383,10 +384,12 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 		case PNG_COLOR_TYPE_GRAY_ALPHA:
 			colortype=PNG_COLOR_TYPE_GRAY_ALPHA;
 			pitch=width*2;
+			break;
 		default:
 			colortype=PNG_COLOR_TYPE_RGB;
 			png_color_type=PNG_COLOR_TYPE_RGB;
 			pitch=width*3;
+			break;
 	};
 
 

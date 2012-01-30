@@ -331,7 +331,7 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
 		ValueNode &node=Tree.find(firstkey);
 		p=&node;
 
-	} catch (ItemNotFoundException) {
+	} catch (ItemNotFoundException &) {
 		throw KeyNotFoundException();
 	}
 	// Ist noch was im Pfad rest?
@@ -390,7 +390,7 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 	try {
 		ValueNode &node=Tree.find(firstkey);
 		p=&node;
-	} catch (ItemNotFoundException) {
+	} catch (ItemNotFoundException &) {
 		//printf ("Item not found\n");
 		p=NULL;
 	}
@@ -471,7 +471,7 @@ size_t AssocArray::count(const String &key, bool recursive) const
 	ValueNode *p;
 	try {
 		p=findInternal(key);
-	} catch (KeyNotFoundException) {
+	} catch (KeyNotFoundException &) {
 		return 0;
 	}
 	if (p->value->isAssocArray()) return ((AssocArray*)p->value)->count(recursive);
@@ -861,7 +861,7 @@ void AssocArray::append(const String &key, const String &value, const String &co
 	ValueNode *node=NULL;
 	try {
 		node=findInternal(key);
-	} catch (KeyNotFoundException) {
+	} catch (KeyNotFoundException &) {
 		set(key,value);
 		return;
 	}
@@ -907,7 +907,7 @@ void AssocArray::appendf(const String &key, const String &concat, const char *fm
 	ValueNode *node=NULL;
 	try {
 		node=findInternal(key);
-	} catch (KeyNotFoundException) {
+	} catch (KeyNotFoundException &) {
 		set(key,var);
 	}
 	if (node->value->isString()==false) {
@@ -981,7 +981,7 @@ bool AssocArray::exists(const String &key) const
 {
 	try {
 		findInternal(key);
-	} catch (KeyNotFoundException) {
+	} catch (KeyNotFoundException &) {
 		return false;
 	}
 	return true;
@@ -1028,7 +1028,7 @@ void AssocArray::erase(const String &key)
 		ValueNode &node=Tree.find(firstkey);
 		p=&node;
 
-	} catch (ItemNotFoundException) {
+	} catch (ItemNotFoundException &) {
 		throw KeyNotFoundException();
 	}
 	// Ist noch was im Pfad rest?
@@ -1092,9 +1092,10 @@ Variant &AssocArray::getNext(Iterator &it, Variant::Type type) const
 {
 	while (1) {
 		if (!Tree.getNext(it)) throw OutOfBoundsEception();
-		if (type==Variant::UNKNOWN) return *it.value().value;
-		if (type==it.value().value->dataType()) return *it.value().value;
+		if (type==Variant::UNKNOWN) break;
+		if (type==it.value().value->dataType()) break;
 	}
+	return *it.value().value;
 }
 
 /*!\brief Letztes Element zurückgeben
@@ -1131,9 +1132,10 @@ Variant &AssocArray::getPrevious(Iterator &it, Variant::Type type) const
 {
 	while (1) {
 		if (!Tree.getPrevious(it)) throw OutOfBoundsEception();
-		if (type==Variant::UNKNOWN) return *it.value().value;
-		if (type==it.value().value->dataType()) return *it.value().value;
+		if (type==Variant::UNKNOWN) break;
+		if (type==it.value().value->dataType()) break;
 	}
+	return *it.value().value;
 }
 
 /*!\brief Ersten %String im %Array finden und Key und Value in Strings speichern
@@ -1174,6 +1176,7 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
 			return true;
 		}
 	}
+	return false;
 }
 
 /*!\brief Letzten %String im %Array finden und Key und Value in Strings speichern
@@ -1214,6 +1217,7 @@ bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
 			return true;
 		}
 	}
+	return false;
 }
 
 /*! \brief Wandelt ein Key-Value Template in ein Assoziatives Array um
@@ -1262,7 +1266,7 @@ size_t AssocArray::fromTemplate(const String &templ, const String &linedelimiter
 	while (1) {
 		try {
 			Line=a.getNext(it);
-		} catch (OutOfBoundsEception) {
+		} catch (OutOfBoundsEception &) {
 			return rows;
 		}
 		Row=Trim(Line);
@@ -1339,7 +1343,7 @@ size_t AssocArray::fromConfig(const String &content, const String &linedelimiter
 	while (1) {
 		try {
 			Line=a.getNext(it);
-		} catch (OutOfBoundsEception) {
+		} catch (OutOfBoundsEception &) {
 			return rows;
 		}
 		Row=Trim(Line);

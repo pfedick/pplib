@@ -12,9 +12,8 @@ using namespace ppl7;
 using namespace ppl7::grafix;
 
 
-static WindowManager_SDL *wm=NULL;
-
 #ifdef HAVE_SDL12
+static WindowManager_SDL *wm=NULL;
 
 typedef struct {
 	SDL_Surface *surface;

@@ -2,14 +2,14 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 89 $
- * $Date: 2011-05-07 12:03:12 +0200 (Sa, 07. Mai 2011) $
- * $Id: Mutex.cpp 89 2011-05-07 10:03:12Z pafe $
- * $URL: https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk/src/core/Mutex.cpp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2012, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,78 +36,24 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#ifndef PPL7TYPES_H_
+#define PPL7TYPES_H_
 
-#include "prolog.h"
-#ifdef HAVE_STDIO_H
-	#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-	#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-	#include <string.h>
-#endif
-#ifdef HAVE_STRINGS_H
-	#include <strings.h>
+#ifndef _PPL7_INCLUDE
+    #ifdef PPL7LIB
+        #include "ppl7.h"
+    #else
+        #include <ppl7.h>
+    #endif
 #endif
 
-
-#include "ppl7.h"
-
+#include <string>
+#include <iostream>
 
 namespace ppl7 {
 
 
 
-String PerlHelper::escapeString(const String &s)
-{
-	String ret=s;
-	ret.replace("\"","\\\"");
-	ret.replace("@","\\@");
-	return ret;
-}
+} // EOF namespace ppl7
 
-String PerlHelper::escapeRegExp(const String &s)
-{
-	String ret=s;
-	ret.pregEscape();
-	return ret;
-}
-
-
-static String toHashRecurse(const AssocArray &a, const String &name)
-{
-	String r;
-	String key;
-	AssocArray::Iterator it;
-	a.reset(it);
-	Variant res;
-	while (1) {
-		try {
-			res=a.getNext(it);
-			key=it.key();
-		} catch (OutOfBoundsEception &) {
-			return r;
-		}
-		if (res.isAssocArray()) {
-			String newName;
-			newName=name+"{"+key+"}";
-			r+=toHashRecurse(res.toAssocArray(),newName);
-		} else {
-			r+=name+"{"+key+"}=\""+PerlHelper::escapeString(a.toString())+"\";\n";
-		}
-	}
-	return r;
-}
-
-String PerlHelper::toHash(const AssocArray &a, const String &name)
-{
-	String ret;
-	ret="my %"+name+";\n";
-	String n;
-	n="$"+name;
-	ret+=toHashRecurse(a,n);
-	return ret;
-}
-
-}	// EOF namespace ppl7
+#endif /* PPL7TYPES_H_ */

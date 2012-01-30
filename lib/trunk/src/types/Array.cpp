@@ -1230,7 +1230,7 @@ void Array::sortUnique()
 	for (size_t i=0;i<numElements;i++) {
 		try {
 			s.add(get(i),i);
-		} catch (ppl7::DuplicateItemException) {
+		} catch (ppl7::DuplicateItemException &) {
 
 		}
 	}
@@ -1288,7 +1288,7 @@ Array Sort(const Array &array, bool unique)
 	for (size_t i=0;i<num;i++) {
 		try {
 			s.add(array.get(i),i);
-		} catch (ppl7::DuplicateItemException) {
+		} catch (ppl7::DuplicateItemException &) {
 
 		}
 	}
@@ -1320,7 +1320,7 @@ Array SortReverse(const Array &array, bool unique)
 	for (size_t i=0;i<num;i++) {
 		try {
 			s.add(array.get(i),i);
-		} catch (ppl7::DuplicateItemException) {
+		} catch (ppl7::DuplicateItemException &) {
 
 		}
 	}

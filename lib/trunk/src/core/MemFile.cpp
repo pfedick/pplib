@@ -252,6 +252,7 @@ ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 				pos=offset;
 				if (pos<0) {pos=0; return pos;}
 				if (pos>mysize) return pos;
+				break;
 		}
 		pos=oldpos;
 		throw FileSeekException();

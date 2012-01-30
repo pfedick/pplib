@@ -229,6 +229,7 @@ const Drawable *Sprite::findTexture(int id) const
 	} catch (...) {
 		throw InvalidSpriteException();
 	}
+	return NULL;
 }
 
 void Sprite::loadIndex(PFPChunk *chunk)

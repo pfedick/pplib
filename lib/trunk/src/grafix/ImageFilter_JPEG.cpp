@@ -325,8 +325,9 @@ int ImageFilter_JPEG::ident(FileObject &file, IMAGE &img)
 		jpeg_destroy_decompress(&cinfo);
 		return ret;
 	} catch (...) {
-		return false;
+		return 0;
 	}
+	return 0;
 }
 
 

@@ -460,15 +460,16 @@ int ImageFilter_GIF::ident(FileObject &file, IMAGE &img)
 	} catch (...) {
 		return 0;
 	}
+	return 0;
 }
 
 void ImageFilter_GIF::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
 	int imageNumber;
 	int BitPixel;
-	int ColorResolution;
-	int Background;
-	int AspectRatio;
+	//int ColorResolution;
+	//int Background;
+	//int AspectRatio;
 	int Transparent = (-1);
 	unsigned char   buf[16];
 	unsigned char   c;
@@ -494,9 +495,9 @@ void ImageFilter_GIF::load(FileObject &file, Drawable &surface, IMAGE &img)
 	}
 	if (! ReadOK(fd,buf,7)) throw UnknownImageFormatException();
 	BitPixel        = 2<<(buf[4]&0x07);
-	ColorResolution = (int) (((buf[4]&0x70)>>3)+1);
-	Background      = buf[5];
-	AspectRatio     = buf[6];
+	//ColorResolution = (int) (((buf[4]&0x70)>>3)+1);
+	//Background      = buf[5];
+	//AspectRatio     = buf[6];
 
 	if (BitSet(buf[4], LOCALCOLORMAP)) {    /* Global Colormap */
 		if (ReadColorMap(fd, BitPixel, ColorMap)) {

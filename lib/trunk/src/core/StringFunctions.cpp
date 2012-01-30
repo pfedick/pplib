@@ -277,7 +277,7 @@ ssize_t Instr (const char * haystack, const char * needle, size_t start)
 	return (-1);
 }
 
-
+#ifndef HAVE_STRCASESTR
 static const char *mystrcasestr(const char *haystack, const char *needle)
 {
     char c, sc;
@@ -296,6 +296,7 @@ static const char *mystrcasestr(const char *haystack, const char *needle)
     }
     return ((char *)haystack);
 }
+#endif
 
 
 /*!\brief Sucht nach Zeichen in einem String und ignoriert Gross-/Kleinschreibung

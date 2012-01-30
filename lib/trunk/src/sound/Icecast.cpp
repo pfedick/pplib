@@ -56,9 +56,10 @@
 
 namespace ppl7 {
 
-
+#ifdef HAVE_LIBSHOUT
 static Mutex		MutexInstance;
 static ppluint32	instance=0;
+#endif
 
 /*!\class Icecast
  * \ingroup PPLGroupSound

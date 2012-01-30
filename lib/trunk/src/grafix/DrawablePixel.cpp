@@ -197,6 +197,7 @@ void Grafix::initPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::X8R8G8B8:
 			fn->BlendPixel=BlendPixel_32;
 			fn->AlphaPixel=AlphaPixel_32;
+			/* no break */
 		case RGBFormat::GREYALPHA32:
 			fn->PutPixel=PutPixel_32;
 			fn->GetPixel=GetPixel_32;

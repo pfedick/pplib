@@ -237,6 +237,7 @@ void HexDump(const void *address, size_t bytes);
 String ToBase64(const ByteArrayPtr &bin);
 ByteArray FromBase64(const String &str);
 ppluint32 Crc32(const void* buffer, size_t size);
+String Md5(const void* buffer, size_t size);
 
 String StripSlashes(const String &str);
 String Trim(const String &str);

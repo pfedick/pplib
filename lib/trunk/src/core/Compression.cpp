@@ -903,7 +903,7 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 			try {
 				uncompress(uncbuffer,&dstlen,ptr,size);
 				return ByteArrayPtr(uncbuffer,dstlen);
-			} catch (BufferTooSmallException) {
+			} catch (BufferTooSmallException &) {
 				// Der Buffer war nicht gross genug, wir vergrößern ihn
 				bsize+=size;
 			} catch (...) {

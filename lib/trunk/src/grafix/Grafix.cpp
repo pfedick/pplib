@@ -127,7 +127,7 @@ Grafix::Grafix()
 	for (int i=0;i<RGBFormat::MaxIdentifiers;i++) {
 		try {
 			initFunctions(RGBFormat((RGBFormat::Identifier)i),&functions[i]);
-		} catch (UnsupportedColorFormatException) {
+		} catch (UnsupportedColorFormatException &) {
 
 		}
 	}
@@ -255,27 +255,27 @@ void Grafix::initFunctions(const RGBFormat &format,GRAFIX_FUNCTIONS *fn)
 	memset(fn,0,sizeof(GRAFIX_FUNCTIONS));
 	try {
 		initColors(format,fn);
-	} catch (UnsupportedColorFormatException) {
+	} catch (UnsupportedColorFormatException &) {
 
 	}
 	try {
 		initPixel(format,fn);
-	} catch (UnsupportedColorFormatException) {
+	} catch (UnsupportedColorFormatException &) {
 
 	}
 	try {
 		initShapes(format,fn);
-	} catch (UnsupportedColorFormatException) {
+	} catch (UnsupportedColorFormatException &) {
 
 	}
 	try {
 		initLines(format,fn);
-	} catch (UnsupportedColorFormatException) {
+	} catch (UnsupportedColorFormatException &) {
 
 	}
 	try {
 		initBlits(format,fn);
-	} catch (UnsupportedColorFormatException) {
+	} catch (UnsupportedColorFormatException &) {
 
 	}
 }

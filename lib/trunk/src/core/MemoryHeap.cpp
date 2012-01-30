@@ -374,6 +374,7 @@ void *MemoryHeap::malloc()
 		increase(increaseSize);
 		increaseSize+=(increaseSize*myGrowPercent/100);
 	}
+	return NULL;
 }
 
 /*!\brief Speicher freigeben

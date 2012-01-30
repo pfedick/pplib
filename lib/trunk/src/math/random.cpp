@@ -441,6 +441,7 @@ char * rand_setstate(char *arg_state)
 	default:
 		(void)fprintf(stderr,
 		    "random: state info corrupted; not changed.\n");
+		break;
 	}
 	state = (long *) (new_state + 1);
 	if (rand_type != TYPE_0) {

@@ -142,6 +142,7 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 
 		default:
 			printf("WindowManager::dispatchEvent(%tu, %ls)  ==> Unhandled Event\n",(ptrdiff_t)window,event.name().toWchart());
+			return;
 	}
 
 }

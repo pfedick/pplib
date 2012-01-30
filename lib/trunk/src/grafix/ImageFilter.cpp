@@ -132,7 +132,7 @@ ImageFilter *Grafix::findImageFilter(const String &name)
 				return f;
 			}
 		}
-	} catch (EndOfListException) {
+	} catch (EndOfListException &) {
 		myMutex.unlock();
 		throw UnknownImageFormatException();
 	} catch (...) {
@@ -171,7 +171,7 @@ ImageFilter *Grafix::findImageFilter(FileObject &ff, IMAGE &img)
 				return f;
 			}
 		}
-	} catch (EndOfListException) {
+	} catch (EndOfListException &) {
 		myMutex.unlock();
 		throw UnknownImageFormatException();
 	} catch (...) {
