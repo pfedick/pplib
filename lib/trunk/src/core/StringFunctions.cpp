@@ -501,6 +501,62 @@ bool PregMatch(const String &expression, const String &subject, Array &matches, 
 }
 
 
+/*!\brief String anhand eines Trennzeichens zerlegen
+ *
+ * \desc
+ * Die StrTok-Funktion zerlegt den String \p string in mehrere Teile, wobei
+ * \div als Trenner verwendet und das Ergebnis als Array zurückgegeben wird
+ * Der Trenner \p div kann aus einem oder mehreren Zeichen bestehen und
+ * wird nicht im Ergebnis übernommen. Eine Sequenz von mehreren Trennern
+ * hintereinander wird als ein Trenner interpretiert. Trenner am Anfang und Ende
+ * des Strings werden ignoriert. Mit anderen Worten: im Ergebnis gibt es keine
+ * leeren Strings.
+ * \note
+ * Das Verhalten der Funktion entspricht dem Verhalten der C-Funktion strtok
+ *
+ * @param[in] string String, der zerlegt werden soll
+ * @param[in] div String, der als Trenner verwendet wird
+ * @return Array mit den Bestandteilen des zerlegten Strings
+ */
+Array StrTok(const String &string, const String &div)
+{
+	Array ret;
+	StrTok(ret, string, div);
+	return ret;
+}
+
+/*!\brief String anhand eines Trennzeichens zerlegen
+ *
+ * \desc
+ * Die StrTok-Funktion zerlegt den String \p string in mehrere Teile, wobei
+ * \div als Trenner verwendet und das Ergebnis im Array \p result gespeichert
+ * wird. Der Trenner \p div kann aus einem oder mehreren Zeichen bestehen und
+ * wird nicht im Ergebnis übernommen. Eine Sequenz von mehreren Trennern
+ * hintereinander wird als ein Trenner interpretiert. Trenner am Anfang und Ende
+ * des Strings werden ignoriert. Mit anderen Worten: im Ergebnis gibt es keine
+ * leeren Strings.
+ * \note
+ * Das Verhalten der Funktion entspricht dem Verhalten der C-Funktion strtok
+ *
+ * @param[out] result Array, in dem die Ergebnisstrings gespeichert werden
+ * @param[in] string String, der zerlegt werden soll
+ * @param[in] div String, der als Trenner verwendet wird
+ */
+void StrTok(Array &result, const String &string, const String &div)
+{
+	if (string.isEmpty()) throw EmptyDataException();
+	if (div.isEmpty()) throw EmptyDataException();
+	result.clear();
+	String Line;
+	Array a;
+	a.explode(string,div);
+	for (size_t i=0;i<a.size();i++) {
+		Line=a[i];
+		if (Line.notEmpty()) result.add(a);
+	}
+}
+
+
 } // EOF namespace ppl7
 
 

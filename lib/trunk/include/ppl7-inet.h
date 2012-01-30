@@ -36,8 +36,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef PPL7TYPES_H_
-#define PPL7TYPES_H_
+#ifndef PPL7INET_H_
+#define PPL7INET_H_
 
 #ifndef _PPL7_INCLUDE
     #ifdef PPL7LIB
@@ -52,8 +52,81 @@
 
 namespace ppl7 {
 
+// TODO
+//int GetHostByName(const char *name, CAssocArray *Result);
+//int GetHostByAddr(const char *addr, CAssocArray *Result);
+String GetHostname();
+
+class WikiParser
+{
+	private:
+		int ispre;
+		int ullevel;
+		int ollevel;
+		int indexcount;
+		int intable;
+		int inrow;
+		int indentlevel;
+		bool doxyparamsStarted;
+		bool indexenabled;
+
+		AssocArray index;
+		String incol;
+		String ret;
+		String BaseURI;
+		Array nowiki;
+		int nowikicount;
+		bool nobr;
+
+		int precount;
+		AssocArray pre;
+		int sourcecount;
+		Array source;
+
+		Array diagrams;
+
+
+		void init();
+		int renderInternal(const String &Source, String &Html);
+		void extractNoWiki(String &Text);
+		void extractSourcecode(String &Text);
+		void extractDiagrams(String &Text);
+		void parseHeadlines(String &Line);
+		int parseUL(String &Line);
+		int parseOL(String &Line);
+		int parseIndent(String &Line);
+
+		void parseDoxygen(String &Line);
+		void doxygenChapter(String &Line, const String &Name, const Array &Matches);
+		void parseAutoPRE(String &Line);
+		void parseTable(String &Line);
+		void parseLinks(String &Line);
+		void buildIndex(String &Html);
+		void finalize();
+		void finalizeNoWiki();
+		void finalizePRE();
+		void finalizeSource();
+		void finalizeDiagrams();
+
+	protected:
+		virtual void customParseLinks(String &Line);
+
+	public:
+
+		WikiParser();
+		virtual ~WikiParser();
+		int render(const String &Source, String &Html);
+		int renderBody(const String &Source, String &Html);
+		String render(const String &Source);
+		String renderBody(const String &Source);
+		String header();
+		void setIndexEnabled(bool enabled);
+		void setBaseURI(const String &Uri);
+		static String xmlDiagram2HTML(const String &xml);
+		virtual int getHeader(String &Html);
+};
 
 
 } // EOF namespace ppl7
 
-#endif /* PPL7TYPES_H_ */
+#endif /* PPL7INET_H_ */
