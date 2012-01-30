@@ -435,7 +435,7 @@ void CWikiParser::parseHeadlines(ppl6::CString &Line)
 	// Index aufbauen
 	if (Line.PregMatch("/\\<h([0-9]+)\\>(.*?)\\<\\/h[0-9]+\\>/i")) {
 		indexcount++;
-		Line.Setf("<a name=\"index_%i\"></a>%s",indexcount,(const char*)Line);
+		Line=ToString("<a name=\"index_%i\"></a>%s",indexcount,(const char*)Line);
 		Tmp.Setf("%i/ebene",indexcount);
 		index.Setf(Tmp,Line.GetMatch(1));
 		Tmp.Setf("%i/link",indexcount);
