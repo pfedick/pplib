@@ -108,7 +108,7 @@ void IterateArray(const ppl7::AssocArray &a)
 				cout << "Key: " << it.key() << ", Value: " << var.toString() << endl;
 			}
 		}
-	} catch (OutOfBoundsEception) {
+	} catch (OutOfBoundsEception &) {
 		cout << "Ende erreicht" << endl;
 	}
 }
@@ -1149,6 +1149,37 @@ Variant &AssocArray::getPrevious(Iterator &it, Variant::Type type) const
 	}
 	return *it.value().value;
 }
+
+AssocArray &AssocArray::getFirstArray(Iterator &it) const
+{
+	Tree.reset(it);
+	return getNextArray(it);
+}
+
+AssocArray &AssocArray::getNextArray(Iterator &it) const
+{
+	while (1) {
+		if (!Tree.getNext(it)) throw OutOfBoundsEception();
+		if (Variant::ASSOCARRAY==it.value().value->dataType()) break;
+	}
+	return it.value().value->toAssocArray();
+}
+
+AssocArray &AssocArray::getLastArray(Iterator &it) const
+{
+	Tree.reset(it);
+	return getPreviousArray(it);
+}
+
+AssocArray &AssocArray::getPreviousArray(Iterator &it) const
+{
+	while (1) {
+		if (!Tree.getPrevious(it)) throw OutOfBoundsEception();
+		if (Variant::ASSOCARRAY==it.value().value->dataType()) break;
+	}
+	return it.value().value->toAssocArray();
+}
+
 
 /*!\brief Ersten %String im %Array finden und Key und Value in Strings speichern
  *

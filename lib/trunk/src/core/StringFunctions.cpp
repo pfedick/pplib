@@ -557,6 +557,170 @@ void StrTok(Array &result, const String &string, const String &div)
 }
 
 
+String EscapeHTMLTags(const String &html)
+{
+	String s;
+	s=html;
+	s.replace(L"&",L"&amp");
+	s.replace(L"<",L"&lt;");
+	s.replace(L">",L"&gt;");
+	return s;
+}
+
+String UnescapeHTMLTags(const String &html)
+{
+	String s;
+	s=html;
+	s.replace(L"&amp",L"&");
+	s.replace(L"&lt;",L"<");
+	s.replace(L"&gt;",L">");
+	return s;
+}
+
+ByteArray Hex2ByteArray(const String &hex)
+{
+	ByteArray b;
+	b.fromHex(hex);
+	return b;
+}
+
+String ToHex(const ByteArrayPtr &bin)
+{
+	return bin.toHex();
+}
+
+/*!\brief String zur Verwendung in einer URL umwandeln
+ *
+ * \desc
+ * Mit dieser Funktion kann ein beliebiger String so umkodiert werden, dass er als
+ * Parameter in einer URL verwendet werden kann. Dabei werden alle Spaces durch "+" ersetzt
+ * und alle nicht alphanummerischen Zeichen mit Ausnahme von "-_.!~*'()" in ihre Hex-Werte
+ * mit vorangestelltem Prozentzeichen umgewandelt.
+ *
+ * @param text Der zu kodierende Text
+ * @return Der URL-kodierte Text
+ *
+ * \example
+ * \code
+ * ppl7::String text=L"Hallo Welt! 1+1=2";
+ * printf("%ls\n",(const wchar_t*)ppl7::UrlEncode(text));
+ * \endcode
+ * ergibt:
+ * \verbatim
+Hallo+Welt!+1%2B1%3D2
+\endverbatim
+ * \see
+ * Mit UrlDecode kann der Kodierte String wieder dekodiert werden
+ */
+String UrlEncode(const String &text)
+{
+	const wchar_t *source=text.getPtr();
+	String ret;
+	static const wchar_t *digits = L"0123456789ABCDEF";
+	unsigned wchar_t ch;
+	while (*source)
+	{
+		ch = (unsigned wchar_t)*source;
+		if (*source == ' ') {
+			ret+=L"+";
+		}
+		else if (
+				(ch>='a' && ch<='z')
+				|| (ch>='A' && ch<='Z')
+				|| (ch>='0' && ch<='9')
+				|| (strchr("-_.!~*'()", ch))
+				) {
+			ret+=ch;
+		}
+		else {
+			ret+=L"%";
+			ret+= digits[(ch >> 4) & 0x0F];
+			ret+= digits[       ch & 0x0F];
+		}
+		source++;
+	}
+	return ret;
+}
+
+static wchar_t HexPairValue(const wchar_t * code) {
+	wchar_t value = 0;
+	const wchar_t * pch = code;
+	for (;;) {
+		int digit = *pch++;
+		if (digit >= '0' && digit <= '9') {
+			value += digit - '0';
+		}
+		else if (digit >= 'A' && digit <= 'F') {
+			value += digit - 'A' + 10;
+		}
+		else if (digit >= 'a' && digit <= 'f') {
+			value += digit - 'a' + 10;
+		}
+		else {
+			return -1;
+		}
+		if (pch == code + 2)
+			return value;
+		value <<= 4;
+	}
+}
+
+/*!\brief URL-kodierten String dekodieren
+ *
+ * \desc
+ * Mit dieser statischen Funktion kann ein URL-kodierter String dekodiert werden.
+ *
+ * @param text Der zu URL-kodierte String
+ * @return Der dekodierte String
+ *
+ * \example
+ * \code
+ * ppl7::String text=L"Hallo+Welt!+1%2B1%3D2";
+ * printf("%ls\n",(const wchar_t*)ppl7::UrlDecode(text));
+ * \endcode
+ * ergibt:
+ * \verbatim
+Hallo Welt! 1+1=2";
+\endverbatim
+ * \see
+ * Mit UrlEncode kann ein unkodierter String kodiert werden.
+ */
+String UrlDecode(const String &text)
+{
+	const wchar_t *source=text.getPtr();
+	String ret;
+
+	while (*source) {
+		switch (*source) {
+			case '+':
+				ret+=L" ";
+				break;
+			case '%':
+				if (source[1] && source[2]) {
+					wchar_t value = HexPairValue(source + 1);
+					if (value >= 0) {
+						ret+=value;
+						source += 2;
+					}
+					else {
+						ret+=L"?";
+					}
+				}
+				else {
+					ret+="?";
+				}
+				break;
+			default:
+				ret+=*source;
+				break;
+		}
+		source++;
+	}
+	return ret;
+}
+
+
+
 } // EOF namespace ppl7
 
 

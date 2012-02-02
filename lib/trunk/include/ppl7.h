@@ -240,6 +240,14 @@ ppluint32 Crc32(const void* buffer, size_t size);
 String Md5(const void* buffer, size_t size);
 
 String StripSlashes(const String &str);
+String EscapeHTMLTags(const String &html);
+String UnescapeHTMLTags(const String &html);
+ByteArray Hex2ByteArray(const String &hex);
+String ToHex(const ByteArrayPtr &bin);
+String UrlEncode(const String &text);
+String UrlDecode(const String &text);
+
+
 String Trim(const String &str);
 String UpperCase(const String &str);
 String LowerCase(const String &str);

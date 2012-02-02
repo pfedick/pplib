@@ -216,6 +216,7 @@ class String : public Variant
 		String(const wchar_t *str, size_t size) throw(OutOfMemoryException);
 		String(const String *str) throw(OutOfMemoryException);
 		String(const String &str) throw(OutOfMemoryException);
+		String(const Variant &var) throw(OutOfMemoryException);
 		String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
 		String(const std::wstring &str) throw(OutOfMemoryException);
 		~String() throw();
@@ -270,6 +271,7 @@ class String : public Variant
 		String & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(wchar_t c) throw(OutOfMemoryException);
 		String & set(size_t position, wchar_t c) throw(OutOfBoundsEception);
+		String & set(const Variant &var) throw(OutOfMemoryException);
 		String & setf(const char *fmt, ...);
 
 		String & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
@@ -381,6 +383,7 @@ class String : public Variant
 		String& operator=(const wchar_t* str);
 		String& operator=(const String *str);
 		String& operator=(const String &str);
+		String& operator=(const Variant &str);
 		String& operator=(const std::string &str);
 		String& operator=(const std::wstring &str);
 		String& operator=(wchar_t c);
@@ -644,6 +647,7 @@ class AssocArray : public Variant
 		//!\name Werte direkt auslesen
 		//@{
 		String	&getString(const String &key) const;
+		AssocArray	&getArray(const String &key) const;
 		Variant	&get(const String &key) const;
 		bool	exists(const String &key) const;
 
@@ -656,6 +660,12 @@ class AssocArray : public Variant
 		Variant &getNext(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
 		Variant &getLast(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
 		Variant &getPrevious(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+
+		AssocArray &getFirstArray(Iterator &it) const;
+		AssocArray &getNextArray(Iterator &it) const;
+		AssocArray &getLastArray(Iterator &it) const;
+		AssocArray &getPreviousArray(Iterator &it) const;
+
 
 		bool getFirst(Iterator &it, String &key, String &value) const;
 		bool getNext(Iterator &it, String &key, String &value) const;

@@ -258,6 +258,15 @@ String::String(const String &str) throw(OutOfMemoryException)
 	set(str);
 }
 
+String::String(const Variant &var) throw(OutOfMemoryException)
+{
+	type=STRING;
+	ptr=NULL;
+	stringlen=0;
+	s=0;
+	set(var);
+}
+
 /*!\brief Konstruktor aus Standard-Template String
  *
  * \desc
@@ -696,6 +705,12 @@ String & String::set(const String &str, size_t size) throw(OutOfMemoryException)
 	else inbytes=str.stringlen;
 	if (inbytes>str.stringlen) inbytes=str.stringlen;
 	return set((wchar_t*)str.ptr,inbytes);
+}
+
+String & String::set(const Variant &var) throw(OutOfMemoryException)
+{
+	const String &str=var.toString();
+	return set(str.ptr,str.stringlen);
 }
 
 /*!\brief Wert eines Strings der STL übernehmen
@@ -1584,6 +1599,22 @@ String& String::operator=(const String &str)
 {
 	return set(str);
 }
+
+/*!\brief String übernehmen
+ *
+ * \desc
+ * Mit diesem Operator wird der Inhalt des Variants \p var kopiert, sofern es
+ * sich dabei um einen String handelt. Der Operator
+ * ist identisch mit der Funktion String::set
+ *
+ * @param[in] var Zu kopierender String
+ * @return Referenz auf diese Instanz der Klasse
+ */
+String& String::operator=(const Variant &var)
+{
+	return set(var);
+}
+
 
 /*!\brief String übernehmen
  *

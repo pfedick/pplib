@@ -481,6 +481,7 @@ void DateTime::setTime_t(ppluint64 t)
 	}
 	::time_t tp=(::time_t)t;
 	r=localtime_r(&tp,&tt);
+	if (!r) throw InvalidDateException();
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;
@@ -509,6 +510,7 @@ void DateTime::setEpoch(ppluint64 t)
 	}
 	::time_t tp=(::time_t)t;
 	r=localtime_r(&tp,&tt);
+	if (!r) throw InvalidDateException();
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;
@@ -565,6 +567,7 @@ void DateTime::setCurrentTime()
 	struct tm tt, *r;
 	::time_t tp=time(NULL);
 	r=localtime_r(&tp,&tt);
+	if (!r) throw InvalidDateException();
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;

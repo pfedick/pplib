@@ -805,83 +805,97 @@ void WikiParser::buildIndex(String &Html)
 		//index.List("index");
 		AssocArray::Iterator it;
 		index.reset(it);
-		AssocArray r;
 		String a;
-		while ((r=(Variant&)index.getNext(it,Variant::ASSOCARRAY))) {
-			a.Repeat('*',r->ToInt("ebene"));
-			a.Concatf(" %ls\n",r->Get("link"));
-			Tmp+=a;
+		try {
+			while (1) {
+				AssocArray &r=index.getNextArray(it);
+				a.repeat(L'*',r.getString("ebene").toInt());
+				a.appendf(" %ls\n",(const wchar_t*)r.getString("link"));
+				Tmp+=a;
+			}
+		} catch (OutOfBoundsEception &) {
+
 		}
-		a.Clear();
+		a.clear();
 		WikiParser Wiki;
 		Wiki.renderInternal(Tmp,a);
 		Html+=a;
-		Html+="</td></tr></table>\n";
+		Html+=L"</td></tr></table>\n";
 	}
 }
 
 void WikiParser::finalize()
 {
-	CArray Match;
-	for (int i=0;i<ullevel;i++) ret+="</ul>\n";
-	for (int i=0;i<ollevel;i++) ret+="</ol>\n";
-	for (int i=0;i<ispre;i++) ret+="</pre>\n";
+	Array Match;
+	for (int i=0;i<ullevel;i++) ret+=L"</ul>\n";
+	for (int i=0;i<ollevel;i++) ret+=L"</ol>\n";
+	for (int i=0;i<ispre;i++) ret+=L"</pre>\n";
 
-	for (int i=indentlevel;i>0;i--) ret+="</div>";
+	for (int i=indentlevel;i>0;i--) ret+=L"</div>";
 	indentlevel=0;
 
 
 	// <br> am Ende wollen wir nicht
-	ret.PregReplace("/<br>$/i","");
+	ret.pregReplace(L"/<br>$/i",L"");
 	// <br> vor einem </td> oder </th> wollen wir nicht
 	//ret.PregReplace("/<br>\\n(<\\/t[dh]>)/i","$1");		// TODO: BUG in PPL6!!!! $1 scheint Random-Daten einzufügen
-	ret.PregReplace("/<br>\\n(<\\/td>)/i","</td>");
-	ret.PregReplace("/<br>\\n(<\\/th>)/i","</th>");
+	ret.pregReplace(L"/<br>\\n(<\\/td>)/i",L"</td>");
+	ret.pregReplace(L"/<br>\\n(<\\/th>)/i",L"</th>");
 	// <br> vor einem <ul> oder <ol> wollen wir nicht
-	ret.PregReplace("/<br>\\n+<ul>/i","<ul>");
-	ret.PregReplace("/<br>\\n+<ol>/i","<ol>");
+	ret.pregReplace(L"/<br>\\n+<ul>/i",L"<ul>");
+	ret.pregReplace(L"/<br>\\n+<ol>/i",L"<ol>");
 
-	ret.PregReplace("/<pre><br>/i","<pre>");
+	ret.pregReplace(L"/<pre><br>/i",L"<pre>");
 
 
 	// Leere Tabellen-Zellen wollen wir sehen
-	while (ret.PregMatch("/(.*)(<t[dh]>)\\s*(<\\/t[dh]>)(.*)/i",&Match)) {
-		ret.Setf("%ls%ls&nbsp;%ls%ls",Match[1],Match[2],Match[3],Match[4]);
+	while (ret.pregMatch(L"/(.*)(<t[dh]>)\\s*(<\\/t[dh]>)(.*)/i",Match)) {
+		ret.setf("%ls%ls&nbsp;%ls%ls",(const wchar_t*)Match[1],
+				(const wchar_t*)Match[2],
+				(const wchar_t*)Match[3],
+				(const wchar_t*)Match[4]);
 	}
 	finalizeNoWiki();
 	finalizePRE();
 	finalizeSource();
 	finalizeDiagrams();
-	ret.Replace("\\n","<br>\n");
+	ret.replace(L"\\n",L"<br>\n");
 	// Nach einem </div> wollen wir maximal 1 <br>
-	ret.PregReplace("/<\\/div>\\n<br>\\n<br>/i","</div>\n<br>\n");
+	ret.pregReplace(L"/<\\/div>\\n<br>\\n<br>/i",L"</div>\n<br>\n");
 }
 
 void WikiParser::finalizeNoWiki()
 {
 	if (nowikicount>0) {
-		while (ret.PregMatch("/^(.*)<nowiki ([0-9]+)>(.*)$/ims")) {
-			ret.Setf("%ls%ls%ls",ret.GetMatch(1),nowiki[atoi(ret.GetMatch(2))],ret.GetMatch(3));
+		Array Match;
+		while (ret.pregMatch(L"/^(.*)<nowiki ([0-9]+)>(.*)$/ims",Match)) {
+			ret.setf("%ls%ls%ls",(const wchar_t*)Match[1],
+					(const wchar_t*)nowiki[Match[2].toInt()],
+					(const wchar_t*)Match[3]);
 		}
 	}
 }
 
 void WikiParser::finalizePRE()
 {
-	CArray Match;
-	CAssocArray *p;
+	Array Match;
 	if (precount>0) {
-		while (ret.PregMatch("/^(.*)<pre ([0-9]+)>(.*)$/sim",&Match)) {
-			p=pre.GetArray(Match[2]);
-			if (p) {
-				if (p->Get("class")) {
-					// if ($pre[$n]["class"]) $ret=$match[1]."<pre class=\"".$pre[$n]["class"]."\">\n".$pre[$n][content]."</pre>\n".$match[3];
-					ret.Setf("%ls<pre class=\"%ls\">\n%ls</pre>\n%ls",Match[1],p->Get("class"),p->Get("content"),Match[3]);
+		while (ret.pregMatch(L"/^(.*)<pre ([0-9]+)>(.*)$/sim",Match)) {
+			try {
+				const AssocArray &p=pre.getArray(Match[2]);
+				if (p.exists("class")) {
+					ret.setf("%ls<pre class=\"%ls\">\n%ls</pre>\n%ls",
+							(const wchar_t*)Match[1],
+							(const wchar_t*)p.getString("class"),
+							(const wchar_t*)p.getString("content"),
+							(const wchar_t*)Match[3]);
 				} else {
-					//else $ret=$match[1]."<pre>\n".$pre[$n][content]."</pre>\n".$match[3];
-					ret.Setf("%ls<pre>\n%ls</pre>\n%ls",Match[1],p->Get("content"),Match[3]);
+					ret.setf("%ls<pre>\n%ls</pre>\n%ls",
+							(const wchar_t*)Match[1],
+							(const wchar_t*)p.getString("content"),
+							(const wchar_t*)Match[3]);
 				}
-			} else {
+			} catch (...) {
 				ret=Match[1];
 				ret+=Match[3];
 			}
@@ -891,11 +905,11 @@ void WikiParser::finalizePRE()
 
 void WikiParser::finalizeSource()
 {
-	CArray Match;
+	Array Match;
 	if (sourcecount>0) {
-		while (ret.PregMatch("/^(.*)<source ([0-9]+)>(.*)$/sim",&Match)) {
+		while (ret.pregMatch(L"/^(.*)<source ([0-9]+)>(.*)$/sim",Match)) {
 			ret=Match[1];
-			ret+="<div class=\"source\">"+EscapeHTMLTags(source[atoi(Match[2])]);
+			ret+=L"<div class=\"source\">"+EscapeHTMLTags(source[Match[2].toInt()]);
 			ret+="</div>";
 			ret+=Match[3];
 		}
@@ -904,20 +918,21 @@ void WikiParser::finalizeSource()
 
 void WikiParser::finalizeDiagrams()
 {
-	CArray Match;
-	if (diagrams.Num()) {
-		while (ret.PregMatch("/^(.*)<tmp_diagram ([0-9]+)>(.*)$/sim",&Match)) {
-			ret.Setf("%ls\n%ls\n%ls",Match[1],diagrams[atoi(Match[2])-1],Match[3]);
+	Array Match;
+	if (diagrams.size()) {
+		while (ret.pregMatch(L"/^(.*)<tmp_diagram ([0-9]+)>(.*)$/sim",Match)) {
+			ret.setf("%ls\n%ls\n%ls",(const wchar_t*)Match[1],
+					(const wchar_t*)diagrams[Match[2].toInt()-1],
+					(const wchar_t*)Match[3]);
 		}
 	}
 }
-
 
 int WikiParser::renderInternal(const String &Source, String &Html)
 {
 	String Tmp;
 	String Text=Source;
-	Text.Replace("\r\n","\n");
+	Text.replace(L"\r\n",L"\n");
 
 	extractNoWiki(Text);
 	extractSourcecode(Text);
@@ -925,15 +940,12 @@ int WikiParser::renderInternal(const String &Source, String &Html)
 
 	String Line;
 
-	CArray Rows;
-	Rows.Explode(Text,"\n");
-	const char *line;
-	CArray Match;
+	Array Rows;
+	Rows.explode(Text,L"\n");
+	Array Match;
 
-
-
-	while((line=Rows.GetNext())) {
-		Line=line;
+	for (size_t j=0;j<Rows.size();j++) {
+		Line=Rows[j];
 		nobr=false;
 		parseHeadlines(Line);
 		parseLinks(Line);
@@ -949,16 +961,16 @@ int WikiParser::renderInternal(const String &Source, String &Html)
 
 		// An bestimmten Stellen wollen wir am Ende kein <br>
 
-		if (Line.PregMatch("/^.*<\\/li>$/i")) nobr=true;
-		if (Line.PregMatch("/^.*<nobr>$/i")) {
-			Line.PregReplace("/<nobr>$/i","");
+		if (Line.pregMatch(L"/^.*<\\/li>$/i")) nobr=true;
+		if (Line.pregMatch(L"/^.*<nobr>$/i")) {
+			Line.pregReplace(L"/<nobr>$/i",L"");
 			nobr=true;
 		}
 
-		Line.Trim();
+		Line.trim();
 		ret+=Line;
-		if (!nobr) ret+="<br>";
-		ret+="\n";
+		if (!nobr) ret+=L"<br>";
+		ret+=L"\n";
 	}
 	finalize();
 
@@ -974,112 +986,117 @@ int WikiParser::renderInternal(const String &Source, String &Html)
 String WikiParser::xmlDiagram2HTML(const String &xml)
 {
 	String Body,Tmp, Param, d, Row, Text;
-	CAssocArray opt, items, a;
+	AssocArray opt, items, a;
+	Array Match;
 	int smallscale=50;
 	int bigscale=100;
 	Text=xml;
-	if (Text.PregMatch("/^(.*?)<diagram(.*?)>[\\n]*(.*?)<\\/diagram>(.*)$/ism")) {
-		Param=Text.GetMatch(2);
-		Body=Text.GetMatch(3);
-		d.Clear();
-		if (Param.PregMatch("/name=\"(.*?)\"/i")) {
-			d+="<b>";
-			d+=Param.GetMatch(1);
-			d+="</b><br>\n";
+	if (Text.pregMatch(L"/^(.*?)<diagram(.*?)>[\\n]*(.*?)<\\/diagram>(.*)$/ism",Match)) {
+		Param=Match[2];
+		Body=Match[3];
+		d.clear();
+		if (Param.pregMatch(L"/name=\"(.*?)\"/i",Match)) {
+			d+=L"<b>";
+			d+=Match[1];
+			d+=L"</b><br>\n";
 		}
-		if (Body.PregMatch("/<smallscale>(.*?)<\\/smallscale>/is")) smallscale=atoi(Body.GetMatch(1));
-		if (Body.PregMatch("/<bigscale>(.*?)<\\/bigscale>/is")) bigscale=atoi(Body.GetMatch(1));
+		if (Body.pregMatch(L"/<smallscale>(.*?)<\\/smallscale>/is",Match)) smallscale=Match[1].toInt();
+		if (Body.pregMatch(L"/<bigscale>(.*?)<\\/bigscale>/is",Match)) bigscale=Match[1].toInt();
 
 		if (bigscale==0) {
 			String Backup=Body;
-			while (Body.PregMatch("/^(.*)<section(.*?)>(.*?)<\\/section>(.*)$/is")) {
-				Param=Body.GetMatch(2);
-				Tmp=Body.GetMatch(3);
-				Body=Body.GetMatch(1);
-				Body+=Body.GetMatch(4);
-				while (Tmp.PregMatch("/^(.*)(<row.*?)\\/>(.*)$/is")) {
-					Row=Tmp.GetMatch(2);
-					Tmp=Tmp.GetMatch(1);
-					Tmp+=Tmp.GetMatch(3);
+			while (Body.pregMatch(L"/^(.*)<section(.*?)>(.*?)<\\/section>(.*)$/is",Match)) {
+				Param=Match[2];
+				Tmp=Match[3];
+				Body=Match[1];
+				Body+=Match[4];
+				while (Tmp.pregMatch(L"/^(.*)(<row.*?)\\/>(.*)$/is",Match)) {
+					Row=Match[2];
+					Tmp=Match[1];
+					Tmp+=Match[3];
 					String value;
-					if (Row.PregMatch("/value=\"(.*?)\"/is")) value=Row.GetMatch(1);
-					if (value.ToInt()>bigscale) bigscale=value.ToInt();
+					if (Row.pregMatch(L"/value=\"(.*?)\"/is",Match)) value=Match[1];
+					if (value.toInt()>bigscale) bigscale=value.toInt();
 				}
 			}
 			Body=Backup;
 			if (bigscale==0) bigscale=100;
 		}
 
-		if (Body.PregMatch("/<items>(.*?)<\\/items>/is")) {
-			Tmp=Body.GetMatch(1);
-			while (Tmp.PregMatch("/^(.*)(<item.*?)\\/>(.*)$/is")) {
-				Row=Tmp.GetMatch(2);
-				Tmp=Tmp.GetMatch(1);
-				Tmp+=Tmp.GetMatch(3);
+		if (Body.pregMatch(L"/<items>(.*?)<\\/items>/is",Match)) {
+			Tmp=Match[1];
+			while (Tmp.pregMatch(L"/^(.*)(<item.*?)\\/>(.*)$/is",Match)) {
+				Row=Match[2];
+				Tmp=Match[1];
+				Tmp+=Match[3];
 				//printf ("row: %ls\n",(const char*)Row);
 				String id, color,name;
-				if (Row.PregMatch("/id=\"(.*?)\"/is")) id=Row.GetMatch(1);
-				if (Row.PregMatch("/color=\"(.*?)\"/is")) color=Row.GetMatch(1);
-				if (Row.PregMatch("/name=\"(.*?)\"/is")) name=Row.GetMatch(1);
-				if (id.NotEmpty()) {
-					a.Clear();
-					a.Set("color",color);
-					a.Set("name",name);
-					a.Set("id",id);
-					items.Set(id,a);
+				if (Row.pregMatch(L"/id=\"(.*?)\"/is",Match)) id=Match[1];
+				if (Row.pregMatch(L"/color=\"(.*?)\"/is",Match)) color=Match[1];
+				if (Row.pregMatch(L"/name=\"(.*?)\"/is",Match)) name=Match[1];
+				if (id.notEmpty()) {
+					a.clear();
+					a.set("color",color);
+					a.set("name",name);
+					a.set("id",id);
+					items.set(id,a);
 				}
 
 			}
 			//items.List("items");
 		}
 
-		while (Body.PregMatch("/^(.*?)<section(.*?)>(.*?)<\\/section>(.*)$/is")) {
-			Param=Body.GetMatch(2);
-			Tmp=Body.GetMatch(3);
-			Body=Body.GetMatch(1);
-			Body+=Body.GetMatch(4);
+		while (Body.pregMatch(L"/^(.*?)<section(.*?)>(.*?)<\\/section>(.*)$/is",Match)) {
+			Param=Match[2];
+			Tmp=Match[3];
+			Body=Match[1];
+			Body+=Match[4];
 			//printf ("Section: >>>%ls<<<\n",(const char*)Row);
 			//printf ("Param: >>>%ls<<<\n",(const char*)Param);
-			d+="<div style=\"border: 1px solid black; margin-bottom: 6px;\">\n";
-			if (Param.PregMatch("/name=\"(.*?)\"/is")) d+="<div style=\"background: white; color: black; font-size: 80%; font-weight: bold;\">"+ToString("%ls",Param.GetMatch(1))+"</div>\n";
-			d+="<table style=\"width: 100%; background: #f0f0f0;\">\n";
-			while (Tmp.PregMatch("/^(.*?)(<row.*?)\\/>(.*)$/is")) {
-				Row=Tmp.GetMatch(2);
-				Tmp=Tmp.GetMatch(1);
-				Tmp+=Tmp.GetMatch(3);
+			d+=L"<div style=\"border: 1px solid black; margin-bottom: 6px;\">\n";
+			if (Param.pregMatch(L"/name=\"(.*?)\"/is")) d+=L"<div style=\"background: white; color: black; font-size: 80%; font-weight: bold;\">"+Match[1]+L"</div>\n";
+			d+=L"<table style=\"width: 100%; background: #f0f0f0;\">\n";
+			while (Tmp.pregMatch(L"/^(.*?)(<row.*?)\\/>(.*)$/is",Match)) {
+				Row=Match[2];
+				Tmp=Match[1];
+				Tmp+=Match[3];
 				String id,value;
-				if (Row.PregMatch("/id=\"(.*?)\"/is")) id=Row.GetMatch(1);
-				if (Row.PregMatch("/value=\"(.*?)\"/is")) value=Row.GetMatch(1);
-				if (id.NotEmpty()) {
-					CAssocArray *i=items.GetArray(id);
-					if (i!=NULL && i->Count()>0) {
-						d+="<tr><td style=\"font-size: 80%;\">"+i->ToString("name").Replace(" ","&nbsp;")+"</td>";
-						d+="<td style=\"width: 100%; font-size: 80%;\">";
-						int v=0;
-						if (smallscale==0) v=value.ToInt()*80/bigscale;
-						else {
-							if (value.ToInt()<=smallscale) {
-								v=value.ToInt()*40/smallscale;
-							} else {
-								int diff=bigscale-smallscale;
-								if (diff==0) diff=1;
-								v=40+(value.ToInt()-smallscale)*40/(diff);
+				if (Row.pregMatch(L"/id=\"(.*?)\"/is",Match)) id=Match[1];
+				if (Row.pregMatch(L"/value=\"(.*?)\"/is",Match)) value=Match[1];
+				if (id.notEmpty()) {
+					try {
+						AssocArray &i=items.getArray(id);
+						if (i.size()>0) {
+							d+=L"<tr><td style=\"font-size: 80%;\">"+i.getString("name").replace(L" ",L"&nbsp;")+"L</td>";
+							d+=L"<td style=\"width: 100%; font-size: 80%;\">";
+							int v=0;
+							if (smallscale==0) v=value.toInt()*80/bigscale;
+							else {
+								if (value.toInt()<=smallscale) {
+									v=value.toInt()*40/smallscale;
+								} else {
+									int diff=bigscale-smallscale;
+									if (diff==0) diff=1;
+									v=40+(value.toInt()-smallscale)*40/(diff);
+								}
 							}
+							v++;
+							if (v>80) v=80;
+							d+=L"<div style=\"margin-right: 10px; border-bottom: 1px solid #000000; "
+									"border-right: 1px solid #000000; border-top: 1px solid #ffffff; "
+									"border-left: 1px solid #ffffff; "
+									"background: "+i.getString("color")+L"; float: left; width: ";
+							d.appendf("%i",v);
+							d+=L"%;\">&nbsp;</div>";
+							d+=value;
+							d+=L"</td></tr>\n";
 						}
-						v++;
-						if (v>80) v=80;
-						d+="<div style=\"margin-right: 10px; border-bottom: 1px solid #000000; "
-								"border-right: 1px solid #000000; border-top: 1px solid #ffffff; "
-								"border-left: 1px solid #ffffff; "
-								"background: "+i->ToString("color")+"; float: left; width: ";
-						d.Concatf("%i",v);
-						d+="%;\">&nbsp;</div>";
-						d+=value;
-						d+="</td></tr>\n";
+					} catch (...) {
+
 					}
 				}
 			}
-			d+="</table></div>\n";
+			d+=L"</table></div>\n";
 		}
 
 	}
