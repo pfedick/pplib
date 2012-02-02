@@ -455,6 +455,18 @@ size_t AssocArray::count(bool recursive) const
 	return c;
 }
 
+/*!\brief Anzahl Elemente
+ *
+ * \desc
+ * Diese Funktion liefert die Anzahl Elemente auf dieser Ebene des Arrays zurück.
+ *
+ * \returns Anzahl Elemente
+ */
+size_t AssocArray::size() const
+{
+	return num;
+}
+
 /*!\brief Anzahl Schlüssel für ein bestimmtes Element zählen
  *
  * \desc

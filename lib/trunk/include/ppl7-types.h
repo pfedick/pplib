@@ -596,6 +596,7 @@ class AssocArray : public Variant
 		//@{
 		size_t count(bool recursive=false) const;
 		size_t count(const String &key, bool recursive=false) const;
+		size_t size() const;
 		void list(const String &prefix=L"") const;
 		void reserve(size_t num);
 		size_t capacity() const;
