@@ -246,23 +246,24 @@ int CFile::Open (const CString &filename, const char * mode)
  * @return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
  */
 {
-	return Open("%s",filename.GetPtr(),mode);
+	return Openf("%s",mode,filename.GetPtr());
 }
 
-int CFile::Open (const char * filename, const char * mode, ...)
+int CFile::Openf (const char * format, const char * mode, ...)
 /*!\brief Datei zum Lesen oder Schreiben öffnen
  *
  * Mit dieser Funktion wird eine Datei zum Lesen, Schreiben oder beides geöffnet.
  *
- * \param filename Dateiname
+ * \param format Formatstring für den Dateinamen
  * \param mode String, der angibt, wie die Datei geöffnet werden soll (siehe \ref ppl6_CFile_Filemodi)
+ * \param ... Optionale Parameter für den Formatstring
  *
  * \return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
  */
 {
 	Close();
 	// fopen stuerzt ab, wenn filename leer ist
-	if ((!filename) || strlen(filename)==0) {
+	if ((!format) || strlen(format)==0) {
 		SetError(61);
 		ff=NULL;
 		size=0;
@@ -272,7 +273,7 @@ int CFile::Open (const char * filename, const char * mode, ...)
 	va_list args;
 	va_start(args, mode);
 	char *buff=NULL;
-	if (vasprintf (&buff, (char*)filename, args)<=0 || buff==NULL) {
+	if (vasprintf (&buff, (char*)format, args)<=0 || buff==NULL) {
 		SetError(2);
 		ff=NULL;
 		size=0;

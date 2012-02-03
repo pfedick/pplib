@@ -593,7 +593,7 @@ int CResource::GenerateResourceHeader(const char *basispfad, const char *configf
 		if (!id) continue;
 		if (!name) continue;
 		CFile ff;
-		if (ff.Open("%s/%s","rb",path,filename)) {
+		if (ff.Openf("%s/%s","rb",path,filename)) {
 			out.Putsf(" * %4i: %-20s (%s)\n",atoi(id),name,filename);
 		}
 	}
@@ -617,7 +617,7 @@ int CResource::GenerateResourceHeader(const char *basispfad, const char *configf
 		if (!id) continue;
 		if (!name) continue;
 		CFile ff;
-		if (!ff.Open("%s/%s","rb",path,filename)) {
+		if (!ff.Openf("%s/%s","rb",path,filename)) {
 			printf ("Konnte Resource %s nicht oeffnen\n",filename);
 		} else {
 			char *buffer=NULL;

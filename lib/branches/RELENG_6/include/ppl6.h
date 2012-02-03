@@ -1339,7 +1339,7 @@ class CFile : public CFileObject
 		virtual ~CFile();
 
 		int			Open (const CString &filename, const char * mode="rb");
-		int			Open (const char * filename, const char * mode="rb", ...);
+		int			Openf (const char * format, const char * mode, ...);
 		int			Open (FILE * handle);
 		int			OpenTemp(const char *filetemplate, ...);
 		int			Popen(const char *command, const char *mode, ...);
