@@ -37,7 +37,9 @@
  *******************************************************************************/
 
 #include "prolog.h"
+#ifndef _ISOC99_SOURCE
 #define _ISOC99_SOURCE
+#endif
 #ifdef HAVE_WIDEC_H
 #include <widec.h>
 #endif
