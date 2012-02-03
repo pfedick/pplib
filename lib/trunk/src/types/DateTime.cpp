@@ -179,6 +179,21 @@ DateTime::DateTime(const DateTime &other)
 	ss=other.ss;
 }
 
+/*!\brief Konstruktor mit Angabe von Unix-Timestamp
+ *
+ * \desc
+ * Mit dieser Konstruktor werden Datum und Uhrzeit aus einem Unix-Timestamp übernommen (Sekunden seit 1970),
+ * wie ihn Beispielsweise die C-Funktion "time()" zurückliefert. Es ist daher nicht möglich ein Datum vor
+ * 1970 zu setzen.
+ *
+ * @param t 64-Bit Integer mit den Sekunden seit 1970.
+ */
+DateTime::DateTime(ppluint64 t)
+{
+	setTime_t(t);
+}
+
+
 //@}
 
 

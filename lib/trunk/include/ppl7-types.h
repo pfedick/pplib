@@ -716,6 +716,7 @@ class DateTime : public Variant
 		DateTime();
 		DateTime(const String &datetime);
 		DateTime(const DateTime &other);
+		DateTime(ppluint64 t);
 
 		void setTime_t(ppluint64 t);
 		void setEpoch(ppluint64 t);
