@@ -465,6 +465,7 @@ class Font
 		ppluint16	fontSize;
 		ppluint8	flags;
 		ppluint8	ori;
+		double		rotationDegrees;
 	public:
 		enum Orientation {
 			LEFT =1,
@@ -493,6 +494,7 @@ class Font
 		int size() const;
 		Orientation orientation() const;
 		Size measure(const String &text) const;
+		double rotation() const;
 
 		int setName(const String &name);
 		void setColor(const Color &c);
@@ -508,6 +510,7 @@ class Font
 		void setMonospace(bool enable);
 		void setSize(int size);
 		void setOrientation(Orientation o);
+		void setRotation(double degrees);
 
 		Font &operator=(const Font &other);
 };

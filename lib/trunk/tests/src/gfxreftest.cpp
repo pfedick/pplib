@@ -676,6 +676,8 @@ int DoFontsFreetype(Drawable &surface, int &num)
 		Font.setSize(12);
 		Font.setColor(Color(255,255,255));
 		surface.print(Font,5,180,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
+		Font.setRotation(10.0);
+		surface.print(Font,5,200,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
 
 		/*
 	c=surface.getPixel(19,153);

@@ -46,6 +46,9 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
 
 #include "ppl7.h"
 #include "ppl7-grafix.h"
@@ -238,6 +241,22 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	int orgx=x;
 	int orgy=y;
 	int code;
+	double angle;
+	bool rotate=false;
+	FT_Matrix matrix; /* transformation matrix */
+	if (font.rotation()!=0.0) {
+		rotate=true;
+		angle=font.rotation()*M_PI/180.0;
+		/* set up matrix */
+		matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
+		matrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );
+		matrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );
+		matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
+		FT_Set_Transform( face->face, &matrix, NULL );
+	} else {
+		FT_Set_Transform( face->face, NULL, NULL );
+	}
+
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
@@ -269,6 +288,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 				error=FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
 				if (error==0) {
 					x+=(kerning.x>>6);
+					y+=(kerning.y>>6);
 				}
 			}
 
@@ -310,6 +330,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 				}
 			}
 			x+=(slot->advance.x>>6);
+			orgy-=(slot->advance.y>>6);
 			last_glyph=glyph_index;
 		}
 	}

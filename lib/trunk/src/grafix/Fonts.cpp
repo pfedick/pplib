@@ -69,6 +69,7 @@ Font::Font()
 	fontSize=12;
 	flags=0;
 	ori=0;
+	rotationDegrees=0.0;
 }
 
 Font::Font(const Font &other)
@@ -80,6 +81,7 @@ Font::Font(const Font &other)
 	fontSize=other.fontSize;
 	flags=other.flags;
 	ori=other.ori;
+	rotationDegrees=other.rotationDegrees;
 }
 
 Font &Font::operator=(const Font &other)
@@ -91,6 +93,7 @@ Font &Font::operator=(const Font &other)
 	fontSize=other.fontSize;
 	flags=other.flags;
 	ori=other.ori;
+	rotationDegrees=other.rotationDegrees;
 	return *this;
 }
 
@@ -158,6 +161,11 @@ int Font::size() const
 Font::Orientation Font::orientation() const
 {
 	return (Orientation)ori;
+}
+
+double Font::rotation() const
+{
+	return rotationDegrees;
 }
 
 int Font::setName(const String &name)
@@ -239,6 +247,11 @@ void Font::setSize(int size)
 void Font::setOrientation(Orientation o)
 {
 	ori=o;
+}
+
+void Font::setRotation(double degrees)
+{
+	rotationDegrees=degrees;
 }
 
 Size Font::measure(const String &text) const
