@@ -175,6 +175,20 @@ CDateTime::CDateTime(const ppl6::CDateTime &other)
 	ss=other.ss;
 }
 
+/*!\brief Konstruktor mit Angabe von Unix-Timestamp
+ *
+ * \desc
+ * Mit dieser Konstruktor werden Datum und Uhrzeit aus einem Unix-Timestamp übernommen (Sekunden seit 1970),
+ * wie ihn Beispielsweise die C-Funktion "time()" zurückliefert. Es ist daher nicht möglich ein Datum vor
+ * 1970 zu setzen.
+ *
+ * @param t 64-Bit Integer mit den Sekunden seit 1970.
+ */
+CDateTime::CDateTime(ppluint64 t)
+{
+	setTime_t(t);
+}
+
 //@}
 
 

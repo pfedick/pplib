@@ -1059,6 +1059,7 @@ class CDateTime : public CVar
 		CDateTime();
 		CDateTime(const CString &datetime);
 		CDateTime(const CDateTime &other);
+		CDateTime(ppluint64 t);
 
 		void setTime_t(ppluint64 t);
 		void setLongInt(ppluint64 i);
