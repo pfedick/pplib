@@ -251,7 +251,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 		matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
 		matrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );
 		matrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );
-		matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
+		matrix.yy = (FT_Fixed)(cos( angle ) * 0x10000L );
 		FT_Set_Transform( face->face, &matrix, NULL );
 	} else {
 		FT_Set_Transform( face->face, NULL, NULL );
