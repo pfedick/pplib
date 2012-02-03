@@ -249,9 +249,9 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 		angle=font.rotation()*M_PI/180.0;
 		/* set up matrix */
 		matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
-		matrix.xy = (FT_Fixed)(-sin( angle ) * 0x10000L );
-		matrix.yx = (FT_Fixed)( sin( angle ) * 0x10000L );
-		matrix.yy = (FT_Fixed)(cos( angle ) * 0x10000L );
+		matrix.xy = (FT_Fixed)( sin( angle ) * 0x10000L );
+		matrix.yx = (FT_Fixed)( -sin( angle ) * 0x10000L );
+		matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
 		FT_Set_Transform( face->face, &matrix, NULL );
 	} else {
 		FT_Set_Transform( face->face, NULL, NULL );
@@ -273,6 +273,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 			y=orgy;
 			last_glyph=0;
 		} else {
+			x=lastx;
 			glyph_index=FT_Get_Char_Index(face->face,code);
 			if (!glyph_index) continue;
 			// Antialiasing
@@ -329,7 +330,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 
 				}
 			}
-			x+=(slot->advance.x>>6);
+			lastx+=(slot->advance.x>>6);
 			orgy-=(slot->advance.y>>6);
 			last_glyph=glyph_index;
 		}
