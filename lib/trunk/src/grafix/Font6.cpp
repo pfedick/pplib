@@ -9,7 +9,7 @@
  * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2012, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,23 +71,31 @@ extern "C" {
 }
 
 
-/*!\page PFPFont5Format Format PFP Font, Version 5
+/*!\page PFPFont6Format Format PFP Font, Version 6
  *
-Die Version 5 verwendet als Basisformat das \ref PFPFileVersion3 "PFP-File-Format Version 3" mit seinen Chunks.
-Das File trägt als ID "FONT", Hauptversion 5, Unterversion 0. Eine Datei enthält in der Regel immer nur
-einen Font (z.B. Arial), kann aber beliebig viele Faces enthalten, die sich durch Style (Fett, Kursiv, Antialiased)
+Die Version 6 ist angelehnt an Version 5 und verwendet als Basisformat das
+\ref PFPFileVersion3 "PFP-File-Format Version 3" mit seinen Chunks. Die Wesentlichen Unterschiede zu Version 5 sind:
+- Es gibt keine Sprungtabellen mehr
+- Die Glyphs für die vorhandenen Zeichen liegen hintereinander in Chunks, die Applikation muss sich selbst merken,
+wo ein Glyph zu finden ist (z.B. innerhalb eines binären Baumes)
+- Die Glyphs unterstützen Hints, also die Information, ob eine bestimmte Zeichenkombination näher zueinander dargestellt
+werden können oder mehr Platz brauchen. Beispiel: "To" - das "o" kann in diesem Fall nach links unter den T-Strich
+gerückt werden. Bei "Tö" geht das aber ja nach Font nicht.
+
+Das File trägt als ID "FONT", Hauptversion 6, Unterversion 0. Eine Datei enthält in der Regel immer nur
+einen Font (z.B. Liberation Sans), kann aber beliebig viele Faces enthalten, die sich durch Style (Fett, Kursiv, Antialiased)
 und Pixelgröße unterscheiden. Jedes Face ist in einem eigenen Chunk untergebracht, der den Namen "FACE" trägt.
 
 \par Header
 Jedes FACE beginnt mit einem 12 Byte großen Header:
 \code
-Byte 0:  Flags                                        1 Byte
-Byte 1:  Pixelformat                                  1 Byte
-Byte 2:  Size (Fontgröße in Pixel)                    2 Byte
-Byte 4:  MaxBearingY                                  2 Byte
-Byte 6:  MaxHeight                                    2 Byte
-Byte 8:  Position Underscore                          2 Byte
-Byte 10:  Anzahl Sprungtabellen                       2 Byte
+Byte 0:  Flags                                        (1 Byte)
+Byte 1:  Pixelformat                                  (1 Byte)
+Byte 2:  Size (Fontgröße in Pixel)                    (2 Byte)
+Byte 4:  MaxBearingY                                  (2 Byte)
+Byte 6:  MaxHeight                                    (2 Byte)
+Byte 8:  Position Underscore                          (2 Byte)
+Byte 10: Anzahl Glyphs                                (2 Byte)
 \endcode
 Beschreibung:
 <ul>
@@ -97,6 +105,7 @@ Folgende Flags sind definiert:
 Bit 0: Font benutzt Antialiasing
 Bit 1: Font ist fett (bold)
 Bit 2: Font ist kursiv (italic)
+Bit 3: Font unterstützt Hints
 \endcode
 </li>
 <li><b>Pixelformat</b>\n
@@ -114,7 +123,7 @@ Bit 2: Font ist kursiv (italic)
 Größe der Fonts</li>
 <li><b>MaxBearingY</b>\n
 Dieser positive Wert gibt an, wieviele Pixel nach oben des größte Glyph abweicht.
-Da Font5-Fonts immer von einer Grundlinie aus gezeichnet werden, kann man mit diesem
+Da Font6-Fonts immer von einer Grundlinie aus gezeichnet werden, kann man mit diesem
 Wert den höchsten Punkt im Font-Face ermitteln, um z.B. statt von der Grundline aus
 von oben aus die Fonts abzubilden (Align=Top)</li>
 <li><b>MaxHeight</b>\n
@@ -123,53 +132,80 @@ die bei einem Zeilenumbruch auf der Y-Achse dazuaddiert werden müssen. Aus der
 Differenz "MaxHeight-MaxBearingY" kann man ausserdem den tiefsten Punkt im
 Fontface errechnen, für den Fall dass man die Fonts von unten aus abbilden
 möchte (Align=Bottom).</li>
-<li><b>Anzahl Sprungtabellen</b>\n
-Dieser Wert gibt an, wieviele Sprungtabellen im Face enthalten sind.
+<li><b>Position Underscore</b>\n
 </li>
+<li><b>Anzahl Glyphs</b>\n
+Anzahl Glyphs/Zeichen in diesem Face.
+</li>
+
 </ul>
-\par Sprungtabellen
-Das FONT5-Format sieht vor, dass es mehrere Sprungtabellen geben kann. Dadurch ist es möglich
-selektiv nur die Fonts in das File einzubinden, die man tatsächlich benötigt.
+\par
+Der Aufbau ist somit fast identisch zu Version 5, nur Byte 10 enthält statt der Anzahl Spruntabellen
+die Anzahl Glyphs.
+
+\par Glyphs
+Ein wesentlicher Unterschied zu Version 5 (und allen vorhergehenden) besteht darin,
+dass es keine Sprungtabellen mehr gibt. Stattdessen folgen nun direkt die Chunks mit den Glyphs.
+Der Aufbau der Chunks ist folgendermassen:
 \code
-Byte 0:  Start Character in Tabelle (UNICODE)         2 Byte
-Byte 2:  End Character in Tabelle (UNICODE)           2 Byte
-Byte 4:  Pointer auf Beginn der Sprungtabelle         4 Byte
+Byte 0:    Größe des Chunks in Bytes                     (4 Byte)
+Byte 4:    Unicode-Wert des Zeichens                     (2 Byte)
+Byte 6:    Breite                                        (2 Byte)
+Byte 8:    Höhe                                          (2 Byte)
+Byte 10:   BearingX (signed)                             (2 Byte)
+Byte 12:   BearingY (signed)                             (2 Byte)
+Byte 14:   Advance                                       (2 Byte)
+Byte 16:   Hints-Tabelle                                 (n Byte)
+Byte 16+n: Bitmap                                        (x Byte)
+
 \endcode
 Beschreibung:
 <ul>
-<li><b>Start und Ende in Character Tabelle</b>\n
-Diese beiden Werte geben an, mit welchem Zeichen die nachfolgende Sprungtabelle beginnt und
-Ended. Da UNICODE verwendet wird, sind die Werte 2 Byte groß und im LittleEndian Format
-angegeben.
-</li>
-<li><b>Pointer auf Beginn der Sprungtabelle</b>\n
-Ein 4 Byte Pointer im Little Endian Format, der den Beginn der Sprungtabelle innerhalb des FACE angibt.
-</li>
-</ul>
-Die Sprungtabellen selbst besteht aus 4-Byte Werten im Little Endian Format, die den Beginn des jeweiligen
-Glyphs innerhalb des Font-FACE angibt. Dabei wird der 12-Byte große Header und die Sprungtabelle mitgerechnet.\n\n
-Die Sprungtabelle enthält nur Pointer für existierende Glyphs. Ist ein Glyph nicht vorhanden, enthält der
-Wert in der Sprungtabelle 0.\n\n
-Die Position des ersten Sprungtabelle  errechnet sich folgendermaßen:
-\code
-Position= 12 + Anzahl Sprungtabellen * 8
-\endcode
+	<li><b>Größe des Chunks</b>\n
+	Größe des Chunks in Byte einschließlich dieses Werts
+	</li>
+	<li><b>Unicode-Wert des Zeichens</b>\n
+	Dieser Wert ist 2 Byte gross, das heisst es lassen such nur Zeichen abbilden,
+	deren Unicode-Werte zwischen 0 und 65535 liegen.
+	</li>
+	<li><b>Breite</b>\n
+	Breite des Zeichens in Pixel
+	</li>
+	<li><b>Höhe</b>\n
+	Höhe des Zeichens in Pixel
+	</li>
+	<li><b>BearingX</b>\n
+	Wert, der beim Zeichnen dazuaddiert werden muss, bevor die erste Spalte des Zeichens gezeichnet werden kann.
+	</li>
+	<li><b>BearingY</b>\n
+	Wert, der beim Zeichnen dazuaddiert werden muss, bevor die Zeile des Zeichens gezeichnet werden kann.
+	</li>
+	<li><b>Advance</b>\n
+	Wert, der dazuaddiert werden muss, um an die Position des nächsten darzustellenden Zeichens zu kommen.
+	Falls es zu der Zeichenkombination Hints gibt, muss dessen Wert zu diesem noch dazuaddiert werden.
+	</li>
+	<li><b>Hints-Tabelle</b>\n
+	Unterstützt der Font Hints (Bit 3 im Flags-Feld des FACE-Headers ist gesetzt),
+	schließt sich nun die Hints-Tabele an. Ist dies nicht der Fall, folgt sofort die Bitmap.
+	Die Tabelle ist folgendermassen aufgebaut:
+	\code
+Byte 0: Unicode                   (2 Byte)
+Byte 2: Offset (signed)           (2 Byte)
+	\endcode
+	Unicode gibt den Unicode-Wert des nachfolgenden Zeichens an, Offset die Verschiebung nach
+	links oder rechts. Das Ende der Tabelle wird dadurch gekennzeichnet, dass der Unicode-Wert 0 ist.
+	Um Platz zu sparen werden in der Tabelle nur Zeichenkombinationen gespeichert, bei denen es auch
+	tatsächlich eine Verschiebung gibt.
+	</li>
+	<li><b>Bitmap</b>\n
+	Das Format der Bitmap ergibt sich aus dem Pixelformat im FACE-Header.
+	Die Größe errechnet sich aus <i>BitsProPixel * Breite * Höhe</i>, wobei auf volle Byte aufgerundet wird.
+	</li>
 
-\par Glyphs
-Ein Glyph besteht aus einem Header und einer Bitmap. Der Header ist folgendermaßen aufgebaut:
-\code
-Byte 0: Breite                  (2 Byte)
-Byte 2: Höhe                    (2 Byte)
-Byte 4: BearingX (signed)       (2 Byte)
-Byte 6: BearingY (signed)       (2 Byte)
-Byte 8: Advance                 (2 Byte)
-\endcode
-Das Format der Bitmap ergibt sich aus dem Pixelformat im FACE-Header.
-Die Größe errechnet sich aus <i>BitsProPixel * Breite * Höhe</i>, wobei auf volle Byte aufgerundet wird.\n\n
-Die Position des ersten Glyphs errechnet sich folgendermaßen:
-\code
-Position= 12 + Anzahl Sprungtabellen * 8 + Anzahl Chars in jeder Sprungtabelle * 4
-\endcode
+</ul>
+Aufgrund dieses Aufbaus läßt es sich nicht errechnen, an welcher Stelle im File sich ein bestimmtes
+Glyph befinden. Die Applikation muss daher alle Glyphs lesen und sich diese Information selbst
+erstellen, zum Beispiel innerhalb eines binären Baumes.
 
  */
 
@@ -177,47 +213,47 @@ namespace ppl7 {
 namespace grafix {
 
 
-/*!\class FontEngineFont5
+/*!\class FontEngineFont6
  * \ingroup PPLGroupGrafik
- * \brief Font-Engine für PFP Version 5 Fonts
+ * \brief Font-Engine für PFP Version 6 Fonts
  */
 
-FontEngineFont5::FontEngineFont5()
+FontEngineFont6::FontEngineFont6()
 {
 }
 
-FontEngineFont5::~FontEngineFont5()
+FontEngineFont6::~FontEngineFont6()
 {
 }
 
-String FontEngineFont5::name() const
+String FontEngineFont6::name() const
 {
-	return L"FontEngineFont5";
+	return L"FontEngineFont6";
 }
 
-String FontEngineFont5::description() const
+String FontEngineFont6::description() const
 {
-	return "Rendering of PPLib Version 5 Fonts";
+	return "Rendering of PPLib Version 6 Fonts";
 }
 
 
-void FontEngineFont5::init()
+void FontEngineFont6::init()
 {
 	// Es gibt nichts zu tun
 }
 
-int FontEngineFont5::ident(FileObject &file) throw()
+int FontEngineFont6::ident(FileObject &file) throw()
 {
 	PFPFile ff;
 	if (!ff.ident(file)) return 0;
 	if (ff.getID()!=L"FONT") return 0;
-	if (ff.getMainVersion()==5 && ff.getSubVersion()==0) {
+	if (ff.getMainVersion()==6 && ff.getSubVersion()==0) {
 		return 1;
 	}
 	return 0;
 }
 
-FontFile *FontEngineFont5::loadFont(FileObject &file, const String &fontname)
+FontFile *FontEngineFont6::loadFont(FileObject &file, const String &fontname)
 {
 	PFPFile *File = new PFPFile;
 	if (!File) throw OutOfMemoryException();
@@ -228,7 +264,7 @@ FontFile *FontEngineFont5::loadFont(FileObject &file, const String &fontname)
 		throw;
 	}
 	if (File->getID()!=L"FONT") throw InvalidFontException();
-	if (File->getMainVersion()!=5 || File->getSubVersion()!=0) throw InvalidFontException();
+	if (File->getMainVersion()!=6 || File->getSubVersion()!=0) throw InvalidFontException();
 	FontFile *ff=new FontFile;
 	if (!ff) {
 		delete File;
@@ -243,7 +279,7 @@ FontFile *FontEngineFont5::loadFont(FileObject &file, const String &fontname)
 	return ff;
 }
 
-void FontEngineFont5::deleteFont(FontFile *file)
+void FontEngineFont6::deleteFont(FontFile *file)
 {
 	if (!file) throw NullPointerException();
 	if (file->engine!=this) throw InvalidFontEngineException();
@@ -419,7 +455,7 @@ static int DrawGlyphAA8(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 	return 1;
 }
 
-PFPChunk *FontEngineFont5::selectFont(const FontFile &file, const Font &font)
+PFPChunk *FontEngineFont6::selectFont(const FontFile &file, const Font &font)
 {
 	if (file.priv==NULL) throw NullPointerException();
 	PFPFile *f=(PFPFile *)file.priv;
@@ -461,7 +497,7 @@ static const char *FindJumpTable(const char *header, int *start, int *end, int c
 	return NULL;
 }
 
-void FontEngineFont5::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
+void FontEngineFont6::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
 {
 	PFPChunk *c=selectFont(file,font);
 	if (c) {
@@ -481,7 +517,7 @@ void FontEngineFont5::render(const FontFile &file, const Font &font, Drawable &d
 	throw InvalidFontException();
 }
 
-void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
+void FontEngineFont6::renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
 {
 	DRAWABLE_DATA *data=draw.getData();
 	const char *header=(char*)c->data();
@@ -632,7 +668,7 @@ void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &dr
 	}
 }
 
-Size FontEngineFont5::measure(const FontFile &file, const Font &font, const String &text)
+Size FontEngineFont6::measure(const FontFile &file, const Font &font, const String &text)
 {
 	Size s;
 	if (file.priv==NULL) throw NullPointerException();

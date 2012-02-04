@@ -170,7 +170,10 @@ Grafix::Grafix()
 
 	FontEngineFont5 *font5=new FontEngineFont5;
 	addFontEngine(font5);
-#ifdef HAVE_FREETYPE2
+	FontEngineFont6 *font6=new FontEngineFont6;
+	addFontEngine(font6);
+
+	#ifdef HAVE_FREETYPE2
 	FontEngineFreeType *freetype=new FontEngineFreeType;
 	addFontEngine(freetype);
 #endif

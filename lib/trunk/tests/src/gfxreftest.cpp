@@ -677,15 +677,17 @@ int DoFontsFreetype(Drawable &surface, int &num)
 		Font.setColor(Color(255,255,255));
 		surface.print(Font,5,180,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
 		Font.setRotation(10.0);
-		surface.print(Font,300,200,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
+		surface.print(Font,12,12,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
 		Font.setRotation(20.0);
-		surface.print(Font,300,200,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
+		surface.print(Font,12,12,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
 		Font.setRotation(30.0);
-		surface.print(Font,300,200,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
+		surface.print(Font,12,12,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
 		Font.setRotation(45.0);
-		surface.print(Font,300,200,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
+		surface.print(Font,12,12,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
 		Font.setRotation(90.0);
-		surface.print(Font,300,200,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
+		surface.print(Font,12,12,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
+		surface.line(700,0,700,500,Color(128,128,128));
+		surface.print(Font,700,12,"Ein Font-Test mit \"Liberation Sans Bold Truetype\"");
 
 
 		/*

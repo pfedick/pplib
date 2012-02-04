@@ -214,6 +214,50 @@ void FontEngineFreeType::deleteFont(FontFile *file)
 #endif
 }
 
+
+#ifdef HAVE_FREETYPE2
+static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
+{
+	ppluint8 v=0;
+	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
+	for (int gy=0;gy<bitmap->rows;gy++) {
+		for (int gx=0;gx<bitmap->width;gx++) {
+			v=glyph[gx];
+			if (v>0) {
+				draw.blendPixel(x+gx,y+gy,color,v);
+			}
+		}
+		glyph+=bitmap->pitch;
+	}
+}
+
+static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
+{
+	ppluint8 v=0;
+	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
+	ppluint8 bitcount;
+	ppluint8 bytecount;
+	for (int gy=0;gy<bitmap->rows;gy++) {
+		bitcount=0;
+		bytecount=0;
+		for (int gx=0;gx<bitmap->width;gx++) {
+			if (!bitcount) {
+				v=glyph[bytecount];
+				bitcount=8;
+				bytecount++;
+			}
+			if(v&128) {
+				draw.putPixel(x+gx,y+gy,color);
+			}
+			v=v<<1;
+			bitcount--;
+		}
+		glyph+=bitmap->pitch;
+	}
+}
+
+#endif
+
 void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
 {
 #ifndef HAVE_FREETYPE2
@@ -224,22 +268,9 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	int error=FT_Set_Pixel_Sizes(face->face,0,font.size()+2);
 	if (error!=0) throw InvalidFontException();
 
-	void (*BltGlyph) (GLYPH *surface)=NULL;
-	GLYPH g;
-	//Color color=font.color();
-	g.color=draw.rgb(color);
-	switch (draw.rgbformat()) {
-		case RGBFormat::X8R8G8B8:
-		case RGBFormat::X8B8G8R8:
-		case RGBFormat::A8R8G8B8:
-		case RGBFormat::A8B8G8R8:
-			//BltGlyph=BltGlyph_M8_32;
-			break;
-	};
-	int lastx=x;
-	//int lasty=y;
-	int orgx=x;
-	int orgy=y;
+	int orgx=x<<6;
+	int orgy=y<<6;
+	int lastx=orgx;
 	int code;
 	double angle;
 	bool rotate=false;
@@ -260,78 +291,48 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
-	ppluint8 v=0;
+	kerning.x=0;
+	kerning.y=0;
+
 	size_t p=0;
 	size_t textlen=text.len();
+
 	while (p<textlen) {
 		code=text[p];
 		p++;
-		y=orgy;
 		if (code==10) {											// Newline
-			lastx=x=orgx;
-			orgy+=font.size()+2;
-			y=orgy;
+			lastx=orgx;
+			orgy+=(font.size()+2)<<6;
 			last_glyph=0;
 		} else {
+			y=orgy;
 			x=lastx;
 			glyph_index=FT_Get_Char_Index(face->face,code);
 			if (!glyph_index) continue;
 			// Antialiasing
 			if (font.antialias()) {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER);
+				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL);
 			} else {
 				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
 			}
 			if (error!=0) continue;
-			x=x+slot->bitmap_left;
-			y=y-slot->bitmap_top;
-			if (face->kerning>0 && last_glyph>0) {
-				error=FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
-				if (error==0) {
-					x+=(kerning.x>>6);
-					y+=(kerning.y>>6);
-				}
+			//x=x+(slot->bitmap_left<<6);
+			//y=y-(slot->bitmap_top<<6);
+			if (face->kerning>0 && last_glyph>0 && rotate==false) {
+				FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
+				x+=kerning.x;
+				y+=kerning.y;
 			}
 
-			if (BltGlyph) {
-
+			if (font.antialias()) {
+				renderGlyphAA(draw,&slot->bitmap,(x>>6)+slot->bitmap_left,
+						(y>>6)-slot->bitmap_top,color);
 			} else {
-				char *glyph=(char *)slot->bitmap.buffer;
-				if (font.antialias()) {
-					for (int gy=0;gy<slot->bitmap.rows;gy++) {
-						for (int gx=0;gx<slot->bitmap.width;gx++) {
-							v=glyph[gx];
-							if (v>0) {
-								draw.blendPixel(x+gx,y+gy,color,v);
-							}
-						}
-						glyph+=slot->bitmap.pitch;
-					}
-				} else {
-					ppluint8 bitcount=0;
-					ppluint8 bytecount=0;
-					for (int gy=0;gy<slot->bitmap.rows;gy++) {
-						for (int gx=0;gx<slot->bitmap.width;gx++) {
-							if (!bitcount) {
-								v=glyph[bytecount];
-								bitcount=8;
-								bytecount++;
-							}
-							if(v&128) {
-								draw.putPixel(x+gx,y+gy,color);
-							}
-							v=v<<1;
-							bitcount--;
-						}
-						glyph+=slot->bitmap.pitch;
-						bitcount=0;
-						bytecount=0;
-					}
-
-				}
+				renderGlyphMono(draw,&slot->bitmap,(x>>6)+slot->bitmap_left,
+						(y>>6)-slot->bitmap_top,color);
 			}
-			lastx+=(slot->advance.x>>6);
-			orgy-=(slot->advance.y>>6);
+			lastx=x+slot->advance.x;
+			orgy-=slot->advance.y;
 			last_glyph=glyph_index;
 		}
 	}
