@@ -46,7 +46,6 @@ lib_ppl=yes
 basename=libppl7
 libname=ppl7
 
-
 while test $# -gt 0; do
   case "$1" in
   -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
