@@ -1155,6 +1155,62 @@ CCompression::Algorithm PFPFile::GetCompression()
 	return comp;
 }
 
+/*!\brief Prüfen, ob es sich um ein PFP-File handelt
+ *
+ * \desc
+ * Diese Funktion prüft, ob es sich bei der Datei mit dem Namen \p file um eine Datei
+ * im \ref PFPFileVersion3 PFP-Format Version 3 handelt. Ist dies der Fall, wird deren
+ * ID und Version eingelesen.
+ *
+ * @param file Dateiname
+ * @return Gibt \c true zurück, wenn es sich um eine Datei im PFP-Format handelt. Deren
+ * ID kann anschließend mit PFPFile::GetID ausgelesen werden, Version mit PFPFile::GetVersion bzw.
+ * PFPFile::GetMainVersion und PFPFile::GetSubVersion. Handelt es sich nicht um eine Datei
+ * im PFP-Format, gibt die Funktion \c false zurück. Es wird keine Exception geworfen.
+ */
+bool PFPFile::Ident(const CString &file)
+{
+	CFile ff;
+	try {
+		ff.Open(file,"rb");
+	} catch (...) {
+		return false;
+	}
+	return Ident(ff);
+}
+
+/*!\brief Prüfen, ob es sich um ein PFP-File handelt
+ *
+ * \desc
+ * Diese Funktion prüft, ob es sich bei der geöffneten Datei \p ff um eine Datei
+ * im \ref PFPFileVersion3 PFP-Format Version 3 handelt. Ist dies der Fall, wird deren
+ * ID und Version eingelesen.
+ *
+ * @param ff Referenz auf eine geöffnete Datei
+ * @return Gibt \c true zurück, wenn es sich um eine Datei im PFP-Format handelt. Deren
+ * ID kann anschließend mit PFPFile::GetID ausgelesen werden, Version mit PFPFile::GetVersion bzw.
+ * PFPFile::GetMainVersion und PFPFile::GetSubVersion. Handelt es sich nicht um eine Datei
+ * im PFP-Format, gibt die Funktion \c false zurück. Es wird keine Exception geworfen.
+ */
+bool PFPFile::Ident(CFileObject &ff)
+{
+	try {
+		const char *p;
+		p=ff.Map(0,24);
+		if (strncmp(p,"PFP-File",8)!=0) return false;
+		if (Peek8(p+8)!=3) return false;
+		id[4]=0;
+		strncpy(id,p+10,4);
+		mainversion=Peek8(p+15);
+		subversion=Peek8(p+14);
+		comp=(CCompression::Algorithm)Peek8(p+16);
+		return true;
+	} catch (...) {
+		return false;
+	}
+	return false;
+}
+
 
 int PFPFile::Load(const char *file)
 /*!\brief PFP-File laden

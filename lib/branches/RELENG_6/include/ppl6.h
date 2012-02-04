@@ -3731,6 +3731,9 @@ class PFPFile
 
 		int Load(CFileObject *ff);
 		int Load(const char *file);
+		bool Ident(CFileObject &ff);
+		bool Ident(const CString &file);
+
 
 		virtual int LoadRequest(const char *id, int mainversion ,int subversion);
 
