@@ -155,7 +155,10 @@ CGrafix::CGrafix()
 
 	CFontEngineFont5 *font5=new CFontEngineFont5;
 	AddFontEngine(font5);
-#ifdef HAVE_FREETYPE2
+	FontEngineFont6 *font6=new FontEngineFont6;
+	AddFontEngine(font6);
+
+	#ifdef HAVE_FREETYPE2
 	CFontEngineFreeType *freetype=new CFontEngineFreeType;
 	AddFontEngine(freetype);
 #endif
