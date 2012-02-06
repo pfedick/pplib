@@ -82,13 +82,13 @@ File=cursor.png
 [34]
 ID=34
 Name=PPL Liberation Sans
-File=liberationsans2.fnt5
+File=liberationsans2.fnt6
 compression=none
 
 [35]
 ID=35
 Name=PPL Liberation Mono
-File=liberationmono2.fnt5
+File=liberationmono2.fnt6
 compression=none
 
 [50]
