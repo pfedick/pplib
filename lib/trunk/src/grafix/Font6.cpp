@@ -46,30 +46,12 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#include <map>
 
 #include "ppl7.h"
 #include "ppl7-grafix.h"
+
 //#include "grafix6.h"
-
-
-//#undef HAVE_X86_ASSEMBLER
-
-// Font-Blitter
-typedef struct tagGLYPH {
-	const char *data;
-	char *target;
-	ppluint32 pitch;
-	pplint32 color;
-} GLYPH;
-
-extern "C" {
-	int BltGlyph_M8_32 (GLYPH *g);
-	int BltGlyph_M1_32 (GLYPH *g);
-	int BltGlyph_AA8_32 (GLYPH *g);
-	int BltGlyph_AA2_32 (GLYPH *g);
-	int BltGlyph_AA4_32 (GLYPH *g);
-}
-
 
 /*!\page PFPFont6Format Format PFP Font, Version 6
  *
@@ -209,8 +191,825 @@ erstellen, zum Beispiel innerhalb eines binären Baumes.
 
  */
 
+// Font-Blitter
+typedef struct tagRenderContext {
+	const char *bitmap;
+	char *target;
+	ppluint32 pitch;
+	pplint32 color;
+	pplint16 width;
+	pplint16 height;
+} RENDER_CONTEXT;
+
+
 namespace ppl7 {
 namespace grafix {
+
+
+class Font6Glyph
+{
+	private:
+	public:
+		int width;
+		int height;
+		int bearingX;
+		int bearingY;
+		int advance;
+		const char *bitmap;
+		std::map<wchar_t,int> Hints;
+		int getHint(wchar_t nextGlyph) const;
+};
+
+class Font6Face
+{
+	private:
+
+	public:
+		int	Flags;
+		int Pixelformat;
+		int Size;
+		int MaxBearingY;
+		int MaxHeight;
+		int Underscore;
+		std::map<wchar_t,Font6Glyph> Glyphs;
+
+		const Font6Glyph* getGlyph(wchar_t code) const;
+
+};
+
+class Font6Renderer
+{
+	private:
+		PFPFile ff;
+		std::map<ppluint32,Font6Face> Faces;
+		String Name, Author, Copyright, Description;
+
+		void loadFace(const char *data, size_t size);
+		void loadGlyph(Font6Face &Face, const char *data, size_t size);
+
+		const Font6Face* getFace(int size, int flags);
+
+		void renderInternal(const Font6Face &face, grafix::Drawable &draw, const Font &font, int x, int y, const String &text, const Color &color);
+
+
+
+	public:
+		Font6Renderer();
+		~Font6Renderer();
+
+		void loadFont(const String &filename);
+		void loadFont(FileObject &file);
+
+		const String & name() const;
+		const String & author() const;
+		const String & copyright() const;
+		const String & description() const;
+		size_t numFaces() const;
+
+
+		void	render(grafix::Drawable &draw, const Font &font, int x, int y, const String &text, const Color &color);
+		Size	measure(const Font &font, const String &text);
+
+
+	// Exceptions
+
+};
+
+
+static void DrawGlyphMono8_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->PutPixel(data,xx+x,yy+y,c);
+			bitmap++;
+		}
+	}
+}
+
+static void DrawGlyphMono8_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->PutPixel(data,x-yy,y+xx,c);
+			bitmap++;
+		}
+	}
+}
+
+static void DrawGlyphMono8_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->PutPixel(data,x-xx,y-yy,c);
+			bitmap++;
+		}
+	}
+}
+
+static void DrawGlyphMono8_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->PutPixel(data,x+yy,y-xx,c);
+			bitmap++;
+		}
+	}
+}
+
+
+static void DrawGlyphMono1_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if (v&128) {
+				data.fn->PutPixel(data,xx+x,yy+y,c);
+			}
+			v=v<<1;
+			bitcount--;
+		}
+	}
+}
+
+static void DrawGlyphMono1_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if (v&128) {
+				data.fn->PutPixel(data,x-yy,y+xx,c);
+			}
+			v=v<<1;
+			bitcount--;
+		}
+	}
+}
+
+static void DrawGlyphMono1_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if (v&128) {
+				data.fn->PutPixel(data,x-xx,y-yy,c);
+			}
+			v=v<<1;
+			bitcount--;
+		}
+	}
+}
+
+static void DrawGlyphMono1_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if (v&128) {
+				data.fn->PutPixel(data,x+yy,y-xx,c);
+			}
+			v=v<<1;
+			bitcount--;
+		}
+	}
+}
+
+static void DrawGlyphAA2_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&192)) {
+				if (v2==192) data.fn->BlendPixel(data,xx+x,yy+y,c,255);
+				else if (v2==128) data.fn->BlendPixel(data,xx+x,yy+y,c,200);		// 200
+				else data.fn->BlendPixel(data,xx+x,yy+y,c,100);					// 100
+			}
+			v=v<<2;
+			bitcount-=2;
+		}
+	}
+}
+
+static void DrawGlyphAA2_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&192)) {
+				if (v2==192) data.fn->BlendPixel(data,x-yy,y+xx,c,255);
+				else if (v2==128) data.fn->BlendPixel(data,x-yy,y+xx,c,200);		// 200
+				else data.fn->BlendPixel(data,x-yy,y+xx,c,100);					// 100
+			}
+			v=v<<2;
+			bitcount-=2;
+		}
+	}
+}
+
+static void DrawGlyphAA2_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&192)) {
+				if (v2==192) data.fn->BlendPixel(data,x-xx,y-yy,c,255);
+				else if (v2==128) data.fn->BlendPixel(data,x-xx,y-yy,c,200);		// 200
+				else data.fn->BlendPixel(data,x-xx,y-yy,c,100);					// 100
+			}
+			v=v<<2;
+			bitcount-=2;
+		}
+	}
+}
+
+static void DrawGlyphAA2_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&192)) {
+				if (v2==192) data.fn->BlendPixel(data,x+yy,y-xx,c,255);
+				else if (v2==128) data.fn->BlendPixel(data,x+yy,y-xx,c,200);		// 200
+				else data.fn->BlendPixel(data,x+yy,y-xx,c,100);					// 100
+			}
+			v=v<<2;
+			bitcount-=2;
+		}
+	}
+}
+
+
+static void DrawGlyphAA4_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&240)) {
+				v2=v2>>4;
+				data.fn->BlendPixel(data,xx+x,yy+y,c,v2*255/15);
+			}
+			v=v<<4;
+			bitcount-=4;
+		}
+	}
+}
+
+static void DrawGlyphAA4_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&240)) {
+				v2=v2>>4;
+				data.fn->BlendPixel(data,x-yy,y+xx,c,v2*255/15);
+			}
+			v=v<<4;
+			bitcount-=4;
+		}
+	}
+}
+
+static void DrawGlyphAA4_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&240)) {
+				v2=v2>>4;
+				data.fn->BlendPixel(data,x-xx,y-yy,c,v2*255/15);
+			}
+			v=v<<4;
+			bitcount-=4;
+		}
+	}
+}
+
+static void DrawGlyphAA4_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v=0, v2=0;
+	ppluint8 bitcount=0;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			if (!bitcount) {
+				v=bitmap[0];
+				bitcount=8;
+				bitmap++;
+			}
+			if ((v2=v&240)) {
+				v2=v2>>4;
+				data.fn->BlendPixel(data,x+yy,y-xx,c,v2*255/15);
+			}
+			v=v<<4;
+			bitcount-=4;
+		}
+	}
+}
+
+
+static void DrawGlyphAA8_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->BlendPixel(data,xx+x,yy+y,c,v);
+			bitmap++;
+		}
+	}
+}
+
+static void DrawGlyphAA8_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->BlendPixel(data,xx+x,yy+y,c,v);
+			bitmap++;
+		}
+	}
+}
+
+static void DrawGlyphAA8_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->BlendPixel(data,xx+x,yy+y,c,v);
+			bitmap++;
+		}
+	}
+}
+static void DrawGlyphAA8_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
+{
+	const char *bitmap=glyph.bitmap;
+	int v;
+	for (int yy=0;yy<glyph.height;yy++) {
+		for (int xx=0;xx<glyph.width;xx++) {
+			v=bitmap[0];
+			if (v) data.fn->BlendPixel(data,xx+x,yy+y,c,v);
+			bitmap++;
+		}
+	}
+}
+
+Font6Renderer::Font6Renderer()
+{
+
+}
+
+Font6Renderer::~Font6Renderer()
+{
+
+}
+
+const String & Font6Renderer::name() const
+{
+	return Name;
+}
+
+const String & Font6Renderer::author() const
+{
+	return Author;
+}
+
+const String & Font6Renderer::copyright() const
+{
+	return Copyright;
+}
+
+const String & Font6Renderer::description() const
+{
+	return Description;
+}
+
+size_t Font6Renderer::numFaces() const
+{
+	return Faces.size();
+}
+
+void Font6Renderer::loadFont(const String &filename)
+{
+	File file;
+	file.open(filename,File::READ);
+	loadFont(file);
+}
+
+void Font6Renderer::loadFont(FileObject &file)
+{
+	if (!ff.ident(file)) throw InvalidFontFormatException(file.filename());
+	if (ff.getID()!=L"FONT") throw InvalidFontFormatException(file.filename());
+	if (ff.getMainVersion()!=6 || ff.getSubVersion()!=0) throw InvalidFontFormatException(file.filename());
+	ff.load(file);
+	Name=ff.getName();
+	Author=ff.getAuthor();
+	Copyright=ff.getCopyright();
+	Description=ff.getDescription();
+
+	// Die Faces laden
+	PFPFile::Iterator it;
+	ff.reset(it);
+	PFPChunk *c;
+	while ((c=ff.findNextChunk(it,L"FACE"))) {
+		loadFace((const char*)c->data(),c->size());
+	}
+
+}
+
+void Font6Renderer::loadFace(const char *data, size_t size)
+{
+	if (size<12) throw InvalidFontFaceException(Name);
+	Font6Face Face;
+	Face.Flags=Peek8(data+0);
+	Face.Pixelformat=Peek8(data+1);
+	Face.Size=Peek16(data+2);
+	Face.MaxBearingY=Peek16(data+4);
+	Face.MaxHeight=Peek16(data+6);
+	Face.Underscore=Peek16(data+8);
+	size_t numGlyphs=Peek16(data+10);
+	ppluint32 id;
+	id=(Face.Flags&7)<<16;
+	id|=Face.Size;
+	size_t p=12;
+	//printf ("Lade Face mit id %i, Size: %i, Flags: %i, Bytes: %zi\n",id,Face.Size,Face.Flags,size);
+
+	// Wir fügen zuerst das Face in die Map ein
+	Faces.insert(std::pair<ppluint32,Font6Face>(id,Face));
+
+	// Damit wir im nächsten Schritt die Glyphen direkt innerhalb des Eintrags in der Map
+	// ergänzen können, was uns eine ganze Menge Kopiererei erspart
+	Font6Face &mapFace=Faces[id];
+	//printf ("Num Glyphs: %zi\n",numGlyphs);
+	for (size_t i=0;i<numGlyphs;i++) {
+		size_t s=Peek32(data+p);
+		loadGlyph(mapFace,data+p,s);
+		p+=s;
+	}
+	//printf ("%zi Bytes gelesen\n",p);
+}
+
+void Font6Renderer::loadGlyph(Font6Face &Face, const char *data, size_t size)
+{
+	Font6Glyph NewGlyph;
+	wchar_t unicode=Peek16(data+4);
+	// Um spätere Kopiererei bei einfügen des Glyphs in die Map zu vermeiden,
+	// fügen wir den Glyph zuerst in die Map ein
+	Face.Glyphs.insert(std::pair<wchar_t,Font6Glyph>(unicode,NewGlyph));
+	// Und arbeiten dann auf dem Objekt innerhalb der Map
+	Font6Glyph &Glyph=Face.Glyphs[unicode];
+	Glyph.width=Peek16(data+6);
+	Glyph.height=Peek16(data+8);
+	Glyph.bearingX=(short)Peek16(data+10);
+	Glyph.bearingY=(short)Peek16(data+12);
+	Glyph.advance=Peek16(data+14);
+	size_t p=16;
+	if (Face.Flags&8) {		// Wir haben Hints
+		wchar_t c;
+		while ((c=Peek16(data+p))) {
+			Glyph.Hints.insert(std::pair<wchar_t,int>(c,(short)Peek16(data+p+2)));
+			p+=4;
+		}
+		p+=4;
+	}
+	Glyph.bitmap=data+p;
+	/*
+	printf ("Reading Glyph: Size: %zi, Unicode: %i = %lc, width: %i, height: %i, advance: %i, Hints: %zi\n",
+			size,unicode,unicode,Glyph.width,Glyph.height, Glyph.advance, Glyph.Hints.size());
+			*/
+}
+
+const Font6Face* Font6Renderer::getFace(int size, int flags)
+{
+	ppluint32 id;
+	id=(flags&7)<<16;
+	id|=(size&0xffff);
+	//printf("Suche id %i aus %zi Faces\n",id,Faces.size());
+	std::map<ppluint32,Font6Face>::const_iterator it;
+	it=Faces.find(id);
+	if (it==Faces.end()) return NULL;
+	return &it->second;
+}
+
+const Font6Glyph* Font6Face::getGlyph(wchar_t code) const
+{
+	std::map<wchar_t,Font6Glyph>::const_iterator it;
+	it=Glyphs.find(code);
+	if (it==Glyphs.end()) return NULL;
+	return &it->second;
+}
+
+int Font6Glyph::getHint(wchar_t nextGlyph) const
+{
+	if (Hints.size()==0) return 0;
+	std::map<wchar_t,int>::const_iterator it;
+	it=Hints.find(nextGlyph);
+	if (it==Hints.end()) return 0;
+	return it->second;
+}
+
+void Font6Renderer::render(grafix::Drawable &draw, const Font &font, int x, int y, const String &text, const Color &color)
+{
+	int flags=0;
+	if (font.antialias()) flags|=1;
+	if (font.bold()) flags|=2;
+	if (font.italic()) flags|=4;
+	const Font6Face *face=getFace(font.size(),flags);
+	if (face) {
+		renderInternal(*face,draw,font,x,y,text, color);
+		return;
+	}
+	// Fallback für fette Schrift, wenn kein Face für Bold enthalten ist
+	if (flags&2) {
+		flags-=2;
+		face=getFace(font.size(),flags);
+		if (face) {
+			renderInternal(*face,draw,font,x,y,text,color);
+			renderInternal(*face,draw,font,x+1,y,text,color);
+			return;
+		}
+	}
+	throw UnknownFontFaceException();
+}
+
+static void getBlitter(const Font6Face &face, const grafix::Drawable &draw, int rotate, void (**BltGlyph) (RENDER_CONTEXT *context), void (**ErsatzGlyph) (DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c))
+{
+	*BltGlyph=NULL;
+	*ErsatzGlyph=NULL;
+	switch (face.Pixelformat) {
+		case 1:				// Monochrom, 8 Bit pro Pixel
+			switch (draw.rgbformat()) {
+				case RGBFormat::X8R8G8B8:
+				case RGBFormat::X8B8G8R8:
+				case RGBFormat::A8R8G8B8:
+				case RGBFormat::A8B8G8R8:
+					#ifdef HAVE_X86_ASSEMBLER
+						//BltGlyph=BltGlyph_M8_32;
+					#endif
+					break;
+
+			};
+			switch (rotate) {
+				case 0: *ErsatzGlyph=DrawGlyphMono8_0; break;
+				case 90: *ErsatzGlyph=DrawGlyphMono8_90; break;
+				case 180: *ErsatzGlyph=DrawGlyphMono8_180; break;
+				case 270: *ErsatzGlyph=DrawGlyphMono8_270; break;
+			}
+
+			break;
+		case 2:				// Monochrom, 1 Bit pro Pixel
+			switch (draw.rgbformat()) {
+				case RGBFormat::X8R8G8B8:
+				case RGBFormat::X8B8G8R8:
+				case RGBFormat::A8R8G8B8:
+				case RGBFormat::A8B8G8R8:
+					#ifdef HAVE_X86_ASSEMBLER
+						//BltGlyph=BltGlyph_M1_32;
+					#endif
+					break;
+
+			};
+			switch (rotate) {
+				case 0: *ErsatzGlyph=DrawGlyphMono1_0; break;
+				case 90: *ErsatzGlyph=DrawGlyphMono1_90; break;
+				case 180: *ErsatzGlyph=DrawGlyphMono1_180; break;
+				case 270: *ErsatzGlyph=DrawGlyphMono1_270; break;
+			}
+			break;
+		case 3:				// Antialiased, 8 Bit pro Pixel
+			switch (draw.rgbformat()) {
+				case RGBFormat::X8R8G8B8:
+				case RGBFormat::X8B8G8R8:
+				case RGBFormat::A8R8G8B8:
+				case RGBFormat::A8B8G8R8:
+					#ifdef HAVE_X86_ASSEMBLER
+						//BltGlyph=BltGlyph_AA8_32;
+					#endif
+					break;
+			};
+			switch (rotate) {
+				case 0: *ErsatzGlyph=DrawGlyphAA8_0; break;
+				case 90: *ErsatzGlyph=DrawGlyphAA8_90; break;
+				case 180: *ErsatzGlyph=DrawGlyphAA8_180; break;
+				case 270: *ErsatzGlyph=DrawGlyphAA8_270; break;
+			}
+
+			break;
+		case 4:				// Antialiased, 2 Bit pro Pixel
+			switch (draw.rgbformat()) {
+				case RGBFormat::X8R8G8B8:
+				case RGBFormat::X8B8G8R8:
+				case RGBFormat::A8R8G8B8:
+				case RGBFormat::A8B8G8R8:
+					#ifdef HAVE_X86_ASSEMBLER
+						//BltGlyph=BltGlyph_AA2_32;
+					#endif
+					break;
+			};
+			switch (rotate) {
+				case 0: *ErsatzGlyph=DrawGlyphAA2_0; break;
+				case 90: *ErsatzGlyph=DrawGlyphAA2_90; break;
+				case 180: *ErsatzGlyph=DrawGlyphAA2_180; break;
+				case 270: *ErsatzGlyph=DrawGlyphAA2_270; break;
+			}
+			break;
+		case 5:				// Antialiased, 4 Bit pro Pixel
+			switch (draw.rgbformat()) {
+				case RGBFormat::X8R8G8B8:
+				case RGBFormat::X8B8G8R8:
+				case RGBFormat::A8R8G8B8:
+				case RGBFormat::A8B8G8R8:
+					#ifdef HAVE_X86_ASSEMBLER
+						//BltGlyph=BltGlyph_AA4_32;
+					#endif
+					break;
+			};
+			switch (rotate) {
+				case 0: *ErsatzGlyph=DrawGlyphAA4_0; break;
+				case 90: *ErsatzGlyph=DrawGlyphAA4_90; break;
+				case 180: *ErsatzGlyph=DrawGlyphAA4_180; break;
+				case 270: *ErsatzGlyph=DrawGlyphAA4_270; break;
+			}
+			break;
+		default:
+			throw InvalidFontException();
+	};
+}
+
+
+void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw, const Font &font, int x, int y, const String &text,const Color &color)
+{
+	DRAWABLE_DATA *data=draw.getData();
+	const Font6Glyph *glyph=NULL, *previous=NULL;
+	RENDER_CONTEXT rc;
+	void (*BltGlyph) (RENDER_CONTEXT *context)=NULL;
+	void (*ErsatzGlyph) (DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)=NULL;
+	int startx=x;
+	int starty=y;
+	int lastx=x;
+	int lasty=y;
+	int kerningx=0;
+	int rotate=(int)font.rotation();
+	wchar_t code;
+	size_t textlen=text.len();
+	size_t p=0;
+	getBlitter(face,draw,rotate, &BltGlyph,&ErsatzGlyph);
+	rc.color=draw.rgb(color);
+	if (font.orientation()==Font::TOP) {
+		lasty+=face.MaxBearingY;
+	}
+	while (p<textlen) {
+		code=text[p++];
+		if (code==10) {								// Newline
+			lastx=startx;
+			lasty+=face.MaxHeight;
+			glyph=NULL;
+		} else if (code=='\t') {					// Tab
+			glyph=face.getGlyph(32);
+			if (glyph) lastx+=4*glyph->advance;
+		} else {
+			glyph=face.getGlyph(code);
+			if (glyph==NULL || (BltGlyph==NULL && ErsatzGlyph==NULL)) {
+				x=lastx;
+				y=lasty;
+				draw.drawRect(x,y-face.MaxBearingY,x+4,y,font.color());
+				lastx+=5;
+			} else {
+				kerningx=0;
+				if (previous) kerningx+=previous->getHint(code);
+				switch (rotate) {
+					case 0:
+						x=lastx+glyph->bearingX+kerningx;
+						y=lasty-glyph->bearingY;
+						ErsatzGlyph(*data,*glyph,x,y,rc.color);
+						lastx+=glyph->advance+kerningx;
+						break;
+					case 90:
+						x=lastx+glyph->bearingY;
+						y=lasty+glyph->bearingX+kerningx;
+						ErsatzGlyph(*data,*glyph,x,y,rc.color);
+						lasty+=glyph->advance+kerningx;
+						break;
+					case 180:
+						x=lastx-glyph->bearingX-kerningx;
+						y=lasty+glyph->bearingY;
+						ErsatzGlyph(*data,*glyph,x,y,rc.color);
+						lastx-=glyph->advance+kerningx;
+						break;
+					case 270:
+						x=lastx-glyph->bearingY;
+						y=lasty-glyph->bearingX-kerningx;
+						ErsatzGlyph(*data,*glyph,x,y,rc.color);
+						lasty-=glyph->advance+kerningx;
+						break;
+				}
+			}
+		}
+		previous=glyph;
+	}
+}
+
+Size Font6Renderer::measure(const Font &font, const String &text)
+{
+	Size s;
+	return s;
+}
+
+// ##################################################################################################################################################################
+// ##################################################################################################################################################################
+// ##################################################################################################################################################################
 
 
 /*!\class FontEngineFont6
@@ -255,27 +1054,22 @@ int FontEngineFont6::ident(FileObject &file) throw()
 
 FontFile *FontEngineFont6::loadFont(FileObject &file, const String &fontname)
 {
-	PFPFile *File = new PFPFile;
-	if (!File) throw OutOfMemoryException();
+	Font6Renderer *render = new Font6Renderer;
+	if (!render) throw OutOfMemoryException();
 	try {
-		File->load(file);
+		render->loadFont(file);
 	} catch (...) {
-		delete File;
+		delete render;
 		throw;
 	}
-	if (File->getID()!=L"FONT") throw InvalidFontException();
-	if (File->getMainVersion()!=6 || File->getSubVersion()!=0) throw InvalidFontException();
 	FontFile *ff=new FontFile;
 	if (!ff) {
-		delete File;
+		delete render;
 		throw OutOfMemoryException();
 	}
-	if (fontname.notEmpty()) ff->Name=fontname;
-	else ff->Name=File->getName();
+	ff->Name=render->name();
 	ff->engine=this;
-	// Wir Speichern nicht den Speicherblock der Daten, sondern nur den
-	// Pointer auf das PFPFile
-	ff->priv=File;
+	ff->priv=render;
 	return ff;
 }
 
@@ -283,448 +1077,22 @@ void FontEngineFont6::deleteFont(FontFile *file)
 {
 	if (!file) throw NullPointerException();
 	if (file->engine!=this) throw InvalidFontEngineException();
-	PFPFile *f=(PFPFile *)file->priv;
-	delete f;
+	Font6Renderer *render=(Font6Renderer *)file->priv;
+	delete render;
 	file->priv=NULL;
 	file->engine=NULL;
 }
 
-
-#ifndef HAVE_X86_ASSEMBLER
-extern "C" {
-void BltGlyph_M8_32 (GLYPH *g)
-{
-	pplint16 width=Peek16(g->data);
-	pplint16 height=Peek16(g->data+2);
-	const char *bitmap=g->data+10;
-	ppluint32 *t=(ppluint32 *)g->target;
-	int pitch=g->pitch>>2;
-	SurfaceColor c=g->color;
-	int v;
-	for (int yy=0;yy<height;yy++) {
-		for (int xx=0;xx<width;xx++) {
-			v=bitmap[0];
-			if (v) t[xx]=c;
-			bitmap++;
-		}
-		t+=pitch;
-	}
-}
-}
-#endif
-
-static int DrawGlyphMono8(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
-{
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
-	int y1=y;
-	int x1=x;
-	x=x1+bearingx;
-	y=y1-bearingy;
-
-	const char *bitmap=glyph+10;
-	int v;
-	for (int yy=0;yy<height;yy++) {
-		for (int xx=0;xx<width;xx++) {
-			v=bitmap[0];
-			if (v) data.fn->PutPixel(data,xx+x,yy+y,c);
-			bitmap++;
-		}
-	}
-	return 1;
-}
-
-static int DrawGlyphMono1(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
-{
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
-	int y1=y;
-	int x1=x;
-	x=x1+bearingx;
-	y=y1-bearingy;
-
-	const char *bitmap=glyph+10;
-	int v=0;
-	ppluint8 bitcount=0;
-	for (int yy=0;yy<height;yy++) {
-		for (int xx=0;xx<width;xx++) {
-			if (!bitcount) {
-				v=bitmap[0];
-				bitcount=8;
-				bitmap++;
-			}
-			if (v&128) {
-				data.fn->PutPixel(data,xx+x,yy+y,c);
-			}
-			v=v<<1;
-			bitcount--;
-		}
-	}
-	return 1;
-}
-
-static int DrawGlyphAA2(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
-{
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
-	int y1=y;
-	int x1=x;
-	x=x1+bearingx;
-	y=y1-bearingy;
-
-	const char *bitmap=glyph+10;
-	int v=0, v2=0;
-	ppluint8 bitcount=0;
-	for (int yy=0;yy<height;yy++) {
-		for (int xx=0;xx<width;xx++) {
-			if (!bitcount) {
-				v=bitmap[0];
-				bitcount=8;
-				bitmap++;
-			}
-			if ((v2=v&192)) {
-				if (v2==192) data.fn->BlendPixel(data,xx+x,yy+y,c,255);
-				else if (v2==128) data.fn->BlendPixel(data,xx+x,yy+y,c,200);		// 200
-				else data.fn->BlendPixel(data,xx+x,yy+y,c,100);					// 100
-			}
-			v=v<<2;
-			bitcount-=2;
-		}
-	}
-	return 1;
-}
-
-static int DrawGlyphAA4(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
-{
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
-	int y1=y;
-	int x1=x;
-	x=x1+bearingx;
-	y=y1-bearingy;
-
-	const char *bitmap=glyph+10;
-	int v=0, v2=0;
-	ppluint8 bitcount=0;
-	for (int yy=0;yy<height;yy++) {
-		for (int xx=0;xx<width;xx++) {
-			if (!bitcount) {
-				v=bitmap[0];
-				bitcount=8;
-				bitmap++;
-			}
-			if ((v2=v&240)) {
-				v2=v2>>4;
-				data.fn->BlendPixel(data,xx+x,yy+y,c,v2*255/15);
-			}
-			v=v<<4;
-			bitcount-=4;
-		}
-	}
-	return 1;
-}
-
-static int DrawGlyphAA8(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
-{
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
-	int y1=y;
-	int x1=x;
-	x=x1+bearingx;
-	y=y1-bearingy;
-
-	const char *bitmap=glyph+10;
-	int v;
-	for (int yy=0;yy<height;yy++) {
-		for (int xx=0;xx<width;xx++) {
-			v=bitmap[0];
-			if (v) data.fn->BlendPixel(data,xx+x,yy+y,c,v);
-			bitmap++;
-		}
-	}
-	return 1;
-}
-
-PFPChunk *FontEngineFont6::selectFont(const FontFile &file, const Font &font)
-{
-	if (file.priv==NULL) throw NullPointerException();
-	PFPFile *f=(PFPFile *)file.priv;
-	PFPChunk *c;
-	const char *header;
-
-	// Wir mussen zuerst den passenden Chunk finden
-	f->myMutex.lock();
-	PFPFile::Iterator it;
-	f->reset(it);
-	int flags=0;
-	if (font.antialias()) flags|=1;
-	if (font.bold()) flags|=2;
-	if (font.italic()) flags|=4;
-
-	while ((c=f->findNextChunk(it,L"FACE"))) {
-		header=(const char*)c->data();
-		if (!header) continue;
-		if (((int)Peek16(header+2))==(int)font.size() && (int)Peek8(header)==flags) {
-			break;
-		}
-	}
-	f->myMutex.unlock();
-	return c;
-}
-
-static const char *FindJumpTable(const char *header, int *start, int *end, int code)
-{
-	int numJumpTables=Peek16(header+10);
-	const char *jumpindex=header+12;
-	for (int ii=0;ii<numJumpTables;ii++) {
-		*start=Peek16(jumpindex);
-		*end=Peek16(jumpindex+2);
-		if (code>=*start && code<=*end) {
-			return header+Peek32(jumpindex+4);
-		}
-		jumpindex+=8;
-	}
-	return NULL;
-}
-
 void FontEngineFont6::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
 {
-	PFPChunk *c=selectFont(file,font);
-	if (c) {
-		renderInternal(c,font,draw,x,y,text,color);
-		return;
-	}
-	if (font.bold()) {
-		Font f=font;
-		f.setBold(false);
-		c=selectFont(file,f);
-		if (c) {
-			renderInternal(c,font,draw,x,y,text,color);
-			renderInternal(c,font,draw,x+1,y,text,color);
-			return;
-		}
-	}
-	throw InvalidFontException();
-}
-
-void FontEngineFont6::renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
-{
-	DRAWABLE_DATA *data=draw.getData();
-	const char *header=(char*)c->data();
-	const char *jump=NULL;
-	const char *glyph;
-	int pixelformat=Peek8(header+1);
-	int code;
-	int start=0;
-	int end=0;
-	pplint16 bearingy, bearingx, width, height, advance;
-	pplint16 MaxHeight, MaxBearingY;
-	MaxHeight=Peek16(header+6);
-	MaxBearingY=Peek16(header+4);
-
-	int lastx=x;
-	int lasty=y;
-
-	int (*BltGlyph) (GLYPH *surface)=NULL;
-	int (*ErsatzGlyph) (DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)=NULL;
-	GLYPH g;
-	g.color=draw.rgb(color);
-	switch (pixelformat) {
-		case 1:				// Monochrom, 8 Bit pro Pixel
-			switch (draw.rgbformat()) {
-				case RGBFormat::X8R8G8B8:
-				case RGBFormat::X8B8G8R8:
-				case RGBFormat::A8R8G8B8:
-				case RGBFormat::A8B8G8R8:
-					#ifdef HAVE_X86_ASSEMBLER
-						BltGlyph=BltGlyph_M8_32;
-					#endif
-					break;
-
-			};
-			ErsatzGlyph=DrawGlyphMono8;
-			break;
-		case 2:				// Monochrom, 1 Bit pro Pixel
-			switch (draw.rgbformat()) {
-				case RGBFormat::X8R8G8B8:
-				case RGBFormat::X8B8G8R8:
-				case RGBFormat::A8R8G8B8:
-				case RGBFormat::A8B8G8R8:
-					#ifdef HAVE_X86_ASSEMBLER
-						BltGlyph=BltGlyph_M1_32;
-					#endif
-					break;
-
-			};
-			ErsatzGlyph=DrawGlyphMono1;
-			break;
-		case 3:				// Antialiased, 8 Bit pro Pixel
-			switch (draw.rgbformat()) {
-				case RGBFormat::X8R8G8B8:
-				case RGBFormat::X8B8G8R8:
-				case RGBFormat::A8R8G8B8:
-				case RGBFormat::A8B8G8R8:
-					#ifdef HAVE_X86_ASSEMBLER
-						//BltGlyph=BltGlyph_AA8_32;
-					#endif
-					break;
-			};
-			ErsatzGlyph=DrawGlyphAA8;
-			break;
-		case 4:				// Antialiased, 2 Bit pro Pixel
-			switch (draw.rgbformat()) {
-				case RGBFormat::X8R8G8B8:
-				case RGBFormat::X8B8G8R8:
-				case RGBFormat::A8R8G8B8:
-				case RGBFormat::A8B8G8R8:
-					#ifdef HAVE_X86_ASSEMBLER
-						BltGlyph=BltGlyph_AA2_32;
-					#endif
-					break;
-			};
-			ErsatzGlyph=DrawGlyphAA2;
-			break;
-		case 5:				// Antialiased, 4 Bit pro Pixel
-			switch (draw.rgbformat()) {
-				case RGBFormat::X8R8G8B8:
-				case RGBFormat::X8B8G8R8:
-				case RGBFormat::A8R8G8B8:
-				case RGBFormat::A8B8G8R8:
-					#ifdef HAVE_X86_ASSEMBLER
-						BltGlyph=BltGlyph_AA4_32;
-					#endif
-					break;
-			};
-			ErsatzGlyph=DrawGlyphAA4;
-			break;
-		default:
-			throw InvalidFontException();
-	};
-	int orgx=x;
-	size_t p=0;
-	bool drawn;
-	if (font.orientation()==Font::TOP) {
-		lasty+=MaxBearingY;
-	}
-	size_t textlen=text.len();
-	while (p<textlen) {
-		code=text[p];
-		//printf ("code[%i]= %i\n",p,code);
-		p++;
-		if (code==10) {											// Newline
-			lastx=orgx;
-			lasty+=MaxHeight;
-		} else if (code=='\t') {					// Tab
-			if (32<start || 32>end) jump=FindJumpTable(header,&start,&end,32);
-			if (!jump) continue;
-			// Glyph holen
-			glyph=header+Peek32(jump+((32-start)<<2));
-			if (glyph) {
-				advance=Peek16(glyph+8);
-				lastx+=advance*4;
-			}
-		} else {											// Rest
-			if (code<start || code>end) jump=FindJumpTable(header,&start,&end,code);
-			if (!jump) continue;
-			// Glyph holen
-			glyph=header+Peek32(jump+((code-start)<<2));
-			if (glyph) {
-				drawn=false;
-				advance=Peek16(glyph+8);
-				if (BltGlyph) {
-					width=Peek16(glyph);
-					height=Peek16(glyph+2);
-					bearingy=Peek16(glyph+6);
-					bearingx=Peek16(glyph+4);
-					x=lastx+bearingx;
-					y=lasty-bearingy;
-					if (x>=0 && x+width<draw.width()
-							&& y>=0 && y+height<draw.height()) {
-						//if (y>590)
-						//	printf("Char: %i, x: %i, y: %i, height: %i, clipper.bottom: %i, bearingy: %i\n",code,x,y,height,s->clipper.bottom,bearingy);
-						g.data=glyph;
-						g.pitch=draw.pitch();
-						g.target=(char*)draw.adr(x,y);
-						//HexDump(&g,sizeof(g));
-						if (BltGlyph(&g)) {
-							drawn=true;
-						}
-					}
-				}
-				if (!drawn) ErsatzGlyph(*data,glyph,lastx,lasty,g.color);
-				lastx+=advance;
-			}
-		}
-	}
+	Font6Renderer *render=(Font6Renderer *)file.priv;
+	render->render(draw,font,x,y,text,color);
 }
 
 Size FontEngineFont6::measure(const FontFile &file, const Font &font, const String &text)
 {
-	Size s;
-	if (file.priv==NULL) throw NullPointerException();
-	//PFPFile *f=(PFPFile *)file->priv;
-	PFPChunk *c=selectFont(file,font);
-	if (!c) return s;
-	const char *header=(char*)c->data();
-	const char *jump=NULL;
-	const char *glyph;
-	int code;
-	int start=0;
-	int end=0;
-	pplint16 bearingy, bearingx, width, height, advance;
-	pplint16 MaxHeight, MaxBearingY;
-	MaxHeight=Peek16(header+6);
-	MaxBearingY=Peek16(header+4);
-
-	size_t p=0;
-	int miny=0, maxy=0;
-	int x=0,y=0;
-	size_t textlen=text.len();
-	while (p<textlen) {
-		code=text[p];
-		p++;
-		if (code==10) {											// Newline
-			y+=MaxHeight;
-			x=0;
-		} else if (code=='\t') {								// Tab
-			if (32<start || 32>end) jump=FindJumpTable(header,&start,&end,32);
-			if (!jump) continue;
-			// Glyph holen
-			glyph=header+Peek32(jump+((32-start)<<2));
-			if (glyph) {
-				advance=Peek16(glyph+8);
-				x+=advance*4;
-			}
-		} else { 												// Rest
-			if (code<start || code>end) jump=FindJumpTable(header,&start,&end,code);
-			if (!jump) continue;
-			// Glyph holen
-			glyph=header+Peek32(jump+((code-start)<<2));
-			if (glyph) {
-				width=Peek16(glyph);
-				height=Peek16(glyph);
-				bearingy=Peek16(glyph+6);
-				bearingx=Peek16(glyph+4);
-				advance=Peek16(glyph+8);
-				x+=advance;
-				if (y-bearingy < miny) miny=y-bearingy;
-				if (y-bearingy+height > maxy) maxy=y-bearingy+height;
-				if (x>s.width) s.width=x;
-			}
-		}
-	}
-	s.setHeight(maxy-miny+1);
-	return s;
+	Font6Renderer *render=(Font6Renderer *)file.priv;
+	return render->measure(font,text);
 }
 
 

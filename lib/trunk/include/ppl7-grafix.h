@@ -72,7 +72,10 @@ PPLNORMALEXCEPTION(FontNotFoundException);
 PPLNORMALEXCEPTION(InvalidFontEngineException);
 PPLNORMALEXCEPTION(InvalidSpriteException);
 
-
+// Font6 Exceptions
+PPLPARAMETERISEDEXCEPTION(InvalidFontFormatException);
+PPLPARAMETERISEDEXCEPTION(InvalidFontFaceException);
+PPLPARAMETERISEDEXCEPTION(UnknownFontFaceException);
 
 // Microsoft kompatible Strukturen
 typedef struct _RECT {
@@ -861,8 +864,6 @@ class FontEngineFont5 : public FontEngine
 class FontEngineFont6 : public FontEngine
 {
 	private:
-		PFPChunk *selectFont(const FontFile &file, const Font &font);
-		void renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 
 	public:
 		FontEngineFont6();
