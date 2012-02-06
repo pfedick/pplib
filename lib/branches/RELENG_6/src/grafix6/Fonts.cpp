@@ -67,6 +67,7 @@ CFont::CFont()
 	fontSize=12;
 	flags=0;
 	ori=0;
+	rotationDegrees=0.0;
 }
 
 CFont::CFont(const CFont &other)
@@ -78,6 +79,7 @@ CFont::CFont(const CFont &other)
 	fontSize=other.fontSize;
 	flags=other.flags;
 	ori=other.ori;
+	rotationDegrees=other.rotationDegrees;
 }
 
 CFont &CFont::operator=(const CFont &other)
@@ -89,6 +91,7 @@ CFont &CFont::operator=(const CFont &other)
 	fontSize=other.fontSize;
 	flags=other.flags;
 	ori=other.ori;
+	rotationDegrees=other.rotationDegrees;
 	return *this;
 }
 
@@ -157,6 +160,12 @@ CFont::Orientation CFont::orientation() const
 {
 	return (Orientation)ori;
 }
+
+double CFont::rotation() const
+{
+	return rotationDegrees;
+}
+
 
 int CFont::setName(const CString &name)
 {
@@ -237,6 +246,11 @@ void CFont::setSize(int size)
 void CFont::setOrientation(Orientation o)
 {
 	ori=o;
+}
+
+void CFont::setRotation(double degrees)
+{
+	rotationDegrees=degrees;
 }
 
 Size CFont::measure(const CWString &text) const

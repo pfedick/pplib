@@ -70,6 +70,13 @@ namespace tk {
 
 namespace grafix {
 
+// Font6 Exceptions
+PPLPARAMETERISEDEXCEPTION(InvalidFontFormatException);
+PPLPARAMETERISEDEXCEPTION(InvalidFontFaceException);
+PPLPARAMETERISEDEXCEPTION(UnknownFontFaceException);
+PPLNORMALEXCEPTION(InvalidFontException);
+
+
 #ifdef __LITTLE_ENDIAN__
 union RGBA {
 	struct { ppldb red,green,blue,alpha; };
@@ -699,6 +706,7 @@ class CFont
 		ppluint16	fontSize;
 		ppluint8	flags;
 		ppluint8	ori;
+		double		rotationDegrees;
 	public:
 		enum Orientation {
 			LEFT =1,
@@ -726,6 +734,7 @@ class CFont
 		bool monospace() const;
 		int size() const;
 		Orientation orientation() const;
+		double rotation() const;
 		Size measure(const CWString &text) const;
 		Size measure(const char *fmt, ...) const;
 
@@ -743,6 +752,7 @@ class CFont
 		void setMonospace(bool enable);
 		void setSize(int size);
 		void setOrientation(Orientation o);
+		void setRotation(double degrees);
 
 		CFont &operator=(const CFont &other);
 };
@@ -1183,6 +1193,22 @@ class CFontEngineFont5 : public CFontEngine
 		virtual int Render(CFontFile *file, const CFont &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color);
 		virtual Size Measure(CFontFile *file, const CFont &font, const CWString &text);
 };
+
+class FontEngineFont6 : public CFontEngine
+{
+	private:
+
+	public:
+		FontEngineFont6();
+		virtual ~FontEngineFont6();
+		virtual int Init();
+		virtual int Ident(CFileObject *file);
+		virtual CFontFile *LoadFont(CFileObject *file, const char *fontname);
+		virtual int DeleteFont(CFontFile *file);
+		virtual int Render(CFontFile *file, const CFont &font, CDrawable &draw, int x, int y, const CWString &text, const Color &color);
+		virtual Size Measure(CFontFile *file, const CFont &font, const CWString &text);
+};
+
 
 class CFontEngineFreeType : public CFontEngine
 {

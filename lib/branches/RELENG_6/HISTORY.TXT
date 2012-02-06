@@ -14,6 +14,8 @@ Version 6.4.11
   - Neue Funktion CString::setInitialBuffersize
   - Fehlende Funktion CString::Capacity implementiert
   - CFile::Open mit Formatstrinf wurde umbenannt in CFile::Openf
+  - CFont unterstützt Parameter für Rotation
+  - Font-Format 6 eingeführt (Backport aus PPL7)
 
 Version 6.4.10  vom 10.11.2011	(CVS-Tag: REL_6_4_10)
   - CCurl-Klasse: Signals werden nun standardmäßig deaktiviert,
