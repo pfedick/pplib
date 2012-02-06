@@ -269,6 +269,7 @@ class Font6Renderer
 
 		void	render(grafix::Drawable &draw, const Font &font, int x, int y, const String &text, const Color &color);
 		Size	measure(const Font &font, const String &text);
+		Rect	boundary(const Font &font, const String &text, int x, int y);
 
 
 	// Exceptions
@@ -953,12 +954,23 @@ void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw
 	while (p<textlen) {
 		code=text[p++];
 		if (code==10) {								// Newline
-			lastx=startx;
-			lasty+=face.MaxHeight;
+			switch (rotate) {
+				case 0: lastx=startx; lasty+=face.MaxHeight; break;
+				case 90: lasty=starty; lastx-=face.MaxHeight; break;
+				case 180: lastx=startx; lasty-=face.MaxHeight; break;
+				case 270: lasty=starty; lastx+=face.MaxHeight; break;
+			}
 			glyph=NULL;
 		} else if (code=='\t') {					// Tab
 			glyph=face.getGlyph(32);
-			if (glyph) lastx+=4*glyph->advance;
+			if (glyph) {
+				switch(rotate) {
+					case 0: lastx+=4*glyph->advance; break;
+					case 90: lasty+=4*glyph->advance; break;
+					case 180: lastx-=4*glyph->advance; break;
+					case 270: lasty-=4*glyph->advance; break;
+				}
+			}
 		} else {
 			glyph=face.getGlyph(code);
 			if (glyph==NULL || (BltGlyph==NULL && ErsatzGlyph==NULL)) {
@@ -1004,7 +1016,77 @@ void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw
 Size Font6Renderer::measure(const Font &font, const String &text)
 {
 	Size s;
+	const Font6Glyph *glyph=NULL, *previous=NULL;
+	int lastx=0;
+	int lasty=0;
+	int kerningx=0;
+	int rotate=(int)font.rotation();
+	wchar_t code;
+	size_t textlen=text.len();
+	size_t p=0;
+	int flags=0;
+	if (font.antialias()) flags|=1;
+	if (font.bold()) flags|=2;
+	if (font.italic()) flags|=4;
+	const Font6Face *face=getFace(font.size(),flags);
+	if (!face) return s;
+	while (p<textlen) {
+		code=text[p++];
+		if (code==10) {								// Newline
+			lastx=0; lasty+=face->MaxHeight;
+			glyph=NULL;
+		} else if (code=='\t') {					// Tab
+			glyph=face->getGlyph(32);
+			if (glyph) {
+				lastx+=4*glyph->advance;
+			}
+		} else {
+			glyph=face->getGlyph(code);
+			if (glyph==NULL) {
+				lastx+=5;
+			} else {
+				kerningx=0;
+				if (previous) kerningx+=previous->getHint(code);
+				lastx+=glyph->advance+kerningx;
+			}
+		}
+		previous=glyph;
+		if (lastx>s.width) s.width=lastx;
+		if (lasty>s.height) s.height=lasty;
+	}
+	if (rotate==90 || rotate==270) {
+		s.setSize(s.height, s.width);
+	}
 	return s;
+}
+
+Rect Font6Renderer::boundary(const Font &font, const String &text, int x, int y)
+{
+	Rect r;
+	int flags=0;
+	if (font.antialias()) flags|=1;
+	if (font.bold()) flags|=2;
+	if (font.italic()) flags|=4;
+	const Font6Face *face=getFace(font.size(),flags);
+	if (!face) return r;
+
+	Size s=measure(font,text);
+	int rotate=(int)font.rotation();
+	switch (rotate) {
+		case 0:
+			r.setRect(x,y,s.width,s.height);
+			break;
+		case 90:
+			r.setRect(x-s.width,y,s.width,s.height);
+			break;
+		case 180:
+			r.setRect(x-s.width,y-s.height,s.width,s.height);
+			break;
+		case 270:
+			r.setRect(x,y-s.height,s.width,s.height);
+			break;
+	}
+	return r;
 }
 
 // ##################################################################################################################################################################
@@ -1067,7 +1149,8 @@ FontFile *FontEngineFont6::loadFont(FileObject &file, const String &fontname)
 		delete render;
 		throw OutOfMemoryException();
 	}
-	ff->Name=render->name();
+	if (fontname.notEmpty()) ff->Name=fontname;
+	else ff->Name=render->name();
 	ff->engine=this;
 	ff->priv=render;
 	return ff;
@@ -1095,7 +1178,11 @@ Size FontEngineFont6::measure(const FontFile &file, const Font &font, const Stri
 	return render->measure(font,text);
 }
 
-
+Rect FontEngineFont6::boundary(const FontFile &file, const Font &font, const String &text, int x, int y)
+{
+	Font6Renderer *render=(Font6Renderer *)file.priv;
+	return render->boundary(font,text,x,y);
+}
 
 
 

@@ -68,7 +68,7 @@ PPLNORMALEXCEPTION(FontEngineInitializationException);
 PPLNORMALEXCEPTION(FontEngineUninitializedException);
 PPLNORMALEXCEPTION(InvalidFontException);
 PPLNORMALEXCEPTION(NoSuitableFontEngineException);
-PPLNORMALEXCEPTION(FontNotFoundException);
+PPLPARAMETERISEDEXCEPTION(FontNotFoundException);
 PPLNORMALEXCEPTION(InvalidFontEngineException);
 PPLNORMALEXCEPTION(InvalidSpriteException);
 
@@ -497,6 +497,7 @@ class Font
 		int size() const;
 		Orientation orientation() const;
 		Size measure(const String &text) const;
+		Rect boundary(const String &text, int x=0, int y=0) const;
 		double rotation() const;
 
 		int setName(const String &name);
@@ -838,6 +839,7 @@ class FontEngine
 		virtual void deleteFont(FontFile *file);
 		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+		virtual Rect boundary(const FontFile &file, const Font &font, const String &text, int x, int y);
 		virtual String name() const;
 		virtual String description() const;
 };
@@ -874,6 +876,7 @@ class FontEngineFont6 : public FontEngine
 		virtual void deleteFont(FontFile *file);
 		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
 		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+		virtual Rect boundary(const FontFile &file, const Font &font, const String &text, int x, int y);
 		virtual String name() const;
 		virtual String description() const;
 };

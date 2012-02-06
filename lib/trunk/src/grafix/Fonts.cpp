@@ -264,7 +264,15 @@ Size Font::measure(const String &text) const
 	return file->engine->measure(*file,*this,text);
 }
 
-
+Rect Font::boundary(const String &text, int x, int y) const
+{
+	Rect r;
+	Grafix *gfx=GetGrafix();
+	FontFile *file=gfx->findFont(Name);
+	if (!file) return r;
+	if (!file->engine) return r;
+	return file->engine->boundary(*file,*this,text,x,y);
+}
 
 
 bool operator!= (const Font &f1, const Font &f2)
@@ -437,7 +445,7 @@ FontFile *Grafix::findFont(const String &fontname)
 		myMutex.unlock();
 		throw;
 	}
-	throw FontNotFoundException();
+	throw FontNotFoundException(fontname);
 }
 
 void Grafix::listFonts()
@@ -556,6 +564,11 @@ void FontEngine::render(const FontFile &file, const Font &font, Drawable &draw, 
 }
 
 Size FontEngine::measure(const FontFile &file, const Font &font, const String &text)
+{
+	throw UnimplementedVirtualFunctionException();
+}
+
+Rect FontEngine::boundary(const FontFile &file, const Font &font, const String &text, int x, int y)
 {
 	throw UnimplementedVirtualFunctionException();
 }
