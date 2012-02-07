@@ -66,6 +66,7 @@ RELEASE	= release/AVLTree.o \
 	release/crc32.o \
 	release/md5.o \
 	release/random.o \
+	release/inet_resolver.o \
 	release/inet_Webserver.o \
 	release/inet_WikiParser.o \
 	 \
@@ -133,6 +134,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/crc32.o \
 	debug/md5.o \
 	debug/random.o \
+	debug/inet_resolver.o \
 	debug/inet_Webserver.o \
 	debug/inet_WikiParser.o \
 	 \
@@ -459,6 +461,11 @@ release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	$(CXX) -Wall -O3 -o release/random.o -c $(srcdir)/math/random.cpp $(CFLAGS) 
 
 ### INTERNET
+release/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/resolver.cpp<<<
+	$(CXX) -Wall -O3 -o release/inet_resolver.o -c $(srcdir)/internet/resolver.cpp $(CFLAGS) 
+
 release/inet_Webserver.o:	$(srcdir)/internet/Webserver.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
 	###############################################################################
 	# Compiling >>>internet/Webserver.cpp<<<
@@ -832,6 +839,11 @@ debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 	$(CXX) -Wall -O -o debug/random.o -c $(srcdir)/math/random.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### INTERNET
+debug/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/resolver.cpp<<<
+	$(CXX) -Wall -O -o debug/inet_resolver.o -c $(srcdir)/internet/resolver.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/inet_Webserver.o:	$(srcdir)/internet/Webserver.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
 	###############################################################################
 	# Compiling >>>internet/Webserver.cpp<<<

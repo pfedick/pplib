@@ -47,15 +47,55 @@
     #endif
 #endif
 
-#include <string>
-#include <iostream>
+#include <list>
 
 namespace ppl7 {
+
+PPLPARAMETERISEDEXCEPTION(NetworkException);
 
 // TODO
 //int GetHostByName(const char *name, CAssocArray *Result);
 //int GetHostByAddr(const char *addr, CAssocArray *Result);
 String GetHostname();
+
+enum ResolverFlags {
+	af_unspec=0,
+	af_inet=1,
+	af_inet6=2,
+	af_all=3
+};
+
+class IPAddress
+{
+	public:
+		IPAddress();
+		IPAddress(const IPAddress &other);
+		~IPAddress();
+		IPAddress &operator=(const IPAddress &other);
+		void copyAddr(void *ai_addr, size_t ai_addrlen);
+		String		name;
+		String		ip;
+		void		*ai_addr;
+		size_t		ai_addrlen;
+        int			ai_family;
+        int			ai_socktype;
+        int			ai_protocol;
+        String		ai_canonname;
+};
+
+size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
+size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
+String Ace2IDN(const String &ace);
+String IDN2Ace(const String &idn);
+
+String ToBase64(const ByteArrayPtr &bin);
+String ToBase64(const String &bin);
+ByteArray FromBase64(const String &str);
+String ToQuotedPrintable (const String &source);
+
+
+
+
 
 class WikiParser
 {
