@@ -223,6 +223,7 @@
 
 #undef HAVE_LIBLDNS
 #undef HAVE_LIBMICROHTTPD
+#undef HAVE_LIBIDN
 
 /*
  * Assembler

@@ -16,13 +16,13 @@ TARGETBIN	= @bindir@
 TARGETINCLUDE	= @includedir@
 CC			= @CC@
 CXX			= @CXX@
-CFLAGS		=  -I${incdir} -DPPL7LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ 	@ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @OPENSSL_INCLUDES@ @ICONV_CFLAGS@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ 	@LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MPG123_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ 	@GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@
+CFLAGS		=  -I${incdir} -DPPL7LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ 	@ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @OPENSSL_INCLUDES@ @ICONV_CFLAGS@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ 	@LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MPG123_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ 	@LIBIDN_CFLAGS@ 	@GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@
 	
 	
 ###	@X_CFLAGS@   @SYBASE_CFLAGS@   @MAD_CFLAGS@ 
 CPPFLAGS	= @CPPFLAGS@
 LDFLAGS		= @LDFLAGS@
-LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @IMLIB_LIBS@ 	@ICONV_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @LIBCURL@ @LAME_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ 	@LIBMICROHTTPD_LIBS@
+LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @IMLIB_LIBS@ 	@ICONV_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @LIBCURL@ @LAME_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ 	@LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@
 	
 ###  @SYBASE_LIBS@  @MAD_LIBS@
 LIBNAME		= libppl7
@@ -66,6 +66,7 @@ RELEASE	= release/AVLTree.o \
 	release/crc32.o \
 	release/md5.o \
 	release/random.o \
+	release/inet_inet_functions.o \
 	release/inet_resolver.o \
 	release/inet_Webserver.o \
 	release/inet_WikiParser.o \
@@ -134,6 +135,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/crc32.o \
 	debug/md5.o \
 	debug/random.o \
+	debug/inet_inet_functions.o \
 	debug/inet_resolver.o \
 	debug/inet_Webserver.o \
 	debug/inet_WikiParser.o \
@@ -461,6 +463,11 @@ release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	$(CXX) -Wall -O3 -o release/random.o -c $(srcdir)/math/random.cpp $(CFLAGS) 
 
 ### INTERNET
+release/inet_inet_functions.o:	$(srcdir)/internet/inet_functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/inet_functions.cpp<<<
+	$(CXX) -Wall -O3 -o release/inet_inet_functions.o -c $(srcdir)/internet/inet_functions.cpp $(CFLAGS) 
+
 release/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<
@@ -839,6 +846,11 @@ debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 	$(CXX) -Wall -O -o debug/random.o -c $(srcdir)/math/random.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### INTERNET
+debug/inet_inet_functions.o:	$(srcdir)/internet/inet_functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/inet_functions.cpp<<<
+	$(CXX) -Wall -O -o debug/inet_inet_functions.o -c $(srcdir)/internet/inet_functions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-unixconfig.h Makefile $(incdir)/ppl7-inet.h 
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<

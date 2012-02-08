@@ -44,7 +44,7 @@ sinclude(autoconf/shout.m4)
 sinclude(autoconf/imagemagick.m4)
 sinclude(autoconf/libtiff.m4)
 sinclude(autoconf/libmicrohttpd.m4)
-
+sinclude(autoconf/libidn.m4)
 
 AC_CANONICAL_TARGET
 
@@ -251,6 +251,17 @@ AM_PATH_LIBMHASH([0.9.9],
             AC_DEFINE(HAVE_LIBMHASH, 1, [ Define if you have libmhash. ])
             report_have_libmhash="yes",
             :)
+
+
+AM_LIBIDN([0.5.4],
+	report_have_libidn="yes"
+	AC_DEFINE(HAVE_LIBIDN, 1, [ Define if you have libidn. ])
+	AC_SUBST(LIBIDN_CFLAGS)
+	AC_SUBST(LIBIDN_LIBS)
+
+	,
+	report_have_libidn="no"
+	)
 
 
 report_have_jpeg="no"
@@ -541,6 +552,7 @@ AC_SUBST(report_have_libshout)
 AC_SUBST(report_have_libimlib)
 AC_SUBST(report_have_libtiff)
 AC_SUBST(report_have_libmicrohttpd)
+AC_SUBST(report_have_libidn)
 
 
 dnl report configuration
@@ -579,6 +591,7 @@ AC_MSG_RESULT([
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
 **   ldns library:         $report_have_ldns
+**   libidn                $report_have_libidn
 ******************************************************************************
 ])
 

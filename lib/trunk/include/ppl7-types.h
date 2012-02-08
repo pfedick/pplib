@@ -345,6 +345,9 @@ class String : public Variant
 		ByteArray toUtf8() const;
 		ByteArray toLocalEncoding() const;
 		ByteArray toEncoding(const char *encoding) const;
+		ByteArray toUCS4() const;
+		String &fromUCS4(const ppluint32 *str, size_t size=(size_t)-1);
+		String &fromUCS4(const ByteArrayPtr &bin);
 		String getUtf8MD5() const;
 		String getMD5() const;
 

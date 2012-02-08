@@ -612,6 +612,7 @@ SOUND_LIBS
 SOUND_CFLAGS
 GRAPHIC_LIBS
 GRAPHIC_CFLAGS
+report_have_libidn
 report_have_libmicrohttpd
 report_have_libtiff
 report_have_libimlib
@@ -695,6 +696,8 @@ MPG123_CFLAGS
 _libcurl_config
 LIBCURL_CPPFLAGS
 LIBCURL
+LIBIDN_LIBS
+LIBIDN_CFLAGS
 LIBMHASH_CFLAGS
 LIBMHASH_LIBS
 LIBMCRYPT_LIBS
@@ -818,6 +821,7 @@ with_x
 with_libmicrohttpd
 with_libmcrypt_prefix
 with_libmhash
+with_libidn
 with_jpeg
 with_libtiff
 with_libcurl
@@ -1500,6 +1504,7 @@ Optional Packages:
   --with-libmicrohttpd[=PATH]     Prefix where libmicrohttpd is installed (optional)
   --with-libmcrypt-prefix=PFX   Prefix where libmcrypt is installed (optional)
   --with-libmhash[=PATH]     Prefix where libmhash is installed (optional)
+  --with-libidn[=PATH]     Prefix where libidn is installed (optional)
   --with-jpeg[=PATH]     Prefix where libjpeg is installed (optional)
   --with-libtiff[=PATH]     Prefix where libtiff is installed (optional)
   --with-libcurl=DIR      look for the curl library in DIR
@@ -3141,6 +3146,7 @@ ac_config_headers="$ac_config_headers include/ppl7-unixconfig.h"
 # XIPH_PATH_SHOUT([ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]])
 # Test for libshout, and define SHOUT_CPPFLAGS SHOUT_CFLAGS SHOUT_LIBS, and
 # SHOUT_THREADSAFE
+
 
 
 
@@ -10060,6 +10066,100 @@ fi
 
 
 
+
+
+# Check whether --with-libidn was given.
+if test "${with_libidn+set}" = set; then :
+  withval=$with_libidn; libidn_prefix="$withval"
+else
+  libidn_prefix="no"
+fi
+
+
+am_save_CPPFLAGS="$CPPFLAGS"
+am_save_LIBS="$LIBS"
+am_save_LDFLAGS="$LDFLAGS"
+LIBIDN_LIBS="-ldenicdchk"
+LIBIDN_CFLAGS=""
+have_libidn="no"
+	if test "$libidn_prefix" != "yes"
+	then
+		if test "$libidn_prefix" != "no"
+		then
+			LIBS="-L$libidn_prefix/lib -lidn $LIBS"
+			CPPFLAGS="$CPPFLAGS -I$libidn_prefix/include"
+			LIBIDN_LIBS="-L$libidn_prefix/lib -lidn"
+			LIBIDN_CFLAGS="-I$libidn_prefix/include"
+		else
+			LIBS="-lidn $LIBS"
+			LIBIDN_LIBS="-lidn"
+		fi
+	else
+		LIBS="-lidn $LIBS"
+		LIBIDN_LIBS="-lidn"
+	fi
+	ac_fn_c_check_header_mongrel "$LINENO" "idna.h" "ac_cv_header_idna_h" "$ac_includes_default"
+if test "x$ac_cv_header_idna_h" = xyes; then :
+
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for idn library and linking" >&5
+$as_echo_n "checking for idn library and linking... " >&6; }
+    	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+        	 #include <idna.h>
+         	int main()
+         	{
+         		char *idn=NULL;
+         		char *a=NULL;
+				if (IDNA_SUCCESS==idna_to_ascii_8z(idn, &a,0) && a!=NULL) {
+					return 1;
+				}
+         		return 0;
+         	}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      	have_libidn="yes"
+
+else
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+
+
+CPPFLAGS=$am_save_CPPFLAGS
+LIBS=$am_save_LIBS
+LDFLAGS=$am_save_LDFLAGS
+
+if test "$have_libidn" = "yes"
+then
+	report_have_libidn="yes"
+
+$as_echo "#define HAVE_LIBIDN 1" >>confdefs.h
+
+
+
+
+
+else
+	report_have_libidn="no"
+
+fi
+
+
+
+
+
 report_have_jpeg="no"
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libjpeg" >&5
@@ -14172,6 +14272,7 @@ esac;
 
 
 
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:
 ******************************************************************************
 ** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
@@ -14207,6 +14308,7 @@ esac;
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
 **   ldns library:         $report_have_ldns
+**   libidn                $report_have_libidn
 ******************************************************************************
 " >&5
 $as_echo "
@@ -14244,6 +14346,7 @@ $as_echo "
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
 **   ldns library:         $report_have_ldns
+**   libidn                $report_have_libidn
 ******************************************************************************
 " >&6; }
 

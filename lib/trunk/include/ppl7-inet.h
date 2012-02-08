@@ -52,6 +52,7 @@
 namespace ppl7 {
 
 PPLPARAMETERISEDEXCEPTION(NetworkException);
+PPLPARAMETERISEDEXCEPTION(IdnConversionException);
 
 // TODO
 //int GetHostByName(const char *name, CAssocArray *Result);

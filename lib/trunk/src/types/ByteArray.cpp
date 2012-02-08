@@ -250,7 +250,7 @@ void *ByteArray::copy(const void *adr, size_t size)
 	if (adr==NULL || size==0) {
 		throw NullPointerException();
 	}
-	ptradr=::malloc(size+1);
+	ptradr=::malloc(size+4);
 	if (!ptradr) {
 		throw OutOfMemoryException();
 	}
@@ -262,6 +262,9 @@ void *ByteArray::copy(const void *adr, size_t size)
 	}
 	ptrsize=size;
 	((char*)ptradr)[ptrsize]=0;
+	((char*)ptradr)[ptrsize+1]=0;
+	((char*)ptradr)[ptrsize+2]=0;
+	((char*)ptradr)[ptrsize+3]=0;
 	return ptradr;
 }
 
@@ -313,7 +316,7 @@ void *ByteArray::append(void *adr, size_t size)
 
 	if (!ptradr) return copy(adr,size);
 	size_t newsize=ptrsize+size;
-	void *p=::realloc(ptradr,newsize+1);
+	void *p=::realloc(ptradr,newsize+4);
 	if (!p) throw OutOfMemoryException();
 	ptradr=p;
 	void *target=(char*)ptradr+ptrsize;
@@ -325,6 +328,9 @@ void *ByteArray::append(void *adr, size_t size)
 	}
 	ptrsize=newsize;
 	((char*)ptradr)[ptrsize]=0;
+	((char*)ptradr)[ptrsize+1]=0;
+	((char*)ptradr)[ptrsize+2]=0;
+	((char*)ptradr)[ptrsize+3]=0;
 	return ptradr;
 }
 
@@ -376,7 +382,7 @@ void *ByteArray::prepend(void *adr, size_t size)
 
 	if (!ptradr) return copy(adr,size);
 	size_t newsize=ptrsize+size;
-	void *p=::malloc(newsize+1);
+	void *p=::malloc(newsize+4);
 	if (!p) throw OutOfMemoryException();
 	if (memcpy(p,adr,size)!=p) {
 		::free(ptradr);
@@ -395,6 +401,10 @@ void *ByteArray::prepend(void *adr, size_t size)
 	ptradr=p;
 	ptrsize=newsize;
 	((char*)ptradr)[ptrsize]=0;
+	((char*)ptradr)[ptrsize+1]=0;
+	((char*)ptradr)[ptrsize+2]=0;
+	((char*)ptradr)[ptrsize+3]=0;
+
 	return ptradr;
 }
 

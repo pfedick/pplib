@@ -1436,6 +1436,37 @@ ByteArray String::toEncoding(const char *encoding) const
 #endif
 }
 
+ByteArray String::toUCS4() const
+{
+	ByteArray ret;
+	if (stringlen) {
+		ppluint32 *ucs4=(ppluint32*)malloc(stringlen*4+4);
+		if (!ucs4) throw OutOfMemoryException();
+		for (size_t i=0;i<stringlen;i++) ucs4[i]=(ppluint32)ptr[i];
+		ucs4[stringlen]=0;
+		ret.useadr(ucs4,stringlen);
+	}
+	return ret;
+}
+
+String &String::fromUCS4(const ppluint32 *str, size_t size)
+{
+	clear();
+	wchar_t c;
+	for (size_t i=0;str[i]!=0;i++) {
+		if (size!=(size_t)-1 && i>=size) break;
+		c=(wchar_t)str[i];
+		append(c);
+	}
+	return *this;
+}
+
+String &String::fromUCS4(const ByteArrayPtr &bin)
+{
+	return fromUCS4((ppluint32*)bin.ptr(),bin.size());
+}
+
+
 String String::getUtf8MD5() const
 {
 	if (stringlen==0 || ptr==NULL) throw EmptyDataException();
