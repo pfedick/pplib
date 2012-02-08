@@ -737,7 +737,7 @@ AVLTreeAlgorithm::Iterator::Iterator()
 void AVLTreeAlgorithm::reset(Iterator &it) const
 {
 	it.current=NULL;
-	it.stack_height=NULL;
+	it.stack_height=0;
 }
 
 /*!\brief Erstes Element aus dem Baum

@@ -109,14 +109,14 @@ namespace ppl7 {
  * \exception IdnConversionException Wird geworfen, wenn der Domainname im String \p idn
  * nicht konvertiert werden kann.
  */
-String IDN2Ace(const String &idn)
+String Idn2Ace(const String &idn)
 {
 #ifdef HAVE_LIBIDN
 	String ace;
-	uint32_t *a=NULL;
+	char *a=NULL;
 	ByteArray ucs4=idn.toUCS4();
-	if (IDNA_SUCCESS==idna_to_unicode_4z4z((const uint32_t*)ucs4.ptr(),&a,0) && a!=NULL) {
-		ace.fromUCS4(a);
+	if (IDNA_SUCCESS==idna_to_ascii_4z((const uint32_t*)ucs4.ptr(),&a,0) && a!=NULL) {
+		ace.set(a);
 		free(a);
 		return ace;
     }
@@ -137,7 +137,7 @@ String IDN2Ace(const String &idn)
  * \exception IdnConversionException Wird geworfen, wenn der ACE-String nicht
  * umgewandelt werden kann.
  */
-String Ace2IDN(const String &ace)
+String Ace2Idn(const String &ace)
 {
 #ifdef HAVE_LIBIDN
 	String idn;

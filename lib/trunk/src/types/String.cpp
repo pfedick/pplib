@@ -1444,7 +1444,7 @@ ByteArray String::toUCS4() const
 		if (!ucs4) throw OutOfMemoryException();
 		for (size_t i=0;i<stringlen;i++) ucs4[i]=(ppluint32)ptr[i];
 		ucs4[stringlen]=0;
-		ret.useadr(ucs4,stringlen);
+		ret.useadr(ucs4,stringlen*4);
 	}
 	return ret;
 }

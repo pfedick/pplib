@@ -86,8 +86,8 @@ class IPAddress
 
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
 size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
-String Ace2IDN(const String &ace);
-String IDN2Ace(const String &idn);
+String Ace2Idn(const String &ace);
+String Idn2Ace(const String &idn);
 
 String ToBase64(const ByteArrayPtr &bin);
 String ToBase64(const String &bin);

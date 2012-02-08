@@ -8,7 +8,7 @@ LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
 
 
 all: memoryheap memorygroup array strings avltree assocarray pointer datetime bytearray bytearrayptr \
-	functions file dir list \
+	functions file dir list inet \
 	grafix_drawable \
 	grafix_imagefilter \
 	gfxreftest
@@ -40,6 +40,9 @@ dir: bin/dir
 
 array: bin/array
 	bin/array
+
+inet: bin/inet
+	bin/inet
 
 strings: bin/strings
 	bin/strings
@@ -124,6 +127,10 @@ bin/file: src/file.cpp Makefile
 bin/dir: src/dir.cpp Makefile
 	mkdir -p bin
 	$(CC) -o bin/dir src/dir.cpp $(CFLAGS) $(LIB)
+
+bin/inet: src/inet.cpp Makefile
+	mkdir -p bin
+	$(CC) -o bin/inet src/inet.cpp $(CFLAGS) $(LIB)
 
 bin/list: src/list.cpp Makefile bin/wordlist.o
 	mkdir -p bin

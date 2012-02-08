@@ -663,6 +663,7 @@ static wchar_t HexPairValue(const wchar_t * code) {
 			return value;
 		value <<= 4;
 	}
+	return 0;
 }
 
 /*!\brief URL-kodierten String dekodieren
