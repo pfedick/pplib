@@ -176,6 +176,63 @@ String Ace2Idn(const String &ace)
 #endif
 }
 
+#define MAXL (size_t) 75    /* 76th position only used by continuation = */
+
+/*!\brief Konvertiert einen 8Bit-String in Quoted Printable (RFC-822)
+ *
+ * \desc
+ * Diese Funktion konvertiert einen String zunächst in die lokale Kodierung
+ * des Systems um (z.B. UTF-8) und wandelt diesen dann in Quoted Printable um.
+ *
+ * \param[in] source Der zu konvertierende String
+ * \return Gibt den String als Quoted Printable zurück
+ */
+String ToQuotedPrintable (const String &source)
+{
+	ByteArray local=source.toLocalEncoding();
+	unsigned char *src=(unsigned char *)local.ptr();
+	size_t srcl=local.size();
+	unsigned long lp = 0;
+	unsigned char *ret = (unsigned char *) malloc ((size_t) (3*srcl + 3*(((3*srcl)/MAXL) + 1)));
+	unsigned char *d = ret;
+	const char *hex = (const char*)"0123456789ABCDEF";
+	unsigned char c;
+	while (srcl--) {      /* for each character */
+		/* true line break? */
+		if (((c = *src++) == '\012') && srcl) {
+			*d++ = '\012'; *d++ = *src++; srcl--;
+			lp = 0;           /* reset line count */
+		}
+		else {          /* not a line break */
+			/* quoting required? */
+			if (iscntrl (c) || (c == 0x7f) || (c & 0x80) || (c == '=') ||
+					((c == ' ') && (*src == '\012'))) {
+				if ((lp += 3) > MAXL) { /* yes, would line overflow? */
+					*d++ = '='; *d++ = '\012';
+					lp = 2;       /* set line count */
+				}
+				*d++ = '=';     /* quote character */
+				*d++ = hex[c >> 4]; /* high order 4 bits */
+				*d++ = hex[c & 0xf];    /* low order 4 bits */
+			}
+			else {            /* ordinary character */
+				if ((++lp) > MAXL) {    /* would line overflow? */
+					*d++ = '='; *d++ = '\012';
+					lp = 1;       /* set line count */
+				}
+				*d++ = c;       /* ordinary character */
+			}
+		}
+	}
+	*d = '\0';            /* tie off destination */
+	size_t len = d - ret;       /* calculate true size */
+	String rr;
+	rr.set((const char*)ret,len);
+	//target->Replace("=0A","=0A\n");
+	free(ret);
+	return rr;
+}
+
 
 
 

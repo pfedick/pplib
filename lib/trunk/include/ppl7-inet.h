@@ -89,9 +89,6 @@ size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
 String Ace2Idn(const String &ace);
 String Idn2Ace(const String &idn);
 
-String ToBase64(const ByteArrayPtr &bin);
-String ToBase64(const String &bin);
-ByteArray FromBase64(const String &str);
 String ToQuotedPrintable (const String &source);
 
 

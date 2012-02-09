@@ -109,7 +109,7 @@ IPAddress::IPAddress()
 IPAddress::IPAddress(const IPAddress &other)
 {
 	name=other.name;
-	ip=other.name;
+	ip=other.ip;
 	ai_addr=NULL;
 	ai_addrlen=other.ai_addrlen;
 	ai_family=other.ai_family;
@@ -126,21 +126,21 @@ IPAddress::~IPAddress()
 
 void IPAddress::copyAddr(void *ai_addr, size_t ai_addrlen)
 {
-	free(ai_addr);
+	free(this->ai_addr);
 	this->ai_addrlen=ai_addrlen;
 	if (ai_addrlen>0) {
 		this->ai_addr=malloc(ai_addrlen);
 		if (!this->ai_addr) throw OutOfMemoryException();
 		memcpy(this->ai_addr,ai_addr,ai_addrlen);
 	} else {
-		ai_addr=NULL;
+		this->ai_addr=NULL;
 	}
 }
 
 IPAddress &IPAddress::operator=(const IPAddress &other)
 {
 	name=other.name;
-	ip=other.name;
+	ip=other.ip;
 	ai_addr=NULL;
 	ai_addrlen=other.ai_addrlen;
 	ai_family=other.ai_family;
@@ -190,14 +190,15 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 	hints.ai_socktype=SOCK_STREAM;
 	ByteArray localname=name.toLocalEncoding();
 	if ((n=getaddrinfo((const char*)localname,NULL,&hints,&res))!=0) {
-		throw NetworkException("getaddrinfo(%s) returned: %s",(const char*)localname,gai_strerror(n));
+		if (n==EAI_NODATA) return 0;
+		throw NetworkException("getaddrinfo(%s) returned %i: %s",(const char*)localname,n,gai_strerror(n));
 	}
 	ressave=res;
 	IPAddress ip;
 	char hbuf[NI_MAXHOST];
 	do {
 		if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
-			ip.ip=hbuf;
+			ip.ip.set(hbuf);
 			ip.name=name;
 			ip.copyAddr(res->ai_addr,res->ai_addrlen);
 			ip.ai_addrlen=res->ai_addrlen;

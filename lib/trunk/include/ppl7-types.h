@@ -363,6 +363,7 @@ class String : public Variant
 		float toFloat() const;
 		double toDouble() const;
 		const wchar_t * toWchart() const;
+
 		//@}
 
 		//! @name Operatoren
@@ -379,6 +380,7 @@ class String : public Variant
 		operator double () const;
 		operator std::string() const;
 		operator std::wstring() const;
+		operator ByteArrayPtr() const;
 
 		wchar_t operator[](ssize_t pos) const;
 
