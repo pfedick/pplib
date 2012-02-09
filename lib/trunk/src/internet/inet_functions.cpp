@@ -88,6 +88,7 @@
 #endif
 #ifdef HAVE_LIBIDN
 #include <idna.h>
+#include <idn-free.h>
 #endif
 
 
@@ -117,10 +118,10 @@ String Idn2Ace(const String &idn)
 	ByteArray ucs4=idn.toUCS4();
 	if (IDNA_SUCCESS==idna_to_ascii_4z((const uint32_t*)ucs4.ptr(),&a,0) && a!=NULL) {
 		ace.set(a);
-		free(a);
+		idn_free(a);
 		return ace;
     }
-	free(a);
+	idn_free(a);
 	throw IdnConversionException(idn);
 #else
 	throw UnsupportedFeatureException("libidn");
@@ -145,10 +146,10 @@ String Ace2Idn(const String &ace)
 	ByteArray ucs4=ace.toUCS4();
     if (IDNA_SUCCESS==idna_to_unicode_4z4z((const uint32_t*)ucs4.ptr(), &a,0) && a!=NULL) {
 		idn.fromUCS4(a);
-		free(a);
+		idn_free(a);
 		return idn;
     }
-	free(a);
+    idn_free(a);
 	throw IdnConversionException(ace);
 #else
 	throw UnsupportedFeatureException("libidn");

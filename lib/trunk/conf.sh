@@ -13,7 +13,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libmhash=/usr/local --with-sybase=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-jpeg --with-png --with-libtiff=/usr/local \
-			--with-mpg123=/usr/local \
+			--with-mpg123=/usr/local --with-libidn=/usr/local \
 			--with-ogg=/usr/local \
 			--with-libmicrohttpd=/usr/local
 		;;
