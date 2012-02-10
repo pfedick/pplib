@@ -190,7 +190,10 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 	hints.ai_socktype=SOCK_STREAM;
 	ByteArray localname=name.toLocalEncoding();
 	if ((n=getaddrinfo((const char*)localname,NULL,&hints,&res))!=0) {
+#ifdef EAI_NODATA
 		if (n==EAI_NODATA) return 0;
+#endif
+		if (n==EAI_NONAME) return 0;
 		throw NetworkException("getaddrinfo(%s) returned %i: %s",(const char*)localname,n,gai_strerror(n));
 	}
 	ressave=res;
