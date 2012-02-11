@@ -119,8 +119,8 @@ TEST_F(Resolver, SingleIPv4_af_all) {
 		try {
 			std::list<ppl7::IPAddress> result;
 			size_t num=ppl7::GetHostByName("singleipv4.ppl.pfp.de",result,ppl7::af_all);
-			ASSERT_EQ(1,num) << "Unexpected return value";
-			ASSERT_EQ(1,result.size()) << "Unexpected number of results";
+			ASSERT_EQ((size_t)1,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
 			ppl7::IPAddress adr;
 			adr=result.front();
 			ASSERT_EQ(ppl7::String(L"192.168.0.1"),adr.ip) << "Unexpected IP-Address";
@@ -137,8 +137,8 @@ TEST_F(Resolver, SingleIPv4_af_inet) {
 		try {
 			std::list<ppl7::IPAddress> result;
 			size_t num=ppl7::GetHostByName("singleipv4.ppl.pfp.de",result,ppl7::af_inet);
-			ASSERT_EQ(1,num) << "Unexpected return value";
-			ASSERT_EQ(1,result.size()) << "Unexpected number of results";
+			ASSERT_EQ((size_t)1,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
 			ppl7::IPAddress adr;
 			adr=result.front();
 			ASSERT_EQ(ppl7::String(L"192.168.0.1"),adr.ip) << "Unexpected IP-Address";
@@ -155,8 +155,8 @@ TEST_F(Resolver, SingleIPv4_af_inet6) {
 		try {
 			std::list<ppl7::IPAddress> result;
 			size_t num=ppl7::GetHostByName("singleipv4.ppl.pfp.de",result,ppl7::af_inet6);
-			ASSERT_EQ(0,num) << "Unexpected return value";
-			ASSERT_EQ(0,result.size()) << "Unexpected number of results";
+			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -169,8 +169,8 @@ TEST_F(Resolver, ThreeIPv4_af_all) {
 		try {
 			std::list<ppl7::IPAddress> result;
 			size_t num=ppl7::GetHostByName("threeipv4.ppl.pfp.de",result,ppl7::af_all);
-			ASSERT_EQ(3,num) << "Unexpected return value";
-			ASSERT_EQ(3,result.size()) << "Unexpected number of results";
+			ASSERT_EQ((size_t)3,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)3,result.size()) << "Unexpected number of results";
 			// Sort addresses for better comparing
 			std::set<ppl7::String> sorted;
 			std::list<ppl7::IPAddress>::iterator it;
@@ -196,8 +196,8 @@ TEST_F(Resolver, ThreeIPv4_af_inet) {
 		try {
 			std::list<ppl7::IPAddress> result;
 			size_t num=ppl7::GetHostByName("threeipv4.ppl.pfp.de",result,ppl7::af_inet);
-			ASSERT_EQ(3,num) << "Unexpected return value";
-			ASSERT_EQ(3,result.size()) << "Unexpected number of results";
+			ASSERT_EQ((size_t)3,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)3,result.size()) << "Unexpected number of results";
 			// Sort addresses for better comparing
 			std::set<ppl7::String> sorted;
 			std::list<ppl7::IPAddress>::iterator it;
@@ -222,8 +222,8 @@ TEST_F(Resolver, ThreeIPv4_af_inet6) {
 		try {
 			std::list<ppl7::IPAddress> result;
 			size_t num=ppl7::GetHostByName("threeipv4.ppl.pfp.de",result,ppl7::af_inet6);
-			ASSERT_EQ(0,num) << "Unexpected return value";
-			ASSERT_EQ(0,result.size()) << "Unexpected number of results";
+			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -231,6 +231,199 @@ TEST_F(Resolver, ThreeIPv4_af_inet6) {
 	});
 }
 
+TEST_F(Resolver, SingleIPv6_af_all) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("singleipv6.ppl.pfp.de",result,ppl7::af_all);
+			ASSERT_EQ((size_t)1,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
+			ppl7::IPAddress adr;
+			adr=result.front();
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),adr.ip) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String(L"singleipv6.ppl.pfp.de"),adr.name) << "Unexpected Name";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, SingleIPv6_af_inet) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("singleipv6.ppl.pfp.de",result,ppl7::af_inet);
+			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, SingleIPv6_af_inet6) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("singleipv6.ppl.pfp.de",result,ppl7::af_inet6);
+			ASSERT_EQ((size_t)1,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
+			ppl7::IPAddress adr;
+			adr=result.front();
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),adr.ip) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String(L"singleipv6.ppl.pfp.de"),adr.name) << "Unexpected Name";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, ThreeIPv6_af_all) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("threeipv6.ppl.pfp.de",result,ppl7::af_all);
+			ASSERT_EQ((size_t)3,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)3,result.size()) << "Unexpected number of results";
+			// Sort addresses for better comparing
+			std::set<ppl7::String> sorted;
+			std::list<ppl7::IPAddress>::iterator it;
+			for (it=result.begin();it!=result.end();it++) sorted.insert(it->ip);
+
+			std::set<ppl7::String>::iterator lit;
+			lit=sorted.begin();
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b4c"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a000"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),*lit) << "Unexpected IP-Address";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, ThreeIPv6_af_inet) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("threeipv6.ppl.pfp.de",result,ppl7::af_inet);
+			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, ThreeIPv6_af_inet6) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("threeipv6.ppl.pfp.de",result,ppl7::af_inet6);
+			ASSERT_EQ((size_t)3,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)3,result.size()) << "Unexpected number of results";
+			// Sort addresses for better comparing
+			std::set<ppl7::String> sorted;
+			std::list<ppl7::IPAddress>::iterator it;
+			for (it=result.begin();it!=result.end();it++) sorted.insert(it->ip);
+
+			std::set<ppl7::String>::iterator lit;
+			lit=sorted.begin();
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b4c"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a000"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),*lit) << "Unexpected IP-Address";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, MixedIPv4v6_af_all) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("mixedv4v6.ppl.pfp.de",result,ppl7::af_all);
+			ASSERT_EQ((size_t)4,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)4,result.size()) << "Unexpected number of results";
+			// Sort addresses for better comparing
+			std::set<ppl7::String> sorted;
+			std::list<ppl7::IPAddress>::iterator it;
+			for (it=result.begin();it!=result.end();it++) sorted.insert(it->ip);
+
+			std::set<ppl7::String>::iterator lit;
+			lit=sorted.begin();
+			ASSERT_EQ(ppl7::String(L"192.168.16.76"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"192.168.22.98"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b93"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a016"),*lit) << "Unexpected IP-Address";
+
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, MixedIPv4v6_af_inet) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("mixedv4v6.ppl.pfp.de",result,ppl7::af_inet);
+			ASSERT_EQ((size_t)2,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)2,result.size()) << "Unexpected number of results";
+
+			// Sort addresses for better comparing
+			std::set<ppl7::String> sorted;
+			std::list<ppl7::IPAddress>::iterator it;
+			for (it=result.begin();it!=result.end();it++) sorted.insert(it->ip);
+
+			std::set<ppl7::String>::iterator lit;
+			lit=sorted.begin();
+			ASSERT_EQ(ppl7::String(L"192.168.16.76"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"192.168.22.98"),*lit) << "Unexpected IP-Address";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(Resolver, MixedIPv4v6_af_inet6) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("mixedv4v6.ppl.pfp.de",result,ppl7::af_inet6);
+			ASSERT_EQ((size_t)2,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)2,result.size()) << "Unexpected number of results";
+			// Sort addresses for better comparing
+			std::set<ppl7::String> sorted;
+			std::list<ppl7::IPAddress>::iterator it;
+			for (it=result.begin();it!=result.end();it++) sorted.insert(it->ip);
+
+			std::set<ppl7::String>::iterator lit;
+			lit=sorted.begin();
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b93"),*lit) << "Unexpected IP-Address";
+			lit++;
+			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a016"),*lit) << "Unexpected IP-Address";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
 
 }
 

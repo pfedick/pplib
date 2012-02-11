@@ -82,6 +82,14 @@ class IPAddress
         int			ai_socktype;
         int			ai_protocol;
         String		ai_canonname;
+
+		bool operator<(const IPAddress &other) const;
+		bool operator<=(const IPAddress &other) const;
+		bool operator==(const IPAddress &other) const;
+		bool operator!=(const IPAddress &other) const;
+		bool operator>=(const IPAddress &other) const;
+		bool operator>(const IPAddress &other) const;
+
 };
 
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);

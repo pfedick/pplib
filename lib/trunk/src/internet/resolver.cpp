@@ -88,7 +88,8 @@
 #endif
 
 
-
+#include <list>
+#include <set>
 
 #include "ppl7.h"
 #include "ppl7-inet.h"
@@ -150,6 +151,44 @@ IPAddress &IPAddress::operator=(const IPAddress &other)
 	copyAddr(other.ai_addr, other.ai_addrlen);
 	return *this;
 }
+
+
+bool IPAddress::operator<(const IPAddress &other) const
+{
+	if (ip<other.ip) return true;
+	return false;
+}
+
+bool IPAddress::operator<=(const IPAddress &other) const
+{
+	if (ip<=other.ip) return true;
+	return false;
+}
+
+bool IPAddress::operator==(const IPAddress &other) const
+{
+	if (ip==other.ip) return true;
+	return false;
+}
+
+bool IPAddress::operator!=(const IPAddress &other) const
+{
+	if (ip!=other.ip) return true;
+	return false;
+}
+
+bool IPAddress::operator>=(const IPAddress &other) const
+{
+	if (ip>=other.ip) return true;
+	return false;
+}
+
+bool IPAddress::operator>(const IPAddress &other) const
+{
+	if (ip>other.ip) return true;
+	return false;
+}
+
 
 
 String GetHostname()
@@ -227,48 +266,36 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
  *
  * \param name Der gesuchte Hostname oder die IP-Adresse, wobei sowohl IPv4- als auch IPv6-Adressen
  * unterstützt werden
- * \param result Liste vom Typ IPAddress, in dem die gefundenen IP-Adressen gespeichert werden.
+ * \param result Liste vom Typ IPAddress, in dem die gefundenen IP-Adressen gespeichert werden. Der
+ * Datentyp IPAddress hat folgenden Inhalt:
+ * 	- \b ip: IP-Adresse als String
+ *  - \b name: String mit dem FQDN
+ *  - \b type: Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
+ *  - \b ai_addr: Pointer auf eine Datenstruktur vom Typ "struct sockaddr", wie sie z.B. in einer Socket-Funktion
+ *       verwendet werden kann (z.B. connect).
+ *	- \b ai_addrlen: Die Länge der ai_addr-Struktur in Bytes
+ * 	- \b ai_family:
+ * 	- \b ai_protocol:
+ *  - \b ai_socktype:
+ *  - \b ai_canonname:
  * \param flags Bitmaske mit folgender Bedeutung:
- * - af_unspec:
- * - af_inet: IPv4 Adressen suchen
- * - af_inet6: IPv6 Adressen suchen
+ * - af_unspec: Das Betriebssystem entscheidet. Hier ist es häufig so, dass IPv6-Adressen nur
+ *   dann zurückgegeben werden, wenn das System auch über eine IPv6-Anbindung verfügt.
+ * - af_inet: nur nach IPv4 Adressen suchen
+ * - af_inet6: nur nach IPv6 Adressen suchen
  * - af_all: IPv4 und IPv6 Adressen suchen
  *
  * \result Im Erfolgsfall, das heisst der angegebene Name konnte aufgelöst werden, liefert die
  * Funktion die Anzahl gefundener IP-Adressen zurück. Ausserdem werden die Adressen in die
- * Liste \p result kopiert.
- * \par
- * Die Adressen in der Liste \p result sind vom Datentyp IPAddress mit folgendem Inhalt:
+ * Liste \p result kopiert. Wurde der Name \p name nicht gefunden, liefert die Funktion 0
+ * zurück. Ist ein anderer Fehler aufgetreten (z.B. Netzwerkprobleme) wird eine Exception
+ * geworfern
  *
- * 	- \b 0/ip IP-Adresse im lesbaren Format
- *  - \b 0/name Der FQDN
- *  - \b 0/type Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
- *  - \b 0/ai_addr Ein Binäres Objekt vom Typ CBinary, was eine Systemspezifische Struktur vom Typ "struct sockaddr" enthält, die direkt in den Socket-Funktionen des Systems verwendet werden kann (z.B. connect).
- *	- \b 0/ai_addrlen Die Länge der ai_addr-Struktur in Bytes
- * 	- \b 0/ai_family
- * 	- \b 0/ai_protocol
- *  - \b 0/ai_socktype
+ * \exception NetworkException Wird geworfen, wenn ein Netzwerkproblem aufgetreten ist.
  *
- * Wurden mehrere IP-Adressen gefunden, wiederholt sich der Block und die Ziffer auf der
- * obersten Ebene des Arrays wird hochgezählt.
- *
- * Im Fehlerfall, das heisst der angegebene Name konnte nicht aufgelöst werden, liefert die Funktion
- * false (0) zurück und des optionale Array \p Result bleibt unverändert.
- *
- * \note Es ist zu beachte, dass das Array \p Result im Erfolgsfall erst gelöscht und dann mit den
- * gefundenen Daten gefüllt wird. Vorher vorhandene Daten im Array gehen also verloren, bzw. müssen
+ * \note Es ist zu beachten, dass die Liste \p result erst gelöscht und dann mit den
+ * gefundenen Daten gefüllt wird. Vorher vorhandene Daten gehen also verloren, bzw. müssen
  * bei Bedarf vom Anwender vorher gesichert werden.
- *
- * \since Diese Klasse wurde mit Version 6.0.12 eingeführt
- * \since Ab Version 6.0.19 werden die ai_*-Parameter zurückgegeben
- *
- * \note
- * Ursprünglich hat die Funktion intern einen einzelnen Aufruf der Systemfunktion getaddrinfo gemacht.
- * In neueren libc Bibliotheken scheint sich jedoch das Verhalten geändert zu haben.
- * Hier werden AAAA-Records nur dann zurückgegeben, wenn auf dem lokalen host auch eine globales
- * IPv6-Interface konfiguriert ist. Zu beobachten auf Ubuntu 9.10 nach Einspielen der Updates am 13.01.2009.
- * Die Funktion wurde daher geändert und ruft getaddrinfo nun zweimal auf, einmal für IPv4/INET und
- * einmal für IPv6/INET6.
  *
  */
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags)
@@ -279,7 +306,28 @@ size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFl
 	result.clear();
 	if (flags!=af_all) return GetHostByNameInternal(name,result,flags);
 	int ret=GetHostByNameInternal(name,result,af_inet);
-	ret+=GetHostByNameInternal(name,result,af_inet6);
+	std::list<IPAddress> additional;
+	int ret2=GetHostByNameInternal(name,additional,af_inet6);
+	// Hier könnten Duplikate entstanden sein, die wir nicht wollen (FreeBSD)
+	if (ret2>0 && ret>0) {
+		// Wir bauen uns erst ein Set aus den vorhandenen Adresen auf
+		std::set<String> have;
+		std::set<String>::iterator haveIt;
+		std::list<ppl7::IPAddress>::iterator it;
+		for (it=result.begin();it!=result.end();it++) have.insert(it->ip);
+		// Dann gleichen wir die zusätzlichen Adressen mit den vorhandenen ab
+		// und fügen nur das ins result hinzu, was noch nicht da ist
+		for (it=additional.begin();it!=additional.end();it++) {
+			haveIt=have.find(it->ip);
+			if (haveIt==have.end()) {
+				result.push_back(*it);
+				ret++;
+			}
+		}
+	} else if (ret2>0 && ret==0) {
+		result=additional;
+		return ret2;
+	}
 	return ret;
 }
 
