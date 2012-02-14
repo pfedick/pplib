@@ -370,6 +370,7 @@ int CArray::Explode(const char *text, const char *trenn, int limit, bool skipemp
 		SetError(194,"const char *trenn");
 		return 0;
 	}
+	if (text[0]==0) return 1; 	// Leerer String ergibt leeres Array
 	int ret=1;
 	int p;
 	int t=(int)strlen(trenn);
