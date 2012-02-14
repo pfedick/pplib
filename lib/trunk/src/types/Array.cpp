@@ -887,7 +887,7 @@ String Array::pop()
  *
  * \note
  * Vorhandene Elemente im Array gehen durch Aufruf dieser Funktion nicht verloren, die neuen Werte werden
- * am Ende angehangen.
+ * am Ende angehangen. Ist \p text leer, werden dem Array keine Elemente hinzugefügt.
  *
  * \see
  * Array::implode ist die Umkehrfunktion zu dieser
