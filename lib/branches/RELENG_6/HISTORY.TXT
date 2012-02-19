@@ -13,7 +13,7 @@ Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
     week() und weekISO8601()
   - Neue Funktion CString::setInitialBuffersize
   - Fehlende Funktion CString::Capacity implementiert
-  - CFile::Open mit Formatstrinf wurde umbenannt in CFile::Openf
+  - CFile::Open mit Formatstring wurde umbenannt in CFile::Openf
   - CFont unterstützt Parameter für Rotation
   - Font-Format 6 eingeführt (Backport aus PPL7)
   - Bugfix: Array::Explode auf einen leeren String führt jetzt nicht mehr
