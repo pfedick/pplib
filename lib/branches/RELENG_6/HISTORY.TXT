@@ -1,7 +1,7 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
-Version 6.4.11
+Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
   - Bugfix in PNG-Laderoutine
   - Kritischer Bugfix in Sybase::Ping: Result wurde nicht freigegeben, wodurch
     nachfolgende Operationen blockiert und die Verbindung somit
@@ -19,13 +19,13 @@ Version 6.4.11
   - Bugfix: Array::Explode auf einen leeren String führt jetzt nicht mehr
     dazu, dass ein leeres Element hinzugefügt wird 
 
-Version 6.4.10  vom 10.11.2011	(CVS-Tag: REL_6_4_10)
+Version 6.4.10 vom 10.11.2011	(CVS-Tag: REL_6_4_10)
   - CCurl-Klasse: Signals werden nun standardmäßig deaktiviert,
     da Anwendungen mit mehreren Threads sonst in Probleme laufen.
     Mit der neuen Funktion CCurl::EnableSignals können die Signals
     explizit wieder aktiviert werden.
 
-Version 6.4.9  vom 30.10.2011	(CVS-Tag: REL_6_4_9)
+Version 6.4.9 vom 30.10.2011	(CVS-Tag: REL_6_4_9)
   - Kompatibilitätsprobleme mit OpenSSL 1.x.x behoben
   - Funktion StartThread, um einen Thread ohne Verwendung der
     Klasse CThread zu starten
