@@ -1779,9 +1779,16 @@ String& String::operator+=(wchar_t c)
  * \desc
  * Führt einen Vergleich mit einem anderen String durch.
  *
- * \return Ist der String kleiner als der mit \a str angegebene, wird ein negativer Wert
- * zurückgegeben, ist er identisch, wird 0 zurückgegeben, ist er größer, erfolgt ein positiver
- * Return-Wert.
+ * \param str String, mit dem verglichen werden soll
+ * \param size Optionaler Parameter, der die Anzahl zu berücksichtigender Zeichen innerhalb des
+ * Strings \p str angibt. Wird er nicht angegeben, wird ein vergleich mit dem kompletten String
+ * \p str durchgeführt.
+ *
+ * \return Ist der String innerhalb dieses Objekts kleiner als der mit \a str angegebene, wird ein
+ * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
+ * sind beide identisch, wird 0 zurückgegeben.
+ *
+ * \see strcasecmp Vergleich zweier Strings unter Ignorierung der Gross-/Kleinschreibung
  */
 int String::strcmp(const String &str, size_t size) const
 {
@@ -1799,9 +1806,17 @@ int String::strcmp(const String &str, size_t size) const
  * Führt einen Vergleich mit einem anderen String durch, unter Ignorierung der
  * Gross-/Kleinschreibung.
  *
- * \return Ist der String kleiner als der mit \a str angegebene, wird ein negativer Wert
- * zurückgegeben, ist er identisch, wird 0 zurückgegeben, ist er größer, erfolgt ein positiver
- * Return-Wert.
+ * \param str String, mit dem verglichen werden soll
+ * \param size Optionaler Parameter, der die Anzahl zu berücksichtigender Zeichen innerhalb des
+ * Strings \p str angibt. Wird er nicht angegeben, wird ein vergleich mit dem kompletten String
+ * \p str durchgeführt.
+ *
+ *
+ * \return Ist der String innerhalb dieses Objekts kleiner als der mit \a str angegebene, wird ein
+ * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
+ * sind beide identisch, wird 0 zurückgegeben.
+ *
+ * \see strcmp Vergleich zweier Strings unter Berücksichtigung der Gross-/Kleinschreibung
  */
 int String::strcasecmp(const String &str, size_t size) const
 {
@@ -1825,51 +1840,85 @@ int String::strcasecmp(const String &str, size_t size) const
 #endif
 }
 
-
+/*!\brief Linken Teilstring zurückgeben
+ *
+ * \desc
+ * Gibt die ersten \p len Zeichen des Strings als neuen zurück.
+ *
+ * @param len Länge des Teilstrings
+ * @return Neuer String
+ */
 String String::left(size_t len) const
 {
-	String ret;
 	if(ptr != NULL && stringlen > 0) {
 		if(len > stringlen) len = stringlen;
-		ret.set(ptr,len);
+		return String(ptr,len);
 	}
-	return ret;
+	return String();
 }
 
+ /*!\brief Rechten Teilstring zurückgeben
+  *
+  * \desc
+  * Gibt die letzten \p len Zeichen des Strings als neuen zurück.
+  *
+  * @param len Länge des Teilstrings
+  * @return Neuer String
+  */
 String String::right(size_t len) const
 {
-	String ret;
 	if(ptr != NULL && stringlen > 0) {
 		if(len > stringlen) len = stringlen;
-		ret.set(ptr+stringlen-len,len);
+		return String(ptr+stringlen-len,len);
 	}
-	return ret;
+	return String();
 }
 
+/*!\brief Teilstring zurückgeben
+ *
+ * \desc
+ * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+ * neuen String zurück.
+ *
+ * @param start Startposition
+ * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
+ * der komplette String ab Position \p start zurückgegeben.
+ * @return Neuer String
+ */
 String String::mid(size_t start, size_t len) const
 {
-	String ret;
 	if (len==(size_t)-1) len=stringlen;
 	if (start<stringlen && ptr!=NULL && len>0) {
 		if (start+len>stringlen) len=stringlen-start;
-		ret.set(ptr+start,len);
+		return String(ptr+start,len);
 	}
-	return ret;
+	return String();
 }
 
+/*!\brief Teilstring zurückgeben
+ *
+ * \desc
+ * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+ * neuen String zurück.
+ *
+ * @param start Startposition
+ * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
+ * der komplette String ab Position \p start zurückgegeben.
+ * @return Neuer String
+ */
 String String::substr(size_t start, size_t len) const
 {
-	String ret;
 	if (len==(size_t)-1) len=stringlen;
 	if (start<stringlen && ptr!=NULL && len>0) {
 		if (start+len>stringlen) len=stringlen-start;
-		ret.set(ptr+start,len);
+		return String(ptr+start,len);
 	}
-	return ret;
+	return String();
 }
 
 /*! \brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
  *
+ * \desc
  * Diese Funktion wandelt alle Zeichen des Strings in Kleinbuchstaben um. Die genaue Funktionsweise hängt davon ab,
  * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
  *
@@ -1884,6 +1933,7 @@ String String::substr(size_t start, size_t len) const
  * ...
  * setlocale(LC_CTYPE,"de_DE.UTF-8");
  * \endcode
+ * \par
  */
 void String::lowerCase()
 {
@@ -1901,6 +1951,7 @@ void String::lowerCase()
 
 /*! \brief Wandelt alle Zeichen des Strings in Grossbuchstaben um
  *
+ * \desc
  * Diese Funktion wandelt alle Zeichen des Strings in Großbuchstaben um. Die genaue Funktionsweise hängt davon ab,
  * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
  *
