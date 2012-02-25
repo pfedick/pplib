@@ -838,10 +838,120 @@ TEST_F(StringTest, trimEmptyCharsResult) {
 	ASSERT_EQ(ppl7::String(L""),s1);
 }
 
-TEST_F(StringTest, strcmpEmpty) {
+TEST_F(StringTest, operatorEqualEmpty) {
 	ppl7::String s1(L"");
 	ppl7::String s2(L"");
 	ASSERT_EQ(s1,s2);
+}
+
+TEST_F(StringTest, strcmpEmpty) {
+	ppl7::String s1(L"");
+	ppl7::String s2(L"");
+	ASSERT_EQ(0,s1.strcmp(s2));
+}
+
+TEST_F(StringTest, strcmpLower) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"Defghi");
+	ASSERT_LT(s1.strcmp(s2),0);
+}
+
+TEST_F(StringTest, strcmpLowerWithCase) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"abcdef");
+	ASSERT_LT(s1.strcmp(s2),0);
+}
+
+TEST_F(StringTest, strcmpHigher) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"Defghi");
+	ASSERT_GT(s2.strcmp(s1),0);
+}
+
+TEST_F(StringTest, strcmpHigherWithCase) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"abcdef");
+	ASSERT_GT(s2.strcmp(s1),0);
+}
+
+TEST_F(StringTest, strcmpEqual) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"ABcdef");
+	ASSERT_EQ(s2.strcmp(s1),0);
+}
+
+TEST_F(StringTest, strcasecmpEmpty) {
+	ppl7::String s1(L"");
+	ppl7::String s2(L"");
+	ASSERT_EQ(0,s1.strcasecmp(s2));
+}
+
+TEST_F(StringTest, strcasecmpLower) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"Defghi");
+	ASSERT_LT(s1.strcasecmp(s2),0);
+}
+
+TEST_F(StringTest, strcasecmpLowerWithCase) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"abcdef");
+	ASSERT_EQ(s1.strcasecmp(s2),0);
+}
+
+TEST_F(StringTest, strcasecmpHigher) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"Defghi");
+	ASSERT_GT(s2.strcasecmp(s1),0);
+}
+
+TEST_F(StringTest, strcasecmpHigherWithCase) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"abcdef");
+	ASSERT_EQ(s2.strcasecmp(s1),0);
+}
+
+TEST_F(StringTest, strcasecmpEqual) {
+	ppl7::String s1(L"ABcdef");
+	ppl7::String s2(L"ABcdef");
+	ASSERT_EQ(s2.strcasecmp(s1),0);
+}
+
+
+TEST_F(StringTest, left) {
+	ppl7::String s1(L"The quick brown fox jumps over the lazy dog");
+	ppl7::String s2=s1.left(10);
+	ASSERT_EQ(ppl7::String(L"The quick "),s2);
+}
+
+TEST_F(StringTest, right) {
+	ppl7::String s1(L"The quick brown fox jumps over the lazy dog");
+	ppl7::String s2=s1.right(9);
+	ASSERT_EQ(ppl7::String(L" lazy dog"),s2);
+}
+
+TEST_F(StringTest, midWithLength) {
+	ppl7::String s1(L"The quick brown fox jumps over the lazy dog");
+	ppl7::String s2=s1.mid(10,10);
+	ASSERT_EQ(ppl7::String(L"brown fox "),s2);
+}
+
+TEST_F(StringTest, midWithoutLength) {
+	ppl7::String s1(L"The quick brown fox jumps over the lazy dog");
+	ppl7::String s2=s1.mid(10);
+	ASSERT_EQ(ppl7::String(L"brown fox jumps over the lazy dog"),s2);
+}
+
+
+TEST_F(StringTest, substrWithLength) {
+	ppl7::String s1(L"The quick brown fox jumps over the lazy dog");
+	ppl7::String s2=s1.substr(10,10);
+	ASSERT_EQ(ppl7::String(L"brown fox "),s2);
+}
+
+TEST_F(StringTest, substrWithoutLength) {
+	ppl7::String s1(L"The quick brown fox jumps over the lazy dog");
+	ppl7::String s2=s1.substr(10);
+	ASSERT_EQ(ppl7::String(L"brown fox jumps over the lazy dog"),s2);
 }
 
 TEST_F(StringTest, pregMatchPositive) {
