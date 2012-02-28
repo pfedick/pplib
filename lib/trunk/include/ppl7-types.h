@@ -79,6 +79,7 @@ class Variant
 			ASSOCARRAY	=5,
 			BYTEARRAY	=6,
 			POINTER		=7,
+			WIDESTRING	=8,
 			ARRAY		=9,
 			//BOOL		=10,
 			DATETIME	=11,
@@ -453,6 +454,260 @@ String operator+(const std::wstring &str1, const String& str2);
 String operator+(const String &str1, const std::wstring &str2);
 
 std::ostream& operator<<(std::ostream& s, const String &str);
+
+class WideString : public Variant
+{
+	private:
+		wchar_t *ptr;
+		size_t s, stringlen;
+	public:
+		//! @name Konstruktoren und Destruktor
+		//@{
+
+		WideString() throw();
+		WideString(const char *str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
+		WideString(const wchar_t *str) throw(OutOfMemoryException);
+		WideString(const wchar_t *str, size_t size) throw(OutOfMemoryException);
+		WideString(const WideString *str) throw(OutOfMemoryException);
+		WideString(const WideString &str) throw(OutOfMemoryException);
+		WideString(const Variant &var) throw(OutOfMemoryException);
+		WideString(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
+		WideString(const std::wstring &str) throw(OutOfMemoryException);
+		~WideString() throw();
+#ifdef WITH_QT
+		WideString(const QString &q) {
+			type=WIDESTRING; ptr=NULL; stringlen=0; s=0;
+			QByteArray a=q.toUtf8();
+			set((const char*)a);
+		}
+		WideString(QString *q) {
+			type=WIDESTRING; ptr=NULL; stringlen=0; s=0;
+			QByteArray a=q->toUtf8();
+			set((const char*)a);
+		}
+#endif
+		//@}
+
+		//! @name Statische Funktionen
+		//@{
+		static void setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException);
+		//@}
+
+		void clear() throw();
+		size_t capacity ( ) const;
+		void reserve(size_t size);
+		size_t len() const;
+		size_t length() const;
+		size_t size() const;
+		bool	isEmpty() const;
+		bool	notEmpty() const;
+		bool	isNumeric() const;
+		bool	isInteger() const;
+		bool	isTrue() const;
+		bool	isFalse() const;
+
+		int strcmp(const WideString &str, size_t size=(size_t)-1) const;
+		int strcasecmp(const WideString &str, size_t size=(size_t)-1) const;
+		WideString left(size_t len) const;
+		WideString right(size_t len) const;
+		WideString mid(size_t start, size_t len=(size_t)-1) const;
+		WideString substr(size_t start, size_t len=(size_t)-1) const;
+
+
+		//! @name String setzen und verändern
+		//@{
+
+		WideString & set(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
+		WideString & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & set(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & set(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & set(wchar_t c) throw(OutOfMemoryException);
+		WideString & set(size_t position, wchar_t c) throw(OutOfBoundsEception);
+		WideString & set(const Variant &var) throw(OutOfMemoryException);
+		WideString & setf(const char *fmt, ...);
+
+		WideString & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
+		WideString & append(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & append(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & append(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & append(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & append(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & appendf(const char *fmt, ...);
+		WideString & append(wchar_t c) throw(OutOfMemoryException);
+
+		WideString & prepend(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
+		WideString & prepend(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & prepend(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & prepend(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & prepend(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & prepend(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & prependf(const char *fmt, ...);
+		WideString & prepend(wchar_t c) throw(OutOfMemoryException);
+
+		WideString & vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException);
+
+		WideString& repeat(size_t num);
+		WideString& repeat(wchar_t unicode, size_t num);
+		WideString& repeat(const WideString& str, size_t num);
+		WideString repeated(size_t num) const;
+
+
+		void lowerCase();
+		void upperCase();
+		void upperCaseWords();
+		void trim();
+		void trimLeft();
+		void trimRight();
+		void trim(const WideString &chars);
+		void trimLeft(const WideString &chars);
+		void trimRight(const WideString &chars);
+		void chopRight(size_t num=1);
+		void chop(size_t num=1);
+		void chopLeft(size_t num=1);
+		void chomp();
+		void cut(size_t pos);
+		void cut(const WideString &letter);
+
+	    WideString strchr(wchar_t c) const;
+	    WideString strrchr(wchar_t c) const;
+	    WideString strstr(const WideString &needle) const;
+	    ssize_t find(const WideString &needle, ssize_t start=0) const;
+	    ssize_t findCase(const WideString &needle, ssize_t start=0) const;
+	    ssize_t instr(const WideString &needle, size_t start=0) const;
+	    ssize_t instrCase(const WideString &needle, size_t start=0) const;
+
+	    WideString& stripSlashes();
+
+	    WideString& replace(const WideString &search, const WideString &replacement);
+	    WideString& pregReplace(const WideString &expression, const WideString &replacement, int max=0);
+	    WideString& pregEscape();
+
+	    bool pregMatch(const WideString &expression) const;
+	    bool pregMatch(const WideString &expression, Array &matches, size_t maxmatches=16) const;
+		//@}
+
+		//! @name String ausgeben und auslesen
+		//@{
+		void print(bool withNewline=false) const throw();
+		void printnl() const throw();
+		void hexDump() const;
+		wchar_t get(ssize_t pos) const;
+		const wchar_t* getPtr() const;
+
+		ByteArray toUtf8() const;
+		ByteArray toLocalEncoding() const;
+		ByteArray toEncoding(const char *encoding) const;
+		ByteArray toUCS4() const;
+		WideString &fromUCS4(const ppluint32 *str, size_t size=(size_t)-1);
+		WideString &fromUCS4(const ByteArrayPtr &bin);
+		WideString getMD5() const;
+
+		int toInt() const;
+		unsigned int toUnsignedInt() const;
+		pplint64 toInt64() const;
+		ppluint64 toUnsignedInt64() const;
+		bool toBool() const;
+		long toLong() const;
+		unsigned long toUnsignedLong() const;
+		long long toLongLong() const;
+		unsigned long long toUnsignedLongLong() const;
+		float toFloat() const;
+		double toDouble() const;
+		const wchar_t * toWchart() const;
+
+		//@}
+
+		//! @name Operatoren
+		//@{
+		operator const wchar_t *() const;
+		operator int() const;
+		operator unsigned int() const;
+		operator bool() const;
+		operator long() const;
+		operator unsigned long() const;
+		operator long long () const;
+		operator unsigned long long () const;
+		operator float () const;
+		operator double () const;
+		operator std::string() const;
+		operator std::wstring() const;
+		operator ByteArrayPtr() const;
+
+		wchar_t operator[](ssize_t pos) const;
+
+		WideString& operator=(const char* str);
+		WideString& operator=(const wchar_t* str);
+		WideString& operator=(const WideString *str);
+		WideString& operator=(const WideString &str);
+		WideString& operator=(const Variant &str);
+		WideString& operator=(const std::string &str);
+		WideString& operator=(const std::wstring &str);
+		WideString& operator=(wchar_t c);
+		WideString& operator+=(const char* str);
+		WideString& operator+=(const wchar_t* str);
+		WideString& operator+=(const WideString& str);
+		WideString& operator+=(const std::string &str);
+		WideString& operator+=(const std::wstring &str);
+		WideString& operator+=(wchar_t c);
+
+
+		bool operator<(const WideString &str) const;
+		bool operator<=(const WideString &str) const;
+		bool operator==(const WideString &str) const;
+		bool operator!=(const WideString &str) const;
+		bool operator>=(const WideString &str) const;
+		bool operator>(const WideString &str) const;
+
+		bool operator<(const wchar_t *str) const;
+		bool operator<=(const wchar_t *str) const;
+		bool operator==(const wchar_t *str) const;
+		bool operator!=(const wchar_t *str) const;
+		bool operator>=(const wchar_t *str) const;
+		bool operator>(const wchar_t *str) const;
+
+		//@}
+
+#ifdef WITH_QT
+		//! @name Operatoren zur Verwendung der Klasse mit Qt
+		//@{
+		operator const QString() const {
+			return QString::fromWCharArray (ptr,stringlen);
+		}
+
+		operator const QVariant() const {
+			QVariant v=QString::fromWCharArray (ptr,stringlen);
+			return v;
+		}
+
+		WideString& operator=(const QString& q) {
+			QByteArray a=q.toUtf8();
+			set((const char*)a);
+			return *this;
+		}
+		WideString& operator=(const QString *q) {
+			QByteArray a=q->toUtf8();
+			set((const char*)a);
+			return *this;
+		}
+		//@}
+#endif
+};
+
+WideString operator+(const WideString &str1, const WideString& str2);
+WideString operator+(const char *str1, const WideString& str2);
+WideString operator+(const WideString &str1, const char *str2);
+WideString operator+(const wchar_t *str1, const WideString& str2);
+WideString operator+(const WideString &str1, const wchar_t *str2);
+WideString operator+(const std::string &str1, const WideString& str2);
+WideString operator+(const WideString &str1, const std::string &str2);
+WideString operator+(const std::wstring &str1, const WideString& str2);
+WideString operator+(const WideString &str1, const std::wstring &str2);
+
+std::ostream& operator<<(std::ostream& s, const WideString &str);
+
+
 
 class Array : public Variant
 {
