@@ -561,9 +561,9 @@ String EscapeHTMLTags(const String &html)
 {
 	String s;
 	s=html;
-	s.replace(L"&",L"&amp");
-	s.replace(L"<",L"&lt;");
-	s.replace(L">",L"&gt;");
+	s.replace("&","&amp");
+	s.replace("<","&lt;");
+	s.replace(">","&gt;");
 	return s;
 }
 
@@ -571,9 +571,9 @@ String UnescapeHTMLTags(const String &html)
 {
 	String s;
 	s=html;
-	s.replace(L"&amp",L"&");
-	s.replace(L"&lt;",L"<");
-	s.replace(L"&gt;",L">");
+	s.replace("&amp","&");
+	s.replace("&lt;","<");
+	s.replace("&gt;",">");
 	return s;
 }
 
@@ -614,7 +614,7 @@ Hallo+Welt!+1%2B1%3D2
  */
 String UrlEncode(const String &text)
 {
-	const wchar_t *source=text.getPtr();
+	const char *source=text.getPtr();
 	String ret;
 	static const wchar_t *digits = L"0123456789ABCDEF";
 	unsigned wchar_t ch;
@@ -642,9 +642,9 @@ String UrlEncode(const String &text)
 	return ret;
 }
 
-static wchar_t HexPairValue(const wchar_t * code) {
-	wchar_t value = 0;
-	const wchar_t * pch = code;
+static wchar_t HexPairValue(const char * code) {
+	char value = 0;
+	const char * pch = code;
 	for (;;) {
 		int digit = *pch++;
 		if (digit >= '0' && digit <= '9') {
@@ -688,7 +688,7 @@ Hallo Welt! 1+1=2";
  */
 String UrlDecode(const String &text)
 {
-	const wchar_t *source=text.getPtr();
+	const char *source=text.getPtr();
 	String ret;
 
 	while (*source) {

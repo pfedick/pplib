@@ -564,7 +564,7 @@ class FileObject
 		String				getws (size_t num=1024);
 		void				putsf (const char *fmt, ... );
 		void				puts (const String &str);
-		void				putws (const String &str);
+		void				putws (const WideString &str);
 		const char			*map();
 		char				*load();
 		int					load(ByteArray &target);

@@ -85,7 +85,7 @@ String binaryString(ppluint64 value)
 ppluint32 GetCPUCaps (CPUCaps *cpu)
 {
 	ppluint32 caps=PPL7_GetCpuCaps();
-	printf ("caps=%i = %ls\n",caps,(const wchar_t*)binaryString(caps));
+	printf ("caps=%i = %s\n",caps,(const char*)binaryString(caps));
 	//int bits=HaveSSE2();
 	//printf ("cpuid 1: %x\n",bits);
 

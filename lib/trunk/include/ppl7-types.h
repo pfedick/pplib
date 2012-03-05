@@ -61,6 +61,7 @@ namespace ppl7 {
 
 class Variant;
 class String;
+class WideString;
 class Array;
 class AssocArray;
 class ByteArray;
@@ -104,6 +105,8 @@ class Variant
 		bool isPointer() const;
 		const String& toString() const;
 		String& toString();
+		const WideString& toWideString() const;
+		WideString& toWideString();
 		const Array& toArray() const;
 		Array& toArray();
 		const AssocArray& toAssocArray() const;
@@ -205,7 +208,7 @@ ByteArray fromBase64(const String &base64);
 class String : public Variant
 {
 	private:
-		wchar_t *ptr;
+		char *ptr;
 		size_t s, stringlen;
 	public:
 		//! @name Konstruktoren und Destruktor
@@ -213,10 +216,11 @@ class String : public Variant
 
 		String() throw();
 		String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String(const wchar_t *str) throw(OutOfMemoryException);
-		String(const wchar_t *str, size_t size) throw(OutOfMemoryException);
+		String(const char *str, size_t size) throw(OutOfMemoryException);
 		String(const String *str) throw(OutOfMemoryException);
 		String(const String &str) throw(OutOfMemoryException);
+		String(const WideString *str) throw(OutOfMemoryException);
+		String(const WideString &str) throw(OutOfMemoryException);
 		String(const Variant &var) throw(OutOfMemoryException);
 		String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
 		String(const std::wstring &str) throw(OutOfMemoryException);
@@ -268,6 +272,8 @@ class String : public Variant
 		String & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & set(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & set(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(wchar_t c) throw(OutOfMemoryException);
@@ -340,8 +346,8 @@ class String : public Variant
 		void print(bool withNewline=false) const throw();
 		void printnl() const throw();
 		void hexDump() const;
-		wchar_t get(ssize_t pos) const;
-		const wchar_t* getPtr() const;
+		char get(ssize_t pos) const;
+		const char* getPtr() const;
 
 		ByteArray toUtf8() const;
 		ByteArray toLocalEncoding() const;
@@ -356,6 +362,7 @@ class String : public Variant
 		unsigned int toUnsignedInt() const;
 		pplint64 toInt64() const;
 		ppluint64 toUnsignedInt64() const;
+		WideString toWideString() const;
 		bool toBool() const;
 		long toLong() const;
 		unsigned long toUnsignedLong() const;
@@ -363,13 +370,13 @@ class String : public Variant
 		unsigned long long toUnsignedLongLong() const;
 		float toFloat() const;
 		double toDouble() const;
-		const wchar_t * toWchart() const;
+		const char * toChar() const;
 
 		//@}
 
 		//! @name Operatoren
 		//@{
-		operator const wchar_t *() const;
+		operator const char *() const;
 		operator int() const;
 		operator unsigned int() const;
 		operator bool() const;
@@ -408,12 +415,12 @@ class String : public Variant
 		bool operator>=(const String &str) const;
 		bool operator>(const String &str) const;
 
-		bool operator<(const wchar_t *str) const;
-		bool operator<=(const wchar_t *str) const;
-		bool operator==(const wchar_t *str) const;
-		bool operator!=(const wchar_t *str) const;
-		bool operator>=(const wchar_t *str) const;
-		bool operator>(const wchar_t *str) const;
+		bool operator<(const char *str) const;
+		bool operator<=(const char *str) const;
+		bool operator==(const char *str) const;
+		bool operator!=(const char *str) const;
+		bool operator>=(const char *str) const;
+		bool operator>(const char *str) const;
 
 		//@}
 
@@ -465,11 +472,12 @@ class WideString : public Variant
 		//@{
 
 		WideString() throw();
-		WideString(const char *str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
 		WideString(const wchar_t *str) throw(OutOfMemoryException);
 		WideString(const wchar_t *str, size_t size) throw(OutOfMemoryException);
 		WideString(const WideString *str) throw(OutOfMemoryException);
 		WideString(const WideString &str) throw(OutOfMemoryException);
+		WideString(const String *str) throw(OutOfMemoryException);
+		WideString(const String &str) throw(OutOfMemoryException);
 		WideString(const Variant &var) throw(OutOfMemoryException);
 		WideString(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
 		WideString(const std::wstring &str) throw(OutOfMemoryException);
@@ -521,6 +529,8 @@ class WideString : public Variant
 		WideString & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		WideString & set(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		WideString & set(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & set(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & set(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		WideString & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		WideString & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		WideString & set(wchar_t c) throw(OutOfMemoryException);
@@ -597,12 +607,13 @@ class WideString : public Variant
 		const wchar_t* getPtr() const;
 
 		ByteArray toUtf8() const;
+		String toString() const;
 		ByteArray toLocalEncoding() const;
+		String toLocalString() const;
 		ByteArray toEncoding(const char *encoding) const;
 		ByteArray toUCS4() const;
 		WideString &fromUCS4(const ppluint32 *str, size_t size=(size_t)-1);
 		WideString &fromUCS4(const ByteArrayPtr &bin);
-		WideString getMD5() const;
 
 		int toInt() const;
 		unsigned int toUnsignedInt() const;
@@ -641,6 +652,8 @@ class WideString : public Variant
 		WideString& operator=(const wchar_t* str);
 		WideString& operator=(const WideString *str);
 		WideString& operator=(const WideString &str);
+		WideString& operator=(const String *str);
+		WideString& operator=(const String &str);
 		WideString& operator=(const Variant &str);
 		WideString& operator=(const std::string &str);
 		WideString& operator=(const std::wstring &str);
@@ -738,7 +751,7 @@ class Array : public Variant
 		//@{
 		void add(const String &value);
 		void add(const String &value, size_t size);
-		void add(const wchar_t *value, size_t size);
+		void add(const char *value, size_t size);
 		void add(const Array &other);
 		void addf(const char *fmt, ...);
 		void copy(const Array &other);
@@ -749,7 +762,7 @@ class Array : public Variant
 		void insertf(size_t index, const char *fmt, ...);
 		Array &fromArgs(int argc, const char **argv);
 		Array &fromArgs(const String &args);
-		Array &explode(const String &text, const String &delimiter=L"\n", size_t limit=0, bool skipemptylines=false);
+		Array &explode(const String &text, const String &delimiter="\n", size_t limit=0, bool skipemptylines=false);
 		//@}
 
 		//! @name Elemente löschen
@@ -860,7 +873,7 @@ class AssocArray : public Variant
 		size_t count(bool recursive=false) const;
 		size_t count(const String &key, bool recursive=false) const;
 		size_t size() const;
-		void list(const String &prefix=L"") const;
+		void list(const String &prefix="") const;
 		void reserve(size_t num);
 		size_t capacity() const;
 		//@}
@@ -882,7 +895,7 @@ class AssocArray : public Variant
 
 		//!\name Werte erweitern (nur Strings)
 		//@{
-		void append(const String &key, const String &value, const String &concat=L"");
+		void append(const String &key, const String &value, const String &concat="");
 		void appendf(const String &key, const String &concat, const char *fmt, ...);
 		//@}
 
@@ -894,9 +907,9 @@ class AssocArray : public Variant
 
 		//!\name Import und Export von Daten
 		//@{
-		size_t	fromTemplate(const String &templ, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
-		size_t	fromConfig(const String &content, const String &linedelimiter=L"\n", const String &splitchar=L"=", const String &concat=L"\n", bool dotrim=false);
-		void toTemplate(String &s, const String &prefix=L"", const String &linedelimiter=L"\n", const String &splitchar=L"=");
+		size_t	fromTemplate(const String &templ, const String &linedelimiter="\n", const String &splitchar="=", const String &concat="\n", bool dotrim=false);
+		size_t	fromConfig(const String &content, const String &linedelimiter="\n", const String &splitchar="=", const String &concat="\n", bool dotrim=false);
+		void toTemplate(String &s, const String &prefix="", const String &linedelimiter="\n", const String &splitchar="=");
 		size_t binarySize() const;
 		void exportBinary(void *buffer, size_t buffersize, size_t *realsize) const;
 		void exportBinary(ByteArray &buffer) const;
@@ -994,9 +1007,9 @@ class DateTime : public Variant
 		bool isEmpty() const;
 		bool isLeapYear() const;
 
-		String get(const String &format=L"%Y-%m-%d %H:%M:%S") const;
-		String getDate(const String &format=L"%Y-%m-%d") const;
-		String getTime(const String &format=L"%H:%M:%S") const;
+		String get(const String &format="%Y-%m-%d %H:%M:%S") const;
+		String getDate(const String &format="%Y-%m-%d") const;
+		String getTime(const String &format="%H:%M:%S") const;
 		String getISO8601() const;
 		String getISO8601withMsec() const;
 		ppluint64 time_t() const;

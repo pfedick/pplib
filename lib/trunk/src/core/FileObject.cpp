@@ -554,7 +554,7 @@ void FileObject::puts (const String &str)
  * @param str String-Objekt mit den zu schreibenden Daten
  * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
-void FileObject::putws (const String &str)
+void FileObject::putws (const WideString &str)
 {
 	return putws((const wchar_t*)str);
 }

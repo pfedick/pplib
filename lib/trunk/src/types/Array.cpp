@@ -262,7 +262,7 @@ void Array::add(const String &value, size_t size)
  * @param value String
  * @param size Größe des Strings
  */
-void Array::add(const wchar_t *value, size_t size)
+void Array::add(const char *value, size_t size)
 {
 	String str;
 	str.set(value,size);
@@ -899,8 +899,8 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 	ssize_t p;
 	size_t t=delimiter.len();
 	size_t count=0;
-	const wchar_t *del=(const wchar_t *)delimiter;
-	wchar_t *etext=(wchar_t*)text.getPtr();
+	const char *del=(const char *)delimiter;
+	wchar_t *etext=(char*)text.getPtr();
 	wchar_t * _t;
 	String str;
 	while (1) {

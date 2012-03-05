@@ -430,10 +430,10 @@ void Dir::clear()
  */
 void Dir::print(const DirEntry &de) const
 {
-	printf ("%ls %3i ",(const wchar_t*)de.AttrStr,de.NumLinks);
+	printf ("%s %3i ",(const char*)de.AttrStr,de.NumLinks);
 	printf ("%5i %5i ",de.Uid, de.Gid);
-	printf ("%10zu ",de.Size);
-	printf ("%ls %ls\n",(const wchar_t*)de.MTime.get(),(const wchar_t*)de.Filename);
+	printf ("%10llu ",de.Size);
+	printf ("%s %s\n",(const char*)de.MTime.get(),(const char*)de.Filename);
 }
 
 
@@ -448,7 +448,7 @@ void Dir::print(const DirEntry &de) const
 void Dir::print() const
 {
 	ppl7::List<const DirEntry*>::Iterator it;
-	printf ("Directory Listing: %ls\n",(const wchar_t*)Path);
+	printf ("Directory Listing: %s\n",(const char*)Path);
 	printf ("Total Files: %zu\n",num());
 	SortedFiles.reset(it);
 	while (SortedFiles.getNext(it)) {

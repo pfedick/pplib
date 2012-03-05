@@ -451,7 +451,7 @@ void PFPFile::setAuthor(const String &author)
  *
  */
 {
-	setParam(L"AUTH",author);
+	setParam("AUTH",author);
 }
 
 void PFPFile::setCopyright(const String &copy)
@@ -470,7 +470,7 @@ void PFPFile::setCopyright(const String &copy)
  *
  */
 {
-	setParam(L"COPY",copy);
+	setParam("COPY",copy);
 }
 
 void PFPFile::setDescription(const String &descr)
@@ -488,7 +488,7 @@ void PFPFile::setDescription(const String &descr)
  *
  */
 {
-	setParam(L"DESC",descr);
+	setParam("DESC",descr);
 }
 
 void PFPFile::setName(const String &name)
@@ -506,7 +506,7 @@ void PFPFile::setName(const String &name)
  * - PFPFile::SetName
  */
 {
-	setParam(L"NAME",name);
+	setParam("NAME",name);
 }
 
 String PFPFile::getName() const
@@ -525,7 +525,7 @@ String PFPFile::getName() const
  */
 {
 	Iterator it;
-	PFPChunk *chunk=findFirstChunk(it,L"NAME");
+	PFPChunk *chunk=findFirstChunk(it,"NAME");
 	if (!chunk) return String();
 	return String((char*)chunk->chunkdata);
 }
@@ -546,7 +546,7 @@ String PFPFile::getDescription() const
  */
 {
 	Iterator it;
-	PFPChunk *chunk=findFirstChunk(it,L"DESC");
+	PFPChunk *chunk=findFirstChunk(it,"DESC");
 	if (!chunk) return String();
 	return String((char*)chunk->chunkdata);
 }
@@ -566,7 +566,7 @@ String PFPFile::getAuthor() const
  */
 {
 	Iterator it;
-	PFPChunk *chunk=findFirstChunk(it,L"AUTH");
+	PFPChunk *chunk=findFirstChunk(it,"AUTH");
 	if (!chunk) return String();
 	return String((char*)chunk->chunkdata);
 }
@@ -586,7 +586,7 @@ String PFPFile::getCopyright() const
  */
 {
 	Iterator it;
-	PFPChunk *chunk=findFirstChunk(it,L"COPY");
+	PFPChunk *chunk=findFirstChunk(it,"COPY");
 	if (!chunk) return String();
 	return String((char*)chunk->chunkdata);
 }
@@ -736,13 +736,13 @@ void PFPFile::save(const String &filename)
 	// Chunks zusammenfassen
 	// Zuerst die vordefinierten, die wir am Anfang des Files wollen
 	Chunks.reset(it);
-	chunk=findFirstChunk(it,L"NAME");
+	chunk=findFirstChunk(it,"NAME");
 	if (chunk) saveChunk(p,pp,chunk);
-	chunk=findFirstChunk(it,L"AUTH");
+	chunk=findFirstChunk(it,"AUTH");
 	if (chunk) saveChunk(p,pp,chunk);
-	chunk=findFirstChunk(it,L"DESC");
+	chunk=findFirstChunk(it,"DESC");
 	if (chunk) saveChunk(p,pp,chunk);
-	chunk=findFirstChunk(it,L"COPY");
+	chunk=findFirstChunk(it,"COPY");
 	if (chunk) saveChunk(p,pp,chunk);
 	// Restliche Chunks
 	Chunks.reset(it);
@@ -1020,7 +1020,7 @@ void PFPFile::list() const
  */
 {
 	printf("PFP-File Version 3 ============================================\n");
-	printf("ID: %ls, Version: %i.%i, Komprimierung: ",(const wchar_t*)id,mainversion,subversion);
+	printf("ID: %s, Version: %i.%i, Komprimierung: ",(const char*)id,mainversion,subversion);
 	switch(comp) {
 		case 0: printf ("keine\n");
 			break;
@@ -1032,10 +1032,10 @@ void PFPFile::list() const
 			break;
 	}
 	String Tmp;
-	Tmp=getName();        if (Tmp.notEmpty()) printf("Name:        %ls\n",(const wchar_t*)Tmp);
-	Tmp=getAuthor();      if (Tmp.notEmpty()) printf("Author:      %ls\n",(const wchar_t*)Tmp);
-	Tmp=getDescription(); if (Tmp.notEmpty()) printf("Description: %ls\n",(const wchar_t*)Tmp);
-	Tmp=getCopyright();   if (Tmp.notEmpty()) printf("Copyright:   %ls\n",(const wchar_t*)Tmp);
+	Tmp=getName();        if (Tmp.notEmpty()) printf("Name:        %s\n",(const char*)Tmp);
+	Tmp=getAuthor();      if (Tmp.notEmpty()) printf("Author:      %s\n",(const char*)Tmp);
+	Tmp=getDescription(); if (Tmp.notEmpty()) printf("Description: %s\n",(const char*)Tmp);
+	Tmp=getCopyright();   if (Tmp.notEmpty()) printf("Copyright:   %s\n",(const char*)Tmp);
 
 	Iterator it;
 	Chunks.reset(it);
@@ -1043,7 +1043,7 @@ void PFPFile::list() const
 	printf ("\nChunks:\n");
 	while(Chunks.getNext(it)) {
 		chunk=it.value();
-		printf ("  %ls: %zi Bytes\n",(const wchar_t*)chunk->chunkname,chunk->chunksize);
+		printf ("  %s: %zi Bytes\n",(const char*)chunk->chunkname,chunk->chunksize);
 	}
 	printf("===============================================================\n");
 }

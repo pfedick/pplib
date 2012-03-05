@@ -319,6 +319,39 @@ String& Variant::toString()
 	return static_cast<String&>(*this);
 }
 
+/*!\brief Typkonvertierung zu: const WideString
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der Variant zu einem WideString konvertiert, der nicht verändert werden
+ * kann. Dies ist jedoch nur erfolgreich, wenn es sich bei diesem Datentyp auch um einen String handelt.
+ * Ist dies nicht der Fall, wird eine Exception geworfen.
+ *
+ * @return Referenz auf WideString
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
+ */
+const WideString& Variant::toWideString() const
+{
+	if (type!=WIDESTRING) throw TypeConversionException();
+	return static_cast<const WideString&>(*this);
+}
+
+/*!\brief Typkonvertierung zu: WideString
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der Variant zu einem WideString konvertiert.
+ * Dies ist jedoch nur erfolgreich, wenn es sich bei diesem Datentyp auch um einen WideString handelt.
+ * Ist dies nicht der Fall, wird eine Exception geworfen.
+ *
+ * @return Referenz auf WideString
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
+ */
+WideString& Variant::toWideString()
+{
+	if (type!=STRING) throw TypeConversionException();
+	return static_cast<WideString&>(*this);
+}
+
+
 /*!\brief Typkonvertierung zu: const Array
  *
  * \desc

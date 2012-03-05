@@ -165,7 +165,7 @@ void PrintDebugTime(const char *format, ...)
 		OutputDebugString(buff);
 #endif
 	} else {
-		printf("%ls%s",(const wchar_t*)Time,buff);
+		printf("%s%s",(const char*)Time,buff);
 	}
 	free(buff);
 }

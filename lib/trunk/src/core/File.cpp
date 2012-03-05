@@ -542,7 +542,7 @@ void File::close()
 		this->munmap(MapBase, (size_t)LastMapSize);
 	}
 
-	setFilename(L"");
+	setFilename("");
 	if (ff!=NULL) {
 		int ret=1;
 		if (buffer!=NULL) {

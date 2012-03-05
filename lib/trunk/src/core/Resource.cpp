@@ -240,7 +240,7 @@ void Resource::list()
 		return;
 	}
 	while (res) {
-		printf ("   - ID: %i, Name: %ls, Size: %tu\n",res->id, (const wchar_t*)res->name,res->size_u);
+		printf ("   - ID: %i, Name: %s, Size: %tu\n",res->id, (const char*)res->name,res->size_u);
 		res=res->next;
 	}
 
@@ -346,13 +346,13 @@ static void IncludeHelp(FileObject &out, const String &configfile)
 
 	out.putsf(
 		" *\n"
-		" * File generation: %ls\n"
-		" * Config: %ls\n"
+		" * File generation: %s\n"
+		" * Config: %s\n"
 		" *********************************************************/\n\n",
-		(const wchar_t*)now.get(), (const wchar_t*)configfile
+		(const char*)now.get(), (const char*)configfile
 	);
 	out.puts(
-		L"/* File-Format:\n"
+		"/* File-Format:\n"
 		" *    Byte 0-5: ID \"PPLRES\"                              (6 Byte)\n"
 		" *    Byte 6:   0-Byte                                   (1 Byte)\n"
 		" *    Byte 7:   Major Version (6)                        (1 Byte)\n"
