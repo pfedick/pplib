@@ -771,7 +771,7 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
 				Type=types.ToCString(Key);
 				Type.LCase();
 				if (Type=="int" || Type=="bit") Vals.Concatf("%s,",(const char*)Value);
-				else Vals.Concatf("\"%s\",",(const char*)Value);
+				else Vals.Concatf("'%s',",(const char*)Value);
 			}
 		}
 		Keys.Chop();
@@ -788,7 +788,7 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
 				Type=types.ToCString(Key);
 				Type.LCase();
 				if (Type=="int" || Type=="bit") Query.Concatf("%s=%s,",(const char*)Key,(const char*)Value);
-				else Query.Concatf("%s=\"%s\",",(const char*)Key,(const char*)Value);
+				else Query.Concatf("%s='%s',",(const char*)Key,(const char*)Value);
 			}
 		}
 		Query.Chop();
