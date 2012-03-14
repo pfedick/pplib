@@ -804,12 +804,9 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
 	} else if (Method=="update") {
 		Query.Setf("%s %s set ",(const char*)Method, (const char*)Table);
 		while (a.GetNext(Key,Value)) {
-			if (!Escape(Value)) return 0;
 			if (exclude.GetChar(Key)==NULL) {
 				Type=types.ToCString(Key);
-				Type.LCase();
-				if (Type=="int" || Type=="bit") Query.Concatf("%s=%s,",(const char*)Key,(const char*)Value);
-				else Query.Concatf("%s='%s',",(const char*)Key,(const char*)Value);
+				Query+=Key+"="+getQuoted(Value,Type)+",";
 			}
 		}
 		Query.Chop();
