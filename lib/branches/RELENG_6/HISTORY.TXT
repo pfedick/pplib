@@ -4,6 +4,10 @@ PPL6 - HISTORY
 Version 6.4.12
   - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen
     gesetzt
+  - Datenbank: Datentypen werden in Abhängigkeit ihres Types und der
+    Datenbank escaped und gequoted. Neue Funktion Database::getQuoted
+  - Datenbank: Mutexe aus den Datenbanken entfernt. Die Anwendung ist
+    dafür verantwortlich parallelen Zugriff zu verhindern.
     
 Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
   - Bugfix in PNG-Laderoutine

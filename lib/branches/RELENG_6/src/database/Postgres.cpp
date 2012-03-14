@@ -179,7 +179,7 @@ int PostgresResult::FieldNum(const char *fieldname)
 	}
 	if (!fieldname) {
 		SetError(194);
-		return NULL;
+		return 0;
 	}
 	int n=PQfnumber(res,fieldname);
 	if (n==-1) {
@@ -350,7 +350,6 @@ int Postgres::Connect(const CAssocArray &params)
 	return 0;
 #else
 	if (conn) Disconnect();
-	mutex.Lock();
 	condata=params;
 	CString conninfo;
 	if (params["host"]) conninfo.Concatf("host=%s ",params["host"]);
@@ -362,13 +361,11 @@ int Postgres::Connect(const CAssocArray &params)
 	conn=PQconnectdb((const char *)conninfo);
 	if (!conn) {
 		SetError(2);
-		mutex.Unlock();
 		return 0;
 	}
 	// Pruefen, ob auch wirklich eine Verbindung da ist
 	if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
 		UpdateLastUse();
-		mutex.Unlock();
 		return 1;
 	}
 	ClearLastUse();
@@ -377,7 +374,6 @@ int Postgres::Connect(const CAssocArray &params)
 	SetError(77,0,PQerrorMessage((PGconn*)conn));
 	PQfinish((PGconn*)conn);
 	conn=NULL;
-	mutex.Unlock();
 	return 0;
 #endif
 }
@@ -404,16 +400,13 @@ int Postgres::Reconnect()
 	SetError(511,"Postgres");
 	return 0;
 #else
-	mutex.Lock();
 	if (conn) {
 		PQreset((PGconn *)conn);
 		if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
 			UpdateLastUse();
-			mutex.Unlock();
 			return 1;
 		}
 	}
-	mutex.Unlock();
 	// Hat nicht geklappt, wir versuchen einen normalen Connect
 	Close();
 	CAssocArray a;
@@ -430,15 +423,12 @@ int Postgres::Disconnect()
 	SetError(511,"Postgres");
 	return 0;
 #else
-	mutex.Lock();
 	if (!conn) {
-		mutex.Unlock();
 		return 1;
 	}
 	PQfinish((PGconn*)conn);
 	conn=NULL;
 	ClearLastUse();
-	mutex.Unlock();
 	return 1;
 #endif
 }
@@ -453,9 +443,7 @@ int Postgres::SelectDB(const char *databasename)
 #else
 	// Scheinbar können wir die Datenbank nicht innerhalb der laufenden Verbindung
 	// wechseln
-	mutex.Lock();
-	if (!conn) { SetError(181); mutex.Unlock(); return 0; }
-	mutex.Unlock();
+	if (!conn) { SetError(181); return 0; }
 
 	Close();
 	CAssocArray a,b;
@@ -510,12 +498,9 @@ void *Postgres::Pgsql_Query(const CString &query)
 		SetError(138,0,"%s",PQresultErrorMessage(res));
 		if (res) PQclear(res);
 		if (PQstatus((PGconn*)conn) != CONNECTION_OK) {
-			mutex.Unlock();
 			if (!Reconnect()) {
-				mutex.Lock();
 				return NULL;
 			}
-			mutex.Lock();
 		} else break;
 	}
 	return NULL;
@@ -528,8 +513,7 @@ int Postgres::Exec(const CString &query)
 	SetError(511,"Postgres");
 	return 0;
 #else
-	mutex.Lock();
-	if (!conn) { SetError(181); mutex.Unlock(); return 0; }
+	if (!conn) { SetError(181); return 0; }
 	double t_start;
 	PGresult *res;
 	t_start=GetMicrotime();
@@ -539,10 +523,8 @@ int Postgres::Exec(const CString &query)
 		// Result-Handle freigeben
 		PQclear(res);
 		LogQuery(query,(float)(getmicrotime()-t_start));
-		mutex.Unlock();
 		return 1;
 	}
-	mutex.Unlock();
 	return 0;
 #endif
 }
@@ -553,8 +535,7 @@ Result *Postgres::Query(const CString &query)
 	SetError(511,"Postgres");
 	return NULL;
 #else
-	mutex.Lock();
-	if (!conn) { SetError(181); mutex.Unlock(); return 0; }
+	if (!conn) { SetError(181); return 0; }
 	double t_start;
 	PGresult *res;
 	t_start=GetMicrotime();
@@ -568,7 +549,6 @@ Result *Postgres::Query(const CString &query)
 		if (!pr) {
 			PQclear(res);
 			SetError(2);
-			mutex.Unlock();
 			return NULL;
 		}
 		pr->res=res;
@@ -578,10 +558,8 @@ Result *Postgres::Query(const CString &query)
 		pr->lastinsertid=lastinsertid;
 		pr->affectedrows=affectedrows;
 		pr->num_fields=PQnfields(res);
-		mutex.Unlock();
 		return pr;
 	}
-	mutex.Unlock();
 	return 0;
 #endif
 }
@@ -597,48 +575,41 @@ int Postgres::Ping()
 	SetError(511,"Postgres");
 	return 0;
 #else
-	mutex.Lock();
-	if (!conn) { SetError(181); mutex.Unlock(); return 0; }
+	if (!conn) { SetError(181); return 0; }
 	PGresult *res;
 	res=(PGresult*)Pgsql_Query("select 1 as result");
 	if (res) {
 		// Result-Handle freigeben
 		PQclear(res);
-		mutex.Unlock();
 		return 1;
 	}
-	mutex.Unlock();
 	SetError(181);
 	return 0;
 
 #endif
 }
 
-int Postgres::Escape(CString &str)
+int Postgres::Escape(CString &str) const
 {
 #ifndef HAVE_POSTGRESQL
 	SetError(511,"Postgres");
 	return 0;
 #else
-	mutex.Lock();
-	if (!conn) { SetError(181); mutex.Unlock(); return 0; }
+	if (!conn) { SetError(181); return 0; }
 	size_t l=str.Len()*2+1;
 	char *buf=(char *)malloc(l);   // Buffer reservieren
 	if (!buf) {
 		SetError(2);
-		mutex.Unlock();
 		return 0;
 	}
 	int error;
 	size_t newlength=PQescapeStringConn((PGconn*)conn,buf,(const char*)str,str.Len(),&error);
 	if (error==0) {
-		mutex.Unlock();
 		//ppl6::HexDump(buf,newlength);
 		str.Set(buf,newlength);
 		free(buf);
 		return 1;
 	}
-	mutex.Unlock();
 	free(buf);
 	SetError(355,0,PQerrorMessage((PGconn*)conn));
 	return 0;
@@ -749,6 +720,16 @@ CString	Postgres::databaseType() const
 	return CString("Postgres");
 }
 
+CString Postgres::getQuoted(const CString &value, const CString &type) const
+{
+	CString Type=type;
+	CString s=value;
+	Type.UCase();
+	Escape(s);
+	if (Type=="int" || Type=="integer") return s;
+	if (Type=="bit" || Type=="boolean") return "'"+s+"'";
+	return "'"+s+"'";
+}
 
 }	// EOF namespace db
 }	// EOF namespace ppl6

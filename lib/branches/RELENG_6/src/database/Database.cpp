@@ -693,6 +693,29 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
 	return ExecArrayAll(result,String);
 }
 
+
+/*!\brief Wert Datenbank-konform quoten
+ *
+ * \descr
+ * Diese Funktion escaped und quoted den String \p value Datenbank-konform abhängig vom Datentyp
+ * \p type. Der Rückgabewert enthält je nach Datentyp bereits Hochkommata oder Anführungszeichen
+ * und kann somit ohne weitere Quotes in einen Query eingesetzt werden.
+ *
+ * @param value Zu quotender String
+ * @param type Datentyp. Wird nichts angegeben, wird der Wert \p value als String interpretiert.
+ * @return Escapeter und Gequoteter String
+ */
+CString Database::getQuoted(const CString &value, const CString &type) const
+{
+	CString Type=type;
+	CString s=value;
+	Type.UCase();
+	Escape(s);
+	if (Type=="int" || Type=="integer" || Type=="bit" || Type=="boolean") return s;
+	return "'"+s+"'";
+}
+
+
 /*!\brief Query zum Speichern des Datensatzes generieren
  *
  * \descr
@@ -767,11 +790,9 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
 				Keys.Concat(Key);
 				Keys.Concat(",");
 				//printf ("Key=%s, Value=%s\n",(const char*)Key,(const char*)Value);
-				if (!Escape(Value)) return 0;
 				Type=types.ToCString(Key);
-				Type.LCase();
-				if (Type=="int" || Type=="bit") Vals.Concatf("%s,",(const char*)Value);
-				else Vals.Concatf("'%s',",(const char*)Value);
+				Vals+=getQuoted(Value,Type);
+				Vals+=",";
 			}
 		}
 		Keys.Chop();
@@ -1107,7 +1128,7 @@ int Database::Ping()
 	return 0;
 }
 
-int Database::Escape(CString &str)
+int Database::Escape(CString &str) const
 /*!\brief String escapen
  *
  * \descr

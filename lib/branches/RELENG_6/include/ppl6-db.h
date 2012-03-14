@@ -215,7 +215,7 @@ class Database
 		virtual Result	*Query(const CString &query);
 		virtual void	SetMaxRows(ppluint64 rows);
 		virtual int     Ping();
-		virtual int		Escape(CString &str);
+		virtual int		Escape(CString &str) const;
 		virtual ppluint64	GetInsertID();	// Returns ID from autoincrement field
 		virtual pplint64	GetAffectedRows();
 		virtual int		StartTransaction();
@@ -224,6 +224,7 @@ class Database
 		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
 		virtual CString	databaseType() const;
+		virtual CString getQuoted(const CString &value, const CString &type=CString()) const;
 
 };
 
@@ -236,7 +237,6 @@ class MySQL : public Database
 		ppluint64	maxrows;
 		int			transactiondepth;
 		CAssocArray condata;
-		CMutex		mutex;
 
 		int	Mysql_Query(const CString &query);
 
@@ -252,7 +252,7 @@ class MySQL : public Database
 		virtual Result	*Query(const CString &query);
 		virtual void	SetMaxRows(ppluint64 rows);
 		virtual int     Ping();
-		virtual int		Escape(CString &str);
+		virtual int		Escape(CString &str) const;
 		virtual ppluint64	GetInsertID();
 		virtual pplint64	GetAffectedRows();
 		virtual int		StartTransaction();
@@ -266,7 +266,6 @@ class MySQL : public Database
 class Sybase : public ppl6::db::Database
 {
 	private:
-		CMutex		mutex;
 		CAssocArray condata;
 		void		*conn;
 		ppluint64	lastinsertid;
@@ -293,7 +292,7 @@ class Sybase : public ppl6::db::Database
 		virtual ppl6::db::Result	*Query(const CString &query);
 		virtual void	SetMaxRows(ppluint64 rows);
 		virtual int     Ping();
-		virtual int		Escape(CString &str);
+		virtual int		Escape(CString &str) const;
 		virtual ppluint64	GetInsertID();
 		virtual pplint64	GetAffectedRows();
 		virtual int		StartTransaction();
@@ -320,7 +319,6 @@ class Postgres : public Database
 		ppluint64	maxrows;
 		int			transactiondepth;
 		CAssocArray condata;
-		CMutex		mutex;
 
 		void *Pgsql_Query(const CString &query);
 
@@ -337,7 +335,7 @@ class Postgres : public Database
 		virtual Result	*Query(const CString &query);
 		virtual void	SetMaxRows(ppluint64 rows);
 		virtual int     Ping();
-		virtual int		Escape(CString &str);
+		virtual int		Escape(CString &str) const;
 		virtual ppluint64	GetInsertID();
 		virtual pplint64	GetAffectedRows();
 		virtual int		StartTransaction();
@@ -346,6 +344,7 @@ class Postgres : public Database
 		virtual int		CancelTransactionComplete();
 		virtual int		CreateDatabase(const char *name);
 		virtual CString	databaseType() const;
+		virtual CString getQuoted(const CString &value, const CString &type=CString()) const;
 };
 
 Database *Connect(const CAssocArray &params);

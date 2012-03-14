@@ -1084,14 +1084,12 @@ int Sybase::Connect(const CAssocArray &params)
 
 	//char *charset=data->Get("charset");
 	CS_RETCODE ret;
-	mutex.Lock();
 	sc->conn=NULL;
 	// Zuerst eine connection structure allokieren
 	lastServerMsgNumber=0;
 	ret=ct_con_alloc(context,&sc->conn);
 	if (ret!=CS_SUCCEED) {
 		SetError(77,"ct_con_alloc failed");
-		mutex.Unlock();
 		return 0;
 	}
 
@@ -1164,7 +1162,6 @@ int Sybase::Connect(const CAssocArray &params)
 		};
 		//printf ("conn 3\n");
 		SetError(e,"Host: %s, Port: %i, Interface: %s, Sybase-Error: %s",host,port,interface,(const char*)syberror);
-		mutex.Unlock();
 		return 0;
 	}
 	sc->cmd=NULL;
@@ -1174,14 +1171,12 @@ int Sybase::Connect(const CAssocArray &params)
 	if (ret!=CS_SUCCEED) {
 		Close();
 		SetError(77,"Command Buffer ct_cmd_alloc");
-		mutex.Unlock();
 		return 0;
 	}
 	CLog *log=GetLogfile();
 	if (log) log->Printf(LOG::DEBUG,3,__FILE__,__LINE__,"SYBASE Connected to %s",host);
 	connected=true;
 	UpdateLastUse();
-	mutex.Unlock();
 	if (language) Execf("set language %s",language);
 	else if (default_locale.NotEmpty()) Execf("set language %s",(const char*)default_locale);
 	if (dateformat) Execf("set dateformat %s",dateformat);
@@ -1213,7 +1208,6 @@ int Sybase::Disconnect()
 	SetError(511,"Sybase");
 	return 0;
 #else
-	mutex.Lock();
 	CLog *Log=GetLogfile();
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Disconnect",__FILE__,__LINE__,"Trenne Verbindung");
 
@@ -1243,7 +1237,6 @@ int Sybase::Disconnect()
 	connected=false;
 	lastinsertid=0;
 	ClearLastUse();
-	mutex.Unlock();
 	return 1;
 #endif
 }
@@ -1259,14 +1252,11 @@ int Sybase::SelectDB(const char *databasename)
 		return 0;
 	}
 	int ret=0;
-	mutex.Lock();
 	SYBCONNECT *sc=(SYBCONNECT*)conn;
 	if (!sc->conn) {
 		SetError(181);
-		mutex.Unlock();
 		return 0;
 	} else {
-		mutex.Unlock();
 		CString cmdbuf;
 		cmdbuf.Sprintf("use %s", databasename);
 		if (Exec(cmdbuf.GetPtr())) {
@@ -1301,11 +1291,9 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 	CLog *Log=GetLogfile();
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Query",__FILE__,__LINE__,"Sybase::Query(const char *query=%s)",(const char *)query);
 
-	mutex.Lock();
 	rows_affected=0;
 	SYBCONNECT *sc=(SYBCONNECT*)conn;
 	if (!sc->conn) {
-		mutex.Unlock();
 		SetError(181);
 		if (Log) Log->LogError(4);
 		return NULL;
@@ -1315,7 +1303,6 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 	CS_RETCODE cs_ret;
 	if (ct_command(sc->cmd, CS_LANG_CMD, (CS_CHAR*)query.GetPtr(), CS_NULLTERM, CS_UNUSED)!=CS_SUCCEED) {
 		SetError(138,"ct_command: %s, syberror: %s",(const char*)query,(const char*)syberror);
-		mutex.Unlock();
 		if (Log) Log->LogError(4);
 		return NULL;
 	}
@@ -1340,7 +1327,6 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 				break;
 		}
 		SetError(138,"ct_send: %s, %s, syberror: %s",(const char*)query,(const char*)s, (const char*)syberror);
-		mutex.Unlock();
 		if (Log) Log->LogError(4);
 		return NULL;
 	}
@@ -1390,7 +1376,6 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 				ret->cmd=sc->cmd;
 				LogQuery(query,(float)(getmicrotime()-t_start));
 				UpdateLastUse();
-				mutex.Unlock();
 				if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Query",__FILE__,__LINE__,"Sybase::Query OK)");
 				ret->FetchResultFields();
 				return (ppl6::db::Result*) ret;
@@ -1409,7 +1394,6 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 			PushError();
 			delete ret;
 			ct_cancel(NULL, sc->cmd, CS_CANCEL_ALL);
-			mutex.Unlock();
 			PopError();
 			if (Log) Log->LogError(4);
 			return NULL;
@@ -1417,7 +1401,6 @@ ppl6::db::Result *Sybase::Query(const CString &query)
     }
 	LogQuery(query,(float)(getmicrotime()-t_start));
 	UpdateLastUse();
-	mutex.Unlock();
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Query",__FILE__,__LINE__,"Sybase::Query OK)");
 	return (ppl6::db::Result*) ret;
 
@@ -1443,43 +1426,36 @@ int Sybase::Ping()
 	CString query="select 1 as result";
 	CLog *Log=GetLogfile();
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Ping",__FILE__,__LINE__,"Prüfe Verbindung");
-	double t_start=0.0f;
-	mutex.Lock();
 	SYBCONNECT *sc=(SYBCONNECT*)conn;
 	if (!sc->conn) {
-		mutex.Unlock();
 		SetError(181);
 		if (Log) Log->LogError(4);
 		return 0;
 	}
 	syberror="";
-	t_start=getmicrotime();
+	//double t_start=getmicrotime();
 	if (ct_command(sc->cmd, CS_LANG_CMD, (CS_CHAR*)query.GetPtr(), CS_NULLTERM, CS_UNUSED)!=CS_SUCCEED) {
 		SetError(138,"ct_command: %s, syberror: %s",(const char*)query,(const char*)syberror);
-		mutex.Unlock();
 		if (Log) Log->LogError(4);
 		return 0;
 	}
 	if (ct_send(sc->cmd)!=CS_SUCCEED) {
 		SetError(138,"ct_send: %s, syberror: %s",(const char*)query,(const char*)syberror);
-		mutex.Unlock();
 		if (Log) Log->LogError(4);
 		return 0;
 	}
 	if (ct_cancel(NULL, sc->cmd, CS_CANCEL_ALL) !=CS_SUCCEED) {
 		SetError(138,"ct_cancel: %s, syberror: %s",(const char*)query,(const char*)syberror);
-		mutex.Unlock();
 		if (Log) Log->LogError(4);
 		return 0;
 	}
 
 	if (Log) Log->Printf(LOG::DEBUG,4,"ppl6::db::Sybase","Ping",__FILE__,__LINE__,"Ok");
-	mutex.Unlock();
 	return 1;
 #endif
 }
 
-int Sybase::Escape(CString &str)
+int Sybase::Escape(CString &str) const
 {
 #ifndef HAVE_SYBASE
 	SetError(511,"Sybase");

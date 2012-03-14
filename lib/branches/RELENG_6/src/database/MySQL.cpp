@@ -571,11 +571,10 @@ int MySQL::Connect(const CAssocArray &params)
 #else
 	MySQLThreadStart();
 	if (mysql) Disconnect();
-	mutex.Lock();
 	condata=params;
 
 	mysql=mysql_init(NULL);					// mySQL-Handle erzeugen
-	if (mysql==NULL) { SetError(77); mutex.Unlock(); return 0; }
+	if (mysql==NULL) { SetError(77); return 0; }
 	MYSQL *conn=mysql_real_connect((MYSQL *)mysql, params["host"], params["user"],
 			params["password"], params["dbname"], ppl6::atoi(params["port"]), NULL,0);
 	if (conn!=NULL) {
@@ -587,7 +586,6 @@ int MySQL::Connect(const CAssocArray &params)
 			printf ("WARNING: %i: %s\n",mysql_errno((MYSQL *)mysql),mysql_error((MYSQL *)mysql));
 		}
 
-		mutex.Unlock();
 		return 1;
 	}
 	// Was war der Fehler?
@@ -620,7 +618,6 @@ int MySQL::Connect(const CAssocArray &params)
 	mysql_close((MYSQL *)mysql);
 	mysql=NULL;
 	ClearLastUse();
-	mutex.Unlock();
 	return 0;
 #endif
 }
@@ -633,15 +630,12 @@ int MySQL::Reconnect()
 #else
 	MySQLThreadStart();
 	int ret;
-	mutex.Lock();
 	if (mysql) {
 		ret=mysql_ping((MYSQL *)mysql);
 		if (ret==0) {
-			mutex.Unlock();
 			return 1;
 		}
 	}
-	mutex.Unlock();
 	Close();
 	CAssocArray a;
 	a.Copy(&condata);
@@ -658,15 +652,12 @@ int MySQL::Disconnect()
 	return 0;
 #else
 	MySQLThreadStart();
-	mutex.Lock();
 	if (!mysql) {
-		mutex.Unlock();
 		return 1;
 	}
 	mysql_close((MYSQL *)mysql);
 	mysql=NULL;
 	ClearLastUse();
-	mutex.Unlock();
 	return 1;
 #endif
 }
@@ -682,26 +673,20 @@ int MySQL::SelectDB(const char *databasename)
 		SetError(194,"SelectDB(const char *databasename)");
 		return 0;
 	}
-	mutex.Lock();
-	if (!mysql) { SetError(181); mutex.Unlock(); return 0; }
+	if (!mysql) { SetError(181); return 0; }
 	if ( mysql_select_db((MYSQL *)mysql, databasename)==0 ) {
 		UpdateLastUse();
-		mutex.Unlock();
 		return 1;
 	}
 	int e=mysql_errno((MYSQL *)mysql);
 	if (e==CR_SERVER_GONE_ERROR || e==CR_SERVER_LOST) {
-		mutex.Unlock();
 		if (!Reconnect()) return 0;
-		mutex.Lock();
 		if ( mysql_select_db((MYSQL *)mysql, databasename)==0 ) {
-			mutex.Unlock();
 			return 1;
 		}
 	}
 	// Was war der Fehler?
 	SetError(295,mysql_errno((MYSQL *)mysql),"MySQL-Error: %u, %s",mysql_errno((MYSQL *)mysql),mysql_error((MYSQL *)mysql));
-	mutex.Unlock();
 	return 0;
 #endif
 }
@@ -732,12 +717,9 @@ int	MySQL::Mysql_Query(const CString &query)
 	// Vielleicht ist die DB-Verbindung weg?
 	int e=mysql_errno((MYSQL *)mysql);
 	if (e==CR_SERVER_GONE_ERROR || e==CR_SERVER_LOST) {
-		mutex.Unlock();
 		if (!Reconnect()) {
-			mutex.Lock();
 			return 0;
 		}
-		mutex.Lock();
 		ret=mysql_real_query((MYSQL *)mysql, query.GetPtr(), query.Len());
 		if (ret==0) return 1;
 		e=mysql_errno((MYSQL *)mysql);
@@ -760,9 +742,8 @@ int MySQL::Exec(const CString &query)
 #else
 	MySQLThreadStart();
 	double t_start;
-	mutex.Lock();
 	affectedrows=0;
-	if (!mysql) { SetError(181); mutex.Unlock(); return 0; }
+	if (!mysql) { SetError(181); return 0; }
 	t_start=getmicrotime();
 	int ret=Mysql_Query(query);
 	UpdateLastUse();
@@ -773,15 +754,12 @@ int MySQL::Exec(const CString &query)
 		LogQuery(query,(float)(getmicrotime()-t_start));
 		if (res) {
 			mysql_free_result(res);
-			mutex.Unlock();
 			return 1;
 		}
 		if (mysql_errno((MYSQL *)mysql)==0) {	// Query hat kein Ergebnis zurückgeliefert
-			mutex.Unlock();
 			return 1;
 		}
 	}
-	mutex.Unlock();
 	return 0;
 #endif
 }
@@ -794,16 +772,14 @@ Result *MySQL::Query(const CString &query)
 #else
 	MySQLThreadStart();
 	double t_start;
-	mutex.Lock();
 	affectedrows=0;
-	if (!mysql) { SetError(181); mutex.Unlock(); return NULL; }
+	if (!mysql) { SetError(181); return NULL; }
 	t_start=getmicrotime();
 	int ret=Mysql_Query(query);
 	UpdateLastUse();
 	if (ret) {
 		MySQLResult *res=new MySQLResult;
 		if (!res) {
-			mutex.Unlock();
 			SetError(2);
 			return 0;
 		}
@@ -818,18 +794,15 @@ Result *MySQL::Query(const CString &query)
 		if (res->res) {
 			res->rows=mysql_num_rows(res->res);
 			res->num_fields=mysql_num_fields(res->res);
-			mutex.Unlock();
 			return res;
 		}
 		if (mysql_errno((MYSQL *)mysql)==0) {	// Query hat kein Ergebnis zurückgeliefert
-			mutex.Unlock();
 			return res;
 		}
 		PushError();
 		delete res;
 		PopError();
 	}
-	mutex.Unlock();
 	return NULL;
 #endif
 }
@@ -860,38 +833,32 @@ int MySQL::Ping()
 	return 0;
 #else
 	MySQLThreadStart();
-	mutex.Lock();
 	if (mysql) {
 		if (mysql_ping((MYSQL *)mysql)==0) {		// Server ist noch connected
 			UpdateLastPing();
-			mutex.Unlock();
 			return 1;
 		}
 	}
 	SetError(181);
-	mutex.Unlock();
 	return 0;
 #endif
 }
 
-int MySQL::Escape(CString &str)
+int MySQL::Escape(CString &str) const
 {
 #ifndef HAVE_MYSQL
 	SetError(511,"MySQL");
 	return 0;
 #else
 	MySQLThreadStart();
-	mutex.Lock();
-	if (!mysql) { SetError(181); mutex.Unlock(); return 0; }
+	if (!mysql) { SetError(181); return 0; }
 	size_t l=str.Len()*2+1;
 	char *buf=(char *)malloc(l);   // Buffer reservieren
 	if (!buf) {
 		SetError(2);
-		mutex.Unlock();
 		return 0;
 	}
 	mysql_real_escape_string((MYSQL *)mysql,buf,str.GetPtr(),(unsigned long)str.Len());
-	mutex.Unlock();
 	str.ImportBuffer(buf,l);
 	return 1;
 #endif
@@ -987,15 +954,12 @@ int MySQL::CreateDatabase(const char *name)
 	}
 	CString Name=name;
 	if (!Escape(Name)) return 0;
-	mutex.Lock();
-	if (!mysql) { SetError(181); mutex.Unlock(); return 0; }
+	if (!mysql) { SetError(181); return 0; }
 	CString Query="create database "+Name;
 	if (!Mysql_Query(Query)) {
-		mutex.Unlock();
 		SetError(540,mysql_errno((MYSQL *)mysql),"MySQL-Error: %u, %s",mysql_errno((MYSQL *)mysql),mysql_error((MYSQL *)mysql));
 		return 0;
 	}
-	mutex.Unlock();
 	return 1;
 #endif
 }
