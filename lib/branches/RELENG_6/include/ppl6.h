@@ -2979,6 +2979,8 @@ class CDir
 		void Print(const CDirEntry *de);
 
 		static CString CurrentPath();
+		static CString homePath();
+		static CString tempPath();
 		//static CString HomePath();
 		//static CString TempPath();
 

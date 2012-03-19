@@ -442,6 +442,60 @@ CString CDir::CurrentPath()
 	return ret;
 }
 
+	/*!\ingroup PPLGroupFileIO
+	 * \brief Homeverzeichnis des aktuellen Users
+	 *
+	 * \desc
+	 * Diese statische Funktion liefert das Homeverzeichnis des aktuellen Benutzers
+	 * zurück.
+	 *
+	 * \return String mit dem Verzeichnis
+	 * \exception UnsupportedFeatureException Wird geworfen, wenn das Homeverzeichnis
+	 * nicht ermittelt werden kann.
+	 */
+	CString CDir::homePath()
+	{
+		CString ret;
+#ifdef _WIN32
+		char *homeDir = getenv("HOMEPATH");
+		char *homeDrive = getenv("HOMEDRIVE");
+		ret.setf("%s\\%s",homeDrive, homeDir);
+		return ret;
+#else
+		char *homeDir = getenv("HOME");
+		if (homeDir!=NULL && strlen(homeDir)>0) {
+			ret.Set(homeDir);
+			return ret;
+		}
+		throw UnsupportedFeatureException("CDir::homePath");
+#endif
+	}
+
+	/*!\ingroup PPLGroupFileIO
+	 * \brief Verzeichnis für temporäre Dateien
+	 *
+	 * \desc
+	 * Diese statische Funktion liefert das Verzeichnis zurück, in dem
+	 * temporäre Dateien abgelegt werden können.
+	 *
+	 * \return String mit dem Verzeichnis
+	 */
+	CString CDir::tempPath()
+	{
+	#ifdef _WIN32
+		TCHAR TempPath[MAX_PATH];
+		GetTempPath(MAX_PATH, TempPath);
+		return String(TempPath);
+	#endif
+		const char *dir = getenv("TMPDIR");
+		if (dir!=NULL && strlen(dir)>0) return CString(dir);
+	#ifdef P_tmpdir
+		dir=P_tmpdir;
+	#endif
+		if (dir!=NULL && strlen(dir)>0) return CString(dir);
+		return CString("/tmp");
+	}
+
 
 class CDirSortIgnoreCase : public CTreeController
 {
