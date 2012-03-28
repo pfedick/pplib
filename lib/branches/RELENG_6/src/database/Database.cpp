@@ -709,7 +709,7 @@ CString Database::getQuoted(const CString &value, const CString &type) const
 {
 	CString Type=type;
 	CString s=value;
-	Type.UCase();
+	Type.LCase();
 	Escape(s);
 	if (Type=="int" || Type=="integer" || Type=="bit" || Type=="boolean") return s;
 	return "'"+s+"'";
