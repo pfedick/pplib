@@ -15,6 +15,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-jpeg --with-png --with-mpg123=/usr/local \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \
+			--with-postgresql=/usr/local \
 			--with-ogg=/usr/local --with-libmicrohttpd=/usr/local
 		;;
 	MINGW32*:1.0.12*)

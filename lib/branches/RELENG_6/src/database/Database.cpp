@@ -123,6 +123,11 @@ Database *Connect(const CAssocArray &params)
 			db=new Postgres;
 		}
 	#endif
+	#ifdef HAVE_SQLITE
+		if (type=="sqlite") {
+			db=new SQLite;
+		}
+	#endif
 	if (!db) {
 		SetError(342,type);
 		return NULL;
@@ -134,6 +139,27 @@ Database *Connect(const CAssocArray &params)
 		return NULL;
 	}
 	return db;
+}
+
+void GetSupportedDatabases(CAssocArray &a)
+{
+	a.Clear();
+#ifdef HAVE_MYSQL
+	a.Add("mysql/type","mysql");
+	a.Add("mysql/name","MySQL");
+#endif
+#ifdef HAVE_SYBASE
+	a.Add("mysql/type","sybase");
+	a.Add("sybase/name","Sybase Open Client / ASE");
+#endif
+#ifdef HAVE_POSTGRESQL
+	a.Add("postgres/type","postgres");
+	a.Add("postgres/name","PostgreSQL");
+#endif
+#ifdef HAVE_SQLITE
+	a.Add("sqlite/type","sqlite");
+	a.Add("sqlite/name","SQLite");
+#endif
 }
 
 

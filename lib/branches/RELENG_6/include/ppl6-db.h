@@ -347,8 +347,50 @@ class Postgres : public Database
 		virtual CString getQuoted(const CString &value, const CString &type=CString()) const;
 };
 
-Database *Connect(const CAssocArray &params);
+class SQLite : public Database
+{
+	private:
+		void    *sql;
+		ppluint64 	lastinsertid;
+		pplint64	affectedrows;
+		ppluint64	maxrows;
+		int			transactiondepth;
+		CAssocArray condata;
+		CMutex		mutex;
 
+		int	Mysql_Query(const CString &query);
+
+	public:
+		SQLite();
+		virtual ~SQLite();
+
+		virtual int		Connect(const CAssocArray &params);
+		virtual int		Reconnect();
+		virtual int		Disconnect();
+		virtual int     Ping();
+		virtual int		SelectDB(const char *databasename);
+		virtual int		CreateDatabase(const char *name);
+		virtual int 	Exec(const CString &query);
+		virtual Result	*Query(const CString &query);
+		virtual ppluint64	GetInsertID();
+		virtual pplint64	GetAffectedRows();
+
+		/*
+		virtual void	SetMaxRows(ppluint64 rows);
+		virtual int		Escape(CString &str);
+
+
+		virtual int		StartTransaction();
+		virtual int		EndTransaction();
+		virtual int		CancelTransaction();
+		virtual int		CancelTransactionComplete();
+
+		*/
+		virtual CString	databaseType() const;
+};
+
+Database *Connect(const CAssocArray &params);
+void GetSupportedDatabases(CAssocArray &a);
 
 class Pool
 {

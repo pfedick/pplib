@@ -9,6 +9,8 @@ Version 6.4.12
   - Datenbank: Mutexe aus den Datenbanken entfernt. Die Anwendung ist
     dafür verantwortlich parallelen Zugriff zu verhindern.
   - Backport von PPL7: CDir::homePath und CDir::tempPath
+  - Funktion ppl6::db::GetSupportedDatabases hinzugefügt
+  - Unterstützung für Datenbank SQLite3
     
 Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
   - Bugfix in PNG-Laderoutine

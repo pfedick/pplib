@@ -16,10 +16,10 @@ TARGETBIN	= @bindir@
 TARGETINCLUDE	= @includedir@
 CC			= @CC@
 CXX			= @CXX@
-CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @OPENSSL_INCLUDES@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@ @LIBMICROHTTPD_CFLAGS@
+CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @OPENSSL_INCLUDES@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ @SYBASE_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ @SQLITE_CFLAGS@
 CPPFLAGS	= @CPPFLAGS@
 LDFLAGS		= @LDFLAGS@
-LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@ @LIBMICROHTTPD_LIBS@
+LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @SYBASE_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@ @LIBMICROHTTPD_LIBS@ @SQLITE_LIBS@
 LIBNAME		= libppl6
 LIBDEBUG	= libppl6-debug
 DISTNAME	= ppl
@@ -107,6 +107,7 @@ RELEASE	= release/CAVLTree.o \
 	release/db_PoolEx.o \
 	release/db_Postgres.o \
 	release/db_Result.o \
+	release/db_Sqlite.o \
 	release/db_Sybase.o \
 	release/gfx6_Blit.o \
 	release/gfx6_CDrawable.o \
@@ -241,6 +242,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/db_PoolEx.o \
 	debug/db_Postgres.o \
 	debug/db_Result.o \
+	debug/db_Sqlite.o \
 	debug/db_Sybase.o \
 	debug/gfx6_Blit.o \
 	debug/gfx6_CDrawable.o \
@@ -497,6 +499,7 @@ DATABASE_RELEASE	=release/db_Database.o \
 	release/db_PoolEx.o \
 	release/db_Postgres.o \
 	release/db_Result.o \
+	release/db_Sqlite.o \
 	release/db_Sybase.o
 
 DATABASE_DEBUG	=debug/db_Database.o \
@@ -506,6 +509,7 @@ DATABASE_DEBUG	=debug/db_Database.o \
 	debug/db_PoolEx.o \
 	debug/db_Postgres.o \
 	debug/db_Result.o \
+	debug/db_Sqlite.o \
 	debug/db_Sybase.o
 
 GRAFIX_RELEASE	=release/gfx6_Blit.o \
@@ -1223,6 +1227,11 @@ release/db_Result.o:	$(srcdir)/database/Result.cpp $(incdir)/ppl6.h $(incdir)/pp
 	###############################################################################
 	# Compiling >>>database/Result.cpp<<<
 	$(CXX) -Wall -O3 -o release/db_Result.o -c $(CFLAGS)  $(srcdir)/database/Result.cpp
+
+release/db_Sqlite.o:	$(srcdir)/database/Sqlite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Sqlite.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Sqlite.o -c $(CFLAGS)  $(srcdir)/database/Sqlite.cpp
 
 release/db_Sybase.o:	$(srcdir)/database/Sybase.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
@@ -1998,6 +2007,11 @@ debug/db_Result.o:	$(srcdir)/database/Result.cpp $(incdir)/ppl6.h $(incdir)/ppl6
 	###############################################################################
 	# Compiling >>>database/Result.cpp<<<
 	$(CXX) -Wall -O -o debug/db_Result.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Result.cpp
+
+debug/db_Sqlite.o:	$(srcdir)/database/Sqlite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Sqlite.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Sqlite.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Sqlite.cpp
 
 debug/db_Sybase.o:	$(srcdir)/database/Sybase.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################

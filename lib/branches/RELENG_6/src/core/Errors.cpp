@@ -626,6 +626,7 @@ static tr_str_array const char * errors[] = {
 		"Hexadezimal-String kann nicht zum Binary konvertiert werden",				// 562
 		"Icecast Error",															// 563
 		"Feature ist nicht einkompiliert",											// 564
+		"Funktion wird nicht unterstützt",											// 565
 		"unknown"																	//
 };
 

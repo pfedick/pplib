@@ -659,6 +659,10 @@ POSTGRESQL_LDFLAGS
 POSTGRESQL_CFLAGS
 POSTGRESQL_VERSION
 PG_CONFIG
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
+SQLITE_LIBS
+SQLITE_CFLAGS
 mysqlconfig
 MYSQL_LIBS
 MYSQL_CFLAGS
@@ -819,6 +823,7 @@ with_sdl_exec_prefix
 enable_sdltest
 with_png
 with_mysql
+with_sqlite
 with_postgresql
 with_sybase
 with_libldns
@@ -836,7 +841,12 @@ CXX
 CXXFLAGS
 CCC
 CPP
-XMKMF'
+XMKMF
+PKG_CONFIG
+PKG_CONFIG_PATH
+PKG_CONFIG_LIBDIR
+SQLITE_CFLAGS
+SQLITE_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1502,6 +1512,7 @@ Optional Packages:
   --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)
   --with-png[=PATH]     Prefix where libpng is installed (optional)
   --with-mysql[=PATH]     Prefix where mysql is installed (optional)
+  --with-sqlite[=PATH]   Prefix where SQLite is installed (optional)
   --with-postgresql=[ARG] use PostgreSQL library [default=no], optionally
                           specify path to pg_config
   --with-sybase[=PATH]    Prefix where freetds is installed (optional)
@@ -1520,6 +1531,14 @@ Some influential environment variables:
   CXXFLAGS    C++ compiler flags
   CPP         C preprocessor
   XMKMF       Path to xmkmf, Makefile generator for X Window System
+  PKG_CONFIG  path to pkg-config utility
+  PKG_CONFIG_PATH
+              directories to add to pkg-config's search path
+  PKG_CONFIG_LIBDIR
+              path overriding pkg-config's built-in search path
+  SQLITE_CFLAGS
+              C compiler flags for SQLITE, overriding pkg-config
+  SQLITE_LIBS linker flags for SQLITE, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -3082,6 +3101,10 @@ ac_config_headers="$ac_config_headers include/ppl6-unixconfig.h"
 # Configure paths for LIBGCRYPT
 # Shamelessly stolen from the one of XDELTA by Owen Taylor
 # Werner Koch   99-12-09
+
+
+
+
 
 
 
@@ -12893,6 +12916,309 @@ $as_echo "#define HAVE_MYSQL 1" >>confdefs.h
 fi
 
 
+report_have_sqlite="no"
+
+
+
+
+
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+fi
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ac_pt_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+$as_echo "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		PKG_CONFIG=""
+	fi
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if SQLite should be used" >&5
+$as_echo_n "checking if SQLite should be used... " >&6; }
+
+
+# Check whether --with-sqlite was given.
+if test "${with_sqlite+set}" = set; then :
+  withval=$with_sqlite; sqlite_prefix="$withval"
+else
+  sqlite_prefix="auto"
+fi
+
+
+have_sqlite="no"
+if test "$sqlite_prefix" != "no"
+then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	if test "$sqlite_prefix" = "yes" -o "$sqlite_prefix" = "auto"
+	then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SQLITE" >&5
+$as_echo_n "checking for SQLITE... " >&6; }
+
+if test -n "$SQLITE_CFLAGS"; then
+    pkg_cv_SQLITE_CFLAGS="$SQLITE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sqlite3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sqlite3") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SQLITE_CFLAGS=`$PKG_CONFIG --cflags "sqlite3" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$SQLITE_LIBS"; then
+    pkg_cv_SQLITE_LIBS="$SQLITE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sqlite3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sqlite3") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SQLITE_LIBS=`$PKG_CONFIG --libs "sqlite3" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SQLITE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "sqlite3" 2>&1`
+        else
+	        SQLITE_PKG_ERRORS=`$PKG_CONFIG --print-errors "sqlite3" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SQLITE_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (sqlite3) were not met:
+
+$SQLITE_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables SQLITE_CFLAGS
+and SQLITE_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables SQLITE_CFLAGS
+and SQLITE_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	SQLITE_CFLAGS=$pkg_cv_SQLITE_CFLAGS
+	SQLITE_LIBS=$pkg_cv_SQLITE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_sqlite="yes"
+
+fi
+	else
+		SQLITE_LIBS="-L$sqlite_prefix/lib -lsqlite3"
+		SQLITE_CFLAGS="-I$sqlite_prefix/include"
+
+		my_save_LIBS="$LIBS"
+		my_save_CFLAGS="$CFLAGS"
+		my_save_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS -L/usr/local/lib"
+		CFLAGS="$CFLAGS $SQLITE_CFLAGS"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqlite3_open in -lsqlite3" >&5
+$as_echo_n "checking for sqlite3_open in -lsqlite3... " >&6; }
+if ${ac_cv_lib_sqlite3_sqlite3_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsqlite3  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sqlite3_open ();
+int
+main ()
+{
+return sqlite3_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_sqlite3_sqlite3_open=yes
+else
+  ac_cv_lib_sqlite3_sqlite3_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_sqlite3_sqlite3_open" >&5
+$as_echo "$ac_cv_lib_sqlite3_sqlite3_open" >&6; }
+if test "x$ac_cv_lib_sqlite3_sqlite3_open" = xyes; then :
+  have_sqlite="yes"
+
+fi
+
+		LIBS="$my_save_LIBS"
+		CFLAGS="$my_save_CFLAGS"
+		LDFLAGS="$my_save_LDFLAGS"
+	fi
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+if test $have_sqlite = "yes"
+then
+
+$as_echo "#define HAVE_SQLITE 1" >>confdefs.h
+
+            report_have_sqlite="yes"
+
+
+else
+	:
+fi
+
+
+
 
 report_have_postgres="no"
 
@@ -13978,28 +14304,53 @@ esac;
 **   Size of long long    $ac_cv_sizeof_long_long
 **   Size of size_t       $ac_cv_sizeof_size_t
 ******************************************************************************
-** Supported Libraries:       		Databases:
-**   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
-**   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
-**   PNG library:          $report_have_png		  Sybase Open Client:   $report_have_sybase
+** Assembler:
+**   Nasm (x86 assembler): $report_have_nasm
+**
+** Threads:
+**   pthreads:             $report_have_pthreads
+**
+** Compression:
+**   ZLIB library:         $report_have_zlib
+**   BZIP2 library:        $report_have_bzip2
+**
+** Graphic:
+**   BMP:                  yes (buildin)
+**   GIF:                  yes (buildin)
+**   TGA:                  yes (buildin)
+**   PPM:                  yes (buildin)
+**   PNG library:          $report_have_png
 **   JPEG library:         $report_have_jpeg
-**   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
+**   Freetype 2.x library: $report_have_freetype2
+**
+** Multimedia:
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
 **   Libmad library:       $report_have_libmad
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg
 **   shout library:        $report_have_libshout
-**   Curl library:         $report_have_curl
+**
+** Cryptography:
 **   Libgcrypt:            $report_have_libgcrypt
 **   Libgnutls:            $report_have_libgnutls
-**   Libmicrohttpd:        $report_have_libmicrohttpd
-**   OpenSSL:              $report_have_openssl		Threads:
-**   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
-**   ICONV:                $report_have_iconv
+**   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
+** Internet:
+**   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd
 **   ldns library:         $report_have_ldns
+**
+** Databases:
+**   SQLite3:              $report_have_sqlite
+**   MySQL:                $report_have_mysql
+**   Postgres              $report_have_postgres
+**   Sybase Open Client:   $report_have_sybase
+**
+** Other:
+**   PCRE:                 $report_have_pcre
+**   ICONV:                $report_have_iconv
 ******************************************************************************
 " >&5
 $as_echo "
@@ -14015,28 +14366,53 @@ $as_echo "
 **   Size of long long    $ac_cv_sizeof_long_long
 **   Size of size_t       $ac_cv_sizeof_size_t
 ******************************************************************************
-** Supported Libraries:       		Databases:
-**   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
-**   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
-**   PNG library:          $report_have_png		  Sybase Open Client:   $report_have_sybase
+** Assembler:
+**   Nasm (x86 assembler): $report_have_nasm
+**
+** Threads:
+**   pthreads:             $report_have_pthreads
+**
+** Compression:
+**   ZLIB library:         $report_have_zlib
+**   BZIP2 library:        $report_have_bzip2
+**
+** Graphic:
+**   BMP:                  yes (buildin)
+**   GIF:                  yes (buildin)
+**   TGA:                  yes (buildin)
+**   PPM:                  yes (buildin)
+**   PNG library:          $report_have_png
 **   JPEG library:         $report_have_jpeg
-**   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
+**   Freetype 2.x library: $report_have_freetype2
+**
+** Multimedia:
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
 **   Libmad library:       $report_have_libmad
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg
 **   shout library:        $report_have_libshout
-**   Curl library:         $report_have_curl
+**
+** Cryptography:
 **   Libgcrypt:            $report_have_libgcrypt
 **   Libgnutls:            $report_have_libgnutls
-**   Libmicrohttpd:        $report_have_libmicrohttpd
-**   OpenSSL:              $report_have_openssl		Threads:
-**   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
-**   ICONV:                $report_have_iconv
+**   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
+** Internet:
+**   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd
 **   ldns library:         $report_have_ldns
+**
+** Databases:
+**   SQLite3:              $report_have_sqlite
+**   MySQL:                $report_have_mysql
+**   Postgres              $report_have_postgres
+**   Sybase Open Client:   $report_have_sybase
+**
+** Other:
+**   PCRE:                 $report_have_pcre
+**   ICONV:                $report_have_iconv
 ******************************************************************************
 " >&6; }
 

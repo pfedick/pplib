@@ -45,6 +45,7 @@ sinclude(config/shout.m4)
 sinclude(config/libgcrypt.m4)
 sinclude(config/libgnutls.m4)
 sinclude(config/libmicrohttpd.m4)
+sinclude(config/sqlite.m4)
 
 AC_CANONICAL_TARGET
 
@@ -436,6 +437,14 @@ AC_CHECK_MYSQL([4.0],
 			AC_SUBST(MYSQL_LIBS),
             :)
 
+report_have_sqlite="no"
+AC_CHECK_SQLITE([],
+            AC_DEFINE(HAVE_SQLITE, 1, [ Define if you have SQLite. ])
+            report_have_sqlite="yes"
+			AC_SUBST(SQLITE_CFLAGS)
+			AC_SUBST(SQLITE_LIBS),
+            :)
+
 
 report_have_postgres="no"
 AX_LIB_POSTGRESQL([8.0])
@@ -578,28 +587,53 @@ AC_MSG_RESULT([
 **   Size of long long    $ac_cv_sizeof_long_long     
 **   Size of size_t       $ac_cv_sizeof_size_t
 ******************************************************************************
-** Supported Libraries:       		Databases:
-**   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
-**   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
-**   PNG library:          $report_have_png		  Sybase Open Client:   $report_have_sybase
+** Assembler:
+**   Nasm (x86 assembler): $report_have_nasm
+**
+** Threads:
+**   pthreads:             $report_have_pthreads
+**
+** Compression:
+**   ZLIB library:         $report_have_zlib
+**   BZIP2 library:        $report_have_bzip2
+**
+** Graphic:
+**   BMP:                  yes (buildin)
+**   GIF:                  yes (buildin)
+**   TGA:                  yes (buildin)
+**   PPM:                  yes (buildin)
+**   PNG library:          $report_have_png
 **   JPEG library:         $report_have_jpeg
-**   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
-**   SDL library:          $report_have_sdl		  
-**   Lame library:         $report_have_lame		  
+**   Freetype 2.x library: $report_have_freetype2
+**
+** Multimedia:
+**   SDL library:          $report_have_sdl		
+**   Lame library:         $report_have_lame
 **   Libmad library:       $report_have_libmad	
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
-**   Curl library:         $report_have_curl
+**
+** Cryptography:
 **   Libgcrypt:            $report_have_libgcrypt
 **   Libgnutls:            $report_have_libgnutls
-**   Libmicrohttpd:        $report_have_libmicrohttpd		  
-**   OpenSSL:              $report_have_openssl		Threads:
-**   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
-**   ICONV:                $report_have_iconv
+**   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
+** Internet:
+**   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd		
 **   ldns library:         $report_have_ldns
+**
+** Databases:
+**   SQLite3:              $report_have_sqlite
+**   MySQL:                $report_have_mysql
+**   Postgres              $report_have_postgres
+**   Sybase Open Client:   $report_have_sybase
+**
+** Other:
+**   PCRE:                 $report_have_pcre
+**   ICONV:                $report_have_iconv
 ******************************************************************************
 ])
 
