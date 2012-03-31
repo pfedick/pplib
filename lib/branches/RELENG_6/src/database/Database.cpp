@@ -149,7 +149,7 @@ void GetSupportedDatabases(CAssocArray &a)
 	a.Add("mysql/name","MySQL");
 #endif
 #ifdef HAVE_SYBASE
-	a.Add("mysql/type","sybase");
+	a.Add("sybase/type","sybase");
 	a.Add("sybase/name","Sybase Open Client / ASE");
 #endif
 #ifdef HAVE_POSTGRESQL
