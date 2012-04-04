@@ -374,18 +374,12 @@ class SQLite : public Database
 		virtual Result	*Query(const CString &query);
 		virtual ppluint64	GetInsertID();
 		virtual pplint64	GetAffectedRows();
-
-		/*
-		virtual void	SetMaxRows(ppluint64 rows);
-		virtual int		Escape(CString &str);
-
-
 		virtual int		StartTransaction();
 		virtual int		EndTransaction();
 		virtual int		CancelTransaction();
 		virtual int		CancelTransactionComplete();
-
-		*/
+		virtual void	SetMaxRows(ppluint64 rows);
+		virtual int		Escape(CString &str) const;
 		virtual CString	databaseType() const;
 };
 

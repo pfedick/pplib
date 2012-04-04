@@ -554,7 +554,110 @@ ppluint64 SQLite::GetInsertID()
 
 pplint64 SQLite::GetAffectedRows()
 {
+	return affectedrows;
+}
+
+void SQLite::SetMaxRows(ppluint64 rows)
+{
+	maxrows=rows;
+}
+
+
+int SQLite::StartTransaction()
+{
+#ifndef HAVE_SQLITE
+	SetError(511,"SQLite");
+	return NULL;
+#else
+	if (transactiondepth==0) {	// Neue Transaktion
+		if (Exec("BEGIN")) {
+			transactiondepth++;
+			return 1;
+		}
+	} else {
+		if (Execf("SAVEPOINT LEVEL%i",transactiondepth)) {
+			transactiondepth++;
+			return 1;
+		}
+	}
 	return 0;
+#endif
+}
+
+int SQLite::EndTransaction()
+{
+#ifndef HAVE_SQLITE
+	SetError(511,"SQLite");
+	return NULL;
+#else
+	if (transactiondepth==1) {
+		if (Exec("COMMIT")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		if (Execf("RELEASE SAVEPOINT LEVEL%i",transactiondepth-1)) {
+			transactiondepth--;
+			return 1;
+		}
+	}
+	return 0;
+#endif
+}
+
+int SQLite::CancelTransaction()
+{
+#ifndef HAVE_SQLITE
+	SetError(511,"SQLite");
+	return NULL;
+#else
+	if (transactiondepth==1) {
+		if (Exec("ROLLBACK")) {
+			transactiondepth=0;
+			return 1;
+		}
+	} else {
+		if (Execf("ROLLBACK TO SAVEPOINT LEVEL%i",transactiondepth-1)) {
+			transactiondepth--;
+			return 1;
+		}
+	}
+	return 0;
+#endif
+}
+
+int SQLite::CancelTransactionComplete()
+{
+#ifndef HAVE_SQLITE
+	SetError(511,"SQLite");
+	return NULL;
+#else
+	if (Exec("ROLLBACK")) {
+		transactiondepth=0;
+		return 1;
+	}
+	return 0;
+#endif
+}
+
+int SQLite::Escape(CString &str) const
+{
+#ifndef HAVE_SQLITE
+	SetError(511,"SQLite");
+	return NULL;
+#else
+	// SQLite hat keine Escape-Funktion, daher müssen wir das selbst machen
+	CString n;
+	const char *tmp=str.GetPtr();
+	int c;
+	while ((c=tmp[0])) {
+		if (c=='\'') n+="'";
+		n+=c;
+		tmp++;
+	}
+	str=n;
+	return 1;
+#endif
 }
 
 }	// EOF namespace db
