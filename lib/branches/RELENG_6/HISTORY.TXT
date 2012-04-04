@@ -1,7 +1,7 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
-Version 6.4.12
+Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
   - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen
     gesetzt
   - Datenbank: Datentypen werden in Abhängigkeit ihres Types und der
@@ -10,7 +10,7 @@ Version 6.4.12
     dafür verantwortlich parallelen Zugriff zu verhindern.
   - Backport von PPL7: CDir::homePath und CDir::tempPath
   - Funktion ppl6::db::GetSupportedDatabases hinzugefügt
-  - Unterstützung für Datenbank SQLite3
+  - Unterstützung für Datenbank SQLite3 (experimentell)
     
 Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
   - Bugfix in PNG-Laderoutine
