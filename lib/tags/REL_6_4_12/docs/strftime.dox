@@ -1,0 +1,103 @@
+/*!\file strftime.dox
+ 
+Normale Zeichen im Format werden ohne Konvertierung kopiert.  Konvertierungsanweisungen werden durch »\%« charakterisiert. Folgende Anweisungen stehen
+zur Verfügung:
+
+\arg \c \%a     Der abgekürzte Wochentag abhängig von der momentanen Locale.
+
+\arg \c \%A     Der gesamte Wochentag abhängig von der momentanen Locale.
+
+\arg \c \%b     Der abgekürzte Monatsname abhängig von der momentanen Locale.
+
+\arg \c \%B     Der volle Monatsname abhängig von der momentanen Locale.
+
+\arg \c \%c     Das bevorzugte Datums- und Uhrzeit-Repräsentation laut Einstellungen der momentanen Locale.
+
+\arg \c \%C     Das Jahrhundert als zweistellige Zahl.
+
+\arg \c \%d     Der Tag im Monat als Dezimalzahl (01 - 31).
+
+\arg \c \%D     Äquivalent  zu  \%m/\%d/\%y.   (US-amerikanisches  Format.   In anderen Ländern ist \%d/\%m/\%y durchaus üblich . In internationalem Kontext ist dieses Format daher
+              mehrdeutig und sollte nicht verwendet werden.) (SU)
+
+\arg \c \%e     Wie \%d, der Tag im Monat als Dezimalzahl, aber eine führende Null ist durch ein Leerzeichen ersetzt. (SU)
+
+\arg \c \%E     Modifikator: Alternatives Format benutzen, s.u. (SU)
+
+\arg \c \%g     Wie \%G, aber ohne das Jahrhundert, also mit zweistelligem Jahr (00-99). (TZ)
+
+\arg \c \%G     Das Jahr laut ISO 8601 mit dem Jahrhundert als Dezimalzahl.  Das vierstellige Jahr, das zu ISO-Wochennummer (siehe \%V) passt.   Es  hat  dasselbe  Format  und
+              denselben Wert wie \%y, nur dass, wenn die ISO-Wochennummer zum vorhergehenden oder nächsten Jahr gehört, dieses Jahr stattdessen benutzt wird. (TZ)
+
+\arg \c \%h     Äquivalent zu \%b. (SU)
+
+\arg \c \%H     Die Stunde im 24h-Format als Ganzzahl (00 - 23).
+
+\arg \c \%I     Die Stunde im 12h-Format als Ganzzahl (01 - 12).
+
+\arg \c \%j     Der Tag im Jahr als Ganzzahl (001 - 366).
+
+\arg \c \%k     Die Stunde im 24h-Format als Ganzzahl (0 - 23); einzelne Ziffern haben ein vorangestelltes Leerzeichen. (Siehe \%H.) (TZ)
+
+\arg \c \%l     Die Stunde im 12h-Format als Ganzzahl (0 - 12); einzelne Ziffern haben ein vorangestelltes Leerzeichen. (Siehe \%I.) (TZ)
+
+\arg \c \%m     Der Monat als Ganzzahl (01 - 12).
+
+\arg \c \%M     Die Minute als Ganzzahl (00 - 59).
+
+\arg \c \%n     Ein Zeilenvorschub. (SU)
+
+\arg \c \%O     Modifikator: Alternatives Format benutzen, s.u. (SU)
+
+\arg \c \%p     Entweder  »AM« oder »PM«, je nach der übergebenen Uhrzeit, oder die zugehörigen Zeichenketten in der momentanen Locale.  Mittag erhält »PM«, Mitternacht »AM«.
+
+\arg \c \%P     Wie \%p, aber in Kleinbuchstaben. (GNU)
+
+\arg \c \%r     Zeit in AM/PM-Notation; in der POSIX-Locale ist das äquivalent zu »\%I:\%M:\%S \%p«. (SU)
+
+\arg \c \%R     Zeit in 24h-Notation (\%H:\%M). (SU) Für eine Version mit Sekunden siehe \%T.
+
+\arg \c \%s     Die Zahl der Sekunden seit der Epoche, also seit 1970-01-01 00:00:00 UTC. (TZ)
+
+\arg \c \%S     Die Sekunde als Ganzzahl (00 - 61).
+
+\arg \c \%t     Ein Tabulatorzeichen. (SU)
+
+\arg \c \%T     Zeit in 24h-Notation (\%H:\%M:\%S). (SU)
+
+\arg \c \%u     Der Tag der Woche als Zahl von 1 bis 7, mit Montag als 1.  Siehe auch \%w. (SU)
+
+\arg \c \%U     Die Wochennummer des aktuellen Jahres als Ganzzahl von 00 bis 53, beginnend mit dem ersten Sonntag als erster Tag der ersten Woche.  Siehe auch \%V und \%W.
+
+\arg \c \%V     Die Wochennummer nach ISO 8601:1988 als Dezimalzahl von 01 bis 53, wobei Woche 1 die erste Woche ist, die wenigstens 4 Tage im laufenden Jahr hat, mit  Montag
+              als dem ersten Tag der Woche. Siehe auch \%U und \%W. (SU)
+
+\arg \c \%w     Der Tag der Woche als Zahl von 0 bis 6, mit Sonntag als 0.  Siehe auch \%u.
+
+\arg \c \%W     Die Wochennummer des aktuellen Jahres als Ganzzahl von 00 bis 53, beginnend mit dem ersten Montag als erster Tag der ersten Woche.
+
+\arg \c \%x     Die bevorzugte Datums-Repräsentation ohne die Zeit in der momentanen Locale.
+
+\arg \c \%X     Die bevorzugte Uhrzeit-Repräsentation ohne das Datum in der momentanen Locale.
+
+\arg \c \%y     Das Jahr als Ganzzahl ohne das Jahrhundert (00 - 99).
+
+\arg \c \%Y     Das Jahr als Ganzzahl mit dem Jahrhundert.
+
+\arg \c \%z     Die Zeitzone als Stundendifferenz zu GMT.  Benötigt, um RFC822-konforme Datumsangaben zu erhalten (mit »\%a, \%d \%b \%Y \%H:\%M:\%S \%z«). (GNU)
+
+\arg \c \%Z     Die Zeitzone oder der Name oder die Abkürzung.
+
+\arg \c \%+     Datum und Zeit im Format von date(1). (TZ)
+
+\arg \c \%\%     Das Zeichen »\%«.
+
+
+Einige  Konvertierungsanweisungen  können  durch  vorangestelltes  E  oder  O  modifiziert  werden, um anzufordern, dass ein alternatives Format benutzt werden soll.
+Existiert das alternative Format in der momentanen Locale nicht, ist das Verhalten so, als ob es keine Modifikation gibt. (SU)
+
+Die Single Unix Specification erwähnt \%Ec, \%EC, \%Ex, \%EX, \%Ry, \%EY, \%Od, \%Oe, \%OH, \%OI, \%Om, \%OM, \%OS, \%Ou, \%OU, \%OV, \%Ow, \%OW, \%Oy, wobei  der  Effekt  von  O  ist,
+alternative numerische Symbole zu benutzen (etwa römische Zahlen), und der von E, eine Locale-abhängige alternative Repräsentation zu wählen.
+
+*/
+       
