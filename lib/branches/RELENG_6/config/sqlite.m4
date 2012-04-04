@@ -17,6 +17,8 @@ then
 	then
 		PKG_CHECK_MODULES([SQLITE], [sqlite3],
 			have_sqlite="yes"
+			,
+			have_sqlite="no"
 		)
 	else
 		SQLITE_LIBS="-L$sqlite_prefix/lib -lsqlite3"
