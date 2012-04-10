@@ -34,14 +34,19 @@ case "$SYS:$REL:$KERNEL" in
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
 		export CFLAGS="-DCURL_STATICLIB"
+		export SQLITE_CFLAGS="-I/usr/local/include"
+		export SQLITE_LIBS="-L/usr/local/lib -lsqlite3"
 		./configure --with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
 			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
 			--with-postgresql=/usr/local/pgsql/bin/pg_config \
+			--with-mysql=/usr/local/mysql \
+			--with-sqlite=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-png=/usr/local --with-libmhash=/usr/local \
 			--with-libmcrypt-prefix=/usr/local \
 			--with-openssl=/usr/local --with-libcurl \
-			--with-ogg=/usr/local
+			--with-ogg=/usr/local \
+			--disable-sdltest --without-sdl-prefix --without-sdl-exec-prefix
 		;;
 	Linux:*generic*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
