@@ -30,11 +30,13 @@ case "$SYS:$REL:$KERNEL" in
 			--with-ogg=/usr/local
 		;;
 	MINGW32*)
+		echo "MinGW Configuration"
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
 		export CFLAGS="-DCURL_STATICLIB"
 		./configure --with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
 			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
+			--with-postgresql=/usr/local/pgsql/bin/pg_config \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-png=/usr/local --with-libmhash=/usr/local \
 			--with-libmcrypt-prefix=/usr/local \

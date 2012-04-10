@@ -153,7 +153,7 @@ int CMutex::Lock()
 	if (!handle) return 0;
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
-		int ret=WaitForSingleObject(h->handle,INFINITE);
+		DWORD ret=WaitForSingleObject(h->handle,INFINITE);
 		if (ret!=WAIT_FAILED) return 1;
 		return 0;
 	#elif defined HAVE_PTHREADS
@@ -205,7 +205,7 @@ int CMutex::TryLock()
 	if (!handle) return 0;
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
-		int ret=WaitForSingleObject(h->handle,0);
+		DWORD ret=WaitForSingleObject(h->handle,0);
 		if (ret==WAIT_TIMEOUT) return 0;
 		if (ret!=WAIT_FAILED) return 1;
 		return 0;
@@ -239,17 +239,17 @@ int CMutex::Wait(int milliseconds)
  *
  */
 {
-	int releaseatend=0;
 	if (!handle) return 0;
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
 		ResetEvent(h->condition);
-		int ret;
+		DWORD ret;
 		if (milliseconds) ret=WaitForSingleObject(h->condition,milliseconds);
 		else ret=WaitForSingleObject(h->condition,INFINITE);
 		if (ret==WAIT_OBJECT_0) return 1;
 		return 0;
 	#elif defined HAVE_PTHREADS
+		int releaseatend=0;
 		int ret=pthread_mutex_trylock(&h->handle);
 		if (ret==0) {
 			releaseatend=1;

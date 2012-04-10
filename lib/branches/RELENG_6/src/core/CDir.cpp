@@ -459,7 +459,7 @@ CString CDir::CurrentPath()
 #ifdef _WIN32
 		char *homeDir = getenv("HOMEPATH");
 		char *homeDrive = getenv("HOMEDRIVE");
-		ret.setf("%s\\%s",homeDrive, homeDir);
+		ret.Setf("%s\\%s",homeDrive, homeDir);
 		return ret;
 #else
 		char *homeDir = getenv("HOME");
@@ -485,7 +485,7 @@ CString CDir::CurrentPath()
 	#ifdef _WIN32
 		TCHAR TempPath[MAX_PATH];
 		GetTempPath(MAX_PATH, TempPath);
-		return String(TempPath);
+		return CString(TempPath);
 	#endif
 		const char *dir = getenv("TMPDIR");
 		if (dir!=NULL && strlen(dir)>0) return CString(dir);
