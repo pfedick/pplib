@@ -240,7 +240,7 @@ int	PostgresResult::FetchArray(CAssocArray &array, pplint64 row)
 
 	int nr=(int)(nextrow&0xffffffff);
 	nextrow++;
-	if (nr>PQntuples(res)) {
+	if (nr>=PQntuples(res)) {
 		SetError(222);
 		return 0;
 	}
@@ -268,7 +268,7 @@ int	PostgresResult::FetchFields(CArray &array, pplint64 row)
 
 	int nr=(int)(nextrow&0xffffffff);
 	nextrow++;
-	if (nr>PQntuples(res)) {
+	if (nr>=PQntuples(res)) {
 		SetError(222);
 		return 0;
 	}
@@ -488,9 +488,13 @@ void *Postgres::Pgsql_Query(const CString &query)
 		if (status==PGRES_COMMAND_OK ||
 			status==PGRES_TUPLES_OK ) {
 			// InsertId eines Autoincrement holen, sofern vorhanden
+			// TODO: Das kann Postgres nicht, PQoidValue liefert die letzte OID zurück,
+			// falls vorhanden, was nichts mit dem autoincrement eines "serial"-Datentypes
+			// der Tabelle zu tun hat!
 			Oid oid=PQoidValue(res);
 			if (oid==InvalidOid) lastinsertid=0;
 			else lastinsertid=oid;
+			//printf ("Oid=%i, lastinsertId=%i\n",oid,lastinsertid);
 			// Anzahl veränderter Datensätze
 			affectedrows=ppl6::atoll(PQcmdTuples(res));
 			return res;

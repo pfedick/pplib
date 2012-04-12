@@ -1,7 +1,11 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
-  - Kleinere Kompatibilit�tsprobleme unter Windows behoben
+Version 6.4.13
+  - Kleinere Kompatibilitätsprobleme unter Windows behoben
+  - Fehler in Postgres-DB-Anbindung behoben, wodurch mit FetchArray
+    oder FetchFields mehr Zeilen gelesen wurden, als im
+    Result vorhanden war
 
 Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
   - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen
