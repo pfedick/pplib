@@ -569,10 +569,10 @@ void Array::list(const String &prefix) const
 		}
 	} else {
 		if ((!rows) || numElements==0) {
-			PrintDebug("Array \"%ls\" ist leer\n", (const wchar_t*)prefix);
+			PrintDebug("Array \"%s\" ist leer\n", (const char*)prefix);
 		}
 		for (size_t i=0;i<numElements;i++) {
-			if (r[i].value!=NULL) PrintDebug ("%ls, %6zu: %ls\n",(const wchar_t*)prefix, i,(const wchar_t*)r[i].value->getPtr());
+			if (r[i].value!=NULL) PrintDebug ("%s, %6zu: %s\n",(const char*)prefix, i,(const char*)r[i].value->getPtr());
 		}
 
 	}
@@ -649,39 +649,40 @@ String &Array::getRandom()
 	return EmptyString;
 }
 
-/*!\brief wchar_t Pointer auf ein Element auslesen
+/*!\brief char Pointer auf ein Element auslesen
  *
  * \desc
- * Gibt einen wchar_t Pointer auf das Element \p index zurück. Liegt \p index ausserhalb des Arrays wird
+ * Gibt einen const char Pointer auf das Element \p index zurück.
+ * Liegt \p index ausserhalb des Arrays wird
  * eine Exception geworfen.
  *
  * @param index Gewünschtes Element
- * @return Pointer auf den Wide-Character-String (Unicode) des gewünschten Elements.
+ * @return Pointer auf den C-String des gewünschten Elements.
  * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
-const wchar_t *Array::getPtr(size_t index) const
+const char *Array::getPtr(size_t index) const
 {
 	ROW *r=(ROW*)rows;
 	if (index>=numElements) throw OutOfBoundsEception();
 	if (r[index].value!=NULL) return r[index].value->getPtr();
-	return L"";
+	return "";
 }
 
-/*!\brief Zufälliges Element als wchar_t Pointer auslesen
+/*!\brief Zufälliges Element als char Pointer auslesen
  *
  * \desc
- * Gibt einen wchar_t Pointer auf ein zufälliges Element des Arrays zurück.
+ * Gibt einen const char Pointer auf ein zufälliges Element des Arrays zurück.
  *
- * @return Pointer auf den Wide-Character-String (Unicode) eines zufälligen Elements des Arrays.
+ * @return Pointer auf den C-String eines zufälligen Elements des Arrays.
  * Ist das Array leer, wird immer ein leerer String zurückgegeben.
  */
-const wchar_t *Array::getRandomPtr() const
+const char *Array::getRandomPtr() const
 {
 	if (!numElements) return String();
 	ROW *r=(ROW*)rows;
 	size_t index=ppl7::rand(0,numElements-1);
 	if (index<numElements && r[index].value!=NULL) return r[index].value->getPtr();
-	return L"";
+	return "";
 }
 
 
@@ -900,11 +901,11 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 	size_t t=delimiter.len();
 	size_t count=0;
 	const char *del=(const char *)delimiter;
-	wchar_t *etext=(char*)text.getPtr();
-	wchar_t * _t;
+	char *etext=(char*)text.getPtr();
+	char *_t;
 	String str;
 	while (1) {
-		_t=wcsstr(etext,del);
+		_t=strstr(etext,del);
 		if (_t) {
 			p=_t-etext;
 			if (p==0 && skipemptylines==true) {
@@ -920,7 +921,7 @@ Array &Array::explode(const String &text, const String &delimiter, size_t limit,
 			etext=etext+p+t;
 			count++;
 		} else {
-			if (skipemptylines==false || wcslen(etext)>0) {
+			if (skipemptylines==false || strlen(etext)>0) {
 				count++;
 				if (limit==0 || count<=limit) {
 					add(etext);

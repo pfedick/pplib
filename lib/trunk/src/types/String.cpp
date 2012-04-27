@@ -190,23 +190,6 @@ String::String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureEx
 	set(str);
 }
 
-/*!\brief Konstruktor aus Wide-Character-String
- *
- * \desc
- * Ein String wird aus einem Wide-Character-String erstellt.
- *
- * @param str Wide-Character-String, der mit einem 0-Wert Endet
- * @exception OutOfMemoryException
- */
-String::String(const wchar_t *str) throw(OutOfMemoryException)
-{
-	type=STRING;
-	ptr=NULL;
-	stringlen=0;
-	s=0;
-	set(str);
-}
-
 /*!\brief Konstruktor aus Wide-Character-String mit bestimmer Länge
  *
  * \desc
@@ -217,7 +200,7 @@ String::String(const wchar_t *str) throw(OutOfMemoryException)
  * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
  * @exception OutOfMemoryException
  */
-String::String(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+String::String(const char *str, size_t size) throw(OutOfMemoryException)
 {
 	type=STRING;
 	ptr=NULL;
@@ -362,9 +345,9 @@ size_t String::capacity ( ) const
  */
 void String::reserve(size_t size)
 {
-	size_t bytes=(size+1)*sizeof(wchar_t);
+	size_t bytes=(size+1)*sizeof(char);
 	if (s>=bytes) return; // Nothing to do
-	wchar_t *p=(wchar_t*)realloc(ptr,bytes);
+	char *p=(char*)realloc(ptr,bytes);
 	if (!p) throw OutOfMemoryException();
 	ptr=p;
 	s=bytes;
@@ -512,7 +495,7 @@ bool String::isInteger() const
 bool String::isTrue() const
 {
 	if (!stringlen) return false;
-	if (wcstol(ptr,NULL,0)!=0) return true;
+	if (atol(ptr)!=0) return true;
 	if (strcasecmp("true")==0) return true;
 	if (strcasecmp("wahr")==0) return true;
 	if (strcasecmp("ja")==0) return true;
@@ -570,57 +553,22 @@ String & String::set(const char *str, size_t size) throw(OutOfMemoryException, U
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
 	else inbytes=strlen(str);
-	size_t outbytes=inbytes*sizeof(wchar_t)+4;
+	size_t outbytes=inbytes*sizeof(char)+1;
 	if (outbytes>=s) {
 		if (ptr) free(ptr);
 		stringlen=0;
 		s=InitialBuffersize;
-		if (s<=outbytes) s=((outbytes/InitialBuffersize)+1)*InitialBuffersize+4;
-		ptr=(wchar_t*)malloc(s);
+		if (s<=outbytes) s=((outbytes/InitialBuffersize)+1)*InitialBuffersize+1;
+		ptr=(char*)malloc(s);
 		if (!ptr) {
 			s=0;
 			throw OutOfMemoryException();
 		}
 	}
-#ifdef HAVE_MBSTOWCS
-	if (::strcasecmp(GlobalEncoding,"UTF-8")==0
-			|| ::strcasecmp(GlobalEncoding,"UTF8")==0
-			|| ::strcasecmp(GlobalEncoding,"USASCII")==0
-			|| ::strcasecmp(GlobalEncoding,"US-ASCII")==0
-			) {
-		size_t ret=mbstowcs((wchar_t*)ptr, str, inbytes);
-		if (ret==(size_t) -1) {
-			((wchar_t*)ptr)[0]=0;
-			stringlen=0;
-			throw CharacterEncodingException();
-		}
-		((wchar_t*)ptr)[ret]=0;
-		stringlen=ret;
-		return *this;
-	}
-#endif
-#ifdef HAVE_ICONV
-	iconv_t iconvimport=iconv_open(ICONV_UNICODE,GlobalEncoding);
-	if ((iconv_t)(-1)==iconvimport) {
-		throw UnsupportedCharacterEncodingException();
-	}
-	char *outbuf=(char*)ptr;
-	//HexDump(str,inbytes);
-	size_t res=iconv(iconvimport, (ICONV_CONST char **)&str, &inbytes,
-				(char**)&outbuf, &outbytes);
-	iconv_close(iconvimport);
-	if (res==(size_t)(-1)) {
-		((wchar_t*)ptr)[0]=0;
-		stringlen=0;
-		//SetError(289,"%s",strerror(errno));
-		throw CharacterEncodingException();
-	}
-	((wchar_t*)outbuf)[0]=0;
-	stringlen=wcslen((wchar_t*)ptr);
+	strncpy((char*)ptr,str,inbytes);
+	stringlen=inbytes;
+	((char*)ptr)[stringlen]=0;
 	return *this;
-#else
-	throw UnsupportedFeatureException();
-#endif
 }
 
 /*!\brief String anhand eines wchar_t* setzen
@@ -641,6 +589,7 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 		clear();
 		return *this;
 	}
+
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
 	else inbytes=wcslen(str);
@@ -650,12 +599,17 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 		stringlen=0;
 		s=InitialBuffersize;
 		if (s<=outbytes) s=((outbytes/InitialBuffersize)+1)*InitialBuffersize+4;
-		ptr=(wchar_t*)malloc(s);
+		ptr=(char*)malloc(s);
 		if (!ptr) {
 			s=0;
 			throw OutOfMemoryException();
 		}
 	}
+	// Falls size angegeben ist, müssen wir den String zuerst duplizieren und einen
+	// 0-Wert an das gewünschte Ende hängen, da wcstombs die Angabe der Laenge des
+	// Input-Strings nicht unterstützt
+	size_t bytes=wcstombs(ptr, str, size_t n);
+
 	wcsncpy((wchar_t*)ptr,str,inbytes);
 	stringlen=inbytes;
 	((wchar_t*)ptr)[stringlen]=0;
@@ -1484,21 +1438,21 @@ String String::getMD5() const
 /*!\brief Einzelnes Zeichen auslesen
  *
  * \desc
- * Mit dieser Funktion kann der Unicode-Wert eines einzelnen Zeichens an der Position
+ * Mit dieser Funktion kann Bytewert eines einzelnen Zeichens an der Position
  * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
  * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
  * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
  * dem letzten Zeichen des Strings entspricht.
  *
  * @param pos Position des Zeichens innerhalb des Strings
- * @return Unicode-Wert des Zeichens
+ * @return Bytewert des Zeichens
  * \exception OutOfBoundsEception Wird geworfen, wenn die angegebene Position \p pos
  * ausserhalb des Strings liegt oder der String leer ist.
  */
-wchar_t String::get(ssize_t pos) const
+char String::get(ssize_t pos) const
 {
-	if (pos>=0 && stringlen>(size_t)pos) return ((wchar_t*)ptr)[pos];
-	if (pos<0 && (size_t)(0-pos)<stringlen) return ((wchar_t*)ptr)[stringlen+pos];
+	if (pos>=0 && stringlen>(size_t)pos) return ((char*)ptr)[pos];
+	if (pos<0 && (size_t)(0-pos)<stringlen) return ((char*)ptr)[stringlen+pos];
 	throw OutOfBoundsEception();
 }
 
@@ -1506,21 +1460,21 @@ wchar_t String::get(ssize_t pos) const
 /*!\brief Einzelnes Zeichen auslesen
  *
  * \desc
- * Mit diesem Operator kann der Unicode-Wert eines einzelnen Zeichens an der Position
+ * Mit diesem Operator kann der Bytewert eines einzelnen Zeichens an der Position
  * \p pos ausgelesen werden. Enthält \p pos einen positiven Wert, wird die Position des
  * Zeichens vom Anfang des Strings ermittelt, wobei 0 dem ersten Zeichen entspricht.
  * Ist der Wert negativ, wird das Zeichen vom Ende des Strings ermittelt, wobei -1
  * dem letzten Zeichen des Strings entspricht.
  *
  * @param pos Position des Zeichens innerhalb des Strings
- * @return Unicode-Wert des Zeichens
+ * @return Bytewert des Zeichens
  * \exception OutOfBoundsEception Wird geworfen, wenn die angegebene Position \p pos
  * ausserhalb des Strings liegt oder der String leer ist.
  */
-wchar_t String::operator[](ssize_t pos) const
+char String::operator[](ssize_t pos) const
 {
-	if (pos>=0 && stringlen>(size_t)pos) return ((wchar_t*)ptr)[pos];
-	if (pos<0 && (size_t)(0-pos)<stringlen) return ((wchar_t*)ptr)[stringlen+pos];
+	if (pos>=0 && stringlen>(size_t)pos) return ((char*)ptr)[pos];
+	if (pos<0 && (size_t)(0-pos)<stringlen) return ((char*)ptr)[stringlen+pos];
 	throw OutOfBoundsEception();
 }
 
@@ -1541,8 +1495,8 @@ wchar_t String::operator[](ssize_t pos) const
 void String::print(bool withNewline) const throw()
 {
 	if (ptr!=NULL && stringlen>0) {
-		if (withNewline) printf("%ls\n",(wchar_t*)ptr);
-		else printf("%ls",(wchar_t*)ptr);
+		if (withNewline) printf("%s\n",(char*)ptr);
+		else printf("%s",(char*)ptr);
 	} else if (withNewline) {
 		printf("\n");
 	}
@@ -1573,8 +1527,8 @@ void String::printnl() const throw()
  */
 void String::hexDump() const
 {
-	PrintDebug ("HEXDUMP of String %p: %zi Bytes starting at Address %p:\n",this,stringlen*sizeof(wchar_t),ptr);
-	if (stringlen) HexDump(ptr,stringlen*sizeof(wchar_t),true);
+	PrintDebug ("HEXDUMP of String %p: %zi Bytes starting at Address %p:\n",this,stringlen*sizeof(char),ptr);
+	if (stringlen) HexDump(ptr,stringlen*sizeof(char),true);
 }
 
 /*!\brief String übernehmen
@@ -1792,13 +1746,24 @@ String& String::operator+=(wchar_t c)
  */
 int String::strcmp(const String &str, size_t size) const
 {
-	const wchar_t *mystr=ptr;
-	const wchar_t *otherstr=str.ptr;
-	if (stringlen==0) mystr=L"";
-	if (str.stringlen==0) otherstr=L"";
-	if (size!=(size_t)-1) return wcsncmp(mystr,otherstr,size);
-	return wcscmp(mystr,otherstr);
+	const char *mystr=ptr;
+	const char *otherstr=str.ptr;
+	if (stringlen==0) mystr="";
+	if (str.stringlen==0) otherstr="";
+	if (size!=(size_t)-1) return ::strncmp(mystr,otherstr,size);
+	return ::strcmp(mystr,otherstr);
 }
+
+int String::strcmp(const char *str, size_t size) const
+{
+	const char *mystr=ptr;
+	const char *otherstr=str;
+	if (stringlen==0) mystr="";
+	if (str==NULL || strlen(str)==0) otherstr="";
+	if (size!=(size_t)-1) return ::strncmp(mystr,otherstr,size);
+	return ::strcmp(mystr,otherstr);
+}
+
 
 /*!\brief Stringvergleich mit Ignorierung von Gross-/Kleinschreibung
  *
@@ -1820,25 +1785,24 @@ int String::strcmp(const String &str, size_t size) const
  */
 int String::strcasecmp(const String &str, size_t size) const
 {
-	const wchar_t *mystr=ptr;
-	const wchar_t *otherstr=str.ptr;
-	if (stringlen==0) mystr=L"";
-	if (str.stringlen==0) otherstr=L"";
-#ifdef HAVE_WCSCASECMP
-	if (size) return wcsncasecmp(mystr,otherstr,size);
-	return wcscasecmp(mystr,otherstr);
-#elif WIN32
-	if (size) return wcsnicmp(mystr,otherstr,size);
-	return wcsicmp(mystr,otherstr);
-#else
-	String b=mystr;
-	String s=otherstr;
-	s.LCase();
-	b.LCase();
-	if (size) return wcsncmp(b.ptr,s.ptr,size);
-	return wcscmp(b.ptr,s.ptr);
-#endif
+	const char *mystr=ptr;
+	const char *otherstr=str.ptr;
+	if (stringlen==0) mystr="";
+	if (str.stringlen==0) otherstr="";
+	if (size!=(size_t)-1) return ::strncasecmp(mystr,otherstr,size);
+	return ::strcasecmp(mystr,otherstr);
 }
+
+int String::strcasecmp(const char *str, size_t size) const
+{
+	const char *mystr=ptr;
+	const char *otherstr=str;
+	if (stringlen==0) mystr="";
+	if (str==NULL || strlen(str)==0) otherstr="";
+	if (size!=(size_t)-1) return ::strncasecmp(mystr,otherstr,size);
+	return ::strcasecmp(mystr,otherstr);
+}
+
 
 /*!\brief Linken Teilstring zurückgeben
  *
@@ -2025,8 +1989,8 @@ void String::trim()
 		}
 		ptr[ende+1]=0;
 		if (start>0)
-			memmove(ptr,ptr+start,(ende-start+2)*sizeof(wchar_t));
-		stringlen=wcslen(ptr);
+			memmove(ptr,ptr+start,(ende-start+2)*sizeof(char));
+		stringlen=strlen(ptr);
 		ptr[stringlen]=0;
 	}
 }
@@ -2046,8 +2010,8 @@ void String::trimLeft()
 			}
 		}
 		if (start>0)
-			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(wchar_t));
-		stringlen=wcslen(ptr);
+			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(char));
+		stringlen=strlen(ptr);
 		ptr[stringlen]=0;
 	}
 }
@@ -2057,7 +2021,7 @@ void String::trimRight()
 {
 	if (ptr!=NULL && stringlen>0) {
 		size_t i,ende;
-		wchar_t w;
+		char w;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
 			w=ptr[i-1];
@@ -2067,7 +2031,7 @@ void String::trimRight()
 			}
 		}
 		ptr[ende]=0;
-		stringlen=wcslen(ptr);
+		stringlen=strlen(ptr);
 		ptr[stringlen]=0;
 	}
 }
@@ -2093,8 +2057,8 @@ void String::trimLeft(const String &chars)
 			}
 		}
 		if (start>0) {
-			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(wchar_t));
-			stringlen=wcslen(ptr);
+			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(char));
+			stringlen=strlen(ptr);
 		}
 	}
 }
@@ -2105,7 +2069,7 @@ void String::trimRight(const String &chars)
 	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
 		size_t i,ende,z;
 		int match;
-		wchar_t w;
+		char w;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
 			w=ptr[i-1];
@@ -2123,7 +2087,7 @@ void String::trimRight(const String &chars)
 			}
 		}
 		ptr[ende]=0;
-		stringlen=wcslen(ptr);
+		stringlen=strlen(ptr);
 	}
 }
 
@@ -2232,21 +2196,21 @@ void String::cut(const String &letter)
 }
 
 
-String String::strchr(wchar_t c) const
+String String::strchr(char c) const
 {
 	String ret;
 	if (ptr!=NULL && stringlen>0) {
-		wchar_t *p=wcschr(ptr, c);
+		char *p=::strchr(ptr, c);
 		if (p) ret.set(p);
 	}
 	return ret;
 }
 
-String String::strrchr(wchar_t c) const
+String String::strrchr(char c) const
 {
 	String ret;
 	if (ptr!=NULL && stringlen>0) {
-		wchar_t *p=wcsrchr(ptr, c);
+		char *p=::strrchr(ptr, c);
 		if (p) ret.set(p);
 	}
 	return ret;
@@ -2274,7 +2238,7 @@ String String::strstr(const String &needle) const
 	String ret;
 	if (ptr!=NULL && stringlen>0) {
 		if (needle.len()==0) return *this;
-		wchar_t *p=wcsstr(ptr, needle.ptr);
+		char *p=::strstr(ptr, needle.ptr);
 		if (p) ret.set(p);
 	}
 	return ret;
@@ -2306,12 +2270,12 @@ ssize_t String::find(const String &needle, ssize_t start) const
 	//Length of the string to search for
 	size_t lstr = needle.stringlen;
 	//Current position to search from and position of found string
-	wchar_t *found = NULL, *tmp = NULL;
+	char *found = NULL, *tmp = NULL;
 
 	//Search forward
 	if(start >= 0) {
 		//Search first occurence, starting at the given position...
-		found = wcsstr(ptr + start, needle.ptr);
+		found = ::strstr(ptr + start, needle.ptr);
 		//...and calculate the position to return if str was found
 		if (found != NULL) {
 			p = found - ptr;
@@ -2324,7 +2288,7 @@ ssize_t String::find(const String &needle, ssize_t start) const
 		/* Beginning at the start of the contained string, start searching for
 			   every occurence of the str and make it the position last found as long
 			   as the found string doesn't exceed the defined end of the search */
-		while((found = wcsstr((tmp == NULL ? ptr : tmp + 1), needle.ptr)) != NULL && found - ptr + lstr <= stringlen + start)
+		while((found = ::strstr((tmp == NULL ? ptr : tmp + 1), needle.ptr)) != NULL && found - ptr + lstr <= stringlen + start)
 			tmp = found;
 
 		//Calculate the position to return if str was found
@@ -2378,8 +2342,8 @@ ssize_t String::instr(const String &needle, size_t start) const
 	if (ptr==NULL || stringlen==0) return -1;
 	if (needle.stringlen==0) return 0;
 	if (start>=stringlen) return -1;
-	const wchar_t * p;
-	p=wcsstr((ptr+start),needle.ptr);
+	const char * p;
+	p=::strstr((ptr+start),needle.ptr);
 	if (p!=NULL) {
 		return ((ssize_t)(p-ptr));
 	}
@@ -2449,12 +2413,12 @@ String& String::repeat(size_t num)
 		clear();
 		return *this;
 	}
-	size_t newsize=(stringlen*num+16)*sizeof(wchar_t);
-	wchar_t *buf=(wchar_t*)malloc(newsize);
+	size_t newsize=(stringlen*num+16)*sizeof(char);
+	char *buf=(char*)malloc(newsize);
 	if (!buf) throw OutOfMemoryException();
-	wchar_t *tmp=buf;
+	char *tmp=buf;
 	for (size_t i=0;i<num;i++) {
-		wcsncpy(tmp,ptr,stringlen);
+		strncpy(tmp,ptr,stringlen);
 		tmp+=stringlen;
 	}
 	free(ptr);
@@ -2472,19 +2436,19 @@ String& String::repeat(size_t num)
  * \param num Die Länge des gewünschten Strings
  * \return Referenz auf den neuen String
  */
-String& String::repeat(wchar_t unicode, size_t num)
+String& String::repeat(char code, size_t num)
 {
-	if (!unicode) {
+	if (!code) {
 		throw IllegalArgumentException();
 	}
 	if (!num) {
 		clear();
 		return *this;
 	}
-	size_t newsize=(num+16)*sizeof(wchar_t);
-	wchar_t *buf=(wchar_t*)malloc(newsize);
+	size_t newsize=(num+16)*sizeof(char);
+	char *buf=(char*)malloc(newsize);
 	if (!buf) throw OutOfMemoryException();
-	for (size_t i=0;i<num;i++) buf[i]=unicode;
+	for (size_t i=0;i<num;i++) buf[i]=code;
 	free(ptr);
 	ptr=buf;
 	stringlen=num;
@@ -2509,12 +2473,12 @@ String& String::repeat(const String& str, size_t num)
 		clear();
 		return *this;
 	}
-	size_t newsize=(str.stringlen*num+16)*sizeof(wchar_t);
-	wchar_t *buf=(wchar_t*)malloc(newsize);
+	size_t newsize=(str.stringlen*num+16)*sizeof(char);
+	char *buf=(char*)malloc(newsize);
 	if (!buf) throw OutOfMemoryException();
-	wchar_t *tmp=buf;
+	char *tmp=buf;
 	for (size_t i=0;i<num;i++) {
-		wcsncpy(tmp,str.ptr,str.stringlen);
+		strncpy(tmp,str.ptr,str.stringlen);
 		tmp+=str.stringlen;
 	}
 	free(ptr);
@@ -2817,7 +2781,7 @@ bool String::operator>(const String &str) const
  * @param str Zu vergleichender String
  * @return Liefert \c true oder \c false zurück
  */
-bool String::operator<(const wchar_t *str) const
+bool String::operator<(const char *str) const
 {
 	if (strcmp(str)<0) return true;
 	return false;
@@ -2832,7 +2796,7 @@ bool String::operator<(const wchar_t *str) const
  * @param str Zu vergleichender String
  * @return Liefert \c true oder \c false zurück
  */
-bool String::operator<=(const wchar_t *str) const
+bool String::operator<=(const char *str) const
 {
 	if (strcmp(str)<=0) return true;
 	return false;
@@ -2847,7 +2811,7 @@ bool String::operator<=(const wchar_t *str) const
  * @param str Zu vergleichender String
  * @return Liefert \c true oder \c false zurück
  */
-bool String::operator==(const wchar_t *str) const
+bool String::operator==(const char *str) const
 {
 	if (strcmp(str)==0) return true;
 	return false;
@@ -2862,7 +2826,7 @@ bool String::operator==(const wchar_t *str) const
  * @param str Zu vergleichender String
  * @return Liefert \c true oder \c false zurück
  */
-bool String::operator!=(const wchar_t *str) const
+bool String::operator!=(const char *str) const
 {
 	if (strcmp(str)==0) return false;
 	return true;
@@ -2878,7 +2842,7 @@ bool String::operator!=(const wchar_t *str) const
  * @param str Zu vergleichender String
  * @return Liefert \c true oder \c false zurück
  */
-bool String::operator>=(const wchar_t *str) const
+bool String::operator>=(const char *str) const
 {
 	if (strcmp(str)>=0) return true;
 	return false;
@@ -2893,7 +2857,7 @@ bool String::operator>=(const wchar_t *str) const
  * @param str Zu vergleichender String
  * @return Liefert \c true oder \c false zurück
  */
-bool String::operator>(const wchar_t *str) const
+bool String::operator>(const char *str) const
 {
 	if (strcmp(str)>0) return true;
 	return false;
@@ -2901,68 +2865,54 @@ bool String::operator>(const wchar_t *str) const
 
 
 
-/*!\brief %Pointer auf den internen Unicode-String
+/*!\brief %Pointer auf den internen C-String
  *
  * \desc
- * Diese Funktion liefert einen %Pointer im Format "const wchar_t*" auf den internen
- * Widecharacter-String (Unicode) der Klasse zurück. Falls der %String leer ist, wird ein
+ * Diese Funktion liefert einen %Pointer im Format "const char*" auf den internen
+ * C-String der Klasse zurück. Falls der %String leer ist, wird ein
  * %Pointer auf einen leeren %String zurückgegeben. Das Ergebnis kann in \b printf und
- * verwandten Funktionen mit dem Formatstring "%ls" verwendet werden.
+ * verwandten Funktionen mit dem Formatstring "%s" verwendet werden.
  *
- * @return %Pointer auf die Widecharacter Repräsentation des %Strings.
+ * @return %Pointer auf den internen C-String der Klasse
  * \example
  * \code
 void PrintString(const ppl7::String &text)
 {
-	printf ("Der String lautet: %ls\n",text.getPtr());
+	printf ("Der String lautet: %s\n",text.getPtr());
 	// oder mittels Operator:
-	printf ("Der String lautet: %ls\n",(const wchar_t*)text);
+	printf ("Der String lautet: %s\n",(const char*)text);
 }
  * \endcode
  * \see
  * Die folgenden Funktionen erfüllen den gleichen Zweck:
- * - const wchar_t * String::getPtr() const
- * - const wchar_t * String::toWchart() const
- * - String::operator const wchar_t *() const
- * \note
- * In Version 6 der PPLib hat diese Funktion den Datentyp "const char *" zurückgeliefert,
- * der den %String im systemspezifischen Format beinhaltete (z.B. UTF-8 oder ISO-8859-1).
- * Um dieses Verhalten zu simulieren, kann die Funktion String::toLocalEncoding
- * verwendet werden. Beispiel:
- * \code
-void PrintString(const ppl7::String &text)
-{
-	// Nutzung des Operators:
-	printf ("Der String lautet: %s\n",(const char*)text.toLocalEncoding());
-	// oder Nutzung der Funktion:
-	printf ("Der String lautet: %s\n",text.toLocalEncoding().toCharPtr());
-}
- * \endcode
+ * - const char * String::getPtr() const
+ * - const char * String::toChar() const
+ * - String::operator const char *() const
  */
-const wchar_t * String::getPtr() const
+const char * String::getPtr() const
 {
-	if (ptr==NULL || stringlen==0) return L"";
-	return (const wchar_t*)ptr;
+	if (ptr==NULL || stringlen==0) return "";
+	return (const char*)ptr;
 }
 
-/*!\brief %Pointer auf den internen Unicode-String
+/*!\brief %Pointer auf den internen C-String
  *
  * \copydetails String::getPtr
  */
-const wchar_t * String::toWchart() const
+const char * String::toChar() const
 {
-	if (ptr==NULL || stringlen==0) return L"";
-	return (const wchar_t*)ptr;
+	if (ptr==NULL || stringlen==0) return "";
+	return (const char*)ptr;
 }
 
-/*!\brief %Pointer auf den internen Unicode-String
+/*!\brief %Pointer auf den internen C-String
  *
  * \copydetails String::getPtr
  */
-String::operator const wchar_t *() const
+String::operator const char *() const
 {
-	if (ptr==NULL || stringlen==0) return L"";
-	return (wchar_t*)ptr;
+	if (ptr==NULL || stringlen==0) return "";
+	return (const char*)ptr;
 }
 
 String::operator bool() const
@@ -2975,14 +2925,14 @@ String::operator bool() const
 String::operator int() const
 {
 	if (!stringlen) return 0;
-	return wcstol(ptr,NULL,0);
+	return strtol(ptr,NULL,0);
 
 }
 
 String::operator unsigned int() const
 {
 	if (!stringlen) return 0;
-	return wcstol(ptr,NULL,0);
+	return strtoul(ptr,NULL,0);
 }
 
 String::operator long() const
@@ -3018,48 +2968,84 @@ String::operator double() const
 
 String::operator std::string() const
 {
-	ByteArray ba=toLocalEncoding();
-	return std::string((const char*)ba,ba.size());
+	return std::string((const char*)ptr,stringlen);
 }
 
 String::operator std::wstring() const
 {
-	return std::wstring(ptr,stringlen);
+	if (stringlen==0) return std::wstring();
+	size_t wlen=0;
+	size_t buffersize=(stringlen+1)*sizeof(wchar_t);
+	wchar_t * w=(wchar_t*)malloc(buffersize);
+	if (!w) throw OutOfMemoryException();
+#ifdef HAVE_MBSTOWCS
+	wlen=mbstowcs(w, ptr, buffersize);
+	if (wlen==(size_t) -1) {
+		free(w);
+		throw CharacterEncodingException();
+	}
+	std::wstring ret(w,wlen);
+	free(w);
+	return ret;
+	/*
+#elif HAVE_ICONV
+	iconv_t iconvimport=iconv_open(ICONV_UNICODE,GlobalEncoding);
+	if ((iconv_t)(-1)==iconvimport) {
+		throw UnsupportedCharacterEncodingException();
+	}
+	char *outbuf=(char*)ptr;
+	//HexDump(str,inbytes);
+	size_t res=iconv(iconvimport, (ICONV_CONST char **)&str, &inbytes,
+				(char**)&outbuf, &outbytes);
+	iconv_close(iconvimport);
+	if (res==(size_t)(-1)) {
+		((wchar_t*)ptr)[0]=0;
+		stringlen=0;
+		//SetError(289,"%s",strerror(errno));
+		throw CharacterEncodingException();
+	}
+	((wchar_t*)outbuf)[0]=0;
+	stringlen=wcslen((wchar_t*)ptr);
+	return *this;
+	*/
+#else
+	throw UnsupportedFeatureException();
+#endif
 }
 
 int String::toInt() const
 {
 	if (!stringlen) return 0;
-	return wcstol(ptr,NULL,0);
+	return strtol(ptr,NULL,0);
 }
 
 unsigned int String::toUnsignedInt() const
 {
 	if (!stringlen) return 0;
-	return wcstoul(ptr,NULL,0);
+	return strtoul(ptr,NULL,0);
 }
 
 pplint64 String::toInt64() const
 {
 	if (!stringlen) return 0;
-#ifdef HAVE_WCSTOLL
-	return (pplint64) wcstoll(ptr,NULL,0);
+#ifdef HAVE_STRTOLL
+	return (pplint64) strtoll(ptr,NULL,0);
 #elif WIN32
-	return (pplint64) _wcstoi64(ptr,NULL,0);
+	return (pplint64) _strtoi64(ptr,NULL,0);
 #else
-	return (pplint64) pplwcstoll(ptr,NULL,0);
+	throw TypeConversionException();
 #endif
 }
 
 ppluint64 String::toUnsignedInt64() const
 {
 	if (!stringlen) return 0;
-#ifdef HAVE_WCSTOULL
-	return (ppluint64) wcstoll(ptr,NULL,0);
+#ifdef HAVE_STRTOULL
+	return (ppluint64) strtoll(ptr,NULL,0);
 #elif WIN32
-	return (ppluint64) _wcstoi64(ptr,NULL,0);
+	return (ppluint64) _strtoi64(ptr,NULL,0);
 #else
-	return (ppluint64) pplwcstoll(ptr,NULL,0);
+	throw TypeConversionException();
 #endif
 
 }
@@ -3073,68 +3059,52 @@ bool String::toBool() const
 long String::toLong() const
 {
 	if (!stringlen) return 0;
-	return wcstol(ptr,NULL,0);
+	return strtol(ptr,NULL,0);
 }
 
 unsigned long String::toUnsignedLong() const
 {
 	if (!stringlen) return 0;
-	return wcstoul(ptr,NULL,0);
+	return strtoul(ptr,NULL,0);
 }
 
 
 long long String::toLongLong() const
 {
 	if (!stringlen) return 0;
-#ifdef HAVE_WCSTOLL
-	return (long long) wcstoll(ptr,NULL,0);
+#ifdef HAVE_STRTOLL
+	return (long long) strtoll(ptr,NULL,0);
 #elif WIN32
-	return (long long) _wcstoi64(ptr,NULL,0);
+	return (long long) _strtoi64(ptr,NULL,0);
 #else
-	return (long long) pplwcstoll(ptr,NULL,0);
+	throw TypeConversionException();
 #endif
 }
 
 unsigned long long String::toUnsignedLongLong() const
 {
 	if (!stringlen) return 0;
-#ifdef HAVE_WCSTOULL
-	return (unsigned long long) wcstoull(ptr,NULL,0);
-#elif HAVE_WCSTOLL
-	return (unsigned long long) wcstoll(ptr,NULL,0);
+#ifdef HAVE_STRTOULL
+	return (unsigned long long) strtoull(ptr,NULL,0);
+#elif HAVE_STRTOLL
+	return (unsigned long long) strtoll(ptr,NULL,0);
 #elif WIN32
-	return (unsigned long long) _wcstoi64(ptr,NULL,0);
+	return (unsigned long long) _strtoi64(ptr,NULL,0);
 #else
-	return (unsigned long long) pplwcstoll(ptr,NULL,0);
+	throw TypeConversionException();
 #endif
 }
 
 float String::toFloat() const
 {
-	if (!stringlen) return 0;
-#ifdef WIN32
-	return (float)wcstod(ptr,NULL);
-#elif HAVE_WCSTOF
-	return (float)wcstof(ptr,NULL);
-#elif HAVE_WCSTOD
-	return (float)wcstod(ptr,NULL);
-#else
-	#error *** Keine Funktion, um einen Wide-String in einen float zu konvertieren!
-	return 0;
-#endif
+	if (!stringlen) return 0.0f;
+	return atof(ptr);
 }
 
 double String::toDouble() const
 {
-	if (!stringlen) return 0;
-#ifdef WIN32
-	return wcstod(ptr,NULL);
-#elif HAVE_WCSTOD
-	return wcstod(ptr,NULL);
-#else
-	#error *** Keine Funktion, um einen Wide-String in einen double zu konvertieren!
-	return 0;
-#endif
+	if (!stringlen) return 0.0;
+	return atof(ptr);
 }
 
 
@@ -3205,7 +3175,8 @@ String operator+(const String &str1, const char *str2)
  */
 String operator+(const wchar_t *str1, const String& str2)
 {
-	String s=str1;
+	String s;
+	s.set(str1);
 	s.append(str2);
 	return s;
 }
@@ -3303,8 +3274,7 @@ String operator+(const String &str1, const std::wstring &str2)
 
 std::ostream& operator<<(std::ostream& s, const String &str)
 {
-	ByteArray a=str.toLocalEncoding();
-	return s.write((const char*)a.adr(),a.size());
+	return s.write((const char*)str,str.size());
 }
 
 } // EOF namespace ppl7

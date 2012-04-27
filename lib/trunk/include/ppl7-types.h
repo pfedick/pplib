@@ -259,6 +259,8 @@ class String : public Variant
 
 		int strcmp(const String &str, size_t size=(size_t)-1) const;
 		int strcasecmp(const String &str, size_t size=(size_t)-1) const;
+		int strcmp(const char *str, size_t size=(size_t)-1) const;
+		int strcasecmp(const char *str, size_t size=(size_t)-1) const;
 		String left(size_t len) const;
 		String right(size_t len) const;
 		String mid(size_t start, size_t len=(size_t)-1) const;
@@ -302,7 +304,7 @@ class String : public Variant
 		String & vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException);
 
 		String& repeat(size_t num);
-		String& repeat(wchar_t unicode, size_t num);
+		String& repeat(char code, size_t num);
 		String& repeat(const String& str, size_t num);
 		String repeated(size_t num) const;
 
@@ -323,8 +325,8 @@ class String : public Variant
 		void cut(size_t pos);
 		void cut(const String &letter);
 
-	    String strchr(wchar_t c) const;
-	    String strrchr(wchar_t c) const;
+	    String strchr(char c) const;
+	    String strrchr(char c) const;
 	    String strstr(const String &needle) const;
 	    ssize_t find(const String &needle, ssize_t start=0) const;
 	    ssize_t findCase(const String &needle, ssize_t start=0) const;
@@ -390,7 +392,7 @@ class String : public Variant
 		operator std::wstring() const;
 		operator ByteArrayPtr() const;
 
-		wchar_t operator[](ssize_t pos) const;
+		char operator[](ssize_t pos) const;
 
 		String& operator=(const char* str);
 		String& operator=(const wchar_t* str);
@@ -779,8 +781,8 @@ class Array : public Variant
 		const String &getRandom() const;
 		String &get(size_t index);
 		String &getRandom();
-		const wchar_t *getPtr(size_t index) const;
-		const wchar_t *getRandomPtr() const;
+		const char *getPtr(size_t index) const;
+		const char *getRandomPtr() const;
 		void reset(Iterator &it) const;
 		const String &getFirst(Iterator &it) const;
 		const String &getNext(Iterator &it) const;

@@ -322,7 +322,7 @@ void AssocArray::clear()
 AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
 {
 	//printf ("AssocArray::findInternal (key=%ls)\n",(const wchar_t*)key);
-	Array tok(key,L"/",0,true);
+	Array tok(key,"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
 	ArrayKey firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
@@ -371,7 +371,7 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
  */
 AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 {
-	Array tok(key,L"/",0,true);
+	Array tok(key,"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
 	String firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
@@ -535,7 +535,7 @@ void AssocArray::list(const String &prefix) const
 {
 	String key;
 	String pre;
-	if (prefix.notEmpty()) key=prefix+L"/";
+	if (prefix.notEmpty()) key=prefix+"/";
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
 	Variant *p;
@@ -544,25 +544,25 @@ void AssocArray::list(const String &prefix) const
 		//printf ("AssocArray::list(%ls)\n",(const wchar_t*)prefix);
 		p=it.value().value;
 		if (p->isString()) {
-			PrintDebug("%ls%ls=%ls\n",(const wchar_t*)key,(const wchar_t*)it.key(),(const wchar_t*)((String*)p)->getPtr());
+			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)it.key(),(const char*)((String*)p)->getPtr());
 		} else if (p->isByteArray()) {
-			PrintDebug("%ls%ls=ByteArray, %zu Bytes\n",(const wchar_t*)key,(const wchar_t*)it.key(),((ByteArray*)p)->size());
+			PrintDebug("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)it.key(),((ByteArray*)p)->size());
 		} else if (p->isByteArrayPtr()) {
-			PrintDebug("%ls%ls=ByteArrayPtr, %zu Bytes\n",(const wchar_t*)key,(const wchar_t*)it.key(),((ByteArrayPtr*)p)->size());
+			PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n",(const char*)key,(const char*)it.key(),((ByteArrayPtr*)p)->size());
 		} else if (p->isAssocArray()) {
-			pre.setf("%ls%ls",(const wchar_t*)key,(const wchar_t*)it.key());
+			pre.setf("%s%s",(const char*)key,(const char*)it.key());
 			((AssocArray*)p)->list(pre);
 		} else if (p->isPointer()) {
-			PrintDebug("%ls%ls=Pointer, %tu\n",(const wchar_t*)key,(const wchar_t*)it.key(),(std::ptrdiff_t)((Pointer*)p)->ptr());
+			PrintDebug("%s%s=Pointer, %tu\n",(const char*)key,(const char*)it.key(),(std::ptrdiff_t)((Pointer*)p)->ptr());
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
 			for (size_t i=0;i<a.size();i++) {
-				PrintDebug("%ls%ls/Array(%zu)=%ls\n",(const wchar_t*)key,(const wchar_t*)it.key(),i,(const wchar_t*)a[i]);
+				PrintDebug("%s%s/Array(%zu)=%s\n",(const char*)key,(const char*)it.key(),i,(const char*)a[i]);
 			}
 		} else if (p->isDateTime()) {
-			PrintDebug("%ls%ls=DateTime %ls\n",(const wchar_t*)key,(const wchar_t*)it.key(), (const wchar_t*) ((DateTime*)p)->getISO8601withMsec());
+			PrintDebug("%s%s=DateTime %s\n",(const char*)key,(const char*)it.key(), (const char*) ((DateTime*)p)->getISO8601withMsec());
 		} else {
-			PrintDebug("%ls%ls=UnknownDataType Id=%i\n",(const wchar_t*)key,(const wchar_t*)it.key(),p->dataType());
+			PrintDebug("%s%s=UnknownDataType Id=%i\n",(const char*)key,(const char*)it.key(),p->dataType());
 		}
 	}
 }
@@ -1015,7 +1015,7 @@ String& AssocArray::getString(const String &key) const
 	ValueNode *node=findInternal(key);
 	Variant *p=node->value;
 	if (p->isString()) return p->toString();
-	printf ("String mit key %ls ist vom Typ: %i\n",(const wchar_t*)key,p->dataType());
+	//printf ("String mit key %s ist vom Typ: %i\n",(const char*)key,p->dataType());
 	throw TypeConversionException();
 }
 
@@ -1031,7 +1031,7 @@ String& AssocArray::getString(const String &key) const
  */
 void AssocArray::erase(const String &key)
 {
-	Array tok(key,L"/",0,true);
+	Array tok(key,"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
 	ArrayKey firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
@@ -1487,18 +1487,18 @@ void AssocArray::toTemplate(String &s, const String &prefix, const String &lined
 		p=it.value().value;
 		if (p->isString()) {
 			Tok.clear();
-			Tok.explode(p->toString(),L"\n");
+			Tok.explode(p->toString(),"\n");
 			for (size_t i=0;i<Tok.size();i++) {
 				s+=key+it.key()+splitchar+Tok[i]+linedelimiter;
 			}
 		} else if (p->isAssocArray()) {
-			pre.setf("%ls%ls",(const wchar_t*)key,(const wchar_t*)it.key());
+			pre.setf("%s%s",(const char*)key,(const char*)it.key());
 			((AssocArray*)p)->toTemplate(s,pre,linedelimiter,splitchar);
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
 			for (size_t i=0;i<a.size();i++) {
 				Tok.clear();
-				Tok.explode(a[i],L"\n");
+				Tok.explode(a[i],"\n");
 				index.setf("%zu",i);
 				for (size_t z=0;z<Tok.size();z++) {
 					s+=key+it.key()+"/"+index+splitchar+Tok[z]+linedelimiter;
