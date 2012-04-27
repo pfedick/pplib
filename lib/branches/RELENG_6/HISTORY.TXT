@@ -6,6 +6,8 @@ Version 6.4.13
   - Fehler in Postgres-DB-Anbindung behoben, wodurch mit FetchArray
     oder FetchFields mehr Zeilen gelesen wurden, als im
     Result vorhanden war
+  - DB-Connect mit Postgres-Datenbank unterstützt jetzt Parameter
+    "searchpath" zum Setzen des Suchpfades.
 
 Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
   - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen

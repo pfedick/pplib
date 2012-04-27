@@ -343,6 +343,32 @@ Postgres::~Postgres()
 #endif
 }
 
+/*!\brief Connect auf eine Postgres-Datenbank erstellen
+ *
+ * \descr
+ * Mit dieser Funktion wird eine Verbindung zu einem Postgres Datenbank-Server hergestellt, wobei
+ * die dafür notwendigen Parameter dem Array \p params entnommen werden.
+ *
+ * Die für den Connect erforderlichen oder optionalen Parameter hängen von der jeweiligen
+ * Datenbank ab und sind in der jeweiligen Dokumentation zu finden. Es gibt jedoch eine
+ * Reihe von Parametern, die bei allen Datenbanken identisch sind:
+ * - \b host: Der Hostname oder die IP-Adresse des Datenbank-Servers
+ * - \b port: Der TCP-Port des Datenbank-Servers
+ * - \b dbname: Der Name der intialen Datenbank.
+ * - \b user: Der Name des Benutzers, mit dem sich an der Datenbank authentifiziert werden soll
+ * - \b password: Das Passwort des Benutzers im Klartext
+ * - \b searchpath: Kommaseparierte Liste mit den Schemata, die in den Suchpfad
+ *      aufgenommen werden sollen
+ * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
+ *
+ * \return Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
+ *
+ * \example
+ * \dontinclude db_examples.cpp
+ * \skip DB_Example3
+ * \until EOF
+ *
+ */
 int Postgres::Connect(const CAssocArray &params)
 {
 #ifndef HAVE_POSTGRESQL
@@ -365,6 +391,15 @@ int Postgres::Connect(const CAssocArray &params)
 	}
 	// Pruefen, ob auch wirklich eine Verbindung da ist
 	if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
+		if (params["searchpath"]) {
+			ppl6::CString SearchPath=params["searchpath"];
+			Escape(SearchPath);
+			if (!Execf("set search_path to %s",(const char*)SearchPath)) {
+				PQfinish((PGconn*)conn);
+				conn=NULL;
+				return 0;
+			}
+		}
 		UpdateLastUse();
 		return 1;
 	}

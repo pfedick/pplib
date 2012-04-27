@@ -88,8 +88,11 @@ Database *Connect(const CAssocArray &params)
  * - \b mysql: MySQL-Datenbank
  * - \b postgres: Postgres-Datenbank
  * - \b sybase: Sybase-Datenbank
- * \par
  * Die tatsächlich unterstützten Datenbanken hängen davon ab, wie PPL6 kompiliert wurde.
+ * \par
+ * Postgres unterstützt zusätzlich noch die Angabe des Suchpfades:
+ * - \b searchpath: Kommaseparierte Liste mit den Schemata, die in den Suchpfad
+ *      aufgenommen werden sollen
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
@@ -1026,7 +1029,7 @@ int Database::Connect(const CAssocArray &params)
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
- * \returns Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
+ * \return Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
  *
  * \example
  * \dontinclude db_examples.cpp
