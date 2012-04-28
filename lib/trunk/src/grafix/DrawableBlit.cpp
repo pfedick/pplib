@@ -454,7 +454,7 @@ void Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int 
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
 	if (!fitRect(x,y,q)) return;
-	if (!fn->BltDiffuse) FunctionUnavailableException("Drawable::bltDiffuse");
+	if (!fn->BltDiffuse) throw FunctionUnavailableException("Drawable::bltDiffuse");
 	fn->BltDiffuse(data,source.data,q,x,y,rgb(c));
 }
 
@@ -520,7 +520,7 @@ void Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
 	if (!fitRect(x,y,q)) return;
-	if (!fn->BltColorKey) FunctionUnavailableException("Drawable::bltColorKey");
+	if (!fn->BltColorKey) throw FunctionUnavailableException("Drawable::bltColorKey");
 	fn->BltColorKey(data,source.data,q,x,y,rgb(c));
 }
 
@@ -588,7 +588,7 @@ void Drawable::bltAlpha(const Drawable &source, const Rect &srect, int x, int y)
 		if (q.height()>source.height()) q.setHeight(source.height());
 	}
 	if (!fitRect(x,y,q)) return;
-	if (!fn->BltAlpha) FunctionUnavailableException("Drawable::bltAlpha");
+	if (!fn->BltAlpha) throw FunctionUnavailableException("Drawable::bltAlpha");
 	fn->BltAlpha(data,source.data,q,x,y);
 }
 

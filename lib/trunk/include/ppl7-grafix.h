@@ -504,7 +504,7 @@ class Font
 		void setColor(const Color &c);
 		void setBorderColor(const Color &c);
 		void setShadowColor(const Color &c);
-		void setColors(const Color &Foreground, const Color &Border, const Color Shadow);
+		void setColors(const Color &Foreground, const Color &Border, const Color &Shadow);
 		void setBold(bool enable);
 		void setItalic(bool enable);
 		void setAntialias(bool enable);

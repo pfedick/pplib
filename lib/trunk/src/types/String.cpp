@@ -3009,6 +3009,7 @@ String::operator std::wstring() const
 	return *this;
 	*/
 #else
+	free(w);
 	throw UnsupportedFeatureException();
 #endif
 }

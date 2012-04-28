@@ -794,7 +794,7 @@ const Font6Glyph* Font6Face::getGlyph(wchar_t code) const
 
 int Font6Glyph::getHint(wchar_t nextGlyph) const
 {
-	if (Hints.size()==0) return 0;
+	if (Hints.empty()) return 0;
 	std::map<wchar_t,int>::const_iterator it;
 	it=Hints.find(nextGlyph);
 	if (it==Hints.end()) return 0;

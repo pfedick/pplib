@@ -314,10 +314,10 @@ size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFl
 		std::set<String> have;
 		std::set<String>::iterator haveIt;
 		std::list<ppl7::IPAddress>::iterator it;
-		for (it=result.begin();it!=result.end();it++) have.insert(it->ip);
+		for (it=result.begin();it!=result.end();++it) have.insert(it->ip);
 		// Dann gleichen wir die zusätzlichen Adressen mit den vorhandenen ab
 		// und fügen nur das ins result hinzu, was noch nicht da ist
-		for (it=additional.begin();it!=additional.end();it++) {
+		for (it=additional.begin();it!=additional.end();++it) {
 			haveIt=have.find(it->ip);
 			if (haveIt==have.end()) {
 				result.push_back(*it);

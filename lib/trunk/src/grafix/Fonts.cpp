@@ -190,7 +190,7 @@ void Font::setShadowColor(const Color &c)
 	cShadow=c;
 }
 
-void Font::setColors(const Color &Foreground, const Color &Border, const Color Shadow)
+void Font::setColors(const Color &Foreground, const Color &Border, const Color &Shadow)
 {
 	cForeground=Foreground;
 	cBorder=Border;

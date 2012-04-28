@@ -1693,7 +1693,7 @@ void AssocArray::importBinary(const ByteArrayPtr &bin)
 size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 {
 	if (!buffer) throw IllegalArgumentException();
-	if (buffersize==0) IllegalArgumentException();
+	if (buffersize==0) throw IllegalArgumentException();
 	const char *ptr=(const char*)buffer;
 	size_t p=0;
 	if (buffersize<8 || strncmp((const char*)ptr,"PPLASOC",7)!=0) {
