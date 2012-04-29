@@ -94,7 +94,7 @@ Exception::Exception(const char *msg, ...)
 		va_start(args, msg);
 		Msg.vasprintf(msg,args);
 		va_end(args);
-		ErrorText=strdup((const char*)Msg.toUtf8());
+		ErrorText=strdup((const char*)Msg);
 	} else {
 		ErrorText=NULL;
 	}
@@ -117,7 +117,7 @@ void Exception::copyText(const char *fmt, va_list args) throw()
 	free(ErrorText);
 	String Msg;
 	Msg.vasprintf(fmt,args);
-	ErrorText=strdup((const char*)Msg.toUtf8());
+	ErrorText=strdup((const char*)Msg);
 }
 
 const char* Exception::text() const throw()

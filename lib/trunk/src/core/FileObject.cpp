@@ -542,7 +542,7 @@ void FileObject::putsf (const char *fmt, ... )
  */
 void FileObject::puts (const String &str)
 {
-	return puts((const char*)str.toLocalEncoding());
+	return puts((const char*)str);
 }
 
 /*!\brief Wide-Character-String schreiben

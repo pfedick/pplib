@@ -37,7 +37,6 @@
  *******************************************************************************/
 
 
-
 #include "prolog.h"
 
 //#define WIN32FILES
@@ -432,7 +431,7 @@ void File::open (const String &filename, FileMode mode)
 	close();
 	// fopen stuerzt ab, wenn filename leer ist
 	if (filename.isEmpty()) throw IllegalArgumentException();
-	if ((ff=(FILE*)::fopen((const char*)filename.toLocalEncoding(),fmode(mode)))==NULL) {
+	if ((ff=(FILE*)::fopen((const char*)filename,fmode(mode)))==NULL) {
 		throwErrno(errno,filename);
 	}
 	mysize=size();
@@ -500,8 +499,7 @@ void File::openTemp(const String &filetemplate)
 {
 	#ifdef HAVE_MKSTEMP
 		close();
-		ByteArray tmpname=filetemplate.toLocalEncoding();
-
+		String tmpname=filetemplate;
 		int f=::mkstemp((char*)((const char*)tmpname));
 		if (f<0) throwErrno(errno,filetemplate);
 		FILE *ff=::fdopen(f, "r+b");
@@ -614,7 +612,7 @@ void File::popen (const String &command, FileMode mode)
 	close();
 	if (command.isEmpty()) throw IllegalArgumentException();
 
-	if ((ff=(FILE*)::popen((const char*)command.toLocalEncoding(),fmode(mode)))==NULL) {
+	if ((ff=(FILE*)::popen((const char*)command,fmode(mode)))==NULL) {
 		throwErrno(errno,command);
 	}
 	isPopen=true;
@@ -1245,7 +1243,7 @@ void File::erase()
  */
 void File::load(ByteArray &object, const String &filename)
 {
-	load(object,(const char*)filename.toLocalEncoding());
+	load(object,(const char*)filename);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1288,7 +1286,7 @@ void File::load(ByteArray &object, const char *filename)
  */
 void File::load(String &object, const String &filename)
 {
-	load(object,(const char*)filename.toLocalEncoding());
+	load(object,(const char*)filename);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1340,7 +1338,7 @@ void File::load(String &object, const char *filename)
  */
 void *File::load(const String &filename, size_t *size)
 {
-	return load((const char*)filename.toLocalEncoding(),size);
+	return load((const char*)filename,size);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1392,7 +1390,7 @@ void File::truncate(const String &filename, ppluint64 bytes)
 {
 #ifdef HAVE_TRUNCATE
 	// truncate-Funktion vorhanden
-	if (::truncate((const char*)filename.toLocalEncoding(),(off_t)bytes)==0) return;
+	if (::truncate((const char*)filename,(off_t)bytes)==0) return;
 	throwErrno(errno,filename);
 #else
 	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
@@ -1432,14 +1430,13 @@ void File::truncate(const char*filename, ppluint64 bytes)
  * Mit %exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
  *
  * \param filename Name der gewünschten Datei
- * werden sollen
  * \return Ist die Datei forhanden, gibt die Funktion \c true zurück, andernfalls \c false.
  */
 bool File::exists(const String &filename)
 {
 	FILE *fd=NULL;
 	//printf ("buffer=%s\n",buff);
-	fd=fopen((const char*)filename.toLocalEncoding(),"rb");		// Versuchen die Datei zu oeffnen
+	fd=fopen((const char*)filename,"rb");		// Versuchen die Datei zu oeffnen
 	if (fd) {
 		fclose(fd);
 		return true;
@@ -1454,7 +1451,6 @@ bool File::exists(const String &filename)
  * Mit %exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
  *
  * \param filename Name der gewünschten Datei
- * werden sollen
  * \return Ist die Datei forhanden, gibt die Funktion \c true zurück, andernfalls \c false.
  */
 bool File::exists(const char *filename)
@@ -1590,7 +1586,7 @@ void File::rename(const char *oldfile, const char *newfile)
  */
 void File::rename(const String &oldfile, const String &newfile)
 {
-	File::rename((const char*)oldfile.toLocalEncoding(),(const char*)newfile.toLocalEncoding());
+	File::rename((const char*)oldfile,(const char*)newfile);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1604,7 +1600,7 @@ void File::rename(const String &oldfile, const String &newfile)
  * Ein Fehler kann auftreten, wenn die
  * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
  */
-void File::remove(const char *filename)
+void File::erase(const char *filename)
 {
 	if (!filename) throw NullPointerException();
 	if (::unlink(filename)==0) return;
@@ -1622,9 +1618,9 @@ void File::remove(const char *filename)
  * Ein Fehler kann auftreten, wenn die
  * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
  */
-void File::remove(const String &filename)
+void File::erase(const String &filename)
 {
-	remove((const char*)filename.toLocalEncoding());
+	remove((const char*)filename);
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1658,7 +1654,7 @@ void File::touch(const char *filename)
  */
 void File::touch(const String &filename)
 {
-	touch((const char*)filename.toLocalEncoding());
+	touch((const char*)filename);
 }
 
 
@@ -1806,7 +1802,7 @@ void File::chmod(const char *filename, FileAttr::Attributes attr)
  */
 void File::chmod(const String &filename, FileAttr::Attributes attr)
 {
-	chmod((const char*)filename.toLocalEncoding(),attr);
+	chmod((const char*)filename,attr);
 }
 
 /*!\brief Informationen zu einer Datei oder Verzeichnis
@@ -1823,7 +1819,7 @@ void File::chmod(const String &filename, FileAttr::Attributes attr)
  */
 void File::stat(const String &filename, DirEntry &result)
 {
-	stat((const char*)filename.toLocalEncoding(),result);
+	stat((const char*)filename,result);
 }
 
 /*!\brief Informationen zu einer Datei oder Verzeichnis

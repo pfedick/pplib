@@ -47,6 +47,11 @@
 					</scannerInfoProvider>
 				</profile>
 			</storageModule>
+<storageModule moduleId="org.eclipse.cdt.core.pathentry">
+<pathentry kind="out" path=""/>
+<pathentry kind="con" path="org.eclipse.cdt.make.core.DISCOVERED_SCANNER_INFO"/>
+<pathentry kind="src" path=""/>
+</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
 				<buildTargets>
 					<target name="debug" path="" targetID="org.eclipse.cdt.make.MakeTargetBuilder">
@@ -73,12 +78,5 @@
 				</doc-comment-owner>
 			</storageModule>
 		</cconfiguration>
-	</storageModule>
-	<storageModule moduleId="refreshScope"/>
-	<storageModule moduleId="org.eclipse.cdt.core.pathentry">
-		<pathentry excluding="toolkit|src/tk|src/toolkit" kind="src" path=""/>
-		<pathentry kind="src" path="src/toolkit"/>
-		<pathentry kind="out" path=""/>
-		<pathentry kind="con" path="org.eclipse.cdt.make.core.DISCOVERED_SCANNER_INFO"/>
 	</storageModule>
 </cproject>

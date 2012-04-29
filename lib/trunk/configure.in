@@ -46,6 +46,35 @@ sinclude(autoconf/libtiff.m4)
 sinclude(autoconf/libmicrohttpd.m4)
 sinclude(autoconf/libidn.m4)
 
+
+report_have_jpeg="no"
+report_have_libmicrohttpd="no"
+report_have_libmcrypt="no"
+report_have_libcrypto="no"
+report_have_libmhash="no"
+report_have_libidn="no"
+report_have_libtiff="no"
+report_have_curl="no"
+report_have_mpg123="no"
+report_have_lame="no"
+report_have_libogg="no"
+report_have_libshout="no"
+report_have_libmad="no"
+report_have_iconv="no"
+report_have_bzip2="no"
+report_have_zlib="no"
+report_have_pcre="no"
+report_have_openssl="no"
+report_have_freetype2="no"
+report_have_sdl="no"
+report_have_png="no"
+report_have_libimlib="no"
+report_have_mysql="no"
+report_have_postgres="no"
+report_have_ldns="no"
+report_have_nasm="no"
+
+
 AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE
@@ -134,6 +163,12 @@ AC_CHECK_SIZEOF(fpos_t, 4)
 
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
+
+AX_HAVE_QT
+AX_PROG_NASM
+
+
+PKG_PROG_PKG_CONFIG()
 
 
 #--------------------------------------------------------------------
@@ -225,11 +260,119 @@ AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
 
 
+
+
+LDFLAGS="$LDFLAGS -L/usr/local/lib"
+CFLAGS="$CFLAGS -I/usr/local/include"
+
+
+
+dnl ##################################################################################### JPEG
+dnl AC_CHECK_LIBJPEG([6.0],
+dnl            AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
+dnl            report_have_jpeg="yes"
+dnl           :)
+      
+##################################################################################### PNG   
+AC_CHECK_LIBPNG([1.2],
+            AC_DEFINE(HAVE_PNG, 1, [ Define if you have libpng. ])
+            report_have_png="yes"
+           :)
+      
+           
+
+
+AC_SUBST(report_have_zlib)
+AC_SUBST(report_have_bzip2)
+AC_SUBST(report_have_png)
+AC_SUBST(report_have_jpeg)
+AC_SUBST(report_have_freetype2)
+AC_SUBST(report_have_sdl)
+AC_SUBST(report_have_lame)
+AC_SUBST(report_have_libmad)
+AC_SUBST(report_have_curl)
+AC_SUBST(report_have_openssl)
+AC_SUBST(report_have_pcre)
+AC_SUBST(report_have_iconv)
+AC_SUBST(report_have_libmcrypt)
+AC_SUBST(report_have_libmhash)
+AC_SUBST(report_have_mysql)
+AC_SUBST(report_have_postgres)
+AC_SUBST(report_have_sybase)
+AC_SUBST(report_have_nasm)
+AC_SUBST(report_have_pthreads)
+AC_SUBST(report_have_ldns)
+AC_SUBST(report_have_libogg)
+AC_SUBST(report_have_libshout)
+AC_SUBST(report_have_libimlib)
+AC_SUBST(report_have_libtiff)
+AC_SUBST(report_have_libmicrohttpd)
+AC_SUBST(report_have_libidn)
+
+
+dnl report configuration
+AC_MSG_RESULT([
+******************************************************************************
+** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
+** Target: $target_os        CPU: $target_cpu
+** 
+** Byteorder: $report_byteorder
+**   Size of char         $ac_cv_sizeof_char     Size of float        $ac_cv_sizeof_float
+**   Size of short        $ac_cv_sizeof_short     Size of double       $ac_cv_sizeof_double
+**   Size of int          $ac_cv_sizeof_int     Size of void*        $ac_cv_sizeof_voidp
+**   Size of long         $ac_cv_sizeof_long     Size of wchar_t      $ac_cv_sizeof_wchar_t
+**   Size of long long    $ac_cv_sizeof_long_long     
+**   Size of size_t       $ac_cv_sizeof_size_t
+******************************************************************************
+** Supported Libraries:       		Databases:
+**   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
+**   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
+**   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
+**   JPEG library:         $report_have_jpeg
+**   ImageMagick library:  $report_have_libimlib
+**   TIFF library:         $report_have_libtiff
+**   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
+**   SDL library:          $report_have_sdl		  
+**   Lame library:         $report_have_lame		  
+**   Libmad library:       $report_have_libmad	
+**   mpg123 library:       $report_have_mpg123	  
+**   ogg library:          $report_have_libogg	  
+**   shout library:        $report_have_libshout
+**   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd		  
+**   OpenSSL:              $report_have_openssl		Threads:
+**   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
+**   ICONV:                $report_have_iconv
+**   MCrypt library:       $report_have_libmcrypt
+**   MHash:                $report_have_libmhash
+**   ldns library:         $report_have_ldns
+**   libidn                $report_have_libidn
+******************************************************************************
+])
+
+AC_DEFINE(CONF_CFLAGS, $CFLAGS)
+AC_DEFINE(CONF_LIBS, $LIBS)
+
+AC_OUTPUT()
+
+
+           
+exit
+####################################################################################################
+####################################################################################################
+####################################################################################################
+####################################################################################################
+
+
+
+
+
+
 dnl Checks for programs.
 
 dnl Checks for libraries.
 
-report_have_libmicrohttpd="no"
+
 AM_LIBMICROHTTPD(,
             AC_DEFINE(HAVE_LIBMICROHTTPD, 1, [ Define if you have libmicrohttpd. ])
             report_have_libmicrohttpd="yes"
@@ -240,18 +383,15 @@ AM_LIBMICROHTTPD(,
             :)
 
 
-report_have_libmcrypt="no"
 AM_PATH_LIBMCRYPT([2.5.7],
             AC_DEFINE(HAVE_LIBMCRYPT, 1, [ Define if you have libmcrypt. ])
             report_have_libmcrypt="yes",
             :)
 
-report_have_libmhash="no"
 AM_PATH_LIBMHASH([0.9.9],
             AC_DEFINE(HAVE_LIBMHASH, 1, [ Define if you have libmhash. ])
             report_have_libmhash="yes",
             :)
-
 
 AM_LIBIDN([0.5.4],
 	report_have_libidn="yes"
@@ -260,19 +400,13 @@ AM_LIBIDN([0.5.4],
 	AC_SUBST(LIBIDN_LIBS)
 
 	,
-	report_have_libidn="no"
+	
 	)
 
 
-report_have_jpeg="no"
-AC_CHECK_LIBJPEG([1.2],
-            AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
-            report_have_jpeg="yes"
-			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
-			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS",
-           :)
 
-report_have_libtiff="no"
+
+
 AC_CHECK_LIBTIFF([1.2],
             AC_DEFINE(HAVE_TIFF, 1, [ Define if you have libtiff. ])
             report_have_libtiff="yes"
@@ -281,7 +415,7 @@ AC_CHECK_LIBTIFF([1.2],
            :)
 
 
-report_have_curl="no"
+
 LIBCURL_CHECK_CONFIG("yes",7.14.1,
 	#LIBS="$LIBS $LIBCURL"
 	#CFLAGS="$CFLAGS $LIBCURL_CPPFLAGS "
@@ -291,7 +425,7 @@ LIBCURL_CHECK_CONFIG("yes",7.14.1,
 	report_have_curl="yes",:)
 
 
-report_have_mpg123="no"
+
 AC_CHECK_LIBMPG123([1.0.0],
             AC_DEFINE(HAVE_MPG123, 1, [ Define if you have mpg123 library. ])
             report_have_mpg123="yes"
@@ -300,7 +434,7 @@ AC_CHECK_LIBMPG123([1.0.0],
             ,
             )
 
-report_have_lame="no"
+
 AC_CHECK_LIBMP3LAME([3.98.0],
 	AC_DEFINE(HAVE_LAME, 1, [ Define if you have lame. ])
 	report_have_lame="yes"
@@ -308,7 +442,6 @@ AC_CHECK_LIBMP3LAME([3.98.0],
 	AC_SUBST(LAME_LIBS)
 	, :)
 
-report_have_libogg="no"
 XIPH_PATH_OGG(
 	AC_DEFINE(HAVE_LIBOGG, 1, [ Define if you have libogg. ])
 	report_have_libogg="yes"
@@ -316,7 +449,6 @@ XIPH_PATH_OGG(
 	AC_SUBST(OGG_LIBS)
 	, :)
 
-report_have_libshout="no"
 XIPH_PATH_SHOUT(
 	AC_DEFINE(HAVE_LIBSHOUT, 1, [ Define if you have libshout. ])
 	report_have_libshout="yes"
@@ -324,11 +456,9 @@ XIPH_PATH_SHOUT(
 	AC_SUBST(SHOUT_LIBS)
 	, :)
 
-report_have_libmad="no"
 
 
 
-report_have_iconv="no"
 AM_ICONV
 if test "$am_cv_func_iconv_works" = "yes" 
 then
@@ -348,7 +478,6 @@ dnl do we need to specify -lm explicitly?
 AC_CHECK_FUNC(sin,,[AC_CHECK_LIB(m,sin)])
 
 # PCRE vorhanden?
-report_have_pcre="no"
 AX_PATH_LIB_PCRE([7.0],
             AC_DEFINE(HAVE_PCRE, 1, [ Define if you have pcre. ])
             report_have_pcre="yes"
@@ -357,14 +486,12 @@ AX_PATH_LIB_PCRE([7.0],
             ,
             )
 
-report_have_openssl="no"
 AX_CHECK_OPENSSL(
 	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
 	report_have_openssl="yes"
 	, :)
 
 
-report_have_freetype2="no"
 AC_CHECK_FT2(9.0.0,
 	AC_DEFINE(HAVE_FREETYPE2, 1, [ Define if you have freetype2. ])
 	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $FT2_CFLAGS"
@@ -373,7 +500,6 @@ AC_CHECK_FT2(9.0.0,
 	, :)
 
 dnl Check for SDL
-report_have_sdl="no"
 ###SDL_VERSION=1.2.10
 ###AM_PATH_SDL($SDL_VERSION,
 ###	AC_DEFINE(HAVE_SDL, 1, [ Define if you have sdl. ])
@@ -382,15 +508,8 @@ report_have_sdl="no"
 ###	report_have_sdl="yes"
 ###	, :)
 
-report_have_png="no"
-AC_CHECK_LIBPNG([1.2],
-            AC_DEFINE(HAVE_PNG, 1, [ Define if you have libpng. ])
-            report_have_png="yes"
-			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $PNG_CFLAGS"
-			GRAPHIC_LIBS="$GRAPHIC_LIBS $PNG_LIBS",
-           :)
 
-report_have_libimlib="no"
+
 AX_PATH_LIB_IMLIB([1.9.0],
 	AC_DEFINE(HAVE_IMAGEMAGICK, 1, [ Define if you have imlib. ])
 	report_have_libimlib="yes"
@@ -399,7 +518,6 @@ AX_PATH_LIB_IMLIB([1.9.0],
 	, :)
 
 
-report_have_mysql="no"
 AC_CHECK_MYSQL([4.0],
             AC_DEFINE(HAVE_MYSQL, 1, [ Define if you have mysql. ])
             report_have_mysql="yes"
@@ -408,7 +526,6 @@ AC_CHECK_MYSQL([4.0],
             :)
 
 
-report_have_postgres="no"
 AX_LIB_POSTGRESQL([8.0])
 if test "$found_postgresql" = "yes"; then
 	report_have_postgres="yes"
@@ -423,7 +540,6 @@ report_have_freetds="no"
 ###			AC_SUBST(FREETDS_LIBS),
 ###            :)
 
-report_have_ldns="no"
 AX_PATH_LIB_LDNS([1.6.3],
             AC_DEFINE(HAVE_LIBLDNS, 1, [ Define if you have ldns library from netlabs.nl. ])
             report_have_ldns="yes"
@@ -527,111 +643,7 @@ case "${host_cpu}-${host_os}" in
         ;;
 esac;
 
-AC_SUBST(report_have_zlib)
-AC_SUBST(report_have_bzip2)
-AC_SUBST(report_have_png)
-AC_SUBST(report_have_jpeg)
-AC_SUBST(report_have_freetype2)
-AC_SUBST(report_have_sdl)
-AC_SUBST(report_have_lame)
-AC_SUBST(report_have_libmad)
-AC_SUBST(report_have_curl)
-AC_SUBST(report_have_openssl)
-AC_SUBST(report_have_pcre)
-AC_SUBST(report_have_iconv)
-AC_SUBST(report_have_libmcrypt)
-AC_SUBST(report_have_libmhash)
-AC_SUBST(report_have_mysql)
-AC_SUBST(report_have_postgres)
-AC_SUBST(report_have_sybase)
-AC_SUBST(report_have_nasm)
-AC_SUBST(report_have_pthreads)
-AC_SUBST(report_have_ldns)
-AC_SUBST(report_have_libogg)
-AC_SUBST(report_have_libshout)
-AC_SUBST(report_have_libimlib)
-AC_SUBST(report_have_libtiff)
-AC_SUBST(report_have_libmicrohttpd)
-AC_SUBST(report_have_libidn)
 
-
-dnl report configuration
-AC_MSG_RESULT([
-******************************************************************************
-** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
-** Target: $target_os        CPU: $target_cpu
-** 
-** Byteorder: $report_byteorder
-**   Size of char         $ac_cv_sizeof_char     Size of float        $ac_cv_sizeof_float
-**   Size of short        $ac_cv_sizeof_short     Size of double       $ac_cv_sizeof_double
-**   Size of int          $ac_cv_sizeof_int     Size of void*        $ac_cv_sizeof_voidp
-**   Size of long         $ac_cv_sizeof_long     Size of wchar_t      $ac_cv_sizeof_wchar_t
-**   Size of long long    $ac_cv_sizeof_long_long     
-**   Size of size_t       $ac_cv_sizeof_size_t
-******************************************************************************
-** Supported Libraries:       		Databases:
-**   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
-**   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
-**   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
-**   JPEG library:         $report_have_jpeg
-**   ImageMagick library:  $report_have_libimlib
-**   TIFF library:         $report_have_libtiff
-**   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
-**   SDL library:          $report_have_sdl		  
-**   Lame library:         $report_have_lame		  
-**   Libmad library:       $report_have_libmad	
-**   mpg123 library:       $report_have_mpg123	  
-**   ogg library:          $report_have_libogg	  
-**   shout library:        $report_have_libshout
-**   Curl library:         $report_have_curl
-**   Libmicrohttpd:        $report_have_libmicrohttpd		  
-**   OpenSSL:              $report_have_openssl		Threads:
-**   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
-**   ICONV:                $report_have_iconv
-**   MCrypt library:       $report_have_libmcrypt
-**   MHash:                $report_have_libmhash
-**   ldns library:         $report_have_ldns
-**   libidn                $report_have_libidn
-******************************************************************************
-])
-
-dnl check if we have all required libraries
-missing=""
-
-if test "$report_have_zlib" != "yes"
-then
-	missing="$missing  - zlib is required but not found
-"
-fi
-if test "$report_have_bzip2" != "yes"
-then
-	missing="$missing  - libbzip2 is required but not found
-"
-fi
-
-if test "$report_have_pcre" != "yes"
-then
-	missing="$missing  - libpcre is required but not found
-"
-fi
-
-if test -n "$missing"
-then
-	AC_MSG_ERROR(Cannot build because of missing dependencies:
-$missing)
-fi
-
-AC_SUBST(GRAPHIC_CFLAGS)
-AC_SUBST(GRAPHIC_LIBS)
-
-AC_SUBST(SOUND_CFLAGS)
-AC_SUBST(SOUND_LIBS)
-
-
-AC_DEFINE(CONF_CFLAGS, [$CFLAGS])
-AC_DEFINE(CONF_LIBS, [$LIBS])
-
-AC_OUTPUT()
 
 
 

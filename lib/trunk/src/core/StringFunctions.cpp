@@ -616,11 +616,11 @@ String UrlEncode(const String &text)
 {
 	const char *source=text.getPtr();
 	String ret;
-	static const wchar_t *digits = L"0123456789ABCDEF";
-	unsigned wchar_t ch;
+	static const char *digits = "0123456789ABCDEF";
+	unsigned char ch;
 	while (*source)
 	{
-		ch = (unsigned wchar_t)*source;
+		ch = (unsigned char)*source;
 		if (*source == ' ') {
 			ret+=L"+";
 		}
@@ -633,7 +633,7 @@ String UrlEncode(const String &text)
 			ret+=ch;
 		}
 		else {
-			ret+=L"%";
+			ret+="%";
 			ret+= digits[(ch >> 4) & 0x0F];
 			ret+= digits[       ch & 0x0F];
 		}
@@ -642,7 +642,7 @@ String UrlEncode(const String &text)
 	return ret;
 }
 
-static wchar_t HexPairValue(const char * code) {
+static char HexPairValue(const char * code) {
 	char value = 0;
 	const char * pch = code;
 	for (;;) {
@@ -694,11 +694,11 @@ String UrlDecode(const String &text)
 	while (*source) {
 		switch (*source) {
 			case '+':
-				ret+=L" ";
+				ret+=" ";
 				break;
 			case '%':
 				if (source[1] && source[2]) {
-					wchar_t value = HexPairValue(source + 1);
+					char value = HexPairValue(source + 1);
 					if (value >= 0) {
 						ret+=value;
 						source += 2;

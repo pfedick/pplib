@@ -432,7 +432,7 @@ void Dir::print(const DirEntry &de) const
 {
 	printf ("%s %3i ",(const char*)de.AttrStr,de.NumLinks);
 	printf ("%5i %5i ",de.Uid, de.Gid);
-	printf ("%10llu ",de.Size);
+	printf ("%10zu ",de.Size);
 	printf ("%s %s\n",(const char*)de.MTime.get(),(const char*)de.Filename);
 }
 
@@ -1066,7 +1066,7 @@ bool Dir::getNextRegExp(DirEntry &e, Iterator &it, const String &regexp) const
  */
 void Dir::open(const String &path, Sort s)
 {
-	open((const char*)path.toLocalEncoding(),s);
+	open((const char*)path,s);
 }
 
 /*!\brief Verzeichnis einlesen
@@ -1090,7 +1090,7 @@ void Dir::open(const char *path, Sort s)
 	Path.trim();
 	Path.trimRight("/");
 	Path.trimRight("\\");
-	DIR *dir=opendir((const char*)Path.toLocalEncoding());
+	DIR *dir=opendir((const char*)Path);
 	if (!dir) {
 		File::throwErrno(errno,path);
 	}

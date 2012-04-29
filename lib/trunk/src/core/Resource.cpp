@@ -407,17 +407,16 @@ static void Output(FileObject &ff, int resid, const String &name, const String &
 {
 	char *buf=(char*)malloc(64);
 	if (!buf) throw OutOfMemoryException();
-	ByteArray nameUtf8=name.toUtf8();
 
-	ppluint32 chunksize=bytes+nameUtf8.size()+17;
+	ppluint32 chunksize=bytes+name.size()+17;
 	Poke32(buf+0,chunksize);
 	Poke16(buf+4,resid);
 	Poke32(buf+6,size_u);
 	Poke32(buf+10,bytes);
 	Poke8(buf+14,compressiontype);
-	Poke8(buf+15,17+nameUtf8.size());
+	Poke8(buf+15,17+name.size());
 	BufferOut(ff,buf,16);
-	BufferOut(ff,nameUtf8,nameUtf8.size()+1);
+	BufferOut(ff,name,name.size()+1);
 	//BufferOut(ff,filename,strlen(filename)+1);
 	BufferOut(ff,buffer,bytes);
 	free(buf);
