@@ -279,7 +279,69 @@ AC_CHECK_LIBPNG([1.2],
             report_have_png="yes"
            :)
       
-           
+ 
+ 
+ 
+# If we support __thread, that can speed up tcmalloc a bit.
+# Note, however, that our code tickles a bug in gcc < 4.1.2
+# involving TLS and -fPIC (which our libraries will use) on x86:
+#   http://gcc.gnu.org/ml/gcc-bugs/2006-09/msg02275.html
+AC_MSG_CHECKING([for __thread])
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)) && ((__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 1) || (__GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ < 2))
+#error gcc has this bug: http://gcc.gnu.org/ml/gcc-bugs/2006-09/msg02275.html
+#endif], [static __thread int p = 0])],
+               [AC_DEFINE(HAVE_TLS, 1,
+                      Define to 1 if compiler supports __thread)
+                AC_MSG_RESULT([yes])],
+               [AC_MSG_RESULT([no])])
+
+# We also need to check if the kernel supports __thread, which requires uname()
+AC_CHECK_DECLS(uname,,, [#include <sys/utsname.h>])
+ 
+  
+case $host_os in
+	*mingw32* )
+		report_have_pthreads="Win32 Threads"
+  		;;
+	* )
+		ACX_PTHREAD(report_have_pthreads="yes"
+			AC_DEFINE(HAVE_PTHREADS,1,)#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+#ifdef HAVE_SIGNAL_H
+    #include <signal.h>
+#endif
+			
+			,report_have_pthreads="no")
+
+		;;
+esac
+
+
+
+case $host_os in
+	*mingw32* )
+		MINGW32=yes
+		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
+  		;;
+	* )
+		MINGW32=no
+		;;
+esac
+
+case "${host_cpu}-${host_os}" in
+	*solaris*)
+		CFLAGS=`echo $CFLAGS | $SED 's/-I\/usr\/local\/include //g' | $SED 's/-I\/usr\/include //g' `
+        ;;
+esac;
+
+         
 
 
 AC_SUBST(report_have_zlib)

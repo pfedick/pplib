@@ -677,8 +677,8 @@ String DateTime::get(const String &format) const
 	if (!b) {
 		throw OutOfMemoryException();
 	}
-	if (strftime(b, size,(const char*)r.toUtf8(), &t)==0) {
-		throw IllegalArgumentException("DateTime::get(\"%s\")",(const char*)r.toUtf8());
+	if (strftime(b, size,(const char*)r, &t)==0) {
+		throw IllegalArgumentException("DateTime::get(\"%s\")",(const char*)r);
 	}
 	r.set(b);
 	free(b);

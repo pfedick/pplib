@@ -1268,77 +1268,6 @@ String & String::prepend(wchar_t c) throw(OutOfMemoryException)
 	return prepend(buffer,1);
 }
 
-/*!\brief String in UTF8 umwandeln
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings in UTF8 umgewandelt und als
- * ByteArray zurückgegeben.
- *
- * @return ByteArray mit der UTF8-Repräsentation des Strings.
- */
-ByteArray String::toUtf8() const
-{
-	if (stringlen==0) return ByteArray();
-#ifndef HAVE_ICONV
-	throw UnsupportedFeatureException();
-#else
-	return toEncoding("UTF-8");
-#endif
-}
-
-
-/*!\brief String in Lokale Kodierung umwandeln
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings in in die lokale Kodierung des
- * Betriebssystems umgewandelt, bzw. den Zeichensatz, der über "setlocale" eingestellt
- * wurde. Das Ergebnis wird als ByteArray zurückgegeben.
- *
- * @return ByteArray mit der lokalen Repräsentation des Strings.
- *
- * \example
- * Die aktuelle Lokalisierungs-Einstellung für die String-Konvertierung kann folgendermassen
- * abgefragt werden:
-\code
-printf ("Lokalisierung: %s\n",setlocale(LC_CTYPE,NULL);
-\endcode
- * Und folgendermassen kann sie gesetzt werden:
-\code
-if (!setlocale(LC_CTYPE, "de_DE.ISO8859-15")) {
-	printf ("setlocale fehlgeschlagen\n");
-	throw std::exception();
-}
-printf ("Lokalisierung: %s\n",setlocale(LC_CTYPE,NULL);
-\endcode
- *
- */
-ByteArray String::toLocalEncoding() const
-{
-	if (stringlen==0) return ByteArray();
-#ifdef HAVE_WCSTOMBS
-	size_t buffersize=stringlen*4+8;
-	char *buffer=(char*)malloc(buffersize);
-	if (!buffer) throw OutOfMemoryException();
-
-	size_t ret=wcstombs(buffer, (const wchar_t*)ptr, buffersize);
-	if (ret==(size_t)-1) {
-		free (buffer);
-		throw CharacterEncodingException();
-	}
-	ByteArray a;
-	try {
-		a.copy(buffer,ret);
-	} catch (...) {
-		free(buffer);
-		throw;
-	}
-	free (buffer);
-	return a;
-#else
-	return toEncoding("UTF-8");
-#endif
-}
-
 /*!\brief String in eine beliebige lokale Kodierung umwandeln
  *
  * \desc
@@ -1420,12 +1349,6 @@ String &String::fromUCS4(const ByteArrayPtr &bin)
 	return fromUCS4((ppluint32*)bin.ptr(),bin.size());
 }
 
-
-String String::getUtf8MD5() const
-{
-	if (stringlen==0 || ptr==NULL) throw EmptyDataException();
-	return toUtf8().md5();
-}
 
 String String::getMD5() const
 {

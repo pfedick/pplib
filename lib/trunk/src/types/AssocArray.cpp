@@ -1568,7 +1568,8 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	size_t p=0;
 	size_t keylen;
 	size_t vallen=0;
-	ByteArray key, utf8;
+	ByteArray key;
+	String string;
 	if (!buffer) buffersize=0;
 	if (p+7<buffersize) strncpy(ptr,"PPLASOC",7);
 	p+=7;
@@ -1582,18 +1583,18 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 			else PokeN8(ptr+p,a->dataType());
 		}
 		p++;
-		key=it.key().toUtf8();
+		key=it.key();
 		keylen=key.size();
 		if (p+4<buffersize) PokeN16(ptr+p,keylen);
 		p+=2;
 		if (p+keylen<buffersize) strncpy(ptr+p,(const char*)key,keylen);
 		p+=keylen;
 		if (a->isString()) {
-			utf8=((String*)a)->toUtf8();
-			vallen=utf8.size();
+			string=*((String*)a);
+			vallen=string.size();
 			if (p+4<buffersize) PokeN32(ptr+p,vallen);
 			p+=4;
-			if (p+vallen<buffersize) strncpy(ptr+p,(const char*)utf8,vallen);
+			if (p+vallen<buffersize) strncpy(ptr+p,(const char*)string,vallen);
 			p+=vallen;
 		} else if (a->isAssocArray()) {
 			size_t asize=0;

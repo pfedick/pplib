@@ -238,7 +238,7 @@ void SetTLSData(void *data)
 		myThreadData=NULL;
 		return 0;
 	}
-#else
+#elif defined HAVE_PTHREADS
 	static void *ThreadProc(void *param)
 	{
 		THREADSTARTUP *ts=(THREADSTARTUP *)param;
