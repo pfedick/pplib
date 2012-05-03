@@ -75,6 +75,8 @@
 #endif
 
 #include <string>
+#include <iostream>
+
 
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
@@ -713,6 +715,9 @@ class CString : public CVar
 CString operator+(const CString &str1, const CString& str2);
 CString operator+(const char *str1, const CString& str2);
 CString operator+(const CString &str1, const char *str2);
+
+std::ostream& operator<<(std::ostream& s, const CString &str);
+
 
 int	SetGlobalEncoding(const char *encoding);
 

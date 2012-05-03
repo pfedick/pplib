@@ -2421,6 +2421,10 @@ CString operator+(const CString &str1, const char *str2)
 }
 
 
+std::ostream& operator<<(std::ostream& s, const CString &str)
+{
+	return s.write((const char*)str,str.Size());
+}
 
 
 
