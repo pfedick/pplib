@@ -585,7 +585,7 @@ String & String::set(const char *str, size_t size) throw(OutOfMemoryException, U
  */
 String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException)
 {
-	if (!str) {
+	if (str==NULL || size==0) {
 		clear();
 		return *this;
 	}
@@ -605,7 +605,7 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 			throw OutOfMemoryException();
 		}
 	}
-	// Falls size angegeben ist, müssen wir den String zuerst duplizieren und einen
+	// TODO: Falls size angegeben ist, müssen wir den String zuerst duplizieren und einen
 	// 0-Wert an das gewünschte Ende hängen, da wcstombs die Angabe der Laenge des
 	// Input-Strings nicht unterstützt
 	size_t bytes=wcstombs(ptr, str, size_t n);
@@ -855,6 +855,31 @@ String & String::vasprintf(const char *fmt, va_list args) throw(OutOfMemoryExcep
  */
 String & String::append(const wchar_t *str, size_t size) throw(OutOfMemoryException)
 {
+	String a;
+	a.set(str,size);
+	return append((const char*)a.ptr,size);
+}
+
+/*!\brief Fügt einen C-String an das Ende des bestehenden an
+ *
+ * \desc
+ * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
+ * UTF-8 kodiert sein, oder es muss mit der statischen Funktion String::setGlobalEncoding
+ * zuvor eine andere Kodierung gesetzt worden sein.
+ *
+ * \param[in] str Pointer auf einen Wide-Character String
+ * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
+ *
+ * \return Referenz auf den String
+ *
+ * \exception OutOfMemoryException
+ * \exception UnsupportedFeatureException
+ * \exception UnsupportedCharacterEncodingException
+ * \exception CharacterEncodingException
+ *
+ */
+String & String::append(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+{
 	if (!str) return *this;
 	if (!ptr) {
 		set(str,size);
@@ -878,31 +903,8 @@ String & String::append(const wchar_t *str, size_t size) throw(OutOfMemoryExcept
 	stringlen+=inchars;
 	((wchar_t*)ptr)[stringlen]=0;
 	return *this;
-}
 
-/*!\brief Fügt einen C-String an das Ende des bestehenden an
- *
- * \desc
- * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
- * UTF-8 kodiert sein, oder es muss mit der statischen Funktion String::setGlobalEncoding
- * zuvor eine andere Kodierung gesetzt worden sein.
- *
- * \param[in] str Pointer auf einen Wide-Character String
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- * \exception UnsupportedFeatureException
- * \exception UnsupportedCharacterEncodingException
- * \exception CharacterEncodingException
- *
- */
-String & String::append(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
-{
-	String a;
-	a.set(str,size);
-	return append((wchar_t*)a.ptr,size);
+
 }
 
 /*!\brief Fügt einen als Pointer übergebenen String an das Ende des bestehenden an
