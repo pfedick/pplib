@@ -4,7 +4,7 @@ DEFS="@DEFS@"
 CFLAGS="@CFLAGS@ @PTHREAD_CFLAGS@"
 CPPFLAGS="@CPPFLAGS@"
 LDFLAGS="@LDFLAGS@"
-LIBS="@PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @SYBASE_LIBS@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBCURL@ @ICONV_LIBS@ @MPG123_LIBS@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @SHOUT_LIBS@ @OGG_LIBS@ @LIBMICROHTTPD_LIBS@ @SQLITE_LIBS@ @LIBS@"
+LIBS="@PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @FREETDS_LIBS@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBCURL@ @ICONV_LIBS@ @MPG123_LIBS@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @SHOUT_LIBS@ @OGG_LIBS@ @LIBMICROHTTPD_LIBS@ @SQLITE_LIBS@ @LIBS@"
 BASELIBS="@PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @ICONV_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @LIBS@"
 LIBNAME="libppl6"
 LIBDEBUG="libppl6-debug"
@@ -200,7 +200,8 @@ if test "$listfeatures" = "yes"; then
 	if [ "@report_have_postgres@" = "yes" ]; then
 		echo "postgres"
 	fi
-	if [ "@report_have_sybase@" = "yes" ]; then
+	if [ "@report_have_freetds@" = "yes" ]; then
+		echo "freetds"
 		echo "sybase"
 	fi
 	if [ "@report_have_sqlite@" = "yes" ]; then
@@ -236,7 +237,7 @@ if [ "$split" = "yes" ] ; then
 		LIBS="$LIBS -l$libname-grafix @GRAPHIC_LIBS@"
 	fi
 	if [ "$database" = "yes" ] ; then
-		LIBS="$LIBS -l$libname-database @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @SYBASE_LIBS@ @SQLITE_LIBS@"
+		LIBS="$LIBS -l$libname-database @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @FREETDS_LIBS@ @SQLITE_LIBS@"
 	fi
 	if [ "$tk" = "yes" ] ; then
 		LIBS="$LIBS -l$libname-tk"

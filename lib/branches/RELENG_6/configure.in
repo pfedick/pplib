@@ -24,7 +24,7 @@ sinclude(config/png.m4)
 sinclude(config/jpeg.m4)
 sinclude(config/pthreads.m4)
 sinclude(config/sdl.m4)
-sinclude(config/sybase.m4)
+sinclude(config/freetds.m4)
 #sinclude(config/yasm.m4)
 sinclude(config/nasm.m4)
 sinclude(autoconf/lib-link.m4)
@@ -452,12 +452,12 @@ if test "$found_postgresql" = "yes"; then
 	report_have_postgres="yes"
 fi
 
-report_have_sybase="no"
-AC_CHECK_SYBASE([],
-            AC_DEFINE(HAVE_SYBASE, 1, [ Define if you have Sybase Open Client CT-library. ])
-            report_have_sybase="yes"
-			AC_SUBST(SYBASE_CFLAGS)
-			AC_SUBST(SYBASE_LIBS),
+report_have_freetds="no"
+AC_CHECK_FREETDS([],
+            AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS library. ])
+            report_have_freetds="yes"
+			AC_SUBST(FREETDS_CFLAGS)
+			AC_SUBST(FREETDS_LIBS),
             :)
 
 report_have_ldns="no"
@@ -564,7 +564,7 @@ AC_SUBST(report_have_libmcrypt)
 AC_SUBST(report_have_libmhash)
 AC_SUBST(report_have_mysql)
 AC_SUBST(report_have_postgres)
-AC_SUBST(report_have_sybase)
+AC_SUBST(report_have_freetds)
 AC_SUBST(report_have_nasm)
 AC_SUBST(report_have_pthreads)
 AC_SUBST(report_have_ldns)
@@ -628,8 +628,8 @@ AC_MSG_RESULT([
 ** Databases:
 **   SQLite3:              $report_have_sqlite
 **   MySQL:                $report_have_mysql
-**   Postgres              $report_have_postgres
-**   Sybase Open Client:   $report_have_sybase
+**   Postgres:             $report_have_postgres
+**   FreeTDS:              $report_have_freetds
 **
 ** Other:
 **   PCRE:                 $report_have_pcre

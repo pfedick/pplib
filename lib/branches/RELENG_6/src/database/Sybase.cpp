@@ -57,7 +57,7 @@
 #include "ppl6.h"
 #include "ppl6-db.h"
 
-#ifdef HAVE_SYBASE
+#ifdef HAVE_FREETDS
 #include <ctpublic.h>
 #endif
 
@@ -105,7 +105,7 @@ namespace db {
 #define PPLSYB_FAILURE 2
 #define PPLSYB_RESULTS 3
 
-#ifdef HAVE_SYBASE
+#ifdef HAVE_FREETDS
 static int syb_refcount=0;
 static unsigned int ctx_version=CS_VERSION_100;
 static CMutex refmutex;
@@ -116,7 +116,7 @@ static size_t resultBufferGrowSize=2048;
 #endif
 
 
-#ifdef HAVE_SYBASE
+#ifdef HAVE_FREETDS
 static CS_CONTEXT				*context=NULL;
 static CS_LOCALE				*locale=NULL;
 
@@ -186,7 +186,7 @@ CS_RETCODE servermsg_callback(CS_CONTEXT *cp, CS_CONNECTION *chp, CS_SERVERMSG *
 		sc->c->syberrorLong.Replace("\n"," ");
 		sc->c->syberror.Sprintf("%s",msgp->text);
 		sc->c->syberror.Replace("\n"," ");
-		//printf ("syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
+		printf ("servermsg_callback: syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
 	}
 
 	return (CS_SUCCEED);
@@ -219,7 +219,7 @@ CS_RETCODE clientmsg_callback(CS_CONTEXT *cp, CS_CONNECTION *chp, CS_CLIENTMSG *
 		sc->c->syberrorLong.Replace("\n"," ");
 		sc->c->syberror.Sprintf("%s",msgp->msgstring);
 		sc->c->syberror.Replace("\n"," ");
-		//printf ("syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
+		printf ("clientmsg_callback: syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
 	}
 	return (CS_SUCCEED);
 }
@@ -357,7 +357,7 @@ void SybaseResult::Clear()
 
 int SybaseResult::FetchResultFields()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -816,7 +816,7 @@ const char *SybaseResult::Get(pplint64 row, int field)
 
 Sybase::Sybase()
 {
-#ifdef HAVE_SYBASE
+#ifdef HAVE_FREETDS
 	lastServerMsgNumber=0;
 	connected=false;
 	transactiondepth=0;
@@ -981,7 +981,7 @@ Sybase::Sybase()
 
 Sybase::~Sybase()
 {
-#ifdef HAVE_SYBASE
+#ifdef HAVE_FREETDS
 	PushError();
 	Close();
 	CLog *Log=GetLogfile();
@@ -1048,7 +1048,7 @@ int Sybase::Connect(const CAssocArray &params)
  * des Servers. Diese Änderung wurde gemacht, um die Connect-Parameter zu vereinheitlichen.
  */
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1095,20 +1095,34 @@ int Sybase::Connect(const CAssocArray &params)
 
 	if (user) {
 		ret=ct_con_props(sc->conn,CS_SET,CS_USERNAME,(CS_VOID*)user,CS_NULLTERM,NULL);
+		if (ret!=CS_SUCCEED) {
+			SetError(77,"ct_con_props for CS_USERNAME failed");
+			return 0;
+		}
 	}
 	if (password) {
 		ret=ct_con_props(sc->conn,CS_SET,CS_PASSWORD,(CS_VOID*)password,CS_NULLTERM,NULL);
+		if (ret!=CS_SUCCEED) {
+			SetError(77,"ct_con_props for CS_PASSWORD failed");
+			return 0;
+		}
 	}
 	//if (host) DBSETLHOST(login, host);
 	if (appname) {
 		ret=ct_con_props(sc->conn,CS_SET,CS_APPNAME,(CS_VOID*)appname,CS_NULLTERM,NULL);
+		if (ret!=CS_SUCCEED) {
+			SetError(77,"ct_con_props for CS_APPNAME failed");
+			return 0;
+		}
+
 	}
 #ifdef CS_PACKETSIZE
-	if (packetsize>=512) {
-		ret=ct_con_props(sc->conn,CS_SET,CS_PACKETSIZE,&packetsize,CS_UNUSED,NULL);
-	} else {
-		int p=2048;
-		ret=ct_con_props(sc->conn,CS_SET,CS_PACKETSIZE,&p,CS_UNUSED,NULL);
+	int p=2048;
+	if (packetsize>=512) p=packetsize;
+	ret=ct_con_props(sc->conn,CS_SET,CS_PACKETSIZE,&p,CS_UNUSED,NULL);
+	if (ret!=CS_SUCCEED) {
+		SetError(77,"ct_con_props for CS_PACKETSIZE failed");
+		return 0;
 	}
 #endif
 
@@ -1123,6 +1137,10 @@ int Sybase::Connect(const CAssocArray &params)
 		if (t=="5.0") v=CS_TDS_50;
 		if (v) {
 			ret=ct_con_props(sc->conn,CS_SET,CS_TDS_VERSION,&v,CS_UNUSED,NULL);
+			if (ret!=CS_SUCCEED) {
+				SetError(77,"ct_con_props for CS_TDS_VERSION failed");
+				return 0;
+			}
 		}
 
 	}
@@ -1134,6 +1152,12 @@ int Sybase::Connect(const CAssocArray &params)
 		CString t;
 		t.Setf("%s %i",host,port);
 		ret=ct_con_props(sc->conn,CS_SET,CS_SERVERADDR,(CS_VOID*)t.GetPtr(),CS_NULLTERM,NULL);
+		if (ret!=CS_SUCCEED) {
+			SetError(77,"ct_con_props for CS_SERVERADDR failed");
+			return 0;
+		}
+		//ret=ct_con_props(sc->conn,CS_SET,CS_HOSTNAME,(CS_VOID*)host,CS_NULLTERM,NULL);
+
 	}
 #endif
 
@@ -1150,6 +1174,10 @@ int Sybase::Connect(const CAssocArray &params)
 	lastClientMsgNumber=0;
 	ret = ct_connect(sc->conn, (CS_CHAR*)interface, CS_NULLTERM);
 	if (ret!=CS_SUCCEED) {
+		if (ret==CS_FAIL) printf ("CS_FAIL\n");
+		if (ret==CS_PENDING) printf ("CS_PENDING\n");
+		if (ret==CS_BUSY) printf ("CS_BUSY\n");
+
 		int e=77;
 		switch (lastServerMsgNumber) {
 			case 4002:
@@ -1189,7 +1217,7 @@ int Sybase::Connect(const CAssocArray &params)
 
 int Sybase::Reconnect()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1204,7 +1232,7 @@ int Sybase::Reconnect()
 
 int Sybase::Disconnect()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1243,7 +1271,7 @@ int Sybase::Disconnect()
 
 int Sybase::SelectDB(const char *databasename)
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1270,7 +1298,7 @@ int Sybase::SelectDB(const char *databasename)
 
 int Sybase::Exec(const CString &query)
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1283,7 +1311,7 @@ int Sybase::Exec(const CString &query)
 
 ppl6::db::Result *Sybase::Query(const CString &query)
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1410,7 +1438,7 @@ ppl6::db::Result *Sybase::Query(const CString &query)
 
 void Sybase::SetMaxRows(ppluint64 rows)
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 #else
 	maxrows=rows;
@@ -1419,7 +1447,7 @@ void Sybase::SetMaxRows(ppluint64 rows)
 
 int Sybase::Ping()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1457,7 +1485,7 @@ int Sybase::Ping()
 
 int Sybase::Escape(CString &str) const
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1477,7 +1505,7 @@ int Sybase::Escape(CString &str) const
 
 ppluint64 Sybase::GetInsertID()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1491,7 +1519,7 @@ ppluint64 Sybase::GetInsertID()
 
 pplint64 Sybase::GetAffectedRows()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1501,7 +1529,7 @@ pplint64 Sybase::GetAffectedRows()
 
 int Sybase::StartTransaction()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1522,7 +1550,7 @@ int Sybase::StartTransaction()
 
 int Sybase::EndTransaction()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1541,7 +1569,7 @@ int Sybase::EndTransaction()
 
 int Sybase::CancelTransaction()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1562,7 +1590,7 @@ int Sybase::CancelTransaction()
 
 int Sybase::CancelTransactionComplete()
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1576,7 +1604,7 @@ int Sybase::CancelTransactionComplete()
 
 int Sybase::CreateDatabase(const char *name)
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1606,7 +1634,7 @@ int	Sybase::GetMaxConnects()
  *
  */
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1628,7 +1656,7 @@ int	Sybase::SetMaxConnects(int max)
  * Die Funktion muss aufgerufen werden, bevor die erste Sybase-Klasse instantiiert wird!
  */
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1669,7 +1697,7 @@ int Sybase::SetVersion(int version)
  * Die Funktion muss aufgerufen werden, bevor die erste Sybase-Klasse instantiiert wird!
  */
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1738,7 +1766,7 @@ int Sybase::SetLocale(const char *locale, const char *dateformat)
  * \endcode
  */
 {
-#ifndef HAVE_SYBASE
+#ifndef HAVE_FREETDS
 	SetError(511,"Sybase");
 	return 0;
 #else
@@ -1753,7 +1781,7 @@ int Sybase::SetLocale(const char *locale, const char *dateformat)
 
 void Sybase::SetResultBufferGrowSize(size_t bytes)
 {
-#ifdef HAVE_SYBASE
+#ifdef HAVE_FREETDS
 	resultBufferGrowSize=bytes;
 #endif
 }

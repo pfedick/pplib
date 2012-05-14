@@ -9,6 +9,7 @@ Version 6.4.13
   - DB-Connect mit Postgres-Datenbank unterstützt jetzt Parameter
     "searchpath" zum Setzen des Suchpfades.
   - CString unterstützt Ausgabe als Stream
+  - Erkennung der FreeTDS-Library erneuert
 
 Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
   - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen

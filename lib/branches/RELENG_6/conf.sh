@@ -10,7 +10,7 @@ case "$SYS:$REL:$KERNEL" in
 		export LDLAGS=-L/usr/local/lib
 		./configure --with-libmad=/usr/local --with-lame=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
-			--with-libmhash=/usr/local --with-sybase=/usr/local \
+			--with-libmhash=/usr/local --with-freetds=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm   \
 			--with-jpeg --with-png --with-mpg123=/usr/local \
 			--with-libgcrypt-prefix \
@@ -55,12 +55,12 @@ case "$SYS:$REL:$KERNEL" in
 			--with-postgresql=/usr/local/pgsql/bin/pg_config \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \
-			--with-sybase=/usr --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd
+			--with-freetds --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
-			--with-sybase=/usr/local --with-postgresql=/usr/local/pgsql/bin/pg_config \
+			--with-freetds=/usr/local --with-postgresql=/usr/local/pgsql/bin/pg_config \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \
 			--with-jpeg --with-png --with-libmicrohttpd=/usr/local \

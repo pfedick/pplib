@@ -116,7 +116,7 @@ Database *Connect(const CAssocArray &params)
 			db=new MySQL;
 		}
 	#endif
-	#ifdef HAVE_SYBASE
+	#ifdef HAVE_FREETDS
 		if (type=="sybase") {
 			db=new Sybase;
 		}
@@ -151,7 +151,7 @@ void GetSupportedDatabases(CAssocArray &a)
 	a.Add("mysql/type","mysql");
 	a.Add("mysql/name","MySQL");
 #endif
-#ifdef HAVE_SYBASE
+#ifdef HAVE_FREETDS
 	a.Add("sybase/type","sybase");
 	a.Add("sybase/name","Sybase Open Client / ASE");
 #endif
