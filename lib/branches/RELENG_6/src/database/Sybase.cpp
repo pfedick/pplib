@@ -186,7 +186,7 @@ CS_RETCODE servermsg_callback(CS_CONTEXT *cp, CS_CONNECTION *chp, CS_SERVERMSG *
 		sc->c->syberrorLong.Replace("\n"," ");
 		sc->c->syberror.Sprintf("%s",msgp->text);
 		sc->c->syberror.Replace("\n"," ");
-		printf ("servermsg_callback: syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
+		//printf ("servermsg_callback: syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
 	}
 
 	return (CS_SUCCEED);
@@ -219,7 +219,7 @@ CS_RETCODE clientmsg_callback(CS_CONTEXT *cp, CS_CONNECTION *chp, CS_CLIENTMSG *
 		sc->c->syberrorLong.Replace("\n"," ");
 		sc->c->syberror.Sprintf("%s",msgp->msgstring);
 		sc->c->syberror.Replace("\n"," ");
-		printf ("clientmsg_callback: syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
+		//printf ("clientmsg_callback: syberrorLong: >>%s<<, syberror: >>%s<<\n",(const char*)sc->c->syberrorLong, (const char*)sc->c->syberror);
 	}
 	return (CS_SUCCEED);
 }
