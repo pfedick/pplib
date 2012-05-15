@@ -29,12 +29,13 @@ then
 	if test "$have_freetds" != "yes"
 	then
 		dnl echo "FreeTDS ist nicht in autoconf, manuelle suche..."
+		AC_CHECK_LIB(rt,clock_gettime,
+			FREETDS_LIBS="$FREETDS_LIBS -lrt "
+			LIBS="$LIBS -lrt"
+		)
 		AC_CHECK_LIB(ct,ct_connect,
 			have_freetds="yes"
-			FREETDS_LIBS="$FREETDS_LIBS -lct "
-			AC_CHECK_LIB(rt,clock_gettime,
-				FREETDS_LIBS="$FREETDS_LIBS -lrt "
-			)
+			FREETDS_LIBS="-lct $FREETDS_LIBS "
 		)
 		AC_CHECK_HEADERS([ctpublic.h],,have_freetds="no")
 	fi
