@@ -74,7 +74,7 @@ int ImageFilter_PPM::ident(FileObject &file, IMAGE &img)
 		String line;
 		file.seek(0);
 		file.gets(line,64);
-		if (line.left(3)==L"P6\n") {		// Ja, ist ein PPM
+		if (line.left(3)=="P6\n") {		// Ja, ist ein PPM
 			file.gets(line,64);				// Breite und Hoehe holen
 			line.trim();
 			while (line[0]=='#') {			// Es koennte sein, dass hier Kommentare drin sind
@@ -103,7 +103,7 @@ void ImageFilter_PPM::load(FileObject &file, Drawable &surface, IMAGE &img)
 	String line;
 	file.seek(0);
 	file.gets(line,64);
-	if (line.left(3)!=L"P6\n") throw UnknownImageFormatException();
+	if (line.left(3)!="P6\n") throw UnknownImageFormatException();
 	file.gets(line,64);				// Breite und Hoehe holen
 	line.trim();
 	while (line[0]=='#') {			// Es koennte sein, dass hier Kommentare drin sind
@@ -142,7 +142,7 @@ void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const Ass
 	ppluint8 r,g,b;
 	ppluint32 c;
 	bool SaveAsASCII=false;
-	if (param.exists(L"ascii")) SaveAsASCII=param.getString(L"ascii").toBool();
+	if (param.exists("ascii")) SaveAsASCII=param.getString("ascii").toBool();
 
 
 	if (surface.bitdepth()>8) {
@@ -185,11 +185,11 @@ void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const Ass
 
 String ImageFilter_PPM::name()
 {
-	return L"PPM";
+	return "PPM";
 }
 String ImageFilter_PPM::description()
 {
-	return L"PPM";
+	return "PPM";
 }
 
 

@@ -192,7 +192,7 @@ FontEngineFont5::~FontEngineFont5()
 
 String FontEngineFont5::name() const
 {
-	return L"FontEngineFont5";
+	return "FontEngineFont5";
 }
 
 String FontEngineFont5::description() const
@@ -210,7 +210,7 @@ int FontEngineFont5::ident(FileObject &file) throw()
 {
 	PFPFile ff;
 	if (!ff.ident(file)) return 0;
-	if (ff.getID()!=L"FONT") return 0;
+	if (ff.getID()!="FONT") return 0;
 	if (ff.getMainVersion()==5 && ff.getSubVersion()==0) {
 		return 1;
 	}
@@ -227,7 +227,7 @@ FontFile *FontEngineFont5::loadFont(FileObject &file, const String &fontname)
 		delete File;
 		throw;
 	}
-	if (File->getID()!=L"FONT") throw InvalidFontException();
+	if (File->getID()!="FONT") throw InvalidFontException();
 	if (File->getMainVersion()!=5 || File->getSubVersion()!=0) throw InvalidFontException();
 	FontFile *ff=new FontFile;
 	if (!ff) {
@@ -435,7 +435,7 @@ PFPChunk *FontEngineFont5::selectFont(const FontFile &file, const Font &font)
 	if (font.bold()) flags|=2;
 	if (font.italic()) flags|=4;
 
-	while ((c=f->findNextChunk(it,L"FACE"))) {
+	while ((c=f->findNextChunk(it,"FACE"))) {
 		header=(const char*)c->data();
 		if (!header) continue;
 		if (((int)Peek16(header+2))==(int)font.size() && (int)Peek8(header)==flags) {

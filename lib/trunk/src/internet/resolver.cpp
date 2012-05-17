@@ -227,13 +227,12 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 		default: hints.ai_family=AF_UNSPEC; break;
 	}
 	hints.ai_socktype=SOCK_STREAM;
-	ByteArray localname=name.toLocalEncoding();
-	if ((n=getaddrinfo((const char*)localname,NULL,&hints,&res))!=0) {
+	if ((n=getaddrinfo((const char*)name,NULL,&hints,&res))!=0) {
 #ifdef EAI_NODATA
 		if (n==EAI_NODATA) return 0;
 #endif
 		if (n==EAI_NONAME) return 0;
-		throw NetworkException("getaddrinfo(%s) returned %i: %s",(const char*)localname,n,gai_strerror(n));
+		throw NetworkException("getaddrinfo(%s) returned %i: %s",(const char*)name,n,gai_strerror(n));
 	}
 	ressave=res;
 	IPAddress ip;
@@ -385,9 +384,8 @@ size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
 		bzero(&hints,sizeof(struct addrinfo));
 		hints.ai_family=AF_UNSPEC;
 		hints.ai_socktype=SOCK_STREAM;
-		ByteArray localname=addr.toLocalEncoding();
-		if ((n=getaddrinfo((const char*)localname,NULL,&hints,&res))!=0) {
-			throw NetworkException("getaddrinfo(%s) returned: %s",(const char*)localname,gai_strerror(n));
+		if ((n=getaddrinfo((const char*)addr,NULL,&hints,&res))!=0) {
+			throw NetworkException("getaddrinfo(%s) returned: %s",(const char*)addr,gai_strerror(n));
 		}
 		ressave=res;
 		IPAddress ip;

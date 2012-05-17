@@ -242,12 +242,12 @@ void ImageFilter_TGA::save (const Drawable &surface, FileObject &file, const Ass
 
 String ImageFilter_TGA::name()
 {
-	return L"TGA";
+	return "TGA";
 }
 
 String ImageFilter_TGA::description()
 {
-	return L"TGA (Loader only)";
+	return "TGA (Loader only)";
 }
 
 

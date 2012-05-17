@@ -630,8 +630,7 @@ std::ostream& operator<<(std::ostream& s, const Color &c)
 {
 	String t;
 	t.setf("RGB(red=%i, green=%i, blue=%i, alpha=%i)",c.red(), c.green(), c.blue(), c.alpha());
-	ByteArray a=t.toLocalEncoding();
-	return s.write((const char*)a.adr(),a.size());
+	return s.write((const char*)t.getPtr(),t.size());
 }
 
 } // EOF namespace grafix

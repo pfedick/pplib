@@ -589,10 +589,15 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 		clear();
 		return *this;
 	}
-
+	wchar_t *tmpbuffer=NULL;
 	size_t inbytes;
-	if (size!=(size_t)-1) inbytes=size;
-	else inbytes=wcslen(str);
+	if (size!=(size_t)-1) {
+		tmpbuffer=(wchar_t*)malloc((size+1)*sizeof(wchar_t));
+		if (!tmpbuffer) throw OutOfMemoryException();
+		str=wcsncpy(tmpbuffer,str,size);
+		tmpbuffer[size]=0;
+	}
+	inbytes=wcslen(str);
 	size_t outbytes=inbytes*sizeof(wchar_t)+4;
 	if (outbytes>=s) {
 		if (ptr) free(ptr);
@@ -602,17 +607,16 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 		ptr=(char*)malloc(s);
 		if (!ptr) {
 			s=0;
+			free(tmpbuffer);
 			throw OutOfMemoryException();
 		}
 	}
-	// TODO: Falls size angegeben ist, müssen wir den String zuerst duplizieren und einen
-	// 0-Wert an das gewünschte Ende hängen, da wcstombs die Angabe der Laenge des
-	// Input-Strings nicht unterstützt
-	size_t bytes=wcstombs(ptr, str, size_t n);
-
-	wcsncpy((wchar_t*)ptr,str,inbytes);
-	stringlen=inbytes;
-	((wchar_t*)ptr)[stringlen]=0;
+	stringlen=wcstombs(ptr, str, s);
+	free(tmpbuffer);
+	if (stringlen==(size_t)-1) {
+		stringlen=0;
+		throw CharacterEncodingException();
+	}
 	return *this;
 }
 
@@ -880,31 +884,28 @@ String & String::append(const wchar_t *str, size_t size) throw(OutOfMemoryExcept
  */
 String & String::append(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
-	if (!str) return *this;
+	if (str==NULL || size==0) return *this;
 	if (!ptr) {
-		set(str,size);
-		return *this;
+		return set(str,size);
 	}
 	size_t inchars;
 	if (size!=(size_t)-1) {
 		inchars=size;
-		if (inchars>wcslen(str)) inchars=wcslen(str);
+		if (inchars>strlen(str)) inchars=strlen(str);
 	}
-	else inchars=wcslen(str);
-	size_t outbytes=(inchars+stringlen)*sizeof(wchar_t)+4;
+	else inchars=strlen(str);
+	size_t outbytes=(inchars+stringlen)*sizeof(char)+1;
 	if (outbytes>=s) {
 		size_t newbuffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+16;
-		wchar_t *t=(wchar_t*)realloc(ptr,newbuffersize);
+		char *t=(char*)realloc(ptr,newbuffersize);
 		if (!t) throw OutOfMemoryException();
 		ptr=t;
 		s=newbuffersize;
 	}
-	wmemcpy(((wchar_t*)ptr)+stringlen,str,inchars);
+	memcpy(((char*)ptr)+stringlen,str,inchars);
 	stringlen+=inchars;
-	((wchar_t*)ptr)[stringlen]=0;
+	ptr[stringlen]=0;
 	return *this;
-
-
 }
 
 /*!\brief Fügt einen als Pointer übergebenen String an das Ende des bestehenden an
@@ -1065,31 +1066,9 @@ String & String::append(wchar_t c) throw(OutOfMemoryException)
  */
 String & String::prepend(const wchar_t *str, size_t size) throw(OutOfMemoryException)
 {
-	if (!str) return *this;
-	if (!ptr) {
-		set(str,size);
-		return *this;
-	}
-	size_t inchars;
-	if (size!=(size_t)-1 && size<=wcslen(str)) {
-		inchars=size;
-	}
-	else inchars=wcslen(str);
-	size_t outbytes=(inchars+stringlen)*sizeof(wchar_t)+4;
-	if (outbytes>=s) {
-		size_t newbuffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+16;
-		wchar_t *t=(wchar_t*)realloc(ptr,newbuffersize);
-		if (!t) throw OutOfMemoryException();
-		ptr=t;
-		s=newbuffersize;
-	}
-	// Bestehenden Speicherblock nach hinten moven
-	wmemmove(((wchar_t*)ptr)+inchars,ptr,stringlen);
-	// Neuen Speicherblock davor kopieren
-	wmemcpy(ptr,str,inchars);
-	stringlen+=inchars;
-	((wchar_t*)ptr)[stringlen]=0;
-	return *this;
+	String a;
+	a.set(str,size);
+	return prepend((const char*)a.ptr,size);
 }
 
 /*!\brief Fügt einen String am Anfang des bestehenden Strings ein
@@ -1199,9 +1178,32 @@ String & String::prepend(const std::wstring &str, size_t size) throw(OutOfMemory
  */
 String & String::prepend(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
-	String a;
-	a.set(str,size);
-	return prepend((wchar_t*)a.ptr,a.stringlen);
+	if (!str==NULL || size==0) return *this;
+	if (!ptr) {
+		set(str,size);
+		return *this;
+	}
+	size_t inchars;
+	if (size!=(size_t)-1) {
+		inchars=size;
+		if (inchars>strlen(str)) inchars=strlen(str);
+	}
+	else inchars=strlen(str);
+	size_t outbytes=(inchars+stringlen)*sizeof(char)+1;
+	if (outbytes>=s) {
+		size_t newbuffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+16;
+		char *t=(char*)realloc(ptr,newbuffersize);
+		if (!t) throw OutOfMemoryException();
+		ptr=t;
+		s=newbuffersize;
+	}
+	// Bestehenden Speicherblock nach hinten moven
+	memmove(((char*)ptr)+inchars,ptr,stringlen);
+	// Neuen Speicherblock davor kopieren
+	memcpy(ptr,str,inchars);
+	stringlen+=inchars;
+	ptr[stringlen]=0;
+	return *this;
 }
 
 /*!\brief Fügt einen Formatierten String am Anfang bestehenden ein
@@ -2811,10 +2813,21 @@ void PrintString(const ppl7::String &text)
  * \see
  * Die folgenden Funktionen erfüllen den gleichen Zweck:
  * - const char * String::getPtr() const
+ * - const char * String::c_str() const
  * - const char * String::toChar() const
  * - String::operator const char *() const
  */
 const char * String::getPtr() const
+{
+	if (ptr==NULL || stringlen==0) return "";
+	return (const char*)ptr;
+}
+
+/*!\brief %Pointer auf den internen C-String
+ *
+ * \copydetails String::getPtr
+ */
+const char * String::c_str() const
 {
 	if (ptr==NULL || stringlen==0) return "";
 	return (const char*)ptr;

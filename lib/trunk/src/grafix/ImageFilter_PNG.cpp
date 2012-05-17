@@ -109,12 +109,12 @@ ImageFilter_PNG::~ImageFilter_PNG()
 
 String ImageFilter_PNG::name()
 {
-	return L"png";
+	return "png";
 }
 
 String ImageFilter_PNG::description()
 {
-	return L"Filter for Portable Network Graphics (PNG)";
+	return "Filter for Portable Network Graphics (PNG)";
 }
 
 
@@ -361,7 +361,7 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 	RGBFormat srgb=surface.rgbformat();
 	if (srgb==RGBFormat::A8R8G8B8) png_color_type=PNG_COLOR_TYPE_RGB_ALPHA;
 
-	if (param.exists(L"colortype")) png_color_type=param.getString(L"colortype").toInt();
+	if (param.exists("colortype")) png_color_type=param.getString("colortype").toInt();
 	if (!png_color_type) png_color_type=PNG_COLOR_TYPE_RGB;
 
 	switch (png_color_type) {

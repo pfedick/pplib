@@ -139,7 +139,7 @@ static Color Surface2RGB_A8B8G8R8 (SurfaceColor color)
 // Die C-Version ist hier schneller als MMX, oder doch nicht?
 static SurfaceColor RGBBlend_32_255 (SurfaceColor ground, SurfaceColor top, int intensity)
 {
-	ppldd r1,g1,b1,r2,g2,b2,i1,i2;
+	ppluint32 r1,g1,b1,r2,g2,b2,i1,i2;
 	r1=ground&255;
 	g1=(ground>>8)&255;
 	b1=(ground>>16)&255;
@@ -290,7 +290,7 @@ void Grafix::initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->RGBBlend=RGBBlend_NULL;
 			break;
 	}
-	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const wchar_t*)format.name(),format.format());
+	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const char*)format.name(),format.format());
 }
 
 

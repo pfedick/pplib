@@ -692,7 +692,7 @@ void Font6Renderer::loadFont(const String &filename)
 void Font6Renderer::loadFont(FileObject &file)
 {
 	if (!ff.ident(file)) throw InvalidFontFormatException(file.filename());
-	if (ff.getID()!=L"FONT") throw InvalidFontFormatException(file.filename());
+	if (ff.getID()!="FONT") throw InvalidFontFormatException(file.filename());
 	if (ff.getMainVersion()!=6 || ff.getSubVersion()!=0) throw InvalidFontFormatException(file.filename());
 	ff.load(file);
 	Name=ff.getName();
@@ -704,7 +704,7 @@ void Font6Renderer::loadFont(FileObject &file)
 	PFPFile::Iterator it;
 	ff.reset(it);
 	PFPChunk *c;
-	while ((c=ff.findNextChunk(it,L"FACE"))) {
+	while ((c=ff.findNextChunk(it,"FACE"))) {
 		loadFace((const char*)c->data(),c->size());
 	}
 
@@ -1109,7 +1109,7 @@ FontEngineFont6::~FontEngineFont6()
 
 String FontEngineFont6::name() const
 {
-	return L"FontEngineFont6";
+	return "FontEngineFont6";
 }
 
 String FontEngineFont6::description() const
@@ -1127,7 +1127,7 @@ int FontEngineFont6::ident(FileObject &file) throw()
 {
 	PFPFile ff;
 	if (!ff.ident(file)) return 0;
-	if (ff.getID()!=L"FONT") return 0;
+	if (ff.getID()!="FONT") return 0;
 	if (ff.getMainVersion()==6 && ff.getSubVersion()==0) {
 		return 1;
 	}

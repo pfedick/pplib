@@ -589,12 +589,12 @@ void ImageFilter_GIF::save (const Drawable &surface, FileObject &file, const Ass
 
 String ImageFilter_GIF::name()
 {
-	return L"GIF";
+	return "GIF";
 }
 
 String ImageFilter_GIF::description()
 {
-	return L"GIF";
+	return "GIF";
 }
 
 

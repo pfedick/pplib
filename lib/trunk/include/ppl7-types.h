@@ -350,6 +350,7 @@ class String : public Variant
 		void hexDump() const;
 		char get(ssize_t pos) const;
 		const char* getPtr() const;
+		const char* c_str() const;
 
 		ByteArray toEncoding(const char *encoding) const;
 		ByteArray toUCS4() const;
@@ -976,8 +977,8 @@ typedef ppluint64 ppl_time_t;
 class DateTime : public Variant
 {
 	private:
+		ppluint32 us;
 		ppluint16 yy;
-		ppluint16 ms;
 		ppluint8 mm;
 		ppluint8 dd;
 		ppluint8 hh;
@@ -998,7 +999,7 @@ class DateTime : public Variant
 		int set(const String &date, const String &time);
 		int setDate(const String &date);
 		int setTime(const String &time);
-		void set(int year, int month, int day, int hour=0, int minute=0, int sec=0, int msec=0);
+		void set(int year, int month, int day, int hour=0, int minute=0, int sec=0, int msec=0, int usec=0);
 		void setCurrentTime();
 		void print() const;
 		void clear();
@@ -1011,6 +1012,7 @@ class DateTime : public Variant
 		String getTime(const String &format="%H:%M:%S") const;
 		String getISO8601() const;
 		String getISO8601withMsec() const;
+		String getISO8601withUsec() const;
 		ppluint64 time_t() const;
 		ppluint64 epoch() const;
 		ppluint64 longInt() const;
@@ -1022,6 +1024,7 @@ class DateTime : public Variant
 		int minute() const;
 		int second() const;
 		int millisecond() const;
+		int microsecond() const;
 		int week() const;
 		int weekISO8601() const;
 

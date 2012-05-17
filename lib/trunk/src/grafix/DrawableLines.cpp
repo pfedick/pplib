@@ -610,7 +610,7 @@ void Grafix::initLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			return;
 
 	}
-	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const wchar_t*)format.name(),format.format());
+	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const char*)format.name(),format.format());
 }
 
 void Drawable::line (int x1, int y1, int x2, int y2, const Color &c)

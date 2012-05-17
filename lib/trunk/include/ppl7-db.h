@@ -57,7 +57,7 @@ class PoolEx;
 //PPLPARAMETERISEDEXCEPTION(NetworkException);
 //PPLPARAMETERISEDEXCEPTION(IdnConversionException);
 
-
+#ifdef DONE
 class Result
 {
 	public:
@@ -99,6 +99,9 @@ class Result
 		virtual void		printResult() const=0;
 
 };
+#endif
+
+#ifdef DONE
 
 
 class Database
@@ -168,7 +171,7 @@ class Database
 
 };
 
-
+#endif
 
 
 } // EOF namespace db

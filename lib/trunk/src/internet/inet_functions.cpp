@@ -181,17 +181,15 @@ String Ace2Idn(const String &ace)
 /*!\brief Konvertiert einen 8Bit-String in Quoted Printable (RFC-822)
  *
  * \desc
- * Diese Funktion konvertiert einen String zunächst in die lokale Kodierung
- * des Systems um (z.B. UTF-8) und wandelt diesen dann in Quoted Printable um.
+ * Diese Funktion wandelt einen String in Quoted Printable um.
  *
  * \param[in] source Der zu konvertierende String
  * \return Gibt den String als Quoted Printable zurück
  */
 String ToQuotedPrintable (const String &source)
 {
-	ByteArray local=source.toLocalEncoding();
-	unsigned char *src=(unsigned char *)local.ptr();
-	size_t srcl=local.size();
+	unsigned char *src=(unsigned char *)source.getPtr();
+	size_t srcl=source.size();
 	unsigned long lp = 0;
 	unsigned char *ret = (unsigned char *) malloc ((size_t) (3*srcl + 3*(((3*srcl)/MAXL) + 1)));
 	unsigned char *d = ret;

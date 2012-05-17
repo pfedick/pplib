@@ -456,7 +456,7 @@ void Grafix::listFonts()
 	FontList.reset(it);
 	while (FontList.getNext(it)) {
 		FontFile *ff=it.value();
-		printf ("    %ls, Engine: %ls\n",(const wchar_t*)ff->Name, (const wchar_t*)ff->engine->name());
+		printf ("    %s, Engine: %s\n",(const char*)ff->Name, (const char*)ff->engine->name());
 	}
 	myMutex.unlock();
 }

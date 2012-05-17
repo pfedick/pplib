@@ -141,12 +141,12 @@ void ImageFilter_ImageMagick::save (const Drawable &surface, FileObject &file, c
 
 String ImageFilter_ImageMagick::name()
 {
-	return L"ImageMagick";
+	return "ImageMagick";
 }
 
 String ImageFilter_ImageMagick::description()
 {
-	return L"Import Filter with ImageMagick";
+	return "Import Filter with ImageMagick";
 }
 
 

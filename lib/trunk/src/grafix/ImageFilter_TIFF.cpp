@@ -221,12 +221,12 @@ void ImageFilter_TIFF::save (const Drawable &surface, FileObject &file, const As
 
 String ImageFilter_TIFF::name()
 {
-	return L"TIFF";
+	return "TIFF";
 }
 
 String ImageFilter_TIFF::description()
 {
-	return L"TIFF (Loader only)";
+	return "TIFF (Loader only)";
 }
 
 

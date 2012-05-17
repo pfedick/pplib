@@ -352,17 +352,17 @@ void Sprite::load(FileObject &ff)
 	File.load(ff);
 	int major, minor;
 	File.getVersion(&major,&minor);
-	if (File.getID()!=L"TEXS" || major!=1 || minor!=0) throw InvalidSpriteException();
+	if (File.getID()!="TEXS" || major!=1 || minor!=0) throw InvalidSpriteException();
 	// Texture Chunks laden
 	PFPChunk *chunk;
 	PFPFile::Iterator it;
 	File.reset(it);
-	while ((chunk=File.findNextChunk(it,L"SURF"))) {
+	while ((chunk=File.findNextChunk(it,"SURF"))) {
 		loadTexture(chunk);
 	}
 	// Index Chunks laden
 	File.reset(it);
-	while ((chunk=File.findNextChunk(it,L"INDX"))) {
+	while ((chunk=File.findNextChunk(it,"INDX"))) {
 		loadIndex(chunk);
 	}
 }

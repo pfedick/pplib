@@ -125,7 +125,7 @@ FontEngineFreeType::~FontEngineFreeType()
 
 String FontEngineFreeType::name() const
 {
-	return L"FontEngineFreeType";
+	return "FontEngineFreeType";
 }
 
 String FontEngineFreeType::description() const

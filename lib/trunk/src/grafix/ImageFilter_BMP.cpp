@@ -317,12 +317,12 @@ void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const Ass
 
 String ImageFilter_BMP::name()
 {
-	return L"BMP";
+	return "BMP";
 }
 
 String ImageFilter_BMP::description()
 {
-	return L"Windows Bitmap-Dateien";
+	return "Windows Bitmap-Dateien";
 }
 
 

@@ -140,7 +140,7 @@ namespace db {
  * Eine Enumeration
  */
 
-
+#ifdef DONE
 
 Result::Result()
 /*!\brief Konstruktor der Klasse
@@ -437,6 +437,8 @@ void Result::PrintResult()
 {
 	SetError(180);
 }
+
+#endif
 
 }	// EOF namespace db
 }	// EOF namespace ppl6

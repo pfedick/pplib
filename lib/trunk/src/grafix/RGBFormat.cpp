@@ -292,28 +292,28 @@ void RGBFormat::setFormat(Identifier id)
  */
 void RGBFormat::setFormat(const String &Identifier)
 {
-	if (Identifier==L"Palette") f=Palette;
-	else if (Identifier==L"R5G6B5") f=R5G6B5;
-	else if (Identifier==L"B5G6R5") f=B5G6R5;
-	else if (Identifier==L"X1R5G5B5") f=X1R5G5B5;
-	else if (Identifier==L"X1B5G5R5") f=X1B5G5R5;
-	else if (Identifier==L"X4R4G4B4") f=X4R4G4B4;
-	else if (Identifier==L"A1R5G5B5") f=A1R5G5B5;
-	else if (Identifier==L"A1B5G5R5") f=A1B5G5R5;
-	else if (Identifier==L"A4R4G4B4") f=A4R4G4B4;
-	else if (Identifier==L"R8G8B8") f=R8G8B8;
-	else if (Identifier==L"B8G8R8") f=B8G8R8;
-	else if (Identifier==L"A8R8G8B8") f=A8R8G8B8;
-	else if (Identifier==L"A8B8G8R8") f=A8B8G8R8;
-	else if (Identifier==L"R3G3B2") f=R3G3B2;
-	else if (Identifier==L"A8") f=A8;
-	else if (Identifier==L"A8R3G3B2") f=A8R3G3B2;
-	else if (Identifier==L"X8R8G8B8") f=X8R8G8B8;
-	else if (Identifier==L"X8B8G8R8") f=X8B8G8R8;
-	else if (Identifier==L"GREY8") f=GREY8;
-	else if (Identifier==L"GREYALPHA32") f=GREYALPHA32;
-	else if (Identifier==L"X16R16G16B16") f=X16R16G16B16;
-	else if (Identifier==L"A16R16G16B16") f=A16R16G16B16;
+	if (Identifier=="Palette") f=Palette;
+	else if (Identifier=="R5G6B5") f=R5G6B5;
+	else if (Identifier=="B5G6R5") f=B5G6R5;
+	else if (Identifier=="X1R5G5B5") f=X1R5G5B5;
+	else if (Identifier=="X1B5G5R5") f=X1B5G5R5;
+	else if (Identifier=="X4R4G4B4") f=X4R4G4B4;
+	else if (Identifier=="A1R5G5B5") f=A1R5G5B5;
+	else if (Identifier=="A1B5G5R5") f=A1B5G5R5;
+	else if (Identifier=="A4R4G4B4") f=A4R4G4B4;
+	else if (Identifier=="R8G8B8") f=R8G8B8;
+	else if (Identifier=="B8G8R8") f=B8G8R8;
+	else if (Identifier=="A8R8G8B8") f=A8R8G8B8;
+	else if (Identifier=="A8B8G8R8") f=A8B8G8R8;
+	else if (Identifier=="R3G3B2") f=R3G3B2;
+	else if (Identifier=="A8") f=A8;
+	else if (Identifier=="A8R3G3B2") f=A8R3G3B2;
+	else if (Identifier=="X8R8G8B8") f=X8R8G8B8;
+	else if (Identifier=="X8B8G8R8") f=X8B8G8R8;
+	else if (Identifier=="GREY8") f=GREY8;
+	else if (Identifier=="GREYALPHA32") f=GREYALPHA32;
+	else if (Identifier=="X16R16G16B16") f=X16R16G16B16;
+	else if (Identifier=="A16R16G16B16") f=A16R16G16B16;
 	else {
 		throw UnknownColorFormatException(Identifier);
 	}
@@ -343,28 +343,28 @@ int RGBFormat::format() const
 String RGBFormat::name() const
 {
 	switch (f) {
-		case RGBFormat::Palette: return L"Palette";
-		case RGBFormat::R5G6B5: return L"R5G6B5";
-		case RGBFormat::B5G6R5: return L"B5G6R5";
-		case RGBFormat::X1R5G5B5: return L"X1R5G5B5";
-		case RGBFormat::X1B5G5R5: return L"X1B5G5R5";
-		case RGBFormat::X4R4G4B4: return L"X4R4G4B4";
-		case RGBFormat::A1R5G5B5: return L"A1R5G5B5";
-		case RGBFormat::A1B5G5R5: return L"A1B5G5R5";
-		case RGBFormat::A4R4G4B4: return L"A4R4G4B4";
-		case RGBFormat::R8G8B8: return L"R8G8B8";
-		case RGBFormat::B8G8R8: return L"B8G8R8";
-		case RGBFormat::A8R8G8B8: return L"A8R8G8B8";
-		case RGBFormat::A8B8G8R8: return L"A8B8G8R8";
-		case RGBFormat::R3G3B2: return L"R3G3B2";
-		case RGBFormat::A8: return L"A8";
-		case RGBFormat::A8R3G3B2: return L"A8R3G3B2";
-		case RGBFormat::X8R8G8B8: return L"X8R8G8B8";
-		case RGBFormat::X8B8G8R8: return L"X8B8G8R8";
-		case RGBFormat::GREY8: return L"GREY8";
-		case RGBFormat::GREYALPHA32: return L"GREYALPHA32";
-		case RGBFormat::X16R16G16B16: return L"X16R16G16B16";
-		case RGBFormat::A16R16G16B16: return L"A16R16G16B16";
+		case RGBFormat::Palette: return "Palette";
+		case RGBFormat::R5G6B5: return "R5G6B5";
+		case RGBFormat::B5G6R5: return "B5G6R5";
+		case RGBFormat::X1R5G5B5: return "X1R5G5B5";
+		case RGBFormat::X1B5G5R5: return "X1B5G5R5";
+		case RGBFormat::X4R4G4B4: return "X4R4G4B4";
+		case RGBFormat::A1R5G5B5: return "A1R5G5B5";
+		case RGBFormat::A1B5G5R5: return "A1B5G5R5";
+		case RGBFormat::A4R4G4B4: return "A4R4G4B4";
+		case RGBFormat::R8G8B8: return "R8G8B8";
+		case RGBFormat::B8G8R8: return "B8G8R8";
+		case RGBFormat::A8R8G8B8: return "A8R8G8B8";
+		case RGBFormat::A8B8G8R8: return "A8B8G8R8";
+		case RGBFormat::R3G3B2: return "R3G3B2";
+		case RGBFormat::A8: return "A8";
+		case RGBFormat::A8R3G3B2: return "A8R3G3B2";
+		case RGBFormat::X8R8G8B8: return "X8R8G8B8";
+		case RGBFormat::X8B8G8R8: return "X8B8G8R8";
+		case RGBFormat::GREY8: return "GREY8";
+		case RGBFormat::GREYALPHA32: return "GREYALPHA32";
+		case RGBFormat::X16R16G16B16: return "X16R16G16B16";
+		case RGBFormat::A16R16G16B16: return "A16R16G16B16";
 	}
 	return "unknown";
 }
