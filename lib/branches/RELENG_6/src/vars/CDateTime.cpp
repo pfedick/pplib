@@ -117,8 +117,8 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result);
  * \brief Sekunden
  */
 
-/*!\var CDateTime::ms
- * \brief Millisekunden
+/*!\var CDateTime::us
+ * \brief Mikrosekunden
  */
 
 
@@ -167,7 +167,7 @@ CDateTime::CDateTime(const ppl6::CString &datetime)
 CDateTime::CDateTime(const ppl6::CDateTime &other)
 {
 	yy=other.yy;
-	ms=other.ms;
+	us=other.us;
 	mm=other.mm;
 	dd=other.dd;
 	hh=other.hh;
@@ -204,13 +204,14 @@ CDateTime::CDateTime(ppluint64 t)
 void CDateTime::clear()
 {
 	yy=0;
-	ms=0;
+	us=0;
 	mm=0;
 	dd=0;
 	hh=0;
 	ii=0;
 	ss=0;
 }
+
 
 /*!\brief Datum anhand eines Strings setzen
  *
@@ -230,15 +231,16 @@ void CDateTime::clear()
  * - T: wird als Leerstring interpretiert und setzt das Datum auf 0
  * - Leerstring: setzt das Datum auf 0
  * \par Legende:
- * - yyyy: 4-Stellige Jahreszahl. Muss zwingen 4-stellig sein, da sonst nicht erkannt wird ob die Jahreszahl
+ * - yyyy: 4-Stellige Jahreszahl. Muss zwingend 4-stellig sein, da sonst nicht erkannt wird ob die Jahreszahl
  *   an erster oder dritter Stelle steht. Jahreszahlen < 1000 müssen daher mit führenden Nullen aufgefüllt
- *   werden, z.B. "0500" statt "500".
+ *   werden, z.B. "0500" statt "500". Es werden keine negativen Jahreszahlen unterstützt.
  * - mm: Monatszahl zwischen 1 und 12. Kann ein- oder zweistellig sein
  * - dd: Monatstag zwischen 1 und 31, kann ein- oder zweistellig sein.
  * - hh: Stunden zwischen 0 und 23, kann ein- oder zweistellig sein
  * - ii: Minuten zwischen 0 und 59, kann ein- oder zweistellig sein
  * - ss: Sekunden zwischen 0 und 59, kann ein- oder zweistellig sein
- * - mms: Millisekunden zwischen 0 und 999, kann ein- bis dreistellig sein, Wert ist optional und kann statt mit einem Punkt
+ * - mms: Millisekunden oder Mikrosekunden: Ein dreistelliger Wert wird als Millisekunden
+ *   interpretiert, ein sechstelliger Wert als Mikrosekunden. Wert ist optional und kann statt mit einem Punkt
  *   auch mit einem Doppelpunkt von den Sekunden der Uhrzeit getrennt sein.
  * \par
  * Bei der Datumsangabe kann als Trennzeichen wahlweise Punkt oder Minus verwendet werden. Es muss mindestens ein
@@ -260,7 +262,17 @@ int CDateTime::set(const ppl6::CString &datetime)
 	}
 
 
-	if (d.PregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,4})/",&m)) {
+	if (d.PregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/",&m)) {
+		// yyyy-mm-ddThh:ii:ss.msecusec[[+-]oo:00]
+		set(m.GetString(1).ToInt(),
+				m.GetString(2).ToInt(),
+				m.GetString(3).ToInt(),
+				m.GetString(4).ToInt(),
+				m.GetString(5).ToInt(),
+				m.GetString(6).ToInt(),
+				m.GetString(7).ToInt(),
+				m.GetString(8).ToInt());
+	} else if (d.PregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})/",&m)) {
 		// yyyy-mm-ddThh:ii:ss.msec[[+-]oo:00]
 		set(m.GetString(1).ToInt(),
 				m.GetString(2).ToInt(),
@@ -278,7 +290,17 @@ int CDateTime::set(const ppl6::CString &datetime)
 				m.GetString(4).ToInt(),
 				m.GetString(5).ToInt(),
 				m.GetString(6).ToInt());
-	} else if (d.PregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,4})$/",&m)) {
+	} else if (d.PregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",&m)) {
+		// yyyy.mm.dd hh:ii:ss.msecusec
+		set(m.GetString(1).ToInt(),
+				m.GetString(2).ToInt(),
+				m.GetString(3).ToInt(),
+				m.GetString(4).ToInt(),
+				m.GetString(5).ToInt(),
+				m.GetString(6).ToInt(),
+				m.GetString(7).ToInt(),
+				m.GetString(8).ToInt());
+	} else if (d.PregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/",&m)) {
 		// yyyy.mm.dd hh:ii:ss.msec
 		set(m.GetString(1).ToInt(),
 				m.GetString(2).ToInt(),
@@ -287,7 +309,17 @@ int CDateTime::set(const ppl6::CString &datetime)
 				m.GetString(5).ToInt(),
 				m.GetString(6).ToInt(),
 				m.GetString(7).ToInt());
-	} else if (d.PregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,4})$/",&m)) {
+	} else if (d.PregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",&m)) {
+		// dd.mm.yyyy hh:ii:ss.msecusec
+		set(m.GetString(3).ToInt(),
+				m.GetString(2).ToInt(),
+				m.GetString(1).ToInt(),
+				m.GetString(4).ToInt(),
+				m.GetString(5).ToInt(),
+				m.GetString(6).ToInt(),
+				m.GetString(7).ToInt(),
+				m.GetString(8).ToInt());
+	} else if (d.PregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/",&m)) {
 		// dd.mm.yyyy hh:ii:ss.msec
 		set(m.GetString(3).ToInt(),
 				m.GetString(2).ToInt(),
@@ -343,7 +375,7 @@ int CDateTime::set(const ppl6::CString &datetime)
 void CDateTime::set(const ppl6::CDateTime &other)
 {
 	yy=other.yy;
-	ms=other.ms;
+	us=other.us;
 	mm=other.mm;
 	dd=other.dd;
 	hh=other.hh;
@@ -433,6 +465,7 @@ int CDateTime::setTime(const ppl6::CString &time)
  * @param[in] minute Minute zwischen 0 und 59. Optionaler Wert, Default ist 0.
  * @param[in] sec Sekunde zwischen 0 und 59. Optionaler Wert, Default ist 0.
  * @param[in] msec Millisekunde zwischen 0 und 999. Optionaler Wert, Default ist 0.
+ * @param[in] usec Mikrosekunde zwischen 0 und 999999. Optionaler Wert, Default ist 0.
  * \attention
  * Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten! Aus dem Monat 0 oder -10 würde 1
  * werden, aus 13 oder 12345 würde 12 werden. Dieses Verhalten wird sich in einer späteren Version noch ändern!
@@ -440,8 +473,13 @@ int CDateTime::setTime(const ppl6::CString &time)
  * dem 32.12.2010 automatisch der 01.01.2011 wird.
  * \par
  * Wird bei \p year, \p month und \p day der Wert "0" angegeben, wird der Timestamp auf 0 gesetzt.
+ *
+ * \note
+ * Millisekunden und Mikrosekunden werden intern nach der Formel msec*1000+usec zusammengerechnet.
+ * Die Werte sollten daher entweder alternativ verwendet werden oder es muss sichergestellt sein,
+ * dass die Mikrosekunden den Millisekundenanteil nicht enthalten.
  */
-void CDateTime::set(int year, int month, int day, int hour, int minute, int sec, int msec)
+void CDateTime::set(int year, int month, int day, int hour, int minute, int sec, int msec, int usec)
 {
 	if (year==0 && month==0 && day==0) {
 		clear();
@@ -465,9 +503,11 @@ void CDateTime::set(int year, int month, int day, int hour, int minute, int sec,
 	ss=sec;
 	if (sec<0) ss=0;
 	if (sec>59) ss=59;
-	ms=msec;
-	if (msec<0) ms=0;
-	if (msec>999) ms=999;
+	if (msec<0) msec=0;
+	if (msec>999) msec=999;
+	if (usec<0) usec=0;
+	if (usec>999999) usec=999999;
+	us=msec*1000+usec;
 }
 
 /*!\brief Datum aus Unix-Timestamp übernehmen
@@ -494,44 +534,8 @@ void CDateTime::setTime_t(ppluint64 t)
 	dd=tt.tm_mday;
 	mm=tt.tm_mon+1;
 	yy=tt.tm_year+1900;
-	ms=0;
+	us=0;
 }
-
-/*!\brief Datum aus einem 64-Bit-Integer übernehmen
- *
- * \desc
- * Mit dieser Funktion werden Datum, Uhrzeit und Millisekunden aus einem Long Integer (64 Bit) übernommen,
- * wie ihn die Funktion CDateTime::longInt zurückgibt. Der Integer-Wert muss folgenden Aufbau haben:
- *
- * - Bit 0-10: Millisekunden (0-999)
- * - Bit 11-17: Sekunden (0-59)
- * - Bit 18-24: Minuten (0-59)
- * - Bit 25-30: Stunden (0-23)
- * - Bit 31-36: Tag (1-31)
- * - Bit 37-41: Monat (1-12)
- * - Bit 42-63: Jahr (0-16383)
- *
- * @param i 64-Bit Integer
- */
-void CDateTime::setLongInt(ppluint64 i)
-{
-	ms=(ppluint16)(i&1023);
-	ss=(ppluint8)(i>>11)&63;
-	ii=(ppluint8)(i>>18)&63;
-	hh=(ppluint8)(i>>25)&31;
-	dd=(ppluint8)(i>>31)&31;
-	mm=(ppluint8)(i>>37)&15;
-	yy=(ppluint16)(i>>42)&16383;
-	if (ms>999) ms=999;
-	if (ss>59) ss=59;
-	if (ii>59) ii=59;
-	if (hh>23) hh=23;
-	if (dd>31) dd=31;
-	if (dd<1) dd=1;
-	if (mm<1) mm=1;
-	if (mm>12) mm=12;
-}
-
 
 /*!\brief Aktuelles Datum und Uhrzeit übernehmen
  *
@@ -550,11 +554,11 @@ void CDateTime::setCurrentTime()
 	dd=tt.tm_mday;
 	mm=tt.tm_mon+1;
 	yy=tt.tm_year+1900;
-	ms=0;
+	us=0;
 #ifdef HAVE_GETTIMEOFDAY
 	struct timeval tv;
 	if (gettimeofday(&tv,NULL)==0) {
-		ms=tv.tv_usec/1000;
+		us=tv.tv_usec;
 	}
 
 #endif
@@ -585,7 +589,8 @@ void CDateTime::setCurrentTime()
  * - \%H: Stunden als zweistellige Zahl (00 bis 23)
  * - \%M: Minuten als zweistellige Zahl (00 bis 59)
  * - \%S: Sekunden als zweistellige Zahl (00 bis 59)
- * - \%*: Millisekunden als dreistellige Zahl (00 bis 999)
+ * - \%*: Millisekunden als dreistellige Zahl (000 bis 999)
+ * - \%u: Mikrosekunden als sechstellige Zahl (000000 bis 999999)
  * \par
  * Falls das im Objekt enthaltene Datum > 1900 ist, können weitere Formatanweisungen verwendet werden.
  * \par
@@ -596,8 +601,10 @@ ppl6::CString CDateTime::get(const ppl6::CString &format) const
 {
 	ppl6::CString Tmp;
 	ppl6::CString r=format;
-	Tmp.Setf("%03i",ms);
+	Tmp.Setf("%03i",(us/1000));
 	r.Replace("%*",Tmp);
+	Tmp.Setf("%06i",us);
+	r.Replace("%u",Tmp);
 
 	if (yy<1900) {
 		Tmp.Setf("%04i",yy);
@@ -744,7 +751,7 @@ ppl6::CString CDateTime::getISO8601() const
 ppl6::CString CDateTime::getISO8601withMsec() const
 {
 	ppl6::CString r;
-	r.Setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i",yy,mm,dd,hh,ii,ss,ms);
+	r.Setf("%04i-%02i-%02iT%02i:%02i:%02i.%03i",yy,mm,dd,hh,ii,ss,us/1000);
 
 #ifdef STRUCT_TM_HAS_GMTOFF
 	if (yy>=1900) {
@@ -769,6 +776,47 @@ ppl6::CString CDateTime::getISO8601withMsec() const
 	return r;
 }
 
+/*!\brief Datum als String im ISO8601-Format mit Mikrosekunden zurückgeben
+ *
+ * \desc
+ * Diese Funktion gibt das Datum als String im ISO8601-Format mit Mikrosekunden zurück, das folgenden Aufbau hat:
+ * "yyyy-mm-ddThh:ii:ss.xxxxxx+zz:zz"
+ * \par
+ * Der Wert "xxxxxx" stellt die Mikrosekunden dar.
+ * \par
+ * Der Wert "+zz:zz" gibt den Offset zu GMT in Stunden und Minuten an und kann auch negativ sein.
+ * Er wird allerdings nur ergänzt, wenn das Jahr >=1900 ist und das Betriebssystem den Wert "tm_gmtoff" in
+ * seiner tm-Structure hat (siehe "man ctime").
+ *
+ * @return String mit dem Datum im ISO8601-Format
+ */
+ppl6::CString CDateTime::getISO8601withUsec() const
+{
+	ppl6::CString r;
+	r.Setf("%04i-%02i-%02iT%02i:%02i:%02i.%06i",yy,mm,dd,hh,ii,ss,us);
+
+#ifdef STRUCT_TM_HAS_GMTOFF
+	if (yy>=1900) {
+		struct tm t;
+		t.tm_sec=ss;
+		t.tm_min=ii;
+		t.tm_hour=hh;
+		t.tm_mday=dd;
+		t.tm_mon=mm-1;
+		t.tm_year=yy-1900;
+		t.tm_isdst=-1;
+		mktime(&t);
+
+		int s=abs(t.tm_gmtoff/60);
+		if (t.tm_gmtoff>=0) {
+			r.Concatf("+%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+		} else {
+			r.Concatf("-%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+		}
+	}
+#endif
+	return r;
+}
 
 /*!\brief Datum in Unix-Timestamp umrechnen
  *
@@ -792,33 +840,61 @@ ppluint64 CDateTime::time_t() const
 	return (ppluint64)mktime(&t);
 }
 
+/*!\brief Datum aus einem 64-Bit-Integer übernehmen
+ *
+ * \desc
+ * Mit dieser Funktion werden Datum, Uhrzeit und Millisekunden aus einem Long Integer (64 Bit) übernommen,
+ * wie ihn die Funktion CDateTime::longInt zurückgibt. Der Aufbau des Integer-Wertes ist intern und kann
+ * sich von Version zu Version ändern.
+ *
+ * @param i 64-Bit Integer
+ */
+void CDateTime::setLongInt(ppluint64 i)
+{
+	us=i%1000000;
+	i=i/1000000;
+	ss=i%60;
+	i=i/60;
+	ii=i%60;
+	i=i/60;
+	hh=i%24;
+	i=i/24;
+	dd=(i%31)+1;
+	i=i/31;
+	mm=(i%12)+1;
+	yy=i/12;
+}
+
+
 /*!\brief Datum als 64-Bit-Integer auslesen
  *
  * Mit dieser Funktion werden Datum, Uhrzeit und Millisekunden als Long Integer (64 Bit) zurückgegeben,
- * wie er von der Funktion CDateTime::setLongInt eingelesen werden kann. Der Integer-Wert hat folgenden Aufbau:
- *
- * - Bit 0-10: Millisekunden (0-999)
- * - Bit 11-17: Sekunden (0-59)
- * - Bit 18-24: Minuten (0-59)
- * - Bit 25-30: Stunden (0-23)
- * - Bit 31-36: Tag (1-31)
- * - Bit 37-41: Monat (1-12)
- * - Bit 42-63: Jahr (0-16383)
+ * wie er von der Funktion CDateTime::setLongInt eingelesen werden kann. Der Aufbau des Integer-Wertes ist intern und kann
+ * sich von Version zu Version ändern.
  *
  * @return 64-Bit-Integer mit dem Timestamp
  */
 ppluint64 CDateTime::longInt() const
 {
-	ppluint64 r=0;
+	ppluint64 r=yy*12+(mm-1);
+	r=r*31+(dd-1);
+	r=r*24+hh;
+	r=r*60+ii;
+	r=r*60+ss;
+	r=r*1000000+us;
+	/*
 	r=(ppluint64)(yy&16383)<<42;
 	r|=(ppluint64)(mm&15)<<37;
 	r|=(ppluint64)(dd&31)<<31;
 	r|=(ppluint64)(hh&31)<<25;
 	r|=(ppluint64)(ii&63)<<18;
 	r|=(ppluint64)(ss&63)<<11;
-	r|=(ppluint64)(ms&1023);
+	r|=(ppluint64)((us/1000)&1023);
+	*/
 	return r;
 }
+
+
 
 /*!\brief Das Jahr als Integer auslesen
  *
@@ -901,7 +977,19 @@ int CDateTime::second() const
  */
 int CDateTime::millisecond() const
 {
-	return ms;
+	return us/1000;
+}
+
+/*!\brief Die Mikrosekunden als Integer auslesen
+ *
+ * \desc
+ * Diese Funktion gibt die Mikrosekunden als Integer zurück.
+ *
+ * @return Integer-Wert mit den Mikrosekunden
+ */
+int CDateTime::microsecond() const
+{
+	return us;
 }
 
 /*!\brief Die Wochennummer als Integer auslesen, Berechnung nach ISO 8601
@@ -1002,7 +1090,7 @@ bool CDateTime::notEmpty() const
 	if (hh>0) return 1;
 	if (ii>0) return 1;
 	if (ss>0) return 1;
-	if (ms>0) return 1;
+	if (us>0) return 1;
 	return 0;
 }
 
@@ -1022,7 +1110,7 @@ bool CDateTime::isEmpty() const
 	if (hh>0) return 0;
 	if (ii>0) return 0;
 	if (ss>0) return 0;
-	if (ms>0) return 0;
+	if (us>0) return 0;
 	return 1;
 }
 
@@ -1157,13 +1245,13 @@ CDateTime& CDateTime::operator=(const ppl6::CDateTime &other)
  *
  * \desc
  * Dieser Operator liefert den Inhalt der Variablen als String in folgendem Format zurück:
- * "yyyy-mm-dd hh:ii:ss.mms".
+ * "yyyy-mm-dd hh:ii:ss.micses".
  * @return Datums-String
  */
 CDateTime::operator CString() const
 {
 	CString r;
-	r.Setf("%04i-%02i-%02i %02i:%02i:%02i.%03i",yy,mm,dd,hh,ii,ss,ms);
+	r.Setf("%04i-%02i-%02i %02i:%02i:%02i.%06i",yy,mm,dd,hh,ii,ss,us);
 	return r;
 }
 
@@ -1179,10 +1267,20 @@ CDateTime::operator CString() const
  */
 bool CDateTime::operator<(const CDateTime &other) const
 {
+	if (yy>=other.yy) return false;
+	if (mm>=other.mm) return false;
+	if (dd>=other.dd) return false;
+	if (hh>=other.hh) return false;
+	if (ii>=other.ii) return false;
+	if (ss>=other.ss) return false;
+	if (us>=other.us) return false;
+	return true;
+	/*
 	ppluint64 v1=longInt();
 	ppluint64 v2=other.longInt();
 	if (v1<v2) return true;
 	return false;
+	*/
 }
 
 /*!\brief Vergleichsoperator "kleiner oder gleich": <=
@@ -1196,10 +1294,20 @@ bool CDateTime::operator<(const CDateTime &other) const
  */
 bool CDateTime::operator<=(const CDateTime &other) const
 {
+	if (yy>other.yy) return false;
+	if (mm>other.mm) return false;
+	if (dd>other.dd) return false;
+	if (hh>other.hh) return false;
+	if (ii>other.ii) return false;
+	if (ss>other.ss) return false;
+	if (us>other.us) return false;
+	return true;
+	/*
 	ppluint64 v1=longInt();
 	ppluint64 v2=other.longInt();
 	if (v1<=v2) return true;
 	return false;
+	*/
 }
 
 /*!\brief Vergleichsoperator "gleich": ==
@@ -1213,10 +1321,20 @@ bool CDateTime::operator<=(const CDateTime &other) const
  */
 bool CDateTime::operator==(const CDateTime &other) const
 {
+	if (yy!=other.yy) return false;
+	if (mm!=other.mm) return false;
+	if (dd!=other.dd) return false;
+	if (hh!=other.hh) return false;
+	if (ii!=other.ii) return false;
+	if (ss!=other.ss) return false;
+	if (us!=other.us) return false;
+	return true;
+	/*
 	ppluint64 v1=longInt();
 	ppluint64 v2=other.longInt();
 	if (v1==v2) return true;
 	return false;
+	*/
 }
 
 /*!\brief Vergleichsoperator "ungleich": !=
@@ -1230,10 +1348,20 @@ bool CDateTime::operator==(const CDateTime &other) const
  */
 bool CDateTime::operator!=(const CDateTime &other) const
 {
+	if (yy!=other.yy) return true;
+	if (mm!=other.mm) return true;
+	if (dd!=other.dd) return true;
+	if (hh!=other.hh) return true;
+	if (ii!=other.ii) return true;
+	if (ss!=other.ss) return true;
+	if (us!=other.us) return true;
+	return false;
+	/*
 	ppluint64 v1=longInt();
 	ppluint64 v2=other.longInt();
 	if (v1!=v2) return true;
 	return false;
+	*/
 }
 
 /*!\brief Vergleichsoperator "größer oder gleich": >=
@@ -1247,10 +1375,20 @@ bool CDateTime::operator!=(const CDateTime &other) const
  */
 bool CDateTime::operator>=(const CDateTime &other) const
 {
+	if (yy<other.yy) return false;
+	if (mm<other.mm) return false;
+	if (dd<other.dd) return false;
+	if (hh<other.hh) return false;
+	if (ii<other.ii) return false;
+	if (ss<other.ss) return false;
+	if (us<other.us) return false;
+	return true;
+	/*
 	ppluint64 v1=longInt();
 	ppluint64 v2=other.longInt();
 	if (v1>=v2) return true;
 	return false;
+	*/
 }
 
 /*!\brief Vergleichsoperator "größer": >
@@ -1264,10 +1402,20 @@ bool CDateTime::operator>=(const CDateTime &other) const
  */
 bool CDateTime::operator>(const CDateTime &other) const
 {
+	if (yy<=other.yy) return false;
+	if (mm<=other.mm) return false;
+	if (dd<=other.dd) return false;
+	if (hh<=other.hh) return false;
+	if (ii<=other.ii) return false;
+	if (ss<=other.ss) return false;
+	if (us<=other.us) return false;
+	return true;
+	/*
 	ppluint64 v1=longInt();
 	ppluint64 v2=other.longInt();
 	if (v1>v2) return true;
 	return false;
+	*/
 }
 
 

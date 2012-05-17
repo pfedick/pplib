@@ -1052,8 +1052,8 @@ class CBinary : public CVar
 class CDateTime : public CVar
 {
 	private:
+		ppluint32 us;
 		ppluint16 yy;
-		ppluint16 ms;
 		ppluint8 mm;
 		ppluint8 dd;
 		ppluint8 hh;
@@ -1073,7 +1073,7 @@ class CDateTime : public CVar
 		int set(const CString &date, const CString &time);
 		int setDate(const CString &date);
 		int setTime(const CString &time);
-		void set(int year, int month, int day, int hour=0, int minute=0, int sec=0, int msec=0);
+		void set(int year, int month, int day, int hour=0, int minute=0, int sec=0, int msec=0, int usec=0);
 		void setCurrentTime();
 		void print() const;
 		void clear();
@@ -1086,6 +1086,7 @@ class CDateTime : public CVar
 		CString getTime(const CString &format="%H:%M:%S") const;
 		CString getISO8601() const;
 		CString getISO8601withMsec() const;
+		CString getISO8601withUsec() const;
 		ppluint64 time_t() const;
 		ppluint64 longInt() const;
 
@@ -1096,6 +1097,7 @@ class CDateTime : public CVar
 		int minute() const;
 		int second() const;
 		int millisecond() const;
+		int microsecond() const;
 		int week() const;
 		int weekISO8601() const;
 
