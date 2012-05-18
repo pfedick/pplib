@@ -1122,6 +1122,8 @@ class CDateTime : public CVar
 
 };
 
+std::ostream& operator<<(std::ostream& s, const CDateTime &dt);
+
 
 //! \brief Synchronisation von Threads
 class CMutex

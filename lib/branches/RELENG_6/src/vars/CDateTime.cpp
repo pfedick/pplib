@@ -528,6 +528,7 @@ void CDateTime::setTime_t(ppluint64 t)
 	}
 	::time_t tp=(::time_t)t;
 	r=localtime_r(&tp,&tt);
+	if (!r) throw InvalidDateException();
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;
@@ -548,6 +549,7 @@ void CDateTime::setCurrentTime()
 	struct tm tt, *r;
 	::time_t tp=time(NULL);
 	r=localtime_r(&tp,&tt);
+	if (!r) throw InvalidDateException();
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;
@@ -1267,20 +1269,26 @@ CDateTime::operator CString() const
  */
 bool CDateTime::operator<(const CDateTime &other) const
 {
-	if (yy>=other.yy) return false;
-	if (mm>=other.mm) return false;
-	if (dd>=other.dd) return false;
-	if (hh>=other.hh) return false;
-	if (ii>=other.ii) return false;
-	if (ss>=other.ss) return false;
-	if (us>=other.us) return false;
-	return true;
-	/*
-	ppluint64 v1=longInt();
-	ppluint64 v2=other.longInt();
-	if (v1<v2) return true;
+	if (yy<other.yy) return true;
+	else if (yy>other.yy) return false;
+
+	if (mm<other.mm) return true;
+	else if (mm>other.mm) return false;
+
+	if (dd<other.dd) return true;
+	else if (dd>other.dd) return false;
+
+	if (hh<other.hh) return true;
+	else if (hh>other.hh) return false;
+
+	if (ii<other.ii) return true;
+	else if (ii>other.ii) return false;
+
+	if (ss<other.ss) return true;
+	else if (ss>other.ss) return false;
+
+	if (us<other.us) return true;
 	return false;
-	*/
 }
 
 /*!\brief Vergleichsoperator "kleiner oder gleich": <=
@@ -1294,20 +1302,27 @@ bool CDateTime::operator<(const CDateTime &other) const
  */
 bool CDateTime::operator<=(const CDateTime &other) const
 {
-	if (yy>other.yy) return false;
-	if (mm>other.mm) return false;
-	if (dd>other.dd) return false;
-	if (hh>other.hh) return false;
-	if (ii>other.ii) return false;
-	if (ss>other.ss) return false;
-	if (us>other.us) return false;
+	if (yy<other.yy) return true;
+	else if (yy>other.yy) return false;
+
+	if (mm<other.mm) return true;
+	else if (mm>other.mm) return false;
+
+	if (dd<other.dd) return true;
+	else if (dd>other.dd) return false;
+
+	if (hh<other.hh) return true;
+	else if (hh>other.hh) return false;
+
+	if (ii<other.ii) return true;
+	else if (ii>other.ii) return false;
+
+	if (ss<other.ss) return true;
+	else if (ss>other.ss) return false;
+
+	if (us<other.us) return true;
+	else if (ss>other.ss) return false;
 	return true;
-	/*
-	ppluint64 v1=longInt();
-	ppluint64 v2=other.longInt();
-	if (v1<=v2) return true;
-	return false;
-	*/
 }
 
 /*!\brief Vergleichsoperator "gleich": ==
@@ -1329,12 +1344,6 @@ bool CDateTime::operator==(const CDateTime &other) const
 	if (ss!=other.ss) return false;
 	if (us!=other.us) return false;
 	return true;
-	/*
-	ppluint64 v1=longInt();
-	ppluint64 v2=other.longInt();
-	if (v1==v2) return true;
-	return false;
-	*/
 }
 
 /*!\brief Vergleichsoperator "ungleich": !=
@@ -1375,20 +1384,27 @@ bool CDateTime::operator!=(const CDateTime &other) const
  */
 bool CDateTime::operator>=(const CDateTime &other) const
 {
-	if (yy<other.yy) return false;
-	if (mm<other.mm) return false;
-	if (dd<other.dd) return false;
-	if (hh<other.hh) return false;
-	if (ii<other.ii) return false;
-	if (ss<other.ss) return false;
-	if (us<other.us) return false;
+	if (yy>other.yy) return true;
+	else if (yy<other.yy) return false;
+
+	if (mm>other.mm) return true;
+	else if (mm<other.mm) return false;
+
+	if (dd>other.dd) return true;
+	else if (dd<other.dd) return false;
+
+	if (hh>other.hh) return true;
+	else if (hh<other.hh) return false;
+
+	if (ii>other.ii) return true;
+	else if (ii<other.ii) return false;
+
+	if (ss>other.ss) return true;
+	else if (ss<other.ss) return false;
+
+	if (us>other.us) return true;
+	else if (us<other.us) return false;
 	return true;
-	/*
-	ppluint64 v1=longInt();
-	ppluint64 v2=other.longInt();
-	if (v1>=v2) return true;
-	return false;
-	*/
 }
 
 /*!\brief Vergleichsoperator "größer": >
@@ -1402,20 +1418,32 @@ bool CDateTime::operator>=(const CDateTime &other) const
  */
 bool CDateTime::operator>(const CDateTime &other) const
 {
-	if (yy<=other.yy) return false;
-	if (mm<=other.mm) return false;
-	if (dd<=other.dd) return false;
-	if (hh<=other.hh) return false;
-	if (ii<=other.ii) return false;
-	if (ss<=other.ss) return false;
-	if (us<=other.us) return false;
-	return true;
-	/*
-	ppluint64 v1=longInt();
-	ppluint64 v2=other.longInt();
-	if (v1>v2) return true;
+	if (yy>other.yy) return true;
+	else if (yy<other.yy) return false;
+
+	if (mm>other.mm) return true;
+	else if (mm<other.mm) return false;
+
+	if (dd>other.dd) return true;
+	else if (dd<other.dd) return false;
+
+	if (hh>other.hh) return true;
+	else if (hh<other.hh) return false;
+
+	if (ii>other.ii) return true;
+	else if (ii<other.ii) return false;
+
+	if (ss>other.ss) return true;
+	else if (ss<other.ss) return false;
+
+	if (us>other.us) return true;
 	return false;
-	*/
+}
+
+std::ostream& operator<<(std::ostream& s, const CDateTime &dt)
+{
+	CString str=dt.get("%Y-%m-%d %H:%M:%S.%u");
+	return s.write((const char*)str,str.Size());
 }
 
 
