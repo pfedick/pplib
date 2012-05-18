@@ -1,17 +1,20 @@
 CC		= gcc
 EXTRA_CFLAGS =
 INCLUDE	= -I.
-#CFLAGS	= -ggdb -Wall  $(INCLUDE) $(EXTRA_CFLAGS) `ppl6-config --cflags debug`
-#LIB		= -L/local/lib   -lpthread `ppl6-config --libs debug` -mingw32  -lstdc++
 CFLAGS	= -ggdb -Wall  `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
-LIB		= `../ppl7-config --libs debug source` -lgtest -lstdc++
+LIBS	= `../ppl7-config --libs debug source` -lgtest -lstdc++
+PROGNAME = testsuite
+OBJECTS = memoryheap.o memorygroup.o array.o strings.o avltree.o \
+		assocarray.o pointer.o datetime.o bytearray.o bytearrayptr.o \
+		functions.o file.o dir.o list.o inet.o \
+		grafix_drawable.o grafix_imagefilter.o gfxreftest.o
 
 
-all: memoryheap memorygroup array strings avltree assocarray pointer datetime bytearray bytearrayptr \
-	functions file dir list inet \
-	grafix_drawable \
-	grafix_imagefilter \
-	gfxreftest
+$(PROGNAME): $(OBJECTS)
+	$(CC) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) $(LIBS)
+
+all: $(PROGNAME)
+	./$(PROGNAME)
 
 clean:
 	-rm -rf bin tmp.grafixtest.png
