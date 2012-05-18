@@ -9,10 +9,12 @@ Version 6.4.13
   - DB-Connect mit Postgres-Datenbank unterstützt jetzt Parameter
     "searchpath" zum Setzen des Suchpfades.
   - CString unterstützt Ausgabe als Stream
-  - Erkennung der FreeTDS-Library erneuert
+  - Erkennung der FreeTDS-Library für Sybase erneuert 
   - CDateTime Genauigkeit auf Mikrosekunden erhöht
   - Format des Integer-Wertes von CDateTime::longInt hat sich geändert
     und ist inkompatibel zu vorher.
+  - Testsuite mit Unittests für CDateTime erstellt (Verwendung von
+    Google-Test)
 
 Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
   - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen
