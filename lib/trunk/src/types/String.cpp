@@ -2598,9 +2598,11 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 				}
 			}
 			pcre_free(reg);
+			free(ovector);
 			return true;
 		}
 		pcre_free(reg);
+		free(ovector);
 		return false;
 #endif
 }
