@@ -180,6 +180,7 @@ public:
 	ByteArray();
 	ByteArray(const ByteArrayPtr &other);
 	ByteArray(const ByteArray &other);
+	ByteArray(const String &str);
 	ByteArray(void *adr, size_t size);
 	ByteArray(size_t size);
 	~ByteArray();
@@ -197,6 +198,7 @@ public:
 	void free();
 	void clear();
 	ByteArray &operator=(const ByteArrayPtr &other);
+	ByteArray &operator=(const String &str);
 	operator const void*() const;
 	operator const unsigned char*() const;
 	operator const char*() const;

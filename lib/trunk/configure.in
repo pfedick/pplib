@@ -47,6 +47,7 @@ sinclude(autoconf/libmicrohttpd.m4)
 sinclude(autoconf/libidn.m4)
 
 
+
 report_have_jpeg="no"
 report_have_libmicrohttpd="no"
 report_have_libmcrypt="no"
@@ -267,11 +268,11 @@ CFLAGS="$CFLAGS -I/usr/local/include"
 
 
 
-dnl ##################################################################################### JPEG
-dnl AC_CHECK_LIBJPEG([6.0],
-dnl            AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
-dnl            report_have_jpeg="yes"
-dnl           :)
+##################################################################################### JPEG
+AC_CHECK_LIBJPEG([6.0],
+            AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
+            report_have_jpeg="yes"
+           :)
       
 ##################################################################################### PNG   
 AC_CHECK_LIBPNG([1.2],
@@ -279,161 +280,6 @@ AC_CHECK_LIBPNG([1.2],
             report_have_png="yes"
            :)
       
- 
- 
- 
-# If we support __thread, that can speed up tcmalloc a bit.
-# Note, however, that our code tickles a bug in gcc < 4.1.2
-# involving TLS and -fPIC (which our libraries will use) on x86:
-#   http://gcc.gnu.org/ml/gcc-bugs/2006-09/msg02275.html
-AC_MSG_CHECKING([for __thread])
-AC_LINK_IFELSE([AC_LANG_PROGRAM([#if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__)) && ((__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 1) || (__GNUC__ == 4 && __GNUC_MINOR__ == 1 && __GNUC_PATCHLEVEL__ < 2))
-#error gcc has this bug: http://gcc.gnu.org/ml/gcc-bugs/2006-09/msg02275.html
-#endif], [static __thread int p = 0])],
-               [AC_DEFINE(HAVE_TLS, 1,
-                      Define to 1 if compiler supports __thread)
-                AC_MSG_RESULT([yes])],
-               [AC_MSG_RESULT([no])])
-
-# We also need to check if the kernel supports __thread, which requires uname()
-AC_CHECK_DECLS(uname,,, [#include <sys/utsname.h>])
- 
-  
-case $host_os in
-	*mingw32* )
-		report_have_pthreads="Win32 Threads"
-  		;;
-	* )
-		ACX_PTHREAD(report_have_pthreads="yes"
-			AC_DEFINE(HAVE_PTHREADS,1,)#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_SIGNAL_H
-    #include <signal.h>
-#endif
-			
-			,report_have_pthreads="no")
-
-		;;
-esac
-
-
-
-case $host_os in
-	*mingw32* )
-		MINGW32=yes
-		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
-  		;;
-	* )
-		MINGW32=no
-		;;
-esac
-
-case "${host_cpu}-${host_os}" in
-	*solaris*)
-		CFLAGS=`echo $CFLAGS | $SED 's/-I\/usr\/local\/include //g' | $SED 's/-I\/usr\/include //g' `
-        ;;
-esac;
-
-         
-
-
-AC_SUBST(report_have_zlib)
-AC_SUBST(report_have_bzip2)
-AC_SUBST(report_have_png)
-AC_SUBST(report_have_jpeg)
-AC_SUBST(report_have_freetype2)
-AC_SUBST(report_have_sdl)
-AC_SUBST(report_have_lame)
-AC_SUBST(report_have_libmad)
-AC_SUBST(report_have_curl)
-AC_SUBST(report_have_openssl)
-AC_SUBST(report_have_pcre)
-AC_SUBST(report_have_iconv)
-AC_SUBST(report_have_libmcrypt)
-AC_SUBST(report_have_libmhash)
-AC_SUBST(report_have_mysql)
-AC_SUBST(report_have_postgres)
-AC_SUBST(report_have_sybase)
-AC_SUBST(report_have_nasm)
-AC_SUBST(report_have_pthreads)
-AC_SUBST(report_have_ldns)
-AC_SUBST(report_have_libogg)
-AC_SUBST(report_have_libshout)
-AC_SUBST(report_have_libimlib)
-AC_SUBST(report_have_libtiff)
-AC_SUBST(report_have_libmicrohttpd)
-AC_SUBST(report_have_libidn)
-
-
-dnl report configuration
-AC_MSG_RESULT([
-******************************************************************************
-** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
-** Target: $target_os        CPU: $target_cpu
-** 
-** Byteorder: $report_byteorder
-**   Size of char         $ac_cv_sizeof_char     Size of float        $ac_cv_sizeof_float
-**   Size of short        $ac_cv_sizeof_short     Size of double       $ac_cv_sizeof_double
-**   Size of int          $ac_cv_sizeof_int     Size of void*        $ac_cv_sizeof_voidp
-**   Size of long         $ac_cv_sizeof_long     Size of wchar_t      $ac_cv_sizeof_wchar_t
-**   Size of long long    $ac_cv_sizeof_long_long     
-**   Size of size_t       $ac_cv_sizeof_size_t
-******************************************************************************
-** Supported Libraries:       		Databases:
-**   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
-**   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
-**   PNG library:          $report_have_png		  FreeTDS:               $report_have_freetds
-**   JPEG library:         $report_have_jpeg
-**   ImageMagick library:  $report_have_libimlib
-**   TIFF library:         $report_have_libtiff
-**   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
-**   SDL library:          $report_have_sdl		  
-**   Lame library:         $report_have_lame		  
-**   Libmad library:       $report_have_libmad	
-**   mpg123 library:       $report_have_mpg123	  
-**   ogg library:          $report_have_libogg	  
-**   shout library:        $report_have_libshout
-**   Curl library:         $report_have_curl
-**   Libmicrohttpd:        $report_have_libmicrohttpd		  
-**   OpenSSL:              $report_have_openssl		Threads:
-**   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
-**   ICONV:                $report_have_iconv
-**   MCrypt library:       $report_have_libmcrypt
-**   MHash:                $report_have_libmhash
-**   ldns library:         $report_have_ldns
-**   libidn                $report_have_libidn
-******************************************************************************
-])
-
-AC_DEFINE(CONF_CFLAGS, $CFLAGS)
-AC_DEFINE(CONF_LIBS, $LIBS)
-
-AC_OUTPUT()
-
-
-           
-exit
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################
-
-
-
-
-
-
-dnl Checks for programs.
-
-dnl Checks for libraries.
-
 
 AM_LIBMICROHTTPD(,
             AC_DEFINE(HAVE_LIBMICROHTTPD, 1, [ Define if you have libmicrohttpd. ])
@@ -595,12 +441,12 @@ fi
 
 
 report_have_freetds="no"
-###AC_CHECK_FREETDS([],
-###            AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS library. ])
-###            report_have_freetds="yes"
-###			AC_SUBST(FREETDS_CFLAGS)
-###			AC_SUBST(FREETDS_LIBS),
-###            :)
+AC_CHECK_FREETDS([],
+            AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS library. ])
+            report_have_freetds="yes"
+			AC_SUBST(FREETDS_CFLAGS)
+			AC_SUBST(FREETDS_LIBS),
+            :)
 
 AX_PATH_LIB_LDNS([1.6.3],
             AC_DEFINE(HAVE_LIBLDNS, 1, [ Define if you have ldns library from netlabs.nl. ])
@@ -646,6 +492,9 @@ fi
 SRCDIR=`pwd`
 AC_SUBST(SRCDIR)
 
+
+ 
+ 
 # If we support __thread, that can speed up tcmalloc a bit.
 # Note, however, that our code tickles a bug in gcc < 4.1.2
 # involving TLS and -fPIC (which our libraries will use) on x86:
@@ -661,8 +510,8 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#if defined(__GNUC__) && (defined(__i386__) || 
 
 # We also need to check if the kernel supports __thread, which requires uname()
 AC_CHECK_DECLS(uname,,, [#include <sys/utsname.h>])
-
-
+ 
+  
 case $host_os in
 	*mingw32* )
 		report_have_pthreads="Win32 Threads"
@@ -704,6 +553,118 @@ case "${host_cpu}-${host_os}" in
 		CFLAGS=`echo $CFLAGS | $SED 's/-I\/usr\/local\/include //g' | $SED 's/-I\/usr\/include //g' `
         ;;
 esac;
+
+         
+
+
+AC_SUBST(report_have_zlib)
+AC_SUBST(report_have_bzip2)
+AC_SUBST(report_have_png)
+AC_SUBST(report_have_jpeg)
+AC_SUBST(report_have_freetype2)
+AC_SUBST(report_have_sdl)
+AC_SUBST(report_have_lame)
+AC_SUBST(report_have_libmad)
+AC_SUBST(report_have_curl)
+AC_SUBST(report_have_openssl)
+AC_SUBST(report_have_pcre)
+AC_SUBST(report_have_iconv)
+AC_SUBST(report_have_libmcrypt)
+AC_SUBST(report_have_libmhash)
+AC_SUBST(report_have_mysql)
+AC_SUBST(report_have_postgres)
+AC_SUBST(report_have_freetds)
+AC_SUBST(report_have_nasm)
+AC_SUBST(report_have_pthreads)
+AC_SUBST(report_have_ldns)
+AC_SUBST(report_have_libogg)
+AC_SUBST(report_have_libshout)
+AC_SUBST(report_have_libimlib)
+AC_SUBST(report_have_libtiff)
+AC_SUBST(report_have_libmicrohttpd)
+AC_SUBST(report_have_libidn)
+
+
+
+
+AC_DEFINE(CONF_CFLAGS, $CFLAGS)
+AC_DEFINE(CONF_LIBS, $LIBS)
+
+AC_OUTPUT()
+
+
+####################################################################################################
+####################################################################################################
+####################################################################################################
+####################################################################################################
+
+
+dnl report configuration
+AC_MSG_RESULT([
+******************************************************************************
+** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
+** Target: $target_os        CPU: $target_cpu
+** 
+** Byteorder: $report_byteorder
+**   Size of char         $ac_cv_sizeof_char     Size of float        $ac_cv_sizeof_float
+**   Size of short        $ac_cv_sizeof_short     Size of double       $ac_cv_sizeof_double
+**   Size of int          $ac_cv_sizeof_int     Size of void*        $ac_cv_sizeof_voidp
+**   Size of long         $ac_cv_sizeof_long     Size of wchar_t      $ac_cv_sizeof_wchar_t
+**   Size of long long    $ac_cv_sizeof_long_long     
+**   Size of size_t       $ac_cv_sizeof_size_t
+******************************************************************************
+** Assembler:
+**   Nasm (x86 assembler): $report_have_nasm
+**
+** Threads:
+**   pthreads:             $report_have_pthreads
+**
+** Compression:
+**   ZLIB library:         $report_have_zlib
+**   BZIP2 library:        $report_have_bzip2
+**
+** Graphic:
+**   BMP:                  yes (buildin)
+**   GIF:                  yes (buildin)
+**   TGA:                  yes (buildin)
+**   PPM:                  yes (buildin)
+**   PNG library:          $report_have_png
+**   JPEG library:         $report_have_jpeg
+**   Freetype 2.x library: $report_have_freetype2
+**
+** Multimedia:
+**   SDL library:          $report_have_sdl		
+**   Lame library:         $report_have_lame
+**   Libmad library:       $report_have_libmad	
+**   mpg123 library:       $report_have_mpg123
+**   ogg library:          $report_have_libogg	  
+**   shout library:        $report_have_libshout
+**
+** Cryptography:
+**   Libgcrypt:            $report_have_libgcrypt
+**   Libgnutls:            $report_have_libgnutls
+**   OpenSSL:              $report_have_openssl
+**   MCrypt library:       $report_have_libmcrypt
+**   MHash:                $report_have_libmhash
+** Internet:
+**   Curl library:         $report_have_curl
+**   Libmicrohttpd:        $report_have_libmicrohttpd		
+**   ldns library:         $report_have_ldns
+**
+** Databases:
+**   SQLite3:              $report_have_sqlite
+**   MySQL:                $report_have_mysql
+**   Postgres:             $report_have_postgres
+**   FreeTDS:              $report_have_freetds
+**
+** Other:
+**   PCRE:                 $report_have_pcre
+**   ICONV:                $report_have_iconv
+******************************************************************************
+])
+
+
+
 
 
 

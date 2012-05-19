@@ -139,6 +139,28 @@ ByteArray::ByteArray(const ByteArrayPtr &other)
 	}
 }
 
+/*!\brief Konstruktor durch String
+ *
+ * \desc
+ * Mit diesem Konstruktor wird der Speicherbereich eines Strings in das Objekt kopiert.
+ *
+ * @param[in] other Referenz auf eine String-Klasse
+ */
+ByteArray::ByteArray(const String &str)
+{
+	type=BYTEARRAY;
+	if (str.notEmpty()) {
+		ptradr=::malloc(str.size()+1);
+		if (!ptradr) throw OutOfMemoryException();
+		memcpy(ptradr,str.getPtr(),str.size());
+		ptrsize=str.size();
+		((char*)ptradr)[ptrsize]=0;
+	} else {
+		ptradr=NULL;
+		ptrsize=0;
+	}
+}
+
 /*!\brief Copy-Konstruktor
  *
  * \desc
@@ -450,6 +472,20 @@ ByteArray &ByteArray::operator=(const ByteArrayPtr &other)
 	copy(other.ptradr, other.ptrsize);
 	return *this;
 }
+
+ByteArray &ByteArray::operator=(const String &str)
+{
+	clear();
+	if (str.notEmpty()) {
+		ptradr=::malloc(str.size()+1);
+		if (!ptradr) throw OutOfMemoryException();
+		memcpy(ptradr,str.getPtr(),str.size());
+		ptrsize=str.size();
+		((char*)ptradr)[ptrsize]=0;
+	}
+	return *this;
+}
+
 
 /*!\brief Adresse des Speicherblocks auslesen
  *

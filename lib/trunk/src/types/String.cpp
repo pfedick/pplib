@@ -2498,8 +2498,7 @@ bool String::pregMatch(const String &expression) const
 		throw UnsupportedFeatureException("PCRE");
 	#else
 		if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return false;
-		ByteArray utf8=toUtf8();
-		ByteArray expr=expression.toUtf8();
+		ByteArray expr=expression;
 		int flags=PCRE_UTF8;
 		// letzten Slash in regex finden
 
@@ -2529,7 +2528,7 @@ bool String::pregMatch(const String &expression) const
 		if (!reg) throw IllegalRegularExpressionException();
 		memset(ovector,0,30*sizeof(int));
 		//printf ("text=>>%s<<, size=%zi\n",(const char*)utf8,utf8.size());
-		if ((re=pcre_exec(reg, NULL, (const char*) utf8,utf8.size(),0, 0, ovector, 30))>=0) {
+		if ((re=pcre_exec(reg, NULL, (const char*) ptr,stringlen,0, 0, ovector, 30))>=0) {
 			pcre_free(reg);
 			return true;
 		}
@@ -2560,8 +2559,8 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		throw UnsupportedFeatureException("PCRE");
 	#else
 		if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return false;
-		ByteArray utf8=toUtf8();
-		ByteArray expr=expression.toUtf8();
+		//ByteArray utf8=toUtf8();
+		ByteArray expr=expression;
 		int flags=PCRE_UTF8;
 		// letzten Slash in regex finden
 		const char *options=::strrchr((const char*)expr,'/');
@@ -2587,10 +2586,10 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		reg=pcre_compile2(((const char*)expr+1),flags,&perrorcode,&perr, &erroffset, NULL);
 		if (!reg) throw IllegalRegularExpressionException();
 		memset(ovector,0,30*sizeof(int));
-		if ((re=pcre_exec(reg, NULL, (const char*) utf8,utf8.size(),0, 0, ovector, ovectorsize))>=0) {
+		if ((re=pcre_exec(reg, NULL, (const char*) ptr,stringlen,0, 0, ovector, ovectorsize))>=0) {
 			for (size_t i=0;i<maxmatches;i++) {
 				const char *tmp=NULL;
-				pcre_get_substring((const char*)utf8,ovector,ovectorsize,i,(const char**)&tmp);
+				pcre_get_substring((const char*)ptr,ovector,ovectorsize,i,(const char**)&tmp);
 				if (tmp) {
 					//printf("tmp[%i]=%s\n",i,tmp);
 					matches.add(tmp);
