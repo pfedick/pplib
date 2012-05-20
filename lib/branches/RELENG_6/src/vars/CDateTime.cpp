@@ -260,8 +260,6 @@ int CDateTime::set(const ppl6::CString &datetime)
 		clear();
 		return 1;
 	}
-
-
 	if (d.PregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/",&m)) {
 		// yyyy-mm-ddThh:ii:ss.msecusec[[+-]oo:00]
 		set(m.GetString(1).ToInt(),
