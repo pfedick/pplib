@@ -282,7 +282,7 @@ html:
 	-cp docs/header-bg.png documentation/html
 
 test:
-	- cd tests; make all
+	- cd tests; make xml
 	 
 
 #release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp

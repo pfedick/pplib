@@ -1005,6 +1005,14 @@ TEST_F(StringTest, pregMatchNegativ) {
 	ASSERT_FALSE(s1.pregMatch(expr));
 }
 
+TEST_F(StringTest, pregCapture) {
+	ppl7::Array m;
+	ppl7::String s1("2012-05-18");
+	ASSERT_TRUE(s1.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/",m));
+
+}
+
+
 
 TEST_F(StringTest, Utf8toUtf8) {
 	ASSERT_NO_THROW({
