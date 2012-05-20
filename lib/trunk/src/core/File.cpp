@@ -1896,23 +1896,23 @@ void File::stat(const char *filename, DirEntry &result)
 	if (st.st_mode & S_IXOTH) result.Attrib=(FileAttr::Attributes)(result.Attrib|FileAttr::OTH_EXECUTE);
 #endif
 
-	if (result.Attrib&FileAttr::IFLINK) result.AttrStr.set(0,L'l');
-	if (result.Attrib&FileAttr::IFDIR) result.AttrStr.set(0,L'd');
+	if (result.Attrib&FileAttr::IFLINK) result.AttrStr.set(0,'l');
+	if (result.Attrib&FileAttr::IFDIR) result.AttrStr.set(0,'d');
 
 
-	if (result.Attrib&FileAttr::USR_READ) result.AttrStr.set(1,L'r');
-	if (result.Attrib&FileAttr::USR_WRITE) result.AttrStr.set(2,L'w');
-	if (result.Attrib&FileAttr::USR_EXECUTE) result.AttrStr.set(3,L'x');
-	if (result.Attrib&FileAttr::ISUID) result.AttrStr.set(3,L's');
+	if (result.Attrib&FileAttr::USR_READ) result.AttrStr.set(1,'r');
+	if (result.Attrib&FileAttr::USR_WRITE) result.AttrStr.set(2,'w');
+	if (result.Attrib&FileAttr::USR_EXECUTE) result.AttrStr.set(3,'x');
+	if (result.Attrib&FileAttr::ISUID) result.AttrStr.set(3,'s');
 
-	if (result.Attrib&FileAttr::GRP_READ) result.AttrStr.set(4,L'r');
-	if (result.Attrib&FileAttr::GRP_WRITE) result.AttrStr.set(5,L'w');
-	if (result.Attrib&FileAttr::GRP_EXECUTE) result.AttrStr.set(6,L'x');
-	if (result.Attrib&FileAttr::ISGID) result.AttrStr.set(6,L's');
+	if (result.Attrib&FileAttr::GRP_READ) result.AttrStr.set(4,'r');
+	if (result.Attrib&FileAttr::GRP_WRITE) result.AttrStr.set(5,'w');
+	if (result.Attrib&FileAttr::GRP_EXECUTE) result.AttrStr.set(6,'x');
+	if (result.Attrib&FileAttr::ISGID) result.AttrStr.set(6,'s');
 
-	if (result.Attrib&FileAttr::OTH_READ) result.AttrStr.set(7,L'r');
-	if (result.Attrib&FileAttr::OTH_WRITE) result.AttrStr.set(8,L'w');
-	if (result.Attrib&FileAttr::OTH_EXECUTE) result.AttrStr.set(9,L'x');
+	if (result.Attrib&FileAttr::OTH_READ) result.AttrStr.set(7,'r');
+	if (result.Attrib&FileAttr::OTH_WRITE) result.AttrStr.set(8,'w');
+	if (result.Attrib&FileAttr::OTH_EXECUTE) result.AttrStr.set(9,'x');
 }
 
 /*!\brief Pfad ohne Dateinamen

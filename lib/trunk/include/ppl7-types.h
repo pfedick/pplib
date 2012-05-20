@@ -280,8 +280,8 @@ class String : public Variant
 		String & set(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(wchar_t c) throw(OutOfMemoryException);
-		String & set(size_t position, wchar_t c) throw(OutOfBoundsEception);
+		String & set(char c) throw(OutOfMemoryException);
+		String & set(size_t position, char c) throw(OutOfBoundsEception);
 		String & set(const Variant &var) throw(OutOfMemoryException);
 		String & setf(const char *fmt, ...);
 
@@ -403,13 +403,13 @@ class String : public Variant
 		String& operator=(const Variant &str);
 		String& operator=(const std::string &str);
 		String& operator=(const std::wstring &str);
-		String& operator=(wchar_t c);
+		String& operator=(char c);
 		String& operator+=(const char* str);
 		String& operator+=(const wchar_t* str);
 		String& operator+=(const String& str);
 		String& operator+=(const std::string &str);
 		String& operator+=(const std::wstring &str);
-		String& operator+=(wchar_t c);
+		String& operator+=(char c);
 
 
 		bool operator<(const String &str) const;

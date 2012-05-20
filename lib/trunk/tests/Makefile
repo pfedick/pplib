@@ -6,10 +6,10 @@ CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_
 LIBS	= `../ppl7-config --libs debug source` -lstdc++
 PROGNAME = testsuite
 
-OBJECTS = compile/strings.o
+OBJECTS = compile/main.o compile/strings.o compile/datetime.o
 
 #OBJECTS = compile/memoryheap.o compile/memorygroup.o compile/array.o \
-#		compile/avltree.o compile/assocarray.o compile/pointer.o compile/datetime.o \
+#		compile/avltree.o compile/assocarray.o compile/pointer.o \
 #		compile/bytearray.o compile/bytearrayptr.o compile/functions.o \
 #		compile/file.o compile/dir.o compile/list.o compile/inet.o \
 #		compile/grafix_drawable.o compile/grafix_imagefilter.o compile/gfxreftest.o
@@ -20,6 +20,9 @@ $(PROGNAME): compile/libgtest.a $(OBJECTS)
 
 all: $(PROGNAME)
 	./$(PROGNAME)
+	
+xml: $(PROGNAME)
+	./$(PROGNAME) --gtest_output=xml
 
 clean:
 	-rm -rf compile tmp.grafixtest.png
@@ -29,6 +32,11 @@ compile/libgtest.a:
 	mkdir -p compile
 	g++ -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
 	ar -rv compile/libgtest.a compile/gtest-all.o
+
+
+compile/main.o: src/main.cpp Makefile
+	mkdir -p compile
+	$(CC) $(CFLAGS) -o compile/main.o -c src/main.cpp
 
 compile/functions.o: src/functions.cpp Makefile
 	mkdir -p compile

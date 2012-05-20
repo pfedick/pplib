@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="103" failures="1" disabled="0" errors="0" time="0.021" name="AllTests">
+  <testsuite name="DateTimeTest" tests="2" failures="1" disabled="0" errors="0" time="0.001">
+    <testcase name="ConstructorSimple" status="run" time="0.001" classname="DateTimeTest" />
+    <testcase name="ConstructorWithDate" status="run" time="0" classname="DateTimeTest">
+      <failure message="Expected: { ppl7::DateTime d1(&quot;2012-05-18&quot;); switch (0) case 0: default: if (const ::testing::AssertionResult gtest_ar_ = ::testing::AssertionResult(d1.notEmpty())) ; else return ::testing::internal::AssertHelper(::testing::TestPartResult::kFatalFailure, &quot;src/datetime.cpp&quot;, 79, ::testing::internal::GetBoolAssertionFailureMessage( gtest_ar_, &quot;d1.notEmpty()&quot;, &quot;false&quot;, &quot;true&quot;).c_str()) = ::testing::Message() &lt;&lt; &quot;Class is empty&quot;; switch (0) case 0: default: if (const ::testing::AssertionResult gtest_ar = (::testing::internal:: EqHelper&lt;(sizeof(::testing::internal::IsNullLiteralHelper(ppl7::String(&quot;2012-05-18&quot;))) == 1)&gt;::Compare(&quot;ppl7::String(\&quot;2012-05-18\&quot;)&quot;, &quot;d1.getDate()&quot;, ppl7::String(&quot;2012-05-18&quot;), d1.getDate()))) ; else return ::testing::internal::AssertHelper(::testing::TestPartResult::kFatalFailure, &quot;src/datetime.cpp&quot;, 79, gtest_ar.failure_message()) = ::testing::Message() &lt;&lt; &quot;Unexpected date&quot;; switch (0) case 0: default: if (const ::testing::AssertionResult gtest_ar = (::testing::internal:: EqHelper&lt;(sizeof(::testing::internal::IsNullLiteralHelper(ppl7::String(&quot;2012-05-18 00:00:00&quot;))) == 1)&gt;::Compare(&quot;ppl7::String(\&quot;2012-05-18 00:00:00\&quot;)&quot;, &quot;d1.get()&quot;, ppl7::String(&quot;2012-05-18 00:00:00&quot;), d1.get()))) ; else return ::testing::internal::AssertHelper(::testing::TestPartResult::kFatalFailure, &quot;src/datetime.cpp&quot;, 79, gtest_ar.failure_message()) = ::testing::Message() &lt;&lt; &quot;Unexpected date&quot;; } doesn&apos;t throw an exception.&#x0A;  Actual: it throws." type=""><![CDATA[src/datetime.cpp:79
+Expected: { ppl7::DateTime d1("2012-05-18"); switch (0) case 0: default: if (const ::testing::AssertionResult gtest_ar_ = ::testing::AssertionResult(d1.notEmpty())) ; else return ::testing::internal::AssertHelper(::testing::TestPartResult::kFatalFailure, "src/datetime.cpp", 79, ::testing::internal::GetBoolAssertionFailureMessage( gtest_ar_, "d1.notEmpty()", "false", "true").c_str()) = ::testing::Message() << "Class is empty"; switch (0) case 0: default: if (const ::testing::AssertionResult gtest_ar = (::testing::internal:: EqHelper<(sizeof(::testing::internal::IsNullLiteralHelper(ppl7::String("2012-05-18"))) == 1)>::Compare("ppl7::String(\"2012-05-18\")", "d1.getDate()", ppl7::String("2012-05-18"), d1.getDate()))) ; else return ::testing::internal::AssertHelper(::testing::TestPartResult::kFatalFailure, "src/datetime.cpp", 79, gtest_ar.failure_message()) = ::testing::Message() << "Unexpected date"; switch (0) case 0: default: if (const ::testing::AssertionResult gtest_ar = (::testing::internal:: EqHelper<(sizeof(::testing::internal::IsNullLiteralHelper(ppl7::String("2012-05-18 00:00:00"))) == 1)>::Compare("ppl7::String(\"2012-05-18 00:00:00\")", "d1.get()", ppl7::String("2012-05-18 00:00:00"), d1.get()))) ; else return ::testing::internal::AssertHelper(::testing::TestPartResult::kFatalFailure, "src/datetime.cpp", 79, gtest_ar.failure_message()) = ::testing::Message() << "Unexpected date"; } doesn't throw an exception.
+  Actual: it throws.]]></failure>
+    </testcase>
+  </testsuite>
+  <testsuite name="StringTest" tests="101" failures="0" disabled="0" errors="0" time="0.02">
+    <testcase name="ConstructorSimple" status="run" time="0" classname="StringTest" />
+    <testcase name="ConstructorFromCharPtr" status="run" time="0" classname="StringTest" />
+    <testcase name="ConstructorFromStringPtr" status="run" time="0" classname="StringTest" />
+    <testcase name="ConstructorFromString" status="run" time="0" classname="StringTest" />
+    <testcase name="ConstructorFromStdString" status="run" time="0" classname="StringTest" />
+    <testcase name="ConstructorFromStdWString" status="run" time="0" classname="StringTest" />
+    <testcase name="clear" status="run" time="0" classname="StringTest" />
+    <testcase name="CapacityAndReserve" status="run" time="0" classname="StringTest" />
+    <testcase name="len" status="run" time="0" classname="StringTest" />
+    <testcase name="length" status="run" time="0" classname="StringTest" />
+    <testcase name="size" status="run" time="0" classname="StringTest" />
+    <testcase name="isEmpty" status="run" time="0" classname="StringTest" />
+    <testcase name="notEmpty" status="run" time="0" classname="StringTest" />
+    <testcase name="isNumeric" status="run" time="0" classname="StringTest" />
+    <testcase name="isInteger" status="run" time="0" classname="StringTest" />
+    <testcase name="isTrue" status="run" time="0" classname="StringTest" />
+    <testcase name="isFalse" status="run" time="0" classname="StringTest" />
+    <testcase name="setConstCharWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setConstCharWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setConstWChartWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setConstWChartWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setStringPtrWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setStringPtrWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setStringRefWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setStringRefWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setSTDStringRefWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setSTDStringRefWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setSTDWStringRefWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setSTDWStringRefWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="setf" status="run" time="0.001" classname="StringTest" />
+    <testcase name="setWchart" status="run" time="0" classname="StringTest" />
+    <testcase name="vasprintf" status="run" time="0" classname="StringTest" />
+    <testcase name="appendConstWchartWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendConstWchartWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendConstCharPtrWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendConstCharPtrWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStringPtrWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStringPtrWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStringWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStringWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStdStringWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStdStringWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStdWStringWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendStdWStringWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="appendf" status="run" time="0" classname="StringTest" />
+    <testcase name="appendWchart" status="run" time="0" classname="StringTest" />
+    <testcase name="prependConstWchartWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependConstWchartWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependConstCharPtrWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependConstCharPtrWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStringPtrWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStringPtrWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStringWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStringWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStdStringWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStdStringWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStdWStringWithoutSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependStdWStringWithSize" status="run" time="0" classname="StringTest" />
+    <testcase name="prependf" status="run" time="0" classname="StringTest" />
+    <testcase name="prependWchart" status="run" time="0" classname="StringTest" />
+    <testcase name="chopRight" status="run" time="0" classname="StringTest" />
+    <testcase name="chopLeft" status="run" time="0" classname="StringTest" />
+    <testcase name="chop" status="run" time="0" classname="StringTest" />
+    <testcase name="chomp" status="run" time="0" classname="StringTest" />
+    <testcase name="strstr" status="run" time="0" classname="StringTest" />
+    <testcase name="repeated" status="run" time="0" classname="StringTest" />
+    <testcase name="trimLeft" status="run" time="0" classname="StringTest" />
+    <testcase name="trimRight" status="run" time="0" classname="StringTest" />
+    <testcase name="trim" status="run" time="0" classname="StringTest" />
+    <testcase name="trimLeftEmptyResult" status="run" time="0" classname="StringTest" />
+    <testcase name="trimRightEmptyResult" status="run" time="0" classname="StringTest" />
+    <testcase name="trimEmptyResult" status="run" time="0" classname="StringTest" />
+    <testcase name="trimLeftChars" status="run" time="0" classname="StringTest" />
+    <testcase name="trimRightChars" status="run" time="0" classname="StringTest" />
+    <testcase name="trimChars" status="run" time="0" classname="StringTest" />
+    <testcase name="trimLeftCharsEmptyResult" status="run" time="0" classname="StringTest" />
+    <testcase name="trimRightCharsEmptyResult" status="run" time="0" classname="StringTest" />
+    <testcase name="trimEmptyCharsResult" status="run" time="0" classname="StringTest" />
+    <testcase name="operatorEqualEmpty" status="run" time="0" classname="StringTest" />
+    <testcase name="strcmpEmpty" status="run" time="0" classname="StringTest" />
+    <testcase name="strcmpLower" status="run" time="0" classname="StringTest" />
+    <testcase name="strcmpLowerWithCase" status="run" time="0" classname="StringTest" />
+    <testcase name="strcmpHigher" status="run" time="0" classname="StringTest" />
+    <testcase name="strcmpHigherWithCase" status="run" time="0" classname="StringTest" />
+    <testcase name="strcmpEqual" status="run" time="0" classname="StringTest" />
+    <testcase name="strcasecmpEmpty" status="run" time="0" classname="StringTest" />
+    <testcase name="strcasecmpLower" status="run" time="0" classname="StringTest" />
+    <testcase name="strcasecmpLowerWithCase" status="run" time="0" classname="StringTest" />
+    <testcase name="strcasecmpHigher" status="run" time="0" classname="StringTest" />
+    <testcase name="strcasecmpHigherWithCase" status="run" time="0" classname="StringTest" />
+    <testcase name="strcasecmpEqual" status="run" time="0" classname="StringTest" />
+    <testcase name="left" status="run" time="0" classname="StringTest" />
+    <testcase name="right" status="run" time="0" classname="StringTest" />
+    <testcase name="midWithLength" status="run" time="0" classname="StringTest" />
+    <testcase name="midWithoutLength" status="run" time="0" classname="StringTest" />
+    <testcase name="substrWithLength" status="run" time="0" classname="StringTest" />
+    <testcase name="substrWithoutLength" status="run" time="0" classname="StringTest" />
+    <testcase name="pregMatchPositive" status="run" time="0" classname="StringTest" />
+    <testcase name="pregMatchNegativ" status="run" time="0" classname="StringTest" />
+    <testcase name="Utf8toUtf8" status="run" time="0" classname="StringTest" />
+    <testcase name="ISO88591toUtf8" status="run" time="0" classname="StringTest" />
+  </testsuite>
+</testsuites>

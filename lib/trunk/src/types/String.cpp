@@ -728,7 +728,7 @@ String & String::set(const std::wstring &str, size_t size) throw(OutOfMemoryExce
  * \throw OutOfBoundsEception: Wird geworfen, wenn \p position größer ist, als die
  * Länge des Strings
  */
-String & String::set(size_t position, wchar_t c) throw(OutOfBoundsEception)
+String & String::set(size_t position, char c) throw(OutOfBoundsEception)
 {
 	if (position>=stringlen) throw OutOfBoundsEception();
 	ptr[position]=c;
@@ -784,18 +784,18 @@ String & String::setf(const char *fmt, ...)
     throw Exception();
 }
 
-/*!\brief Einzelnes Unicode-Zeichen übernehmen
+/*!\brief Einzelnes ASCII-Zeichen übernehmen
  *
  * \desc
- * Ein einzelnes Unicode-Zeichen \p c wird in den String übernommen.
+ * Ein einzelnes ASCII-Zeichen \p c wird in den String übernommen.
  *
- * @param c Unicode-Wert des gewünschten Zeichens
+ * @param c ASCII-Wert des gewünschten Zeichens
  *
  * @return Referenz auf den String
  */
-String & String::set(wchar_t c) throw(OutOfMemoryException)
+String & String::set(char c) throw(OutOfMemoryException)
 {
-	wchar_t buffer[2];
+	char buffer[2];
 	buffer[0]=c;
 	buffer[1]=0;
 	return set(buffer,1);
@@ -818,7 +818,7 @@ void MyFunction(const char *fmt, ...)
 	va_start(args, fmt);
 	s.vasprintf(fmt,args);
 	va_end(args);
-	printf ("Ergebnis: %ls",(const wchar_t*)s);
+	printf ("Ergebnis: %s",(const char*)s);
 }
 \endcode
  *
@@ -1237,7 +1237,7 @@ String & String::prependf(const char *fmt, ...)
 			String a;
 			a.set(buff);
 			free(buff);
-			prepend((wchar_t*)a.ptr,a.stringlen);
+			prepend(a.ptr,a.stringlen);
 		} catch(...) {
 			free(buff);
 			va_end(args);
@@ -1351,6 +1351,10 @@ ByteArray String::toUCS4() const
 String &String::fromUCS4(const ppluint32 *str, size_t size)
 {
 	clear();
+	/*TODO: Muss noch implementiert werden
+	 *
+	 */
+	throw UnsupportedFeatureException("String::fromUCS not implemented yet");
 	wchar_t c;
 	for (size_t i=0;str[i]!=0;i++) {
 		if (size!=(size_t)-1 && i>=size) break;
@@ -1570,7 +1574,7 @@ String& String::operator=(const std::wstring &str)
  * @param[in] c Unicode Wert des zu übernehmenden Zeichens
  * @return Referenz auf diese Instanz der Klasse
  */
-String& String::operator=(wchar_t c)
+String& String::operator=(char c)
 {
 	return set(c);
 }
@@ -1654,7 +1658,7 @@ String& String::operator+=(const std::wstring &str)
  * @param[in] c Unicode-Wert des anzuhängenden Zeichens
  * @return Referenz auf diese Instanz der Klasse
  */
-String& String::operator+=(wchar_t c)
+String& String::operator+=(char c)
 {
 	return append(c);
 }
@@ -1819,29 +1823,44 @@ String String::substr(size_t start, size_t len) const
  *
  * \attention Unter UNIX (und möglicherweise anderen Betriebssystemen) werden die Lokalisationseinstellungen der
  * Umgebung nicht automatisch übernommen, sondern stehen standardmäßig auf "C". Dadurch werden nur US-ASCII
- * (ASCII 32 bis 127) umgewandelt. Man sollte daher nach Programmstart mit "setlocale" die gewünschte
+ * (ASCII 32 bis 127) umgewandelt. Man sollte daher bei Programmstart mit "setlocale" die gewünschte
  * Spracheinstellung vornehmen.
  *
  * \example
  * \code
  * #include <locale.h>
  * ...
+ * // Lokalisierung explizit setzen
  * setlocale(LC_CTYPE,"de_DE.UTF-8");
+ * // oder Lokalisierung von den Systemeinstellungen übernehmen
+ * setlocale(LC_CTYPE,"");
  * \endcode
  * \par
  */
 void String::lowerCase()
 {
-	if (ptr!=NULL && stringlen>0) {
-		wchar_t c,wc;
-		for (size_t i=0;i<stringlen;i++) {
-			wc=ptr[i];
-			c=towlower(wc);
-			if (c!=(wchar_t)WEOF) {
-				ptr[i]=c;
-			}
+	if (ptr==NULL || stringlen==0) return;
+
+	// Wir wandeln den String zunächst nach Unicode um
+	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
+	if (!buffer) throw OutOfMemoryException();
+	if (mbtowc(buffer, ptr,stringlen)<=0) {
+		free(buffer);
+		throw CharacterEncodingException();
+	}
+	size_t l=wcslen(buffer);
+	// Umwandeln
+	wchar_t c,wc;
+	for (size_t i=0;i<l;i++) {
+		wc=buffer[i];
+		c=towlower(wc);
+		if (c!=(wchar_t)WEOF) {
+			buffer[i]=c;
 		}
 	}
+	// Zurück im String speichern
+	set(buffer,l);
+	free(buffer);
 }
 
 /*! \brief Wandelt alle Zeichen des Strings in Grossbuchstaben um
@@ -1864,16 +1883,28 @@ void String::lowerCase()
  */
 void String::upperCase()
 {
-	if (ptr!=NULL && stringlen>0) {
-		wchar_t c,wc;
-		for (size_t i=0;i<stringlen;i++) {
-			wc=ptr[i];
-			c=towupper(wc);
-			if (c!=(wchar_t)WEOF) {
-				ptr[i]=c;
-			}
+	if (ptr==NULL || stringlen==0) return;
+
+	// Wir wandeln den String zunächst nach Unicode um
+	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
+	if (!buffer) throw OutOfMemoryException();
+	if (mbtowc(buffer, ptr,stringlen)<=0) {
+		free(buffer);
+		throw CharacterEncodingException();
+	}
+	size_t l=wcslen(buffer);
+	// Umwandeln
+	wchar_t c,wc;
+	for (size_t i=0;i<l;i++) {
+		wc=buffer[i];
+		c=towupper(wc);
+		if (c!=(wchar_t)WEOF) {
+			buffer[i]=c;
 		}
 	}
+	// Zurück im String speichern
+	set(buffer,l);
+	free(buffer);
 }
 
 /*!\brief Anfangsbuchstaben der Wörter groß
@@ -1884,24 +1915,34 @@ void String::upperCase()
  */
 void String::upperCaseWords()
 {
-	if (ptr!=NULL && stringlen>0) {
-		wchar_t c,wc;
-		bool wordstart=true;
-		for (size_t i=0;i<stringlen;i++) {
-			wc=ptr[i];
-			if (wordstart) {
-				c=towupper(wc);
-				if (c!=(wchar_t)WEOF) {
-					ptr[i]=c;
-				}
-			}
-			if (wc<48 || (wc>57 && wc<65) || (wc>90 && wc<97) || (wc>122 && wc<127) ) {
-				wordstart=true;
-			} else {
-				wordstart=false;
+	if (ptr==NULL || stringlen==0) return;
+
+	// Wir wandeln den String zunächst nach Unicode um
+	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
+	if (!buffer) throw OutOfMemoryException();
+	if (mbtowc(buffer, ptr,stringlen)<=0) {
+		free(buffer);
+		throw CharacterEncodingException();
+	}
+	size_t l=wcslen(buffer);
+	wchar_t c,wc;
+	bool wordstart=true;
+	for (size_t i=0;i<l;i++) {
+		wc=buffer[i];
+		if (wordstart) {
+			c=towupper(wc);
+			if (c!=(wchar_t)WEOF) {
+				buffer[i]=c;
 			}
 		}
+		if (wc<48 || (wc>57 && wc<65) || (wc>90 && wc<97) || (wc>122 && wc<127) ) {
+			wordstart=true;
+		} else {
+			wordstart=false;
+		}
 	}
+	set(buffer,l);
+	free(buffer);
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
@@ -2078,7 +2119,7 @@ void String::chopLeft(size_t num)
 {
 	if (ptr!=NULL && stringlen>0) {
 		if (stringlen<num) num=stringlen;
-		memmove(ptr,ptr+num,(stringlen-num)*sizeof(wchar_t));
+		memmove(ptr,ptr+num,(stringlen-num)*sizeof(char));
 		stringlen-=num;
 		ptr[stringlen]=0;
 	}
@@ -2308,7 +2349,7 @@ String &String::stripSlashes()
 {
 	if (ptr==NULL || stringlen==0) return *this;
 	size_t p=0, np=0;
-	wchar_t a, lastchar=0;
+	char a, lastchar=0;
 	while ((a=ptr[p])) {
 		if (lastchar!='\\' && p>0) {
 			ptr[np]=lastchar;

@@ -1043,12 +1043,6 @@ TEST_F(StringTest, ISO88591toUtf8) {
 }
 
 
-int main (int argc, char**argv)
-{
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-}
-
 #ifdef old
 	printf ("sizeof String: %zd\n",sizeof(ppl7::String));
 	if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
