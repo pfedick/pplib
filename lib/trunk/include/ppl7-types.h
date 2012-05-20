@@ -998,11 +998,11 @@ class DateTime : public Variant
 		void setTime_t(ppluint64 t);
 		void setEpoch(ppluint64 t);
 		void setLongInt(ppluint64 i);
-		int set(const String &datetime);
+		void set(const String &datetime);
 		void set(const DateTime &other);
-		int set(const String &date, const String &time);
-		int setDate(const String &date);
-		int setTime(const String &time);
+		void set(const String &date, const String &time);
+		void setDate(const String &date);
+		void setTime(const String &time);
 		void set(int year, int month, int day, int hour=0, int minute=0, int sec=0, int msec=0, int usec=0);
 		void setCurrentTime();
 		void print() const;

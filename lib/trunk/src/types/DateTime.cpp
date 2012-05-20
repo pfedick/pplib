@@ -157,7 +157,7 @@ DateTime::DateTime()
 DateTime::DateTime(const String &datetime)
 {
 	type=Variant::DATETIME;
-	if (!set(datetime)) throw IllegalArgumentException();
+	set(datetime);
 }
 
 /*!\brief Copy-Konstruktor
@@ -235,15 +235,16 @@ void DateTime::clear()
  * - T: wird als Leerstring interpretiert und setzt das Datum auf 0
  * - Leerstring: setzt das Datum auf 0
  * \par Legende:
- * - yyyy: 4-Stellige Jahreszahl. Muss zwingen 4-stellig sein, da sonst nicht erkannt wird ob die Jahreszahl
+ * - yyyy: 4-Stellige Jahreszahl. Muss zwingend 4-stellig sein, da sonst nicht erkannt wird ob die Jahreszahl
  *   an erster oder dritter Stelle steht. Jahreszahlen < 1000 müssen daher mit führenden Nullen aufgefüllt
- *   werden, z.B. "0500" statt "500".
+ *   werden, z.B. "0500" statt "500". Es werden keine negativen Jahreszahlen unterstützt.
  * - mm: Monatszahl zwischen 1 und 12. Kann ein- oder zweistellig sein
  * - dd: Monatstag zwischen 1 und 31, kann ein- oder zweistellig sein.
  * - hh: Stunden zwischen 0 und 23, kann ein- oder zweistellig sein
  * - ii: Minuten zwischen 0 und 59, kann ein- oder zweistellig sein
  * - ss: Sekunden zwischen 0 und 59, kann ein- oder zweistellig sein
- * - mms: Millisekunden zwischen 0 und 999, kann ein- bis dreistellig sein, Wert ist optional und kann statt mit einem Punkt
+ * - mms: Millisekunden oder Mikrosekunden: Ein dreistelliger Wert wird als Millisekunden
+ *   interpretiert, ein sechstelliger Wert als Mikrosekunden. Wert ist optional und kann statt mit einem Punkt
  *   auch mit einem Doppelpunkt von den Sekunden der Uhrzeit getrennt sein.
  * \par
  * Bei der Datumsangabe kann als Trennzeichen wahlweise Punkt oder Minus verwendet werden. Es muss mindestens ein
@@ -251,21 +252,20 @@ void DateTime::clear()
  * optional sind.
  *
  * @param[in] datetime String mit dem zu setzenden Datum und optional der Uhrzeit
- * @return Wurde der String erfolgreich erkannt, liefert die Funktion 1 zurück, andernfalls 0. Ferner wird der
- * Fehlercode 558 gesetzt.
+ * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
+ * ein ungültiges oder unbekanntes Datumsformat hat.
+ * Ausnahmen: Ist der String leer oder enthält nur den
+ * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
-int DateTime::set(const String &datetime)
+void DateTime::set(const String &datetime)
 {
 	String d=UpperCase(Trim(datetime));
 	Array m;
 	d.replace(","," ");
 	if (d.isEmpty()==true || d=="T" || d=="0") {
 		clear();
-		return 1;
+		return;
 	}
-	//printf ("Erkennung: >>%s<< => >>%s<<\n",(const char*)datetime, (const char*)d);
-
-
 	if (d.pregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/",m)) {
 		// yyyy-mm-ddThh:ii:ss.msecusec[[+-]oo:00]
 		set(m.get(1).toInt(),
@@ -294,7 +294,17 @@ int DateTime::set(const String &datetime)
 				m.get(4).toInt(),
 				m.get(5).toInt(),
 				m.get(6).toInt());
-	} else if (d.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,4})$/",m)) {
+	} else if (d.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",m)) {
+		// yyyy.mm.dd hh:ii:ss.msecusec
+		set(m.get(1).toInt(),
+				m.get(2).toInt(),
+				m.get(3).toInt(),
+				m.get(4).toInt(),
+				m.get(5).toInt(),
+				m.get(6).toInt(),
+				m.get(7).toInt(),
+				m.get(8).toInt());
+	} else if (d.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/",m)) {
 		// yyyy.mm.dd hh:ii:ss.msec
 		set(m.get(1).toInt(),
 				m.get(2).toInt(),
@@ -303,7 +313,17 @@ int DateTime::set(const String &datetime)
 				m.get(5).toInt(),
 				m.get(6).toInt(),
 				m.get(7).toInt());
-	} else if (d.pregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,4})$/",m)) {
+	} else if (d.pregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/",m)) {
+		// dd.mm.yyyy hh:ii:ss.msecusec
+		set(m.get(3).toInt(),
+				m.get(2).toInt(),
+				m.get(1).toInt(),
+				m.get(4).toInt(),
+				m.get(5).toInt(),
+				m.get(6).toInt(),
+				m.get(7).toInt(),
+				m.get(8).toInt());
+	} else if (d.pregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/",m)) {
 		// dd.mm.yyyy hh:ii:ss.msec
 		set(m.get(3).toInt(),
 				m.get(2).toInt(),
@@ -340,13 +360,11 @@ int DateTime::set(const String &datetime)
 				m.get(3).toInt());
 	} else if (d.pregMatch("/^null$/i",m)) {
 		clear();
-		return 1;
+		return;
 	} else {
 		clear();
-		throw InvalidDateException(datetime);
-		return 0;
+		throw IllegalArgumentException("DateTime::set("+datetime+")");
 	}
-	return 1;
 }
 
 /*!\brief Datum aus einer anderen DateTime-Variablen übernehmen
@@ -386,13 +404,15 @@ void DateTime::set(const DateTime &other)
  * - hh:ii:ss[.mms]
  * - Stunde, Minute und Sekunde können ein- oder zweistellig sein, Statt Doppelpunkt kann auch Komma, Punkt oder
  *   Minus als Trennzeichen verwendet werden. Die
- * @return Wurden Datum und Uhrzeit erfolgreich erkannt, liefert die Funktion 1 zurück, andernfalls 0. Ferner wird der
- * Fehlercode 558 gesetzt.
+ * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
+ * ein ungültiges oder unbekanntes Datumsformat hat.
+ * Ausnahmen: Ist der String leer oder enthält nur den
+ * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  * \see
  * Eine genauere Beschreibung der Formate samt Legende ist \ref DateTime::set(const String &datetime) "hier"
  * zu finden.
  */
-int DateTime::set(const String &date, const String &time)
+void DateTime::set(const String &date, const String &time)
 {
 	String d,dd=Trim(date),tt=Trim(time);
 	dd.replace(",",".");
@@ -402,7 +422,7 @@ int DateTime::set(const String &date, const String &time)
 	tt.replace("-",":");
 
 	d=dd+" "+tt;
-	return set(d);
+	set(d);
 }
 
 /*!\brief Datum setzen, Uhrzeit bleibt unverändert
@@ -412,13 +432,15 @@ int DateTime::set(const String &date, const String &time)
  *
  * @param[in] date Referenz auf den String mit dem zu setzenden Datum. Das Format wird bei der
  * \ref DateTime::set(const String &date, const String &time) "set-Funktion" genauer beschrieben.
- * @return Wurde das Datum erfolgreich erkannt, liefert die Funktion 1 zurück, andernfalls 0. Ferner wird der
- * Fehlercode 558 gesetzt.
+ * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
+ * ein ungültiges oder unbekanntes Datumsformat hat.
+ * Ausnahmen: Ist der String leer oder enthält nur den
+ * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
-int DateTime::setDate(const String &date)
+void DateTime::setDate(const String &date)
 {
 	String time=getTime();
-	return set(date,time);
+	set(date,time);
 }
 
 /*!\brief Uhrzeit setzen, Datum bleibt unverändert
@@ -428,10 +450,12 @@ int DateTime::setDate(const String &date)
  *
  * @param[in] time Referenz auf den String mit der zu setzenden Uhrzeit. Das Format wird bei der
  * \ref DateTime::set(const String &date, const String &time) "set-Funktion" genauer beschrieben.
- * @return Wurde die Uhrzeit erfolgreich erkannt, liefert die Funktion 1 zurück, andernfalls 0. Ferner wird der
- * Fehlercode 558 gesetzt.
+ * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
+ * ein ungültiges oder unbekanntes Datumsformat hat.
+ * Ausnahmen: Ist der String leer oder enthält nur den
+ * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
-int DateTime::setTime(const String &time)
+void DateTime::setTime(const String &time)
 {
 	String date=getDate();
 	return set(date,time);
@@ -1244,14 +1268,14 @@ int DateTime::compareSeconds(const DateTime &other, int tolerance) const
  * @param[in] datetime String mit Datum und Uhrzeit
  * @return Gibt eine Referenz auf den DateTime-Wert zurück
  *
- * \exception
- * Enthält der String \p datetime ein ungültiges oder unbekanntes Datumsformat, wird eine
- * "InvalidFormat" Exception geworfen. Ausnahmen: Ist der String leer oder enthält nur den
+ * \exception IllegalArgumentException: Wird geworfen, wenn der String \p datetime
+ * ein ungültiges oder unbekanntes Datumsformat hat.
+ * Ausnahmen: Ist der String leer oder enthält nur den
  * Buchstaben "T" oder den Wert "0" wird keine Exception geworfen, sondern der Datumswert auf 0 gesetzt.
  */
 DateTime& DateTime::operator=(const String &datetime)
 {
-	if (!set(datetime)) throw InvalidDateException(datetime);
+	set(datetime);
 	return *this;
 }
 
@@ -1284,11 +1308,10 @@ DateTime::operator String() const
 	return r;
 }
 
-
 /*!\brief Vergleichsoperator "kleiner": <
  *
  * \desc
- * Mit diesem Operator werden zwei DateTime Werte miteinander verglichen. Die Funktion gibt \c true
+ * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
  * zurück, wenn der erste Wert kleiner ist als der Zweite.
  *
  * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
@@ -1296,20 +1319,32 @@ DateTime::operator String() const
  */
 bool DateTime::operator<(const DateTime &other) const
 {
-	if (yy>=other.yy) return false;
-	if (mm>=other.mm) return false;
-	if (dd>=other.dd) return false;
-	if (hh>=other.hh) return false;
-	if (ii>=other.ii) return false;
-	if (ss>=other.ss) return false;
-	if (us>=other.us) return false;
-	return true;
+	if (yy<other.yy) return true;
+	else if (yy>other.yy) return false;
+
+	if (mm<other.mm) return true;
+	else if (mm>other.mm) return false;
+
+	if (dd<other.dd) return true;
+	else if (dd>other.dd) return false;
+
+	if (hh<other.hh) return true;
+	else if (hh>other.hh) return false;
+
+	if (ii<other.ii) return true;
+	else if (ii>other.ii) return false;
+
+	if (ss<other.ss) return true;
+	else if (ss>other.ss) return false;
+
+	if (us<other.us) return true;
+	return false;
 }
 
 /*!\brief Vergleichsoperator "kleiner oder gleich": <=
  *
  * \desc
- * Mit diesem Operator werden zwei DateTime Werte miteinander verglichen. Die Funktion gibt \c true
+ * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
  * zurück, wenn der erste Wert kleiner oder gleich groß ist, wie der Zweite.
  *
  * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
@@ -1317,20 +1352,33 @@ bool DateTime::operator<(const DateTime &other) const
  */
 bool DateTime::operator<=(const DateTime &other) const
 {
-	if (yy>other.yy) return false;
-	if (mm>other.mm) return false;
-	if (dd>other.dd) return false;
-	if (hh>other.hh) return false;
-	if (ii>other.ii) return false;
-	if (ss>other.ss) return false;
-	if (us>other.us) return false;
+	if (yy<other.yy) return true;
+	else if (yy>other.yy) return false;
+
+	if (mm<other.mm) return true;
+	else if (mm>other.mm) return false;
+
+	if (dd<other.dd) return true;
+	else if (dd>other.dd) return false;
+
+	if (hh<other.hh) return true;
+	else if (hh>other.hh) return false;
+
+	if (ii<other.ii) return true;
+	else if (ii>other.ii) return false;
+
+	if (ss<other.ss) return true;
+	else if (ss>other.ss) return false;
+
+	if (us<other.us) return true;
+	else if (ss>other.ss) return false;
 	return true;
 }
 
 /*!\brief Vergleichsoperator "gleich": ==
  *
  * \desc
- * Mit diesem Operator werden zwei DateTime Werte miteinander verglichen. Die Funktion gibt \c true
+ * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
  * zurück, wenn beide Werte identisch sind.
  *
  * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
@@ -1351,7 +1399,7 @@ bool DateTime::operator==(const DateTime &other) const
 /*!\brief Vergleichsoperator "ungleich": !=
  *
  * \desc
- * Mit diesem Operator werden zwei DateTime Werte miteinander verglichen. Die Funktion gibt \c true
+ * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
  * zurück, wenn die Werte nicht übereinstimmen.
  *
  * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
@@ -1367,12 +1415,18 @@ bool DateTime::operator!=(const DateTime &other) const
 	if (ss!=other.ss) return true;
 	if (us!=other.us) return true;
 	return false;
+	/*
+	ppluint64 v1=longInt();
+	ppluint64 v2=other.longInt();
+	if (v1!=v2) return true;
+	return false;
+	*/
 }
 
 /*!\brief Vergleichsoperator "größer oder gleich": >=
  *
  * \desc
- * Mit diesem Operator werden zwei DateTime Werte miteinander verglichen. Die Funktion gibt \c true
+ * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
  * zurück, wenn der erste Wert größer oder gleich groß ist, wie der Zweite.
  *
  * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
@@ -1380,20 +1434,33 @@ bool DateTime::operator!=(const DateTime &other) const
  */
 bool DateTime::operator>=(const DateTime &other) const
 {
-	if (yy<other.yy) return false;
-	if (mm<other.mm) return false;
-	if (dd<other.dd) return false;
-	if (hh<other.hh) return false;
-	if (ii<other.ii) return false;
-	if (ss<other.ss) return false;
-	if (us<other.us) return false;
+	if (yy>other.yy) return true;
+	else if (yy<other.yy) return false;
+
+	if (mm>other.mm) return true;
+	else if (mm<other.mm) return false;
+
+	if (dd>other.dd) return true;
+	else if (dd<other.dd) return false;
+
+	if (hh>other.hh) return true;
+	else if (hh<other.hh) return false;
+
+	if (ii>other.ii) return true;
+	else if (ii<other.ii) return false;
+
+	if (ss>other.ss) return true;
+	else if (ss<other.ss) return false;
+
+	if (us>other.us) return true;
+	else if (us<other.us) return false;
 	return true;
 }
 
 /*!\brief Vergleichsoperator "größer": >
  *
  * \desc
- * Mit diesem Operator werden zwei DateTime Werte miteinander verglichen. Die Funktion gibt \c true
+ * Mit diesem Operator werden zwei CDateTime Werte miteinander verglichen. Die Funktion gibt \c true
  * zurück, wenn der erste Wert größer ist als der Zweite.
  *
  * @param other Der zweite Wert, mit dem der Vergleich durchgeführt werden soll
@@ -1401,18 +1468,38 @@ bool DateTime::operator>=(const DateTime &other) const
  */
 bool DateTime::operator>(const DateTime &other) const
 {
-	if (yy<=other.yy) return false;
-	if (mm<=other.mm) return false;
-	if (dd<=other.dd) return false;
-	if (hh<=other.hh) return false;
-	if (ii<=other.ii) return false;
-	if (ss<=other.ss) return false;
-	if (us<=other.us) return false;
-	return true;
+	if (yy>other.yy) return true;
+	else if (yy<other.yy) return false;
+
+	if (mm>other.mm) return true;
+	else if (mm<other.mm) return false;
+
+	if (dd>other.dd) return true;
+	else if (dd<other.dd) return false;
+
+	if (hh>other.hh) return true;
+	else if (hh<other.hh) return false;
+
+	if (ii>other.ii) return true;
+	else if (ii<other.ii) return false;
+
+	if (ss>other.ss) return true;
+	else if (ss<other.ss) return false;
+
+	if (us>other.us) return true;
+	return false;
 }
 
 
 //@}
+
+
+std::ostream& operator<<(std::ostream& s, const DateTime &dt)
+{
+	String str=dt.get("%Y-%m-%d %H:%M:%S.%u");
+	return s.write((const char*)str,str.size());
+}
+
 
 }		// EOF namespace ppl7
 

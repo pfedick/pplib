@@ -79,8 +79,6 @@ TEST_F(DateTimeTest, ConstructorWithDate) {
 	);
 }
 
-#ifdef DONE
-
 TEST_F(DateTimeTest, ConstructorWithDateTime) {
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1("2012-05-18 11:50:11");
@@ -248,7 +246,7 @@ TEST_F(DateTimeTest, getLongInt) {
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
 		ppluint64 t=d1.longInt();
-		ASSERT_EQ(64679514611159473,t) << "Unexpected date";
+		ASSERT_EQ((ppluint64)64679514611159473,t) << "Unexpected date";
 	}
 	);
 }
@@ -668,7 +666,6 @@ TEST_F(DateTimeTest, GreaterThanEqualMicroSecond) {
 	);
 }
 
-#endif
 
 }
 
