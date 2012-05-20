@@ -255,7 +255,7 @@ clean:
 	-rm -rf release
 	-rm -rf debug
 	-rm -rf documentation
-	-rm -rf tests/bin
+	-cd tests; make clean
 
 deinstall:
 	-rm -f $(TARGETINCLUDE)/ppl7*.h
