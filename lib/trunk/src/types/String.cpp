@@ -1840,15 +1840,14 @@ String String::substr(size_t start, size_t len) const
 void String::lowerCase()
 {
 	if (ptr==NULL || stringlen==0) return;
-
 	// Wir wandeln den String zunächst nach Unicode um
 	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
 	if (!buffer) throw OutOfMemoryException();
-	if (mbtowc(buffer, ptr,stringlen)<=0) {
+	size_t l=mbstowcs(buffer, ptr,stringlen);
+	if (l==(size_t)-1) {
 		free(buffer);
 		throw CharacterEncodingException();
 	}
-	size_t l=wcslen(buffer);
 	// Umwandeln
 	wchar_t c,wc;
 	for (size_t i=0;i<l;i++) {
@@ -1884,15 +1883,14 @@ void String::lowerCase()
 void String::upperCase()
 {
 	if (ptr==NULL || stringlen==0) return;
-
 	// Wir wandeln den String zunächst nach Unicode um
 	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
 	if (!buffer) throw OutOfMemoryException();
-	if (mbtowc(buffer, ptr,stringlen)<=0) {
+	size_t l=mbstowcs(buffer, ptr,stringlen);
+	if (l==(size_t)-1) {
 		free(buffer);
 		throw CharacterEncodingException();
 	}
-	size_t l=wcslen(buffer);
 	// Umwandeln
 	wchar_t c,wc;
 	for (size_t i=0;i<l;i++) {
@@ -1920,11 +1918,11 @@ void String::upperCaseWords()
 	// Wir wandeln den String zunächst nach Unicode um
 	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
 	if (!buffer) throw OutOfMemoryException();
-	if (mbtowc(buffer, ptr,stringlen)<=0) {
+	size_t l=mbstowcs(buffer, ptr,stringlen);
+	if (l==(size_t)-1) {
 		free(buffer);
 		throw CharacterEncodingException();
 	}
-	size_t l=wcslen(buffer);
 	wchar_t c,wc;
 	bool wordstart=true;
 	for (size_t i=0;i<l;i++) {

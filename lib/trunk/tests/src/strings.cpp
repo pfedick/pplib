@@ -991,6 +991,13 @@ TEST_F(StringTest, upperCase) {
 	ASSERT_EQ(expected,s1);
 }
 
+TEST_F(StringTest, upperCaseWords) {
+	ppl7::String s1("the quick brown fox jumps over äöü");
+	ppl7::String expected("The Quick Brown Fox Jumps Over Äöü");
+	ASSERT_NO_THROW(s1.upperCaseWords());
+	ASSERT_EQ(expected,s1);
+}
+
 
 TEST_F(StringTest, pregMatchPositive) {
 	ppl7::String s1("Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
