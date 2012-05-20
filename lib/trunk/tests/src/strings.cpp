@@ -977,6 +977,21 @@ TEST_F(StringTest, substrWithoutLength) {
 	ASSERT_EQ(ppl7::String("brown fox jumps over the lazy dog"),s2);
 }
 
+TEST_F(StringTest, lowerCase) {
+	ppl7::String s1("The Quick Brown Fox Jumps over ÄÖÜ");
+	ppl7::String expected("the quick brown fox jumps over äöü");
+	ASSERT_NO_THROW(s1.lowerCase());
+	ASSERT_EQ(expected,s1);
+}
+
+TEST_F(StringTest, upperCase) {
+	ppl7::String s1("The Quick Brown Fox Jumps over äöü");
+	ppl7::String expected("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ");
+	ASSERT_NO_THROW(s1.upperCase());
+	ASSERT_EQ(expected,s1);
+}
+
+
 TEST_F(StringTest, pregMatchPositive) {
 	ppl7::String s1("Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
 	ppl7::String expr("/^Lorem.*$/s");
@@ -1009,7 +1024,9 @@ TEST_F(StringTest, pregCapture) {
 	ppl7::Array m;
 	ppl7::String s1("2012-05-18");
 	ASSERT_TRUE(s1.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/",m));
-
+	ASSERT_EQ(2012,m[1].toInt()) << "Unexpected value in capture";
+	ASSERT_EQ(5,m[2].toInt()) << "Unexpected value in capture";
+	ASSERT_EQ(18,m[3].toInt()) << "Unexpected value in capture";
 }
 
 

@@ -263,6 +263,7 @@ int DateTime::set(const String &datetime)
 		clear();
 		return 1;
 	}
+	//printf ("Erkennung: >>%s<< => >>%s<<\n",(const char*)datetime, (const char*)d);
 
 
 	if (d.pregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/",m)) {
