@@ -1,15 +1,18 @@
+GTEST_DIR = /usr/local/gtest-1.6.0
 CC		= gcc
 EXTRA_CFLAGS =
-INCLUDE	= -I.
-CFLAGS	= -ggdb -Wall  `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
-LIBS	= `../ppl7-config --libs debug source` -lgtest -lstdc++
-GTEST_DIR = /usr/local/gtest-1.6.0
+INCLUDE	= -I. -I$(GTEST_DIR)/include
+CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
+LIBS	= `../ppl7-config --libs debug source` -lstdc++
 PROGNAME = testsuite
-OBJECTS = compile/memoryheap.o compile/memorygroup.o compile/array.o compile/strings.o \
-		compile/avltree.o compile/assocarray.o compile/pointer.o compile/datetime.o \
-		compile/bytearray.o compile/bytearrayptr.o compile/functions.o \
-		compile/file.o compile/dir.o compile/list.o compile/inet.o \
-		compile/grafix_drawable.o compile/grafix_imagefilter.o compile/gfxreftest.o
+
+OBJECTS = compile/strings.o
+
+#OBJECTS = compile/memoryheap.o compile/memorygroup.o compile/array.o \
+#		compile/avltree.o compile/assocarray.o compile/pointer.o compile/datetime.o \
+#		compile/bytearray.o compile/bytearrayptr.o compile/functions.o \
+#		compile/file.o compile/dir.o compile/list.o compile/inet.o \
+#		compile/grafix_drawable.o compile/grafix_imagefilter.o compile/gfxreftest.o
 
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
