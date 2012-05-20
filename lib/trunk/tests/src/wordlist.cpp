@@ -9,7 +9,7 @@
  * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2012, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-const wchar_t *wordlist=L"AAA\n"
+const char *wordlist="AAA\n"
 "AAAS\n"
 "AAU\n"
 "AC\n"

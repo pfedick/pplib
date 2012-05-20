@@ -47,7 +47,7 @@
 
 extern const wchar_t *wordlist;
 
-ppl7::Array Wordlist;
+extern ppl7::Array Wordlist;
 
 namespace {
 
@@ -76,17 +76,17 @@ TEST_F(ListTest, ConstructorSimple) {
 
 TEST_F(ListTest, add) {
 	ppl7::List<ppl7::String> myList;
-	myList.add(L"Item 1");
+	myList.add("Item 1");
 	ASSERT_EQ((size_t)1,myList.count());
-	myList.add(L"Item 2");
+	myList.add("Item 2");
 	ASSERT_EQ((size_t)2,myList.count());
 }
 
 TEST_F(ListTest, clear) {
 	ppl7::List<ppl7::String> myList;
-	myList.add(L"Item 1");
-	myList.add(L"Item 2");
-	myList.add(L"Item 3");
+	myList.add("Item 1");
+	myList.add("Item 2");
+	myList.add("Item 3");
 
 	ASSERT_EQ((size_t)3,myList.count());
 	myList.clear();
@@ -95,9 +95,9 @@ TEST_F(ListTest, clear) {
 
 TEST_F(ListTest, reset) {
 	ppl7::List<ppl7::String> myList;
-	myList.add(L"Item 1");
-	myList.add(L"Item 2");
-	myList.add(L"Item 3");
+	myList.add("Item 1");
+	myList.add("Item 2");
+	myList.add("Item 3");
 
 	ppl7::List<ppl7::String>::Iterator it;
 	myList.reset(it);
@@ -106,40 +106,40 @@ TEST_F(ListTest, reset) {
 
 TEST_F(ListTest, getNext) {
 	ppl7::List<ppl7::String> myList;
-	myList.add(L"Item 1");
-	myList.add(L"Item 2");
-	myList.add(L"Item 3");
+	myList.add("Item 1");
+	myList.add("Item 2");
+	myList.add("Item 3");
 
 	ppl7::List<ppl7::String>::Iterator it;
 	myList.reset(it);
 	ASSERT_EQ(true,myList.getNext(it));
-	ASSERT_EQ(ppl7::String(L"Item 1"),it.value());
+	ASSERT_EQ(ppl7::String("Item 1"),it.value());
 
 	ASSERT_EQ(true,myList.getNext(it));
-	ASSERT_EQ(ppl7::String(L"Item 2"),it.value());
+	ASSERT_EQ(ppl7::String("Item 2"),it.value());
 
 	ASSERT_EQ(true,myList.getNext(it));
-	ASSERT_EQ(ppl7::String(L"Item 3"),it.value());
+	ASSERT_EQ(ppl7::String("Item 3"),it.value());
 
 	ASSERT_EQ(false,myList.getNext(it));
 }
 
 TEST_F(ListTest, getPrevious) {
 	ppl7::List<ppl7::String> myList;
-	myList.add(L"Item 1");
-	myList.add(L"Item 2");
-	myList.add(L"Item 3");
+	myList.add("Item 1");
+	myList.add("Item 2");
+	myList.add("Item 3");
 
 	ppl7::List<ppl7::String>::Iterator it;
 	myList.reset(it);
 	ASSERT_EQ(true,myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String(L"Item 3"),it.value());
+	ASSERT_EQ(ppl7::String("Item 3"),it.value());
 
 	ASSERT_EQ(true,myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String(L"Item 2"),it.value());
+	ASSERT_EQ(ppl7::String("Item 2"),it.value());
 
 	ASSERT_EQ(true,myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String(L"Item 1"),it.value());
+	ASSERT_EQ(ppl7::String("Item 1"),it.value());
 
 	ASSERT_EQ(false,myList.getPrevious(it));
 }
@@ -162,18 +162,3 @@ TEST_F(ListTest, addWordlist) {
 
 }	// EOF namespace
 
-int main (int argc, char**argv)
-{
-	::testing::InitGoogleTest(&argc, argv);
-
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String w(wordlist);
-	Wordlist.reserve(130000);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	Wordlist.explode(w,L"\n");
-	ppl7::PrintDebugTime ("done\n");
-
-
-
-	return RUN_ALL_TESTS();
-}

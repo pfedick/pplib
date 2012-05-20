@@ -66,7 +66,7 @@ TEST_F(InetTest, Idn2Ace) {
 	ASSERT_NO_THROW({
 		ppl7::String idn="tästmé.de";
 		ppl7::String ace=ppl7::Idn2Ace(idn);
-		ASSERT_EQ(ppl7::String(L"xn--tstm-loa7a.de"),ace) << "Convertion failed";
+		ASSERT_EQ(ppl7::String("xn--tstm-loa7a.de"),ace) << "Convertion failed";
 	}
 	);
 }
@@ -75,7 +75,7 @@ TEST_F(InetTest, Ace2Idn) {
 	ASSERT_NO_THROW({
 		ppl7::String ace="xn--tstm-loa7a.de";
 		ppl7::String idn=ppl7::Ace2Idn(ace);
-		ASSERT_EQ(ppl7::String(L"tästmé.de"),idn) << "Convertion failed";
+		ASSERT_EQ(ppl7::String("tästmé.de"),idn) << "Convertion failed";
 	}
 	);
 }
@@ -123,8 +123,8 @@ TEST_F(Resolver, SingleIPv4_af_all) {
 			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
 			ppl7::IPAddress adr;
 			adr=result.front();
-			ASSERT_EQ(ppl7::String(L"192.168.0.1"),adr.ip) << "Unexpected IP-Address";
-			ASSERT_EQ(ppl7::String(L"singleipv4.ppl.pfp.de"),adr.name) << "Unexpected Name";
+			ASSERT_EQ(ppl7::String("192.168.0.1"),adr.ip) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("singleipv4.ppl.pfp.de"),adr.name) << "Unexpected Name";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -141,8 +141,8 @@ TEST_F(Resolver, SingleIPv4_af_inet) {
 			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
 			ppl7::IPAddress adr;
 			adr=result.front();
-			ASSERT_EQ(ppl7::String(L"192.168.0.1"),adr.ip) << "Unexpected IP-Address";
-			ASSERT_EQ(ppl7::String(L"singleipv4.ppl.pfp.de"),adr.name) << "Unexpected Name";
+			ASSERT_EQ(ppl7::String("192.168.0.1"),adr.ip) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("singleipv4.ppl.pfp.de"),adr.name) << "Unexpected Name";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -178,11 +178,11 @@ TEST_F(Resolver, ThreeIPv4_af_all) {
 
 			std::set<ppl7::String>::iterator lit;
 			lit=sorted.begin();
-			ASSERT_EQ(ppl7::String(L"192.168.0.1"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.0.1"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"192.168.10.4"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.10.4"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"192.168.200.56"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.200.56"),*lit) << "Unexpected IP-Address";
 
 		} catch (ppl7::Exception &e) {
 			e.print();
@@ -205,11 +205,11 @@ TEST_F(Resolver, ThreeIPv4_af_inet) {
 
 			std::set<ppl7::String>::iterator lit;
 			lit=sorted.begin();
-			ASSERT_EQ(ppl7::String(L"192.168.0.1"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.0.1"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"192.168.10.4"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.10.4"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"192.168.200.56"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.200.56"),*lit) << "Unexpected IP-Address";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -240,8 +240,8 @@ TEST_F(Resolver, SingleIPv6_af_all) {
 			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
 			ppl7::IPAddress adr;
 			adr=result.front();
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),adr.ip) << "Unexpected IP-Address";
-			ASSERT_EQ(ppl7::String(L"singleipv6.ppl.pfp.de"),adr.name) << "Unexpected Name";
+			ASSERT_EQ(ppl7::String("2001:470:1f0b:3e4::1"),adr.ip) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("singleipv6.ppl.pfp.de"),adr.name) << "Unexpected Name";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -272,8 +272,8 @@ TEST_F(Resolver, SingleIPv6_af_inet6) {
 			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
 			ppl7::IPAddress adr;
 			adr=result.front();
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),adr.ip) << "Unexpected IP-Address";
-			ASSERT_EQ(ppl7::String(L"singleipv6.ppl.pfp.de"),adr.name) << "Unexpected Name";
+			ASSERT_EQ(ppl7::String("2001:470:1f0b:3e4::1"),adr.ip) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("singleipv6.ppl.pfp.de"),adr.name) << "Unexpected Name";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -295,11 +295,11 @@ TEST_F(Resolver, ThreeIPv6_af_all) {
 
 			std::set<ppl7::String>::iterator lit;
 			lit=sorted.begin();
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b4c"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::99:1b4c"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a000"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::a000"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0b:3e4::1"),*lit) << "Unexpected IP-Address";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -335,11 +335,11 @@ TEST_F(Resolver, ThreeIPv6_af_inet6) {
 
 			std::set<ppl7::String>::iterator lit;
 			lit=sorted.begin();
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b4c"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::99:1b4c"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a000"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::a000"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0b:3e4::1"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0b:3e4::1"),*lit) << "Unexpected IP-Address";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -361,13 +361,13 @@ TEST_F(Resolver, MixedIPv4v6_af_all) {
 
 			std::set<ppl7::String>::iterator lit;
 			lit=sorted.begin();
-			ASSERT_EQ(ppl7::String(L"192.168.16.76"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.16.76"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"192.168.22.98"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.22.98"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b93"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::99:1b93"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a016"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::a016"),*lit) << "Unexpected IP-Address";
 
 		} catch (ppl7::Exception &e) {
 			e.print();
@@ -391,9 +391,9 @@ TEST_F(Resolver, MixedIPv4v6_af_inet) {
 
 			std::set<ppl7::String>::iterator lit;
 			lit=sorted.begin();
-			ASSERT_EQ(ppl7::String(L"192.168.16.76"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.16.76"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"192.168.22.98"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("192.168.22.98"),*lit) << "Unexpected IP-Address";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -415,9 +415,9 @@ TEST_F(Resolver, MixedIPv4v6_af_inet6) {
 
 			std::set<ppl7::String>::iterator lit;
 			lit=sorted.begin();
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::99:1b93"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::99:1b93"),*lit) << "Unexpected IP-Address";
 			lit++;
-			ASSERT_EQ(ppl7::String(L"2001:470:1f0a:3e4::a016"),*lit) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("2001:470:1f0a:3e4::a016"),*lit) << "Unexpected IP-Address";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -425,12 +425,5 @@ TEST_F(Resolver, MixedIPv4v6_af_inet6) {
 	});
 }
 
-}
-
-
-int main (int argc, char**argv)
-{
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
 }
 

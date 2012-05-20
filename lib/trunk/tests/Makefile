@@ -6,14 +6,16 @@ CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_
 LIBS	= `../ppl7-config --libs debug source` -lstdc++
 PROGNAME = testsuite
 
-OBJECTS = compile/main.o compile/strings.o compile/datetime.o compile/array.o
+OBJECTS = compile/main.o compile/strings.o compile/datetime.o compile/array.o \
+	compile/memoryheap.o compile/memorygroup.o compile/wordlist.o \
+	compile/bytearray.o compile/bytearrayptr.o \
+	compile/avltree.o compile/assocarray.o compile/pointer.o \
+	compile/file.o compile/dir.o compile/list.o compile/functions.o \
+	compile/inet.o 
 
-#OBJECTS = compile/memoryheap.o compile/memorygroup.o \
-#		compile/avltree.o compile/assocarray.o compile/pointer.o \
-#		compile/bytearray.o compile/bytearrayptr.o compile/functions.o \
-#		compile/file.o compile/dir.o compile/list.o compile/inet.o \
-#		compile/grafix_drawable.o compile/grafix_imagefilter.o compile/gfxreftest.o
-
+# compile/grafix_drawable.o compile/grafix_imagefilter.o
+	
+# compile/gfxreftest.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CC) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -54,7 +56,7 @@ compile/bytearray.o: src/bytearray.cpp Makefile
 	mkdir -p compile
 	$(CC) -o compile/bytearray.o -c src/bytearray.cpp $(CFLAGS) $(LIB)
 
-compile.o/bytearrayptr: src/bytearrayptr.cpp Makefile
+compile/bytearrayptr.o: src/bytearrayptr.cpp Makefile
 	mkdir -p compile
 	$(CC) -o compile/bytearrayptr.o -c src/bytearrayptr.cpp $(CFLAGS) $(LIB)
 
@@ -76,7 +78,7 @@ compile/memorygroup.o: src/memorygroup.cpp Makefile
 
 compile/avltree.o: src/avltree.cpp Makefile compile/wordlist.o
 	mkdir -p compile
-	$(CC) -o compile/avltree.o compile/wordlist.o -c src/avltree.cpp $(CFLAGS) $(LIB)
+	$(CC) -o compile/avltree.o -c src/avltree.cpp $(CFLAGS) $(LIB)
 
 compile/wordlist.o: src/wordlist.cpp
 	mkdir -p compile
@@ -84,7 +86,7 @@ compile/wordlist.o: src/wordlist.cpp
 
 compile/assocarray.o: src/assocarray.cpp Makefile compile/wordlist.o
 	mkdir -p compile
-	$(CC) -o compile/assocarray.o compile/wordlist.o -c src/assocarray.cpp $(CFLAGS) $(LIB)
+	$(CC) -o compile/assocarray.o -c src/assocarray.cpp $(CFLAGS) $(LIB)
 
 compile/file.o: src/file.cpp Makefile
 	mkdir -p compile
@@ -100,7 +102,7 @@ compile/inet.o: src/inet.cpp Makefile
 
 compile/list.o: src/list.cpp Makefile compile/wordlist.o
 	mkdir -p compile
-	$(CC) -o compile/list.o compile/wordlist.o -c src/list.cpp $(CFLAGS) $(LIB)
+	$(CC) -o compile/list.o -c src/list.cpp $(CFLAGS) $(LIB)
 
 compile/gfxreftest.o: src/gfxreftest.cpp Makefile
 	mkdir -p compile

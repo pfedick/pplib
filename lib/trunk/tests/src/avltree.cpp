@@ -44,10 +44,7 @@
 #include <ppl7.h>
 #include <gtest/gtest.h>
 
-
-extern const wchar_t *wordlist;
-
-ppl7::Array Wordlist;
+extern ppl7::Array Wordlist;
 
 namespace {
 
@@ -78,9 +75,9 @@ TEST_F(AVLTreeTest, ConstructorSimple) {
 
 TEST_F(AVLTreeTest, add) {
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
-	myMap.add(L"key1",L"value1");
+	myMap.add("key1","value1");
 	ASSERT_EQ((size_t)1,myMap.count()) << "Tree has unexpected size";
-	myMap.add(L"other",L"value2");
+	myMap.add("other","value2");
 	ASSERT_EQ((size_t)2,myMap.count()) << "Tree has unexpected size";
 }
 
@@ -91,7 +88,7 @@ TEST_F(AVLTreeTest, addAndDeleteWordlist) {
 	ASSERT_EQ((size_t)125346,Wordlist.count()) << "List has unexpected size";
 	ppl7::PrintDebugTime ("Wortliste in AVLTree laden\n");
 	for (size_t i=0;i<total;i++) {
-		myMap.add(Wordlist[i],L"");
+		myMap.add(Wordlist[i],"");
 	}
 	ASSERT_EQ(total,myMap.count()) << "Tree has unexpected size";
 	ppl7::PrintDebugTime ("done\n");
@@ -109,7 +106,7 @@ TEST_F(AVLTreeTest, addAndClearWordlist) {
 	size_t total=Wordlist.count();
 	myMap.reserve(total+10);
 	for (size_t i=0;i<total;i++) {
-		myMap.add(Wordlist[i],L"");
+		myMap.add(Wordlist[i],"");
 	}
 	myMap.clear();
 	ASSERT_EQ((size_t)0,myMap.count()) << "Tree has unexpected size";
@@ -118,71 +115,57 @@ TEST_F(AVLTreeTest, addAndClearWordlist) {
 
 TEST_F(AVLTreeTest, find) {
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
-	myMap.add(L"key1",L"value1");
-	myMap.add(L"other",L"value2");
-	myMap.add(L"findme",L"success");
-	myMap.add(L"key3",L"value3");
-	myMap.add(L"abc",L"value4");
+	myMap.add("key1","value1");
+	myMap.add("other","value2");
+	myMap.add("findme","success");
+	myMap.add("key3","value3");
+	myMap.add("abc","value4");
 	ASSERT_EQ((size_t)5,myMap.count()) << "Tree has unexpected size";
 	ASSERT_NO_THROW({
-		const ppl7::String &res=myMap.find(L"findme");
-		ASSERT_EQ(ppl7::String(L"success"),res) << "Unexpected return value";
+		const ppl7::String &res=myMap.find("findme");
+		ASSERT_EQ(ppl7::String("success"),res) << "Unexpected return value";
 	});
 
 	ASSERT_THROW({
-		myMap.find(L"findmenot");
+		myMap.find("findmenot");
 	},ppl7::ItemNotFoundException);
 
 }
 
 TEST_F(AVLTreeTest, getNext) {
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
-	myMap.add(L"key1",L"value1");
-	myMap.add(L"other",L"value2");
-	myMap.add(L"findme",L"success");
-	myMap.add(L"key3",L"value3");
-	myMap.add(L"abc",L"value4");
+	myMap.add("key1","value1");
+	myMap.add("other","value2");
+	myMap.add("findme","success");
+	myMap.add("key3","value3");
+	myMap.add("abc","value4");
 	ASSERT_EQ((size_t)5,myMap.count()) << "Tree has unexpected size";
 	ppl7::AVLTree<ppl7::String, ppl7::String>::Iterator it;
 	myMap.reset(it);
 
 	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
-	ASSERT_EQ(ppl7::String(L"abc"),it.key()) << "key has unexpected value";
-	ASSERT_EQ(ppl7::String(L"value4"),it.value()) << "value has unexpected value";
+	ASSERT_EQ(ppl7::String("abc"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String("value4"),it.value()) << "value has unexpected value";
 
 	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
-	ASSERT_EQ(ppl7::String(L"findme"),it.key()) << "key has unexpected value";
-	ASSERT_EQ(ppl7::String(L"success"),it.value()) << "value has unexpected value";
+	ASSERT_EQ(ppl7::String("findme"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String("success"),it.value()) << "value has unexpected value";
 
 	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
-	ASSERT_EQ(ppl7::String(L"key1"),it.key()) << "key has unexpected value";
-	ASSERT_EQ(ppl7::String(L"value1"),it.value()) << "value has unexpected value";
+	ASSERT_EQ(ppl7::String("key1"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String("value1"),it.value()) << "value has unexpected value";
 
 	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
-	ASSERT_EQ(ppl7::String(L"key3"),it.key()) << "key has unexpected value";
-	ASSERT_EQ(ppl7::String(L"value3"),it.value()) << "value has unexpected value";
+	ASSERT_EQ(ppl7::String("key3"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String("value3"),it.value()) << "value has unexpected value";
 
 	ASSERT_EQ(true, myMap.getNext(it)) << "getNext has not returned true";
-	ASSERT_EQ(ppl7::String(L"other"),it.key()) << "key has unexpected value";
-	ASSERT_EQ(ppl7::String(L"value2"),it.value()) << "value has unexpected value";
+	ASSERT_EQ(ppl7::String("other"),it.key()) << "key has unexpected value";
+	ASSERT_EQ(ppl7::String("value2"),it.value()) << "value has unexpected value";
 
 	ASSERT_EQ(false, myMap.getNext(it)) << "getNext has not returned false";
 }
 
 }	// EOF namespace
 
-int main (int argc, char**argv)
-{
-	::testing::InitGoogleTest(&argc, argv);
 
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String w(wordlist);
-	Wordlist.reserve(130000);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	Wordlist.explode(w,L"\n");
-	ppl7::PrintDebugTime ("done\n");
-
-
-
-	return RUN_ALL_TESTS();
-}

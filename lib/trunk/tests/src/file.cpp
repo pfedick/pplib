@@ -117,7 +117,7 @@ TEST_F(FileReadTest, md5) {
 	ppl7::File f1;
 	f1.open("testdata/testfile.txt");
 	ppl7::String digest=f1.md5();
-	ASSERT_EQ(ppl7::String(L"f386e5ea10bc186b633eaf6ba9a20d8c"),digest);
+	ASSERT_EQ(ppl7::String("f386e5ea10bc186b633eaf6ba9a20d8c"),digest);
 }
 
 TEST_F(FileReadTest, seekAndTell) {
@@ -151,11 +151,11 @@ TEST_F(FileReadTest, fread1024) {
 	f1.open("testdata/testfile.txt");
 	f1.fread((void*)ba.adr(),1,1024);
 	//ba.hexDump();
-	ASSERT_EQ(ppl7::String(L"21ab51148e28167d5ce13bee07493a56"),ba.md5());
+	ASSERT_EQ(ppl7::String("21ab51148e28167d5ce13bee07493a56"),ba.md5());
 	// load the next chunk
 	f1.fread((void*)ba.adr(),1,1024);
 	//ba.hexDump();
-	ASSERT_EQ(ppl7::String(L"468f6fd12d69be054643ef2ca1a19cba"),ba.md5());
+	ASSERT_EQ(ppl7::String("468f6fd12d69be054643ef2ca1a19cba"),ba.md5());
 }
 
 TEST_F(FileReadTest, freadUntilEof) {
@@ -196,22 +196,22 @@ TEST_F(FileReadTest, getsAsString) {
 		s=f1.gets(1024);
 	});
 	s.trimRight();
-	ASSERT_EQ(ppl7::String(L"                    GNU GENERAL PUBLIC LICENSE"),s);
+	ASSERT_EQ(ppl7::String("                    GNU GENERAL PUBLIC LICENSE"),s);
 	ASSERT_NO_THROW({
 		s=f1.gets();
 	});
 	s.trimRight();
-	ASSERT_EQ(ppl7::String(L"                       Version 2, June 1991"),s);
+	ASSERT_EQ(ppl7::String("                       Version 2, June 1991"),s);
 	ASSERT_NO_THROW({
 		s=f1.gets();
 	});
 	s.trimRight();
-	ASSERT_EQ(ppl7::String(L""),s);
+	ASSERT_EQ(ppl7::String(""),s);
 	ASSERT_NO_THROW({
 		s=f1.gets();
 	});
 	s.trimRight();
-	ASSERT_EQ(ppl7::String(L" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"),s);
+	ASSERT_EQ(ppl7::String(" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"),s);
 }
 
 
@@ -221,7 +221,7 @@ TEST_F(FileStaticTest, stat) {
 		ppl7::File::stat("testdata/LICENSE.TXT",d);
 	});
 	ASSERT_EQ((size_t)1540,d.Size);
-	ASSERT_EQ(ppl7::String(L"testdata/LICENSE.TXT"),d.File);
+	ASSERT_EQ(ppl7::String("testdata/LICENSE.TXT"),d.File);
 	//d.print();
 
 
@@ -230,10 +230,4 @@ TEST_F(FileStaticTest, stat) {
 
 }
 
-
-int main (int argc, char**argv)
-{
-	::testing::InitGoogleTest(&argc, argv);
-	return RUN_ALL_TESTS();
-}
 

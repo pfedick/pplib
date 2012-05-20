@@ -44,9 +44,20 @@
 #include <ppl7.h>
 #include <gtest/gtest.h>
 
+extern const char *wordlist;
+
+ppl7::Array Wordlist;
+
 
 int main (int argc, char**argv)
 {
 	::testing::InitGoogleTest(&argc, argv);
+	ppl7::PrintDebugTime ("Wortliste in String laden\n");
+	ppl7::String w(wordlist);
+	Wordlist.reserve(130000);
+	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
+	Wordlist.explode(w,"\n");
+	ppl7::PrintDebugTime ("done\n");
+
 	return RUN_ALL_TESTS();
 }
