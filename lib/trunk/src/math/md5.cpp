@@ -459,6 +459,32 @@ String ByteArrayPtr::md5() const
 	return ret;
 }
 
+/*!\brief MD5-Summe berechnen
+ *
+ * Diese Funktion berechnet die MD5-Summe des Strings und gibt diese als
+ * Hexadezimalwert in einem String zurück.
+ *
+ * \return Die Funktion liefert ein String-Objekt zurück. Bei Erfolg enthält dieses
+ * die MD5-Summe, im Fehlerfall wird eine Exception geworfen.
+ * Ein Fehler kann auftreten, wenn die Klasse keine Daten enthalten hat oder
+ * bei der Berechnung der MD5-Summe ein Fehler aufgetreten ist.
+ *
+ */
+String String::md5() const
+{
+	if (stringlen==0 || ptr==NULL) throw EmptyDataException();
+	String ret;
+	char tmp[33];
+	MD5_CTX ctx;
+	MD5Init(&ctx);
+	MD5Update(&ctx,(const unsigned char *)ptr,stringlen);
+	MD5End(&ctx, tmp);
+	tmp[32]=0;
+	ret=tmp;
+	return ret;
+}
+
+
 String FileObject::md5()
 {
 	String ret;

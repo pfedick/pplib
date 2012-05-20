@@ -325,7 +325,7 @@ void String::clear() throw()
 size_t String::capacity ( ) const
 {
 	if (!s) return 0;
-	return (s/sizeof(wchar_t))-1;
+	return (s/sizeof(char))-1;
 }
 
 /*!\brief Reserviert Speicher für den String
@@ -444,10 +444,10 @@ bool String::notEmpty() const
  */
 bool String::isNumeric() const
 {
-	wchar_t c;
+	int c;
 	if (!stringlen) return false;
 	for (size_t i=0;i<stringlen;i++) {
-		c=((wchar_t*)ptr)[i];
+		c=((char*)ptr)[i];
 		if (c<'0' || c>'9') {
 			if (c!='.' && c!=',' && c!='-') return false;
 			if (c=='-' && i>0) return false;
@@ -467,10 +467,10 @@ bool String::isNumeric() const
  */
 bool String::isInteger() const
 {
-	wchar_t c;
+	int c;
 	if (!stringlen) return false;
 	for (size_t i=0;i<stringlen;i++) {
-		c=((wchar_t*)ptr)[i];
+		c=((char*)ptr)[i];
 		if (c<'0' || c>'9') {
 			if (c=='-' && i==0) continue;		// Minus am Anfang ist erlaubt
 			return false;
@@ -643,7 +643,7 @@ String & String::set(const String *str, size_t size) throw(OutOfMemoryException)
 	if (size!=(size_t)-1) inbytes=size;
 	else inbytes=str->stringlen;
 	if (inbytes>str->stringlen) inbytes=str->stringlen;
-	return set((wchar_t*)str->ptr,inbytes);
+	return set(str->ptr,inbytes);
 }
 
 /*!\brief Wert eines anderen Strings übernehmen
@@ -664,7 +664,7 @@ String & String::set(const String &str, size_t size) throw(OutOfMemoryException)
 	if (size!=(size_t)-1) inbytes=size;
 	else inbytes=str.stringlen;
 	if (inbytes>str.stringlen) inbytes=str.stringlen;
-	return set((wchar_t*)str.ptr,inbytes);
+	return set(str.ptr,inbytes);
 }
 
 String & String::set(const Variant &var) throw(OutOfMemoryException)
@@ -925,7 +925,7 @@ String & String::append(const char *str, size_t size) throw(OutOfMemoryException
 String & String::append(const String *str, size_t size) throw(OutOfMemoryException)
 {
 	if (!str) return *this;
-	return append((wchar_t*)str->ptr,size);
+	return append(str->ptr,size);
 }
 
 /*!\brief Fügt einen String an das Ende des bestehenden an
@@ -942,7 +942,7 @@ String & String::append(const String *str, size_t size) throw(OutOfMemoryExcepti
  */
 String & String::append(const String &str, size_t size) throw(OutOfMemoryException)
 {
-	return append((wchar_t*)str.ptr,size);
+	return append(str.ptr,size);
 }
 
 /*!\brief Fügt einen std::string an das Ende des bestehenden an
@@ -959,9 +959,7 @@ String & String::append(const String &str, size_t size) throw(OutOfMemoryExcepti
  */
 String & String::append(const std::string &str, size_t size) throw(OutOfMemoryException)
 {
-	String a;
-	a.set(str,size);
-	return append((wchar_t*)a.ptr,a.stringlen);
+	return append(str.c_str(),size);
 }
 
 /*!\brief Fügt einen std::wstring an das Ende des bestehenden an
@@ -978,9 +976,7 @@ String & String::append(const std::string &str, size_t size) throw(OutOfMemoryEx
  */
 String & String::append(const std::wstring &str, size_t size) throw(OutOfMemoryException)
 {
-	String a;
-	a.set(str,size);
-	return append((wchar_t*)a.ptr,a.stringlen);
+	return append(str.c_str(),size);
 }
 
 
@@ -1021,7 +1017,7 @@ String & String::appendf(const char *fmt, ...)
 			String a;
 			a.set(buff);
 			free(buff);
-			append((wchar_t*)a.ptr,a.stringlen);
+			append(a.ptr,a.stringlen);
 		} catch(...) {
 			free(buff);
 			va_end(args);
@@ -1034,18 +1030,18 @@ String & String::appendf(const char *fmt, ...)
     throw Exception();
 }
 
-/*!\brief Einzelnes Unicode-Zeichen anhängen
+/*!\brief Einzelnes ASCII-Zeichen anhängen
  *
  * \desc
- * Ein einzelnes Unicode-Zeichen \p c wird in an den String angehangen.
+ * Ein einzelnes ASCII-Zeichen \p c wird in an den String angehangen.
  *
- * @param c Unicode-Wert des gewünschten Zeichens
+ * @param c ASCII-Wert des gewünschten Zeichens
  *
  * @return Referenz auf den String
  */
-String & String::append(wchar_t c) throw(OutOfMemoryException)
+String & String::append(char c) throw(OutOfMemoryException)
 {
-	wchar_t buffer[2];
+	char buffer[2];
 	buffer[0]=c;
 	buffer[1]=0;
 	return append(buffer,1);
@@ -1178,7 +1174,7 @@ String & String::prepend(const std::wstring &str, size_t size) throw(OutOfMemory
  */
 String & String::prepend(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
-	if (!str==NULL || size==0) return *this;
+	if (str==NULL || size==0) return *this;
 	if (!ptr) {
 		set(str,size);
 		return *this;
@@ -1254,19 +1250,19 @@ String & String::prependf(const char *fmt, ...)
     throw Exception();
 }
 
-/*!\brief Einzelnes Unicode-Zeichen am Anfang einfügen
+/*!\brief Einzelnes ASCII-Zeichen am Anfang einfügen
  *
  * \desc
- * Ein einzelnes Unicode-Zeichen \p c wird in am Anfang des Strings eingefügt.
+ * Ein einzelnes ASCII-Zeichen \p c wird in am Anfang des Strings eingefügt.
  * Die nachfolgenden Zeichen des Strings verschieben sich nach rechts.
  *
- * @param c Unicode-Wert des gewünschten Zeichens
+ * @param c ASCII-Wert des gewünschten Zeichens
  *
  * @return Referenz auf den String
  */
-String & String::prepend(wchar_t c) throw(OutOfMemoryException)
+String & String::prepend(char c) throw(OutOfMemoryException)
 {
-	wchar_t buffer[2];
+	char buffer[2];
 	buffer[0]=c;
 	buffer[1]=0;
 	return prepend(buffer,1);
@@ -1291,7 +1287,7 @@ ByteArray String::toEncoding(const char *encoding) const
 #ifndef HAVE_ICONV
 	throw UnsupportedFeatureException();
 #else
-	iconv_t iconv_handle=iconv_open(encoding,ICONV_UNICODE);
+	iconv_t iconv_handle=iconv_open(encoding,"");
 	if ((iconv_t)(-1)==iconv_handle) {
 		throw UnsupportedCharacterEncodingException();
 	}
@@ -1305,9 +1301,7 @@ ByteArray String::toEncoding(const char *encoding) const
 	size_t outbytes=buffersize;
 	char *b=buffer;
 	char *inbuffer=(char*)ptr;
-	size_t inbytes=stringlen*sizeof(wchar_t);
-
-	//hexDump();
+	size_t inbytes=stringlen;
 
 	size_t res=iconv((iconv_t)iconv_handle, (ICONV_CONST char **)&inbuffer, &inbytes,
 			(char**)&b, &outbytes);
@@ -1321,6 +1315,24 @@ ByteArray String::toEncoding(const char *encoding) const
 	free(buffer);
 	return ret;
 #endif
+}
+
+/*!/brief Diese Funktion liefert den String immer UTF-8 kodiert zurück
+ *
+ * \desc
+ * Diese Funktion liefert den String immer UTF-8 kodiert zurück, unabhängig davon, welche
+ * Kodierung das System verwendet.
+ * @return
+ */
+ByteArray String::toUtf8() const
+{
+	const char * l=setlocale(LC_CTYPE,NULL);
+	//printf ("Locale: %s\n",l);
+	// de_DE.UTF-8
+	if (strcasestr(l,"utf-8")) {
+		return ByteArray(ptr,stringlen);
+	}
+	return toEncoding("UTF-8");
 }
 
 ByteArray String::toUCS4() const
@@ -1351,14 +1363,6 @@ String &String::fromUCS4(const ppluint32 *str, size_t size)
 String &String::fromUCS4(const ByteArrayPtr &bin)
 {
 	return fromUCS4((ppluint32*)bin.ptr(),bin.size());
-}
-
-
-String String::getMD5() const
-{
-	if (stringlen==0 || ptr==NULL) throw EmptyDataException();
-	ByteArrayPtr ba(ptr,s);
-	return ba.md5();
 }
 
 
@@ -2853,6 +2857,17 @@ String::operator const char *() const
 	if (ptr==NULL || stringlen==0) return "";
 	return (const char*)ptr;
 }
+
+/*!\brief %Pointer auf den internen C-String
+ *
+ * \copydetails String::getPtr
+ */
+String::operator const unsigned char *() const
+{
+	if (ptr==NULL || stringlen==0) return (const unsigned char*)"";
+	return (const unsigned char*)ptr;
+}
+
 
 String::operator bool() const
 {

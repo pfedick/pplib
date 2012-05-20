@@ -402,8 +402,6 @@ AX_CHECK_OPENSSL(
 
 AC_CHECK_FT2(9.0.0,
 	AC_DEFINE(HAVE_FREETYPE2, 1, [ Define if you have freetype2. ])
-	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $FT2_CFLAGS"
-	GRAPHIC_LIBS="$GRAPHIC_LIBS $FT2_LIBS"
 	report_have_freetype2="yes"
 	, :)
 

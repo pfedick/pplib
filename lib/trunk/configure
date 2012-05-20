@@ -14668,8 +14668,6 @@ $as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_FREETYPE2 1" >>confdefs.h
 
-	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $FT2_CFLAGS"
-	GRAPHIC_LIBS="$GRAPHIC_LIBS $FT2_LIBS"
 	report_have_freetype2="yes"
 
    else

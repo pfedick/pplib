@@ -409,11 +409,11 @@ void ImageFilter_JPEG::save (const Drawable &surface, FileObject &file, const As
 	bool optimized=false;		//									default=false
 	int	dct_method=JDCT_ISLOW;	//									default=JDCT_ISLOW
 
-	if (param.exists(L"quality")) quality=param.getString(L"quality").toInt();
-	if (param.exists(L"smooth")) smooth=param.getString(L"smooth").toInt();
-	if (param.exists(L"force_baseline")) force_baseline=param.getString(L"force_baseline").toBool();
-	if (param.exists(L"optimized")) optimized=param.getString(L"optimized").toBool();
-	if (param.exists(L"dct_method")) dct_method=param.getString(L"dct_method").toInt();
+	if (param.exists("quality")) quality=param.getString("quality").toInt();
+	if (param.exists("smooth")) smooth=param.getString("smooth").toInt();
+	if (param.exists("force_baseline")) force_baseline=param.getString("force_baseline").toBool();
+	if (param.exists("optimized")) optimized=param.getString("optimized").toBool();
+	if (param.exists("dct_method")) dct_method=param.getString("dct_method").toInt();
 
 	if (quality<0) quality=0;
 	if (quality>100) quality=100;
@@ -469,12 +469,12 @@ void ImageFilter_JPEG::save (const Drawable &surface, FileObject &file, const As
 
 String ImageFilter_JPEG::name()
 {
-	return L"JPG";
+	return "JPG";
 }
 
 String ImageFilter_JPEG::description()
 {
-	return L"JPEG";
+	return "JPEG";
 }
 
 

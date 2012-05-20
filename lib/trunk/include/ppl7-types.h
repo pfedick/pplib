@@ -292,7 +292,7 @@ class String : public Variant
 		String & append(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & append(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & appendf(const char *fmt, ...);
-		String & append(wchar_t c) throw(OutOfMemoryException);
+		String & append(char c) throw(OutOfMemoryException);
 
 		String & prepend(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
 		String & prepend(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
@@ -301,7 +301,7 @@ class String : public Variant
 		String & prepend(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prepend(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prependf(const char *fmt, ...);
-		String & prepend(wchar_t c) throw(OutOfMemoryException);
+		String & prepend(char c) throw(OutOfMemoryException);
 
 		String & vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException);
 
@@ -356,9 +356,10 @@ class String : public Variant
 
 		ByteArray toEncoding(const char *encoding) const;
 		ByteArray toUCS4() const;
+		ByteArray toUtf8() const;
 		String &fromUCS4(const ppluint32 *str, size_t size=(size_t)-1);
 		String &fromUCS4(const ByteArrayPtr &bin);
-		String getMD5() const;
+		String md5() const;
 
 		int toInt() const;
 		unsigned int toUnsignedInt() const;
@@ -379,6 +380,7 @@ class String : public Variant
 		//! @name Operatoren
 		//@{
 		operator const char *() const;
+		operator const unsigned char *() const;
 		operator int() const;
 		operator unsigned int() const;
 		operator bool() const;
