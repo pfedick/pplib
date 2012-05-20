@@ -6,9 +6,9 @@ CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_
 LIBS	= `../ppl7-config --libs debug source` -lstdc++
 PROGNAME = testsuite
 
-OBJECTS = compile/main.o compile/strings.o compile/datetime.o
+OBJECTS = compile/main.o compile/strings.o compile/datetime.o compile/array.o
 
-#OBJECTS = compile/memoryheap.o compile/memorygroup.o compile/array.o \
+#OBJECTS = compile/memoryheap.o compile/memorygroup.o \
 #		compile/avltree.o compile/assocarray.o compile/pointer.o \
 #		compile/bytearray.o compile/bytearrayptr.o compile/functions.o \
 #		compile/file.o compile/dir.o compile/list.o compile/inet.o \
