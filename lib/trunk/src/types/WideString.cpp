@@ -723,6 +723,31 @@ WideString & WideString::set(const WideString &str, size_t size) throw(OutOfMemo
 	return set((wchar_t*)str.ptr,inbytes);
 }
 
+/*!\brief Wert eines anderen Strings übernehmen
+ *
+ * \desc
+ * Mit dieser Funktion wird der Inhalt des Strings \p str übernommen.
+ *
+ * \param str Referenz auf einen anderen String
+ * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
+ * \return Referenz auf den String
+ * \exception OutOfMemoryException
+ */
+WideString & WideString::set(const String *str, size_t size) throw(OutOfMemoryException)
+{
+	if (!str) {
+		clear();
+		return *this;
+	}
+	size_t inbytes;
+	if (size!=(size_t)-1) inbytes=size;
+	else inbytes=str->length();
+	if (inbytes>str->length()) inbytes=str->length();
+	return set((const char*)str->c_str(),inbytes);
+}
+
 WideString & WideString::set(const String &str, size_t size) throw(OutOfMemoryException)
 {
 	size_t inbytes;

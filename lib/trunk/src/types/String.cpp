@@ -667,6 +667,29 @@ String & String::set(const String &str, size_t size) throw(OutOfMemoryException)
 	return set(str.ptr,inbytes);
 }
 
+String & String::set(const WideString *str, size_t size) throw(OutOfMemoryException)
+{
+	if (!str) {
+		clear();
+		return *this;
+	}
+	size_t inbytes;
+	if (size!=(size_t)-1) inbytes=size;
+	else inbytes=str->size();
+	if (inbytes>str->size()) inbytes=str->size();
+	return set(str->getPtr(),inbytes);
+}
+
+String & String::set(const WideString &str, size_t size) throw(OutOfMemoryException)
+{
+	size_t inbytes;
+	if (size!=(size_t)-1) inbytes=size;
+	else inbytes=str.size();
+	if (inbytes>str.size()) inbytes=str.size();
+	return set(str.getPtr(),inbytes);
+}
+
+
 String & String::set(const Variant &var) throw(OutOfMemoryException)
 {
 	const String &str=var.toString();
