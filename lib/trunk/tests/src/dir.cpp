@@ -56,7 +56,7 @@ class DirTest : public ::testing::Test {
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
-		expectedNum=23;
+		expectedNum=16;
 		if (ppl7::File::exists("testdata/.svn")) expectedNum++;
 		if (ppl7::File::exists("testdata/.")) expectedNum++;
 		if (ppl7::File::exists("testdata/..")) expectedNum++;
@@ -134,7 +134,7 @@ TEST_F(DirTest, resortBySize) {
 }
 
 TEST_F(DirTest, dirWalkFilename) {
-	ppl7::Dir d1("testdata", ppl7::Dir::SORT_FILENAME);
+	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
 	ppl7::Dir::Iterator it;
 	//d1.print();
 	d1.reset(it);
@@ -143,16 +143,8 @@ TEST_F(DirTest, dirWalkFilename) {
 		e=d1.getNext(it);
 		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
 	}
-	ASSERT_EQ(ppl7::String("File1.txt"),e.Filename);
-	ASSERT_EQ((size_t)13719,e.Size);
-
-	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename);
 	ASSERT_EQ((size_t)1540,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("LiberationSans-Bold.ttf"),e.Filename);
-	ASSERT_EQ((size_t)140252,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
@@ -171,67 +163,8 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("ppl7-icon-64x64.png"),e.Filename);
-	ASSERT_EQ((size_t)8685,e.Size);
-
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("reference.png"),e.Filename);
-	ASSERT_EQ((size_t)239844,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test-pal-trans.png"),e.Filename);
-	ASSERT_EQ((size_t)8957,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test-pal.png"),e.Filename);
-	ASSERT_EQ((size_t)8976,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.bmp"),e.Filename);
-	ASSERT_EQ((size_t)34254,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.gif"),e.Filename);
-	ASSERT_EQ((size_t)10117,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.jpg"),e.Filename);
-	ASSERT_EQ((size_t)7835,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.pcx"),e.Filename);
-	ASSERT_EQ((size_t)33872,e.Size);
-
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.png"),e.Filename);
-	ASSERT_EQ((size_t)23150,e.Size);
-
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.ppm"),e.Filename);
-	ASSERT_EQ((size_t)34244,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.tga"),e.Filename);
-	ASSERT_EQ((size_t)30032,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.tif"),e.Filename);
-	ASSERT_EQ((size_t)26704,e.Size);
-
-	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("unittest.bmp"),e.Filename);
-	ASSERT_EQ((size_t)16438,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("unittest.png"),e.Filename);
-	ASSERT_EQ((size_t)1572,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
@@ -242,98 +175,6 @@ TEST_F(DirTest, dirWalkFilename) {
 
 }
 
-TEST_F(DirTest, dirWalkFilename2) {
-	ppl7::Dir d1("testdata", ppl7::Dir::SORT_FILENAME);
-	ppl7::Dir::Iterator it;
-	//d1.print();
-	d1.reset(it);
-	ppl7::DirEntry e;
-	while (d1.getNext(e,it)) {
-		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
-	}
-	ASSERT_EQ(ppl7::String("File1.txt"),e.Filename);
-	ASSERT_EQ((size_t)13719,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename);
-	ASSERT_EQ((size_t)1540,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("LiberationSans-Bold.ttf"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
-	ASSERT_EQ((size_t)13040,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("file1.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("file2.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("file3.txt"),e.Filename);
-	ASSERT_EQ((size_t)6519,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("ppl7-icon-64x64.png"),e.Filename);
-	ASSERT_EQ((size_t)8685,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("reference.png"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test-pal-trans.png"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test-pal.png"),e.Filename);
-
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.bmp"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.gif"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.jpg"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.pcx"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.png"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.ppm"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.tga"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("test.tif"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
-	ASSERT_EQ((size_t)1592096,e.Size);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("unittest.bmp"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("unittest.png"),e.Filename);
-
-	ASSERT_TRUE(d1.getNext(e,it));
-	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
-	ASSERT_EQ((size_t)9819,e.Size);
-
-	// We expect an EndOfList next
-	ASSERT_FALSE(d1.getNext(e,it));
-
-
-}
 
 /*
 -rw-r--r--  1 patrick  admins     1540 22 Mai 11:31 LICENSE.TXT
@@ -360,7 +201,7 @@ TEST_F(DirTest, dirWalkFilename2) {
 */
 
 TEST_F(DirTest, dirWalkSize) {
-	ppl7::Dir d1("testdata", ppl7::Dir::SORT_SIZE);
+	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_SIZE);
 	ppl7::Dir::Iterator it;
 	//d1.print();
 	d1.reset(it);
@@ -373,90 +214,24 @@ TEST_F(DirTest, dirWalkSize) {
 	ASSERT_EQ((size_t)1540,e.Size);
 
 	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("unittest.png"),e.Filename);
-	ASSERT_EQ((size_t)1572,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("file2.txt"),e.Filename);
+	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/"));
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("file3.txt"),e.Filename);
+	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/"));
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("file1.txt"),e.Filename);
+	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/"));
 	ASSERT_EQ((size_t)6519,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.jpg"),e.Filename);
-	ASSERT_EQ((size_t)7835,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("ppl7-icon-64x64.png"),e.Filename);
-	ASSERT_EQ((size_t)8685,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test-pal-trans.png"),e.Filename);
-	ASSERT_EQ((size_t)8957,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test-pal.png"),e.Filename);
-	ASSERT_EQ((size_t)8976,e.Size);
-
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)9819,e.Size);
 
 	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.gif"),e.Filename);
-	ASSERT_EQ((size_t)10117,e.Size);
-
-	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
 	ASSERT_EQ((size_t)13040,e.Size);
-
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("File1.txt"),e.Filename);
-	ASSERT_EQ((size_t)13719,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("unittest.bmp"),e.Filename);
-	ASSERT_EQ((size_t)16438,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.png"),e.Filename);
-	ASSERT_EQ((size_t)23150,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.tif"),e.Filename);
-	ASSERT_EQ((size_t)26704,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.tga"),e.Filename);
-	ASSERT_EQ((size_t)30032,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.pcx"),e.Filename);
-	ASSERT_EQ((size_t)33872,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.ppm"),e.Filename);
-	ASSERT_EQ((size_t)34244,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("test.bmp"),e.Filename);
-	ASSERT_EQ((size_t)34254,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("LiberationSans-Bold.ttf"),e.Filename);
-	ASSERT_EQ((size_t)140252,e.Size);
-
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("reference.png"),e.Filename);
-	ASSERT_EQ((size_t)239844,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
@@ -465,12 +240,11 @@ TEST_F(DirTest, dirWalkSize) {
 
 	// We expect an EndOfListException next
 	ASSERT_THROW(e=d1.getNext(it), ppl7::EndOfListException);
-
 }
 
 
 TEST_F(DirTest, patternWalk) {
-	ppl7::Dir d1("testdata", ppl7::Dir::SORT_FILENAME);
+	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
 	ppl7::Dir::Iterator it;
 	//d1.print();
 	d1.reset(it);
@@ -494,7 +268,7 @@ TEST_F(DirTest, patternWalk) {
 
 
 TEST_F(DirTest, patternWalk2) {
-	ppl7::Dir d1("testdata", ppl7::Dir::SORT_FILENAME);
+	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
 	ppl7::Dir::Iterator it;
 	//d1.print();
 	d1.reset(it);
@@ -517,7 +291,7 @@ TEST_F(DirTest, patternWalk2) {
 }
 
 TEST_F(DirTest, regExpWalk) {
-	ppl7::Dir d1("testdata", ppl7::Dir::SORT_FILENAME);
+	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
 	ppl7::Dir::Iterator it;
 	ppl7::String expr("/^.file.*/i");
 	//d1.print();
@@ -538,7 +312,7 @@ TEST_F(DirTest, regExpWalk) {
 }
 
 TEST_F(DirTest, regExpWalk2) {
-	ppl7::Dir d1("testdata", ppl7::Dir::SORT_FILENAME);
+	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
 	ppl7::Dir::Iterator it;
 	ppl7::String expr("/^.file.*/i");
 	//d1.print();
