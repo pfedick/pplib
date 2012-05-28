@@ -520,6 +520,24 @@ void DateTime::set(int year, int month, int day, int hour, int minute, int sec, 
 	us=msec*1000+usec;
 }
 
+/*!\brief Datum aus PPLTIME-Struktur übernehmen
+ *
+ * \desc
+ * Mit dieser Funktion wird Datum und Zeit aus einer PPLTIME-Struktur übernommen.
+ *
+ * @param[in] t Referenz auf eine PPLTIME-Struktur
+ *
+ * \attention
+ * Gegenwärtig werden Werte ausserhalb des Gültigkeitsbereiches abgeschnitten! Aus dem Monat 0 oder -10 würde 1
+ * werden, aus 13 oder 12345 würde 12 werden. Dieses Verhalten wird sich in einer späteren Version noch ändern!
+ * Geplant ist, dass bei Überlauf eines Wertes die anderen automatisch angepasst werden, so dass z.B. aus
+ * dem 32.12.2010 automatisch der 01.01.2011 wird.
+ */
+void DateTime::set(const PPLTIME &t)
+{
+	set(t.year,t.month,t.day,t.hour,t.min,t.sec,0,0);
+}
+
 /*!\brief Datum aus Unix-Timestamp übernehmen
  *
  * \desc

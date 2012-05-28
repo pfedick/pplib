@@ -1001,6 +1001,7 @@ class DateTime : public Variant
 		void set(const String &datetime);
 		void set(const DateTime &other);
 		void set(const String &date, const String &time);
+		void set(const PPLTIME &t);
 		void setDate(const String &date);
 		void setTime(const String &time);
 		void set(int year, int month, int day, int hour=0, int minute=0, int sec=0, int msec=0, int usec=0);
