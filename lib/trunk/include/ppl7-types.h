@@ -1017,6 +1017,8 @@ class DateTime : public Variant
 		String getISO8601() const;
 		String getISO8601withMsec() const;
 		String getISO8601withUsec() const;
+		String getRFC822Date () const;
+		String strftime(const String &format) const;
 		ppluint64 time_t() const;
 		ppluint64 epoch() const;
 		ppluint64 longInt() const;

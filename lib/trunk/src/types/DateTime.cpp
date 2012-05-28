@@ -712,7 +712,7 @@ String DateTime::get(const String &format) const
 	if (!b) {
 		throw OutOfMemoryException();
 	}
-	if (strftime(b, size,(const char*)r, &t)==0) {
+	if (::strftime(b, size,(const char*)r, &t)==0) {
 		throw IllegalArgumentException("DateTime::get(\"%s\")",(const char*)r);
 	}
 	r.set(b);
@@ -881,6 +881,81 @@ String DateTime::getISO8601withUsec() const
 #endif
 	return r;
 }
+
+
+/*!\ingroup PPLGroupDateTime
+ * \brief Datumstring nach RFC-822 (Mailformat) erzeugen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein Datummstring nach RFC-822 erzeugt, wie er im Header einer Email verwendet wird.
+ * Das Format lautet:
+ * \code
+ * weekday, day month year time zone
+ * \endcode
+ * und hat folgende Bedeutung:
+ * - weekday: Name des Wochentags ("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat")
+ * - day: Tag des Monats mit ein oder zwei Ziffern
+ * - month: Name des Monats ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+ * - year: Das Jahr mit 4 Ziffern
+ * - time: Stunde:Minute:Sekunde (hh:mm:ss), jeweils mit zwei Ziffern und Doppelpunkt getrennt
+ * - zone: Offset zu UTC in Stunden und Minuten (+|-HHMM)
+ *
+ * @return String mit dem Datum im RFC-822-Format
+ * \exception Exception::FunctionFailed Die Funktion wirft eine Exception, wenn die Datumsinformation in der PPLTIME-Struktur ungültig ist.
+ */
+String DateTime::getRFC822Date () const
+{
+	PPLTIME t;
+	if (!GetTime(t,time_t())) throw DateOutOfRangeException();
+	String s;
+	const char *day[]={ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+	const char *month[]={ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+	// PPLTIME prüfen
+	if (t.day_of_week<0 || t.day_of_week>6) throw IllegalArgumentException("DateTime::getRFC822Date: week<0 order week>6");
+	if (t.month<1 || t.month>12) throw IllegalArgumentException("DateTime::getRFC822Date: month<0 order month>12");
+
+	s=day[t.day_of_week];
+	s+=", ";
+	s.appendf("%i ",t.day);
+	s+=month[t.month-1];
+	s.appendf(" %04i %02i:%02i:%02i ",t.year,t.hour,t.min,t.sec);
+	if (t.have_gmt_offset) {
+		if (t.gmt_offset>=0) s.appendf("+%02i%02i",abs(t.gmt_offset/3600),abs(t.gmt_offset%3600));
+		else s.appendf("-%02i%02i",abs(t.gmt_offset/3600),abs(t.gmt_offset%3600));
+	}
+	return s;
+}
+
+/*!\brief Datum mit der Funktion strftime der Standard C Bibliothek formatieren
+ *
+ * \desc
+ * Mit dieser Funktion wird das Datum mittels der Funktion strftime aus der Standard C Bibliothek
+ * formatiert.
+ *
+ * @param[in] format Siehe Manpage zu strftime: man strftime
+ * @return String im gewünschten Format
+ */
+String DateTime::strftime(const String &format) const
+{
+	size_t s=format.size()*4+64;
+	if (s<1024) s=1024;
+	char *buf=(char*)malloc(s);
+	if (!buf) throw OutOfMemoryException();
+
+	struct tm tt, *r;
+	::time_t tp=time_t();
+	r=localtime_r(&tp,&tt);
+	if (!r) throw InvalidDateException();
+	size_t res=::strftime(buf, s,(const char*) format, r);
+	if (res==0) {
+		free(buf);
+		throw InvalidFormatException();
+	}
+	String ret(buf);
+	free(buf);
+	return ret;
+}
+
 
 
 /*!\brief Datum in Unix-Timestamp umrechnen
@@ -1073,7 +1148,7 @@ int DateTime::weekISO8601() const
 	::time_t clock=mktime(&t);
 	gmtime_r(&clock, &t);
 	char buffer[10];
-	if (strftime(buffer, 10, "%V", &t)==0) {
+	if (::strftime(buffer, 10, "%V", &t)==0) {
 		throw InvalidDateException();
 	}
 	return atoi(buffer);
@@ -1105,7 +1180,7 @@ int DateTime::week() const
 	::time_t clock=mktime(&t);
 	gmtime_r(&clock, &t);
 	char buffer[10];
-	if (strftime(buffer, 10, "%U", &t)==0) {
+	if (::strftime(buffer, 10, "%U", &t)==0) {
 		throw InvalidDateException();
 	}
 	return atoi(buffer);
