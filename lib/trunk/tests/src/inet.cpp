@@ -62,7 +62,7 @@ class InetTest : public ::testing::Test {
 	}
 };
 
-TEST_F(InetTest, Idn2Ace) {
+TEST_F(InetTest, Idn2AceUtf8) {
 	ASSERT_NO_THROW({
 		ppl7::String idn="tästmé.de";
 		ppl7::String ace=ppl7::Idn2Ace(idn);
@@ -71,7 +71,7 @@ TEST_F(InetTest, Idn2Ace) {
 	);
 }
 
-TEST_F(InetTest, Ace2Idn) {
+TEST_F(InetTest, Ace2IdnUtf8) {
 	ASSERT_NO_THROW({
 		ppl7::String ace="xn--tstm-loa7a.de";
 		ppl7::String idn=ppl7::Ace2Idn(ace);
@@ -79,6 +79,25 @@ TEST_F(InetTest, Ace2Idn) {
 	}
 	);
 }
+
+TEST_F(InetTest, Idn2AceWideString) {
+	ASSERT_NO_THROW({
+		ppl7::WideString idn=L"tästmé.de";
+		ppl7::WideString ace=ppl7::Idn2Ace(idn);
+		ASSERT_EQ(ppl7::WideString(L"xn--tstm-loa7a.de"),ace) << "Convertion failed";
+	}
+	);
+}
+
+TEST_F(InetTest, Ace2IdnWideString) {
+	ASSERT_NO_THROW({
+		ppl7::WideString ace=L"xn--tstm-loa7a.de";
+		ppl7::WideString idn=ppl7::Ace2Idn(ace);
+		ASSERT_EQ(ppl7::WideString(L"tästmé.de"),idn) << "Convertion failed";
+	}
+	);
+}
+
 
 
 class Resolver : public ::testing::Test {

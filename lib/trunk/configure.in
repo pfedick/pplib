@@ -648,6 +648,7 @@ AC_MSG_RESULT([
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd		
 **   ldns library:         $report_have_ldns
+**   IDN library:		   $report_have_libidn
 **
 ** Databases:
 **   SQLite3:              $report_have_sqlite

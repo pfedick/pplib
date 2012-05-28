@@ -94,8 +94,10 @@ class IPAddress
 
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
 size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
-String Ace2Idn(const String &ace);
 String Idn2Ace(const String &idn);
+WideString Idn2Ace(const WideString &idn);
+String Ace2Idn(const String &ace);
+WideString Ace2Idn(const WideString &ace);
 
 String ToQuotedPrintable (const String &source);
 

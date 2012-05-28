@@ -176,7 +176,6 @@ WideString Idn2Ace(const WideString &idn)
 }
 
 
-
 /*!\brief Ace-Form einer Domain in die IDN-Form umwandeln
  *
  * \desc
@@ -191,6 +190,43 @@ String Ace2Idn(const String &ace)
 {
 #ifdef HAVE_LIBIDN
 	String idn;
+	char *a=NULL;
+    if (IDNA_SUCCESS==idna_to_unicode_8z8z((const char*)ace, &a,0) && a!=NULL) {
+		idn.set(a);
+#ifdef _WIN32
+		idn_free(a);
+#else
+		free(a);
+#endif
+		return idn;
+    }
+#ifdef _WIN32
+		idn_free(a);
+#else
+		free(a);
+#endif
+
+	throw IdnConversionException(ace);
+#else
+	throw UnsupportedFeatureException("libidn");
+#endif
+}
+
+
+/*!\brief Ace-Form einer Domain in die IDN-Form umwandeln
+ *
+ * \desc
+ * Wandelt einen ACE-String in seine lesbare IDN-Form um.
+ *
+ * \param[in] ace Der ACE-String
+ * \return Liefert einen neuen String mit der IDN-Form des Domainnamens zurück.
+ * \exception IdnConversionException Wird geworfen, wenn der ACE-String nicht
+ * umgewandelt werden kann.
+ */
+WideString Ace2Idn(const WideString &ace)
+{
+#ifdef HAVE_LIBIDN
+	WideString idn;
 	uint32_t *a=NULL;
 	ByteArray ucs4=ace.toUCS4();
     if (IDNA_SUCCESS==idna_to_unicode_4z4z((const uint32_t*)ucs4.ptr(), &a,0) && a!=NULL) {
