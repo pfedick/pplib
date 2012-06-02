@@ -433,11 +433,11 @@ class String : public Variant
 		//! @name Operatoren zur Verwendung der Klasse mit Qt
 		//@{
 		operator const QString() const {
-			return QString::fromWCharArray (ptr,stringlen);
+			return QString::fromLocal8Bit (ptr,stringlen);
 		}
 
 		operator const QVariant() const {
-			QVariant v=QString::fromWCharArray (ptr,stringlen);
+			QVariant v=QString::fromLocal8Bit (ptr,stringlen);
 			return v;
 		}
 
