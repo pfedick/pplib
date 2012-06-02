@@ -176,29 +176,15 @@ TEST_F(DirTest, dirWalkFilename) {
 }
 
 
-/*
--rw-r--r--  1 patrick  admins     1540 22 Mai 11:31 LICENSE.TXT
--rw-r--r--  1 patrick  admins     1572 12 Jun 16:37 unittest.png
--rw-r--r--  1 patrick  admins     6519 28 Mai 11:04 file3.txt
--rw-r--r--  1 patrick  admins     6519 28 Mai 11:04 file2.txt
--rw-r--r--  1 patrick  admins     6519 28 Mai 11:04 file1.txt
--rw-r--r--  1 patrick  admins     7835 12 Jun 16:37 test.jpg
--rwxr-xr-x  1 patrick  admins     8685 22 Mai 11:31 ppl7-icon-64x64.png
--rw-r--r--  1 patrick  admins     9819 28 Mai 11:09 zfile.txt
--rw-r--r--  1 patrick  admins    10117 12 Jun 16:37 test.gif
--rw-r--r--  1 patrick  admins    13040 28 Mai 11:08 afile.txt
--rw-r--r--  1 patrick  admins    13719 28 Mai 11:03 File1.txt
--rw-r--r--  1 patrick  admins    16438 12 Jun 16:37 unittest.bmp
--rw-r--r--  1 patrick  admins    23150 12 Jun 16:37 test.png
--rw-r--r--  1 patrick  admins    26704 12 Jun 16:37 test.tif
--rw-r--r--  1 patrick  admins    30032 12 Jun 16:37 test.tga
--rw-r--r--  1 patrick  admins    33872 12 Jun 16:37 test.pcx
--rw-r--r--  1 patrick  admins    34244 12 Jun 16:37 test.ppm
--rw-r--r--  1 patrick  admins    34254 12 Jun 16:37 test.bmp
--rw-r--r--  1 patrick  admins   140252 12 Jun 16:37 LiberationSans-Bold.ttf
--rw-r--r--  1 patrick  admins   231923 12 Jun 16:37 reference.png
--rw-r--r--  1 patrick  admins  1592096 22 Mai 11:31 testfile.txt
-*/
+ppl7::DirEntry getNextFile(const ppl7::Dir &d, ppl7::Dir::Iterator &it)
+{
+	ppl7::DirEntry e;
+	while (1) {
+		e=d.getNext(it);
+		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
+	}
+	return e;
+}
 
 TEST_F(DirTest, dirWalkSize) {
 	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_SIZE);
@@ -206,40 +192,37 @@ TEST_F(DirTest, dirWalkSize) {
 	//d1.print();
 	d1.reset(it);
 	ppl7::DirEntry e;
-	while (1) {
-		e=d1.getNext(it);
-		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
-	}
-	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename);
+	e=getNextFile(d1,it);
+	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename )<< "Real Filename 1: "<<e.Filename;
 	ASSERT_EQ((size_t)1540,e.Size);
 
-	e=d1.getNext(it);
-	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/"));
+	e=getNextFile(d1,it);
+	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 2: "<<e.Filename;
 	ASSERT_EQ((size_t)6519,e.Size);
 
-	e=d1.getNext(it);
-	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/"));
+	e=getNextFile(d1,it);
+	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 3: "<<e.Filename;
 	ASSERT_EQ((size_t)6519,e.Size);
 
-	e=d1.getNext(it);
-	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/"));
+	e=getNextFile(d1,it);
+	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 4: "<<e.Filename;
 	ASSERT_EQ((size_t)6519,e.Size);
 
-	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
+	e=getNextFile(d1,it);
+	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename) << "Real Filename 5: "<<e.Filename;
 	ASSERT_EQ((size_t)9819,e.Size);
 
-	e=d1.getNext(it);
+	e=getNextFile(d1,it);
 	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
 	ASSERT_EQ((size_t)13040,e.Size);
 
-	e=d1.getNext(it);
+	e=getNextFile(d1,it);
 	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
 
 
 	// We expect an EndOfListException next
-	ASSERT_THROW(e=d1.getNext(it), ppl7::EndOfListException);
+	ASSERT_THROW(e=getNextFile(d1,it);, ppl7::EndOfListException);
 }
 
 
