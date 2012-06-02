@@ -1333,8 +1333,10 @@ ByteArray String::toEncoding(const char *encoding) const
 		free(buffer);
 		throw CharacterEncodingException();
 	}
-	b[0]=0;
+	//b[0]=0;
+	//HexDump(buffer,buffersize-outbytes+4);
 	ByteArray ret(buffer,buffersize-outbytes);
+	//ret.hexDump();
 	free(buffer);
 	return ret;
 #endif

@@ -1,6 +1,6 @@
 GTEST_DIR = /usr/local/gtest-1.6.0
 CC		= gcc
-EXTRA_CFLAGS =
+EXTRA_CFLAGS = 
 INCLUDE	= -I. -I$(GTEST_DIR)/include
 CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 LIBS	= `../ppl7-config --libs debug source` -lstdc++

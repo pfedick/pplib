@@ -1043,8 +1043,8 @@ TEST_F(StringTest, Utf8toUtf8) {
 		ppl7::String s1("A test string with unicode characters: äöü");
 		ppl7::ByteArray a=s1.toUtf8();
 		ASSERT_EQ((size_t)45,a.size()) << "String does not have expected length";
-		ASSERT_EQ('A',(unsigned char)a[0]) << "Unexpected Character in string";
-		ASSERT_EQ(188,(unsigned char)a[44]) << "Unexpected Character in string";
+		ASSERT_EQ((unsigned char)'A',(unsigned char)a.get(0)) << "Unexpected Character in string";
+		ASSERT_EQ((unsigned char)188,(unsigned char)a.get(44)) << "Unexpected Character in string";
 	});
 }
 
@@ -1066,9 +1066,10 @@ TEST_F(StringTest, ISO88591toUtf8) {
 	ASSERT_NO_THROW({
 		a=s1.toUtf8();
 	});
+	//a.hexDump();
 	ASSERT_EQ((size_t)45,a.size()) << "String does not have expected length";
-	ASSERT_EQ('A',(unsigned char)a[0]) << "Unexpected Character in string";
-	ASSERT_EQ(188,(unsigned char)a[44]) << "Unexpected Character in string";
+	ASSERT_EQ((unsigned char)'A',(unsigned char)a.get(0)) << "Unexpected Character in string";
+	ASSERT_EQ(188,(unsigned char)a.get(44)) << "Unexpected Character in string";
 }
 
 

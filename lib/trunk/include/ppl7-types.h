@@ -198,6 +198,7 @@ public:
 	void free();
 	void clear();
 	ByteArray &operator=(const ByteArrayPtr &other);
+	ByteArray &operator=(const ByteArray &other);
 	ByteArray &operator=(const String &str);
 	operator const void*() const;
 	operator const unsigned char*() const;
