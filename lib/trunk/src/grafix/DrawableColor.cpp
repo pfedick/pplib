@@ -290,7 +290,7 @@ void Grafix::initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->RGBBlend=RGBBlend_NULL;
 			break;
 	}
-	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const char*)format.name(),format.format());
+	throw UnsupportedColorFormatException("RGBFormat=%s (%i)",(const char*)format.name(),format.format());
 }
 
 

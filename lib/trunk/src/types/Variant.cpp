@@ -105,7 +105,7 @@ void Machwas(const Variant &object)
 			return;
 	} else if (t==Variant::STRING) {
 			const String &str= static_cast<const String&>(object);  // Objekt zu String umwandeln
-			printf ("Es ist ein String mit folgendem Inhalt: %ls\n",(const wchar_t*)str);
+			printf ("Es ist ein String mit folgendem Inhalt: %s\n",(const char*)str);
 			return;
 	} else if (t==Variant::ARRAY) {
 			const Array &array= static_cast<const Array&>(object);  // Objekt zu Array umwandeln

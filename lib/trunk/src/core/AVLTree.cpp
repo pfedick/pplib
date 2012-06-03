@@ -929,8 +929,8 @@ int main(int argc, const char**argv)
     // Alle Elemente per Iterator ausgeben
     myMap.reset(it);
     while (myMap.getNext(it)) {
-        printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-            (const wchar_t*)it.key(), (const wchar_t*)it.value());
+        printf ("Found Key >>%s<< with Value >>%s<<\n",
+            (const char*)it.key(), (const char*)it.value());
     }
 	return 0;
 }
@@ -1130,8 +1130,8 @@ int main(int argc, const char**argv)
 	ppl7::AVLTree<ppl7::String, ppl7::String>::Iterator it;
 	myMap.reset(it);
 	while (myMap.getNext(it)) {
-		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-			(const wchar_t*)it.key(), (const wchar_t*)it.value());
+		printf ("Found Key >>%s<< with Value >>%s<<\n",
+			(const char*)it.key(), (const char*)it.value());
 	}
  * \endcode
  */
@@ -1190,8 +1190,8 @@ int main(int argc, const char**argv)
 	ppl7::AVLTree<ppl7::String, ppl7::String>::Iterator it;
 	myMap.reset(it);
 	while (myMap.getNext(it)) {
-		printf ("Found Key >>%ls<< with Value >>%ls<<\n",
-			(const wchar_t*)it.key(), (const wchar_t*)it.value());
+		printf ("Found Key >>%s<< with Value >>%s<<\n",
+			(const char*)it.key(), (const char*)it.value());
 	}
  * \endcode
  */

@@ -128,9 +128,9 @@ void EventHandler::setEventHandler(EventHandler *handler)
 void EventHandler::mouseMoveEvent(MouseEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseMoveEvent(%ls, %ls)\n",
-			event->eventWidget->widgetType().toWchart(),
-			event->eventWidget->name().toWchart());
+	printf ("EventHandler::mouseMoveEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
 #endif
 	if (handler) handler->mouseMoveEvent(event);
 }
@@ -138,9 +138,9 @@ void EventHandler::mouseMoveEvent(MouseEvent *event)
 void EventHandler::mouseDownEvent(MouseEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseDownEvent(%ls, %ls)\n",
-			event->eventWidget->widgetType().toWchart(),
-			event->eventWidget->name().toWchart());
+	printf ("EventHandler::mouseDownEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseDownEvent(event);
@@ -149,9 +149,9 @@ void EventHandler::mouseDownEvent(MouseEvent *event)
 void EventHandler::mouseUpEvent(MouseEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseUpEvent(%ls, %ls)\n",
-			event->eventWidget->widgetType().toWchart(),
-			event->eventWidget->name().toWchart());
+	printf ("EventHandler::mouseUpEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseUpEvent(event);
@@ -160,9 +160,9 @@ void EventHandler::mouseUpEvent(MouseEvent *event)
 void EventHandler::mouseDblClickEvent(MouseEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseDblClickEvent(%ls, %ls)\n",
-			event->eventWidget->widgetType().toWchart(),
-			event->eventWidget->name().toWchart());
+	printf ("EventHandler::mouseDblClickEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseDblClickEvent(event);
@@ -171,9 +171,9 @@ void EventHandler::mouseDblClickEvent(MouseEvent *event)
 void EventHandler::mouseClickEvent(MouseEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseClickEvent(%ls, %ls)\n",
-			event->eventWidget->widgetType().toWchart(),
-			event->eventWidget->name().toWchart());
+	printf ("EventHandler::mouseClickEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseClickEvent(event);
@@ -182,9 +182,9 @@ void EventHandler::mouseClickEvent(MouseEvent *event)
 void EventHandler::mouseEnterEvent(MouseEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseEnterEvent(%ls, %ls)\n",
-			event->eventWidget->widgetType().toWchart(),
-			event->eventWidget->name().toWchart());
+	printf ("EventHandler::mouseEnterEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseEnterEvent(event);
@@ -193,9 +193,9 @@ void EventHandler::mouseEnterEvent(MouseEvent *event)
 void EventHandler::mouseLeaveEvent(MouseEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseLeaveEvent(%ls, %ls)\n",
-			event->eventWidget->widgetType().toWchart(),
-			event->eventWidget->name().toWchart());
+	printf ("EventHandler::mouseLeaveEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseLeaveEvent(event);

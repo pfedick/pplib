@@ -108,7 +108,7 @@ void Label::paint(Drawable &draw)
 {
 	Frame::paint(draw);
 	Drawable d=clientDrawable(draw);
-	//printf ("Text: %ls, width: %i, height: %i\n",(const wchar_t*)myText, d.width(), d.height());
+	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());
 	int x=0;
 	if (myIcon.isEmpty()==false) {
 		d.bltAlpha(myIcon,x,(d.height())/2-myIcon.height()/2);

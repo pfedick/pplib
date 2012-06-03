@@ -382,7 +382,7 @@ void WikiParser::extractNoWiki(String &Text)
 	while (Text.pregMatch("/^(.*)<nowiki>[\\n]*(.*?)<\\/nowiki>(.*)$/ism",matches)) {
 		nowikicount++;
 		nowiki.set(nowikicount,matches[2]);
-		Text.setf("%ls<nowiki %i>%ls",matches.getPtr(1),nowikicount,matches.getPtr(3));
+		Text.setf("%s<nowiki %i>%s",matches.getPtr(1),nowikicount,matches.getPtr(3));
 	}
 
 }
@@ -402,7 +402,7 @@ void WikiParser::extractSourcecode(String &Text)
 		Tmp=matches[2];
 		Tmp.replace("\t","    ");
 		source.set(sourcecount,Tmp);
-		Text.setf("%ls<source %i>%ls",matches.getPtr(1),sourcecount,matches.getPtr(3));
+		Text.setf("%s<source %i>%s",matches.getPtr(1),sourcecount,matches.getPtr(3));
 	}
 }
 
@@ -413,8 +413,8 @@ void WikiParser::extractDiagrams(String &Text)
 	while (Text.pregMatch("/^(.*?)(<diagram.*?>.*?<\\/diagram>)(.*)$/ism",matches)) {
 		d=xmlDiagram2HTML(matches[2]);
 		diagrams.add(d);
-		//printf ("Diagramm: >>>%ls<<<\n",(const char*)d);
-		Text.setf("%ls<tmp_diagram %i>%ls",matches.getPtr(1),diagrams.size(),matches.getPtr(3));
+		//printf ("Diagramm: >>>%s<<<\n",(const char*)d);
+		Text.setf("%s<tmp_diagram %i>%s",matches.getPtr(1),diagrams.size(),matches.getPtr(3));
 	}
 }
 
@@ -437,11 +437,11 @@ void WikiParser::parseHeadlines(String &Line)
 	Array matches;
 	if (Line.pregMatch("/\\<h([0-9]+)\\>(.*?)\\<\\/h[0-9]+\\>/i",matches)) {
 		indexcount++;
-		Line=ToString("<a name=\"index_%i\"></a>%ls",indexcount,(const char*)Line);
+		Line=ToString("<a name=\"index_%i\"></a>%s",indexcount,(const char*)Line);
 		Key.setf("%i/ebene",indexcount);
 		index.set(Key,matches[1]);
 		Key.setf("%i/link",indexcount);
-		index.setf(Key,"<a href=\"#index_%i\">%ls</a>",indexcount,matches.getPtr(2));
+		index.setf(Key,"<a href=\"#index_%i\">%s</a>",indexcount,matches.getPtr(2));
 		//echo "match $match[1]<br>";
 	}
 }
@@ -507,7 +507,7 @@ void WikiParser::parseDoxygen(String &Line)
 		Line+="<b>Syntax:</b><div style=\"margin-left: 30px;\">";
 		String s=matches[1];
 		if (s.pregMatch("/^(.+)\\s+(.+)\\s*\\((.*)\\)$/",matches)) {
-			Line.appendf("<span style=\"color: #400000;\">%ls</span> <b>%ls</b>(",
+			Line.appendf("<span style=\"color: #400000;\">%s</span> <b>%s</b>(",
 					matches.getPtr(1), matches.getPtr(2));
 			Array Tok;
 			StrTok(Tok,matches[3],",");
@@ -518,7 +518,7 @@ void WikiParser::parseDoxygen(String &Line)
 				tt=Tok[j];
 				if (tt.pregMatch("/^(.*)\\s+(.*)$/",matches)) {
 					if (c) Line+=", ";
-					Line.appendf("<span style=\"color: #400000;\">%ls</span> <b style=\"color: #005000;\">%ls</b>",
+					Line.appendf("<span style=\"color: #400000;\">%s</span> <b style=\"color: #005000;\">%s</b>",
 							(const char*)matches[1], (const char*)matches[2]);
 					c++;
 				}
@@ -579,7 +579,7 @@ int WikiParser::parseUL(String &Line)
 		while (Line[c]==L'*') c++;
 		Line=Line.substr(c);
 		Line.trim();
-		ret.appendf("<li style=\"margin-left: %ipx;\">%ls</li>\n",((c-1)*20),(const char*)Line);
+		ret.appendf("<li style=\"margin-left: %ipx;\">%s</li>\n",((c-1)*20),(const char*)Line);
 		return 1;
 	} else if (ullevel>0) {
 		ret+="</ul>\n";
@@ -595,7 +595,7 @@ int WikiParser::parseIndent(String &Line)
 	if (c>0) {
 		Line=Line.substr(c);
 		Line.trim();
-		ret.appendf("<div style=\"margin-left: %ipx;\">%ls</div>\n",(c*20),(const char*)Line);
+		ret.appendf("<div style=\"margin-left: %ipx;\">%s</div>\n",(c*20),(const char*)Line);
 		return 1;
 	}
 	if (Line[0]==L';') {
@@ -610,7 +610,7 @@ int WikiParser::parseIndent(String &Line)
 int WikiParser::parseOL(String &Line)
 {
 	// Aufzählung OL?
-	//printf ("OL-Prüfung auf: >>>%ls\n",(const char*)Line);
+	//printf ("OL-Prüfung auf: >>>%s\n",(const char*)Line);
 	if (Line[0]==L'#') {
 		// Wie tief?
 		int c=1;
@@ -621,7 +621,7 @@ int WikiParser::parseOL(String &Line)
 		if (c>ollevel) for (int i=ollevel;i<c;i++) ret+="<ol>";
 		if (c<ollevel) for (int i=ollevel;i>c;i--) ret+="</ol>";
 		ollevel=c;
-		ret.appendf("<li style=\"margin-left: %ipx;\">%ls</li>\n",((c-1)*20),(const char*)Line);
+		ret.appendf("<li style=\"margin-left: %ipx;\">%s</li>\n",((c-1)*20),(const char*)Line);
 		//ret.Print(true);
 		return 1;
 	} else if (ollevel>0) {
@@ -652,16 +652,16 @@ void WikiParser::parseTable(String &Line)
 	Array Match;
 	String Tmp;
 	if (Line.pregMatch("/^\\{\\|(.*)$/",Match)) {
-		//printf ("Table match: %ls\n",(const char*)Line);
+		//printf ("Table match: %s\n",(const char*)Line);
 		intable=1;
-		Line.setf("<table %ls>\n",(const char*)Match[1]);
+		Line.setf("<table %s>\n",(const char*)Match[1]);
 		nobr=true;
 	}
 	if (intable) {
-		//printf ("Table-Line vorher: >>%ls<<\n",(const char *)Line);
+		//printf ("Table-Line vorher: >>%s<<\n",(const char *)Line);
 		if (Line.pregMatch("/^\\|\\}(.*)$/", Match)) {
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			if (inrow) Line+="</tr>\n";
 			intable=0;
 			incol="";
@@ -672,69 +672,69 @@ void WikiParser::parseTable(String &Line)
 		}
 		if (Line.pregMatch("/^\\|-(.*)$/u",Match)) {
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			if (inrow) Line+="</tr>\n";
 			incol="";
 			inrow=1;
-			Line.appendf("<tr %ls>\n",(const char*)Match[1]);
+			Line.appendf("<tr %s>\n",(const char*)Match[1]);
 			nobr=true;
 		}
 		if (Line.pregMatch("/^\\|([^\\|]+)\\|([^\\|].*)$/us",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
-			Line.appendf("<td %ls>",(const char*) Match[1]);
+			Line.appendf("<td %s>",(const char*) Match[1]);
 			Tmp=Match[2];
 			Tmp.trim();
 			if (Tmp.notEmpty()) Line+=Tmp; // Falls Inhalt leer ist, unterdrücken wir den Zeilenumbruch
 			else nobr=true;
 		} else if (Line.pregMatch("/^\\|([^\\|]+)\\|$/us",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
-			Line.appendf("<td %ls>",(const char*)Match[1]);
+			Line.appendf("<td %s>",(const char*)Match[1]);
 			nobr=true;
 		} else if (Line.pregMatch("/^\\|(.*)$/us",Match)) {
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
 			Line+="<td>";
 			Line+=Match[1];
 		}
 		while (Line.pregMatch("/^(.*)\\|\\|(.*)$/us",Match)) {
 			Line=Match[1];
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
 			Line+="<td>";
 			Line+=Match[2];
 		}
-		//printf ("Table-Line nachher: >>%ls<<\n",(const char *)Line);
+		//printf ("Table-Line nachher: >>%s<<\n",(const char *)Line);
 		if (Line.pregMatch("/^\\!([^\\|\\!]+)[\\|\\!]([^\\|\\!].*)$/u",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
-			Line.appendf("<th %ls>",(const char*)Match[1]);
+			Line.appendf("<th %s>",(const char*)Match[1]);
 			Tmp=Match[2];
 			Tmp.trim();
 			if (Tmp.notEmpty()) Line+=Tmp; // Falls Inhalt leer ist, unterdrücken wir den Zeilenumbruch
 			else nobr=true;
 		} else if (Line.pregMatch("/^\\!([^\\|]+)\\|$/u",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
-			Line.appendf("<th %ls>",(const char*)Match[1]);
+			Line.appendf("<th %s>",(const char*)Match[1]);
 			nobr=true;
 		} else if (Line.pregMatch("/^\\!(.*)$/u",Match)) {
 			Line="";
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
-			Line.appendf("<th>%ls",(const char *)Match[1]);
+			Line.appendf("<th>%s",(const char *)Match[1]);
 		}
 		while (Line.pregMatch("/^(.*)\\!\\!(.*)$/us",Match)) {
 			Line=Match[1];
-			if (incol.notEmpty()) Line.appendf("</%ls>",(const char*)incol);
+			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
-			Line.appendf("<th>%ls",(const char*)Match[2]);
+			Line.appendf("<th>%s",(const char*)Match[2]);
 		}
 	}
 }
@@ -775,10 +775,10 @@ void WikiParser::parseLinks(String &Line)
 	Array Matches;
 	while (Line.pregMatch("/^(.*?)\\[\\[(.*?)\\s+(.*?)\\]\\](.*?)$/",Matches)) {
 		if (BaseURI.notEmpty()) {
-			Tmp.setf("%ls<a href=%ls%ls>%ls</a>%ls",(const char*)Matches[1],(const char*)BaseURI,
+			Tmp.setf("%s<a href=%s%s>%s</a>%s",(const char*)Matches[1],(const char*)BaseURI,
 					(const char*)Matches[2],(const char*)Matches[3],(const char*)Matches[4]);
 		} else {
-			Tmp.setf("%ls<a href=%ls>%ls</a>%ls",(const char*)Matches[1],(const char*)Matches[2],
+			Tmp.setf("%s<a href=%s>%s</a>%s",(const char*)Matches[1],(const char*)Matches[2],
 					(const char*)Matches[3],(const char*)Matches[4]);
 		}
 		Line=Tmp;
@@ -810,7 +810,7 @@ void WikiParser::buildIndex(String &Html)
 			while (1) {
 				AssocArray &r=index.getNextArray(it);
 				a.repeat(L'*',r.getString("ebene").toInt());
-				a.appendf(" %ls\n",(const char*)r.getString("link"));
+				a.appendf(" %s\n",(const char*)r.getString("link"));
 				Tmp+=a;
 			}
 		} catch (OutOfBoundsEception &) {
@@ -850,7 +850,7 @@ void WikiParser::finalize()
 
 	// Leere Tabellen-Zellen wollen wir sehen
 	while (ret.pregMatch("/(.*)(<t[dh]>)\\s*(<\\/t[dh]>)(.*)/i",Match)) {
-		ret.setf("%ls%ls&nbsp;%ls%ls",(const char*)Match[1],
+		ret.setf("%s%s&nbsp;%s%s",(const char*)Match[1],
 				(const char*)Match[2],
 				(const char*)Match[3],
 				(const char*)Match[4]);
@@ -869,7 +869,7 @@ void WikiParser::finalizeNoWiki()
 	if (nowikicount>0) {
 		Array Match;
 		while (ret.pregMatch("/^(.*)<nowiki ([0-9]+)>(.*)$/ims",Match)) {
-			ret.setf("%ls%ls%ls",(const char*)Match[1],
+			ret.setf("%s%s%s",(const char*)Match[1],
 					(const char*)nowiki[Match[2].toInt()],
 					(const char*)Match[3]);
 		}
@@ -884,13 +884,13 @@ void WikiParser::finalizePRE()
 			try {
 				const AssocArray &p=pre.getArray(Match[2]);
 				if (p.exists("class")) {
-					ret.setf("%ls<pre class=\"%ls\">\n%ls</pre>\n%ls",
+					ret.setf("%s<pre class=\"%s\">\n%s</pre>\n%s",
 							(const char*)Match[1],
 							(const char*)p.getString("class"),
 							(const char*)p.getString("content"),
 							(const char*)Match[3]);
 				} else {
-					ret.setf("%ls<pre>\n%ls</pre>\n%ls",
+					ret.setf("%s<pre>\n%s</pre>\n%s",
 							(const char*)Match[1],
 							(const char*)p.getString("content"),
 							(const char*)Match[3]);
@@ -921,7 +921,7 @@ void WikiParser::finalizeDiagrams()
 	Array Match;
 	if (diagrams.size()) {
 		while (ret.pregMatch("/^(.*)<tmp_diagram ([0-9]+)>(.*)$/sim",Match)) {
-			ret.setf("%ls\n%ls\n%ls",(const char*)Match[1],
+			ret.setf("%s\n%s\n%s",(const char*)Match[1],
 					(const char*)diagrams[Match[2].toInt()-1],
 					(const char*)Match[3]);
 		}
@@ -1029,7 +1029,7 @@ String WikiParser::xmlDiagram2HTML(const String &xml)
 				Row=Match[2];
 				Tmp=Match[1];
 				Tmp+=Match[3];
-				//printf ("row: %ls\n",(const char*)Row);
+				//printf ("row: %s\n",(const char*)Row);
 				String id, color,name;
 				if (Row.pregMatch("/id=\"(.*?)\"/is",Match)) id=Match[1];
 				if (Row.pregMatch("/color=\"(.*?)\"/is",Match)) color=Match[1];
@@ -1051,8 +1051,8 @@ String WikiParser::xmlDiagram2HTML(const String &xml)
 			Tmp=Match[3];
 			Body=Match[1];
 			Body+=Match[4];
-			//printf ("Section: >>>%ls<<<\n",(const char*)Row);
-			//printf ("Param: >>>%ls<<<\n",(const char*)Param);
+			//printf ("Section: >>>%s<<<\n",(const char*)Row);
+			//printf ("Param: >>>%s<<<\n",(const char*)Param);
 			d+="<div style=\"border: 1px solid black; margin-bottom: 6px;\">\n";
 			if (Param.pregMatch("/name=\"(.*?)\"/is")) d+="<div style=\"background: white; color: black; font-size: 80%; font-weight: bold;\">"+Match[1]+"</div>\n";
 			d+="<table style=\"width: 100%; background: #f0f0f0;\">\n";

@@ -275,7 +275,7 @@ void Grafix::initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			return;
 
 	}
-	throw UnsupportedColorFormatException("RGBFormat=%ls (%i)",(const char*)format.name(),format.format());
+	throw UnsupportedColorFormatException("RGBFormat=%s (%i)",(const char*)format.name(),format.format());
 }
 
 

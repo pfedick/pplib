@@ -4,9 +4,9 @@
  * Web: http://www.pfp.de/ppl/
  *  
  * $Author: pafe $
- * $Revision: 38 $
- * $Date: 2011-04-26 21:39:41 +0200 (Di, 26 Apr 2011) $
- * $Id: ppl7-unixconfig.h.in 38 2011-04-26 19:39:41Z pafe $
+ * $Revision: 396 $
+ * $Date: 2012-06-02 15:06:05 +0200 (Sa, 02 Jun 2012) $
+ * $Id: ppl7-config.h.in 396 2012-06-02 13:06:05Z pafe $
  * 
  ******************************************************************************* 
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>

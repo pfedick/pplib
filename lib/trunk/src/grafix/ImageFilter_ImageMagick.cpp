@@ -104,7 +104,7 @@ int ImageFilter_ImageMagick::ident(FileObject &file, IMAGE &img)
 			img.format=RGBFormat::A8R8G8B8;
 			printf ("MagickImage erkannt. bitdepth=%i, width=%i, height=%i\n",img.bitdepth,
 					img.width,img.height);
-			printf ("Pitch: %i, format: %ls\n",img.pitch,(const wchar_t*) img.format.name());
+			printf ("Pitch: %i, format: %s\n",img.pitch,(const char*) img.format.name());
 		}
 		DestroyMagickWand(wand);
 		if (ok) return 1;

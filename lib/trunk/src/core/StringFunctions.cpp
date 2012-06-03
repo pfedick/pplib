@@ -603,7 +603,7 @@ String ToHex(const ByteArrayPtr &bin)
  * \example
  * \code
  * ppl7::String text=L"Hallo Welt! 1+1=2";
- * printf("%ls\n",(const wchar_t*)ppl7::UrlEncode(text));
+ * printf("%s\n",(const char*)ppl7::UrlEncode(text));
  * \endcode
  * ergibt:
  * \verbatim
@@ -677,7 +677,7 @@ static char HexPairValue(const char * code) {
  * \example
  * \code
  * ppl7::String text=L"Hallo+Welt!+1%2B1%3D2";
- * printf("%ls\n",(const wchar_t*)ppl7::UrlDecode(text));
+ * printf("%s\n",(const char*)ppl7::UrlDecode(text));
  * \endcode
  * ergibt:
  * \verbatim

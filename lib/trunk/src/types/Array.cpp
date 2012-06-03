@@ -564,7 +564,7 @@ void Array::list(const String &prefix) const
 			PrintDebug("Array ist leer\n");
 		}
 		for (size_t i=0;i<numElements;i++) {
-			if (r[i].value!=NULL) PrintDebug ("%6zu: %ls\n",i,(const wchar_t*)r[i].value->getPtr());
+			if (r[i].value!=NULL) PrintDebug ("%6zu: %s\n",i,(const char*)r[i].value->getPtr());
 
 		}
 	} else {
