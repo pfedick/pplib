@@ -171,7 +171,7 @@ static int Blend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const R
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
 	data.pitchtgt=target.pitch;
-	if (ASM_AlphaBlt32(&data)) {
+	if (ASM_Blend32(&data)) {
 		return 1;
 	}
 	return 0;
