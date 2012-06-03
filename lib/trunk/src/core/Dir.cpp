@@ -1120,4 +1120,71 @@ void Dir::open(const char *path, Sort s)
 #endif
 }
 
+
+bool Dir::exists(const String &dirname)
+{
+	DirEntry f;
+	File::stat(dirname,f);
+	if (f.isDir()) return true;
+	if (f.isLink()) return true;
+	return false;
+}
+
+void Dir::mkDir(const String &path)
+{
+	Dir::mkDir(path,false);
+}
+
+void Dir::mkDir(const String &path, bool recursive)
+{
+#ifdef _WIN32
+	Dir::mkDir(path,0,recursive);
+#else
+	Dir::mkDir(path,
+		S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH,
+		recursive);
+#endif
+}
+
+void Dir::mkDir(const String &path, mode_t mode, bool recursive)
+{
+	String s;
+	if (path.isEmpty()) throw IllegalArgumentException("IllegalArgumentException");
+	// Wenn es das Verzeichnis schon gibt, koennen wir sofort aussteigen
+	if (Dir::exists(path)) return;
+
+	// 1=erfolgreich, 0=Fehler
+	if (!recursive) {
+#ifdef _WIN32
+		s=path;
+		s.Replace("/","\\");
+		if (mkdir(s)==0) return 1;
+#else
+		if (mkdir((const char*)path,mode)==0) return;
+#endif
+		throw CreateDirectoryFailedException();
+	}
+	// Wir hangeln uns von unten nach oben
+	s.clear();
+	Array tok;
+	StrTok(tok,path,"/");
+
+	if(path[0]=='/') s.append("/");
+	for (size_t i=0;i<tok.count();i++) {
+		s.append(tok[i]);
+		// Prüfen, ob das Verzeichnis da ist.
+		if (!Dir::exists(s)) {
+#ifdef _WIN32
+			if(s.Right(1)!=":") {
+				s.Replace("/","\\");
+				if (mkdir((const char*)s)!=0) throw CreateDirectoryFailedException();
+			}
+#else
+			if (mkdir((const char*)s,mode)!=0) throw CreateDirectoryFailedException();
+#endif
+		}
+		s.append("/");
+	}
+}
+
 } // EOF namespace ppl7

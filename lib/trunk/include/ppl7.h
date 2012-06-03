@@ -823,6 +823,7 @@ class Dir
 		PPLNORMALEXCEPTION(PathnameTooLongException);
 		PPLNORMALEXCEPTION(NonexistingPathException);
 		PPLNORMALEXCEPTION(PermissionDeniedException);
+		PPLNORMALEXCEPTION(CreateDirectoryFailedException);
 
 		typedef ppl7::List<const DirEntry*>::Iterator Iterator;
 
@@ -856,6 +857,12 @@ class Dir
 		static String currentPath();
 		static String homePath();
 		static String tempPath();
+
+		static bool exists(const String &dirname);
+		static void mkDir(const String &path);
+		static void mkDir(const String &path, bool recursive);
+		static void mkDir(const String &path, mode_t mode, bool recursive);
+
 
 };
 
