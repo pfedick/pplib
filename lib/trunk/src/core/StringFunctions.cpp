@@ -550,9 +550,10 @@ void StrTok(Array &result, const String &string, const String &div)
 	String Line;
 	Array a;
 	a.explode(string,div);
+	//printf ("StrTok: a.size=%ti\n",a.size());
 	for (size_t i=0;i<a.size();i++) {
 		Line=a[i];
-		if (Line.notEmpty()) result.add(a);
+		if (Line.notEmpty()) result.add(Line);
 	}
 }
 

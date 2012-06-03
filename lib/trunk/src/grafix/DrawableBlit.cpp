@@ -160,6 +160,45 @@ static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 	return 1;
 }
 
+static int Blend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, float factor)
+{
+	/*
+#ifdef HAVE_X86_ASSEMBLER
+	BLTDATA data;
+	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
+	data.tgt=(ppluint32*)adr(target,x,y);
+	data.width=srect.width();
+	data.height=srect.height();
+	data.pitchsrc=source.pitch;
+	data.pitchtgt=target.pitch;
+	if (ASM_AlphaBlt32(&data)) {
+		return 1;
+	}
+	return 0;
+#endif
+*/
+	ppluint32 *src, *tgt;
+	src=(ppluint32*)adr(source,srect.left(),srect.top());
+	tgt=(ppluint32*)adr(target,x,y);
+	int width=srect.width();
+	int yy, xx;
+	if (!alphatab) return 0;
+	Color psrc, ptgt, c;
+	for (yy=0;yy<srect.height();yy++) {
+		for (xx=0;xx<width;xx++) {
+			ptgt.setColor(tgt[xx]);
+			psrc.setColor(src[xx]);
+			c.blendf(ptgt,psrc,factor);
+			tgt[xx]=c.color();
+		}
+		src+=(source.pitch>>2);
+		tgt+=(target.pitch>>2);
+	}
+	return 1;
+}
+
+
+
 
 
 static int BltColorKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c)
@@ -269,6 +308,7 @@ void Grafix::initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->BltAlpha=BltAlpha_32;
 			fn->BltColorKey=BltColorKey_32;
 			fn->BltDiffuse=BltDiffuse_32;
+			fn->Blend=Blend_32;
 			return;
 		case RGBFormat::GREY8:
 		case RGBFormat::A8:
@@ -666,6 +706,32 @@ void Drawable::draw(const ImageList &iml, int nr, int x, int y, const Color &dif
 	}
 	throw UnknownBltMethodException();
 }
+
+void Drawable::blend(const Drawable &source, float factor, int x, int y)
+{
+	return blend(source,factor,source.rect(),x,y);
+}
+
+void Drawable::blend(const Drawable &source, float factor, const Rect &srect, int x, int y)
+{
+	if (source.isEmpty()) throw EmptyDrawableException();
+	// Quellrechteck
+	Rect q;
+	if (srect.isNull()) {
+		q=source.rect();
+	} else {
+		q=srect;
+		if (q.left()<0) q.setLeft(0);
+		if (q.width()>source.width()) q.setWidth(source.width());
+		if (q.top()<0) q.setTop(0);
+		if (q.height()>source.height()) q.setHeight(source.height());
+	}
+	//::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
+	if (!fitRect(x,y,q)) return;
+	if (!fn->Blend) throw FunctionUnavailableException("Drawable::Blend");
+	fn->Blend(data,source.data,q,x,y,factor);
+}
+
 
 #ifdef DONE
 void Drawable::draw(const Sprite &sprite, int nr, int x, int y)

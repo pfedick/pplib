@@ -432,7 +432,7 @@ void Dir::print(const DirEntry &de) const
 {
 	printf ("%s %3i ",(const char*)de.AttrStr,de.NumLinks);
 	printf ("%5i %5i ",de.Uid, de.Gid);
-	printf ("%10zu ",de.Size);
+	printf ("%10llu ",de.Size);
 	printf ("%s %s\n",(const char*)de.MTime.get(),(const char*)de.Filename);
 }
 
@@ -1123,10 +1123,15 @@ void Dir::open(const char *path, Sort s)
 
 bool Dir::exists(const String &dirname)
 {
-	DirEntry f;
-	File::stat(dirname,f);
-	if (f.isDir()) return true;
-	if (f.isLink()) return true;
+	try {
+		DirEntry f;
+		File::stat(dirname,f);
+		if (f.isDir()) return true;
+		if (f.isLink()) return true;
+		return false;
+	} catch (...) {
+		return false;
+	}
 	return false;
 }
 
@@ -1153,6 +1158,7 @@ void Dir::mkDir(const String &path, mode_t mode, bool recursive)
 	// Wenn es das Verzeichnis schon gibt, koennen wir sofort aussteigen
 	if (Dir::exists(path)) return;
 
+	//printf ("path=%s\n",(const char*)path);
 	// 1=erfolgreich, 0=Fehler
 	if (!recursive) {
 #ifdef _WIN32
@@ -1168,6 +1174,9 @@ void Dir::mkDir(const String &path, mode_t mode, bool recursive)
 	s.clear();
 	Array tok;
 	StrTok(tok,path,"/");
+	//tok.explode(path,"/");
+	//tok.list("tok");
+	//throw UnknownException();
 
 	if(path[0]=='/') s.append("/");
 	for (size_t i=0;i<tok.count();i++) {
