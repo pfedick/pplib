@@ -5,10 +5,10 @@ AC_ARG_WITH([libidn],
 	[libidn_prefix="$withval"],
 	[libidn_prefix="no"])
 
-am_save_CPPFLAGS="$CPPFLAGS"
+am_save_CFLAGS="$CFLAGS"
 am_save_LIBS="$LIBS"
 am_save_LDFLAGS="$LDFLAGS"
-LIBIDN_LIBS="-ldenicdchk"
+LIBIDN_LIBS="-lidn"
 LIBIDN_CFLAGS=""
 have_libidn="no"
 	if test "$libidn_prefix" != "yes"
@@ -16,7 +16,7 @@ have_libidn="no"
 		if test "$libidn_prefix" != "no"
 		then
 			LIBS="-L$libidn_prefix/lib -lidn $LIBS"
-			CPPFLAGS="$CPPFLAGS -I$libidn_prefix/include"
+			CFLAGS="$CFLAGS -I$libidn_prefix/include"
 			LIBIDN_LIBS="-L$libidn_prefix/lib -lidn"
 			LIBIDN_CFLAGS="-I$libidn_prefix/include"
 		else
@@ -51,7 +51,7 @@ have_libidn="no"
       	]
     	)
     ])
-CPPFLAGS=$am_save_CPPFLAGS
+CFLAGS=$am_save_CFLAGS
 LIBS=$am_save_LIBS
 LDFLAGS=$am_save_LDFLAGS
 
@@ -59,6 +59,8 @@ if test "$have_libidn" = "yes"
 then
 	ifelse([$2], , :, [$2])
 else
+	LIBIDN_LIBS=""
+	LIBIDN_CFLAGS=""
 	ifelse([$3], , :, [$3])
 fi
 
