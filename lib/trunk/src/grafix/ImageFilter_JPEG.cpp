@@ -566,9 +566,9 @@ void ImageFilter_JPEG::save (const Drawable &surface, FileObject &file, const As
 	for (y=0;y<surface.height();y++) {
 		for (x=0;x<surface.width();x++) {
 			farbe=surface.getPixel(x,y);
-			buffer[x*3]=(ppluint8)farbe.blue();
+			buffer[x*3]=(ppluint8)farbe.red();
 			buffer[x*3+1]=(ppluint8)farbe.green();
-			buffer[x*3+2]=(ppluint8)farbe.red();
+			buffer[x*3+2]=(ppluint8)farbe.blue();
 		}
 		jpeg_write_scanlines(&cinfo,row_pointer,1);
 	}
