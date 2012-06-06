@@ -206,6 +206,8 @@
 #undef HAVE_ATOL
 #undef HAVE_ATOLL
 #undef HAVE_ATOF
+#undef HAVE_STRTOLOWER
+#undef HAVE_STRTOUPPER
 
 
 

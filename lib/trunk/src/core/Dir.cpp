@@ -1163,8 +1163,8 @@ void Dir::mkDir(const String &path, mode_t mode, bool recursive)
 	if (!recursive) {
 #ifdef _WIN32
 		s=path;
-		s.Replace("/","\\");
-		if (mkdir(s)==0) return 1;
+		s.replace("/","\\");
+		if (mkdir(s)==0) return;
 #else
 		if (mkdir((const char*)path,mode)==0) return;
 #endif
@@ -1184,8 +1184,8 @@ void Dir::mkDir(const String &path, mode_t mode, bool recursive)
 		// Prüfen, ob das Verzeichnis da ist.
 		if (!Dir::exists(s)) {
 #ifdef _WIN32
-			if(s.Right(1)!=":") {
-				s.Replace("/","\\");
+			if(s.right(1)!=":") {
+				s.replace("/","\\");
 				if (mkdir((const char*)s)!=0) throw CreateDirectoryFailedException();
 			}
 #else

@@ -65,24 +65,89 @@ namespace ppl7 {
 namespace compat {
 
 char * trim (char * text);
+
+#ifndef HAVE_STRTOLOWER
 char *strtolower (char * text);
-char *strtoupper (char * text);
+#endif
+
+#ifndef HAVE_STRTOUPPER
+char *strtoupper (char * text);^
+#endif
+
+#ifndef HAVE_STRCASESTR
 const char *strcasestr(const char *haystack, const char *needle);
+#endif
+
+#ifndef HAVE_STRCASECMP
 int strcasecmp(const char *s1, const char *s2);
+#endif
+
+#ifndef HAVE_STRNCASECMP
 int strncasecmp(const char *s1, const char *s2, size_t n);
+#endif
+
+#ifndef HAVE_VASPRINTF
 int vasprintf(char **buff, const char *fmt, va_list args);
+#endif
+
+#ifndef HAVE_ASPRINTF
 int asprintf(char **buff, const char *format, ...);
+#endif
+
+#ifndef HAVE_HTOL
 long htol (const char * wert);
+#endif
+
+#ifndef HAVE_ATOLL
 long long atoll (const char *wert);
+#endif
+
+#ifndef HAVE_ATOI
 int atoi(const char *wert);
+#endif
+
+#ifndef HAVE_ATOL
 long atol(const char *wert);
+#endif
+
+#ifndef HAVE_ATOF
 double atof(const char *wert);
+#endif
+
+#ifndef HAVE_STRNDUP
 char *strndup(const char *str, size_t len);
+#endif
+
+#ifndef HAVE_STRNCMP
 int strncmp(const char *s1, const char *s2, size_t len);
+#endif
+
+#ifndef HAVE_BCOPY
 void bcopy(const void *src, void *dst, size_t len);
+#endif
+
+#ifndef HAVE_STRNLEN
 size_t strnlen(const char *str, size_t len);
+#endif
 
 
+/*
+ * 	const char *strcasestr(const char *haystack, const char *needle);
+	int strcasecmp(const char *s1, const char *s2);
+	int strncasecmp(const char *s1, const char *s2, size_t n);
+	int vasprintf(char **buff, const char *fmt, va_list args);
+	int asprintf(char **buff, const char *format, ...);
+	long htol (const char * wert);
+	long long atoll (const char * wert);
+	int atoi(const char *wert);
+	long atol(const char *wert);
+	double atof(const char *wert);
+	char *strndup(const char *str, size_t len);
+	int strncmp(const char *s1, const char *s2, size_t len);
+	size_t strnlen(const char *str, size_t len);
+	void bcopy(const void *src, void *dst, size_t len);
+ *
+ */
 } // EOF namespace compat
 } // EOF namespace ppl7
 

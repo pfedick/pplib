@@ -45,7 +45,7 @@
 #define HAVE_STRINGS_H 1
 #define HAVE_STDARG_H 1
 
-/* #undef MINGW32 */
+#define MINGW32 1
 
 /* #undef size_t */
 

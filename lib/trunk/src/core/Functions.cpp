@@ -71,6 +71,9 @@
 #ifdef HAVE_LIMITS_H
 #include <limits.h>
 #endif
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #include "ppl7.h"
 
@@ -161,7 +164,7 @@ void PrintDebugTime(const char *format, ...)
 
 	if (printdebug==1) {
 #ifdef WIN32
-		OutputDebugString((const char*)Time.toLocalEncoding());
+		OutputDebugString((const char*)Time);
 		OutputDebugString(buff);
 #endif
 	} else {
