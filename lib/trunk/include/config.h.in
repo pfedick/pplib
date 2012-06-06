@@ -131,6 +131,7 @@
 #undef STRUCT_TM_HAS_GMTOFF
 #undef HAVE_ATOLL
 #undef HAVE_STRTOLL
+#undef HAVE_STRTOULL
 #undef HAVE_SLEEP
 #undef HAVE_NAP
 #undef HAVE_USLEEP

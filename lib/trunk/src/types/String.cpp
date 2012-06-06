@@ -3105,7 +3105,7 @@ unsigned long long String::toUnsignedLongLong() const
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOULL
 	return (unsigned long long) strtoull(ptr,NULL,0);
-#elif HAVE_STRTOLL
+#elif defined HAVE_STRTOLL
 	return (unsigned long long) strtoll(ptr,NULL,0);
 #elif WIN32
 	return (unsigned long long) _strtoi64(ptr,NULL,0);

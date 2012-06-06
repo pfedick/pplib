@@ -149,6 +149,9 @@ size_t strnlen(const char *str, size_t len);
  *
  */
 } // EOF namespace compat
+
+using namespace compat;
+
 } // EOF namespace ppl7
 
 
