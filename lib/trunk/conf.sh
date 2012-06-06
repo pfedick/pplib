@@ -48,7 +48,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
 			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
-			--with-jpeg=/usr/local --with-png=/usr/local --with-libmhash=/usr/local \
+			--with-jpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
 			--with-libmcrypt-prefix=/usr/local \
 			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local
