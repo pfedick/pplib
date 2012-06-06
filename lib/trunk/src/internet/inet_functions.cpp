@@ -101,6 +101,36 @@
 
 namespace ppl7 {
 
+#ifdef _WIN32
+#define socklen_t	int
+int inet_aton(const char *cp, struct in_addr *pin)
+{
+	unsigned long ret=inet_addr(cp);
+	if (ret!=INADDR_NONE) {
+		pin->S_un.S_addr=ret;
+		return 1;
+	}
+	return 0;
+}
+
+#endif
+
+static int _wsa_init=0;
+
+void InitWSA()
+{
+#ifdef WIN32
+	if (!_wsa_init) {
+		WORD wVersionRequested;
+		WSADATA wsaData;
+		int err;
+		wVersionRequested = MAKEWORD( 2, 2 );
+		err = WSAStartup( wVersionRequested, &wsaData );
+		if (err!=0)	throw WinsockInitialisationFailed();
+	}
+#endif
+}
+
 
 /*!\brief Ace-Form aus einem IDN-String berechnen
  *

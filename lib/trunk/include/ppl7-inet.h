@@ -52,6 +52,7 @@
 namespace ppl7 {
 
 PPLPARAMETERISEDEXCEPTION(NetworkException);
+PPLNORMALEXCEPTION(WinsockInitialisationFailed);
 PPLPARAMETERISEDEXCEPTION(IdnConversionException);
 
 // TODO
@@ -92,6 +93,7 @@ class IPAddress
 
 };
 
+void InitWSA();
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
 size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
 String Idn2Ace(const String &idn);

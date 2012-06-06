@@ -3060,6 +3060,8 @@ ppluint64 String::toUnsignedInt64() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOULL
+	return (ppluint64) strtoull(ptr,NULL,0);
+#elif HAVE_STRTOLL
 	return (ppluint64) strtoll(ptr,NULL,0);
 #elif WIN32
 	return (ppluint64) _strtoi64(ptr,NULL,0);
