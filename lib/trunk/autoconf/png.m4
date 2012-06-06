@@ -25,6 +25,8 @@ AC_ARG_WITH([libpng],
 				ifelse([$2], , :, [$2])
   				,
 				ifelse([$3], , :, [$3])
+				,
+				-lz
 			:)
 		else
 			PKG_CHECK_EXISTS([libpng],
@@ -40,6 +42,8 @@ AC_ARG_WITH([libpng],
 					ifelse([$2], , :, [$2])
   					,
 					ifelse([$3], , :, [$3])
+					,
+					-lz
 				:)
 			)
 		fi
