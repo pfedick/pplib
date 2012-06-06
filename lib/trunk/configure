@@ -10603,6 +10603,18 @@ $as_echo "#define HAVE_WORKING_VSNPRINTF 1" >>confdefs.h
 
 fi
 
+for ac_func in strtolower strtoupper
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
 for ac_func in bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket vasprintf asprintf
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
@@ -11146,7 +11158,8 @@ for ac_lib in '' png; do
     ac_res="none required"
   else
     ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+    LIBS="-l$ac_lib -lz
+			: $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
   ac_cv_search_png_sig_cmp=$ac_res
@@ -11180,7 +11193,7 @@ $as_echo "#define HAVE_PNG 1" >>confdefs.h
 
 else
   :
-			:
+
 fi
 
 		else
@@ -11301,7 +11314,8 @@ for ac_lib in '' png; do
     ac_res="none required"
   else
     ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+    LIBS="-l$ac_lib -lz
+				: $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
   ac_cv_search_png_sig_cmp=$ac_res
@@ -11335,7 +11349,7 @@ $as_echo "#define HAVE_PNG 1" >>confdefs.h
 
 else
   :
-				:
+
 fi
 
 

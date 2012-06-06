@@ -71,7 +71,7 @@ char *strtolower (char * text);
 #endif
 
 #ifndef HAVE_STRTOUPPER
-char *strtoupper (char * text);^
+char *strtoupper (char * text);
 #endif
 
 #ifndef HAVE_STRCASESTR
