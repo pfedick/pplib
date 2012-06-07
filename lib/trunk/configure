@@ -713,6 +713,8 @@ MPG123_CFLAGS
 _libcurl_config
 LIBCURL_CPPFLAGS
 LIBCURL
+TIFF_LIBS
+TIFF_CFLAGS
 LIBIDN_LIBS
 LIBIDN_CFLAGS
 LIBMHASH_CFLAGS
@@ -10977,8 +10979,9 @@ $as_echo "yes" >&6; }
 $as_echo "#define HAVE_TIFF 1" >>confdefs.h
 
             report_have_libtiff="yes"
-			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $TIFF_CFLAGS"
-			GRAPHIC_LIBS="$GRAPHIC_LIBS $TIFF_LIBS"
+
+
+           :
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
