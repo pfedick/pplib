@@ -416,7 +416,6 @@ class Thread
 {
 	private:
 		Mutex	threadmutex;
-		ppluint64	threadId;
 		void *threaddata;
 		int flags;
 		int IsRunning;

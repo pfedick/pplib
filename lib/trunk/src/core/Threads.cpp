@@ -265,6 +265,7 @@ ppluint64 StartThread(void (*start_routine)(void *),void *data)
 	ts.threadFunction=start_routine;
 	ts.data=data;
 	ts.td=new THREADDATA;
+	if (ts.td==NULL) throw OutOfMemoryException();
 	memset(ts.td,0,sizeof(THREADDATA));
 	THREADDATA *t=ts.td;
 	// ThreadId festlegen
@@ -414,9 +415,7 @@ Thread::Priority ThreadGetPriority()
  *
  */
 
-#ifdef DONE
 
-Thread::Thread()
 /*! \brief Konstruktor der Thread-Klasse
  *
  * Konstruktor der Thread-Klasse. Es werden interne Variablen allokiert und mit
@@ -424,11 +423,12 @@ Thread::Thread()
  *
  * \see \ref PPLGroupThreads
  */
+Thread::Thread()
 {
-	threadId=0;
 	flags=0;
 	myPriority=Thread::NORMAL;
 	THREADDATA *t=new THREADDATA;
+	if (!t) throw OutOfMemoryException();
 	memset(t,0,sizeof(THREADDATA));
 	threaddata=t;
 	t->thread=0;
@@ -440,7 +440,6 @@ Thread::Thread()
 	#endif
 }
 
-Thread::~Thread()
 /*! \brief Destruktor der Thread-Klasse
  *
  * Falls der Thread noch läuft, wird er zunächst gestoppt. Anschließend werden die
@@ -448,6 +447,7 @@ Thread::~Thread()
  *
  * \see \ref PPLGroupThreads
  */
+Thread::~Thread()
 {
 	threadStop();
 	THREADDATA *t=(THREADDATA *)threaddata;
@@ -457,48 +457,6 @@ Thread::~Thread()
 	delete t;
 }
 
-void Thread::threadSuspend()
-/*! \brief Der Thread soll pausieren
- *
- * ThreadSuspend setzt das Suspended Flag. Hat nur Auswirkungen, wenn dieses Flag in ThreadMain
- * beachtet wird.
- *
- * \todo Es wäre besser, wenn diese Funktion den Thread Betriebssystemseitig schlafen legen
- * würde, bis ein Resume gegeben wird.
- *
- * \see Thread::ThreadResume
- * \see Thread::ThreadWaitSuspended
- * \see \ref PPLGroupThreads
- */
-{
-	threadmutex.lock();
-	flags|=2;
-	threadmutex.unlock();
-}
-
-void Thread::threadResume()
-/*! \brief Der Thread soll weitermachen
- *
- * Dem Thread wird signalisiert, daß er weitermachen soll.
- *
- * \todo Es wäre besser, wenn diese Funktion vom Betriebssystemseitig erledigt würde.
- *
- * \see Thread::ThreadSuspend
- * \see Thread::ThreadWaitSuspended
- * \see \ref PPLGroupThreads
- */
-{
-	threadmutex.lock();
-	flags=flags&~2;
-	if (IsSuspended) {
-		threadmutex.unlock();
-		threadmutex.signal();
-	} else {
-		threadmutex.unlock();
-	}
-}
-
-void Thread::threadStop()
 /*! \brief Der Thread wird gestoppt
  *
  * Dem Thread wird zunächst signalisiert, dass er stoppen soll. Anschließend wartet die
@@ -512,6 +470,7 @@ void Thread::threadStop()
  * \see Thread::ThreadShouldStop
  * \see \ref PPLGroupThreads
  */
+void Thread::threadStop()
 {
 	threadmutex.lock();
 	flags|=1;
@@ -530,7 +489,6 @@ void Thread::threadStop()
 	threadmutex.unlock();
 }
 
-void Thread::threadSignalStop()
 /*! \brief Dem Thread signalisieren, dass er stoppen soll
  *
  * Dem Thread wird nur signalisiert, dass er stoppen soll.
@@ -539,6 +497,7 @@ void Thread::threadSignalStop()
  * \see Thread::ThreadShouldStop
  * \see \ref PPLGroupThreads
  */
+void Thread::threadSignalStop()
 {
 	threadmutex.lock();
 	flags|=1;
@@ -551,54 +510,62 @@ void Thread::threadSignalStop()
 	}
 }
 
-void Thread::threadStart()
 /*! \brief Der Thread wird gestartet
  *
  * ThreadStart startet den Thread und kehrt sofort zur aufrufenden Funktion zurück.
  *
- * \param param Ein optionaler Pointer auf eine Datenstruktur, der an die ThreadMain-Funktion
- * übergeben wird.
- * \return Konnte der Thread erfolgreich gestartet werden, wird 1 zurückgegeben, bei einem Fehler 0.
-
- *
  * \see Thread::ThreadMain
  * \see \ref PPLGroupThreads
  */
+void Thread::threadStart()
 {
-
-	THREADDATA *t=(THREADDATA *)threaddata;
-	threadmutex.lock();
-	IsRunning=1;
+	if (threadIsRunning()) {
+		throw ThreadAlreadyRunningException();
+	}
 	IsSuspended=0;
+	IsRunning=0;
+	THREADSTARTUP ts;
+	ts.threadClass=this;
+	ts.threadFunction=NULL;
+	ts.data=NULL;
+	ts.td=(THREADDATA*)threaddata;
+	if (ts.td==NULL) throw OutOfMemoryException();
+	memset(ts.td,0,sizeof(THREADDATA));
+	THREADDATA *t=ts.td;
+	if (t->threadId==0) {
+		GlobalThreadMutex.lock();
+		t->threadId=global_thread_id;
+		global_thread_id++;
+		GlobalThreadMutex.unlock();
+	}
+#ifdef _WIN32
+	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,&ts,0,&t->dwThreadID);
+	if (t->thread!=NULL) {
+		return;
+	}
+	threadmutex.lock();
+	IsRunning=0;
 	threadmutex.unlock();
-	#ifdef _WIN32
-		t->thread=CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)ThreadProc,this,NULL,&t->dwThreadID);
-		if (t->thread!=NULL) {
-			return 1;
-		}
-		threadmutex.Lock();
-		IsRunning=0;
-		threadmutex.Unlock();
-
-	#elif defined HAVE_PTHREADS
-		int ret=pthread_create(&t->thread,&t->attr,ThreadProc,t);
-		if(ret==0) {
-			if (pthread_detach(t->thread)==0) return 1;
-			// TODO: Wenn pthread_detach fehlschlägt, kann der Thread trotzdem
-			// laufen
-		}
-		threadmutex.Lock();
-		IsRunning=0;
-		threadmutex.Unlock();
-	#else
-
-	#endif
-	return 0;
+	throw ThreadStartException();
+#elif defined HAVE_PTHREADS
+	pthread_attr_init(&t->attr);
+	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,&ts);
+	if(ret==0) {
+		pthread_detach(t->thread);
+		return;;
+	}
+	threadmutex.lock();
+	IsRunning=0;
+	threadmutex.unlock();
+	throw ThreadStartException();
+#else
+	throw NoThreadSupportException();
+#endif
 }
 
-void Thread::ThreadIdle()
 /*!\brief Der Thread gibt seine CPU-Zeit an andere Threads ab
  */
+void Thread::threadIdle()
 {
 #ifdef _WIN32
 #elif defined HAVE_PTHREADS
@@ -609,7 +576,50 @@ void Thread::ThreadIdle()
 #endif
 }
 
-void Thread::ThreadStartUp()
+
+/*! \brief Der Thread soll pausieren
+ *
+ * ThreadSuspend setzt das Suspended Flag. Hat nur Auswirkungen, wenn dieses Flag in ThreadMain
+ * beachtet wird.
+ *
+ * \todo Es wäre besser, wenn diese Funktion den Thread Betriebssystemseitig schlafen legen
+ * würde, bis ein Resume gegeben wird.
+ *
+ * \see Thread::ThreadResume
+ * \see Thread::ThreadWaitSuspended
+ * \see \ref PPLGroupThreads
+ */
+void Thread::threadSuspend()
+{
+	threadmutex.lock();
+	flags|=2;
+	threadmutex.unlock();
+}
+
+/*! \brief Der Thread soll weitermachen
+ *
+ * Dem Thread wird signalisiert, daß er weitermachen soll.
+ *
+ * \todo Es wäre besser, wenn diese Funktion vom Betriebssystemseitig erledigt würde.
+ *
+ * \see Thread::ThreadSuspend
+ * \see Thread::ThreadWaitSuspended
+ * \see \ref PPLGroupThreads
+ */
+void Thread::threadResume()
+{
+	threadmutex.lock();
+	flags=flags&~2;
+	if (IsSuspended) {
+		threadmutex.unlock();
+		threadmutex.signal();
+	} else {
+		threadmutex.unlock();
+	}
+}
+
+
+
 /*! \brief Interne Funktion
  *
  * ThreadStartUp wird unmittelbar nach Starten des Threads aufgerufen. Hier werden einige
@@ -621,17 +631,17 @@ void Thread::ThreadStartUp()
  * \see Thread::ThreadMain
  * \see \ref PPLGroupThreads
  */
+void Thread::threadStartUp()
 {
-	threadmutex.Lock();
-	threadid=GetThreadID();
+	threadmutex.lock();
 	IsRunning=1;
 	IsSuspended=0;
-	threadmutex.Unlock();
-	ThreadSetPriority(myPriority);
+	threadmutex.unlock();
+	threadSetPriority(myPriority);
 
 	THREADDATA * d=GetThreadData();
 
-	ThreadMain(param);
+	threadMain();
 
 
 	if (d) {
@@ -641,15 +651,14 @@ void Thread::ThreadStartUp()
 
 	}
 
-	threadmutex.Lock();
+	threadmutex.lock();
 	flags=0;
 	IsRunning=0;
 	IsSuspended=0;
 	//MemoryDebugRemoveThread();
-	threadmutex.Unlock();
+	threadmutex.unlock();
 }
 
-void Thread::ThreadDeleteOnExit(int flag)
 /*! \brief Flag setzen: Klasse beim Beenden löschen
  *
  * Dem Thread wird mitgeteilt, ob er beim beenden seine eigene Klasse löschen soll. Der
@@ -660,12 +669,12 @@ void Thread::ThreadDeleteOnExit(int flag)
  * \see Thread::ThreadDeleteOnExit
  * \see \ref PPLGroupThreads
  */
+void Thread::threadDeleteOnExit(int flag)
 {
 	if (flag) deleteMe=1;
 	else deleteMe=0;
 }
 
-int  Thread::ThreadShouldDeleteOnExit()
 /*! \brief Interne Funktion
  *
  * Diese Funktion wird intern beim beenden des Threads aufgerufen. Liefert sie "true" zurück,
@@ -675,12 +684,12 @@ int  Thread::ThreadShouldDeleteOnExit()
  * \see Thread::ThreadDeleteOnExit
  * \see \ref PPLGroupThreads
  */
+int  Thread::threadShouldDeleteOnExit()
 {
 	if (deleteMe) return 1;
 	return 0;
 }
 
-int Thread::ThreadIsRunning()
 /*! \brief Status abfragen: Läuft der Thread?
  *
  * Mit dieser Funktion kann überprüft werden, ob der Thread aktuell ausgeführt wird.
@@ -688,15 +697,15 @@ int Thread::ThreadIsRunning()
  * \return Liefert 1 zurück, wenn der Thread läuft, sonst 0.
  * \see \ref PPLGroupThreads
  */
+int Thread::threadIsRunning()
 {
 	int ret;
-	threadmutex.Lock();
+	threadmutex.lock();
 	ret=IsRunning;
-	threadmutex.Unlock();
+	threadmutex.unlock();
 	return ret;
 }
 
-int Thread::ThreadIsSuspended()
 /*! \brief Status abfragen: Schläft der Thread?
  *
  * Mit dieser Funktion kann überprüft werden, ob der Thread aktuell schläft.
@@ -704,15 +713,15 @@ int Thread::ThreadIsSuspended()
  * \return Liefert 1 zurück, wenn der Thread schläft, sonst 0.
  * \see \ref PPLGroupThreads
  */
+int Thread::threadIsSuspended()
 {
 	int ret;
-	threadmutex.Lock();
+	threadmutex.lock();
 	ret=IsSuspended;
-	threadmutex.Unlock();
+	threadmutex.unlock();
 	return ret;
 }
 
-int Thread::ThreadGetFlags()
 /*! \brief Flags des Thread auslesen
  *
  * Mit dieser Funktion können die internen Flags ausgelesen werden.
@@ -722,15 +731,15 @@ int Thread::ThreadGetFlags()
  * Diese Funktion ist veraltet und sollte nicht mehr verwendet werden.
  * \see \ref PPLGroupThreads
  */
+int Thread::threadGetFlags()
 {
 	int ret;
-	threadmutex.Lock();
+	threadmutex.lock();
 	ret=flags;
-	threadmutex.Unlock();
+	threadmutex.unlock();
 	return ret;
 }
 
-int Thread::ThreadShouldStop()
 /*! \brief Prüfen, ob der Thread beendet werden soll
  *
  * Diese Funktion liefert \c true zurück, wenn der Thread gestoppt werden soll.
@@ -742,15 +751,15 @@ int Thread::ThreadShouldStop()
  * \see Thread::ThreadShouldStop
  * \see \ref PPLGroupThreads
  */
+int Thread::threadShouldStop()
 {
 	int ret;
-	threadmutex.Lock();
+	threadmutex.lock();
 	ret=flags&1;
-	threadmutex.Unlock();
+	threadmutex.unlock();
 	return ret;
 }
 
-void Thread::ThreadWaitSuspended(int msec)
 /*! \brief Prüfen, ob der Thread schlafen soll
  *
  * ThreadWaitSuspended prüft, ob der Thread schlafen (suspend) soll, und wenn
@@ -767,18 +776,18 @@ void Thread::ThreadWaitSuspended(int msec)
  * \see Thread::ThreadResume
  * \see \ref PPLGroupThreads
  */
+void Thread::threadWaitSuspended(int msec)
 {
-	threadmutex.Lock();
+	threadmutex.lock();
 	//THREADDATA *t=(THREADDATA *)threaddata;
 	while ((flags&3)==2) {
 		IsSuspended=1;
-		threadmutex.Wait(msec);
+		threadmutex.wait(msec);
 	}
 	IsSuspended=0;
-	threadmutex.Unlock();
+	threadmutex.unlock();
 }
 
-ppluint64 Thread::ThreadGetID()
 /*! \brief ThreadID zurückgeben
  *
  * Diese Funktion liefert die interne ID des Threads zurück.
@@ -786,37 +795,33 @@ ppluint64 Thread::ThreadGetID()
  * \return Liefert einen 64-Bit-Wert mit der Thread-ID zurück.
  * \see \ref PPLGroupThreads
  */
+ppluint64 Thread::threadGetID()
 {
 	THREADDATA *t=(THREADDATA *)threaddata;
 	if (!t) return 0;
-	if (!t->threadid) {
-		t->threadid=GetThreadID();
-	}
-	return t->threadid;
+	return t->threadId;
 }
 
 
-void Thread::ThreadMain(void *param)
 /*!\brief Einsprungfunktion bei Start des Threads
  *
  * ThreadMain ist die Funktion, die nach Starten des Threads aufgerufen wird.
  * Sie muß von der abgeleiteten Klasse überschrieben werden und enthält den vom
  * Thread auszuführenden Code.
  *
- * \param param Ein optionaler Void-Pointer, der mit der Funktion ThreadStart
- * übergeben wurde.
  * \return Die Funktion liefert keinen Return-Wert, jedoch wird bei Verlassen
- * der Thread automatisch gestoppt. Wurde zuvor die Funktion Thread::ThreadShouldDeleteOnExit()
- * aufgerufen, wird außerdem die Klasse gelöscht.
+ * der Funktion der Thread automatisch gestoppt. Wurde zuvor die Funktion
+ * Thread::ThreadShouldDeleteOnExit() aufgerufen, wird außerdem die Klasse
+ * mit delete gelöscht.
  * \see \ref PPLGroupThreads
  * \par Example
  * \include Thread_ThreadMain.cpp
  */
+void Thread::threadMain()
 {
 
 }
 
-int Thread::ThreadGetPriority()
 /*! \brief Priorität des Threads auslesen
  * \ingroup PPLGroupThreadsPriority
  *
@@ -825,6 +830,7 @@ int Thread::ThreadGetPriority()
  * \return liefert einen Wert zurück, der die Priorität des Threads angibt.
  * \see \ref PPLGroupThreads
  */
+int Thread::threadGetPriority()
 {
 	THREADDATA *t=(THREADDATA *)threaddata;
 #ifdef WIN32
@@ -850,21 +856,20 @@ int Thread::ThreadGetPriority()
 	int max=sched_get_priority_max(policy);
 	int normal=(min+max)/2;
 
-	if (s.sched_priority==normal) return THREAD_PRIORITY::NORMAL;
-	if (s.sched_priority==min) return THREAD_PRIORITY::LOWEST;
-	if (s.sched_priority==max) return THREAD_PRIORITY::HIGHEST;
-	if (s.sched_priority<normal) return THREAD_PRIORITY::BELOW_NORMAL;
-	if (s.sched_priority>normal) return THREAD_PRIORITY::ABOVE_NORMAL;
-	return THREAD_PRIORITY::UNKNOWN;
+	if (s.sched_priority==normal) return NORMAL;
+	if (s.sched_priority==min) return LOWEST;
+	if (s.sched_priority==max) return HIGHEST;
+	if (s.sched_priority<normal) return BELOW_NORMAL;
+	if (s.sched_priority>normal) return ABOVE_NORMAL;
+	return UNKNOWN;
 
 #else
-	return THREAD_PRIORITY::UNKNOWN;
+	return UNKNOWN;
 #endif
 
-	return THREAD_PRIORITY::UNKNOWN;
+	return UNKNOWN;
 }
 
-int Thread::ThreadSetPriority(int priority)
 /*! \brief Priorität des Threads ändern
  * \ingroup PPLGroupThreadsPriority
  *
@@ -874,6 +879,7 @@ int Thread::ThreadSetPriority(int priority)
  * \return Liefert 1 zurück, wenn die Priorität erfolgreich geändert wurde, sonst 0.
  * \see \ref PPLGroupThreads
  */
+int Thread::threadSetPriority(int priority)
 {
 	THREADDATA *t=(THREADDATA *)threaddata;
 	myPriority=priority;
@@ -881,19 +887,19 @@ int Thread::ThreadSetPriority(int priority)
 #ifdef WIN32
 	int p=GetThreadPriority(t->thread);
 	switch(priority) {
-		case THREAD_PRIORITY::LOWEST:
+		case LOWEST:
 			p=THREAD_PRIORITY_LOWEST;
 			break;
-		case THREAD_PRIORITY::BELOW_NORMAL:
+		case BELOW_NORMAL:
 			p=THREAD_PRIORITY_BELOW_NORMAL;
 			break;
-		case THREAD_PRIORITY::NORMAL:
+		case NORMAL:
 			p=THREAD_PRIORITY_NORMAL;
 			break;
-		case THREAD_PRIORITY::ABOVE_NORMAL:
+		case ABOVE_NORMAL:
 			p=THREAD_PRIORITY_ABOVE_NORMAL;
 			break;
-		case THREAD_PRIORITY::HIGHEST:
+		case HIGHEST:
 			p=THREAD_PRIORITY_HIGHEST;
 			break;
 	}
@@ -908,19 +914,19 @@ int Thread::ThreadSetPriority(int priority)
 	int max=sched_get_priority_max(policy);
 	int normal=(min+max)/2;
 	switch(priority) {
-		case THREAD_PRIORITY::LOWEST:
+		case LOWEST:
 			s.sched_priority=min;
 			break;
-		case THREAD_PRIORITY::BELOW_NORMAL:
+		case BELOW_NORMAL:
 			s.sched_priority=normal/2;
 			break;
-		case THREAD_PRIORITY::NORMAL:
+		case NORMAL:
 			s.sched_priority=normal;
 			break;
-		case THREAD_PRIORITY::ABOVE_NORMAL:
+		case ABOVE_NORMAL:
 			s.sched_priority=normal+normal/2;
 			break;
-		case THREAD_PRIORITY::HIGHEST:
+		case HIGHEST:
 			s.sched_priority=max;
 			break;
 		default:
@@ -935,13 +941,13 @@ int Thread::ThreadSetPriority(int priority)
 
 }
 
-int Thread::ThreadSetStackSize(size_t size)
 /*! \brief Stack-Größe des Threads setzen
  * \ingroup PPLGroupThreadsStacksize
  *
  * \see \ref PPLGroupThreadsStacksize
  * \see \ref PPLGroupThreads
  */
+int Thread::threadSetStackSize(size_t size)
 {
 	#ifdef HAVE_PTHREADS
 		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
@@ -951,7 +957,7 @@ int Thread::ThreadSetStackSize(size_t size)
 		THREADDATA *t=(THREADDATA *)threaddata;
 		if (size==0) size=PTHREAD_STACK_MIN;
 		if (size<PTHREAD_STACK_MIN) {
-			SetError(314,PTHREAD_STACK_MIN,"Stacksize muss mindestens %u Byte sein",PTHREAD_STACK_MIN);
+			throw IllegalArgumentException("Stacksize must not be smaller than %u Bytes",PTHREAD_STACK_MIN);
 			return 0;
 		}
 		if (pthread_attr_setstacksize(&t->attr,size)==0) return 1;
@@ -959,7 +965,7 @@ int Thread::ThreadSetStackSize(size_t size)
 	return 0;
 }
 
-size_t Thread::ThreadGetMinimumStackSize()
+size_t Thread::threadGetMinimumStackSize()
 /*! \brief Minimale Stack-Größe auslesen
  * \ingroup PPLGroupThreadsStacksize
  *
@@ -977,13 +983,13 @@ size_t Thread::ThreadGetMinimumStackSize()
 	return 0;
 }
 
-size_t Thread::ThreadGetStackSize()
 /*! \brief Stack-Größe des Threads auslesen
  * \ingroup PPLGroupThreadsStacksize
  *
  * \see \ref PPLGroupThreadsStacksize
  * \see \ref PPLGroupThreads
  */
+size_t Thread::threadGetStackSize()
 {
 	#ifdef HAVE_PTHREADS
 		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
@@ -997,6 +1003,5 @@ size_t Thread::ThreadGetStackSize()
 	return 0;
 }
 
-#endif
 
 } // EOF namespace ppl7

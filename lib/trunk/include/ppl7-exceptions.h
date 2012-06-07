@@ -101,6 +101,7 @@ PPLPARAMETERISEDEXCEPTION(InvalidDateException);
 PPLPARAMETERISEDEXCEPTION(DateOutOfRangeException);
 PPLNORMALEXCEPTION(NoThreadSupportException);
 PPLNORMALEXCEPTION(ThreadStartException);
+PPLNORMALEXCEPTION(ThreadAlreadyRunningException);
 PPLNORMALEXCEPTION(ThreadOperationFailedException);
 PPLNORMALEXCEPTION(ItemNotFoundException);
 PPLNORMALEXCEPTION(DuplicateItemException);
