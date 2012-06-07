@@ -44,6 +44,7 @@
 #include "../include/ppl7.h"
 #include "../include/ppl7-grafix.h"
 #include <gtest/gtest.h>
+#include "ppl7-tests.h"
 
 using namespace ppl7;
 using namespace ppl7::grafix;
@@ -59,7 +60,7 @@ class GrafixDrawableTest : public ::testing::Test {
 
 
 	GrafixDrawableTest() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}

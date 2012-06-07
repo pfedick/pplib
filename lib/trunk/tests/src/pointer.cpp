@@ -43,6 +43,7 @@
 #include <locale.h>
 #include <ppl7.h>
 #include <gtest/gtest.h>
+#include "ppl7-tests.h"
 
 namespace {
 
@@ -50,7 +51,7 @@ namespace {
 class PointerTest : public ::testing::Test {
 	protected:
 	PointerTest() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}

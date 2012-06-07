@@ -43,6 +43,7 @@
 #include <locale.h>
 #include <ppl7.h>
 #include <gtest/gtest.h>
+#include "ppl7-tests.h"
 
 extern const char *wordlist;
 
@@ -58,6 +59,13 @@ int main (int argc, char**argv)
 	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
 	Wordlist.explode(w,"\n");
 	ppl7::PrintDebugTime ("done\n");
-
-	return RUN_ALL_TESTS();
+	int ret=0;
+	try {
+		 return RUN_ALL_TESTS();
+	} catch (const ppl7::Exception &e) {
+		printf ("ppl7::Exception: %s",e.text());
+	} catch (...) {
+		printf ("Unbekannte Exception\n");
+	}
+	return 1;
 }

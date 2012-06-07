@@ -44,6 +44,7 @@
 #include "../include/ppl7.h"
 #include "../include/ppl7-grafix.h"
 #include <gtest/gtest.h>
+#include "ppl7-tests.h"
 
 namespace {
 
@@ -52,7 +53,7 @@ class GrafixImageFilterTest : public ::testing::Test {
 	protected:
 	ppl7::grafix::Grafix gfx;
 	GrafixImageFilterTest() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}

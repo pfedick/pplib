@@ -44,6 +44,7 @@
 #include <ppl7-inet.h>
 #include <gtest/gtest.h>
 #include <list>
+#include "ppl7-tests.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ namespace {
 class InetTest : public ::testing::Test {
 	protected:
 	InetTest() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
@@ -65,6 +66,7 @@ class InetTest : public ::testing::Test {
 TEST_F(InetTest, Idn2AceUtf8) {
 	ASSERT_NO_THROW({
 		ppl7::String idn="tästmé.de";
+		//printf ("String: >>%s<<\n",(const char*)idn);
 		ppl7::String ace=ppl7::Idn2Ace(idn);
 		ASSERT_EQ(ppl7::String("xn--tstm-loa7a.de"),ace) << "Convertion failed";
 	}
@@ -103,7 +105,7 @@ TEST_F(InetTest, Ace2IdnWideString) {
 class Resolver : public ::testing::Test {
 	protected:
 	Resolver() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}

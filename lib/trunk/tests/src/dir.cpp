@@ -43,6 +43,7 @@
 #include <locale.h>
 #include "../include/ppl7.h"
 #include <gtest/gtest.h>
+#include "ppl7-tests.h"
 
 namespace {
 
@@ -51,7 +52,7 @@ class DirTest : public ::testing::Test {
 	protected:
 	size_t	expectedNum;
 	DirTest() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
@@ -187,42 +188,60 @@ ppl7::DirEntry getNextFile(const ppl7::Dir &d, ppl7::Dir::Iterator &it)
 }
 
 TEST_F(DirTest, dirWalkSize) {
-	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_SIZE);
+	ppl7::Dir d1;
+	ASSERT_NO_THROW({
+		d1.open("testdata/dirwalk", ppl7::Dir::SORT_SIZE);
+	});
 	ppl7::Dir::Iterator it;
 	//d1.print();
 	d1.reset(it);
 	ppl7::DirEntry e;
-	e=getNextFile(d1,it);
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
 	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename )<< "Real Filename 1: "<<e.Filename;
 	ASSERT_EQ((size_t)1540,e.Size);
 
-	e=getNextFile(d1,it);
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
 	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 2: "<<e.Filename;
 	ASSERT_EQ((size_t)6519,e.Size);
 
-	e=getNextFile(d1,it);
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
 	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 3: "<<e.Filename;
 	ASSERT_EQ((size_t)6519,e.Size);
 
-	e=getNextFile(d1,it);
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
 	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 4: "<<e.Filename;
 	ASSERT_EQ((size_t)6519,e.Size);
 
-	e=getNextFile(d1,it);
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
 	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename) << "Real Filename 5: "<<e.Filename;
 	ASSERT_EQ((size_t)9819,e.Size);
 
-	e=getNextFile(d1,it);
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
 	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
 	ASSERT_EQ((size_t)13040,e.Size);
 
-	e=getNextFile(d1,it);
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
 	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
-
+	printf ("DEBUG 6\n");
 
 	// We expect an EndOfListException next
 	ASSERT_THROW(e=getNextFile(d1,it);, ppl7::EndOfListException);
+	printf ("DEBUG 7\n");
 }
 
 
