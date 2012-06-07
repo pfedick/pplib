@@ -87,10 +87,14 @@
     #include <signal.h>
 #endif
 #ifdef HAVE_LIBIDN
-#include <idna.h>
-#ifdef _WIN32
-#include <idn-free.h>
-#endif
+	#include <idna.h>
+	#ifdef WIN32
+		#ifndef MINGW32
+			#include <idn-free.h>
+		#else
+			#define idn_free free
+		#endif
+	#endif
 #endif
 
 
