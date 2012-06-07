@@ -322,8 +322,8 @@ AM_LIBIDN([0.5.4],
 AC_CHECK_LIBTIFF([1.2],
             AC_DEFINE(HAVE_TIFF, 1, [ Define if you have libtiff. ])
             report_have_libtiff="yes"
-			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $TIFF_CFLAGS"
-			GRAPHIC_LIBS="$GRAPHIC_LIBS $TIFF_LIBS",
+            AC_SUBST(TIFF_CFLAGS)
+			AC_SUBST(TIFF_LIBS)
            :)
 
 
