@@ -727,22 +727,15 @@ PNG_CFLAGS
 JPEG_LIBS
 JPEG_CFLAGS
 LIBOBJS
-PKG_CONFIG_LIBDIR
-PKG_CONFIG_PATH
-PKG_CONFIG
-nasm
-QT_LUPDATE
-QT_LRELEASE
-QT_MOC
-QT_UIC
-QT_LIBS
-QT_DIR
-QT_CXXFLAGS
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
 X_CFLAGS
 XMKMF
+PKG_CONFIG_LIBDIR
+PKG_CONFIG_PATH
+PKG_CONFIG
+nasm
 EGREP
 GREP
 CPP
@@ -851,11 +844,6 @@ enable_dependency_tracking
 with_gcc_arch
 enable_largefile
 with_x
-with_Qt_dir
-with_Qt_include_dir
-with_Qt_bin_dir
-with_Qt_lib_dir
-with_Qt_lib
 with_jpeg
 with_libpng
 with_libmicrohttpd
@@ -899,10 +887,10 @@ CXX
 CXXFLAGS
 CCC
 CPP
-XMKMF
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+XMKMF
 JPEG_CFLAGS
 JPEG_LIBS
 PNG_CFLAGS
@@ -1549,16 +1537,6 @@ Optional Packages:
   --with-gcc-arch=<arch>  use architecture <arch> for gcc -march/-mtune,
                           instead of guessing
   --with-x                use the X Window System
-  --with-Qt-dir=DIR       DIR is equal to $QTDIR if you have followed the
-                          installation instructions of Trolltech. Header
-                          files are in DIR/include, binary utilities are
-                          in DIR/bin. The library is in DIR/lib, unless
-			  --with-Qt-lib-dir is also set.
-  --with-Qt-include-dir=DIR
-                          Qt header files are in DIR
-  --with-Qt-bin-dir=DIR   Qt utilities such as moc and uic are in DIR
-  --with-Qt-lib-dir=DIR   The Qt library is in DIR
-  --with-Qt-lib=LIB       Use -lLIB to link with the Qt library
   --with-jpeg[=PATH]     Prefix where libjpeg is installed (optional)
   --with-libpng[=PATH]     Prefix where libpng is installed (optional)
   --with-libmicrohttpd[=PATH]     Prefix where libmicrohttpd is installed (optional)
@@ -1604,12 +1582,12 @@ Some influential environment variables:
   CXX         C++ compiler command
   CXXFLAGS    C++ compiler flags
   CPP         C preprocessor
-  XMKMF       Path to xmkmf, Makefile generator for X Window System
   PKG_CONFIG  path to pkg-config utility
   PKG_CONFIG_PATH
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  XMKMF       Path to xmkmf, Makefile generator for X Window System
   JPEG_CFLAGS C compiler flags for JPEG, overriding pkg-config
   JPEG_LIBS   linker flags for JPEG, overriding pkg-config
   PNG_CFLAGS  C compiler flags for PNG, overriding pkg-config
@@ -2114,6 +2092,60 @@ fi
 
 } # ac_fn_c_try_link
 
+# ac_fn_c_check_type LINENO TYPE VAR INCLUDES
+# -------------------------------------------
+# Tests whether TYPE exists after having included INCLUDES, setting cache
+# variable VAR accordingly.
+ac_fn_c_check_type ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+$as_echo_n "checking for $2... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  eval "$3=no"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+if (sizeof ($2))
+	 return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$4
+int
+main ()
+{
+if (sizeof (($2)))
+	    return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+else
+  eval "$3=yes"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_type
+
 # ac_fn_c_check_func LINENO FUNC VAR
 # ----------------------------------
 # Tests whether FUNC exists, setting the cache variable VAR accordingly
@@ -2180,60 +2212,6 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_func
-
-# ac_fn_c_check_type LINENO TYPE VAR INCLUDES
-# -------------------------------------------
-# Tests whether TYPE exists after having included INCLUDES, setting cache
-# variable VAR accordingly.
-ac_fn_c_check_type ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
-$as_echo_n "checking for $2... " >&6; }
-if eval \${$3+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  eval "$3=no"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-if (sizeof ($2))
-	 return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-if (sizeof (($2)))
-	    return 0;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-
-else
-  eval "$3=yes"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-eval ac_res=\$$3
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_c_check_type
 
 # ac_fn_c_check_header_mongrel LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
@@ -7069,1205 +7047,8 @@ $as_echo "#define HAVE_FSEEKO 1" >>confdefs.h
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for X" >&5
-$as_echo_n "checking for X... " >&6; }
-
-
-# Check whether --with-x was given.
-if test "${with_x+set}" = set; then :
-  withval=$with_x;
-fi
-
-# $have_x is `yes', `no', `disabled', or empty when we do not yet know.
-if test "x$with_x" = xno; then
-  # The user explicitly disabled X.
-  have_x=disabled
-else
-  case $x_includes,$x_libraries in #(
-    *\'*) as_fn_error $? "cannot use X directory names containing '" "$LINENO" 5;; #(
-    *,NONE | NONE,*) if ${ac_cv_have_x+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  # One or both of the vars are not set, and there is no cached value.
-ac_x_includes=no ac_x_libraries=no
-rm -f -r conftest.dir
-if mkdir conftest.dir; then
-  cd conftest.dir
-  cat >Imakefile <<'_ACEOF'
-incroot:
-	@echo incroot='${INCROOT}'
-usrlibdir:
-	@echo usrlibdir='${USRLIBDIR}'
-libdir:
-	@echo libdir='${LIBDIR}'
-_ACEOF
-  if (export CC; ${XMKMF-xmkmf}) >/dev/null 2>/dev/null && test -f Makefile; then
-    # GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
-    for ac_var in incroot usrlibdir libdir; do
-      eval "ac_im_$ac_var=\`\${MAKE-make} $ac_var 2>/dev/null | sed -n 's/^$ac_var=//p'\`"
-    done
-    # Open Windows xmkmf reportedly sets LIBDIR instead of USRLIBDIR.
-    for ac_extension in a so sl dylib la dll; do
-      if test ! -f "$ac_im_usrlibdir/libX11.$ac_extension" &&
-	 test -f "$ac_im_libdir/libX11.$ac_extension"; then
-	ac_im_usrlibdir=$ac_im_libdir; break
-      fi
-    done
-    # Screen out bogus values from the imake configuration.  They are
-    # bogus both because they are the default anyway, and because
-    # using them would break gcc on systems where it needs fixed includes.
-    case $ac_im_incroot in
-	/usr/include) ac_x_includes= ;;
-	*) test -f "$ac_im_incroot/X11/Xos.h" && ac_x_includes=$ac_im_incroot;;
-    esac
-    case $ac_im_usrlibdir in
-	/usr/lib | /usr/lib64 | /lib | /lib64) ;;
-	*) test -d "$ac_im_usrlibdir" && ac_x_libraries=$ac_im_usrlibdir ;;
-    esac
-  fi
-  cd ..
-  rm -f -r conftest.dir
-fi
-
-# Standard set of common directories for X headers.
-# Check X11 before X11Rn because it is often a symlink to the current release.
-ac_x_header_dirs='
-/usr/X11/include
-/usr/X11R7/include
-/usr/X11R6/include
-/usr/X11R5/include
-/usr/X11R4/include
-
-/usr/include/X11
-/usr/include/X11R7
-/usr/include/X11R6
-/usr/include/X11R5
-/usr/include/X11R4
-
-/usr/local/X11/include
-/usr/local/X11R7/include
-/usr/local/X11R6/include
-/usr/local/X11R5/include
-/usr/local/X11R4/include
-
-/usr/local/include/X11
-/usr/local/include/X11R7
-/usr/local/include/X11R6
-/usr/local/include/X11R5
-/usr/local/include/X11R4
-
-/usr/X386/include
-/usr/x386/include
-/usr/XFree86/include/X11
-
-/usr/include
-/usr/local/include
-/usr/unsupported/include
-/usr/athena/include
-/usr/local/x11r5/include
-/usr/lpp/Xamples/include
-
-/usr/openwin/include
-/usr/openwin/share/include'
-
-if test "$ac_x_includes" = no; then
-  # Guess where to find include files, by looking for Xlib.h.
-  # First, try using that file with no special directory specified.
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <X11/Xlib.h>
-_ACEOF
-if ac_fn_c_try_cpp "$LINENO"; then :
-  # We can compile using X headers with no special include directory.
-ac_x_includes=
-else
-  for ac_dir in $ac_x_header_dirs; do
-  if test -r "$ac_dir/X11/Xlib.h"; then
-    ac_x_includes=$ac_dir
-    break
-  fi
-done
-fi
-rm -f conftest.err conftest.i conftest.$ac_ext
-fi # $ac_x_includes = no
-
-if test "$ac_x_libraries" = no; then
-  # Check for the libraries.
-  # See if we find them without any special options.
-  # Don't add to $LIBS permanently.
-  ac_save_LIBS=$LIBS
-  LIBS="-lX11 $LIBS"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <X11/Xlib.h>
-int
-main ()
-{
-XrmInitialize ()
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  LIBS=$ac_save_LIBS
-# We can link X programs with no special library path.
-ac_x_libraries=
-else
-  LIBS=$ac_save_LIBS
-for ac_dir in `$as_echo "$ac_x_includes $ac_x_header_dirs" | sed s/include/lib/g`
-do
-  # Don't even attempt the hair of trying to link an X program!
-  for ac_extension in a so sl dylib la dll; do
-    if test -r "$ac_dir/libX11.$ac_extension"; then
-      ac_x_libraries=$ac_dir
-      break 2
-    fi
-  done
-done
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi # $ac_x_libraries = no
-
-case $ac_x_includes,$ac_x_libraries in #(
-  no,* | *,no | *\'*)
-    # Didn't find X, or a directory has "'" in its name.
-    ac_cv_have_x="have_x=no";; #(
-  *)
-    # Record where we found X for the cache.
-    ac_cv_have_x="have_x=yes\
-	ac_x_includes='$ac_x_includes'\
-	ac_x_libraries='$ac_x_libraries'"
-esac
-fi
-;; #(
-    *) have_x=yes;;
-  esac
-  eval "$ac_cv_have_x"
-fi # $with_x != no
-
-if test "$have_x" != yes; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_x" >&5
-$as_echo "$have_x" >&6; }
-  no_x=yes
-else
-  # If each of the values was on the command line, it overrides each guess.
-  test "x$x_includes" = xNONE && x_includes=$ac_x_includes
-  test "x$x_libraries" = xNONE && x_libraries=$ac_x_libraries
-  # Update the cache value to reflect the command line values.
-  ac_cv_have_x="have_x=yes\
-	ac_x_includes='$x_includes'\
-	ac_x_libraries='$x_libraries'"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: libraries $x_libraries, headers $x_includes" >&5
-$as_echo "libraries $x_libraries, headers $x_includes" >&6; }
-fi
-
-if test "$no_x" = yes; then
-  # Not all programs may use this symbol, but it does not hurt to define it.
-
-$as_echo "#define X_DISPLAY_MISSING 1" >>confdefs.h
-
-  X_CFLAGS= X_PRE_LIBS= X_LIBS= X_EXTRA_LIBS=
-else
-  if test -n "$x_includes"; then
-    X_CFLAGS="$X_CFLAGS -I$x_includes"
-  fi
-
-  # It would also be nice to do this for all -L options, not just this one.
-  if test -n "$x_libraries"; then
-    X_LIBS="$X_LIBS -L$x_libraries"
-    # For Solaris; some versions of Sun CC require a space after -R and
-    # others require no space.  Words are not sufficient . . . .
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -R must be followed by a space" >&5
-$as_echo_n "checking whether -R must be followed by a space... " >&6; }
-    ac_xsave_LIBS=$LIBS; LIBS="$LIBS -R$x_libraries"
-    ac_xsave_c_werror_flag=$ac_c_werror_flag
-    ac_c_werror_flag=yes
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-       X_LIBS="$X_LIBS -R$x_libraries"
-else
-  LIBS="$ac_xsave_LIBS -R $x_libraries"
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	  X_LIBS="$X_LIBS -R $x_libraries"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: neither works" >&5
-$as_echo "neither works" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    ac_c_werror_flag=$ac_xsave_c_werror_flag
-    LIBS=$ac_xsave_LIBS
-  fi
-
-  # Check for system-dependent libraries X programs must link with.
-  # Do this before checking for the system-independent R6 libraries
-  # (-lICE), since we may need -lsocket or whatever for X linking.
-
-  if test "$ISC" = yes; then
-    X_EXTRA_LIBS="$X_EXTRA_LIBS -lnsl_s -linet"
-  else
-    # Martyn Johnson says this is needed for Ultrix, if the X
-    # libraries were built with DECnet support.  And Karl Berry says
-    # the Alpha needs dnet_stub (dnet does not exist).
-    ac_xsave_LIBS="$LIBS"; LIBS="$LIBS $X_LIBS -lX11"
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char XOpenDisplay ();
-int
-main ()
-{
-return XOpenDisplay ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dnet_ntoa in -ldnet" >&5
-$as_echo_n "checking for dnet_ntoa in -ldnet... " >&6; }
-if ${ac_cv_lib_dnet_dnet_ntoa+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldnet  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dnet_ntoa ();
-int
-main ()
-{
-return dnet_ntoa ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_dnet_dnet_ntoa=yes
-else
-  ac_cv_lib_dnet_dnet_ntoa=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dnet_dnet_ntoa" >&5
-$as_echo "$ac_cv_lib_dnet_dnet_ntoa" >&6; }
-if test "x$ac_cv_lib_dnet_dnet_ntoa" = xyes; then :
-  X_EXTRA_LIBS="$X_EXTRA_LIBS -ldnet"
-fi
-
-    if test $ac_cv_lib_dnet_dnet_ntoa = no; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dnet_ntoa in -ldnet_stub" >&5
-$as_echo_n "checking for dnet_ntoa in -ldnet_stub... " >&6; }
-if ${ac_cv_lib_dnet_stub_dnet_ntoa+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldnet_stub  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dnet_ntoa ();
-int
-main ()
-{
-return dnet_ntoa ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_dnet_stub_dnet_ntoa=yes
-else
-  ac_cv_lib_dnet_stub_dnet_ntoa=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dnet_stub_dnet_ntoa" >&5
-$as_echo "$ac_cv_lib_dnet_stub_dnet_ntoa" >&6; }
-if test "x$ac_cv_lib_dnet_stub_dnet_ntoa" = xyes; then :
-  X_EXTRA_LIBS="$X_EXTRA_LIBS -ldnet_stub"
-fi
-
-    fi
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    LIBS="$ac_xsave_LIBS"
-
-    # msh@cis.ufl.edu says -lnsl (and -lsocket) are needed for his 386/AT,
-    # to get the SysV transport functions.
-    # Chad R. Larson says the Pyramis MIS-ES running DC/OSx (SVR4)
-    # needs -lnsl.
-    # The nsl library prevents programs from opening the X display
-    # on Irix 5.2, according to T.E. Dickey.
-    # The functions gethostbyname, getservbyname, and inet_addr are
-    # in -lbsd on LynxOS 3.0.1/i386, according to Lars Hecking.
-    ac_fn_c_check_func "$LINENO" "gethostbyname" "ac_cv_func_gethostbyname"
-if test "x$ac_cv_func_gethostbyname" = xyes; then :
-
-fi
-
-    if test $ac_cv_func_gethostbyname = no; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in -lnsl" >&5
-$as_echo_n "checking for gethostbyname in -lnsl... " >&6; }
-if ${ac_cv_lib_nsl_gethostbyname+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lnsl  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char gethostbyname ();
-int
-main ()
-{
-return gethostbyname ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_nsl_gethostbyname=yes
-else
-  ac_cv_lib_nsl_gethostbyname=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_nsl_gethostbyname" >&5
-$as_echo "$ac_cv_lib_nsl_gethostbyname" >&6; }
-if test "x$ac_cv_lib_nsl_gethostbyname" = xyes; then :
-  X_EXTRA_LIBS="$X_EXTRA_LIBS -lnsl"
-fi
-
-      if test $ac_cv_lib_nsl_gethostbyname = no; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in -lbsd" >&5
-$as_echo_n "checking for gethostbyname in -lbsd... " >&6; }
-if ${ac_cv_lib_bsd_gethostbyname+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbsd  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char gethostbyname ();
-int
-main ()
-{
-return gethostbyname ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bsd_gethostbyname=yes
-else
-  ac_cv_lib_bsd_gethostbyname=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bsd_gethostbyname" >&5
-$as_echo "$ac_cv_lib_bsd_gethostbyname" >&6; }
-if test "x$ac_cv_lib_bsd_gethostbyname" = xyes; then :
-  X_EXTRA_LIBS="$X_EXTRA_LIBS -lbsd"
-fi
-
-      fi
-    fi
-
-    # lieder@skyler.mavd.honeywell.com says without -lsocket,
-    # socket/setsockopt and other routines are undefined under SCO ODT
-    # 2.0.  But -lsocket is broken on IRIX 5.2 (and is not necessary
-    # on later versions), says Simon Leinen: it contains gethostby*
-    # variants that don't use the name server (or something).  -lsocket
-    # must be given before -lnsl if both are needed.  We assume that
-    # if connect needs -lnsl, so does gethostbyname.
-    ac_fn_c_check_func "$LINENO" "connect" "ac_cv_func_connect"
-if test "x$ac_cv_func_connect" = xyes; then :
-
-fi
-
-    if test $ac_cv_func_connect = no; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for connect in -lsocket" >&5
-$as_echo_n "checking for connect in -lsocket... " >&6; }
-if ${ac_cv_lib_socket_connect+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lsocket $X_EXTRA_LIBS $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char connect ();
-int
-main ()
-{
-return connect ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_socket_connect=yes
-else
-  ac_cv_lib_socket_connect=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_socket_connect" >&5
-$as_echo "$ac_cv_lib_socket_connect" >&6; }
-if test "x$ac_cv_lib_socket_connect" = xyes; then :
-  X_EXTRA_LIBS="-lsocket $X_EXTRA_LIBS"
-fi
-
-    fi
-
-    # Guillermo Gomez says -lposix is necessary on A/UX.
-    ac_fn_c_check_func "$LINENO" "remove" "ac_cv_func_remove"
-if test "x$ac_cv_func_remove" = xyes; then :
-
-fi
-
-    if test $ac_cv_func_remove = no; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for remove in -lposix" >&5
-$as_echo_n "checking for remove in -lposix... " >&6; }
-if ${ac_cv_lib_posix_remove+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lposix  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char remove ();
-int
-main ()
-{
-return remove ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_posix_remove=yes
-else
-  ac_cv_lib_posix_remove=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_posix_remove" >&5
-$as_echo "$ac_cv_lib_posix_remove" >&6; }
-if test "x$ac_cv_lib_posix_remove" = xyes; then :
-  X_EXTRA_LIBS="$X_EXTRA_LIBS -lposix"
-fi
-
-    fi
-
-    # BSDI BSD/OS 2.1 needs -lipc for XOpenDisplay.
-    ac_fn_c_check_func "$LINENO" "shmat" "ac_cv_func_shmat"
-if test "x$ac_cv_func_shmat" = xyes; then :
-
-fi
-
-    if test $ac_cv_func_shmat = no; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for shmat in -lipc" >&5
-$as_echo_n "checking for shmat in -lipc... " >&6; }
-if ${ac_cv_lib_ipc_shmat+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lipc  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char shmat ();
-int
-main ()
-{
-return shmat ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ipc_shmat=yes
-else
-  ac_cv_lib_ipc_shmat=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ipc_shmat" >&5
-$as_echo "$ac_cv_lib_ipc_shmat" >&6; }
-if test "x$ac_cv_lib_ipc_shmat" = xyes; then :
-  X_EXTRA_LIBS="$X_EXTRA_LIBS -lipc"
-fi
-
-    fi
-  fi
-
-  # Check for libraries that X11R6 Xt/Xaw programs need.
-  ac_save_LDFLAGS=$LDFLAGS
-  test -n "$x_libraries" && LDFLAGS="$LDFLAGS -L$x_libraries"
-  # SM needs ICE to (dynamically) link under SunOS 4.x (so we have to
-  # check for ICE first), but we must link in the order -lSM -lICE or
-  # we get undefined symbols.  So assume we have SM if we have ICE.
-  # These have to be linked with before -lX11, unlike the other
-  # libraries we check for below, so use a different variable.
-  # John Interrante, Karl Berry
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for IceConnectionNumber in -lICE" >&5
-$as_echo_n "checking for IceConnectionNumber in -lICE... " >&6; }
-if ${ac_cv_lib_ICE_IceConnectionNumber+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lICE $X_EXTRA_LIBS $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char IceConnectionNumber ();
-int
-main ()
-{
-return IceConnectionNumber ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ICE_IceConnectionNumber=yes
-else
-  ac_cv_lib_ICE_IceConnectionNumber=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ICE_IceConnectionNumber" >&5
-$as_echo "$ac_cv_lib_ICE_IceConnectionNumber" >&6; }
-if test "x$ac_cv_lib_ICE_IceConnectionNumber" = xyes; then :
-  X_PRE_LIBS="$X_PRE_LIBS -lSM -lICE"
-fi
-
-  LDFLAGS=$ac_save_LDFLAGS
-
-fi
-
-
-
-
-
-
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Qt" >&5
-$as_echo_n "checking for Qt... " >&6; }
-
-
-# Check whether --with-Qt-dir was given.
-if test "${with_Qt_dir+set}" = set; then :
-  withval=$with_Qt_dir;
-fi
-
-
-# Check whether --with-Qt-include-dir was given.
-if test "${with_Qt_include_dir+set}" = set; then :
-  withval=$with_Qt_include_dir;
-fi
-
-
-# Check whether --with-Qt-bin-dir was given.
-if test "${with_Qt_bin_dir+set}" = set; then :
-  withval=$with_Qt_bin_dir;
-fi
-
-
-# Check whether --with-Qt-lib-dir was given.
-if test "${with_Qt_lib_dir+set}" = set; then :
-  withval=$with_Qt_lib_dir;
-fi
-
-
-# Check whether --with-Qt-lib was given.
-if test "${with_Qt_lib+set}" = set; then :
-  withval=$with_Qt_lib;
-fi
-
-  if test x"$with_Qt_dir" = x"no" ||
-     test x"$with_Qt_include-dir" = x"no" ||
-     test x"$with_Qt_bin_dir" = x"no" ||
-     test x"$with_Qt_lib_dir" = x"no" ||
-     test x"$with_Qt_lib" = x"no"; then
-    # user disabled Qt. Leave cache alone.
-    have_qt="User disabled Qt."
-  else
-    # "yes" is a bogus option
-    if test x"$with_Qt_dir" = xyes; then
-      with_Qt_dir=
-    fi
-    if test x"$with_Qt_include_dir" = xyes; then
-      with_Qt_include_dir=
-    fi
-    if test x"$with_Qt_bin_dir" = xyes; then
-      with_Qt_bin_dir=
-    fi
-    if test x"$with_Qt_lib_dir" = xyes; then
-      with_Qt_lib_dir=
-    fi
-    if test x"$with_Qt_lib" = xyes; then
-      with_Qt_lib=
-    fi
-    # No Qt unless we discover otherwise
-    have_qt=no
-    # Check whether we are requested to link with a specific version
-    if test x"$with_Qt_lib" != x; then
-      ax_qt_lib="$with_Qt_lib"
-    fi
-    # Check whether we were supplied with an answer already
-    if test x"$with_Qt_dir" != x; then
-      have_qt=yes
-      ax_qt_dir="$with_Qt_dir"
-      ax_qt_include_dir="$with_Qt_dir/include"
-      ax_qt_bin_dir="$with_Qt_dir/bin"
-      ax_qt_lib_dir="$with_Qt_dir/lib"
-      # Only search for the lib if the user did not define one already
-      if test x"$ax_qt_lib" = x; then
-        ax_qt_lib="`ls $ax_qt_lib_dir/libqt* | sed -n 1p |
-                     sed s@$ax_qt_lib_dir/lib@@ | sed s@[.].*@@`"
-      fi
-      ax_qt_LIBS="-L$ax_qt_lib_dir -l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-    else
-      # Use cached value or do search, starting with suggestions from
-      # the command line
-      if ${ax_cv_have_qt+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-        # We are not given a solution and there is no cached value.
-        ax_qt_dir=NO
-        ax_qt_include_dir=NO
-        ax_qt_lib_dir=NO
-        if test x"$ax_qt_lib" = x; then
-          ax_qt_lib=NO
-        fi
-
-  ## Binary utilities ##
-  if test x"$with_Qt_bin_dir" != x; then
-    ax_qt_bin_dir=$with_Qt_bin_dir
-  fi
-  ## Look for header files ##
-  if test x"$with_Qt_include_dir" != x; then
-    ax_qt_include_dir="$with_Qt_include_dir"
-  else
-    # The following header file is expected to define QT_VERSION.
-    qt_direct_test_header=qglobal.h
-    # Look for the header file in a standard set of common directories.
-    ax_include_path_list="
-      /usr/include
-      `ls -dr ${QTDIR}/include 2>/dev/null`
-      `ls -dr /usr/include/qt* 2>/dev/null`
-      `ls -dr /usr/lib/qt*/include 2>/dev/null`
-      `ls -dr /usr/local/qt*/include 2>/dev/null`
-      `ls -dr /opt/qt*/include 2>/dev/null`
-      `ls -dr /Developer/qt*/include 2>/dev/null`
-    "
-    for ax_dir in $ax_include_path_list; do
-      if test -r "$ax_dir/$qt_direct_test_header"; then
-        ax_dirs="$ax_dirs $ax_dir"
-      fi
-    done
-    # Now look for the newest in this list
-    ax_prev_ver=0
-    for ax_dir in $ax_dirs; do
-      ax_this_ver=`egrep -w '#define QT_VERSION' $ax_dir/$qt_direct_test_header | sed s/'#define QT_VERSION'//`
-      if expr $ax_this_ver '>' $ax_prev_ver > /dev/null; then
-        ax_qt_include_dir=$ax_dir
-        ax_prev_ver=$ax_this_ver
-      fi
-    done
-  fi
-  # Are these headers located in a traditional Trolltech installation?
-  # That would be $ax_qt_include_dir stripped from its last element:
-  ax_possible_qt_dir=`dirname $ax_qt_include_dir`
-  if (test -x $ax_possible_qt_dir/bin/moc) &&
-     ((ls $ax_possible_qt_dir/lib/libqt* > /dev/null 2>/dev/null) ||
-      (ls $ax_possible_qt_dir/lib64/libqt* > /dev/null 2>/dev/null)); then
-    # Then the rest is a piece of cake
-    ax_qt_dir=$ax_possible_qt_dir
-    ax_qt_bin_dir="$ax_qt_dir/bin"
-    if test x"$with_Qt_lib_dir" != x; then
-      ax_qt_lib_dir="$with_Qt_lib_dir"
-    else
-      if (test -d $ax_qt_dir/lib64); then
-	ax_qt_lib_dir="$ax_qt_dir/lib64"
-      else
-	ax_qt_lib_dir="$ax_qt_dir/lib"
-      fi
-    fi
-    # Only look for lib if the user did not supply it already
-    if test x"$ax_qt_lib" = xNO; then
-      ax_qt_lib="`ls $ax_qt_lib_dir/libqt* | sed -n 1p |
-                   sed s@$ax_qt_lib_dir/lib@@ | sed s@[.].*@@`"
-    fi
-    ax_qt_LIBS="-L$ax_qt_lib_dir -l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-  else
-    # There is no valid definition for $QTDIR as Trolltech likes to see it
-    ax_qt_dir=
-    ## Look for Qt library ##
-    if test x"$with_Qt_lib_dir" != x; then
-      ax_qt_lib_dir="$with_Qt_lib_dir"
-      # Only look for lib if the user did not supply it already
-      if test x"$ax_qt_lib" = xNO; then
-        ax_qt_lib="`ls $ax_qt_lib_dir/libqt* | sed -n 1p |
-                     sed s@$ax_qt_lib_dir/lib@@ | sed s@[.].*@@`"
-      fi
-      ax_qt_LIBS="-L$ax_qt_lib_dir -l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-    else
-      # Normally, when there is no traditional Trolltech installation,
-      # the library is installed in a place where the linker finds it
-      # automatically.
-      # If the user did not define the library name, try with qt
-      if test x"$ax_qt_lib" = xNO; then
-        ax_qt_lib=qt
-      fi
-      qt_direct_test_header=qapplication.h
-      qt_direct_test_main="
-        int argc;
-        char ** argv;
-        QApplication app(argc,argv);
-      "
-      # See if we find the library without any special options.
-      # Don't add top $LIBS permanently yet
-      ax_save_LIBS="$LIBS"
-      LIBS="-l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-      ax_qt_LIBS="$LIBS"
-      ax_save_CXXFLAGS="$CXXFLAGS"
-      CXXFLAGS="-I$ax_qt_include_dir"
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <$qt_direct_test_header>
-int
-main ()
-{
-$qt_direct_test_main
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-        # Success.
-        # We can link with no special library directory.
-        ax_qt_lib_dir=
-
-else
-
-        # That did not work. Try the multi-threaded version
-        echo "Non-critical error, please neglect the above." >&5
-        ax_qt_lib=qt-mt
-        LIBS="-l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <$qt_direct_test_header>
-int
-main ()
-{
-$qt_direct_test_main
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-          # Success.
-          # We can link with no special library directory.
-          ax_qt_lib_dir=
-
-else
-
-          # That did not work. Try the OpenGL version
-          echo "Non-critical error, please neglect the above." >&5
-          ax_qt_lib=qt-gl
-          LIBS="-l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-          cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <$qt_direct_test_header>
-int
-main ()
-{
-$qt_direct_test_main
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-            # Success.
-            # We can link with no special library directory.
-            ax_qt_lib_dir=
-
-else
-
-            # That did not work. Maybe a library version I don't know about?
-            echo "Non-critical error, please neglect the above." >&5
-            # Look for some Qt lib in a standard set of common directories.
-            ax_dir_list="
-              `echo $ax_qt_includes | sed ss/includess`
-              /lib
-	      /usr/lib64
-              /usr/lib
-	      /usr/local/lib64
-              /usr/local/lib
-	      /opt/lib64
-              /opt/lib
-              `ls -dr /usr/lib64/qt* 2>/dev/null`
-              `ls -dr /usr/lib64/qt*/lib64 2>/dev/null`
-              `ls -dr /usr/lib/qt* 2>/dev/null`
-              `ls -dr /usr/local/qt* 2>/dev/null`
-              `ls -dr /opt/qt* 2>/dev/null`
-            "
-            for ax_dir in $ax_dir_list; do
-              if ls $ax_dir/libqt* >/dev/null 2>/dev/null; then
-                # Gamble that it's the first one...
-                ax_qt_lib="`ls $ax_dir/libqt* | sed -n 1p |
-                            sed s@$ax_dir/lib@@ | sed s/[.].*//`"
-                ax_qt_lib_dir="$ax_dir"
-                break
-              fi
-            done
-            # Try with that one
-            LIBS="-l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-            cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <$qt_direct_test_header>
-int
-main ()
-{
-$qt_direct_test_main
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-
-              # Success.
-              # We can link with no special library directory.
-              ax_qt_lib_dir=
-
-else
-
-              # Leave ax_qt_lib_dir defined
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-      if test x"$ax_qt_lib_dir" != x; then
-        ax_qt_LIBS="-L$ax_qt_lib_dir $LIBS"
-      else
-        ax_qt_LIBS="$LIBS"
-      fi
-      LIBS="$ax_save_LIBS"
-      CXXFLAGS="$ax_save_CXXFLAGS"
-    fi   fi
-        if test "$ax_qt_dir" = NO ||
-           test "$ax_qt_include_dir" = NO ||
-           test "$ax_qt_lib_dir" = NO ||
-           test "$ax_qt_lib" = NO; then
-          # Problem with finding complete Qt.  Cache the known absence of Qt.
-          ax_cv_have_qt="have_qt=no"
-        else
-          # Record where we found Qt for the cache.
-          ax_cv_have_qt="have_qt=yes                  \
-                       ax_qt_dir=$ax_qt_dir          \
-               ax_qt_include_dir=$ax_qt_include_dir  \
-                   ax_qt_bin_dir=$ax_qt_bin_dir      \
-                      ax_qt_LIBS=\"$ax_qt_LIBS\""
-        fi
-
-fi
-      eval "$ax_cv_have_qt"
-    fi # all $ax_qt_* are set
-  fi   # $have_qt reflects the system status
-  if test x"$have_qt" = xyes; then
-    QT_CXXFLAGS="-I$ax_qt_include_dir"
-    if test x"$ax_qt_lib" = xqt-mt; then
-        QT_CXXFLAGS="$QT_CXXFLAGS -DQT_THREAD_SUPPORT"
-    fi
-    QT_DIR="$ax_qt_dir"
-    QT_LIBS="$ax_qt_LIBS"
-    # If ax_qt_dir is defined, utilities are expected to be in the
-    # bin subdirectory
-    if test x"$ax_qt_dir" != x; then
-        if test -x "$ax_qt_dir/bin/uic"; then
-          QT_UIC="$ax_qt_dir/bin/uic"
-        else
-          # Old versions of Qt don't have uic
-          QT_UIC=
-        fi
-      QT_MOC="$ax_qt_dir/bin/moc"
-      QT_LRELEASE="$ax_qt_dir/bin/lrelease"
-      QT_LUPDATE="$ax_qt_dir/bin/lupdate"
-    else
-      # Or maybe we are told where to look for the utilities
-      if test x"$ax_qt_bin_dir" != x; then
-        if test -x "$ax_qt_bin_dir/uic"; then
-          QT_UIC="$ax_qt_bin_dir/uic"
-        else
-          # Old versions of Qt don't have uic
-          QT_UIC=
-        fi
-        QT_MOC="$ax_qt_bin_dir/moc"
-        QT_LRELEASE="$ax_qt_bin_dir/lrelease"
-        QT_LUPDATE="$ax_qt_bin_dir/lupdate"
-      else
-      # Last possibility is that they are in $PATH
-        QT_UIC="`which uic`"
-        QT_MOC="`which moc`"
-        QT_LRELEASE="`which lrelease`"
-        QT_LUPDATE="`which lupdate`"
-      fi
-    fi
-    # All variables are defined, report the result
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_qt:
-    QT_CXXFLAGS=$QT_CXXFLAGS
-    QT_DIR=$QT_DIR
-    QT_LIBS=$QT_LIBS
-    QT_UIC=$QT_UIC
-    QT_MOC=$QT_MOC
-    QT_LRELEASE=$QT_LRELEASE
-    QT_LUPDATE=$QT_LUPDATE" >&5
-$as_echo "$have_qt:
-    QT_CXXFLAGS=$QT_CXXFLAGS
-    QT_DIR=$QT_DIR
-    QT_LIBS=$QT_LIBS
-    QT_UIC=$QT_UIC
-    QT_MOC=$QT_MOC
-    QT_LRELEASE=$QT_LRELEASE
-    QT_LUPDATE=$QT_LUPDATE" >&6; }
-  else
-    # Qt was not found
-    QT_CXXFLAGS=
-    QT_DIR=
-    QT_LIBS=
-    QT_UIC=
-    QT_MOC=
-    QT_LRELEASE=
-    QT_LUPDATE=
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_qt" >&5
-$as_echo "$have_qt" >&6; }
-  fi
-
-
-
-
-
-
-
-
-  #### Being paranoid:
-  if test x"$have_qt" = xyes; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking correct functioning of Qt installation" >&5
-$as_echo_n "checking correct functioning of Qt installation... " >&6; }
-    if ${ax_cv_qt_test_result+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-
-      cat > ax_qt_test.h << EOF
-#include <qobject.h>
-class Test : public QObject
-{
-Q_OBJECT
-public:
-  Test() {}
-  ~Test() {}
-public slots:
-  void receive() {}
-signals:
-  void send();
-};
-EOF
-
-      cat > ax_qt_main.$ac_ext << EOF
-#include "ax_qt_test.h"
-#include <qapplication.h>
-int main( int argc, char **argv )
-{
-  QApplication app( argc, argv );
-  Test t;
-  QObject::connect( &t, SIGNAL(send()), &t, SLOT(receive()) );
-}
-EOF
-
-      ax_cv_qt_test_result="failure"
-      ax_try_1="$QT_MOC ax_qt_test.h -o moc_ax_qt_test.$ac_ext >/dev/null 2>/dev/null"
-      { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_1\""; } >&5
-  (eval $ax_try_1) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-      if test x"$ac_status" != x0; then
-        echo "$ax_err_1" >&5
-        echo "configure: could not run $QT_MOC on:" >&5
-        cat ax_qt_test.h >&5
-      else
-        ax_try_2="$CXX $QT_CXXFLAGS -c $CXXFLAGS -o moc_ax_qt_test.o moc_ax_qt_test.$ac_ext >/dev/null 2>/dev/null"
-        { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_2\""; } >&5
-  (eval $ax_try_2) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-        if test x"$ac_status" != x0; then
-          echo "$ax_err_2" >&5
-          echo "configure: could not compile:" >&5
-          cat moc_ax_qt_test.$ac_ext >&5
-        else
-          ax_try_3="$CXX $QT_CXXFLAGS -c $CXXFLAGS -o ax_qt_main.o ax_qt_main.$ac_ext >/dev/null 2>/dev/null"
-          { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_3\""; } >&5
-  (eval $ax_try_3) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-          if test x"$ac_status" != x0; then
-            echo "$ax_err_3" >&5
-            echo "configure: could not compile:" >&5
-            cat ax_qt_main.$ac_ext >&5
-          else
-            ax_try_4="$CXX $QT_LIBS $LIBS -o ax_qt_main ax_qt_main.o moc_ax_qt_test.o >/dev/null 2>/dev/null"
-            { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ax_try_4\""; } >&5
-  (eval $ax_try_4) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }
-            if test x"$ac_status" != x0; then
-              echo "$ax_err_4" >&5
-            else
-              ax_cv_qt_test_result="success"
-            fi
-          fi
-        fi
-      fi
-
-fi
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_qt_test_result" >&5
-$as_echo "$ax_cv_qt_test_result" >&6; };
-    if test x"$ax_cv_qt_test_result" = "xfailure"; then
-      as_fn_error $? "Failed to find matching components of a complete
-                  Qt installation. Try using more options,
-                  see ./configure --help." "$LINENO" 5
-    fi
-
-    rm -f ax_qt_test.h moc_ax_qt_test.$ac_ext moc_ax_qt_test.o \
-          ax_qt_main.$ac_ext ax_qt_main.o ax_qt_main
-  fi
+# AX_HAVE_QT scheint unter FreeBSD nicht kompatibel zu sein. Der produzierte Code
+# läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW
 
 
 for ac_prog in nasm nasmw
@@ -8850,6 +7631,199 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for X" >&5
+$as_echo_n "checking for X... " >&6; }
+
+
+# Check whether --with-x was given.
+if test "${with_x+set}" = set; then :
+  withval=$with_x;
+fi
+
+# $have_x is `yes', `no', `disabled', or empty when we do not yet know.
+if test "x$with_x" = xno; then
+  # The user explicitly disabled X.
+  have_x=disabled
+else
+  case $x_includes,$x_libraries in #(
+    *\'*) as_fn_error $? "cannot use X directory names containing '" "$LINENO" 5;; #(
+    *,NONE | NONE,*) if ${ac_cv_have_x+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  # One or both of the vars are not set, and there is no cached value.
+ac_x_includes=no ac_x_libraries=no
+rm -f -r conftest.dir
+if mkdir conftest.dir; then
+  cd conftest.dir
+  cat >Imakefile <<'_ACEOF'
+incroot:
+	@echo incroot='${INCROOT}'
+usrlibdir:
+	@echo usrlibdir='${USRLIBDIR}'
+libdir:
+	@echo libdir='${LIBDIR}'
+_ACEOF
+  if (export CC; ${XMKMF-xmkmf}) >/dev/null 2>/dev/null && test -f Makefile; then
+    # GNU make sometimes prints "make[1]: Entering ...", which would confuse us.
+    for ac_var in incroot usrlibdir libdir; do
+      eval "ac_im_$ac_var=\`\${MAKE-make} $ac_var 2>/dev/null | sed -n 's/^$ac_var=//p'\`"
+    done
+    # Open Windows xmkmf reportedly sets LIBDIR instead of USRLIBDIR.
+    for ac_extension in a so sl dylib la dll; do
+      if test ! -f "$ac_im_usrlibdir/libX11.$ac_extension" &&
+	 test -f "$ac_im_libdir/libX11.$ac_extension"; then
+	ac_im_usrlibdir=$ac_im_libdir; break
+      fi
+    done
+    # Screen out bogus values from the imake configuration.  They are
+    # bogus both because they are the default anyway, and because
+    # using them would break gcc on systems where it needs fixed includes.
+    case $ac_im_incroot in
+	/usr/include) ac_x_includes= ;;
+	*) test -f "$ac_im_incroot/X11/Xos.h" && ac_x_includes=$ac_im_incroot;;
+    esac
+    case $ac_im_usrlibdir in
+	/usr/lib | /usr/lib64 | /lib | /lib64) ;;
+	*) test -d "$ac_im_usrlibdir" && ac_x_libraries=$ac_im_usrlibdir ;;
+    esac
+  fi
+  cd ..
+  rm -f -r conftest.dir
+fi
+
+# Standard set of common directories for X headers.
+# Check X11 before X11Rn because it is often a symlink to the current release.
+ac_x_header_dirs='
+/usr/X11/include
+/usr/X11R7/include
+/usr/X11R6/include
+/usr/X11R5/include
+/usr/X11R4/include
+
+/usr/include/X11
+/usr/include/X11R7
+/usr/include/X11R6
+/usr/include/X11R5
+/usr/include/X11R4
+
+/usr/local/X11/include
+/usr/local/X11R7/include
+/usr/local/X11R6/include
+/usr/local/X11R5/include
+/usr/local/X11R4/include
+
+/usr/local/include/X11
+/usr/local/include/X11R7
+/usr/local/include/X11R6
+/usr/local/include/X11R5
+/usr/local/include/X11R4
+
+/usr/X386/include
+/usr/x386/include
+/usr/XFree86/include/X11
+
+/usr/include
+/usr/local/include
+/usr/unsupported/include
+/usr/athena/include
+/usr/local/x11r5/include
+/usr/lpp/Xamples/include
+
+/usr/openwin/include
+/usr/openwin/share/include'
+
+if test "$ac_x_includes" = no; then
+  # Guess where to find include files, by looking for Xlib.h.
+  # First, try using that file with no special directory specified.
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <X11/Xlib.h>
+_ACEOF
+if ac_fn_c_try_cpp "$LINENO"; then :
+  # We can compile using X headers with no special include directory.
+ac_x_includes=
+else
+  for ac_dir in $ac_x_header_dirs; do
+  if test -r "$ac_dir/X11/Xlib.h"; then
+    ac_x_includes=$ac_dir
+    break
+  fi
+done
+fi
+rm -f conftest.err conftest.i conftest.$ac_ext
+fi # $ac_x_includes = no
+
+if test "$ac_x_libraries" = no; then
+  # Check for the libraries.
+  # See if we find them without any special options.
+  # Don't add to $LIBS permanently.
+  ac_save_LIBS=$LIBS
+  LIBS="-lX11 $LIBS"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <X11/Xlib.h>
+int
+main ()
+{
+XrmInitialize ()
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  LIBS=$ac_save_LIBS
+# We can link X programs with no special library path.
+ac_x_libraries=
+else
+  LIBS=$ac_save_LIBS
+for ac_dir in `$as_echo "$ac_x_includes $ac_x_header_dirs" | sed s/include/lib/g`
+do
+  # Don't even attempt the hair of trying to link an X program!
+  for ac_extension in a so sl dylib la dll; do
+    if test -r "$ac_dir/libX11.$ac_extension"; then
+      ac_x_libraries=$ac_dir
+      break 2
+    fi
+  done
+done
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi # $ac_x_libraries = no
+
+case $ac_x_includes,$ac_x_libraries in #(
+  no,* | *,no | *\'*)
+    # Didn't find X, or a directory has "'" in its name.
+    ac_cv_have_x="have_x=no";; #(
+  *)
+    # Record where we found X for the cache.
+    ac_cv_have_x="have_x=yes\
+	ac_x_includes='$ac_x_includes'\
+	ac_x_libraries='$ac_x_libraries'"
+esac
+fi
+;; #(
+    *) have_x=yes;;
+  esac
+  eval "$ac_cv_have_x"
+fi # $with_x != no
+
+if test "$have_x" != yes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $have_x" >&5
+$as_echo "$have_x" >&6; }
+  no_x=yes
+else
+  # If each of the values was on the command line, it overrides each guess.
+  test "x$x_includes" = xNONE && x_includes=$ac_x_includes
+  test "x$x_libraries" = xNONE && x_libraries=$ac_x_libraries
+  # Update the cache value to reflect the command line values.
+  ac_cv_have_x="have_x=yes\
+	ac_x_includes='$x_includes'\
+	ac_x_libraries='$x_libraries'"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: libraries $x_libraries, headers $x_includes" >&5
+$as_echo "libraries $x_libraries, headers $x_includes" >&6; }
+fi
 
 if test "$no_x" = yes; then
   # Not all programs may use this symbol, but it does not hurt to define it.

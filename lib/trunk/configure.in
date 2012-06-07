@@ -165,7 +165,10 @@ AC_CHECK_SIZEOF(fpos_t, 4)
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
-AX_HAVE_QT
+# AX_HAVE_QT scheint unter FreeBSD nicht kompatibel zu sein. Der produzierte Code
+# läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW 
+dnl AX_HAVE_QT
+
 AX_PROG_NASM
 
 
