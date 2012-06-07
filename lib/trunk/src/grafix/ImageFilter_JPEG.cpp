@@ -59,6 +59,7 @@ extern "C" {
 #include <jpeglib.h>
 #include <jerror.h>
 }
+#endif // HAVE_JPEG
 
 
 namespace ppl7 {
@@ -71,6 +72,7 @@ namespace grafix {
  * Blah
  */
 
+#ifdef HAVE_JPEG
 
 #define PREREAD		512
 #define READBUFFER	50000
@@ -359,7 +361,7 @@ static int jpeg_load_dht (struct jpeg_decompress_struct *info, unsigned char *dh
 	return 0;
 }
 
-
+#endif	// #ifdef HAVE_JPEG
 
 
 
@@ -375,6 +377,7 @@ ImageFilter_JPEG::~ImageFilter_JPEG()
 
 int ImageFilter_JPEG::ident(FileObject &file, IMAGE &img)
 {
+#ifdef HAVE_JPEG
 	try {
 		bool ret=false;
 		const char *address=file.map(0,256);
@@ -431,11 +434,15 @@ int ImageFilter_JPEG::ident(FileObject &file, IMAGE &img)
 		return 0;
 	}
 	return 0;
+#else
+	return 0;
+#endif
 }
 
 
 void ImageFilter_JPEG::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
+#ifdef HAVE_JPEG
 	size_t buffersize;
 	ppluint32 x,y,rot,gruen,blau;
 	char *buffer;
@@ -506,10 +513,14 @@ void ImageFilter_JPEG::load(FileObject &file, Drawable &surface, IMAGE &img)
 		//jpeg_finish_decompress(&cinfo);
 	}
 	jpeg_destroy_decompress(&cinfo);
+#else
+	throw UnsupportedFeatureException("ImageFilter_JPEG");
+#endif
 }
 
 void ImageFilter_JPEG::save (const Drawable &surface, FileObject &file, const AssocArray &param)
 {
+#ifdef HAVE_JPEG
 	int x,y;
 	char *buffer;
 
@@ -575,6 +586,10 @@ void ImageFilter_JPEG::save (const Drawable &surface, FileObject &file, const As
 	jpeg_finish_compress(&cinfo);
 	jpeg_destroy_compress(&cinfo);
 	free (buffer);
+#else
+	throw UnsupportedFeatureException("ImageFilter_JPEG");
+#endif
+
 }
 
 String ImageFilter_JPEG::name()
@@ -590,4 +605,3 @@ String ImageFilter_JPEG::description()
 
 } // EOF namespace grafix
 } // EOF namespace ppl7
-#endif // _HAVE_JPEG
