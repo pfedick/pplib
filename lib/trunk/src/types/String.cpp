@@ -804,7 +804,7 @@ String & String::setf(const char *fmt, ...)
 	}
 	va_end(args);
     free(buff);
-    throw Exception();
+    throw Exception("String::setf");
 }
 
 /*!\brief Einzelnes ASCII-Zeichen übernehmen

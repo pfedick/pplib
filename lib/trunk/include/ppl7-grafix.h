@@ -669,7 +669,7 @@ class Image : public Drawable
 		Image();
 		Image(const Image &other);
 		Image(const Drawable &other);
-		Image(int width, int height, const RGBFormat &format);
+		Image(int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
 		Image(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
 		Image(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
 		Image(const ByteArrayPtr &mem, const RGBFormat &format=RGBFormat::unknown);
@@ -679,8 +679,8 @@ class Image : public Drawable
 		/** @name Verschiedenes
 		 */
 		//@{
-		void create(int width, int height, const RGBFormat &format);
-		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
+		void create(int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
+		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
 		void load(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
 		void load(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
 		void load(const ByteArrayPtr &Mem, const RGBFormat &format=RGBFormat::unknown);
