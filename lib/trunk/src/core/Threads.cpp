@@ -555,6 +555,7 @@ void Thread::threadStart()
 	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,&ts);
 	if(ret==0) {
 		pthread_detach(t->thread);
+		printf ("Thread erfolgreih gestartet\n");
 		return;;
 	}
 	threadmutex.lock();
@@ -636,23 +637,30 @@ void Thread::threadResume()
  */
 void Thread::threadStartUp()
 {
+	printf ("Thread::threadStartUp\n");
 	threadmutex.lock();
+	printf ("Debug 1\n");
 	IsRunning=1;
+	printf ("Debug 2\n");
 	IsSuspended=0;
+	printf ("Debug 3\n");
 	threadmutex.unlock();
+	printf ("Debug 4\n");
 	threadSetPriority(myPriority);
+	printf ("Debug 5\n");
 
-	THREADDATA * d=GetThreadData();
+	//THREADDATA * d=GetThreadData();
 
 	threadMain();
-
-
+	printf ("Debug 6\n");
+/*
 	if (d) {
 #ifdef HAVE_MYSQL
 		if (d->mysql_thread_end!=NULL) d->mysql_thread_end(d);
 #endif
 
 	}
+*/
 
 	threadmutex.lock();
 	flags=0;
