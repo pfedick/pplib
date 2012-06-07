@@ -55,7 +55,7 @@
 
 #ifdef HAVE_PNG
 #include <png.h>
-
+#endif
 
 namespace ppl7 {
 namespace grafix {
@@ -65,6 +65,7 @@ namespace grafix {
  * \brief Import-/Export-Filter für PNG-Dateien
  */
 
+#ifdef HAVE_PNG
 
 // PNG-Read
 static void user_read_data(png_structp png_ptr,png_bytep data, png_uint_32 length)
@@ -95,6 +96,7 @@ static void write_row_callback(png_structp png_ptr, png_uint_32 row, int pass)
 }
 */
 
+#endif	// #ifdef HAVE_PNG
 
 // PNG-Klasse
 ImageFilter_PNG::ImageFilter_PNG()
@@ -120,6 +122,7 @@ String ImageFilter_PNG::description()
 
 int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 {
+#ifdef HAVE_PNG
 	try {
 		const char *address=file.map(0,256);
 		file.seek(0);
@@ -198,10 +201,14 @@ int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 		return 0;
 	}
 	return 0;
+#else
+	return 0;
+#endif
 }
 
 void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
+#ifdef HAVE_PNG
 	int x,y,bpp;
 	int r,g,b,a;
 	file.seek(0);
@@ -337,10 +344,15 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 	}
 	png_free(png_ptr,row_pointer);
 	png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+#else
+	throw UnsupportedFeatureException("ImageFilter_PNG");
+#endif
+
 }
 
 void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const AssocArray &param)
 {
+#ifdef HAVE_PNG
 	Color farbe;
 	int pitch,bpp,colortype;
 	//int r,g,b,a;
@@ -538,11 +550,14 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 
 	png_write_end(png_ptr, info_ptr);
 	png_destroy_write_struct(&png_ptr,&info_ptr);
+#else
+	throw UnsupportedFeatureException("ImageFilter_PNG");
+#endif
+
 }
 
 } // EOF namespace grafix
 } // EOF namespace ppl7
 
 
-#endif // HAVE_PNG
 
