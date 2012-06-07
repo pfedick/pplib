@@ -240,7 +240,7 @@ void Resource::list()
 		return;
 	}
 	while (res) {
-		printf ("   - ID: %i, Name: %s, Size: %tu\n",res->id, (const char*)res->name,res->size_u);
+		printf ("   - ID: %i, Name: %s, Size: %u\n",res->id, (const char*)res->name,res->size_u);
 		res=res->next;
 	}
 
@@ -333,7 +333,7 @@ void Resource::uncompress(void *resource)
  * Resourcen generieren
  *********************************************************************************/
 
-static void IncludeHelp(FileObject &out, const String &configfile)
+static void includeHelp(FileObject &out, const String &configfile)
 {
 	DateTime now;
 	now.setCurrentTime();
@@ -375,7 +375,7 @@ static void IncludeHelp(FileObject &out, const String &configfile)
 		);
 }
 
-static void BufferOut(FileObject &out, const char *buffer, int bytes)
+static void bufferOut(FileObject &out, const char *buffer, int bytes)
 {
 	static int c=0;
 	static char clear[25]="";
@@ -403,7 +403,7 @@ static void BufferOut(FileObject &out, const char *buffer, int bytes)
 	}
 }
 
-static void Output(FileObject &ff, int resid, const String &name, const String &filename, int size_u, char *buffer, int bytes, int compressiontype)
+static void output(FileObject &ff, int resid, const String &name, const String &filename, int size_u, char *buffer, int bytes, int compressiontype)
 {
 	char *buf=(char*)malloc(64);
 	if (!buf) throw OutOfMemoryException();
@@ -415,14 +415,14 @@ static void Output(FileObject &ff, int resid, const String &name, const String &
 	Poke32(buf+10,bytes);
 	Poke8(buf+14,compressiontype);
 	Poke8(buf+15,17+name.size());
-	BufferOut(ff,buf,16);
-	BufferOut(ff,name,name.size()+1);
+	bufferOut(ff,buf,16);
+	bufferOut(ff,name,name.size()+1);
 	//BufferOut(ff,filename,strlen(filename)+1);
-	BufferOut(ff,buffer,bytes);
+	bufferOut(ff,buffer,bytes);
 	free(buf);
 }
 
-static int Compress(FileObject &ff, char **buffer, size_t *size, int *type)
+static int compress(FileObject &ff, char **buffer, size_t *size, int *type)
 {
 	Compression comp;
 	size_t size_u=(size_t)ff.size();

@@ -115,7 +115,9 @@ int inet_aton(const char *cp, struct in_addr *pin)
 
 #endif
 
+#ifdef WIN32
 static int _wsa_init=0;
+#endif
 
 void InitWSA()
 {

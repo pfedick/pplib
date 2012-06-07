@@ -118,7 +118,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			K key;
 			T value;
 			public:
-				void *operator new(size_t, void *p) { return p;}
+				void *operator new(size_t, void *p) { return (p);}
 		};
 		MemoryHeap		MyHeap;
 		void clearRecursive(TreeItem *item) {
@@ -142,12 +142,12 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 				const K& key() const
 				{
 					if (!Key) throw NullPointerException();
-					return *Key;
+					return (*Key);
 				}
 				T& value() const
 				{
 					if (!Value) throw NullPointerException();
-					return *Value;
+					return (*Value);
 				}
 		};
 
@@ -162,17 +162,17 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		{
 			const TreeItem &v1=static_cast<const TreeItem&>(value1);
 			const TreeItem &v2=static_cast<const TreeItem&>(value2);
-			if (v1.key<v2.key) return 1;
-			if (v1.key>v2.key) return -1;
-			return 0;
+			if (v1.key<v2.key) return (1);
+			if (v1.key>v2.key) return (-1);
+			return (0);
 		}
  		size_t capacity() const
  		{
- 			return MyHeap.capacity();
+ 			return (MyHeap.capacity());
  		}
  		size_t itemSize() const
  		{
- 			return sizeof(TreeItem);
+ 			return (sizeof(TreeItem));
  		}
  		void reserve(size_t num)
  		{
@@ -191,7 +191,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 				MyHeap.free(item);
 				throw;
 			}
-			return item->value;
+			return (item->value);
 		}
 		T& find(const K &key) const
 		{
@@ -199,7 +199,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			search.key=key;
 			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
 			if (!found) throw ItemNotFoundException();
-			return found->value;
+			return (found->value);
 		}
 
 		bool exists(const K &key) const
@@ -207,8 +207,8 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			TreeItem search, *found;
 			search.key=key;
 			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
-			if (!found) return false;
-			return true;
+			if (!found) return (false);
+			return (true);
 		}
 
 		T& operator[](const K &key) const
@@ -217,7 +217,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 			search.key=key;
 			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
 			if (!found) throw ItemNotFoundException();
-			return found->value;
+			return (found->value);
 		}
 
 		void	erase(const K &key)
@@ -245,11 +245,11 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		}
 		size_t		num() const
 		{
-			return AVLTreeAlgorithm::num();
+			return (AVLTreeAlgorithm::num());
 		}
 		size_t		count() const
 		{
-			return AVLTreeAlgorithm::count();
+			return (AVLTreeAlgorithm::count());
 		}
 
 		void	reset(Iterator &it) const
@@ -259,42 +259,42 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		bool getFirst(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getFirst(it);
-			if (!item) return false;
+			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
-			return true;
+			return (true);
 		}
 		bool getNext(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getNext(it);
-			if (!item) return false;
+			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
-			return true;
+			return (true);
 		}
 		bool getLast(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getLast(it);
-			if (!item) return false;
+			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
-			return true;
+			return (true);
 		}
 		bool getPrevious(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getPrevious(it);
-			if (!item) return false;
+			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
-			return true;
+			return (true);
 		}
 		bool getCurrent(Iterator &it) const
 		{
 			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getCurrent(it);
-			if (!item) return false;
+			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
-			return true;
+			return (true);
 		}
 
 
@@ -313,7 +313,7 @@ template <class K> class List
 				ListItem *previous, *next, *original;
 				List *owner;
 			public:
-				void *operator new(size_t, void *p) { return p;}
+				void *operator new(size_t, void *p) { return (p);}
 		};
 		ListItem *first, *last;
 	public:
@@ -328,7 +328,7 @@ template <class K> class List
 				K& value() const
 				{
 					if (!item) throw NullPointerException();
-					return item->item;
+					return (item->item);
 				}
 		};
 
@@ -343,11 +343,11 @@ template <class K> class List
 
  		size_t capacity() const
  		{
- 			return MyHeap.capacity();
+ 			return (MyHeap.capacity());
  		}
  		size_t itemSize() const
  		{
- 			return sizeof(ListItem);
+ 			return (sizeof(ListItem));
  		}
  		void reserve(size_t num)
  		{
@@ -365,7 +365,7 @@ template <class K> class List
 			if (last) last->next=it;
 			if (!first) first=it;
 			last=it;
-			return it->item;
+			return (it->item);
 		}
 
 		K& push_front(const K &item)
@@ -379,7 +379,7 @@ template <class K> class List
 					if (first) first->previous=it;
 					if (!last) last=it;
 					first=it;
-					return it->item;
+					return (it->item);
 				}
 
 
@@ -401,15 +401,15 @@ template <class K> class List
 
 		size_t		num() const
 		{
-			return MyHeap.count();
+			return (MyHeap.count());
 		}
 		size_t		count() const
 		{
-			return MyHeap.count();
+			return (MyHeap.count());
 		}
 		size_t		size() const
 		{
-			return MyHeap.count();
+			return (MyHeap.count());
 		}
 
 		void		clear()
@@ -433,8 +433,8 @@ template <class K> class List
 		{
 			it.item=first;
 			it.init=true;
-			if (first) return true;
-			return false;
+			if (first) return (true);
+			return (false);
 		}
 		bool	getNext(Iterator &it) const throw()
 		{
@@ -445,15 +445,15 @@ template <class K> class List
 				it.item=it.item->next;
 			}
 			ListItem *item=it.item;
-			if (!item) return false;
-			return true;
+			if (!item) return (false);
+			return (true);
 		}
 		bool	getLast(Iterator &it) const throw()
 		{
 			it.item=last;
 			it.init=true;
-			if (last) return true;
-			return false;
+			if (last) return (true);
+			return (false);
 		}
 		bool	getPrevious(Iterator &it) const throw()
 		{
@@ -464,8 +464,8 @@ template <class K> class List
 				it.item=it.item->previous;
 			}
 			ListItem *item=it.item;
-			if (!item) return false;
-			return true;
+			if (!item) return (false);
+			return (true);
 		}
 
 
