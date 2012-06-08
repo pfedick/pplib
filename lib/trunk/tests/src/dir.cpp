@@ -237,11 +237,9 @@ TEST_F(DirTest, dirWalkSize) {
 	});
 	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
-	printf ("DEBUG 6\n");
 
 	// We expect an EndOfListException next
 	ASSERT_THROW(e=getNextFile(d1,it);, ppl7::EndOfListException);
-	printf ("DEBUG 7\n");
 }
 
 
