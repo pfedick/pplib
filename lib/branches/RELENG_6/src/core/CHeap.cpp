@@ -273,6 +273,7 @@ int CHeap::Free(void *mem)
 			// Element in die Free-Kette hängen
 			el[element].next=bl->free;
 			el[element].previous=NULL;
+			//VALGRIND_HG_CLEAN_MEMORY(el[element].ptr,elementsize);
 			if (bl->free) bl->free->previous=&el[element];
 			bl->free=&el[element];
 			bl->num_free++;

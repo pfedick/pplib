@@ -249,8 +249,8 @@ void CString::Init()
  */
 CString::~CString()
 {
-	if (buffer) free(buffer);
 	if (matches) delete matches;
+	if (buffer) free(buffer);
 	matches=NULL;
 	buffer=NULL;
 }
