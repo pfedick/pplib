@@ -503,7 +503,7 @@ int CTCPSocket::SSL_Stop()
 			SSL_free((SSL*)ssl);
 			ssl=NULL;
 		}
-		mutex.Unlock();
+		//mutex.Unlock();
 		return 1;
 	#else
 		SetError(292);
