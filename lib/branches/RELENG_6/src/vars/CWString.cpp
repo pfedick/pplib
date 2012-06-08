@@ -86,6 +86,7 @@ namespace ppl6 {
 static ppluint32 InitialBuffersize=128;
 static char GlobalExtEncoding[32]="UTF-8";
 
+#ifdef PPL6_ENABLE_STRING_BUFFERPOOL
 //!\brief Interner Heap-Speicher für CString
 static CHeap *Heap=NULL;
 
@@ -102,6 +103,7 @@ CHeap *GetCWStringHeap()
 	return Heap;
 }
 
+#endif
 
 int SetGlobalEncoding(const char *encoding)
 /*!\brief Encoding für alle CWString-Klassen festlegen
@@ -374,7 +376,7 @@ const CWString operator+(const CWString &str1, const wchar_t *str2)
  *
  */
 
-
+#ifdef PPL6_ENABLE_STRING_BUFFERPOOL
 void *CWString::operator new(size_t size)
 /*!\brief Speicher allokieren
  *
@@ -425,6 +427,7 @@ void CWString::operator delete(void *ptr, size_t size)
 	if (ptr!=NULL && Heap!=NULL) Heap->Free(ptr);
 }
 
+#endif
 
 /** @name Konstruktoren
  *  Folgende Konstruktoren stehen zur Verfügung:

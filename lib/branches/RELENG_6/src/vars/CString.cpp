@@ -60,8 +60,10 @@ void CString::setInitialBuffersize(ppluint32 size)
 	InitialBuffersize=size;
 }
 
+#ifdef PPL6_ENABLE_STRING_BUFFERPOOL
 //!\brief Interner Heap-Speicher für CString
 static CHeap *Heap=NULL;
+#endif
 
 /*!\class CString
  * \ingroup PPLGroupDataTypes
@@ -76,7 +78,7 @@ static CHeap *Heap=NULL;
  *
  */
 
-
+#ifdef PPL6_ENABLE_STRING_BUFFERPOOL
 void *CString::operator new(size_t size)
 /*!\brief Speicher allokieren
  *
@@ -125,6 +127,7 @@ void CString::operator delete(void *ptr, size_t size)
 	if (ptr!=NULL && Heap!=NULL) Heap->Free(ptr);
 }
 
+#endif // PPL6_ENABLE_STRING_BUFFERPOOL
 
 CString::CString()
 /*!
@@ -1017,15 +1020,14 @@ void CString::Chop(int chars)
 void CString::LTrim()
 {
 	if (buffer) {
-		size_t i,start,ende,s;
+		size_t i,start,s;
 		if (len>0) {
 			start=0; s=0;
-			ende=len;
 			for (i=0;i<len;i++) {
 				if (buffer[i]==13||buffer[i]==10||buffer[i]==32||buffer[i]=='\t') {
 					if (s==0) start=i+1;
 				} else {
-					s=1; ende=i;
+					s=1;
 				}
 			}
 			if (start>0)
@@ -1039,15 +1041,14 @@ void CString::LTrim()
 void CString::RTrim()
 {
 	if (buffer) {
-		size_t i,start,ende,s;
+		size_t i,ende;
 		if (len>0) {
-			start=0; s=0;
 			ende=len;
 			for (i=0;i<len;i++) {
 				if (buffer[i]==13||buffer[i]==10||buffer[i]==32||buffer[i]=='\t') {
-					if (s==0) start=i+1;
+					//if (s==0) start=i+1;
 				} else {
-					s=1; ende=i;
+					ende=i;
 				}
 			}
 			buffer[ende+1]=0;
@@ -1060,12 +1061,11 @@ void CString::RTrim()
 void CString::LTrim(const char *str)
 {
 	if (buffer) {
-		size_t i,start,ende,s, l_str,z;
+		size_t i,start,s, l_str,z;
 		int match;
 		l_str=strlen(str);
 		if (len>0) {
 			start=0; s=0;
-			ende=len;
 			for (i=0;i<len;i++) {
 				match=0;
 				for (z=0;z<l_str;z++) {
@@ -1076,7 +1076,7 @@ void CString::LTrim(const char *str)
 					}
 				}
 				if (!match) {
-					s=1; ende=i;
+					s=1;
 				}
 			}
 			if (start>0)
@@ -1090,23 +1090,21 @@ void CString::LTrim(const char *str)
 void CString::RTrim(const char *str)
 {
 	if (buffer) {
-		size_t i,start,ende,s,l_str,z;
+		size_t i,ende,l_str,z;
 		int match;
 		l_str=strlen(str);
 		if (len>0) {
-			start=0; s=0;
 			ende=len;
 			for (i=0;i<len;i++) {
 				match=0;
 				for (z=0;z<l_str;z++) {
 					if (buffer[i]==str[z]) {
-						if (s==0) start=i+1;
 						match=1;
 						break;
 					}
 				}
 				if (!match) {
-					s=1; ende=i;
+					ende=i;
 				}
 			}
 			buffer[ende+1]=0;

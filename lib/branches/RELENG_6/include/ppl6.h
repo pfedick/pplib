@@ -127,6 +127,9 @@
 
 namespace ppl6 {
 
+//#define PPL6_ENABLE_STRING_BUFFERPOOL
+#undef PPL6_ENABLE_STRING_BUFFERPOOL
+
 #define ppldb	ppluint8
 #define ppldw	ppluint16
 #define ppldd	ppluint32
@@ -513,8 +516,10 @@ class CString : public CVar
 
 		~CString();
 
+#ifdef PPL6_ENABLE_STRING_BUFFERPOOL
 		void *operator new (size_t size);
 		void operator delete (void *ptr, size_t size);
+#endif
 
 		void ImportBuffer(char *buffer, size_t bytes);
 
@@ -739,8 +744,10 @@ class CWString : public CVar
 		int			InitExportEncoding(const char *encoding);
 
 	public:
+#ifdef PPL6_ENABLE_STRING_BUFFERPOOL
 		void *operator new (size_t size);
 		void operator delete (void *ptr, size_t size);
+#endif
 
 		CWString();
 		CWString(const char *str);
