@@ -1036,6 +1036,8 @@ TEST_F(StringTest, pregCapture) {
 	ASSERT_EQ(2012,m[1].toInt()) << "Unexpected value in capture";
 	ASSERT_EQ(5,m[2].toInt()) << "Unexpected value in capture";
 	ASSERT_EQ(18,m[3].toInt()) << "Unexpected value in capture";
+	ASSERT_EQ(4,m.size()) << "Unexpected number auf captures";
+
 }
 
 
