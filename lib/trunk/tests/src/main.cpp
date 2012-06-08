@@ -59,6 +59,7 @@ int main (int argc, char**argv)
 	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
 	Wordlist.explode(w,"\n");
 	ppl7::PrintDebugTime ("done\n");
+
 	try {
 		return RUN_ALL_TESTS();
 	} catch (const ppl7::Exception &e) {

@@ -274,33 +274,33 @@ class String : public Variant
 		//@{
 
 		String & set(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(char c) throw(OutOfMemoryException);
 		String & set(size_t position, char c) throw(OutOfBoundsEception);
 		String & set(const Variant &var) throw(OutOfMemoryException);
 		String & setf(const char *fmt, ...);
 
 		String & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String & append(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & append(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & append(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & append(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & append(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & append(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & appendf(const char *fmt, ...);
 		String & append(char c) throw(OutOfMemoryException);
 
 		String & prepend(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String & prepend(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prepend(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prepend(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prepend(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prepend(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & prepend(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & prependf(const char *fmt, ...);
 		String & prepend(char c) throw(OutOfMemoryException);
 

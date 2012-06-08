@@ -145,6 +145,7 @@ TEST_F(StringTest, ConstructorFromStdString) {
 TEST_F(StringTest, ConstructorFromStdWString) {
 	ASSERT_NO_THROW({
 		std::wstring s1(L"A test string with unicode characters: äöü");
+		ASSERT_EQ((size_t)42,s1.size()) << "std:wstring has unexpected size";
 		ppl7::String s2(s1);
 		ASSERT_EQ((size_t)45,s2.len()) << "String does not have length of 45";
 		const char *buf=s2.getPtr();
@@ -458,7 +459,7 @@ TEST_F(StringTest, appendConstWchartWithoutSize) {
 TEST_F(StringTest, appendConstWchartWithSize) {
 	ppl7::String expected("First Part äöü, äöü S");
 	ppl7::String s1("First Part äöü, ");
-	s1.append(L"äöü Second Part",8);
+	s1.append(L"äöü Second Part",5);
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 	ASSERT_EQ((size_t)27,s1.size()) << "String has unexpected length";
@@ -546,12 +547,12 @@ TEST_F(StringTest, appendStdWStringWithoutSize) {
 }
 
 TEST_F(StringTest, appendStdWStringWithSize) {
-	ppl7::String expected("First Part äöü, äöü S");
+	ppl7::String expected("First Part äöü, äöü Seco");
 	ppl7::String s1("First Part äöü, ");
 	std::wstring s2(L"äöü Second Part");
 	s1.append(s2,8);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)27,s1.size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)30,s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, appendf) {

@@ -596,8 +596,10 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 		if (!tmpbuffer) throw OutOfMemoryException();
 		str=wcsncpy(tmpbuffer,str,size);
 		tmpbuffer[size]=0;
+		inbytes=size;
+	} else {
+		inbytes=wcslen(str);
 	}
-	inbytes=wcslen(str);
 	size_t outbytes=inbytes*sizeof(wchar_t)+4;
 	if (outbytes>=s) {
 		if (ptr) free(ptr);
@@ -884,7 +886,7 @@ String & String::append(const wchar_t *str, size_t size) throw(OutOfMemoryExcept
 {
 	String a;
 	a.set(str,size);
-	return append((const char*)a.ptr,size);
+	return append((const char*)a,a.size());
 }
 
 /*!\brief Fügt einen C-String an das Ende des bestehenden an
@@ -982,7 +984,8 @@ String & String::append(const String &str, size_t size) throw(OutOfMemoryExcepti
  */
 String & String::append(const std::string &str, size_t size) throw(OutOfMemoryException)
 {
-	return append(str.c_str(),size);
+	if (size==(size_t)-1) return append(str.data(),str.size());
+	return append(str.data(),size);
 }
 
 /*!\brief Fügt einen std::wstring an das Ende des bestehenden an
@@ -999,7 +1002,8 @@ String & String::append(const std::string &str, size_t size) throw(OutOfMemoryEx
  */
 String & String::append(const std::wstring &str, size_t size) throw(OutOfMemoryException)
 {
-	return append(str.c_str(),size);
+	if (size==(size_t)-1) return append(str.data(),str.size());
+	return append(str.data(),size);
 }
 
 
