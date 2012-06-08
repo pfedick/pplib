@@ -305,7 +305,7 @@ int CFile::OpenTemp(const char *filetemplate, ...)
  * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
  * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
  * durch eine Zeichenkette ersetzt, die diesen Dateinamen eindeutig  macht.
- * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0666 erzeugt.
+ * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0600 erzeugt.
  *
  * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
  * @param[in] ... Optionale Parameter
