@@ -753,6 +753,55 @@ TEST_F(StringTest, chomp) {
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
 }
 
+TEST_F(StringTest, cut_WithPos) {
+	ppl7::String s1("The quick brown fox jumps over the lazy dog");
+	ppl7::String expected("The quick ");
+	s1.cut(10);
+	ASSERT_EQ((size_t)10,s1.len()) << "String has unexpected length";
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+}
+
+TEST_F(StringTest, cut_WithPos0) {
+	ppl7::String s1("The quick brown fox jumps over the lazy dog");
+	ppl7::String expected("");
+	s1.cut(0);
+	ASSERT_EQ((size_t)0,s1.len()) << "String has unexpected length";
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+}
+
+TEST_F(StringTest, cut_WithPosBeyondStringLength) {
+	ppl7::String s1("The quick brown fox jumps over the lazy dog");
+	ppl7::String expected("The quick brown fox jumps over the lazy dog");
+	s1.cut(100);
+	ASSERT_EQ((size_t)43,s1.len()) << "String has unexpected length";
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+}
+
+TEST_F(StringTest, cut_WithLetter) {
+	ppl7::String s1("The quick brown fox jumps over the lazy dog");
+	ppl7::String expected("The quick ");
+	s1.cut("b");
+	ASSERT_EQ((size_t)10,s1.len()) << "String has unexpected length";
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+}
+
+TEST_F(StringTest, cut_WithNonexistingLetter) {
+	ppl7::String s1("The quick brown fox");
+	ppl7::String expected("The quick brown fox");
+	s1.cut("j");
+	ASSERT_EQ((size_t)19,s1.len()) << "String has unexpected length";
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+}
+
+TEST_F(StringTest, cut_WithString) {
+	ppl7::String s1("The quick brown fox jumps over the lazy dog");
+	ppl7::String expected("The quick ");
+	s1.cut("brown");
+	ASSERT_EQ((size_t)10,s1.len()) << "String has unexpected length";
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+}
+
+
 TEST_F(StringTest, strstr) {
 	ppl7::String s1("A test haystack string");
 	ppl7::String s3("haystack string");
@@ -1036,7 +1085,7 @@ TEST_F(StringTest, pregCapture) {
 	ASSERT_EQ(2012,m[1].toInt()) << "Unexpected value in capture";
 	ASSERT_EQ(5,m[2].toInt()) << "Unexpected value in capture";
 	ASSERT_EQ(18,m[3].toInt()) << "Unexpected value in capture";
-	ASSERT_EQ(4,m.size()) << "Unexpected number auf captures";
+	ASSERT_EQ((size_t)4,m.size()) << "Unexpected number auf captures";
 
 }
 
@@ -1074,6 +1123,30 @@ TEST_F(StringTest, ISO88591toUtf8) {
 	ASSERT_EQ((size_t)45,a.size()) << "String does not have expected length";
 	ASSERT_EQ((unsigned char)'A',(unsigned char)a.get(0)) << "Unexpected Character in string";
 	ASSERT_EQ(188,(unsigned char)a.get(44)) << "Unexpected Character in string";
+}
+
+TEST_F(StringTest, strchr_ExistingChar) {
+	ppl7::String s1("The Quick Brown Fox Jumps over äöü");
+	ppl7::String expected("Fox Jumps over äöü");
+	ASSERT_EQ(expected,s1.strchr('F')) << "Unexpected Result";
+}
+
+TEST_F(StringTest, strchr_NonExistingChar) {
+	ppl7::String s1("The Quick Brown Fox Jumps over äöü");
+	ppl7::String expected("");
+	ASSERT_EQ(expected,s1.strchr('L')) << "Unexpected Result";
+}
+
+TEST_F(StringTest, strrchr_ExistingChar) {
+	ppl7::String s1("The Quick Brown Fox Jumps over äöü");
+	ppl7::String expected("over äöü");
+	ASSERT_EQ(expected,s1.strrchr('o')) << "Unexpected Result";
+}
+
+TEST_F(StringTest, strrchr_NonExistingChar) {
+	ppl7::String s1("The Quick Brown Fox Jumps over äöü");
+	ppl7::String expected("");
+	ASSERT_EQ(expected,s1.strrchr('L')) << "Unexpected Result";
 }
 
 
