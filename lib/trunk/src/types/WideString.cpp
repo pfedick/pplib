@@ -2761,6 +2761,8 @@ bool WideString::pregMatch(const WideString &expression, Array &matches, size_t 
 		if (!reg) throw IllegalRegularExpressionException();
 		memset(ovector,0,30*sizeof(int));
 		if ((re=pcre_exec(reg, NULL, (const char*) utf8,utf8.size(),0, 0, ovector, ovectorsize))>=0) {
+			if (re>0) maxmatches=re;
+			else maxmatches=maxmatches*2/3;
 			for (size_t i=0;i<maxmatches;i++) {
 				const char *tmp=NULL;
 				pcre_get_substring((const char*)utf8,ovector,ovectorsize,i,(const char**)&tmp);
@@ -2771,9 +2773,11 @@ bool WideString::pregMatch(const WideString &expression, Array &matches, size_t 
 				}
 			}
 			pcre_free(reg);
+			free(ovector);
 			return true;
 		}
 		pcre_free(reg);
+		free(ovector);
 		return false;
 #endif
 }
