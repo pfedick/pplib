@@ -11,7 +11,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/bytearray.o compile/bytearrayptr.o \
 	compile/avltree.o compile/assocarray.o compile/pointer.o \
 	compile/file.o compile/list.o compile/functions.o \
-	compile/inet.o 
+	compile/inet.o compile/widestrings.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -26,12 +26,15 @@ all: $(PROGNAME)
 xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
 	
+widestring: $(PROGNAME)
+	./$(PROGNAME) --gtest_filter=WideStringTest*
+	
 memcheck: $(PROGNAME)
 	valgrind --tool=memcheck --leak-check=full --show-reachable=yes --undef-value-errors=yes --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
 
 clean:
 	-rm -rf compile tmp.grafixtest.png
-	-rm *.core
+	-rm -rf *.core
 
 compile/libgtest.a:
 	mkdir -p compile
@@ -66,6 +69,10 @@ compile/bytearrayptr.o: src/bytearrayptr.cpp Makefile ppl7-tests.h
 compile/strings.o: src/strings.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/strings.o -c src/strings.cpp $(CFLAGS) $(LIB)
+
+compile/widestrings.o: src/widestrings.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CC) -o compile/widestrings.o -c src/widestrings.cpp $(CFLAGS) $(LIB)
 
 compile/array.o: src/array.cpp Makefile ppl7-tests.h
 	mkdir -p compile
