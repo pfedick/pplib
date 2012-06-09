@@ -377,5 +377,17 @@ void ByteArrayPtr::hexDump() const
 	HexDump(ptradr,ptrsize,true);
 }
 
+/*!\brief Speicher mit bestimmtem Wert füllen
+ *
+ * \desc
+ * Diese Funktion füllt den gesamten verwalteten Speicher mit dem Bytewert \p value
+ *
+ * \param[in] value Bytewert
+ */
+void ByteArrayPtr::memset(int value)
+{
+	::memset(ptradr,value,ptrsize);
+}
+
 
 }	// EOF namespace ppl7
