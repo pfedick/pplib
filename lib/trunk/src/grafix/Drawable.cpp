@@ -553,6 +553,52 @@ void *Drawable::adr(int x, int y) const
 	throw OutOfBoundsEception();
 }
 
+Image Drawable::scaled(int width, int height, bool keepAspectRation, bool smoothTransform)
+{
+	Image img;
+	scale(img,width,height,keepAspectRation,smoothTransform);
+	return img;
+}
+
+void Drawable::scale(Image &tgt, int width, int height, bool keepAspectRation, bool smoothTransform)
+{
+	tgt.create(width,height,data.rgbformat);
+	int ow=data.width;
+	int oh=data.height;
+	int ox,oy;
+
+	if (keepAspectRation) {
+		int x1,y1,nw,nh;
+		float ratio=(float)data.width/(float)data.height;
+		if (height*ratio>width) {
+			nw=width;
+			nh=(int)((float)nw/ratio);
+		} else {
+			nh=height;
+			nw=(int)((float)nh*ratio);
+		}
+		//::printf ("old: %i x %i, new: %i x %i, new Image: %i x %i\n",ow,oh,width,height,nw,nh);
+		x1=(width-nw)/2;
+		y1=(height-nh)/2;
+		for (int y=0;y<nh;y++) {
+			for (int x=0;x<nw;x++) {
+				ox=x*ow/nw;
+				oy=y*oh/nh;
+				tgt.putPixel(x+x1,y+y1,getPixel(ox,oy));
+			}
+		}
+	} else {
+		for (int y=0;y<height;y++) {
+			for (int x=0;x<width;x++) {
+				ox=x*ow/width;
+				oy=y*oh/height;
+				tgt.putPixel(x,y,getPixel(ox,oy));
+			}
+		}
+	}
+}
+
+
 
 } // EOF namespace grafix
 } // EOF namespace ppl7

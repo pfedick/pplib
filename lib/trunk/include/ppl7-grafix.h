@@ -445,6 +445,7 @@ typedef struct GRAFIX_FUNCTIONS {
 
 class ImageList;
 class Sprite;
+class Image;
 
 class Font
 {
@@ -573,6 +574,8 @@ class Drawable
 		Drawable getDrawable(const Rect &rect) const;
 		Drawable getDrawable(const Point &p, const Size &s) const;
 		Drawable getDrawable(int x1, int y1, int x2, int y2) const;
+		Image scaled(int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
+		void scale(Image &tgt, int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
 		//@}
 
 		/** @name Farben
