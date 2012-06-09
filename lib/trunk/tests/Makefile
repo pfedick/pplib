@@ -27,7 +27,7 @@ xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
 	
 memcheck: $(PROGNAME)
-	valgrind --tool=memcheck --leak-check=full --show-reachable=yes --undef-value-errors=yes --xml=yes --xml-file=testsuite.valgrind $(PROGNAME)
+	valgrind --tool=memcheck --leak-check=full --show-reachable=yes --undef-value-errors=yes --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
 
 clean:
 	-rm -rf compile tmp.grafixtest.png
