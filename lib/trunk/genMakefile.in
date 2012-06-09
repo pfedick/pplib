@@ -330,6 +330,9 @@ html:
 
 test:
 	- cd tests; make xml
+	
+memcheck:
+	- cd tests; make memcheck
 	 
 
 #release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp
