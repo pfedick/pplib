@@ -535,7 +535,7 @@ CopyBuffered:
 	%elif win64=1
 		global _ASM_BltDiffuse32
 		_ASM_BltDiffuse32:			; Pointer auf data ist in ecx
-		mov r8,ecx
+		mov r8,rcx
 		push rdi
 		push rsi
 	%endif
@@ -677,5 +677,147 @@ CopyBuffered:
 		popad
 		inc eax
 		pop ebp
+		ret
+%endif
+
+
+
+;/*********************************************************************
+;/** ASM_BltBlend                                                    **
+;/**                                                                 **
+;/** void ASM_BltBlend(BLTDATA *data, int factor)                    **
+;/*********************************************************************
+%if elf64=1 || win64=1
+	%if elf64=1
+		global ASM_BltBlend32
+		ASM_BltBlend32:			; Pointer auf data ist in rdi
+		mov r8,rdi					; Pointer nach r8 schieben
+		movd mm4,esi				; Faktor ist in rsi, wovon uns aber nur das untere Byte interessiert
+	%elif win64=1
+		global _ASM_BltBlend32
+		_ASM_BltBlend32:			; Pointer auf data ist in ecx, Factor in edx
+		mov r8,rcx
+		movd mm4,edx				;// Faktor nach mm4
+		push rdi
+		push rsi
+	%endif
+	; In: r8=Pointer auf BLTDATA-Struktur
+	;     mm4=Faktor
+	push rbx
+	mov eax, 0xff000000
+	pxor mm6,mm6
+	movd mm3,eax				;// Fuer Or-Maske, damit Alpha-Channel immer ff ist
+	mov eax,0x00ff00ff
+	mov rdi,[r8+tgt]			;// Zieladresse nach r8 => rdi
+	movd mm7,eax
+	mov rsi,[r8+src]
+	mov r10d,[r8+pitchsrc]
+	mov r11d,[r8+pitchtgt]
+	sub rdi,4					;// Wir gehen von rechts nach links, von Breite bis 1 (nicht 0),
+	sub rsi,4					;// daher müssen wir bei der Basisadresse eine Position nach links gehen
+	mov edx,[r8+height]
+	pshufw mm7,mm7, 0
+	mov r9d,[r8+width]			; Breite nach r9
+	movq mm5,mm7
+	pshufw mm4,mm4,0
+	psubusw mm5,mm4
+
+	jmp near .aYLoop
+	ALIGN 16
+	.aYLoop:
+		mov ecx,r9d
+		jmp near .aXLoop
+		ALIGN 16
+		.aXLoop:
+			movd mm0,[rdi+rcx*4]	;// Quellfarbe
+			movd mm2,[rsi+rcx*4]	;// Blendfarbe
+			punpcklbw mm0,mm6
+			punpcklbw mm2,mm6
+			pmullw mm0,mm5
+			pmullw mm2,mm4
+			psrlq mm0,8
+			psrlq mm2,8
+			pand mm0,mm7
+			pand mm2,mm7
+			paddusw mm0,mm2
+			packuswb mm0,mm6
+			por mm0, mm3		;// Alpha-Channel auf ff
+			movd [rdi+rcx*4],mm0
+			dec ecx
+			jnz .aXLoop
+		add rsi,r10
+		add rdi,r11
+		dec edx
+		jnz .aYLoop
+	emms
+	xor rax,rax
+	inc rax					; Returnwert auf 1 setzen
+	pop rbx
+	%if win64=1
+		pop rsi
+		pop rdi
+	%endif
+	ret
+
+
+%else			; Die 32-Bit Variante
+
+	global ASM_BltBlend32
+	global _ASM_BltBlend32
+
+	ASM_BltBlend32:
+	_ASM_BltBlend32:
+		push ebp
+		mov ebp,[esp+8]				; Pointer auf data nach ebp
+		movd mm4,[esp+12];			; Faktor nach mm4
+		pushad
+		mov eax, 0xff000000
+		pxor mm6,mm6
+		movd mm3,eax				;// Fuer Or-Maske, damit Alpha-Channel immer ff ist
+		mov eax,0x00ff00ff
+		mov edi,[ebp+tgt]
+		movd mm7,eax
+		mov esi,[ebp+src]
+		pshufw mm7,mm7, 0
+		pshufw mm4,mm4,0
+
+		sub edi,4					;// ?? Wofür soll das gut sein???
+		sub esi,4					;// ?? Dito
+		movq mm5,mm7
+		mov edx,[ebp+height]
+		psubusw mm5,mm4
+
+		jmp near .aYLoop
+		ALIGN 16
+		.aYLoop:
+			mov ecx, [ebp+width]
+			jmp near .aXLoop
+			ALIGN 16
+			.aXLoop:
+				movd mm0,[edi+ecx*4]
+				movd mm2,[esi+ecx*4]
+				punpcklbw mm0,mm6
+				punpcklbw mm2,mm6
+				pmullw mm0,mm5
+				pmullw mm2,mm4
+				psrlq mm0,8
+				psrlq mm2,8
+				pand mm0,mm7
+				pand mm2,mm7
+				paddusw mm0,mm2
+				packuswb mm0,mm6
+				por mm0, mm3		;// Alpha-Channel auf ff
+				movd [edi+ecx*4],mm0
+				dec ecx
+				jnz .aXLoop
+			add esi,[ebp+pitchsrc]
+			add edi,[ebp+pitchtgt]
+			dec edx
+			jnz .aYLoop
+		emms
+		popad
+		xor eax,eax
+		pop ebp
+		inc eax						; Returnwert auf 1 setzen
 		ret
 %endif

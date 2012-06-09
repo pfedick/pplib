@@ -67,6 +67,7 @@ extern "C" {
 	int ASM_Blt32(BLTDATA *d);
 	int ASM_BltColorKey32(BLTDATA *d);
 	int ASM_BltDiffuse32(BLTDATA *d);
+	int ASM_BltBlend32(BLTDATA *d, int factor);
 }
 #endif
 
@@ -160,9 +161,8 @@ static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 	return 1;
 }
 
-static int Blend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, float factor)
+static int BltBlend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, float factor)
 {
-	/*
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
 	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
@@ -171,12 +171,15 @@ static int Blend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const R
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
 	data.pitchtgt=target.pitch;
-	if (ASM_Blend32(&data)) {
+	int f=(int)(factor*255.0);
+	if (f<0) f=0;
+	if (f>255) f=255;
+	//::printf ("factor=%0.2f, f=%i\n",factor,f);
+	if (ASM_BltBlend32(&data,f)) {
 		return 1;
 	}
 	return 0;
 #endif
-*/
 	ppluint32 *src, *tgt;
 	src=(ppluint32*)adr(source,srect.left(),srect.top());
 	tgt=(ppluint32*)adr(target,x,y);
@@ -308,7 +311,7 @@ void Grafix::initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->BltAlpha=BltAlpha_32;
 			fn->BltColorKey=BltColorKey_32;
 			fn->BltDiffuse=BltDiffuse_32;
-			fn->Blend=Blend_32;
+			fn->BltBlend=BltBlend_32;
 			return;
 		case RGBFormat::GREY8:
 		case RGBFormat::A8:
@@ -707,14 +710,19 @@ void Drawable::draw(const ImageList &iml, int nr, int x, int y, const Color &dif
 	throw UnknownBltMethodException();
 }
 
-void Drawable::blend(const Drawable &source, float factor, int x, int y)
+void Drawable::bltBlend(const Drawable &source, float factor, int x, int y)
 {
-	return blend(source,factor,source.rect(),x,y);
+	return bltBlend(source,factor,source.rect(),x,y);
 }
 
-void Drawable::blend(const Drawable &source, float factor, const Rect &srect, int x, int y)
+void Drawable::bltBlend(const Drawable &source, float factor, const Rect &srect, int x, int y)
 {
 	if (source.isEmpty()) throw EmptyDrawableException();
+	if (factor<=0.0f) return;
+	if (factor>=1.0f) {
+		blt(source,srect,x,y);
+		return;
+	}
 	// Quellrechteck
 	Rect q;
 	if (srect.isNull()) {
@@ -728,8 +736,8 @@ void Drawable::blend(const Drawable &source, float factor, const Rect &srect, in
 	}
 	//::printf ("rect=(%i/%i)-(%i/%i)\n", q.x1, q.y1, q.x2, q.y2);
 	if (!fitRect(x,y,q)) return;
-	if (!fn->Blend) throw FunctionUnavailableException("Drawable::Blend");
-	fn->Blend(data,source.data,q,x,y,factor);
+	if (!fn->BltBlend) throw FunctionUnavailableException("Drawable::Blend");
+	fn->BltBlend(data,source.data,q,x,y,factor);
 }
 
 

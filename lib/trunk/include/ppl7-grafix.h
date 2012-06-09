@@ -438,7 +438,7 @@ typedef struct GRAFIX_FUNCTIONS {
 	int (*BltDiffuse) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c);
 	int (*BltColorKey) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c);
 	int (*BltAlpha) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y);
-	int (*Blend) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, float factor);
+	int (*BltBlend) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, float factor);
 
 } GRAFIX_FUNCTIONS;
 
@@ -648,8 +648,8 @@ class Drawable
 		void bltColorKey(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
 		void bltAlpha(const Drawable &source, int x=0, int y=0);
 		void bltAlpha(const Drawable &source, const Rect &srect, int x=0, int y=0);
-		void blend(const Drawable &source, float factor, int x=0, int y=0);
-		void blend(const Drawable &source, float factor, const Rect &srect, int x=0, int y=0);
+		void bltBlend(const Drawable &source, float factor, int x=0, int y=0);
+		void bltBlend(const Drawable &source, float factor, const Rect &srect, int x=0, int y=0);
 
 
 		void draw(const ImageList &iml, int nr, int x, int y);
