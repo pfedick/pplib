@@ -963,7 +963,10 @@ String DateTime::strftime(const String &format) const
 	struct tm tt, *r;
 	::time_t tp=time_t();
 	r=localtime_r(&tp,&tt);
-	if (!r) throw InvalidDateException();
+	if (!r) {
+		free(buf);
+		throw InvalidDateException();
+	}
 	size_t res=::strftime(buf, s,(const char*) format, r);
 	if (res==0) {
 		free(buf);
