@@ -204,6 +204,20 @@ Image::~Image()
 	// Passiert alles automatisch
 }
 
+/*!\brief Speicher freigeben
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird der durch das Objekt belegte Speicher
+ * freigegeben. Es darf anschließend nicht mehr für Zeichenoperationen verwendet
+ * werden. Mit Image::create kann es reinitialisiert werden.
+ */
+void Image::clear()
+{
+	myMemory.clear();
+	fn=NULL;
+	memset(&data,0,sizeof(data));
+}
+
 /*!\brief Grafik von einem Drawable kopieren
  *
  * \desc
@@ -289,6 +303,7 @@ void Image::create(int width, int height, const RGBFormat &format)
 		myMemory.memset(0);
 		return;
 	}
+	fn=NULL;
 	memset(&data,0,sizeof(data));
 	myMemory.free();
 

@@ -1555,9 +1555,9 @@ void File::rename(const char *oldfile, const char *newfile)
 		if (fd) {
 			// Ja, wir löschen sie manuell
 			fclose(fd);
-			if (unlink(oldfile)==0) return;
+			if (::unlink(oldfile)==0) return;
 			int saveerrno=errno;
-			unlink(newfile);
+			::unlink(newfile);
 			errno=saveerrno;
 			throwErrno(errno,desc);
 		}
@@ -1565,7 +1565,7 @@ void File::rename(const char *oldfile, const char *newfile)
 	}
 	if (errno==EXDEV) {	// oldfile und newfile befinden sich nicht im gleichen Filesystem.
 		copy(oldfile,newfile);
-		if (unlink(oldfile)==0) return;
+		if (::unlink(oldfile)==0) return;
 	}
 	throwErrno(errno,desc);
 }
@@ -1599,28 +1599,41 @@ void File::rename(const String &oldfile, const String &newfile)
  * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
  * Ein Fehler kann auftreten, wenn die
  * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
- */
-void File::erase(const char *filename)
-{
-	if (!filename) throw NullPointerException();
-	if (::unlink(filename)==0) return;
-	throwErrno(errno,filename);
-}
-
-/*!\ingroup PPLGroupFileIO
- * \brief Datei löschen
  *
- * \desc
- * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
- *
- * \param filename Name der gewünschten Datei
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- * Ein Fehler kann auftreten, wenn die
- * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
+ * \note Die Funktionen File::erase, File::unlink und File::remove sind identisch
  */
 void File::erase(const String &filename)
 {
-	remove((const char*)filename);
+	if (filename.isEmpty()) throw IllegalArgumentException("File::erase");
+#ifdef HAVE_REMOVE
+	if (::remove((const char*)filename)==0) return;
+	throwErrno(errno,filename);
+#elif defined HAVE_UNLINK
+	if (::unlink((const char*)filename)==0) return;
+	throwErrno(errno,filename);
+#elif defined _WIN32
+	if (::_unlink((const char*)filename)==0) return;
+	throwErrno(errno,filename);
+#else
+	throw UnsupportedFeatureException("File::erase");
+#endif
+
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \copydoc File::erase
+ */
+void File::unlink(const String &filename)
+{
+	File::erase(filename);
+}
+
+/*!\ingroup PPLGroupFileIO
+ * \copydoc File::erase
+ */
+void File::remove(const String &filename)
+{
+	File::erase(filename);
 }
 
 /*!\ingroup PPLGroupFileIO

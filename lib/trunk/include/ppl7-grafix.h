@@ -682,6 +682,7 @@ class Image : public Drawable
 		/** @name Verschiedenes
 		 */
 		//@{
+		void clear();
 		void create(int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
 		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
 		void load(const String &Filename, const RGBFormat &format=RGBFormat::unknown);

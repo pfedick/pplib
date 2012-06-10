@@ -747,8 +747,9 @@ class File : public FileObject
 		static void rename(const String &oldfile, const String &newfile);
 		static void rename(const char *oldfile, const char *newfile);
 
+		static void unlink(const String &filename);
+		static void remove(const String &filename);
 		static void erase(const String &filename);
-		static void erase(const char *filename);
 		static void touch(const String &filename);
 		static void touch(const char *filename);
 		static void save(const void *content, size_t size, const String &filename);

@@ -209,6 +209,8 @@
 #undef HAVE_ATOF
 #undef HAVE_STRTOLOWER
 #undef HAVE_STRTOUPPER
+#undef HAVE_UNLINK
+#undef HAVE_REMOVE
 
 
 
