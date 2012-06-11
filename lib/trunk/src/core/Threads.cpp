@@ -848,15 +848,15 @@ int Thread::threadGetPriority()
 	int p=GetThreadPriority(t->thread);
 	switch(p) {
 		case THREAD_PRIORITY_LOWEST:
-			return THREAD_PRIORITY::LOWEST;
+			return LOWEST;
 		case THREAD_PRIORITY_BELOW_NORMAL:
-			return THREAD_PRIORITY::BELOW_NORMAL;
+			return BELOW_NORMAL;
 		case THREAD_PRIORITY_NORMAL:
-			return THREAD_PRIORITY::NORMAL;
+			return NORMAL;
 		case THREAD_PRIORITY_ABOVE_NORMAL:
-			return THREAD_PRIORITY::ABOVE_NORMAL;
+			return ABOVE_NORMAL;
 		case THREAD_PRIORITY_HIGHEST:
-			return THREAD_PRIORITY::HIGHEST;
+			return HIGHEST;
 	}
 #elif defined HAVE_PTHREADS
 	struct sched_param s;
