@@ -343,6 +343,8 @@ int CTCPSocket::GetDescriptor()
  * Mit dieser Funktion kann ein Timeout für die Connect-Funktionen definiert werden. Ist es nicht
  * möglich innerhalb der vorgegebenen Zeit eine Verbindung mit dem Ziel herzustellen, brechen die
  * Connect-Funktionen mit einer Timeout-Fehlermeldung ab.
+ * \par
+ * Um den Timeout wieder abzustellen, kann die Funktion mit 0 als Wert für seconds und useconds aufgerufen werden.
  *
  * @param[in] seconds Anzahl Sekunden
  * @param[in] useconds Anzahl Mikrosekunden (1000 Mikrosekunden=1 Millisekunde, 1000 Millisekunden = 1 Sekunde)
