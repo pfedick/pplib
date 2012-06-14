@@ -637,22 +637,22 @@ void Thread::threadResume()
  */
 void Thread::threadStartUp()
 {
-	printf ("Thread::threadStartUp\n");
+	//printf ("Thread::threadStartUp\n");
 	threadmutex.lock();
-	printf ("Debug 1\n");
+	//printf ("Debug 1\n");
 	IsRunning=1;
-	printf ("Debug 2\n");
+	//printf ("Debug 2\n");
 	IsSuspended=0;
-	printf ("Debug 3\n");
+	//printf ("Debug 3\n");
 	threadmutex.unlock();
-	printf ("Debug 4\n");
+	//printf ("Debug 4\n");
 	threadSetPriority(myPriority);
-	printf ("Debug 5\n");
+	//printf ("Debug 5\n");
 
 	//THREADDATA * d=GetThreadData();
 
-	threadMain();
-	printf ("Debug 6\n");
+	run();
+	//printf ("Debug 6\n");
 /*
 	if (d) {
 #ifdef HAVE_MYSQL
@@ -828,7 +828,7 @@ ppluint64 Thread::threadGetID()
  * \par Example
  * \include Thread_ThreadMain.cpp
  */
-void Thread::threadMain()
+void Thread::run()
 {
 
 }
