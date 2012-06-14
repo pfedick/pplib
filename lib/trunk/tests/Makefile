@@ -20,8 +20,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CC) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
 
-all: $(PROGNAME)
-	./$(PROGNAME)
+all: $(PROGNAME) threadtest
 	
 xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
@@ -32,6 +31,9 @@ widestring: $(PROGNAME)
 memcheck: $(PROGNAME)
 	valgrind --tool=memcheck --leak-check=full --show-reachable=yes --undef-value-errors=yes --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
 
+threadtest: compile/threadtest.o ppl7-tests.h
+	$(CC) -O -ggdb -o threadtest $(CFLAGS) compile/threadtest.o $(LIBS)
+	
 clean:
 	-rm -rf compile tmp.grafixtest.png
 	-rm -rf *.core
@@ -125,3 +127,8 @@ compile/grafix_imagefilter.o: src/grafix_imagefilter.cpp Makefile ppl7-tests.h
 compile/grafix_drawable.o: src/grafix_drawable.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/grafix_drawable.o -c src/grafix_drawable.cpp $(CFLAGS) $(LIB)
+	
+	
+compile/threadtest.o: src/threadtest.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CC) -o compile/threadtest.o -c src/threadtest.cpp $(CFLAGS) $(LIB)

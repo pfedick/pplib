@@ -58,6 +58,12 @@
 	#include <limits.h>
 #endif
 
+#define HAVE_HELGRIND
+#ifdef HAVE_HELGRIND
+#include <valgrind/helgrind.h>
+#endif
+
+
 #include "ppl7.h"
 #include "threads.h"
 
@@ -237,8 +243,11 @@ void SetTLSData(void *data)
 		} else {
 			ts->threadFunction(ts->data);
 		}
+		free(ts);
+#ifdef HAVE_TLS
 		delete(myThreadData);
 		myThreadData=NULL;
+#endif
 		return 0;
 	}
 #elif defined HAVE_PTHREADS
@@ -253,8 +262,14 @@ void SetTLSData(void *data)
 			ts->threadFunction(ts->data);
 			pthread_attr_destroy(&ts->td->attr);
 		}
-		delete(myThreadData);
+
+#ifdef HAVE_TLS
+		if (ts->threadClass==NULL) {
+			delete(myThreadData);
+		}
 		myThreadData=NULL;
+#endif
+		free(ts);
 		pthread_exit(NULL);
 		return NULL;
 	}
@@ -263,32 +278,37 @@ void SetTLSData(void *data)
 
 ppluint64 StartThread(void (*start_routine)(void *),void *data)
 {
-	THREADSTARTUP ts;
-	ts.threadClass=NULL;
-	ts.threadFunction=start_routine;
-	ts.data=data;
-	ts.td=new THREADDATA;
-	if (ts.td==NULL) throw OutOfMemoryException();
-	memset(ts.td,0,sizeof(THREADDATA));
-	THREADDATA *t=ts.td;
+	THREADSTARTUP *ts=(THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
+	if (!ts) throw OutOfMemoryException();
+	ts->threadClass=NULL;
+	ts->threadFunction=start_routine;
+	ts->data=data;
+	ts->td=new THREADDATA;
+	if (ts->td==NULL) {
+		free(ts);
+		throw OutOfMemoryException();
+	}
+	memset(ts->td,0,sizeof(THREADDATA));
+	THREADDATA *t=ts->td;
 	// ThreadId festlegen
 	GlobalThreadMutex.lock();
 	t->threadId=global_thread_id;
 	global_thread_id++;
 	GlobalThreadMutex.unlock();
 #ifdef _WIN32
-	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,&ts,0,&t->dwThreadID);
+	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,ts,0,&t->dwThreadID);
 	if (t->thread!=NULL) {
 		return t->threadId;
 	}
 	throw ThreadStartException();
 #elif defined HAVE_PTHREADS
 	pthread_attr_init(&t->attr);
-	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,&ts);
+	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,ts);
 	if(ret==0) {
 		pthread_detach(t->thread);
 		return t->threadId;
 	}
+	free(ts);
 	throw ThreadStartException();
 #else
 	throw NoThreadSupportException();
@@ -453,11 +473,17 @@ Thread::Thread()
 Thread::~Thread()
 {
 	threadStop();
+	threadmutex.lock();
 	THREADDATA *t=(THREADDATA *)threaddata;
 	#ifdef HAVE_PTHREADS
 		pthread_attr_destroy(&t->attr);
 	#endif
 	delete t;
+	threadmutex.unlock();
+//#ifdef HAVE_HELGRIND
+	//VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
+	VALGRIND_HG_CLEAN_MEMORY(this,sizeof(Thread));
+//#endif
 }
 
 /*! \brief Der Thread wird gestoppt
@@ -527,14 +553,17 @@ void Thread::threadStart()
 	}
 	IsSuspended=0;
 	IsRunning=0;
-	THREADSTARTUP ts;
-	ts.threadClass=this;
-	ts.threadFunction=NULL;
-	ts.data=NULL;
-	ts.td=(THREADDATA*)threaddata;
-	if (ts.td==NULL) throw OutOfMemoryException();
-	memset(ts.td,0,sizeof(THREADDATA));
-	THREADDATA *t=ts.td;
+	THREADSTARTUP *ts=(THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
+	if (!ts) throw OutOfMemoryException();
+	ts->threadClass=this;
+	ts->threadFunction=NULL;
+	ts->data=NULL;
+	ts->td=(THREADDATA*)threaddata;
+	if (ts->td==NULL) {
+		free(ts);
+		throw OutOfMemoryException();
+	}
+	THREADDATA *t=ts->td;
 	if (t->threadId==0) {
 		GlobalThreadMutex.lock();
 		t->threadId=global_thread_id;
@@ -542,7 +571,7 @@ void Thread::threadStart()
 		GlobalThreadMutex.unlock();
 	}
 #ifdef _WIN32
-	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,&ts,0,&t->dwThreadID);
+	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,ts,0,&t->dwThreadID);
 	if (t->thread!=NULL) {
 		return;
 	}
@@ -551,16 +580,16 @@ void Thread::threadStart()
 	threadmutex.unlock();
 	throw ThreadStartException();
 #elif defined HAVE_PTHREADS
-	pthread_attr_init(&t->attr);
-	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,&ts);
+	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,ts);
 	if(ret==0) {
 		pthread_detach(t->thread);
-		printf ("Thread erfolgreih gestartet\n");
-		return;;
+		//printf ("Thread erfolgreich gestartet\n");
+		return;
 	}
 	threadmutex.lock();
 	IsRunning=0;
 	threadmutex.unlock();
+	free(ts);
 	throw ThreadStartException();
 #else
 	throw NoThreadSupportException();
@@ -637,22 +666,12 @@ void Thread::threadResume()
  */
 void Thread::threadStartUp()
 {
-	//printf ("Thread::threadStartUp\n");
 	threadmutex.lock();
-	//printf ("Debug 1\n");
 	IsRunning=1;
-	//printf ("Debug 2\n");
 	IsSuspended=0;
-	//printf ("Debug 3\n");
 	threadmutex.unlock();
-	//printf ("Debug 4\n");
 	threadSetPriority(myPriority);
-	//printf ("Debug 5\n");
-
-	//THREADDATA * d=GetThreadData();
-
 	run();
-	//printf ("Debug 6\n");
 /*
 	if (d) {
 #ifdef HAVE_MYSQL
@@ -661,13 +680,13 @@ void Thread::threadStartUp()
 
 	}
 */
-
 	threadmutex.lock();
 	flags=0;
 	IsRunning=0;
 	IsSuspended=0;
-	//MemoryDebugRemoveThread();
 	threadmutex.unlock();
+	VALGRIND_HG_CLEAN_MEMORY(this,sizeof(Thread));
+	//VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
 }
 
 /*! \brief Flag setzen: Klasse beim Beenden löschen
@@ -682,8 +701,10 @@ void Thread::threadStartUp()
  */
 void Thread::threadDeleteOnExit(int flag)
 {
+	threadmutex.lock();
 	if (flag) deleteMe=1;
 	else deleteMe=0;
+	threadmutex.unlock();
 }
 
 /*! \brief Interne Funktion
@@ -697,7 +718,11 @@ void Thread::threadDeleteOnExit(int flag)
  */
 int  Thread::threadShouldDeleteOnExit()
 {
-	if (deleteMe) return 1;
+	int ret=0;
+	threadmutex.lock();
+	ret=deleteMe;
+	threadmutex.unlock();
+	if (ret) return 1;
 	return 0;
 }
 
@@ -962,8 +987,7 @@ int Thread::threadSetStackSize(size_t size)
 {
 	#ifdef HAVE_PTHREADS
 		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-			SetError(315);
-			return 0;
+			throw UnsupportedFeatureException("Thread::threadSetStackSize");
 		#endif
 		THREADDATA *t=(THREADDATA *)threaddata;
 		if (size==0) size=PTHREAD_STACK_MIN;
@@ -986,8 +1010,7 @@ size_t Thread::threadGetMinimumStackSize()
 {
 	#ifdef HAVE_PTHREADS
 		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-			SetError(315);
-			return 0;
+			throw UnsupportedFeatureException("Thread::threadGetMinimumStackSize");
 		#endif
 		return PTHREAD_STACK_MIN;
 		#endif
@@ -1004,8 +1027,7 @@ size_t Thread::threadGetStackSize()
 {
 	#ifdef HAVE_PTHREADS
 		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-			SetError(315);
-			return 0;
+			throw UnsupportedFeatureException("Thread::threadGetStackSize");
 		#endif
 		THREADDATA *t=(THREADDATA *)threaddata;
 		size_t s;
