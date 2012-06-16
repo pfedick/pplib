@@ -29,7 +29,7 @@ widestring: $(PROGNAME)
 	./$(PROGNAME) --gtest_filter=WideStringTest*
 	
 memcheck: $(PROGNAME)
-	valgrind --tool=memcheck --leak-check=full --show-reachable=no --undef-value-errors=yes --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
+	valgrind --tool=memcheck --leak-check=full --show-reachable=no --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
 
 threadtest: compile/threadtest.o ppl7-tests.h
 	$(CC) -O -ggdb -o threadtest $(CFLAGS) compile/threadtest.o $(LIBS)
