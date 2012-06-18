@@ -578,6 +578,7 @@ void Thread::threadStart()
 	threadmutex.lock();
 	IsRunning=0;
 	threadmutex.unlock();
+	free(ts);
 	throw ThreadStartException();
 #elif defined HAVE_PTHREADS
 	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,ts);
