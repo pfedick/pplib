@@ -592,6 +592,7 @@ void Thread::threadStart()
 	free(ts);
 	throw ThreadStartException();
 #else
+	free(ts);
 	throw NoThreadSupportException();
 #endif
 }
