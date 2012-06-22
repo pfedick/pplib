@@ -609,6 +609,7 @@ class MemFile : public FileObject
 		size_t	mysize;
 		size_t	pos;
 		size_t	maxsize;
+		size_t	buffersize;
 		char * MemBase;
 		bool	readonly;
 
@@ -618,11 +619,11 @@ class MemFile : public FileObject
 	public:
 
 		MemFile ();
-		MemFile (void * adresse, size_t size);
+		MemFile (void * adresse, size_t size, bool writeable=false);
 		MemFile (const ByteArrayPtr &memory);
 		~MemFile();
 
-		void		open(void * adresse, size_t size);
+		void		open(void * adresse, size_t size, bool writeable=false);
 		void		open(const ByteArrayPtr &memory);
 		void		openReadWrite(void * adresse, size_t size);
 		char		*adr(size_t adresse);
@@ -651,14 +652,14 @@ class MemFile : public FileObject
 		virtual char		*mapRW(ppluint64 position, size_t size);
 		virtual	void		unmap();
 		virtual void		setMapReadAhead(size_t bytes);
-		//virtual int		GetFileNo() const;
+		virtual int			getFileNo() const;
 		virtual void		flush();
 		virtual void		sync();
-		//virtual int		Truncate(ppluint64 length);
+		virtual void		truncate(ppluint64 length);
 		virtual bool		isOpen() const;
-		//virtual int		LockShared(bool block=true);
-		//virtual int		LockExclusive(bool block=true);
-		//virtual int		Unlock();
+		virtual void		lockShared(bool block=true);
+		virtual void		lockExclusive(bool block=true);
+		virtual void		unlock();
 };
 
 class File : public FileObject

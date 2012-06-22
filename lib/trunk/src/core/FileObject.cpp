@@ -991,10 +991,10 @@ void FileObject::sync()
  * \desc
  * Die Funktionen Truncate bewirkt, dass die aktuell geöffnete Datei auf eine Größe von
  * exakt \p length Bytes abgeschnitten wird.
- *
+ * \par
  * Wenn die Datei vorher größer war, gehen überschüssige Daten verloren. Wenn die Datei
  * vorher kleiner war, wird sie vergrößert und die zusätzlichen Bytes werden als Nullen geschrieben.
- *
+ * \par
  * Der Dateizeiger wird nicht verändert. Die Datei muss zum Schreiben geöffnet sein.
  *
  * @param length Position, an der die Datei abgeschnitten werden soll.

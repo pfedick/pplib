@@ -123,7 +123,7 @@ PPLNORMALEXCEPTION(CorruptedDataException);
 PPLNORMALEXCEPTION(FailedToLoadResourceException);
 PPLNORMALEXCEPTION(InvalidResourceException);
 PPLNORMALEXCEPTION(ResourceNotFoundException);
-
+PPLNORMALEXCEPTION(OperationUnavailableException);
 
 
 

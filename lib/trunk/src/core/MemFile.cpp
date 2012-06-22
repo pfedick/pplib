@@ -87,13 +87,14 @@ namespace ppl7 {
  * \brief Simulation von Dateizugriffen im Hauptspeicher
  *
  * \desc
- * Mit dieser von CFileObject abgeleiteten Klasse können Dateizugriffe im Hauptspeicher simuliert werden.
- * Sie ist hauptsächlich zum Lesen von Daten gedacht, z.B. aus einer Resourcendatei. Zwar können auch
- * Daten geschrieben werden, jedoch nicht über die initiale Größe des Speicherbereichs hinaus.
+ * Mit dieser von FileObject abgeleiteten Klasse werden Dateizugriffe im Hauptspeicher simuliert.
+ * Sie kann immer dann verwendet werden, wenn sich die zu lesende Datei bereits im Hauptspeicher
+ * befindet, oder Daten temporär im Hauptspeicher abgelegt werden sollen.
  * \par
  * Der zu verwendende Speicherbereich kann entweder über den Konstruktor abgegeben werden (siehe
- * MemFile::MemFile (void * adresse, size_t size) ) oder über die Funktion MemFile::Open.
- *
+ * MemFile::MemFile (void * adresse, size_t size) ) oder über die Funktion MemFile::open. Soll
+ * der Speicherbereich auch beschrieben werden, muss als dritter Parameter "true" angegeben
+ * oder die Funktion MemFile::openReadWrite verwendet werden.
  */
 
 MemFile::MemFile ()
@@ -103,10 +104,11 @@ MemFile::MemFile ()
 	MemBase=NULL;
 	readonly=false;
 	maxsize=0;
+	buffersize=0;
 }
 
 
-MemFile::MemFile (void * adresse, size_t size)
+MemFile::MemFile (void * adresse, size_t size, bool writeable)
 /*!\brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
  *
  * Mit diesem Konstruktor wird gleichzeitig ein Pointer auf den Speicherbereich \p adresse mit einer
@@ -115,24 +117,26 @@ MemFile::MemFile (void * adresse, size_t size)
  *
  * @param adresse Pointer auf den zu verwendenden Speicherbereich
  * @param size Größe des Speicherbereichs
+ * @param writeable Gibt an, ob der Speicherbereich auch beschreibbar sein soll.
+ * @attention Wird der Parameter \p writeable auf "true" gesetzt, geht die Verwaltung des
+ * Speichers an die MemFile-Klasse über. Der Speicher darf nicht mehr von der Applikation verändert
+ * oder freigegeben werden!
  */
 {
-	#ifdef DEBUGLOG	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DEBUG
-		Debug.Log ("%u->MemFile::MemFile (adresse=%u, size=%u)",this,adresse,size);
-	#endif
-
-	MemBase=NULL;
+	mysize=0;
 	pos=0;
-	open(adresse,size);
-	readonly=true;
+	MemBase=NULL;
+	readonly=false;
 	maxsize=0;
+	buffersize=0;
+	open(adresse,size,writeable);
 }
 
 /*!\brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
  *
  * Mit diesem Konstruktor wird gleichzeitig ein Pointer auf den Speicherbereich \p adresse mit einer
  * Größe von \p size Bytes übergeben. Sämtliche Dateizugriffe werden in diesem Speicherbereich
- * simuliert.
+ * simuliert. Ein Schreibzugriff auf diesen Speicherbereich ist nicht möglich.
  *
  * @param adresse Pointer auf den zu verwendenden Speicherbereich
  * @param size Größe des Speicherbereichs
@@ -140,51 +144,66 @@ MemFile::MemFile (void * adresse, size_t size)
 MemFile::MemFile (const ByteArrayPtr &memory)
 {
 	if (memory.isEmpty()) {
-		MemBase=NULL;
-		pos=0;
-		return;
+		throw IllegalArgumentException();
 	}
 	MemBase=(char*)memory.adr();
 	mysize=memory.size();
 	pos=0;
 	readonly=true;
+	maxsize=0;
+	buffersize=0;
 }
 
 MemFile::~MemFile()
 {
 }
 
-/*!\brief Speicherbereich öffnen
+/*!\brief Speicherbereich zum Lesen öffnen
  *
  * Mit dieser Funktion wird die simulierte Datei im Hauptspeicher geöffnet. Dazu muss mit
  * \p adresse ein Pointer auf den Beginn des zu verwendenden Hauptspeichers angegeben werden,
  * sowie mit \p size seine Größe. Sämtliche nachfolgenden Dateizugriffe werden dann in diesem
- * Speicherbereich simuliert.
+ * Speicherbereich simuliert. Ein Schreibender Zugriff ist nicht möglich.
  *
  * @param adresse Pointer auf den zu verwendenden Speicherbereich
  * @param size Größe des Speicherbereichs
+ * @attention Wird der Parameter \p writeable auf "true" gesetzt, geht die Verwaltung des
+ * Speichers an die MemFile-Klasse über. Der Speicher darf nicht mehr von der Applikation verändert
+ * oder freigegeben werden!
  */
-void MemFile::open (void * adresse, size_t size)
+void MemFile::open (void * adresse, size_t size, bool writeable)
 {
 	if (adresse==NULL || size==0) throw IllegalArgumentException();
 	if (buffer) {
 		free(buffer);
 		buffer=NULL;
+		buffersize=0;
 	}
-	MemBase=(char*)adresse;
-	mysize=size;
-	pos=0;
-	readonly=true;
+	if (writeable==true) {
+		MemBase=(char*)adresse;
+		buffer=MemBase;
+		mysize=size;
+		pos=0;
+		readonly=false;
+		buffersize=size;
+	} else {
+		MemBase=(char*)adresse;
+		mysize=size;
+		pos=0;
+		buffersize=0;
+		readonly=true;
+	}
 }
 
-/*!\brief Speicherbereich öffnen
+/*!\brief Speicherbereich zum Lesen öffnen
  *
- * Mit dieser Funktion wird die simulierte Datei im Hauptspeicher geöffnet. Dazu muss mit
- * \p adresse ein Pointer auf den Beginn des zu verwendenden Hauptspeichers angegeben werden,
+ * Mit dieser Funktion wird die simulierte Datei im Hauptspeicher zum Lesen geöffnet. Dazu muss
+ * mit \p adresse ein Pointer auf den Beginn des zu verwendenden Hauptspeichers angegeben werden,
  * sowie mit \p size seine Größe. Sämtliche nachfolgenden Dateizugriffe werden dann in diesem
- * Speicherbereich simuliert.
+ * Speicherbereich simuliert. Ein Schreibender Zugriff ist nicht möglich.
  *
  * @param memory Referenz auf eine ByteArrayPtr-Klasse, die den zu verwendenden Speicherbereich enthält
+ * @see openReadWrite: Datei zum Lesen und Schreiben öffnen
  */
 void MemFile::open(const ByteArrayPtr &memory)
 {
@@ -199,15 +218,19 @@ void MemFile::open(const ByteArrayPtr &memory)
 	readonly=true;
 }
 
-/*!\brief Speicherbereich öffnen
+/*!\brief Speicherbereich zum Schreiben und Lesen öffnen
  *
- * Mit dieser Funktion wird die simulierte Datei im Hauptspeicher geöffnet. Dazu muss mit
- * \p adresse ein Pointer auf den Beginn des zu verwendenden Hauptspeichers angegeben werden,
- * sowie mit \p size seine Größe. Sämtliche nachfolgenden Dateizugriffe werden dann in diesem
- * Speicherbereich simuliert.
+ * Mit dieser Funktion wird die simulierte Datei im Hauptspeicher zum Lesen und Schreiben
+ * geöffnet. Dazu muss mit \p adresse ein Pointer auf den Beginn des zu verwendenden
+ * Hauptspeichers angegeben werden,
+ * sowie mit \p size seine initiale Größe. Sämtliche nachfolgenden Dateizugriffe werden
+ * dann in diesem Speicherbereich simuliert. Erfolgt ein schreibender Zugriff über dessen
+ * Ende hinaus, wird der Speicherbereich automatisch vergrößert.
  *
  * @param adresse Pointer auf den zu verwendenden Speicherbereich
  * @param size Größe des Speicherbereichs
+ * @see open: Datei wird nur zum Lesen geöffnet
+ * @see setMaxSize: Legt die maximale Größe der Datei im Speicher fest (Default=unlimitiert)
  */
 void MemFile::openReadWrite(void * adresse, size_t size)
 {
@@ -218,8 +241,20 @@ void MemFile::openReadWrite(void * adresse, size_t size)
 	mysize=size;
 	pos=0;
 	readonly=false;
+	buffersize=size;
 }
 
+/*!\brief Maximale Dateigröße festlegen
+ *
+ * \desc
+ * Mit dieser Funktion wird die maximale Größe einer Datei im Hauptspeicher festgelegt.
+ * Damit werden alle Schreibenden Zugriffe begrenzt, die Datei kann nicht größer werden
+ * als \p size. Standardmäßig gibt es keine Limitierung, die Datei kann somit so groß werden,
+ * wie Hauptspeicher zur Verfügung steht.
+ *
+ * \param[in] size Maximale Größe in Bytes. Der Wert "0" hebt die Limitierung auf.
+ * \see Mit der Funktion MemFile::maxSize kann das derzeitige Limit ausgelesen werden.
+ */
 void MemFile::setMaxSize(size_t size)
 {
 	maxsize=size;
@@ -234,11 +269,15 @@ void MemFile::resizeBuffer(size_t size)
 {
 	if (readonly) throw ReadOnlyException();
 	if (maxsize>0 && size>maxsize) throw BufferExceedsLimitException();
-	char *buf=(char*)realloc(buffer,size);
-	if (!buf) throw OutOfMemoryException();
-	buffer=buf;
-	MemBase=buf;
+	if (size>buffersize) {
+		char *buf=(char*)realloc(buffer,size+8192);
+		if (!buf) throw OutOfMemoryException();
+		buffer=buf;
+		MemBase=buf;
+		buffersize=size+8192;
+	}
 	mysize=size;
+	if (pos>mysize) pos=mysize;
 }
 
 void MemFile::increaseBuffer(size_t bytes)
@@ -345,14 +384,13 @@ size_t MemFile::fread(void *ptr, size_t size, size_t nmemb)
 size_t MemFile::fwrite(const void *ptr, size_t size, size_t nmemb)
 {
 	if (MemBase==NULL) throw FileNotOpenException();
-	size_t by=nmemb;
-	if (pos+(by*size)>mysize) by=(size_t)(mysize-pos)/size;
-	memmove(MemBase+pos,ptr,by*size);
-	pos+=(by*size);
-	if (by<nmemb) throw WriteException();
-	return by;
+	if (readonly) throw ReadOnlyException();
+	size_t bytes=nmemb*size;
+	if (pos+bytes>mysize) resizeBuffer(pos+bytes);
+	memmove(MemBase+pos,ptr,bytes);
+	pos+=bytes;
+	return bytes;
 }
-
 
 char *MemFile::fgets (char *buffer1, size_t num)
 {
@@ -420,40 +458,30 @@ void MemFile::fputws (const wchar_t *str)
 
 void MemFile::fputc(int c)
 {
-	if (MemBase!=NULL) {
-		MemBase[pos++]=(ppluint8)c;
-		return;
-	}
-	throw FileNotOpenException();
+	char buf[1];
+	buf[0]=c;
+	fwrite(buf,1,1);
 }
 
 void MemFile::fputwc(wchar_t c)
 {
-	if (MemBase!=NULL) {
-		wchar_t *a=(wchar_t*)(MemBase+pos);
-		pos++;
-		a[0]=c;
-		return;
-	}
-	throw FileNotOpenException();
+	wchar_t buf[1];
+	buf[0]=c;
+	fwrite(buf,sizeof(wchar_t),1);
 }
 
 int MemFile::fgetc()
 {
-	if (MemBase!=NULL) {
-		return MemBase[pos++];
-	}
-	throw FileNotOpenException();
+	if (MemBase==NULL) throw FileNotOpenException();
+	if (pos>mysize) throw OverflowException();
+	return MemBase[pos++];
 }
 
 wchar_t MemFile::fgetwc()
 {
-	if (MemBase!=NULL) {
-		wchar_t *a=(wchar_t*)(MemBase+pos);
-		pos++;
-		return a[0];
-	}
-	throw FileNotOpenException();
+	wchar_t buf[1];
+	fread(buf,sizeof(wchar_t),1);
+	return buf[0];
 }
 
 
@@ -514,6 +542,69 @@ void MemFile::sync()
 {
 	return;
 }
+
+/*!\copybrief FileObject::getFileNo
+ *
+ * \desc
+ * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
+ * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+ *
+ */
+int MemFile::getFileNo() const
+{
+	throw OperationUnavailableException();
+}
+
+
+void MemFile::truncate(ppluint64 length)
+{
+	if (readonly) throw ReadOnlyException();
+	if (length<mysize) {
+		resizeBuffer(length);
+		return;
+	} else if (length==mysize) return;
+	size_t oldsize=mysize;
+	size_t increase=length-mysize;
+	resizeBuffer(length);
+	memset(MemBase+oldsize,0,increase);
+}
+
+/*!\copybrief FileObject::lockShared
+ *
+ * \desc
+ * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
+ * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+ *
+ */
+void MemFile::lockShared(bool block)
+{
+	throw OperationUnavailableException();
+}
+
+/*!\copybrief FileObject::lockExclusive
+ *
+ * \desc
+ * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
+ * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+ *
+ */
+void MemFile::lockExclusive(bool block)
+{
+	throw OperationUnavailableException();
+}
+
+/*!\copybrief FileObject::unlock
+ *
+ * \desc
+ * Diese Funktion steht bei bei dieser Speicherklasse nicht zur Verfügung. Bei
+ * Aufruf der Funktion wird eine OperationUnavailableException geworfen.
+ *
+ */
+void MemFile::unlock()
+{
+	throw OperationUnavailableException();
+}
+
 
 
 } // end of namespace ppl7
