@@ -314,27 +314,22 @@ void MemFile::close()
 
 ppluint64 MemFile::size () const
 {
-	if (MemBase!=NULL) {
-		return (pplint64)mysize;
-	}
-	throw FileNotOpenException();
+	return (pplint64)mysize;
 }
 
 void MemFile::rewind ()
 {
-	if (MemBase!=NULL) {
-		pos=0;
-		return;
-	}
-	throw FileNotOpenException();
+	pos=0;
 }
 
 
 ppluint64 MemFile::seek(ppluint64 position)
 {
-	if (MemBase!=NULL) {
+	if (MemBase!=NULL || readonly==false) {
 		if (position<mysize) {
 			pos=position;
+		} else if (mysize==0 && position==0) {
+			return position;
 		} else {
 			throw OverflowException();
 		}
@@ -345,7 +340,7 @@ ppluint64 MemFile::seek(ppluint64 position)
 
 ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 {
-	if (MemBase!=NULL) {
+	if (MemBase!=NULL || readonly==false) {
 		ppluint64 oldpos=pos;
 		switch (origin) {
 			case SEEKCUR:
@@ -372,7 +367,7 @@ ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 
 ppluint64 MemFile::tell()
 {
-	if (MemBase!=NULL) {
+	if (MemBase!=NULL || readonly==false) {
 		return pos;
 	}
 	throw FileNotOpenException();
@@ -392,7 +387,7 @@ size_t MemFile::fread(void *ptr, size_t size, size_t nmemb)
 
 size_t MemFile::fwrite(const void *ptr, size_t size, size_t nmemb)
 {
-	if (MemBase==NULL) throw FileNotOpenException();
+	if (MemBase==NULL && readonly==true) throw FileNotOpenException();
 	if (readonly) throw ReadOnlyException();
 	size_t bytes=nmemb*size;
 	if (pos+bytes>mysize) resizeBuffer(pos+bytes);
@@ -449,7 +444,7 @@ wchar_t *MemFile::fgetws (wchar_t *buffer1, size_t num)
 
 void MemFile::fputs (const char *str)
 {
-	if (MemBase!=NULL) {
+	if (MemBase!=NULL || readonly==false) {
 		fwrite ((void*)str,1,(ppluint32)strlen(str));
 		return;
 	}
@@ -458,7 +453,7 @@ void MemFile::fputs (const char *str)
 
 void MemFile::fputws (const wchar_t *str)
 {
-	if (MemBase!=NULL) {
+	if (MemBase!=NULL || readonly==false) {
 		fwrite (str,1,(ppluint32)wcslen(str)*sizeof(wchar_t));
 		return;
 	}
@@ -496,7 +491,7 @@ wchar_t MemFile::fgetwc()
 
 bool MemFile::eof() const
 {
-	if (MemBase!=NULL) {
+	if (MemBase!=NULL || readonly==false) {
 		if (pos>=mysize) return true;
 		return false;
 
