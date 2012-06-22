@@ -101,6 +101,8 @@ MemFile::MemFile ()
 	mysize=0;
 	pos=0;
 	MemBase=NULL;
+	readonly=false;
+	maxsize=0;
 }
 
 
@@ -122,6 +124,8 @@ MemFile::MemFile (void * adresse, size_t size)
 	MemBase=NULL;
 	pos=0;
 	open(adresse,size);
+	readonly=true;
+	maxsize=0;
 }
 
 /*!\brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
@@ -143,11 +147,11 @@ MemFile::MemFile (const ByteArrayPtr &memory)
 	MemBase=(char*)memory.adr();
 	mysize=memory.size();
 	pos=0;
+	readonly=true;
 }
 
 MemFile::~MemFile()
 {
-
 }
 
 /*!\brief Speicherbereich öffnen
@@ -163,9 +167,14 @@ MemFile::~MemFile()
 void MemFile::open (void * adresse, size_t size)
 {
 	if (adresse==NULL || size==0) throw IllegalArgumentException();
+	if (buffer) {
+		free(buffer);
+		buffer=NULL;
+	}
 	MemBase=(char*)adresse;
 	mysize=size;
 	pos=0;
+	readonly=true;
 }
 
 /*!\brief Speicherbereich öffnen
@@ -180,10 +189,63 @@ void MemFile::open (void * adresse, size_t size)
 void MemFile::open(const ByteArrayPtr &memory)
 {
 	if (memory.isEmpty()) throw IllegalArgumentException();
+	if (buffer) {
+		free(buffer);
+		buffer=NULL;
+	}
 	MemBase=(char*)memory.adr();
 	mysize=memory.size();
 	pos=0;
+	readonly=true;
 }
+
+/*!\brief Speicherbereich öffnen
+ *
+ * Mit dieser Funktion wird die simulierte Datei im Hauptspeicher geöffnet. Dazu muss mit
+ * \p adresse ein Pointer auf den Beginn des zu verwendenden Hauptspeichers angegeben werden,
+ * sowie mit \p size seine Größe. Sämtliche nachfolgenden Dateizugriffe werden dann in diesem
+ * Speicherbereich simuliert.
+ *
+ * @param adresse Pointer auf den zu verwendenden Speicherbereich
+ * @param size Größe des Speicherbereichs
+ */
+void MemFile::openReadWrite(void * adresse, size_t size)
+{
+	if (adresse==NULL || size==0) throw IllegalArgumentException();
+	if (buffer) free(buffer);
+	MemBase=(char*)adresse;
+	buffer=MemBase;
+	mysize=size;
+	pos=0;
+	readonly=false;
+}
+
+void MemFile::setMaxSize(size_t size)
+{
+	maxsize=size;
+}
+
+size_t MemFile::maxSize() const
+{
+	return maxsize;
+}
+
+void MemFile::resizeBuffer(size_t size)
+{
+	if (readonly) throw ReadOnlyException();
+	if (maxsize>0 && size>maxsize) throw BufferExceedsLimitException();
+	char *buf=(char*)realloc(buffer,size);
+	if (!buf) throw OutOfMemoryException();
+	buffer=buf;
+	MemBase=buf;
+	mysize=size;
+}
+
+void MemFile::increaseBuffer(size_t bytes)
+{
+	resizeBuffer(mysize*bytes);
+}
+
 
 bool MemFile::isOpen() const
 {

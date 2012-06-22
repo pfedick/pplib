@@ -539,6 +539,7 @@ class FileObject
 		PPLNORMALEXCEPTION(OperationInterruptedException);				// EINTR
 		PPLNORMALEXCEPTION(TooManyLocksException);						// ENOLCK
 		PPLNORMALEXCEPTION(IllegalOperationOnPipeException);			// ESPIPE
+		PPLNORMALEXCEPTION(BufferExceedsLimitException);
 
 		//@}
 
@@ -607,7 +608,12 @@ class MemFile : public FileObject
 	private:
 		size_t	mysize;
 		size_t	pos;
+		size_t	maxsize;
 		char * MemBase;
+		bool	readonly;
+
+		void resizeBuffer(size_t size);
+		void increaseBuffer(size_t bytes);
 
 	public:
 
@@ -618,7 +624,10 @@ class MemFile : public FileObject
 
 		void		open(void * adresse, size_t size);
 		void		open(const ByteArrayPtr &memory);
+		void		openReadWrite(void * adresse, size_t size);
 		char		*adr(size_t adresse);
+		void		setMaxSize(size_t size);
+		size_t		maxSize() const;
 
 		// Virtuelle Funktionen
 		virtual void		close();
