@@ -97,8 +97,16 @@ namespace ppl7 {
  * oder die Funktion MemFile::openReadWrite verwendet werden.
  */
 
+/*!\brief Konstruktor der Klasse
+ *
+ * \desc
+ * Durch Verwendung dieses Konstruktors wird die Klasse zum Lesen und Schreiben geöffnet, wobei
+ * der Speicherbereich initial 0 Byte gross ist. Beim ersten Schreibzugriff wird der notwendige
+ * Speicher allokiert.
+ */
 MemFile::MemFile ()
 {
+	buffer=NULL;
 	mysize=0;
 	pos=0;
 	MemBase=NULL;
@@ -111,6 +119,7 @@ MemFile::MemFile ()
 MemFile::MemFile (void * adresse, size_t size, bool writeable)
 /*!\brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
  *
+ * \desc
  * Mit diesem Konstruktor wird gleichzeitig ein Pointer auf den Speicherbereich \p adresse mit einer
  * Größe von \p size Bytes übergeben. Sämtliche Dateizugriffe werden in diesem Speicherbereich
  * simuliert.
