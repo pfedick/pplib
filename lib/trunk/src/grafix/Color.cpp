@@ -336,6 +336,35 @@ void Color::setColor(int red, int green, int blue, int alpha)
 	a=clamp(alpha);
 }
 
+/*!\brief Farbwert anhand der einzelnen Farbkomponenten setzen
+ *
+ * \desc
+ * Mit dieser Funktion wird die Farbe anhand ihrer einzelnen
+ * Komponenten gesetzt.
+
+ * @param red Wert zwischen 0 und 255, der den rot-Anteil der Farbe festlegt
+ * @param green Wert zwischen 0 und 255, der den grün-Anteil der Farbe festlegt
+ * @param blue Wert zwischen 0 und 255, der den blau-Anteil der Farbe festlegt
+ * @param alpha Optionaler Wert zwischen 0 und 255, der die Transparenz der Farbe
+ * festlegt. 0 bedeutet komplett transparent, 255 komplett sichtbar. Wird der
+ * Parameter nicht angegeben, wird automatisch 255 gesetzt.
+ */
+void Color::set(int red, int green, int blue, int alpha)
+{
+	r=clamp(red);
+	g=clamp(green);
+	b=clamp(blue);
+	a=clamp(alpha);
+}
+
+void Color::set(const Color &other)
+{
+	r=other.r;
+	g=other.g;
+	b=other.b;
+	a=other.a;
+}
+
 /*!\brief Farbwert anhand eines 32-Bit-Wertes setzen
  *
  * \desc
@@ -408,6 +437,11 @@ Color Color::grey() const
 {
 	int v=brightness();
 	return Color(v,v,v,a);
+}
+
+Color Color::negativ() const
+{
+	return Color(255-r,255-g,255-b,a);
 }
 
 /*!\brief Farbübereinstimmung prüfen
@@ -494,6 +528,35 @@ Color &Color::operator*= (float factor)
 	b=clamp((int)(r*factor));
 	return *this;
 }
+
+/*!\brief Farbe in das YCbCr-Farbmodell umrechnen
+ *
+ * \desc
+ * Das YCbCr-Modell teilt die Farbinformation auf in die Grundhelligkeit Y
+ * und die zwei Farbkomponenten Cb (Blue-Yellow Chrominance) und Cr (Red-Green Chrominance).
+ * Mit Y wird hier die Helligkeitsachse aus dem CIE-Normvalenzsystem verwendet. Sie entspricht
+ * der Hellempfindlichkeit des Auges, die im grünen Spektralbereich am größten ist (V-Lambda-Kurve).
+ * Chrominance oder kurz Chroma bedeutet Buntheit im Allgemeinen und Farbigkeit in Bezug auf
+ * Helligkeit-Farbigkeits-Modelle.
+ *
+ * @return YCbCr-Farbwert
+ */
+int Color::getYCbCr() const
+{
+	return (int) round(0.299*r + 0.587*g + 0.114*b);
+}
+
+int Color::getYCb() const
+{
+	return (int) round(128 + -0.168736*r - 0.331264*g + 0.5*b);
+}
+
+int Color::getYCr() const
+{
+	return (int) round(128 + 0.5*r - 0.418688*g - 0.081312*b);
+}
+
+
 
 /*!\brief Farbwert als 32-Bit-Wert auslesen
  *

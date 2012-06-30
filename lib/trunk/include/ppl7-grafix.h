@@ -365,15 +365,23 @@ union  {
 		int alpha() const;
 		int brightness() const;
 		Color grey() const;
+		Color negativ() const;
 		bool match(const Color &other, int tolerance=0) const;
 
 		void setRed(int red);
 		void setGreen(int green);
 		void setBlue(int blue);
 		void setAlpha(int alpha);
+		void set(int red, int green, int blue, int alpha=255);
+		void set(const Color &other);
 		void setColor(int red, int green, int blue, int alpha=255);
 		void setColor(ppluint32 rgba);
 		void setColor(ppluint32 rgb, int alpha);
+
+		int getYCbCr() const;
+		int getYCb() const;
+		int getYCr() const;
+
 
 		Color &blend(const Color &background, const Color &foreground, int intensity);
 		Color &blendf(const Color &background, const Color &foreground, float intensity);
