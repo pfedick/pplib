@@ -378,7 +378,7 @@ union  {
 		void setColor(ppluint32 rgba);
 		void setColor(ppluint32 rgb, int alpha);
 
-		int getYCbCr() const;
+		int getY() const;
 		int getYCb() const;
 		int getYCr() const;
 

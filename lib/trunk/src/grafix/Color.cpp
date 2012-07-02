@@ -538,19 +538,24 @@ Color &Color::operator*= (float factor)
  * der Hellempfindlichkeit des Auges, die im grünen Spektralbereich am größten ist (V-Lambda-Kurve).
  * Chrominance oder kurz Chroma bedeutet Buntheit im Allgemeinen und Farbigkeit in Bezug auf
  * Helligkeit-Farbigkeits-Modelle.
+ * \par
+ * Die Funktion Color::getY gibt die Grundhelligkeit zurück,
+ * Color::getYCb den Cb-Wert und Color::getYCr den Cr-Wert
  *
- * @return YCbCr-Farbwert
+ * @return Grundhelligkeit
  */
-int Color::getYCbCr() const
+int Color::getY() const
 {
 	return (int) round(0.299*r + 0.587*g + 0.114*b);
 }
 
+//!\copydoc Color::getY
 int Color::getYCb() const
 {
 	return (int) round(128 + -0.168736*r - 0.331264*g + 0.5*b);
 }
 
+//!\copydoc Color::getY
 int Color::getYCr() const
 {
 	return (int) round(128 + 0.5*r - 0.418688*g - 0.081312*b);
