@@ -62,12 +62,26 @@ typedef struct {
 	ppluint32	color;
 } BLTDATA;
 
+typedef struct {
+	void *sadr;
+	void *bgadr;
+	ppluint32 spitch;
+	ppluint32 bgpitch;
+	int width;
+	int height;
+	int cb_key;
+	int cr_key;
+	int tola;
+	int tolb;
+} BLTCHROMADATA;
+
 extern "C" {
 	int ASM_AlphaBlt32(BLTDATA *d);
 	int ASM_Blt32(BLTDATA *d);
 	int ASM_BltColorKey32(BLTDATA *d);
 	int ASM_BltDiffuse32(BLTDATA *d);
 	int ASM_BltBlend32(BLTDATA *d, int factor);
+	int ASM_BltChromaKey32(BLTCHROMADATA *d);
 }
 #endif
 
@@ -279,6 +293,49 @@ static int BltDiffuse_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, co
 }
 
 
+static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
+{
+#ifdef HAVE_X86_ASSEMBLER
+	BLTCHROMADATA data;
+	data.sadr=(ppluint32*)adr(source,srect.left(),srect.top());
+	data.bgadr=(ppluint32*)adr(target,x,y);
+	data.width=srect.width();
+	data.height=srect.height();
+	data.spitch=source.pitch;
+	data.bgpitch=target.pitch;
+	data.cb_key=key.getYCb();
+	data.cr_key=key.getYCr();
+	data.tola=tol1;
+	data.tolb=tol2;
+	if (ASM_BltChromaKey32(&data)) return;
+#endif
+	return;
+	ppluint32 alpha1,psrc;
+	ppluint32 *src, *tgt;
+	src=(ppluint32*)adr(source,srect.left(),srect.top());
+	tgt=(ppluint32*)adr(target,x,y);
+	int width=srect.width();
+	int yy, xx;
+	if (!alphatab) return;
+
+	for (yy=0;yy<srect.height();yy++) {
+		for (xx=0;xx<width;xx++) {
+			psrc=src[xx];
+			if (psrc) {
+				if ((psrc&0xff000000)==0xff000000) tgt[xx]=psrc;
+				else {
+					alpha1=psrc>>24;
+					tgt[xx]=target.fn->RGBBlend255(tgt[xx],psrc,alpha1);
+				}
+			}
+		}
+		src+=(source.pitch>>2);
+		tgt+=(target.pitch>>2);
+	}
+	return;
+}
+
+
 /*!\brief Blitting-Funktionen initialisieren
  *
  * \desc
@@ -312,6 +369,7 @@ void Grafix::initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->BltColorKey=BltColorKey_32;
 			fn->BltDiffuse=BltDiffuse_32;
 			fn->BltBlend=BltBlend_32;
+			fn->BltChromaKey=BltChromaKey_32;
 			return;
 		case RGBFormat::GREY8:
 		case RGBFormat::A8:
@@ -385,7 +443,7 @@ int Drawable::fitRect(int &x, int &y, Rect &r)
  */
 void Drawable::blt(const Drawable &source, int x, int y)
 {
-	return blt(source,source.rect(),x,y);
+	blt(source,source.rect(),x,y);
 }
 
 /*!\brief Rechteck 1:1 kopieren
@@ -454,7 +512,7 @@ void Drawable::bltDiffuse(const Drawable &source, int x, int y,const Color &c)
  *
  */
 {
-	return bltDiffuse(source,source.rect(),x,y,c);
+	bltDiffuse(source,source.rect(),x,y,c);
 }
 
 /*!\brief Rechteck anhand der Intensität der Quellfarbe kopieren
@@ -523,7 +581,7 @@ void Drawable::bltDiffuse(const Drawable &source, const Rect &srect, int x, int 
  */
 void Drawable::bltColorKey(const Drawable &source, int x, int y,const Color &c)
 {
-	return bltColorKey(source,source.rect(),x,y,c);
+	bltColorKey(source,source.rect(),x,y,c);
 }
 
 /*!\brief Rechteck unter Berücksichtigung einer transparenten Schlüsselfarbe kopieren
@@ -590,7 +648,7 @@ void Drawable::bltColorKey(const Drawable &source, const Rect &srect, int x, int
  */
 void Drawable::bltAlpha(const Drawable &source, int x, int y)
 {
-	return bltAlpha(source,source.rect(),x,y);
+	bltAlpha(source,source.rect(),x,y);
 }
 
 /*!\brief Rechteck unter Berücksichtigung des Alpha-Kanals kopieren
@@ -712,7 +770,7 @@ void Drawable::draw(const ImageList &iml, int nr, int x, int y, const Color &dif
 
 void Drawable::bltBlend(const Drawable &source, float factor, int x, int y)
 {
-	return bltBlend(source,factor,source.rect(),x,y);
+	bltBlend(source,factor,source.rect(),x,y);
 }
 
 void Drawable::bltBlend(const Drawable &source, float factor, const Rect &srect, int x, int y)
@@ -739,6 +797,35 @@ void Drawable::bltBlend(const Drawable &source, float factor, const Rect &srect,
 	if (!fn->BltBlend) throw FunctionUnavailableException("Drawable::Blend");
 	fn->BltBlend(data,source.data,q,x,y,factor);
 }
+
+
+void Drawable::bltChromaKey(const Drawable &source, const Color &key, int tol1, int tol2, int x, int y)
+{
+	bltChromaKey(source,source.rect(), key,tol1,tol2,x,y);
+}
+
+void Drawable::bltChromaKey(const Drawable &source, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
+{
+	if (source.isEmpty()) throw EmptyDrawableException();
+	if (tol1<0 || tol1>255) throw IllegalArgumentException("0<=tol1<=255");
+	if (tol2<0 || tol2>255) throw IllegalArgumentException("0<=tol2<=255");
+	// Quellrechteck
+	Rect q;
+	if (srect.isNull()) {
+		q=source.rect();
+	} else {
+		q=srect;
+		if (q.left()<0) q.setLeft(0);
+		if (q.width()>source.width()) q.setWidth(source.width());
+		if (q.top()<0) q.setTop(0);
+		if (q.height()>source.height()) q.setHeight(source.height());
+	}
+	if (!fitRect(x,y,q)) return;
+	if (!fn->BltChromaKey) throw FunctionUnavailableException("Drawable::bltChromaKey");
+	fn->BltChromaKey(data,source.data,q,key,tol1,tol2,x,y);
+}
+
+
 
 
 #ifdef DONE

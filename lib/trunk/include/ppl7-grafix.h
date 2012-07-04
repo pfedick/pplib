@@ -447,6 +447,7 @@ typedef struct GRAFIX_FUNCTIONS {
 	int (*BltColorKey) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c);
 	int (*BltAlpha) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y);
 	int (*BltBlend) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, float factor);
+	void (*BltChromaKey) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y);
 
 } GRAFIX_FUNCTIONS;
 
@@ -657,6 +658,8 @@ class Drawable
 		void bltDiffuse(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
 		void bltColorKey(const Drawable &source, int x=0, int y=0, const Color &c=Color());
 		void bltColorKey(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
+		void bltChromaKey(const Drawable &source, const Color &key, int tol1, int tol2, int x=0, int y=0);
+		void bltChromaKey(const Drawable &source, const Rect &srect, const Color &key, int tol1, int tol2, int x=0, int y=0);
 		void bltAlpha(const Drawable &source, int x=0, int y=0);
 		void bltAlpha(const Drawable &source, const Rect &srect, int x=0, int y=0);
 		void bltBlend(const Drawable &source, float factor, int x=0, int y=0);
