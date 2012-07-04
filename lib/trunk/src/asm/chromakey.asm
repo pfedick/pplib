@@ -60,6 +60,221 @@ struc BLTCHROMADATA
 endstruc
 
 
+
+ALIGN 16
+%if elf64=1 || win64=1
+	%if elf64=1
+		global ASM_BltChromaKey32
+		ASM_BltChromaKey32:					; Pointer auf data ist in rdi
+		mov r8,rdi							; Pointer nach r8 schieben
+	%elif win64=1
+		global _ASM_BltChromaKey32
+		_ASM_BltChromaKey32:				; Pointer auf data ist zunächst in rcx
+		mov r8,rcx							; Pointer nach r8 schieben
+	%endif
+	; Prüfen, ob Breite durch 4 teilbar ist und Speicheradressen der Grafiken durch 16
+	mov eax, [r8+width]
+	and al,3
+	jnz ASM_BltChromaKey32_1
+	mov rax, [r8+sadr]
+	and al,15
+	jnz ASM_BltChromaKey32_1
+	mov rax, [r8+bgadr]
+	and al,15
+	jnz ASM_BltChromaKey32_1
+	jmp ASM_BltChromaKey32_4
+%else								; 32-Bit-Version
+	global ASM_BltChromaKey32
+	global _ASM_BltChromaKey32
+
+	ASM_BltChromaKey32:
+	_ASM_BltChromaKey32:
+		push ebp
+		mov ebp,[esp+8]				; Pointer auf data nach ebp
+
+		xor eax,eax					; Returnwert auf 0 setzen
+		pop ebp
+		ret
+%endif
+
+
+;*******************************************************************************************************
+;* Die nachfolgende Funktion ist zwar SSE2 optimiert, verarbeitet aber immer nur einen Pixel gleichzeitig.
+;* Sie kann daher verwendet werden, wenn die Breite nicht durch 4 oder die Bitmap-Adressen nicht durch
+;* 16 teilbar sind
+;*******************************************************************************************************
+
+ALIGN 16
+sflt1:	dd	0.5
+sflt2:	dd	-0.168736
+sflt3:	dd	-0.331264
+sflt4:	dd	-0.418688
+sflt5:	dd	-0.081312
+sflt6:	dd	128.0
+sflt7:	dd	1.0
+sflt8:	dd	255.0
+sflt9:	dd	0.0
+
+ALIGN 16
+akehr:  dq 0x00ff00ff00ff00ff
+		dq 0x00ff00ff00ff00ff
+
+
+ALIGN 16
+ASM_BltChromaKey32_1:
+%if elf64=1 || win64=1
+	; IN: r8 => Pointer auf Datenstruktur
+	%if win64=1
+		push rdi							; rdi und rsi müssen unter WIN64 gerettet werden
+		push rsi
+	%endif
+	push rbx
+	push r12
+	push r13
+	mov rsi,[r8+bgadr]			;// rsi: Pointer auf Background
+	mov r10d,[r8+spitch]		;// r10: Pitch von Quelle/Ziel
+	mov r11d,[r8+bgpitch]		;// r11: Pitch vom Background
+	mov r9d,[r8+width]			;// r9:  Breite
+	mov ebx,[r8+height]			;// ebx: Hoehe
+	cvtsi2ss xmm8,[r8+cb_key]	; // xmm8=Cb_key
+	cvtsi2ss xmm9,[r8+cr_key]	; // xmm8=Cr_key
+	cvtsi2ss xmm2,[r8+tola]		; // xmm2=tola
+	cvtsi2ss xmm3,[r8+tolb]		; // xmm2=tolb
+
+	mov r8,[r8+sadr]			;// r8: Pointer auf Quelle/Ziel
+	;movss xmm8, [sflt7]	; 1
+	;pxor xmm9,xmm9
+
+	jmp near .aYLoop
+	ALIGN 16
+	.aYLoop:
+		mov ecx,r9d					; Breite nach ecx laden
+		xor eax,eax
+		jmp near .aXLoop
+		ALIGN 16
+		.aXLoop:
+			mov edi,[r8+rcx*4]		; Farbe nach edi
+			movss xmm0,xmm8
+			movss xmm1,xmm9
+
+			; *************************************************************************
+			; ** ColorClose berechnen
+			; **
+			; ** IN: edi=farbe, xmm0=Cb_key, xmm1=Cr_key, xmm2=tola, xmm3=tolb
+			; ** OUT: xmm1
+			; **
+			; ** UNCHANGED: edi, xmm2, xmm3, r8, r9...
+			; ** LOST: eax, edx, xmm0, xmm1, xmm4, xmm5, xmm6, xmm7
+			mov eax,edi
+			movzx edx,di			; edx=gruen
+			shr eax,16				; eax=blau
+			shr edx,8
+			movzx eax,al
+			cvtsi2ss xmm4,edx		; // xmm4=gruen
+			cvtsi2ss xmm5,eax		; // xmm5=rot
+			cvtsi2ss xmm7,eax		; // xmm7=rot
+			cvtsi2ss xmm6,edx		; // xmm6=gruen
+			mulss  xmm5, [sflt2]	; rot * -0.168736
+			mulss  xmm7, [sflt1]	; rot * 0.5
+			movzx edx,dil			; edx=blau
+			mulss  xmm4, [sflt3]	; gruen * 0.331264
+			mulss  xmm6, [sflt4]	; gruen * 0.418688
+			addss  xmm5, [sflt6]	; gruen +128
+			addss  xmm7, [sflt6]	; gruen +128
+			addss  xmm5,xmm4		; gruen+rot
+			addss  xmm7,xmm6		; gruen+rot
+			cvtsi2ss xmm4,edx		; // xmm4=blau
+			cvtsi2ss xmm6,edx		; // xmm6=blau
+			mulss  xmm4, [sflt1]	; blau * 0.5
+			mulss  xmm6, [sflt5]	; blau * 0.081312
+			addss  xmm5,xmm4		; dazuaddieren
+			addss  xmm7,xmm6		; dazuaddieren
+			; xmm5=Cr_p, xmm7=Cb_p
+			; Differenz berechnen
+			subss xmm0,xmm5
+			subss xmm1,xmm7
+			mulss xmm0,xmm0
+			mulss xmm1,xmm1
+			addss xmm0,xmm1
+			sqrtss xmm1,xmm0		; Wurzel ziehen
+			movd xmm7,[rsi+rcx*4]	; Background schonmal nach xmm7 laden
+			;if (temp < tola) {return (0.0);}
+			comiss xmm1,xmm2
+			jc .useBackground
+			;if (temp < tolb) {return ((temp-tola)/(tolb-tola));}
+			comiss xmm1,xmm3
+			jc .blendWithBackground
+				dec ecx
+				jnz .aXLoop
+				jmp .endaXLoop
+	ALIGN 16
+		.useBackground:
+			movd [r8+rcx*4], xmm7
+			dec ecx
+			jnz .aXLoop
+			jmp near .endaXLoop
+	ALIGN 16
+		.blendWithBackground:
+			movss xmm4,xmm3		; tolb nach xmm4
+			subss xmm1,xmm2		; temp-tola
+			subss xmm4,xmm2		; tolb-tola
+			movd xmm5,edi		; Vordergrund nach xmm5
+			divss xmm1,xmm4		; Alphawert ist nun als float in xmm1
+			pxor xmm6,xmm6
+			mulss xmm1,[sflt8]	; und jetzt als float 0..255
+			movq xmm0,[akehr]
+			punpcklbw xmm7,xmm6	; Background in xmm7 in Worte umgewandelt
+			cvtps2dq xmm4,xmm1	; und jetzt als integer 0..255 in xmm4
+			punpcklbw xmm5,xmm6 ; Vordergrund in xmm5 in Worte umgewandelt
+			pshuflw xmm4,xmm4,0	; nun haben wir den Alpha-Wert 4 mal als Word in xmm4
+			psubw xmm0,xmm4		; Umkehrwert für Alpha berechnen (255-alpha)
+			pmullw xmm5, xmm4
+			pmullw xmm7, xmm0
+			psrlw xmm5,8
+			psrlw xmm7,8
+			paddusw xmm7,xmm5
+			packuswb xmm7,xmm6
+			movd [r8+rcx*4], xmm7
+
+			dec ecx
+			jnz .aXLoop
+	.endaXLoop:
+		add rsi,r11
+		add r8,r10
+		dec ebx
+		jnz .aYLoop
+
+	pop r13
+	xor rax,rax
+	pop r12
+	inc al
+	pop rbx							; rbx, r10 und r11 retten
+	%if win64=1
+		pop rsi
+		pop rdi
+	%endif
+	ret
+%else								; 32-Bit-Version
+	global ASM_BltChromaKey32_1
+	global _ASM_BltChromaKey32_1
+
+	ASM_BltChromaKey32_1:
+	_ASM_BltChromaKey32_1:
+		push ebp
+		mov ebp,[esp+8]				; Pointer auf data nach ebp
+
+		xor eax,eax					; Returnwert auf 0 setzen
+		pop ebp
+		ret
+%endif
+
+
+;*******************************************************************************************************
+;* Die nachfolgende Funktion ist optimiert für Breiten und Adressen, die durch 4 teilbar sind.
+;* Es werden jeweils 4 Pixel gleichzeitig berechnet
+;*******************************************************************************************************
+
+
 ALIGN 16
 s4flt1:	dd	0.5
 		dd	0.5
@@ -99,25 +314,16 @@ s4flt9:	dd	0.0
 		dd	0.0
 
 ALIGN 16
-akehr:  dq 0x00ff00ff00ff00ff
-		dq 0x00ff00ff00ff00ff
-
-
-ALIGN 16
 andmask:	dd 0x000000ff
 			dd 0x000000ff
 			dd 0x000000ff
 			dd 0x000000ff
 
+ALIGN 16
+ASM_BltChromaKey32_4:
 %if elf64=1 || win64=1
-	%if elf64=1
-		global ASM_BltChromaKey32
-		ASM_BltChromaKey32:				; Pointer auf data ist in rdi
-		mov r8,rdi							; Pointer nach r8 schieben
-	%elif win64=1
-		global _ASM_BltChromaKey32
-		_ASM_BltChromaKey32:			; Pointer auf data ist zunächst in rcx
-		mov r8,rcx							; Pointer nach r8 schieben
+	; IN: r8 => Pointer auf Datenstruktur
+	%if win64=1
 		push rdi							; rdi und rsi müssen unter WIN64 gerettet werden
 		push rsi
 	%endif
@@ -286,8 +492,8 @@ ALIGN 16
 		ret
 
 %else								; 32-Bit-Version
-	global ASM_chromakeyTestLoop2
-	global _ASM_chromakeyTestLoop2
+	global ASM_BltChromaKey32_4
+	global _ASM_BltChromaKey32_4
 
 	ASM_BltChromaKey32:
 	_ASM_BltChromaKey32:

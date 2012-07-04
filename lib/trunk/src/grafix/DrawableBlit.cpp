@@ -63,8 +63,8 @@ typedef struct {
 } BLTDATA;
 
 typedef struct {
-	void *sadr;
-	void *bgadr;
+	char *sadr;
+	char *bgadr;
 	ppluint32 spitch;
 	ppluint32 bgpitch;
 	int width;
@@ -297,8 +297,8 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 {
 #ifdef HAVE_X86_ASSEMBLER
 	BLTCHROMADATA data;
-	data.sadr=(ppluint32*)adr(source,srect.left(),srect.top());
-	data.bgadr=(ppluint32*)adr(target,x,y);
+	data.sadr=(char*)adr(source,srect.left(),srect.top());
+	data.bgadr=(char*)adr(target,x,y);
 	data.width=srect.width();
 	data.height=srect.height();
 	data.spitch=source.pitch;
@@ -307,6 +307,7 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 	data.cr_key=key.getYCr();
 	data.tola=tol1;
 	data.tolb=tol2;
+	//if ((((int)(data.width&255))&3)==0 && (((int)(data.sadr&255))&15)==0 && (((int)(data.bgadr&255))&15)==0) {
 	if (ASM_BltChromaKey32(&data)) return;
 #endif
 	return;
