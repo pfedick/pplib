@@ -46,6 +46,11 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
+
 #include "ppl7.h"
 #include "ppl7-grafix.h"
 
@@ -293,6 +298,42 @@ static int BltDiffuse_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, co
 }
 
 
+typedef struct {
+union  {
+	struct { ppluint8 b,g,r,a; };
+	ppluint32 c;
+};
+} PIXEL;
+
+static inline int max(int a, int b)
+{
+   if (a>b) {return (a);}
+   return (b);
+}
+
+static inline double colorclose(int Cb_p,int Cr_p,int Cb_key,int Cr_key,int tola,int tolb)
+{
+   /*decides if a color is close to the specified hue*/
+   double temp = sqrt((Cb_key-Cb_p)*(Cb_key-Cb_p)+(Cr_key-Cr_p)*(Cr_key-Cr_p));
+   // SSE: sqrtss für float, SSE2: sqrtsd für double
+   // Man könnte Cb und Cr in ein MME-Register packen, die Subtraktionen und Multiplikationen
+   // parallel berechnen, das Ergebnis addieren und dann die Wurzel ziehen
+   if (temp < tola) {return (0.0);}
+   if (temp < tolb) {return ((temp-tola)/(tolb-tola));}
+   return (1.0);
+}
+
+
+static inline int getYCb(int r, int g, int b)
+{
+	return (int) (128 + -0.168736*r - 0.331264*g + 0.5*b);
+}
+
+static inline int getYCr(int r, int g, int b)
+{
+	return (int) (128 + 0.5*r - 0.418688*g - 0.081312*b);
+}
+
 static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
 {
 #ifdef HAVE_X86_ASSEMBLER
@@ -311,29 +352,104 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 	if (ASM_BltChromaKey32(&data)) return;
 #endif
 	return;
-	ppluint32 alpha1,psrc;
-	ppluint32 *src, *tgt;
-	src=(ppluint32*)adr(source,srect.left(),srect.top());
-	tgt=(ppluint32*)adr(target,x,y);
-	int width=srect.width();
-	int yy, xx;
-	if (!alphatab) return;
+	double mask;
+	int cb,cr;
+	int cb_key=key.getYCb();
+	int cr_key=key.getYCr();
+	int r_key = key.red();
+	int g_key = key.green();
+	int b_key = key.blue();
 
-	for (yy=0;yy<srect.height();yy++) {
-		for (xx=0;xx<width;xx++) {
-			psrc=src[xx];
-			if (psrc) {
-				if ((psrc&0xff000000)==0xff000000) tgt[xx]=psrc;
-				else {
-					alpha1=psrc>>24;
-					tgt[xx]=target.fn->RGBBlend255(tgt[xx],psrc,alpha1);
-				}
+	PIXEL c,bg,t;
+
+	ppluint32 *sadr=(ppluint32*)adr(source,srect.left(),srect.top());
+	ppluint32 spitch=source.pitch/4;
+
+	ppluint32 *bgadr=(ppluint32*)adr(target,x,y);
+	ppluint32 bgpitch=target.pitch;
+
+
+	for (int y=0;y<srect.height();y++) {
+		for (int x=0;x<srect.width();x++) {
+			c.c=sadr[x];
+			cb=getYCb(c.r,c.g,c.b);
+			cr=getYCr(c.r,c.g,c.b);
+			bg.c=bgadr[x];
+
+			mask = 1-colorclose(cb, cr, cb_key, cr_key,tol1,tol2);
+			if (mask==0.0) {
+				continue;
+			} else if (mask==1.0) {
+				sadr[x]=bg.c;
+			} else {
+				t.r=max(c.r-mask*r_key,0)+mask*bg.r;
+				t.g=max(c.g-mask*g_key,0)+mask*bg.g;
+				t.b=max(c.b-mask*b_key,0)+mask*bg.b;
+				sadr[x]=t.c;
 			}
 		}
-		src+=(source.pitch>>2);
-		tgt+=(target.pitch>>2);
+		sadr+=spitch;
+		bgadr+=bgpitch;
 	}
+}
+
+
+static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &background, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
+{
+#ifdef HAVE_X86_ASSEMBLER
+	BLTCHROMADATA data;
+	data.sadr=(char*)adr(target,srect.left(),srect.top());
+	data.bgadr=(char*)adr(background,x,y);
+	data.width=srect.width();
+	data.height=srect.height();
+	data.spitch=target.pitch;
+	data.bgpitch=background.pitch;
+	data.cb_key=key.getYCb();
+	data.cr_key=key.getYCr();
+	data.tola=tol1;
+	data.tolb=tol2;
+	if (ASM_BltChromaKey32(&data)) return;
+#endif
 	return;
+	double mask;
+	int cb,cr;
+	int cb_key=key.getYCb();
+	int cr_key=key.getYCr();
+	int r_key = key.red();
+	int g_key = key.green();
+	int b_key = key.blue();
+
+	PIXEL c,bg,t;
+
+	ppluint32 *sadr=(ppluint32*)adr(target,srect.left(),srect.top());
+	ppluint32 spitch=target.pitch/4;
+
+	ppluint32 *bgadr=(ppluint32*)adr(background,x,y);
+	ppluint32 bgpitch=background.pitch;
+
+
+	for (int y=0;y<srect.height();y++) {
+		for (int x=0;x<srect.width();x++) {
+			c.c=sadr[x];
+			cb=getYCb(c.r,c.g,c.b);
+			cr=getYCr(c.r,c.g,c.b);
+			bg.c=bgadr[x];
+
+			mask = 1-colorclose(cb, cr, cb_key, cr_key,tol1,tol2);
+			if (mask==0.0) {
+				continue;
+			} else if (mask==1.0) {
+				sadr[x]=bg.c;
+			} else {
+				t.r=max(c.r-mask*r_key,0)+mask*bg.r;
+				t.g=max(c.g-mask*g_key,0)+mask*bg.g;
+				t.b=max(c.b-mask*b_key,0)+mask*bg.b;
+				sadr[x]=t.c;
+			}
+		}
+		sadr+=spitch;
+		bgadr+=bgpitch;
+	}
 }
 
 
@@ -371,6 +487,7 @@ void Grafix::initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->BltDiffuse=BltDiffuse_32;
 			fn->BltBlend=BltBlend_32;
 			fn->BltChromaKey=BltChromaKey_32;
+			fn->BltBackgoundOnChromaKey=BltBackgroundOnChromaKey_32;
 			return;
 		case RGBFormat::GREY8:
 		case RGBFormat::A8:
@@ -826,6 +943,31 @@ void Drawable::bltChromaKey(const Drawable &source, const Rect &srect, const Col
 	fn->BltChromaKey(data,source.data,q,key,tol1,tol2,x,y);
 }
 
+void Drawable::bltBackgroundOnChromaKey(const Drawable &background, const Color &key, int tol1, int tol2, int x, int y)
+{
+	bltBackgroundOnChromaKey(background,rect(), key,tol1,tol2,x,y);
+}
+
+void Drawable::bltBackgroundOnChromaKey(const Drawable &background, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
+{
+	if (background.isEmpty()) throw EmptyDrawableException();
+	if (tol1<0 || tol1>255) throw IllegalArgumentException("0<=tol1<=255");
+	if (tol2<0 || tol2>255) throw IllegalArgumentException("0<=tol2<=255");
+	// Quellrechteck
+	Rect q;
+	if (srect.isNull()) {
+		q=rect();
+	} else {
+		q=srect;
+		if (q.left()<0) q.setLeft(0);
+		if (q.width()>width()) q.setWidth(width());
+		if (q.top()<0) q.setTop(0);
+		if (q.height()>height()) q.setHeight(height());
+	}
+	if (!fitRect(x,y,q)) return;
+	if (!fn->BltChromaKey) throw FunctionUnavailableException("Drawable::bltChromaKey");
+	fn->BltBackgoundOnChromaKey(data,background.data,q,key,tol1,tol2,x,y);
+}
 
 
 
