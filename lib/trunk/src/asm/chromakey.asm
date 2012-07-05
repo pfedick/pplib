@@ -409,7 +409,19 @@ ASM_BltChromaKey32_4:
 			movdqa xmm7,[rsi+rcx-16]	; Background schonmal nach xmm7 laden
 			sqrtps xmm1,xmm0			; Wurzel ziehen
 
-			; Nun müssen wir jeden der 4 Pixel einzeln durchgehen
+			; Prüfen, ob wir jeden Pixel einzeln behandeln müssen
+			movdqa xmm0,xmm1
+			cmpltps xmm0,xmm2
+			pmovmskb eax,xmm0
+			cmp ax,0xffff
+			je .AllBackground
+			movdqa xmm0,xmm3
+			cmpltps xmm0,xmm1
+			pmovmskb eax,xmm0
+			cmp ax,0xffff
+			je .AllForeground
+
+			; Wir müssen wir jeden der 4 Pixel einzeln durchgehen
 			; Pixel 1
 			movdqa xmm5,xmm10
 			movdqa xmm4,xmm7
@@ -465,6 +477,20 @@ ASM_BltChromaKey32_4:
 		pop rdi
 	%endif
 	ret
+
+ALIGN 16
+	.AllBackground:
+		movdqa [rdi+rcx-16], xmm7
+		sub ecx,16
+		jnz .aXLoop
+		jmp near .endaXLoop
+
+ALIGN 16
+	.AllForeground:
+		movdqa [rdi+rcx-16], xmm10
+		sub ecx,16
+		jnz .aXLoop
+		jmp near .endaXLoop
 
 ALIGN 16
 	HandlePixel:	; IN: xmm0=Differenz, xmm4=Background, xmm5=Foreground
