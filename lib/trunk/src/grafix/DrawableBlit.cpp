@@ -928,7 +928,7 @@ void Drawable::bltBlend(const Drawable &source, float factor, const Rect &srect,
  *
  * \desc
  * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
- * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
  * über den Hintergrund gelegt.
  *
  * @param source Quellgrafik
@@ -958,7 +958,7 @@ void Drawable::bltChromaKey(const Drawable &source, const Color &key, int tol1, 
  *
  * \desc
  * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
- * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
  * über den Hintergrund gelegt.
  *
  * @param source Quellgrafik
@@ -1005,7 +1005,7 @@ void Drawable::bltChromaKey(const Drawable &source, const Rect &srect, const Col
  *
  * \desc
  * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
- * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
  * über die Grafik gelegt.
  *
  * @param source Quellgrafik
@@ -1035,7 +1035,7 @@ void Drawable::bltBackgroundOnChromaKey(const Drawable &background, const Color 
  *
  * \desc
  * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
- * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key (Chroma Key), sowie zwei Toleranz-Werten
  * über die Grafik gelegt.
  *
  * @param background Hintergundgrafik
