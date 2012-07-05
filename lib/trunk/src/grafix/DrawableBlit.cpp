@@ -70,8 +70,10 @@ typedef struct {
 typedef struct {
 	char *sadr;
 	char *bgadr;
+	char *tgadr;
 	ppluint32 spitch;
 	ppluint32 bgpitch;
+	ppluint32 tgpitch;
 	int width;
 	int height;
 	int cb_key;
@@ -340,10 +342,12 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 	BLTCHROMADATA data;
 	data.sadr=(char*)adr(source,srect.left(),srect.top());
 	data.bgadr=(char*)adr(target,x,y);
+	data.tgadr=data.bgadr;
 	data.width=srect.width();
 	data.height=srect.height();
 	data.spitch=source.pitch;
 	data.bgpitch=target.pitch;
+	data.tgpitch=data.bgpitch;
 	data.cb_key=key.getYCb();
 	data.cr_key=key.getYCr();
 	data.tola=tol1;
@@ -351,14 +355,10 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 	//if ((((int)(data.width&255))&3)==0 && (((int)(data.sadr&255))&15)==0 && (((int)(data.bgadr&255))&15)==0) {
 	if (ASM_BltChromaKey32(&data)) return;
 #endif
-	return;
 	double mask;
 	int cb,cr;
 	int cb_key=key.getYCb();
 	int cr_key=key.getYCr();
-	int r_key = key.red();
-	int g_key = key.green();
-	int b_key = key.blue();
 
 	PIXEL c,bg,t;
 
@@ -366,8 +366,10 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 	ppluint32 spitch=source.pitch/4;
 
 	ppluint32 *bgadr=(ppluint32*)adr(target,x,y);
-	ppluint32 bgpitch=target.pitch;
+	ppluint32 bgpitch=target.pitch/4;
 
+	ppluint32 *tgadr=(ppluint32*)adr(target,x,y);
+	ppluint32 tgpitch=target.pitch/4;
 
 	for (int y=0;y<srect.height();y++) {
 		for (int x=0;x<srect.width();x++) {
@@ -378,18 +380,21 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 
 			mask = 1-colorclose(cb, cr, cb_key, cr_key,tol1,tol2);
 			if (mask==0.0) {
+				tgadr[x]=c.c;
 				continue;
 			} else if (mask==1.0) {
-				sadr[x]=bg.c;
+				tgadr[x]=bg.c;
 			} else {
-				t.r=max(c.r-mask*r_key,0)+mask*bg.r;
-				t.g=max(c.g-mask*g_key,0)+mask*bg.g;
-				t.b=max(c.b-mask*b_key,0)+mask*bg.b;
-				sadr[x]=t.c;
+				t.r=max(c.r-mask*c.r,0)+mask*bg.r;
+				t.g=max(c.g-mask*c.g,0)+mask*bg.g;
+				t.b=max(c.b-mask*c.b,0)+mask*bg.b;
+				t.a=max(c.a-mask*c.a,0)+mask*bg.a;
+				tgadr[x]=t.c;
 			}
 		}
 		sadr+=spitch;
 		bgadr+=bgpitch;
+		tgadr+=tgpitch;
 	}
 }
 
@@ -400,24 +405,22 @@ static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_D
 	BLTCHROMADATA data;
 	data.sadr=(char*)adr(target,srect.left(),srect.top());
 	data.bgadr=(char*)adr(background,x,y);
+	data.tgadr=data.sadr;
 	data.width=srect.width();
 	data.height=srect.height();
 	data.spitch=target.pitch;
 	data.bgpitch=background.pitch;
+	data.tgpitch=data.spitch;
 	data.cb_key=key.getYCb();
 	data.cr_key=key.getYCr();
 	data.tola=tol1;
 	data.tolb=tol2;
 	if (ASM_BltChromaKey32(&data)) return;
 #endif
-	return;
 	double mask;
 	int cb,cr;
 	int cb_key=key.getYCb();
 	int cr_key=key.getYCr();
-	int r_key = key.red();
-	int g_key = key.green();
-	int b_key = key.blue();
 
 	PIXEL c,bg,t;
 
@@ -425,8 +428,10 @@ static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_D
 	ppluint32 spitch=target.pitch/4;
 
 	ppluint32 *bgadr=(ppluint32*)adr(background,x,y);
-	ppluint32 bgpitch=background.pitch;
+	ppluint32 bgpitch=background.pitch/4;
 
+	ppluint32 *tgadr=(ppluint32*)adr(target,x,y);
+	ppluint32 tgpitch=target.pitch/4;
 
 	for (int y=0;y<srect.height();y++) {
 		for (int x=0;x<srect.width();x++) {
@@ -437,18 +442,21 @@ static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_D
 
 			mask = 1-colorclose(cb, cr, cb_key, cr_key,tol1,tol2);
 			if (mask==0.0) {
+				tgadr[x]=c.c;
 				continue;
 			} else if (mask==1.0) {
-				sadr[x]=bg.c;
+				tgadr[x]=bg.c;
 			} else {
-				t.r=max(c.r-mask*r_key,0)+mask*bg.r;
-				t.g=max(c.g-mask*g_key,0)+mask*bg.g;
-				t.b=max(c.b-mask*b_key,0)+mask*bg.b;
-				sadr[x]=t.c;
+				t.r=max(c.r-mask*c.r,0)+mask*bg.r;
+				t.g=max(c.g-mask*c.g,0)+mask*bg.g;
+				t.b=max(c.b-mask*c.b,0)+mask*bg.b;
+				t.a=max(c.a-mask*c.a,0)+mask*bg.a;
+				tgadr[x]=t.c;
 			}
 		}
 		sadr+=spitch;
 		bgadr+=bgpitch;
+		tgadr+=tgpitch;
 	}
 }
 
@@ -916,12 +924,62 @@ void Drawable::bltBlend(const Drawable &source, float factor, const Rect &srect,
 	fn->BltBlend(data,source.data,q,x,y,factor);
 }
 
-
+/*!\brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+ *
+ * \desc
+ * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+ * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * über den Hintergrund gelegt.
+ *
+ * @param source Quellgrafik
+ * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+ * einen Greenscreen)
+ * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+ * das heisst der Hintergrund wird übernommen
+ * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+ * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+ * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+ * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+ *
+ * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+ * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+ * gleichzeitig berechnet.
+ *
+ * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+ * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+ * sondern den Hintergrund an.
+ */
 void Drawable::bltChromaKey(const Drawable &source, const Color &key, int tol1, int tol2, int x, int y)
 {
 	bltChromaKey(source,source.rect(), key,tol1,tol2,x,y);
 }
 
+/*!\brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+ *
+ * \desc
+ * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+ * Dabei wird die Quellgrafik \p source mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * über den Hintergrund gelegt.
+ *
+ * @param source Quellgrafik
+ * @param srect Rechteckiger Ausschnitt aus der Quellgrafik \p source, der kopiert werden soll
+ * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+ * einen Greenscreen)
+ * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+ * das heisst der Hintergrund wird übernommen
+ * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+ * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+ * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+ * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+ *
+ * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+ * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+ * gleichzeitig berechnet.
+ *
+ * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+ * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+ * sondern den Hintergrund an.
+ */
 void Drawable::bltChromaKey(const Drawable &source, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
 {
 	if (source.isEmpty()) throw EmptyDrawableException();
@@ -943,11 +1001,62 @@ void Drawable::bltChromaKey(const Drawable &source, const Rect &srect, const Col
 	fn->BltChromaKey(data,source.data,q,key,tol1,tol2,x,y);
 }
 
+/*!\brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+ *
+ * \desc
+ * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+ * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * über die Grafik gelegt.
+ *
+ * @param source Quellgrafik
+ * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+ * einen Greenscreen)
+ * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+ * das heisst der Hintergrund wird übernommen
+ * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+ * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+ * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+ * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+ *
+ * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+ * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+ * gleichzeitig berechnet.
+ *
+ * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+ * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+ * sondern den Hintergrund an.
+ */
 void Drawable::bltBackgroundOnChromaKey(const Drawable &background, const Color &key, int tol1, int tol2, int x, int y)
 {
 	bltBackgroundOnChromaKey(background,rect(), key,tol1,tol2,x,y);
 }
 
+/*!\brief Rechteck unter Berücksichtigung eines Farbschlüssels kopieren (Bluescreen-Effekt)
+ *
+ * \desc
+ * Mit dieser Funktion kann ein "Bluescreen-Effekt" erzielt werden (siehe http://de.wikipedia.org/wiki/Bluescreen-Technik#Greenscreen).
+ * Dabei wird die Hintergundgrafik \p background mittels eines Farbschlüssels \p key, sowie zwei Toleranz-Werten
+ * über die Grafik gelegt.
+ *
+ * @param background Hintergundgrafik
+ * @param srect Rechteckiger Ausschnitt aus der Hintergundgrafik \p background, der kopiert werden soll
+ * @param key Farbschlüssel (z.B. Color(0,0,255) für einen Bluescreen oder Color(0,255,0) für
+ * einen Greenscreen)
+ * @param tol1 Untere Toleranz: Farbabweichungen bis zu diesem Toleranzwert, werden komplett Transparent,
+ * das heisst der Hintergrund wird übernommen
+ * @param tol2 Obere Toleranz: Farbabweichungen, die zwischen \p tol1 und \p tol2 liegen, werden je nach
+ * Stärke der Abweichung überblendet. Je stärker die Abweichung, desto mehr Hintergrund ist zu sehen
+ * @param x Zielkoordinate für das Rechteck (optional, Default ist 0)
+ * @param y Zielkoordinate für das Rechteck (optional, Default ist 0)
+ *
+ * @remarks Auf 64-Bit-Systemen mit SSE2-Unterstützung werden optimierte Assembler-Routinen verwendet.
+ * Sofern Bildbreite durch 4 und die Speicheradressen durch 16 teilbar sind, werden jeweils 4 Pixel
+ * gleichzeitig berechnet.
+ *
+ * @see Die Funktion bltChromaKey wendet den Farbschlüssel auf das Quellbild \p source an.
+ * @see Die Funktion bltBackgroundOnChromaKey wendet den Farbschlüssel nicht auf das Quellbild \p source
+ * sondern den Hintergrund an.
+ */
 void Drawable::bltBackgroundOnChromaKey(const Drawable &background, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
 {
 	if (background.isEmpty()) throw EmptyDrawableException();

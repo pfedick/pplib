@@ -49,8 +49,10 @@ SECTION .text
 struc BLTCHROMADATA
 	sadr:		PTR		1
 	bgadr:		PTR		1
+	tgadr:		PTR		1
 	spitch:		resd	1
 	bgpitch:	resd	1
+	tgpitch:	resd	1
 	width:		resd	1
 	height:		resd	1
 	cb_key:		resd	1
@@ -132,8 +134,10 @@ ASM_BltChromaKey32_1:
 	push r12
 	push r13
 	mov rsi,[r8+bgadr]			;// rsi: Pointer auf Background
-	mov r10d,[r8+spitch]		;// r10: Pitch von Quelle/Ziel
+	mov r13,[r8+tgadr]			;// r13: Pointer auf Ziel
+	mov r10d,[r8+spitch]		;// r10: Pitch von Quelle
 	mov r11d,[r8+bgpitch]		;// r11: Pitch vom Background
+	mov r12d,[r8+tgpitch]		;// r12: Pitch vom ziel
 	mov r9d,[r8+width]			;// r9:  Breite
 	mov ebx,[r8+height]			;// ebx: Hoehe
 	cvtsi2ss xmm8,[r8+cb_key]	; // xmm8=Cb_key
@@ -153,7 +157,7 @@ ASM_BltChromaKey32_1:
 		jmp near .aXLoop
 		ALIGN 16
 		.aXLoop:
-			mov edi,[r8+rcx*4]		; Farbe nach edi
+			mov edi,[r8+rcx*4]	; Farbe nach edi
 			movss xmm0,xmm8
 			movss xmm1,xmm9
 
@@ -204,12 +208,13 @@ ASM_BltChromaKey32_1:
 			;if (temp < tolb) {return ((temp-tola)/(tolb-tola));}
 			comiss xmm1,xmm3
 			jc .blendWithBackground
+				mov [r13+rcx*4], edi
 				dec ecx
 				jnz .aXLoop
 				jmp .endaXLoop
 	ALIGN 16
 		.useBackground:
-			movd [r8+rcx*4], xmm7
+			movd [r13+rcx*4], xmm7
 			dec ecx
 			jnz .aXLoop
 			jmp near .endaXLoop
@@ -234,12 +239,13 @@ ASM_BltChromaKey32_1:
 			psrlw xmm7,8
 			paddusw xmm7,xmm5
 			packuswb xmm7,xmm6
-			movd [r8+rcx*4], xmm7
+			movd [r13+rcx*4], xmm7
 
 			dec ecx
 			jnz .aXLoop
 	.endaXLoop:
 		add rsi,r11
+		add r13,r12
 		add r8,r10
 		dec ebx
 		jnz .aYLoop
@@ -331,8 +337,10 @@ ASM_BltChromaKey32_4:
 	push r12
 	push r13
 	mov rsi,[r8+bgadr]			;// rsi: Pointer auf Background
-	mov r10d,[r8+spitch]		;// r10: Pitch von Quelle/Ziel
+	mov rdi,[r8+tgadr]			;// rsi: Pointer auf Ziel
+	mov r10d,[r8+spitch]		;// r10: Pitch von Quelle
 	mov r11d,[r8+bgpitch]		;// r11: Pitch vom Background
+	mov r12d,[r8+tgpitch]		;// r11: Pitch vom Ziel
 	mov r9d,[r8+width]			;// r9:  Breite
 	mov ebx,[r8+height]			;// ebx: Hoehe
 	shl r9d,2					; Breite * 4
@@ -442,6 +450,7 @@ ASM_BltChromaKey32_4:
 			jnz .aXLoop
 	.endaXLoop:
 		add rsi,r11
+		add rdi,r12
 		add r8,r10
 		dec ebx
 		jnz .aYLoop
@@ -463,10 +472,11 @@ ALIGN 16
 		jc .useBackground
 		comiss xmm0,xmm3
 		jc .blendWithBackground
+		movd [rdi+rcx], xmm5
 		ret
 ALIGN 16
 	.useBackground:
-		movd [r8+rcx], xmm4
+		movd [rdi+rcx], xmm4
 		ret
 ALIGN 16
 	.blendWithBackground:	; IN: xmm0=Differenz, xmm4=Background, xmm5=Foreground
@@ -488,7 +498,7 @@ ALIGN 16
 		psrlw xmm4,8
 		paddusw xmm4,xmm5
 		packuswb xmm4,xmm6
-		movd [r8+rcx], xmm4
+		movd [rdi+rcx], xmm4
 		ret
 
 %else								; 32-Bit-Version
