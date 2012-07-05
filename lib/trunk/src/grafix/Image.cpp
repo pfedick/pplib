@@ -300,7 +300,7 @@ void Image::copy(const Image &other)
 void Image::create(int width, int height, const RGBFormat &format)
 {
 	if (data.width==width && data.height==height && data.rgbformat==format) {
-		myMemory.memset(0);
+		;myMemory.memset(0);
 		return;
 	}
 	fn=NULL;
@@ -389,6 +389,7 @@ void Image::load(FileObject &file, const RGBFormat &format)
 	IMAGE img;
 	ImageFilter *filter=gfx->findImageFilter(file,img);
 	if (format!=RGBFormat::unknown) img.format=format;
+
 	create(img.width,img.height,img.format);
 	filter->load(file,*this,img);
 }
