@@ -63,11 +63,15 @@ static ppluint32 PPL7_GetCpuCaps()
 
 static ppluint32 GetASMBits()
 {
-	return 0;
+	return sizeof(void*);
 }
 #endif
 
 namespace ppl7 {
+
+
+static ppluint32 myCPUCaps=0;
+static ppluint32 myBits=0;
 
 
 
@@ -82,19 +86,24 @@ String binaryString(ppluint64 value)
 }
 
 
-ppluint32 GetCPUCaps (CPUCaps *cpu)
+ppluint32 GetCPUCaps (CPUCaps &cpu)
 {
-	ppluint32 caps=PPL7_GetCpuCaps();
-	printf ("caps=%i = %s\n",caps,(const char*)binaryString(caps));
-	//int bits=HaveSSE2();
-	//printf ("cpuid 1: %x\n",bits);
-
-
-	if (cpu) {
-		cpu->caps=caps;
-		cpu->bits=GetASMBits();
+	if (myBits==0) {
+		myCPUCaps=PPL7_GetCpuCaps();
+		myBits=GetASMBits();
 	}
-	return caps;
+	cpu.caps=myCPUCaps;
+	cpu.bits=myBits;
+	return myCPUCaps;
+}
+
+ppluint32 GetCPUCaps ()
+{
+	if (myBits==0) {
+		myCPUCaps=PPL7_GetCpuCaps();
+		myBits=GetASMBits();
+	}
+	return myCPUCaps;
 }
 
 } // end of namespace ppl

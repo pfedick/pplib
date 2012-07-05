@@ -350,6 +350,8 @@ ASM_BltChromaKey32_4:
 	cvtsi2ss xmm3,[r8+tolb]		; // xmm2=tolb
 	pshufd xmm8,xmm8,0			; // Cb_key ist nun viermal in xmm8 vorhanden
 	pshufd xmm9,xmm9,0			; // Cr_key ist nun viermal in xmm9 vorhanden
+	pshufd xmm2,xmm2,0			; // tola ist nun viermal in xmm2 vorhanden
+	pshufd xmm3,xmm3,0			; // tolb ist nun viermal in xmm2 vorhanden
 
 	mov r8,[r8+sadr]			;// r8: Pointer auf Quelle/Ziel
 

@@ -331,7 +331,8 @@ typedef struct {
 
 } CPUCaps;
 
-ppluint32 GetCPUCaps (CPUCaps *cpu);				// Wenn cpu=NULL ist, werden nur die Caps zur�ckgegeben
+ppluint32 GetCPUCaps(CPUCaps &cpu);
+ppluint32 GetCPUCaps();
 
 // Time
 ppl_time_t GetTime(PPLTIME *t);

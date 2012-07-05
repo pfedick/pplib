@@ -338,22 +338,25 @@ static inline int getYCr(int r, int g, int b)
 
 static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
 {
+	if (tol2<tol1) tol2=tol1;
 #ifdef HAVE_X86_ASSEMBLER
-	BLTCHROMADATA data;
-	data.sadr=(char*)adr(source,srect.left(),srect.top());
-	data.bgadr=(char*)adr(target,x,y);
-	data.tgadr=data.bgadr;
-	data.width=srect.width();
-	data.height=srect.height();
-	data.spitch=source.pitch;
-	data.bgpitch=target.pitch;
-	data.tgpitch=data.bgpitch;
-	data.cb_key=key.getYCb();
-	data.cr_key=key.getYCr();
-	data.tola=tol1;
-	data.tolb=tol2;
-	//if ((((int)(data.width&255))&3)==0 && (((int)(data.sadr&255))&15)==0 && (((int)(data.bgadr&255))&15)==0) {
-	if (ASM_BltChromaKey32(&data)) return;
+	if ((GetCPUCaps()&CPUCAPS::HAVE_SSE2)) {
+		BLTCHROMADATA data;
+		data.sadr=(char*)adr(source,srect.left(),srect.top());
+		data.bgadr=(char*)adr(target,x,y);
+		data.tgadr=data.bgadr;
+		data.width=srect.width();
+		data.height=srect.height();
+		data.spitch=source.pitch;
+		data.bgpitch=target.pitch;
+		data.tgpitch=data.bgpitch;
+		data.cb_key=key.getYCb();
+		data.cr_key=key.getYCr();
+		data.tola=tol1;
+		data.tolb=tol2;
+		//if ((((int)(data.width&255))&3)==0 && (((int)(data.sadr&255))&15)==0 && (((int)(data.bgadr&255))&15)==0) {
+		if (ASM_BltChromaKey32(&data)) return;
+	}
 #endif
 	double mask;
 	int cb,cr;
@@ -401,21 +404,24 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 
 static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &background, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y)
 {
+	if (tol2<tol1) tol2=tol1;
 #ifdef HAVE_X86_ASSEMBLER
-	BLTCHROMADATA data;
-	data.sadr=(char*)adr(target,srect.left(),srect.top());
-	data.bgadr=(char*)adr(background,x,y);
-	data.tgadr=data.sadr;
-	data.width=srect.width();
-	data.height=srect.height();
-	data.spitch=target.pitch;
-	data.bgpitch=background.pitch;
-	data.tgpitch=data.spitch;
-	data.cb_key=key.getYCb();
-	data.cr_key=key.getYCr();
-	data.tola=tol1;
-	data.tolb=tol2;
-	if (ASM_BltChromaKey32(&data)) return;
+	if ((GetCPUCaps()&CPUCAPS::HAVE_SSE2)) {
+		BLTCHROMADATA data;
+		data.sadr=(char*)adr(target,srect.left(),srect.top());
+		data.bgadr=(char*)adr(background,x,y);
+		data.tgadr=data.sadr;
+		data.width=srect.width();
+		data.height=srect.height();
+		data.spitch=target.pitch;
+		data.bgpitch=background.pitch;
+		data.tgpitch=data.spitch;
+		data.cb_key=key.getYCb();
+		data.cr_key=key.getYCr();
+		data.tola=tol1;
+		data.tolb=tol2;
+		if (ASM_BltChromaKey32(&data)) return;
+	}
 #endif
 	double mask;
 	int cb,cr;
