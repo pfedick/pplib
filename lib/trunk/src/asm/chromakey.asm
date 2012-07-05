@@ -261,11 +261,6 @@ ASM_BltChromaKey32_1:
 	%endif
 	ret
 %else								; 32-Bit-Version
-	global ASM_BltChromaKey32_1
-	global _ASM_BltChromaKey32_1
-
-	ASM_BltChromaKey32_1:
-	_ASM_BltChromaKey32_1:
 		push ebp
 		mov ebp,[esp+8]				; Pointer auf data nach ebp
 
@@ -530,11 +525,7 @@ ALIGN 16
 		ret
 
 %else								; 32-Bit-Version
-	global ASM_BltChromaKey32_4
-	global _ASM_BltChromaKey32_4
 
-	ASM_BltChromaKey32:
-	_ASM_BltChromaKey32:
 		push ebp
 		mov ebp,[esp+8]				; Pointer auf data nach ebp
 
@@ -542,4 +533,3 @@ ALIGN 16
 		pop ebp
 		ret
 %endif
-
