@@ -173,6 +173,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/sound_Icecast.o
 
 ASM_OBJ_RELEASE	=	release/asm_blt.o \
+		release/asm_blt_blend.o \
 		release/asm_chromakey.o \
 		release/asm_colors.o \
 		release/asm_common.o \
@@ -181,6 +182,7 @@ ASM_OBJ_RELEASE	=	release/asm_blt.o \
 		release/asm_pixel.o \
 		release/asm_rect.o
 ASM_OBJ_DEBUG	=	debug/asm_blt.o \
+		debug/asm_blt_blend.o \
 		debug/asm_chromakey.o \
 		debug/asm_colors.o \
 		debug/asm_common.o \
@@ -657,6 +659,11 @@ release/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
 	# Compiling >>>asm/blt.asm<<<
 	$(ASM) -o release/asm_blt.o -l release/asm_blt.lst $(srcdir)/asm/blt.asm
 
+release/asm_blt_blend.o:	$(srcdir)/asm/blt_blend.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/blt_blend.asm<<<
+	$(ASM) -o release/asm_blt_blend.o -l release/asm_blt_blend.lst $(srcdir)/asm/blt_blend.asm
+
 release/asm_chromakey.o:	$(srcdir)/asm/chromakey.asm Makefile
 	###############################################################################
 	# Compiling >>>asm/chromakey.asm<<<
@@ -1049,6 +1056,11 @@ debug/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
 	###############################################################################
 	# Compiling >>>asm/blt.asm<<<
 	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_blt.o  -l debug/asm_blt.lst $(srcdir)/asm/blt.asm -D_DEBUG -DDEBUG=DEBUG
+
+debug/asm_blt_blend.o:	$(srcdir)/asm/blt_blend.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/blt_blend.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_blt_blend.o  -l debug/asm_blt_blend.lst $(srcdir)/asm/blt_blend.asm -D_DEBUG -DDEBUG=DEBUG
 
 debug/asm_chromakey.o:	$(srcdir)/asm/chromakey.asm Makefile
 	###############################################################################

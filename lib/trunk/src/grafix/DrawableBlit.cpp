@@ -87,7 +87,9 @@ extern "C" {
 	int ASM_Blt32(BLTDATA *d);
 	int ASM_BltColorKey32(BLTDATA *d);
 	int ASM_BltDiffuse32(BLTDATA *d);
-	int ASM_BltBlend32(BLTDATA *d, int factor);
+	int ASM_BltBlend32_MMX(BLTDATA *d, int factor);
+	int ASM_BltBlend32_SSE_Align1(BLTDATA *d, int factor);
+	int ASM_BltBlend32_SSE_Align2(BLTDATA *d, int factor);
 	int ASM_BltChromaKey32(BLTCHROMADATA *d);
 }
 #endif
@@ -196,10 +198,16 @@ static int BltBlend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 	if (f<0) f=0;
 	if (f>255) f=255;
 	//::printf ("factor=%0.2f, f=%i\n",factor,f);
-	if (ASM_BltBlend32(&data,f)) {
-		return 1;
+
+	if ((GetCPUCaps()&CPUCAPS::HAVE_SSE2)) {
+		if ((data.width&1)==0 && (((ptrdiff_t)data.src)&7)==0 && (((ptrdiff_t)data.tgt)&7)==0 ) {
+			if (ASM_BltBlend32_SSE_Align2(&data,f)) return 1;
+		} else {
+			if (ASM_BltBlend32_SSE_Align1(&data,f)) return 1;
+		}
+	} else {
+		if (ASM_BltBlend32_MMX(&data,f)) return 1;
 	}
-	return 0;
 #endif
 	ppluint32 *src, *tgt;
 	src=(ppluint32*)adr(source,srect.left(),srect.top());
