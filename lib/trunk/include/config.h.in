@@ -70,6 +70,7 @@
 #undef HAVE_REALLOC
 #undef HAVE_SOCKET
 #undef HAVE_STDARG_H
+#undef HAVE_STDDEF_H
 #undef HAVE_STDBOOL_H
 #undef HAVE_STDIO_H
 #undef HAVE_STDINT_H
