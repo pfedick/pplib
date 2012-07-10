@@ -39,9 +39,7 @@
 #define PPL6EXCEPTIONS_H_
 #include <exception>
 
-#ifdef HAVE_STDARG_H
 #include <stdarg.h>
-#endif
 
 
 namespace ppl6 {
