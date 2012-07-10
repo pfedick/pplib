@@ -43,6 +43,15 @@
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
+#endif
+
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
