@@ -15,6 +15,7 @@ Version 6.4.13
     und ist inkompatibel zu vorher.
   - Testsuite mit Unittests für CDateTime erstellt (Verwendung von
     Google-Test)
+  - Bugfix in CString::PregReplace
 
 Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
   - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen
