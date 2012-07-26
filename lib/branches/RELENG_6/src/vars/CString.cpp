@@ -1551,12 +1551,12 @@ int CString::PregReplace(const char *expr, const char *replace, int maxreplace)
 	int perrorcode;
 	pcre *reg;
 	//printf ("r=%s, flags=%i\n",r,flags);
-	reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
 	CString neu;
 	CString Replace;
 	char rep[5];
 
 CString__PregReplace_Restart:
+    reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
 	if (reg) {
 		CString rest=buffer;
 		while (1) {		// Endlosschleife, bis nichts mehr matched
