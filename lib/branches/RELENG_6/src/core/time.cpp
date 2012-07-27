@@ -982,7 +982,6 @@ CString MkRFC822Date (PPLTIME &t)
 	CString s;
 	const char *day[]={ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
 	const char *month[]={ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-
 	// PPLTIME prüfen
 	if (t.day_of_week<0 || t.day_of_week>6) throw IllegalArgumentException("MkRFC822Date: week<0 order week>6");
 	if (t.month<1 || t.month>12) throw IllegalArgumentException("MkRFC822Date: month<0 order month>12");
