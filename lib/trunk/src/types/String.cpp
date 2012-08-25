@@ -289,6 +289,24 @@ String::String(const std::wstring &str) throw(OutOfMemoryException)
 	set(str.data(),str.size());
 }
 
+String::String(const WideString *str) throw(OutOfMemoryException)
+{
+	type=STRING;
+	ptr=NULL;
+	stringlen=0;
+	s=0;
+	set(str);
+}
+
+String::String(const WideString &str) throw(OutOfMemoryException)
+{
+	type=STRING;
+	ptr=NULL;
+	stringlen=0;
+	s=0;
+	set(str,str.size());
+}
+
 /*!\brief Destruktor
  *
  * \desc
