@@ -1166,19 +1166,19 @@ void FontEngineFont6::deleteFont(FontFile *file)
 	file->engine=NULL;
 }
 
-void FontEngineFont6::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
+void FontEngineFont6::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color)
 {
 	Font6Renderer *render=(Font6Renderer *)file.priv;
 	render->render(draw,font,x,y,text,color);
 }
 
-Size FontEngineFont6::measure(const FontFile &file, const Font &font, const String &text)
+Size FontEngineFont6::measure(const FontFile &file, const Font &font, const WideString &text)
 {
 	Font6Renderer *render=(Font6Renderer *)file.priv;
 	return render->measure(font,text);
 }
 
-Rect FontEngineFont6::boundary(const FontFile &file, const Font &font, const String &text, int x, int y)
+Rect FontEngineFont6::boundary(const FontFile &file, const Font &font, const WideString &text, int x, int y)
 {
 	Font6Renderer *render=(Font6Renderer *)file.priv;
 	return render->boundary(font,text,x,y);

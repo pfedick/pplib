@@ -859,9 +859,9 @@ class FontEngine
 		virtual int ident(FileObject &file) throw();
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const String &text);
-		virtual Rect boundary(const FontFile &file, const Font &font, const String &text, int x, int y);
+		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
+		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
+		virtual Rect boundary(const FontFile &file, const Font &font, const WideString &text, int x, int y);
 		virtual String name() const;
 		virtual String description() const;
 };
@@ -870,7 +870,7 @@ class FontEngineFont5 : public FontEngine
 {
 	private:
 		PFPChunk *selectFont(const FontFile &file, const Font &font);
-		void renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
+		void renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
 
 	public:
 		FontEngineFont5();
@@ -879,8 +879,8 @@ class FontEngineFont5 : public FontEngine
 		virtual int ident(FileObject &file) throw();
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
+		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
 		virtual String name() const;
 		virtual String description() const;
 };
@@ -896,9 +896,9 @@ class FontEngineFont6 : public FontEngine
 		virtual int ident(FileObject &file) throw();
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const String &text);
-		virtual Rect boundary(const FontFile &file, const Font &font, const String &text, int x, int y);
+		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
+		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
+		virtual Rect boundary(const FontFile &file, const Font &font, const WideString &text, int x, int y);
 		virtual String name() const;
 		virtual String description() const;
 };
@@ -914,8 +914,8 @@ class FontEngineFreeType : public FontEngine
 		virtual int ident(FileObject &file) throw();
 		virtual FontFile *loadFont(FileObject &file, const String &fontname);
 		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const String &text);
+		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
+		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
 		virtual String name() const;
 		virtual String description() const;
 };

@@ -558,17 +558,17 @@ void FontEngine::deleteFont(FontFile *file)
 	throw UnimplementedVirtualFunctionException();
 }
 
-void FontEngine::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
+void FontEngine::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color)
 {
 	throw UnimplementedVirtualFunctionException();
 }
 
-Size FontEngine::measure(const FontFile &file, const Font &font, const String &text)
+Size FontEngine::measure(const FontFile &file, const Font &font, const WideString &text)
 {
 	throw UnimplementedVirtualFunctionException();
 }
 
-Rect FontEngine::boundary(const FontFile &file, const Font &font, const String &text, int x, int y)
+Rect FontEngine::boundary(const FontFile &file, const Font &font, const WideString &text, int x, int y)
 {
 	throw UnimplementedVirtualFunctionException();
 }

@@ -461,7 +461,7 @@ static const char *FindJumpTable(const char *header, int *start, int *end, int c
 	return NULL;
 }
 
-void FontEngineFont5::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
+void FontEngineFont5::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color)
 {
 	PFPChunk *c=selectFont(file,font);
 	if (c) {
@@ -481,7 +481,7 @@ void FontEngineFont5::render(const FontFile &file, const Font &font, Drawable &d
 	throw InvalidFontException();
 }
 
-void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
+void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color)
 {
 	DRAWABLE_DATA *data=draw.getData();
 	const char *header=(char*)c->data();
@@ -632,7 +632,7 @@ void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &dr
 	}
 }
 
-Size FontEngineFont5::measure(const FontFile &file, const Font &font, const String &text)
+Size FontEngineFont5::measure(const FontFile &file, const Font &font, const WideString &text)
 {
 	Size s;
 	if (file.priv==NULL) throw NullPointerException();

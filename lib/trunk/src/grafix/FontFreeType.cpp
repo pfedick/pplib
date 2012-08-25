@@ -258,7 +258,7 @@ static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, con
 
 #endif
 
-void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const String &text, const Color &color)
+void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color)
 {
 #ifndef HAVE_FREETYPE2
 	throw UnsupportedFeatureException("Freetype2");
@@ -331,6 +331,9 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 				renderGlyphMono(draw,&slot->bitmap,(x>>6)+slot->bitmap_left,
 						(y>>6)-slot->bitmap_top,color);
 			}
+			if (font.drawUnderline()) {
+
+			}
 			lastx=x+slot->advance.x;
 			orgy-=slot->advance.y;
 			last_glyph=glyph_index;
@@ -339,7 +342,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 #endif
 }
 
-Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const String &text)
+Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const WideString &text)
 {
 	Size s;
 #ifndef HAVE_FREETYPE2
@@ -350,49 +353,48 @@ Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const S
 	int error=FT_Set_Pixel_Sizes(face->face,0,font.size()+2);
 	if (error!=0) throw InvalidFontException();
 
-	int lastx=0;
-	int orgx=0;
-	int orgy=0;
+	FT_Set_Transform( face->face, NULL, NULL );
+
+	int width=0,height=0;
+
 	int code;
-	int x=0,y=0;
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
+	kerning.x=0;
+	kerning.y=0;
 	size_t p=0;
 	size_t textlen=text.len();
 	while (p<textlen) {
 		code=text[p];
 		p++;
-		y=orgy;
 		if (code==10) {											// Newline
-			lastx=x=orgx;
-			orgy+=font.size()+2;
-			y=orgy;
+			width=0;
+			height+=(font.size()+2);
 			last_glyph=0;
 		} else {
 			glyph_index=FT_Get_Char_Index(face->face,code);
 			if (!glyph_index) continue;
 			// Antialiasing
 			if (font.antialias()) {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER);
+				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL);
 			} else {
 				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
 			}
 			if (error!=0) continue;
-			x=x+slot->bitmap_left;
-			y=y-slot->bitmap_top;
+			//x=x+slot->bitmap_left;
+			//y=y-slot->bitmap_top;
 			if (face->kerning>0 && last_glyph>0) {
 				error=FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
-				if (error==0) {
-					x+=(kerning.x>>6);
-				}
+				width+=kerning.x;
 			}
-			x+=(slot->advance.x>>6);
-			if (x>s.width) s.width=x;
+			width+=(slot->advance.x);
+			if (width>s.width) s.width=width;
 			last_glyph=glyph_index;
 		}
 	}
-	s.setHeight(orgy+font.size()+2);
+	s.setHeight(height+font.size()+2);
+	s.width=s.width>>6;
 	return s;
 #endif
 }
