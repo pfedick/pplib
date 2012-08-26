@@ -691,6 +691,7 @@ class File : public FileObject
 		};
 	private:
 		const char *fmode(FileMode mode);
+		const char *fmodepopen(FileMode mode);
 		void throwErrno(int e);
 
 	public:

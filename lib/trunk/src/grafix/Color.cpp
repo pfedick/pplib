@@ -701,5 +701,31 @@ std::ostream& operator<<(std::ostream& s, const Color &c)
 	return s.write((const char*)t.getPtr(),t.size());
 }
 
+
+Color Color::getBlended(const Color &background, const Color &foreground, int intensity)
+{
+	Color c;
+	int i2=intensity&255;
+	int i1=255-i2;
+	c.r=((background.r*i1) + (foreground.r*i2))/255;
+	c.g=((background.g*i1) + (foreground.g*i2))/255;
+	c.b=((background.b*i1) + (foreground.b*i2))/255;
+	c.a=255;
+	return c;
+}
+
+Color Color::getBlendedf(const Color &background, const Color &foreground, float intensity)
+{
+	Color c;
+	float i2=intensity;
+	float i1=1.0f-i2;
+	c.r=(int)((background.r*i1) + (foreground.r*i2));
+	c.g=(int)((background.g*i1) + (foreground.g*i2));
+	c.b=(int)((background.b*i1) + (foreground.b*i2));
+	c.a=255;
+	return c;
+}
+
+
 } // EOF namespace grafix
 } // EOF namespace ppl7

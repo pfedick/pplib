@@ -396,6 +396,9 @@ union  {
 		bool operator!=(const Color &other) const;
 		bool operator>=(const Color &other) const;
 		bool operator>(const Color &other) const;
+
+		static Color getBlended(const Color &background, const Color &foreground, int intensity);
+		static Color getBlendedf(const Color &background, const Color &foreground, float intensity);
 };
 
 const Color operator* (const Color &color, float factor);

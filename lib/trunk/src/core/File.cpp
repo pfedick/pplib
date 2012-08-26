@@ -350,6 +350,26 @@ const char *File::fmode(FileMode mode)
 	}
 }
 
+/*!\brief C-Filemode-String für popen
+ *
+ * \desc
+ * Diese interne Funktion gibt den zum Datemodus \p mode passenden C-Filemode-String
+ * für die popen-Funktion zurück.
+ *
+ * @param mode Filemodus aus der Enumeration FileMode
+ * @return C-String
+ */
+const char *File::fmodepopen(FileMode mode)
+{
+	switch (mode) {
+		case READ: return "r";
+		case WRITE: return "w";
+		case READWRITE: return "r+";
+		default:
+			throw IllegalFilemodeException();
+	}
+}
+
 /*!\brief %Exception anhand errno-Variable werfen
  *
  * \desc
@@ -612,12 +632,11 @@ void File::popen (const String &command, FileMode mode)
 	close();
 	if (command.isEmpty()) throw IllegalArgumentException();
 
-	if ((ff=(FILE*)::popen((const char*)command,fmode(mode)))==NULL) {
+	if ((ff=(FILE*)::popen((const char*)command,fmodepopen(mode)))==NULL) {
 		throwErrno(errno,command);
 	}
 	isPopen=true;
 	mysize=size();
-	seek(0);
 	setFilename(command);
 }
 
@@ -642,12 +661,11 @@ void File::popen (const char * command, FileMode mode)
 {
 	if (command==NULL || strlen(command)==0) throw IllegalArgumentException();
 	close();
-	if ((ff=(FILE*)::popen(command,fmode(mode)))==NULL) {
+	if ((ff=(FILE*)::popen(command,fmodepopen(mode)))==NULL) {
 		throwErrno(errno,command);
 	}
 	isPopen=true;
 	mysize=size();
-	seek(0);
 	setFilename(command);
 }
 
