@@ -106,6 +106,8 @@ Image::Image()
  */
 Image::Image(const Image &other)
 {
+	memset(&data,0,sizeof(data));
+	fn=NULL;
 	copy(other);
 }
 
@@ -118,6 +120,8 @@ Image::Image(const Image &other)
  */
 Image::Image(const Drawable &other)
 {
+	memset(&data,0,sizeof(data));
+	fn=NULL;
 	copy(other);
 }
 
@@ -230,6 +234,7 @@ void Image::copy(const Drawable &other)
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
+	if (other.isEmpty()) return;
 	// Das andere Drawable kann auch einen Ausschnitt aus einem größeren Bild
 	// repräsentieren, daher kopieren wir die Pixeldaten Zeilenweise
 	size_t size=other.data.width*other.data.height*(other.data.rgbformat.bitdepth()/8);
@@ -278,6 +283,7 @@ void Image::copy(const Image &other)
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
+	if (other.isEmpty()) return;
 	if (!myMemory.copy(other.myMemory)) {
 		throw OutOfMemoryException();
 	}
