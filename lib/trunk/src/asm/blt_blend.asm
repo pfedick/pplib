@@ -276,8 +276,8 @@ _ASM_BltBlend32_SSE_Align1:
 		mov edi,[ebp+tgt]
 		movd xmm7,eax
 		mov esi,[ebp+src]
-		pshufw xmm7,xmm7, 0
-		pshufw xmm4,xmm4,0
+		pshuflw xmm7,xmm7, 0
+		pshuflw xmm4,xmm4,0
 
 		sub edi,4					;// ?? Wofür soll das gut sein???
 		sub esi,4					;// ?? Dito
