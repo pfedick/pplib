@@ -63,11 +63,11 @@ namespace ppl7 {
 namespace db {
 
 
-/*!\class Result
+/*!\class ResultSet
  * \ingroup PPLGroupDatabases
- * \brief Basisklasse für Ergebnisse aus Datenbank-Selects
+ * \brief Ergebnis eines Datenbank-Selects
  *
- * \header \#include <ppl6-db.h>
+ * \header \#include <ppl7-db.h>
  *
  * \descr
  * Dies ist eine virtuelle Basisklasse für das Aufnehmen des Ergebnisses eines Datenbank-Selects.
@@ -75,12 +75,12 @@ namespace db {
  * eigene abgeleitete Implementierung davon.
  * Mit Ihren Funktionen können die Ergebniszeilen aus einem Select durchwandert und ausgelesen werden.
  * \par
- * Die Klasse wird durch Aufruf verschiedener Funktionen innerhalb der Klasse ppl6::db::Database (bzw.
+ * Das ResultSet wird durch Aufruf verschiedener Funktionen innerhalb der Klasse ppl7::db::Database (bzw.
  * davon abgeleiteten Klassen) erstellt und muss von der aufrufenden Anwendung selbst mit
- * \c delete gelöscht werden.
+ * \c delete freigegeben werden.
  *
  * \example
- * Das nachfolgende Beispiel zeigt unter Verwendung einer MySQL-Datenbank, wie die Result-Klasse
+ * Das nachfolgende Beispiel zeigt unter Verwendung einer MySQL-Datenbank, wie die ResultSet-Klasse
  * verwendet werden kann.
  * \dontinclude db_examples.cpp
  * \skip DB_Result_Example1
@@ -88,171 +88,128 @@ namespace db {
  *
  */
 
-/*!\enum Result::Type
+/*!\enum ResultSet::Type
  * \brief Mögliche Datentypen
  */
 
-/*!\var Result::Type Result::Error
- * Dieser Wert wird von der Funktion Result::FieldType im Fehlerfall zurückgegeben.
+/*!\var ResultSet::Type ResultSet::ERROR
+ * Dieser Wert wird von der Funktion ResultSet::fieldType im Fehlerfall zurückgegeben.
  */
 
-/*!\var Result::Type Result::Unknown
+/*!\var ResultSet::Type ResultSet::UNKNOWN
  * Der Datentyp ist unbekannt
  */
 
-/*!\var Result::Type Result::Integer
- * Ein Zahlenwert vom Typ Integer
+/*!\var ResultSet::Type ResultSet::INTEGER
+ * Ein 32-Bit Zahlenwert vom Typ Integer
  */
 
-/*!\var Result::Type Result::Decimal
- * Ein Zahlenwert mit Kommastellen. Häufig ein Float oder Double
+/*!\var ResultSet::Type ResultSet::LONGINTEGER
+ * Ein 64-Bit Zahlenwert vom Typ Integer
  */
 
-/*!\var Result::Type Result::Bit
- * Ein boolscher Wert
+/*!\var ResultSet::Type ResultSet::FLOAT
+ * Ein Dezimalwert einfacher Genauigkeit
  */
 
-/*!\var Result::Type Result::Timestamp
+/*!\var ResultSet::Type ResultSet::DOUBLE
+ * Ein Dezimalwert doppelter Genauigkeit
+ */
+
+
+/*!\var ResultSet::Type ResultSet::BOOLEAN
+ * Ein boolscher Wert, "true" oder "false"
+ */
+
+/*!\var ResultSet::Type ResultSet::Timestamp
  * Ein Zeitstempel, meist UTC
  */
 
-/*!\var Result::Type Result::Date
- * Ein Datumswert
- */
-
-/*!\var Result::Type Result::Time
- * Eine Uhrzeit
- */
-
-/*!\var Result::Type Result::DateTime
+/*!\var ResultSet::Type ResultSet::DATETIME
  * Kombination aus Datum und Uhrzeit
  */
 
-/*!\var Result::Type Result::String
+/*!\var ResultSet::Type ResultSet::STRING
  * Ein String
  */
 
-/*!\var Result::Type Result::Binary
- * Ein großer String oder Binärwert
+/*!\var ResultSet::Type ResultSet::BINARY
+ * Ein Binärwert
  */
 
-/*!\var Result::Type Result::Enum
- * Eine Enumeration
- */
 
-#ifdef DONE
-
-Result::Result()
-/*!\brief Konstruktor der Klasse
+/*!\fn db::ResultSet::ResultSet
+ * \brief Konstruktor der Klasse
  *
  * Dies ist der Konstruktor der Klasse. Er sorgt dafür, dass die internen Variablen initialisiert
  * werden.
  */
-{
-}
 
-Result::~Result()
-/*!\brief Destruktor der Klasse
+/*!\fn db::ResultSet::~ResultSet
+ * \brief Destruktor der Klasse
  *
  * Der Destruktor sorgt dafür, dass sämtlicher durch die Klasse allokierter Speicher wieder freigegeben
- * wird. Dazu wird die Funktion Result::Clear aufgerufen.
+ * wird. Dazu wird die Funktion ResultSet::clear aufgerufen.
  */
-{
-}
 
 
-int Result::Export(CAssocArray &array)
-/*!\brief Result als assoziatives Array exportieren
- *
- * \descr
- * Mit diesem Befehl wird das Result-Set dieses Objekts als Strings mit
- * Key-Value-Paaren in ein CAssocArray kopiert. Das Array kann in ein
- * GenericResult-Objekt mittels GenericResult::Import wieder importiert werden.
- * Da alles als String exportiert wird, gehen die Datentyp-Informationen
- * verloren.
- *
- * \param[out] array Ein assoziatives Array, in dem das Result-Set gespeichert werden soll
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	array.Clear();
-	CAssocArray row;
-	while (FetchArray(row)) {
-		array.Set("[]",row);
-	}
-	return 1;
-}
 
-void Result::Clear()
-/*!\brief Speicher freigeben, Result löschen
+/*!\fn db::ResultSet::clear
+ * \brief Speicher freigeben, Result löschen
  *
  * \descr
  * Durch Aufruf dieser Funktion wird der interne Speicher und Datenbank- oder Result-spezifische
  * Handles freigegeben. Nach Aufruf der Funktion kann daher nicht mehr auf die vormals vorhandenen
  * Ergebnisse des Datenbank-Selects zugegriffen werden. Die Funktion braucht in der Regel nicht
- * aufgerufen zu werden, da dies auch der Destruktor der Klasse macht.
+ * aufgerufen zu werden, da dies der Destruktor der Klasse automatisch macht.
  */
-{
-}
 
-pplint64 Result::Rows()
-/*!\brief Anzahl Zeilen im Ergebnis
+/*!\fn ppl7::db::ResultSet::rows
+ * \brief Anzahl Zeilen im Ergebnis
  *
  * Diese Funktion liefert die Anzahl Zeilen im Ergebnis des vorhergehenden Selects zurück.
  * @return Anzahl Zeilen (rows). Im Fehlerfall wird -1 zurückgegeben.
  *
+ * \exception UnavailableException Wird geworfen, wenn der Datenbank-Treiber die Funktion nicht
+ * unterstützt.
+ *
  * \see
- * Result::Fields gibt die Anzahl Spalten im Ergebnis zurück
+ * ResultSet::fields gibt die Anzahl Spalten im Ergebnis zurück
  */
-{
-	SetError(180);
-	return -1;
-}
 
-pplint64 Result::Affected()
-/*!\brief Betroffene Zeilen
+/*!\fn ResultSet::affected
+ * \brief Betroffene Zeilen
  *
- * War der Datenbank-Query ein Select, liefert diese Funktion genau wie Result::Rows die Anzahl
- * Zeilen im Ergebnis zurück. Handelete es sich um ein Update/Insert/Replace, wird die Anzahl
- * betroffener bzw. veränderter Datensätze zurückgegeben. Die Information kann auch über Funktion
- * Database::GetAffectedRows der Datenbank-Klasse ausgelesen werden.
+ * Liefert nach einem Insert, Update oder Replace die Anzahl Datensätze zurück, die durch das Update
+ * verändert wurden. Die Information kann auch über Funktion Database::getAffectedRows der
+ * Datenbank-Klasse ausgelesen werden.
  *
- * @return Anzahl betroffender Datensätze, im Fehlerfall -1
+ * @return Anzahl betroffender Datensätze
  */
-{
-	SetError(180);
-	return -1;
-}
 
-int Result::Fields()
-/*!\brief Anzahl Spalten im Ergebnis
+/*!\fn ResultSet::fields
+ * \brief Anzahl Spalten im Ergebnis
  *
  * Diese Funktion liefert die Anzahl Spalten im Ergebnis des vorhergehenden Selects zurück.
  *
- * @return Anzahl Spalten oder -1 im Fehlerfall.
+ * @return Anzahl Spalten.
  */
-{
-	return -1;
-}
 
-const char *Result::Get(pplint64 row, const char *fieldname)
-/*!\brief Wert eines bestimmten Feldes
+
+/*!\fn ResultSet::getString(const String &fieldname)
+ * \brief Wert eines bestimmten Feldes
  *
  * \descr
  * Mit dieser Funktion wird der Wert des Feldes mit dem Namen \p fieldname aus der
- * Ergebniszeile \p row als String zurückgegeben.
+ * aktuellem Ergebniszeile zurückgegeben.
  *
- * @param[in] row Die gewünschte Ergebniszeile
  * @param[in] fieldname Der Name des auszulesenden Feldes
  * @return Ist das Feld vorhanden, wird ein Pointer auf dessen Inhalt zurückgegeben, im
- * Fehlerfall NULL.
+ * Fehlerfall wird eine Exception geworfen.
  */
-{
-	SetError(180);
-	return NULL;
-}
 
-const char *Result::Get(pplint64 row, int field)
+
+const char *ResultSet::Get(pplint64 row, int field)
 /*!\brief Wert eines bestimmten Feldes
  *
  * \descr
@@ -269,7 +226,7 @@ const char *Result::Get(pplint64 row, int field)
 	return NULL;
 }
 
-int Result::FieldNum(const char *fieldname)
+int ResultSet::FieldNum(const char *fieldname)
 /*!\brief Spalte eines bestimmten Feldes herausfinden
  *
  * Diese Funktion liefert die Spaltennummer des Feldes mit dem Namen \p fieldname zurück, sofern
@@ -284,10 +241,10 @@ int Result::FieldNum(const char *fieldname)
 	return -1;
 }
 
-const char *Result::FieldName(int num)
+const char *ResultSet::FieldName(int num)
 /*!\brief Name einer bestimmten Spalte herausfinden
  *
- * Dies ist die Umkehrfunktion zu Result::FieldNum. Sie liefert den Namen eines bestimmten Feldes
+ * Dies ist die Umkehrfunktion zu ResultSet::FieldNum. Sie liefert den Namen eines bestimmten Feldes
  * anhand dessen Spaltennummer \p num zurück, sofern sie vorhanden ist.
  *
  * @param[in] num Gewünschte Spaltennummer
@@ -298,33 +255,33 @@ const char *Result::FieldName(int num)
 	return NULL;
 }
 
-Result::Type Result::FieldType(int num)
+ResultSet::Type ResultSet::FieldType(int num)
 /*!\brief Typ eines Feldes auslesen
  *
  * Mit dieser Funktion kann man abfragen, was für ein Datentyp das Feld \p num ist.
  *
  * @param[in] num Die gewünschte Spalte
- * @return Liefert einen Wert vom Typ Result::Type zurück, im Fehlerfall Result:Error.
+ * @return Liefert einen Wert vom Typ ResultSet::Type zurück, im Fehlerfall Result:Error.
  */
 {
 	SetError(180);
-	return Result::Error;
+	return ResultSet::Error;
 }
 
-Result::Type Result::FieldType(const char *fieldname)
+ResultSet::Type ResultSet::FieldType(const char *fieldname)
 /*!\brief Typ eines Feldes auslesen
  *
  * Mit dieser Funktion kann man abfragen, was für ein Datentyp das Feld mit dem Namen \p fieldname ist.
  *
  * @param[in] fieldname Die gewünschte Spalte
- * @return Liefert einen Wert vom Typ Result::Type zurück, im Fehlerfall Result:Error.
+ * @return Liefert einen Wert vom Typ ResultSet::Type zurück, im Fehlerfall Result:Error.
  */
 {
 	SetError(180);
-	return Result::Error;
+	return ResultSet::Error;
 }
 
-CAssocArray Result::FetchArray(pplint64 row)
+CAssocArray ResultSet::FetchArray(pplint64 row)
 /*!\brief Zeile in ein Assoziatives Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in ein Assoziatives Array vom Typ
@@ -340,7 +297,7 @@ CAssocArray Result::FetchArray(pplint64 row)
  * CAssocArray zurückgeliefert.
  * \remarks
  * Bei Aufruf dieser Funktion werden die Daten der aktuellen Zeile mehrfach kopiert. Die Funktion
- * Result::FetchArray(CAssocArray &array, ppluint64 row) ist daher vorzuziehen.
+ * ResultSet::FetchArray(CAssocArray &array, ppluint64 row) ist daher vorzuziehen.
  */
 {
 	SetError(180);
@@ -348,7 +305,7 @@ CAssocArray Result::FetchArray(pplint64 row)
 	return a;
 }
 
-int Result::FetchArray(CAssocArray &array, pplint64 row)
+int ResultSet::FetchArray(CAssocArray &array, pplint64 row)
 /*!\brief Zeile in ein Assoziatives Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in das Assoziative Array
@@ -369,7 +326,7 @@ int Result::FetchArray(CAssocArray &array, pplint64 row)
 	return 0;
 }
 
-CArray Result::FetchFields(pplint64 row)
+CArray ResultSet::FetchFields(pplint64 row)
 /*!\brief Zeile in ein Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in ein Array vom Typ
@@ -385,7 +342,7 @@ CArray Result::FetchFields(pplint64 row)
  * CArray zurückgeliefert.
  * \remarks
  * Bei Aufruf dieser Funktion werden die Daten der aktuellen Zeile mehrfach kopiert. Die Funktion
- * Result::FetchFields(CArray &array, ppluint64 row) ist daher vorzuziehen.
+ * ResultSet::FetchFields(CArray &array, ppluint64 row) ist daher vorzuziehen.
  */
 {
 	SetError(180);
@@ -393,7 +350,7 @@ CArray Result::FetchFields(pplint64 row)
 	return a;
 }
 
-int Result::FetchFields(CArray &array, pplint64 row)
+int ResultSet::FetchFields(CArray &array, pplint64 row)
 /*!\brief Zeile in ein Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in das Array
@@ -414,11 +371,11 @@ int Result::FetchFields(CArray &array, pplint64 row)
 	return 0;
 }
 
-int Result::Seek(pplint64 row)
+int ResultSet::Seek(pplint64 row)
 /*!\brief Internen Zeiger auf die gewünschte Ergebniszeile setzen
  *
  * Mit dieser Funktion wird der interne Datenzeiger auf die gewünschte Zeile \p row gesetzt,
- * so dass diese beim nächsten Aufruf von Result::FetchArray zurückgeliefert wird.
+ * so dass diese beim nächsten Aufruf von ResultSet::FetchArray zurückgeliefert wird.
  *
  * @param[in] row Die gewünschte Zeile
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
@@ -428,7 +385,7 @@ int Result::Seek(pplint64 row)
 	return 0;
 }
 
-void Result::PrintResult()
+void ResultSet::PrintResult()
 /*!\brief Ergebnis auf STDOUT ausgeben
  *
  * Durch AUfruf dieser Funktion wird das Ergebnis des Selects auf STDOUT ausgegeben.
@@ -438,7 +395,30 @@ void Result::PrintResult()
 	SetError(180);
 }
 
-#endif
+
+ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res)
+/*!\brief Result als Liste mit assoziativen Arrays exportieren
+ *
+ * \descr
+ * Mit diesem Befehl wird das Result-Set dieses Objekts als Strings mit
+ * Key-Value-Paaren in ein AssocArray kopiert. Da alles als String exportiert
+ * wird, gehen die Datentyp-Informationen verloren.
+ *
+ * \param[out] list Eine Liste, die das ResultSet aufnehmen soll
+ * \param[in] res ResultSet
+ * \return Die Funktion gibt die Anzahl Zeilen im ResultSet zurück.
+ */
+{
+	list.clear();
+	AssocArray row;
+	while (res.fetchArray(row)) {
+		list.push_back(row);
+	}
+	return (ppluint64)list.size();
+}
+
+
+
 
 }	// EOF namespace db
 }	// EOF namespace ppl6

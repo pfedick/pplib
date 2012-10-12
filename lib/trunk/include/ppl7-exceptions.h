@@ -124,6 +124,7 @@ PPLNORMALEXCEPTION(FailedToLoadResourceException);
 PPLNORMALEXCEPTION(InvalidResourceException);
 PPLNORMALEXCEPTION(ResourceNotFoundException);
 PPLNORMALEXCEPTION(OperationUnavailableException);
+PPLNORMALEXCEPTION(UnavailableException);
 
 
 

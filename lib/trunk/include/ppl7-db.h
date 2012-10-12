@@ -47,6 +47,8 @@
     #endif
 #endif
 
+#include <list>
+
 
 namespace ppl7 {
 namespace db {
@@ -57,49 +59,48 @@ class PoolEx;
 //PPLPARAMETERISEDEXCEPTION(NetworkException);
 //PPLPARAMETERISEDEXCEPTION(IdnConversionException);
 
-#ifdef DONE
-class Result
+class ResultSet
 {
 	public:
 		enum Type {
-			Error=-1,
-			Unknown=0,
-			Integer,
-			Decimal,
-			Bit,
-			Timestamp,
-			Date,
-			Time,
-			DateTime,
-			String,
-			Binary,
-			Enum
+			ERROR=-1,
+			UNKNOWN=0,
+			INTEGER,
+			LONGINTEGER,
+			FLOAT,
+			DOUBLE,
+			BOOLEAN,
+			STRING,
+			DATETIME,
+			BINARY
 		};
-		Result()=0;
-		virtual ~Result()=0;
-		int exportAsArray(AssocArray &array);
+		virtual ~ResultSet()=0;
+
 
 		virtual	void		clear()=0;
-		virtual pplint64	rows() const=0;
-		virtual pplint64	affected() const=0;
+		virtual ppluint64	rows() const=0;
+		virtual ppluint64	affected() const=0;
 		virtual int			fields() const=0;
-		virtual String		get(pplint64 row, const String &fieldname)=0;
-		virtual String		get(pplint64 row, int field)=0;
-		virtual DateTime	getDateTime(pplint64 row, const String &fieldname)=0;
-		virtual DateTime	getDateTime(pplint64 row, int field)=0;
+		virtual String		getString(const String &fieldname)=0;
+		virtual String		getString(int field)=0;
+		virtual DateTime	getDateTime(const String &fieldname)=0;
+		virtual DateTime	getDateTime(int field)=0;
 		virtual int			fieldNum(const String &fieldname)=0;
 		virtual String		fieldName(int field)=0;
-		virtual Result::Type	fieldType(int field)=0;
-		virtual Result::Type	fieldType(const String &fieldname)=0;
-		virtual AssocArray	fetchArray(pplint64 row=-1)=0;
-		virtual int			fetchArray(AssocArray &array, pplint64 row=-1)=0;
-		virtual Array		fetchFields(pplint64 row=-1)=0;
-		virtual int			fetchFields(Array &array, pplint64 row=-1)=0;
-		virtual int			seek(pplint64 row)=0;
+		virtual Type		fieldType(int field)=0;
+		virtual Type		fieldType(const String &fieldname)=0;
+		virtual AssocArray	fetchArray()=0;
+		virtual int			fetchArray(AssocArray &array)=0;
+		virtual Array		fetchFields()=0;
+		virtual int			fetchFields(Array &array)=0;
 		virtual void		printResult() const=0;
+		virtual ppluint64	currentRow()=0;
+		virtual bool		next()=0;
 
 };
-#endif
+
+ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res);
+
 
 #ifdef DONE
 

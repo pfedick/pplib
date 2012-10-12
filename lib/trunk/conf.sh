@@ -57,12 +57,14 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
+			--with-postgresql \
 			--with-sybase=/usr --with-jpeg --with-png \
 			--with-libtiff=/usr --with-mpg123
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-openssl=/usr --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
+			--with-postgresql \
 			--with-sybase=/usr/local --with-jpeg --with-png \
 			--with-libmhash --with-mpg123 --with-ogg=/usr
 		;;

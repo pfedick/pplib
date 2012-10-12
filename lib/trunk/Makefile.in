@@ -70,7 +70,7 @@ RELEASE	= release/AVLTree.o \
 	release/inet_inet_functions.o \
 	release/inet_resolver.o \
 	release/inet_WikiParser.o \
-	release/db_Result.o \
+	release/db_ResultSet.o \
 	release/gfx_Color.o \
 	release/gfx_DrawableBlit.o \
 	release/gfx_DrawableColor.o \
@@ -139,7 +139,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/inet_inet_functions.o \
 	debug/inet_resolver.o \
 	debug/inet_WikiParser.o \
-	debug/db_Result.o \
+	debug/db_ResultSet.o \
 	debug/gfx_Color.o \
 	debug/gfx_DrawableBlit.o \
 	debug/gfx_DrawableColor.o \
@@ -491,10 +491,10 @@ release/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(
 	$(CXX) -Wall -O3 -o release/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp $(CFLAGS) 
 
 ### DATABASE
-release/db_Result.o:	$(srcdir)/database/Result.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+release/db_ResultSet.o:	$(srcdir)/database/ResultSet.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
-	# Compiling >>>database/Result.cpp<<<
-	$(CXX) -Wall -O3 -o release/db_Result.o -c $(srcdir)/database/Result.cpp $(CFLAGS) 
+	# Compiling >>>database/ResultSet.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_ResultSet.o -c $(srcdir)/database/ResultSet.cpp $(CFLAGS) 
 
 ### GRAFIX
 release/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
@@ -889,10 +889,10 @@ debug/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(in
 	$(CXX) -Wall -O -o debug/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### DATABASE
-debug/db_Result.o:	$(srcdir)/database/Result.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+debug/db_ResultSet.o:	$(srcdir)/database/ResultSet.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
-	# Compiling >>>database/Result.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Result.o -c $(srcdir)/database/Result.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	# Compiling >>>database/ResultSet.cpp<<<
+	$(CXX) -Wall -O -o debug/db_ResultSet.o -c $(srcdir)/database/ResultSet.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### GRAFIX
 debug/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
