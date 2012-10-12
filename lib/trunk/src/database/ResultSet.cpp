@@ -201,33 +201,30 @@ namespace db {
  *
  * \descr
  * Mit dieser Funktion wird der Wert des Feldes mit dem Namen \p fieldname aus der
- * aktuellem Ergebniszeile zurückgegeben.
+ * aktuellem Ergebniszeile als String zurückgegeben.
  *
  * @param[in] fieldname Der Name des auszulesenden Feldes
- * @return Ist das Feld vorhanden, wird ein Pointer auf dessen Inhalt zurückgegeben, im
- * Fehlerfall wird eine Exception geworfen.
+ * @return Ist das Feld vorhanden, wird der Wert des Feldes als String
+ * zurückgegeben. Andernfalls wird eine Exception geworfen.
+ * @exception TODO
  */
 
-
-const char *ResultSet::Get(pplint64 row, int field)
-/*!\brief Wert eines bestimmten Feldes
+/*!\fn ResultSet::getString(int field)
+ * \brief Wert eines bestimmten Feldes
  *
  * \descr
  * Mit dieser Funktion wird der Wert des Feldes in Spalte \p field aus der
- * Ergebniszeile \p row als String zurückgegeben.
+ * aktuellem Ergebniszeile als String zurückgegeben.
  *
- * @param[in] row Die gewünschte Ergebniszeile
  * @param[in] field Der Nummer der auszulesenden Spalte
- * @return Ist das Feld vorhanden, wird ein Pointer auf dessen Inhalt zurückgegeben, im
- * Fehlerfall NULL.
+ * @return Ist das Feld vorhanden, wird der Wert des Feldes als String
+ * zurückgegeben. Andernfalls wird eine Exception geworfen.
+ * @exception TODO
  */
-{
-	SetError(180);
-	return NULL;
-}
 
-int ResultSet::FieldNum(const char *fieldname)
-/*!\brief Spalte eines bestimmten Feldes herausfinden
+
+/*!\fn ResultSet::fieldNum
+ * \brief Spalte eines bestimmten Feldes herausfinden
  *
  * Diese Funktion liefert die Spaltennummer des Feldes mit dem Namen \p fieldname zurück, sofern
  * dieses vorhanden ist.
@@ -235,78 +232,58 @@ int ResultSet::FieldNum(const char *fieldname)
  * @param[in] fieldname Name des gesuchten Feldes
  * @return Ist das Feld vorhanden, wird dessen Spaltennummer zurückgegeben. Die Zählung der Spalten
  * fängt dabei bei 0 an. Im Fehlerfall wird -1 zurückgegeben.
+ * @exception TODO
  */
-{
-	SetError(180);
-	return -1;
-}
 
-const char *ResultSet::FieldName(int num)
-/*!\brief Name einer bestimmten Spalte herausfinden
+/*!\fn ResultSet::fieldName
+ * \brief Name einer bestimmten Spalte herausfinden
  *
  * Dies ist die Umkehrfunktion zu ResultSet::FieldNum. Sie liefert den Namen eines bestimmten Feldes
  * anhand dessen Spaltennummer \p num zurück, sofern sie vorhanden ist.
  *
- * @param[in] num Gewünschte Spaltennummer
- * @return Ist die Spalte vorhanden, wird deren Namen als String zurückgegeben, im Fehlerfall NULL.
+ * @param[in] field Gewünschte Spaltennummer
+ * @return Ist die Spalte vorhanden, wird deren Namen als String zurückgegeben,
+ * im Fehlerfall wird eine Exception geworfen.
+ * @exception TODO
  */
-{
-	SetError(180);
-	return NULL;
-}
 
-ResultSet::Type ResultSet::FieldType(int num)
-/*!\brief Typ eines Feldes auslesen
+/*!\fn ResultSet::fieldType(int field)
+ * \brief Typ eines Feldes auslesen
  *
  * Mit dieser Funktion kann man abfragen, was für ein Datentyp das Feld \p num ist.
  *
- * @param[in] num Die gewünschte Spalte
- * @return Liefert einen Wert vom Typ ResultSet::Type zurück, im Fehlerfall Result:Error.
+ * @param[in] field Die gewünschte Spalte
+ * @return Liefert einen Wert vom Typ ResultSet::Type zurück,
+ * im Fehlerfall Result:Error.
  */
-{
-	SetError(180);
-	return ResultSet::Error;
-}
 
-ResultSet::Type ResultSet::FieldType(const char *fieldname)
-/*!\brief Typ eines Feldes auslesen
+/*!\fn ResultSet::fieldType(const String &fieldname)
+ * \brief Typ eines Feldes auslesen
  *
  * Mit dieser Funktion kann man abfragen, was für ein Datentyp das Feld mit dem Namen \p fieldname ist.
  *
  * @param[in] fieldname Die gewünschte Spalte
  * @return Liefert einen Wert vom Typ ResultSet::Type zurück, im Fehlerfall Result:Error.
  */
-{
-	SetError(180);
-	return ResultSet::Error;
-}
 
-CAssocArray ResultSet::FetchArray(pplint64 row)
-/*!\brief Zeile in ein Assoziatives Array kopieren
+/*!\fn ResultSet::fetchArray()
+ * \brief Zeile in ein Assoziatives Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in ein Assoziatives Array vom Typ
  * CAssocArray kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
  * wiederholtes Aufrufen der Funktion kann man somit nach und nach alle Ergebniszeilen
  * durchwandern.
  *
- * \param[in] row Ein Optionaler Parameter, der die gewünschte Ergebniszeile angibt. Wird
- * der Parameter weggelassen, wird der Datensatz zurückgegeben, auf den der interne Zeiger
- * zeigt, und der Zeiger auf den nächsten Datensatz vorgerückt.
- * \return Liefert ein CAssocArray mit Feldern und Werten der aktuellen Ergebniszeile zurück.
+ * \return Liefert ein AssocArray mit Feldern und Werten der aktuellen Ergebniszeile zurück.
  * Im Fehlerfall oder falls keine weiteren Ergebniszeilen vorhanden sind, wird ein leeres
  * CAssocArray zurückgeliefert.
  * \remarks
  * Bei Aufruf dieser Funktion werden die Daten der aktuellen Zeile mehrfach kopiert. Die Funktion
  * ResultSet::FetchArray(CAssocArray &array, ppluint64 row) ist daher vorzuziehen.
  */
-{
-	SetError(180);
-	CAssocArray a;
-	return a;
-}
 
-int ResultSet::FetchArray(CAssocArray &array, pplint64 row)
-/*!\brief Zeile in ein Assoziatives Array kopieren
+/*!\fn ResultSet::FetchArray(AssocArray &array)
+ * \brief Zeile in ein Assoziatives Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in das Assoziative Array
  * \p array kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
@@ -315,43 +292,28 @@ int ResultSet::FetchArray(CAssocArray &array, pplint64 row)
  *
  * \param[out] array Ein Objekt vom Typ CAssocArray, in dem das Ergebnis gespeichert werden
  * soll. Daten, die vor Aufruf in \p array enthalten sind, werden durch die Funktion gelöscht.
- * \param[in] row Ein Optionaler Parameter, der die gewünschte Ergebniszeile angibt. Wird
- * der Parameter weggelassen, wird der Datensatz zurückgegeben, auf den der interne Zeiger
- * zeigt, und der Zeiger auf den nächsten Datensatz vorgerückt.
  * \return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall oder
  * falls keine weiteren Ergebniszeilen vorhanden sind 0.
  */
-{
-	SetError(180);
-	return 0;
-}
 
-CArray ResultSet::FetchFields(pplint64 row)
-/*!\brief Zeile in ein Array kopieren
+/*!\fn ResultSet::fetchFields()
+ * \brief Zeile in ein Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in ein Array vom Typ
  * CArray kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
  * wiederholtes Aufrufen der Funktion kann man somit nach und nach alle Ergebniszeilen
  * durchwandern.
  *
- * \param[in] row Ein Optionaler Parameter, der die gewünschte Ergebniszeile angibt. Wird
- * der Parameter weggelassen, wird der Datensatz zurückgegeben, auf den der interne Zeiger
- * zeigt, und der Zeiger auf den nächsten Datensatz vorgerückt.
  * \return Liefert ein CArray mit Feldern und Werten der aktuellen Ergebniszeile zurück.
  * Im Fehlerfall oder falls keine weiteren Ergebniszeilen vorhanden sind, wird ein leeres
- * CArray zurückgeliefert.
+ * Array zurückgeliefert.
  * \remarks
  * Bei Aufruf dieser Funktion werden die Daten der aktuellen Zeile mehrfach kopiert. Die Funktion
  * ResultSet::FetchFields(CArray &array, ppluint64 row) ist daher vorzuziehen.
  */
-{
-	SetError(180);
-	CArray a;
-	return a;
-}
 
-int ResultSet::FetchFields(CArray &array, pplint64 row)
-/*!\brief Zeile in ein Array kopieren
+/*!\fn ResultSet::fetchFields(Array &array)
+ * \brief Zeile in ein Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in das Array
  * \p array kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
@@ -360,43 +322,36 @@ int ResultSet::FetchFields(CArray &array, pplint64 row)
  *
  * \param[out] array Ein Objekt vom Typ CArray, in dem das Ergebnis gespeichert werden
  * soll. Daten, die vor Aufruf in \p array enthalten sind, werden durch die Funktion gelöscht.
- * \param[in] row Ein Optionaler Parameter, der die gewünschte Ergebniszeile angibt. Wird
- * der Parameter weggelassen, wird der Datensatz zurückgegeben, auf den der interne Zeiger
- * zeigt, und der Zeiger auf den nächsten Datensatz vorgerückt.
  * \return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall oder
  * falls keine weiteren Ergebniszeilen vorhanden sind 0.
  */
-{
-	SetError(180);
-	return 0;
-}
 
-int ResultSet::Seek(pplint64 row)
-/*!\brief Internen Zeiger auf die gewünschte Ergebniszeile setzen
+/*!\fn ResultSet::printRow
+ * \brief Ergebnis auf STDOUT ausgeben
  *
- * Mit dieser Funktion wird der interne Datenzeiger auf die gewünschte Zeile \p row gesetzt,
- * so dass diese beim nächsten Aufruf von ResultSet::FetchArray zurückgeliefert wird.
- *
- * @param[in] row Die gewünschte Zeile
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	SetError(180);
-	return 0;
-}
-
-void ResultSet::PrintResult()
-/*!\brief Ergebnis auf STDOUT ausgeben
- *
- * Durch AUfruf dieser Funktion wird das Ergebnis des Selects auf STDOUT ausgegeben.
+ * Durch Aufruf dieser Funktion wird das Ergebnis des Selects auf STDOUT ausgegeben.
  *
  */
-{
-	SetError(180);
-}
+
+/*!\fn ResultSet::currentRow
+ * \brief Aktuelle Zeile
+ *
+ * Liefert die aktuelle Zeile innerhalb des ResultSets zurück.
+ * @return Nummer der aktuellen Zeile
+ */
+
+/*!\fn ResultSet::next
+ * \brief Nächste Result-Zeile
+ *
+ * Durch Aufruf dieser Funktion wird die nächste Zeile innerhalb des
+ * ResultSets geladen.
+ *
+ * @return Liefert \u true zurück, wenn noch eine weitere Ergebnisseite vorhanden
+ * war, oder \u false, wenn keine weiteren Zeilen vorhanden sind.
+ *
+ */
 
 
-ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res)
 /*!\brief Result als Liste mit assoziativen Arrays exportieren
  *
  * \descr
@@ -408,6 +363,7 @@ ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res)
  * \param[in] res ResultSet
  * \return Die Funktion gibt die Anzahl Zeilen im ResultSet zurück.
  */
+ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res)
 {
 	list.clear();
 	AssocArray row;

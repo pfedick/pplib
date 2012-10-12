@@ -85,6 +85,10 @@ class ResultSet
 		virtual String		getString(int field)=0;
 		virtual DateTime	getDateTime(const String &fieldname)=0;
 		virtual DateTime	getDateTime(int field)=0;
+		virtual int			getInt(const String &fieldname)=0;
+		virtual int			getInt(int field)=0;
+		virtual pplint64	getLongInt(const String &fieldname)=0;
+		virtual pplint64	getLongInt(int field)=0;
 		virtual int			fieldNum(const String &fieldname)=0;
 		virtual String		fieldName(int field)=0;
 		virtual Type		fieldType(int field)=0;
@@ -93,7 +97,8 @@ class ResultSet
 		virtual int			fetchArray(AssocArray &array)=0;
 		virtual Array		fetchFields()=0;
 		virtual int			fetchFields(Array &array)=0;
-		virtual void		printResult() const=0;
+		virtual void		printRow() const=0;
+		virtual void		printAll() const=0;
 		virtual ppluint64	currentRow()=0;
 		virtual bool		next()=0;
 
