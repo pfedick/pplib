@@ -1448,7 +1448,8 @@ int CID3Tag::GetPicture(int type, CBinary &bin) const
 			// Wir haben ein Picture
 			ppl6::CString MimeType;
 			int encoding=Peek8(frame->data);
-			int offset=Decode(frame,1,encoding,MimeType);
+			int offset=Decode(frame,1,0,MimeType);
+			//printf ("Offset: %i, Type=%i, encoding=%i\n",offset, (int)Peek8(frame->data+offset),encoding);
 			if ((int)Peek8(frame->data+offset)==type) {
 				ppl6::CString Description;
 				offset=Decode(frame,offset+1,encoding,Description);
@@ -1473,8 +1474,8 @@ int CID3Tag::SetPicture(int type, const CBinary &bin, const CString &MimeType)
 		if(name.StrCmp(frame->ID)==0) {
 			// Wir haben ein Picture
 			ppl6::CString MimeType;
-			int encoding=Peek8(frame->data);
-			int offset=Decode(frame,1,encoding,MimeType);
+			//int encoding=Peek8(frame->data);
+			int offset=Decode(frame,1,0,MimeType);
 			if ((int)Peek8(frame->data+offset)==type) {
 				exists=true;
 				delete (frame->data);
@@ -1522,8 +1523,8 @@ void CID3Tag::RemovePicture(int type)
 		if(name.StrCmp(frame->ID)==0) {
 			// Wir haben ein Picture
 			ppl6::CString MimeType;
-			int encoding=Peek8(frame->data);
-			int offset=Decode(frame,1,encoding,MimeType);
+			//int encoding=Peek8(frame->data);
+			int offset=Decode(frame,1,0,MimeType);
 			if ((int)Peek8(frame->data+offset)==type) {
 				delete (frame->data);
 				frame->data=NULL;
@@ -1566,22 +1567,27 @@ int CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target)
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
 		target.TranscodeText(data,size,"ISO-8859-1","UTF-8");
+		return offset+size+1;
 	} else if (encoding==1) {
 		size=strlen16(data)*2;
 		if (size+offset>frame->Size) size=frame->Size-offset;
 		target.TranscodeText(data,size,"UTF-16","UTF-8");
+		return offset+size+2;
 	} else if (encoding==2) {
 		size=strlen16(data)*2;
 		if (size+offset>frame->Size) size=frame->Size-offset;
 		target.TranscodeText(data,size,"UTF-BE","UTF-8");
+		return offset+size+2;
 	} else if (encoding==3) {
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
 		target.Strncpy(data,size);
+		return offset+size+1;
 	} else if (encoding>31) {
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
 		target.TranscodeText(data,size,"ISO-8859-1","UTF-8");
+		return offset+size+1;
 	}
 	return offset+size+1;
 }

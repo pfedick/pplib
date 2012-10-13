@@ -1,6 +1,9 @@
 /*!\page PPL6History PPL6 History
 PPL6 - HISTORY
 
+Version 6.4.14
+  - Bugfix beim Einlesen von ID3-Tag-Covern mit UTF-16-Encoding
+
 Version 6.4.13  vom 27.07.2012	(CVS-Tag: REL_6_4_13)
   - Kleinere Kompatibilitätsprobleme unter Windows behoben
   - Fehler in Postgres-DB-Anbindung behoben, wodurch mit FetchArray
