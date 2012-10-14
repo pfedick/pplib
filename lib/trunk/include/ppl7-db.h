@@ -55,6 +55,7 @@ namespace db {
 
 class Pool;
 class PoolEx;
+class Database;
 
 //PPLPARAMETERISEDEXCEPTION(NetworkException);
 //PPLPARAMETERISEDEXCEPTION(IdnConversionException);
@@ -105,10 +106,7 @@ class ResultSet
 };
 
 ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res);
-
-
-#ifdef DONE
-
+Database *Connect(const AssocArray &params);
 
 class Database
 {
@@ -139,8 +137,8 @@ class Database
 		int		close();
 
 		int		execf(const char *query, ...);
-		Result	*queryf(const char *query, ...);
-		void	freeResult(Result *res);
+		ResultSet	*queryf(const char *query, ...);
+		void	freeResult(ResultSet *res);
 
 		AssocArray execArrayf(const char *query, ...);
 		AssocArray execArray(const String &query);
@@ -155,29 +153,67 @@ class Database
 		int	readKeyValue(AssocArray &res, const String &query, const String &keyname, const String &valname=String());
 		ppluint64 insertKey(const String &table, const AssocArray &a, const String &keyname, const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
 
-		String	escape(const String &str);
 
-		virtual int		connect(const AssocArray &params);
-		virtual int     connectCreate(const AssocArray &params);
-		virtual int		reconnect();
-		virtual int		disconnect();
-		virtual int		selectDB(const String &databasename);
-		virtual int 	exec(const String &query);
-		virtual Result	*query(const String &query);
-		virtual void	setMaxRows(ppluint64 rows);
-		virtual int     ping();
+		virtual int			connect(const AssocArray &params);
+		virtual int			connectCreate(const AssocArray &params);
+		virtual int			reconnect();
+		virtual int			disconnect();
+		virtual int			selectDB(const String &databasename);
+		virtual int 		exec(const String &query);
+		virtual ResultSet	*query(const String &query);
+		virtual void		setMaxRows(ppluint64 rows);
+		virtual int			ping();
+		virtual String		escape(const String &str) const;
 		virtual ppluint64	getInsertID();	// Returns ID from autoincrement field
-		virtual pplint64	getAffectedRows();
-		virtual int		startTransaction();
-		virtual int		endTransaction();
-		virtual int		cancelTransaction();
-		virtual int		cancelTransactionComplete();
-		virtual int		createDatabase(const String &name);
-		virtual String	databaseType() const;
+		virtual ppluint64	getAffectedRows();
+		virtual int			startTransaction();
+		virtual int			endTransaction();
+		virtual int			cancelTransaction();
+		virtual int			cancelTransactionComplete();
+		virtual int			createDatabase(const String &name);
+		virtual String		databaseType() const;
+		virtual String		getQuoted(const String &value, const String &type=String()) const;
 
 };
 
-#endif
+
+class PostgreSQL: public Database
+{
+	private:
+		void		*conn;
+		ppluint64	lastinsertid;
+		pplint64	affectedrows;
+		ppluint64	maxrows;
+		int			transactiondepth;
+		AssocArray	condata;
+
+		void *Pgsql_Query(const String &query);
+
+	public:
+		PostgreSQL();
+		virtual ~PostgreSQL();
+
+		virtual int			connect(const AssocArray &params);
+		virtual int			connectCreate(const AssocArray &params);
+		virtual int			reconnect();
+		virtual int			disconnect();
+		virtual int			selectDB(const String &databasename);
+		virtual int			exec(const String &query);
+		virtual ResultSet	*query(const String &query);
+		virtual void		setMaxRows(ppluint64 rows);
+		virtual int			ping();
+		virtual String		escape(const String &str) const;
+		virtual ppluint64	getInsertID();
+		virtual ppluint64	getAffectedRows();
+		virtual int			startTransaction();
+		virtual int			endTransaction();
+		virtual int			cancelTransaction();
+		virtual int			cancelTransactionComplete();
+		virtual int			createDatabase(const String &namee);
+		virtual String		databaseType() const;
+		virtual String		getQuoted(const String &value, const String &type=String()) const;
+};
+
 
 
 } // EOF namespace db

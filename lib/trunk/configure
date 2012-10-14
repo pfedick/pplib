@@ -646,7 +646,6 @@ HAVE_X86_ASSEMBLER
 NASMDEBUGFLAGS
 NASMFLAGS
 NASM
-nasm
 ldnsconfig
 LIBLDNS_LIBS
 LIBLDNS_CFLAGS
@@ -718,6 +717,7 @@ XMKMF
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
+nasm
 EGREP
 GREP
 CPP
@@ -7011,7 +7011,55 @@ fi
 # AX_HAVE_QT scheint unter FreeBSD nicht kompatibel zu sein. Der produzierte Code
 # läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW
 
-AX_PROG_NASM
+
+for ac_prog in nasm nasmw
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_prog_nasm+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  if test -n "$nasm"; then
+  ac_cv_prog_nasm="$nasm" # Let the user override the test.
+else
+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_prog_nasm="$ac_prog"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+fi
+fi
+nasm=$ac_cv_prog_nasm
+if test -n "$nasm"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $nasm" >&5
+$as_echo "$nasm" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$nasm" && break
+done
+test -n "$nasm" || nasm="no"
+
+if test "x$nasm" = "xno" ;
+then
+	as_fn_error $? "NASM assembler not found" "$LINENO" 5
+fi
+
 
 
 
@@ -13979,6 +14027,11 @@ $as_echo "no" >&6; }
 
 if test "$found_postgresql" = "yes"; then
 	report_have_postgres="yes"
+	if test $postgresql_version_number -ge 9002000 ; then
+
+$as_echo "#define POSTGRESQL_HAVE_PQsetSingleRowMode 1" >>confdefs.h
+
+	fi
 fi
 
 

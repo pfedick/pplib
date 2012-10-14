@@ -70,6 +70,8 @@ RELEASE	= release/AVLTree.o \
 	release/inet_inet_functions.o \
 	release/inet_resolver.o \
 	release/inet_WikiParser.o \
+	release/db_Database.o \
+	release/db_PostgreSQL.o \
 	release/db_ResultSet.o \
 	release/gfx_Color.o \
 	release/gfx_DrawableBlit.o \
@@ -139,6 +141,8 @@ DEBUG	= debug/AVLTree.o \
 	debug/inet_inet_functions.o \
 	debug/inet_resolver.o \
 	debug/inet_WikiParser.o \
+	debug/db_Database.o \
+	debug/db_PostgreSQL.o \
 	debug/db_ResultSet.o \
 	debug/gfx_Color.o \
 	debug/gfx_DrawableBlit.o \
@@ -491,6 +495,16 @@ release/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(
 	$(CXX) -Wall -O3 -o release/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp $(CFLAGS) 
 
 ### DATABASE
+release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/Database.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Database.o -c $(srcdir)/database/Database.cpp $(CFLAGS) 
+
+release/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/PostgreSQL.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_PostgreSQL.o -c $(srcdir)/database/PostgreSQL.cpp $(CFLAGS) 
+
 release/db_ResultSet.o:	$(srcdir)/database/ResultSet.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/ResultSet.cpp<<<
@@ -889,6 +903,16 @@ debug/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(in
 	$(CXX) -Wall -O -o debug/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### DATABASE
+debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/Database.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Database.o -c $(srcdir)/database/Database.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/PostgreSQL.cpp<<<
+	$(CXX) -Wall -O -o debug/db_PostgreSQL.o -c $(srcdir)/database/PostgreSQL.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/db_ResultSet.o:	$(srcdir)/database/ResultSet.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/ResultSet.cpp<<<

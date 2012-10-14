@@ -88,6 +88,7 @@ PPLNORMALEXCEPTION(OutOfBoundsEception);
 PPLNORMALEXCEPTION(EmptyDataException);
 PPLNORMALEXCEPTION(TypeConversionException);
 PPLPARAMETERISEDEXCEPTION(IllegalArgumentException);
+PPLPARAMETERISEDEXCEPTION(MissingArgumentException);
 PPLNORMALEXCEPTION(IllegalRegularExpressionException);
 PPLPARAMETERISEDEXCEPTION(OperationFailedException);
 PPLPARAMETERISEDEXCEPTION(DuplicateInstanceException);
