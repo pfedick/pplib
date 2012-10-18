@@ -1,0 +1,9 @@
+{
+   False positive in google test framework
+   Memcheck:Free
+   fun:free
+   fun:_ZN7testing8internal*
+   ...
+}
+
+
