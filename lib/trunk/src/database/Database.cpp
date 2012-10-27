@@ -197,8 +197,9 @@ void GetSupportedDatabases(AssocArray &a)
  * \until EOF
  *
  */
-#ifdef OLDCODE
 
+
+#ifdef TODO
 Database::Database()
 /*!\brief Konstruktor der Klasse
  *

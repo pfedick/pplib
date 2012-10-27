@@ -154,12 +154,12 @@ class Database
 		ppluint64 insertKey(const String &table, const AssocArray &a, const String &keyname, const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
 
 
-		virtual int			connect(const AssocArray &params);
-		virtual int			connectCreate(const AssocArray &params);
-		virtual int			reconnect();
-		virtual int			disconnect();
-		virtual int			selectDB(const String &databasename);
-		virtual int 		exec(const String &query);
+		virtual void		connect(const AssocArray &params);
+		virtual void		connectCreate(const AssocArray &params);
+		virtual void		reconnect();
+		virtual void		disconnect();
+		virtual void		selectDB(const String &databasename);
+		virtual void 		exec(const String &query);
 		virtual ResultSet	*query(const String &query);
 		virtual void		setMaxRows(ppluint64 rows);
 		virtual int			ping();
@@ -193,12 +193,12 @@ class PostgreSQL: public Database
 		PostgreSQL();
 		virtual ~PostgreSQL();
 
-		virtual int			connect(const AssocArray &params);
-		virtual int			connectCreate(const AssocArray &params);
-		virtual int			reconnect();
-		virtual int			disconnect();
-		virtual int			selectDB(const String &databasename);
-		virtual int			exec(const String &query);
+		virtual void		connect(const AssocArray &params);
+		virtual void		connectCreate(const AssocArray &params);
+		virtual void		reconnect();
+		virtual void		disconnect();
+		virtual void		selectDB(const String &databasename);
+		virtual void		exec(const String &query);
 		virtual ResultSet	*query(const String &query);
 		virtual void		setMaxRows(ppluint64 rows);
 		virtual int			ping();

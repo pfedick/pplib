@@ -11,7 +11,8 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/bytearray.o compile/bytearrayptr.o \
 	compile/avltree.o compile/assocarray.o compile/pointer.o \
 	compile/file.o compile/list.o compile/functions.o \
-	compile/inet.o compile/widestrings.o
+	compile/inet.o compile/widestrings.o \
+	compile/db_postgres.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -132,3 +133,7 @@ compile/grafix_drawable.o: src/grafix_drawable.cpp Makefile ppl7-tests.h
 compile/threadtest.o: src/threadtest.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/threadtest.o -c src/threadtest.cpp $(CFLAGS) $(LIB)
+	
+compile/db_postgres.o: src/db_postgres.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CC) -o compile/db_postgres.o -c src/db_postgres.cpp $(CFLAGS) $(LIB)
