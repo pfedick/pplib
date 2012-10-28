@@ -6,25 +6,26 @@ Funktionen und Klassen für C++-Anwendungen, geschrieben von Patrick Fedick <pat
 Sie beinhaltet Funktionen aus verschiedenen Bereichen, wie
 
 - Datei- und Verzeichniss-Zugriff
-- Speicherverwaltung
 - Strings, Arrays, Listen, Trees
 - Multithreading
-- Sockets und Verschlüsselung
+- Sockets (TCP, UDP)
+- Verschlüsselung
 - Internet
 - Datenbanken
 - Zeit, Datum und mathematische Funktionen
-- Grafik und Benutzeroberfläche
+- Grafik
 - Sound
+- Speicherverwaltung
 
 Die erste Version erschien bereits im Jahr 1997 und bestand fast vollständig
 aus Assembler-Code für Windows. Seitdem wurde die Library mehrfach umstrukturiert und erweitert
 und besteht nun zum größten Teil aus plattform-unabhängigem C und C++-Code. Unterstützt werden
 folgende Systeme:
 
-- Linux (getestet unter Fedora 4-8, Suse 8,9, Debian 3.1, Ubuntu 8.10, 32- und 64-Bit)
-- FreeBSD (Version 5.x, 6.x, 7.x, 32- und 64-Bit)
-- Windows (32-Bit, Windows 2000 und XP, VisualStudio 2008)
-- Solaris (mit GCC-Compiler)
+- Linux (getestet unter Ubuntu 10.04, Ubuntu 12.04, RedHat 5, RedHat 6, jeweils 32- und 64-Bit)
+- FreeBSD (Version 8.x, 9.x, jeweils 32- und 64-Bit)
+- Windows (32-Bit, Windows XP, Vista, 7 mit MinGW)
+- Solaris (Version 9, mit GCC 4.x-Compiler, 64-Bit)
 
 Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz und darf somit fast
 uneingeschränkt auch in kommerziellen oder "closed source" Programmen verwendet werden. Die
