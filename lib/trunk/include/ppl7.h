@@ -1088,6 +1088,96 @@ class PerlHelper
 };
 
 
+//! \brief Log-Handler
+class LogHandler
+{
+	public:
+		virtual ~LogHandler()=0;
+		virtual void logMessage(int facility, int level, const String &msg)=0;
+};
+
+#define NUMFACILITIES	9
+#ifdef ERROR
+#undef ERROR
+#endif
+#ifdef DEBUG
+#undef DEBUG
+#endif
+
+
+//! \brief Allgemeine Logging-Klasse
+class Logger
+{
+	private:
+		Mutex		mutex;
+		AssocArray	*FilterModule, *FilterFile;
+		String		ProgIdentity;
+		int			debuglevel[NUMFACILITIES];
+		bool		console_enabled;
+		int			console_facility;
+		int			console_level;
+		File		logff[NUMFACILITIES];
+		String		logfilename[NUMFACILITIES];
+		void		*firsthandler, *lasthandler;
+		bool		logconsole;
+		bool		logThreadId;
+		int			rotate_mechanism;
+		ppluint64	maxsize;
+		int			generations;
+		bool		inrotate;
+		bool		useSyslog;
+
+		bool		shouldPrint(const char *module, const char *function, const char *file, int line, int facility, int level);
+		int			isFiltered(const char *module, const char *function, const char *file, int line, int level);
+		void		output(int facility, int level, const char *module, const char *function, const char *file, int line, const String &buffer, bool printdate=true);
+		void		outputArray(int facility, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const char *prefix, String *Out=NULL);
+		void		checkRotate(int facility);
+
+	public:
+		enum {
+			EMERG		= 1,
+			ALERT		= 2,
+			CRIT		= 3,
+			ERR			= 4,
+			ERROR		= 4,
+			WARNING		= 5,
+			NOTICE		= 6,
+			INFO		= 7,
+			DEBUG		= 8
+		};
+
+
+		Logger();
+		~Logger();
+		void	terminate();
+		void	setIdentity(const String &name);
+		void	addLogHandler(LogHandler *handler);
+		void	deleteLogHandler(LogHandler *handler);
+		void	setLogfile(int facility, const char *filename);
+		void	setLogLevel(int facility, int level=1);
+		int		getLogLevel(int facility);
+		void	setLogRotate(ppluint64 maxsize, int generations);
+		void	enableConsole(bool flag=true, int facility=Logger::DEBUG, int level=1);
+		void	enableSyslog(bool flag);
+		void	printException(const Exception &e);
+		void	printException(const char *file, int line, const Exception &e);
+		void	printException(const char *file, int line, const char *module, const char *function, const Exception &e);
+		void	print (const String &text);
+		void	print (int level, const String &text);
+		void	print (int facility, int level, const String &text);
+		void	print (int facility, int level, const char *file, int line, const String &text);
+		void	print (int facility, int level, const char *module, const char *function, const char *file, int line, const String &text);
+		void	printArray (int facility, int level, const AssocArray &a, const String &text);
+		void	printArray (int facility, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const String &text);
+		void	printArraySingleLine (int facility, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const String &text);
+		void	hexDump (int facility, int level, const void * address, int bytes);
+		void	hexDump (const void * address, int bytes);
+		void	setFilter(const char *module, const char *function, int level);
+		void	setFilter(const char *file, int line, int level);
+		void	deleteFilter(const char *module, const char *function);
+		void 	deleteFilter(const char *file, int line);
+};
+
 };	// EOF namespace ppl7
 
 

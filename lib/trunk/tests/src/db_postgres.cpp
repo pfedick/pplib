@@ -42,6 +42,7 @@
 #include <pthread.h>
 #include <locale.h>
 #include <ppl7.h>
+#include <ppl7-db.h>
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
 
@@ -63,7 +64,7 @@ class DBPostgreSQL : public ::testing::Test {
 };
 
 TEST_F(DBPostgreSQL, connect) {
-	ppl7::db::PostgreSQL db;
+	//ppl7::db::PostgreSQL db;
 
 
 }

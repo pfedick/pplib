@@ -37,24 +37,25 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 RELEASE	= release/AVLTree.o \
 	release/Compat.o \
 	release/Compression.o \
-	release/cpu.o \
 	release/Dir.o \
 	release/DirEntry.o \
 	release/Exceptions.o \
 	release/File.o \
 	release/FileObject.o \
 	release/Functions.o \
+	release/Logger.o \
 	release/MemFile.o \
 	release/MemoryGroup.o \
 	release/MemoryHeap.o \
 	release/Mutex.o \
-	release/PerlHelper.o \
 	release/PFPFile.o \
+	release/PerlHelper.o \
 	release/Resource.o \
 	release/Resourcen.o \
 	release/StringFunctions.o \
 	release/Threads.o \
 	release/Time.o \
+	release/cpu.o \
 	release/type_Array.o \
 	release/type_AssocArray.o \
 	release/type_ByteArray.o \
@@ -67,16 +68,16 @@ RELEASE	= release/AVLTree.o \
 	release/crc32.o \
 	release/md5.o \
 	release/random.o \
+	release/inet_WikiParser.o \
 	release/inet_inet_functions.o \
 	release/inet_resolver.o \
-	release/inet_WikiParser.o \
 	release/db_Database.o \
 	release/db_PostgreSQL.o \
 	release/db_ResultSet.o \
 	release/gfx_Color.o \
+	release/gfx_Drawable.o \
 	release/gfx_DrawableBlit.o \
 	release/gfx_DrawableColor.o \
-	release/gfx_Drawable.o \
 	release/gfx_DrawableLines.o \
 	release/gfx_DrawablePixel.o \
 	release/gfx_DrawableShapes.o \
@@ -87,8 +88,8 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_Fonts.o \
 	release/gfx_Grafix.o \
 	release/gfx_Image.o \
-	release/gfx_ImageFilter_BMP.o \
 	release/gfx_ImageFilter.o \
+	release/gfx_ImageFilter_BMP.o \
 	release/gfx_ImageFilter_GIF.o \
 	release/gfx_ImageFilter_ImageMagick.o \
 	release/gfx_ImageFilter_JPEG.o \
@@ -97,10 +98,10 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_ImageFilter_TGA.o \
 	release/gfx_ImageFilter_TIFF.o \
 	release/gfx_ImageList.o \
-	release/gfx_Point3D.o \
 	release/gfx_Point.o \
-	release/gfx_Rect.o \
+	release/gfx_Point3D.o \
 	release/gfx_RGBFormat.o \
+	release/gfx_Rect.o \
 	release/gfx_Size.o \
 	release/gfx_Sprite.o \
 	release/sound_Icecast.o
@@ -108,24 +109,25 @@ RELEASE	= release/AVLTree.o \
 DEBUG	= debug/AVLTree.o \
 	debug/Compat.o \
 	debug/Compression.o \
-	debug/cpu.o \
 	debug/Dir.o \
 	debug/DirEntry.o \
 	debug/Exceptions.o \
 	debug/File.o \
 	debug/FileObject.o \
 	debug/Functions.o \
+	debug/Logger.o \
 	debug/MemFile.o \
 	debug/MemoryGroup.o \
 	debug/MemoryHeap.o \
 	debug/Mutex.o \
-	debug/PerlHelper.o \
 	debug/PFPFile.o \
+	debug/PerlHelper.o \
 	debug/Resource.o \
 	debug/Resourcen.o \
 	debug/StringFunctions.o \
 	debug/Threads.o \
 	debug/Time.o \
+	debug/cpu.o \
 	debug/type_Array.o \
 	debug/type_AssocArray.o \
 	debug/type_ByteArray.o \
@@ -138,16 +140,16 @@ DEBUG	= debug/AVLTree.o \
 	debug/crc32.o \
 	debug/md5.o \
 	debug/random.o \
+	debug/inet_WikiParser.o \
 	debug/inet_inet_functions.o \
 	debug/inet_resolver.o \
-	debug/inet_WikiParser.o \
 	debug/db_Database.o \
 	debug/db_PostgreSQL.o \
 	debug/db_ResultSet.o \
 	debug/gfx_Color.o \
+	debug/gfx_Drawable.o \
 	debug/gfx_DrawableBlit.o \
 	debug/gfx_DrawableColor.o \
-	debug/gfx_Drawable.o \
 	debug/gfx_DrawableLines.o \
 	debug/gfx_DrawablePixel.o \
 	debug/gfx_DrawableShapes.o \
@@ -158,8 +160,8 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_Fonts.o \
 	debug/gfx_Grafix.o \
 	debug/gfx_Image.o \
-	debug/gfx_ImageFilter_BMP.o \
 	debug/gfx_ImageFilter.o \
+	debug/gfx_ImageFilter_BMP.o \
 	debug/gfx_ImageFilter_GIF.o \
 	debug/gfx_ImageFilter_ImageMagick.o \
 	debug/gfx_ImageFilter_JPEG.o \
@@ -168,10 +170,10 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_ImageFilter_TGA.o \
 	debug/gfx_ImageFilter_TIFF.o \
 	debug/gfx_ImageList.o \
-	debug/gfx_Point3D.o \
 	debug/gfx_Point.o \
-	debug/gfx_Rect.o \
+	debug/gfx_Point3D.o \
 	debug/gfx_RGBFormat.o \
+	debug/gfx_Rect.o \
 	debug/gfx_Size.o \
 	debug/gfx_Sprite.o \
 	debug/sound_Icecast.o
@@ -326,11 +328,6 @@ release/Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)
 	# Compiling >>>core/Compression.cpp<<<
 	$(CXX) -Wall -O3 -o release/Compression.o -c $(srcdir)/core/Compression.cpp $(CFLAGS) 
 
-release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
-	###############################################################################
-	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -O3 -o release/cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) 
-
 release/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Dir.cpp<<<
@@ -361,6 +358,11 @@ release/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>core/Functions.cpp<<<
 	$(CXX) -Wall -O3 -o release/Functions.o -c $(srcdir)/core/Functions.cpp $(CFLAGS) 
 
+release/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Logger.cpp<<<
+	$(CXX) -Wall -O3 -o release/Logger.o -c $(srcdir)/core/Logger.cpp $(CFLAGS) 
+
 release/MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemFile.cpp<<<
@@ -381,15 +383,15 @@ release/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 	# Compiling >>>core/Mutex.cpp<<<
 	$(CXX) -Wall -O3 -o release/Mutex.o -c $(srcdir)/core/Mutex.cpp $(CFLAGS) 
 
-release/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
-	###############################################################################
-	# Compiling >>>core/PerlHelper.cpp<<<
-	$(CXX) -Wall -O3 -o release/PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) 
-
 release/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
 	$(CXX) -Wall -O3 -o release/PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) 
+
+release/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PerlHelper.cpp<<<
+	$(CXX) -Wall -O3 -o release/PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) 
 
 release/Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
@@ -415,6 +417,11 @@ release/Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptio
 	###############################################################################
 	# Compiling >>>core/Time.cpp<<<
 	$(CXX) -Wall -O3 -o release/Time.o -c $(srcdir)/core/Time.cpp $(CFLAGS) 
+
+release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O3 -o release/cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) 
 
 ### TYPES
 release/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
@@ -479,6 +486,11 @@ release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	$(CXX) -Wall -O3 -o release/random.o -c $(srcdir)/math/random.cpp $(CFLAGS) 
 
 ### INTERNET
+release/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/WikiParser.cpp<<<
+	$(CXX) -Wall -O3 -o release/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp $(CFLAGS) 
+
 release/inet_inet_functions.o:	$(srcdir)/internet/inet_functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	###############################################################################
 	# Compiling >>>internet/inet_functions.cpp<<<
@@ -488,11 +500,6 @@ release/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incd
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<
 	$(CXX) -Wall -O3 -o release/inet_resolver.o -c $(srcdir)/internet/resolver.cpp $(CFLAGS) 
-
-release/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
-	###############################################################################
-	# Compiling >>>internet/WikiParser.cpp<<<
-	$(CXX) -Wall -O3 -o release/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp $(CFLAGS) 
 
 ### DATABASE
 release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
@@ -516,6 +523,11 @@ release/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	# Compiling >>>grafix/Color.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_Color.o -c $(srcdir)/grafix/Color.cpp $(CFLAGS) 
 
+release/gfx_Drawable.o:	$(srcdir)/grafix/Drawable.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Drawable.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Drawable.o -c $(srcdir)/grafix/Drawable.cpp $(CFLAGS) 
+
 release/gfx_DrawableBlit.o:	$(srcdir)/grafix/DrawableBlit.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/DrawableBlit.cpp<<<
@@ -525,11 +537,6 @@ release/gfx_DrawableColor.o:	$(srcdir)/grafix/DrawableColor.cpp $(incdir)/ppl7.h
 	###############################################################################
 	# Compiling >>>grafix/DrawableColor.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_DrawableColor.o -c $(srcdir)/grafix/DrawableColor.cpp $(CFLAGS) 
-
-release/gfx_Drawable.o:	$(srcdir)/grafix/Drawable.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/Drawable.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx_Drawable.o -c $(srcdir)/grafix/Drawable.cpp $(CFLAGS) 
 
 release/gfx_DrawableLines.o:	$(srcdir)/grafix/DrawableLines.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -581,15 +588,15 @@ release/gfx_Image.o:	$(srcdir)/grafix/Image.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	# Compiling >>>grafix/Image.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_Image.o -c $(srcdir)/grafix/Image.cpp $(CFLAGS) 
 
-release/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp $(CFLAGS) 
-
 release/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp $(CFLAGS) 
+
+release/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp $(CFLAGS) 
 
 release/gfx_ImageFilter_GIF.o:	$(srcdir)/grafix/ImageFilter_GIF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -631,25 +638,25 @@ release/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdi
 	# Compiling >>>grafix/ImageList.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_ImageList.o -c $(srcdir)/grafix/ImageList.cpp $(CFLAGS) 
 
-release/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/Point3D.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp $(CFLAGS) 
-
 release/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/Point.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_Point.o -c $(srcdir)/grafix/Point.cpp $(CFLAGS) 
 
-release/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+release/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
-	# Compiling >>>grafix/Rect.cpp<<<
-	$(CXX) -Wall -O3 -o release/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp $(CFLAGS) 
+	# Compiling >>>grafix/Point3D.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp $(CFLAGS) 
 
 release/gfx_RGBFormat.o:	$(srcdir)/grafix/RGBFormat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/RGBFormat.cpp<<<
 	$(CXX) -Wall -O3 -o release/gfx_RGBFormat.o -c $(srcdir)/grafix/RGBFormat.cpp $(CFLAGS) 
+
+release/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Rect.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp $(CFLAGS) 
 
 release/gfx_Size.o:	$(srcdir)/grafix/Size.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -734,11 +741,6 @@ debug/Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)/p
 	# Compiling >>>core/Compression.cpp<<<
 	$(CXX) -Wall -O -o debug/Compression.o -c $(srcdir)/core/Compression.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
-	###############################################################################
-	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -O -o debug/cpu.o -c $(srcdir)/core/cpu.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Dir.cpp<<<
@@ -769,6 +771,11 @@ debug/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	# Compiling >>>core/Functions.cpp<<<
 	$(CXX) -Wall -O -o debug/Functions.o -c $(srcdir)/core/Functions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Logger.cpp<<<
+	$(CXX) -Wall -O -o debug/Logger.o -c $(srcdir)/core/Logger.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemFile.cpp<<<
@@ -789,15 +796,15 @@ debug/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptio
 	# Compiling >>>core/Mutex.cpp<<<
 	$(CXX) -Wall -O -o debug/Mutex.o -c $(srcdir)/core/Mutex.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
-	###############################################################################
-	# Compiling >>>core/PerlHelper.cpp<<<
-	$(CXX) -Wall -O -o debug/PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
 	$(CXX) -Wall -O -o debug/PFPFile.o -c $(srcdir)/core/PFPFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PerlHelper.cpp<<<
+	$(CXX) -Wall -O -o debug/PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
@@ -823,6 +830,11 @@ debug/Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions
 	###############################################################################
 	# Compiling >>>core/Time.cpp<<<
 	$(CXX) -Wall -O -o debug/Time.o -c $(srcdir)/core/Time.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O -o debug/cpu.o -c $(srcdir)/core/cpu.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### TYPES
 debug/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
@@ -887,6 +899,11 @@ debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 	$(CXX) -Wall -O -o debug/random.o -c $(srcdir)/math/random.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### INTERNET
+debug/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/WikiParser.cpp<<<
+	$(CXX) -Wall -O -o debug/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/inet_inet_functions.o:	$(srcdir)/internet/inet_functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	###############################################################################
 	# Compiling >>>internet/inet_functions.cpp<<<
@@ -896,11 +913,6 @@ debug/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incdir
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<
 	$(CXX) -Wall -O -o debug/inet_resolver.o -c $(srcdir)/internet/resolver.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/inet_WikiParser.o:	$(srcdir)/internet/WikiParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
-	###############################################################################
-	# Compiling >>>internet/WikiParser.cpp<<<
-	$(CXX) -Wall -O -o debug/inet_WikiParser.o -c $(srcdir)/internet/WikiParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### DATABASE
 debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
@@ -924,6 +936,11 @@ debug/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>grafix/Color.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_Color.o -c $(srcdir)/grafix/Color.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/gfx_Drawable.o:	$(srcdir)/grafix/Drawable.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Drawable.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Drawable.o -c $(srcdir)/grafix/Drawable.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/gfx_DrawableBlit.o:	$(srcdir)/grafix/DrawableBlit.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/DrawableBlit.cpp<<<
@@ -933,11 +950,6 @@ debug/gfx_DrawableColor.o:	$(srcdir)/grafix/DrawableColor.cpp $(incdir)/ppl7.h $
 	###############################################################################
 	# Compiling >>>grafix/DrawableColor.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_DrawableColor.o -c $(srcdir)/grafix/DrawableColor.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/gfx_Drawable.o:	$(srcdir)/grafix/Drawable.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/Drawable.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx_Drawable.o -c $(srcdir)/grafix/Drawable.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_DrawableLines.o:	$(srcdir)/grafix/DrawableLines.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -989,15 +1001,15 @@ debug/gfx_Image.o:	$(srcdir)/grafix/Image.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>grafix/Image.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_Image.o -c $(srcdir)/grafix/Image.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter_BMP.o -c $(srcdir)/grafix/ImageFilter_BMP.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_ImageFilter_GIF.o:	$(srcdir)/grafix/ImageFilter_GIF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -1039,25 +1051,25 @@ debug/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)
 	# Compiling >>>grafix/ImageList.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageList.o -c $(srcdir)/grafix/ImageList.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/Point3D.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/Point.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_Point.o -c $(srcdir)/grafix/Point.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+debug/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
-	# Compiling >>>grafix/Rect.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	# Compiling >>>grafix/Point3D.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Point3D.o -c $(srcdir)/grafix/Point3D.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_RGBFormat.o:	$(srcdir)/grafix/RGBFormat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/RGBFormat.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_RGBFormat.o -c $(srcdir)/grafix/RGBFormat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/Rect.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_Size.o:	$(srcdir)/grafix/Size.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
