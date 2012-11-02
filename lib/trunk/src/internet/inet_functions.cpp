@@ -123,7 +123,7 @@ int inet_aton(const char *cp, struct in_addr *pin)
 static int _wsa_init=0;
 #endif
 
-void InitWSA()
+void InitSockets()
 {
 #ifdef WIN32
 	if (!_wsa_init) {
