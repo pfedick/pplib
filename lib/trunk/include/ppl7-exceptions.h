@@ -126,6 +126,16 @@ PPLNORMALEXCEPTION(InvalidResourceException);
 PPLNORMALEXCEPTION(ResourceNotFoundException);
 PPLNORMALEXCEPTION(OperationUnavailableException);
 PPLNORMALEXCEPTION(UnavailableException);
+PPLPARAMETERISEDEXCEPTION(InitializationFailedException);
+
+PPLPARAMETERISEDEXCEPTION(SSLException);
+PPLPARAMETERISEDEXCEPTION(SSLContextInUseException);
+PPLNORMALEXCEPTION(SSLContextUninitializedException);
+PPLNORMALEXCEPTION(SSLContextSocketMismatchException);
+PPLPARAMETERISEDEXCEPTION(InvalidSSLCertificateException);
+PPLPARAMETERISEDEXCEPTION(InvalidSSLCipherException);
+PPLPARAMETERISEDEXCEPTION(SSLPrivatKeyException);
+
 
 
 

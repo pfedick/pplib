@@ -106,11 +106,11 @@ String ToQuotedPrintable (const String &source);
 
 class TCPSocket;
 
-int SSL_Init();
-int SSL_Exit();
+void SSL_Init();
+void SSL_Exit();
 
 //! \brief SSL-Verschlüsselung
-class CSSL
+class SSLContext
 {
 	friend class CTCPSocket;
 	private:
@@ -119,9 +119,9 @@ class CSSL
 		void		*ctx;
 		void		*first_ref, *last_ref;
 		int			references;
-		void 		Clear();
-		void *		RegisterSocket(TCPSocket *socket);
-		int			ReleaseSocket(TCPSocket *socket, void *data);
+		void 		clear();
+		void *		registerSocket(TCPSocket *socket);
+		void		releaseSocket(TCPSocket *socket, void *data);
 	public:
 		enum SSL_METHOD {
 			SSLv2	= 1,
@@ -138,22 +138,16 @@ class CSSL
 			SSLv23server		// Unterstuetzt SSLv2, v3 und TLSv1
 		};
 
-		CSSL();
-		~CSSL();
-		int 	Init(int method=0);
-		int		IsInit();
-		int 	Shutdown();
-		void 	*NewSSL();
-		int		LoadTrustedCAfromFile(const char *filename);
-		int		LoadTrustedCAfromPath(const char *path);
-		// LoadCertificate wird benoetigt, wenn ein SSL-Server gestartet werden soll.
-		// LoadCertificate laed ein Zertifikat im PEM-Format oder eine komplette Trustchain im
-		// PEM-Format aus dem File "certificate". Wird "privatekey" angegeben, wird daraus der
-		// Private Key geladen. Wenn nicht, wird der Private Key ebenfalls in der "certificate"-
-		// Datei erwartet. Ist der Key durch ein Passwort geschuetzt, muss dieses als "password"
-		// angegeben werden.
-		int		LoadCertificate(const char *certificate, const char *privatekey=NULL, const char *password=NULL);
-		int		SetCipherList(const char *cipherlist);		// "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
+		SSLContext();
+		~SSLContext();
+		void 	init(int method=SSLv3);
+		bool	isInit();
+		void 	shutdown();
+		void 	*newSSL();
+		void	loadTrustedCAfromFile(const String &filename);
+		void	loadTrustedCAfromPath(const String &path);
+		void	loadCertificate(const String &certificate, const String &privatekey=String(), const String &password=String());
+		void	setCipherList(const String &cipherlist);		// "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
 };
 
 
@@ -214,7 +208,7 @@ class TCPSocket
 	private:
 		Mutex	mutex;
 		Logger		*log;
-		CSSL		*sslclass;
+		SSLContext		*sslclass;
 		Thread	*thread;
 		void		*sslreference;
 		void *socket;
@@ -244,8 +238,8 @@ class TCPSocket
 		void SetSource(const char *host, int port=0);
 		int Connect(const char *host_and_port);
 		int Connect(const char *host, int port);
-		int ConnectSSL(const char *host_and_port, CSSL *ssl=NULL);
-		int ConnectSSL(const char *host, int port, CSSL *ssl=NULL);
+		int ConnectSSL(const char *host_and_port, SSLContext *ssl=NULL);
+		int ConnectSSL(const char *host, int port, SSLContext *ssl=NULL);
 		void DispatchErrno();
 		int GetBytesWritten();
 		int GetBytesRead();
@@ -289,7 +283,7 @@ class TCPSocket
 		static ppluint16 Ntohs(ppluint16 net);
 		static ppluint16 Htons(ppluint16 host);
 
-		int SSL_Init(CSSL *ssl);
+		int SSL_Init(SSLContext *ssl);
 		int SSL_Shutdown();
 		int SSL_Init_Client();
 		int SSL_Init_Server();
@@ -326,7 +320,7 @@ class CUDPSocket
 class Webserver
 {
 	private:
-		CSSL		SSL;
+		SSLContext	SSL;
 		void		*daemon;
 		int			port;
 		AssocArray	res;
