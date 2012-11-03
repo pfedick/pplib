@@ -216,11 +216,7 @@ static const char * ssl_geterror(SSL *ssl, int code)
 	return "SSL_ERROR_UNKNOWN";
 }
 
-static int __SSLExit(void *param)
-{
-	SSL_Exit();
-	return 1;
-}
+
 #endif
 
 
@@ -332,24 +328,53 @@ void SSL_Exit()
 	#endif
 }
 
-size_t GetSSLErrors(Array &errors)
+
+void ClearSSLErrorStack()
 {
 #ifdef HAVE_OPENSSL
-	errors.clear();
-	unsigned long e;
-	const char *file;
-	int line;
-	String Text;
-	while ((e=ERR_get_error_line(&file,&line))) {
+	while ((ERR_get_error()));
+#endif
+}
 
-	}
-
-	return errors.size();
+int GetSSLError(SSLError &e)
+{
+#ifdef HAVE_OPENSSL
+	unsigned long ec;
+	const char *file, *data;
+	char ebuffer[256];
+	ec=ERR_get_error_line_data(&file,&e.Line,&data,&e.Flags);
+	if (ec==0) return 0;
+	ERR_error_string_n(ec,ebuffer,255);
+	e.Text.set(ebuffer);
+	e.Filename.set(file);
+	e.Data.set(data);
+	return 1;
 #else
 	return 0;
 #endif
 }
 
+int GetSSLErrors(std::list<SSLError> &e)
+{
+#ifdef HAVE_OPENSSL
+	e.clear();
+	unsigned long ec;
+	const char *file, *data;
+	char ebuffer[256];
+	SSLError se;
+
+	while ((ec=ERR_get_error_line_data(&file,&se.Line,&data,&se.Flags))) {
+		ERR_error_string_n(ec,ebuffer,255);
+		se.Text.set(ebuffer);
+		se.Filename.set(file);
+		se.Data.set(data);
+		e.push_back(se);
+	}
+	return (int) e.size();
+#else
+	return 0;
+#endif
+}
 
 
 /*
@@ -419,6 +444,7 @@ void SSLContext::init(int method)
 	shutdown();
 	mutex.lock();
 	if (!method) method=SSLContext::SSLv23;
+	while ((ERR_get_error()));	// Clear Error-Stack
 	switch (method) {
 #ifndef OPENSSL_NO_SSL2
 		case SSLContext::SSLv2:
@@ -496,6 +522,7 @@ void SSLContext::shutdown()
 			SSL_CTX_free((SSL_CTX*)ctx);
 			ctx=NULL;
     	}
+    	while ((ERR_get_error()));	// Clear Error-Stack
     	mutex.unlock();
 	#endif
 }
@@ -569,6 +596,7 @@ void *SSLContext::newSSL()
 		mutex.unlock();
 		throw SSLContextUninitializedException();
 	}
+	while ((ERR_get_error()));	// Clear Error-Stack
 	void *ssl=SSL_new((SSL_CTX*)ctx);
 	if (!ssl) {
 		mutex.unlock();
@@ -589,15 +617,11 @@ void SSLContext::loadTrustedCAfromFile(const String &filename)
 		mutex.unlock();
 		throw SSLContextUninitializedException();
 	}
-
+	while ((ERR_get_error()));	// Clear Error-Stack
 	if (SSL_CTX_load_verify_locations((SSL_CTX*)ctx,filename,NULL)!=1) {
 		mutex.unlock();
 		throw InvalidSSLCertificateException(filename);
 	}
-	// Auch wenn kein Fehler zurückgegeben wird, kann sich in der Fehlerqueue von OpenSSL
-	// etwas angesammelt haben, was später zu einem Problem werden kann. Daher leeren
-	// wir die Fehler-Queue
-	while ((ERR_get_error()));
 	mutex.unlock();
 #endif
 }
@@ -613,15 +637,11 @@ void SSLContext::loadTrustedCAfromPath(const String &path)
 		mutex.unlock();
 		throw SSLContextUninitializedException();
 	}
-
+	while ((ERR_get_error()));	// Clear Error-Stack
 	if (SSL_CTX_load_verify_locations((SSL_CTX*)ctx,NULL,path)!=1) {
 		mutex.unlock();
 		throw InvalidSSLCertificateException(path);
 	}
-	// Auch wenn kein Fehler zurückgegeben wird, kann sich in der Fehlerqueue von OpenSSL
-	// etwas angesammelt haben, was später zu einem Problem werden kann. Daher leeren
-	// wir die Fehler-Queue
-	while ((ERR_get_error()));
 	mutex.unlock();
 #endif
 }
@@ -652,28 +672,17 @@ void SSLContext::loadCertificate(const String &certificate, const String &privat
 #ifndef HAVE_OPENSSL
 	throw UnsupportedFeatureException("OpenSSL");
 #else
-	char ebuffer[256];
-	String a;
-	int code;
-	int flags,line;
-	const char *data, *file;
-
 	mutex.lock();
 	if (!ctx) {
 		mutex.unlock();
 		throw SSLContextUninitializedException();
 	}
-
+	while ((ERR_get_error()));	// Clear Error-Stack
 
 	//if (!SSL_CTX_use_certificate_file((SSL_CTX*)ctx,keyfile,SSL_FILETYPE_PEM)) {
 	if (!SSL_CTX_use_certificate_chain_file((SSL_CTX*)ctx,certificate)) {
-		while ((code=ERR_get_error_line_data(&file,&line,&data,&flags))) {
-			ERR_error_string(code,ebuffer);
-			if (a.notEmpty()) a+=", ";
-			a.appendf("OpenSSL Error %i: %s (%s)",code,ebuffer,data);
-		}
 		mutex.unlock();
-		throw SSLException(a);
+		throw SSLException("SSL_CTX_use_certificate_chain_file");
 	}
 	if (password.notEmpty()) {
 		SSL_CTX_set_default_passwd_cb((SSL_CTX*)ctx,pem_passwd_cb);
@@ -700,6 +709,7 @@ void SSLContext::setCipherList(const String &cipherlist)
 		mutex.unlock();
 		throw SSLContextUninitializedException();
 	}
+	while ((ERR_get_error()));	// Clear Error-Stack
 	if (SSL_CTX_set_cipher_list((SSL_CTX*)ctx, cipherlist)!=1) {
 		mutex.unlock();
 		throw InvalidSSLCipherException(cipherlist);

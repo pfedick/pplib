@@ -150,6 +150,25 @@ class SSLContext
 		void	setCipherList(const String &cipherlist);		// "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
 };
 
+class SSLError
+{
+	public:
+		SSLError() {
+			Code=0;
+			Line=Flags=0;
+		}
+		String			Text;
+		String			Filename;
+		String			Data;
+		unsigned long	Code;
+		int				Line;
+		int				Flags;
+};
+
+int GetSSLError(SSLError &e);
+int GetSSLErrors(std::list<SSLError> &e);
+void ClearSSLErrorStack();
+
 
 //! \brief TCP-Socket-Nachrichten
 class SocketMessage
