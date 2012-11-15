@@ -263,28 +263,36 @@ private:
 public:
 	enum Identifier {
 		unknown=0,
+
+		// 8 Bit
 		Palette,
+		R3G3B2,
+		A8,
+		GREY8,
+
+		// 16 Bit
 		R5G6B5,
 		B5G6R5,
 		X1R5G5B5,
 		X1B5G5R5,
-		X4R4G4B4,
 		A1R5G5B5,
 		A1B5G5R5,
+		X4R4G4B4,
+		X4B4G4R4,
 		A4R4G4B4,
+		A4B4G4R4,
+		A8R3G3B2,
+
+		// 24 Bit
 		R8G8B8,
 		B8G8R8,
+
+		// 32 Bit
 		A8R8G8B8,
 		A8B8G8R8,
-		R3G3B2,
-		A8,
-		A8R3G3B2,
 		X8R8G8B8,
 		X8B8G8R8,
-		GREY8,
 		GREYALPHA32,
-		X16R16G16B16,
-		A16R16G16B16,
 
 		MaxIdentifiers
 	};

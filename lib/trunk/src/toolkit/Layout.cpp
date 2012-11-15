@@ -23,7 +23,7 @@ HorizontalLayout::~HorizontalLayout()
 
 String HorizontalLayout::widgetType() const
 {
-	return L"HorizontalLayout";
+	return "HorizontalLayout";
 }
 
 void HorizontalLayout::paint(Drawable &draw)
@@ -94,7 +94,7 @@ HorizontalSpacer::HorizontalSpacer()
 
 String HorizontalSpacer::widgetType() const
 {
-	return L"HorizontalSpacer";
+	return "HorizontalSpacer";
 }
 
 void HorizontalSpacer::paint(Drawable &draw)

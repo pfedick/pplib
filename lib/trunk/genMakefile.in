@@ -165,11 +165,11 @@ DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
 
 
-#find_c_files "toolkit" "TOOLKIT" "" "tk_" "\$(incdir)/ppl7-grafix.h \$(incdir)/ppl7-tk.h"
-#RELEASE="$RELEASE \\
-#	$FOUND_RELEASE"
-#DEBUG="$DEBUG \\
-#	$FOUND_DEBUG"
+find_c_files "toolkit" "TOOLKIT" "" "tk_" "\$(incdir)/ppl7-grafix.h \$(incdir)/ppl7-tk.h"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
 
 
 find_c_files "sound" "SOUND" "" "sound_" "\$(incdir)/ppl7-sound.h"
@@ -208,6 +208,7 @@ CXX			= @CXX@
 CFLAGS		=  -I\${incdir} $DEFINES @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ \
 	@ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @OPENSSL_INCLUDES@ @ICONV_CFLAGS@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ \
 	@LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MPG123_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ \
+	@SDL_CFLAGS@ @SDL2_CFLAGS@ \
 	@LIBIDN_CFLAGS@ \
 	@LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @FT2_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@
 	
@@ -217,6 +218,7 @@ CPPFLAGS	= @CPPFLAGS@
 LDFLAGS		= @LDFLAGS@
 LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @IMLIB_LIBS@ \
 	@FT2_LIBS@ @ICONV_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @LIBCURL@ @LAME_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ \
+	@SDL_LIBS@ @SDL2_LIBS@ \
 	@LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@
 	
 ###  @SYBASE_LIBS@  @MAD_LIBS@
@@ -274,10 +276,10 @@ install:	release/\$(LIBNAME).a
 	-cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
-#	-cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-sound.h \$(TARGETINCLUDE)
 #	-cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
-#	-cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
 	-chmod a+x ppl7-config  
 	-cp ppl7-config \$(TARGETBIN)
@@ -290,10 +292,10 @@ install_debug: debug/\$(LIBDEBUG).a
 	-cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
-#	-cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-sound.h \$(TARGETINCLUDE)
 #	-cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
-#	-cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
+	-cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
 	-chmod a+x ppl7-config
 	-cp ppl7-config \$(TARGETBIN)

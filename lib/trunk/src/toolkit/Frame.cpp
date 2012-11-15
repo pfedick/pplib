@@ -110,7 +110,7 @@ void Frame::paint(Drawable &draw)
 
 String Frame::widgetType() const
 {
-	return L"Frame";
+	return "Frame";
 }
 
 

@@ -15,35 +15,57 @@ Window::Window()
 {
 	windowFlags=DefaultWindow;
 	WindowTitle="PPL7 Window";
+	setSize(640,480);
 	privateData=NULL;
+	wm=NULL;
 }
 
 Window::~Window()
 {
-	if (privateData) free(privateData);
+	if (wm!=NULL && privateData!=NULL) wm->destroyWindow(*this);
 }
 
+/*!\brief Private Daten des Window-Managers
+ *
+ * \desc
+ * Diese Funktion wird intern vom Window-Manager aufgerufen und sollte vom der Anwendung
+ * nicht verwendet werden.
+ *
+ * \return Liefert einen Pointer auf die private Datenstruktur des Window-Managers für dieses
+ * Fenster zurück
+ *
+ */
 void *Window::getPrivateData()
 {
 	return privateData;
 }
 
-void Window::setPrivateData(void *data)
+/*!\brief Private Daten des Window-Managers setzen
+ *
+ * \desc
+ * Diese Funktion wird intern vom Window-Manager aufgerufen und sollte vom der Anwendung
+ * nicht verwendet werden. Der Window-Manager verwendet sie, um einen Pointer auf die
+ * interne Datenstruktur für das Fenster zu setzen. Der Window-Manager ist für die Freigabe des
+ * Speichers verantwortlich.
+ *
+ * \param data Pointer auf die interne Datenstruktur
+ * \param wm Pointer auf die Klasse des Window-Manager
+ */
+void Window::setPrivateData(void *data, WindowManager *wm)
 {
-	if (privateData) free(privateData);
-	privateData=NULL;
 	privateData=data;
+	this->wm=wm;
 }
 
 
 const RGBFormat &Window::rgbFormat() const
 {
-	return myFormat;
+	return WindowRGBFormat;
 }
 
 void Window::setRGBFormat(const RGBFormat &format)
 {
-	myFormat=format;
+	WindowRGBFormat=format;
 }
 
 
@@ -65,6 +87,7 @@ const String &Window::windowTitle() const
 void Window::setWindowTitle(const String &title)
 {
 	WindowTitle=title;
+	if (wm!=NULL && privateData!=NULL) wm->setWindowTitle(*this);
 }
 
 const Drawable &Window::windowIcon() const
@@ -75,11 +98,12 @@ const Drawable &Window::windowIcon() const
 void Window::setWindowIcon(const Drawable &icon)
 {
 	WindowIcon=icon;
+	if (wm!=NULL && privateData!=NULL) wm->setWindowIcon(*this);
 }
 
 String Window::widgetType() const
 {
-	return L"Window";
+	return "Window";
 }
 
 void Window::paint(Drawable &draw)

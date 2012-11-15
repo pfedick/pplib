@@ -100,7 +100,7 @@ Size Label::contentSize() const
 
 String Label::widgetType() const
 {
-	return L"Label";
+	return "Label";
 }
 
 

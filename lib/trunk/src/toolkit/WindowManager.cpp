@@ -50,11 +50,6 @@ const WidgetStyle *WindowManager::getWidgetStyle() const
 }
 
 
-void WindowManager::getMouseStatus(Point &p, int &buttonMask)
-{
-
-}
-
 Widget *WindowManager::findMouseWidget(Widget *window, MouseEvent *event)
 {
 	Widget *w;

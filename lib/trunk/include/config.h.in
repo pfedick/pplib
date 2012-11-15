@@ -303,7 +303,8 @@
 #undef HAVE_PNG
 #undef HAVE_IMAGEMAGICK
 #undef HAVE_FREETYPE2
-#undef HAVE_SDL
+#undef HAVE_SDL2
+#undef HAVE_SDL12
 #undef HAVE_X11
 
 /*

@@ -11,6 +11,8 @@ namespace tk {
 using namespace ppl7;
 using namespace ppl7::grafix;
 
+#ifdef OLDCODE
+
 static void defaultSurfaceDestroy (void *data)
 {
 
@@ -129,6 +131,7 @@ void Surface::setPrivateData(void *data)
 	myData=data;
 }
 
+#endif // OLDCODE
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

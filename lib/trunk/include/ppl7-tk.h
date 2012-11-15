@@ -61,8 +61,9 @@ PPLNORMALEXCEPTION(NoWindowManagerException);
 PPLNORMALEXCEPTION(DuplicateWindowManagerException);
 PPLPARAMETERISEDEXCEPTION(InitializationException);
 PPLNORMALEXCEPTION(ExistingPrimaryWindowException);
-PPLNORMALEXCEPTION(WindowCreateException);
-PPLNORMALEXCEPTION(SurfaceCreateException);
+PPLPARAMETERISEDEXCEPTION(WindowCreateException);
+PPLNORMALEXCEPTION(WindowAlreadyCreatedException);
+PPLPARAMETERISEDEXCEPTION(SurfaceCreateException);
 PPLNORMALEXCEPTION(EventLoopException);
 PPLNORMALEXCEPTION(UnknownEventException);
 PPLNORMALEXCEPTION(NoWindowException);
@@ -180,7 +181,7 @@ class EventHandler
 		virtual void geometryChangedEvent(Event *event);
 };
 
-
+/*
 class Surface
 {
 	private:
@@ -227,6 +228,7 @@ class Surface
 		void setPrivateData(void *data);
 
 };
+*/
 
 
 class Widget : public EventHandler
@@ -234,7 +236,7 @@ class Widget : public EventHandler
 		friend class WindowManager;
 	private:
 		Widget		*parent;
-		Surface		*surface;
+		//Surface		*surface;
 		RGBFormat	format;
 		Point		p;
 		Size		s;
@@ -264,8 +266,6 @@ class Widget : public EventHandler
 		size_t numChilds() const;
 		void resetIterator(List<Widget*>::Iterator &it);
 		Widget *getNextChild(List<Widget*>::Iterator &it);
-		void setSurface(Surface *surface);
-		Surface *getSurface() const;
 
 		const Point &pos() const;
 		const Size &size() const;
@@ -328,42 +328,33 @@ class Widget : public EventHandler
 		virtual Size contentSize() const;
 };
 
+class WindowManager;
 
 class Window : public Widget
 {
 	private:
-		void		*privateData;
+		void			*privateData;
+		WindowManager	*wm;
 		ppluint32 windowFlags;
 		String WindowTitle;
 		Image WindowIcon;
-		RGBFormat myFormat;
+		RGBFormat WindowRGBFormat;
 
 	public:
 		enum WindowFlags {
 			NoBorder					=	0x00000001,
 			Resizeable					=	0x00000002,
-			AllowDrop					=	0x00000004,
-			TopMost						=	0x00000008,
-			PositionDefault				=	0x00000010,
-			HasCaption					=	0x00000020,
-			Fullscreen					=	0x00000040,
-			MinimizeButton				=	0x00000080,
-			MaximizeButton				=	0x00000100,
-			SystemMenue					=	0x00000200,
-			Backbuffer					=	0x00010000,
-			TrippleBuffer				=	0x00020000,
-			Hardware					=	0x00040000,
-			Lockable					=	0x00080000,
-			VideoMemory					=	0x00100000,
+			Maximized					=	0x00000004,
+			Minimized					=	0x00000008,
+			TopMost						=	0x00000010,
+			Fullscreen					=	0x00000020,
 			WaitVsync					=	0x00200000,
 			ZBuffer						=	0x00400000,
 			StencilBuffer				=	0x00800000,
 			SoftwareVertexProcessing	=	0x01000000,
-			Multithreaded				=	0x02000000,
-			FPUPreserve					=	0x04000000,
 			OpenGL						=	0x08000000,
-			DefaultWindow				=	Resizeable|AllowDrop|PositionDefault|HasCaption|MinimizeButton|MaximizeButton|SystemMenue|Hardware|Lockable|VideoMemory|WaitVsync,
-			DefaultFullscreen			=	Hardware|Lockable|VideoMemory|WaitVsync|Fullscreen|TopMost,
+			DefaultWindow				=	WaitVsync,
+			DefaultFullscreen			=	NoBorder|WaitVsync|Fullscreen|TopMost,
 		};
 		Window();
 		~Window();
@@ -377,7 +368,7 @@ class Window : public Widget
 		void setRGBFormat(const RGBFormat &format);
 
 		void *getPrivateData();
-		void setPrivateData(void *data);
+		void setPrivateData(void *data, WindowManager *wm);
 
 		virtual String widgetType() const;
 		virtual void paint(Drawable &draw);
@@ -398,25 +389,35 @@ class WindowManager
 		const WidgetStyle *getWidgetStyle() const;
 		void dispatchEvent(Widget *window, Event &event);
 
-		virtual void getMouseStatus(Point &p, int &buttonMask);
+		virtual void createWindow(Window &w) = 0;
+		virtual void destroyWindow(Window &w) = 0;
+		virtual void setWindowTitle(Window &w) = 0;
+		virtual void setWindowIcon(Window &w) = 0;
+
+
+		virtual const Size &desktopResolution() const =0;
+		virtual const RGBFormat &desktopRGBFormat() const =0;
+
+
+		virtual void getMouseState(Point &p, int &buttonMask)=0;
 		virtual void startEventLoop() = 0;
 		virtual int handleEvents() = 0;
 		virtual void drawIfNeeded() const = 0;
 		virtual void draw() const = 0;
-		virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface) = 0;
-		virtual void createWindow(Window &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Window::DefaultWindow) = 0;
+		//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface) = 0;
+
 };
 
 WindowManager *GetWindowManager();
 const WidgetStyle *GetWidgetStyle();
 
 
-class WindowManager_SDL : public WindowManager
+class WindowManager_SDL2 : public WindowManager
 {
 	private:
-		Window *pw;
 		RGBFormat	screenRGBFormat;
 		Size		screenSize;
+		int			screenRefreshRate;
 
 		void DispatchSdlActiveEvent(void *e);
 		void DispatchSdlKeyEvent(void *e);
@@ -425,20 +426,23 @@ class WindowManager_SDL : public WindowManager
 		void DispatchEvent(void *e);
 
 	public:
-		WindowManager_SDL();
-		~WindowManager_SDL();
-		virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface);
-		virtual void createWindow(Window &w, int width, int height, const RGBFormat &format=RGBFormat(), int wf=Window::DefaultWindow);
+		WindowManager_SDL2();
+		~WindowManager_SDL2();
+		//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface);
+		virtual void createWindow(Window &w);
+		virtual void destroyWindow(Window &w);
+		virtual void setWindowTitle(Window &w);
+		virtual void setWindowIcon(Window &w);
+
+		virtual const Size &desktopResolution() const;
+		virtual const RGBFormat &desktopRGBFormat() const;
+		virtual void getMouseState(Point &p, int &buttonMask);
+		virtual void startEventLoop();
+		virtual int handleEvents();
+		virtual void drawIfNeeded() const;
+		virtual void draw() const;
 
 
-		const Size &desktopResolution() const;
-		const RGBFormat &desktopRGBFormat() const;
-		void startEventLoop();
-		int handleEvents();
-		void drawIfNeeded() const;
-		void draw() const;
-
-		virtual void getMouseStatus(Point &p, int &buttonMask);
 
 };
 

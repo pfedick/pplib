@@ -92,7 +92,7 @@ void Button::setFont(const Font &font)
 
 String Button::widgetType() const
 {
-	return L"Button";
+	return "Button";
 }
 
 
@@ -226,6 +226,7 @@ void Button::paint(Drawable &draw)
 	draw.print(myFont,x1,m+5,Text);
 	*/
 }
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

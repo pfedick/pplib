@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.68)
+AC_PREREQ(2.62)
 AC_INIT([ppl], [7.0.0], [patrick@pfp.de], [ppl-7.0.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
@@ -23,7 +23,8 @@ sinclude(autoconf/pcre.m4)
 sinclude(autoconf/png.m4)
 sinclude(autoconf/jpeg.m4)
 sinclude(autoconf/pthreads.m4)
-###sinclude(autoconf/sdl.m4)
+sinclude(autoconf/sdl2.m4)
+sinclude(autoconf/sdl.m4)
 sinclude(autoconf/freetds.m4)
 sinclude(autoconf/nasm.m4)
 sinclude(autoconf/lib-link.m4)
@@ -411,13 +412,25 @@ AC_CHECK_FT2(9.0.0,
 	, :)
 
 dnl Check for SDL
-###SDL_VERSION=1.2.10
-###AM_PATH_SDL($SDL_VERSION,
-###	AC_DEFINE(HAVE_SDL, 1, [ Define if you have sdl. ])
-###	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $SDL_CFLAGS"
-###	GRAPHIC_LIBS="$GRAPHIC_LIBS $SDL_LIBS"
-###	report_have_sdl="yes"
-###	, :)
+report_have_sdl="no"
+AM_PATH_SDL2([2.0.0],
+            AC_DEFINE(HAVE_SDL2, 1, [ Define if you have libsdl2. ])
+            report_have_sdl="yes - Version 2.x"
+			AC_SUBST(SDL2_CFLAGS)
+			AC_SUBST(SDL2_LIBS)
+            ,:)
+
+
+if test "$report_have_sdl" = "no"
+then
+
+AM_PATH_SDL([1.2.0],
+            AC_DEFINE(HAVE_SDL12, 1, [ Define if you have libsdl12. ])
+            report_have_sdl="yes - Version 1.2.x"
+			AC_SUBST(SDL_CFLAGS)
+			AC_SUBST(SDL_LIBS)
+            ,:)
+fi
 
 
 
@@ -638,6 +651,7 @@ AC_MSG_RESULT([
 **   PNG library:          $report_have_png
 **   JPEG library:         $report_have_jpeg
 **   Freetype 2.x library: $report_have_freetype2
+**   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
 **   SDL library:          $report_have_sdl		

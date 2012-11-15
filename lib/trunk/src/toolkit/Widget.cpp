@@ -15,7 +15,6 @@ using namespace ppl7::grafix;
 
 Widget::Widget()
 {
-	surface=NULL;
 	parent=NULL;
 	lockcount=0;
 	visible=true;
@@ -43,21 +42,7 @@ Widget::~Widget()
 		delete child;
 	}
 	childs.clear();
-	if (surface) delete(surface);
 }
-
-void Widget::setSurface(Surface *surface)
-{
-	if (this->surface) delete this->surface;
-	this->surface=surface;
-}
-
-Surface *Widget::getSurface() const
-{
-	if (!surface) throw NullPointerException();
-	return surface;
-}
-
 
 size_t Widget::numChilds() const
 {
@@ -522,12 +507,12 @@ void Widget::setName(const String &name)
 String Widget::name() const
 {
 	if (myName.notEmpty()) return myName;
-	return String(L"unknown");
+	return String("unknown");
 }
 
 String Widget::widgetType() const
 {
-	return String(L"Widget");
+	return String("Widget");
 }
 
 

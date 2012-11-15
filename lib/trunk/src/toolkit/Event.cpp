@@ -65,22 +65,23 @@ bool Event::isAccepted() const
 String Event::name() const
 {
 	switch (t) {
-		case Unknown: return L"Unknown";
-		case MouseEnter: return L"MouseEnter";
-		case MouseMove: return L"MouseMove";
-		case MouseLeave: return L"MouseLeave";
-		case MouseDown: return L"MouseDown";
-		case MouseUp: return L"MouseUp";
-		case MouseDblClick: return L"MouseDblClick";
-		case MouseWheel: return L"MouseWheel";
-		case KeyDown: return L"KeyDown";
-		case KeyUp: return L"KeyUp";
-		case Show: return L"Show";
-		case Close: return L"Close";
-		case Resize: return L"Resize";
-		case Move: return L"Move";
-		case FocusIn: return L"FocusIn";
-		case FocusOut: return L"FocusOut";
+		case Unknown: return "Unknown";
+		case MouseEnter: return "MouseEnter";
+		case MouseMove: return "MouseMove";
+		case MouseLeave: return "MouseLeave";
+		case MouseDown: return "MouseDown";
+		case MouseUp: return "MouseUp";
+		case MouseDblClick: return "MouseDblClick";
+		case MouseWheel: return "MouseWheel";
+		case KeyDown: return "KeyDown";
+		case KeyUp: return "KeyUp";
+		case Show: return "Show";
+		case Close: return "Close";
+		case Resize: return "Resize";
+		case Move: return "Move";
+		case FocusIn: return "FocusIn";
+		case FocusOut: return "FocusOut";
+		case GeometryChanged: return "GeometryChanged";
 	}
 	throw UnknownEventException();
 }

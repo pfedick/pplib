@@ -312,8 +312,6 @@ void RGBFormat::setFormat(const String &Identifier)
 	else if (Identifier=="X8B8G8R8") f=X8B8G8R8;
 	else if (Identifier=="GREY8") f=GREY8;
 	else if (Identifier=="GREYALPHA32") f=GREYALPHA32;
-	else if (Identifier=="X16R16G16B16") f=X16R16G16B16;
-	else if (Identifier=="A16R16G16B16") f=A16R16G16B16;
 	else {
 		throw UnknownColorFormatException(Identifier);
 	}
@@ -363,8 +361,6 @@ String RGBFormat::name() const
 		case RGBFormat::X8B8G8R8: return "X8B8G8R8";
 		case RGBFormat::GREY8: return "GREY8";
 		case RGBFormat::GREYALPHA32: return "GREYALPHA32";
-		case RGBFormat::X16R16G16B16: return "X16R16G16B16";
-		case RGBFormat::A16R16G16B16: return "A16R16G16B16";
 	}
 	return "unknown";
 }
@@ -405,9 +401,6 @@ int RGBFormat::bitdepth() const
 		case RGBFormat::X8B8G8R8:
 		case RGBFormat::GREYALPHA32:
 			return 32;
-		case RGBFormat::A16R16G16B16:
-		case RGBFormat::X16R16G16B16:
-			return 64;
 	};
 	return 0;
 }
