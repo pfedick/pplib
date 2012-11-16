@@ -329,6 +329,15 @@ class Widget : public EventHandler
 };
 
 class WindowManager;
+class Window;
+
+typedef struct WM_FUNCTIONS {
+	void (*setWindowTitle) (void *privatedata, const String &Title);
+	void (*setWindowIcon) (void *privatedata, const Drawable &Icon);
+	void (*createSurface) (void *privatedata);
+	void (*createTexture) (void *privatedata);
+} WM_FUNCTIONS;
+
 
 class Window : public Widget
 {
@@ -391,9 +400,6 @@ class WindowManager
 
 		virtual void createWindow(Window &w) = 0;
 		virtual void destroyWindow(Window &w) = 0;
-		virtual void setWindowTitle(Window &w) = 0;
-		virtual void setWindowIcon(Window &w) = 0;
-
 
 		virtual const Size &desktopResolution() const =0;
 		virtual const RGBFormat &desktopRGBFormat() const =0;
@@ -431,8 +437,6 @@ class WindowManager_SDL2 : public WindowManager
 		//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface);
 		virtual void createWindow(Window &w);
 		virtual void destroyWindow(Window &w);
-		virtual void setWindowTitle(Window &w);
-		virtual void setWindowIcon(Window &w);
 
 		virtual const Size &desktopResolution() const;
 		virtual const RGBFormat &desktopRGBFormat() const;
