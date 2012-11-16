@@ -9,7 +9,7 @@
  * $URL$
  *
  *******************************************************************************
- * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2012, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
