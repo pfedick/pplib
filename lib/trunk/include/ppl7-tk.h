@@ -171,6 +171,8 @@ class EventHandler
 		virtual ~EventHandler();
 		void setEventHandler(EventHandler *handler);
 
+		virtual void closeEvent(Event *event);
+
 		virtual void mouseMoveEvent(MouseEvent *event);
 		virtual void mouseDownEvent(MouseEvent *event);
 		virtual void mouseUpEvent(MouseEvent *event);
@@ -341,6 +343,8 @@ typedef struct PRIV_WINDOW_FUNCTIONS {
 	void (*unlockWindowSurface) (void *privatedata);
 	void (*drawWindowSurface) (void *privatedata);
 	void *(*getRenderer) (void *privatedata);
+	void (*clearScreen) (void *privatedata);
+	void (*presentScreen) (void *privatedata);
 } PRIV_WINDOW_FUNCTIONS;
 
 
@@ -350,6 +354,7 @@ class Window : public Widget
 		void			*privateData;
 		PRIV_WINDOW_FUNCTIONS	*fn;
 		WindowManager	*wm;
+		Widget *keyfocus;
 		ppluint32 windowFlags;
 		String WindowTitle;
 		Image WindowIcon;
@@ -391,7 +396,10 @@ class Window : public Widget
 
 		void *getPrivateData();
 		void setPrivateData(void *data, WindowManager *wm, PRIV_WINDOW_FUNCTIONS *fn);
+
 		void *getRenderer();
+		void clearScreen();
+		void presentScreen();
 
 		virtual String widgetType() const;
 		virtual void paint(Drawable &draw);
@@ -403,14 +411,19 @@ class WindowManager
 		WidgetStyle Style;
 		Widget	*LastMouseDown;
 		Widget	*LastMouseEnter;
-		Widget	*LastMouseClick;
+
+		MouseEvent	clickEvent;
+		int			clickCount;
 
 		Widget *findMouseWidget(Widget *window, MouseEvent *event);
+
+
 	public:
 		WindowManager();
 		virtual ~WindowManager();
 		const WidgetStyle *getWidgetStyle() const;
 		void dispatchEvent(Widget *window, Event &event);
+		void dispatchClickEvent(Widget *window);
 
 		virtual void createWindow(Window &w) = 0;
 		virtual void destroyWindow(Window &w) = 0;
@@ -421,7 +434,9 @@ class WindowManager
 
 		virtual void getMouseState(Point &p, int &buttonMask)=0;
 		virtual void startEventLoop() = 0;
-		virtual int handleEvents() = 0;
+		virtual void handleEvents() = 0;
+		virtual size_t numWindows() = 0;
+		virtual void startClickEvent(Window *win) = 0;
 		//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface) = 0;
 
 };
@@ -437,11 +452,17 @@ class WindowManager_SDL2 : public WindowManager
 		Size		screenSize;
 		int			screenRefreshRate;
 
+		List<Window*>	windows;
+
 		void DispatchSdlActiveEvent(void *e);
 		void DispatchSdlKeyEvent(void *e);
-		void DispatchSdlMouseEvent(void *e);
+		void DispatchMouseEvent(void *e);
 		void DispatchSdlResizeEvent(void *e);
 		void DispatchEvent(void *e);
+
+		void DispatchWindowEvent(void *e);
+
+		Window *getWindow(ppluint32 id);
 
 	public:
 		WindowManager_SDL2();
@@ -454,10 +475,9 @@ class WindowManager_SDL2 : public WindowManager
 		virtual const RGBFormat &desktopRGBFormat() const;
 		virtual void getMouseState(Point &p, int &buttonMask);
 		virtual void startEventLoop();
-		virtual int handleEvents();
-
-
-
+		virtual void handleEvents();
+		virtual size_t numWindows();
+		virtual void startClickEvent(Window *win);
 };
 
 

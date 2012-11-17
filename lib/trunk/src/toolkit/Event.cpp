@@ -255,8 +255,24 @@ void EventHandler::mouseLeaveEvent(MouseEvent *event)
 	if (handler) handler->mouseLeaveEvent(event);
 }
 
+void EventHandler::closeEvent(Event *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::closeEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
+#endif
+
+	if (handler) handler->closeEvent(event);
+}
+
 void EventHandler::geometryChangedEvent(Event *event)
 {
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::geometryChangedEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
+#endif
 	if (handler) handler->geometryChangedEvent(event);
 }
 

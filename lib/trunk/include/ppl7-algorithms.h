@@ -393,6 +393,7 @@ template <class K> class List
 					if (it->next) it->next->previous=it->previous;
 					if (it==first) first=it->next;
 					if (it==last) last=it->previous;
+					MyHeap.free(it);
 					return;
 				}
 				it=it->next;

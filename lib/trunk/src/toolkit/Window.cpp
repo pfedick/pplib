@@ -73,6 +73,8 @@ static Drawable lockWindowSurface (void *privatedata) { return Drawable();}
 static void unlockWindowSurface (void *privatedata) {}
 static void drawWindowSurface (void *privatedata) {}
 static void* getRenderer (void *privatedata) {return NULL;}
+static void clearScreen (void *privatedata) {}
+static void presentScreen (void *privatedata) {}
 
 static PRIV_WINDOW_FUNCTIONS defWmFunctions = {
 		setWindowTitle,
@@ -82,7 +84,9 @@ static PRIV_WINDOW_FUNCTIONS defWmFunctions = {
 		lockWindowSurface,
 		unlockWindowSurface,
 		drawWindowSurface,
-		getRenderer
+		getRenderer,
+		clearScreen,
+		presentScreen
 };
 
 
@@ -96,6 +100,7 @@ Window::Window()
 	privateData=NULL;
 	wm=NULL;
 	myBackground=style->windowBackgroundColor;
+	keyfocus=NULL;
 }
 
 Window::~Window()
@@ -140,6 +145,16 @@ void Window::setPrivateData(void *data, WindowManager *wm, PRIV_WINDOW_FUNCTIONS
 void *Window::getRenderer()
 {
 	return fn->getRenderer(privateData);
+}
+
+void Window::clearScreen()
+{
+	return fn->clearScreen(privateData);
+}
+
+void Window::presentScreen()
+{
+	return fn->presentScreen(privateData);
 }
 
 const RGBFormat &Window::rgbFormat() const

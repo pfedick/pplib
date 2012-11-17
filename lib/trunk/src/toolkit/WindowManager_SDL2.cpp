@@ -334,11 +334,25 @@ static void sdlDrawWindowSurface (void *privatedata)
 	SDL_UnlockTexture(priv->gui);
 }
 
-void *sdlGetRenderer (void *privatedata)
+static void *sdlGetRenderer (void *privatedata)
 {
 	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
 	if (!priv) throw NullPointerException();
 	return priv->renderer;
+}
+
+static void sdlClearScreen (void *privatedata)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) throw NullPointerException();
+	SDL_RenderClear(priv->renderer);
+}
+
+static void sdlPresentScreen (void *privatedata)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) throw NullPointerException();
+	SDL_RenderPresent(priv->renderer);
 }
 
 
@@ -350,7 +364,9 @@ static PRIV_WINDOW_FUNCTIONS sdlWmFunctions = {
 		sdlLockWindowSurface,
 		sdlUnlockWindowSurface,
 		sdlDrawWindowSurface,
-		sdlGetRenderer
+		sdlGetRenderer,
+		sdlClearScreen,
+		sdlPresentScreen
 };
 
 
@@ -418,6 +434,7 @@ void WindowManager_SDL2::createWindow(Window &w)
 		free(priv);
 		throw WindowCreateException("SDL_CreateWindow ERROR: %s",SDL_GetError());
 	}
+	SDL_SetWindowData(priv->win,"WindowClass",&w);
 	flags=SDL_RENDERER_ACCELERATED;
 	if (wf&Window::WaitVsync) flags|=SDL_RENDERER_PRESENTVSYNC;
 	priv->renderer = SDL_CreateRenderer(priv->win, -1, flags);
@@ -441,17 +458,26 @@ void WindowManager_SDL2::createWindow(Window &w)
     priv->width=w.width();
     priv->height=w.height();
 	w.setPrivateData(priv, this,&sdlWmFunctions);
+	sdlSetWindowIcon(priv,w.windowIcon());
+
+	windows.add(&w);
 }
 
 void WindowManager_SDL2::destroyWindow(Window &w)
 {
 	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
 	if (!priv) return;
+	windows.erase(&w);
 	if (priv->gui) SDL_DestroyTexture(priv->gui);
 	if (priv->renderer) SDL_DestroyRenderer(priv->renderer);
 	if (priv->win) SDL_DestroyWindow(priv->win);
 	free(priv);
 	w.setPrivateData(NULL,NULL,NULL);
+}
+
+size_t WindowManager_SDL2::numWindows()
+{
+	return windows.size();
 }
 
 void WindowManager_SDL2::getMouseState(Point &p, int &buttonMask)
@@ -464,9 +490,216 @@ void WindowManager_SDL2::startEventLoop()
 
 }
 
-int WindowManager_SDL2::handleEvents()
+Window *WindowManager_SDL2::getWindow(ppluint32 id)
 {
-	return 0;
+	SDL_Window* win=SDL_GetWindowFromID(id);
+	if (!win) return NULL;
+	return (Window*)SDL_GetWindowData(win,"WindowClass");
+}
+
+void WindowManager_SDL2::handleEvents()
+{
+	SDL_Event sdl_event;
+	if (SDL_PollEvent(&sdl_event)) {
+		switch (sdl_event.type) {
+
+			case SDL_WINDOWEVENT:
+				DispatchWindowEvent(&sdl_event);
+				break;
+			case SDL_MOUSEMOTION:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+				DispatchMouseEvent(&sdl_event);
+				break;
+			case SDL_USEREVENT:
+				if (sdl_event.user.code==1) {	// ClickTimer
+					//printf ("SDL_USEREVENT\n");
+					dispatchClickEvent((Window*)sdl_event.user.data1);
+				}
+
+	            break;
+
+		}
+	}
+
+}
+
+void WindowManager_SDL2::DispatchWindowEvent(void *e)
+{
+	const SDL_Event * event=(SDL_Event*)e;
+
+	Window *w=getWindow(event->window.windowID);
+	if (!w) return;
+
+    switch (event->window.event) {
+    case SDL_WINDOWEVENT_SHOWN:
+        //fprintf(stderr, "Window %d shown", event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_HIDDEN:
+        //fprintf(stderr, "Window %d hidden", event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_EXPOSED:
+        //fprintf(stderr, "Window %d exposed", event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_MOVED:
+        //fprintf(stderr, "Window %d moved to %d,%d",
+        //        event->window.windowID, event->window.data1,
+        //        event->window.data2);
+        break;
+    case SDL_WINDOWEVENT_RESIZED:
+        // fprintf(stderr, "Window %d resized to %dx%d",
+        //        event->window.windowID, event->window.data1,
+        //        event->window.data2);
+        break;
+    case SDL_WINDOWEVENT_MINIMIZED:
+        //fprintf(stderr, "Window %d minimized", event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_MAXIMIZED:
+        //fprintf(stderr, "Window %d maximized", event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_RESTORED:
+        //fprintf(stderr, "Window %d restored", event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_ENTER:
+        //fprintf(stderr, "Mouse entered window %d",
+        //        event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_LEAVE:
+        //fprintf(stderr, "Mouse left window %d", event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_FOCUS_GAINED:
+        //fprintf(stderr, "Window %d gained keyboard focus",
+        //        event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_FOCUS_LOST:
+        //fprintf(stderr, "Window %d lost keyboard focus",
+        //        event->window.windowID);
+        break;
+    case SDL_WINDOWEVENT_CLOSE:
+    	{
+    		Event e;
+    		e.setWidget(w);
+    		w->closeEvent(&e);
+    	}
+        break;
+    default:
+        printf("SDL Window %d got unknown event %d",
+                event->window.windowID, event->window.event);
+        break;
+    }
+
+}
+
+
+void WindowManager_SDL2::DispatchMouseEvent(void *e)
+{
+	MouseEvent ev;
+	Uint32 type=((SDL_Event*)e)->type;
+
+	if (type==SDL_MOUSEMOTION) {
+		SDL_MouseMotionEvent *event=(SDL_MouseMotionEvent*)e;
+
+		Window *w=getWindow(event->windowID);
+		if (!w) return;
+
+
+		ev.setType(Event::MouseMove);
+		ev.p.x=event->x;
+		ev.p.y=event->y;
+		ev.buttonMask=(MouseEvent::MouseButton)0;
+		ev.button=(MouseEvent::MouseButton)0;
+		if (event->state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
+		if (event->state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
+		if (event->state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
+		if (event->state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
+		if (event->state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
+		if (event->state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
+		if (event->state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+		dispatchEvent(w,ev);
+
+	} else if (type==SDL_MOUSEBUTTONDOWN) {
+		SDL_MouseButtonEvent *event=(SDL_MouseButtonEvent*)e;
+
+		Window *w=getWindow(event->windowID);
+		if (!w) return;
+
+		ev.setType(Event::MouseDown);
+		ev.p.x=event->x;
+		ev.p.y=event->y;
+		ppluint8 state=event->state;
+		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
+		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
+		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
+		if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
+		if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
+		if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
+		if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+		if (event->button==1) ev.button=MouseEvent::Left;
+		if (event->button==2) ev.button=MouseEvent::Middle;
+		if (event->button==3) ev.button=MouseEvent::Right;
+		if (event->button==4) ev.button=MouseEvent::WheelUp;
+		if (event->button==5) ev.button=MouseEvent::WheelDown;
+		if (event->button==6) ev.button=MouseEvent::X1;
+		if (event->button==7) ev.button=MouseEvent::X2;
+		dispatchEvent(w,ev);
+	} else if (type==SDL_MOUSEBUTTONUP) {
+		SDL_MouseButtonEvent *event=(SDL_MouseButtonEvent*)e;
+
+		Window *w=getWindow(event->windowID);
+		if (!w) return;
+
+		ev.setType(Event::MouseUp);
+		ev.p.x=event->x;
+		ev.p.y=event->y;
+		ppluint8 state=event->state;
+		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
+		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
+		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
+		if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
+		if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
+		if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
+		if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+		if (event->button==1) ev.button=MouseEvent::Left;
+		if (event->button==2) ev.button=MouseEvent::Middle;
+		if (event->button==3) ev.button=MouseEvent::Right;
+		if (event->button==4) ev.button=MouseEvent::WheelUp;
+		if (event->button==5) ev.button=MouseEvent::WheelDown;
+		if (event->button==6) ev.button=MouseEvent::X1;
+		if (event->button==7) ev.button=MouseEvent::X2;
+		dispatchEvent(w,ev);
+	}
+}
+
+typedef struct {
+
+} CLICK_EVENT;
+
+static Uint32 clickTimer(Uint32 interval, void *param)
+{
+	//printf("clickTimer\n");
+    SDL_Event event;
+    SDL_UserEvent userevent;
+
+    userevent.type = SDL_USEREVENT;
+    userevent.code = 1;
+    userevent.data1 = param;
+    userevent.data2 = NULL;
+    userevent.windowID=0;
+    userevent.timestamp=0;
+
+    event.type = SDL_USEREVENT;
+    event.user = userevent;
+
+    SDL_PushEvent(&event);
+    return(0);
+}
+
+
+void WindowManager_SDL2::startClickEvent(Window *win)
+{
+	//printf ("WindowManager_SDL2::startClickEvent\n");
+	SDL_AddTimer(200, clickTimer, win);
+
 }
 
 

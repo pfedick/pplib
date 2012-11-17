@@ -97,7 +97,7 @@ WindowManager::WindowManager()
 
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
-	LastMouseClick=NULL;
+	clickCount=NULL;
 }
 
 WindowManager::~WindowManager()
@@ -175,8 +175,8 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 		case Event::MouseDown:
 			w=findMouseWidget(window,(MouseEvent*)&event);
 			if (w) {
-				if (w!=LastMouseDown && LastMouseDown!=NULL) {
-
+				if (w!=LastMouseDown) {
+					clickCount=0;
 				}
 				LastMouseDown=w;
 				event.setWidget(w);
@@ -190,9 +190,14 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 				event.setWidget(w);
 				w->mouseUpEvent((MouseEvent*)&event);
 				if (LastMouseDown==w) {
-					LastMouseDown->mouseClickEvent((MouseEvent*)&event);
+					clickCount++;
+					clickEvent=*((MouseEvent*)&event);
+					if (clickCount==1) startClickEvent((Window*)window);
+					//LastMouseDown->mouseClickEvent((MouseEvent*)&event);
+				} else {
+					clickCount=0;
+					LastMouseDown=NULL;
 				}
-				LastMouseDown=NULL;
 			}
 			return;
 
@@ -201,6 +206,16 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 			return;
 	}
 
+}
+
+void WindowManager::dispatchClickEvent(Widget *window)
+{
+	if (!window) return;
+	if (!LastMouseDown) return;
+	if (clickCount==1) LastMouseDown->mouseClickEvent(&clickEvent);
+	else if (clickCount>1) LastMouseDown->mouseDblClickEvent(&clickEvent);
+	clickCount=0;
+	LastMouseDown=NULL;
 }
 
 }	// EOF namespace tk

@@ -86,7 +86,7 @@ Widget::Widget()
 
 Widget::~Widget()
 {
-	if (parent) removeChild(this);
+	if (parent) parent->removeChild(this);
 	List<Widget*>::Iterator it;
 	childs.reset(it);
 	Widget *child;
