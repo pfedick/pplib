@@ -70,18 +70,18 @@ Frame::Frame()
 	myBackground=style->frameBackgroundColor;
 	myBorderColor=style->frameBorderColor;
 	setTransparent(false);
-	setClientOffset(2,2,2,2);
+	setClientOffset(3,3,3,3);
 }
 
-Frame::Frame(int x, int y, int width, int height)
+Frame::Frame(int x, int y, int width, int height, BorderStyle style)
 {
-	const WidgetStyle *style=GetWidgetStyle();
-	myBorderStyle=Upset;
-	myBackground=style->frameBackgroundColor;
-	myBorderColor=style->frameBorderColor;
+	const WidgetStyle *wstyle=GetWidgetStyle();
+	myBorderStyle=style;
+	myBackground=wstyle->frameBackgroundColor;
+	myBorderColor=wstyle->frameBorderColor;
 	create(x,y,width,height);
 	setTransparent(false);
-	setClientOffset(2,2,2,2);
+	setClientOffset(3,3,3,3);
 }
 
 Frame::~Frame()

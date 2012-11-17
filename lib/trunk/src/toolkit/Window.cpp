@@ -64,13 +64,38 @@ namespace tk {
 using namespace ppl7;
 using namespace ppl7::grafix;
 
+
+static void setWindowTitle (void *privatedata, const String &Title) {}
+static void setWindowIcon (void *privatedata, const Drawable &Icon)  {}
+static void createSurface (void *privatedata) {}
+static void createTexture (void *privatedata) {}
+static Drawable lockWindowSurface (void *privatedata) { return Drawable();}
+static void unlockWindowSurface (void *privatedata) {}
+static void drawWindowSurface (void *privatedata) {}
+static void* getRenderer (void *privatedata) {return NULL;}
+
+static PRIV_WINDOW_FUNCTIONS defWmFunctions = {
+		setWindowTitle,
+		setWindowIcon,
+		createSurface,
+		createTexture,
+		lockWindowSurface,
+		unlockWindowSurface,
+		drawWindowSurface,
+		getRenderer
+};
+
+
 Window::Window()
 {
+	const WidgetStyle *style=GetWidgetStyle();
 	windowFlags=DefaultWindow;
 	WindowTitle="PPL7 Window";
+	fn=&defWmFunctions;
 	setSize(640,480);
 	privateData=NULL;
 	wm=NULL;
+	myBackground=style->windowBackgroundColor;
 }
 
 Window::~Window()
@@ -104,12 +129,18 @@ void *Window::getPrivateData()
  * \param data Pointer auf die interne Datenstruktur
  * \param wm Pointer auf die Klasse des Window-Manager
  */
-void Window::setPrivateData(void *data, WindowManager *wm)
+void Window::setPrivateData(void *data, WindowManager *wm, PRIV_WINDOW_FUNCTIONS *fn)
 {
 	privateData=data;
 	this->wm=wm;
+	if (fn==NULL) this->fn=&defWmFunctions;
+	else this->fn=fn;
 }
 
+void *Window::getRenderer()
+{
+	return fn->getRenderer(privateData);
+}
 
 const RGBFormat &Window::rgbFormat() const
 {
@@ -140,7 +171,7 @@ const String &Window::windowTitle() const
 void Window::setWindowTitle(const String &title)
 {
 	WindowTitle=title;
-	if (wm!=NULL && privateData!=NULL) wm->setWindowTitle(*this);
+	fn->setWindowTitle(privateData,title);
 }
 
 const Drawable &Window::windowIcon() const
@@ -151,7 +182,18 @@ const Drawable &Window::windowIcon() const
 void Window::setWindowIcon(const Drawable &icon)
 {
 	WindowIcon=icon;
-	if (wm!=NULL && privateData!=NULL) wm->setWindowIcon(*this);
+	fn->setWindowIcon(privateData,icon);
+}
+
+const Color &Window::backgroundColor() const
+{
+	return myBackground;
+}
+
+void Window::setBackgroundColor(const Color &c)
+{
+	myBackground=c;
+	needsRedraw();
 }
 
 String Window::widgetType() const
@@ -159,10 +201,30 @@ String Window::widgetType() const
 	return "Window";
 }
 
+void Window::drawWidgets()
+{
+	if (redrawRequired()) {
+		Drawable d=fn->lockWindowSurface(privateData);
+		draw(d);
+		fn->unlockWindowSurface(privateData);
+	}
+	fn->drawWindowSurface(privateData);
+}
+
+void Window::redrawWidgets()
+{
+	if (redrawRequired()) {
+		Drawable d=fn->lockWindowSurface(privateData);
+		redraw(d);
+		fn->unlockWindowSurface(privateData);
+	}
+	fn->drawWindowSurface(privateData);
+}
+
 void Window::paint(Drawable &draw)
 {
 	const WidgetStyle *style=GetWidgetStyle();
-	draw.cls(style->colorWindowBackground);
+	draw.cls(myBackground);
 }
 
 }	// EOF namespace tk

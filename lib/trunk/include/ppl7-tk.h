@@ -73,7 +73,7 @@ using namespace ppl7::grafix;
 class WidgetStyle
 {
 	public:
-		Color	colorWindowBackground;
+		Color	windowBackgroundColor;
 		Color	frameBackgroundColor;
 		Color	frameBorderColor;
 		Color	labelFontColor;
@@ -181,18 +181,22 @@ class EventHandler
 		virtual void geometryChangedEvent(Event *event);
 };
 
-/*
+typedef struct PRIV_SURFACE_FUNCTIONS
+{
+	void (*lock) (void *privatedata, Drawable &draw);
+	void (*unlock) (void *privatedata);
+	void (*destroy) (void *privatedata);
+	void (*update) (void *privatedata, const Drawable &source);
+} PRIV_SURFACE_FUNCTIONS;
+
 class Surface
 {
 	private:
-		void		*myData;
+		PRIV_SURFACE_FUNCTIONS *fn;
+		void		*privatedata;
 		int			myFlags;
 		int			w,h;
 		RGBFormat	myFormat;
-		void (*privLock) (void *data, Drawable &draw);
-		void (*privUnlock) (void *data);
-		void (*privDestroy) (void *data);
-		void (*privDraw) (void *target, void *data, int x, int y);
 
 	public:
 		enum SurfaceFlags {
@@ -210,25 +214,22 @@ class Surface
 		};
 		Surface();
 		~Surface();
+		bool isLoackable() const;
 		void lock(Drawable &draw);
 		void unlock();
-		void draw(Surface *target, int x, int y);
+		void update(const Drawable &source);
 		SurfaceFlags flags() const;
 		const RGBFormat &rgbFormat() const;
 		int width() const;
 		int height() const;
 
-		void setLockFunction( void (*fnLock) (void *, Drawable &));
-		void setUnlockFunction( void (*fnUnlock) (void *));
-		void setDestroyFunction( void (*fnDestroy) (void *));
-		void setDrawFunction( void (*fnDraw) (void *, void *, int, int));
 		void setFlags(SurfaceFlags flags);
 		void setRGBFormat(const RGBFormat &format);
 		void setSize(int width, int height);
-		void setPrivateData(void *data);
-
+		void setPrivateData(void *data, PRIV_SURFACE_FUNCTIONS *fn);
+		void *getPrivateData();
 };
-*/
+
 
 
 class Widget : public EventHandler
@@ -253,7 +254,6 @@ class Widget : public EventHandler
 		Size		strategy;
 		String		myName;
 
-
 	public:
 		enum SizeStrategy {
 			FIXED=1,
@@ -271,6 +271,7 @@ class Widget : public EventHandler
 		const Size &size() const;
 		Rect rect() const;
 		Rect clientRect() const;
+		Size clientSize() const;
 		const Size maxSize() const;
 		const Size minSize() const;
 		void setMaxSize(const Size &s);
@@ -331,23 +332,29 @@ class Widget : public EventHandler
 class WindowManager;
 class Window;
 
-typedef struct WM_FUNCTIONS {
+typedef struct PRIV_WINDOW_FUNCTIONS {
 	void (*setWindowTitle) (void *privatedata, const String &Title);
 	void (*setWindowIcon) (void *privatedata, const Drawable &Icon);
 	void (*createSurface) (void *privatedata);
 	void (*createTexture) (void *privatedata);
-} WM_FUNCTIONS;
+	Drawable (*lockWindowSurface) (void *privatedata);
+	void (*unlockWindowSurface) (void *privatedata);
+	void (*drawWindowSurface) (void *privatedata);
+	void *(*getRenderer) (void *privatedata);
+} PRIV_WINDOW_FUNCTIONS;
 
 
 class Window : public Widget
 {
 	private:
 		void			*privateData;
+		PRIV_WINDOW_FUNCTIONS	*fn;
 		WindowManager	*wm;
 		ppluint32 windowFlags;
 		String WindowTitle;
 		Image WindowIcon;
 		RGBFormat WindowRGBFormat;
+		Color	myBackground;
 
 	public:
 		enum WindowFlags {
@@ -376,8 +383,15 @@ class Window : public Widget
 		const RGBFormat &rgbFormat() const;
 		void setRGBFormat(const RGBFormat &format);
 
+		const Color &backgroundColor() const;
+		void setBackgroundColor(const Color &c);
+
+		void drawWidgets();
+		void redrawWidgets();
+
 		void *getPrivateData();
-		void setPrivateData(void *data, WindowManager *wm);
+		void setPrivateData(void *data, WindowManager *wm, PRIV_WINDOW_FUNCTIONS *fn);
+		void *getRenderer();
 
 		virtual String widgetType() const;
 		virtual void paint(Drawable &draw);
@@ -408,8 +422,6 @@ class WindowManager
 		virtual void getMouseState(Point &p, int &buttonMask)=0;
 		virtual void startEventLoop() = 0;
 		virtual int handleEvents() = 0;
-		virtual void drawIfNeeded() const = 0;
-		virtual void draw() const = 0;
 		//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface) = 0;
 
 };
@@ -443,8 +455,6 @@ class WindowManager_SDL2 : public WindowManager
 		virtual void getMouseState(Point &p, int &buttonMask);
 		virtual void startEventLoop();
 		virtual int handleEvents();
-		virtual void drawIfNeeded() const;
-		virtual void draw() const;
 
 
 
@@ -468,6 +478,7 @@ class Button : public Widget
 		bool	isDown;
 	public:
 		Button();
+		Button(int x, int y, int width, int height, const String &text=String(), const Drawable &icon=Drawable());
 		virtual ~Button();
 		const String &text() const;
 		void setText(const String &text);
@@ -504,7 +515,7 @@ class Frame : public Widget
 			Inset
 		};
 		Frame();
-		Frame(int x, int y, int width, int height);
+		Frame(int x, int y, int width, int height,BorderStyle style=Upset);
 		~Frame();
 		BorderStyle borderStyle() const;
 		void setBorderStyle(BorderStyle s);

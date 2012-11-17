@@ -64,47 +64,31 @@ namespace tk {
 using namespace ppl7;
 using namespace ppl7::grafix;
 
-#ifdef OLDCODE
+static void defLock (void *privatedata, Drawable &draw) {};
+static void defUnlock (void *privatedata) {};
+static void defDestroy (void *privatedata) {};
+static void defUpdate (void *privatedata, const Drawable &source) {};
 
-static void defaultSurfaceDestroy (void *data)
-{
+static PRIV_SURFACE_FUNCTIONS defFunctions = {
+		defLock,
+		defUnlock,
+		defDestroy,
+		defUpdate};
 
-}
-
-static void defaultSurfaceLock (void *data, Drawable &draw)
-{
-
-}
-
-static void defaultSurfaceUnlock (void *data)
-{
-
-}
-
-static void defaultSurfaceDraw (void *target, void *data, int x, int y)
-{
-
-}
 
 
 Surface::Surface()
 {
 	myFlags=DefaultSurface;
-	myData=NULL;
-	privDestroy=defaultSurfaceDestroy;
-	privLock=defaultSurfaceLock;
-	privUnlock=defaultSurfaceUnlock;
-	privDraw=defaultSurfaceDraw;
+	privatedata=NULL;
+	fn=&defFunctions;
 	w=0;
 	h=0;
 }
 
 Surface::~Surface()
 {
-	if (myData) {
-		privDestroy(myData);
-		free(myData);
-	}
+	fn->destroy(privatedata);
 }
 
 const RGBFormat &Surface::rgbFormat() const
@@ -127,40 +111,20 @@ int Surface::height() const
 	return h;
 }
 
+bool Surface::isLoackable() const
+{
+	if (myFlags&Lockable) return true;
+	return false;
+}
+
 void Surface::lock(Drawable &draw)
 {
-	privLock(myData,draw);
+	fn->lock(privatedata,draw);
 }
 
 void Surface::unlock()
 {
-	privUnlock(myData);
-}
-
-void Surface::draw(Surface *target, int x, int y)
-{
-	if (!target) throw NullPointerException();
-	privDraw(target->myData, myData,x,y);
-}
-
-void Surface::setLockFunction( void (*fnLock) (void *, Drawable &))
-{
-	privLock=fnLock;
-}
-
-void Surface::setUnlockFunction( void (*fnUnlock) (void *))
-{
-	privUnlock=fnUnlock;
-}
-
-void Surface::setDestroyFunction( void (*fnDestroy) (void *))
-{
-	privDestroy=fnDestroy;
-}
-
-void Surface::setDrawFunction( void (*fnDraw) (void *, void *, int, int))
-{
-	privDraw=fnDraw;
+	fn->unlock(privatedata);
 }
 
 void Surface::setFlags(SurfaceFlags flags)
@@ -179,12 +143,17 @@ void Surface::setSize(int width, int height)
 	h=height;
 }
 
-void Surface::setPrivateData(void *data)
+void Surface::setPrivateData(void *data, PRIV_SURFACE_FUNCTIONS *fn)
 {
-	myData=data;
+	privatedata=data;
+	this->fn=fn;
 }
 
-#endif // OLDCODE
+void *Surface::getPrivateData()
+{
+	return privatedata;
+}
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

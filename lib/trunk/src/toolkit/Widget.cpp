@@ -438,6 +438,23 @@ Drawable Widget::clientDrawable(const Drawable &parent) const
 	return d;
 }
 
+Rect Widget::clientRect() const
+{
+	return Rect(
+			myClientOffset.x1,
+			myClientOffset.y1,
+			s.width-myClientOffset.x2,
+			s.height-myClientOffset.y2
+			);
+}
+
+Size Widget::clientSize() const
+{
+	return Size(
+			s.width-myClientOffset.x1-myClientOffset.x2,
+			s.height-myClientOffset.y1-myClientOffset.y2);
+}
+
 
 void Widget::draw(Drawable &d)
 {

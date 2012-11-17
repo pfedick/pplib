@@ -72,7 +72,15 @@ typedef struct {
 	SDL_Window *win;
 	SDL_Renderer *renderer;
 	SDL_Texture *gui;
+	int width, height;
+	RGBFormat format;
 } SDL_WINDOW_PRIVATE;
+
+
+typedef struct {
+	Window *win;
+	SDL_Texture *tex;
+} SDL_SURFACE_PRIVATE;
 
 
 typedef struct {
@@ -236,6 +244,114 @@ static SDL_COLORFORMAT RGBFormat2SDLStruct(const RGBFormat &format)
 }
 
 
+static void surfaceLock (void *privatedata, Drawable &draw) {};
+static void surfaceUnlock (void *privatedata) {};
+static void surfaceDestroy (void *privatedata) {};
+static void surfaceUpdate (void *privatedata, const Drawable &source) {};
+
+static void textureLock (void *privatedata, Drawable &draw) {};
+static void textureUnlock (void *privatedata) {};
+static void textureDestroy (void *privatedata) {};
+static void textureUpdate (void *privatedata, const Drawable &source) {};
+
+
+static PRIV_SURFACE_FUNCTIONS sdlSurfaceFunctions = {
+		surfaceLock,
+		surfaceUnlock,
+		surfaceDestroy,
+		surfaceUpdate};
+
+
+static PRIV_SURFACE_FUNCTIONS sdlTextureFunctions = {
+		textureLock,
+		textureUnlock,
+		textureDestroy,
+		textureUpdate};
+
+
+
+static void sdlSetWindowTitle (void *privatedata, const String &Title)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) return;
+	SDL_SetWindowTitle(priv->win,(const char*)Title);
+
+}
+
+static void sdlSetWindowIcon (void *privatedata, const Drawable &Icon)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) return;
+	if (Icon.isEmpty()) {
+		SDL_SetWindowIcon(priv->win, NULL);
+	} else {
+		SDL_COLORFORMAT cf=RGBFormat2SDLStruct(Icon.rgbformat());
+
+		SDL_Surface* s=SDL_CreateRGBSurfaceFrom (Icon.adr(),
+				Icon.width(),
+				Icon.height(),
+				Icon.bitdepth(),
+				Icon.pitch(),
+				cf.Rmask, cf.Gmask, cf.Bmask, cf.Amask);
+		if (!s) throw SurfaceCreateException("sdlSetWindowIcon ERROR: %s",SDL_GetError());
+		SDL_SetWindowIcon(priv->win,s);
+		SDL_FreeSurface(s);
+	}
+}
+
+static void sdlCreateSurface (void *privatedata)
+{
+
+}
+
+static void sdlCreateTexture (void *privatedata)
+{
+
+}
+
+static Drawable sdlLockWindowSurface (void *privatedata)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) throw NullPointerException();
+	void *pixels;
+	int pitch;
+	SDL_LockTexture(priv->gui,NULL,&pixels,&pitch);
+	return ppl7::grafix::Drawable(pixels,pitch,priv->width,priv->height,priv->format);
+}
+
+static void sdlUnlockWindowSurface (void *privatedata)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) throw NullPointerException();
+	SDL_UnlockTexture(priv->gui);
+}
+
+static void sdlDrawWindowSurface (void *privatedata)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) throw NullPointerException();
+	SDL_RenderCopy(priv->renderer,priv->gui,NULL,NULL);
+	SDL_UnlockTexture(priv->gui);
+}
+
+void *sdlGetRenderer (void *privatedata)
+{
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
+	if (!priv) throw NullPointerException();
+	return priv->renderer;
+}
+
+
+static PRIV_WINDOW_FUNCTIONS sdlWmFunctions = {
+		sdlSetWindowTitle,
+		sdlSetWindowIcon,
+		sdlCreateSurface,
+		sdlCreateTexture,
+		sdlLockWindowSurface,
+		sdlUnlockWindowSurface,
+		sdlDrawWindowSurface,
+		sdlGetRenderer
+};
 
 
 
@@ -321,7 +437,10 @@ void WindowManager_SDL2::createWindow(Window &w)
 		throw WindowCreateException("SDL_CreateWindow ERROR: %s",e);
 
     }
-	w.setPrivateData(priv, this);
+    priv->format=RGBFormat::A8R8G8B8;
+    priv->width=w.width();
+    priv->height=w.height();
+	w.setPrivateData(priv, this,&sdlWmFunctions);
 }
 
 void WindowManager_SDL2::destroyWindow(Window &w)
@@ -332,41 +451,8 @@ void WindowManager_SDL2::destroyWindow(Window &w)
 	if (priv->renderer) SDL_DestroyRenderer(priv->renderer);
 	if (priv->win) SDL_DestroyWindow(priv->win);
 	free(priv);
-	w.setPrivateData(NULL,NULL);
+	w.setPrivateData(NULL,NULL,NULL);
 }
-
-void WindowManager_SDL2::setWindowTitle(Window &w)
-{
-	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
-	if (!priv) return;
-	SDL_SetWindowTitle(priv->win,(const char*)w.windowTitle());
-
-}
-
-void WindowManager_SDL2::setWindowIcon(Window &w)
-{
-	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
-	if (!priv) return;
-	const Drawable d=w.windowIcon();
-	if (d.isEmpty()) {
-		SDL_SetWindowIcon(priv->win, NULL);
-	} else {
-		SDL_COLORFORMAT cf=RGBFormat2SDLStruct(d.rgbformat());
-
-		SDL_Surface* s=SDL_CreateRGBSurfaceFrom (d.adr(),
-				d.width(),
-				d.height(),
-				d.bitdepth(),
-				d.pitch(),
-				cf.Rmask, cf.Gmask, cf.Bmask, cf.Amask);
-		if (!s) throw SurfaceCreateException("SDL_CreateRGBSurfaceFrom ERROR: %s",SDL_GetError());
-		SDL_SetWindowIcon(priv->win,s);
-		SDL_FreeSurface(s);
-	}
-
-}
-
-
 
 void WindowManager_SDL2::getMouseState(Point &p, int &buttonMask)
 {
@@ -383,15 +469,6 @@ int WindowManager_SDL2::handleEvents()
 	return 0;
 }
 
-void WindowManager_SDL2::drawIfNeeded() const
-{
-
-}
-
-void WindowManager_SDL2::draw() const
-{
-
-}
 
 
 #ifdef OLDCODE

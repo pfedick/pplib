@@ -1030,6 +1030,7 @@ Size Font6Renderer::measure(const Font &font, const String &text)
 	if (font.italic()) flags|=4;
 	const Font6Face *face=getFace(font.size(),flags);
 	if (!face) return s;
+	lasty=face->MaxHeight;
 	while (p<textlen) {
 		code=text[p++];
 		if (code==10) {								// Newline

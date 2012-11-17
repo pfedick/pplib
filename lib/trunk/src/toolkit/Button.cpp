@@ -69,8 +69,21 @@ Button::Button()
 	background=style->buttonBackgroundColor;
 	foreground=style->buttonFontColor;
 	myFont=style->buttonFont;
-	setClientOffset(2,2,2,2);
+	setClientOffset(3,3,3,3);
 	isDown=false;
+}
+
+Button::Button(int x, int y, int width, int height, const String &text, const Drawable &icon)
+{
+	const WidgetStyle *style=GetWidgetStyle();
+	background=style->buttonBackgroundColor;
+	foreground=style->buttonFontColor;
+	myFont=style->buttonFont;
+	create(x,y,width,height);
+	setClientOffset(3,3,3,3);
+	isDown=false;
+	Text=text;
+	Icon=icon;
 }
 
 Button::~Button()
@@ -216,12 +229,14 @@ void Button::paint(Drawable &draw)
 	}
 	Drawable d=clientDrawable(draw);
 	if (Icon.isEmpty()==false) {
-		d.bltAlpha(Icon,x+2,y+(d.height())/2-Icon.height()/2);
+		d.bltAlpha(Icon,x+2,y+(d.height()-Icon.height())/2);
 		x+=6+Icon.width();
 	}
 	myFont.setColor(foreground);
 	myFont.setOrientation(Font::TOP);
-	d.print(myFont,x,y,Text);
+
+	Size s=myFont.measure(Text);
+	d.print(myFont,x,(draw.height()-s.height)>>1,Text);
 	return;
 
 /*

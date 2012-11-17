@@ -84,6 +84,7 @@ Label::Label(int x, int y, int width, int height, const String &text)
 	myFont=style->labelFont;
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(true);
+	myText=text;
 }
 
 Label::~Label()
@@ -169,7 +170,8 @@ void Label::paint(Drawable &draw)
 	}
 	myFont.setColor(myColor);
 	myFont.setOrientation(Font::TOP);
-	d.print(myFont,x,0,myText);
+	Size s=myFont.measure(myText);
+	d.print(myFont,x,(draw.height()-s.height)>>1,myText);
 }
 
 

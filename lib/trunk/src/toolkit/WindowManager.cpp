@@ -82,12 +82,19 @@ WindowManager::WindowManager()
 {
 	if (wm!=NULL) throw DuplicateWindowManagerException();
 	wm=this;
-	Style.colorWindowBackground.setColor(220,220,220,255);
+	Style.windowBackgroundColor.setColor(220,220,220,255);
 	Style.frameBackgroundColor.setColor(230,230,230,255);
 	Style.frameBorderColor.setColor(96,96,96,255);
 	Style.labelFontColor.setColor(0,0,0,255);
+	Style.labelFont.setName("Default");
+	Style.labelFont.setSize(12);
+	Style.labelFont.setAntialias(true);
 	Style.buttonBackgroundColor.setColor(230,230,230,255);
 	Style.buttonFontColor.setColor(0,0,0,255);
+	Style.buttonFont.setName("Default");
+	Style.buttonFont.setSize(12);
+	Style.buttonFont.setAntialias(true);
+
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
 	LastMouseClick=NULL;
