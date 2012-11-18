@@ -98,6 +98,7 @@ WindowManager::WindowManager()
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
 	clickCount=NULL;
+	doubleClickIntervall=200;
 }
 
 WindowManager::~WindowManager()
@@ -125,8 +126,8 @@ Widget *WindowManager::findMouseWidget(Widget *window, MouseEvent *event)
 					&& event->p.x < w->p.x+w->s.width
 					&& event->p.y < w->p.y+w->s.height) {
 				// Passendes Widget gefunden, Koordinaten des Events auf das Widget umrechnen
-				event->p.x-=w->p.x;
-				event->p.y-=w->p.y;
+				event->p.x-=w->p.x+w->myClientOffset.x1;
+				event->p.y-=w->p.y+w->myClientOffset.y1;
 				return findMouseWidget(w,event);	// Iterieren
 			}
 		}
@@ -207,6 +208,18 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 	}
 
 }
+
+void WindowManager::setDoubleClickIntervall(int ms)
+{
+	doubleClickIntervall=ms;
+}
+
+int WindowManager::getDoubleClickIntervall() const
+{
+	return doubleClickIntervall;
+}
+
+
 
 void WindowManager::dispatchClickEvent(Widget *window)
 {

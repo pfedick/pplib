@@ -414,6 +414,7 @@ class WindowManager
 
 		MouseEvent	clickEvent;
 		int			clickCount;
+		int			doubleClickIntervall;
 
 		Widget *findMouseWidget(Widget *window, MouseEvent *event);
 
@@ -424,6 +425,8 @@ class WindowManager
 		const WidgetStyle *getWidgetStyle() const;
 		void dispatchEvent(Widget *window, Event &event);
 		void dispatchClickEvent(Widget *window);
+		void setDoubleClickIntervall(int ms);
+		int getDoubleClickIntervall() const;
 
 		virtual void createWindow(Window &w) = 0;
 		virtual void destroyWindow(Window &w) = 0;

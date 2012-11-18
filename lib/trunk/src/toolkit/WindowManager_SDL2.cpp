@@ -434,6 +434,18 @@ void WindowManager_SDL2::createWindow(Window &w)
 		free(priv);
 		throw WindowCreateException("SDL_CreateWindow ERROR: %s",SDL_GetError());
 	}
+
+	/*
+	if (wf&Window::Fullscreen) {
+		if (SDL_SetWindowFullscreen(priv->win, SDL_TRUE)!=0) {
+			const char *e=SDL_GetError();
+			SDL_DestroyWindow(priv->win);
+			free(priv);
+			throw WindowCreateException("SDL_SetWindowFullscreen ERROR: %s",e);
+		}
+	}
+	*/
+
 	SDL_SetWindowData(priv->win,"WindowClass",&w);
 	flags=SDL_RENDERER_ACCELERATED;
 	if (wf&Window::WaitVsync) flags|=SDL_RENDERER_PRESENTVSYNC;
@@ -454,6 +466,15 @@ void WindowManager_SDL2::createWindow(Window &w)
 		throw WindowCreateException("SDL_CreateWindow ERROR: %s",e);
 
     }
+    if (SDL_SetTextureBlendMode(priv->gui,SDL_BLENDMODE_BLEND)!=0) {
+		const char *e=SDL_GetError();
+		SDL_DestroyTexture(priv->gui);
+		SDL_DestroyRenderer(priv->renderer);
+		SDL_DestroyWindow(priv->win);
+		free(priv);
+		throw WindowCreateException("SDL_SetTextureBlendMode ERROR: %s",e);
+    }
+
     priv->format=RGBFormat::A8R8G8B8;
     priv->width=w.width();
     priv->height=w.height();
@@ -698,7 +719,7 @@ static Uint32 clickTimer(Uint32 interval, void *param)
 void WindowManager_SDL2::startClickEvent(Window *win)
 {
 	//printf ("WindowManager_SDL2::startClickEvent\n");
-	SDL_AddTimer(200, clickTimer, win);
+	SDL_AddTimer(getDoubleClickIntervall(), clickTimer, win);
 
 }
 
