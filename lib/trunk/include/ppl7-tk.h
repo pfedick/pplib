@@ -576,6 +576,26 @@ class Label : public Frame
 		virtual Size contentSize() const;
 };
 
+class VerticalDivider : public Widget
+{
+	public:
+		VerticalDivider();
+		VerticalDivider(int x, int y, int width, int height);
+		virtual String widgetType() const;
+		virtual void paint(Drawable &draw);
+		virtual Size contentSize() const;
+};
+
+class HorizontalDivider : public Widget
+{
+	public:
+		HorizontalDivider();
+		HorizontalDivider(int x, int y, int width, int height);
+		virtual String widgetType() const;
+		virtual void paint(Drawable &draw);
+		virtual Size contentSize() const;
+};
+
 class HorizontalLayout : public Widget
 {
 	private:

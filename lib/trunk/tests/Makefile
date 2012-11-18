@@ -21,7 +21,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CC) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
 
-all: $(PROGNAME) threadtest
+all: $(PROGNAME) threadtest toolkit
 	
 xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
@@ -34,7 +34,10 @@ memcheck: $(PROGNAME)
 
 threadtest: compile/threadtest.o ppl7-tests.h
 	$(CC) -O -ggdb -o threadtest $(CFLAGS) compile/threadtest.o $(LIBS)
-	
+
+toolkit: compile/toolkit.o src/toolkit.h ../debug/libppl7-debug.a
+	$(CC) -O -ggdb -o toolkit $(CFLAGS) compile/toolkit.o $(LIBS)
+
 clean:
 	-rm -rf compile tmp.grafixtest.png
 	-rm -rf *.core
@@ -137,3 +140,7 @@ compile/threadtest.o: src/threadtest.cpp Makefile ppl7-tests.h
 compile/db_postgres.o: src/db_postgres.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/db_postgres.o -c src/db_postgres.cpp $(CFLAGS) $(LIB)
+	
+compile/toolkit.o: src/toolkit.cpp Makefile src/toolkit.h
+	mkdir -p compile
+	$(CC) -o compile/toolkit.o -c src/toolkit.cpp $(CFLAGS) $(LIB)

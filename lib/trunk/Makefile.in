@@ -110,6 +110,7 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_Size.o \
 	release/gfx_Sprite.o \
 	release/tk_Button.o \
+	release/tk_Divider.o \
 	release/tk_Event.o \
 	release/tk_Frame.o \
 	release/tk_Label.o \
@@ -198,6 +199,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_Size.o \
 	debug/gfx_Sprite.o \
 	debug/tk_Button.o \
+	debug/tk_Divider.o \
 	debug/tk_Event.o \
 	debug/tk_Frame.o \
 	debug/tk_Label.o \
@@ -731,6 +733,11 @@ release/tk_Button.o:	$(srcdir)/toolkit/Button.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>toolkit/Button.cpp<<<
 	$(CXX) -Wall -O3 -o release/tk_Button.o -c $(srcdir)/toolkit/Button.cpp $(CFLAGS) 
 
+release/tk_Divider.o:	$(srcdir)/toolkit/Divider.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Divider.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Divider.o -c $(srcdir)/toolkit/Divider.cpp $(CFLAGS) 
+
 release/tk_Event.o:	$(srcdir)/toolkit/Event.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Event.cpp<<<
@@ -1224,6 +1231,11 @@ debug/tk_Button.o:	$(srcdir)/toolkit/Button.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	###############################################################################
 	# Compiling >>>toolkit/Button.cpp<<<
 	$(CXX) -Wall -O -o debug/tk_Button.o -c $(srcdir)/toolkit/Button.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/tk_Divider.o:	$(srcdir)/toolkit/Divider.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Divider.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Divider.o -c $(srcdir)/toolkit/Divider.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/tk_Event.o:	$(srcdir)/toolkit/Event.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
 	###############################################################################

@@ -456,6 +456,9 @@ void WindowManager_SDL2::createWindow(Window &w)
 		free(priv);
 		throw WindowCreateException("SDL_CreateWindow ERROR: %s",e);
 	}
+	int width,height;
+	SDL_GetWindowSize(priv->win,&width,&height);
+	w.setSize(width,height);
 
 	priv->gui=SDL_CreateTexture(priv->renderer,SDL_PIXELFORMAT_ARGB8888,SDL_TEXTUREACCESS_STREAMING,w.width(),w.height());
     if (priv->gui==0) {
