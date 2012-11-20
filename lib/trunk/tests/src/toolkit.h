@@ -37,6 +37,8 @@ class MainWindow : public ppl7::tk::Window
 
 		ppl7::tk::Frame *toolbar;
 
+		ppl7::tk::LineInput *input;
+
 		FrameRate fps;
 
 		virtual void closeEvent(ppl7::tk::Event *event);

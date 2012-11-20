@@ -82,6 +82,9 @@ class WidgetStyle
 		Color	buttonFontColor;
 		Font	buttonFont;
 		Color	surfaceBackgroundColor;
+		Color	inputFontColor;
+		Font	inputFont;
+		Color	inputBackgroundColor;
 };
 
 class Widget;
@@ -617,6 +620,29 @@ class HorizontalSpacer : public Widget
 		virtual String widgetType() const;
 		virtual void paint(Drawable &draw);
 
+};
+
+class LineInput : public Frame
+{
+	private:
+		String	myText;
+		Font	myFont;
+		Image	myIcon;
+		Color	myColor;
+	public:
+		LineInput();
+		LineInput(int x, int y, int width, int height, const String &text=String());
+		~LineInput();
+		const String &text() const;
+		void setText(const String &text);
+		const Color &color() const;
+		void setColor(const Color &c);
+		const Font &font() const;
+		void setFont(const Font &font);
+
+		virtual String widgetType() const;
+		virtual void paint(Drawable &draw);
+		virtual Size contentSize() const;
 };
 
 

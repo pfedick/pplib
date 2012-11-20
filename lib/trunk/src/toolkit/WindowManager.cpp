@@ -95,6 +95,14 @@ WindowManager::WindowManager()
 	Style.buttonFont.setSize(12);
 	Style.buttonFont.setAntialias(true);
 
+	Style.inputFont.setName("Default");
+	Style.inputFont.setAntialias(true);
+	Style.inputFont.setSize(12);
+	Style.inputFont.setBold(true);
+	Style.inputFontColor.setColor(0,0,0,255);
+	Style.inputBackgroundColor.setColor(255,255,255,255);
+
+
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
 	clickCount=NULL;

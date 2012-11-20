@@ -44,13 +44,23 @@
 #include "../include/ppl7.h"
 #include "../include/ppl7-grafix.h"
 #include "../include/ppl7-tk.h"
+#include "ppl7-tests.h"
 #include "toolkit.h"
 
 
 int main(int agrc, char ** argv)
 {
+
+	if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+		printf ("setlocale fehlgeschlagen\n");
+		throw std::exception();
+	}
+	ppl7::String::setGlobalEncoding("UTF-8");
+
 	ppl7::grafix::Grafix gfx;
 	ppl7::tk::WindowManager_SDL2 wm;
+
+
 
 	MainWindow win;
 	win.create(1280,720,false);
@@ -109,13 +119,16 @@ void MainWindow::create(int width, int height, bool fullscreen)
 	addChild(toolbar);
 
 
-	ppl7::tk::Label *label=new ppl7::tk::Label(0,0,60,menueSize.height,"Frame:");
+	ppl7::tk::Label *label=new ppl7::tk::Label(0,0,54,menueSize.height,"Frame:");
 	menue->addChild(label);
 
-	frameCountLabel=new ppl7::tk::Label(60,0,60,menueSize.height,"0");
+	//menue->addChild(new ppl7::tk::VerticalDivider(54,0,6,menueSize.height));
+
+	frameCountLabel=new ppl7::tk::Label(60,0,54,menueSize.height,"0");
 	frameCountLabel->setBorderStyle(ppl7::tk::Label::Inset);
 	menue->addChild(frameCountLabel);
 
+	menue->addChild(new ppl7::tk::VerticalDivider(114,0,6,menueSize.height));
 	label=new ppl7::tk::Label(120,0,60,menueSize.height,"FPS:");
 	menue->addChild(label);
 
@@ -127,6 +140,10 @@ void MainWindow::create(int width, int height, bool fullscreen)
 	exitButton->setIcon(gfx->Toolbar.getDrawable(68));
 	exitButton->setEventHandler(this);
 	menue->addChild(exitButton);
+
+	menue->addChild(new ppl7::tk::Label(240,0,40,menueSize.height,"Text:"));
+	input=new ppl7::tk::LineInput(280,0,250,menueSize.height,"Täst gÄy$§ @ ");
+	menue->addChild(input);
 
 
 }

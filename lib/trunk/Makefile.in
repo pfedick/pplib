@@ -115,6 +115,7 @@ RELEASE	= release/AVLTree.o \
 	release/tk_Frame.o \
 	release/tk_Label.o \
 	release/tk_Layout.o \
+	release/tk_LineInput.o \
 	release/tk_Surface.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
@@ -204,6 +205,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/tk_Frame.o \
 	debug/tk_Label.o \
 	debug/tk_Layout.o \
+	debug/tk_LineInput.o \
 	debug/tk_Surface.o \
 	debug/tk_Widget.o \
 	debug/tk_Window.o \
@@ -758,6 +760,11 @@ release/tk_Layout.o:	$(srcdir)/toolkit/Layout.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>toolkit/Layout.cpp<<<
 	$(CXX) -Wall -O3 -o release/tk_Layout.o -c $(srcdir)/toolkit/Layout.cpp $(CFLAGS) 
 
+release/tk_LineInput.o:	$(srcdir)/toolkit/LineInput.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/LineInput.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_LineInput.o -c $(srcdir)/toolkit/LineInput.cpp $(CFLAGS) 
+
 release/tk_Surface.o:	$(srcdir)/toolkit/Surface.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Surface.cpp<<<
@@ -1256,6 +1263,11 @@ debug/tk_Layout.o:	$(srcdir)/toolkit/Layout.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	###############################################################################
 	# Compiling >>>toolkit/Layout.cpp<<<
 	$(CXX) -Wall -O -o debug/tk_Layout.o -c $(srcdir)/toolkit/Layout.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/tk_LineInput.o:	$(srcdir)/toolkit/LineInput.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/LineInput.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_LineInput.o -c $(srcdir)/toolkit/LineInput.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/tk_Surface.o:	$(srcdir)/toolkit/Surface.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
 	###############################################################################

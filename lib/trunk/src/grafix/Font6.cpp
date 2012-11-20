@@ -249,7 +249,7 @@ class Font6Renderer
 
 		const Font6Face* getFace(int size, int flags);
 
-		void renderInternal(const Font6Face &face, grafix::Drawable &draw, const Font &font, int x, int y, const String &text, const Color &color);
+		void renderInternal(const Font6Face &face, grafix::Drawable &draw, const Font &font, int x, int y, const WideString &text, const Color &color);
 
 
 
@@ -267,9 +267,9 @@ class Font6Renderer
 		size_t numFaces() const;
 
 
-		void	render(grafix::Drawable &draw, const Font &font, int x, int y, const String &text, const Color &color);
-		Size	measure(const Font &font, const String &text);
-		Rect	boundary(const Font &font, const String &text, int x, int y);
+		void	render(grafix::Drawable &draw, const Font &font, int x, int y, const WideString &text, const Color &color);
+		Size	measure(const Font &font, const WideString &text);
+		Rect	boundary(const Font &font, const WideString &text, int x, int y);
 
 
 	// Exceptions
@@ -801,7 +801,7 @@ int Font6Glyph::getHint(wchar_t nextGlyph) const
 	return it->second;
 }
 
-void Font6Renderer::render(grafix::Drawable &draw, const Font &font, int x, int y, const String &text, const Color &color)
+void Font6Renderer::render(grafix::Drawable &draw, const Font &font, int x, int y, const WideString &text, const Color &color)
 {
 	int flags=0;
 	if (font.antialias()) flags|=1;
@@ -930,7 +930,7 @@ static void getBlitter(const Font6Face &face, const grafix::Drawable &draw, int 
 }
 
 
-void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw, const Font &font, int x, int y, const String &text,const Color &color)
+void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw, const Font &font, int x, int y, const WideString &text,const Color &color)
 {
 	DRAWABLE_DATA *data=draw.getData();
 	const Font6Glyph *glyph=NULL, *previous=NULL;
@@ -1013,7 +1013,7 @@ void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw
 	}
 }
 
-Size Font6Renderer::measure(const Font &font, const String &text)
+Size Font6Renderer::measure(const Font &font, const WideString &text)
 {
 	Size s;
 	const Font6Glyph *glyph=NULL, *previous=NULL;
@@ -1061,7 +1061,7 @@ Size Font6Renderer::measure(const Font &font, const String &text)
 	return s;
 }
 
-Rect Font6Renderer::boundary(const Font &font, const String &text, int x, int y)
+Rect Font6Renderer::boundary(const Font &font, const WideString &text, int x, int y)
 {
 	Rect r;
 	int flags=0;
