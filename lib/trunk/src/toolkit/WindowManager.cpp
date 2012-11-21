@@ -107,6 +107,7 @@ WindowManager::WindowManager()
 	LastMouseEnter=NULL;
 	clickCount=NULL;
 	doubleClickIntervall=200;
+	KeyboardFocus=NULL;
 }
 
 WindowManager::~WindowManager()
@@ -238,6 +239,24 @@ void WindowManager::dispatchClickEvent(Widget *window)
 	clickCount=0;
 	LastMouseDown=NULL;
 }
+
+void WindowManager::setKeyboardFocus(Widget *w)
+{
+	if (w==KeyboardFocus) return;
+	if (KeyboardFocus) {
+		FocusEvent e;
+		KeyboardFocus->lostFocusEvent(&e);
+	}
+	KeyboardFocus=w;
+	FocusEvent e;
+	KeyboardFocus->gotFocusEvent(&e);
+}
+
+Widget *WindowManager::getKeyboardFocus() const
+{
+	return KeyboardFocus;
+}
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

@@ -154,7 +154,64 @@ class MouseEvent : public Event
 		Point p;
 		MouseButton buttonMask;
 		MouseButton button;
+};
 
+class KeyEvent : public Event
+{
+	public:
+		enum keycode {
+			KEY_UNKNOWN = 0,
+			KEY_RETURN		= 40,
+			KEY_ESCAPE		= 41,
+			KEY_BACKSPACE	= 42,
+			KEY_TAB			= 43,
+			KEY_SPACE		= 44,
+			KEY_CAPSLOCK	= 57,
+			KEY_F1			= 58,
+			KEY_F2			= 59,
+			KEY_F3			= 60,
+			KEY_F4			= 61,
+			KEY_F5			= 62,
+			KEY_F6			= 63,
+			KEY_F7			= 64,
+			KEY_F8			= 65,
+			KEY_F9			= 66,
+			KEY_F10			= 67,
+			KEY_F11			= 68,
+			KEY_F12			= 69,
+			KEY_PRINTSCREEN	= 70,
+			KEY_SCROLLLOCK	= 71,
+			KEY_PAUSE		= 72,
+			KEY_INSERT		= 73,
+			KEY_HOME		= 74,
+			KEY_PAGEUP		= 75,
+			KEY_DELETE		= 76,
+			KEY_END			= 77,
+			KEY_PAGEDOWN	= 78,
+			KEY_RIGHT		= 79,
+			KEY_LEFT		= 80,
+			KEY_DOWN		= 81,
+			KEY_UP			= 82,
+
+			KEY_LEFTCTRL	= 224,
+			KEY_LEFTSHIFT	= 225,
+			KEY_LEFTALT		= 226,
+			KEY_LEFTGUI		= 227,
+			KEY_RIGHTCTRL	= 224,
+			KEY_RIGHTSHIFT	= 225,
+			KEY_RIGHTALT	= 226,
+			KEY_RIGHTGUI	= 227,
+
+
+		};
+		KeyEvent();
+		int key;
+};
+
+class TextInputEvent : public Event
+{
+	public:
+		String text;
 };
 
 class ResizeEvent : public Event
@@ -162,6 +219,12 @@ class ResizeEvent : public Event
 	public:
 		ResizeEvent();
 		int width, height;
+};
+
+class FocusEvent : public Event
+{
+	public:
+
 };
 
 
@@ -184,6 +247,14 @@ class EventHandler
 		virtual void mouseEnterEvent(MouseEvent *event);
 		virtual void mouseLeaveEvent(MouseEvent *event);
 		virtual void geometryChangedEvent(Event *event);
+
+		virtual void gotFocusEvent(FocusEvent *event);
+		virtual void lostFocusEvent(FocusEvent *event);
+
+		virtual void keyDownEvent(KeyEvent *event);
+		virtual void keyUpEvent(KeyEvent *event);
+		virtual void textInputEvent(TextInputEvent *event);
+
 };
 
 typedef struct PRIV_SURFACE_FUNCTIONS
@@ -419,6 +490,8 @@ class WindowManager
 		int			clickCount;
 		int			doubleClickIntervall;
 
+		Widget	*KeyboardFocus;
+
 		Widget *findMouseWidget(Widget *window, MouseEvent *event);
 
 
@@ -429,6 +502,8 @@ class WindowManager
 		void dispatchEvent(Widget *window, Event &event);
 		void dispatchClickEvent(Widget *window);
 		void setDoubleClickIntervall(int ms);
+		void setKeyboardFocus(Widget *w);
+		Widget *getKeyboardFocus() const;
 		int getDoubleClickIntervall() const;
 
 		virtual void createWindow(Window &w) = 0;
@@ -463,6 +538,7 @@ class WindowManager_SDL2 : public WindowManager
 		void DispatchSdlActiveEvent(void *e);
 		void DispatchSdlKeyEvent(void *e);
 		void DispatchMouseEvent(void *e);
+		void DispatchKeyEvent(void *e);
 		void DispatchSdlResizeEvent(void *e);
 		void DispatchEvent(void *e);
 
@@ -643,6 +719,11 @@ class LineInput : public Frame
 		virtual String widgetType() const;
 		virtual void paint(Drawable &draw);
 		virtual Size contentSize() const;
+
+		virtual void mouseDownEvent(MouseEvent *event);
+		virtual void gotFocusEvent(FocusEvent *event);
+		virtual void lostFocusEvent(FocusEvent *event);
+		virtual void textInputEvent(TextInputEvent *event);
 };
 
 

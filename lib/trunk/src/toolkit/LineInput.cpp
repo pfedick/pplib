@@ -153,6 +153,30 @@ void LineInput::paint(Drawable &draw)
 	d.print(myFont,x,(draw.height()-s.height)>>1,myText);
 }
 
+void LineInput::mouseDownEvent(MouseEvent *event)
+{
+	printf ("LineInput::mouseDownEvent\n");
+	GetWindowManager()->setKeyboardFocus(this);
+}
+
+void LineInput::gotFocusEvent(FocusEvent *event)
+{
+
+}
+
+void LineInput::lostFocusEvent(FocusEvent *event)
+{
+
+}
+
+void LineInput::textInputEvent(TextInputEvent *event)
+{
+	printf ("LineInput::textInputEvent(%s, %s), text=%s\n",
+				this->widgetType().toChar(),
+				this->name().toChar(),(const char*)event->text);
+}
+
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

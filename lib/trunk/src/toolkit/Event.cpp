@@ -63,7 +63,7 @@ namespace tk {
 using namespace ppl7;
 using namespace ppl7::grafix;
 
-//#define EVENT_DEBUG
+#define EVENT_DEBUG
 
 Event::Event()
 {
@@ -162,6 +162,11 @@ ResizeEvent::ResizeEvent()
 	height=0;
 }
 
+
+KeyEvent::KeyEvent()
+{
+	key=KEY_UNKNOWN;
+}
 
 
 EventHandler::EventHandler()
@@ -269,12 +274,67 @@ void EventHandler::closeEvent(Event *event)
 void EventHandler::geometryChangedEvent(Event *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::geometryChangedEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	/*
+	if (event!=NULL && event->eventWidget!=NULL) {
+		printf ("EventHandler::geometryChangedEvent(%s, %s)\n",
+				event->eventWidget->widgetType().toChar(),
+				event->eventWidget->name().toChar());
+	}
+	*/
 #endif
 	if (handler) handler->geometryChangedEvent(event);
 }
+
+void EventHandler::gotFocusEvent(FocusEvent *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::gotFocusEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
+#endif
+	if (handler) handler->gotFocusEvent(event);
+}
+
+void EventHandler::lostFocusEvent(FocusEvent *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::lostFocusEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
+#endif
+	if (handler) handler->lostFocusEvent(event);
+}
+
+void EventHandler::textInputEvent(TextInputEvent *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::textInputEvent(%s, %s), text=%s\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar(),(const char*)event->text);
+#endif
+	if (handler) handler->textInputEvent(event);
+}
+
+void EventHandler::keyDownEvent(KeyEvent *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::keyDownEvent(%s, %s), key: %i\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar(),event->key);
+#endif
+	if (handler) handler->keyDownEvent(event);
+}
+
+void EventHandler::keyUpEvent(KeyEvent *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::keyUpEvent(%s, %s), key: %i\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar(),event->key);
+#endif
+	if (handler) handler->keyUpEvent(event);
+}
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

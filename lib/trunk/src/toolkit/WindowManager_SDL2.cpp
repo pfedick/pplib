@@ -483,7 +483,6 @@ void WindowManager_SDL2::createWindow(Window &w)
     priv->height=w.height();
 	w.setPrivateData(priv, this,&sdlWmFunctions);
 	sdlSetWindowIcon(priv,w.windowIcon());
-
 	windows.add(&w);
 }
 
@@ -534,6 +533,28 @@ void WindowManager_SDL2::handleEvents()
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
 				DispatchMouseEvent(&sdl_event);
+				break;
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
+				//printf ("SDL_KEYDOWN or SDL_KEYUP Event\n");
+				DispatchKeyEvent(&sdl_event);
+				break;
+			case SDL_TEXTINPUT:
+			{
+				Widget *keyFocusWidget=getKeyboardFocus();
+				if (keyFocusWidget) {
+					SDL_TextInputEvent *event=(SDL_TextInputEvent*)&sdl_event;
+					TextInputEvent te;
+					te.text.set(event->text);
+					keyFocusWidget->textInputEvent(&te);
+
+				}
+
+				//printf ("Event: SDL_TEXTINPUT\n");
+				break;
+			}
+			case SDL_TEXTEDITING:
+				printf ("Event: SDL_TEXTEDITING\n");
 				break;
 			case SDL_USEREVENT:
 				if (sdl_event.user.code==1) {	// ClickTimer
@@ -726,6 +747,41 @@ void WindowManager_SDL2::startClickEvent(Window *win)
 
 }
 
+
+void WindowManager_SDL2::DispatchKeyEvent(void *e)
+{
+	KeyEvent ev;
+	SDL_KeyboardEvent *event=(SDL_KeyboardEvent*)e;
+
+	WideString st;
+	st.set((wchar_t)event->keysym.sym);
+	printf ("KeyEvent: State: %i, Repeat: %i, ",event->state,event->repeat);
+	printf ("Scancode: %i, Keycode: %i, Modifier: %i\n",event->keysym.scancode, event->keysym.sym, event->keysym.mod);
+	st.printnl();
+	Widget *keyFocusWidget=getKeyboardFocus();
+	if (!keyFocusWidget) return;
+
+	KeyEvent kev;
+	kev.setWidget(keyFocusWidget);
+
+	switch (event->keysym.sym) {
+		case SDLK_BACKSPACE: kev.key=KeyEvent::KEY_BACKSPACE; break;
+		case SDLK_LEFT: kev.key=KeyEvent::KEY_LEFT; break;
+		case SDLK_RIGHT: kev.key=KeyEvent::KEY_RIGHT; break;
+		case SDLK_UP: kev.key=KeyEvent::KEY_UP; break;
+		case SDLK_DOWN: kev.key=KeyEvent::KEY_DOWN; break;
+
+		default: kev.key=KeyEvent::KEY_UNKNOWN; break;
+	}
+
+
+	if (event->type==SDL_KEYDOWN) {
+		keyFocusWidget->keyDownEvent(&kev);
+
+	} else if (event->type==SDL_KEYUP) {
+		keyFocusWidget->keyUpEvent(&kev);
+	}
+}
 
 
 #ifdef OLDCODE
