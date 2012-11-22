@@ -560,6 +560,10 @@ void WindowManager_SDL2::handleEvents()
 				if (sdl_event.user.code==1) {	// ClickTimer
 					//printf ("SDL_USEREVENT\n");
 					dispatchClickEvent((Window*)sdl_event.user.data1);
+				} else if (sdl_event.user.code==2) {	// TimerEvent
+					Event e;
+					e.setWidget((Widget*)sdl_event.user.data1);
+					((Widget*)sdl_event.user.data1)->timerEvent(&e);
 				}
 
 	            break;
@@ -745,6 +749,39 @@ void WindowManager_SDL2::startClickEvent(Window *win)
 	//printf ("WindowManager_SDL2::startClickEvent\n");
 	SDL_AddTimer(getDoubleClickIntervall(), clickTimer, win);
 
+}
+
+
+typedef struct {
+		int (*timercallback)(void *data);
+		void *data;
+		int intervall;
+} TIMER_EVENT;
+
+
+static Uint32 timerEvent(Uint32 interval, void *param)
+{
+	//printf("clickTimer\n");
+    SDL_Event event;
+    SDL_UserEvent userevent;
+
+    userevent.type = SDL_USEREVENT;
+    userevent.code = 2;
+    userevent.data1 = param;
+    userevent.data2 = NULL;
+    userevent.windowID=0;
+    userevent.timestamp=0;
+
+    event.type = SDL_USEREVENT;
+    event.user = userevent;
+
+    SDL_PushEvent(&event);
+    return(0);
+}
+
+void WindowManager_SDL2::startTimer(Widget *w, int intervall)
+{
+	SDL_AddTimer(intervall,timerEvent,w);
 }
 
 

@@ -171,7 +171,7 @@ void Label::paint(Drawable &draw)
 	myFont.setColor(myColor);
 	myFont.setOrientation(Font::TOP);
 	Size s=myFont.measure(myText);
-	d.print(myFont,x,(draw.height()-s.height)>>1,myText);
+	d.print(myFont,x,(d.height()-s.height)>>1,myText);
 }
 
 

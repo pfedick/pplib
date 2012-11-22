@@ -279,6 +279,8 @@ class EventHandler
 		virtual void keyUpEvent(KeyEvent *event);
 		virtual void textInputEvent(TextInputEvent *event);
 
+		virtual void timerEvent(Event *event);
+
 };
 
 typedef struct PRIV_SURFACE_FUNCTIONS
@@ -542,6 +544,7 @@ class WindowManager
 		virtual void handleEvents() = 0;
 		virtual size_t numWindows() = 0;
 		virtual void startClickEvent(Window *win) = 0;
+		virtual void startTimer(Widget *w, int intervall) =0;
 		//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface) = 0;
 
 };
@@ -584,6 +587,7 @@ class WindowManager_SDL2 : public WindowManager
 		virtual void handleEvents();
 		virtual size_t numWindows();
 		virtual void startClickEvent(Window *win);
+		virtual void startTimer(Widget *w, int intervall);
 };
 
 
@@ -729,6 +733,11 @@ class LineInput : public Frame
 		Font	myFont;
 		Image	myIcon;
 		Color	myColor;
+		int		cursorpos;
+		int		startpos;
+		int		cursorx;
+		int		cursorwidth;
+		bool	blinker;
 	public:
 		LineInput();
 		LineInput(int x, int y, int width, int height, const String &text=String());
@@ -750,6 +759,7 @@ class LineInput : public Frame
 		virtual void textInputEvent(TextInputEvent *event);
 		virtual void keyDownEvent(KeyEvent *event);
 		virtual void keyUpEvent(KeyEvent *event);
+		virtual void timerEvent(Event *event);
 
 };
 

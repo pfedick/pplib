@@ -73,7 +73,11 @@ LineInput::LineInput()
 	setBackgroundColor(style->inputBackgroundColor);
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(false);
-
+	cursorpos=0;
+	startpos=0;
+	cursorx=0;
+	cursorwidth=2;
+	blinker=false;
 }
 
 LineInput::LineInput(int x, int y, int width, int height, const String &text)
@@ -87,6 +91,11 @@ LineInput::LineInput(int x, int y, int width, int height, const String &text)
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(false);
 	myText=text;
+	cursorpos=0;
+	startpos=0;
+	cursorx=0;
+	cursorwidth=2;
+	blinker=false;
 }
 
 LineInput::~LineInput()
@@ -102,6 +111,9 @@ const String &LineInput::text() const
 void LineInput::setText(const String &text)
 {
 	myText=text;
+	cursorpos=0;
+	startpos=0;
+	cursorx=0;
 	needsRedraw();
 	geometryChanged();
 }
@@ -150,7 +162,9 @@ void LineInput::paint(Drawable &draw)
 	myFont.setColor(myColor);
 	myFont.setOrientation(Font::TOP);
 	Size s=myFont.measure(myText);
-	d.print(myFont,x,(draw.height()-s.height)>>1,myText);
+	d.print(myFont,x,(d.height()-s.height)>>1,myText);
+	//d.invert(Rect(cursorx,0,cursorx+cursorwidth,d.height()),myColor,backgroundColor());
+	if (blinker) d.fillRect(cursorx,0,cursorx+cursorwidth,d.height(),myColor);
 }
 
 void LineInput::mouseDownEvent(MouseEvent *event)
@@ -161,12 +175,14 @@ void LineInput::mouseDownEvent(MouseEvent *event)
 
 void LineInput::gotFocusEvent(FocusEvent *event)
 {
-
+	blinker=true;
+	GetWindowManager()->startTimer(this,500);
 }
 
 void LineInput::lostFocusEvent(FocusEvent *event)
 {
-
+	blinker=false;
+	needsRedraw();
 }
 
 void LineInput::textInputEvent(TextInputEvent *event)
@@ -185,6 +201,15 @@ void LineInput::keyDownEvent(KeyEvent *event)
 void LineInput::keyUpEvent(KeyEvent *event)
 {
 	printf ("LineInput::keyUpEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
+}
+
+void LineInput::timerEvent(Event *event)
+{
+	blinker=!blinker;
+	needsRedraw();
+	if (GetWindowManager()->getKeyboardFocus()==this) GetWindowManager()->startTimer(this,500);
+	else blinker=false;
+
 }
 
 

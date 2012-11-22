@@ -140,7 +140,7 @@ void Frame::paint(Drawable &draw)
 			break;
 		case Upset:
 			if (!myTransparent) {
-				bg=myBackground*1.05f;
+				bg=myBackground;
 				draw.cls(bg);
 			}
 			draw.line(0,0,w,0,white);
@@ -150,7 +150,7 @@ void Frame::paint(Drawable &draw)
 			break;
 		case Inset:
 			if (!myTransparent) {
-				bg=myBackground*0.95f;
+				bg=myBackground;
 				draw.cls(bg);
 			}
 			draw.line(0,0,w,0,myBorderColor);

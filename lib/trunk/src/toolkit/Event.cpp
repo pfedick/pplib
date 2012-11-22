@@ -335,6 +335,16 @@ void EventHandler::keyUpEvent(KeyEvent *event)
 	if (handler) handler->keyUpEvent(event);
 }
 
+void EventHandler::timerEvent(Event *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::timerEvent(%s, %s), key: %i\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar(),event->key);
+#endif
+	if (handler) handler->timerEvent(event);
+}
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7
