@@ -63,7 +63,7 @@ namespace tk {
 using namespace ppl7;
 using namespace ppl7::grafix;
 
-#define EVENT_DEBUG
+//#define EVENT_DEBUG
 
 Event::Event()
 {

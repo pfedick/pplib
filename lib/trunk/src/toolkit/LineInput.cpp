@@ -177,6 +177,17 @@ void LineInput::textInputEvent(TextInputEvent *event)
 }
 
 
+void LineInput::keyDownEvent(KeyEvent *event)
+{
+	printf ("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
+}
+
+void LineInput::keyUpEvent(KeyEvent *event)
+{
+	printf ("LineInput::keyUpEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
+}
+
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

@@ -192,7 +192,8 @@ class KeyEvent : public Event
 			KEY_LEFT		= 80,
 			KEY_DOWN		= 81,
 			KEY_UP			= 82,
-
+			KEY_NUMLOCK		= 83,
+			KEY_ENTER		= 88,
 			KEY_LEFTCTRL	= 224,
 			KEY_LEFTSHIFT	= 225,
 			KEY_LEFTALT		= 226,
@@ -201,11 +202,34 @@ class KeyEvent : public Event
 			KEY_RIGHTSHIFT	= 225,
 			KEY_RIGHTALT	= 226,
 			KEY_RIGHTGUI	= 227,
+			KEY_MODE		= 257,
+		};
+
+		enum keymodifier {
+			KEYMOD_NONE			= 0,
+			KEYMOD_LEFTSHIFT	= 0x0001,
+			KEYMOD_RIGHTSHIFT	= 0x0002,
+			KEYMOD_LEFTCTRL		= 0x0004,
+			KEYMOD_RIGHTCTRL	= 0x0008,
+			KEYMOD_LEFTALT		= 0x0010,
+			KEYMOD_RIGHTALT		= 0x0020,
+			KEYMOD_LEFTGUI		= 0x0040,
+			KEYMOD_RIGHTGUI		= 0x0080,
+			KEYMOD_NUM			= 0x0100,
+			KEYMOD_CAPS			= 0x0200,
+			KEYMOD_MODE			= 0x0400,
+
+			KEYMOD_SHIFT		= KEYMOD_LEFTSHIFT|KEYMOD_RIGHTSHIFT,
+			KEYMOD_CTRL			= KEYMOD_LEFTCTRL|KEYMOD_RIGHTCTRL,
+			KEYMOD_ALT			= KEYMOD_LEFTALT|KEYMOD_RIGHTALT,
+			KEYMOD_GUI			= KEYMOD_LEFTGUI|KEYMOD_RIGHTGUI,
 
 
 		};
 		KeyEvent();
 		int key;
+		int	modifier;
+		bool repeat;
 };
 
 class TextInputEvent : public Event
@@ -724,6 +748,9 @@ class LineInput : public Frame
 		virtual void gotFocusEvent(FocusEvent *event);
 		virtual void lostFocusEvent(FocusEvent *event);
 		virtual void textInputEvent(TextInputEvent *event);
+		virtual void keyDownEvent(KeyEvent *event);
+		virtual void keyUpEvent(KeyEvent *event);
+
 };
 
 

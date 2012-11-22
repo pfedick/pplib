@@ -753,27 +753,81 @@ void WindowManager_SDL2::DispatchKeyEvent(void *e)
 	KeyEvent ev;
 	SDL_KeyboardEvent *event=(SDL_KeyboardEvent*)e;
 
-	WideString st;
-	st.set((wchar_t)event->keysym.sym);
-	printf ("KeyEvent: State: %i, Repeat: %i, ",event->state,event->repeat);
-	printf ("Scancode: %i, Keycode: %i, Modifier: %i\n",event->keysym.scancode, event->keysym.sym, event->keysym.mod);
-	st.printnl();
+	//WideString st;
+	//st.set((wchar_t)event->keysym.sym);
+	//printf ("KeyEvent: State: %i, Repeat: %i, ",event->state,event->repeat);
+	//printf ("Scancode: %i, Keycode: %i, Modifier: %i\n",event->keysym.scancode, event->keysym.sym, event->keysym.mod);
+	//st.printnl();
 	Widget *keyFocusWidget=getKeyboardFocus();
 	if (!keyFocusWidget) return;
 
 	KeyEvent kev;
 	kev.setWidget(keyFocusWidget);
+	kev.repeat=(bool)event->repeat;
 
 	switch (event->keysym.sym) {
+		case SDLK_UNKNOWN: kev.key=KeyEvent::KEY_UNKNOWN; break;
+		case SDLK_RETURN: kev.key=KeyEvent::KEY_RETURN; break;
+		case SDLK_ESCAPE: kev.key=KeyEvent::KEY_ESCAPE; break;
 		case SDLK_BACKSPACE: kev.key=KeyEvent::KEY_BACKSPACE; break;
-		case SDLK_LEFT: kev.key=KeyEvent::KEY_LEFT; break;
+		case SDLK_TAB: kev.key=KeyEvent::KEY_TAB; break;
+		case SDLK_SPACE: kev.key=KeyEvent::KEY_SPACE; break;
+		case SDLK_CAPSLOCK: kev.key=KeyEvent::KEY_CAPSLOCK; break;
+		case SDLK_F1: kev.key=KeyEvent::KEY_F1; break;
+		case SDLK_F2: kev.key=KeyEvent::KEY_F2; break;
+		case SDLK_F3: kev.key=KeyEvent::KEY_F3; break;
+		case SDLK_F4: kev.key=KeyEvent::KEY_F4; break;
+		case SDLK_F5: kev.key=KeyEvent::KEY_F5; break;
+		case SDLK_F6: kev.key=KeyEvent::KEY_F6; break;
+		case SDLK_F7: kev.key=KeyEvent::KEY_F7; break;
+		case SDLK_F8: kev.key=KeyEvent::KEY_F8; break;
+		case SDLK_F9: kev.key=KeyEvent::KEY_F9; break;
+		case SDLK_F10: kev.key=KeyEvent::KEY_F10; break;
+		case SDLK_F11: kev.key=KeyEvent::KEY_F11; break;
+		case SDLK_F12: kev.key=KeyEvent::KEY_F12; break;
+		case SDLK_PRINTSCREEN: kev.key=KeyEvent::KEY_PRINTSCREEN; break;
+		case SDLK_SCROLLLOCK: kev.key=KeyEvent::KEY_SCROLLLOCK; break;
+		case SDLK_PAUSE: kev.key=KeyEvent::KEY_PAUSE; break;
+		case SDLK_INSERT: kev.key=KeyEvent::KEY_INSERT; break;
+		case SDLK_HOME: kev.key=KeyEvent::KEY_HOME; break;
+		case SDLK_PAGEUP: kev.key=KeyEvent::KEY_PAGEUP; break;
+		case SDLK_DELETE: kev.key=KeyEvent::KEY_DELETE; break;
+		case SDLK_END: kev.key=KeyEvent::KEY_END; break;
+		case SDLK_PAGEDOWN: kev.key=KeyEvent::KEY_PAGEDOWN; break;
 		case SDLK_RIGHT: kev.key=KeyEvent::KEY_RIGHT; break;
-		case SDLK_UP: kev.key=KeyEvent::KEY_UP; break;
+		case SDLK_LEFT: kev.key=KeyEvent::KEY_LEFT; break;
 		case SDLK_DOWN: kev.key=KeyEvent::KEY_DOWN; break;
+		case SDLK_UP: kev.key=KeyEvent::KEY_UP; break;
+		case SDLK_LCTRL: kev.key=KeyEvent::KEY_LEFTCTRL; break;
+		case SDLK_LSHIFT: kev.key=KeyEvent::KEY_LEFTSHIFT; break;
+		case SDLK_LALT: kev.key=KeyEvent::KEY_LEFTALT; break;
+		case SDLK_LGUI: kev.key=KeyEvent::KEY_LEFTGUI; break;
+		case SDLK_RCTRL: kev.key=KeyEvent::KEY_RIGHTCTRL; break;
+		case SDLK_RSHIFT: kev.key=KeyEvent::KEY_RIGHTSHIFT; break;
+		case SDLK_RALT: kev.key=KeyEvent::KEY_RIGHTALT; break;
+		case SDLK_RGUI: kev.key=KeyEvent::KEY_RIGHTGUI; break;
+		case SDLK_KP_ENTER: kev.key=KeyEvent::KEY_ENTER; break;
+		case SDLK_NUMLOCKCLEAR: kev.key=KeyEvent::KEY_NUMLOCK; break;
+		case SDLK_MODE: kev.key=KeyEvent::KEY_MODE; break;
+
 
 		default: kev.key=KeyEvent::KEY_UNKNOWN; break;
 	}
+	kev.modifier=KeyEvent::KEYMOD_NONE;
+	if (event->keysym.mod & KMOD_LSHIFT) kev.modifier|=KeyEvent::KEYMOD_LEFTSHIFT;
+	if (event->keysym.mod & KMOD_RSHIFT) kev.modifier|=KeyEvent::KEYMOD_RIGHTSHIFT;
+	if (event->keysym.mod & KMOD_LCTRL) kev.modifier|=KeyEvent::KEYMOD_LEFTCTRL;
+	if (event->keysym.mod & KMOD_RCTRL) kev.modifier|=KeyEvent::KEYMOD_RIGHTCTRL;
+	if (event->keysym.mod & KMOD_LALT) kev.modifier|=KeyEvent::KEYMOD_LEFTALT;
+	if (event->keysym.mod & KMOD_RALT) kev.modifier|=KeyEvent::KEYMOD_RIGHTALT;
+	if (event->keysym.mod & KMOD_LGUI) kev.modifier|=KeyEvent::KEYMOD_LEFTGUI;
+	if (event->keysym.mod & KMOD_RGUI) kev.modifier|=KeyEvent::KEYMOD_RIGHTGUI;
+	if (event->keysym.mod & KMOD_NUM) kev.modifier|=KeyEvent::KEYMOD_NUM;
+	if (event->keysym.mod & KMOD_CAPS) kev.modifier|=KeyEvent::KEYMOD_CAPS;
+	if (event->keysym.mod & KMOD_MODE) kev.modifier|=KeyEvent::KEYMOD_MODE;
 
+
+	if (kev.key==KeyEvent::KEY_UNKNOWN) return;
 
 	if (event->type==SDL_KEYDOWN) {
 		keyFocusWidget->keyDownEvent(&kev);
