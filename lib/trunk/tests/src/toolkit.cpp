@@ -85,7 +85,7 @@ int main(int agrc, char ** argv)
 MainWindow::MainWindow()
 {
 	gfx=ppl7::grafix::GetGrafix();
-	setWindowTitle("PPL7 TileEngine");
+	setWindowTitle("PPL7 Toolkit-Demo");
 	setBackgroundColor(ppl7::grafix::Color(0,0,0,0));
 	setWindowIcon(gfx->Icons32.getDrawable(30));
 	menue=NULL;
@@ -142,8 +142,13 @@ void MainWindow::create(int width, int height, bool fullscreen)
 	menue->addChild(exitButton);
 
 	menue->addChild(new ppl7::tk::Label(240,0,40,menueSize.height,"Text:"));
-	input=new ppl7::tk::LineInput(280,0,250,menueSize.height,"Täst gÄy$§ @ ");
+	input=new ppl7::tk::LineInput(280,0,250,menueSize.height,"Täst gÄy$§ @!# Hello World!");
 	menue->addChild(input);
+
+	okButton=new ppl7::tk::Button(250+285,0,80,menueSize.height,"Ok");
+	okButton->setIcon(gfx->Toolbar.getDrawable(24));
+	okButton->setEventHandler(this);
+	menue->addChild(okButton);
 
 
 }

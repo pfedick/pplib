@@ -94,6 +94,7 @@ WindowManager::WindowManager()
 	Style.buttonFont.setName("Default");
 	Style.buttonFont.setSize(12);
 	Style.buttonFont.setAntialias(true);
+	Style.buttonFont.setBold(true);
 
 	Style.inputFont.setName("Default");
 	Style.inputFont.setAntialias(true);

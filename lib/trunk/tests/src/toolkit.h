@@ -34,6 +34,7 @@ class MainWindow : public ppl7::tk::Window
 		ppl7::tk::Label *frameCountLabel;
 		ppl7::tk::Label *fpsLabel;
 		ppl7::tk::Button *exitButton;
+		ppl7::tk::Button *okButton;
 
 		ppl7::tk::Frame *toolbar;
 

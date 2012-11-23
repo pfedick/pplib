@@ -201,6 +201,9 @@ void Button::paint(Drawable &draw)
 	Color shadow=background*0.4f;
 	Color shade1=background*1.05f;
 	Color shade2=background*0.95f;
+	Color shade3=background*0.90f;
+	Color shade4=background*0.85f;
+
 	int w=width()-1;
 	int h=height()-1;
 	//draw.cls(background);
@@ -208,9 +211,19 @@ void Button::paint(Drawable &draw)
 	if (isDown) {
 		shade1=background*1.00f;
 		shade2=background*0.90f;
+		shade3=background*0.85f;
+		shade4=background*0.80f;
 	}
 
-	draw.colorGradient(draw.rect(),shade1,shade2,1);
+	Rect r1=draw.rect();
+	Rect r2=draw.rect();
+	r1.y2-=((r1.y2-r1.y1)/2);
+	if (isDown) r1.y2++;
+	r2.y1=r1.y2;
+
+
+	draw.colorGradient(r1,shade1,shade2,1);
+	draw.colorGradient(r2,shade3,shade4,1);
 
 	int x=0;
 	int y=0;
@@ -236,7 +249,7 @@ void Button::paint(Drawable &draw)
 	myFont.setOrientation(Font::TOP);
 
 	Size s=myFont.measure(Text);
-	d.print(myFont,x,(draw.height()-s.height)>>1,Text);
+	d.print(myFont,x,y+((d.height()-s.height)>>1),Text);
 	return;
 
 /*

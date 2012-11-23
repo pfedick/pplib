@@ -169,8 +169,12 @@ void LineInput::paint(Drawable &draw)
 
 void LineInput::mouseDownEvent(MouseEvent *event)
 {
-	printf ("LineInput::mouseDownEvent\n");
+	//printf ("LineInput::mouseDownEvent\n");
 	GetWindowManager()->setKeyboardFocus(this);
+	cursorpos=calcPosition(event->p.x);
+	calcCursorPosition();
+	needsRedraw();
+	blinker=true;
 }
 
 void LineInput::gotFocusEvent(FocusEvent *event)
@@ -187,20 +191,49 @@ void LineInput::lostFocusEvent(FocusEvent *event)
 
 void LineInput::textInputEvent(TextInputEvent *event)
 {
-	printf ("LineInput::textInputEvent(%s, %s), text=%s\n",
-				this->widgetType().toChar(),
-				this->name().toChar(),(const char*)event->text);
+	//printf ("LineInput::textInputEvent(%s, %s), text=%ls\n",
+	//			this->widgetType().toChar(),
+	//			this->name().toChar(),(const wchar_t*)event->text);
+	WideString left,right;
+	left=myText.left(cursorpos);
+	right=myText.mid(cursorpos);
+	left+=event->text+right;
+	myText.set(left);
+	cursorpos++;
+	calcCursorPosition();
 }
 
 
 void LineInput::keyDownEvent(KeyEvent *event)
 {
-	printf ("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
+	//printf ("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
+	if (event->modifier==KeyEvent::KEYMOD_NONE) {
+		if (event->key==KeyEvent::KEY_LEFT && cursorpos>0) {
+			cursorpos--;
+			calcCursorPosition();
+		} else if (event->key==KeyEvent::KEY_RIGHT && cursorpos<myText.size()) {
+			cursorpos++;
+			calcCursorPosition();
+		} else if (event->key==KeyEvent::KEY_HOME && cursorpos>0) {
+			cursorpos=0;
+			calcCursorPosition();
+		} else if (event->key==KeyEvent::KEY_END && cursorpos<myText.size()) {
+			cursorpos=myText.size();
+			calcCursorPosition();
+		} else if (event->key==KeyEvent::KEY_BACKSPACE && cursorpos>0) {
+			myText=myText.left(cursorpos-1)+myText.mid(cursorpos);
+			cursorpos--;
+			calcCursorPosition();
+		} else if (event->key==KeyEvent::KEY_DELETE) {
+			myText=myText.left(cursorpos)+myText.mid(cursorpos+1);
+			calcCursorPosition();
+		}
+	}
 }
 
 void LineInput::keyUpEvent(KeyEvent *event)
 {
-	printf ("LineInput::keyUpEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
+	//printf ("LineInput::keyUpEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
 }
 
 void LineInput::timerEvent(Event *event)
@@ -212,6 +245,40 @@ void LineInput::timerEvent(Event *event)
 
 }
 
+
+void LineInput::calcCursorPosition()
+{
+	WideString text=myText, left,right;
+	Size s1;
+	if (cursorpos<0) cursorpos=0;
+	if (cursorpos>text.size()) cursorpos=text.size();
+	if (cursorpos==0) {
+		cursorx=0;
+		startpos=0;
+	} else {
+		left=text.left(cursorpos);
+		right=text.mid(cursorpos);
+		s1=myFont.measure(left);
+		cursorx=s1.width;
+	}
+	needsRedraw();
+	blinker=true;
+}
+
+int LineInput::calcPosition(int x)
+{
+	WideString text;
+	int c=0;
+	Size s1;
+	while (c<myText.size()) {
+		text=myText.left(c+1);
+		s1=myFont.measure(text);
+		if (x<s1.width) break;
+		c++;
+	}
+
+	return c;
+}
 
 
 }	// EOF namespace tk

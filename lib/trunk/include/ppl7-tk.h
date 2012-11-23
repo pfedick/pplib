@@ -235,7 +235,7 @@ class KeyEvent : public Event
 class TextInputEvent : public Event
 {
 	public:
-		String text;
+		WideString text;
 };
 
 class ResizeEvent : public Event
@@ -729,7 +729,7 @@ class HorizontalSpacer : public Widget
 class LineInput : public Frame
 {
 	private:
-		String	myText;
+		WideString	myText;
 		Font	myFont;
 		Image	myIcon;
 		Color	myColor;
@@ -738,6 +738,9 @@ class LineInput : public Frame
 		int		cursorx;
 		int		cursorwidth;
 		bool	blinker;
+
+		void calcCursorPosition();
+		int calcPosition(int x);
 	public:
 		LineInput();
 		LineInput(int x, int y, int width, int height, const String &text=String());
