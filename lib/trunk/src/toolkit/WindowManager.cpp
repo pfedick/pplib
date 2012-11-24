@@ -122,39 +122,42 @@ const WidgetStyle *WindowManager::getWidgetStyle() const
 }
 
 
-Widget *WindowManager::findMouseWidget(Widget *window, MouseEvent *event)
+Widget *WindowManager::findMouseWidget(Widget *window, const Point &p)
 {
 	Widget *w;
 	if (!window) return NULL;
 	List<Widget*>::Iterator it;
+	Point p2;
 	if (window->childs.num()>0) {
 		window->childs.reset(it);
 		while (window->childs.getNext(it)) {
 			w=it.value();
-			if (event->p.x>=w->p.x
-					&& event->p.y>=w->p.y
-					&& event->p.x < w->p.x+w->s.width
-					&& event->p.y < w->p.y+w->s.height) {
+			if (p.x>=w->p.x
+					&& p.y>=w->p.y
+					&& p.x < w->p.x+w->s.width
+					&& p.y < w->p.y+w->s.height) {
 				// Passendes Widget gefunden, Koordinaten des Events auf das Widget umrechnen
-				event->p.x-=w->p.x+w->myClientOffset.x1;
-				event->p.y-=w->p.y+w->myClientOffset.y1;
-				return findMouseWidget(w,event);	// Iterieren
+				p2.x=p.x-w->p.x+w->myClientOffset.x1;
+				p2.y=p.y-w->p.y+w->myClientOffset.y1;
+				return findMouseWidget(w,p2);	// Iterieren
 			}
 		}
 	}
 	return window;
 }
 
-void WindowManager::dispatchEvent(Widget *window, Event &event)
+void WindowManager::dispatchEvent(Window *window, Event &event)
 {
 	Widget *w;
 	switch (event.type()) {
 		case Event::MouseEnter:
+			window->mouseState=(MouseEvent&)event;
 			event.setWidget(window);
 			LastMouseEnter=window;
 			window->mouseEnterEvent((MouseEvent*)&event);
 			return;
 		case Event::MouseLeave:
+			window->mouseState=(MouseEvent&)event;
 			if (LastMouseEnter) {
 				event.setWidget(LastMouseEnter);
 				LastMouseEnter->mouseLeaveEvent((MouseEvent*)&event);
@@ -164,7 +167,9 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 			window->mouseLeaveEvent((MouseEvent*)&event);
 			return;
 		case Event::MouseMove:
-			w=findMouseWidget(window,(MouseEvent*)&event);
+			window->mouseState=(MouseEvent&)event;
+			//printf ("window->mouseState.p.x=%i\n",window->mouseState.p.x);
+			w=findMouseWidget(window,((MouseEvent*)&event)->p);
 			if (w) {
 				if (w!=LastMouseEnter) {
 					if (LastMouseEnter) {
@@ -184,7 +189,8 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 			}
 			return;
 		case Event::MouseDown:
-			w=findMouseWidget(window,(MouseEvent*)&event);
+			window->mouseState=(MouseEvent&)event;
+			w=findMouseWidget(window,((MouseEvent*)&event)->p);
 			if (w) {
 				if (w!=LastMouseDown) {
 					clickCount=0;
@@ -196,7 +202,8 @@ void WindowManager::dispatchEvent(Widget *window, Event &event)
 			return;
 
 		case Event::MouseUp:
-			w=findMouseWidget(window,(MouseEvent*)&event);
+			window->mouseState=(MouseEvent&)event;
+			w=findMouseWidget(window,((MouseEvent*)&event)->p);
 			if (w) {
 				event.setWidget(w);
 				w->mouseUpEvent((MouseEvent*)&event);
@@ -231,7 +238,7 @@ int WindowManager::getDoubleClickIntervall() const
 
 
 
-void WindowManager::dispatchClickEvent(Widget *window)
+void WindowManager::dispatchClickEvent(Window *window)
 {
 	if (!window) return;
 	if (!LastMouseDown) return;

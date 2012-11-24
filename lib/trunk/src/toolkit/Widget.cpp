@@ -460,29 +460,30 @@ void Widget::draw(Drawable &d)
 {
 	if (needsredraw==false && child_needsredraw==false) return;
 	List<Widget*>::Iterator it;
-	Drawable cd=drawable(d);
+	Drawable mycd=drawable(d);
+	Drawable cd;
 	Widget *child;
 	if (needsredraw) {
-		paint(cd);
+		paint(mycd);
 		child_needsredraw=true;
 	}
 	if (child_needsredraw) {
-		// Jetzt die TopMost Childs
-		cd=clientDrawable(d);
+		// Jetzt die unten liegenden Childs
+		cd=clientDrawable(mycd);
 		childs.reset(it);
 		while (childs.getNext(it)) {
 			child=it.value();
-			if (child->topMost==true) {
+			if (child->topMost==false) {
 				if (needsredraw) child->redraw(cd);
 				else child->draw(cd);
 			}
 		}
 
-		// Dann die restlichen Childs
+		// Dann die TopMost Childs
 		childs.reset(it);
 		while (childs.getNext(it)) {
 			child=it.value();
-			if (child->topMost==false) {
+			if (child->topMost==true) {
 				if (needsredraw) child->redraw(cd);
 				else child->draw(cd);
 			}
@@ -496,22 +497,23 @@ void Widget::redraw(Drawable &d)
 {
 	List<Widget*>::Iterator it;
 	Widget *child;
-	Drawable cd=drawable(d);
-	paint(cd);
+	Drawable mycd=drawable(d);
+	Drawable cd;
+	paint(mycd);
 	needsredraw=false;
-	cd=clientDrawable(d);
-	// Jetzt die TopMost Childs
-	childs.reset(it);
-	while (childs.getNext(it)) {
-		child=it.value();
-		if (child->topMost==true) child->redraw(cd);
-	}
-
-	// Dann die restlichen Childs
+	cd=clientDrawable(mycd);
+	// Jetzt unten liegenden Childs
 	childs.reset(it);
 	while (childs.getNext(it)) {
 		child=it.value();
 		if (child->topMost==false) child->redraw(cd);
+	}
+
+	// Dann die TopMost Childs
+	childs.reset(it);
+	while (childs.getNext(it)) {
+		child=it.value();
+		if (child->topMost==true) child->redraw(cd);
 	}
 	child_needsredraw=false;
 }

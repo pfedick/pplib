@@ -75,13 +75,13 @@ Label::Label()
 
 }
 
-Label::Label(int x, int y, int width, int height, const String &text)
+Label::Label(int x, int y, int width, int height, const String &text, BorderStyle style)
 	:Frame(x,y,width,height)
 {
-	const WidgetStyle *style=GetWidgetStyle();
-	setBorderStyle(NoBorder);
-	myColor=style->labelFontColor;
-	myFont=style->labelFont;
+	const WidgetStyle *wstyle=GetWidgetStyle();
+	setBorderStyle(style);
+	myColor=wstyle->labelFontColor;
+	myFont=wstyle->labelFont;
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(true);
 	myText=text;

@@ -121,6 +121,7 @@ Point::Point(int x, int y)
 	this->y=y;
 }
 
+
 /*!\brief Liefert \c true zurück, wenn sowohl x als auch y 0 sind.
  *
  * \desc

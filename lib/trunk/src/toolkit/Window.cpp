@@ -226,6 +226,11 @@ void Window::drawWidgets()
 	fn->drawWindowSurface(privateData);
 }
 
+MouseState Window::getMouseState()
+{
+	return mouseState;
+}
+
 void Window::redrawWidgets()
 {
 	if (redrawRequired()) {
@@ -238,7 +243,6 @@ void Window::redrawWidgets()
 
 void Window::paint(Drawable &draw)
 {
-	const WidgetStyle *style=GetWidgetStyle();
 	draw.cls(myBackground);
 }
 

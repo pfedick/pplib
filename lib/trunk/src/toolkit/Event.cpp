@@ -149,11 +149,12 @@ void Event::setWidget(Widget *w)
 	eventWidget=w;
 }
 
-MouseEvent::MouseEvent()
+MouseState::MouseState()
 {
 	p.x=0;
 	p.y=0;
-	button=(MouseEvent::MouseButton)0;
+	button=(MouseState::MouseButton)0;
+	buttonMask=(MouseState::MouseButton)0;
 }
 
 ResizeEvent::ResizeEvent()

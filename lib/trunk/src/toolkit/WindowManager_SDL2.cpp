@@ -523,7 +523,7 @@ Window *WindowManager_SDL2::getWindow(ppluint32 id)
 void WindowManager_SDL2::handleEvents()
 {
 	SDL_Event sdl_event;
-	if (SDL_PollEvent(&sdl_event)) {
+	while (SDL_PollEvent(&sdl_event)) {		// Alle Events verarbeiten
 		switch (sdl_event.type) {
 
 			case SDL_WINDOWEVENT:
@@ -657,13 +657,14 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.p.y=event->y;
 		ev.buttonMask=(MouseEvent::MouseButton)0;
 		ev.button=(MouseEvent::MouseButton)0;
-		if (event->state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
-		if (event->state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
-		if (event->state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
-		if (event->state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
-		if (event->state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
-		if (event->state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
-		if (event->state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+		ppluint8 state=event->state;
+		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
+		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
+		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
+		if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
+		if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
+		if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
+		if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
 		dispatchEvent(w,ev);
 
 	} else if (type==SDL_MOUSEBUTTONDOWN) {
@@ -675,7 +676,10 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.setType(Event::MouseDown);
 		ev.p.x=event->x;
 		ev.p.y=event->y;
-		ppluint8 state=event->state;
+		ev.buttonMask=(MouseEvent::MouseButton)0;
+		ev.button=(MouseEvent::MouseButton)0;
+		ppluint8 state=SDL_GetMouseState(NULL,NULL);
+
 		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
 		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
 		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
@@ -700,7 +704,9 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.setType(Event::MouseUp);
 		ev.p.x=event->x;
 		ev.p.y=event->y;
-		ppluint8 state=event->state;
+		ev.buttonMask=(MouseEvent::MouseButton)0;
+		ev.button=(MouseEvent::MouseButton)0;
+		ppluint8 state=SDL_GetMouseState(NULL,NULL);
 		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
 		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
 		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);

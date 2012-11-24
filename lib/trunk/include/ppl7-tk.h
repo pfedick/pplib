@@ -136,12 +136,10 @@ class Event
 
 };
 
-class MouseEvent : public Event
+class MouseState
 {
-	private:
-
 	public:
-		MouseEvent();
+		MouseState();
 		enum MouseButton {
 			Left=1,
 			Middle=2,
@@ -155,6 +153,14 @@ class MouseEvent : public Event
 		MouseButton buttonMask;
 		MouseButton button;
 };
+
+class MouseEvent : public Event, public MouseState
+{
+	private:
+
+	public:
+};
+
 
 class KeyEvent : public Event
 {
@@ -450,6 +456,7 @@ typedef struct PRIV_WINDOW_FUNCTIONS {
 
 class Window : public Widget
 {
+		friend class WindowManager;
 	private:
 		void			*privateData;
 		PRIV_WINDOW_FUNCTIONS	*fn;
@@ -460,6 +467,8 @@ class Window : public Widget
 		Image WindowIcon;
 		RGBFormat WindowRGBFormat;
 		Color	myBackground;
+
+		MouseState	mouseState;
 
 	public:
 		enum WindowFlags {
@@ -500,6 +509,7 @@ class Window : public Widget
 		void *getRenderer();
 		void clearScreen();
 		void presentScreen();
+		MouseState getMouseState();
 
 		virtual String widgetType() const;
 		virtual void paint(Drawable &draw);
@@ -518,19 +528,17 @@ class WindowManager
 
 		Widget	*KeyboardFocus;
 
-		Widget *findMouseWidget(Widget *window, MouseEvent *event);
-
-
 	public:
 		WindowManager();
 		virtual ~WindowManager();
 		const WidgetStyle *getWidgetStyle() const;
-		void dispatchEvent(Widget *window, Event &event);
-		void dispatchClickEvent(Widget *window);
+		void dispatchEvent(Window *window, Event &event);
+		void dispatchClickEvent(Window *window);
 		void setDoubleClickIntervall(int ms);
 		void setKeyboardFocus(Widget *w);
 		Widget *getKeyboardFocus() const;
 		int getDoubleClickIntervall() const;
+		Widget *findMouseWidget(Widget *window, const Point &p);
 
 		virtual void createWindow(Window &w) = 0;
 		virtual void destroyWindow(Window &w) = 0;
@@ -667,7 +675,7 @@ class Label : public Frame
 		Color	myColor;
 	public:
 		Label();
-		Label(int x, int y, int width, int height, const String &text=String());
+		Label(int x, int y, int width, int height, const String &text=String(), BorderStyle style=NoBorder);
 		~Label();
 		const String &text() const;
 		void setText(const String &text);
