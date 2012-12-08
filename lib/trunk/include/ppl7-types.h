@@ -909,6 +909,7 @@ class AssocArray : public Variant
 		//@{
 		void clear();
 		void erase(const String &key);
+		void remove(const String &key);
 		//@}
 
 		//!\name Import und Export von Daten

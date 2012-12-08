@@ -1055,6 +1055,41 @@ void AssocArray::erase(const String &key)
 	num--;
 }
 
+/*!\brief Einzelnen Schlüssel löschen
+ *
+ * \desc
+ * Mit dieser Funktion wird ein einzelner Schlüssel aus dem Array gelöscht.
+ *
+ * \param[in] key Pointer auf den Namen des zu löschenden Schlüssels
+ *
+ * \returns Bei Erfolg liefert die die Funktion true (1) zurück, im Fehlerfall false (0).*
+ */
+void AssocArray::remove(const String &key)
+{
+	Array tok(key,"/",0,true);
+	if (tok.count()==0) throw InvalidKeyException(key);
+	ArrayKey firstkey=tok.shift();
+	ArrayKey rest=tok.implode("/");
+	ValueNode *p;
+	try {
+		ValueNode &node=Tree.find(firstkey);
+		p=&node;
+
+	} catch (ItemNotFoundException &) {
+		throw KeyNotFoundException();
+	}
+	// Ist noch was im Pfad rest?
+	if (tok.count()>1) {			// Ja, koennen wir iterieren?
+		if (p->value->isAssocArray()) {
+			return ((AssocArray*)p)->erase(rest);
+		} else {
+			throw KeyNotFoundException();
+		}
+	}
+	Tree.erase(firstkey);
+	num--;
+}
+
 /*!\brief Zeiger für das Durchwandern des Arrays zurücksetzen
  *
  * \desc

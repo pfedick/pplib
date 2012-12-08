@@ -87,6 +87,7 @@
 #undef HAVE_STRNCAT
 #undef HAVE_STRLCAT
 #undef HAVE_MATH_H
+#undef HAVE_SYSLOG_H
 
 #undef HAVE_STRERROR
 #undef HAVE_STRFTIME
@@ -212,6 +213,9 @@
 #undef HAVE_STRTOUPPER
 #undef HAVE_UNLINK
 #undef HAVE_REMOVE
+#undef HAVE_SYSLOG
+#undef HAVE_OPENLOG
+#undef HAVE_CLOSELOG
 
 
 

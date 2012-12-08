@@ -36,10 +36,26 @@
  *******************************************************************************/
 
 #include "prolog.h"
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
+
+#ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
+
 #include "ppl7.h"
 
 
@@ -53,7 +69,7 @@ typedef struct tagLOGHANDLER
 } LOGHANDLER;
 
 
-static const char *facilitylist[] = {
+static const char *prioritylist[] = {
 	"NONE   ",						// 0
 	"EMERG  ",						// 1
 	"ALERT  ",						// 2
@@ -66,6 +82,49 @@ static const char *facilitylist[] = {
 	""
 };
 
+#ifdef HAVE_SYSLOG_H
+static const int syslog_facility_lookup[] = {
+		LOG_USER,
+		LOG_AUTH,
+		LOG_AUTHPRIV,
+		LOG_CONSOLE,
+		LOG_CRON,
+		LOG_DAEMON,
+		LOG_FTP,
+		LOG_KERN,
+		LOG_LPR,
+		LOG_MAIL,
+		LOG_NEWS,
+		LOG_NTP,
+		LOG_SECURITY,
+		LOG_SYSLOG,
+		LOG_USER,
+		LOG_UUCP,
+		LOG_LOCAL0,
+		LOG_LOCAL1,
+		LOG_LOCAL2,
+		LOG_LOCAL3,
+		LOG_LOCAL4,
+		LOG_LOCAL5,
+		LOG_LOCAL6,
+		LOG_LOCAL7
+
+};
+
+static const int syslog_priority_lookup[] = {
+		LOG_DEBUG,
+		LOG_EMERG,
+		LOG_ALERT,
+		LOG_CRIT,
+		LOG_ERR,
+		LOG_WARNING,
+		LOG_NOTICE,
+		LOG_INFO,
+		LOG_DEBUG
+};
+
+#endif
+
 
 
 Logger::Logger()
@@ -74,7 +133,7 @@ Logger::Logger()
 	logconsole=false;
 	logThreadId=true;
 	console_enabled=false;
-	console_facility=Logger::DEBUG;
+	console_priority=Logger::DEBUG;
 	console_level=1;
 	for (int i=0;i<NUMFACILITIES;i++) {
 		debuglevel[i]=0;
@@ -86,6 +145,7 @@ Logger::Logger()
 	generations=1;
 	inrotate=false;
 	useSyslog=false;
+	syslogFacility=SYSLOG_USER;
 }
 
 Logger::~Logger()
@@ -113,7 +173,7 @@ void Logger::terminate()
 	useSyslog=false;
 	logThreadId=true;
 	console_enabled=false;
-	console_facility=Logger::DEBUG;
+	console_priority=Logger::DEBUG;
 	console_level=1;
 	for (int i=0;i<NUMFACILITIES;i++) {
 		debuglevel[i]=0;
@@ -123,35 +183,74 @@ void Logger::terminate()
 
 
 
-void Logger::enableConsole(bool flag, int facility, int level)
+void Logger::enableConsole(bool flag, PRIORITY prio, int level)
 {
 	mutex.lock();
 	console_enabled=flag;
-	console_facility=facility;
+	console_priority=prio;
 	console_level=level;
 	mutex.unlock();
 }
 
-void Logger::enableSyslog(bool flag)
+void Logger::openSyslog(const String &ident,SYSLOG_FACILITY facility)
 {
-	if (useSyslog==true && flag==false) {
-		print(Logger::INFO,0,"ppl7::Logger","terminate",__FILE__,__LINE__,"=== Disable Syslog ===============================");
-	} else if (useSyslog==false && flag==true) {
-		print(Logger::INFO,0,"ppl7::Logger","terminate",__FILE__,__LINE__,"=== Enable Syslog ===============================");
+#ifndef HAVE_OPENLOG
+	throw UnsupportedFeatureException("syslog");
+#else
+	if (useSyslog) {
+		print(Logger::INFO,0,"ppl7::Logger","openSyslog",__FILE__,__LINE__,"=== Reopen Syslog ===============================");
+		closelog();
 	}
-	useSyslog=flag;
+	useSyslog=true;
+	syslogIdent=ident;
+	syslogFacility=facility;
+	openlog(syslogIdent,LOG_NDELAY|LOG_PID,syslog_facility_lookup[facility]);
+	print(Logger::INFO,0,"ppl7::Logger","openSyslog",__FILE__,__LINE__,"=== Enable Syslog ===============================");
+#endif
+}
+
+void Logger::closeSyslog()
+{
+#ifndef HAVE_CLOSELOG
+	throw UnsupportedFeatureException("syslog");
+#else
+	if (useSyslog) {
+		print(Logger::INFO,0,"ppl7::Logger","openSyslog",__FILE__,__LINE__,"=== Close Syslog ===============================");
+		closelog();
+		useSyslog=false;
+	}
+#endif
 }
 
 
-void Logger::setLogfile(int facility, const char *filename)
+void Logger::setLogfile(PRIORITY prio, const String &filename)
 {
-	if (facility<1 || facility>=NUMFACILITIES) return;
+	if (prio<1 || prio>=NUMFACILITIES) return;
 	mutex.lock();
 	try {
-		logff[facility].close();
-		if (filename) {
-			logff[facility].open(filename,File::APPEND);
-			print(facility,0,"ppl7::Logger","SetLogfile",__FILE__,__LINE__,ToString("=== Logfile started for %s",facilitylist[facility]));
+		logff[prio].close();
+		if (filename.notEmpty()) {
+			logfilename[prio]=filename;
+			logff[prio].open(filename,File::APPEND);
+			print(prio,0,"ppl7::Logger","SetLogfile",__FILE__,__LINE__,ToString("=== Logfile started for %s",prioritylist[prio]));
+		}
+	} catch (...) {
+		mutex.unlock();
+		throw;
+	}
+}
+
+void Logger::setLogfile(PRIORITY prio, const String &filename, int level)
+{
+	if (prio<1 || prio>=NUMFACILITIES) return;
+	mutex.lock();
+	try {
+		logff[prio].close();
+		debuglevel[prio]=level;
+		if (filename.notEmpty()) {
+			logfilename[prio]=filename;
+			logff[prio].open(filename,File::APPEND);
+			print(prio,0,"ppl7::Logger","SetLogfile",__FILE__,__LINE__,ToString("=== Logfile started for %s",prioritylist[prio]));
 		}
 	} catch (...) {
 		mutex.unlock();
@@ -170,22 +269,33 @@ void Logger::setLogRotate(ppluint64 maxsize, int generations)
 	}
 }
 
-void Logger::setLogLevel(int facility, int level)
+void Logger::setLogLevel(PRIORITY prio, int level)
 {
-	if (facility>=0 && facility<NUMFACILITIES) {
+	if (prio>=0 && prio<NUMFACILITIES) {
 		mutex.lock();
-		debuglevel[facility]=level;
+		debuglevel[prio]=level;
 		mutex.unlock();
-		print(facility,0,"ppl7::Logger","SetLogLevel",__FILE__,__LINE__,ToString("=== Setting Debuglevel for %s, to: %u",facilitylist[facility],level));
+		print(prio,0,"ppl7::Logger","SetLogLevel",__FILE__,__LINE__,ToString("=== Setting Debuglevel for %s, to: %u",prioritylist[prio],level));
 	}
 }
 
-int Logger::getLogLevel(int facility)
+int Logger::getLogLevel(PRIORITY prio)
 {
 	int ret=0;
-	if (facility>=0 && facility<NUMFACILITIES) {
+	if (prio>=0 && prio<NUMFACILITIES) {
 		mutex.lock();
-		ret=debuglevel[facility];
+		ret=debuglevel[prio];
+		mutex.unlock();
+	}
+	return ret;
+}
+
+String Logger::getLogfile(PRIORITY prio)
+{
+	String ret;
+	if (prio>=0 && prio<NUMFACILITIES) {
+		mutex.lock();
+		ret=logfilename[prio];
 		mutex.unlock();
 	}
 	return ret;
@@ -208,65 +318,65 @@ void Logger::print (int level, const String &text)
 	mutex.unlock();
 }
 
-void Logger::print (int facility, int level, const String &text)
+void Logger::print (PRIORITY prio, int level, const String &text)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,NULL,prio,level)) return;
 	mutex.lock();
-	output(facility,level,NULL,NULL,NULL,0,text,true);
+	output(prio,level,NULL,NULL,NULL,0,text,true);
 	mutex.unlock();
 }
 
-void Logger::print (int facility, int level, const char *file, int line, const String &text)
+void Logger::print (PRIORITY prio, int level, const char *file, int line, const String &text)
 {
-	if (!shouldPrint(NULL,NULL,file,line,facility,level)) return;
+	if (!shouldPrint(NULL,NULL,file,line,prio,level)) return;
 	mutex.lock();
-	output(facility,level,NULL,NULL,file,line,text,true);
+	output(prio,level,NULL,NULL,file,line,text,true);
 	mutex.unlock();
 }
 
-void Logger::print (int facility, int level, const char *module, const char *function, const char *file, int line, const String &text)
+void Logger::print (PRIORITY prio, int level, const char *module, const char *function, const char *file, int line, const String &text)
 {
-	if (!shouldPrint(module,function,file,line,facility,level)) return;
+	if (!shouldPrint(module,function,file,line,prio,level)) return;
 	mutex.lock();
-	output(facility,level,module,function,file,line,text,true);
+	output(prio,level,module,function,file,line,text,true);
 	mutex.unlock();
 }
 
 
-void Logger::printArray (int facility, int level, const AssocArray &a, const String &text)
+void Logger::printArray (PRIORITY prio, int level, const AssocArray &a, const String &text)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,NULL,prio,level)) return;
 	mutex.lock();
-	output(facility,level,NULL,NULL,NULL,0,text,true);
-	outputArray(facility,level,NULL,NULL,NULL,0,a,NULL);
+	output(prio,level,NULL,NULL,NULL,0,text,true);
+	outputArray(prio,level,NULL,NULL,NULL,0,a,NULL);
 	mutex.unlock();
 }
 
-void Logger::printArray (int facility, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const String &text)
+void Logger::printArray (PRIORITY prio, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const String &text)
 {
-	if (!shouldPrint(module,function,file,line,facility,level)) return;
+	if (!shouldPrint(module,function,file,line,prio,level)) return;
 	mutex.lock();
-	output(facility,level,module,function,file,line,text,true);
-	outputArray(facility,level,module,function,file,line,a,NULL);
+	output(prio,level,module,function,file,line,text,true);
+	outputArray(prio,level,module,function,file,line,a,NULL);
 	mutex.unlock();
 }
 
-void Logger::printArraySingleLine (int facility, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const String &text)
+void Logger::printArraySingleLine (PRIORITY prio, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const String &text)
 {
-	if (!shouldPrint(module,function,file,line,facility,level)) return;
+	if (!shouldPrint(module,function,file,line,prio,level)) return;
 	mutex.lock();
 	String s;
 	s=text;
-	outputArray(facility,level,module,function,file,line,a,NULL,&s);
+	outputArray(prio,level,module,function,file,line,a,NULL,&s);
 	s.replace("\n","; ");
 	s.replace("    ","");
-	output(facility,level,module,function,file,line,s,true);
+	output(prio,level,module,function,file,line,s,true);
 	mutex.unlock();
 }
 
 #ifdef TODO
 
-void Logger::outputArray(int facility, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const char *prefix, String *Out)
+void Logger::outputArray(PRIORITY prio, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const char *prefix, String *Out)
 {
 	String key, pre, out;
 	if (prefix) key.setf("%s/",prefix);
@@ -285,19 +395,19 @@ void Logger::outputArray(int facility, int level, const char *module, const char
 		k=a->GetKey(row);
 		if ((string=a->GetString(row))) {
 			Out->Concatf("%s%s=%s\n",(const char*)key,k,string->GetPtr());
-			//Output(facility,level,(char*)out,false);
+			//Output(prio,level,(char*)out,false);
 		} else if ((pointer=a->GetPointer(row))) {
 			Out->Concatf("%s%s=%llu\n",(const char*)key,k,((ppluint64)(ppliptr)pointer));
-			//Output(facility,level,(char*)out,false);
+			//Output(prio,level,(char*)out,false);
 		} else if ((array=a->GetArray(row))) {
 			pre.Sprintf("%s%s",(const char*)key,k);
-			OutputArray(facility,level,module,function,file,line,array,(const char*)pre,Out);
+			OutputArray(prio,level,module,function,file,line,array,(const char*)pre,Out);
 		} else if ((binary=a->GetBinary(row))) {
 			Out->Concatf("%s%s=CBinary, %llu Bytes\n",(const char*)key,k,(ppluint64)binary->Size());
-			//Output(facility,level,(char*)out,false);
+			//Output(prio,level,(char*)out,false);
 		}
 	}
-	if (Out==&out) Output(facility,level,module,function,file,line,(const char*)out,false);
+	if (Out==&out) Output(prio,level,module,function,file,line,(const char*)out,false);
 }
 
 #endif
@@ -307,9 +417,9 @@ void Logger::hexDump (const void * address, int bytes)
 	hexDump(Logger::DEBUG,1,address,bytes);
 }
 
-void Logger::hexDump (int facility, int level, const void * address, int bytes)
+void Logger::hexDump (PRIORITY prio, int level, const void * address, int bytes)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,NULL,prio,level)) return;
 	if (address==NULL) return;
 	mutex.lock();
 
@@ -321,7 +431,7 @@ void Logger::hexDump (int facility, int level, const void * address, int bytes)
 	//char buff[1024], tmp[10], cleartext[20];
 	line.setf("HEXDUMP: %u Bytes starting at Address 0x%08llX (%llu):",
 			bytes,(ppluint64)(ppliptr)address,(ppluint64)(ppliptr)address);
-	output(facility,level,NULL,NULL,NULL,0,(const char*)line,true);
+	output(prio,level,NULL,NULL,NULL,0,(const char*)line,true);
 
 	char *_adresse=(char*)address;
 	ppluint32 spalte=0;
@@ -333,7 +443,7 @@ void Logger::hexDump (int facility, int level, const void * address, int bytes)
 			line.chopRight(60);
 			line.append(": ");
 			line.append(cleartext);
-			output(facility,level,NULL,NULL,NULL,0,(const char*)line,false);
+			output(prio,level,NULL,NULL,NULL,0,(const char*)line,false);
 			line.setf("0x%08llX: ",(ppluint64)(ppliptr)(_adresse+i));
 			cleartext.clear();
 			spalte=0;
@@ -350,8 +460,8 @@ void Logger::hexDump (int facility, int level, const void * address, int bytes)
 		line.chopRight(60);
 		line.append(": ");
 		line.append(cleartext);
-		output(facility,level,NULL,NULL,NULL,0,(const char*)line,false);
-		output(facility,level,NULL,NULL,NULL,0,"",false);
+		output(prio,level,NULL,NULL,NULL,0,(const char*)line,false);
+		output(prio,level,NULL,NULL,NULL,0,"",false);
 	}
 	mutex.unlock();
 }
@@ -371,94 +481,83 @@ void Logger::printException(const char *file, int line, const char *module, cons
 
 }
 
-#ifdef TODO
-
-void Logger::output(int facility, int level, const char *module, const char *function, const char *file, int line, const String &buffer, bool printdate)
+void Logger::output(PRIORITY prio, int level, const char *module, const char *function, const char *file, int line, const String &buffer, bool printdate)
 {
 	String bf;
-	char d[20], z[20];
 	if (printdate) {
-		datum (d);
-		zeit(z);
-		double s=ppl7::GetMicrotime();
-		s=(s-(ppluint64)s)*1000;
-		if (logThreadId) bf.Sprintf("%s-%s.%03i [%7s %2i] [%6llu] ",d,z,(int)s,facilitylist[facility],level,GetThreadID());
-		else bf.Sprintf("%s-%s [%7s %2i] ",d,z,facilitylist[facility],level);
-		bf.Concat("[");
-		if (file) bf.Concatf("%s:%i",file,line);
-		bf.Concat("] {");
+		String d=DateTime::currentTime().get("%Y-%m-%d %H:%M:%S.%*");
+		if (logThreadId) bf.setf("%s [%7s %2i] [%6llu] ",(const char*)d,prioritylist[prio],level,ThreadID());
+		else bf.setf("%s [%7s %2i] ",(const char*)d,prioritylist[prio],level);
+		bf.append("[");
+		if (file) bf.appendf("%s:%i",file,line);
+		bf.append("] {");
 		if (module) {
-			bf.Concatf("%s",module);
-			if (function) bf.Concatf(": %s",function);
+			bf.appendf("%s",module);
+			if (function) bf.appendf(": %s",function);
 		}
-		bf.Concat("}: ");
+		bf.append("}: ");
 	} else {
-		bf.Sprintf("     ");
+		bf.setf("     ");
 	}
-	CString bu=buffer;
-	bu.Trim();
-	bf+=bu;
-	bf.Replace("\n","\n     ");
-	bf.Concat("\n");
+	String bu=buffer;
+	bu.trim();
+	bu.replace("\n","\n     ");
+	bu.append("\n");
 
-	if (level<=debuglevel[facility]) {
-		logff[facility].Puts(bf);
-		logff[facility].Flush();
-		CheckRotate(facility);
+	if (useSyslog) {
+		String log;
+		if (logThreadId) log.setf("[%2i] [%6llu]",level,ThreadID());
+		else log.setf("[%2i]",level);
+		syslog(syslog_priority_lookup[prio],"%s %s",(const char*)log,(const char*)bu);
 	}
-	if (facility!=LOG::DEBUG && level<=debuglevel[LOG::DEBUG] && (
-		strcmp(logff[facility].GetFilename(),logff[LOG::DEBUG].GetFilename())!=0)) {
-		logff[LOG::DEBUG].Puts(bf);
-		logff[LOG::DEBUG].Flush();
-		CheckRotate(LOG::DEBUG);
+	bf+=bu;
+	if (level<=debuglevel[prio]) {
+		logff[prio].puts(bf);
+		logff[prio].flush();
+		checkRotate(prio);
+	}
+	if (prio!=Logger::DEBUG && level<=debuglevel[Logger::DEBUG] && (
+		strcmp(logff[prio].filename(),logff[Logger::DEBUG].filename())!=0)) {
+		logff[Logger::DEBUG].puts(bf);
+		logff[Logger::DEBUG].flush();
+		checkRotate(Logger::DEBUG);
 	}
 	LOGHANDLER *h=(LOGHANDLER *)firsthandler;
 	while (h) {
-		h->handler->LogMessage(facility,level,(const char*)bf);
+		h->handler->logMessage(prio,level,(const char*)bf);
 		h=h->next;
 	}
-	PopError();
 }
 
-void Logger::addLogHandler(LoggerHandler *handler)
+void Logger::addLogHandler(LogHandler *handler)
 {
-	if (!handler) {
-		SetError(194);
-		return 0;
-	}
+	if (!handler) throw IllegalArgumentException("Logger::addLogHandler(LogHandler *handler)");
 	LOGHANDLER *h=(LOGHANDLER *)malloc(sizeof(LOGHANDLER));
-	if (!h) {
-		SetError(2);
-		return 0;
-	}
+	if (!h) throw OutOfMemoryException();
 	h->handler=handler;
 	h->previous=NULL;
 	h->next=NULL;
-	mutex.Lock();
+	mutex.lock();
 	if (!lasthandler) {
 		firsthandler=lasthandler=h;
-		mutex.Unlock();
-		return 1;
+		mutex.unlock();
+		return;
 	}
 	LOGHANDLER *last=(LOGHANDLER *)lasthandler;
 	last->next=h;
 	h->previous=last;
 	lasthandler=h;
-	mutex.Unlock();
-	return 1;
+	mutex.unlock();
 }
 
-int Logger::DeleteLogHandler(LoggerHandler *handler)
+void Logger::deleteLogHandler(LogHandler *handler)
 {
-	if (!handler) {
-		SetError(194);
-		return 0;
-	}
-	mutex.Lock();
+	if (!handler) throw IllegalArgumentException("Logger::deleteLogHandler(LogHandler *handler)");
+	mutex.lock();
 	LOGHANDLER *h=(LOGHANDLER *)firsthandler;
 	if (!h) {
-		mutex.Unlock();
-		return 1;
+		mutex.unlock();
+		return;
 	}
 	while (h) {
 		if (h->handler==handler) {
@@ -467,100 +566,94 @@ int Logger::DeleteLogHandler(LoggerHandler *handler)
 			if (h==firsthandler) firsthandler=h->next;
 			if (h==lasthandler) lasthandler=h->previous;
 			free(h);
-			mutex.Unlock();
-			return 1;
+			mutex.unlock();
+			return;
 		}
 		h=h->next;
 	}
-	mutex.Unlock();
-	return 1;
+	mutex.unlock();
 }
 
-int Logger::SetFilter(const char *module, const char *function, int level)
+
+
+void Logger::setFilter(const char *module, const char *function, int level)
 {
 	if (!module) {
-		SetError(194,"int Logger::SetFilter(==> const char *module <==, const char *file, int level)");
-		return 0;
+		throw IllegalArgumentException("Logger::setFilter(const char *module)");
 	}
-	if (!FilterModule) FilterModule=new CAssocArray;
+	if (!FilterModule) FilterModule=new AssocArray;
 	if (!FilterModule) {
-		SetError(2);
-		return 0;
+		throw OutOfMemoryException();
 	}
-	CString Name=module;
-	if (function) Name.Concatf("::%s",function);
-	FilterModule->Setf(Name,"%i",level);
-	return 1;
+	String Name=module;
+	if (function) Name.appendf("::%s",function);
+	FilterModule->setf(Name,"%i",level);
 }
 
-int Logger::SetFilter(const char *file, int line, int level)
+
+
+void Logger::setFilter(const char *file, int line, int level)
 {
 	if (!file) {
-		SetError(194,"int Logger::SetFilter(==> const char *file <==, int line, int level)");
-		return 0;
+		throw IllegalArgumentException("Logger::setFilter(const char *file)");
 	}
-	if (!FilterFile) FilterFile=new CAssocArray;
+	if (!FilterFile) FilterFile=new AssocArray;
 	if (!FilterFile) {
-		SetError(2);
-		return 0;
+		throw OutOfMemoryException();
 	}
-	CString Name=file;
-	Name.Concatf(":%i",line);
-	FilterFile->Setf(Name,"%i",level);
-	return 1;
+	String Name=file;
+	Name.appendf(":%i",line);
+	FilterFile->setf(Name,"%i",level);
 }
 
 
 
-void Logger::DeleteFilter(const char *module, const char *function)
+void Logger::deleteFilter(const char *module, const char *function)
 {
 	if (!FilterModule) return;
 	if (!module) return;
-	CString Name=module;
-	if (function) Name.Concatf("::%s",function);
-	FilterModule->Delete(Name);
+	String Name=module;
+	if (function) Name.appendf("::%s",function);
+	FilterModule->remove(Name);
 }
 
-void Logger::DeleteFilter(const char *file, int line)
+void Logger::deleteFilter(const char *file, int line)
 {
 	if (!FilterFile) return;
 	if (!file) return;
-	CString Name=file;
-	Name.Concatf(":%i",line);
-	FilterFile->Delete(Name);
+	String Name=file;
+	Name.appendf(":%i",line);
+	FilterFile->remove(Name);
 }
 
 
-bool Logger::shouldPrint(const char *module, const char *function, const char *file, int line, int facility, int level)
+bool Logger::shouldPrint(const char *module, const char *function, const char *file, int line, PRIORITY prio, int level)
 {
-	if (facility<1 || facility>=NUMFACILITIES) return false;
-	if (debuglevel[facility]<level) return false;				// Wenn der Debuglevel kleiner ist, brauchen wir nicht weiter machen
+	if (prio<1 || prio>=NUMFACILITIES) return false;
+	if (debuglevel[prio]<level) return false;				// Wenn der Debuglevel kleiner ist, brauchen wir nicht weiter machen
 	bool ret=true;
-
-	ppl7::PushError();
-	if (IsFiltered(module,function,file,line,level)) ret=false;
-	ppl7::PopError();
+	if (isFiltered(module,function,file,line,level)) ret=false;
 	return ret;
 }
 
-int Logger::IsFiltered(const char *module, const char *function, const char *file, int line, int level)
+
+int Logger::isFiltered(const char *module, const char *function, const char *file, int line, int level)
 {
-	CString Name;
-	const char *tmp;
+	String Name;
 	int l;
 	if (FilterModule) {
 		if (module) {
 			Name=module;
-			tmp=FilterModule->Get(Name);
-			if (tmp) {
-				l=ppl7::atoi(tmp);
+			const String &tmp=FilterModule->getString(Name);
+			if (tmp.notEmpty()) {
+				l=tmp.toInt();
 				if (level>=l) return 1;
 			}
 			if (function) {
-				Name.Concatf("::%s",function);
-				tmp=FilterModule->Get(Name);
-				if (tmp) {
-					l=ppl7::atoi(tmp);
+				Name.appendf("::%s",function);
+				const String &tmp=FilterModule->getString(Name);
+				if (tmp.notEmpty()) {
+					l=tmp.toInt();
 					if (level>=l) return 1;
 				}
 			}
@@ -568,16 +661,16 @@ int Logger::IsFiltered(const char *module, const char *function, const char *fil
 	}
 	if (FilterFile) {
 		if (file) {
-			Name.Setf("%s:0",file);
-			tmp=FilterFile->Get(Name);
-			if (tmp) {
-				l=ppl7::atoi(tmp);
+			Name.setf("%s:0",file);
+			const String &tmp=FilterFile->getString(Name);
+			if (tmp.notEmpty()) {
+				l=tmp.toInt();
 				if (level>=l) return 1;
 			}
-			Name.Setf("%s:%i",file,line);
-			tmp=FilterFile->Get(Name);
-			if (tmp) {
-				l=ppl7::atoi(tmp);
+			Name.setf("%s:%i",file,line);
+			const String &tmp2=FilterFile->getString(Name);
+			if (tmp2.notEmpty()) {
+				l=tmp2.toInt();
 				if (level>=l) return 1;
 			}
 		}
@@ -586,33 +679,34 @@ int Logger::IsFiltered(const char *module, const char *function, const char *fil
 }
 
 
-void Logger::checkRotate(int facility)
+
+void Logger::checkRotate(PRIORITY prio)
 {
 	String f1,f2;
 	if (inrotate) return;
 	if (rotate_mechanism==1) {
-		pplint64 size=logff[facility].size();
+		pplint64 size=logff[prio].size();
 		if (size>0 && (ppluint64)size>maxsize) {
 			inrotate=true;
-			output(facility,0,"ppl7::Logger","CheckRotate",__FILE__,__LINE__,"Logfile Rotated");
-			logff[facility].close();
+			output(prio,0,"ppl7::Logger","CheckRotate",__FILE__,__LINE__,"Logfile Rotated");
+			logff[prio].close();
 			// Wir müssen die bisherigen Generationen umbenennen
 			for (int i=generations;i>1;i--) {
-				f1.Setf("%s.%i",logfilename[facility].GetPtr(),i-1);
-				f2.Setf("%s.%i",logfilename[facility].GetPtr(),i);
-				CFile::RenameFile(f1,f2);
+				f1.setf("%s.%i",logfilename[prio].getPtr(),i-1);
+				f2.setf("%s.%i",logfilename[prio].getPtr(),i);
+				File::rename(f1,f2);
 			}
-			f2.Setf("%s.1",logfilename[facility].GetPtr());
-			CFile::RenameFile(logfilename[facility],f2);
-			logff[facility].Open(logfilename[facility],"ab");
-			f1.Setf("=== Logfile started for %s",facilitylist[facility]);
-			Output(facility,0,"ppl7::Logger","SetLogfile",__FILE__,__LINE__,f1);
+			f2.setf("%s.1",logfilename[prio].getPtr());
+			File::rename(logfilename[prio],f2);
+			logff[prio].open(logfilename[prio],File::APPEND);
+			f1.setf("=== Logging started for %s",prioritylist[prio]);
+			output(prio,0,"ppl7::Logger","SetLogfile",__FILE__,__LINE__,f1);
 			inrotate=false;
 		}
 	}
 }
 
-#endif
+
 
 
 } // EOF namespace ppl7
