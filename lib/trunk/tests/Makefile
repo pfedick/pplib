@@ -12,7 +12,8 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/avltree.o compile/assocarray.o compile/pointer.o \
 	compile/file.o compile/list.o compile/functions.o \
 	compile/inet.o compile/widestrings.o \
-	compile/db_postgres.o
+	compile/db_postgres.o \
+	compile/logger.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -144,3 +145,7 @@ compile/db_postgres.o: src/db_postgres.cpp Makefile ppl7-tests.h
 compile/toolkit.o: src/toolkit.cpp Makefile src/toolkit.h
 	mkdir -p compile
 	$(CC) -o compile/toolkit.o -c src/toolkit.cpp $(CFLAGS) $(LIB)
+	
+compile/logger.o: src/logger.cpp Makefile src/toolkit.h
+	mkdir -p compile
+	$(CC) -o compile/logger.o -c src/logger.cpp $(CFLAGS) $(LIB)

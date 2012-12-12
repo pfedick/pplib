@@ -179,6 +179,7 @@ void Logger::terminate()
 		debuglevel[i]=0;
 	}
 	mutex.unlock();
+	closeSyslog();
 }
 
 
@@ -215,7 +216,7 @@ void Logger::closeSyslog()
 	throw UnsupportedFeatureException("syslog");
 #else
 	if (useSyslog) {
-		print(Logger::INFO,0,"ppl7::Logger","openSyslog",__FILE__,__LINE__,"=== Close Syslog ===============================");
+		print(Logger::INFO,0,"ppl7::Logger","closeSyslog",__FILE__,__LINE__,"=== Close Syslog ===============================");
 		closelog();
 		useSyslog=false;
 	}
@@ -374,8 +375,6 @@ void Logger::printArraySingleLine (PRIORITY prio, int level, const char *module,
 	mutex.unlock();
 }
 
-#ifdef TODO
-
 void Logger::outputArray(PRIORITY prio, int level, const char *module, const char *function, const char *file, int line, const AssocArray &a, const char *prefix, String *Out)
 {
 	String key, pre, out;
@@ -385,7 +384,7 @@ void Logger::outputArray(PRIORITY prio, int level, const char *module, const cha
 	AssocArray::Iterator walk;
 	a.reset(walk);
 
-	ARRAY_RESULT row;
+	Variant row;
 	CString *string;
 	CAssocArray *array;
 	CBinary *binary;
@@ -409,8 +408,6 @@ void Logger::outputArray(PRIORITY prio, int level, const char *module, const cha
 	}
 	if (Out==&out) Output(prio,level,module,function,file,line,(const char*)out,false);
 }
-
-#endif
 
 void Logger::hexDump (const void * address, int bytes)
 {
