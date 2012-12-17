@@ -63,9 +63,9 @@ class LoggerTest : public ::testing::Test {
 };
 
 TEST_F(LoggerTest, ConstructorSimple) {
-	ppl7::Logger log;
-	log.openSyslog("ppl7::Logger");
-	log.print("Test");
+	//ppl7::Logger log;
+	//log.openSyslog("ppl7::Logger");
+	//log.print("Test");
 }
 
 
