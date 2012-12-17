@@ -384,24 +384,23 @@ void Logger::outputArray(PRIORITY prio, int level, const char *module, const cha
 	a.reset(walk);
 	while ((a.getNext(walk))) {
 		const String &k=walk.key();
-		const Variant *v=walk.value().value;
-		if (!v) continue;
-		if (v->isString()) {
-			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v->toString());
-		} else if (v->isDateTime()) {
-			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v->toDateTime().get());
-		} else if (v->isPointer()) {
-			Out->appendf("%s%s=%llu\n",(const char*)key,(const char*)k,((ppluint64)(const ppliptr)v->toPointer().ptr()));
-		} else if (v->isAssocArray()) {
+		const Variant &v=walk.value();
+		if (v.isString()) {
+			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v.toString());
+		} else if (v.isDateTime()) {
+			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v.toDateTime().get());
+		} else if (v.isPointer()) {
+			Out->appendf("%s%s=%llu\n",(const char*)key,(const char*)k,((ppluint64)(const ppliptr)v.toPointer().ptr()));
+		} else if (v.isAssocArray()) {
 			pre.setf("%s%s",(const char*)key,(const char*)k);
-			outputArray(prio,level,module,function,file,line,v->toAssocArray(),(const char*)pre,Out);
-		} else if (v->isArray()) {
-			const Array &a=v->toArray();
+			outputArray(prio,level,module,function,file,line,v.toAssocArray(),(const char*)pre,Out);
+		} else if (v.isArray()) {
+			const Array &a=v.toArray();
 			for (size_t i=0;i<a.size();i++) {
 				Out->appendf("%s%s/%zu=%s\n",(const char*)key,(const char*)k,i,(const char*)a.get(i));
 			}
-		} else if (v->isByteArray()==true || v->isByteArrayPtr()==true) {
-			Out->appendf("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)k,v->toByteArrayPtr().size());
+		} else if (v.isByteArray()==true || v.isByteArrayPtr()==true) {
+			Out->appendf("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)k,v.toByteArrayPtr().size());
 		}
 	}
 	if (Out==&out) output(prio,level,module,function,file,line,(const char*)out,false);

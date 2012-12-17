@@ -103,7 +103,7 @@ LineInput::~LineInput()
 
 }
 
-const String &LineInput::text() const
+const WideString &LineInput::text() const
 {
 	return myText;
 }
@@ -268,7 +268,7 @@ void LineInput::calcCursorPosition()
 int LineInput::calcPosition(int x)
 {
 	WideString text;
-	int c=0;
+	size_t c=0;
 	Size s1;
 	while (c<myText.size()) {
 		text=myText.left(c+1);

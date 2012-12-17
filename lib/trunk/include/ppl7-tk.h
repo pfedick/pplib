@@ -741,8 +741,8 @@ class LineInput : public Frame
 		Font	myFont;
 		Image	myIcon;
 		Color	myColor;
-		int		cursorpos;
-		int		startpos;
+		size_t	cursorpos;
+		size_t	startpos;
 		int		cursorx;
 		int		cursorwidth;
 		bool	blinker;
@@ -753,7 +753,7 @@ class LineInput : public Frame
 		LineInput();
 		LineInput(int x, int y, int width, int height, const String &text=String());
 		~LineInput();
-		const String &text() const;
+		const WideString &text() const;
 		void setText(const String &text);
 		const Color &color() const;
 		void setColor(const Color &c);

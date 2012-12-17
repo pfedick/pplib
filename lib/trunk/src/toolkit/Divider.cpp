@@ -83,7 +83,7 @@ void VerticalDivider::paint(Drawable &draw)
 	Color dark(92,92,92,255);
 	Color bg;
 
-	int w=width()-1;
+	//int w=width()-1;
 	int h=height()-1;
 
 	draw.line(2,0,2,h-1,white);
@@ -117,7 +117,7 @@ void HorizontalDivider::paint(Drawable &draw)
 	Color dark(92,92,92,255);
 	Color bg;
 
-	int w=width()-1;
+	//int w=width()-1;
 	int h=height()-1;
 
 	draw.line(2,0,2,h-1,white);

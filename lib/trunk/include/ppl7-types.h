@@ -864,7 +864,21 @@ class AssocArray : public Variant
 		PPLNORMALEXCEPTION(ExportBufferToSmallException);
 		PPLNORMALEXCEPTION(ImportFailedException);
 
-		typedef ppl7::AVLTree<ArrayKey, ValueNode>::Iterator Iterator;
+		class Iterator
+		{
+			private:
+				friend class AssocArray;
+				ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
+				Variant empty;
+			public:
+				const String &key() { return it.key(); }
+				const Variant &value() {
+					if (it.value().value==NULL) return empty;
+					return *it.value().value;
+				};
+		};
+
+
 
 
 		//!\name Konstruktoren und Destruktoren
@@ -940,12 +954,6 @@ class AssocArray : public Variant
 		bool getNext(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
 		bool getLast(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
 		bool getPrevious(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
-
-		AssocArray &getFirstArray(Iterator &it) const;
-		AssocArray &getNextArray(Iterator &it) const;
-		AssocArray &getLastArray(Iterator &it) const;
-		AssocArray &getPreviousArray(Iterator &it) const;
-
 
 		bool getFirst(Iterator &it, String &key, String &value) const;
 		bool getNext(Iterator &it, String &key, String &value) const;

@@ -806,15 +806,11 @@ void WikiParser::buildIndex(String &Html)
 		AssocArray::Iterator it;
 		index.reset(it);
 		String a;
-		try {
-			while (1) {
-				AssocArray &r=index.getNextArray(it);
-				a.repeat(L'*',r.getString("ebene").toInt());
-				a.appendf(" %s\n",(const char*)r.getString("link"));
-				Tmp+=a;
-			}
-		} catch (OutOfBoundsEception &) {
-
+		while (index.getNext(it,Variant::ASSOCARRAY)) {
+			const AssocArray &r=it.value().toAssocArray();
+			a.repeat(L'*',r.getString("ebene").toInt());
+			a.appendf(" %s\n",(const char*)r.getString("link"));
+			Tmp+=a;
 		}
 		a.clear();
 		WikiParser Wiki;

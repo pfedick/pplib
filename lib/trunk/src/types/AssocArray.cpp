@@ -1099,7 +1099,7 @@ void AssocArray::remove(const String &key)
  */
 void AssocArray::reset(Iterator &it) const
 {
-	Tree.reset(it);
+	Tree.reset(it.it);
 }
 
 /*!\brief Erstes Element zurückgeben
@@ -1114,7 +1114,7 @@ void AssocArray::reset(Iterator &it) const
  */
 bool AssocArray::getFirst(Iterator &it, Variant::Type type) const
 {
-	Tree.reset(it);
+	Tree.reset(it.it);
 	return getNext(it,type);
 }
 
@@ -1131,9 +1131,9 @@ bool AssocArray::getFirst(Iterator &it, Variant::Type type) const
 bool AssocArray::getNext(Iterator &it, Variant::Type type) const
 {
 	while (1) {
-		if (!Tree.getNext(it)) return false;
+		if (!Tree.getNext(it.it)) return false;
 		if (type==Variant::UNKNOWN) break;
-		if (type==it.value().value->dataType()) break;
+		if (type==it.value().dataType()) break;
 	}
 	return true;
 }
@@ -1150,7 +1150,7 @@ bool AssocArray::getNext(Iterator &it, Variant::Type type) const
  */
 bool AssocArray::getLast(Iterator &it, Variant::Type type) const
 {
-	Tree.reset(it);
+	Tree.reset(it.it);
 	return getPrevious(it,type);
 }
 
@@ -1167,43 +1167,12 @@ bool AssocArray::getLast(Iterator &it, Variant::Type type) const
 bool AssocArray::getPrevious(Iterator &it, Variant::Type type) const
 {
 	while (1) {
-		if (!Tree.getPrevious(it)) throw OutOfBoundsEception();
+		if (!Tree.getPrevious(it.it)) throw OutOfBoundsEception();
 		if (type==Variant::UNKNOWN) break;
-		if (type==it.value().value->dataType()) break;
+		if (type==it.value().dataType()) break;
 	}
 	return true;
 }
-
-AssocArray &AssocArray::getFirstArray(Iterator &it) const
-{
-	Tree.reset(it);
-	return getNextArray(it);
-}
-
-AssocArray &AssocArray::getNextArray(Iterator &it) const
-{
-	while (1) {
-		if (!Tree.getNext(it)) throw OutOfBoundsEception();
-		if (Variant::ASSOCARRAY==it.value().value->dataType()) break;
-	}
-	return it.value().value->toAssocArray();
-}
-
-AssocArray &AssocArray::getLastArray(Iterator &it) const
-{
-	Tree.reset(it);
-	return getPreviousArray(it);
-}
-
-AssocArray &AssocArray::getPreviousArray(Iterator &it) const
-{
-	while (1) {
-		if (!Tree.getPrevious(it)) throw OutOfBoundsEception();
-		if (Variant::ASSOCARRAY==it.value().value->dataType()) break;
-	}
-	return it.value().value->toAssocArray();
-}
-
 
 /*!\brief Ersten %String im %Array finden und Key und Value in Strings speichern
  *
@@ -1218,7 +1187,7 @@ AssocArray &AssocArray::getPreviousArray(Iterator &it) const
  */
 bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
 {
-	Tree.reset(it);
+	Tree.reset(it.it);
 	return getNext(it,key,value);
 }
 
@@ -1236,10 +1205,10 @@ bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
 bool AssocArray::getNext(Iterator &it, String &key, String &value) const
 {
 	while (1) {
-		if (!Tree.getNext(it)) return false;
-		if (it.value().value->isString()) {
+		if (!Tree.getNext(it.it)) return false;
+		if (it.value().isString()) {
 			key.set(it.key());
-			value.set(it.value().value->toString());
+			value.set(it.value().toString());
 			return true;
 		}
 	}
@@ -1259,7 +1228,7 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
  */
 bool AssocArray::getLast(Iterator &it, String &key, String &value) const
 {
-	Tree.reset(it);
+	Tree.reset(it.it);
 	return getPrevious(it,key,value);
 }
 
@@ -1277,10 +1246,10 @@ bool AssocArray::getLast(Iterator &it, String &key, String &value) const
 bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
 {
 	while (1) {
-		if (!Tree.getPrevious(it)) return false;
-		if (it.value().value->isString()) {
+		if (!Tree.getPrevious(it.it)) return false;
+		if (it.value().isString()) {
 			key.set(it.key());
-			value.set(it.value().value->toString());
+			value.set(it.value().toString());
 			return true;
 		}
 	}
