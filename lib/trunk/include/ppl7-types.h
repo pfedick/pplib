@@ -936,10 +936,10 @@ class AssocArray : public Variant
 		//!\name Array durchwandern
 		//@{
 		void reset(Iterator &it) const;
-		Variant &getFirst(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
-		Variant &getNext(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
-		Variant &getLast(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
-		Variant &getPrevious(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		bool getFirst(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		bool getNext(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		bool getLast(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		bool getPrevious(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
 
 		AssocArray &getFirstArray(Iterator &it) const;
 		AssocArray &getNextArray(Iterator &it) const;

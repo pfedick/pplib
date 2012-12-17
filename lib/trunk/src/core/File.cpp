@@ -311,7 +311,7 @@ File::File (FILE * handle)
 		if (ff!=NULL) close();
 		ff=handle;
 		mysize=size();
-		seek(0);
+		this->seek((ppluint64)0);
 	}
 }
 

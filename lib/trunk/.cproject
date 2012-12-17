@@ -77,6 +77,8 @@
 		</profile>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.pathentry">
+		<pathentry kind="mac" name="PPL7LIB" path="" value="1"/>
+		<pathentry base-path="PPL7 - SVN" include="include" kind="inc" path="" system="true"/>
 		<pathentry kind="out" path=""/>
 		<pathentry kind="con" path="org.eclipse.cdt.make.core.DISCOVERED_SCANNER_INFO"/>
 		<pathentry kind="src" path=""/>

@@ -379,34 +379,32 @@ void Logger::outputArray(PRIORITY prio, int level, const char *module, const cha
 {
 	String key, pre, out;
 	if (prefix) key.setf("%s/",prefix);
-
 	if (!Out) Out=&out;
 	AssocArray::Iterator walk;
 	a.reset(walk);
-
-	Variant row;
-	CString *string;
-	CAssocArray *array;
-	CBinary *binary;
-	const char *k;
-	void *pointer;
-	while ((row=a->GetNext(walk))) {
-		k=a->GetKey(row);
-		if ((string=a->GetString(row))) {
-			Out->Concatf("%s%s=%s\n",(const char*)key,k,string->GetPtr());
-			//Output(prio,level,(char*)out,false);
-		} else if ((pointer=a->GetPointer(row))) {
-			Out->Concatf("%s%s=%llu\n",(const char*)key,k,((ppluint64)(ppliptr)pointer));
-			//Output(prio,level,(char*)out,false);
-		} else if ((array=a->GetArray(row))) {
-			pre.Sprintf("%s%s",(const char*)key,k);
-			OutputArray(prio,level,module,function,file,line,array,(const char*)pre,Out);
-		} else if ((binary=a->GetBinary(row))) {
-			Out->Concatf("%s%s=CBinary, %llu Bytes\n",(const char*)key,k,(ppluint64)binary->Size());
-			//Output(prio,level,(char*)out,false);
+	while ((a.getNext(walk))) {
+		const String &k=walk.key();
+		const Variant *v=walk.value().value;
+		if (!v) continue;
+		if (v->isString()) {
+			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v->toString());
+		} else if (v->isDateTime()) {
+			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v->toDateTime().get());
+		} else if (v->isPointer()) {
+			Out->appendf("%s%s=%llu\n",(const char*)key,(const char*)k,((ppluint64)(const ppliptr)v->toPointer().ptr()));
+		} else if (v->isAssocArray()) {
+			pre.setf("%s%s",(const char*)key,(const char*)k);
+			outputArray(prio,level,module,function,file,line,v->toAssocArray(),(const char*)pre,Out);
+		} else if (v->isArray()) {
+			const Array &a=v->toArray();
+			for (size_t i=0;i<a.size();i++) {
+				Out->appendf("%s%s/%zu=%s\n",(const char*)key,(const char*)k,i,(const char*)a.get(i));
+			}
+		} else if (v->isByteArray()==true || v->isByteArrayPtr()==true) {
+			Out->appendf("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)k,v->toByteArrayPtr().size());
 		}
 	}
-	if (Out==&out) Output(prio,level,module,function,file,line,(const char*)out,false);
+	if (Out==&out) output(prio,level,module,function,file,line,(const char*)out,false);
 }
 
 void Logger::hexDump (const void * address, int bytes)

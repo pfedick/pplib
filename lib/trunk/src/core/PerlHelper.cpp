@@ -81,14 +81,9 @@ static String toHashRecurse(const AssocArray &a, const String &name)
 	String key;
 	AssocArray::Iterator it;
 	a.reset(it);
-	Variant res;
-	while (1) {
-		try {
-			res=a.getNext(it);
-			key=it.key();
-		} catch (OutOfBoundsEception &) {
-			return r;
-		}
+	while (a.getNext(it)) {
+		const String &key=it.key();
+		const Variant &res=*it.value().value;
 		if (res.isAssocArray()) {
 			String newName;
 			newName=name+"{"+key+"}";

@@ -101,15 +101,12 @@ void IterateArray(const ppl7::AssocArray &a)
 {
 	ppl7::AssocArray::Iterator it;
 	a.reset(it);
-	try {
-		while (1) {
-			const ppl7::Variant &var=a.getNext(it);
-			if (var.isString()) {
-				cout << "Key: " << it.key() << ", Value: " << var.toString() << endl;
-			}
+	while (a.getNext(it)) {
+		const ppl7::String &key=it.key();
+		const ppl7::Variant &var=*it.value().value;
+		if (var.isString()) {
+			cout << "Key: " << key << ", Value: " << var.toString() << endl;
 		}
-	} catch (OutOfBoundsEception &) {
-		cout << "Ende erreicht" << endl;
 	}
 }
  * \endcode
@@ -1113,11 +1110,9 @@ void AssocArray::reset(Iterator &it) const
  *
  * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return Referenz auf das gefundene Element
- * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und keine weiteren Elemente mehr vorhanden sind.
+ * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-Variant &AssocArray::getFirst(Iterator &it, Variant::Type type) const
+bool AssocArray::getFirst(Iterator &it, Variant::Type type) const
 {
 	Tree.reset(it);
 	return getNext(it,type);
@@ -1131,18 +1126,16 @@ Variant &AssocArray::getFirst(Iterator &it, Variant::Type type) const
  *
  * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return Referenz auf das gefundene Element
- * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und keine weiteren Elemente mehr vorhanden sind.
+ * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-Variant &AssocArray::getNext(Iterator &it, Variant::Type type) const
+bool AssocArray::getNext(Iterator &it, Variant::Type type) const
 {
 	while (1) {
-		if (!Tree.getNext(it)) throw OutOfBoundsEception();
+		if (!Tree.getNext(it)) return false;
 		if (type==Variant::UNKNOWN) break;
 		if (type==it.value().value->dataType()) break;
 	}
-	return *it.value().value;
+	return true;
 }
 
 /*!\brief Letztes Element zurückgeben
@@ -1153,11 +1146,9 @@ Variant &AssocArray::getNext(Iterator &it, Variant::Type type) const
  *
  * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return Referenz auf das gefundene Element
- * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und keine weiteren Elemente mehr vorhanden sind.
+ * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-Variant &AssocArray::getLast(Iterator &it, Variant::Type type) const
+bool AssocArray::getLast(Iterator &it, Variant::Type type) const
 {
 	Tree.reset(it);
 	return getPrevious(it,type);
@@ -1171,18 +1162,16 @@ Variant &AssocArray::getLast(Iterator &it, Variant::Type type) const
  *
  * @param it Iterator. Dieser muss vom Typ ppl7::AssocArray::Iterator sein.
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
- * @return Referenz auf das gefundene Element
- * \exception OutOfBoundsEception: Wird geworfen, wenn das Array vollständig durchwandert
- * wurde und keine weiteren Elemente mehr vorhanden sind.
+ * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-Variant &AssocArray::getPrevious(Iterator &it, Variant::Type type) const
+bool AssocArray::getPrevious(Iterator &it, Variant::Type type) const
 {
 	while (1) {
 		if (!Tree.getPrevious(it)) throw OutOfBoundsEception();
 		if (type==Variant::UNKNOWN) break;
 		if (type==it.value().value->dataType()) break;
 	}
-	return *it.value().value;
+	return true;
 }
 
 AssocArray &AssocArray::getFirstArray(Iterator &it) const
