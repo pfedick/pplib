@@ -528,7 +528,7 @@ void FileObject::putsf (const char *fmt, ... )
 	va_start(args, fmt);
 	str.vasprintf(fmt, args);
 	va_end(args);
-	puts(str);
+	fputs(str);
 }
 
 /*!\brief String schreiben
@@ -542,7 +542,7 @@ void FileObject::putsf (const char *fmt, ... )
  */
 void FileObject::puts (const String &str)
 {
-	return puts((const char*)str);
+	return fputs((const char*)str);
 }
 
 /*!\brief Wide-Character-String schreiben
@@ -556,7 +556,7 @@ void FileObject::puts (const String &str)
  */
 void FileObject::putws (const WideString &str)
 {
-	return putws((const wchar_t*)str);
+	return fputws((const wchar_t*)str);
 }
 
 /*!\brief Datei in den Speicher mappen

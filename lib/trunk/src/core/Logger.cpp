@@ -505,13 +505,15 @@ void Logger::output(PRIORITY prio, int level, const char *module, const char *fu
 		syslog(syslog_priority_lookup[prio],"%s %s",(const char*)log,(const char*)bu);
 	}
 	bf+=bu;
-	if (level<=debuglevel[prio]) {
+	if (level<=debuglevel[prio] && logff[prio].isOpen()==true) {
 		logff[prio].puts(bf);
 		logff[prio].flush();
 		checkRotate(prio);
 	}
-	if (prio!=Logger::DEBUG && level<=debuglevel[Logger::DEBUG] && (
-		strcmp(logff[prio].filename(),logff[Logger::DEBUG].filename())!=0)) {
+	if (prio!=Logger::DEBUG
+			&& level<=debuglevel[Logger::DEBUG]
+			                     && logff[prio].isOpen()==true
+			                     && (strcmp(logff[prio].filename(),logff[Logger::DEBUG].filename())!=0)) {
 		logff[Logger::DEBUG].puts(bf);
 		logff[Logger::DEBUG].flush();
 		checkRotate(Logger::DEBUG);

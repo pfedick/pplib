@@ -22,7 +22,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CC) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
 
-all: $(PROGNAME) threadtest toolkit
+all: $(PROGNAME) threadtest toolkit loggertest
 	
 xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
@@ -38,6 +38,11 @@ threadtest: compile/threadtest.o ppl7-tests.h
 
 toolkit: compile/toolkit.o src/toolkit.h ../debug/libppl7-debug.a
 	$(CC) -O -ggdb -o toolkit $(CFLAGS) compile/toolkit.o $(LIBS)
+
+loggertest: src/loggertest.cpp ../debug/libppl7-debug.a
+	mkdir -p compile
+	$(CC) -O -ggdb -o loggertest $(CFLAGS) src/loggertest.cpp $(LIBS)
+
 
 clean:
 	-rm -rf compile tmp.grafixtest.png

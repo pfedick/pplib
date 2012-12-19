@@ -42,50 +42,20 @@
 #include <pthread.h>
 #include <locale.h>
 #include "../include/ppl7.h"
-#include <gtest/gtest.h>
 #include "ppl7-tests.h"
 
-namespace {
 
-// The fixture for testing class Foo.
-class LoggerTest : public ::testing::Test {
-	protected:
-	LoggerTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		ppl7::String::setGlobalEncoding("UTF-8");
+int main(int agrc, char ** argv)
+{
+
+	if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+		printf ("setlocale fehlgeschlagen\n");
+		throw std::exception();
 	}
-	virtual ~LoggerTest() {
+	ppl7::String::setGlobalEncoding("UTF-8");
 
-	}
-};
+	ppl7::Logger log;
 
-TEST_F(LoggerTest, ConstructorSimple) {
-	ASSERT_NO_THROW({
-		ppl7::Logger log;
-	});
 
-	//log.openSyslog("ppl7::Logger");
-	//log.print("Test");
+	return 0;
 }
-
-TEST_F(LoggerTest, openSyslog) {
-	ASSERT_NO_THROW({
-		ppl7::Logger log;
-		log.openSyslog("ppl7::Logger");
-	});
-	//ppl7::Logger log;
-	//
-	//log.print("Test");
-}
-
-
-
-
-
-
-}
-
-
