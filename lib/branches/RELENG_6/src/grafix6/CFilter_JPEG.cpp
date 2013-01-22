@@ -469,9 +469,9 @@ int CFilter_JPEG::Save (const CDrawable &surface, CFileObject &file, CAssocArray
 	for (y=0;y<surface.height();y++) {
 		for (x=0;x<surface.width();x++) {
 			farbe=surface.getPixel(x,y);
-			buffer[x*3]=(ppldb)farbe.blue();
+			buffer[x*3]=(ppldb)farbe.red();
 			buffer[x*3+1]=(ppldb)farbe.green();
-			buffer[x*3+2]=(ppldb)farbe.red();
+			buffer[x*3+2]=(ppldb)farbe.blue();
 		}
 		jpeg_write_scanlines(&cinfo,row_pointer,1);
 	}
