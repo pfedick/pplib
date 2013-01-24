@@ -9131,14 +9131,14 @@ then
 	am_save_CPPFLAGS="$CPPFLAGS"
 	am_save_LIBS="$LIBS"
 	am_save_LDFLAGS="$LDFLAGS"
-	LIBS="-lmicrohttpd -pthread $LIBS"
+	LIBS="-lmicrohttpd -pthread $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
 	LIBMICROHTTPD_LIBS="-lmicrohttpd"
 	LIBMICROHTTPD_CFLAGS=""
 
 	if test "$libmicrohttpd_prefix" != "yes"
 	then
-		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd -pthread $LIBS"
-		CPPFLAGS="$CPPFLAGS -I$libmicrohttpd_prefix/include"
+		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd -pthread $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
+		CPPFLAGS="$CPPFLAGS -I$libmicrohttpd_prefix/include $LIBGCRYPT_CFLAGS $LIBGNUTLS_CFLAGS"
 		LIBMICROHTTPD_LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
 		LIBMICROHTTPD_CFLAGS="-I$libmicrohttpd_prefix/include"
 	fi
