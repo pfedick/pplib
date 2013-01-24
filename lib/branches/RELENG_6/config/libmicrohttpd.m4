@@ -23,6 +23,11 @@ then
 		LIBMICROHTTPD_LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
 		LIBMICROHTTPD_CFLAGS="-I$libmicrohttpd_prefix/include"
 	fi
+	AC_CHECK_LIB(rt,clock_gettime,
+			LIBMICROHTTPD_LIBS="$LIBMICROHTTPD_LIBS -lrt "
+			LIBS="$LIBS -lrt"
+		)
+		
     AC_LINK_IFELSE( [AC_LANG_SOURCE([[
          #include <microhttpd.h>
          int main()
