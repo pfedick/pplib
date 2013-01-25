@@ -388,9 +388,9 @@ int CFilter_JPEG::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 					}
 				} else {
 					for (x=0;x<cinfo.output_width;x++) {
-						rot=peekb(buffer+x*3+2);
+						rot=peekb(buffer+x*3+0);
 						gruen=peekb(buffer+x*3+1);
-						blau=peekb(buffer+x*3);
+						blau=peekb(buffer+x*3+2);
 						surface.putPixel(x,y,Color(rot,gruen,blau));
 					}
 				}
