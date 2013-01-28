@@ -1500,7 +1500,7 @@ void File::copy(const String &oldfile, const String &newfile)
 	if (oldfile==newfile) throw IllegalArgumentException();
 	File f1, f2;
 	f1.open(oldfile,READ);
-	f2.open(oldfile,WRITE);
+	f2.open(newfile,WRITE);
 	ppluint64 bsize=1024*1024;
 	if (f1.mysize<bsize) bsize=f1.mysize;
 	void *buffer=malloc((size_t)bsize);
