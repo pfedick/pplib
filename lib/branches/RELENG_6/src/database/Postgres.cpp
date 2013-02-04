@@ -383,6 +383,8 @@ int Postgres::Connect(const CAssocArray &params)
 	if (params["dbname"]) conninfo.Concatf("dbname='%s' ",params["dbname"]);
 	if (params["user"]) conninfo.Concatf("user='%s' ",params["user"]);
 	if (params["password"]) conninfo.Concatf("password='%s' ",params["password"]);
+	if (params["timeout"]) conninfo.Concatf("connect_timeout='%s' ",params["timeout"]);
+	else conninfo.Concat("connect_timeout=10 ");
 
 	conn=PQconnectdb((const char *)conninfo);
 	if (!conn) {
