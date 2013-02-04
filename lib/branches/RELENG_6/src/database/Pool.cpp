@@ -525,29 +525,31 @@ Database *Pool::Get(bool wait, int ms)
 	// Wir brauchen eine neue Verbindung
 	double start=ppl6::getmicrotime();
 	double diff=(double)ms/1000;
+
+	// Wir wollen den Mutex nicht gesperrt halten, während wir eine neue Verbindung
+	// aufbauen, da dies länger dauern kann (im ungünstigsten Fall bis zum Timeout)
+	Mutex.Unlock();
 	while (1) {
 		p=New();
 		if (p) break;
 		if (!wait) {
-			Mutex.Unlock();
 			if (Log) Log->LogError("ppl6::db::Pool","Get",__FILE__,__LINE__);
 			return NULL;
 		}
 		if (p==NULL && GetErrorCode()!=442) {
-			Mutex.Unlock();
 			if (Log) Log->LogError("ppl6::db::Pool","Get",__FILE__,__LINE__);
 			return NULL;
 		}
 		if (ms) {
 			if (start+diff<ppl6::getmicrotime()) {
 				SetError(442,"Timeout");
-				Mutex.Unlock();
 				if (Log) Log->LogError("ppl6::db::Pool","Get",__FILE__,__LINE__);
 				return NULL;
 			}
 		}
 		ppl6::MSleep(10);
 	}
+	Mutex.Lock();
 	Used.Add(p);
 	Mutex.Unlock();
 	if (Log) Log->Printf(ppl6::LOG::DEBUG,5,"ppl6::db::Pool","Get",__FILE__,__LINE__,"Neue Verbindung erstellt");
