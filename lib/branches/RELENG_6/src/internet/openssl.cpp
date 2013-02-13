@@ -1051,7 +1051,15 @@ int CSSL::Init(int method)
 				break;
 		};
 		if (!ctx) {
-			SetError(319,"SSL_CTX_new");
+			ppl6::CString errors;
+			unsigned long sslerror;
+			char buf[128];
+			while ((sslerror=ERR_get_error())) {
+				ERR_error_string_n(sslerror, buf, 127);
+				errors.Concat(buf);
+				errors.Concat("\n");
+			}
+			SetError(319,"SSL_CTX_new: %s",(const char*)errors);
 			Mutex.Unlock();
 			return 0;
 		}
