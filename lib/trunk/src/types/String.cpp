@@ -2674,7 +2674,10 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		pcre *reg;
 		//printf ("r=%s, flags=%i\n",r,flags);
 		reg=pcre_compile2(((const char*)expr+1),flags,&perrorcode,&perr, &erroffset, NULL);
-		if (!reg) throw IllegalRegularExpressionException();
+		if (!reg) {
+			free(ovector);
+			throw IllegalRegularExpressionException();
+		}
 		memset(ovector,0,30*sizeof(int));
 		if ((re=pcre_exec(reg, NULL, (const char*) ptr,stringlen,0, 0, ovector, ovectorsize))>=0) {
 			if (re>0) maxmatches=re;
