@@ -1061,11 +1061,11 @@ int Sybase::Connect(const CAssocArray &params)
 	refmutex.Unlock();
 	Close();
 	condata=params;
-	SYBCONNECT *sc=(SYBCONNECT*)conn;
 	if (!conn) {
 		SetError(2);
 		return 0;
 	}
+	SYBCONNECT *sc=(SYBCONNECT*)conn;
 	const char *tmp;
 	const char *interface=params.Get("interface");
 	const char *host=params.Get("host");
@@ -1162,13 +1162,11 @@ int Sybase::Connect(const CAssocArray &params)
 #endif
 
 	refmutex.Lock();
-	if (sc) {
-		if (last) last->next=sc;
-		sc->next=NULL;
-		sc->previous=last;
-		last=sc;
-		if (!first) first=sc;
-	}
+	if (last) last->next=sc;
+	sc->next=NULL;
+	sc->previous=last;
+	last=sc;
+	if (!first) first=sc;
 	refmutex.Unlock();
 	lastServerMsgNumber=0;
 	lastClientMsgNumber=0;
