@@ -519,6 +519,7 @@ int CTCPSocket::WaitForMessage(CSocketMessage &msg, int timeout)
 	ppluint64 tt=GetTime()+timeout;
 	char msgbuffer[28];
 	void *buffer=NULL;
+	void *newbuffer=NULL;
 	int flags,type,size,validheader;
 	ppluint32 crc=0, data_crc=0;
 	int version=0;
@@ -646,11 +647,13 @@ int CTCPSocket::WaitForMessage(CSocketMessage &msg, int timeout)
 					return 0;
 				}
 				size=uncompressed.Size();
-				buffer=realloc(buffer,size+1);
-				if (!buffer) {
+				newbuffer=realloc(buffer,size+1);
+				if (!newbuffer) {
+					free(buffer);
 					SetError(2);
 					return 0;
 				}
+				buffer=newbuffer;
 				memcpy(buffer,uncompressed.GetPtr(),size);
 #ifdef DEBUGOUT
 				printf ("%010.3f CTCPSocket::WaitForMessage: Done\n",ppl6::GetMicrotime());
