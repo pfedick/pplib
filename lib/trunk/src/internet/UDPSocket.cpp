@@ -531,9 +531,6 @@ int CUDPSocket::Bind(const char *host, int port)
 	return 1;
 }
 
-
-} // EOF namespace ppl6
-
 #endif
 
 }	// EOF ppl7
