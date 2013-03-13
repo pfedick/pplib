@@ -270,6 +270,8 @@ bool IsTrue(const String &str);
 Array StrTok(const String &string, const String &div);
 void StrTok(Array &result, const String &string, const String &div);
 
+const char * GetArgv (int argc, char * argv[], const char * argument);
+
 bool PregMatch(const String &expression, const String &subject);
 bool PregMatch(const String &expression, const String &subject, Array &matches, size_t maxmatches=16);
 
@@ -1072,7 +1074,7 @@ class Resource
 		ByteArrayPtr getMemory(const String &name);
 
 		static Resource *getPPLResource();
-		static void generateResourceHeader(const String &basispfad, const String &configfile, const String &targetfile, const String &label);
+		static void generateResourceHeader(const String &basispfad, const String &ConfigParser, const String &targetfile, const String &label);
 };
 
 Resource *GetPPLResource();
@@ -1208,6 +1210,64 @@ class LogHandler
 	public:
 		virtual ~LogHandler()=0;
 		virtual void logMessage(Logger::PRIORITY prio, int level, const String &msg)=0;
+};
+
+
+//! \brief Klasse zum Verarbeiten von Config-Files
+class ConfigParser
+{
+	private:
+		String  separator;
+		size_t	separatorLength;
+		String  currentsection;
+		bool	isused;
+		void	*first, *last, *section;
+		AssocArray sections;
+		AssocArray::Iterator it;
+
+		void init();
+		void *findSection(const String &sectionname) const;
+
+	public:
+		ConfigParser();
+		ConfigParser(const String &filename);
+		ConfigParser(FileObject &file);
+		~ConfigParser();
+		void load(const String &filename);
+		void load (FileObject &file);
+		void loadFromString(const String &string);
+		void loadFromMemory(const void *buffer, size_t bytes);
+		void save(const String &filename);
+		void save(FileObject &file);
+		void unload();
+		void setSeparator(const String &string);
+		void  selectSection(const String &section);
+		int  firstSection();
+		int  nextSection();
+		const String& getSectionName() const;
+		const String& getSection(const String &name) const;
+		void copySection(AssocArray &target, const String &section) const;
+		void createSection (const String &name);
+		void deleteSection (const String &name);
+		void add(const String &section, const String &key, const String &value);
+		void add(const String &key, const String &value);
+		void add(const String &key, int value);
+		void add(const String &key, bool value);
+		void add(const String &section, const String &key, int value);
+		void add(const String &section, const String &key, bool value);
+		void deleteKey(const String &key);
+		void deleteKey(const String &section, const String &key);
+		String get(const String &key, const String &defaultvalue=String());
+		String get(const String &section, const String &key, const String &defaultvalue=String());
+		bool	getBool(const String &section, const String &key, bool defaultvalue=false);
+		bool	getBool(const String &key, bool defaultvalue=false);
+		int		getInt(const String &section, const String &key, int defaultvalue=0);
+		int		getInt(const String &key, int defaultvalue=0);
+
+		void reset();								// Zum Auslesen einer kompletten Section
+		bool getFirst(String &key, String &value);
+		bool getNext(String &key, String &value);
+		void print() const;
 };
 
 

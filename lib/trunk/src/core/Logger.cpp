@@ -87,7 +87,9 @@ static const int syslog_facility_lookup[] = {
 		LOG_USER,
 		LOG_AUTH,
 		LOG_AUTHPRIV,
+#ifdef LOG_CONSOLE
 		LOG_CONSOLE,
+#endif
 		LOG_CRON,
 		LOG_DAEMON,
 		LOG_FTP,
@@ -95,8 +97,12 @@ static const int syslog_facility_lookup[] = {
 		LOG_LPR,
 		LOG_MAIL,
 		LOG_NEWS,
+#ifdef LOG_NTP
 		LOG_NTP,
+#endif
+#ifdef LOG_SECURITY
 		LOG_SECURITY,
+#endif
 		LOG_SYSLOG,
 		LOG_USER,
 		LOG_UUCP,

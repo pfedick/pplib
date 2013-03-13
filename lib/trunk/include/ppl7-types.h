@@ -860,7 +860,6 @@ class AssocArray : public Variant
 
 	public:
 		PPLPARAMETERISEDEXCEPTION(InvalidKeyException);
-		PPLNORMALEXCEPTION(KeyNotFoundException);
 		PPLNORMALEXCEPTION(ExportBufferToSmallException);
 		PPLNORMALEXCEPTION(ImportFailedException);
 
