@@ -183,7 +183,7 @@ TEST_F(AssocArrayTest, addAndDeleteWordlist) {
 	for (size_t i=0;i<total;i++) {
 		try {
 			a.erase(Wordlist[i]);
-		} catch (ppl7::AssocArray::KeyNotFoundException &) {
+		} catch (ppl7::KeyNotFoundException &) {
 
 		}
 	}

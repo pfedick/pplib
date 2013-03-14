@@ -13,6 +13,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/file.o compile/list.o compile/functions.o \
 	compile/inet.o compile/widestrings.o \
 	compile/db_postgres.o \
+	compile/configparser.o \
 	compile/logger.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
@@ -154,3 +155,7 @@ compile/toolkit.o: src/toolkit.cpp Makefile src/toolkit.h
 compile/logger.o: src/logger.cpp Makefile src/toolkit.h
 	mkdir -p compile
 	$(CC) -o compile/logger.o -c src/logger.cpp $(CFLAGS) $(LIB)
+	
+compile/configparser.o: src/configparser.cpp Makefile src/toolkit.h
+	mkdir -p compile
+	$(CC) -o compile/configparser.o -c src/configparser.cpp $(CFLAGS) $(LIB)

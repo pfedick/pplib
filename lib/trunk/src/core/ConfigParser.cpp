@@ -150,7 +150,8 @@ void ConfigParser::setSeparator(const String &string)
 void ConfigParser::selectSection(const String &sectionname)
 {
 	section=findSection(sectionname);
-	if (!section) throw KeyNotFoundException(sectionname);
+	if (!section) throw UnknownSectionException(sectionname);
+	currentsection=((SECTION *)section)->name;
 }
 
 void *ConfigParser::findSection(const String &sectionname) const
@@ -166,7 +167,11 @@ void *ConfigParser::findSection(const String &sectionname) const
 int ConfigParser::firstSection()
 {
 	section=first;
-	if (section) return 1;
+	if (section) {
+		currentsection=((SECTION *)section)->name;
+		return 1;
+	}
+	currentsection.clear();
 	return 0;
 }
 
@@ -175,7 +180,11 @@ int ConfigParser::nextSection()
 	SECTION *s=(SECTION *)section;
 	if (!s) return 0;
 	section=s->next;
-	if (!section) return 0;
+	if (!section) {
+		currentsection.clear();
+		return 0;
+	}
+	currentsection=((SECTION *)section)->name;
 	return 1;
 }
 
@@ -213,6 +222,7 @@ void ConfigParser::deleteSection(const String &sectionname)
 	if (s==(SECTION *)last) last=s->last;
 	if (s==(SECTION *)first) first=s->next;
 	delete(s);
+	if (currentsection==sectionname) currentsection.clear();
 }
 
 void ConfigParser::reset()
@@ -241,7 +251,7 @@ void ConfigParser::add(const String &section, const String &key, const String &v
 		s=(SECTION *)findSection(section);
 		if (!s) throw UnknownSectionException(section);
 	}
-	s->values.append(key,value);
+	s->values.append(key,value,"\n");
 }
 
 void ConfigParser::add(const String &section, const String &key, int value)
@@ -298,7 +308,7 @@ String ConfigParser::get(const String &key, const String &defaultvalue)
 	return ret;
 }
 
-String ConfigParser::get(const String &section, const String &key, const String &defaultvalue)
+String ConfigParser::getFromSection(const String &section, const String &key, const String &defaultvalue)
 {
 	SECTION *s=(SECTION *)findSection(section);
 	if (!s) return defaultvalue;
@@ -311,7 +321,7 @@ String ConfigParser::get(const String &section, const String &key, const String 
 	return ret;
 }
 
-bool ConfigParser::getBool(const String &section, const String &key, bool defaultvalue)
+bool ConfigParser::getBoolFromSection(const String &section, const String &key, bool defaultvalue)
 {
 	SECTION *s=(SECTION *)findSection(section);
 	if (!s) return defaultvalue;
@@ -336,7 +346,7 @@ bool ConfigParser::getBool(const String &key, bool defaultvalue)
 	return IsTrue(ret);
 }
 
-int ConfigParser::getInt(const String &section, const String &key, int defaultvalue)
+int ConfigParser::getIntFromSection(const String &section, const String &key, int defaultvalue)
 {
 	SECTION *s=(SECTION *)findSection(section);
 	if (!s) return defaultvalue;
@@ -487,81 +497,72 @@ void ConfigParser::load(FileObject &file)
  */
 {
 	unload();
-	char *cursect=NULL, *line;
 	String key,value;
-	String Line;
-	String buffer;
+	String buffer,trimmedBuffer;
 	String sectionname;
 
 	size_t l;
-	int trenn;
+	size_t trenn;
 
-	while (!file.eof()) {			// Zeilen lesen, bis keine mehr kommt
-		if (!file.gets(buffer,65536)) break;
-		Line=buffer;
-		Line.rTrim();
-		line=trim(buffer);		// überflüssige Zeichen wegschneiden
-		l=strlen(line);
-		if (cursect) {
-			if (l==0 || (l>0 && line[0]!='[' && line[l-1]!=']')) {
-				sections.Concat(cursect,buffer);
-			}
-		}
-		if (l>0) {
-			if (line[0]=='[' && line[l-1]==']') {		// Neue [Sektion] erkannt
-				cursect=NULL;
-				if (l<1024) {							// nur gültig, wenn < 1024 Zeichen
-					strncpy(sectionname,line+1,l-2);	// Ohne die Klammern in den Buffer
-					sectionname[l-2]=0;					// kopieren und 0-Byte anhängen
-					cursect=trim(sectionname);			// eventuelle Spaces wegschneiden
-					sections.Concat(cursect,"","");
-				}
-			} else if ((cursect) && line[0]!='#' && line[0]!=';') {		// Kommentare ignorieren
-				trenn=instr(line,separator,0);			// Trennzeichen suchen
-				if (trenn>0) {							// Wenn eins gefunden wurde, dann
-					line[trenn]=0;						// durch 0-Byte ersetzen
-					key=line;							// Key ist alles vor dem Trennzeichen
-					key.Trim();
-					value=(line+trenn+separatorLength);	// Value der rest danach
-					value.Trim();
-					//value.HexDump();
-					Add(cursect,(const char*)key,(const char*)value);				// Und das ganze dann hinzuf�gen ins Array
+	//printf ("File open: %s, size: %tu\n",(const char*)file.filename(),file.size());
+
+	try {
+		while (!file.eof()) {			// Zeilen lesen, bis keine mehr kommt
+			if (!file.gets(buffer,65535)) break;
+			trimmedBuffer=buffer.trimmed();
+			l=trimmedBuffer.size();
+			if (sectionname.notEmpty()) {
+				if (l==0 || (l>0 && trimmedBuffer[0]!='[' && trimmedBuffer[l-1]!=']')) {
+					sections.append(sectionname,buffer);
 				}
 			}
+
+
+			if (l>0) {
+				if (trimmedBuffer[0]=='[' && trimmedBuffer[l-1]==']') {	// Neue [Sektion] erkannt
+					sectionname.clear();
+					if (l<1024) {							// nur gültig, wenn < 1024 Zeichen
+						sectionname=trimmedBuffer.mid(1,l-2);
+						sections.append(sectionname,"","");
+						createSection(sectionname);
+					}
+				} else if ((sectionname.notEmpty()) && trimmedBuffer[0]!='#' && trimmedBuffer[0]!=';') {	// Kommentare ignorieren
+					trenn=trimmedBuffer.instr(separator);			// Trennzeichen suchen
+					if (trenn>0) {							// Wenn eins gefunden wurde, dann
+						key=trimmedBuffer.left(trenn);				// Key ist alles vor dem Trennzeichen
+						key.trim();
+						value=trimmedBuffer.mid(trenn+separatorLength);	// Value der rest danach
+						value.trim();
+						add(sectionname,key,value);			// Und das ganze dann hinzufügen ins Array
+					}
+				}
+			}
 		}
+	} catch (const ppl7::File::EndOfFileException &e) {
+		return;
 	}
-
-	free (sectionname);
-	free (buffer);
-	return 1;
 }
 
-int ConfigParser::Save(const char *filename)
+void ConfigParser::save(const String &filename)
 {
-	if (!filename) { SetError(6); return 0; }
-	CFile ff;
-	if (ff.Open(filename,"w")) {
-		return Save(&ff);
-	}
-	return 0;
+	File ff;
+	ff.open(filename,File::WRITE);
+	save(ff);
 }
 
-int ConfigParser::Save(CFileObject *file)
+void ConfigParser::save(FileObject &file)
 {
-	char *key, *value;
-	int res;
+	AssocArray::Iterator it;
+	String key, value;
 	SECTION *s=(SECTION *)first;
 	while (s) {
-		file->Putsf("\n[%s]\n",s->name);
-		res=s->values->GetFirst(&key,&value);
-		while (res) {
-			//printf ("[%s]%s=%s\n",s->name,key,value);
-			file->Putsf("%s%s%s\n",key,separator,value);
-			res=s->values->GetNext(&key, &value);
+		file.putsf("\n[%s]\n",s->name.getPtr());
+		s->values.reset(it);
+		while (s->values.getNext(it,key,value)) {
+			file.putsf("%s%s%s\n",(const char*)key,(const char*)separator,(const char*)value);
 		}
 		s=s->next;
 	}
-	return 1;
 }
 
 

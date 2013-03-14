@@ -1990,7 +1990,7 @@ void String::upperCaseWords()
 	free(buffer);
 }
 
-//! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
+//! \brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
 void String::trim()
 {
 	if (ptr!=NULL && stringlen>0) {
@@ -2010,6 +2010,20 @@ void String::trim()
 		stringlen=strlen(ptr);
 		ptr[stringlen]=0;
 	}
+}
+
+/*!\brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
+ *
+ * \desc
+ * Es wird eine Kopie des Strings angelegt und bei dieser alle Leerzeichen, Tabs, Returns und
+ * Linefeeds am Anfang und Ende des Strings abgeschnitten. Das Ergebnis wird als Returnwert
+ * zurückgegeben. Der Original-String bleibt unverändert.
+ */
+String String::trimmed() const
+{
+	String ret=*this;
+	ret.trim();
+	return ret;
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab

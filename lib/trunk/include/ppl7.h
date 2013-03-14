@@ -1241,7 +1241,7 @@ class ConfigParser
 		void save(FileObject &file);
 		void unload();
 		void setSeparator(const String &string);
-		void  selectSection(const String &section);
+		void selectSection(const String &section);
 		int  firstSection();
 		int  nextSection();
 		const String& getSectionName() const;
@@ -1258,12 +1258,11 @@ class ConfigParser
 		void deleteKey(const String &key);
 		void deleteKey(const String &section, const String &key);
 		String get(const String &key, const String &defaultvalue=String());
-		String get(const String &section, const String &key, const String &defaultvalue=String());
-		bool	getBool(const String &section, const String &key, bool defaultvalue=false);
 		bool	getBool(const String &key, bool defaultvalue=false);
-		int		getInt(const String &section, const String &key, int defaultvalue=0);
 		int		getInt(const String &key, int defaultvalue=0);
-
+		String	getFromSection(const String &section, const String &key, const String &defaultvalue=String());
+		bool	getBoolFromSection(const String &section, const String &key, bool defaultvalue=false);
+		int		getIntFromSection(const String &section, const String &key, int defaultvalue=0);
 		void reset();								// Zum Auslesen einer kompletten Section
 		bool getFirst(String &key, String &value);
 		bool getNext(String &key, String &value);

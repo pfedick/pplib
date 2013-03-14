@@ -317,6 +317,7 @@ class String : public Variant
 		void upperCase();
 		void upperCaseWords();
 		void trim();
+		String trimmed() const;
 		void trimLeft();
 		void trimRight();
 		void trim(const String &chars);
