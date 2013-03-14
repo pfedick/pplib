@@ -169,6 +169,7 @@ TEST_F(ConfigParserTest, getSection) {
 		"key2 = value2\n"
 		"# Spaces before and after \"=\" don't matter \n"
 		"key3   =      value3\n"
+		"key7= 321\n"
 		"\n"
 		"# values with identic keys should get concatenated together with newline\n"
 		"key4 = First line\n"
@@ -280,10 +281,11 @@ TEST_F(ConfigParserTest, copySection) {
 			conf.load("testdata/example.conf");
 			conf.copySection(s,"foo=[bar]");
 	});
-	ASSERT_EQ((size_t)3,s.size());
+	ASSERT_EQ((size_t)4,s.size());
 	ASSERT_EQ(ppl7::String("value 1"),s.get("key 1").toString());
 	ASSERT_EQ(ppl7::String("value 2"),s.get("key 2").toString());
 	ASSERT_EQ(ppl7::String("value 3"),s.get("key 3").toString());
+	ASSERT_EQ(ppl7::String("yes"),s.get("key4").toString());
 
 }
 
@@ -297,7 +299,7 @@ TEST_F(ConfigParserTest, trimmedValue) {
 
 }
 
-TEST_F(ConfigParserTest, singleKeyFirstSection) {
+TEST_F(ConfigParserTest, getSingleKeyFirstSection) {
 	ppl7::ConfigParser conf;
 	ASSERT_NO_THROW({
 			conf.load("testdata/example.conf");
@@ -307,7 +309,7 @@ TEST_F(ConfigParserTest, singleKeyFirstSection) {
 
 }
 
-TEST_F(ConfigParserTest, duplicateKey) {
+TEST_F(ConfigParserTest, getDuplicateKey) {
 	ppl7::ConfigParser conf;
 	ASSERT_NO_THROW({
 			conf.load("testdata/example.conf");
@@ -317,7 +319,7 @@ TEST_F(ConfigParserTest, duplicateKey) {
 
 }
 
-TEST_F(ConfigParserTest, singleKeySecondSection) {
+TEST_F(ConfigParserTest, getSingleKeySecondSection) {
 	ppl7::ConfigParser conf;
 	ASSERT_NO_THROW({
 			conf.load("testdata/example.conf");
@@ -420,10 +422,38 @@ TEST_F(ConfigParserTest, iterateThruSection) {
 	ASSERT_EQ(ppl7::String("key4"),key);
 	ASSERT_EQ(ppl7::String("no"),value);
 
+	ASSERT_EQ(true,conf.getNext(key,value));
+	ASSERT_EQ(ppl7::String("key7"),key);
+	ASSERT_EQ(ppl7::String("123"),value);
+
 	ASSERT_EQ(false,conf.getNext(key,value));
-
-
 }
 
+TEST_F(ConfigParserTest, getFromSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_EQ(ppl7::String("another value1"),conf.getFromSection("section1","key1").toString());
+}
+
+TEST_F(ConfigParserTest, getBoolFromSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_EQ(true,conf.getBoolFromSection("foo=[bar]","key4"));
+}
+
+TEST_F(ConfigParserTest, getIntFromSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_EQ(123,conf.getIntFromSection("section1","key7"));
+}
 
 }
