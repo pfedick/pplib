@@ -57,7 +57,7 @@ class DirTest : public ::testing::Test {
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
-		expectedNum=16;
+		expectedNum=7;
 		if (ppl7::File::exists("testdata/.svn")) expectedNum++;
 		if (ppl7::File::exists("testdata/.")) expectedNum++;
 		if (ppl7::File::exists("testdata/..")) expectedNum++;
@@ -92,7 +92,7 @@ TEST_F(DirTest, open) {
 }
 
 TEST_F(DirTest, count) {
-	ppl7::Dir d1("testdata");
+	ppl7::Dir d1("testdata/dirwalk");
 	ASSERT_EQ(expectedNum,d1.count());
 }
 
