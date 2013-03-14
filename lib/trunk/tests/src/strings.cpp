@@ -849,6 +849,14 @@ TEST_F(StringTest, trim) {
 	ASSERT_EQ(ppl7::String("abc"),s1);
 }
 
+TEST_F(StringTest, trimmed) {
+	ppl7::String s1("\n\n    abc  \n");
+	ppl7::String s2=s1.trimmed();
+	ASSERT_EQ((size_t)3,s2.size());
+	ASSERT_EQ(ppl7::String("abc"),s2);
+}
+
+
 TEST_F(StringTest, trimLeftEmptyResult) {
 	ppl7::String s1("\n\n   \n   \n");
 	s1.trimLeft();
