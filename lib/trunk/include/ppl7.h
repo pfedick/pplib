@@ -1218,9 +1218,7 @@ class ConfigParser
 {
 	private:
 		String  separator;
-		size_t	separatorLength;
 		String  currentsection;
-		bool	isused;
 		void	*first, *last, *section;
 		AssocArray sections;
 		AssocArray::Iterator it;
@@ -1241,6 +1239,7 @@ class ConfigParser
 		void save(FileObject &file);
 		void unload();
 		void setSeparator(const String &string);
+		const String &getSeparator() const;
 		void selectSection(const String &section);
 		int  firstSection();
 		int  nextSection();
@@ -1250,7 +1249,9 @@ class ConfigParser
 		void createSection (const String &name);
 		void deleteSection (const String &name);
 		void add(const String &section, const String &key, const String &value);
+		void add(const String &section, const String &key, const char *value);
 		void add(const String &key, const String &value);
+		void add(const String &key, const char *value);
 		void add(const String &key, int value);
 		void add(const String &key, bool value);
 		void add(const String &section, const String &key, int value);

@@ -456,4 +456,289 @@ TEST_F(ConfigParserTest, getIntFromSection) {
 	ASSERT_EQ(123,conf.getIntFromSection("section1","key7"));
 }
 
+
+TEST_F(ConfigParserTest, deleteSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.deleteSection("section1");
+	});
+
+	// Auf die Section darf kein Zugriff mehr erfolgen
+	ASSERT_THROW({conf.getSectionName();},ppl7::NoSectionSelectedException);
+	ASSERT_THROW({conf.get("key1");},ppl7::NoSectionSelectedException);
+	ASSERT_THROW({conf.add("key9","value9");},ppl7::NoSectionSelectedException);
+}
+
+TEST_F(ConfigParserTest, unload) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.unload();
+	});
+
+	// Auf die Section darf kein Zugriff mehr erfolgen
+	ASSERT_THROW({conf.getSectionName();},ppl7::NoSectionSelectedException);
+	ASSERT_THROW({conf.get("key1");},ppl7::NoSectionSelectedException);
+	ASSERT_THROW({conf.add("key9","value9");},ppl7::NoSectionSelectedException);
+}
+
+TEST_F(ConfigParserTest, setAndGetSeparator) {
+	ppl7::ConfigParser conf;
+	ASSERT_EQ(ppl7::String("="),conf.getSeparator());
+	ASSERT_NO_THROW({
+		conf.setSeparator("");
+	});
+	ASSERT_EQ(ppl7::String("="),conf.getSeparator());
+	ASSERT_NO_THROW({
+		conf.setSeparator(":");
+	});
+	ASSERT_EQ(ppl7::String(":"),conf.getSeparator());
+}
+
+TEST_F(ConfigParserTest, addWithoutPreviousSectionSelection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+	});
+	ASSERT_THROW({conf.add("key9","value9");},ppl7::NoSectionSelectedException);
+}
+
+TEST_F(ConfigParserTest, addAndGetString) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.add("key9","value9");
+		//conf.print();
+		ASSERT_EQ(ppl7::String("value9"),conf.get("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, addAndGetStringOtherSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_NO_THROW({
+		conf.add("section1","key9","value9");
+		//conf.print();
+		conf.selectSection("section1");
+		ASSERT_EQ(ppl7::String("value9"),conf.get("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, addAndGetInteger) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.add("key9",42);
+		//conf.print();
+		ASSERT_EQ(ppl7::String("42"),conf.get("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, addAndGetIntegerOtherSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_NO_THROW({
+		conf.add("section1","key9",42);
+		//conf.print();
+		conf.selectSection("section1");
+		ASSERT_EQ(42,conf.getInt("key9"));
+	});
+}
+TEST_F(ConfigParserTest, addAndGetBool) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.add("key9",true);
+		//conf.print();
+		ASSERT_EQ(true,conf.getBool("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, addAndGetBoolOtherSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_NO_THROW({
+		conf.add("section1","key9","value9");
+		//conf.print();
+		conf.selectSection("section1");
+		ASSERT_EQ(ppl7::String("value9"),conf.get("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, addToUnknownSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.add("section2","key9","value9");
+		conf.selectSection("section2");
+		ASSERT_EQ(ppl7::String("value9"),conf.get("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, deleteExistingKey) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.deleteKey("key1");
+		//conf.print();
+		ASSERT_EQ(ppl7::String(""),conf.get("key1"));
+	});
+}
+
+TEST_F(ConfigParserTest, deleteExistingKeyInExistingSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_NO_THROW({
+		conf.deleteKey("section1","key1");
+		ASSERT_EQ(ppl7::String(""),conf.getFromSection("section1","key1"));
+		ASSERT_EQ(ppl7::String("value1"),conf.get("key1"));
+	});
+}
+
+TEST_F(ConfigParserTest, deleteNonExistingKey) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("section1");
+	});
+	ASSERT_NO_THROW({
+		conf.deleteKey("key9");
+	});
+	//conf.print();
+	ASSERT_EQ(ppl7::String(""),conf.get("key9"));
+
+}
+
+TEST_F(ConfigParserTest, deleteNonExistingKeyInExistingSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_NO_THROW({
+		conf.deleteKey("section1","key9");
+	});
+}
+
+TEST_F(ConfigParserTest, deleteNonExistingKeyInNonExistingSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_NO_THROW({
+		conf.deleteKey("section7","key9");
+	});
+}
+
+TEST_F(ConfigParserTest, createSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+	});
+	ASSERT_NO_THROW({
+		conf.createSection("section2");
+		conf.add("key9","value9");
+		ASSERT_EQ(ppl7::String("section2"),conf.getSectionName());
+		ASSERT_EQ(ppl7::String("value9"),conf.get("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, createOnExistingSection) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+	});
+	ASSERT_NO_THROW({
+		conf.createSection("section1");
+		conf.add("key9","value9");
+		ASSERT_EQ(ppl7::String("section1"),conf.getSectionName());
+		ASSERT_EQ(ppl7::String("value9"),conf.get("key9"));
+	});
+}
+
+TEST_F(ConfigParserTest, save) {
+	ppl7::String TmpFile=ppl7::Dir::tempPath()+"/ppl7_test_example.conf.saved";
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+	});
+	ppl7::String s;
+	ppl7::String expected="[global]\n"
+"key1=value1\n"
+"key2=value2\n"
+"key3=value3\n"
+"key4=First line\n"
+"second line\n"
+"third line\n"
+"key7=321\n"
+"\n"
+"[section1]\n"
+"answer to all questions=42\n"
+"key1=another value1\n"
+"key2=another value2\n"
+"key3=yes\n"
+"key4=no\n"
+"key7=123\n"
+"\n"
+"[foo=[bar]]\n"
+"key 1=value 1\n"
+"key 2=value 2\n"
+"key 3=value 3\n"
+"key4=yes\n"
+"\n"
+"[empty section]\n"
+"\n"
+"[last section]\n"
+"final=true\n";
+
+	EXPECT_NO_THROW({
+		conf.save(TmpFile);
+		//conf.print();
+		ppl7::File::load(s,TmpFile);
+	});
+	EXPECT_EQ(expected,s);
+
+	// Temp-File loeschen
+	try {
+		ppl7::File::unlink(TmpFile);
+	} catch (...) {
+		// Do nothing
+	}
+}
+
 }
