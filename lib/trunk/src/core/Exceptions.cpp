@@ -141,6 +141,10 @@ void Exception::print() const
 	PrintDebug ("\n");
 }
 
-
+std::ostream& operator<<(std::ostream& s, const Exception &e)
+{
+	String str=e.toString();
+	return s.write((const char*)str,str.size());
+}
 
 }
