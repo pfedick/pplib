@@ -66,9 +66,9 @@ typedef struct tagSections {
 
 /*!\class ConfigParser
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
- * Mit dieser Klasse können Konfigurationsdateien mit mehreren Sektionen geladen und
+ * Mit dieser Klasse können Konfigurationsdateien mit mehreren Sektionen gelesen und
  * geschrieben werden.
  *
  * \example
@@ -81,8 +81,8 @@ path=/var/tmp
 
 [user]
 # In dieser Sektion werden Username und Passwort gespeichert
-root=fhrquofhqufhqo
-patrick=kngbhwloh
+root=42ee4d3cde1583d93b48923067696142
+patrick=690669aaf38453f0c5676a4f16fe9d20
 
 [allowedhosts]
 # In dieser Sektion befinden sich IP-Adressen oder Hostnamen von den Rechnern,
@@ -92,35 +92,52 @@ patrick=kngbhwloh
 192.168.0.3
 192.168.0.4
 \endcode
+
+Die Klasse kann folgendermassen verwendet werden:
+\code
+#include <ppl7.h>
+int main(int argc, char **argv) {
+	ppl7::ConfigParser conf;
+	ppl7::String ip, path;
+	int port;
+
+	try {
+		conf.load("my.conf");
+		conf.selectSection("server");
+		ip=conf.get("ip");
+		port=conf.getInt("port",8080);	// alternativ: port=conf.get("port","8080").toInt();
+		path=conf.get("path");
+	} catch (const ppl7::Exception &e) {
+		cout << "Ein Fehler ist aufgetreten: " << e << "\n";
+	}
+	return 0;
+}
+\endcode
  */
 
 ConfigParser::ConfigParser()
 {
-	init();
+	setSeparator("=");
+	first=last=section=NULL;
 }
 
 ConfigParser::ConfigParser(const String &filename)
 {
-	init();
+	setSeparator("=");
+	first=last=section=NULL;
 	load(filename);
 }
 
 ConfigParser::ConfigParser(FileObject &file)
 {
-	init();
+	setSeparator("=");
+	first=last=section=NULL;
 	load(file);
 }
 
 ConfigParser::~ConfigParser()
 {
 	unload();
-}
-
-
-void ConfigParser::init()
-{
-	setSeparator("=");
-	first=last=section=NULL;
 }
 
 void ConfigParser::unload()
@@ -401,47 +418,52 @@ int ConfigParser::getInt(const String &key, int defaultvalue)
 
 
 const String& ConfigParser::getSection(const String &name) const
-/*!\brief Inhalt einer Sektion als char* auslesen
+/*!\brief Inhalt einer Sektion als String
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
- * Mit dieser Funktion wird der komplette Inhalt einer Sektion als char*
- * zurückgegeben
+ * Mit dieser Funktion wird der komplette Inhalt einer Sektion als String
+ * zurückgegeben, wie sie beim Laden der Konfiguration vorgefunden wurde, einschließlich
+ * Kommentare. Zwischenzeitlich erfolgte Veränderungen, z.B. mit ConfigParser::add, sind
+ * nicht enthalten.
+ * \par
+ * Die Funktion eignet sich gut, um Sektionen der Konfigdatei zu lesen, die keine
+ * Key-Value-Paare enthält.
  *
  * \param section Der Name der Sektion ohne Eckige Klammern
- * \returns Im Erfolgsfall liefert die Funktion einen char-Pointer auf den Inhalt
- * der Sektion zurück. Im Fehlerfall wird NULL zurückgegeben und der Fehlercode
- * kann wie üblich mit den \link Errors Fehlerfunktionen \endlink abgefragt werden.
+ * \returns Im Erfolgsfall liefert die Funktion einen String mit dem Inhalt
+ * der Sektion zurück. Im Fehlerfall wird eine Exception geworfen.
+ *
  */
 {
 	//sections.List("configSections");
 	return sections.getString(name);
 }
 
-void ConfigParser::copySection(AssocArray &target, const String &section) const
 /*!\brief Inhalt einer Sektion in einem Array speichern
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
  * Mit dieser Funktion wird der Inhalt einer Sektion ein ein Assoziatives Array kopiert.
  *
  * \param target Assoziatives Array, in dem die Sektion gespeichert werden soll
  * \param section Der Name der Sektion ohne Eckige Klammern
  */
+void ConfigParser::copySection(AssocArray &target, const String &section) const
 {
 	SECTION *s=(SECTION *)findSection(section);
 	if (!s) throw UnknownSectionException(section);
 	target.add(s->values);
 }
 
-void ConfigParser::print() const
 /*!\brief Konfiguration auf STDOUT ausgeben
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
  * Mit dieser Funktion wird die geladene Konfiguration auf STDOUT ausgegeben.
  *
  */
+void ConfigParser::print() const
 {
 	SECTION *s=(SECTION *)first;
 	while (s) {
@@ -455,7 +477,7 @@ void ConfigParser::print() const
 void ConfigParser::load(const String &filename)
 /*!\brief Konfiguration aus einer Datei laden
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
  * Mit dieser Funktion wird eine Konfiguration aus einer Datei geladen.
  *
@@ -467,10 +489,9 @@ void ConfigParser::load(const String &filename)
 	load(ff);
 }
 
-void ConfigParser::loadFromMemory(const void *buffer, size_t bytes)
 /*!\brief Konfiguration aus dem Speicher laden
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
  * Mit dieser Funktion wird eine bereits im Speicher befindliche Konfiguration in das
  * ConfigParser-Objekt geladen.
@@ -478,8 +499,8 @@ void ConfigParser::loadFromMemory(const void *buffer, size_t bytes)
  * \param buffer Ein Pointer auf den Beginn des Speicherbereichs
  * \param bytes Die Größe des Speicherbereichs
  *
- * \since Diese Funktion wurde mit Version 6.0.19 eingeführt
  */
+void ConfigParser::loadFromMemory(const void *buffer, size_t bytes)
 {
 	if (!buffer) throw IllegalArgumentException("buffer");
 	if (!bytes) throw IllegalArgumentException("bytes");
@@ -488,17 +509,32 @@ void ConfigParser::loadFromMemory(const void *buffer, size_t bytes)
 	ff.load();
 }
 
+/*!\brief Konfiguration aus dem Speicher laden
+ *
+ * \header \#include <ppl7.h>
+ * \desc
+ * Mit dieser Funktion wird eine bereits im Speicher befindliche Konfiguration in das
+ * ConfigParser-Objekt geladen.
+ *
+ * \param ptr Referenz auf ein ByteArray oder ByteArrayPtr Objekt
+ */
+void ConfigParser::loadFromMemory(const ByteArrayPtr &ptr)
+{
+	MemFile ff;
+	ff.open(ptr);
+	ff.load();
+}
+
 void ConfigParser::loadFromString(const String &string)
 /*!\brief Konfiguration aus einem String laden
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
  * Mit dieser Funktion wird eine in einem String enthaltene Konfiguration in das
  * ConfigParser-Objekt geladen.
  *
- * \param string Ein Pointer auf die String-Klasse
+ * \param string Ein String, der die zu parsende Konfiguration enthält
  *
- * \since Diese Funktion wurde mit Version 6.0.19 eingeführt
  */
 {
 
@@ -507,22 +543,23 @@ void ConfigParser::loadFromString(const String &string)
 	ff.load();
 }
 
-void ConfigParser::load(FileObject &file)
-/*!\brief Konfiguration aus einem CFileObject-Objekt laden
+/*!\brief Konfiguration aus einem FileObject-Objekt laden
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7.h>
  * \desc
- * Mit dieser Funktion wird eine Konfiguration aus einem CFileObject-Objekt geladen.
+ * Mit dieser Funktion wird eine Konfiguration aus einem FileObject-Objekt geladen.
  * Die Funktion wird intern von den anderen Load-Funktionen verwendet.
  *
- * \param file Ein Pointer auf eine CFileObject-Klasse
- * \returns Bei Erfolg gibt die Funktion true (1) zurück, im Fehlerfall false (0). Der genaue
- * Fehlercode kann wie üblich mit den \link Errors Fehlerfunktionen \endlink abgefragt werden.
+ * \param file Referenz auf eine FileObject-Klasse
+ * \exception File::FileNotOpenException Wird geworfen, wenn das FileObject /p file keine
+ * geöffnete Datei enthält
+ * \exception Es können alle Exceptions auftreten, File::gets werfen kann
  *
  * \see loadFromString(const String &string)
  * \see load(const String &filename);
  * \see loadFromMemory(const void *buffer, size_t bytes)
  */
+void ConfigParser::load(FileObject &file)
 {
 	unload();
 	String key,value;
@@ -532,6 +569,8 @@ void ConfigParser::load(FileObject &file)
 	size_t l;
 	size_t trenn;
 	size_t separatorLength=separator.length();
+
+	if (!file.isOpen()) throw File::FileNotOpenException();
 	//printf ("File open: %s, size: %tu\n",(const char*)file.filename(),file.size());
 
 	try {
@@ -575,6 +614,21 @@ void ConfigParser::load(FileObject &file)
 	currentsection.clear();
 }
 
+/*!\brief Konfiguration in eine Datei speichern
+ *
+ * \header \#include <ppl7.h>
+ * \desc
+ * Der Inhalt des ConfigParser wird in die Datei \p filename gespeichert.
+ *
+ * \param filename Der Dateiname, unter dem die Konfiguration gespeichert werden soll
+ * \exception Es können alle Exceptions auftreten, die File::open, File::puts und
+ * File::putsf werfen kann.
+ * \note
+ * Eine eventuell schon vorhandene Datei wird überschrieben. Der ConfigParser speichert nur
+ * die Sektionen mit den jeweiligen Key-Value-Paaren in alphabetischer Reihenfolge, ohne
+ * Kommentare.
+ *
+ */
 void ConfigParser::save(const String &filename)
 {
 	File ff;
@@ -582,16 +636,34 @@ void ConfigParser::save(const String &filename)
 	save(ff);
 }
 
+/*!\brief Konfiguration in ein FileObject speichern
+ *
+ * \header \#include <ppl7.h>
+ * \desc
+ * Der Inhalt des ConfigParser wird in das FileObject \p file gespeichert.
+ *
+ * \param filename Der Dateiname, unter dem die Konfiguration gespeichert werden soll
+ * \exception Es können alle Exceptions auftreten, File::puts und
+ * File::putsf werfen kann.
+ * \exception File::FileNotOpenException Wird geworfen, wenn das FileObject /p file keine
+ * geöffnete Datei enthält
+ * \note
+ *
+ */
 void ConfigParser::save(FileObject &file)
 {
 	AssocArray::Iterator it;
 	String key, value;
+	if (!file.isOpen()) throw File::FileNotOpenException();
+
 	SECTION *s=(SECTION *)first;
 	while (s) {
 		if (s!=first) file.puts("\n");
 		file.putsf("[%s]\n",s->name.getPtr());
 		s->values.reset(it);
 		while (s->values.getNext(it,key,value)) {
+			// TODO: Werte mit Newlines müssen entsprechend behandelt und auf mehrere
+			// Key-Value-Zeilen aufgesplittet werden
 			file.putsf("%s%s%s\n",(const char*)key,(const char*)separator,(const char*)value);
 		}
 		s=s->next;

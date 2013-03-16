@@ -62,6 +62,9 @@ class Exception : std::exception
 		void copyText(const char *fmt, va_list args) throw();
 };
 
+std::ostream& operator<<(std::ostream& s, const Exception &e);
+
+
 #define STR_VALUE(arg)      #arg
 #define PPLNORMALEXCEPTION(name)	class name : public ppl7::Exception { public: \
 		virtual const char* what() const throw() { return (STR_VALUE(name)); } \

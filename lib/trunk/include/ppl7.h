@@ -1223,7 +1223,6 @@ class ConfigParser
 		AssocArray sections;
 		AssocArray::Iterator it;
 
-		void init();
 		void *findSection(const String &sectionname) const;
 
 	public:
@@ -1235,6 +1234,7 @@ class ConfigParser
 		void load (FileObject &file);
 		void loadFromString(const String &string);
 		void loadFromMemory(const void *buffer, size_t bytes);
+		void loadFromMemory(const ByteArrayPtr &ptr);
 		void save(const String &filename);
 		void save(FileObject &file);
 		void unload();
