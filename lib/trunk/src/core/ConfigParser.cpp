@@ -326,7 +326,7 @@ void ConfigParser::deleteKey(const String &section, const String &key)
 	if (!s) return;
 	try {
 		s->values.remove(key);
-	} catch (const KeyNotFoundException) {
+	} catch (const KeyNotFoundException &) {
 
 	}
 }
