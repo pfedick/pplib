@@ -1213,7 +1213,7 @@ class LogHandler
 };
 
 
-//! \brief Klasse zum Verarbeiten von Config-Files
+
 class ConfigParser
 {
 	private:

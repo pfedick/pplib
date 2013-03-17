@@ -65,6 +65,8 @@ typedef struct tagSections {
 } SECTION;
 
 /*!\class ConfigParser
+ * \ingroup PPLGroupFileIO
+ * \brief Lesen und Schreiben von Konfigurationsdateien
  *
  * \header \#include <ppl7.h>
  * \desc
@@ -92,7 +94,7 @@ patrick=690669aaf38453f0c5676a4f16fe9d20
 192.168.0.3
 192.168.0.4
 \endcode
-
+\par
 Die Klasse kann folgendermassen verwendet werden:
 \code
 #include <ppl7.h>
@@ -105,7 +107,8 @@ int main(int argc, char **argv) {
 		conf.load("my.conf");
 		conf.selectSection("server");
 		ip=conf.get("ip");
-		port=conf.getInt("port",8080);	// alternativ: port=conf.get("port","8080").toInt();
+		port=conf.getInt("port",8080);
+		// alternativ: port=conf.get("port","8080").toInt();
 		path=conf.get("path");
 	} catch (const ppl7::Exception &e) {
 		cout << "Ein Fehler ist aufgetreten: " << e << "\n";
@@ -440,11 +443,11 @@ const String& ConfigParser::getSection(const String &name) const
 	return sections.getString(name);
 }
 
-/*!\brief Inhalt einer Sektion in einem Array speichern
+/*!\brief Inhalt einer Sektion in einem AssocArray speichern
  *
  * \header \#include <ppl7.h>
  * \desc
- * Mit dieser Funktion wird der Inhalt einer Sektion ein ein Assoziatives Array kopiert.
+ * Mit dieser Funktion wird der Inhalt einer Sektion in ein AssocArray kopiert.
  *
  * \param target Assoziatives Array, in dem die Sektion gespeichert werden soll
  * \param section Der Name der Sektion ohne Eckige Klammern
@@ -460,7 +463,7 @@ void ConfigParser::copySection(AssocArray &target, const String &section) const
  *
  * \header \#include <ppl7.h>
  * \desc
- * Mit dieser Funktion wird die geladene Konfiguration auf STDOUT ausgegeben.
+ * Mit dieser Funktion wird die derzeit vorhandene Konfiguration auf STDOUT ausgegeben.
  *
  */
 void ConfigParser::print() const
@@ -553,7 +556,7 @@ void ConfigParser::loadFromString(const String &string)
  * \param file Referenz auf eine FileObject-Klasse
  * \exception File::FileNotOpenException Wird geworfen, wenn das FileObject /p file keine
  * geöffnete Datei enthält
- * \exception Es können alle Exceptions auftreten, File::gets werfen kann
+ * \exception Diverese Es können alle Exceptions auftreten, File::gets werfen kann
  *
  * \see loadFromString(const String &string)
  * \see load(const String &filename);
@@ -621,7 +624,7 @@ void ConfigParser::load(FileObject &file)
  * Der Inhalt des ConfigParser wird in die Datei \p filename gespeichert.
  *
  * \param filename Der Dateiname, unter dem die Konfiguration gespeichert werden soll
- * \exception Es können alle Exceptions auftreten, die File::open, File::puts und
+ * \exception Diverese Es können alle Exceptions auftreten, die File::open, File::puts und
  * File::putsf werfen kann.
  * \note
  * Eine eventuell schon vorhandene Datei wird überschrieben. Der ConfigParser speichert nur
@@ -643,11 +646,10 @@ void ConfigParser::save(const String &filename)
  * Der Inhalt des ConfigParser wird in das FileObject \p file gespeichert.
  *
  * \param filename Der Dateiname, unter dem die Konfiguration gespeichert werden soll
- * \exception Es können alle Exceptions auftreten, File::puts und
+ * \exception Diverese Es können alle Exceptions auftreten, File::puts und
  * File::putsf werfen kann.
  * \exception File::FileNotOpenException Wird geworfen, wenn das FileObject /p file keine
  * geöffnete Datei enthält
- * \note
  *
  */
 void ConfigParser::save(FileObject &file)
