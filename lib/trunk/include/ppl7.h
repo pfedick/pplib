@@ -1218,7 +1218,6 @@ class ConfigParser
 {
 	private:
 		String  separator;
-		String  currentsection;
 		void	*first, *last, *section;
 		AssocArray sections;
 		AssocArray::Iterator it;

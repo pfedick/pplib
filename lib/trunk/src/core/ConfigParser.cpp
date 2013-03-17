@@ -153,7 +153,6 @@ void ConfigParser::unload()
 		first=s;
 	}
 	section=first=last=NULL;
-	currentsection.clear();
 }
 
 void ConfigParser::setSeparator(const String &string)
@@ -171,7 +170,6 @@ void ConfigParser::selectSection(const String &sectionname)
 {
 	section=findSection(sectionname);
 	if (!section) throw UnknownSectionException(sectionname);
-	currentsection=((SECTION *)section)->name;
 }
 
 void *ConfigParser::findSection(const String &sectionname) const
@@ -187,11 +185,7 @@ void *ConfigParser::findSection(const String &sectionname) const
 int ConfigParser::firstSection()
 {
 	section=first;
-	if (section) {
-		currentsection=((SECTION *)section)->name;
-		return 1;
-	}
-	currentsection.clear();
+	if (section) return 1;
 	return 0;
 }
 
@@ -200,11 +194,7 @@ int ConfigParser::nextSection()
 	SECTION *s=(SECTION *)section;
 	if (!s) return 0;
 	section=s->next;
-	if (!section) {
-		currentsection.clear();
-		return 0;
-	}
-	currentsection=((SECTION *)section)->name;
+	if (!section) return 0;
 	return 1;
 }
 
@@ -221,7 +211,6 @@ void ConfigParser::createSection(const String &sectionname)
 	s=(SECTION*)findSection(sectionname);
 	if (s) {			// Section existiert bereits
 		section=s;
-		currentsection=sectionname;
 		return;
 	}
 
@@ -236,7 +225,6 @@ void ConfigParser::createSection(const String &sectionname)
 	last=s;
 	if (!first) first=s;
 	section=s;
-	currentsection=sectionname;
 }
 
 void ConfigParser::deleteSection(const String &sectionname)
@@ -249,7 +237,6 @@ void ConfigParser::deleteSection(const String &sectionname)
 	if (s==(SECTION *)first) first=s->next;
 	delete(s);
 	if(s==section) section=NULL;
-	if (currentsection==sectionname) currentsection.clear();
 }
 
 void ConfigParser::reset()
@@ -610,11 +597,9 @@ void ConfigParser::load(FileObject &file)
 		}
 	} catch (const ppl7::File::EndOfFileException &e) {
 		section=NULL;
-		currentsection.clear();
 		return;
 	}
 	section=NULL;
-	currentsection.clear();
 }
 
 /*!\brief Konfiguration in eine Datei speichern
