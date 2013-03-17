@@ -649,9 +649,16 @@ void ConfigParser::save(FileObject &file)
 		file.putsf("[%s]\n",s->name.getPtr());
 		s->values.reset(it);
 		while (s->values.getNext(it,key,value)) {
-			// TODO: Werte mit Newlines müssen entsprechend behandelt und auf mehrere
-			// Key-Value-Zeilen aufgesplittet werden
-			file.putsf("%s%s%s\n",(const char*)key,(const char*)separator,(const char*)value);
+			if (value.instr("\n")>=0) {	// Value muss auf mehrere Zeilen aufgesplittet werden
+				Array a;
+				a.explode(value,"\n");
+				for (size_t i=0;i<a.size();i++) {
+					file.putsf("%s%s%s\n",(const char*)key,(const char*)separator,(const char*)a[i]);
+				}
+
+			} else {
+				file.putsf("%s%s%s\n",(const char*)key,(const char*)separator,(const char*)value);
+			}
 		}
 		s=s->next;
 	}
