@@ -131,9 +131,9 @@ static void SeedPRNG()
 
 	// allocate buffer
 	#ifdef HAVE_GETUID
-		buf=(char*) calloc(sizeof(t)+sizeof(uid)*2+sizeof(pid)*2+32,1);
+		buf=(char*) calloc(sizeof(t)+sizeof(uid)*2+sizeof(pid)*2+64,1);
 	#else
-		buf=(char*) calloc(sizeof(t)+sizeof(pid)*2+32,1);
+		buf=(char*) calloc(sizeof(t)+sizeof(pid)*2+64,1);
 	#endif
 
 	time(&t);
@@ -178,10 +178,13 @@ static void SeedPRNG()
 static void locking_function(int mode, int n, const char *file, int line)
 {
 	if (!mutex_buf) return;
-	if (mode & CRYPTO_LOCK)
+	if ((mode & CRYPTO_LOCK)) {
+		//printf ("SSL Mutex %i: lock\n",n);
 		mutex_buf[n].mutex->Lock();
-	else
+	} else {
+		//printf ("SSL Mutex %i: unlock\n",n);
 		mutex_buf[n].mutex->Unlock();
+	}
 }
 
 static unsigned long id_function(void)
@@ -262,7 +265,8 @@ int SSL_Init()
 	Cppl6Core *core=PPLInit();
 	SeedPRNG();
 	int max_locks=CRYPTO_num_locks();
-	mutex_buf=(MUTEX_STRUCT*)malloc(max_locks * sizeof(MUTEX_STRUCT));
+	//printf ("SSL will %i locks\n",max_locks);
+	mutex_buf=(MUTEX_STRUCT*)malloc((max_locks+1) * sizeof(MUTEX_STRUCT));
 	if (!mutex_buf) {
 		SetError(2);
 		SSLMutex.Unlock();
@@ -270,13 +274,14 @@ int SSL_Init()
 	}
 	if (!SSL_library_init()) {
 		free(mutex_buf);
+		mutex_buf=NULL;
 		SetError(316);
 		SSLMutex.Unlock();
 		return 0;
 	}
 	SSL_load_error_strings();
 	OpenSSL_add_all_algorithms();
-	for (int i=0;i<max_locks;i++) {
+	for (int i=0;i<=max_locks;i++) {
 		mutex_buf[i].mutex=new ppl6::CMutex;
 	}
 	CRYPTO_set_id_callback(id_function);
@@ -323,7 +328,7 @@ int SSL_Exit()
 		CRYPTO_set_locking_callback(NULL);
 		if (mutex_buf) {
 			int max_locks=CRYPTO_num_locks();
-			for (int i=0;i<max_locks;i++) {
+			for (int i=0;i<=max_locks;i++) {
 				delete mutex_buf[i].mutex;
 			}
 			free(mutex_buf);
@@ -499,7 +504,16 @@ int CTCPSocket::SSL_Stop()
 			return 0;
 		}
 		if (ssl) {
-			SSL_shutdown((SSL*)ssl);
+			int ret;
+			/*
+			while ( (ret=SSL_shutdown((SSL*)ssl)) == 0 ) {
+				printf ("SSL_shutdown incomplete, trying again...\n");
+				PPLSOCKET *s=(PPLSOCKET*)socket;
+				if (s) {
+					if (s->sd) shutdown(s->sd,1);
+				}
+			}
+			*/
 			SSL_free((SSL*)ssl);
 			ssl=NULL;
 		}
