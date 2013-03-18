@@ -131,9 +131,9 @@ static void SeedPRNG()
 
 	// allocate buffer
 	#ifdef HAVE_GETUID
-		buf=(char*) malloc(sizeof(t)+sizeof(uid)*2+sizeof(pid)*2+32);
+		buf=(char*) calloc(sizeof(t)+sizeof(uid)*2+sizeof(pid)*2+32,1);
 	#else
-		buf=(char*) malloc(sizeof(t)+sizeof(pid)*2+32);
+		buf=(char*) calloc(sizeof(t)+sizeof(pid)*2+32,1);
 	#endif
 
 	time(&t);
