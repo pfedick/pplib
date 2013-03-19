@@ -254,8 +254,8 @@ int CHeap::Free(void *mem)
 {
 	mutex.Lock();
 	if (!IsInit) {
-		SetError(255);
 		mutex.Unlock();
+		SetError(255);
 		return 0;
 	}
 	HEAPBLOCK *bl=(HEAPBLOCK*)blocks;

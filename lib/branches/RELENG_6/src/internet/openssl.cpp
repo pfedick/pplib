@@ -505,7 +505,6 @@ int CTCPSocket::SSL_Stop()
 		}
 		if (ssl) {
 			int ret;
-			/*
 			while ( (ret=SSL_shutdown((SSL*)ssl)) == 0 ) {
 				printf ("SSL_shutdown incomplete, trying again...\n");
 				PPLSOCKET *s=(PPLSOCKET*)socket;
@@ -513,7 +512,6 @@ int CTCPSocket::SSL_Stop()
 					if (s->sd) shutdown(s->sd,1);
 				}
 			}
-			*/
 			SSL_free((SSL*)ssl);
 			ssl=NULL;
 		}
@@ -991,7 +989,7 @@ CSSL::CSSL()
 	first_ref=last_ref=NULL;
 	ctx=NULL;
 	references=0;
-	Heap.Init(sizeof(SSLSOCKETS),20,20);
+	//Heap.Init(sizeof(SSLSOCKETS),20,20);
 }
 
 CSSL::~CSSL()
@@ -1002,8 +1000,14 @@ CSSL::~CSSL()
 void CSSL::Clear()
 {
 	if (Shutdown()) {
-		Heap.Clear();
+		SSLSOCKETS *it;
+		while (first_ref) {
+			it=(SSLSOCKETS*)first_ref;
+			first_ref=it->next;
+			free(it);
+		}
 	}
+	first_ref=last_ref=NULL;
 }
 
 int CSSL::Init(int method)
@@ -1128,7 +1132,7 @@ void * CSSL::RegisterSocket(CTCPSocket *socket)
 		SetError(321);
 		return NULL;
 	}
-	SSLSOCKETS *s=(SSLSOCKETS*)Heap.Malloc();
+	SSLSOCKETS *s=(SSLSOCKETS*)malloc(sizeof(SSLSOCKETS));
 	if (!s) {
 		Mutex.Unlock();
 		SetError(2);
@@ -1139,9 +1143,9 @@ void * CSSL::RegisterSocket(CTCPSocket *socket)
 	s->next=NULL;
 	if (last_ref) {
 		((SSLSOCKETS*)last_ref)->next=s;
-	} else {
-		last_ref=first_ref=s;
 	}
+	if (!first_ref) first_ref=s;
+	last_ref=s;
 	references++;
 	Mutex.Unlock();
 	return s;
@@ -1168,7 +1172,7 @@ int CSSL::ReleaseSocket(CTCPSocket *socket, void *data)
 	if (s->next) s->next->previous=s->previous;
 	if (first_ref==s) first_ref=s->next;
 	if (last_ref==s) last_ref=s->previous;
-	Heap.Free(s);
+	free(s);
 	references--;
 	Mutex.Unlock();
 	return 1;

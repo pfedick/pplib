@@ -4,6 +4,8 @@ PPL6 - HISTORY
 Version 6.4.14
   - Bugfix beim Einlesen von ID3-Tag-Covern mit UTF-16-Encoding
   - Bugfix: Potentieller Memory-Leak in CTCPSocket::WaitForMessage gefixt
+  - Bugfix: Fehler im Aufbau der verketteten Liste der Klasse CSSL behoben
+  - Change: CSSL verwendet malloc und free statt CHeap 
   
 Version 6.4.13  vom 27.07.2012	(CVS-Tag: REL_6_4_13)
   - Kleinere Kompatibilitätsprobleme unter Windows behoben

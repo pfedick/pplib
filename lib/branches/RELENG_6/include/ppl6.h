@@ -3088,7 +3088,6 @@ class CSSL
 	friend class CTCPSocket;
 	private:
 		CMutex	Mutex;
-		CHeap	Heap;
 		void		*ctx;
 		void		*first_ref, *last_ref;
 		int			references;
