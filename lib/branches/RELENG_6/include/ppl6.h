@@ -2194,6 +2194,7 @@ class CTree
 #define poke64 Poke64
 
 	void PrintDebug(const char *format, ...);
+	void PrintDebugTime(const char *format, ...);
 	void SetGlobalOutput(int type);
 
 	pplchar * trim (pplchar * text);

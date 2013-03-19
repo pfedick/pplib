@@ -147,6 +147,42 @@ void PrintDebug(const char *format, ...)
 	free(buff);
 }
 
+void PrintDebugTime(const char *format, ...)
+/*!\brief Interne Funktion zur Ausgabe von Text
+ *
+ * Diese Funktion dient als Ersatz für "printf" und wird intern von einigen Funktionen/Klasse zur
+ * Ausgabe von Text verwendet. Über die Funktion SetGlobalOutput kann bestimmt werden, ob dieser
+ * Text per STDOUT auf die Konsole ausgegeben werden soll oder beispielsweise im Debugger von
+ * VisualStudio unter Windows.
+ *
+ * \param[in] format Formatstring für den Text
+ * \param[in] ...    Optionale Parameter, die im Formatstring eingesetzt werden sollen
+ */
+{
+	if (!format) return;
+	char *buff=NULL;
+	va_list args;
+	va_start(args, format);
+	vasprintf (&buff, format, args);
+	va_end(args);
+	if (!buff) return;
+	CDateTime now;
+	now.setCurrentTime();
+	CString Time=now.getISO8601withMsec();
+	Time.Concatf(" [%llu]: ",GetThreadID());
+
+
+	if (printdebug==1) {
+#ifdef WIN32
+		OutputDebugString((const char*)Time);
+		OutputDebugString(buff);
+#endif
+	} else {
+		printf("%s%s",(const char*)Time,buff);
+	}
+	free(buff);
+}
+
 void PPLExit()
 {
 	GlobalMutex.Lock();
