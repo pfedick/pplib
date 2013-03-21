@@ -414,17 +414,13 @@ int CTCPSocket::SSL_Start()
 		}
 		if (connect_timeout_sec>0 || connect_timeout_usec>0) {
 			SetBlocking(false);
-			struct timeval tval;
-			fd_set rset, wset;
-			int n;
-			int sockfd=((PPLSOCKET*)socket)->sd;
-			tval.tv_sec=connect_timeout_sec;
-			tval.tv_usec=connect_timeout_usec;
-			FD_ZERO(&rset);
-			FD_SET(sockfd, &rset);
-			wset=rset;
 			int res;
+			//PrintDebugTime("Versuche SSL_Connect\n");
+			//WaitForOutgoingData(connect_timeout_sec,connect_timeout_usec);
+
+			ERR_clear_error();
 			while ((res=SSL_connect((SSL*)ssl))<1) {
+				//PrintDebugTime("SSL_Connect res=%i: %s\n",res);
 				if (thread!=NULL && thread->ThreadShouldStop()) {
 					SSL_shutdown((SSL*)ssl);
 					SSL_free((SSL*)ssl);
@@ -432,44 +428,69 @@ int CTCPSocket::SSL_Start()
 					SetError(336);
 					return 0;
 				}
+				int e=SSL_get_error((SSL*)ssl,res);
+
 				if (res==0) {
-					SetError(322,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					SetError(322,"Handshake not successfull: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					ERR_print_errors_fp(stdout);
 					SSL_shutdown((SSL*)ssl);
 					SSL_free((SSL*)ssl);
 					ssl=NULL;
 					return 0;
 				}
-				int e=SSL_get_error((SSL*)ssl,res);
+
+
+
 				//printf ("res=%i, e=%i, state=%x: %s\n",res,e,SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
 				if (e==SSL_ERROR_WANT_READ) {
-					if ((n=select(sockfd+1,&rset,NULL,NULL,&tval))==0) {
-						SetError(174,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					//PrintDebugTime("SSL_ERROR_WANT_READ\n");
+					if (!WaitForIncomingData(connect_timeout_sec,connect_timeout_usec)) {
+						//PrintDebugTime("SSL_ERROR_WANT_READ Timeout\n");
+						if (GetErrorCode()!=174) ExtendError(322);
+						ERR_print_errors_fp(stdout);
 						SSL_shutdown((SSL*)ssl);
 						SSL_free((SSL*)ssl);
 						ssl=NULL;
 						return 0;
 					}
+					//PrintDebugTime("SSL_ERROR_WANT_READ fixed\n");
 				} else if (e==SSL_ERROR_WANT_WRITE) {
-					if ((n=select(sockfd+1,NULL,&wset,NULL,&tval))==0) {
-						SetError(174,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					//PrintDebugTime("SSL_ERROR_WANT_WRITE\n");
+					if (!WaitForOutgoingData(connect_timeout_sec,connect_timeout_usec)) {
+						//PrintDebugTime("SSL_ERROR_WANT_WRITE Timeout\n");
+						//SetError(174,"SSL_connect with timeout: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+						if (GetErrorCode()!=174) ExtendError(322);
+						ERR_print_errors_fp(stdout);
 						SSL_shutdown((SSL*)ssl);
 						SSL_free((SSL*)ssl);
 						ssl=NULL;
 						return 0;
 					}
+					//PrintDebugTime("SSL_ERROR_WANT_WRITE fixed\n");
 				} else {
-					SetError(174,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					/*
+					printf ("SSL-Errors:\n");
+					 ERR_print_errors_fp(stdout);
+					 printf ("SSL-Errors END\n\n");
+					PrintDebugTime("ERROR: Unbekannter Fehler: %i\n",e);
+					for (int i=0;i<5;i++) {
+						e=SSL_get_error((SSL*)ssl,res);
+						PrintDebugTime("ERROR %i: Unbekannter Fehler: %i\n",i,e);
+					}
+					*/
+					SetError(322,"SSL_connect failed: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
 					SSL_shutdown((SSL*)ssl);
 					SSL_free((SSL*)ssl);
 					ssl=NULL;
 					return 0;
 				}
 			}
+			//PrintDebugTime("SSL_Connect Success\n");
 			SetBlocking(true);
 		} else {
 			int res=SSL_connect((SSL*)ssl);
 			if (res<1) {
-				SetError(322,"SSL_connect: %s",ssl_geterror((SSL*)ssl,res));
+				SetError(322,"SSL_connect failed: %s",ssl_geterror((SSL*)ssl,res));
 				SSL_shutdown((SSL*)ssl);
 				SSL_free((SSL*)ssl);
 				ssl=NULL;
@@ -506,7 +527,7 @@ int CTCPSocket::SSL_Stop()
 		if (ssl) {
 			int ret;
 			while ( (ret=SSL_shutdown((SSL*)ssl)) == 0 ) {
-				printf ("SSL_shutdown incomplete, trying again...\n");
+				//printf ("SSL_shutdown incomplete, trying again...\n");
 				PPLSOCKET *s=(PPLSOCKET*)socket;
 				if (s) {
 					if (s->sd) shutdown(s->sd,1);
@@ -551,7 +572,7 @@ int CTCPSocket::SSL_Init(CSSL *ssl)
  *
  * \desc
  * Wurde mit dieser Socket-Klasse SSL-Verschlüsselung verwendet, muss nach beendigung der Verbindung diese Funktion
- * aufgerufen werde. Dies wird com Destruktor der Klasse automatisch durchgeführt, so dass ein manueller Aufruf
+ * aufgerufen werde. Dies wird vom Destruktor der Klasse automatisch durchgeführt, so dass ein manueller Aufruf
  * durch die Anwendung in der Regel nicht erforderlich ist.
  *
  * @return Die Funktion gibt zur Zeit immer 1 zurück.

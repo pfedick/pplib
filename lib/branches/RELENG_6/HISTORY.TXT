@@ -5,7 +5,9 @@ Version 6.4.14
   - Bugfix beim Einlesen von ID3-Tag-Covern mit UTF-16-Encoding
   - Bugfix: Potentieller Memory-Leak in CTCPSocket::WaitForMessage gefixt
   - Bugfix: Fehler im Aufbau der verketteten Liste der Klasse CSSL behoben
-  - Change: CSSL verwendet malloc und free statt CHeap 
+  - Change: CSSL verwendet malloc und free statt CHeap
+  - Bugfix: CTCPSocket: Beim Disconnect oder Shutdown wurde kein SSL_Stop
+    aufgerufen. Dadurch konnte der SSL-Stack durcheinander kommen.
   
 Version 6.4.13  vom 27.07.2012	(CVS-Tag: REL_6_4_13)
   - Kleinere Kompatibilitätsprobleme unter Windows behoben

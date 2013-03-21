@@ -817,6 +817,7 @@ int CTCPSocket::Disconnect()
 	if (islisten) {
 		StopListen();
 	}
+	SSL_Stop();
     //if (s->sd>0) shutdown(s->sd,2);
     connected=false;
     if (s->sd>0) {
@@ -862,6 +863,7 @@ int CTCPSocket::Shutdown()
 	if (islisten) {
 		StopListen();
 	}
+	SSL_Stop();
     //if (s->sd>0) shutdown(s->sd,2);
     connected=false;
     if (s->sd>0) {
@@ -1350,6 +1352,9 @@ int CTCPSocket::Read(CString &buffer, int bytes)
 		return 0;
 	}
 	int ret=Read(b,bytes);
+	if (!ret) {
+		bytes=GetBytesRead();
+	}
 	b[bytes]=0;
 	buffer.ImportBuffer(b,bytes+1);
 	return ret;
@@ -1382,6 +1387,9 @@ int CTCPSocket::Read(CString *buffer, int bytes)
 		return 0;
 	}
 	int ret=Read(b,bytes);
+	if (!ret) {
+		bytes=BytesRead;
+	}
 	b[bytes]=0;
 	buffer->ImportBuffer(b,bytes+1);
 	return ret;
@@ -1410,6 +1418,9 @@ int CTCPSocket::Read(CBinary &buffer, int bytes)
 		return 0;
 	}
 	int ret=Read(b,bytes);
+	if (!ret) {
+		bytes=GetBytesRead();
+	}
 	b[bytes]=0;
 	buffer.Set(b,bytes);
 	buffer.ManageMemory();
