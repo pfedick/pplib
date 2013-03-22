@@ -51,7 +51,8 @@ chomp($PWD);
 my $err=`mkdir -p tmp
 cd tmp
 rm -rf $CVSTREE
-svn co https://pplib.svn.sourceforge.net/svnroot/pplib/lib/$TAG lib 2>&1`;
+
+svn co http://svn.code.sf.net/p/pplib/code/lib/$TAG lib 2>&1`;
 
 if ($? != 0 ) {
 	print "ERROR: Version konnte nicht aus dem SVN geholt werden!\n";
