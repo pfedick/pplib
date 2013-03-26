@@ -630,6 +630,7 @@ class Drawable
 		void	elipse(int x, int y, int radx, int rady, const Color &c, bool fill=false);
 		void	elipse(int x, int y, int radx, int rady, const Color &c, bool fill, const Color &fillcolor, int startangle, int endangle);
 		void	circle(int x, int y, int rad, const Color &c, bool fill=false);
+		void	circle(const Point &p, int rad, const Color &c, bool fill=false);
 		//@}
 
 		/** @name Effekte

@@ -539,9 +539,14 @@ void Drawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fi
 	if (!fn) throw EmptyDrawableException();
 	int d;
 	int x1,y1,x2=0,y2=0;
-	for (float i=0.0f;i<1.0f;i++) {
-		x1 = x + (sinf(i) * (float)radx);
-		y1 = y + (cosf(i) * (float)rady);
+
+	float pi=3.1415926535f;
+	float rad=pi/180.0f;
+
+	for (float i=0.0f;i<360.0f;i++) {
+		x1 = x + (sinf(i*rad) * (float)radx);
+		y1 = y + (cosf(i*rad) * (float)rady);
+		//::printf ("x1=%i, y1=%i\n",x1,y1);
 		if (i > 0) {
 			d=abs(x2-x1)+abs(y2-y1);
 			if (d > 1)
@@ -593,6 +598,12 @@ void Drawable::circle (int x, int y, int rad, const Color &c, bool fill)
 {
 	if (!fn) throw EmptyDrawableException();
 	elipse(x,y,rad,rad,c,fill);
+}
+
+void Drawable::circle (const Point &p, int rad, const Color &c, bool fill)
+{
+	if (!fn) throw EmptyDrawableException();
+	elipse(p.x,p.y,rad,rad,c,fill);
 }
 
 /*

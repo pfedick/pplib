@@ -329,14 +329,14 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
 		p=&node;
 
 	} catch (ItemNotFoundException &) {
-		throw KeyNotFoundException();
+		throw KeyNotFoundException(firstkey);
 	}
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {			// Ja, koennen wir iterieren?
 		if (p->value->isAssocArray()) {
 			return ((AssocArray*)p->value)->findInternal(rest);
 		} else {
-			throw KeyNotFoundException();
+			throw KeyNotFoundException(firstkey);
 		}
 	}
 	return p;
