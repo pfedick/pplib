@@ -87,6 +87,13 @@
     #include <signal.h>
 #endif
 
+#ifdef HAVE_ARPA_NAMESER_H
+#include <arpa/nameser.h>
+#endif
+#ifdef HAVE_RESOLV_H
+#include <resolv.h>
+#endif
+
 
 #include <list>
 #include <set>
@@ -101,7 +108,7 @@ namespace ppl7 {
 IPAddress::IPAddress()
 {
 	ai_addr=NULL;
-	ai_addrlen=NULL;
+	ai_addrlen=0;
 	ai_family=0;
 	ai_socktype=0;
 	ai_protocol=0;
