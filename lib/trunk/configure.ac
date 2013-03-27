@@ -46,6 +46,7 @@ sinclude(autoconf/imagemagick.m4)
 sinclude(autoconf/libtiff.m4)
 sinclude(autoconf/libmicrohttpd.m4)
 sinclude(autoconf/libidn.m4)
+sinclude(autoconf/libbind.m4)
 
 
 
@@ -215,6 +216,8 @@ AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/poll.h])
 AC_CHECK_HEADERS([netinet/in.h])
+AC_CHECK_HEADERS([resolv.h])
+AC_CHECK_HEADERS([arpa/nameser.h])
 AC_CHECK_HEADERS([netdb.h])
 AC_CHECK_HEADERS([arpa/inet.h])
 AC_CHECK_HEADERS([strings.h])
@@ -267,7 +270,14 @@ AC_CHECK_FUNCS([poll select pselect])
 AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
 
-
+# Resolver
+AM_CHECK_LIBBIND()
+report_have_libbind="no"
+if test "$have_res_query" = "yes"
+then
+	AC_DEFINE(HAVE_LIBBIND,1,[ Define if you have libbind resolver functions ])
+	report_have_libbind="yes"
+fi
 
 
 LDFLAGS="$LDFLAGS -L/usr/local/lib"
@@ -604,6 +614,7 @@ AC_SUBST(report_have_libimlib)
 AC_SUBST(report_have_libtiff)
 AC_SUBST(report_have_libmicrohttpd)
 AC_SUBST(report_have_libidn)
+AC_SUBST(report_have_libbind)
 
 
 
@@ -668,11 +679,13 @@ AC_MSG_RESULT([
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
+**
 ** Internet:
+**   Bind resolver lib:    $report_have_libbind
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd		
 **   ldns library:         $report_have_ldns
-**   IDN library:		   $report_have_libidn
+**   IDN library:          $report_have_libidn
 **
 ** Databases:
 **   SQLite3:              $report_have_sqlite
