@@ -9886,13 +9886,12 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_query in -lresolv" >&5
-$as_echo_n "checking for res_query in -lresolv... " >&6; }
-if ${ac_cv_lib_resolv_res_query+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing res_query" >&5
+$as_echo_n "checking for library containing res_query... " >&6; }
+if ${ac_cv_search_res_query+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -9911,67 +9910,35 @@ return res_query ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_res_query=yes
-else
-  ac_cv_lib_resolv_res_query=no
+for ac_lib in '' resolv bind; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_res_query=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_res_query+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_query" >&5
-$as_echo "$ac_cv_lib_resolv_res_query" >&6; }
-if test "x$ac_cv_lib_resolv_res_query" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRESOLV 1
-_ACEOF
-
-  LIBS="-lresolv $LIBS"
+done
+if ${ac_cv_search_res_query+:} false; then :
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_query in -lbind" >&5
-$as_echo_n "checking for res_query in -lbind... " >&6; }
-if ${ac_cv_lib_bind_res_query+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbind  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char res_query ();
-int
-main ()
-{
-return res_query ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bind_res_query=yes
-else
-  ac_cv_lib_bind_res_query=no
+  ac_cv_search_res_query=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bind_res_query" >&5
-$as_echo "$ac_cv_lib_bind_res_query" >&6; }
-if test "x$ac_cv_lib_bind_res_query" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBBIND 1
-_ACEOF
-
-  LIBS="-lbind $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_res_query" >&5
+$as_echo "$ac_cv_search_res_query" >&6; }
+ac_res=$ac_cv_search_res_query
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_query in -lresolv (with resolv.h if present)" >&5
@@ -10007,8 +9974,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 fi
 
-fi
-
 
 if test "$have_res_query" = "yes"
 then
@@ -10018,13 +9983,12 @@ $as_echo "#define HAVE_RES_QUERY 1" >>confdefs.h
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search in -lresolv" >&5
-$as_echo_n "checking for res_search in -lresolv... " >&6; }
-if ${ac_cv_lib_resolv_res_search+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing res_search" >&5
+$as_echo_n "checking for library containing res_search... " >&6; }
+if ${ac_cv_search_res_search+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10043,67 +10007,35 @@ return res_search ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_res_search=yes
-else
-  ac_cv_lib_resolv_res_search=no
+for ac_lib in '' resolv bind; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_res_search=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_res_search+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_search" >&5
-$as_echo "$ac_cv_lib_resolv_res_search" >&6; }
-if test "x$ac_cv_lib_resolv_res_search" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRESOLV 1
-_ACEOF
-
-  LIBS="-lresolv $LIBS"
+done
+if ${ac_cv_search_res_search+:} false; then :
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search in -lbind" >&5
-$as_echo_n "checking for res_search in -lbind... " >&6; }
-if ${ac_cv_lib_bind_res_search+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbind  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char res_search ();
-int
-main ()
-{
-return res_search ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bind_res_search=yes
-else
-  ac_cv_lib_bind_res_search=no
+  ac_cv_search_res_search=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bind_res_search" >&5
-$as_echo "$ac_cv_lib_bind_res_search" >&6; }
-if test "x$ac_cv_lib_bind_res_search" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBBIND 1
-_ACEOF
-
-  LIBS="-lbind $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_res_search" >&5
+$as_echo "$ac_cv_search_res_search" >&6; }
+ac_res=$ac_cv_search_res_search
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search in -lresolv (with resolv.h if present)" >&5
@@ -10139,8 +10071,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 fi
 
-fi
-
 
 if test "$have_res_search" = "yes"
 then
@@ -10149,13 +10079,12 @@ $as_echo "#define HAVE_RES_SEARCH 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_querydomain in -lresolv" >&5
-$as_echo_n "checking for res_querydomain in -lresolv... " >&6; }
-if ${ac_cv_lib_resolv_res_querydomain+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing res_querydomain" >&5
+$as_echo_n "checking for library containing res_querydomain... " >&6; }
+if ${ac_cv_search_res_querydomain+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10174,67 +10103,35 @@ return res_querydomain ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_res_querydomain=yes
-else
-  ac_cv_lib_resolv_res_querydomain=no
+for ac_lib in '' resolv bind; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_res_querydomain=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_res_querydomain+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_querydomain" >&5
-$as_echo "$ac_cv_lib_resolv_res_querydomain" >&6; }
-if test "x$ac_cv_lib_resolv_res_querydomain" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRESOLV 1
-_ACEOF
-
-  LIBS="-lresolv $LIBS"
+done
+if ${ac_cv_search_res_querydomain+:} false; then :
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_querydomain in -lbind" >&5
-$as_echo_n "checking for res_querydomain in -lbind... " >&6; }
-if ${ac_cv_lib_bind_res_querydomain+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbind  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char res_querydomain ();
-int
-main ()
-{
-return res_querydomain ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bind_res_querydomain=yes
-else
-  ac_cv_lib_bind_res_querydomain=no
+  ac_cv_search_res_querydomain=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bind_res_querydomain" >&5
-$as_echo "$ac_cv_lib_bind_res_querydomain" >&6; }
-if test "x$ac_cv_lib_bind_res_querydomain" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBBIND 1
-_ACEOF
-
-  LIBS="-lbind $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_res_querydomain" >&5
+$as_echo "$ac_cv_search_res_querydomain" >&6; }
+ac_res=$ac_cv_search_res_querydomain
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_querydomain in -lresolv (with resolv.h if present)" >&5
@@ -10270,8 +10167,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 fi
 
-fi
-
 
 if test "$have_res_querydomain" = "yes"
 then
@@ -10280,13 +10175,12 @@ $as_echo "#define HAVE_RES_QUERYDOMAIN 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_mkquery in -lresolv" >&5
-$as_echo_n "checking for res_mkquery in -lresolv... " >&6; }
-if ${ac_cv_lib_resolv_res_mkquery+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing res_mkquery" >&5
+$as_echo_n "checking for library containing res_mkquery... " >&6; }
+if ${ac_cv_search_res_mkquery+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10305,67 +10199,35 @@ return res_mkquery ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_res_mkquery=yes
-else
-  ac_cv_lib_resolv_res_mkquery=no
+for ac_lib in '' resolv bind; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_res_mkquery=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_res_mkquery+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_mkquery" >&5
-$as_echo "$ac_cv_lib_resolv_res_mkquery" >&6; }
-if test "x$ac_cv_lib_resolv_res_mkquery" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRESOLV 1
-_ACEOF
-
-  LIBS="-lresolv $LIBS"
+done
+if ${ac_cv_search_res_mkquery+:} false; then :
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_mkquery in -lbind" >&5
-$as_echo_n "checking for res_mkquery in -lbind... " >&6; }
-if ${ac_cv_lib_bind_res_mkquery+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbind  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char res_mkquery ();
-int
-main ()
-{
-return res_mkquery ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bind_res_mkquery=yes
-else
-  ac_cv_lib_bind_res_mkquery=no
+  ac_cv_search_res_mkquery=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bind_res_mkquery" >&5
-$as_echo "$ac_cv_lib_bind_res_mkquery" >&6; }
-if test "x$ac_cv_lib_bind_res_mkquery" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBBIND 1
-_ACEOF
-
-  LIBS="-lbind $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_res_mkquery" >&5
+$as_echo "$ac_cv_search_res_mkquery" >&6; }
+ac_res=$ac_cv_search_res_mkquery
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_mkquery in -lresolv (with resolv.h if present)" >&5
@@ -10401,8 +10263,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 fi
 
-fi
-
 
 if test "$have_res_mkquery" = "yes"
 then
@@ -10411,13 +10271,12 @@ $as_echo "#define HAVE_RES_MKQUERY 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_send in -lresolv" >&5
-$as_echo_n "checking for res_send in -lresolv... " >&6; }
-if ${ac_cv_lib_resolv_res_send+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing res_send" >&5
+$as_echo_n "checking for library containing res_send... " >&6; }
+if ${ac_cv_search_res_send+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10436,67 +10295,35 @@ return res_send ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_res_send=yes
-else
-  ac_cv_lib_resolv_res_send=no
+for ac_lib in '' resolv bind; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_res_send=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_res_send+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_send" >&5
-$as_echo "$ac_cv_lib_resolv_res_send" >&6; }
-if test "x$ac_cv_lib_resolv_res_send" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRESOLV 1
-_ACEOF
-
-  LIBS="-lresolv $LIBS"
+done
+if ${ac_cv_search_res_send+:} false; then :
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_send in -lbind" >&5
-$as_echo_n "checking for res_send in -lbind... " >&6; }
-if ${ac_cv_lib_bind_res_send+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbind  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char res_send ();
-int
-main ()
-{
-return res_send ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bind_res_send=yes
-else
-  ac_cv_lib_bind_res_send=no
+  ac_cv_search_res_send=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bind_res_send" >&5
-$as_echo "$ac_cv_lib_bind_res_send" >&6; }
-if test "x$ac_cv_lib_bind_res_send" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBBIND 1
-_ACEOF
-
-  LIBS="-lbind $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_res_send" >&5
+$as_echo "$ac_cv_search_res_send" >&6; }
+ac_res=$ac_cv_search_res_send
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_send in -lresolv (with resolv.h if present)" >&5
@@ -10532,8 +10359,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 fi
 
-fi
-
 
 if test "$have_res_send" = "yes"
 then
@@ -10542,13 +10367,12 @@ $as_echo "#define HAVE_RES_SEND 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_comp in -lresolv" >&5
-$as_echo_n "checking for dn_comp in -lresolv... " >&6; }
-if ${ac_cv_lib_resolv_dn_comp+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dn_comp" >&5
+$as_echo_n "checking for library containing dn_comp... " >&6; }
+if ${ac_cv_search_dn_comp+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10567,67 +10391,35 @@ return dn_comp ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_dn_comp=yes
-else
-  ac_cv_lib_resolv_dn_comp=no
+for ac_lib in '' resolv bind; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_dn_comp=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_dn_comp+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_dn_comp" >&5
-$as_echo "$ac_cv_lib_resolv_dn_comp" >&6; }
-if test "x$ac_cv_lib_resolv_dn_comp" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRESOLV 1
-_ACEOF
-
-  LIBS="-lresolv $LIBS"
+done
+if ${ac_cv_search_dn_comp+:} false; then :
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_comp in -lbind" >&5
-$as_echo_n "checking for dn_comp in -lbind... " >&6; }
-if ${ac_cv_lib_bind_dn_comp+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbind  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dn_comp ();
-int
-main ()
-{
-return dn_comp ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bind_dn_comp=yes
-else
-  ac_cv_lib_bind_dn_comp=no
+  ac_cv_search_dn_comp=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bind_dn_comp" >&5
-$as_echo "$ac_cv_lib_bind_dn_comp" >&6; }
-if test "x$ac_cv_lib_bind_dn_comp" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBBIND 1
-_ACEOF
-
-  LIBS="-lbind $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_dn_comp" >&5
+$as_echo "$ac_cv_search_dn_comp" >&6; }
+ac_res=$ac_cv_search_dn_comp
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_comp in -lresolv (with resolv.h if present)" >&5
@@ -10663,8 +10455,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 fi
 
-fi
-
 
 if test "$have_dn_comp" = "yes"
 then
@@ -10673,13 +10463,12 @@ $as_echo "#define HAVE_DN_COMP 1" >>confdefs.h
 
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_expand in -lresolv" >&5
-$as_echo_n "checking for dn_expand in -lresolv... " >&6; }
-if ${ac_cv_lib_resolv_dn_expand+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dn_expand" >&5
+$as_echo_n "checking for library containing dn_expand... " >&6; }
+if ${ac_cv_search_dn_expand+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lresolv  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10698,67 +10487,35 @@ return dn_expand ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_resolv_dn_expand=yes
-else
-  ac_cv_lib_resolv_dn_expand=no
+for ac_lib in '' resolv bind; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_dn_expand=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_dn_expand+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_dn_expand" >&5
-$as_echo "$ac_cv_lib_resolv_dn_expand" >&6; }
-if test "x$ac_cv_lib_resolv_dn_expand" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBRESOLV 1
-_ACEOF
-
-  LIBS="-lresolv $LIBS"
+done
+if ${ac_cv_search_dn_expand+:} false; then :
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_expand in -lbind" >&5
-$as_echo_n "checking for dn_expand in -lbind... " >&6; }
-if ${ac_cv_lib_bind_dn_expand+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lbind  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dn_expand ();
-int
-main ()
-{
-return dn_expand ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_bind_dn_expand=yes
-else
-  ac_cv_lib_bind_dn_expand=no
+  ac_cv_search_dn_expand=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_bind_dn_expand" >&5
-$as_echo "$ac_cv_lib_bind_dn_expand" >&6; }
-if test "x$ac_cv_lib_bind_dn_expand" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBBIND 1
-_ACEOF
-
-  LIBS="-lbind $LIBS"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_dn_expand" >&5
+$as_echo "$ac_cv_search_dn_expand" >&6; }
+ac_res=$ac_cv_search_dn_expand
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_expand in -lresolv (with resolv.h if present)" >&5
@@ -10794,8 +10551,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 fi
 
-fi
-
 
 if test "$have_dn_expand" = "yes"
 then
@@ -10813,11 +10568,6 @@ $as_echo "#define HAVE_LIBBIND 1" >>confdefs.h
 
 	report_have_libbind="yes"
 fi
-
-
-#AC_CHECK_LIB ([resolv], [res_init],
-#	AC_CHECK_FUNCS([res_init res_query res_search res_querydomain res_mkquery res_send dn_comp dn_expand])
-#,)
 
 
 LDFLAGS="$LDFLAGS -L/usr/local/lib"

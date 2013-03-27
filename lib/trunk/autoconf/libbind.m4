@@ -7,7 +7,7 @@ AC_ARG_WITH([libbind],
 
 
 dnl res_query
-AC_CHECK_LIB(resolv, res_query,,AC_CHECK_LIB(bind, res_query,,
+AC_SEARCH_LIBS(res_query,[resolv bind],,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_query in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -22,7 +22,7 @@ AC_CHECK_LIB(resolv, res_query,,AC_CHECK_LIB(bind, res_query,,
 	[AC_MSG_RESULT(no)
 		LIBS="$saved_libs"])
 	]
-))
+)
 
 if test "$have_res_query" = "yes"
 then
@@ -31,7 +31,7 @@ fi
 
 
 dnl res_search
-AC_CHECK_LIB(resolv, res_search,,AC_CHECK_LIB(bind, res_search,,
+AC_SEARCH_LIBS(res_search,[resolv bind],,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_search in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -46,7 +46,7 @@ AC_CHECK_LIB(resolv, res_search,,AC_CHECK_LIB(bind, res_search,,
 	[AC_MSG_RESULT(no)
 		LIBS="$saved_libs"])
 	]
-))
+)
 
 if test "$have_res_search" = "yes"
 then
@@ -54,7 +54,7 @@ then
 fi
 
 dnl res_querydomain
-AC_CHECK_LIB(resolv, res_querydomain,,AC_CHECK_LIB(bind, res_querydomain,,
+AC_SEARCH_LIBS(res_querydomain,[resolv bind],,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_querydomain in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -69,7 +69,7 @@ AC_CHECK_LIB(resolv, res_querydomain,,AC_CHECK_LIB(bind, res_querydomain,,
 	[AC_MSG_RESULT(no)
 		LIBS="$saved_libs"])
 	]
-))
+)
 
 if test "$have_res_querydomain" = "yes"
 then
@@ -77,7 +77,7 @@ then
 fi
 
 dnl res_mkquery
-AC_CHECK_LIB(resolv, res_mkquery,,AC_CHECK_LIB(bind, res_mkquery,,
+AC_SEARCH_LIBS(res_mkquery,[resolv bind],,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_mkquery in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -92,7 +92,7 @@ AC_CHECK_LIB(resolv, res_mkquery,,AC_CHECK_LIB(bind, res_mkquery,,
 	[AC_MSG_RESULT(no)
 		LIBS="$saved_libs"])
 	]
-))
+)
 
 if test "$have_res_mkquery" = "yes"
 then
@@ -100,7 +100,7 @@ then
 fi
 
 dnl res_send
-AC_CHECK_LIB(resolv, res_send,,AC_CHECK_LIB(bind, res_send,,
+AC_SEARCH_LIBS(res_send,[resolv bind],,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_send in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -115,7 +115,7 @@ AC_CHECK_LIB(resolv, res_send,,AC_CHECK_LIB(bind, res_send,,
 	[AC_MSG_RESULT(no)
 		LIBS="$saved_libs"])
 	]
-))
+)
 
 if test "$have_res_send" = "yes"
 then
@@ -123,7 +123,7 @@ then
 fi
 
 dnl dn_comp
-AC_CHECK_LIB(resolv, dn_comp,,AC_CHECK_LIB(bind, dn_comp,,
+AC_SEARCH_LIBS(dn_comp,[resolv bind],,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for dn_comp in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -138,7 +138,7 @@ AC_CHECK_LIB(resolv, dn_comp,,AC_CHECK_LIB(bind, dn_comp,,
 	[AC_MSG_RESULT(no)
 		LIBS="$saved_libs"])
 	]
-))
+)
 
 if test "$have_dn_comp" = "yes"
 then
@@ -146,7 +146,7 @@ then
 fi
 
 dnl dn_expand
-AC_CHECK_LIB(resolv, dn_expand,,AC_CHECK_LIB(bind, dn_expand,,
+AC_SEARCH_LIBS(dn_expand,[resolv bind],,
 	[dnl Have to include resolv.h as dn_expand is sometimes defined as a macro
 	AC_MSG_CHECKING([for dn_expand in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -161,7 +161,7 @@ AC_CHECK_LIB(resolv, dn_expand,,AC_CHECK_LIB(bind, dn_expand,,
 	[AC_MSG_RESULT(no)
 		LIBS="$saved_libs"])
 	]
-))
+)
 
 if test "$have_dn_expand" = "yes"
 then
