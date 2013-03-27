@@ -7,7 +7,7 @@ AC_ARG_WITH([libbind],
 
 
 dnl res_query
-AC_SEARCH_LIBS(res_query,[resolv bind],,
+AC_SEARCH_LIBS(res_query,[resolv bind],have_res_query=yes,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_query in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -31,7 +31,7 @@ fi
 
 
 dnl res_search
-AC_SEARCH_LIBS(res_search,[resolv bind],,
+AC_SEARCH_LIBS(res_search,[resolv bind],have_res_search=yes,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_search in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -54,7 +54,7 @@ then
 fi
 
 dnl res_querydomain
-AC_SEARCH_LIBS(res_querydomain,[resolv bind],,
+AC_SEARCH_LIBS(res_querydomain,[resolv bind],have_res_querydomain=yes,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_querydomain in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -77,7 +77,7 @@ then
 fi
 
 dnl res_mkquery
-AC_SEARCH_LIBS(res_mkquery,[resolv bind],,
+AC_SEARCH_LIBS(res_mkquery,[resolv bind],have_res_mkquery=yes,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_mkquery in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -100,7 +100,7 @@ then
 fi
 
 dnl res_send
-AC_SEARCH_LIBS(res_send,[resolv bind],,
+AC_SEARCH_LIBS(res_send,[resolv bind],have_res_send=yes,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for res_send in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -123,7 +123,7 @@ then
 fi
 
 dnl dn_comp
-AC_SEARCH_LIBS(dn_comp,[resolv bind],,
+AC_SEARCH_LIBS(dn_comp,[resolv bind],have_dn_comp=yes,
 	[dnl Have to include resolv.h as res_query is sometimes defined as a macro
 	AC_MSG_CHECKING([for dn_comp in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"
@@ -146,7 +146,7 @@ then
 fi
 
 dnl dn_expand
-AC_SEARCH_LIBS(dn_expand,[resolv bind],,
+AC_SEARCH_LIBS(dn_expand,[resolv bind],have_dn_expand=yes,
 	[dnl Have to include resolv.h as dn_expand is sometimes defined as a macro
 	AC_MSG_CHECKING([for dn_expand in -lresolv (with resolv.h if present)])
 	saved_libs="$LIBS"

@@ -9939,7 +9939,7 @@ $as_echo "$ac_cv_search_res_query" >&6; }
 ac_res=$ac_cv_search_res_query
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
+  have_res_query=yes
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_query in -lresolv (with resolv.h if present)" >&5
 $as_echo_n "checking for res_query in -lresolv (with resolv.h if present)... " >&6; }
@@ -10036,7 +10036,7 @@ $as_echo "$ac_cv_search_res_search" >&6; }
 ac_res=$ac_cv_search_res_search
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
+  have_res_search=yes
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_search in -lresolv (with resolv.h if present)" >&5
 $as_echo_n "checking for res_search in -lresolv (with resolv.h if present)... " >&6; }
@@ -10132,7 +10132,7 @@ $as_echo "$ac_cv_search_res_querydomain" >&6; }
 ac_res=$ac_cv_search_res_querydomain
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
+  have_res_querydomain=yes
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_querydomain in -lresolv (with resolv.h if present)" >&5
 $as_echo_n "checking for res_querydomain in -lresolv (with resolv.h if present)... " >&6; }
@@ -10228,7 +10228,7 @@ $as_echo "$ac_cv_search_res_mkquery" >&6; }
 ac_res=$ac_cv_search_res_mkquery
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
+  have_res_mkquery=yes
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_mkquery in -lresolv (with resolv.h if present)" >&5
 $as_echo_n "checking for res_mkquery in -lresolv (with resolv.h if present)... " >&6; }
@@ -10324,7 +10324,7 @@ $as_echo "$ac_cv_search_res_send" >&6; }
 ac_res=$ac_cv_search_res_send
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
+  have_res_send=yes
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for res_send in -lresolv (with resolv.h if present)" >&5
 $as_echo_n "checking for res_send in -lresolv (with resolv.h if present)... " >&6; }
@@ -10420,7 +10420,7 @@ $as_echo "$ac_cv_search_dn_comp" >&6; }
 ac_res=$ac_cv_search_dn_comp
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
+  have_dn_comp=yes
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_comp in -lresolv (with resolv.h if present)" >&5
 $as_echo_n "checking for dn_comp in -lresolv (with resolv.h if present)... " >&6; }
@@ -10516,7 +10516,7 @@ $as_echo "$ac_cv_search_dn_expand" >&6; }
 ac_res=$ac_cv_search_dn_expand
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
+  have_dn_expand=yes
 else
   	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dn_expand in -lresolv (with resolv.h if present)" >&5
 $as_echo_n "checking for dn_expand in -lresolv (with resolv.h if present)... " >&6; }
