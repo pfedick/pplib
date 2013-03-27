@@ -417,6 +417,57 @@ size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
 		return result.size();
 }
 
+String Resolver::typeName(Type t)
+{
+        switch (t)  {
+                case A: return "A";
+                case NS: return "NS";
+                case CNAME: return "CNAME";
+                case MX: return "MX";
+                case SOA: return "SOA";
+                case PTR: return "PTR";
+                case TXT: return "TXT";
+                case AAAA: return "AAAA";
+                case NAPTR: return "NAPTR";
+                case SRV: return "SRV";
+                case DS: return "DS";
+                case DNSKEY: return "DNSKEY";
+                case NSEC: return "NSEC";
+                case NSEC3: return "NSEC3";
+                case RRSIG: return "RRSIG";
+                case OPT: return "OPT";
+                case TSIG: return "TSIG";
+                default: return "UNKNOWN";
+        }
+}
+
+String Resolver::className(Class c)
+{
+        switch (c)  {
+                case CLASS_IN: return "IN";
+                case CLASS_CH: return "CH";
+                case CLASS_HS: return "HS";
+                case CLASS_NONE: return "NONE";
+                case CLASS_ANY: return "ANY";
+                default: return "UNKNOWN";
+        }
+}
+
+
+void Resolver::query(AssocArray &r, const String &label, Type t, Class c)
+{
+	/*
+	 int res_mkquery(int op, const char *dname, int class,
+	              int type, char *data, int datalen, struct rrec *newrr,
+	              char *buf, int buflen);
+	*/
+	r.clear();
+
+	//int ret=res_search(dname,c,t,
+
+
+}
+
 
 
 }	// namespace ppl7

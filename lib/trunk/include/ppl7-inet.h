@@ -96,6 +96,58 @@ class IPAddress
 void InitSockets();
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
 size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
+
+
+class Resolver
+{
+        private:
+
+        public:
+                // Quelle: http://en.wikipedia.org/wiki/List_of_DNS_record_types
+                enum Type {
+                        A=1,
+                        NS=2,
+                        CNAME=5,
+                        MX=15,
+                        SOA=6,
+                        PTR=12,
+                        TXT=16,
+                        AAAA=28,
+                        NAPTR=35,
+                        SRV=33,
+                        DS=43,
+                        DNSKEY=48,
+                        NSEC=47,
+                        NSEC3=50,
+                        RRSIG=46,
+                        OPT=41,
+                        TSIG=250
+                };
+
+                enum Class {
+                        /** the Internet */
+                        CLASS_IN    = 1,
+                        /** Chaos class */
+                        CLASS_CH    = 3,
+                        /** Hesiod (Dyer 87) */
+                        CLASS_HS    = 4,
+                        /** None class, dynamic update */
+                        CLASS_NONE      = 254,
+                        /** Any class */
+                        CLASS_ANY   = 255,
+                        CLASS_FIRST     = 0,
+                        CLASS_LAST      = 65535,
+                        CLASS_COUNT     = CLASS_LAST - CLASS_FIRST + 1
+                };
+
+                static String typeName(Type t);
+                static String className(Class c);
+                static void query(AssocArray &r, const String &label, Type t=A, Class c=CLASS_IN);
+};
+
+
+
+
 String Idn2Ace(const String &idn);
 WideString Idn2Ace(const WideString &idn);
 String Ace2Idn(const String &ace);
