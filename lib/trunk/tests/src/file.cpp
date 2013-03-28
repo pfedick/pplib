@@ -86,7 +86,7 @@ TEST_F(FileReadTest, ConstructorSimple) {
 
 TEST_F(FileReadTest, openNonexisting) {
 	ppl7::File f1;
-	ASSERT_THROW(f1.open("nonexisting.txt"), ppl7::File::FileNotFoundException);
+	ASSERT_THROW(f1.open("nonexisting.txt"), ppl7::FileNotFoundException);
 }
 
 TEST_F(FileReadTest, openExisting) {
@@ -169,7 +169,7 @@ TEST_F(FileReadTest, freadUntilEof) {
 		while (1) {
 			bytes+=f1.fread((void*)ba.adr(),1,1024);
 		}
-	}, ppl7::File::EndOfFileException);
+	}, ppl7::EndOfFileException);
 	ASSERT_EQ((ppluint64) 1592096, bytes);
 }
 

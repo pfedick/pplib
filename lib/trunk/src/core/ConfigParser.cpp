@@ -560,7 +560,7 @@ void ConfigParser::load(FileObject &file)
 	size_t trenn;
 	size_t separatorLength=separator.length();
 
-	if (!file.isOpen()) throw File::FileNotOpenException();
+	if (!file.isOpen()) throw FileNotOpenException();
 	//printf ("File open: %s, size: %tu\n",(const char*)file.filename(),file.size());
 
 	try {
@@ -595,7 +595,7 @@ void ConfigParser::load(FileObject &file)
 				}
 			}
 		}
-	} catch (const ppl7::File::EndOfFileException &e) {
+	} catch (const ppl7::EndOfFileException &e) {
 		section=NULL;
 		return;
 	}
@@ -641,7 +641,7 @@ void ConfigParser::save(FileObject &file)
 {
 	AssocArray::Iterator it;
 	String key, value;
-	if (!file.isOpen()) throw File::FileNotOpenException();
+	if (!file.isOpen()) throw FileNotOpenException();
 
 	SECTION *s=(SECTION *)first;
 	while (s) {

@@ -1157,7 +1157,7 @@ void PFPFile::load(FileObject &ff)
 	const char *p;
 	try {
 		p=ff.map(0,24);
-	} catch (File::OverflowException &) {
+	} catch (OverflowException &) {
 		throw InvalidFormatException();
 	}
 	if (strncmp(p,"PFP-File",8)!=0) throw InvalidFormatException();
@@ -1182,11 +1182,11 @@ void PFPFile::load(FileObject &ff)
 	char *u=NULL;
 	if (comp) {
 		p=(char*)ff.map(hsize,8);
-		if (!p) throw File::ReadException();
+		if (!p) throw ReadException();
 		size_t sizeunk=Peek32(p);
 		size_t sizecomp=Peek32(p+4);
 		p=ff.map(hsize+8,sizecomp);
-		if (!p) throw File::ReadException();
+		if (!p) throw ReadException();
 		u=(char*)malloc(sizeunk+1);
 		if (!u) throw OutOfMemoryException();
 		size_t dstlen=sizeunk;
