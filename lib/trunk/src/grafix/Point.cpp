@@ -121,6 +121,22 @@ Point::Point(int x, int y)
 	this->y=y;
 }
 
+/*!\brief Konstruktor mit Initialisierung auf die im String angegebenen Koordinaten
+ *
+ * \desc
+ * Durch Verwendung dieses Konstruktors wird der Punkt mit den im String
+ * \p s vorhandenen Koordinaten initialisiert.
+ * \param[in] s String mit den Komma-getrennten Koordinaten
+ */
+Point::Point(const String &s)
+{
+	String c=s;
+	c.replace(";",",");
+	Array a;
+	a.explode(c,",",0,true);
+	x=a[0].toInt();
+	y=a[1].toInt();
+}
 
 /*!\brief Liefert \c true zurück, wenn sowohl x als auch y 0 sind.
  *

@@ -1097,6 +1097,14 @@ TEST_F(StringTest, pregCapture) {
 
 }
 
+TEST_F(StringTest, pregReplace) {
+	ppl7::String s1("Lorem ipsum dolor sit amet.");
+	ppl7::String s2("Lor3m ipsum dolor sit am3t.");
+	s1.pregReplace("/e/","3");
+	ASSERT_EQ(s2,s1) << "Unexpected result from pregReplace";
+}
+
+
 
 
 TEST_F(StringTest, Utf8toUtf8) {
