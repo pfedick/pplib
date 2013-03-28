@@ -377,6 +377,26 @@ void ByteArrayPtr::hexDump() const
 	HexDump(ptradr,ptrsize,true);
 }
 
+void ByteArrayPtr::hexDump(size_t bytes) const
+{
+	if (ptrsize==0) throw EmptyDataException();
+	if (bytes>ptrsize) bytes=ptrsize;
+	PrintDebug ("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n",bytes,ptradr);
+	HexDump(ptradr,bytes,true);
+
+}
+
+void ByteArrayPtr::hexDump(size_t offset, size_t bytes) const
+{
+	if (ptrsize==0) throw EmptyDataException();
+	if (bytes>ptrsize-offset) bytes=ptrsize-offset;
+	char *start=(char*)ptradr+offset;
+	PrintDebug ("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n",bytes,start);
+	HexDump(start,bytes,true);
+}
+
+
+
 /*!\brief Speicher mit bestimmtem Wert füllen
  *
  * \desc

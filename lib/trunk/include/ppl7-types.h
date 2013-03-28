@@ -170,6 +170,8 @@ class ByteArrayPtr : public Variant
 		void set(size_t pos, unsigned char value);
 		unsigned char get(size_t pos) const;
 		void hexDump() const;
+		void hexDump(size_t bytes) const;
+		void hexDump(size_t offset, size_t bytes) const;
 		void memset(int value);
 };
 
