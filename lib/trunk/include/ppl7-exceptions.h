@@ -41,7 +41,11 @@
 
 namespace ppl7 {
 
+
+
 class String;
+
+void throwExceptionFromErrno(int e,const String &info);
 
 class Exception : std::exception
 {
@@ -81,7 +85,7 @@ std::ostream& operator<<(std::ostream& s, const Exception &e);
 	};
 
 
-PPLNORMALEXCEPTION(UnknownException);
+PPLPARAMETERISEDEXCEPTION(UnknownException);
 PPLNORMALEXCEPTION(OutOfMemoryException);
 PPLNORMALEXCEPTION(NullPointerException);
 PPLPARAMETERISEDEXCEPTION(UnsupportedFeatureException);
@@ -142,6 +146,40 @@ PPLNORMALEXCEPTION(SSLContextSocketMismatchException);
 PPLPARAMETERISEDEXCEPTION(InvalidSSLCertificateException);
 PPLPARAMETERISEDEXCEPTION(InvalidSSLCipherException);
 PPLPARAMETERISEDEXCEPTION(SSLPrivatKeyException);
+
+
+//! @name IO-Exceptions
+//@{
+PPLNORMALEXCEPTION(FileNotOpenException);
+PPLNORMALEXCEPTION(FileSeekException);
+PPLNORMALEXCEPTION(ReadException);
+PPLNORMALEXCEPTION(WriteException);
+PPLNORMALEXCEPTION(EndOfFileException);
+PPLPARAMETERISEDEXCEPTION(FileOpenException);
+PPLPARAMETERISEDEXCEPTION(FileNotFoundException);				// ENOENT
+PPLNORMALEXCEPTION(InvalidArgumentsException);					// EINVAL
+PPLPARAMETERISEDEXCEPTION(InvalidFileNameException);			// ENOTDIR, ENAMETOOLONG, ELOOP
+PPLPARAMETERISEDEXCEPTION(PermissionDeniedException);			// EACCESS, EPERM
+PPLPARAMETERISEDEXCEPTION(ReadOnlyException);					// EROFS
+PPLPARAMETERISEDEXCEPTION(NoRegularFileException);				// EISDIR
+PPLNORMALEXCEPTION(TooManyOpenFilesException);					// EMFILE
+PPLPARAMETERISEDEXCEPTION(UnsupportedFileOperationException);	// EOPNOTSUPP
+PPLPARAMETERISEDEXCEPTION(TooManySymbolicLinksException);		// ELOOP
+PPLNORMALEXCEPTION(FilesystemFullException);					// ENOSPC
+PPLNORMALEXCEPTION(QuotaExceededException);						// EDQUOT
+PPLNORMALEXCEPTION(IOErrorException);							// EIO
+PPLNORMALEXCEPTION(BadFiledescriptorException);					// EABDF
+PPLNORMALEXCEPTION(BadAddressException);						// EFAULT
+PPLNORMALEXCEPTION(OverflowException);							// EOVERFLOW
+PPLNORMALEXCEPTION(FileExistsException);						// EEXIST
+PPLNORMALEXCEPTION(OperationBlockedException);					// EAGAIN
+PPLNORMALEXCEPTION(DeadlockException);							// EDEADLK
+PPLNORMALEXCEPTION(OperationInterruptedException);				// EINTR
+PPLNORMALEXCEPTION(TooManyLocksException);						// ENOLCK
+PPLNORMALEXCEPTION(IllegalOperationOnPipeException);			// ESPIPE
+PPLNORMALEXCEPTION(BufferExceedsLimitException);
+
+//@}
 
 
 

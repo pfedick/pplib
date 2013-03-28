@@ -381,47 +381,7 @@ const char *File::fmodepopen(FileMode mode)
  */
 void File::throwErrno(int e,const String &filename)
 {
-	switch (e) {
-		case ENOMEM: throw OutOfMemoryException();
-		case EINVAL: throw InvalidArgumentsException();
-		case ENOTDIR:
-		case ENAMETOOLONG: throw InvalidFileNameException(filename);
-		case EACCES:
-		case EPERM: throw PermissionDeniedException(filename);
-		case ENOENT: throw FileNotFoundException(filename);
-#ifdef ELOOP
-		case ELOOP: throw TooManySymbolicLinksException(filename);
-#endif
-		case EISDIR: throw NoRegularFileException(filename);
-		case EROFS: throw ReadOnlyException(filename);
-		case EMFILE: throw TooManyOpenFilesException();
-#ifdef EOPNOTSUPP
-		case EOPNOTSUPP: throw UnsupportedFileOperationException(filename);
-#endif
-		case ENOSPC: throw FilesystemFullException();
-#ifdef EDQUOT
-		case EDQUOT: throw QuotaExceededException();
-#endif
-		case EIO: throw IOErrorException();
-		case EBADF: throw BadFiledescriptorException();
-		case EFAULT: throw BadAddressException();
-#ifdef EOVERFLOW
-		case EOVERFLOW: throw OverflowException();
-#endif
-		case EEXIST: throw FileExistsException();
-		case EAGAIN: throw OperationBlockedException();
-		case EDEADLK: throw DeadlockException();
-		case EINTR: throw OperationInterruptedException();
-		case ENOLCK: throw TooManyLocksException();
-		case ESPIPE: throw IllegalOperationOnPipeException();
-
-		/*
-
-		 *
-		 */
-
-		default: throw FileOpenException(filename);
-	}
+	throwExceptionFromErrno(e,filename);
 }
 
 /*!\brief Exception anhand errno-Variable werfen
@@ -434,7 +394,7 @@ void File::throwErrno(int e,const String &filename)
  */
 void File::throwErrno(int e)
 {
-	File::throwErrno(e,filename());
+	throwExceptionFromErrno(e,filename());
 }
 
 /*!\brief Datei öffnen
