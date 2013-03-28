@@ -48,6 +48,11 @@
 #include <string.h>
 #endif
 
+#ifdef HAVE_ERRNO_H
+	#include <errno.h>
+#endif
+
+
 #include "ppl7.h"
 
 namespace ppl7 {
@@ -146,5 +151,63 @@ std::ostream& operator<<(std::ostream& s, const Exception &e)
 	String str=e.toString();
 	return s.write((const char*)str,str.size());
 }
+
+
+
+/*!\brief %Exception anhand errno-Variable werfen
+ *
+ * \desc
+ * Diese Funktion wird verwendet, um nach Auftreten eines Fehlers, anhand der globalen
+ * "errno"-Variablen die passende Exception zu werfen.
+ *
+ * @param e Errorcode aus der errno-Variablen
+ * @param info Zusätzliche Informationen zum Fehler (optional)
+ */
+void throwExceptionFromErrno(int e,const String &info)
+{
+	switch (e) {
+		case ENOMEM: throw OutOfMemoryException();
+		case EINVAL: throw InvalidArgumentsException();
+		case ENOTDIR:
+		case ENAMETOOLONG: throw InvalidFileNameException(info);
+		case EACCES:
+		case EPERM: throw PermissionDeniedException(info);
+		case ENOENT: throw FileNotFoundException(info);
+#ifdef ELOOP
+		case ELOOP: throw TooManySymbolicLinksException(info);
+#endif
+		case EISDIR: throw NoRegularFileException(info);
+		case EROFS: throw ReadOnlyException(info);
+		case EMFILE: throw TooManyOpenFilesException();
+#ifdef EOPNOTSUPP
+		case EOPNOTSUPP: throw UnsupportedFileOperationException(info);
+#endif
+		case ENOSPC: throw FilesystemFullException();
+#ifdef EDQUOT
+		case EDQUOT: throw QuotaExceededException();
+#endif
+		case EIO: throw IOErrorException();
+		case EBADF: throw BadFiledescriptorException();
+		case EFAULT: throw BadAddressException();
+#ifdef EOVERFLOW
+		case EOVERFLOW: throw OverflowException();
+#endif
+		case EEXIST: throw FileExistsException();
+		case EAGAIN: throw OperationBlockedException();
+		case EDEADLK: throw DeadlockException();
+		case EINTR: throw OperationInterruptedException();
+		case ENOLCK: throw TooManyLocksException();
+		case ESPIPE: throw IllegalOperationOnPipeException();
+
+		/*
+
+		 *
+		 */
+
+		default: throw UnknownException(info);
+	}
+}
+
+
 
 }
