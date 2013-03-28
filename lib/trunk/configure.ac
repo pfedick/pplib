@@ -216,8 +216,12 @@ AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/poll.h])
 AC_CHECK_HEADERS([netinet/in.h])
-AC_CHECK_HEADERS([resolv.h])
 AC_CHECK_HEADERS([arpa/nameser.h])
+AC_CHECK_HEADERS([resolv.h],,,[
+	#include <sys/types.h>
+	#include <netinet/in.h>
+	#include <arpa/nameser.h>
+])
 AC_CHECK_HEADERS([netdb.h])
 AC_CHECK_HEADERS([arpa/inet.h])
 AC_CHECK_HEADERS([strings.h])
