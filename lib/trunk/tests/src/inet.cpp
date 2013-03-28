@@ -446,5 +446,22 @@ TEST_F(Resolver, MixedIPv4v6_af_inet6) {
 	});
 }
 
+TEST_F(Resolver, query_NS) {
+	ppl7::Array a;
+	ASSERT_NO_THROW ({
+		ppl7::Resolver::query(a,"de.",ppl7::Resolver::NS);
+	});
+	a.sortUnique();
+	EXPECT_EQ((size_t)6,a.size()) << "Unexpected number of result records";
+	EXPECT_EQ(ppl7::String("a.nic.de"),a[0]) << "Unexpected value of result record 0";
+	EXPECT_EQ(ppl7::String("f.nic.de"),a[1]) << "Unexpected value of result record 1";
+	EXPECT_EQ(ppl7::String("l.de.net"),a[2]) << "Unexpected value of result record 2";
+	EXPECT_EQ(ppl7::String("n.de.net"),a[3]) << "Unexpected value of result record 3";
+	EXPECT_EQ(ppl7::String("s.de.net"),a[4]) << "Unexpected value of result record 4";
+	EXPECT_EQ(ppl7::String("z.nic.de"),a[5]) << "Unexpected value of result record 5";
+
+
+}
+
 }
 

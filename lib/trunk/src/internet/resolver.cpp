@@ -454,7 +454,7 @@ String Resolver::className(Class c)
 }
 
 
-void Resolver::query(AssocArray &r, const String &label, Type t, Class c)
+void Resolver::query(Array &r, const String &label, Type t, Class c)
 {
 	/*
 	 int res_mkquery(int op, const char *dname, int class,
@@ -462,10 +462,45 @@ void Resolver::query(AssocArray &r, const String &label, Type t, Class c)
 	              char *buf, int buflen);
 	*/
 	r.clear();
+	ppl7::ByteArray buf(4096);
 
-	//int ret=res_search(dname,c,t,
+	int ret=res_search((const char*)label,c,t,(u_char*)buf.adr(),buf.size());
+	if (ret<0) throwExceptionFromErrno(h_errno,ToString("Resolver::query"));
+	//buf.hexDump(ret);
+
+	ns_msg handle;
+	ret=ns_initparse((const u_char *)buf.adr(),ret,&handle);
+	/*
+	printf ("Msg-Id: %d\n",(int)ns_msg_id(handle));
+	//printf ("Flags: %d\n",(int)ns_msg_get_flag(handle,ns_f_qr));
+	printf ("Frage: %d\n",(int)ns_msg_count(handle,ns_s_qd));
+	printf ("Answers: %d\n",(int)ns_msg_count(handle,ns_s_an));
+	printf ("Zone: %d\n",(int)ns_msg_count(handle,ns_s_zn));
+	printf ("Vorbedingung: %d\n",(int)ns_msg_count(handle,ns_s_pr));
+	printf ("ns: %d\n",(int)ns_msg_count(handle,ns_s_ns));
+	printf ("ud: %d\n",(int)ns_msg_count(handle,ns_s_ud));
+	printf ("ar: %d\n",(int)ns_msg_count(handle,ns_s_ar));
+	*/
+
+	if (ns_msg_count(handle,ns_s_an)==0) throw QueryFailedException(ToString("Empty resultset"));
+	for (u_int16_t i=0;i<ns_msg_count(handle,ns_s_an);i++) {
+		ns_rr rr;
+		if (ns_parserr(&handle,ns_s_an,i,&rr)==0) {
+			//printf ("Record: %i: name: %s\n",i,ns_rr_name(rr));
+			char buf[MAXDNAME];
+			if(ns_name_uncompress(
+					ns_msg_base(handle),
+					ns_msg_end(handle),
+					ns_rr_rdata(rr),
+					buf,
+					MAXDNAME)) {
+				//printf ("rdata: %s\n",buf);
+				r.add(buf);
+			}
 
 
+		}
+	}
 }
 
 

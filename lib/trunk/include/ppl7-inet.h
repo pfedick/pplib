@@ -54,6 +54,7 @@ namespace ppl7 {
 PPLPARAMETERISEDEXCEPTION(NetworkException);
 PPLNORMALEXCEPTION(WinsockInitialisationFailed);
 PPLPARAMETERISEDEXCEPTION(IdnConversionException);
+PPLPARAMETERISEDEXCEPTION(QueryFailedException);
 
 // TODO
 //int GetHostByName(const char *name, CAssocArray *Result);
@@ -142,7 +143,7 @@ class Resolver
 
                 static String typeName(Type t);
                 static String className(Class c);
-                static void query(AssocArray &r, const String &label, Type t=A, Class c=CLASS_IN);
+                static void query(Array &r, const String &label, Type t=A, Class c=CLASS_IN);
 };
 
 
