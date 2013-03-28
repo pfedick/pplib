@@ -454,14 +454,25 @@ String Resolver::className(Class c)
 }
 
 
+String shortenIpv6(const String &s)
+{
+	ppl7::String r=s;
+	if (r.instr(":0:0:0:0:0:0:0:")>=0) r.replace(":0:0:0:0:0:0:0:","::");
+	else if (r.instr(":0:0:0:0:0:0:")>=0) r.replace(":0:0:0:0:0:0:","::");
+	else if (r.instr(":0:0:0:0:0:")>=0) r.replace(":0:0:0:0:0:","::");
+	else if (r.instr(":0:0:0:0:")>=0) r.replace(":0:0:0:0:","::");
+	else if (r.instr(":0:0:0:")>=0) r.replace(":0:0:0:","::");
+	else if (r.instr(":0:0:")>=0) r.replace(":0:0:","::");
+	if (r.right(3)=="::0") r.chop(1);
+	return r;
+}
+
+
 void Resolver::query(Array &r, const String &label, Type t, Class c)
 {
-	/*
-	 int res_mkquery(int op, const char *dname, int class,
-	              int type, char *data, int datalen, struct rrec *newrr,
-	              char *buf, int buflen);
-	*/
-	r.clear();
+#ifndef HAVE_RES_SEARCH
+	throw UnsupportedFeatureException("libbind res_search");
+#else
 	ppl7::ByteArray buf(4096);
 
 	int ret=res_search((const char*)label,c,t,(u_char*)buf.adr(),buf.size());
@@ -487,20 +498,35 @@ void Resolver::query(Array &r, const String &label, Type t, Class c)
 		ns_rr rr;
 		if (ns_parserr(&handle,ns_s_an,i,&rr)==0) {
 			//printf ("Record: %i: name: %s\n",i,ns_rr_name(rr));
-			char buf[MAXDNAME];
-			if(ns_name_uncompress(
-					ns_msg_base(handle),
-					ns_msg_end(handle),
-					ns_rr_rdata(rr),
-					buf,
-					MAXDNAME)) {
-				//printf ("rdata: %s\n",buf);
-				r.add(buf);
+			u_int16_t type=ns_rr_type(rr);
+			if (type==NS) {
+				char buf[MAXDNAME];
+				if(ns_name_uncompress(
+						ns_msg_base(handle),
+						ns_msg_end(handle),
+						ns_rr_rdata(rr),
+						buf,
+						MAXDNAME)) {
+					//printf ("rdata: %s\n",buf);
+					r.add(buf);
+				}
+			} else if (type==A) {
+				unsigned char *adr=(unsigned char*)ns_rr_rdata(rr);
+				r.addf("%i.%i.%i.%i",(int)adr[0],(int)adr[1],(int)adr[2],(int)adr[3]);
+			} else if (type==AAAA) {
+				//printf ("AAAA, len=%i\n",(int)ns_rr_rdlen(rr));
+				//ppl7::HexDump(ns_rr_rdata(rr),ns_rr_rdlen(rr));
+				ppluint16 *adr=(ppluint16*)ns_rr_rdata(rr);
+
+				r.add(shortenIpv6(ToString("%x:%x:%x:%x:%x:%x:%x:%x",
+						(int)ntohs(adr[0]),(int)ntohs(adr[1]),(int)ntohs(adr[2]),(int)ntohs(adr[3]),
+						(int)ntohs(adr[4]),(int)ntohs(adr[5]),(int)ntohs(adr[6]),(int)ntohs(adr[7]))));
 			}
 
 
 		}
 	}
+#endif
 }
 
 

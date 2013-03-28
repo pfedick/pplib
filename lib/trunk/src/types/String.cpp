@@ -2663,7 +2663,6 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		throw UnsupportedFeatureException("PCRE");
 	#else
 		if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return false;
-		//ByteArray utf8=toUtf8();
 		ByteArray expr=expression;
 		int flags=PCRE_UTF8;
 		// letzten Slash in regex finden
@@ -2712,6 +2711,106 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		pcre_free(reg);
 		free(ovector);
 		return false;
+#endif
+}
+
+
+/*! \brief Es wird ein Suchen und Ersetzen anhand einer Regular Expression durchgeführt
+ *
+\param expr is a perl compatible regular expression, starting and ending with slash (/).
+\copydoc pregexpr.dox
+\param replace ist ein Pointer auf eine Stringklasse, die den Text enthält, der anstelle
+des Matches eingesetzt wird. Werden in der Expression Klammern zum capturen verwendet,
+können diese Werte mit \c $1 bis \c $9 im Replace-String verwendet werden.
+\param maxreplace ist optional. Wenn vorhanden, werden nur soviele Matches ersetzt, wi
+mit maxreplace angegeben. Wurden zum Beispiel 10 Matches gefunden, aber maxreplace wurde
+mit 5 angegeben, werden nur die ersten 5 Matches ersetzt.
+\return Liefert \c true(1) zurück, wenn ein Match gefunden wurde, ansonsten \c false(0)
+
+\copydoc pcrenote.dox
+ */
+String & String::pregReplace(const String &expression, const String &replacement, int max)
+{
+#ifndef HAVE_PCRE
+	throw UnsupportedFeatureException("PCRE");
+#else
+	if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return *this;
+
+	String pattern;
+	int ret=0;
+	char *r=::strdup(expression.ptr+1);
+	int flags=PCRE_UTF8;
+	char *tmp;
+	// letzten Slash in regex finden
+	char *options=::strrchr(r,'/');
+	if (options) {
+		options[0]=0;
+		options++;
+		if (::strchr(options,'i')) flags|=PCRE_CASELESS;
+		if (::strchr(options,'m')) flags|=PCRE_MULTILINE;
+		if (::strchr(options,'x')) flags|=PCRE_EXTENDED;
+		if (::strchr(options,'s')) flags|=PCRE_DOTALL;
+		if (::strchr(options,'a')) flags|=PCRE_ANCHORED;
+		if (::strchr(options,'u')) flags|=PCRE_UNGREEDY;
+	}
+
+	pattern+=r;
+	const char *perr;
+	int re,erroffset, ovector[30];
+	int perrorcode;
+	pcre *reg;
+	//printf ("r=%s, flags=%i\n",r,flags);
+	String neu;
+	String Replace;
+	char rep[5];
+
+CString__PregReplace_Restart:
+    reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
+	if (reg) {
+		String rest=ptr;
+		while (1) {		// Endlosschleife, bis nichts mehr matched
+			bzero(ovector,30*sizeof(int));
+			if ((re=pcre_exec(reg, NULL, (const char*) rest,rest.size(),0, 0, ovector, 30))>=0) {
+				ret++;
+				Replace=replacement;
+				for (int i=0;i<14;i++) {
+					tmp=NULL;
+					pcre_get_substring((const char*)rest,ovector,30,i,(const char**)&tmp);
+					if (tmp) {
+						//printf("tmp[%i]=%s\n",i,tmp);
+						sprintf(rep,"$%i",i);
+						Replace.replace(rep,tmp);
+						//matches->Set(i,tmp);
+						pcre_free_substring(tmp);
+					}
+				}
+				// Erstes Byte steht in ovector[0], letztes in ovecor[1]
+				neu.append(rest,ovector[0]);
+				neu+=Replace;
+				rest.chopLeft(ovector[1]);		// rest abschneiden
+				//printf ("Match %i\nNeu: %s\nRest (%i): %s\n",ret,(char*)neu,rest.Len(),(char*)rest);
+				if (max>0 && ret>=max) {
+					neu+=rest;
+					break;
+				}
+			} else if ((flags&PCRE_UTF8)==PCRE_UTF8 && (re==PCRE_ERROR_BADUTF8 || re==PCRE_ERROR_BADUTF8_OFFSET)) {
+				// Wir haben ungültiges UTF_8
+				// Vielleicht matched es ohne UTF-8-Flag
+				flags-=PCRE_UTF8;
+				free(reg);
+				goto CString__PregReplace_Restart;
+
+			} else {
+				// Kein Match, Schleife beenden
+				neu+=rest;
+				break;
+			}
+		}
+		free(reg);
+	}
+	free(r);
+	if (ret) set(neu);
+	return *this;
 #endif
 }
 
