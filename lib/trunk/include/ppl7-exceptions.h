@@ -92,7 +92,7 @@ PPLPARAMETERISEDEXCEPTION(UnsupportedFeatureException);
 PPLNORMALEXCEPTION(CharacterEncodingException);
 PPLNORMALEXCEPTION(UnsupportedCharacterEncodingException);
 PPLNORMALEXCEPTION(OutOfBoundsEception);
-PPLNORMALEXCEPTION(EmptyDataException);
+PPLPARAMETERISEDEXCEPTION(EmptyDataException);
 PPLNORMALEXCEPTION(TypeConversionException);
 PPLPARAMETERISEDEXCEPTION(IllegalArgumentException);
 PPLPARAMETERISEDEXCEPTION(MissingArgumentException);
@@ -181,6 +181,10 @@ PPLNORMALEXCEPTION(BufferExceedsLimitException);
 
 //@}
 
+
+PPLPARAMETERISEDEXCEPTION(HostNotFoundException);
+PPLNORMALEXCEPTION(TryAgainException);
+PPLPARAMETERISEDEXCEPTION(NoResultException);
 
 
 

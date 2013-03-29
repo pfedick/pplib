@@ -476,7 +476,16 @@ void Resolver::query(Array &r, const String &label, Type t, Class c)
 	ppl7::ByteArray buf(4096);
 
 	int ret=res_search((const char*)label,c,t,(u_char*)buf.adr(),buf.size());
-	if (ret<0) throwExceptionFromErrno(h_errno,ToString("Resolver::query"));
+	if (ret<0) {
+		switch (h_errno) {
+			case HOST_NOT_FOUND: throw HostNotFoundException(label);
+			case TRY_AGAIN: throw TryAgainException();
+			case NO_RECOVERY: throw QueryFailedException(label);
+			case NO_DATA: throw NoResultException(label);
+			case NETDB_INTERNAL: throwExceptionFromErrno(h_errno,ToString("Resolver::query NETDB_INTERNAL Error"));
+			default: throw QueryFailedException(label);
+		}
+	}
 	//buf.hexDump(ret);
 
 	ns_msg handle;
@@ -521,6 +530,18 @@ void Resolver::query(Array &r, const String &label, Type t, Class c)
 				r.add(shortenIpv6(ToString("%x:%x:%x:%x:%x:%x:%x:%x",
 						(int)ntohs(adr[0]),(int)ntohs(adr[1]),(int)ntohs(adr[2]),(int)ntohs(adr[3]),
 						(int)ntohs(adr[4]),(int)ntohs(adr[5]),(int)ntohs(adr[6]),(int)ntohs(adr[7]))));
+			} else if (type==SOA) {
+				ppl7::HexDump(ns_rr_rdata(rr),ns_rr_rdlen(rr));
+				char buf[MAXDNAME];
+								if(ns_name_uncompress(
+										ns_msg_base(handle),
+										ns_msg_end(handle),
+										ns_rr_rdata(rr),
+										buf,
+										MAXDNAME)) {
+									//printf ("rdata: %s\n",buf);
+									r.add(buf);
+								}
 			}
 
 

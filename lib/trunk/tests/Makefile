@@ -11,7 +11,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/bytearray.o compile/bytearrayptr.o \
 	compile/avltree.o compile/assocarray.o compile/pointer.o \
 	compile/file.o compile/list.o compile/functions.o \
-	compile/inet.o compile/widestrings.o \
+	compile/inet.o compile/resolver.o compile/widestrings.o \
 	compile/db_postgres.o \
 	compile/configparser.o \
 	compile/logger.o
@@ -139,7 +139,6 @@ compile/grafix_drawable.o: src/grafix_drawable.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/grafix_drawable.o -c src/grafix_drawable.cpp $(CFLAGS) $(LIB)
 	
-	
 compile/threadtest.o: src/threadtest.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/threadtest.o -c src/threadtest.cpp $(CFLAGS) $(LIB)
@@ -148,14 +147,18 @@ compile/db_postgres.o: src/db_postgres.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/db_postgres.o -c src/db_postgres.cpp $(CFLAGS) $(LIB)
 	
-compile/toolkit.o: src/toolkit.cpp Makefile src/toolkit.h
+compile/toolkit.o: src/toolkit.cpp Makefile ppl7-tests.h src/toolkit.h
 	mkdir -p compile
 	$(CC) -o compile/toolkit.o -c src/toolkit.cpp $(CFLAGS) $(LIB)
 	
-compile/logger.o: src/logger.cpp Makefile src/toolkit.h
+compile/logger.o: src/logger.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/logger.o -c src/logger.cpp $(CFLAGS) $(LIB)
+
+compile/resolver.o: src/resolver.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CC) -o compile/resolver.o -c src/resolver.cpp $(CFLAGS) $(LIB)
 	
-compile/configparser.o: src/configparser.cpp Makefile src/toolkit.h
+compile/configparser.o: src/configparser.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CC) -o compile/configparser.o -c src/configparser.cpp $(CFLAGS) $(LIB)
