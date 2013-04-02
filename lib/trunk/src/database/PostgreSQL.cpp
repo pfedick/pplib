@@ -70,9 +70,11 @@ class Postgres92Result : public ResultSet
 {
 	friend class Postgres92;
 	private:
+#ifdef HAVE_POSTGRESQL
 		PGresult	*res;			//!\brief Postgres-spezifisches Result-Handle
-		PostgreSQL	*postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
 		PGconn		*conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
+#endif
+		PostgreSQL	*postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
 		pplint64	rows;			//!\brief Anzahl Zeilen im Ergebnis
 		pplint64 	lastinsertid;	//!\brief Falls es sich um einen Insert mit einem Autoincrement-Index handelte, steht hier die vergebene ID
 		pplint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
