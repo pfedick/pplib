@@ -58,8 +58,8 @@
 	#include <limits.h>
 #endif
 
-#define HAVE_HELGRIND
-#ifdef HAVE_HELGRIND
+//#define HAVE_HELGRIND
+#ifdef HAVE_VALGRIND_HELGRIND_H
 #include <valgrind/helgrind.h>
 #endif
 
@@ -480,10 +480,10 @@ Thread::~Thread()
 	#endif
 	delete t;
 	threadmutex.unlock();
-//#ifdef HAVE_HELGRIND
+#ifdef HAVE_VALGRIND_HELGRIND_H
 	//VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
 	VALGRIND_HG_CLEAN_MEMORY(this,sizeof(Thread));
-//#endif
+#endif
 }
 
 /*! \brief Der Thread wird gestoppt
@@ -687,7 +687,9 @@ void Thread::threadStartUp()
 	IsRunning=0;
 	IsSuspended=0;
 	threadmutex.unlock();
+#ifdef HAVE_VALGRIND_HELGRIND_H
 	VALGRIND_HG_CLEAN_MEMORY(this,sizeof(Thread));
+#endif
 	//VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
 }
 

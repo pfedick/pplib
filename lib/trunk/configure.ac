@@ -238,6 +238,7 @@ AC_CHECK_HEADERS([wchar.h])
 AC_CHECK_HEADERS([widec.h])
 AC_CHECK_HEADERS([syslog.h])
 AC_CHECK_HEADERS([sys/mman.h])
+AC_CHECK_HEADERS([valgrind/helgrind.h])
 
 AC_FUNC_MKTIME
 AC_CHECK_TYPE(size_t, unsigned)
