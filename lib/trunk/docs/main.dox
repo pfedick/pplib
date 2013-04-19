@@ -71,19 +71,23 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 */
 
 /*!\page pplPageLicense Copyright
-Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz.
-BSD steht für "Berkeley Software Distribution". Software unter der BSD-Lizenz darf frei
-verwendet werden und es ist erlaubt, sie zu kopieren, zu verändern und zu verbreiten.
-Ein Programmierer, der ein unter einer BSD-Lizenz veröffentlichtes Programm verändert
-und dann verbreitet, ist nicht verpflichtet, den Quellcode seines veränderten Programms
-mitzuveröffentlichen. Einzige Bedingung der BSD-Lizenz ist, dass der Copyright-Vermerk des
-ursprünglichen Programms nicht entfernt werden darf. Somit eignet sich unter der BSD-Lizenz
-stehende Software auch gut als Vorlage für kommerzielle Produkte.
+PPL7 steht unter der "2-Klausel BSD Lizenz". BSD-Lizenz bezeichnet eine Gruppe von Lizenzen aus
+dem Open-Source-Bereich. Der Urtyp der Lizenz stammt von der University of California,
+Berkeley, worauf das Akronym BSD hinweist: Berkeley Software Distribution.
 
-Ursprünglich enthielt die BSD-Lizenz eine sogenannte “advertising clause” (Werbungsklausel).
-Sie verpflichtet die Softwareentwickler dazu, beim Bewerben ihres Produkts den Namen des
-ursprünglichen Softwareautors zu nennen. Diese Klausel wurde jedoch entfernt, so dass die
-PPL-Library auch ohne Nennung in Werbematerialien verwendet werden darf.
+Software unter BSD-Lizenz darf frei verwendet werden. Es ist erlaubt, sie zu kopieren,
+zu verändern und zu verbreiten. Einzige Bedingung ist, dass der Copyright-Vermerk des
+ursprünglichen Programms nicht entfernt werden darf. Somit eignet sich unter einer BSD-Lizenz
+stehende Software auch als Vorlage für kommerzielle (teilproprietäre) Produkte, wie es
+beispielsweise bei „JunOS“ der Fall ist, dem Router-Betriebssystem der Firma Juniper Networks.
+
+Dieses Lizenzmodell unterscheidet sich von der GNU General Public License (GPL) darin,
+dass es kein Copyleft enthält: Ein Programmierer, der ein unter einer BSD-Lizenz
+veröffentlichtes Programm verändert und dann verbreitet, ist nicht verpflichtet,
+den Quellcode seines veränderten Programms mitzuveröffentlichen. Er ist aber verpflichtet,
+das Ergebnis seiner Änderungen wiederum unter der BSD-Lizenz zu veröffentlichen.
+
+(Quelle: http://de.wikipedia.org/wiki/BSD-Lizenz)
 
 Der Wortlaut der Lizenz lautet folgendermassen:
 
@@ -91,7 +95,7 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 
 Übersetzung:
 \code
-  Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
+  Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
   All rights reserved.
  
   Weiterverbreitung und Verwendung in nichtkompilierter oder kompilierter Form,
@@ -100,10 +104,6 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 *      * Weiterverbreitete nichtkompilierte Exemplare müssen das obige Copyright,
         die Liste der Bedingungen und den folgenden Haftungsausschluss im Quelltext
         enthalten.
-*      * Weiterverbreitete kompilierte Exemplare müssen das obige Copyright,
-        die Liste der Bedingungen und den folgenden Haftungsausschluss in der
-        Dokumentation und/oder anderen Materialien, die mit dem Exemplar verbreitet
-        werden, enthalten.
 *      * Weder der Name des Copyright-Inhabers noch die Namen der Beitragsleistenden
         dürfen zum Kennzeichnen oder Bewerben von Produkten, die von dieser
         Software abgeleitet wurden, ohne spezielle vorherige schriftliche
