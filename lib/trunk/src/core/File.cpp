@@ -795,11 +795,11 @@ char * File::fgets (char *buffer, size_t num)
 {
 	if (ff==NULL) throw FileNotOpenException();
 	if (buffer==NULL) throw IllegalArgumentException();
-	int suberr;
+	//int suberr;
 	char *res;
 	res=::fgets(buffer, num, (FILE*)ff);
 	if (res==NULL) {
-		suberr=::ferror((FILE*)ff);
+		//suberr=::ferror((FILE*)ff);
 		if (::feof((FILE*)ff)) throw EndOfFileException();
 		else throwErrno(errno,filename());
 	}
@@ -815,11 +815,11 @@ wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 #ifndef HAVE_FGETWS
 	throw UnsupportedFeatureException("ppl7::File::getws: No fgetws available");
 #else
-	int suberr;
+	//int suberr;
 	wchar_t *res;
 	res=::fgetws(buffer, num, (FILE*)ff);
 	if (res==NULL) {
-		suberr=::ferror((FILE*)ff);
+		//suberr=::ferror((FILE*)ff);
 		if (::feof((FILE*)ff)) throw EndOfFileException();
 		else throwErrno(errno,filename());
 	}
