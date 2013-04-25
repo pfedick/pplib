@@ -6,6 +6,8 @@ KERNEL=`uname -v`
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
+		export CC=gcc48
+		export CXX=g++48
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --with-libmad=/usr/local --with-lame=/usr/local \
