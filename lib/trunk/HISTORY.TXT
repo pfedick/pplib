@@ -1,7 +1,11 @@
-/*!\page PPL6History PPL6 History
-PPL6 - HISTORY
-test
+/*!\page PPL7History PPL7 History
+PPL7 - HISTORY
 
+Version 7.0.0
+  - Complete Rewrite!!!
+  - Unittests with Google Test framework
+
+    
 Version 6.4.7
   - CDateTime holt sich nun die Millisekunden via "gettimeofday",
     sofern die Funktion vorhanden ist. Bei der Ausgabe mit
@@ -11,6 +15,8 @@ Version 6.4.7
   - Neue Klasse: CIcecast zum Streamen von MP3 oder OGG Dateien
     an einen Icecast Server
   - Update der Dokumentation auf Doxygen 1.7.3
+  - CAssocArray unterstützt nun CDateTime und kann CWString Im- und
+    Exportieren (es erfolgt eine Konvertierung nach UTF-8)
 
 Version 6.4.6 vom 17.03.2011	(CVS-Tag: REL_6_4_6)
   - CAssocArray hat Copy-Konstruktor und Zuweisungsoperator für CArray
