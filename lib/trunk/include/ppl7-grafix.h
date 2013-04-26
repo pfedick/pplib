@@ -3,24 +3,21 @@
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 38 $
- * $Date: 2011-04-26 21:39:41 +0200 (Di, 26. Apr 2011) $
- * $Id: ppl7-sound.h 38 2011-04-26 19:39:41Z pafe $
- * $Url$
+ * $Revision: 567 $
+ * $Date: 2013-03-28 12:24:42 +0100 (Do, 28. Mär 2013) $
+ * $Id: ppl7.h 567 2013-03-28 11:24:42Z pafe $
+ *
  *******************************************************************************
- * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its
- *       contributors may be used to endorse or promote products derived
- *       from this software without specific prior written permission.
+ *    1. Redistributions of source code must retain the above copyright notice, this
+ *       list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
+ *       and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
