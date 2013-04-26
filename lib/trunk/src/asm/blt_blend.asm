@@ -2,10 +2,10 @@
 ;# This file is part of "Patrick's Programming Library", Version 7 (PPL7).
 ;# Web: http://www.pfp.de/ppl/
 ;#
-;# $Author: pafe $
-;# $Revision: 590 $
-;# $Date: 2013-04-26 21:01:35 +0200 (Fr, 26 Apr 2013) $
-;# $Id: Makefile.in 590 2013-04-26 19:01:35Z pafe $
+;# $Author$
+;# $Revision$
+;# $Date$
+;# $Id$
 ;#
 ;###############################################################################
 ;#
