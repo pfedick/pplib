@@ -27,6 +27,8 @@ folgende Systeme:
 - Windows (32-Bit, Windows XP, Vista, 7 mit MinGW)
 - Solaris (Version 9, mit GCC 4.x-Compiler, 64-Bit)
 
+Als Compiler wird gcc ab Version 4.2 benötigt oder clang ab Version 3.
+
 Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz und darf somit fast
 uneingeschränkt auch in kommerziellen oder "closed source" Programmen verwendet werden. Die
 genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
@@ -57,10 +59,12 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
     
     
 - Sonstiges
+  - \subpage unittests
   - \subpage Dateiformate
   - \subpage formatstring
   - \subpage todo
   - \subpage deprecated
+  
   
 - \subpage PPLHistory
 - \subpage pplPageCredits

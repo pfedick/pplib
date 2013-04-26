@@ -33,7 +33,7 @@ make install
 Für das "make install" sind ggfs. Root-Rechte erforderlich.
 
 Das Configure untersucht das System und setzt entsprechende Defines für den
-Kompiler. Optionale Features werden zum Teil automatisch eingebunden, wenn
+Compiler. Optionale Features werden zum Teil automatisch eingebunden, wenn
 sie gefunden werden.
 
 Wird eine Library nicht gefunden oder nicht automatisch eingebunden, kann über
@@ -52,6 +52,33 @@ Soll eine bestimmte Library explizit nicht eingebunden werden, kann man dies mit
 
 Alle weiteren Details sind im configure zu finden, wenn man es mit "./configure --help"
 aufruft.
+
+\subsection inst2compiler Compiler auswählen
+Sofern nichts angegeben wird, wird der Defaultcompiler verwendet, in der Regel gcc bzw. g++. Sind mehrere Compiler
+vorhanden, kann durch setzen der Umgebungsvariablen CC und CXX vor Aufruf von "configure" bestimmt werden,
+welcher Compiler verwendet werden soll.
+
+\subsubsection inst2compiler_gcc47 Beispiel 1: gcc47
+Unter FreeBSD kann man verschiedene Versionen über die Ports-Collection installieren. Die installierten
+Binaries bekommen daher die Version im Dateinamen angehangen, z.B. "47". Das gcc-Binary heisst somit "gcc47",
+bzw. "g++47" für den "g++":
+
+\code
+export CC=gcc47
+export CXX=g++47
+./configure ...
+\endcode
+
+
+\subsubsection inst2compiler_clang Beispiel 2: clang
+\code
+export CC=clang
+export CXX=clang++
+./configure ...
+\endcode
+
+
+
 
 \subsection inst2debian Installation unter Debian / Ubuntu
 Wenn man alle Features der Library nutzen will, muß man folgende Pakete installieren:
@@ -98,62 +125,7 @@ export LDLAGS=-L/usr/local/lib
 
 \subsection inst3vstudio Installation mit Visual Studio
 
-Die PPL6-Library wird mit einem Projekt-File für Visual Studio .NET 2008 ausgeliefert,
-jedoch sind manuelle Einstellungen erforderlich, um sie auf die eigenen Bedürfnisse
-anzupassen. Dazu sind insbesondere Pfade zu den gewünschten Libraries und Header-Dateien
-zu setzen, sowie die Defines in der Datei "include/ppl6-config.h" anzupassen.
-
-\code
-/*
- * Windows-Spezifische Konfiguration
- * Wird unter UNIX nicht verwendet!
- */
-#ifndef _PPL6_CONFIG
-#define _PPL6_CONFIG
-
-#define HAVE_LIBZ
-#define HAVE_BZIP2
-
-#define HAVE_MYSQL
-#define HAVE_PNG
-#define HAVE_JPEG
-
-#define HAVE_FREETYPE2
-#define HAVE_LAME
-#define HAVE_LIBMAD
-#define HAVE_DX9
-#define HAVE_PCRE
-#define HAVE_ICONV
-#define ICONV_CONST const
-
-#define HAVE_OPENSSL
-#define HAVE_LIBCURL
-#define HAVE_SDL
-#define HAVE_X86_ASSEMBLER
-...
-\endcode
-Alles was nicht vorhanden oder verwendet werden soll, muss an dieser Stelle
-auskommentiert werden. Zwingend benötigt werden jedoch LIBZ, PCRE und
-ICONV.
-
-Beim Kompilieren ist darauf zu achten, dass alle Libraries mit den
-gleichen Einstellungen für die Runtime-Library und die Verwendung der
-Common Language Runtime kompiliert werden.
-
-\image html win32-vc9-clr.png
-\image html win32-vc9-rl.png
-
-
-Mischt man die Einstellungen, kommt es zu Warnungen und Fehlern beim
-Linken.
-
-\section inst4 Nutzung von Assembler mit Visual Studio
-
-Um den Assembler-Code zu kompilieren, benötigt man zum einen NASM ab Version 2.0, sowie folgendes Regel-File für Visual Studio: 
- 
-\include nasm.rules
-
-
+Visual Studio wird zur Zeit nicht unterstützt.
 
 
 */
