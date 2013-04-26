@@ -303,6 +303,8 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 
 template <class K> class List
 {
+	public:
+		class Iterator;
 	private:
 		MemoryHeap		MyHeap;
 		class ListItem {
