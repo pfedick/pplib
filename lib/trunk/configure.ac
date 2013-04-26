@@ -10,6 +10,7 @@ AC_CONFIG_SRCDIR([include/config.h.in])
 #AC_CONFIG_SRCDIR([src/math/math.cpp])
 
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([tests/Makefile])
 AC_CONFIG_FILES([ppl7-config])
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_HEADERS([include/ppl7-config.h])
