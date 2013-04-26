@@ -333,8 +333,6 @@
 #undef HAVE_SYBASE
 #undef HAVE_SQLITE
 
-#undef CONF_CFLAGS
-#undef CONF_LIBS
 
 #define ppluint8	undefined
 #define pplint8		undefined

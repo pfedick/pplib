@@ -12,7 +12,7 @@ case "$SYS:$REL:$KERNEL" in
 		export LDLAGS=-L/usr/local/lib
 		./configure --with-libmad=/usr/local --with-lame=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
-			--with-libmhash=/usr/local --with-sybase=/usr/local \
+			--with-libmhash=/usr/local --with-freetds=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-jpeg --with-png --with-libtiff=/usr/local \
 			--with-postgresql \

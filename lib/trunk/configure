@@ -674,6 +674,8 @@ FreeTDS_LIBS
 FreeTDS_CFLAGS
 FREETDS_LIBS
 FREETDS_CFLAGS
+SQLITE_LIBS
+SQLITE_CFLAGS
 POSTGRESQL_LDFLAGS
 POSTGRESQL_CFLAGS
 POSTGRESQL_VERSION
@@ -895,6 +897,7 @@ enable_sdltest
 with_imlib
 with_mysql
 with_postgresql
+with_sqlite
 with_freetds
 with_libldns
 with_nasm
@@ -927,6 +930,8 @@ PNG_CFLAGS
 PNG_LIBS
 SDL2_CFLAGS
 SDL2_LIBS
+SQLITE_CFLAGS
+SQLITE_LIBS
 FreeTDS_CFLAGS
 FreeTDS_LIBS'
 
@@ -1605,6 +1610,7 @@ Optional Packages:
   --with-mysql[=PATH]     Prefix where mysql is installed (optional)
   --with-postgresql=[ARG] use PostgreSQL library [default=no], optionally
                           specify path to pg_config
+  --with-sqlite[=PATH]   Prefix where SQLite is installed (optional)
   --with-freetds[=PATH]   Prefix where freetds is installed (optional)
   --with-libldns[=PATH]  Prefix where LDNS-Library from netlabs.nl is installed
   --with-nasm[=PATH]      Prefix where nasm is installed (optional)
@@ -1643,6 +1649,9 @@ Some influential environment variables:
   PNG_LIBS    linker flags for PNG, overriding pkg-config
   SDL2_CFLAGS C compiler flags for SDL2, overriding pkg-config
   SDL2_LIBS   linker flags for SDL2, overriding pkg-config
+  SQLITE_CFLAGS
+              C compiler flags for SQLITE, overriding pkg-config
+  SQLITE_LIBS linker flags for SQLITE, overriding pkg-config
   FreeTDS_CFLAGS
               C compiler flags for FreeTDS, overriding pkg-config
   FreeTDS_LIBS
@@ -2948,6 +2957,10 @@ ac_config_headers="$ac_config_headers include/ppl7-config.h"
 #   warranty.
 
 #serial 9
+
+
+
+
 
 
 
@@ -8395,6 +8408,7 @@ fi
 fi
 
 
+report_have_gtest="no"
 
 # Check whether --enable-gtest was given.
 if test "${enable_gtest+set}" = set; then :
@@ -8517,7 +8531,7 @@ fi
 if test "x$HAVE_GTEST" = "xyes"; then :
   GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 
-	echo "GTEST_CONFIG=$GTEST_CONFIG, GTEST_PREFIX=$GTEST_PREFIX"
+	report_have_gtest="yes"
 
 else
 
@@ -15636,6 +15650,174 @@ $as_echo "#define POSTGRESQL_HAVE_PQsetSingleRowMode 1" >>confdefs.h
 	fi
 fi
 
+report_have_sqlite="no"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if SQLite should be used" >&5
+$as_echo_n "checking if SQLite should be used... " >&6; }
+
+
+# Check whether --with-sqlite was given.
+if test "${with_sqlite+set}" = set; then :
+  withval=$with_sqlite; sqlite_prefix="$withval"
+else
+  sqlite_prefix="auto"
+fi
+
+
+have_sqlite="no"
+if test "$sqlite_prefix" != "no"
+then
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	if test "$sqlite_prefix" = "yes" -o "$sqlite_prefix" = "auto"
+	then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SQLITE" >&5
+$as_echo_n "checking for SQLITE... " >&6; }
+
+if test -n "$SQLITE_CFLAGS"; then
+    pkg_cv_SQLITE_CFLAGS="$SQLITE_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sqlite3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sqlite3") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SQLITE_CFLAGS=`$PKG_CONFIG --cflags "sqlite3" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$SQLITE_LIBS"; then
+    pkg_cv_SQLITE_LIBS="$SQLITE_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"sqlite3\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "sqlite3") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_SQLITE_LIBS=`$PKG_CONFIG --libs "sqlite3" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        SQLITE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "sqlite3" 2>&1`
+        else
+	        SQLITE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "sqlite3" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$SQLITE_PKG_ERRORS" >&5
+
+	have_sqlite="no"
+
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_sqlite="no"
+
+else
+	SQLITE_CFLAGS=$pkg_cv_SQLITE_CFLAGS
+	SQLITE_LIBS=$pkg_cv_SQLITE_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_sqlite="yes"
+
+fi
+	else
+		SQLITE_LIBS="-L$sqlite_prefix/lib -lsqlite3"
+		SQLITE_CFLAGS="-I$sqlite_prefix/include"
+
+		my_save_LIBS="$LIBS"
+		my_save_CFLAGS="$CFLAGS"
+		my_save_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS -L/usr/local/lib"
+		CFLAGS="$CFLAGS $SQLITE_CFLAGS"
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sqlite3_open in -lsqlite3" >&5
+$as_echo_n "checking for sqlite3_open in -lsqlite3... " >&6; }
+if ${ac_cv_lib_sqlite3_sqlite3_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsqlite3  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sqlite3_open ();
+int
+main ()
+{
+return sqlite3_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_sqlite3_sqlite3_open=yes
+else
+  ac_cv_lib_sqlite3_sqlite3_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_sqlite3_sqlite3_open" >&5
+$as_echo "$ac_cv_lib_sqlite3_sqlite3_open" >&6; }
+if test "x$ac_cv_lib_sqlite3_sqlite3_open" = xyes; then :
+  have_sqlite="yes"
+
+fi
+
+		LIBS="$my_save_LIBS"
+		CFLAGS="$my_save_CFLAGS"
+		LDFLAGS="$my_save_LDFLAGS"
+	fi
+else
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+if test $have_sqlite = "yes"
+then
+
+$as_echo "#define HAVE_SQLITE 1" >>confdefs.h
+
+            report_have_sqlite="yes"
+
+
+else
+	:
+fi
+
+
+
 
 report_have_freetds="no"
 
@@ -16629,9 +16811,9 @@ esac;
 
 
 
-$as_echo "#define CONF_CFLAGS \$CFLAGS" >>confdefs.h
+$as_echo "#define CONF_CFLAGS \"\$(CFLAGS)\"" >>confdefs.h
 
-$as_echo "#define CONF_LIBS \$LIBS" >>confdefs.h
+$as_echo "#define CONF_LIBS \"\$(LIBS)\"" >>confdefs.h
 
 
 cat >confcache <<\_ACEOF
@@ -18172,6 +18354,7 @@ fi
 ** Other:
 **   PCRE:                 $report_have_pcre
 **   ICONV:                $report_have_iconv
+**   Unittests:            $report_have_gtest
 ******************************************************************************
 " >&5
 $as_echo "
@@ -18238,6 +18421,7 @@ $as_echo "
 ** Other:
 **   PCRE:                 $report_have_pcre
 **   ICONV:                $report_have_iconv
+**   Unittests:            $report_have_gtest
 ******************************************************************************
 " >&6; }
 

@@ -19,6 +19,7 @@ sinclude(autoconf/ax_check_openssl.m4)
 sinclude(autoconf/libcurl.m4)
 sinclude(autoconf/mysql.m4)
 sinclude(autoconf/postgres.m4)
+sinclude(autoconf/sqlite.m4)
 sinclude(autoconf/freetype.m4)
 sinclude(autoconf/pcre.m4)
 sinclude(autoconf/png.m4)
@@ -203,9 +204,11 @@ AX_TM_HAS_GMTOFF()
 
 AC_PATH_XTRA
 
+report_have_gtest="no"
 GTEST_LIB_CHECK([1.6.0],
 	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 	AC_SUBST(GTEST_PREFIX)
+	report_have_gtest="yes"
 	],
 )
 
@@ -483,6 +486,14 @@ if test "$found_postgresql" = "yes"; then
 	fi
 fi
 
+report_have_sqlite="no"
+AC_CHECK_SQLITE([],
+            AC_DEFINE(HAVE_SQLITE, 1, [ Define if you have SQLite. ])
+            report_have_sqlite="yes"
+			AC_SUBST(SQLITE_CFLAGS)
+			AC_SUBST(SQLITE_LIBS),
+            :)
+            
 
 report_have_freetds="no"
 AC_CHECK_FREETDS([],
@@ -631,11 +642,7 @@ AC_SUBST(report_have_libbind)
 
 
 
-
-AC_DEFINE(CONF_CFLAGS, $CFLAGS)
-AC_DEFINE(CONF_LIBS, $LIBS)
-
-AC_OUTPUT()
+AC_OUTPUT
 
 
 ####################################################################################################
@@ -709,6 +716,7 @@ AC_MSG_RESULT([
 ** Other:
 **   PCRE:                 $report_have_pcre
 **   ICONV:                $report_have_iconv
+**   Unittests:            $report_have_gtest
 ******************************************************************************
 ])
 
