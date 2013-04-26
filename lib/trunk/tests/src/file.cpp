@@ -94,7 +94,7 @@ TEST_F(FileReadTest, openExisting) {
 TEST_F(FileReadTest, size) {
 	ppl7::File f1;
 	f1.open("testdata/dirwalk/LICENSE.TXT");
-	ASSERT_EQ((ppluint64)1540,f1.size());
+	ASSERT_EQ((ppluint64)1330,f1.size());
 	ppl7::File f2;
 	f2.open("testdata/dirwalk/testfile.txt");
 	ASSERT_EQ((ppluint64)1592096,f2.size());
@@ -104,7 +104,7 @@ TEST_F(FileReadTest, size) {
 TEST_F(FileReadTest, openAndClose) {
 	ppl7::File f1;
 	f1.open("testdata/dirwalk/LICENSE.TXT");
-	ASSERT_EQ((ppluint64)1540,f1.size());
+	ASSERT_EQ((ppluint64)1330,f1.size());
 	f1.close();
 	f1.open("testdata/dirwalk/testfile.txt");
 	ASSERT_EQ((ppluint64)1592096,f1.size());
@@ -218,7 +218,7 @@ TEST_F(FileStaticTest, stat) {
 	ASSERT_NO_THROW({
 		ppl7::File::stat("testdata/dirwalk/LICENSE.TXT",d);
 	});
-	ASSERT_EQ((size_t)1540,d.Size);
+	ASSERT_EQ((size_t)1330,d.Size);
 	ASSERT_EQ(ppl7::String("testdata/dirwalk/LICENSE.TXT"),d.File);
 	//d.print();
 

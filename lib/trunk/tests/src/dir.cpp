@@ -142,7 +142,7 @@ TEST_F(DirTest, dirWalkFilename) {
 		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
 	}
 	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename);
-	ASSERT_EQ((size_t)1540,e.Size);
+	ASSERT_EQ((size_t)1330,e.Size);
 
 	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("afile.txt"),e.Filename);
@@ -197,7 +197,7 @@ TEST_F(DirTest, dirWalkSize) {
 		e=getNextFile(d1,it);
 	});
 	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename )<< "Real Filename 1: "<<e.Filename;
-	ASSERT_EQ((size_t)1540,e.Size);
+	ASSERT_EQ((size_t)1330,e.Size);
 
 	ASSERT_NO_THROW({
 		e=getNextFile(d1,it);
