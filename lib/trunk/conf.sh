@@ -6,8 +6,8 @@ KERNEL=`uname -v`
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
-		export CC=gcc
-		export CXX=g++
+		#export CC=gcc47
+		#export CXX=g++47
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --with-libmad=/usr/local --with-lame=/usr/local \
@@ -19,6 +19,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-mpg123=/usr/local --with-libidn=/usr/local \
 			--with-ogg=/usr/local \
 			--with-libmicrohttpd=/usr/local \
+			--enable-gtest=/usr/local/gtest-1.6.0
 		;;
 	MINGW32*:1.0.16*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"

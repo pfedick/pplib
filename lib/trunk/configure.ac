@@ -48,6 +48,7 @@ sinclude(autoconf/libtiff.m4)
 sinclude(autoconf/libmicrohttpd.m4)
 sinclude(autoconf/libidn.m4)
 sinclude(autoconf/libbind.m4)
+sinclude(autoconf/gtest.m4)
 
 
 
@@ -201,6 +202,12 @@ AX_FPOS_ISSTRUCT()
 AX_TM_HAS_GMTOFF()
 
 AC_PATH_XTRA
+
+GTEST_LIB_CHECK([1.6.0],
+	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
+	AC_SUBST(GTEST_PREFIX)
+	],
+)
 
 
 AC_CHECK_HEADERS([stdlib.h])

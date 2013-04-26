@@ -1,10 +1,10 @@
-GTEST_DIR = /usr/local/gtest-1.6.0
+GTEST_DIR	= @GTEST_PREFIX@
 CC			= @CC@
 CXX			= @CXX@
 EXTRA_CFLAGS = 
 INCLUDE	= -I. -I$(GTEST_DIR)/include
-CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
-LIBS	= `../ppl7-config --libs debug source` -lstdc++
+CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags release source` $(EXTRA_CFLAGS)
+LIBS	= `../ppl7-config --libs release source` -lstdc++
 PROGNAME = testsuite
 
 OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o compile/array.o \
@@ -38,10 +38,10 @@ memcheck: $(PROGNAME)
 threadtest: compile/threadtest.o ppl7-tests.h
 	$(CXX) -O -ggdb -o threadtest $(CFLAGS) compile/threadtest.o $(LIBS)
 
-toolkit: compile/toolkit.o src/toolkit.h ../debug/libppl7-debug.a
+toolkit: compile/toolkit.o src/toolkit.h ../release/libppl7.a
 	$(CXX) -O -ggdb -o toolkit $(CFLAGS) compile/toolkit.o $(LIBS)
 
-loggertest: src/loggertest.cpp ../debug/libppl7-debug.a
+loggertest: src/loggertest.cpp ../release/libppl7.a
 	mkdir -p compile
 	$(CXX) -O -ggdb -o loggertest $(CFLAGS) src/loggertest.cpp $(LIBS)
 
@@ -52,7 +52,7 @@ clean:
 
 compile/libgtest.a:
 	mkdir -p compile
-	g++ -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
+	$(CXX) -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
 	ar -rv compile/libgtest.a compile/gtest-all.o
 
 
