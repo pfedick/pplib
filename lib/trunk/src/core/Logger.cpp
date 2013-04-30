@@ -82,36 +82,42 @@ static const char *prioritylist[] = {
 
 #ifdef HAVE_SYSLOG_H
 static const int syslog_facility_lookup[] = {
-		LOG_USER,
-		LOG_AUTH,
-		LOG_AUTHPRIV,
+		LOG_USER,				// = 0
+		LOG_AUTH,				// SYSLOG_AUTH=1
+		LOG_AUTHPRIV,			// SYSLOG_AUTHPRIV
 #ifdef LOG_CONSOLE
-		LOG_CONSOLE,
-#endif
-		LOG_CRON,
-		LOG_DAEMON,
-		LOG_FTP,
-		LOG_KERN,
-		LOG_LPR,
-		LOG_MAIL,
-		LOG_NEWS,
-#ifdef LOG_NTP
-		LOG_NTP,
-#endif
-#ifdef LOG_SECURITY
-		LOG_SECURITY,
-#endif
-		LOG_SYSLOG,
+		LOG_CONSOLE,			// SYSLOG_CONSOLE
+#else
 		LOG_USER,
-		LOG_UUCP,
-		LOG_LOCAL0,
-		LOG_LOCAL1,
-		LOG_LOCAL2,
-		LOG_LOCAL3,
-		LOG_LOCAL4,
-		LOG_LOCAL5,
-		LOG_LOCAL6,
-		LOG_LOCAL7
+#endif
+		LOG_CRON,				// SYSLOG_CRON
+		LOG_DAEMON,				// SYSLOG_DAEMON
+		LOG_FTP,				// SYSLOG_FTP
+		LOG_KERN,				// SYSLOG_KERN
+		LOG_LPR,				// SYSLOG_LPR
+		LOG_MAIL,				// SYSLOG_MAIL
+		LOG_NEWS,				// SYSLOG_NEWS
+#ifdef LOG_NTP					// SYSLOG_NTP
+		LOG_NTP,
+#else
+		LOG_USER,
+#endif
+#ifdef LOG_SECURITY				// SYSLOG_SECURITY
+		LOG_SECURITY,
+#else
+		LOG_USER,
+#endif
+		LOG_SYSLOG,				// SYSLOG_SYSLOG
+		LOG_USER,				// SYSLOG_USER
+		LOG_UUCP,				// SYSLOG_UUCP
+		LOG_LOCAL0,				// SYSLOG_LOCAL0
+		LOG_LOCAL1,				// SYSLOG_LOCAL1
+		LOG_LOCAL2,				// SYSLOG_LOCAL2
+		LOG_LOCAL3,				// SYSLOG_LOCAL3
+		LOG_LOCAL4,				// SYSLOG_LOCAL4
+		LOG_LOCAL5,				// SYSLOG_LOCAL5
+		LOG_LOCAL6,				// SYSLOG_LOCAL6
+		LOG_LOCAL7				// SYSLOG_LOCAL7
 
 };
 
@@ -174,7 +180,6 @@ void Logger::terminate()
 	}
 	firsthandler=lasthandler=NULL;
 	logconsole=false;
-	useSyslog=false;
 	logThreadId=true;
 	console_enabled=false;
 	console_priority=Logger::DEBUG;
