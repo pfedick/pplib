@@ -225,7 +225,7 @@ void CLog::openSyslog(const CString &ident,SYSLOG_FACILITY facility)
 	syslogIdent=ident;
 	syslogFacility=facility;
 	openlog(syslogIdent,LOG_NDELAY|LOG_PID,syslog_facility_lookup[facility]);
-	Print(LOG::INFO,0,"ppl6::CLog","openSyslog",__FILE__,__LINE__,"=== Enable Syslog ===============================");
+	Print(LOG::INFO,1,"ppl6::CLog","openSyslog",__FILE__,__LINE__,"=== Enable Syslog ===============================");
 #endif
 }
 
@@ -548,7 +548,7 @@ void CLog::LogError (int facility, int level, const char *module, const char *fu
 	Printf(facility,level,module,function,file,line,"ERROR %u: %s (%s)",GetErrorCode(),GetError(),GetExtendedError());
 }
 
-int getSyslogLevel(int facility)
+static int getSyslogLevel(int facility)
 {
 	switch (facility) {
 		case LOG::EMERG: return LOG_EMERG;
@@ -561,6 +561,22 @@ int getSyslogLevel(int facility)
 		case LOG::DEBUG: return LOG_DEBUG;
 		default:
 			return LOG_DEBUG;
+	}
+}
+
+static const char *getSyslogLdevelName(int facility)
+{
+	switch (facility) {
+		case LOG::EMERG: return "EMERGENCY";
+		case LOG::ALERT: return "ALERT";
+		case LOG::CRIT: return "CRITICAL";
+		case LOG::ERR: return "ERROR";
+		case LOG::WARNING: return "WARNING";
+		case LOG::NOTICE: return "NOTICE";
+		case LOG::INFO: return "INFO";
+		case LOG::DEBUG: return "DEBUG";
+		default:
+			return "DEBUG";
 	}
 }
 
@@ -595,9 +611,18 @@ void CLog::Output(int facility, int level, const char *module, const char *funct
 
 	if (useSyslog) {
 		CString log;
-		if (logThreadId) log.Sprintf("[%2i] [%6llu]",level,GetThreadID());
-		else log.Sprintf("[%2i]",level);
-		syslog(getSyslogLevel(facility),"%s %s",(const char*)log,(const char*)bu);
+		if (logThreadId) log.Sprintf("[%llu]",GetThreadID());
+		/*
+		log.Concat("[");
+		if (file) log.Concatf("%s:%i",file,line);
+		log.Concat("] {");
+		if (module) {
+			log.Concatf("%s",module);
+			if (function) log.Concatf(": %s",function);
+		}
+		log.Concat("}: ");
+		*/
+		syslog(getSyslogLevel(facility),"[%s] %s %s",getSyslogLdevelName(facility), (const char*)log, (const char*)bu);
 	}
 
 	if (level<=debuglevel[facility]) {
