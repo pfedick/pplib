@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.62)
-AC_INIT([ppl], [6.4.14], [patrick@pfp.de], [ppl-6.4.14.tar.bz2])
+AC_INIT([ppl], [6.4.15], [patrick@pfp.de], [ppl-6.4.15.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
 AC_CONFIG_SRCDIR([include/ppl6.h])
@@ -195,6 +195,7 @@ AC_CHECK_HEADERS([wctype.h])
 AC_CHECK_HEADERS([locale.h])
 AC_CHECK_HEADERS([wchar.h])
 AC_CHECK_HEADERS([widec.h])
+AC_CHECK_HEADERS([syslog.h])
 AC_CHECK_HEADERS([sys/mman.h])
 
 AC_FUNC_MKTIME
@@ -219,7 +220,7 @@ AC_CHECK_FUNCS([atoll strtoll])
 AC_CHECK_FUNCS([flock fcntl truncate ftruncate sync fsync])
 AC_CHECK_FUNCS([fgets fputs fgetws fputws fputc fgetc fputwc fgetwc mmap munmap sysconf pagesize])
 AC_CHECK_FUNCS([usleep nanosleep localtime localtime_r gmtime gmtime_r])
-AC_CHECK_FUNCS([signal])
+AC_CHECK_FUNCS([signal syslog openlog closelog])
 AC_CHECK_FUNCS([strtok_r])
 AC_CHECK_FUNCS([getpid getppid getuid geteuid])
 AC_CHECK_FUNCS([mkstemp])

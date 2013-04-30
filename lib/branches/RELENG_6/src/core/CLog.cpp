@@ -36,10 +36,26 @@
  *******************************************************************************/
 
 #include "prolog.h"
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
+
+#ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
+
 #include "ppl6.h"
 
 
@@ -72,6 +88,63 @@ static const char *facilitylist[] = {
 
 
 
+#ifdef HAVE_SYSLOG_H
+static const int syslog_facility_lookup[] = {
+		LOG_USER,				// = 0
+		LOG_AUTH,				// SYSLOG_AUTH=1
+		LOG_AUTHPRIV,			// SYSLOG_AUTHPRIV
+#ifdef LOG_CONSOLE
+		LOG_CONSOLE,			// SYSLOG_CONSOLE
+#else
+		LOG_USER,
+#endif
+		LOG_CRON,				// SYSLOG_CRON
+		LOG_DAEMON,				// SYSLOG_DAEMON
+		LOG_FTP,				// SYSLOG_FTP
+		LOG_KERN,				// SYSLOG_KERN
+		LOG_LPR,				// SYSLOG_LPR
+		LOG_MAIL,				// SYSLOG_MAIL
+		LOG_NEWS,				// SYSLOG_NEWS
+#ifdef LOG_NTP					// SYSLOG_NTP
+		LOG_NTP,
+#else
+		LOG_USER,
+#endif
+#ifdef LOG_SECURITY				// SYSLOG_SECURITY
+		LOG_SECURITY,
+#else
+		LOG_USER,
+#endif
+		LOG_SYSLOG,				// SYSLOG_SYSLOG
+		LOG_USER,				// SYSLOG_USER
+		LOG_UUCP,				// SYSLOG_UUCP
+		LOG_LOCAL0,				// SYSLOG_LOCAL0
+		LOG_LOCAL1,				// SYSLOG_LOCAL1
+		LOG_LOCAL2,				// SYSLOG_LOCAL2
+		LOG_LOCAL3,				// SYSLOG_LOCAL3
+		LOG_LOCAL4,				// SYSLOG_LOCAL4
+		LOG_LOCAL5,				// SYSLOG_LOCAL5
+		LOG_LOCAL6,				// SYSLOG_LOCAL6
+		LOG_LOCAL7				// SYSLOG_LOCAL7
+
+};
+
+static const int syslog_priority_lookup[] = {
+		LOG_DEBUG,
+		LOG_EMERG,
+		LOG_ALERT,
+		LOG_CRIT,
+		LOG_ERR,
+		LOG_WARNING,
+		LOG_NOTICE,
+		LOG_INFO,
+		LOG_DEBUG
+};
+
+#endif
+
+
+
 CLog::CLog()
 {
 	firsthandler=lasthandler=NULL;
@@ -89,6 +162,8 @@ CLog::CLog()
 	maxsize=1024*1024*1024;
 	generations=1;
 	inrotate=false;
+	useSyslog=false;
+	syslogFacility=SYSLOG_USER;
 }
 
 CLog::~CLog()
@@ -122,6 +197,7 @@ void CLog::Terminate()
 		debuglevel[i]=0;
 	}
 	mutex.Unlock();
+	closeSyslog();
 	PopError();
 }
 
@@ -135,6 +211,37 @@ void CLog::SetConsole(bool flag, int facility, int level)
 	console_level=level;
 	mutex.Unlock();
 }
+
+void CLog::openSyslog(const CString &ident,SYSLOG_FACILITY facility)
+{
+#ifndef HAVE_OPENLOG
+	throw UnsupportedFeatureException("syslog");
+#else
+	if (useSyslog) {
+		//print(Logger::INFO,0,"ppl7::Logger","openSyslog",__FILE__,__LINE__,"=== Reopen Syslog ===============================");
+		closelog();
+	}
+	useSyslog=true;
+	syslogIdent=ident;
+	syslogFacility=facility;
+	openlog(syslogIdent,LOG_NDELAY|LOG_PID,syslog_facility_lookup[facility]);
+	Print(LOG::INFO,0,"ppl6::CLog","openSyslog",__FILE__,__LINE__,"=== Enable Syslog ===============================");
+#endif
+}
+
+void CLog::closeSyslog()
+{
+#ifndef HAVE_CLOSELOG
+	throw UnsupportedFeatureException("syslog");
+#else
+	if (useSyslog) {
+		Print(LOG::INFO,0,"ppl6::CLog","closeSyslog",__FILE__,__LINE__,"=== Close Syslog ===============================");
+		closelog();
+		useSyslog=false;
+	}
+#endif
+}
+
 
 
 int CLog::SetLogfile(int facility, const char *filename)
@@ -191,7 +298,7 @@ int CLog::GetLogLevel(int facility)
 
 void CLog::Print (int facility, int level, const char * text)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,facility,level)) return;
 	if (text==NULL) return;
 	mutex.Lock();
 	Output(facility,level,NULL,NULL,NULL,0,text,true);
@@ -270,7 +377,7 @@ void CLog::Printfs (int level, const char *fmt, ... )
 
 void CLog::PrintArray (int facility, int level, const CAssocArray *a, const char *fmt, ... )
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,facility,level)) return;
 	CString s;
 	va_list args;
 	va_start(args, fmt);
@@ -354,7 +461,7 @@ void CLog::HexDump (const void * address, int bytes)
 
 void CLog::HexDump (int facility, int level, const void * address, int bytes)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,facility,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,facility,level)) return;
 	if (address==NULL) return;
 	mutex.Lock();
 
@@ -441,6 +548,22 @@ void CLog::LogError (int facility, int level, const char *module, const char *fu
 	Printf(facility,level,module,function,file,line,"ERROR %u: %s (%s)",GetErrorCode(),GetError(),GetExtendedError());
 }
 
+int getSyslogLevel(int facility)
+{
+	switch (facility) {
+		case LOG::EMERG: return LOG_EMERG;
+		case LOG::ALERT: return LOG_ALERT;
+		case LOG::CRIT: return LOG_CRIT;
+		case LOG::ERR: return LOG_ERR;
+		case LOG::WARNING: return LOG_WARNING;
+		case LOG::NOTICE: return LOG_NOTICE;
+		case LOG::INFO: return LOG_INFO;
+		case LOG::DEBUG: return LOG_DEBUG;
+		default:
+			return LOG_DEBUG;
+	}
+}
+
 void CLog::Output(int facility, int level, const char *module, const char *function, const char *file, int line, const char *buffer, bool printdate)
 {
 	PushError();
@@ -469,6 +592,13 @@ void CLog::Output(int facility, int level, const char *module, const char *funct
 	bf+=bu;
 	bf.Replace("\n","\n     ");
 	bf.Concat("\n");
+
+	if (useSyslog) {
+		CString log;
+		if (logThreadId) log.Sprintf("[%2i] [%6llu]",level,GetThreadID());
+		else log.Sprintf("[%2i]",level);
+		syslog(getSyslogLevel(facility),"%s %s",(const char*)log,(const char*)bu);
+	}
 
 	if (level<=debuglevel[facility]) {
 		logff[facility].Puts(bf);

@@ -40,8 +40,8 @@
 
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
-#define PPL_VERSION_BUILD	14
-#define PPL_RELEASEDATE		20130321
+#define PPL_VERSION_BUILD	15
+#define PPL_RELEASEDATE		20130430
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -1729,6 +1729,32 @@ namespace LOG {
 //! \brief Allgemeine Logging-Klasse
 class CLog
 {
+	public:
+		enum SYSLOG_FACILITY {
+			SYSLOG_AUTH=1,
+			SYSLOG_AUTHPRIV,
+			SYSLOG_CONSOLE,
+			SYSLOG_CRON,
+			SYSLOG_DAEMON,
+			SYSLOG_FTP,
+			SYSLOG_KERN,
+			SYSLOG_LPR,
+			SYSLOG_MAIL,
+			SYSLOG_NEWS,
+			SYSLOG_NTP,
+			SYSLOG_SECURITY,
+			SYSLOG_SYSLOG,
+			SYSLOG_USER,
+			SYSLOG_UUCP,
+			SYSLOG_LOCAL0,
+			SYSLOG_LOCAL1,
+			SYSLOG_LOCAL2,
+			SYSLOG_LOCAL3,
+			SYSLOG_LOCAL4,
+			SYSLOG_LOCAL5,
+			SYSLOG_LOCAL6,
+			SYSLOG_LOCAL7
+		};
 	private:
 		CMutex	mutex;
 		CAssocArray	*FilterModule, *FilterFile;
@@ -1745,6 +1771,10 @@ class CLog
 		ppluint64	maxsize;
 		int			generations;
 		bool		inrotate;
+		bool			useSyslog;
+		SYSLOG_FACILITY	syslogFacility;
+		CString			syslogIdent;
+
 
 		bool		shouldPrint(const char *module, const char *function, const char *file, int line, int facility, int level);
 		int			IsFiltered(const char *module, const char *function, const char *file, int line, int level);
@@ -1763,6 +1793,8 @@ class CLog
 		int  GetLogLevel(int facility);
 		int		SetLogRotate(ppluint64 maxsize, int generations);
 		void SetConsole(bool flag=true, int facility=LOG::DEBUG, int level=1);
+		void	openSyslog(const CString &ident, SYSLOG_FACILITY facility=SYSLOG_USER);
+		void	closeSyslog();
 		void Print (int facility, int level, const char *text);
 		void Print (int facility, int level, const char *file, int line, const char *text);
 		void Print (int facility, int level, const char *module, const char *function, const char *file, int line, const char *text);

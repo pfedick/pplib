@@ -105,6 +105,7 @@
 #undef HAVE_NETDB_H
 #undef HAVE_ARPA_INET_H
 #undef HAVE_SYS_MMAN_H
+#undef HAVE_SYSLOG_H
 
 
 #undef HAVE_VPRINTF
@@ -195,6 +196,9 @@
 #undef HAVE_CLOSEDIR
 #undef HAVE_READDIR
 #undef HAVE_READDIR_R
+#undef HAVE_SYSLOG
+#undef HAVE_OPENLOG
+#undef HAVE_CLOSELOG
 
 
 #undef HAVE_GETHOSTNAME
