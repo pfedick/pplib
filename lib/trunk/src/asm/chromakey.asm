@@ -138,7 +138,7 @@ ASM_BltChromaKey32_1:
 	cvtsi2ss xmm8,[r8+cb_key]	; // xmm8=Cb_key
 	cvtsi2ss xmm9,[r8+cr_key]	; // xmm8=Cr_key
 	cvtsi2ss xmm2,[r8+tola]		; // xmm2=tola
-	cvtsi2ss xmm3,[r8+tolb]		; // xmm2=tolb
+	cvtsi2ss xmm3,[r8+tolb]		; // xmm3=tolb
 
 	mov r8,[r8+sadr]			;// r8: Pointer auf Quelle/Ziel
 	;movss xmm8, [sflt7]	; 1
