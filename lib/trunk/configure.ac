@@ -247,6 +247,7 @@ GTEST_LIB_CHECK([1.6.0],
 	AC_SUBST(GTEST_PREFIX)
 	report_have_gtest="yes"
 	],
+	report_have_gtest="no"
 )
 
 

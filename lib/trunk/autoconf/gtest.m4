@@ -37,7 +37,7 @@ AS_IF([test "x${enable_gtest}" != "xno"],
         [GTEST_CONFIG="${enable_gtest}/bin/gtest-config"])
       AS_IF([test -x "${GTEST_CONFIG}"], [],
         [AC_MSG_RESULT([no])
-         AC_MSG_ERROR([dnl
+         AC_MSG_NOTICE([dnl
 Unable to locate either a built or installed Google Test.
 The specific location '${enable_gtest}' was provided for a built or installed
 Google Test, but no 'gtest-config' script could be found at this location.])
