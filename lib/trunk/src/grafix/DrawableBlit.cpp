@@ -1093,7 +1093,7 @@ void Drawable::bltBackgroundOnChromaKey(const Drawable &background, const Rect &
 		if (q.height()>height()) q.setHeight(height());
 	}
 	if (!fitRect(x,y,q)) return;
-	if (!fn->BltChromaKey) throw FunctionUnavailableException("Drawable::bltChromaKey");
+	if (!fn->BltBackgoundOnChromaKey) throw FunctionUnavailableException("Drawable::bltBackgroundOnChromaKey");
 	fn->BltBackgoundOnChromaKey(data,background.data,q,key,tol1,tol2,x,y);
 }
 
