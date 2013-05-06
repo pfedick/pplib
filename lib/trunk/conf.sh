@@ -100,7 +100,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql \
 			--with-sybase=/usr --with-jpeg --with-png \
-			--with-libtiff=/usr --with-mpg123
+			--with-libtiff=/usr --with-mpg123 \
+			--enable-gtest=/usr/local/gtest-1.6.0
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
