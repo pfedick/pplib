@@ -349,7 +349,10 @@ void CLog::Printf (int facility, int level, const char *file, int line, const ch
 
 void CLog::Printf (int facility, int level, const char *module, const char *function, const char *file, int line, const char *fmt, ... )
 {
-	if (!shouldPrint(module,function,file,line,facility,level)) return;
+	//if (!shouldPrint(module,function,file,line,facility,level)) return;
+	// shouldPrint führt an dieser Stelle zu Problemen, da die Funktion IsFiltered aufruft, in der neue Fehler auftreten können,
+	// wodurch die Pointer in den variablen Argumenten zum Teil ungültig werden.
+
 	CString s;
 	va_list args;
 	va_start(args, fmt);
