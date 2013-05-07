@@ -1102,6 +1102,7 @@ int CWString::Setf(const char *fmt, ...)
 	if (vasprintf (&buff, (char*)fmt, args)>0 && buff!=NULL) {
 		int ret=Set(buff);
 		va_end(args);
+		free(buff);
 	    return ret;
 	}
 	va_end(args);
@@ -1121,6 +1122,7 @@ int CWString::Setf(const wchar_t *fmt, ...)
 	if (vasprintf (&buff, (const char*)f, args)>0 && buff!=NULL) {
 		int ret=Set(buff);
 		va_end(args);
+		free(buff);
 	    return ret;
 	}
 	va_end(args);
@@ -1139,6 +1141,7 @@ int CWString::Sprintf(const char *fmt, ...)
 	if (vasprintf (&buff, (char*)fmt, args)>0 && buff!=NULL) {
 		int ret=Set(buff);
 		va_end(args);
+		free(buff);
 	    return ret;
 	}
 	va_end(args);

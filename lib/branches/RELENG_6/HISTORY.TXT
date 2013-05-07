@@ -4,6 +4,8 @@ PPL6 - HISTORY
 Version 6.4.16
   - Bugfix: "Invalid read of size 1" in ppl6::CLog::Printf behoben
   - Bugfix: Memory-Leak in CSSL::~CSSL() gefixt
+  - Bugfix: Diverse Memory-Leaks in CWString::Setf und CWString::Sprintf
+    behoben
 
 Version 6.4.15 vom 30.04.2013	(SVN-Tag: REL_6_4_15)
   - CLog-Klasse unterstützt nun Syslog
