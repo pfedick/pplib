@@ -144,8 +144,9 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	//ppl6::HexDump((void*)upload_data,*upload_data_size);
 
 
-	int ret=w->request(*r);
+	w->request(*r);
 	delete (r);
+	CleanupThreadData();
 
 	return MHD_YES;
 }
