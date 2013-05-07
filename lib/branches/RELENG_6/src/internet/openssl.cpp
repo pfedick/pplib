@@ -1016,6 +1016,12 @@ CSSL::CSSL()
 CSSL::~CSSL()
 {
 	Clear();
+#ifdef HAVE_OPENSSL
+	if (ctx) {
+		SSL_CTX_free((SSL_CTX*)ctx);
+		ctx=NULL;
+	}
+#endif
 }
 
 void CSSL::Clear()
