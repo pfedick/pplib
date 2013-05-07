@@ -184,6 +184,26 @@ THREADDATA * GetThreadData()
 	return NULL;
 }
 
+void CleanupThreadData()
+{
+#ifdef _WIN32
+#elif defined HAVE_PTHREADS
+	THREADDATA *ptr=NULL;
+	(void) pthread_once(&key_once, make_key);
+	DLOG ("GetThreadData(), pthread_getspecific\n");
+	if ((ptr = (THREADDATA*)pthread_getspecific(thread_key)) == NULL) return;
+
+	pthread_attr_destroy(&ptr->attr);
+	while (ptr->ErrorStack) {
+		ERRORSTACK *s=ptr->ErrorStack;
+		ptr->ErrorStack=s->next;
+		delete s;
+	}
+	delete ptr;
+
+#endif
+}
+
 ppluint64 GetThreadID()
 /*! \brief ThreadID zurückgeben
  * \ingroup PPLGroupThreads

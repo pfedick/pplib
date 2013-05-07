@@ -1581,6 +1581,8 @@ int ThreadGetPriority();
 
 ppluint64	StartThread(void (*start_routine)(void *),void *data=NULL);
 
+void CleanupThreadData();
+
 //! \brief Thread-Klasse
 class CThread
 {

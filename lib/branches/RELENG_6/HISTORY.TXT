@@ -6,6 +6,9 @@ Version 6.4.16
   - Bugfix: Memory-Leak in CSSL::~CSSL() gefixt
   - Bugfix: Diverse Memory-Leaks in CWString::Setf und CWString::Sprintf
     behoben
+  - Neue Funktion: CleanupThreadData. Diese muss aufgerufen werden, bevor
+    ein Thread, der nicht mittles der PPL-Funktionen gestartet wurde,
+    beendet wird.
 
 Version 6.4.15 vom 30.04.2013	(SVN-Tag: REL_6_4_15)
   - CLog-Klasse unterstützt nun Syslog
