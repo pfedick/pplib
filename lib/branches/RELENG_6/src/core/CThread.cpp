@@ -199,6 +199,7 @@ void CleanupThreadData()
 		ptr->ErrorStack=s->next;
 		delete s;
 	}
+	if (ptr->mysql_thread_end) ptr->mysql_thread_end(ptr);
 	delete ptr;
 
 #endif
@@ -490,7 +491,9 @@ CThread::~CThread()
 		t->ErrorStack=s->next;
 		delete s;
 	}
+	if (t->mysql_thread_end) t->mysql_thread_end(t);
 	delete t;
+	threaddata=NULL;
 }
 
 void CThread::ThreadSuspend()

@@ -10,6 +10,7 @@ Version 6.4.16
     ein Thread, der nicht mittles der PPL-Funktionen gestartet wurde,
     beendet wird.
   - Bugfix: Memory-Leak in der Restschnittstelle behoben
+  - Bugfix: Memory-Leak im Zusammenhang mit MySQL gefixt
 
 Version 6.4.15 vom 30.04.2013	(SVN-Tag: REL_6_4_15)
   - CLog-Klasse unterstützt nun Syslog
