@@ -551,6 +551,7 @@ void CLog::LogError (int facility, int level, const char *module, const char *fu
 	Printf(facility,level,module,function,file,line,"ERROR %u: %s (%s)",GetErrorCode(),GetError(),GetExtendedError());
 }
 
+#ifdef HAVE_SYSLOG_H
 static int getSyslogLevel(int facility)
 {
 	switch (facility) {
@@ -582,6 +583,7 @@ static const char *getSyslogLdevelName(int facility)
 			return "DEBUG";
 	}
 }
+#endif
 
 void CLog::Output(int facility, int level, const char *module, const char *function, const char *file, int line, const char *buffer, bool printdate)
 {
@@ -612,6 +614,7 @@ void CLog::Output(int facility, int level, const char *module, const char *funct
 	bf.Replace("\n","\n     ");
 	bf.Concat("\n");
 
+#ifdef HAVE_OPENLOG
 	if (useSyslog) {
 		CString log;
 		if (logThreadId) log.Sprintf("[%llu]",GetThreadID());
@@ -627,6 +630,7 @@ void CLog::Output(int facility, int level, const char *module, const char *funct
 		*/
 		syslog(getSyslogLevel(facility),"[%s] %s %s",getSyslogLdevelName(facility), (const char*)log, (const char*)bu);
 	}
+#endif
 
 	if (level<=debuglevel[facility]) {
 		logff[facility].Puts(bf);

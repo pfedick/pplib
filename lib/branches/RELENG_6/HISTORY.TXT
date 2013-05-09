@@ -2,6 +2,8 @@
 PPL6 - HISTORY
 
 Version 6.4.16
+  - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog
+    ergänzt (behebt Compiler-Fehler unter MinGW)
   - Bugfix: "Invalid read of size 1" in ppl6::CLog::Printf behoben
   - Bugfix: Memory-Leak in CSSL::~CSSL() gefixt
   - Bugfix: Diverse Memory-Leaks in CWString::Setf und CWString::Sprintf
