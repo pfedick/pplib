@@ -851,7 +851,7 @@ int CWString::Set(const wchar_t *text, int size)
 	if (inbytes>=buffersize) {
 		if (buffer) free(buffer);
 		buffersize=InitialBuffersize;
-		if (buffersize<=inbytes) buffersize=((inbytes/InitialBuffersize)+1)*InitialBuffersize+10;
+		if (buffersize<=inbytes) buffersize=((inbytes/InitialBuffersize)+1)*InitialBuffersize+4;
 		buffer=(wchar_t*)malloc(buffersize);
 		if (!buffer) {
 			SetError(2);
@@ -1886,15 +1886,14 @@ void CWString::LTrim()
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab
 {
 	if (buffer) {
-		size_t i,start,ende,s;
+		size_t i,start,s;
 		if (len>0) {
 			start=0; s=0;
-			ende=len;
 			for (i=0;i<len;i++) {
 				if (buffer[i]==13||buffer[i]==10||buffer[i]==32||buffer[i]=='\t') {
 					if (s==0) start=i+1;
 				} else {
-					s=1; ende=i;
+					s=1;
 				}
 			}
 			if (start>0)
@@ -1909,15 +1908,14 @@ void CWString::RTrim()
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
 {
 	if (buffer) {
-		size_t i,start,ende,s;
+		size_t i,ende;
 		if (len>0) {
-			start=0; s=0;
 			ende=len;
 			for (i=0;i<len;i++) {
 				if (buffer[i]==13||buffer[i]==10||buffer[i]==32||buffer[i]=='\t') {
-					if (s==0) start=i+1;
+					//
 				} else {
-					s=1; ende=i;
+					ende=i;
 				}
 			}
 			buffer[ende+1]=0;
@@ -1955,15 +1953,14 @@ void CWString::LTrim(wchar_t c)
 //! \brief Schneidet das angegebene Zeichen am Anfang des Strings ab
 {
 	if (buffer) {
-		size_t i,start,ende,s;
+		size_t i,start,s;
 		if (len>0) {
 			start=0; s=0;
-			ende=len;
 			for (i=0;i<len;i++) {
 				if (buffer[i]==c) {
 					if (s==0) start=i+1;
 				} else {
-					s=1; ende=i;
+					s=1;
 				}
 			}
 			if (start>0)
@@ -1978,15 +1975,14 @@ void CWString::RTrim(wchar_t c)
 //! \brief Schneidet das angegebene Zeichen am Ende des Strings ab
 {
 	if (buffer) {
-		size_t i,start,ende,s;
+		size_t i,ende;
 		if (len>0) {
-			start=0; s=0;
 			ende=len;
 			for (i=0;i<len;i++) {
 				if (buffer[i]==c) {
-					if (s==0) start=i+1;
+					//
 				} else {
-					s=1; ende=i;
+					ende=i;
 				}
 			}
 			buffer[ende+1]=0;
@@ -2004,11 +2000,10 @@ void CWString::LTrim(const char *str)
 		CWString cut=str;
 		size_t cutl=cut.Len();
 		if (cutl==0) return;
-		size_t i,start,ende,s,z;
+		size_t i,start,s,z;
 		int match;
 		if (len>0) {
 			start=0; s=0;
-			ende=len;
 			for (i=0;i<len;i++) {
 				match=0;
 				for (z=0;z<cutl;z++) {
@@ -2019,7 +2014,7 @@ void CWString::LTrim(const char *str)
 					}
 				}
 				if (!match) {
-					s=1; ende=i;
+					s=1;
 				}
 			}
 			if (start>0)
@@ -2038,22 +2033,20 @@ void CWString::RTrim(const char *str)
 		CWString cut=str;
 		size_t cutl=cut.Len();
 		if (cutl==0) return;
-		size_t i,start,ende,s,z;
+		size_t i,ende,z;
 		int match;
 		if (len>0) {
-			start=0; s=0;
 			ende=len;
 			for (i=0;i<len;i++) {
 				match=0;
 				for (z=0;z<cutl;z++) {
 					if (buffer[i]==cut.GetChar(z)) {
-						if (s==0) start=i+1;
 						match=1;
 						break;
 					}
 				}
 				if (!match) {
-					s=1; ende=i;
+					ende=i;
 				}
 			}
 			buffer[ende+1]=0;
