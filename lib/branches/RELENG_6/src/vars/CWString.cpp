@@ -847,7 +847,7 @@ int CWString::Set(const wchar_t *text, int size)
 	size_t inbytes, inchars;
 	if (size>0) inchars=size;
 	else inchars=wcslen(text);
-	inbytes=inchars*sizeof(wchar_t)+10;
+	inbytes=inchars*sizeof(wchar_t)+4;
 	if (inbytes>=buffersize) {
 		if (buffer) free(buffer);
 		buffersize=InitialBuffersize;
