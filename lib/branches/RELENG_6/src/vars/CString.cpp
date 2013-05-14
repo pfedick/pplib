@@ -735,6 +735,7 @@ int CString::IsNumeric() const
 		c=buffer[i];
 		if (c<'0' || c>'9') {
 			if (c!='.' && c!=',' && c!='-') return 0;
+			if (c=='-' && i>0) return 0;
 		}
 	}
 	return 1;
@@ -1040,20 +1041,20 @@ void CString::LTrim()
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
 void CString::RTrim()
 {
-	if (buffer) {
+	if (buffer!=NULL && len>0) {
 		size_t i,ende;
-		if (len>0) {
-			ende=len;
-			for (i=0;i<len;i++) {
-				if (buffer[i]==13||buffer[i]==10||buffer[i]==32||buffer[i]=='\t') {
-					//if (s==0) start=i+1;
-				} else {
-					ende=i;
-				}
+		char w;
+		ende=0;
+		for (i=len;i>0;i--) {
+			w=buffer[i-1];
+			if (w!=13 && w!=10 && w!=32 && w!='\t') {
+				ende=i;
+				break;
 			}
-			buffer[ende+1]=0;
 		}
+		buffer[ende]=0;
 		len=strlen(buffer);
+		buffer[len]=0;
 	}
 }
 
@@ -1089,26 +1090,27 @@ void CString::LTrim(const char *str)
 //! \brief Schneidet die definierten Zeichen am Ende des Strings ab
 void CString::RTrim(const char *str)
 {
-	if (buffer) {
-		size_t i,ende,l_str,z;
+	size_t l_str=strlen(str);
+	if (buffer!=NULL && len>0 && l_str>0) {
+		size_t i,ende,z;
 		int match;
-		l_str=strlen(str);
-		if (len>0) {
-			ende=len;
-			for (i=0;i<len;i++) {
-				match=0;
-				for (z=0;z<l_str;z++) {
-					if (buffer[i]==str[z]) {
-						match=1;
-						break;
-					}
-				}
-				if (!match) {
-					ende=i;
+		char w;
+		ende=0;
+		for (i=len;i>0;i--) {
+			w=buffer[i-1];
+			match=0;
+			for (z=0;z<l_str;z++) {
+				if (w==str[z]) {
+					match=1;
+					break;
 				}
 			}
-			buffer[ende+1]=0;
+			if (!match) {
+				ende=i;
+				break;
+			}
 		}
+		buffer[ende]=0;
 		len=strlen(buffer);
 	}
 }
@@ -1401,7 +1403,6 @@ int CString::PregMatch(const ppl6::CString &expression, CArray &res) const
 	if (expression.IsEmpty()) return 0;
 	if (!buffer) return 0;
 	if (!len) return 0;
-	int ret=0;
 	char *r=strdup(expression.GetPtr()+1);
 	int flags=0;
 	// letzten Slash in regex finden
@@ -1420,38 +1421,49 @@ int CString::PregMatch(const ppl6::CString &expression, CArray &res) const
 	// Wenn das System auf UTF-8 eingestellt ist, setzen wir das UTF8-Flag automatisch
 	if (instrcase(setlocale(LC_CTYPE,NULL),"UTF-8",0)>=0) flags|=PCRE_UTF8;
 	const char *perr;
-	char *tmp;
-	int re,erroffset, ovector[32];
+	size_t maxmatches=16;
+	int re,erroffset;
+	int ovectorsize=(maxmatches+1)*2;
+	int *ovector=(int*)malloc(ovectorsize*sizeof(int));
 	int perrorcode;
 	pcre *reg;
 	//printf ("r=%s, flags=%i\n",r,flags);
 	CString__PregMatch_Restart:
 	reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
-	if (reg) {
-		bzero(ovector,30*sizeof(int));
-		if ((re=pcre_exec(reg, NULL, (char*) buffer,len,0, 0, ovector, 30))>=0) {
-			ret=1;
-			for (int i=0;i<14;i++) {
-				tmp=NULL;
-				pcre_get_substring(buffer,ovector,30,i,(const char**)&tmp);
-				if (tmp) {
-					//printf("tmp[%i]=%s\n",i,tmp);
-					res.Set(i,tmp);
-					pcre_free_substring(tmp);
-				}
-			}
-		} else if ((flags&PCRE_UTF8)==PCRE_UTF8 && (re==PCRE_ERROR_BADUTF8 || re==PCRE_ERROR_BADUTF8_OFFSET)) {
-			// Wir haben ungültiges UTF_8
-			//printf ("ungültiges UTF-8");
-			// Vielleicht matched es ohne UTF-8-Flag
-			flags-=PCRE_UTF8;
-			free(reg);
-			goto CString__PregMatch_Restart;
-		}
-		free(reg);
+	if (!reg) {
+		free(r);
+		free(ovector);
+		return 0;
 	}
+	memset(ovector,0,ovectorsize*sizeof(int));
+	if ((re=pcre_exec(reg, NULL, (char*) buffer,len,0, 0, ovector, ovectorsize))>=0) {
+		if (re>0) maxmatches=re;
+		else maxmatches=maxmatches*2/3;
+		for (size_t i=0;i<maxmatches;i++) {
+			const char *tmp=NULL;
+			pcre_get_substring(buffer,ovector,30,i,(const char**)&tmp);
+			if (tmp) {
+				//printf("tmp[%i]=%s\n",i,tmp);
+				res.Add(tmp);
+				pcre_free_substring(tmp);
+			}
+		}
+		pcre_free(reg);
+		free(ovector);
+		free(r);
+		return 1;
+	} else if ((flags&PCRE_UTF8)==PCRE_UTF8 && (re==PCRE_ERROR_BADUTF8 || re==PCRE_ERROR_BADUTF8_OFFSET)) {
+		// Wir haben ungültiges UTF_8
+		//printf ("ungültiges UTF-8");
+		// Vielleicht matched es ohne UTF-8-Flag
+		flags-=PCRE_UTF8;
+		pcre_free(reg);
+		goto CString__PregMatch_Restart;
+	}
+	pcre_free(reg);
+	free(ovector);
 	free(r);
-	return ret;
+	return 0;
 #endif
 }
 
