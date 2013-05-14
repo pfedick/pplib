@@ -310,6 +310,7 @@ debug/\$(LIBDEBUG).a: debug/make \$(DEBUG) \$(ASM_DEBUG) debug/\$(LIBDEBUG)-core
 	debug/\$(LIBDEBUG)-inet-nossl.a \
 	debug/\$(LIBDEBUG)-grafix.a	
 	ar -r debug/\$(LIBDEBUG).a \$(DEBUG) \$(ASM_DEBUG)
+	-chmod a+x ppl6-config
 
 release/\$(LIBNAME).a: release/make \$(RELEASE) \$(ASM_RELEASE) release/\$(LIBNAME)-core.a \
 	release/\$(LIBNAME)-sound.a \
@@ -318,6 +319,7 @@ release/\$(LIBNAME).a: release/make \$(RELEASE) \$(ASM_RELEASE) release/\$(LIBNA
 	release/\$(LIBNAME)-inet-nossl.a \
 	release/\$(LIBNAME)-grafix.a
 	ar -r release/\$(LIBNAME).a \$(RELEASE) \$(ASM_RELEASE)
+	-chmod a+x ppl6-config
 
 debug/make:
 	-mkdir -p debug
