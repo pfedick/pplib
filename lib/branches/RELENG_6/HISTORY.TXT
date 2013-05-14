@@ -13,7 +13,7 @@ Version 6.4.16
     beendet wird.
   - Bugfix: Memory-Leak in der Restschnittstelle behoben
   - Bugfix: Memory-Leak im Zusammenhang mit MySQL gefixt
-  - Überflüssige Variablen in Trim-Funktionen der CWString entfernt
+  - Überflüssige Variablen in Trim-Funktionen der Klasse CWString entfernt
   - Bugfix: Fehler in String::RTrim behoben, durch den zu wenig Zeichen am
     Ende des Strings abgeschnitten wurden (Backport von PPL7)
   - Bugfix: Memory Leak und "silly malloc" in CString::PregMatch behoben
