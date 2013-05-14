@@ -2658,6 +2658,7 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 	#ifndef HAVE_PCRE
 		throw UnsupportedFeatureException("PCRE");
 	#else
+		matches.clear();
 		if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return false;
 		ByteArray expr=expression;
 		int flags=PCRE_UTF8;
@@ -2678,8 +2679,8 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		int re,erroffset;
 		int ovectorsize=(maxmatches+1)*2;
 		int *ovector=(int*)malloc(ovectorsize*sizeof(int));
+		if (!ovector) throw OutOfMemoryException();
 		int perrorcode;
-		matches.clear();
 		pcre *reg;
 		//printf ("r=%s, flags=%i\n",r,flags);
 		reg=pcre_compile2(((const char*)expr+1),flags,&perrorcode,&perr, &erroffset, NULL);
@@ -2687,7 +2688,7 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 			free(ovector);
 			throw IllegalRegularExpressionException();
 		}
-		memset(ovector,0,30*sizeof(int));
+		memset(ovector,0,ovectorsize*sizeof(int));
 		if ((re=pcre_exec(reg, NULL, (const char*) ptr,stringlen,0, 0, ovector, ovectorsize))>=0) {
 			if (re>0) maxmatches=re;
 			else maxmatches=maxmatches*2/3;
