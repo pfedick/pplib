@@ -404,7 +404,14 @@ clean:
 	-rm -rf release
 	-rm -rf debug
 	-rm -rf documentation
-
+	-cd tests; make clean
+	
+deinstall:
+	-rm -f \$(TARGETINCLUDE)/ppl6*.h
+	-rm -f \$(TARGETLIB)/\$(LIBDEBUG)*.a
+	-rm -f \$(TARGETLIB)/\$(LIBNAME)*.a
+	-rm -f \$(TARGETBIN)/ppl6-config
+	
 distclean: clean
 	-rm -rf \$(incdir)/ppl6-unixconfig.h \$(incdir)/config.h config.log config.status autom4te.cache configure.scan
 
@@ -429,7 +436,13 @@ pdf:
 	-mkdir -p documentation/latex
 	-doxygen Doxyfile.latex
 	-cd documentation/latex; make; mv refman.pdf ../ppl6-manual.pdf
-
+	
+test:
+	- cd tests; make xml
+	
+memcheck:
+	- cd tests; make memcheck
+	
 release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp
 	\$(CXX) -Wall -c -o release/pplgenresource.o tools/pplgenresource/genresource.cpp \$(CFLAGS)
 

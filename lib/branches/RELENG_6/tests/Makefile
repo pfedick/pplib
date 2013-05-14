@@ -20,9 +20,12 @@ $(PROGNAME): compile/libgtest.a $(OBJECTS)
 all: $(PROGNAME)
 	./$(PROGNAME)
 
+xml: $(PROGNAME)
+	./$(PROGNAME) --gtest_output=xml
+	
 clean:
 	-rm -rf compile loggertest
-	-rm *.core
+	-rm -f *.core
 
 memcheck: $(PROGNAME)
 	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
