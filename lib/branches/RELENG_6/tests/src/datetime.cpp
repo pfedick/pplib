@@ -9,7 +9,7 @@
  * $URL: https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk/tests/src/datetime.cpp $
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -246,7 +246,7 @@ TEST_F(DateTimeTest, getLongInt) {
 	ASSERT_NO_THROW({
 		ppl6::CDateTime d1("2012-05-18 11:50:11.159473");
 		ppluint64 t=d1.longInt();
-		ASSERT_EQ(64679514611159473,t) << "Unexpected date";
+		ASSERT_EQ((ppluint64)64679514611159473,t) << "Unexpected date";
 	}
 	);
 }
