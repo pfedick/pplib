@@ -315,7 +315,7 @@ TEST_F(WideStringTest, isFalse) {
 TEST_F(WideStringTest, setConstCharWithoutSize) {
 	ppl7::WideString s2(L"äöü, a test string with unicode characters");
 	ppl7::WideString s1;
-	s1.set(L"äöü, a test string with unicode characters");
+	s1.set("äöü, a test string with unicode characters");
 	ASSERT_EQ(s1,s2) << "String has unexpected value";
 	ASSERT_EQ((size_t)42,s1.size()) << "String has unexpected length";
 }
@@ -323,7 +323,7 @@ TEST_F(WideStringTest, setConstCharWithoutSize) {
 TEST_F(WideStringTest, setConstCharWithSize) {
 	ppl7::WideString s2(L"äöü, a tes");
 	ppl7::WideString s1;
-	s1.set(L"äöü, a test string with unicode characters",10);
+	s1.set("äöü, a test string with unicode characters",10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
 	ASSERT_EQ((size_t)10,s1.size()) << "String has unexpected length";
 }
@@ -473,7 +473,7 @@ TEST_F(WideStringTest, appendConstWchartWithSize) {
 TEST_F(WideStringTest, appendConstCharPtrWithoutSize) {
 	ppl7::WideString expected(L"First Part äöü, äöü Second Part");
 	ppl7::WideString s1(L"First Part äöü, ");
-	s1.append(L"äöü Second Part");
+	s1.append("äöü Second Part");
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
@@ -482,7 +482,7 @@ TEST_F(WideStringTest, appendConstCharPtrWithoutSize) {
 TEST_F(WideStringTest, appendConstCharPtrWithSize) {
 	ppl7::WideString expected(L"First Part äöü, äöü Seco");
 	ppl7::WideString s1(L"First Part äöü, ");
-	s1.append(L"äöü Second Part",8);
+	s1.append("äöü Second Part",8);
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 	ASSERT_EQ((size_t)24,s1.size()) << "String has unexpected length";
@@ -596,7 +596,7 @@ TEST_F(WideStringTest, prependConstWchartWithSize) {
 TEST_F(WideStringTest, prependConstCharPtrWithoutSize) {
 	ppl7::WideString expected(L"äöü Second PartFirst Part äöü, ");
 	ppl7::WideString s1(L"First Part äöü, ");
-	s1.prepend(L"äöü Second Part");
+	s1.prepend("äöü Second Part");
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 	ASSERT_EQ((size_t)31,s1.size()) << "String has unexpected length";
 }
@@ -604,7 +604,7 @@ TEST_F(WideStringTest, prependConstCharPtrWithoutSize) {
 TEST_F(WideStringTest, prependConstCharPtrWithSize) {
 	ppl7::WideString expected(L"äöü SFirst Part äöü, ");
 	ppl7::WideString s1(L"First Part äöü, ");
-	s1.prepend(L"äöü Second Part",5);
+	s1.prepend("äöü Second Part",5);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 	ASSERT_EQ((size_t)21,s1.size()) << "String has unexpected length";
 }
