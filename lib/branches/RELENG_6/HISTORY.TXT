@@ -28,6 +28,15 @@ Version 6.4.16
   - CWString: Vergleichsoperatoren für CWString und einige weitere Funktionen
     sind jetzt als "const" deklariert
   - Bugfix in CWString::Chomp: Es konnten zu viele Zeichen abgeschnitten werden
+  - CWString::Concat führte zu "Conditional jump or move depends on
+    uninitialised value"
+    
+  Achtung: Mögliches Kompatibilitätsproblem:
+  - Änderung in CWString::Set: Bei Verwendung eines char *, std::string oder
+    CString als Input, wird der optionale zweite Parameter nicht mehr als
+    Bytes, sondern als Zeichen interpretiert! Dieses Verhalten war bereits
+    so, wenn keine Iconv-Library installiert war, und somit ein Fallback auf
+    die Funktion mbstowcs erfolgte. 
 
 Version 6.4.15 vom 30.04.2013	(SVN-Tag: REL_6_4_15)
   - CLog-Klasse unterstützt nun Syslog

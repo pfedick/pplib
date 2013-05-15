@@ -803,17 +803,17 @@ class CWString : public CVar
 		int Vasprintf(const char *fmt, va_list args);
 
 		int Strcpy(const char *str);
-		int Strncpy(const char *str, int bytes);
-		int Copy(const char *str, int bytes=-1);
-		int Copy(const CString &str, int bytes=-1);
-		int Add(const char *str, int bytes=-1);
+		int Strncpy(const char *str, int size);
+		int Copy(const char *str, int size=-1);
+		int Copy(const CString &str, int size=-1);
+		int Add(const char *str, int size=-1);
 		int AddChar(wchar_t c);
 
-		int Concat(const char *text, int bytes=-1);
-		int Concat(const wchar_t *text, int bytes=-1);
-		int Concat(CString *str, int bytes=-1);
+		int Concat(const char *text, int size=-1);
+		int Concat(const wchar_t *text, int size=-1);
+		int Concat(CString *str, int size=-1);
 		int Concat(CWString *str, int size=-1);
-		int Concat(CString str, int bytes=-1);
+		int Concat(CString str, int size=-1);
 		int Concat(CWString str, int size=-1);
 		int Concatf(const char *fmt, ...);
 		int Concatf(const wchar_t *fmt, ...);

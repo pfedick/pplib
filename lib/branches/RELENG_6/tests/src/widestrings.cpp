@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -100,7 +100,6 @@ TEST_F(WideStringTest, ConstructorFromStringPtr) {
 	}
 	);
 }
-
 
 
 
@@ -359,7 +358,6 @@ TEST_F(WideStringTest, setStringRefWithSize) {
 	ASSERT_EQ((size_t)10,s1.Length()) << "String has unexpected length";
 }
 
-
 TEST_F(WideStringTest, setSTDStringRefWithoutSize) {
 	ppl6::CWString s2(L"äöü, a test string with unicode characters");
 	std::string s3("äöü, a test string with unicode characters");
@@ -371,12 +369,12 @@ TEST_F(WideStringTest, setSTDStringRefWithoutSize) {
 
 
 TEST_F(WideStringTest, setSTDStringRefWithSize) {
-	ppl6::CWString s2(L"äöü, a ");
+	ppl6::CWString s2(L"äöü, a tes");
 	std::string s3("äöü, a test string with unicode characters");
 	ppl6::CWString s1;
 	s1.Set(s3,10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)7,s1.Length()) << "String has unexpected length";
+	ASSERT_EQ((size_t)10,s1.Length()) << "String has unexpected length";
 }
 
 

@@ -749,16 +749,16 @@ int CWString::InitExportEncoding(const char *encoding)
  */
 //@{
 
-int CWString::Set(const char *text, int bytes)
+int CWString::Set(const char *text, int size)
 /*!
  * \brief Belegt den String mit einem 0-terminierten UTF-8 String
  *
  * Mit Set wird dem String ein Wert zugewiesen.
  *
  * \param[in] text Ein Pointer auf einen UTF-8 kodierten C-String, der in die String-Klasse kopiert werden soll.
- * \param[in] bytes Ein Optionaler Parameter, der die Anzahl zu kopierender Bytes angibt. Wird der
- * Parameter nicht angegeben, wird der komplette String übernommen. Ist \c bytes länger als
- * der in \c text enthaltene String, wird nur bis zum 0-Byte kopiert.
+ * \param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
  *
  * \copydoc CWStringSetFunctions.dox
  *
@@ -768,7 +768,7 @@ int CWString::Set(const char *text, int bytes)
 #ifndef HAVE_ICONV
 #ifdef HAVE_MBSTOWCS
 	size_t inbytes;
-	if (bytes>0) inbytes=bytes;
+	if (size>0) inbytes=size;
 	else inbytes=strlen(text);
 	size_t outbytes=inbytes*sizeof(wchar_t)+4;
 	if (outbytes>=buffersize) {
@@ -802,34 +802,27 @@ int CWString::Set(const char *text, int bytes)
 		return 1;
 	}
 	if ((!iconvimport) && (!InitImportEncoding(extencoding))) return 0;
-	size_t inbytes;
-	if (bytes>0) inbytes=bytes;
-	else inbytes=strlen(text);
+	size_t inbytes=strlen(text);
 	size_t outbytes=inbytes*sizeof(wchar_t)+4;
-	if (outbytes>=buffersize) {
-		if (buffer) free(buffer);
-		buffersize=InitialBuffersize;
-		if (buffersize<=outbytes) buffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+4;
-		buffer=(wchar_t*)malloc(buffersize);
-		if (!buffer) {
-			SetError(2);
-			return 0;
-		}
+	wchar_t *newstring=(wchar_t*)malloc(outbytes);
+	if (!newstring) {
+		SetError(2);
+		return 0;
 	}
-	//outbytes=buffersize-4;
-	char *outbuf=(char*)buffer;
+	char *outbuf=(char*)newstring;
 	size_t res=iconv((iconv_t)iconvimport, (ICONV_CONST char **)&text, &inbytes,
 				(char**)&outbuf, &outbytes);
 	if (res==(size_t)(-1)) {
-		buffer[0]=0;
+		if (buffer) buffer[0]=0;
 		len=0;
 		SetError(289,"%s",strerror(errno));
+		PrintError();
 		return 0;
 	}
 	((wchar_t*)outbuf)[0]=0;
-	len=wcslen(buffer);
-	bufferused=len*sizeof(wchar_t)+4;
-	return 1;
+	int ret=Set(newstring,size);
+	free(newstring);
+	return ret;
 #endif
 }
 
@@ -877,9 +870,9 @@ int CWString::Set(const CString *str, int size)
  * Mit dieser Funktion wird dem String ein Wert zugewiesen.
  *
  * \param[in] str Pointer auf einen CString
- * \param[in] size Die Anzahl Bytes im String, die kopiert werden sollen.
- * Wird der Parameter nicht angegeben, wird der komplette String übernommen. Ist \c size länger als
- * der in \c str enthaltene String, wird nur bis zum 0-Byte kopiert.
+ * \param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
  *
  * \copydoc CWStringSetFunctions.dox
  *
@@ -899,9 +892,9 @@ int CWString::Set(const CString &str, int size)
  * Mit dieser Funktion wird dem String ein Wert zugewiesen.
  *
  * \param[in] str CString-Objekt
- * \param[in] size Die Anzahl Bytes im String, die kopiert werden sollen.
- * Wird der Parameter nicht angegeben, wird der komplette String übernommen. Ist \c size länger als
- * der in \c str enthaltene String, wird nur bis zum 0-Byte kopiert.
+ * \param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
  *
  * \copydoc CWStringSetFunctions.dox
  *
@@ -958,60 +951,62 @@ int CWString::Strcpy(const char *str)
 	return Set(str);
 }
 
-int CWString::Strncpy(const char *str, int bytes)
+int CWString::Strncpy(const char *str, int size)
 /*!
  * \brief Belegt den String mit einem 0-terminierten UTF-8 String
  *
  * Mit dieser Funktion wird dem String ein Wert zugewiesen.
  *
  * \param[in] str Ein Pointer auf einen UTF-8 kodierten C-String, der in die String-Klasse kopiert werden soll.
- * \param[in] bytes Anzahl zu kopierender Bytes angibt. Ist \c bytes länger als
- * der in \c str enthaltene String, wird nur bis zum 0-Byte kopiert.
+ * \param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
  *
  * \copydoc CWStringSetFunctions.dox
  *
  * \copydoc CWStringEncoding.dox
  */
 {
-	return Set(str,bytes);
+	return Set(str,size);
 }
 
 
-int CWString::Copy(const char *str, int bytes)
+int CWString::Copy(const char *str, int size)
 /*!
  * \brief Belegt den String mit einem 0-terminierten UTF-8 String
  *
  * Mit dieser Funktion wird dem String ein Wert zugewiesen.
  *
  * \param[in] str Ein Pointer auf einen UTF-8 kodierten C-String, der in die String-Klasse kopiert werden soll.
- * \param[in] bytes Anzahl zu kopierender Bytes angibt. Ist \c bytes länger als
- * der in \c str enthaltene String, wird nur bis zum 0-Byte kopiert.
+ * \param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
  *
  * \copydoc CWStringSetFunctions.dox
  *
  * \copydoc CWStringEncoding.dox
  */
 {
-	return Set(str,bytes);
+	return Set(str,size);
 }
 
-int CWString::Copy(const CString &str, int bytes)
+int CWString::Copy(const CString &str, int size)
 /*!
  * \brief Belegt den String mit dem Inhalt eines CString
  *
  * Mit dieser Funktion wird dem String ein Wert zugewiesen.
  *
  * \param[in] str Ein Pointer auf eine CString-Klasse
- * \param[in] bytes Ein Optionaler Parameter, der die Anzahl zu kopierender Bytes angibt. Wird der
- * Parameter nicht angegeben, wird der komplette String übernommen. Ist \c bytes länger als
- * der in \c str enthaltene String, wird nur bis zum 0-Byte kopiert.
+ * \param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
  *
  * \copydoc CWStringSetFunctions.dox
  *
  * \copydoc CWStringEncoding.dox
  */
 {
-	return Set(str,bytes);
+	return Set(str,size);
 }
 
 int CWString::Import(const char *encoding, void *buffer, int bytes)
@@ -1208,70 +1203,36 @@ void MyFunction(const char *fmt, ...)
  */
 //@{
 
-int CWString::Add(const char *str, int bytes)
+int CWString::Add(const char *str, int size)
 /*!
  * \brief UTF-8-String anhängen
  *
  * Mit dieser Funktion der übergebene String an den bereits vorhandenen angehangen
  *
  * \param[in] str Ein Pointer auf einen 0-terminierten C-String im UTF-8-Format
- * \param[in] bytes Ein Optionaler Parameter, der die Anzahl zu kopierender Bytes angibt. Wird der
- * Parameter nicht angegeben, wird der komplette String übernommen. Ist \c bytes länger als
- * der in \c str enthaltene String, wird nur bis zum 0-Byte kopiert.
+ * \param[in] size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+ * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+ * der angegebene String, wird er ignoriert und der komplette String importiert.
  *
  * \copydoc CWStringSetFunctions.dox
  *
  * \copydoc CWStringEncoding.dox
  */
 {
-	return Concat(str,bytes);
+	return Concat(str,size);
 }
 
-int CWString::Concat(const char *text, int bytes)
+int CWString::Concat(const char *text, int size)
 //! \brief Fügt einen String an das Ende des vorhandenen an
 {
-#ifndef HAVE_ICONV
-	SetError(286);
-	return 0;
-#else
 	if (!buffer) {
-		return Set(text,bytes);
+		return Set(text,size);
 	}
-	if (!text) {
-		SetError(194,"int CWString::Concat(==> const char *text <==, int bytes)");
-		return 0;
-	}
-	if ((!iconvimport) && (!InitImportEncoding(extencoding))) return 0;
-	int l;
-	if (bytes>=0) l=bytes;
-	else l=strlen(text);
-
-	// Wieviel Platz brauchen wir?
-	size_t inbytes=(size_t)l;
-	size_t outbytes=l*sizeof(wchar_t)+4;
-	if (outbytes+bufferused+4>=buffersize) {		// Buffer muss vergrößert werden
-		buffersize=(((buffersize+outbytes)/InitialBuffersize)+1)*InitialBuffersize+4;
-		wchar_t *t=(wchar_t*)realloc(buffer,buffersize);
-		if (!t) {
-			SetError(2,"int CWString::Concat(const char *text, int bytes)");
-			return 0;
-		}
-		buffer=t;
-	}
-	char *outbuf=(char*)(buffer+len);
-	outbytes=buffersize-bufferused;
-	size_t res=iconv((iconv_t)iconvimport, (ICONV_CONST char **)&text, &inbytes,
-			(char**)&outbuf, &outbytes);
-	if (res==(size_t)(-1)) {
-		SetError(289,"%s",strerror(errno));
-		return 0;
-	}
-	((wchar_t*)outbuf)[0]=0;
-	len=wcslen(buffer);
-	bufferused=len*sizeof(wchar_t)+4;
-	return 1;
-#endif
+	CWString s2;
+	s2.Set(text,size);
+	return Concat(s2.buffer,s2.len);
 }
+
 int CWString::Concat(const wchar_t *text, int size)
 /*!\brief Fügt einen Wide-Character String an den bestehenden an
  *
@@ -1342,19 +1303,19 @@ int CWString::Concatf(const wchar_t *fmt, ...)
 }
 
 
-int CWString::Concat(CString *str, int bytes)
+int CWString::Concat(CString *str, int size)
 //! \brief Fügt einen String an das Ende des vorhandenen an
 {
 	if (!str) {
 		SetError(194,"int CString::Concat(==> CString *str <==, int bytes)");
 		return 0;
 	}
-	return Concat(str->GetPtr(),bytes);
+	return Concat(str->GetPtr(),size);
 }
-int CWString::Concat(CString str, int bytes)
+int CWString::Concat(CString str, int size)
 //! \brief Fügt einen String an das Ende des vorhandenen an
 {
-	return Concat(str.GetPtr(),bytes);
+	return Concat(str.GetPtr(),size);
 }
 int CWString::Concat(CWString *str, int size)
 //! \brief Fügt einen String an das Ende des vorhandenen an
