@@ -1381,7 +1381,6 @@ int CWString::Concat(CWString str, int size)
 
 
 
-
 size_t CWString::Size() const
 /*!\brief Gibt die Anzahl Bytes zurück, die durch den String belegt werden
  *
@@ -1446,6 +1445,7 @@ int CWString::IsNumeric() const
 		c=buffer[i];
 		if (c<'0' || c>'9') {
 			if (c!='.' && c!=',' && c!='-') return 0;
+			if (c=='-' && i>0) return 0;
 		}
 	}
 	return 1;
@@ -1753,7 +1753,7 @@ const void *CWString::GetBuffer() const
 
 const wchar_t *CWString::GetWPtr() const
 {
-	if (!len) return NULL;
+	if (!len) return L"";
 	return buffer;
 }
 
@@ -1913,20 +1913,20 @@ void CWString::LTrim()
 void CWString::RTrim()
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
 {
-	if (buffer) {
+	if (buffer!=NULL && len>0) {
 		size_t i,ende;
-		if (len>0) {
-			ende=len;
-			for (i=0;i<len;i++) {
-				if (buffer[i]==13||buffer[i]==10||buffer[i]==32||buffer[i]=='\t') {
-					//
-				} else {
-					ende=i;
-				}
+		wchar_t w;
+		ende=0;
+		for (i=len;i>0;i--) {
+			w=buffer[i-1];
+			if (w!=13 && w!=10 && w!=32 && w!='\t') {
+				ende=i;
+				break;
 			}
-			buffer[ende+1]=0;
 		}
+		buffer[ende]=0;
 		len=wcslen(buffer);
+		buffer[len]=0;
 		bufferused=len*sizeof(wchar_t)+4;
 	}
 }
@@ -2034,29 +2034,28 @@ void CWString::LTrim(const char *str)
 void CWString::RTrim(const char *str)
 //! \brief Schneidet die definierten Zeichen am Ende des Strings ab
 {
-	if (!str) return;
-	if (buffer) {
-		CWString cut=str;
-		size_t cutl=cut.Len();
-		if (cutl==0) return;
+	CWString cut=str;
+	size_t l_str=cut.Len();
+	if (buffer!=NULL && len>0 && l_str>0) {
 		size_t i,ende,z;
 		int match;
-		if (len>0) {
-			ende=len;
-			for (i=0;i<len;i++) {
-				match=0;
-				for (z=0;z<cutl;z++) {
-					if (buffer[i]==cut.GetChar(z)) {
-						match=1;
-						break;
-					}
-				}
-				if (!match) {
-					ende=i;
+		wchar_t w;
+		ende=0;
+		for (i=len;i>0;i--) {
+			w=buffer[i-1];
+			match=0;
+			for (z=0;z<l_str;z++) {
+				if (w==cut.GetChar(z)) {
+					match=1;
+					break;
 				}
 			}
-			buffer[ende+1]=0;
+			if (!match) {
+				ende=i;
+				break;
+			}
 		}
+		buffer[ende]=0;
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
 	}
@@ -2073,25 +2072,8 @@ void CWString::Trim(const char *str)
 void CWString::Chomp()
 //! \brief Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
 {
-	if (buffer) {
-		size_t i,start,ende,s;
-		if (len>0) {
-			start=0; s=0;
-			ende=len;
-			for (i=0;i<len;i++) {
-				if (buffer[i]==13||buffer[i]==10) {
-					if (s==0) start=i+1;
-				} else {
-					s=1; ende=i;
-				}
-			}
-			buffer[ende+1]=0;
-			if (start>0)
-				memmove(buffer,buffer+start,ende-start+2);
-		}
-		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
-	}
+	RTrim("\n\r");
+	LTrim("\n\r");
 }
 
 void CWString::Chop(int chars)
@@ -2633,7 +2615,12 @@ int CWString::StrCmp(const CWString &str, int size) const
  * Return-Wert.
  */
 {
-	return StrCmp(str.buffer,size);
+	const wchar_t *mystr=buffer;
+	const wchar_t *otherstr=str.buffer;
+	if (len==0) mystr=L"";
+	if (str.len==0) otherstr=L"";
+	if (size!=0) return wcsncmp(mystr,otherstr,size);
+	return wcscmp(mystr,otherstr);
 }
 
 int CWString::StrCmp(const CString &str, int size) const
@@ -2951,9 +2938,8 @@ Der String wird intern zuerst nach UTF-8 kodiert, bevor die pcre-Funktionen aufg
 	if (!utf8) return 0;
 	size_t ll=strlen(utf8);
 
-	int ret=0;
 	char *r=strdup(expr+1);
-	int flags=PCRE_UTF8;
+	int flags=0;
 	// letzten Slash in regex finden
 	char *options=strrchr(r,'/');
 	if (options) {
@@ -2963,35 +2949,55 @@ Der String wird intern zuerst nach UTF-8 kodiert, bevor die pcre-Funktionen aufg
 		if (strchr(options,'m')) flags|=PCRE_MULTILINE;
 		if (strchr(options,'x')) flags|=PCRE_EXTENDED;
 		if (strchr(options,'s')) flags|=PCRE_DOTALL;
+		if (strchr(options,'8')) flags|=PCRE_UTF8;
 		if (strchr(options,'a')) flags|=PCRE_ANCHORED;
 		if (strchr(options,'u')) flags|=PCRE_UNGREEDY;
 	}
 	const char *perr;
-	char *tmp;
-	int re,erroffset, ovector[32];
+	size_t maxmatches=16;
+	int re,erroffset;
+	int ovectorsize=(maxmatches+1)*2;
+	int *ovector=(int*)malloc(ovectorsize*sizeof(int));
 	int perrorcode;
 	pcre *reg;
 	//printf ("r=%s, flags=%i\n",r,flags);
+	CWString__PregMatch_Restart:
 	reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
-	if (reg) {
-		bzero(ovector,30*sizeof(int));
-		if ((re=pcre_exec(reg, NULL, (char*) utf8,ll,0, 0, ovector, 30))>=0) {
-			ret=1;
-			for (int i=0;i<14;i++) {
-				tmp=NULL;
-				pcre_get_substring(utf8,ovector,30,i,(const char**)&tmp);
-				if (tmp) {
-					//printf("tmp[%i]=%s\n",i,tmp);
-					res->Set(i,tmp);
-					pcre_free_substring(tmp);
-				}
+	if (!reg) {
+		free(r);
+		free(ovector);
+		return 0;
+	}
+	memset(ovector,0,ovectorsize*sizeof(int));
+	if ((re=pcre_exec(reg, NULL, (char*) utf8,ll,0, 0, ovector, ovectorsize))>=0) {
+		if (re>0) maxmatches=re;
+		else maxmatches=maxmatches*2/3;
+		for (size_t i=0;i<maxmatches;i++) {
+			const char *tmp=NULL;
+			pcre_get_substring(utf8,ovector,30,i,(const char**)&tmp);
+			if (tmp) {
+				//printf("tmp[%i]=%s\n",i,tmp);
+				res->Set(i,tmp);
+				pcre_free_substring(tmp);
 			}
 		}
-		free(reg);
+		pcre_free(reg);
+		free(ovector);
+		free(r);
+		return 1;
+	} else if ((flags&PCRE_UTF8)==PCRE_UTF8 && (re==PCRE_ERROR_BADUTF8 || re==PCRE_ERROR_BADUTF8_OFFSET)) {
+		// Wir haben ungültiges UTF_8
+		//printf ("ungültiges UTF-8");
+		// Vielleicht matched es ohne UTF-8-Flag
+		flags-=PCRE_UTF8;
+		pcre_free(reg);
+		goto CWString__PregMatch_Restart;
 	}
+	pcre_free(reg);
+	free(ovector);
 	free(r);
-	return ret;
-	#endif
+	return 0;
+#endif
 }
 
 /*!
@@ -3314,56 +3320,56 @@ CWString& CWString::operator+=(const CString& str)
 }
 
 
-bool CWString::operator==(CWString &str)
+bool CWString::operator==(const CWString &str) const
 {
 	if (StrCmp(str)==0) return true;
 	return false;
 }
 
-bool CWString::operator!=(CWString &str)
+bool CWString::operator!=(const CWString &str) const
 {
 	if (StrCmp(str)==0) return false;
 	return true;
 }
 
-bool CWString::operator<(CWString &str)
+bool CWString::operator<(const CWString &str) const
 {
 	if (StrCmp(str)<0) return true;
 	return false;
 }
 
-bool CWString::operator<=(CWString &str)
+bool CWString::operator<=(const CWString &str) const
 {
 	if (StrCmp(str)<=0) return true;
 	return false;
 }
 
-bool CWString::operator>(CWString &str)
+bool CWString::operator>(const CWString &str) const
 {
 	if (StrCmp(str)>0) return true;
 	return false;
 }
 
-bool CWString::operator>=(CWString &str)
+bool CWString::operator>=(const CWString &str) const
 {
 	if (StrCmp(str)>=0) return true;
 	return false;
 }
 
-CWString::operator int()
+CWString::operator int() const
 //! \brief Liefert den Integer-Wert des Strings zurück
 {
 	return ToInt();
 }
 
-CWString::operator bool()
+CWString::operator bool() const
 //! \brief Liefert je nach Inhalt des Strings true oder false zurück
 {
 	if (IsTrue()) return true;
 	return false;
 }
 
-CWString::operator unsigned int()
+CWString::operator unsigned int() const
 //! \brief Liefert den Integer-Wert des Strings zurück
 {
 	return ToUInt();
@@ -3573,6 +3579,10 @@ int CWString::Delete(int pos, int num)
 	return Concat(&buf);
 }
 
-
+std::ostream& operator<<(std::ostream& s, const CWString &str)
+{
+	CString localstr(str);
+	return s.write((const char*)localstr,localstr.Size());
+}
 
 }	// EOF namespace ppl6

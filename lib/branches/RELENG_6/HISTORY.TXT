@@ -14,11 +14,20 @@ Version 6.4.16
   - Bugfix: Memory-Leak in der Restschnittstelle behoben
   - Bugfix: Memory-Leak im Zusammenhang mit MySQL gefixt
   - Überflüssige Variablen in Trim-Funktionen der Klasse CWString entfernt
-  - Bugfix: Fehler in String::RTrim behoben, durch den zu wenig Zeichen am
+  - Bugfix: Fehler in CString::RTrim behoben, durch den zu wenig Zeichen am
     Ende des Strings abgeschnitten wurden (Backport von PPL7)
-  - Bugfix: Memory Leak und "silly malloc" in CString::PregMatch behoben
+  - Bugfix: Fehler in CWString::RTrim behoben, durch den zu wenig Zeichen am
+    Ende des Strings abgeschnitten wurden (Backport von PPL7)
+  - Bugfix: Memory Leak und "silly malloc" in CString::PregMatch und
+    CWString::PregMatch behoben
   - Testsuite um Tests für CString-Klasse ergänzt (Backport von PPL7)
-  - CWString hat Konstruktor für std::wstring bekommen
+  - Testsuite um Tests für CWString-Klasse ergänzt (Backport von PPL7)
+  - CWString hat Konstruktor für std::wstring bekommen und Operator für
+    std::ostream
+  - Bugfix in CString::IsNumeric und CWString::IsNumeric
+  - CWString: Vergleichsoperatoren für CWString und einige weitere Funktionen
+    sind jetzt als "const" deklariert
+  - Bugfix in CWString::Chomp: Es konnten zu viele Zeichen abgeschnitten werden
 
 Version 6.4.15 vom 30.04.2013	(SVN-Tag: REL_6_4_15)
   - CLog-Klasse unterstützt nun Syslog

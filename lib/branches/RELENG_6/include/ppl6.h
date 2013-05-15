@@ -919,16 +919,16 @@ class CWString : public CVar
 		CWString& operator+=(const CWString& str);
 		CWString& operator+=(const CString& str);
 
-		bool operator<(CWString &str);
-		bool operator<=(CWString &str);
-		bool operator==(CWString &str);
-		bool operator!=(CWString &str);
-		bool operator>=(CWString &str);
-		bool operator>(CWString &str);
+		bool operator<(const CWString &str) const;
+		bool operator<=(const CWString &str) const;
+		bool operator==(const CWString &str) const;
+		bool operator!=(const CWString &str) const;
+		bool operator>=(const CWString &str) const;
+		bool operator>(const CWString &str) const;
 
-		operator int();
-		operator bool();
-		operator unsigned int();
+		operator int() const;
+		operator bool() const;
+		operator unsigned int() const;
 
 		CWString GetMD5() const;
 		int	MD5(CWString &str);
@@ -992,6 +992,7 @@ const CWString operator+(const CWString &str1, const char *str2);
 const CWString operator+(const wchar_t *str1, const CWString& str2);
 const CWString operator+(const CWString &str1, const wchar_t *str2);
 
+std::ostream& operator<<(std::ostream& s, const CWString &str);
 
 
 

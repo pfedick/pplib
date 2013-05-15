@@ -176,22 +176,20 @@ TEST_F(WideStringTest, clear) {
 	});
 }
 
-#ifdef DONE
+
 
 TEST_F(WideStringTest, CapacityAndReserve) {
 	ppl6::CWString s1;
-	ASSERT_EQ((size_t)0,s1.capacity()) << "capacity did not return 0";
-	s1.reserve(0);
-	ASSERT_EQ((size_t)0,s1.capacity()) << "capacity did not return 0";
-	s1.reserve(32);
-	ASSERT_EQ((size_t)32,s1.capacity()) << "capacity did not return expected value";
-	s1.reserve(128);
-	ASSERT_EQ((size_t)128,s1.capacity()) << "capacity did not return expected value";
-	s1.reserve(32);
-	ASSERT_EQ((size_t)128,s1.capacity()) << "capacity did not return expected value";
+	ASSERT_EQ((size_t)0,s1.Capacity()) << "capacity did not return 0";
+	s1.Reserve(0);
+	ASSERT_EQ((size_t)0,s1.Capacity()) << "capacity did not return 0";
+	s1.Reserve(32);
+	ASSERT_EQ((size_t)32,s1.Capacity()) << "capacity did not return expected value";
+	s1.Reserve(128);
+	ASSERT_EQ((size_t)128,s1.Capacity()) << "capacity did not return expected value";
+	s1.Reserve(32);
+	ASSERT_EQ((size_t)128,s1.Capacity()) << "capacity did not return expected value";
 }
-
-
 
 TEST_F(WideStringTest, len) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
@@ -205,143 +203,116 @@ TEST_F(WideStringTest, length) {
 
 TEST_F(WideStringTest, size) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
-	ASSERT_EQ(s1.Size(),(size_t)42) << "String has unexpected size";
+	ASSERT_EQ(s1.Size(),(size_t)42*sizeof(wchar_t)) << "String has unexpected size";
 }
 
 TEST_F(WideStringTest, isEmpty) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
 	ppl6::CWString s2;
-	ASSERT_EQ(s1.isEmpty(),false) << "String is empty";
-	ASSERT_EQ(s2.isEmpty(),true) << "String not empty";
+	ASSERT_EQ(s1.IsEmpty(),false) << "String is empty";
+	ASSERT_EQ(s2.IsEmpty(),true) << "String not empty";
 }
 
 TEST_F(WideStringTest, notEmpty) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
 	ppl6::CWString s2;
-	ASSERT_EQ(s1.notEmpty(),true) << "String is not empty";
-	ASSERT_EQ(s2.notEmpty(),false) << "String is empty";
+	ASSERT_EQ(s1.NotEmpty(),true) << "String is not empty";
+	ASSERT_EQ(s2.NotEmpty(),false) << "String is empty";
 }
 
-TEST_F(WideStringTest, isNumeric) {
+TEST_F(WideStringTest, IsNumeric) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
-	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+	ASSERT_EQ(s1.IsNumeric(),false) << "String should not be numeric";
 	s1.Set(L"");
-	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+	ASSERT_EQ(s1.IsNumeric(),false) << "String should not be numeric";
 	s1.Set(L"12345abcd");
-	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+	ASSERT_EQ(s1.IsNumeric(),false) << "String should not be numeric";
 	s1.Set(L"12345");
-	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	ASSERT_EQ(s1.IsNumeric(),true) << "String should be numeric";
 	s1.Set(L"123.451,12");
-	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	ASSERT_EQ(s1.IsNumeric(),true) << "String should be numeric";
 	s1.Set(L"-123.451,12");
-	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	ASSERT_EQ(s1.IsNumeric(),true) << "String should be numeric";
 	s1.Set(L"-123.451,12-9");
-	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
+	ASSERT_EQ(s1.IsNumeric(),false) << "String should not be numeric";
 }
 
-TEST_F(WideStringTest, isInteger) {
+TEST_F(WideStringTest, IsInteger) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
-	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+	ASSERT_EQ(s1.IsInteger(),false) << "String should not be an integer";
 	s1.Set(L"");
-	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+	ASSERT_EQ(s1.IsInteger(),false) << "String should not be an integer";
 	s1.Set(L"12345abcd");
-	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+	ASSERT_EQ(s1.IsInteger(),false) << "String should not be an integer";
 	s1.Set(L"12345");
-	ASSERT_EQ(s1.isInteger(),true) << "String should be an integer";
+	ASSERT_EQ(s1.IsInteger(),true) << "String should be an integer";
 	s1.Set(L"-12345");
-	ASSERT_EQ(s1.isInteger(),true) << "String should be an integer";
+	ASSERT_EQ(s1.IsInteger(),true) << "String should be an integer";
 	s1.Set(L"123-451");
-	ASSERT_EQ(s1.isInteger(),false) << "String should be an integer";
+	ASSERT_EQ(s1.IsInteger(),false) << "String should be an integer";
 	s1.Set(L"123.451,12");
-	ASSERT_EQ(s1.isInteger(),false) << "String should be an integer";
+	ASSERT_EQ(s1.IsInteger(),false) << "String should be an integer";
 	s1.Set(L"-123.451,12");
-	ASSERT_EQ(s1.isInteger(),false) << "String should be an integer";
+	ASSERT_EQ(s1.IsInteger(),false) << "String should be an integer";
 	s1.Set(L"-123.451,12-9");
-	ASSERT_EQ(s1.isInteger(),false) << "String should not be an integer";
+	ASSERT_EQ(s1.IsInteger(),false) << "String should not be an integer";
 }
 
-TEST_F(WideStringTest, isTrue) {
+
+TEST_F(WideStringTest, ToBool) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
-	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	ASSERT_EQ(s1.ToBool(),false) << "String should not be true";
 	s1.Set(L"");
-	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	ASSERT_EQ(s1.ToBool(),false) << "String should not be true";
 	s1.Set(L"12345abcd");
-	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	ASSERT_EQ(s1.ToBool(),true) << "String should be true";
 	s1.Set(L"1");
-	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	ASSERT_EQ(s1.ToBool(),true) << "String should be true";
 	s1.Set(L"12345");
-	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	ASSERT_EQ(s1.ToBool(),true) << "String should be true";
 	s1.Set(L"true");
-	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	ASSERT_EQ(s1.ToBool(),true) << "String should be true";
 	s1.Set(L"wahr");
-	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	ASSERT_EQ(s1.ToBool(),true) << "String should be true";
 	s1.Set(L"ja");
-	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	ASSERT_EQ(s1.ToBool(),true) << "String should be true";
 	s1.Set(L"yes");
-	ASSERT_EQ(s1.isTrue(),true) << "String should be true";
+	ASSERT_EQ(s1.ToBool(),true) << "String should be true";
 	s1.Set(L"false");
-	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	ASSERT_EQ(s1.ToBool(),false) << "String should not be true";
 	s1.Set(L"falsch");
-	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	ASSERT_EQ(s1.ToBool(),false) << "String should not be true";
 	s1.Set(L"nein");
-	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	ASSERT_EQ(s1.ToBool(),false) << "String should not be true";
 	s1.Set(L"no");
-	ASSERT_EQ(s1.isTrue(),false) << "String should not be true";
+	ASSERT_EQ(s1.ToBool(),false) << "String should not be true";
 }
 
-TEST_F(WideStringTest, isFalse) {
-	ppl6::CWString s1(L"A test string with unicode characters: äöü");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
-	s1.Set(L"");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
-	s1.Set(L"12345abcd");
-	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
-	s1.Set(L"12345");
-	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
-	s1.Set(L"0");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
-	s1.Set(L"true");
-	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
-	s1.Set(L"wahr");
-	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
-	s1.Set(L"ja");
-	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
-	s1.Set(L"yes");
-	ASSERT_EQ(s1.isFalse(),false) << "String should not be false";
-	s1.Set(L"false");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
-	s1.Set(L"falsch");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
-	s1.Set(L"nein");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
-	s1.Set(L"no");
-	ASSERT_EQ(s1.isFalse(),true) << "String should be false";
-}
 
 
 TEST_F(WideStringTest, setConstCharWithoutSize) {
 	ppl6::CWString s2(L"äöü, a test string with unicode characters");
 	ppl6::CWString s1;
-	s1.Set(L"äöü, a test string with unicode characters");
+	s1.Set("äöü, a test string with unicode characters");
 	ASSERT_EQ(s1,s2) << "String has unexpected value";
-	ASSERT_EQ((size_t)42,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)42,s1.Length()) << "String has unexpected length";
 }
+
 
 TEST_F(WideStringTest, setConstCharWithSize) {
 	ppl6::CWString s2(L"äöü, a tes");
 	ppl6::CWString s1;
-	s1.Set(L"äöü, a test string with unicode characters",10);
+	s1.Set("äöü, a test string with unicode characters",10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)10,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)10,s1.Length()) << "String has unexpected length";
 }
-
 
 TEST_F(WideStringTest, setConstWChartWithoutSize) {
 	ppl6::CWString s2(L"äöü, a test string with unicode characters");
 	ppl6::CWString s1;
 	s1.Set(L"äöü, a test string with unicode characters");
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
-	ASSERT_EQ((size_t)42,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)42,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, setConstWChartWithSize) {
@@ -349,15 +320,16 @@ TEST_F(WideStringTest, setConstWChartWithSize) {
 	ppl6::CWString s1;
 	s1.Set(L"äöü, a test string with unicode characters",10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)10,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)10,s1.Length()) << "String has unexpected length";
 }
+
 
 TEST_F(WideStringTest, setStringPtrWithoutSize) {
 	ppl6::CWString s2(L"äöü, a test string with unicode characters");
 	ppl6::CWString s1;
 	s1.Set(&s2);
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
-	ASSERT_EQ((size_t)42,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)42,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, setStringPtrWithSize) {
@@ -366,7 +338,7 @@ TEST_F(WideStringTest, setStringPtrWithSize) {
 	ppl6::CWString s1;
 	s1.Set(&s3,10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)10,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)10,s1.Length()) << "String has unexpected length";
 }
 
 
@@ -375,7 +347,7 @@ TEST_F(WideStringTest, setStringRefWithoutSize) {
 	ppl6::CWString s1;
 	s1.Set(s2);
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
-	ASSERT_EQ((size_t)42,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)42,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, setStringRefWithSize) {
@@ -384,7 +356,7 @@ TEST_F(WideStringTest, setStringRefWithSize) {
 	ppl6::CWString s1;
 	s1.Set(s3,10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)10,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)10,s1.Length()) << "String has unexpected length";
 }
 
 
@@ -394,19 +366,19 @@ TEST_F(WideStringTest, setSTDStringRefWithoutSize) {
 	ppl6::CWString s1;
 	s1.Set(s3);
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
-	ASSERT_EQ((size_t)42,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)42,s1.Length()) << "String has unexpected length";
 }
 
 
-
 TEST_F(WideStringTest, setSTDStringRefWithSize) {
-	ppl6::CWString s2(L"äöü, a tes");
+	ppl6::CWString s2(L"äöü, a ");
 	std::string s3("äöü, a test string with unicode characters");
 	ppl6::CWString s1;
 	s1.Set(s3,10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)10,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)7,s1.Length()) << "String has unexpected length";
 }
+
 
 TEST_F(WideStringTest, setSTDWStringRefWithoutSize) {
 	ppl6::CWString s2(L"äöü, a test string with unicode characters");
@@ -414,7 +386,7 @@ TEST_F(WideStringTest, setSTDWStringRefWithoutSize) {
 	ppl6::CWString s1;
 	s1.Set(s3);
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
-	ASSERT_EQ((size_t)42,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)42,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, setSTDWStringRefWithSize) {
@@ -423,7 +395,7 @@ TEST_F(WideStringTest, setSTDWStringRefWithSize) {
 	ppl6::CWString s1;
 	s1.Set(s3,10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)10,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)10,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, setf) {
@@ -431,7 +403,7 @@ TEST_F(WideStringTest, setf) {
 	ppl6::CWString s1;
 	s1.Setf("Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)25,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)25,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, setWchart) {
@@ -439,14 +411,14 @@ TEST_F(WideStringTest, setWchart) {
 	ppl6::CWString s1;
 	s1.Set((wchar_t)'a');
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)1,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)1,s1.Length()) << "String has unexpected length";
 }
 
 static void test_vasprintf(ppl6::CWString &str,const char *fmt,...)
 {
 	va_list args;
 	va_start(args, fmt);
-	str.vasprintf(fmt,args);
+	str.Vasprintf(fmt,args);
 	va_end(args);
 }
 
@@ -456,8 +428,9 @@ TEST_F(WideStringTest, vasprintf) {
 	ppl6::CWString s1;
 	test_vasprintf(s1,"Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)25,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)25,s1.Length()) << "String has unexpected length";
 }
+
 
 TEST_F(WideStringTest, appendConstWchartWithoutSize) {
 	ppl6::CWString expected(L"First Part äöü, äöü Second Part");
@@ -465,7 +438,7 @@ TEST_F(WideStringTest, appendConstWchartWithoutSize) {
 	s1.Concat(L"äöü Second Part");
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)31,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendConstWchartWithSize) {
@@ -474,7 +447,7 @@ TEST_F(WideStringTest, appendConstWchartWithSize) {
 	s1.Concat(L"äöü Second Part",5);
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)21,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendConstCharPtrWithoutSize) {
@@ -483,16 +456,16 @@ TEST_F(WideStringTest, appendConstCharPtrWithoutSize) {
 	s1.Concat(L"äöü Second Part");
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)31,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendConstCharPtrWithSize) {
 	ppl6::CWString expected(L"First Part äöü, äöü Seco");
 	ppl6::CWString s1(L"First Part äöü, ");
-	s1.Concat(L"äöü Second Part",8);
+	s1.Concat("äöü Second Part",8);
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)24,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)24,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStringPtrWithoutSize) {
@@ -501,7 +474,7 @@ TEST_F(WideStringTest, appendStringPtrWithoutSize) {
 	ppl6::CWString s2(L"äöü Second Part");
 	s1.Concat(&s2);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)31,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStringPtrWithSize) {
@@ -510,7 +483,7 @@ TEST_F(WideStringTest, appendStringPtrWithSize) {
 	ppl6::CWString s2(L"äöü Second Part");
 	s1.Concat(&s2,8);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)24,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)24,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStringWithoutSize) {
@@ -519,7 +492,7 @@ TEST_F(WideStringTest, appendStringWithoutSize) {
 	ppl6::CWString s2(L"äöü Second Part");
 	s1.Concat(s2);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)31,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStringWithSize) {
@@ -528,7 +501,7 @@ TEST_F(WideStringTest, appendStringWithSize) {
 	ppl6::CWString s2(L"äöü Second Part");
 	s1.Concat(s2,8);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)24,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)24,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStdStringWithoutSize) {
@@ -537,7 +510,7 @@ TEST_F(WideStringTest, appendStdStringWithoutSize) {
 	std::string s2("äöü Second Part");
 	s1.Concat(s2);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)31,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStdStringWithSize) {
@@ -546,7 +519,7 @@ TEST_F(WideStringTest, appendStdStringWithSize) {
 	std::string s2("äöü Second Part");
 	s1.Concat(s2,5);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)21,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStdWStringWithoutSize) {
@@ -555,7 +528,7 @@ TEST_F(WideStringTest, appendStdWStringWithoutSize) {
 	std::wstring s2(L"äöü Second Part");
 	s1.Concat(s2);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)31,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendStdWStringWithSize) {
@@ -564,7 +537,7 @@ TEST_F(WideStringTest, appendStdWStringWithSize) {
 	std::wstring s2(L"äöü Second Part");
 	s1.Concat(s2,5);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)21,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendf) {
@@ -572,7 +545,7 @@ TEST_F(WideStringTest, appendf) {
 	ppl6::CWString s1(L"First Part äöü, ");
 	s1.Concatf("Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)41,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)41,s1.Length()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, appendWchart) {
@@ -580,144 +553,24 @@ TEST_F(WideStringTest, appendWchart) {
 	ppl6::CWString s1(L"First Part äöü, ");
 	s1.Concat((wchar_t)'a');
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)17,s1.Size()) << "String has unexpected length";
+	ASSERT_EQ((size_t)17,s1.Length()) << "String has unexpected length";
 }
 
-
-TEST_F(WideStringTest, prependConstWchartWithoutSize) {
-	ppl6::CWString expected(L"äöü Second PartFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	s1.prepend(L"äöü Second Part");
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependConstWchartWithSize) {
-	ppl6::CWString expected(L"äöü SFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	s1.prepend(L"äöü Second Part",5);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependConstCharPtrWithoutSize) {
-	ppl6::CWString expected(L"äöü Second PartFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	s1.prepend(L"äöü Second Part");
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependConstCharPtrWithSize) {
-	ppl6::CWString expected(L"äöü SFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	s1.prepend(L"äöü Second Part",5);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStringPtrWithoutSize) {
-	ppl6::CWString expected(L"äöü Second PartFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	ppl6::CWString s2(L"äöü Second Part");
-	s1.prepend(&s2);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStringPtrWithSize) {
-	ppl6::CWString expected(L"äöü SFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	ppl6::CWString s2(L"äöü Second Part");
-	s1.prepend(&s2,5);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStringWithoutSize) {
-	ppl6::CWString expected(L"äöü Second PartFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	ppl6::CWString s2(L"äöü Second Part");
-	s1.prepend(s2);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStringWithSize) {
-	ppl6::CWString expected(L"äöü SFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	ppl6::CWString s2(L"äöü Second Part");
-	s1.prepend(s2,5);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStdStringWithoutSize) {
-	ppl6::CWString expected(L"äöü Second PartFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	std::string s2("äöü Second Part");
-	s1.prepend(s2);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStdStringWithSize) {
-	ppl6::CWString expected(L"äöü SFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	std::string s2("äöü Second Part");
-	s1.prepend(s2,5);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStdWStringWithoutSize) {
-	ppl6::CWString expected(L"äöü Second PartFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	std::wstring s2(L"äöü Second Part");
-	s1.prepend(s2);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)31,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependStdWStringWithSize) {
-	ppl6::CWString expected(L"äöü SFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	std::wstring s2(L"äöü Second Part");
-	s1.prepend(s2,5);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)21,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependf) {
-	ppl6::CWString expected(L"Ein Test, 42, Wide, 10000First Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	s1.prependf("Ein %s, %i, %ls, %u","Test",42,L"Wide",10000);
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)41,s1.Size()) << "String has unexpected length";
-}
-
-TEST_F(WideStringTest, prependWchart) {
-	ppl6::CWString expected(L"aFirst Part äöü, ");
-	ppl6::CWString s1(L"First Part äöü, ");
-	s1.prepend((wchar_t)'a');
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)17,s1.Size()) << "String has unexpected length";
-}
-
+#ifdef TODO
 TEST_F(WideStringTest, chopRight) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
 	ppl6::CWString s2(L"A test string with unicode characters: ä");
 	ppl6::CWString s3(L"A test string with unicode characters:");
-	s1.chopRight(2);
+	s1.ChopRight(2);
 	ASSERT_EQ((size_t)40,s1.Len()) << "String does not have expected length";
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	s1.chopRight();
-	s1.chopRight();
+	s1.ChopRight();
+	s1.ChopRight();
 	ASSERT_EQ((size_t)38,s1.Len()) << "String does not have expected length";
 	ASSERT_EQ(s3,s1) << "String has unexpected value";
-	s1.chopRight(37);
+	s1.ChopRight(37);
 	ASSERT_EQ((size_t)1,s1.Len()) << "String does not have length of 1";
-	s1.chopRight(1);
+	s1.ChopRight(1);
 	ASSERT_EQ((size_t)0,s1.Len()) << "String does not have length of 0";
 	s2.clear();
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
@@ -727,46 +580,47 @@ TEST_F(WideStringTest, chopLeft) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
 	ppl6::CWString s2(L"est string with unicode characters: äöü");
 	ppl6::CWString s3(L"st string with unicode characters: äöü");
-	s1.chopLeft(3);
+	s1.ChopLeft(3);
 	ASSERT_EQ((size_t)39,s1.Len()) << "String does not have expected length";
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	s1.chopLeft();
+	s1.ChopLeft();
 	ASSERT_EQ((size_t)38,s1.Len()) << "String does not have expected length";
 	ASSERT_EQ(s3,s1) << "String has unexpected value";
-	s1.chopRight(37);
+	s1.ChopRight(37);
 	ASSERT_EQ((size_t)1,s1.Len()) << "String does not have length of 1";
-	s1.chopRight(1);
+	s1.ChopRight(1);
 	ASSERT_EQ((size_t)0,s1.Len()) << "String does not have length of 0";
 	s2.clear();
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
 }
+#endif
 
 TEST_F(WideStringTest, chop) {
 	ppl6::CWString s1(L"A test string with unicode characters: äöü");
 	ppl6::CWString s2(L"A test string with unicode characters: ä");
 	ppl6::CWString s3(L"A test string with unicode characters:");
-	s1.chop(2);
+	s1.Chop(2);
 	ASSERT_EQ((size_t)40,s1.Len()) << "String does not have length of 40";
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	s1.chop();
-	s1.chop();
+	s1.Chop();
+	s1.Chop();
 	ASSERT_EQ((size_t)38,s1.Len()) << "String does not have length of 38";
 	ASSERT_EQ(s3,s1) << "String has unexpected value";
-	s1.chop(37);
+	s1.Chop(37);
 	ASSERT_EQ((size_t)1,s1.Len()) << "String does not have length of 1";
-	s1.chop();
+	s1.Chop();
 	ASSERT_EQ((size_t)0,s1.Len()) << "String does not have length of 0";
-	s2.clear();
+	s2.Clear();
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
 }
 
 TEST_F(WideStringTest, chomp) {
 	ppl6::CWString s1(L"\n\r\nA test string\näöü\n\r\n");
 	ppl6::CWString s2(L"A test string\näöü");
-	s1.chomp();
+	s1.Chomp();
 	ASSERT_EQ((size_t)17,s1.Len()) << "String does not have length of 17";
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	s1.chomp();
+	s1.Chomp();
 	ASSERT_EQ((size_t)17,s1.Len()) << "String does not have length of 17";
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
 }
@@ -774,7 +628,7 @@ TEST_F(WideStringTest, chomp) {
 TEST_F(WideStringTest, cut_WithPos) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
 	ppl6::CWString expected(L"The quick ");
-	s1.cut(10);
+	s1.Cut(10);
 	ASSERT_EQ((size_t)10,s1.Len()) << "String has unexpected length";
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 }
@@ -782,7 +636,7 @@ TEST_F(WideStringTest, cut_WithPos) {
 TEST_F(WideStringTest, cut_WithPos0) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
 	ppl6::CWString expected(L"");
-	s1.cut(0);
+	s1.Cut(0);
 	ASSERT_EQ((size_t)0,s1.Len()) << "String has unexpected length";
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 }
@@ -790,143 +644,103 @@ TEST_F(WideStringTest, cut_WithPos0) {
 TEST_F(WideStringTest, cut_WithPosBeyondStringLength) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
 	ppl6::CWString expected(L"The quick brown fox jumps over the lazy dog");
-	s1.cut(100);
+	s1.Cut(100);
 	ASSERT_EQ((size_t)43,s1.Len()) << "String has unexpected length";
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 }
 
-TEST_F(WideStringTest, cut_WithLetter) {
-	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString expected(L"The quick ");
-	s1.cut(L"b");
-	ASSERT_EQ((size_t)10,s1.Len()) << "String has unexpected length";
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-}
 
-TEST_F(WideStringTest, cut_WithNonexistingLetter) {
-	ppl6::CWString s1(L"The quick brown fox");
-	ppl6::CWString expected(L"The quick brown fox");
-	s1.cut(L"j");
-	ASSERT_EQ((size_t)19,s1.Len()) << "String has unexpected length";
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-}
-
-TEST_F(WideStringTest, cut_WithString) {
-	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString expected(L"The quick ");
-	s1.cut(L"brown");
-	ASSERT_EQ((size_t)10,s1.Len()) << "String has unexpected length";
-	ASSERT_EQ(expected,s1) << "String has unexpected value";
-}
-
-
-TEST_F(WideStringTest, strstr) {
-	ppl6::CWString s1(L"A test haystack string");
-	ppl6::CWString s3(L"haystack string");
-	ppl6::CWString s2;
-	s2=s1.strstr(L"haystack");
-	ASSERT_EQ((size_t)15,s2.Len()) << "String does not have length of 15";
-	ASSERT_EQ(s3,s2) << "String has unexpected value";
-	s2=s1.strstr(L"beer");
-	s3="";
-	ASSERT_EQ((size_t)0,s2.Len()) << "String does not have length of 0";
-	ASSERT_EQ(s3,s2) << "String has unexpected value";
-
-	s2=s1.strstr(L"");
-	ASSERT_EQ(s2,s1) << "String has unexpected value";
-
-}
-
-TEST_F(WideStringTest, repeated) {
+TEST_F(WideStringTest, repeat) {
 	ppl6::CWString s1(L"_repeat_");
 	ppl6::CWString s3(L"_repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat_");
 	ppl6::CWString s2;
-	s2=s1.repeated(10);
+	s2=s1.Repeat(10);
 	ASSERT_EQ((size_t)80,s2.Len()) << "String does not have length of 80";
 	ASSERT_EQ(s3,s2) << "String has unexpected value";
 }
 
+
 TEST_F(WideStringTest, trimLeft) {
 	ppl6::CWString s1(L"\n\n    abc  \n");
-	s1.trimLeft();
-	ASSERT_EQ((size_t)6,s1.Size());
+	s1.LTrim();
+	ASSERT_EQ((size_t)6,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abc  \n"),s1);
 }
 
 TEST_F(WideStringTest, trimRight) {
 	ppl6::CWString s1(L" \n  abc  \n");
-	s1.trimRight();
-	ASSERT_EQ((size_t)7,s1.Size());
+	s1.RTrim();
+	ASSERT_EQ((size_t)7,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L" \n  abc"),s1);
 }
 
 TEST_F(WideStringTest, trim) {
 	ppl6::CWString s1(L"\n\n    abc  \n");
-	s1.trim();
-	ASSERT_EQ((size_t)3,s1.Size());
+	s1.Trim();
+	ASSERT_EQ((size_t)3,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abc"),s1);
 }
 
 TEST_F(WideStringTest, trimLeftEmptyResult) {
 	ppl6::CWString s1(L"\n\n   \n   \n");
-	s1.trimLeft();
-	ASSERT_EQ((size_t)0,s1.Size());
+	s1.LTrim();
+	ASSERT_EQ((size_t)0,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L""),s1);
 }
 
 TEST_F(WideStringTest, trimRightEmptyResult) {
 	ppl6::CWString s1(L"\n\n   \n   \n");
-	s1.trimRight();
-	ASSERT_EQ((size_t)0,s1.Size());
+	s1.RTrim();
+	ASSERT_EQ((size_t)0,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L""),s1);
 }
 
 TEST_F(WideStringTest, trimEmptyResult) {
 	ppl6::CWString s1(L"\n\n   \n   \n");
-	s1.trim();
-	ASSERT_EQ((size_t)0,s1.Size());
+	s1.Trim();
+	ASSERT_EQ((size_t)0,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L""),s1);
 }
 
 TEST_F(WideStringTest, trimLeftChars) {
 	ppl6::CWString s1(L"\n\n    abc  \n");
-	s1.trimLeft(L" \n");
-	ASSERT_EQ((size_t)6,s1.Size());
+	s1.LTrim(" \n");
+	ASSERT_EQ((size_t)6,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abc  \n"),s1);
 }
 
 TEST_F(WideStringTest, trimRightChars) {
 	ppl6::CWString s1(L" \n  abc  \n");
-	s1.trimRight(L" \n");
-	ASSERT_EQ((size_t)7,s1.Size());
+	s1.RTrim(" \n");
+	ASSERT_EQ((size_t)7,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L" \n  abc"),s1);
 }
 
 TEST_F(WideStringTest, trimChars) {
 	ppl6::CWString s1(L"\n\n    abc  \n");
-	s1.trim(L" \n");
-	ASSERT_EQ((size_t)3,s1.Size());
+	s1.Trim(" \n");
+	ASSERT_EQ((size_t)3,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abc"),s1);
 }
 
 TEST_F(WideStringTest, trimLeftCharsEmptyResult) {
 	ppl6::CWString s1(L"\n\n   \n   \n");
-	s1.trimLeft(L" \n");
-	ASSERT_EQ((size_t)0,s1.Size());
+	s1.LTrim(" \n");
+	ASSERT_EQ((size_t)0,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L""),s1);
 }
 
 TEST_F(WideStringTest, trimRightCharsEmptyResult) {
 	ppl6::CWString s1(L"\n\n   \n   \n");
-	s1.trimRight(L" \n");
-	ASSERT_EQ((size_t)0,s1.Size());
+	s1.RTrim(" \n");
+	ASSERT_EQ((size_t)0,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L""),s1);
 }
 
 TEST_F(WideStringTest, trimEmptyCharsResult) {
 	ppl6::CWString s1(L"\n\n   \n   \n");
-	s1.trim(L" \n");
-	ASSERT_EQ((size_t)0,s1.Size());
+	s1.Trim(" \n");
+	ASSERT_EQ((size_t)0,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L""),s1);
 }
 
@@ -939,131 +753,131 @@ TEST_F(WideStringTest, operatorEqualEmpty) {
 TEST_F(WideStringTest, strcmpEmpty) {
 	ppl6::CWString s1(L"");
 	ppl6::CWString s2(L"");
-	ASSERT_EQ(0,s1.strcmp(s2));
+	ASSERT_EQ(0,s1.StrCmp(s2));
 }
 
 TEST_F(WideStringTest, strcmpLower) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"Defghi");
-	ASSERT_LT(s1.strcmp(s2),0);
+	ASSERT_LT(s1.StrCmp(s2),0);
 }
 
 TEST_F(WideStringTest, strcmpLowerWithCase) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"abcdef");
-	ASSERT_LT(s1.strcmp(s2),0);
+	ASSERT_LT(s1.StrCmp(s2),0);
 }
 
 TEST_F(WideStringTest, strcmpHigher) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"Defghi");
-	ASSERT_GT(s2.strcmp(s1),0);
+	ASSERT_GT(s2.StrCmp(s1),0);
 }
 
 TEST_F(WideStringTest, strcmpHigherWithCase) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"abcdef");
-	ASSERT_GT(s2.strcmp(s1),0);
+	ASSERT_GT(s2.StrCmp(s1),0);
 }
 
 TEST_F(WideStringTest, strcmpEqual) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"ABcdef");
-	ASSERT_EQ(s2.strcmp(s1),0);
+	ASSERT_EQ(s2.StrCmp(s1),0);
 }
 
 TEST_F(WideStringTest, strcasecmpEmpty) {
 	ppl6::CWString s1(L"");
 	ppl6::CWString s2(L"");
-	ASSERT_EQ(0,s1.strcasecmp(s2));
+	ASSERT_EQ(0,s1.StrCaseCmp(s2));
 }
 
 TEST_F(WideStringTest, strcasecmpLower) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"Defghi");
-	ASSERT_LT(s1.strcasecmp(s2),0);
+	ASSERT_LT(s1.StrCaseCmp(s2),0);
 }
 
 TEST_F(WideStringTest, strcasecmpLowerWithCase) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"abcdef");
-	ASSERT_EQ(s1.strcasecmp(s2),0);
+	ASSERT_EQ(s1.StrCaseCmp(s2),0);
 }
 
 TEST_F(WideStringTest, strcasecmpHigher) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"Defghi");
-	ASSERT_GT(s2.strcasecmp(s1),0);
+	ASSERT_GT(s2.StrCaseCmp(s1),0);
 }
 
 TEST_F(WideStringTest, strcasecmpHigherWithCase) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"abcdef");
-	ASSERT_EQ(s2.strcasecmp(s1),0);
+	ASSERT_EQ(s2.StrCaseCmp(s1),0);
 }
 
 TEST_F(WideStringTest, strcasecmpEqual) {
 	ppl6::CWString s1(L"ABcdef");
 	ppl6::CWString s2(L"ABcdef");
-	ASSERT_EQ(s2.strcasecmp(s1),0);
+	ASSERT_EQ(s2.StrCaseCmp(s1),0);
 }
 
 
 TEST_F(WideStringTest, left) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString s2=s1.left(10);
+	ppl6::CWString s2=s1.Left(10);
 	ASSERT_EQ(ppl6::CWString(L"The quick "),s2);
 }
 
 TEST_F(WideStringTest, right) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString s2=s1.right(9);
+	ppl6::CWString s2=s1.Right(9);
 	ASSERT_EQ(ppl6::CWString(L" lazy dog"),s2);
 }
 
 TEST_F(WideStringTest, midWithLength) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString s2=s1.mid(10,10);
+	ppl6::CWString s2=s1.Mid(10,10);
 	ASSERT_EQ(ppl6::CWString(L"brown fox "),s2);
 }
 
 TEST_F(WideStringTest, midWithoutLength) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString s2=s1.mid(10);
+	ppl6::CWString s2=s1.Mid(10);
 	ASSERT_EQ(ppl6::CWString(L"brown fox jumps over the lazy dog"),s2);
 }
 
 
 TEST_F(WideStringTest, substrWithLength) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString s2=s1.substr(10,10);
+	ppl6::CWString s2=s1.SubStr(10,10);
 	ASSERT_EQ(ppl6::CWString(L"brown fox "),s2);
 }
 
 TEST_F(WideStringTest, substrWithoutLength) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString s2=s1.substr(10);
+	ppl6::CWString s2=s1.SubStr(10);
 	ASSERT_EQ(ppl6::CWString(L"brown fox jumps over the lazy dog"),s2);
 }
 
 TEST_F(WideStringTest, lowerCase) {
 	ppl6::CWString s1(L"The Quick Brown Fox Jumps over ÄÖÜ");
 	ppl6::CWString expected(L"the quick brown fox jumps over äöü");
-	ASSERT_NO_THROW(s1.lowerCase());
+	ASSERT_NO_THROW(s1.LCase());
 	ASSERT_EQ(expected,s1);
 }
 
 TEST_F(WideStringTest, upperCase) {
 	ppl6::CWString s1(L"The Quick Brown Fox Jumps over äöü");
 	ppl6::CWString expected(L"THE QUICK BROWN FOX JUMPS OVER ÄÖÜ");
-	ASSERT_NO_THROW(s1.upperCase());
+	ASSERT_NO_THROW(s1.UCase());
 	ASSERT_EQ(expected,s1);
 }
 
 TEST_F(WideStringTest, upperCaseWords) {
 	ppl6::CWString s1(L"the quick brown fox jumps over äöü");
 	ppl6::CWString expected(L"The Quick Brown Fox Jumps Over Äöü");
-	ASSERT_NO_THROW(s1.upperCaseWords());
+	ASSERT_NO_THROW(s1.UCWords());
 	ASSERT_EQ(expected,s1);
 }
 
@@ -1071,43 +885,43 @@ TEST_F(WideStringTest, upperCaseWords) {
 TEST_F(WideStringTest, pregMatchPositive) {
 	ppl6::CWString s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
 	ppl6::CWString expr(L"/^Lorem.*$/s");
-	ASSERT_TRUE(s1.pregMatch(expr));
+	ASSERT_TRUE(s1.PregMatch(expr));
 	expr.Set(L"/^Lorem.*$/is");
-	ASSERT_TRUE(s1.pregMatch(expr));
+	ASSERT_TRUE(s1.PregMatch(expr));
 	expr.Set(L"/consectetuer/");
-	ASSERT_TRUE(s1.pregMatch(expr));
+	ASSERT_TRUE(s1.PregMatch(expr));
 	expr.Set(L"/^.*consectetuer.*$/s");
-	ASSERT_TRUE(s1.pregMatch(expr));
+	ASSERT_TRUE(s1.PregMatch(expr));
 	expr.Set(L"/^.*mus\\.$/m");
-	ASSERT_TRUE(s1.pregMatch(expr));
+	ASSERT_TRUE(s1.PregMatch(expr));
 }
 
 TEST_F(WideStringTest, pregMatchNegativ) {
 	ppl6::CWString s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
 	ppl6::CWString expr(L"/^Looorem.*$/s");
-	ASSERT_FALSE(s1.pregMatch(expr));
+	ASSERT_FALSE(s1.PregMatch(expr));
 	expr.Set(L"/^ipsum.*$/is");
-	ASSERT_FALSE(s1.pregMatch(expr));
+	ASSERT_FALSE(s1.PregMatch(expr));
 	expr.Set(L"/patrick/");
-	ASSERT_FALSE(s1.pregMatch(expr));
+	ASSERT_FALSE(s1.PregMatch(expr));
 	expr.Set(L"/^.*patrick.*$/s");
-	ASSERT_FALSE(s1.pregMatch(expr));
+	ASSERT_FALSE(s1.PregMatch(expr));
 	expr.Set(L"/^.*mus\\.$/");
-	ASSERT_FALSE(s1.pregMatch(expr));
+	ASSERT_FALSE(s1.PregMatch(expr));
 }
 
 TEST_F(WideStringTest, pregCapture) {
-	ppl7::Array m;
+	ppl6::CArray m;
 	ppl6::CWString s1(L"2012-05-18");
-	ASSERT_TRUE(s1.pregMatch(L"/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/",m));
-	ASSERT_EQ(2012,m[1].toInt()) << "Unexpected value in capture";
-	ASSERT_EQ(5,m[2].toInt()) << "Unexpected value in capture";
-	ASSERT_EQ(18,m[3].toInt()) << "Unexpected value in capture";
-	ASSERT_EQ((size_t)4,m.Size()) << "Unexpected number auf captures";
+	ASSERT_TRUE(s1.PregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/",&m));
+	ASSERT_EQ(2012,m.GetString(1).ToInt()) << "Unexpected value in capture";
+	ASSERT_EQ(5,m.GetString(2).ToInt()) << "Unexpected value in capture";
+	ASSERT_EQ(18,m.GetString(3).ToInt()) << "Unexpected value in capture";
+	ASSERT_EQ((size_t)4,m.Num()) << "Unexpected number auf captures";
 
 }
 
-
+#ifdef TODO
 
 TEST_F(WideStringTest, Utf8toUtf8) {
 	ASSERT_NO_THROW({
