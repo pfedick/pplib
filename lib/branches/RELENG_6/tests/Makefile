@@ -8,7 +8,8 @@ LIBS	= `../ppl6-config --libs debug source` -lstdc++
 PROGNAME = testsuite
 OBJECTS = compile/wordlist.o \
 	compile/datetime.o \
-	compile/strings.o
+	compile/strings.o \
+	compile/widestrings.o
 	
 	
 	
