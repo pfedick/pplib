@@ -466,6 +466,12 @@ CWString::CWString(const wchar_t *str)
 	Set(str);
 }
 
+CWString::CWString(const std::wstring &str)
+{
+	Init();
+	Set(str.c_str());
+}
+
 CWString::CWString(const CString &str)
 /*!
  * \brief Konstruktor der String-Klasse

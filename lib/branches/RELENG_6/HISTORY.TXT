@@ -18,6 +18,7 @@ Version 6.4.16
     Ende des Strings abgeschnitten wurden (Backport von PPL7)
   - Bugfix: Memory Leak und "silly malloc" in CString::PregMatch behoben
   - Testsuite um Tests für CString-Klasse ergänzt (Backport von PPL7)
+  - CWString hat Konstruktor für std::wstring bekommen
 
 Version 6.4.15 vom 30.04.2013	(SVN-Tag: REL_6_4_15)
   - CLog-Klasse unterstützt nun Syslog

@@ -756,6 +756,7 @@ class CWString : public CVar
 		CWString(const CString &str);
 		CWString(const CWString *str);
 		CWString(const CWString &str);
+		CWString(const std::wstring &str);
 		CWString(const wchar_t c);
 
 
