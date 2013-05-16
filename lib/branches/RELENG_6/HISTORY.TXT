@@ -25,8 +25,8 @@ Version 6.4.16
   - CWString hat Konstruktor für std::wstring bekommen und Operator für
     std::ostream
   - Bugfix in CString::IsNumeric und CWString::IsNumeric
-  - CWString: Vergleichsoperatoren für CWString und einige weitere Funktionen
-    sind jetzt als "const" deklariert
+  - CWString: Vergleichsoperatoren für CWString und einige weitere Operatoren
+    und Funktionen sind jetzt als "const" deklariert
   - Bugfix in CWString::Chomp: Es konnten zu viele Zeichen abgeschnitten werden
   - CWString::Concat führte zu "Conditional jump or move depends on
     uninitialised value"

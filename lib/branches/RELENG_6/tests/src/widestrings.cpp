@@ -44,6 +44,8 @@
 #include "ppl6.h"
 #include <gtest/gtest.h>
 #include "ppl6-tests.h"
+#include <map>
+#include <stdexcept>
 
 namespace {
 
@@ -979,6 +981,33 @@ TEST_F(WideStringTest, strrchr_NonExistingChar) {
 	ASSERT_EQ(expected,s1.strrchr('L')) << "Unexpected Result";
 }
 #endif
+
+TEST_F(WideStringTest, stdmap_addAndSearch) {
+	std::map<ppl6::CWString,ppl6::CWString> myMap;
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"the",L"1"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"quick",L"2"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"brown",L"3"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"fox",L"4"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"jumps",L"5"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"over",L"6"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"the",L"7"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"lazy",L"8"));
+	myMap.insert(std::pair<ppl6::CWString,ppl6::CWString>(L"dog",L"9"));
+
+	ppl6::CWString s1;
+
+	ASSERT_EQ(ppl6::CString(L"3"),myMap.at("brown")) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CString(L"8"),myMap.at("lazy")) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CString(L"1"),myMap.at("the")) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CString(L"6"),myMap.at("over")) << "Unexpected Result";
+
+	ASSERT_THROW({
+		ASSERT_EQ(ppl6::CString(L""),myMap.at("blue")) << "Unexpected Result";
+	}, std::out_of_range);
+
+}
+
+
 
 }
 
