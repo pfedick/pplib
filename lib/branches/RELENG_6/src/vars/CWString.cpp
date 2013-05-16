@@ -2291,9 +2291,11 @@ void CWString::Shr(wchar_t c, int size)
 	if (!len) return;
 	if (!size) return;
 	if (!c) return;
+	if ((ppluint32)size>len) size=len;
 	CWString t;
 	t.Repeat(c,size);
 	t+=buffer;
+	t.Cut(len);
 	Set(&t);
 }
 
@@ -3537,6 +3539,7 @@ int CWString::Delete(int pos, int num)
 	}
 	CWString buf=Mid(pos+num);
 	Cut(pos);
+	if(buf.IsEmpty()) return 1;
 	return Concat(&buf);
 }
 
