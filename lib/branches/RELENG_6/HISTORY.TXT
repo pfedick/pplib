@@ -30,6 +30,10 @@ Version 6.4.16
   - Bugfix in CWString::Chomp: Es konnten zu viele Zeichen abgeschnitten werden
   - CWString::Concat führte zu "Conditional jump or move depends on
     uninitialised value"
+  - Bugfix in CWString::Delete: Falscher Returnwert wurde zurückgegeben, wenn
+    Zeichen am Ende des Strings abgeschnitten wurden.
+  - Bugfix in CWString::Shr: Zeichen am Ende des Strings wurden nicht abge-
+    schnitten, String konnte länger werden, als der Originalstring
     
   Achtung: Mögliches Kompatibilitätsproblem:
   - Änderung in CWString::Set: Bei Verwendung eines char *, std::string oder
