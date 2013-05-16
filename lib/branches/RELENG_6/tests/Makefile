@@ -21,6 +21,9 @@ $(PROGNAME): compile/libgtest.a $(OBJECTS)
 all: $(PROGNAME)
 	./$(PROGNAME)
 
+test: $(PROGNAME)
+	./$(PROGNAME)
+	
 xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
 	
