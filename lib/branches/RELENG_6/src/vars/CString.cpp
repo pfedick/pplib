@@ -390,7 +390,7 @@ void CString::Set(const char *text, int bytes)
 	}
 }
 
-void CString::Set(const wchar_t *text, int bytes)
+void CString::Set(const wchar_t *text, int chars)
 /**
  * \brief Belegt den String mit einem Wert
  *
@@ -410,7 +410,7 @@ void CString::Set(const wchar_t *text, int bytes)
 		return;
 	}
 	CWString w;
-	w.Set(text,bytes);
+	w.Set(text,chars);
 	Set(w.GetPtr());
 }
 
@@ -453,28 +453,103 @@ void CString::Set(const CString &str, int bytes)
 	Set((const char*)str.GetPtr(), bytes);
 }
 
-void CString::Set(const CWString &str, int bytes)
 /*!\brief Belegt den String mit einem Wert
  *
  * Mit Set wird dem String ein Wert zugewiesen.
  *
  * \param str Ein Pointer auf eine CWString-Klasse, dessen Inhalt kopiert werden soll
- * \param bytes Optionale Anzahl zu kopierender Bytes. Bei Angabe von 0 oder wenn
+ * \param size Optionale Anzahl zu kopierender Zeichen. Bei Angabe von 0 oder wenn
  * der Parameter weggelassen wird, wird der komplette String übernommen.
  * \return Nichts
  * \note Bei erfolgreichem Setzen des Strings wird die CVar::Change aufgerufen, die
  * ihrerseits eine Callback-Funktion aufruft, sofern diese definiert wurde.
  */
+void CString::Set(const CWString &str, int size)
 {
 	if (str.IsEmpty()) {
 		Clear();
 		return;
 	}
 	CWString s;
-	s.Set(str,bytes);
+	s.Set(str,size);
 	const char *p=s.GetPtr();
 	if (!p) PrintError();
 	Set(p);
+}
+
+void CString::Set(const std::string &str, int bytes)
+{
+	if (str.empty()) {
+		Clear();
+		return;
+	}
+	Set(str.c_str(),bytes);
+}
+
+void CString::Set(const std::wstring &str, int size)
+{
+	if (str.empty()) {
+		Clear();
+		return;
+	}
+	Set(str.c_str(),size);
+}
+
+/*!\brief String mit einem einzelnen Wide-Character belegen
+ *
+ * Mit dieser Funktion wird der String mit einem einzelnen Zeichen belegt.
+ *
+ * \param[in] c ASCII-Code des gewünschten Zeichens
+ */
+void CString::CString::SetChar(char c)
+{
+	if (!c) return;
+	char b[2];
+	b[0]=c;
+	b[1]=0;
+	return Set(b,1);
+}
+
+/*!\brief Einzelnes Zeichen an einer bestimmten Position überschreiben
+ *
+ * Mit dieser Funktion kann ein einzelnes Zeichen an einer bestimmten Position des Strings überschrieben werden.
+ *
+ * \param[in] c ASCII-Code des gewünschten Zeichens
+ * \param[in] pos Position innerhalb des Strings, wobei 0 das erste Zeichen bedeutet. Ist der Wert negativ, wird die
+ * Position vom Ende des Strings berechnet. -1 wäre dabei das letzte Zeichen des Strings. Eine besondere Behandlung
+ * wird durchgeführt, wenn \p pos mit der Länge des Strings übereinstimmt. In diesem Fall wird die Funktion
+ * CString::AddChar aufgerufen und das Zeichen am Ende angehangen.
+ */
+void CString::SetChar(char c, int pos)
+{
+	if (!c) return;
+	if (pos<0) pos=(int)len+pos;
+	if (pos<0) return;
+	if ((size_t)pos<len) {
+		buffer[pos]=c;
+		return;
+	}
+	if ((size_t)pos==len) {
+		AddChar(c);
+		return;
+	}
+	SetError(436,"Stringlänge: %i, gewünschte Position: %i",len,pos);
+	return;
+}
+
+/*!\brief Einzelnes Zeichen anfügen
+ *
+ * Mit dieser Funktion wird ein einzelnes Zeichen an den String angefügt.
+ *
+ * \param[in] c ASCII-Code des gewünschten Zeichens
+ */
+void CString::AddChar(char c)
+{
+	if (!c) return;
+	char b[2];
+	b[0]=c;
+	b[1]=0;
+	Concat(b,1);
 }
 
 

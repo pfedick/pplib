@@ -549,16 +549,24 @@ class CString : public CVar
 		void Print(bool attach_newline=false) const;
 		void HexDump() const;
 		void HexDump(void *buffer, ppldd bytes, bool skipheader=false);
+
 		void Set(const char *text, int bytes=-1);
 		void Set(const CString *str, int bytes=-1);
 		void Set(const CString &str, int bytes=-1);
-		void Set(const CWString &str, int bytes=-1);
-		void Set(const wchar_t *str, int bytes=-1);
+		void Set(const CWString &str, int size=-1);
+		void Set(const std::string &str, int bytes=-1);
+		void Set(const std::wstring &str, int size=-1);
+		void Set(const wchar_t *str, int size=-1);
+		void Setf(const char *fmt, ...);
+		void SetChar(char c);
+		void SetChar(char c, int pos);
+
+
 
 		void Sprintf(const char *fmt, ...);
 		void VaSprintf(const char *fmt, va_list args);
 		void Vasprintf(const char *fmt, va_list args);
-		void Setf(const char *fmt, ...);
+
 		void Concat(const char *text, int bytes=-1);
 		void Concat(CString &str, int bytes=-1);
 		void Concatf(const char *fmt, ...);
@@ -571,6 +579,7 @@ class CString : public CVar
 		void Add(const char *str, int bytes=-1);
 		const char *GetPtr() const;
 		char Get(int pos) const;
+		void AddChar(char c);
 
 		void StripSlashes();
 		void Trim();
