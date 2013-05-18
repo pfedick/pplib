@@ -418,6 +418,14 @@ TEST_F(WideStringTest, copy_charptr_without_size) {
 	ASSERT_EQ((size_t)21,s1.Length()) << "String has unexpected length";
 }
 
+TEST_F(WideStringTest, copy_charptr_with_size) {
+	ppl6::CWString expected(L"who ");
+	ppl6::CWString s1(L"The Quick Brown Fox Jumps over the lazy dog");
+	ASSERT_EQ(1,s1.Copy("who let the dogs out?",4));
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)4,s1.Length()) << "String has unexpected length";
+}
+
 TEST_F(WideStringTest, copy_CString_without_size) {
 	ppl6::CWString expected(L"who let the dogs out?");
 	ppl6::CWString s1(L"The Quick Brown Fox Jumps over the lazy dog");
