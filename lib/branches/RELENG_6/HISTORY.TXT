@@ -34,6 +34,7 @@ Version 6.4.16
     Zeichen am Ende des Strings abgeschnitten wurden.
   - Bugfix in CWString::Shr: Zeichen am Ende des Strings wurden nicht abge-
     schnitten, String konnte länger werden, als der Originalstring
+  - CWString: Operator bool() entfernt, da dieser nicht funktioniert
     
   Achtung: Mögliches Kompatibilitätsproblem:
   - Änderung in CWString::Set: Bei Verwendung eines char *, std::string oder

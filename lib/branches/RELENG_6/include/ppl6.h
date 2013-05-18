@@ -927,7 +927,6 @@ class CWString : public CVar
 		bool operator>(const CWString &str) const;
 
 		operator int() const;
-		operator bool() const;
 		operator unsigned int() const;
 
 		CWString GetMD5() const;

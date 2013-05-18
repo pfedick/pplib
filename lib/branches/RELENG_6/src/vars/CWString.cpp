@@ -3325,13 +3325,6 @@ CWString::operator int() const
 	return ToInt();
 }
 
-CWString::operator bool() const
-//! \brief Liefert je nach Inhalt des Strings true oder false zurück
-{
-	if (IsTrue()) return true;
-	return false;
-}
-
 CWString::operator unsigned int() const
 //! \brief Liefert den Integer-Wert des Strings zurück
 {
