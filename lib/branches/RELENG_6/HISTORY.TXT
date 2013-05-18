@@ -32,8 +32,9 @@ Version 6.4.16
     uninitialised value"
   - Bugfix in CWString::Delete: Falscher Returnwert wurde zurückgegeben, wenn
     Zeichen am Ende des Strings abgeschnitten wurden.
-  - Bugfix in CWString::Shr: Zeichen am Ende des Strings wurden nicht abge-
-    schnitten, String konnte länger werden, als der Originalstring
+  - Bugfix in CString::Shr und CWString::Shr: Zeichen am Ende des Strings
+    wurden nicht abgeschnitten, String konnte länger werden, als der Original-
+    string
   - CWString: Operator bool() entfernt, da dieser nicht funktioniert
   - CString: Zusätzliche Set- und SetChar-Funktionen 
     

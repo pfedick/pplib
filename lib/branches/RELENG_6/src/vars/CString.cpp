@@ -1753,9 +1753,11 @@ void CString::Shr(char c, int size)
 	if (!len) return;
 	if (!size) return;
 	if (!c) return;
+	if ((ppluint32)size>len) size=len;
 	CString t;
 	t.Repeat(c,size);
 	t+=buffer;
+	t.Cut(len);
 	Set(t);
 }
 
