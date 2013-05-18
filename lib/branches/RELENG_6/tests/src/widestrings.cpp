@@ -1015,13 +1015,13 @@ TEST_F(WideStringTest, stdmap_search) {
 
 	ppl6::CWString s1;
 
-	ASSERT_EQ(ppl6::CString(L"3"),myMap.at("brown")) << "Unexpected Result";
-	ASSERT_EQ(ppl6::CString(L"8"),myMap.at("lazy")) << "Unexpected Result";
-	ASSERT_EQ(ppl6::CString(L"1"),myMap.at("the")) << "Unexpected Result";
-	ASSERT_EQ(ppl6::CString(L"6"),myMap.at("over")) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"3"),myMap.at("brown")) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"8"),myMap.at("lazy")) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"1"),myMap.at("the")) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"6"),myMap.at("over")) << "Unexpected Result";
 
 	ASSERT_THROW({
-		ASSERT_EQ(ppl6::CString(L""),myMap.at("blue")) << "Unexpected Result";
+		ASSERT_EQ(ppl6::CWString(L""),myMap.at("blue")) << "Unexpected Result";
 	}, std::out_of_range);
 
 }
@@ -1040,21 +1040,21 @@ TEST_F(WideStringTest, stdmap_walk) {
 
 	std::map<ppl6::CWString,ppl6::CWString>::const_iterator it;
 	it=myMap.begin();
-	ASSERT_EQ(ppl6::CString(L"brown"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"brown"),(*it).first) << "Unexpected Result";
 	it++;
-	ASSERT_EQ(ppl6::CString(L"dog"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"dog"),(*it).first) << "Unexpected Result";
 	it++;
-	ASSERT_EQ(ppl6::CString(L"fox"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"fox"),(*it).first) << "Unexpected Result";
 	it++;
-	ASSERT_EQ(ppl6::CString(L"jumps"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"jumps"),(*it).first) << "Unexpected Result";
 	it++;
-	ASSERT_EQ(ppl6::CString(L"lazy"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"lazy"),(*it).first) << "Unexpected Result";
 	it++;
-	ASSERT_EQ(ppl6::CString(L"over"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"over"),(*it).first) << "Unexpected Result";
 	it++;
-	ASSERT_EQ(ppl6::CString(L"quick"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"quick"),(*it).first) << "Unexpected Result";
 	it++;
-	ASSERT_EQ(ppl6::CString(L"the"),(*it).first) << "Unexpected Result";
+	ASSERT_EQ(ppl6::CWString(L"the"),(*it).first) << "Unexpected Result";
 	it++;
 
 	ASSERT_EQ(myMap.end(),it) << "Not at end of map";
@@ -1431,9 +1431,9 @@ TEST_F(WideStringTest, ToBool) {
 	ASSERT_EQ(s1.ToBool(),false) << "String should not be true";
 }
 
-TEST_F(WideStringTest, ToLong_1242346214893456) {
-	ppl6::CWString s1(L"1242346214893456");
-	EXPECT_EQ((long)1242346214893456,s1.ToLong()) << "Unexpected Result";
+TEST_F(WideStringTest, ToLong_1124234674) {
+	ppl6::CWString s1(L"124234674");
+	EXPECT_EQ((long)124234674,s1.ToLong()) << "Unexpected Result";
 }
 
 TEST_F(WideStringTest, ToLongLong_1242346214893456) {
