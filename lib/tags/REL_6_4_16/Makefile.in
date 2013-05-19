@@ -1,0 +1,2347 @@
+###########################################################################
+###
+### PPL6 Makefile
+###
+###########################################################################
+### Global Options
+###########################################################################
+srcdir 	= @srcdir@/src
+VPATH	= @srcdir@
+incdir	= @srcdir@/include
+
+prefix	= @prefix@
+exec_prefix	= @exec_prefix@
+TARGETLIB	= @libdir@
+TARGETBIN	= @bindir@
+TARGETINCLUDE	= @includedir@
+CC			= @CC@
+CXX			= @CXX@
+CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @OPENSSL_INCLUDES@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ @FREETDS_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ @SQLITE_CFLAGS@
+CPPFLAGS	= @CPPFLAGS@
+LDFLAGS		= @LDFLAGS@
+LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @FREETDS_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@ @LIBMICROHTTPD_LIBS@ @SQLITE_LIBS@
+LIBNAME		= libppl6
+LIBDEBUG	= libppl6-debug
+DISTNAME	= ppl
+VERSION     = 6.4.16
+ASM			= @ASM@ @ASMFLAGS@
+ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@	
+###########################################################################
+### Object Files
+###########################################################################
+
+RELEASE	= release/CAVLTree.o \
+	release/CApplication.o \
+	release/CArchiv.o \
+	release/CConfig.o \
+	release/CCrontab.o \
+	release/CDebug.o \
+	release/CDir.o \
+	release/CFile.o \
+	release/CFileObject.o \
+	release/CHeap.o \
+	release/CIconv.o \
+	release/CLang.o \
+	release/CList.o \
+	release/CLog.o \
+	release/CMCrypt.o \
+	release/CMHash.o \
+	release/CMemFile.o \
+	release/CMemMan.o \
+	release/CMemSpace.o \
+	release/CMemory.o \
+	release/CMemoryReference.o \
+	release/CMutex.o \
+	release/CNotifyHandler.o \
+	release/CQueue.o \
+	release/CResource.o \
+	release/CSignal.o \
+	release/CThread.o \
+	release/CTok.o \
+	release/CTree.o \
+	release/Errors.o \
+	release/Exception.o \
+	release/PFPFile.o \
+	release/PerlHelper.o \
+	release/WinSockErrors.o \
+	release/compat.o \
+	release/compression.o \
+	release/cpu.o \
+	release/functions.o \
+	release/ident.o \
+	release/pplcore.o \
+	release/resourcen.o \
+	release/strings.o \
+	release/time.o \
+	release/CArray.o \
+	release/CAssocArray.o \
+	release/CBinary.o \
+	release/CBool.o \
+	release/CDateTime.o \
+	release/CInt.o \
+	release/CString.o \
+	release/CVar.o \
+	release/CWString.o \
+	release/ca.o \
+	release/crc32.o \
+	release/math.o \
+	release/md5.o \
+	release/random.o \
+	release/CCurl.o \
+	release/CHostsAllow.o \
+	release/CReadMail.o \
+	release/CResolver.o \
+	release/CSendMail.o \
+	release/CSocketMessage.o \
+	release/CTCPSocket.o \
+	release/CUDPSocket.o \
+	release/CWikiParser.o \
+	release/openssl.o \
+	release/resolver.o \
+	release/socket.o \
+	release/webserver.o \
+	release/db_Database.o \
+	release/db_GenericResult.o \
+	release/db_MySQL.o \
+	release/db_Pool.o \
+	release/db_PoolEx.o \
+	release/db_Postgres.o \
+	release/db_Result.o \
+	release/db_Sqlite.o \
+	release/db_Sybase.o \
+	release/gfx6_Blit.o \
+	release/gfx6_CDrawable.o \
+	release/gfx6_CFilter.o \
+	release/gfx6_CFilter_BMP.o \
+	release/gfx6_CFilter_GIF.o \
+	release/gfx6_CFilter_JPEG.o \
+	release/gfx6_CFilter_PNG.o \
+	release/gfx6_CFilter_PPM.o \
+	release/gfx6_CFilter_TGA.o \
+	release/gfx6_CGrafix.o \
+	release/gfx6_CImage.o \
+	release/gfx6_CImageList.o \
+	release/gfx6_CSprite.o \
+	release/gfx6_CSurface.o \
+	release/gfx6_Colors.o \
+	release/gfx6_Font4.o \
+	release/gfx6_Font5.o \
+	release/gfx6_Font6.o \
+	release/gfx6_FontFreeType.o \
+	release/gfx6_Fonts.o \
+	release/gfx6_GFXEngine.o \
+	release/gfx6_GFXEngineDX9.o \
+	release/gfx6_GFXEngineSDL.o \
+	release/gfx6_GFXEngineSoftware.o \
+	release/gfx6_GrafikErrors.o \
+	release/gfx6_Lines.o \
+	release/gfx6_Pixel.o \
+	release/gfx6_Point.o \
+	release/gfx6_Point3D.o \
+	release/gfx6_RGBFormat.o \
+	release/gfx6_Rect.o \
+	release/gfx6_Shapes.o \
+	release/gfx6_Size.o \
+	release/tk_Area.o \
+	release/tk_Button.o \
+	release/tk_Checkbox.o \
+	release/tk_Event.o \
+	release/tk_Frame.o \
+	release/tk_Input.o \
+	release/tk_Label.o \
+	release/tk_Picture.o \
+	release/tk_RadioButton.o \
+	release/tk_Slider.o \
+	release/tk_SubWindow.o \
+	release/tk_Tab.o \
+	release/tk_Widget.o \
+	release/tk_Window.o \
+	release/CID3Tag.o \
+	release/CIcecast.o \
+	release/CMP3Decode.o \
+	release/CMP3Decode_Lame.o \
+	release/CMP3Decode_LibMad.o \
+	release/CMP3Decode_Mpg123.o \
+	release/CMP3Encode.o \
+	release/mp3.o
+
+DEBUG	= debug/CAVLTree.o \
+	debug/CApplication.o \
+	debug/CArchiv.o \
+	debug/CConfig.o \
+	debug/CCrontab.o \
+	debug/CDebug.o \
+	debug/CDir.o \
+	debug/CFile.o \
+	debug/CFileObject.o \
+	debug/CHeap.o \
+	debug/CIconv.o \
+	debug/CLang.o \
+	debug/CList.o \
+	debug/CLog.o \
+	debug/CMCrypt.o \
+	debug/CMHash.o \
+	debug/CMemFile.o \
+	debug/CMemMan.o \
+	debug/CMemSpace.o \
+	debug/CMemory.o \
+	debug/CMemoryReference.o \
+	debug/CMutex.o \
+	debug/CNotifyHandler.o \
+	debug/CQueue.o \
+	debug/CResource.o \
+	debug/CSignal.o \
+	debug/CThread.o \
+	debug/CTok.o \
+	debug/CTree.o \
+	debug/Errors.o \
+	debug/Exception.o \
+	debug/PFPFile.o \
+	debug/PerlHelper.o \
+	debug/WinSockErrors.o \
+	debug/compat.o \
+	debug/compression.o \
+	debug/cpu.o \
+	debug/functions.o \
+	debug/ident.o \
+	debug/pplcore.o \
+	debug/resourcen.o \
+	debug/strings.o \
+	debug/time.o \
+	debug/CArray.o \
+	debug/CAssocArray.o \
+	debug/CBinary.o \
+	debug/CBool.o \
+	debug/CDateTime.o \
+	debug/CInt.o \
+	debug/CString.o \
+	debug/CVar.o \
+	debug/CWString.o \
+	debug/ca.o \
+	debug/crc32.o \
+	debug/math.o \
+	debug/md5.o \
+	debug/random.o \
+	debug/CCurl.o \
+	debug/CHostsAllow.o \
+	debug/CReadMail.o \
+	debug/CResolver.o \
+	debug/CSendMail.o \
+	debug/CSocketMessage.o \
+	debug/CTCPSocket.o \
+	debug/CUDPSocket.o \
+	debug/CWikiParser.o \
+	debug/openssl.o \
+	debug/resolver.o \
+	debug/socket.o \
+	debug/webserver.o \
+	debug/db_Database.o \
+	debug/db_GenericResult.o \
+	debug/db_MySQL.o \
+	debug/db_Pool.o \
+	debug/db_PoolEx.o \
+	debug/db_Postgres.o \
+	debug/db_Result.o \
+	debug/db_Sqlite.o \
+	debug/db_Sybase.o \
+	debug/gfx6_Blit.o \
+	debug/gfx6_CDrawable.o \
+	debug/gfx6_CFilter.o \
+	debug/gfx6_CFilter_BMP.o \
+	debug/gfx6_CFilter_GIF.o \
+	debug/gfx6_CFilter_JPEG.o \
+	debug/gfx6_CFilter_PNG.o \
+	debug/gfx6_CFilter_PPM.o \
+	debug/gfx6_CFilter_TGA.o \
+	debug/gfx6_CGrafix.o \
+	debug/gfx6_CImage.o \
+	debug/gfx6_CImageList.o \
+	debug/gfx6_CSprite.o \
+	debug/gfx6_CSurface.o \
+	debug/gfx6_Colors.o \
+	debug/gfx6_Font4.o \
+	debug/gfx6_Font5.o \
+	debug/gfx6_Font6.o \
+	debug/gfx6_FontFreeType.o \
+	debug/gfx6_Fonts.o \
+	debug/gfx6_GFXEngine.o \
+	debug/gfx6_GFXEngineDX9.o \
+	debug/gfx6_GFXEngineSDL.o \
+	debug/gfx6_GFXEngineSoftware.o \
+	debug/gfx6_GrafikErrors.o \
+	debug/gfx6_Lines.o \
+	debug/gfx6_Pixel.o \
+	debug/gfx6_Point.o \
+	debug/gfx6_Point3D.o \
+	debug/gfx6_RGBFormat.o \
+	debug/gfx6_Rect.o \
+	debug/gfx6_Shapes.o \
+	debug/gfx6_Size.o \
+	debug/tk_Area.o \
+	debug/tk_Button.o \
+	debug/tk_Checkbox.o \
+	debug/tk_Event.o \
+	debug/tk_Frame.o \
+	debug/tk_Input.o \
+	debug/tk_Label.o \
+	debug/tk_Picture.o \
+	debug/tk_RadioButton.o \
+	debug/tk_Slider.o \
+	debug/tk_SubWindow.o \
+	debug/tk_Tab.o \
+	debug/tk_Widget.o \
+	debug/tk_Window.o \
+	debug/CID3Tag.o \
+	debug/CIcecast.o \
+	debug/CMP3Decode.o \
+	debug/CMP3Decode_Lame.o \
+	debug/CMP3Decode_LibMad.o \
+	debug/CMP3Decode_Mpg123.o \
+	debug/CMP3Encode.o \
+	debug/mp3.o
+
+CORE_RELEASE	=release/CAVLTree.o \
+	release/CApplication.o \
+	release/CArchiv.o \
+	release/CConfig.o \
+	release/CCrontab.o \
+	release/CDebug.o \
+	release/CDir.o \
+	release/CFile.o \
+	release/CFileObject.o \
+	release/CHeap.o \
+	release/CIconv.o \
+	release/CLang.o \
+	release/CList.o \
+	release/CLog.o \
+	release/CMCrypt.o \
+	release/CMHash.o \
+	release/CMemFile.o \
+	release/CMemMan.o \
+	release/CMemSpace.o \
+	release/CMemory.o \
+	release/CMemoryReference.o \
+	release/CMutex.o \
+	release/CNotifyHandler.o \
+	release/CQueue.o \
+	release/CResource.o \
+	release/CSignal.o \
+	release/CThread.o \
+	release/CTok.o \
+	release/CTree.o \
+	release/Errors.o \
+	release/Exception.o \
+	release/PFPFile.o \
+	release/PerlHelper.o \
+	release/WinSockErrors.o \
+	release/compat.o \
+	release/compression.o \
+	release/cpu.o \
+	release/functions.o \
+	release/ident.o \
+	release/pplcore.o \
+	release/resourcen.o \
+	release/strings.o \
+	release/time.o \
+	release/CArray.o \
+	release/CAssocArray.o \
+	release/CBinary.o \
+	release/CBool.o \
+	release/CDateTime.o \
+	release/CInt.o \
+	release/CString.o \
+	release/CVar.o \
+	release/CWString.o \
+	release/ca.o \
+	release/crc32.o \
+	release/math.o \
+	release/md5.o \
+	release/random.o
+
+CORE_DEBUG	=debug/CAVLTree.o \
+	debug/CApplication.o \
+	debug/CArchiv.o \
+	debug/CConfig.o \
+	debug/CCrontab.o \
+	debug/CDebug.o \
+	debug/CDir.o \
+	debug/CFile.o \
+	debug/CFileObject.o \
+	debug/CHeap.o \
+	debug/CIconv.o \
+	debug/CLang.o \
+	debug/CList.o \
+	debug/CLog.o \
+	debug/CMCrypt.o \
+	debug/CMHash.o \
+	debug/CMemFile.o \
+	debug/CMemMan.o \
+	debug/CMemSpace.o \
+	debug/CMemory.o \
+	debug/CMemoryReference.o \
+	debug/CMutex.o \
+	debug/CNotifyHandler.o \
+	debug/CQueue.o \
+	debug/CResource.o \
+	debug/CSignal.o \
+	debug/CThread.o \
+	debug/CTok.o \
+	debug/CTree.o \
+	debug/Errors.o \
+	debug/Exception.o \
+	debug/PFPFile.o \
+	debug/PerlHelper.o \
+	debug/WinSockErrors.o \
+	debug/compat.o \
+	debug/compression.o \
+	debug/cpu.o \
+	debug/functions.o \
+	debug/ident.o \
+	debug/pplcore.o \
+	debug/resourcen.o \
+	debug/strings.o \
+	debug/time.o \
+	debug/CArray.o \
+	debug/CAssocArray.o \
+	debug/CBinary.o \
+	debug/CBool.o \
+	debug/CDateTime.o \
+	debug/CInt.o \
+	debug/CString.o \
+	debug/CVar.o \
+	debug/CWString.o \
+	debug/ca.o \
+	debug/crc32.o \
+	debug/math.o \
+	debug/md5.o \
+	debug/random.o
+
+INET_RELEASE	=release/CCurl.o \
+	release/CHostsAllow.o \
+	release/CReadMail.o \
+	release/CResolver.o \
+	release/CSendMail.o \
+	release/CSocketMessage.o \
+	release/CTCPSocket.o \
+	release/CUDPSocket.o \
+	release/CWikiParser.o \
+	release/openssl.o \
+	release/resolver.o \
+	release/socket.o \
+	release/webserver.o
+
+INET_DEBUG	=debug/CCurl.o \
+	debug/CHostsAllow.o \
+	debug/CReadMail.o \
+	debug/CResolver.o \
+	debug/CSendMail.o \
+	debug/CSocketMessage.o \
+	debug/CTCPSocket.o \
+	debug/CUDPSocket.o \
+	debug/CWikiParser.o \
+	debug/openssl.o \
+	debug/resolver.o \
+	debug/socket.o \
+	debug/webserver.o
+
+INET_NOSSL_RELEASE	=release/nossl_CCurl.o \
+	release/nossl_CHostsAllow.o \
+	release/nossl_CReadMail.o \
+	release/nossl_CResolver.o \
+	release/nossl_CSendMail.o \
+	release/nossl_CSocketMessage.o \
+	release/nossl_CTCPSocket.o \
+	release/nossl_CUDPSocket.o \
+	release/nossl_CWikiParser.o \
+	release/nossl_openssl.o \
+	release/nossl_resolver.o \
+	release/nossl_socket.o \
+	release/nossl_webserver.o
+
+INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
+	debug/nossl_CHostsAllow.o \
+	debug/nossl_CReadMail.o \
+	debug/nossl_CResolver.o \
+	debug/nossl_CSendMail.o \
+	debug/nossl_CSocketMessage.o \
+	debug/nossl_CTCPSocket.o \
+	debug/nossl_CUDPSocket.o \
+	debug/nossl_CWikiParser.o \
+	debug/nossl_openssl.o \
+	debug/nossl_resolver.o \
+	debug/nossl_socket.o \
+	debug/nossl_webserver.o
+
+
+SOUND_RELEASE	=release/CID3Tag.o \
+	release/CIcecast.o \
+	release/CMP3Decode.o \
+	release/CMP3Decode_Lame.o \
+	release/CMP3Decode_LibMad.o \
+	release/CMP3Decode_Mpg123.o \
+	release/CMP3Encode.o \
+	release/mp3.o
+
+SOUND_DEBUG	=debug/CID3Tag.o \
+	debug/CIcecast.o \
+	debug/CMP3Decode.o \
+	debug/CMP3Decode_Lame.o \
+	debug/CMP3Decode_LibMad.o \
+	debug/CMP3Decode_Mpg123.o \
+	debug/CMP3Encode.o \
+	debug/mp3.o
+
+
+DATABASE_RELEASE	=release/db_Database.o \
+	release/db_GenericResult.o \
+	release/db_MySQL.o \
+	release/db_Pool.o \
+	release/db_PoolEx.o \
+	release/db_Postgres.o \
+	release/db_Result.o \
+	release/db_Sqlite.o \
+	release/db_Sybase.o
+
+DATABASE_DEBUG	=debug/db_Database.o \
+	debug/db_GenericResult.o \
+	debug/db_MySQL.o \
+	debug/db_Pool.o \
+	debug/db_PoolEx.o \
+	debug/db_Postgres.o \
+	debug/db_Result.o \
+	debug/db_Sqlite.o \
+	debug/db_Sybase.o
+
+GRAFIX_RELEASE	=release/gfx6_Blit.o \
+	release/gfx6_CDrawable.o \
+	release/gfx6_CFilter.o \
+	release/gfx6_CFilter_BMP.o \
+	release/gfx6_CFilter_GIF.o \
+	release/gfx6_CFilter_JPEG.o \
+	release/gfx6_CFilter_PNG.o \
+	release/gfx6_CFilter_PPM.o \
+	release/gfx6_CFilter_TGA.o \
+	release/gfx6_CGrafix.o \
+	release/gfx6_CImage.o \
+	release/gfx6_CImageList.o \
+	release/gfx6_CSprite.o \
+	release/gfx6_CSurface.o \
+	release/gfx6_Colors.o \
+	release/gfx6_Font4.o \
+	release/gfx6_Font5.o \
+	release/gfx6_Font6.o \
+	release/gfx6_FontFreeType.o \
+	release/gfx6_Fonts.o \
+	release/gfx6_GFXEngine.o \
+	release/gfx6_GFXEngineDX9.o \
+	release/gfx6_GFXEngineSDL.o \
+	release/gfx6_GFXEngineSoftware.o \
+	release/gfx6_GrafikErrors.o \
+	release/gfx6_Lines.o \
+	release/gfx6_Pixel.o \
+	release/gfx6_Point.o \
+	release/gfx6_Point3D.o \
+	release/gfx6_RGBFormat.o \
+	release/gfx6_Rect.o \
+	release/gfx6_Shapes.o \
+	release/gfx6_Size.o \
+	release/tk_Area.o \
+	release/tk_Button.o \
+	release/tk_Checkbox.o \
+	release/tk_Event.o \
+	release/tk_Frame.o \
+	release/tk_Input.o \
+	release/tk_Label.o \
+	release/tk_Picture.o \
+	release/tk_RadioButton.o \
+	release/tk_Slider.o \
+	release/tk_SubWindow.o \
+	release/tk_Tab.o \
+	release/tk_Widget.o \
+	release/tk_Window.o
+
+GRAFIX_DEBUG	=debug/gfx6_Blit.o \
+	debug/gfx6_CDrawable.o \
+	debug/gfx6_CFilter.o \
+	debug/gfx6_CFilter_BMP.o \
+	debug/gfx6_CFilter_GIF.o \
+	debug/gfx6_CFilter_JPEG.o \
+	debug/gfx6_CFilter_PNG.o \
+	debug/gfx6_CFilter_PPM.o \
+	debug/gfx6_CFilter_TGA.o \
+	debug/gfx6_CGrafix.o \
+	debug/gfx6_CImage.o \
+	debug/gfx6_CImageList.o \
+	debug/gfx6_CSprite.o \
+	debug/gfx6_CSurface.o \
+	debug/gfx6_Colors.o \
+	debug/gfx6_Font4.o \
+	debug/gfx6_Font5.o \
+	debug/gfx6_Font6.o \
+	debug/gfx6_FontFreeType.o \
+	debug/gfx6_Fonts.o \
+	debug/gfx6_GFXEngine.o \
+	debug/gfx6_GFXEngineDX9.o \
+	debug/gfx6_GFXEngineSDL.o \
+	debug/gfx6_GFXEngineSoftware.o \
+	debug/gfx6_GrafikErrors.o \
+	debug/gfx6_Lines.o \
+	debug/gfx6_Pixel.o \
+	debug/gfx6_Point.o \
+	debug/gfx6_Point3D.o \
+	debug/gfx6_RGBFormat.o \
+	debug/gfx6_Rect.o \
+	debug/gfx6_Shapes.o \
+	debug/gfx6_Size.o \
+	debug/tk_Area.o \
+	debug/tk_Button.o \
+	debug/tk_Checkbox.o \
+	debug/tk_Event.o \
+	debug/tk_Frame.o \
+	debug/tk_Input.o \
+	debug/tk_Label.o \
+	debug/tk_Picture.o \
+	debug/tk_RadioButton.o \
+	debug/tk_Slider.o \
+	debug/tk_SubWindow.o \
+	debug/tk_Tab.o \
+	debug/tk_Widget.o \
+	debug/tk_Window.o
+
+TK_RELEASE	=
+
+TK_DEBUG	=
+
+ASM_OBJ_RELEASE	=	release/asm_blt.o \
+		release/asm_colors.o \
+		release/asm_cpu.o \
+		release/asm_fonts.o \
+		release/asm_pixel.o \
+		release/asm_rect.o
+ASM_OBJ_DEBUG	=	debug/asm_blt.o \
+		debug/asm_colors.o \
+		debug/asm_cpu.o \
+		debug/asm_fonts.o \
+		debug/asm_pixel.o \
+		debug/asm_rect.o
+
+
+@HAVE_X86_ASSEMBLER@
+
+###########################################################################
+### Targets
+###########################################################################
+
+
+release: release/$(LIBNAME).a
+
+debug: debug/$(LIBDEBUG).a
+
+all:	install_debug install
+
+debug/$(LIBDEBUG).a: debug/make $(DEBUG) $(ASM_DEBUG) debug/$(LIBDEBUG)-core.a 	debug/$(LIBDEBUG)-sound.a 	debug/$(LIBDEBUG)-database.a 	debug/$(LIBDEBUG)-inet.a 	debug/$(LIBDEBUG)-inet-nossl.a 	debug/$(LIBDEBUG)-grafix.a	
+	ar -r debug/$(LIBDEBUG).a $(DEBUG) $(ASM_DEBUG)
+	-chmod a+x ppl6-config
+
+release/$(LIBNAME).a: release/make $(RELEASE) $(ASM_RELEASE) release/$(LIBNAME)-core.a 	release/$(LIBNAME)-sound.a 	release/$(LIBNAME)-database.a 	release/$(LIBNAME)-inet.a 	release/$(LIBNAME)-inet-nossl.a 	release/$(LIBNAME)-grafix.a
+	ar -r release/$(LIBNAME).a $(RELEASE) $(ASM_RELEASE)
+	-chmod a+x ppl6-config
+
+debug/make:
+	-mkdir -p debug
+	-touch debug/make
+
+release/make:
+	-mkdir -p release
+	-touch release/make
+
+debug/$(LIBDEBUG)-core.a: Makefile debug/make $(CORE_DEBUG) $(ASM_DEBUG)
+	ar -r debug/$(LIBDEBUG)-core.a $(CORE_DEBUG) $(ASM_DEBUG)
+
+release/$(LIBNAME)-core.a: Makefile release/make $(CORE_RELEASE) $(ASM_RELEASE)
+	ar -r release/$(LIBNAME)-core.a $(CORE_RELEASE) $(ASM_RELEASE)
+
+debug/$(LIBDEBUG)-sound.a: Makefile debug/make $(SOUND_DEBUG)
+	ar -r debug/$(LIBDEBUG)-sound.a $(SOUND_DEBUG)
+
+release/$(LIBNAME)-sound.a: Makefile release/make $(SOUND_RELEASE)
+	ar -r release/$(LIBNAME)-sound.a $(SOUND_RELEASE)
+
+debug/$(LIBDEBUG)-database.a: Makefile debug/make $(DATABASE_DEBUG)
+	ar -r debug/$(LIBDEBUG)-database.a $(DATABASE_DEBUG)
+
+release/$(LIBNAME)-database.a: Makefile release/make $(DATABASE_RELEASE)
+	ar -r release/$(LIBNAME)-database.a $(DATABASE_RELEASE)
+
+debug/$(LIBDEBUG)-inet.a: Makefile debug/make $(INET_DEBUG)
+	ar -r debug/$(LIBDEBUG)-inet.a $(INET_DEBUG)
+
+release/$(LIBNAME)-inet.a: Makefile release/make $(INET_RELEASE)
+	ar -r release/$(LIBNAME)-inet.a $(INET_RELEASE)
+
+debug/$(LIBDEBUG)-inet-nossl.a: Makefile debug/make $(INET_NOSSL_DEBUG)
+	ar -r debug/$(LIBDEBUG)-inet-nossl.a $(INET_NOSSL_DEBUG)
+
+release/$(LIBNAME)-inet-nossl.a: Makefile release/make $(INET_NOSSL_RELEASE)
+	ar -r release/$(LIBNAME)-inet-nossl.a $(INET_NOSSL_RELEASE)
+
+debug/$(LIBDEBUG)-grafix.a: Makefile debug/make $(GRAFIX_DEBUG)
+	ar -r debug/$(LIBDEBUG)-grafix.a $(GRAFIX_DEBUG)
+
+release/$(LIBNAME)-grafix.a: Makefile release/make $(GRAFIX_RELEASE)
+	ar -r release/$(LIBNAME)-grafix.a $(GRAFIX_RELEASE)
+
+debug/$(LIBDEBUG)-tk.a: Makefile debug/make $(TK_DEBUG)
+	ar -r debug/$(LIBDEBUG)-tk.a $(TK_DEBUG)
+
+release/$(LIBNAME)-tk.a: Makefile release/make $(TK_RELEASE)
+	ar -r release/$(LIBNAME)-tk.a $(TK_RELEASE)
+	
+install:	release/$(LIBNAME).a release/pplgenresource.o
+	-cp release/$(LIBNAME)*.a $(TARGETLIB)
+	-cp $(incdir)/ppl6.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-exceptions.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-grafix.h $(TARGETINCLUDE)
+	-rm -f $(TARGETINCLUDE)\ppl6-grafix6.h
+	-cp $(incdir)/ppl6-tk.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-sound.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-crypt.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-db.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-unixconfig.h $(TARGETINCLUDE)/ppl6-config.h
+	-chmod a+x ppl6-config  
+	-cp ppl6-config $(TARGETBIN)
+	$(CXX) -o release/pplgenresource release/pplgenresource.o `ppl6-config --libs release` -lstdc++
+	-cp release/pplgenresource $(TARGETBIN)
+
+install_debug: debug/$(LIBDEBUG).a debug/pplgenresource.o
+	-cp debug/$(LIBDEBUG)*.a $(TARGETLIB)
+	-cp $(incdir)/ppl6.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-exceptions.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-grafix.h $(TARGETINCLUDE)
+	-rm -f $(TARGETINCLUDE)\ppl6-grafix6.h
+	-cp $(incdir)/ppl6-tk*.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-sound.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-crypt.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-db.h $(TARGETINCLUDE)
+	-cp $(incdir)/ppl6-unixconfig.h $(TARGETINCLUDE)/ppl6-config.h
+	-chmod a+x ppl6-config
+	-cp ppl6-config $(TARGETBIN)
+	$(CXX) -o debug/pplgenresource debug/pplgenresource.o `ppl6-config --libs debug` -lstdc++	
+
+clean:
+	-rm -rf release
+	-rm -rf debug
+	-rm -rf documentation
+	-cd tests; make clean
+	
+deinstall:
+	-rm -f $(TARGETINCLUDE)/ppl6*.h
+	-rm -f $(TARGETLIB)/$(LIBDEBUG)*.a
+	-rm -f $(TARGETLIB)/$(LIBNAME)*.a
+	-rm -f $(TARGETBIN)/ppl6-config
+	
+distclean: clean
+	-rm -rf $(incdir)/ppl6-unixconfig.h $(incdir)/config.h config.log config.status autom4te.cache configure.scan
+
+configure: genConfigure genMakefile.in configure.in
+	-sh genConfigure
+
+Makefile:
+	-sh genMakefile.in
+	
+doku: html pdf
+
+html:
+	-mkdir -p documentation
+	-rm -rf documentation/html
+	-mkdir -p documentation/html
+	-doxygen Doxyfile
+	-cp docs/header-bg.png documentation/html
+	
+pdf:
+	-mkdir -p documentation
+	-rm -rf documentation/latex
+	-mkdir -p documentation/latex
+	-doxygen Doxyfile.latex
+	-cd documentation/latex; make; mv refman.pdf ../ppl6-manual.pdf
+	
+test:
+	- cd tests; make xml
+	
+memcheck:
+	- cd tests; make memcheck
+	
+release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp
+	$(CXX) -Wall -c -o release/pplgenresource.o tools/pplgenresource/genresource.cpp $(CFLAGS)
+
+debug/pplgenresource.o: debug/make Makefile tools/pplgenresource/genresource.cpp
+	$(CXX) -Wall -c -o debug/pplgenresource.o tools/pplgenresource/genresource.cpp $(CFLAGS)
+
+
+res:
+	-pplgenresource -b resource -c resource/resourcen.lst -t resource/res.h -l PPL6_RESOURCES
+	-rm -f debug/resourcen.o release/resourcen.o
+
+
+###########################################################################
+### Compile Release Files
+###########################################################################
+
+### CORE
+release/CAVLTree.o:	$(srcdir)/core/CAVLTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CAVLTree.cpp<<<
+	$(CXX) -Wall -O3 -o release/CAVLTree.o -c $(CFLAGS)  $(srcdir)/core/CAVLTree.cpp
+
+release/CApplication.o:	$(srcdir)/core/CApplication.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CApplication.cpp<<<
+	$(CXX) -Wall -O3 -o release/CApplication.o -c $(CFLAGS)  $(srcdir)/core/CApplication.cpp
+
+release/CArchiv.o:	$(srcdir)/core/CArchiv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CArchiv.cpp<<<
+	$(CXX) -Wall -O3 -o release/CArchiv.o -c $(CFLAGS)  $(srcdir)/core/CArchiv.cpp
+
+release/CConfig.o:	$(srcdir)/core/CConfig.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CConfig.cpp<<<
+	$(CXX) -Wall -O3 -o release/CConfig.o -c $(CFLAGS)  $(srcdir)/core/CConfig.cpp
+
+release/CCrontab.o:	$(srcdir)/core/CCrontab.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CCrontab.cpp<<<
+	$(CXX) -Wall -O3 -o release/CCrontab.o -c $(CFLAGS)  $(srcdir)/core/CCrontab.cpp
+
+release/CDebug.o:	$(srcdir)/core/CDebug.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CDebug.cpp<<<
+	$(CXX) -Wall -O3 -o release/CDebug.o -c $(CFLAGS)  $(srcdir)/core/CDebug.cpp
+
+release/CDir.o:	$(srcdir)/core/CDir.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CDir.cpp<<<
+	$(CXX) -Wall -O3 -o release/CDir.o -c $(CFLAGS)  $(srcdir)/core/CDir.cpp
+
+release/CFile.o:	$(srcdir)/core/CFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CFile.cpp<<<
+	$(CXX) -Wall -O3 -o release/CFile.o -c $(CFLAGS)  $(srcdir)/core/CFile.cpp
+
+release/CFileObject.o:	$(srcdir)/core/CFileObject.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CFileObject.cpp<<<
+	$(CXX) -Wall -O3 -o release/CFileObject.o -c $(CFLAGS)  $(srcdir)/core/CFileObject.cpp
+
+release/CHeap.o:	$(srcdir)/core/CHeap.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CHeap.cpp<<<
+	$(CXX) -Wall -O3 -o release/CHeap.o -c $(CFLAGS)  $(srcdir)/core/CHeap.cpp
+
+release/CIconv.o:	$(srcdir)/core/CIconv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CIconv.cpp<<<
+	$(CXX) -Wall -O3 -o release/CIconv.o -c $(CFLAGS)  $(srcdir)/core/CIconv.cpp
+
+release/CLang.o:	$(srcdir)/core/CLang.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CLang.cpp<<<
+	$(CXX) -Wall -O3 -o release/CLang.o -c $(CFLAGS)  $(srcdir)/core/CLang.cpp
+
+release/CList.o:	$(srcdir)/core/CList.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CList.cpp<<<
+	$(CXX) -Wall -O3 -o release/CList.o -c $(CFLAGS)  $(srcdir)/core/CList.cpp
+
+release/CLog.o:	$(srcdir)/core/CLog.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CLog.cpp<<<
+	$(CXX) -Wall -O3 -o release/CLog.o -c $(CFLAGS)  $(srcdir)/core/CLog.cpp
+
+release/CMCrypt.o:	$(srcdir)/core/CMCrypt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMCrypt.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMCrypt.o -c $(CFLAGS)  $(srcdir)/core/CMCrypt.cpp
+
+release/CMHash.o:	$(srcdir)/core/CMHash.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMHash.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMHash.o -c $(CFLAGS)  $(srcdir)/core/CMHash.cpp
+
+release/CMemFile.o:	$(srcdir)/core/CMemFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemFile.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMemFile.o -c $(CFLAGS)  $(srcdir)/core/CMemFile.cpp
+
+release/CMemMan.o:	$(srcdir)/core/CMemMan.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemMan.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMemMan.o -c $(CFLAGS)  $(srcdir)/core/CMemMan.cpp
+
+release/CMemSpace.o:	$(srcdir)/core/CMemSpace.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemSpace.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMemSpace.o -c $(CFLAGS)  $(srcdir)/core/CMemSpace.cpp
+
+release/CMemory.o:	$(srcdir)/core/CMemory.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemory.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMemory.o -c $(CFLAGS)  $(srcdir)/core/CMemory.cpp
+
+release/CMemoryReference.o:	$(srcdir)/core/CMemoryReference.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemoryReference.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMemoryReference.o -c $(CFLAGS)  $(srcdir)/core/CMemoryReference.cpp
+
+release/CMutex.o:	$(srcdir)/core/CMutex.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMutex.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMutex.o -c $(CFLAGS)  $(srcdir)/core/CMutex.cpp
+
+release/CNotifyHandler.o:	$(srcdir)/core/CNotifyHandler.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CNotifyHandler.cpp<<<
+	$(CXX) -Wall -O3 -o release/CNotifyHandler.o -c $(CFLAGS)  $(srcdir)/core/CNotifyHandler.cpp
+
+release/CQueue.o:	$(srcdir)/core/CQueue.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CQueue.cpp<<<
+	$(CXX) -Wall -O3 -o release/CQueue.o -c $(CFLAGS)  $(srcdir)/core/CQueue.cpp
+
+release/CResource.o:	$(srcdir)/core/CResource.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CResource.cpp<<<
+	$(CXX) -Wall -O3 -o release/CResource.o -c $(CFLAGS)  $(srcdir)/core/CResource.cpp
+
+release/CSignal.o:	$(srcdir)/core/CSignal.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CSignal.cpp<<<
+	$(CXX) -Wall -O3 -o release/CSignal.o -c $(CFLAGS)  $(srcdir)/core/CSignal.cpp
+
+release/CThread.o:	$(srcdir)/core/CThread.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CThread.cpp<<<
+	$(CXX) -Wall -O3 -o release/CThread.o -c $(CFLAGS)  $(srcdir)/core/CThread.cpp
+
+release/CTok.o:	$(srcdir)/core/CTok.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CTok.cpp<<<
+	$(CXX) -Wall -O3 -o release/CTok.o -c $(CFLAGS)  $(srcdir)/core/CTok.cpp
+
+release/CTree.o:	$(srcdir)/core/CTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CTree.cpp<<<
+	$(CXX) -Wall -O3 -o release/CTree.o -c $(CFLAGS)  $(srcdir)/core/CTree.cpp
+
+release/Errors.o:	$(srcdir)/core/Errors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Errors.cpp<<<
+	$(CXX) -Wall -O3 -o release/Errors.o -c $(CFLAGS)  $(srcdir)/core/Errors.cpp
+
+release/Exception.o:	$(srcdir)/core/Exception.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  	$(incdir)/ppl6-exceptions.h
+	###############################################################################
+	# Compiling >>>core/Exception.cpp<<<
+	$(CXX) -Wall -O3 -o release/Exception.o -c $(CFLAGS)  $(srcdir)/core/Exception.cpp
+
+release/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PFPFile.cpp<<<
+	$(CXX) -Wall -O3 -o release/PFPFile.o -c $(CFLAGS)  $(srcdir)/core/PFPFile.cpp
+
+release/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PerlHelper.cpp<<<
+	$(CXX) -Wall -O3 -o release/PerlHelper.o -c $(CFLAGS)  $(srcdir)/core/PerlHelper.cpp
+
+release/WinSockErrors.o:	$(srcdir)/core/WinSockErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/WinSockErrors.cpp<<<
+	$(CXX) -Wall -O3 -o release/WinSockErrors.o -c $(CFLAGS)  $(srcdir)/core/WinSockErrors.cpp
+
+release/compat.o:	$(srcdir)/core/compat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compat.cpp<<<
+	$(CXX) -Wall -O3 -o release/compat.o -c $(CFLAGS)  $(srcdir)/core/compat.cpp
+
+release/compression.o:	$(srcdir)/core/compression.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compression.cpp<<<
+	$(CXX) -Wall -O3 -o release/compression.o -c $(CFLAGS)  $(srcdir)/core/compression.cpp
+
+release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O3 -o release/cpu.o -c $(CFLAGS)  $(srcdir)/core/cpu.cpp
+
+release/functions.o:	$(srcdir)/core/functions.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/functions.cpp<<<
+	$(CXX) -Wall -O3 -o release/functions.o -c $(CFLAGS)  $(srcdir)/core/functions.cpp
+
+release/ident.o:	$(srcdir)/core/ident.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/ident.cpp<<<
+	$(CXX) -Wall -O3 -o release/ident.o -c $(CFLAGS)  $(srcdir)/core/ident.cpp
+
+release/pplcore.o:	$(srcdir)/core/pplcore.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/pplcore.cpp<<<
+	$(CXX) -Wall -O3 -o release/pplcore.o -c $(CFLAGS)  $(srcdir)/core/pplcore.cpp
+
+release/resourcen.o:	$(srcdir)/core/resourcen.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/resourcen.cpp<<< ***** This could take some time! *****
+	$(CXX) -Wall -O3 -o release/resourcen.o -c $(CFLAGS)  $(srcdir)/core/resourcen.cpp
+
+release/strings.o:	$(srcdir)/core/strings.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/strings.cpp<<<
+	$(CXX) -Wall -O3 -o release/strings.o -c $(CFLAGS)  $(srcdir)/core/strings.cpp
+
+release/time.o:	$(srcdir)/core/time.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/time.cpp<<<
+	$(CXX) -Wall -O3 -o release/time.o -c $(CFLAGS)  $(srcdir)/core/time.cpp
+
+### VARS
+release/CArray.o:	$(srcdir)/vars/CArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CArray.cpp<<<
+	$(CXX) -Wall -O3 -o release/CArray.o -c $(CFLAGS)  $(srcdir)/vars/CArray.cpp
+
+release/CAssocArray.o:	$(srcdir)/vars/CAssocArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CAssocArray.cpp<<<
+	$(CXX) -Wall -O3 -o release/CAssocArray.o -c $(CFLAGS)  $(srcdir)/vars/CAssocArray.cpp
+
+release/CBinary.o:	$(srcdir)/vars/CBinary.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CBinary.cpp<<<
+	$(CXX) -Wall -O3 -o release/CBinary.o -c $(CFLAGS)  $(srcdir)/vars/CBinary.cpp
+
+release/CBool.o:	$(srcdir)/vars/CBool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CBool.cpp<<<
+	$(CXX) -Wall -O3 -o release/CBool.o -c $(CFLAGS)  $(srcdir)/vars/CBool.cpp
+
+release/CDateTime.o:	$(srcdir)/vars/CDateTime.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CDateTime.cpp<<<
+	$(CXX) -Wall -O3 -o release/CDateTime.o -c $(CFLAGS)  $(srcdir)/vars/CDateTime.cpp
+
+release/CInt.o:	$(srcdir)/vars/CInt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CInt.cpp<<<
+	$(CXX) -Wall -O3 -o release/CInt.o -c $(CFLAGS)  $(srcdir)/vars/CInt.cpp
+
+release/CString.o:	$(srcdir)/vars/CString.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CString.cpp<<<
+	$(CXX) -Wall -O3 -o release/CString.o -c $(CFLAGS)  $(srcdir)/vars/CString.cpp
+
+release/CVar.o:	$(srcdir)/vars/CVar.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CVar.cpp<<<
+	$(CXX) -Wall -O3 -o release/CVar.o -c $(CFLAGS)  $(srcdir)/vars/CVar.cpp
+
+release/CWString.o:	$(srcdir)/vars/CWString.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CWString.cpp<<<
+	$(CXX) -Wall -O3 -o release/CWString.o -c $(CFLAGS)  $(srcdir)/vars/CWString.cpp
+
+### MATH
+release/ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/calc.cpp<<<
+	$(CXX) -Wall -O3 -o release/ca.o -c $(CFLAGS)  $(srcdir)/math/calc.cpp
+
+release/crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/crc32.cpp<<<
+	$(CXX) -Wall -O3 -o release/crc32.o -c $(CFLAGS)  $(srcdir)/math/crc32.cpp
+
+release/math.o:	$(srcdir)/math/math.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/math.cpp<<<
+	$(CXX) -Wall -O3 -o release/math.o -c $(CFLAGS)  $(srcdir)/math/math.cpp
+
+release/md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/md5.cpp<<<
+	$(CXX) -Wall -O3 -o release/md5.o -c $(CFLAGS)  $(srcdir)/math/md5.cpp
+
+release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/random.cpp<<<
+	$(CXX) -Wall -O3 -o release/random.o -c $(CFLAGS)  $(srcdir)/math/random.cpp
+
+### INTERNET
+release/CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CCurl.cpp<<<
+	$(CXX) -Wall -O3 -o release/CCurl.o -c $(CFLAGS)  $(srcdir)/internet/CCurl.cpp
+
+release/CHostsAllow.o:	$(srcdir)/internet/CHostsAllow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CHostsAllow.cpp<<<
+	$(CXX) -Wall -O3 -o release/CHostsAllow.o -c $(CFLAGS)  $(srcdir)/internet/CHostsAllow.cpp
+
+release/CReadMail.o:	$(srcdir)/internet/CReadMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CReadMail.cpp<<<
+	$(CXX) -Wall -O3 -o release/CReadMail.o -c $(CFLAGS)  $(srcdir)/internet/CReadMail.cpp
+
+release/CResolver.o:	$(srcdir)/internet/CResolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CResolver.cpp<<<
+	$(CXX) -Wall -O3 -o release/CResolver.o -c $(CFLAGS)  $(srcdir)/internet/CResolver.cpp
+
+release/CSendMail.o:	$(srcdir)/internet/CSendMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSendMail.cpp<<<
+	$(CXX) -Wall -O3 -o release/CSendMail.o -c $(CFLAGS)  $(srcdir)/internet/CSendMail.cpp
+
+release/CSocketMessage.o:	$(srcdir)/internet/CSocketMessage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSocketMessage.cpp<<<
+	$(CXX) -Wall -O3 -o release/CSocketMessage.o -c $(CFLAGS)  $(srcdir)/internet/CSocketMessage.cpp
+
+release/CTCPSocket.o:	$(srcdir)/internet/CTCPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CTCPSocket.cpp<<<
+	$(CXX) -Wall -O3 -o release/CTCPSocket.o -c $(CFLAGS)  $(srcdir)/internet/CTCPSocket.cpp
+
+release/CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CUDPSocket.cpp<<<
+	$(CXX) -Wall -O3 -o release/CUDPSocket.o -c $(CFLAGS)  $(srcdir)/internet/CUDPSocket.cpp
+
+release/CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O3 -o release/CWikiParser.o -c $(CFLAGS)  $(srcdir)/internet/CWikiParser.cpp
+
+release/openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/openssl.cpp<<<
+	$(CXX) -Wall -O3 -o release/openssl.o -c $(CFLAGS)  $(srcdir)/internet/openssl.cpp
+
+release/resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/resolver.cpp<<<
+	$(CXX) -Wall -O3 -o release/resolver.o -c $(CFLAGS)  $(srcdir)/internet/resolver.cpp
+
+release/socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/socket.cpp<<<
+	$(CXX) -Wall -O3 -o release/socket.o -c $(CFLAGS)  $(srcdir)/internet/socket.cpp
+
+release/webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O3 -o release/webserver.o -c $(CFLAGS)  $(srcdir)/internet/webserver.cpp
+
+### INTERNET
+release/nossl_CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CCurl.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CCurl.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CCurl.cpp
+
+release/nossl_CHostsAllow.o:	$(srcdir)/internet/CHostsAllow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CHostsAllow.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CHostsAllow.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CHostsAllow.cpp
+
+release/nossl_CReadMail.o:	$(srcdir)/internet/CReadMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CReadMail.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CReadMail.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CReadMail.cpp
+
+release/nossl_CResolver.o:	$(srcdir)/internet/CResolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CResolver.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CResolver.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CResolver.cpp
+
+release/nossl_CSendMail.o:	$(srcdir)/internet/CSendMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSendMail.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CSendMail.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CSendMail.cpp
+
+release/nossl_CSocketMessage.o:	$(srcdir)/internet/CSocketMessage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSocketMessage.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CSocketMessage.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CSocketMessage.cpp
+
+release/nossl_CTCPSocket.o:	$(srcdir)/internet/CTCPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CTCPSocket.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CTCPSocket.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CTCPSocket.cpp
+
+release/nossl_CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CUDPSocket.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CUDPSocket.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CUDPSocket.cpp
+
+release/nossl_CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_CWikiParser.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/CWikiParser.cpp
+
+release/nossl_openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/openssl.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_openssl.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/openssl.cpp
+
+release/nossl_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/resolver.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_resolver.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/resolver.cpp
+
+release/nossl_socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/socket.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_socket.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/socket.cpp
+
+release/nossl_webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O3 -o release/nossl_webserver.o -c $(CFLAGS) -D NO_SSL $(srcdir)/internet/webserver.cpp
+
+### DATABASE
+release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Database.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Database.o -c $(CFLAGS)  $(srcdir)/database/Database.cpp
+
+release/db_GenericResult.o:	$(srcdir)/database/GenericResult.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/GenericResult.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_GenericResult.o -c $(CFLAGS)  $(srcdir)/database/GenericResult.cpp
+
+release/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/MySQL.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_MySQL.o -c $(CFLAGS)  $(srcdir)/database/MySQL.cpp
+
+release/db_Pool.o:	$(srcdir)/database/Pool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Pool.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Pool.o -c $(CFLAGS)  $(srcdir)/database/Pool.cpp
+
+release/db_PoolEx.o:	$(srcdir)/database/PoolEx.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/PoolEx.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_PoolEx.o -c $(CFLAGS)  $(srcdir)/database/PoolEx.cpp
+
+release/db_Postgres.o:	$(srcdir)/database/Postgres.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Postgres.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Postgres.o -c $(CFLAGS)  $(srcdir)/database/Postgres.cpp
+
+release/db_Result.o:	$(srcdir)/database/Result.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Result.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Result.o -c $(CFLAGS)  $(srcdir)/database/Result.cpp
+
+release/db_Sqlite.o:	$(srcdir)/database/Sqlite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Sqlite.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Sqlite.o -c $(CFLAGS)  $(srcdir)/database/Sqlite.cpp
+
+release/db_Sybase.o:	$(srcdir)/database/Sybase.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Sybase.cpp<<<
+	$(CXX) -Wall -O3 -o release/db_Sybase.o -c $(CFLAGS)  $(srcdir)/database/Sybase.cpp
+
+### GRAFIX6
+release/gfx6_Blit.o:	$(srcdir)/grafix6/Blit.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Blit.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Blit.o -c $(CFLAGS)  $(srcdir)/grafix6/Blit.cpp
+
+release/gfx6_CDrawable.o:	$(srcdir)/grafix6/CDrawable.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CDrawable.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CDrawable.o -c $(CFLAGS)  $(srcdir)/grafix6/CDrawable.cpp
+
+release/gfx6_CFilter.o:	$(srcdir)/grafix6/CFilter.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter.o -c $(CFLAGS)  $(srcdir)/grafix6/CFilter.cpp
+
+release/gfx6_CFilter_BMP.o:	$(srcdir)/grafix6/CFilter_BMP.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_BMP.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter_BMP.o -c $(CFLAGS)  $(srcdir)/grafix6/CFilter_BMP.cpp
+
+release/gfx6_CFilter_GIF.o:	$(srcdir)/grafix6/CFilter_GIF.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_GIF.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter_GIF.o -c $(CFLAGS)  $(srcdir)/grafix6/CFilter_GIF.cpp
+
+release/gfx6_CFilter_JPEG.o:	$(srcdir)/grafix6/CFilter_JPEG.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_JPEG.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter_JPEG.o -c $(CFLAGS)  $(srcdir)/grafix6/CFilter_JPEG.cpp
+
+release/gfx6_CFilter_PNG.o:	$(srcdir)/grafix6/CFilter_PNG.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_PNG.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter_PNG.o -c $(CFLAGS)  $(srcdir)/grafix6/CFilter_PNG.cpp
+
+release/gfx6_CFilter_PPM.o:	$(srcdir)/grafix6/CFilter_PPM.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_PPM.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter_PPM.o -c $(CFLAGS)  $(srcdir)/grafix6/CFilter_PPM.cpp
+
+release/gfx6_CFilter_TGA.o:	$(srcdir)/grafix6/CFilter_TGA.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_TGA.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CFilter_TGA.o -c $(CFLAGS)  $(srcdir)/grafix6/CFilter_TGA.cpp
+
+release/gfx6_CGrafix.o:	$(srcdir)/grafix6/CGrafix.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 	$(incdir)/ppl6-tk.h
+	###############################################################################
+	# Compiling >>>grafix6/CGrafix.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CGrafix.o -c $(CFLAGS)  $(srcdir)/grafix6/CGrafix.cpp
+
+release/gfx6_CImage.o:	$(srcdir)/grafix6/CImage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CImage.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CImage.o -c $(CFLAGS)  $(srcdir)/grafix6/CImage.cpp
+
+release/gfx6_CImageList.o:	$(srcdir)/grafix6/CImageList.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CImageList.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CImageList.o -c $(CFLAGS)  $(srcdir)/grafix6/CImageList.cpp
+
+release/gfx6_CSprite.o:	$(srcdir)/grafix6/CSprite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CSprite.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CSprite.o -c $(CFLAGS)  $(srcdir)/grafix6/CSprite.cpp
+
+release/gfx6_CSurface.o:	$(srcdir)/grafix6/CSurface.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CSurface.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_CSurface.o -c $(CFLAGS)  $(srcdir)/grafix6/CSurface.cpp
+
+release/gfx6_Colors.o:	$(srcdir)/grafix6/Colors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Colors.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Colors.o -c $(CFLAGS)  $(srcdir)/grafix6/Colors.cpp
+
+release/gfx6_Font4.o:	$(srcdir)/grafix6/Font4.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Font4.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Font4.o -c $(CFLAGS)  $(srcdir)/grafix6/Font4.cpp
+
+release/gfx6_Font5.o:	$(srcdir)/grafix6/Font5.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Font5.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Font5.o -c $(CFLAGS)  $(srcdir)/grafix6/Font5.cpp
+
+release/gfx6_Font6.o:	$(srcdir)/grafix6/Font6.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Font6.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Font6.o -c $(CFLAGS)  $(srcdir)/grafix6/Font6.cpp
+
+release/gfx6_FontFreeType.o:	$(srcdir)/grafix6/FontFreeType.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/FontFreeType.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_FontFreeType.o -c $(CFLAGS)  $(srcdir)/grafix6/FontFreeType.cpp
+
+release/gfx6_Fonts.o:	$(srcdir)/grafix6/Fonts.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Fonts.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Fonts.o -c $(CFLAGS)  $(srcdir)/grafix6/Fonts.cpp
+
+release/gfx6_GFXEngine.o:	$(srcdir)/grafix6/GFXEngine.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngine.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_GFXEngine.o -c $(CFLAGS)  $(srcdir)/grafix6/GFXEngine.cpp
+
+release/gfx6_GFXEngineDX9.o:	$(srcdir)/grafix6/GFXEngineDX9.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngineDX9.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_GFXEngineDX9.o -c $(CFLAGS)  $(srcdir)/grafix6/GFXEngineDX9.cpp
+
+release/gfx6_GFXEngineSDL.o:	$(srcdir)/grafix6/GFXEngineSDL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngineSDL.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_GFXEngineSDL.o -c $(CFLAGS)  $(srcdir)/grafix6/GFXEngineSDL.cpp
+
+release/gfx6_GFXEngineSoftware.o:	$(srcdir)/grafix6/GFXEngineSoftware.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngineSoftware.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_GFXEngineSoftware.o -c $(CFLAGS)  $(srcdir)/grafix6/GFXEngineSoftware.cpp
+
+release/gfx6_GrafikErrors.o:	$(srcdir)/grafix6/GrafikErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GrafikErrors.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_GrafikErrors.o -c $(CFLAGS)  $(srcdir)/grafix6/GrafikErrors.cpp
+
+release/gfx6_Lines.o:	$(srcdir)/grafix6/Lines.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Lines.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Lines.o -c $(CFLAGS)  $(srcdir)/grafix6/Lines.cpp
+
+release/gfx6_Pixel.o:	$(srcdir)/grafix6/Pixel.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Pixel.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Pixel.o -c $(CFLAGS)  $(srcdir)/grafix6/Pixel.cpp
+
+release/gfx6_Point.o:	$(srcdir)/grafix6/Point.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Point.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Point.o -c $(CFLAGS)  $(srcdir)/grafix6/Point.cpp
+
+release/gfx6_Point3D.o:	$(srcdir)/grafix6/Point3D.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Point3D.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Point3D.o -c $(CFLAGS)  $(srcdir)/grafix6/Point3D.cpp
+
+release/gfx6_RGBFormat.o:	$(srcdir)/grafix6/RGBFormat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/RGBFormat.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_RGBFormat.o -c $(CFLAGS)  $(srcdir)/grafix6/RGBFormat.cpp
+
+release/gfx6_Rect.o:	$(srcdir)/grafix6/Rect.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Rect.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Rect.o -c $(CFLAGS)  $(srcdir)/grafix6/Rect.cpp
+
+release/gfx6_Shapes.o:	$(srcdir)/grafix6/Shapes.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Shapes.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Shapes.o -c $(CFLAGS)  $(srcdir)/grafix6/Shapes.cpp
+
+release/gfx6_Size.o:	$(srcdir)/grafix6/Size.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Size.cpp<<<
+	$(CXX) -Wall -O3 -o release/gfx6_Size.o -c $(CFLAGS)  $(srcdir)/grafix6/Size.cpp
+
+### GRAFIX6
+release/tk_Area.o:	$(srcdir)/toolkit/Area.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Area.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Area.o -c $(CFLAGS)  $(srcdir)/toolkit/Area.cpp
+
+release/tk_Button.o:	$(srcdir)/toolkit/Button.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Button.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Button.o -c $(CFLAGS)  $(srcdir)/toolkit/Button.cpp
+
+release/tk_Checkbox.o:	$(srcdir)/toolkit/Checkbox.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Checkbox.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Checkbox.o -c $(CFLAGS)  $(srcdir)/toolkit/Checkbox.cpp
+
+release/tk_Event.o:	$(srcdir)/toolkit/Event.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Event.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Event.o -c $(CFLAGS)  $(srcdir)/toolkit/Event.cpp
+
+release/tk_Frame.o:	$(srcdir)/toolkit/Frame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Frame.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Frame.o -c $(CFLAGS)  $(srcdir)/toolkit/Frame.cpp
+
+release/tk_Input.o:	$(srcdir)/toolkit/Input.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Input.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Input.o -c $(CFLAGS)  $(srcdir)/toolkit/Input.cpp
+
+release/tk_Label.o:	$(srcdir)/toolkit/Label.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Label.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Label.o -c $(CFLAGS)  $(srcdir)/toolkit/Label.cpp
+
+release/tk_Picture.o:	$(srcdir)/toolkit/Picture.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Picture.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Picture.o -c $(CFLAGS)  $(srcdir)/toolkit/Picture.cpp
+
+release/tk_RadioButton.o:	$(srcdir)/toolkit/RadioButton.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/RadioButton.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_RadioButton.o -c $(CFLAGS)  $(srcdir)/toolkit/RadioButton.cpp
+
+release/tk_Slider.o:	$(srcdir)/toolkit/Slider.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Slider.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Slider.o -c $(CFLAGS)  $(srcdir)/toolkit/Slider.cpp
+
+release/tk_SubWindow.o:	$(srcdir)/toolkit/SubWindow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/SubWindow.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_SubWindow.o -c $(CFLAGS)  $(srcdir)/toolkit/SubWindow.cpp
+
+release/tk_Tab.o:	$(srcdir)/toolkit/Tab.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Tab.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Tab.o -c $(CFLAGS)  $(srcdir)/toolkit/Tab.cpp
+
+release/tk_Widget.o:	$(srcdir)/toolkit/Widget.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Widget.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Widget.o -c $(CFLAGS)  $(srcdir)/toolkit/Widget.cpp
+
+release/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Window.cpp<<<
+	$(CXX) -Wall -O3 -o release/tk_Window.o -c $(CFLAGS)  $(srcdir)/toolkit/Window.cpp
+
+### SOUND
+release/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CID3Tag.cpp<<<
+	$(CXX) -Wall -O3 -o release/CID3Tag.o -c $(CFLAGS)  $(srcdir)/sound/CID3Tag.cpp
+
+release/CIcecast.o:	$(srcdir)/sound/CIcecast.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CIcecast.cpp<<<
+	$(CXX) -Wall -O3 -o release/CIcecast.o -c $(CFLAGS)  $(srcdir)/sound/CIcecast.cpp
+
+release/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Decode.o -c $(CFLAGS)  $(srcdir)/sound/CMP3Decode.cpp
+
+release/CMP3Decode_Lame.o:	$(srcdir)/sound/CMP3Decode_Lame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Lame.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Decode_Lame.o -c $(CFLAGS)  $(srcdir)/sound/CMP3Decode_Lame.cpp
+
+release/CMP3Decode_LibMad.o:	$(srcdir)/sound/CMP3Decode_LibMad.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_LibMad.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Decode_LibMad.o -c $(CFLAGS)  $(srcdir)/sound/CMP3Decode_LibMad.cpp
+
+release/CMP3Decode_Mpg123.o:	$(srcdir)/sound/CMP3Decode_Mpg123.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Mpg123.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Decode_Mpg123.o -c $(CFLAGS)  $(srcdir)/sound/CMP3Decode_Mpg123.cpp
+
+release/CMP3Encode.o:	$(srcdir)/sound/CMP3Encode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Encode.cpp<<<
+	$(CXX) -Wall -O3 -o release/CMP3Encode.o -c $(CFLAGS)  $(srcdir)/sound/CMP3Encode.cpp
+
+release/mp3.o:	$(srcdir)/sound/mp3.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/mp3.cpp<<<
+	$(CXX) -Wall -O3 -o release/mp3.o -c $(CFLAGS)  $(srcdir)/sound/mp3.cpp
+
+### ASM
+release/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/blt.asm<<<
+	$(ASM) -o release/asm_blt.o -l release/asm_blt.lst $(srcdir)/asm/blt.asm
+
+release/asm_colors.o:	$(srcdir)/asm/colors.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/colors.asm<<<
+	$(ASM) -o release/asm_colors.o -l release/asm_colors.lst $(srcdir)/asm/colors.asm
+
+release/asm_cpu.o:	$(srcdir)/asm/cpu.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/cpu.asm<<<
+	$(ASM) -o release/asm_cpu.o -l release/asm_cpu.lst $(srcdir)/asm/cpu.asm
+
+release/asm_fonts.o:	$(srcdir)/asm/fonts.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/fonts.asm<<<
+	$(ASM) -o release/asm_fonts.o -l release/asm_fonts.lst $(srcdir)/asm/fonts.asm
+
+release/asm_pixel.o:	$(srcdir)/asm/pixel.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/pixel.asm<<<
+	$(ASM) -o release/asm_pixel.o -l release/asm_pixel.lst $(srcdir)/asm/pixel.asm
+
+release/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/rect.asm<<<
+	$(ASM) -o release/asm_rect.o -l release/asm_rect.lst $(srcdir)/asm/rect.asm
+
+
+###########################################################################
+### Compile Debug Files
+###########################################################################
+
+### CORE
+debug/CAVLTree.o:	$(srcdir)/core/CAVLTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CAVLTree.cpp<<<
+	$(CXX) -Wall -O -o debug/CAVLTree.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CAVLTree.cpp
+
+debug/CApplication.o:	$(srcdir)/core/CApplication.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CApplication.cpp<<<
+	$(CXX) -Wall -O -o debug/CApplication.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CApplication.cpp
+
+debug/CArchiv.o:	$(srcdir)/core/CArchiv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CArchiv.cpp<<<
+	$(CXX) -Wall -O -o debug/CArchiv.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CArchiv.cpp
+
+debug/CConfig.o:	$(srcdir)/core/CConfig.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CConfig.cpp<<<
+	$(CXX) -Wall -O -o debug/CConfig.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CConfig.cpp
+
+debug/CCrontab.o:	$(srcdir)/core/CCrontab.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CCrontab.cpp<<<
+	$(CXX) -Wall -O -o debug/CCrontab.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CCrontab.cpp
+
+debug/CDebug.o:	$(srcdir)/core/CDebug.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CDebug.cpp<<<
+	$(CXX) -Wall -O -o debug/CDebug.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CDebug.cpp
+
+debug/CDir.o:	$(srcdir)/core/CDir.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CDir.cpp<<<
+	$(CXX) -Wall -O -o debug/CDir.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CDir.cpp
+
+debug/CFile.o:	$(srcdir)/core/CFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CFile.cpp<<<
+	$(CXX) -Wall -O -o debug/CFile.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CFile.cpp
+
+debug/CFileObject.o:	$(srcdir)/core/CFileObject.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CFileObject.cpp<<<
+	$(CXX) -Wall -O -o debug/CFileObject.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CFileObject.cpp
+
+debug/CHeap.o:	$(srcdir)/core/CHeap.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CHeap.cpp<<<
+	$(CXX) -Wall -O -o debug/CHeap.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CHeap.cpp
+
+debug/CIconv.o:	$(srcdir)/core/CIconv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CIconv.cpp<<<
+	$(CXX) -Wall -O -o debug/CIconv.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CIconv.cpp
+
+debug/CLang.o:	$(srcdir)/core/CLang.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CLang.cpp<<<
+	$(CXX) -Wall -O -o debug/CLang.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CLang.cpp
+
+debug/CList.o:	$(srcdir)/core/CList.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CList.cpp<<<
+	$(CXX) -Wall -O -o debug/CList.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CList.cpp
+
+debug/CLog.o:	$(srcdir)/core/CLog.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CLog.cpp<<<
+	$(CXX) -Wall -O -o debug/CLog.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CLog.cpp
+
+debug/CMCrypt.o:	$(srcdir)/core/CMCrypt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMCrypt.cpp<<<
+	$(CXX) -Wall -O -o debug/CMCrypt.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMCrypt.cpp
+
+debug/CMHash.o:	$(srcdir)/core/CMHash.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMHash.cpp<<<
+	$(CXX) -Wall -O -o debug/CMHash.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMHash.cpp
+
+debug/CMemFile.o:	$(srcdir)/core/CMemFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemFile.cpp<<<
+	$(CXX) -Wall -O -o debug/CMemFile.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemFile.cpp
+
+debug/CMemMan.o:	$(srcdir)/core/CMemMan.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemMan.cpp<<<
+	$(CXX) -Wall -O -o debug/CMemMan.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemMan.cpp
+
+debug/CMemSpace.o:	$(srcdir)/core/CMemSpace.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemSpace.cpp<<<
+	$(CXX) -Wall -O -o debug/CMemSpace.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemSpace.cpp
+
+debug/CMemory.o:	$(srcdir)/core/CMemory.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemory.cpp<<<
+	$(CXX) -Wall -O -o debug/CMemory.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemory.cpp
+
+debug/CMemoryReference.o:	$(srcdir)/core/CMemoryReference.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMemoryReference.cpp<<<
+	$(CXX) -Wall -O -o debug/CMemoryReference.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemoryReference.cpp
+
+debug/CMutex.o:	$(srcdir)/core/CMutex.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CMutex.cpp<<<
+	$(CXX) -Wall -O -o debug/CMutex.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMutex.cpp
+
+debug/CNotifyHandler.o:	$(srcdir)/core/CNotifyHandler.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CNotifyHandler.cpp<<<
+	$(CXX) -Wall -O -o debug/CNotifyHandler.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CNotifyHandler.cpp
+
+debug/CQueue.o:	$(srcdir)/core/CQueue.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CQueue.cpp<<<
+	$(CXX) -Wall -O -o debug/CQueue.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CQueue.cpp
+
+debug/CResource.o:	$(srcdir)/core/CResource.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CResource.cpp<<<
+	$(CXX) -Wall -O -o debug/CResource.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CResource.cpp
+
+debug/CSignal.o:	$(srcdir)/core/CSignal.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CSignal.cpp<<<
+	$(CXX) -Wall -O -o debug/CSignal.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CSignal.cpp
+
+debug/CThread.o:	$(srcdir)/core/CThread.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CThread.cpp<<<
+	$(CXX) -Wall -O -o debug/CThread.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CThread.cpp
+
+debug/CTok.o:	$(srcdir)/core/CTok.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CTok.cpp<<<
+	$(CXX) -Wall -O -o debug/CTok.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CTok.cpp
+
+debug/CTree.o:	$(srcdir)/core/CTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/CTree.cpp<<<
+	$(CXX) -Wall -O -o debug/CTree.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CTree.cpp
+
+debug/Errors.o:	$(srcdir)/core/Errors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Errors.cpp<<<
+	$(CXX) -Wall -O -o debug/Errors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/Errors.cpp
+
+debug/Exception.o:	$(srcdir)/core/Exception.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  	$(incdir)/ppl6-exceptions.h
+	###############################################################################
+	# Compiling >>>core/Exception.cpp<<<
+	$(CXX) -Wall -O -o debug/Exception.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/Exception.cpp
+
+debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PFPFile.cpp<<<
+	$(CXX) -Wall -O -o debug/PFPFile.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/PFPFile.cpp
+
+debug/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PerlHelper.cpp<<<
+	$(CXX) -Wall -O -o debug/PerlHelper.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/PerlHelper.cpp
+
+debug/WinSockErrors.o:	$(srcdir)/core/WinSockErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/WinSockErrors.cpp<<<
+	$(CXX) -Wall -O -o debug/WinSockErrors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/WinSockErrors.cpp
+
+debug/compat.o:	$(srcdir)/core/compat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compat.cpp<<<
+	$(CXX) -Wall -O -o debug/compat.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/compat.cpp
+
+debug/compression.o:	$(srcdir)/core/compression.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/compression.cpp<<<
+	$(CXX) -Wall -O -o debug/compression.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/compression.cpp
+
+debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/cpu.cpp<<<
+	$(CXX) -Wall -O -o debug/cpu.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/cpu.cpp
+
+debug/functions.o:	$(srcdir)/core/functions.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/functions.cpp<<<
+	$(CXX) -Wall -O -o debug/functions.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/functions.cpp
+
+debug/ident.o:	$(srcdir)/core/ident.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/ident.cpp<<<
+	$(CXX) -Wall -O -o debug/ident.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/ident.cpp
+
+debug/pplcore.o:	$(srcdir)/core/pplcore.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/pplcore.cpp<<<
+	$(CXX) -Wall -O -o debug/pplcore.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/pplcore.cpp
+
+debug/resourcen.o:	$(srcdir)/core/resourcen.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/resourcen.cpp<<< ***** This could take some time! *****
+	$(CXX) -Wall -O -o debug/resourcen.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/resourcen.cpp
+
+debug/strings.o:	$(srcdir)/core/strings.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/strings.cpp<<<
+	$(CXX) -Wall -O -o debug/strings.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/strings.cpp
+
+debug/time.o:	$(srcdir)/core/time.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>core/time.cpp<<<
+	$(CXX) -Wall -O -o debug/time.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/time.cpp
+
+### VARS
+debug/CArray.o:	$(srcdir)/vars/CArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CArray.cpp<<<
+	$(CXX) -Wall -O -o debug/CArray.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CArray.cpp
+
+debug/CAssocArray.o:	$(srcdir)/vars/CAssocArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CAssocArray.cpp<<<
+	$(CXX) -Wall -O -o debug/CAssocArray.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CAssocArray.cpp
+
+debug/CBinary.o:	$(srcdir)/vars/CBinary.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CBinary.cpp<<<
+	$(CXX) -Wall -O -o debug/CBinary.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CBinary.cpp
+
+debug/CBool.o:	$(srcdir)/vars/CBool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CBool.cpp<<<
+	$(CXX) -Wall -O -o debug/CBool.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CBool.cpp
+
+debug/CDateTime.o:	$(srcdir)/vars/CDateTime.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CDateTime.cpp<<<
+	$(CXX) -Wall -O -o debug/CDateTime.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CDateTime.cpp
+
+debug/CInt.o:	$(srcdir)/vars/CInt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CInt.cpp<<<
+	$(CXX) -Wall -O -o debug/CInt.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CInt.cpp
+
+debug/CString.o:	$(srcdir)/vars/CString.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CString.cpp<<<
+	$(CXX) -Wall -O -o debug/CString.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CString.cpp
+
+debug/CVar.o:	$(srcdir)/vars/CVar.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CVar.cpp<<<
+	$(CXX) -Wall -O -o debug/CVar.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CVar.cpp
+
+debug/CWString.o:	$(srcdir)/vars/CWString.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>vars/CWString.cpp<<<
+	$(CXX) -Wall -O -o debug/CWString.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CWString.cpp
+
+### MATH
+debug/ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/calc.cpp<<<
+	$(CXX) -Wall -O -o debug/ca.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/calc.cpp
+
+debug/crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/crc32.cpp<<<
+	$(CXX) -Wall -O -o debug/crc32.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/crc32.cpp
+
+debug/math.o:	$(srcdir)/math/math.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/math.cpp<<<
+	$(CXX) -Wall -O -o debug/math.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/math.cpp
+
+debug/md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/md5.cpp<<<
+	$(CXX) -Wall -O -o debug/md5.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/md5.cpp
+
+debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>math/random.cpp<<<
+	$(CXX) -Wall -O -o debug/random.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/random.cpp
+
+### INTERNET
+debug/CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CCurl.cpp<<<
+	$(CXX) -Wall -O -o debug/CCurl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CCurl.cpp
+
+debug/CHostsAllow.o:	$(srcdir)/internet/CHostsAllow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CHostsAllow.cpp<<<
+	$(CXX) -Wall -O -o debug/CHostsAllow.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CHostsAllow.cpp
+
+debug/CReadMail.o:	$(srcdir)/internet/CReadMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CReadMail.cpp<<<
+	$(CXX) -Wall -O -o debug/CReadMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CReadMail.cpp
+
+debug/CResolver.o:	$(srcdir)/internet/CResolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CResolver.cpp<<<
+	$(CXX) -Wall -O -o debug/CResolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CResolver.cpp
+
+debug/CSendMail.o:	$(srcdir)/internet/CSendMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSendMail.cpp<<<
+	$(CXX) -Wall -O -o debug/CSendMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CSendMail.cpp
+
+debug/CSocketMessage.o:	$(srcdir)/internet/CSocketMessage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSocketMessage.cpp<<<
+	$(CXX) -Wall -O -o debug/CSocketMessage.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CSocketMessage.cpp
+
+debug/CTCPSocket.o:	$(srcdir)/internet/CTCPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CTCPSocket.cpp<<<
+	$(CXX) -Wall -O -o debug/CTCPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CTCPSocket.cpp
+
+debug/CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CUDPSocket.cpp<<<
+	$(CXX) -Wall -O -o debug/CUDPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CUDPSocket.cpp
+
+debug/CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O -o debug/CWikiParser.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CWikiParser.cpp
+
+debug/openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/openssl.cpp<<<
+	$(CXX) -Wall -O -o debug/openssl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/openssl.cpp
+
+debug/resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/resolver.cpp<<<
+	$(CXX) -Wall -O -o debug/resolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/resolver.cpp
+
+debug/socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/socket.cpp<<<
+	$(CXX) -Wall -O -o debug/socket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/socket.cpp
+
+debug/webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O -o debug/webserver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/webserver.cpp
+
+### INTERNET
+debug/nossl_CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CCurl.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CCurl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CCurl.cpp
+
+debug/nossl_CHostsAllow.o:	$(srcdir)/internet/CHostsAllow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CHostsAllow.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CHostsAllow.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CHostsAllow.cpp
+
+debug/nossl_CReadMail.o:	$(srcdir)/internet/CReadMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CReadMail.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CReadMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CReadMail.cpp
+
+debug/nossl_CResolver.o:	$(srcdir)/internet/CResolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CResolver.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CResolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CResolver.cpp
+
+debug/nossl_CSendMail.o:	$(srcdir)/internet/CSendMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSendMail.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CSendMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CSendMail.cpp
+
+debug/nossl_CSocketMessage.o:	$(srcdir)/internet/CSocketMessage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CSocketMessage.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CSocketMessage.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CSocketMessage.cpp
+
+debug/nossl_CTCPSocket.o:	$(srcdir)/internet/CTCPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CTCPSocket.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CTCPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CTCPSocket.cpp
+
+debug/nossl_CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CUDPSocket.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CUDPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CUDPSocket.cpp
+
+debug/nossl_CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/CWikiParser.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_CWikiParser.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CWikiParser.cpp
+
+debug/nossl_openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/openssl.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_openssl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/openssl.cpp
+
+debug/nossl_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/resolver.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_resolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/resolver.cpp
+
+debug/nossl_socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/socket.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_socket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/socket.cpp
+
+debug/nossl_webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>internet/webserver.cpp<<<
+	$(CXX) -Wall -O -o debug/nossl_webserver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/webserver.cpp
+
+### DATABASE
+debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Database.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Database.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Database.cpp
+
+debug/db_GenericResult.o:	$(srcdir)/database/GenericResult.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/GenericResult.cpp<<<
+	$(CXX) -Wall -O -o debug/db_GenericResult.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/GenericResult.cpp
+
+debug/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/MySQL.cpp<<<
+	$(CXX) -Wall -O -o debug/db_MySQL.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/MySQL.cpp
+
+debug/db_Pool.o:	$(srcdir)/database/Pool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Pool.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Pool.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Pool.cpp
+
+debug/db_PoolEx.o:	$(srcdir)/database/PoolEx.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/PoolEx.cpp<<<
+	$(CXX) -Wall -O -o debug/db_PoolEx.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/PoolEx.cpp
+
+debug/db_Postgres.o:	$(srcdir)/database/Postgres.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Postgres.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Postgres.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Postgres.cpp
+
+debug/db_Result.o:	$(srcdir)/database/Result.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Result.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Result.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Result.cpp
+
+debug/db_Sqlite.o:	$(srcdir)/database/Sqlite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Sqlite.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Sqlite.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Sqlite.cpp
+
+debug/db_Sybase.o:	$(srcdir)/database/Sybase.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
+	###############################################################################
+	# Compiling >>>database/Sybase.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Sybase.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Sybase.cpp
+
+### GRAFIX6
+debug/gfx6_Blit.o:	$(srcdir)/grafix6/Blit.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Blit.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Blit.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Blit.cpp
+
+debug/gfx6_CDrawable.o:	$(srcdir)/grafix6/CDrawable.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CDrawable.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CDrawable.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CDrawable.cpp
+
+debug/gfx6_CFilter.o:	$(srcdir)/grafix6/CFilter.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter.cpp
+
+debug/gfx6_CFilter_BMP.o:	$(srcdir)/grafix6/CFilter_BMP.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_BMP.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_BMP.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_BMP.cpp
+
+debug/gfx6_CFilter_GIF.o:	$(srcdir)/grafix6/CFilter_GIF.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_GIF.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_GIF.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_GIF.cpp
+
+debug/gfx6_CFilter_JPEG.o:	$(srcdir)/grafix6/CFilter_JPEG.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_JPEG.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_JPEG.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_JPEG.cpp
+
+debug/gfx6_CFilter_PNG.o:	$(srcdir)/grafix6/CFilter_PNG.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_PNG.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_PNG.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_PNG.cpp
+
+debug/gfx6_CFilter_PPM.o:	$(srcdir)/grafix6/CFilter_PPM.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_PPM.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_PPM.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_PPM.cpp
+
+debug/gfx6_CFilter_TGA.o:	$(srcdir)/grafix6/CFilter_TGA.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CFilter_TGA.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_TGA.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_TGA.cpp
+
+debug/gfx6_CGrafix.o:	$(srcdir)/grafix6/CGrafix.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 	$(incdir)/ppl6-tk.h
+	###############################################################################
+	# Compiling >>>grafix6/CGrafix.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CGrafix.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CGrafix.cpp
+
+debug/gfx6_CImage.o:	$(srcdir)/grafix6/CImage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CImage.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CImage.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CImage.cpp
+
+debug/gfx6_CImageList.o:	$(srcdir)/grafix6/CImageList.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CImageList.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CImageList.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CImageList.cpp
+
+debug/gfx6_CSprite.o:	$(srcdir)/grafix6/CSprite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CSprite.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CSprite.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CSprite.cpp
+
+debug/gfx6_CSurface.o:	$(srcdir)/grafix6/CSurface.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/CSurface.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_CSurface.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CSurface.cpp
+
+debug/gfx6_Colors.o:	$(srcdir)/grafix6/Colors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Colors.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Colors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Colors.cpp
+
+debug/gfx6_Font4.o:	$(srcdir)/grafix6/Font4.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Font4.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Font4.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Font4.cpp
+
+debug/gfx6_Font5.o:	$(srcdir)/grafix6/Font5.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Font5.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Font5.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Font5.cpp
+
+debug/gfx6_Font6.o:	$(srcdir)/grafix6/Font6.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Font6.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Font6.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Font6.cpp
+
+debug/gfx6_FontFreeType.o:	$(srcdir)/grafix6/FontFreeType.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/FontFreeType.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_FontFreeType.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/FontFreeType.cpp
+
+debug/gfx6_Fonts.o:	$(srcdir)/grafix6/Fonts.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Fonts.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Fonts.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Fonts.cpp
+
+debug/gfx6_GFXEngine.o:	$(srcdir)/grafix6/GFXEngine.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngine.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngine.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngine.cpp
+
+debug/gfx6_GFXEngineDX9.o:	$(srcdir)/grafix6/GFXEngineDX9.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngineDX9.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngineDX9.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineDX9.cpp
+
+debug/gfx6_GFXEngineSDL.o:	$(srcdir)/grafix6/GFXEngineSDL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngineSDL.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngineSDL.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineSDL.cpp
+
+debug/gfx6_GFXEngineSoftware.o:	$(srcdir)/grafix6/GFXEngineSoftware.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GFXEngineSoftware.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngineSoftware.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineSoftware.cpp
+
+debug/gfx6_GrafikErrors.o:	$(srcdir)/grafix6/GrafikErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/GrafikErrors.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_GrafikErrors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GrafikErrors.cpp
+
+debug/gfx6_Lines.o:	$(srcdir)/grafix6/Lines.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Lines.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Lines.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Lines.cpp
+
+debug/gfx6_Pixel.o:	$(srcdir)/grafix6/Pixel.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Pixel.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Pixel.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Pixel.cpp
+
+debug/gfx6_Point.o:	$(srcdir)/grafix6/Point.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Point.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Point.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Point.cpp
+
+debug/gfx6_Point3D.o:	$(srcdir)/grafix6/Point3D.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Point3D.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Point3D.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Point3D.cpp
+
+debug/gfx6_RGBFormat.o:	$(srcdir)/grafix6/RGBFormat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/RGBFormat.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_RGBFormat.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/RGBFormat.cpp
+
+debug/gfx6_Rect.o:	$(srcdir)/grafix6/Rect.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Rect.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Rect.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Rect.cpp
+
+debug/gfx6_Shapes.o:	$(srcdir)/grafix6/Shapes.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Shapes.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Shapes.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Shapes.cpp
+
+debug/gfx6_Size.o:	$(srcdir)/grafix6/Size.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix6/Size.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx6_Size.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Size.cpp
+
+### GRAFIX6
+debug/tk_Area.o:	$(srcdir)/toolkit/Area.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Area.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Area.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Area.cpp
+
+debug/tk_Button.o:	$(srcdir)/toolkit/Button.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Button.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Button.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Button.cpp
+
+debug/tk_Checkbox.o:	$(srcdir)/toolkit/Checkbox.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Checkbox.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Checkbox.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Checkbox.cpp
+
+debug/tk_Event.o:	$(srcdir)/toolkit/Event.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Event.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Event.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Event.cpp
+
+debug/tk_Frame.o:	$(srcdir)/toolkit/Frame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Frame.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Frame.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Frame.cpp
+
+debug/tk_Input.o:	$(srcdir)/toolkit/Input.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Input.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Input.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Input.cpp
+
+debug/tk_Label.o:	$(srcdir)/toolkit/Label.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Label.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Label.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Label.cpp
+
+debug/tk_Picture.o:	$(srcdir)/toolkit/Picture.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Picture.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Picture.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Picture.cpp
+
+debug/tk_RadioButton.o:	$(srcdir)/toolkit/RadioButton.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/RadioButton.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_RadioButton.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/RadioButton.cpp
+
+debug/tk_Slider.o:	$(srcdir)/toolkit/Slider.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Slider.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Slider.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Slider.cpp
+
+debug/tk_SubWindow.o:	$(srcdir)/toolkit/SubWindow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/SubWindow.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_SubWindow.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/SubWindow.cpp
+
+debug/tk_Tab.o:	$(srcdir)/toolkit/Tab.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Tab.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Tab.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Tab.cpp
+
+debug/tk_Widget.o:	$(srcdir)/toolkit/Widget.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Widget.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Widget.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Widget.cpp
+
+debug/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/Window.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_Window.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Window.cpp
+
+### SOUND
+debug/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CID3Tag.cpp<<<
+	$(CXX) -Wall -O -o debug/CID3Tag.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CID3Tag.cpp
+
+debug/CIcecast.o:	$(srcdir)/sound/CIcecast.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CIcecast.cpp<<<
+	$(CXX) -Wall -O -o debug/CIcecast.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CIcecast.cpp
+
+debug/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Decode.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode.cpp
+
+debug/CMP3Decode_Lame.o:	$(srcdir)/sound/CMP3Decode_Lame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Lame.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Decode_Lame.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_Lame.cpp
+
+debug/CMP3Decode_LibMad.o:	$(srcdir)/sound/CMP3Decode_LibMad.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_LibMad.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Decode_LibMad.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_LibMad.cpp
+
+debug/CMP3Decode_Mpg123.o:	$(srcdir)/sound/CMP3Decode_Mpg123.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Decode_Mpg123.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Decode_Mpg123.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_Mpg123.cpp
+
+debug/CMP3Encode.o:	$(srcdir)/sound/CMP3Encode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/CMP3Encode.cpp<<<
+	$(CXX) -Wall -O -o debug/CMP3Encode.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Encode.cpp
+
+debug/mp3.o:	$(srcdir)/sound/mp3.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/mp3.cpp<<<
+	$(CXX) -Wall -O -o debug/mp3.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/mp3.cpp
+
+### ASM
+debug/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/blt.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_blt.o  -l debug/asm_blt.lst $(srcdir)/asm/blt.asm -D_DEBUG -DDEBUG=DEBUG
+
+debug/asm_colors.o:	$(srcdir)/asm/colors.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/colors.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_colors.o  -l debug/asm_colors.lst $(srcdir)/asm/colors.asm -D_DEBUG -DDEBUG=DEBUG
+
+debug/asm_cpu.o:	$(srcdir)/asm/cpu.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/cpu.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_cpu.o  -l debug/asm_cpu.lst $(srcdir)/asm/cpu.asm -D_DEBUG -DDEBUG=DEBUG
+
+debug/asm_fonts.o:	$(srcdir)/asm/fonts.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/fonts.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_fonts.o  -l debug/asm_fonts.lst $(srcdir)/asm/fonts.asm -D_DEBUG -DDEBUG=DEBUG
+
+debug/asm_pixel.o:	$(srcdir)/asm/pixel.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/pixel.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_pixel.o  -l debug/asm_pixel.lst $(srcdir)/asm/pixel.asm -D_DEBUG -DDEBUG=DEBUG
+
+debug/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/rect.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_rect.o  -l debug/asm_rect.lst $(srcdir)/asm/rect.asm -D_DEBUG -DDEBUG=DEBUG
+
+
+
+

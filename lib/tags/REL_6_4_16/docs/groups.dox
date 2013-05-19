@@ -1,0 +1,86 @@
+/*!\defgroup PPLGroupInternet Internet
+\brief Internet-Klassen und Funktionen
+
+Internet-Klassen und Funktionen
+
+*/
+
+/*!\defgroup PPLGroupGrafik Grafik
+\brief Grafik-Klassen und Funktionen
+
+\desc
+Die nachfolgenden Klassen dienen zum Erstellen und Verwalten von Bitmap-Grafiken.
+*/
+
+/*!\defgroup PPLGroupSound Sound
+\brief Sound-Klassen und Funktionen
+*/
+
+/*!\defgroup PPLGroupToolkit Toolkit
+\ingroup PPLGroupGrafik
+\brief Toolkit zum Erstellen von Dialogen und Eingabemasken
+*/
+
+/*!\defgroup PPLGroupMath Mathematische Funktionen und Klassen
+\brief Mathematische Funktionen und Klassen
+*/
+
+/*!\defgroup PPLGroupDateTime Datums- und Zeit-Funktionen
+\brief Datums- und Zeit-Funktionen
+*/
+
+/*!\defgroup PPLGroupFileIO Dateien und Verzeichnise
+\brief Funktionen und Klassen zur Verarbeitung von Dateien und Verzeichnissen
+*/
+
+/*!\defgroup PPLGroupStrings String-Verarbeitung
+\brief Funktionen und Klassen zur Verarbeitung von Strings
+*/
+
+/*!\defgroup PPLGroupMemory Speicherverwaltung
+\brief Funktionen und Klassen zur Verwalten des Speichers
+*/
+
+
+/*!\defgroup PPL6_Features Unterstützte Features der Library
+\brief Unterstützte Features der PPL-Library
+
+Mit den nachfolgenden statischen Funktionen der Cppl6Core-Klasse kann überprüft
+werden, ob ein bestimmtes Feature beim Kompilieren der Library eingebunden wurde
+und somit zur Laufzeit unterstützt wird.
+
+Die Funktionen liefern den Wert 1 zurück, wenn das jeweilige Feature unterstützt wird,
+andernfalls 0.
+
+\since
+Die Funktionen wurden mit Version 6.3.0 eingeführt.
+
+*/
+
+
+/*!\defgroup PPL6_CRYPT Verschlüsselung und Hashes
+\brief Verschlüsselung und Hashes
+
+\descr
+Auf dieser Seite sind Klassen und Funktion zu finden, mit denen Daten nach verschiedenen
+kryptographischen Algorithmen verschlüsselt und entschlüsselt werden können, sowie 
+Klassen und Funktionen zum Berechnen von Hash-Werten oder Prüfsummen nach verschiedenen
+Algorithmen.
+\par
+Die Funktionen beruhen zumeist auf den Bibliotheken
+<a href="http://mhash.sourceforge.net/">libmhash</a> und
+<a href="http://mcrypt.sourceforge.net/">libmcrypt</a> und sind daher nur
+verfügbar, wenn diese beim Kompilieren der PPL-Library eingebunden wurden.
+
+\since
+Die Klassen und Funktionen wurden mit Version 6.3.0 eingeführt.
+*/
+
+
+/*!\defgroup PPL6_COMPRESSION Datenkomprimierung
+\brief Komprimierung von Daten
+
+\descr
+Mit den nachfolgenden Klassen und Funktionen können Daten komprimiert und entkomprimiert werden:
+
+*/
