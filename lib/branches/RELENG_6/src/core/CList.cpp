@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.4 $
- * $Date: 2010/11/26 16:00:50 $
- * $Id: CList.cpp,v 1.4 2010/11/26 16:00:50 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>

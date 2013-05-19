@@ -2,11 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 312 $
- * $Date: 2012-02-04 18:40:59 +0100 (Sa, 04. Feb 2012) $
- * $Id: Font6.cpp 312 2012-02-04 17:40:59Z pafe $
- * $URL: https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk/src/grafix/Font6.cpp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2012, Patrick Fedick <patrick@pfp.de>

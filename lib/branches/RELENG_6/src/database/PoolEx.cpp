@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.3 $
- * $Date: 2010/03/26 09:15:49 $
- * $Id: PoolEx.cpp,v 1.3 2010/03/26 09:15:49 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>

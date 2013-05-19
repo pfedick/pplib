@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.5 $
- * $Date: 2010/09/25 17:29:02 $
- * $Id: mp3.cpp,v 1.5 2010/09/25 17:29:02 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>

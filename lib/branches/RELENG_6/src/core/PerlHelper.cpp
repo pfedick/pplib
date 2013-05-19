@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.9 $
- * $Date: 2011/02/18 13:42:23 $
- * $Id: functions.cpp,v 1.9 2011/02/18 13:42:23 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>

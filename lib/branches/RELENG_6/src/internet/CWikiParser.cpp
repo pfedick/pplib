@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.5 $
- * $Date: 2011/01/04 10:49:58 $
- * $Id: CWikiParser.cpp,v 1.5 2011/01/04 10:49:58 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>

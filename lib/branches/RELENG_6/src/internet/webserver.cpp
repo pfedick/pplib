@@ -2,11 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.5 $
- * $Date: 2010/09/25 07:58:08 $
- * $Id: CTCPSocket.cpp,v 1.5 2010/09/25 07:58:08 pafe Exp $
- * $URL: https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk/src/core/AVLTree.cpp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>

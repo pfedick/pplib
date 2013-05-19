@@ -2,10 +2,10 @@
 ;/* This file is part of "Patrick's Programming Library", Version 6 (PPL6).
 ; * Web: http://www.pfp.de/ppl/
 ; *
-; * $Author: pafe $
-; * $Revision: 1.6 $
-; * $Date: 2010/11/17 23:41:34 $
-; * $Id: blt.asm,v 1.6 2010/11/17 23:41:34 pafe Exp $
+; * $Author$
+; * $Revision$
+; * $Date$
+; * $Id$
 ; *
 ;/*******************************************************************************
 ; * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>

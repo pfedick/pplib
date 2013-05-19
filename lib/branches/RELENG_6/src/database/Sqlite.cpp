@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.4 $
- * $Date: 2010/10/16 13:35:42 $
- * $Id: MySQL.cpp,v 1.4 2010/10/16 13:35:42 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2012, Patrick Fedick <patrick@pfp.de>
