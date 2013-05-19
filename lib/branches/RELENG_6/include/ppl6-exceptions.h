@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.6 $
- * $Date: 2011/04/21 12:12:12 $
- * $Id: ppl6-exceptions.h,v 1.6 2011/04/21 12:12:12 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

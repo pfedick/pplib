@@ -2,13 +2,13 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 1.63 $
- * $Date: 2011/04/16 14:02:00 $
- * $Id: ppl6.h,v 1.63 2011/04/16 14:02:00 pafe Exp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
 #define PPL_VERSION_BUILD	16
-#define PPL_RELEASEDATE		20130515
+#define PPL_RELEASEDATE		20130519
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
