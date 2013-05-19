@@ -1307,7 +1307,7 @@ TEST_F(WideStringTest, repeat_CWString) {
 TEST_F(WideStringTest, Find_charptr_notfound) {
 	ppl6::CWString s1(L"The Quick Brown Fox Jumps over the lazy dog");
 
-	EXPECT_EQ((int)-1,s1.Find(L"fish",0)) << "Unexpected Result";
+	EXPECT_EQ((int)-1,s1.Find("fish",0)) << "Unexpected Result";
 }
 
 TEST_F(WideStringTest, Find_charptr) {
@@ -1348,6 +1348,16 @@ TEST_F(WideStringTest, Replace_CWString_Multi) {
 	ppl6::CWString search(L"o");
 	ppl6::CWString replace(L"e");
 	s2=s1.Replace(search,replace);
+	EXPECT_EQ(s2,s1) << "Unexpected Result";
+	EXPECT_EQ(expected,s1) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, ReplaceLetterList) {
+	ppl6::CWString s1(L"The Quick Brown Fox Jumps over the lazy dog");
+	ppl6::CWString expected(L"Thi Qiick Briwn Fix Jimps ivir thi lizy dig");
+	ppl6::CWString s2;
+	ppl6::CWString letters(L"aeou");
+	s2=s1.ReplaceLetterList(letters,L'i');
 	EXPECT_EQ(s2,s1) << "Unexpected Result";
 	EXPECT_EQ(expected,s1) << "Unexpected Result";
 }
@@ -1610,7 +1620,7 @@ TEST_F(WideStringTest, operator_Equal_WStringRef) {
 
 TEST_F(WideStringTest, operator_Equal_StringPtr) {
 	ppl6::CWString s2(L"äöü, a test string with unicode characters");
-	ppl6::CWString s3("äöü, a test string with unicode characters");
+	ppl6::CString s3("äöü, a test string with unicode characters");
 	ppl6::CWString s1;
 	s1=&s3;
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
@@ -1619,7 +1629,7 @@ TEST_F(WideStringTest, operator_Equal_StringPtr) {
 
 TEST_F(WideStringTest, operator_Equal_StringRef) {
 	ppl6::CWString s2(L"äöü, a test string with unicode characters");
-	ppl6::CWString s3("äöü, a test string with unicode characters");
+	ppl6::CString s3("äöü, a test string with unicode characters");
 	ppl6::CWString s1;
 	s1=s3;
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
