@@ -619,6 +619,9 @@ class CString : public CVar
 		long long ToLongLong() const;
 		float ToFloat() const;
 		double ToDouble() const;
+		bool IsTrue() const;
+		bool IsFalse() const;
+
 		CString& Replace(const char* str, const char* byStr);
 		int Find(const char* str, int pos) const;
 

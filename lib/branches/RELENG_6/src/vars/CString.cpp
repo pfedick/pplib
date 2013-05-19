@@ -781,8 +781,7 @@ CString::operator int() const
 //! \brief Liefert je nach Inhalt des Strings true oder false zurück
 CString::operator bool() const
 {
-	if (IsTrue(buffer)) return true;
-	return false;
+	return (ppl6::IsTrue(buffer)) ;
 }
 
 //! \brief Liefert den Integer-Wert des Strings zurück
@@ -999,9 +998,19 @@ pplint64 CString::ToInt64() const
 //! \brief Gibt je nach Inhalt des Strings true oder false zurück
 bool CString::ToBool() const
 {
-	if (IsTrue(buffer)) return true;
-	return false;
+	return (ppl6::IsTrue(buffer));
 }
+
+bool CString::IsTrue() const
+{
+	return (ppl6::IsTrue(buffer));
+}
+
+bool CString::IsFalse() const
+{
+	return (!ppl6::IsTrue(buffer));
+}
+
 
 //! \brief Gibt den Long-Wert des Strings zurück
 long CString::ToLong() const

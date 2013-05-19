@@ -36,7 +36,8 @@ Version 6.4.16
     wurden nicht abgeschnitten, String konnte länger werden, als der Original-
     string
   - CWString: Operator bool() entfernt, da dieser nicht funktioniert
-  - CString: Zusätzliche Set- und SetChar-Funktionen 
+  - CString: Zusätzliche Set- und SetChar-Funktionen
+  - CString: Funktionen IsTrue und IsFalse eingeführt
     
   Achtung: Mögliches Kompatibilitätsproblem:
   - Änderung in CWString::Set: Bei Verwendung eines char *, std::string oder
