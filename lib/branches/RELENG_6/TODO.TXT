@@ -1,10 +1,4 @@
 PPL6 - TODOLIST
 ===============
 
-- configure script vervollstaendigen
-- Grafik-Funktionen aus ppl5 importieren, mit den notwendigen
-  Aenderungen in Hinsicht auf das PPL-Toolkit
-- PPL-Toolkit erstellen
-- Sound-Klassen erstellen
-- Dokumentation schreiben
 
