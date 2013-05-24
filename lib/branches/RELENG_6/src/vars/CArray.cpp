@@ -96,6 +96,45 @@ void CArray::Clear()
 	}
 }
 
+/*!\brief Platz reservieren
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird vorab Speicher allokiert, um die durch \p size angegebene
+ * Anzahl Elemente aufnehmen zu können. Die Funktion sollte immer dann aufgerufen werden, wenn
+ * schon vor dem Befüllen des Array bekannt ist, wieviele Elemente es aufnehmen soll. Insbesondere
+ * bei großen Arrays ist dies sinnvoll, da dadurch das Reallokieren und Kopieren von Speicher
+ * während der Befüllung reduziert wird.
+ *
+ * @param size Anzahl Elemente, die das Array aufnehmen soll
+ *
+ * \note
+ * Ist die Kapazität des Arrays bei Aufruf der Funktion bereits höher als der angegebene Wert
+ * \p size, bleibt das Array unverändert. Die Kapazität kann nachträglich nicht verkleinert werden.
+ *
+ * \see
+ * Mit der Funktion Array::capacity kann abgefragt werden, für wieviele Elemente derzeit Speicher
+ * reserviert ist.
+ */
+void CArray::Reserve (ppldd size)
+{
+	if (size>maxnum) {
+		ROW *r;
+		// Array muss vergroessert werden
+		void *newrows=realloc(rows,(size)*sizeof(ROW));
+		if (!newrows) {
+			throw OutOfMemoryException();
+		}
+		r=(ROW*)newrows;
+		for (ppldd i=maxnum;i<size;i++) {
+			r[i].value=NULL;
+		}
+		rows=newrows;
+		maxnum=size;
+	}
+}
+
+
+
 int CArray::Copy(const CArray *a)
 {
 	if (!a) {
@@ -219,17 +258,7 @@ int CArray::Set(ppldd index, const char *value, int bytes)
 	ROW *r;
 	if (index>=maxnum) {
 		// Array muss vergroessert werden
-		void *newrows=realloc(rows,(index+10)*sizeof(ROW));
-		if (!newrows) {
-			SetError(2);
-			return 0;
-		}
-		r=(ROW*)newrows;
-		for (ppldd i=maxnum;i<index+10;i++) {
-			r[i].value=NULL;
-		}
-		rows=newrows;
-		maxnum=index+10;
+		Reserve(index+10);
 	}
 	r=(ROW*)rows;
 	if (r[index].value) {
@@ -375,23 +404,22 @@ int CArray::Explode(const char *text, const char *trenn, int limit, bool skipemp
 	int p;
 	int t=(int)strlen(trenn);
 	int count=0;
+	char *_t;
 	while (1) {
-		count++;
-		p=instr(text,trenn,0);
-		//printf ("p=%i\n",p);
-		if (p>=0) {
+		_t=strstr(text,trenn);
+		if (_t) {
+			p=_t-text;
 			if (p==0 && skipemptylines==true) {
 				text+=t;
 				continue;
 			}
-			if (limit>0 && count==limit) {
-				ret=Add((char*)text);
-				if (!ret) return 0;
+			if (limit>0 && count>=limit) {
 				return 1;
 			}
-			ret=Add((char*)text,p);
+			ret=Set(num,(char*)text,p);
 			if (!ret) return ret;
 			text=text+p+t;
+			count++;
 		} else {
 			if (skipemptylines==false || strlen(text)>0) return Add((char*)text);
 			return 1;

@@ -40,8 +40,8 @@
 
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
-#define PPL_VERSION_BUILD	16
-#define PPL_RELEASEDATE		20130519
+#define PPL_VERSION_BUILD	17
+#define PPL_RELEASEDATE		20130524
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -2520,6 +2520,7 @@ class CArray : public CVar
 		~CArray();
 
 		void Clear();
+		void Reserve (ppldd size);
 		int Set(ppldd index, const char *value, int bytes=-1);
 		int GetNumRows() const;
 		int Copy(const CArray &a);
