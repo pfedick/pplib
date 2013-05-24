@@ -3705,6 +3705,7 @@ key2: value2
 				Section.LCase();
 				Section.Trim();
 			} else {
+				Row=line;
 				p=Row.Instr((char*)splitchar);
 				if (p) {
 					Key=Row.SubStr(0,p);
