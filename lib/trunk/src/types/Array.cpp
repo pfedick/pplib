@@ -309,7 +309,7 @@ void Array::set(size_t index, const String &value)
 		}
 		r[index].value->set(value);
 	} else {
-		if (r[index].value==NULL) {
+		if (r[index].value!=NULL) {
 			delete r[index].value;
 			r[index].value=NULL;
 		}
