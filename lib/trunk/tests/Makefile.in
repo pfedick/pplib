@@ -62,6 +62,9 @@ $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
 
 all: $(PROGNAME) threadtest toolkit loggertest
+
+test: $(PROGNAME)
+	./$(PROGNAME)
 	
 xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
