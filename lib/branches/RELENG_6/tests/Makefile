@@ -8,8 +8,10 @@ LIBS	= `../ppl6-config --libs debug source` -lstdc++
 PROGNAME = testsuite
 OBJECTS = compile/wordlist.o \
 	compile/datetime.o \
+	compile/main.o \
 	compile/strings.o \
-	compile/widestrings.o
+	compile/widestrings.o \
+	compile/assocarray.o
 	
 	
 	
@@ -48,6 +50,10 @@ loggertest: src/loggertest.cpp ../release/libppl6.a
 	mkdir -p compile
 	$(CXX) -O -ggdb -o loggertest $(CFLAGS) src/loggertest.cpp $(LIBS)
 
+compile/main.o: src/main.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/main.o -c src/main.cpp
+	
 compile/datetime.o: src/datetime.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/datetime.o -c src/datetime.cpp
@@ -59,6 +65,10 @@ compile/widestrings.o: src/widestrings.cpp Makefile
 compile/strings.o: src/strings.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/strings.o -c src/strings.cpp
+
+compile/assocarray.o: src/assocarray.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/assocarray.o -c src/assocarray.cpp
 
 	
 compile/wordlist.o: src/wordlist.cpp Makefile
