@@ -53,6 +53,11 @@ typedef struct {
  *
  */
 
+/*!\brief Konstruktor
+ *
+ * \desc
+ * Der Standard-Konstruktor erstellt ein leeres Array
+ */
 CArray::CArray()
 {
 	type=CVar::CARRAY;
@@ -62,15 +67,49 @@ CArray::CArray()
 	pos=0;
 }
 
-CArray::CArray(const CArray &a)
+/*!\brief Copy-Konstruktor
+ *
+ * \desc
+ * Mit dem Copy-Konstruktor wird der Inhalt des Arrays \p other 1:1 kopiert.
+ *
+ * @param other Anderes Array
+ */
+CArray::CArray(const CArray &other)
 {
 	type=CVar::CARRAY;
 	num=0;
 	maxnum=0;
 	rows=NULL;
 	pos=0;
-	Copy(a);
+	Copy(other);
 }
+
+/*!\brief Konstruktor aus String
+ *
+ * \desc
+ * Mit diesem Konstruktor wird der String \p str anhand des Trennzeichens
+ * \p delimiter in einzelne Elemente zerlegt
+ *
+ * @param str String
+ * @param delimiter Trennzeichen oder Trennstring
+ * @param limit Maximale Anzahl Elemente, normalerweise unbegrenzt
+ * @param skipemptylines Leere Elemente überspringen. Folgen zwei Trennzeichen hintereinander, würde
+ * normalerweise ein leeres Element in das Array eingefügt. Durch setzen dieses Parameters auf \c true
+ * werden keine leeren Elemente eingefügt.
+ *
+ * \see
+ * Dieser Konstruktor verwendet die Funktion Array::explode zum Zerlegen des Strings.
+ */
+CArray::CArray(const CString &str, const CString &delimiter, size_t limit, bool skipemptylines)
+{
+	type=CVar::CARRAY;
+	num=0;
+	maxnum=0;
+	rows=NULL;
+	pos=0;
+	Explode(str,delimiter,limit,skipemptylines);
+}
+
 
 CArray::~CArray()
 {
@@ -292,7 +331,38 @@ int CArray::GetNumRows() const
 	return num;
 }
 
+/*!\brief Anzahl Elemente im Array
+ *
+ * \desc
+ * Diese Funktion gibt die Anzahl Elemente im Array zurück.
+ *
+ * @return Anzahl Elemente
+ *
+ * \note
+ * Wird bei einem leeren Array ein String an der Position 5 eingefügt, werden die Positionen 0 bis 4 automatisch
+ * als leere Elemente interpretiert. Array::size wird daher 6 zurückgeben.
+ * \see
+ * Die Funktionen CArray::Size und CArray::Num sind identisch.
+ */
 int CArray::Num() const
+{
+	return num;
+}
+
+/*!\brief Anzahl Elemente im Array
+ *
+ * \desc
+ * Diese Funktion gibt die Anzahl Elemente im Array zurück.
+ *
+ * @return Anzahl Elemente
+ *
+ * \note
+ * Wird bei einem leeren Array ein String an der Position 5 eingefügt, werden die Positionen 0 bis 4 automatisch
+ * als leere Elemente interpretiert. Array::size wird daher 6 zurückgeben.
+ * \see
+ * Die Funktionen CArray::Size und CArray::Num sind identisch.
+ */
+size_t CArray::Size() const
 {
 	return num;
 }
