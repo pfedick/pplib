@@ -2516,7 +2516,8 @@ class CArray : public CVar
 
 	public:
 		CArray();
-		CArray(const CArray &a);
+		CArray(const CArray &other);
+		CArray(const CString &str, const CString &delimiter=CString("\n"), size_t limit=0, bool skipemptylines=false);
 		~CArray();
 
 		void Clear();
@@ -2528,6 +2529,7 @@ class CArray : public CVar
 		int Copy(const CAssocArray &a);
 		int Copy(const CAssocArray *a);
 		int Num() const;
+		size_t Size() const;
 		int Add(const char *value, int bytes=-1);
 		int Addf(const char *fmt, ...);
 		int Add(int value);
