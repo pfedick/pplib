@@ -9,6 +9,10 @@ Version 6.4.17
   - Bugfix in CAssocArray::CreateFromConfig: Bei Angabe von "dotrim=false"
     wurde am Ende doch getrimmt
   - Testsuite um Tests für CAssocArray-Klasse ergänzt (Backport von PPL7)
+  - Bugfix: CleanupThreadData hat zwar das Datenobjekt gelöscht, nicht aber
+    den Pointer darauf innerhalb der posix threads
+  - PPLExit ruft nun CleanupThreadData auf
+  - CleanupThreadData ist nun auch für Windows implementiert
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog

@@ -200,9 +200,7 @@ void PPLExit()
 	if (Heap_TREEITEMS) delete Heap_TREEITEMS;
 	if (Heap_CWString) delete Heap_CWString;
 	if (Heap_CString) delete Heap_CString;
-	THREADDATA *td=GetThreadData();
-	if (td) delete td;
-
+	CleanupThreadData();
 	PPLCore=NULL;
 }
 

@@ -115,6 +115,7 @@ THREADDATA * GetThreadData()
 	if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
 		Win32ThreadTLS=TlsAlloc();
 		if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
+			Win32ThreadMutex.Unlock();
 			::MessageBox(NULL,"TLS_OUT_OF_INDEXES","Error: ppl6::GetThreadData",MB_ICONERROR);
 			exit(0);
 		}
@@ -138,10 +139,12 @@ THREADDATA * GetThreadData()
 			ptr->mysql_thread_end=NULL;
 			ptr->ErrorStack=NULL;
 			if (!TlsSetValue(Win32ThreadTLS,ptr)) {
+				Win32ThreadMutex.Unlock();
 				::MessageBox(NULL,"TlsSetValue failed","Error: ppl6::GetThreadData",MB_ICONERROR);
 				exit(0);
 			}
 		} else {
+			Win32ThreadMutex.Unlock();
 			::MessageBox(NULL,"Out of Memory","Error: ppl6::GetThreadData",MB_ICONERROR);
 			exit(0);
 		}
@@ -187,6 +190,28 @@ THREADDATA * GetThreadData()
 void CleanupThreadData()
 {
 #ifdef _WIN32
+	THREADDATA *ptr;
+	Win32ThreadMutex.Lock();
+	if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
+		Win32ThreadTLS=TlsAlloc();
+		if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
+			Win32ThreadMutex.Unlock();
+			::MessageBox(NULL,"TLS_OUT_OF_INDEXES","Error: ppl6::GetThreadData",MB_ICONERROR);
+			exit(0);
+		}
+	}
+	ptr=(THREADDATA*)TlsGetValue(Win32ThreadTLS);
+	if (ptr) {
+		while (ptr->ErrorStack) {
+			ERRORSTACK *s=ptr->ErrorStack;
+			ptr->ErrorStack=s->next;
+			delete s;
+		}
+		if (ptr->mysql_thread_end) ptr->mysql_thread_end(ptr);
+		delete ptr;
+		TlsSetValue(Win32ThreadTLS,NULL)
+	}
+	Win32ThreadMutex.Unlock();
 #elif defined HAVE_PTHREADS
 	THREADDATA *ptr=NULL;
 	(void) pthread_once(&key_once, make_key);
@@ -201,6 +226,7 @@ void CleanupThreadData()
 	}
 	if (ptr->mysql_thread_end) ptr->mysql_thread_end(ptr);
 	delete ptr;
+	(void) pthread_setspecific(thread_key, NULL);
 
 #endif
 }
