@@ -60,8 +60,9 @@ int main (int argc, char**argv)
 	Wordlist.Explode(w,"\n");
 	ppl6::PrintDebugTime ("done\n");
 
+	int ret=0;
 	try {
-		return RUN_ALL_TESTS();
+		ret=RUN_ALL_TESTS();
 	} catch (const ppl6::Exception &e) {
 		printf ("ppl6::Exception: %s\n",e.what());
 	} catch (...) {
@@ -69,5 +70,5 @@ int main (int argc, char**argv)
 	}
 
 	ppl6::CleanupThreadData();
-	return 1;
+	return ret;
 }
