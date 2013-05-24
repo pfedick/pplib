@@ -82,7 +82,7 @@ TEST_F(AVLTreeTest, addAndDeleteWordlist) {
 	ppl7::AVLTree<ppl7::String, ppl7::String> myMap;
 	size_t total=Wordlist.count();
 	myMap.reserve(total+10);
-	ASSERT_EQ((size_t)125346,Wordlist.count()) << "List has unexpected size";
+	ASSERT_EQ((size_t)124332,Wordlist.count()) << "List has unexpected size";
 	ppl7::PrintDebugTime ("Wortliste in AVLTree laden\n");
 	for (size_t i=0;i<total;i++) {
 		myMap.add(Wordlist[i],"");

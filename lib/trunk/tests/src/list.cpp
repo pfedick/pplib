@@ -144,7 +144,7 @@ TEST_F(ListTest, addWordlist) {
 	ppl7::List<ppl7::String> myList;
 	size_t total=Wordlist.count();
 	myList.reserve(total+10);
-	ASSERT_EQ((size_t)125346,Wordlist.count()) << "List has unexpected size";
+	ASSERT_EQ((size_t)124332,Wordlist.count()) << "List has unexpected size";
 	//ppl7::PrintDebugTime ("Wortliste in List laden\n");
 	for (size_t i=0;i<total;i++) {
 		myList.add(Wordlist[i]);
