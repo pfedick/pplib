@@ -1864,7 +1864,7 @@ class CDebug : public CLog
 };
 
 //! \brief PPL-Core-Klasse
-class Cppl6Core : public CDebug
+class Cppl6Core
 {
 	private:
 		CMutex mutex;
@@ -1936,8 +1936,8 @@ extern ppl6::Cppl6Core *PPLCore;
     #define RETVAL(value)       { if(PPLCore) PPLCore->Printf("==> RETURN (%u)",value); return value;}
     #define RETVALERR(value,err){ if(PPLCore) PPLCore->Printf("==> RETURN (%u), err: %u = %s",value,err,ppl6::errortext(err)); return value;}
 #else
-    #define DLOG                if(!1) PPLCore->Printf
-    #define DLOGLEVEL(value)    if(!1) PPLCore->Printf
+    #define DLOG                if(!1) printf
+    #define DLOGLEVEL(value)    if(!1) printf
     #define RETURN              return;
     #define RETURN_VALUE(value) return (value);
     #define RETVAL(value)       return (value);

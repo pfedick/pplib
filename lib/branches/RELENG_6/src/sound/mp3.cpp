@@ -36,7 +36,6 @@
  *******************************************************************************/
 
 #include "prolog.h"
-#define DEBUGLOG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -104,7 +103,6 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 /*!\ingroup PPLGroupSound
  */
 {
-	DLOG("ppl_IdentMPEG(CFile * file, PPL_MPEG_HEADER * mpg)");
 	PPL_MPEG_HEADER mpgheader;
 	pplint64 p=0;
 	unsigned char *buffer;
@@ -139,7 +137,7 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 
 	// Jetzt den ersten MP3-Header suchen
 	p=FindNextHeader(file,mpg->start,mpg);
-	if (p<0) RETVAL(false);
+	if (p<0) return (false);
 	mpg->start=(ppldd)p;
 	//printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
 
@@ -181,7 +179,7 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 	printf ("   Length: %u ms, %u s\n",mpg->mslength,mpg->length);
 	printf ("   Samples: %u, Datasize: %u\n",mpg->samples,mpg->size);
 	*/
-	RETVAL(true);
+	return (true);
 }
 
 void MpegHeader2Array(ppl6::CAssocArray &a, const PPL_MPEG_HEADER *mpg)

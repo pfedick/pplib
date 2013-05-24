@@ -2,6 +2,7 @@
 PPL6 - HISTORY
 
 Version 6.4.17
+  - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet
   - CArray::Explode: Performance wurde drastisch verbessert
   - CArray: Neue Funktion "Reserve", zum Vorallokieren von Speicher
   - CArray: Neuer Konstruktor mit Explode-Funktion
