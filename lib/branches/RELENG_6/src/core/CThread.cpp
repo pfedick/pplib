@@ -73,11 +73,6 @@
 #include "ppl6.h"
 //#define THREADDEBUG
 
-#ifdef THREADDEBUG
-	#undef DLOG
-    #define DLOG                printf
-#endif
-
 
 namespace ppl6 {
 
@@ -93,7 +88,6 @@ static CMutex GlobalThreadMutex;
 #ifdef HAVE_PTHREADS
 static void make_key()
 {
-	//DLOG ("static void make_key()\n");
 	(void) pthread_key_create(&thread_key, NULL);
 }
 #endif
@@ -108,7 +102,6 @@ THREADDATA * GetThreadData()
 /*!\ingroup PPLGroupThreads
  */
 {
-	DLOG ("static THREADDATA * GetThreadData()\n");
 #ifdef _WIN32
 	THREADDATA *ptr;
 	Win32ThreadMutex.Lock();
@@ -122,11 +115,9 @@ THREADDATA * GetThreadData()
 	}
 	ptr=(THREADDATA*)TlsGetValue(Win32ThreadTLS);
 	if (!ptr) {
-		DLOG ("GetThreadData(), creating new THREADDATA\n");
 		ptr = new THREADDATA;
 		if (ptr) {
 			ptr->thread=GetCurrentProcess();
-			DLOG ("GetThreadData(), GetCurrentProcess=%u\n",ptr->thread);
 			ptr->ThreadClass=NULL;
 			GlobalThreadMutex.Lock();
 			ptr->threadid=global_thread_id;
@@ -149,21 +140,17 @@ THREADDATA * GetThreadData()
 			exit(0);
 		}
 	}
-	DLOG ("GetThreadData(), RETURN: %u\n",ptr);
 	Win32ThreadMutex.Unlock();
 	return ptr;
 #elif defined HAVE_PTHREADS
 	THREADDATA *ptr=NULL;
 	(void) pthread_once(&key_once, make_key);
-	DLOG ("GetThreadData(), pthread_getspecific\n");
 	if ((ptr = (THREADDATA*)pthread_getspecific(thread_key)) == NULL) {
 		// Nur der erste Thread kann hier landen, oder Threads die manuell ohne
 		// CThread erstellt wurden
-		DLOG ("GetThreadData(), creating new THREADDATA\n");
 		ptr = new THREADDATA;
 		if (ptr) {
 			ptr->thread=pthread_self();
-			DLOG ("GetThreadData(), pthread_self=%u\n",ptr->thread);
 			ptr->ThreadClass=NULL;
 			GlobalThreadMutex.Lock();
 			ptr->threadid=global_thread_id;
@@ -176,14 +163,11 @@ THREADDATA * GetThreadData()
 			ptr->Error.flags=0;
 			ptr->ErrorStack=NULL;
 			pthread_attr_init(&ptr->attr);
-			DLOG ("GetThreadData(), pthread_setspecific\n");
 			(void) pthread_setspecific(thread_key, ptr);
 		}
 	}
-	DLOG ("GetThreadData(), RETURN: %u\n",ptr);
 	return ptr;
 #endif
-	DLOG ("GetThreadData(), RETURN: %u\n",NULL);
 	return NULL;
 }
 
@@ -209,13 +193,12 @@ void CleanupThreadData()
 		}
 		if (ptr->mysql_thread_end) ptr->mysql_thread_end(ptr);
 		delete ptr;
-		TlsSetValue(Win32ThreadTLS,NULL)
+		TlsSetValue(Win32ThreadTLS,NULL);
 	}
 	Win32ThreadMutex.Unlock();
 #elif defined HAVE_PTHREADS
 	THREADDATA *ptr=NULL;
 	(void) pthread_once(&key_once, make_key);
-	DLOG ("GetThreadData(), pthread_getspecific\n");
 	if ((ptr = (THREADDATA*)pthread_getspecific(thread_key)) == NULL) return;
 
 	pthread_attr_destroy(&ptr->attr);
@@ -243,13 +226,10 @@ ppluint64 GetThreadID()
  * \see \ref PPLGroupThreads
  */
 {
-	DLOG ("ppluint64 GetThreadID()\n");
 	THREADDATA *t=GetThreadData();
 	if (t) {
-		DLOG ("GetThreadID(), RETURN: %llu\n",t->threadid);
 		return t->threadid;
 	}
-	DLOG ("GetThreadID(), RETURN: 0\n");
 	return 0;
 }
 
@@ -257,10 +237,8 @@ PPL_ERROR *GetErrorThreadPtr()
 /*!\ingroup PPLGroupThreads
  */
 {
-	DLOG ("PPL_ERROR *GetErrorThreadPtr()\n");
 	THREADDATA *t=GetThreadData();
 	if (t) {
-		DLOG ("GetErrorThreadPtr(), RETURN: %u\n",&t->Error);
 		return &t->Error;
 	}
 	return NULL;
