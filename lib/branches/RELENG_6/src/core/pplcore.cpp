@@ -48,7 +48,7 @@
 
 #include "ppl6.h"
 
-#define PPL_COPYRIGHT		"(c) Copyright by Patrick F.-Productions in 2005-2011"
+#define PPL_COPYRIGHT		"(c) Copyright by Patrick F.-Productions in 2005-2013"
 
 
 
