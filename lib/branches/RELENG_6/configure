@@ -13664,7 +13664,7 @@ fi
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if ldns should be included" >&5
 $as_echo_n "checking if ldns should be included... " >&6; }
-	if test "$with_ldns" != "no"
+	if test "$with_libldns" != "no"
 	then
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }

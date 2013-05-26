@@ -7,7 +7,7 @@ AC_ARG_WITH([libldns],
 	[ldns_prefix="no"])
 
 	AC_MSG_CHECKING(if ldns should be included)
-	if test "$with_ldns" != "no"
+	if test "$with_libldns" != "no"
 	then
 		AC_MSG_RESULT(yes)
 		if test "$ldns_prefix" = "no"
