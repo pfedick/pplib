@@ -474,7 +474,7 @@ int CArray::Explode(const char *text, const char *trenn, int limit, bool skipemp
 	int p;
 	int t=(int)strlen(trenn);
 	int count=0;
-	char *_t;
+	const char *_t;
 	while (1) {
 		_t=strstr(text,trenn);
 		if (_t) {
