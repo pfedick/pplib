@@ -384,7 +384,7 @@ install:	release/\$(LIBNAME).a release/pplgenresource.o
 	-cp \$(incdir)/ppl6-unixconfig.h \$(TARGETINCLUDE)/ppl6-config.h
 	-chmod a+x ppl6-config  
 	-cp ppl6-config \$(TARGETBIN)
-	\$(CXX) -o release/pplgenresource release/pplgenresource.o \`ppl6-config --libs release\` -lstdc++
+	\$(CXX) -o release/pplgenresource release/pplgenresource.o \`sh ppl6-config --libs release source\` -lstdc++
 	-cp release/pplgenresource \$(TARGETBIN)
 
 install_debug: debug/\$(LIBDEBUG).a debug/pplgenresource.o
@@ -400,7 +400,7 @@ install_debug: debug/\$(LIBDEBUG).a debug/pplgenresource.o
 	-cp \$(incdir)/ppl6-unixconfig.h \$(TARGETINCLUDE)/ppl6-config.h
 	-chmod a+x ppl6-config
 	-cp ppl6-config \$(TARGETBIN)
-	\$(CXX) -o debug/pplgenresource debug/pplgenresource.o \`ppl6-config --libs debug\` -lstdc++	
+	\$(CXX) -o debug/pplgenresource debug/pplgenresource.o \`sh ppl6-config --libs debug source\` -lstdc++	
 
 clean:
 	-rm -rf release

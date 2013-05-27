@@ -13,6 +13,8 @@ Version 6.4.17
     den Pointer darauf innerhalb der posix threads
   - PPLExit ruft nun CleanupThreadData auf
   - CleanupThreadData ist nun auch für Windows implementiert
+  - Makefile: pplgenresource verwendet nun das lokale config-ppl6-Skript
+    und die lokale Bibliothek
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog
