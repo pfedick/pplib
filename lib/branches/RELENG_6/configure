@@ -827,6 +827,7 @@ with_ogg
 with_ogg_libraries
 with_ogg_includes
 enable_oggtest
+with_libshout
 with_libmad
 with_gnu_ld
 enable_rpath
@@ -1517,6 +1518,7 @@ Optional Packages:
                           (optional)
   --with-ogg-includes=DIR Directory where libogg header files are installed
                           (optional)
+  --with-libshout[=PATH]     Prefix where libshout is installed (optional)
   --with-libmad[=DIR]     enable support for decoding of mp3 files [in DIR]
   --with-gnu-ld           assume the C compiler uses GNU ld default=no
   --with-libiconv-prefix[=DIR]  search for libiconv in DIR/include and DIR/lib
@@ -10602,21 +10604,37 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 report_have_libshout="no"
-xt_have_shout="no"
-SHOUT_THREADSAFE="no"
-SHOUT_CPPFLAGS=""
-SHOUT_CFLAGS=""
-SHOUT_LIBS=""
 
-# NB: PKG_CHECK_MODULES exits if pkg-config is unavailable on the target
-# system, so we can't use it.
 
-# seed pkg-config with the default libshout location
-PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-/usr/local/lib/pkgconfig}
-export PKG_CONFIG_PATH
+# Check whether --with-libshout was given.
+if test "${with_libshout+set}" = set; then :
+  withval=$with_libshout; libshout_prefix="$withval"
+else
+  libshout_prefix="no"
+fi
 
-# Step 1: Use pkg-config if available
-# Extract the first word of "pkg-config", so it can be a program name with args.
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if libshout should be included" >&5
+$as_echo_n "checking if libshout should be included... " >&6; }
+	if test "$with_libshout" != "no"
+	then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		xt_have_shout="no"
+		SHOUT_THREADSAFE="no"
+		SHOUT_CPPFLAGS=""
+		SHOUT_CFLAGS=""
+		SHOUT_LIBS=""
+
+		# NB: PKG_CHECK_MODULES exits if pkg-config is unavailable on the target
+		# system, so we can't use it.
+
+		# seed pkg-config with the default libshout location
+		PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-/usr/local/lib/pkgconfig}
+		export PKG_CONFIG_PATH
+
+		# Step 1: Use pkg-config if available
+		# Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -10657,20 +10675,20 @@ $as_echo "no" >&6; }
 fi
 
 
-if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists shout`
-then
-  SHOUT_CFLAGS=`$PKGCONFIG --variable=cflags_only shout`
-  SHOUT_CPPFLAGS=`$PKGCONFIG --variable=cppflags shout`
-  SHOUT_LIBS=`$PKGCONFIG --libs shout`
-  xt_have_shout="maybe"
-else
-  if test "$PKGCONFIG" != "no"
-  then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: $PKGCONFIG couldn't find libshout. Try adjusting PKG_CONFIG_PATH." >&5
+		if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists shout`
+		then
+		  SHOUT_CFLAGS=`$PKGCONFIG --variable=cflags_only shout`
+		  SHOUT_CPPFLAGS=`$PKGCONFIG --variable=cppflags shout`
+		  SHOUT_LIBS=`$PKGCONFIG --libs shout`
+		  xt_have_shout="maybe"
+		else
+		  if test "$PKGCONFIG" != "no"
+		  then
+		    { $as_echo "$as_me:${as_lineno-$LINENO}: $PKGCONFIG couldn't find libshout. Try adjusting PKG_CONFIG_PATH." >&5
 $as_echo "$as_me: $PKGCONFIG couldn't find libshout. Try adjusting PKG_CONFIG_PATH." >&6;}
-  fi
-  # pkg-config unavailable, try shout-config
-  # Extract the first word of "shout-config", so it can be a program name with args.
+		  fi
+		  # pkg-config unavailable, try shout-config
+		  # Extract the first word of "shout-config", so it can be a program name with args.
 set dummy shout-config; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -10711,25 +10729,25 @@ $as_echo "no" >&6; }
 fi
 
 
-  if test "$SHOUTCONFIG" != "no" && test `$SHOUTCONFIG --package` = "libshout"
-  then
-    SHOUT_CPPFLAGS=`$SHOUTCONFIG --cppflags`
-    SHOUT_CFLAGS=`$SHOUTCONFIG --cflags-only`
-    SHOUT_LIBS=`$SHOUTCONFIG --libs`
-    xt_have_shout="maybe"
-  fi
-fi
+		  if test "$SHOUTCONFIG" != "no" && test `$SHOUTCONFIG --package` = "libshout"
+		  then
+		    SHOUT_CPPFLAGS=`$SHOUTCONFIG --cppflags`
+		    SHOUT_CFLAGS=`$SHOUTCONFIG --cflags-only`
+		    SHOUT_LIBS=`$SHOUTCONFIG --libs`
+		    xt_have_shout="maybe"
+		  fi
+		fi
 
-# Now try actually using libshout
-if test "$xt_have_shout" != "no"
-then
-  ac_save_CPPFLAGS="$CPPFLAGS"
-  ac_save_CFLAGS="$CFLAGS"
-  ac_save_LIBS="$LIBS"
-  CPPFLAGS="$CPPFLAGS $SHOUT_CPPFLAGS"
-  CFLAGS="$CFLAGS $SHOUT_CFLAGS"
-  LIBS="$SHOUT_LIBS $LIBS"
-  for ac_header in shout/shout.h
+		# Now try actually using libshout
+		if test "$xt_have_shout" != "no"
+		then
+		  ac_save_CPPFLAGS="$CPPFLAGS"
+		  ac_save_CFLAGS="$CFLAGS"
+		  ac_save_LIBS="$LIBS"
+		  CPPFLAGS="$CPPFLAGS $SHOUT_CPPFLAGS"
+		  CFLAGS="$CFLAGS $SHOUT_CFLAGS"
+		  LIBS="$SHOUT_LIBS $LIBS"
+		  for ac_header in shout/shout.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "shout/shout.h" "ac_cv_header_shout_shout_h" "$ac_includes_default"
 if test "x$ac_cv_header_shout_shout_h" = xyes; then :
@@ -10737,7 +10755,7 @@ if test "x$ac_cv_header_shout_shout_h" = xyes; then :
 #define HAVE_SHOUT_SHOUT_H 1
 _ACEOF
 
-    ac_fn_c_check_func "$LINENO" "shout_new" "ac_cv_func_shout_new"
+		    ac_fn_c_check_func "$LINENO" "shout_new" "ac_cv_func_shout_new"
 if test "x$ac_cv_func_shout_new" = xyes; then :
 
 
@@ -10747,16 +10765,16 @@ $as_echo "#define HAVE_LIBSHOUT 1" >>confdefs.h
 
 
 
-      xt_have_shout="yes"
+		      xt_have_shout="yes"
 
 fi
 
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+		    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <shout/shout.h>
-#if SHOUT_THREADSAFE
-yes
-#endif
+		#if SHOUT_THREADSAFE
+		yes
+		#endif
 
 _ACEOF
 if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
@@ -10770,15 +10788,19 @@ fi
 
 done
 
-  CPPFLAGS="$ac_save_CPPFLAGS"
-  CFLAGS="$ac_save_CFLAGS"
-  LIBS="$ac_save_LIBS"
-fi
+		  CPPFLAGS="$ac_save_CPPFLAGS"
+		  CFLAGS="$ac_save_CFLAGS"
+		  LIBS="$ac_save_LIBS"
+		fi
 
-if test "$xt_have_shout" != "yes"
-then
-  :
-fi
+		if test "$xt_have_shout" != "yes"
+		then
+		  :
+		fi
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	fi
 
 
 
