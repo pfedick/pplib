@@ -17,6 +17,8 @@ Version 6.4.17
     und die lokale Bibliothek
   - configure: libshout kann jetzt mit --without-libshout abgeschaltet
     werden
+  - ppl6-unixconfig.h enthält nurnoch die Typdefinitionen, aber nicht mehr die
+    ganzen HAVE_xzy Direktiven 
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog

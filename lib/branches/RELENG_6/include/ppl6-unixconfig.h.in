@@ -38,69 +38,6 @@
 #ifndef _PPL6_CONFIG
 #define _PPL6_CONFIG
 
-#undef HAVE_SYS_TYPES_H
-#undef HAVE_STDLIB_H
-#undef HAVE_STDIO_H
-#undef HAVE_STRINGS_H
-#undef HAVE_STDARG_H
-
-#undef MINGW32
-
-#undef size_t
-
-/*
- * compression
- */
-
-#undef HAVE_LIBZ
-#undef HAVE_BZIP2
-
-/*
- * Sockets
- */
-
-#undef HAVE_SOCKET
-
-/*
- * lib curl
- */
-#undef HAVE_LIBCURL
-
-/*
- * pthread
- */
-#undef HAVE_PTHREAD
-
-/*
- * Audio
- */
-#undef HAVE_LAME
-#undef HAVE_LIBMAD
-
-
-/*
- * Grafiklibraries
- */
-#undef HAVE_TIFF
-#undef HAVE_JPEG
-#undef HAVE_PNG
-#undef HAVE_FREETYPE2
-#undef HAVE_SDL
-
-
-/*
- * Databases
- */
-#undef HAVE_MYSQL
-#undef HAVE_POSTGRES
-#undef HAVE_FREETDS
-#undef HAVE_SYBASE
-
-
-/*
- * Type definitions
- */
-
 #define ppluint8	undefined
 #define pplint8		undefined
 #define ppluint16	undefined
