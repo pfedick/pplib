@@ -49,10 +49,6 @@
 #include <windows.h>
 #endif
 
-#ifdef _HAVE_LAME
-	#include <lame.h>
-#endif
-
 #include "ppl6.h"
 #include "ppl6-sound.h"
 
