@@ -1192,7 +1192,7 @@ int MkDir(const char *path, int recursive)
 #endif
 }
 
-int MkDir(const char *path, mode_t mode, int recursive)
+int MkDir(const char *path, ppluint32 mode, int recursive)
 {
 	CString s;
 	if (!path) return 0;

@@ -115,7 +115,6 @@
 		#define bzero ZeroMemory
 		//#define bcopy CopyMemory   // CopyMemory hat andere Parameter-Reihenfolge als bcopy!
 		#define strcasecmp stricmp
-		#define mode_t ppluint32
 	#endif
 //#endif
 
@@ -2322,7 +2321,7 @@ class CTree
 
 	int MkDir(const char *path);					// Nicht rekursiv!
 	int MkDir(const char *path, int recursive);		// recursive=0 oder 1
-	int MkDir(const char *path, mode_t mode, int recursive);
+	int MkDir(const char *path, ppluint32 mode, int recursive);
 
 	int StringToRect(CString *s, WINRECT *r);
 	int StringToRect(CString *s, RECT *r);
