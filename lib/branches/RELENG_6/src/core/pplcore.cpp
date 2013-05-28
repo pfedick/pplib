@@ -1051,7 +1051,7 @@ int Cppl6Core::haveDirectX9()
 #include <png.h>
 #endif
 
-#ifdef HAVE_PNG
+#ifdef HAVE_JPEG
 #include <jpeglib.h>
 #endif
 
