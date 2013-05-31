@@ -389,7 +389,7 @@ const CString& CTCPSocket::getHostname() const
 
 int CTCPSocket::getPort() const
 {
-	return PortNum:
+	return PortNum;
 }
 
 
