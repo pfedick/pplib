@@ -218,9 +218,9 @@ int CUDPSocket::SendTo(const char *host, int port, const void *buffer, int bytes
 	//a->List();
 
 
-	int domain, type, protocol;
+	int domain, protocol;
 	domain=ppl6::atoi(a->Get("ai_family"));
-	type=ppl6::atoi(a->Get("ai_socktype"));
+	//type=ppl6::atoi(a->Get("ai_socktype"));
 	//protocol=ppl6::atoi(a->Get("ai_protocol"));
 	struct protoent *proto=getprotobyname("UDP");
 	if (!proto) {
@@ -425,7 +425,6 @@ int CUDPSocket::RecvFrom(void *buffer, int maxlen, CString &host, int *port)
 
 int CUDPSocket::Bind(const char *host, int port)
 {
-	int addrlen=0;
 	if (!socket) {
 		socket=malloc(sizeof(PPLSOCKET));
 		if (!socket) {
@@ -477,7 +476,6 @@ int CUDPSocket::Bind(const char *host, int port)
 				return 0;
 			}
 			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
-				addrlen=res->ai_addrlen;
 				break;
 			}
 			shutdown(listenfd,2);
