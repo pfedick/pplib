@@ -382,6 +382,16 @@ void CTCPSocket::SetSource(const char *host, int port)
 	SourcePort=port;
 }
 
+const CString& CTCPSocket::getHostname() const
+{
+	return HostName;
+}
+
+int CTCPSocket::getPort() const
+{
+	return PortNum:
+}
+
 
 #ifdef WIN32
 static int out_bind(SOCKET sockfd, const char *host, int port)
@@ -1627,9 +1637,13 @@ int CTCPSocket::Bind(const char *host, int port)
 	struct sockaddr_in addr;
 	bzero(&addr,sizeof(addr));
 
+	PortNum=port;
+
 	if (!host) {
 		addr.sin_addr.s_addr = htonl(INADDR_ANY);
+		HostName="*";
 	} else {
+		HostName=host;
 		// convert host to in_addr
 		struct in_addr in;
 		if (inet_aton(host,&in)) {
@@ -1683,7 +1697,7 @@ int CTCPSocket::Bind(const char *host, int port)
  */
 int CTCPSocket::Bind(const char *host, int port)
 {
-	int addrlen=0;
+	//int addrlen=0;
 	if (!socket) {
 		socket=malloc(sizeof(PPLSOCKET));
 		if (!socket) {
@@ -1736,7 +1750,7 @@ int CTCPSocket::Bind(const char *host, int port)
 				return 0;
 			}
 			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
-				addrlen=res->ai_addrlen;
+				//addrlen=res->ai_addrlen;
 				break;
 			}
 			shutdown(listenfd,2);
@@ -1771,6 +1785,8 @@ int CTCPSocket::Bind(const char *host, int port)
     		s->sd=listenfd;
     		//s->addrlen=0;
     		connected=1;
+    		HostName="*";
+    		PortNum=port;
     		return 1;
 		}
 	}
@@ -1785,6 +1801,8 @@ int CTCPSocket::Bind(const char *host, int port)
 	s->sd=listenfd;
 	//s->addrlen=addrlen;
 	connected=1;
+	HostName=host;
+	PortNum=port;
 	return 1;
 }
 

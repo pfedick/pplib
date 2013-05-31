@@ -20,6 +20,8 @@ Version 6.4.17
   - ppl6-unixconfig.h enthält nurnoch die Typdefinitionen, aber nicht mehr die
     ganzen HAVE_xzy Direktiven
   - Datentyp "mode_t" wird in ppl.h nicht mehr verwendet
+  - CTCPSocket::Bind: Hostname und Port werden nun gespeichert und können mit
+    den neuen Funktionen "getHostname" und "getPort" abgefragt werden.
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog

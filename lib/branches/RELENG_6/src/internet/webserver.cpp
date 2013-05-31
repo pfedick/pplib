@@ -73,6 +73,10 @@
 	#endif
 #endif
 
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+
 #ifdef HAVE_LIBMICROHTTPD
 #include <microhttpd.h>
 #endif
@@ -217,7 +221,10 @@ void Webserver::start()
 #ifdef HAVE_LIBMICROHTTPD
 	int sd=Socket.GetDescriptor();
 	if (!sd) throw NoAddressSpecified();
-	::listen(sd,5);
+	if (::listen(sd,5)!=0) {
+		int e=TranslateErrno(errno);
+		throw CouldNotStartDaemon(ppl6::ToString("listen => %i: %s",e,GetError(e)));
+	}
 
 	if (!SSLEnabled) {
 		daemon=MHD_start_daemon (
@@ -240,8 +247,7 @@ void Webserver::start()
 		);
 
 	}
-
-	if (!daemon) throw CouldNotStartDaemon();
+	if (!daemon) throw CouldNotStartDaemon("MHD_start_daemon failed");
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif

@@ -3270,6 +3270,8 @@ class CTCPSocket
 		void DispatchErrno();
 		int GetBytesWritten();
 		int GetBytesRead();
+		const CString& getHostname() const;
+		int getPort() const;
 
         int Bind(const char *ip, int port);
 		int Disconnect();
@@ -3399,7 +3401,7 @@ class Webserver
 		PPLPARAMETERISEDEXCEPTION(CouldNotBindToSocket);
 		PPLPARAMETERISEDEXCEPTION(InvalidSSLCertificate);
 		PPLNORMALEXCEPTION(NoAddressSpecified);
-		PPLNORMALEXCEPTION(CouldNotStartDaemon);
+		PPLPARAMETERISEDEXCEPTION(CouldNotStartDaemon);
 		PPLNORMALEXCEPTION(SSLInitializationFailed);
 
 };
