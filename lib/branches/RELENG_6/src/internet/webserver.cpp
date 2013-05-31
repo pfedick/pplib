@@ -223,7 +223,7 @@ void Webserver::start()
 	if (!sd) throw NoAddressSpecified();
 	if (::listen(sd,5)!=0) {
 		int e=TranslateErrno(errno);
-		throw CouldNotStartDaemon(ppl6::ToString("listen => %i: %s",e,GetError(e)));
+		throw CouldNotStartDaemon(ppl6::ToString("listen => %i: %s [%s:%i]",e,GetError(e),(const char*)Socket.getHostname(),Socket.getPort()));
 	}
 
 	if (!SSLEnabled) {
@@ -247,7 +247,7 @@ void Webserver::start()
 		);
 
 	}
-	if (!daemon) throw CouldNotStartDaemon("MHD_start_daemon failed");
+	if (!daemon) throw CouldNotStartDaemon("MHD_start_daemon failed [%s:%i]",(const char*)Socket.getHostname(),Socket.getPort());
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
