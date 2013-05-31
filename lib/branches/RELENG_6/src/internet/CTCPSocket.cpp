@@ -1828,8 +1828,8 @@ int CTCPSocket::SetBlocking(bool value)
 		SetError(267);
 		return 0;
 	}
-	int ret=0;
 #ifdef _WIN32
+	int ret=0;
 	u_long v;
 	if (value) {
 		v=0;
@@ -1842,9 +1842,9 @@ int CTCPSocket::SetBlocking(bool value)
 	return 0;
 #else
 	if (value)
-		ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK));    // Blocking
+		fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK));    // Blocking
 	else
-		ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)|O_NONBLOCK);   // NON-Blocking
+		fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)|O_NONBLOCK);   // NON-Blocking
 	//if (ret==0) return 1;
 	return 1;
 #endif
