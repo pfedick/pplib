@@ -54,8 +54,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql --with-libldns \
 			--with-libgcrypt-prefix \
-			--with-libgnutls-prefix \
-			--with-freetds --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd
+			--with-libgnutls-prefix=/usr \
+			--with-freetds --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd=/home/patrickf
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \

@@ -1,14 +1,15 @@
 dnl AM_LIBMICROHTTPD([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 AC_DEFUN([AM_LIBMICROHTTPD],[dnl
-AC_MSG_CHECKING([for libmicrohttpd library and headers])
 AC_ARG_WITH([libmicrohttpd],
 	[  --with-libmicrohttpd[[=PATH]]     Prefix where libmicrohttpd is installed (optional)],
 	[libmicrohttpd_prefix="$withval"],
 	[libmicrohttpd_prefix="no"])
 
 
-if test "$libmicrohttpd_prefix" != "no"
+AC_MSG_CHECKING([for if libmicrohttpd should be used])
+if test "$with_libmicrohttpd_prefix" != "no"
 then
+	AC_MSG_RESULT(yes)
 	am_save_CPPFLAGS="$CPPFLAGS"
 	am_save_LIBS="$LIBS"
 	am_save_LDFLAGS="$LDFLAGS"
@@ -27,7 +28,7 @@ then
 			LIBMICROHTTPD_LIBS="$LIBMICROHTTPD_LIBS -lrt "
 			LIBS="$LIBS -lrt"
 		)
-		
+	AC_MSG_CHECKING([if we can link against libmicrohttpd])
     AC_LINK_IFELSE( [AC_LANG_SOURCE([[
          #include <microhttpd.h>
          int main()
@@ -41,8 +42,24 @@ then
     
       ],
       [
-      	AC_MSG_RESULT(no)
-        ifelse([$3], , :, [$3])
+      	dnl Vielleicht ist gnutls erforderlich
+		LIBMICROHTTPD_LIBS="$LIBMICROHTTPD_LIBS -lgnutls "
+		LIBS="$LIBS -lgnutls"
+		AC_LINK_IFELSE( [AC_LANG_SOURCE([[
+			#include <microhttpd.h>
+			int main()
+			{
+         		struct MHD_Daemon* daemon;
+         		MHD_stop_daemon(daemon);
+         	}
+      	]]) ],
+      		[AC_MSG_RESULT(yes)
+      		ifelse([$2], , :, [$2])
+		],
+		[
+      		AC_MSG_RESULT(no)
+        	ifelse([$3], , :, [$3])
+        ])
       ]
     )
 
