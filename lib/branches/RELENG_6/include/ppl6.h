@@ -3381,6 +3381,8 @@ class Webserver
 		Webserver();
 		virtual ~Webserver();
 		void bind(const CString &adr, int port);
+		const CString & getHostname() const;
+		int getPort() const;
 		void loadCertificate(const CString &certificate, const CString &privatekey, const CString &password);
 		void enableSSL(bool enable);
 		bool sslEnabled() const;

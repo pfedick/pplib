@@ -181,6 +181,17 @@ void Webserver::bind(const ppl6::CString &adr, int port)
 #endif
 }
 
+const CString & Webserver::getHostname() const
+{
+	return Socket.getHostname();
+}
+
+int Webserver::getPort() const
+{
+	return Socket.getPort();
+}
+
+
 void Webserver::loadCertificate(const CString &certificate, const CString &privatekey, const CString &password)
 {
 	CString e;

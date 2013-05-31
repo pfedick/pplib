@@ -24,6 +24,7 @@ Version 6.4.17
     den neuen Funktionen "getHostname" und "getPort" abgefragt werden.
   - Webserver::start: Exception "CouldNotStartDaemon" hat jetzt zusätzliche
     Informationen über den aufgetretenen Fehler
+  - Webserver: Neue Funktionen: getHostname, getPort
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog
