@@ -7,19 +7,19 @@ AC_ARG_WITH([libmicrohttpd],
 
 
 AC_MSG_CHECKING([for if libmicrohttpd should be used])
-if test "$with_libmicrohttpd_prefix" != "no"
+if test "$with_libmicrohttpd" != "no"
 then
 	AC_MSG_RESULT(yes)
 	am_save_CPPFLAGS="$CPPFLAGS"
 	am_save_LIBS="$LIBS"
 	am_save_LDFLAGS="$LDFLAGS"
-	LIBS="-lmicrohttpd -pthread $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
+	LIBS="-lmicrohttpd $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
 	LIBMICROHTTPD_LIBS="-lmicrohttpd"
 	LIBMICROHTTPD_CFLAGS=""
 	
 	if test "$libmicrohttpd_prefix" != "yes"
 	then
-		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd -pthread $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
+		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
 		CPPFLAGS="$CPPFLAGS -I$libmicrohttpd_prefix/include $LIBGCRYPT_CFLAGS $LIBGNUTLS_CFLAGS"
 		LIBMICROHTTPD_LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
 		LIBMICROHTTPD_CFLAGS="-I$libmicrohttpd_prefix/include"
@@ -58,6 +58,8 @@ then
 		],
 		[
       		AC_MSG_RESULT(no)
+        	LIBMICROHTTPD_LIBS=""
+        	LIBMICROHTTPD_CFLAGS=""        	
         	ifelse([$3], , :, [$3])
         ])
       ]
