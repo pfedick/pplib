@@ -27,6 +27,9 @@ Version 6.4.17
   - Webserver: Neue Funktionen: getHostname, getPort
   - configure: Erkennung für libmicrohttpd verbessert
   - configure: Erkennung für curl-config verbessert
+  - ppl6-config: Option "--features" unterstützt nun optionale Angabe der
+    gewünschten Features. Ist ein Feature nicht eingebunden, wird eine
+    ERROR-Meldung ausgegeben und der Returncode ist ungleich 0
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog

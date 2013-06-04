@@ -29,7 +29,7 @@ Options:
 	[--libs]
 	[--cflags]
 	[--ppllib]
-	[--features]
+	[--features [wanted features, eg: --features zlib bzip2 pcre]]
 	[--archive]
 Libraries:
 	release | debug
@@ -43,6 +43,31 @@ Libraries:
 EOF
 	exit $1
 }
+
+RET=0
+check_feature()
+{
+	NAME=$1
+	DEFINE=$2
+	WANTED=$3
+	if [ -n "$WANTED" ] ; then
+		for FEATURE in $WANTED; do
+			if [ "$FEATURE" = "$NAME" ] ; then
+				if [ "$DEFINE" = "yes" ] ; then
+					echo "OK, have feature:       $NAME"
+				else
+					echo "ERROR, missing feature: $NAME"
+					RET=1
+				fi
+			fi
+		done
+	else
+		if [ "$DEFINE" = "yes" ] ; then
+			echo $NAME
+		fi
+	fi
+}
+
 
 if test $# -eq 0; then
 	usage 1 1>&2
@@ -135,6 +160,9 @@ while test $# -gt 0; do
       ;;
     --features)
       listfeatures=yes
+      shift
+      features_wanted=$*
+      break
       ;;
     *)
       usage 1 1>&2
@@ -152,75 +180,31 @@ if test "$echo_exec_prefix" = "yes"; then
 fi
 
 if test "$listfeatures" = "yes"; then
-	if [ "@report_have_zlib@" = "yes" ]; then
-		echo "zlib"
-	fi
-	if [ "@report_have_bzip2@" = "yes" ]; then
-		echo "bzip2"
-	fi
-	if [ "@report_have_png@" = "yes" ]; then
-		echo "png"
-	fi
-	if [ "@report_have_jpeg@" = "yes" ]; then
-		echo "jpeg"
-	fi
-	if [ "@report_have_freetype2@" = "yes" ]; then
-		echo "freetype2"
-	fi
-	if [ "@report_have_sdl@" = "yes" ]; then
-		echo "sdl"
-	fi
-	if [ "@report_have_lame@" = "yes" ]; then
-		echo "lame"
-	fi
-	if [ "@report_have_libmad@" = "yes" ]; then
-		echo "mad"
-	fi
-	if [ "@report_have_curl@" = "yes" ]; then
-		echo "curl"
-	fi
-	if [ "@report_have_openssl@" = "yes" ]; then
-		echo "openssl"
-	fi
-	if [ "@report_have_pcre@" = "yes" ]; then
-		echo "pcre"
-	fi
-	if [ "@report_have_iconv@" = "yes" ]; then
-		echo "iconv"
-	fi
-	if [ "@report_have_libmcrypt@" = "yes" ]; then
-		echo "mcrypt"
-	fi
-	if [ "@report_have_libmhash@" = "yes" ]; then
-		echo "mhash"
-	fi
-	if [ "@report_have_mysql@" = "yes" ]; then
-		echo "mysql"
-	fi
-	if [ "@report_have_postgres@" = "yes" ]; then
-		echo "postgres"
-	fi
-	if [ "@report_have_freetds@" = "yes" ]; then
-		echo "freetds"
-		echo "sybase"
-	fi
-	if [ "@report_have_sqlite@" = "yes" ]; then
-		echo "sqlite"
-	fi
-	if [ "@report_have_nasm@" = "yes" ]; then
-		echo "nasm"
-	fi
-	if [ "@report_have_pthreads@" = "yes" ]; then
-		echo "pthreads"
-	fi
-	if [ "@report_have_ldns@" = "yes" ]; then
-		echo "ldns"
-	fi
-	if [ "@report_have_libmicrohttpd@" = "yes" ]; then
-		echo "libmicrohttpd"
-	fi
+	RET=0
+	check_feature "zlib" "@report_have_zlib@" "$features_wanted"
+	check_feature "bzip2" "@report_have_bzip2@" "$features_wanted"
+	check_feature "png" "@report_have_png@" "$features_wanted"
+	check_feature "jpeg" "@report_have_jpeg@" "$features_wanted"
+	check_feature "freetype2" "@report_have_freetype2@" "$features_wanted"
+	check_feature "sdl" "@report_have_sdl@" "$features_wanted"
+	check_feature "lame" "@report_have_lame@" "$features_wanted"
+	check_feature "mad" "@report_have_libmad@" "$features_wanted"
+	check_feature "curl" "@report_have_curl@" "$features_wanted"
+	check_feature "openssl" "@report_have_openssl@" "$features_wanted"
+	check_feature "pcre" "@report_have_pcre@" "$features_wanted"
+	check_feature "iconv" "@report_have_iconv@" "$features_wanted"
+	check_feature "mcrypt" "@report_have_libmcrypt@" "$features_wanted"
+	check_feature "mhash" "@report_have_libmhash@" "$features_wanted"
+	check_feature "mysql" "@report_have_mysql@" "$features_wanted"
+	check_feature "postgres" "@report_have_postgres@" "$features_wanted"
+	check_feature "freetds" "@report_have_freetds@" "$features_wanted"
+	check_feature "sqlite" "@report_have_sqlite@" "$features_wanted"
+	check_feature "nasm" "@report_have_nasm@" "$features_wanted"
+	check_feature "pthreads" "@report_have_pthreads@" "$features_wanted"
+	check_feature "ldns" "@report_have_ldns@" "$features_wanted"
+	check_feature "libmicrohttpd" "@report_have_libmicrohttpd@" "$features_wanted"
 	
-	exit
+	exit $RET
 fi
 
 if [ "$split" = "yes" ] ; then
