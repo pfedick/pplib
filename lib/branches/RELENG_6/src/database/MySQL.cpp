@@ -778,26 +778,36 @@ Result *MySQL::Query(const CString &query)
 	int ret=Mysql_Query(query);
 	UpdateLastUse();
 	if (ret) {
+		int e=0;
 		MySQLResult *res=new MySQLResult;
 		if (!res) {
 			SetError(2);
 			return 0;
 		}
+		lastinsertid=0;
+		res->lastinsertid=0;
+
 		res->mysql=(MYSQL *)mysql;
 		res->mysql_class=this;
 		affectedrows = mysql_affected_rows((MYSQL *)mysql);
 		res->affectedrows=affectedrows;
 		res->res = mysql_store_result((MYSQL *)mysql);
 		LogQuery(query,(float)(getmicrotime()-t_start));
-		lastinsertid=(ppld64)mysql_insert_id((MYSQL *)mysql);
-		res->lastinsertid=lastinsertid;
 		if (res->res) {
+			lastinsertid=(ppld64)mysql_insert_id((MYSQL *)mysql);
+			res->lastinsertid=lastinsertid;
+
 			res->rows=mysql_num_rows(res->res);
 			res->num_fields=mysql_num_fields(res->res);
 			return res;
 		}
-		if (mysql_errno((MYSQL *)mysql)==0) {	// Query hat kein Ergebnis zurückgeliefert
+		e=mysql_errno((MYSQL *)mysql);
+		if (e==0) {	// Query hat kein Ergebnis zurückgeliefert
+			lastinsertid=(ppld64)mysql_insert_id((MYSQL *)mysql);
+			res->lastinsertid=lastinsertid;
 			return res;
+		} else {
+			SetError(138,mysql_errno((MYSQL *)mysql),"mysql_store_result-Error: %u, %s, Query: %s",e,mysql_error((MYSQL *)mysql), (const char*)query);
 		}
 		PushError();
 		delete res;

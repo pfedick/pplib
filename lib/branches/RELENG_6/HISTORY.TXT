@@ -30,6 +30,8 @@ Version 6.4.17
   - ppl6-config: Option "--features" unterstützt nun optionale Angabe der
     gewünschten Features. Ist ein Feature nicht eingebunden, wird eine
     ERROR-Meldung ausgegeben und der Returncode ist ungleich 0
+  - Bugfix in MySQL::Query: Ein Fehlerfall beim Speichern des Query-Results
+    wurde zwar festgestellt, aber kein passender Fehlercode gesetzt. 
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog
