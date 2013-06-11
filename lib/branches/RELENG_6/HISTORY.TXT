@@ -32,6 +32,8 @@ Version 6.4.17
     ERROR-Meldung ausgegeben und der Returncode ist ungleich 0
   - Bugfix in MySQL::Query: Ein Fehlerfall beim Speichern des Query-Results
     wurde zwar festgestellt, aber kein passender Fehlercode gesetzt. 
+  - Freetype-Font-Rendering verbessert, das Hinting funktioniert jetzt besser
+    (Code aus ppl7 übernommen)
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog

@@ -45,6 +45,9 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
 
 #include "ppl6-grafix.h"
 #include "grafix6.h"
@@ -215,6 +218,50 @@ int CFontEngineFreeType::DeleteFont(CFontFile *file)
 #endif
 }
 
+
+#ifdef HAVE_FREETYPE2
+static void renderGlyphAA(CDrawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
+{
+	ppluint8 v=0;
+	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
+	for (int gy=0;gy<bitmap->rows;gy++) {
+		for (int gx=0;gx<bitmap->width;gx++) {
+			v=glyph[gx];
+			if (v>0) {
+				draw.blendPixel(x+gx,y+gy,color,v);
+			}
+		}
+		glyph+=bitmap->pitch;
+	}
+}
+
+static void renderGlyphMono(CDrawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
+{
+	ppluint8 v=0;
+	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
+	ppluint8 bitcount;
+	ppluint8 bytecount;
+	for (int gy=0;gy<bitmap->rows;gy++) {
+		bitcount=0;
+		bytecount=0;
+		for (int gx=0;gx<bitmap->width;gx++) {
+			if (!bitcount) {
+				v=glyph[bytecount];
+				bitcount=8;
+				bytecount++;
+			}
+			if(v&128) {
+				draw.putPixel(x+gx,y+gy,color);
+			}
+			v=v<<1;
+			bitcount--;
+		}
+		glyph+=bitmap->pitch;
+	}
+}
+
+#endif
+
 int CFontEngineFreeType::Render(CFontFile *file, const CFont &font, CDrawable &surface, int x, int y, const CWString &text, const Color &color)
 {
 #ifndef HAVE_FREETYPE2
@@ -231,94 +278,74 @@ int CFontEngineFreeType::Render(CFontFile *file, const CFont &font, CDrawable &s
 	if (error!=0) {
 		return 0;
 	}
-
-	void (*BltGlyph) (GLYPH *surface)=NULL;
-	GLYPH g;
-	//Color color=font.color();
-	g.color=surface.rgb(color);
-	switch (surface.rgbformat()) {
-		case RGBFormat::X8R8G8B8:
-		case RGBFormat::X8B8G8R8:
-		case RGBFormat::A8R8G8B8:
-		case RGBFormat::A8B8G8R8:
-			//BltGlyph=BltGlyph_M8_32;
-			break;
-	};
-	int lastx=x;
-	//int lasty=y;
-	int orgx=x;
-	int orgy=y;
+	int orgx=x<<6;
+	int orgy=y<<6;
+	int lastx=orgx;
 	int code;
+	double angle;
+	bool rotate=false;
+	FT_Matrix matrix; /* transformation matrix */
+	if (font.rotation()!=0.0) {
+		rotate=true;
+		angle=font.rotation()*M_PI/180.0;
+		/* set up matrix */
+		matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
+		matrix.xy = (FT_Fixed)( sin( angle ) * 0x10000L );
+		matrix.yx = (FT_Fixed)( -sin( angle ) * 0x10000L );
+		matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
+		FT_Set_Transform( face->face, &matrix, NULL );
+	} else {
+		FT_Set_Transform( face->face, NULL, NULL );
+	}
+
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
-	ppldb v=0;
-	int p=0;
-	while ((code=text[p])) {
+	kerning.x=0;
+	kerning.y=0;
+
+	size_t p=0;
+	size_t textlen=text.Len();
+
+	while (p<textlen) {
+		code=text[p];
 		p++;
-		y=orgy;
 		if (code==10) {											// Newline
-			lastx=x=orgx;
-			orgy+=font.size()+2;
-			y=orgy;
+			lastx=orgx;
+			orgy+=(font.size()+2)<<6;
 			last_glyph=0;
 		} else {
+			y=orgy;
+			x=lastx;
 			glyph_index=FT_Get_Char_Index(face->face,code);
 			if (!glyph_index) continue;
 			// Antialiasing
 			if (font.antialias()) {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER);
+				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL);
 			} else {
 				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
 			}
 			if (error!=0) continue;
-			x=x+slot->bitmap_left;
-			y=y-slot->bitmap_top;
-			if (face->kerning>0 && last_glyph>0) {
-				error=FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
-				if (error==0) {
-					x+=(kerning.x>>6);
-				}
+			//x=x+(slot->bitmap_left<<6);
+			//y=y-(slot->bitmap_top<<6);
+			if (face->kerning>0 && last_glyph>0 && rotate==false) {
+				FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
+				x+=kerning.x;
+				y+=kerning.y;
 			}
 
-			if (BltGlyph) {
-
+			if (font.antialias()) {
+				renderGlyphAA(surface,&slot->bitmap,(x>>6)+slot->bitmap_left,
+						(y>>6)-slot->bitmap_top,color);
 			} else {
-				char *glyph=(char *)slot->bitmap.buffer;
-				if (font.antialias()) {
-					for (int gy=0;gy<slot->bitmap.rows;gy++) {
-						for (int gx=0;gx<slot->bitmap.width;gx++) {
-							v=glyph[gx];
-							if (v>0) {
-								surface.blendPixel(x+gx,y+gy,color,v);
-							}
-						}
-						glyph+=slot->bitmap.pitch;
-					}
-				} else {
-					ppldb bitcount=0;
-					ppldb bytecount=0;
-					for (int gy=0;gy<slot->bitmap.rows;gy++) {
-						for (int gx=0;gx<slot->bitmap.width;gx++) {
-							if (!bitcount) {
-								v=glyph[bytecount];
-								bitcount=8;
-								bytecount++;
-							}
-							if(v&128) {
-								surface.putPixel(x+gx,y+gy,color);
-							}
-							v=v<<1;
-							bitcount--;
-						}
-						glyph+=slot->bitmap.pitch;
-						bitcount=0;
-						bytecount=0;
-					}
-
-				}
+				renderGlyphMono(surface,&slot->bitmap,(x>>6)+slot->bitmap_left,
+						(y>>6)-slot->bitmap_top,color);
 			}
-			x+=(slot->advance.x>>6);
+			if (font.drawUnderline()) {
+
+			}
+			lastx=x+slot->advance.x;
+			orgy-=slot->advance.y;
 			last_glyph=glyph_index;
 		}
 	}
@@ -343,48 +370,46 @@ Size CFontEngineFreeType::Measure(CFontFile *file, const CFont &font, const CWSt
 	if (error!=0) {
 		return s;
 	}
+	FT_Set_Transform( face->face, NULL, NULL );
 
-	int lastx=0;
-	int orgx=0;
-	int orgy=0;
+	int width=0,height=0;
+
 	int code;
-	int x=0,y=0;
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
-	int p=0;
-	while ((code=text[p])) {
+	kerning.x=0;
+	kerning.y=0;
+	size_t p=0;
+	size_t textlen=text.Len();
+	while (p<textlen) {
+		code=text[p];
 		p++;
-		y=orgy;
 		if (code==10) {											// Newline
-			lastx=x=orgx;
-			orgy+=font.size()+2;
-			y=orgy;
+			width=0;
+			height+=(font.size()+2);
 			last_glyph=0;
 		} else {
 			glyph_index=FT_Get_Char_Index(face->face,code);
 			if (!glyph_index) continue;
 			// Antialiasing
 			if (font.antialias()) {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER);
+				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL);
 			} else {
 				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
 			}
 			if (error!=0) continue;
-			x=x+slot->bitmap_left;
-			y=y-slot->bitmap_top;
 			if (face->kerning>0 && last_glyph>0) {
 				error=FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
-				if (error==0) {
-					x+=(kerning.x>>6);
-				}
+				width+=kerning.x;
 			}
-			x+=(slot->advance.x>>6);
-			if (x>s.width()) s.setWidth(x);
+			width+=(slot->advance.x);
+			if (width>s.width()) s.setWidth(width);
 			last_glyph=glyph_index;
 		}
 	}
-	s.setHeight(orgy+font.size()+2);
+	s.setHeight(height+font.size()+2);
+	s.setWidth(s.width()>>6);
 	return s;
 #endif
 }
