@@ -44,7 +44,7 @@
 #endif
 
 #include "ppl7.h"
-#include "ppl7-sound.h"
+#include "ppl7-audio.h"
 
 #ifdef HAVE_LIBSHOUT
 #include <shout/shout.h>
