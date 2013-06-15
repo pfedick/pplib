@@ -158,6 +158,7 @@ RELEASE	= release/AVLTree.o \
 	release/tk_WindowManager.o \
 	release/tk_WindowManager_SDL12.o \
 	release/tk_WindowManager_SDL2.o \
+	release/audio_AudioDecoder_Wave.o \
 	release/audio_Icecast.o
 
 DEBUG	= debug/AVLTree.o \
@@ -249,6 +250,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/tk_WindowManager.o \
 	debug/tk_WindowManager_SDL12.o \
 	debug/tk_WindowManager_SDL2.o \
+	debug/audio_AudioDecoder_Wave.o \
 	debug/audio_Icecast.o
 
 ASM_OBJ_RELEASE	=	release/asm_blt.o \
@@ -838,6 +840,11 @@ release/tk_WindowManager_SDL2.o:	$(srcdir)/toolkit/WindowManager_SDL2.cpp $(incd
 	$(CXX) -Wall -O3 -o release/tk_WindowManager_SDL2.o -c $(srcdir)/toolkit/WindowManager_SDL2.cpp $(CFLAGS) 
 
 ### AUDIO
+release/audio_AudioDecoder_Wave.o:	$(srcdir)/audio/AudioDecoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Wave.cpp<<<
+	$(CXX) -Wall -O3 -o release/audio_AudioDecoder_Wave.o -c $(srcdir)/audio/AudioDecoder_Wave.cpp $(CFLAGS) 
+
 release/audio_Icecast.o:	$(srcdir)/audio/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/Icecast.cpp<<<
@@ -1347,6 +1354,11 @@ debug/tk_WindowManager_SDL2.o:	$(srcdir)/toolkit/WindowManager_SDL2.cpp $(incdir
 	$(CXX) -Wall -O -o debug/tk_WindowManager_SDL2.o -c $(srcdir)/toolkit/WindowManager_SDL2.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### AUDIO
+debug/audio_AudioDecoder_Wave.o:	$(srcdir)/audio/AudioDecoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Wave.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioDecoder_Wave.o -c $(srcdir)/audio/AudioDecoder_Wave.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/audio_Icecast.o:	$(srcdir)/audio/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/Icecast.cpp<<<

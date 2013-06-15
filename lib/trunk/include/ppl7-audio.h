@@ -99,8 +99,56 @@ class Icecast
 
 };
 
+//!\brief Struktur zum Speichern eines WAVE-Headers
+typedef struct tagWAVEHeader {
+	ppluint32	datastart;
+	ppluint32	numSamples;
+	ppluint32	bytes;
+	ppluint32	frequency;
+	ppluint32	bytespersample;
+	ppluint32	bytespersecond;
+	ppluint32	seconds;
+	ppluint8	channels;
+	ppluint8	bitdepth;
+} WAVEHEADER;
 
 
+class AudioDecoder
+{
+	public:
+};
+
+class AudioEncoder
+{
+
+};
+
+class AudioDecoder_Wave
+{
+	private:
+		File			myFile;
+		FileObject		*ff;
+		WAVEHEADER wave;
+		size_t position;
+		size_t samplesize;
+		void readWaveHeader(FileObject &file, WAVEHEADER &header);
+
+	public:
+		AudioDecoder_Wave();
+		~AudioDecoder_Wave();
+		void close();
+		bool ident(const String &filename);
+		bool ident(FileObject &file);
+		void open(const String &filename);
+		void open(FileObject &file);
+		void getWaveHeader(WAVEHEADER &header) const;
+		size_t bitdepth() const;
+		size_t bytesPerSample() const;
+		void seekSample(size_t sample);
+		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, void *left, void *right);
+
+};
 
 
 } // end of namespace ppl7
