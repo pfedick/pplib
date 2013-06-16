@@ -340,6 +340,7 @@ release/make:
 	-touch release/make
 
 install:	release/\$(LIBNAME).a
+	-mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
 	-cp release/\$(LIBNAME)*.a \$(TARGETLIB)
 	-cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
@@ -356,6 +357,7 @@ install:	release/\$(LIBNAME).a
 	-cp ppl7-config \$(TARGETBIN)
 
 install_debug: debug/\$(LIBDEBUG).a
+	-mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
 	-cp debug/\$(LIBDEBUG)*.a \$(TARGETLIB)
 	-cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
