@@ -179,11 +179,31 @@ size_t AudioDecoder_Wave::getSamples(size_t num, void *left, void *right)
 	void *buffer=malloc(num*wave.bytespersample);
 	if (!buffer) throw OutOfMemoryException();
 	size_t read=ff->read(buffer,num*wave.bytespersample)/wave.bytespersample;
-	for (size_t i=0;i<num;i++) {
+	for (size_t i=0;i<read;i++) {
 		memcpy((char*)left+i*samplesize,(char*)buffer+i*wave.bytespersample,samplesize);
 		memcpy((char*)right+i*samplesize,(char*)buffer+i*wave.bytespersample+samplesize,samplesize);
 	}
 
+	free(buffer);
+	return read;
+}
+
+size_t AudioDecoder_Wave::getSamples(size_t num, float *left, float *right)
+{
+	if (position+num>=wave.numSamples) num=wave.numSamples-position;
+	void *buffer=malloc(num*wave.bytespersample);
+	if (!buffer) throw OutOfMemoryException();
+	size_t read=ff->read(buffer,num*wave.bytespersample)/wave.bytespersample;
+	if (wave.bitdepth==16) {
+		pplint16 *buffer16=(pplint16*)buffer;
+		for (size_t i=0;i<read;i++) {
+			left[i]=(float)buffer16[i*2]/32768.0;
+			right[i]=(float)buffer16[i*2+1]/32768.0;
+		}
+	} else {
+		free(buffer);
+		throw UnsupportedDataTypeException();
+	}
 	free(buffer);
 	return read;
 }

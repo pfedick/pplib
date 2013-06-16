@@ -146,6 +146,7 @@ class AudioDecoder_Wave
 		size_t bytesPerSample() const;
 		void seekSample(size_t sample);
 		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, void *left, void *right);
 
 };
