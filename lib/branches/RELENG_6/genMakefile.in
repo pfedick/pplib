@@ -372,6 +372,7 @@ release/\$(LIBNAME)-tk.a: Makefile release/make \$(TK_RELEASE)
 	ar -r release/\$(LIBNAME)-tk.a \$(TK_RELEASE)
 	
 install:	release/\$(LIBNAME).a release/pplgenresource.o
+	-mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
 	-cp release/\$(LIBNAME)*.a \$(TARGETLIB)
 	-cp \$(incdir)/ppl6.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl6-exceptions.h \$(TARGETINCLUDE)
@@ -388,6 +389,7 @@ install:	release/\$(LIBNAME).a release/pplgenresource.o
 	-cp release/pplgenresource \$(TARGETBIN)
 
 install_debug: debug/\$(LIBDEBUG).a debug/pplgenresource.o
+	-mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
 	-cp debug/\$(LIBDEBUG)*.a \$(TARGETLIB)
 	-cp \$(incdir)/ppl6.h \$(TARGETINCLUDE)
 	-cp \$(incdir)/ppl6-exceptions.h \$(TARGETINCLUDE)
