@@ -13,7 +13,7 @@ case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
-		./configure --prefix=$PREFIX \ 
+		./configure --prefix=$PREFIX \
 			--with-libmad=/usr/local --with-lame=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
 			--with-libmhash=/usr/local --with-freetds=/usr/local \
@@ -58,7 +58,7 @@ case "$SYS:$REL:$KERNEL" in
 			--disable-sdltest --without-sdl-prefix --without-sdl-exec-prefix
 		;;
 	Linux:*generic*)
-		./configure --prefix=$PREFIX \ 
+		./configure --prefix=$PREFIX \
 			--with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
