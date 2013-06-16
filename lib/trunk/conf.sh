@@ -41,13 +41,17 @@ SYS=`uname -s`
 REL=`uname -r`
 KERNEL=`uname -v`
 
+echo "PREFIX=$PREFIX"
+echo ""
+
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
 		#export CC=gcc47
 		#export CXX=g++47
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
-		./configure --with-libmad=/usr/local --with-lame=/usr/local \
+		./configure --prefix=$PREFIX \ 
+			--with-libmad=/usr/local --with-lame=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
 			--with-libmhash=/usr/local --with-freetds=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
@@ -71,8 +75,7 @@ case "$SYS:$REL:$KERNEL" in
 			# * #define __amd64 1 (also __amd64__)
 			#Be sure to use "-m32" or "-m64" at both the compile stage and the link stage. 
 		
-		./configure \
-			--prefix=/mingw \
+		./configure --prefix=$PREFIX \
 			--build=i686-w64-mingw32 \
 			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
 			--with-nasm --with-libiconv-prefix=/mingw --with-libmad=/mingw \
@@ -86,7 +89,8 @@ case "$SYS:$REL:$KERNEL" in
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
 		export CFLAGS="-DCURL_STATICLIB"
-		./configure --with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
+		./configure --prefix=$PREFIX \ 
+			--with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
 			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
@@ -95,7 +99,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-ogg=/usr/local
 		;;
 	Linux:*generic*)
-		./configure --with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
+		./configure --prefix=$PREFIX \ 
+			--with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql \
@@ -104,7 +109,8 @@ case "$SYS:$REL:$KERNEL" in
 			--enable-gtest=/usr/local/gtest-1.6.0
 		;;	
 	*:Linux:*:*Ubuntu*)
-		./configure --with-libmad --with-lame --with-pcre=/usr --with-x \
+		./configure --prefix=$PREFIX \ 
+			--with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-openssl=/usr --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-postgresql \
 			--with-sybase=/usr/local --with-jpeg --with-png \
