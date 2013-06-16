@@ -50,7 +50,7 @@ case "$SYS:$REL:$KERNEL" in
 		#export CXX=g++47
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
-		./configure --prefix=$PREFIX \ 
+		./configure --prefix=$PREFIX \
 			--with-libmad=/usr/local --with-lame=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
 			--with-libmhash=/usr/local --with-freetds=/usr/local \
@@ -89,7 +89,7 @@ case "$SYS:$REL:$KERNEL" in
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
 		export CFLAGS="-DCURL_STATICLIB"
-		./configure --prefix=$PREFIX \ 
+		./configure --prefix=$PREFIX \
 			--with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
 			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
@@ -99,7 +99,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-ogg=/usr/local
 		;;
 	Linux:*generic*)
-		./configure --prefix=$PREFIX \ 
+		./configure --prefix=$PREFIX \
 			--with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
@@ -109,7 +109,7 @@ case "$SYS:$REL:$KERNEL" in
 			--enable-gtest=/usr/local/gtest-1.6.0
 		;;	
 	*:Linux:*:*Ubuntu*)
-		./configure --prefix=$PREFIX \ 
+		./configure --prefix=$PREFIX \
 			--with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-openssl=/usr --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-postgresql \
