@@ -41,6 +41,8 @@ SYS=`uname -s`
 REL=`uname -r`
 KERNEL=`uname -v`
 
+PREFIX=$1
+PREFIX=${PREFIX:=$HOME}
 echo "PREFIX=$PREFIX"
 echo ""
 
