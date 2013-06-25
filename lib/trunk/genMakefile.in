@@ -340,38 +340,38 @@ release/make:
 	-touch release/make
 
 install:	release/\$(LIBNAME).a
-	-mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
-	-cp release/\$(LIBNAME)*.a \$(TARGETLIB)
-	-cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-algorithms.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
-#	-cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
-	-chmod a+x ppl7-config  
-	-cp ppl7-config \$(TARGETBIN)
+	mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
+	cp release/\$(LIBNAME)*.a \$(TARGETLIB)
+	cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-algorithms.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
+#	cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
+	chmod a+x ppl7-config  
+	cp ppl7-config \$(TARGETBIN)
 
 install_debug: debug/\$(LIBDEBUG).a
-	-mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
-	-cp debug/\$(LIBDEBUG)*.a \$(TARGETLIB)
-	-cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-algorithms.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
-#	-cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
-	-cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
-	-chmod a+x ppl7-config
-	-cp ppl7-config \$(TARGETBIN)
+	mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
+	cp debug/\$(LIBDEBUG)*.a \$(TARGETLIB)
+	cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-types.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-algorithms.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
+#	cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
+	chmod a+x ppl7-config
+	cp ppl7-config \$(TARGETBIN)
 
 clean:
 	-rm -rf release
@@ -389,25 +389,25 @@ distclean: clean
 	-rm -rf \$(incdir)/ppl7-config.h \$(incdir)/config.h config.log config.status autom4te.cache configure.scan
 
 configure: genConfigure genMakefile.in configure.in
-	-sh genConfigure
+	sh genConfigure
 
 Makefile:
-	-sh genMakefile.in
+	sh genMakefile.in
 	
 doku: html
 
 html:
-	-mkdir -p documentation
-	-rm -rf documentation/html
-	-mkdir -p documentation/html
-	-doxygen Doxyfile
-	-cp docs/header-bg.png documentation/html
+	mkdir -p documentation
+	rm -rf documentation/html
+	mkdir -p documentation/html
+	doxygen Doxyfile
+	cp docs/header-bg.png documentation/html
 
 test:
-	- cd tests; make xml
+	cd tests; make xml
 	
 memcheck:
-	- cd tests; make memcheck
+	cd tests; make memcheck
 	 
 
 #release/pplgenresource.o: release/make Makefile tools/pplgenresource/genresource.cpp
