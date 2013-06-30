@@ -1408,17 +1408,21 @@ class CFile : public CFileObject
 
 		// Static Functions
 		static int Truncate(const char *filename, ppluint64 bytes);
-		static int Exists(const char *fmt, ...);
+		static int Exists(const CString &filename);
+		static int Existsf(const char *fmt, ...);
 		static int CopyFile(const char *oldfile, const char *newfile);
 		static int MoveFile(const char *oldfile, const char *newfile);
 		static int LoadFile(CVar &object, const char *filename);
 		static void *LoadFile(const char *filename, size_t *size=NULL);
-		static int DeleteFile(const char *filename, ...);
-		static int TouchFile(const char *filename, ...);
+		static int DeleteFile(const CString &filename);
+		static int DeleteFilef(const char *filename, ...);
+		static int TouchFile(const CString &filename);
+		static int TouchFilef(const char *filename, ...);
 		static int WriteFile(const void *content, size_t size, const char *filename, ...);
 		static int WriteFile(const CVar &object, const char *filename, ...);
 		static int RenameFile(const char *oldfile, const char *newfile);
-		static int FileAttr(int attr, const char *filename, ...);
+		static int FileAttrf(int attr, const char *filename, ...);
+		static int FileAttr(int attr, const CString &filename);
 		static int Chmod(const char *filename, int attr);
 		static int Stat(const char *filename, CDirEntry &result);
 };

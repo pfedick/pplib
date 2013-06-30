@@ -1629,7 +1629,7 @@ int CFile::Truncate(const char *filename, ppluint64 bytes)
 	return 0;
 }
 
-int CFile::Exists(const char * fmt, ...)
+int CFile::Existsf(const char * fmt, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Prüfen, ob eine Datei existiert
  *
@@ -1662,6 +1662,29 @@ int CFile::Exists(const char * fmt, ...)
 		SetError(9,buff);
 	}
 	free(buff);	// Buffer wieder freigeben
+	return ret;
+}
+
+int CFile::Exists(const CString &filename)
+/*!\ingroup PPLGroupFileIO
+ * \brief Prüfen, ob eine Datei existiert
+ *
+ * Mit Exists kann geprüft werden, ob eine Datei im Filesystem vorhanden ist.
+ *
+ * \param fmt Name der gewünschten Datei
+ * \return Ist die Datei forhanden, gibt die Funktion 1 zurück, andernfalls 0.
+ */
+{
+	int ret=0;
+	FILE *fd=NULL;
+	//printf ("buffer=%s\n",buff);
+	fd=fopen(filename,"rb");		// Versuchen die Datei zu oeffnen
+	if (fd) {
+		ret=1;
+		fclose(fd);
+	} else {
+		SetError(9,"%s",(const char*)filename);
+	}
 	return ret;
 }
 
@@ -1787,7 +1810,7 @@ int CFile::RenameFile(const char *oldfile, const char *newfile)
 	return 0;
 }
 
-int CFile::TouchFile(const char *filename, ...)
+int CFile::TouchFilef(const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Leere Datei anlegen oder die Zeitstempel des letzten Zugriffs aktualisieren
  *
@@ -1819,7 +1842,28 @@ int CFile::TouchFile(const char *filename, ...)
 	return ret;
 }
 
-int CFile::DeleteFile(const char *filename, ...)
+int CFile::TouchFile(const CString &filename)
+/*!\ingroup PPLGroupFileIO
+ * \brief Leere Datei anlegen oder die Zeitstempel des letzten Zugriffs aktualisieren
+ *
+ * TouchFile arbeitet ähnlich wie das Unix-Lommando \c touch. Ist die angegebene Datei
+ * \p filename noch nicht vorhanden, wird sie als leere Datei angelegt. Ist sie bereits vorhanden,
+ * wird der Zeitstempel des letzen Zugriffs aktualisiert.
+ *
+ * \param filename Name der gewünschten Datei
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ */
+{
+	CFile ff;
+	int ret=0;
+	if (ff.Open(filename,"w")) {
+		ret=1;
+	}
+	return ret;
+}
+
+
+int CFile::DeleteFilef(const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei löschen
  *
@@ -1848,6 +1892,24 @@ int CFile::DeleteFile(const char *filename, ...)
 	free(buff);
 	return ret;
 }
+
+int CFile::DeleteFile(const CString &filename)
+/*!\ingroup PPLGroupFileIO
+ * \brief Datei löschen
+ *
+ * Mit dieser Funktion wird die Datei \p filename vom Datenträger gelöscht.
+ *
+ * \param filename Name der gewünschten Datei
+ * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Ein Fehler kann auftreten, wenn die
+ * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
+ */
+{
+	int ret=0;
+	if (::unlink(filename)==0) ret=1;
+	else SetErrorFromErrno(filename);
+	return ret;
+}
+
 
 int CFile::WriteFile(const void *content, size_t size, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
@@ -1964,7 +2026,7 @@ static mode_t translate_fileattr(int attr)
 	return m;
 }
 
-int CFile::FileAttr(int attr, const char *filename, ...)
+int CFile::FileAttrf(int attr, const char *filename, ...)
 /*! \brief Setz die Attribute einer exisitierenden Datei
  * \ingroup PPLGroupFileIO
  *
@@ -1991,6 +2053,29 @@ int CFile::FileAttr(int attr, const char *filename, ...)
 	va_end(args);
 	return Chmod((const char*)f,attr);
 }
+
+int CFile::FileAttr(int attr, const CString &filename)
+/*! \brief Setz die Attribute einer exisitierenden Datei
+ * \ingroup PPLGroupFileIO
+ *
+ * \desc
+ * Mit dieser Funktion können die Zugriffsattribute einer existierenden Datei
+ * gesetzt werden.
+ *
+ * \param attr Ein Wert, der die Attribute enthält
+ * \copydoc FileAttribute.dox
+ * \param filename Der Dateiname
+ * \return Bei Erfolg gibt die Funktion true (1) zurück, im Fehlerfall wird ein
+ * Fehlercode gesetzt, der mit den PPL-Fehlerfunktionen abgefragt werden kann, und die
+ * Funktion gibt false (0) zurück.
+ *
+ * \see Chmod
+ * \version 6.0.16
+ */
+{
+	return Chmod((const char*)filename,attr);
+}
+
 
 int CFile::Chmod(const char *filename, int attr)
 /*! \brief Setz die Attribute einer exisitierenden Datei
