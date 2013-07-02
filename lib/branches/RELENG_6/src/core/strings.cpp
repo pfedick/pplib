@@ -486,7 +486,7 @@ CString EscapeHTMLTags(const ppl6::CString &html)
 {
 	ppl6::CString s;
 	s=html;
-	s.Replace("&","&amp");
+	s.Replace("&","&amp;");
 	s.Replace("<","&lt;");
 	s.Replace(">","&gt;");
 	return s;
@@ -496,7 +496,7 @@ CString UnescapeHTMLTags(const ppl6::CString &html)
 {
 	ppl6::CString s;
 	s=html;
-	s.Replace("&amp","&");
+	s.Replace("&amp;","&");
 	s.Replace("&lt;","<");
 	s.Replace("&gt;",">");
 	return s;
