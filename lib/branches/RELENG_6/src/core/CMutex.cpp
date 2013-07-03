@@ -224,7 +224,7 @@ int CMutex::Wait(int milliseconds)
  *
  * Der aufrufende Thread wird angehalten, bis ein anderer Thread diesem Mutex
  * ein Signal gibt (siehe CMutex::Signal) oder die optional angegebene Zeit
- * abgelaufen ist.
+ * abgelaufen ist. Der Mutex selbst wird freigegeben, während der Thread wartet.
  *
  * \param milliseconds Optionale Angabe einer Zeit, nach deren Ablauf der Thread
  * automatisch wieder fortgeführt wird. Default = 0 = unendlich.
