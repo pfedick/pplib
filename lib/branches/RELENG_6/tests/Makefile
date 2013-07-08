@@ -11,11 +11,8 @@ OBJECTS = compile/wordlist.o \
 	compile/main.o \
 	compile/strings.o \
 	compile/widestrings.o \
-	compile/assocarray.o
-	
-	
-	
-
+	compile/assocarray.o \
+	compile/clog.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -46,13 +43,13 @@ compile/libgtest.a:
 	$(CXX) -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
 	ar -rv compile/libgtest.a compile/gtest-all.o
 
-loggertest: src/loggertest.cpp ../release/libppl6.a
-	mkdir -p compile
-	$(CXX) -O -ggdb -o loggertest $(CFLAGS) src/loggertest.cpp $(LIBS)
-
 compile/main.o: src/main.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/main.o -c src/main.cpp
+
+compile/clog.o: src/clog.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/clog.o -c src/clog.cpp
 	
 compile/datetime.o: src/datetime.cpp Makefile
 	mkdir -p compile

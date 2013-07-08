@@ -44,7 +44,7 @@
 #include <map>
 #include <string>
 #include <stdexcept>
-#include "ppl6.h"
+#include "../include/ppl6.h"
 #include <gtest/gtest.h>
 #include "ppl6-tests.h"
 
