@@ -2282,7 +2282,7 @@ class CTree
 	ppluint32 Peek24 (const char *Adresse);
 	ppluint32 Peek32 (const char *Adresse);
 	ppluint64 Peek64 (const char *Adresse);
-	float	PeekFloat(const char *Adresse);
+	float	PeekFloat(const void *Adresse);
 	void poked64 (char *Adresse, ppld64 Wert);
 	void poket (char *Adresse, ppldd Wert);
 	ppldd peekb (const char *Adresse);
@@ -2299,7 +2299,7 @@ class CTree
 	void PokeN16 (char *Adresse, ppluint32 Wert);
 	void PokeN32 (char *Adresse, ppluint32 Wert);
 	void PokeN64 (char *Adresse, ppluint64 Wert);
-	void PokeFloat(char *Adresse, float Wert);
+	void PokeFloat(void *Adresse, float Wert);
 	ppluint32 PeekN8 (const char *Adresse);
 	ppluint32 PeekN16 (const char *Adresse);
 	ppluint32 PeekN32 (const char *Adresse);

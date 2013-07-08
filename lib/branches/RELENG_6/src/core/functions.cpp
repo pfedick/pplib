@@ -561,7 +561,7 @@ void Poke64 (char *Adresse, ppluint64 Wert)
 	#endif
 }
 
-void PokeFloat(char *Adresse, float Wert)
+void PokeFloat(void *Adresse, float Wert)
 {
 	#ifdef __BIG_ENDIAN__
 		((float*)Adresse)[0]=Wert;
@@ -702,7 +702,7 @@ ppluint64 Peek64 (const char *Adresse)
 	#endif
 }
 
-float PeekFloat(const char *Adresse)
+float PeekFloat(const void *Adresse)
 {
 	#ifdef __BIG_ENDIAN__
 		return (float)((float*)Adresse)[0];
