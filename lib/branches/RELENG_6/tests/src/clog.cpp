@@ -157,9 +157,7 @@ TEST_F(CLogTest, DeleteExistingLogfile) {
 	int ret=ppl6::CFile::DeleteFile("clogtest.log");
 	bool ok=false;
 	if (ret==1) ok=true;
-	else {
-		ppl6::PrintError();
-	}
+	else if (ppl6::GetErrorCode()==364) ok=true;
 	ASSERT_EQ(true,ok) << "Kein Logfile vorhanden oder Logfile wurde geloescht";
 }
 
