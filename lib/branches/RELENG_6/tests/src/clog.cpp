@@ -58,7 +58,32 @@ ppl6::CLog *log=NULL;
 
 void LogThread::ThreadMain(void *param)
 {
+	log->Print(ppl6::LOG::INFO,1,"ppl6::test::loggertest","LogThread::ThreadMain",__FILE__,__LINE__,"Thread start");
+	for (int i=0;i<10;i++) {
+		log->Printf(ppl6::LOG::INFO,1,"ppl6::test::loggertest","LogThread::ThreadMain",__FILE__,__LINE__,"Logiteration %i",i);
+		ppl6::MSleep(1);
+		log->Print(ppl6::LOG::WARNING,1,"ppl6::test::loggertest","LogThread::ThreadMain",__FILE__,__LINE__,"Test WARNING");
+		ppl6::MSleep(0);
+		log->Print(ppl6::LOG::INFO,1,"ppl6::test::loggertest","LogThread::ThreadMain",__FILE__,__LINE__,"Test INFO");
+		log->Print(ppl6::LOG::ERROR,1,"ppl6::test::loggertest","LogThread::ThreadMain",__FILE__,__LINE__,"Test ERROR");
+		ppl6::MSleep(1);
+		log->Print(ppl6::LOG::NOTICE,1,"ppl6::test::loggertest","LogThread::ThreadMain",__FILE__,__LINE__,"Test NOTICE");
 
+		ppl6::CAssocArray a;
+		ppl6::CDateTime now;
+		a.Set("key1","Dieser Wert geht über\nmehrere Zeilen");
+		a.Set("key2","value6");
+		now.setCurrentTime();
+		a.Set("time",now);
+		ppl6::CBinary ba(1234);
+		a.Set("bytearray",ba);
+		ppl6::CArray a1("red green blue yellow black white"," ");
+		a.Set("array1",a1);
+		ppl6::MSleep(0);
+		log->PrintArraySingleLine(ppl6::LOG::DEBUG,1,"test::CLogTest","LogThread::ThreadMain",__FILE__,__LINE__,&a,"Array output multiline");
+		ppl6::MSleep(2);
+	}
+	log->Print(ppl6::LOG::INFO,1,"ppl6::test::loggertest","LogThread::ThreadMain",__FILE__,__LINE__,"Thread end");
 }
 
 
@@ -209,6 +234,16 @@ TEST_F(CLogTest, PrintArraySingleLine) {
 
 TEST_F(CLogTest, MultithreadedTests) {
 	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+	ppl6::CThreadPool Pool;
+	LogThread *thread;
+
+	for (int i=0;i<10;i++) {
+		thread=new LogThread;
+		ASSERT_EQ(1,thread->ThreadStart(NULL)) << "Starte Thread";
+		ASSERT_EQ(1,Pool.AddThread(thread)) << "Gebe Thread in den Threadpool";
+	}
+	Pool.Stop();
+	Pool.DestroyThreads();
 
 }
 
