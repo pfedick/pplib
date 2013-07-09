@@ -263,7 +263,7 @@ int CLog::SetLogfile(int facility, const char *filename)
 
 int CLog::SetLogRotate(ppluint64 maxsize, int generations)
 {
-	if (generations>1 && maxsize>1024*1024) {
+	if (generations>1 && maxsize>10000) {
 		mutex.Lock();
 		this->maxsize=maxsize;
 		this->generations=generations;
