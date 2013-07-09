@@ -154,6 +154,11 @@ TEST_F(CLogTest, SetLogLevelNotice) {
 
 TEST_F(CLogTest, DeleteExistingLogfile) {
 	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+	ppl6::CFile::DeleteFile("clogtest.log.1");
+	ppl6::CFile::DeleteFile("clogtest.log.2");
+	ppl6::CFile::DeleteFile("clogtest.log.3");
+	ppl6::CFile::DeleteFile("clogtest.log.4");
+	ppl6::CFile::DeleteFile("clogtest.log.5");
 	int ret=ppl6::CFile::DeleteFile("clogtest.log");
 	bool ok=false;
 	if (ret==1) ok=true;
@@ -176,6 +181,21 @@ TEST_F(CLogTest, OpenSyslog) {
 	})  << "Oeffne Syslog";
 }
 
+TEST_F(CLogTest, SetFilterModule) {
+	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+	ASSERT_EQ(1,log->SetFilter("ppl6::test::loggertest","supress1",1)) << "Setze Filter 1 auf Modul";
+	ASSERT_EQ(1,log->SetFilter("ppl6::test::loggertest","supress2",1)) << "Setze Filter 2 auf Modul";
+	ASSERT_EQ(1,log->SetFilter("ppl6::test::loggertest","supress3",1)) << "Setze Filter 3 auf Modul";
+}
+
+TEST_F(CLogTest, SetFilterFile) {
+	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+	ASSERT_EQ(1,log->SetFilter(__FILE__,193,1)) << "Setze Filter 1 auf File";
+	ASSERT_EQ(1,log->SetFilter(__FILE__,1024,1)) << "Setze Filter 2 auf File";
+	ASSERT_EQ(1,log->SetFilter(__FILE__,1399,1)) << "Setze Filter 3 auf File";
+}
+
+
 TEST_F(CLogTest, SimpleLogging) {
 	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
 	ASSERT_NO_THROW({
@@ -185,6 +205,18 @@ TEST_F(CLogTest, SimpleLogging) {
 		log->Print(ppl6::LOG::NOTICE,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test NOTICE");
 	});
 }
+
+TEST_F(CLogTest, SuppressedLogging) {
+	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+	ASSERT_NO_THROW({
+		log->Print(ppl6::LOG::DEBUG,1,"ppl6::test::loggertest","supress1",__FILE__,__LINE__,"Test SUPPRESSED 1");
+		log->Print(ppl6::LOG::DEBUG,1,"ppl6::test::loggertest","supress2",__FILE__,__LINE__,"Test SUPPRESSED 2");
+		log->Print(ppl6::LOG::DEBUG,1,"ppl6::test::loggertest","supress3",__FILE__,__LINE__,"Test SUPPRESSED 3");
+		log->Print(ppl6::LOG::DEBUG,1,"ppl6::test::loggertest","supress4",__FILE__,__LINE__,"Test NOT SUPPRESSED 4");
+	});
+}
+
+
 
 TEST_F(CLogTest, LogError) {
 	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
@@ -230,6 +262,11 @@ TEST_F(CLogTest, PrintArraySingleLine) {
 	}) << "Logge AssocArray-Inhalt";
 }
 
+TEST_F(CLogTest, SetLogRotate) {
+	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+	ASSERT_EQ(1,log->SetLogRotate(20000,5)) << "SetLogRotate aufrufen";
+}
+
 TEST_F(CLogTest, MultithreadedTests) {
 	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
 	ppl6::CThreadPool Pool;
@@ -242,7 +279,6 @@ TEST_F(CLogTest, MultithreadedTests) {
 	}
 	Pool.Stop();
 	Pool.DestroyThreads();
-
 }
 
 
