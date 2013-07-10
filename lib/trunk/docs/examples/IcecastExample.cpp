@@ -1,5 +1,5 @@
 #include <ppl7.h>
-#include <ppl7-sound.h>
+#include <ppl7-audio.h>
 
 
 int main(int argc, char **argv)
