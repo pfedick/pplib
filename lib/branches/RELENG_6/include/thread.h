@@ -34,6 +34,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
+namespace ppl6 {
 typedef struct tagErrorStack {
 	struct tagErrorStack	*next;
 	CString				ErrorText;
@@ -64,3 +65,4 @@ THREADDATA * GetThreadData();
 
 int MySQLThreadStart();
 
+}

@@ -73,10 +73,9 @@
 #include "ppl6.h"
 //#define THREADDEBUG
 
+#include "thread.h"
 
 namespace ppl6 {
-
-#include "thread.h"
 
 static ppluint64 global_thread_id=0;
 #ifdef HAVE_PTHREADS
