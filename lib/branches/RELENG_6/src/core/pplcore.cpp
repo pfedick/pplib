@@ -47,6 +47,7 @@
 #endif
 
 #include "ppl6.h"
+#include "thread.h"
 
 #define PPL_COPYRIGHT		"(c) Copyright by Patrick F.-Productions in 2005-2013"
 
@@ -55,7 +56,7 @@
 ppl6::Cppl6Core *PPLCore=NULL;
 
 namespace ppl6 {
-#include "thread.h"
+
 
 static int			coreref=0;
 static CPUCaps		cpucaps;

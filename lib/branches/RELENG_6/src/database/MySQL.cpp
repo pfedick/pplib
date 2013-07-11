@@ -58,6 +58,7 @@
 
 #include "ppl6.h"
 #include "ppl6-db.h"
+#include "thread.h"
 
 #ifdef HAVE_MYSQL
 #ifdef MINGW32
@@ -68,7 +69,6 @@
 #endif
 
 namespace ppl6 {
-#include "thread.h"
 namespace db {
 
 

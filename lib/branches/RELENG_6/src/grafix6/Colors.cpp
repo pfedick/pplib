@@ -854,6 +854,7 @@ int CGrafix::InitColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->RGB=RGB_NULL;
 			fn->Surface2RGB=Surface2RGB_NULL;
 			fn->RGBBlend=RGBBlend_NULL;
+			break;
 	}
 	SetError(1013,"RGBFormat=%s (%i)",(const char*)format.name(),format.format());
 	return 0;

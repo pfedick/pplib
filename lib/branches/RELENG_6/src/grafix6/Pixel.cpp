@@ -196,6 +196,9 @@ int CGrafix::InitPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::X8R8G8B8:
 			fn->BlendPixel=BlendPixel_32;
 			fn->AlphaPixel=AlphaPixel_32;
+			fn->PutPixel=PutPixel_32;
+			fn->GetPixel=GetPixel_32;
+			return 1;
 		case RGBFormat::GREYALPHA32:
 			fn->PutPixel=PutPixel_32;
 			fn->GetPixel=GetPixel_32;
@@ -211,6 +214,7 @@ int CGrafix::InitPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::A8R3G3B2:
 			fn->PutPixel=PutPixel_16;
 			fn->GetPixel=GetPixel_16;
+			return 1;
 		case RGBFormat::A8:				// 8-Bit
 		case RGBFormat::GREY8:
 			fn->PutPixel=PutPixel_8;

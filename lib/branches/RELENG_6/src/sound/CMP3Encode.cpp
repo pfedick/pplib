@@ -241,6 +241,7 @@ void CMP3Encode::SetMode(int mode)
 				break;
 			default:
 				m=STEREO;
+				break;
 		}
 		lame_set_mode((lame_global_flags*)gfp,m);
 	}

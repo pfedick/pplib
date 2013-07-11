@@ -64,7 +64,7 @@
 #endif
 
 namespace ppl6 {
-#include "thread.h"
+//#include "thread.h"
 namespace db {
 
 
