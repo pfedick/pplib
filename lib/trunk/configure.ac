@@ -53,15 +53,15 @@ AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_HEADERS([include/ppl7-config.h])
 
 sinclude(autoconf/ax_check_openssl.m4)
-sinclude(autoconf/libcurl.m4)
-sinclude(autoconf/mysql.m4)
-sinclude(autoconf/postgres.m4)
-sinclude(autoconf/sqlite.m4)
+sinclude(autoconf/ax_lib_curl.m4)
+sinclude(autoconf/ax_lib_mysql.m4)
+sinclude(autoconf/ax_lib_postgresql.m4)
+sinclude(autoconf/ax_lib_sqlite.m4)
 sinclude(autoconf/freetype.m4)
-sinclude(autoconf/pcre.m4)
+sinclude(autoconf/ax_path_lib_pcre.m4)
 sinclude(autoconf/png.m4)
 sinclude(autoconf/jpeg.m4)
-sinclude(autoconf/pthreads.m4)
+sinclude(autoconf/ax_pthread.m4)
 sinclude(autoconf/sdl2.m4)
 sinclude(autoconf/sdl.m4)
 sinclude(autoconf/freetds.m4)
@@ -69,9 +69,11 @@ sinclude(autoconf/nasm.m4)
 sinclude(autoconf/lib-link.m4)
 sinclude(autoconf/iconv.m4)
 sinclude(autoconf/bzip2.m4)
-sinclude(autoconf/zlib.m4)
+sinclude(autoconf/ax_check_zlib.m4)
 sinclude(autoconf/libmcrypt.m4)
 sinclude(autoconf/libmhash.m4)
+sinclude(autoconf/ax_lib_crypto.m4)
+sinclude(autoconf/ax_lib_gcrypt.m4)
 sinclude(autoconf/checkfuncs.m4)
 sinclude(autoconf/ax_gcc_x86_cpuid.m4)
 sinclude(autoconf/ax_check_compiler_flags.m4)
@@ -515,7 +517,7 @@ AC_CHECK_MYSQL([4.0],
             :)
 
 
-AX_LIB_POSTGRESQL([8.0])
+AX_LIB_POSTGRESQL([9.0])
 if test "$found_postgresql" = "yes"; then
 	report_have_postgres="yes"
 	if test $postgresql_version_number -ge 9002000 ; then
@@ -556,7 +558,6 @@ dnl Check for nasm
 AC_MSG_NOTICE(checking if we can use assembly)
 use_asm="none"
 report_have_nasm="no"
-#report_have_yasm="no"
 case $target in
 	i?86*|x86*|amd64*)
 		AC_CHECK_NASM(2.0.0,
@@ -565,7 +566,6 @@ case $target in
 		;;
 esac		
 
-# We prefere nasm over yasm if we have both
 if test $report_have_nasm = "yes"
 then
 	use_asm="nasm"
@@ -610,7 +610,7 @@ case $host_os in
 		report_have_pthreads="Win32 Threads"
   		;;
 	* )
-		ACX_PTHREAD(report_have_pthreads="yes"
+		AX_PTHREAD(report_have_pthreads="yes"
 			AC_DEFINE(HAVE_PTHREADS,1,)#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
