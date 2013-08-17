@@ -698,6 +698,8 @@ OPENSSL_LIBS
 OPENSSL_INCLUDES
 PCRE_CFLAGS
 PCRE_LIBS
+ZLIB_LIBS
+ZLIB_CFLAGS
 BZ2_LIBS
 BZ2_CFLAGS
 ICONV_LIBS
@@ -14738,6 +14740,14 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
                 CPPFLAGS="$ZLIB_OLD_CPPFLAGS"
                 report_have_zlib="yes"
 
+$as_echo "#define HAVE_LIBZ 1" >>confdefs.h
+
+	ZLIB_CFLAGS="-I${ZLIB_HOME}/include"
+	ZLIB_LIBS="-L${ZLIB_HOME}/li -lz"
+
+
+
+
   else
     #
     # If either header or library was not found, action-if-not-found
@@ -14803,7 +14813,6 @@ fi
 
 
 # PCRE vorhanden?
-OLDLIBS="$LIBS"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking lib pcre" >&5
 $as_echo_n "checking lib pcre... " >&6; }
 
@@ -14821,6 +14830,7 @@ $as_echo "disabled" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: (testing)" >&5
 $as_echo "(testing)" >&6; }
+  OLDLIBS="$LIBS"
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcre_study in -lpcre" >&5
 $as_echo_n "checking for pcre_study in -lpcre... " >&6; }
 if ${ac_cv_lib_pcre_pcre_study+:} false; then :
@@ -14947,11 +14957,10 @@ $as_echo "no, (WARNING)" >&6; }
 
      fi
   fi
+  LIBS="$OLDLIBS"
 fi
 
 
-
-LIBS="$OLDLIBS"
 
 
 

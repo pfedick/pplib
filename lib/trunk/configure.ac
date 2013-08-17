@@ -468,7 +468,13 @@ fi
 
 # Bzip2 Vorhanden?
 AM_BZIP2
-AX_CHECK_ZLIB(report_have_zlib="yes")
+AX_CHECK_ZLIB(report_have_zlib="yes"
+	AC_DEFINE([HAVE_LIBZ], [1], [Define to 1 if you have `z' library (-lz)])
+	ZLIB_CFLAGS="-I${ZLIB_HOME}/include"
+	ZLIB_LIBS="-L${ZLIB_HOME}/li -lz"
+	AC_SUBST(ZLIB_CFLAGS)
+	AC_SUBST(ZLIB_LIBS)
+)
 
 
 dnl do we need to specify -lm explicitly?
