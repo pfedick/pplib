@@ -30,7 +30,7 @@ have_libidn="no"
 	AC_CHECK_HEADER([idna.h], [
 	
 		AC_MSG_CHECKING([for idn library and linking])
-    	AC_LINK_IFELSE(
+    	AC_LINK_IFELSE([AC_LANG_SOURCE(
       	[[
         	 #include <idna.h>
          	int main()
@@ -42,7 +42,7 @@ have_libidn="no"
 				}
          		return 0;
          	}
-      	]],
+      	]])],
       	[AC_MSG_RESULT(yes)
       	have_libidn="yes"
         ],
