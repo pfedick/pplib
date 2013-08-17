@@ -57,7 +57,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
 			--with-libmhash=/usr/local --with-freetds=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
-			--with-jpeg --with-png --with-libtiff=/usr/local \
+			--with-jpeg --with-libpng --with-libtiff=/usr/local \
 			--with-postgresql \
 			--with-mpg123=/usr/local --with-libidn=/usr/local \
 			--with-ogg=/usr/local \

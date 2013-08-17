@@ -92,6 +92,7 @@ sinclude(autoconf/gtest.m4)
 
 
 
+report_have_pthreads="no"
 report_have_jpeg="no"
 report_have_libmicrohttpd="no"
 report_have_libmcrypt="no"
@@ -116,6 +117,7 @@ report_have_png="no"
 report_have_libimlib="no"
 report_have_mysql="no"
 report_have_postgres="no"
+report_have_sqlite3="no"
 report_have_ldns="no"
 report_have_nasm="no"
 
@@ -131,8 +133,21 @@ CFLAGS=$OLD_CFLAGS
 AC_PROG_CXX
 dnl AC_LANG(C++)
 
-AX_GCC_ARCHFLAG
+dnl AX_GCC_ARCHFLAG
 #AX_CC_MAXOPT
+
+  
+case "$host_os" in
+	*mingw32* )
+		report_have_pthreads="yes, Win32 Threads"
+  		;;
+	*)
+		AX_PTHREAD([report_have_pthreads="yes, pthreads"]
+			AC_DEFINE(HAVE_PTHREADS,1, [Define to 1 if we have pthreads])			
+		)
+
+		;;
+esac
 
 AC_PROG_SED
 
@@ -453,20 +468,19 @@ fi
 
 # Bzip2 Vorhanden?
 AM_BZIP2
-AM_ZLIB
+AX_CHECK_ZLIB(report_have_zlib="yes")
+
 
 dnl do we need to specify -lm explicitly?
 AC_CHECK_FUNC(sin,,[AC_CHECK_LIB(m,sin)])
 
 # PCRE vorhanden?
-AX_PATH_LIB_PCRE([7.0],
+AX_PATH_LIB_PCRE(
             AC_DEFINE(HAVE_PCRE, 1, [ Define if you have pcre. ])
             report_have_pcre="yes"
-			AC_SUBST(PCRE_CFLAGS)
-			AC_SUBST(PCRE_LIBS)
             ,
             )
-
+       
 AX_CHECK_OPENSSL(
 	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
 	report_have_openssl="yes"
@@ -509,12 +523,10 @@ AX_PATH_LIB_IMLIB([1.9.0],
 	, :)
 
 
-AC_CHECK_MYSQL([4.0],
-            AC_DEFINE(HAVE_MYSQL, 1, [ Define if you have mysql. ])
-            report_have_mysql="yes"
-			AC_SUBST(MYSQL_CFLAGS)
-			AC_SUBST(MYSQL_LIBS),
-            :)
+AX_LIB_MYSQL([5.1])
+if test "$mysql_version_check" = "1" ; then
+	report_have_mysql="yes"
+fi
 
 
 AX_LIB_POSTGRESQL([9.0])
@@ -526,14 +538,11 @@ if test "$found_postgresql" = "yes"; then
 	fi
 fi
 
-report_have_sqlite="no"
-AC_CHECK_SQLITE([],
-            AC_DEFINE(HAVE_SQLITE, 1, [ Define if you have SQLite. ])
-            report_have_sqlite="yes"
-			AC_SUBST(SQLITE_CFLAGS)
-			AC_SUBST(SQLITE_LIBS),
-            :)
-            
+AX_LIB_SQLITE3()
+if test "$success" = "yes"; then
+	report_have_sqlite3="yes"
+fi
+           
 
 report_have_freetds="no"
 AC_CHECK_FREETDS([],
@@ -604,34 +613,11 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#if defined(__GNUC__) && (defined(__i386__) || 
 # We also need to check if the kernel supports __thread, which requires uname()
 AC_CHECK_DECLS(uname,,, [#include <sys/utsname.h>])
  
-  
-case $host_os in
-	*mingw32* )
-		report_have_pthreads="Win32 Threads"
-  		;;
-	* )
-		AX_PTHREAD(report_have_pthreads="yes"
-			AC_DEFINE(HAVE_PTHREADS,1,)#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_SIGNAL_H
-    #include <signal.h>
-#endif
-			
-			,report_have_pthreads="no")
-
-		;;
-esac
 
 
 
-case $host_os in
+
+case "$host_os" in
 	*mingw32* )
 		MINGW32=yes
 		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
@@ -706,8 +692,7 @@ AC_MSG_RESULT([
 ** Assembler:
 **   Nasm (x86 assembler): $report_have_nasm
 **
-** Threads:
-**   pthreads:             $report_have_pthreads
+** Threads:                $report_have_pthreads
 **
 ** Compression:
 **   ZLIB library:         $report_have_zlib
@@ -746,7 +731,7 @@ AC_MSG_RESULT([
 **   IDN library:          $report_have_libidn
 **
 ** Databases:
-**   SQLite3:              $report_have_sqlite
+**   SQLite3:              $report_have_sqlite3
 **   MySQL:                $report_have_mysql
 **   Postgres:             $report_have_postgres
 **   FreeTDS:              $report_have_freetds

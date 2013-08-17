@@ -59,6 +59,7 @@ if test ".$with_pcre" = ".no" ; then
   m4_ifval($2,$2)
 else
   AC_MSG_RESULT([(testing)])
+  OLDLIBS="$LIBS"
   AC_CHECK_LIB(pcre, pcre_study)
   if test "$ac_cv_lib_pcre_pcre_study" = "yes" ; then
      PCRE_LIBS="-lpcre"
@@ -84,6 +85,7 @@ else
         m4_ifval($2,$2)
      fi
   fi
+  LIBS="$OLDLIBS"
 fi
 AC_SUBST([PCRE_LIBS])
 AC_SUBST([PCRE_CFLAGS])
