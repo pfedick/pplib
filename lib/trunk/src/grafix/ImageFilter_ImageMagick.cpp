@@ -96,7 +96,7 @@ int ImageFilter_ImageMagick::ident(FileObject &file, IMAGE &img)
 				case GrayscaleMatteType: img.format=RGBFormat::GREYALPHA32; break;
 				case PaletteType: img.format=RGBFormat::Palette; break;
 				case PaletteMatteType: img.format=RGBFormat::Palette; break;
-				default: img.format=RGBFormat::unknown;
+				default: img.format=RGBFormat::unknown; break;
 			}
 			img.format=RGBFormat::A8R8G8B8;
 			printf ("MagickImage erkannt. bitdepth=%i, width=%i, height=%i\n",img.bitdepth,
