@@ -1070,7 +1070,7 @@ class Sprite
 
 			SpriteTexture()
 			{
-				id=0;
+				id=width=height=bitdepth=0;
 			}
 			~SpriteTexture()
 			{
