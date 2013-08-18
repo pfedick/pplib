@@ -7195,60 +7195,6 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-
-if test $ac_cv_sizeof_char -eq 1; then
-	$as_echo "#define ppluint8 unsigned char" >>confdefs.h
-
-	$as_echo "#define pplint8 signed char" >>confdefs.h
-
-fi
-if test $ac_cv_sizeof_short -eq 2; then
-	$as_echo "#define ppluint16 unsigned short" >>confdefs.h
-
-	$as_echo "#define pplint16 signed short" >>confdefs.h
-
-fi
-
-if test $ac_cv_sizeof_int -eq 4; then
-	$as_echo "#define ppluint32 unsigned int" >>confdefs.h
-
-	$as_echo "#define pplint32 signed int" >>confdefs.h
-
-fi
-
-if test $ac_cv_sizeof_long -eq 8; then
-		$as_echo "#define ppluint64 unsigned long" >>confdefs.h
-
-		$as_echo "#define pplint64 signed long" >>confdefs.h
-
-else
-	if test $ac_cv_sizeof_long_long -eq 8; then
-		$as_echo "#define ppluint64 unsigned long long" >>confdefs.h
-
-		$as_echo "#define pplint64 signed long long" >>confdefs.h
-
-	fi
-fi
-
-if test $ac_cv_sizeof_wchar_t -eq 4; then
-	echo "Byteorder: >>$report_byteorder<<"
-	if test "$report_byteorder" = "LITTLE ENDIAN"; then
-		$as_echo "#define ICONV_UNICODE \"UTF-32LE\"" >>confdefs.h
-
-	else
-		$as_echo "#define ICONV_UNICODE \"UTF-32BE\"" >>confdefs.h
-
-	fi
-else
-	if test "$report_byteorder" = "LITTLE ENDIAN"; then
-		$as_echo "#define ICONV_UNICODE \"UTF-16LE\"" >>confdefs.h
-
-	else
-		$as_echo "#define ICONV_UNICODE \"UTF-16BE\"" >>confdefs.h
-
-	fi
-fi
-
 # The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
 # declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
@@ -7349,6 +7295,60 @@ _ACEOF
 
 
 
+if test $ac_cv_sizeof_char -eq 1; then
+	$as_echo "#define ppluint8 unsigned char" >>confdefs.h
+
+	$as_echo "#define pplint8 signed char" >>confdefs.h
+
+fi
+if test $ac_cv_sizeof_short -eq 2; then
+	$as_echo "#define ppluint16 unsigned short" >>confdefs.h
+
+	$as_echo "#define pplint16 signed short" >>confdefs.h
+
+fi
+
+if test $ac_cv_sizeof_int -eq 4; then
+	$as_echo "#define ppluint32 unsigned int" >>confdefs.h
+
+	$as_echo "#define pplint32 signed int" >>confdefs.h
+
+fi
+
+if test $ac_cv_sizeof_long_long -eq 8; then
+		$as_echo "#define ppluint64 unsigned long long" >>confdefs.h
+
+		$as_echo "#define pplint64 signed long long" >>confdefs.h
+
+else
+	if test $ac_cv_sizeof_long -eq 8; then
+		$as_echo "#define ppluint64 unsigned long" >>confdefs.h
+
+		$as_echo "#define pplint64 signed long" >>confdefs.h
+
+	fi
+fi
+
+if test $ac_cv_sizeof_wchar_t -eq 4; then
+	if test "$report_byteorder" = "LITTLE ENDIAN"; then
+		$as_echo "#define ICONV_UNICODE \"UTF-32LE\"" >>confdefs.h
+
+	else
+		$as_echo "#define ICONV_UNICODE \"UTF-32BE\"" >>confdefs.h
+
+	fi
+else
+	if test "$report_byteorder" = "LITTLE ENDIAN"; then
+		$as_echo "#define ICONV_UNICODE \"UTF-16LE\"" >>confdefs.h
+
+	else
+		$as_echo "#define ICONV_UNICODE \"UTF-16BE\"" >>confdefs.h
+
+	fi
+fi
+
+
+
 if test $ac_cv_sizeof_voidp -eq 4; then
 	$as_echo "#define ppliptr ppluint32" >>confdefs.h
 
@@ -7359,39 +7359,6 @@ else
 	as_fn_error $? "size of void* is not supported" "$LINENO" 5
 
 fi
-
-# The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of fpos_t" >&5
-$as_echo_n "checking size of fpos_t... " >&6; }
-if ${ac_cv_sizeof_fpos_t+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (fpos_t))" "ac_cv_sizeof_fpos_t"        "$ac_includes_default"; then :
-
-else
-  if test "$ac_cv_type_fpos_t" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (fpos_t)
-See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_fpos_t=0
-   fi
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_fpos_t" >&5
-$as_echo "$ac_cv_sizeof_fpos_t" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_FPOS_T $ac_cv_sizeof_fpos_t
-_ACEOF
-
 
 # The cast to long int works around a bug in the HP C Compiler
 # version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
@@ -18679,7 +18646,6 @@ fi
 ** Multimedia:
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
-**   Libmad library:       $report_have_libmad
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg
 **   shout library:        $report_have_libshout
@@ -18702,7 +18668,6 @@ fi
 **   SQLite3:              $report_have_sqlite3
 **   MySQL:                $report_have_mysql
 **   Postgres:             $report_have_postgres
-**   FreeTDS:              $report_have_freetds
 **
 ** Other:
 **   PCRE:                 $report_have_pcre
@@ -18745,7 +18710,6 @@ $as_echo "
 ** Multimedia:
 **   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
-**   Libmad library:       $report_have_libmad
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg
 **   shout library:        $report_have_libshout
@@ -18768,7 +18732,6 @@ $as_echo "
 **   SQLite3:              $report_have_sqlite3
 **   MySQL:                $report_have_mysql
 **   Postgres:             $report_have_postgres
-**   FreeTDS:              $report_have_freetds
 **
 ** Other:
 **   PCRE:                 $report_have_pcre

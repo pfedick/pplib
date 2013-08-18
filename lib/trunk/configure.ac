@@ -36,7 +36,7 @@
 ###############################################################################
 
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.62)
+AC_PREREQ(2.69)
 AC_INIT([ppl], [7.0.0], [patrick@pfp.de], [ppl-7.0.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
@@ -157,13 +157,16 @@ AC_C_BIGENDIAN(
 	report_byteorder="LITTLE ENDIAN"
 	AC_DEFINE(__LITTLE_ENDIAN__))
 
-AC_SIZEOF_TYPE(char)
-AC_SIZEOF_TYPE(short)
-AC_SIZEOF_TYPE(int)
-AC_SIZEOF_TYPE(long)
-AC_SIZEOF_TYPE(long long)
-AC_SIZEOF_TYPE(wchar_t)
-AC_SIZEOF_TYPE(size_t)
+AC_CHECK_SIZEOF(char)
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(wchar_t)
+AC_CHECK_SIZEOF(size_t)
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+AC_CHECK_SIZEOF(void*)
 
 if test $ac_cv_sizeof_char -eq 1; then
 	AC_DEFINE(ppluint8,unsigned char)
@@ -179,18 +182,17 @@ if test $ac_cv_sizeof_int -eq 4; then
 	AC_DEFINE(pplint32,signed int)
 fi
 
-if test $ac_cv_sizeof_long -eq 8; then
-		AC_DEFINE(ppluint64,unsigned long)
-		AC_DEFINE(pplint64,signed long)
-else
-	if test $ac_cv_sizeof_long_long -eq 8; then
+if test $ac_cv_sizeof_long_long -eq 8; then
 		AC_DEFINE(ppluint64,unsigned long long)
 		AC_DEFINE(pplint64,signed long long)
+else
+	if test $ac_cv_sizeof_long -eq 8; then
+		AC_DEFINE(ppluint64,unsigned long)
+		AC_DEFINE(pplint64,signed long)
 	fi
 fi
 
 if test $ac_cv_sizeof_wchar_t -eq 4; then
-	echo "Byteorder: >>$report_byteorder<<"
 	if test "$report_byteorder" = "LITTLE ENDIAN"; then
 		AC_DEFINE(ICONV_UNICODE,"UTF-32LE")
 	else
@@ -204,9 +206,7 @@ else
 	fi
 fi
 
-AC_SIZEOF_TYPE(float)
-AC_SIZEOF_TYPE(double)
-AC_SIZEOF_TYPE(void*)
+
 
 if test $ac_cv_sizeof_voidp -eq 4; then
 	AC_DEFINE(ppliptr,ppluint32)
@@ -217,8 +217,7 @@ else
 	
 fi
 
-AC_SIZEOF_TYPE(fpos_t)
-AC_CHECK_SIZEOF(fpos_t, 4)
+AC_CHECK_SIZEOF(fpos_t)
 
 
 AC_SYS_LARGEFILE
@@ -717,7 +716,6 @@ AC_MSG_RESULT([
 ** Multimedia:
 **   SDL library:          $report_have_sdl		
 **   Lame library:         $report_have_lame
-**   Libmad library:       $report_have_libmad	
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
@@ -740,7 +738,6 @@ AC_MSG_RESULT([
 **   SQLite3:              $report_have_sqlite3
 **   MySQL:                $report_have_mysql
 **   Postgres:             $report_have_postgres
-**   FreeTDS:              $report_have_freetds
 **
 ** Other:
 **   PCRE:                 $report_have_pcre
