@@ -7,3 +7,47 @@
 }
 
 
+
+{
+   False Positive outside ppl7
+   Memcheck:Addr8
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/usr/local/lib/libp11-kit.so.0
+   fun:_p11_kit_initialize_registered_unlocked_reentrant
+   fun:p11_kit_initialize_registered
+   fun:gnutls_pkcs11_init
+   fun:gnutls_global_init
+   obj:/usr/local/lib/libmicrohttpd.so.27
+   obj:/usr/local/lib/libmicrohttpd.so.27
+}
+
+{
+   False Positive outside ppl7
+   Memcheck:Addr8
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/libexec/ld-elf.so.1
+   obj:/usr/local/lib/libp11-kit.so.0
+   fun:_p11_kit_initialize_registered_unlocked_reentrant
+   fun:p11_kit_initialize_registered
+   fun:gnutls_pkcs11_init
+   fun:gnutls_global_init
+   obj:/usr/local/lib/libmicrohttpd.so.27
+}
+
+{
+   False Positive outside ppl
+   Memcheck:Free
+   fun:free
+   obj:/usr/local/lib/libGL.so.1
+   obj:*
+   obj:/usr/local/lib/libGL.so.1
+   obj:*
+}
