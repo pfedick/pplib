@@ -330,7 +330,7 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {			// Ja, koennen wir iterieren?
 		if (p->value->isAssocArray()) {
-			return ((AssocArray*)p->value)->findInternal(rest);
+			return (static_cast<AssocArray*>(p->value))->findInternal(rest);
 		} else {
 			throw KeyNotFoundException(firstkey);
 		}
@@ -394,7 +394,7 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 				delete (p->value);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
 				p->value=new AssocArray;
 			}
-			return ((AssocArray*)p->value)->createTree(rest,var);
+			return (static_cast<AssocArray*>(p->value))->createTree(rest,var);
 		}
 		// Nein, wir haben die Zielposition gefunden
 		delete p->value;
@@ -410,7 +410,7 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 		newnode.value=NULL;
 		ValueNode &node=Tree.add(firstkey,newnode);
 		node.value=new AssocArray;
-		p=((AssocArray*)node.value)->createTree(rest,var);
+		p=(static_cast<AssocArray*>(node.value))->createTree(rest,var);
 	} else {
 		//printf ("Neuen Variant anlegen\n");
 		newnode.value=NULL;
@@ -438,12 +438,11 @@ size_t AssocArray::count(bool recursive) const
 {
 	if (!recursive) return num;
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-	Variant *p;
 	Tree.reset(it);
 	size_t c=num;
 	while (Tree.getNext(it)) {
-		p=it.value().value;
-		if (p->isAssocArray()) c+=((AssocArray*)p)->count(recursive);
+		Variant *p=it.value().value;
+		if (p->isAssocArray()) c+=(static_cast<AssocArray*>(p))->count(recursive);
 	}
 	return c;
 }
@@ -479,7 +478,7 @@ size_t AssocArray::count(const String &key, bool recursive) const
 	} catch (KeyNotFoundException &) {
 		return 0;
 	}
-	if (p->value->isAssocArray()) return ((AssocArray*)p->value)->count(recursive);
+	if (p->value->isAssocArray()) return (static_cast<AssocArray*>(p->value))->count(recursive);
 	return 1;
 }
 
@@ -531,29 +530,28 @@ void AssocArray::list(const String &prefix) const
 	if (prefix.notEmpty()) key=prefix+"/";
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
-	Variant *p;
 
 	while ((Tree.getNext(it))) {
 		//printf ("AssocArray::list(%ls)\n",(const wchar_t*)prefix);
-		p=it.value().value;
+		Variant *p=it.value().value;
 		if (p->isString()) {
-			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)it.key(),(const char*)((String*)p)->getPtr());
+			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)it.key(),(const char*)(static_cast<String*>(p))->getPtr());
 		} else if (p->isByteArray()) {
-			PrintDebug("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)it.key(),((ByteArray*)p)->size());
+			PrintDebug("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)it.key(),(static_cast<ByteArray*>(p))->size());
 		} else if (p->isByteArrayPtr()) {
-			PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n",(const char*)key,(const char*)it.key(),((ByteArrayPtr*)p)->size());
+			PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n",(const char*)key,(const char*)it.key(),(static_cast<ByteArrayPtr*>(p))->size());
 		} else if (p->isAssocArray()) {
 			pre.setf("%s%s",(const char*)key,(const char*)it.key());
-			((AssocArray*)p)->list(pre);
+			static_cast<AssocArray*>(p)->list(pre);
 		} else if (p->isPointer()) {
-			PrintDebug("%s%s=Pointer, %tu\n",(const char*)key,(const char*)it.key(),(std::ptrdiff_t)((Pointer*)p)->ptr());
+			PrintDebug("%s%s=Pointer, %tu\n",(const char*)key,(const char*)it.key(),(std::ptrdiff_t)(static_cast<Pointer*>(p))->ptr());
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
 			for (size_t i=0;i<a.size();i++) {
 				PrintDebug("%s%s/Array(%zu)=%s\n",(const char*)key,(const char*)it.key(),i,(const char*)a[i]);
 			}
 		} else if (p->isDateTime()) {
-			PrintDebug("%s%s=DateTime %s\n",(const char*)key,(const char*)it.key(), (const char*) ((DateTime*)p)->getISO8601withMsec());
+			PrintDebug("%s%s=DateTime %s\n",(const char*)key,(const char*)it.key(), (const char*) (static_cast<DateTime*>(p))->getISO8601withMsec());
 		} else {
 			PrintDebug("%s%s=UnknownDataType Id=%i\n",(const char*)key,(const char*)it.key(),p->dataType());
 		}
@@ -879,8 +877,8 @@ void AssocArray::append(const String &key, const String &value, const String &co
 	if (node->value->isString()==false) {
 		throw TypeConversionException();
 	}
-	if (concat.notEmpty()) ((String*)node->value)->append(concat);
-	((String*)node->value)->append(value);
+	if (concat.notEmpty()) static_cast<String*>(node->value)->append(concat);
+	static_cast<String*>(node->value)->append(value);
 }
 
 /*!\brief %String mit Formatiertem String verlängern
@@ -918,8 +916,8 @@ void AssocArray::appendf(const String &key, const String &concat, const char *fm
 	if (node->value->isString()==false) {
 		throw TypeConversionException();
 	}
-	if (concat.notEmpty()) ((String*)node->value)->append(concat);
-	((String*)node->value)->append(var);
+	if (concat.notEmpty()) static_cast<String*>(node->value)->append(concat);
+	static_cast<String*>(node->value)->append(var);
 }
 
 /*!\brief %AssocArray kopieren
@@ -941,9 +939,8 @@ void AssocArray::add(const AssocArray &other)
 	Tree.reserve(num+other.num);	// Speicher vorab reservieren
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	other.Tree.reset(it);
-	Variant *p;
 	while ((other.Tree.getNext(it))) {
-		p=it.value().value;
+		Variant *p=it.value().value;
 		set(it.key(),*p);
 	}
 }
@@ -1039,7 +1036,8 @@ void AssocArray::erase(const String &key)
 	// Ist noch was im Pfad rest?
 	if (tok.count()>1) {			// Ja, koennen wir iterieren?
 		if (p->value->isAssocArray()) {
-			return ((AssocArray*)p)->erase(rest);
+			static_cast<AssocArray*>(p->value)->erase(rest);
+			return;
 		} else {
 			throw KeyNotFoundException();
 		}
@@ -1074,7 +1072,8 @@ void AssocArray::remove(const String &key)
 	// Ist noch was im Pfad rest?
 	if (tok.count()>1) {			// Ja, koennen wir iterieren?
 		if (p->value->isAssocArray()) {
-			return ((AssocArray*)p)->erase(rest);
+			static_cast<AssocArray*>(p->value)->erase(rest);
+			return;
 		} else {
 			throw KeyNotFoundException();
 		}
@@ -1471,9 +1470,8 @@ void AssocArray::toTemplate(String &s, const String &prefix, const String &lined
 	if (prefix.notEmpty()) key=prefix+"/";
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
-	Variant *p;
 	while ((Tree.getNext(it))) {
-		p=it.value().value;
+		Variant *p=it.value().value;
 		if (p->isString()) {
 			Tok.clear();
 			Tok.explode(p->toString(),"\n");
@@ -1482,7 +1480,7 @@ void AssocArray::toTemplate(String &s, const String &prefix, const String &lined
 			}
 		} else if (p->isAssocArray()) {
 			pre.setf("%s%s",(const char*)key,(const char*)it.key());
-			((AssocArray*)p)->toTemplate(s,pre,linedelimiter,splitchar);
+			static_cast<AssocArray*>(p)->toTemplate(s,pre,linedelimiter,splitchar);
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
 			for (size_t i=0;i<a.size();i++) {
@@ -1494,7 +1492,7 @@ void AssocArray::toTemplate(String &s, const String &prefix, const String &lined
 				}
 			}
 		} else if (p->isDateTime()) {
-			s+=key+it.key()+splitchar+((DateTime*)p)->getISO8601withMsec()+linedelimiter;
+			s+=key+it.key()+splitchar+static_cast<DateTime*>(p)->getISO8601withMsec()+linedelimiter;
 		}
 	}
 }
@@ -1555,7 +1553,6 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	char *ptr=(char*)buffer;
 	*realsize=0;
 	size_t p=0;
-	size_t keylen;
 	size_t vallen=0;
 	ByteArray key;
 	String string;
@@ -1564,22 +1561,21 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	p+=7;
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
-	Variant *a;
 	while ((Tree.getNext(it))) {
-		a=it.value().value;
+		Variant *a=it.value().value;
 		if (p<buffersize) {
 			if (a->isByteArrayPtr()) PokeN8(ptr+p,Variant::BYTEARRAY);
 			else PokeN8(ptr+p,a->dataType());
 		}
 		p++;
 		key=it.key();
-		keylen=key.size();
+		size_t keylen=key.size();
 		if (p+4<buffersize) PokeN16(ptr+p,keylen);
 		p+=2;
 		if (p+keylen<buffersize) strncpy(ptr+p,(const char*)key,keylen);
 		p+=keylen;
 		if (a->isString()) {
-			string=*((String*)a);
+			string=*static_cast<String*>(a);
 			vallen=string.size();
 			if (p+4<buffersize) PokeN32(ptr+p,vallen);
 			p+=4;
@@ -1587,19 +1583,19 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 			p+=vallen;
 		} else if (a->isAssocArray()) {
 			size_t asize=0;
-			((AssocArray*)a)->exportBinary(ptr+p,buffersize-p,&asize);
+			static_cast<AssocArray*>(a)->exportBinary(ptr+p,buffersize-p,&asize);
 			p+=asize;
 		} else if (a->isDateTime()) {
 			vallen=8;
 			if (p+4<buffersize) PokeN32(ptr+p,vallen);
 			p+=4;
-			if (p+vallen<buffersize) PokeN64(ptr+p,((DateTime*)a)->longInt());
+			if (p+vallen<buffersize) PokeN64(ptr+p,static_cast<DateTime*>(a)->longInt());
 			p+=vallen;
 		} else if (a->isByteArray()==true || a->isByteArrayPtr()==true) {
-			vallen=((ByteArrayPtr*)a)->size();
+			vallen=static_cast<ByteArrayPtr*>(a)->size();
 			if (p+4<buffersize) PokeN32(ptr+p,vallen);
 			p+=4;
-			if (p+vallen<buffersize) memcpy(ptr+p,((ByteArrayPtr*)a)->adr(),vallen);
+			if (p+vallen<buffersize) memcpy(ptr+p,static_cast<ByteArrayPtr*>(a)->adr(),vallen);
 			p+=vallen;
 		} else {
 			vallen=0;
@@ -1691,14 +1687,14 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 	}
 	p+=7;
 	int type;
-	size_t keylen,vallen,bytes;
+	size_t vallen,bytes;
 	String key;
 	DateTime dt;
 	AssocArray na;
 	ByteArray nb;
 	while (p<buffersize && (type=PeekN8(ptr+p))!=0) {
 		p++;
-		keylen=PeekN16(ptr+p);
+		size_t keylen=PeekN16(ptr+p);
 		p+=2;
 		key.set(ptr+p,keylen);
 		p+=keylen;
