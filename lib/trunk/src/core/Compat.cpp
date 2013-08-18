@@ -95,14 +95,12 @@ namespace compat {
  */
 char * trim (char * text)
 {
-	size_t l,i,start,ende,s;
 	if (!text) return NULL;
-
-	l=strlen(text);
+	size_t l=strlen(text);
 	if (l>0) {
-		start=0; s=0;
-		ende=l;
-		for (i=0;i<l;i++) {
+		size_t start=0, s=0;
+		int ende=l;
+		for (size_t i=0;i<l;i++) {
 			if (text[i]==13||text[i]==10||text[i]==32||text[i]=='\t') {
 				if (s==0) start=i+1;
 			} else {
@@ -119,10 +117,9 @@ char * trim (char * text)
 
 char *strtolower (char * text)
 {
-	size_t i,l;
 	if (text != NULL) {
-		l=strlen(text);
-		for (i=0;i<l;i++)
+		size_t l=strlen(text);
+		for (size_t i=0;i<l;i++)
 			text[i]=tolower(text[i]);
 	}
 	return text;
@@ -130,10 +127,9 @@ char *strtolower (char * text)
 
 char *strtoupper (char * text)
 {
-	size_t i,l;
 	if (text != NULL) {
-		l=strlen(text);
-		for (i=0;i<l;i++)
+		size_t l=strlen(text);
+		for (size_t i=0;i<l;i++)
 			text[i]=toupper(text[i]);
 	}
 	return text;
@@ -146,13 +142,12 @@ const char *strcasestr(const char *haystack, const char *needle)
 #ifdef HAVE_STRCASESTR
 	return ::strcasestr(haystack,needle);
 #else
-    char c, sc;
-    size_t len;
-
+    char c;
     if ((c = *needle++) != 0) {
         c = tolower((unsigned char)c);
-        len = strlen(needle);
+        size_t len = strlen(needle);
         do {
+        	char sc;
             do {
                 if ((sc = *haystack++) == 0)
                     return (NULL);
@@ -260,13 +255,13 @@ long htol (const char * wert)
 	long mp[]={0x1,0x10,0x100,0x1000,0x10000,0x100000,0x1000000,0x10000000};
 	size_t i,l;
 	long w;
-	char * p,t;
+	char * p;
 	strtolower ((char*)wert);
 	p=trim((char*)wert);
 	w=0;
 	l=strlen(p);
 	for (i=0;i<l;i++) {
-		t=p[l-i-1]-48;
+		char t=p[l-i-1]-48;
 		if (t>9) t=t-39;
 		w+=t*mp[i];
 	}
@@ -311,7 +306,6 @@ char *strndup(const char *str, size_t len)
 #ifdef HAVE_STRNDUP
 	return ::strndup(str,len);
 #else
-	if (len<0) return NULL;
 	if (!str) return NULL;
 	size_t ll=strlen(str);
 	if (ll<len) len=ll;
