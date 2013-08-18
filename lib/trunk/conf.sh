@@ -53,13 +53,13 @@ case "$SYS:$REL:$KERNEL" in
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --prefix=$PREFIX \
-			--with-libmad=/usr/local --with-lame=/usr/local \
+			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
-			--with-libmhash=/usr/local --with-freetds=/usr/local \
+			--with-libmhash=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-jpeg --with-libpng --with-libtiff=/usr/local \
 			--with-postgresql \
-			--with-mpg123=/usr/local --with-libidn=/usr/local \
+			--with-libidn=/usr/local \
 			--with-ogg=/usr/local \
 			--with-libmicrohttpd=/usr/local \
 			--enable-gtest=/usr/local/gtest-1.6.0
@@ -80,7 +80,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--build=i686-w64-mingw32 \
 			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
-			--with-nasm --with-libiconv-prefix=/mingw --with-libmad=/mingw \
+			--with-nasm --with-libiconv-prefix=/mingw \
 			--with-lame=/mingw --with-mpg123=/mingw \
 			--with-jpeg=/mingw --with-png=/mingw --with-libmhash=/mingw \
 			--with-libmcrypt-prefix=/mingw \
@@ -93,7 +93,7 @@ case "$SYS:$REL:$KERNEL" in
 		export CFLAGS="-DCURL_STATICLIB"
 		./configure --prefix=$PREFIX \
 			--with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
-			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
+			--with-nasm --with-libiconv-prefix=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
 			--with-libmcrypt-prefix=/usr/local \
@@ -102,20 +102,20 @@ case "$SYS:$REL:$KERNEL" in
 		;;
 	Linux:*generic*)
 		./configure --prefix=$PREFIX \
-			--with-libmad --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
+			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql \
-			--with-sybase=/usr --with-jpeg --with-png \
+			--with-jpeg --with-png \
 			--with-libtiff=/usr --with-mpg123 \
 			--enable-gtest=/usr/local/gtest-1.6.0
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --prefix=$PREFIX \
-			--with-libmad --with-lame --with-pcre=/usr --with-x \
+			--with-lame --with-pcre=/usr --with-x \
 			--with-openssl=/usr --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-postgresql \
-			--with-sybase=/usr/local --with-jpeg --with-png \
+			--with-jpeg --with-png \
 			--with-libmhash --with-mpg123 --with-ogg=/usr
 		;;
 	*)
