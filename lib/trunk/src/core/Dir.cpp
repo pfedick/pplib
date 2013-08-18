@@ -802,7 +802,6 @@ const DirEntry &Dir::getFirstPattern(Iterator &it, const String &pattern, bool i
  */
 const DirEntry &Dir::getNextPattern(Iterator &it, const String &pattern, bool ignorecase) const
 {
-	const DirEntry *de;
 	String Pattern;
 	Pattern=pattern;
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
@@ -815,7 +814,7 @@ const DirEntry &Dir::getNextPattern(Iterator &it, const String &pattern, bool ig
 	if (ignorecase) Pattern+="i";
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
 	while (SortedFiles.getNext(it)) {
-		de=it.value();
+		const DirEntry *de=it.value();
 		// Patternmatch
 		//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
 		if (de->Filename.pregMatch(Pattern)) return *de;
@@ -862,9 +861,8 @@ const DirEntry &Dir::getFirstRegExp(Iterator &it, const String &regexp) const
  */
 const DirEntry &Dir::getNextRegExp(Iterator &it, const String &regexp) const
 {
-	const DirEntry *de;
 	while (SortedFiles.getNext(it)) {
-		de=it.value();
+		const DirEntry *de=it.value();
 		// Patternmatch
 		if (de->Filename.pregMatch(regexp)) return *de;
 	}
@@ -967,7 +965,6 @@ bool Dir::getFirstPattern(DirEntry &e, Iterator &it, const String &pattern, bool
  */
 bool Dir::getNextPattern(DirEntry &e, Iterator &it, const String &pattern, bool ignorecase) const
 {
-	const DirEntry *de;
 	String Pattern;
 	Pattern=pattern;
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
@@ -980,7 +977,7 @@ bool Dir::getNextPattern(DirEntry &e, Iterator &it, const String &pattern, bool 
 	if (ignorecase) Pattern+="i";
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
 	while (SortedFiles.getNext(it)) {
-		de=it.value();
+		const DirEntry *de=it.value();
 		// Patternmatch
 		//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
 		if (de->Filename.pregMatch(Pattern)) {
@@ -1036,9 +1033,8 @@ bool Dir::getFirstRegExp(DirEntry &e, Iterator &it, const String &regexp) const
  */
 bool Dir::getNextRegExp(DirEntry &e, Iterator &it, const String &regexp) const
 {
-	const DirEntry *de;
 	while (SortedFiles.getNext(it)) {
-		de=it.value();
+		const DirEntry *de=it.value();
 		// Patternmatch
 		if (de->Filename.pregMatch(regexp)) {
 			e=*de;
@@ -1092,18 +1088,18 @@ void Dir::open(const char *path, Sort s)
 		File::throwErrno(errno,path);
 	}
 	struct dirent d;
-	struct dirent *result;
 	DirEntry de;
 	String CurrentFile;
 	while (1==1) {
 #ifdef HAVE_READDIR_R
+		struct dirent *result;
 		if (readdir_r(dir,&d,&result)!=0) {
 			int e=errno;
 			closedir(dir);
 			File::throwErrno(e,path);
 		}
 #else
-		result=readdir(dir);
+		struct dirent *result=readdir(dir);
 #endif
 		if (result==NULL) break;
 		CurrentFile=Path+"/"+String(result->d_name);
