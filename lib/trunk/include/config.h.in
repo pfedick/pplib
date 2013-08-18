@@ -328,7 +328,7 @@
 #undef POSTGRESQL_HAVE_PQsetSingleRowMode
 #undef HAVE_FREETDS
 #undef HAVE_SYBASE
-#undef HAVE_SQLITE
+#undef HAVE_SQLITE3
 
 
 #define ppluint8	undefined

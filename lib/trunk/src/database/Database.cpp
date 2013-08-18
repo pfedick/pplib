@@ -161,7 +161,7 @@ void GetSupportedDatabases(AssocArray &a)
 	a.set("postgres/type","postgres");
 	a.set("postgres/name","PostgreSQL");
 #endif
-#ifdef HAVE_SQLITE
+#ifdef HAVE_SQLITE3
 	a.set("sqlite/type","sqlite");
 	a.set("sqlite/name","SQLite");
 #endif
