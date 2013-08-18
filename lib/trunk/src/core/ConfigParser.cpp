@@ -553,8 +553,6 @@ void ConfigParser::load(FileObject &file)
 	String buffer,trimmedBuffer;
 	String sectionname;
 
-	size_t l;
-	size_t trenn;
 	size_t separatorLength=separator.length();
 
 	if (!file.isOpen()) throw FileNotOpenException();
@@ -564,7 +562,7 @@ void ConfigParser::load(FileObject &file)
 		while (!file.eof()) {			// Zeilen lesen, bis keine mehr kommt
 			if (!file.gets(buffer,65535)) break;
 			trimmedBuffer=buffer.trimmed();
-			l=trimmedBuffer.size();
+			size_t l=trimmedBuffer.size();
 			if (sectionname.notEmpty()) {
 				if (l==0 || (l>0 && trimmedBuffer[0]!='[' && trimmedBuffer[l-1]!=']')) {
 					sections.append(sectionname,buffer);
@@ -581,7 +579,7 @@ void ConfigParser::load(FileObject &file)
 						createSection(sectionname);
 					}
 				} else if ((sectionname.notEmpty()) && trimmedBuffer[0]!='#' && trimmedBuffer[0]!=';') {	// Kommentare ignorieren
-					trenn=trimmedBuffer.instr(separator);			// Trennzeichen suchen
+					size_t trenn=trimmedBuffer.instr(separator);			// Trennzeichen suchen
 					if (trenn>0) {							// Wenn eins gefunden wurde, dann
 						key=trimmedBuffer.left(trenn);				// Key ist alles vor dem Trennzeichen
 						key.trim();
