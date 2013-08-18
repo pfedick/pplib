@@ -700,9 +700,8 @@ AVLTreeAlgorithm::Node *AVLTreeAlgorithm::findNode(const Node *value) const
 {
 	if (!value) throw IllegalArgumentException();
 	Node *cur=root;
-	int cmp;
 	while (cur) {
-		cmp=compare(*cur,*value);
+		int cmp=compare(*cur,*value);
 		if (cmp==-1) cur=cur->left;
 		else if (cmp==1) cur=cur->right;
 		else return cur;
@@ -773,7 +772,7 @@ AVLTreeAlgorithm::Node *AVLTreeAlgorithm::getFirst(Iterator &it) const
  */
 AVLTreeAlgorithm::Node *AVLTreeAlgorithm::getNext(Iterator &it) const
 {
-	Node *node=it.current, *tmp;
+	Node *node=it.current;
 	if (node == NULL) {
 		return getFirst(it);
 	} else if (node->right != NULL) {
@@ -784,6 +783,7 @@ AVLTreeAlgorithm::Node *AVLTreeAlgorithm::getNext(Iterator &it) const
 			node = node->left;
 		}
 	} else {
+		Node *tmp;
 		do {
 			if (it.stack_height == 0) {
 				it.current = NULL;
@@ -833,7 +833,7 @@ AVLTreeAlgorithm::Node *AVLTreeAlgorithm::getLast(Iterator &it) const
  */
 AVLTreeAlgorithm::Node *AVLTreeAlgorithm::getPrevious(Iterator &it) const
 {
-	Node *node, *y;
+	Node *node;
 	node = it.current;
 	if (node == NULL) {
 		return getLast(it);
@@ -845,6 +845,7 @@ AVLTreeAlgorithm::Node *AVLTreeAlgorithm::getPrevious(Iterator &it) const
 			node=node->right;
 		}
 	} else {
+		Node *y;
 		do {
 			if (it.stack_height == 0) {
 				it.current = NULL;
