@@ -65,6 +65,15 @@ class StringTest : public ::testing::Test {
 	}
 };
 
+TEST_F(StringTest, setInitialBuffersize) {
+	ASSERT_NO_THROW({
+		ppl6::CString::setInitialBuffersize(128);
+		ppl6::CString::setInitialBuffersize(64);
+	}
+	);
+}
+
+
 TEST_F(StringTest, ConstructorSimple) {
 	ASSERT_NO_THROW({
 			ppl6::CString s1;
@@ -266,6 +275,14 @@ TEST_F(StringTest, setConstCharWithoutSize) {
 	ASSERT_EQ((size_t)45,s1.Size()) << "String has unexpected length";
 }
 
+TEST_F(StringTest, setConstCharWithoutSizeNULL) {
+	ppl6::CString s2("");
+	ppl6::CString s1;
+	s1.Set((const char*)NULL);
+	ASSERT_EQ(s1,s2) << "String has unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
+}
+
 TEST_F(StringTest, setConstCharWithSize) {
 	ppl6::CString s2("äöü, a tes");
 	ppl6::CString s1;
@@ -274,13 +291,28 @@ TEST_F(StringTest, setConstCharWithSize) {
 	ASSERT_EQ((size_t)13,s1.Size()) << "String has unexpected length";
 }
 
+TEST_F(StringTest, setConstCharWithSizeNULL) {
+	ppl6::CString s2("");
+	ppl6::CString s1;
+	s1.Set((const char*)NULL,0);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
+}
 
 TEST_F(StringTest, setConstWChartWithoutSize) {
 	ppl6::CString s2("äöü, a test string with unicode characters");
 	ppl6::CString s1;
-	s1.Set("äöü, a test string with unicode characters");
+	s1.Set(L"äöü, a test string with unicode characters");
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
 	ASSERT_EQ((size_t)45,s1.Size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setConstWChartWithoutSizeNULL) {
+	ppl6::CString s2("");
+	ppl6::CString s1;
+	s1.Set((const wchar_t*)NULL);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, setConstWChartWithSize) {
@@ -291,12 +323,28 @@ TEST_F(StringTest, setConstWChartWithSize) {
 	ASSERT_EQ((size_t)16,s1.Size()) << "String has unexpected length";
 }
 
+TEST_F(StringTest, setConstWChartWithSizeNull) {
+	ppl6::CString s2("");
+	ppl6::CString s1;
+	s1.Set((const wchar_t*)NULL,0);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
+}
+
 TEST_F(StringTest, setStringPtrWithoutSize) {
 	ppl6::CString s2("äöü, a test string with unicode characters");
 	ppl6::CString s1;
 	s1.Set(&s2);
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
 	ASSERT_EQ((size_t)45,s1.Size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setStringPtrWithoutSizeNull) {
+	ppl6::CString s2("");
+	ppl6::CString s1;
+	s1.Set((const ppl6::CString*)NULL);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, setStringPtrWithSize) {
@@ -308,12 +356,36 @@ TEST_F(StringTest, setStringPtrWithSize) {
 	ASSERT_EQ((size_t)13,s1.Size()) << "String has unexpected length";
 }
 
+TEST_F(StringTest, setStringPtrWithSizeNull) {
+	ppl6::CString s2("");
+	ppl6::CString s1;
+	s1.Set((const ppl6::CString*)NULL,0);
+	ASSERT_EQ(s2,s1) << "String has unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
+}
+
 TEST_F(StringTest, setStringRefWithoutSize) {
 	ppl6::CString s2("äöü, a test string with unicode characters");
 	ppl6::CString s1;
 	s1.Set(s2);
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
 	ASSERT_EQ((size_t)45,s1.Size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setStringRefWithoutSizeEmpty) {
+	ppl6::CString s2;
+	ppl6::CString s1;
+	s1.Set(s2);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setWideStringRefWithoutSizeEmpty) {
+	ppl6::CWString s2;
+	ppl6::CString s1;
+	s1.Set(s2);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, setStringRefWithSize) {
@@ -334,6 +406,15 @@ TEST_F(StringTest, setSTDStringRefWithoutSize) {
 	ASSERT_EQ((size_t)45,s1.Size()) << "String has unexpected length";
 }
 
+TEST_F(StringTest, setSTDStringRefWithoutSizeEmpty) {
+	ppl6::CString s2;
+	std::string s3;
+	ppl6::CString s1;
+	s1.Set(s3);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
+}
+
 TEST_F(StringTest, setSTDStringRefWithSize) {
 	ppl6::CString s2("äöü, a tes");
 	std::string s3("äöü, a test string with unicode characters");
@@ -350,6 +431,15 @@ TEST_F(StringTest, setSTDWStringRefWithoutSize) {
 	s1.Set(s3);
 	ASSERT_EQ(s1,s2) << "String as unexpected value";
 	ASSERT_EQ((size_t)45,s1.Size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, setSTDWStringRefWithoutSizeEmpty) {
+	ppl6::CString s2;
+	std::wstring s3;
+	ppl6::CString s1;
+	s1.Set(s3);
+	ASSERT_EQ(s1,s2) << "String as unexpected value";
+	ASSERT_EQ((size_t)0,s1.Size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, setSTDWStringRefWithSize) {
@@ -575,12 +665,31 @@ TEST_F(StringTest, Get) {
 	EXPECT_EQ((char)0,s1.Get(900));
 }
 
-TEST_F(StringTest, ImportBuffer) {
+TEST_F(StringTest, ImportBufferInEmptyString) {
+	char *buffer=(char *)malloc(128*sizeof(char));
+	strcpy(buffer, "The Quick Brown Fox Jumps over the lazy dog");
+	ppl6::CString expected(L"The Quick Brown Fox Jumps over the lazy dog");
+	ppl6::CString s2;
+	s2.ImportBuffer(buffer,128*sizeof(char));
+	ASSERT_EQ(expected,s2) << "Unexpected Result";
+}
+
+TEST_F(StringTest, ImportBufferInExistingString) {
 	char *buffer=(char *)malloc(128*sizeof(char));
 	strcpy(buffer, "The Quick Brown Fox Jumps over the lazy dog");
 	ppl6::CString expected(L"The Quick Brown Fox Jumps over the lazy dog");
 	ppl6::CString s2(L"Jumps over the lazy dog");
+	s2.PregMatch("/Jumps(.*)dog/");
 	s2.ImportBuffer(buffer,128*sizeof(char));
+	ASSERT_EQ(expected,s2) << "Unexpected Result";
+}
+
+
+TEST_F(StringTest, ImportBufferNULL) {
+	ppl6::CString expected(L"");
+	ppl6::CString s2(L"Jumps over the lazy dog");
+	s2.PregMatch("/Jumps(.*)dog/");
+	s2.ImportBuffer(NULL,0);
 	ASSERT_EQ(expected,s2) << "Unexpected Result";
 }
 
@@ -831,6 +940,7 @@ TEST_F(StringTest, strcmpEmpty) {
 	ASSERT_EQ(0,s1.StrCmp(s2));
 }
 
+
 TEST_F(StringTest, strcmpLower) {
 	ppl6::CString s1("ABcdef");
 	ppl6::CString s2("Defghi");
@@ -859,6 +969,12 @@ TEST_F(StringTest, strcmpEqual) {
 	ppl6::CString s1("ABcdef");
 	ppl6::CString s2("ABcdef");
 	ASSERT_EQ(s2.StrCmp(s1),0);
+}
+
+TEST_F(StringTest, strcmpEmptyChar) {
+	ppl6::CString s1("");
+	const char *s2=NULL;
+	ASSERT_EQ(0,s1.StrCmp(s2));
 }
 
 TEST_F(StringTest, strcasecmpEmpty) {

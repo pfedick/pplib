@@ -77,7 +77,7 @@ release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl6.h \$(incdir)/ppl6-uni
 debug/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl6.h \$(incdir)/ppl6-unixconfig.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c -ggdb -D_DEBUG \$(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG $3 \$(srcdir)/$1/$file
+	\$(CXX) -Wall -O0 -o debug/$4$BASENAME.o -c -ggdb -D_DEBUG \$(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG $3 \$(srcdir)/$1/$file
 "
 
 	done

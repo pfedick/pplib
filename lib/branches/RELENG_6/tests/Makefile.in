@@ -25,6 +25,13 @@ test: $(PROGNAME)
 	
 xml: $(PROGNAME)
 	./$(PROGNAME) --gtest_output=xml
+
+lcov: $(PROGNAME)
+	lcov --base-directory ../ --directory ../ --zerocounters -q
+	./$(PROGNAME)
+	lcov --base-directory ../ --directory ../ -c -o ppl6_coverage.info
+	rm -rf test_coverage
+	genhtml -o test_coverage -t "ppl6 test coverage" --num-spaces 4 ppl6_coverage.info
 	
 clean:
 	-rm -rf compile loggertest
