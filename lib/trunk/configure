@@ -735,6 +735,8 @@ PNG_CFLAGS
 JPEG_LIBS
 JPEG_CFLAGS
 LIBOBJS
+GCOV_LDFLAGS
+GCOV_CFLAGS
 GTEST_PREFIX
 HAVE_GTEST_FALSE
 HAVE_GTEST_TRUE
@@ -9061,6 +9063,10 @@ if test "x$HAVE_GTEST" = "xyes"; then :
   GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 
 	report_have_gtest="yes"
+	GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+	GCOV_LDFLAGS="-lgcov"
+
+
 
 else
   report_have_gtest="no"

@@ -112,7 +112,7 @@ release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exc
 debug/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3
+	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG $3
 "
 
 	done

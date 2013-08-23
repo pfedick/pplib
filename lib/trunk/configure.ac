@@ -262,6 +262,10 @@ GTEST_LIB_CHECK([1.6.0],
 	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 	AC_SUBST(GTEST_PREFIX)
 	report_have_gtest="yes"
+	GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+	GCOV_LDFLAGS="-lgcov"
+	AC_SUBST(GCOV_CFLAGS)
+	AC_SUBST(GCOV_LDFLAGS)
 	],
 	report_have_gtest="no"
 )
