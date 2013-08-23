@@ -22,7 +22,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \
 			--with-postgresql=/usr/local \
-			--with-ogg=/usr/local --with-libmicrohttpd=/usr/local
+			--with-ogg=/usr/local --with-libmicrohttpd=/usr/local \
+			--enable-gtest=/usr/local/gtest-1.6.0
 		;;
 	MINGW32*:1.0.12*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
@@ -65,6 +66,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-postgresql --with-libldns \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix=/usr \
+			--enable-gtest=/usr/local/gtest-1.6.0 \
 			--with-freetds --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd=/home/patrickf
 		;;	
 	*:Linux:*:*Ubuntu*)

@@ -10,6 +10,7 @@ AC_CONFIG_SRCDIR([src/math/math.cpp])
 
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([ppl6-config])
+AC_CONFIG_FILES([tests/Makefile])
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_HEADERS([include/ppl6-unixconfig.h])
 
@@ -46,6 +47,7 @@ sinclude(config/libgcrypt.m4)
 sinclude(config/libgnutls.m4)
 sinclude(config/libmicrohttpd.m4)
 sinclude(config/sqlite.m4)
+sinclude(config/gtest.m4)
 
 AC_CANONICAL_TARGET
 
@@ -167,6 +169,18 @@ if test "$have_x" == "yes" ; then
 fi
 AC_PATH_XTRA
 
+report_have_gtest="no"
+GTEST_LIB_CHECK([1.6.0],
+	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
+	AC_SUBST(GTEST_PREFIX)
+	report_have_gtest="yes"
+	GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+	GCOV_LDFLAGS="-lgcov"
+	AC_SUBST(GCOV_CFLAGS)
+	AC_SUBST(GCOV_LDFLAGS)
+	],
+	report_have_gtest="no"
+)
 
 AC_CHECK_HEADERS([stdlib.h])
 AC_CHECK_HEADERS([unistd.h])
@@ -635,6 +649,7 @@ AC_MSG_RESULT([
 ** Other:
 **   PCRE:                 $report_have_pcre
 **   ICONV:                $report_have_iconv
+**   Unittests:            $report_have_gtest
 ******************************************************************************
 ])
 

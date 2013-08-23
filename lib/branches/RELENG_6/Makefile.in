@@ -728,7 +728,7 @@ install_debug: debug/$(LIBDEBUG).a debug/pplgenresource.o
 	cp $(incdir)/ppl6-unixconfig.h $(TARGETINCLUDE)/ppl6-config.h
 	chmod a+x ppl6-config
 	cp ppl6-config $(TARGETBIN)
-	$(CXX) -o debug/pplgenresource debug/pplgenresource.o `sh ppl6-config --libs debug source` -lstdc++	
+	$(CXX) -o debug/pplgenresource debug/pplgenresource.o `sh ppl6-config --libs debug source` @GCOV_LDFLAGS@ -lstdc++	
 
 clean:
 	-rm -rf release
@@ -1573,745 +1573,745 @@ release/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
 debug/CAVLTree.o:	$(srcdir)/core/CAVLTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CAVLTree.cpp<<<
-	$(CXX) -Wall -O -o debug/CAVLTree.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CAVLTree.cpp
+	$(CXX) -Wall -O -o debug/CAVLTree.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CAVLTree.cpp
 
 debug/CApplication.o:	$(srcdir)/core/CApplication.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CApplication.cpp<<<
-	$(CXX) -Wall -O -o debug/CApplication.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CApplication.cpp
+	$(CXX) -Wall -O -o debug/CApplication.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CApplication.cpp
 
 debug/CArchiv.o:	$(srcdir)/core/CArchiv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CArchiv.cpp<<<
-	$(CXX) -Wall -O -o debug/CArchiv.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CArchiv.cpp
+	$(CXX) -Wall -O -o debug/CArchiv.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CArchiv.cpp
 
 debug/CConfig.o:	$(srcdir)/core/CConfig.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CConfig.cpp<<<
-	$(CXX) -Wall -O -o debug/CConfig.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CConfig.cpp
+	$(CXX) -Wall -O -o debug/CConfig.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CConfig.cpp
 
 debug/CCrontab.o:	$(srcdir)/core/CCrontab.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CCrontab.cpp<<<
-	$(CXX) -Wall -O -o debug/CCrontab.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CCrontab.cpp
+	$(CXX) -Wall -O -o debug/CCrontab.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CCrontab.cpp
 
 debug/CDebug.o:	$(srcdir)/core/CDebug.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CDebug.cpp<<<
-	$(CXX) -Wall -O -o debug/CDebug.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CDebug.cpp
+	$(CXX) -Wall -O -o debug/CDebug.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CDebug.cpp
 
 debug/CDir.o:	$(srcdir)/core/CDir.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CDir.cpp<<<
-	$(CXX) -Wall -O -o debug/CDir.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CDir.cpp
+	$(CXX) -Wall -O -o debug/CDir.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CDir.cpp
 
 debug/CFile.o:	$(srcdir)/core/CFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CFile.cpp<<<
-	$(CXX) -Wall -O -o debug/CFile.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CFile.cpp
+	$(CXX) -Wall -O -o debug/CFile.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CFile.cpp
 
 debug/CFileObject.o:	$(srcdir)/core/CFileObject.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CFileObject.cpp<<<
-	$(CXX) -Wall -O -o debug/CFileObject.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CFileObject.cpp
+	$(CXX) -Wall -O -o debug/CFileObject.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CFileObject.cpp
 
 debug/CHeap.o:	$(srcdir)/core/CHeap.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CHeap.cpp<<<
-	$(CXX) -Wall -O -o debug/CHeap.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CHeap.cpp
+	$(CXX) -Wall -O -o debug/CHeap.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CHeap.cpp
 
 debug/CIconv.o:	$(srcdir)/core/CIconv.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CIconv.cpp<<<
-	$(CXX) -Wall -O -o debug/CIconv.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CIconv.cpp
+	$(CXX) -Wall -O -o debug/CIconv.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CIconv.cpp
 
 debug/CLang.o:	$(srcdir)/core/CLang.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CLang.cpp<<<
-	$(CXX) -Wall -O -o debug/CLang.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CLang.cpp
+	$(CXX) -Wall -O -o debug/CLang.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CLang.cpp
 
 debug/CList.o:	$(srcdir)/core/CList.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CList.cpp<<<
-	$(CXX) -Wall -O -o debug/CList.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CList.cpp
+	$(CXX) -Wall -O -o debug/CList.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CList.cpp
 
 debug/CLog.o:	$(srcdir)/core/CLog.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CLog.cpp<<<
-	$(CXX) -Wall -O -o debug/CLog.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CLog.cpp
+	$(CXX) -Wall -O -o debug/CLog.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CLog.cpp
 
 debug/CMCrypt.o:	$(srcdir)/core/CMCrypt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMCrypt.cpp<<<
-	$(CXX) -Wall -O -o debug/CMCrypt.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMCrypt.cpp
+	$(CXX) -Wall -O -o debug/CMCrypt.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMCrypt.cpp
 
 debug/CMHash.o:	$(srcdir)/core/CMHash.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMHash.cpp<<<
-	$(CXX) -Wall -O -o debug/CMHash.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMHash.cpp
+	$(CXX) -Wall -O -o debug/CMHash.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMHash.cpp
 
 debug/CMemFile.o:	$(srcdir)/core/CMemFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMemFile.cpp<<<
-	$(CXX) -Wall -O -o debug/CMemFile.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemFile.cpp
+	$(CXX) -Wall -O -o debug/CMemFile.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMemFile.cpp
 
 debug/CMemMan.o:	$(srcdir)/core/CMemMan.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMemMan.cpp<<<
-	$(CXX) -Wall -O -o debug/CMemMan.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemMan.cpp
+	$(CXX) -Wall -O -o debug/CMemMan.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMemMan.cpp
 
 debug/CMemSpace.o:	$(srcdir)/core/CMemSpace.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMemSpace.cpp<<<
-	$(CXX) -Wall -O -o debug/CMemSpace.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemSpace.cpp
+	$(CXX) -Wall -O -o debug/CMemSpace.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMemSpace.cpp
 
 debug/CMemory.o:	$(srcdir)/core/CMemory.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMemory.cpp<<<
-	$(CXX) -Wall -O -o debug/CMemory.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemory.cpp
+	$(CXX) -Wall -O -o debug/CMemory.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMemory.cpp
 
 debug/CMemoryReference.o:	$(srcdir)/core/CMemoryReference.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMemoryReference.cpp<<<
-	$(CXX) -Wall -O -o debug/CMemoryReference.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMemoryReference.cpp
+	$(CXX) -Wall -O -o debug/CMemoryReference.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMemoryReference.cpp
 
 debug/CMutex.o:	$(srcdir)/core/CMutex.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CMutex.cpp<<<
-	$(CXX) -Wall -O -o debug/CMutex.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CMutex.cpp
+	$(CXX) -Wall -O -o debug/CMutex.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CMutex.cpp
 
 debug/CNotifyHandler.o:	$(srcdir)/core/CNotifyHandler.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CNotifyHandler.cpp<<<
-	$(CXX) -Wall -O -o debug/CNotifyHandler.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CNotifyHandler.cpp
+	$(CXX) -Wall -O -o debug/CNotifyHandler.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CNotifyHandler.cpp
 
 debug/CQueue.o:	$(srcdir)/core/CQueue.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CQueue.cpp<<<
-	$(CXX) -Wall -O -o debug/CQueue.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CQueue.cpp
+	$(CXX) -Wall -O -o debug/CQueue.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CQueue.cpp
 
 debug/CResource.o:	$(srcdir)/core/CResource.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CResource.cpp<<<
-	$(CXX) -Wall -O -o debug/CResource.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CResource.cpp
+	$(CXX) -Wall -O -o debug/CResource.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CResource.cpp
 
 debug/CSignal.o:	$(srcdir)/core/CSignal.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CSignal.cpp<<<
-	$(CXX) -Wall -O -o debug/CSignal.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CSignal.cpp
+	$(CXX) -Wall -O -o debug/CSignal.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CSignal.cpp
 
 debug/CThread.o:	$(srcdir)/core/CThread.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CThread.cpp<<<
-	$(CXX) -Wall -O -o debug/CThread.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CThread.cpp
+	$(CXX) -Wall -O -o debug/CThread.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CThread.cpp
 
 debug/CTok.o:	$(srcdir)/core/CTok.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CTok.cpp<<<
-	$(CXX) -Wall -O -o debug/CTok.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CTok.cpp
+	$(CXX) -Wall -O -o debug/CTok.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CTok.cpp
 
 debug/CTree.o:	$(srcdir)/core/CTree.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/CTree.cpp<<<
-	$(CXX) -Wall -O -o debug/CTree.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/CTree.cpp
+	$(CXX) -Wall -O -o debug/CTree.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/CTree.cpp
 
 debug/Errors.o:	$(srcdir)/core/Errors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Errors.cpp<<<
-	$(CXX) -Wall -O -o debug/Errors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/Errors.cpp
+	$(CXX) -Wall -O -o debug/Errors.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/Errors.cpp
 
 debug/Exception.o:	$(srcdir)/core/Exception.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  	$(incdir)/ppl6-exceptions.h
 	###############################################################################
 	# Compiling >>>core/Exception.cpp<<<
-	$(CXX) -Wall -O -o debug/Exception.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/Exception.cpp
+	$(CXX) -Wall -O -o debug/Exception.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/Exception.cpp
 
 debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
-	$(CXX) -Wall -O -o debug/PFPFile.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/PFPFile.cpp
+	$(CXX) -Wall -O -o debug/PFPFile.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/PFPFile.cpp
 
 debug/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PerlHelper.cpp<<<
-	$(CXX) -Wall -O -o debug/PerlHelper.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/PerlHelper.cpp
+	$(CXX) -Wall -O -o debug/PerlHelper.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/PerlHelper.cpp
 
 debug/WinSockErrors.o:	$(srcdir)/core/WinSockErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/WinSockErrors.cpp<<<
-	$(CXX) -Wall -O -o debug/WinSockErrors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/WinSockErrors.cpp
+	$(CXX) -Wall -O -o debug/WinSockErrors.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/WinSockErrors.cpp
 
 debug/compat.o:	$(srcdir)/core/compat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/compat.cpp<<<
-	$(CXX) -Wall -O -o debug/compat.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/compat.cpp
+	$(CXX) -Wall -O -o debug/compat.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/compat.cpp
 
 debug/compression.o:	$(srcdir)/core/compression.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/compression.cpp<<<
-	$(CXX) -Wall -O -o debug/compression.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/compression.cpp
+	$(CXX) -Wall -O -o debug/compression.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/compression.cpp
 
 debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -O -o debug/cpu.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/cpu.cpp
+	$(CXX) -Wall -O -o debug/cpu.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/cpu.cpp
 
 debug/functions.o:	$(srcdir)/core/functions.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/functions.cpp<<<
-	$(CXX) -Wall -O -o debug/functions.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/functions.cpp
+	$(CXX) -Wall -O -o debug/functions.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/functions.cpp
 
 debug/ident.o:	$(srcdir)/core/ident.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/ident.cpp<<<
-	$(CXX) -Wall -O -o debug/ident.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/ident.cpp
+	$(CXX) -Wall -O -o debug/ident.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/ident.cpp
 
 debug/pplcore.o:	$(srcdir)/core/pplcore.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/pplcore.cpp<<<
-	$(CXX) -Wall -O -o debug/pplcore.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/pplcore.cpp
+	$(CXX) -Wall -O -o debug/pplcore.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/pplcore.cpp
 
 debug/resourcen.o:	$(srcdir)/core/resourcen.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/resourcen.cpp<<< ***** This could take some time! *****
-	$(CXX) -Wall -O -o debug/resourcen.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/resourcen.cpp
+	$(CXX) -Wall -O -o debug/resourcen.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/resourcen.cpp
 
 debug/strings.o:	$(srcdir)/core/strings.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/strings.cpp<<<
-	$(CXX) -Wall -O -o debug/strings.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/strings.cpp
+	$(CXX) -Wall -O -o debug/strings.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/strings.cpp
 
 debug/time.o:	$(srcdir)/core/time.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>core/time.cpp<<<
-	$(CXX) -Wall -O -o debug/time.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/core/time.cpp
+	$(CXX) -Wall -O -o debug/time.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/core/time.cpp
 
 ### VARS
 debug/CArray.o:	$(srcdir)/vars/CArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CArray.cpp<<<
-	$(CXX) -Wall -O -o debug/CArray.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CArray.cpp
+	$(CXX) -Wall -O -o debug/CArray.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CArray.cpp
 
 debug/CAssocArray.o:	$(srcdir)/vars/CAssocArray.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CAssocArray.cpp<<<
-	$(CXX) -Wall -O -o debug/CAssocArray.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CAssocArray.cpp
+	$(CXX) -Wall -O -o debug/CAssocArray.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CAssocArray.cpp
 
 debug/CBinary.o:	$(srcdir)/vars/CBinary.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CBinary.cpp<<<
-	$(CXX) -Wall -O -o debug/CBinary.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CBinary.cpp
+	$(CXX) -Wall -O -o debug/CBinary.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CBinary.cpp
 
 debug/CBool.o:	$(srcdir)/vars/CBool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CBool.cpp<<<
-	$(CXX) -Wall -O -o debug/CBool.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CBool.cpp
+	$(CXX) -Wall -O -o debug/CBool.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CBool.cpp
 
 debug/CDateTime.o:	$(srcdir)/vars/CDateTime.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CDateTime.cpp<<<
-	$(CXX) -Wall -O -o debug/CDateTime.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CDateTime.cpp
+	$(CXX) -Wall -O -o debug/CDateTime.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CDateTime.cpp
 
 debug/CInt.o:	$(srcdir)/vars/CInt.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CInt.cpp<<<
-	$(CXX) -Wall -O -o debug/CInt.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CInt.cpp
+	$(CXX) -Wall -O -o debug/CInt.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CInt.cpp
 
 debug/CString.o:	$(srcdir)/vars/CString.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CString.cpp<<<
-	$(CXX) -Wall -O -o debug/CString.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CString.cpp
+	$(CXX) -Wall -O -o debug/CString.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CString.cpp
 
 debug/CVar.o:	$(srcdir)/vars/CVar.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CVar.cpp<<<
-	$(CXX) -Wall -O -o debug/CVar.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CVar.cpp
+	$(CXX) -Wall -O -o debug/CVar.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CVar.cpp
 
 debug/CWString.o:	$(srcdir)/vars/CWString.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>vars/CWString.cpp<<<
-	$(CXX) -Wall -O -o debug/CWString.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/vars/CWString.cpp
+	$(CXX) -Wall -O -o debug/CWString.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/vars/CWString.cpp
 
 ### MATH
 debug/ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>math/calc.cpp<<<
-	$(CXX) -Wall -O -o debug/ca.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/calc.cpp
+	$(CXX) -Wall -O -o debug/ca.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/math/calc.cpp
 
 debug/crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>math/crc32.cpp<<<
-	$(CXX) -Wall -O -o debug/crc32.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/crc32.cpp
+	$(CXX) -Wall -O -o debug/crc32.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/math/crc32.cpp
 
 debug/math.o:	$(srcdir)/math/math.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>math/math.cpp<<<
-	$(CXX) -Wall -O -o debug/math.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/math.cpp
+	$(CXX) -Wall -O -o debug/math.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/math/math.cpp
 
 debug/md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>math/md5.cpp<<<
-	$(CXX) -Wall -O -o debug/md5.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/md5.cpp
+	$(CXX) -Wall -O -o debug/md5.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/math/md5.cpp
 
 debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>math/random.cpp<<<
-	$(CXX) -Wall -O -o debug/random.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/math/random.cpp
+	$(CXX) -Wall -O -o debug/random.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/math/random.cpp
 
 ### INTERNET
 debug/CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CCurl.cpp<<<
-	$(CXX) -Wall -O -o debug/CCurl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CCurl.cpp
+	$(CXX) -Wall -O -o debug/CCurl.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CCurl.cpp
 
 debug/CHostsAllow.o:	$(srcdir)/internet/CHostsAllow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CHostsAllow.cpp<<<
-	$(CXX) -Wall -O -o debug/CHostsAllow.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CHostsAllow.cpp
+	$(CXX) -Wall -O -o debug/CHostsAllow.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CHostsAllow.cpp
 
 debug/CReadMail.o:	$(srcdir)/internet/CReadMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CReadMail.cpp<<<
-	$(CXX) -Wall -O -o debug/CReadMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CReadMail.cpp
+	$(CXX) -Wall -O -o debug/CReadMail.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CReadMail.cpp
 
 debug/CResolver.o:	$(srcdir)/internet/CResolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CResolver.cpp<<<
-	$(CXX) -Wall -O -o debug/CResolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CResolver.cpp
+	$(CXX) -Wall -O -o debug/CResolver.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CResolver.cpp
 
 debug/CSendMail.o:	$(srcdir)/internet/CSendMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CSendMail.cpp<<<
-	$(CXX) -Wall -O -o debug/CSendMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CSendMail.cpp
+	$(CXX) -Wall -O -o debug/CSendMail.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CSendMail.cpp
 
 debug/CSocketMessage.o:	$(srcdir)/internet/CSocketMessage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CSocketMessage.cpp<<<
-	$(CXX) -Wall -O -o debug/CSocketMessage.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CSocketMessage.cpp
+	$(CXX) -Wall -O -o debug/CSocketMessage.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CSocketMessage.cpp
 
 debug/CTCPSocket.o:	$(srcdir)/internet/CTCPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CTCPSocket.cpp<<<
-	$(CXX) -Wall -O -o debug/CTCPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CTCPSocket.cpp
+	$(CXX) -Wall -O -o debug/CTCPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CTCPSocket.cpp
 
 debug/CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CUDPSocket.cpp<<<
-	$(CXX) -Wall -O -o debug/CUDPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CUDPSocket.cpp
+	$(CXX) -Wall -O -o debug/CUDPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CUDPSocket.cpp
 
 debug/CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CWikiParser.cpp<<<
-	$(CXX) -Wall -O -o debug/CWikiParser.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/CWikiParser.cpp
+	$(CXX) -Wall -O -o debug/CWikiParser.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/CWikiParser.cpp
 
 debug/openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/openssl.cpp<<<
-	$(CXX) -Wall -O -o debug/openssl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/openssl.cpp
+	$(CXX) -Wall -O -o debug/openssl.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/openssl.cpp
 
 debug/resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<
-	$(CXX) -Wall -O -o debug/resolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/resolver.cpp
+	$(CXX) -Wall -O -o debug/resolver.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/resolver.cpp
 
 debug/socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/socket.cpp<<<
-	$(CXX) -Wall -O -o debug/socket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/socket.cpp
+	$(CXX) -Wall -O -o debug/socket.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/socket.cpp
 
 debug/webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/webserver.cpp<<<
-	$(CXX) -Wall -O -o debug/webserver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/internet/webserver.cpp
+	$(CXX) -Wall -O -o debug/webserver.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/internet/webserver.cpp
 
 ### INTERNET
 debug/nossl_CCurl.o:	$(srcdir)/internet/CCurl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CCurl.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CCurl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CCurl.cpp
+	$(CXX) -Wall -O -o debug/nossl_CCurl.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CCurl.cpp
 
 debug/nossl_CHostsAllow.o:	$(srcdir)/internet/CHostsAllow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CHostsAllow.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CHostsAllow.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CHostsAllow.cpp
+	$(CXX) -Wall -O -o debug/nossl_CHostsAllow.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CHostsAllow.cpp
 
 debug/nossl_CReadMail.o:	$(srcdir)/internet/CReadMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CReadMail.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CReadMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CReadMail.cpp
+	$(CXX) -Wall -O -o debug/nossl_CReadMail.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CReadMail.cpp
 
 debug/nossl_CResolver.o:	$(srcdir)/internet/CResolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CResolver.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CResolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CResolver.cpp
+	$(CXX) -Wall -O -o debug/nossl_CResolver.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CResolver.cpp
 
 debug/nossl_CSendMail.o:	$(srcdir)/internet/CSendMail.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CSendMail.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CSendMail.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CSendMail.cpp
+	$(CXX) -Wall -O -o debug/nossl_CSendMail.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CSendMail.cpp
 
 debug/nossl_CSocketMessage.o:	$(srcdir)/internet/CSocketMessage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CSocketMessage.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CSocketMessage.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CSocketMessage.cpp
+	$(CXX) -Wall -O -o debug/nossl_CSocketMessage.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CSocketMessage.cpp
 
 debug/nossl_CTCPSocket.o:	$(srcdir)/internet/CTCPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CTCPSocket.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CTCPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CTCPSocket.cpp
+	$(CXX) -Wall -O -o debug/nossl_CTCPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CTCPSocket.cpp
 
 debug/nossl_CUDPSocket.o:	$(srcdir)/internet/CUDPSocket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CUDPSocket.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CUDPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CUDPSocket.cpp
+	$(CXX) -Wall -O -o debug/nossl_CUDPSocket.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CUDPSocket.cpp
 
 debug/nossl_CWikiParser.o:	$(srcdir)/internet/CWikiParser.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/CWikiParser.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_CWikiParser.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CWikiParser.cpp
+	$(CXX) -Wall -O -o debug/nossl_CWikiParser.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/CWikiParser.cpp
 
 debug/nossl_openssl.o:	$(srcdir)/internet/openssl.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/openssl.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_openssl.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/openssl.cpp
+	$(CXX) -Wall -O -o debug/nossl_openssl.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/openssl.cpp
 
 debug/nossl_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_resolver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/resolver.cpp
+	$(CXX) -Wall -O -o debug/nossl_resolver.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/resolver.cpp
 
 debug/nossl_socket.o:	$(srcdir)/internet/socket.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/socket.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_socket.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/socket.cpp
+	$(CXX) -Wall -O -o debug/nossl_socket.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/socket.cpp
 
 debug/nossl_webserver.o:	$(srcdir)/internet/webserver.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>internet/webserver.cpp<<<
-	$(CXX) -Wall -O -o debug/nossl_webserver.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/webserver.cpp
+	$(CXX) -Wall -O -o debug/nossl_webserver.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG -D NO_SSL $(srcdir)/internet/webserver.cpp
 
 ### DATABASE
 debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Database.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Database.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Database.cpp
+	$(CXX) -Wall -O -o debug/db_Database.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/Database.cpp
 
 debug/db_GenericResult.o:	$(srcdir)/database/GenericResult.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/GenericResult.cpp<<<
-	$(CXX) -Wall -O -o debug/db_GenericResult.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/GenericResult.cpp
+	$(CXX) -Wall -O -o debug/db_GenericResult.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/GenericResult.cpp
 
 debug/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/MySQL.cpp<<<
-	$(CXX) -Wall -O -o debug/db_MySQL.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/MySQL.cpp
+	$(CXX) -Wall -O -o debug/db_MySQL.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/MySQL.cpp
 
 debug/db_Pool.o:	$(srcdir)/database/Pool.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Pool.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Pool.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Pool.cpp
+	$(CXX) -Wall -O -o debug/db_Pool.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/Pool.cpp
 
 debug/db_PoolEx.o:	$(srcdir)/database/PoolEx.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/PoolEx.cpp<<<
-	$(CXX) -Wall -O -o debug/db_PoolEx.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/PoolEx.cpp
+	$(CXX) -Wall -O -o debug/db_PoolEx.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/PoolEx.cpp
 
 debug/db_Postgres.o:	$(srcdir)/database/Postgres.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Postgres.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Postgres.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Postgres.cpp
+	$(CXX) -Wall -O -o debug/db_Postgres.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/Postgres.cpp
 
 debug/db_Result.o:	$(srcdir)/database/Result.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Result.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Result.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Result.cpp
+	$(CXX) -Wall -O -o debug/db_Result.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/Result.cpp
 
 debug/db_Sqlite.o:	$(srcdir)/database/Sqlite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Sqlite.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Sqlite.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Sqlite.cpp
+	$(CXX) -Wall -O -o debug/db_Sqlite.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/Sqlite.cpp
 
 debug/db_Sybase.o:	$(srcdir)/database/Sybase.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-db.h 
 	###############################################################################
 	# Compiling >>>database/Sybase.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Sybase.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/database/Sybase.cpp
+	$(CXX) -Wall -O -o debug/db_Sybase.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/database/Sybase.cpp
 
 ### GRAFIX6
 debug/gfx6_Blit.o:	$(srcdir)/grafix6/Blit.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Blit.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Blit.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Blit.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Blit.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Blit.cpp
 
 debug/gfx6_CDrawable.o:	$(srcdir)/grafix6/CDrawable.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CDrawable.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CDrawable.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CDrawable.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CDrawable.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CDrawable.cpp
 
 debug/gfx6_CFilter.o:	$(srcdir)/grafix6/CFilter.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CFilter.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter.cpp
 
 debug/gfx6_CFilter_BMP.o:	$(srcdir)/grafix6/CFilter_BMP.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_BMP.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter_BMP.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_BMP.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_BMP.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_BMP.cpp
 
 debug/gfx6_CFilter_GIF.o:	$(srcdir)/grafix6/CFilter_GIF.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_GIF.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter_GIF.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_GIF.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_GIF.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_GIF.cpp
 
 debug/gfx6_CFilter_JPEG.o:	$(srcdir)/grafix6/CFilter_JPEG.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_JPEG.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter_JPEG.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_JPEG.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_JPEG.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_JPEG.cpp
 
 debug/gfx6_CFilter_PNG.o:	$(srcdir)/grafix6/CFilter_PNG.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_PNG.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter_PNG.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_PNG.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_PNG.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_PNG.cpp
 
 debug/gfx6_CFilter_PPM.o:	$(srcdir)/grafix6/CFilter_PPM.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_PPM.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter_PPM.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_PPM.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_PPM.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_PPM.cpp
 
 debug/gfx6_CFilter_TGA.o:	$(srcdir)/grafix6/CFilter_TGA.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CFilter_TGA.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CFilter_TGA.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_TGA.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CFilter_TGA.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CFilter_TGA.cpp
 
 debug/gfx6_CGrafix.o:	$(srcdir)/grafix6/CGrafix.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 	$(incdir)/ppl6-tk.h
 	###############################################################################
 	# Compiling >>>grafix6/CGrafix.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CGrafix.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CGrafix.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CGrafix.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CGrafix.cpp
 
 debug/gfx6_CImage.o:	$(srcdir)/grafix6/CImage.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CImage.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CImage.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CImage.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CImage.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CImage.cpp
 
 debug/gfx6_CImageList.o:	$(srcdir)/grafix6/CImageList.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CImageList.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CImageList.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CImageList.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CImageList.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CImageList.cpp
 
 debug/gfx6_CSprite.o:	$(srcdir)/grafix6/CSprite.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CSprite.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CSprite.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CSprite.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CSprite.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CSprite.cpp
 
 debug/gfx6_CSurface.o:	$(srcdir)/grafix6/CSurface.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/CSurface.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_CSurface.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/CSurface.cpp
+	$(CXX) -Wall -O -o debug/gfx6_CSurface.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/CSurface.cpp
 
 debug/gfx6_Colors.o:	$(srcdir)/grafix6/Colors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Colors.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Colors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Colors.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Colors.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Colors.cpp
 
 debug/gfx6_Font4.o:	$(srcdir)/grafix6/Font4.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Font4.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Font4.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Font4.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Font4.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Font4.cpp
 
 debug/gfx6_Font5.o:	$(srcdir)/grafix6/Font5.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Font5.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Font5.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Font5.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Font5.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Font5.cpp
 
 debug/gfx6_Font6.o:	$(srcdir)/grafix6/Font6.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Font6.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Font6.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Font6.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Font6.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Font6.cpp
 
 debug/gfx6_FontFreeType.o:	$(srcdir)/grafix6/FontFreeType.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/FontFreeType.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_FontFreeType.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/FontFreeType.cpp
+	$(CXX) -Wall -O -o debug/gfx6_FontFreeType.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/FontFreeType.cpp
 
 debug/gfx6_Fonts.o:	$(srcdir)/grafix6/Fonts.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Fonts.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Fonts.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Fonts.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Fonts.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Fonts.cpp
 
 debug/gfx6_GFXEngine.o:	$(srcdir)/grafix6/GFXEngine.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/GFXEngine.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_GFXEngine.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngine.cpp
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngine.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngine.cpp
 
 debug/gfx6_GFXEngineDX9.o:	$(srcdir)/grafix6/GFXEngineDX9.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/GFXEngineDX9.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_GFXEngineDX9.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineDX9.cpp
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngineDX9.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineDX9.cpp
 
 debug/gfx6_GFXEngineSDL.o:	$(srcdir)/grafix6/GFXEngineSDL.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/GFXEngineSDL.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_GFXEngineSDL.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineSDL.cpp
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngineSDL.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineSDL.cpp
 
 debug/gfx6_GFXEngineSoftware.o:	$(srcdir)/grafix6/GFXEngineSoftware.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/GFXEngineSoftware.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_GFXEngineSoftware.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineSoftware.cpp
+	$(CXX) -Wall -O -o debug/gfx6_GFXEngineSoftware.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/GFXEngineSoftware.cpp
 
 debug/gfx6_GrafikErrors.o:	$(srcdir)/grafix6/GrafikErrors.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/GrafikErrors.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_GrafikErrors.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/GrafikErrors.cpp
+	$(CXX) -Wall -O -o debug/gfx6_GrafikErrors.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/GrafikErrors.cpp
 
 debug/gfx6_Lines.o:	$(srcdir)/grafix6/Lines.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Lines.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Lines.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Lines.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Lines.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Lines.cpp
 
 debug/gfx6_Pixel.o:	$(srcdir)/grafix6/Pixel.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Pixel.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Pixel.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Pixel.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Pixel.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Pixel.cpp
 
 debug/gfx6_Point.o:	$(srcdir)/grafix6/Point.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Point.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Point.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Point.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Point.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Point.cpp
 
 debug/gfx6_Point3D.o:	$(srcdir)/grafix6/Point3D.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Point3D.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Point3D.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Point3D.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Point3D.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Point3D.cpp
 
 debug/gfx6_RGBFormat.o:	$(srcdir)/grafix6/RGBFormat.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/RGBFormat.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_RGBFormat.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/RGBFormat.cpp
+	$(CXX) -Wall -O -o debug/gfx6_RGBFormat.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/RGBFormat.cpp
 
 debug/gfx6_Rect.o:	$(srcdir)/grafix6/Rect.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Rect.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Rect.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Rect.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Rect.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Rect.cpp
 
 debug/gfx6_Shapes.o:	$(srcdir)/grafix6/Shapes.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Shapes.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Shapes.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Shapes.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Shapes.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Shapes.cpp
 
 debug/gfx6_Size.o:	$(srcdir)/grafix6/Size.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix6/Size.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx6_Size.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/grafix6/Size.cpp
+	$(CXX) -Wall -O -o debug/gfx6_Size.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/grafix6/Size.cpp
 
 ### GRAFIX6
 debug/tk_Area.o:	$(srcdir)/toolkit/Area.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Area.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Area.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Area.cpp
+	$(CXX) -Wall -O -o debug/tk_Area.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Area.cpp
 
 debug/tk_Button.o:	$(srcdir)/toolkit/Button.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Button.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Button.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Button.cpp
+	$(CXX) -Wall -O -o debug/tk_Button.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Button.cpp
 
 debug/tk_Checkbox.o:	$(srcdir)/toolkit/Checkbox.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Checkbox.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Checkbox.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Checkbox.cpp
+	$(CXX) -Wall -O -o debug/tk_Checkbox.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Checkbox.cpp
 
 debug/tk_Event.o:	$(srcdir)/toolkit/Event.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Event.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Event.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Event.cpp
+	$(CXX) -Wall -O -o debug/tk_Event.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Event.cpp
 
 debug/tk_Frame.o:	$(srcdir)/toolkit/Frame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Frame.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Frame.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Frame.cpp
+	$(CXX) -Wall -O -o debug/tk_Frame.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Frame.cpp
 
 debug/tk_Input.o:	$(srcdir)/toolkit/Input.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Input.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Input.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Input.cpp
+	$(CXX) -Wall -O -o debug/tk_Input.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Input.cpp
 
 debug/tk_Label.o:	$(srcdir)/toolkit/Label.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Label.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Label.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Label.cpp
+	$(CXX) -Wall -O -o debug/tk_Label.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Label.cpp
 
 debug/tk_Picture.o:	$(srcdir)/toolkit/Picture.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Picture.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Picture.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Picture.cpp
+	$(CXX) -Wall -O -o debug/tk_Picture.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Picture.cpp
 
 debug/tk_RadioButton.o:	$(srcdir)/toolkit/RadioButton.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/RadioButton.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_RadioButton.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/RadioButton.cpp
+	$(CXX) -Wall -O -o debug/tk_RadioButton.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/RadioButton.cpp
 
 debug/tk_Slider.o:	$(srcdir)/toolkit/Slider.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Slider.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Slider.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Slider.cpp
+	$(CXX) -Wall -O -o debug/tk_Slider.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Slider.cpp
 
 debug/tk_SubWindow.o:	$(srcdir)/toolkit/SubWindow.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/SubWindow.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_SubWindow.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/SubWindow.cpp
+	$(CXX) -Wall -O -o debug/tk_SubWindow.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/SubWindow.cpp
 
 debug/tk_Tab.o:	$(srcdir)/toolkit/Tab.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Tab.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Tab.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Tab.cpp
+	$(CXX) -Wall -O -o debug/tk_Tab.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Tab.cpp
 
 debug/tk_Widget.o:	$(srcdir)/toolkit/Widget.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Widget.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Widget.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Widget.cpp
+	$(CXX) -Wall -O -o debug/tk_Widget.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Widget.cpp
 
 debug/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile $(incdir)/ppl6-grafix.h $(incdir)/ppl6-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/Window.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_Window.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/toolkit/Window.cpp
+	$(CXX) -Wall -O -o debug/tk_Window.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Window.cpp
 
 ### SOUND
 debug/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CID3Tag.cpp<<<
-	$(CXX) -Wall -O -o debug/CID3Tag.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CID3Tag.cpp
+	$(CXX) -Wall -O -o debug/CID3Tag.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CID3Tag.cpp
 
 debug/CIcecast.o:	$(srcdir)/sound/CIcecast.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CIcecast.cpp<<<
-	$(CXX) -Wall -O -o debug/CIcecast.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CIcecast.cpp
+	$(CXX) -Wall -O -o debug/CIcecast.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CIcecast.cpp
 
 debug/CMP3Decode.o:	$(srcdir)/sound/CMP3Decode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CMP3Decode.cpp<<<
-	$(CXX) -Wall -O -o debug/CMP3Decode.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode.cpp
+	$(CXX) -Wall -O -o debug/CMP3Decode.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode.cpp
 
 debug/CMP3Decode_Lame.o:	$(srcdir)/sound/CMP3Decode_Lame.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CMP3Decode_Lame.cpp<<<
-	$(CXX) -Wall -O -o debug/CMP3Decode_Lame.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_Lame.cpp
+	$(CXX) -Wall -O -o debug/CMP3Decode_Lame.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_Lame.cpp
 
 debug/CMP3Decode_LibMad.o:	$(srcdir)/sound/CMP3Decode_LibMad.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CMP3Decode_LibMad.cpp<<<
-	$(CXX) -Wall -O -o debug/CMP3Decode_LibMad.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_LibMad.cpp
+	$(CXX) -Wall -O -o debug/CMP3Decode_LibMad.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_LibMad.cpp
 
 debug/CMP3Decode_Mpg123.o:	$(srcdir)/sound/CMP3Decode_Mpg123.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CMP3Decode_Mpg123.cpp<<<
-	$(CXX) -Wall -O -o debug/CMP3Decode_Mpg123.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_Mpg123.cpp
+	$(CXX) -Wall -O -o debug/CMP3Decode_Mpg123.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Decode_Mpg123.cpp
 
 debug/CMP3Encode.o:	$(srcdir)/sound/CMP3Encode.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CMP3Encode.cpp<<<
-	$(CXX) -Wall -O -o debug/CMP3Encode.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Encode.cpp
+	$(CXX) -Wall -O -o debug/CMP3Encode.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Encode.cpp
 
 debug/mp3.o:	$(srcdir)/sound/mp3.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/mp3.cpp<<<
-	$(CXX) -Wall -O -o debug/mp3.o -c -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG  $(srcdir)/sound/mp3.cpp
+	$(CXX) -Wall -O -o debug/mp3.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/mp3.cpp
 
 ### ASM
 debug/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile

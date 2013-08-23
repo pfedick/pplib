@@ -127,6 +127,7 @@ while test $# -gt 0; do
       basename=libppl6-debug
       libname=ppl6-debug
       objects=debug
+      LIBS="$LIBS @GCOV_LDFLAGS@"
       ;;
     nossl)
       nossl=yes
