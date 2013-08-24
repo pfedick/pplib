@@ -1233,6 +1233,7 @@ int TranslateErrno(int e)
  * \see ppl6::SetErrorFromErrno(char *msg, ...)
  * */
 {
+#ifndef CPPCHECK
 	switch (e) {
 		case 0:
 			return 0;
@@ -1457,6 +1458,7 @@ int TranslateErrno(int e)
 #endif
 
 	};
+#endif	// CPPCHECK
 	//printf("errno: %i, %x\n",errno,errno);
 	return 3;
 }
