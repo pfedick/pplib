@@ -142,6 +142,7 @@ int TranslateGaiError(int e)
 #ifdef _WIN32
 	return TranslateSocketError();
 #else
+#ifndef CPPCHECK
 	switch (e) {
 #ifdef EAI_AGAIN
 		case EAI_AGAIN: return 479;	// temporary failure in name resolution
@@ -188,6 +189,8 @@ int TranslateGaiError(int e)
 	
 	}
 #endif
+
+#endif //#ifndef CPPCHECK
 	return 312;
 }
 
