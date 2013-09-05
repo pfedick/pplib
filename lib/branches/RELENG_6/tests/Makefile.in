@@ -12,7 +12,8 @@ OBJECTS = compile/wordlist.o \
 	compile/strings.o \
 	compile/widestrings.o \
 	compile/assocarray.o \
-	compile/clog.o
+	compile/clog.o \
+	compile/time.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -57,7 +58,11 @@ compile/main.o: src/main.cpp Makefile
 compile/clog.o: src/clog.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/clog.o -c src/clog.cpp
-	
+
+compile/time.o: src/time.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/time.o -c src/time.cpp
+		
 compile/datetime.o: src/datetime.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/datetime.o -c src/datetime.cpp
