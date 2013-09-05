@@ -51,11 +51,11 @@ class TimeTest : public ::testing::Test {
 	protected:
 	TimeTest() {
 		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
+			printf ("setlocale fehlgeschlagen: LC_CTYPE\n");
 			throw std::exception();
 		}
 		if (setlocale(LC_TIME,"de_DE.UTF-8")==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
+			printf ("setlocale fehlgeschlagen: LC_TIME\n");
 			throw std::exception();
 		}
 		ppl6::SetGlobalEncoding("UTF-8");
