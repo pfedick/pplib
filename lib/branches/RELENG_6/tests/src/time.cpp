@@ -54,6 +54,10 @@ class TimeTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
+		if (setlocale(LC_TIME,"de_DE.UTF-8")==NULL) {
+			printf ("setlocale fehlgeschlagen\n");
+			throw std::exception();
+		}
 		ppl6::SetGlobalEncoding("UTF-8");
 	}
 	virtual ~TimeTest() {
