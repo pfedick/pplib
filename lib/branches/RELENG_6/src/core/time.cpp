@@ -1063,6 +1063,7 @@ ppluint64 MkTime(CString *iso8601date, PPLTIME *t)
 		return 0;
 	}
 	struct tm Time;
+	memset(&Time,0,sizeof(Time));
 	Time.tm_mday = atoi(iso8601date->GetMatch(3));
 	Time.tm_mon  = atoi(iso8601date->GetMatch(2))-1;
 	Time.tm_year = atoi(iso8601date->GetMatch(1))-1900;

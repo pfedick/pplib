@@ -42,6 +42,8 @@ Version 6.4.17
     alte Funktionalität und erwarten einen Formatstring.
   - Bugfix: fehlendes Semikolon in EscapeHTMLTags und UnescapeHTMLTags beim
     Tag "&amp;" ergänzt
+  - Bugfix: "Conditional jump or move depends on uninitialised value" in
+    MkTime behoben.
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog
