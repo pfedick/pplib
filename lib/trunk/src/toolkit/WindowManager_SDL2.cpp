@@ -51,7 +51,7 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 #ifdef HAVE_SDL2
-#include <SDL2/SDL.h>
+#include <SDL.h>
 #endif
 
 namespace ppl7 {
@@ -108,7 +108,22 @@ static RGBFormat SDL2RGBFormat(const Uint32 f)
 		case SDL_PIXELFORMAT_ARGB8888: return RGBFormat::A8R8G8B8;
 		case SDL_PIXELFORMAT_ABGR8888: return RGBFormat::A8B8G8R8;
 	}
-	throw UnsupportedColorFormatException();
+
+	switch (f) {
+		case SDL_PIXELFORMAT_RGB888: printf ("SDL_PIXELFORMAT_RGB888\n"); break;
+		case SDL_PIXELFORMAT_RGBX8888: printf ("SDL_PIXELFORMAT_RGBX8888\n"); break;
+		case SDL_PIXELFORMAT_BGR888: printf ("SDL_PIXELFORMAT_BGR888\n"); break;
+		case SDL_PIXELFORMAT_BGRX8888: printf ("SDL_PIXELFORMAT_BGRX8888\n"); break;
+		case SDL_PIXELFORMAT_ARGB8888: printf ("SDL_PIXELFORMAT_ARGB8888\n"); break;
+		case SDL_PIXELFORMAT_RGBA8888: printf ("SDL_PIXELFORMAT_RGBA8888\n"); break;
+		case SDL_PIXELFORMAT_ABGR8888: printf ("SDL_PIXELFORMAT_ABGR8888\n"); break;
+		case SDL_PIXELFORMAT_BGRA8888: printf ("SDL_PIXELFORMAT_BGRA8888\n"); break;
+		case SDL_PIXELFORMAT_ARGB2101010: printf ("SDL_PIXELFORMAT_ARGB2101010\n"); break;
+		default: printf ("Verdammt!\n"); break;
+
+	}
+
+	throw UnsupportedColorFormatException("format=%d",f);
 }
 
 static Uint32 RGBFormat2SDL(const RGBFormat &format)
@@ -381,6 +396,7 @@ WindowManager_SDL2::WindowManager_SDL2()
 	atexit(SDL_Quit);
 
 	SDL_DisplayMode current;
+	memset(&current,0,sizeof(SDL_DisplayMode));
 	current.driverdata=0;
 	if (SDL_GetDesktopDisplayMode(0, &current)!=0) {
 		throw InitializationException("SDL-ERROR: %s\n",SDL_GetError());
