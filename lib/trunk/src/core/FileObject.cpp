@@ -401,7 +401,8 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
  * @param buffer String-Objekt, in dem die gelesenen Daten gespeichert werden
  * sollen.
  * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall wird eine Exception geworfen.
+ * @return Bei Erfolg wird 1 zurückgegeben, bei Erreichen des Dateiende 0.
+ * Im Fehlerfall wird eine Exception geworfen.
  * Der Inhalt von \p buffer ist im Fehlerfall undefiniert.
  */
 int FileObject::gets (String &buffer, size_t num)
@@ -436,12 +437,12 @@ int FileObject::gets (String &buffer, size_t num)
  *
  * @param num Anzahl zu lesender Zeichen
  * @return Die Funktion gibt ein String-Objekt mit den gelesenen Daten zurück.
- * Im Fehlerfall wird eine Exception geworfen.
+ * Im Fehlerfall (auch bei Dateiende) wird eine Exception geworfen.
  */
 String FileObject::gets (size_t num)
 {
 	String s;
-	gets(s,num);
+	if (!gets(s,num)) throw EndOfFileException();
 	return s;
 }
 
@@ -460,7 +461,8 @@ String FileObject::gets (size_t num)
  * @param num Anzahl zu lesender Zeichen. Hierbei handelt es sich tatsächlich um
  * Zeichen, nicht um Bytes. Die Anzahl zu lesender Bytes wird intern mit der Formel
  * \p num * \c sizeof(wchar_t) errechnet.
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall wird eine Exception geworfen.
+ * @return Bei Erfolg wird 1 zurückgegeben, bei Erreichen des Dateiende 0.
+ * Im Fehlerfall wird eine Exception geworfen.
  * Der Inhalt von \p buffer ist im Fehlerfall undefiniert.
  */
 int FileObject::getws (String &buffer, size_t num)
@@ -497,12 +499,12 @@ int FileObject::getws (String &buffer, size_t num)
  * Zeichen, nicht um Bytes. Die Anzahl zu lesender Bytes wird intern mit der Formel
  * \p num * \c sizeof(wchar_t) errechnet.
  * @return Die Funktion gibt ein String-Objekt mit den gelesenen Daten zurück.
- * Im Fehlerfall wird eine Exception geworfen.
+ * Im Fehlerfall (auch bei Dateiende) wird eine Exception geworfen.
  */
 String FileObject::getws (size_t num)
 {
 	String s;
-	getws(s,num);
+	if (!getws(s,num)) throw EndOfFileException();
 	return s;
 }
 
@@ -783,8 +785,8 @@ size_t FileObject::fwrite(const void * ptr, size_t size, size_t nmemb)
  * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
  * sein und mindestens \p num Bytes groß sein.
  * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall wird eine
- * Exception geworfen.
+ * @return Bei Erfolg wird \p buffer zurückgegeben, bei Dateiende wird NULL
+ * zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
  */
 char *FileObject::fgets (char *buffer, size_t num)
 {
@@ -805,11 +807,12 @@ char *FileObject::fgets (char *buffer, size_t num)
  * geschrieben werden sollen. Dieser muss vorher vom Aufrufer allokiert worden
  * sein und mindestens \p num * \c sizeof(wchar_t) Bytes groß sein.
  * @param num Anzahl zu lesender Zeichen
- * @return Bei Erfolg wird \p buffer zurückgegeben, im Fehlerfall wird eine
- * Exception geworfen.
+ * @return Bei Erfolg wird \p buffer zurückgegeben, bei Dateiende wird NULL
+ * zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
  *
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
- * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
+ * verfügbar. In diesem Fall wird eine \exception UnimplementedVirtualFunctionException
+ * geworfen.
  */
 wchar_t *FileObject::fgetws (wchar_t *buffer, size_t num)
 {

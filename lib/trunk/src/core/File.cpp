@@ -796,7 +796,7 @@ char * File::fgets (char *buffer, size_t num)
 	res=::fgets(buffer, num, (FILE*)ff);
 	if (res==NULL) {
 		//suberr=::ferror((FILE*)ff);
-		if (::feof((FILE*)ff)) throw EndOfFileException();
+		if (::feof((FILE*)ff)) return NULL;
 		else throwErrno(errno,filename());
 	}
 	ppluint64 by=(ppluint64)strlen(buffer);
@@ -816,7 +816,7 @@ wchar_t *File::fgetws (wchar_t *buffer, size_t num)
 	res=::fgetws(buffer, num, (FILE*)ff);
 	if (res==NULL) {
 		//suberr=::ferror((FILE*)ff);
-		if (::feof((FILE*)ff)) throw EndOfFileException();
+		if (::feof((FILE*)ff)) return NULL;
 		else throwErrno(errno,filename());
 	}
 	ppluint64 by=(ppluint64)wcslen(buffer)*sizeof(wchar_t);
