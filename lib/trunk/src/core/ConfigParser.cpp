@@ -328,7 +328,7 @@ void ConfigParser::deleteKey(const String &section, const String &key)
 	}
 }
 
-String ConfigParser::get(const String &key, const String &defaultvalue)
+String ConfigParser::get(const String &key, const String &defaultvalue) const
 {
 	if (!section) throw NoSectionSelectedException();
 	String ret;
@@ -340,7 +340,7 @@ String ConfigParser::get(const String &key, const String &defaultvalue)
 	return ret;
 }
 
-String ConfigParser::getFromSection(const String &section, const String &key, const String &defaultvalue)
+String ConfigParser::getFromSection(const String &section, const String &key, const String &defaultvalue) const
 {
 	SECTION *s=(SECTION *)findSection(section);
 	if (!s) return defaultvalue;
@@ -353,7 +353,7 @@ String ConfigParser::getFromSection(const String &section, const String &key, co
 	return ret;
 }
 
-bool ConfigParser::getBoolFromSection(const String &section, const String &key, bool defaultvalue)
+bool ConfigParser::getBoolFromSection(const String &section, const String &key, bool defaultvalue) const
 {
 	SECTION *s=(SECTION *)findSection(section);
 	if (!s) return defaultvalue;
@@ -366,7 +366,7 @@ bool ConfigParser::getBoolFromSection(const String &section, const String &key, 
 	return IsTrue(ret);
 }
 
-bool ConfigParser::getBool(const String &key, bool defaultvalue)
+bool ConfigParser::getBool(const String &key, bool defaultvalue) const
 {
 	if (!section) throw NoSectionSelectedException();
 	String ret;
@@ -378,7 +378,7 @@ bool ConfigParser::getBool(const String &key, bool defaultvalue)
 	return IsTrue(ret);
 }
 
-int ConfigParser::getIntFromSection(const String &section, const String &key, int defaultvalue)
+int ConfigParser::getIntFromSection(const String &section, const String &key, int defaultvalue) const
 {
 	SECTION *s=(SECTION *)findSection(section);
 	if (!s) return defaultvalue;
@@ -391,7 +391,7 @@ int ConfigParser::getIntFromSection(const String &section, const String &key, in
 	return ret.toInt();
 }
 
-int ConfigParser::getInt(const String &key, int defaultvalue)
+int ConfigParser::getInt(const String &key, int defaultvalue) const
 {
 	if (!section) throw NoSectionSelectedException();
 	String ret;

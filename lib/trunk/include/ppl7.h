@@ -1222,12 +1222,12 @@ class ConfigParser
 		void add(const String &section, const String &key, bool value);
 		void deleteKey(const String &key);
 		void deleteKey(const String &section, const String &key);
-		String get(const String &key, const String &defaultvalue=String());
-		bool	getBool(const String &key, bool defaultvalue=false);
-		int		getInt(const String &key, int defaultvalue=0);
-		String	getFromSection(const String &section, const String &key, const String &defaultvalue=String());
-		bool	getBoolFromSection(const String &section, const String &key, bool defaultvalue=false);
-		int		getIntFromSection(const String &section, const String &key, int defaultvalue=0);
+		String get(const String &key, const String &defaultvalue=String()) const;
+		bool	getBool(const String &key, bool defaultvalue=false) const;
+		int		getInt(const String &key, int defaultvalue=0) const;
+		String	getFromSection(const String &section, const String &key, const String &defaultvalue=String()) const;
+		bool	getBoolFromSection(const String &section, const String &key, bool defaultvalue=false) const;
+		int		getIntFromSection(const String &section, const String &key, int defaultvalue=0) const;
 		void reset();								// Zum Auslesen einer kompletten Section
 		bool getFirst(String &key, String &value);
 		bool getNext(String &key, String &value);
