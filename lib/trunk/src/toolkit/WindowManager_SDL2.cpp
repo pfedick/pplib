@@ -522,7 +522,10 @@ void WindowManager_SDL2::getMouseState(Point &p, int &buttonMask)
 
 void WindowManager_SDL2::startEventLoop()
 {
-
+	while (numWindows()>0) {
+		handleEvents();
+		ppl7::MSleep(5);
+	}
 }
 
 Window *WindowManager_SDL2::getWindow(ppluint32 id)
@@ -594,7 +597,10 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
 
     switch (event->window.event) {
     case SDL_WINDOWEVENT_SHOWN:
-        //fprintf(stderr, "Window %d shown", event->window.windowID);
+        //printf("Window %d shown", event->window.windowID);
+        w->clearScreen();
+        w->drawWidgets();
+        w->presentScreen();
         break;
     case SDL_WINDOWEVENT_HIDDEN:
         //fprintf(stderr, "Window %d hidden", event->window.windowID);
