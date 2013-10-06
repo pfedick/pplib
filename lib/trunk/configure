@@ -747,6 +747,8 @@ GTEST_LDFLAGS
 GTEST_CXXFLAGS
 GTEST_CPPFLAGS
 GTEST_CONFIG
+COND_GCOV_FALSE
+COND_GCOV_TRUE
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -871,6 +873,7 @@ enable_silent_rules
 enable_dependency_tracking
 enable_largefile
 with_x
+enable_gcov
 enable_gtest
 with_libbind
 with_jpeg
@@ -1570,6 +1573,7 @@ Optional Features:
   --disable-dependency-tracking
                           speeds up one-time build
   --disable-largefile     omit support for large files
+  --enable-gcov           use Gcov to test the test suite
   --enable-gtest          Enable tests using the Google C++ Testing Framework.
                           (Default is enabled.)
   --disable-oggtest       Do not try to compile and run a test Ogg program
@@ -8936,7 +8940,24 @@ fi
 fi
 
 
+# Check whether --enable-gcov was given.
+if test "${enable_gcov+set}" = set; then :
+  enableval=$enable_gcov;
+else
+  enable_gcov=no
+fi
+
+ if test '!' "$enable_gcov" = no; then
+  COND_GCOV_TRUE=
+  COND_GCOV_FALSE='#'
+else
+  COND_GCOV_TRUE='#'
+  COND_GCOV_FALSE=
+fi
+
+
 report_have_gtest="no"
+report_codecoverage_enabled="no"
 
 # Check whether --enable-gtest was given.
 if test "${enable_gtest+set}" = set; then :
@@ -9063,10 +9084,15 @@ if test "x$HAVE_GTEST" = "xyes"; then :
   GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 
 	report_have_gtest="yes"
-	GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-	GCOV_LDFLAGS="-lgcov"
+	if test '!' "$enable_gcov" = no
+	then
+		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+		GCOV_LDFLAGS="-lgcov"
 
 
+		report_codecoverage_enabled="yes"
+
+	fi
 
 else
   report_have_gtest="no"
@@ -17281,6 +17307,10 @@ if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${COND_GCOV_TRUE}" && test -z "${COND_GCOV_FALSE}"; then
+  as_fn_error $? "conditional \"COND_GCOV\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${HAVE_GTEST_TRUE}" && test -z "${HAVE_GTEST_FALSE}"; then
   as_fn_error $? "conditional \"HAVE_GTEST\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -18678,7 +18708,10 @@ fi
 ** Other:
 **   PCRE:                 $report_have_pcre
 **   ICONV:                $report_have_iconv
+**
+** Testing:
 **   Unittests:            $report_have_gtest
+**   Codecoverage:         $report_codecoverage_enabled
 ******************************************************************************
 " >&5
 $as_echo "
@@ -18742,7 +18775,10 @@ $as_echo "
 ** Other:
 **   PCRE:                 $report_have_pcre
 **   ICONV:                $report_have_iconv
+**
+** Testing:
 **   Unittests:            $report_have_gtest
+**   Codecoverage:         $report_codecoverage_enabled
 ******************************************************************************
 " >&6; }
 

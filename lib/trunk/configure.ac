@@ -257,15 +257,28 @@ AX_TM_HAS_GMTOFF()
 
 AC_PATH_XTRA
 
+AC_ARG_ENABLE([gcov],
+  [AS_HELP_STRING([--enable-gcov],
+    [use Gcov to test the test suite])],
+    [],
+    [enable_gcov=no])
+AM_CONDITIONAL([COND_GCOV],[test '!' "$enable_gcov" = no])
+
 report_have_gtest="no"
+report_codecoverage_enabled="no"
 GTEST_LIB_CHECK([1.6.0],
 	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 	AC_SUBST(GTEST_PREFIX)
 	report_have_gtest="yes"
-	GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-	GCOV_LDFLAGS="-lgcov"
-	AC_SUBST(GCOV_CFLAGS)
-	AC_SUBST(GCOV_LDFLAGS)
+	if test '!' "$enable_gcov" = no
+	then
+		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+		GCOV_LDFLAGS="-lgcov"
+		AC_SUBST(GCOV_CFLAGS)
+		AC_SUBST(GCOV_LDFLAGS)
+		report_codecoverage_enabled="yes"
+	
+	fi
 	],
 	report_have_gtest="no"
 )
@@ -746,7 +759,10 @@ AC_MSG_RESULT([
 ** Other:
 **   PCRE:                 $report_have_pcre
 **   ICONV:                $report_have_iconv
+**
+** Testing:
 **   Unittests:            $report_have_gtest
+**   Codecoverage:         $report_codecoverage_enabled
 ******************************************************************************
 ])
 
