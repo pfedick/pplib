@@ -164,13 +164,9 @@ class SSLContext
 	friend class CTCPSocket;
 	private:
 		Mutex		mutex;
-		MemoryHeap	Heap;
 		void		*ctx;
-		void		*first_ref, *last_ref;
 		int			references;
 		void 		clear();
-		void *		registerSocket(TCPSocket *socket);
-		void		releaseSocket(TCPSocket *socket, void *data);
 	public:
 		enum SSL_METHOD {
 			SSLv2	= 1,
@@ -188,11 +184,13 @@ class SSLContext
 		};
 
 		SSLContext();
+		SSLContext(int method);
 		~SSLContext();
 		void 	init(int method=SSLv3);
 		bool	isInit();
 		void 	shutdown();
 		void 	*newSSL();
+		void	releaseSSL(void *ssl);
 		void	loadTrustedCAfromFile(const String &filename);
 		void	loadTrustedCAfromPath(const String &path);
 		void	loadCertificate(const String &certificate, const String &privatekey=String(), const String &password=String());

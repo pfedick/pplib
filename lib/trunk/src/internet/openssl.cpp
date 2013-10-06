@@ -392,18 +392,26 @@ int GetSSLErrors(std::list<SSLError> &e)
  */
 
 
- typedef struct tagSSLSockets {
- 	 tagSSLSockets	*next, *previous;
- 	 TCPSocket		*socket;
- } SSLSOCKETS;
-
-
 SSLContext::SSLContext()
 {
-	first_ref=last_ref=NULL;
 	ctx=NULL;
 	references=0;
-	Heap.init(sizeof(SSLSOCKETS),20,20);
+}
+
+/*!\brief SSL-Kontext initialisieren
+ *
+ * \desc
+ *
+ * @exception UnsupportedFeatureException
+ * @exception OutOfMemoryException
+ * @exception InitializationFailedException
+ * @exception IllegalArgumentException
+ */
+SSLContext::SSLContext(int method)
+{
+	ctx=NULL;
+	references=0;
+	init(method);
 }
 
 SSLContext::~SSLContext()
@@ -414,7 +422,6 @@ SSLContext::~SSLContext()
 void SSLContext::clear()
 {
 	shutdown();
-	Heap.clear();
 }
 
 /*!\brief SSL-Kontext initialisieren
@@ -524,60 +531,17 @@ void SSLContext::shutdown()
 	#endif
 }
 
-void * SSLContext::registerSocket(TCPSocket *socket)
-{
-	if (!socket) {
-		throw IllegalArgumentException("TCPSocket *socket");
-	}
-	mutex.lock();
-	if (!ctx) {
-		mutex.unlock();
-		throw SSLContextUninitializedException();
-	}
-	SSLSOCKETS *s=(SSLSOCKETS*)Heap.malloc();
-	if (!s) {
-		mutex.unlock();
-		throw OutOfMemoryException();
-	}
-	s->socket=socket;
-	s->previous=(SSLSOCKETS*)last_ref;
-	s->next=NULL;
-	if (last_ref) {
-		((SSLSOCKETS*)last_ref)->next=s;
-	} else {
-		last_ref=first_ref=s;
-	}
-	references++;
-	mutex.unlock();
-	return s;
-}
-
-void SSLContext::releaseSocket(TCPSocket *socket, void *data)
-{
-	if (!socket) {
-		throw IllegalArgumentException("TCPSocket *socket");
-	}
-	if (!data) {
-		throw IllegalArgumentException("void *data");
-	}
-	mutex.lock();
-	SSLSOCKETS *s=(SSLSOCKETS*)data;
-	if (s->socket!=socket) {
-		mutex.unlock();
-		throw SSLContextSocketMismatchException();
-	}
-	if (s->previous) s->previous->next=s->next;
-	if (s->next) s->next->previous=s->previous;
-	if (first_ref==s) first_ref=s->next;
-	if (last_ref==s) last_ref=s->previous;
-	Heap.free(s);
-	references--;
-	mutex.unlock();
-}
-
 /*!\brief create a new SSL structure for a connection
  *
  * \desc
+ * creates a new SSL structure which is needed to hold the data for a TLS/SSL connection.
+ * The new structure inherits the settings of the underlying SSLContext:
+ * - connection method (SSLv2/v3/TLSv1)
+ * - options
+ * - verification settings
+ * - timeout settings.
+ * \return The function allocates memory to hold a SSL-Structure. It must be freed by
+ * using SSLContext::releaseSSL
  *
  * @exception UnsupportedFeatureException
  * @exception SSLContextUninitializedException
@@ -599,8 +563,36 @@ void *SSLContext::newSSL()
 		mutex.unlock();
 		throw SSLException("SSL_new failed");
 	}
+	references++;
 	mutex.unlock();
 	return ssl;
+#endif
+}
+
+/*!\brief free an allocated SSL structure
+ *
+ * \desc
+ * Decrements the reference count of \p ssl, and removes the SSL
+ * structure pointed to by \p ssl and frees up the allocated memory if the
+ * reference count has reached 0.
+ * @param ssl Pointer to SSL structure received by SSLContext::newSSL
+ *
+ * @exception UnsupportedFeatureException is thrown, when OpenSSL is not supported
+ * @exception NullPointerException is thrown when \p ssl points to NULL
+ * @exception SSLContextReferenceCounterMismatchException is thrown, when the internal reference
+ * counter is already 0 when calling this function
+ */
+void SSLContext::releaseSSL(void *ssl)
+{
+#ifndef HAVE_OPENSSL
+	throw UnsupportedFeatureException("OpenSSL");
+#else
+	if (!ssl) throw NullPointerException();
+	mutex.lock();
+	SSL_free((SSL*)ssl);
+	if (references<=0) throw SSLContextReferenceCounterMismatchException();
+	references--;
+	mutex.unlock();
 #endif
 }
 
