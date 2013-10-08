@@ -52,7 +52,8 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/inet.o compile/resolver.o compile/widestrings.o \
 	compile/db_postgres.o \
 	compile/configparser.o \
-	compile/logger.o
+	compile/logger.o \
+	compile/tcpsocket.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -203,3 +204,7 @@ compile/resolver.o: src/resolver.cpp Makefile ppl7-tests.h
 compile/configparser.o: src/configparser.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/configparser.o -c src/configparser.cpp $(CFLAGS) $(LIB)
+	
+compile/tcpsocket.o: src/tcpsocket.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/tcpsocket.o -c src/tcpsocket.cpp $(CFLAGS) $(LIB)

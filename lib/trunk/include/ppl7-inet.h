@@ -47,10 +47,14 @@
 
 namespace ppl7 {
 
-PPLPARAMETERISEDEXCEPTION(NetworkException);
+PPLEXCEPTION(NetworkException,Exception);
 PPLNORMALEXCEPTION(WinsockInitialisationFailed);
 PPLPARAMETERISEDEXCEPTION(IdnConversionException);
 PPLPARAMETERISEDEXCEPTION(QueryFailedException);
+
+
+PPLEXCEPTION(NotConnectedException,NetworkException);
+
 
 // TODO
 //int GetHostByName(const char *name, CAssocArray *Result);
@@ -275,7 +279,6 @@ class SocketMessage
 };
 
 
-
 //! \brief TCP-Socket-Klasse
 class TCPSocket
 {
@@ -307,28 +310,29 @@ class TCPSocket
 		//! @name TCP-Client functions
 		//@{
 		void setSource(const String &interface, int port=0);
-		int connect(const String &host_and_port);
-		int connect(const String &host, int port);
+		void connect(const String &host_and_port);
+		void connect(const String &host, int port);
 		void setTimeoutConnect(int seconds, int useconds);
 		//@}
 
 		//! @name TCP-Server functions
 		//@{
-		int bind(const char *ip, int port);
-		virtual int receiveConnect(TCPSocket *socket, const char *host, int port);
-		int isListening();
-        int stopListen();
-		int signalStopListen();
-        int listen(int timeout=100);
+		void bind(const char *ip, int port);
+		virtual int receiveConnect(TCPSocket *socket, const String &host, int port);
+		bool isListening();
+        void stopListen();
+		void signalStopListen();
+        void listen(int timeout=100);
 
 		//@}
 
 		//! @name Common functions for client and server
 		//@{
-		int setTimeoutRead(int seconds, int useconds);
-		int setTimeoutWrite(int seconds, int useconds);
+		void setTimeoutRead(int seconds, int useconds);
+		void setTimeoutWrite(int seconds, int useconds);
 
-        int disconnect();
+        void disconnect();
+        void shutdown();
 		int write(const String &str);
 		int write(const ByteArrayPtr &bin);
 		int write(const String *str);
@@ -375,7 +379,6 @@ class TCPSocket
 		int getBytesWritten();
 		int getBytesRead();
 		int isConnected();
-        int shutdown();
         int	waitForMessage(SocketMessage &msg, int timeout=0);
         int watchThread(Thread *thread);
 		//@}

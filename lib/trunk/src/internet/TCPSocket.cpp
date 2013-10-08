@@ -132,6 +132,31 @@ namespace ppl7 {
 #define socklen_t	int
 #endif
 
+
+
+/*!\brief Eingehende Verbindung verarbeiten
+ *
+ * \desc
+ * Diese virtuelle Funktion wird innerhalb von CTCPSocket::Listen aufgerufen,
+ * wenn eine neue Verbindung zum Server aufgebaut wurde. Sie muss daher von
+ * der abgeleiteten Klasse reimplementiert werden.
+ *
+ * @param[in] socket Pointer auf eine neue Socket-Klasse, die die eingegangene
+ * Verbindung repräsentiert. Die Anwendung muss die Klasse nach Verbindungsende
+ * selbst mit "delete" löschen.
+ * @param[in] host Hostname oder IP der Gegenstelle
+ * @param[in] port TCP-Port der Gegenstelle
+ * @return Wird die Verbindung angenommen und von der Anwendung weiter
+ * verarbeitet (z.B. in einem eigenen Thread), muss die Funktion 1
+ * zurückgeben. Soll die Verbindung wieder getrennt werden, muss die
+ * Funktion 0 zurückgeben.
+ */
+int TCPSocket::receiveConnect(TCPSocket *socket, const String &host, int port)
+{
+	return 0;
+}
+
+
 /*!\brief Konstruktor der Klasse
  *
  *
@@ -166,7 +191,7 @@ TCPSocket::TCPSocket()
  */
 TCPSocket::~TCPSocket()
 {
-	sslShutdown();
+	// TODO: sslShutdown();
     if (connected) disconnect();
     if (islisten) disconnect();
 	PPLSOCKET *s=(PPLSOCKET*)socket;
@@ -204,6 +229,147 @@ void TCPSocket::setSource(const String &interface, int port)
 	SourceInterface=interface;
 	SourcePort=port;
 }
+
+/*!\brief Descriptor des Sockets auslesen
+ *
+ * \desc
+ * Mit dieser Funktion kann der Betriebssystem-spezifische Socket-Descriptor ausgelesen werden.
+ * Unter Unix ist dies ein File-Descriptor vom Typ Integer, unter Windows ein Socket-Descriptor
+ * vom Typ SOCKET.
+ *
+ * @return Betriebsystem-spezifischer Descriptor.
+ * @exception NotConnectedException Wird geworfen, wenn kein Socket geöffnet ist
+ */
+int TCPSocket::getDescriptor()
+{
+	if (!connected) throw NotConnectedException();
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+#ifdef _WIN32
+	return (int)s->sd;
+#else
+	return s->sd;
+#endif
+}
+
+/*!\brief Verbindung trennen
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird eine bestehende Verbindung beendet. Unter Windows ist die Funktion
+ * identisch mit CTCPSocket::shutdown, unter Unix unterscheiden sie sich.
+ * \par
+ * TCPSocket::disconnect schließt den Socket-Descriptor für den Prozess, die Verbindung bleibt
+ * jedoch weiterhin bestehen, wenn ein anderer Prozess den gleichen Descriptor verwendet.
+ * Die Verbindung bleibt dann sowohl zum Lesen als auch zum Schreiben geöffnet.
+ *
+ * \par
+ * TCPSocket::shutdown trennt die Verbindung für alle Prozesse, die den gleichen Descriptor
+ * verwenden. Falls ein anderer Prozess noch versucht auf den Socket zuzzugreifen, bekommt er eine
+ * Fehlermeldung. Beim Lesen ist dies meist ein EOF, beim Schreiben ein SIGPIPE, der möglicherweise
+ * Aufgrund von Puffern im Kernel nicht sofort auftreten muss.
+ * @exception
+ */
+void TCPSocket::disconnect()
+{
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (!s) return;
+	if (islisten) {
+		stopListen();
+	}
+    //if (s->sd>0) shutdown(s->sd,2);
+    connected=false;
+    if (s->sd>0) {
+		#ifdef _WIN32
+			closesocket(s->sd);
+		#else
+			close (s->sd);
+		#endif
+        s->sd=0;
+    }
+    HostName.clear();
+    PortNum=0;
+	islisten=false;
+	BytesWritten=0;
+	BytesRead=0;
+}
+
+/*!\brief Verbindung trennen
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion wird eine bestehende Verbindung beendet. Unter Windows ist die Funktion
+ * identisch mit CTCPSocket::shutdown, unter Unix unterscheiden sie sich.
+ * \par
+ * TCPSocket::disconnect schließt den Socket-Descriptor für den Prozess, die Verbindung bleibt
+ * jedoch weiterhin bestehen, wenn ein anderer Prozess den gleichen Descriptor verwendet.
+ * Die Verbindung bleibt dann sowohl zum Lesen als auch zum Schreiben geöffnet.
+ *
+ * \par
+ * TCPSocket::shutdown trennt die Verbindung für alle Prozesse, die den gleichen Descriptor
+ * verwenden. Falls ein anderer Prozess noch versucht auf den Socket zuzzugreifen, bekommt er eine
+ * Fehlermeldung. Beim Lesen ist dies meist ein EOF, beim Schreiben ein SIGPIPE, der möglicherweise
+ * Aufgrund von Puffern im Kernel nicht sofort auftreten muss.
+ */
+void TCPSocket::shutdown()
+{
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (!s) return;
+	if (islisten) {
+		stopListen();
+	}
+    //if (s->sd>0) shutdown(s->sd,2);
+    connected=false;
+    if (s->sd>0) {
+		#ifdef _WIN32
+			closesocket(s->sd);
+		#else
+			::shutdown (s->sd,SHUT_RDWR);
+		#endif
+        s->sd=0;
+    }
+    HostName.clear();
+    PortNum=0;
+	islisten=false;
+	BytesWritten=0;
+	BytesRead=0;
+}
+
+/*!\brief TCP-Server anhalten
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion innerhalb eines anderen Threads wird dem Server mitgeteilt, dass er nicht
+ * weiter auf Verbindungseingänge warten soll. Die Funktion kehrt dabei erst zurück, wenn der Server sich
+ * beendet hat. Falls man darauf nicht warten möchte, kann stattdessen auch CTCPSocket::SignalStopListen
+ * aufgerufen werden.
+ *
+ */
+void TCPSocket::stopListen()
+{
+	mutex.lock();
+	stoplisten=true;
+	while (islisten) {
+		mutex.unlock();
+		MSleep(1);
+		mutex.lock();
+	}
+	stoplisten=false;
+	mutex.unlock();
+}
+
+/*!\brief TCP-Server signalisieren, dass er stoppen soll
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion innerhalb eines anderen Threads wird dem Server mitgeteilt, dass er nicht
+ * weiter auf Verbindungseingänge warten soll. Die Funktion kehrt dabei sofort zurück und es liegt an der
+ * Anwendung später zu prüfen, ob der Server wirklich gestoppt wurde (z.B. mit CTCPSocket::StopListen).
+ *
+ */
+void TCPSocket::signalStopListen()
+{
+	mutex.lock();
+	stoplisten=true;
+	mutex.unlock();
+}
+
+
 
 
 #ifdef TODO
@@ -323,26 +489,6 @@ void CTCPSocket::DispatchErrno()
 		log->LogError(4);
 		PopError();
 	}
-}
-
-/*!\brief Descriptor des Sockets auslesen
- *
- * \desc
- * Mit dieser Funktion kann der Betriebssystem-spezifische Socket-Descriptor ausgelesen werden.
- * Unter Unix ist dies ein File-Descriptor vom Typ Integer, unter Windows ein Socket-Descriptor
- * vom Typ SOCKET.
- *
- * @return Betriebsystem-spezifischer Descriptor.
- */
-int CTCPSocket::GetDescriptor()
-{
-	if (!connected) return 0;
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-#ifdef _WIN32
-	return (int)s->sd;
-#else
-	return s->sd;
-#endif
 }
 
 /*!\brief Timeout für Connect-Funktion definieren
@@ -773,95 +919,6 @@ int CTCPSocket::Connect(const char *host, int port)
 
 
 
-/*!\brief Verbindung trennen
- *
- * \desc
- * Durch Aufruf dieser Funktion wird eine bestehende Verbindung beendet. Unter Windows ist die Funktion
- * identisch mit CTCPSocket::Shutdown, unter Unix unterscheiden sie sich.
- * \par
- * CTCPSocket::Disconnect schließt den Socket-Descriptor für den Prozess, die Verbindung bleibt
- * jedoch weiterhin bestehen, wenn ein anderer Prozess den gleichen Descriptor verwendet.
- * Die Verbindung bleibt dann sowohl zum lesen als auch zum schreiben geöffnet.
- *
- * \par
- * CTCPSocket::Shutdown trennt die Verbindung für alle Prozesse, die den gleichen Descriptor
- * verwenden. Falls ein anderer Prozess noch versucht auf den Socket zuzzugreifen, bekommt er eine
- * Fehlermeldung. Beim Lesen ist dies meist ein EOF, beim Schreiben ein SIGPIPE, der möglicherweise
- * Aufgrund von Puffern im Kernel nicht sofort auftreten muss.
- * @return Die Funktion liefert immer 1 zurück.
- */
-int CTCPSocket::Disconnect()
-{
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::Disconnect()");
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!s) return 1;
-	if (islisten) {
-		StopListen();
-	}
-    //if (s->sd>0) shutdown(s->sd,2);
-    connected=false;
-    if (s->sd>0) {
-    	if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Disconnect() => Close Descriptor: %i\n",(const char*)HostName,PortNum,s->sd);
-    	//printf ("Socket Disconnect Descriptor: %i\n",s->sd);
-		#ifdef _WIN32
-			closesocket(s->sd);
-		#else
-			close (s->sd);
-		#endif
-        s->sd=0;
-    }
-    HostName="";
-    PortNum=0;
-	islisten=false;
-	BytesWritten=0;
-	BytesRead=0;
-    return 1;
-}
-
-/*!\brief Verbindung trennen
- *
- * \desc
- * Durch Aufruf dieser Funktion wird eine bestehende Verbindung beendet. Unter Windows ist die Funktion
- * identisch mit CTCPSocket::Shutdown, unter Unix unterscheiden sie sich.
- * \par
- * CTCPSocket::Disconnect schließt den Socket-Descriptor für den Prozess, die Verbindung bleibt
- * jedoch weiterhin bestehen, wenn ein anderer Prozess den gleichen Descriptor verwendet.
- * Die Verbindung bleibt dann sowohl zum lesen als auch zum schreiben geöffnet.
- *
- * \par
- * CTCPSocket::Shutdown trennt die Verbindung für alle Prozesse, die den gleichen Descriptor
- * verwenden. Falls ein anderer Prozess noch versucht auf den Socket zuzzugreifen, bekommt er eine
- * Fehlermeldung. Beim Lesen ist dies meist ein EOF, beim Schreiben ein SIGPIPE, der möglicherweise
- * Aufgrund von Puffern im Kernel nicht sofort auftreten muss.
- * @return Die Funktion liefert immer 1 zurück.
- */
-int CTCPSocket::Shutdown()
-{
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::Disconnect()");
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!s) return 1;
-	if (islisten) {
-		StopListen();
-	}
-    //if (s->sd>0) shutdown(s->sd,2);
-    connected=false;
-    if (s->sd>0) {
-    	if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Disconnect() => Close Descriptor: %i\n",(const char*)HostName,PortNum,s->sd);
-    	//printf ("Socket Disconnect Descriptor: %i\n",s->sd);
-		#ifdef _WIN32
-			closesocket(s->sd);
-		#else
-			shutdown (s->sd,SHUT_RDWR);
-		#endif
-        s->sd=0;
-    }
-    HostName="";
-    PortNum=0;
-	islisten=false;
-	BytesWritten=0;
-	BytesRead=0;
-    return 1;
-}
 
 /*!\brief Prüfen, ob eine Verbindung besteht
  *
@@ -1533,47 +1590,6 @@ char *CTCPSocket::ReadOnce(int bytes)
 }
 
 
-/*!\brief TCP-Server anhalten
- *
- * \desc
- * Durch Aufruf dieser Funktion innerhalb eines anderen Threads wird dem Server mitgeteilt, dass er nicht
- * weiter auf Verbindungseingänge warten soll. Die Funktion kehrt dabei erst zurück, wenn der Server sich
- * beendet hat. Falls man darauf nicht warten möchte, kann stattdessen auch CTCPSocket::SignalStopListen
- * aufgerufen werden.
- *
- * @return Die Funktion liefert immer 1 zurück.
- */
-int CTCPSocket::StopListen()
-{
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::StopListen()");
-	mutex.Lock();
-	stoplisten=true;
-	while (islisten) {
-		mutex.Unlock();
-		MSleep(1);
-		mutex.Lock();
-	}
-	stoplisten=false;
-	mutex.Unlock();
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::StopListen() DONE");
-	return 1;
-}
-
-/*!\brief TCP-Server signalisieren, dass er stoppen soll
- *
- * \desc
- * Durch Aufruf dieser Funktion innerhalb eines anderen Threads wird dem Server mitgeteilt, dass er nicht
- * weiter auf Verbindungseingänge warten soll. Die Funktion kehrt dabei sofort zurück und es liegt an der
- * Anwendung später zu prüfen, ob der Server wirklich gestoppt wurde (z.B. mit CTCPSocket::StopListen).
- *
- * @return Die Funktion liefert immer 1 zurück.
- */
-int CTCPSocket::SignalStopListen()
-{
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::SignalStopListen()");
-	stoplisten=true;
-	return 1;
-}
 
 #ifdef _WIN32
 int CTCPSocket::Bind(const char *host, int port)
@@ -2425,27 +2441,6 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
 #endif
 }
 
-/*!\brief Eingehende Verbindung verarbeiten
- *
- * \desc
- * Diese virtuelle Funktion wird innerhalb von CTCPSocket::Listen aufgerufen,
- * wenn eine neue Verbindung zum Server aufgebaut wurde. Sie muss daher von
- * der abgeleiteten Klasse reimplementiert werden.
- *
- * @param[in] socket Pointer auf eine neue Socket-Klasse, die die eingegangene
- * Verbindung repräsentiert. Die Anwendung muss die Klasse nach Verbindungsende
- * selbst mit "delete" löschen.
- * @param[in] host Hostname oder IP der Gegenstelle
- * @param[in] port TCP-Port der Gegenstelle
- * @return Wird die Verbindung angenommen und von der Anwendung weiter
- * verarbeitet (z.B. in einem eigenen Thread), muss die Funktion 1
- * zurückgeben. Soll die Verbindung wieder getrennt werden, muss die
- * Funktion 0 zurückgeben.
- */
-int CTCPSocket::ReceiveConnect(CTCPSocket *socket, const char *host, int port)
-{
-	return 0;
-}
 
 
 
