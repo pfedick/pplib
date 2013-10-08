@@ -338,7 +338,83 @@ String ToQuotedPrintable (const String &source)
 	return rr;
 }
 
+/*!\brief 32-Bit-Wert von Host-Byteorder in Hostbyteorder wandeln
+ *
+ * \desc
+ * Mit dieser statischen Funktion kann ein 32-Bit-Wert von Netzwerk-Byte-Order
+ * (Big Endian) in die Systemspezifische Byte-Reihenfolge umgewandelt werden.
+ *
+ * @param[in] net 32-Bit-Wert in Netzwerk-Byteorder (Big Endian)
+ * @return Liefert den Wert \p net in System-spezifischer Byte-Reihenfolge
+ * zurück
+ */
+ppluint32 Ntohl(ppluint32 net)
+{
+	return ntohl(net);
+}
 
+/*!\brief 32-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
+ *
+ * \desc
+ * Mit dieser statischen Funktion kann ein 32-Bit-Wert von der
+ * Systemspezifische Byte-Reihenfolge in Netzwerk-Byte-Order
+ * (Big Endian) umgewandelt werden.
+ *
+ * @param[in] host 32-Bit-Wert in Systemspezifischer Byte-Reihenfolge
+ * @return Liefert den Wert \p host in Netzwerk-Byteorder (Big Endian)
+ * zurück
+ */
+ppluint32 Htonl(ppluint32 host)
+{
+	return htonl(host);
+}
+
+/*!\brief 16-Bit-Wert von Netzwerk-Byteorder in Host-Byteorder wandeln
+ *
+ * \desc
+ * Mit dieser statischen Funktion kann ein 16-Bit-Wert von Netzwerk-Byte-Order
+ * (Big Endian) in die Systemspezifische Byte-Reihenfolge umgewandelt werden.
+ *
+ * @param[in] net 16-Bit-Wert in Netzwerk-Byteorder (Big Endian)
+ * @return Liefert den Wert \p net in System-spezifischer Byte-Reihenfolge
+ * zurück
+ */
+ppluint16 Ntohs(ppluint16 net)
+{
+	return ntohs(net);
+}
+
+/*!\brief 16-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
+ *
+ * \desc
+ * Mit dieser statischen Funktion kann ein 16-Bit-Wert von der
+ * Systemspezifische Byte-Reihenfolge in Netzwerk-Byte-Order
+ * (Big Endian) umgewandelt werden.
+ *
+ * @param[in] host 16-Bit-Wert in Systemspezifischer Byte-Reihenfolge
+ * @return Liefert den Wert \p host in Netzwerk-Byteorder (Big Endian)
+ * zurück
+ */
+ppluint16 Htons(ppluint16 host)
+{
+	return htons(host);
+}
+
+bool IsBigEndian()
+{
+#ifdef __BIG_ENDIAN__
+	return true;
+#endif
+	return false;
+}
+
+bool IsLittleEndian()
+{
+#ifdef __LITTLE_ENDIAN__
+	return true;
+#endif
+	return false;
+}
 
 
 }	// namespace ppl7

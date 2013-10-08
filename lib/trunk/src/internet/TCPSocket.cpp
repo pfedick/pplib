@@ -166,12 +166,12 @@ TCPSocket::TCPSocket()
  */
 TCPSocket::~TCPSocket()
 {
-	SSL_Shutdown();
-    if (connected) Disconnect();
-    if (islisten) Disconnect();
+	sslShutdown();
+    if (connected) disconnect();
+    if (islisten) disconnect();
 	PPLSOCKET *s=(PPLSOCKET*)socket;
 	if (!s) return;
-    if (s->sd) Disconnect();
+    if (s->sd) disconnect();
 	if (s->ipname) free(s->ipname);
 	free(s);
 	socket=NULL;
@@ -2447,67 +2447,7 @@ int CTCPSocket::ReceiveConnect(CTCPSocket *socket, const char *host, int port)
 	return 0;
 }
 
-/*!\brief 32-Bit-Wert von Host-Byteorder in Hostbyteorder wandeln
- *
- * \desc
- * Mit dieser statischen Funktion kann ein 32-Bit-Wert von Netzwerk-Byte-Order
- * (Big Endian) in die Systemspezifische Byte-Reihenfolge umgewandelt werden.
- *
- * @param[in] net 32-Bit-Wert in Netzwerk-Byteorder (Big Endian)
- * @return Liefert den Wert \p net in System-spezifischer Byte-Reihenfolge
- * zurück
- */
-ppluint32 CTCPSocket::Ntohl(ppluint32 net)
-{
-	return ntohl(net);
-}
 
-/*!\brief 32-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
- *
- * \desc
- * Mit dieser statischen Funktion kann ein 32-Bit-Wert von der
- * Systemspezifische Byte-Reihenfolge in Netzwerk-Byte-Order
- * (Big Endian) umgewandelt werden.
- *
- * @param[in] host 32-Bit-Wert in Systemspezifischer Byte-Reihenfolge
- * @return Liefert den Wert \p host in Netzwerk-Byteorder (Big Endian)
- * zurück
- */
-ppluint32 CTCPSocket::Htonl(ppluint32 host)
-{
-	return htonl(host);
-}
-
-/*!\brief 16-Bit-Wert von Netzwerk-Byteorder in Host-Byteorder wandeln
- *
- * \desc
- * Mit dieser statischen Funktion kann ein 16-Bit-Wert von Netzwerk-Byte-Order
- * (Big Endian) in die Systemspezifische Byte-Reihenfolge umgewandelt werden.
- *
- * @param[in] net 16-Bit-Wert in Netzwerk-Byteorder (Big Endian)
- * @return Liefert den Wert \p net in System-spezifischer Byte-Reihenfolge
- * zurück
- */
-ppluint16 CTCPSocket::Ntohs(ppluint16 net)
-{
-	return ntohs(net);
-}
-
-/*!\brief 16-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
- *
- * \desc
- * Mit dieser statischen Funktion kann ein 16-Bit-Wert von der
- * Systemspezifische Byte-Reihenfolge in Netzwerk-Byte-Order
- * (Big Endian) umgewandelt werden.
- *
- * @param[in] host 16-Bit-Wert in Systemspezifischer Byte-Reihenfolge
- * @return Liefert den Wert \p host in Netzwerk-Byteorder (Big Endian)
- * zurück
- */
-ppluint16 CTCPSocket::Htons(ppluint16 host)
-{
-	return htons(host);
-}
 
 #endif	// TODO
 

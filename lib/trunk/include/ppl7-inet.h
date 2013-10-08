@@ -93,6 +93,12 @@ class IPAddress
 void InitSockets();
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
 size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
+ppluint32 Ntohl(ppluint32 net);
+ppluint32 Htonl(ppluint32 host);
+ppluint16 Ntohs(ppluint16 net);
+ppluint16 Htons(ppluint16 host);
+bool IsBigEndian();
+bool IsLittleEndian();
 
 
 class Resolver
@@ -268,6 +274,8 @@ class SocketMessage
 		bool isMsgChannelSupported() const;
 };
 
+
+
 //! \brief TCP-Socket-Klasse
 class TCPSocket
 {
@@ -301,57 +309,61 @@ class TCPSocket
 		void setSource(const String &interface, int port=0);
 		int connect(const String &host_and_port);
 		int connect(const String &host, int port);
+		void setTimeoutConnect(int seconds, int useconds);
 		//@}
 
 		//! @name TCP-Server functions
 		//@{
-		int Bind(const char *ip, int port);
-		virtual int ReceiveConnect(TCPSocket *socket, const char *host, int port);
-		int IsListening();
-        int StopListen();
-		int SignalStopListen();
-        int Listen(int timeout=100);
+		int bind(const char *ip, int port);
+		virtual int receiveConnect(TCPSocket *socket, const char *host, int port);
+		int isListening();
+        int stopListen();
+		int signalStopListen();
+        int listen(int timeout=100);
 
 		//@}
 
 		//! @name Common functions for client and server
 		//@{
-        int Disconnect();
-		int Write(const String &str);
-		int Write(const ByteArrayPtr &bin);
-		int Write(const String *str);
-		int Write(const void *buffer, int bytes);
-		int WriteBuffer(const void *buffer, int bytes);
-		int Writef(const char *fmt, ...);
-		int Write(SocketMessage &msg);
-		int Read(void *buffer, int bytes);
-		int Read(String &buffer, int bytes);
-		int Read(ByteArray &buffer, int bytes);
-		char *Read(int bytes);
-		int ReadOnce(void *buffer, int bytes);
-		int ReadOnce(String &buffer, int bytes);
-		char *ReadOnce(int bytes);
+		int setTimeoutRead(int seconds, int useconds);
+		int setTimeoutWrite(int seconds, int useconds);
+
+        int disconnect();
+		int write(const String &str);
+		int write(const ByteArrayPtr &bin);
+		int write(const String *str);
+		int write(const void *buffer, int bytes);
+		int writeBuffer(const void *buffer, int bytes);
+		int writef(const char *fmt, ...);
+		int write(SocketMessage &msg);
+		int read(void *buffer, int bytes);
+		int read(String &buffer, int bytes);
+		int read(ByteArray &buffer, int bytes);
+		char *read(int bytes);
+		int readOnce(void *buffer, int bytes);
+		int readOnce(String &buffer, int bytes);
+		char *readOnce(int bytes);
 
 		int getDescriptor();
-		int SetBlocking(bool value);
-		int IsWriteable();
-		int IsReadable();
-		int WaitForIncomingData(int seconds, int useconds);
-		int WaitForOutgoingData(int seconds, int useconds);
+		int setBlocking(bool value);
+		int isWriteable();
+		int isReadable();
+		int waitForIncomingData(int seconds, int useconds);
+		int waitForOutgoingData(int seconds, int useconds);
 		//@}
 
 		//! @name SSL Encryption
 		//@{
 
-		int SSL_Init(SSLContext *ssl);
-		int SSL_Shutdown();
-		int SSL_Init_Client();
-		int SSL_Init_Server();
-		int SSL_Start();
-		int SSL_Stop();
-		int SSL_CheckCertificate(const char *hostname, bool AcceptSelfSignedCert=false);
-		int SSL_Accept();
-		int SSL_WaitForAccept(int timeout=0);
+		int sslInit(SSLContext *ssl);
+		int sslShutdown();
+		int sslInitClient();
+		int sslInit_Server();
+		int sslStart();
+		int sslStop();
+		int sslCheckCertificate(const char *hostname, bool AcceptSelfSignedCert=false);
+		int sslAccept();
+		int sslWaitForAccept(int timeout=0);
 
 		//@}
 
@@ -359,37 +371,19 @@ class TCPSocket
 		//! @name TODO
 		//@{
 
-		void SetConnectTimeout(int seconds, int useconds);
-		int SetReadTimeout(int seconds, int useconds);
-		int SetWriteTimeout(int seconds, int useconds);
-
-
-		void DispatchErrno();
-		int GetBytesWritten();
-		int GetBytesRead();
-
-
-
-
-
-		int IsConnected();
-        int Shutdown();
-        int	WaitForMessage(SocketMessage &msg, int timeout=0);
-        int WatchThread(Thread *thread);
-
-
-		static ppluint32 Ntohl(ppluint32 net);
-		static ppluint32 Htonl(ppluint32 host);
-		static ppluint16 Ntohs(ppluint16 net);
-		static ppluint16 Htons(ppluint16 host);
-
+		void dispatchErrno();
+		int getBytesWritten();
+		int getBytesRead();
+		int isConnected();
+        int shutdown();
+        int	waitForMessage(SocketMessage &msg, int timeout=0);
+        int watchThread(Thread *thread);
 		//@}
 
 		//! @name Depreceated
 		//@{
-		void SetLogfile(Logger *log);
-		int ConnectSSL(const char *host_and_port, SSLContext *ssl=NULL);
-		int ConnectSSL(const char *host, int port, SSLContext *ssl=NULL);
+		int connectSSL(const char *host_and_port, SSLContext *ssl=NULL);
+		int connectSSL(const char *host, int port, SSLContext *ssl=NULL);
 		//@}
 };
 
