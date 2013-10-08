@@ -70,6 +70,7 @@ std::ostream& operator<<(std::ostream& s, const Exception &e);
 #define PPLNORMALEXCEPTION(name)	class name : public ppl7::Exception { public: \
 		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
 	};
+
 #define PPLPARAMETERISEDEXCEPTION(name)	class name : public ppl7::Exception { public: \
 	name() {}; \
 	name(const wchar_t *msg) { \
@@ -81,6 +82,17 @@ std::ostream& operator<<(std::ostream& s, const Exception &e);
 		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
 	};
 
+
+#define PPLEXCEPTION(name,inherit)	class name : public ppl7::inherit { public: \
+	name() {}; \
+	name(const wchar_t *msg) { \
+		copyText(msg); \
+	}; \
+	name(const char *msg, ...) {  \
+		va_list args; va_start(args, msg); copyText(msg,args); \
+		va_end(args); } \
+		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
+	};
 
 PPLPARAMETERISEDEXCEPTION(UnknownException);
 PPLNORMALEXCEPTION(OutOfMemoryException);
