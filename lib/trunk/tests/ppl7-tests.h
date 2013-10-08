@@ -41,5 +41,8 @@
 #define DEFAULT_LOCALE	"de_DE.UTF-8"
 #endif
 
+#ifndef PPL7TESTSUITEMAIN
+extern ppl7::ConfigParser PPL7TestConfig;
+#endif
 
 #endif /* PPL7_TESTS_H_ */
