@@ -43,6 +43,7 @@ namespace ppl7 {
 class String;
 
 void throwExceptionFromErrno(int e,const String &info);
+void throwExceptionFromEaiError(int ecode, const String &info);
 
 class Exception : std::exception
 {

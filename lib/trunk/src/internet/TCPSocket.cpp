@@ -134,6 +134,18 @@ namespace ppl7 {
 
 
 
+void throwExceptionFromEaiError(int ecode, const String &msg)
+{
+	if (ecode==EAI_SYSTEM) throwExceptionFromErrno(errno,msg);
+	String m=msg;
+	if (msg.notEmpty()) m+=" [";
+	m+="ResolverException: ";
+	m+=gai_strerror(ecode);
+	if (msg.notEmpty()) m+="]";
+	throw ResolverException(m);
+}
+
+
 /*!\brief Eingehende Verbindung verarbeiten
  *
  * \desc
@@ -369,6 +381,103 @@ void TCPSocket::signalStopListen()
 	mutex.unlock();
 }
 
+/*!\brief Timeout für Connect-Funktion definieren
+ *
+ * \desc
+ * Mit dieser Funktion kann ein Timeout für die Connect-Funktionen definiert werden. Ist es nicht
+ * möglich innerhalb der vorgegebenen Zeit eine Verbindung mit dem Ziel herzustellen, brechen die
+ * Connect-Funktionen mit einer Timeout-Fehlermeldung ab.
+ * \par
+ * Um den Timeout wieder abzustellen, kann die Funktion mit 0 als Wert für seconds und useconds aufgerufen werden.
+ *
+ * @param[in] seconds Anzahl Sekunden
+ * @param[in] useconds Anzahl Mikrosekunden (1000 Mikrosekunden=1 Millisekunde, 1000 Millisekunden = 1 Sekunde)
+ */
+void TCPSocket::setTimeoutConnect(int seconds, int useconds)
+{
+	connect_timeout_sec=seconds;
+	connect_timeout_usec=useconds;
+}
+
+#ifdef WIN32
+static int out_bind(SOCKET sockfd, const char *host, int port)
+{
+	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind")
+}
+
+#else
+/*!\brief Socket auf ausgehendes Interface legen
+ *
+ * \desc
+ * Diese Funktion wird intern durch die Connect-Funktionen aufgerufen, um einen ausgehenden Socket auf
+ * ein bestimmtes Netzwerk-Interface zu binden. Die Funktion wird nur dann verwendet, wenn
+ * mit CTCPSocket::SetSource ein Quellinterface definiert wurde.
+ *
+ * @param[in] host Hostname oder IP des lokalen Interfaces
+ * @param[in] port Port auf dem lokalen Interface
+ * @return Bei Erfolg liefert die Funktion die File-Nummer des Sockets zurück,
+ * im Fehlerfall wird eine Exception geworfen.
+ *
+ * @exception IllegalArgumentException Wird geworfen, wenn \p host auf NULL zeigt und \p port 0 enthält
+ *
+ * \relates ppl6::CTCPSocket
+ */
+static int out_bind(const char *host, int port)
+{
+	struct addrinfo hints, *res, *ressave;
+	bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_flags=AI_PASSIVE;
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_STREAM;
+	int listenfd;
+	int n;
+	int on=1;
+	// Prüfen, ob host ein Wildcard ist
+	if (host!=NULL && strlen(host)==0) host=NULL;
+	if (host!=NULL && host[0]=='*') host=NULL;
+
+	if (host!=NULL && port>0) {
+		char portstr[10];
+		sprintf(portstr,"%i",port);
+		n=getaddrinfo(host,portstr,&hints,&res);
+	} else if (host) {
+		n=getaddrinfo(host,NULL,&hints,&res);
+	} else if (port) {
+		char portstr[10];
+		sprintf(portstr,"%i",port);
+		n=getaddrinfo(NULL,portstr,&hints,&res);
+	} else {
+		throw IllegalArgumentException();
+	}
+	if (n!=0) {
+		throwExceptionFromEaiError(n,ToString("TCPSocket bind connect: %s:%i",host,port));
+	}
+	ressave=res;
+	do {
+		listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+		if (listenfd<0) continue;		// Error, try next one
+
+		if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+			freeaddrinfo(ressave);
+			throwExceptionFromErrno(errno,ToString("TCPSocket bind connect: %s:%i",host,port));
+		}
+
+		//HexDump(res->ai_addr,res->ai_addrlen);
+		if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
+
+			break;
+		}
+		shutdown(listenfd,2);
+		close(listenfd);
+		listenfd=0;
+	} while ((res=res->ai_next)!=NULL);
+	freeaddrinfo(ressave);
+	if (listenfd<=0) throw CouldNotOpenSocketException("Host: %s, Port: %d",host,port);
+	if (res==NULL) throw CouldNotBindToSourceInterfaceException("Host: %s, Port: %d",host,port);
+	return listenfd;
+}
+#endif
+
 
 
 
@@ -491,111 +600,8 @@ void CTCPSocket::DispatchErrno()
 	}
 }
 
-/*!\brief Timeout für Connect-Funktion definieren
- *
- * \desc
- * Mit dieser Funktion kann ein Timeout für die Connect-Funktionen definiert werden. Ist es nicht
- * möglich innerhalb der vorgegebenen Zeit eine Verbindung mit dem Ziel herzustellen, brechen die
- * Connect-Funktionen mit einer Timeout-Fehlermeldung ab.
- * \par
- * Um den Timeout wieder abzustellen, kann die Funktion mit 0 als Wert für seconds und useconds aufgerufen werden.
- *
- * @param[in] seconds Anzahl Sekunden
- * @param[in] useconds Anzahl Mikrosekunden (1000 Mikrosekunden=1 Millisekunde, 1000 Millisekunden = 1 Sekunde)
- */
-void CTCPSocket::SetConnectTimeout(int seconds, int useconds)
-{
-	connect_timeout_sec=seconds;
-	connect_timeout_usec=useconds;
-}
 
 
-#ifdef WIN32
-static int out_bind(SOCKET sockfd, const char *host, int port)
-{
-	SetError(219,"Connect mit vorherigem Bind");
-	return 0;
-}
-
-#else
-/*!\brief Socket auf ausgehendes Interface legen
- *
- * \desc
- * Diese Funktion wird intern durch die Connect-Funktionen aufgerufen, um einen ausgehenden Socket auf
- * ein bestimmtes Netzwerk-Interface zu binden. Die Funktion wird nur dann verwendet, wenn
- * mit CTCPSocket::SetSource ein Quellinterface definiert wurde.
- *
- * @param[in] host Hostname oder IP des lokalen Interfaces
- * @param[in] port Port auf dem lokalen Interface
- * @return Bei Erfolg liefert die Funktion die File-Nummer des Sockets zurück,
- * im Fehlerfall 0.
- *
- * \relates ppl6::CTCPSocket
- */
-static int out_bind(const char *host, int port)
-{
-	struct addrinfo hints, *res, *ressave;
-	bzero(&hints, sizeof(struct addrinfo));
-	hints.ai_flags=AI_PASSIVE;
-	hints.ai_family=AF_UNSPEC;
-	hints.ai_socktype=SOCK_STREAM;
-	int listenfd;
-	int n;
-	int on=1;
-	// Prüfen, ob host ein Wildcard ist
-	if (host!=NULL && strlen(host)==0) host=NULL;
-	if (host!=NULL && host[0]=='*') host=NULL;
-
-	if (host!=NULL && port>0) {
-		char portstr[10];
-		sprintf(portstr,"%i",port);
-		n=getaddrinfo(host,portstr,&hints,&res);
-	} else if (host) {
-		n=getaddrinfo(host,NULL,&hints,&res);
-	} else if (port) {
-		char portstr[10];
-		sprintf(portstr,"%i",port);
-		n=getaddrinfo(NULL,portstr,&hints,&res);
-	} else {
-		SetError(194);
-		return 0;
-	}
-	if (n!=0) {
-		SetError(273,"Sourceport: %s:%i, %s",host,port,gai_strerror(n));
-		return 0;
-	}
-	ressave=res;
-	do {
-		listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-		if (listenfd<0) continue;		// Error, try next one
-
-		if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
-			freeaddrinfo(ressave);
-			SetError(334,"Sourceport: %s",host);
-			return 0;
-		}
-
-		//HexDump(res->ai_addr,res->ai_addrlen);
-		if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
-
-			break;
-		}
-		shutdown(listenfd,2);
-		close(listenfd);
-		listenfd=0;
-	} while ((res=res->ai_next)!=NULL);
-	freeaddrinfo(ressave);
-	if (listenfd<=0) {
-		SetError(393,"Host: %s, Port: %d",host,port);
-		return 0;
-	}
-	if (res==NULL) {
-		SetError(394,"Host: %s, Port: %d",host,port);
-		return 0;
-	}
-	return listenfd;
-}
-#endif
 
 
 /*!\brief Verbindung aufbauen

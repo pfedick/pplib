@@ -54,6 +54,11 @@ PPLPARAMETERISEDEXCEPTION(QueryFailedException);
 
 
 PPLEXCEPTION(NotConnectedException,NetworkException);
+PPLEXCEPTION(CouldNotOpenSocketException,NetworkException);				// 393
+PPLEXCEPTION(CouldNotBindToSourceInterfaceException,NetworkException);	// 394
+
+PPLEXCEPTION(ResolverException,Exception);
+
 
 
 // TODO
