@@ -132,14 +132,11 @@ namespace ppl7 {
 #define socklen_t	int
 #endif
 
-#ifdef TODO
-
-
 /*!\brief Konstruktor der Klasse
  *
  *
  */
-CTCPSocket::CTCPSocket()
+TCPSocket::TCPSocket()
 {
 #ifdef _WIN32
 	InitWSA();
@@ -152,13 +149,11 @@ CTCPSocket::CTCPSocket()
 	sslclass=NULL;
 	sslreference=NULL;
 	thread=NULL;
-	log=NULL;
 	BytesWritten=0;
 	BytesRead=0;
 	connect_timeout_sec=0;
 	connect_timeout_usec=0;
 	SourcePort=0;
-
 #ifndef _WIN32
 	// signal SIGPIPE ignorieren
 	signal(SIGPIPE,SIG_IGN);
@@ -169,24 +164,51 @@ CTCPSocket::CTCPSocket()
  *
  *
  */
-CTCPSocket::~CTCPSocket()
+TCPSocket::~TCPSocket()
 {
-	PushError();
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::~CTCPSocket()");
 	SSL_Shutdown();
     if (connected) Disconnect();
     if (islisten) Disconnect();
 	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!s) {
-		PopError();
-		return;
-	}
+	if (!s) return;
     if (s->sd) Disconnect();
 	if (s->ipname) free(s->ipname);
 	free(s);
 	socket=NULL;
-	PopError();
 }
+
+
+/*!\brief Quell-Interface und Port festlegen
+ *
+ * \desc
+ * Diese Funktion kann aufgerufen werden, wenn der Rechner über mehrere Netzwerkinterfaces verfügt.
+ * Normalerweise entscheidet das Betriebssytem, welches Interface für eine ausgehende Verbindung
+ * verwendet werden soll, aber manchmal kann es sinnvoll sein, dies manuell zu machen.
+ *
+ * @param[in] interface Hostname oder IP-Adresse des Quellinterfaces. Bleibt der Parameter leer,
+ * wird nur der \p port beachtet
+ * @param[in] port Port-Nummer des Quellinterfaces. Wird 0 angegeben, wird nur das \p interface
+ * beachtet
+ *
+ * \attention
+ * Diese Funktionalität wird derzeit nicht unter Windows unterstützt! Falls trotzdem ein
+ * \p host oder \p port definiert wurden, wird die Connect-Funktion fehlschlagen!
+ *
+ * \remarks
+ * Sind beide Parameter leer bzw. 0, wird das Quellinterface und Port vom Betriebssystem
+ * festgelegt.
+ *
+ */
+void TCPSocket::setSource(const String &interface, int port)
+{
+	SourceInterface=interface;
+	SourcePort=port;
+}
+
+
+#ifdef TODO
+
+
 
 /*!\brief Überwachungsthread definieren
  *
@@ -205,20 +227,6 @@ int CTCPSocket::WatchThread(CThread *thread)
 {
 	this->thread=thread;
 	return 1;
-}
-
-/*!\brief Logfile definieren
- *
- * \desc
- * Einige Funktionen können zusätzliche Debug-Informationen in ein Logfile schreiben. Durch Aufruf
- * dieser Funktion wird dieses Feature aktiviert oder deaktiviert.
- *
- * @param[in] log Pointer auf eine CLog-Klasse oder NULL, um das Logging zu deaktivieren
- *
- */
-void CTCPSocket::SetLogfile(CLog *log)
-{
-	this->log=log;
 }
 
 /*!\brief Fehlercode des Betriebssystems in PPL-Fehler übersetzen
@@ -353,33 +361,6 @@ void CTCPSocket::SetConnectTimeout(int seconds, int useconds)
 {
 	connect_timeout_sec=seconds;
 	connect_timeout_usec=useconds;
-}
-
-/*!\brief Quell-Interface und Port festlegen
- *
- * \desc
- * Diese Funktion kann aufgerufen werden, wenn der Rechner über mehrere Netzwerkinterfaces verfügt.
- * Normalerweise entscheidet das Betriebssytem, welches Interface für eine ausgehende Verbindung
- * verwendet werden soll, aber manchmal kann es sinnvoll sein, dies manuell zu machen.
- *
- * @param[in] host Hostname oder IP-Adresse des Quellinterfaces. Wird NULL angegeben, wird nur der
- * \p port beachtet
- * @param[in] port Port-Nummer des Quellinterfaces. Wird 0 angegeben, wird nur der \p host
- * beachtet
- *
- * \attention
- * Diese Funktionalität wird derzeit nicht unter Windows unterstützt! Falls trotzdem ein
- * \p host oder \p port definiert wurden, wird die Connect-Funktion fehlschlagen!
- *
- * \remarks
- * Sind beide Parameter NULL bzw. 0, wird das Quellinterface und Port vom Betriebssystem
- * festgelegt.
- *
- */
-void CTCPSocket::SetSource(const char *host, int port)
-{
-	SourceHost=host;
-	SourcePort=port;
 }
 
 

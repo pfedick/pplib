@@ -273,7 +273,6 @@ class TCPSocket
 {
 	private:
 		Mutex	mutex;
-		Logger		*log;
 		SSLContext		*sslclass;
 		Thread	*thread;
 		void		*sslreference;
@@ -288,7 +287,7 @@ class TCPSocket
         bool    stoplisten;
         String	HostName;
         int			PortNum;
-        String	SourceHost;
+        String		SourceInterface;
         int			SourcePort;
 
         int		SSL_Write(const void *buffer, int size);
@@ -297,21 +296,27 @@ class TCPSocket
 	public:
 		TCPSocket();
 		virtual ~TCPSocket();
-		void SetLogfile(Logger *log);
-		void SetConnectTimeout(int seconds, int useconds);
-		int SetReadTimeout(int seconds, int useconds);
-		int SetWriteTimeout(int seconds, int useconds);
-		void SetSource(const char *host, int port=0);
-		int Connect(const char *host_and_port);
-		int Connect(const char *host, int port);
-		int ConnectSSL(const char *host_and_port, SSLContext *ssl=NULL);
-		int ConnectSSL(const char *host, int port, SSLContext *ssl=NULL);
-		void DispatchErrno();
-		int GetBytesWritten();
-		int GetBytesRead();
+		//! @name TCP-Client functions
+		//@{
+		void setSource(const String &interface, int port=0);
+		int connect(const String &host_and_port);
+		int connect(const String &host, int port);
+		//@}
 
-        int Bind(const char *ip, int port);
-		int Disconnect();
+		//! @name TCP-Server functions
+		//@{
+		int Bind(const char *ip, int port);
+		virtual int ReceiveConnect(TCPSocket *socket, const char *host, int port);
+		int IsListening();
+        int StopListen();
+		int SignalStopListen();
+        int Listen(int timeout=100);
+
+		//@}
+
+		//! @name Common functions for client and server
+		//@{
+        int Disconnect();
 		int Write(const String &str);
 		int Write(const ByteArrayPtr &bin);
 		int Write(const String *str);
@@ -327,27 +332,16 @@ class TCPSocket
 		int ReadOnce(String &buffer, int bytes);
 		char *ReadOnce(int bytes);
 
-		int IsConnected();
-		int IsListening();
-        int StopListen();
-		int SignalStopListen();
-        int Listen(int timeout=100);
-        int Shutdown();
-        int	WaitForMessage(SocketMessage &msg, int timeout=0);
-        int WatchThread(Thread *thread);
+		int getDescriptor();
 		int SetBlocking(bool value);
-		int GetDescriptor();
 		int IsWriteable();
 		int IsReadable();
 		int WaitForIncomingData(int seconds, int useconds);
 		int WaitForOutgoingData(int seconds, int useconds);
+		//@}
 
-        virtual int ReceiveConnect(TCPSocket *socket, const char *host, int port);
-
-		static ppluint32 Ntohl(ppluint32 net);
-		static ppluint32 Htonl(ppluint32 host);
-		static ppluint16 Ntohs(ppluint16 net);
-		static ppluint16 Htons(ppluint16 host);
+		//! @name SSL Encryption
+		//@{
 
 		int SSL_Init(SSLContext *ssl);
 		int SSL_Shutdown();
@@ -359,6 +353,44 @@ class TCPSocket
 		int SSL_Accept();
 		int SSL_WaitForAccept(int timeout=0);
 
+		//@}
+
+
+		//! @name TODO
+		//@{
+
+		void SetConnectTimeout(int seconds, int useconds);
+		int SetReadTimeout(int seconds, int useconds);
+		int SetWriteTimeout(int seconds, int useconds);
+
+
+		void DispatchErrno();
+		int GetBytesWritten();
+		int GetBytesRead();
+
+
+
+
+
+		int IsConnected();
+        int Shutdown();
+        int	WaitForMessage(SocketMessage &msg, int timeout=0);
+        int WatchThread(Thread *thread);
+
+
+		static ppluint32 Ntohl(ppluint32 net);
+		static ppluint32 Htonl(ppluint32 host);
+		static ppluint16 Ntohs(ppluint16 net);
+		static ppluint16 Htons(ppluint16 host);
+
+		//@}
+
+		//! @name Depreceated
+		//@{
+		void SetLogfile(Logger *log);
+		int ConnectSSL(const char *host_and_port, SSLContext *ssl=NULL);
+		int ConnectSSL(const char *host, int port, SSLContext *ssl=NULL);
+		//@}
 };
 
 class CUDPSocket
