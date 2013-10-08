@@ -97,6 +97,51 @@ TEST_F(InetTest, Ace2IdnWideString) {
 	);
 }
 
+TEST_F(InetTest, Ntohl) {
+	if (ppl7::IsLittleEndian()) {
+		ASSERT_EQ((ppluint32)0x44332211,ppl7::Ntohl(0x11223344));
+	} else {
+		ASSERT_EQ((ppluint32)0x11223344,ppl7::Ntohl(0x11223344));
+	}
+}
+
+TEST_F(InetTest, Ntohs) {
+	if (ppl7::IsLittleEndian()) {
+		ASSERT_EQ((ppluint32)0x2211,ppl7::Ntohs(0x1122));
+	} else {
+		ASSERT_EQ((ppluint32)0x1122,ppl7::Ntohs(0x1122));
+	}
+}
+
+TEST_F(InetTest, Htonl) {
+	if (ppl7::IsLittleEndian()) {
+		ASSERT_EQ((ppluint32)0x44332211,ppl7::Htonl(0x11223344));
+	} else {
+		ASSERT_EQ((ppluint32)0x11223344,ppl7::Htonl(0x11223344));
+	}
+}
+
+TEST_F(InetTest, Htons) {
+	if (ppl7::IsLittleEndian()) {
+		ASSERT_EQ((ppluint32)0x2211,ppl7::Htons(0x1122));
+	} else {
+		ASSERT_EQ((ppluint32)0x1122,ppl7::Htons(0x1122));
+	}
+}
+
+TEST_F(InetTest, IsBigEndian) {
+	bool isBigE=false;
+	if (ppl7::Htonl(0x11223344)==0x11223344) isBigE=true;
+	ASSERT_EQ(isBigE,ppl7::IsBigEndian());
+	ASSERT_EQ(!isBigE,ppl7::IsLittleEndian());
+}
+
+TEST_F(InetTest, IsLittleEndian) {
+	bool isLittleE=true;
+	if (ppl7::Htonl(0x11223344)==0x11223344) isLittleE=false;
+	ASSERT_EQ(isLittleE,ppl7::IsLittleEndian());
+	ASSERT_EQ(!isLittleE,ppl7::IsBigEndian());
+}
 
 }
 
