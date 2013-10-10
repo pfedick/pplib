@@ -1023,6 +1023,7 @@ CString MkRFC822Date (ppluint64 sec)
  */
 {
 	PPLTIME t;
+	memset(&t,0,sizeof(t));
 	if (!sec) sec=GetTime();
 	if (GetTime(t,sec)!=sec) throw OperationFailedException();
 	return MkRFC822Date(t);
