@@ -13,7 +13,8 @@ OBJECTS = compile/wordlist.o \
 	compile/widestrings.o \
 	compile/assocarray.o \
 	compile/clog.o \
-	compile/time.o
+	compile/time.o \
+	compile/perlhelper.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -78,6 +79,10 @@ compile/strings.o: src/strings.cpp Makefile
 compile/assocarray.o: src/assocarray.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/assocarray.o -c src/assocarray.cpp
+
+compile/perlhelper.o: src/perlhelper.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/perlhelper.o -c src/perlhelper.cpp
 
 	
 compile/wordlist.o: src/wordlist.cpp Makefile

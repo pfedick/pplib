@@ -96,6 +96,7 @@ static ppl6::CString toHashRecurse(const CAssocArray &a, const CString &name)
 CString PerlHelper::toHash(const CAssocArray &a, const CString &name)
 {
 	CString ret;
+	if (name.IsEmpty()) return ret;
 	ret.Setf("my %%%s;\n",(const char*)name);
 	CString n;
 	n.Setf("$%s",(const char*)name);
