@@ -1588,9 +1588,9 @@ int CAssocArray::Copy(const CAssocArray *a)
 		SetError(194,"int CAssocArray::Copy(const CAssocArray *a)");
 		return 0;
 	}
-	CAssocArray *aa=(CAssocArray*)a;	// Nicht schön, da a durch den TreeWalk verändert wird
-	aa->Reset();
-	while ((ptr=(CArrayItem *)aa->GetNext())) {
+	CTreeWalker walk;
+	a->Reset(walk);
+	while ((ptr=(CArrayItem *)a->GetNext(walk))) {
 		if (ptr->value!=NULL) {
 			if (ptr->type==datatype::ARRAY) {
 				if (!Set(ptr->key,(CAssocArray *)ptr->value,true)) return 0;
