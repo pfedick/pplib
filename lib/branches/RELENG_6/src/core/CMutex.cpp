@@ -103,7 +103,7 @@ typedef struct tagMutex
 CMutex::CMutex()
 {
 	handle=::malloc(sizeof(PPLMUTEX));
-	if (!handle) return;
+	if (!handle) throw OutOfMemoryException();
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
 		h->handle=CreateMutex(NULL,false,NULL);
@@ -125,7 +125,6 @@ CMutex::CMutex()
 
 CMutex::~CMutex()
 {
-	if (handle==NULL) return;
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
 		CloseHandle(h->handle);
@@ -150,14 +149,12 @@ int CMutex::Lock()
  * true (1) zurück, im Fehlerfall false (0)
  */
 {
-	if (!handle) return 0;
-	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
-		DWORD ret=WaitForSingleObject(h->handle,INFINITE);
+		DWORD ret=WaitForSingleObject(((PPLMUTEX*)handle)->handle,INFINITE);
 		if (ret!=WAIT_FAILED) return 1;
 		return 0;
 	#elif defined HAVE_PTHREADS
-		int ret=pthread_mutex_lock(&h->handle);
+		int ret=pthread_mutex_lock(&((PPLMUTEX*)handle)->handle);
 		if (ret==0) return 1;
 		return 0;
 	#else
@@ -175,14 +172,12 @@ int CMutex::Unlock()
  * true (1) zurück, im Fehlerfall false (0)
  */
 {
-	if (!handle) return 0;
-	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
-		int ret=ReleaseMutex(h->handle);
+		int ret=ReleaseMutex(((PPLMUTEX*)handle)->handle);
 		if (ret==0) return 0;
 		return 1;
 	#elif defined HAVE_PTHREADS
-		int ret=pthread_mutex_unlock(&h->handle);
+		int ret=pthread_mutex_unlock(&((PPLMUTEX*)handle)->handle);
 		if (ret==0) return 1;
 		return 0;
 	#else
@@ -202,7 +197,6 @@ int CMutex::TryLock()
  * true (1) zurück, im Fehlerfall false (0)
  */
 {
-	if (!handle) return 0;
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
 		DWORD ret=WaitForSingleObject(h->handle,0);
@@ -239,7 +233,6 @@ int CMutex::Wait(int milliseconds)
  *
  */
 {
-	if (!handle) return 0;
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
 		ResetEvent(h->condition);
@@ -295,7 +288,6 @@ int CMutex::Signal()
  * \return Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0).
  */
 {
-	if (!handle) return 0;
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
 		int ret=SetEvent(h->condition);
