@@ -768,7 +768,9 @@ int Pool::GetStatus(CAssocArray &status)
  */
 void Pool::CheckPool()
 {
+	Mutex.Lock();
 	if (Log) Log->Printf(ppl6::LOG::DEBUG,6,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"%i:%s, Connects: %i, Free: %i, Used: %i",Id,(const char*)Name, Free.Num()+Used.Num(),Free.Num(), Used.Num());
+	Mutex.Unlock();
 	ppluint64 now;
 	Database *p;
 	// Timeout
