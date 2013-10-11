@@ -509,13 +509,7 @@ void MySQLResult::PrintResult()
 MySQL::MySQL()
 {
 #ifdef HAVE_MYSQL
-	MySQLGlobalMutex.Lock();
-	if (__mysql_init==0) {
-		__mysql_init=1;
-		Cppl6Core *core=PPLInit();
-		core->AtExit(pplMySQLExit,NULL);
-	}
-	MySQLGlobalMutex.Unlock();
+	MySQL::LibraryInit();
 	MySQLThreadStart();
 #endif
 	lastinsertid=0;
@@ -978,6 +972,27 @@ CString	MySQL::databaseType() const
 {
 	return CString("MySQL");
 }
+
+int MySQL::LibraryInit(int argc, char **argv, char **groups)
+{
+	int ret=1;
+#ifdef HAVE_MYSQL
+	MySQLGlobalMutex.Lock();
+	if (__mysql_init==0) {
+		ret=mysql_library_init(argc, argv, groups);
+		if (ret==0) {
+			__mysql_init=1;
+			Cppl6Core *core=PPLInit();
+			core->AtExit(pplMySQLExit,NULL);
+		}
+	}
+	MySQLGlobalMutex.Unlock();
+	return ret;
+#else
+	return 1;
+#endif
+}
+
 
 
 }	// EOF namespace db

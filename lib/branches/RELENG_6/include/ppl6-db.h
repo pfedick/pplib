@@ -244,6 +244,9 @@ class MySQL : public Database
 		MySQL();
 		virtual ~MySQL();
 
+		static int LibraryInit(int argc=0, char **argv=NULL, char **groups=NULL);
+
+
 		virtual int		Connect(const CAssocArray &params);
 		virtual int		Reconnect();
 		virtual int		Disconnect();

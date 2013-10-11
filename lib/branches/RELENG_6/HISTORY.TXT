@@ -48,6 +48,8 @@ Version 6.4.17
   - CMutex wirft jetzt eine Exception im Konstruktor, wenn kein Speicher für die
     internen Variablen allokiert werden konnte. Daher konnten in den Member-
     Functions einige Prüfungen wegoptimiert werden.
+  - Fehler bei der Initialisierung von MySQL behoben. Neue statische Funktion
+    zum Initialisieren der MySQL-Bibliothek.
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog
