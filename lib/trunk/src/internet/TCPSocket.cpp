@@ -478,7 +478,288 @@ static int out_bind(const char *host, int port)
 }
 #endif
 
+/*!\brief Verbindung aufbauen
+ *
+ * \desc
+ * Mit dieser Funktion wird eine Verbindung zur angegebenen Adresse aufgebaut.
+ *
+ * \param host Der Parameter \p host_and_port muss das Format "hostname:port" haben, wobei
+ * "hostname" auch eine IP-Adresse sein kann. Der Port kann entweder als Zahl oder
+ * als Servicename angegeben werden, z.B. "smtp" für Port 25.
+ *
+ * @exception IllegalArgumentException Wird geworfen, wenn der Parameter \p host_and_port
+ * keinen Wert oder keinen oder mehr als einen Doppelpunkt enthält
+ * @exception IllegalPortException wird geworfen, wenn der angegebene Port oder
+ * Servicename ungültig ist.
+ */
+void TCPSocket::connect(const String &host_and_port)
+{
+    if (host_and_port.isEmpty()) throw IllegalArgumentException("TCPSocket::connect(const String &host_and_port)");
+    Array hostname=StrTok(host_and_port,":");
+	if (hostname.size()!=2) throw IllegalArgumentException("TCPSocket::connect(const String &host_and_port)");
+	String portname=hostname.get(1);
+	int port=portname.toInt();
+	if (port<=0 && portname.size()>0) {
+		// Vielleicht wurde ein Service-Namen angegeben?
+		struct servent *s=getservbyname((const char*)portname, "tcp");
+		if (s) {
+			unsigned short int p=s->s_port;
+			port=(int) ntohs(p);
+		} else {
+			throw IllegalPortException("TCPSocket::connect(const String &host_and_port=%s)",(const char*)host_and_port);
+		}
+	}
+	if (port<=0) throw IllegalPortException("TCPSocket::connect(const String &host_and_port=%s)",(const char*)host_and_port);
+	return connect(hostname.get(0),port);
+}
 
+/*!\fn TCPSocket::connect(const String &host, int port)
+ * \brief Verbindung aufbauen
+ *
+ * \desc
+ * Mit dieser Funktion wird eine Verbindung zur angegebenen Adresse aufgebaut.
+ *
+ * \param[in] host Der Hostname oder die IP-Adresse des Zielrechners
+ * \param[in] port Der gewünschte Zielport
+ *
+ * @exception IllegalArgumentException Wird geworfen, wenn einer der beiden Parameter
+ * keinen oder einen ungültigen Wert enthält
+ * @exception IllegalPortException wird geworfen, wenn der angegebene Port ungültig ist.
+ */
+
+
+#ifdef _WIN32
+#else
+
+/*!\brief Non-Blocking-Connect
+ *
+ * \desc
+ * Diese Funktion wird intern durch die Connect-Funktionen aufgerufen, um einen nicht blockierenden
+ * Connect auf die Zieladresse durchzuführen. Normalerweise würde ein Connect solange
+ * blockieren, bis entweder ein Fehler festgestellt wird, die Verbindung zustande kommt oder
+ * das Betriebssystem einen Timeout auslöst. Letzteres kann aber mehrere Minuten dauern.
+ * Mit dieser Funktion wird ein non-blocking-connect durchgeführt, bei dem der Timeout
+ * mikrosekundengenau angegeben werden kann.
+ *
+ * @param[in] sockfd File-ID des Sockets
+ * @param[in] serv_addr IP-Adressenstruktur mit der Ziel-IP un dem Ziel-Port
+ * @param[in] addrlen Die Länge der Adressenstruktur
+ * @param[in] sec Timeout in Sekunden
+ * @param[in] usec Timeout in Mikrosekunden. Der tatsächliche Timeout errechnet sich aus \p sec + \p usec
+ * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ *
+ * \relates ppl6::CTCPSocket
+ * \note
+ * Zur Zeit wird diese Funktion nur unter Unix unterstützt.
+ */
+static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int  addrlen, int sec, int usec)
+{
+	int flags,n,error;
+	struct timeval tval;
+	socklen_t len;
+	fd_set rset,wset;
+	flags=fcntl(sockfd,F_GETFL,0);
+	fcntl(sockfd,F_SETFL,flags|O_NONBLOCK);
+	error=0;
+	if ((n=::connect(sockfd,serv_addr,addrlen))<0)
+		if (errno!=EINPROGRESS)
+			return (-1);
+	if (n==0)			// Connect completed immediately
+		goto done;
+	FD_ZERO(&rset);
+	FD_SET(sockfd,&rset);
+	wset=rset;
+	tval.tv_sec=sec;
+	tval.tv_usec=usec;
+	if ((n=select(sockfd+1,&rset,&wset,NULL,&tval))==0) {
+		errno=ETIMEDOUT;
+		return -1;
+	}
+	if (FD_ISSET(sockfd,&rset) || FD_ISSET(sockfd,&wset)) {
+		len=sizeof(error);
+		if (getsockopt(sockfd,SOL_SOCKET,SO_ERROR,&error,&len)<0) {
+			return -1;		// Solaris pending error
+		}
+	}
+	done:
+		fcntl(sockfd,F_SETFL,flags);
+		if (error) {
+			errno=error;
+			return (-1);
+		}
+		return 0;
+}
+#endif
+
+
+#ifdef _WIN32
+void TCPSocket::connect(const String &host, int port)
+{
+    if (connected) disconnect();
+    if (islisten) disconnect();
+	if (!socket) {
+		socket=malloc(sizeof(PPLSOCKET));
+		if (!socket) {
+			SetError(2);
+			return 0;
+		}
+		PPLSOCKET *s=(PPLSOCKET*)socket;
+    	s->sd=0;
+		s->proto=6;
+		s->ipname=NULL;
+		s->port=0;
+	}
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (s->ipname) free(s->ipname);
+	s->ipname=NULL;
+
+    if (s->sd) Disconnect();
+    if (!host) {
+        SetError(270);
+        return 0;
+    }
+    if (!port) {
+        SetError(271);
+        return 0;
+    }
+    struct sockaddr_in addr;
+    bzero(&addr,sizeof(addr));
+
+    // convert host to in_addr
+    struct in_addr in;
+	if (inet_aton(host,&in)) {
+        addr.sin_addr.s_addr = in.s_addr;
+    } else {                // failed, perhaps it's a hostname we have to resolve first?
+        struct hostent *h=gethostbyname(host);
+        if (!h) {
+        	ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
+			//int e=WSAGetLastError();
+           	//SetError(273,e);
+			return 0;
+        }
+		bcopy((void*)h->h_addr,(void*)&addr.sin_addr.s_addr,h->h_length);
+    }
+    addr.sin_port = htons(port);
+    addr.sin_family = AF_INET;
+
+	// Socket erstellen
+    s->sd = ::socket(PF_INET,SOCK_STREAM,s->proto);
+    if (s->sd<=0) {
+    	//ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
+        SetError(272,"Return-Value of socket: %i, %s",s->sd,strerror(errno));
+        return 0;
+    }
+
+    // Try to connect
+    if (connect(s->sd, (struct sockaddr *)&addr, sizeof(addr) )!=0) {
+    	ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
+    	PushError();
+		closesocket (s->sd);
+		s->sd=0;
+		// SetError(274,e,"errno=%i, %s",e,strerror(e));
+		PopError();
+        return 0;
+    }
+    SetError(0);
+    connected=1;
+    return 1;
+}
+
+
+#else
+
+void TCPSocket::connect(const String &host, int port)
+{
+    if (connected) disconnect();
+    if (islisten) disconnect();
+	BytesWritten=0;
+	BytesRead=0;
+	if (!socket) {
+		socket=malloc(sizeof(PPLSOCKET));
+		if (!socket) throw OutOfMemoryException();
+		PPLSOCKET *s=(PPLSOCKET*)socket;
+    	s->sd=0;
+		//s->proto=6;
+		s->proto=0;
+		s->ipname=NULL;
+		s->port=0;
+		//s->addrlen=0;
+	}
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (s->ipname) free(s->ipname);
+	s->ipname=NULL;
+
+    if (s->sd) disconnect();
+    if (host.isEmpty()) throw IllegalArgumentException("void TCPSocket::connect(const String &host, int port): host is empty");
+    if (!port) throw IllegalArgumentException("void TCPSocket::connect(const String &host, int port): port is 0");
+	#ifdef _WIN32
+		SOCKET	sockfd;
+	#else
+		int sockfd;
+	#endif
+    int n;
+    struct addrinfo hints, *res, *ressave;
+    bzero(&hints,sizeof(struct addrinfo));
+    hints.ai_family=AF_UNSPEC;
+    hints.ai_socktype=SOCK_STREAM;
+	char portstr[10];
+	sprintf(portstr,"%i",port);
+	if ((n=getaddrinfo((const char*)host,portstr,&hints,&res))!=0) throwExceptionFromEaiError(n,ToString("TCPSocket::connect: host=%s, port=%i",(const char*)host,port));
+	ressave=res;
+	int e=0, conres=0;
+	do {
+		if (SourceInterface.size()>0 || SourcePort>0) {
+			try {
+				sockfd=out_bind((const char*)SourceInterface,SourcePort);
+			} catch (...) {
+				::shutdown(sockfd,2);
+				close(sockfd);
+				freeaddrinfo(ressave);
+				throw;
+			}
+		} else {
+			sockfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+			if (sockfd<0) continue;		// Error, try next one
+		}
+		if (connect_timeout_sec>0 || connect_timeout_usec) {
+			#ifdef _WIN32
+				conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
+			#else
+				conres=ppl_connect_nb(sockfd,res->ai_addr,res->ai_addrlen,connect_timeout_sec,connect_timeout_usec);
+				e=errno;
+			#endif
+		} else {
+			conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
+			e=errno;
+		}
+		if (conres==0) break;
+		#ifdef _WIN32
+			e=WSAGetLastError();
+			::shutdown(sockfd,2);
+			closesocket(sockfd);
+		#else
+			::shutdown(sockfd,2);
+			close(sockfd);
+		#endif
+		sockfd=0;
+	} while ((res=res->ai_next)!=NULL);
+	if (conres<0) res=NULL;
+	if (sockfd<0) {
+		freeaddrinfo(ressave);
+		throw CouldNotOpenSocketException(ToString("Host: %s, Port: %d",(const char*)host,port));
+	}
+	if (res==NULL) {
+		freeaddrinfo(ressave);
+		throwExceptionFromErrno(e,ToString("Host: %s, Port: %d",(const char*)host,port));
+	}
+	s->sd=sockfd;
+	//s->addrlen=res->ai_addrlen;
+	HostName=host;
+	PortNum=port;
+	connected=1;
+	freeaddrinfo(ressave);
+}
+#endif
 
 
 #ifdef TODO
@@ -604,324 +885,6 @@ void CTCPSocket::DispatchErrno()
 
 
 
-/*!\brief Verbindung aufbauen
- *
- * Mit dieser Funktion wird eine Verbindung zur angegebenen Adresse aufgebaut.
- *
- * \param host Der Parameter "host" muss das Format "hostname:port" haben, wobei
- * "hostname" auch eine IP-Adresse sein kann. Der Port kann entweder als Zahl oder
- * als Servicename angegeben werden, z.B. "smtp" für Port 25.
- * \return Konnte die Verbindung erfolgreich aufgebaut werden, wird true (1) zurückgegeben,
- * im Fehlerfall false (0).
- * \since Seit Version 6.0.18 kann der Port statt als Nummer auch als Servicenamen angegeben
- * werden.
- */
-int CTCPSocket::Connect(const char *host)
-{
-    if (!host) {
-        SetError(270);
-        return 0;
-    }
-	CTok hostname;
-	hostname.Split(host,":");
-	if (hostname.Num()!=2) {
-		SetError(291);
-		return 0;
-	}
-	const char *portname=hostname.Get(1);
-	int port=ppl6::atoi(portname);
-	//printf ("Debug: host=%s, portname=%s, port=%i\n",host,portname,port);
-	if (port<=0 && strlen(portname)>0) {
-		// Vielleicht wurde ein Service-Namen angegeben?
-		struct servent *s=getservbyname(portname, "tcp");
-		if (s) {
-			unsigned short int p=s->s_port;
-			port=(int) ntohs(p);
-		}
-	}
-	//printf ("Debug: host=%s, hostname=%s, portname=%s, port=%i\n",host,hostname.Get(0),portname,port);
-	if (port<=0) {
-        SetError(271,"%s",host);
-        return 0;
-	}
-	return Connect(hostname.Get(0),port);
-}
-
-#ifdef _WIN32
-#else
-
-/*!\brief Non-Blocking-Connect
- *
- * \desc
- * Diese Funktion wird intern durch die Connect-Funktionen aufgerufen, um einen nicht blockierenden
- * Connect auf die Zieladresse durchzuführen. Normalerweise würde ein Connect solange
- * blockieren, bis entweder ein Fehler festgestellt wird, die Verbindung zustande kommt oder
- * das Betriebssystem einen Timeout auslöst. Letzteres kann aber mehrere Minuten dauern.
- * Mit dieser Funktion wird ein non-blocking-connect durchgeführt, bei dem der Timeout
- * mikrosekundengenau angegeben werden kann.
- *
- * @param[in] sockfd File-ID des Sockets
- * @param[in] serv_addr IP-Adressenstruktur mit der Ziel-IP un dem Ziel-Port
- * @param[in] addrlen Die Länge der Adressenstruktur
- * @param[in] sec Timeout in Sekunden
- * @param[in] usec Timeout in Mikrosekunden. Der tatsächliche Timeout errechnet sich aus \p sec + \p usec
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- *
- * \relates ppl6::CTCPSocket
- * \note
- * Zur Zeit wird diese Funktion nur unter Unix unterstützt.
- */
-static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int  addrlen, int sec, int usec)
-{
-	int flags,n,error;
-	struct timeval tval;
-	socklen_t len;
-	fd_set rset,wset;
-	flags=fcntl(sockfd,F_GETFL,0);
-	fcntl(sockfd,F_SETFL,flags|O_NONBLOCK);
-	error=0;
-	if ((n=::connect(sockfd,serv_addr,addrlen))<0)
-		if (errno!=EINPROGRESS)
-			return (-1);
-	if (n==0)			// Connect completed immediately
-		goto done;
-	FD_ZERO(&rset);
-	FD_SET(sockfd,&rset);
-	wset=rset;
-	tval.tv_sec=sec;
-	tval.tv_usec=usec;
-	if ((n=select(sockfd+1,&rset,&wset,NULL,&tval))==0) {
-		errno=ETIMEDOUT;
-		return -1;
-	}
-	if (FD_ISSET(sockfd,&rset) || FD_ISSET(sockfd,&wset)) {
-		len=sizeof(error);
-		if (getsockopt(sockfd,SOL_SOCKET,SO_ERROR,&error,&len)<0) {
-			return -1;		// Solaris pending error
-		}
-	}
-	done:
-		fcntl(sockfd,F_SETFL,flags);
-		if (error) {
-			errno=error;
-			return (-1);
-		}
-		return 0;
-}
-#endif
-
-/*!\fn CTCPSocket::Connect(const char *host, int port)
- * \brief Verbindung aufbauen
- *
- * \desc
- * Mit dieser Funktion wird eine Verbindung zur angegebenen Adresse aufgebaut.
- *
- * \param[in] host Der Hostname oder die IP-Adresse des Zielrechners
- * \param[in] port Der gewünschte Zielport
- * \return Konnte die Verbindung erfolgreich aufgebaut werden, wird true (1) zurückgegeben,
- * im Fehlerfall false (0).
- */
-#ifdef _WIN32
-int CTCPSocket::Connect(const char *host, int port)
-{
-    if (connected) Disconnect();
-    if (islisten) Disconnect();
-	if (!socket) {
-		socket=malloc(sizeof(PPLSOCKET));
-		if (!socket) {
-			SetError(2);
-			return 0;
-		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-    	s->sd=0;
-		s->proto=6;
-		s->ipname=NULL;
-		s->port=0;
-	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->ipname) free(s->ipname);
-	s->ipname=NULL;
-
-    if (s->sd) Disconnect();
-    if (!host) {
-        SetError(270);
-        return 0;
-    }
-    if (!port) {
-        SetError(271);
-        return 0;
-    }
-    struct sockaddr_in addr;
-    bzero(&addr,sizeof(addr));
-
-    // convert host to in_addr
-    struct in_addr in;
-	if (inet_aton(host,&in)) {
-        addr.sin_addr.s_addr = in.s_addr;
-    } else {                // failed, perhaps it's a hostname we have to resolve first?
-        struct hostent *h=gethostbyname(host);
-        if (!h) {
-        	ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-			//int e=WSAGetLastError();
-           	//SetError(273,e);
-			return 0;
-        }
-		bcopy((void*)h->h_addr,(void*)&addr.sin_addr.s_addr,h->h_length);
-    }
-    addr.sin_port = htons(port);
-    addr.sin_family = AF_INET;
-
-	// Socket erstellen
-    s->sd = ::socket(PF_INET,SOCK_STREAM,s->proto);
-    if (s->sd<=0) {
-    	//ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-        SetError(272,"Return-Value of socket: %i, %s",s->sd,strerror(errno));
-        return 0;
-    }
-
-    // Try to connect
-    if (connect(s->sd, (struct sockaddr *)&addr, sizeof(addr) )!=0) {
-    	ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-    	PushError();
-		closesocket (s->sd);
-		s->sd=0;
-		// SetError(274,e,"errno=%i, %s",e,strerror(e));
-		PopError();
-        return 0;
-    }
-    SetError(0);
-    connected=1;
-    return 1;
-}
-
-
-#else
-
-int CTCPSocket::Connect(const char *host, int port)
-{
-    if (connected) Disconnect();
-    if (islisten) Disconnect();
-	BytesWritten=0;
-	BytesRead=0;
-	if (!socket) {
-		socket=malloc(sizeof(PPLSOCKET));
-		if (!socket) {
-			SetError(2);
-			return 0;
-		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-    	s->sd=0;
-		//s->proto=6;
-		s->proto=0;
-		s->ipname=NULL;
-		s->port=0;
-		//s->addrlen=0;
-	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->ipname) free(s->ipname);
-	s->ipname=NULL;
-
-    if (s->sd) Disconnect();
-    if (!host) {
-        SetError(270);
-        return 0;
-    }
-    if (!port) {
-        SetError(271);
-        return 0;
-    }
-	#ifdef _WIN32
-		SOCKET	sockfd;
-	#else
-		int sockfd;
-	#endif
-    int n;
-    struct addrinfo hints, *res, *ressave;
-    bzero(&hints,sizeof(struct addrinfo));
-    hints.ai_family=AF_UNSPEC;
-    hints.ai_socktype=SOCK_STREAM;
-	char portstr[10];
-	sprintf(portstr,"%i",port);
-	if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
-		SetError(273,"%s, %s",host,gai_strerror(n));
-		return 0;
-	}
-	ressave=res;
-	int e=0, conres=0;
-	do {
-		if (SourceHost.Len()>0 || SourcePort>0) {
-			if ((sockfd=out_bind((const char*)SourceHost,SourcePort))<=0) {
-				shutdown(sockfd,2);
-				close(sockfd);
-				freeaddrinfo(ressave);
-				return 0;
-			}
-		} else {
-			sockfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-			if (sockfd<0) continue;		// Error, try next one
-		}
-		if (log) {
-			log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Got Descriptor: %i\n",host,port,sockfd);
-			log->HexDump(LOG::DEBUG,10,res->ai_addr,res->ai_addrlen);
-		}
-		if (connect_timeout_sec>0 || connect_timeout_usec) {
-			#ifdef _WIN32
-				conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
-			#else
-				conres=ppl_connect_nb(sockfd,res->ai_addr,res->ai_addrlen,connect_timeout_sec,connect_timeout_usec);
-				e=errno;
-			#endif
-		} else {
-			conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
-			e=errno;
-			if (conres<0) {
-				if (log) log->HexDump(LOG::DEBUG,6,res->ai_addr,res->ai_addrlen);
-			}
-
-		}
-		if (conres==0) {
-			if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Connected with Descriptor: %i\n",host,port,sockfd);
-			break;
-		}
-		#ifdef _WIN32
-			e=WSAGetLastError();
-			shutdown(sockfd,2);
-			closesocket(sockfd);
-		#else
-			shutdown(sockfd,2);
-			close(sockfd);
-		#endif
-		if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Close Descriptor: %i\n",host,port,sockfd);
-		sockfd=0;
-	} while ((res=res->ai_next)!=NULL);
-	if (conres<0) {
-		res=NULL;
-	}
-	if (sockfd<0) {
-		freeaddrinfo(ressave);
-		SetError(265,e,"Host: %s, Port: %d",host,port);
-		return 0;
-	}
-	if (res==NULL) {
-		int pple=TranslateErrno(e);
-		if (pple==174) {
-			SetError(174,e,"Host: %s, Port: %d, errno=%i, %s",host,port,e,strerror(e));
-		} else {
-			SetError(274,e,"Host: %s, Port: %d, errno=%i, %s >>%s<<",host,port,e,strerror(e), GetError(TranslateErrno(e)));
-		}
-		freeaddrinfo(ressave);
-		return 0;
-	}
-	if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Connect ok, Descriptor: %i\n",host,port,sockfd);
-	s->sd=sockfd;
-	//s->addrlen=res->ai_addrlen;
-	HostName=host;
-	PortNum=port;
-	connected=1;
-	freeaddrinfo(ressave);
-	return 1;
-}
-#endif
 
 
 

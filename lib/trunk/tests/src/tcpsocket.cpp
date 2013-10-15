@@ -89,11 +89,86 @@ TEST_F(TcpSocketTest, shutdownWithoutConnection) {
 	});
 }
 
-TEST_F(TcpSocketTest, connectUnknownServer) {
+TEST_F(TcpSocketTest, connectUnresolveableHostname) {
 	ppl7::TCPSocket socket;
-	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","unknownserver","unknown.server.pfp.de");
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","unknownserver","unresolveable.server.pfp.de");
+	ASSERT_THROW({
+		socket.connect(Hostname,80);
+	},ppl7::ResolverException) << "Connect on unresolveable address throws ResolverException";
+}
+
+TEST_F(TcpSocketTest, connectOnServerNotRunningWithTimeout) {
+	ppl7::TCPSocket socket;
+	socket.setTimeoutConnect(1,0);
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","notrunningserver","unexistingserver.ppl.pfp.de");
+	double start=ppl7::GetMicrotime();
+	ASSERT_THROW({
+		socket.connect(Hostname,80);
+	},ppl7::TimeoutException);
+	double duration=ppl7::GetMicrotime()-start;
+	ASSERT_LT(duration,1.1) << "Timeout too long";
+}
+
+TEST_F(TcpSocketTest, connectOnEchoServerNonexistingPort) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	int port=PPL7TestConfig.getIntFromSection("tcpsocket","echoserver_nonexistingport",11111);
+	ASSERT_THROW({
+		socket.connect(Hostname,port);
+	},ppl7::ConnectionRefusedException);
+}
+
+
+TEST_F(TcpSocketTest, connectOnEchoServer) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
 	ASSERT_NO_THROW({
-		//socket.connect(Hostname,80);
+		socket.connect(Hostname,7);
+	});
+}
+
+TEST_F(TcpSocketTest, connectWithOneParameter) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	Hostname+=":7";
+	ASSERT_NO_THROW({
+		socket.connect(Hostname);
+	});
+}
+
+TEST_F(TcpSocketTest, connectAndDisconnect) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+	ASSERT_NO_THROW({
+		socket.disconnect();
+	});
+}
+
+TEST_F(TcpSocketTest, connectAndDisconnectAndReconnect) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+	ASSERT_NO_THROW({
+		socket.disconnect();
+	});
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+}
+
+TEST_F(TcpSocketTest, connectAndReconnect) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
 	});
 }
 

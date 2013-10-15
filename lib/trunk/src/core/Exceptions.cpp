@@ -51,6 +51,7 @@
 
 
 #include "ppl7.h"
+#include "ppl7-inet.h"
 
 namespace ppl7 {
 
@@ -195,13 +196,31 @@ void throwExceptionFromErrno(int e,const String &info)
 		case EINTR: throw OperationInterruptedException();
 		case ENOLCK: throw TooManyLocksException();
 		case ESPIPE: throw IllegalOperationOnPipeException();
+		case ETIMEDOUT: throw TimeoutException(info);
 
+		case ENETDOWN: throw NetworkDownException(info);
+		case ENETUNREACH: throw NetworkUnreachableException(info);
+		case ENETRESET: throw NetworkDroppedConnectionOnResetException(info);
+		case ECONNABORTED: throw SoftwareCausedConnectionAbortException(info);
+		case ECONNRESET: throw ConnectionResetByPeerException(info);
+		case ENOBUFS: throw NoBufferSpaceException(info);
+		case EISCONN: throw SocketIsAlreadyConnectedException(info);
+		case ENOTCONN: throw SocketIsNotConnectedException(info);
+		case ESHUTDOWN: throw CantSendAfterSocketShutdownException(info);
+		case ETOOMANYREFS: throw TooManyReferencesException(info);
+		case ECONNREFUSED: throw ConnectionRefusedException(info);
+		case EHOSTDOWN: throw HostDownException(info);
+		case EHOSTUNREACH: throw NoRouteToHostException(info);
 		/*
 
 		 *
 		 */
 
-		default: throw UnknownException(info);
+		default: {
+			String e=strerror(e);
+			e+=": "+info;
+			throw UnknownException(e);
+		}
 	}
 }
 

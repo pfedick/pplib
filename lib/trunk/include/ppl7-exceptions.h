@@ -195,6 +195,7 @@ PPLNORMALEXCEPTION(BufferExceedsLimitException);
 PPLPARAMETERISEDEXCEPTION(HostNotFoundException);
 PPLNORMALEXCEPTION(TryAgainException);
 PPLPARAMETERISEDEXCEPTION(NoResultException);
+PPLEXCEPTION(TimeoutException,Exception);
 
 
 

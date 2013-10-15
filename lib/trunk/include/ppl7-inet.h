@@ -55,7 +55,24 @@ PPLPARAMETERISEDEXCEPTION(QueryFailedException);
 
 PPLEXCEPTION(NotConnectedException,NetworkException);
 PPLEXCEPTION(CouldNotOpenSocketException,NetworkException);				// 393
+PPLEXCEPTION(IllegalPortException,NetworkException);				// 393
 PPLEXCEPTION(CouldNotBindToSourceInterfaceException,NetworkException);	// 394
+PPLEXCEPTION(ConnectionRefusedException,NetworkException);
+PPLEXCEPTION(NetworkDownException,NetworkException);
+PPLEXCEPTION(NetworkUnreachableException,NetworkException);
+PPLEXCEPTION(NetworkDroppedConnectionOnResetException,NetworkException);
+PPLEXCEPTION(SoftwareCausedConnectionAbortException,NetworkException);
+PPLEXCEPTION(ConnectionResetByPeerException,NetworkException);
+PPLEXCEPTION(NoBufferSpaceException,NetworkException);
+PPLEXCEPTION(SocketIsAlreadyConnectedException,NetworkException);
+PPLEXCEPTION(SocketIsNotConnectedException,NetworkException);
+PPLEXCEPTION(CantSendAfterSocketShutdownException,NetworkException);
+PPLEXCEPTION(TooManyReferencesException,NetworkException);
+PPLEXCEPTION(HostDownException,NetworkException);
+PPLEXCEPTION(NoRouteToHostException,NetworkException);
+
+
+
 
 PPLEXCEPTION(ResolverException,Exception);
 
