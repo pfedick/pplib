@@ -58,7 +58,6 @@ namespace grafix {
 
 #undef tagBITMAPFILEHEADER
 
-#ifndef _WIN32
 typedef struct tagBITMAPFILEHEADER {
         ppldw		bfType;
         ppldd		bfSize;
@@ -88,14 +87,11 @@ typedef struct tagBITMAPINFOHEADER {    /* bmih */
     ppldw   biClrImportant;		// 34
 } BITMAPINFOHEADER;
 
-#endif
 
-#ifndef _WIN32
 typedef struct tagBITMAPINFO {
     BITMAPINFOHEADER    bmiHeader;
     RGBQUAD             bmiColors[1];
 } BITMAPINFO;
-#endif
 
 
 CFilter_BMP::CFilter_BMP()
