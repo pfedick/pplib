@@ -35,6 +35,14 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN		// Keine MFCs
+#define _WIN32_WINNT 0x501
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#include <windows.h>
+#endif
+
+
 #include "prolog.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +56,7 @@
 
 
 #include "ppl6.h"
+
 
 namespace ppl6 {
 /*!\brief Findet das erste Auftauchen einer Zeichenkette in einem String

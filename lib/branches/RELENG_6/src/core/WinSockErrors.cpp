@@ -35,7 +35,16 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
- 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN		// Keine MFCs
+#define _WIN32_WINNT 0x501
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#include <windows.h>
+#include <winsock2.h>
+#include <winerror.h>
+#endif
+
+
 #include "prolog.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,10 +58,6 @@
 #endif
 
 #include "ppl6.h"
-#ifdef _WIN32
-#include <winsock2.h>
-#include <winerror.h>
-#endif
 
 namespace ppl6 {
 void SetSocketError()
