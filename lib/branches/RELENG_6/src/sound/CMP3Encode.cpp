@@ -128,7 +128,7 @@ int CMP3Encode::ReadWaveHeader(CFileObject *ff, PPL_WAVEHEADER *wav)
 {
 	const char *buffer=NULL;
 	const char *fmt=NULL;
-	bzero(wav,sizeof(PPL_WAVEHEADER));
+	memset(wav,0,sizeof(PPL_WAVEHEADER));
 	buffer=ff->Map(0,64);			// Die ersten 64 Bytes des Files laden
 	if (!buffer) return 0;			// File zu klein
 

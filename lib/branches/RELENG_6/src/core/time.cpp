@@ -532,7 +532,7 @@ ppluint64 Datum2Sekunden(char *datum, char *zeit)
   ppldd jahr,monat,tag,hour=0,min=0,sec=0;
   time_t LTime;
   struct tm Time;
-  bzero((char *) &Time, sizeof(Time));
+  memset((char *) &Time, 0,sizeof(Time));
 
   sscanf (datum,"%4d%2d%2d",&jahr,&monat,&tag);
   if (zeit!=NULL) {
@@ -590,7 +590,7 @@ ppluint64 MkTime(const char *year, const char *month, const char *day, const cha
 {
 	struct tm Time;
 	if ((!year) || (!month) || (!day) || (!hour) || (!min) || (!sec)) return 0;
-	bzero(&Time,sizeof(Time));
+	memset(&Time,0,sizeof(Time));
 	Time.tm_mday = atoi(day);
 	Time.tm_mon  = atoi(month)-1;
 	Time.tm_year = atoi(year)-1900;
@@ -608,7 +608,7 @@ ppluint64 MkTime(int year, int month, int day, int hour, int min, int sec)
 {
 	struct tm Time;
 	if (year<1900 || month<1) return 0;
-	bzero(&Time,sizeof(Time));
+	memset(&Time,0,sizeof(Time));
 	Time.tm_mday = day;
 	Time.tm_mon  = month-1;
 	Time.tm_year = year-1900;
@@ -627,7 +627,7 @@ ppluint64 GetUTC(char *datum, char *zeit)
   ppldd jahr,monat,tag,hour=0,min=0,sec=0;
   time_t LTime;
   struct tm Time;
-  bzero((char *) &Time, sizeof(Time));
+  memset((char *) &Time, 0,sizeof(Time));
 
   sscanf (datum,"%2d.%2d.%4d",&tag,&monat,&jahr);
   if (zeit!=NULL) {

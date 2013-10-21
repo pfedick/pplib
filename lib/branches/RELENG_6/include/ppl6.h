@@ -110,14 +110,6 @@
 #define FALSE 0
 #endif
 
-//#ifndef MINGW32
-	#ifdef _WIN32
-		#define bzero ZeroMemory
-		//#define bcopy CopyMemory   // CopyMemory hat andere Parameter-Reihenfolge als bcopy!
-		#define strcasecmp stricmp
-	#endif
-//#endif
-
 #ifdef PPL6LIB
 	#include "ppl6-exceptions.h"
 #else

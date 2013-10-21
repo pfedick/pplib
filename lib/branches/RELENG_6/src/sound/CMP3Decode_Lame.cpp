@@ -337,8 +337,8 @@ int CMP3DecodeLibLame::Decode(int num, SAMPLE *left, SAMPLE *right)
 	if (filled<samples) {
 		rest=samples-filled;
 		debugprintf("Fülle Rest mit 0 auf: %i Samples\n",rest);
-		bzero(left,rest*sizeof(SAMPLE));
-		bzero(right,rest*sizeof(SAMPLE));
+		memset(left,0,rest*sizeof(SAMPLE));
+		memset(right,0,rest*sizeof(SAMPLE));
 	}
 	*/
 

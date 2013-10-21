@@ -257,7 +257,7 @@ void *CMemMan::AllocateSlot(void *b, void *s, ppldd size, bool clear)
 	if (block->biggest==slot) {
 		FindBiggestSlot(block);
 	}
-	if (clear) bzero (slot->adr,slot->size);
+	if (clear) memset (slot->adr,0,slot->size);
 	return slot->adr;
 }
 

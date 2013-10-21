@@ -55,7 +55,7 @@ int PPL6MainWin (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, 
 		return 251;
 	}
 	PPL6APPPARAMS p;
-	bzero(&p,sizeof(p));
+	memset(&p,0,sizeof(p));
 	p.hInstance=hInstance;
 	p.hPrevInstance=hPrevInstance;
 	LPTSTR cmd=GetCommandLine();
@@ -133,7 +133,7 @@ int PPL6Main (int argc, char **argv, CApplication *app)
 {
 
 	PPL6APPPARAMS p;
-	bzero(&p,sizeof(p));
+	memset(&p,0,sizeof(p));
 	p.argc=argc;
 	p.argv=argv;
 	if (!app) {

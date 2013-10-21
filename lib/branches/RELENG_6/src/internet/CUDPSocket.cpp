@@ -407,8 +407,8 @@ int CUDPSocket::RecvFrom(void *buffer, int maxlen, CString &host, int *port)
 	}
 	char hostname[1024];
 	char servname[32];
-	bzero(hostname,1024);
-	bzero(servname,32);
+	memset(hostname,0,1024);
+	memset(servname,0,32);
 	ppl6::HexDump(&from,sizeof(struct sockaddr));
 	if (getnameinfo((const sockaddr*)&from,len,
 		hostname,1023, servname,31,NI_NUMERICHOST|NI_NUMERICSERV)!=0) {
@@ -444,7 +444,7 @@ int CUDPSocket::Bind(const char *host, int port)
 	s->ipname=NULL;
 
 	struct addrinfo hints, *res, *ressave;
-	bzero(&hints, sizeof(struct addrinfo));
+	memset(&hints, 0,sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_DGRAM;
@@ -492,7 +492,7 @@ int CUDPSocket::Bind(const char *host, int port)
 		listenfd=::socket(AF_INET, SOCK_DGRAM, 0);
 		if (listenfd>=0) {
 			struct sockaddr_in addr;
-			bzero(&addr,sizeof(addr));
+			memset(&addr,sizeof(addr));
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			addr.sin_port = htons(port);
 			addr.sin_family = AF_INET;

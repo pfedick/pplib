@@ -323,7 +323,7 @@ int PregMatch(const CString &expression, const CString &subject, CArray &matches
 	CString__PregMatch_Restart:
 	reg=pcre_compile2(r,flags,&perrorcode,&perr, &erroffset, NULL);
 	if (reg) {
-		bzero(ovector,30*sizeof(int));
+		memset(ovector,0,30*sizeof(int));
 		if ((re=pcre_exec(reg, NULL, buffer,len,0, 0, ovector, 30))>=0) {
 			ret=1;
 			for (int i=0;i<14;i++) {

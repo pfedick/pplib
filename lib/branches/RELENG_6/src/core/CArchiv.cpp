@@ -291,7 +291,7 @@ int CArchiv::SetText(char *name, int chunkid)
 		SetError(2);
 		return 0;
 	}
-	bzero(c,sizeof(CHUNK));
+	memset(c,0,sizeof(CHUNK));
 	c->chunkId=chunkid;
 	c->chunksize=(ppluint32)strlen(name)+1;
 	c->compression=0;
@@ -410,7 +410,7 @@ int	CArchiv::Add(CFileObject *file, char *filename, bool includepath, int compre
 		return 0;
 	}
 
-	bzero(c,sizeof(CHUNK));
+	memset(c,0,sizeof(CHUNK));
 	c->chunkId=4;
 	c->chunksize=(ppluint32)file->Size()+10+l_fname;		// TODO
 	c->compression=0;

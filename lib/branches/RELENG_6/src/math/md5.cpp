@@ -92,7 +92,7 @@ namespace ppl6 {
 static void MD5Transform (u_int32_t state[4], const unsigned char block[64]);
 
 #ifdef _KERNEL
-#define memset(x,y,z)	bzero(x,z);
+#define memset(x,y,z)	memset(x,0,z);
 #define memcpy(x,y,z)	bcopy(y, x, z)
 #endif
 

@@ -3101,7 +3101,7 @@ mit 5 angegeben, werden nur die ersten 5 Matches ersetzt.
 	if (reg) {
 		CString rest=utf8;
 		while (1) {		// Endlosschleife, bis nichts mehr matched
-			bzero(ovector,30*sizeof(int));
+			memset(ovector,30*sizeof(int));
 			if ((re=pcre_exec(reg, NULL, (const char*) rest,rest.Len(),0, 0, ovector, 30))>=0) {
 				ret++;
 				Replace=replace;

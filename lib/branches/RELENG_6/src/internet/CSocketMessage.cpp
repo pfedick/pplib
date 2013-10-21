@@ -365,7 +365,7 @@ int CTCPSocket::Write(CSocketMessage &msg)
 	CBinary compressed;
 	char header[24];
 	comp.UsePrefix(CCompression::Prefix_V1);
-	bzero(header,24);
+	memset(header,0,24);
 	int flags=0;
 	if (msg.UseCompression) flags|=2;		// Bit 1: Client supports ZLib
 	if (msg.SupportMsgChannel) flags|=4;	// Bit 2: Client supports MsgChannel
@@ -536,7 +536,7 @@ int CTCPSocket::WaitForMessage(CSocketMessage &msg, int timeout)
 				return 0;
 			}
 		}
-		bzero(msgbuffer,24);
+		memset(msgbuffer,0,24);
 		if (!WaitForIncomingData(0,100000)) {
 			if (GetErrorCode()==174) continue;
 			return 0;

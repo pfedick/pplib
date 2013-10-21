@@ -216,7 +216,7 @@ void *CHeap::Calloc()
 {
 	void *block=Malloc();
 	if (!block) return NULL;
-	bzero(block,elementsize);
+	memset(block,0,elementsize);
 	return block;
 }
 

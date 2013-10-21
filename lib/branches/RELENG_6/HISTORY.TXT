@@ -51,6 +51,7 @@ Version 6.4.17
   - Fehler bei der Initialisierung von MySQL behoben. Neue statische Funktion
     zum Initialisieren der MySQL-Bibliothek.
   - mögliche Race Condition Pool::CheckPool behoben
+  - bzero durch memset ersetzt, da bzero in POSIX.1-2008 entfernt wurde
 
 Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
   - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog

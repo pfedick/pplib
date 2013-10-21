@@ -418,7 +418,7 @@ static int out_bind(SOCKET sockfd, const char *host, int port)
 static int out_bind(const char *host, int port)
 {
 	struct addrinfo hints, *res, *ressave;
-	bzero(&hints, sizeof(struct addrinfo));
+	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_STREAM;
@@ -629,7 +629,7 @@ int CTCPSocket::Connect(const char *host, int port)
         return 0;
     }
     struct sockaddr_in addr;
-    bzero(&addr,sizeof(addr));
+    memset(&addr,0,sizeof(addr));
 
     // convert host to in_addr
     struct in_addr in;
@@ -714,7 +714,7 @@ int CTCPSocket::Connect(const char *host, int port)
 	#endif
     int n;
     struct addrinfo hints, *res, *ressave;
-    bzero(&hints,sizeof(struct addrinfo));
+    memset(&hints,0,sizeof(struct addrinfo));
     hints.ai_family=AF_UNSPEC;
     hints.ai_socktype=SOCK_STREAM;
 	char portstr[10];
@@ -1635,7 +1635,7 @@ int CTCPSocket::Bind(const char *host, int port)
 	if (s->ipname) free(s->ipname);
 	s->ipname=NULL;
 	struct sockaddr_in addr;
-	bzero(&addr,sizeof(addr));
+	memset(&addr,0,sizeof(addr));
 
 	PortNum=port;
 
@@ -1723,7 +1723,7 @@ int CTCPSocket::Bind(const char *host, int port)
 	s->ipname=NULL;
 
 	struct addrinfo hints, *res, *ressave;
-	bzero(&hints, sizeof(struct addrinfo));
+	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_STREAM;
@@ -1767,7 +1767,7 @@ int CTCPSocket::Bind(const char *host, int port)
 		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
 		if (listenfd>=0) {
 			struct sockaddr_in addr;
-			bzero(&addr,sizeof(addr));
+			memset(&addr,0,sizeof(addr));
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			addr.sin_port = htons(port);
 			addr.sin_family = AF_INET;
@@ -1953,8 +1953,8 @@ int CTCPSocket::Listen(int timeout)
 #endif
 				char hostname[1024];
 				char servname[32];
-				bzero(hostname,1024);
-				bzero(servname,32);
+				memset(hostname,0,1024);
+				memset(servname,0,32);
 				if (getnameinfo((const sockaddr*)&cliAddr,sizeof(cliAddr),
 						hostname,1023, servname,31,NI_NUMERICHOST|NI_NUMERICSERV)!=0) {
 #ifdef _WIN32

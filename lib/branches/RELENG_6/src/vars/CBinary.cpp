@@ -512,7 +512,7 @@ void CBinary::HexDump() const
 	char *_adresse=(char*)ptr;
 	ppldd spalte=0;
 	sprintf (buff,"0x%08X: ",0);
-	bzero(cleartext,20);
+	memset(cleartext,0,20);
 	for (size_t i=0;i<size;i++) {
 		if (spalte>15) {
 			strcat(buff,"                                                               ");
@@ -521,7 +521,7 @@ void CBinary::HexDump() const
 			strcat (buff,cleartext);
 			printf("%s\n",buff);
 			sprintf (buff,"0x%08X: ",i);
-			bzero(cleartext,20);
+			memset(cleartext,0,20);
 			spalte=0;
 		}
 		sprintf (tmp,"%02X ",(ppldb)_adresse[i]);
@@ -547,7 +547,7 @@ void CBinary::HexDump(CString &s) const
 	char *_adresse=(char*)ptr;
 	ppldd spalte=0;
 	sprintf (buff,"0x%08X: ",0);
-	bzero(cleartext,20);
+	memset(cleartext,0,20);
 	for (size_t i=0;i<size;i++) {
 		if (spalte>15) {
 			strcat(buff,"                                                               ");
@@ -556,7 +556,7 @@ void CBinary::HexDump(CString &s) const
 			strcat (buff,cleartext);
 			s.Concatf("%s\n",buff);
 			sprintf (buff,"0x%08X: ",i);
-			bzero(cleartext,20);
+			memset(cleartext,0,20);
 			spalte=0;
 		}
 		sprintf (tmp,"%02X ",(ppldb)_adresse[i]);

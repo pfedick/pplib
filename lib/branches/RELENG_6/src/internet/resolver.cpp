@@ -124,7 +124,7 @@ static int GetHostByNameInternal(const char *name, CAssocArray *Result, int fami
 		int n;
 		struct addrinfo hints, *res, *ressave;
 		CBinary bin;
-		bzero(&hints,sizeof(struct addrinfo));
+		memset(&hints,0,sizeof(struct addrinfo));
 		hints.ai_family=family;
 		hints.ai_socktype=SOCK_STREAM;
 		if ((n=getaddrinfo(name,NULL,&hints,&res))!=0) {
@@ -283,7 +283,7 @@ int GetHostByAddr(const char *addr, CAssocArray *Result)
 		int n;
 		struct addrinfo hints, *res, *ressave;
 		CBinary bin;
-		bzero(&hints,sizeof(struct addrinfo));
+		memset(&hints,0,sizeof(struct addrinfo));
 		hints.ai_family=AF_UNSPEC;
 		hints.ai_socktype=SOCK_STREAM;
 		if ((n=getaddrinfo(addr,NULL,&hints,&res))!=0) {

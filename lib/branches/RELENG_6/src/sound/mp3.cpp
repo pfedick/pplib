@@ -103,7 +103,7 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 	pplint64 p=0;
 	unsigned char *buffer;
 	if (!mpg) mpg=&mpgheader;
-	bzero(mpg,sizeof(PPL_MPEG_HEADER));
+	memset(mpg,0,sizeof(PPL_MPEG_HEADER));
 
 	mpg->filesize=(ppldd)file->Lof();
 	// Beginnt die Datei mit einem ID3-Tag?
