@@ -319,40 +319,5 @@
 
 #define ICONV_UNICODE	undefined
 
-#ifdef _WIN32
-	#ifdef _M_ALPHA
-		#ifndef __BIG_ENDIAN__
-			#define __BIG_ENDIAN__
-		#endif
-	#else
-		#ifndef __LITTLE_ENDIAN__
-			#define __LITTLE_ENDIAN__
-		#endif
-	#endif
-
-	#define WIN32_LEAN_AND_MEAN		// Keine MFCs
-	#define _WIN32_WINNT 0x501
-	// Ab Visual Studio 2005 (Visual C++ 8.0) gibt es einige �nderungen
-	#if _MSC_VER >= 1400
-		#define _CRT_SECURE_NO_WARNINGS
-		#define _CRT_SECURE_NO_DEPRECATE 
-		#define _AFX_SECURE_NO_DEPRECATE 
-		#define _ATL_SECURE_NO_DEPRECATE
-		#pragma warning(disable : 4996)
-		#pragma warning(disable : 4800)
-
-		/*
-		#define unlink _unlink
-		#define strdup _strdup
-		#define fileno _fileno
-		#define mkdir _mkdir
-		#define open _open
-		#define close _close
-		#define read _read
-		*/
-	#endif
-	#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
-	#include <windows.h>
-#endif
 
 #endif
