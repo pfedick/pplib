@@ -492,7 +492,7 @@ int CUDPSocket::Bind(const char *host, int port)
 		listenfd=::socket(AF_INET, SOCK_DGRAM, 0);
 		if (listenfd>=0) {
 			struct sockaddr_in addr;
-			memset(&addr,sizeof(addr));
+			memset(&addr,0,sizeof(addr));
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			addr.sin_port = htons(port);
 			addr.sin_family = AF_INET;
