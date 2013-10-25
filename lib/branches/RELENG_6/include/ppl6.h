@@ -46,7 +46,7 @@
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
 	#ifdef PPL6LIB
-		#ifdef MINGW32
+		#ifdef __MINGW32__
 			#include "config.h"
 		#elif defined _WIN32
 			#include "ppl6-config.h"
@@ -3872,13 +3872,13 @@ namespace ppl6 {
 
 int PPL6Main (int argc, char **argv, CApplication *app);
 #ifdef _WIN32
-#ifndef MINGW32
+#ifndef __MINGW32__
 	int PPL6MainWin (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow, CApplication *app);
 #endif
 #endif
 }
 
-#ifdef MINGW32
+#ifdef __MINGW32__
 	#define PPL6APP(APP) int main(int argc, char **argv) { APP _ppl6app; return ppl6::PPL6Main(argc, argv, &_ppl6app); }
 #elif defined _WIN32
 	#ifdef _CONSOLE
@@ -3895,7 +3895,7 @@ namespace ppl6 {
 typedef struct {
 	int	argc;
 	char **argv;
-#ifndef MINGW32
+#ifndef __MINGW32__
 #ifdef _WIN32
 	HINSTANCE	hInstance;
 	HINSTANCE	hPrevInstance;
