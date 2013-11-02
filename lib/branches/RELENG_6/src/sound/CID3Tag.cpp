@@ -894,6 +894,11 @@ int CID3Tag::SetBPM(const CString &bpm)
 	return SetTextFrame("TBPM",bpm);
 }
 
+int CID3Tag::SetKey(const CString &key)
+{
+	return SetTextFrame("TKEY",key);
+}
+
 /*!\brief Erscheinungsjahr des Titels setzen
  *
  * \desc
@@ -1434,6 +1439,14 @@ CString CID3Tag::GetBPM() const
 {
 	CString r;
 	CID3Frame *frame=FindFrame("TBPM");
+	if (frame) CopyAndDecodeText(r,frame,0);
+	return r;
+}
+
+CString CID3Tag::GetKey() const
+{
+	CString r;
+	CID3Frame *frame=FindFrame("TKEY");
 	if (frame) CopyAndDecodeText(r,frame,0);
 	return r;
 }

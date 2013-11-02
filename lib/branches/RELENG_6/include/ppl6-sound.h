@@ -389,6 +389,7 @@ class CID3Tag
 		int SetAlbum(const CString &album);
 		int SetTrack(const CString &track);
 		int SetBPM(const CString &bpm);
+		int SetKey(const CString &key);
 		int SetTextFrame(const char *framename, const CString &text);
 		int			RemoveFrame(CID3Frame *frame);
 		int			DeleteFrame(CID3Frame *frame);
@@ -411,6 +412,7 @@ class CID3Tag
 		CString GetAlbum() const;
 		CString GetTrack() const;
 		CString GetBPM() const;
+		CString GetKey() const;
 		int GetPicture(int type, CBinary &bin) const;
 		int SetPicture(int type, const CBinary &bin, const CString &MimeType);
 		void RemovePicture(int type);
