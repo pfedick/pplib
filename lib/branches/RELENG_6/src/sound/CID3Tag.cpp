@@ -727,6 +727,41 @@ int CID3Tag::SetTextFrame(const char *framename, const CString &text, TextEncodi
 {
 	if (enc==ENC_USASCII || enc==ENC_ISO88591) return SetTextFrameISO88591(framename,text);
 	if (enc==ENC_UTF16) return SetTextFrameUtf16(framename,text);
+	return SetTextFrameUtf8(framename,text);
+}
+
+int CID3Tag::SetTextFrameUtf8(const char *framename, const CString &text)
+{
+	bool exists=false;
+	CID3Frame *frame=FindFrame(framename);
+	if (frame) {
+		exists=true;
+	} else {
+		frame=new CID3Frame(framename);
+		if (!frame) {
+			SetError(2);
+			return 0;
+		}
+	}
+	frame->Flags=0;
+	frame->Size=text.Len()+1;
+	//printf ("Frame-Size: %i\n",frame->Size);
+	if (frame->data) free(frame->data);
+	frame->data=(char*)malloc(frame->Size);
+	if (!frame->data)  {
+		frame->Size=0;
+		if (!exists) delete frame;
+		SetError(2);
+		return 0;
+	}
+
+	Poke8(frame->data,3);
+	Poke8(frame->data+1+text.Len(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+1,text.GetPtr(),text.Len());
+	if (!exists) {
+		AddFrame(frame);
+	}
+	return 1;
 }
 
 int CID3Tag::SetTextFrameUtf16(const char *framename, const CString &text)

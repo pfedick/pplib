@@ -362,6 +362,7 @@ class CID3Tag
 		int	Decode(CID3Frame *frame, int offset, int encoding, CString &target) const;
 		int SetTextFrameUtf16(const char *framename, const CString &text);
 		int SetTextFrameISO88591(const char *framename, const CString &text);
+		int SetTextFrameUtf8(const char *framename, const CString &text);
 
 	public:
 		enum TextEncoding {
