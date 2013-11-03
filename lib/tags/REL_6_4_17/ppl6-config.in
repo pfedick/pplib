@@ -1,0 +1,295 @@
+#!/bin/sh
+
+DEFS="@DEFS@"
+CFLAGS="@CFLAGS@ @PTHREAD_CFLAGS@"
+CPPFLAGS="@CPPFLAGS@"
+LDFLAGS="@LDFLAGS@"
+LIBS="@PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @FREETDS_LIBS@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBCURL@ @ICONV_LIBS@ @MPG123_LIBS@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @SHOUT_LIBS@ @OGG_LIBS@ @LIBMICROHTTPD_LIBS@ @SQLITE_LIBS@ @LIBS@ @GCOV_LDFLAGS@"
+BASELIBS="@PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @ICONV_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @LIBS@ @GCOV_LDFLAGS@"
+LIBNAME="libppl6"
+LIBDEBUG="libppl6-debug"
+VERSION="@PACKAGE_VERSION@"
+SRCDIR=@SRCDIR@
+
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+TARGETLIB="@libdir@"
+TARGETINCLUDE="@includedir@"
+
+
+usage()
+{
+	cat <<EOF
+Usage: ppl-config [OPTIONS] [LIBRARIES]
+Options:
+	[--prefix[=DIR]]
+	[--exec-prefix[=DIR]]
+	[--version]
+	[--libs]
+	[--cflags]
+	[--ppllib]
+	[--features [wanted features, eg: --features zlib bzip2 pcre]]
+	[--archive]
+Libraries:
+	release | debug
+	core
+	database
+	grafix
+	sound
+	inet [nossl]
+	tk
+	
+EOF
+	exit $1
+}
+
+RET=0
+check_feature()
+{
+	NAME=$1
+	DEFINE=$2
+	WANTED=$3
+	if [ -n "$WANTED" ] ; then
+		for FEATURE in $WANTED; do
+			if [ "$FEATURE" = "$NAME" ] ; then
+				if [ "$DEFINE" = "yes" ] ; then
+					echo "OK, have feature:       $NAME"
+				else
+					echo "ERROR, missing feature: $NAME"
+					RET=1
+				fi
+			fi
+		done
+	else
+		if [ "$DEFINE" = "yes" ] ; then
+			echo $NAME
+		fi
+	fi
+}
+
+
+if test $# -eq 0; then
+	usage 1 1>&2
+fi
+
+lib_ppl=yes
+basename=libppl6
+libname=ppl6
+
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix=*)
+      prefix=$optarg
+      if test $exec_prefix_set = no ; then
+        exec_prefix=$optarg
+      fi
+      ;;
+    --prefix)
+      echo_prefix=yes
+      ;;
+    --exec-prefix=*)
+      exec_prefix=$optarg
+      exec_prefix_set=yes
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=yes
+      ;;
+    --version)
+      echo $VERSION
+      ;;
+    --cflags)
+      echo_cflags=yes
+      ;;
+    --libs)
+      echo_libs=yes
+      ;;
+    --archive)
+      echo_archive=yes
+      ;;
+    --ppllib)
+      echo_ppllib=yes
+      ;;
+    release)
+      lib_ppl=yes
+      basename=libppl6
+      libname=ppl6
+      objects=release
+      ;;
+    debug)
+      lib_ppl_debug=yes
+      basename=libppl6-debug
+      libname=ppl6-debug
+      objects=debug
+      ;;
+    nossl)
+      nossl=yes
+      ;;
+    core)
+      split=yes
+      core=yes
+      ;;
+    sound)
+      split=yes
+      sound=yes
+      ;;
+    database)
+      split=yes
+      database=yes
+      ;;
+    inet)
+      split=yes
+      inet=yes
+      ;;
+    grafix)
+      split=yes
+      grafix=yes
+      ;;
+    tk)
+      split=yes
+      tk=yes
+      ;;
+    source)
+      usesource=yes
+      ;;
+    --features)
+      listfeatures=yes
+      shift
+      features_wanted=$*
+      break
+      ;;
+    *)
+      usage 1 1>&2
+      ;;
+  esac
+  shift
+done
+
+if test "$echo_prefix" = "yes"; then
+	echo $prefix
+fi
+
+if test "$echo_exec_prefix" = "yes"; then
+	echo $exec_prefix
+fi
+
+if test "$listfeatures" = "yes"; then
+	RET=0
+	check_feature "zlib" "@report_have_zlib@" "$features_wanted"
+	check_feature "bzip2" "@report_have_bzip2@" "$features_wanted"
+	check_feature "png" "@report_have_png@" "$features_wanted"
+	check_feature "jpeg" "@report_have_jpeg@" "$features_wanted"
+	check_feature "freetype2" "@report_have_freetype2@" "$features_wanted"
+	check_feature "sdl" "@report_have_sdl@" "$features_wanted"
+	check_feature "lame" "@report_have_lame@" "$features_wanted"
+	check_feature "mad" "@report_have_libmad@" "$features_wanted"
+	check_feature "curl" "@report_have_curl@" "$features_wanted"
+	check_feature "openssl" "@report_have_openssl@" "$features_wanted"
+	check_feature "pcre" "@report_have_pcre@" "$features_wanted"
+	check_feature "iconv" "@report_have_iconv@" "$features_wanted"
+	check_feature "mcrypt" "@report_have_libmcrypt@" "$features_wanted"
+	check_feature "mhash" "@report_have_libmhash@" "$features_wanted"
+	check_feature "mysql" "@report_have_mysql@" "$features_wanted"
+	check_feature "postgres" "@report_have_postgres@" "$features_wanted"
+	check_feature "freetds" "@report_have_freetds@" "$features_wanted"
+	check_feature "sybase" "@report_have_freetds@" "$features_wanted"
+	check_feature "sqlite" "@report_have_sqlite@" "$features_wanted"
+	check_feature "nasm" "@report_have_nasm@" "$features_wanted"
+	check_feature "pthreads" "@report_have_pthreads@" "$features_wanted"
+	check_feature "ldns" "@report_have_ldns@" "$features_wanted"
+	check_feature "libmicrohttpd" "@report_have_libmicrohttpd@" "$features_wanted"
+	
+	exit $RET
+fi
+
+if [ "$split" = "yes" ] ; then
+    ORGLIBS=$LIBS
+	LIBS="-L$TARGETLIB"
+	PPLLIB=""
+	if [ "$core" = "yes" ] ; then
+		LIBS="$LIBS -l$libname-core"
+	fi
+	if [ "$sound" = "yes" ] ; then
+		LIBS="$LIBS -l$libname-sound @LAME_LIBS@ @MAD_LIBS@ @SOUND_LIBS@"
+	fi
+	if [ "$grafix" = "yes" ] ; then
+		LIBS="$LIBS -l$libname-grafix @GRAPHIC_LIBS@"
+	fi
+	if [ "$database" = "yes" ] ; then
+		LIBS="$LIBS -l$libname-database @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @FREETDS_LIBS@ @SQLITE_LIBS@"
+	fi
+	if [ "$tk" = "yes" ] ; then
+		LIBS="$LIBS -l$libname-tk"
+	fi
+	if [ "$inet" = "yes" ] ; then
+		if [ "$nossl" = "yes" ] ; then
+			LIBS="$LIBS -l$libname-inet-nossl"
+		else
+			LIBS="$LIBS -l$libname-inet @OPENSSL_LIBS@"
+		fi
+		LIBS="$LIBS @LIBCURL@"
+	fi
+	LIBS="$LIBS $BASELIBS "
+else
+	PPLLIB="$prefix/lib/$basename.a"
+	if test "$usesource" != "yes"; then
+		ARCHIVE="$PPLLIB $LIBS"
+		LIBS="-L$TARGETLIB -l$libname $LIBS"
+	fi
+fi
+
+if test "$echo_cflags" = "yes"; then
+  	src=""
+	if test "$usesource" = "yes"; then
+		src="-I$SRCDIR/include"
+	fi
+    echo "$src$CFLAGS -I$TARGETINCLUDE"
+fi
+
+if test "$echo_libs" = "yes"; then
+      my_glib_libs=
+      libdirs=
+      for i in $LIBS ; do
+          if test -z "$my_glib_libs" ; then
+            my_glib_libs="$i"
+          else
+            my_glib_libs="$my_glib_libs $i"
+          fi
+      done
+      	src=""
+		if test "$usesource" = "yes"; then
+			src="$SRCDIR/$objects/$basename.a"
+		fi
+
+      echo $src $libdirs $my_glib_libs 
+fi      
+
+if test "$echo_archive" = "yes"; then
+      my_glib_libs=
+      libdirs=
+      for i in $ARCHIVE ; do
+          if test -z "$my_glib_libs" ; then
+            my_glib_libs="$i"
+          else
+            my_glib_libs="$my_glib_libs $i"
+          fi
+      done
+      	src=""
+		if test "$usesource" = "yes"; then
+			src="$SRCDIR/$objects/$basename.a"
+		fi
+
+      echo $src $libdirs $my_glib_libs 
+fi      
+
+
+if test "$echo_ppllib" = "yes"; then
+  echo $PPLLIB
+fi
+
