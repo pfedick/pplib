@@ -360,8 +360,16 @@ class CID3Tag
 		int		AddFrame(CID3Frame *Frame);
 		void	CopyAndDecodeText(CString &s, CID3Frame *frame, int offset) const;
 		int	Decode(CID3Frame *frame, int offset, int encoding, CString &target) const;
+		int SetTextFrameUtf16(const char *framename, const CString &text);
+		int SetTextFrameISO88591(const char *framename, const CString &text);
 
 	public:
+		enum TextEncoding {
+			ENC_USASCII,
+			ENC_ISO88591,
+			ENC_UTF16,
+			ENC_UTF8
+		};
 		CID3Tag();
 		CID3Tag(const char *filename);
 
@@ -390,7 +398,7 @@ class CID3Tag
 		int SetTrack(const CString &track);
 		int SetBPM(const CString &bpm);
 		int SetKey(const CString &key);
-		int SetTextFrame(const char *framename, const CString &text);
+		int SetTextFrame(const char *framename, const CString &text, TextEncoding enc=ENC_UTF16);
 		int			RemoveFrame(CID3Frame *frame);
 		int			DeleteFrame(CID3Frame *frame);
 		CID3Frame	*FindFrame(const char *name) const;

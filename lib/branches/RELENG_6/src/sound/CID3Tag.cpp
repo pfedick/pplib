@@ -723,7 +723,13 @@ CID3Frame *CID3Tag::FindUserDefinedText(const CString &description) const
 }
 
 
-int CID3Tag::SetTextFrame(const char *framename, const CString &text)
+int CID3Tag::SetTextFrame(const char *framename, const CString &text, TextEncoding enc)
+{
+	if (enc==ENC_USASCII || enc==ENC_ISO88591) return SetTextFrameISO88591(framename,text);
+	if (enc==ENC_UTF16) return SetTextFrameUtf16(framename,text);
+}
+
+int CID3Tag::SetTextFrameUtf16(const char *framename, const CString &text)
 {
 	bool exists=false;
 	CBinary enc;
@@ -759,6 +765,43 @@ int CID3Tag::SetTextFrame(const char *framename, const CString &text)
 	}
 	return 1;
 }
+
+int CID3Tag::SetTextFrameISO88591(const char *framename, const CString &text)
+{
+	bool exists=false;
+	CBinary enc;
+	if (!text.Transcode("UTF-8","ISO8859-1",enc)) return 0;
+	CID3Frame *frame=FindFrame(framename);
+	if (frame) {
+		exists=true;
+	} else {
+		frame=new CID3Frame(framename);
+		if (!frame) {
+			SetError(2);
+			return 0;
+		}
+	}
+	frame->Flags=0;
+	frame->Size=enc.Len()+1;
+	//printf ("Frame-Size: %i\n",frame->Size);
+	if (frame->data) free(frame->data);
+	frame->data=(char*)malloc(frame->Size);
+	if (!frame->data)  {
+		frame->Size=0;
+		if (!exists) delete frame;
+		SetError(2);
+		return 0;
+	}
+
+	Poke8(frame->data,0);
+	Poke8(frame->data+1+enc.Len(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+1,enc.GetPtr(),enc.Len());
+	if (!exists) {
+		AddFrame(frame);
+	}
+	return 1;
+}
+
 
 /*!\brief Name des Interpreten setzen
  *
@@ -891,12 +934,12 @@ int CID3Tag::SetTrack(const CString &track)
 
 int CID3Tag::SetBPM(const CString &bpm)
 {
-	return SetTextFrame("TBPM",bpm);
+	return SetTextFrame("TBPM",bpm,ENC_USASCII);
 }
 
 int CID3Tag::SetKey(const CString &key)
 {
-	return SetTextFrame("TKEY",key);
+	return SetTextFrame("TKEY",key,ENC_USASCII);
 }
 
 /*!\brief Erscheinungsjahr des Titels setzen
