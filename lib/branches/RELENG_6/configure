@@ -12669,17 +12669,17 @@ $as_echo_n "checking for FreeType -- version >= $min_ft_version... " >&6; }
      FT2_CFLAGS=`$FT2_CONFIG $ft_config_args --cflags`
      FT2_LIBS=`$FT2_CONFIG $ft_config_args --libs`
      ft_config_major_version=`$FT2_CONFIG $ft_config_args --version | \
-       sed 's/\([0-9]+*\).\([0-9]+*\).\([0-9]+*\)/\1/'`
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
      ft_config_minor_version=`$FT2_CONFIG $ft_config_args --version | \
-       sed 's/\([0-9]+*\).\([0-9]+*\).\([0-9]+*\)/\2/'`
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
      ft_config_micro_version=`$FT2_CONFIG $ft_config_args --version | \
-       sed 's/\([0-9]+*\).\([0-9]+*\).\([0-9]+*\)/\3/'`
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
      ft_min_major_version=`echo $min_ft_version | \
-       sed 's/\([0-9]+*\).\([0-9]+*\).\([0-9]+*\)/\1/'`
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
      ft_min_minor_version=`echo $min_ft_version | \
-       sed 's/\([0-9]+*\).\([0-9]+*\).\([0-9]+*\)/\2/'`
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
      ft_min_micro_version=`echo $min_ft_version | \
-       sed 's/\([0-9]+*\).\([0-9]+*\).\([0-9]+*\)/\3/'`
+       sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
      if test x$enable_fttest = xyes ; then
        ft_config_is_lt=""
        if test $ft_config_major_version -lt $ft_min_major_version ; then
