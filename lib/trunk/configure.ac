@@ -517,20 +517,23 @@ AC_CHECK_FT2(9.0.0,
 
 dnl Check for SDL
 report_have_sdl2="no"
+report_have_sdl="no"
 AM_PATH_SDL2([2.0.0],
             AC_DEFINE(HAVE_SDL2, 1, [ Define if you have libsdl2. ])
             report_have_sdl2="yes"
+            report_have_sdl="yes - Version 2.x"
 			AC_SUBST(SDL2_CFLAGS)
 			AC_SUBST(SDL2_LIBS)
             ,:)
 
 
-if test "$report_have_sdl2" = "no"
+if test "$report_have_sdl" = "no"
 then
 
 AM_PATH_SDL([1.2.0],
             AC_DEFINE(HAVE_SDL12, 1, [ Define if you have libsdl12. ])
             report_have_sdl1="yes"
+            report_have_sdl="yes - Version 1.x"
 			AC_SUBST(SDL_CFLAGS)
 			AC_SUBST(SDL_LIBS)
             ,:)
@@ -733,8 +736,7 @@ AC_MSG_RESULT([
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
-**   SDL v1.2.x library:   $report_have_sdl1
-**   SDL v2.x library:     $report_have_sdl2
+**   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg	  

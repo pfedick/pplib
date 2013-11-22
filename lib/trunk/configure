@@ -14992,6 +14992,7 @@ $as_echo "$as_me: WARNING:
 
 
 report_have_sdl2="no"
+report_have_sdl="no"
 
 # Check whether --with-sdl-prefix was given.
 if test "${with_sdl_prefix+set}" = set; then :
@@ -15271,6 +15272,7 @@ $as_echo "no" >&6; }
 $as_echo "#define HAVE_SDL2 1" >>confdefs.h
 
             report_have_sdl2="yes"
+            report_have_sdl="yes - Version 2.x"
 
 
 
@@ -15340,7 +15342,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 
-if test "$report_have_sdl2" = "no"
+if test "$report_have_sdl" = "no"
 then
 
 
@@ -15535,6 +15537,7 @@ $as_echo "yes" >&6; }
 $as_echo "#define HAVE_SDL12 1" >>confdefs.h
 
             report_have_sdl1="yes"
+            report_have_sdl="yes - Version 1.x"
 
 
 
@@ -18295,8 +18298,7 @@ fi
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
-**   SDL v1.2.x library:   $report_have_sdl1
-**   SDL v2.x library:     $report_have_sdl2
+**   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg
@@ -18363,8 +18365,7 @@ $as_echo "
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
-**   SDL v1.2.x library:   $report_have_sdl1
-**   SDL v2.x library:     $report_have_sdl2
+**   SDL library:          $report_have_sdl
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg
