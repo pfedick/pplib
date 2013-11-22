@@ -36,7 +36,7 @@
 ###############################################################################
 
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.69)
+AC_PREREQ(2.63)
 AC_INIT([ppl], [7.0.0], [patrick@pfp.de], [ppl-7.0.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
@@ -112,7 +112,8 @@ report_have_zlib="no"
 report_have_pcre="no"
 report_have_openssl="no"
 report_have_freetype2="no"
-report_have_sdl="no"
+report_have_sdl1="no"
+report_have_sdl2="no"
 report_have_png="no"
 report_have_libimlib="no"
 report_have_mysql="no"
@@ -428,13 +429,13 @@ AC_CHECK_LIBTIFF([1.2],
 
 
 
-LIBCURL_CHECK_CONFIG("yes",7.14.1,
-	#LIBS="$LIBS $LIBCURL"
-	#CFLAGS="$CFLAGS $LIBCURL_CPPFLAGS "
-	AC_SUBST(LIBCURL)
-	AC_SUBST(LIBCURL_CPPFLAGS)
-	
-	report_have_curl="yes",:)
+#LIBCURL_CHECK_CONFIG([7.14.1],
+#	#LIBS="$LIBS $LIBCURL"
+#	#CFLAGS="$CFLAGS $LIBCURL_CPPFLAGS "
+#	AC_SUBST(LIBCURL)
+#	AC_SUBST(LIBCURL_CPPFLAGS)
+#	
+#	report_have_curl="yes",:)
 
 
 
@@ -518,7 +519,7 @@ dnl Check for SDL
 report_have_sdl="no"
 AM_PATH_SDL2([2.0.0],
             AC_DEFINE(HAVE_SDL2, 1, [ Define if you have libsdl2. ])
-            report_have_sdl="yes - Version 2.x"
+            report_have_sdl2="yes"
 			AC_SUBST(SDL2_CFLAGS)
 			AC_SUBST(SDL2_LIBS)
             ,:)
@@ -529,7 +530,7 @@ then
 
 AM_PATH_SDL([1.2.0],
             AC_DEFINE(HAVE_SDL12, 1, [ Define if you have libsdl12. ])
-            report_have_sdl="yes - Version 1.2.x"
+            report_have_sdl1="yes"
 			AC_SUBST(SDL_CFLAGS)
 			AC_SUBST(SDL_LIBS)
             ,:)
@@ -663,7 +664,8 @@ AC_SUBST(report_have_bzip2)
 AC_SUBST(report_have_png)
 AC_SUBST(report_have_jpeg)
 AC_SUBST(report_have_freetype2)
-AC_SUBST(report_have_sdl)
+AC_SUBST(report_have_sdl1)
+AC_SUBST(report_have_sdl2)
 AC_SUBST(report_have_lame)
 AC_SUBST(report_have_libmad)
 AC_SUBST(report_have_curl)
@@ -731,7 +733,8 @@ AC_MSG_RESULT([
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
-**   SDL library:          $report_have_sdl		
+**   SDL v1.2.x library:   $report_have_sdl1
+**   SDL v2.x library:     $report_have_sdl2
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg	  
