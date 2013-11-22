@@ -516,7 +516,7 @@ AC_CHECK_FT2(9.0.0,
 	, :)
 
 dnl Check for SDL
-report_have_sdl="no"
+report_have_sdl2="no"
 AM_PATH_SDL2([2.0.0],
             AC_DEFINE(HAVE_SDL2, 1, [ Define if you have libsdl2. ])
             report_have_sdl2="yes"
@@ -525,7 +525,7 @@ AM_PATH_SDL2([2.0.0],
             ,:)
 
 
-if test "$report_have_sdl" = "no"
+if test "$report_have_sdl2" = "no"
 then
 
 AM_PATH_SDL([1.2.0],
