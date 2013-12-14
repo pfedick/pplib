@@ -422,8 +422,8 @@ class CID3Tag
 		CString GetTrack() const;
 		CString GetBPM() const;
 		CString GetKey() const;
-		int GetPrivateData(CBinary &bin, const CString &identifier);
-		CMemoryReference GetPrivateData(const CString &identifier);
+		int GetPrivateData(CBinary &bin, const CString &identifier) const;
+		CMemoryReference GetPrivateData(const CString &identifier) const;
 		int GetPicture(int type, CBinary &bin) const;
 		int SetPicture(int type, const CBinary &bin, const CString &MimeType);
 		void RemovePicture(int type);

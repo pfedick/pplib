@@ -627,7 +627,7 @@ void CID3Tag::ListFrames(int hexdump) const
 {
 	CID3Frame *frame=firstFrame;
 	while (frame) {
-		printf ("Frame: %s, Size: %u, Flags: %u\n",frame->ID, frame->Size, frame->Flags);
+		printf ("Frame: %s, Size: %zu, Flags: %u\n",frame->ID, frame->Size, frame->Flags);
 		if (hexdump) ppl6::HexDump(frame->data,frame->Size);
 		frame=frame->nextFrame;
 	}
@@ -1556,7 +1556,7 @@ int CID3Tag::GetPicture(int type, CBinary &bin) const
 	return 0;
 }
 
-int CID3Tag::GetPrivateData(CBinary &bin, const CString &identifier)
+int CID3Tag::GetPrivateData(CBinary &bin, const CString &identifier) const
 {
 	CMemoryReference ref=GetPrivateData(identifier);
 	if (ref.isNull()) return 0;
@@ -1564,7 +1564,7 @@ int CID3Tag::GetPrivateData(CBinary &bin, const CString &identifier)
 	return 1;
 }
 
-CMemoryReference CID3Tag::GetPrivateData(const CString &identifier)
+CMemoryReference CID3Tag::GetPrivateData(const CString &identifier) const
 {
 	CString name="PRIV";
 	CID3Frame *frame=firstFrame;
