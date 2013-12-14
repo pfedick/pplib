@@ -1556,6 +1556,30 @@ int CID3Tag::GetPicture(int type, CBinary &bin) const
 	return 0;
 }
 
+int CID3Tag::GetPrivateData(CBinary &bin, const CString &identifier)
+{
+	CMemoryReference ref=GetPrivateData(identifier);
+	if (ref.isNull()) return 0;
+	bin.Copy(ref);
+	return 1;
+}
+
+CMemoryReference CID3Tag::GetPrivateData(const CString &identifier)
+{
+	CString name="PRIV";
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(name.StrCmp(frame->ID)==0) {
+			// Wir haben ein PRIV-Frame
+			if (identifier.StrCmp(frame->data)==0) {
+				return CMemoryReference(frame->data+identifier.Size()+1,frame->Size-identifier.Size()-1);
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	return CMemoryReference();
+}
+
 int CID3Tag::SetPicture(int type, const CBinary &bin, const CString &MimeType)
 {
 	bool exists=false;
