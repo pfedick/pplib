@@ -172,6 +172,7 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 Webserver::Webserver()
 {
 	daemon=NULL;
+	log=NULL;
 	port=80;
 	basicAuthentication=false;
 	SSLEnabled=false;
@@ -182,6 +183,11 @@ Webserver::~Webserver()
 #ifdef HAVE_LIBMICROHTTPD
 	if (daemon) MHD_stop_daemon((struct MHD_Daemon*)daemon);
 #endif
+}
+
+void Webserver::setLogfile(CLog *log)
+{
+	this->log=log;
 }
 
 void Webserver::bind(const ppl6::CString &adr, int port)

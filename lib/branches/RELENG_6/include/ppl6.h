@@ -3352,6 +3352,7 @@ class Webserver
 	private:
 		CSSL		SSL;
 		void		*daemon;
+		CLog		*log;
 		int			port;
 		CAssocArray	res;
 		CTCPSocket	Socket;
@@ -3376,6 +3377,7 @@ class Webserver
 		};
 		Webserver();
 		virtual ~Webserver();
+		void setLogfile(CLog *log);
 		void bind(const CString &adr, int port);
 		const CString & getHostname() const;
 		int getPort() const;
