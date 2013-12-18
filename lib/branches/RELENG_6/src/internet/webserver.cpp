@@ -129,7 +129,14 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 			if (pass) free(pass);
 		}
 		if (!auth) {
-			return w->queueBasicAuthFailedResponse(*r);
+			try {
+				w->queueBasicAuthFailedResponse(*r);
+			} catch (const ppl6::Exception &e) {
+				w->queueResponseException(*r,e);
+			}
+			delete (r);
+			CleanupThreadData();
+			return MHD_YES;
 		}
 
 	}
@@ -148,9 +155,11 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	//ppl6::HexDump((void*)upload_data,*upload_data_size);
 
 	try {
-		w->request(*r);
-	} catch (const ppl6::CException &e) {
-
+		if (!w->request(*r)) {
+			w->queueResponseError(*r);
+		}
+	} catch (const ppl6::Exception &e) {
+		w->queueResponseException(*r,e);
 	}
 	delete (r);
 	CleanupThreadData();
@@ -276,6 +285,26 @@ void Webserver::stop()
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
 
+}
+
+
+void Webserver::queueResponseError(const Request &req)
+{
+	ppl6::CString e=ppl6::Error2String();
+	try {
+		queueResponse(req,e,500);
+	} catch (...) {
+		// Es gibt keine Möglichkeit die Fehlermeldung an den Client zu senden
+	}
+}
+
+void Webserver::queueResponseException(const Request &req, const ppl6::Exception &e)
+{
+	try {
+		queueResponse(req,e.toString(),500);
+	} catch (...) {
+		// Es gibt keine Möglichkeit die Fehlermeldung an den Client zu senden
+	}
 }
 
 

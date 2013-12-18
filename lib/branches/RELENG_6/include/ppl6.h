@@ -3388,6 +3388,8 @@ class Webserver
 		bool useBasicAuthentication() const;
 		void queueResponse(const Request &req, const CString &text, int httpStatus=200);
 		void queueBasicAuthFailedResponse(const Request &req);
+		void queueResponseError(const Request &req);
+		void queueResponseException(const Request &req, const ppl6::Exception &e);
 
 		virtual int request(Request &req);
 		virtual int authenticate(const CString &username, const CString &password, Request &req);

@@ -5,6 +5,7 @@ Version 6.4.18
   - CID3Tag: Neue Funktion zum Auslesen von PRIV-Frames (PrivateData)
   - Webserver: Funktionen queueResponse und queueBasicAuthFailedResponse haben
     keinen Rückgabewert mehr und werfen eine Exception im Fehlerfall
+  - Webserver: Fehlerbehandlung in answer_to_connection implementiert
   
 
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
