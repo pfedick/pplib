@@ -3386,8 +3386,8 @@ class Webserver
 		void stop();
 		void requireBasicAuthentication(bool enable, const CString &realm);
 		bool useBasicAuthentication() const;
-		int queueResponse(const Request &req, const CString &text, int httpStatus=200);
-		int queueBasicAuthFailedResponse(const Request &req);
+		void queueResponse(const Request &req, const CString &text, int httpStatus=200);
+		void queueBasicAuthFailedResponse(const Request &req);
 
 		virtual int request(Request &req);
 		virtual int authenticate(const CString &username, const CString &password, Request &req);
@@ -3401,6 +3401,8 @@ class Webserver
 		PPLNORMALEXCEPTION(NoAddressSpecified);
 		PPLPARAMETERISEDEXCEPTION(CouldNotStartDaemon);
 		PPLNORMALEXCEPTION(SSLInitializationFailed);
+		PPLPARAMETERISEDEXCEPTION(CouldNotCreateResponse);
+		PPLPARAMETERISEDEXCEPTION(CouldNotQueueResponse);
 
 };
 

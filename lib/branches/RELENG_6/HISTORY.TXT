@@ -3,6 +3,9 @@ PPL6 - HISTORY
 
 Version 6.4.18
   - CID3Tag: Neue Funktion zum Auslesen von PRIV-Frames (PrivateData)
+  - Webserver: Funktionen queueResponse und queueBasicAuthFailedResponse haben
+    keinen Rückgabewert mehr und werfen eine Exception im Fehlerfall
+  
 
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet

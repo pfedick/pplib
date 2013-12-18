@@ -147,8 +147,11 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	//printf ("Upload Size: %i\n",(int)*upload_data_size);
 	//ppl6::HexDump((void*)upload_data,*upload_data_size);
 
+	try {
+		w->request(*r);
+	} catch (const ppl6::CException &e) {
 
-	w->request(*r);
+	}
 	delete (r);
 	CleanupThreadData();
 
@@ -276,25 +279,26 @@ void Webserver::stop()
 }
 
 
-int Webserver::queueResponse(const Request &req, const ppl6::CString &text, int httpStatus)
+void Webserver::queueResponse(const Request &req, const ppl6::CString &text, int httpStatus)
 {
 #ifdef HAVE_LIBMICROHTTPD
 	struct MHD_Response *response;
 	int ret;
 	response = MHD_create_response_from_buffer (text.Size(),
 			(void *) text.GetPtr(), MHD_RESPMEM_MUST_COPY);
+	if (!response) throw CouldNotCreateResponse();
 	MHD_add_response_header (response, "Content-Type", "text/html");
 
 	ret = MHD_queue_response ((struct MHD_Connection *)req.connection, httpStatus, response);
 	MHD_destroy_response (response);
-	return ret;
+	if(ret!=MHD_YES) throw CouldNotQueueResponse();
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
 
 }
 
-int Webserver::queueBasicAuthFailedResponse(const Request &req)
+void Webserver::queueBasicAuthFailedResponse(const Request &req)
 {
 #ifdef HAVE_LIBMICROHTTPD
 	struct MHD_Response *response;
@@ -302,9 +306,10 @@ int Webserver::queueBasicAuthFailedResponse(const Request &req)
 	CString msg=getDenyMessage();
 	response = MHD_create_response_from_buffer (msg.Size(),
 			(void *) msg.GetPtr(), MHD_RESPMEM_MUST_COPY);
+	if (!response) throw CouldNotCreateResponse();
 	ret = MHD_queue_basic_auth_fail_response ((struct MHD_Connection *)req.connection, (const char*)realm, response);
 	MHD_destroy_response (response);
-	return ret;
+	if(ret!=MHD_YES) throw CouldNotQueueResponse();
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
@@ -332,7 +337,8 @@ int Webserver::request(Request &req)
 		text+="* "+Key+": "+Value+"\n";
 	}
 	Answer=wiki.render(text);
-	return queueResponse(req,Answer);
+	queueResponse(req,Answer);
+	return 1;
 }
 
 void Webserver::requireBasicAuthentication(bool enable, const CString &realm)
