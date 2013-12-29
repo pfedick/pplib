@@ -582,7 +582,7 @@ int CConfig::Load(CFileObject *file)
 	while (!file->Eof()) {			// Zeilen lesen, bis keine mehr kommt
 		if (!file->Gets(buffer,65536)) break;
 		Line=buffer;
-		Line.RTrim();
+		Line.LTrim();
 		line=trim(buffer);		// überflüssige Zeichen wegschneiden
 		l=strlen(line);
 		if (cursect) {
@@ -600,14 +600,14 @@ int CConfig::Load(CFileObject *file)
 					sections.Concat(cursect,"","");
 				}
 			} else if ((cursect) && line[0]!='#' && line[0]!=';') {		// Kommentare ignorieren
-				trenn=instr(line,separator,0);			// Trennzeichen suchen
+				trenn=Line.Instr(separator,0);			// Trennzeichen suchen
 				if (trenn>0) {							// Wenn eins gefunden wurde, dann
-					line[trenn]=0;						// durch 0-Byte ersetzen
-					key=line;							// Key ist alles vor dem Trennzeichen
+					key=Line.Left(trenn);				// Key ist alles vor dem Trennzeichen
 					key.Trim();
-					value=(line+trenn+separatorLength);	// Value der rest danach
-					value.Trim();
+					value=Line.Mid(trenn+separatorLength);	// Value der rest danach
+					value.RTrim("\n\r");
 					//value.HexDump();
+					printf ("Key: >>%s<<, Value: >>%s<<\n",(const char*)key, (const char*)value);
 					Add(cursect,(const char*)key,(const char*)value);				// Und das ganze dann hinzuf�gen ins Array
 				}
 			}
