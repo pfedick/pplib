@@ -607,7 +607,7 @@ int CConfig::Load(CFileObject *file)
 					value=Line.Mid(trenn+separatorLength);	// Value der rest danach
 					value.RTrim("\n\r");
 					//value.HexDump();
-					printf ("Key: >>%s<<, Value: >>%s<<\n",(const char*)key, (const char*)value);
+					//printf ("Key: >>%s<<, Value: >>%s<<\n",(const char*)key, (const char*)value);
 					Add(cursect,(const char*)key,(const char*)value);				// Und das ganze dann hinzuf�gen ins Array
 				}
 			}
