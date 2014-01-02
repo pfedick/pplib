@@ -732,6 +732,19 @@ TEST_F(WideStringTest, trimLeft) {
 	ASSERT_EQ(ppl6::CWString(L"abc  \n"),s1);
 }
 
+TEST_F(WideStringTest, trimLeftGrenzbereich) {
+	ppl6::CWString s1;
+	s1.Reserve(8);
+	ASSERT_EQ(8,s1.Capacity());
+	s1=L"  abcde";
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(7,s1.Len());
+	s1.LTrim();
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(5,s1.Len());
+	ASSERT_EQ(ppl6::CWString(L"abcde"),s1);
+}
+
 TEST_F(WideStringTest, trimRight) {
 	ppl6::CWString s1(L" \n  abc  \n");
 	s1.RTrim();
@@ -743,6 +756,19 @@ TEST_F(WideStringTest, trim) {
 	ppl6::CWString s1(L"\n\n    abc  \n");
 	s1.Trim();
 	ASSERT_EQ((size_t)3,s1.Len());
+	ASSERT_EQ(ppl6::CWString(L"abc"),s1);
+}
+
+TEST_F(WideStringTest, trimGrenzbereich) {
+	ppl6::CWString s1;
+	s1.Reserve(8);
+	ASSERT_EQ(8,s1.Capacity());
+	s1=L"  abc  ";
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(7,s1.Len());
+	s1.Trim();
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(3,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abc"),s1);
 }
 
@@ -773,6 +799,20 @@ TEST_F(WideStringTest, trimLeftChars) {
 	ASSERT_EQ((size_t)6,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abc  \n"),s1);
 }
+
+TEST_F(WideStringTest, trimLeftCharsGrenzbereich) {
+	ppl6::CWString s1;
+	s1.Reserve(8);
+	ASSERT_EQ(8,s1.Capacity());
+	s1=L"  abcde";
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(7,s1.Len());
+	s1.LTrim(" ");
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(5,s1.Len());
+	ASSERT_EQ(ppl6::CWString(L"abcde"),s1);
+}
+
 
 TEST_F(WideStringTest, trimRightChars) {
 	ppl6::CWString s1(L" \n  abc  \n");

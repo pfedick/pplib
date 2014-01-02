@@ -25,3 +25,10 @@
    fun:__wcscmp_sse2
    fun:_ZNSt3mapIN4ppl68CWStringES1_St4lessIS1_ESaISt4pairIKS1_S1_EEE2atERS5_
 }
+
+{
+   False Positive
+   Memcheck:Cond
+   fun:wcscmp
+   fun:_ZNK4ppl68CWString6StrCmpERKS0_i
+}
