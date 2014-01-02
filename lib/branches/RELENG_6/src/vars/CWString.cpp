@@ -1864,7 +1864,7 @@ void CWString::LTrim()
 				}
 			}
 			if (start>0)
-				memmove(buffer,buffer+start,(len-start+2)*sizeof(wchar_t));
+				memmove(buffer,buffer+start,(len-start+1)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
@@ -1931,7 +1931,7 @@ void CWString::LTrim(wchar_t c)
 				}
 			}
 			if (start>0)
-				memmove(buffer,buffer+start,(len-start+2)*sizeof(wchar_t));
+				memmove(buffer,buffer+start,(len-start+1)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;
@@ -1985,7 +1985,7 @@ void CWString::LTrim(const char *str)
 				}
 			}
 			if (start>0)
-				memmove(buffer,buffer+start,(len-start+2)*sizeof(wchar_t));
+				memmove(buffer,buffer+start,(len-start+1)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
 		bufferused=len*sizeof(wchar_t)+4;

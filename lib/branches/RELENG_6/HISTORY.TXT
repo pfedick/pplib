@@ -8,6 +8,9 @@ Version 6.4.18
   - Webserver: Fehlerbehandlung in answer_to_connection implementiert
   - CConfig: Spaces am Anfang und Ende von Werten werden nicht mehr abge-
     schnitten
+  - Bugfix: Die LTrim-Funktionen der beiden String-Klassen CString und
+    CWString haben beim Verschieben des Strings ein Byte über das Ende des
+    internen Buffers hinausgelesen.
 
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet

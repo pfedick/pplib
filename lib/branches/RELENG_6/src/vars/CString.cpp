@@ -1116,7 +1116,7 @@ void CString::LTrim()
 				}
 			}
 			if (start>0)
-				memmove(buffer,buffer+start,len-start+2);
+				memmove(buffer,buffer+start,len-start+1);
 		}
 		len=strlen(buffer);
 	}
@@ -1165,7 +1165,7 @@ void CString::LTrim(const char *str)
 				}
 			}
 			if (start>0)
-				memmove(buffer,buffer+start,len-start+2);
+				memmove(buffer,buffer+start,len-start+1);
 		}
 		len=strlen(buffer);
 	}

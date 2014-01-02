@@ -851,6 +851,33 @@ TEST_F(StringTest, trimLeft) {
 	ASSERT_EQ(ppl6::CString("abc  \n"),s1);
 }
 
+TEST_F(StringTest, trimLeftGrenzbereich) {
+	ppl6::CString s1;
+	s1.Reserve(8);
+	ASSERT_EQ(8,s1.Capacity());
+	s1="  abcde";
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(7,s1.Size());
+	s1.LTrim();
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(5,s1.Size());
+	ASSERT_EQ(ppl6::CString("abcde"),s1);
+}
+
+TEST_F(StringTest, trimGrenzbereich) {
+	ppl6::CString s1;
+	s1.Reserve(8);
+	ASSERT_EQ(8,s1.Capacity());
+	s1="  abc  ";
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(7,s1.Size());
+	s1.Trim();
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(3,s1.Size());
+	ASSERT_EQ(ppl6::CString("abc"),s1);
+}
+
+
 TEST_F(StringTest, trimRight) {
 	ppl6::CString s1(" \n  abc  \n");
 	s1.RTrim();
@@ -891,6 +918,19 @@ TEST_F(StringTest, trimLeftChars) {
 	s1.LTrim(" \n");
 	ASSERT_EQ((size_t)6,s1.Size());
 	ASSERT_EQ(ppl6::CString("abc  \n"),s1);
+}
+
+TEST_F(StringTest, trimLeftCharsGrenzbereich) {
+	ppl6::CString s1;
+	s1.Reserve(8);
+	ASSERT_EQ(8,s1.Capacity());
+	s1="  abcde";
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(7,s1.Size());
+	s1.LTrim(" ");
+	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ(5,s1.Size());
+	ASSERT_EQ(ppl6::CString("abcde"),s1);
 }
 
 TEST_F(StringTest, trimRightChars) {
