@@ -2106,7 +2106,7 @@ void WideString::trimLeft()
 			}
 		}
 		if (start>0)
-			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(wchar_t));
+			memmove(ptr,ptr+start,(stringlen-start+1)*sizeof(wchar_t));
 		stringlen=wcslen(ptr);
 		ptr[stringlen]=0;
 	}
@@ -2153,7 +2153,7 @@ void WideString::trimLeft(const WideString &chars)
 			}
 		}
 		if (start>0) {
-			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(wchar_t));
+			memmove(ptr,ptr+start,(stringlen-start+1)*sizeof(wchar_t));
 			stringlen=wcslen(ptr);
 		}
 	}

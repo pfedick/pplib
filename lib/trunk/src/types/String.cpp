@@ -2037,7 +2037,7 @@ void String::trimLeft()
 			}
 		}
 		if (start>0)
-			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(char));
+			memmove(ptr,ptr+start,(stringlen-start+1)*sizeof(char));
 		stringlen=strlen(ptr);
 		ptr[stringlen]=0;
 	}
@@ -2084,7 +2084,7 @@ void String::trimLeft(const String &chars)
 			}
 		}
 		if (start>0) {
-			memmove(ptr,ptr+start,(stringlen-start+2)*sizeof(char));
+			memmove(ptr,ptr+start,(stringlen-start+1)*sizeof(char));
 			stringlen=strlen(ptr);
 		}
 	}
