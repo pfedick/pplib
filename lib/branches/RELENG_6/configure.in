@@ -262,6 +262,32 @@ AC_CHECK_FUNCS([clock_gettime])
 
 dnl Checks for programs.
 
+dnl Check for threadding support
+
+case $host_os in
+	*mingw32* )
+		report_have_pthreads="Win32 Threads"
+  		;;
+	* )
+		ACX_PTHREAD(report_have_pthreads="yes"
+			AC_DEFINE(HAVE_PTHREADS,1,)#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+#ifdef HAVE_SIGNAL_H
+    #include <signal.h>
+#endif
+			
+			,report_have_pthreads="no")
+
+		;;
+esac
+
 dnl Checks for libraries.
 
 
@@ -534,29 +560,6 @@ SRCDIR=`pwd`
 AC_SUBST(SRCDIR)
 
 
-case $host_os in
-	*mingw32* )
-		report_have_pthreads="Win32 Threads"
-  		;;
-	* )
-		ACX_PTHREAD(report_have_pthreads="yes"
-			AC_DEFINE(HAVE_PTHREADS,1,)#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_SIGNAL_H
-    #include <signal.h>
-#endif
-			
-			,report_have_pthreads="no")
-
-		;;
-esac
 
 
 

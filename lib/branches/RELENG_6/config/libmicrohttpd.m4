@@ -13,14 +13,15 @@ then
 	am_save_CPPFLAGS="$CPPFLAGS"
 	am_save_LIBS="$LIBS"
 	am_save_LDFLAGS="$LDFLAGS"
-	LIBS="-lmicrohttpd $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
+	LIBS="-lmicrohttpd $PTHREAD_LIBS $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
+	CPPFLAGS="$CPPFLAGS $PTHREAD_CFLAGS"
 	LIBMICROHTTPD_LIBS="-lmicrohttpd"
 	LIBMICROHTTPD_CFLAGS=""
 	
 	if test "$libmicrohttpd_prefix" != "yes"
 	then
-		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
-		CPPFLAGS="$CPPFLAGS -I$libmicrohttpd_prefix/include $LIBGCRYPT_CFLAGS $LIBGNUTLS_CFLAGS"
+		LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd $PTHREAD_LIBS $LIBGCRYPT_LIBS $LIBGNUTLS_LIBS $LIBS"
+		CPPFLAGS="$CPPFLAGS -I$libmicrohttpd_prefix/include $PTHREAD_CFLAGS $LIBGCRYPT_CFLAGS $LIBGNUTLS_CFLAGS"
 		LIBMICROHTTPD_LIBS="-L$libmicrohttpd_prefix/lib -lmicrohttpd"
 		LIBMICROHTTPD_CFLAGS="-I$libmicrohttpd_prefix/include"
 	fi
