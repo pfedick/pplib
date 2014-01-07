@@ -20,8 +20,8 @@ then
 	then
 		PKG_CHECK_MODULES([FreeTDS], [freedts],	have_freetds="yes", have_freetds="no")
 	else
-		LIBS="-L$freetds_prefix/lib"
-		CFLAGS="-I$freetds_prefix/include"
+		LIBS="-L$freetds_prefix/lib $ICONV_LIBS"
+		CFLAGS="-I$freetds_prefix/include $ICONV_CFLAGS"
 		FREETDS_LIBS="-L$freetds_prefix/lib"
 		FREETDS_CFLAGS="-I$freetds_prefix/include"
 	fi
