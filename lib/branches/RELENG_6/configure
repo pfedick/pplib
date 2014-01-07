@@ -11001,7 +11001,7 @@ fi
   		fi
 		CPPFLAGS=$am_save_CPPFLAGS
 		LIBS=$am_save_LIBS
-		LDFLAGS=$am_save_LDFLAGD
+		LDFLAGS=$am_save_LDFLAGS
 	else
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }

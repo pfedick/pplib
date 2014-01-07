@@ -50,7 +50,7 @@ AC_DEFUN([AC_CHECK_LIBMP3LAME],[
   		fi
 		CPPFLAGS=$am_save_CPPFLAGS
 		LIBS=$am_save_LIBS
-		LDFLAGS=$am_save_LDFLAGD
+		LDFLAGS=$am_save_LDFLAGS
 	else
 		AC_MSG_RESULT(no)
 	fi
