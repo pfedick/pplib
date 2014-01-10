@@ -11,6 +11,8 @@ Version 6.4.18
   - Bugfix: Die LTrim-Funktionen der beiden String-Klassen CString und
     CWString haben beim Verschieben des Strings ein Byte über das Ende des
     internen Buffers hinausgelesen.
+  - CTCPSocket::Read: Tritt bei Verwendung von SSL ein EINTR-Fehler auf, wird
+    dieser genau wie EAGAIN behandelt und ignoriert.
 
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet
