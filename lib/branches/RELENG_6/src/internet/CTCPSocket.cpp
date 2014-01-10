@@ -1150,8 +1150,8 @@ int CTCPSocket::Read(void *buffer, int bytes)
 			}
 			#else
 			if (b<0) {
-				if (errno==EAGAIN || (errno==EINTR && ssl!=NULL) ) {
-					WaitForIncomingData(0,100000);
+				if (errno==EAGAIN || errno==EINTR) {
+					continue;
 				} else {
 					if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::Read: ERROR %i: %s",errno,strerror(errno));
 					DispatchErrno();
