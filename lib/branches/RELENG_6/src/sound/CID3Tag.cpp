@@ -1580,6 +1580,78 @@ CMemoryReference CID3Tag::GetPrivateData(const CString &identifier) const
 	return CMemoryReference();
 }
 
+CString CID3Tag::GetEnergyLevel() const
+{
+	ppl6::CString energy;
+	CString name="TXXX";
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(name.StrCmp(frame->ID)==0) {
+			// Wir haben ein TXXX-Frame
+			int encoding=Peek8(frame->data);
+			ppl6::CString identifier;
+			int offset=Decode(frame,1,encoding,identifier);
+			if (identifier=="EnergyLevel") {
+				Decode(frame,offset,encoding,energy);
+				return energy;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	return energy;
+}
+
+int CID3Tag::SetEnergyLevel(const CString &energy)
+{
+	CString name="TXXX";
+	CID3Frame *frame=firstFrame;
+	bool exists=false;
+	while (frame) {
+		if(name.StrCmp(frame->ID)==0) {
+			// Wir haben ein TXXX-Frame
+			int encoding=Peek8(frame->data);
+			ppl6::CString identifier;
+			Decode(frame,1,encoding,identifier);
+			if (identifier=="EnergyLevel") {
+				exists=true;
+				break;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	// Bisher kein Frame vorhanden, wir legen ein neues an
+	if (!frame)	{
+		frame=new CID3Frame("TXXX");
+		if (!frame) {
+			SetError(2);
+			return 0;
+		}
+	}
+	ppl6::HexDump(frame->data,frame->Size);
+	frame->Flags=0;
+	frame->Size=14+energy.Len();
+	//printf ("Frame-Size: %i\n",frame->Size);
+	if (frame->data) free(frame->data);
+	frame->data=(char*)malloc(frame->Size);
+	if (!frame->data)  {
+		frame->Size=0;
+		if (!exists) delete frame;
+		SetError(2);
+		return 0;
+	}
+	Poke8(frame->data,3);
+	strcpy(frame->data+1,"EnergyLevel");
+	Poke8(frame->data+12,0);
+	strncpy(frame->data+13,energy.GetPtr(),energy.Len());
+	Poke8(frame->data+13+energy.Len(),0);
+
+	ppl6::HexDump(frame->data,frame->Size);
+
+	if (!exists) AddFrame(frame);
+	return 1;
+}
+
+
 int CID3Tag::SetPicture(int type, const CBinary &bin, const CString &MimeType)
 {
 	bool exists=false;

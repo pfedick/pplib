@@ -399,6 +399,7 @@ class CID3Tag
 		int SetTrack(const CString &track);
 		int SetBPM(const CString &bpm);
 		int SetKey(const CString &key);
+		int SetEnergyLevel(const CString &energy);
 		int SetTextFrame(const char *framename, const CString &text, TextEncoding enc=ENC_UTF16);
 		int			RemoveFrame(CID3Frame *frame);
 		int			DeleteFrame(CID3Frame *frame);
@@ -422,6 +423,7 @@ class CID3Tag
 		CString GetTrack() const;
 		CString GetBPM() const;
 		CString GetKey() const;
+		CString GetEnergyLevel() const;
 		int GetPrivateData(CBinary &bin, const CString &identifier) const;
 		CMemoryReference GetPrivateData(const CString &identifier) const;
 		int GetPicture(int type, CBinary &bin) const;
