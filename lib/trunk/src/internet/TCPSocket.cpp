@@ -179,8 +179,8 @@ TCPSocket::TCPSocket()
 	InitWSA();
 #endif
 	socket=NULL;
-    connected=0;
-	islisten=0;
+    connected=false;
+	islisten=false;
 	stoplisten=false;
 	ssl=NULL;
 	sslclass=NULL;
@@ -661,7 +661,7 @@ void TCPSocket::connect(const String &host, int port)
         return 0;
     }
     SetError(0);
-    connected=1;
+    connected=true;
     return 1;
 }
 
@@ -756,10 +756,34 @@ void TCPSocket::connect(const String &host, int port)
 	//s->addrlen=res->ai_addrlen;
 	HostName=host;
 	PortNum=port;
-	connected=1;
+	connected=true;
 	freeaddrinfo(ressave);
 }
 #endif
+
+/*!\brief Prüfen, ob eine Verbindung besteht
+ *
+ * \desc
+ * Mit dieser Funktion kann überprüft werden, ob eine TCP-Verbindung besteht.
+ *
+ * @return Liefert 1 zurück, wenn eine Verbindung besteht, sonst 0. Es wird kein Fehlercode gesetzt.
+ */
+bool TCPSocket::isConnected()
+{
+	return connected;
+}
+
+/*!\brief Prüfen, ob der Socket auf eingehende Verbindungen wartet
+ *
+ * \desc
+ * Mit dieser Funktion kann überprüft werden, ob der Socket auf eingehende TCP-Verbindungen wartet.
+ *
+ * @return Liefert 1 zurück, wenn der Socket wartet, sonst 0. Es wird kein Fehlercode gesetzt.
+ */
+bool TCPSocket::isListening()
+{
+	return islisten;
+}
 
 
 #ifdef TODO
@@ -889,29 +913,7 @@ void CTCPSocket::DispatchErrno()
 
 
 
-/*!\brief Prüfen, ob eine Verbindung besteht
- *
- * \desc
- * Mit dieser Funktion kann überprüft werden, ob eine TCP-Verbindung besteht.
- *
- * @return Liefert 1 zurück, wenn eine Verbindung besteht, sonst 0. Es wird kein Fehlercode gesetzt.
- */
-int CTCPSocket::IsConnected()
-{
-	return connected;
-}
 
-/*!\brief Prüfen, ob der Socket auf eingehende Verbindungen wartet
- *
- * \desc
- * Mit dieser Funktion kann überprüft werden, ob der Socket auf eingehende TCP-Verbindungen wartet.
- *
- * @return Liefert 1 zurück, wenn der Socket wartet, sonst 0. Es wird kein Fehlercode gesetzt.
- */
-int CTCPSocket::IsListening()
-{
-	return islisten;
-}
 
 /*!\brief Anzahl gesendeter Bytes
  *

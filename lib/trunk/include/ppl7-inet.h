@@ -311,8 +311,8 @@ class TCPSocket
 		void		*sslreference;
 		void *socket;
 		void *ssl;
-		int connected;
-		int islisten;
+		bool	connected;
+		bool	islisten;
 		int		BytesWritten;
 		int		BytesRead;
 		int		connect_timeout_sec;
@@ -400,7 +400,7 @@ class TCPSocket
 		void dispatchErrno();
 		int getBytesWritten();
 		int getBytesRead();
-		int isConnected();
+		bool isConnected();
         int	waitForMessage(SocketMessage &msg, int timeout=0);
         int watchThread(Thread *thread);
 		//@}
