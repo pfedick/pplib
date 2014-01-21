@@ -14,6 +14,7 @@ Version 6.4.18
     internen Buffers hinausgelesen.
   - CTCPSocket::Read: Fehlercode EINTR wird wie EAGAIN behandelt und
     ignoriert, bzw. ein Retry initiiert
+  - Funktion IdentMPEG kann besser mit fehlerhaften MP3-dateien umgehen
 
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet

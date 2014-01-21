@@ -212,10 +212,10 @@ void MpegHeader2Array(ppl6::CAssocArray &a, const PPL_MPEG_HEADER *mpg)
 void PrintMpegHeader(const PPL_MPEG_HEADER *mpg)
 {
 	printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
-	printf ("   Bitrate: %ukbit\n",mpg->bitrate);
+	printf ("   Bitrate: %ukbit, %s\n",mpg->bitrate, (mpg->vbr?"VBR":"CBR"));
 	printf ("   Frequency: %u Hz, %s\n",mpg->frequency,mpg_channels[mpg->stereo]);
 	printf ("   Framesize: %u = %u Frames\n",mpg->framesize, mpg->frames);
-	printf ("   Length: %u ms, %u s\n",mpg->mslength,mpg->length);
+	printf ("   Length: %u ms, %u s = %0d:%0d\n",mpg->mslength,mpg->length, mpg->length/60, mpg->length%60);
 	printf ("   Samples: %u, Datasize: %u\n",mpg->samples,mpg->size);
 	printf ("   Start: %u, End: %u\n",mpg->start,mpg->end);
 }
@@ -286,6 +286,9 @@ static pplint64 FindNextHeader(CFileObject *file, pplint64 pos,PPL_MPEG_HEADER *
 					//printf ("Position: %u, Version: %d, Layer: %d, Bitrate-Index: %d, FreqIndex: %d, Header: %X\n",
 					//	pos, mpg->version, mpg->layer,
 					//	mpg->bitrate_index, mpg->frequency_index);
+					mpg->start=pos;
+					mpg->size=mpg->end-mpg->start+1;
+					if (mpg->size > mpg->filesize) mpg->size=mpg->filesize;
 					mpg->vbr=false;
 					mpg->error_protection = !(header[1] & 0x1);
 					mpg->padding = (header[2] >> 1) & 0x01;
@@ -303,6 +306,14 @@ static pplint64 FindNextHeader(CFileObject *file, pplint64 pos,PPL_MPEG_HEADER *
 						mpg->framesize=12 * mpg->bitrate*1000 / mpg->frequency + mpg->padding;
 					else if (mpg->frequency>0)
 						mpg->framesize=144 * mpg->bitrate*1000 / mpg->frequency + mpg->padding;
+
+					if (mpg->framesize) mpg->frames=mpg->size/mpg->framesize;
+					if (mpg->bitrate>0) {
+						mpg->mslength=mpg->size*8/(mpg->bitrate);
+						mpg->length=mpg->mslength/1000;
+					}
+					mpg->samples=(ppldd)((double)mpg->frequency*(double)mpg->mslength/1000.0);
+
 					return pos;
 			}
 		}
@@ -325,6 +336,11 @@ static void CheckVBR(CFileObject *file, PPL_MPEG_HEADER *mpg)
 	// und die Länge manuell berechnet werden (alle Frames einlesen)
 	PPL_MPEG_HEADER m;
 	memset(&m,0,sizeof(m));
+	m.start=mpg->start;
+	m.end=mpg->end;
+	m.size=mpg->size;
+	m.filesize=mpg->filesize;
+
 	ppldd frames=0;
 	int lastbitrate;
 	pplint64 pos;
@@ -336,6 +352,7 @@ static void CheckVBR(CFileObject *file, PPL_MPEG_HEADER *mpg)
 	pos=FindNextHeader(file,mpg->start,&m);
 	if (pos<0) return;
 	while (pos<mpg->end) {
+		//printf ("checkvbr: %i\n",frames);
 		frames++;
 		// Informationen im Header auswerten
 		avgbitrate+=m.bitrate;
@@ -350,6 +367,13 @@ static void CheckVBR(CFileObject *file, PPL_MPEG_HEADER *mpg)
 			pos=FindNextHeader(file,pos,&m);
 			if ((pos<0) || pos>mpg->end) break;
 			if (m.layer==mpg->layer && m.version==mpg->version) break;
+			else {
+				m.end=mpg->end;
+				memcpy(mpg,&m,sizeof(PPL_MPEG_HEADER));
+				lastbitrate=m.bitrate;
+				avgbitrate=m.bitrate;
+				frames=0;
+			}
 		}
 		if ((pos<0) || pos>mpg->end) break;
 	}
