@@ -282,22 +282,19 @@ int CFile::Openf (const char * format, const char * mode, ...)
 	}
 	va_end(args);
 #ifdef WIN32
-	size_t charpos=0;
-	while (buff[charpos]!=0) {
-		if (buff[charpos]=='/') buff[charpos]='\\';
-		charpos++;
-	}
-#endif
-		if ((ff=(FILE*)fopen(buff,mode))==NULL) {
-			SetError(TranslateErrno(errno),errno,buff);
-			ff=NULL;
-			size=0;
-			pos=0;
-			free(buff);
-			return 0;
-		}
-	//#endif
+	if ((ff=(FILE*)_wfopen(buff,mode))==NULL) {
 
+#else
+	if ((ff=(FILE*)fopen(buff,mode))==NULL) {
+#endif
+		SetError(TranslateErrno(errno),errno,buff);
+		ff=NULL;
+		size=0;
+		pos=0;
+		free(buff);
+		return 0;
+	}
+	//#endif
 	size=Lof();
 	Seek(0);
 	SetFilename(buff);
