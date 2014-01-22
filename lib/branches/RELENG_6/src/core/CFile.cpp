@@ -281,6 +281,13 @@ int CFile::Openf (const char * format, const char * mode, ...)
 		return 0;
 	}
 	va_end(args);
+#ifdef WIN32
+	size_t charpos=0;
+	while (buff[charpos]!=0) {
+		if (buff[charpos]=='/') buff[charpos]='\\';
+		charpos++;
+	}
+#endif
 		if ((ff=(FILE*)fopen(buff,mode))==NULL) {
 			SetError(TranslateErrno(errno),errno,buff);
 			ff=NULL;
