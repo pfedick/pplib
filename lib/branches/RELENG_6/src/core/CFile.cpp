@@ -246,7 +246,35 @@ int CFile::Open (const CString &filename, const char * mode)
  * @return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
  */
 {
-	return Openf("%s",mode,filename.GetPtr());
+	Close();
+	if (filename.IsEmpty()) {
+		SetError(61);
+		ff=NULL;
+		size=0;
+		pos=0;
+		return 0;
+	}
+
+#ifdef WIN32
+	CWString wideFilename=filename;
+	CWString wideMode=mode;
+
+	if ((ff=(FILE*)_wfopen((const wchar_t *)wideFilename,(const wchar_t*)wideMode))==NULL) {
+
+#else
+	if ((ff=(FILE*)fopen((const char*)filename,mode))==NULL) {
+#endif
+		SetError(TranslateErrno(errno),errno,"%s",(const char*)filename);
+		ff=NULL;
+		size=0;
+		pos=0;
+		return 0;
+	}
+	//#endif
+	size=Lof();
+	Seek(0);
+	SetFilename(filename);
+	return 1;
 }
 
 int CFile::Openf (const char * format, const char * mode, ...)
@@ -281,25 +309,9 @@ int CFile::Openf (const char * format, const char * mode, ...)
 		return 0;
 	}
 	va_end(args);
-#ifdef WIN32
-	if ((ff=(FILE*)_wfopen(buff,mode))==NULL) {
-
-#else
-	if ((ff=(FILE*)fopen(buff,mode))==NULL) {
-#endif
-		SetError(TranslateErrno(errno),errno,buff);
-		ff=NULL;
-		size=0;
-		pos=0;
-		free(buff);
-		return 0;
-	}
-	//#endif
-	size=Lof();
-	Seek(0);
-	SetFilename(buff);
+	CString Filename(buff);
 	free(buff);
-	return 1;
+	return Open(Filename,mode);
 }
 
 int CFile::OpenTemp(const char *filetemplate, ...)
