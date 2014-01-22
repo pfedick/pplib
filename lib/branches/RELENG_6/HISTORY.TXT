@@ -4,6 +4,7 @@ PPL6 - HISTORY
 Version 6.4.18
   - CID3Tag: Neue Funktion zum Auslesen von PRIV-Frames (PrivateData)
   - CID3Tag unterstützt TXXX-Tag mit EnergyLevel
+  - CID3Tag liefert Anzahl Frames zurück mit CID3Tag::FrameCount()
   - Webserver: Funktionen queueResponse und queueBasicAuthFailedResponse haben
     keinen Rückgabewert mehr und werfen eine Exception im Fehlerfall
   - Webserver: Fehlerbehandlung in answer_to_connection implementiert

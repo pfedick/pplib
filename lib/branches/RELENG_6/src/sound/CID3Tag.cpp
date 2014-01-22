@@ -326,6 +326,7 @@ CID3Tag::CID3Tag()
 	PaddingSize=1024;
 	PaddingSpace=128;
 	MaxPaddingSpace=1024;
+	numFrames=0;
 }
 
 /*!\brief Konstruktor mit Dateinamen
@@ -335,16 +336,17 @@ CID3Tag::CID3Tag()
  * angegebene Date \p filename geladen. Dazu wird die Funktion CID3Tag::Load
  * aufgerufen.
  *
- * \param filename Name der MP3-Datei, deren Tags geladen werden soll.
+ * \param File Name der MP3-Datei, deren Tags geladen werden soll.
  *
  */
-CID3Tag::CID3Tag(const char *filename)
+CID3Tag::CID3Tag(const CString &File)
 {
 	firstFrame=lastFrame=NULL;
 	PaddingSize=1024;
 	PaddingSpace=128;
 	MaxPaddingSpace=1024;
-	Load(filename);
+	numFrames=0;
+	Load(File);
 }
 
 /*!\brief Destruktor der Klasse
@@ -402,6 +404,7 @@ void CID3Tag::Clear()
 	}
 	firstFrame=lastFrame=NULL;
 	Filename.Clear();
+	numFrames=0;
 }
 
 /*!\brief Alle Tags löschen
@@ -419,6 +422,7 @@ void CID3Tag::ClearTags()
 		delete frame;
 	}
 	firstFrame=lastFrame=NULL;
+	numFrames=0;
 }
 
 /*!\brief ID3-Tags aus einer MP3-Datei laden
@@ -580,6 +584,7 @@ int CID3Tag::AddFrame(CID3Frame *Frame)
 		Frame->nextFrame=NULL;
 		lastFrame=Frame;
 	}
+	numFrames++;
 	#ifdef ID3DEBUG
 		char *content="";
 		char *content2="";
@@ -605,6 +610,7 @@ int CID3Tag::RemoveFrame(CID3Frame *frame)
 	if (frame->nextFrame) frame->nextFrame->previousFrame=frame->previousFrame;
 	if (frame==firstFrame) firstFrame=frame->nextFrame;
 	if (frame==lastFrame) lastFrame=frame->previousFrame;
+	if (numFrames>0) numFrames--;
 	return 1;
 }
 
@@ -616,6 +622,10 @@ int CID3Tag::DeleteFrame(CID3Frame *frame)
 	return 1;
 }
 
+size_t CID3Tag::FrameCount() const
+{
+	return numFrames;
+}
 
 /*!\brief Frames auf STDOUT auflisten
  *

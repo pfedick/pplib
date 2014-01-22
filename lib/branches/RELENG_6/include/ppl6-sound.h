@@ -354,6 +354,7 @@ class CID3Tag
 		CString	Filename;
 		CLog	*Log;
 		int		Flags;
+		size_t	numFrames;
 		int		Size;
 		ppluint32	PaddingSize, PaddingSpace, MaxPaddingSpace;
 		CID3Frame	*firstFrame, *lastFrame;
@@ -372,7 +373,7 @@ class CID3Tag
 			ENC_UTF8
 		};
 		CID3Tag();
-		CID3Tag(const char *filename);
+		CID3Tag(const CString &File);
 
 		void SetLogfile(CLog *log);
 
@@ -410,6 +411,7 @@ class CID3Tag
 		char *MakeIdV1Tag();
 		void Clear();
 		void ListFrames(int hexdump=0) const;
+		size_t FrameCount() const;
 
 		CString GetArtist() const;
 		CString GetTitle() const;
