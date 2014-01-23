@@ -160,34 +160,36 @@ PPLPARAMETERISEDEXCEPTION(SSLPrivatKeyException);
 
 //! @name IO-Exceptions
 //@{
-PPLNORMALEXCEPTION(FileNotOpenException);
-PPLNORMALEXCEPTION(FileSeekException);
-PPLNORMALEXCEPTION(ReadException);
-PPLNORMALEXCEPTION(WriteException);
-PPLNORMALEXCEPTION(EndOfFileException);
-PPLPARAMETERISEDEXCEPTION(FileOpenException);
-PPLPARAMETERISEDEXCEPTION(FileNotFoundException);				// ENOENT
-PPLNORMALEXCEPTION(InvalidArgumentsException);					// EINVAL
-PPLPARAMETERISEDEXCEPTION(InvalidFileNameException);			// ENOTDIR, ENAMETOOLONG, ELOOP
-PPLPARAMETERISEDEXCEPTION(PermissionDeniedException);			// EACCESS, EPERM
-PPLPARAMETERISEDEXCEPTION(ReadOnlyException);					// EROFS
-PPLPARAMETERISEDEXCEPTION(NoRegularFileException);				// EISDIR
-PPLNORMALEXCEPTION(TooManyOpenFilesException);					// EMFILE
-PPLPARAMETERISEDEXCEPTION(UnsupportedFileOperationException);	// EOPNOTSUPP
-PPLPARAMETERISEDEXCEPTION(TooManySymbolicLinksException);		// ELOOP
-PPLNORMALEXCEPTION(FilesystemFullException);					// ENOSPC
-PPLNORMALEXCEPTION(QuotaExceededException);						// EDQUOT
-PPLNORMALEXCEPTION(IOErrorException);							// EIO
-PPLNORMALEXCEPTION(BadFiledescriptorException);					// EABDF
-PPLNORMALEXCEPTION(BadAddressException);						// EFAULT
-PPLNORMALEXCEPTION(OverflowException);							// EOVERFLOW
-PPLNORMALEXCEPTION(FileExistsException);						// EEXIST
-PPLNORMALEXCEPTION(OperationBlockedException);					// EAGAIN
-PPLNORMALEXCEPTION(DeadlockException);							// EDEADLK
-PPLNORMALEXCEPTION(OperationInterruptedException);				// EINTR
-PPLNORMALEXCEPTION(TooManyLocksException);						// ENOLCK
-PPLNORMALEXCEPTION(IllegalOperationOnPipeException);			// ESPIPE
-PPLNORMALEXCEPTION(BufferExceedsLimitException);
+PPLEXCEPTION(IOException,Exception);
+
+PPLEXCEPTION(FileNotOpenException, IOException);
+PPLEXCEPTION(FileSeekException, IOException);
+PPLEXCEPTION(ReadException, IOException);
+PPLEXCEPTION(WriteException, IOException);
+PPLEXCEPTION(EndOfFileException, IOException);
+PPLEXCEPTION(FileOpenException, IOException);
+PPLEXCEPTION(FileNotFoundException, IOException);					// ENOENT
+PPLEXCEPTION(InvalidArgumentsException, IOException);				// EINVAL
+PPLEXCEPTION(InvalidFileNameException, IOException);				// ENOTDIR, ENAMETOOLONG, ELOOP
+PPLEXCEPTION(PermissionDeniedException, IOException);				// EACCESS, EPERM
+PPLEXCEPTION(ReadOnlyException, IOException);						// EROFS
+PPLEXCEPTION(NoRegularFileException, IOException);					// EISDIR
+PPLEXCEPTION(TooManyOpenFilesException, IOException);				// EMFILE
+PPLEXCEPTION(UnsupportedFileOperationException, IOException);		// EOPNOTSUPP
+PPLEXCEPTION(TooManySymbolicLinksException, IOException);			// ELOOP
+PPLEXCEPTION(FilesystemFullException, IOException);					// ENOSPC
+PPLEXCEPTION(QuotaExceededException, IOException);					// EDQUOT
+PPLEXCEPTION(IOErrorException, IOException);						// EIO
+PPLEXCEPTION(BadFiledescriptorException, IOException);				// EABDF
+PPLEXCEPTION(BadAddressException, IOException);						// EFAULT
+PPLEXCEPTION(OverflowException, IOException);						// EOVERFLOW
+PPLEXCEPTION(FileExistsException, IOException);						// EEXIST
+PPLEXCEPTION(OperationBlockedException, IOException);				// EAGAIN
+PPLEXCEPTION(DeadlockException, IOException);						// EDEADLK
+PPLEXCEPTION(OperationInterruptedException, IOException);			// EINTR
+PPLEXCEPTION(TooManyLocksException, IOException);					// ENOLCK
+PPLEXCEPTION(IllegalOperationOnPipeException, IOException);			// ESPIPE
+PPLEXCEPTION(BufferExceedsLimitException, IOException);
 
 //@}
 
