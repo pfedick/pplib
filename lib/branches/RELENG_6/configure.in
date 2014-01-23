@@ -245,6 +245,7 @@ AC_CHECK_FUNCS([strncpy strlcpy strncat strlcat])
 AC_CHECK_FUNCS([strtok strtok_r])
 AC_CHECK_FUNCS([atoll strtoll])
 AC_CHECK_FUNCS([flock fcntl truncate ftruncate sync fsync])
+AC_CHECK_FUNCS([rename _wrename fopen _wfopen open _wopen])
 AC_CHECK_FUNCS([fgets fputs fgetws fputws fputc fgetc fputwc fgetwc mmap munmap sysconf pagesize])
 AC_CHECK_FUNCS([usleep nanosleep localtime localtime_r gmtime gmtime_r])
 AC_CHECK_FUNCS([signal syslog openlog closelog])
@@ -256,8 +257,10 @@ AC_CHECK_FUNCS([wcstombs mbstowcs wcsrtombs wcsnrtombs mbsrtowcs mbsnrtowcs])
 AC_CHECK_FUNCS([wprintf fwprintf swprintf vwprintf vfwprintf vswprintf])
 AC_CHECK_FUNCS([wstol wstoll watoi watoll wstod watof])
 AC_CHECK_FUNCS([poll select pselect])
-AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
+AC_CHECK_FUNCS([_wopendir _wclosedir opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
+
+
 
 
 dnl Checks for programs.
