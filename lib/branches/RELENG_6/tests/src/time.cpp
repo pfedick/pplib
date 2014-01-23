@@ -51,11 +51,11 @@ namespace {
 class TimeTest : public ::testing::Test {
 	protected:
 	TimeTest() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen: LC_CTYPE\n");
 			throw std::exception();
 		}
-		if (setlocale(LC_TIME,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_TIME,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen: LC_TIME\n");
 			throw std::exception();
 		}

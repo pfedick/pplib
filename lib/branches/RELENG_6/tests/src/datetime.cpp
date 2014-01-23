@@ -51,7 +51,7 @@ namespace {
 class DateTimeTest : public ::testing::Test {
 	protected:
 	DateTimeTest() {
-		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
