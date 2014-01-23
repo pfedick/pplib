@@ -14,6 +14,8 @@ OBJECTS = compile/wordlist.o \
 	compile/assocarray.o \
 	compile/clog.o \
 	compile/time.o \
+	compile/file.o \
+	compile/filestatic.o \
 	compile/perlhelper.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
@@ -63,7 +65,15 @@ compile/clog.o: src/clog.cpp Makefile
 compile/time.o: src/time.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/time.o -c src/time.cpp
-		
+
+compile/file.o: src/file.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/file.o -c src/file.cpp
+
+compile/filestatic.o: src/filestatic.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/filestatic.o -c src/filestatic.cpp
+			
 compile/datetime.o: src/datetime.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/datetime.o -c src/datetime.cpp
