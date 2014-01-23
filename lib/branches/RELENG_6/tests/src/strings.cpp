@@ -36,17 +36,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include "../include/prolog.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include <locale.h>
-#include <map>
-#include <string>
-#include <stdexcept>
 #include "../include/ppl6.h"
 #include <gtest/gtest.h>
 #include "ppl6-tests.h"
+#include <map>
+#include <string>
+#include <stdexcept>
 
 namespace {
 

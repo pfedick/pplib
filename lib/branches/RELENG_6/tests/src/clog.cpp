@@ -40,7 +40,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include <locale.h>
 #include "../include/ppl6.h"
 #include <gtest/gtest.h>
