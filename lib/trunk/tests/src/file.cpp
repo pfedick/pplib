@@ -86,9 +86,19 @@ TEST_F(FileReadTest, openNonexisting) {
 	ASSERT_THROW(f1.open("nonexisting.txt"), ppl7::FileNotFoundException);
 }
 
+TEST_F(FileReadTest, openNonexistingUtf8) {
+	ppl7::File f1;
+	ASSERT_THROW(f1.open("noneäxisting.txt"), ppl7::FileNotFoundException);
+}
+
 TEST_F(FileReadTest, openExisting) {
 	ppl7::File f1;
-	ASSERT_NO_THROW(f1.open("../LICENSE.TXT"));
+	ASSERT_NO_THROW(f1.open("testdata/filenameUSASCII.txt"));
+}
+
+TEST_F(FileReadTest, openExistingUtf8) {
+	ppl7::File f1;
+	ASSERT_NO_THROW(f1.open("testdata/filenameUTF8äöü.txt"));
 }
 
 TEST_F(FileReadTest, size) {
