@@ -1644,7 +1644,7 @@ int CFile::Truncate(const CString &filename, ppluint64 bytes)
 	int fd;
 #ifdef WIN32
 	CWString wideFilename=filename;
-	fd=::_wopen((const wchar_t*)filename, O_RDWR);
+	fd=::_wopen((const wchar_t*)wideFilename, O_RDWR);
 #else
 	fd=::open((const char*)filename, O_RDWR);
 #endif
@@ -1953,7 +1953,7 @@ int CFile::DeleteFile(const CString &filename)
 	int ret;
 #ifdef WIN32
 	CWString wideFilename=filename;
-	ret=::_wunlink((const wchar_t)wideFilename);
+	ret=::_wunlink((const wchar_t *)wideFilename);
 #else
 	ret=::unlink((const char*)filename);
 #endif
@@ -2165,8 +2165,7 @@ int CFile::Stat(const CString &filename, CDirEntry &out)
 #ifdef _WIN32
 	struct _stat st;
 	CWString wideFilename=filename;
-	File.Replace("/","\\");
-	if (w_stat((const wchar_t*)wideFilename,&st)!=0) return 0;
+	if (_wstat((const wchar_t*)wideFilename,&st)!=0) return 0;
 #else
 	struct stat st;
 	if (stat((const char*)filename,&st)!=0) return 0;
