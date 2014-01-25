@@ -43,6 +43,7 @@
 #include "../include/ppl6.h"
 #include <gtest/gtest.h>
 #include "ppl6-tests.h"
+#include "../include/config.h"
 
 namespace {
 
@@ -63,11 +64,37 @@ class CFileStaticTest : public ::testing::Test {
 
 TEST_F(CFileStaticTest, stat) {
 	ppl6::CDirEntry d;
-	ASSERT_NO_THROW({
-		ppl6::CFile::Stat("testdata/filenameUSASCII.txt",d);
-	});
+	ASSERT_EQ(1,ppl6::CFile::Stat("testdata/filenameUSASCII.txt",d));
+
 	ASSERT_EQ((size_t)1962,d.Size);
 	ASSERT_EQ(ppl6::CString("testdata/filenameUSASCII.txt"),d.File);
+}
+
+
+TEST_F(CFileStaticTest, CopyFile) {
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("copy.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("copy.tmp"));
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ppl6::CFile::DeleteFile("copy.tmp");
+}
+
+TEST_F(CFileStaticTest, Truncate) {
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","truncate.tmp"));
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("truncate.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+	ASSERT_EQ(1,ppl6::CFile::Truncate("truncate.tmp",1024));
+	ASSERT_EQ(1,ppl6::CFile::Stat("truncate.tmp",d));
+	ASSERT_EQ((size_t)1024,d.Size);
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("truncate.tmp"));
+	ASSERT_EQ(ppl6::CString("657351fba38e20fb0a4713e605f1d6a4"),ff.MD5Sum());
+	ppl6::CFile::DeleteFile("truncate.tmp");
 }
 
 

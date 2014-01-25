@@ -972,66 +972,12 @@ int IsFalse(const char *value)
 }
 
 
-int Stat(const char *file, CDirEntry *data)
-{
-	if (!file) return 0;
-#ifdef _WIN32
-	struct _stat st;
-	CString File=file;
-	File.Replace("/","\\");
-	if (_stat(File,&st)!=0) return 0;
-#else
-	struct stat st;
-	if (stat(file,&st)!=0) return 0;
-#endif
-	if (!data) return 1;
-	data->ATime=st.st_atime;
-	data->CTime=st.st_ctime;
-	data->MTime=st.st_mtime;
-	data->Attrib=0;
-	data->Size=(ppld64)st.st_size;
-	data->File.Set(file);
-	data->Path=GetPath(file);
-	data->Filename=GetFilename(file);
-
-
-	if (st.st_mode & S_IFDIR) data->Attrib|=CPPLDIR_DIR;
-	if (st.st_mode & S_IFREG) data->Attrib|=CPPLDIR_FILE;
-
-	//#if ( defined (WIN32) || defined (__DJGPP__) )
-	#ifdef _WIN32
-		if (st.st_mode & _S_IREAD) data->AttrStr[1]='r';
-		if (st.st_mode & _S_IWRITE) data->AttrStr[2]='w';
-		if (st.st_mode & _S_IEXEC) data->AttrStr[3]='x';
-	#else
-		#ifndef __DJGPP__
-			if (st.st_mode & S_IFLNK) data->Attrib|=CPPLDIR_LINK;
-		#endif
-		if (st.st_mode & S_IRUSR) data->AttrStr[1]='r';
-		if (st.st_mode & S_IWUSR) data->AttrStr[2]='w';
-		if (st.st_mode & S_IXUSR) data->AttrStr[3]='x';
-		if (st.st_mode & S_ISUID) data->AttrStr[3]='s';
-
-		if (st.st_mode & S_IRGRP) data->AttrStr[4]='r';
-		if (st.st_mode & S_IWGRP) data->AttrStr[5]='w';
-		if (st.st_mode & S_IXGRP) data->AttrStr[6]='x';
-		if (st.st_mode & S_ISGID) data->AttrStr[6]='s';
-
-		if (st.st_mode & S_IROTH) data->AttrStr[7]='r';
-		if (st.st_mode & S_IWOTH) data->AttrStr[8]='w';
-		if (st.st_mode & S_IXOTH) data->AttrStr[9]='x';
-	#endif
-
-	if (data->Attrib&CPPLDIR_DIR) data->AttrStr[0]='d';
-	if (data->Attrib&CPPLDIR_LINK) data->AttrStr[0]='l';
-	return 1;
-}
 
 int IsDir(const char *path)
 {
 	if (!path) return 0;
 	CDirEntry d;
-	if (!Stat(path,&d)) return 0;
+	if (!CFile::Stat(path,d)) return 0;
 	if (d.Attrib&CPPLDIR_DIR) return 1;
 	return 0;
 }
@@ -1040,7 +986,7 @@ int IsFile(const char *file)
 {
 	if (!file) return 0;
 	CDirEntry d;
-	if (!Stat(file,&d)) return 0;
+	if (!CFile::Stat(file,d)) return 0;
 	if (d.Attrib&CPPLDIR_FILE) return 1;
 	return 0;
 }
@@ -1055,14 +1001,9 @@ int FileExists(const char *fmt, ...)
         return 0;
     }
     va_end(args);
-    int ret=0;
-	FILE *fd=fopen(buff,"rb");
-	if (fd) {
-		ret=1;
-		fclose(fd);
-	}
-    free(buff); // Buffer wieder freigeben
-	return ret;
+    ppl6::CString filename(buff);
+    free(buff);
+    return CFile::Exists(filename);
 }
 
 void SetRect(RECT *r, int left, int top, int right, int bottom)

@@ -1539,7 +1539,7 @@ int CFile::munmap(void *addr, size_t len)
 // Statische Funktionen
 // ####################################################################
 
-int CFile::LoadFile(CVar &object, const char *filename)
+int CFile::LoadFile(CVar &object, const CString &filename)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei öffnen und den kompletten Inhalt in ein Objekt laden
  *
@@ -1587,7 +1587,7 @@ int CFile::LoadFile(CVar &object, const char *filename)
 	return 0;
 }
 
-void *CFile::LoadFile(const char *filename, size_t *size)
+void *CFile::LoadFile(const CString &filename, size_t *size)
 /*!\ingroup PPLGroupFileIO
  * \brief Kompletten Inhalt einer Datei laden
  *
@@ -1620,7 +1620,7 @@ void *CFile::LoadFile(const char *filename, size_t *size)
 	return buffer;
 }
 
-int CFile::Truncate(const char *filename, ppluint64 bytes)
+int CFile::Truncate(const CString &filename, ppluint64 bytes)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei abschneiden
  *
@@ -1635,12 +1635,32 @@ int CFile::Truncate(const char *filename, ppluint64 bytes)
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	#ifdef HAVE_TRUNCATE
+#ifdef HAVE_TRUNCATE
 		// truncate-Funktion vorhanden
 		if (truncate(filename,(off_t)bytes)==0) return 1;
 		SetError(TranslateErrno(errno),errno);
 		return 0;
-	#endif
+#elif defined HAVE_FTRUNCATE
+	int fd;
+#ifdef WIN32
+	CWString wideFilename=filename;
+	fd=::_wopen((const wchar_t*)filename, O_RDWR);
+#else
+	fd=::open((const char*)filename, O_RDWR);
+#endif
+	if (fd<0) {
+		SetError(TranslateErrno(errno),errno);
+		return 0;
+	}
+	if (ftruncate(fd,(off_t)bytes)!=0) {
+		SetError(TranslateErrno(errno),errno);
+		::close(fd);
+		return 0;
+	}
+	::close(fd);
+	return 1;
+
+#endif
 	SetError(246,"CFile::Truncate");
 	return 0;
 }
@@ -1694,7 +1714,12 @@ int CFile::Exists(const CString &filename)
 	int ret=0;
 	FILE *fd=NULL;
 	//printf ("buffer=%s\n",buff);
+#ifdef WIN32
+	CWString wideFilename=filename;
+	fd=_wfopen((const wchar_t*)wideFilename,L"rb");		// Versuchen die Datei zu oeffnen
+#else
 	fd=fopen(filename,"rb");		// Versuchen die Datei zu oeffnen
+#endif
 	if (fd) {
 		ret=1;
 		fclose(fd);
@@ -1704,7 +1729,7 @@ int CFile::Exists(const CString &filename)
 	return ret;
 }
 
-int CFile::CopyFile(const char *oldfile, const char *newfile)
+int CFile::CopyFile(const CString &oldfile, const CString &newfile, size_t buffersize)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei kopieren
  *
@@ -1715,14 +1740,17 @@ int CFile::CopyFile(const char *oldfile, const char *newfile)
  *
  * \param oldfile Name der zu kopierenden Datei
  * \param newfile Name der Zieldatei.
+ * \param buffersize Optionaler Wert, der die Größe des Copy-Buffers im Speicher angibt. Der
+ *        Default ist 1 MB.
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
+	if (oldfile==newfile) return 1;	// Nix zu tun
 	CFile f1, f2;
 	if (!f1.Open(oldfile,"rb")) return 0;
-	if (!f2.Open(oldfile,"wb")) return 0;
-	pplint64 bsize=1024*1024;
+	if (!f2.Open(newfile,"wb")) return 0;
+	pplint64 bsize=buffersize;
+	if (bsize==0) bsize=1024*1024;
 	if (f1.Size()<bsize) bsize=f1.Size();
 	void *buffer=malloc((size_t)bsize);
 	if (!buffer) {
@@ -1739,7 +1767,8 @@ int CFile::CopyFile(const char *oldfile, const char *newfile)
 			SetError(TranslateErrno(errno),errno);
 			PushError();
 			f2.Close();
-			unlink(newfile);
+			f1.Close();
+			CFile::DeleteFile(newfile);
 			free(buffer);
 			PopError();
 			return 0;
@@ -1749,7 +1778,8 @@ int CFile::CopyFile(const char *oldfile, const char *newfile)
 			SetError(TranslateErrno(errno),errno);
 			PushError();
 			f2.Close();
-			unlink(newfile);
+			f1.Close();
+			CFile::DeleteFile(newfile);
 			free(buffer);
 			PopError();
 			return 0;
@@ -1763,7 +1793,7 @@ int CFile::CopyFile(const char *oldfile, const char *newfile)
 }
 
 
-int CFile::MoveFile(const char *oldfile, const char *newfile)
+int CFile::MoveFile(const CString &oldfile, const CString &newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
  *
@@ -1778,18 +1808,13 @@ int CFile::MoveFile(const char *oldfile, const char *newfile)
  * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
  */
 {
-	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
+	if (oldfile==newfile) return 1;	// Nix zu tun
 	return RenameFile(oldfile,newfile);
-	/*
-	if (rename(oldfile,newfile)==0) return 1;
-	SetErrorFromErrno("%s => %s",oldfile,newfile);
-	return 0;
-	*/
 }
 
 
 
-int CFile::RenameFile(const char *oldfile, const char *newfile)
+int CFile::RenameFile(const CString &oldfile, const CString &newfile)
 /*!\ingroup PPLGroupFileIO
  * \brief Datei verschieben oder umbenennen
  *
@@ -1802,17 +1827,25 @@ int CFile::RenameFile(const char *oldfile, const char *newfile)
  * \param oldfile Name der zu verschiebenden bzw. umzubenennenden Datei
  * \param newfile Neuer Name
  * \return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0.
+ *
+ * \todo Diese Funktion ist nicht Windows-kompatibel, wenn Non-US-ASCII-Zeichen in den Dateinamen vorkommen!!!
+ * Statt rename muss _wrename verwendet werden, statt fopen _wfopen, jeweils mit "const wchar_t *" Pointern.
  */
 {
 	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
 	if (rename(oldfile,newfile)==0) {
 		FILE *fd=NULL;
 		//printf ("buffer=%s\n",buff);
-		fd=fopen(oldfile,"rb");		// Versuchen die Datei zu oeffnen
+#ifdef WIN32
+		CWString wideFilename=oldfile;
+		fd=_wfopen((const wchar_t*)wideFilename,L"rb");		// Versuchen die Datei zu oeffnen
+#else
+		fd=fopen((const char*)oldfile,"rb");		// Versuchen die Datei zu oeffnen
+#endif
 		if (fd) {
 			fclose(fd);
-			if (unlink(oldfile)==0) return 1;
-			SetErrorFromErrno("%s => %s",oldfile,newfile);
+			if (CFile::DeleteFile(oldfile)) return 1;
+			SetErrorFromErrno("%s => %s",(const char*)oldfile,(const char*)newfile);
 			unlink(newfile);
 			return 0;
 		}
@@ -1820,9 +1853,9 @@ int CFile::RenameFile(const char *oldfile, const char *newfile)
 	}
 	if (errno==EXDEV) {	// oldfile und newfile befinden sich nicht im gleichen Filesystem.
 		if (!CFile::CopyFile(oldfile,newfile)) return 0;
-		if (unlink(oldfile)==0) return 1;
+		if (CFile::DeleteFile(oldfile)) return 1;
 	}
-	SetErrorFromErrno("%s => %s",oldfile,newfile);
+	SetErrorFromErrno("%s => %s",(const char*)oldfile,(const char*)newfile);
 	return 0;
 }
 
@@ -1893,7 +1926,6 @@ int CFile::DeleteFilef(const char *filename, ...)
  * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
  */
 {
-	CFile ff;
 	char *buff=NULL;
 	va_list args;
 	va_start(args, filename);
@@ -1902,11 +1934,9 @@ int CFile::DeleteFilef(const char *filename, ...)
 	if (!buff) {
 		return 0;
 	}
-	int ret=0;
-	if (unlink(buff)==0) ret=1;
-	else SetErrorFromErrno(buff);
+	CString fname(buff);
 	free(buff);
-	return ret;
+	return DeleteFile(fname);
 }
 
 int CFile::DeleteFile(const CString &filename)
@@ -1920,14 +1950,20 @@ int CFile::DeleteFile(const CString &filename)
  * Datei garnicht vorhanden ist oder die notwendigen Zugriffsrechte fehlen.
  */
 {
-	int ret=0;
-	if (::unlink(filename)==0) ret=1;
-	else SetErrorFromErrno(filename);
-	return ret;
+	int ret;
+#ifdef WIN32
+	CWString wideFilename=filename;
+	ret=::_wunlink((const wchar_t)wideFilename);
+#else
+	ret=::unlink((const char*)filename);
+#endif
+	if (ret==0) return 1;
+	SetErrorFromErrno(filename);
+	return 0;
 }
 
 
-int CFile::WriteFile(const void *content, size_t size, const char *filename, ...)
+int CFile::WriteFilef(const void *content, size_t size, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Daten in Datei schreiben
  *
@@ -1962,7 +1998,7 @@ int CFile::WriteFile(const void *content, size_t size, const char *filename, ...
 	return ret;
 }
 
-int CFile::WriteFile(const CVar &object, const char *filename, ...)
+int CFile::WriteFilef(const CVar &object, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
  * \brief Daten eines von CVar abgeleiteten Objekts in Datei schreiben
  *
@@ -2093,7 +2129,7 @@ int CFile::FileAttr(int attr, const CString &filename)
 }
 
 
-int CFile::Chmod(const char *filename, int attr)
+int CFile::Chmod(const CString &filename, int attr)
 /*! \brief Setz die Attribute einer exisitierenden Datei
  * \ingroup PPLGroupFileIO
  *
@@ -2114,18 +2150,68 @@ int CFile::Chmod(const char *filename, int attr)
 {
 	mode_t m=translate_fileattr(attr);
 #ifdef _WIN32
-	if (_chmod(filename,m)==0) return 1;
+	CWString wideFilename=filename;
+	if (_wchmod((const wchar_t*)wideFilename,m)==0) return 1;
 #else
 	if (chmod(filename,m)==0) return 1;
 #endif
-	SetErrorFromErrno("%s",filename);
+	SetErrorFromErrno("%s",(const char*)filename);
 	return 0;
 }
 
 
-int CFile::Stat(const char *filename, CDirEntry &out)
+int CFile::Stat(const CString &filename, CDirEntry &out)
 {
-	return ppl6::Stat(filename,&out);
+#ifdef _WIN32
+	struct _stat st;
+	CWString wideFilename=filename;
+	File.Replace("/","\\");
+	if (w_stat((const wchar_t*)wideFilename,&st)!=0) return 0;
+#else
+	struct stat st;
+	if (stat((const char*)filename,&st)!=0) return 0;
+#endif
+	out.ATime=st.st_atime;
+	out.CTime=st.st_ctime;
+	out.MTime=st.st_mtime;
+	out.Attrib=0;
+	out.Size=(ppld64)st.st_size;
+	out.File=filename;
+	out.Path=GetPath(filename);
+	out.Filename=ppl6::GetFilename(filename);
+
+
+	if (st.st_mode & S_IFDIR) out.Attrib|=CPPLDIR_DIR;
+	if (st.st_mode & S_IFREG) out.Attrib|=CPPLDIR_FILE;
+
+	//#if ( defined (WIN32) || defined (__DJGPP__) )
+	#ifdef _WIN32
+		if (st.st_mode & _S_IREAD) out.AttrStr[1]='r';
+		if (st.st_mode & _S_IWRITE) out.AttrStr[2]='w';
+		if (st.st_mode & _S_IEXEC) out.AttrStr[3]='x';
+	#else
+		#ifndef __DJGPP__
+			if (st.st_mode & S_IFLNK) out.Attrib|=CPPLDIR_LINK;
+		#endif
+		if (st.st_mode & S_IRUSR) out.AttrStr[1]='r';
+		if (st.st_mode & S_IWUSR) out.AttrStr[2]='w';
+		if (st.st_mode & S_IXUSR) out.AttrStr[3]='x';
+		if (st.st_mode & S_ISUID) out.AttrStr[3]='s';
+
+		if (st.st_mode & S_IRGRP) out.AttrStr[4]='r';
+		if (st.st_mode & S_IWGRP) out.AttrStr[5]='w';
+		if (st.st_mode & S_IXGRP) out.AttrStr[6]='x';
+		if (st.st_mode & S_ISGID) out.AttrStr[6]='s';
+
+		if (st.st_mode & S_IROTH) out.AttrStr[7]='r';
+		if (st.st_mode & S_IWOTH) out.AttrStr[8]='w';
+		if (st.st_mode & S_IXOTH) out.AttrStr[9]='x';
+	#endif
+
+	if (out.Attrib&CPPLDIR_DIR) out.AttrStr[0]='d';
+	if (out.Attrib&CPPLDIR_LINK) out.AttrStr[0]='l';
+	return 1;
+
 }
 
 } // end of namespace ppl6

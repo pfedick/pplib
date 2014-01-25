@@ -16,6 +16,16 @@ Version 6.4.18
   - CTCPSocket::Read: Fehlercode EINTR wird wie EAGAIN behandelt und
     ignoriert, bzw. ein Retry initiiert
   - Funktion IdentMPEG kann besser mit fehlerhaften MP3-dateien umgehen
+  - CFile::CopyFile funktioniert nun. Bisher wurde das neue File nicht
+    angelegt und das alte gelöscht :-(  => Unittests angelegt
+  - Statische Funktionen von CFile refakturiert: statt "const char*"
+    wird nun "const CString &" erwartet, ausser dort, wo ein Formatstring
+    übergeben wird. Funktionen mit Formatstring haben ein "f" am Ende des
+    Funktionsnamens erhalten
+  - File-Funktionen unter Windows: Es werden jetzt Non-US-ASCII-Zeichen
+    im Dateinamen unterstützt. Achtung: Dies ist möglicherweise noch nicht
+    durchgängig implementiert!
+  - CFile::Truncate wird nun auch unter Windows unterstützt
 
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet

@@ -1223,5 +1223,25 @@ void CFileObject::Unmap()
 	return;
 }
 
+CString CFileObject::MD5Sum()
+{
+	char result[40];
+	MD5_CTX ctx;
+	MD5Init(&ctx);
+	Seek(0);
+	ppluint64 pos=0,bytes, buffersize=1024*1024;
+	ppluint64 rest=Size();
+	while (rest>0) {
+		bytes=buffersize;
+		if (bytes>rest) bytes=rest;
+		const unsigned char *buffer=(const unsigned char *)Map(pos,(size_t)bytes);
+		if (!buffer) return CString();
+		MD5Update(&ctx,buffer,bytes);
+		rest-=bytes;
+		pos+=bytes;
+	}
+	MD5End(&ctx, result);
+	return CString(result);
+}
 
 } // end of namespace ppl6
