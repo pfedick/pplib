@@ -1522,8 +1522,8 @@ int CWString::Reserve(int chars)
  * Ist der Puffer des Strings bereits größer wie gewünscht, bleibt der Puffer unverändert.
  */
 {
-	size_t size=chars*sizeof(wchar_t)+4;
-	if (size>buffersize) {
+	if (chars>Capacity()) {
+		size_t size=chars*sizeof(wchar_t)+sizeof(wchar_t);
 		if (buffer) {
 			wchar_t *t=(wchar_t*)realloc(buffer,size);
 			if (t) {
