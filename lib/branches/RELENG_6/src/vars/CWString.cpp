@@ -770,11 +770,11 @@ int CWString::Set(const char *text, int size)
 	size_t inbytes;
 	if (size>0) inbytes=size;
 	else inbytes=strlen(text);
-	size_t outbytes=inbytes*sizeof(wchar_t)+4;
+	size_t outbytes=(inbytes+1)*sizeof(wchar_t);
 	if (outbytes>=buffersize) {
 		if (buffer) free(buffer);
 		buffersize=InitialBuffersize;
-		if (buffersize<=outbytes) buffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+4;
+		if (buffersize<=outbytes) buffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+sizeof(wchar_t);
 		buffer=(wchar_t*)malloc(buffersize);
 		if (!buffer) {
 			SetError(2);
@@ -790,7 +790,7 @@ int CWString::Set(const char *text, int size)
 	}
 	buffer[ret]=0;
 	len=ret;
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=(len+1)*sizeof(wchar_t);
 	return 1;
 #endif
 
@@ -803,7 +803,7 @@ int CWString::Set(const char *text, int size)
 	}
 	if ((!iconvimport) && (!InitImportEncoding(extencoding))) return 0;
 	size_t inbytes=strlen(text);
-	size_t outbytes=inbytes*sizeof(wchar_t)+4;
+	size_t outbytes=(inbytes+1)*sizeof(wchar_t);
 	wchar_t *newstring=(wchar_t*)malloc(outbytes);
 	if (!newstring) {
 		SetError(2);
@@ -846,11 +846,11 @@ int CWString::Set(const wchar_t *text, int size)
 	size_t inbytes, inchars;
 	if (size>0) inchars=size;
 	else inchars=wcslen(text);
-	inbytes=inchars*sizeof(wchar_t)+4;
+	inbytes=(inchars+1)*sizeof(wchar_t);
 	if (inbytes>=buffersize) {
 		if (buffer) free(buffer);
 		buffersize=InitialBuffersize;
-		if (buffersize<=inbytes) buffersize=((inbytes/InitialBuffersize)+1)*InitialBuffersize+4;
+		if (buffersize<=inbytes) buffersize=((inbytes/InitialBuffersize)+1)*InitialBuffersize+sizeof(wchar_t);
 		buffer=(wchar_t*)malloc(buffersize);
 		if (!buffer) {
 			SetError(2);
@@ -860,7 +860,7 @@ int CWString::Set(const wchar_t *text, int size)
 	wmemcpy(buffer,text,inchars);
 	buffer[inchars]=0;
 	len=inchars;
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=(len+1)*sizeof(wchar_t);
 	return 1;
 }
 
@@ -1046,11 +1046,11 @@ int CWString::Import(const char *encoding, void *buffer, int bytes)
 	size_t inbytes;
 	if (bytes>0) inbytes=bytes;
 	else inbytes=strlen((char*)buffer);
-	size_t outbytes=inbytes*sizeof(wchar_t)+4;
+	size_t outbytes=(inbytes+1)*sizeof(wchar_t);
 	if (outbytes>=buffersize) {
 		if (this->buffer) free(this->buffer);
 		buffersize=InitialBuffersize;
-		if (buffersize<=outbytes) buffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+4;
+		if (buffersize<=outbytes) buffersize=((outbytes/InitialBuffersize)+1)*InitialBuffersize+sizeof(wchar_t);
 		this->buffer=(wchar_t*)malloc(buffersize);
 		if (!this->buffer) {
 			iconv_close(ic);
@@ -1073,7 +1073,7 @@ int CWString::Import(const char *encoding, void *buffer, int bytes)
 	iconv_close(ic);
 	((wchar_t*)outbuf)[0]=0;
 	len=wcslen(this->buffer);
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	return 1;
 #endif
 }
@@ -1090,7 +1090,7 @@ void CWString::HexDump(void *buffer, int bytes, bool skipheader)
  */
 {
 	CString s;
-	ppl6::HexDump(&s,buffer,len*4+1,skipheader);
+	ppl6::HexDump(&s,buffer,len*sizeof(wchar_t)+1,skipheader);
 	Set(s);
 }
 
@@ -1250,10 +1250,10 @@ int CWString::Concat(const wchar_t *text, int size)
 	size_t inchars;
 	if (size>0) inchars=size;
 	else inchars=wcslen(text);
-	size_t inbuffer=inchars*sizeof(wchar_t)+4;
+	size_t inbuffer=inchars*sizeof(wchar_t)+sizeof(wchar_t);
 
 	if (bufferused+inbuffer>=buffersize) {
-		buffersize=(((bufferused+inbuffer)/InitialBuffersize)+1)*InitialBuffersize+4;
+		buffersize=(((bufferused+inbuffer)/InitialBuffersize)+1)*InitialBuffersize+sizeof(wchar_t);
 		wchar_t *t=(wchar_t*)realloc(buffer,buffersize);
 		if (!t) {
 			SetError(2,"int CWString::Concat(const wchar_t *text, int bytes)");
@@ -1264,7 +1264,7 @@ int CWString::Concat(const wchar_t *text, int size)
 	wmemcpy(buffer+len,text,inchars);
 	buffer[len+inchars]=0;
 	len=len+inchars;
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	return 1;
 }
 int CWString::Concatf(const char *fmt, ...)
@@ -1559,14 +1559,14 @@ void CWString::ReCalcLen()
 	for (int i=0;i<l;i++) {
 		if (buffer[i]==0) {
 			len=i;
-			bufferused=len*sizeof(wchar_t)+4;
+			bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 			return;
 		}
 	}
 	len=(buffersize/sizeof(wchar_t))-1;
 	if (len<0) len=0;
 	buffer[len]=0;
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 }
 
 
@@ -1664,7 +1664,7 @@ const char *CWString::GetPtr()
 		extbuffersize=0;
 	}
 	if (!extbuffer) {
-		extbuffersize=bufferused+4;
+		extbuffersize=bufferused+sizeof(wchar_t);
 		extbuffer=(char*)malloc(extbuffersize);
 		if (!extbuffer) {
 			SetError(2);
@@ -1738,7 +1738,7 @@ void CWString::StripSlashes()
 	buffer[np]=0;
 	if (len!=np) {
 		len=np;
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -1845,7 +1845,7 @@ void CWString::Trim()
 				memmove(buffer,buffer+start,(ende-start+2)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -1867,7 +1867,7 @@ void CWString::LTrim()
 				memmove(buffer,buffer+start,(len-start+1)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -1888,7 +1888,7 @@ void CWString::RTrim()
 		buffer[ende]=0;
 		len=wcslen(buffer);
 		buffer[len]=0;
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -1912,7 +1912,7 @@ void CWString::Trim(wchar_t c)
 				memmove(buffer,buffer+start,(ende-start+2)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -1934,7 +1934,7 @@ void CWString::LTrim(wchar_t c)
 				memmove(buffer,buffer+start,(len-start+1)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -1955,7 +1955,7 @@ void CWString::RTrim(wchar_t c)
 			buffer[ende+1]=0;
 		}
 		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -1988,7 +1988,7 @@ void CWString::LTrim(const char *str)
 				memmove(buffer,buffer+start,(len-start+1)*sizeof(wchar_t));
 		}
 		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -2018,7 +2018,7 @@ void CWString::RTrim(const char *str)
 		}
 		buffer[ende]=0;
 		len=wcslen(buffer);
-		bufferused=len*sizeof(wchar_t)+4;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 	}
 }
 
@@ -2046,7 +2046,7 @@ void CWString::Chop(int chars)
 			if (len<c) c=len;
 			len-=c;
 			buffer[len]=0;
-			bufferused=len*sizeof(wchar_t)+4;
+			bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 		}
 	}
 }
@@ -2064,7 +2064,7 @@ void CWString::Cut(int position)
 	if (c>len) return;
 	buffer[c]=0;
 	len=c;
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 }
 
 
@@ -2080,7 +2080,7 @@ void CWString::TrimL(int chars)
 	memmove(buffer,buffer+chars,(len-chars)*sizeof(wchar_t));
 	len-=chars;
 	buffer[len]=0;
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 }
 
 void CWString::TrimR(int chars)
@@ -2093,7 +2093,7 @@ void CWString::TrimR(int chars)
 	if (c>len) c=len;
 	len-=chars;
 	buffer[len]=0;
-	bufferused=len*sizeof(wchar_t)+4;
+	bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 }
 
 void CWString::LCase()
