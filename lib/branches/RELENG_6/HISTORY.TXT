@@ -26,6 +26,11 @@ Version 6.4.18
     im Dateinamen unterstützt. Achtung: Dies ist möglicherweise noch nicht
     durchgängig implementiert!
   - CFile::Truncate wird nun auch unter Windows unterstützt
+  - Bugfix: Absturz unter Windows durch unbehandelte Exception im Destruktor
+    der CLog-Klasse behoben. Seit Version 6.4.15 wird Syslog unter Unix
+    unterstützt. Der Destruktor hat die Funktion zum Schließen von Syslog
+    aber auch unter Windows aufgerufen und die dabei entstehende Exception
+    nicht abgefangen. 
 
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet

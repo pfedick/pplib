@@ -197,7 +197,13 @@ void CLog::Terminate()
 		debuglevel[i]=0;
 	}
 	mutex.Unlock();
-	closeSyslog();
+#ifdef HAVE_CLOSELOG
+	try {
+		closeSyslog();
+	} catch (...) {
+
+	}
+#endif
 	PopError();
 }
 
