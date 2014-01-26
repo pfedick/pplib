@@ -1770,7 +1770,12 @@ TEST_F(WideStringTest, operator_GreaterEqual) {
 
 TEST_F(WideStringTest, GetMD5) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString expected(L"fb6cb2ddc37312ccec5b4d013ba724b1");
+	// Jenachdem. ob wchar_t 4 Byte breit ist (Unix) oder 2 Byte (Windows),
+	// ist die MD5-Summe unterschiedlich. In sofern ist es fraglich, ob diese
+	// Funktion überhaupt sinn macht
+	ppl6::CWString expected;
+	if (sizeof(wchar_t) == 2) expected=L"b0986ae6ee1eefee8a4a399090126837";
+	else expected=L"fb6cb2ddc37312ccec5b4d013ba724b1";
 	ppl6::CWString s2=s1.GetMD5();
 	EXPECT_EQ(expected,s2);
 	/*
@@ -1783,7 +1788,9 @@ TEST_F(WideStringTest, GetMD5) {
 
 TEST_F(WideStringTest, MD5) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString expected(L"fb6cb2ddc37312ccec5b4d013ba724b1");
+	ppl6::CWString expected;
+	if (sizeof(wchar_t) == 2) expected=L"b0986ae6ee1eefee8a4a399090126837";
+	else expected=L"fb6cb2ddc37312ccec5b4d013ba724b1";
 	EXPECT_EQ(1,s1.MD5());
 	EXPECT_EQ(expected,s1);
 }
@@ -1791,7 +1798,9 @@ TEST_F(WideStringTest, MD5) {
 TEST_F(WideStringTest, MD5_CWString) {
 	ppl6::CWString s1;
 	ppl6::CWString s2(L"The quick brown fox jumps over the lazy dog");
-	ppl6::CWString expected(L"fb6cb2ddc37312ccec5b4d013ba724b1");
+	ppl6::CWString expected;
+	if (sizeof(wchar_t) == 2) expected=L"b0986ae6ee1eefee8a4a399090126837";
+	else expected=L"fb6cb2ddc37312ccec5b4d013ba724b1";
 	EXPECT_EQ(1,s1.MD5(s2));
 	EXPECT_EQ(expected,s1);
 }
