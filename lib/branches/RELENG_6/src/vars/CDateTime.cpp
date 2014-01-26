@@ -731,13 +731,17 @@ ppl6::CString CDateTime::getISO8601() const
 		}
 	}
 #elif defined WIN32
+	/*
+	 * Leider: error: 'TIME_ZONE_INFORMATION' was not declared in this scope
+	 * error: 'GetTimeZoneInformation' was not declared in this scope
+	 * ...
 	TIME_ZONE_INFORMATION tzi;
 	memset(&tzi,0,sizeof(TIME_ZONE_INFORMATION));
 	GetTimeZoneInformation(&tzi);
 	printf ("Bias: %i\n",tzi.Bias);
 	printf ("StandardBias: %i\n",tzi.StandardBias);
 	printf ("DaylightBias: %i\n",tzi.DaylightBias);
-
+	*/
 
 #endif
 	return r;
