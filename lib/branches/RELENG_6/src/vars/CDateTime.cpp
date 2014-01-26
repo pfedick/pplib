@@ -60,10 +60,6 @@
 #endif
 #include "ppl6.h"
 
-#ifdef WIN32
-#include <winbase.h>
-#endif
-
 
 namespace ppl6 {
 
