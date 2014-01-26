@@ -60,6 +60,10 @@
 #endif
 #include "ppl6.h"
 
+#ifdef WIN32
+#include <winbase.h>
+#endif
+
 
 namespace ppl6 {
 
@@ -730,6 +734,15 @@ ppl6::CString CDateTime::getISO8601() const
 			r.Concatf("-%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
 		}
 	}
+#elif defined WIN32
+	TIME_ZONE_INFORMATION tzi;
+	memset(&tzi,0,sizeof(TIME_ZONE_INFORMATION));
+	GetTimeZoneInformation(&tzi);
+	printf ("Bias: %i\n",tzi.Bias);
+	printf ("StandardBias: %i\n",tzi.StandardBias);
+	printf ("DaylightBias: %i\n",tzi.DaylightBias);
+
+
 #endif
 	return r;
 }
