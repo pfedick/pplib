@@ -175,9 +175,13 @@ TEST_F(CLogTest, SetLogfileDebug) {
 
 TEST_F(CLogTest, OpenSyslog) {
 	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+#ifdef HAVE_OPENLOG
 	ASSERT_NO_THROW({
 		log->openSyslog("ppl6-loggertest",ppl6::CLog::SYSLOG_USER);
 	})  << "Oeffne Syslog";
+#else
+	ASSERT_THROW(log->openSyslog("ppl6-loggertest",ppl6::CLog::SYSLOG_USER),ppl6::UnsupportedFeatureException);
+#endif
 }
 
 TEST_F(CLogTest, SetFilterModule) {
@@ -283,9 +287,14 @@ TEST_F(CLogTest, MultithreadedTests) {
 
 TEST_F(CLogTest, CloseSyslog) {
 	ASSERT_TRUE(log!=NULL)	<< "log darf nicht auf NULL zeigen";
+#ifdef HAVE_CLOSELOG
 	ASSERT_NO_THROW({
 		log->closeSyslog();
 	})  << "Schliesse Syslog";
+#else
+	ASSERT_THROW(log->closeSyslog("ppl6-loggertest",ppl6::CLog::SYSLOG_USER),ppl6::UnsupportedFeatureException);
+#endif
+
 }
 
 TEST_F(CLogTest, CallDestructor) {
