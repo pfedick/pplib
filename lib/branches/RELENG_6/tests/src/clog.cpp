@@ -292,7 +292,7 @@ TEST_F(CLogTest, CloseSyslog) {
 		log->closeSyslog();
 	})  << "Schliesse Syslog";
 #else
-	ASSERT_THROW(log->closeSyslog("ppl6-loggertest",ppl6::CLog::SYSLOG_USER),ppl6::UnsupportedFeatureException);
+	ASSERT_THROW(log->closeSyslog(),ppl6::UnsupportedFeatureException);
 #endif
 
 }
