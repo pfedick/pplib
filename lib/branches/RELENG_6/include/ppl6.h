@@ -1412,7 +1412,9 @@ class CFile : public CFileObject
 		static int TouchFile(const CString &filename);
 		static int TouchFilef(const char *filename, ...);
 		static int WriteFilef(const void *content, size_t size, const char *filename, ...);
+		static int WriteFile(const void *content, size_t size, const CString &filename);
 		static int WriteFilef(const CVar &object, const char *filename, ...);
+		static int WriteFile(const CVar &object, const CString &filename);
 		static int RenameFile(const CString &oldfile, const CString &newfile);
 		static int FileAttrf(int attr, const char *filename, ...);
 		static int FileAttr(int attr, const CString &filename);

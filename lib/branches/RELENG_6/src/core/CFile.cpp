@@ -1962,6 +1962,23 @@ int CFile::DeleteFile(const CString &filename)
 	return 0;
 }
 
+int CFile::WriteFile(const void *content, size_t size, const CString &filename)
+{
+	CFile ff;
+	if (ff.Open(filename,"wb")) {
+		if (ff.Fwrite(content,1,size)==size) return 1;
+	}
+	return 0;
+}
+
+int CFile::WriteFile(const CVar &object, const CString &filename)
+{
+	CFile ff;
+	if (ff.Open(filename,"wb")) {
+		return ff.Write(object);
+	}
+	return 0;
+}
 
 int CFile::WriteFilef(const void *content, size_t size, const char *filename, ...)
 /*!\ingroup PPLGroupFileIO
@@ -1990,10 +2007,7 @@ int CFile::WriteFilef(const void *content, size_t size, const char *filename, ..
 		SetError(2);
 		return 0;
 	}
-	int ret=0;
-	if (ff.Open(buff,"wb")) {
-		if (ff.Fwrite(content,1,size)==size) ret=1;
-	}
+	int ret=WriteFile(content,size,buff);
 	free(buff);
 	return ret;
 }
