@@ -1832,13 +1832,18 @@ int CFile::RenameFile(const CString &oldfile, const CString &newfile)
  * Statt rename muss _wrename verwendet werden, statt fopen _wfopen, jeweils mit "const wchar_t *" Pointern.
  */
 {
-	if (strcmp(oldfile,newfile)==0) return 1;	// Nix zu tun
+	if (oldfile==newfile) return 1;	// Nix zu tun
+#ifdef WIN32
+	CWString wideOldFile=oldfile;
+	CWString wideNewFile=newfile;
+	if (_wrename(wideOldfile,wideNewfile)==0) {
+#else
 	if (rename(oldfile,newfile)==0) {
+#endif
 		FILE *fd=NULL;
 		//printf ("buffer=%s\n",buff);
 #ifdef WIN32
-		CWString wideFilename=oldfile;
-		fd=_wfopen((const wchar_t*)wideFilename,L"rb");		// Versuchen die Datei zu oeffnen
+		fd=_wfopen((const wchar_t*)wideOldFile,L"rb");		// Versuchen die Datei zu oeffnen
 #else
 		fd=fopen((const char*)oldfile,"rb");		// Versuchen die Datei zu oeffnen
 #endif
