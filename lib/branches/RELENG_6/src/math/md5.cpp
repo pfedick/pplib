@@ -433,6 +433,15 @@ char * MD5Data (const unsigned char *data, unsigned int len, char *buf)
     return MD5End(&ctx, buf);
 }
 
+CString MD5(const void *data, size_t size)
+{
+	MD5_CTX ctx;
+	char buffer[33];
+	MD5Init(&ctx);
+	MD5Update(&ctx,(const unsigned char*)data,size);
+	return CString(MD5End(&ctx, buffer));
+}
+
 CString MD5(const CString &str)
 {
 	return str.GetMD5();

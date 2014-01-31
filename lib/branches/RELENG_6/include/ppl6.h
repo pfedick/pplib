@@ -2478,6 +2478,7 @@ class CTree
 	CString MD5(const CString &str);
 	CString MD5(const CWString &str);
 	CString MD5(const CBinary &bin);
+	CString MD5(const void *data, size_t size);
 
 // math.cpp
 	pplint32	sinus1024 (pplint32 wert);
