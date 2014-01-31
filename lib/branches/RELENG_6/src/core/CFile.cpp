@@ -1958,6 +1958,7 @@ int CFile::DeleteFile(const CString &filename)
 	int ret;
 #ifdef WIN32
 	CWString wideFilename=filename;
+	/*
 	if (DeleteFileW((const wchar_t *)wideFilename)) return 1;
 	ret=GetLastError();
 	switch (ret) {
@@ -1967,6 +1968,8 @@ int CFile::DeleteFile(const CString &filename)
 	}
 	SetError(13,"CFile::DeleteFile: %s",(const char*)filename);
 	return 0;
+	*/
+	ret=::_wunlink((const wchar_t*)wideFilename);
 #else
 	ret=::unlink((const char*)filename);
 #endif
