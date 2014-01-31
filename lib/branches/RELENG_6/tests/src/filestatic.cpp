@@ -98,6 +98,7 @@ TEST_F(CFileStaticTest, TruncateOnUSASCII) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("truncate.tmp"));
 	ASSERT_EQ(ppl6::CString("657351fba38e20fb0a4713e605f1d6a4"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("truncate.tmp");
 }
 
@@ -112,6 +113,7 @@ TEST_F(CFileStaticTest, TruncateOnUtf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("truncateäöüß.tmp"));
 	ASSERT_EQ(ppl6::CString("657351fba38e20fb0a4713e605f1d6a4"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("truncateäöüß.tmp");
 }
 
@@ -145,6 +147,7 @@ TEST_F(CFileStaticTest, CopyFileUSAscii2USAscii) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("copy.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("copy.tmp");
 }
 
@@ -158,6 +161,7 @@ TEST_F(CFileStaticTest, CopyFileUSAscii2Utf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("copyäöüß.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("copyäöüß.tmp");
 }
 
@@ -171,6 +175,7 @@ TEST_F(CFileStaticTest, CopyFileUtf82Utf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("copyäöüß.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("copyäöüß.tmp");
 }
 
@@ -188,6 +193,7 @@ TEST_F(CFileStaticTest, MoveFileUSAscii2USAscii) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("move.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("move.tmp");
 }
 
@@ -204,6 +210,7 @@ TEST_F(CFileStaticTest, MoveFileUSAscii2Utf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("moveäöü.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("moveäöü.tmp");
 }
 
@@ -221,6 +228,7 @@ TEST_F(CFileStaticTest, MoveFileUtf82USAscii) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("move.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("move.tmp");
 }
 
@@ -237,6 +245,7 @@ TEST_F(CFileStaticTest, MoveFileUtf82Utf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("moveäöüß.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("moveäöüß.tmp");
 }
 
@@ -354,6 +363,7 @@ TEST_F(CFileStaticTest, WriteFileUSAscii) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("writetest.tmp"));
 	ASSERT_EQ(ppl6::CString(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
+	ff.Close();
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("writetest.tmp")) << "deleting file";
 }
 
@@ -367,6 +377,7 @@ TEST_F(CFileStaticTest, WriteFileUtf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("writetestäöü.tmp"));
 	ASSERT_EQ(ppl6::CString(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
+	ff.Close();
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("writetestäöü.tmp")) << "deleting file";
 }
 
@@ -380,6 +391,7 @@ TEST_F(CFileStaticTest, WriteFilefUSAscii) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("writetest.tmp"));
 	ASSERT_EQ(ppl6::CString(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
+	ff.Close();
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("writetest.tmp")) << "deleting file";
 }
 
@@ -393,6 +405,7 @@ TEST_F(CFileStaticTest, WriteFilefUtf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("writetestäöü.tmp"));
 	ASSERT_EQ(ppl6::CString(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
+	ff.Close();
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("writetestäöü.tmp")) << "deleting file";
 }
 
@@ -409,6 +422,7 @@ TEST_F(CFileStaticTest, RenameFileUSAscii2USAscii) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("move.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("move.tmp");
 }
 
@@ -425,6 +439,7 @@ TEST_F(CFileStaticTest, RenameFileUSAscii2Utf8) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("moveäöü.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("moveäöü.tmp");
 }
 
@@ -442,6 +457,7 @@ TEST_F(CFileStaticTest, RenameFileUtf82USAscii) {
 	ppl6::CFile ff;
 	ASSERT_EQ(1,ff.Open("move.tmp"));
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
 	ppl6::CFile::DeleteFile("move.tmp");
 }
 
@@ -454,11 +470,12 @@ TEST_F(CFileStaticTest, RenameFileUtf82Utf8) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("moveäöüß.tmp",d));
 	ASSERT_EQ((size_t)1962,d.Size);
-
-	ppl6::CFile ff;
-	ASSERT_EQ(1,ff.Open("moveäöüß.tmp"));
-	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ppl6::CFile::MD5("moveäöüß.tmp"));
 	ppl6::CFile::DeleteFile("moveäöüß.tmp");
+}
+
+TEST_F(CFileStaticTest, MD5) {
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ppl6::CFile::MD5("testdata/filenameUSASCII.txt"));
 }
 
 /*
