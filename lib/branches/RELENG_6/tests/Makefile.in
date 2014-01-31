@@ -7,6 +7,7 @@ CFLAGS	= -ggdb -Wall -DPPL6LIB $(INCLUDE) `../ppl6-config --cflags debug source`
 LIBS	= `../ppl6-config --libs debug source` @GCOV_LDFLAGS@ -lstdc++
 PROGNAME = testsuite
 OBJECTS = compile/wordlist.o \
+	compile/textsnippets.o \
 	compile/datetime.o \
 	compile/main.o \
 	compile/strings.o \
@@ -98,3 +99,7 @@ compile/perlhelper.o: src/perlhelper.cpp Makefile
 compile/wordlist.o: src/wordlist.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/wordlist.o -c src/wordlist.cpp
+	
+compile/textsnippets.o: src/textsnippets.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/textsnippets.o -c src/textsnippets.cpp
