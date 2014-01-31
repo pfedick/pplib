@@ -708,6 +708,14 @@ TEST_F(WideStringTest, cut_WithPos) {
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
 }
 
+TEST_F(WideStringTest, cut_WithInSpecialChars) {
+	ppl6::CWString s1(L"The qüick bröwn fox jumps over the lazy dog");
+	ppl6::CWString expected(L"The qüic");
+	s1.Cut(8);
+	ASSERT_EQ((size_t)10,s1.Len()) << "String has unexpected length";
+	ASSERT_EQ(expected,s1) << "String has unexpected value";
+}
+
 TEST_F(WideStringTest, cut_WithPos0) {
 	ppl6::CWString s1(L"The quick brown fox jumps over the lazy dog");
 	ppl6::CWString expected(L"");
