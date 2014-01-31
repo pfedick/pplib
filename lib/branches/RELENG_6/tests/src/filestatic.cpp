@@ -134,7 +134,8 @@ TEST_F(CFileStaticTest, ExistsfOnUSAscii) {
 }
 
 TEST_F(CFileStaticTest, ExistsfOnUtf8) {
-	ASSERT_EQ(1,ppl6::CFile::Existsf("testdata/%s","filenameUTF8äöü.txt"));
+	EXPECT_EQ(1,ppl6::CFile::Existsf("testdata/%s","filenameUTF8äöü.txt"));
+	EXPECT_EQ(1,ppl6::CFile::Existsf("testdata/%s.%s","filenameUTF8äöü","txt"));
 }
 
 TEST_F(CFileStaticTest, CopyFileUSAscii2USAscii) {
@@ -351,6 +352,10 @@ TEST_F(CFileStaticTest, TouchFilefUtf8) {
 	ASSERT_EQ(1,ppl6::CFile::TouchFilef("%s.%s","touchedäöü","tmp")) << "touching file";
 	ASSERT_EQ(1,ppl6::CFile::Exists("touchedäöü.tmp")) << "file exists";
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("touchedäöü.tmp")) << "deleting file";
+
+	ASSERT_EQ(1,ppl6::CFile::TouchFilef("%s","touchedäöü2.tmp")) << "touching file";
+	ASSERT_EQ(1,ppl6::CFile::Exists("touchedäöü2.tmp")) << "file exists";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile("touchedäöü2.tmp")) << "deleting file";
 }
 
 TEST_F(CFileStaticTest, WriteFileUSAscii) {
