@@ -1836,7 +1836,7 @@ int CFile::RenameFile(const CString &oldfile, const CString &newfile)
 #ifdef WIN32
 	CWString wideOldFile=oldfile;
 	CWString wideNewFile=newfile;
-	if (_wrename(wideOldfile,wideNewfile)==0) {
+	if (_wrename(wideOldFile,wideNewFile)==0) {
 #else
 	if (rename(oldfile,newfile)==0) {
 #endif
