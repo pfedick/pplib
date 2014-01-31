@@ -2061,6 +2061,12 @@ int CFile::WriteFilef(const CVar &object, const char *filename, ...)
 	return ret;
 }
 
+CString CFile::MD5(const CString &filename)
+{
+	CFile ff;
+	if (!ff.Open(filename,"rb")) return CString();
+	return ff.MD5Sum();
+}
 
 /*!\namespace FILEATTR
  * \ingroup PPLGroupFileIO

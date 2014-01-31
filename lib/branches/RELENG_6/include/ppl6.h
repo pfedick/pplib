@@ -1420,6 +1420,7 @@ class CFile : public CFileObject
 		static int FileAttr(int attr, const CString &filename);
 		static int Chmod(const CString &filename, int attr);
 		static int Stat(const CString &filename, CDirEntry &result);
+		static CString MD5(const CString &filename);
 };
 
 
