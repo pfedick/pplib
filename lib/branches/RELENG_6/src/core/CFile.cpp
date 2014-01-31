@@ -1681,24 +1681,10 @@ int CFile::Existsf(const char * fmt, ...)
 	char *buff;
 	va_list args;
 	va_start(args, fmt);
-	if (vasprintf (&buff, (char*)fmt, args)<0 || buff==NULL) {
-		// Nicht genuegend RAM
-		SetError(2);
-		return 0;
-	}
+	CString filename;
+	filename.VaSprintf(fmt,args);
 	va_end(args);
-	int ret=0;
-	FILE *fd=NULL;
-	//printf ("buffer=%s\n",buff);
-	fd=fopen(buff,"rb");		// Versuchen die Datei zu oeffnen
-	if (fd) {
-		ret=1;
-		fclose(fd);
-	} else {
-		SetError(9,buff);
-	}
-	free(buff);	// Buffer wieder freigeben
-	return ret;
+	return CFile::Exists(filename);
 }
 
 int CFile::Exists(const CString &filename)

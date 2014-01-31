@@ -343,17 +343,13 @@ TEST_F(CFileStaticTest, TouchFileUtf8) {
 }
 
 TEST_F(CFileStaticTest, TouchFilefUSAscii) {
-	ASSERT_EQ(1,ppl6::CFile::TouchFilef("%s.%s","touched","tmp")) << "touching file";
-	ASSERT_EQ(1,ppl6::CFile::Exists("touched.tmp")) << "file exists";
-	ASSERT_EQ(1,ppl6::CFile::DeleteFile("touched.tmp")) << "deleting file";
+	ASSERT_EQ(1,ppl6::CFile::TouchFilef("%s.%s","touched2","tmp")) << "touching file";
+	ASSERT_EQ(1,ppl6::CFile::Exists("touched2.tmp")) << "file exists";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile("touched2.tmp")) << "deleting file";
 }
 
 TEST_F(CFileStaticTest, TouchFilefUtf8) {
-	ASSERT_EQ(1,ppl6::CFile::TouchFilef("%s.%s","touchedäöü","tmp")) << "touching file";
-	ASSERT_EQ(1,ppl6::CFile::Exists("touchedäöü.tmp")) << "file exists";
-	ASSERT_EQ(1,ppl6::CFile::DeleteFile("touchedäöü.tmp")) << "deleting file";
-
-	ASSERT_EQ(1,ppl6::CFile::TouchFilef("%s","touchedäöü2.tmp")) << "touching file";
+	ASSERT_EQ(1,ppl6::CFile::TouchFilef("%s.%s","touchedäöü2","tmp")) << "touching file";
 	ASSERT_EQ(1,ppl6::CFile::Exists("touchedäöü2.tmp")) << "file exists";
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("touchedäöü2.tmp")) << "deleting file";
 }
