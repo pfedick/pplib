@@ -1364,14 +1364,40 @@ CString CID3Tag::GetTitle() const
  * Mit dieser Funktion wird der Name des Musikgenres aus dem Frame "TCON"
  * ausgelesen.
  *
+ * \since Ab Version 6.4.18 liefert die Funktion nicht mehr den ungeparsten Inhalt
+ * des TCON-Tags zurück (z.B. "(1)Classic Rock", sondern nurnoch den String, der das
+ * Genre spezifiziert (z.B. "Classic Rock").
+ *
  * @return Bei Erfolg wird ein String mit dem Namen des Genres zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
 CString CID3Tag::GetGenre() const
 {
 	CString r;
+	CString Tmp;
 	CID3Frame *frame=FindFrame("TCON");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	if (frame) CopyAndDecodeText(Tmp,frame,0);
+
+	// Manchmal beginnt das Genre mit einer in Klammern gesetzten Ziffer.
+	// Diese entspricht der GenreId des ID3v1-Tags
+	if (Tmp.PregMatch("/^\\(([0-9]+)\\)(.*)$/")) {
+		// Wir bevorzugen den Text nach der Klammer
+		r=Tmp.GetMatch(2);
+		r.Trim();
+		if (r.IsEmpty()) {
+			// Nur wenn er leer ist, verwenden wir die GenreId
+			r=Tmp.GetMatch(1);
+			r.Trim();
+			r=GetID3GenreName(r.ToInt());
+		}
+	} else if (Tmp.PregMatch("/^([0-9]+)$/")) {
+		// Manchmal haben wir aber auch nur eine Genre-Ziffer
+		r=Tmp.GetMatch(1);
+		r.Trim();
+		r=ppl6::GetID3GenreName(r.ToInt());
+	} else {
+		r=Tmp;
+	}
 	return r;
 }
 

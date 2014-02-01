@@ -33,7 +33,10 @@ Version 6.4.18
     nicht abgefangen. 
   - Funktion CString MD5(const void *data, size_t size) implementiert
   - Unittests für statische Funktionen aus CFile implementiert
-
+  - CID3Tag::GetGenre liefert einen bereits geparsten String zurück, der den
+    Namen des Genres enthält. Bisher wurde der Inhalt des Tags TCON ungefiltert
+    zurückgegeben
+  
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet
   - CArray::Explode: Performance wurde drastisch verbessert
