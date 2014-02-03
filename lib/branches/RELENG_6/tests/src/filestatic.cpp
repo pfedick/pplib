@@ -289,12 +289,13 @@ TEST_F(CFileStaticTest, LoadFileUtf82CBinary) {
 }
 
 TEST_F(CFileStaticTest, LoadFileUSAscii2Ptr) {
-	void *adr;
+	void *adr=NULL;
 	size_t size;
 	adr=ppl6::CFile::LoadFile("testdata/filenameUSASCII.txt",&size);
 	ASSERT_TRUE(adr!=NULL) << "Loading file to ptr";
-	ASSERT_EQ((size_t)1962,size) << "Checking Size";
-	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ppl6::MD5(adr,size)) << "Checking MD5-sum";
+	EXPECT_EQ((size_t)1962,size) << "Checking Size";
+	EXPECT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ppl6::MD5(adr,size)) << "Checking MD5-sum";
+	free(adr);
 }
 
 TEST_F(CFileStaticTest, LoadFileUtf82Ptr) {
