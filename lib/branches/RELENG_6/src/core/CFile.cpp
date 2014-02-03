@@ -545,6 +545,7 @@ pplint64 CFile::Size () const
 			if (GetFileInformationByHandle((HANDLE)ff,&info))
 				return (((ppluint64)info.nFileSizeHigh)<<32)+info.nFileSizeLow;
 		#else
+			::fflush((FILE*)ff);
 			struct stat buf;
 			if ((fstat (fileno((FILE*)ff),&buf))==0)
 				return ((pplint64)buf.st_size);

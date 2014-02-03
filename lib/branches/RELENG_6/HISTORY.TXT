@@ -40,7 +40,9 @@ Version 6.4.18
     Popenf
   - OpenTemp akzeptiert nurnoch einen Parameter vom Typ CString, die bisherige
     Funktion mit Formatstring und variabler Anzahl Parameter heisst jetzt
-    OpenTempf 
+    OpenTempf
+  - CFile::Size führt zunächst ein fflush aus, damit möglicherweise noch im
+    Puffer befindliche Daten geschrieben werden.
   
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet
