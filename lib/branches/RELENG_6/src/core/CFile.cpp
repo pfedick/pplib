@@ -289,29 +289,12 @@ int CFile::Openf (const char * format, const char * mode, ...)
  * \return Bei Erfolg liefert die Funktion True (1) zurück, sonst false (0).
  */
 {
-	Close();
-	// fopen stuerzt ab, wenn filename leer ist
-	if ((!format) || strlen(format)==0) {
-		SetError(61);
-		ff=NULL;
-		size=0;
-		pos=0;
-		return 0;
-	}
+	ppl6::CString f;
 	va_list args;
 	va_start(args, mode);
-	char *buff=NULL;
-	if (vasprintf (&buff, (char*)format, args)<=0 || buff==NULL) {
-		SetError(2);
-		ff=NULL;
-		size=0;
-		pos=0;
-		return 0;
-	}
+	f.VaSprintf(format,args);
 	va_end(args);
-	CString Filename(buff);
-	free(buff);
-	return Open(Filename,mode);
+	return Open(f,mode);
 }
 
 int CFile::OpenTempf(const char *filetemplate, ...)
