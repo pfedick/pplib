@@ -389,7 +389,7 @@ int CFile::Popen (const CString &command, const CString &mode)
 		pos=0;
 		return 0;
 	}
-	if ((ff=(FILE*)popen(command.GetPtr(),(const char*)mode))==NULL) {
+	if ((ff=(FILE*)popen((const char*)command,(const char*)mode))==NULL) {
 		SetError(9,errno,"%s",command.GetPtr());
 		ff=NULL;
 		size=0;
@@ -539,6 +539,7 @@ pplint64 CFile::Size () const
  * \note Die Funktion ist CFile::Lof vorzuziehen
  */
 {
+	if (isPopen) return 0;
 	if (ff!=NULL) {
 		#ifdef WIN32FILES
 			BY_HANDLE_FILE_INFORMATION info;
@@ -569,6 +570,10 @@ int CFile::Seek(ppluint64 position)
  * abgefragt werden.
  */
 {
+	if (isPopen) {
+		ppl6::SetError(362);
+		return 0;
+	}
 	if (ff!=NULL) {
 		#ifdef WIN32FILES
 			LARGE_INTEGER in,out;
@@ -623,6 +628,10 @@ int CFile::Fseek (ppluint64 offset, int origin )
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
+	if (isPopen) {
+		ppl6::SetError(362);
+		return 0;
+	}
 	int suberr;
 	if (ff!=NULL) {
 		#ifdef WIN32FILES
@@ -664,6 +673,7 @@ pplint64 CFile::Ftell()
  * @return Position des Zeigers innerhalb der Datei. Im Fehlerfall wird -1 zurückgegeben.
  */
 {
+	if (isPopen) return 0;
 	if (ff!=NULL) {
 		#ifdef WIN32FILES
 			LARGE_INTEGER in,out;
