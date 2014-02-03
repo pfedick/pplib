@@ -154,40 +154,39 @@ TEST_F(CFileTest, OpenTempUtf8) {
 
 TEST_F(CFileTest, PopenTempUSAscii) {
 	ppl6::CFile f1;
-	ppl6::CFile::DeleteFile("popentest.tmp");
+	ppl6::CFile::DeleteFile("popentest1.tmp");
 	ASSERT_EQ(1,f1.Popen("bin/popentest.sh","w")) << "could not open pipe";
-	ASSERT_EQ(1,f1.Puts(loremipsum));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
 	ASSERT_EQ(1,f1.Close());
 	ppl6::CDirEntry d;
-	ASSERT_EQ(1,ppl6::CFile::Stat("popentest1.tmp",d))  << "file popentest2.tmp was not created";
-	ASSERT_EQ((size_t)strlen(loremipsum),d.Size) << "file popentest2.tmp has unexpected size";
-	ASSERT_EQ(ppl6::CString(loremipsum_md5),ppl6::CFile::MD5("popentest1.tmp")) << "md5sum of file is correct";
+	ASSERT_EQ(1,ppl6::CFile::Stat("popentest1.tmp",d))  << "file popentest1.tmp was not created";
+	ASSERT_EQ((size_t)480,d.Size) << "file popentest1.tmp has unexpected size";
+	ASSERT_EQ(ppl6::CString("ae02ae6bdd7036d0bb1515f6b5b3ecd0"),ppl6::CFile::MD5("popentest1.tmp")) << "md5sum of file is correct";
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("popentest1.tmp")) << "deleting file";
 }
 
 TEST_F(CFileTest, PopenTempUtf8) {
 	ppl6::CFile f1;
-	ppl6::CFile::DeleteFile("popentäst.tmp");
+	ppl6::CFile::DeleteFile("popentest2.tmp");
 	ASSERT_EQ(1,f1.Popen("bin/popentäst.sh","w")) << "could not open pipe";
-	ASSERT_EQ(1,f1.Puts(loremipsum));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+
 	ASSERT_EQ(1,f1.Close());
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("popentest2.tmp",d)) << "file popentest2.tmp was not created";
-	ASSERT_EQ((size_t)strlen(loremipsum),d.Size) << "file popentest2.tmp has unexpected size";
-	ASSERT_EQ(ppl6::CString(loremipsum_md5),ppl6::CFile::MD5("popentest2.tmp")) << "md5sum of file is correct";
+	ASSERT_EQ((size_t)480,d.Size) << "file popentest2.tmp has unexpected size";
+	ASSERT_EQ(ppl6::CString("ae02ae6bdd7036d0bb1515f6b5b3ecd0"),ppl6::CFile::MD5("popentest2.tmp")) << "md5sum of file is correct";
 	ASSERT_EQ(1,ppl6::CFile::DeleteFile("popentest2.tmp")) << "deleting file";
-}
-
-TEST_F(CFileTest, PopenSendmial) {
-	ppl6::CFile f1;
-	ASSERT_EQ(1,f1.Popen("/usr/sbin/sendmail -t","w")) << "could not open pipe";
-	ASSERT_EQ(1,f1.Puts("To: fedick@denic.de\n"));
-	ASSERT_EQ(1,f1.Puts("From: fedick@denic.de\n"));
-	ASSERT_EQ(1,f1.Puts("Subject: Unittest\n"));
-	ASSERT_EQ(1,f1.Puts("\n"));
-	ASSERT_EQ(1,f1.Puts("Dies ist ein automatisierter Test.\n"));
-	ASSERT_EQ(1,f1.Close());
-	ppl6::CDirEntry d;
 }
 
 
