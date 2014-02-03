@@ -481,7 +481,7 @@ int CFile::Close()
 		this->munmap(MapBase, (size_t)LastMapSize);
 	}
 
-	SetFilename(NULL);
+	SetFilenamef(NULL);
 	if (ff!=NULL) {
 		int ret=1;
 		#ifdef WIN32FILES
