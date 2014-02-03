@@ -187,15 +187,15 @@ TEST_F(StringTest, clear) {
 
 TEST_F(StringTest, CapacityAndReserve) {
 	ppl6::CString s1;
-	ASSERT_EQ((size_t)0,s1.Capacity()) << "capacity did not return 0";
+	ASSERT_EQ((int)0,s1.Capacity()) << "capacity did not return 0";
 	s1.Reserve(0);
-	ASSERT_EQ((size_t)0,s1.Capacity()) << "capacity did not return 0";
+	ASSERT_EQ((int)0,s1.Capacity()) << "capacity did not return 0";
 	s1.Reserve(32);
-	ASSERT_EQ((size_t)32,s1.Capacity()) << "capacity did not return expected value";
+	ASSERT_EQ((int)32,s1.Capacity()) << "capacity did not return expected value";
 	s1.Reserve(128);
-	ASSERT_EQ((size_t)128,s1.Capacity()) << "capacity did not return expected value";
+	ASSERT_EQ((int)128,s1.Capacity()) << "capacity did not return expected value";
 	s1.Reserve(32);
-	ASSERT_EQ((size_t)128,s1.Capacity()) << "capacity did not return expected value";
+	ASSERT_EQ((int)128,s1.Capacity()) << "capacity did not return expected value";
 }
 
 
@@ -854,26 +854,26 @@ TEST_F(StringTest, trimLeft) {
 TEST_F(StringTest, trimLeftGrenzbereich) {
 	ppl6::CString s1;
 	s1.Reserve(8);
-	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ((int)8,s1.Capacity());
 	s1="  abcde";
-	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(7,s1.Size());
+	ASSERT_EQ((int)8,s1.Capacity());
+	ASSERT_EQ((ppluint32)7,s1.Size());
 	s1.LTrim();
-	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(5,s1.Size());
+	ASSERT_EQ((int)8,s1.Capacity());
+	ASSERT_EQ((ppluint32)5,s1.Size());
 	ASSERT_EQ(ppl6::CString("abcde"),s1);
 }
 
 TEST_F(StringTest, trimGrenzbereich) {
 	ppl6::CString s1;
 	s1.Reserve(8);
-	ASSERT_EQ(8,s1.Capacity());
+	ASSERT_EQ((int)8,s1.Capacity());
 	s1="  abc  ";
-	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(7,s1.Size());
+	ASSERT_EQ((int)8,s1.Capacity());
+	ASSERT_EQ((ppluint32)7,s1.Size());
 	s1.Trim();
-	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(3,s1.Size());
+	ASSERT_EQ((int)8,s1.Capacity());
+	ASSERT_EQ((ppluint32)3,s1.Size());
 	ASSERT_EQ(ppl6::CString("abc"),s1);
 }
 
@@ -926,10 +926,10 @@ TEST_F(StringTest, trimLeftCharsGrenzbereich) {
 	ASSERT_EQ(8,s1.Capacity());
 	s1="  abcde";
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(7,s1.Size());
+	ASSERT_EQ((ppluint32)7,s1.Size());
 	s1.LTrim(" ");
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(5,s1.Size());
+	ASSERT_EQ((ppluint32)5,s1.Size());
 	ASSERT_EQ(ppl6::CString("abcde"),s1);
 }
 
@@ -1272,7 +1272,7 @@ TEST_F(StringTest, pregCapture) {
 	ASSERT_EQ(2012,m.GetString(1).ToInt()) << "Unexpected value in capture";
 	ASSERT_EQ(5,m.GetString(2).ToInt()) << "Unexpected value in capture";
 	ASSERT_EQ(18,m.GetString(3).ToInt()) << "Unexpected value in capture";
-	ASSERT_EQ((size_t)4,m.Num()) << "Unexpected number auf captures";
+	ASSERT_EQ((int)4,m.Num()) << "Unexpected number auf captures";
 }
 
 TEST_F(StringTest, pregGetMatch) {
@@ -1589,7 +1589,7 @@ TEST_F(StringTest, operator_Int_minus123456) {
 
 TEST_F(StringTest, operator_UnsignedInt_123456) {
 	ppl6::CString s1("123456");
-	EXPECT_EQ((int)123456,(unsigned int)s1) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)123456,(unsigned int)s1) << "Unexpected Result";
 }
 
 TEST_F(StringTest, operator_UnsignedInt_minus123456) {
