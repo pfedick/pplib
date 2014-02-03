@@ -181,15 +181,15 @@ TEST_F(WideStringTest, clear) {
 
 TEST_F(WideStringTest, CapacityAndReserve) {
 	ppl6::CWString s1;
-	ASSERT_EQ((size_t)0,s1.Capacity()) << "capacity did not return 0";
+	ASSERT_EQ((int)0,s1.Capacity()) << "capacity did not return 0";
 	s1.Reserve(0);
-	ASSERT_EQ((size_t)0,s1.Capacity()) << "capacity did not return 0";
+	ASSERT_EQ((int)0,s1.Capacity()) << "capacity did not return 0";
 	s1.Reserve(32);
-	ASSERT_EQ((size_t)32,s1.Capacity()) << "capacity did not return expected value";
+	ASSERT_EQ((int)32,s1.Capacity()) << "capacity did not return expected value";
 	s1.Reserve(128);
-	ASSERT_EQ((size_t)128,s1.Capacity()) << "capacity did not return expected value";
+	ASSERT_EQ((int)128,s1.Capacity()) << "capacity did not return expected value";
 	s1.Reserve(32);
-	ASSERT_EQ((size_t)128,s1.Capacity()) << "capacity did not return expected value";
+	ASSERT_EQ((int)128,s1.Capacity()) << "capacity did not return expected value";
 }
 
 TEST_F(WideStringTest, len) {
@@ -746,10 +746,10 @@ TEST_F(WideStringTest, trimLeftGrenzbereich) {
 	ASSERT_EQ(8,s1.Capacity());
 	s1=L"  abcde";
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(7,s1.Len());
+	ASSERT_EQ((ppluint32)7,s1.Len());
 	s1.LTrim();
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(5,s1.Len());
+	ASSERT_EQ((ppluint32)5,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abcde"),s1);
 }
 
@@ -773,10 +773,10 @@ TEST_F(WideStringTest, trimGrenzbereich) {
 	ASSERT_EQ(8,s1.Capacity());
 	s1=L"  abc  ";
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(7,s1.Len());
+	ASSERT_EQ((ppluint32)7,s1.Len());
 	s1.Trim();
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(3,s1.Len());
+	ASSERT_EQ((ppluint32)3,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abc"),s1);
 }
 
@@ -814,10 +814,10 @@ TEST_F(WideStringTest, trimLeftCharsGrenzbereich) {
 	ASSERT_EQ(8,s1.Capacity());
 	s1=L"  abcde";
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(7,s1.Len());
+	ASSERT_EQ((size_t)7,s1.Len());
 	s1.LTrim(" ");
 	ASSERT_EQ(8,s1.Capacity());
-	ASSERT_EQ(5,s1.Len());
+	ASSERT_EQ((size_t)5,s1.Len());
 	ASSERT_EQ(ppl6::CWString(L"abcde"),s1);
 }
 
@@ -1030,7 +1030,7 @@ TEST_F(WideStringTest, pregCapture) {
 	ASSERT_EQ(2012,m.GetString(1).ToInt()) << "Unexpected value in capture";
 	ASSERT_EQ(5,m.GetString(2).ToInt()) << "Unexpected value in capture";
 	ASSERT_EQ(18,m.GetString(3).ToInt()) << "Unexpected value in capture";
-	ASSERT_EQ((size_t)4,m.Num()) << "Unexpected number auf captures";
+	ASSERT_EQ((int)4,m.Num()) << "Unexpected number auf captures";
 
 }
 
@@ -1432,7 +1432,7 @@ TEST_F(WideStringTest, ToInt_123456_point_567) {
 
 TEST_F(WideStringTest, ToUInt_123456) {
 	ppl6::CWString s1(L"123456");
-	EXPECT_EQ((int)123456,s1.ToUInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)123456,s1.ToUInt()) << "Unexpected Result";
 }
 
 TEST_F(WideStringTest, ToUInt_minus123456) {
@@ -1626,7 +1626,7 @@ TEST_F(WideStringTest, operator_Int_minus123456) {
 
 TEST_F(WideStringTest, operator_UnsignedInt_123456) {
 	ppl6::CWString s1(L"123456");
-	EXPECT_EQ((int)123456,(unsigned int)s1) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)123456,(unsigned int)s1) << "Unexpected Result";
 }
 
 TEST_F(WideStringTest, operator_UnsignedInt_minus123456) {
