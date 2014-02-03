@@ -314,7 +314,7 @@ int CFile::Openf (const char * format, const char * mode, ...)
 	return Open(Filename,mode);
 }
 
-int CFile::OpenTemp(const char *filetemplate, ...)
+int CFile::OpenTempf(const char *filetemplate, ...)
 /*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
  *
  * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
@@ -328,14 +328,32 @@ int CFile::OpenTemp(const char *filetemplate, ...)
  * @return Bei Erfolg liefert die Funktion 1 zurück, sonst 0.
  */
 {
+	CString t;
+	va_list args;
+	va_start(args, filetemplate);
+	t.VaSprintf(filetemplate,args);
+	va_end(args);
+
+	return OpenTemp(t);
+}
+
+int CFile::OpenTemp(const CString &filetemplate)
+/*!\brief Eine temporäre Datei zum Lesen und Schreiben öffnen
+ *
+ * Diese Funktion erzeugt eine temporäre Datei mit einem eindeutigen Namen.
+ * Dieser Name wird aus \p filetemplate erzeugt. Dazu  müssen  die letzten
+ * sechs  Buchstaben  des  Parameters template XXXXXX sein, diese werden dann
+ * durch eine Zeichenkette ersetzt, die diesen Dateinamen eindeutig  macht.
+ * Die  Datei  wird dann mit dem Modus read/write und den Rechten 0600 erzeugt.
+ *
+ * @param[in] filetemplate Pfad und Vorlage für den zu erstellenden Dateinamen
+ * @return Bei Erfolg liefert die Funktion 1 zurück, sonst 0.
+ */
+{
 	#ifdef HAVE_MKSTEMP
 		Close();
 		CString t;
-		va_list args;
-		va_start(args, filetemplate);
-		t.VaSprintf(filetemplate,args);
-		va_end(args);
-
+		t=filetemplate;
 		int f=mkstemp((char*)((const char*)t));
 		if (f<0) {
 			SetError(TranslateErrno(errno),errno,"CFile::OpenTemp");
@@ -359,7 +377,7 @@ int CFile::OpenTemp(const char *filetemplate, ...)
 	#endif
 }
 
-int CFile::Popen (const CString &command, const char * mode)
+int CFile::Popen (const CString &command, const CString &mode)
 /*!\brief Prozess öffnen
  *
  * \desc
@@ -388,7 +406,7 @@ int CFile::Popen (const CString &command, const char * mode)
 		pos=0;
 		return 0;
 	}
-	if ((ff=(FILE*)popen(command.GetPtr(),mode))==NULL) {
+	if ((ff=(FILE*)popen(command.GetPtr(),(const char*)mode))==NULL) {
 		SetError(9,errno,"%s",command.GetPtr());
 		ff=NULL;
 		size=0;
@@ -402,7 +420,7 @@ int CFile::Popen (const CString &command, const char * mode)
 	return 1;
 }
 
-int CFile::Popen (const char * command, const char * mode, ...)
+int CFile::Popenf (const char * command, const char * mode, ...)
 /*!\brief Prozess öffnen
  *
  * \desc
@@ -430,7 +448,7 @@ int CFile::Popen (const char * command, const char * mode, ...)
 	va_start(args, mode);
 	f.VaSprintf(command,args);
 	va_end(args);
-	return Popen(&f,mode);
+	return Popen(f,mode);
 }
 
 
@@ -1678,7 +1696,6 @@ int CFile::Existsf(const char * fmt, ...)
  * \return Ist die Datei forhanden, gibt die Funktion 1 zurück, andernfalls 0.
  */
 {
-	char *buff;
 	va_list args;
 	va_start(args, fmt);
 	CString filename;

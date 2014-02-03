@@ -78,7 +78,7 @@ TEST_F(CFileTest, openNonexistingUtf8) {
 	ASSERT_EQ(0,f1.Open("noneäxisting.txt"));
 }
 
-TEST_F(CFileTest, openExisting) {
+TEST_F(CFileTest, openExistingUsAscii) {
 	ppl6::CFile f1;
 	ASSERT_EQ(1,f1.Open("testdata/filenameUSASCII.txt"));
 }
@@ -86,6 +86,26 @@ TEST_F(CFileTest, openExisting) {
 TEST_F(CFileTest, openExistingUtf8) {
 	ppl6::CFile f1;
 	ASSERT_EQ(1,f1.Open("testdata/filenameUTF8äöü.txt"));
+}
+
+TEST_F(CFileTest, openfNonexisting) {
+	ppl6::CFile f1;
+	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","nonexisting","txt"));
+}
+
+TEST_F(CFileTest, openfNonexistingUtf8) {
+	ppl6::CFile f1;
+	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","noneäxisting","txt"));
+}
+
+TEST_F(CFileTest, openfExistingUsAscii) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","filenameUSASCII","txt"));
+}
+
+TEST_F(CFileTest, openfExistingUtf8) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","filenameUTF8äöü","txt"));
 }
 
 

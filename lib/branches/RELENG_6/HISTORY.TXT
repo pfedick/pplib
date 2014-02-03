@@ -36,6 +36,11 @@ Version 6.4.18
   - CID3Tag::GetGenre liefert einen bereits geparsten String zurück, der den
     Namen des Genres enthält. Bisher wurde der Inhalt des Tags TCON ungefiltert
     zurückgegeben
+  - CFile::Popen(const char *command, const char *mode, ...) umbenannt in
+    Popenf
+  - OpenTemp akzeptiert nurnoch einen Parameter vom Typ CString, die bisherige
+    Funktion mit Formatstring und variabler Anzahl Parameter heisst jetzt
+    OpenTempf 
   
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet

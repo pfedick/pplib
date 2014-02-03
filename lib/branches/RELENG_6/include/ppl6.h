@@ -1362,9 +1362,10 @@ class CFile : public CFileObject
 		int			Open (const CString &filename, const char * mode="rb");
 		int			Openf (const char * format, const char * mode, ...);
 		int			Open (FILE * handle);
-		int			OpenTemp(const char *filetemplate, ...);
-		int			Popen(const char *command, const char *mode, ...);
-		int			Popen(const CString &command, const char *mode);
+		int			OpenTempf(const char *filetemplate, ...);
+		int			OpenTemp(const CString &filetemplate);
+		int			Popenf(const char *command, const char *mode, ...);
+		int			Popen(const CString &command, const CString &mode);
 		int			Delete();
 
 		// Virtuelle Funktionen
