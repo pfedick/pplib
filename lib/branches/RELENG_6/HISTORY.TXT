@@ -47,6 +47,7 @@ Version 6.4.18
     SetFilenamef
   - CFile::Seek, Fseek, Ftell, Size und Lof haben keine Funktion mehr,
     bzw. geben 0 zurück, wenn die geöffnete Datei eine Pipe ist.
+  - Diverse Compiler-Warnings mit gcc 4.6.x gefixt
   
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet

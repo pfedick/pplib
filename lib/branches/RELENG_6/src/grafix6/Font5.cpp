@@ -650,10 +650,9 @@ Size CFontEngineFont5::Measure(CFontFile *file, const CFont &font, const CWStrin
 	int code;
 	int start=0;
 	int end=0;
-	pplint16 bearingy, bearingx, width, height, advance;
-	pplint16 MaxHeight, MaxBearingY;
+	pplint16 bearingy, height, advance;
+	pplint16 MaxHeight;
 	MaxHeight=peek16(header+6);
-	MaxBearingY=peekw(header+4);
 
 	int p=0;
 	int miny=0, maxy=0;
@@ -678,10 +677,8 @@ Size CFontEngineFont5::Measure(CFontFile *file, const CFont &font, const CWStrin
 			// Glyph holen
 			glyph=header+peek32(jump+((code-start)<<2));
 			if (glyph) {
-				width=peek16(glyph);
 				height=peek16(glyph);
 				bearingy=peek16(glyph+6);
-				bearingx=peek16(glyph+4);
 				advance=peek16(glyph+8);
 				x+=advance;
 				if (y-bearingy < miny) miny=y-bearingy;

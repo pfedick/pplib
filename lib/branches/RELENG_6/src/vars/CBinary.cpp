@@ -520,7 +520,7 @@ void CBinary::HexDump() const
 			strcat (buff,": ");
 			strcat (buff,cleartext);
 			printf("%s\n",buff);
-			sprintf (buff,"0x%08X: ",i);
+			sprintf (buff,"0x%08tX: ",i);
 			memset(cleartext,0,20);
 			spalte=0;
 		}
@@ -555,7 +555,7 @@ void CBinary::HexDump(CString &s) const
 			strcat (buff,": ");
 			strcat (buff,cleartext);
 			s.Concatf("%s\n",buff);
-			sprintf (buff,"0x%08X: ",i);
+			sprintf (buff,"0x%08tX: ",i);
 			memset(cleartext,0,20);
 			spalte=0;
 		}

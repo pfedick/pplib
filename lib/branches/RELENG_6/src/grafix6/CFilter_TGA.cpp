@@ -148,7 +148,6 @@ int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 {
 	TGAHEAD tgafield, *tga=&tgafield;
 	ppluint8 	* b1;
-	ppldd   gby,by;
 	Color	farbwert;
     ppluint8 *address=(ppluint8*)file.Map();
 	if (address==NULL) {SetError(2); return false; }
@@ -157,8 +156,8 @@ int CFilter_TGA::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 
 	//S2i *data=(S2i *)surface->internaldata;
 	//CSurface *PriSurf=((DD2i *) (data->dd_internaldata))->PrimarySurface;
-	gby=img.height*img.pitch;
-    by=gby;
+	//gby=img.height*img.pitch;
+    //by=gby;
 
 	//printf ("width: %u, height: %u, bitdepth: %u\n",surface->width, surface->height, surface->bitdepth);
     //printf ("img->width: %u, img->height: %u, img->bitdepth: %u\n",img->width, img->height, img->bitdepth);

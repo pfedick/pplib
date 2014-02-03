@@ -236,7 +236,7 @@ void dumphex (char *adresse,ppldd zeilen)
 
 	_adresse=(char *)adresse;
 	for (_z=0;_z<zeilen;_z++) {
-		sprintf (tmp,"%8X:",(ppliptr)(_adresse));
+		sprintf (tmp,"%8zX:",(ppliptr)(_adresse));
 		strxchg (tmp, (char*)" ",(char*)"0");
 		printf ("%s ",tmp);
 		for (_i=0;_i<16;_i++) {
@@ -1042,13 +1042,13 @@ void HexDump(void *address, ppldd bytes, bool skipheader)
 {
     char buff[1024], tmp[10], cleartext[20];
     if (!skipheader) {
-    	sprintf (buff,"HEXDUMP: %u Bytes starting at Address 0x%08X (%u):",bytes,(ppliptr)address,(ppliptr)address);
+    	sprintf (buff,"HEXDUMP: %u Bytes starting at Address 0x%016zX (%zu):",bytes,(ppliptr)address,(ppliptr)address);
     	PrintDebug("%s\n",buff);
     }
 
     char *_adresse=(char*)address;
     ppldd spalte=0;
-    sprintf (buff,"0x%08X: ",(ppliptr)_adresse);
+    sprintf (buff,"0x%016zX: ",(ppliptr)_adresse);
     memset(cleartext,0,20);
     for (ppldd i=0;i<bytes;i++) {
         if (spalte>15) {
@@ -1057,7 +1057,7 @@ void HexDump(void *address, ppldd bytes, bool skipheader)
             strcat (buff,": ");
             strcat (buff,cleartext);
             PrintDebug("%s\n",buff);
-            sprintf (buff,"0x%08X: ",(ppliptr)_adresse+i);
+            sprintf (buff,"0x%016zX: ",(ppliptr)_adresse+i);
             memset(cleartext,0,20);
             spalte=0;
         }
@@ -1087,7 +1087,7 @@ void HexDump(CString *s, void *address, ppldd bytes, bool skipheader)
     }
     char *_adresse=(char*)address;
     ppldd spalte=0;
-    sprintf (buff,"0x%08X: ",(ppliptr)_adresse);
+    sprintf (buff,"0x%016zX: ",(ppliptr)_adresse);
     memset(cleartext,0,20);
     for (ppldd i=0;i<bytes;i++) {
         if (spalte>15) {
@@ -1096,7 +1096,7 @@ void HexDump(CString *s, void *address, ppldd bytes, bool skipheader)
             strcat (buff,": ");
             strcat (buff,cleartext);
             s->Concatf("%s\n",buff);
-            sprintf (buff,"0x%08X: ",(ppliptr)_adresse+i);
+            sprintf (buff,"0x%016zX: ",(ppliptr)_adresse+i);
             memset(cleartext,0,20);
             spalte=0;
         }

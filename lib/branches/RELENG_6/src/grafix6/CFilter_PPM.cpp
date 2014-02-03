@@ -97,7 +97,7 @@ int CFilter_PPM::Ident(CFileObject &file, IMAGE &img)
 int CFilter_PPM::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 {
 	CTok tok;
-	ppldd	 farbtiefe,pp;
+	ppldd	 pp;
 	const char *adresse,*tmp;
 	char tmpc[64];
 	int x,y;
@@ -113,7 +113,7 @@ int CFilter_PPM::Load(CFileObject &file, CDrawable &surface, IMAGE &img)
 			tmp=trim(tmpc);
 		}
 		file.Gets(tmpc,64);			// Farbtiefe holen, normalerweise 255
-		farbtiefe=atol(tmpc);
+		//farbtiefe=atol(tmpc);
 		pp=(ppldd)file.Ftell();
 		for (y=0;y<surface.height();y++) {
 			adresse=file.Map(pp,img.pitch);	// Zeile fuer Zeile einlesen

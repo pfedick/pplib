@@ -71,6 +71,7 @@
 #undef HAVE_STDIO_H
 #undef HAVE_STDINT_H
 #undef HAVE_STDLIB_H
+#undef HAVE_STDDEF_H
 #undef HAVE_LOCALE_H
 #undef HAVE_WCHAR_H
 #undef HAVE_WIDEC_H

@@ -57,7 +57,9 @@ namespace ppl6 {
 
 
 static CMutex		MutexInstance;
+#ifdef HAVE_LIBSHOUT
 static ppluint32	instance=0;
+#endif
 
 /*!\class CIcecast
  * \ingroup PPLGroupSound

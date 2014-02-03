@@ -74,7 +74,9 @@ namespace ppl6 {
 
 
 static CMutex MPG123_GlobalMutex;
+#ifdef HAVE_MPG123
 static ppluint32 instances=0;
+#endif
 
 CMP3DecodeLibMpg123::CMP3DecodeLibMpg123()
 {

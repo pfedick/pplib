@@ -337,7 +337,7 @@ int CResolver::setNameservers(const CArray &list)
 		//ldns_rdf_deep_free(server);
 	}
 
-	printf ("Anzahl Nameserver: %i\n",ldns_resolver_nameserver_count((ldns_resolver*)res));
+	printf ("Anzahl Nameserver: %zu\n",ldns_resolver_nameserver_count((ldns_resolver*)res));
 	return 1;
 #endif
 }

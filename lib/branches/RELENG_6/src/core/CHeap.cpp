@@ -38,6 +38,9 @@
 #include "prolog.h"
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_STDDEF_H
+#include <stddef.h>
+#endif
 #include <string.h>
 #ifndef _WIN32
 #include <strings.h>
@@ -128,10 +131,10 @@ void CHeap::Dump()
 {
 	mutex.Lock();
 	HEAPBLOCK *bl=(HEAPBLOCK*)blocks;
-	printf ("Dump CHeap [%s] (0x%llx, ",(const char*)Name,((ppluint64)this));
+	printf ("Dump CHeap [%s] (0x%tx, ",(const char*)Name,(ptrdiff_t) this);
 	printf ("Elementsize: %i):\n", elementsize);
-	printf ("Memory allocated: %llu Bytes, Memory used: %llu Bytes, Memory free: %llu Bytes\n",
-			(ppluint64)mem_allocated, (ppluint64)mem_used, (ppluint64)(mem_allocated-mem_used));
+	printf ("Memory allocated: %zu Bytes, Memory used: %zu Bytes, Memory free: %zu Bytes\n",
+			(size_t)mem_allocated, (size_t)mem_used, (size_t)(mem_allocated-mem_used));
 	while (bl) {
 		printf ("HEAPBLOCK: elements: %u, free: %u, Bytes allocated: %u\n",bl->elements, bl->num_free, bl->elements*elementsize);
 		bl=bl->next;

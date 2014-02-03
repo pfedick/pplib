@@ -934,7 +934,6 @@ void Font6Renderer::renderInternal(const Font6Face &face, grafix::CDrawable &dra
 	void (*BltGlyph) (RENDER_CONTEXT *context)=NULL;
 	void (*ErsatzGlyph) (DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)=NULL;
 	int startx=x;
-	int starty=y;
 	int lastx=x;
 	int lasty=y;
 	int kerningx=0;

@@ -77,8 +77,6 @@ int Button::paint()
 {
 	CDrawable draw=getDrawable();
 	Rect r=draw.rect();
-	Color bright=background*2.0f;
-	Color dark=background*0.8f;
 	draw.drawRect(r,Color(66,66,66));
 	int x1=r.x1()+1;
 	int y1=r.y1()+1;
