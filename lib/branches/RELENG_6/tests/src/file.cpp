@@ -90,22 +90,22 @@ TEST_F(CFileTest, openExistingUtf8) {
 
 TEST_F(CFileTest, openfNonexisting) {
 	ppl6::CFile f1;
-	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","nonexisting","txt"));
+	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","rb","nonexisting","txt"));
 }
 
 TEST_F(CFileTest, openfNonexistingUtf8) {
 	ppl6::CFile f1;
-	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","noneäxisting","txt"));
+	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","rb","noneäxisting","txt"));
 }
 
 TEST_F(CFileTest, openfExistingUsAscii) {
 	ppl6::CFile f1;
-	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","filenameUSASCII","txt"));
+	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","rb","filenameUSASCII","txt"));
 }
 
 TEST_F(CFileTest, openfExistingUtf8) {
 	ppl6::CFile f1;
-	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","filenameUTF8äöü","txt"));
+	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","rb","filenameUTF8äöü","txt"));
 }
 
 
