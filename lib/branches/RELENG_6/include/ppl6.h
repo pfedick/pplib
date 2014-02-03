@@ -1274,7 +1274,7 @@ class CFileObject
 		CFileObject();
 		virtual ~CFileObject();
 
-		void				SetFilename(const char *filename, ...);
+		void				SetFilenamef(const char *filename, ...);
 		void				SetFilename(const CString &filename);
 		const char *		GetFilename() const;
 		CString				Filename() const;

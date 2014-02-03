@@ -124,7 +124,7 @@ CFileObject::~CFileObject()
 
 }
 
-void CFileObject::SetFilename(const char *filename, ...)
+void CFileObject::SetFilenamef(const char *filename, ...)
 /*!\brief Dateiname festlegen
  *
  * \header \#include <ppl6.h>
