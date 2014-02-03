@@ -299,12 +299,13 @@ TEST_F(CFileStaticTest, LoadFileUSAscii2Ptr) {
 }
 
 TEST_F(CFileStaticTest, LoadFileUtf82Ptr) {
-	void *adr;
+	void *adr=NULL;
 	size_t size;
 	adr=ppl6::CFile::LoadFile("testdata/unicodeUtf8äöü.txt",&size);
 	ASSERT_TRUE(adr!=NULL) << "Loading file to ptr";
-	ASSERT_EQ((size_t)7976,size) << "Checking Size";
-	ASSERT_EQ(ppl6::CString("c6767ca956f9e3b65164bed63b93d811"),ppl6::MD5(adr,size)) << "Checking MD5-sum";
+	EXPECT_EQ((size_t)7976,size) << "Checking Size";
+	EXPECT_EQ(ppl6::CString("c6767ca956f9e3b65164bed63b93d811"),ppl6::MD5(adr,size)) << "Checking MD5-sum";
+	free(adr);
 }
 
 TEST_F(CFileStaticTest, DeleteFileUSAscii) {
