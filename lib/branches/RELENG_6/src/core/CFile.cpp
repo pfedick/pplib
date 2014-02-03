@@ -389,7 +389,15 @@ int CFile::Popen (const CString &command, const CString &mode)
 		pos=0;
 		return 0;
 	}
-	if ((ff=(FILE*)popen((const char*)command,(const char*)mode))==NULL) {
+#ifdef WIN32
+	CWString wideCommand(command);
+	CWString wideMode(mode);
+	ff=_wpopen((const wchar_t*)wideCommand,(const wchar_t*)wideMode);
+#else
+	ff=popen((const char*)command,(const char*)mode);
+#endif
+
+	if (ff==NULL) {
 		SetError(9,errno,"%s",command.GetPtr());
 		ff=NULL;
 		size=0;
@@ -487,7 +495,11 @@ int CFile::Close()
 			CloseHandle((HANDLE)ff);
 		#else
 			if(isPopen) {
+#ifdef WIN32
+				if (_pclose ((FILE*)ff)!=0) ret=0;
+#else
 				if (pclose ((FILE*)ff)!=0) ret=0;
+#endif
 			} else {
 				if (fclose ((FILE*)ff)!=0) ret=0;
 			}
