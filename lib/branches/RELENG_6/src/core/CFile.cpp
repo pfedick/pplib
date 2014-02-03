@@ -397,8 +397,7 @@ int CFile::Popen (const CString &command, const CString &mode)
 		return 0;
 	}
 	isPopen=true;
-	size=Lof();
-	Seek(0);
+	size=0;
 	SetFilename(command);
 	return 1;
 }
