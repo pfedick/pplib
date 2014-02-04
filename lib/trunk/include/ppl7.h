@@ -347,23 +347,16 @@ ppluint64 GetMilliSeconds();
 ppl_time_t MkTime(const String &year, const String &month, const String &day, const String &hour="0", const String &min="0", const String &sec="0");
 ppl_time_t MkTime(int year, int month, int day, int hour=0, int min=0, int sec=0);
 ppl_time_t MkTime(const String &iso8601date, PPLTIME *t=NULL);
+ppl_time_t MkTime(const PPLTIME &t);
+
 String MkISO8601Date (ppl_time_t sec=0);
-String MkISO8601Date (PPLTIME &t);
+String MkISO8601Date (const PPLTIME &t);
 String MkRFC822Date (ppl_time_t sec=0);
-String MkRFC822Date (PPLTIME &t);
+String MkRFC822Date (const PPLTIME &t);
+String MkDate(const String &format, ppl_time_t sec);
+String MkDate(const String &format, const PPLTIME &t);
 
 //void datumsauswertung (pplchar * d, pplchar * dat);
-/*
-ppluint64 Datum2Sekunden(char *datum, char *zeit);
-ppluint64 GetUTC(char *datum, char *zeit);
-const char * UTC2Date(ppluint64 sec, char *datum, char *uhrzeit);
-ppldd Sekunden2Datum(ppluint64 sec, ppldd *datum, ppldd *uhrzeit);
-
-const char *MkDate (String &buffer, const char *format, ppluint64 sec);
-String MkDate(const char *format, ppluint64 sec);
-String Long2Date(const char *format, int value);
-char *MkDate (char *buffer, int size, const char *format, ppluint64 sec);
-*/
 
 //! \brief Timer-Klasse
 class Timer

@@ -449,6 +449,24 @@ ppl_time_t MkTime(int year, int month, int day, int hour, int min, int sec)
 	return (ppl_time_t) LTime;
 }
 
+ppl_time_t MkTime(const PPLTIME &t)
+/*!\ingroup PPLGroupDateTime
+ */
+{
+	struct tm Time;
+	if (t.year<1900 || t.month<1 || t.month>12 ) return 0;
+	memset(&Time,0,sizeof(Time));
+	Time.tm_mday = t.day;
+	Time.tm_mon  = t.month-1;
+	Time.tm_year = t.year-1900;
+	Time.tm_hour = t.hour;
+	Time.tm_min  = t.min;
+	Time.tm_sec  = t.sec;
+	time_t LTime=mktime(&Time);
+	return (ppl_time_t) LTime;
+}
+
+
 ppl_time_t MkTime(const String &iso8601date, PPLTIME *t)
 /*!\ingroup PPLGroupDateTime
  */
@@ -469,7 +487,7 @@ ppl_time_t MkTime(const String &iso8601date, PPLTIME *t)
 	return (ppl_time_t) LTime;
 }
 
-String MkRFC822Date (PPLTIME &t)
+String MkRFC822Date (const PPLTIME &t)
 /*!\ingroup PPLGroupDateTime
  * \brief Datumstring nach RFC-822 (Mailformat) erzeugen
  *
@@ -552,7 +570,7 @@ String MkISO8601Date (ppl_time_t sec)
 	return MkISO8601Date(t);
 }
 
-String MkISO8601Date (PPLTIME &t)
+String MkISO8601Date (const PPLTIME &t)
 /*!\ingroup PPLGroupDateTime
  */
 {
@@ -572,128 +590,49 @@ String MkISO8601Date (PPLTIME &t)
 	return buffer;
 }
 
+/*!\brief Datum/Zeit formatieren
+ * \ingroup PPLGroupDateTime
+ *
+ * \header \#include <ppl7.h>
+ * \desc
+ * Die Funktion MkDate wandelt einen Unix-Timestamp in einen String um.
+ *
+ * \param format ist ein beliebiger String, der verschiedene  Platzhalter
+ * entahlten darf (siehe unten)
+ * \param sec
+ * \return Bei Erfolg gibt die Funktion einen neuen String mit dem formatierten
+ * Zeitpunkt zurück, im Fehlerfall einen leeren String.
+ *
+ * \par Syntax-Formatstring
+ * \copydoc strftime.dox
+ */
+String MkDate(const String &format, ppl_time_t sec)
+{
+	String buffer;
+	size_t size=strlen(format)*2+32;
+	char *b=(char*)malloc(size);
+	if (!b) throw OutOfMemoryException();
+	struct tm t;
+	const time_t tt=(const time_t)sec;
+
+	localtime_r(&tt, &t);
+	if (strftime(b, size,format, &t)==0) {
+		free(b);
+		throw OperationFailedException();
+	}
+	buffer.set(b);
+	free(b);
+	return buffer;
+}
+
+
+String MkDate(const String &format, const PPLTIME &t)
+{
+	return MkDate(format,MkTime(t));
+}
 
 
 #ifdef TODO
-ppldd longdatum ()
-/*!\ingroup PPLGroupDateTime
- */
-
-{
-	char tmpc[20];
-	datum (tmpc);
-	return (dat2long(tmpc));
-}
-
-int usdatum (char *str1)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	time_t now;
-	struct tm tmstruct;
-	time(&now);
-	if (!localtime_r(&now,&tmstruct)) return 0;
-	sprintf (str1,"%02d/%02d/%04d",tmstruct.tm_mon+1,tmstruct.tm_mday,tmstruct.tm_year+1900);
-	return 1;
-}
-
-int zeit (char *str1)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	time_t now;
-	struct tm tmstruct;
-	time(&now);
-	if (!localtime_r(&now,&tmstruct)) return 0;
-	sprintf (str1,"%02d:%02d:%02d",tmstruct.tm_hour,tmstruct.tm_min,tmstruct.tm_sec);
-	return 1;
-}
-
-ppldd longzeit ()
-/*!\ingroup PPLGroupDateTime
- */
-{
-	char tmpc[20];
-	zeit (tmpc);
-	return (zeit2long(tmpc));
-}
-
-ppldd zeit2long (char * zeitstr)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	CString Str=zeitstr;
-	ppldd d=0;
-	if (Str.PregMatch("/^([0-9]+):([0-9]+)\\.([0-9]+)$/")) {
-		d=10000*atol(Str.GetMatch(1));
-		d+=100*atol(Str.GetMatch(2));
-		d+=atol(Str.GetMatch(3));
-	}
-	return d;
-}
-
-void long2zeit (char *zeitstr,ppldd z)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	char d1 [11];
-	sprintf(d1,"%06u",z);
-	//strxchg (d1," ","0");
-	zeitstr[0]=d1[0];
-	zeitstr[1]=d1[1];
-	zeitstr[2]=':';
-	zeitstr[3]=d1[2];
-	zeitstr[4]=d1[3];
-	zeitstr[5]=':';
-	zeitstr[6]=d1[4];
-	zeitstr[7]=d1[5];
-	zeitstr[8]=0;
-}
-
-ppldd sec2long (ppldd z)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	ppldd hour,min,sec;
-	hour=(z/3600);
-	z-=hour*3600;
-	min=(z/60);
-	sec=z-min*60;
-	return (hour*10000+min*100+sec);
-}
-
-ppldd dat2long (pplchar *dat)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	CString Str=dat;
-	ppldd d=0;
-	if (Str.PregMatch("/^([0-9]+)\\.([0-9]+)\\.([0-9]+)$/")) {
-		d=10000*atol(Str.GetMatch(3));
-		d+=100*atol(Str.GetMatch(2));
-		d+=atol(Str.GetMatch(1));
-	}
-	return d;
-}
-
-void long2dat (pplchar *datstr,ppluint32 dat)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	char d1 [11];
-	sprintf(d1,"%u",dat);
-	datstr[0]=d1[6];
-	datstr[1]=d1[7];
-	datstr[2]='.';
-	datstr[3]=d1[4];
-	datstr[4]=d1[5];
-	datstr[5]='.';
-	datstr[6]=d1[0];
-	datstr[7]=d1[1];
-	datstr[8]=d1[2];
-	datstr[9]=d1[3];
-	datstr[10]=0;
-}
 
 void datumsauswertung (pplchar * d, pplchar * dat)
 /*!\ingroup PPLGroupDateTime
@@ -782,227 +721,6 @@ void datumsauswertung (pplchar * d, pplchar * dat)
 	}
 }
 
-ppluint64 Datum2Sekunden(char *datum, char *zeit)
-/*!\ingroup PPLGroupDateTime
- */
-{
-  ppldd jahr,monat,tag,hour=0,min=0,sec=0;
-  time_t LTime;
-  struct tm Time;
-  bzero((char *) &Time, sizeof(Time));
-
-  sscanf (datum,"%4d%2d%2d",&jahr,&monat,&tag);
-  if (zeit!=NULL) {
-    sscanf (zeit,"%2d%2d%2d",&hour,&min,&sec);
-  }
-  monat--;
-  Time.tm_mday = tag;
-  Time.tm_mon  = monat;
-  Time.tm_year = jahr-1900;
-  Time.tm_hour = hour;
-  Time.tm_min  = min;
-  Time.tm_sec  = sec;
-
-//	printf ("jahr=%u, monat=%u, tag=%u\n",jahr,monat,tag);
-
-  LTime = mktime(&Time);
-  return((ppluint64)LTime);
-}
-
-
-ppluint64 GetUTC(char *datum, char *zeit)
-/*!\ingroup PPLGroupDateTime
- */
-{
-  ppldd jahr,monat,tag,hour=0,min=0,sec=0;
-  time_t LTime;
-  struct tm Time;
-  bzero((char *) &Time, sizeof(Time));
-
-  sscanf (datum,"%2d.%2d.%4d",&tag,&monat,&jahr);
-  if (zeit!=NULL) {
-    sscanf (zeit,"%2d.%2d.%2d",&hour,&min,&sec);
-  }
-  monat--;
-  Time.tm_mday = tag;
-  Time.tm_mon  = monat;
-  Time.tm_year = jahr-1900;
-  Time.tm_hour = hour;
-  Time.tm_min  = min;
-  Time.tm_sec  = sec;
-
-  //  printf ("jahr=%u, monat=%u, tag=%u\n",jahr,monat,tag);
-
-  LTime = mktime(&Time);
-  return((ppluint64)LTime);
-}
-
-
-static char utcdatebuff[16];
-
-/*! \fn ppl6::UTC2Date(ppluint64 sec, char *datum, char *uhrzeit)
- *\ingroup PPLGroupDateTime
- * \brief Wandelt Unixtime in einen String um
- *
- * Die angegebene Unixtime wird in einen String gewandelt und das Ergebnis getrennt in Datum und
- * Uhrzeit zurückgegeben
- * \param sec Die Unixtime (Sekunden seit 1970)
- * \param datum Ein Pointer auf einen String, der groß genug sein muß, um ein Datum aufzunehmen (11 Byte), oder NULL
- * \param uhrzeit Ein Pointer auf einen String, der groß genug sein muß, um eine Uhrzeit aufzunehmen (9 Byte), oder NULL
- * \returns Sofern die Parameter nicht NULL sind, wird das Ergebnis in \a datum und \a uhrzeit
- * gespeichert. Das Format dabei ist:
- * - Datum: dd.mm.yyyy (Tag.Monat.Jahr)
- * - Uhrzeit; hh:mm:ss (Stunden:Minuten:Sekunden)
- *
- * Ferner wird ein Pointer auf einen String zurückgeliefert, der nur das Datum enthält
- * \warning Wenn der Parameter \p datum NULL ist, wird für den Rückgabewert ein statischer
- * Buffer verwendet, der nicht nicht Threadsafe ist!
- * \note Mit der Funktion ppl6::MkTime kann ein Datumsstring im beliebigen Format erzeugt werden.
- * \see ppl6::MkTime
- */
-const char * UTC2Date(ppluint64 sec, char *datum, char *uhrzeit)
-{
-	struct tm tm_tmp;
-	if (!localtime_r((time_t*)&sec,&tm_tmp)) return NULL;
-
-	if (uhrzeit!=NULL) {
-		strftime(uhrzeit,127,"%H.%M.%S",&tm_tmp);
-	}
-	if (datum!=NULL) {
-		strftime(datum,127,"%d.%m.%Y",&tm_tmp);
-		return datum;
-	}
-	strftime(utcdatebuff,127,"%d.%m.%Y",&tm_tmp);
-	return utcdatebuff;
-}
-
-ppldd Sekunden2Datum(time_t sec, ppldd *datum, ppldd *uhrzeit)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	char buff[128];
-	struct tm tm_tmp;
-	if (!localtime_r((time_t*)&sec,&tm_tmp)) return 0;
-
-	if (datum!=NULL) {
-		strftime(buff,127,"%Y%m%d",&tm_tmp);
-		*datum=atol(buff);
-	}
-	if (uhrzeit!=NULL) {
-		strftime(buff,127,"%H%M%S",&tm_tmp);
-		*uhrzeit=atol(buff);
-	}
-	return *datum;
-}
-
-
-
-const char *MkISO8601Date (CString &buffer, ppluint64 sec)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	PPLTIME tt;
-	GetTime(&tt,sec);
-	return MkISO8601Date(buffer,&tt);
-}
-
-const char *MkISO8601Date (CString &buffer, PPLTIME *t)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	PPLTIME tt;
-	if (!t) {
-		t=&tt;
-		GetTime(t);
-	}
-	char offset[10];
-	if (t->have_gmt_offset) {
-		int off=abs(t->gmt_offset)/60;
-		int h=(off/60);
-		int m=(off%60);
-		if (t->gmt_offset<0) sprintf(offset,"-%02i:%02i",h,m);
-		else sprintf(offset,"+%02i:%02i",h,m);
-	} else {
-		if (t->summertime) sprintf(offset,"+01:00");
-		else sprintf(offset,"+02:00");
-	}
-	// "2005-01-20T17:03:45+01:00"
-	buffer.Setf("%04i-%02i-%02iT%02i:%02i:%02i%s",
-		t->year, t->month, t->day, t->hour, t->min, t->sec, offset);
-	return (const char*)buffer;
-}
-
-char *MkISO8601Date (char *buffer, size_t size, ppluint64 sec)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	CString b;
-	if (!size) {
-		SetError(194);
-		return NULL;
-	}
-	MkISO8601Date(b,sec);
-	if (size>b.Size()) size=b.Size();
-	strncpy(buffer,(const char*)b,size);
-	buffer[size-1]=0;
-	return buffer;
-}
-
-char *MkISO8601Date (char *buffer,size_t size, PPLTIME *t)
-/*!\ingroup PPLGroupDateTime
- */
-{
-	CString b;
-	if (!size) {
-		SetError(194);
-		return NULL;
-	}
-	MkISO8601Date(b,t);
-	if (size>b.Size()) size=b.Size();
-	strncpy(buffer,(const char*)b,size);
-	buffer[size-1]=0;
-	return buffer;
-}
-
-
-
-/*
- * date-time   =  [ day "," ] date time        ; dd mm yy
-                                                 ;  hh:mm:ss zzz
-
-     day         =  "Mon"  / "Tue" /  "Wed"  / "Thu"
-                 /  "Fri"  / "Sat" /  "Sun"
-
-     date        =  1*2DIGIT month 2DIGIT        ; day month year
-                                                 ;  e.g. 20 Jun 82
-
-     month       =  "Jan"  /  "Feb" /  "Mar"  /  "Apr"
-                 /  "May"  /  "Jun" /  "Jul"  /  "Aug"
-                 /  "Sep"  /  "Oct" /  "Nov"  /  "Dec"
-
-     time        =  hour zone                    ; ANSI and Military
-
-     hour        =  2DIGIT ":" 2DIGIT [":" 2DIGIT]
-                                                 ; 00:00:00 - 23:59:59
-
-     zone        =  "UT"  / "GMT"                ; Universal Time
-                                                 ; North American : UT
-                 /  "EST" / "EDT"                ;  Eastern:  - 5/ - 4
-                 /  "CST" / "CDT"                ;  Central:  - 6/ - 5
-                 /  "MST" / "MDT"                ;  Mountain: - 7/ - 6
-                 /  "PST" / "PDT"                ;  Pacific:  - 8/ - 7
-                 /  1ALPHA                       ; Military: Z = UT;
-                                                 ;  A:-1; (J not used)
-                                                 ;  M:-12; N:+1; Y:+12
-                 / ( ("+" / "-") 4DIGIT )        ; Local differential
-                                                 ;  hours+min. (HHMM)
- *
- */
-
-
-
-
-
 
 /*!\brief Datum/Zeit formatieren
  * \ingroup PPLGroupDateTime
@@ -1042,47 +760,6 @@ const char *MkDate (CString &buffer, const char *format, ppluint64 sec)
 	return buffer;
 }
 
-/*!\brief Datum/Zeit formatieren
- * \ingroup PPLGroupDateTime
- *
- * \header \#include <ppl6.h>
- * \desc
- * Die Funktion MkDate wandelt einen Unix-Timestamp in einen String um.
- *
- * \param format ist ein beliebiger String, der verschiedene  Platzhalter
- * entahlten darf (siehe unten)
- * \param sec
- * \return Bei Erfolg gibt die Funktion einen neuen String mit dem formatierten
- * Zeitpunkt zurück, im Fehlerfall einen leeren String.
- *
- * \par Syntax-Formatstring
- * \copydoc strftime.dox
- */
-CString MkDate(const char *format, ppluint64 sec)
-{
-	CString buffer;
-	if (!format) {
-		SetError(194,"const char *format");
-		return buffer;
-	}
-	size_t size=strlen(format)*2+32;
-	char *b=(char*)malloc(size);
-	if (!b) {
-		SetError(2);
-		return buffer;
-	}
-	struct tm t;
-	const time_t tt=(const time_t)sec;
-
-	localtime_r(&tt, &t);
-	if (strftime(b, size,format, &t)==0) {
-		SetError(348,"%s",format);
-		return buffer;
-	}
-	buffer.Set(b);
-	free(b);
-	return buffer;
-}
 
 CString Long2Date(const char *format, int value)
 {
