@@ -697,32 +697,21 @@ class File : public FileObject
 
 		// Static Functions
 		static void load(ByteArray &object, const String &filename);
-		static void load(ByteArray &object, const char *filename);
 		static void load(String &object, const String &filename);
-		static void load(String &object, const char *filename);
 		static void *load(const String &filename, size_t *size=NULL);
-		static void *load(const char *filename, size_t *size=NULL);
 		static void truncate(const String &filename, ppluint64 bytes);
-		static void truncate(const char *filename, ppluint64 bytes);
 		static bool exists(const String &filename);
-		static bool exists(const char *filename);
 		static void copy(const String &oldfile, const String &newfile);
 		static void move(const String &oldfile, const String &newfile);
 		static void rename(const String &oldfile, const String &newfile);
-		static void rename(const char *oldfile, const char *newfile);
 
 		static void unlink(const String &filename);
 		static void remove(const String &filename);
 		static void erase(const String &filename);
 		static void touch(const String &filename);
-		static void touch(const char *filename);
 		static void save(const void *content, size_t size, const String &filename);
-		static void save(const void *content, size_t size, const char *filename);
 		static void save(const ByteArrayPtr &object, const String &filename);
-		static void save(const ByteArrayPtr &object, const char *filename);
 		static void chmod(const String &filename, FileAttr::Attributes attr);
-		static void chmod(const char *filename, FileAttr::Attributes attr);
-		static void stat(const char *filename, DirEntry &result);
 		static void stat(const String &filename, DirEntry &result);
 		static String getPath(const String &path);
 		static String getFilename(const String &path);
