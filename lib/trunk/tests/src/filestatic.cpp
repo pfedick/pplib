@@ -95,9 +95,53 @@ TEST_F(FileStaticTest, ExistsNot) {
 	ASSERT_EQ(false,ppl7::File::exists("testdata/nonexistänt.txt"));
 }
 
+TEST_F(FileStaticTest, CopyFileUSAscii2USAscii) {
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","copy.tmp"));
+	ASSERT_TRUE(ppl7::File::exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
+	ppl7::DirEntry d;
+	ASSERT_NO_THROW(ppl7::File::stat("copy.tmp",d)) << "New file exists";
+	ASSERT_EQ((size_t)1962,d.Size);
 
+	ppl7::File ff;
+	ASSERT_NO_THROW(ff.open("copy.tmp"));
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.md5());
+	ff.close();
+	//ppl7::File::remove("copy.tmp");
+}
 
 #ifdef TODO
+
+TEST_F(FileStaticTest, CopyFileUSAscii2Utf8) {
+	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copyäöüß.tmp"));
+	ASSERT_EQ(1,ppl7::File::Exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
+	ppl7::DirEntry d;
+	ASSERT_EQ(1,ppl7::File::Stat("copyäöüß.tmp",d)) << "New file exists";
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl7::File ff;
+	ASSERT_EQ(1,ff.Open("copyäöüß.tmp"));
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl7::File::DeleteFile("copyäöüß.tmp");
+}
+
+TEST_F(FileStaticTest, CopyFileUtf82Utf8) {
+	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUTF8äöü.txt","copyäöüß.tmp"));
+	ASSERT_EQ(1,ppl7::File::Exists("testdata/filenameUTF8äöü.txt")) << "Old file still exists";
+	ppl7::DirEntry d;
+	ASSERT_EQ(1,ppl7::File::Stat("copyäöüß.tmp",d)) << "New file exists";
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl7::File ff;
+	ASSERT_EQ(1,ff.Open("copyäöüß.tmp"));
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl7::File::DeleteFile("copyäöüß.tmp");
+}
+
+
+
+
 
 TEST_F(FileStaticTest, TruncateOnUSASCII) {
 	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","truncate.tmp"));
@@ -130,47 +174,6 @@ TEST_F(FileStaticTest, TruncateOnUtf8) {
 }
 
 
-TEST_F(FileStaticTest, CopyFileUSAscii2USAscii) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
-	ASSERT_EQ(1,ppl7::File::Exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
-	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("copy.tmp",d)) << "New file exists";
-	ASSERT_EQ((size_t)1962,d.Size);
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("copy.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("copy.tmp");
-}
-
-TEST_F(FileStaticTest, CopyFileUSAscii2Utf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copyäöüß.tmp"));
-	ASSERT_EQ(1,ppl7::File::Exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
-	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("copyäöüß.tmp",d)) << "New file exists";
-	ASSERT_EQ((size_t)1962,d.Size);
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("copyäöüß.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("copyäöüß.tmp");
-}
-
-TEST_F(FileStaticTest, CopyFileUtf82Utf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUTF8äöü.txt","copyäöüß.tmp"));
-	ASSERT_EQ(1,ppl7::File::Exists("testdata/filenameUTF8äöü.txt")) << "Old file still exists";
-	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("copyäöüß.tmp",d)) << "New file exists";
-	ASSERT_EQ((size_t)1962,d.Size);
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("copyäöüß.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("copyäöüß.tmp");
-}
 
 
 TEST_F(FileStaticTest, MoveFileUSAscii2USAscii) {

@@ -52,8 +52,9 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/inet.o compile/resolver.o compile/widestrings.o \
 	compile/db_postgres.o \
 	compile/configparser.o \
-	compile/logger.o \
-	compile/tcpsocket.o
+	compile/logger.o compile/time.o \
+	compile/tcpsocket.o \
+	compile/filestatic.o compile/textsnippets.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -156,6 +157,19 @@ compile/assocarray.o: src/assocarray.cpp Makefile compile/wordlist.o ppl7-tests.
 compile/file.o: src/file.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/file.o -c src/file.cpp $(CFLAGS) $(LIB)
+
+compile/filestatic.o: src/filestatic.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/filestatic.o -c src/filestatic.cpp $(CFLAGS) $(LIB)
+
+compile/textsnippets.o: src/textsnippets.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/textsnippets.o -c src/textsnippets.cpp $(CFLAGS) $(LIB)
+
+compile/time.o: src/time.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/time.o -c src/time.cpp $(CFLAGS) $(LIB)
+
 
 compile/dir.o: src/dir.cpp Makefile ppl7-tests.h
 	mkdir -p compile
