@@ -135,7 +135,7 @@ void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const Ass
 {
 	int x,y;
 	Color farbe;
-	int haupt,unter,build;
+    //int haupt,unter,build;
 	ppluint8 r,g,b;
 	ppluint32 c;
 	bool SaveAsASCII=false;
