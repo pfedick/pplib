@@ -106,7 +106,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-ogg=/usr \
 			--with-postgresql \
-			--with-jpeg --with-png \
+			--with-jpeg --with-libpng=$PREFIX \
 			--with-libtiff=/usr --with-mpg123 \
 			--enable-gtest=/usr/local/gtest-1.6.0
 		;;	
