@@ -344,28 +344,20 @@ int SSleep(ppluint64 seconds);
 double GetMicrotime();
 ppluint64 GetMilliSeconds();
 
+ppl_time_t MkTime(const String &year, const String &month, const String &day, const String &hour="0", const String &min="0", const String &sec="0");
+ppl_time_t MkTime(int year, int month, int day, int hour=0, int min=0, int sec=0);
+ppl_time_t MkTime(const String &iso8601date, PPLTIME *t=NULL);
+String MkISO8601Date (ppl_time_t sec=0);
+String MkISO8601Date (PPLTIME &t);
+String MkRFC822Date (ppl_time_t sec=0);
+String MkRFC822Date (PPLTIME &t);
+
 //void datumsauswertung (pplchar * d, pplchar * dat);
 /*
 ppluint64 Datum2Sekunden(char *datum, char *zeit);
 ppluint64 GetUTC(char *datum, char *zeit);
 const char * UTC2Date(ppluint64 sec, char *datum, char *uhrzeit);
 ppldd Sekunden2Datum(ppluint64 sec, ppldd *datum, ppldd *uhrzeit);
-ppluint64 MkTime(const char *year, const char *month, const char *day, const char *hour=NULL, const char *min=NULL, const char *sec=NULL);
-ppluint64 MkTime(int year, int month, int day, int hour=0, int min=0, int sec=0);
-ppluint64 MkTime(String *year, String *month, String *day, String *hour, String *min, String *sec);
-ppluint64 MkTime(const String &year, const String &month, const String &day, const String &hour="0", const String &min="0", const String &sec="0");
-ppluint64 MkTime(const char *iso8601date, PPLTIME *t=NULL);
-ppluint64 MkTime(String *iso8601date, PPLTIME *t=NULL);
-
-const char *MkISO8601Date (String &buffer, ppluint64 sec);
-const char *MkISO8601Date (String &buffer, PPLTIME *t=NULL);
-char *MkISO8601Date (char *buffer, size_t size, ppluint64 sec);
-char *MkISO8601Date (char *buffer, size_t size, PPLTIME *t=NULL);
-String MkISO8601Date (ppluint64 sec);
-String MkISO8601Date (PPLTIME *t=NULL);
-
-String MkRFC822Date (PPLTIME &t);
-String MkRFC822Date (ppluint64 sec=0);
 
 const char *MkDate (String &buffer, const char *format, ppluint64 sec);
 String MkDate(const char *format, ppluint64 sec);
