@@ -568,9 +568,9 @@ CDir::CDir(const char *path, Sort s)
  */
 {
 	sort=s;
-	if (path) Open(path,s);
 	c=NULL;
 	Tree.AllowDupes(true);
+	if (path) Open(path,s);
 }
 
 
