@@ -79,7 +79,7 @@ print `mkdir -p dist
 rm -rf dist/$DISTNAME*
 mkdir -p dist/$DISTNAME
 cd tmp/$CVSTREE
-tar -cf $PWD/dist/tmp.tar --exclude *.core --exclude CVS --exclude config --exclude .cvsignore configure Makefile.in ppl6-config.in *.TXT VERSION src include Doxyfile docs documentation autoconf *.sln *.vcproj ppl6.ico resource/res.h  resource/ppl6-icon-256x256.png resource/ppl6-icon-32x32.png tools/pplgenresource
+tar -cf $PWD/dist/tmp.tar --exclude config tests configure Makefile.in ppl6-config.in *.TXT VERSION src include Doxyfile docs documentation autoconf *.sln *.vcproj ppl6.ico resource/res.h  resource/ppl6-icon-256x256.png resource/ppl6-icon-32x32.png tools/pplgenresource
 cd $PWD
 cd dist/$DISTNAME
 tar -xf ../tmp.tar
