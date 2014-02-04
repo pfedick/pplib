@@ -59,19 +59,6 @@ class FileReadTest : public ::testing::Test {
 	}
 };
 
-class FileStaticTest : public ::testing::Test {
-	protected:
-	FileStaticTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-		ppl7::String::setGlobalEncoding("UTF-8");
-	}
-	virtual ~FileStaticTest() {
-
-	}
-};
 
 TEST_F(FileReadTest, ConstructorSimple) {
 	ASSERT_NO_THROW({
@@ -223,17 +210,7 @@ TEST_F(FileReadTest, getsAsString) {
 }
 
 
-TEST_F(FileStaticTest, stat) {
-	ppl7::DirEntry d;
-	ASSERT_NO_THROW({
-		ppl7::File::stat("testdata/dirwalk/LICENSE.TXT",d);
-	});
-	ASSERT_EQ((size_t)1330,d.Size);
-	ASSERT_EQ(ppl7::String("testdata/dirwalk/LICENSE.TXT"),d.File);
-	//d.print();
 
-
-}
 
 
 }
