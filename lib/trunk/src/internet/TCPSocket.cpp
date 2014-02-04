@@ -89,6 +89,7 @@
 #include "ppl7-inet.h"
 #include "socket.h"
 
+
 namespace ppl7 {
 
 /*!\class CTCPSocket
@@ -695,7 +696,7 @@ void TCPSocket::connect(const String &host, int port)
 	#ifdef _WIN32
 		SOCKET	sockfd;
 	#else
-		int sockfd;
+        int sockfd=0;
 	#endif
     int n;
     struct addrinfo hints, *res, *ressave;
