@@ -54,7 +54,7 @@ class DirTest : public ::testing::Test {
 			throw std::exception();
 		}
 		ppl7::String::setGlobalEncoding("UTF-8");
-		expectedNum=7;
+		expectedNum=8;
 		if (ppl7::File::exists("testdata/.svn")) expectedNum++;
 		if (ppl7::File::exists("testdata/.")) expectedNum++;
 		if (ppl7::File::exists("testdata/..")) expectedNum++;
@@ -161,6 +161,10 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	e=d1.getNext(it);
+	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename);
+	ASSERT_EQ((size_t)5281,e.Size);
+
+	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
 
@@ -199,15 +203,11 @@ TEST_F(DirTest, dirWalkSize) {
 	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename )<< "Real Filename 1: "<<e.Filename;
 	ASSERT_EQ((size_t)1330,e.Size);
 
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
-	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 2: "<<e.Filename;
-	ASSERT_EQ((size_t)6519,e.Size);
+	ASSERT_NO_THROW(e=getNextFile(d1,it));
+	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename )<< "Real Filename 2: "<<e.Filename;
+	ASSERT_EQ((size_t)5281,e.Size);
 
-	ASSERT_NO_THROW({
-		e=getNextFile(d1,it);
-	});
+	ASSERT_NO_THROW(e=getNextFile(d1,it));
 	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 3: "<<e.Filename;
 	ASSERT_EQ((size_t)6519,e.Size);
 
@@ -220,7 +220,13 @@ TEST_F(DirTest, dirWalkSize) {
 	ASSERT_NO_THROW({
 		e=getNextFile(d1,it);
 	});
-	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename) << "Real Filename 5: "<<e.Filename;
+	ASSERT_TRUE(e.Filename.pregMatch("/^file[123].txt$/")) << "Real Filename 5: "<<e.Filename;
+	ASSERT_EQ((size_t)6519,e.Size);
+
+	ASSERT_NO_THROW({
+		e=getNextFile(d1,it);
+	});
+	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename) << "Real Filename 6: "<<e.Filename;
 	ASSERT_EQ((size_t)9819,e.Size);
 
 	ASSERT_NO_THROW({
@@ -258,6 +264,11 @@ TEST_F(DirTest, patternWalk) {
 	ASSERT_EQ(ppl7::String("file3.txt"),e.Filename);
 	ASSERT_EQ((size_t)6519,e.Size);
 
+	e=d1.getNextPattern(it,"file*");
+	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename);
+	ASSERT_EQ((size_t)5281,e.Size);
+
+
 	// We expect an EndOfListException next
 	ASSERT_THROW(e=d1.getNextPattern(it,"file*"), ppl7::EndOfListException);
 
@@ -281,6 +292,10 @@ TEST_F(DirTest, patternWalk2) {
 	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
 	ASSERT_EQ(ppl7::String("file3.txt"),e.Filename);
 	ASSERT_EQ((size_t)6519,e.Size);
+
+	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
+	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename);
+	ASSERT_EQ((size_t)5281,e.Size);
 
 	// We expect an EndOfListException next
 	ASSERT_FALSE(d1.getNextPattern(e,it,"file*"));
