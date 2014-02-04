@@ -2,11 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 653 $
- * $Date: 2013-05-19 10:57:32 +0200 (So, 19 Mai 2013) $
- * $Id: strings.cpp 653 2013-05-19 08:57:32Z pafe $
- * $URL: https://svn.code.sf.net/p/pplib/code/lib/branches/RELENG_6/tests/src/strings.cpp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>

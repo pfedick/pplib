@@ -2,11 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 668 $
- * $Date: 2013-05-24 21:56:04 +0200 (Fr, 24 Mai 2013) $
- * $Id: datetime.cpp 668 2013-05-24 19:56:04Z pafe $
- * $URL: https://svn.code.sf.net/p/pplib/code/lib/branches/RELENG_6/tests/src/datetime.cpp $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>

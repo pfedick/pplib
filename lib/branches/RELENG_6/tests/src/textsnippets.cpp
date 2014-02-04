@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 790 $
- * $Date: 2013-10-21 15:50:51 +0200 (Mo, 21 Okt 2013) $
- * $Id: CApplication.cpp 790 2013-10-21 13:50:51Z pafe $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2014, Patrick Fedick <patrick@pfp.de>
