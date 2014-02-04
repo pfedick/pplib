@@ -50,6 +50,7 @@ Version 6.4.18
   - Diverse Compiler-Warnings mit gcc 4.6.x gefixt
   - CDir: Bugfix im Konstruktor behebt möglichen Absturz durch nicht
     rechtzeitig initialisierte Variable.
+  - Unittests für CDir implementiert
   
 Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
   - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet
