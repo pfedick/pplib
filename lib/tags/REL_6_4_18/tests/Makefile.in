@@ -1,0 +1,110 @@
+GTEST_DIR	= @GTEST_PREFIX@
+CC			= @CC@
+CXX			= @CXX@
+EXTRA_CFLAGS = 
+INCLUDE	= -I. -I../include -I$(GTEST_DIR)/include
+CFLAGS	= -ggdb -Wall -DPPL6LIB $(INCLUDE) `../ppl6-config --cflags debug source` $(EXTRA_CFLAGS)
+LIBS	= `../ppl6-config --libs debug source` @GCOV_LDFLAGS@ -lstdc++
+PROGNAME = testsuite
+OBJECTS = compile/wordlist.o \
+	compile/textsnippets.o \
+	compile/datetime.o \
+	compile/main.o \
+	compile/strings.o \
+	compile/widestrings.o \
+	compile/assocarray.o \
+	compile/clog.o \
+	compile/time.o \
+	compile/file.o \
+	compile/filestatic.o \
+	compile/perlhelper.o \
+	compile/dir.o
+
+$(PROGNAME): compile/libgtest.a $(OBJECTS)
+	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
+
+all: $(PROGNAME)
+	./$(PROGNAME)
+
+test: $(PROGNAME)
+	./$(PROGNAME)
+	
+xml: $(PROGNAME)
+	./$(PROGNAME) --gtest_output=xml
+
+lcov: $(PROGNAME)
+	lcov --base-directory ../ --directory ../ --zerocounters -q
+	./$(PROGNAME)
+	lcov --base-directory ../ --directory ../ -c -o ppl6_coverage.info
+	rm -rf test_coverage
+	genhtml -o test_coverage -t "ppl6 test coverage" --num-spaces 4 ppl6_coverage.info
+	
+clean:
+	-rm -rf compile loggertest
+	-rm -f *.core
+
+memcheck: $(PROGNAME)
+	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
+
+
+valgrind: $(PROGNAME)
+	valgrind --tool=memcheck --leak-check=full --track-origins=yes --suppressions=valgrind.suppressions ./$(PROGNAME) ;#--gtest_filter=StringTest.*
+
+
+compile/libgtest.a:
+	mkdir -p compile
+	$(CXX) -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
+	ar -rv compile/libgtest.a compile/gtest-all.o
+
+compile/main.o: src/main.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/main.o -c src/main.cpp
+
+compile/clog.o: src/clog.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/clog.o -c src/clog.cpp
+
+compile/time.o: src/time.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/time.o -c src/time.cpp
+
+compile/file.o: src/file.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/file.o -c src/file.cpp
+
+compile/filestatic.o: src/filestatic.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/filestatic.o -c src/filestatic.cpp
+			
+compile/datetime.o: src/datetime.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/datetime.o -c src/datetime.cpp
+	
+compile/widestrings.o: src/widestrings.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/widestrings.o -c src/widestrings.cpp
+
+compile/strings.o: src/strings.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/strings.o -c src/strings.cpp
+
+compile/assocarray.o: src/assocarray.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/assocarray.o -c src/assocarray.cpp
+
+compile/perlhelper.o: src/perlhelper.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/perlhelper.o -c src/perlhelper.cpp
+
+compile/dir.o: src/dir.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/dir.o -c src/dir.cpp
+
+	
+compile/wordlist.o: src/wordlist.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/wordlist.o -c src/wordlist.cpp
+	
+compile/textsnippets.o: src/textsnippets.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/textsnippets.o -c src/textsnippets.cpp
