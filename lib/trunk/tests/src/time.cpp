@@ -63,11 +63,24 @@ class TimeTest : public ::testing::Test {
 	}
 };
 
-TEST_F(TimeTest, MkTime_withIso8601String) {
-	ppl7::String msgtime="2013-09-05T14:43:44+00:00";
-	ASSERT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(msgtime)) << "MkTime returns unexpected value";
+
+TEST_F(TimeTest, MkTime_withIso8601String_withoutTimezone) {
+	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T14:43:44"))) << "MkTime returns unexpected value";
 }
 
+TEST_F(TimeTest, MkTime_withIso8601String_withZeroTimeoffset) {
+	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T14:43:44+00:00"))) << "MkTime returns unexpected value";
+	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T14:43:44-00:00"))) << "MkTime returns unexpected value";
+}
+
+TEST_F(TimeTest, MkTime_withIso8601String_withPositiveTimeoffset) {
+	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T16:43:44+02:00"))) << "MkTime returns unexpected value";
+	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T12:43:44-02:00"))) << "MkTime returns unexpected value";
+}
+
+TEST_F(TimeTest, MkTime_withIso8601String_withNegativeTimeoffset) {
+	EXPECT_EQ((ppl7::ppl_time_t)1378388624,ppl7::MkTime(ppl7::String("2013-09-05T12:43:44-02:00"))) << "MkTime returns unexpected value";
+}
 
 
 

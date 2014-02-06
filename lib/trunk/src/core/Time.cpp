@@ -270,6 +270,9 @@ ppl_time_t GetTime(PPLTIME *t, ppl_time_t now)
 ppl_time_t GetTime(PPLTIME &t, ppl_time_t now)
 {
 	struct tm tmstruct;
+	memset(&tmstruct,0,sizeof(tm));
+	memset(&t,0,sizeof(t));
+
 	time_t n=(time_t)now;
 	if (!localtime_r(&n,&tmstruct)) {
 		return 0;
@@ -422,6 +425,7 @@ ppl_time_t MkTime(const String &year, const String &month, const String &day, co
  */
 {
 	struct tm Time;
+	memset(&Time,0,sizeof(Time));
 	Time.tm_mday = day.toInt();
 	Time.tm_mon  = month.toInt()-1;
 	Time.tm_year = year.toInt()-1900;
@@ -472,17 +476,26 @@ ppl_time_t MkTime(const String &iso8601date, PPLTIME *t)
  */
 {
 	Array match;
-	if (!iso8601date.pregMatch("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\\+([0-9]{2}):([0-9]{2})$/i",match)) {
+	struct tm Time;
+	memset(&Time,0,sizeof(Time));
+	if (iso8601date.pregMatch("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\\+([0-9]{2}):([0-9]{2})$/i",match)) {
+		Time.tm_hour = 0-match[7].toInt();
+		Time.tm_min = 0-match[8].toInt();
+	} else if (iso8601date.pregMatch("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\\-([0-9]{2}):([0-9]{2})$/i",match)) {
+		Time.tm_hour = match[7].toInt();
+		Time.tm_min = match[8].toInt();
+	} else if (!iso8601date.pregMatch("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})$/i",match)) {
 		throw InvalidFormatException();
 	}
-	struct tm Time;
 	Time.tm_mday = match[3].toInt();
 	Time.tm_mon  = match[2].toInt()-1;
 	Time.tm_year = match[1].toInt()-1900;
-	Time.tm_hour = match[4].toInt();
-	Time.tm_min  = match[5].toInt();
+	Time.tm_hour += match[4].toInt();
+	Time.tm_min  += match[5].toInt();
 	Time.tm_sec  = match[6].toInt();
-	time_t LTime=mktime(&Time);
+
+	time_t LTime=::mktime(&Time);
+	if (LTime==(time_t)-1) throw InvalidDateException(iso8601date);
 	if (t) GetTime(t,(ppluint64)LTime);
 	return (ppl_time_t) LTime;
 }
