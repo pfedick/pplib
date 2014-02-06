@@ -815,8 +815,6 @@ class Dir
 		static void mkDir(const String &path);
 		static void mkDir(const String &path, bool recursive);
 		static void mkDir(const String &path, mode_t mode, bool recursive);
-
-
 };
 
 
