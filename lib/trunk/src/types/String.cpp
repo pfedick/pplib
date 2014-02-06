@@ -3172,22 +3172,22 @@ String::operator std::wstring() const
 int String::toInt() const
 {
 	if (!stringlen) return 0;
-	return strtol(ptr,NULL,0);
+	return strtol(ptr,NULL,10);
 }
 
 unsigned int String::toUnsignedInt() const
 {
 	if (!stringlen) return 0;
-	return strtoul(ptr,NULL,0);
+	return strtoul(ptr,NULL,10);
 }
 
 pplint64 String::toInt64() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOLL
-	return (pplint64) strtoll(ptr,NULL,0);
+	return (pplint64) strtoll(ptr,NULL,10);
 #elif WIN32
-	return (pplint64) _strtoi64(ptr,NULL,0);
+	return (pplint64) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
 #endif
@@ -3197,11 +3197,11 @@ ppluint64 String::toUnsignedInt64() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOULL
-	return (ppluint64) strtoull(ptr,NULL,0);
+	return (ppluint64) strtoull(ptr,NULL,10);
 #elif HAVE_STRTOLL
-	return (ppluint64) strtoll(ptr,NULL,0);
+	return (ppluint64) strtoll(ptr,NULL,10);
 #elif WIN32
-	return (ppluint64) _strtoi64(ptr,NULL,0);
+	return (ppluint64) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
 #endif
@@ -3217,13 +3217,13 @@ bool String::toBool() const
 long String::toLong() const
 {
 	if (!stringlen) return 0;
-	return strtol(ptr,NULL,0);
+	return strtol(ptr,NULL,10);
 }
 
 unsigned long String::toUnsignedLong() const
 {
 	if (!stringlen) return 0;
-	return strtoul(ptr,NULL,0);
+	return strtoul(ptr,NULL,10);
 }
 
 
@@ -3231,9 +3231,9 @@ long long String::toLongLong() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOLL
-	return (long long) strtoll(ptr,NULL,0);
+	return (long long) strtoll(ptr,NULL,10);
 #elif WIN32
-	return (long long) _strtoi64(ptr,NULL,0);
+	return (long long) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
 #endif
@@ -3243,11 +3243,11 @@ unsigned long long String::toUnsignedLongLong() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOULL
-	return (unsigned long long) strtoull(ptr,NULL,0);
+	return (unsigned long long) strtoull(ptr,NULL,10);
 #elif defined HAVE_STRTOLL
-	return (unsigned long long) strtoll(ptr,NULL,0);
+	return (unsigned long long) strtoll(ptr,NULL,10);
 #elif WIN32
-	return (unsigned long long) _strtoi64(ptr,NULL,0);
+	return (unsigned long long) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
 #endif

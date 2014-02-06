@@ -1160,6 +1160,120 @@ TEST_F(WideStringTest, strrchr_NonExistingChar) {
 	ASSERT_EQ(expected,s1.strrchr('L')) << "Unexpected Result";
 }
 
+TEST_F(WideStringTest, toInt) {
+	EXPECT_EQ((int)1234,ppl7::WideString(L"1234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)-1234,ppl7::WideString(L"-1234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)1234,ppl7::WideString(L"01234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)-1234,ppl7::WideString(L"-01234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)0,ppl7::WideString(L"abc123").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)0,ppl7::WideString(L"0x1234").toInt()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toUnsignedInt) {
+	EXPECT_EQ((unsigned int)1234,ppl7::WideString(L"1234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)-1234,ppl7::WideString(L"-1234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)1234,ppl7::WideString(L"01234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)-1234,ppl7::WideString(L"-01234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)0,ppl7::WideString(L"abc123").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)0,ppl7::WideString(L"0x1234").toUnsignedInt()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toInt64) {
+	EXPECT_EQ((pplint64)1234,ppl7::WideString(L"1234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)-1234,ppl7::WideString(L"-1234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)1234,ppl7::WideString(L"01234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)-1234,ppl7::WideString(L"-01234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)0,ppl7::WideString(L"abc123").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)0,ppl7::WideString(L"0x1234").toInt64()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toUnsignedInt64) {
+	EXPECT_EQ((ppluint64)1234,ppl7::WideString(L"1234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)-1234,ppl7::WideString(L"-1234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)1234,ppl7::WideString(L"01234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)-1234,ppl7::WideString(L"-01234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)0,ppl7::WideString(L"abc123").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)0,ppl7::WideString(L"0x1234").toUnsignedInt64()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toInt_withoutNumber) {
+	ppl7::WideString s1(L"The Quick Brown Fox Jumps over the lazy dog");
+	EXPECT_EQ((int)0,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toInt_123456) {
+	ppl7::WideString s1(L"123456");
+	EXPECT_EQ((int)123456,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, ToInt_minus123456) {
+	ppl7::WideString s1(L"-123456");
+	EXPECT_EQ((int)-123456,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toInt_123456_point_567) {
+	ppl7::WideString s1(L"123456.567");
+	EXPECT_EQ((int)123456,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toInt64_1242346214893456) {
+	ppl7::WideString s1(L"1242346214893456");
+	EXPECT_EQ((pplint64)1242346214893456,s1.toInt64()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toInt64_minus1242346214893456) {
+	ppl7::WideString s1(L"-1242346214893456");
+	EXPECT_EQ((pplint64)-1242346214893456,s1.toInt64()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toBool) {
+	ppl7::WideString s1(L"A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set(L"");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set(L"12345abcd");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set(L"1");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set(L"12345");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set(L"true");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set(L"wahr");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set(L"ja");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set(L"yes");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set(L"false");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set(L"falsch");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set(L"nein");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set(L"no");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+}
+
+TEST_F(WideStringTest, ToLong_1124234674) {
+	ppl7::WideString s1(L"124234674");
+	EXPECT_EQ((long)124234674,s1.toLong()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, toLongLong_1242346214893456) {
+	ppl7::WideString s1(L"1242346214893456");
+	EXPECT_EQ((long long)1242346214893456,s1.toLongLong()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, ToFloat_182566142_346214893456) {
+	ppl7::WideString s1(L"182566142.346214893456");
+	EXPECT_EQ((float)182566142.346214893456,s1.toFloat()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, ToDouble_182566142_346214893456) {
+	ppl7::WideString s1(L"182566142.346214893456");
+	EXPECT_EQ((double)182566142.346214893456,s1.toDouble()) << "Unexpected Result";
+}
 
 }
 

@@ -3097,24 +3097,24 @@ WideString::operator std::wstring() const
 int WideString::toInt() const
 {
 	if (!stringlen) return 0;
-	return wcstol(ptr,NULL,0);
+	return wcstol(ptr,NULL,10);
 }
 
 unsigned int WideString::toUnsignedInt() const
 {
 	if (!stringlen) return 0;
-	return wcstoul(ptr,NULL,0);
+	return wcstoul(ptr,NULL,10);
 }
 
 pplint64 WideString::toInt64() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOLL
-	return (pplint64) wcstoll(ptr,NULL,0);
+	return (pplint64) wcstoll(ptr,NULL,10);
 #elif WIN32
-	return (pplint64) _wcstoi64(ptr,NULL,0);
+	return (pplint64) _wcstoi64(ptr,NULL,10);
 #else
-	return (pplint64) pplwcstoll(ptr,NULL,0);
+	return (pplint64) pplwcstoll(ptr,NULL,10);
 #endif
 }
 
@@ -3122,11 +3122,11 @@ ppluint64 WideString::toUnsignedInt64() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOULL
-	return (ppluint64) wcstoll(ptr,NULL,0);
+	return (ppluint64) wcstoll(ptr,NULL,10);
 #elif WIN32
-	return (ppluint64) _wcstoi64(ptr,NULL,0);
+	return (ppluint64) _wcstoi64(ptr,NULL,10);
 #else
-	return (ppluint64) pplwcstoll(ptr,NULL,0);
+	return (ppluint64) pplwcstoll(ptr,NULL,10);
 #endif
 
 }
@@ -3140,13 +3140,13 @@ bool WideString::toBool() const
 long WideString::toLong() const
 {
 	if (!stringlen) return 0;
-	return wcstol(ptr,NULL,0);
+	return wcstol(ptr,NULL,10);
 }
 
 unsigned long WideString::toUnsignedLong() const
 {
 	if (!stringlen) return 0;
-	return wcstoul(ptr,NULL,0);
+	return wcstoul(ptr,NULL,10);
 }
 
 
@@ -3154,11 +3154,11 @@ long long WideString::toLongLong() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOLL
-	return (long long) wcstoll(ptr,NULL,0);
+	return (long long) wcstoll(ptr,NULL,10);
 #elif WIN32
-	return (long long) _wcstoi64(ptr,NULL,0);
+	return (long long) _wcstoi64(ptr,NULL,10);
 #else
-	return (long long) pplwcstoll(ptr,NULL,0);
+	return (long long) pplwcstoll(ptr,NULL,10);
 #endif
 }
 
@@ -3166,13 +3166,13 @@ unsigned long long WideString::toUnsignedLongLong() const
 {
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOULL
-	return (unsigned long long) wcstoull(ptr,NULL,0);
+	return (unsigned long long) wcstoull(ptr,NULL,10);
 #elif HAVE_WCSTOLL
-	return (unsigned long long) wcstoll(ptr,NULL,0);
+	return (unsigned long long) wcstoll(ptr,NULL,10);
 #elif WIN32
-	return (unsigned long long) _wcstoi64(ptr,NULL,0);
+	return (unsigned long long) _wcstoi64(ptr,NULL,10);
 #else
-	return (unsigned long long) pplwcstoll(ptr,NULL,0);
+	return (unsigned long long) pplwcstoll(ptr,NULL,10);
 #endif
 }
 

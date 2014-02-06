@@ -1161,6 +1161,121 @@ TEST_F(StringTest, strrchr_NonExistingChar) {
 	ASSERT_EQ(expected,s1.strrchr('L')) << "Unexpected Result";
 }
 
+TEST_F(StringTest, toInt) {
+	EXPECT_EQ((int)1234,ppl7::String("1234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)-1234,ppl7::String("-1234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)1234,ppl7::String("01234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)-1234,ppl7::String("-01234").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)0,ppl7::String("abc123").toInt()) << "Unexpected Result";
+	EXPECT_EQ((int)0,ppl7::String("0x1234").toInt()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toUnsignedInt) {
+	EXPECT_EQ((unsigned int)1234,ppl7::String("1234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)-1234,ppl7::String("-1234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)1234,ppl7::String("01234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)-1234,ppl7::String("-01234").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)0,ppl7::String("abc123").toUnsignedInt()) << "Unexpected Result";
+	EXPECT_EQ((unsigned int)0,ppl7::String("0x1234").toUnsignedInt()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toInt64) {
+	EXPECT_EQ((pplint64)1234,ppl7::String("1234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)-1234,ppl7::String("-1234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)1234,ppl7::String("01234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)-1234,ppl7::String("-01234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)0,ppl7::String("abc123").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((pplint64)0,ppl7::String("0x1234").toInt64()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toUnsignedInt64) {
+	EXPECT_EQ((ppluint64)1234,ppl7::String("1234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)-1234,ppl7::String("-1234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)1234,ppl7::String("01234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)-1234,ppl7::String("-01234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)0,ppl7::String("abc123").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((ppluint64)0,ppl7::String("0x1234").toUnsignedInt64()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toInt_withoutNumber) {
+	ppl7::String s1("The Quick Brown Fox Jumps over the lazy dog");
+	EXPECT_EQ((int)0,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toInt_123456) {
+	ppl7::String s1("123456");
+	EXPECT_EQ((int)123456,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, ToInt_minus123456) {
+	ppl7::String s1("-123456");
+	EXPECT_EQ((int)-123456,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toInt_123456_point_567) {
+	ppl7::String s1("123456.567");
+	EXPECT_EQ((int)123456,s1.toInt()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toInt64_1242346214893456) {
+	ppl7::String s1("1242346214893456");
+	EXPECT_EQ((pplint64)1242346214893456,s1.toInt64()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toInt64_minus1242346214893456) {
+	ppl7::String s1("-1242346214893456");
+	EXPECT_EQ((pplint64)-1242346214893456,s1.toInt64()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toBool) {
+	ppl7::String s1("A test string with unicode characters: äöü");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set("");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set("12345abcd");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set("1");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set("12345");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set("true");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set("wahr");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set("ja");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set("yes");
+	ASSERT_EQ(s1.toBool(),true) << "String should be true";
+	s1.set("false");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set("falsch");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set("nein");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+	s1.set("no");
+	ASSERT_EQ(s1.toBool(),false) << "String should not be true";
+}
+
+TEST_F(StringTest, ToLong_1124234674) {
+	ppl7::String s1("124234674");
+	EXPECT_EQ((long)124234674,s1.toLong()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, toLongLong_1242346214893456) {
+	ppl7::String s1("1242346214893456");
+	EXPECT_EQ((long long)1242346214893456,s1.toLongLong()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, ToFloat_182566142_346214893456) {
+	ppl7::String s1("182566142.346214893456");
+	EXPECT_EQ((float)182566142.346214893456,s1.toFloat()) << "Unexpected Result";
+}
+
+TEST_F(StringTest, ToDouble_182566142_346214893456) {
+	ppl7::String s1("182566142.346214893456");
+	EXPECT_EQ((double)182566142.346214893456,s1.toDouble()) << "Unexpected Result";
+}
+
 
 }
 
