@@ -1117,23 +1117,27 @@ TEST_F(WideStringTest, ISO88591toUtf8) {
 		FAIL() << "setlocale fehlgeschlagen\n";
 	}
 	ppl7::WideString s1;
-	ASSERT_NO_THROW({
+	EXPECT_NO_THROW({
 		s1.set(L"A test string with unicode characters: ");
 		s1.append(0xe4);
 		s1.append(0xf6);
 		s1.append(0xfc);
 	});
-	ASSERT_EQ((size_t)42,s1.size()) << "String does not have expected length";
-	ASSERT_EQ('A',(unsigned char)s1[0]) << "Unexpected Character in string";
-	ASSERT_EQ(228,(unsigned char)s1[39]) << "Unexpected Character in string";
+	EXPECT_EQ((size_t)42,s1.size()) << "String does not have expected length";
+	EXPECT_EQ('A',(unsigned char)s1[0]) << "Unexpected Character in string";
+	EXPECT_EQ(228,(unsigned char)s1[39]) << "Unexpected Character in string";
 	ppl7::ByteArray a;
-	ASSERT_NO_THROW({
+	EXPECT_NO_THROW({
 		a=s1.toUtf8();
 	});
 	//a.hexDump();
-	ASSERT_EQ((size_t)45,a.size()) << "String does not have expected length";
-	ASSERT_EQ((unsigned char)'A',(unsigned char)a.get(0)) << "Unexpected Character in string";
-	ASSERT_EQ(188,(unsigned char)a.get(44)) << "Unexpected Character in string";
+	EXPECT_EQ((size_t)45,a.size()) << "String does not have expected length";
+	EXPECT_EQ((unsigned char)'A',(unsigned char)a.get(0)) << "Unexpected Character in string";
+	EXPECT_EQ(188,(unsigned char)a.get(44)) << "Unexpected Character in string";
+	if (setlocale(LC_ALL,"C")==NULL) {
+		printf ("setlocale fehlgeschlagen\n");
+		throw std::exception();
+	}
 }
 
 TEST_F(WideStringTest, strchr_ExistingChar) {
