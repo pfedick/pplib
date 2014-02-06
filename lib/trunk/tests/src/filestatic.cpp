@@ -95,6 +95,11 @@ TEST_F(FileStaticTest, ExistsNot) {
 	ASSERT_EQ(false,ppl7::File::exists("testdata/nonexistänt.txt"));
 }
 
+TEST_F(FileStaticTest, md5Hash) {
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("testdata/filenameUSASCII.txt"));
+}
+
+
 TEST_F(FileStaticTest, CopyFileUSAscii2USAscii) {
 	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","copy.tmp"));
 	ASSERT_TRUE(ppl7::File::exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
@@ -182,311 +187,252 @@ TEST_F(FileStaticTest, TruncateOnUtf8) {
 	ppl7::File::remove("truncateäöüß.tmp");
 }
 
-#ifdef TODO
-
-
 
 TEST_F(FileStaticTest, MoveFileUSAscii2USAscii) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
-	ASSERT_EQ(1,ppl7::File::MoveFile("copy.tmp","move.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copy.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("move.tmp")) << "New file exists";
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move1a.tmp"));
+	ASSERT_NO_THROW(ppl7::File::move("move1a.tmp","move1b.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move1a.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move1b.tmp")) << "New file exists";
 
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("move.tmp",d));
+	ASSERT_NO_THROW(ppl7::File::stat("move1b.tmp",d));
 	ASSERT_EQ((size_t)1962,d.Size);
 
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("move.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("move.tmp");
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move1b.tmp"));
+	ppl7::File::remove("move1b.tmp");
 }
 
 TEST_F(FileStaticTest, MoveFileUSAscii2Utf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
-	ASSERT_EQ(1,ppl7::File::MoveFile("copy.tmp","moveäöü.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copy.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("moveäöü.tmp")) << "New file exists";
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move2a.tmp"));
+	ASSERT_NO_THROW(ppl7::File::move("move2a.tmp","move2bäöü.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move2a.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move2bäöü.tmp")) << "New file exists";
 
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("moveäöü.tmp",d));
+	ASSERT_NO_THROW(ppl7::File::stat("move2bäöü.tmp",d));
 	ASSERT_EQ((size_t)1962,d.Size);
 
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("moveäöü.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("moveäöü.tmp");
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move2bäöü.tmp"));
+	ppl7::File::remove("move2bäöü.tmp");
 }
 
-
 TEST_F(FileStaticTest, MoveFileUtf82USAscii) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copyäöü.tmp"));
-	ASSERT_EQ(1,ppl7::File::MoveFile("copyäöü.tmp","move.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copyäöü.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("move.tmp")) << "New file exists";
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move3aäöü.tmp"));
+	ASSERT_NO_THROW(ppl7::File::move("move3aäöü.tmp","move3b.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move3aäöü.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move3b.tmp")) << "New file exists";
 
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("move.tmp",d));
+	ASSERT_NO_THROW(ppl7::File::stat("move3b.tmp",d));
 	ASSERT_EQ((size_t)1962,d.Size);
 
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("move.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("move.tmp");
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move3b.tmp"));
+	ppl7::File::remove("move3b.tmp");
 }
 
 TEST_F(FileStaticTest, MoveFileUtf82Utf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copyäöü.tmp"));
-	ASSERT_EQ(1,ppl7::File::MoveFile("copyäöü.tmp","moveäöüß.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copyäöü.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("moveäöüß.tmp")) << "New file exists";
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move4aäöü.tmp"));
+	ASSERT_NO_THROW(ppl7::File::move("move4aäöü.tmp","move4bäöü.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move4aäöü.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move4bäöü.tmp")) << "New file exists";
 
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("moveäöüß.tmp",d));
+	ASSERT_NO_THROW(ppl7::File::stat("move4bäöü.tmp",d));
 	ASSERT_EQ((size_t)1962,d.Size);
 
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("moveäöüß.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("moveäöüß.tmp");
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move4bäöü.tmp"));
+	ppl7::File::remove("move4bäöü.tmp");
 }
 
-TEST_F(FileStaticTest, LoadFileUSAscii2CString) {
+TEST_F(FileStaticTest, RenameFileUSAscii2USAscii) {
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move1a.tmp"));
+	ASSERT_NO_THROW(ppl7::File::rename("move1a.tmp","move1b.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move1a.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move1b.tmp")) << "New file exists";
+
+	ppl7::DirEntry d;
+	ASSERT_NO_THROW(ppl7::File::stat("move1b.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move1b.tmp"));
+	ppl7::File::remove("move1b.tmp");
+}
+
+TEST_F(FileStaticTest, RenameFileUSAscii2Utf8) {
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move2a.tmp"));
+	ASSERT_NO_THROW(ppl7::File::rename("move2a.tmp","move2bäöü.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move2a.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move2bäöü.tmp")) << "New file exists";
+
+	ppl7::DirEntry d;
+	ASSERT_NO_THROW(ppl7::File::stat("move2bäöü.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move2bäöü.tmp"));
+	ppl7::File::remove("move2bäöü.tmp");
+}
+
+TEST_F(FileStaticTest, RenameFileUtf82USAscii) {
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move3aäöü.tmp"));
+	ASSERT_NO_THROW(ppl7::File::rename("move3aäöü.tmp","move3b.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move3aäöü.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move3b.tmp")) << "New file exists";
+
+	ppl7::DirEntry d;
+	ASSERT_NO_THROW(ppl7::File::stat("move3b.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move3b.tmp"));
+	ppl7::File::remove("move3b.tmp");
+}
+
+TEST_F(FileStaticTest, RenameFileUtf82Utf8) {
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","move4aäöü.tmp"));
+	ASSERT_NO_THROW(ppl7::File::rename("move4aäöü.tmp","move4bäöü.tmp"));
+	ASSERT_FALSE(ppl7::File::exists("move4aäöü.tmp")) << "Old file has disappeared";
+	ASSERT_TRUE(ppl7::File::exists("move4bäöü.tmp")) << "New file exists";
+
+	ppl7::DirEntry d;
+	ASSERT_NO_THROW(ppl7::File::stat("move4bäöü.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::md5Hash("move4bäöü.tmp"));
+	ppl7::File::remove("move4bäöü.tmp");
+}
+
+
+
+TEST_F(FileStaticTest, LoadUSAscii2CString) {
 	ppl7::String s;
-	ASSERT_EQ(1,ppl7::File::LoadFile(s,"testdata/filenameUSASCII.txt")) << "Loading file to string";
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.GetMD5()) << "Checking MD5-sum";
-	ASSERT_EQ((size_t)1962,s.Size()) << "Checking Size";
+	ASSERT_NO_THROW(ppl7::File::load(s,"testdata/filenameUSASCII.txt")) << "Loading file to string";
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.md5()) << "Checking MD5-sum";
+	ASSERT_EQ((size_t)1962,s.size()) << "Checking Size";
 }
 
-TEST_F(FileStaticTest, LoadFileUSAscii2CBinary) {
-	ppl6::CBinary s;
-	ASSERT_EQ(1,ppl7::File::LoadFile(s,"testdata/filenameUSASCII.txt")) << "Loading file to string";
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.GetMD5Sum()) << "Checking MD5-sum";
-	ASSERT_EQ((size_t)1962,s.Size()) << "Checking Size";
+TEST_F(FileStaticTest, LoadFileUSAscii2ByteArray) {
+	ppl7::ByteArray s;
+	ASSERT_NO_THROW(ppl7::File::load(s,"testdata/filenameUSASCII.txt")) << "Loading file to string";
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.md5()) << "Checking MD5-sum";
+	ASSERT_EQ((size_t)1962,s.size()) << "Checking Size";
 
 }
 
 TEST_F(FileStaticTest, LoadFileUtf82CString) {
 	ppl7::String s;
-	ASSERT_EQ(1,ppl7::File::LoadFile(s,"testdata/filenameUTF8äöü.txt")) << "Loading file to string";
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.GetMD5()) << "Checking MD5-sum";
-	ASSERT_EQ((size_t)1962,s.Size()) << "Checking Size";
+	ASSERT_NO_THROW(ppl7::File::load(s,"testdata/filenameUTF8äöü.txt")) << "Loading file to string";
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.md5()) << "Checking MD5-sum";
+	ASSERT_EQ((size_t)1962,s.size()) << "Checking Size";
 }
 
-/*
-TEST_F(FileStaticTest, LoadFileUtf82CWString) {
-	ppl6::CWString s;
-	ASSERT_EQ(1,ppl7::File::LoadFile(s,"testdata/unicodeUtf8äöü.txt")) << "Loading file to string";
-	ASSERT_EQ((size_t)1994,s.Size()) << "Checking Size";
-	ASSERT_EQ(ppl6::CWString("c6767ca956f9e3b65164bed63b93d811"),s.GetMD5()) << "Checking MD5-sum";
-}
-*/
+TEST_F(FileStaticTest, LoadFileUtf82ByteArray) {
+	ppl7::ByteArray s;
+	ASSERT_NO_THROW(ppl7::File::load(s,"testdata/filenameUTF8äöü.txt")) << "Loading file to string";
+	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.md5()) << "Checking MD5-sum";
+	ASSERT_EQ((size_t)1962,s.size()) << "Checking Size";
 
-TEST_F(FileStaticTest, LoadFileUtf82CBinary) {
-	ppl6::CBinary s;
-	ASSERT_EQ(1,ppl7::File::LoadFile(s,"testdata/filenameUTF8äöü.txt")) << "Loading file to string";
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),s.GetMD5Sum()) << "Checking MD5-sum";
-	ASSERT_EQ((size_t)1962,s.Size()) << "Checking Size";
 }
 
 TEST_F(FileStaticTest, LoadFileUSAscii2Ptr) {
 	void *adr=NULL;
 	size_t size;
-	adr=ppl7::File::LoadFile("testdata/filenameUSASCII.txt",&size);
+	ASSERT_NO_THROW({adr=ppl7::File::load("testdata/filenameUSASCII.txt",&size);});
 	ASSERT_TRUE(adr!=NULL) << "Loading file to ptr";
 	EXPECT_EQ((size_t)1962,size) << "Checking Size";
-	EXPECT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl6::MD5(adr,size)) << "Checking MD5-sum";
+	EXPECT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::Md5(adr,size)) << "Checking MD5-sum";
 	free(adr);
 }
 
 TEST_F(FileStaticTest, LoadFileUtf82Ptr) {
 	void *adr=NULL;
 	size_t size;
-	adr=ppl7::File::LoadFile("testdata/unicodeUtf8äöü.txt",&size);
+	ASSERT_NO_THROW({adr=ppl7::File::load("testdata/unicodeUtf8äöü.txt",&size);});
 	ASSERT_TRUE(adr!=NULL) << "Loading file to ptr";
 	EXPECT_EQ((size_t)7976,size) << "Checking Size";
-	EXPECT_EQ(ppl7::String("c6767ca956f9e3b65164bed63b93d811"),ppl6::MD5(adr,size)) << "Checking MD5-sum";
+	EXPECT_EQ(ppl7::String("c6767ca956f9e3b65164bed63b93d811"),ppl7::Md5(adr,size)) << "Checking MD5-sum";
 	free(adr);
 }
 
+
 TEST_F(FileStaticTest, DeleteFileUSAscii) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","todelete.tmp"));
-	ASSERT_EQ(1,ppl7::File::DeleteFile("todelete.tmp")) << "deleting file";
-	ASSERT_EQ(0,ppl7::File::Exists("todelete.tmp")) << "file does not exists anymore";
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","todelete.tmp"));
+	ASSERT_NO_THROW(ppl7::File::remove("todelete.tmp")) << "deleting file";
+	ASSERT_FALSE(ppl7::File::exists("todelete.tmp")) << "file does not exists anymore";
 }
 
 TEST_F(FileStaticTest, DeleteFileUtf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","todeleteäöü.tmp"));
-	ASSERT_EQ(1,ppl7::File::DeleteFile("todeleteäöü.tmp")) << "deleting file";
-	ASSERT_EQ(0,ppl7::File::Exists("todeleteäöü.tmp")) << "file does not exists anymore";
-}
-
-TEST_F(FileStaticTest, DeleteFilefUSAscii) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","todelete.tmp"));
-	ASSERT_EQ(1,ppl7::File::DeleteFilef("%s","todelete.tmp")) << "deleting file";
-	ASSERT_EQ(0,ppl7::File::Exists("todelete.tmp")) << "file does not exists anymore";
-}
-
-TEST_F(FileStaticTest, DeletefFileUtf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","todeleteäöü.tmp"));
-	ASSERT_EQ(1,ppl7::File::DeleteFilef("%s","todeleteäöü.tmp")) << "deleting file";
-	ASSERT_EQ(0,ppl7::File::Exists("todeleteäöü.tmp")) << "file does not exists anymore";
+	ASSERT_NO_THROW(ppl7::File::copy("testdata/filenameUSASCII.txt","todeleteäöü.tmp"));
+	ASSERT_NO_THROW(ppl7::File::remove("todeleteäöü.tmp")) << "deleting file";
+	ASSERT_FALSE(ppl7::File::exists("todeleteäöü.tmp")) << "file does not exists anymore";
 }
 
 TEST_F(FileStaticTest, TouchFileUSAscii) {
-	ASSERT_EQ(1,ppl7::File::TouchFile("touched.tmp")) << "touching file";
-	ASSERT_EQ(1,ppl7::File::Exists("touched.tmp")) << "file exists";
-	ASSERT_EQ(1,ppl7::File::DeleteFile("touched.tmp")) << "deleting file";
+	ASSERT_NO_THROW(ppl7::File::touch("touched.tmp")) << "touching file";
+	ASSERT_TRUE(ppl7::File::exists("touched.tmp")) << "file exists";
+	ASSERT_NO_THROW(ppl7::File::remove("touched.tmp")) << "deleting file";
 }
 
 TEST_F(FileStaticTest, TouchFileUtf8) {
-	ASSERT_EQ(1,ppl7::File::TouchFile("touchedäöü.tmp")) << "touching file";
-	ASSERT_EQ(1,ppl7::File::Exists("touchedäöü.tmp")) << "file exists";
-	ASSERT_EQ(1,ppl7::File::DeleteFile("touchedäöü.tmp")) << "deleting file";
+	ASSERT_NO_THROW(ppl7::File::touch("touchedäöü.tmp")) << "touching file";
+	ASSERT_TRUE(ppl7::File::exists("touchedäöü.tmp")) << "file exists";
+	ASSERT_NO_THROW(ppl7::File::remove("touchedäöü.tmp")) << "deleting file";
 }
 
-TEST_F(FileStaticTest, TouchFilefUSAscii) {
-	ASSERT_EQ(1,ppl7::File::TouchFilef("%s.%s","touched2","tmp")) << "touching file";
-	ASSERT_EQ(1,ppl7::File::Exists("touched2.tmp")) << "file exists";
-	ASSERT_EQ(1,ppl7::File::DeleteFile("touched2.tmp")) << "deleting file";
-}
-
-TEST_F(FileStaticTest, TouchFilefUtf8) {
-	ASSERT_EQ(1,ppl7::File::TouchFilef("%s.%s","touchedäöü2","tmp")) << "touching file";
-	ASSERT_EQ(1,ppl7::File::Exists("touchedäöü2.tmp")) << "file exists";
-	ASSERT_EQ(1,ppl7::File::DeleteFile("touchedäöü2.tmp")) << "deleting file";
-}
-
-TEST_F(FileStaticTest, WriteFileUSAscii) {
-	ASSERT_EQ(1,ppl7::File::WriteFile(loremipsum,strlen(loremipsum),"writetest.tmp")) << "writing file";
-	ASSERT_EQ(1,ppl7::File::Exists("writetest.tmp")) << "file exists";
+TEST_F(FileStaticTest, SavePtrUSAscii) {
+	ASSERT_NO_THROW(ppl7::File::save(loremipsum,strlen(loremipsum),"writetest.tmp")) << "writing file";
+	ASSERT_TRUE(ppl7::File::exists("writetest.tmp")) << "file exists";
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("writetest.tmp",d)) << "Stat on file is working";
+	ASSERT_NO_THROW(ppl7::File::stat("writetest.tmp",d)) << "Stat on file is working";
 	ASSERT_EQ((size_t)strlen(loremipsum),d.Size) << "filesize as expected";
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("writetest.tmp"));
-	ASSERT_EQ(ppl7::String(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
-	ff.Close();
-	ASSERT_EQ(1,ppl7::File::DeleteFile("writetest.tmp")) << "deleting file";
+	ASSERT_EQ(ppl7::String(loremipsum_md5),ppl7::File::md5Hash("writetest.tmp"));
+	ASSERT_NO_THROW(ppl7::File::remove("writetest.tmp")) << "deleting file";
 }
 
-TEST_F(FileStaticTest, WriteFileUtf8) {
-	ASSERT_EQ(1,ppl7::File::WriteFile(loremipsum,strlen(loremipsum),"writetestäöü.tmp")) << "writing file";
-	ASSERT_EQ(1,ppl7::File::Exists("writetestäöü.tmp")) << "file exists";
+TEST_F(FileStaticTest, SavePtrUtf8) {
+	ASSERT_NO_THROW(ppl7::File::save(loremipsum,strlen(loremipsum),"writetestäöü.tmp")) << "writing file";
+	ASSERT_TRUE(ppl7::File::exists("writetestäöü.tmp")) << "file exists";
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("writetestäöü.tmp",d)) << "Stat on file is working";
+	ASSERT_NO_THROW(ppl7::File::stat("writetestäöü.tmp",d)) << "Stat on file is working";
 	ASSERT_EQ((size_t)strlen(loremipsum),d.Size) << "filesize as expected";
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("writetestäöü.tmp"));
-	ASSERT_EQ(ppl7::String(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
-	ff.Close();
-	ASSERT_EQ(1,ppl7::File::DeleteFile("writetestäöü.tmp")) << "deleting file";
+	ASSERT_EQ(ppl7::String(loremipsum_md5),ppl7::File::md5Hash("writetestäöü.tmp"));
+	ASSERT_NO_THROW(ppl7::File::remove("writetestäöü.tmp")) << "deleting file";
 }
 
-TEST_F(FileStaticTest, WriteFilefUSAscii) {
-	ASSERT_EQ(1,ppl7::File::WriteFilef(loremipsum,strlen(loremipsum),"%s.%s","writetest","tmp")) << "writing file";
-	ASSERT_EQ(1,ppl7::File::Exists("writetest.tmp")) << "file exists";
+TEST_F(FileStaticTest, SaveByteArrayPtrUSAscii) {
+	ppl7::ByteArrayPtr ba;
+	ba.use((void*)loremipsum,strlen(loremipsum));
+	ASSERT_NO_THROW(ppl7::File::save(ba,"writetest.tmp")) << "writing file";
+	ASSERT_TRUE(ppl7::File::exists("writetest.tmp")) << "file exists";
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("writetest.tmp",d)) << "Stat on file is working";
+	ASSERT_NO_THROW(ppl7::File::stat("writetest.tmp",d)) << "Stat on file is working";
 	ASSERT_EQ((size_t)strlen(loremipsum),d.Size) << "filesize as expected";
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("writetest.tmp"));
-	ASSERT_EQ(ppl7::String(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
-	ff.Close();
-	ASSERT_EQ(1,ppl7::File::DeleteFile("writetest.tmp")) << "deleting file";
+	ASSERT_EQ(ppl7::String(loremipsum_md5),ppl7::File::md5Hash("writetest.tmp"));
+	ASSERT_NO_THROW(ppl7::File::remove("writetest.tmp")) << "deleting file";
 }
 
-TEST_F(FileStaticTest, WriteFilefUtf8) {
-	ASSERT_EQ(1,ppl7::File::WriteFilef(loremipsum,strlen(loremipsum),"%s.%s","writetestäöü","tmp")) << "writing file";
-	ASSERT_EQ(1,ppl7::File::Exists("writetestäöü.tmp")) << "file exists";
+TEST_F(FileStaticTest, SaveByteArrayPtrUtf8) {
+	ppl7::ByteArrayPtr ba;
+	ba.use((void*)loremipsum,strlen(loremipsum));
+	ASSERT_NO_THROW(ppl7::File::save(ba,"writetestäöü.tmp")) << "writing file";
+	ASSERT_TRUE(ppl7::File::exists("writetestäöü.tmp")) << "file exists";
 	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("writetestäöü.tmp",d)) << "Stat on file is working";
+	ASSERT_NO_THROW(ppl7::File::stat("writetestäöü.tmp",d)) << "Stat on file is working";
 	ASSERT_EQ((size_t)strlen(loremipsum),d.Size) << "filesize as expected";
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("writetestäöü.tmp"));
-	ASSERT_EQ(ppl7::String(loremipsum_md5),ff.MD5Sum()) << "md5sum of file is correct";
-	ff.Close();
-	ASSERT_EQ(1,ppl7::File::DeleteFile("writetestäöü.tmp")) << "deleting file";
-}
-
-TEST_F(FileStaticTest, RenameFileUSAscii2USAscii) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
-	ASSERT_EQ(1,ppl7::File::RenameFile("copy.tmp","move.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copy.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("move.tmp")) << "New file exists";
-
-	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("move.tmp",d));
-	ASSERT_EQ((size_t)1962,d.Size);
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("move.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("move.tmp");
-}
-
-TEST_F(FileStaticTest, RenameFileUSAscii2Utf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
-	ASSERT_EQ(1,ppl7::File::RenameFile("copy.tmp","moveäöü.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copy.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("moveäöü.tmp")) << "New file exists";
-
-	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("moveäöü.tmp",d));
-	ASSERT_EQ((size_t)1962,d.Size);
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("moveäöü.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("moveäöü.tmp");
+	ASSERT_EQ(ppl7::String(loremipsum_md5),ppl7::File::md5Hash("writetestäöü.tmp"));
+	ASSERT_NO_THROW(ppl7::File::remove("writetestäöü.tmp")) << "deleting file";
 }
 
 
-TEST_F(FileStaticTest, RenameFileUtf82USAscii) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copyäöü.tmp"));
-	ASSERT_EQ(1,ppl7::File::RenameFile("copyäöü.tmp","move.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copyäöü.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("move.tmp")) << "New file exists";
-
-	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("move.tmp",d));
-	ASSERT_EQ((size_t)1962,d.Size);
-
-	ppl7::File ff;
-	ASSERT_EQ(1,ff.Open("move.tmp"));
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
-	ff.Close();
-	ppl7::File::DeleteFile("move.tmp");
+TEST_F(FileStaticTest, getPath) {
+	EXPECT_EQ(ppl7::String("c:\\windows\\system32"),ppl7::File::getPath("c:\\windows\\system32\\test.dll"));
+	EXPECT_EQ(ppl7::String("c:/windows/system32"),ppl7::File::getPath("c:/windows/system32/test.dll"));
+	EXPECT_EQ(ppl7::String("/usr/bin"),ppl7::File::getPath("/usr/bin/bash"));
 }
 
-TEST_F(FileStaticTest, RenameFileUtf82Utf8) {
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/filenameUSASCII.txt","copyäöü.tmp"));
-	ASSERT_EQ(1,ppl7::File::RenameFile("copyäöü.tmp","moveäöüß.tmp"));
-	ASSERT_EQ(0,ppl7::File::Exists("copyäöü.tmp")) << "Old file has disappeared";
-	ASSERT_EQ(1,ppl7::File::Exists("moveäöüß.tmp")) << "New file exists";
-
-	ppl7::DirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("moveäöüß.tmp",d));
-	ASSERT_EQ((size_t)1962,d.Size);
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::MD5("moveäöüß.tmp"));
-	ppl7::File::DeleteFile("moveäöüß.tmp");
+TEST_F(FileStaticTest, getFilename) {
+	EXPECT_EQ(ppl7::String("test.dll"),ppl7::File::getFilename("c:\\windows\\system32\\test.dll"));
+	EXPECT_EQ(ppl7::String("test.dll"),ppl7::File::getFilename("c:/windows/system32/test.dll"));
+	EXPECT_EQ(ppl7::String("bash"),ppl7::File::getFilename("/usr/bin/bash"));
 }
-
-TEST_F(FileStaticTest, MD5) {
-	ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"),ppl7::File::MD5("testdata/filenameUSASCII.txt"));
-}
-
-#endif
 
 /*
  * TODO: Chmod und Stat interpretieren die Attribute unterschiedlich

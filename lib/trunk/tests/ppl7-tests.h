@@ -45,4 +45,7 @@
 extern ppl7::ConfigParser PPL7TestConfig;
 #endif
 
+extern const char *loremipsum;
+extern const char *loremipsum_md5;
+
 #endif /* PPL7_TESTS_H_ */
