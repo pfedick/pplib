@@ -1519,7 +1519,7 @@ void File::touch(const String &filename)
 {
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	File ff;
-	ff.open(filename,READWRITE);
+	ff.open(filename,APPEND);
 	ff.close();
 }
 
@@ -1619,6 +1619,14 @@ void File::chmod(const String &filename, FileAttr::Attributes attr)
 #endif
 	throwErrno(errno,filename);
 }
+
+String File::md5Hash(const String &filename)
+{
+	File ff;
+	ff.open(filename);
+	return ff.md5();
+}
+
 
 /*!\brief Informationen zu einer Datei oder Verzeichnis
  *

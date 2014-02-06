@@ -715,6 +715,7 @@ class File : public FileObject
 		static void stat(const String &filename, DirEntry &result);
 		static String getPath(const String &path);
 		static String getFilename(const String &path);
+		static String md5Hash(const String &filename);
 };
 
 
