@@ -147,6 +147,28 @@ void CBinary::Clear()
 	ClearInternal();
 }
 
+void *CBinary::Malloc(size_t size)
+{
+	ClearInternal();
+	ptr=::malloc(size);
+	data=ptr;
+	if (ptr) this->size=size;
+	else SetError(2);
+	return ptr;
+}
+
+void *CBinary::Calloc(size_t size)
+{
+	ClearInternal();
+	ClearInternal();
+	ptr=::calloc(1,size);
+	data=ptr;
+	if (ptr) this->size=size;
+	else SetError(2);
+	return ptr;
+}
+
+
 void CBinary::ManageMemory()
 /*!\brief CBinary-Klasse soll den Speicher verwalten
  *

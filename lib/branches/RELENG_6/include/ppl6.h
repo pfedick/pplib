@@ -1019,6 +1019,9 @@ class CBinary : public CVar
 		CBinary(const char *str);
 
 		void	Clear();
+		void *	Malloc(size_t size);
+		void *	Calloc(size_t size);
+
 		int		Set(void *ptr, size_t size);
 		int		Set(CFileObject &file);
 		int		Set(const CVar& object);
