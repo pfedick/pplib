@@ -247,7 +247,7 @@ const char *GetID3GenreName(int id)
 
 /*!\class CID3Frame
  * \ingroup PPLGroupSound
- * \brief Klasse zum Speichern eines einzelnen MP3-Frames
+ * \brief Klasse zum Speichern eines einzelnen ID3-Frames
  */
 
 /*!\brief Konstruktor ohne Parameter
@@ -294,11 +294,11 @@ CID3Frame::~CID3Frame()
 
 /*!\class CID3Tag
  * \ingroup PPLGroupSound
- * \brief Klasse zum Parsen und Verändern von MP3 ID3 v1 und v2 Tags
+ * \brief Klasse zum Parsen und Verändern von ID3 v1 und v2 Tags
  *
  * \desc
- * Mit dieser Klasse können ID3v2-Tags aus MP3-Dateien ausgelesen und geschrieben werden.
- * Beim Schreiben kann zusätzlich noch ein ID3v1-Tag erzeugt werden.
+ * Mit dieser Klasse können ID3v2-Tags aus Audio-Dateien ausgelesen und geschrieben werden.
+ * Beim Schreiben von MP3-Dateien kann zusätzlich noch ein ID3v1-Tag erzeugt werden.
  * \par
  * Dazu muß zunächst die gewünschte Datei mit CID3Tag::Load geöffnet werden. Mit den
  * verschiedenen "Get"-Befehlen können verschiedene vorgegebene Frames aus dem ID3v2-Tag
@@ -327,6 +327,7 @@ CID3Tag::CID3Tag()
 	PaddingSpace=128;
 	MaxPaddingSpace=1024;
 	numFrames=0;
+	myAudioFormat=AF_UNKNOWN;
 }
 
 /*!\brief Konstruktor mit Dateinamen
@@ -336,7 +337,7 @@ CID3Tag::CID3Tag()
  * angegebene Date \p filename geladen. Dazu wird die Funktion CID3Tag::Load
  * aufgerufen.
  *
- * \param File Name der MP3-Datei, deren Tags geladen werden soll.
+ * \param File Name der Audio-Datei, deren Tags geladen werden soll.
  *
  */
 CID3Tag::CID3Tag(const CString &File)
@@ -346,6 +347,7 @@ CID3Tag::CID3Tag(const CString &File)
 	PaddingSpace=128;
 	MaxPaddingSpace=1024;
 	numFrames=0;
+	myAudioFormat=AF_UNKNOWN;
 	Load(File);
 }
 
@@ -405,6 +407,7 @@ void CID3Tag::Clear()
 	firstFrame=lastFrame=NULL;
 	Filename.Clear();
 	numFrames=0;
+	myAudioFormat=AF_UNKNOWN;
 }
 
 /*!\brief Alle Tags löschen
@@ -425,10 +428,47 @@ void CID3Tag::ClearTags()
 	numFrames=0;
 }
 
-/*!\brief ID3-Tags aus einer MP3-Datei laden
+
+CID3Tag::AudioFormat CID3Tag::identAudioFormat(CFileObject &File)
+{
+	const char *adr=File.Map(0,12);
+	if (!adr) return AF_UNKNOWN;
+	if (ppl6::PeekN32(adr+4)<File.Size()
+			&& ppl6::PeekN32(adr+0)==0x464F524D
+			&& ppl6::PeekN32(adr+8)==0x41494646) return AF_AIFF;
+	if (IdentMPEG(&File,NULL)) return AF_MP3;
+	return AF_UNKNOWN;
+}
+
+ppluint32 CID3Tag::findId3Tag(CFileObject &File)
+{
+	AudioFormat f=identAudioFormat(File);
+	if (f==AF_UNKNOWN) return (ppluint32)-1;
+	myAudioFormat=f;
+	if (f==AF_MP3) return 0;
+	if (f==AF_AIFF) {
+		printf ("AIFF-Format\n");
+		ppluint32 p=12;
+		ppluint32 size;
+		const char *adr;
+		while (p<File.Size()) {
+			adr=File.Map(p,8);
+			if (!adr) break;
+			if (ppl6::PeekN32(adr)==0x49443320) {
+				printf ("ID3-Tag found\n");
+				return p+8;
+			}
+			size=ppl6::PeekN32(adr+4);
+			p+=size+8;
+		}
+	}
+	return (ppluint32)-1;
+}
+
+/*!\brief ID3-Tags aus einer Audio-Datei laden
  *
  * \desc
- * Mit dieser Funktion werden die ID3-Tags aus der MP3-Datei \p file geladen.
+ * Mit dieser Funktion werden die ID3-Tags aus der Audio-Datei \p file geladen.
  *
  * @param file Dateiname
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Wird dabei
@@ -438,37 +478,17 @@ void CID3Tag::ClearTags()
  */
 int CID3Tag::Load(const CString &File)
 {
-	Clear();
 	CFile ff;
 	if (!ff.Open(File,"rb")) return 0;
+	int ret=Load(ff);
 	Filename=File;
-	return Load(&ff);
+	return ret;
 }
 
-/*!\brief ID3-Tags aus einer MP3-Datei laden
+/*!\brief ID3-Tags aus einem CFileObject laden
  *
  * \desc
- * Mit dieser Funktion werden die ID3-Tags aus der MP3-Datei \p file geladen.
- *
- * @param file Dateiname
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Wird dabei
- * der Fehlercode 402 zurückgegeben, enthält die Datei keine ID3v2-Tags. Es kann
- * aber trotzdem die Funktion CID3Tag::Save aufgerufen werden, um Tags zu
- * speichern.
- */
-int CID3Tag::Load(const char *file)
-{
-	Clear();
-	CFile ff;
-	if (!ff.Open(file,"rb")) return 0;
-	Filename=file;
-	return Load(&ff);
-}
-
-/*!\brief MP3-File aus einem CFileObject laden
- *
- * \desc
- * Mit dieser Funktion werden die ID3-Tags einer bereits geöffneten MP3-Datei,
+ * Mit dieser Funktion werden die ID3-Tags einer bereits geöffneten Audio-Datei,
  * die durch das CFileObject \p File repräsentiert wird, in den Hauptspeicher geladen.
  *
  * @param[in] File Pointer auf ein CFileObject mit der geöffneten Datei
@@ -476,17 +496,20 @@ int CID3Tag::Load(const char *file)
  * im Fehlerfall 0. Wird dabei der Fehlercode 402 zurückgegeben, enthält die Datei keine
  * ID3v2-Tags.
  */
-int CID3Tag::Load(CFileObject *File)
+int CID3Tag::Load(CFileObject &File)
 {
 	// ID3V2 Header einlesen (10 Byte)
-	const char *adr=File->Map(0,10);
+	ppluint32 p=findId3Tag(File);
+	if (p==(ppluint32)-1) {
+		SetError(402,"Kein \"ID3\"-Header");
+		return 0;
+	}
+	Clear();
+	const char *adr=File.Map(p,10);
 	if (!adr) {
 		SetError(401);
 		return 0;
 	}
-	#ifdef ID3DEBUG
-		printf ("Lade File: %s\n",(const char*)Filename);
-	#endif
 	if (strncmp(adr,"ID3",3)!=0) {
 		SetError(402,"Kein \"ID3\"-Header");
 		return 0;
@@ -515,7 +538,7 @@ int CID3Tag::Load(CFileObject *File)
 	s=peek8(adr+6);
 	Size|=s<<21;
 
-	ppluint32 p=10;
+	p+=10;
 
 	#ifdef ID3DEBUG
 		printf ("ID3 V2-Tag gefunden, Flags: %i, Länge: %i Bytes\n",Flags,Size);
@@ -523,7 +546,7 @@ int CID3Tag::Load(CFileObject *File)
 	CID3Frame *Frame;
 	// Jetzt lesen wir alle Frames in den Speicher
 	while (1) {
-		adr=File->Map(p,10);
+		adr=File.Map(p,10);
 		if (!adr) break;
 #ifdef ID3DEBUG
 		HexDump((void*)adr,10);
@@ -545,7 +568,7 @@ int CID3Tag::Load(CFileObject *File)
 			delete Frame;
 			break;
 		}
-		adr=File->Map(p+10,Frame->Size);
+		adr=File.Map(p+10,Frame->Size);
 		if (adr) {
 			//HexDump(adr,Frame->Size);
 			Frame->data=(char*)malloc(Frame->Size);
@@ -1111,42 +1134,68 @@ int CID3Tag::SetComment(const CString &description, const CString &comment)
 	return 1;
 }
 
+/*!\brief Tag speichern
+ *
+ * \desc
+ * Bei Aufruf dieser Funktion wird der ID3-Tag in der zuvor mit CID3Tag::Load
+ * geladenen Datei gespeichert. Es wird sowohl ein ID3v2- als auch ain ID3v1-Tag
+ * geschrieben.
+ *
+ * @return Konnten die Tags erfolgreich geschrieben werden, gibt die Funktion 1
+ * zurück, im Fehlerfall 0.
+ *
+ * @since Seit Version 1.3.19 hat die Funktion keine Parameter mehr, um anzugeben, ob ein
+ * ID3v1- und/oder ID3v2-Tag geschrieben werden soll. Es werden immer beide Varianten
+ * geschrieben.
+ */
+int CID3Tag::Save()
+{
+	if (Filename.IsEmpty()) {
+		SetError(543);
+		return 0;
+	}
+	if (myAudioFormat==AF_MP3) return SaveMP3();
+	else if (myAudioFormat==AF_AIFF) return SaveAiff();
+
+	return 0;
+}
+
 /*!\brief ID3 Version 1 Tag erstellen
  *
  * \desc
  * Diese Funktion erstellt einen 128 Byte langen ID3v1-Tag im Speicher und gibt einen
  * Pointer darauf zurück.
  *
- * @return Bei Erfolg gibt die Funktion einen Pointer auf einen 128-Byte großen Speicherblock
- * zurück, der nach Gebrauch von der aufrufenden Anwendung mit \c free freigegeben werden muß.
- * Im Fehlerfall gibt sie \c NULL zurück.
+ * @param tag Speicher-Objekt, in dem der Tag gespeichert werden soll
+ *
  */
-char* CID3Tag::MakeIdV1Tag()
+void CID3Tag::generateId3V1Tag(CBinary &tag)
 {
+	char *buffer=(char*)tag.Malloc(128);
+	if (!buffer) throw OutOfMemoryException();
 	CString text;
-	char *tag=(char*)malloc(128);
-	memset(tag,0,128);
-	strcpy(tag,"TAG");
+	memset(buffer,0,128);
+	strcpy(buffer,"TAG");
 	CID3Frame *frame=FindFrame("TIT2");
 	if (frame) {
 		text.Clear();
 		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
 		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(tag+3,text,30);
+		if (text.Len()) strncpy(buffer+3,text,30);
 	}
 	frame=FindFrame("TPE1");
 	if (frame) {
 		text.Clear();
 		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
 		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(tag+33,text,30);
+		if (text.Len()) strncpy(buffer+33,text,30);
 	}
 	frame=FindFrame("TYER");
 	if (frame) {
 		text.Clear();
 		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
 		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(tag+93,text,4);
+		if (text.Len()) strncpy(buffer+93,text,4);
 	}
 
 	frame=FindFrame("TPE4");
@@ -1154,7 +1203,7 @@ char* CID3Tag::MakeIdV1Tag()
 		text.Clear();
 		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
 		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(tag+97,text,30);
+		if (text.Len()) strncpy(buffer+97,text,30);
 	}
 	frame=FindFrame("TCON");
 	if (frame) {
@@ -1163,43 +1212,72 @@ char* CID3Tag::MakeIdV1Tag()
 		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
 		if (text.PregMatch("/^\\(([0-9]+)\\).*$/")) {
 			int g=ppl6::atoi(text.GetMatch(1));
-			Poke8(tag+127,g);
+			Poke8(buffer+127,g);
 			//printf ("Genre: %s: %i\n",(char*)text,g);
 		} else {
-			Poke8(tag+127,255);
+			Poke8(buffer+127,255);
 		}
 	}
 
-	return tag;
 }
 
-
-/*!\brief Tag speichern
- *
- * \desc
- * Bei Aufruf dieser Funktion wird der ID3-Tag in der zuvor mit CID3Tag::Load
- * geladenen Datei gespeichert. Ist das
- * Flag \p writev1 gesetzt, wird ein ID3v1-Tag am Ende der Datei angehangen, bzw.
- * ein bereits vorhandener Tag überschrieben. Ist das Flag \p writev2 gesetzt, wird
- * ein ID3v2-Tag am Anfang der Datei geschrieben. Dabei werden die nachfolgenden
- * Daten gegebenenfalls nach hinten verschoben.
- *
- * @param writev1 ID3v1-Tag schreiben
- * @param writev2 ID3v2-Tag schreiben.
- *
- * @return Konnten die Tags erfolgreich geschrieben werden, gibt die Funktion 1
- * zurück, im Fehlerfall 0.
- *
- * \attention
- * Zur Zeit hat der Parameter \p writev2 keine Auswirkung auf das Verhalten. Es wird
- * immer ein ID3v2-Tag geschrieben.
- */
-int CID3Tag::Save(bool writev1, bool writev2)
+void CID3Tag::generateId3V2Tag(CBinary &tag)
 {
-	if (Filename.IsEmpty()) {
-		SetError(543);
-		return 0;
+	if (firstFrame==NULL) {		// Keine Tags vorhanden
+		tag.Clear();
+		return;
 	}
+	// Calculate required Memory
+	size_t size=0;
+	size+=10;	// ID3-Header
+	CID3Frame *Frame=firstFrame;
+	while (Frame) {
+		size+=10+Frame->Size;
+		Frame=Frame->nextFrame;
+	}
+	size+=10;	// Empty Frame at End
+
+	// Allocate Buffer
+	char *buffer=(char*)tag.Malloc(size);
+	if (!buffer) throw OutOfMemoryException();
+
+	// Write Tags
+	char *header=buffer;
+	header[0]='I';
+	header[1]='D';
+	header[2]='3';
+	header[3]=4;
+	header[4]=0;
+	header[5]=0;
+	Frame=firstFrame;
+	char *frame=buffer+10;
+	while (Frame) {
+		//printf ("Save: %s, %u Bytes\n",Frame->ID,Frame->Size);
+		frame[0]=Frame->ID[0];
+		frame[1]=Frame->ID[1];
+		frame[2]=Frame->ID[2];
+		frame[3]=Frame->ID[3];
+		// Descynchronisieren
+		ppluint32 s=Frame->Size;
+		Poke8(frame+7,(s&127));
+		Poke8(frame+6,((s>>7)&127));
+		Poke8(frame+5,((s>>14)&127));
+		Poke8(frame+4,((s>>21)&127));
+		PokeN16(frame+8,Frame->Flags);
+		memcpy(frame+10,Frame->data,Frame->Size);
+		frame+=10+Frame->Size;
+		Frame=Frame->nextFrame;
+	}
+	memset(frame,0,10);
+	size-=10;	// Leeres End-Frame abziehen und Größe in den Header schreiben
+	header[9]=size&127;
+	header[8]=(size>>7)&127;
+	header[7]=(size>>14)&127;
+	header[6]=(size>>21)&127;
+}
+
+int CID3Tag::SaveMP3()
+{
 	CString tmpfile=Filename;
 	tmpfile+=".rename.tmp";
 	CFile n;
@@ -1208,8 +1286,8 @@ int CID3Tag::Save(bool writev1, bool writev2)
 	if (!o.Open(Filename,"r+b")) return 0;
 	// Wir benötigen exklusiven Zugriff auf das File
 	//if (!o.LockExclusive(false)) return 0;		// TODO: Hat unter Windows keine Wirkung
-	PPL_MPEG_HEADER mpg;
 
+	PPL_MPEG_HEADER mpg;
 	if (!IdentMPEG(&o, &mpg)) {
 		ppl6::PushError();
 		//o.Unlock();
@@ -1217,67 +1295,24 @@ int CID3Tag::Save(bool writev1, bool writev2)
 		return 0;
 	}
 
-	//printf ("Daten-Anfang: %u, Ende: %u, Size: %u\n",mpg.start, mpg.end, mpg.size);
+	// Tags generieren
+	CBinary tagV1, tagV2;
+	generateId3V2Tag(tagV1);
+	generateId3V2Tag(tagV2);
 
-	ppluint32 pn=0;
-
-	if (firstFrame) {
-		pn=10;
-		// Leeren ID3v2-Header schreiben
-		char header[10];
-		char frame[10];
-		header[0]='I';
-		header[1]='D';
-		header[2]='3';
-		header[3]=4;
-		header[4]=0;
-		header[5]=0;
-
-		n.Write(header,10,0);
-		CID3Frame *Frame=firstFrame;
-		ppluint32 s;
-		while (Frame) {
-			//printf ("Save: %s, %u Bytes\n",Frame->ID,Frame->Size);
-			frame[0]=Frame->ID[0];
-			frame[1]=Frame->ID[1];
-			frame[2]=Frame->ID[2];
-			frame[3]=Frame->ID[3];
-			// Descynchronisieren
-			s=Frame->Size;
-			Poke8(frame+7,(s&127));
-			Poke8(frame+6,((s>>7)&127));
-			Poke8(frame+5,((s>>14)&127));
-			Poke8(frame+4,((s>>21)&127));
-
-			PokeN16(frame+8,Frame->Flags);
-			n.Write(frame,10,pn);
-			n.Write(Frame->data,Frame->Size,pn+10);
-			pn=pn+10+Frame->Size;
-			Frame=Frame->nextFrame;
-		}
-		memset(frame,0,10);
-		n.Write(frame,10,pn);
-		pn+=10;
-		ppluint32 size=pn-10;
-		header[9]=size&127;
-		header[8]=(size>>7)&127;
-		header[7]=(size>>14)&127;
-		header[6]=(size>>21)&127;
-		n.Write(header,10,0);
-	}
-	char *v1=NULL;
-	if (writev1) v1=MakeIdV1Tag();
-	ppluint32 rest=0;
+	size_t pn=tagV2.Size();
+	size_t rest=0;
 	bool useoldfile=false;
 	// Falls der neue Tag noch vor den ersten Frame passt und MaxPaddingSpace nicht
 	// überschritten wird, schreiben wir ihn in das Originalfile
 	if (pn<=mpg.start && mpg.start-pn<MaxPaddingSpace) {
-		o.Copy(n,0,pn,0);
+		o.Write(tagV2);
 		// Mit Nullen auffüllen bis zum Start der Frames
 		rest=mpg.start-pn;
 		useoldfile=true;
 		//printf ("Keine Verschiebung nötig, verwende altes File\n");
 	} else {
+		n.Write(tagV2);
 		if (pn<PaddingSize) {
 			// Wir füllen mit Nullen auf
 			rest=PaddingSize-pn;
@@ -1301,7 +1336,7 @@ int CID3Tag::Save(bool writev1, bool writev2)
 	}
 	if (useoldfile) {
 		// Am Ende noch den v1-Tag reinschreiben
-		if (v1) o.Write(v1,128,mpg.end);
+		o.Write(tagV1.GetPtr(),tagV1.Size(),mpg.end);
 		n.Close();
 		o.Close();
 		CFile::DeleteFile(tmpfile);
@@ -1309,19 +1344,21 @@ int CID3Tag::Save(bool writev1, bool writev2)
 		// Nun kopieren wir die Musikframes
 		n.Copy(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
 		// Und am Ende noch den v1-Tag
-		if (v1) {
-			n.Write(v1,128);
-		}
+		n.Write(tagV1);
 		n.Close();
 		o.Close();
 		if (!CFile::DeleteFile(Filename)) {
-			if (v1) free(v1);
 			return 0;
 		}
 		CFile::RenameFile(tmpfile,Filename);
 	}
-	if (v1)free(v1);
 	return 1;
+}
+
+int CID3Tag::SaveAiff()
+{
+	SetError(5,"CID3Tag::SaveAiff");
+	return 0;
 }
 
 /*!\brief Name des Interpreten auslesen

@@ -350,12 +350,26 @@ class CID3Frame
 
 class CID3Tag
 {
+	public:
+		enum TextEncoding {
+			ENC_USASCII,
+			ENC_ISO88591,
+			ENC_UTF16,
+			ENC_UTF8
+		};
+
+		enum AudioFormat {
+			AF_UNKNOWN=0,
+			AF_MP3,
+			AF_AIFF
+		};
 	private:
 		CString	Filename;
 		CLog	*Log;
 		int		Flags;
 		size_t	numFrames;
 		int		Size;
+		AudioFormat	myAudioFormat;
 		ppluint32	PaddingSize, PaddingSpace, MaxPaddingSpace;
 		CID3Frame	*firstFrame, *lastFrame;
 		int		AddFrame(CID3Frame *Frame);
@@ -365,24 +379,23 @@ class CID3Tag
 		int SetTextFrameISO88591(const char *framename, const CString &text);
 		int SetTextFrameUtf8(const char *framename, const CString &text);
 
+		AudioFormat identAudioFormat(CFileObject &File);
+		ppluint32 findId3Tag(CFileObject &File);
+
+		int SaveMP3();
+		int SaveAiff();
+
 	public:
-		enum TextEncoding {
-			ENC_USASCII,
-			ENC_ISO88591,
-			ENC_UTF16,
-			ENC_UTF8
-		};
 		CID3Tag();
 		CID3Tag(const CString &File);
 
 		void SetLogfile(CLog *log);
 
-		int Load(const char *file);
 		int Load(const CString &File);
-		int Load(CFileObject *File);
+		int Load(CFileObject &File);
 		void ClearTags();
 
-		int Save(bool writev1=true, bool writev2=true);
+		int Save();
 
 		void SetPaddingSize(int bytes);
 		void SetPaddingSpace(int bytes);
@@ -408,7 +421,9 @@ class CID3Tag
 		CID3Frame	*FindFrame(const CString &name) const;
 		CID3Frame	*FindUserDefinedText(const char *description) const;
 		CID3Frame	*FindUserDefinedText(const CString &description) const;
-		char *MakeIdV1Tag();
+		void generateId3V2Tag(CBinary &tag);
+		void generateId3V1Tag(CBinary &tag);
+
 		void Clear();
 		void ListFrames(int hexdump=0) const;
 		size_t FrameCount() const;

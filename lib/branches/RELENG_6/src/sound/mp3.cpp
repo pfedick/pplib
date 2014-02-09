@@ -134,6 +134,7 @@ bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg)
 	// Jetzt den ersten MP3-Header suchen
 	p=FindNextHeader(file,mpg->start,mpg);
 	if (p<0) return (false);
+	if (mpg==&mpgheader) return true;
 	mpg->start=(ppldd)p;
 	//printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
 
