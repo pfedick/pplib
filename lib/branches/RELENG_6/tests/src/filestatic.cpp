@@ -180,6 +180,40 @@ TEST_F(CFileStaticTest, CopyFileUtf82Utf8) {
 	ppl6::CFile::DeleteFile("copyäöüß.tmp");
 }
 
+TEST_F(CFileStaticTest, CopyFileOverExistingUSAscii) {
+	ASSERT_EQ(1,ppl6::CFile::TouchFile("tmp/existing.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing.tmp"));
+
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","tmp/existing.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/existing.tmp",d)) << "New file exists";
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("tmp/existing.tmp"));
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl6::CFile::DeleteFile("tmp/existing.tmp");
+}
+
+TEST_F(CFileStaticTest, CopyFileOverExistingUtf8) {
+	ASSERT_EQ(1,ppl6::CFile::TouchFile("tmp/existingäöü.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existingäöü.tmp"));
+
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","tmp/existingäöü.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("testdata/filenameUSASCII.txt")) << "Old file still exists";
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/existingäöü.tmp",d)) << "New file exists";
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("tmp/existingäöü.tmp"));
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl6::CFile::DeleteFile("tmp/existingäöü.tmp");
+}
+
 
 TEST_F(CFileStaticTest, MoveFileUSAscii2USAscii) {
 	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
@@ -249,6 +283,47 @@ TEST_F(CFileStaticTest, MoveFileUtf82Utf8) {
 	ff.Close();
 	ppl6::CFile::DeleteFile("moveäöüß.tmp");
 }
+
+TEST_F(CFileStaticTest, MoveFileOverExistingUSAscii) {
+	ASSERT_EQ(1,ppl6::CFile::TouchFile("tmp/existing2.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing2.tmp"));
+
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","tmp/copy.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::MoveFile("tmp/copy.tmp","tmp/existing2.tmp"));
+	ASSERT_EQ(0,ppl6::CFile::Exists("tmp/copy.tmp")) << "Old file has disappeared";
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing2.tmp")) << "New file exists";
+
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/existing2.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("tmp/existing2.tmp"));
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl6::CFile::DeleteFile("tmp/existing2.tmp");
+}
+
+TEST_F(CFileStaticTest, MoveFileOverExistingUtf8) {
+	ASSERT_EQ(1,ppl6::CFile::TouchFile("tmp/existing2äöü.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing2äöü.tmp"));
+
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","tmp/copy.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::MoveFile("tmp/copy.tmp","tmp/existing2äöü.tmp"));
+	ASSERT_EQ(0,ppl6::CFile::Exists("tmp/copy.tmp")) << "Old file has disappeared";
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing2äöü.tmp")) << "New file exists";
+
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/existing2äöü.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("tmp/existing2äöü.tmp"));
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl6::CFile::DeleteFile("tmp/existing2äöü.tmp");
+}
+
 
 TEST_F(CFileStaticTest, LoadFileUSAscii2CString) {
 	ppl6::CString s;
@@ -476,6 +551,48 @@ TEST_F(CFileStaticTest, RenameFileUtf82Utf8) {
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ppl6::CFile::MD5("moveäöüß.tmp"));
 	ppl6::CFile::DeleteFile("moveäöüß.tmp");
 }
+
+TEST_F(CFileStaticTest, RenameFileOverExistingUSAscii) {
+	ASSERT_EQ(1,ppl6::CFile::TouchFile("tmp/existing3.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing3.tmp"));
+
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::RenameFile("copy.tmp","tmp/existing3.tmp"));
+	ASSERT_EQ(0,ppl6::CFile::Exists("copy.tmp")) << "Old file has disappeared";
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing3.tmp")) << "New file exists";
+
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/existing3.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("tmp/existing3.tmp"));
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl6::CFile::DeleteFile("tmp/existing3.tmp");
+}
+
+TEST_F(CFileStaticTest, RenameFileOverExistingUtf8) {
+	ASSERT_EQ(1,ppl6::CFile::TouchFile("tmp/existing3äöü.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing3äöü.tmp"));
+
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/filenameUSASCII.txt","copy.tmp"));
+	ASSERT_EQ(1,ppl6::CFile::RenameFile("copy.tmp","tmp/existing3äöü.tmp"));
+	ASSERT_EQ(0,ppl6::CFile::Exists("copy.tmp")) << "Old file has disappeared";
+	ASSERT_EQ(1,ppl6::CFile::Exists("tmp/existing3äöü.tmp")) << "New file exists";
+
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/existing3äöü.tmp",d));
+	ASSERT_EQ((size_t)1962,d.Size);
+
+	ppl6::CFile ff;
+	ASSERT_EQ(1,ff.Open("tmp/existing3äöü.tmp"));
+	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ff.MD5Sum());
+	ff.Close();
+	ppl6::CFile::DeleteFile("tmp/existing3äöü.tmp");
+}
+
+
 
 TEST_F(CFileStaticTest, MD5) {
 	ASSERT_EQ(ppl6::CString("978fd668b5755ce6017256d0ff9e36b2"),ppl6::CFile::MD5("testdata/filenameUSASCII.txt"));
