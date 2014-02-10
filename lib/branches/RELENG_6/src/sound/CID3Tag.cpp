@@ -442,12 +442,10 @@ CID3Tag::AudioFormat CID3Tag::identAudioFormat(CFileObject &File)
 
 ppluint32 CID3Tag::findId3Tag(CFileObject &File)
 {
-	AudioFormat f=identAudioFormat(File);
-	if (f==AF_UNKNOWN) return (ppluint32)-1;
-	myAudioFormat=f;
-	if (f==AF_MP3) return 0;
-	if (f==AF_AIFF) {
-		printf ("AIFF-Format\n");
+	myAudioFormat=identAudioFormat(File);
+	if (myAudioFormat==AF_UNKNOWN) return (ppluint32)-1;
+	if (myAudioFormat==AF_MP3) return 0;
+	if (myAudioFormat==AF_AIFF) {
 		ppluint32 p=12;
 		ppluint32 size;
 		const char *adr;
@@ -455,7 +453,6 @@ ppluint32 CID3Tag::findId3Tag(CFileObject &File)
 			adr=File.Map(p,8);
 			if (!adr) break;
 			if (ppl6::PeekN32(adr)==0x49443320) {
-				printf ("ID3-Tag found\n");
 				return p+8;
 			}
 			size=ppl6::PeekN32(adr+4);
@@ -498,13 +495,13 @@ int CID3Tag::Load(const CString &File)
  */
 int CID3Tag::Load(CFileObject &File)
 {
+	Clear();
 	// ID3V2 Header einlesen (10 Byte)
 	ppluint32 p=findId3Tag(File);
 	if (p==(ppluint32)-1) {
 		SetError(402,"Kein \"ID3\"-Header");
 		return 0;
 	}
-	Clear();
 	const char *adr=File.Map(p,10);
 	if (!adr) {
 		SetError(401);
@@ -1156,7 +1153,7 @@ int CID3Tag::Save()
 	}
 	if (myAudioFormat==AF_MP3) return SaveMP3();
 	else if (myAudioFormat==AF_AIFF) return SaveAiff();
-
+	SetError(20,"myAudioFormat=%u",myAudioFormat);
 	return 0;
 }
 
@@ -1297,7 +1294,7 @@ int CID3Tag::SaveMP3()
 
 	// Tags generieren
 	CBinary tagV1, tagV2;
-	generateId3V2Tag(tagV1);
+	generateId3V1Tag(tagV1);
 	generateId3V2Tag(tagV2);
 
 	size_t pn=tagV2.Size();
@@ -1700,7 +1697,6 @@ int CID3Tag::SetEnergyLevel(const CString &energy)
 			return 0;
 		}
 	}
-	ppl6::HexDump(frame->data,frame->Size);
 	frame->Flags=0;
 	frame->Size=14+energy.Len();
 	//printf ("Frame-Size: %i\n",frame->Size);
@@ -1717,8 +1713,6 @@ int CID3Tag::SetEnergyLevel(const CString &energy)
 	Poke8(frame->data+12,0);
 	strncpy(frame->data+13,energy.GetPtr(),energy.Len());
 	Poke8(frame->data+13+energy.Len(),0);
-
-	ppl6::HexDump(frame->data,frame->Size);
 
 	if (!exists) AddFrame(frame);
 	return 1;
