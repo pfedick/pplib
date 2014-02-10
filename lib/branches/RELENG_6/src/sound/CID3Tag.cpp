@@ -1168,6 +1168,10 @@ int CID3Tag::Save()
  */
 void CID3Tag::generateId3V1Tag(CBinary &tag)
 {
+	if (firstFrame==NULL) {		// Keine Tags vorhanden
+		tag.Clear();
+		return;
+	}
 	char *buffer=(char*)tag.Malloc(128);
 	if (!buffer) throw OutOfMemoryException();
 	CString text;
@@ -1302,7 +1306,10 @@ int CID3Tag::SaveMP3()
 	bool useoldfile=false;
 	// Falls der neue Tag noch vor den ersten Frame passt und MaxPaddingSpace nicht
 	// überschritten wird, schreiben wir ihn in das Originalfile
-	if (pn<=mpg.start && mpg.start-pn<MaxPaddingSpace) {
+	if (pn==0) {
+		// Sonderfall, keine Tags vorhanden
+
+	} else if (pn>0 && pn<=mpg.start && mpg.start-pn<MaxPaddingSpace) {
 		o.Write(tagV2);
 		// Mit Nullen auffüllen bis zum Start der Frames
 		rest=mpg.start-pn;
@@ -1340,8 +1347,9 @@ int CID3Tag::SaveMP3()
 	} else {
 		// Nun kopieren wir die Musikframes
 		n.Copy(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
+		//printf ("start=%u, size=%u, pn=%u\n",mpg.start,mpg.size,pn);
 		// Und am Ende noch den v1-Tag
-		n.Write(tagV1);
+		if (tagV1.Size()>0) n.Write(tagV1);
 		n.Close();
 		o.Close();
 		if (!CFile::DeleteFile(Filename)) {

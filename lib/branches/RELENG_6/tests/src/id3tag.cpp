@@ -212,7 +212,6 @@ TEST_F(CID3TagTest, RetagStrings) {
 	ASSERT_EQ(ppl6::CString("28c267be5390f2a43161331ad114ec9e"),ppl6::CFile::MD5("tmp/test_tagged4.mp3"));
 }
 
-
 TEST_F(CID3TagTest, RemovePicture) {
 	ppl6::CID3Tag Tags;
 	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/test_192cbr_taggedWithCover.mp3","tmp/test_tagged5.mp3"));
@@ -233,9 +232,35 @@ TEST_F(CID3TagTest, RemoveAllTags) {
 	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged6.mp3",d)) << "Tagged File does not exist!";
-	ASSERT_EQ((size_t)97073,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("fa7113a23a13aebbbdfec39a4cfa3b2f"),ppl6::CFile::MD5("tmp/test_tagged6.mp3"));
+	ASSERT_EQ((size_t)95921,d.Size) << "Tagged File has unexpected size";
+	ASSERT_EQ(ppl6::CString("692bf339243cee92f1c639b10ffde45e"),ppl6::CFile::MD5("tmp/test_tagged6.mp3"));
+
 }
+
+TEST_F(CID3TagTest, NoTagsAndNoChange) {
+	ppl6::CID3Tag Tags;
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/test_192cbr.mp3","tmp/test_tagged7.mp3"));
+	ASSERT_EQ(0,Tags.Load("tmp/test_tagged7.mp3"));
+	ASSERT_NO_THROW(Tags.ClearTags());
+	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged7.mp3",d)) << "Tagged File does not exist!";
+	ASSERT_EQ((size_t)95920,d.Size) << "Tagged File has unexpected size";
+	ASSERT_EQ(ppl6::CString("0abbdd3ce267358a0b3bf3f0a015e74e"),ppl6::CFile::MD5("tmp/test_tagged7.mp3"));
+
+}
+
+TEST_F(CID3TagTest, RetagWithoutChanges) {
+	ppl6::CID3Tag Tags;
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/test_192cbr_tagged.mp3","tmp/test_tagged8.mp3"));
+	ASSERT_EQ(1,Tags.Load("tmp/test_tagged8.mp3"));
+	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged8.mp3",d)) << "Tagged File does not exist!";
+	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
+	ASSERT_EQ(ppl6::CString("861daa2b4dbdbab8189961622b2d36dc"),ppl6::CFile::MD5("tmp/test_tagged8.mp3"));
+}
+
 
 
 }	// EOF namespace
