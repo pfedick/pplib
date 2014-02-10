@@ -25,15 +25,23 @@ $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
 
 all: $(PROGNAME)
+	-mkdir -p tmp
+	-rm -rf tmp/* *.tmp
 	./$(PROGNAME)
 
 test: $(PROGNAME)
+	-mkdir -p tmp
+	-rm -rf tmp/* *.tmp
 	./$(PROGNAME)
 	
 xml: $(PROGNAME)
+	-mkdir -p tmp
+	-rm -rf tmp/* *.tmp
 	./$(PROGNAME) --gtest_output=xml
 
 lcov: $(PROGNAME)
+	-mkdir -p tmp
+	-rm -rf tmp/* *.tmp
 	lcov --base-directory ../ --directory ../ --zerocounters -q
 	./$(PROGNAME)
 	lcov --base-directory ../ --directory ../ -c -o ppl6_coverage.info
@@ -43,6 +51,7 @@ lcov: $(PROGNAME)
 clean:
 	-rm -rf compile loggertest
 	-rm -f *.core
+	-rm -rf tmp/* *.tmp
 
 memcheck: $(PROGNAME)
 	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
