@@ -331,7 +331,23 @@ int CBinary::Copy(const CVar& object)
 	return 0;
 }
 
-int CBinary::Load(const char *filename, ...)
+int CBinary::Load(const CString &filename)
+{
+	CFile ff;
+	if (!ff.Open(filename,"rb")) return 0;
+	return Set(ff);
+}
+
+int CBinary::Save(const CString &filename) const
+{
+	CFile ff;
+	if (!ff.Open(filename,"wb")) return 0;
+	if (!ff.Write(ptr,(int)size)) return 0;
+	ff.Close();
+	return 1;
+}
+
+int CBinary::Loadf(const char *filename, ...)
 {
 	CFile ff;
 	CString f;
@@ -343,7 +359,7 @@ int CBinary::Load(const char *filename, ...)
 	return Set(ff);
 }
 
-int CBinary::Save(const char *filename, ...)
+int CBinary::Savef(const char *filename, ...) const
 {
 	CFile ff;
 	CString f;

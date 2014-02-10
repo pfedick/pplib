@@ -1035,8 +1035,10 @@ class CBinary : public CVar
 		int		Concat(void *ptr, size_t size);
 		CString	GetMD5Sum() const;
 		int		CheckMD5(const CString &md5) const;
-		int		Load(const char *filename, ...);
-		int		Save(const char *filename, ...);
+		int		Load(const CString &filename);
+		int		Save(const CString &filename) const;
+		int		Loadf(const char *filename, ...);
+		int		Savef(const char *filename, ...) const;
 		int		ToFile(CMemFile *File);
 		void	ManageMemory();
 
