@@ -18,7 +18,8 @@ OBJECTS = compile/wordlist.o \
 	compile/file.o \
 	compile/filestatic.o \
 	compile/perlhelper.o \
-	compile/dir.o
+	compile/dir.o \
+	compile/id3tag.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -99,6 +100,10 @@ compile/perlhelper.o: src/perlhelper.cpp Makefile
 compile/dir.o: src/dir.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/dir.o -c src/dir.cpp
+
+compile/id3tag.o: src/id3tag.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/id3tag.o -c src/id3tag.cpp
 
 	
 compile/wordlist.o: src/wordlist.cpp Makefile
