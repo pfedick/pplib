@@ -603,7 +603,7 @@ void Dir::resortMTime()
 	std::multimap<DateTime, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.insert(std::pair<String,const DirEntry*>(de.MTime,&de));
+		sorter.insert(std::pair<DateTime,const DirEntry*>(de.MTime,&de));
 	}
 	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
 	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
@@ -631,7 +631,7 @@ void Dir::resortCTime()
 	std::multimap<DateTime, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.insert(std::pair<String,const DirEntry*>(de.CTime,&de));
+		sorter.insert(std::pair<DateTime,const DirEntry*>(de.CTime,&de));
 	}
 	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
 	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
@@ -657,7 +657,7 @@ void Dir::resortATime()
 	std::multimap<DateTime, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.insert(std::pair<String,const DirEntry*>(de.ATime,&de));
+		sorter.insert(std::pair<DateTime,const DirEntry*>(de.ATime,&de));
 	}
 	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
 	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
