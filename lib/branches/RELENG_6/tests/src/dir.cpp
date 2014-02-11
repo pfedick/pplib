@@ -131,41 +131,49 @@ TEST_F(DirTest, dirWalkFilename) {
 	ppl6::CDirEntry *e;
 	while (1) {
 		e=d1.GetNext();
+		ASSERT_TRUE(e!=NULL);
 		if (e->Filename!="." && e->Filename!=".." && e->Filename!=".svn") break;
 	}
 	ASSERT_EQ(ppl6::CString("LICENSE.TXT"),e->Filename);
 	ASSERT_EQ((size_t)1330,e->Size);
 
 	e=d1.GetNext();
+	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("afile.txt"),e->Filename);
 	ASSERT_EQ((size_t)13040,e->Size);
 
 	e=d1.GetNext();
+	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("file1.txt"),e->Filename);
 	ASSERT_EQ((size_t)6519,e->Size);
 
 	e=d1.GetNext();
+	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("file2.txt"),e->Filename);
 	ASSERT_EQ((size_t)6519,e->Size);
 
 	e=d1.GetNext();
+	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("file3.txt"),e->Filename);
 	ASSERT_EQ((size_t)6519,e->Size);
 
 	e=d1.GetNext();
+	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("file4äöü.txt"),e->Filename);
 	ASSERT_EQ((size_t)6519,e->Size);
 
 	e=d1.GetNext();
+	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("testfile.txt"),e->Filename);
 	ASSERT_EQ((size_t)1592096,e->Size);
 
 	e=d1.GetNext();
+	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("zfile.txt"),e->Filename);
 	ASSERT_EQ((size_t)9819,e->Size);
 
 	// Nix mehr in der Liste
-	ASSERT_EQ(NULL,d1.GetNext());
+	ASSERT_TRUE(NULL==d1.GetNext());
 
 }
 

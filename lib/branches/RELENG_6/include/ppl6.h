@@ -3072,29 +3072,42 @@ class CDir
 			Sort_None,
 			Sort_Filename,
 			Sort_Filename_IgnoreCase,
-			Sort_Date
+			Sort_Date,
+			Sort_ATime,
+			Sort_CTime,
+			Sort_MTime,
+			Sort_Size
 		};
 	private:
-		CGenericList Files;
-		CAVLTree Tree;
+		ppl6::List<CDirEntry> Files;
+		ppl6::List<const CDirEntry*> SortedFiles;
+		ppl6::List<const CDirEntry*>::Iterator myit;
+
 		Sort sort;
 		CString Path;
-		CTreeController *c;
+
+		void resortMTime();
+		void resortCTime();
+		void resortATime();
+		void resortSize();
+		void resortFilename();
+		void resortFilenameIgnoreCase();
+		void resortNone();
 
 	public:
-		CDir(const char *path=NULL, Sort s=Sort_None);
+		CDir(const CString &path=CString(), Sort s=Sort_None);
 		~CDir();
-		int Open(const char *path, Sort s=Sort_None);
+		int Open(const CString &path, Sort s=Sort_None);
 		void Resort(Sort s);
 		void Reset();
 		void Clear();
 		int Num() const;
-		CDirEntry *GetFirst();
-		CDirEntry *GetNext();
-		CDirEntry *GetFirstPattern(const char *pattern, bool ignorecase=false);
-		CDirEntry *GetNextPattern(const char *pattern, bool ignorecase=false);
-		CDirEntry *GetFirstRegExp(const char *regexp);
-		CDirEntry *GetNextRegExp(const char *regexp);
+		const CDirEntry *GetFirst();
+		const CDirEntry *GetNext();
+		const CDirEntry *GetFirstPattern(const char *pattern, bool ignorecase=false);
+		const CDirEntry *GetNextPattern(const char *pattern, bool ignorecase=false);
+		const CDirEntry *GetFirstRegExp(const char *regexp);
+		const CDirEntry *GetNextRegExp(const char *regexp);
 
 		void Print();
 		void Print(const CDirEntry *de);

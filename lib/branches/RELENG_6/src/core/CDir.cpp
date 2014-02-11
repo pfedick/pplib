@@ -77,6 +77,8 @@
 #include <direct.h>
 #endif
 
+#include <map>
+
 #include "ppl6.h"
 
 namespace ppl6 {
@@ -442,127 +444,64 @@ CString CDir::CurrentPath()
 	return ret;
 }
 
-	/*!\ingroup PPLGroupFileIO
-	 * \brief Homeverzeichnis des aktuellen Users
-	 *
-	 * \desc
-	 * Diese statische Funktion liefert das Homeverzeichnis des aktuellen Benutzers
-	 * zurück.
-	 *
-	 * \return String mit dem Verzeichnis
-	 * \exception UnsupportedFeatureException Wird geworfen, wenn das Homeverzeichnis
-	 * nicht ermittelt werden kann.
-	 */
-	CString CDir::homePath()
-	{
-		CString ret;
+/*!\ingroup PPLGroupFileIO
+ * \brief Homeverzeichnis des aktuellen Users
+ *
+ * \desc
+ * Diese statische Funktion liefert das Homeverzeichnis des aktuellen Benutzers
+ * zurück.
+ *
+ * \return String mit dem Verzeichnis
+ * \exception UnsupportedFeatureException Wird geworfen, wenn das Homeverzeichnis
+ * nicht ermittelt werden kann.
+ */
+CString CDir::homePath()
+{
+	CString ret;
 #ifdef _WIN32
-		char *homeDir = getenv("HOMEPATH");
-		char *homeDrive = getenv("HOMEDRIVE");
-		ret.Setf("%s\\%s",homeDrive, homeDir);
-		return ret;
+	char *homeDir = getenv("HOMEPATH");
+	char *homeDrive = getenv("HOMEDRIVE");
+	ret.Setf("%s\\%s",homeDrive, homeDir);
+	return ret;
 #else
-		char *homeDir = getenv("HOME");
-		if (homeDir!=NULL && strlen(homeDir)>0) {
-			ret.Set(homeDir);
-			return ret;
-		}
-		throw UnsupportedFeatureException("CDir::homePath");
+	char *homeDir = getenv("HOME");
+	if (homeDir!=NULL && strlen(homeDir)>0) {
+		ret.Set(homeDir);
+		return ret;
+	}
+	throw UnsupportedFeatureException("CDir::homePath");
 #endif
-	}
+}
 
-	/*!\ingroup PPLGroupFileIO
-	 * \brief Verzeichnis für temporäre Dateien
-	 *
-	 * \desc
-	 * Diese statische Funktion liefert das Verzeichnis zurück, in dem
-	 * temporäre Dateien abgelegt werden können.
-	 *
-	 * \return String mit dem Verzeichnis
-	 */
-	CString CDir::tempPath()
-	{
-	#ifdef _WIN32
-		TCHAR TempPath[MAX_PATH];
-		GetTempPath(MAX_PATH, TempPath);
-		return CString(TempPath);
-	#endif
-		const char *dir = getenv("TMPDIR");
-		if (dir!=NULL && strlen(dir)>0) return CString(dir);
-	#ifdef P_tmpdir
-		dir=P_tmpdir;
-	#endif
-		if (dir!=NULL && strlen(dir)>0) return CString(dir);
-		return CString("/tmp");
-	}
-
-
-class CDirSortIgnoreCase : public CTreeController
+/*!\ingroup PPLGroupFileIO
+ * \brief Verzeichnis für temporäre Dateien
+ *
+ * \desc
+ * Diese statische Funktion liefert das Verzeichnis zurück, in dem
+ * temporäre Dateien abgelegt werden können.
+ *
+ * \return String mit dem Verzeichnis
+ */
+CString CDir::tempPath()
 {
-	public:
-		virtual int	Compare(const void *value1, const void *value2)	const {
-			CDirEntry *e1=(CDirEntry*) value1;
-			CDirEntry *e2=(CDirEntry*) value2;
-			int cmp=e1->Filename.StrCaseCmp(e2->Filename);
-			if (cmp<0) return 1;
-			if (cmp>0) return -1;
-			return 0;
-		}
-		virtual int GetValue(const void *item, CString &buffer)	const {
-			return 0;
-		}
-		virtual int DestroyValue(void *item) const {
-			return 1;
-		}
-};
-
-class CDirSort : public CTreeController
-{
-	public:
-		virtual int	Compare(const void *value1, const void *value2)	const {
-			CDirEntry *e1=(CDirEntry*) value1;
-			CDirEntry *e2=(CDirEntry*) value2;
-			int cmp=e1->Filename.StrCmp(e2->Filename);
-			if (cmp<0) return 1;
-			if (cmp>0) return -1;
-			return 0;
-		}
-		virtual int GetValue(const void *item, CString &buffer)	const {
-			return 0;
-		}
-		virtual int DestroyValue(void *item) const {
-			return 1;
-		}
-};
-
-class CDirSortMTime : public CTreeController
-{
-	public:
-		virtual int	Compare(const void *value1, const void *value2)	const {
-			CDirEntry *e1=(CDirEntry*) value1;
-			CDirEntry *e2=(CDirEntry*) value2;
-			if (e1->MTime<e2->MTime) return 1;
-			if (e1->MTime>e2->MTime) return -1;
-			return 0;
-		}
-		virtual int GetValue(const void *item, CString &buffer)	const {
-			return 0;
-		}
-		virtual int DestroyValue(void *item) const {
-			return 1;
-		}
-};
-
-class CDirNewSortMTime
-{
-	public:
-		bool operator() (const CDirEntry *e1, const CDirEntry *e2) {
-			return e1->MTime<e2->MTime;
-		}
-};
+#ifdef _WIN32
+	TCHAR TempPath[MAX_PATH];
+	GetTempPath(MAX_PATH, TempPath);
+	return CString(TempPath);
+#endif
+	const char *dir = getenv("TMPDIR");
+	if (dir!=NULL && strlen(dir)>0) return CString(dir);
+#ifdef P_tmpdir
+	dir=P_tmpdir;
+#endif
+	if (dir!=NULL && strlen(dir)>0) return CString(dir);
+	return CString("/tmp");
+}
 
 
-CDir::CDir(const char *path, Sort s)
+
+
+CDir::CDir(const CString &path, Sort s)
 /*!\brief Konstruktor der Klasse
  *
  * \desc
@@ -576,9 +515,7 @@ CDir::CDir(const char *path, Sort s)
  */
 {
 	sort=s;
-	c=NULL;
-	Tree.AllowDupes(true);
-	if (path) Open(path,s);
+	if (path.NotEmpty()) Open(path,s);
 }
 
 
@@ -591,8 +528,6 @@ CDir::~CDir()
  */
 {
 	Clear();
-	if (c) delete c;
-	c=NULL;
 }
 
 void CDir::Clear()
@@ -605,14 +540,13 @@ void CDir::Clear()
  * erübrigt.
  */
 {
-	CDirEntry *de;
-	Files.Reset();
-	while ((de=(CDirEntry*)Files.GetNext())) {
-		delete de;
-	}
-	Files.Clear();
-	Tree.Clear();
+	Files.clear();
+	SortedFiles.clear();
+	Path.Clear();
+	sort=Sort_None;
+
 }
+
 
 int CDir::Num() const
 /*!\brief Anzahl Dateien
@@ -623,55 +557,218 @@ int CDir::Num() const
  * @return
  */
 {
-	return Files.Num();
+	return Files.count();
 }
 
-void CDir::Resort(Sort s)
 /*!\brief Sortierung ändern
  *
  * \desc
- * Durch Aufruf dieser Funktion kann die Sortierreihenfolge für die Get...-Befehle
+ * Durch Aufruf dieser Funktion kann die Sortierreihenfolge für die get...-Befehle
  * geändert werden. Standardmäßig werden die Dateien unsortiert zurückgegeben.
  * Die Reihenfolge hängt somit im Wesentlichen davon ab, in welcher Reihenfolge
  * die Dateien erstellt wurden, aber auch von Betriebs- und Filesystemabhängigen
  * Vorgängen.
  * \par
- * Die Sortierreihenfolge läßt sich jedoch jederzeit ändern, auch nach Aufruf
- * der CDir::Open Funktion.
- * \param[in] s Die gewünschte Sortierreihenfolge. Siehe dazu auch CDir::Sort
- * \note
- * Durch Aufruf dieser Funktion wird der interne Zeiger für die Get-Funktionen
- * wieder auf den ersten Eintrag des Verzeichnisses zurückgesetzt.
+ * Die Sortierreihenfolge läßt sich jederzeit durch Aufruf dieser Funktion ändern.
+ *
+ * \param[in] s Die gewünschte Sortierreihenfolge. Siehe dazu auch die Enumeration Dir::Sort
+ * \exception IllegalArgumentException Wird geworfen, wenn eine ungültige Sortiermethode angegeben wird
  */
+void CDir::Resort(Sort s)
 {
+	SortedFiles.clear();
+	switch (s) {
+		case Sort_None: resortNone(); break;
+		case Sort_Filename: resortFilename(); break;
+		case Sort_Filename_IgnoreCase: resortFilenameIgnoreCase(); break;
+		case Sort_ATime: resortATime(); break;
+		case Sort_CTime: resortCTime(); break;
+		case Sort_MTime: resortMTime(); break;
+		case Sort_Date: resortMTime(); break;
+		case Sort_Size: resortSize(); break;
+		default: throw IllegalArgumentException();
+	}
 	sort=s;
-	Tree.Clear();
-	if (c) delete c;
-	c=NULL;
-	if (sort==Sort_None) return;
-	else if (sort==Sort_Filename) {
-		c=new CDirSort;
-		Tree.SetTreeController(c);
-	} else if (sort==Sort_Filename_IgnoreCase) {
-		c=new CDirSortIgnoreCase;
-		Tree.SetTreeController(c);
-	} else if (sort==Sort_Date) {
-		c=new CDirSortMTime;
-		Tree.SetTreeController(c);
-	} else {
-		sort=Sort_None;
-		Reset();
-		return;
+}
+
+/*!\brief Dateien unsortiert belassen
+ *
+ * \desc
+ * Diese interne Funktion kopiert lediglich das von Dir::open eingescannte Verzeichnis
+ * unsortiert in die von den Iterationsfunktionen verwendete Liste. Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
+void CDir::resortNone()
+{
+	ppl6::List<CDirEntry>::Iterator it;
+	Files.reset(it);
+	while (Files.getNext(it)) {
+		SortedFiles.add(&it.value());
 	}
-	Tree.AllowDupes(true);
-	Files.Reset();
-	CDirEntry *de;
-	while ((de=(CDirEntry *)Files.GetNext())) {
-		Tree.Add(de);
+	return;
+}
+
+/*!\brief Dateien nach Dateiname sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach Dateiname, unter Beachtung von Gross-/Kleinschreibung.
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
+void CDir::resortFilename()
+{
+	ppl6::List<CDirEntry>::Iterator it;
+	Files.reset(it);
+
+	std::multimap<CString, const CDirEntry*> sorter;
+	while (Files.getNext(it)) {
+		const CDirEntry &de=it.value();
+		sorter.insert(std::pair<CString,const CDirEntry*>(de.Filename,&de));
 	}
-	Reset();
+	std::multimap<CString, const CDirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
+	}
+}
+
+/*!\brief Dateien nach Dateiname sortieren, Gross-/Kleinschreibung wird ignoriert
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach Dateiname, wobei Gross-/Kleinschreibung ignoriert wird.
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
+void CDir::resortFilenameIgnoreCase()
+{
+	ppl6::List<CDirEntry>::Iterator it;
+	Files.reset(it);
+
+	std::multimap<CString, const CDirEntry*> sorter;
+	CString filename;
+	while (Files.getNext(it)) {
+		const CDirEntry &de=it.value();
+		filename.Set(de.Filename);
+		filename.LCase();
+		sorter.insert(std::pair<CString,const CDirEntry*>(filename,&de));
+	}
+	std::multimap<CString, const CDirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
+	}
+}
+
+/*!\brief Dateien nach Modifizierungsdatum sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach dem Modifikations-Zeitstempel der Dateien. Dieser Zeitstempel ändert sich
+ * nur bei Neuanlage der Datei oder des Verzeichnisses, oder wenn ein Schreibzugriff
+ * stattgefunden hat.
+ * Falls mehrere Dateien den gleichen Zeitstempel haben, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
+void CDir::resortMTime()
+{
+	ppl6::List<CDirEntry>::Iterator it;
+	Files.reset(it);
+
+	std::multimap<ppluint64, const CDirEntry*> sorter;
+	while (Files.getNext(it)) {
+		const CDirEntry &de=it.value();
+		sorter.insert(std::pair<ppluint64,const CDirEntry*>(de.MTime,&de));
+	}
+	std::multimap<ppluint64, const CDirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
+	}
+}
+
+/*!\brief Dateien nach Datum der letzten Statusänderung sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach dem Zeitstempel der letzten Statusänderung der Dateien. Eine Statusänderung
+ * besteht nicht nur bei Neuanlage und Schreibzugriff, sondern auch bei Änderung
+ * der Zugriffsrechte oder Verlinkung.
+ * Falls mehrere Dateien den gleichen Zeitstempel haben, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
+void CDir::resortCTime()
+{
+	ppl6::List<CDirEntry>::Iterator it;
+	Files.reset(it);
+
+	std::multimap<ppluint64, const CDirEntry*> sorter;
+	while (Files.getNext(it)) {
+		const CDirEntry &de=it.value();
+		sorter.insert(std::pair<ppluint64,const CDirEntry*>(de.CTime,&de));
+	}
+	std::multimap<ppluint64, const CDirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
+	}
+}
+
+/*!\brief Dateien nach Datum des letzten Zugriffs sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach dem Zeitstempel des letzten Zugriffs auf die Datei.
+ * Falls mehrere Dateien den gleichen Zeitstempel haben, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
+void CDir::resortATime()
+{
+	ppl6::List<CDirEntry>::Iterator it;
+	Files.reset(it);
+
+	std::multimap<ppluint64, const CDirEntry*> sorter;
+	while (Files.getNext(it)) {
+		const CDirEntry &de=it.value();
+		sorter.insert(std::pair<ppluint64,const CDirEntry*>(de.ATime,&de));
+	}
+	std::multimap<ppluint64, const CDirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
+	}
+}
+
+/*!\brief Dateien nach Dateigröße sortieren
+ *
+ * \desc
+ * Diese interne Funktion sortiert das durch Dir::open eingescannte Verzeichnis
+ * nach der Größe der Dateien. Falls mehrere Dateien mit gleicher Größe vorhanden
+ * sind, ist deren Reihenfolge unbestimmt.
+ * \par
+ * Die Funktion wird
+ * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
+ */
+void CDir::resortSize()
+{
+	ppl6::List<CDirEntry>::Iterator it;
+	Files.reset(it);
+
+	std::multimap<ppluint64, const CDirEntry*> sorter;
+	while (Files.getNext(it)) {
+		const CDirEntry &de=it.value();
+		sorter.insert(std::pair<ppluint64,const CDirEntry*>(de.Size,&de));
+	}
+	std::multimap<ppluint64, const CDirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
+	}
 
 }
+
+
 
 void CDir::Reset()
 /*!\brief Zeiger auf den ersten Eintrag des Verzeichnisses
@@ -682,11 +779,10 @@ void CDir::Reset()
  * würde somit den ersten Eintrag zurückliefern.
  */
 {
-	Files.Reset();
-	Tree.Reset();
+	SortedFiles.reset(myit);
 }
 
-CDirEntry *CDir::GetFirst()
+const CDirEntry *CDir::GetFirst()
 /*!\brief Erster Verzeichniseintrag
  *
  * \desc
@@ -704,7 +800,7 @@ CDirEntry *CDir::GetFirst()
 	return GetNext();
 }
 
-CDirEntry *CDir::GetNext()
+const CDirEntry *CDir::GetNext()
 /*!\brief Nächster Verzeichniseintrag
  *
  * \desc
@@ -717,15 +813,11 @@ CDirEntry *CDir::GetNext()
  * vorhanden sind, das Verzeichnis leer ist oder kein gültiges Verzeichnis ausgewählt wurde.
  */
 {
-	if (sort==Sort_None) {
-		return (CDirEntry*) Files.GetNext();
-	} else {
-		return (CDirEntry*) Tree.GetNext();
-	}
+	if (SortedFiles.getNext(myit)) return myit.value();
 	return NULL;
 }
 
-CDirEntry *CDir::GetFirstPattern(const char *pattern, bool ignorecase)
+const CDirEntry *CDir::GetFirstPattern(const char *pattern, bool ignorecase)
 /*!\brief Erster Verzeichniseintrag, der zu einem bestimmten Muster passt
  *
  * \desc
@@ -752,7 +844,7 @@ CDirEntry *CDir::GetFirstPattern(const char *pattern, bool ignorecase)
 	return GetNextPattern(pattern, ignorecase);
 }
 
-CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
+const CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
 /*!\brief Nächster Verzeichniseintrag, der zu einem bestimmten Muster passt
  *
  * \desc
@@ -774,7 +866,7 @@ CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
  * Verzeichnis ausgewählt wurde.
  */
 {
-	CDirEntry *de;
+	const CDirEntry *de;
 	CString Name, Pattern;
 	Pattern=pattern;
 	Pattern.PregEscape();
@@ -785,15 +877,8 @@ CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
 	if (ignorecase) Pattern+="i";
 	//printf ("Pattern: %s\n",(const char*)Pattern);
 	while (1) {
-		if (sort==Sort_None) {
-			de=(CDirEntry*) Files.GetNext();
-		} else {
-			de=(CDirEntry*) Tree.GetNext();
-		}
-		if (!de) {
-			//printf ("Ende des Verzeichnisses\n");
-			return NULL;
-		}
+		if (!SortedFiles.getNext(myit)) return NULL;
+		de=myit.value();
 		// Patternmatch
 		Name=de->Filename;
 		if (Name.PregMatch(Pattern)) {
@@ -805,7 +890,7 @@ CDirEntry *CDir::GetNextPattern(const char *pattern, bool ignorecase)
 	return NULL;
 }
 
-CDirEntry *CDir::GetFirstRegExp(const char *regexp)
+const CDirEntry *CDir::GetFirstRegExp(const char *regexp)
 /*!\brief Erster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
  *
  * \desc
@@ -828,7 +913,7 @@ CDirEntry *CDir::GetFirstRegExp(const char *regexp)
 	return GetNextRegExp(regexp);
 }
 
-CDirEntry *CDir::GetNextRegExp(const char *regexp)
+const CDirEntry *CDir::GetNextRegExp(const char *regexp)
 /*!\brief Nächster Verzeichniseintrag, der zu der angegebenen Regular Expression passt
  *
  * \desc
@@ -847,15 +932,11 @@ CDirEntry *CDir::GetNextRegExp(const char *regexp)
  * gültiges Verzeichnis ausgewählt wurde.
  */
 {
-	CDirEntry *de;
+	const CDirEntry *de;
 	CString Name;
 	while (1) {
-		if (sort==Sort_None) {
-			de=(CDirEntry*) Files.GetNext();
-		} else {
-			de=(CDirEntry*) Tree.GetNext();
-		}
-		if (!de) return NULL;
+		if (!SortedFiles.getNext(myit)) return NULL;
+		de=myit.value();
 		// Patternmatch
 		Name=de->Filename;
 		if (Name.PregMatch(regexp)) return de;
@@ -872,7 +953,7 @@ void CDir::Print()
  */
 {
 	Reset();
-	CDirEntry *de;
+	const CDirEntry *de;
 	printf ("Directory Listing: %s\n",(const char*)Path);
 	printf ("Total Files: %u\n",Num());
 	while ((de=GetNext())) {
@@ -901,7 +982,7 @@ void CDir::Print(const CDirEntry *de)
 }
 
 
-/*!\fn CDir::Open(const char *path, Sort s)
+/*!\fn CDir::Open(const CString &path, Sort s)
  * \brief Verzeichniss öffnen
  *
  * \desc
@@ -936,7 +1017,7 @@ namespace ppl6 {
 
 
 #if defined _WIN32
-int CDir::Open(const char *path, Sort s)
+int CDir::Open(const CString &path, Sort s)
 {
 	Clear();
 	sort=s;
@@ -956,60 +1037,56 @@ int CDir::Open(const char *path, Sort s)
 		return 0;
 	}
 	while (1==1) {
-		CDirEntry *de=new CDirEntry;
-		if (!de) {
-			_findclose(handle);
-			SetError(2);
-			return 0;
-		}
-		strcpy (de->AttrStr,"----------");
-		de->Attrib=0;
-		de->ATime=de->CTime=de->MTime=0;
+		CDirEntry de;
+		strcpy (de.AttrStr,"----------");
+		de.Attrib=0;
+		de.ATime=de.CTime=de.MTime=0;
 
-		de->Filename=data.name;
-		de->Size=0;
-		de->Path=Path;
-		de->File=de->Path+CString("/")+de->Filename;
-		de->Size=data.size;
-		de->Uid=0;
-		de->Gid=0;
-		de->Blocks=0;
-		de->BlockSize=0;
-		de->NumLinks=1;
+		de.Filename=data.name;
+		de.Size=0;
+		de.Path=Path;
+		de.File=de.Path+CString("/")+de.Filename;
+		de.Size=data.size;
+		de.Uid=0;
+		de.Gid=0;
+		de.Blocks=0;
+		de.BlockSize=0;
+		de.NumLinks=1;
 
-		if (data.attrib & _A_RDONLY) de->Attrib|=CPPLDIR_READONLY;
-		if (data.attrib & _A_HIDDEN) de->Attrib|=CPPLDIR_HIDDEN;
-		if (data.attrib & _A_SYSTEM) de->Attrib|=CPPLDIR_SYSTEM;
-		if (data.attrib & _A_ARCH) de->Attrib|=CPPLDIR_ARCHIV;
-		if (data.attrib & _A_SUBDIR) de->Attrib|=CPPLDIR_DIR;
+		if (data.attrib & _A_RDONLY) de.Attrib|=CPPLDIR_READONLY;
+		if (data.attrib & _A_HIDDEN) de.Attrib|=CPPLDIR_HIDDEN;
+		if (data.attrib & _A_SYSTEM) de.Attrib|=CPPLDIR_SYSTEM;
+		if (data.attrib & _A_ARCH) de.Attrib|=CPPLDIR_ARCHIV;
+		if (data.attrib & _A_SUBDIR) de.Attrib|=CPPLDIR_DIR;
 
-		de->AttrStr[1]=de->AttrStr[4]=de->AttrStr[7]='r';
-		if (de->Filename.Len()>4) {
-			CString suf=de->Filename.Right(4);
+		de.AttrStr[1]=de.AttrStr[4]=de.AttrStr[7]='r';
+		if (de.Filename.Len()>4) {
+			CString suf=de.Filename.Right(4);
 			suf.LCase();
 			if (suf.StrCmp(".exe")==0 ||
 				suf.StrCmp(".com")==0 ||
-				suf.StrCmp(".bat")==0 ) de->AttrStr[3]=de->AttrStr[6]=de->AttrStr[9]='x';
+				suf.StrCmp(".bat")==0 ) de.AttrStr[3]=de.AttrStr[6]=de.AttrStr[9]='x';
 		}
 
-		if (! (de->Attrib&CPPLDIR_READONLY)) de->AttrStr[2]=de->AttrStr[5]=de->AttrStr[8]='w';
-		if ( ( de->Attrib & (CPPLDIR_DIR|CPPLDIR_LINK) )==0) de->Attrib|=CPPLDIR_FILE;
-		de->ATime=data.time_access;
-		de->CTime=data.time_create;
-		de->MTime=data.time_write;
+		if (! (de.Attrib&CPPLDIR_READONLY)) de.AttrStr[2]=de.AttrStr[5]=de.AttrStr[8]='w';
+		if ( ( de.Attrib & (CPPLDIR_DIR|CPPLDIR_LINK) )==0) de.Attrib|=CPPLDIR_FILE;
+		de.ATime=data.time_access;
+		de.CTime=data.time_create;
+		de.MTime=data.time_write;
 
-		if (de->Attrib&CPPLDIR_DIR) de->AttrStr[0]='d';
-		if (de->Attrib&CPPLDIR_LINK) de->AttrStr[0]='l';
-		Files.Add(de);
+		if (de.Attrib&CPPLDIR_DIR) de.AttrStr[0]='d';
+		if (de.Attrib&CPPLDIR_LINK) de.AttrStr[0]='l';
+		Files.add(de);
 		// Nächster Datensatz
 		if (_wfindnexti64(handle,&data)<0) break;
 	}
 	_findclose(handle);
 	Resort(sort);
+	Reset();
 	return 1;
 }
 #elif defined HAVE_OPENDIR
-int CDir::Open(const char *path, Sort s)
+int CDir::Open(const CString &path, Sort s)
 {
 	Clear();
 	sort=s;
@@ -1031,56 +1108,52 @@ int CDir::Open(const char *path, Sort s)
 			return 0;
 		}
 		if (result==NULL) break;
-		CDirEntry *de=new CDirEntry;
-		if (!de) {
-			closedir(dir);
-			SetError(2);
-			return 0;
-		}
-		strcpy (de->AttrStr,"----------");
-		de->Attrib=0;
-		de->ATime=de->CTime=de->MTime=0;
-		de->Filename=d.d_name;
-		de->Size=0;
-		de->File.Sprintf("%s/%s",(const char*)Path,d.d_name);		// Fileinfos holen
-		de->Path=Path;
+		CDirEntry de;
+		strcpy (de.AttrStr,"----------");
+		de.Attrib=0;
+		de.ATime=de.CTime=de.MTime=0;
+		de.Filename=d.d_name;
+		de.Size=0;
+		de.File.Sprintf("%s/%s",(const char*)Path,d.d_name);		// Fileinfos holen
+		de.Path=Path;
 		struct stat st;
-		if (stat ((const char*)de->File,&st)==0) {
-			de->Size=st.st_size;
-			de->Uid=st.st_uid;
-			de->Gid=st.st_gid;
-			de->Blocks=st.st_blocks;
-			de->BlockSize=st.st_blksize;
-			de->NumLinks=st.st_nlink;
-			if (st.st_mode & S_IFDIR) de->Attrib|=CPPLDIR_DIR;
-			if (st.st_mode & S_IFREG) de->Attrib|=CPPLDIR_FILE;
+		if (stat ((const char*)de.File,&st)==0) {
+			de.Size=st.st_size;
+			de.Uid=st.st_uid;
+			de.Gid=st.st_gid;
+			de.Blocks=st.st_blocks;
+			de.BlockSize=st.st_blksize;
+			de.NumLinks=st.st_nlink;
+			if (st.st_mode & S_IFDIR) de.Attrib|=CPPLDIR_DIR;
+			if (st.st_mode & S_IFREG) de.Attrib|=CPPLDIR_FILE;
 			#ifndef __DJGPP__
-				if (st.st_mode & S_IFLNK) de->Attrib|=CPPLDIR_LINK;
+				if (st.st_mode & S_IFLNK) de.Attrib|=CPPLDIR_LINK;
 			#endif
 
-			if (st.st_mode & S_IRUSR) de->AttrStr[1]='r';
-			if (st.st_mode & S_IWUSR) de->AttrStr[2]='w';
-			if (st.st_mode & S_IXUSR) de->AttrStr[3]='x';
-			if (st.st_mode & S_ISUID) de->AttrStr[3]='s';
+			if (st.st_mode & S_IRUSR) de.AttrStr[1]='r';
+			if (st.st_mode & S_IWUSR) de.AttrStr[2]='w';
+			if (st.st_mode & S_IXUSR) de.AttrStr[3]='x';
+			if (st.st_mode & S_ISUID) de.AttrStr[3]='s';
 
-			if (st.st_mode & S_IRGRP) de->AttrStr[4]='r';
-			if (st.st_mode & S_IWGRP) de->AttrStr[5]='w';
-			if (st.st_mode & S_IXGRP) de->AttrStr[6]='x';
-			if (st.st_mode & S_ISGID) de->AttrStr[6]='s';
+			if (st.st_mode & S_IRGRP) de.AttrStr[4]='r';
+			if (st.st_mode & S_IWGRP) de.AttrStr[5]='w';
+			if (st.st_mode & S_IXGRP) de.AttrStr[6]='x';
+			if (st.st_mode & S_ISGID) de.AttrStr[6]='s';
 
-			if (st.st_mode & S_IROTH) de->AttrStr[7]='r';
-			if (st.st_mode & S_IWOTH) de->AttrStr[8]='w';
-			if (st.st_mode & S_IXOTH) de->AttrStr[9]='x';
-			de->ATime=st.st_atime;
-			de->CTime=st.st_ctime;
-			de->MTime=st.st_mtime;
+			if (st.st_mode & S_IROTH) de.AttrStr[7]='r';
+			if (st.st_mode & S_IWOTH) de.AttrStr[8]='w';
+			if (st.st_mode & S_IXOTH) de.AttrStr[9]='x';
+			de.ATime=st.st_atime;
+			de.CTime=st.st_ctime;
+			de.MTime=st.st_mtime;
 		}
-		if (de->Attrib&CPPLDIR_DIR) de->AttrStr[0]='d';
-		if (de->Attrib&CPPLDIR_LINK) de->AttrStr[0]='l';
-		Files.Add(de);
+		if (de.Attrib&CPPLDIR_DIR) de.AttrStr[0]='d';
+		if (de.Attrib&CPPLDIR_LINK) de.AttrStr[0]='l';
+		Files.add(de);
 	}
 	closedir(dir);
 	Resort(sort);
+	Reset();
 	return 1;
 }
 #else
