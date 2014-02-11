@@ -376,6 +376,7 @@ install:	release/\$(LIBNAME).a release/pplgenresource.o
 	cp release/\$(LIBNAME)*.a \$(TARGETLIB)
 	cp \$(incdir)/ppl6.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl6-exceptions.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl6-algorithms.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl6-grafix.h \$(TARGETINCLUDE)
 	rm -f \$(TARGETINCLUDE)\ppl6-grafix6.h
 	cp \$(incdir)/ppl6-tk.h \$(TARGETINCLUDE)
@@ -393,6 +394,7 @@ install_debug: debug/\$(LIBDEBUG).a debug/pplgenresource.o
 	cp debug/\$(LIBDEBUG)*.a \$(TARGETLIB)
 	cp \$(incdir)/ppl6.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl6-exceptions.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl6-algorithms.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl6-grafix.h \$(TARGETINCLUDE)
 	rm -f \$(TARGETINCLUDE)\ppl6-grafix6.h
 	cp \$(incdir)/ppl6-tk*.h \$(TARGETINCLUDE)

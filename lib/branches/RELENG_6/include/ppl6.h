@@ -288,6 +288,55 @@ typedef struct tagWinRect {
 	int height;
 } WINRECT;
 
+class MemoryHeap
+ {
+ 	private:
+ 		void		*blocks;
+ 		size_t		myElementSize, increaseSize;
+ 		size_t		myGrowPercent;
+ 		size_t		blocksAllocated, blocksUsed;
+ 		size_t		mem_allocated;
+ 		size_t		mem_used;
+ 		size_t		freeCount;
+
+ 		void		increase(size_t num);
+
+ 	public:
+ 		PPLNORMALEXCEPTION(NotInitializedException);
+ 		PPLNORMALEXCEPTION(AlreadyInitializedException);
+ 		PPLNORMALEXCEPTION(HeapCorruptedException);
+ 		PPLNORMALEXCEPTION(ElementNotInHeapException);
+
+
+
+ 		MemoryHeap();
+ 		MemoryHeap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
+ 		~MemoryHeap();
+ 		void clear();
+ 		void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
+ 		void *malloc();
+ 		void *calloc();
+ 		void free(void *element);
+ 		size_t memoryUsed() const;
+ 		size_t memoryAllocated() const;
+ 		void dump() const;
+ 		size_t capacity() const;
+ 		size_t count() const;
+ 		size_t elementSize() const;
+ 		void reserve(size_t num);
+ 		void cleanup();
+ };
+
+}	// EOF namespace ppl6
+// Inlcude PPL6 Algorithms
+#ifdef PPL6LIB
+#include "ppl6-algorithms.h"
+#else
+#include <ppl6-algorithms.h>
+#endif
+
+namespace ppl6 {
+
 class CArray;
 class CAssocArray;
 class CCallback;

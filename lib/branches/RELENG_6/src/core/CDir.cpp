@@ -553,6 +553,14 @@ class CDirSortMTime : public CTreeController
 		}
 };
 
+class CDirNewSortMTime
+{
+	public:
+		bool operator() (const CDirEntry *e1, const CDirEntry *e2) {
+			return e1->MTime<e2->MTime;
+		}
+};
+
 
 CDir::CDir(const char *path, Sort s)
 /*!\brief Konstruktor der Klasse

@@ -19,7 +19,9 @@ OBJECTS = compile/wordlist.o \
 	compile/filestatic.o \
 	compile/perlhelper.o \
 	compile/dir.o \
-	compile/id3tag.o
+	compile/id3tag.o \
+	compile/memoryheap.o \
+	compile/list.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -114,6 +116,14 @@ compile/id3tag.o: src/id3tag.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/id3tag.o -c src/id3tag.cpp
 
+compile/memoryheap.o: src/memoryheap.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/memoryheap.o -c src/memoryheap.cpp
+
+compile/list.o: src/list.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/list.o -c src/list.cpp
+	
 	
 compile/wordlist.o: src/wordlist.cpp Makefile
 	mkdir -p compile
