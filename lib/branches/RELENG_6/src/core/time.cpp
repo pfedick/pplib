@@ -529,7 +529,7 @@ ppluint64 Datum2Sekunden(char *datum, char *zeit)
 /*!\ingroup PPLGroupDateTime
  */
 {
-  ppldd jahr,monat,tag,hour=0,min=0,sec=0;
+  int jahr,monat,tag,hour=0,min=0,sec=0;
   time_t LTime;
   struct tm Time;
   memset((char *) &Time, 0,sizeof(Time));
@@ -624,7 +624,7 @@ ppluint64 GetUTC(char *datum, char *zeit)
 /*!\ingroup PPLGroupDateTime
  */
 {
-  ppldd jahr,monat,tag,hour=0,min=0,sec=0;
+  int jahr,monat,tag,hour=0,min=0,sec=0;
   time_t LTime;
   struct tm Time;
   memset((char *) &Time, 0,sizeof(Time));
