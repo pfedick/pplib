@@ -187,7 +187,7 @@ CDirEntry::CDirEntry()
 	NumLinks=0;
 }
 
-int CDirEntry::IsDir()
+int CDirEntry::IsDir() const
 /*!\brief Ist aktueller Eintrag ein Verzeichnis?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag ein Verzeichnis ist.
@@ -199,7 +199,7 @@ int CDirEntry::IsDir()
 	return 0;
 }
 
-int CDirEntry::IsFile()
+int CDirEntry::IsFile() const
 /*!\brief Ist aktueller Eintrag eine Datei?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag eine Datei ist.
@@ -211,7 +211,7 @@ int CDirEntry::IsFile()
 	return 0;
 }
 
-int CDirEntry::IsLink()
+int CDirEntry::IsLink() const
 /*!\brief Ist aktueller Eintrag ein Link?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag ein Link ist.
@@ -223,7 +223,7 @@ int CDirEntry::IsLink()
 	return 0;
 }
 
-int CDirEntry::IsHidden()
+int CDirEntry::IsHidden() const
 /*!\brief Ist aktueller Eintrag versteckt?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag eine versteckte Datei
@@ -236,7 +236,7 @@ int CDirEntry::IsHidden()
 	return 0;
 }
 
-int CDirEntry::IsReadOnly()
+int CDirEntry::IsReadOnly() const
 /*!\brief Ist aktueller Eintrag nur lesbar?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag nur lesbar ist (Read-Only).
@@ -249,7 +249,7 @@ int CDirEntry::IsReadOnly()
 	return 0;
 }
 
-int CDirEntry::IsArchiv()
+int CDirEntry::IsArchiv() const
 /*!\brief Hat aktueller Eintrag Archiv-Flag?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag ein gesetztes
@@ -262,7 +262,7 @@ int CDirEntry::IsArchiv()
 	return 0;
 }
 
-int CDirEntry::IsSystem()
+int CDirEntry::IsSystem() const
 /*!\brief Ist aktueller Eintrag eine Systemdatei?
  *
  * Die Funktion prüft, ob der aktuelle Directory-Eintrag eine Systemdatei ist.
@@ -358,7 +358,7 @@ int CDirEntry::ToArray(CAssocArray *a) const
 	return 1;
 }
 
-void CDirEntry::Print(char *label)
+void CDirEntry::Print(char *label)  const
 /*!\brief Verzeichniseintrag ausgeben
  *
  * Gibt den Inhalt des aktuellen Verzeichnis-Eintrags auf STDOUT aus.

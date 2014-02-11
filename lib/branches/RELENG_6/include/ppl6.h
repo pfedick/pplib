@@ -3050,18 +3050,18 @@ class CDirEntry
 		ppluint32	NumLinks;
 		char		AttrStr[11];
 		ppluint64	ATime, CTime, MTime;
-		int			IsDir();
-		int			IsFile();
-		int			IsLink();
-		int			IsHidden();
-		int			IsReadOnly();
-		int			IsArchiv();
-		int			IsSystem();
+		int			IsDir() const;
+		int			IsFile() const;
+		int			IsLink() const;
+		int			IsHidden() const;
+		int			IsReadOnly() const;
+		int			IsArchiv() const;
+		int			IsSystem() const;
 		int			Copy(CDirEntry *dir);
 		CDirEntry& operator=(const CDirEntry& dir);
 		CDirEntry& operator=(const CDirEntry *dir);
 		int			ToArray(CAssocArray *a) const;
-		void		Print(char *label=NULL);
+		void		Print(char *label=NULL) const;
 };
 
 
