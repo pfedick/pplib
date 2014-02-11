@@ -128,7 +128,7 @@ TEST_F(DirTest, resortByDate) {
 
 TEST_F(DirTest, dirWalkFilename) {
 	ppl6::CDir d1("testdata/dirwalk", ppl6::CDir::Sort_Filename);
-	ppl6::CDirEntry *e;
+	const ppl6::CDirEntry *e;
 	while (1) {
 		e=d1.GetNext();
 		ASSERT_TRUE(e!=NULL);
@@ -178,9 +178,9 @@ TEST_F(DirTest, dirWalkFilename) {
 }
 
 
-ppl6::CDirEntry *getNextFile(ppl6::CDir &d)
+const ppl6::CDirEntry *getNextFile(ppl6::CDir &d)
 {
-	ppl6::CDirEntry *e;
+	const ppl6::CDirEntry *e;
 	while (1) {
 		e=d.GetNext();
 		if (!e) break;
@@ -191,7 +191,7 @@ ppl6::CDirEntry *getNextFile(ppl6::CDir &d)
 
 TEST_F(DirTest, patternWalk) {
 	ppl6::CDir d1("testdata/dirwalk", ppl6::CDir::Sort_Filename);
-	ppl6::CDirEntry *e;
+	const ppl6::CDirEntry *e;
 	e=d1.GetNextPattern("file*");
 	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("file1.txt"),e->Filename);
@@ -225,7 +225,7 @@ TEST_F(DirTest, patternWalk) {
 TEST_F(DirTest, regExpWalk) {
 	ppl6::CDir d1("testdata/dirwalk", ppl6::CDir::Sort_Filename);
 	ppl6::CString expr("/^.file.*/i");
-	ppl6::CDirEntry *e;
+	const ppl6::CDirEntry *e;
 	e=d1.GetNextRegExp(expr);
 	ASSERT_TRUE(e!=NULL);
 	ASSERT_EQ(ppl6::CString("afile.txt"),e->Filename);
