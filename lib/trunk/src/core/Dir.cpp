@@ -545,17 +545,14 @@ void Dir::resortFilename()
 	ppl7::List<DirEntry>::Iterator it;
 	Files.reset(it);
 
-	AVLTree<String, const DirEntry*> sorter;
-	sorter.allowDupes(true);
-	String filename;
+	std::multimap<String, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.add(de.Filename,&de);
+		sorter.insert(std::pair<String,const DirEntry*>(de.Filename,&de));
 	}
-	AVLTree<String, const DirEntry*>::Iterator sortit;
-	sorter.reset(sortit);
-	while (sorter.getNext(sortit)) {
-		SortedFiles.add(sortit.value());
+	std::multimap<String, const DirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
 	}
 }
 
@@ -572,19 +569,17 @@ void Dir::resortFilenameIgnoreCase()
 	ppl7::List<DirEntry>::Iterator it;
 	Files.reset(it);
 
-	AVLTree<String, const DirEntry*> sorter;
-	sorter.allowDupes(true);
+	std::multimap<String, const DirEntry*> sorter;
 	String filename;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
 		filename.set(de.Filename);
 		filename.lowerCase();
-		sorter.add(filename,&de);
+		sorter.insert(std::pair<String,const DirEntry*>(filename,&de));
 	}
-	AVLTree<String, const DirEntry*>::Iterator sortit;
-	sorter.reset(sortit);
-	while (sorter.getNext(sortit)) {
-		SortedFiles.add(sortit.value());
+	std::multimap<String, const DirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
 	}
 }
 
@@ -603,19 +598,17 @@ void Dir::resortFilenameIgnoreCase()
 void Dir::resortMTime()
 {
 	ppl7::List<DirEntry>::Iterator it;
-	AVLTree<DateTime, const DirEntry*> sorter;
-	sorter.allowDupes(true);
 	Files.reset(it);
+
+	std::multimap<DateTime, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.add(de.MTime,&de);
+		sorter.insert(std::pair<String,const DirEntry*>(de.MTime,&de));
 	}
-	AVLTree<DateTime, const DirEntry*>::Iterator sortit;
-	sorter.reset(sortit);
-	while (sorter.getNext(sortit)) {
-		SortedFiles.add(sortit.value());
+	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
 	}
-
 }
 
 /*!\brief Dateien nach Datum der letzten Statusänderung sortieren
@@ -633,19 +626,17 @@ void Dir::resortMTime()
 void Dir::resortCTime()
 {
 	ppl7::List<DirEntry>::Iterator it;
-	AVLTree<DateTime, const DirEntry*> sorter;
-	sorter.allowDupes(true);
 	Files.reset(it);
+
+	std::multimap<DateTime, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.add(de.CTime,&de);
+		sorter.insert(std::pair<String,const DirEntry*>(de.CTime,&de));
 	}
-	AVLTree<DateTime, const DirEntry*>::Iterator sortit;
-	sorter.reset(sortit);
-	while (sorter.getNext(sortit)) {
-		SortedFiles.add(sortit.value());
+	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
 	}
-	return;
 }
 
 /*!\brief Dateien nach Datum des letzten Zugriffs sortieren
@@ -661,19 +652,17 @@ void Dir::resortCTime()
 void Dir::resortATime()
 {
 	ppl7::List<DirEntry>::Iterator it;
-	AVLTree<DateTime, const DirEntry*> sorter;
-	sorter.allowDupes(true);
 	Files.reset(it);
+
+	std::multimap<DateTime, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.add(de.ATime,&de);
+		sorter.insert(std::pair<String,const DirEntry*>(de.ATime,&de));
 	}
-	AVLTree<DateTime, const DirEntry*>::Iterator sortit;
-	sorter.reset(sortit);
-	while (sorter.getNext(sortit)) {
-		SortedFiles.add(sortit.value());
+	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
 	}
-	return;
 }
 
 /*!\brief Dateien nach Dateigröße sortieren
@@ -689,19 +678,20 @@ void Dir::resortATime()
 void Dir::resortSize()
 {
 	ppl7::List<DirEntry>::Iterator it;
-	AVLTree<ppluint64, const DirEntry*> sorter;
-	sorter.allowDupes(true);
 	Files.reset(it);
+
+	std::multimap<ppluint64, const DirEntry*> sorter;
 	while (Files.getNext(it)) {
 		const DirEntry &de=it.value();
-		sorter.add(de.Size,&de);
+		sorter.insert(std::pair<ppluint64,const DirEntry*>(de.Size,&de));
 	}
-	AVLTree<ppluint64, const DirEntry*>::Iterator sortit;
-	sorter.reset(sortit);
-	while (sorter.getNext(sortit)) {
-		SortedFiles.add(sortit.value());
+	std::multimap<ppluint64, const DirEntry*>::const_iterator sortit;
+	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+		SortedFiles.add((*sortit).second);
 	}
+
 }
+
 
 /*!\brief Zeiger auf den ersten Eintrag des Verzeichnisses
  *
