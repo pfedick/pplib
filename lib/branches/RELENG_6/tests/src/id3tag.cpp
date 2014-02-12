@@ -121,7 +121,7 @@ TEST_F(CID3TagTest, InitialTaggingWithoutPicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged1.mp3",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("861daa2b4dbdbab8189961622b2d36dc"),ppl6::CFile::MD5("tmp/test_tagged1.mp3"));
+	ASSERT_EQ(ppl6::CString("c5ff756219cba391c99423ddd6cca625"),ppl6::CFile::MD5("tmp/test_tagged1.mp3"));
 
 
 }
@@ -153,8 +153,8 @@ TEST_F(CID3TagTest, InitialTaggingWithPicture) {
 	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged2.mp3",d)) << "Tagged File does not exist!";
-	ASSERT_EQ((size_t)125071,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("da9fdb368b613511ae881a452ebb4e91"),ppl6::CFile::MD5("tmp/test_tagged2.mp3"));
+	ASSERT_EQ((size_t)125073,d.Size) << "Tagged File has unexpected size";
+	ASSERT_EQ(ppl6::CString("438ae1ebab551388673a6c006b70d407"),ppl6::CFile::MD5("tmp/test_tagged2.mp3"));
 }
 
 TEST_F(CID3TagTest, RetagWithPicture) {
@@ -168,8 +168,8 @@ TEST_F(CID3TagTest, RetagWithPicture) {
 	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged3.mp3",d)) << "Tagged File does not exist!";
-	ASSERT_EQ((size_t)125072,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("1b11537ba011455c3ef04e5b3134faa8"),ppl6::CFile::MD5("tmp/test_tagged3.mp3"));
+	ASSERT_EQ((size_t)125074,d.Size) << "Tagged File has unexpected size";
+	ASSERT_EQ(ppl6::CString("052fd75215f383718e1368b535520c60"),ppl6::CFile::MD5("tmp/test_tagged3.mp3"));
 }
 
 TEST_F(CID3TagTest, RetagStrings) {
@@ -209,7 +209,7 @@ TEST_F(CID3TagTest, RetagStrings) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged4.mp3",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("28c267be5390f2a43161331ad114ec9e"),ppl6::CFile::MD5("tmp/test_tagged4.mp3"));
+	ASSERT_EQ(ppl6::CString("c07206ccf6c04a3308b4405f383f6559"),ppl6::CFile::MD5("tmp/test_tagged4.mp3"));
 }
 
 TEST_F(CID3TagTest, RemovePicture) {
@@ -221,7 +221,7 @@ TEST_F(CID3TagTest, RemovePicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged5.mp3",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)97073,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("ba390b6a0998b6e6a57cf982fd83d794"),ppl6::CFile::MD5("tmp/test_tagged5.mp3"));
+	ASSERT_EQ(ppl6::CString("e2dacaeff7f3dbc0d54ed63e88ba519d"),ppl6::CFile::MD5("tmp/test_tagged5.mp3"));
 }
 
 TEST_F(CID3TagTest, RemoveAllTags) {
@@ -258,7 +258,7 @@ TEST_F(CID3TagTest, RetagWithoutChanges) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged8.mp3",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("861daa2b4dbdbab8189961622b2d36dc"),ppl6::CFile::MD5("tmp/test_tagged8.mp3"));
+	ASSERT_EQ(ppl6::CString("c5ff756219cba391c99423ddd6cca625"),ppl6::CFile::MD5("tmp/test_tagged8.mp3"));
 }
 
 
