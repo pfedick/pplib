@@ -286,8 +286,6 @@ CID3Frame::CID3Frame(const char *name)
  */
 CID3Frame::~CID3Frame()
 {
-	if (previousFrame) previousFrame->nextFrame=nextFrame;
-	if (nextFrame) nextFrame->previousFrame=previousFrame;
 	if(data) free(data);
 }
 
@@ -1788,7 +1786,7 @@ void CID3Tag::RemovePicture(int type)
 			//int encoding=Peek8(frame->data);
 			int offset=Decode(frame,1,0,MimeType);
 			if ((int)Peek8(frame->data+offset)==type) {
-				delete (frame->data);
+				free (frame->data);
 				frame->data=NULL;
 				frame->Size=0;
 				DeleteFrame(frame);
