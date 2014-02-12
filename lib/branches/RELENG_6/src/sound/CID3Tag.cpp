@@ -772,7 +772,7 @@ int CID3Tag::SetTextFrameUtf8(const char *framename, const CString &text)
 		}
 	}
 	frame->Flags=0;
-	frame->Size=text.Len()+1;
+	frame->Size=text.Len()+2;
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
@@ -845,7 +845,7 @@ int CID3Tag::SetTextFrameISO88591(const char *framename, const CString &text)
 		}
 	}
 	frame->Flags=0;
-	frame->Size=enc.Len()+1;
+	frame->Size=enc.Len()+2;
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
