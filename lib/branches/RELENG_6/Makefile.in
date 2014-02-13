@@ -157,6 +157,7 @@ RELEASE	= release/CAVLTree.o \
 	release/tk_Tab.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
+	release/AudioInfo.o \
 	release/CID3Tag.o \
 	release/CIcecast.o \
 	release/CMP3Decode.o \
@@ -293,6 +294,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/tk_Tab.o \
 	debug/tk_Widget.o \
 	debug/tk_Window.o \
+	debug/AudioInfo.o \
 	debug/CID3Tag.o \
 	debug/CIcecast.o \
 	debug/CMP3Decode.o \
@@ -477,7 +479,8 @@ INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 	debug/nossl_webserver.o
 
 
-SOUND_RELEASE	=release/CID3Tag.o \
+SOUND_RELEASE	=release/AudioInfo.o \
+	release/CID3Tag.o \
 	release/CIcecast.o \
 	release/CMP3Decode.o \
 	release/CMP3Decode_Lame.o \
@@ -486,7 +489,8 @@ SOUND_RELEASE	=release/CID3Tag.o \
 	release/CMP3Encode.o \
 	release/mp3.o
 
-SOUND_DEBUG	=debug/CID3Tag.o \
+SOUND_DEBUG	=debug/AudioInfo.o \
+	debug/CID3Tag.o \
 	debug/CIcecast.o \
 	debug/CMP3Decode.o \
 	debug/CMP3Decode_Lame.o \
@@ -1504,6 +1508,11 @@ release/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl
 	$(CXX) -Wall -O3 -o release/tk_Window.o -c $(CFLAGS)  $(srcdir)/toolkit/Window.cpp
 
 ### SOUND
+release/AudioInfo.o:	$(srcdir)/sound/AudioInfo.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/AudioInfo.cpp<<<
+	$(CXX) -Wall -O3 -o release/AudioInfo.o -c $(CFLAGS)  $(srcdir)/sound/AudioInfo.cpp
+
 release/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CID3Tag.cpp<<<
@@ -2289,6 +2298,11 @@ debug/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl6-
 	$(CXX) -Wall -O0 -o debug/tk_Window.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Window.cpp
 
 ### SOUND
+debug/AudioInfo.o:	$(srcdir)/sound/AudioInfo.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/AudioInfo.cpp<<<
+	$(CXX) -Wall -O0 -o debug/AudioInfo.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/AudioInfo.cpp
+
 debug/CID3Tag.o:	$(srcdir)/sound/CID3Tag.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/CID3Tag.cpp<<<

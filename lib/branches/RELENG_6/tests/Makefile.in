@@ -21,7 +21,8 @@ OBJECTS = compile/wordlist.o \
 	compile/dir.o \
 	compile/id3tag.o \
 	compile/memoryheap.o \
-	compile/list.o
+	compile/list.o \
+	compile/audioinfo.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -123,7 +124,10 @@ compile/memoryheap.o: src/memoryheap.cpp Makefile
 compile/list.o: src/list.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/list.o -c src/list.cpp
-	
+
+compile/audioinfo.o: src/audioinfo.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/audioinfo.o -c src/audioinfo.cpp	
 	
 compile/wordlist.o: src/wordlist.cpp Makefile
 	mkdir -p compile

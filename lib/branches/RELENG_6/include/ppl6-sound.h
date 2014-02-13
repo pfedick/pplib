@@ -219,6 +219,41 @@ class CMP3Encode
 //!\brief Identifizieren von MP3-Dateien und Einlesen der Header
 bool IdentMPEG(CFileObject * file, PPL_MPEG_HEADER * mpg);
 
+class AudioInfo
+{
+	public:
+		AudioInfo();
+
+		enum AudioFormat {
+			WAVE,
+			AIFF,
+			MP3
+		};
+		enum ChannelMode {
+			STEREO,
+			MONO,
+			DUAL_CHANNEL,
+			JOINT_STEREO
+		};
+
+		AudioFormat	Format;
+		bool		HaveID3v2Tag;
+		bool		IsVBR;
+		ppluint32 	ID3v2TagStart;
+		ppluint32	FileSize;
+		ppluint32	AudioStart;
+		ppluint32	AudioEnd;
+		ppluint32	AudioSize;
+		ppluint32	Samples;
+		ppluint8	BytesPerSample;
+		ppluint32	Length;		// Length in ms
+		ppluint32	Frequency;
+		ppluint16	Bitrate;
+		ppluint8	Channels;
+		ChannelMode	Mode;
+};
+
+bool IdentAudioFile(CFileObject &file, AudioInfo &info);
 
 // Basisklasse
 class CMP3Decode

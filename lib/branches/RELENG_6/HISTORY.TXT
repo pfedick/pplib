@@ -24,6 +24,11 @@ Version 6.4.19
   - CID3Tag: Fehler in der Berechnung der Framegröße bei Textframes
     mit ISO-8859-1 oder UTF-8 Kodierung behoben. (Valgrind Fehler: Invalid
     read/write of size 1)
+  - IdentAudioFile: Neue Funktion zum Ermitteln des Audioformats einer
+    Datei, sowie deren Kennzahlen, wie Frequenz, Kanäle, Samples, und Länge.
+    Die Daten werden im ebenfalls neuen Objekt "AudioInfo" abgelegt.
+    Die Funktion soll IdentMPEG ablösen und neben MP3 auch andere Formate
+    unterstützen. Gegenwärtig wird MP3 und AIFF unterstützt.
   
 Version 6.4.18 vom 04.02.2014	(SVN-Tag: REL_6_4_18)
   - CID3Tag: Neue Funktion zum Auslesen von PRIV-Frames (PrivateData)
