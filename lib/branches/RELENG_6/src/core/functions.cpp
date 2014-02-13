@@ -1048,7 +1048,7 @@ void HexDump(void *address, ppldd bytes, bool skipheader)
 
     char *_adresse=(char*)address;
     ppldd spalte=0;
-    sprintf (buff,"0x%016zX: ",(ppliptr)_adresse);
+    sprintf (buff,"0x%08X: ",0);
     memset(cleartext,0,20);
     for (ppldd i=0;i<bytes;i++) {
         if (spalte>15) {
@@ -1057,7 +1057,7 @@ void HexDump(void *address, ppldd bytes, bool skipheader)
             strcat (buff,": ");
             strcat (buff,cleartext);
             PrintDebug("%s\n",buff);
-            sprintf (buff,"0x%016zX: ",(ppliptr)_adresse+i);
+            sprintf (buff,"0x%08X: ",i);
             memset(cleartext,0,20);
             spalte=0;
         }
@@ -1087,7 +1087,7 @@ void HexDump(CString *s, void *address, ppldd bytes, bool skipheader)
     }
     char *_adresse=(char*)address;
     ppldd spalte=0;
-    sprintf (buff,"0x%016zX: ",(ppliptr)_adresse);
+    sprintf (buff,"0x%08X: ",0);
     memset(cleartext,0,20);
     for (ppldd i=0;i<bytes;i++) {
         if (spalte>15) {
@@ -1096,7 +1096,7 @@ void HexDump(CString *s, void *address, ppldd bytes, bool skipheader)
             strcat (buff,": ");
             strcat (buff,cleartext);
             s->Concatf("%s\n",buff);
-            sprintf (buff,"0x%016zX: ",(ppliptr)_adresse+i);
+            sprintf (buff,"0x%08X: ",i);
             memset(cleartext,0,20);
             spalte=0;
         }
