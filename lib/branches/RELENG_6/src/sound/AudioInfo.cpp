@@ -85,10 +85,10 @@ static bool IdentAIFF(CFileObject &file, AudioInfo &info)
 		size=ppl6::PeekN32(adr+4);
 		ppl6::CString ChunkName;
 		ChunkName.Set(adr,4);
-		printf ("Frame: %s, Size: %u\n",(const char*)ChunkName,size);
-		ppl6::HexDump((void*)adr,32);
+		//printf ("Frame: %s, Size: %u\n",(const char*)ChunkName,size);
 		if (ppl6::PeekN32(adr)==0x434f4d4d) {			// COMM-Chunk gefunden
 			printf ("COMM-Chunk gefunden\n");
+			ppl6::HexDump((void*)(adr+8),size);
 			info.Channels=ppl6::PeekN16(adr+8);
 			if (info.Channels==1) info.Mode=AudioInfo::MONO;
 			else if (info.Channels==2) info.Mode=AudioInfo::STEREO;

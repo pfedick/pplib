@@ -90,14 +90,14 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3) {
 	ppl6::CFile file;
 	ASSERT_EQ(1,file.Open("testdata/test_44kHz.aiff"));
 	ppl6::AudioInfo info;
-	ASSERT_TRUE(ppl6::IdentAudioFile(file,info));
-	EXPECT_EQ(ppl6::AudioInfo::AIFF,info.Format);
-	EXPECT_FALSE(info.HaveID3v2Tag);
-	EXPECT_FALSE(info.IsVBR);
-	EXPECT_EQ((ppluint16)192,info.Bitrate);
-	EXPECT_EQ((ppluint8)2,info.Channels);
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
-	EXPECT_EQ((ppluint32)44100,info.Frequency);
+	ASSERT_TRUE(ppl6::IdentAudioFile(file,info)) << "Audio format was not recognized";
+	EXPECT_EQ(ppl6::AudioInfo::AIFF,info.Format) << "Wrong audio format detected";
+	EXPECT_FALSE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
+	EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
+	EXPECT_EQ((ppluint16)192,info.Bitrate) << "Unexpected Bitrate";
+	EXPECT_EQ((ppluint8)2,info.Channels) << "Unexpected number of channels";
+	EXPECT_EQ((ppluint8)4,info.BytesPerSample) << "Unexpected bytes per sample";
+	EXPECT_EQ((ppluint32)44100,info.Frequency) << "Unexpected frequency";
 
 
 }
