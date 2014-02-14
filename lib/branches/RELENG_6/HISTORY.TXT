@@ -7,8 +7,8 @@ Version 6.4.19
     funktionen, die "const CString &" als einzigen Parameter erwarten 
   - CID3Tag kann ID3-Tags aus AIFF-Dateien lesen und schreiben
   - UnitTests für CID3Tag-Funktionen erstellt
-  - MemoryHeap-Klasse samt Unit-Tests aus PPL7 importiert
-  - Algorithmus "List" samt Unit-Tests aus PPL7 importiert
+  - MemoryHeap-Klasse sammt Unit-Tests aus PPL7 importiert
+  - Algorithmus "List" sammt Unit-Tests aus PPL7 importiert
   - CDir wurde refakturiert: "Get" Funktionen geben jetzt
     "const CDirEntry*" statt "CDirEntry*" zurück, Sortierfunktionen
     aus PPL7 importiert, als Sortieralgorithmus wird nun std::multimap
