@@ -419,6 +419,8 @@ class CID3Tag
 
 		int SaveMP3();
 		int SaveAiff();
+		int TrySaveAiffInExistingFile(CFile &o, CBinary &tagV2);
+		int CopyAiffToNewFile(CFile &o, CFile &n, CBinary &tagV2);
 
 	public:
 		CID3Tag();

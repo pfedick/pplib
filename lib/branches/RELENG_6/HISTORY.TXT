@@ -5,7 +5,7 @@ Version 6.4.19
   - CBinary hat Malloc- und Calloc-Funktion bekommen,
     Save wurde umbenannt in Savef, Load in Loadf. Neue Save- und Load-
     funktionen, die "const CString &" als einzigen Parameter erwarten 
-  - CID3Tag kann ID3-Tags aus AIFF-Dateien lesen
+  - CID3Tag kann ID3-Tags aus AIFF-Dateien lesen und schreiben
   - UnitTests für CID3Tag-Funktionen erstellt
   - MemoryHeap-Klasse samt Unit-Tests aus PPL7 importiert
   - Algorithmus "List" samt Unit-Tests aus PPL7 importiert

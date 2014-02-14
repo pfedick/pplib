@@ -76,13 +76,62 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithoutID3) {
 	ASSERT_TRUE(ppl6::IdentAudioFile(file,info));
 	EXPECT_EQ(ppl6::AudioInfo::MP3,info.Format);
 	EXPECT_FALSE(info.HaveID3v2Tag);
+	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR);
 	EXPECT_EQ((ppluint16)192,info.Bitrate);
 	EXPECT_EQ((ppluint8)2,info.Channels);
 	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
 	EXPECT_EQ((ppluint32)44100,info.Frequency);
+	EXPECT_EQ((ppluint32)176223,info.Samples);
+	EXPECT_EQ(ppl6::AudioInfo::JOINT_STEREO,info.Mode);
+}
 
+TEST_F(AudioInfoTest, IdentMp3CBR320WithoutID3) {
+	ppl6::CFile file;
+	ASSERT_EQ(1,file.Open("testdata/test_320cbr.mp3"));
+	ppl6::AudioInfo info;
+	ASSERT_TRUE(ppl6::IdentAudioFile(file,info));
+	EXPECT_EQ(ppl6::AudioInfo::MP3,info.Format);
+	EXPECT_FALSE(info.HaveID3v2Tag);
+	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_FALSE(info.IsVBR);
+	EXPECT_EQ((ppluint16)320,info.Bitrate);
+	EXPECT_EQ((ppluint8)2,info.Channels);
+	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
+	EXPECT_EQ((ppluint32)44100,info.Frequency);
+	EXPECT_EQ((ppluint32)176223,info.Samples);
+}
 
+TEST_F(AudioInfoTest, IdentMp3VBR192WithoutID3) {
+	ppl6::CFile file;
+	ASSERT_EQ(1,file.Open("testdata/test_192vbr.mp3"));
+	ppl6::AudioInfo info;
+	ASSERT_TRUE(ppl6::IdentAudioFile(file,info));
+	EXPECT_EQ(ppl6::AudioInfo::MP3,info.Format);
+	EXPECT_FALSE(info.HaveID3v2Tag);
+	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_TRUE(info.IsVBR);
+	EXPECT_EQ((ppluint16)177,info.Bitrate);
+	EXPECT_EQ((ppluint8)2,info.Channels);
+	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
+	EXPECT_EQ((ppluint32)44100,info.Frequency);
+	EXPECT_EQ((ppluint32)173952,info.Samples);
+}
+
+TEST_F(AudioInfoTest, IdentMp3CBR192WithID3) {
+	ppl6::CFile file;
+	ASSERT_EQ(1,file.Open("testdata/test_192cbr_tagged.mp3"));
+	ppl6::AudioInfo info;
+	ASSERT_TRUE(ppl6::IdentAudioFile(file,info));
+	EXPECT_EQ(ppl6::AudioInfo::MP3,info.Format);
+	EXPECT_TRUE(info.HaveID3v2Tag);
+	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_FALSE(info.IsVBR);
+	EXPECT_EQ((ppluint16)192,info.Bitrate);
+	EXPECT_EQ((ppluint8)2,info.Channels);
+	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
+	EXPECT_EQ((ppluint32)44100,info.Frequency);
+	EXPECT_EQ((ppluint32)176223,info.Samples);
 }
 
 
@@ -93,13 +142,13 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3) {
 	ASSERT_TRUE(ppl6::IdentAudioFile(file,info)) << "Audio format was not recognized";
 	EXPECT_EQ(ppl6::AudioInfo::AIFF,info.Format) << "Wrong audio format detected";
 	EXPECT_FALSE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
+	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
 	EXPECT_EQ((ppluint16)1411,info.Bitrate) << "Unexpected Bitrate";
 	EXPECT_EQ((ppluint8)2,info.Channels) << "Unexpected number of channels";
 	EXPECT_EQ((ppluint8)4,info.BytesPerSample) << "Unexpected bytes per sample";
 	EXPECT_EQ((ppluint32)44100,info.Frequency) << "Unexpected frequency";
-
-
+	EXPECT_EQ((ppluint32)173695,info.Samples);
 }
 
 }	// EOF namespace

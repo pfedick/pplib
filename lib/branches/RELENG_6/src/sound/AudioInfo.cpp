@@ -145,16 +145,16 @@ static bool IdentMP3(CFileObject &file, AudioInfo &info, PPL_MPEG_HEADER &mp3)
 	info.Length=mp3.mslength;
 	switch (mp3.mode) {
 		case 0: info.Mode=AudioInfo::STEREO; break;
-		case 1: info.Mode=AudioInfo::MONO; break;
+		case 1: info.Mode=AudioInfo::JOINT_STEREO; break;
 		case 2: info.Mode=AudioInfo::DUAL_CHANNEL; break;
-		case 3: info.Mode=AudioInfo::JOINT_STEREO; break;
+		case 3: info.Mode=AudioInfo::MONO; break;
 		default: return false;
 	}
 
 	const char *adr=file.Map(0,10);
 	info.HaveID3v2Tag=false;
 	info.ID3v2TagStart=0;
-	if (strncmp(adr,"ID3",3)!=0) {
+	if (strncmp(adr,"ID3",3)==0) {
 		if (peek8(adr+3)==3 && peek8(adr+4)==0) info.HaveID3v2Tag=true;			// Version 2.3
 		else if (peek8(adr+3)==4 && peek8(adr+4)==0) info.HaveID3v2Tag=true;	// Version 2.4
 	}

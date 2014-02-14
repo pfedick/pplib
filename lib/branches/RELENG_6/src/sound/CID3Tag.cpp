@@ -1358,10 +1358,117 @@ int CID3Tag::SaveMP3()
 	return 1;
 }
 
+int CID3Tag::TrySaveAiffInExistingFile(CFile &o, CBinary &tagV2)
+{
+	const char *adr;
+	ppluint32 qp=12;
+	ppluint32 size;
+	while (qp<o.Size()) {
+		adr=o.Map(qp,32);
+		if (!adr) break;
+		size=ppl6::PeekN32(adr+4);
+		if (ppl6::PeekN32(adr)==0x49443320) {	// ID3-Chunk gefunden
+			//printf ("Found ID3-Chunk with size: %u, Tag is: %u\n",size,tagV2.Size());
+			if (size>tagV2.Size()) {
+				// Reuse old slot
+				ppluint32 maximumsize=tagV2.Size();
+				if (maximumsize+PaddingSpace<PaddingSize) maximumsize=PaddingSize;
+				else maximumsize+=PaddingSpace;
+				maximumsize+=(maximumsize/10);
+				if (maximumsize<size) {
+					//printf ("Old tag too big, rewriting, maximum=%u\n",maximumsize);
+					break;
+				}
+				//printf ("Reuse former Tag in old file\n");
+				o.Write(tagV2.GetPtr(),tagV2.Size(),qp+8);
+				void *space=calloc(size-tagV2.Size(),1);
+				if (space) {
+					//memset(space,1,size-tagV2.Size());
+					o.Write(space,size-tagV2.Size());
+					free(space);
+				}
+				o.Close();
+				return 1;
+			} else {
+				break;
+			}
+		}
+		qp+=size+8;
+	}
+	return 0;
+}
+
+int CID3Tag::CopyAiffToNewFile(CFile &o, CFile &n, CBinary &tagV2)
+{
+	ppluint32 qp=12;
+	ppluint32 tp=12;
+	ppluint32 size;
+	const char *adr;
+	n.Copy(o,0,12,0);	// Header kopieren
+	while (qp<o.Size()) {
+		adr=o.Map(qp,32);
+		if (!adr) break;
+		size=ppl6::PeekN32(adr+4);
+		if (ppl6::PeekN32(adr)!=0x49443320) {	// ignore former ID3-chunk
+			n.Copy(o,qp,size+8,tp);				// append chunk to temporary file
+			tp+=size+8;
+		}
+		qp+=size+8;
+	}
+
+	// append new ID3-chunk
+	size=tagV2.Size();
+	if (size>0) {
+		char buffer[8];
+		if (size+PaddingSpace<PaddingSize) size=PaddingSize;
+		else size+=PaddingSpace;
+		ppl6::PokeN32(buffer,0x49443320);
+		ppl6::PokeN32(buffer+4,size);
+		n.Write(&buffer,8,tp);
+		n.Write(tagV2.GetPtr(),tagV2.Size(),tp+8);
+		// Padding
+		void *space=calloc(size-tagV2.Size(),1);
+		if (!space) {
+			SetError(2);
+			return 0;
+		}
+		n.Write(space,size-tagV2.Size());
+		free(space);
+	}
+
+	return 1;
+}
+
 int CID3Tag::SaveAiff()
 {
-	SetError(5,"CID3Tag::SaveAiff");
-	return 0;
+	CString tmpfile=Filename;
+	tmpfile+=".rename.tmp";
+	CFile n;
+	CFile o;
+
+	if (!o.Open(Filename,"r+b")) return 0;
+
+	// Tags generieren
+	CBinary tagV2;
+	generateId3V2Tag(tagV2);
+
+	if (tagV2.Size()>0) {
+		if(TrySaveAiffInExistingFile(o,tagV2)==1) return 1;
+	}
+
+	// create temporary file for new tag
+	if (!n.Open(&tmpfile,"w+b")) return 0;
+	if (!CopyAiffToNewFile(o,n,tagV2)) {
+		PushError();
+		n.Close();
+		o.Close();
+		CFile::DeleteFile(tmpfile);
+		PopError();
+		return 0;
+	}
+	o.Close();
+	n.Close();
+	return CFile::RenameFile(tmpfile,Filename);
 }
 
 /*!\brief Name des Interpreten auslesen
