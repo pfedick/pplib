@@ -77,7 +77,7 @@ static bool IdentAIFF(CFileObject &file, AudioInfo &info)
 	ppluint32 p=12;
 	ppluint32 size;
 
-	printf ("Checking AIFF, p=12, file.Size=%u\n",file.Size());
+	//printf ("Checking AIFF, p=12, file.Size=%u\n",file.Size());
 
 	while (p<file.Size()) {
 		adr=file.Map(p,32);
@@ -87,18 +87,31 @@ static bool IdentAIFF(CFileObject &file, AudioInfo &info)
 		ChunkName.Set(adr,4);
 		//printf ("Frame: %s, Size: %u\n",(const char*)ChunkName,size);
 		if (ppl6::PeekN32(adr)==0x434f4d4d) {			// COMM-Chunk gefunden
-			printf ("COMM-Chunk gefunden\n");
-			ppl6::HexDump((void*)(adr+8),size);
+			//printf ("COMM-Chunk gefunden\n");
+			//ppl6::HexDump((void*)(adr+8),size);
 			info.Channels=ppl6::PeekN16(adr+8);
 			if (info.Channels==1) info.Mode=AudioInfo::MONO;
 			else if (info.Channels==2) info.Mode=AudioInfo::STEREO;
 			else return false;	// Not supported
-
 			info.Samples=ppl6::PeekN32(adr+10);
 			info.BytesPerSample=(ppl6::PeekN16(adr+14)*info.Channels)/8;
-			long double frequency=((long double *)(adr+16))[0]; // 80 bit IEEE Standard 754 floating point number
+			long double frequency=44100.0;	// 80 bit IEEE Standard 754 floating point number
+			//ppl6::HexDump(&frequency,sizeof(long double));
+			frequency=0.0;
+			char *f=(char*)&frequency;	// Umwandlung von BE nach LE
+			f[0]=adr[25];
+			f[1]=adr[24];
+			f[2]=adr[23];
+			f[3]=adr[22];
+			f[4]=adr[21];
+			f[5]=adr[20];
+			f[6]=adr[19];
+			f[7]=adr[18];
+			f[8]=adr[17];
+			f[9]=adr[16];
+			//ppl6::HexDump(f,sizeof(long double));
 			info.Frequency=(ppluint32)frequency;
-			info.Bitrate=info.Frequency*info.BytesPerSample;
+			info.Bitrate=((ppluint64)info.Frequency*(ppluint64)info.BytesPerSample*8/1000);
 
 		} else if (ppl6::PeekN32(adr)==0x53534e44) {	// SSND-Chunk gefunden
 			info.AudioStart=p+8;
