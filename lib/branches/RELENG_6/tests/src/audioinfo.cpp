@@ -148,7 +148,8 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3) {
 	EXPECT_EQ((ppluint8)2,info.Channels) << "Unexpected number of channels";
 	EXPECT_EQ((ppluint8)4,info.BytesPerSample) << "Unexpected bytes per sample";
 	EXPECT_EQ((ppluint32)44100,info.Frequency) << "Unexpected frequency";
-	EXPECT_EQ((ppluint32)173695,info.Samples);
+	EXPECT_EQ((ppluint32)173695,info.Samples) << "Unexpected number of samples";
+	EXPECT_EQ((ppluint32)3938,info.Length) << "Unexpected length";
 }
 
 }	// EOF namespace
