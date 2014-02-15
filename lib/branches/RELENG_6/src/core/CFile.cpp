@@ -1518,7 +1518,7 @@ void *CFile::mmap(ppluint64 position, size_t size, int prot, int flags)
 	size_t bytes;
 	char *adr=(char*)malloc((size_t)size+1);
 	if (adr) {
-		if (pos!=position) Seek((ppldd)position);
+		Seek((ppldd)position);
 		bytes=Fread(adr,1,size);
 		if (!bytes) {
 			free(adr);
