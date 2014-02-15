@@ -112,7 +112,7 @@ static bool IdentAIFF(CFileObject &file, AudioInfo &info)
 			f[9]=adr[16];
 			//ppl6::HexDump(f,sizeof(long double));
 			info.Frequency=(ppluint32)frequency;
-			if (info.Frequency>0 && info.Samples>0) info.Length=info.Samples*1000/info.Frequency;
+			if (info.Frequency>0 && info.Samples>0) info.Length=(ppluint32)((ppluint64)info.Samples*1000/info.Frequency);
 			info.Bitrate=((ppluint64)info.Frequency*(ppluint64)info.BytesPerSample*8/1000);
 
 		} else if (ppl6::PeekN32(adr)==0x53534e44) {	// SSND-Chunk gefunden
