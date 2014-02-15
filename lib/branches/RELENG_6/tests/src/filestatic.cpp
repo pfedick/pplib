@@ -125,6 +125,11 @@ TEST_F(CFileStaticTest, ExistsOnUtf8) {
 	ASSERT_EQ(1,ppl6::CFile::Exists("testdata/filenameUTF8äöü.txt"));
 }
 
+TEST_F(CFileStaticTest, ExistsOnDirectory) {
+	ASSERT_EQ(1,ppl6::CFile::Exists("testdata/dirwalk"));
+}
+
+
 TEST_F(CFileStaticTest, ExistsNot) {
 	ASSERT_EQ(0,ppl6::CFile::Exists("testdata/nonexistänt.txt"));
 }

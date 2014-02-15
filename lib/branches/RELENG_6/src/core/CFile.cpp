@@ -1719,22 +1719,17 @@ int CFile::Exists(const CString &filename)
  * \return Ist die Datei forhanden, gibt die Funktion 1 zurück, andernfalls 0.
  */
 {
-	int ret=0;
-	FILE *fd=NULL;
-	//printf ("buffer=%s\n",buff);
-#ifdef WIN32
+
+#ifdef _WIN32
+	struct _stat st;
 	CWString wideFilename=filename;
-	fd=_wfopen((const wchar_t*)wideFilename,L"rb");		// Versuchen die Datei zu oeffnen
+	if (_wstat((const wchar_t*)wideFilename,&st)!=0) return 0;
 #else
-	fd=fopen(filename,"rb");		// Versuchen die Datei zu oeffnen
+	struct stat st;
+	if (stat((const char*)filename,&st)!=0) return 0;
 #endif
-	if (fd) {
-		ret=1;
-		fclose(fd);
-	} else {
-		SetError(9,"%s",(const char*)filename);
-	}
-	return ret;
+	SetError(9,"%s",(const char*)filename);
+	return 1;
 }
 
 int CFile::CopyFile(const CString &oldfile, const CString &newfile, size_t buffersize)
