@@ -29,6 +29,9 @@ Version 6.4.19
     Die Daten werden im ebenfalls neuen Objekt "AudioInfo" abgelegt.
     Die Funktion soll IdentMPEG ablösen und neben MP3 auch andere Formate
     unterstützen. Gegenwärtig wird MP3 und AIFF unterstützt.
+  - CFile::RenameFile löscht unter Windows die Zieldatei vor dem Rename.
+    Die C-Funktion "rename" bzw. "_wrename" verhält sich unter Windows
+    anders als unter Unix.
   
 Version 6.4.18 vom 04.02.2014	(SVN-Tag: REL_6_4_18)
   - CID3Tag: Neue Funktion zum Auslesen von PRIV-Frames (PrivateData)
