@@ -1308,6 +1308,7 @@ int CID3Tag::SaveMP3()
 		// Sonderfall, keine Tags vorhanden
 
 	} else if (pn>0 && pn<=mpg.start && mpg.start-pn<MaxPaddingSpace) {
+		o.Seek(0);
 		o.Write(tagV2);
 		// Mit Nullen auffüllen bis zum Start der Frames
 		rest=mpg.start-pn;
