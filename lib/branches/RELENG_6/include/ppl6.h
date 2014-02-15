@@ -665,8 +665,9 @@ class CString : public CVar
 		CString& Replace(const char* str, const char* byStr);
 		int Find(const char* str, int pos) const;
 
-		int PregMatch(const char *expression, CArray *res=NULL);
+		int PregMatch(const char *expression, CArray *res);
 		int PregMatch(const CString &expression, CArray &res) const;
+		int PregMatch(const CString &expression) const;
 		const char *GetMatch(int index) const;
 		int PregReplace(const char *expression, const char *replace, int maxreplace=0);
 		int PregReplace(const char *expression, CString &replace, int maxreplace=0);

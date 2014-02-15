@@ -1477,6 +1477,12 @@ CString CString::SubStr(ppluint32 start, ppluint32 len) const
 	return ms;
 }
 
+int CString::PregMatch(const ppl6::CString &expression) const
+{
+	 CArray matches;
+	 return PregMatch(expression,matches);
+}
+
 int CString::PregMatch(const ppl6::CString &expression, CArray &res) const
 {
 #ifndef HAVE_PCRE
