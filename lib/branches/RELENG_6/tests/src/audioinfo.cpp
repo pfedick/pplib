@@ -152,5 +152,22 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3) {
 	EXPECT_EQ((ppluint32)3938,info.Length) << "Unexpected length";
 }
 
+TEST_F(AudioInfoTest, IdentAiffWithID3) {
+	ppl6::CFile file;
+	ASSERT_EQ(1,file.Open("testdata/test_44kHz_tagged.aiff"));
+	ppl6::AudioInfo info;
+	ASSERT_TRUE(ppl6::IdentAudioFile(file,info)) << "Audio format was not recognized";
+	EXPECT_EQ(ppl6::AudioInfo::AIFF,info.Format) << "Wrong audio format detected";
+	EXPECT_TRUE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
+	EXPECT_EQ((ppluint32)694842,info.ID3v2TagStart);
+	EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
+	EXPECT_EQ((ppluint16)1411,info.Bitrate) << "Unexpected Bitrate";
+	EXPECT_EQ((ppluint8)2,info.Channels) << "Unexpected number of channels";
+	EXPECT_EQ((ppluint8)4,info.BytesPerSample) << "Unexpected bytes per sample";
+	EXPECT_EQ((ppluint32)44100,info.Frequency) << "Unexpected frequency";
+	EXPECT_EQ((ppluint32)173695,info.Samples) << "Unexpected number of samples";
+	EXPECT_EQ((ppluint32)3938,info.Length) << "Unexpected length";
+}
+
 }	// EOF namespace
 
