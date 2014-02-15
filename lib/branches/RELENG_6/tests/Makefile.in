@@ -40,7 +40,7 @@ test: $(PROGNAME)
 xml: $(PROGNAME)
 	-mkdir -p tmp
 	-rm -rf tmp/* *.tmp
-	./$(PROGNAME) --gtest_output=xml
+	-./$(PROGNAME) --gtest_output=xml
 
 lcov: $(PROGNAME)
 	-mkdir -p tmp
@@ -57,11 +57,11 @@ clean:
 	-rm -rf tmp/* *.tmp
 
 memcheck: $(PROGNAME)
-	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
+	-valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testsuite.valgrind ./$(PROGNAME)
 
 
 valgrind: $(PROGNAME)
-	valgrind --tool=memcheck --leak-check=full --track-origins=yes --suppressions=valgrind.suppressions ./$(PROGNAME) ;#--gtest_filter=StringTest.*
+	-valgrind --tool=memcheck --leak-check=full --track-origins=yes --suppressions=valgrind.suppressions ./$(PROGNAME) ;#--gtest_filter=StringTest.*
 
 
 compile/libgtest.a:
