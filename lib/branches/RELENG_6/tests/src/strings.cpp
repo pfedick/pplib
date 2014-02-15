@@ -1735,41 +1735,41 @@ TEST_F(StringTest, operator_GreaterEqual_CString) {
 TEST_F(StringTest, operator_EqualEqual_CharPtr) {
 	ppl6::CString s1("The quick brown fox jumps over the lazy dog");
 	const char *s2="The quick brown fox jumps over the lazy dog";
-	ASSERT_EQ(s1,s2) << "String has unexpected value";
+	ASSERT_TRUE(s1==s2) << "String has unexpected value";
 }
 
 TEST_F(StringTest, operator_NotEqual_CharPtr) {
 	ppl6::CString s1("The quick brown fox jumps over the lazy dog");
 	const char *s2="The five boxing wizards jump quickly";
-	ASSERT_NE(s1,s2) << "String has unexpected value";
+	ASSERT_TRUE(s1!=s2) << "String has unexpected value";
 }
 
 TEST_F(StringTest, operator_Lower_CharPtr) {
 	ppl6::CString s1("The quick brown fox jumps over the lazy dog");
 	const char *s2="The five boxing wizards jump quickly";
-	ASSERT_LT(s2,s1) << "String has unexpected value";
+	ASSERT_TRUE(s2<s1) << "String has unexpected value";
 }
 
 TEST_F(StringTest, operator_LowerEqual_CharPtr) {
 	ppl6::CString s1("The quick brown fox jumps over the lazy dog");
 	const char *s2="The five boxing wizards jump quickly";
 	const char *s3="The quick brown fox jumps over the lazy dog";
-	EXPECT_LE(s2,s1) << "String has unexpected value";
-	EXPECT_LE(s3,s1) << "String has unexpected value";
+	EXPECT_TRUE(s2<=s1) << "String has unexpected value";
+	EXPECT_TRUE(s3<=s1) << "String has unexpected value";
 }
 
 TEST_F(StringTest, operator_Greater_CharPtr) {
 	ppl6::CString s1("The quick brown fox jumps over the lazy dog");
 	const char *s2="The five boxing wizards jump quickly";
-	ASSERT_GT(s1,s2) << "String has unexpected value";
+	ASSERT_TRUE(s1>s2) << "String has unexpected value";
 }
 
 TEST_F(StringTest, operator_GreaterEqual_CharPtr) {
 	ppl6::CString s1("The quick brown fox jumps over the lazy dog");
 	const char *s2="The five boxing wizards jump quickly";
 	const char *s3="The quick brown fox jumps over the lazy dog";
-	EXPECT_GE(s1,s2) << "String has unexpected value";
-	EXPECT_GE(s1,s3) << "String has unexpected value";
+	EXPECT_TRUE(s1>=s2) << "String has unexpected value";
+	EXPECT_TRUE(s1>=s3) << "String has unexpected value";
 }
 
 TEST_F(StringTest, GetMD5) {
