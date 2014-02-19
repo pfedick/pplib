@@ -40,8 +40,8 @@
 
 #define PPL_VERSION_MAJOR	6
 #define PPL_VERSION_MINOR	4
-#define PPL_VERSION_BUILD	19
-#define PPL_RELEASEDATE		20140216
+#define PPL_VERSION_BUILD	20
+#define PPL_RELEASEDATE		20140219
 
 // Inlcude PPL6 configuration file
 #ifndef _PPL6_CONFIG
@@ -777,6 +777,7 @@ std::ostream& operator<<(std::ostream& s, const CString &str);
 
 
 int	SetGlobalEncoding(const char *encoding);
+const char *GetGlobalEncoding();
 
 class CWString : public CVar
 {

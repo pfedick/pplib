@@ -105,6 +105,11 @@ CHeap *GetCWStringHeap()
 
 #endif
 
+const char *GetGlobalEncoding()
+{
+	return GlobalExtEncoding;
+}
+
 int SetGlobalEncoding(const char *encoding)
 /*!\brief Encoding für alle CWString-Klassen festlegen
  *
