@@ -216,15 +216,6 @@ static size_t strlen16(const char *data)
 	return l;
 }
 
-static void Bom(CBinary &bin)
-{
-	unsigned char str[2];
-	str[0]=0xfe;
-	str[1]=0xff;
-	bin.Copy(str,2);
-}
-
-
 /*!\ingroup PPLGroupSound
  * \brief Genre-Bezeichnung
  *
@@ -761,6 +752,8 @@ int CID3Tag::SetTextFrame(const char *framename, const CString &text, TextEncodi
 int CID3Tag::SetTextFrameUtf8(const char *framename, const CString &text)
 {
 	bool exists=false;
+	CBinary enc;
+	if (!text.Transcode(GetGlobalEncoding(),"UTF-8",enc)) return 0;
 	CID3Frame *frame=FindFrame(framename);
 	if (frame) {
 		exists=true;
@@ -772,7 +765,7 @@ int CID3Tag::SetTextFrameUtf8(const char *framename, const CString &text)
 		}
 	}
 	frame->Flags=0;
-	frame->Size=text.Len()+2;
+	frame->Size=enc.Len()+2;
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
@@ -784,20 +777,36 @@ int CID3Tag::SetTextFrameUtf8(const char *framename, const CString &text)
 	}
 
 	Poke8(frame->data,3);
-	Poke8(frame->data+1+text.Len(),0);	// Terminierendes 0-Byte
-	memcpy(frame->data+1,text.GetPtr(),text.Len());
+	Poke16(frame->data+1+enc.Len(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+1,enc.GetPtr(),enc.Len());
 	if (!exists) {
 		AddFrame(frame);
 	}
 	return 1;
 }
 
+
+int toUtf16LE(const CString &text, CBinary &enc)
+{
+	CBinary buffer;
+	//printf ("Converting >>%s<< from %s to UTF-16\n",(const char*)text,GetGlobalEncoding());
+	if (!text.Transcode(GetGlobalEncoding(),"UTF-16LE",buffer)) return 0;
+	char *b=(char*)enc.Malloc(2+buffer.Size());
+	if (!b) { SetError(2); return 0; }
+	b[0]=0xff;
+	b[1]=0xfe;
+	memcpy (b+2,buffer.GetPtr(),buffer.Size());
+	//HexDump(b,enc.Size());
+	return 1;
+}
+
+
+
 int CID3Tag::SetTextFrameUtf16(const char *framename, const CString &text)
 {
 	bool exists=false;
 	CBinary enc;
-	if (!text.Transcode("UTF-8","UTF-16",enc)) return 0;
-	if (enc.Len()==0) Bom(enc);
+	if (!toUtf16LE(text,enc)) return 0;
 	CID3Frame *frame=FindFrame(framename);
 	if (frame) {
 		exists=true;
@@ -833,7 +842,7 @@ int CID3Tag::SetTextFrameISO88591(const char *framename, const CString &text)
 {
 	bool exists=false;
 	CBinary enc;
-	if (!text.Transcode("UTF-8","ISO8859-1",enc)) return 0;
+	if (!text.Transcode(GetGlobalEncoding(),"ISO8859-1",enc)) return 0;
 	CID3Frame *frame=FindFrame(framename);
 	if (frame) {
 		exists=true;
@@ -926,10 +935,8 @@ int CID3Tag::SetRemixer(const CString &remixer)
 	bool exists=false;
 	CBinary enc, udf;
 	CString udfstring="TraktorRemixer";
-	if (!remixer.Transcode("UTF-8","UTF-16",enc)) return 0;
-	if (!udfstring.Transcode("UTF-8","UTF-16",udf)) return 0;
-	if (enc.Len()==0) Bom(enc);
-	if (udf.Len()==0) Bom(udf);
+	if (!toUtf16LE(remixer,enc)) return 0;
+	if (!toUtf16LE(udfstring,udf)) return 0;
 	CID3Frame *frame;
 	frame=FindUserDefinedText("TraktorRemixer");
 	if (frame) {
@@ -1076,10 +1083,8 @@ int CID3Tag::SetComment(const CString &description, const CString &comment)
 	bool exists=false;
 	CBinary enc;
 	CBinary shortenc;
-	if (!description.Transcode("UTF-8","UTF-16",shortenc)) return 0;
-	if (!comment.Transcode("UTF-8","UTF-16",enc)) return 0;
-	if (shortenc.Len()==0) Bom(shortenc);
-	if (enc.Len()==0) Bom(enc);
+	if (!toUtf16LE(description,shortenc)) return 0;
+	if (!toUtf16LE(comment,enc)) return 0;
 	CID3Frame *frame=FindFrame(framename);
 	if (frame) {
 		exists=true;
@@ -1909,8 +1914,8 @@ void CID3Tag::RemovePicture(int type)
  *
  * \desc
  * Mit dieser internen Funktion wird der Text eines Frames ab der Position
- * \p data und einer Länge von \p size Bytes zunächst nach UTF-8
- * konvertiert und dann im String \p s gespeichert.
+ * \p data und einer Länge von \p size Bytes zunächst nach in das
+ * lokale Format des Systems konvertiert und dann im String \p s gespeichert.
  *
  * @param[out] s String, in dem der Text gespeichert werden soll
  * @param[in] data Speicherbereich, an dem der Text beginnt
@@ -1922,7 +1927,7 @@ void CID3Tag::CopyAndDecodeText(CString &s, CID3Frame *frame, int offset) const
 	if (encoding<32) {
 		Decode(frame,offset+1,encoding,s);
 	} else {
-		s.TranscodeText(frame->data+offset,frame->Size-offset,"ISO-8859-1","UTF-8");
+		s.TranscodeText(frame->data+offset,frame->Size-offset,"ISO-8859-1",GetGlobalEncoding());
 	}
 }
 
@@ -1934,17 +1939,17 @@ int CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target)
 	if (encoding==0) {
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"ISO-8859-1","UTF-8");
+		target.TranscodeText(data,size,"ISO-8859-1",GetGlobalEncoding());
 		return offset+size+1;
 	} else if (encoding==1) {
 		size=strlen16(data)*2;
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"UTF-16","UTF-8");
+		target.TranscodeText(data,size,"UTF-16",GetGlobalEncoding());
 		return offset+size+2;
 	} else if (encoding==2) {
 		size=strlen16(data)*2;
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"UTF-BE","UTF-8");
+		target.TranscodeText(data,size,"UTF-BE",GetGlobalEncoding());
 		return offset+size+2;
 	} else if (encoding==3) {
 		size=strlen(data);
@@ -1954,7 +1959,7 @@ int CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target)
 	} else if (encoding>31) {
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"ISO-8859-1","UTF-8");
+		target.TranscodeText(data,size,"ISO-8859-1",GetGlobalEncoding());
 		return offset+size+1;
 	}
 	return offset+size+1;

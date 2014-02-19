@@ -3,6 +3,9 @@ PPL6 - HISTORY
 
 Version 6.4.20
   - Funktion GetGlobalEncoding hinzugefügt
+  - CID3Tag beachtet nun die globale Einstellung für die Kodierung
+    der Strings
+  - CID3Tag speichert Text-Tags nun grundsätzlich in UTF-16LE 
 
 Version 6.4.19 vom 16.02.2014	(SVN-Tag: REL_6_4_19)
   - CBinary hat Malloc- und Calloc-Funktion bekommen,

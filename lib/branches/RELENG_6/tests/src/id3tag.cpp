@@ -121,7 +121,24 @@ TEST_F(CID3TagTest, Mp3InitialTaggingWithoutPicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged1.mp3",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("c5ff756219cba391c99423ddd6cca625"),ppl6::CFile::MD5("tmp/test_tagged1.mp3"));
+	EXPECT_EQ(ppl6::CString("f9a333ac0f6ee3c92fae02390b25248f"),ppl6::CFile::MD5("tmp/test_tagged1.mp3"));
+
+	ppl6::CID3Tag NewTags;
+	EXPECT_EQ(1,NewTags.Load("tmp/test_tagged1.mp3")) << "Loading MP3 File failed";
+	EXPECT_EQ(ppl6::CString("Patrick Fedick"),NewTags.GetArtist());
+	EXPECT_EQ(ppl6::CString("Powerplay Jingle"),NewTags.GetTitle());
+	EXPECT_EQ(ppl6::CString("Trance"),NewTags.GetGenre());
+	EXPECT_EQ(ppl6::CString("Single"),NewTags.GetRemixer());
+	EXPECT_EQ(ppl6::CString("Patrick F.-Productions"),NewTags.GetLabel());
+	EXPECT_EQ(ppl6::CString("PPL Testdata"),NewTags.GetComment());
+	EXPECT_EQ(ppl6::CString("2013"),NewTags.GetYear());
+	EXPECT_EQ(ppl6::CString("PPL Testsuite"),NewTags.GetAlbum());
+	EXPECT_EQ(ppl6::CString("2"),NewTags.GetTrack());
+	EXPECT_EQ(ppl6::CString("138"),NewTags.GetBPM());
+	EXPECT_EQ(ppl6::CString("am"),NewTags.GetKey());
+	EXPECT_EQ(ppl6::CString("9"),NewTags.GetEnergyLevel());
+	ppl6::CBinary cover;
+	EXPECT_EQ(0,NewTags.GetPicture(3,cover));
 
 
 }
@@ -154,7 +171,26 @@ TEST_F(CID3TagTest, Mp3InitialTaggingWithPicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged2.mp3",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)125073,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("438ae1ebab551388673a6c006b70d407"),ppl6::CFile::MD5("tmp/test_tagged2.mp3"));
+	EXPECT_EQ(ppl6::CString("6dc503f9722059d5a0de7171e07c68e4"),ppl6::CFile::MD5("tmp/test_tagged2.mp3"));
+
+	ppl6::CID3Tag NewTags;
+	EXPECT_EQ(1,NewTags.Load("tmp/test_tagged2.mp3")) << "Loading MP3 File failed";
+	EXPECT_EQ(ppl6::CString("Patrick Fedick"),NewTags.GetArtist());
+	EXPECT_EQ(ppl6::CString("Powerplay Jingle"),NewTags.GetTitle());
+	EXPECT_EQ(ppl6::CString("Trance"),NewTags.GetGenre());
+	EXPECT_EQ(ppl6::CString("Single"),NewTags.GetRemixer());
+	EXPECT_EQ(ppl6::CString("Patrick F.-Productions"),NewTags.GetLabel());
+	EXPECT_EQ(ppl6::CString("PPL Testdata"),NewTags.GetComment());
+	EXPECT_EQ(ppl6::CString("2013"),NewTags.GetYear());
+	EXPECT_EQ(ppl6::CString("PPL Testsuite"),NewTags.GetAlbum());
+	EXPECT_EQ(ppl6::CString("2"),NewTags.GetTrack());
+	EXPECT_EQ(ppl6::CString("138"),NewTags.GetBPM());
+	EXPECT_EQ(ppl6::CString("am"),NewTags.GetKey());
+	EXPECT_EQ(ppl6::CString("9"),NewTags.GetEnergyLevel());
+	EXPECT_EQ(1,NewTags.GetPicture(3,cover));
+	EXPECT_EQ((size_t)28402,cover.Size()) << "Embedded Cover has unexpected size";
+	EXPECT_EQ(ppl6::CString("d665f69f04f1413eef91b3596de8dfb6"),cover.GetMD5Sum()) << "Embedded Cover has unexpected MD5 hash";
+
 }
 
 TEST_F(CID3TagTest, Mp3RetagWithPicture) {
@@ -209,7 +245,7 @@ TEST_F(CID3TagTest, Mp3RetagStrings) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged4.mp3",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("c07206ccf6c04a3308b4405f383f6559"),ppl6::CFile::MD5("tmp/test_tagged4.mp3"));
+	ASSERT_EQ(ppl6::CString("ffdf4dc172e7c5cc07b543557c33b6d1"),ppl6::CFile::MD5("tmp/test_tagged4.mp3"));
 }
 
 TEST_F(CID3TagTest, Mp3RemovePicture) {
@@ -310,10 +346,25 @@ TEST_F(CID3TagTest, AiffInitialTaggingWithoutPicture) {
 
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged1.aiff",d)) << "Tagged File does not exist!";
-	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("ddc103beb0e1687dd6631e31a4a06a62"),ppl6::CFile::MD5("tmp/test_tagged1.aiff"));
+	EXPECT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
+	EXPECT_EQ(ppl6::CString("14b05fc1b22f9a16e575daa539d5ac21"),ppl6::CFile::MD5("tmp/test_tagged1.aiff"));
 
-
+	ppl6::CID3Tag NewTags;
+	ppl6::CBinary cover;
+	EXPECT_EQ(1,NewTags.Load("tmp/test_tagged1.aiff")) << "Loading MP3 File failed";
+	EXPECT_EQ(ppl6::CString("Patrick Fedick"),NewTags.GetArtist());
+	EXPECT_EQ(ppl6::CString("Powerplay Jingle"),NewTags.GetTitle());
+	EXPECT_EQ(ppl6::CString("Trance"),NewTags.GetGenre());
+	EXPECT_EQ(ppl6::CString("Single"),NewTags.GetRemixer());
+	EXPECT_EQ(ppl6::CString("Patrick F.-Productions"),NewTags.GetLabel());
+	EXPECT_EQ(ppl6::CString("PPL Testdata"),NewTags.GetComment());
+	EXPECT_EQ(ppl6::CString("2013"),NewTags.GetYear());
+	EXPECT_EQ(ppl6::CString("PPL Testsuite"),NewTags.GetAlbum());
+	EXPECT_EQ(ppl6::CString("2"),NewTags.GetTrack());
+	EXPECT_EQ(ppl6::CString("138"),NewTags.GetBPM());
+	EXPECT_EQ(ppl6::CString("am"),NewTags.GetKey());
+	EXPECT_EQ(ppl6::CString("9"),NewTags.GetEnergyLevel());
+	EXPECT_EQ(0,NewTags.GetPicture(3,cover));
 }
 
 TEST_F(CID3TagTest, AiffInitialTaggingWithPicture) {
@@ -340,8 +391,28 @@ TEST_F(CID3TagTest, AiffInitialTaggingWithPicture) {
 	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged2.aiff",d)) << "Tagged File does not exist!";
-	ASSERT_EQ((size_t)723867,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("642691d6d125f70c222c1e8515cecdf5"),ppl6::CFile::MD5("tmp/test_tagged2.aiff"));
+	EXPECT_EQ((size_t)723867,d.Size) << "Tagged File has unexpected size";
+	EXPECT_EQ(ppl6::CString("5afec7657c4cfb2f527ecb1fb9dd8f7e"),ppl6::CFile::MD5("tmp/test_tagged2.aiff"));
+
+	ppl6::CID3Tag NewTags;
+	EXPECT_EQ(1,NewTags.Load("tmp/test_tagged2.aiff")) << "Loading MP3 File failed";
+	EXPECT_EQ(ppl6::CString("Patrick Fedick"),NewTags.GetArtist());
+	EXPECT_EQ(ppl6::CString("Powerplay Jingle"),NewTags.GetTitle());
+	EXPECT_EQ(ppl6::CString("Trance"),NewTags.GetGenre());
+	EXPECT_EQ(ppl6::CString("Single"),NewTags.GetRemixer());
+	EXPECT_EQ(ppl6::CString("Patrick F.-Productions"),NewTags.GetLabel());
+	EXPECT_EQ(ppl6::CString("PPL Testdata"),NewTags.GetComment());
+	EXPECT_EQ(ppl6::CString("2013"),NewTags.GetYear());
+	EXPECT_EQ(ppl6::CString("PPL Testsuite"),NewTags.GetAlbum());
+	EXPECT_EQ(ppl6::CString("2"),NewTags.GetTrack());
+	EXPECT_EQ(ppl6::CString("138"),NewTags.GetBPM());
+	EXPECT_EQ(ppl6::CString("am"),NewTags.GetKey());
+	EXPECT_EQ(ppl6::CString("9"),NewTags.GetEnergyLevel());
+	EXPECT_EQ(1,NewTags.GetPicture(3,cover));
+	EXPECT_EQ((size_t)28402,cover.Size()) << "Embedded Cover has unexpected size";
+	EXPECT_EQ(ppl6::CString("d665f69f04f1413eef91b3596de8dfb6"),cover.GetMD5Sum()) << "Embedded Cover has unexpected MD5 hash";
+
+
 }
 
 TEST_F(CID3TagTest, AiffRetagWithPicture) {
@@ -396,7 +467,7 @@ TEST_F(CID3TagTest, AiffRetagStrings) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged4.aiff",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("84457c5ada9abbe72757dbe05d091fb6"),ppl6::CFile::MD5("tmp/test_tagged4.aiff"));
+	ASSERT_EQ(ppl6::CString("a254ec79ef0169d2fd6ad70f98a4c193"),ppl6::CFile::MD5("tmp/test_tagged4.aiff"));
 }
 
 
