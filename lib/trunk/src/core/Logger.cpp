@@ -314,7 +314,7 @@ String Logger::getLogfile(PRIORITY prio)
 
 void Logger::print (const String &text)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,Logger::DEBUG,0)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,Logger::DEBUG,0)) return;
 	mutex.lock();
 	output(Logger::DEBUG,0,NULL,NULL,NULL,0,text,true);
 	mutex.unlock();
@@ -322,7 +322,7 @@ void Logger::print (const String &text)
 
 void Logger::print (int level, const String &text)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,Logger::DEBUG,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,Logger::DEBUG,level)) return;
 	mutex.lock();
 	output(Logger::DEBUG,level,NULL,NULL,NULL,0,text,true);
 	mutex.unlock();
@@ -330,7 +330,7 @@ void Logger::print (int level, const String &text)
 
 void Logger::print (PRIORITY prio, int level, const String &text)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,prio,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,prio,level)) return;
 	mutex.lock();
 	output(prio,level,NULL,NULL,NULL,0,text,true);
 	mutex.unlock();
@@ -355,7 +355,7 @@ void Logger::print (PRIORITY prio, int level, const char *module, const char *fu
 
 void Logger::printArray (PRIORITY prio, int level, const AssocArray &a, const String &text)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,prio,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,prio,level)) return;
 	mutex.lock();
 	output(prio,level,NULL,NULL,NULL,0,text,true);
 	outputArray(prio,level,NULL,NULL,NULL,0,a,NULL);
@@ -422,7 +422,7 @@ void Logger::hexDump (const void * address, int bytes)
 
 void Logger::hexDump (PRIORITY prio, int level, const void * address, int bytes)
 {
-	if (!shouldPrint(NULL,NULL,NULL,NULL,prio,level)) return;
+	if (!shouldPrint(NULL,NULL,NULL,0,prio,level)) return;
 	if (address==NULL) return;
 	mutex.lock();
 
@@ -630,7 +630,6 @@ void Logger::deleteFilter(const char *file, int line)
 	Name.appendf(":%i",line);
 	FilterFile->remove(Name);
 }
-
 
 bool Logger::shouldPrint(const char *module, const char *function, const char *file, int line, PRIORITY prio, int level)
 {

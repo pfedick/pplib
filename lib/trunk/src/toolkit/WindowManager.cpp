@@ -47,7 +47,6 @@
 #include <stdarg.h>
 #endif
 
-
 #include "ppl7.h"
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
@@ -102,7 +101,7 @@ WindowManager::WindowManager()
 
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
-	clickCount=NULL;
+	clickCount=0;
 	doubleClickIntervall=200;
 	KeyboardFocus=NULL;
 }

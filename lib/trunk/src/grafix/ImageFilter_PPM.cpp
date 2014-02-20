@@ -54,7 +54,6 @@ namespace grafix {
  * \brief Import-/Export-Filter für PPM-Dateien
  */
 
-
 ImageFilter_PPM::ImageFilter_PPM()
 {
 	//SaveAsASCII=false;
@@ -112,8 +111,8 @@ void ImageFilter_PPM::load(FileObject &file, Drawable &surface, IMAGE &img)
 	img.width=a.get(0).toInt();
 	img.height=a.get(1).toInt();
 	file.gets(line,64);				// Farbtiefe holen, normalerweise 255
-	int farbtiefe;
-	farbtiefe=line.toInt();
+	//int farbtiefe;
+	//farbtiefe=line.toInt();
 
 	int x,y;
 	ppluint8 r,g,b;

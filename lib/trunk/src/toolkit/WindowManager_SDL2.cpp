@@ -126,35 +126,6 @@ static RGBFormat SDL2RGBFormat(const Uint32 f)
 	throw UnsupportedColorFormatException("format=%d",f);
 }
 
-static Uint32 RGBFormat2SDL(const RGBFormat &format)
-{
-	switch (format) {
-		case RGBFormat::Palette: return SDL_PIXELFORMAT_INDEX8;
-		case RGBFormat::R3G3B2: return 0;
-
-		case RGBFormat::R5G6B5: return SDL_PIXELFORMAT_RGB565;
-		case RGBFormat::B5G6R5: return SDL_PIXELFORMAT_BGR565;
-		case RGBFormat::X1R5G5B5: return SDL_PIXELFORMAT_RGB555;
-		case RGBFormat::X1B5G5R5: return SDL_PIXELFORMAT_BGR555;
-		case RGBFormat::A1R5G5B5: return SDL_PIXELFORMAT_ARGB1555;
-		case RGBFormat::A1B5G5R5: return SDL_PIXELFORMAT_ABGR1555;
-		case RGBFormat::X4R4G4B4: return SDL_PIXELFORMAT_RGB444;
-		case RGBFormat::A4B4G4R4: return SDL_PIXELFORMAT_ARGB4444;
-		case RGBFormat::A4R4G4B4: return SDL_PIXELFORMAT_ABGR4444;
-
-		case RGBFormat::R8G8B8: return SDL_PIXELFORMAT_RGB24;
-		case RGBFormat::B8G8R8: return SDL_PIXELFORMAT_BGR24;
-
-		case RGBFormat::A8R8G8B8: return SDL_PIXELFORMAT_ARGB8888;
-		case RGBFormat::A8B8G8R8: return SDL_PIXELFORMAT_ABGR8888;
-		case RGBFormat::X8R8G8B8: return SDL_PIXELFORMAT_RGB888;
-		case RGBFormat::X8B8G8R8: return SDL_PIXELFORMAT_BGR888;
-
-		default:
-			throw UnsupportedColorFormatException();
-	}
-
-}
 
 static SDL_COLORFORMAT RGBFormat2SDLStruct(const RGBFormat &format)
 {
@@ -253,31 +224,6 @@ static SDL_COLORFORMAT RGBFormat2SDLStruct(const RGBFormat &format)
 
 	return f;
 }
-
-
-static void surfaceLock (void *privatedata, Drawable &draw) {};
-static void surfaceUnlock (void *privatedata) {};
-static void surfaceDestroy (void *privatedata) {};
-static void surfaceUpdate (void *privatedata, const Drawable &source) {};
-
-static void textureLock (void *privatedata, Drawable &draw) {};
-static void textureUnlock (void *privatedata) {};
-static void textureDestroy (void *privatedata) {};
-static void textureUpdate (void *privatedata, const Drawable &source) {};
-
-
-static PRIV_SURFACE_FUNCTIONS sdlSurfaceFunctions = {
-		surfaceLock,
-		surfaceUnlock,
-		surfaceDestroy,
-		surfaceUpdate};
-
-
-static PRIV_SURFACE_FUNCTIONS sdlTextureFunctions = {
-		textureLock,
-		textureUnlock,
-		textureDestroy,
-		textureUpdate};
 
 
 
@@ -900,6 +846,61 @@ void WindowManager_SDL2::DispatchKeyEvent(void *e)
 
 
 #ifdef OLDCODE
+static void surfaceLock (void *privatedata, Drawable &draw) {};
+static void surfaceUnlock (void *privatedata) {};
+static void surfaceDestroy (void *privatedata) {};
+static void surfaceUpdate (void *privatedata, const Drawable &source) {};
+
+static void textureLock (void *privatedata, Drawable &draw) {};
+static void textureUnlock (void *privatedata) {};
+static void textureDestroy (void *privatedata) {};
+static void textureUpdate (void *privatedata, const Drawable &source) {};
+
+
+static Uint32 RGBFormat2SDL(const RGBFormat &format)
+{
+	switch (format) {
+		case RGBFormat::Palette: return SDL_PIXELFORMAT_INDEX8;
+		case RGBFormat::R3G3B2: return 0;
+
+		case RGBFormat::R5G6B5: return SDL_PIXELFORMAT_RGB565;
+		case RGBFormat::B5G6R5: return SDL_PIXELFORMAT_BGR565;
+		case RGBFormat::X1R5G5B5: return SDL_PIXELFORMAT_RGB555;
+		case RGBFormat::X1B5G5R5: return SDL_PIXELFORMAT_BGR555;
+		case RGBFormat::A1R5G5B5: return SDL_PIXELFORMAT_ARGB1555;
+		case RGBFormat::A1B5G5R5: return SDL_PIXELFORMAT_ABGR1555;
+		case RGBFormat::X4R4G4B4: return SDL_PIXELFORMAT_RGB444;
+		case RGBFormat::A4B4G4R4: return SDL_PIXELFORMAT_ARGB4444;
+		case RGBFormat::A4R4G4B4: return SDL_PIXELFORMAT_ABGR4444;
+
+		case RGBFormat::R8G8B8: return SDL_PIXELFORMAT_RGB24;
+		case RGBFormat::B8G8R8: return SDL_PIXELFORMAT_BGR24;
+
+		case RGBFormat::A8R8G8B8: return SDL_PIXELFORMAT_ARGB8888;
+		case RGBFormat::A8B8G8R8: return SDL_PIXELFORMAT_ABGR8888;
+		case RGBFormat::X8R8G8B8: return SDL_PIXELFORMAT_RGB888;
+		case RGBFormat::X8B8G8R8: return SDL_PIXELFORMAT_BGR888;
+
+		default:
+			throw UnsupportedColorFormatException();
+	}
+
+}
+
+
+static PRIV_SURFACE_FUNCTIONS sdlSurfaceFunctions = {
+		surfaceLock,
+		surfaceUnlock,
+		surfaceDestroy,
+		surfaceUpdate};
+
+
+static PRIV_SURFACE_FUNCTIONS sdlTextureFunctions = {
+		textureLock,
+		textureUnlock,
+		textureDestroy,
+		textureUpdate};
+
 
 void WindowManager_SDL::createWindow(Window &w, int width, int height, const RGBFormat &format, int wf)
 {

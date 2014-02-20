@@ -45,7 +45,6 @@
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
-
 #include <time.h>
 #ifdef _WIN32
     #include <winsock2.h>

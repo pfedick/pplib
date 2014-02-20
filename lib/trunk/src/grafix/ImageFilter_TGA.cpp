@@ -144,7 +144,6 @@ void ImageFilter_TGA::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
 	TGAHEAD tgafield, *tga=&tgafield;
 	ppluint8 	* b1;
-	ppluint32   gby,by;
 	Color	farbwert;
     ppluint8 *address=(ppluint8*)file.map();
 
@@ -152,8 +151,8 @@ void ImageFilter_TGA::load(FileObject &file, Drawable &surface, IMAGE &img)
 
 	//S2i *data=(S2i *)surface->internaldata;
 	//CSurface *PriSurf=((DD2i *) (data->dd_internaldata))->PrimarySurface;
-	gby=img.height*img.pitch;
-    by=gby;
+	//gby=img.height*img.pitch;
+    //by=gby;
 
 	//printf ("width: %u, height: %u, bitdepth: %u\n",surface->width, surface->height, surface->bitdepth);
     //printf ("img->width: %u, img->height: %u, img->bitdepth: %u\n",img->width, img->height, img->bitdepth);

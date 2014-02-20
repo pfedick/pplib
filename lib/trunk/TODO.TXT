@@ -1,0 +1,11 @@
+Compiler-Warnings:
+
+src/core/Logger.cpp
+src/core/Resource.cpp       ok
+src/core/Resourcen.cpp      ok
+src/internet/openssl.cpp
+src/grafix/Font5.cpp
+src/grafix/ImageFilter_PPM.cpp
+src/grafix/ImageFilter_TGA.cpp
+src/toolkit/WindowManager.cpp
+src/toolkit/WindowManager_SDL2.cpp

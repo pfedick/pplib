@@ -37,7 +37,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
 #include "ppl7.h"
 
 
@@ -329,6 +328,7 @@ void Resource::uncompress(void *resource)
  * Resourcen generieren
  *********************************************************************************/
 
+#ifdef DONE
 static void includeHelp(FileObject &out, const String &configfile)
 {
 	DateTime now;
@@ -461,6 +461,8 @@ static int compress(FileObject &ff, char **buffer, size_t *size, int *type)
 	*type=1;
 	return 1;
 }
+
+#endif
 
 void Resource::generateResourceHeader(const String &basispfad, const String &configfile, const String &targetfile, const String &label)
 {

@@ -45,10 +45,6 @@
 
 #include "ppl7.h"
 #include "ppl7-grafix.h"
-//#include "grafix6.h"
-
-
-//#undef HAVE_X86_ASSEMBLER
 
 // Font-Blitter
 typedef struct tagGLYPH {
@@ -641,10 +637,10 @@ Size FontEngineFont5::measure(const FontFile &file, const Font &font, const Wide
 	int code;
 	int start=0;
 	int end=0;
-	pplint16 bearingy, bearingx, width, height, advance;
-	pplint16 MaxHeight, MaxBearingY;
+	pplint16 bearingy, height, advance;
+	pplint16 MaxHeight;
 	MaxHeight=Peek16(header+6);
-	MaxBearingY=Peek16(header+4);
+	//MaxBearingY=Peek16(header+4);
 
 	size_t p=0;
 	int miny=0, maxy=0;
@@ -671,10 +667,10 @@ Size FontEngineFont5::measure(const FontFile &file, const Font &font, const Wide
 			// Glyph holen
 			glyph=header+Peek32(jump+((code-start)<<2));
 			if (glyph) {
-				width=Peek16(glyph);
+				//width=Peek16(glyph);
 				height=Peek16(glyph);
 				bearingy=Peek16(glyph+6);
-				bearingx=Peek16(glyph+4);
+				//bearingx=Peek16(glyph+4);
 				advance=Peek16(glyph+8);
 				x+=advance;
 				if (y-bearingy < miny) miny=y-bearingy;
