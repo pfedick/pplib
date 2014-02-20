@@ -1030,7 +1030,7 @@ CAVLTree::Walker::Walker()
 void CAVLTree::Reset(Walker &walk) const
 {
 	walk.current=NULL;
-	walk.stack_height=NULL;
+	walk.stack_height=0;
 }
 
 void *CAVLTree::GetFirst(Walker &walk) const

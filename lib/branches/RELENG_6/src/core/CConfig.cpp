@@ -391,7 +391,7 @@ int CConfig::GetInt(const char *key, int defaultvalue)
 {
 	if (!section) {
 		SetError(293);
-		return NULL;
+		return 0;
 	}
 	const char *res=((SECTION *)section)->values->Get(key);
 	if (!res) {
