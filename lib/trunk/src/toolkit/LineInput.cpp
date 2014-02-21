@@ -246,7 +246,7 @@ void LineInput::calcCursorPosition()
 {
 	WideString text=myText, left,right;
 	Size s1;
-	if (cursorpos<0) cursorpos=0;
+	if ((ssize_t)cursorpos<0) cursorpos=0;
 	if (cursorpos>text.size()) cursorpos=text.size();
 	if (cursorpos==0) {
 		cursorx=0;

@@ -343,12 +343,12 @@ ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 			case SEEKCUR:
 				pos+=offset;
 				if (pos>mysize) return pos;
-				if (pos<0) {pos=0;return pos; }
+				if ((pplint64)pos<0) {pos=0;return pos; }
 				break;
 			case SEEKEND:
 				pos=mysize-offset;
 				if (pos>mysize) return pos;
-				if (pos<0) {pos=0; return pos;}
+				if ((pplint64)pos<0) {pos=0; return pos;}
 				break;
 			case SEEKSET:
 				pos=offset;

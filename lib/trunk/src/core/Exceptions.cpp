@@ -217,9 +217,9 @@ void throwExceptionFromErrno(int e,const String &info)
 		 */
 
 		default: {
-			String e=strerror(e);
-			e+=": "+info;
-			throw UnknownException(e);
+			String ret=strerror(e);
+			ret+=": "+info;
+			throw UnknownException(ret);
 		}
 	}
 }

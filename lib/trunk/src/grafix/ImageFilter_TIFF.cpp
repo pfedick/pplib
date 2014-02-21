@@ -102,7 +102,7 @@ static toff_t seekproc(thandle_t handle, toff_t offset, int whence)
 
 static int closeproc(thandle_t handle)
 {
-	FileObject *ff=(FileObject*) handle;
+	//FileObject *ff=(FileObject*) handle;
 	//ff->close();
 	return 0;
 }
