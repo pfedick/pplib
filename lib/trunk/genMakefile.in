@@ -268,11 +268,11 @@ srcdir 	= @srcdir@/src
 VPATH	= @srcdir@
 incdir	= @srcdir@/include
 
-prefix	= @prefix@
+prefix	?= @prefix@
 exec_prefix	= @exec_prefix@
-TARGETLIB	= @libdir@
-TARGETBIN	= @bindir@
-TARGETINCLUDE	= @includedir@
+TARGETLIB	?= @libdir@
+TARGETBIN	?= @bindir@
+TARGETINCLUDE	?= @includedir@
 CC			= @CC@
 CXX			= @CXX@
 CFLAGS		=  -I\${incdir} $DEFINES @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ \

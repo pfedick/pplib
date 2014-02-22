@@ -52,6 +52,10 @@ AC_CONFIG_FILES([ppl7-config])
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_HEADERS([include/ppl7-config.h])
 
+
+###############################################################################
+# Includes
+###############################################################################
 sinclude(autoconf/ax_check_openssl.m4)
 sinclude(autoconf/ax_lib_curl.m4)
 sinclude(autoconf/ax_lib_mysql.m4)
@@ -335,7 +339,6 @@ AC_FUNC_REALLOC
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_FUNC_VSNPRINTF
 AC_CHECK_FUNCS([strtolower strtoupper])
 AC_CHECK_FUNCS([bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket vasprintf asprintf])
 AC_CHECK_FUNCS([gethostname sethostname getdomainname setdomainname uname])
@@ -353,6 +356,7 @@ AC_CHECK_FUNCS([mkstemp])
 AC_CHECK_FUNCS([wcscmp wcsncmp wcscasecmp wcsncasecmp wcstol wcstoll wcslen wcsstr wcstoul wcstoull wcstod wcstof])
 AC_CHECK_FUNCS([wcstombs mbstowcs wcsrtombs wcsnrtombs mbsrtowcs mbsnrtowcs])
 AC_CHECK_FUNCS([wprintf fwprintf swprintf vwprintf vfwprintf vswprintf])
+AC_CHECK_FUNCS([vsnprintf])
 AC_CHECK_FUNCS([wstol wstoll watoi watoll wstod watof])
 AC_CHECK_FUNCS([poll select pselect])
 AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
@@ -692,15 +696,16 @@ AC_SUBST(report_have_libidn)
 AC_SUBST(report_have_libbind)
 
 
+###############################################################################
+# Output
+###############################################################################
 
 AC_OUTPUT
 
 
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################
-
+###############################################################################
+# Report
+###############################################################################
 
 dnl report configuration
 AC_MSG_RESULT([
@@ -770,13 +775,4 @@ AC_MSG_RESULT([
 **   Codecoverage:         $report_codecoverage_enabled
 ******************************************************************************
 ])
-
-
-
-
-
-
-
-
-
 
