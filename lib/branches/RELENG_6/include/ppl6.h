@@ -2433,7 +2433,8 @@ class CTree
 	CString UrlDecode(const ppl6::CString &text);
 	CString UrlEncode(const ppl6::CString &text);
 
-
+	CString XmlEscape(const CString &text);
+	CString XmlUnEscape(const CString &text);
 
 // compatibility functions
 

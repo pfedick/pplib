@@ -657,4 +657,28 @@ CString UrlDecode(const CString &text)
 }
 
 
+CString XmlEscape(const CString &text)
+{
+	ppl6::CString Value=text;
+	Value.Replace("&","&amp;");
+	Value.Replace("\"","&quot;");
+	Value.Replace("'","&#039;");
+	Value.Replace("<","&lt;");
+	Value.Replace(">","&gt;");
+	return Value;
+}
+
+CString XmlUnEscape(const CString &text)
+{
+	ppl6::CString Value=text;
+	Value.Replace("&amp;","&");
+	Value.Replace("&lt;","<");
+	Value.Replace("&gt;",">");
+	Value.Replace("&quot;","\"");
+	Value.Replace("&#039;","'");
+	return Value;
+}
+
+
+
 }	// EOF namespace ppl6
