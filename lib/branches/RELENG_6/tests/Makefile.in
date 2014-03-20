@@ -52,7 +52,7 @@ lcov: $(PROGNAME)
 	genhtml -o test_coverage -t "ppl6 test coverage" --num-spaces 4 ppl6_coverage.info
 	
 clean:
-	-rm -rf compile loggertest
+	-rm -rf $(PROGNAME) compile loggertest clogtest.log* *.xml
 	-rm -f *.core
 	-rm -rf tmp/* *.tmp
 
