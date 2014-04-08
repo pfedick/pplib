@@ -7,6 +7,7 @@ Version 6.4.20
     der Strings
   - CID3Tag speichert Text-Tags nun grundsätzlich in UTF-16LE
   - Neue Funktionen: XmlEscape und XMLUnEscape
+  - Neue Klasse: PythonHelper
 
 Version 6.4.19 vom 16.02.2014	(SVN-Tag: REL_6_4_19)
   - CBinary hat Malloc- und Calloc-Funktion bekommen,

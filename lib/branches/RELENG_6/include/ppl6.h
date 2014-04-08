@@ -4081,7 +4081,16 @@ class PerlHelper
 	public:
 		static CString escapeString(const CString &s);
 		static CString escapeRegExp(const CString &s);
-		static CString toHash(const CAssocArray &a, const CString &s);
+		static CString toHash(const CAssocArray &a, const CString &name);
+
+};
+
+class PythonHelper
+{
+	public:
+		static CString escapeString(const CString &s);
+		static CString escapeRegExp(const CString &s);
+		static CString toHash(const CAssocArray &a, const CString &name, int indention=0);
 
 };
 
