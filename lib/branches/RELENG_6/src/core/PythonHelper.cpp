@@ -61,6 +61,7 @@ CString PythonHelper::escapeString(const CString &s)
 {
 	CString ret=s;
 	ret.Replace("\"","\\\"");
+	ret.Replace("\n","\\n");
 	return ret;
 }
 
@@ -84,8 +85,12 @@ static ppl6::CString toHashRecurse(const CAssocArray &a, int indention)
 	while ((res=a.GetNext(walk))) {
 		a.GetKey(res,key);
 		if (a.IsArray(res)) {
-			r.Concatf("%s%s : {\n",(const char*)indent,(const char*)key);
-			toHashRecurse(*a.GetArray(res),indention+4);
+			r.Concatf("%s%s : {",(const char*)indent,(const char*)key);
+			CAssocArray *child=a.GetArray(res);
+			if (child!=NULL && child->Count()>0) {
+				r+="\n";
+				r+=toHashRecurse(*child,indention+4);
+			}
 			r.Concatf("%s}\n",(const char*)indent);
 		} else {
 			r.Concatf("%s%s : \"%s\"\n",(const char*)indent,(const char*)key,(const char*)PythonHelper::escapeString(a.GetChar(res)));
@@ -101,9 +106,12 @@ CString PythonHelper::toHash(const CAssocArray &a, const CString &name, int inde
 	indent.Repeat(' ',indention);
 
 	if (name.IsEmpty()) return ret;
-	ret.Setf("%s%s = {\n",(const char*)indent,(const char*)name);
-	ret+=toHashRecurse(a,indention+4);
-	ret+=indent;
+	ret.Setf("%s%s = {",(const char*)indent,(const char*)name);
+	if (a.Count()) {
+		ret+="\n";
+		ret+=toHashRecurse(a,indention+4);
+		ret+=indent;
+	}
 	ret+="}\n";
 	return ret;
 }

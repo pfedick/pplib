@@ -18,6 +18,7 @@ OBJECTS = compile/wordlist.o \
 	compile/file.o \
 	compile/filestatic.o \
 	compile/perlhelper.o \
+	compile/pythonhelper.o \
 	compile/dir.o \
 	compile/id3tag.o \
 	compile/memoryheap.o \
@@ -108,6 +109,10 @@ compile/assocarray.o: src/assocarray.cpp Makefile
 compile/perlhelper.o: src/perlhelper.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/perlhelper.o -c src/perlhelper.cpp
+
+compile/pythonhelper.o: src/pythonhelper.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/pythonhelper.o -c src/pythonhelper.cpp
 
 compile/dir.o: src/dir.cpp Makefile
 	mkdir -p compile
