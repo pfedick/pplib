@@ -134,7 +134,7 @@ PPLNORMALEXCEPTION(ChunkNotFoundException);
 PPLNORMALEXCEPTION(EmptyFileException);
 PPLNORMALEXCEPTION(CompressionFailedException);
 PPLNORMALEXCEPTION(DecompressionFailedException);
-PPLNORMALEXCEPTION(InvalidFormatException);
+PPLPARAMETERISEDEXCEPTION(InvalidFormatException);
 PPLNORMALEXCEPTION(AccessDeniedByInstanceException);
 PPLNORMALEXCEPTION(BufferTooSmallException);
 PPLNORMALEXCEPTION(CorruptedDataException);
