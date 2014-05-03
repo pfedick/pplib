@@ -422,7 +422,8 @@ CID3Tag::AudioFormat CID3Tag::identAudioFormat(CFileObject &File)
 {
 	const char *adr=File.Map(0,12);
 	if (!adr) return AF_UNKNOWN;
-	HexDump((void*)adr,12);
+	//HexDump((void*)adr,12);
+	//printf ("PeekN32(adr+4)=%d, File.Size=%d\n",ppl6::PeekN32(adr+4), (ppluint32)File.Size() );
 	if (ppl6::PeekN32(adr+4)<File.Size()
 			&& ppl6::PeekN32(adr+0)==0x464F524D
 			&& ppl6::PeekN32(adr+8)==0x41494646) return AF_AIFF;
@@ -433,7 +434,6 @@ CID3Tag::AudioFormat CID3Tag::identAudioFormat(CFileObject &File)
 ppluint32 CID3Tag::findId3Tag(CFileObject &File)
 {
 	myAudioFormat=identAudioFormat(File);
-	printf ("myAudioFormat=%d\n",myAudioFormat);
 	if (myAudioFormat==AF_UNKNOWN) return (ppluint32)-1;
 	if (myAudioFormat==AF_MP3) return 0;
 	if (myAudioFormat==AF_AIFF) {
@@ -499,7 +499,6 @@ int CID3Tag::Load(CFileObject &File)
 		return 0;
 	}
 	if (strncmp(adr,"ID3",3)!=0) {
-		HexDump((void *)adr,10);
 		SetError(402,"Kein \"ID3\"-Header an Position %d",p);
 		return 0;
 	}
@@ -1412,6 +1411,7 @@ int CID3Tag::CopyAiffToNewFile(CFile &o, CFile &n, CBinary &tagV2)
 	ppluint32 qp=12;
 	ppluint32 tp=12;
 	ppluint32 size;
+	ppluint32 formsize=4;
 	const char *adr;
 	n.Copy(o,0,12,0);	// Header kopieren
 	while (qp<o.Size()) {
@@ -1421,6 +1421,7 @@ int CID3Tag::CopyAiffToNewFile(CFile &o, CFile &n, CBinary &tagV2)
 		if (ppl6::PeekN32(adr)!=0x49443320) {	// ignore former ID3-chunk
 			n.Copy(o,qp,size+8,tp);				// append chunk to temporary file
 			tp+=size+8;
+			formsize+=size+8;
 		}
 		qp+=size+8;
 	}
@@ -1443,7 +1444,12 @@ int CID3Tag::CopyAiffToNewFile(CFile &o, CFile &n, CBinary &tagV2)
 		}
 		n.Write(space,size-tagV2.Size());
 		free(space);
+		formsize+=size+8;
 	}
+	char buffer[12];
+	n.Read(buffer,12,0);
+	ppl6::PokeN32(buffer+4,formsize);
+	n.Write(buffer,12,0);
 
 	return 1;
 }

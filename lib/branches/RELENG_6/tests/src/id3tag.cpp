@@ -347,7 +347,7 @@ TEST_F(CID3TagTest, AiffInitialTaggingWithoutPicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged1.aiff",d)) << "Tagged File does not exist!";
 	EXPECT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
-	EXPECT_EQ(ppl6::CString("14b05fc1b22f9a16e575daa539d5ac21"),ppl6::CFile::MD5("tmp/test_tagged1.aiff"));
+	EXPECT_EQ(ppl6::CString("ee7fa3d57fd26f6a45e1f9448fd8c09c"),ppl6::CFile::MD5("tmp/test_tagged1.aiff"));
 
 	ppl6::CID3Tag NewTags;
 	ppl6::CBinary cover;
@@ -392,7 +392,7 @@ TEST_F(CID3TagTest, AiffInitialTaggingWithPicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged2.aiff",d)) << "Tagged File does not exist!";
 	EXPECT_EQ((size_t)723867,d.Size) << "Tagged File has unexpected size";
-	EXPECT_EQ(ppl6::CString("5afec7657c4cfb2f527ecb1fb9dd8f7e"),ppl6::CFile::MD5("tmp/test_tagged2.aiff"));
+	EXPECT_EQ(ppl6::CString("8b48f5ce239455880fa35f0a83ae30e5"),ppl6::CFile::MD5("tmp/test_tagged2.aiff"));
 
 	ppl6::CID3Tag NewTags;
 	EXPECT_EQ(1,NewTags.Load("tmp/test_tagged2.aiff")) << "Loading MP3 File failed";
@@ -427,7 +427,7 @@ TEST_F(CID3TagTest, AiffRetagWithPicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged3.aiff",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)723867,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("642691d6d125f70c222c1e8515cecdf5"),ppl6::CFile::MD5("tmp/test_tagged3.aiff"));
+	ASSERT_EQ(ppl6::CString("bc9d24e8dffffda4cd7208122e83e65f"),ppl6::CFile::MD5("tmp/test_tagged3.aiff"));
 }
 
 TEST_F(CID3TagTest, AiffRetagStrings) {
@@ -527,7 +527,7 @@ TEST_F(CID3TagTest, AiffRetagStringsAndRetagWithCoverAgain) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged10.aiff",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)723813,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("da81ab68c0be03a0ff2be8e798232569"),ppl6::CFile::MD5("tmp/test_tagged10.aiff"));
+	ASSERT_EQ(ppl6::CString("01a1ae462ad55207e4b719d1eb83801c"),ppl6::CFile::MD5("tmp/test_tagged10.aiff"));
 }
 
 
@@ -541,7 +541,7 @@ TEST_F(CID3TagTest, AiffRemovePicture) {
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged5.aiff",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl6::CString("ddc103beb0e1687dd6631e31a4a06a62"),ppl6::CFile::MD5("tmp/test_tagged5.aiff"));
+	ASSERT_EQ(ppl6::CString("6d357b3f28e47d0cdc3cff6c4133b339"),ppl6::CFile::MD5("tmp/test_tagged5.aiff"));
 }
 
 TEST_F(CID3TagTest, AiffRemoveAllTags) {
@@ -581,6 +581,7 @@ TEST_F(CID3TagTest, AiffRetagWithoutChanges) {
 	ASSERT_EQ(ppl6::CString("ddc103beb0e1687dd6631e31a4a06a62"),ppl6::CFile::MD5("tmp/test_tagged8.aiff"));
 }
 
+/*
 TEST_F(CID3TagTest, AiffRetagRealFile) {
 
 	ppl6::CString TestFile="/home/patrick/svn/ppl6-tryout/Traktor4TagReader/181-Armin van Buuren - EIFORYA (Patrick F. Intro Edit).aiff";
@@ -616,9 +617,10 @@ TEST_F(CID3TagTest, AiffRetagRealFile) {
 
 	ppl6::CDirEntry d;
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged9.aiff",d)) << "Tagged File does not exist!";
-	ASSERT_EQ((size_t)44318155,d.Size) << "Tagged File has unexpected size";
+	ASSERT_EQ((size_t)44318523,d.Size) << "Tagged File has unexpected size";
 	//ASSERT_EQ(ppl6::CString("ddc103beb0e1687dd6631e31a4a06a62"),ppl6::CFile::MD5("tmp/test_tagged9.aiff"));
 }
+*/
 
 
 
