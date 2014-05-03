@@ -23,7 +23,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libgnutls-prefix \
 			--with-postgresql=/usr/local \
 			--with-ogg=/usr/local --with-libmicrohttpd=/usr/local \
-			--enable-gtest=/usr/local/gtest-1.6.0
+			--enable-gtest=/usr/local/gtest-1.7.0
 		;;
 	MINGW32*:1.0.12*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"

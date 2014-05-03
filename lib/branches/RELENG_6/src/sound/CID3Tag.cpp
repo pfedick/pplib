@@ -422,6 +422,7 @@ CID3Tag::AudioFormat CID3Tag::identAudioFormat(CFileObject &File)
 {
 	const char *adr=File.Map(0,12);
 	if (!adr) return AF_UNKNOWN;
+	HexDump((void*)adr,12);
 	if (ppl6::PeekN32(adr+4)<File.Size()
 			&& ppl6::PeekN32(adr+0)==0x464F524D
 			&& ppl6::PeekN32(adr+8)==0x41494646) return AF_AIFF;
@@ -432,6 +433,7 @@ CID3Tag::AudioFormat CID3Tag::identAudioFormat(CFileObject &File)
 ppluint32 CID3Tag::findId3Tag(CFileObject &File)
 {
 	myAudioFormat=identAudioFormat(File);
+	printf ("myAudioFormat=%d\n",myAudioFormat);
 	if (myAudioFormat==AF_UNKNOWN) return (ppluint32)-1;
 	if (myAudioFormat==AF_MP3) return 0;
 	if (myAudioFormat==AF_AIFF) {
@@ -497,7 +499,8 @@ int CID3Tag::Load(CFileObject &File)
 		return 0;
 	}
 	if (strncmp(adr,"ID3",3)!=0) {
-		SetError(402,"Kein \"ID3\"-Header");
+		HexDump((void *)adr,10);
+		SetError(402,"Kein \"ID3\"-Header an Position %d",p);
 		return 0;
 	}
 	int version=0;

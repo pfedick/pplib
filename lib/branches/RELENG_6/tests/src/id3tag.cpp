@@ -470,6 +470,67 @@ TEST_F(CID3TagTest, AiffRetagStrings) {
 	ASSERT_EQ(ppl6::CString("a254ec79ef0169d2fd6ad70f98a4c193"),ppl6::CFile::MD5("tmp/test_tagged4.aiff"));
 }
 
+TEST_F(CID3TagTest, AiffRetagStringsAndRetagWithCoverAgain) {
+	ppl6::CID3Tag Tags;
+	ASSERT_EQ(1,ppl6::CFile::CopyFile("testdata/test_44kHz_tagged.aiff","tmp/test_tagged10.aiff"));
+	ASSERT_EQ(1,Tags.Load("tmp/test_tagged10.aiff"));
+
+	EXPECT_EQ(1,Tags.SetArtist("Old Artist"));
+	EXPECT_EQ(1,Tags.SetTitle("Old Jingle"));
+	EXPECT_EQ(1,Tags.SetGenre("OldTechno"));
+	EXPECT_EQ(1,Tags.SetRemixer("Old Maxi"));
+	EXPECT_EQ(1,Tags.SetLabel("Old Label"));
+	EXPECT_EQ(1,Tags.SetComment("Old Testdata"));
+	EXPECT_EQ(1,Tags.SetYear("2013"));
+	EXPECT_EQ(1,Tags.SetAlbum("Old Testsuite"));
+	EXPECT_EQ(1,Tags.SetTrack("2"));
+	EXPECT_EQ(1,Tags.SetBPM("120"));
+	EXPECT_EQ(1,Tags.SetKey("am"));
+	EXPECT_EQ(1,Tags.SetEnergyLevel("6"));
+	ASSERT_EQ(1,Tags.Save()) << "Saving taggs first time failed";
+
+	ppl6::CID3Tag Tags2;
+	ASSERT_EQ(1,Tags2.Load("tmp/test_tagged10.aiff")) << "Loading Tags after first save failed";
+	EXPECT_EQ(1,Tags2.SetArtist("New Artist"));
+	EXPECT_EQ(1,Tags2.SetTitle("New Jingle"));
+	EXPECT_EQ(1,Tags2.SetGenre("Techno"));
+	EXPECT_EQ(1,Tags2.SetRemixer("Maxi"));
+	EXPECT_EQ(1,Tags2.SetLabel("New Label"));
+	EXPECT_EQ(1,Tags2.SetComment("New Testdata"));
+	EXPECT_EQ(1,Tags2.SetYear("2014"));
+	EXPECT_EQ(1,Tags2.SetAlbum("New Testsuite"));
+	EXPECT_EQ(1,Tags2.SetTrack("3"));
+	EXPECT_EQ(1,Tags2.SetBPM("140"));
+	EXPECT_EQ(1,Tags2.SetKey("em"));
+	EXPECT_EQ(1,Tags2.SetEnergyLevel("7"));
+	ppl6::CBinary cover;
+	cover.Load("testdata/cover.jpg");
+	EXPECT_EQ(1,Tags2.SetPicture(3,cover,"image/jpeg"));
+	ASSERT_EQ(1,Tags2.Save()) << "Saving taggs the second time failed";
+
+	ppl6::CID3Tag NewTags;
+	EXPECT_EQ(1,NewTags.Load("tmp/test_tagged10.aiff")) << "Loading Tags after second save failed";
+	EXPECT_EQ(ppl6::CString("New Artist"),NewTags.GetArtist());
+	EXPECT_EQ(ppl6::CString("New Jingle"),NewTags.GetTitle());
+	EXPECT_EQ(ppl6::CString("Techno"),NewTags.GetGenre());
+	EXPECT_EQ(ppl6::CString("Maxi"),NewTags.GetRemixer());
+	EXPECT_EQ(ppl6::CString("New Label"),NewTags.GetLabel());
+	EXPECT_EQ(ppl6::CString("New Testdata"),NewTags.GetComment());
+	EXPECT_EQ(ppl6::CString("2014"),NewTags.GetYear());
+	EXPECT_EQ(ppl6::CString("New Testsuite"),NewTags.GetAlbum());
+	EXPECT_EQ(ppl6::CString("3"),NewTags.GetTrack());
+	EXPECT_EQ(ppl6::CString("140"),NewTags.GetBPM());
+	EXPECT_EQ(ppl6::CString("em"),NewTags.GetKey());
+	EXPECT_EQ(ppl6::CString("7"),NewTags.GetEnergyLevel());
+
+
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged10.aiff",d)) << "Tagged File does not exist!";
+	ASSERT_EQ((size_t)723813,d.Size) << "Tagged File has unexpected size";
+	ASSERT_EQ(ppl6::CString("da81ab68c0be03a0ff2be8e798232569"),ppl6::CFile::MD5("tmp/test_tagged10.aiff"));
+}
+
+
 
 TEST_F(CID3TagTest, AiffRemovePicture) {
 	ppl6::CID3Tag Tags;
@@ -518,6 +579,45 @@ TEST_F(CID3TagTest, AiffRetagWithoutChanges) {
 	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged8.aiff",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl6::CString("ddc103beb0e1687dd6631e31a4a06a62"),ppl6::CFile::MD5("tmp/test_tagged8.aiff"));
+}
+
+TEST_F(CID3TagTest, AiffRetagRealFile) {
+
+	ppl6::CString TestFile="/home/patrick/svn/ppl6-tryout/Traktor4TagReader/181-Armin van Buuren - EIFORYA (Patrick F. Intro Edit).aiff";
+	if (!ppl6::CFile::Exists(TestFile)) return;
+	ASSERT_EQ(1,ppl6::CFile::CopyFile(TestFile,"tmp/test_tagged9.aiff"));
+	ppl6::CID3Tag Tags;
+	ASSERT_EQ(1,Tags.Load("tmp/test_tagged9.aiff"));
+
+	EXPECT_EQ(1,Tags.SetArtist("Armin van Buuren"));
+	EXPECT_EQ(1,Tags.SetTitle("EIFORYA (Patrick F. Intro Edit"));
+	EXPECT_EQ(1,Tags.SetGenre("Trance"));
+	EXPECT_EQ(1,Tags.SetRemixer("Patrick F."));
+	EXPECT_EQ(1,Tags.SetLabel("Mainstage"));
+	EXPECT_EQ(1,Tags.SetComment("created with MixedInKey Mashup"));
+	EXPECT_EQ(1,Tags.SetYear("2014"));
+	EXPECT_EQ(1,Tags.SetAlbum(""));
+	EXPECT_EQ(1,Tags.SetTrack(""));
+	EXPECT_EQ(1,Tags.SetBPM("132"));
+	EXPECT_EQ(1,Tags.SetKey("em"));
+	EXPECT_EQ(1,Tags.SetEnergyLevel("7"));
+	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
+
+	//Tags.ListFrames(1);
+	//return;
+
+	printf ("\n\n******************************************************************\n");
+	ppl6::CID3Tag Tags2;
+	ASSERT_EQ(1,Tags2.Load("tmp/test_tagged9.aiff")) << ppl6::Error2String();
+	ppl6::CBinary cover;
+	cover.Load("/home/patrick/svn/ppl6-tryout/Traktor4TagReader/eiforya.jpg");
+	EXPECT_EQ(1,Tags2.SetPicture(3,cover,"image/jpeg"));
+	ASSERT_EQ(1,Tags2.Save()) << "Saving taggs failed";
+
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("tmp/test_tagged9.aiff",d)) << "Tagged File does not exist!";
+	ASSERT_EQ((size_t)44318155,d.Size) << "Tagged File has unexpected size";
+	//ASSERT_EQ(ppl6::CString("ddc103beb0e1687dd6631e31a4a06a62"),ppl6::CFile::MD5("tmp/test_tagged9.aiff"));
 }
 
 

@@ -588,7 +588,7 @@ class CString : public CVar
 
 		void Print(bool attach_newline=false) const;
 		void HexDump() const;
-		void HexDump(void *buffer, ppldd bytes, bool skipheader=false);
+		void HexDump(const void *buffer, ppldd bytes, bool skipheader=false);
 
 		void Set(const char *text, int bytes=-1);
 		void Set(const CString *str, int bytes=-1);
@@ -838,7 +838,7 @@ class CWString : public CVar
 
 		void Print(bool attach_newline=false) const;
 		void HexDump() const;
-		void HexDump(void *buffer, int bytes, bool skipheader=false);
+		void HexDump(const void *buffer, int bytes, bool skipheader=false);
 		int Set(const char *text, int size=-1);
 		int Set(const wchar_t *text, int size=-1);
 		int Set(const CString *str, int size=-1);
@@ -2369,10 +2369,10 @@ class CTree
 	void SetRect(RECT *r, int left, int top, int right, int bottom);
 	void CopyRect(RECT *dest, RECT *src);
 	int InsideRect(RECT *r, POINT *p);
-	void HexDump(void *address, ppldd bytes, bool skipheader);
-	void HexDump(CString *s, void *address, ppldd bytes, bool skipheader);
-	void HexDump(void *address, ppldd bytes);
-	int MessageBox(int type, char *caption, const char * fmt, ...);
+	void HexDump(const void *address, ppldd bytes, bool skipheader);
+	void HexDump(CString *s, const void *address, ppldd bytes, bool skipheader);
+	void HexDump(const void *address, ppldd bytes);
+	int MessageBox(int type, const char *caption, const char * fmt, ...);
 
 	int MkDir(const char *path);					// Nicht rekursiv!
 	int MkDir(const char *path, int recursive);		// recursive=0 oder 1

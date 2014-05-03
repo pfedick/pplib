@@ -1033,12 +1033,12 @@ int InsideRect(RECT *r, POINT *p)
 	return 0;
 }
 
-void HexDump(void *address, ppldd bytes)
+void HexDump(const void *address, ppldd bytes)
 {
 	HexDump(address,bytes,false);
 }
 
-void HexDump(void *address, ppldd bytes, bool skipheader)
+void HexDump(const void *address, ppldd bytes, bool skipheader)
 {
     char buff[1024], tmp[10], cleartext[20];
     if (!skipheader) {
@@ -1046,7 +1046,7 @@ void HexDump(void *address, ppldd bytes, bool skipheader)
     	PrintDebug("%s\n",buff);
     }
 
-    char *_adresse=(char*)address;
+    const char *_adresse=(char*)address;
     ppldd spalte=0;
     sprintf (buff,"0x%08X: ",0);
     memset(cleartext,0,20);
@@ -1078,14 +1078,14 @@ void HexDump(void *address, ppldd bytes, bool skipheader)
     if (!skipheader) PrintDebug("\n");
 }
 
-void HexDump(CString *s, void *address, ppldd bytes, bool skipheader)
+void HexDump(CString *s, const void *address, ppldd bytes, bool skipheader)
 {
     char buff[1024], tmp[10], cleartext[20];
     if (!s) return;
     if (!skipheader) {
     	s->Concatf("HEXDUMP: %u Bytes starting at Address 0x%08X (%u):\n",bytes,address,address);
     }
-    char *_adresse=(char*)address;
+    const char *_adresse=(char*)address;
     ppldd spalte=0;
     sprintf (buff,"0x%08X: ",0);
     memset(cleartext,0,20);
@@ -1231,7 +1231,7 @@ int RectToString(RECT *r, CString *s)
 
 
 
-int MessageBox(int type, char *caption, char * fmt, ...)
+int MessageBox(int type, const char *caption, char * fmt, ...)
 {
 #ifdef _WIN32
 	int ret;

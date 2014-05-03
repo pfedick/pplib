@@ -1083,7 +1083,7 @@ int CWString::Import(const char *encoding, void *buffer, int bytes)
 #endif
 }
 
-void CWString::HexDump(void *buffer, int bytes, bool skipheader)
+void CWString::HexDump(const void *buffer, int bytes, bool skipheader)
 /*!\brief Hexdump eines Speicherbereichs im String ablegen
  *
  * Diese Funktion speichert den HexDump des angegebenen Speicherbereichs im String.

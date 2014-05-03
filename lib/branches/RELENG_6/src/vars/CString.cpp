@@ -976,7 +976,7 @@ void CString::HexDump() const
 	}
 }
 
-void CString::HexDump(void *buffer, ppldd bytes, bool skipheader)
+void CString::HexDump(const void *buffer, ppldd bytes, bool skipheader)
 {
 	ppl6::HexDump(this,buffer,bytes,skipheader);
 }
