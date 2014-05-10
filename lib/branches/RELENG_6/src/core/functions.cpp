@@ -1243,7 +1243,7 @@ int MessageBox(int type, const char *caption, char * fmt, ...)
     va_start(args, fmt);
 	vsprintf (buff, fmt, args);
 	va_end(args);
-	ret=MessageBox(NULL,buff,caption,type);
+	ret=::MessageBoxA(NULL,buff,caption,type);
 	free (buff);
 	return ret;
 #else
@@ -1263,7 +1263,7 @@ int MessageBox(HWND hwnd, int type, char *caption, char * fmt, ...)
     va_start(args, fmt);
 	vsprintf (buff, fmt, args);
 	va_end(args);
-	ret=MessageBox(hwnd,buff,caption,type);
+	ret=::MessageBoxA(hwnd,buff,caption,type);
 	free (buff);
 	return ret;
 }
