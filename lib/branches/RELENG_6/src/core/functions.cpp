@@ -84,6 +84,7 @@
 	#include <tchar.h>
 	#include <memory.h>
 	#include <direct.h>
+	#undef MessageBox
 #endif
 
 
