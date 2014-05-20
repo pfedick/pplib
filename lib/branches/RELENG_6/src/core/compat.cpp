@@ -42,8 +42,12 @@
 #include <windows.h>
 #endif
 
-
 #include "prolog.h"
+
+#ifdef MINGW32
+#define _GNU_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
