@@ -420,6 +420,7 @@ deinstall:
 	
 distclean: clean
 	-rm -rf \$(incdir)/ppl6-unixconfig.h \$(incdir)/config.h config.log config.status autom4te.cache configure.scan
+	-rm -rf Makefile tests/Makefile
 
 configure: genConfigure genMakefile.in configure.in
 	-sh genConfigure
