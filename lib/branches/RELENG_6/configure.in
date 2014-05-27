@@ -461,6 +461,15 @@ AX_CHECK_OPENSSL(
 	, :)
 
 
+report_have_png="no"
+AC_CHECK_LIBPNG([1.2],
+            AC_DEFINE(HAVE_PNG, 1, [ Define if you have libpng. ])
+            report_have_png="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $PNG_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $PNG_LIBS",
+           :)
+
+
 report_have_freetype2="no"
 AC_CHECK_FT2(9.0.0,
 	AC_DEFINE(HAVE_FREETYPE2, 1, [ Define if you have freetype2. ])
@@ -478,14 +487,6 @@ AM_PATH_SDL($SDL_VERSION,
 	GRAPHIC_LIBS="$GRAPHIC_LIBS $SDL_LIBS"
 	report_have_sdl="yes"
 	, :)
-
-report_have_png="no"
-AC_CHECK_LIBPNG([1.2],
-            AC_DEFINE(HAVE_PNG, 1, [ Define if you have libpng. ])
-            report_have_png="yes"
-			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $PNG_CFLAGS"
-			GRAPHIC_LIBS="$GRAPHIC_LIBS $PNG_LIBS",
-           :)
 
 report_have_mysql="no"
 AC_CHECK_MYSQL([4.0],
