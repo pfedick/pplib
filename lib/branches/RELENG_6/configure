@@ -9017,6 +9017,13 @@ done
 case $host_os in
 	*mingw32* )
 		report_have_pthreads="Win32 Threads"
+
+$as_echo "#define HAVE_LOCALTIME_R 1" >>confdefs.h
+
+
+$as_echo "#define HAVE_GMTIME_R 1" >>confdefs.h
+
+
   		;;
 	* )
 

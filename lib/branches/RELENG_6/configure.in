@@ -271,6 +271,9 @@ dnl Check for threadding support
 case $host_os in
 	*mingw32* )
 		report_have_pthreads="Win32 Threads"
+		AC_DEFINE(HAVE_LOCALTIME_R,1,[on mingw-w64 we always have localtime_r])
+		AC_DEFINE(HAVE_GMTIME_R,1,[on mingw-w64 we always have gmtime_r])
+		
   		;;
 	* )
 		ACX_PTHREAD(report_have_pthreads="yes"
