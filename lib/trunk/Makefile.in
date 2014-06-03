@@ -44,11 +44,11 @@ srcdir 	= @srcdir@/src
 VPATH	= @srcdir@
 incdir	= @srcdir@/include
 
-prefix	= @prefix@
+prefix	?= @prefix@
 exec_prefix	= @exec_prefix@
-TARGETLIB	= @libdir@
-TARGETBIN	= @bindir@
-TARGETINCLUDE	= @includedir@
+TARGETLIB	?= @libdir@
+TARGETBIN	?= @bindir@
+TARGETINCLUDE	?= @includedir@
 CC			= @CC@
 CXX			= @CXX@
 CFLAGS		=  -I${incdir} -DPPL7LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ 	@ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @OPENSSL_INCLUDES@ @ICONV_CFLAGS@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ 	@SQLITE3_CFLAGS@ 	@LAME_CFLAGS@ @MPG123_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ 	@SDL_CFLAGS@ @SDL2_CFLAGS@ 	@LIBIDN_CFLAGS@ 	@LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @FT2_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@

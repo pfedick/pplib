@@ -664,6 +664,7 @@ HAVE_X86_ASSEMBLER
 NASMDEBUGFLAGS
 NASMFLAGS
 NASM
+nasm
 ldnsconfig
 LIBLDNS_LIBS
 LIBLDNS_CFLAGS
@@ -671,9 +672,6 @@ FreeTDS_LIBS
 FreeTDS_CFLAGS
 FREETDS_LIBS
 FREETDS_CFLAGS
-SQLITE3_VERSION
-SQLITE3_LDFLAGS
-SQLITE3_CFLAGS
 POSTGRESQL_LDFLAGS
 POSTGRESQL_CFLAGS
 POSTGRESQL_VERSION
@@ -755,7 +753,6 @@ XMKMF
 PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
-nasm
 EGREP
 GREP
 CPP
@@ -903,7 +900,6 @@ enable_sdltest
 with_imlib
 with_mysql
 with_postgresql
-with_sqlite3
 with_freetds
 with_libldns
 with_nasm
@@ -1618,8 +1614,6 @@ Optional Packages:
                           specify path to mysql_config
   --with-postgresql=[ARG] use PostgreSQL library [default=yes], optionally
                           specify path to pg_config
-  --with-sqlite3=[ARG]    use SQLite 3 library [default=yes], optionally
-                          specify the prefix for sqlite3 library
   --with-freetds[=PATH]   Prefix where freetds is installed (optional)
   --with-libldns[=PATH]  Prefix where LDNS-Library from netlabs.nl is installed
   --with-nasm[=PATH]      Prefix where nasm is installed (optional)
@@ -2819,6 +2813,10 @@ ac_config_headers="$ac_config_headers include/config.h"
 ac_config_headers="$ac_config_headers include/ppl7-config.h"
 
 
+
+###############################################################################
+# Includes
+###############################################################################
 # ===========================================================================
 #     http://www.gnu.org/software/autoconf-archive/ax_check_openssl.html
 # ===========================================================================
@@ -7669,55 +7667,7 @@ fi
 # AX_HAVE_QT scheint unter FreeBSD nicht kompatibel zu sein. Der produzierte Code
 # läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW
 
-
-for ac_prog in nasm nasmw
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_prog_nasm+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test -n "$nasm"; then
-  ac_cv_prog_nasm="$nasm" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_prog_nasm="$ac_prog"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-fi
-fi
-nasm=$ac_cv_prog_nasm
-if test -n "$nasm"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $nasm" >&5
-$as_echo "$nasm" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  test -n "$nasm" && break
-done
-test -n "$nasm" || nasm="no"
-
-if test "x$nasm" = "xno" ;
-then
-	as_fn_error $? "NASM assembler not found" "$LINENO" 5
-fi
-
+AX_PROG_NASM
 
 
 
@@ -10395,78 +10345,6 @@ fi
 done
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for working vsnprintf" >&5
-$as_echo_n "checking for working vsnprintf... " >&6; }
-if ${ac_cv_func_vsnprintf+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if test "$cross_compiling" = yes; then :
-  ac_cv_func_vsnprintf=no
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdio.h>
-#include <stdarg.h>
-
-int
-doit(char * s, ...)
-{
-  char buffer[32];
-  va_list args;
-  int r;
-
-  buffer[5] = 'X';
-
-  va_start(args, s);
-  r = vsnprintf(buffer, 5, s, args);
-  va_end(args);
-
-  /* -1 is pre-C99, 7 is C99. */
-
-  if (r != -1 && r != 7)
-    exit(1);
-
-  /* We deliberately do not care if the result is NUL-terminated or
-     not, since this is easy to work around like this.  */
-
-  buffer[4] = 0;
-
-  /* Simple sanity check.  */
-
-  if (strcmp(buffer, "1234"))
-    exit(1);
-
-  if (buffer[5] != 'X')
-    exit(1);
-
-  exit(0);
-}
-
-int
-main(void)
-{
-  doit("1234567");
-  exit(1);
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  ac_cv_func_vsnprintf=yes
-else
-  ac_cv_func_vsnprintf=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_func_vsnprintf" >&5
-$as_echo "$ac_cv_func_vsnprintf" >&6; }
-if test $ac_cv_func_vsnprintf = yes; then
-
-$as_echo "#define HAVE_WORKING_VSNPRINTF 1" >>confdefs.h
-
-fi
-
 for ac_func in strtolower strtoupper
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
@@ -10664,6 +10542,17 @@ ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
 if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in vsnprintf
+do :
+  ac_fn_c_check_func "$LINENO" "vsnprintf" "ac_cv_func_vsnprintf"
+if test "x$ac_cv_func_vsnprintf" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_VSNPRINTF 1
 _ACEOF
 
 fi
@@ -14563,11 +14452,64 @@ $as_echo "$PCRE_LIBS" >&6; }
             report_have_pcre="yes"
 
      else
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking lib pcre" >&5
-$as_echo_n "checking lib pcre... " >&6; }
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, (WARNING)" >&5
-$as_echo "no, (WARNING)" >&6; }
+        # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKGCONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKGCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKGCONFIG="$PKGCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKGCONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_PKGCONFIG" && ac_cv_path_PKGCONFIG="no"
+  ;;
+esac
+fi
+PKGCONFIG=$ac_cv_path_PKGCONFIG
+if test -n "$PKGCONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG" >&5
+$as_echo "$PKGCONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking lib pcre found with $PKGCONFIG" >&5
+$as_echo_n "checking lib pcre found with $PKGCONFIG... " >&6; }
+        if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists libpcre`
+        then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+          PCRE_LIBS=`$PKGCONFIG --libs libpcre`
+          PCRE_CFLAGS=`$PKGCONFIG --cflags libpcre`
+          $as_echo "#define HAVE_PCRE 1" >>confdefs.h
+
+            report_have_pcre="yes"
+
+        else
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+        fi
      fi
   fi
   LIBS="$OLDLIBS"
@@ -16013,149 +15955,7 @@ $as_echo "#define POSTGRESQL_HAVE_PQsetSingleRowMode 1" >>confdefs.h
 	fi
 fi
 
-
-
-# Check whether --with-sqlite3 was given.
-if test "${with_sqlite3+set}" = set; then :
-  withval=$with_sqlite3;
-        if test "$withval" = "no"; then
-            WANT_SQLITE3="no"
-        elif test "$withval" = "yes"; then
-            WANT_SQLITE3="yes"
-            ac_sqlite3_path=""
-        else
-            WANT_SQLITE3="yes"
-            ac_sqlite3_path="$withval"
-        fi
-
-else
-  WANT_SQLITE3="yes"
-
-fi
-
-
-    SQLITE3_CFLAGS=""
-    SQLITE3_LDFLAGS=""
-    SQLITE3_VERSION=""
-
-    if test "x$WANT_SQLITE3" = "xyes"; then
-
-        ac_sqlite3_header="sqlite3.h"
-
-        sqlite3_version_req=3.0.0
-        sqlite3_version_req_shorten=`expr $sqlite3_version_req : '\([0-9]*\.[0-9]*\)'`
-        sqlite3_version_req_major=`expr $sqlite3_version_req : '\([0-9]*\)'`
-        sqlite3_version_req_minor=`expr $sqlite3_version_req : '[0-9]*\.\([0-9]*\)'`
-        sqlite3_version_req_micro=`expr $sqlite3_version_req : '[0-9]*\.[0-9]*\.\([0-9]*\)'`
-        if test "x$sqlite3_version_req_micro" = "x" ; then
-            sqlite3_version_req_micro="0"
-        fi
-
-        sqlite3_version_req_number=`expr $sqlite3_version_req_major \* 1000000 \
-                                   \+ $sqlite3_version_req_minor \* 1000 \
-                                   \+ $sqlite3_version_req_micro`
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for SQLite3 library >= $sqlite3_version_req" >&5
-$as_echo_n "checking for SQLite3 library >= $sqlite3_version_req... " >&6; }
-
-        if test "$ac_sqlite3_path" != ""; then
-            ac_sqlite3_ldflags="-L$ac_sqlite3_path/lib"
-            ac_sqlite3_cppflags="-I$ac_sqlite3_path/include"
-        else
-            for ac_sqlite3_path_tmp in /usr /usr/local /opt ; do
-                if test -f "$ac_sqlite3_path_tmp/include/$ac_sqlite3_header" \
-                    && test -r "$ac_sqlite3_path_tmp/include/$ac_sqlite3_header"; then
-                    ac_sqlite3_path=$ac_sqlite3_path_tmp
-                    ac_sqlite3_cppflags="-I$ac_sqlite3_path_tmp/include"
-                    ac_sqlite3_ldflags="-L$ac_sqlite3_path_tmp/lib"
-                    break;
-                fi
-            done
-        fi
-
-        ac_sqlite3_ldflags="$ac_sqlite3_ldflags -lsqlite3"
-
-        saved_CPPFLAGS="$CPPFLAGS"
-        CPPFLAGS="$CPPFLAGS $ac_sqlite3_cppflags"
-
-        ac_ext=cpp
-ac_cpp='$CXXCPP $CPPFLAGS'
-ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CXX -o conftest$ac_exeext $CXXFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_cxx_compiler_gnu
-
-        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-            #include <sqlite3.h>
-int
-main ()
-{
-
-#if (SQLITE_VERSION_NUMBER >= $sqlite3_version_req_number)
-// Everything is okay
-#else
-#  error SQLite version is too old
-#endif
-
-
-  ;
-  return 0;
-}
-
-_ACEOF
-if ac_fn_cxx_try_compile "$LINENO"; then :
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-            success="yes"
-
-else
-
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
-$as_echo "not found" >&6; }
-            success="no"
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-        ac_ext=c
-ac_cpp='$CPP $CPPFLAGS'
-ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
-ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
-ac_compiler_gnu=$ac_cv_c_compiler_gnu
-
-
-        CPPFLAGS="$saved_CPPFLAGS"
-
-        if test "$success" = "yes"; then
-
-            SQLITE3_CFLAGS="$ac_sqlite3_cppflags"
-            SQLITE3_LDFLAGS="$ac_sqlite3_ldflags"
-
-            ac_sqlite3_header_path="$ac_sqlite3_path/include/$ac_sqlite3_header"
-
-                        if test "x$ac_sqlite3_header_path" != "x"; then
-                ac_sqlite3_version=`cat $ac_sqlite3_header_path \
-                    | grep '#define.*SQLITE_VERSION.*\"' | sed -e 's/.* "//' \
-                        | sed -e 's/"//'`
-                if test $ac_sqlite3_version != ""; then
-                    SQLITE3_VERSION=$ac_sqlite3_version
-                else
-                    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Can not find SQLITE_VERSION macro in sqlite3.h header to retrieve SQLite version!" >&5
-$as_echo "$as_me: WARNING: Can not find SQLITE_VERSION macro in sqlite3.h header to retrieve SQLite version!" >&2;}
-                fi
-            fi
-
-
-
-
-
-$as_echo "#define HAVE_SQLITE3 /**/" >>confdefs.h
-
-        fi
-    fi
-
+AX_LIB_SQLITE3()
 if test "$success" = "yes"; then
 	report_have_sqlite3="yes"
 fi
@@ -16786,6 +16586,9 @@ esac;
 
 
 
+###############################################################################
+# Output
+###############################################################################
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -18259,11 +18062,9 @@ fi
 
 
 
-####################################################################################################
-####################################################################################################
-####################################################################################################
-####################################################################################################
-
+###############################################################################
+# Report
+###############################################################################
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result:
 ******************************************************************************
@@ -18399,13 +18200,4 @@ $as_echo "
 **   Codecoverage:         $report_codecoverage_enabled
 ******************************************************************************
 " >&6; }
-
-
-
-
-
-
-
-
-
 

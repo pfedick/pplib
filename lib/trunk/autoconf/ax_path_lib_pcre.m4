@@ -80,9 +80,18 @@ else
         AC_MSG_RESULT([$PCRE_LIBS])
         m4_ifval($1,$1)
      else
-        AC_MSG_CHECKING([lib pcre])
-        AC_MSG_RESULT([no, (WARNING)])
-        m4_ifval($2,$2)
+        AC_PATH_PROG([PKGCONFIG], [pkg-config], [no])
+        AC_MSG_CHECKING([lib pcre found with $PKGCONFIG])
+        if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists libpcre`
+        then
+          AC_MSG_RESULT([yes])
+          PCRE_LIBS=`$PKGCONFIG --libs libpcre`
+          PCRE_CFLAGS=`$PKGCONFIG --cflags libpcre`
+          m4_ifval($1,$1)
+        else
+          AC_MSG_RESULT([no])
+          m4_ifval($2,$2)
+        fi
      fi
   fi
   LIBS="$OLDLIBS"
