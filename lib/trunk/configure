@@ -668,13 +668,6 @@ nasm
 ldnsconfig
 LIBLDNS_LIBS
 LIBLDNS_CFLAGS
-FreeTDS_LIBS
-FreeTDS_CFLAGS
-FREETDS_LIBS
-FREETDS_CFLAGS
-SQLITE3_VERSION
-SQLITE3_LDFLAGS
-SQLITE3_CFLAGS
 POSTGRESQL_LDFLAGS
 POSTGRESQL_CFLAGS
 POSTGRESQL_VERSION
@@ -903,7 +896,6 @@ enable_sdltest
 with_imlib
 with_mysql
 with_postgresql
-with_freetds
 with_libldns
 with_nasm
 '
@@ -935,9 +927,7 @@ PNG_CFLAGS
 PNG_LIBS
 SDL2_CFLAGS
 SDL2_LIBS
-MYSQL_CONFIG
-FreeTDS_CFLAGS
-FreeTDS_LIBS'
+MYSQL_CONFIG'
 
 
 # Initialize some variables set by options.
@@ -1617,7 +1607,6 @@ Optional Packages:
                           specify path to mysql_config
   --with-postgresql=[ARG] use PostgreSQL library [default=yes], optionally
                           specify path to pg_config
-  --with-freetds[=PATH]   Prefix where freetds is installed (optional)
   --with-libldns[=PATH]  Prefix where LDNS-Library from netlabs.nl is installed
   --with-nasm[=PATH]      Prefix where nasm is installed (optional)
 
@@ -1657,10 +1646,6 @@ Some influential environment variables:
   SDL2_LIBS   linker flags for SDL2, overriding pkg-config
   MYSQL_CONFIG
               Full path to mysql_config program
-  FreeTDS_CFLAGS
-              C compiler flags for FreeTDS, overriding pkg-config
-  FreeTDS_LIBS
-              linker flags for FreeTDS, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -15961,247 +15946,9 @@ $as_echo "#define POSTGRESQL_HAVE_PQsetSingleRowMode 1" >>confdefs.h
 	fi
 fi
 
-AX_LIB_SQLITE3()
-if test "$success" = "yes"; then
-	report_have_sqlite3="yes"
-else
-
-
-
-fi
 
 
 report_have_freetds="no"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if FreeTDS should be used" >&5
-$as_echo_n "checking if FreeTDS should be used... " >&6; }
-
-
-# Check whether --with-freetds was given.
-if test "${with_freetds+set}" = set; then :
-  withval=$with_freetds; freetds_prefix="$withval"
-else
-  freetds_prefix="auto"
-fi
-
-
-if test "$freetds_prefix" != "no"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	my_save_LIBS="$LIBS"
-	my_save_CFLAGS="$CFLAGS"
-	my_save_LDFLAGS="$LDFLAGS"
-
-
-	if test "$freetds_prefix" = "yes" -o "$freetds_prefix" = "auto"
-	then
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for FreeTDS" >&5
-$as_echo_n "checking for FreeTDS... " >&6; }
-
-if test -n "$FreeTDS_CFLAGS"; then
-    pkg_cv_FreeTDS_CFLAGS="$FreeTDS_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freedts\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "freedts") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FreeTDS_CFLAGS=`$PKG_CONFIG --cflags "freedts" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$FreeTDS_LIBS"; then
-    pkg_cv_FreeTDS_LIBS="$FreeTDS_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"freedts\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "freedts") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_FreeTDS_LIBS=`$PKG_CONFIG --libs "freedts" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        FreeTDS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "freedts" 2>&1`
-        else
-	        FreeTDS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "freedts" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$FreeTDS_PKG_ERRORS" >&5
-
-	have_freetds="no"
-elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	have_freetds="no"
-else
-	FreeTDS_CFLAGS=$pkg_cv_FreeTDS_CFLAGS
-	FreeTDS_LIBS=$pkg_cv_FreeTDS_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_freetds="yes"
-fi
-	else
-		LIBS="-L$freetds_prefix/lib"
-		CFLAGS="-I$freetds_prefix/include"
-		FREETDS_LIBS="-L$freetds_prefix/lib"
-		FREETDS_CFLAGS="-I$freetds_prefix/include"
-	fi
-
-	if test "$have_freetds" != "yes"
-	then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for clock_gettime in -lrt" >&5
-$as_echo_n "checking for clock_gettime in -lrt... " >&6; }
-if ${ac_cv_lib_rt_clock_gettime+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lrt  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char clock_gettime ();
-int
-main ()
-{
-return clock_gettime ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_rt_clock_gettime=yes
-else
-  ac_cv_lib_rt_clock_gettime=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_rt_clock_gettime" >&5
-$as_echo "$ac_cv_lib_rt_clock_gettime" >&6; }
-if test "x$ac_cv_lib_rt_clock_gettime" = xyes; then :
-  FREETDS_LIBS="$FREETDS_LIBS -lrt "
-			LIBS="$LIBS -lrt"
-
-fi
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ct_connect in -lct" >&5
-$as_echo_n "checking for ct_connect in -lct... " >&6; }
-if ${ac_cv_lib_ct_ct_connect+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lct  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char ct_connect ();
-int
-main ()
-{
-return ct_connect ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ct_ct_connect=yes
-else
-  ac_cv_lib_ct_ct_connect=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ct_ct_connect" >&5
-$as_echo "$ac_cv_lib_ct_ct_connect" >&6; }
-if test "x$ac_cv_lib_ct_ct_connect" = xyes; then :
-  have_freetds="yes"
-			FREETDS_LIBS="-lct $FREETDS_LIBS "
-
-fi
-
-		for ac_header in ctpublic.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "ctpublic.h" "ac_cv_header_ctpublic_h" "$ac_includes_default"
-if test "x$ac_cv_header_ctpublic_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CTPUBLIC_H 1
-_ACEOF
-
-else
-  have_freetds="no"
-fi
-
-done
-
-	fi
-	LIBS="$my_save_LIBS"
-	CFLAGS="$my_save_CFLAGS"
-	LDFLAGS="$my_save_LDFLAGS"
-else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-if test $have_freetds = "yes"
-then
-	echo "FREETDS_LIBS=$FREETDS_LIBS"
-	echo "FREETDS_CFLAGS=$FREETDS_CFLAGS"
-
-
-$as_echo "#define HAVE_FREETDS 1" >>confdefs.h
-
-            report_have_freetds="yes"
-
-
-else
-	FREETDS_LIBS=""
-	FREETDS_CFLAGS=""
-	:
-fi
-
-
-
 
 
 

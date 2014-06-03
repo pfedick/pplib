@@ -571,23 +571,23 @@ if test "$found_postgresql" = "yes"; then
 	fi
 fi
 
-AX_LIB_SQLITE3()
-if test "$success" = "yes"; then
-	report_have_sqlite3="yes"
-else
-	AC_SUBST(SQLITE3_CFLAGS)
-	AC_SUBST(SQLITE3_LDFLAGS)
-	AC_SUBST(SQLITE3_VERSION)
-fi
+dnl AX_LIB_SQLITE3()
+dnl if test "$success" = "yes"; then
+dnl 	report_have_sqlite3="yes"
+dnl else
+dnl 	AC_SUBST(SQLITE3_CFLAGS)
+dnl 	AC_SUBST(SQLITE3_LDFLAGS)
+dnl 	AC_SUBST(SQLITE3_VERSION)
+dnl fi
            
 
 report_have_freetds="no"
-AC_CHECK_FREETDS([],
-            AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS library. ])
-            report_have_freetds="yes"
-			AC_SUBST(FREETDS_CFLAGS)
-			AC_SUBST(FREETDS_LIBS),
-            :)
+dnl AC_CHECK_FREETDS([],
+dnl             AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS library. ])
+dnl             report_have_freetds="yes"
+dnl 			AC_SUBST(FREETDS_CFLAGS)
+dnl 			AC_SUBST(FREETDS_LIBS),
+dnl             :)
 
 AX_PATH_LIB_LDNS([1.6.3],
             AC_DEFINE(HAVE_LIBLDNS, 1, [ Define if you have ldns library from netlabs.nl. ])
