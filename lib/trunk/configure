@@ -7667,9 +7667,6 @@ fi
 # AX_HAVE_QT scheint unter FreeBSD nicht kompatibel zu sein. Der produzierte Code
 # läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW
 
-AX_PROG_NASM
-
-
 
 
 
@@ -16363,7 +16360,7 @@ case $target in
 if test "${with_nasm+set}" = set; then :
   withval=$with_nasm; nasm_prefix="$withval"
 else
-  nasm_prefix="no"
+  nasm_prefix="yes"
 fi
 
 

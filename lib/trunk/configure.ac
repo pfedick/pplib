@@ -232,9 +232,6 @@ AC_FUNC_FSEEKO
 # läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW 
 dnl AX_HAVE_QT
 
-AX_PROG_NASM
-
-
 PKG_PROG_PKG_CONFIG()
 
 

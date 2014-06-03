@@ -5,7 +5,7 @@ AC_DEFUN([AC_CHECK_NASM],[
 AC_ARG_WITH([nasm],
 	[  --with-nasm[[=PATH]]      Prefix where nasm is installed (optional)],
 	[nasm_prefix="$withval"],
-	[nasm_prefix="no"])
+	[nasm_prefix="yes"])
 
 if test "$nasm_prefix" != "no"
 then
