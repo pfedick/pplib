@@ -556,20 +556,20 @@ AX_PATH_LIB_IMLIB([1.9.0],
 	, :)
 
 
-AX_LIB_MYSQL([5.1])
-if test "$mysql_version_check" = "1" ; then
-	report_have_mysql="yes"
-fi
+dnl AX_LIB_MYSQL([5.1])
+dnl if test "$mysql_version_check" = "1" ; then
+dnl 	report_have_mysql="yes"
+dnl fi
 
 
-AX_LIB_POSTGRESQL([9.0])
-if test "$found_postgresql" = "yes"; then
-	report_have_postgres="yes"
-	if test $postgresql_version_number -ge 9002000 ; then
-		AC_DEFINE([POSTGRESQL_HAVE_PQsetSingleRowMode], [1],
-			[Define to 1 if PostgreSQL has function PQsetSingleRowMode])
-	fi
-fi
+dnl AX_LIB_POSTGRESQL([9.0])
+dnl if test "$found_postgresql" = "yes"; then
+dnl 	report_have_postgres="yes"
+dnl 	if test $postgresql_version_number -ge 9002000 ; then
+dnl 		AC_DEFINE([POSTGRESQL_HAVE_PQsetSingleRowMode], [1],
+dnl 			[Define to 1 if PostgreSQL has function PQsetSingleRowMode])
+dnl 	fi
+dnl fi
 
 dnl AX_LIB_SQLITE3()
 dnl if test "$success" = "yes"; then
@@ -588,6 +588,23 @@ dnl             report_have_freetds="yes"
 dnl 			AC_SUBST(FREETDS_CFLAGS)
 dnl 			AC_SUBST(FREETDS_LIBS),
 dnl             :)
+
+
+AC_SUBST(MYSQL_CFLAGS)
+AC_SUBST(MYSQL_LDFLAGS)
+AC_SUBST(MYSQL_VERSION)
+
+AC_SUBST(SQLITE3_CFLAGS)
+AC_SUBST(SQLITE3_LDFLAGS)
+AC_SUBST(SQLITE3_VERSION)
+
+AC_SUBST(POSTGRESQL_CFLAGS)
+AC_SUBST(POSTGRESQL_LDFLAGS)
+AC_SUBST(POSTGRESQL_VERSION)
+
+AC_SUBST(FREETDS_CFLAGS)
+AC_SUBST(FREETDS_LIBS)
+
 
 AX_PATH_LIB_LDNS([1.6.3],
             AC_DEFINE(HAVE_LIBLDNS, 1, [ Define if you have ldns library from netlabs.nl. ])

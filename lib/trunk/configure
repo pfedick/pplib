@@ -668,14 +668,17 @@ nasm
 ldnsconfig
 LIBLDNS_LIBS
 LIBLDNS_CFLAGS
+FREETDS_LIBS
+FREETDS_CFLAGS
+POSTGRESQL_VERSION
 POSTGRESQL_LDFLAGS
 POSTGRESQL_CFLAGS
-POSTGRESQL_VERSION
-PG_CONFIG
+SQLITE3_VERSION
+SQLITE3_LDFLAGS
+SQLITE3_CFLAGS
+MYSQL_VERSION
 MYSQL_LDFLAGS
 MYSQL_CFLAGS
-MYSQL_VERSION
-MYSQL_CONFIG
 imlibconfig
 IMLIB_LIBS
 IMLIB_CFLAGS
@@ -894,8 +897,6 @@ with_sdl_prefix
 with_sdl_exec_prefix
 enable_sdltest
 with_imlib
-with_mysql
-with_postgresql
 with_libldns
 with_nasm
 '
@@ -926,8 +927,7 @@ JPEG_LIBS
 PNG_CFLAGS
 PNG_LIBS
 SDL2_CFLAGS
-SDL2_LIBS
-MYSQL_CONFIG'
+SDL2_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1603,10 +1603,6 @@ Optional Packages:
   --with-sdl-prefix=PFX   Prefix where SDL is installed (optional)
   --with-sdl-exec-prefix=PFX Exec prefix where SDL is installed (optional)
   --with-imlib[=PATH]      Prefix where ImageMagick is installed (default=autodetected)
-  --with-mysql=[ARG]      use MySQL client library [default=yes], optionally
-                          specify path to mysql_config
-  --with-postgresql=[ARG] use PostgreSQL library [default=yes], optionally
-                          specify path to pg_config
   --with-libldns[=PATH]  Prefix where LDNS-Library from netlabs.nl is installed
   --with-nasm[=PATH]      Prefix where nasm is installed (optional)
 
@@ -1644,8 +1640,6 @@ Some influential environment variables:
   PNG_LIBS    linker flags for PNG, overriding pkg-config
   SDL2_CFLAGS C compiler flags for SDL2, overriding pkg-config
   SDL2_LIBS   linker flags for SDL2, overriding pkg-config
-  MYSQL_CONFIG
-              Full path to mysql_config program
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -15650,305 +15644,27 @@ fi
 
 
 
-# Check whether --with-mysql was given.
-if test "${with_mysql+set}" = set; then :
-  withval=$with_mysql;
-        if test "$withval" = "no"; then
-            want_mysql="no"
-        elif test "$withval" = "yes"; then
-            want_mysql="yes"
-        else
-            want_mysql="yes"
-            MYSQL_CONFIG="$withval"
-        fi
-
-else
-  want_mysql="yes"
-
-fi
-
-
-
-    MYSQL_CFLAGS=""
-    MYSQL_LDFLAGS=""
-    MYSQL_VERSION=""
-
-
-    if test "$want_mysql" = "yes"; then
-
-        if test -z "$MYSQL_CONFIG" ; then
-            for ac_prog in mysql_config mysql_config5
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_MYSQL_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $MYSQL_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_MYSQL_CONFIG="$MYSQL_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_MYSQL_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-MYSQL_CONFIG=$ac_cv_path_MYSQL_CONFIG
-if test -n "$MYSQL_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $MYSQL_CONFIG" >&5
-$as_echo "$MYSQL_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-  test -n "$MYSQL_CONFIG" && break
-done
-test -n "$MYSQL_CONFIG" || MYSQL_CONFIG="no"
-
-        fi
-
-        if test "$MYSQL_CONFIG" != "no"; then
-            MYSQL_CFLAGS="`$MYSQL_CONFIG --cflags`"
-            MYSQL_LDFLAGS="`$MYSQL_CONFIG --libs`"
-
-            MYSQL_VERSION=`$MYSQL_CONFIG --version`
-
-            found_mysql="yes"
-        else
-            found_mysql="no"
-        fi
-    fi
-
-
-
-    mysql_version_req=5.1
-
-    if test "$found_mysql" = "yes" -a -n "$mysql_version_req"; then
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking if MySQL version is >= $mysql_version_req" >&5
-$as_echo_n "checking if MySQL version is >= $mysql_version_req... " >&6; }
-
-                        mysql_version_req_major=`expr $mysql_version_req : '\([0-9]*\)'`
-        mysql_version_req_minor=`expr $mysql_version_req : '[0-9]*\.\([0-9]*\)'`
-        mysql_version_req_micro=`expr $mysql_version_req : '[0-9]*\.[0-9]*\.\([0-9]*\)'`
-        if test "x$mysql_version_req_micro" = "x"; then
-            mysql_version_req_micro="0"
-        fi
-
-        mysql_version_req_number=`expr $mysql_version_req_major \* 1000000 \
-                                   \+ $mysql_version_req_minor \* 1000 \
-                                   \+ $mysql_version_req_micro`
-
-                        mysql_version_major=`expr $MYSQL_VERSION : '\([0-9]*\)'`
-        mysql_version_minor=`expr $MYSQL_VERSION : '[0-9]*\.\([0-9]*\)'`
-        mysql_version_micro=`expr $MYSQL_VERSION : '[0-9]*\.[0-9]*\.\([0-9]*\)'`
-        if test "x$mysql_version_micro" = "x"; then
-            mysql_version_micro="0"
-        fi
-
-        mysql_version_number=`expr $mysql_version_major \* 1000000 \
-                                   \+ $mysql_version_minor \* 1000 \
-                                   \+ $mysql_version_micro`
-
-        mysql_version_check=`expr $mysql_version_number \>\= $mysql_version_req_number`
-        if test "$mysql_version_check" = "1"; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-        else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        fi
-    fi
-
-    if test "$found_mysql" = "yes" ; then
-
-$as_echo "#define HAVE_MYSQL 1" >>confdefs.h
-
-    fi
-
-
-
-
-
-if test "$mysql_version_check" = "1" ; then
-	report_have_mysql="yes"
-fi
-
-
-
-
-# Check whether --with-postgresql was given.
-if test "${with_postgresql+set}" = set; then :
-  withval=$with_postgresql;
-        if test "$withval" = "no"; then
-            want_postgresql="no"
-        elif test "$withval" = "yes"; then
-            want_postgresql="yes"
-        else
-            want_postgresql="yes"
-            PG_CONFIG="$withval"
-        fi
-
-else
-  want_postgresql="yes"
-
-fi
-
-
-    POSTGRESQL_CFLAGS=""
-    POSTGRESQL_LDFLAGS=""
-    POSTGRESQL_VERSION=""
-
-
-    if test "$want_postgresql" = "yes"; then
-
-        if test -z "$PG_CONFIG" -o test; then
-            # Extract the first word of "pg_config", so it can be a program name with args.
-set dummy pg_config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_PG_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $PG_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PG_CONFIG="$PG_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-PG_CONFIG=$ac_cv_path_PG_CONFIG
-if test -n "$PG_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PG_CONFIG" >&5
-$as_echo "$PG_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-        fi
-
-        if test ! -x "$PG_CONFIG"; then
-            as_fn_error $? "$PG_CONFIG does not exist or it is not an exectuable file" "$LINENO" 5
-            PG_CONFIG="no"
-            found_postgresql="no"
-        fi
-
-        if test "$PG_CONFIG" != "no"; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: checking for PostgreSQL libraries" >&5
-$as_echo_n "checking for PostgreSQL libraries... " >&6; }
-
-            POSTGRESQL_CFLAGS="-I`$PG_CONFIG --includedir`"
-            POSTGRESQL_LDFLAGS="-L`$PG_CONFIG --libdir` -lpq"
-
-            POSTGRESQL_VERSION=`$PG_CONFIG --version | sed -e 's#PostgreSQL ##'`
-
-
-$as_echo "#define HAVE_POSTGRESQL 1" >>confdefs.h
-
-
-            found_postgresql="yes"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-        else
-            found_postgresql="no"
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        fi
-    fi
-
-
-
-    postgresql_version_req=9.0
-
-    if test "$found_postgresql" = "yes" -a -n "$postgresql_version_req"; then
-
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking if PostgreSQL version is >= $postgresql_version_req" >&5
-$as_echo_n "checking if PostgreSQL version is >= $postgresql_version_req... " >&6; }
-
-                        postgresql_version_req_major=`expr $postgresql_version_req : '\([0-9]*\)'`
-        postgresql_version_req_minor=`expr $postgresql_version_req : '[0-9]*\.\([0-9]*\)'`
-        postgresql_version_req_micro=`expr $postgresql_version_req : '[0-9]*\.[0-9]*\.\([0-9]*\)'`
-        if test "x$postgresql_version_req_micro" = "x"; then
-            postgresql_version_req_micro="0"
-        fi
-
-        postgresql_version_req_number=`expr $postgresql_version_req_major \* 1000000 \
-                                   \+ $postgresql_version_req_minor \* 1000 \
-                                   \+ $postgresql_version_req_micro`
-
-                        postgresql_version_major=`expr $POSTGRESQL_VERSION : '\([0-9]*\)'`
-        postgresql_version_minor=`expr $POSTGRESQL_VERSION : '[0-9]*\.\([0-9]*\)'`
-        postgresql_version_micro=`expr $POSTGRESQL_VERSION : '[0-9]*\.[0-9]*\.\([0-9]*\)'`
-        if test "x$postgresql_version_micro" = "x"; then
-            postgresql_version_micro="0"
-        fi
-
-        postgresql_version_number=`expr $postgresql_version_major \* 1000000 \
-                                   \+ $postgresql_version_minor \* 1000 \
-                                   \+ $postgresql_version_micro`
-
-        postgresql_version_check=`expr $postgresql_version_number \>\= $postgresql_version_req_number`
-        if test "$postgresql_version_check" = "1"; then
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-        else
-            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-        fi
-    fi
-
-
-
-
-
-if test "$found_postgresql" = "yes"; then
-	report_have_postgres="yes"
-	if test $postgresql_version_number -ge 9002000 ; then
-
-$as_echo "#define POSTGRESQL_HAVE_PQsetSingleRowMode 1" >>confdefs.h
-
-	fi
-fi
 
 
 
 report_have_freetds="no"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
