@@ -141,7 +141,13 @@ dnl AC_LANG(C++)
 dnl AX_GCC_ARCHFLAG
 #AX_CC_MAXOPT
 
-  
+case "$host_os" in
+	freebsd* )
+		CFLAGS="-I/usr/local/include $CFLAGS"
+		LDFLAGS="-L/usr/local/lib $LDFLAGS"
+  		;;
+esac
+ 
 case "$host_os" in
 	*mingw32* )
 		report_have_pthreads="yes, Win32 Threads"
@@ -568,6 +574,10 @@ fi
 AX_LIB_SQLITE3()
 if test "$success" = "yes"; then
 	report_have_sqlite3="yes"
+else
+	AC_SUBST(SQLITE3_CFLAGS)
+	AC_SUBST(SQLITE3_LDFLAGS)
+	AC_SUBST(SQLITE3_VERSION)
 fi
            
 

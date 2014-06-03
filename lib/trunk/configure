@@ -672,6 +672,9 @@ FreeTDS_LIBS
 FreeTDS_CFLAGS
 FREETDS_LIBS
 FREETDS_CFLAGS
+SQLITE3_VERSION
+SQLITE3_LDFLAGS
+SQLITE3_CFLAGS
 POSTGRESQL_LDFLAGS
 POSTGRESQL_CFLAGS
 POSTGRESQL_VERSION
@@ -5845,6 +5848,12 @@ fi
 
 #AX_CC_MAXOPT
 
+case "$host_os" in
+	freebsd* )
+		CFLAGS="-I/usr/local/include $CFLAGS"
+		LDFLAGS="-L/usr/local/lib $LDFLAGS"
+  		;;
+esac
 
 case "$host_os" in
 	*mingw32* )
@@ -15955,6 +15964,10 @@ fi
 AX_LIB_SQLITE3()
 if test "$success" = "yes"; then
 	report_have_sqlite3="yes"
+else
+
+
+
 fi
 
 
