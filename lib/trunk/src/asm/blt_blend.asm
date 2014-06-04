@@ -403,7 +403,7 @@ _ASM_BltBlend32_SSE_Align2:
 
 		sub edi,8
 		sub esi,8
-		shr [ebp+width],1			;// Breite durch 2 teilen
+		shr dword [ebp+width],1			;// Breite durch 2 teilen
 
 		mov edx,[ebp+height]
 		psubusw xmm5,xmm4
