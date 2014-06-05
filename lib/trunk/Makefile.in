@@ -104,6 +104,10 @@ RELEASE	= release/AVLTree.o \
 	release/crc32.o \
 	release/md5.o \
 	release/random.o \
+	release/Crypt.o \
+	release/Hash.o \
+	release/MCrypt.o \
+	release/MHash.o \
 	release/inet_SocketMessage.o \
 	release/inet_TCPSocket.o \
 	release/inet_UDPSocket.o \
@@ -196,6 +200,10 @@ DEBUG	= debug/AVLTree.o \
 	debug/crc32.o \
 	debug/md5.o \
 	debug/random.o \
+	debug/Crypt.o \
+	debug/Hash.o \
+	debug/MCrypt.o \
+	debug/MHash.o \
 	debug/inet_SocketMessage.o \
 	debug/inet_TCPSocket.o \
 	debug/inet_UDPSocket.o \
@@ -566,6 +574,27 @@ release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	###############################################################################
 	# Compiling >>>math/random.cpp<<<
 	$(CXX) -Wall -O3 -o release/random.o -c $(srcdir)/math/random.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+### CRYPTO
+release/Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/Crypt.cpp<<<
+	$(CXX) -Wall -O3 -o release/Crypt.o -c $(srcdir)/crypto/Crypt.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+release/Hash.o:	$(srcdir)/crypto/Hash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/Hash.cpp<<<
+	$(CXX) -Wall -O3 -o release/Hash.o -c $(srcdir)/crypto/Hash.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+release/MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/MCrypt.cpp<<<
+	$(CXX) -Wall -O3 -o release/MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+release/MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/MHash.cpp<<<
+	$(CXX) -Wall -O3 -o release/MHash.o -c $(srcdir)/crypto/MHash.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 ### INTERNET
 release/inet_SocketMessage.o:	$(srcdir)/internet/SocketMessage.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
@@ -1080,6 +1109,27 @@ debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 	###############################################################################
 	# Compiling >>>math/random.cpp<<<
 	$(CXX) -Wall -O -o debug/random.o -c $(srcdir)/math/random.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
+### CRYPTO
+debug/Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/Crypt.cpp<<<
+	$(CXX) -Wall -O -o debug/Crypt.o -c $(srcdir)/crypto/Crypt.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
+debug/Hash.o:	$(srcdir)/crypto/Hash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/Hash.cpp<<<
+	$(CXX) -Wall -O -o debug/Hash.o -c $(srcdir)/crypto/Hash.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
+debug/MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/MCrypt.cpp<<<
+	$(CXX) -Wall -O -o debug/MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
+debug/MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+	###############################################################################
+	# Compiling >>>crypto/MHash.cpp<<<
+	$(CXX) -Wall -O -o debug/MHash.o -c $(srcdir)/crypto/MHash.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
 
 ### INTERNET
 debug/inet_SocketMessage.o:	$(srcdir)/internet/SocketMessage.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 

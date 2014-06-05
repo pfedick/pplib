@@ -181,6 +181,11 @@ RELEASE="$RELEASE \\
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
 
+find_c_files "crypto" "CRYPTO" "" "" "\$(incdir)/ppl7-crypto.h \$(incdir)/crypto.h"
+RELEASE="$RELEASE \\
+	$FOUND_RELEASE"
+DEBUG="$DEBUG \\
+	$FOUND_DEBUG"
 
 find_c_files "internet" "INTERNET" "" "inet_" "\$(incdir)/ppl7-inet.h"
 RELEASE="$RELEASE \\
