@@ -730,8 +730,8 @@ void MCrypt::setIV(const Variant &object)
  */
 {
 	int type=object.dataType();
-	if (type==Variant::BYTEARRAY) {
-		const ByteArray &bin=static_cast<const ByteArray&>(object);
+	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(object);
 		IV.copy(bin);
 	} else if (type==Variant::STRING) {
 		const String &str=static_cast<const String&>(object);
@@ -793,8 +793,8 @@ void MCrypt::setKey(const Variant &object)
  */
 {
 	int type=object.dataType();
-	if (type==Variant::BYTEARRAY) {
-		const ByteArray &bin=static_cast<const ByteArray&>(object);
+	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(object);
 		Key.copy(bin);
 	} else if (type==Variant::STRING) {
 		const String &str=static_cast<const String&>(object);
@@ -896,8 +896,8 @@ void MCrypt::crypt(const Variant &in, ByteArray &out)
  */
 {
 	int type=in.dataType();
-	if (type==Variant::BYTEARRAY) {
-		const ByteArray &bin=static_cast<const ByteArray&>(in);
+	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(in);
 		out.copy(bin);
 	} else if (type==Variant::STRING) {
 		const String &str=static_cast<const String&>(in);
