@@ -42,6 +42,8 @@
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
 
+#include <openssl/opensslv.h>
+
 namespace {
 
 // The fixture for testing class Foo.
@@ -142,6 +144,7 @@ TEST_F(DigestTest, TestSHA512) {
 	ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827aaec64d5c6c33259260ce9"),result.toHex());
 }
 
+#if OPENSSL_VERSION_NUMBER >= 0x10001000L
 TEST_F(DigestTest, TestWhirlpool) {
 	ppl7::Digest dig;
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_WHIRLPOOL));
@@ -150,6 +153,7 @@ TEST_F(DigestTest, TestWhirlpool) {
 	ASSERT_NO_THROW(result=dig.getDigest());
 	ASSERT_EQ(ppl7::String("5df2f2942a455dae96896be1ca9507cbfbf51d284fccc65f59dcb15081035ab3cf4f975d3d8ce68c63dc19132cebeaa6d281f33a9dcfa3e0493e33b121d8420a"),result.toHex());
 }
+#endif
 
 TEST_F(DigestTest, TestRipeMD160) {
 	ppl7::Digest dig;

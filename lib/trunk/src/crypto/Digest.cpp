@@ -178,7 +178,9 @@ void Digest::setAlgorithm(Algorithm algorithm)
 		case Algo_SHA512: m=EVP_sha512(); break;
 #endif
 #ifndef OPENSSL_NO_WHIRLPOOL
+#if OPENSSL_VERSION_NUMBER >= 0x10001000L
 		case Algo_WHIRLPOOL: m=EVP_whirlpool(); break;
+#endif
 #endif
 #ifndef OPENSSL_NO_RIPEMD
 		case Algo_RIPEMD160: m=EVP_ripemd160(); break;
