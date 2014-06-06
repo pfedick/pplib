@@ -85,6 +85,45 @@ TEST_F(ByteArrayTest, AssignmentWithEmptyObject) {
 
 }
 
+// memBlock1 > MemBlock2
+// memBlock2 < MemBlock1
+static unsigned char memBlock1[]={123,77,42,255,192,16,9};
+static unsigned char memBlock2[]={123,77,42,200,192,16,9};
+
+TEST_F(ByteArrayTest, operators_equal) {
+	ppl7::ByteArrayPtr b1(memBlock1,sizeof(memBlock1));
+	ppl7::ByteArrayPtr b2(memBlock1,sizeof(memBlock1));
+	ASSERT_FALSE(b1<b2);
+	ASSERT_TRUE(b1<=b2);
+	ASSERT_TRUE(b1==b2);
+	ASSERT_FALSE(b1!=b2);
+	ASSERT_TRUE(b1>=b2);
+	ASSERT_FALSE(b1>b2);
+}
+
+TEST_F(ByteArrayTest, operators_lower) {
+	ppl7::ByteArrayPtr b1(memBlock2,sizeof(memBlock2));
+	ppl7::ByteArrayPtr b2(memBlock1,sizeof(memBlock1));
+	ASSERT_TRUE(b1<b2);
+	ASSERT_TRUE(b1<=b2);
+	ASSERT_FALSE(b1==b2);
+	ASSERT_TRUE(b1!=b2);
+	ASSERT_FALSE(b1>=b2);
+	ASSERT_FALSE(b1>b2);
+}
+
+TEST_F(ByteArrayTest, operators_greater) {
+	ppl7::ByteArrayPtr b1(memBlock1,sizeof(memBlock1));
+	ppl7::ByteArrayPtr b2(memBlock2,sizeof(memBlock2));
+	ASSERT_FALSE(b1<b2);
+	ASSERT_FALSE(b1<=b2);
+	ASSERT_FALSE(b1==b2);
+	ASSERT_TRUE(b1!=b2);
+	ASSERT_TRUE(b1>=b2);
+	ASSERT_TRUE(b1>b2);
+}
+
+
 
 }
 

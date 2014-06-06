@@ -406,4 +406,61 @@ void ByteArrayPtr::memset(int value)
 }
 
 
+int ByteArrayPtr::memcmp(const ByteArrayPtr &other) const
+{
+	size_t max=ptrsize;
+	size_t min=ptrsize;
+	if (other.ptrsize>max) max=other.ptrsize;
+	if (other.ptrsize<min) min=other.ptrsize;
+	for (size_t i=0;i<min;i++) {
+		if ( ((char*)ptradr)[i] < ((char*)other.ptradr)[i] ) return -1;
+		if ( ((char*)ptradr)[i] > ((char*)other.ptradr)[i] ) return 1;
+	}
+	if (ptrsize<other.ptrsize) return -1;
+	if (ptrsize>other.ptrsize) return 1;
+	return 0;
+}
+
+bool ByteArrayPtr::operator<(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c<0) return true;
+	return false;
+}
+
+bool ByteArrayPtr::operator<=(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c<=0) return true;
+	return false;
+}
+
+bool ByteArrayPtr::operator==(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c==0) return true;
+	return false;
+}
+
+bool ByteArrayPtr::operator!=(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c!=0) return true;
+	return false;
+}
+
+bool ByteArrayPtr::operator>=(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c>=0) return true;
+	return false;
+}
+
+bool ByteArrayPtr::operator>(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c>0) return true;
+	return false;
+}
+
 }	// EOF namespace ppl7

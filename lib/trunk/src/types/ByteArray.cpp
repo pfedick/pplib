@@ -190,7 +190,7 @@ ByteArray::ByteArray(const ByteArray &other)
  * @param[in] adr Pointer auf den Beginn des Speicherbereichs
  * @param[in] size Größe des Speicherbereichs in Bytes
  */
-ByteArray::ByteArray(void *adr, size_t size)
+ByteArray::ByteArray(const void *adr, size_t size)
 {
 	type=BYTEARRAY;
 	ptradr=NULL;
@@ -685,5 +685,50 @@ void *ByteArray::fromHex(const String &hex)
 	}
 	return ptradr;
 }
+
+
+bool ByteArray::operator<(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c<0) return true;
+	return false;
+}
+
+bool ByteArray::operator<=(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c<=0) return true;
+	return false;
+}
+
+bool ByteArray::operator==(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c==0) return true;
+	return false;
+}
+
+bool ByteArray::operator!=(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c!=0) return true;
+	return false;
+}
+
+bool ByteArray::operator>=(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c>=0) return true;
+	return false;
+}
+
+bool ByteArray::operator>(const ByteArrayPtr &other) const
+{
+	int c=memcmp(other);
+	if (c>0) return true;
+	return false;
+}
+
+
 
 }	// EOF namespace ppl7

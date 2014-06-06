@@ -169,7 +169,16 @@ class ByteArrayPtr : public Variant
 		void hexDump(size_t bytes) const;
 		void hexDump(size_t offset, size_t bytes) const;
 		void memset(int value);
+		int memcmp(const ByteArrayPtr &other) const;
+
+		bool operator<(const ByteArrayPtr &other) const;
+		bool operator<=(const ByteArrayPtr &other) const;
+		bool operator==(const ByteArrayPtr &other) const;
+		bool operator!=(const ByteArrayPtr &other) const;
+		bool operator>=(const ByteArrayPtr &other) const;
+		bool operator>(const ByteArrayPtr &other) const;
 };
+std::ostream& operator<<(std::ostream& s, const ByteArrayPtr &str);
 
 class ByteArray : public ByteArrayPtr
 {
@@ -180,7 +189,7 @@ public:
 	ByteArray(const ByteArrayPtr &other);
 	ByteArray(const ByteArray &other);
 	ByteArray(const String &str);
-	ByteArray(void *adr, size_t size);
+	ByteArray(const void *adr, size_t size);
 	ByteArray(size_t size);
 	~ByteArray();
 	void useadr(void *adr, size_t size);
@@ -203,7 +212,16 @@ public:
 	operator const unsigned char*() const;
 	operator const char*() const;
 	unsigned char operator[](size_t pos) const;
+
+	bool operator<(const ByteArrayPtr &other) const;
+	bool operator<=(const ByteArrayPtr &other) const;
+	bool operator==(const ByteArrayPtr &other) const;
+	bool operator!=(const ByteArrayPtr &other) const;
+	bool operator>=(const ByteArrayPtr &other) const;
+	bool operator>(const ByteArrayPtr &other) const;
+
 };
+std::ostream& operator<<(std::ostream& s, const ByteArray &str);
 
 ByteArray fromBase64(const String &base64);
 
