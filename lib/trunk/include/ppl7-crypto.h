@@ -188,33 +188,32 @@ class MHash
 		MHash();
 		MHash(Algorithm algorithm);
 		~MHash();
-		void init(Algorithm algorithm);
+		void setAlgorithm(Algorithm algorithm);
 		void addData(const void *data, size_t size);
 		void addData(const Variant &data);
 		void addData(FileObject &file);
 		void addFile(const String &filename);
 		int getBlockSize() const;
 		void getResult(Variant &result);
+		ByteArray getResult();
 		int getIntResult();
 		void reset();
 
 		static Algorithm getAlgorithmFromName(const String &name);
 
-		static void hash(const Variant &data, Variant &result, Algorithm algorithm);
-		static void hash(const Variant &data, Variant &result, const String &algorithm);
-		static int CRC32(const Variant &data);
-		static int CRC32B(const Variant &data);
-		static int ADLER32(const Variant &data);
-		static int MD4(const Variant &data, Variant &result);
-		static int MD5(const Variant &data, Variant &result);
-		static int SHA1(const Variant &data, Variant &result);
-		static int SHA2(const Variant &data, Variant &result, Bits bits=Bits_256);
-		static int SHA224(const Variant &data, Variant &result);
-		static int SHA256(const Variant &data, Variant &result);
-		static int SHA384(const Variant &data, Variant &result);
-		static int SHA512(const Variant &data, Variant &result);
-		static int RIPEMD(const Variant &data, Variant &result, Bits bits=Bits_160);
-		static int GOST(const Variant &data, Variant &result);
+		static ByteArray hash(const Variant &data, Algorithm algorithm);
+		static ByteArray hash(const Variant &data, const String &algorithm);
+		static int crc32(const Variant &data);
+		static int crc32b(const Variant &data);
+		static int adler32(const Variant &data);
+		static ByteArray md4(const Variant &data);
+		static ByteArray md5(const Variant &data);
+		static ByteArray sha1(const Variant &data);
+		static ByteArray sha2(const Variant &data, Bits bits=Bits_256);
+		static ByteArray sha224(const Variant &data);
+		static ByteArray sha256(const Variant &data);
+		static ByteArray sha384(const Variant &data);
+		static ByteArray sha512(const Variant &data);
 };
 
 

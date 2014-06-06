@@ -426,7 +426,7 @@ MHash::MHash(Algorithm algorithm)
 	handle=NULL;
 	blocksize=0;
 	bytesHashed=0;
-	init(algorithm);
+	setAlgorithm(algorithm);
 }
 
 MHash::~MHash()
@@ -441,7 +441,7 @@ MHash::~MHash()
 #endif
 }
 
-void MHash::init(Algorithm algorithm)
+void MHash::setAlgorithm(Algorithm algorithm)
 /*!\brief Auswahl des gewünschten Hash-Algorithmus
  *
  * \descr
@@ -550,7 +550,7 @@ void MHash::reset()
  * zurückversetzt werden.
  */
 {
-	init(algo);
+	setAlgorithm(algo);
 }
 
 int MHash::getBlockSize() const
@@ -614,7 +614,7 @@ void MHash::getResult(Variant &result)
 	mhash_deinit((MHASH)handle, buffer);
 	handle=NULL;
 	// Bereit machen, für nächste Hash-Berechnung
-	init(algo);
+	setAlgorithm(algo);
 	// Nun schauen wir mal, worin wir das Ergebnis speichern sollen
 	int type=result.dataType();
 	if (type==Variant::BYTEARRAY) {
@@ -635,6 +635,13 @@ void MHash::getResult(Variant &result)
 	}
 	free(buffer);
 #endif
+}
+
+ByteArray MHash::getResult()
+{
+	ByteArray res;
+	getResult(res);
+	return res;
 }
 
 int MHash::getIntResult()
@@ -663,7 +670,7 @@ int MHash::getIntResult()
 	mhash_deinit((MHASH)handle, buffer);
 	handle=NULL;
 	// Bereit machen, für nächste Hash-Berechnung
-	init(algo);
+	setAlgorithm(algo);
 	int i=*((int*)buffer);
 	free(buffer);
 	return i;
@@ -793,7 +800,7 @@ void MHash::addData(FileObject &file)
 #endif
 }
 
-void MHash::hash(const Variant &data, Variant &result, Algorithm algorithm)
+ByteArray MHash::hash(const Variant &data, Algorithm algorithm)
 /*!\ingroup PPL7_CRYPT
  * \brief Hash-Wert mit einem beliebigen Algorithmus berechnen.
  *
@@ -820,7 +827,7 @@ void MHash::hash(const Variant &data, Variant &result, Algorithm algorithm)
 {
 	MHash MH(algorithm);
 	MH.addData(data);
-	MH.getResult(result);
+	return MH.getResult();
 }
 
 /*!\ingroup PPL7_CRYPT
@@ -846,165 +853,81 @@ void MHash::hash(const Variant &data, Variant &result, Algorithm algorithm)
  * @param[in] algo Der zu verwendende Algorithmus als String
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void MHash::hash(const Variant &data, Variant &result, const String &algo)
+ByteArray MHash::hash(const Variant &data, const String &algo)
 {
 	MHash MH(MHash::getAlgorithmFromName(algo));
 	MH.addData(data);
-	MH.getResult(result);
+	return MH.getResult();
 }
 
-#ifdef DONE
-
-int MHash::CRC32(const CVar &data, CVar &result)
+int MHash::crc32(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief CRC32-Summe berechnen, wie sie im Netzwerkbereich verwendet wird
  *
  * \header \#include <ppl7-crypto.h>
  *
- * \descr
+ * @descr
  * Mit dieser Funktion wird ein CRC32-Prüfwert für die Daten \p data berechnet und das
- * Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * Bei diesem Algorithmus kann auch CInt als \p result verwendet werden.
+ * Ergebnis als Integer zurückgegeben.
  * \par
  * \copydoc Algo_CRC32
  *
  * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
  * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Hier kann es
- * sich um ein CBinary, CString, CWString oder CInt handeln.
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return Prüfsumme als Integer
  */
 {
-	return Hash(data,result,Algo_CRC32);
+	MHash MH(Algo_CRC32);
+	MH.addData(data);
+	return MH.getIntResult();
 }
 
-int MHash::CRC32(const CVar &data)
+int MHash::crc32b(const Variant &data)
 /*!\ingroup PPL7_CRYPT
- * \brief CRC32-Summe berechnen, wie sie im Netzwerkbereich verwendet wird
+ * \brief CRC32-Summe berechnen, wie sie im ZIP-Programmen verwendet wird
  *
  * \header \#include <ppl7-crypto.h>
  *
- * \descr
+ * @descr
  * Mit dieser Funktion wird ein CRC32-Prüfwert für die Daten \p data berechnet und das
- * Ergebnis als 32-Bit Integer zurückgegeben.
- * \par
- * \copydoc Algo_CRC32
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @return Bei Erfolg liefert die Funktion die Prüfsumme zurück, im Fehlerfall 0.
- */
-{
-	CInt result;
-	if (!Hash(data,result,Algo_CRC32)) return 0;
-	return result;
-}
-
-
-int MHash::CRC32B(const CVar &data, CVar &result)
-/*!\ingroup PPL7_CRYPT
- * \brief CRC32-Summe berechnen, wie sie in ZIP-Programmen verwendet wird
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein CRC32-Prüfwert für die Daten \p data berechnet und das
- * Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * Bei diesem Algorithmus kann auch CInt als \p result verwendet werden.
+ * Ergebnis als Integer zurückgegeben.
  * \par
  * \copydoc Algo_CRC32B
  *
  * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
  * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Hier kann es
- * sich um ein CBinary, CString, CWString oder CInt handeln.
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return Prüfsumme als Integer
  */
 {
-	return Hash(data,result,Algo_CRC32B);
+	MHash MH(Algo_CRC32B);
+	MH.addData(data);
+	return MH.getIntResult();
 }
 
-int MHash::CRC32B(const CVar &data)
+int MHash::adler32(const Variant &data)
 /*!\ingroup PPL7_CRYPT
- * \brief CRC32-Summe berechnen, wie sie in ZIP-Programmen verwendet wird
+ * \brief Adler32-Summe berechnen
  *
  * \header \#include <ppl7-crypto.h>
  *
- * \descr
- * Mit dieser Funktion wird ein CRC32-Prüfwert für die Daten \p data berechnet und das
- * Ergebnis als 32-Bit Integer zurückgegeben.
- * \par
- * \copydoc Algo_CRC32B
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @return Bei Erfolg liefert die Funktion die Prüfsumme zurück, im Fehlerfall 0.
- */
-{
-	CInt result;
-	if (!Hash(data,result,Algo_CRC32B)) return 0;
-	return result;
-}
-
-int MHash::ADLER32(const CVar &data, CVar &result)
-/*!\ingroup PPL7_CRYPT
- * \brief ADLER32 berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
+ * @descr
  * Mit dieser Funktion wird ein ADLER32-Prüfwert für die Daten \p data berechnet und das
- * Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * Bei diesem Algorithmus kann auch CInt als \p result verwendet werden.
+ * Ergebnis als Integer zurückgegeben.
  * \par
  * \copydoc Algo_ADLER32
  *
  * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
  * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Hier kann es
- * sich um ein CBinary, CString, CWString oder CInt handeln.
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return Prüfsumme als Integer
  */
 {
-	return Hash(data,result,Algo_ADLER32);
-}
-
-int MHash::ADLER32(const CVar &data)
-/*!\ingroup PPL7_CRYPT
- * \brief ADLER32 berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein ADLER32-Prüfwert für die Daten \p data berechnet und das
- * Ergebnis als 32-Bit Integer zurückgegeben.
- * \par
- * \copydoc Algo_ADLER32
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @return Bei Erfolg liefert die Funktion die Prüfsumme zurück, im Fehlerfall 0.
- */
-{
-	CInt result;
-	if (!Hash(data,result,Algo_ADLER32)) return 0;
-	return result;
+	MHash MH(Algo_ADLER32);
+	MH.addData(data);
+	return MH.getIntResult();
 }
 
 
-int MHash::MD4(const CVar &data, CVar &result)
+ByteArray MHash::md4(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief MD4-Hash berechnen
  *
@@ -1012,51 +935,41 @@ int MHash::MD4(const CVar &data, CVar &result)
  *
  * \descr
  * Mit dieser Funktion wird ein Hashwert nach dem MD4-Algorithmus für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
+ * berechnet und das Ergebnis binär als ByteArray zurückgegeben.
  * \par
  * \copydoc Algo_MD4
  *
  * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
  * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return Bei Erfolg liefert die Funktion ein ByteArray zurück, im Fehlerfall wird eine Exception
+ * geworfen.
  */
 {
-	return Hash(data,result,Algo_MD4);
+	return MHash::hash(data,Algo_MD4);
 }
 
-int MHash::MD5(const CVar &data, CVar &result)
+ByteArray MHash::md5(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief MD5-Hash berechnen
  *
- * \header \#include <ppl7-crypto.h>
+ * @header \#include <ppl7-crypto.h>
  *
- * \descr
+ * @descr
  * Mit dieser Funktion wird ein Hashwert nach dem MD5-Algorithmus für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
+ * berechnet und das Ergebnis binär als ByteArray zurückgegeben.
  * \par
  * \copydoc Algo_MD5
  *
  * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
  * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return Bei Erfolg liefert die Funktion ein ByteArray zurück, im Fehlerfall wird eine Exception
+ * geworfen.
  */
 {
-	return Hash(data,result,Algo_MD5);
+	return MHash::hash(data,Algo_MD5);
 }
 
-int MHash::SHA1(const CVar &data, CVar &result)
+ByteArray MHash::sha1(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA1-Hash berechnen
  *
@@ -1079,10 +992,10 @@ int MHash::SHA1(const CVar &data, CVar &result)
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	return Hash(data,result,Algo_SHA1);
+	return MHash::hash(data,Algo_SHA1);
 }
 
-int MHash::SHA224(const CVar &data, CVar &result)
+ByteArray MHash::sha224(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA224-Hash berechnen
  *
@@ -1105,10 +1018,10 @@ int MHash::SHA224(const CVar &data, CVar &result)
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	return Hash(data,result,Algo_SHA224);
+	return MHash::hash(data,Algo_SHA224);
 }
 
-int MHash::SHA256(const CVar &data, CVar &result)
+ByteArray MHash::sha256(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA256-Hash berechnen
  *
@@ -1131,10 +1044,10 @@ int MHash::SHA256(const CVar &data, CVar &result)
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	return Hash(data,result,Algo_SHA256);
+	return MHash::hash(data,Algo_SHA256);
 }
 
-int MHash::SHA384(const CVar &data, CVar &result)
+ByteArray MHash::sha384(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA384-Hash berechnen
  *
@@ -1157,10 +1070,10 @@ int MHash::SHA384(const CVar &data, CVar &result)
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	return Hash(data,result,Algo_SHA384);
+	return MHash::hash(data,Algo_SHA384);
 }
 
-int MHash::SHA512(const CVar &data, CVar &result)
+ByteArray MHash::sha512(const Variant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA512-Hash berechnen
  *
@@ -1183,10 +1096,10 @@ int MHash::SHA512(const CVar &data, CVar &result)
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	return Hash(data,result,Algo_SHA512);
+	return MHash::hash(data,Algo_SHA512);
 }
 
-int MHash::SHA2(const CVar &data, CVar &result, Bits bits)
+ByteArray MHash::sha2(const Variant &data, Bits bits)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA2-Hash berechnen
  *
@@ -1212,211 +1125,11 @@ int MHash::SHA2(const CVar &data, CVar &result, Bits bits)
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	if (bits==Bits_Default || bits==Bits_256) return Hash(data,result,Algo_SHA256);
-	if (bits==Bits_224) return Hash(data,result,Algo_SHA224);
-	if (bits==Bits_384) return Hash(data,result,Algo_SHA384);
-	if (bits==Bits_512) return Hash(data,result,Algo_SHA512);
-	SetError(526);
-	return 0;
+	if (bits==Bits_Default || bits==Bits_256) return MHash::hash(data,Algo_SHA256);
+	if (bits==Bits_224) return MHash::hash(data,Algo_SHA224);
+	if (bits==Bits_384) return MHash::hash(data,Algo_SHA384);
+	if (bits==Bits_512) return MHash::hash(data,Algo_SHA512);
+	throw IllegalArgumentException("MHash::sha2 with %i bits", bits);
 }
-
-
-int MHash::HAVAL(const CVar &data, CVar &result, Bits bits)
-/*!\ingroup PPL7_CRYPT
- * \brief HAVAL-Hash berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein Hashwert nach dem HAVAL-Algorithmus mit einer Bittiefe
- * von \p bits für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * \par
- * \copydoc Algo_HAVAL256
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @param[in] bits Die gewünschte Bittiefe für die Berechnung. Möglich sind:
- * Bits_128, Bits_160, Bits_192, Bits_224 und Bits_256
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- *
- * \copydoc Algo_HAVAL256
- *
- * @param data
- * @param result
- * @param bits
- * @return
- */
-{
-	if (bits==Bits_Default || bits==Bits_256) return Hash(data,result,Algo_HAVAL256);
-	if (bits==Bits_128) return Hash(data,result,Algo_HAVAL128);
-	if (bits==Bits_160) return Hash(data,result,Algo_HAVAL160);
-	if (bits==Bits_192) return Hash(data,result,Algo_HAVAL192);
-	SetError(526);
-	return 0;
-}
-
-int MHash::TIGER(const CVar &data, CVar &result, Bits bits)
-/*!\ingroup PPL7_CRYPT
- * \brief TIGER-Hash berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein Hashwert nach dem TIGER-Algorithmus mit einer Bittiefe
- * von \p bits für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * \par
- * \copydoc Algo_TIGER192
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @param[in] bits Die gewünschte Bittiefe für die Berechnung. Möglich sind:
- * Bits_128, Bits_160 und Bits_192
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	if (bits==Bits_Default || bits==Bits_192) return Hash(data,result,Algo_TIGER192);
-	if (bits==Bits_128) return Hash(data,result,Algo_TIGER128);
-	if (bits==Bits_160) return Hash(data,result,Algo_TIGER160);
-	SetError(526);
-	return 0;
-
-}
-
-int MHash::RIPEMD(const CVar &data, CVar &result, Bits bits)
-/*!\ingroup PPL7_CRYPT
- * \brief RIPEMD-Hash berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein Hashwert nach dem RIPEMD-Algorithmus mit einer Bittiefe
- * von \p bits für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * \par
- * \copydoc Algo_RIPEMD160
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @param[in] bits Die gewünschte Bittiefe für die Berechnung. Möglich sind:
- * Bits_128, Bits_160, Bits_256 und Bits_320
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	if (bits==Bits_Default || bits==Bits_160) return Hash(data,result,Algo_RIPEMD160);
-	if (bits==Bits_128) return Hash(data,result,Algo_RIPEMD128);
-	if (bits==Bits_256) return Hash(data,result,Algo_RIPEMD256);
-	if (bits==Bits_320) return Hash(data,result,Algo_RIPEMD320);
-	SetError(526);
-	return 0;
-
-}
-
-int MHash::SNEFRU(const CVar &data, CVar &result, Bits bits)
-/*!\ingroup PPL7_CRYPT
- * \brief SNEFRU-Hash berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein Hashwert nach dem SNEFRU-Algorithmus mit einer Bittiefe
- * von \p bits für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * \par
- * \copydoc Algo_SNEFRU128
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @param[in] bits Die gewünschte Bittiefe für die Berechnung. Möglich sind:
- * Bits_128 und Bits_256
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	if (bits==Bits_Default || bits==Bits_128) return Hash(data,result,Algo_SNEFRU128);
-	if (bits==Bits_256) return Hash(data,result,Algo_SNEFRU256);
-	SetError(526);
-	return 0;
-
-}
-
-
-int MHash::GOST(const CVar &data, CVar &result)
-/*!\ingroup PPL7_CRYPT
- * \brief GOST-Hash berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein Hashwert nach dem GOST-Algorithmus für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * \par
- * \copydoc Algo_GOST
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	return Hash(data,result,Algo_GOST);
-}
-
-int MHash::WHIRLPOOL(const CVar &data, CVar &result)
-/*!\ingroup PPL7_CRYPT
- * \brief WHIRLPOOL-Hash berechnen
- *
- * \header \#include <ppl7-crypto.h>
- *
- * \descr
- * Mit dieser Funktion wird ein Hashwert nach dem WHIRLPOOL-Algorithmus für die Daten \p data
- * berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * \par
- * \copydoc Algo_WHIRLPOOL
- *
- * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln.
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	return Hash(data,result,Algo_WHIRLPOOL);
-}
-
-#endif
 
 }	// EOF namespace ppl7
