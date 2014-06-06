@@ -5,9 +5,9 @@ VERSION=$1
 VERSION=${VERSION:=HEAD}
 NAME=ppl6
 
-echo "INFO: create artefakt: dist/ppl-$VERSION.tar.bz2"
+echo "INFO: create artefakt: dist/$NAME-$VERSION.tar.bz2"
 rm -rf dist tmp
-mkdir -p dist tmp/$NAME-$VERSION
+mkdir -p dist tmp/$NAME-$VERSION tmp/$NAME-$VERSION/tests
 if [ $? -ne 0 ] ; then
     echo "ERROR: could not create directory \"dist\" or \"tmp/$NAME-$VERSION\" "
     exit 1
@@ -28,7 +28,7 @@ rm -rf tmp/$NAME-$VERSION/include/*config.h
 # Tests
 cd tests
 find  src testdata gcovr Makefile.in ppl6-tests.h \
-    | grep -v ".svn" | cpio -pdmv ../tmp/$NAME-$VERSION > /dev/null 2>&1
+    | grep -v ".svn" | cpio -pdmv ../tmp/$NAME-$VERSION/tests > /dev/null 2>&1
 
 if [ $? -ne 0 ] ; then
     echo "ERROR: filecopy failed "
