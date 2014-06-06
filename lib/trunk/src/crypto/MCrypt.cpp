@@ -55,11 +55,10 @@
 
 namespace ppl7 {
 
-#ifdef DONE
 
 /*!\class MCrypt
  * \ingroup PPL7_CRYPT
- * \brief Klasse zum Ver- und Entschlüsseln von Daten
+ * \brief Klasse zum Ver- und Entschlüsseln von Daten basierend auf MCrypt
  *
  * \header \#include <ppl6-crypt.h>
  *
@@ -126,7 +125,7 @@ int main (int argc, char **argv)
 	// Instanz der Klasse erstellen
 	ppl6::MCrypt MC;
 	// Objekt mit dem gewünschten Algorithmus initialisieren
-	if (!MC.Init(ppl6::MCrypt::Algo_TWOFISH,ppl6::MCrypt::Mode_CFB)) {
+	if (!MC.setAlgorithm(ppl6::MCrypt::Algo_TWOFISH,ppl6::MCrypt::Mode_CFB)) {
 		ppl6::PrintError();
 		return 0;
 	}
@@ -479,13 +478,13 @@ MCrypt::MCrypt()
  * \descr
  * Bei Verwendung dieses Konstruktors werden nur einige interne Variablen initialisert
  * und ein Default Initialisierungsvektor (IV) gesetzt (siehe MCrypt::SetIV). Der
- * gewünschte Verschlüsselungsalgorithmus muss mittels der Funktion MCrypt::Init
+ * gewünschte Verschlüsselungsalgorithmus muss mittels der Funktion MCrypt::setAlgorithm
  * festgelegt werden.
  *
  */
 {
 	mcrypt=NULL;
-	IV.Set((void*)ivs,strlen(ivs));
+	IV.copy((void*)ivs,strlen(ivs));
 }
 
 MCrypt::MCrypt(Algorithm algo, Mode mode)
@@ -494,18 +493,18 @@ MCrypt::MCrypt(Algorithm algo, Mode mode)
  * \descr
  * Bei Verwendung dieses Konstruktors wird die Klasse gleichzeitig mit einem bestimmten
  * Algorithmus und einem Verschlüsselungsmodus initialisiert, so dass die Funktion
- * MCrypt::Init nicht mehr aufgerufen werden muss.
+ * MCrypt::setAlgorithm nicht mehr aufgerufen werden muss.
  *
  * @param algo Der gewünschte Algorithmus (siehe MCrypt::Algorithm)
  * @param mode Der gewünschte Modus (siehe MCrypt::Mode)
  *
  * \note Auch wenn dieser Konstruktor verwendet wurde, kann jederzeit mit der Funktion
- * MCrypt::Init ein anderer Verschlüsselungsmechanismus ausgewählt werden.
+ * MCrypt::setAlgorithm ein anderer Verschlüsselungsmechanismus ausgewählt werden.
  */
 {
 	mcrypt=NULL;
-	Init(algo,mode);
-	IV.Set((void*)ivs,strlen(ivs));
+	setAlgorithm(algo,mode);
+	IV.copy((void*)ivs,strlen(ivs));
 }
 
 MCrypt::~MCrypt()
@@ -518,7 +517,7 @@ MCrypt::~MCrypt()
 #endif
 }
 
-int MCrypt::Init(Algorithm algo, Mode mode)
+void MCrypt::setAlgorithm(Algorithm algo, Mode mode)
 /*!\brief Initialisierung der Klasse
  *
  * \descr
@@ -540,8 +539,7 @@ int MCrypt::Init(Algorithm algo, Mode mode)
  */
 {
 #ifndef HAVE_LIBMCRYPT
-	SetError(518);
-	return 0;
+	throw UnsupportedFeatureException("MCrypt");
 #else
 	if (mcrypt) mcrypt_module_close((MCRYPT)mcrypt);
 	mcrypt=NULL;
@@ -584,22 +582,26 @@ int MCrypt::Init(Algorithm algo, Mode mode)
 		case Algo_SAFER_SK128: a="safer-sk128"; break;
 		case Algo_SAFER_PLUS: a="saferplus"; break;
 	}
+	if (a==NULL || m==NULL) {
+		throw IllegalArgumentException("MCrypt::setAlgorithm, algo=%i, mode=%i",algo,mode);
+	}
 	mcrypt=mcrypt_module_open((char*)a,NULL,(char*)m,NULL);
-	if (mcrypt!=MCRYPT_FAILED) return 1;
-	SetError(519);
-	mcrypt=NULL;
-	return 0;
+	if (mcrypt==MCRYPT_FAILED) {
+		mcrypt=NULL;
+		throw InvalidAlgorithmException("MCrypt::setAlgorithm, algo=%i, mode=%i",algo,mode);
+	}
 #endif
 }
 
-int MCrypt::GetIVSize() const
+
+int MCrypt::getIVSize() const
 /*!\brief Länge des Initialization Vector
  *
  * \descr
  * Mit dieser Funktion kann die Länge des Intilialisierungsvektors (IV) für den
  * ausgewählten Algorithmus ausgelesen werden.
  * Die Länge des IV ist abhängig vom Algorithmus, daher liefert die Funktion erst nach der Initialisierung mit
- * MCrypt::Init oder bei Verwendung des Konstruktors MCrypt::MCrypt(Algorithm algo, Mode mode) einen
+ * MCrypt::setAlgorithm oder bei Verwendung des Konstruktors MCrypt::MCrypt(Algorithm algo, Mode mode) einen
  * aussagekräftigen Wert. Ob ein Algorithmus überhaupt einen IV benötigt, kann mit der Funktion
  * MCrypt::NeedIV geprüft werden.
  * \par
@@ -614,23 +616,21 @@ int MCrypt::GetIVSize() const
 {
 #ifdef HAVE_LIBMCRYPT
 	if (!mcrypt) {
-		SetError(520);
-		return -1;
+		throw NoAlgorithmSpecifiedException();
 	}
 	return mcrypt_enc_get_iv_size((MCRYPT)mcrypt);
 #else
-	SetError(518);
-	return -1;
-
+	throw UnsupportedFeatureException("MCrypt");
 #endif
 }
 
-int MCrypt::GetMaxKeySize() const
+
+int MCrypt::getMaxKeySize() const
 /*!\brief Maximale Länge des Schlüssels
  * \descr
  * Mit dieser Funktion kann abgrefragt werden, wie lang der zur Verschlüsselung verwendete
  * Schlüssel maximal sein darf. Die Länge ist abhängig vom verwendeten Algorithmus, daher
- * liefert die Funktion erst nach der Initialisierung mit MCrypt::Init oder bei Verwendung
+ * liefert die Funktion erst nach der Initialisierung mit MCrypt::setAlgorithm oder bei Verwendung
  * des Konstruktors MCrypt::MCrypt(Algorithm algo, Mode mode) einen aussagekräftigen Wert.
  * \par
  * Der Schlüssel darf jede beliebige Länge zwischen 1 und dem zurückgegebenen Wert lang sein.
@@ -641,19 +641,15 @@ int MCrypt::GetMaxKeySize() const
 {
 #ifdef HAVE_LIBMCRYPT
 	if (!mcrypt) {
-		SetError(520);
-		return -1;
+		throw NoAlgorithmSpecifiedException();
 	}
 	return mcrypt_enc_get_key_size((MCRYPT)mcrypt);
 #else
-	SetError(518);
-	return -1;
-
+	throw UnsupportedFeatureException("MCrypt");
 #endif
 }
 
-
-int MCrypt::SetIV(const void *buffer, size_t size)
+void MCrypt::setIV(const void *buffer, size_t size)
 /*!\brief Initialization Vector (IV) setzen
  *
  * \descr
@@ -680,9 +676,6 @@ int MCrypt::SetIV(const void *buffer, size_t size)
  *
  * @param buffer Pointer auf den Speicherbereich, der den IV enthält
  * @param size Länge des Speicherbereichs
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Ein Fehler tritt auf, wenn
- * der Pointer \p buffer auf Null zeigt, die Länge \p size 0 ist oder kein Speicher mehr
- * zur Verfügung steht.
  *
  * \note
  * Falls der gewählte Algorithmus einen IV benötigt, aber keiner gesetzt wurde, verwendet die Klasse einen
@@ -698,14 +691,11 @@ int MCrypt::SetIV(const void *buffer, size_t size)
  * vorher mit MCrypt::GetIVSize abzufragen und dann mit dieser Funktion einen passenden Wert zu setzen.
  */
 {
-	if (buffer==NULL || size==0) {
-		SetError(194);
-		return 0;
-	}
-	return IV.Copy(buffer,size);
+	if (buffer==NULL || size==0) throw IllegalArgumentException();
+	IV.copy(buffer,size);
 }
 
-int MCrypt::SetIV(const CVar &object)
+void MCrypt::setIV(const Variant &object)
 /*!\brief Initialization Vector (IV) setzen
  *
  * \descr
@@ -749,61 +739,22 @@ int MCrypt::SetIV(const CVar &object)
  * vorher mit MCrypt::GetIVSize abzufragen und dann mit dieser Funktion einen passenden Wert zu setzen.
  */
 {
-	return IV.Copy(object);
-}
-
-int MCrypt::SetIV(const char *iv)
-/*!\brief Initialization Vector (IV) setzen
- *
- * \descr
- * Mit dieser Funktion wird der Initialization Vector (kurz: IV) gesetzt.
- * \par
- * Der Initialisierungsvektor (IV) ist ein Begriff aus der Kryptographie und bezeichnet einen Block
- * von Zufallsdaten, der in bestimmten Modi einiger Blockchiffren verwendet wird, wie dem
- * Cipher Block Chaining Mode (siehe MCrypt::Mode_CBC).
- * \par
- * Beim Verschlüsseln von Nachrichten muss vermieden werden, dass gleiche Klartextblöcke immer wieder
- * gleiche Geheimtextblöcke ergeben. Ein förmlicher Brief fängt im Deutschen in der Regel mit
- * "Sehr geehrter Herr/Frau" gefolgt vom Namen an. Aus diesem Wissen könnte ein Angreifer versuchen Rückschlüsse
- * auf den verwendeten Schlüssel zu ziehen. Um das zu vermeiden, wird der erste Klartextblock mit einem IV
- * XOR-verknüpft. Da der IV zufällig erzeugt wurde, unterscheiden sich die entstehenden Geheimtexte auch dann,
- * wenn die Klartexte mit identischen Daten beginnen.
- * \par
- * Da bei den Verschlüsselungsalgorithmen in der Regel Modi gewählt werden, bei denen der Geheimtext
- * eines Blocks vom Geheimtext seines Vorgängerblocks abhängt, muss der IV nicht geheim gehalten werden.
- * Im beschriebenen Fall würde der Geheimtext des Block Bn − 1 als IV des Blocks Bn fungieren, so dass für
- * die Kryptanalysten ohnehin n − 1 Initialisierungsvektoren bekannt wären.
- * \par
- * (Quelle: http://de.wikipedia.org/wiki/Initialisierungsvektor)
- *
- *
- * @param iv Pointer auf einen mit 0 terminierten String.
- * @return Bei Erfolg wird 1 zurückgegeben, im Fehlerfall 0. Ein Fehler tritt auf, wenn
- * der String \p iv auf Null zeigt, leer ist oder kein Speicher mehr zur Verfügung steht.
- *
- * \note
- * Falls der gewählte Algorithmus einen IV benötigt, aber keiner gesetzt wurde, verwendet die Klasse einen
- * statischen IV. Dieses Vorgehen ist aber nicht der Sicherheit dienlich, da der IV immer gleich ist
- * und dem Quellcode der Klasse entnommen werden kann. Es sollte daher immer ein eigener IV gesetzt werden!
- * \par
- * Die Klasse ist relativ tollerant, was die Länge des IV angeht. Zwar kann man mit der Funktion
- * MCrypt::GetIVSize abfragen, wir lang der IV für den gewählten Algorithmus sein muss, jedoch kann man
- * auch einen längeren oder kürzeren Wert angeben. Ist der Wert zu kurz, wird er einfach solange wiederholt,
- * bis die erforderliche Länge erreicht ist. Ist er zu lang, wird er an der notendigen Stelle abgeschnitten.
- * Dadurch kann es unter Umständen zu Problemen kommen, falls ein Datenblock mit einer Anwendung
- * verschlüsselt wurde oder entschlüsselt werden soll. Es wird daher empfohlen die erforderliche Länge
- * vorher mit MCrypt::GetIVSize abzufragen und dann mit dieser Funktion einen passenden Wert zu setzen.
- */
-{
-	if (iv==NULL || strlen(iv)==0) {
-		SetError(194);
-		return 0;
+	int type=object.dataType();
+	if (type==Variant::BYTEARRAY) {
+		const ByteArray &bin=static_cast<const ByteArray&>(object);
+		IV.copy(bin);
+	} else if (type==Variant::STRING) {
+		const String &str=static_cast<const String&>(object);
+		IV.copy(str.getPtr(),str.size());
+	} else if (type==Variant::WIDESTRING) {
+		const WideString &str=static_cast<const WideString&>(object);
+		IV.copy(str.getPtr(),str.size());
+	} else {
+		throw UnsupportedDataTypeException();
 	}
-	return IV.Copy(iv);
 }
 
-
-int MCrypt::SetKey(const void *buffer, size_t size)
+void MCrypt::setKey(const void *buffer, size_t size)
 /*!\brief Schlüssel festlegen
  *
  * \descr
@@ -825,14 +776,11 @@ int MCrypt::SetKey(const void *buffer, size_t size)
  *
  */
 {
-	if (buffer==NULL || size==0) {
-		SetError(194);
-		return 0;
-	}
-	return Key.Copy(buffer,size);
+	if (buffer==NULL || size==0) throw IllegalArgumentException();
+	Key.copy(buffer,size);
 }
 
-int MCrypt::SetKey(const CVar &object)
+void MCrypt::setKey(const Variant &object)
 /*!\brief Schlüssel festlegen
  *
  * \descr
@@ -854,38 +802,22 @@ int MCrypt::SetKey(const CVar &object)
  *
  */
 {
-	return Key.Copy(object);
-}
-
-int MCrypt::SetKey(const char *key)
-/*!\brief Schlüssel festlegen
- *
- * \descr
- * Mit dieser Funktion wird der Schlüssel definiert, mit dem die Daten verschlüsselt oder
- * entschlüsselt werden sollen. Die maximale Länge des Schlüssels hängt vom Algorithmus ab,
- * und muss daher vorher mit der Funktion MCrypt::GetMaxKeySize() abgefragt werden.
- *
- *
- * @param key Pointer auf einen mit 0 terminierten String, der den Schlüssel enthält
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0
- *
- * \note
- * Die Funktion nimmt auch längere Schlüssel an, jedoch wird er bei Aufruf von Crypt
- * oder Decrypt bei der maximalen Länge abgeschnitten. Das kann unter umständen zu
- * Problemen führen, wenn zur Verschlüsselung oder Entschlüsselung auch andere Programme
- * eingesetzt werden. Es wird daher empfohlen die maximale Länge durch Aufruf von
- * MCrypt::GetMaxKeySize abzufragen und einen passenden Schlüssel zu verwenden.
- *
- */
-{
-	if (key==NULL || strlen(key)==0) {
-		SetError(194);
-		return 0;
+	int type=object.dataType();
+	if (type==Variant::BYTEARRAY) {
+		const ByteArray &bin=static_cast<const ByteArray&>(object);
+		Key.copy(bin);
+	} else if (type==Variant::STRING) {
+		const String &str=static_cast<const String&>(object);
+		Key.copy(str.getPtr(),str.size());
+	} else if (type==Variant::WIDESTRING) {
+		const WideString &str=static_cast<const WideString&>(object);
+		Key.copy(str.getPtr(),str.size());
+	} else {
+		throw UnsupportedDataTypeException();
 	}
-	return Key.Copy(key);
 }
 
-int MCrypt::NeedIV() const
+bool MCrypt::needIV() const
 /*!\brief Prüfen, ob ein Initialisierungsvektor (IV) benötigt wird.
  *
  * \descr
@@ -908,7 +840,7 @@ int MCrypt::NeedIV() const
  * (Quelle: http://de.wikipedia.org/wiki/Initialisierungsvektor)
  * \par
  * Ob ein Initialisierungsvektor benötigt wird, hängt vom verwendeten Verschlüsselungsalgorithmus ab.
- * Dieser muss daher zunächst mittels der Funktion MCrypt::Init oder durch Verwendung des Konstruktors
+ * Dieser muss daher zunächst mittels der Funktion MCrypt::setAlgorithm oder durch Verwendung des Konstruktors
  * MCrypt::MCrypt(Algorithm algo, Mode mode) ausgewählt worden sein. Anschließend kann dann mit
  * dieser Funktion geprüft werden, ob ein IV benötigt wird und mit MCrypt::GetIVSize wie lang
  * dieser sein muss.
@@ -919,19 +851,15 @@ int MCrypt::NeedIV() const
 {
 #ifdef HAVE_LIBMCRYPT
 	if (!mcrypt) {
-		SetError(520);
-		return -1;
+		throw NoAlgorithmSpecifiedException();
 	}
 	return mcrypt_enc_mode_has_iv((MCRYPT)mcrypt);
 #else
-	SetError(518);
-	return -1;
-
+	throw UnsupportedFeatureException("MCrypt");
 #endif
 }
 
-
-int MCrypt::Crypt(void *buffer, size_t size)
+void MCrypt::crypt(void *buffer, size_t size)
 /*!\brief Verschlüsseln eines Speicherbereiches
  *
  * \descr
@@ -944,18 +872,18 @@ int MCrypt::Crypt(void *buffer, size_t size)
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \note Vor Aufruf dieser Funktion muss zunächst der gewünschte Verschlüsselungsalgorithmus
- * mittels der Funktion MCrypt::Init oder durch Verwendung des Konstruktors
+ * mittels der Funktion MCrypt::setAlgorithm oder durch Verwendung des Konstruktors
  * MCrypt::MCrypt(Algorithm algo, Mode mode) ausgewählt worden sein. Ferner muss eventuell noch
  * ein Initialisierungsvektor (siehe MCrypt::NeedIV und MCrypt::SetIV) und ein Schlüssel
  * (siehe MCrypt::SetKey) angegeben worden sein.
  */
 {
-	CBinary bin;
-	bin.Set(buffer,size);
-	return Crypt(bin);
+	ByteArrayPtr bin;
+	bin.use(buffer,size);
+	crypt(bin);
 }
 
-int MCrypt::Crypt(const CVar &in, CBinary &out)
+void MCrypt::crypt(const Variant &in, ByteArray &out)
 /*!\brief Verschlüsseln eines Objekts
  *
  * \descr
@@ -971,17 +899,29 @@ int MCrypt::Crypt(const CVar &in, CBinary &out)
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \note Vor Aufruf dieser Funktion muss zunächst der gewünschte Verschlüsselungsalgorithmus
- * mittels der Funktion MCrypt::Init oder durch Verwendung des Konstruktors
+ * mittels der Funktion MCrypt::setAlgorithm oder durch Verwendung des Konstruktors
  * MCrypt::MCrypt(Algorithm algo, Mode mode) ausgewählt worden sein. Ferner muss eventuell noch
  * ein Initialisierungsvektor (siehe MCrypt::NeedIV und MCrypt::SetIV) und ein Schlüssel
  * (siehe MCrypt::SetKey) angegeben worden sein.
  */
 {
-	out.Copy(in);
-	return Crypt(out);
+	int type=in.dataType();
+	if (type==Variant::BYTEARRAY) {
+		const ByteArray &bin=static_cast<const ByteArray&>(in);
+		out.copy(bin);
+	} else if (type==Variant::STRING) {
+		const String &str=static_cast<const String&>(in);
+		out.copy(str.getPtr(),str.size());
+	} else if (type==Variant::WIDESTRING) {
+		const WideString &str=static_cast<const WideString&>(in);
+		out.copy(str.getPtr(),str.size());
+	} else {
+		throw UnsupportedDataTypeException();
+	}
+	crypt(out);
 }
 
-int MCrypt::Crypt(CBinary &buffer)
+void MCrypt::crypt(ByteArrayPtr &buffer)
 /*!\brief Verschlüsseln eines CBinary-Objekts
  *
  * \descr
@@ -993,70 +933,57 @@ int MCrypt::Crypt(CBinary &buffer)
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \note Vor Aufruf dieser Funktion muss zunächst der gewünschte Verschlüsselungsalgorithmus
- * mittels der Funktion MCrypt::Init oder durch Verwendung des Konstruktors
+ * mittels der Funktion MCrypt::setAlgorithm oder durch Verwendung des Konstruktors
  * MCrypt::MCrypt(Algorithm algo, Mode mode) ausgewählt worden sein. Ferner muss eventuell noch
  * ein Initialisierungsvektor (siehe MCrypt::NeedIV und MCrypt::SetIV) und ein Schlüssel
  * (siehe MCrypt::SetKey) angegeben worden sein.
  */
 {
 #ifndef HAVE_LIBMCRYPT
-	SetError(518);
-	return 0;
+	throw UnsupportedFeatureException("MCrypt");
 #else
 	char *myIV=NULL;
 	// Wurde ein Key angegeben?
-	if (Key.Size()==0) {
-		SetError(522);
-		return 0;
-	}
+	if (Key.size()==0) throw NoKeySpecifiedException();
 	// Benötigen wir IV?
 	if (mcrypt_enc_mode_has_iv((MCRYPT)mcrypt)) {
 		// Haben wir in IV irgendwas?
-		size_t myIVSize=IV.Size();
-		if (myIVSize==0) {
-			SetError(521);
-			return 0;
-		}
+		size_t myIVSize=IV.size();
+		if (myIVSize==0) throw NoIVSpecifiedException();
 		int rest=mcrypt_enc_get_iv_size((MCRYPT)mcrypt);
 		myIV = (char*)malloc(rest);
-		if (!myIV) {
-			ppl6::SetError(2);
-			return 0;
-		}
+		if (!myIV) throw OutOfMemoryException();
 		int p=0;
 		while (rest) {
 			int bytes=myIVSize;
 			if (bytes>rest) bytes=rest;
-			memcpy(myIV+p,IV.GetPtr(),bytes);
+			memcpy(myIV+p,IV.ptr(),bytes);
 			p+=bytes;
 			rest-=bytes;
 		}
 	}
     size_t keysize=mcrypt_enc_get_key_size((MCRYPT)mcrypt);
-    if (Key.Size()<keysize) keysize=Key.Size();
-    int ret=mcrypt_generic_init((MCRYPT)mcrypt,(void*)Key.GetPtr(), keysize, myIV);
+    if (Key.size()<keysize) keysize=Key.size();
+    int ret=mcrypt_generic_init((MCRYPT)mcrypt,(void*)Key.ptr(), keysize, myIV);
     if (ret<0) {
-    	SetError(523,"%s",mcrypt_strerror(ret));
+    	const char *e=mcrypt_strerror(ret);
     	mcrypt_generic_deinit((MCRYPT)mcrypt);
     	if (myIV) free(myIV);
-    	return 0;
+    	throw EncryptionFailedException("%s",e);
     }
-	ret=mcrypt_generic((MCRYPT)mcrypt, (void*)buffer.GetPtr(),buffer.Size());
+	ret=mcrypt_generic((MCRYPT)mcrypt, (void*)buffer.ptr(),buffer.size());
 	if (ret<0) {
-		SetError(524,"%s",mcrypt_strerror(ret));
+		const char *e=mcrypt_strerror(ret);
     	mcrypt_generic_deinit((MCRYPT)mcrypt);
     	if (myIV) free(myIV);
-    	return 0;
+    	throw EncryptionFailedException("%s",e);
 	}
 	mcrypt_generic_deinit((MCRYPT)mcrypt);
 	if (myIV) free(myIV);
-	return 1;
 #endif
 }
 
-
-
-int MCrypt::Decrypt(void *buffer, size_t size)
+void MCrypt::decrypt(void *buffer, size_t size)
 /*!\brief Entschlüsseln eines Speicherbereiches
  *
  * \descr
@@ -1069,18 +996,17 @@ int MCrypt::Decrypt(void *buffer, size_t size)
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \note Vor Aufruf dieser Funktion muss zunächst der gewünschte Verschlüsselungsalgorithmus
- * mittels der Funktion MCrypt::Init oder durch Verwendung des Konstruktors
+ * mittels der Funktion MCrypt::setAlgorithm oder durch Verwendung des Konstruktors
  * MCrypt::MCrypt(Algorithm algo, Mode mode) ausgewählt worden sein. Ferner muss eventuell noch
  * ein Initialisierungsvektor (siehe MCrypt::NeedIV und MCrypt::SetIV) und ein Schlüssel
  * (siehe MCrypt::SetKey) angegeben worden sein.
  */
 {
-	CBinary bin;
-	bin.Set(buffer,size);
-	return Decrypt(bin);
+	ByteArrayPtr bin(buffer,size);
+	decrypt(bin);
 }
 
-int MCrypt::Decrypt(const CBinary &in, CBinary &out)
+void MCrypt::decrypt(const ByteArrayPtr &in, ByteArray &out)
 /*!\brief Entschlüsseln eines Objekts
  *
  * \descr
@@ -1093,17 +1019,17 @@ int MCrypt::Decrypt(const CBinary &in, CBinary &out)
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \note Vor Aufruf dieser Funktion muss zunächst der gewünschte Verschlüsselungsalgorithmus
- * mittels der Funktion MCrypt::Init oder durch Verwendung des Konstruktors
+ * mittels der Funktion MCrypt::setAlgorithm oder durch Verwendung des Konstruktors
  * MCrypt::MCrypt(Algorithm algo, Mode mode) ausgewählt worden sein. Ferner muss eventuell noch
  * ein Initialisierungsvektor (siehe MCrypt::NeedIV und MCrypt::SetIV) und ein Schlüssel
  * (siehe MCrypt::SetKey) angegeben worden sein.
  */
 {
-	out.Copy(in);
-	return Decrypt(out);
+	out.copy(in);
+	decrypt(out);
 }
 
-int MCrypt::Decrypt(CBinary &buffer)
+void MCrypt::decrypt(ByteArrayPtr &buffer)
 /*!\brief Entschlüsseln eines CBinary-Objekts
  *
  * \descr
@@ -1115,68 +1041,57 @@ int MCrypt::Decrypt(CBinary &buffer)
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \note Vor Aufruf dieser Funktion muss zunächst der gewünschte Verschlüsselungsalgorithmus
- * mittels der Funktion MCrypt::Init oder durch Verwendung des Konstruktors
+ * mittels der Funktion MCrypt::setAlgorithm oder durch Verwendung des Konstruktors
  * MCrypt::MCrypt(Algorithm algo, Mode mode) ausgewählt worden sein. Ferner muss eventuell noch
  * ein Initialisierungsvektor (siehe MCrypt::NeedIV und MCrypt::SetIV) und ein Schlüssel
  * (siehe MCrypt::SetKey) angegeben worden sein.
  */
 {
 #ifndef HAVE_LIBMCRYPT
-	SetError(518);
-	return 0;
+	throw UnsupportedFeatureException("MCrypt");
 #else
 	char *myIV=NULL;
 	// Wurde ein Key angegeben?
-	if (Key.Size()==0) {
-		SetError(522);
-		return 0;
-	}
+	if (Key.size()==0) throw NoKeySpecifiedException();
 	// Benötigen wir IV?
 	if (mcrypt_enc_mode_has_iv((MCRYPT)mcrypt)) {
 		// Haben wir in IV irgendwas?
-		size_t myIVSize=IV.Size();
-		if (myIVSize==0) {
-			SetError(521);
-			return 0;
-		}
+		size_t myIVSize=IV.size();
+		if (myIVSize==0) throw NoIVSpecifiedException();
 		int rest=mcrypt_enc_get_iv_size((MCRYPT)mcrypt);
 		myIV = (char*)malloc(rest);
-		if (!myIV) {
-			ppl6::SetError(2);
-			return 0;
-		}
+		if (!myIV) throw OutOfMemoryException();
 		int p=0;
 		while (rest) {
 			int bytes=myIVSize;
 			if (bytes>rest) bytes=rest;
-			memcpy(myIV+p,IV.GetPtr(),bytes);
+			memcpy(myIV+p,IV.ptr(),bytes);
 			p+=bytes;
 			rest-=bytes;
 		}
 	}
     size_t keysize=mcrypt_enc_get_key_size((MCRYPT)mcrypt);
-    if (Key.Size()<keysize) keysize=Key.Size();
-    int ret=mcrypt_generic_init((MCRYPT)mcrypt,(void*)Key.GetPtr(), keysize, myIV);
+    if (Key.size()<keysize) keysize=Key.size();
+    int ret=mcrypt_generic_init((MCRYPT)mcrypt,(void*)Key.ptr(), keysize, myIV);
     if (ret<0) {
-    	SetError(523,"%s",mcrypt_strerror(ret));
+    	const char *e=mcrypt_strerror(ret);
     	mcrypt_generic_deinit((MCRYPT)mcrypt);
     	if (myIV) free(myIV);
-    	return 0;
+    	throw DecryptionFailedException("%s",e);
     }
-	ret=mdecrypt_generic((MCRYPT)mcrypt, (void*)buffer.GetPtr(),buffer.Size());
-	if (ret<0) {
-		SetError(524,"%s",mcrypt_strerror(ret));
+    ret=mdecrypt_generic((MCRYPT)mcrypt, (void*)buffer.ptr(),buffer.size());
+    if (ret<0) {
+    	const char *e=mcrypt_strerror(ret);
     	mcrypt_generic_deinit((MCRYPT)mcrypt);
     	if (myIV) free(myIV);
-    	return 0;
-	}
-	mcrypt_generic_deinit((MCRYPT)mcrypt);
+    	throw DecryptionFailedException("%s",e);
+    }
+    mcrypt_generic_deinit((MCRYPT)mcrypt);
 	if (myIV) free(myIV);
-	return 1;
 #endif
 }
 
-
+#ifdef DONE
 int MCrypt::Crypt(CBinary &buffer, const CVar &key, Algorithm algo, Mode mode, const CVar &IV)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten verschlüsseln

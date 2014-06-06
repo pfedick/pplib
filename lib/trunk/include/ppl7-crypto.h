@@ -49,7 +49,10 @@ PPLEXCEPTION (InvalidAlgorithmException, Exception);
 PPLEXCEPTION (NoAlgorithmSpecifiedException, Exception);
 PPLEXCEPTION (InvalidBlocksizeException, Exception);
 PPLEXCEPTION (HashFailedException, OperationFailedException);
-
+PPLEXCEPTION (NoKeySpecifiedException, Exception);
+PPLEXCEPTION (NoIVSpecifiedException, Exception);
+PPLEXCEPTION (EncryptionFailedException, OperationFailedException);
+PPLEXCEPTION (DecryptionFailedException, OperationFailedException);
 
 class MCrypt
 {
@@ -105,25 +108,23 @@ class MCrypt
 		MCrypt();
 		MCrypt(Algorithm algo, Mode mode);
 		~MCrypt();
-		int init(Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB);
+		void setAlgorithm(Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB);
 		int getIVSize() const;
 		int getMaxKeySize() const;
-		int setIV(const void *buffer, size_t size);
-		int setIV(const Variant &object);
-		int setIV(const char *iv);
-		int setKey(const void *buffer, size_t size);
-		int setKey(const char *key);
-		int setKey(const Variant &object);
-		int needIV() const;
+		void setIV(const void *buffer, size_t size);
+		void setIV(const Variant &object);
+		void setKey(const void *buffer, size_t size);
+		void setKey(const Variant &object);
+		bool needIV() const;
 		//int SupportKeySize(size_t size);
 
-		int crypt(void *buffer, size_t size);
-		int crypt(const Variant &in, ByteArray &out);
-		int crypt(ByteArrayPtr &buffer);
+		void crypt(void *buffer, size_t size);
+		void crypt(const Variant &in, ByteArray &out);
+		void crypt(ByteArrayPtr &buffer);
 
-		int decrypt(void *buffer, size_t size);
-		int decrypt(const ByteArrayPtr &in, ByteArray &out);
-		int decrypt(ByteArrayPtr &buffer);
+		void decrypt(void *buffer, size_t size);
+		void decrypt(const ByteArrayPtr &in, ByteArray &out);
+		void decrypt(ByteArrayPtr &buffer);
 
 		static int crypt(ByteArray &buffer, const Variant &key, Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB, const Variant &IV=ByteArray());
 		static int decrypt(ByteArray &buffer, const Variant &key, Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB, const Variant &IV=ByteArray());
