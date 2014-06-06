@@ -54,7 +54,7 @@
 
 namespace ppl7 {
 
-/*!\class MHash
+/*!\class CMHash
  * \ingroup PPL7_CRYPT
  * \brief Klasse zum Erstellen von Hashes nach verschiedenen Algorithmen
  *
@@ -70,19 +70,9 @@ namespace ppl7 {
  * Damit diese Klasse verwendet werden kann, muss vor Aufruf des configure-Scripts die
  * Library <a href="http://mhash.sourceforge.net/">libmhash</a> installiert sein.
  * Falls das configure die Library nicht automatisch findet, kann der Installationspfad
- * über den configure Parameter "--with-libhash-prefix=..." angegeben werden. Falls
- * libmhash nicht eingebunden wurde, liefern fast alle Funktionen einen Fehler
- * zurück und setzen den Fehlercode "527".
- * \par
- * Mit der statischen Funktion Cppl7Core::haveMHash kann zur Laufzeit
- * geprüft werden, ob libmhash eingebunden wurde.
- * \par
- * \code
- * if (ppl7::Cppl7Core::haveMHash()!=1) {
- *    printf("MHash steht nicht zur Verfügung!\n");
- *    return;
- * }
- * \endcode
+ * über den configure Parameter "--with-libmhash=..." angegeben werden. Falls
+ * libmhash nicht eingebunden wurde, werfen fast alle Funktionen eine UnsupportedFeatureException
+ * .
  *
  * \example
  * Das folgende Beispiel zeigt, wie die Klasse verwendet werden kann:
@@ -91,28 +81,21 @@ namespace ppl7 {
 #include <ppl7-crypto.h>
 int mhash_demo_class()
 {
-	// Zuerst erstellen wir mal ein Binary-Objekt, das unsere zu hashende Daten enthält
-	ppl7::CBinary data="The quick brown fox jumps over the lazy dog";
-	// Nun erstellen wir unsere Klasse
+	// Zuerst erstellen wir einen String mit den zu hashenden Daten
+	ppl7::String data="The quick brown fox jumps over the lazy dog";
+	// Nun erstellen wir eine Instanz von MHash
 	ppl7::MHash Hash;
 	// Wir wollen einen SHA256 Hash
-	if (!Hash.Init(ppl7::MHash::Algo_SHA256)) {
-		ppl7::PrintError();
-		return 0;
-	}
+	Hash.setAlgorithm(ppl7::MHash::Algo_SHA256);
 	// Jetzt übergeben wir unsere Daten zum Hashen
-	if (!Hash.AddData(data)) {
-		ppl7::PrintError();
-		return 0;
-	}
+	Hash.addData(data);
 	// Und holen uns das Ergebnis als String
-	ppl7::CString result;
-	if (!Hash.GetResult(result)) {
-		ppl7::PrintError();
-		return 0;
-	}
+	ppl7::String result=Hash.getResult().toString();
 	// Den geben wir auf stdout aus
-	result.Print(true);
+	result.printnl();
+
+	// Alternativ geht's auch so:
+	ppl7::String result2=ppl7::MHash::sha256(data).toString();
 	return 1;
 }
 \endcode
@@ -124,48 +107,40 @@ d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592
 
  *
  * \example
- * Das nachfolgende Beispiel zeigt, wie die statische Funktion MHash::CRC32B verwendet
+ * Das nachfolgende Beispiel zeigt, wie die statische Funktion MHash::ctc32B verwendet
  * wird, um eine CRC-Prüfsumme zu berechnen:
 \code
 #include <ppl7.h>
 #include <ppl7-crypto.h>
 int mhash_demo_static_crc32()
 {
-	// Zuerst erstellen wir ein Binary-Objekt, für das wir die Prüfsumme berechnen wollen
-	ppl7::CBinary data="The quick brown fox jumps over the lazy dog";
-	// Das Ergebnis wollen wir als 32-Bit Integer
-	ppl7::CInt result;
-	if (!ppl7::MHash::CRC32B(data,result)) {	// MD5-Hashfunktion aufrufen
-		ppl7::PrintError();
-		return 0;
-	}
-	// Jetzt das Ergebnis ausgeben
-	printf ("Die CRC32-Prüfsumme lautet: %u (0x%X)\n",(unsigned int)result, (unsigned int)result);
+	// Diesmal erstellen wir ein ByteArray-Objekt, für das wir die Prüfsumme berechnen wollen
+	ppl7::ByteArray data="The quick brown fox jumps over the lazy dog";
+
+	// Das Ergebnis bekommen wir als Integer
+	printf ("Die CRC32-Prüfsumme lautet: %u\n",ppl7::MHash::crc32b(data));
 	return 1;
 }
 \endcode
 Ergebnis:
 \verbatim
 patrick@server: ./ppltest
-Die CRC32-Prüfsumme lautet: 1095738169 (0x414FA339)
+Die CRC32-Prüfsumme lautet: 1095738169
 \endverbatim
 
  * \example
- * Und zuletzt noch ein Beispiel mit MHash::MD5:
+ * Und zuletzt noch ein Beispiel mit MHash::md5:
 \code
 #include <ppl7.h>
 #include <ppl7-crypto.h>
 int mhash_demo_static_md5()
 {
-	// Zuerst erstellen wir mal ein Binary-Objekt, das unsere zu hashende Daten enthält
-	ppl7::CBinary data="The quick brown fox jumps over the lazy dog";
+	// Diesmal erstellen wir ein ByteArray-Objekt, für das wir die Prüfsumme berechnen wollen
+	ppl7::ByteArray data="The quick brown fox jumps over the lazy dog";
+
 	// Das Ergebnis wollen wir als Hexadezimalwert in einem String
-	ppl7::CString result;
-	if (!ppl7::MHash::MD5(data,result)) {	// MD5-Hashfunktion aufrufen
-		ppl7::PrintError();
-		return 0;
-	}
-	result.Print(true);	// Ergebnis ausgeben
+	ppl7::String result=ppl7::MHash::md5(data).toString();
+	result.printnl();
 	return 1;
 }
 \endcode
@@ -176,6 +151,7 @@ patrick@server: ./ppltest
 \endverbatim
 
  */
+
 
 /*!\enum MHash::Algorithm
  * \brief Unterstütze Algorithmen
@@ -397,7 +373,7 @@ MHash::MHash()
  *
  * \descr
  * Bei Verwendung dieses Konstruktors werden nur einige interne Variablen initialisert.
- * Der gewünschte Hash-Algorithmus muss mittels der Funktion MHash::Init
+ * Der gewünschte Hash-Algorithmus muss mittels der Funktion MHash::setAlgorithm
  * festgelegt werden.
  */
 {
@@ -411,13 +387,17 @@ MHash::MHash(Algorithm algorithm)
  *
  * \descr
  * Bei Verwendung dieses Konstruktors wird die Klasse gleichzeitig mit einem bestimmten
- * Hash-Algorithmus initialisiert, so dass die Funktion MHash::Init nicht mehr aufgerufen
+ * Hash-Algorithmus initialisiert, so dass die Funktion MHash::setAlgorithm nicht mehr aufgerufen
  * werden muss.
  *
  * @param method Der gewünschte Algorithmus (siehe MHash::Algorithm)
  *
  * \note Auch wenn dieser Konstruktor verwendet wurde, kann jederzeit mit der Funktion
- * MHash::init ein anderer Hash-Algorithmus ausgewählt werden.
+ * MHash::setAlgorithm ein anderer Hash-Algorithmus ausgewählt werden.
+ *
+ * @throws UnsupportedFeatureException MHash wird nicht unterstützt
+ * @throws InvalidAlgorithmException Algorithmus wird nicht unterstützt oder ist unbekannt
+ *
  */
 {
 	handle=NULL;
@@ -444,11 +424,10 @@ void MHash::setAlgorithm(Algorithm algorithm)
  * \descr
  * Mit dieser Funktion wird der gewünschte Hash-Algorithmus ausgewählt.
  *
- * @param method Der gewünschte Algorithmus (siehe MHash::Algorithm).
+ * @param algorithm Der gewünschte Algorithmus (siehe MHash::Algorithm).
  *
- * \return Bei Erfolg liefert die Funktion 1 zurück, sonst 0. Falls die libmhash
- * bei der Erstellung der Library nicht eingebunden wurde, liefert die Funktion
- * ebenfalls 0 zurück und setzt den Fehlercode 527.
+ * @throws UnsupportedFeatureException MHash wird nicht unterstützt
+ * @throws InvalidAlgorithmException Algorithmus wird nicht unterstützt oder ist unbekannt
  *
  */
 {
@@ -504,6 +483,13 @@ void MHash::setAlgorithm(Algorithm algorithm)
 
 
 MHash::Algorithm MHash::getAlgorithmFromName(const String &name)
+/*!@brief Wandelt den übergebenen String in einen Algorithmus um
+ *
+ * @return Sofert der Algorithmus mit dem Namen @p name bekannt, wird dessen
+ * Id zurückgegeben.
+ *
+ * @throws InvalidAlgorithmException Algorithmus wird nicht unterstützt oder ist unbekannt
+ */
 {
 	String a=name;
 	a.upperCase();
@@ -542,12 +528,15 @@ void MHash::reset()
 /*!\brief Interne Datenstrukturen zurücksetzen
  *
  * \descr
- * Falls bereits Daten mit MHash::AddData zur Berechnung an die Klasse übergeben wurden,
+ * Falls bereits Daten mit MHash::addData zur Berechnung an die Klasse übergeben wurden,
  * können die internen Datenstrukturen mit dieser Funktion wieder in den Anfangszustand
  * zurückversetzt werden.
+ *
+ * @throws UnsupportedFeatureException MHash wird nicht unterstützt
+ * @throws InvalidAlgorithmException Algorithmus wird nicht unterstützt oder ist unbekannt
  */
 {
-	setAlgorithm(algo);
+	if (handle) setAlgorithm(algo);
 }
 
 int MHash::getBlockSize() const
@@ -555,11 +544,14 @@ int MHash::getBlockSize() const
  *
  * \descr
  * Diese Funktion liefert die Länge des gewählten Hash-Algorithmus in Bytes zurück.
- * Die Funktion liefert nur einen brauchbaren Wert, wenn zuvor MHash::Init aufgerufen
- * oder der Konstruktor MHash(Algorithm method) verwendet wurde.
+ * Die Funktion liefert nur einen brauchbaren Wert, wenn zuvor MHash::setAlgorithm aufgerufen
+ * oder der Konstruktor MHash(Algorithm algorithm) verwendet wurde.
  *
  * @return Bei Erfolg liefert die Funktion die Länge des Algorithmus zurück, im
  * Fehlerfall -1.
+ *
+ * @throws UnsupportedFeatureException MHash wird nicht unterstützt
+ * @throws NoAlgorithmSpecifiedException Es wurde noch kein Algorithmus ausgewählt
  */
 {
 #ifndef HAVE_LIBMHASH
@@ -573,7 +565,7 @@ int MHash::getBlockSize() const
 }
 
 void MHash::saveDigest(Variant &result)
-/*!\brief Ergebnis auslesen
+/*!\brief Ergebnis speichern
  *
  * \descr
  * Durch Aufruf dieser Funktion wird der bis dahin berechnete Hash-Wert ausgelesen und im
@@ -582,16 +574,23 @@ void MHash::saveDigest(Variant &result)
  * ein neuer Hash-Wert berechnet werden.
  * \par
  * Das Ergebnis kann auf verschiedene Arten zurückgegeben werden und hängt vom Typ des \p result
- * Objekts ab. Handelt es sich um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus. Wird CString oder CWString verwendet, wird das
- * Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben. Bei den Algorithmen, die
- * einen 32-Bit Wert zurückliefern (z.B. Algo_CRC32), kann auch CInt verwendet werden.
+ * Objekts ab. Handelt es sich um ein ByteArray, wird das Ergebnis im Binärformat übergeben und
+ * hat exakt die Länge des Algorithmus. Wird String oder WideString verwendet, wird das
+ * Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
+ * \par
+ * Das Ergebnis der Algorithmen, die einen 32-Bit Wert zurückliefern (z.B. Algo_CRC32), kann
+ * auch mittles der Funktion MHash::getInt() ausgelesen werden.
  *
- * @param[out] result Ein von CVar abgeleitetes Objekt, in dem das Ergebnis abgelegt werden
- * soll. Unterstützt werden CBinary, CString, CWString und CInt. Der vorherige Inhalt
+ * @param[out] result Ein von Variant abgeleitetes Objekt, in dem das Ergebnis abgelegt werden
+ * soll. Unterstützt werden ByteArray, String und WideString. Der vorherige Inhalt
  * des Objekts wird überschrieben.
  *
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * @throws UnsupportedFeatureException
+ * @throws NoAlgorithmSpecifiedException
+ * @throws EmptyDataException Es wurden noch keine Daten gehasht
+ * @throws OutOfMemoryException
+ * @throws UnsupportedDataTypeException
+ *
  */
 {
 #ifndef HAVE_LIBMHASH
@@ -634,6 +633,26 @@ void MHash::saveDigest(Variant &result)
 #endif
 }
 
+/*!\brief Ergebnis auslesen
+ *
+ * \descr
+ * Durch Aufruf dieser Funktion wird der bis dahin berechnete Hash-Wert ermittelt und
+ * als ByteArray zurückgegeben. Gleichzeitig werden die internen Datenstrukturen reinitialisiert,
+ * so dass ein weiterer Aufruf dieser Funktion fehlschlagen wird. Es kann jedoch sofort
+ * ein neuer Hash-Wert berechnet werden.
+ * \par
+ * Das Ergebnis der Algorithmen, die einen 32-Bit Wert zurückliefern (z.B. Algo_CRC32), kann
+ * auch mittles der Funktion MHash::getInt() ausgelesen werden.
+ *
+ * @return Ein ByteArray mit dem Hash-Wert.
+ *
+ * @throws UnsupportedFeatureException
+ * @throws NoAlgorithmSpecifiedException
+ * @throws EmptyDataException Es wurden noch keine Daten gehasht
+ * @throws OutOfMemoryException
+ * @throws UnsupportedDataTypeException
+ *
+ */
 ByteArray MHash::getDigest()
 {
 	ByteArray res;
@@ -644,7 +663,13 @@ ByteArray MHash::getDigest()
 int MHash::getInt()
 /*!\brief Ergebnis einer CRC32-Berechnung oder Adler32-Berechnung
  *
- * @return
+ * @return Prüfsumme als Integer
+ *
+ * @throws UnsupportedFeatureException
+ * @throws NoAlgorithmSpecifiedException
+ * @throws EmptyDataException Es wurden noch keine Daten gehasht
+ * @throws OutOfMemoryException
+ * @throws UnsupportedDataTypeException
  */
 {
 #ifndef HAVE_LIBMHASH
@@ -685,7 +710,10 @@ void MHash::addData(const void *data, size_t size)
  *
  * @param data Pointer auf den Speicherbereich mit den zu berechnenden Daten
  * @param size Größe des Speicherbereichs in Bytes
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ *
+ * @throws UnsupportedFeatureException
+ * @throws NoAlgorithmSpecifiedException
+ * @throws HashFailedException Das Hashen der Daten ist fehlgeschlagen
  */
 {
 #ifndef HAVE_LIBMHASH
@@ -705,13 +733,18 @@ void MHash::addData(const Variant &data)
 /*!\brief Daten-Objekt zur Berechnung hinzufügen
  *
  * \descr
- * Mit dieser Funktion wird der Inhalt eines von CVar-Abgeleiteten Objekts zur Berechnung
+ * Mit dieser Funktion wird der Inhalt eines von Variant-Abgeleiteten Objekts zur Berechnung
  * des Hash-Wertes übergeben. Die Funktion kann beliebig oft aufgerufen werden, jeder
  * neue Datenblock wird dem Hash-Wert hinzugefügt.
  *
- * @param data Ein von CVar abgeleitetes Objekt. Derzeit werden CString, CWString und CBinary
- * unterstützt.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * @param data Ein von Variant abgeleitetes Objekt. Derzeit werden String, WideString,
+ * ByteArray und ByteArrayPtr unterstützt.
+ *
+ * @throws UnsupportedFeatureException
+ * @throws NoAlgorithmSpecifiedException
+ * @throws HashFailedException Das Hashen der Daten ist fehlgeschlagen
+ * @throws UnsupportedDataTypeException
+ *
  */
 {
 	int type=data.dataType();
@@ -731,15 +764,19 @@ void MHash::addData(const Variant &data)
 
 
 void MHash::addFile(const String &filename)
-/*!\brief Hash-Wert einer Datei berechnen
+/*!\brief Inhalt einer Datei zur Berechnung hinzufügen
  *
  * \descr
  * Mit dieser Funktion wird der Hash-Wert des Inhaltes einer kompletten Datei berechnet.
- * Dazu wird diese in 10 MB große Blöcke aufgeteilt und nach und nach eingelesen.
- * Die Funktion kann beliebig oft aufgerufen werden, jeder
- * neue Datenblock wird dem Hash-Wert hinzugefügt.
+ * Die Funktion kann beliebig oft aufgerufen werden, jede neue Datei
+ * wird dem Hash-Wert hinzugefügt.
  *
  * @param filename String mit dem Dateinamen.
+ *
+ * @throws UnsupportedFeatureException
+ * @throws NoAlgorithmSpecifiedException
+ * @throws HashFailedException Das Hashen der Daten ist fehlgeschlagen
+ * @throws IOException Datei nicht vorhanden oder Fehler beim Einlesen
  */
 {
 	File ff;
@@ -748,16 +785,19 @@ void MHash::addFile(const String &filename)
 }
 
 void MHash::addData(FileObject &file)
-/*!\brief Hash-Wert einer geöffneten Datei berechnen
+/*!\brief Inhalt eines File-Objects zur Berechnung hinzufügen
  *
  * \descr
  * Mit dieser Funktion wird der Hash-Wert des Inhaltes einer kompletten Datei berechnet.
- * Dazu wird diese in 10 MB große Blöcke aufgeteilt und nach und nach eingelesen.
  * Die Funktion kann beliebig oft aufgerufen werden, jeder
  * neue Datenblock wird dem Hash-Wert hinzugefügt.
  *
- * @param file Referenz auf ein von CFileObject abgeleitetes Objekt
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
+ * @param file Referenz auf ein von FileObject abgeleitetes Objekt
+ *
+ * @throws UnsupportedFeatureException
+ * @throws NoAlgorithmSpecifiedException
+ * @throws HashFailedException Das Hashen der Daten ist fehlgeschlagen
+ * @throws IOException Fehler beim Einlesen der Datei
  */
 {
 #ifndef HAVE_LIBMHASH
@@ -805,21 +845,22 @@ ByteArray MHash::hash(const Variant &data, Algorithm algorithm)
  *
  * \descr
  * Mit dieser Funktion wird ein Hash-Wert für die Daten \p data mit dem Algorithmus
- * \p algo berechnet und das Ergebnis in \p result gespeichert.
+ * \p algorithm berechnet und das Ergebnis als ByteArray zurückgegeben.
  * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * Bei den Algorithmen, die einen 32-Bit Wert zurückliefern (z.B. Algo_CRC32), kann
- * auch CInt übergeben werden.
  *
  * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln, bei Algorithmen, die einen 32-Bit-Wert
- * zurückgeben (z.B. Algo_CRC32) auch CInt.
- * @param[in] algo Der zu verwendende Algorithmus (siehe MHash::Algorithm)
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * ein ByteArray, ByteArrayPtr, String oder WideString handeln.
+ * @param[in] algorithm Der zu verwendende Algorithmus (siehe MHash::Algorithm)
+ * @return ByteArray mit dem Hashwert
+ *
+ * @throws UnsupportedFeatureException MHash wird nicht unterstützt
+ * @throws InvalidAlgorithmException Algorithmus wird nicht unterstützt oder ist unbekannt
+ * @throws HashFailedException Beim Hashen ist ein Fehler aufgetreten
+ * @throws UnsupportedDataTypeException
+ * @throws OutOfMemoryException
+ * @throws EmptyDataException Es wurden noch keine Daten gehasht
+ * @throws UnsupportedDataTypeException
+ *
  */
 {
 	MHash MH(algorithm);
@@ -834,21 +875,20 @@ ByteArray MHash::hash(const Variant &data, Algorithm algorithm)
  *
  * \descr
  * Mit dieser Funktion wird ein Hash-Wert für die Daten \p data mit dem Algorithmus
- * \p algo berechnet und das Ergebnis in \p result gespeichert.
- * \par
- * Handelt es sich bei \p result um ein CBinary, wird das Ergebnis im Binärformat übergeben und
- * hat exakt die Länge des Algorithmus (siehe MHash::GetBlockSize). Wird CString oder CWString
- * verwendet, wird das Ergebnis als Hexadezimalwerte in lesbarer Form zurückgegeben.
- * Bei den Algorithmen, die einen 32-Bit Wert zurückliefern (z.B. Algo_CRC32), kann
- * auch CInt übergeben werden.
+ * \p algo berechnet und das Ergebnis als ByteArray zurückgegeben.
  *
  * @param[in] data Objekt, dem die zu berechnenden Daten zu entnehmen sind. Dabei kann es sich um
- * ein CBinary, CString oder CWString handeln
- * @param[out] result Objekt, in dem das Ergebnis gespeichert werden soll. Auch hier kann es
- * sich um ein CBinary, CString oder CWString handeln, bei Algorithmen, die einen 32-Bit-Wert
- * zurückgeben (z.B. Algo_CRC32) auch CInt.
+ * ein ByteArray, ByteArrayPtr, String oder WideString handeln.
  * @param[in] algo Der zu verwendende Algorithmus als String
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ * @return ByteArray mit dem Hashwert
+ *
+ * @throws UnsupportedFeatureException MHash wird nicht unterstützt
+ * @throws InvalidAlgorithmException Algorithmus wird nicht unterstützt oder ist unbekannt
+ * @throws HashFailedException Beim Hashen ist ein Fehler aufgetreten
+ * @throws UnsupportedDataTypeException
+ * @throws OutOfMemoryException
+ * @throws EmptyDataException Es wurden noch keine Daten gehasht
+ * @throws UnsupportedDataTypeException
  */
 ByteArray MHash::hash(const Variant &data, const String &algo)
 {
