@@ -100,7 +100,7 @@ TEST_F(DigestTest, TestMD5) {
 TEST_F(DigestTest, TestSHA1) {
 	ppl7::Digest dig;
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
-	ASSERT_EQ(0,dig.bytesHashed());
+	ASSERT_EQ((ppluint64)0,dig.bytesHashed());
 	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
 	ASSERT_EQ(591,dig.bytesHashed());
 	ppl7::ByteArray result;
@@ -223,7 +223,7 @@ TEST_F(DigestTest, TestAddDataFromVariantString) {
 
 TEST_F(DigestTest, TestAddDataFromVariantByteArray) {
 	ppl7::Digest hash;
-	ppl7::ByteArray data((void*)loremipsum,strlen(loremipsum));
+	ppl7::ByteArray data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
 	ASSERT_NO_THROW(hash.addData(data));
 	ppl7::String result;

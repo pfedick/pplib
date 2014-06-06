@@ -211,7 +211,7 @@ TEST_F(MHashTest, TestAddDataFromVariantString) {
 
 TEST_F(MHashTest, TestAddDataFromVariantByteArray) {
 	ppl7::MHash hash;
-	ppl7::ByteArray data((void*)loremipsum,strlen(loremipsum));
+	ppl7::ByteArray data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
 	ASSERT_NO_THROW(hash.addData(data));
 	ppl7::String result;

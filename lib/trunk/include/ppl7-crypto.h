@@ -126,10 +126,10 @@ class MCrypt
 		void decrypt(const ByteArrayPtr &in, ByteArray &out);
 		void decrypt(ByteArrayPtr &buffer);
 
-		static void crypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB);
-		static void crypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB);
-		static void decrypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB);
-		static void decrypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo=MCrypt::Algo_TWOFISH, Mode mode=MCrypt::Mode_CFB);
+		static void crypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode);
+		static void crypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode);
+		static void decrypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode);
+		static void decrypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode);
 
 };
 

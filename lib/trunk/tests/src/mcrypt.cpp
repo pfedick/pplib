@@ -60,7 +60,175 @@ class MCryptTest : public ::testing::Test {
 };
 
 TEST_F(MCryptTest, ConstructorSimple) {
+	ASSERT_NO_THROW({ppl7::MCrypt mc;});
+}
 
+TEST_F(MCryptTest, ConstructorWithKnownAlgorithm) {
+	ASSERT_NO_THROW({ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH,ppl7::MCrypt::Mode_CFB);});
+}
+
+TEST_F(MCryptTest, setAlgorithmWithDefaults) {
+	ppl7::MCrypt mc;
+	ASSERT_NO_THROW(mc.setAlgorithm());
+}
+
+TEST_F(MCryptTest, setAlgorithm) {
+	ppl7::MCrypt mc;
+	ASSERT_NO_THROW(mc.setAlgorithm(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB));
+}
+
+TEST_F(MCryptTest, setInvalidAlgorithm) {
+	ppl7::MCrypt mc;
+	ASSERT_THROW(mc.setAlgorithm((ppl7::MCrypt::Algorithm)9999, ppl7::MCrypt::Mode_CFB), ppl7::InvalidAlgorithmException);
+}
+
+TEST_F(MCryptTest, getIVSizeForTwofishCfb) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ASSERT_EQ(16,mc.getIVSize());
+}
+
+TEST_F(MCryptTest, getIVSizeForBlowfishCfb) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_BLOWFISH, ppl7::MCrypt::Mode_CFB);
+	ASSERT_EQ(8,mc.getIVSize());
+}
+
+TEST_F(MCryptTest, getMaxKeySizeForTwofishCfb) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ASSERT_EQ(32,mc.getMaxKeySize());
+}
+
+TEST_F(MCryptTest, setIVwithPointer) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	const char *myIV="TestInitializationVector";
+	ASSERT_NO_THROW(mc.setIV(myIV,strlen(myIV)));
+}
+
+TEST_F(MCryptTest, setIVwithByteArray) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::ByteArray myIV("TestInitializationVector",24);
+	ASSERT_NO_THROW(mc.setIV(myIV,strlen(myIV)));
+}
+
+TEST_F(MCryptTest, setIVwithString) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::String myIV="TestInitializationVector";
+	ASSERT_NO_THROW(mc.setIV(myIV));
+}
+
+TEST_F(MCryptTest, setIVwithWide) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::WideString myIV=L"TestInitializationVector";
+	ASSERT_NO_THROW(mc.setIV(myIV));
+}
+
+TEST_F(MCryptTest, setIVwithArray) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::Array myIV;
+	ASSERT_THROW(mc.setIV(myIV), ppl7::UnsupportedDataTypeException);
+}
+
+TEST_F(MCryptTest, setKeywithPointer) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	const char *myKey="tG63N-kQ#23=d?b!v39wRtcu";
+	ASSERT_NO_THROW(mc.setKey(myKey,strlen(myKey)));
+}
+
+TEST_F(MCryptTest, setKeywithByteArray) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::ByteArray myKey("tG63N-kQ#23=d?b!v39wRtcu",24);
+	ASSERT_NO_THROW(mc.setKey(myKey,strlen(myKey)));
+}
+
+TEST_F(MCryptTest, setKeywithString) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::String myKey="tG63N-kQ#23=d?b!v39wRtcu";
+	ASSERT_NO_THROW(mc.setKey(myKey));
+}
+
+TEST_F(MCryptTest, setKeywithWide) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::WideString myKey=L"tG63N-kQ#23=d?b!v39wRtcu";
+	ASSERT_NO_THROW(mc.setKey(myKey));
+}
+
+TEST_F(MCryptTest, setKeywithArray) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ppl7::Array myKey;
+	ASSERT_THROW(mc.setKey(myKey), ppl7::UnsupportedDataTypeException);
+}
+
+TEST_F(MCryptTest, needIV) {
+	ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+	ASSERT_EQ(true,mc.needIV());
+}
+
+TEST_F(MCryptTest, cryptAndDecryptWithPtr) {
+	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+
+	ppl7::ByteArray uncrypted("Hello World",11);
+	ppl7::ByteArray myText=uncrypted;
+	// Wir verwenden einen festen Key und Initialisierungsvektor, damit
+	// die verschlüsselten Daten immer gleich sind und wir sie vergleichen können
+	ppl7::String myKey="tG63N-kQ#23=d?b!v39wRtcu";
+	ppl7::String myIV="TestInitializationVector";
+	ppl7::ByteArray crypted(cryptedBytes,sizeof(cryptedBytes));
+
+	ASSERT_NO_THROW({
+		ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+		mc.setIV(myIV);
+		mc.setKey(myKey);
+		mc.crypt((void*)myText.ptr(),myText.size());
+		ASSERT_EQ(crypted,myText);
+		mc.decrypt((void*)myText.ptr(),myText.size());
+		ASSERT_EQ(uncrypted,myText);
+	});
+}
+
+TEST_F(MCryptTest, cryptAndDecryptWithByteArrayPtr) {
+	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+
+	ppl7::ByteArray uncrypted("Hello World",11);
+	ppl7::ByteArray myText=uncrypted;
+	// Wir verwenden einen festen Key und Initialisierungsvektor, damit
+	// die verschlüsselten Daten immer gleich sind und wir sie vergleichen können
+	ppl7::String myKey="tG63N-kQ#23=d?b!v39wRtcu";
+	ppl7::String myIV="TestInitializationVector";
+	ppl7::ByteArray crypted(cryptedBytes,sizeof(cryptedBytes));
+
+	ASSERT_NO_THROW({
+		ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+		mc.setIV(myIV);
+		mc.setKey(myKey);
+		mc.crypt(myText);
+		ASSERT_EQ(crypted,myText);
+		mc.decrypt(myText);
+		ASSERT_EQ(uncrypted,myText);
+	});
+}
+
+TEST_F(MCryptTest, cryptAndDecryptWithStringVariant) {
+	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+
+	ppl7::ByteArray uncrypted("Hello World",11);
+	ppl7::String myText="Hello World";
+	ppl7::ByteArray tmp, out;
+
+	// Wir verwenden einen festen Key und Initialisierungsvektor, damit
+	// die verschlüsselten Daten immer gleich sind und wir sie vergleichen können
+	ppl7::String myKey="tG63N-kQ#23=d?b!v39wRtcu";
+	ppl7::String myIV="TestInitializationVector";
+	ppl7::ByteArray crypted(cryptedBytes,sizeof(cryptedBytes));
+
+	ASSERT_NO_THROW({
+		ppl7::MCrypt mc(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+		mc.setIV(myIV);
+		mc.setKey(myKey);
+		mc.crypt(myText,tmp);
+		ASSERT_EQ(crypted,tmp);
+
+		mc.decrypt(tmp,out);
+		ASSERT_EQ(uncrypted,out);
+	});
 }
 
 

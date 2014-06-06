@@ -54,7 +54,7 @@
 
 namespace ppl7 {
 
-/*!\class CMHash
+/*!\class MHash
  * \ingroup PPL7_CRYPT
  * \brief Klasse zum Erstellen von Hashes nach verschiedenen Algorithmen
  *
@@ -79,6 +79,7 @@ namespace ppl7 {
 \code
 #include <ppl7.h>
 #include <ppl7-crypto.h>
+
 int mhash_demo_class()
 {
 	// Zuerst erstellen wir einen String mit den zu hashenden Daten
@@ -107,7 +108,7 @@ d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592
 
  *
  * \example
- * Das nachfolgende Beispiel zeigt, wie die statische Funktion MHash::ctc32B verwendet
+ * Das nachfolgende Beispiel zeigt, wie die statische Funktion MHash::crc32b verwendet
  * wird, um eine CRC-Prüfsumme zu berechnen:
 \code
 #include <ppl7.h>
@@ -171,7 +172,7 @@ patrick@server: ./ppltest
 
 /*!\var MHash::Algorithm MHash::Algo_CRC32B
  * \copydoc MHash::Algo_CRC32
- * Dies ist auch der Algorithmus, der in ppl7::crc32 und ppl7::CSocketMessage
+ * Dies ist auch der Algorithmus, der in ppl7::crc32 und ppl7::SocketMessage
  * verwendet wird.
  */
 
@@ -390,7 +391,7 @@ MHash::MHash(Algorithm algorithm)
  * Hash-Algorithmus initialisiert, so dass die Funktion MHash::setAlgorithm nicht mehr aufgerufen
  * werden muss.
  *
- * @param method Der gewünschte Algorithmus (siehe MHash::Algorithm)
+ * @param algorithm Der gewünschte Algorithmus (siehe MHash::Algorithm)
  *
  * \note Auch wenn dieser Konstruktor verwendet wurde, kann jederzeit mit der Funktion
  * MHash::setAlgorithm ein anderer Hash-Algorithmus ausgewählt werden.

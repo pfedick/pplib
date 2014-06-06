@@ -178,7 +178,7 @@ class ByteArrayPtr : public Variant
 		bool operator>=(const ByteArrayPtr &other) const;
 		bool operator>(const ByteArrayPtr &other) const;
 };
-std::ostream& operator<<(std::ostream& s, const ByteArrayPtr &str);
+std::ostream& operator<<(std::ostream& s, const ByteArrayPtr &bap);
 
 class ByteArray : public ByteArrayPtr
 {
@@ -221,7 +221,7 @@ public:
 	bool operator>(const ByteArrayPtr &other) const;
 
 };
-std::ostream& operator<<(std::ostream& s, const ByteArray &str);
+std::ostream& operator<<(std::ostream& s, const ByteArray &ba);
 
 ByteArray fromBase64(const String &base64);
 

@@ -57,7 +57,7 @@ namespace ppl7 {
  * \ingroup PPL7_CRYPT
  * \brief Klasse zum Ver- und Entschlüsseln von Daten basierend auf MCrypt
  *
- * \header \#include <ppl6-crypt.h>
+ * \header \#include <ppl7-crypto.h>
  *
  * \descr
  * Die Klasse MCrypt dient zum Ver- und Entschlüsseln von Daten und basiert auf der
@@ -90,85 +90,73 @@ namespace ppl7 {
  * Damit diese Klasse verwendet werden kann, muss vor Aufruf des configure-Scripts die
  * Library <a href="http://mcrypt.sourceforge.net/">libmcrypt</a> installiert sein.
  * Falls das configure die Library nicht automatisch findet, kann der Installationspfad
- * über den configure Parameter "--with-libmcrypt-prefix=..." angegeben werden. Falls
- * libmcrypt nicht eingebunden wurde, liefern fast alle Funktionen einen Fehler
- * zurück und setzen den Fehlercode "518".
- * \par
- * Mit der statischen Funktion Cppl6Core::haveMCrypt kann zudem zur Laufzeit
- * geprüft werden, ob libmcrypt eingebunden wurde.
- * \par
- * \code
- * if (ppl6::Cppl6Core::haveMCrypt()!=1) {
- *    printf("MCrypt steht nicht zur Verfügung!\n");
- *    return;
- * }
- * \endcode
- * oder auch:
- * \code
- * ppl6::MCrypt crypt;
- * if (crypt.NeedIV()<0 && ppl6::GetErrorCode()==518) {
- *    printf("MCrypt steht nicht zur Verfügung!\n");
- *    return;
- * }
- * \endcode
+ * über den configure Parameter "\-\-with-libmcrypt-prefix=..." angegeben werden. Falls
+ * libmcrypt nicht eingebunden wurde, werfen fast alle Funktionen eine
+ * UnsupportedFeatureException.
  *
  * \example
- * Hier ein Beispiel, wie die Klasse zum ver- und entschlüsseln von Daten verwendet werden kann:
+ * Hier ein Beispiel, wie die Klasse zum Ver- und Entschlüsseln von Daten verwendet werden kann:
 \code
-#include <ppl6.h>
-#include <ppl6-crypt.h>
+#include <ppl7.h>
+#include <ppl7-crypto.h>
+
 int main (int argc, char **argv)
 {
 	// Instanz der Klasse erstellen
-	ppl6::MCrypt MC;
+	ppl7::MCrypt MC;
 	// Objekt mit dem gewünschten Algorithmus initialisieren
-	if (!MC.setAlgorithm(ppl6::MCrypt::Algo_TWOFISH,ppl6::MCrypt::Mode_CFB)) {
-		ppl6::PrintError();
-		return 0;
-	}
+	MC.setAlgorithm(ppl7::MCrypt::Algo_TWOFISH, ppl7::MCrypt::Mode_CFB);
+
 	// Wir legen ein Objekt für den IV an
-	ppl6::CBinary IV;
-	if (MC.NeedIV()) {	// Prüfen, ob wir überhaupt einen IV brauchen
-		size_t ivsize=MC.GetIVSize();	// Ja, wir ermitteln die benötigte Größe
-		ppl6::Random(IV,ivsize);		// Und erstellen entsprechend viele Zufallsdaten
-		MC.SetIV(IV);					// Diese übergeben wir an die Klasse
+	ppl7::ByteArray IV;
+	if (MC.needIV()) {	// Prüfen, ob wir überhaupt einen IV brauchen
+		size_t ivsize=MC.getIVSize();	// Ja, wir ermitteln die benötigte Größe
+		ppl7::Random(IV,ivsize);		// Und erstellen entsprechend viele Zufallsdaten
+		MC.setIV(IV);					// Diese übergeben wir an die Klasse
 	}
+
 	// Nun setzen wir das Passwort für die Verschlüsselung
-	MC.SetKey("uirfgreuifgewzifg");
+	MC.setKey("uirfgreuifgewzifg");
+
 	// Jetzt brauchen wir noch ein paar Daten, die wir verschlüsseln wollen
-	ppl6::CBinary bin="Hallo Welt";
+	ppl6::ByteArray bin="Hallo Welt";
+
 	// Diese geben wir als HexDump aus, damit wir sehen, wie die Daten vor der
 	// Verschlüsselung aussahen
-	bin.HexDump();
+	printf ("vorher:\n");
+	bin.hexDump();
+
 	// Jetzt wird verschlüsselt
-	if (!MC.Crypt(bin)) {		// Falls ein Fehler auftritt, beenden wir das Programm
-		ppl6::PrintError();
-		return 0;
-	}
+	MC.crypt(bin);
+
 	// Nun geben wir zum Vergleich die verschlüsselten Daten als Hexdump aus
-	bin.HexDump();
+	printf ("verschluesselt:\n");
+	bin.hexDump();
+
 	// Und nun entschlüsseln wir sie wieder
-	if (!MC.Decrypt(bin)) {
-		ppl6::PrintError();		// Auch hier beenden wir das Programm im Fehlerfall
-		return 0;
-	}
+	MC.decrypt(bin);
+
 	// Zu guter Letzt geben wir die entschlüsselten Daten wieder als Hexdump aus.
 	// Dieser sollte identisch mit dem ersten sein
+	printf ("entschluesselt:\n");
 	bin.HexDump();
 }
 \endcode
  * Wenn das Programm ausgeführt wird, erhält man folgende Ausgabe:
 \verbatim
+vorher:
 0x00000000: 48 61 6C 6C 6F 20 57 65 6C 74                   : Hallo Welt
+verschluesselt:
 0x00000000: 32 57 6E 7C E6 35 87 90 50 EE                   : 2Wn|.5..P.
+entschluesselt:
 0x00000000: 48 61 6C 6C 6F 20 57 65 6C 74                   : Hallo Welt
 \endverbatim
  * Die zweite Zeile wird übrigens bei jedem Aufruf anderes aussehen, obwohl wir den gleichen
  * Schlüssel verwendet haben. Das liegt daran, dass wir den Initialisierungsvektor mit
  * Zufallsdaten gefüllt haben.
- *
+ * \par
  * Alternativ können auch die statischen Funktionen der Klasse verwendet werden. Ein Beispiel
- * dazu ist \ref MCrypt::Crypt(CBinary &, const CVar &, Algorithm, Mode, const CVar &) "hier" zu finden.
+ * dazu ist \ref MCrypt::crypt(ByteArrayPtr &, const Variant &, const Variant &, Algorithm, Mode) "hier" zu finden.
  */
 
 /*!\var MCrypt::mcrypt
@@ -466,15 +454,16 @@ int main (int argc, char **argv)
  * 128bits and 128, 192 and 256 bits key length.
  */
 
-static const char *ivs="h/fA_dH*Dsj?.2n87=löÜ'kb#~Cvö:ä(tgXcyz kjhd!%hd/(Gd5§,6F790=U";
 
+
+static const char *ivs="h/fA_dH*Dsj?.2n87=löÜ'kb#~Cvö:ä(tgXcyz kjhd!%hd/(Gd5§,6F790=U";
 
 MCrypt::MCrypt()
 /*!\brief Konstruktor der Klasse
  *
  * \descr
  * Bei Verwendung dieses Konstruktors werden nur einige interne Variablen initialisert
- * und ein Default Initialisierungsvektor (IV) gesetzt (siehe MCrypt::SetIV). Der
+ * und ein Default Initialisierungsvektor (IV) gesetzt (siehe MCrypt::setIV). Der
  * gewünschte Verschlüsselungsalgorithmus muss mittels der Funktion MCrypt::setAlgorithm
  * festgelegt werden.
  *
@@ -497,6 +486,9 @@ MCrypt::MCrypt(Algorithm algo, Mode mode)
  *
  * \note Auch wenn dieser Konstruktor verwendet wurde, kann jederzeit mit der Funktion
  * MCrypt::setAlgorithm ein anderer Verschlüsselungsmechanismus ausgewählt werden.
+ *
+ * @throws UnsupportedFeatureException
+ * @throws InvalidAlgorithmException
  */
 {
 	mcrypt=NULL;
@@ -507,6 +499,7 @@ MCrypt::MCrypt(Algorithm algo, Mode mode)
 MCrypt::~MCrypt()
 /*!\brief Destruktor der Klasse
  *
+ * Der durch die Klasse belegte Speicher wird freigegeben.
  */
 {
 #ifdef HAVE_LIBMCRYPT
@@ -518,21 +511,16 @@ void MCrypt::setAlgorithm(Algorithm algo, Mode mode)
 /*!\brief Initialisierung der Klasse
  *
  * \descr
- * Mit dieser Funktion wird die MCrypt-Klasse initialisiert, indem der gewünschte
- * Verschlüsselungsalgorithmus und der Modus ausgewählt wird. Beide Parameter sind
- * Optional. Wird die Funktion ohne Parameter aufgerufen, wird als Default der
- * Algorithmus MCrypt::Algo_TWOFISH und der Verschlüsselungsmodus MCrypt::Mode_CFB
- * verwendet.
+ * Mit dieser Funktion wird der gewünschte Verschlüsselungsalgorithmus und der
+ * Modus ausgewählt wird. Beide Parameter sind optional.
  *
  * @param algo Der gewünschte Algorithmus (siehe MCrypt::Algorithm). Der Default ist
  * MCrypt::Algo_TWOFISH
  * @param mode Der gewünschte Modus (siehe MCrypt::Mode). Der Defalt ist
  * MCrypt::Mode_CFB
  *
- * \return Bei Erfolg liefert die Funktion 1 zurück, sonst 0. Falls die libmcrypt
- * bei der Erstellung der Library nicht eingebunden wurde, liefert die Funktion
- * ebenfalls 0 zurück und setzt den Fehlercode 518.
- *
+ * @throws UnsupportedFeatureException
+ * @throws InvalidAlgorithmException
  */
 {
 #ifndef HAVE_LIBMCRYPT
@@ -580,7 +568,7 @@ void MCrypt::setAlgorithm(Algorithm algo, Mode mode)
 		case Algo_SAFER_PLUS: a="saferplus"; break;
 	}
 	if (a==NULL || m==NULL) {
-		throw IllegalArgumentException("MCrypt::setAlgorithm, algo=%i, mode=%i",algo,mode);
+		throw InvalidAlgorithmException("MCrypt::setAlgorithm, algo=%i, mode=%i",algo,mode);
 	}
 	mcrypt=mcrypt_module_open((char*)a,NULL,(char*)m,NULL);
 	if (mcrypt==MCRYPT_FAILED) {
@@ -595,20 +583,23 @@ int MCrypt::getIVSize() const
 /*!\brief Länge des Initialization Vector
  *
  * \descr
- * Mit dieser Funktion kann die Länge des Intilialisierungsvektors (IV) für den
+ * Mit dieser Funktion kann die Länge des Intilialisierungsvektors (IV) für den derzeit
  * ausgewählten Algorithmus ausgelesen werden.
+ * \par
  * Die Länge des IV ist abhängig vom Algorithmus, daher liefert die Funktion erst nach der Initialisierung mit
  * MCrypt::setAlgorithm oder bei Verwendung des Konstruktors MCrypt::MCrypt(Algorithm algo, Mode mode) einen
  * aussagekräftigen Wert. Ob ein Algorithmus überhaupt einen IV benötigt, kann mit der Funktion
- * MCrypt::NeedIV geprüft werden.
+ * MCrypt::needIV geprüft werden.
  * \par
  * Weitere Informationen zum Thema "Initialization Vector" sind in der Wikipedia zu finden:
  * - http://en.wikipedia.org/wiki/Initialization_vector
  * - http://de.wikipedia.org/wiki/Initialisierungsvektor
  *
  * @return Liefert die Länge des IV zurück
+ * @throws NoAlgorithmSpecifiedException
+ * @throws UnsupportedFeatureException
  *
- * \see MCrypt::SetIV
+ * \see MCrypt::setIV
  */
 {
 #ifdef HAVE_LIBMCRYPT
@@ -625,15 +616,17 @@ int MCrypt::getIVSize() const
 int MCrypt::getMaxKeySize() const
 /*!\brief Maximale Länge des Schlüssels
  * \descr
- * Mit dieser Funktion kann abgrefragt werden, wie lang der zur Verschlüsselung verwendete
+ * Mit dieser Funktion kann abgefragt werden, wie lang der zur Verschlüsselung verwendete
  * Schlüssel maximal sein darf. Die Länge ist abhängig vom verwendeten Algorithmus, daher
  * liefert die Funktion erst nach der Initialisierung mit MCrypt::setAlgorithm oder bei Verwendung
- * des Konstruktors MCrypt::MCrypt(Algorithm algo, Mode mode) einen aussagekräftigen Wert.
+ * des Konstruktors MCrypt::MCrypt(Algorithm algo, Mode mode) einen Wert zurück.
  * \par
- * Der Schlüssel darf jede beliebige Länge zwischen 1 und dem zurückgegebenen Wert lang sein.
+ * Der später verwendete Schlüssel darf jede beliebige Länge zwischen 1 und dem zurückgegebenen Wert lang sein.
  *
- * @return Die Funktion liefert die maximal erlaubte Länge des Schlüssels zurück oder
- * -1, wenn die Klasse noch nicht mit einem Algorithmus initialisiert wurde.
+ * @return Die Funktion liefert die maximal erlaubte Länge des Schlüssels zurück
+ *
+ * @throws NoAlgorithmSpecifiedException
+ * @throws UnsupportedFeatureException
  */
 {
 #ifdef HAVE_LIBMCRYPT
