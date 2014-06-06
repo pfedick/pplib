@@ -267,10 +267,10 @@ TEST_F(MHashTest, TestAddDataFromSeveralFiles) {
 	ASSERT_NO_THROW(hash.init(ppl7::MHash::Algo_SHA256));
 	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
 	ASSERT_NO_THROW(hash.addFile("testdata/test.gif"));
-	ASSERT_NO_THROW(hash.addFile("testdata/example.conf"));
+	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/afile.txt"));
 	ppl7::String result;
 	ASSERT_NO_THROW(hash.getResult(result));
-	ASSERT_EQ(ppl7::String("ff2fb3f87772b8ec7eec18af85154dc9ebea1b147b6cc929c741ff5f3fb6418b"),result);
+	ASSERT_EQ(ppl7::String("327b824bbe2b201c0a59c34e430d0a1523b20683c58309064e14426f53c1b703"),result);
 }
 
 TEST_F(MHashTest, TestReset) {
