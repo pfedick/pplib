@@ -170,6 +170,9 @@ TEST_F(ByteArrayPtrCompare, operators_equal) {
 	ASSERT_FALSE(b1!=b2);
 	ASSERT_TRUE(b1>=b2);
 	ASSERT_FALSE(b1>b2);
+
+	ASSERT_EQ(b1,b2);
+
 }
 
 TEST_F(ByteArrayPtrCompare, operators_lower) {
@@ -181,6 +184,9 @@ TEST_F(ByteArrayPtrCompare, operators_lower) {
 	ASSERT_TRUE(b1!=b2);
 	ASSERT_FALSE(b1>=b2);
 	ASSERT_FALSE(b1>b2);
+
+	ASSERT_NE(b1,b2);
+	ASSERT_LT(b1,b2);
 }
 
 TEST_F(ByteArrayPtrCompare, operators_greater) {
@@ -192,6 +198,10 @@ TEST_F(ByteArrayPtrCompare, operators_greater) {
 	ASSERT_TRUE(b1!=b2);
 	ASSERT_TRUE(b1>=b2);
 	ASSERT_TRUE(b1>b2);
+
+	ASSERT_NE(b1,b2);
+	ASSERT_GT(b1,b2);
+
 }
 
 }
