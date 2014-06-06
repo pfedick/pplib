@@ -231,6 +231,37 @@ TEST_F(MCryptTest, cryptAndDecryptWithStringVariant) {
 	});
 }
 
+TEST_F(MCryptTest, staticCryptWithoutIV) {
+	ppl7::ByteArray uncrypted("Hello World",11);
+	ppl7::ByteArray myText=uncrypted;
+	// Wir verwenden einen festen Key und Initialisierungsvektor, damit
+	// die verschlüsselten Daten immer gleich sind und wir sie vergleichen können
+	ppl7::String myKey="tG63N-kQ#23=d?b!v39wRtcu";
+	ASSERT_NO_THROW({
+		ppl7::MCrypt::crypt(myText,myKey,ppl7::MCrypt::Algo_TWOFISH,ppl7::MCrypt::Mode_CFB);
+		ASSERT_NE(uncrypted,myText);
+		ppl7::MCrypt::decrypt(myText,myKey,ppl7::MCrypt::Algo_TWOFISH,ppl7::MCrypt::Mode_CFB);
+		ASSERT_EQ(uncrypted,myText);
+	});
+}
+
+TEST_F(MCryptTest, staticCryptWithIV) {
+	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+	ppl7::ByteArray crypted(cryptedBytes,sizeof(cryptedBytes));
+	ppl7::ByteArray uncrypted("Hello World",11);
+	ppl7::ByteArray myText=uncrypted;
+	// Wir verwenden einen festen Key und Initialisierungsvektor, damit
+	// die verschlüsselten Daten immer gleich sind und wir sie vergleichen können
+	ppl7::String myKey="tG63N-kQ#23=d?b!v39wRtcu";
+	ppl7::String myIV="TestInitializationVector";
+	ASSERT_NO_THROW({
+		ppl7::MCrypt::crypt(myText,myKey,myIV,ppl7::MCrypt::Algo_TWOFISH,ppl7::MCrypt::Mode_CFB);
+		ASSERT_NE(uncrypted,myText);
+		ASSERT_EQ(crypted,myText);
+		ppl7::MCrypt::decrypt(myText,myKey,myIV,ppl7::MCrypt::Algo_TWOFISH,ppl7::MCrypt::Mode_CFB);
+		ASSERT_EQ(uncrypted,myText);
+	});
+}
 
 
 
