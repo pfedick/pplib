@@ -82,14 +82,13 @@ Digest::Digest()
 #ifndef HAVE_OPENSSL
 	throw UnsupportedFeatureException("OpenSSL");
 #else
+	bytecount=0;
+	m=NULL;
+	ret=NULL;
+	ctx=NULL;
 	if (!__OpenSSLDigestAdded) {
 		InitOpenSSLDigest();
 	}
-	bytecount=0;
-	m=NULL;
-	ctx=NULL;
-	ret=(unsigned char*)malloc(EVP_MAX_MD_SIZE);
-	if (!ret) throw OutOfMemoryException();
 #endif
 }
 
@@ -106,14 +105,13 @@ Digest::Digest(const String &name)
 #ifndef HAVE_OPENSSL
 	throw UnsupportedFeatureException("OpenSSL");
 #else
+	bytecount=0;
+	m=NULL;
+	ret=NULL;
+	ctx=NULL;
 	if (!__OpenSSLDigestAdded) {
 		InitOpenSSLDigest();
 	}
-	bytecount=0;
-	m=NULL;
-	ctx=NULL;
-	ret=(unsigned char*)malloc(EVP_MAX_MD_SIZE);
-	if (!ret) throw OutOfMemoryException();
 	setAlgorithm(name);
 #endif
 }
@@ -123,14 +121,13 @@ Digest::Digest(Algorithm algorithm)
 #ifndef HAVE_OPENSSL
 	throw UnsupportedFeatureException("OpenSSL");
 #else
+	bytecount=0;
+	ret=NULL;
+	m=NULL;
+	ctx=NULL;
 	if (!__OpenSSLDigestAdded) {
 		InitOpenSSLDigest();
 	}
-	bytecount=0;
-	m=NULL;
-	ctx=NULL;
-	ret=(unsigned char*)malloc(EVP_MAX_MD_SIZE);
-	if (!ret) throw OutOfMemoryException();
 	setAlgorithm(algorithm);
 #endif
 }
@@ -300,6 +297,10 @@ ByteArray Digest::getDigest()
 	throw UnsupportedFeatureException("OpenSSL");
 #else
 	unsigned int len;
+	if (!ret) {
+		ret=(unsigned char*)malloc(EVP_MAX_MD_SIZE);
+		if (!ret) throw OutOfMemoryException();
+	}
 	EVP_DigestFinal((EVP_MD_CTX*)ctx,ret,&len);
 	EVP_MD_CTX_cleanup((EVP_MD_CTX*)ctx);
 	EVP_DigestInit_ex((EVP_MD_CTX*)ctx,(const EVP_MD*)m, NULL);
