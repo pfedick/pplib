@@ -255,7 +255,6 @@ void ByteArray::useadr(void *adr, size_t size)
  * \return Bei erfolgreichem Kopieren liefert die Funktion einen Pointer auf den
  * neu allokierten Speicherbereich zurück. Im Fehlerfall wird eine Exception geworfen.
  * \exception OutOfMemoryException Speicher konnte nicht allokiert werden
- * \exception NullPointerException Ein übergebener Parameter war 0
  * \exception Exception Speicherbereich konnte nicht kopiert werden
  * \note
  * Falls die Klasse vor Aufruf bereits Speicher verwaltet hat, wird dieser zuerst freigegeben.
@@ -265,24 +264,23 @@ void *ByteArray::copy(const void *adr, size_t size)
 	::free(ptradr);
 	ptrsize=0;
 	ptradr=NULL;
-	if (adr==NULL || size==0) {
-		throw NullPointerException();
+	if (adr!=NULL && size>0) {
+		ptradr=::malloc(size+4);
+		if (!ptradr) {
+			throw OutOfMemoryException();
+		}
+		if (memcpy(ptradr,adr,size)!=ptradr) {
+			::free(ptradr);
+			ptradr=NULL;
+			ptrsize=0;
+			throw Exception();
+		}
+		ptrsize=size;
+		((char*)ptradr)[ptrsize]=0;
+		((char*)ptradr)[ptrsize+1]=0;
+		((char*)ptradr)[ptrsize+2]=0;
+		((char*)ptradr)[ptrsize+3]=0;
 	}
-	ptradr=::malloc(size+4);
-	if (!ptradr) {
-		throw OutOfMemoryException();
-	}
-	if (memcpy(ptradr,adr,size)!=ptradr) {
-		::free(ptradr);
-		ptradr=NULL;
-		ptrsize=0;
-		throw Exception();
-	}
-	ptrsize=size;
-	((char*)ptradr)[ptrsize]=0;
-	((char*)ptradr)[ptrsize+1]=0;
-	((char*)ptradr)[ptrsize+2]=0;
-	((char*)ptradr)[ptrsize+3]=0;
 	return ptradr;
 }
 
