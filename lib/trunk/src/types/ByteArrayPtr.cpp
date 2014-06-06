@@ -463,4 +463,11 @@ bool ByteArrayPtr::operator>(const ByteArrayPtr &other) const
 	return false;
 }
 
+std::ostream& operator<<(std::ostream& s, const ByteArrayPtr &ba)
+{
+	ppl7::String hex=ba.toHex();
+	return s.write((const char*)hex,hex.size());
+}
+
+
 }	// EOF namespace ppl7
