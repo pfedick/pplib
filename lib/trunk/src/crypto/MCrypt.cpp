@@ -1091,8 +1091,7 @@ void MCrypt::decrypt(ByteArrayPtr &buffer)
 #endif
 }
 
-#ifdef DONE
-int MCrypt::Crypt(CBinary &buffer, const CVar &key, Algorithm algo, Mode mode, const CVar &IV)
+void MCrypt::crypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten verschlüsseln
  *
@@ -1111,8 +1110,8 @@ int MCrypt::Crypt(CBinary &buffer, const CVar &key, Algorithm algo, Mode mode, c
  * MCrypt::Algo_TWOFISH (siehe MCrypt::Algorithm)
  * \param[in] mode Optionaler Parameter, der den zu verwendenden Verschlüsselungsmodus angibt.
  * Default ist MCrypt::Mode_CFB (siehe MCrypt::Mode)
- * \param[in] IV Optionaler Parameter auf den Initialisierungsvektor (IV), den einige Verschlüsselungsalgorithmen
- * benötigen (siehe dazu auch MCrypt::SetIV). Defaultmäßig wird ein statischer IV verwendet,
+ * \param[in] IV Initialisierungsvektor (IV), den einige Verschlüsselungsalgorithmen
+ * benötigen (siehe dazu auch MCrypt::setIV). Defaultmäßig wird ein statischer IV verwendet,
  * der in der Library einkompiliert ist. Dies ist allerdings nicht besonders sicher.
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
@@ -1140,34 +1139,63 @@ bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
  */
 {
 	MCrypt MC;
-	if (!MC.Init(algo,mode)) return 0;
-	if (!MC.SetKey(key)) return 0;
-	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
-		if (!MC.SetIV(IV)) return 0;
-	}
-	return MC.Crypt(buffer);
+	MC.setAlgorithm(algo,mode);
+	MC.setKey(key);
+	MC.setIV(IV);
+	MC.crypt(buffer);
 }
 
-int MCrypt::Crypt(CBinary &buffer, const char *key, Algorithm algo, Mode mode, const CVar &IV)
+void MCrypt::crypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten verschlüsseln
  *
- * \copydetails MCrypt::Crypt(CBinary &, const CVar &, Algorithm, Mode, const CVar &)
+ * \header \#include <ppl6-crypt.h>
+ *
+ * \descr
+ * Mit dieser statischen Funktion können die Daten eines CBinary-Objekts verschlüsselt werden, ohne
+ * dass dafür eine Instanz von MCrypt erstellt werden muss.
+ *
+ * \param[in,out] buffer Das CBinary-Objekt, mit den zu verschlüsselnden Daten. Der Inhalt des Objekts
+ * wird durch die Funktion mit den verschlüsselten Daten überschrieben
+ * \param[in] key Der zu verwendende Schlüssel. Dieser kann aus Text in einem CString oder CWString bestehen,
+ * eine als const char* übergebenen Text mit abschließendem 0-Byte,
+ * aber auch aus binären Daten in einem CBinary Objekt
+ * \param[in] algo Optionaler Parameter, der den zu verwendenden Algorithmus angibt. Default ist
+ * MCrypt::Algo_TWOFISH (siehe MCrypt::Algorithm)
+ * \param[in] mode Optionaler Parameter, der den zu verwendenden Verschlüsselungsmodus angibt.
+ * Default ist MCrypt::Mode_CFB (siehe MCrypt::Mode)
+ *
+ * \example
+ * Hier ein Beispiel, wie mit den statischen Funktionen Daten zunächst verschlüsselt und
+ * dann wieder entschlüsselt werden:
+ * \code
+ppl6::CBinary bin="Hallo Welt";		// Das zu verschlüsselnde Objekt
+ppl6::CBinary r=ppl6::Random(32);	// Ein paar Zufallsdaten für den IV
+ppl6::CString key="mein schlüssel";	// Der Schlüssel
+bin.HexDump();						// Inhalt des Objekts vor der Verschlüsselung
+// Daten verschlüsseln
+if (!ppl6::MCrypt::Crypt(bin,key,ppl6::MCrypt::Algo_TWOFISH,ppl6::MCrypt::Mode_CFB,r)) {
+	ppl6::PrintError();
+	return;
+}
+bin.HexDump();						// Inhalt des Objekts nach der Verschlüsselung
+// Daten entschlüsseln
+if (!ppl6::MCrypt::Decrypt(bin,key,ppl6::MCrypt::Algo_TWOFISH,ppl6::MCrypt::Mode_CFB,r)) {
+	ppl6::PrintError();
+	return;
+}
+bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
+\endcode
  */
 {
 	MCrypt MC;
-	if (!MC.Init(algo,mode)) return 0;
-	if (!MC.SetKey(key)) return 0;
-	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
-		if (!MC.SetIV(IV)) return 0;
-	}
-	return MC.Crypt(buffer);
+	MC.setAlgorithm(algo,mode);
+	MC.setKey(key);
+	MC.crypt(buffer);
 }
 
 
-int MCrypt::Decrypt(CBinary &buffer, const CVar &key, Algorithm algo, Mode mode, const CVar &IV)
+void MCrypt::decrypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten entschlüsseln
  *
@@ -1186,10 +1214,9 @@ int MCrypt::Decrypt(CBinary &buffer, const CVar &key, Algorithm algo, Mode mode,
  * MCrypt::Algo_TWOFISH (siehe MCrypt::Algorithm)
  * \param[in] mode Optionaler Parameter, der den zu verwendenden Verschlüsselungsmodus angibt.
  * Default ist MCrypt::Mode_CFB (siehe MCrypt::Mode)
- * \param[in] IV Optionaler Parameter auf den Initialisierungsvektor (IV), den einige Verschlüsselungsalgorithmen
+ * \param[in] IV Initialisierungsvektor (IV), den einige Verschlüsselungsalgorithmen
  * benötigen (siehe dazu auch MCrypt::SetIV). Defaultmäßig wird ein statischer IV verwendet,
  * der in der Library einkompiliert ist. Dies ist allerdings nicht besonders sicher.
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \example
  * Hier ein Beispiel, wie mit den statischen Funktionen Daten zunächst verschlüsselt und
@@ -1215,34 +1242,61 @@ bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
  */
 {
 	MCrypt MC;
-	if (!MC.Init(algo,mode)) return 0;
-	if (!MC.SetKey(key)) return 0;
-	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
-		if (!MC.SetIV(IV)) return 0;
-	}
-	return MC.Decrypt(buffer);
+	MC.setAlgorithm(algo,mode);
+	MC.setKey(key);
+	MC.setIV(IV);
+	MC.decrypt(buffer);
 }
 
-
-int MCrypt::Decrypt(CBinary &buffer, const char *key, Algorithm algo, Mode mode, const CVar &IV)
+void MCrypt::decrypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten entschlüsseln
  *
- * \copydetails MCrypt::Decrypt(CBinary &buffer, const CVar &key, Algorithm algo, Mode mode, const CVar &IV)
+ * \header \#include <ppl6-crypt.h>
+ *
+ * \descr
+ * Mit dieser statischen Funktion können die verschlüsselten Daten eines CBinary-Objekts wieder
+ * entschlüsselt werden, ohne dass dafür eine Instanz von MCrypt erstellt werden muss.
+ *
+ * \param[in,out] buffer Das CBinary-Objekt, mit den verschlüsselten Daten. Der Inhalt des Objekts
+ * wird durch die Funktion mit den entschlüsselten Daten überschrieben
+ * \param[in] key Der zu verwendende Schlüssel. Dieser kann aus Text in einem CString oder CWString bestehen,
+ * eine als const char* übergebenen Text mit abschließendem 0-Byte,
+ * aber auch aus binären Daten in einem CBinary Objekt
+ * \param[in] algo Optionaler Parameter, der den zu verwendenden Algorithmus angibt. Default ist
+ * MCrypt::Algo_TWOFISH (siehe MCrypt::Algorithm)
+ * \param[in] mode Optionaler Parameter, der den zu verwendenden Verschlüsselungsmodus angibt.
+ * Default ist MCrypt::Mode_CFB (siehe MCrypt::Mode)
+ *
+ * \example
+ * Hier ein Beispiel, wie mit den statischen Funktionen Daten zunächst verschlüsselt und
+ * dann wieder entschlüsselt werden:
+ * \code
+ppl6::CBinary bin="Hallo Welt";		// Das zu verschlüsselnde Objekt
+ppl6::CBinary r=ppl6::Random(32);	// Ein paar Zufallsdaten für den IV
+ppl6::CString key="mein schlüssel";	// Der Schlüssel
+bin.HexDump();						// Inhalt des Objekts vor der Verschlüsselung
+// Daten verschlüsseln
+if (!ppl6::MCrypt::Crypt(bin,key,ppl6::MCrypt::Algo_TWOFISH,ppl6::MCrypt::Mode_CFB,r)) {
+	ppl6::PrintError();
+	return;
+}
+bin.HexDump();						// Inhalt des Objekts nach der Verschlüsselung
+// Daten entschlüsseln
+if (!ppl6::MCrypt::Decrypt(bin,key,ppl6::MCrypt::Algo_TWOFISH,ppl6::MCrypt::Mode_CFB,r)) {
+	ppl6::PrintError();
+	return;
+}
+bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
+\endcode
  */
 {
 	MCrypt MC;
-	if (!MC.Init(algo,mode)) return 0;
-	if (!MC.SetKey(key)) return 0;
-	// Falls IV nicht angegeben wurde, haben wir ein leeres CBinary Objekt, was wir ignorieren
-	if (IV.DataType()!=CVar::CBINARY || ((const CBinary&)static_cast<const CBinary&>(IV)).Size()>0) {
-		if (!MC.SetIV(IV)) return 0;
-	}
-	return MC.Decrypt(buffer);
+	MC.setAlgorithm(algo,mode);
+	MC.setKey(key);
+	MC.decrypt(buffer);
 }
 
-#endif
 
 
 }	// EOF namespace ppl7
