@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 588 $
- * $Date: 2013-04-26 20:47:43 +0200 (Fr, 26 Apr 2013) $
- * $Id: socket.h 588 2013-04-26 18:47:43Z pafe $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>

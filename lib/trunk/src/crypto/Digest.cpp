@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 741 $
- * $Date: 2013-08-18 08:47:34 +0200 (So, 18 Aug 2013) $
- * $Id: AVLTree.cpp 741 2013-08-18 06:47:34Z pafe $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>

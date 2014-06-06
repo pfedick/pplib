@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author: pafe $
- * $Revision: 830 $
- * $Date: 2014-01-20 11:31:10 +0100 (Mo, 20 Jan 2014) $
- * $Id: ppl7-inet.h 830 2014-01-20 10:31:10Z pafe $
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
