@@ -66,7 +66,24 @@ TEST_F(ByteArrayTest, ConstructorSimple) {
 	);
 }
 
+TEST_F(ByteArrayTest, CopyConstructorWithEmptyObject) {
+	ppl7::ByteArray b1;
+	ASSERT_NO_THROW({
+		ppl7::ByteArray b2(b1);
+	});
+}
 
+TEST_F(ByteArrayTest, AssignmentWithEmptyObject) {
+	ppl7::ByteArray b1;
+	ASSERT_NO_THROW({
+		ppl7::ByteArray b2=b1;
+	});
+	ASSERT_NO_THROW({
+		ppl7::ByteArray b3;
+		b3=b1;
+	});
+
+}
 
 
 }

@@ -55,7 +55,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/logger.o compile/time.o \
 	compile/tcpsocket.o \
 	compile/filestatic.o compile/textsnippets.o \
-	compile/mhash.o compile/mcrypt.o compile/hash.o compile/crypto.o
+	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -224,9 +224,9 @@ compile/tcpsocket.o: src/tcpsocket.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/tcpsocket.o -c src/tcpsocket.cpp $(CFLAGS) $(LIB)
 
-compile/hash.o: src/hash.cpp Makefile ppl7-tests.h
+compile/digest.o: src/digest.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/hash.o -c src/hash.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/digest.o -c src/digest.cpp $(CFLAGS) $(LIB)
 
 compile/crypto.o: src/crypto.cpp Makefile ppl7-tests.h
 	mkdir -p compile

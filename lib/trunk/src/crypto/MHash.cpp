@@ -1,26 +1,23 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 6 (ppl7).
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author: pafe $
- * $Revision: 660 $
- * $Date: 2013-05-19 11:36:13 +0200 (So, 19 Mai 2013) $
- * $Id: MHash.cpp 660 2013-05-19 09:36:13Z pafe $
+ * $Revision: 741 $
+ * $Date: 2013-08-18 08:47:34 +0200 (So, 18 Aug 2013) $
+ * $Id: AVLTree.cpp 741 2013-08-18 06:47:34Z pafe $
  *
  *******************************************************************************
- * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *     * Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *     * Neither the name of the copyright holder nor the names of its
- *       contributors may be used to endorse or promote products derived
- *       from this software without specific prior written permission.
+ *    1. Redistributions of source code must retain the above copyright notice, this
+ *       list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
+ *       and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -492,7 +489,7 @@ void MHash::setAlgorithm(Algorithm algorithm)
 		case Algo_SNEFRU128: type=MHASH_SNEFRU128; break;
 		case Algo_SNEFRU256: type=MHASH_SNEFRU256; break;
 		default:
-			throw UnknownAlgorithmException("%i",algorithm);
+			throw InvalidAlgorithmException("%i",algorithm);
 	}
 	handle=mhash_init(type);
 	if (handle!=MHASH_FAILED) {
@@ -500,7 +497,7 @@ void MHash::setAlgorithm(Algorithm algorithm)
 		algo=algorithm;
 		return;
 	}
-	throw UnsupportedAlgorithmException("%i",algorithm);
+	throw InvalidAlgorithmException("%i",algorithm);
 
 #endif
 }
@@ -537,7 +534,7 @@ MHash::Algorithm MHash::getAlgorithmFromName(const String &name)
 	if (a=="GOST") return Algo_GOST;
 	if (a=="SNEFRU128") return Algo_SNEFRU128;
 	if (a=="SNEFRU256") return Algo_SNEFRU256;
-	throw UnknownAlgorithmException("%s",(const char*)name);
+	throw InvalidAlgorithmException("%s",(const char*)name);
 }
 
 
@@ -569,13 +566,13 @@ int MHash::getBlockSize() const
 	throw UnsupportedFeatureException("MHash");
 #else
 	if (!handle) {
-		throw MissingInitializationException("MHash::GetBlockSize");
+		throw NoAlgorithmSpecifiedException("MHash::GetBlockSize");
 	}
 	return blocksize;
 #endif
 }
 
-void MHash::getResult(Variant &result)
+void MHash::saveDigest(Variant &result)
 /*!\brief Ergebnis auslesen
  *
  * \descr
@@ -601,7 +598,7 @@ void MHash::getResult(Variant &result)
 	throw UnsupportedFeatureException("MHash");
 #else
 	if (!handle) {
-		throw MissingInitializationException("MHash::GetBlockSize");
+		throw NoAlgorithmSpecifiedException("MHash::GetBlockSize");
 	}
 	if (bytesHashed==0) {
 		throw EmptyDataException();
@@ -637,14 +634,14 @@ void MHash::getResult(Variant &result)
 #endif
 }
 
-ByteArray MHash::getResult()
+ByteArray MHash::getDigest()
 {
 	ByteArray res;
-	getResult(res);
+	saveDigest(res);
 	return res;
 }
 
-int MHash::getIntResult()
+int MHash::getInt()
 /*!\brief Ergebnis einer CRC32-Berechnung oder Adler32-Berechnung
  *
  * @return
@@ -654,7 +651,7 @@ int MHash::getIntResult()
 	throw UnsupportedFeatureException("MHash");
 #else
 	if (!handle) {
-		throw MissingInitializationException("MHash::GetBlockSize");
+		throw NoAlgorithmSpecifiedException("MHash::GetBlockSize");
 	}
 	if (bytesHashed==0) {
 		throw EmptyDataException();
@@ -695,7 +692,7 @@ void MHash::addData(const void *data, size_t size)
 	throw UnsupportedFeatureException("MHash");
 #else
 	if (!handle) {
-		throw MissingInitializationException("MHash::GetBlockSize");
+		throw NoAlgorithmSpecifiedException("MHash::GetBlockSize");
 	}
 	if (mhash((MHASH)handle, data, size)) {
 		throw HashFailedException();
@@ -767,7 +764,7 @@ void MHash::addData(FileObject &file)
 	throw UnsupportedFeatureException("MHash");
 #else
 	if (!handle) {
-		throw MissingInitializationException("MHash::GetBlockSize");
+		throw NoAlgorithmSpecifiedException("MHash::GetBlockSize");
 	}
 	file.seek(0);
 	size_t bsize=1024*1024*10;		// We allocate 10 MB maximum
@@ -827,7 +824,7 @@ ByteArray MHash::hash(const Variant &data, Algorithm algorithm)
 {
 	MHash MH(algorithm);
 	MH.addData(data);
-	return MH.getResult();
+	return MH.getDigest();
 }
 
 /*!\ingroup PPL7_CRYPT
@@ -857,7 +854,7 @@ ByteArray MHash::hash(const Variant &data, const String &algo)
 {
 	MHash MH(MHash::getAlgorithmFromName(algo));
 	MH.addData(data);
-	return MH.getResult();
+	return MH.getDigest();
 }
 
 int MHash::crc32(const Variant &data)
@@ -879,7 +876,7 @@ int MHash::crc32(const Variant &data)
 {
 	MHash MH(Algo_CRC32);
 	MH.addData(data);
-	return MH.getIntResult();
+	return MH.getInt();
 }
 
 int MHash::crc32b(const Variant &data)
@@ -901,7 +898,7 @@ int MHash::crc32b(const Variant &data)
 {
 	MHash MH(Algo_CRC32B);
 	MH.addData(data);
-	return MH.getIntResult();
+	return MH.getInt();
 }
 
 int MHash::adler32(const Variant &data)
@@ -923,7 +920,7 @@ int MHash::adler32(const Variant &data)
 {
 	MHash MH(Algo_ADLER32);
 	MH.addData(data);
-	return MH.getIntResult();
+	return MH.getInt();
 }
 
 

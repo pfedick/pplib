@@ -72,7 +72,7 @@ TEST_F(MHashTest, ConstructorWithMD5) {
 TEST_F(MHashTest, ConstructorWithUnknownAlgorithm) {
 	ASSERT_THROW({
 		ppl7::MHash hash((ppl7::MHash::Algorithm)65555);
-	},ppl7::UnknownAlgorithmException);
+	},ppl7::InvalidAlgorithmException);
 }
 
 
@@ -82,7 +82,7 @@ TEST_F(MHashTest, TestMD5) {
 	ASSERT_EQ(16,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result);
 }
 
@@ -92,17 +92,17 @@ TEST_F(MHashTest, TestMultipleMD5) {
 	ASSERT_EQ(16,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result);
 
 	const char *teststring="Hello World";
 	ASSERT_NO_THROW(hash.addData(teststring,strlen(teststring)));
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("b10a8db164e0754105b7a99be72e3fe5"),result);
 
 	teststring="This is a third test";
 	ASSERT_NO_THROW(hash.addData(teststring,strlen(teststring)));
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("50e9ccd0e8fc5d8c774404ed3e8c4e8c"),result);
 
 }
@@ -114,7 +114,7 @@ TEST_F(MHashTest, TestMD4) {
 	ASSERT_EQ(16,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("0a5520947c0bca5b9e2cff7ae0df67c7"),result);
 }
 
@@ -124,7 +124,7 @@ TEST_F(MHashTest, TestCRC32B) {
 	ASSERT_EQ(4,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ASSERT_NO_THROW({
-		ASSERT_EQ((int)0xaa00473c, hash.getIntResult());
+		ASSERT_EQ((int)0xaa00473c, hash.getInt());
 	});
 }
 
@@ -134,7 +134,7 @@ TEST_F(MHashTest, TestSHA1) {
 	ASSERT_EQ(20,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result);
 }
 
@@ -144,7 +144,7 @@ TEST_F(MHashTest, TestSHA224) {
 	ASSERT_EQ(28,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"),result);
 }
 
@@ -154,7 +154,7 @@ TEST_F(MHashTest, TestSHA256) {
 	ASSERT_EQ(32,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
@@ -164,7 +164,7 @@ TEST_F(MHashTest, TestSHA384) {
 	ASSERT_EQ(48,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("18a703d3f092003da0443174dbc977516335596a14db4090abe37f2106103f20c4669e3dc3d301c9339bf8913c94ec3e"),result);
 }
 
@@ -174,7 +174,7 @@ TEST_F(MHashTest, TestSHA512) {
 	ASSERT_EQ(64,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827aaec64d5c6c33259260ce9"),result);
 }
 
@@ -184,7 +184,7 @@ TEST_F(MHashTest, TestRipeMD160) {
 	ASSERT_EQ(20,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("7cba3ff0d404943790e16e95b52d78ab502989dc"),result);
 }
 
@@ -195,7 +195,7 @@ TEST_F(MHashTest, TestAddDataFromPtr) {
 	ASSERT_EQ(32,hash.getBlockSize());
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
@@ -205,7 +205,7 @@ TEST_F(MHashTest, TestAddDataFromVariantString) {
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
 	ASSERT_NO_THROW(hash.addData(data));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
@@ -215,7 +215,7 @@ TEST_F(MHashTest, TestAddDataFromVariantByteArray) {
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
 	ASSERT_NO_THROW(hash.addData(data));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
@@ -225,7 +225,7 @@ TEST_F(MHashTest, TestAddDataFromVariantByteArrayPtr) {
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
 	ASSERT_NO_THROW(hash.addData(data));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
@@ -249,7 +249,7 @@ TEST_F(MHashTest, TestAddDataFromOpenFile) {
 	ppl7::File ff("testdata/dirwalk/testfile.txt");
 	ASSERT_NO_THROW(hash.addData(ff));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("e69bd11b9705bd3f3702d943fb7b6f9b640ca212c43e1dfc823b20e820930c52"),result);
 }
 
@@ -258,7 +258,7 @@ TEST_F(MHashTest, TestAddDataFromFilename) {
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
 	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("e69bd11b9705bd3f3702d943fb7b6f9b640ca212c43e1dfc823b20e820930c52"),result);
 }
 
@@ -269,7 +269,7 @@ TEST_F(MHashTest, TestAddDataFromSeveralFiles) {
 	ASSERT_NO_THROW(hash.addFile("testdata/test.gif"));
 	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/afile.txt"));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("327b824bbe2b201c0a59c34e430d0a1523b20683c58309064e14426f53c1b703"),result);
 }
 
@@ -284,7 +284,7 @@ TEST_F(MHashTest, TestReset) {
 	hash.reset();
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ppl7::String result;
-	ASSERT_NO_THROW(hash.getResult(result));
+	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 

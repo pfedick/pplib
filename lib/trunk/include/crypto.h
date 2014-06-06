@@ -34,7 +34,8 @@
 
 namespace ppl7 {
 
-
+extern bool __OpenSSLDigestAdded;
+void InitOpenSSLDigest();
 
 
 }

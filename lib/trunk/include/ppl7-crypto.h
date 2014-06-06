@@ -45,9 +45,8 @@
 
 namespace ppl7 {
 
-PPLEXCEPTION (UnsupportedAlgorithmException, Exception);
-PPLEXCEPTION (MissingInitializationException, Exception);
-PPLEXCEPTION (UnknownAlgorithmException, IllegalArgumentException);
+PPLEXCEPTION (InvalidAlgorithmException, Exception);
+PPLEXCEPTION (NoAlgorithmSpecifiedException, Exception);
 PPLEXCEPTION (InvalidBlocksizeException, Exception);
 PPLEXCEPTION (HashFailedException, OperationFailedException);
 
@@ -194,9 +193,9 @@ class MHash
 		void addData(FileObject &file);
 		void addFile(const String &filename);
 		int getBlockSize() const;
-		void getResult(Variant &result);
-		ByteArray getResult();
-		int getIntResult();
+		void saveDigest(Variant &result);
+		ByteArray getDigest();
+		int getInt();
 		void reset();
 
 		static Algorithm getAlgorithmFromName(const String &name);
@@ -214,6 +213,58 @@ class MHash
 		static ByteArray sha256(const Variant &data);
 		static ByteArray sha384(const Variant &data);
 		static ByteArray sha512(const Variant &data);
+};
+
+class Digest
+{
+	private:
+		const void *m;
+		void *ctx;
+		unsigned char *ret;
+		ppluint64 bytecount;
+
+	public:
+		enum Algorithm {
+			Algo_MD4,
+			Algo_MD5,
+			Algo_SHA1,
+			Algo_SHA224,
+			Algo_SHA256,
+			Algo_SHA384,
+			Algo_SHA512,
+			Algo_WHIRLPOOL,
+			Algo_RIPEMD160,
+			Algo_ECDSA
+		};
+
+
+		Digest();
+		Digest(const String &name);
+		Digest(Algorithm algorithm);
+		~Digest();
+
+		void setAlgorithm(Algorithm algorithm);
+		void setAlgorithm(const String &name);
+		void addData(const void *data, size_t size);
+		void addData(const Variant &data);
+		void addData(FileObject &file);
+		void addFile(const String &filename);
+		ByteArray getDigest();
+		void saveDigest(Variant &result);
+		void reset();
+		ppluint64 bytesHashed() const;
+
+		static ByteArray hash(const Variant &data, Algorithm algorithm);
+		static ByteArray hash(const Variant &data, const String &name);
+		static ByteArray md4(const Variant &data);
+		static ByteArray md5(const Variant &data);
+		static ByteArray sha1(const Variant &data);
+		static ByteArray sha224(const Variant &data);
+		static ByteArray sha256(const Variant &data);
+		static ByteArray sha384(const Variant &data);
+		static ByteArray sha512(const Variant &data);
+		static ByteArray ecdsa(const Variant &data);
+
 };
 
 
