@@ -628,7 +628,6 @@ ac_func_list=
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
-report_have_libgcrypt
 report_have_libbind
 report_have_libidn
 report_have_libmicrohttpd
@@ -639,6 +638,7 @@ report_have_libogg
 report_have_ldns
 report_have_pthreads
 report_have_nasm
+report_have_sqlite
 report_have_freetds
 report_have_postgres
 report_have_mysql
@@ -646,6 +646,7 @@ report_have_libmhash
 report_have_libmcrypt
 report_have_iconv
 report_have_pcre
+report_have_libgcrypt
 report_have_openssl
 report_have_curl
 report_have_libmad
@@ -16727,6 +16728,8 @@ esac;
 
 
 
+
+
 ###############################################################################
 # Output
 ###############################################################################
@@ -18234,8 +18237,9 @@ fi
 **   GIF:                  yes (buildin)
 **   TGA:                  yes (buildin)
 **   PPM:                  yes (buildin)
-**   PNG library:          $report_have_png
-**   JPEG library:         $report_have_jpeg
+**   PNG:                  $report_have_png
+**   JPEG:                 $report_have_jpeg
+**   TIFF:                 $report_have_libtiff
 **   Freetype 2.x library: $report_have_freetype2
 **   ImageMagick:          $report_have_libimlib
 **
@@ -18300,8 +18304,9 @@ $as_echo "
 **   GIF:                  yes (buildin)
 **   TGA:                  yes (buildin)
 **   PPM:                  yes (buildin)
-**   PNG library:          $report_have_png
-**   JPEG library:         $report_have_jpeg
+**   PNG:                  $report_have_png
+**   JPEG:                 $report_have_jpeg
+**   TIFF:                 $report_have_libtiff
 **   Freetype 2.x library: $report_have_freetype2
 **   ImageMagick:          $report_have_libimlib
 **

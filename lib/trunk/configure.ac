@@ -710,6 +710,7 @@ AC_SUBST(report_have_lame)
 AC_SUBST(report_have_libmad)
 AC_SUBST(report_have_curl)
 AC_SUBST(report_have_openssl)
+AC_SUBST(report_have_libgcrypt)
 AC_SUBST(report_have_pcre)
 AC_SUBST(report_have_iconv)
 AC_SUBST(report_have_libmcrypt)
@@ -717,6 +718,7 @@ AC_SUBST(report_have_libmhash)
 AC_SUBST(report_have_mysql)
 AC_SUBST(report_have_postgres)
 AC_SUBST(report_have_freetds)
+AC_SUBST(report_have_sqlite)
 AC_SUBST(report_have_nasm)
 AC_SUBST(report_have_pthreads)
 AC_SUBST(report_have_ldns)
@@ -727,7 +729,7 @@ AC_SUBST(report_have_libtiff)
 AC_SUBST(report_have_libmicrohttpd)
 AC_SUBST(report_have_libidn)
 AC_SUBST(report_have_libbind)
-AC_SUBST(report_have_libgcrypt)
+
 
 ###############################################################################
 # Output
@@ -768,8 +770,9 @@ AC_MSG_RESULT([
 **   GIF:                  yes (buildin)
 **   TGA:                  yes (buildin)
 **   PPM:                  yes (buildin)
-**   PNG library:          $report_have_png
-**   JPEG library:         $report_have_jpeg
+**   PNG:                  $report_have_png
+**   JPEG:                 $report_have_jpeg
+**   TIFF:                 $report_have_libtiff
 **   Freetype 2.x library: $report_have_freetype2
 **   ImageMagick:          $report_have_libimlib
 **
