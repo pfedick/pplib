@@ -232,9 +232,9 @@ void Digest::addData(const Variant &data)
 void Digest::addData(FileObject &file)
 {
 	file.seek(0);
-	size_t bsize=1024*1024*10;		// We allocate 10 MB maximum
+	size_t bsize=1024*1024*1;		// We allocate 1 MB maximum
 	ppluint64 fsize=file.size();
-	if (fsize<bsize) bsize=fsize;	// or filesize if file is < 10 MB
+	if (fsize<bsize) bsize=fsize;	// or filesize if file is < 1 MB
 	void *buffer=malloc(bsize);
 	if (!buffer) {
 		throw OutOfMemoryException();
@@ -278,8 +278,8 @@ void Digest::saveDigest(Variant &result)
 #else
 	ByteArray ba=getDigest();
 	int type=result.dataType();
-	if (type==Variant::BYTEARRAY) {
-		ByteArray &bin=static_cast<ByteArray&>(result);
+	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+		ByteArrayPtr &bin=static_cast<ByteArrayPtr&>(result);
 		bin=ba;
 	} else if (type==Variant::STRING) {
 		String &str=static_cast<String&>(result);
