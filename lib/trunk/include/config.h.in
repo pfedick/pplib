@@ -228,8 +228,6 @@
 
 #undef _FILE_OFFSET_BITS 64
 
-#undef HAVE_LIBMCRYPT
-#undef HAVE_LIBMHASH
 
 #undef HAVE_LIBLDNS
 #undef HAVE_LIBBIND
@@ -244,6 +242,40 @@
 #undef HAVE_LIBMICROHTTPD
 #undef HAVE_LIBIDN
 
+
+/*
+ * Cryptography
+ */
+#undef HAVE_OPENSSL
+#undef HAVE_LIBMCRYPT
+#undef HAVE_LIBMHASH
+#undef HAVE_GCRYPT
+#undef GCRYPT_WITH_AES
+#undef GCRYPT_WITH_ARCFOUR
+#undef GCRYPT_WITH_BLOWFISH
+#undef GCRYPT_WITH_CAST5
+#undef GCRYPT_WITH_DES
+#undef GCRYPT_WITH_IDEA
+#undef GCRYPT_WITH_RFC2268
+#undef GCRYPT_WITH_SERPENT
+#undef GCRYPT_WITH_TWOFISH
+#undef GCRYPT_WITH_CRC
+#undef GCRYPT_WITH_MD4
+#undef GCRYPT_WITH_MD5
+#undef GCRYPT_WITH_RMD160
+#undef GCRYPT_WITH_SHA1
+#undef GCRYPT_WITH_SHA256
+#undef GCRYPT_WITH_SHA512
+#undef GCRYPT_WITH_TIGER
+#undef GCRYPT_WITH_WHIRLPOOL
+#undef GCRYPT_WITH_DSA
+#undef GCRYPT_WITH_ELGAMAL
+#undef GCRYPT_WITH_RSA
+#undef LIBMCRYPT24
+
+ 
+ 
+ 
 /*
  * Assembler
  */
@@ -303,10 +335,7 @@
  */
 #undef HAVE_PTHREADS
 
-/*
- * OpenSSL
- */
-#undef HAVE_OPENSSL
+
 
 /*
  * Grafiklibraries

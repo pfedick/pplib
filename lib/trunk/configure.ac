@@ -125,6 +125,7 @@ report_have_postgres="no"
 report_have_sqlite3="no"
 report_have_ldns="no"
 report_have_nasm="no"
+report_have_libgcrypt="no"
 
 
 AC_CANONICAL_TARGET
@@ -401,6 +402,14 @@ AM_LIBMICROHTTPD(,
             
             ,
             :)
+
+AX_LIB_GCRYPT
+if test "$HAVE_GCRYPT" = "1"
+then
+	report_have_libgcrypt="yes"
+fi
+            
+            
 
 
 AM_PATH_LIBMCRYPT([2.5.7],
@@ -718,7 +727,7 @@ AC_SUBST(report_have_libtiff)
 AC_SUBST(report_have_libmicrohttpd)
 AC_SUBST(report_have_libidn)
 AC_SUBST(report_have_libbind)
-
+AC_SUBST(report_have_libgcrypt)
 
 ###############################################################################
 # Output
@@ -773,7 +782,6 @@ AC_MSG_RESULT([
 **
 ** Cryptography:
 **   Libgcrypt:            $report_have_libgcrypt
-**   Libgnutls:            $report_have_libgnutls
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash

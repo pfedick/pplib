@@ -55,7 +55,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
-			--with-libmhash=/usr/local \
+			--with-libmhash=/usr/local --with-gcrypt=auto \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-jpeg --with-libpng --with-libtiff=/usr/local \
 			--with-postgresql \
@@ -83,7 +83,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-nasm --with-libiconv-prefix=/mingw \
 			--with-lame=/mingw --with-mpg123=/mingw \
 			--with-jpeg=/mingw --with-png=/mingw --with-libmhash=/mingw \
-			--with-libmcrypt-prefix=/mingw \
+			--with-libmcrypt-prefix=/mingw --with-gcrypt=auto \
 			--with-openssl=/mingw --with-libcurl \
 			--with-ogg=/mingw
 		;;
@@ -96,7 +96,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-nasm --with-libiconv-prefix=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
-			--with-libmcrypt-prefix=/usr/local \
+			--with-libmcrypt-prefix=/usr/local --with-gcrypt=auto \
 			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local
 		;;
@@ -104,7 +104,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
-			--with-libmhash --with-ogg=/usr \
+			--with-libmhash --with-gcrypt=auto --with-ogg=/usr \
 			--with-postgresql \
 			--with-jpeg --with-libpng=$PREFIX \
 			--with-libtiff=/usr --with-mpg123 \
@@ -114,7 +114,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x \
 			--with-openssl=/usr --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
-			--with-postgresql \
+			--with-postgresql --with-gcrypt=auto \
 			--with-jpeg --with-png \
 			--with-libmhash --with-mpg123 --with-ogg=/usr
 		;;
