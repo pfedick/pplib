@@ -597,6 +597,8 @@ class AudioCD
 
 		AudioCD::Track getTrack(int track);
 		bool	isAudioTrack(int track);
+
+		static bool isSupported();
 };
 
 class CDDB
@@ -640,6 +642,8 @@ class CDDB
 
 		int query(AudioCD &cd, Matches &list);
 		void getDisc(unsigned int discId, const ppl6::CString &category, Disc &d);
+
+		static bool isSupported();
 
 };
 

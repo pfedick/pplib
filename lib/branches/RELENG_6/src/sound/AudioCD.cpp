@@ -63,6 +63,16 @@
 
 namespace ppl6 {
 
+bool AudioCD::isSupported()
+{
+#ifdef HAVE_LIBCDIO
+	return true;
+#else
+	return false;
+#endif
+}
+
+
 AudioCD::AudioCD()
 {
 	cdio=NULL;

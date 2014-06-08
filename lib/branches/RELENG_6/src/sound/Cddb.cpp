@@ -71,6 +71,16 @@ CDDB::CDDB()
 #endif
 }
 
+bool CDDB::isSupported()
+{
+#ifdef HAVE_LIBCDDB
+	return true;
+#else
+	return false;
+#endif
+}
+
+
 CDDB::~CDDB()
 {
 #ifdef HAVE_LIBCDDB
