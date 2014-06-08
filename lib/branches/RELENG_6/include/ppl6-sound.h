@@ -50,6 +50,9 @@
 #define LPVOID void*
 #endif
 
+#include <stdlib.h>
+#include <list>
+
 namespace ppl6 {
 
 namespace MP3 {
@@ -535,6 +538,108 @@ class CIcecast
 
 		void	sendMetadata(const CString &name, const CString &value);
 		void	setTitle(const CString &title);
+
+};
+
+class AudioCD
+{
+	private:
+		void *cdio;
+		void *drive;
+		ppl6::CString myDevice;
+		size_t first_track_num;
+		size_t i_tracks;
+		size_t num_audio_tracks;
+		size_t audio_frames;
+		void countAudioTracks();
+
+	public:
+		PPLEXCEPTION(DeviceOpenFailed,ppl6::Exception);
+		PPLEXCEPTION(DeviceNotOpen,ppl6::Exception);
+		PPLEXCEPTION(InvalidAudioTrack,ppl6::Exception);
+
+		class Track
+		{
+			friend class AudioCD;
+			private:
+				int _track;
+				size_t _start, _end;
+				bool _hasPreemphasis, _hasCopyPermit;
+				int _channels;
+
+			public:
+				Track();
+				int track() const;
+				size_t start() const;
+				size_t end() const;
+				size_t size() const;
+				size_t seconds() const;
+				bool hasPreemphasis() const;
+				bool hasCopyPermit() const;
+				int channels() const;
+		};
+
+
+		AudioCD();
+		~AudioCD();
+
+		void openDevice(const ppl6::CString &device=ppl6::CString());
+		void closeDevice();
+		const ppl6::CString &deviceName() const;
+
+		size_t firstTrack() const;
+		size_t lastTrack() const;
+		size_t numTotalTracks() const;
+		size_t numAudioTracks() const;
+		size_t totalAudioFrames() const;
+		bool dataIsBigEndian() const;
+		bool dataIsLittleEndian() const;
+
+		AudioCD::Track getTrack(int track);
+		bool	isAudioTrack(int track);
+};
+
+class CDDB
+{
+	public:
+		PPLEXCEPTION(QueryFailed, ppl6::Exception);
+		class Track
+		{
+			public:
+				int number;
+				int frame_offset;
+				int length;
+				ppl6::CString Artist;
+				ppl6::CString Title;
+				ppl6::CString Extra;
+		};
+		class Disc
+		{
+			public:
+				unsigned int	discId;
+				ppl6::CString	category;
+				ppl6::CString	genre;
+				int				length;
+				int				year;
+				ppl6::CString	Artist;
+				ppl6::CString	Title;
+				ppl6::CString	Extra;
+				std::list<Track>	Tracks;
+		};
+
+		typedef std::list<Disc> Matches;
+
+	private:
+		void *conn;
+		void storeDisc(Disc &d, void *disc);
+		void addTrack(Disc &d, void *track);
+
+	public:
+		CDDB();
+		~CDDB();
+
+		int query(AudioCD &cd, Matches &list);
+		void getDisc(unsigned int discId, const ppl6::CString &category, Disc &d);
 
 };
 

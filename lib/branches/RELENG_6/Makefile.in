@@ -16,10 +16,10 @@ TARGETBIN	= @bindir@
 TARGETINCLUDE	= @includedir@
 CC			= @CC@
 CXX			= @CXX@
-CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @OPENSSL_INCLUDES@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ @FREETDS_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ @SQLITE_CFLAGS@
+CFLAGS		=  -I${incdir} -DPPL6LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ @ICONV_CFLAGS@ @ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @X_CFLAGS@ @OPENSSL_INCLUDES@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ @FREETDS_CFLAGS@  @LIBCURL_CPPFLAGS@  @LAME_CFLAGS@ @MAD_CFLAGS@ @GRAPHIC_CFLAGS@ @SOUND_CFLAGS@ @LIBMCRYPT_CFLAGS@ @LIBMHASH_CFLAGS@ @LIBLDNS_CFLAGS@ @MPG123_CFLAGS@ @OGG_CFLAGS@ @SHOUT_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ @SQLITE_CFLAGS@ @LIBCDIO_CFLAGS@ @LIBCDDB_CFLAGS@
 CPPFLAGS	= @CPPFLAGS@
 LDFLAGS		= @LDFLAGS@
-LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @FREETDS_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@ @LIBMICROHTTPD_LIBS@ @SQLITE_LIBS@
+LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_CFLAGS@ @BZ2_LIBS@ @PCRE_LIBS@ @X_PRE_LIBS@ @X_LIBS@ @MYSQL_LIBS@ @POSTGRESQL_LDFLAGS@ @FREETDS_LIBS@ @ICONV_LIBS@ @LIBCURL@ @LAME_LIBS@ @MAD_LIBS@ @GRAPHIC_LIBS@ @SOUND_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ @OGG_LIBS@ @SHOUT_LIBS@ @LIBMICROHTTPD_LIBS@ @SQLITE_LIBS@ @LIBCDIO_LDFLAGS@ @LIBCDDB_LDFLAGS@
 LIBNAME		= libppl6
 LIBDEBUG	= libppl6-debug
 DISTNAME	= ppl
@@ -158,6 +158,7 @@ RELEASE	= release/CAVLTree.o \
 	release/tk_Tab.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
+	release/AudioCD.o \
 	release/AudioInfo.o \
 	release/CID3Tag.o \
 	release/CIcecast.o \
@@ -166,6 +167,7 @@ RELEASE	= release/CAVLTree.o \
 	release/CMP3Decode_LibMad.o \
 	release/CMP3Decode_Mpg123.o \
 	release/CMP3Encode.o \
+	release/Cddb.o \
 	release/mp3.o
 
 DEBUG	= debug/CAVLTree.o \
@@ -296,6 +298,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/tk_Tab.o \
 	debug/tk_Widget.o \
 	debug/tk_Window.o \
+	debug/AudioCD.o \
 	debug/AudioInfo.o \
 	debug/CID3Tag.o \
 	debug/CIcecast.o \
@@ -304,6 +307,7 @@ DEBUG	= debug/CAVLTree.o \
 	debug/CMP3Decode_LibMad.o \
 	debug/CMP3Decode_Mpg123.o \
 	debug/CMP3Encode.o \
+	debug/Cddb.o \
 	debug/mp3.o
 
 CORE_RELEASE	=release/CAVLTree.o \
@@ -483,7 +487,8 @@ INET_NOSSL_DEBUG	=debug/nossl_CCurl.o \
 	debug/nossl_webserver.o
 
 
-SOUND_RELEASE	=release/AudioInfo.o \
+SOUND_RELEASE	=release/AudioCD.o \
+	release/AudioInfo.o \
 	release/CID3Tag.o \
 	release/CIcecast.o \
 	release/CMP3Decode.o \
@@ -491,9 +496,11 @@ SOUND_RELEASE	=release/AudioInfo.o \
 	release/CMP3Decode_LibMad.o \
 	release/CMP3Decode_Mpg123.o \
 	release/CMP3Encode.o \
+	release/Cddb.o \
 	release/mp3.o
 
-SOUND_DEBUG	=debug/AudioInfo.o \
+SOUND_DEBUG	=debug/AudioCD.o \
+	debug/AudioInfo.o \
 	debug/CID3Tag.o \
 	debug/CIcecast.o \
 	debug/CMP3Decode.o \
@@ -501,6 +508,7 @@ SOUND_DEBUG	=debug/AudioInfo.o \
 	debug/CMP3Decode_LibMad.o \
 	debug/CMP3Decode_Mpg123.o \
 	debug/CMP3Encode.o \
+	debug/Cddb.o \
 	debug/mp3.o
 
 
@@ -1518,6 +1526,11 @@ release/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl
 	$(CXX) -Wall -O3 -o release/tk_Window.o -c $(CFLAGS)  $(srcdir)/toolkit/Window.cpp
 
 ### SOUND
+release/AudioCD.o:	$(srcdir)/sound/AudioCD.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/AudioCD.cpp<<<
+	$(CXX) -Wall -O3 -o release/AudioCD.o -c $(CFLAGS)  $(srcdir)/sound/AudioCD.cpp
+
 release/AudioInfo.o:	$(srcdir)/sound/AudioInfo.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/AudioInfo.cpp<<<
@@ -1557,6 +1570,11 @@ release/CMP3Encode.o:	$(srcdir)/sound/CMP3Encode.cpp $(incdir)/ppl6.h $(incdir)/
 	###############################################################################
 	# Compiling >>>sound/CMP3Encode.cpp<<<
 	$(CXX) -Wall -O3 -o release/CMP3Encode.o -c $(CFLAGS)  $(srcdir)/sound/CMP3Encode.cpp
+
+release/Cddb.o:	$(srcdir)/sound/Cddb.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/Cddb.cpp<<<
+	$(CXX) -Wall -O3 -o release/Cddb.o -c $(CFLAGS)  $(srcdir)/sound/Cddb.cpp
 
 release/mp3.o:	$(srcdir)/sound/mp3.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
@@ -2313,6 +2331,11 @@ debug/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl6.h $(incdir)/ppl6-
 	$(CXX) -Wall -O0 -o debug/tk_Window.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/toolkit/Window.cpp
 
 ### SOUND
+debug/AudioCD.o:	$(srcdir)/sound/AudioCD.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/AudioCD.cpp<<<
+	$(CXX) -Wall -O0 -o debug/AudioCD.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/AudioCD.cpp
+
 debug/AudioInfo.o:	$(srcdir)/sound/AudioInfo.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################
 	# Compiling >>>sound/AudioInfo.cpp<<<
@@ -2352,6 +2375,11 @@ debug/CMP3Encode.o:	$(srcdir)/sound/CMP3Encode.cpp $(incdir)/ppl6.h $(incdir)/pp
 	###############################################################################
 	# Compiling >>>sound/CMP3Encode.cpp<<<
 	$(CXX) -Wall -O0 -o debug/CMP3Encode.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/CMP3Encode.cpp
+
+debug/Cddb.o:	$(srcdir)/sound/Cddb.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
+	###############################################################################
+	# Compiling >>>sound/Cddb.cpp<<<
+	$(CXX) -Wall -O0 -o debug/Cddb.o -c -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG  $(srcdir)/sound/Cddb.cpp
 
 debug/mp3.o:	$(srcdir)/sound/mp3.cpp $(incdir)/ppl6.h $(incdir)/ppl6-unixconfig.h Makefile  
 	###############################################################################

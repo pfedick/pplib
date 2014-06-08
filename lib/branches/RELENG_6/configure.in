@@ -48,6 +48,9 @@ sinclude(config/libgnutls.m4)
 sinclude(config/libmicrohttpd.m4)
 sinclude(config/sqlite.m4)
 sinclude(config/gtest.m4)
+sinclude(config/libcdio.m4)
+sinclude(config/libcddb.m4)
+
 
 AC_CANONICAL_TARGET
 
@@ -297,6 +300,15 @@ esac
 
 dnl Checks for libraries.
 
+report_have_libcdio="no"
+AX_CHECK_LIBCDIO(
+        report_have_libcdio="yes",
+        :)
+        
+report_have_libcddb="no"
+AX_CHECK_LIBCDDB(
+        report_have_libcddb="yes",
+        :)
 
 report_have_libgcrypt="no"
 AM_PATH_LIBGCRYPT(,
@@ -363,6 +375,7 @@ AC_CHECK_LIBMPG123([1.0.0],
             ,
             )
 
+       
 report_have_lame="no"
 AC_CHECK_LIBMP3LAME([3.98.0],
 	AC_DEFINE(HAVE_LAME, 1, [ Define if you have lame. ])
@@ -652,6 +665,8 @@ AC_MSG_RESULT([
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
+**   cdio library:         $report_have_libcdio
+**   cddb library:         $report_have_libcddb
 **
 ** Cryptography:
 **   Libgcrypt:            $report_have_libgcrypt

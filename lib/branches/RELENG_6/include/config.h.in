@@ -278,6 +278,9 @@
 #undef HAVE_LIBSHOUT
 #undef HAVE_LIBOGG
 
+#undef HAVE_LIBCDIO
+#undef HAVE_LIBCDDB
+
 /*
  * pthread
  */
