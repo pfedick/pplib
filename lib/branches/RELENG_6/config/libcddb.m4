@@ -71,15 +71,16 @@ AC_ARG_WITH([libcddb],
 	else
 		AC_MSG_RESULT(no)
 	fi
-	AC_SUBST(LIBCDDB_CFLAGS)
-	AC_SUBST(LIBCDDB_LDFLAGS)
-
 	if test $have_libcddb = "yes"
 	then
   		AC_DEFINE(HAVE_LIBCDDB, 1, [Define if you have the libcddb library])
 		ifelse([$1], , :, [$1])
 	else
+		LIBCDDB_CFLAGS=""
+		LIBCDDB_LDFLAGS=""
 		ifelse([$2], , :, [$2])
 	fi
+	AC_SUBST(LIBCDDB_CFLAGS)
+	AC_SUBST(LIBCDDB_LDFLAGS)
 	
 ])

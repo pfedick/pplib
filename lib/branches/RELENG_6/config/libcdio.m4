@@ -34,7 +34,7 @@ AC_ARG_WITH([libcdio],
 			if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists libcdio`
 			then
 				LIBCDIO_CFLAGS=`$PKGCONFIG --cflags libcdio libcdio_cdda libcdio_paranoia`
-		    		LIBCDIO_LDFLAGS=`$PKGCONFIG --libs libcdio libcdio_cdda libcdio_paranoia`
+		    	LIBCDIO_LDFLAGS=`$PKGCONFIG --libs libcdio libcdio_cdda libcdio_paranoia`
 		    	else 
 		    		PKG_CHECK_MODULES([libcdio], [libcdio, libcdio_cdda libcdio_paranoia],
 					LIBCDIO_CFLAGS=$libcdio_CFLAGS
@@ -71,15 +71,16 @@ AC_ARG_WITH([libcdio],
 	else
 		AC_MSG_RESULT(no)
 	fi
-	AC_SUBST(LIBCDIO_CFLAGS)
-	AC_SUBST(LIBCDIO_LDFLAGS)
-
 	if test $have_libcdio = "yes"
 	then
   		AC_DEFINE(HAVE_LIBCDIO, 1, [Define if you have the libcdio library])
 		ifelse([$1], , :, [$1])
 	else
+		LIBCDIO_CFLAGS=""
+		LIBCDIO_LDFLAGS=""
 		ifelse([$2], , :, [$2])
 	fi
+	AC_SUBST(LIBCDIO_CFLAGS)
+	AC_SUBST(LIBCDIO_LDFLAGS)
 	
 ])
