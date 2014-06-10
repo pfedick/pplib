@@ -165,7 +165,7 @@ String Idn2Ace(const String &idn)
 		free(a);
 #endif
 
-	throw IdnConversionException(idn);
+		throw IdnConversionException("%s",(const wchar_t*)idn);
 #else
 	throw UnsupportedFeatureException("libidn");
 #endif
@@ -202,7 +202,7 @@ WideString Idn2Ace(const WideString &idn)
 		free(a);
 #endif
 
-	throw IdnConversionException(idn);
+	throw IdnConversionException("%ls",(const wchar_t*)idn);
 #else
 	throw UnsupportedFeatureException("libidn");
 #endif
@@ -239,7 +239,7 @@ String Ace2Idn(const String &ace)
 		free(a);
 #endif
 
-	throw IdnConversionException(ace);
+	throw IdnConversionException("%s",(const wchar_t*)ace);
 #else
 	throw UnsupportedFeatureException("libidn");
 #endif
@@ -277,7 +277,7 @@ WideString Ace2Idn(const WideString &ace)
 		free(a);
 #endif
 
-	throw IdnConversionException(ace);
+		throw IdnConversionException("%ls",(const wchar_t*)ace);
 #else
 	throw UnsupportedFeatureException("libidn");
 #endif
