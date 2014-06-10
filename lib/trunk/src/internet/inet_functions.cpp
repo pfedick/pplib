@@ -165,7 +165,7 @@ String Idn2Ace(const String &idn)
 		free(a);
 #endif
 
-		throw IdnConversionException("%s",(const wchar_t*)idn);
+		throw IdnConversionException("%s",(const char*)idn);
 #else
 	throw UnsupportedFeatureException("libidn");
 #endif
@@ -239,7 +239,7 @@ String Ace2Idn(const String &ace)
 		free(a);
 #endif
 
-	throw IdnConversionException("%s",(const wchar_t*)ace);
+	throw IdnConversionException("%s",(const char*)ace);
 #else
 	throw UnsupportedFeatureException("libidn");
 #endif
