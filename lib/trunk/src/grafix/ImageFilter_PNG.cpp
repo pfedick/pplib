@@ -402,16 +402,16 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 
 
 	png_structp png_ptr = png_create_write_struct (PNG_LIBPNG_VER_STRING, NULL,NULL,NULL);
-	if (!png_ptr) throw OperationFailedException(L"ImageFilter_PNG::save");
+	if (!png_ptr) throw OperationFailedException("ImageFilter_PNG::save");
 	png_infop info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr) {
 		png_destroy_write_struct(&png_ptr,(png_infopp)NULL);
-		throw OperationFailedException(L"ImageFilter_PNG::save");
+		throw OperationFailedException("ImageFilter_PNG::save");
 	}
 
 	if (setjmp(png_jmpbuf(png_ptr))) {
 		png_destroy_write_struct(&png_ptr,&info_ptr);
-		throw OperationFailedException(L"ImageFilter_PNG::save");
+		throw OperationFailedException("ImageFilter_PNG::save");
 	}
 
 	//png_set_read_fn(png_ptr,(voidp) file, (png_rw_ptr) user_read_data);

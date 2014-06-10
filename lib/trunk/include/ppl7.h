@@ -152,10 +152,10 @@ namespace ppl7 {
  		void		increase(size_t num);
 
  	public:
- 		PPLNORMALEXCEPTION(NotInitializedException);
- 		PPLNORMALEXCEPTION(AlreadyInitializedException);
- 		PPLNORMALEXCEPTION(HeapCorruptedException);
- 		PPLNORMALEXCEPTION(ElementNotInHeapException);
+ 		PPLEXCEPTION(NotInitializedException, Exception);
+ 		PPLEXCEPTION(AlreadyInitializedException, Exception);
+ 		PPLEXCEPTION(HeapCorruptedException, Exception);
+ 		PPLEXCEPTION(ElementNotInHeapException, Exception);
 
 
 
@@ -636,7 +636,7 @@ class File : public FileObject
 
 
 	public:
-		PPLNORMALEXCEPTION(IllegalFilemodeException);
+		PPLEXCEPTION(IllegalFilemodeException, Exception);
 		enum FileMode {
 			READ=1,
 			WRITE,
@@ -776,10 +776,10 @@ class Dir
 		void resortNone();
 
 	public:
-		PPLNORMALEXCEPTION(PathnameTooLongException);
-		PPLNORMALEXCEPTION(NonexistingPathException);
-		PPLNORMALEXCEPTION(PermissionDeniedException);
-		PPLNORMALEXCEPTION(CreateDirectoryFailedException);
+		PPLEXCEPTION(PathnameTooLongException, Exception);
+		PPLEXCEPTION(NonexistingPathException, Exception);
+		PPLEXCEPTION(PermissionDeniedException, Exception);
+		PPLEXCEPTION(CreateDirectoryFailedException, Exception);
 
 		typedef ppl7::List<const DirEntry*>::Iterator Iterator;
 

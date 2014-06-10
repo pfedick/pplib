@@ -52,27 +52,27 @@ namespace grafix {
 #endif
 
 
-PPLPARAMETERISEDEXCEPTION(UnknownColorFormatException);
-PPLPARAMETERISEDEXCEPTION(UnsupportedColorFormatException);
-PPLNORMALEXCEPTION(NoGrafixEngineException);
-PPLNORMALEXCEPTION(EmptyDrawableException);
-PPLNORMALEXCEPTION(UnknownBltMethodException);
-PPLNORMALEXCEPTION(DuplicateGrafixEngineException);
-PPLPARAMETERISEDEXCEPTION(FunctionUnavailableException);
-PPLNORMALEXCEPTION(InvalidImageSizeException);
-PPLNORMALEXCEPTION(UnknownImageFormatException);
-PPLNORMALEXCEPTION(FontEngineInitializationException);
-PPLNORMALEXCEPTION(FontEngineUninitializedException);
-PPLNORMALEXCEPTION(InvalidFontException);
-PPLNORMALEXCEPTION(NoSuitableFontEngineException);
-PPLPARAMETERISEDEXCEPTION(FontNotFoundException);
-PPLNORMALEXCEPTION(InvalidFontEngineException);
-PPLNORMALEXCEPTION(InvalidSpriteException);
+PPLEXCEPTION(UnknownColorFormatException, Exception);
+PPLEXCEPTION(UnsupportedColorFormatException, Exception);
+PPLEXCEPTION(NoGrafixEngineException, Exception);
+PPLEXCEPTION(EmptyDrawableException, Exception);
+PPLEXCEPTION(UnknownBltMethodException, Exception);
+PPLEXCEPTION(DuplicateGrafixEngineException, Exception);
+PPLEXCEPTION(FunctionUnavailableException, Exception);
+PPLEXCEPTION(InvalidImageSizeException, Exception);
+PPLEXCEPTION(UnknownImageFormatException, Exception);
+PPLEXCEPTION(FontEngineInitializationException, Exception);
+PPLEXCEPTION(FontEngineUninitializedException, Exception);
+PPLEXCEPTION(InvalidFontException, Exception);
+PPLEXCEPTION(NoSuitableFontEngineException, Exception);
+PPLEXCEPTION(FontNotFoundException, Exception);
+PPLEXCEPTION(InvalidFontEngineException, Exception);
+PPLEXCEPTION(InvalidSpriteException, Exception);
 
 // Font6 Exceptions
-PPLPARAMETERISEDEXCEPTION(InvalidFontFormatException);
-PPLPARAMETERISEDEXCEPTION(InvalidFontFaceException);
-PPLPARAMETERISEDEXCEPTION(UnknownFontFaceException);
+PPLEXCEPTION(InvalidFontFormatException, Exception);
+PPLEXCEPTION(InvalidFontFaceException, Exception);
+PPLEXCEPTION(UnknownFontFaceException, Exception);
 
 // Microsoft kompatible Strukturen
 typedef struct _RECT {
@@ -937,8 +937,8 @@ class ImageFilter
 	private:
 
 	public:
-		PPLNORMALEXCEPTION(IllegalImageFormatException);
-		PPLNORMALEXCEPTION(EmptyImageException);
+		PPLEXCEPTION(IllegalImageFormatException, Exception);
+		PPLEXCEPTION(EmptyImageException, Exception);
 
 		ImageFilter();
 		virtual ~ImageFilter();

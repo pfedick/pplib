@@ -89,15 +89,20 @@ Exception& Exception::operator= (const Exception &other) throw()
 	return *this;
 }
 
-Exception::Exception(const char *msg, ...)
+Exception::Exception(const char *msg, ...) throw()
 {
 	if (msg) {
 		String Msg;
 		va_list args;
 		va_start(args, msg);
-		Msg.vasprintf(msg,args);
+		try {
+			Msg.vasprintf(msg,args);
+			ErrorText=strdup((const char*)Msg);
+		} catch (...) {
+			ErrorText=NULL;
+		}
 		va_end(args);
-		ErrorText=strdup((const char*)Msg);
+
 	} else {
 		ErrorText=NULL;
 	}
@@ -109,18 +114,16 @@ void Exception::copyText(const char *str) throw()
 	ErrorText=strdup(str);
 }
 
-void Exception::copyText(const wchar_t *str) throw()
-{
-	free(ErrorText);
-	ErrorText=NULL;
-}
-
 void Exception::copyText(const char *fmt, va_list args) throw()
 {
 	free(ErrorText);
-	String Msg;
-	Msg.vasprintf(fmt,args);
-	ErrorText=strdup((const char*)Msg);
+	try {
+		String Msg;
+		Msg.vasprintf(fmt,args);
+		ErrorText=strdup((const char*)Msg);
+	} catch (...) {
+		ErrorText=NULL;
+	}
 }
 
 const char* Exception::text() const throw()

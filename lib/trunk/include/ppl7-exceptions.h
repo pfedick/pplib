@@ -53,14 +53,13 @@ class Exception : std::exception
 		Exception() throw();
 		Exception(const Exception &other) throw();
 		Exception& operator= (const Exception &other) throw();
-		Exception(const char *msg, ...);
+		Exception(const char *msg, ...) throw();
 		virtual ~Exception() throw();
 		virtual const char* what() const throw();
 		const char* text() const throw();
 		String toString() const throw();
 		void print() const;
 		void copyText(const char *str) throw();
-		void copyText(const wchar_t *str) throw();
 		void copyText(const char *fmt, va_list args) throw();
 };
 
@@ -68,94 +67,75 @@ std::ostream& operator<<(std::ostream& s, const Exception &e);
 
 
 #define STR_VALUE(arg)      #arg
-#define PPLNORMALEXCEPTION(name)	class name : public ppl7::Exception { public: \
-		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
-	};
-
-#define PPLPARAMETERISEDEXCEPTION(name)	class name : public ppl7::Exception { public: \
-	name() {}; \
-	name(const wchar_t *msg) { \
-		copyText(msg); \
-	}; \
-	name(const char *msg, ...) {  \
-		va_list args; va_start(args, msg); copyText(msg,args); \
-		va_end(args); } \
-		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
-	};
-
-
 #define PPLEXCEPTION(name,inherit)	class name : public ppl7::inherit { public: \
-	name() {}; \
-	name(const wchar_t *msg) { \
-		copyText(msg); \
-	}; \
-	name(const char *msg, ...) {  \
+	name() throw() {}; \
+	name(const char *msg, ...) throw() {  \
 		va_list args; va_start(args, msg); copyText(msg,args); \
 		va_end(args); } \
 		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
 	};
 
-PPLPARAMETERISEDEXCEPTION(UnknownException);
-PPLNORMALEXCEPTION(OutOfMemoryException);
-PPLNORMALEXCEPTION(NullPointerException);
-PPLPARAMETERISEDEXCEPTION(UnsupportedFeatureException);
-PPLNORMALEXCEPTION(CharacterEncodingException);
-PPLNORMALEXCEPTION(UnsupportedCharacterEncodingException);
-PPLNORMALEXCEPTION(OutOfBoundsEception);
-PPLPARAMETERISEDEXCEPTION(EmptyDataException);
-PPLNORMALEXCEPTION(TypeConversionException);
-PPLPARAMETERISEDEXCEPTION(IllegalArgumentException);
-PPLPARAMETERISEDEXCEPTION(MissingArgumentException);
-PPLNORMALEXCEPTION(IllegalRegularExpressionException);
-PPLPARAMETERISEDEXCEPTION(OperationFailedException);
-PPLPARAMETERISEDEXCEPTION(DuplicateInstanceException);
-PPLNORMALEXCEPTION(ConnectionFailedException);
-PPLNORMALEXCEPTION(SocketException);
-PPLNORMALEXCEPTION(LoginRefusedException);
-PPLNORMALEXCEPTION(AlreadyConnectedException);
-PPLNORMALEXCEPTION(NoConnectionException);
-PPLPARAMETERISEDEXCEPTION(TooManyInstancesException);
-PPLPARAMETERISEDEXCEPTION(InvalidDateException);
-PPLPARAMETERISEDEXCEPTION(DateOutOfRangeException);
-PPLNORMALEXCEPTION(NoThreadSupportException);
-PPLNORMALEXCEPTION(ThreadStartException);
-PPLNORMALEXCEPTION(ThreadAlreadyRunningException);
-PPLNORMALEXCEPTION(ThreadOperationFailedException);
-PPLNORMALEXCEPTION(ItemNotFoundException);
-PPLNORMALEXCEPTION(DuplicateItemException);
-PPLNORMALEXCEPTION(UnsupportedDataTypeException);
-PPLNORMALEXCEPTION(ItemNotFromThisListException);
-PPLNORMALEXCEPTION(EndOfListException);
-PPLNORMALEXCEPTION(IllegalMemoryAddressException);
-PPLNORMALEXCEPTION(UnimplementedVirtualFunctionException);
-PPLNORMALEXCEPTION(UnknownCompressionMethodException);
-PPLNORMALEXCEPTION(IllegalChunkException);
-PPLNORMALEXCEPTION(ChunkNotFoundException);
-PPLNORMALEXCEPTION(EmptyFileException);
-PPLNORMALEXCEPTION(CompressionFailedException);
-PPLNORMALEXCEPTION(DecompressionFailedException);
-PPLPARAMETERISEDEXCEPTION(InvalidFormatException);
-PPLNORMALEXCEPTION(AccessDeniedByInstanceException);
-PPLNORMALEXCEPTION(BufferTooSmallException);
-PPLNORMALEXCEPTION(CorruptedDataException);
-PPLNORMALEXCEPTION(FailedToLoadResourceException);
-PPLNORMALEXCEPTION(InvalidResourceException);
-PPLNORMALEXCEPTION(ResourceNotFoundException);
-PPLNORMALEXCEPTION(OperationUnavailableException);
-PPLNORMALEXCEPTION(UnavailableException);
-PPLPARAMETERISEDEXCEPTION(InitializationFailedException);
-PPLPARAMETERISEDEXCEPTION(KeyNotFoundException);
+PPLEXCEPTION(UnknownException, Exception);
+PPLEXCEPTION(OutOfMemoryException, Exception);
+PPLEXCEPTION(NullPointerException, Exception);
+PPLEXCEPTION(UnsupportedFeatureException, Exception);
+PPLEXCEPTION(CharacterEncodingException, Exception);
+PPLEXCEPTION(UnsupportedCharacterEncodingException, Exception);
+PPLEXCEPTION(OutOfBoundsEception, Exception);
+PPLEXCEPTION(EmptyDataException, Exception);
+PPLEXCEPTION(TypeConversionException, Exception);
+PPLEXCEPTION(IllegalArgumentException, Exception);
+PPLEXCEPTION(MissingArgumentException, Exception);
+PPLEXCEPTION(IllegalRegularExpressionException, Exception);
+PPLEXCEPTION(OperationFailedException, Exception);
+PPLEXCEPTION(DuplicateInstanceException, Exception);
+PPLEXCEPTION(ConnectionFailedException, Exception);
+PPLEXCEPTION(SocketException, Exception);
+PPLEXCEPTION(LoginRefusedException, Exception);
+PPLEXCEPTION(AlreadyConnectedException, Exception);
+PPLEXCEPTION(NoConnectionException, Exception);
+PPLEXCEPTION(TooManyInstancesException, Exception);
+PPLEXCEPTION(InvalidDateException, Exception);
+PPLEXCEPTION(DateOutOfRangeException, Exception);
+PPLEXCEPTION(NoThreadSupportException, Exception);
+PPLEXCEPTION(ThreadStartException, Exception);
+PPLEXCEPTION(ThreadAlreadyRunningException, Exception);
+PPLEXCEPTION(ThreadOperationFailedException, Exception);
+PPLEXCEPTION(ItemNotFoundException, Exception);
+PPLEXCEPTION(DuplicateItemException, Exception);
+PPLEXCEPTION(UnsupportedDataTypeException, Exception);
+PPLEXCEPTION(ItemNotFromThisListException, Exception);
+PPLEXCEPTION(EndOfListException, Exception);
+PPLEXCEPTION(IllegalMemoryAddressException, Exception);
+PPLEXCEPTION(UnimplementedVirtualFunctionException, Exception);
+PPLEXCEPTION(UnknownCompressionMethodException, Exception);
+PPLEXCEPTION(IllegalChunkException, Exception);
+PPLEXCEPTION(ChunkNotFoundException, Exception);
+PPLEXCEPTION(EmptyFileException, Exception);
+PPLEXCEPTION(CompressionFailedException, Exception);
+PPLEXCEPTION(DecompressionFailedException, Exception);
+PPLEXCEPTION(InvalidFormatException, Exception);
+PPLEXCEPTION(AccessDeniedByInstanceException, Exception);
+PPLEXCEPTION(BufferTooSmallException, Exception);
+PPLEXCEPTION(CorruptedDataException, Exception);
+PPLEXCEPTION(FailedToLoadResourceException, Exception);
+PPLEXCEPTION(InvalidResourceException, Exception);
+PPLEXCEPTION(ResourceNotFoundException, Exception);
+PPLEXCEPTION(OperationUnavailableException, Exception);
+PPLEXCEPTION(UnavailableException, Exception);
+PPLEXCEPTION(InitializationFailedException, Exception);
+PPLEXCEPTION(KeyNotFoundException, Exception);
 
-PPLNORMALEXCEPTION(NoSectionSelectedException);
-PPLPARAMETERISEDEXCEPTION(UnknownSectionException);
+PPLEXCEPTION(NoSectionSelectedException, Exception);
+PPLEXCEPTION(UnknownSectionException, Exception);
 
-PPLPARAMETERISEDEXCEPTION(SSLException);
-PPLPARAMETERISEDEXCEPTION(SSLContextInUseException);
-PPLNORMALEXCEPTION(SSLContextUninitializedException);
-PPLNORMALEXCEPTION(SSLContextReferenceCounterMismatchException);
-PPLPARAMETERISEDEXCEPTION(InvalidSSLCertificateException);
-PPLPARAMETERISEDEXCEPTION(InvalidSSLCipherException);
-PPLPARAMETERISEDEXCEPTION(SSLPrivatKeyException);
+PPLEXCEPTION(SSLException, Exception);
+PPLEXCEPTION(SSLContextInUseException, Exception);
+PPLEXCEPTION(SSLContextUninitializedException, Exception);
+PPLEXCEPTION(SSLContextReferenceCounterMismatchException, Exception);
+PPLEXCEPTION(InvalidSSLCertificateException, Exception);
+PPLEXCEPTION(InvalidSSLCipherException, Exception);
+PPLEXCEPTION(SSLPrivatKeyException, Exception);
 
 
 //! @name IO-Exceptions
@@ -194,10 +174,10 @@ PPLEXCEPTION(BufferExceedsLimitException, IOException);
 //@}
 
 
-PPLPARAMETERISEDEXCEPTION(HostNotFoundException);
-PPLNORMALEXCEPTION(TryAgainException);
-PPLPARAMETERISEDEXCEPTION(NoResultException);
-PPLEXCEPTION(TimeoutException,Exception);
+PPLEXCEPTION(HostNotFoundException, Exception);
+PPLEXCEPTION(TryAgainException, Exception);
+PPLEXCEPTION(NoResultException, Exception);
+PPLEXCEPTION(TimeoutException, Exception);
 
 
 

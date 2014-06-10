@@ -84,7 +84,7 @@ class AVLTreeAlgorithm
 		void	swapNodes(Node *item1, Node *item2);
 
 	public:
-		PPLNORMALEXCEPTION(MissingCompareOperator);
+		PPLEXCEPTION(MissingCompareOperator, Exception);
 
 		AVLTreeAlgorithm();
 		virtual ~AVLTreeAlgorithm();

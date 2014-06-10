@@ -48,9 +48,9 @@
 namespace ppl7 {
 
 PPLEXCEPTION(NetworkException,Exception);
-PPLNORMALEXCEPTION(WinsockInitialisationFailed);
-PPLPARAMETERISEDEXCEPTION(IdnConversionException);
-PPLPARAMETERISEDEXCEPTION(QueryFailedException);
+PPLEXCEPTION(WinsockInitialisationFailed, Exception);
+PPLEXCEPTION(IdnConversionException, Exception);
+PPLEXCEPTION(QueryFailedException, Exception);
 
 
 PPLEXCEPTION(NotConnectedException,NetworkException);
@@ -482,11 +482,11 @@ class Webserver
 
 
 
-		PPLPARAMETERISEDEXCEPTION(CouldNotBindToSocket);
-		PPLPARAMETERISEDEXCEPTION(InvalidSSLCertificate);
-		PPLNORMALEXCEPTION(NoAddressSpecified);
-		PPLNORMALEXCEPTION(CouldNotStartDaemon);
-		PPLNORMALEXCEPTION(SSLInitializationFailed);
+		PPLEXCEPTION(CouldNotBindToSocket, Exception);
+		PPLEXCEPTION(InvalidSSLCertificate, Exception);
+		PPLEXCEPTION(NoAddressSpecified, Exception);
+		PPLEXCEPTION(CouldNotStartDaemon, Exception);
+		PPLEXCEPTION(SSLInitializationFailed, Exception);
 
 };
 
