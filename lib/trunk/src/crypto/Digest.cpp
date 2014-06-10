@@ -278,8 +278,8 @@ void Digest::saveDigest(Variant &result)
 #else
 	ByteArray ba=getDigest();
 	int type=result.dataType();
-	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
-		ByteArrayPtr &bin=static_cast<ByteArrayPtr&>(result);
+	if (type==Variant::BYTEARRAY) {
+		ByteArray &bin=static_cast<ByteArray&>(result);
 		bin=ba;
 	} else if (type==Variant::STRING) {
 		String &str=static_cast<String&>(result);

@@ -246,9 +246,7 @@ TEST_F(DigestTest, TestSaveDigestToByteArrayPtr) {
 	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
 	ppl7::ByteArray buffer(20);
 	ppl7::ByteArrayPtr result=buffer;
-
-	ASSERT_NO_THROW(dig.saveDigest(result));
-	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result.toHex());
+	ASSERT_THROW(dig.saveDigest(result),ppl7::UnsupportedDataTypeException);
 }
 
 TEST_F(DigestTest, TestSaveDigestToArray) {
