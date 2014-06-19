@@ -618,6 +618,8 @@ class CDDB
 		class Disc
 		{
 			public:
+				typedef std::list<Track> TrackList;
+
 				unsigned int	discId;
 				ppl6::CString	category;
 				ppl6::CString	genre;
@@ -626,7 +628,7 @@ class CDDB
 				ppl6::CString	Artist;
 				ppl6::CString	Title;
 				ppl6::CString	Extra;
-				std::list<Track>	Tracks;
+				TrackList		Tracks;
 		};
 
 		typedef std::list<Disc> Matches;
