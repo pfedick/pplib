@@ -642,8 +642,9 @@ class CDDB
 		CDDB();
 		~CDDB();
 
-		int query(AudioCD &cd, Matches &list);
-		void getDisc(unsigned int discId, const ppl6::CString &category, Disc &d);
+		void	setHttpServer(const ppl6::CString &server, int port=80);
+		int		query(AudioCD &cd, Matches &list);
+		void	getDisc(unsigned int discId, const ppl6::CString &category, Disc &d);
 
 		static bool isSupported();
 

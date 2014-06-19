@@ -88,6 +88,16 @@ CDDB::~CDDB()
 #endif
 }
 
+void CDDB::setHttpServer(const ppl6::CString &server, int port)
+{
+#ifndef HAVE_LIBCDDB
+	throw UnsupportedFeatureException("cddb");
+#else
+	cddb_set_server_port((cddb_conn_t *)conn, port);
+	cddb_set_server_name((cddb_conn_t *)conn, (const char*)server);
+#endif
+}
+
 int CDDB::query(AudioCD &cd, std::list<Disc> &list)
 {
 #ifndef HAVE_LIBCDDB
