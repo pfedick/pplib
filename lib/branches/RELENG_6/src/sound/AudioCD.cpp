@@ -72,6 +72,22 @@ bool AudioCD::isSupported()
 #endif
 }
 
+std::list<ppl6::CString> AudioCD::getDevices()
+{
+	std::list<ppl6::CString> devices;
+#ifdef HAVE_LIBCDIO
+	char** d=cdio_get_devices (DRIVER_DEVICE);
+	if (d) {
+		for (int i=0;d[i]!=NULL;i++) {
+			ppl6::CString name;
+			name.Setf("%s",d[i]);
+			devices.push_back(name);
+		}
+	}
+
+#endif
+	return devices;
+}
 
 AudioCD::AudioCD()
 {

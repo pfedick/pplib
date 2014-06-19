@@ -599,6 +599,7 @@ class AudioCD
 		bool	isAudioTrack(int track);
 
 		static bool isSupported();
+		static std::list<ppl6::CString> getDevices();
 };
 
 class CDDB
