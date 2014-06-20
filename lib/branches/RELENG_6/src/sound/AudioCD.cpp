@@ -52,9 +52,6 @@
 #undef PACKAGE_STRING
 #undef PACKAGE_VERSION
 #include <cdio/cdio.h>
-#include <cdio/cdda.h>
-#include <cdio/paranoia.h>
-#include <cdio/cd_types.h>
 #endif
 
 #include "ppl6.h"
