@@ -92,7 +92,6 @@ std::list<ppl6::CString> AudioCD::getDevices()
 AudioCD::AudioCD()
 {
 	cdio=NULL;
-	drive=NULL;
 	num_audio_tracks=0;
 	i_tracks=0;
 	first_track_num=0;
@@ -110,9 +109,7 @@ void AudioCD::closeDevice()
 	throw UnsupportedFeatureException("cdio");
 #else
 
-	if (drive) cdio_cddap_close_no_free_cdio((cdrom_drive_t*)drive);
 	if (cdio) cdio_destroy((CdIo_t *)cdio);
-	drive=NULL;
 	cdio=NULL;
 	num_audio_tracks=0;
 	i_tracks=0;
@@ -138,15 +135,6 @@ void AudioCD::openDevice(const ppl6::CString &device)
 	}
 	cdio=cdio_open((const char*)myDevice, DRIVER_DEVICE);
 	if (!cdio) throw DeviceOpenFailed("%s",(const char*)myDevice);
-
-	drive=cdio_cddap_identify_cdio((CdIo_t *)cdio, 0, NULL);
-	if (!drive) {
-		closeDevice();
-		throw DeviceOpenFailed("%s",(const char*)myDevice);
-	}
-	if ( 0 != cdio_cddap_open((cdrom_drive_t*)drive) ) {
-		throw DeviceOpenFailed("%s",(const char*)myDevice);
-	}
 
 	first_track_num = (size_t)cdio_get_first_track_num((CdIo_t *)cdio);
 	i_tracks = (size_t)cdio_get_num_tracks((CdIo_t *)cdio);
@@ -203,41 +191,20 @@ size_t AudioCD::numAudioTracks() const
 	return num_audio_tracks;
 }
 
-bool AudioCD::dataIsBigEndian() const
-{
-#ifndef HAVE_LIBCDIO
-	throw UnsupportedFeatureException("cdio");
-#else
-	if (drive==NULL) throw AudioCD::DeviceNotOpen();
-	return data_bigendianp((cdrom_drive_t*)drive);
-#endif
-}
-
-bool AudioCD::dataIsLittleEndian() const
-{
-#ifndef HAVE_LIBCDIO
-	throw UnsupportedFeatureException("cdio");
-#else
-	if (drive==NULL) throw AudioCD::DeviceNotOpen();
-	if (data_bigendianp((cdrom_drive_t*)drive)) return false;
-	return true;
-#endif
-}
-
 AudioCD::Track AudioCD::getTrack(int track)
 {
 #ifndef HAVE_LIBCDIO
 	throw UnsupportedFeatureException("cdio");
 #else
-	if (!drive) throw DeviceNotOpen();
-	if (cdio_cddap_track_audiop((cdrom_drive_t*)drive, track)!=1) throw InvalidAudioTrack("%i",track);
+	if (!cdio) throw DeviceNotOpen();
+	if (cdio_get_track_format((CdIo_t *)cdio,track)!=TRACK_FORMAT_AUDIO) throw InvalidAudioTrack("%i",track);
 	AudioCD::Track t;
 	t._track=track;
-	t._start=(size_t)cdio_cddap_track_firstsector((cdrom_drive_t*)drive, track);
-	t._end=(size_t)cdio_cddap_track_lastsector((cdrom_drive_t*)drive, track);
-	t._channels=cdio_cddap_track_channels((cdrom_drive_t*)drive,track);
-	t._hasPreemphasis=cdio_cddap_track_preemp((cdrom_drive_t*)drive,track);
-	t._hasCopyPermit=cdio_cddap_track_audiop((cdrom_drive_t*)drive,track);
+	t._start=(size_t)cdio_get_track_lsn((CdIo_t *)cdio,track);
+	t._end=t._start+(size_t)cdio_get_track_sec_count((CdIo_t *)cdio,track)-1;
+	t._channels=cdio_get_track_channels((CdIo_t *)cdio,track);
+	t._hasPreemphasis=(cdio_get_track_preemphasis((CdIo_t *)cdio,track)==CDIO_TRACK_FLAG_TRUE?true:false);
+	t._hasCopyPermit=(cdio_get_track_copy_permit((CdIo_t *)cdio,track)==CDIO_TRACK_FLAG_TRUE?true:false);
 	return t;
 #endif
 }
@@ -247,8 +214,8 @@ bool AudioCD::isAudioTrack(int track)
 #ifndef HAVE_LIBCDIO
 	throw UnsupportedFeatureException("cdio");
 #else
-	if (!drive) throw DeviceNotOpen();
-	if (cdio_cddap_track_audiop((cdrom_drive_t*)drive, track)==1) return true;
+	if (!cdio) throw DeviceNotOpen();
+	if (cdio_get_track_format((CdIo_t *)cdio,track)==TRACK_FORMAT_AUDIO) return true;
 	return false;
 #endif
 }

@@ -545,7 +545,6 @@ class AudioCD
 {
 	private:
 		void *cdio;
-		void *drive;
 		ppl6::CString myDevice;
 		size_t first_track_num;
 		size_t i_tracks;
@@ -592,8 +591,6 @@ class AudioCD
 		size_t numTotalTracks() const;
 		size_t numAudioTracks() const;
 		size_t totalAudioFrames() const;
-		bool dataIsBigEndian() const;
-		bool dataIsLittleEndian() const;
 
 		AudioCD::Track getTrack(int track);
 		bool	isAudioTrack(int track);

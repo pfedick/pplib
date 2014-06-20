@@ -28,19 +28,19 @@ AC_ARG_WITH([libcdio],
 		if test -n "$libcdio_prefix" -a "$libcdio_prefix" != "yes" -a "$libcdio_prefix" != "auto"
 		then
 		    LIBCDIO_CFLAGS="-I$with_libcdio/include"
-		    LIBCDIO_LDFLAGS="-L$with_libcdio/lib -lcdio -lcdio_cdda -lcdio_paranoia" 
+		    LIBCDIO_LDFLAGS="-L$with_libcdio/lib -lcdio " 
 		else
 			AC_PATH_PROG([PKGCONFIG], [pkg-config], [no])
 			if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists libcdio`
 			then
-				LIBCDIO_CFLAGS=`$PKGCONFIG --cflags libcdio libcdio_cdda libcdio_paranoia`
-		    	LIBCDIO_LDFLAGS=`$PKGCONFIG --libs libcdio libcdio_cdda libcdio_paranoia`
+				LIBCDIO_CFLAGS=`$PKGCONFIG --cflags libcdio `
+		    	LIBCDIO_LDFLAGS=`$PKGCONFIG --libs libcdio `
 		    	else 
-		    		PKG_CHECK_MODULES([libcdio], [libcdio, libcdio_cdda libcdio_paranoia],
+		    		PKG_CHECK_MODULES([libcdio], [libcdio],
 					LIBCDIO_CFLAGS=$libcdio_CFLAGS
 					LIBCDIO_LDFLAGS=$libcdio_LIBS
 				,
-					LIBCDIO_LDFLAGS="-lcdio -lcdio_cdda -lcdio_paranoia"
+					LIBCDIO_LDFLAGS="-lcdio "
 				)
 			fi
 		fi
@@ -51,8 +51,6 @@ AC_ARG_WITH([libcdio],
 		AC_TRY_LINK([
 			#include <stdio.h>
 			#include <cdio/cdio.h>
-			#include <cdio/cdda.h>
-			#include <cdio/paranoia.h>
 			],[
 			int main(int argc, char **argv) {
 				CdIo_t *p_cdio = cdio_open (NULL, DRIVER_DEVICE);
