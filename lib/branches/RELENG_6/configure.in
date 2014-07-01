@@ -49,7 +49,6 @@ sinclude(config/libmicrohttpd.m4)
 sinclude(config/sqlite.m4)
 sinclude(config/gtest.m4)
 sinclude(config/libcdio.m4)
-sinclude(config/libcddb.m4)
 
 
 AC_CANONICAL_TARGET
@@ -305,11 +304,6 @@ AX_CHECK_LIBCDIO(
         report_have_libcdio="yes",
         :)
         
-report_have_libcddb="no"
-AX_CHECK_LIBCDDB(
-        report_have_libcddb="yes",
-        :)
-
 report_have_libgcrypt="no"
 AM_PATH_LIBGCRYPT(,
             AC_DEFINE(HAVE_LIBGCRYPT, 1, [ Define if you have libgcrypt. ])
@@ -666,7 +660,6 @@ AC_MSG_RESULT([
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
 **   cdio library:         $report_have_libcdio
-**   cddb library:         $report_have_libcddb
 **
 ** Cryptography:
 **   Libgcrypt:            $report_have_libgcrypt

@@ -107,6 +107,15 @@ static int ppl_curl_instance=0;
 
 #endif
 
+bool CCurl::isSupported()
+{
+#ifdef HAVE_LIBCURL
+	return true;
+#else
+	return false;
+#endif
+}
+
 CCurl::CCurl()
 /*!\brief Constructor der Curl-Klasse
  *
@@ -191,6 +200,7 @@ CCurl::~CCurl()
 		PopError();
 	#endif
 }
+
 
 void CCurl::Clear()
 {

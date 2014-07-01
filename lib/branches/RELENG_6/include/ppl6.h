@@ -3524,6 +3524,7 @@ class CCurl
 			HTTP_1_1,
 		};
 
+		static bool isSupported();
 
 		CCurl();
 		~CCurl();

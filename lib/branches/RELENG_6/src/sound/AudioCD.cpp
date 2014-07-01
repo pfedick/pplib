@@ -93,6 +93,7 @@ AudioCD::AudioCD()
 	i_tracks=0;
 	first_track_num=0;
 	audio_frames=0;
+	last_lsn=0;
 }
 
 AudioCD::~AudioCD()
@@ -135,6 +136,7 @@ void AudioCD::openDevice(const ppl6::CString &device)
 
 	first_track_num = (size_t)cdio_get_first_track_num((CdIo_t *)cdio);
 	i_tracks = (size_t)cdio_get_num_tracks((CdIo_t *)cdio);
+	last_lsn=cdio_get_disc_last_lsn((CdIo_t *)cdio);
 	countAudioTracks();
 #endif
 }
@@ -157,9 +159,23 @@ void AudioCD::countAudioTracks()
 #endif
 }
 
+size_t AudioCD::lastLsn() const
+{
+	return last_lsn;
+}
+
 size_t AudioCD::totalAudioFrames() const
 {
 	return audio_frames;
+}
+
+size_t AudioCD::totalAudioLength() const
+{
+#ifndef HAVE_LIBCDIO
+	return 0;
+#else
+	return audio_frames/CDIO_CD_FRAMES_PER_SEC;
+#endif
 }
 
 
@@ -194,8 +210,9 @@ AudioCD::Track AudioCD::getTrack(int track)
 	throw UnsupportedFeatureException("cdio");
 #else
 	if (!cdio) throw DeviceNotOpen();
-	if (cdio_get_track_format((CdIo_t *)cdio,track)!=TRACK_FORMAT_AUDIO) throw InvalidAudioTrack("%i",track);
 	AudioCD::Track t;
+	t._isAudioTrack=true;
+	if (cdio_get_track_format((CdIo_t *)cdio,track)!=TRACK_FORMAT_AUDIO) t._isAudioTrack=false;
 	t._track=track;
 	t._start=(size_t)cdio_get_track_lsn((CdIo_t *)cdio,track);
 	t._end=t._start+(size_t)cdio_get_track_sec_count((CdIo_t *)cdio,track)-1;
@@ -218,6 +235,44 @@ bool AudioCD::isAudioTrack(int track)
 }
 
 
+static inline ppluint8 ppl_to_bcd8 (ppluint8 n)
+{
+  return ((n/10)<<4) | (n%10);
+}
+
+AudioCD::Toc AudioCD::lsn2toc(size_t lsn)
+{
+#ifndef HAVE_LIBCDIO
+	throw UnsupportedFeatureException("cdio");
+#else
+	lsn_t l=(lsn_t) lsn;
+	int m, s, f;
+	if ( l >= -CDIO_PREGAP_SECTORS ){
+		m    = (l + CDIO_PREGAP_SECTORS) / CDIO_CD_FRAMES_PER_MIN;
+		l -= m * CDIO_CD_FRAMES_PER_MIN;
+		s    = (l + CDIO_PREGAP_SECTORS) / CDIO_CD_FRAMES_PER_SEC;
+		l -= s * CDIO_CD_FRAMES_PER_SEC;
+		f    = l + CDIO_PREGAP_SECTORS;
+	} else {
+		m    = (l + CDIO_CD_MAX_LSN)     / CDIO_CD_FRAMES_PER_MIN;
+		l -= m * (CDIO_CD_FRAMES_PER_MIN);
+		s    = (l+CDIO_CD_MAX_LSN)       / CDIO_CD_FRAMES_PER_SEC;
+		l -= s * CDIO_CD_FRAMES_PER_SEC;
+		f    = l + CDIO_CD_MAX_LSN;
+	}
+
+	if (m > 99) {
+		m=99;
+	}
+	Toc toc;
+	toc.min=m;
+	toc.sec=s;
+	toc.frames=f;
+	return toc;
+#endif
+}
+
+
 AudioCD::Track::Track()
 {
 	_track=0;
@@ -236,6 +291,11 @@ int AudioCD::Track::track() const
 size_t AudioCD::Track::start() const
 {
 	return _start;
+}
+
+AudioCD::Toc AudioCD::Track::start_toc() const
+{
+	return AudioCD::lsn2toc(_start);
 }
 
 size_t AudioCD::Track::end() const
@@ -261,6 +321,11 @@ bool AudioCD::Track::hasPreemphasis() const
 bool AudioCD::Track::hasCopyPermit() const
 {
 	return _hasCopyPermit;
+}
+
+bool AudioCD::Track::isAudioTrack() const
+{
+	return _isAudioTrack;
 }
 
 int AudioCD::Track::channels() const

@@ -46,153 +46,313 @@
 #include <math.h>
 #endif
 
-#ifdef HAVE_LIBCDDB
-#include <cddb/cddb.h>
-#endif
-
 #include "ppl6.h"
 #include "ppl6-exceptions.h"
 #include "ppl6-sound.h"
 
 namespace ppl6 {
 
+bool CDDB::isSupported()
+{
+	return ppl6::CCurl::isSupported();
+}
+
+static inline int cddb_sum(int n)
+{
+	int	ret;
+	/* For backward compatibility this algorithm must not change */
+	ret = 0;
+	while (n > 0) {
+		ret = ret + (n % 10);
+		n = n / 10;
+	}
+	return (ret);
+}
+
+
+unsigned int CDDB::calcDiscId(ppl6::AudioCD &cd)
+{
+	int	i,
+		t = 0,
+		n = 0;
+
+	/* For backward compatibility this algorithm must not change */
+
+	i = cd.firstTrack();
+	int tot_trks=cd.numTotalTracks();
+
+	while (i <= tot_trks) {
+		ppl6::AudioCD::Track track=cd.getTrack(i);
+		ppl6::AudioCD::Toc toc=track.start_toc();
+		n = n + cddb_sum((toc.min * 60) + toc.sec);
+		i++;
+	}
+	ppl6::AudioCD::Track track=cd.getTrack(1);
+	ppl6::AudioCD::Toc first_toc=track.start_toc();
+	ppl6::AudioCD::Toc last_toc=ppl6::AudioCD::lsn2toc(cd.lastLsn());
+	t = ((last_toc.min * 60) + last_toc.sec) -
+	    ((first_toc.min * 60) + first_toc.sec);
+
+	return ((n % 0xff) << 24 | t << 8 | tot_trks);
+}
+
+
+
 
 CDDB::CDDB()
 {
-#ifdef HAVE_LIBCDDB
-	conn=cddb_new();
-	cddb_http_enable((cddb_conn_t *)conn);
-	cddb_set_server_port((cddb_conn_t *)conn, 80);
-	cddb_set_server_name((cddb_conn_t *)conn, "freedb.org");
-	cddb_set_http_path_query((cddb_conn_t *)conn, "/~cddb/cddb.cgi");
-	cddb_set_http_path_submit((cddb_conn_t *)conn, "/~cddb/submit.cgi");
-#else
-	conn=NULL;
-#endif
+	QueryPath="/~cddb/cddb.cgi";
+	Server="freedb.freedb.org";
+	ClientName="pplib";
+	ClientVersion.Setf("%i.%i.%i",
+			PPL_VERSION_MAJOR,
+			PPL_VERSION_MINOR,
+			PPL_VERSION_BUILD);
+	UserName="anonymous";
+	Hostname="localhost";
+	port=80;
 }
-
-bool CDDB::isSupported()
-{
-#ifdef HAVE_LIBCDDB
-	return true;
-#else
-	return false;
-#endif
-}
-
 
 CDDB::~CDDB()
 {
-#ifdef HAVE_LIBCDDB
-	cddb_destroy((cddb_conn_t *)conn);
-#endif
 }
 
 void CDDB::setHttpServer(const ppl6::CString &server, int port)
 {
-#ifndef HAVE_LIBCDDB
-	throw UnsupportedFeatureException("cddb");
-#else
-	cddb_set_server_port((cddb_conn_t *)conn, port);
-	cddb_set_server_name((cddb_conn_t *)conn, (const char*)server);
-#endif
+	this->Server=server;
+	this->port=port;
 }
 
-int CDDB::query(AudioCD &cd, std::list<Disc> &list)
+void CDDB::setQueryPath(const ppl6::CString &path)
 {
-#ifndef HAVE_LIBCDDB
-	throw UnsupportedFeatureException("cddb");
-#else
+	this->QueryPath=path;
+}
+
+void CDDB::setProxy(const ppl6::CString &hostname, int port)
+{
+	if (!curl.SetProxy(hostname,port)) {
+		ppl6::CString e;
+		ppl6::Error2String(e);
+		throw ppl6::OperationFailedException("%s",(const char*)e);
+	}
+}
+
+void CDDB::setClient(const ppl6::CString &name, const ppl6::CString &version)
+{
+	ClientName=name;
+	ClientVersion=version;
+}
+
+void CDDB::setUser(const ppl6::CString &username, const ppl6::CString &hostname)
+{
+	UserName=username;
+	Hostname=hostname;
+}
+
+static unsigned int	hex2int(const ppl6::CString &s)
+{
+	const unsigned char *p=(const unsigned char *)s.GetPtr();
+	unsigned char *t;
+	size_t bytes=s.Len();
+	if (bytes!=8) {
+		throw CDDB::InvalidDiscId("%s",(const char*)s);
+	}
+	int ret=0;
+	t=(unsigned char*)&ret;
+	unsigned char value;
+	for (size_t source=0, target=0;source<bytes;source+=2,target++) {
+		unsigned char first=p[source];
+		unsigned char second=p[source+1];
+		if (first>='0' && first<='9') value=(first-'0');
+		else if (first>='a' && first<='f') value=(first-'a'+10);
+		else if (first>='A' && first<='F') value=(first-'A'+10);
+		else {
+			throw CDDB::InvalidDiscId("%s",(const char*)s);
+		}
+		value=value<<4;
+		if (second>='0' && second<='9') value|=(second-'0');
+		else if (second>='a' && second<='f') value|=(second-'a'+10);
+		else if (second>='A' && second<='F') value|=(second-'A'+10);
+		else {
+			throw CDDB::InvalidDiscId("%s",(const char*)s);
+		}
+		// TODO: big endian beruecksichtigen
+		t[3-target]=value;
+	}
+	return ret;
+}
+
+ppl6::CString CDDB::buildUri(const ppl6::CString &cmd)
+{
+	ppl6::CString Tmp,Uri;
+	Uri="http://"+Server;
+	if (port!=80) Uri.Concatf(":%i",port);
+	Uri+=QueryPath;
+	Uri+="?cmd="+ppl6::UrlEncode(cmd);
+	Tmp=UserName+" "+Hostname+" "+ClientName+" "+ClientVersion;
+	Uri+="&hello="+ppl6::UrlEncode(Tmp);
+	Uri+="&proto=6";
+	return Uri;
+}
+
+int CDDB::query(ppl6::AudioCD &cd, std::list<Disc> &list)
+{
 	list.clear();
-	cddb_disc_t *disc = NULL;
-	disc = cddb_disc_new();
-	cddb_disc_set_length(disc,cd.totalAudioFrames()/75);
-
+	ppl6::CString cmd,Uri,Tmp;
+	cmd.Setf("cddb query %08x %i ",calcDiscId(cd), (int)cd.numTotalTracks());
 	for (size_t i=cd.firstTrack();i<=cd.lastTrack();i++) {
-		AudioCD::Track track=cd.getTrack(i);
-		cddb_track_t *t=cddb_track_new();
-		cddb_track_set_frame_offset(t,track.start()+150);
-		cddb_track_set_length(t,track.seconds());
-		cddb_disc_add_track(disc,t);
+		ppl6::AudioCD::Track track=cd.getTrack(i);
+		cmd.Concatf("%i ",(int)track.start()+150);
 	}
+	cmd.Concatf("%i",(int)(cd.lastLsn()+150)/75);
+	Uri=buildUri(cmd);
 
-	int matches = cddb_query((cddb_conn_t *)conn, disc);
-	if (matches == -1) {
-		throw QueryFailed();
-		//cddb_error_print(cddb_errno(conn));
+	//printf ("Uri: %s\n",(const char*)Uri);
+
+	curl.SetURL(Uri);
+
+	if (!curl.Get()) {
+		ppl6::Error2String(Tmp);
+		Tmp.Print(true);
+		throw QueryFailed("%s",(const char*)Tmp);
 	}
-	while (matches > 0) {
-		Disc d;
-		getDisc(cddb_disc_get_discid(disc),cddb_disc_get_category_str(disc),d);
-		list.push_back(d);
-		matches--;
-		if (matches > 0) {
-			if (!cddb_query_next((cddb_conn_t *)conn, disc)) {
-				fprintf(stderr, "query index out of bounds");
-				throw QueryFailed();
+	ppl6::CString header=curl.GetHeader();
+	ppl6::CString payload=curl.GetResultBuffer();
+	payload.Replace("\n\r","\n");
+	payload.Replace("\r\n","\n");
+
+
+	//header.Print(true);
+	//payload.Print(true);
+
+	if (!header.PregMatch("/^.*200\\s+OK/m")) {
+		return 0;
+	}
+	ppl6::CArray rows(payload,"\n");
+	bool multiResults=false;
+	for (int r=0;r<rows.Num();r++) {
+		ppl6::CString row=rows[r];
+		ppl6::CArray matches;
+		if (row.PregMatch("/^200\\s+(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
+			Disc disc;
+			unsigned int discid=hex2int(matches[2]);
+			getDisc(discid,matches[1],disc);
+			list.push_back(disc);
+		} else if (row.PregMatch("/^210 Found exact matches.*$/")) {
+			multiResults=true;
+		} else if (multiResults==true &&
+				row.PregMatch("/^(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
+			Disc disc;
+			unsigned int discid=hex2int(matches[2]);
+			getDisc(discid,matches[1],disc);
+			list.push_back(disc);
+		}
+	}
+	return list.size();
+}
+
+static void parseOffsets(const ppl6::CString &payload, ppl6::CArray &offsets)
+{
+	bool headerFound=false;
+	bool offsetsFound=false;
+	ppl6::CArray a(payload,"\n");
+	for (int i=0;i<a.Num();i++) {
+		ppl6::CString row=a[i];
+		row.Trim();
+		//printf ("Parsing row: %s\n",(const char*)row);
+		if (row.Left(6)=="# xmcd") headerFound=true;
+		else if (headerFound) {
+			if (row=="# Track frame offsets:") offsetsFound=true;
+			else if (offsetsFound) {
+				if (row.PregMatch("/^#\\s+([0-9]+)$/")) {
+					offsets.Add(row.GetMatch(1));
+				} else break;
 			}
 		}
 	}
-	return (int)list.size();
-#endif
+	//offsets.List();
+}
+
+static void storeDisc(CDDB::Disc &disc, const ppl6::CString &payload)
+{
+	ppl6::CAssocArray a;
+	a.CreateFromTemplate(payload,"\n","=","");
+	ppl6::CString Tmp=a["DTITLE"];
+	if (Tmp.PregMatch("/^(.*?)\\/(.*)$/")) {
+		disc.Artist=Tmp.GetMatch(1);
+		disc.Title=Tmp.GetMatch(2);
+	}
+	disc.Extra=a["EXTD"];
+	disc.Artist.Trim();
+	disc.Title.Trim();
+	disc.Extra.Trim();
+	disc.year=a.ToInt("DYEAR");
+	disc.genre=a["DGENRE"];
+	disc.genre.Trim();
+
+	ppl6::CArray matches;
+	if (payload.PregMatch("/#\\sDisc\\slength:\\s+([0-9]+)/m",matches)) {
+		disc.length=matches.GetString(1).ToInt();
+	}
+	ppl6::CArray offsets;
+	parseOffsets(payload,offsets);
+
+	for (int i=0;i<99;i++) {
+		Tmp.Setf("TTITLE%i",i);
+		if (!a.HaveKey(Tmp)) break;
+		CDDB::Track t;
+		t.number=i+1;
+		t.frame_offset=offsets.GetString(i).ToInt();
+		t.length=(offsets.GetString(i+1).ToInt()-t.frame_offset)/75;
+		if (t.length<0) {
+			t.length=(disc.length*75+150-t.frame_offset)/75;
+		}
+		t.Artist=disc.Artist;
+		t.Title=a[Tmp];
+		if (t.Title.PregMatch("/^(.*?)\\s\\/\\s(.*)$/")) {
+			t.Artist=t.Title.GetMatch(1);
+			t.Title=t.Title.GetMatch(2);
+		}
+		t.Artist.Trim();
+		t.Title.Trim();
+
+		Tmp.Setf("EXTT%i",i);
+		t.Extra=a[Tmp];
+		t.Extra.Trim();
+		disc.Tracks.push_back(t);
+	}
+
 }
 
 void CDDB::getDisc(unsigned int discId, const ppl6::CString &category, Disc &d)
 {
-#ifndef HAVE_LIBCDDB
-	throw UnsupportedFeatureException("cddb");
-#else
-	cddb_disc_t *disc = cddb_disc_new();
-	if (!disc) throw ppl6::OutOfMemoryException();
-	cddb_disc_set_category_str(disc, (const char*)category);
-	cddb_disc_set_discid(disc, discId);
-	if (!cddb_read((cddb_conn_t *)conn, disc)) {
-		cddb_error_print(cddb_errno((cddb_conn_t *)conn));
-		throw QueryFailed();
-
+	ppl6::CString cmd,Uri,Tmp;
+	cmd.Setf("cddb read %s %08x",(const char*)category, discId);
+	Uri=buildUri(cmd);
+	curl.SetURL(Uri);
+	if (!curl.Get()) {
+		ppl6::Error2String(Tmp);
+		Tmp.Print(true);
+		throw QueryFailed("%s",(const char*)Tmp);
 	}
-	storeDisc(d,disc);
-	cddb_disc_destroy(disc);
-#endif
-}
+	ppl6::CString header=curl.GetHeader();
+	ppl6::CString payload=curl.GetResultBuffer();
+	payload.Replace("\n\r","\n");
+	payload.Replace("\r\n","\n");
 
-void CDDB::storeDisc(Disc &d, void *disc)
-{
-#ifndef HAVE_LIBCDDB
-	throw UnsupportedFeatureException("cddb");
-#else
-	d.discId=cddb_disc_get_discid((cddb_disc_t *)disc);
-	d.category=cddb_disc_get_category_str((cddb_disc_t *)disc);
-	d.genre=cddb_disc_get_genre((cddb_disc_t *)disc);
-	d.length=cddb_disc_get_length((cddb_disc_t *)disc);
-	d.year=cddb_disc_get_year((cddb_disc_t *)disc);
-	d.Artist=cddb_disc_get_artist((cddb_disc_t *)disc);
-	d.Title=cddb_disc_get_title((cddb_disc_t *)disc);
-	d.Extra=cddb_disc_get_ext_data((cddb_disc_t *)disc);
-
-
-	cddb_track_t *track = cddb_disc_get_track_first((cddb_disc_t *)disc);
-	while (track != NULL) {
-		addTrack(d,track);
-	    track = cddb_disc_get_track_next((cddb_disc_t *)disc);
+	if (!header.PregMatch("/^.*200\\s+OK/m")) {
+		throw QueryFailed("%s",(const char*)header);
 	}
-#endif
+	if (!payload.PregMatch("/^210\\s/m")) {
+		throw QueryFailed("%s",(const char*)header);
+	}
+
+	//payload.Print(true);
+	d.category=category;
+	d.discId=discId;
+	storeDisc(d,payload);
 }
 
-void CDDB::addTrack(Disc &d, void *track)
-{
-#ifndef HAVE_LIBCDDB
-	throw UnsupportedFeatureException("cddb");
-#else
-	Track t;
-	t.number=cddb_track_get_number((cddb_track_t *)track);
-	t.frame_offset=cddb_track_get_frame_offset((cddb_track_t *)track);
-	t.length=cddb_track_get_length((cddb_track_t *)track);
-	t.Artist=cddb_track_get_artist((cddb_track_t *)track);
-	t.Title=cddb_track_get_title((cddb_track_t *)track);
-	t.Extra=cddb_track_get_ext_data((cddb_track_t *)track);
-	d.Tracks.push_back(t);
-#endif
-}
+
 
 }	// EOF namespace ppl6

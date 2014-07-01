@@ -550,6 +550,7 @@ class AudioCD
 		size_t i_tracks;
 		size_t num_audio_tracks;
 		size_t audio_frames;
+		size_t last_lsn;
 		void countAudioTracks();
 
 	public:
@@ -557,27 +558,34 @@ class AudioCD
 		PPLEXCEPTION(DeviceNotOpen,ppl6::Exception);
 		PPLEXCEPTION(InvalidAudioTrack,ppl6::Exception);
 
+		class Toc
+		{
+			public:
+				ppluint8 min,sec,frames;
+		};
+
 		class Track
 		{
 			friend class AudioCD;
 			private:
 				int _track;
 				size_t _start, _end;
-				bool _hasPreemphasis, _hasCopyPermit;
+				bool _hasPreemphasis, _hasCopyPermit, _isAudioTrack;
 				int _channels;
 
 			public:
 				Track();
 				int track() const;
 				size_t start() const;
+				Toc start_toc() const;
 				size_t end() const;
 				size_t size() const;
 				size_t seconds() const;
 				bool hasPreemphasis() const;
 				bool hasCopyPermit() const;
+				bool isAudioTrack() const;
 				int channels() const;
 		};
-
 
 		AudioCD();
 		~AudioCD();
@@ -591,18 +599,22 @@ class AudioCD
 		size_t numTotalTracks() const;
 		size_t numAudioTracks() const;
 		size_t totalAudioFrames() const;
+		size_t totalAudioLength() const;
+		size_t lastLsn() const;
 
 		AudioCD::Track getTrack(int track);
 		bool	isAudioTrack(int track);
 
 		static bool isSupported();
 		static std::list<ppl6::CString> getDevices();
+		static Toc lsn2toc(size_t lsn);
 };
 
 class CDDB
 {
 	public:
 		PPLEXCEPTION(QueryFailed, ppl6::Exception);
+		PPLEXCEPTION(InvalidDiscId, ppl6::Exception);
 		class Track
 		{
 			public:
@@ -632,21 +644,32 @@ class CDDB
 		typedef std::list<Disc> Matches;
 
 	private:
-		void *conn;
-		void storeDisc(Disc &d, void *disc);
-		void addTrack(Disc &d, void *track);
+		ppl6::CCurl curl;
+		ppl6::CString QueryPath, Server;
+		ppl6::CString ClientName, ClientVersion;
+		ppl6::CString UserName, Hostname;
+		int port;
+		//void storeDisc(Disc &disc, const ppl6::CString &payload);
+		ppl6::CString buildUri(const ppl6::CString &cmd);
 
 	public:
 		CDDB();
 		~CDDB();
 
 		void	setHttpServer(const ppl6::CString &server, int port=80);
-		int		query(AudioCD &cd, Matches &list);
+		void	setQueryPath(const ppl6::CString &path);
+		void	setProxy(const ppl6::CString &hostname, int port);
+		void	setClient(const ppl6::CString &name, const ppl6::CString &version);
+		void	setUser(const ppl6::CString &username, const ppl6::CString &hostname);
+
+		int		query(ppl6::AudioCD &cd, Matches &list);
 		void	getDisc(unsigned int discId, const ppl6::CString &category, Disc &d);
 
 		static bool isSupported();
+		static unsigned int calcDiscId(ppl6::AudioCD &cd);
 
 };
+
 
 
 } // end of namespace ppl
