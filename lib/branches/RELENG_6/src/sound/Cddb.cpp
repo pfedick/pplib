@@ -278,14 +278,18 @@ static void storeDisc(CDDB::Disc &disc, const ppl6::CString &payload)
 	ppl6::CAssocArray a;
 	a.CreateFromTemplate(payload,"\n","=","");
 	ppl6::CString Tmp=a["DTITLE"];
-	if (Tmp.PregMatch("/^(.*?)\\/(.*)$/")) {
+	if (Tmp.PregMatch("/^(.*?)\\s\\/\\s(.*)$/")) {
 		disc.Artist=Tmp.GetMatch(1);
 		disc.Title=Tmp.GetMatch(2);
+	} else {
+		disc.Artist=Tmp;
+		disc.Title=Tmp;
 	}
 	disc.Extra=a["EXTD"];
 	disc.Artist.Trim();
 	disc.Title.Trim();
 	disc.Extra.Trim();
+	disc.Extra.Replace("\\n","\n");
 	disc.year=a.ToInt("DYEAR");
 	disc.genre=a["DGENRE"];
 	disc.genre.Trim();
@@ -319,6 +323,7 @@ static void storeDisc(CDDB::Disc &disc, const ppl6::CString &payload)
 		Tmp.Setf("EXTT%i",i);
 		t.Extra=a[Tmp];
 		t.Extra.Trim();
+		t.Extra.Replace("\\n","\n");
 		disc.Tracks.push_back(t);
 	}
 
