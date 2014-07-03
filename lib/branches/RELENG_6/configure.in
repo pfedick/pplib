@@ -20,7 +20,7 @@ sinclude(config/libcurl.m4)
 sinclude(config/mysql.m4)
 sinclude(config/postgres.m4)
 sinclude(config/freetype.m4)
-sinclude(config/pcre.m4)
+sinclude(config/ax_path_lib_pcre.m4)
 sinclude(config/png.m4)
 sinclude(config/jpeg.m4)
 sinclude(config/pthreads.m4)
@@ -456,11 +456,9 @@ AC_CHECK_FUNC(sin,,[AC_CHECK_LIB(m,sin)])
 
 # PCRE vorhanden?
 report_have_pcre="no"
-AX_PATH_LIB_PCRE([6.0],
+AX_PATH_LIB_PCRE(
             AC_DEFINE(HAVE_PCRE, 1, [ Define if you have pcre. ])
             report_have_pcre="yes"
-			AC_SUBST(PCRE_CFLAGS)
-			AC_SUBST(PCRE_LIBS)
             ,
             )
 

@@ -690,9 +690,8 @@ pngconfig
 OPENSSL_LDFLAGS
 OPENSSL_LIBS
 OPENSSL_INCLUDES
-pcreconfig
-PCRE_LIBS
 PCRE_CFLAGS
+PCRE_LIBS
 ZLIB_LIBS
 ZLIB_CFLAGS
 BZ2_LIBS
@@ -1558,7 +1557,7 @@ Optional Packages:
   --without-libiconv-prefix     don't search for libiconv in includedir and libdir
   --with-bzip2[=PATH]     Prefix where bzip2 is installed (optional)
   --with-zlib[=PATH]     Prefix where zlib is installed (optional)
-  --with-pcre[=PATH]      Prefix where pcre is installed (optional)
+  --with-pcre[=prefix]    compile xmlpcre part (via libpcre check)
   --with-openssl=DIR      root of the OpenSSL directory
   --with-png[=PATH]     Prefix where libpng is installed (optional)
        --with-ft-prefix=PREFIX Prefix where FreeType is installed (optional)
@@ -2900,6 +2899,56 @@ ac_config_headers="$ac_config_headers include/ppl6-unixconfig.h"
 
 
 
+# ===========================================================================
+#     http://www.gnu.org/software/autoconf-archive/ax_path_lib_pcre.html
+# ===========================================================================
+#
+# SYNOPSIS
+#
+#   AX_PATH_LIB_PCRE [(A/NA)]
+#
+# DESCRIPTION
+#
+#   check for pcre lib and set PCRE_LIBS and PCRE_CFLAGS accordingly.
+#
+#   also provide --with-pcre option that may point to the $prefix of the
+#   pcre installation - the macro will check $pcre/include and $pcre/lib to
+#   contain the necessary files.
+#
+#   the usual two ACTION-IF-FOUND / ACTION-IF-NOT-FOUND are supported and
+#   they can take advantage of the LIBS/CFLAGS additions.
+#
+# LICENSE
+#
+#   Copyright (c) 2008 Guido U. Draheim <guidod@gmx.de>
+#
+#   This program is free software; you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the
+#   Free Software Foundation; either version 3 of the License, or (at your
+#   option) any later version.
+#
+#   This program is distributed in the hope that it will be useful, but
+#   WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+#   Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#   As a special exception, the respective Autoconf Macro's copyright owner
+#   gives unlimited permission to copy, distribute and modify the configure
+#   scripts that are the output of Autoconf when processing the Macro. You
+#   need not follow the terms of the GNU General Public License when using
+#   or distributing such scripts, even though portions of the text of the
+#   Macro appear in them. The GNU General Public License (GPL) does govern
+#   all other use of the material that constitutes the Autoconf Macro.
+#
+#   This special exception to the GPL applies to versions of the Autoconf
+#   Macro released by the Autoconf Archive. When you make and distribute a
+#   modified version of the Autoconf Macro, you may extend this special
+#   exception to the GPL to apply to your modified version as well.
+
+#serial 7
 
 
 
@@ -13066,31 +13115,150 @@ report_have_pcre="no"
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking lib pcre" >&5
 $as_echo_n "checking lib pcre... " >&6; }
 
-
 # Check whether --with-pcre was given.
 if test "${with_pcre+set}" = set; then :
-  withval=$with_pcre; pcre_prefix="$withval"
+  withval=$with_pcre;
 else
-  pcre_prefix="no"
+  with_pcre="yes"
 fi
 
+if test ".$with_pcre" = ".no" ; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+$as_echo "disabled" >&6; }
 
-if test "$pcre_prefix" != "no"
-then
-	if test "$pcre_prefix" != "yes"
-	then
-		pcreconfig="$pcre_prefix/bin/pcre-config"
-	else
-		# Extract the first word of "pcre-config", so it can be a program name with args.
-set dummy pcre-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_pcreconfig+:} false; then :
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: (testing)" >&5
+$as_echo "(testing)" >&6; }
+  OLDLIBS="$LIBS"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcre_study in -lpcre" >&5
+$as_echo_n "checking for pcre_study in -lpcre... " >&6; }
+if ${ac_cv_lib_pcre_pcre_study+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $pcreconfig in
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpcre  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pcre_study ();
+int
+main ()
+{
+return pcre_study ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pcre_pcre_study=yes
+else
+  ac_cv_lib_pcre_pcre_study=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcre_pcre_study" >&5
+$as_echo "$ac_cv_lib_pcre_pcre_study" >&6; }
+if test "x$ac_cv_lib_pcre_pcre_study" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPCRE 1
+_ACEOF
+
+  LIBS="-lpcre $LIBS"
+
+fi
+
+  if test "$ac_cv_lib_pcre_pcre_study" = "yes" ; then
+     PCRE_LIBS="-lpcre"
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking lib pcre" >&5
+$as_echo_n "checking lib pcre... " >&6; }
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PCRE_LIBS" >&5
+$as_echo "$PCRE_LIBS" >&6; }
+     $as_echo "#define HAVE_PCRE 1" >>confdefs.h
+
+            report_have_pcre="yes"
+
+  else
+     OLDLDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS -L$with_pcre/lib"
+     OLDCPPFLAGS="$CPPFLAGS" ; CPPFLAGS="$CPPFLAGS -I$with_pcre/include"
+     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pcre_compile in -lpcre" >&5
+$as_echo_n "checking for pcre_compile in -lpcre... " >&6; }
+if ${ac_cv_lib_pcre_pcre_compile+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpcre  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pcre_compile ();
+int
+main ()
+{
+return pcre_compile ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pcre_pcre_compile=yes
+else
+  ac_cv_lib_pcre_pcre_compile=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pcre_pcre_compile" >&5
+$as_echo "$ac_cv_lib_pcre_pcre_compile" >&6; }
+if test "x$ac_cv_lib_pcre_pcre_compile" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBPCRE 1
+_ACEOF
+
+  LIBS="-lpcre $LIBS"
+
+fi
+
+     CPPFLAGS="$OLDCPPFLAGS"
+     LDFLAGS="$OLDLDFLAGS"
+     if test "$ac_cv_lib_pcre_pcre_compile" = "yes" ; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: .setting PCRE_LIBS -L$with_pcre/lib -lpcre" >&5
+$as_echo ".setting PCRE_LIBS -L$with_pcre/lib -lpcre" >&6; }
+        PCRE_LIBS="-L$with_pcre/lib -lpcre"
+        test -d "$with_pcre/include" && PCRE_CFLAGS="-I$with_pcre/include"
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking lib pcre" >&5
+$as_echo_n "checking lib pcre... " >&6; }
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PCRE_LIBS" >&5
+$as_echo "$PCRE_LIBS" >&6; }
+        $as_echo "#define HAVE_PCRE 1" >>confdefs.h
+
+            report_have_pcre="yes"
+
+     else
+        # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKGCONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKGCONFIG in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_pcreconfig="$pcreconfig" # Let the user override the test with a path.
+  ac_cv_path_PKGCONFIG="$PKGCONFIG" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -13100,7 +13268,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_pcreconfig="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_PKGCONFIG="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -13108,54 +13276,43 @@ done
   done
 IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_PKGCONFIG" && ac_cv_path_PKGCONFIG="no"
   ;;
 esac
 fi
-pcreconfig=$ac_cv_path_pcreconfig
-if test -n "$pcreconfig"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pcreconfig" >&5
-$as_echo "$pcreconfig" >&6; }
+PKGCONFIG=$ac_cv_path_PKGCONFIG
+if test -n "$PKGCONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG" >&5
+$as_echo "$PKGCONFIG" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-	fi
-	if test  ! -x "$pcreconfig"  ; then
-		pcreconfig=""
-	fi
-
-	if test  -z "$pcreconfig"
-	then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		:
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes: $pcreconfig" >&5
-$as_echo "yes: $pcreconfig" >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pcre libraries" >&5
-$as_echo_n "checking pcre libraries... " >&6; }
-		PCRE_LIBS=`${pcreconfig} --libs`
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PCRE_LIBS" >&5
-$as_echo "$PCRE_LIBS" >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pcre includes" >&5
-$as_echo_n "checking pcre includes... " >&6; }
-		PCRE_CFLAGS=`${pcreconfig} --cflags`
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PCRE_CFLAGS" >&5
-$as_echo "$PCRE_CFLAGS" >&6; }
-
-$as_echo "#define HAVE_PCRE 1" >>confdefs.h
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking lib pcre found with $PKGCONFIG" >&5
+$as_echo_n "checking lib pcre found with $PKGCONFIG... " >&6; }
+        if test "$PKGCONFIG" != "no" && `$PKGCONFIG --exists libpcre`
+        then
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+          PCRE_LIBS=`$PKGCONFIG --libs libpcre`
+          PCRE_CFLAGS=`$PKGCONFIG --cflags libpcre`
+          $as_echo "#define HAVE_PCRE 1" >>confdefs.h
 
             report_have_pcre="yes"
 
+        else
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
-
-	fi
-else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not configured" >&5
-$as_echo "not configured" >&6; }
+        fi
+     fi
+  fi
+  LIBS="$OLDLIBS"
 fi
+
+
 
 
 report_have_openssl="no"
