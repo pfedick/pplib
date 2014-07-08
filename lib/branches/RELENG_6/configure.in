@@ -65,6 +65,13 @@ AX_GCC_ARCHFLAG
 
 AC_PROG_SED
 
+case "$host_os" in
+	freebsd* )
+		CFLAGS="-I/usr/local/include $CFLAGS"
+		LDFLAGS="-L/usr/local/lib $LDFLAGS"
+  		;;
+esac
+
 AC_C_BIGENDIAN(
 	report_byteorder="BIG ENDIAN"
 	AC_DEFINE(__BIG_ENDIAN__),

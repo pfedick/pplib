@@ -686,7 +686,8 @@ SDL_CONFIG
 FT2_LIBS
 FT2_CFLAGS
 FT2_CONFIG
-pngconfig
+PNG_LIBS
+PNG_CFLAGS
 OPENSSL_LDFLAGS
 OPENSSL_LIBS
 OPENSSL_INCLUDES
@@ -715,6 +716,8 @@ _libcurl_config
 AWK
 LIBCURL_CPPFLAGS
 LIBCURL
+JPEG_LIBS
+JPEG_CFLAGS
 LIBMHASH_CFLAGS
 LIBMHASH_LIBS
 LIBMCRYPT_LIBS
@@ -856,7 +859,7 @@ with_bzip2
 with_zlib
 with_pcre
 with_openssl
-with_png
+with_libpng
 with_ft_prefix
 with_ft_exec_prefix
 enable_freetypetest
@@ -894,6 +897,10 @@ PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 libcdio_CFLAGS
 libcdio_LIBS
+JPEG_CFLAGS
+JPEG_LIBS
+PNG_CFLAGS
+PNG_LIBS
 SQLITE_CFLAGS
 SQLITE_LIBS
 FreeTDS_CFLAGS
@@ -1559,7 +1566,7 @@ Optional Packages:
   --with-zlib[=PATH]     Prefix where zlib is installed (optional)
   --with-pcre[=prefix]    compile xmlpcre part (via libpcre check)
   --with-openssl=DIR      root of the OpenSSL directory
-  --with-png[=PATH]     Prefix where libpng is installed (optional)
+  --with-libpng[=PATH]     Prefix where libpng is installed (optional)
        --with-ft-prefix=PREFIX Prefix where FreeType is installed (optional)
        --with-ft-exec-prefix=PREFIX
                           Exec prefix where FreeType is installed (optional)
@@ -1605,6 +1612,10 @@ Some influential environment variables:
               C compiler flags for libcdio, overriding pkg-config
   libcdio_LIBS
               linker flags for libcdio, overriding pkg-config
+  JPEG_CFLAGS C compiler flags for JPEG, overriding pkg-config
+  JPEG_LIBS   linker flags for JPEG, overriding pkg-config
+  PNG_CFLAGS  C compiler flags for PNG, overriding pkg-config
+  PNG_LIBS    linker flags for PNG, overriding pkg-config
   SQLITE_CFLAGS
               C compiler flags for SQLITE, overriding pkg-config
   SQLITE_LIBS linker flags for SQLITE, overriding pkg-config
@@ -2949,7 +2960,6 @@ ac_config_headers="$ac_config_headers include/ppl6-unixconfig.h"
 #   exception to the GPL to apply to your modified version as well.
 
 #serial 7
-
 
 
 
@@ -4874,6 +4884,13 @@ $as_echo "$ac_cv_path_SED" >&6; }
  SED="$ac_cv_path_SED"
   rm -f conftest.sed
 
+
+case "$host_os" in
+	freebsd* )
+		CFLAGS="-I/usr/local/include $CFLAGS"
+		LDFLAGS="-L/usr/local/lib $LDFLAGS"
+  		;;
+esac
 
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
@@ -10727,29 +10744,83 @@ $as_echo_n "checking for libjpeg... " >&6; }
 if test "${with_jpeg+set}" = set; then :
   withval=$with_jpeg; jpeg_prefix="$withval"
 else
-  jpeg_prefix="no"
+  jpeg_prefix=""
 fi
 
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpng" >&5
-$as_echo_n "checking for libpng... " >&6; }
 	if test "$jpeg_prefix" != "no"
 	then
-
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 		am_save_CPPFLAGS="$CPPFLAGS"
+		am_save_CFLAGS="$CFLAGS"
 		am_save_LIBS="$LIBS"
 		am_save_LDFLAGS="$LDFLAGS"
 
-		LIBS="$LIBS -L/usr/local/lib -L/usr/lib"
-		CFLAGS="$CFLAGS -I/usr/local/include -I/usr/include"
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for jpeg_finish_decompress in -ljpeg" >&5
-$as_echo_n "checking for jpeg_finish_decompress in -ljpeg... " >&6; }
-if ${ac_cv_lib_jpeg_jpeg_finish_decompress+:} false; then :
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JPEG" >&5
+$as_echo_n "checking for JPEG... " >&6; }
+
+if test -n "$JPEG_CFLAGS"; then
+    pkg_cv_JPEG_CFLAGS="$JPEG_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libjpeg >= 6.0.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libjpeg >= 6.0.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_JPEG_CFLAGS=`$PKG_CONFIG --cflags "libjpeg >= 6.0.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$JPEG_LIBS"; then
+    pkg_cv_JPEG_LIBS="$JPEG_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libjpeg >= 6.0.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libjpeg >= 6.0.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_JPEG_LIBS=`$PKG_CONFIG --libs "libjpeg >= 6.0.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        JPEG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libjpeg >= 6.0.0" 2>&1`
+        else
+	        JPEG_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libjpeg >= 6.0.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$JPEG_PKG_ERRORS" >&5
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing jpeg_finish_decompress" >&5
+$as_echo_n "checking for library containing jpeg_finish_decompress... " >&6; }
+if ${ac_cv_search_jpeg_finish_decompress+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ljpeg  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -10768,22 +10839,38 @@ return jpeg_finish_decompress ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_jpeg_jpeg_finish_decompress=yes
-else
-  ac_cv_lib_jpeg_jpeg_finish_decompress=no
+for ac_lib in '' jpeg; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_jpeg_finish_decompress=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_jpeg_finish_decompress+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jpeg_jpeg_finish_decompress" >&5
-$as_echo "$ac_cv_lib_jpeg_jpeg_finish_decompress" >&6; }
-if test "x$ac_cv_lib_jpeg_jpeg_finish_decompress" = xyes; then :
-  JPEG_LIBS="-ljpeg"
-			JPEG_CFLAGS=""
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
+done
+if ${ac_cv_search_jpeg_finish_decompress+:} false; then :
+
+else
+  ac_cv_search_jpeg_finish_decompress=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_jpeg_finish_decompress" >&5
+$as_echo "$ac_cv_search_jpeg_finish_decompress" >&6; }
+ac_res=$ac_cv_search_jpeg_finish_decompress
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+				JPEG_LIBS="$LIBS"
+				JPEG_CFLAGS=""
 
 $as_echo "#define HAVE_JPEG 1" >>confdefs.h
 
@@ -10792,15 +10879,100 @@ $as_echo "#define HAVE_JPEG 1" >>confdefs.h
 			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS"
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+  :
 			:
-		:
 fi
 
+
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing jpeg_finish_decompress" >&5
+$as_echo_n "checking for library containing jpeg_finish_decompress... " >&6; }
+if ${ac_cv_search_jpeg_finish_decompress+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char jpeg_finish_decompress ();
+int
+main ()
+{
+return jpeg_finish_decompress ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' jpeg; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_jpeg_finish_decompress=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_jpeg_finish_decompress+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_jpeg_finish_decompress+:} false; then :
+
+else
+  ac_cv_search_jpeg_finish_decompress=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_jpeg_finish_decompress" >&5
+$as_echo "$ac_cv_search_jpeg_finish_decompress" >&6; }
+ac_res=$ac_cv_search_jpeg_finish_decompress
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+				JPEG_LIBS="$LIBS"
+				JPEG_CFLAGS=""
+
+$as_echo "#define HAVE_JPEG 1" >>confdefs.h
+
+            report_have_jpeg="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS"
+
+else
+  :
+			:
+fi
+
+
+else
+	JPEG_CFLAGS=$pkg_cv_JPEG_CFLAGS
+	JPEG_LIBS=$pkg_cv_JPEG_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_JPEG 1" >>confdefs.h
+
+            report_have_jpeg="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS"
+
+fi
 		CPPFLAGS="$am_save_CPPFLAGS"
 		LIBS="$am_save_LIBS"
 		LDFLAGS="$am_save_LDFLAGS"
+		CFLAGS="$am_save_CFLAGS"
 	else
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -13481,91 +13653,193 @@ rm -f core conftest.err conftest.$ac_objext \
 
 report_have_png="no"
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if we should use libpng" >&5
+$as_echo_n "checking if we should use libpng... " >&6; }
 
 
-# Check whether --with-png was given.
-if test "${with_png+set}" = set; then :
-  withval=$with_png; png_prefix="$withval"
+# Check whether --with-libpng was given.
+if test "${with_libpng+set}" = set; then :
+  withval=$with_libpng; libpng_prefix="$withval"
 else
-  png_prefix="no"
+  libpng_prefix="auto"
 fi
 
 
-	pngconfig=""
-	if test "$png_prefix" != "yes" && test "$png_prefix" != "no"
+	if test "$libpng_prefix" != "no"
 	then
-		pngconfig="$png_prefix/bin/libpng-config"
-	elif test "$png_prefix" != "no"
-	then
-		# Extract the first word of "libpng-config", so it can be a program name with args.
-set dummy libpng-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_pngconfig+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $pngconfig in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_pngconfig="$pngconfig" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_pngconfig="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-pngconfig=$ac_cv_path_pngconfig
-if test -n "$pngconfig"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $pngconfig" >&5
-$as_echo "$pngconfig" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-	fi
-	if test  -z "$pngconfig"
-	then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpng" >&5
-$as_echo_n "checking for libpng... " >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		:
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking png libraries" >&5
-$as_echo_n "checking png libraries... " >&6; }
-		PNG_LIBS=`${pngconfig} --libs`
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PNG_LIBS" >&5
-$as_echo "$PNG_LIBS" >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking png includes" >&5
-$as_echo_n "checking png includes... " >&6; }
-		PNG_CFLAGS=`${pngconfig} --cflags`
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $PNG_CFLAGS" >&5
-$as_echo "$PNG_CFLAGS" >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpng" >&5
-$as_echo_n "checking for libpng... " >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+		am_save_CFLAGS="$CFLAGS"
+		am_save_CPPFLAGS="$CPPFLAGS"
+		am_save_LIBS="$LIBS"
+		am_save_LDFLAGS="$LDFLAGS"
+		if test "$libpng_prefix" = "yes" -o "$libpng_prefix" = "auto"
+		then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PNG" >&5
+$as_echo_n "checking for PNG... " >&6; }
+
+if test -n "$PNG_CFLAGS"; then
+    pkg_cv_PNG_CFLAGS="$PNG_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpng\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpng") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PNG_CFLAGS=`$PKG_CONFIG --cflags "libpng" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$PNG_LIBS"; then
+    pkg_cv_PNG_LIBS="$PNG_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpng\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpng") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PNG_LIBS=`$PKG_CONFIG --libs "libpng" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        PNG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libpng" 2>&1`
+        else
+	        PNG_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libpng" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$PNG_PKG_ERRORS" >&5
+
+	have_libpng="no"
+				PNG_LIBS="-lpng -lz -lm"
+
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_libpng="no"
+				PNG_LIBS="-lpng -lz -lm"
+
+else
+	PNG_CFLAGS=$pkg_cv_PNG_CFLAGS
+	PNG_LIBS=$pkg_cv_PNG_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_libpng="yes"
+				LIBS="$PNG_LIBS"
+				CFLAGS="$PNG_CFLAGS"
+				CPPFLAGS="$PNG_CFLAGS"
+
+fi
+		else
+			LIBS="-L$libpng_prefix/lib"
+			CFLAGS="-I$libpng_prefix/include"
+			CPPFLAGS="-I$libpng_prefix/include"
+			LDFLAGS="-L$libpng_prefix/lib"
+			PNG_LIBS="-L$libpng_prefix/lib -lpng -lz -lm"
+			PNG_CFLAGS="-I$libpng_prefix/include"
+		fi
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for png_sig_cmp in -lpng" >&5
+$as_echo_n "checking for png_sig_cmp in -lpng... " >&6; }
+if ${ac_cv_lib_png_png_sig_cmp+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpng -lz -lm
+		 $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char png_sig_cmp ();
+int
+main ()
+{
+return png_sig_cmp ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_png_png_sig_cmp=yes
+else
+  ac_cv_lib_png_png_sig_cmp=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_png_png_sig_cmp" >&5
+$as_echo "$ac_cv_lib_png_png_sig_cmp" >&6; }
+if test "x$ac_cv_lib_png_png_sig_cmp" = xyes; then :
+  have_libpng="yes"
+
+fi
+
+		for ac_header in png.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "png.h" "ac_cv_header_png_h" "$ac_includes_default"
+if test "x$ac_cv_header_png_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PNG_H 1
+_ACEOF
+
+else
+  have_libpng="no"
+fi
+
+done
+
+
+		LIBS="$am_save_LIBS"
+		LDFLAGS="$am_save_LDFLAGS"
+		CFLAGS="$am_save_CFLAGS"
+		CPPFLAGS="$am_save_CPPFLAGS"
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	fi
+	if test $have_libpng = "yes"
+	then
 
 $as_echo "#define HAVE_PNG 1" >>confdefs.h
 
             report_have_png="yes"
 			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $PNG_CFLAGS"
 			GRAPHIC_LIBS="$GRAPHIC_LIBS $PNG_LIBS"
+	else
+		PNG_LIBS=""
+		PNG_CFLAGS=""
+		:
 	fi
 
 
@@ -14908,17 +15182,22 @@ case $target in
 if test "${with_nasm+set}" = set; then :
   withval=$with_nasm; nasm_prefix="$withval"
 else
-  nasm_prefix="no"
+  nasm_prefix="yes"
 fi
 
 
 if test "$nasm_prefix" != "no"
 then
-	if test "$nasm_prefix" != "yes"
+	save_path=$PATH
+	if test -n "$nasm_prefix"
 	then
-		nasm="$nasm_prefix/bin/nasm"
-	else
-		# Extract the first word of "nasm", so it can be a program name with args.
+		if test "$nasm_prefix" != "yes"
+		then
+			PATH=$nasm_prefix
+			export PATH
+		fi
+	fi
+	# Extract the first word of "nasm", so it can be a program name with args.
 set dummy nasm; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
@@ -14958,8 +15237,10 @@ $as_echo "no" >&6; }
 fi
 
 
-	fi
-	if test  -n "$nasm"
+	PATH=$save_path
+
+	echo "nasm=$nasm"
+	if test  -n "$nasm" -a -x "$nasm"
 	then
 		NASM=${nasm}
 

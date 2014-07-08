@@ -5,17 +5,24 @@ AC_DEFUN([AC_CHECK_NASM],[
 AC_ARG_WITH([nasm],
 	[  --with-nasm[[=PATH]]      Prefix where nasm is installed (optional)],
 	[nasm_prefix="$withval"],
-	[nasm_prefix="no"])
+	[nasm_prefix="yes"])
 
 if test "$nasm_prefix" != "no"
 then
-	if test "$nasm_prefix" != "yes"
+	save_path=$PATH
+	if test -n "$nasm_prefix"
 	then
-		nasm="$nasm_prefix/bin/nasm"
-	else
-		AC_PATH_PROG(nasm,nasm)
+		if test "$nasm_prefix" != "yes"
+		then
+			PATH=$nasm_prefix
+			export PATH
+		fi
 	fi
-	if test [ -n "$nasm" ]
+	AC_PATH_PROG(nasm,nasm)
+	PATH=$save_path
+
+	echo "nasm=$nasm"
+	if test  -n "$nasm" -a -x "$nasm"
 	then
 		NASM=${nasm}
 		AC_SUBST(NASM)
