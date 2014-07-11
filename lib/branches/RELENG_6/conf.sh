@@ -18,7 +18,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
 			--with-libmhash=/usr/local --with-freetds=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm   \
-			--with-jpeg --with-png --with-mpg123=/usr/local \
+			--with-libjpeg --with-libpng --with-mpg123=/usr/local \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \
 			--with-postgresql=/usr/local \
@@ -32,7 +32,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
 			--with-nasm --with-libiconv-prefix=/mingw --with-libmad=/mingw \
-			--with-lame=/mingw --with-jpeg=/mingw --with-png=/mingw \
+			--with-lame=/mingw --with-libjpeg=/mingw --with-libpng=/mingw \
 			--with-libmcrypt-prefix=/mingw --with-libmhash=/mingw \
 			--with-openssl=/mingw --with-libcurl \
 			--with-ogg=/usr/local
@@ -51,7 +51,7 @@ case "$SYS:$REL:$KERNEL" in
 			--without-mysql \
 			--with-sqlite=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
-			--with-jpeg=/usr/local --with-png=/usr/local --with-libmhash=/usr/local \
+			--with-libjpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
 			--with-libmcrypt-prefix=/usr/local \
 			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local \
@@ -67,7 +67,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix=/usr \
 			--enable-gtest=/usr/local/gtest-1.6.0 \
-			--with-freetds --with-jpeg --with-png -with-mpg123 --with-libmicrohttpd=/home/patrickf
+			--with-freetds --with-libjpeg --with-libpng -with-mpg123 --with-libmicrohttpd=/home/patrickf
 		;;	
 	*:Linux:*:*Ubuntu*)
 		./configure --prefix=$PREFIX \
@@ -76,7 +76,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-freetds=/usr/local --with-postgresql=/usr/local/pgsql/bin/pg_config \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix \
-			--with-jpeg --with-png --with-libmicrohttpd=/usr/local \
+			--with-libjpeg --with-libpng --with-libmicrohttpd=/usr/local \
 			--with-libmhash --with-mpg123 --with-ogg=/usr
 		;;
 	*)
