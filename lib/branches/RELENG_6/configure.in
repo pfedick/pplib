@@ -69,6 +69,7 @@ case "$host_os" in
 	freebsd* )
 		CFLAGS="-I/usr/local/include $CFLAGS"
 		LDFLAGS="-L/usr/local/lib $LDFLAGS"
+		LIBS="-L/usr/local/lib $LDFLAGS"
   		;;
 esac
 
@@ -349,14 +350,6 @@ AM_PATH_LIBMHASH([0.9.9],
             :)
 
 
-report_have_jpeg="no"
-AC_CHECK_LIBJPEG([1.2],
-            AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
-            report_have_jpeg="yes"
-			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
-			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS",
-           :)
-
 report_have_curl="no"
 LIBCURL_CHECK_CONFIG("yes",7.14.1,
 	#LIBS="$LIBS $LIBCURL"
@@ -482,6 +475,14 @@ AC_CHECK_LIBPNG([1.2],
             report_have_png="yes"
 			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $PNG_CFLAGS"
 			GRAPHIC_LIBS="$GRAPHIC_LIBS $PNG_LIBS",
+           :)
+
+report_have_jpeg="no"
+AC_CHECK_LIBJPEG([1.2],
+            AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
+            report_have_jpeg="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS",
            :)
 
 
@@ -672,6 +673,7 @@ AC_MSG_RESULT([
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
+**
 ** Internet:
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd		

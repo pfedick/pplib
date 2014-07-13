@@ -6,7 +6,7 @@ AC_MSG_CHECKING(if we should use libjpeg)
 AC_ARG_WITH([libjpeg],
 	[  --with-libjpeg[[=PATH]]     Prefix where libjpeg is installed (optional)],
 	[libjpeg_prefix="$withval"],
-	[libjpeg_prefix=""])
+	[libjpeg_prefix="auto"])
 	if test "$libjpeg_prefix" != "no"
 	then
 		AC_MSG_RESULT(yes)
@@ -26,12 +26,19 @@ AC_ARG_WITH([libjpeg],
 				JPEG_LIBS="-ljpeg"
 			)
 		else
-			LIBS="-L$libjpeg_prefix/lib"
-			CFLAGS="-I$libjpeg_prefix/include"
-			CPPFLAGS="-I$libjpeg_prefix/include"
-			LDFLAGS="-L$libjpeg_prefix/lib"
-			JPEG_LIBS="-L$libjpeg_prefix/lib -ljpeg"
-			JPEG_CFLAGS="-I$libjpeg_prefix/include"
+			JPEG_LIBS="-ljpeg"
+			if test -d $libjpeg_prefix/lib
+			then
+				LIBS="-L$libjpeg_prefix/lib"
+				LDFLAGS="-L$libjpeg_prefix/lib"
+				JPEG_LIBS="-L$libjpeg_prefix/lib -ljpeg"
+			fi
+			if test -d $libjpeg_prefix/include
+			then
+				CFLAGS="-I$libjpeg_prefix/include"
+				CPPFLAGS="-I$libjpeg_prefix/include"
+				JPEG_CFLAGS="-I$libjpeg_prefix/include"
+			fi
 		fi
 		
 		AC_CHECK_LIB(jpeg,jpeg_finish_decompress,

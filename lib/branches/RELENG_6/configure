@@ -686,6 +686,8 @@ SDL_CONFIG
 FT2_LIBS
 FT2_CFLAGS
 FT2_CONFIG
+JPEG_LIBS
+JPEG_CFLAGS
 PNG_LIBS
 PNG_CFLAGS
 OPENSSL_LDFLAGS
@@ -716,8 +718,6 @@ _libcurl_config
 AWK
 LIBCURL_CPPFLAGS
 LIBCURL
-JPEG_LIBS
-JPEG_CFLAGS
 LIBMHASH_CFLAGS
 LIBMHASH_LIBS
 LIBMCRYPT_LIBS
@@ -842,7 +842,6 @@ with_libgnutls_prefix
 with_libmicrohttpd
 with_libmcrypt_prefix
 with_libmhash
-with_libjpeg
 with_libcurl
 with_mpg123
 with_lame
@@ -860,6 +859,7 @@ with_zlib
 with_pcre
 with_openssl
 with_libpng
+with_libjpeg
 with_ft_prefix
 with_ft_exec_prefix
 enable_freetypetest
@@ -897,10 +897,10 @@ PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 libcdio_CFLAGS
 libcdio_LIBS
-JPEG_CFLAGS
-JPEG_LIBS
 PNG_CFLAGS
 PNG_LIBS
+JPEG_CFLAGS
+JPEG_LIBS
 SQLITE_CFLAGS
 SQLITE_LIBS
 FreeTDS_CFLAGS
@@ -1547,7 +1547,6 @@ Optional Packages:
   --with-libmicrohttpd[=PATH]     Prefix where libmicrohttpd is installed (optional)
   --with-libmcrypt-prefix=PFX   Prefix where libmcrypt is installed (optional)
   --with-libmhash[=PATH]     Prefix where libmhash is installed (optional)
-  --with-libjpeg[=PATH]     Prefix where libjpeg is installed (optional)
   --with-libcurl=DIR      look for the curl library in DIR
   --with-mpg123[=PATH]     Prefix where libmpg123 is installed (optional)
   --with-lame[=DIR]       enable support for MP3 encoding with lame [in DIR]
@@ -1567,6 +1566,7 @@ Optional Packages:
   --with-pcre[=prefix]    compile xmlpcre part (via libpcre check)
   --with-openssl=DIR      root of the OpenSSL directory
   --with-libpng[=PATH]     Prefix where libpng is installed (optional)
+  --with-libjpeg[=PATH]     Prefix where libjpeg is installed (optional)
        --with-ft-prefix=PREFIX Prefix where FreeType is installed (optional)
        --with-ft-exec-prefix=PREFIX
                           Exec prefix where FreeType is installed (optional)
@@ -1612,10 +1612,10 @@ Some influential environment variables:
               C compiler flags for libcdio, overriding pkg-config
   libcdio_LIBS
               linker flags for libcdio, overriding pkg-config
-  JPEG_CFLAGS C compiler flags for JPEG, overriding pkg-config
-  JPEG_LIBS   linker flags for JPEG, overriding pkg-config
   PNG_CFLAGS  C compiler flags for PNG, overriding pkg-config
   PNG_LIBS    linker flags for PNG, overriding pkg-config
+  JPEG_CFLAGS C compiler flags for JPEG, overriding pkg-config
+  JPEG_LIBS   linker flags for JPEG, overriding pkg-config
   SQLITE_CFLAGS
               C compiler flags for SQLITE, overriding pkg-config
   SQLITE_LIBS linker flags for SQLITE, overriding pkg-config
@@ -4889,6 +4889,7 @@ case "$host_os" in
 	freebsd* )
 		CFLAGS="-I/usr/local/include $CFLAGS"
 		LDFLAGS="-L/usr/local/lib $LDFLAGS"
+		LIBS="-L/usr/local/lib $LDFLAGS"
   		;;
 esac
 
@@ -10734,196 +10735,6 @@ fi
 
 
 
-report_have_jpeg="no"
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if we should use libjpeg" >&5
-$as_echo_n "checking if we should use libjpeg... " >&6; }
-
-
-# Check whether --with-libjpeg was given.
-if test "${with_libjpeg+set}" = set; then :
-  withval=$with_libjpeg; libjpeg_prefix="$withval"
-else
-  libjpeg_prefix=""
-fi
-
-	if test "$libjpeg_prefix" != "no"
-	then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		am_save_CPPFLAGS="$CPPFLAGS"
-		am_save_CFLAGS="$CFLAGS"
-		am_save_LIBS="$LIBS"
-		am_save_LDFLAGS="$LDFLAGS"
-		if test "$libjpeg_prefix" = "yes" -o "$libjpeg_prefix" = "auto"
-		then
-
-pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JPEG" >&5
-$as_echo_n "checking for JPEG... " >&6; }
-
-if test -n "$JPEG_CFLAGS"; then
-    pkg_cv_JPEG_CFLAGS="$JPEG_CFLAGS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libjpeg\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "libjpeg") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_JPEG_CFLAGS=`$PKG_CONFIG --cflags "libjpeg" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-if test -n "$JPEG_LIBS"; then
-    pkg_cv_JPEG_LIBS="$JPEG_LIBS"
- elif test -n "$PKG_CONFIG"; then
-    if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libjpeg\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "libjpeg") 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; }; then
-  pkg_cv_JPEG_LIBS=`$PKG_CONFIG --libs "libjpeg" 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes
-else
-  pkg_failed=yes
-fi
- else
-    pkg_failed=untried
-fi
-
-
-
-if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
-        _pkg_short_errors_supported=yes
-else
-        _pkg_short_errors_supported=no
-fi
-        if test $_pkg_short_errors_supported = yes; then
-	        JPEG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libjpeg" 2>&1`
-        else
-	        JPEG_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libjpeg" 2>&1`
-        fi
-	# Put the nasty error message in config.log where it belongs
-	echo "$JPEG_PKG_ERRORS" >&5
-
-	have_libjpeg="no"
-				JPEG_LIBS="-ljpeg"
-
-elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	have_libjpeg="no"
-				JPEG_LIBS="-ljpeg"
-
-else
-	JPEG_CFLAGS=$pkg_cv_JPEG_CFLAGS
-	JPEG_LIBS=$pkg_cv_JPEG_LIBS
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	have_libjpeg="yes"
-				LIBS="$JPEG_LIBS"
-				CFLAGS="$JPEG_CFLAGS"
-				CPPFLAGS="$JPEG_CFLAGS"
-
-fi
-		else
-			LIBS="-L$libjpeg_prefix/lib"
-			CFLAGS="-I$libjpeg_prefix/include"
-			CPPFLAGS="-I$libjpeg_prefix/include"
-			LDFLAGS="-L$libjpeg_prefix/lib"
-			JPEG_LIBS="-L$libjpeg_prefix/lib -ljpeg"
-			JPEG_CFLAGS="-I$libjpeg_prefix/include"
-		fi
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for jpeg_finish_decompress in -ljpeg" >&5
-$as_echo_n "checking for jpeg_finish_decompress in -ljpeg... " >&6; }
-if ${ac_cv_lib_jpeg_jpeg_finish_decompress+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ljpeg  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char jpeg_finish_decompress ();
-int
-main ()
-{
-return jpeg_finish_decompress ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_jpeg_jpeg_finish_decompress=yes
-else
-  ac_cv_lib_jpeg_jpeg_finish_decompress=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jpeg_jpeg_finish_decompress" >&5
-$as_echo "$ac_cv_lib_jpeg_jpeg_finish_decompress" >&6; }
-if test "x$ac_cv_lib_jpeg_jpeg_finish_decompress" = xyes; then :
-  have_libjpeg="yes"
-
-fi
-
-		for ac_header in jpeglib.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "jpeglib.h" "ac_cv_header_jpeglib_h" "$ac_includes_default"
-if test "x$ac_cv_header_jpeglib_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_JPEGLIB_H 1
-_ACEOF
-
-else
-  have_libjpeg="no"
-fi
-
-done
-
-		LIBS="$am_save_LIBS"
-		LDFLAGS="$am_save_LDFLAGS"
-		CFLAGS="$am_save_CFLAGS"
-		CPPFLAGS="$am_save_CPPFLAGS"
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	fi
-	if test $have_libjpeg = "yes"
-	then
-
-$as_echo "#define HAVE_JPEG 1" >>confdefs.h
-
-            report_have_jpeg="yes"
-			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
-			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS"
-	else
-		JPEG_LIBS=""
-		JPEG_CFLAGS=""
-		:
-	fi
-
-
-
 report_have_curl="no"
 
 
@@ -13788,6 +13599,203 @@ $as_echo "#define HAVE_PNG 1" >>confdefs.h
 
 
 
+report_have_jpeg="no"
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if we should use libjpeg" >&5
+$as_echo_n "checking if we should use libjpeg... " >&6; }
+
+
+# Check whether --with-libjpeg was given.
+if test "${with_libjpeg+set}" = set; then :
+  withval=$with_libjpeg; libjpeg_prefix="$withval"
+else
+  libjpeg_prefix="auto"
+fi
+
+	if test "$libjpeg_prefix" != "no"
+	then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+		am_save_CPPFLAGS="$CPPFLAGS"
+		am_save_CFLAGS="$CFLAGS"
+		am_save_LIBS="$LIBS"
+		am_save_LDFLAGS="$LDFLAGS"
+		if test "$libjpeg_prefix" = "yes" -o "$libjpeg_prefix" = "auto"
+		then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JPEG" >&5
+$as_echo_n "checking for JPEG... " >&6; }
+
+if test -n "$JPEG_CFLAGS"; then
+    pkg_cv_JPEG_CFLAGS="$JPEG_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libjpeg\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libjpeg") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_JPEG_CFLAGS=`$PKG_CONFIG --cflags "libjpeg" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$JPEG_LIBS"; then
+    pkg_cv_JPEG_LIBS="$JPEG_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libjpeg\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libjpeg") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_JPEG_LIBS=`$PKG_CONFIG --libs "libjpeg" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        JPEG_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libjpeg" 2>&1`
+        else
+	        JPEG_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libjpeg" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$JPEG_PKG_ERRORS" >&5
+
+	have_libjpeg="no"
+				JPEG_LIBS="-ljpeg"
+
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	have_libjpeg="no"
+				JPEG_LIBS="-ljpeg"
+
+else
+	JPEG_CFLAGS=$pkg_cv_JPEG_CFLAGS
+	JPEG_LIBS=$pkg_cv_JPEG_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	have_libjpeg="yes"
+				LIBS="$JPEG_LIBS"
+				CFLAGS="$JPEG_CFLAGS"
+				CPPFLAGS="$JPEG_CFLAGS"
+
+fi
+		else
+			JPEG_LIBS="-ljpeg"
+			if test -d $libjpeg_prefix/lib
+			then
+				LIBS="-L$libjpeg_prefix/lib"
+				LDFLAGS="-L$libjpeg_prefix/lib"
+				JPEG_LIBS="-L$libjpeg_prefix/lib -ljpeg"
+			fi
+			if test -d $libjpeg_prefix/include
+			then
+				CFLAGS="-I$libjpeg_prefix/include"
+				CPPFLAGS="-I$libjpeg_prefix/include"
+				JPEG_CFLAGS="-I$libjpeg_prefix/include"
+			fi
+		fi
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for jpeg_finish_decompress in -ljpeg" >&5
+$as_echo_n "checking for jpeg_finish_decompress in -ljpeg... " >&6; }
+if ${ac_cv_lib_jpeg_jpeg_finish_decompress+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-ljpeg  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char jpeg_finish_decompress ();
+int
+main ()
+{
+return jpeg_finish_decompress ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_jpeg_jpeg_finish_decompress=yes
+else
+  ac_cv_lib_jpeg_jpeg_finish_decompress=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_jpeg_jpeg_finish_decompress" >&5
+$as_echo "$ac_cv_lib_jpeg_jpeg_finish_decompress" >&6; }
+if test "x$ac_cv_lib_jpeg_jpeg_finish_decompress" = xyes; then :
+  have_libjpeg="yes"
+
+fi
+
+		for ac_header in jpeglib.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "jpeglib.h" "ac_cv_header_jpeglib_h" "$ac_includes_default"
+if test "x$ac_cv_header_jpeglib_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_JPEGLIB_H 1
+_ACEOF
+
+else
+  have_libjpeg="no"
+fi
+
+done
+
+		LIBS="$am_save_LIBS"
+		LDFLAGS="$am_save_LDFLAGS"
+		CFLAGS="$am_save_CFLAGS"
+		CPPFLAGS="$am_save_CPPFLAGS"
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	fi
+	if test $have_libjpeg = "yes"
+	then
+
+$as_echo "#define HAVE_JPEG 1" >>confdefs.h
+
+            report_have_jpeg="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS"
+	else
+		JPEG_LIBS=""
+		JPEG_CFLAGS=""
+		:
+	fi
+
+
+
 
 report_have_freetype2="no"
 # Get the cflags and libraries from the freetype-config script
@@ -15340,6 +15348,7 @@ esac;
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
+**
 ** Internet:
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd
@@ -15407,6 +15416,7 @@ $as_echo "
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash
+**
 ** Internet:
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd
