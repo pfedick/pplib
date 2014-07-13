@@ -13362,7 +13362,7 @@ $as_echo_n "checking whether compiling and linking against OpenSSL works... " >&
     CPPFLAGS="$OPENSSL_INCLUDES $CPPFLAGS"
     case "${host_cpu}-${host_os}" in
 		*mingw32*)
-			LIBS="$LIBS -lwsock32 -luser32"
+			LIBS="$LIBS -lwsock32 -luser32 -lgdi32"
 			;;
 	esac
 
