@@ -129,6 +129,45 @@ static bool IdentAIFF(CFileObject &file, AudioInfo &info)
 	return true;
 }
 
+static bool IdentWave(CFileObject &file, AudioInfo &info)
+{
+	info.Format=AudioInfo::WAVE;
+	info.IsVBR=false;
+	info.FileSize=file.Size();
+	info.Length=0;	// will be calculated later
+	const char *buffer=file.Map(0,64);
+	const char *fmt=buffer+12;
+
+	ppldd fmtchunklen=peekd(fmt+4);
+	info.Channels=peekw(fmt+0x0a);
+	if (info.Channels==1) info.Mode=AudioInfo::MONO;
+	else if (info.Channels==2) info.Mode=AudioInfo::STEREO;
+	else return false;	// Not supported
+
+	info.Frequency=peekd(fmt+0x0c);
+	int bitdepth=peekw(fmt+0x16);
+	// we support only 8bit and 16bit
+	if (bitdepth!=8 && bitdepth!=16) return false;
+
+	buffer=file.Map(fmtchunklen+20,8);				// read datachunk
+	if (!buffer) return false;						// File too small
+	if (strncmp(buffer,"data",4)!=0) return false;	// no data chunk
+
+	info.Samples=0;
+	info.BytesPerSample=(bitdepth/8)*info.Channels;
+	info.AudioStart=fmtchunklen+28;
+	info.AudioSize=peekd(buffer+4);
+	info.AudioEnd=info.AudioStart+info.AudioSize-1;
+	info.Samples=info.AudioSize/info.BytesPerSample;
+	if (info.Frequency>0 && info.Samples>0) info.Length=(ppluint32)((ppluint64)info.Samples*1000/info.Frequency);
+	info.Bitrate=((ppluint64)info.Frequency*(ppluint64)info.BytesPerSample*8/1000);
+	info.HaveID3v2Tag=false;
+	info.ID3v2TagStart=0;
+	return true;
+}
+
+
+
 static bool IdentMP3(CFileObject &file, AudioInfo &info, PPL_MPEG_HEADER &mp3)
 {
 	info.Format=AudioInfo::MP3;
@@ -169,6 +208,14 @@ bool IdentAudioFile(CFileObject &file, AudioInfo &info)
 	if (ppl6::PeekN32(adr+4)<file.Size()
 				&& ppl6::PeekN32(adr+0)==0x464F524D
 				&& ppl6::PeekN32(adr+8)==0x41494646) return IdentAIFF(file,info);
+	// RIFF / WAV
+	if (strncmp(adr,"RIFF",4)==0) {
+		if (strncmp(adr+8,"WAVE",4)==0) {
+			if (strncmp(adr+12,"fmt ",4)==0) {
+				if (peekw(adr+20)==1) return IdentWave(file,info);
+			}
+		}
+	}
 
 	PPL_MPEG_HEADER mp3;
 	if (IdentMPEG(&file,&mp3)) return IdentMP3(file,info,mp3);
