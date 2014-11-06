@@ -526,15 +526,18 @@ int CTCPSocket::SSL_Stop()
 		}
 		if (ssl) {
 			int ret;
+			int err_count=0;
 			while ( (ret=SSL_shutdown((SSL*)ssl)) == 0 ) {
-				//printf ("SSL_shutdown incomplete, trying again...\n");
-				PPLSOCKET *s=(PPLSOCKET*)socket;
-				if (s) {
-					if (s->sd) shutdown(s->sd,1);
-				}
+				err_count++;
+				if (err_count>5) break;
+				MSleep(1);
 			}
-			SSL_free((SSL*)ssl);
-			ssl=NULL;
+			if (ret==1) {
+				SSL_free((SSL*)ssl);
+				ssl=NULL;
+				return 1;
+			}
+			return 0;
 		}
 		//mutex.Unlock();
 		return 1;
