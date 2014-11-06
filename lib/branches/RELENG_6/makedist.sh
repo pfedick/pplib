@@ -3,7 +3,7 @@
 ##################################################################
 VERSION=$1
 VERSION=${VERSION:=HEAD}
-NAME=ppl6
+NAME=ppl
 
 echo "INFO: create artefakt: dist/$NAME-$VERSION.tar.bz2"
 rm -rf dist tmp
