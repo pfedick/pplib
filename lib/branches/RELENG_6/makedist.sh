@@ -15,7 +15,7 @@ fi
 
 ##################################################################
 # Library
-find documentation include src *.m4 docs Doxyfile HISTORY.TXT README.TXT configure ppl6-config.in Makefile.in \
+find documentation include src *.m4 docs Doxyfile HISTORY.TXT README.TXT autoconf configure ppl6-config.in Makefile.in \
     | grep -v ".svn" | cpio -pdmv tmp/$NAME-$VERSION > /dev/null 2>&1
 
 if [ $? -ne 0 ] ; then
