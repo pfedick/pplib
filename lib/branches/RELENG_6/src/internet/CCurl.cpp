@@ -1107,6 +1107,11 @@ int CCurl::VerifyPeer(bool verify)
 #endif
 }
 
+void *CCurl::getCurlHandle() const
+{
+	return handle;
+}
+
 
 /*
 int CCurl::POST()
