@@ -36,6 +36,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#define PPL6TESTSUITEMAIN
 #include "../include/prolog.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -48,11 +49,38 @@
 extern const char *wordlist;
 
 ppl6::CArray Wordlist;
+ppl6::CConfig PPL6TestConfig;
 
+void setDefaultConfigParams()
+{
+	PPL6TestConfig.CreateSection("tcpsocket");
+	PPL6TestConfig.Add("echoserver","localhost");
+	PPL6TestConfig.Add("unknownserver","unknown.server.pfp.de");
+	PPL6TestConfig.Add("tcpserver_host","localhost");
+	PPL6TestConfig.Add("tcpserver_port","50001");
+}
+
+void help()
+{
+	printf ("PPL6 Testsuite configuration options:\n"
+			"-c CONFIG   Configuration-file for ppl6 testsuite\n"
+			"\n"
+			"Test-Framework options:\n");
+
+}
 
 int main (int argc, char**argv)
 {
+	const char *tmp;
+	if (ppl6::getargv(argc,argv,"-h")!=NULL || ppl6::getargv(argc,argv,"--help")!=NULL) help();
+	if ((tmp=ppl6::getargv(argc,argv,"-c"))) {
+		PPL6TestConfig.Load(tmp);
+	} else {
+		setDefaultConfigParams();
+	}
 	::testing::InitGoogleTest(&argc, argv);
+	if (ppl6::getargv(argc,argv,"-h")!=NULL || ppl6::getargv(argc,argv,"--help")!=NULL) return 0;
+
 	ppl6::PrintDebugTime ("Wortliste in String laden\n");
 	ppl6::CString w(wordlist);
 	Wordlist.Reserve(130000);

@@ -23,7 +23,8 @@ OBJECTS = compile/wordlist.o \
 	compile/id3tag.o \
 	compile/memoryheap.o \
 	compile/list.o \
-	compile/audioinfo.o
+	compile/audioinfo.o \
+	compile/clientserver.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -141,3 +142,7 @@ compile/wordlist.o: src/wordlist.cpp Makefile
 compile/textsnippets.o: src/textsnippets.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/textsnippets.o -c src/textsnippets.cpp
+	
+compile/clientserver.o: src/clientserver.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/clientserver.o -c src/clientserver.cpp

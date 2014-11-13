@@ -41,6 +41,11 @@
 #define DEFAULT_LOCALE	"de_DE.UTF-8"
 #endif
 
+#ifndef PPL6TESTSUITEMAIN
+extern ppl6::CConfig PPL6TestConfig;
+#endif
+
+
 extern const char *loremipsum;
 extern const char *loremipsum_md5;
 
