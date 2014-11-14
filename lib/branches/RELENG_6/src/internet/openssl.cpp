@@ -384,7 +384,10 @@ int CTCPSocket::SSL_Init_Client()
 				//SetError(322,"SSL_new");
 				return 0;
 			}
-			SSL_set_fd((SSL*)ssl,s->sd);
+			if (!SSL_set_fd((SSL*)ssl,s->sd)) {
+				SetError(322,"SSL_set_fd");
+				return 0;
+			}
 			//SSL_set_mode((SSL*)ssl, SSL_MODE_AUTO_RETRY);
 			SSL_set_connect_state((SSL*)ssl);
 		}
@@ -1040,6 +1043,13 @@ void CSSL::Clear()
 	first_ref=last_ref=NULL;
 }
 
+#ifdef HAVE_OPENSSL
+static void disable_ssl_on_ctx(SSL_CTX *ctx) {
+	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
+}
+#endif
+
 int CSSL::Init(int method)
 {
 	#ifdef HAVE_OPENSSL
@@ -1083,15 +1093,78 @@ int CSSL::Init(int method)
 			case CSSL::SSLv23server:
 				ctx=SSL_CTX_new(SSLv23_server_method());
 				break;
+#ifdef HAVE_TLSV1_METHOD
 			case CSSL::TLSv1:
 				ctx=SSL_CTX_new(TLSv1_method());
 				break;
+#endif
+#ifdef HAVE_TLSV1_CLIENT_METHOD
 			case CSSL::TLSv1client:
 				ctx=SSL_CTX_new(TLSv1_client_method());
 				break;
+#endif
+#ifdef HAVE_TLSV1_SERVER_METHOD
 			case CSSL::TLSv1server:
 				ctx=SSL_CTX_new(TLSv1_server_method());
 				break;
+#endif
+#ifdef HAVE_TLSV1_1_METHOD
+			case CSSL::TLSv1_1:
+				ctx=SSL_CTX_new(TLSv1_1_method());
+				break;
+#endif
+#ifdef HAVE_TLSV1_1_CLIENT_METHOD
+			case CSSL::TLSv1_1client:
+				ctx=SSL_CTX_new(TLSv1_1_client_method());
+				break;
+#endif
+#ifdef HAVE_TLSV1_1_SERVER_METHOD
+			case CSSL::TLSv1_1server:
+				ctx=SSL_CTX_new(TLSv1_1_server_method());
+				break;
+#endif
+#ifdef HAVE_TLSV1_2_METHOD
+			case CSSL::TLSv1_2:
+				ctx=SSL_CTX_new(TLSv1_2_method());
+				break;
+#endif
+#ifdef HAVE_TLSV1_2_CLIENT_METHOD
+			case CSSL::TLSv1_2client:
+				ctx=SSL_CTX_new(TLSv1_2_client_method());
+				break;
+#endif
+#ifdef HAVE_TLSV1_2_SERVER_METHOD
+			case CSSL::TLSv1_2server:
+				ctx=SSL_CTX_new(TLSv1_2_server_method());
+				break;
+#endif
+			case CSSL::TLS:
+				ctx=SSL_CTX_new(SSLv23_method());
+				disable_ssl_on_ctx((SSL_CTX*)ctx);
+				break;
+			case CSSL::TLSclient:
+				ctx=SSL_CTX_new(SSLv23_client_method());
+				disable_ssl_on_ctx((SSL_CTX*)ctx);
+				break;
+			case CSSL::TLSserver:
+				ctx=SSL_CTX_new(SSLv23_server_method());
+				disable_ssl_on_ctx((SSL_CTX*)ctx);
+				break;
+#ifdef HAVE_DTLSV1_METHOD
+			case CSSL::DTLSv1:
+				ctx=SSL_CTX_new(DTLSv1_method());
+				break;
+#endif
+#ifdef HAVE_DTLSV1_CLIENT_METHOD
+			case CSSL::DTLSv1client:
+				ctx=SSL_CTX_new(DTLSv1_client_method());
+				break;
+#endif
+#ifdef HAVE_DTLSV1_SERVER_METHOD
+			case CSSL::DTLSv1server:
+				ctx=SSL_CTX_new(DTLSv1_server_method());
+				break;
+#endif
 			default:
 				SetError(320);
 				Mutex.Unlock();

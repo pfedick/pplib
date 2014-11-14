@@ -66,7 +66,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-postgresql --with-libldns \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix=/usr \
-			--enable-gtest=/usr/local/gtest-1.6.0 \
+			--enable-gtest=/usr/local/gtest-1.7.0 \
 			--with-freetds --with-libjpeg --with-libpng -with-mpg123 --with-libmicrohttpd=/home/patrickf
 		;;	
 	*:Linux:*:*Ubuntu*)
