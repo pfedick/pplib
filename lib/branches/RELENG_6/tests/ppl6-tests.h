@@ -42,7 +42,7 @@
 #endif
 
 #ifndef PPL6TESTSUITEMAIN
-extern ppl6::CConfig PPL6TestConfig;
+extern ppl6::CConfig *PPL6TestConfig;
 #endif
 
 

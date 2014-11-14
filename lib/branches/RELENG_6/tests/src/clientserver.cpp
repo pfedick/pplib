@@ -89,8 +89,8 @@ void ServerThread::ThreadMain(void *param)
 	CatchSignal(SIGINT);
 
 	this->WatchThread(this);
-	if (!Bind(PPL6TestConfig.Get("tcpsocket","tcpserver_host","localhost"),
-			PPL6TestConfig.GetInt("tcpsocket","tcpserver_port",50001))) {
+	if (!Bind(PPL6TestConfig->Get("tcpsocket","tcpserver_host","localhost"),
+			PPL6TestConfig->GetInt("tcpsocket","tcpserver_port",50001))) {
 		return;
 	}
 	if (!Listen()) return;

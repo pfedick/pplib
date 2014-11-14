@@ -49,15 +49,15 @@
 extern const char *wordlist;
 
 ppl6::CArray Wordlist;
-ppl6::CConfig PPL6TestConfig;
+ppl6::CConfig *PPL6TestConfig=NULL;
 
 void setDefaultConfigParams()
 {
-	PPL6TestConfig.CreateSection("tcpsocket");
-	PPL6TestConfig.Add("echoserver","localhost");
-	PPL6TestConfig.Add("unknownserver","unknown.server.pfp.de");
-	PPL6TestConfig.Add("tcpserver_host","localhost");
-	PPL6TestConfig.Add("tcpserver_port","50001");
+	PPL6TestConfig->CreateSection("tcpsocket");
+	PPL6TestConfig->Add("echoserver","localhost");
+	PPL6TestConfig->Add("unknownserver","unknown.server.pfp.de");
+	PPL6TestConfig->Add("tcpserver_host","localhost");
+	PPL6TestConfig->Add("tcpserver_port","50001");
 }
 
 void help()
@@ -72,9 +72,10 @@ void help()
 int main (int argc, char**argv)
 {
 	const char *tmp;
+	PPL6TestConfig=new ppl6::CConfig;
 	if (ppl6::getargv(argc,argv,"-h")!=NULL || ppl6::getargv(argc,argv,"--help")!=NULL) help();
 	if ((tmp=ppl6::getargv(argc,argv,"-c"))) {
-		PPL6TestConfig.Load(tmp);
+		PPL6TestConfig->Load(tmp);
 	} else {
 		setDefaultConfigParams();
 	}
@@ -96,7 +97,8 @@ int main (int argc, char**argv)
 	} catch (...) {
 		printf ("Unbekannte Exception\n");
 	}
-
+	delete PPL6TestConfig;
+	PPL6TestConfig=NULL;
 	ppl6::CleanupThreadData();
 	return ret;
 }
