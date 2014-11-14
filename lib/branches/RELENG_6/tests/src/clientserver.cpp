@@ -139,6 +139,7 @@ bool ServerThread::isRunning()
 	return this->ThreadIsRunning();
 }
 
+static ServerThread * server;
 
 class ClientServerTest : public ::testing::Test {
 	protected:
@@ -154,7 +155,7 @@ class ClientServerTest : public ::testing::Test {
 
 	}
 
-	static ServerThread * server;
+
 
 	static void SetUpTestCase() {
 		printf ("SetupOnce");
