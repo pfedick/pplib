@@ -3258,6 +3258,7 @@ class CSSL
 		// angegeben werden.
 		int		LoadCertificate(const char *certificate, const char *privatekey=NULL, const char *password=NULL);
 		int		SetCipherList(const char *cipherlist);		// "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
+		void	*GetSSLContext();
 };
 
 //! \brief TCP-Socket-Nachrichten
@@ -3405,6 +3406,7 @@ class CTCPSocket
 		int SSL_CheckCertificate(const char *hostname, bool AcceptSelfSignedCert=false);
 		int SSL_Accept();
 		int SSL_WaitForAccept(int timeout=0);
+		void SSL_Info();
 
 };
 

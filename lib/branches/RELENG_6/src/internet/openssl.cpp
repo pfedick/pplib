@@ -963,6 +963,7 @@ int CTCPSocket::SSL_CheckCertificate(const char *hostname, bool AcceptSelfSigned
  */
 int CTCPSocket::SSL_WaitForAccept(int timeout)
 {
+#ifdef HAVE_OPENSSL
 	ppluint64 tt=GetMilliSeconds()+(timeout*1000);
 	while (timeout==0 || GetMilliSeconds()<=tt) {
 		if (thread) {
@@ -982,6 +983,22 @@ int CTCPSocket::SSL_WaitForAccept(int timeout)
 	}
 	SetError(174);
 	return 0;
+#else
+	SetError(292);
+	return 0;
+#endif
+}
+
+
+void CTCPSocket::SSL_Info()
+{
+#ifdef HAVE_OPENSSL
+	if (!ssl) return;
+	printf ("SSL_get_cipher: %s\n", SSL_get_cipher((SSL*)ssl));
+	printf ("SSL_get_cipher_version: %s\n", SSL_get_cipher_version((SSL*)ssl));
+	int np=0;
+	printf ("SSL_get_cipher_bits: %i\n", SSL_get_cipher_bits((SSL*)ssl, &np));
+#endif
 }
 
 //@}
@@ -1126,16 +1143,19 @@ int CSSL::Init(int method)
 #ifdef HAVE_TLSV1_2_METHOD
 			case CSSL::TLSv1_2:
 				ctx=SSL_CTX_new(TLSv1_2_method());
+				SSL_CTX_set_options((SSL_CTX*)ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 				break;
 #endif
 #ifdef HAVE_TLSV1_2_CLIENT_METHOD
 			case CSSL::TLSv1_2client:
 				ctx=SSL_CTX_new(TLSv1_2_client_method());
+				SSL_CTX_set_options((SSL_CTX*)ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 				break;
 #endif
 #ifdef HAVE_TLSV1_2_SERVER_METHOD
 			case CSSL::TLSv1_2server:
 				ctx=SSL_CTX_new(TLSv1_2_server_method());
+				SSL_CTX_set_options((SSL_CTX*)ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 				break;
 #endif
 			case CSSL::TLS:
@@ -1196,6 +1216,11 @@ int CSSL::IsInit()
 {
 	if (ctx) return 1;
 	return 0;
+}
+
+void *CSSL::GetSSLContext()
+{
+	return ctx;
 }
 
 int CSSL::Shutdown()
