@@ -56,6 +56,7 @@ class ServerThread : private ppl6::CThread, private ppl6::CTCPSocket, private pp
 
 
 	public:
+		virtual ~ServerThread();
 		virtual void ThreadMain(void *param);
 		virtual void Signal(int sig);
 		virtual int ReceiveConnect(ppl6::CTCPSocket *socket, const char *host, int port);
@@ -67,6 +68,12 @@ class ServerThread : private ppl6::CThread, private ppl6::CTCPSocket, private pp
 
 
 };
+
+ServerThread::~ServerThread()
+{
+	SSL_Shutdown();
+	Disconnect();
+}
 
 void ServerThread::Signal(int sig)
 {
@@ -87,6 +94,7 @@ void ServerThread::Signal(int sig)
 void ServerThread::ThreadMain(void *param)
 {
 	CatchSignal(SIGINT);
+	//this->ThreadDeleteOnExit(true);
 
 	this->WatchThread(this);
 	if (!Bind(PPL6TestConfig->Get("tcpsocket","tcpserver_host","localhost"),
@@ -174,8 +182,8 @@ class ClientServerTest : public ::testing::Test {
 		if (server) {
 			server->stop();
 			ASSERT_FALSE(server->isRunning()) << "Could not stop Server-Thread";
-			//delete server;
-			//server=NULL;
+			delete server;
+			server=NULL;
 			printf ("TearDownTestCase done\n");
 		}
 
