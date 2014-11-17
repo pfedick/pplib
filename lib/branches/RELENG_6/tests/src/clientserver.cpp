@@ -45,6 +45,7 @@
 #include <gtest/gtest.h>
 #include <signal.h>
 #include "ppl6-tests.h"
+#include <list>
 
 namespace {
 
@@ -54,8 +55,8 @@ class ServerThread : private ppl6::CThread, private ppl6::CTCPSocket, private pp
 		ppl6::CMutex	Mutex;
 		ppl6::CSSL		SSLServerContext;
 
-
 	public:
+		ServerThread();
 		virtual ~ServerThread();
 		virtual void ThreadMain(void *param);
 		virtual void Signal(int sig);
@@ -65,9 +66,40 @@ class ServerThread : private ppl6::CThread, private ppl6::CTCPSocket, private pp
 		void stop();
 		bool isRunning();
 		bool isListening();
+		void resetTestFlags();
+		int ProcessMessage(ppl6::CTCPSocket *Socket, const ppl6::CAssocArray &a);
+		int AnswerError(ppl6::CTCPSocket *Socket);
+		int Answer(ppl6::CTCPSocket *Socket, const ppl6::CAssocArray &a);
+		int AnswerSuccess(ppl6::CTCPSocket *Socket, ppl6::CAssocArray &a);
+		int AnswerSuccess(ppl6::CTCPSocket *Socket);
 
+		int CMD_Ping(ppl6::CTCPSocket *Socket);
+		int CMD_StartTLS(ppl6::CTCPSocket *Socket);
+
+
+		// Testing Flags
+		bool bConnectionReceived;
+		bool bInMessageLoop;
+		int msgCount;
+		int exitPos;
+		std::list <ppl6::CSocketMessage> msgList;
 
 };
+
+
+ServerThread::ServerThread()
+{
+	resetTestFlags();
+}
+
+void ServerThread::resetTestFlags()
+{
+	bConnectionReceived=false;
+	bInMessageLoop=false;
+	msgCount=0;
+	msgList.clear();
+	exitPos=0;
+}
 
 ServerThread::~ServerThread()
 {
@@ -108,9 +140,132 @@ void ServerThread::ThreadMain(void *param)
 
 int ServerThread::ReceiveConnect(ppl6::CTCPSocket *socket, const char *host, int port)
 {
-	printf ("Connect: %s:%i\n",host,port);
+	bConnectionReceived=true;
+	ppl6::CAssocArray Data;
+	printf ("DEBUG: Connect start: %s:%i\n",host,port);
+	socket->WatchThread(this);
+	socket->SetBlocking(false);
+	ppl6::CSocketMessage Msg;
+	while (1) {
+		bInMessageLoop=true;
+		if (ThreadShouldStop()) {
+			exitPos=1;
+			break;
+		}
+		if (!socket->WaitForMessage(Msg)) {
+			exitPos=2;
+			break;
+		}
+		msgCount++;
+		msgList.push_back(Msg);
+		if(Msg.GetType()==PPL_ASSOCARRAY) {
+			if (!Msg.GetData(Data)) {
+				exitPos=3;
+				break;
+			}
+			if (!ProcessMessage(socket, Data)) {
+				if (!AnswerError(socket)) {
+					exitPos=4;
+					break;
+				}
+			}
+		} else {
+			exitPos=5;
+			break;
+		}
+	}
+	printf ("DEBUG: Connect end: %s:%i\n",host,port);
+	socket->Disconnect();
+	delete socket;
+	return 1;
+}
+
+int ServerThread::AnswerError(ppl6::CTCPSocket *Socket)
+{
+	ppl6::CAssocArray a;
+	a.Set("result","failed");
+	a.Setf("errorcode","%i",ppl6::GetErrorCode());
+	a.Set("errortext",ppl6::GetError());
+	a.Set("extendederror",ppl6::GetExtendedError());
+	a.Setf("suberror","%i",ppl6::GetSubError());
+	return Answer(Socket, a);
+}
+
+int ServerThread::Answer(ppl6::CTCPSocket *Socket, const ppl6::CAssocArray &a)
+{
+	if (a.Count()==0) {
+		ppl6::CAssocArray b;
+		b.Set("result","success");
+		return Answer(Socket, b);
+	}
+	ppl6::CSocketMessage Msg;
+	Msg.SetData(a);
+	int ret=0;
+	if (Socket) ret=Socket->Write(Msg);
+	else ppl6::SetError(299);
+	return ret;
+}
+
+int ServerThread::AnswerSuccess(ppl6::CTCPSocket *Socket, ppl6::CAssocArray &a)
+{
+	ppl6::CAssocArray b;
+	b.Set("result","success");
+	b.Set("answer",a);
+	return Answer(Socket, b);
+}
+
+int ServerThread::AnswerSuccess(ppl6::CTCPSocket *Socket)
+{
+	ppl6::CAssocArray b;
+	b.Set("result","success");
+	return Answer(Socket, b);
+}
+
+
+int ServerThread::ProcessMessage(ppl6::CTCPSocket *Socket, const ppl6::CAssocArray &a)
+{
+	ppl6::CString Action=a.ToCString("action");
+
+	if (Action=="ping") {
+		return CMD_Ping(Socket);
+	} else if (Action=="starttls") {
+		return CMD_StartTLS(Socket);
+	}
+	ppl6::SetError(10003,"%s",(const char*)Action);
 	return 0;
 }
+
+int ServerThread::CMD_Ping(ppl6::CTCPSocket *Socket)
+{
+	ppl6::CAssocArray a;
+	a.Set("result","success");
+	a.Set("version","1");
+	a.Setf("servertime","%llu",ppl6::GetTime());
+	return Answer(Socket, a);
+}
+
+int ServerThread::CMD_StartTLS(ppl6::CTCPSocket *Socket)
+{
+	if (!Socket->SSL_Init(&SSLServerContext)) {
+		return 0;
+	}
+	ppl6::CAssocArray a;
+	a.Set("result","success");
+	if (!Answer(Socket, a)) return 0;
+
+
+	if (!Socket->SSL_Init_Server()) {
+		return 0;
+	}
+	printf ("Wait for SSL-Accept\n");
+	if (!Socket->SSL_WaitForAccept(1000)) {
+		printf ("SSL-Handshake failed\n");
+		return 0;
+	}
+	printf ("SSL-Handshake done\n");
+	return 1;
+}
+
 
 bool ServerThread::setupSSL()
 {
@@ -186,7 +341,6 @@ class ClientServerTest : public ::testing::Test {
 			server=NULL;
 			printf ("TearDownTestCase done\n");
 		}
-
 	}
 
 
@@ -194,13 +348,112 @@ class ClientServerTest : public ::testing::Test {
 };
 
 
-TEST_F(ClientServerTest, Aaa) {
-	ppl6::SSleep(2);
+TEST_F(ClientServerTest, ConnectWaitAndDisconnect) {
+	server->resetTestFlags();
+	ppl6::CTCPSocket Socket;
+	ASSERT_TRUE(Socket.Connect(PPL6TestConfig->Get("tcpsocket","tcpserver_host","localhost"),
+			PPL6TestConfig->GetInt("tcpsocket","tcpserver_port",50001))) << "Connect failed [" << ppl6::Error2String() << "]";
+	ppl6::SSleep(1);
+	ASSERT_TRUE(server->bConnectionReceived) << "No connection received";
+	ASSERT_TRUE(server->bInMessageLoop) << "Not in Message-Loop";
+	ASSERT_EQ(0,server->msgCount) << "Unexpected amount of Messages";
+	ppl6::SSleep(1);
+	printf ("Disconnect\n");
+	Socket.Disconnect();
+	ppl6::SSleep(1);
+	printf ("Disconnect\n");
+	ASSERT_EQ(0,server->msgCount) << "Unexpected amount of Messages";
+	ASSERT_EQ(2,server->exitPos) << "Unexpected exitCode";
 }
 
-TEST_F(ClientServerTest, Zzz) {
+TEST_F(ClientServerTest, ConnectPingDisconnect) {
+	server->resetTestFlags();
+	ppl6::CTCPSocket Socket;
+	ASSERT_TRUE(Socket.Connect(PPL6TestConfig->Get("tcpsocket","tcpserver_host","localhost"),
+			PPL6TestConfig->GetInt("tcpsocket","tcpserver_port",50001))) << "Connect failed [" << ppl6::Error2String() << "]";
+	ppl6::SSleep(1);
+	ASSERT_TRUE(server->bConnectionReceived) << "No connection received";
+	ASSERT_TRUE(server->bInMessageLoop) << "Not in Message-Loop";
+	ASSERT_EQ(0,server->msgCount) << "Unexpected amount of Messages";
 
+	ppl6::CSocketMessage Msg;
+	ppl6::CAssocArray data;
+	data.Set("action","ping");
+	Msg.SetData(data);
+	Socket.Write(Msg);
+	ASSERT_EQ(1,Socket.WaitForMessage(Msg, 1000));
+	Msg.GetData(data);
+
+	ASSERT_EQ(ppl6::CString("success"),data.ToCString("result")) << "Unexpected result";
+	ASSERT_EQ(ppl6::CString("1"),data.ToCString("version")) << "Unexpected result";
+	Socket.Disconnect();
+	ppl6::SSleep(1);
+	ASSERT_EQ(1,server->msgCount) << "Unexpected amount of Messages";
+	ASSERT_EQ(2,server->exitPos) << "Unexpected exitCode";
 }
+
+TEST_F(ClientServerTest, ConnectPingStartTLSPingDisconnect) {
+	server->resetTestFlags();
+	ppl6::CSSL SSLContext;
+	ppl6::CTCPSocket Socket;
+	ASSERT_TRUE(SSLContext.Init(ppl6::CSSL::TLSclient));
+	ASSERT_TRUE(Socket.SSL_Init(&SSLContext));
+
+	ASSERT_TRUE(Socket.Connect(PPL6TestConfig->Get("tcpsocket","tcpserver_host","localhost"),
+			PPL6TestConfig->GetInt("tcpsocket","tcpserver_port",50001))) << "Connect failed [" << ppl6::Error2String() << "]";
+	ppl6::SSleep(1);
+	ASSERT_TRUE(server->bConnectionReceived) << "No connection received";
+	ASSERT_TRUE(server->bInMessageLoop) << "Not in Message-Loop";
+	ASSERT_EQ(0,server->msgCount) << "Unexpected amount of Messages";
+
+	ppl6::CSocketMessage Msg;
+	ppl6::CAssocArray data;
+
+	// Step 1: Ping
+	data.Set("action","ping");
+	Msg.SetData(data);
+	Socket.Write(Msg);
+	ASSERT_EQ(1,Socket.WaitForMessage(Msg, 1000));
+	Msg.GetData(data);
+	ASSERT_EQ(ppl6::CString("success"),data.ToCString("result")) << "Unexpected result Step 1";
+	ASSERT_EQ(ppl6::CString("1"),data.ToCString("version")) << "Unexpected result Step 2";
+
+	// Step 2: StartTLS
+	data.Clear();
+	Msg.Clear();
+	data.Set("action","starttls");
+	Msg.SetData(data);
+	Socket.Write(Msg);
+	ASSERT_EQ(1,Socket.WaitForMessage(Msg, 1000));
+	Msg.GetData(data);
+	ASSERT_EQ(ppl6::CString("success"),data.ToCString("result")) << "Unexpected result, starttls failed";
+
+	// Step 3: Initialize SSL
+	ppl6::SSleep(1);
+	ASSERT_TRUE(Socket.SSL_Init_Client());
+	ASSERT_TRUE(Socket.SSL_Start());
+	printf ("Client SSL-Handshake done\n");
+	ppl6::SSleep(1);
+
+	// Step 4: Ping again, now encrypted
+	data.Clear();
+	Msg.Clear();
+	data.Set("action","ping");
+	Msg.SetData(data);
+	Socket.Write(Msg);
+	ASSERT_EQ(1,Socket.WaitForMessage(Msg, 1000));
+	Msg.GetData(data);
+	data.List();
+	ASSERT_EQ(ppl6::CString("success"),data.ToCString("result")) << "Unexpected result Encrypted Ping";
+	ASSERT_EQ(ppl6::CString("1"),data.ToCString("version")) << "Unexpected result Encrypted Ping";
+
+
+	Socket.Disconnect();
+	ppl6::SSleep(1);
+	ASSERT_EQ(3,server->msgCount) << "Unexpected amount of Messages";
+	ASSERT_EQ(2,server->exitPos) << "Unexpected exitCode";
+}
+
 
 
 
