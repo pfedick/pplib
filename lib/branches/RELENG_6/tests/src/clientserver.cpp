@@ -46,6 +46,7 @@
 #include <signal.h>
 #include "ppl6-tests.h"
 #include <list>
+#include <openssl/ssl.h>
 
 namespace {
 
@@ -266,12 +267,43 @@ int ServerThread::CMD_StartTLS(ppl6::CTCPSocket *Socket)
 	return 1;
 }
 
+static DH *dh_512 = NULL;
+static DH *dh_1024 = NULL;
+
+
+DH *tmp_dh_callback(SSL *s, int is_export, int keylength)
+{
+   switch (keylength) {
+	   case 512: return dh_512;
+	   case 1024: return dh_1024;
+	   default:
+		   printf ("Unsupported keylength: %i\n",keylength);
+		   return NULL;
+   }
+   return NULL;
+}
+
 
 bool ServerThread::setupSSL()
 {
-	if (!SSLServerContext.Init(ppl6::CSSL::TLSv1server)) return false;
+	if (!SSLServerContext.Init(ppl6::CSSL::TLSv1_2server)) return false;
 	if (!SSLServerContext.LoadCertificate("testdata/ssl/ppl6.cert",
 			"testdata/ssl/ppl6.key","bGl7R_3JkaRT=1+A")) return false;
+	SSL_CTX *ctx=(SSL_CTX*)SSLServerContext.GetSSLContext();
+	SSL_CTX_set_tmp_dh_callback(ctx, tmp_dh_callback);
+    FILE *paramfile;
+    paramfile = fopen("testdata/ssl/dh_param_512.pem", "r");
+    if (paramfile) {
+    	dh_512 = PEM_read_DHparams(paramfile, NULL, NULL, NULL);
+    	fclose(paramfile);
+    }
+    paramfile = fopen("testdata/ssl/dh_param_1024.pem", "r");
+    if (paramfile) {
+    	dh_1024 = PEM_read_DHparams(paramfile, NULL, NULL, NULL);
+    	fclose(paramfile);
+    }
+
+
 
 	if (!this->SSL_Init(&SSLServerContext)) return false;
 
@@ -396,12 +428,13 @@ TEST_F(ClientServerTest, ConnectPingStartTLSPingDisconnect) {
 	server->resetTestFlags();
 	ppl6::CSSL SSLContext;
 	ppl6::CTCPSocket Socket;
-	ASSERT_TRUE(SSLContext.Init(ppl6::CSSL::TLSclient));
+	ASSERT_TRUE(SSLContext.Init(ppl6::CSSL::TLSv1_2));
+
 	ASSERT_TRUE(Socket.SSL_Init(&SSLContext));
 
 	ASSERT_TRUE(Socket.Connect(PPL6TestConfig->Get("tcpsocket","tcpserver_host","localhost"),
 			PPL6TestConfig->GetInt("tcpsocket","tcpserver_port",50001))) << "Connect failed [" << ppl6::Error2String() << "]";
-	ppl6::SSleep(1);
+	ppl6::MSleep(100);
 	ASSERT_TRUE(server->bConnectionReceived) << "No connection received";
 	ASSERT_TRUE(server->bInMessageLoop) << "Not in Message-Loop";
 	ASSERT_EQ(0,server->msgCount) << "Unexpected amount of Messages";
@@ -429,11 +462,11 @@ TEST_F(ClientServerTest, ConnectPingStartTLSPingDisconnect) {
 	ASSERT_EQ(ppl6::CString("success"),data.ToCString("result")) << "Unexpected result, starttls failed";
 
 	// Step 3: Initialize SSL
-	ppl6::SSleep(1);
+	ppl6::MSleep(100);
 	ASSERT_TRUE(Socket.SSL_Init_Client());
 	ASSERT_TRUE(Socket.SSL_Start());
 	printf ("Client SSL-Handshake done\n");
-	ppl6::SSleep(1);
+	ppl6::MSleep(100);
 
 	// Step 4: Ping again, now encrypted
 	data.Clear();
@@ -447,9 +480,11 @@ TEST_F(ClientServerTest, ConnectPingStartTLSPingDisconnect) {
 	ASSERT_EQ(ppl6::CString("success"),data.ToCString("result")) << "Unexpected result Encrypted Ping";
 	ASSERT_EQ(ppl6::CString("1"),data.ToCString("version")) << "Unexpected result Encrypted Ping";
 
+	//SSL_CTX *SSL_get_SSL_CTX(const SSL *ssl);
+	Socket.SSL_Info();
 
 	Socket.Disconnect();
-	ppl6::SSleep(1);
+	ppl6::MSleep(100);
 	ASSERT_EQ(3,server->msgCount) << "Unexpected amount of Messages";
 	ASSERT_EQ(2,server->exitPos) << "Unexpected exitCode";
 }
