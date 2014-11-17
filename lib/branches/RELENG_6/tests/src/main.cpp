@@ -78,6 +78,7 @@ int main (int argc, char**argv)
 		PPL6TestConfig->Load(tmp);
 	} else {
 		setDefaultConfigParams();
+		PPL6TestConfig->Load("test.conf");
 	}
 	::testing::InitGoogleTest(&argc, argv);
 	if (ppl6::getargv(argc,argv,"-h")!=NULL || ppl6::getargv(argc,argv,"--help")!=NULL) return 0;
