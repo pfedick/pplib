@@ -1503,6 +1503,47 @@ int CSSL::SetCipherList(const char *cipherlist)
 }
 
 
+int CSSL::SetTmpDHParam(const CString &dh_param_file)
+{
+#ifdef HAVE_OPENSSL
+	if (!SSLisInitialized) {
+		SetError(317);
+		return 0;
+	}
+	if (!ctx) {
+		SetError(321);
+		return 0;
+	}
+	FILE *ff=NULL;
+#ifdef WIN32
+	CWString wideFilename=dh_param_file;
+	CWString wideMode="r";
+	if ((ff=(FILE*)_wfopen((const wchar_t *)wideFilename,(const wchar_t*)wideMode))==NULL) {
+
+#else
+	if ((ff=(FILE*)fopen((const char*)dh_param_file,"r"))==NULL) {
+#endif
+		SetError(TranslateErrno(errno),errno,"%s",(const char*)dh_param_file);
+		return 0;
+	}
+	DH *dh=PEM_read_DHparams(ff, NULL, NULL, NULL);
+	if (!dh) {
+		SetError(566,"%s",(const char*)dh_param_file);
+		return 0;
+	}
+	if (!SSL_CTX_set_tmp_dh((SSL_CTX*)ctx,dh)) {
+		SetError(566,"%s",(const char*)dh_param_file);
+		return 0;
+	}
+
+	return 1;
+#else
+	SetError(292);
+	return 0;
+#endif
+}
+
+
 } // EOF namespace ppl
 
 

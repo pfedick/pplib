@@ -3258,6 +3258,7 @@ class CSSL
 		// angegeben werden.
 		int		LoadCertificate(const char *certificate, const char *privatekey=NULL, const char *password=NULL);
 		int		SetCipherList(const char *cipherlist);		// "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
+		int		SetTmpDHParam(const CString &dh_param_file);
 		void	*GetSSLContext();
 };
 

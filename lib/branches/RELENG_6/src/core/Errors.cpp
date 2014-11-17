@@ -627,6 +627,7 @@ static tr_str_array const char * errors[] = {
 		"Icecast Error",															// 563
 		"Feature ist nicht einkompiliert",											// 564
 		"Funktion wird nicht unterstützt",											// 565
+		"SSL: Konnte DHParams nicht laden",											// 566
 		"unknown"																	//
 };
 
