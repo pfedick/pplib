@@ -3408,6 +3408,11 @@ class CTCPSocket
 		int SSL_WaitForAccept(int timeout=0);
 		void SSL_Info();
 
+		bool SSL_IsEncrypted() const;
+		CString SSL_GetCipherName() const;
+		CString SSL_GetCipherVersion() const;
+		int SSL_GetCipherBits() const;
+
 };
 
 int SSL_Init();

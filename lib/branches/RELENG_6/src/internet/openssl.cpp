@@ -1001,6 +1001,44 @@ void CTCPSocket::SSL_Info()
 #endif
 }
 
+bool CTCPSocket::SSL_IsEncrypted() const
+{
+#ifdef HAVE_OPENSSL
+	if (ssl) return true;
+	SetError(331);
+	return false;
+#else
+	SetError(292);
+	return false;
+#endif
+}
+
+CString CTCPSocket::SSL_GetCipherName() const
+{
+#ifdef HAVE_OPENSSL
+	if (ssl) return SSL_get_cipher((SSL*)ssl);
+#endif
+	return CString();
+}
+
+CString CTCPSocket::SSL_GetCipherVersion() const
+{
+#ifdef HAVE_OPENSSL
+	if (ssl) return SSL_get_cipher_version((SSL*)ssl);
+#endif
+	return CString();
+}
+
+int CTCPSocket::SSL_GetCipherBits() const
+{
+#ifdef HAVE_OPENSSL
+	int np=0;
+	if (ssl) return SSL_get_cipher_bits((SSL*)ssl, &np);
+#endif
+	return 0;
+}
+
+
 //@}
 
 
