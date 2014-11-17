@@ -17,6 +17,7 @@ AC_ARG_WITH([libpng],
 		am_save_LDFLAGS="$LDFLAGS"
 		if test "$libpng_prefix" = "yes" -o "$libpng_prefix" = "auto"
 		then
+			AC_PATH_PROG(libpngconfig,libpng-config)
 			PKG_CHECK_MODULES([PNG], [libpng],
 				have_libpng="yes"
 				LIBS="$PNG_LIBS"
@@ -25,6 +26,19 @@ AC_ARG_WITH([libpng],
 				,
 				have_libpng="no"
 				PNG_LIBS="-lpng -lz -lm"
+
+				
+				if test [ -x "$libpngconfig" ]
+				then
+					have_libpng="yes"
+					PNG_LIBS=`$libpngconfig --ldflags`
+					PNG_LIBS="$PNG_LIBS -lz -lm"
+					PNG_CFLAGS=`$libpngconfig --cflags`
+					LIBS="$PNG_LIBS"
+					CFLAGS="$PNG_CFLAGS"
+					CPPFLAGS="$PNG_CFLAGS"
+				fi
+
 			)
 		else
 			LIBS="-L$libpng_prefix/lib"
