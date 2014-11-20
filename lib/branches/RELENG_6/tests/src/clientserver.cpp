@@ -362,6 +362,7 @@ class ClientServerTest : public ::testing::Test {
 			if (server->isListening()) break;
 			ppl6::MSleep(100);
 		}
+		ppl6::MSleep(500);
 		ASSERT_TRUE(server->isListening()) << "Server Thread is not running [" << ppl6::Error2String() << "]";
 	}
 
