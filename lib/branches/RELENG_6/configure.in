@@ -281,6 +281,7 @@ dnl Check for threadding support
 case $host_os in
 	*mingw32* )
 		report_have_pthreads="Win32 Threads"
+		dnl TODO: auf mingw-w64 trifft das zu, aber nicht auf mingw! 
 		AC_DEFINE(HAVE_LOCALTIME_R,1,[on mingw-w64 we always have localtime_r])
 		AC_DEFINE(HAVE_GMTIME_R,1,[on mingw-w64 we always have gmtime_r])
 		
