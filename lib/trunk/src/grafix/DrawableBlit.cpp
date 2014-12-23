@@ -60,7 +60,7 @@
 #include "ppl7-grafix.h"
 
 
-//#undef HAVE_NASM
+
 #ifdef HAVE_X86_ASSEMBLER
 typedef struct {
 	void		*src;
