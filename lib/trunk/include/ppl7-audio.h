@@ -220,7 +220,6 @@ class CDDB
 		String ClientName, ClientVersion;
 		String UserName, Hostname;
 		int port;
-		//void storeDisc(Disc &disc, const ppl6::CString &payload);
 		String buildUri(const String &cmd);
 
 	public:
