@@ -93,6 +93,7 @@ class Variant
 		int dataType() const;
 		bool isType(int type) const;
 		bool isString() const;
+		bool isWideString() const;
 		bool isArray() const;
 		bool isAssocArray() const;
 		bool isByteArray() const;

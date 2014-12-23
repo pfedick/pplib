@@ -204,6 +204,19 @@ bool Variant::isString() const
 	return false;
 }
 
+/*!\brief Prüft, ob es sich um den Datentyp WideString handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp WideString handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp WideString handelt, sonst \c false.
+ */
+bool Variant::isWideString() const
+{
+	if (type==WIDESTRING) return true;
+	return false;
+}
+
 /*!\brief Prüft, ob es sich um den Datentyp Array handelt
  *
  * \desc
