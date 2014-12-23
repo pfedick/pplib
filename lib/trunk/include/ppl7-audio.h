@@ -42,10 +42,22 @@
     #endif
 #endif
 
+#ifndef PPL7INET_H_
+    #ifdef PPL7LIB
+		#include "ppl7-inet.h"
+    #else
+		#include <ppl7-inet.h>
+    #endif
+#endif
+
 
 #ifndef LPVOID
 #define LPVOID void*
 #endif
+
+#include <stdlib.h>
+#include <list>
+
 
 namespace ppl7 {
 
@@ -96,6 +108,136 @@ class Icecast
 
 		void	sendMetadata(const String &name, const String &value);
 		void	setTitle(const String &title);
+
+};
+
+class AudioCD
+{
+	private:
+		void *cdio;
+		String myDevice;
+		size_t first_track_num;
+		size_t i_tracks;
+		size_t num_audio_tracks;
+		size_t audio_frames;
+		size_t last_lsn;
+		void countAudioTracks();
+
+	public:
+		PPLEXCEPTION(DeviceOpenFailed,Exception);
+		PPLEXCEPTION(DeviceNotOpen,Exception);
+		PPLEXCEPTION(InvalidAudioTrack,Exception);
+
+		class Toc
+		{
+			public:
+				ppluint8 min,sec,frames;
+		};
+
+		class Track
+		{
+			friend class AudioCD;
+			private:
+				int _track;
+				size_t _start, _end;
+				bool _hasPreemphasis, _hasCopyPermit, _isAudioTrack;
+				int _channels;
+
+			public:
+				Track();
+				int track() const;
+				size_t start() const;
+				Toc start_toc() const;
+				size_t end() const;
+				size_t size() const;
+				size_t seconds() const;
+				bool hasPreemphasis() const;
+				bool hasCopyPermit() const;
+				bool isAudioTrack() const;
+				int channels() const;
+		};
+
+		AudioCD();
+		~AudioCD();
+
+		void openDevice(const String &device=String());
+		void closeDevice();
+		const String &deviceName() const;
+
+		size_t firstTrack() const;
+		size_t lastTrack() const;
+		size_t numTotalTracks() const;
+		size_t numAudioTracks() const;
+		size_t totalAudioFrames() const;
+		size_t totalAudioLength() const;
+		size_t lastLsn() const;
+
+		AudioCD::Track getTrack(int track);
+		bool	isAudioTrack(int track);
+
+		static bool isSupported();
+		static std::list<String> getDevices();
+		static Toc lsn2toc(size_t lsn);
+};
+
+
+class CDDB
+{
+	public:
+		PPLEXCEPTION(QueryFailed, Exception);
+		PPLEXCEPTION(InvalidDiscId, Exception);
+		class Track
+		{
+			public:
+				int number;
+				int frame_offset;
+				int length;
+				String Artist;
+				String Title;
+				String Extra;
+		};
+		class Disc
+		{
+			public:
+				typedef std::list<Track> TrackList;
+
+				unsigned int	discId;
+				String		category;
+				String		genre;
+				int			length;
+				int			year;
+				String		Artist;
+				String		Title;
+				String		Extra;
+				TrackList	Tracks;
+		};
+
+		typedef std::list<Disc> Matches;
+
+	private:
+		ppl7::Curl curl;
+		String QueryPath, Server;
+		String ClientName, ClientVersion;
+		String UserName, Hostname;
+		int port;
+		//void storeDisc(Disc &disc, const ppl6::CString &payload);
+		String buildUri(const String &cmd);
+
+	public:
+		CDDB();
+		~CDDB();
+
+		void	setHttpServer(const String &server, int port=80);
+		void	setQueryPath(const String &path);
+		void	setProxy(const String &hostname, int port);
+		void	setClient(const String &name, const String &version);
+		void	setUser(const String &username, const String &hostname);
+
+		int		query(AudioCD &cd, Matches &list);
+		void	getDisc(unsigned int discId, const String &category, Disc &d);
+
+		static bool isSupported();
+		static unsigned int calcDiscId(AudioCD &cd);
 
 };
 

@@ -233,7 +233,7 @@ void Curl::setLogger(Logger *log)
 }
 
 
-void Curl::curlResultOk(int ret)
+void Curl::curlResultOk(int ret) const
 {
 	#ifdef HAVE_LIBCURL
 		if (ret==CURLE_OK) return;
@@ -480,25 +480,18 @@ void Curl::escape(String &target, const AssocArray &source)
 	#endif
 }
 
-#ifdef TODO
-
-int CCurl::Get(const char *parameter)
+void Curl::get(const String &parameter)
 {
 	#ifdef HAVE_LIBCURL
-		if (!handle) {
-			SetError(353);
-			return 0;
-		}
 		GetCall=Url;
-		if (parameter) {
-			if (GetCall.Instr("?")>0) GetCall.Concat("&");
-			else GetCall.Concat("?");
-			GetCall.Concat(parameter);
+		if (parameter.notEmpty()) {
+			if (GetCall.instr("?")>0) GetCall.append("&");
+			else GetCall.append("?");
+			GetCall.append(parameter);
 		}
-		return Get();
+		get();
 	#else
-		SetError(356);
-		return 0;
+		throw UnsupportedFeatureException("libCurl");
 	#endif
 }
 
@@ -510,53 +503,43 @@ int CCurl::Get(const char *parameter)
  * \param[in] param Ein Assoziatives Array mit den zusätzlichen Parametern. Die Parameter werden
  * automatisch escaped!
  */
-int CCurl::Get(CAssocArray &param)
+void Curl::get(const AssocArray &param)
 {
 	#ifdef HAVE_LIBCURL
-		if (!handle) {
-			SetError(353);
-			return 0;
-		}
 		GetCall=Url;
-		if (GetCall.Instr("?")>0) GetCall.Concat("&");
-		else GetCall.Concat("?");
-		if (!Escape(GetCall, param)) return 0;
-		return Get();
+		if (GetCall.instr("?")>0) GetCall.append("&");
+		else GetCall.append("?");
+		escape(GetCall, param);
+		get();
 	#else
-		SetError(356);
-		return 0;
+		throw UnsupportedFeatureException("libCurl");
 	#endif
 }
 
-const char *CCurl::GetURL()
+String Curl::getURL() const
 {
-	return Url.GetPtr();
+	return Url;
 }
 
-int CCurl::Get()
+void Curl::get()
 {
 	#ifdef HAVE_LIBCURL
-		if (!handle) {
-			SetError(353);
-			return 0;
-		}
 		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEDATA,this);
 		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEFUNCTION,write_function);
 		curl_easy_setopt((CURL*)handle,CURLOPT_WRITEHEADER,this);
 		curl_easy_setopt((CURL*)handle,CURLOPT_HEADERFUNCTION,header_function);
 
 
-		if (GetCall.IsEmpty()) GetCall=Url;
-		if (GetCall.IsEmpty()) {
-			SetError(537);
-			return 0;
+		if (GetCall.isEmpty()) GetCall=Url;
+		if (GetCall.isEmpty()) {
+			throw Curl::InvalidURLException();
 		}
-		if (!SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_URL, (const char*)GetCall))) return 0;
+		curlResultOk(curl_easy_setopt((CURL*)handle, CURLOPT_URL, (const char*)GetCall));
 
 		long a=1;
-		if (!SetOptOk(curl_easy_setopt((CURL*)handle,CURLOPT_HTTPGET,a))) return 0;
+		curlResultOk(curl_easy_setopt((CURL*)handle,CURLOPT_HTTPGET,a));
 		// Falls der Server Redirects sendet. folgen wir diesen:
-		if (!SetOptOk(curl_easy_setopt((CURL*)handle,CURLOPT_FOLLOWLOCATION,a))) return 0;
+		curlResultOk(curl_easy_setopt((CURL*)handle,CURLOPT_FOLLOWLOCATION,a));
 
 		if (headers) {
 			curl_easy_setopt((CURL*)handle, CURLOPT_HTTPHEADER, headers);
@@ -565,30 +548,23 @@ int CCurl::Get()
 		resultbuffer=NULL;
 		resultbuffer_size=0;
 		Header="";
-		call_send.Notify(NULL);
+		//call_send.Notify(NULL);
 		aboard=false;
-		int ret=curl_easy_perform((CURL*)handle);
-		if (!SetOptOk(ret)) {
-			PushError();
-			call_done.Notify(NULL);
-			PopError();
-			return 0;
-		}
+		curlResultOk(curl_easy_perform((CURL*)handle));
 		a=0;
 		long num_connects=0, num_redirects=0;
-		ret=curl_easy_getinfo((CURL*)handle, CURLINFO_NUM_CONNECTS, &num_connects);
-		ret=curl_easy_getinfo((CURL*)handle, CURLINFO_REDIRECT_COUNT, &num_redirects);
+		curl_easy_getinfo((CURL*)handle, CURLINFO_NUM_CONNECTS, &num_connects);
+		curl_easy_getinfo((CURL*)handle, CURLINFO_REDIRECT_COUNT, &num_redirects);
 
-		if (log) log->Printf(ppl6::LOG::DEBUG,5,"ppl6::CCurl","Get",__FILE__,__LINE__,"New Connects: %i, Redirects: %i",((int)num_connects), (int)num_redirects);
-		call_done.Notify(NULL);
-		return 1;
+		if (log) log->print(Logger::DEBUG,5,"ppl6::CCurl","Get",__FILE__,__LINE__,
+				ToString("New Connects: %i, Redirects: %i",((int)num_connects), (int)num_redirects));
+		//call_done.Notify(NULL);
 	#else
-		SetError(356);
-		return 0;
+		throw UnsupportedFeatureException("libCurl");
 	#endif
 }
 
-size_t CCurl::StoreResult(void *ptr, size_t bytes, int type)
+size_t Curl::storeResult(void *ptr, size_t bytes, int type)
 {
 	#ifdef HAVE_LIBCURL
 	/*
@@ -623,75 +599,64 @@ size_t CCurl::StoreResult(void *ptr, size_t bytes, int type)
 			char *buffer=(char*)realloc(resultbuffer,b+1);
 			if (!buffer) return 0;
 			resultbuffer=buffer;
-			memcpy((ppldb*)resultbuffer+resultbuffer_size,ptr,bytes);
+			memcpy((ppluint8*)resultbuffer+resultbuffer_size,ptr,bytes);
 			resultbuffer_size+=bytes;
 			resultbuffer[resultbuffer_size]=0;
-			call_receive.Notify(&bytes);
+			//call_receive.Notify(&bytes);
 			return bytes;
 		} else if (type==2) {
-			Header.Concat((char*)ptr,bytes);
+			Header.append((const char*)ptr,bytes);
 			return bytes;
 		}
 	#endif
 	return -1;
 }
 
-CString CCurl::GetLastURL()
+
+
+String Curl::getLastURL() const
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return "";
-	}
 	char *u;
-	if (!SetOptOk(curl_easy_getinfo((CURL*)handle, CURLINFO_EFFECTIVE_URL , &u))) return "";
+	curlResultOk(curl_easy_getinfo((CURL*)handle, CURLINFO_EFFECTIVE_URL , &u));
 	return u;
 #else
-	SetError(356);
-	return "";
+	throw UnsupportedFeatureException("libCurl");
 #endif
 }
 
-
-int CCurl::GetResultBuffer(void **buffer, size_t *size)
+void Curl::getResultBuffer(void **buffer, size_t *size) const
 {
-	if (!resultbuffer) return 0;
+	if (!resultbuffer) throw Curl::NoResultException();
 	*buffer=resultbuffer;
 	*size=resultbuffer_size;
-	return 1;
 }
 
-int CCurl::GetResultBuffer(CBinary &bin)
+ByteArrayPtr Curl::getResultBuffer() const
 {
-	if (!resultbuffer) return 0;
-	return bin.Set(resultbuffer,resultbuffer_size);
+	if (!resultbuffer) throw Curl::NoResultException();
+	return ByteArrayPtr(resultbuffer, resultbuffer_size);
 }
 
-int CCurl::CopyResultBuffer(CBinary &bin)
+void Curl::copyResultBuffer(ByteArray &bin) const
 {
-	if (!resultbuffer) return 0;
-	return bin.Copy(resultbuffer,resultbuffer_size);
+	if (!resultbuffer) throw Curl::NoResultException();
+	bin.copy(resultbuffer,resultbuffer_size);
 }
 
-CString CCurl::GetResultBuffer()
+String Curl::getResultBufferAsString() const
 {
-	CString ret;
-	if (resultbuffer) ret.Set(resultbuffer,resultbuffer_size);
+	String ret;
+	if (resultbuffer) ret.set(resultbuffer,resultbuffer_size);
 	return ret;
 }
 
-CString CCurl::GetHeader()
+String Curl::getHeader() const
 {
 	return Header;
 }
 
-int CCurl::GetHeader(CString &str)
-{
-	str=Header;
-	return 1;
-}
-
-void CCurl::DebugHandler(int type, const char *data, size_t size)
+void Curl::debugHandler(int type, const char *data, size_t size)
 /*!\brief Ausgabe von Debug-Information durch libcurl
  *
  * \desc
@@ -706,11 +671,12 @@ void CCurl::DebugHandler(int type, const char *data, size_t size)
 {
 #ifdef HAVE_LIBCURL
 	if (!log) return;
-	CString msg;
-	msg.Set(data,size);
+	String msg;
+	msg.set(data,size);
 	switch (type) {
 		case CURLINFO_TEXT:
-			log->Printf(LOG::DEBUG,5,"CCurl","DebugHandler",__FILE__,__LINE__,"INFO: %s",(const char*)msg);
+			log->print(Logger::DEBUG,5,"CCurl","DebugHandler",__FILE__,__LINE__,
+					ToString("INFO: %s",(const char*)msg));
 			/*
 			if (strncmp(d,"Getting file with size:",23)==0) {
 				filesize=atol(d+24);
@@ -718,7 +684,8 @@ void CCurl::DebugHandler(int type, const char *data, size_t size)
 			*/
 			break;
 		case CURLINFO_HEADER_IN:
-			log->Printf(LOG::DEBUG,5,"CCurl","DebugHandler",__FILE__,__LINE__,"HEADER_IN: %s",(const char*)msg);
+			log->print(Logger::DEBUG,5,"CCurl","DebugHandler",__FILE__,__LINE__,
+					ToString("HEADER_IN: %s",(const char*)msg));
 			/*
 			if (strncmp(d,"Content-Length: ",16)==0) {
 				filesize=atol(d+16);
@@ -727,7 +694,8 @@ void CCurl::DebugHandler(int type, const char *data, size_t size)
 			*/
 			break;
 		case CURLINFO_HEADER_OUT:
-			log->Printf(LOG::DEBUG,5,"CCurl","DebugHandler",__FILE__,__LINE__,"HEADER_OUT: %s",(const char*)msg);
+			log->print(Logger::DEBUG,5,"CCurl","DebugHandler",__FILE__,__LINE__,
+					ToString("HEADER_OUT: %s",(const char*)msg));
 			/*
 			if (strncmp(d,"RETR ",5)==0) {
 				if (filename) free(filename);
@@ -738,20 +706,21 @@ void CCurl::DebugHandler(int type, const char *data, size_t size)
 			*/
 			break;
 		case CURLINFO_DATA_IN:				// Protocol data
-			log->Printf(LOG::DEBUG,10,"CCurl","DebugHandler",__FILE__,__LINE__,"DATA_IN: %s",(const char*)msg);
-			call_receive.Notify(NULL);
-			//printf ("CURLINFO_DATA_IN: %u Bytes\n",size);
+			log->print(Logger::DEBUG,10,"CCurl","DebugHandler",__FILE__,__LINE__,
+					ToString("DATA_IN: %s",(const char*)msg));
+			//call_receive.Notify(NULL);
 			break;
 		case CURLINFO_DATA_OUT:
-			log->Printf(LOG::DEBUG,10,"CCurl","DebugHandler",__FILE__,__LINE__,"DATA_OUT: %s",(const char*)msg);
-			call_send.Notify(NULL);
-			//printf ("CURLINFO_DATA_OUT: %u Bytes\n",size);
+			log->print(Logger::DEBUG,10,"CCurl","DebugHandler",__FILE__,__LINE__,
+					ToString("DATA_OUT: %s",(const char*)msg));
+			//call_send.Notify(NULL);
 			break;
 	}
 #endif
 }
 
-int CCurl::SetHeader(const char *name, const char *value)
+
+void Curl::setHeader(const String &name, const String &value)
 /*!\brief HTTP-Header setzen
  *
  * Mit dieser Funktion wird eine zusätzliche Zeile im HTTP-Header gesetzt oder gelöscht.
@@ -766,27 +735,20 @@ int CCurl::SetHeader(const char *name, const char *value)
  */
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
-	ppl6::CString Buffer;
-	Buffer.Setf("%s: %s",name,(value!=NULL?value:""));
+	String Buffer;
+	Buffer.setf("%s: %s",(const char*) name, (const char*)value);
 	struct curl_slist *slist;
 	slist = curl_slist_append((struct curl_slist *)headers, (const char *)Buffer);
 	if (!slist) {
-
-		return 0;
+		throw OutOfMemoryException();
 	}
 	headers=slist;
-	return 1;
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
 }
 
-int CCurl::ClearHeader()
+void Curl::clearHeader()
 /*!\brief Angepasste HTTP-Header löschen
  *
  * Mit dieser Funktion werden alle angepassten Header-Zeilen gelöscht. Siehe auch
@@ -796,124 +758,96 @@ int CCurl::ClearHeader()
  */
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
-	if (!SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_HTTPHEADER, NULL))) return 0;
+	curlResultOk(curl_easy_setopt((CURL*)handle, CURLOPT_HTTPHEADER, NULL));
 	if (headers) {
 		curl_slist_free_all((struct curl_slist *)headers);
 		headers=NULL;
 	}
-	return 1;
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
 }
 
-
-int CCurl::AddPostVar(const char *name, int val, const char *contenttype)
+void Curl::addPostVar(const String &name, int val, const String &contenttype)
 {
-	CString s;
-	s.Setf("%i",val);
-	return AddPostVar(name,(const char *)s,contenttype);
+	String s;
+	s.setf("%i",val);
+	addPostVar(name,s,contenttype);
 }
 
-int CCurl::AddPostVar(const char *name, const char *data, const char *contenttype)
+void Curl::addPostVar(const String &name, const String &data, const String &contenttype)
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
-	if (!contenttype) {
+	if (contenttype.isEmpty()) {
 		curl_formadd((curl_httppost**)&httppost, (curl_httppost**)&last_httppost,
-			CURLFORM_COPYNAME, name,
-			CURLFORM_COPYCONTENTS, data,
+			CURLFORM_COPYNAME, (const char*)name,
+			CURLFORM_COPYCONTENTS, (const char*)data,
 			CURLFORM_END);
 	} else {
 		curl_formadd((curl_httppost**)&httppost, (curl_httppost**)&last_httppost,
-			CURLFORM_COPYNAME, name,
-			CURLFORM_COPYCONTENTS, data,
-			CURLFORM_CONTENTTYPE, contenttype,
+			CURLFORM_COPYNAME, (const char*)name,
+			CURLFORM_COPYCONTENTS, (const char*)data,
+			CURLFORM_CONTENTTYPE, (const char*)contenttype,
 			CURLFORM_END);
 	}
-	return 1;
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
 }
 
-int CCurl::AddPostVar(CAssocArray &param, const char *prefix)
+void Curl::addPostVar(const AssocArray &param, const String &prefix)
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
-	CString key;
-	CString Prefix,name;
-	if (prefix) {
-		Prefix=prefix;
-	}
-	ARRAY_RESULT res;
-	param.Reset();
-	while ((res=param.GetNext())) {
-		param.GetKey(res,&key);
-		if (Prefix.NotEmpty()) {
-			name=Prefix;
-			name.Concatf("[%s]",(const char*)key);
+	String key;
+	String Prefix,name;
+	AssocArray::Iterator it;
+	param.reset(it);
+	while (param.getNext(it)) {
+		key=it.key();
+		if (prefix.notEmpty()) {
+			name=prefix;
+			name.appendf("[%s]",(const char*)key);
 		} else {
 			name=key;
 		}
-		if (param.IsCString(res)) {
-			CString *s=param.GetCString(res);
+		if (it.value().isString()) {
+			String s=it.value().toString();
 			curl_formadd((curl_httppost**)&httppost, (curl_httppost**)&last_httppost,
 				CURLFORM_COPYNAME, (const char*)name,
-				CURLFORM_COPYCONTENTS, s->GetPtr(),
+				CURLFORM_COPYCONTENTS, (const char*)s,
 				CURLFORM_END);
 
-		} else if (param.IsCWString(res)) {
-			CWString *s=param.GetCWString(res);
+		} else if (it.value().isWideString()) {
+			String s=it.value().toWideString();
 			curl_formadd((curl_httppost**)&httppost, (curl_httppost**)&last_httppost,
 				CURLFORM_COPYNAME, (const char*)name,
-				CURLFORM_COPYCONTENTS, s->GetPtr(),
+				CURLFORM_COPYCONTENTS, (const char*)s,
 				CURLFORM_END);
-		} else if (param.IsArray(res)) {
-			CAssocArray *a=param.GetArray(res);
-			if (!AddPostVar(*a,name)) return 0;
+		} else if (it.value().isAssocArray()) {
+			AssocArray a=it.value().toAssocArray();
+			addPostVar(a,name);
 		}
 	}
-	param.Reset();
-	return 1;
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
-
 }
 
-int CCurl::Post(CAssocArray &param)
+void Curl::post(const AssocArray &param)
 /*!\brief Daten Multipart-encoded senden
  *
  */
 {
-	if (!AddPostVar(param)) return 0;
-	return Post();
+	addPostVar(param);
+	post();
 }
 
-int CCurl::Post()
+void Curl::post()
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
 	CURLcode ret;
 	// Falls der Server Redirects sendet. folgen wir diesen:
-	if (!SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_URL, (const char*)Url))) return 0;
+	curlResultOk(curl_easy_setopt((CURL*)handle, CURLOPT_URL, (const char*)Url));
 	ret=curl_easy_setopt((CURL*)handle, CURLOPT_FOLLOWLOCATION, 1);
 	if (httppost) ret=curl_easy_setopt((CURL*)handle,CURLOPT_HTTPPOST,httppost);
 
@@ -928,23 +862,21 @@ int CCurl::Post()
 	resultbuffer_size=0;
 	Header="";
 
-	call_send.Notify(NULL);
+	//call_send.Notify(NULL);
 	aboard=false;
 	ret=curl_easy_perform((CURL*)handle);
-	call_done.Notify(NULL);
-	if (post) curl_formfree((curl_httppost*) httppost);
+	//call_done.Notify(NULL);
+	if (httppost) curl_formfree((curl_httppost*) httppost);
 	httppost=last_httppost=NULL;
-	if (ret==0) return 1;
-	SetError(354,errorbuffer);
-	return 0;
+	if (ret==0) return;
+	throw Curl::OperationFailedException("%s",errorbuffer);
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
 
 }
 
-int CCurl::PostFields(CAssocArray &param)
+void Curl::postFields(const AssocArray &param)
 /*!\brief Daten URL-encoded posten
  *
  * Diese Funktion baut aus den angegebenen Parametern einen einzelnen URL-encodeten String
@@ -955,150 +887,39 @@ int CCurl::PostFields(CAssocArray &param)
  */
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
-	CString Data;
-	if (!Escape(Data,param)) return 0;
-	if (!SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_POSTFIELDS, (const char*)Data))) return 0;
-	return Post();
+	String Data;
+	escape(Data,param);
+	curlResultOk(curl_easy_setopt((CURL*)handle, CURLOPT_POSTFIELDS, (const char*)Data));
+	post();
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
 }
 
 
-int CCurl::AddCAFile(const char *filename)
+void Curl::addCAFile(const String &filename)
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
-	return SetOptOk(curl_easy_setopt((CURL*)handle, CURLOPT_CAINFO, filename));
+	curlResultOk(curl_easy_setopt((CURL*)handle, CURLOPT_CAINFO, (const char*)filename));
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
 }
 
-int CCurl::VerifyPeer(bool verify)
+void Curl::verifyPeer(bool verify)
 {
 #ifdef HAVE_LIBCURL
-	if (!handle) {
-		SetError(353);
-		return 0;
-	}
 	int v=verify;
-	return SetOptOk(curl_easy_setopt((CURL*)handle,CURLOPT_SSL_VERIFYPEER , v));
+	curlResultOk(curl_easy_setopt((CURL*)handle,CURLOPT_SSL_VERIFYPEER , v));
 #else
-	SetError(356);
-	return 0;
+	throw UnsupportedFeatureException("libCurl");
 #endif
 }
 
-void *CCurl::getCurlHandle() const
+void *Curl::getCurlHandle() const
 {
 	return handle;
 }
-
-
-/*
-int CCurl::POST()
-{
-	if (!handle) return 0;
-	CURLcode ret;
-	// Falls der Server Redirects sendet. folgen wir diesen:
-	ret=curl_easy_setopt((CURL*)handle, CURLOPT_FOLLOWLOCATION, 1);
-	if (post)
-		ret=curl_easy_setopt((CURL*)handle,CURLOPT_HTTPPOST,post);
-
-	curl_easy_setopt((CURL*)handle,CURLOPT_WRITEFUNCTION,write_function);
-	if (filename) free(filename);
-	filename=NULL;
-	filesize=0;
-	curl_easy_setopt((CURL*)handle,CURLOPT_WRITEDATA,this);
-	//#ifdef _DEBUG
-	curl_easy_setopt((CURL*)handle,CURLOPT_DEBUGFUNCTION, debug_function);
-	curl_easy_setopt((CURL*)handle,CURLOPT_DEBUGDATA, this);
-	curl_easy_setopt((CURL*)handle,CURLOPT_VERBOSE, TRUE);
-	//#endif
-
-	call_send.Notify(NULL);
-	aboard=false;
-	ret=curl_easy_perform((CURL*)handle);
-	call_done.Notify(NULL);
-	if (post) curl_formfree((curl_httppost*) post);
-	if (storetofile) {
-		storetofile->Close();
-		delete storetofile;
-		storetofile=NULL;
-	}
-	post=NULL;
-	last_httppost=NULL;
-	if (ret==0) return 1;
-	return 0;
-}
-
-void CCurl::StopTransfer()
-{
-	aboard=true;
-}
-
-
-
-void CCurl::PostFile(char *name, char *filename)
-{
-	if (!handle) return;
-	curl_formadd((curl_httppost**)&post, (curl_httppost**)&last_httppost,
-		CURLFORM_COPYNAME, name,
-		CURLFORM_FILE, filename,
-		CURLFORM_END);
-}
-
-
-ppl6::CFile *CCurl::GetResultFile()
-{
-	if (!resultbuffer) return NULL;
-	ppl6::CMemFile *ff=new ppl6::CMemFile((char*)resultbuffer,(ppldd)resultbuffer_size);
-	return ff;
-}
-
-
-const char *CCurl::GetErrorBuffer()
-{
-	return errorbuffer;
-}
-
-int CCurl::StoreToFile(char *filename)
-{
-	if (storetofile) delete storetofile;
-	storetofile=NULL;
-	CFile *ff=new CFile();
-	if (!ff->Open(filename,"wb")) {
-		delete ff;
-		return 0;
-	}
-	storetofile=ff;
-	return 1;
-}
-
-
-const char *CCurl::GetFilename()
-{
-	return (const char*)filename;
-}
-
-size_t CCurl::GetFilesize()
-{
-	return filesize;
-}
-*/
-
-#endif // TODO
-
 
 } // namespace ppl7
 

@@ -506,7 +506,7 @@ class Curl
 		char *errorbuffer;
 		bool	aboard;
 
-		void curlResultOk(int ret);
+		void curlResultOk(int ret) const;
 
 
 
@@ -515,6 +515,9 @@ class Curl
 		PPLEXCEPTION(InitializationFailedException, Exception);
 		PPLEXCEPTION(MiscException, Exception);
 		PPLEXCEPTION(StringEscapeException, Exception);
+		PPLEXCEPTION(InvalidURLException, Exception);
+		PPLEXCEPTION(NoResultException, Exception);
+		PPLEXCEPTION(OperationFailedException, Exception);
 
 
 		enum HTTPVERSION {
@@ -553,12 +556,13 @@ class Curl
 		void	clearHeader();
 		void	get();
 		void	get(const String &parameter);
-		void	get(AssocArray &param);
+		void	get(const AssocArray &param);
 		void	getResultBuffer(void **buffer, size_t *size) const;
 		ByteArrayPtr getResultBuffer() const;
 		void	copyResultBuffer(ByteArray &bin) const;
 		String	getResultBufferAsString() const;
 		String	getHeader() const;
+		String	getURL() const;
 		String	getLastURL() const;
 		void	escape(String &target, const AssocArray &source);
 		void	escape(String &string);
@@ -567,7 +571,7 @@ class Curl
 		void	addPostVar(const AssocArray &param, const String &prefix=String());
 		void	post();
 		void	post(const AssocArray &param);
-		//TODO_ int		PostFields(CAssocArray &param);
+		void 	postFields(const AssocArray &param);
 		void	clear();
 
 		void	addCAFile(const String &filename);
