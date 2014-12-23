@@ -918,7 +918,11 @@ void Curl::verifyPeer(bool verify)
 
 void *Curl::getCurlHandle() const
 {
+#ifdef HAVE_LIBCURL
 	return handle;
+#else
+	throw UnsupportedFeatureException("libCurl");
+#endif
 }
 
 } // namespace ppl7
