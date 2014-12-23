@@ -48,6 +48,9 @@
 #include <list>
 #include <openssl/ssl.h>
 
+
+#ifndef WIN32
+
 namespace {
 
 class ServerThread : private ppl6::CThread, private ppl6::CTCPSocket, private ppl6::CSignal
@@ -336,6 +339,7 @@ bool ServerThread::isRunning()
 
 static ServerThread * server;
 
+
 class ClientServerTest : public ::testing::Test {
 	protected:
 	ClientServerTest() {
@@ -495,3 +499,4 @@ TEST_F(ClientServerTest, ConnectPingStartTLSPingDisconnect) {
 
 }	// EOF namespace
 
+#endif // #ifndef WIN32
