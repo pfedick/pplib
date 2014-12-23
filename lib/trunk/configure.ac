@@ -57,7 +57,7 @@ AC_CONFIG_HEADERS([include/ppl7-config.h])
 # Includes
 ###############################################################################
 sinclude(autoconf/ax_check_openssl.m4)
-sinclude(autoconf/ax_lib_curl.m4)
+sinclude(autoconf/libcurl.m4)
 sinclude(autoconf/ax_lib_mysql.m4)
 sinclude(autoconf/ax_lib_postgresql.m4)
 sinclude(autoconf/ax_lib_sqlite.m4)
@@ -444,14 +444,13 @@ AC_CHECK_LIBTIFF([1.2],
            :)
 
 
-
-#LIBCURL_CHECK_CONFIG([7.14.1],
-#	#LIBS="$LIBS $LIBCURL"
-#	#CFLAGS="$CFLAGS $LIBCURL_CPPFLAGS "
-#	AC_SUBST(LIBCURL)
-#	AC_SUBST(LIBCURL_CPPFLAGS)
-#	
-#	report_have_curl="yes",:)
+report_have_curl="no"
+LIBCURL_CHECK_CONFIG([yes],[7.30.0],
+	#LIBS="$LIBS $LIBCURL"
+	#CFLAGS="$CFLAGS $LIBCURL_CPPFLAGS "
+	AC_SUBST(LIBCURL)
+	AC_SUBST(LIBCURL_CPPFLAGS)
+	report_have_curl="yes",:)
 
 
 
