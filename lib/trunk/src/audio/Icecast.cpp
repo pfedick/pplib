@@ -134,7 +134,6 @@ Icecast::~Icecast()
 #endif
 }
 
-
 /*!\brief Version der libshout auslesen
  *
  * \descr
