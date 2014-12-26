@@ -93,6 +93,7 @@ sinclude(autoconf/libmicrohttpd.m4)
 sinclude(autoconf/libidn.m4)
 sinclude(autoconf/libbind.m4)
 sinclude(autoconf/gtest.m4)
+sinclude(autoconf/libcdio.m4)
 
 
 
@@ -484,6 +485,10 @@ XIPH_PATH_SHOUT(
 	AC_SUBST(SHOUT_LIBS)
 	, :)
 
+report_have_libcdio="no"
+AX_CHECK_LIBCDIO(
+        report_have_libcdio="yes",
+        :)
 
 
 
@@ -781,6 +786,7 @@ AC_MSG_RESULT([
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg	  
 **   shout library:        $report_have_libshout
+**   cdio library:         $report_have_libcdio
 **
 ** Cryptography:
 **   Libgcrypt:            $report_have_libgcrypt
