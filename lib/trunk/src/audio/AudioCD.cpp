@@ -66,17 +66,15 @@ bool AudioCD::isSupported()
 #endif
 }
 
-#ifdef TODO
-
-std::list<ppl6::CString> AudioCD::getDevices()
+std::list<String> AudioCD::getDevices()
 {
-	std::list<ppl6::CString> devices;
+	std::list<String> devices;
 #ifdef HAVE_LIBCDIO
 	char** d=cdio_get_devices (DRIVER_DEVICE);
 	if (d) {
 		for (int i=0;d[i]!=NULL;i++) {
-			ppl6::CString name;
-			name.Setf("%s",d[i]);
+			String name;
+			name.setf("%s",d[i]);
 			devices.push_back(name);
 		}
 	}
@@ -114,7 +112,7 @@ void AudioCD::closeDevice()
 #endif
 }
 
-void AudioCD::openDevice(const ppl6::CString &device)
+void AudioCD::openDevice(const String &device)
 {
 #ifndef HAVE_LIBCDIO
 	throw UnsupportedFeatureException("cdio");
@@ -123,7 +121,7 @@ void AudioCD::openDevice(const ppl6::CString &device)
 
 	cdio=NULL;
 	myDevice=device;
-	if (myDevice.IsEmpty()) {
+	if (myDevice.isEmpty()) {
 		CdIo_t *p_cdio = cdio_open (NULL, DRIVER_DEVICE);
 		if (NULL != p_cdio) {
 			myDevice=cdio_get_default_device(p_cdio);
@@ -178,7 +176,7 @@ size_t AudioCD::totalAudioLength() const
 }
 
 
-const ppl6::CString &AudioCD::deviceName() const
+const String &AudioCD::deviceName() const
 {
 	return myDevice;
 }
@@ -332,6 +330,5 @@ int AudioCD::Track::channels() const
 	return _channels;
 }
 
-#endif
 
 }	// EOF namespace ppl6
