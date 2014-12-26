@@ -163,8 +163,12 @@ RELEASE	= release/AVLTree.o \
 	release/tk_WindowManager.o \
 	release/tk_WindowManager_SDL12.o \
 	release/tk_WindowManager_SDL2.o \
+	release/audio_AudioCD.o \
 	release/audio_AudioDecoder_Wave.o \
-	release/audio_Icecast.o
+	release/audio_AudioInfo.o \
+	release/audio_Cddb.o \
+	release/audio_Icecast.o \
+	release/audio_Mp3.o
 
 DEBUG	= debug/AVLTree.o \
 	debug/Compat.o \
@@ -260,8 +264,12 @@ DEBUG	= debug/AVLTree.o \
 	debug/tk_WindowManager.o \
 	debug/tk_WindowManager_SDL12.o \
 	debug/tk_WindowManager_SDL2.o \
+	debug/audio_AudioCD.o \
 	debug/audio_AudioDecoder_Wave.o \
-	debug/audio_Icecast.o
+	debug/audio_AudioInfo.o \
+	debug/audio_Cddb.o \
+	debug/audio_Icecast.o \
+	debug/audio_Mp3.o
 
 ASM_OBJ_RELEASE	=	release/asm_blt.o \
 		release/asm_blt_blend.o \
@@ -878,15 +886,35 @@ release/tk_WindowManager_SDL2.o:	$(srcdir)/toolkit/WindowManager_SDL2.cpp $(incd
 	$(CXX) -Wall -O3 -o release/tk_WindowManager_SDL2.o -c $(srcdir)/toolkit/WindowManager_SDL2.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 ### AUDIO
+release/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioCD.cpp<<<
+	$(CXX) -Wall -O3 -o release/audio_AudioCD.o -c $(srcdir)/audio/AudioCD.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
 release/audio_AudioDecoder_Wave.o:	$(srcdir)/audio/AudioDecoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/AudioDecoder_Wave.cpp<<<
 	$(CXX) -Wall -O3 -o release/audio_AudioDecoder_Wave.o -c $(srcdir)/audio/AudioDecoder_Wave.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
+release/audio_AudioInfo.o:	$(srcdir)/audio/AudioInfo.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioInfo.cpp<<<
+	$(CXX) -Wall -O3 -o release/audio_AudioInfo.o -c $(srcdir)/audio/AudioInfo.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+release/audio_Cddb.o:	$(srcdir)/audio/Cddb.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/Cddb.cpp<<<
+	$(CXX) -Wall -O3 -o release/audio_Cddb.o -c $(srcdir)/audio/Cddb.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
 release/audio_Icecast.o:	$(srcdir)/audio/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/Icecast.cpp<<<
 	$(CXX) -Wall -O3 -o release/audio_Icecast.o -c $(srcdir)/audio/Icecast.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+release/audio_Mp3.o:	$(srcdir)/audio/Mp3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/Mp3.cpp<<<
+	$(CXX) -Wall -O3 -o release/audio_Mp3.o -c $(srcdir)/audio/Mp3.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 ### ASM
 release/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
@@ -1418,15 +1446,35 @@ debug/tk_WindowManager_SDL2.o:	$(srcdir)/toolkit/WindowManager_SDL2.cpp $(incdir
 	$(CXX) -Wall -O -o debug/tk_WindowManager_SDL2.o -c $(srcdir)/toolkit/WindowManager_SDL2.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
 
 ### AUDIO
+debug/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioCD.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioCD.o -c $(srcdir)/audio/AudioCD.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
 debug/audio_AudioDecoder_Wave.o:	$(srcdir)/audio/AudioDecoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/AudioDecoder_Wave.cpp<<<
 	$(CXX) -Wall -O -o debug/audio_AudioDecoder_Wave.o -c $(srcdir)/audio/AudioDecoder_Wave.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
 
+debug/audio_AudioInfo.o:	$(srcdir)/audio/AudioInfo.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioInfo.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioInfo.o -c $(srcdir)/audio/AudioInfo.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
+debug/audio_Cddb.o:	$(srcdir)/audio/Cddb.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/Cddb.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_Cddb.o -c $(srcdir)/audio/Cddb.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
 debug/audio_Icecast.o:	$(srcdir)/audio/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/Icecast.cpp<<<
 	$(CXX) -Wall -O -o debug/audio_Icecast.o -c $(srcdir)/audio/Icecast.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
+
+debug/audio_Mp3.o:	$(srcdir)/audio/Mp3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/Mp3.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_Mp3.o -c $(srcdir)/audio/Mp3.cpp -ggdb -D_DEBUG $(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG 
 
 ### ASM
 debug/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
