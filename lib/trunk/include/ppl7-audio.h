@@ -61,6 +61,73 @@
 
 namespace ppl7 {
 
+//!\brief Struktur zum Speichern eines MP3-Headers
+typedef struct tagMPEGHeader{
+	ppluint64 start,end;		// Beginn und Ende der Daten
+	ppluint64 size,filesize;
+	int version;
+    int layer;
+    int error_protection;
+    int bitrate_index;
+	int bitrate;
+    int frequency_index;
+	int frequency;
+    int padding;
+    int extension;
+    int mode;
+    int mode_ext;
+    int copyright;
+    int original;
+    int emphasis;
+    int stereo;
+	int	framesize;
+	int frames;
+	ppluint64 mslength;			// Laenge in ms
+	ppluint64 length;			// Laenge in s
+	ppluint64 samples;
+	bool vbr;
+} PPL_MPEG_HEADER;
+
+//!\brief Identifizieren von MP3-Dateien und Einlesen der Header
+bool IdentMPEG(FileObject &file, PPL_MPEG_HEADER * mpg);
+
+
+class AudioInfo
+{
+	public:
+		AudioInfo();
+
+		enum AudioFormat {
+			WAVE,
+			AIFF,
+			MP3
+		};
+		enum ChannelMode {
+			STEREO,
+			MONO,
+			DUAL_CHANNEL,
+			JOINT_STEREO
+		};
+
+		AudioFormat	Format;
+		bool		HaveID3v2Tag;
+		bool		IsVBR;
+		ppluint32 	ID3v2TagStart;
+		ppluint32	FileSize;
+		ppluint32	AudioStart;
+		ppluint32	AudioEnd;
+		ppluint32	AudioSize;
+		ppluint32	Samples;
+		ppluint8	BytesPerSample;
+		ppluint32	Length;		// Length in ms
+		ppluint32	Frequency;
+		ppluint16	Bitrate;
+		ppluint8	Channels;
+		ChannelMode	Mode;
+};
+
+bool IdentAudioFile(FileObject &file, AudioInfo &info);
+
 class Icecast
 {
 	private:
