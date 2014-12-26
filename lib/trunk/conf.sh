@@ -106,18 +106,12 @@ case "$SYS:$REL:$KERNEL" in
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-gcrypt=auto --with-ogg=/usr \
 			--with-postgresql \
-			--with-jpeg --with-libpng=$PREFIX \
+			--with-libmicrohttpd=/usr/local \
+			--with-jpeg --with-libpng=$PREFIX --with-libtiff \
 			--with-libtiff=/usr --with-mpg123 \
-			--enable-gtest=/usr/local/gtest-1.6.0
+            --with-libidn \
+			--enable-gtest=/usr/local/gtest-1.7.0
 		;;	
-	*:Linux:*:*Ubuntu*)
-		./configure --prefix=$PREFIX \
-			--with-lame --with-pcre=/usr --with-x \
-			--with-openssl=/usr --with-mysql=/usr  --with-libiconv-prefix --with-nasm \
-			--with-postgresql --with-gcrypt=auto \
-			--with-jpeg --with-png \
-			--with-libmhash --with-mpg123 --with-ogg=/usr
-		;;
 	*)
 		echo "Unknown host"
 		;;
