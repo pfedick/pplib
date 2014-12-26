@@ -272,12 +272,17 @@ static pplint64 FindNextHeader(FileObject &file, pplint64 pos, PPL_MPEG_HEADER *
 	// Befindet sich an dieser Position ein MPEG-Header?
 	const char *header,*buffer;
 	ppluint64 p,temp;
-	buffer=file.map(pos,1024);
+	ppluint64 mapsize;
+	ppluint64 filesize=file.size();
+
+	mapsize=filesize-pos;
+	if (mapsize<16) return -1;
+	if (mapsize>1024) mapsize=1024;
+	buffer=file.map(pos,mapsize);
 	if (!buffer) return -1;
 	p=0;
 	//printf ("FindNextHeader ab Pos: %llu\n",pos+p);
 	// Jetzt den ersten MP3-Header suchen
-	ppluint64 filesize=file.size();
 	while (pos+p+4<filesize) {
 		header=buffer+p;
 		temp=((header[0]&255)<<24)+((header[1]&255)<<16)+((header[2]&255)<<8)+(header[3]&255);
@@ -337,9 +342,12 @@ static pplint64 FindNextHeader(FileObject &file, pplint64 pos, PPL_MPEG_HEADER *
 			}
 		}
 		p++;
-		if (p>1020) {
+		if (p>(mapsize-4)) {
 			pos+=p;
-			buffer=file.map(pos,1024);
+			mapsize=filesize-pos;
+			if (mapsize<16) return -1;
+			if (mapsize>1024) mapsize=1024;
+			buffer=file.map(pos,mapsize);
 			if (!buffer) return -1;
 			p=0;
 		}
