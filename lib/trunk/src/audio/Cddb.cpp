@@ -53,8 +53,6 @@ bool CDDB::isSupported()
 	return Curl::isSupported();
 }
 
-#ifdef TODO
-
 static inline int cddb_sum(int n)
 {
 	int	ret;
@@ -68,7 +66,7 @@ static inline int cddb_sum(int n)
 }
 
 
-unsigned int CDDB::calcDiscId(ppl6::AudioCD &cd)
+unsigned int CDDB::calcDiscId(AudioCD &cd)
 {
 	int	i,
 		t = 0,
@@ -80,14 +78,14 @@ unsigned int CDDB::calcDiscId(ppl6::AudioCD &cd)
 	int tot_trks=cd.numTotalTracks();
 
 	while (i <= tot_trks) {
-		ppl6::AudioCD::Track track=cd.getTrack(i);
-		ppl6::AudioCD::Toc toc=track.start_toc();
+		AudioCD::Track track=cd.getTrack(i);
+		AudioCD::Toc toc=track.start_toc();
 		n = n + cddb_sum((toc.min * 60) + toc.sec);
 		i++;
 	}
-	ppl6::AudioCD::Track track=cd.getTrack(1);
-	ppl6::AudioCD::Toc first_toc=track.start_toc();
-	ppl6::AudioCD::Toc last_toc=ppl6::AudioCD::lsn2toc(cd.lastLsn());
+	AudioCD::Track track=cd.getTrack(1);
+	AudioCD::Toc first_toc=track.start_toc();
+	AudioCD::Toc last_toc=AudioCD::lsn2toc(cd.lastLsn());
 	t = ((last_toc.min * 60) + last_toc.sec) -
 	    ((first_toc.min * 60) + first_toc.sec);
 
@@ -102,7 +100,7 @@ CDDB::CDDB()
 	QueryPath="/~cddb/cddb.cgi";
 	Server="freedb.freedb.org";
 	ClientName="pplib";
-	ClientVersion.Setf("%i.%i.%i",
+	ClientVersion.setf("%i.%i.%i",
 			PPL_VERSION_MAJOR,
 			PPL_VERSION_MINOR,
 			PPL_VERSION_BUILD);
@@ -115,43 +113,39 @@ CDDB::~CDDB()
 {
 }
 
-void CDDB::setHttpServer(const ppl6::CString &server, int port)
+void CDDB::setHttpServer(const String &server, int port)
 {
 	this->Server=server;
 	this->port=port;
 }
 
-void CDDB::setQueryPath(const ppl6::CString &path)
+void CDDB::setQueryPath(const String &path)
 {
 	this->QueryPath=path;
 }
 
-void CDDB::setProxy(const ppl6::CString &hostname, int port)
+void CDDB::setProxy(const String &hostname, int port)
 {
-	if (!curl.SetProxy(hostname,port)) {
-		ppl6::CString e;
-		ppl6::Error2String(e);
-		throw ppl6::OperationFailedException("%s",(const char*)e);
-	}
+	curl.setProxy(hostname, port);
 }
 
-void CDDB::setClient(const ppl6::CString &name, const ppl6::CString &version)
+void CDDB::setClient(const String &name, const String &version)
 {
 	ClientName=name;
 	ClientVersion=version;
 }
 
-void CDDB::setUser(const ppl6::CString &username, const ppl6::CString &hostname)
+void CDDB::setUser(const String &username, const String &hostname)
 {
 	UserName=username;
 	Hostname=hostname;
 }
 
-static unsigned int	hex2int(const ppl6::CString &s)
+static unsigned int	hex2int(const String &s)
 {
-	const unsigned char *p=(const unsigned char *)s.GetPtr();
+	const unsigned char *p=(const unsigned char *)s.getPtr();
 	unsigned char *t;
-	size_t bytes=s.Len();
+	size_t bytes=s.len();
 	if (bytes!=8) {
 		throw CDDB::InvalidDiscId("%s",(const char*)s);
 	}
@@ -180,66 +174,62 @@ static unsigned int	hex2int(const ppl6::CString &s)
 	return ret;
 }
 
-ppl6::CString CDDB::buildUri(const ppl6::CString &cmd)
+String CDDB::buildUri(const String &cmd)
 {
-	ppl6::CString Tmp,Uri;
+	String Tmp,Uri;
 	Uri="http://"+Server;
-	if (port!=80) Uri.Concatf(":%i",port);
+	if (port!=80) Uri.appendf(":%i",port);
 	Uri+=QueryPath;
-	Uri+="?cmd="+ppl6::UrlEncode(cmd);
+	Uri+="?cmd="+UrlEncode(cmd);
 	Tmp=UserName+" "+Hostname+" "+ClientName+" "+ClientVersion;
-	Uri+="&hello="+ppl6::UrlEncode(Tmp);
+	Uri+="&hello="+UrlEncode(Tmp);
 	Uri+="&proto=6";
 	return Uri;
 }
 
-int CDDB::query(ppl6::AudioCD &cd, std::list<Disc> &list)
+int CDDB::query(AudioCD &cd, std::list<Disc> &list)
 {
 	list.clear();
-	ppl6::CString cmd,Uri,Tmp;
-	cmd.Setf("cddb query %08x %i ",calcDiscId(cd), (int)cd.numTotalTracks());
+	String cmd,Uri,Tmp;
+	cmd.setf("cddb query %08x %i ",calcDiscId(cd), (int)cd.numTotalTracks());
 	for (size_t i=cd.firstTrack();i<=cd.lastTrack();i++) {
-		ppl6::AudioCD::Track track=cd.getTrack(i);
-		cmd.Concatf("%i ",(int)track.start()+150);
+		AudioCD::Track track=cd.getTrack(i);
+		cmd.appendf("%i ",(int)track.start()+150);
 	}
-	cmd.Concatf("%i",(int)(cd.lastLsn()+150)/75);
+	cmd.appendf("%i",(int)(cd.lastLsn()+150)/75);
 	Uri=buildUri(cmd);
 
 	//printf ("Uri: %s\n",(const char*)Uri);
 
-	curl.SetURL(Uri);
+	curl.setURL(Uri);
 
-	if (!curl.Get()) {
-		ppl6::Error2String(Tmp);
-		Tmp.Print(true);
-		throw QueryFailed("%s",(const char*)Tmp);
-	}
-	ppl6::CString header=curl.GetHeader();
-	ppl6::CString payload=curl.GetResultBuffer();
-	payload.Replace("\n\r","\n");
-	payload.Replace("\r\n","\n");
+	curl.get();
+	String header=curl.getHeader();
+	String payload=curl.getResultBufferAsString();
+	payload.replace("\n\r","\n");
+	payload.replace("\r\n","\n");
 
 
 	//header.Print(true);
 	//payload.Print(true);
 
-	if (!header.PregMatch("/^.*200\\s+OK/m")) {
+	if (!header.pregMatch("/^.*200\\s+OK/m")) {
 		return 0;
 	}
-	ppl6::CArray rows(payload,"\n");
+	Array rows(payload,"\n");
 	bool multiResults=false;
-	for (int r=0;r<rows.Num();r++) {
-		ppl6::CString row=rows[r];
-		ppl6::CArray matches;
-		if (row.PregMatch("/^200\\s+(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
+	for (size_t r=0;r<rows.size();r++) {
+		String row=rows[r];
+		Array matches;
+		if (row.pregMatch("/^200\\s+(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
 			Disc disc;
 			unsigned int discid=hex2int(matches[2]);
 			getDisc(discid,matches[1],disc);
 			list.push_back(disc);
-		} else if (row.PregMatch("/^210 Found exact matches.*$/")) {
+		} else if (row.pregMatch("/^210 Found exact matches.*$/")) {
 			multiResults=true;
 		} else if (multiResults==true &&
-				row.PregMatch("/^(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
+				row.pregMatch("/^(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
 			Disc disc;
 			unsigned int discid=hex2int(matches[2]);
 			getDisc(discid,matches[1],disc);
@@ -249,21 +239,22 @@ int CDDB::query(ppl6::AudioCD &cd, std::list<Disc> &list)
 	return list.size();
 }
 
-static void parseOffsets(const ppl6::CString &payload, ppl6::CArray &offsets)
+static void parseOffsets(const String &payload, Array &offsets)
 {
 	bool headerFound=false;
 	bool offsetsFound=false;
-	ppl6::CArray a(payload,"\n");
-	for (int i=0;i<a.Num();i++) {
-		ppl6::CString row=a[i];
-		row.Trim();
+	Array a(payload,"\n");
+	for (size_t i=0;i<a.size();i++) {
+		String row=a[i];
+		row.trim();
 		//printf ("Parsing row: %s\n",(const char*)row);
-		if (row.Left(6)=="# xmcd") headerFound=true;
+		if (row.left(6)=="# xmcd") headerFound=true;
 		else if (headerFound) {
 			if (row=="# Track frame offsets:") offsetsFound=true;
 			else if (offsetsFound) {
-				if (row.PregMatch("/^#\\s+([0-9]+)$/")) {
-					offsets.Add(row.GetMatch(1));
+				Array matches;
+				if (row.pregMatch("/^#\\s+([0-9]+)$/",matches)) {
+					offsets.add(matches[1]);
 				} else break;
 			}
 		}
@@ -271,82 +262,79 @@ static void parseOffsets(const ppl6::CString &payload, ppl6::CArray &offsets)
 	//offsets.List();
 }
 
-static void storeDisc(CDDB::Disc &disc, const ppl6::CString &payload)
+static void storeDisc(CDDB::Disc &disc, const String &payload)
 {
-	ppl6::CAssocArray a;
-	a.CreateFromTemplate(payload,"\n","=","");
-	ppl6::CString Tmp=a["DTITLE"];
-	if (Tmp.PregMatch("/^(.*?)\\s\\/\\s(.*)$/")) {
-		disc.Artist=Tmp.GetMatch(1);
-		disc.Title=Tmp.GetMatch(2);
+	AssocArray a;
+	Array matches;
+	a.fromTemplate(payload,"\n","=","");
+	String Tmp=a["DTITLE"];
+	if (Tmp.pregMatch("/^(.*?)\\s\\/\\s(.*)$/",matches)) {
+		disc.Artist=matches[1];
+		disc.Title=matches[2];
 	} else {
 		disc.Artist=Tmp;
 		disc.Title=Tmp;
 	}
 	disc.Extra=a["EXTD"];
-	disc.Artist.Trim();
-	disc.Title.Trim();
-	disc.Extra.Trim();
-	disc.Extra.Replace("\\n","\n");
-	disc.year=a.ToInt("DYEAR");
+	disc.Artist.trim();
+	disc.Title.trim();
+	disc.Extra.trim();
+	disc.Extra.replace("\\n","\n");
+	disc.year=a["DYEAR"].toString().toInt();
 	disc.genre=a["DGENRE"];
-	disc.genre.Trim();
+	disc.genre.trim();
 
-	ppl6::CArray matches;
-	if (payload.PregMatch("/#\\sDisc\\slength:\\s+([0-9]+)/m",matches)) {
-		disc.length=matches.GetString(1).ToInt();
+	if (payload.pregMatch("/#\\sDisc\\slength:\\s+([0-9]+)/m",matches)) {
+		disc.length=matches.get(1).toInt();
 	}
-	ppl6::CArray offsets;
+	Array offsets;
 	parseOffsets(payload,offsets);
 
 	for (int i=0;i<99;i++) {
-		Tmp.Setf("TTITLE%i",i);
-		if (!a.HaveKey(Tmp)) break;
+		Tmp.setf("TTITLE%i",i);
+		if (!a.exists(Tmp)) break;
 		CDDB::Track t;
 		t.number=i+1;
-		t.frame_offset=offsets.GetString(i).ToInt();
-		t.length=(offsets.GetString(i+1).ToInt()-t.frame_offset)/75;
+		t.frame_offset=offsets.get(i).toInt();
+		t.length=(offsets.get(i+1).toInt()-t.frame_offset)/75;
 		if (t.length<0) {
 			t.length=(disc.length*75+150-t.frame_offset)/75;
 		}
 		t.Artist=disc.Artist;
 		t.Title=a[Tmp];
-		if (t.Title.PregMatch("/^(.*?)\\s\\/\\s(.*)$/")) {
-			t.Artist=t.Title.GetMatch(1);
-			t.Title=t.Title.GetMatch(2);
+		Array tmatches;
+		if (t.Title.pregMatch("/^(.*?)\\s\\/\\s(.*)$/",tmatches)) {
+			t.Artist=tmatches.get(1);
+			t.Title=tmatches.get(2);
 		}
-		t.Artist.Trim();
-		t.Title.Trim();
+		t.Artist.trim();
+		t.Title.trim();
 
-		Tmp.Setf("EXTT%i",i);
+		Tmp.setf("EXTT%i",i);
 		t.Extra=a[Tmp];
-		t.Extra.Trim();
-		t.Extra.Replace("\\n","\n");
+		t.Extra.trim();
+		t.Extra.replace("\\n","\n");
 		disc.Tracks.push_back(t);
 	}
 
 }
 
-void CDDB::getDisc(unsigned int discId, const ppl6::CString &category, Disc &d)
+void CDDB::getDisc(unsigned int discId, const String &category, Disc &d)
 {
-	ppl6::CString cmd,Uri,Tmp;
-	cmd.Setf("cddb read %s %08x",(const char*)category, discId);
+	String cmd,Uri,Tmp;
+	cmd.setf("cddb read %s %08x",(const char*)category, discId);
 	Uri=buildUri(cmd);
-	curl.SetURL(Uri);
-	if (!curl.Get()) {
-		ppl6::Error2String(Tmp);
-		Tmp.Print(true);
-		throw QueryFailed("%s",(const char*)Tmp);
-	}
-	ppl6::CString header=curl.GetHeader();
-	ppl6::CString payload=curl.GetResultBuffer();
-	payload.Replace("\n\r","\n");
-	payload.Replace("\r\n","\n");
+	curl.setURL(Uri);
+	curl.get();
+	String header=curl.getHeader();
+	String payload=curl.getResultBufferAsString();
+	payload.replace("\n\r","\n");
+	payload.replace("\r\n","\n");
 
-	if (!header.PregMatch("/^.*200\\s+OK/m")) {
+	if (!header.pregMatch("/^.*200\\s+OK/m")) {
 		throw QueryFailed("%s",(const char*)header);
 	}
-	if (!payload.PregMatch("/^210\\s/m")) {
+	if (!payload.pregMatch("/^210\\s/m")) {
 		throw QueryFailed("%s",(const char*)header);
 	}
 
@@ -356,6 +344,5 @@ void CDDB::getDisc(unsigned int discId, const ppl6::CString &category, Disc &d)
 	storeDisc(d,payload);
 }
 
-#endif
 
 }	// EOF namespace ppl7
