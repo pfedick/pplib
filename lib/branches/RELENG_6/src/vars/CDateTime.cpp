@@ -649,6 +649,7 @@ ppl6::CString CDateTime::get(const ppl6::CString &format) const
 	}
 	if (strftime(b, size,(const char*)r, &t)==0) {
 		ppl6::SetError(348,"CDateTime::get(\"%s\")",(const char*)r);
+		free(b);
 		return r;
 	}
 	r.Set(b);

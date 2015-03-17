@@ -1149,6 +1149,7 @@ CString MkDate(const char *format, ppluint64 sec)
 	localtime_r(&tt, &t);
 	if (strftime(b, size,format, &t)==0) {
 		SetError(348,"%s",format);
+		free(b);
 		return buffer;
 	}
 	buffer.Set(b);

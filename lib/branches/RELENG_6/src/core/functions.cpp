@@ -999,6 +999,7 @@ int FileExists(const char *fmt, ...)
     va_start(args, fmt);
     if (vasprintf (&buff, (char*)fmt, args)<0 || buff==NULL) {
         // Nicht genuegend RAM
+    	va_end(args);
         return 0;
     }
     va_end(args);
