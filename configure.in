@@ -1,0 +1,648 @@
+dnl Process this file with autoconf to produce a configure script.
+AC_PREREQ(2.62)
+AC_INIT([ppl], [6.4.10], [patrick@pfp.de], [ppl-6.4.10.tar.bz2])
+AC_CONFIG_AUX_DIR(autoconf)
+
+AC_CONFIG_SRCDIR([include/ppl6.h])
+AC_CONFIG_SRCDIR([src/core/pplcore.cpp])
+AC_CONFIG_SRCDIR([src/core/functions.cpp])
+AC_CONFIG_SRCDIR([src/math/math.cpp])
+
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([ppl6-config])
+AC_CONFIG_HEADERS([include/config.h])
+AC_CONFIG_HEADERS([include/ppl6-unixconfig.h])
+
+sinclude(config/openssl.m4)
+sinclude(config/ax_check_openssl.m4)
+sinclude(config/libcurl.m4)
+sinclude(config/mysql.m4)
+sinclude(config/postgres.m4)
+sinclude(config/freetype.m4)
+sinclude(config/pcre.m4)
+sinclude(config/png.m4)
+sinclude(config/jpeg.m4)
+sinclude(config/pthreads.m4)
+sinclude(config/sdl.m4)
+sinclude(config/sybase.m4)
+#sinclude(config/yasm.m4)
+sinclude(config/nasm.m4)
+sinclude(autoconf/lib-link.m4)
+sinclude(config/iconv.m4)
+sinclude(config/bzip2.m4)
+sinclude(config/zlib.m4)
+sinclude(config/libmcrypt.m4)
+sinclude(config/libmhash.m4)
+sinclude(config/checkfuncs.m4)
+sinclude(config/ax_gcc_x86_cpuid.m4)
+sinclude(config/ax_check_compiler_flags.m4)
+sinclude(config/ax_gcc_archflag.m4)
+sinclude(config/ldns.m4)
+sinclude(config/mpg123.m4)
+sinclude(config/lame.m4)
+sinclude(config/ogg.m4)
+sinclude(config/shout.m4)
+sinclude(config/libgcrypt.m4)
+sinclude(config/libgnutls.m4)
+sinclude(config/libmicrohttpd.m4)
+
+AC_CANONICAL_TARGET
+
+OLD_CFLAGS=$CFLAGS
+# Checks for programs.
+AC_PROG_CC
+CFLAGS=$OLD_CFLAGS
+AC_PROG_CXX
+dnl AC_LANG(C++)
+
+AX_GCC_ARCHFLAG
+
+
+AC_PROG_SED
+
+AC_C_BIGENDIAN(
+	report_byteorder="BIG ENDIAN"
+	AC_DEFINE(__BIG_ENDIAN__),
+	report_byteorder="LITTLE ENDIAN"
+	AC_DEFINE(__LITTLE_ENDIAN__))
+
+AC_SIZEOF_TYPE(char)
+AC_SIZEOF_TYPE(short)
+AC_SIZEOF_TYPE(int)
+AC_SIZEOF_TYPE(long)
+AC_SIZEOF_TYPE(long long)
+AC_SIZEOF_TYPE(wchar_t)
+AC_SIZEOF_TYPE(size_t)
+
+if test $ac_cv_sizeof_char -eq 1; then
+	AC_DEFINE(ppluint8,unsigned char)
+	AC_DEFINE(pplint8,signed char)
+fi
+if test $ac_cv_sizeof_short -eq 2; then
+	AC_DEFINE(ppluint16,unsigned short)
+	AC_DEFINE(pplint16,signed short)
+fi
+
+if test $ac_cv_sizeof_int -eq 4; then
+	AC_DEFINE(ppluint32,unsigned int)
+	AC_DEFINE(pplint32,signed int)
+fi
+
+if test $ac_cv_sizeof_long -eq 8; then
+		AC_DEFINE(ppluint64,unsigned long)
+		AC_DEFINE(pplint64,signed long)
+else
+	if test $ac_cv_sizeof_long_long -eq 8; then
+		AC_DEFINE(ppluint64,unsigned long long)
+		AC_DEFINE(pplint64,signed long long)
+	fi
+fi
+
+if test $ac_cv_sizeof_wchar_t -eq 4; then
+	echo "Byteorder: >>$report_byteorder<<"
+	if test "$report_byteorder" = "LITTLE ENDIAN"; then
+		AC_DEFINE(ICONV_UNICODE,"UTF-32LE")
+	else
+		AC_DEFINE(ICONV_UNICODE,"UTF-32BE")
+	fi
+else
+	if test "$report_byteorder" = "LITTLE ENDIAN"; then
+		AC_DEFINE(ICONV_UNICODE,"UTF-16LE")
+	else
+		AC_DEFINE(ICONV_UNICODE,"UTF-16BE")
+	fi
+fi
+
+AC_SIZEOF_TYPE(float)
+AC_SIZEOF_TYPE(double)
+AC_SIZEOF_TYPE(void*)
+
+if test $ac_cv_sizeof_voidp -eq 4; then
+	AC_DEFINE(ppliptr,ppluint32)
+elif test $ac_cv_sizeof_voidp -eq 8; then
+	AC_DEFINE(ppliptr,ppluint64)
+else
+	AC_MSG_ERROR(size of void* is not supported)
+	
+fi
+
+AC_SIZEOF_TYPE(fpos_t)
+AC_CHECK_SIZEOF(fpos_t, 4)
+
+
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
+
+
+#--------------------------------------------------------------------
+#       Check for various typedefs and provide substitutes if
+#       they don't exist.
+#--------------------------------------------------------------------
+
+AC_HEADER_STDBOOL
+AC_HEADER_TIME
+AC_TYPE_MODE_T
+AC_TYPE_PID_T
+AC_TYPE_SIZE_T
+AC_TYPE_UID_T
+AC_TYPE_OFF_T
+dnl AC_SIZEOF_TYPE(off_t)
+
+dnl Checks for typedefs, structures, and compiler characteristics.
+AC_C_CONST
+AC_STRUCT_TM
+# FPOS_T ist ein Struct?
+AX_FPOS_ISSTRUCT()
+
+AX_TM_HAS_GMTOFF()
+
+# X11
+report_have_x="no"
+AC_PATH_X
+
+if test "$have_x" == "yes" ; then
+	report_have_x="yes"
+	AC_DEFINE(HAVE_X11, 1, [ Define if you have X11. ])
+fi
+AC_PATH_XTRA
+
+
+AC_CHECK_HEADERS([stdlib.h])
+AC_CHECK_HEADERS([unistd.h])
+AC_CHECK_HEADERS([stdarg.h])
+AC_CHECK_HEADERS([stdio.h])
+AC_CHECK_HEADERS([math.h])
+AC_CHECK_HEADERS([fcntl.h])
+AC_CHECK_HEADERS([sys/file.h])
+AC_CHECK_HEADERS([time.h])
+AC_CHECK_HEADERS([sys/time.h])
+AC_CHECK_HEADERS([sys/types.h])
+AC_CHECK_HEADERS([sys/socket.h])
+AC_CHECK_HEADERS([sys/poll.h])
+AC_CHECK_HEADERS([netinet/in.h])
+AC_CHECK_HEADERS([netdb.h])
+AC_CHECK_HEADERS([arpa/inet.h])
+AC_CHECK_HEADERS([strings.h])
+AC_CHECK_HEADERS([errno.h])
+AC_CHECK_HEADERS([signal.h])
+AC_CHECK_HEADERS([dirent.h])
+AC_CHECK_HEADERS([fnmatch.h])
+AC_CHECK_HEADERS([sys/stat.h])
+AC_CHECK_HEADERS([limits.h])
+AC_CHECK_HEADERS([ctype.h])
+AC_CHECK_HEADERS([wctype.h])
+AC_CHECK_HEADERS([locale.h])
+AC_CHECK_HEADERS([wchar.h])
+AC_CHECK_HEADERS([widec.h])
+AC_CHECK_HEADERS([sys/mman.h])
+
+AC_FUNC_MKTIME
+AC_CHECK_TYPE(size_t, unsigned)
+AC_CHECK_TYPE(wchar_t, unsigned)
+
+# Checks for library functions.
+AC_FUNC_FSEEKO
+AC_FUNC_MALLOC
+AC_FUNC_MKTIME
+AC_FUNC_REALLOC
+AC_FUNC_STAT
+AC_FUNC_STRFTIME
+AC_FUNC_VPRINTF
+AC_FUNC_VSNPRINTF
+AC_CHECK_FUNCS([bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket vasprintf asprintf])
+AC_CHECK_FUNCS([gethostname sethostname getdomainname setdomainname uname])
+AC_CHECK_FUNCS([strcasecmp strdup strerror strncasecmp strndup strstr strcasestr strcmp strncmp])
+AC_CHECK_FUNCS([strncpy strlcpy strncat strlcat])
+AC_CHECK_FUNCS([strtok strtok_r])
+AC_CHECK_FUNCS([atoll strtoll])
+AC_CHECK_FUNCS([flock fcntl truncate ftruncate sync fsync])
+AC_CHECK_FUNCS([fgets fputs fgetws fputws fputc fgetc fputwc fgetwc mmap munmap sysconf pagesize])
+AC_CHECK_FUNCS([usleep nanosleep localtime localtime_r])
+AC_CHECK_FUNCS([signal])
+AC_CHECK_FUNCS([localtime_r])
+AC_CHECK_FUNCS([strtok_r])
+AC_CHECK_FUNCS([getpid getppid getuid geteuid])
+AC_CHECK_FUNCS([mkstemp])
+AC_CHECK_FUNCS([wcscmp wcsncmp wcscasecmp wcsncasecmp wcstol wcstoll wcslen wcsstr wcstoul wcstoull wcstod wcstof])
+AC_CHECK_FUNCS([wcstombs mbstowcs wcsrtombs wcsnrtombs mbsrtowcs mbsnrtowcs])
+AC_CHECK_FUNCS([wprintf fwprintf swprintf vwprintf vfwprintf vswprintf])
+AC_CHECK_FUNCS([wstol wstoll watoi watoll wstod watof])
+AC_CHECK_FUNCS([poll select pselect])
+AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
+AC_CHECK_FUNCS([clock_gettime])
+
+
+dnl Checks for programs.
+
+dnl Checks for libraries.
+
+
+report_have_libgcrypt="no"
+AM_PATH_LIBGCRYPT(,
+            AC_DEFINE(HAVE_LIBGCRYPT, 1, [ Define if you have libgcrypt. ])
+            report_have_libgcrypt="yes"
+			,
+			:)
+
+report_have_libgnutls="no"
+AM_PATH_LIBGNUTLS(,
+            AC_DEFINE(HAVE_LIBGNUTLS, 1, [ Define if you have libgnutls. ])
+            report_have_libgnutls="yes"
+			,
+			:)
+
+report_have_libmicrohttpd="no"
+AM_LIBMICROHTTPD(,
+            AC_DEFINE(HAVE_LIBMICROHTTPD, 1, [ Define if you have libmicrohttpd. ])
+            report_have_libmicrohttpd="yes"
+            AC_SUBST(LIBMICROHTTPD_CFLAGS)
+			AC_SUBST(LIBMICROHTTPD_LIBS)
+            
+            ,
+            :)
+
+
+report_have_libmcrypt="no"
+AM_PATH_LIBMCRYPT([2.5.7],
+            AC_DEFINE(HAVE_LIBMCRYPT, 1, [ Define if you have libmcrypt. ])
+            report_have_libmcrypt="yes",
+            :)
+
+report_have_libmhash="no"
+AM_PATH_LIBMHASH([0.9.9],
+            AC_DEFINE(HAVE_LIBMHASH, 1, [ Define if you have libmhash. ])
+            report_have_libmhash="yes",
+            :)
+
+
+report_have_jpeg="no"
+AC_CHECK_LIBJPEG([1.2],
+            AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
+            report_have_jpeg="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $JPEG_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $JPEG_LIBS",
+           :)
+
+report_have_curl="no"
+LIBCURL_CHECK_CONFIG("yes",7.14.1,
+	#LIBS="$LIBS $LIBCURL"
+	#CFLAGS="$CFLAGS $LIBCURL_CPPFLAGS "
+	AC_SUBST(LIBCURL)
+	AC_SUBST(LIBCURL_CPPFLAGS)
+	
+	report_have_curl="yes",:)
+
+
+report_have_mpg123="no"
+AC_CHECK_LIBMPG123([1.0.0],
+            AC_DEFINE(HAVE_MPG123, 1, [ Define if you have mpg123 library. ])
+            report_have_mpg123="yes"
+			AC_SUBST(MPG123_CFLAGS)
+			AC_SUBST(MPG123_LIBS)
+            ,
+            )
+
+report_have_lame="no"
+AC_CHECK_LIBMP3LAME([3.98.0],
+	AC_DEFINE(HAVE_LAME, 1, [ Define if you have lame. ])
+	report_have_lame="yes"
+	AC_SUBST(LAME_CFLAGS)
+	AC_SUBST(LAME_LIBS)
+	, :)
+
+report_have_libogg="no"
+XIPH_PATH_OGG(
+	AC_DEFINE(HAVE_LIBOGG, 1, [ Define if you have libogg. ])
+	report_have_libogg="yes"
+	AC_SUBST(OGG_CFLAGS)
+	AC_SUBST(OGG_LIBS)
+	, :)
+
+report_have_libshout="no"
+XIPH_PATH_SHOUT(
+	AC_DEFINE(HAVE_LIBSHOUT, 1, [ Define if you have libshout. ])
+	report_have_libshout="yes"
+	AC_SUBST(SHOUT_CFLAGS)
+	AC_SUBST(SHOUT_LIBS)
+	, :)
+
+
+am_save_CPPFLAGS="$CPPFLAGS"
+am_save_LIBS="$LIBS"
+am_save_LDFLAGS="$LDFLAGS"
+report_have_libmad="no"
+have_MAD="no",
+AC_ARG_WITH(libmad,
+  [[  --with-libmad[=DIR]     enable support for decoding of mp3 files [in DIR]]])
+if test "$with_libmad" != "no"
+then
+  if test -n "$with_libmad" -a "$with_libmad" != "yes"
+  then
+    CPPFLAGS="$CPPFLAGS -I$with_libmad/include"
+    LDFLAGS="$LDFLAGS -L$with_libmad/lib"
+  fi
+  AC_CHECK_HEADER(mad.h, [
+    have_MAD="maybe",
+    AC_DEFINE(HAVE_MAD_H, 1, [Use <lame/lame.h> instead of <lame.h>])
+    ], [
+    AC_CHECK_HEADER(mad.h, [
+    have_MAD="maybe"])])
+  if test "$have_MAD" != "no"
+  then
+    LIBS="$LIBS -L$with_libmad/lib -lmad -lm"
+    AC_CHECK_LIB(mad, mad_stream_buffer, [
+      report_have_libmad="yes"
+      MAD_LIBS="-L$with_libmad/lib -lmad -lm"
+      MAD_CFLAGS="-I$with_libmad/include"
+      AC_SUBST(MAD_CFLAGS)
+	  AC_SUBST(MAD_LIBS)
+      
+      AC_DEFINE(HAVE_LIBMAD, 1, [Define if you have the libmad library])
+      ], [report_have_libmad="no"], -lm)
+  fi
+fi
+CPPFLAGS=$am_save_CPPFLAGS
+LIBS=$am_save_LIBS
+LDFLAGS=$am_save_LDFLAGS
+
+
+report_have_iconv="no"
+
+AM_ICONV
+if test "$am_cv_func_iconv_works" = "yes" 
+then
+	report_have_iconv="yes"
+	ICONV_CFLAGS=$INCICONV
+	ICONV_LIBS=$LIBICONV
+	AC_SUBST(ICONV_CFLAGS)
+	AC_SUBST(ICONV_LIBS)
+fi
+
+
+# Bzip2 Vorhanden?
+AM_BZIP2
+AM_ZLIB
+
+dnl do we need to specify -lm explicitly?
+AC_CHECK_FUNC(sin,,[AC_CHECK_LIB(m,sin)])
+
+# PCRE vorhanden?
+report_have_pcre="no"
+AX_PATH_LIB_PCRE([6.0],
+            AC_DEFINE(HAVE_PCRE, 1, [ Define if you have pcre. ])
+            report_have_pcre="yes"
+			AC_SUBST(PCRE_CFLAGS)
+			AC_SUBST(PCRE_LIBS)
+            ,
+            )
+
+report_have_openssl="no"
+AX_CHECK_OPENSSL(
+	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
+	report_have_openssl="yes"
+	, :)
+
+
+report_have_freetype2="no"
+AC_CHECK_FT2(9.0.0,
+	AC_DEFINE(HAVE_FREETYPE2, 1, [ Define if you have freetype2. ])
+	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $FT2_CFLAGS"
+	GRAPHIC_LIBS="$GRAPHIC_LIBS $FT2_LIBS"
+	report_have_freetype2="yes"
+	, :)
+
+dnl Check for SDL
+report_have_sdl="no"
+SDL_VERSION=1.2.10
+AM_PATH_SDL($SDL_VERSION,
+	AC_DEFINE(HAVE_SDL, 1, [ Define if you have sdl. ])
+	GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $SDL_CFLAGS"
+	GRAPHIC_LIBS="$GRAPHIC_LIBS $SDL_LIBS"
+	report_have_sdl="yes"
+	, :)
+
+report_have_png="no"
+AC_CHECK_LIBPNG([1.2],
+            AC_DEFINE(HAVE_PNG, 1, [ Define if you have libpng. ])
+            report_have_png="yes"
+			GRAPHIC_CFLAGS="$GRAPHIC_CFLAGS $PNG_CFLAGS"
+			GRAPHIC_LIBS="$GRAPHIC_LIBS $PNG_LIBS",
+           :)
+
+report_have_mysql="no"
+AC_CHECK_MYSQL([4.0],
+            AC_DEFINE(HAVE_MYSQL, 1, [ Define if you have mysql. ])
+            report_have_mysql="yes"
+			AC_SUBST(MYSQL_CFLAGS)
+			AC_SUBST(MYSQL_LIBS),
+            :)
+
+
+report_have_postgres="no"
+AX_LIB_POSTGRESQL([8.0])
+if test "$found_postgresql" = "yes"; then
+	report_have_postgres="yes"
+fi
+
+report_have_sybase="no"
+AC_CHECK_SYBASE([],
+            AC_DEFINE(HAVE_SYBASE, 1, [ Define if you have Sybase Open Client CT-library. ])
+            report_have_sybase="yes"
+			AC_SUBST(SYBASE_CFLAGS)
+			AC_SUBST(SYBASE_LIBS),
+            :)
+
+report_have_ldns="no"
+AX_PATH_LIB_LDNS([1.6.3],
+            AC_DEFINE(HAVE_LIBLDNS, 1, [ Define if you have ldns library from netlabs.nl. ])
+            report_have_ldns="yes"
+			AC_SUBST(LIBLDNS_CFLAGS)
+			AC_SUBST(LIBLDNS_LIBS)
+            ,
+            )
+
+
+
+
+dnl Check for nasm
+AC_MSG_NOTICE(checking if we can use assembly)
+use_asm="none"
+report_have_nasm="no"
+#report_have_yasm="no"
+case $target in
+	i?86*|x86*|amd64*)
+		AC_CHECK_NASM(2.0.0,
+			report_have_nasm="yes"
+		)
+		;;
+esac		
+
+# We prefere nasm over yasm if we have both
+if test $report_have_nasm = "yes"
+then
+	use_asm="nasm"
+	AC_DEFINE(HAVE_NASM,1,)
+	AC_DEFINE(HAVE_X86_ASSEMBLER,1,)
+	HAVE_X86_ASSEMBLER="ASM_RELEASE	=	\$(ASM_OBJ_RELEASE)
+ASM_DEBUG	=	\$(ASM_OBJ_DEBUG)"
+	AC_SUBST(HAVE_X86_ASSEMBLER)
+	ASM=${NASM}
+	ASMFLAGS=${NASMFLAGS}
+	ASMDEBUGFLAGS=${NASMDEBUGFLAGS}
+	AC_SUBST(ASM)
+	AC_SUBST(ASMFLAGS)
+	AC_SUBST(ASMDEBUGFLAGS)
+fi
+
+SRCDIR=`pwd`
+AC_SUBST(SRCDIR)
+
+
+case $host_os in
+	*mingw32* )
+		report_have_pthreads="Win32 Threads"
+  		;;
+	* )
+		ACX_PTHREAD(report_have_pthreads="yes"
+			AC_DEFINE(HAVE_PTHREADS,1,)#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_ERRNO_H
+#include <errno.h>
+#endif
+#ifdef HAVE_SIGNAL_H
+    #include <signal.h>
+#endif
+			
+			,report_have_pthreads="no")
+
+		;;
+esac
+
+
+
+case $host_os in
+	*mingw32* )
+		MINGW32=yes
+		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
+  		;;
+	* )
+		MINGW32=no
+		;;
+esac
+
+case "${host_cpu}-${host_os}" in
+	*solaris*)
+		CFLAGS=`echo $CFLAGS | $SED 's/-I\/usr\/local\/include //g' | $SED 's/-I\/usr\/include //g' `
+        ;;
+esac;
+
+AC_SUBST(report_have_zlib)
+AC_SUBST(report_have_bzip2)
+AC_SUBST(report_have_png)
+AC_SUBST(report_have_jpeg)
+AC_SUBST(report_have_freetype2)
+AC_SUBST(report_have_sdl)
+AC_SUBST(report_have_lame)
+AC_SUBST(report_have_libmad)
+AC_SUBST(report_have_curl)
+AC_SUBST(report_have_openssl)
+AC_SUBST(report_have_pcre)
+AC_SUBST(report_have_iconv)
+AC_SUBST(report_have_libmcrypt)
+AC_SUBST(report_have_libmhash)
+AC_SUBST(report_have_mysql)
+AC_SUBST(report_have_postgres)
+AC_SUBST(report_have_sybase)
+AC_SUBST(report_have_nasm)
+AC_SUBST(report_have_pthreads)
+AC_SUBST(report_have_ldns)
+AC_SUBST(report_have_libogg)
+AC_SUBST(report_have_libshout)
+AC_SUBST(report_have_libmicrohttpd)
+
+
+dnl report configuration
+AC_MSG_RESULT([
+******************************************************************************
+** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
+** Target: $target_os        CPU: $target_cpu
+** 
+** Byteorder: $report_byteorder
+**   Size of char         $ac_cv_sizeof_char     Size of float        $ac_cv_sizeof_float
+**   Size of short        $ac_cv_sizeof_short     Size of double       $ac_cv_sizeof_double
+**   Size of int          $ac_cv_sizeof_int     Size of void*        $ac_cv_sizeof_voidp
+**   Size of long         $ac_cv_sizeof_long     Size of wchar_t      $ac_cv_sizeof_wchar_t
+**   Size of long long    $ac_cv_sizeof_long_long     
+**   Size of size_t       $ac_cv_sizeof_size_t
+******************************************************************************
+** Supported Libraries:       		Databases:
+**   ZLIB library:         $report_have_zlib		  MySQL:                $report_have_mysql
+**   BZIP2 library:        $report_have_bzip2		  Postgres:             $report_have_postgres
+**   PNG library:          $report_have_png		  Sybase Open Client:   $report_have_sybase
+**   JPEG library:         $report_have_jpeg
+**   Freetype 2.x library: $report_have_freetype2		Nasm (x86 assembler):   $report_have_nasm
+**   SDL library:          $report_have_sdl		  
+**   Lame library:         $report_have_lame		  
+**   Libmad library:       $report_have_libmad	
+**   mpg123 library:       $report_have_mpg123
+**   ogg library:          $report_have_libogg	  
+**   shout library:        $report_have_libshout
+**   Curl library:         $report_have_curl
+**   Libgcrypt:            $report_have_libgcrypt
+**   Libgnutls:            $report_have_libgnutls
+**   Libmicrohttpd:        $report_have_libmicrohttpd		  
+**   OpenSSL:              $report_have_openssl		Threads:
+**   PCRE:                 $report_have_pcre		  pthreads:             $report_have_pthreads
+**   ICONV:                $report_have_iconv
+**   MCrypt library:       $report_have_libmcrypt
+**   MHash:                $report_have_libmhash
+**   ldns library:         $report_have_ldns
+******************************************************************************
+])
+
+dnl check if we have all required libraries
+missing=""
+
+if test "$report_have_zlib" != "yes"
+then
+	missing="$missing  - zlib is required but not found
+"
+fi
+if test "$report_have_bzip2" != "yes"
+then
+	missing="$missing  - libbzip2 is required but not found
+"
+fi
+
+if test "$report_have_pcre" != "yes"
+then
+	missing="$missing  - libpcre is required but not found
+"
+fi
+
+if test -n "$missing"
+then
+	AC_MSG_ERROR(Cannot build because of missing dependencies:
+$missing)
+fi
+
+AC_SUBST(GRAPHIC_CFLAGS)
+AC_SUBST(GRAPHIC_LIBS)
+
+AC_SUBST(SOUND_CFLAGS)
+AC_SUBST(SOUND_LIBS)
+
+
+AC_DEFINE(CONF_CFLAGS, [$CFLAGS])
+AC_DEFINE(CONF_LIBS, [$LIBS])
+
+AC_OUTPUT()
+
+
+
+
+

@@ -1,8 +1,25 @@
 /*!\file
  * \return Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0).
+ * \note Bei erfolgreichem Setzen des Strings wird die Funktion CVar::Change aufgerufen, die
+ * ihrerseits eine Callback-Funktion aufruft, sofern diese definiert wurde.
  * 
  * \see
- * - ppl7::CWString::Set(const char *text, int size=-1);
- *
+ * - ppl6::CWString::Set(const char *text, int size=-1);
+ * - ppl6::CWString::Set(const wchar_t *text, int size=-1);
+ * - ppl6::CWString::Set(CString *str, int size=-1);
+ * - ppl6::CWString::Set(CWString *str, int chars=-1);
+ * - ppl6::CWString::Set(CWString &str, int chars=-1);
+ * - ppl6::CWString::Setf(const char *fmt, ...);
+ * - ppl6::CWString::Sprintf(const char *fmt, ...);
+ * - ppl6::CWString::VaSprintf(const char *fmt, va_list args);
+ * - ppl6::CWString::Vasprintf(const char *fmt, va_list args);
+ * - ppl6::CWString::Strcpy(char *str);
+ * - ppl6::CWString::Strcpy(const char *str);
+ * - ppl6::CWString::Strncpy(char *str, int bytes);
+ * - ppl6::CWString::Strncpy(const char *str, int bytes);
+ * - ppl6::CWString::Copy(const char *str, int bytes=-1);
+ * - ppl6::CWString::Copy(CString *str, int bytes=-1);
+ * - ppl6::CWString::Add(const char *str, int bytes=-1);			
+ * - ppl6::CWString::Import(const char *encoding, void *buffer, int bytes=-1);
  * 
  */	
