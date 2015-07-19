@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 1.8 $
+ * $Date: 2010/10/16 13:35:42 $
+ * $Id: Database.cpp,v 1.8 2010/10/16 13:35:42 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -51,17 +54,19 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-db.h"
+#include "ppl6.h"
+#include "ppl6-db.h"
 
 
-namespace ppl7 {
+namespace ppl6 {
 namespace db {
 
+
+Database *Connect(const CAssocArray &params)
 /*!\ingroup PPLGroupDatabases
  * \brief Verbindung zu einer Datenbank herstellen
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <ppl6-db.h>
  *
  * \descr
  * Mit dieser Funktion wird eine neue Datenbank-Klasse erstellt und eine Verbindung zu der gewünschten
@@ -83,11 +88,8 @@ namespace db {
  * - \b mysql: MySQL-Datenbank
  * - \b postgres: Postgres-Datenbank
  * - \b sybase: Sybase-Datenbank
- * Die tatsächlich unterstützten Datenbanken hängen davon ab, wie PPL6 kompiliert wurde.
  * \par
- * Postgres unterstützt zusätzlich noch die Angabe des Suchpfades:
- * - \b searchpath: Kommaseparierte Liste mit den Schemata, die in den Suchpfad
- *      aufgenommen werden sollen
+ * Die tatsächlich unterstützten Datenbanken hängen davon ab, wie PPL6 kompiliert wurde.
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
@@ -98,72 +100,65 @@ namespace db {
  * \skip DB_Example1
  * \until EOF
  */
-
-Database *Connect(const AssocArray &params)
 {
-	String type=params["type"];
-	if (type.isEmpty()) throw MissingArgumentException("type");
-	type.lowerCase();
+	CString type=params["type"];
+	if (type.IsEmpty()) {
+		SetError(341,"type");
+		return NULL;
+	}
+	type.LCase();
 	Database *db=NULL;
 	#ifdef HAVE_MYSQL
-		throw UnsupportedFeatureException("MySQL");
-		/*
 		if (type=="mysql") {
 			db=new MySQL;
 		}
-		*/
 	#endif
-	#ifdef HAVE_FREETDS
-		throw UnsupportedFeatureException("Sybase");
-		/*
+	#ifdef HAVE_SYBASE
 		if (type=="sybase") {
 			db=new Sybase;
 		}
-		*/
 	#endif
 	#ifdef HAVE_POSTGRESQL
-		if (type=="postgres" || type=="postgresql") {
-			db=new PostgreSQL;
+		if (type=="postgres") {
+			db=new Postgres;
 		}
 	#endif
 	#ifdef HAVE_SQLITE
-		throw UnsupportedFeatureException("sqlite");
-		/*
 		if (type=="sqlite") {
 			db=new SQLite;
 		}
-		*/
 	#endif
 	if (!db) {
-		throw UnsupportedFeatureException("Database-Type: %s",(const char*)type);
+		SetError(342,type);
+		return NULL;
 	}
-	try {
-		db->connect(params);
-	} catch (...) {
+	if (!db->Connect(params)) {
+		PushError();
 		delete db;
-		throw;
+		PopError();
+		return NULL;
 	}
 	return db;
 }
 
-void GetSupportedDatabases(AssocArray &a)
+void GetSupportedDatabases(CAssocArray &a)
 {
-	a.clear();
+	a.Clear();
 #ifdef HAVE_MYSQL
-	a.set("mysql/type","mysql");
-	a.set("mysql/name","MySQL");
+	a.Add("mysql/type","mysql");
+	a.Add("mysql/name","MySQL");
 #endif
-#ifdef HAVE_FREETDS
-	a.set("sybase/type","sybase");
-	a.set("sybase/name","Sybase Open Client / ASE");
+#ifdef HAVE_SYBASE
+	a.Add("sybase/type","sybase");
+	a.Add("sybase/name","Sybase Open Client / ASE");
 #endif
 #ifdef HAVE_POSTGRESQL
-	a.set("postgres/type","postgres");
-	a.set("postgres/name","PostgreSQL");
+	a.Add("postgres/type","postgres");
+	a.Add("postgres/name","PostgreSQL");
 #endif
-#ifdef HAVE_SQLITE3
-	a.set("sqlite/type","sqlite");
-	a.set("sqlite/name","SQLite");
+#ifdef HAVE_SQLITE
+	a.Add("sqlite/type","sqlite");
+	a.Add("sqlite/name","SQLite");
 #endif
 }
 
@@ -172,7 +167,7 @@ void GetSupportedDatabases(AssocArray &a)
  * \ingroup PPLGroupDatabases
  * \brief Basisklasse für verschiedene Datenbanken
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <ppl6-db.h>
  *
  * \descr
  * Die Klasse \b Database ist eine abstrakte Basisklasse, von der die eigentliche Datenbank-spezifische Implementierung
@@ -196,7 +191,6 @@ void GetSupportedDatabases(AssocArray &a)
  */
 
 
-#ifdef TODO
 Database::Database()
 /*!\brief Konstruktor der Klasse
  *
@@ -1032,7 +1026,7 @@ int Database::Connect(const CAssocArray &params)
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
- * \return Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
+ * \returns Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
  *
  * \example
  * \dontinclude db_examples.cpp
@@ -1316,6 +1310,5 @@ CString	Database::databaseType() const
 	return CString("unknown");
 }
 
-#endif
 }	// EOF namespace db
-}	// EOF namespace ppl7
+}	// EOF namespace ppl6
