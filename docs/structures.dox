@@ -1,11 +1,10 @@
-/*! \struct ppl7::tagTime
+/*! \struct ppl6::tagTime
  *  
- * Siehe ppl7::PPLTIME
+ * Siehe ppl6::PPLTIME
  *  
  */
 
-/*!\struct ppl7::PPLTIME
- * \ingroup PPLGroupDateTime
+/*! \struct ppl6::PPLTIME
  * 
  * In dieser Struktur wird ein Datum in seine einzelnen Bestandteile zerlegt, wie Jahr, Monat, Tag,
  * Stunden, Minuten und Sekunden.
@@ -29,7 +28,7 @@ typedef struct tagTime {
  *  
  */
  
-/*!\struct ppl7::RECT ppl7.h "ppl7.h"
+/*!\struct ppl6::RECT ppl6.h "ppl6.h"
 
 \ingroup PPLGroupDataTypes
 \brief Struktur, die ein Rechteck definiert
@@ -55,7 +54,7 @@ int height=r.bottom-r.top;
 
 Sie wird hauptsächlich innerhalb der Garfik-Bibliothek verwendet, um die Koordinaten von
 Fenstern, Surfaces, Rechtecken, Clippings und Texturen zu speichern, oder um rechteckige
-Formen zu zeichnen oder zu Kopieren (z.B. ppl7::grafix::Blt).
+Formen zu zeichnen oder zu Kopieren (z.B. ppl6::grafix::Blt).
 
 \remarks
 Windows verwendet den Datentyp "long" für die einzelnen Elemente. Dieser ist unter Windows 32 Bit breit,
@@ -65,15 +64,15 @@ ist.
 */
 
 
-/*!\var ppl7::RECT::left
+/*!\var ppl6::RECT::left
  \brief Spezifiziert die X-Koordinate der oberen linken Ecke des Rechtecks
  */
  
-/*!\var ppl7::RECT::top
+/*!\var ppl6::RECT::top
  \brief Spezifiziert die Y-Koordinate der oberen linken Ecke des Rechtecks
  */
  
-/*!\var ppl7::RECT::right
+/*!\var ppl6::RECT::right
  \brief Spezifiziert die X-Koordinate der unteren rechten Ecke des Rechtecks
  
  Per Definition sind die Koordinaten für die rechte und untere Ecke des Rechtecks
@@ -81,7 +80,7 @@ ist.
  außerhalb.
  */
  
-/*!\var ppl7::RECT::bottom
+/*!\var ppl6::RECT::bottom
  \brief Spezifiziert die Y-Koordinate der unteren rechten Ecke des Rechtecks
  
  Per Definition sind die Koordinaten für die rechte und untere Ecke des Rechtecks
@@ -92,7 +91,7 @@ ist.
  
 
 
-/*!\struct ppl7::POINT ppl7.h "ppl7.h"
+/*!\struct ppl6::POINT ppl6.h "ppl6.h"
 
 \ingroup PPLGroupDataTypes
 \brief Koordinaten eines einzelnen Punktes
@@ -102,10 +101,10 @@ Diese Struktur definiert die X- und Y-Koordinaten eines einzelnen Punktes innerh
 2-Dimensionalen Fläche.
 */
 
-/*!\var ppl7::POINT::x
+/*!\var ppl6::POINT::x
  \brief Die X-Koordinate des Punktes
 */
 
-/*!\var ppl7::POINT::y
+/*!\var ppl6::POINT::y
  \brief Die Y-Koordinate des Punktes
 */

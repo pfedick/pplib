@@ -1,41 +1,45 @@
-;###############################################################################
-;# This file is part of "Patrick's Programming Library", Version 7 (PPL7).
-;# Web: http://www.pfp.de/ppl/
-;#
-;# $Author$
-;# $Revision$
-;# $Date$
-;# $Id$
-;#
-;###############################################################################
-;#
-;# Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
-;# All rights reserved.
-;#
-;# Redistribution and use in source and binary forms, with or without
-;# modification, are permitted provided that the following conditions are met:
-;#
-;#   1. Redistributions of source code must retain the above copyright notice,
-;#      this list of conditions and the following disclaimer.
-;#   2. Redistributions in binary form must reproduce the above copyright notice,
-;#      this list of conditions and the following disclaimer in the documentation
-;#      and/or other materials provided with the distribution.
-;#
-;# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-;# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-;# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-;# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-;# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-;# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-;# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-;# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-;# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-;# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-;# POSSIBILITY OF SUCH DAMAGE.
-;#
-;###############################################################################
+;/*******************************************************************************
+;/* This file is part of "Patrick's Programming Library", Version 6 (PPL6).
+; * Web: http://www.pfp.de/ppl/
+; *
+; * $Author: patrick $
+; * $Revision: 1.6 $
+; * $Date: 2009/02/07 16:58:17 $
+; * $Id: colors.asm,v 1.6 2009/02/07 16:58:17 patrick Exp $
+; *
+;/*******************************************************************************
+; * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
+; * All rights reserved.
+; *
+; * Redistribution and use in source and binary forms, with or without
+; * modification, are permitted provided that the following conditions are met:
+; *     * Redistributions of source code must retain the above copyright
+; *       notice, this list of conditions and the following disclaimer.
+; *     * Redistributions in binary form must reproduce the above copyright
+; *       notice, this list of conditions and the following disclaimer in the
+; *       documentation and/or other materials provided with the distribution.
+; *     * Neither the name of the copyright holder nor the names of its
+; *       contributors may be used to endorse or promote products derived
+; *       from this software without specific prior written permission.
+; *
+; * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
+; * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+; * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+; * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER AND CONTRIBUTORS BE
+; * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+; * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+; * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+; * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+; * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+; * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+; * THE POSSIBILITY OF SUCH DAMAGE.
+; *******************************************************************************/
 
-%include "src/asm/common.asm"
+;/*********************************************************************
+;/** blt.asm                                                         **
+;/*********************************************************************
+
+%include "src/asm/common.asminc"
 
 
 
@@ -194,4 +198,44 @@ SECTION .text
 
 
 
+;/*****************************************************************************
+;/** int AlphaPixelFast_32 (SURFACE *surface, int x, int y, COLOR color)     **
+;/*****************************************************************************
+
+%if elf64=1
+	global AlphaPixelFast_32
+	AlphaPixelFast_32:			; surface=rdi, x=rsi, y=rdx, color=rcx
+		; Zunächst benötigen wir die Surface-Adresse und den Farbwert des Ziels in mm2
+		imul edx, [rdi+SURFACE.pitch]	; y*pitch
+
+		; Wir betrachten zunächst den Alpha-Wert
+		movd mm3,ecx					; Farbe nach mm3
+		add rdx,[rdi+SURFACE.base]		; plus Basisadresse
+		shr ecx,24						; Alpha jetzt in cl
+		mov eax, dword [rdx+rsi*4]		; Pixel einlesen
+		jz .end							; AlphaWert 0?
+			inc cl
+			jz .useForeground			; Wenn Alpha=255 ist, dann Wird der Farbwert ohne Blending geschrieben
+				movd mm2,eax			; Hintergrund nach mm2
+				pxor mm6,mm6			; mm6 benötigen wir für PUNPCKLBW und muß 0 sein
+				movd mm0,ecx			; Alphachannel nach mm0
+				punpcklbw mm3,mm6		; Farbe in mm3 ist jetzt: 0a0r0g0b
+				punpcklbw mm2,mm6		; Hintergrund in mm2: 0a0r0g0b
+				pshufw mm0,mm0,0		; Multiplikator in alle 4 16-Bit Werte
+				psubsw mm3,mm2			; src-dst mit Vorzeichen
+				mov eax,0xff
+				pmullw mm3,mm0			; Farbe mit Multiplikator multiplizieren
+				movd mm7,eax
+				psraw mm3,8				; Das Ergebnis müssen wir unter Berücksichtigung des Vorzeichens durch 256 teilen...
+				pshufw mm7,mm7,0		; 0x00ff00ff00ff00ff in mm7 zum Maskieren
+				paddsw mm3,mm2			; Und den Hintergrund dazuaddieren
+				pand mm3,mm7			; Die oberen Bytes ausmaskieren
+				packuswb mm3,mm6		; die 4 16-Bit Farbwerte in 32Bit unterbringen
+			.useForeground:
+			movd dword [rdx+rsi*4], mm3
+			movd eax,mm3
+		.end:
+		emms
+		ret
+%endif
 

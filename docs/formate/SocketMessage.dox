@@ -17,7 +17,6 @@ Byte 8:  Bytes Nutzdaten                 (4 Byte)
 Byte 12: Flags                           (1 Byte)
          Bit 0: Zlib-Kompression
          Bit 1: Client supports Zlib
-         Bit 2: Client supports MsgChannel
 Byte 13: Datatype, PPL_ARRAY, usw.       (1 Byte)
 Byte 14: Zufallszahl                     (2 Byte)					
 Byte 16: CRC-Summe über den Header       (4 Byte)
@@ -39,7 +38,6 @@ Byte 8:  Bytes Nutzdaten                 (4 Byte)
 Byte 12: Flags                           (1 Byte)
          Bit 0: Zlib-Kompression
          Bit 1: Client supports Zlib
-         Bit 2: Client supports MsgChannel
 Byte 13: Datatype, PPL_ARRAY, usw.       (1 Byte)
 Byte 14: Zufallszahl                     (2 Byte)
 Byte 16: CRC-Summe über die Nutzdaten    (4 Byte)					

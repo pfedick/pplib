@@ -7,9 +7,6 @@ Internet-Klassen und Funktionen
 
 /*!\defgroup PPLGroupGrafik Grafik
 \brief Grafik-Klassen und Funktionen
-
-\desc
-Die nachfolgenden Klassen dienen zum Erstellen und Verwalten von Bitmap-Grafiken.
 */
 
 /*!\defgroup PPLGroupSound Sound
@@ -42,11 +39,24 @@ Die nachfolgenden Klassen dienen zum Erstellen und Verwalten von Bitmap-Grafiken
 */
 
 
+/*!\defgroup PPL6_Features Unterstützte Features der Library
+\brief Unterstützte Features der PPL-Library
 
-/*!\defgroup PPL7_CRYPT Verschlüsselung und Hashes
+Mit den nachfolgenden statischen Funktionen der Cppl6Core-Klasse kann überprüft
+werden, ob ein bestimmtes Feature beim Kompilieren der Library eingebunden wurde
+und somit zur Laufzeit unterstützt wird.
+
+Die Funktionen liefern den Wert 1 zurück, wenn das jeweilige Feature unterstützt wird,
+andernfalls 0.
+
+\since
+Die Funktionen wurden mit Version 6.3.0 eingeführt.
+
+*/
+
+
+/*!\defgroup PPL6_CRYPT Verschlüsselung und Hashes
 \brief Verschlüsselung und Hashes
-
-\header \#include <ppl7-crypto.h>
 
 \descr
 Auf dieser Seite sind Klassen und Funktion zu finden, mit denen Daten nach verschiedenen
@@ -54,18 +64,17 @@ kryptographischen Algorithmen verschlüsselt und entschlüsselt werden können, 
 Klassen und Funktionen zum Berechnen von Hash-Werten oder Prüfsummen nach verschiedenen
 Algorithmen.
 \par
-Die Funktionen der Klassen ppl7::MHash und ppl7::MCrypt basieren auf den Bibliotheken
+Die Funktionen beruhen zumeist auf den Bibliotheken
 <a href="http://mhash.sourceforge.net/">libmhash</a> und
 <a href="http://mcrypt.sourceforge.net/">libmcrypt</a> und sind daher nur
 verfügbar, wenn diese beim Kompilieren der PPL-Library eingebunden wurden.
-Die Klasse ppl7::Digest setzt auf <a href="http://www.openssl.org/">OpenSSL</a> auf
-und ist daher nur verfügbar, wenn diese beim Kompilieren der PPL-Library eingebunden wurde.
 
-
+\since
+Die Klassen und Funktionen wurden mit Version 6.3.0 eingeführt.
 */
 
 
-/*!\defgroup PPL7_COMPRESSION Datenkomprimierung
+/*!\defgroup PPL6_COMPRESSION Datenkomprimierung
 \brief Komprimierung von Daten
 
 \descr

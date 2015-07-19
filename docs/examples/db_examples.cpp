@@ -122,45 +122,6 @@ int DB_Sybase_Example1() {
 	// ordnungsgemäß getrennt
 } // EOF
 
-int DB_Sybase_Example2() {
-	// Verbindungsparameter festlegen
-	ppl6::CAssocArray param;
-	param.Set("host","db.pfp.de");
-	param.Set("port","4711");
-	param.Set("user","patrick");
-	param.Set("password","xxxxxxx");
-	param.Set("dbname","test");
-
-	// Datenbank-Klasse anlegen
-	ppl6::db::Sybase db;
-
-	// Verbindung aufbauen
-	if (!db.Connect(param)) {
-		ppl6::PrintError();
-		return 0;
-	}
-
-	// Query abschicken
-	ppl6::db::Result *res=db.Query("select * from user oder by nachname, vorname");
-	if (!res) {	// Fehler abfangen
-		ppl6::PrintError();
-	} else {
-		pplint64 rows=0;
-		ppl6::CAssocArray row;
-		// Durch das Ergebnis durchiterieren
-		while (res->FetchArray(row)) {
-			// Felder der aktuellen Ergebnis-Zeile befinden sich nun im Array "row" und
-			// können verarbeitet werden
-			printf ("%s %s\n",row["nachname"],row["vorname"]);
-			rows++;
-		}
-		delete res;
-	}
-
-	// Die Verbindung wird durch den Destruktor der Klasse automatisch
-	// ordnungsgemäß getrennt
-} // EOF
-
 int DB_Postgres_Example1() {
 	// Verbindungsparameter festlegen
 	ppl6::CAssocArray param;
@@ -381,4 +342,4 @@ ppl6::db::Result *DB_GenericResult_Example1(const CString &Query) {
 } // EOF
 
 
-
+}

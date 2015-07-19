@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: patrick $
+ * $Revision: 1.19 $
+ * $Date: 2009/11/18 07:51:05 $
+ * $Id: Database.cpp,v 1.19 2009/11/18 07:51:05 patrick Exp $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2009, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -51,17 +54,19 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-db.h"
+#include "ppl6.h"
+#include "ppl6-db.h"
 
 
-namespace ppl7 {
+namespace ppl6 {
 namespace db {
 
+
+Database *Connect(const CAssocArray &params)
 /*!\ingroup PPLGroupDatabases
  * \brief Verbindung zu einer Datenbank herstellen
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <ppl6-db.h>
  *
  * \descr
  * Mit dieser Funktion wird eine neue Datenbank-Klasse erstellt und eine Verbindung zu der gewünschten
@@ -83,11 +88,8 @@ namespace db {
  * - \b mysql: MySQL-Datenbank
  * - \b postgres: Postgres-Datenbank
  * - \b sybase: Sybase-Datenbank
- * Die tatsächlich unterstützten Datenbanken hängen davon ab, wie PPL6 kompiliert wurde.
  * \par
- * Postgres unterstützt zusätzlich noch die Angabe des Suchpfades:
- * - \b searchpath: Kommaseparierte Liste mit den Schemata, die in den Suchpfad
- *      aufgenommen werden sollen
+ * Die tatsächlich unterstützten Datenbanken hängen davon ab, wie PPL6 kompiliert wurde.
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
@@ -98,73 +100,40 @@ namespace db {
  * \skip DB_Example1
  * \until EOF
  */
-
-Database *Connect(const AssocArray &params)
 {
-	String type=params["type"];
-	if (type.isEmpty()) throw MissingArgumentException("type");
-	type.lowerCase();
+	CString type=params["type"];
+	if (type.IsEmpty()) {
+		SetError(341,"type");
+		return NULL;
+	}
+	type.LCase();
 	Database *db=NULL;
 	#ifdef HAVE_MYSQL
-		throw UnsupportedFeatureException("MySQL");
-		/*
 		if (type=="mysql") {
 			db=new MySQL;
 		}
-		*/
 	#endif
-	#ifdef HAVE_FREETDS
-		throw UnsupportedFeatureException("Sybase");
-		/*
+	#ifdef HAVE_SYBASE
 		if (type=="sybase") {
 			db=new Sybase;
 		}
-		*/
 	#endif
-	#ifdef HAVE_POSTGRESQL
-		if (type=="postgres" || type=="postgresql") {
-			db=new PostgreSQL;
+	#ifdef HAVE_POSTGRES
+		if (type=="postgres") {
+			db=new Postgres;
 		}
-	#endif
-	#ifdef HAVE_SQLITE
-		throw UnsupportedFeatureException("sqlite");
-		/*
-		if (type=="sqlite") {
-			db=new SQLite;
-		}
-		*/
 	#endif
 	if (!db) {
-		throw UnsupportedFeatureException("Database-Type: %s",(const char*)type);
+		SetError(342,type);
+		return NULL;
 	}
-	try {
-		db->connect(params);
-	} catch (...) {
+	if (!db->Connect(params)) {
+		PushError();
 		delete db;
-		throw;
+		PopError();
+		return NULL;
 	}
 	return db;
-}
-
-void GetSupportedDatabases(AssocArray &a)
-{
-	a.clear();
-#ifdef HAVE_MYSQL
-	a.set("mysql/type","mysql");
-	a.set("mysql/name","MySQL");
-#endif
-#ifdef HAVE_FREETDS
-	a.set("sybase/type","sybase");
-	a.set("sybase/name","Sybase Open Client / ASE");
-#endif
-#ifdef HAVE_POSTGRESQL
-	a.set("postgres/type","postgres");
-	a.set("postgres/name","PostgreSQL");
-#endif
-#ifdef HAVE_SQLITE3
-	a.set("sqlite/type","sqlite");
-	a.set("sqlite/name","SQLite");
-#endif
 }
 
 
@@ -172,7 +141,7 @@ void GetSupportedDatabases(AssocArray &a)
  * \ingroup PPLGroupDatabases
  * \brief Basisklasse für verschiedene Datenbanken
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <ppl6-db.h>
  *
  * \descr
  * Die Klasse \b Database ist eine abstrakte Basisklasse, von der die eigentliche Datenbank-spezifische Implementierung
@@ -196,7 +165,6 @@ void GetSupportedDatabases(AssocArray &a)
  */
 
 
-#ifdef TODO
 Database::Database()
 /*!\brief Konstruktor der Klasse
  *
@@ -725,135 +693,7 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
 	return ExecArrayAll(result,String);
 }
 
-
-/*!\brief Wert Datenbank-konform quoten
- *
- * \descr
- * Diese Funktion escaped und quoted den String \p value Datenbank-konform abhängig vom Datentyp
- * \p type. Der Rückgabewert enthält je nach Datentyp bereits Hochkommata oder Anführungszeichen
- * und kann somit ohne weitere Quotes in einen Query eingesetzt werden.
- *
- * @param value Zu quotender String
- * @param type Datentyp. Wird nichts angegeben, wird der Wert \p value als String interpretiert.
- * @return Escapeter und Gequoteter String
- */
-CString Database::getQuoted(const CString &value, const CString &type) const
-{
-	CString Type=type;
-	CString s=value;
-	Type.LCase();
-	Escape(s);
-	if (Type=="int" || Type=="integer" || Type=="bit" || Type=="boolean") return s;
-	return "'"+s+"'";
-}
-
-
-/*!\brief Query zum Speichern des Datensatzes generieren
- *
- * \descr
- * Diese Funktion generiert aus den im Assoziativen Array \p a vorhandenen Feldern und Werten in Abhängigkeit der
- * Methode \p method einen SQL-Query für die Tabelle \p table. Soll ein
- * Update durchgeführt werden, muss zusätzlich noch eine Where-Klausel mit dem Parameter \p clause angegeben werden.
- * Enthalten die Daten in \p a Felder, die in der Tabelle \p table nicht vorhanden sind, muss zusätzlich noch das
- * Array \p exclude angegeben werden, dass die zu ignorierenden Feldnamen enthält.
- * \par
- * Die Daten in \p a werden vor dem Einsetzen in den Query korrekt Escaped.
- *
- * \param[out] Query String, in dem der Query gespeichert werden soll
- * \param[in] method Die Methode, mit der der Datensatz in die Datenbank geschrieben werden soll. In Frage kommen:
- * - \b INSERT
- * - \b UPDATE
- * - \b REPLACE
- * \param[in] table Name der Tabelle
- * \param[in] a Ein Assoziatives Array mit den zu speichernden Feldern
- * \param[in] clause Ein Optionaler Parameter, der bei \b UPDATE angegeben werden muss und die Where-Klausel
- * enthält. Das Keywort "where" muss nicht angegeben werden
- * \param[in] exclude Ein optionales assoziatives Array, was die Namen der Felder enthält, die nicht gespeichert werden
- * sollen. Muss verwendet werden, wenn in \p a Felder enthalten sind, die in der Tabelle \p table nicht existieren.
- * \param[in] types Ein optionales assoziatives Array, was die Typen der zu speichernden Daten angibt.
- * Hier wird zur Zeit nur "int" und "bit" interpretiert, was dazu führt, dass die Werte nicht in
- * Anführungszeichen in den SQL-Query eingebaut werden. Alle anderen Typen werden wie bisher als String
- * behandelt. Bei dem ASE von Sybase gibt es Probleme, wenn man versucht einen Ziffer in Anführungszeichen
- * anzugeben, wenn das Feld als "numeric" oder "bit" definiert ist.
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- *
- * \example
- * Das folgende Beispiel zeigt, wie mit Hilfe von Save ein Datensatz mit UPDATE aktualisiert wird. Es wird
- * von folgender Tabellendefinition ausgegangen:
-\verbatim
-   userid    int4 not null primary key,
-   vorname   varchar(64) nut null,
-   nachname  varchar(64) nut null,
-   email     varchar(128) nut null
-\endverbatim
- * \par
- * \dontinclude db_examples.cpp
- * \skip DB_Save_Example1
- * \until EOF
- */
-int Database::SaveGenQuery(CString &Query, const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude, const CAssocArray &types)
-{
-	if (!method) {
-		SetError(194,"const char *method");
-		return 0;
-	}
-	if (!table) {
-		SetError(194,"const char *table");
-		return 0;
-	}
-	if (a.Count()==0) {
-		SetError(343);
-		return 0;
-	}
-	CString Keys, Vals, Key, Value, Method, Table, Clause, Type;
-	Query.Clear();
-	Method=method;
-	Table=table;
-	Method.LCase();
-	if (Table.Len()==0) {
-		SetError(344);
-		return 0;
-	}
-	if (clause) Clause=clause;
-	a.Reset();
-	if (Method=="insert" || Method=="replace") {
-		while (a.GetNext(Key,Value)) {
-			if (exclude.GetChar(Key)==NULL) {
-				Keys.Concat(Key);
-				Keys.Concat(",");
-				//printf ("Key=%s, Value=%s\n",(const char*)Key,(const char*)Value);
-				Type=types.ToCString(Key);
-				Vals+=getQuoted(Value,Type);
-				Vals+=",";
-			}
-		}
-		Keys.Chop();
-		Vals.Chop();
-
-		Query.Setf("%s into %s (%s) values (%s)",(const char*)Method, (const char*)Table, (const char*)Keys, (const char*)Vals);
-		//printf ("Query: %s\n",(const char*)Query);
-		return 1;
-	} else if (Method=="update") {
-		Query.Setf("%s %s set ",(const char*)Method, (const char*)Table);
-		while (a.GetNext(Key,Value)) {
-			if (exclude.GetChar(Key)==NULL) {
-				Type=types.ToCString(Key);
-				Query+=Key+"="+getQuoted(Value,Type)+",";
-			}
-		}
-		Query.Chop();
-		Clause.Trim();
-		if (Clause.Len()>0) {
-			Query.Concat(" ");
-			if (!Clause.PregMatch("/^where\\s/i")) Query.Concat("where ");
-			Query.Concat(Clause);
-		}
-		return 1;
-	}
-	SetError(345,(const char*)Method);
-	return 0;
-}
-
+int Database::Save(const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude)
 /*!\brief Datensatz speichern
  *
  * \descr
@@ -875,11 +715,6 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
  * enthält. Das Keywort "where" muss nicht angegeben werden
  * \param[in] exclude Ein optionales assoziatives Array, was die Namen der Felder enthält, die nicht gespeichert werden
  * sollen. Muss verwendet werden, wenn in \p a Felder enthalten sind, die in der Tabelle \p table nicht existieren.
- * \param[in] types Ein optionales assoziatives Array, was die Typen der zu speichernden Daten angibt.
- * Hier wird zur Zeit nur "int" und "bit" interpretiert, was dazu führt, dass die Werte nicht in
- * Anführungszeichen in den SQL-Query eingebaut werden. Alle anderen Typen werden wie bisher als String
- * behandelt. Bei dem ASE von Sybase gibt es Probleme, wenn man versucht einen Ziffer in Anführungszeichen
- * anzugeben, wenn das Feld als "numeric" oder "bit" definiert ist.
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  *
  * \example
@@ -896,11 +731,63 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
  * \skip DB_Save_Example1
  * \until EOF
  */
-int Database::Save(const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude, const CAssocArray &types)
 {
-	CString Query;
-	if (!SaveGenQuery(Query,method,table,a,clause,exclude,types)) return 0;
-	return Exec(Query);
+	if (!method) {
+		SetError(194,"const char *method");
+		return 0;
+	}
+	if (!table) {
+		SetError(194,"const char *table");
+		return 0;
+	}
+	if (a.Count()==0) {
+		SetError(343);
+		return 0;
+	}
+	CString Keys, Vals, Key, Value, Method, Table, Query, Clause;
+	Method=method;
+	Table=table;
+	Method.LCase();
+	if (Table.Len()==0) {
+		SetError(344);
+		return 0;
+	}
+	if (clause) Clause=clause;
+	a.Reset();
+	if (Method=="insert" || Method=="replace") {
+		while (a.GetNext(Key,Value)) {
+			if (exclude.GetChar(Key)==NULL) {
+				Keys.Concat(Key);
+				Keys.Concat(",");
+				if (!Escape(Value)) return 0;
+				Vals.Concatf("\"%s\",",(const char*)Value);
+			}
+		}
+		Keys.Chop();
+		Vals.Chop();
+
+		Query.Setf("%s into %s (%s) values (%s)",(const char*)Method, (const char*)Table, (const char*)Keys, (const char*)Vals);
+		//printf ("Query: %s\n",(char*)Query);
+		return Exec(Query);
+	} else if (Method=="update") {
+		Query.Setf("%s %s set ",(const char*)Method, (const char*)Table);
+		while (a.GetNext(Key,Value)) {
+			if (!Escape(Value)) return 0;
+			if (exclude.GetChar(Key)==NULL) {
+				Query.Concatf("%s=\"%s\",",(const char*)Key,(const char*)Value);
+			}
+		}
+		Query.Chop();
+		Clause.Trim();
+		if (Clause.Len()>0) {
+			Query.Concat(" ");
+			if (!Clause.PregMatch("/^where\\s/i")) Query.Concat("where ");
+			Query.Concat(Clause);
+		}
+		return Exec(Query);
+	}
+	SetError(345,(const char*)Method);
+	return 0;
 }
 
 int Database::ReadKeyValue(CAssocArray &res, const char *query, const char *keyname, const char *valname)
@@ -1032,7 +919,7 @@ int Database::Connect(const CAssocArray &params)
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
- * \return Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
+ * \returns Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
  *
  * \example
  * \dontinclude db_examples.cpp
@@ -1157,7 +1044,7 @@ int Database::Ping()
 	return 0;
 }
 
-int Database::Escape(CString &str) const
+int Database::Escape(CString &str)
 /*!\brief String escapen
  *
  * \descr
@@ -1218,15 +1105,6 @@ int Database::StartTransaction()
  * Database::EndTransaction wird sie abgeschlossen und mit Database::CancelTransaction
  * abgebrochen.
  *
- * Ab Version 6.4.3 der PPL-Library kann man Transaktionen verschachteln, in dem man
- * Database::StartTransaction mehrfach aufruft. Mit Database::EndTransaction wird dann nur die
- * innerste Transaktionsklammer abgeschlossen, mit Database::CancelTransaction entsprechend nur
- * die innerste Transaktionsklammer zurückgerollt. Mit Database::CancelTransactionComplete
- * läßt sich die komplette Transaktion bis zur äußersten Klammer zurückrollen. Bei der
- * Verschachtelung von Transaktionen muss man darauf achten, dass immer eine gleiche Anzahl
- * von Database::EndTransaction wie Database::StartTransaction geben muss, da sonst die Transaktion
- * nicht vollständig geschlossen wird und es zu Datenbank Blockaden kommen kann.
- *
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
@@ -1238,7 +1116,7 @@ int Database::EndTransaction()
 /*!\brief Transaktion beenden
  *
  * \descr
- * Mit diesem Befehl wird die zuletzt mit Database::StartTransaction begonnene Transaktion beendet.
+ * Mit diesem Befehl wird eine zuvor mit Database::StartTransaction begonnene Transaktion beendet.
  * Dadurch werden die innerhalb der Transaktion veränderten Daten endgültig in der Datenbank
  * gespeichert.
  *
@@ -1252,25 +1130,10 @@ int Database::EndTransaction()
 }
 
 int Database::CancelTransaction()
-/*!\brief Letzte Transaktion abbrechen
+/*!\brief Transaktion abbrechen
  *
  * \descr
- * Mit diesem Befehl wird die letzte mit Database::StartTransaction begonnene Transaktion abgebrochen.
- * Alle darin enthaltenen Änderungen sind unwirksam und werden nicht gespeichert.
- *
- * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
- *
- */
-{
-	SetError(180);
-	return 0;
-}
-
-int Database::CancelTransactionComplete()
-/*!\brief Transaktion vollständig abbrechen
- *
- * \descr
- * Mit diesem Befehl wird die komplette Transaktion bis zur obersten Ebene zurückgerollt.
+ * Mit diesem Befehl wird eine zuvor mit Database::StartTransaction begonnene Transaktion abgebrochen.
  * Alle darin enthaltenen Änderungen sind unwirksam und werden nicht gespeichert.
  *
  * \return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
@@ -1299,23 +1162,5 @@ int Database::CreateDatabase(const char *name)
 	return 0;
 }
 
-/*!\brief Typ der Datenbank
- *
- * \desc
- * Diese Funktion gibt einen String mit dem Typ der Datenbank zurück. Der String kann einen der folgenden
- * Werte enthalten:
- * - MySQL
- * - Postgres
- * - Sybase
- * - unknown
- *
- * @return String mit dem Typ der Datenbank
- */
-CString	Database::databaseType() const
-{
-	return CString("unknown");
-}
-
-#endif
 }	// EOF namespace db
-}	// EOF namespace ppl7
+}	// EOF namespace ppl6

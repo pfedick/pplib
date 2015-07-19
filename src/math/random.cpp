@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: patrick $
+ * $Revision: 1.9 $
+ * $Date: 2009/06/20 00:05:19 $
+ * $Id: random.cpp,v 1.9 2009/06/20 00:05:19 patrick Exp $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2008, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -75,7 +78,7 @@ static char sccsid[] = "@(#)random.c	8.2 (Berkeley) 5/19/95";
 #endif
 
 
-#include "ppl7.h"
+#include "ppl6.h"
 
 
 /*
@@ -295,9 +298,9 @@ static __inline long good_rand (register long x)
 
 static bool pplsrand_called=false;
 
-namespace ppl7 {
+namespace ppl6 {
 
-void srand(ppluint32 x)
+void srand(ppldd x)
 /*!\ingroup PPLGroupMath
  */
 {
@@ -437,7 +440,6 @@ char * rand_setstate(char *arg_state)
 	default:
 		(void)fprintf(stderr,
 		    "random: state info corrupted; not changed.\n");
-		break;
 	}
 	state = (long *) (new_state + 1);
 	if (rand_type != TYPE_0) {
@@ -465,11 +467,11 @@ char * rand_setstate(char *arg_state)
  *
  * Returns a 31-bit random number.
  */
-size_t rand(size_t min, size_t max)
+ppluint32 rand(ppluint32 min, ppluint32 max)
 /*!\ingroup PPLGroupMath
  */
 {
-	size_t range=max-min+1;
+	ppluint32 range=max-min+1;
 	if(range==0) range=0xffffffff;
 	register long i;
 	register long *f, *r;
@@ -503,9 +505,11 @@ size_t rand(size_t min, size_t max)
 
 		fptr = f; rptr = r;
 	}
-	return (size_t) (min+((size_t)i*range/0x7fffffff));
+	return (ppluint32) (min+((ppld64)i*range/0x7fffffff));
 }
 
+
+CBinary Random(size_t bytes)
 /*!\ingroup PPLGroupMath
  * \brief Zufallsdaten erzeugen
  *
@@ -516,18 +520,19 @@ size_t rand(size_t min, size_t max)
  * \return Gibt ein CBinary Objekt mit der gewünschten Anzahl Zufallsdaten
  * zurück
  */
-ByteArray Random(size_t bytes)
 {
-	ByteArray bin;
+	CBinary bin;
 	char *buffer=(char*)malloc(bytes);
 	if (!buffer) return bin;
 	for (size_t i=0;i<bytes;i++) {
 		buffer[i]=rand(0,255);
 	}
-	bin.useadr(buffer,bytes);
+	bin.Set(buffer,bytes);
+	bin.ManageMemory();
 	return bin;
 }
 
+CBinary &Random(CBinary &buffer, size_t bytes)
 /*!\ingroup PPLGroupMath
  * \brief Zufallsdaten erzeugen
  *
@@ -539,14 +544,14 @@ ByteArray Random(size_t bytes)
  * \return Gibt eine Referenz auf das übergebene CBinary Objekt \p buffer zurück, das
  * nun die gewünschte Anzahl Zufallsdaten enthält.
  */
-ByteArray &Random(ByteArray &buffer, size_t bytes)
 {
 	char *b=(char*)malloc(bytes);
 	if (!b) return buffer;
 	for (size_t i=0;i<bytes;i++) {
 		b[i]=rand(0,255);
 	}
-	buffer.useadr(b,bytes);
+	buffer.Set(b,bytes);
+	buffer.ManageMemory();
 	return buffer;
 }
 
