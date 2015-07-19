@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,16 +8,19 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -74,9 +77,9 @@
 #else
 #include <unistd.h>
 #endif
-#include "ppl7.h"
+#include "ppl6.h"
 
-namespace ppl7 {
+namespace ppl6 {
 
 
 #ifndef u_int32_t
@@ -87,21 +90,6 @@ namespace ppl7 {
 
 //static void MD5Transform __P((u_int32_t [4], const unsigned char [64]));
 static void MD5Transform (u_int32_t state[4], const unsigned char block[64]);
-
-// MD5 Berechnung
-typedef struct MD5Context {
-		ppluint32 state[4];   /* state (ABCD) */
-		ppluint32 count[2];   /* number of bits, modulo 2^64 (lsb first) */
-		unsigned char buffer[64]; /* input buffer */
-} MD5_CTX;
-static void   MD5Init (MD5_CTX *);
-static void   MD5Update (MD5_CTX *, const unsigned char *, size_t);
-static void   MD5Pad (MD5_CTX *);
-static void   MD5Final (unsigned char [16], MD5_CTX *);
-static char * MD5End(MD5_CTX *, char *);
-
-
-
 
 #ifdef _KERNEL
 #define memset(x,y,z)	bzero(x,z);
@@ -118,9 +106,9 @@ static char * MD5End(MD5_CTX *, char *);
  * a multiple of 4.
  */
 
-static void Encode (unsigned char *output, u_int32_t *input, size_t len)
+static void Encode (unsigned char *output, u_int32_t *input, unsigned int len)
 {
-	size_t i, j;
+	unsigned int i, j;
 
 	for (i = 0, j = 0; j < len; i++, j += 4) {
 		output[j] = (unsigned char)(input[i] & 0xff);
@@ -135,9 +123,9 @@ static void Encode (unsigned char *output, u_int32_t *input, size_t len)
  * a multiple of 4.
  */
 
-static void Decode (u_int32_t * output, const unsigned char * input, size_t len)
+static void Decode (u_int32_t * output, const unsigned char * input, unsigned int len)
 {
-	size_t i, j;
+	unsigned int i, j;
 
 	for (i = 0, j = 0; j < len; i++, j += 4)
 		output[i] = ((u_int32_t)input[j]) | (((u_int32_t)input[j+1]) << 8) |
@@ -187,7 +175,7 @@ static unsigned char PADDING[64] = {
 
 /* MD5 initialization. Begins an MD5 operation, writing a new context. */
 
-static void MD5Init (MD5_CTX * context)
+void MD5Init (MD5_CTX * context)
 /*!\ingroup PPLGroupMath
  */
 {
@@ -207,12 +195,11 @@ static void MD5Init (MD5_CTX * context)
  * context.
  */
 
-static void MD5Update (MD5_CTX *context, const unsigned char *input, size_t inputLen)
+void MD5Update (MD5_CTX *context, const unsigned char *input, unsigned int inputLen)
 /*!\ingroup PPLGroupMath
  */
 {
-	size_t i, partLen;
-	unsigned int index;
+	unsigned int i, index, partLen;
 
 	/* Compute number of bytes mod 64 */
 	index = (unsigned int)((context->count[0] >> 3) & 0x3F);
@@ -248,7 +235,7 @@ static void MD5Update (MD5_CTX *context, const unsigned char *input, size_t inpu
  * MD5 padding. Adds padding followed by original length.
  */
 
-static void MD5Pad (MD5_CTX *context)
+void MD5Pad (MD5_CTX *context)
 /*!\ingroup PPLGroupMath
  */
 {
@@ -272,7 +259,7 @@ static void MD5Pad (MD5_CTX *context)
  * the message digest and zeroizing the context.
  */
 
-static void MD5Final (unsigned char digest[16], MD5_CTX *context)
+void MD5Final (unsigned char digest[16], MD5_CTX *context)
 /*!\ingroup PPLGroupMath
  */
 {
@@ -394,7 +381,7 @@ static void MD5Transform (u_int32_t state[4], const unsigned char block[64])
 
 
 
-static char * MD5End(MD5_CTX *ctx, char *buf)
+char * MD5End(MD5_CTX *ctx, char *buf)
 /*!\ingroup PPLGroupMath
  */
 {
@@ -414,105 +401,39 @@ static char * MD5End(MD5_CTX *ctx, char *buf)
     return buf;
 }
 
-
-String Md5 (const void *buffer, size_t size)
+char * MD5File(const char *filename, char *buf)
 /*!\ingroup PPLGroupMath
  */
 {
-	char tmp[33];
-	if (buffer==NULL || size==0 ) throw EmptyDataException();
-	MD5_CTX ctx;
-	MD5Init(&ctx);
-	MD5Update(&ctx,(const unsigned char *)buffer,size);
-	MD5End(&ctx, tmp);
-	tmp[32]=0;
-	return String(tmp);
+    unsigned char buffer[BUFSIZ];
+    MD5_CTX ctx;
+    int i,j;
+
+    MD5Init(&ctx);
+	CFile ff;
+	if (!ff.Open((char*)filename,"rb")) return 0;
+    while ((i = ff.Read(buffer,sizeof buffer)) > 0) {
+    MD5Update(&ctx,buffer,i);
+    }
+    j = errno;
+    ff.Close();
+    errno = j;
+    if (i < 0) return 0;
+    return MD5End(&ctx, buf);
 }
 
-
-/*!\brief MD5-Summe berechnen
- *
- * Diese Funktion berechnet die MD5-Summe der binären Daten und gibt diese als
- * String zurück.
- *
- * \return Die Funktion liefert ein String-Objekt zurück. Bei Erfolg enthält dieses
- * die MD5-Summe, im Fehlerfall wird eine Exception geworfen.
- * Ein Fehler kann auftreten, wenn die Klasse keine Daten enthalten hat oder
- * bei der Berechnung der MD5-Summe ein Fehler aufgetreten ist.
- *
+char * MD5Data (const unsigned char *data, unsigned int len, char *buf)
+/*!\ingroup PPLGroupMath
  */
-String ByteArrayPtr::md5() const
 {
-	String ret;
-	char tmp[33];
-	if (ptradr==NULL || ptrsize==0 ) throw EmptyDataException();
-	MD5_CTX ctx;
-	MD5Init(&ctx);
-	MD5Update(&ctx,(const unsigned char *)ptradr,ptrsize);
-	MD5End(&ctx, tmp);
-	tmp[32]=0;
-	ret=tmp;
-	return ret;
+    MD5_CTX ctx;
+
+    MD5Init(&ctx);
+    MD5Update(&ctx,data,len);
+    return MD5End(&ctx, buf);
 }
 
-/*!\brief MD5-Summe berechnen
- *
- * Diese Funktion berechnet die MD5-Summe des Strings und gibt diese als
- * Hexadezimalwert in einem String zurück.
- *
- * \return Die Funktion liefert ein String-Objekt zurück. Bei Erfolg enthält dieses
- * die MD5-Summe, im Fehlerfall wird eine Exception geworfen.
- * Ein Fehler kann auftreten, wenn die Klasse keine Daten enthalten hat oder
- * bei der Berechnung der MD5-Summe ein Fehler aufgetreten ist.
- *
- */
-String String::md5() const
-{
-	if (stringlen==0 || ptr==NULL) throw EmptyDataException();
-	String ret;
-	char tmp[33];
-	MD5_CTX ctx;
-	MD5Init(&ctx);
-	MD5Update(&ctx,(const unsigned char *)ptr,stringlen);
-	MD5End(&ctx, tmp);
-	tmp[32]=0;
-	ret=tmp;
-	return ret;
-}
-
-
-String FileObject::md5()
-{
-	String ret;
-	if (!isOpen()) throw FileNotOpenException();
-	char *buffer=(char*) malloc(1024*1024);
-	if (!buffer) throw OutOfMemoryException();
-	char tmp[33];
-	MD5_CTX ctx;
-	MD5Init(&ctx);
-	ppluint64 oldpos=tell();
-	seek(0);
-	ppluint64 s=size();
-	ppluint64 p=0;
-	size_t len=1024*1024;
-	while (p<s) {
-		if (p+len>s) len=s-p;
-		fread(buffer,1,len);
-		p+=len;
-		MD5Update(&ctx,(const unsigned char *)buffer,len);
-	}
-	free(buffer);
-	seek(oldpos);
-	MD5End(&ctx, tmp);
-	tmp[32]=0;
-	ret=tmp;
-	return ret;
-}
-
-
-
-/*
-String MD5(const CString &str)
+CString MD5(const CString &str)
 {
 	return str.GetMD5();
 }
@@ -527,6 +448,6 @@ CString MD5(const CBinary &bin)
 	return bin.GetMD5Sum();
 }
 
-*/
 
-} // EOF namespace ppl7
+
+}

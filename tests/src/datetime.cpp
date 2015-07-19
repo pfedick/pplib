@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
@@ -13,11 +14,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -37,9 +41,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <ppl6.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
 
 namespace {
 
@@ -47,11 +50,11 @@ namespace {
 class DateTimeTest : public ::testing::Test {
 	protected:
 	DateTimeTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+		if (setlocale(LC_CTYPE,"de_DE.UTF-8")==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
+		ppl6::SetGlobalEncoding("UTF-8");
 	}
 	virtual ~DateTimeTest() {
 
@@ -60,7 +63,7 @@ class DateTimeTest : public ::testing::Test {
 
 TEST_F(DateTimeTest, ConstructorSimple) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1;
+		ppl6::CDateTime d1;
 		ASSERT_TRUE(d1.isEmpty()==true) << "Class is not Empty";
 	}
 	);
@@ -68,139 +71,139 @@ TEST_F(DateTimeTest, ConstructorSimple) {
 
 TEST_F(DateTimeTest, ConstructorWithDate) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18");
-		ASSERT_TRUE(d1.notEmpty()) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 00:00:00"),d1.get()) << "Unexpected date";
+		ppl6::CDateTime d1("2012-05-18");
+		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 00:00:00"),d1.get()) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTime) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11");
+		ppl6::CDateTime d1("2012-05-18 11:50:11");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeMsec1) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.1");
+		ppl6::CDateTime d1("2012-05-18 11:50:11.1");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.001000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.001000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeMsec2) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.15");
+		ppl6::CDateTime d1("2012-05-18 11:50:11.15");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.015000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.015000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeMsec3) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159");
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeUsec4) {
-	ASSERT_THROW(ppl7::DateTime d1("2012-05-18 11:50:11.1594"),ppl7::IllegalArgumentException);
+	ASSERT_THROW(ppl6::CDateTime d1("2012-05-18 11:50:11.1594"),ppl6::IllegalArgumentException);
 }
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeUsec5) {
-	ASSERT_THROW(ppl7::DateTime d1("2012-05-18 11:50:11.15947"),ppl7::IllegalArgumentException);
+	ASSERT_THROW(ppl6::CDateTime d1("2012-05-18 11:50:11.15947"),ppl6::IllegalArgumentException);
 }
 
 
 TEST_F(DateTimeTest, ConstructorWithDateTimeUsec6) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159473");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeMsec1) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.1");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.1");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.001000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.001000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeMsec2) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.15");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.15");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.015000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.015000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeMsec3) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeUsec6) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeUsec6TZ) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473+0200");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473+0200");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeUsec6TZ1) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473-0200");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473-0200");
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18"),d1.getDate()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18"),d1.getDate()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11"),d1.get()) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
@@ -208,10 +211,10 @@ TEST_F(DateTimeTest, ConstructorWithISO8601DateTimeUsec6TZ1) {
 
 TEST_F(DateTimeTest, CopyConstructor) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
-		ppl7::DateTime d2=d1;
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159473");
+		ppl6::CDateTime d2=d1;
 		ASSERT_TRUE(d2.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159473"),d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
@@ -219,9 +222,9 @@ TEST_F(DateTimeTest, CopyConstructor) {
 TEST_F(DateTimeTest, ConstructorWithTime_t) {
 	ppluint64 t=1337335350; // 2012-05-18 12:02:30
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1(t);
+		ppl6::CDateTime d1(t);
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18 12:02:30.000000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 12:02:30.000000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
@@ -229,11 +232,11 @@ TEST_F(DateTimeTest, ConstructorWithTime_t) {
 
 TEST_F(DateTimeTest, Assignment) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
-		ppl7::DateTime d2;
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159473");
+		ppl6::CDateTime d2;
 		d2=d1;
 		ASSERT_TRUE(d2.notEmpty()==true) << "Class is empty";
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159473"),d2.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
@@ -241,7 +244,7 @@ TEST_F(DateTimeTest, Assignment) {
 
 TEST_F(DateTimeTest, getLongInt) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159473");
 		ppluint64 t=d1.longInt();
 		ASSERT_EQ((ppluint64)64679514611159473,t) << "Unexpected date";
 	}
@@ -251,33 +254,33 @@ TEST_F(DateTimeTest, getLongInt) {
 TEST_F(DateTimeTest, setLongInt) {
 	ppluint64 v=64679514611159473;
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1;
+		ppl6::CDateTime d1;
 		d1.setLongInt(v);
-		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2012-05-18 11:50:11.159473"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, getISO8601) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
-		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11+02:00"),d1.getISO8601()) << "Unexpected date";
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159473");
+		ASSERT_EQ(ppl6::CString("2012-05-18T11:50:11+02:00"),d1.getISO8601()) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, getISO8601withMsec) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
-		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11.159+02:00"),d1.getISO8601withMsec()) << "Unexpected date";
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159473");
+		ASSERT_EQ(ppl6::CString("2012-05-18T11:50:11.159+02:00"),d1.getISO8601withMsec()) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, getISO8601withMsecNoRoundUp) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18 11:50:11.159999");
-		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11.159+02:00"),d1.getISO8601withMsec()) << "Unexpected date";
+		ppl6::CDateTime d1("2012-05-18 11:50:11.159999");
+		ASSERT_EQ(ppl6::CString("2012-05-18T11:50:11.159+02:00"),d1.getISO8601withMsec()) << "Unexpected date";
 	}
 	);
 }
@@ -285,27 +288,27 @@ TEST_F(DateTimeTest, getISO8601withMsecNoRoundUp) {
 
 TEST_F(DateTimeTest, ReassignmentWithoutMsec) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
 		d1.set("2011-11-23T22:14:39");
-		ASSERT_EQ(ppl7::String("2011-11-23 22:14:39.000000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2011-11-23 22:14:39.000000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, ReassignmentWithMsec) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
 		d1.set("2011-11-23T22:14:39.946210");
-		ASSERT_EQ(ppl7::String("2011-11-23 22:14:39.946210"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("2011-11-23 22:14:39.946210"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, clear) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
 		d1.clear();
-		ASSERT_EQ(ppl7::String("0000-00-00 00:00:00.000000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
+		ASSERT_EQ(ppl6::CString("0000-00-00 00:00:00.000000"),d1.get("%Y-%m-%d %H:%M:%S.%u")) << "Unexpected date";
 	}
 	);
 }
@@ -315,8 +318,8 @@ TEST_F(DateTimeTest, clear) {
 
 TEST_F(DateTimeTest, LowerThanYear) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2011-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2011-05-18T11:50:11.159473");
 		ASSERT_LT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -324,8 +327,8 @@ TEST_F(DateTimeTest, LowerThanYear) {
 
 TEST_F(DateTimeTest, LowerThanMonth) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-04-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-04-18T11:50:11.159473");
 		ASSERT_LT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -333,8 +336,8 @@ TEST_F(DateTimeTest, LowerThanMonth) {
 
 TEST_F(DateTimeTest, LowerThanDay) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-17T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-17T11:50:11.159473");
 		ASSERT_LT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -342,8 +345,8 @@ TEST_F(DateTimeTest, LowerThanDay) {
 
 TEST_F(DateTimeTest, LowerThanHour) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T10:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T10:50:11.159473");
 		ASSERT_LT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -351,8 +354,8 @@ TEST_F(DateTimeTest, LowerThanHour) {
 
 TEST_F(DateTimeTest, LowerThanMinute) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:48:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:48:11.159473");
 		ASSERT_LT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -360,8 +363,8 @@ TEST_F(DateTimeTest, LowerThanMinute) {
 
 TEST_F(DateTimeTest, LowerThanSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:05.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:05.159473");
 		ASSERT_LT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -369,8 +372,8 @@ TEST_F(DateTimeTest, LowerThanSecond) {
 
 TEST_F(DateTimeTest, LowerThanMicroSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:11.159470");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:11.159470");
 		ASSERT_LT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -380,8 +383,8 @@ TEST_F(DateTimeTest, LowerThanMicroSecond) {
 
 TEST_F(DateTimeTest, LowerThanEqualYear) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2011-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2011-05-18T11:50:11.159473");
 		ASSERT_LE(d2,d1) << "Unexpected date";
 		ASSERT_LE(d1,d1) << "Unexpected date";
 	}
@@ -390,8 +393,8 @@ TEST_F(DateTimeTest, LowerThanEqualYear) {
 
 TEST_F(DateTimeTest, LowerThanEqualMonth) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-04-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-04-18T11:50:11.159473");
 		ASSERT_LE(d2,d1) << "Unexpected date";
 		ASSERT_LE(d1,d1) << "Unexpected date";
 	}
@@ -400,8 +403,8 @@ TEST_F(DateTimeTest, LowerThanEqualMonth) {
 
 TEST_F(DateTimeTest, LowerThanEqualDay) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-17T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-17T11:50:11.159473");
 		ASSERT_LE(d2,d1) << "Unexpected date";
 		ASSERT_LE(d1,d1) << "Unexpected date";
 	}
@@ -410,8 +413,8 @@ TEST_F(DateTimeTest, LowerThanEqualDay) {
 
 TEST_F(DateTimeTest, LowerThanEqualHour) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T10:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T10:50:11.159473");
 		ASSERT_LE(d2,d1) << "Unexpected date";
 		ASSERT_LE(d1,d1) << "Unexpected date";
 	}
@@ -420,8 +423,8 @@ TEST_F(DateTimeTest, LowerThanEqualHour) {
 
 TEST_F(DateTimeTest, LowerThanEqualMinute) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:48:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:48:11.159473");
 		ASSERT_LE(d2,d1) << "Unexpected date";
 		ASSERT_LE(d1,d1) << "Unexpected date";
 	}
@@ -430,8 +433,8 @@ TEST_F(DateTimeTest, LowerThanEqualMinute) {
 
 TEST_F(DateTimeTest, LowerThanEqualSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:05.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:05.159473");
 		ASSERT_LE(d2,d1) << "Unexpected date";
 		ASSERT_LE(d1,d1) << "Unexpected date";
 	}
@@ -440,8 +443,8 @@ TEST_F(DateTimeTest, LowerThanEqualSecond) {
 
 TEST_F(DateTimeTest, LowerThanEqualMicroSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:11.159470");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:11.159470");
 		ASSERT_LE(d2,d1) << "Unexpected date";
 		ASSERT_LE(d1,d1) << "Unexpected date";
 	}
@@ -453,8 +456,8 @@ TEST_F(DateTimeTest, LowerThanEqualMicroSecond) {
 
 TEST_F(DateTimeTest, Equal) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:11.159473");
 		ASSERT_EQ(d2,d1) << "Unexpected date";
 	}
 	);
@@ -464,8 +467,8 @@ TEST_F(DateTimeTest, Equal) {
 
 TEST_F(DateTimeTest, NotEqualYear) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2011-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2011-05-18T11:50:11.159473");
 		ASSERT_NE(d2,d1) << "Unexpected date";
 	}
 	);
@@ -473,8 +476,8 @@ TEST_F(DateTimeTest, NotEqualYear) {
 
 TEST_F(DateTimeTest, EqualMonth) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-04-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-04-18T11:50:11.159473");
 		ASSERT_NE(d2,d1) << "Unexpected date";
 	}
 	);
@@ -482,8 +485,8 @@ TEST_F(DateTimeTest, EqualMonth) {
 
 TEST_F(DateTimeTest, EqualDay) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-17T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-17T11:50:11.159473");
 		ASSERT_NE(d2,d1) << "Unexpected date";
 	}
 	);
@@ -491,8 +494,8 @@ TEST_F(DateTimeTest, EqualDay) {
 
 TEST_F(DateTimeTest, EqualHour) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T10:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T10:50:11.159473");
 		ASSERT_NE(d2,d1) << "Unexpected date";
 	}
 	);
@@ -500,8 +503,8 @@ TEST_F(DateTimeTest, EqualHour) {
 
 TEST_F(DateTimeTest, EqualMinute) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:48:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:48:11.159473");
 		ASSERT_NE(d2,d1) << "Unexpected date";
 	}
 	);
@@ -509,8 +512,8 @@ TEST_F(DateTimeTest, EqualMinute) {
 
 TEST_F(DateTimeTest, EqualSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:05.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:05.159473");
 		ASSERT_NE(d2,d1) << "Unexpected date";
 	}
 	);
@@ -518,8 +521,8 @@ TEST_F(DateTimeTest, EqualSecond) {
 
 TEST_F(DateTimeTest, EqualMicroSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:11.159470");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:11.159470");
 		ASSERT_NE(d2,d1) << "Unexpected date";
 	}
 	);
@@ -530,8 +533,8 @@ TEST_F(DateTimeTest, EqualMicroSecond) {
 
 TEST_F(DateTimeTest, GreaterThanYear) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2013-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2013-05-18T11:50:11.159473");
 		ASSERT_GT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -539,8 +542,8 @@ TEST_F(DateTimeTest, GreaterThanYear) {
 
 TEST_F(DateTimeTest, GreaterThanMonth) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-06-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-06-18T11:50:11.159473");
 		ASSERT_GT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -548,8 +551,8 @@ TEST_F(DateTimeTest, GreaterThanMonth) {
 
 TEST_F(DateTimeTest, GreaterThanDay) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-20T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-20T11:50:11.159473");
 		ASSERT_GT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -557,8 +560,8 @@ TEST_F(DateTimeTest, GreaterThanDay) {
 
 TEST_F(DateTimeTest, GreaterThanHour) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T13:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T13:50:11.159473");
 		ASSERT_GT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -566,8 +569,8 @@ TEST_F(DateTimeTest, GreaterThanHour) {
 
 TEST_F(DateTimeTest, GreaterThanMinute) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:52:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:52:11.159473");
 		ASSERT_GT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -575,8 +578,8 @@ TEST_F(DateTimeTest, GreaterThanMinute) {
 
 TEST_F(DateTimeTest, GreaterThanSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:29.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:29.159473");
 		ASSERT_GT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -584,8 +587,8 @@ TEST_F(DateTimeTest, GreaterThanSecond) {
 
 TEST_F(DateTimeTest, GreaterThanMicroSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:11.159474");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:11.159474");
 		ASSERT_GT(d2,d1) << "Unexpected date";
 	}
 	);
@@ -595,8 +598,8 @@ TEST_F(DateTimeTest, GreaterThanMicroSecond) {
 
 TEST_F(DateTimeTest, GreaterThanEqualYear) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2013-05-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2013-05-18T11:50:11.159473");
 		ASSERT_GE(d2,d1) << "Unexpected date";
 		ASSERT_GE(d1,d1) << "Unexpected date";
 	}
@@ -605,8 +608,8 @@ TEST_F(DateTimeTest, GreaterThanEqualYear) {
 
 TEST_F(DateTimeTest, GreaterThanEqualMonth) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-06-18T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-06-18T11:50:11.159473");
 		ASSERT_GE(d2,d1) << "Unexpected date";
 		ASSERT_GE(d1,d1) << "Unexpected date";
 	}
@@ -615,8 +618,8 @@ TEST_F(DateTimeTest, GreaterThanEqualMonth) {
 
 TEST_F(DateTimeTest, GreaterThanEqualDay) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-20T11:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-20T11:50:11.159473");
 		ASSERT_GE(d2,d1) << "Unexpected date";
 		ASSERT_GE(d1,d1) << "Unexpected date";
 	}
@@ -625,8 +628,8 @@ TEST_F(DateTimeTest, GreaterThanEqualDay) {
 
 TEST_F(DateTimeTest, GreaterThanEqualHour) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T13:50:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T13:50:11.159473");
 		ASSERT_GE(d2,d1) << "Unexpected date";
 		ASSERT_GE(d1,d1) << "Unexpected date";
 	}
@@ -635,8 +638,8 @@ TEST_F(DateTimeTest, GreaterThanEqualHour) {
 
 TEST_F(DateTimeTest, GreaterThanEqualMinute) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:52:11.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:52:11.159473");
 		ASSERT_GE(d2,d1) << "Unexpected date";
 		ASSERT_GE(d1,d1) << "Unexpected date";
 	}
@@ -645,8 +648,8 @@ TEST_F(DateTimeTest, GreaterThanEqualMinute) {
 
 TEST_F(DateTimeTest, GreaterThanEqualSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:29.159473");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:29.159473");
 		ASSERT_GE(d2,d1) << "Unexpected date";
 		ASSERT_GE(d1,d1) << "Unexpected date";
 	}
@@ -655,8 +658,8 @@ TEST_F(DateTimeTest, GreaterThanEqualSecond) {
 
 TEST_F(DateTimeTest, GreaterThanEqualMicroSecond) {
 	ASSERT_NO_THROW({
-		ppl7::DateTime d1("2012-05-18T11:50:11.159473");
-		ppl7::DateTime d2("2012-05-18T11:50:11.159474");
+		ppl6::CDateTime d1("2012-05-18T11:50:11.159473");
+		ppl6::CDateTime d2("2012-05-18T11:50:11.159474");
 		ASSERT_GE(d2,d1) << "Unexpected date";
 		ASSERT_GE(d1,d1) << "Unexpected date";
 	}
@@ -664,5 +667,13 @@ TEST_F(DateTimeTest, GreaterThanEqualMicroSecond) {
 }
 
 
+
+}
+
+
+int main (int argc, char**argv)
+{
+	::testing::InitGoogleTest(&argc, argv);
+	return RUN_ALL_TESTS();
 }
 

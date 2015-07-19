@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
@@ -13,11 +14,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -38,8 +42,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include "../include/ppl7.h"
-#include "ppl7-tests.h"
+#include "../include/ppl6.h"
+#include "ppl6-tests.h"
 
 
 int main(int agrc, char ** argv)
@@ -49,9 +53,22 @@ int main(int agrc, char ** argv)
 		printf ("setlocale fehlgeschlagen\n");
 		throw std::exception();
 	}
-	ppl7::String::setGlobalEncoding("UTF-8");
+	ppl6::SetGlobalEncoding("UTF-8");
 
-	ppl7::Logger log;
+	ppl6::CLog log;
+	log.SetLogLevel(ppl6::LOG::WARNING,10);
+	log.SetLogLevel(ppl6::LOG::INFO,10);
+	log.SetLogLevel(ppl6::LOG::DEBUG,10);
+	log.SetLogLevel(ppl6::LOG::ERROR,10);
+	log.SetLogLevel(ppl6::LOG::NOTICE,10);
+	log.openSyslog("ppl6-loggertest",ppl6::CLog::SYSLOG_USER);
+	log.Print(ppl6::LOG::WARNING,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test");
+	log.Print(ppl6::LOG::INFO,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test Info");
+	log.Print(ppl6::LOG::ERROR,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test ERROR");
+	log.Print(ppl6::LOG::NOTICE,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test NOTICE");
+	ppl6::SetError(2,"Test");
+	log.LogError();
+
 
 
 	return 0;

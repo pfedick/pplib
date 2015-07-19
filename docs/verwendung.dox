@@ -1,50 +1,50 @@
-/*!\page ppl7_usage PPL7 verwenden
+/*!\page ppl6_usage PPL6 verwenden
 
-\section ppl7_usage_code Programmcode
+\section ppl6_usage_code Programmcode
 Innerhalb des Programmcodes ist darauf zu achten, dass die notwendigen Header-Dateien
-eingebunden werden. Die Basisfunktionalität ist in der Datei "ppl7.h" zu finden. Diese
+eingebunden werden. Die Basisfunktionalität ist in der Datei "ppl6.h" zu finden. Diese
 sollte daher immer eingebunden werden:
 \code
-#include <ppl7.h>
+#include <ppl6.h>
 \endcode
 
 Wird von weiteren Features gebrauch gemacht, können folgende weitere Include-Dateien
 benötigt werden:
 
 \code
-#include <ppl7-grafix.h>
-#include <ppl7-sound.h>
-#include <ppl7-tk.h>
+#include <ppl6-grafix.h>
+#include <ppl6-sound.h>
+#include <ppl6-tk.h>
 \endcode
 
 Damit die Include-Dateien gefunden werden, sollte der Compiler mit der Ausgabe
-von "ppl7-config --cflags" gestartet werden, und der Linker mit "ppl7-config --libs".
+von "ppl6-config --cflags" gestartet werden, und der Linker mit "ppl6-config --libs".
 
 
-Da alle Funktionen der Library im Namespace "ppl7" zu finden sind, muss dies bei
+Da alle Funktionen der Library im Namespace "ppl6" zu finden sind, muss dies bei
 der Verwendung berücksichtigt werden. Dazu gibt es zwei Möglichkeiten:
 
 \li 1. Globale Verwendung der Funktionen\n
    Dazu fügt man am Anfang des Programmcodes folgenden Code ein:
    \code
-   using namespace ppl7;
+   using namespace ppl6;
    \endcode
    Danach sind alle Funktionen sofort mit ihrem Namen aufrufbar.
    
 \li 2. Gezielte Verwendung der Funktionen\n
    Dazu wird bei Aufruf einer Funktion aus der Library jeweils der Namespace
-   "ppl7::" vorangestellt. Beispiel:
+   "ppl6::" vorangestellt. Beispiel:
    \code
-   	ppl7::SendMail Mail;
-	ppl7::String d;
-	ppl7::MkISO8601Date(&d);			// Datum im String speichern
+   	ppl6::CSendMail Mail;
+	ppl6::CString d;
+	ppl6::MkISO8601Date(&d);			// Datum im String speichern
 	
-	Mail.setHeader("To","patrick@pfp.de");
-	Mail.setHeader("From","patrick@pfp.de");
-	Mail.setHeader("Subject","Testmail %s",(char*)d);
-	Mail.message.set("Dies ist eine Testmail");
-	Mail.setServer("mail.pfp.de:smtp");
-	if (!Mail.send()) {
+	Mail.SetHeader("To","patrick@pfp.de");
+	Mail.SetHeader("From","patrick@pfp.de");
+	Mail.SetHeader("Subject","Testmail %s",(char*)d);
+	Mail.Message.Set("Dies ist eine Testmail");
+	Mail.SetServer("mail.pfp.de:smtp");
+	if (!Mail.Send()) {
 		ppl6::PrintError();
 		return 0;
 	}
@@ -52,7 +52,7 @@ der Verwendung berücksichtigt werden. Dazu gibt es zwei Möglichkeiten:
     \endcode
 
 
-\section ppl7_usage_makefile Makefile
+\section ppl6_usage_makefile Makefile
 Das folgende Beispiel soll als Template für ein Makefile dienen. Wichtig sind die
 beiden Zeilen "CFLAGS" und "LIB", in denen das Tool "ppl6-config" aufgerufen wird.
 Das Keywort "debug" sagt dem Programm, dass die Debug-Version der Library
@@ -65,8 +65,8 @@ CFLAGS "-O2" oder "-O3" hinzufügt.
 CC		= gcc
 EXTRA_CFLAGS =
 INCLUDE	= -I. -I../include
-CFLAGS	= -ggdb -Wall $(INCLUDE) $(EXTRA_CFLAGS) `ppl7-config --cflags debug`
-LIB = -lstdc++ `ppl7-config --libs debug`
+CFLAGS	= -ggdb -Wall $(INCLUDE) $(EXTRA_CFLAGS) `ppl6-config --cflags debug`
+LIB = -lstdc++ `ppl6-config --libs debug`
 PROGRAM	= ppltestprog
 
 OBJECTS=compile/main.o
@@ -90,41 +90,41 @@ compile/main.o: main.cpp testprog.h Makefile
 	$(CC) $(CFLAGS) -o compile/main.o -c main.cpp
 \endcode
 
-\section ppl7_usage_autoconf Verwendung von "autoconf"
+\section ppl6_usage_autoconf Verwendung von "autoconf"
 Soll \b autoconf zur Erkennung der PPL-Library verwendet werden, kann folgendes m4-Makro
 verwendet werden:
 
-<b>ppl7.m4</b>
-\include ppl7.m4
+<b>ppl6.m4</b>
+\include ppl6.m4
 
 Das Makro kann beispielsweise so im Configure-Script verwendet werden:
 \code
-sinclude(autoconf/ppl7.m4)
+sinclude(autoconf/ppl6.m4)
 
-report_have_ppl7="no"
-AX_PATH_LIB_PPL7([7.0.0],
-            AC_DEFINE(HAVE_LIBPPL7, 1, [ Define if you have ppl7. ])
-            report_have_ppl7="yes"
-			AC_SUBST(LIBPPL7_CFLAGS)
-			AC_SUBST(LIBPPL7)
-			AC_SUBST(LIBPPL7_DEBUG)
-			AC_SUBST(LIBPPL7_DEBUG_LIBS)
-			AC_SUBST(LIBPPL7_RELEASE_LIBS)
+report_have_ppl6="no"
+AX_PATH_LIB_PPL6([6.2.4],
+            AC_DEFINE(HAVE_LIBPPL6, 1, [ Define if you have ppl6. ])
+            report_have_ppl6="yes"
+			AC_SUBST(LIBPPL6_CFLAGS)
+			AC_SUBST(LIBPPL6)
+			AC_SUBST(LIBPPL6_DEBUG)
+			AC_SUBST(LIBPPL6_DEBUG_LIBS)
+			AC_SUBST(LIBPPL6_RELEASE_LIBS)
             ,
-            AC_MSG_ERROR(no suitable ppl7 available)
+            AC_MSG_ERROR(no suitable ppl6 available)
             )
 \endcode
 
-Es gibt noch ein weiteres Macro, um das vorhandensein eines bestimmten Features
+Seit Version 6.3.1 gibt es noch ein weiteres Macro. um das vorhandensein eines bestimmten Features
 abzufragen. Dieses würde im configure nach dem obrigen Aufruf so eingebunden:
 \code
-AX_PPL7_FEATURE([zlib],ppl_has_zlib="yes",ppl_has_zlib="no")
-AX_PPL7_FEATURE([bzip2],ppl_has_bzip2="yes",ppl_has_bzip2="no")
+AX_PPL6_FEATURE([zlib],ppl_has_zlib="yes",ppl_has_zlib="no")
+AX_PPL6_FEATURE([bzip2],ppl_has_bzip2="yes",ppl_has_bzip2="no")
 ...
 \endcode
 Denkbar wäre auch:
 \code
-AX_PPL7_FEATURE([zlib],,AC_MSG_ERROR(a required feature is missing))
+AX_PPL6_FEATURE([zlib],,AC_MSG_ERROR(a required feature is missing))
 \endcode
 
 
@@ -133,8 +133,8 @@ Das Makefile aus dem Beispiel oben würde dann so aussehen:
 CC		= gcc
 EXTRA_CFLAGS =
 INCLUDE	= -I. -I../include
-CFLAGS	= -ggdb -Wall $(INCLUDE) $(EXTRA_CFLAGS) @LIBPPL7_CFLAGS@
-LIB = -lstdc++ @LIBPPL7_RELEASE_LIBS@
+CFLAGS	= -ggdb -Wall $(INCLUDE) $(EXTRA_CFLAGS) @LIBPPL6_CFLAGS@
+LIB = -lstdc++ @LIBPPL6_RELEASE_LIBS@
 PROGRAM	= ppltestprog
 
 OBJECTS=compile/main.o
