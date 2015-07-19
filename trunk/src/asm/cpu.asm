@@ -47,33 +47,33 @@ SECTION .data
 SECTION .text
 
 ;/*********************************************************************
-;/** GetASMBits                                                      **
+;/** PPL7_GetASMBits                                                 **
 ;/**                                                                 **
 ;/** ppluint32 GetASMBits()                                          **
 ;/*********************************************************************
 %ifidn __OUTPUT_FORMAT__, elf64
-	global GetASMBits
-	GetASMBits:
+	global PPL7_GetASMBits
+	PPL7_GetASMBits:
 		xor rax,rax
 		mov al, __BITS__
 		ret
 
 %elifidn __OUTPUT_FORMAT__, win64
-	global _GetASMBits
-	_GetASMBits:
+	global _PPL7_GetASMBits
+	_PPL7_GetASMBits:
 		xor rax,rax
 		mov al, __BITS__
 		ret
 %elifidn __OUTPUT_FORMAT__, win32
-	global _GetASMBits
-	_GetASMBits:
+	global _PPL7_GetASMBits
+	_PPL7_GetASMBits:
 		xor eax,eax
 		mov al, __BITS__
 		ret
 
 %elifidn __OUTPUT_FORMAT__, elf32
-	global GetASMBits
-	GetASMBits:
+	global PPL7_GetASMBits
+	PPL7_GetASMBits:
 		xor eax,eax
 		mov al, __BITS__
 		ret
@@ -81,14 +81,16 @@ SECTION .text
 %endif
 
 ;/*********************************************************************
-;/** HaveCPUID                                                       **
+;/** PPL7_HaveCPUID                                                  **
 ;/**                                                                 **
 ;/** ppluint32 HaveCPUID()                                           **
 ;/*********************************************************************
 
 %ifidn __OUTPUT_FORMAT__, elf64
-	global HaveCPUID
-	HaveCPUID:
+	global PPL7_HaveCPUID
+	global _PPL7_HaveCPUID
+	PPL7_HaveCPUID:
+	_PPL7_HaveCPUID:
 		; check whether CPUID is supported
 		; (bit 21 of Eflags can be toggled)
 		; // cli							// Interupts abschalten
@@ -110,11 +112,11 @@ SECTION .text
 			ret
 
 %else
-	global HaveCPUID
-	global _HaveCPUID
+	global PPL7_HaveCPUID
+	global _PPL7_HaveCPUID
 
-	HaveCPUID:
-	_HaveCPUID:
+	PPL7_HaveCPUID:
+	_PPL7_HaveCPUID:
 		; check whether CPUID is supported
 		; (bit 21 of Eflags can be toggled)
 		; // cli							// Interupts abschalten
@@ -195,7 +197,7 @@ _PPL7_GetCpuCaps:
 		xor edi,edi
 	%endif
 	; In EDI bauen wir den Returnwert zusammen
-	call HaveCPUID		; Als erstes prüfen wir, ob wir den Befehl CPUID haben
+	call PPL7_HaveCPUID		; Als erstes prüfen wir, ob wir den Befehl CPUID haben
 	cmp al,1
 	jne .end			; Nein, dann gibt es nichts mehr zu tun
 	or edi,1
