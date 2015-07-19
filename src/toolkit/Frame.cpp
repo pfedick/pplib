@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: Frame.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,7 +36,6 @@
  *******************************************************************************/
 
 #include "prolog.h"
-
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -43,127 +45,46 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
+#include "ppl6.h"
+#include "ppl6-grafix.h"
+#include "ppl6-tk.h"
 
-#include "ppl7.h"
-#include "ppl7-grafix.h"
-#include "ppl7-tk.h"
+using namespace ppl6::grafix;
 
-
-
-namespace ppl7 {
+namespace ppl6 {
 namespace tk {
 
-using namespace ppl7;
-using namespace ppl7::grafix;
 
-Frame::Frame()
+Frame::Frame(Widget *parent, Framestyle style)
+: Widget(parent)
 {
-	const WidgetStyle *style=GetWidgetStyle();
-	myBorderStyle=Upset;
-	myBackground=style->frameBackgroundColor;
-	myBorderColor=style->frameBorderColor;
-	setTransparent(false);
-	setClientOffset(3,3,3,3);
-}
+	Style=style;
+	background.setColor(230,235,230);
 
-Frame::Frame(int x, int y, int width, int height, BorderStyle style)
-{
-	const WidgetStyle *wstyle=GetWidgetStyle();
-	myBorderStyle=style;
-	myBackground=wstyle->frameBackgroundColor;
-	myBorderColor=wstyle->frameBorderColor;
-	create(x,y,width,height);
-	setTransparent(false);
-	setClientOffset(3,3,3,3);
 }
 
 Frame::~Frame()
 {
-
 }
 
-Frame::BorderStyle Frame::borderStyle() const
+
+int Frame::paint()
 {
-	return (BorderStyle)myBorderStyle;
+	CDrawable draw=getDrawable();
+	Rect r=draw.rect();
+	Color bright=background*2.0f;
+	Color dark=background*0.8f;
+
+	draw.fillRect(r,background);
+	draw.line(0,0,r.width(),0,bright);
+	draw.line(0,0,0,r.height(),bright);
+	draw.line(r.right(),1,r.right(),r.height(),dark);
+	draw.line(1,r.height(),r.right(),r.height(),dark);
+
+	releaseDrawable(draw);
+	return 1;
+
 }
 
-void Frame::setBorderStyle(BorderStyle s)
-{
-	myBorderStyle=s;
-	needsRedraw();
-}
-
-const Color &Frame::backgroundColor() const
-{
-	return myBackground;
-}
-
-void Frame::setBackgroundColor(const Color &c)
-{
-	myBackground=c;
-	needsRedraw();
-}
-
-const Color &Frame::borderColor() const
-{
-	return myBorderColor;
-}
-
-void Frame::setBorderColor(const Color &c)
-{
-	myBorderColor=c;
-	needsRedraw();
-}
-
-void Frame::paint(Drawable &draw)
-{
-	Color white(255,255,255,255);
-	Color bg;
-
-	int w=width()-1;
-	int h=height()-1;
-	bool myTransparent=isTransparent();
-	switch(myBorderStyle) {
-		case NoBorder:
-			if (!myTransparent) draw.cls(myBackground);
-			break;
-		case Normal:
-			if (!myTransparent) draw.cls(myBackground);
-			draw.drawRect(0,0,w,h,myBorderColor);
-			break;
-		case Upset:
-			if (!myTransparent) {
-				bg=myBackground;
-				draw.cls(bg);
-			}
-			draw.line(0,0,w,0,white);
-			draw.line(0,0,0,h,white);
-			draw.line(0,h,w,h,myBorderColor);
-			draw.line(w,0,w,h,myBorderColor);
-			break;
-		case Inset:
-			if (!myTransparent) {
-				bg=myBackground;
-				draw.cls(bg);
-			}
-			draw.line(0,0,w,0,myBorderColor);
-			draw.line(0,0,0,h,myBorderColor);
-			draw.line(0,h,w,h,white);
-			draw.line(w,0,w,h,white);
-			break;
-	}
-}
-
-String Frame::widgetType() const
-{
-	return "Frame";
-}
-
-
-
-}	// EOF namespace tk
-}	// EOF namespace ppl7
-
+} // EOF namespace newtk
+} // EOF namespace ppl6

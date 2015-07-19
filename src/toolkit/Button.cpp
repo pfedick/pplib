@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:47 $
+ * $Id: Button.cpp,v 1.2 2010/02/12 19:43:47 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,7 +36,6 @@
  *******************************************************************************/
 
 #include "prolog.h"
-
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -43,230 +45,49 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
+#include "ppl6.h"
+#include "ppl6-grafix.h"
+#include "ppl6-tk.h"
 
-#include "ppl7.h"
-#include "ppl7-grafix.h"
-#include "ppl7-tk.h"
+using namespace ppl6::grafix;
 
-
-namespace ppl7 {
+namespace ppl6 {
 namespace tk {
 
-using namespace ppl7;
-using namespace ppl7::grafix;
 
-
-Button::Button()
+Button::Button(Widget *parent, Buttonstyle style)
+: Widget(parent)
 {
-	const WidgetStyle *style=GetWidgetStyle();
-	background=style->buttonBackgroundColor;
-	foreground=style->buttonFontColor;
-	myFont=style->buttonFont;
-	setClientOffset(3,3,3,3);
-	isDown=false;
-}
-
-Button::Button(int x, int y, int width, int height, const String &text, const Drawable &icon)
-{
-	const WidgetStyle *style=GetWidgetStyle();
-	background=style->buttonBackgroundColor;
-	foreground=style->buttonFontColor;
-	myFont=style->buttonFont;
-	create(x,y,width,height);
-	setClientOffset(3,3,3,3);
-	isDown=false;
-	Text=text;
-	Icon=icon;
+	background.setColor(230,235,230);
+	foreground.setColor(255,255,255);
+	Style=style;
+	Text="Button";
+	Font.setAntialias(true);
+	Font.setSize(14);
+	Font.setBold(false);
+	Font.setOrientation(CFont::BOTTOM);
 }
 
 Button::~Button()
 {
-
-}
-
-const String &Button::text() const
-{
-	return Text;
-}
-
-void Button::setText(const String &text)
-{
-	Text=text;
-	needsRedraw();
-	geometryChanged();
-}
-
-const Drawable &Button::icon() const
-{
-	return Icon;
-}
-
-void Button::setIcon(const Drawable &icon)
-{
-	Icon=icon;
-	needsRedraw();
-	geometryChanged();
-
-}
-
-int Button::style() const
-{
-	return 0;
 }
 
 
-const Color &Button::color() const
+int Button::paint()
 {
-	return foreground;
-}
-
-void Button::setColor(const Color &c)
-{
-	foreground=c;
-	needsRedraw();
-}
-
-const Color &Button::backgroundColor() const
-{
-	return background;
-}
-
-void Button::setBackgroundColor(const Color &c)
-{
-	background=c;
-	needsRedraw();
-}
-
-const Font &Button::font() const
-{
-	return myFont;
-}
-
-void Button::setFont(const Font &font)
-{
-	myFont=font;
-	needsRedraw();
-	geometryChanged();
-}
-
-String Button::widgetType() const
-{
-	return "Button";
-}
-
-
-Size Button::contentSize() const
-{
-	Size s;
-	s=myFont.measure(Text);
-	if (Icon.isEmpty()==false) {
-		s.width+=4+Icon.width();
-		int h=2+Icon.height();
-		if (s.height<h) s.height=h;
-	}
-	s.width+=6;
-	return s;
-}
-
-void Button::mouseDownEvent(MouseEvent *event)
-{
-	isDown=true;
-	needsRedraw();
-}
-
-void Button::mouseUpEvent(MouseEvent *event)
-{
-	isDown=false;
-	needsRedraw();
-}
-
-void Button::mouseLeaveEvent(MouseEvent *event)
-{
-	if (isDown) {
-		isDown=false;
-		needsRedraw();
-	}
-}
-
-void Button::paint(Drawable &draw)
-{
-	Color light=background*1.2f;
-	Color shadow=background*0.4f;
-	Color shade1=background*1.05f;
-	Color shade2=background*0.95f;
-	Color shade3=background*0.90f;
-	Color shade4=background*0.85f;
-
-	int w=width()-1;
-	int h=height()-1;
-	//draw.cls(background);
-
-	if (isDown) {
-		shade1=background*1.00f;
-		shade2=background*0.90f;
-		shade3=background*0.85f;
-		shade4=background*0.80f;
-	}
-
-	Rect r1=draw.rect();
-	Rect r2=draw.rect();
-	r1.y2-=((r1.y2-r1.y1)/2);
-	if (isDown) r1.y2++;
-	r2.y1=r1.y2;
-
-
-	draw.colorGradient(r1,shade1,shade2,1);
-	draw.colorGradient(r2,shade3,shade4,1);
-
-	int x=0;
-	int y=0;
-	if (isDown) {
-		draw.line(0,0,w,0,shadow);
-		draw.line(0,0,0,h,shadow);
-		draw.line(0,h,w,h,light);
-		draw.line(w,0,w,h,light);
-		x++;
-		y++;
-	} else {
-		draw.line(0,0,w,0,light);
-		draw.line(0,0,0,h,light);
-		draw.line(0,h,w,h,shadow);
-		draw.line(w,0,w,h,shadow);
-	}
-	Drawable d=clientDrawable(draw);
-	if (Icon.isEmpty()==false) {
-		d.bltAlpha(Icon,x+2,y+(d.height()-Icon.height())/2);
-		x+=6+Icon.width();
-	}
-	myFont.setColor(foreground);
-	myFont.setOrientation(Font::TOP);
-
-	Size s=myFont.measure(Text);
-	d.print(myFont,x,y+((d.height()-s.height)>>1),Text);
-	return;
-
-/*
-
-
-
-
+	CDrawable draw=getDrawable();
 	Rect r=draw.rect();
-	Color bright1=background*1.3f;
-	Color bright2=background*1.0f;
-	Color dark1=background*0.8f;
-	Color dark2=background*0.7f;
+	Color bright=background*2.0f;
+	Color dark=background*0.8f;
 	draw.drawRect(r,Color(66,66,66));
-	int x1=r.x1+1;
-	int y1=r.y1+1;
-	int x2=r.x2-1;
-	int y2=r.y2-1;
+	int x1=r.x1()+1;
+	int y1=r.y1()+1;
+	int x2=r.x2()-1;
+	int y2=r.y2()-1;
 	int m=(y2-y1)/2+y1;
 	draw.line(x1,y1,x2,y1,Color(219,219,219));
-	draw.colorGradient(x1,y1+1,x2,m,bright1,bright2,1);
-	draw.colorGradient(x1,m+1,x2,y2,dark1,dark2,1);
+	draw.colorGradient(x1,y1+1,x2,m,Color(152,152,152),Color(125,125,125),1);
+	draw.colorGradient(x1,m+1,x2,y2,Color(67,67,67),Color(43,43,43),1);
 
 	draw.colorGradient(x1,y1,x1,m,Color(219,219,219),Color(130,130,130),1);
 	draw.colorGradient(x2,y1,x2,m,Color(219,219,219),Color(130,130,130),1);
@@ -290,20 +111,33 @@ void Button::paint(Drawable &draw)
 			draw.blendPixel(x,y,Color(128,128,256),brightness);
 		}
 	}
-	if (Icon.isEmpty()) {
-		x1+=2;
-	} else {
-		draw.bltAlpha(Icon,x1+2,(y2-y1)/2-Icon.height()/2);
-		x1+=4+Icon.width();
-
-	}
-	myFont.setColor(foreground);
 
 
-	draw.print(myFont,x1,m+5,Text);
+	Font.setColor(foreground);
+	draw.print(Font,x1+2,m+5,Text);
+
+
+
+	/*
+
+	Rect inside;
+	inside.setLeft(r.left()+1);
+	inside.setTop(r.top()+1);
+	inside.setBottom(r.bottom()-1);
+	inside.setRight(r.right()-1);
+
+	draw.FillRect(r,background);
+	draw.Line(1,0,r.right()-1,0,bright);
+	draw.PutPixel(2,2,background*1.2f);
+	draw.Line(0,1,0,r.bottom()-1,bright);
+	draw.Line(r.right(),1,r.right(),r.bottom()-1,dark);
+	draw.Line(1,r.bottom(),r.right()-1,r.bottom(),dark);
 	*/
+
+	releaseDrawable(draw);
+	return 1;
+
 }
 
-
-}	// EOF namespace tk
-}	// EOF namespace ppl7
+} // EOF namespace tk
+} // EOF namespace ppl6

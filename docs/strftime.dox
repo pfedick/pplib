@@ -1,7 +1,6 @@
 /*!\file strftime.dox
  
-Normale Zeichen im Format werden ohne Konvertierung kopiert.  Konvertierungsanweisungen werden durch »\%« charakterisiert. Folgende Anweisungen stehen
-zur Verfügung:
+Normale Zeichen im Format werden ohne Konvertierung in s kopiert.  Konvertierungsanweisungen werden durch »\%« charakterisiert und in s folgendermaßen geschrieben:
 
 \arg \c \%a     Der abgekürzte Wochentag abhängig von der momentanen Locale.
 
