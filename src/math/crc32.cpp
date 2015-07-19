@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,16 +8,19 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -35,9 +38,9 @@
 #include "prolog.h"
 #include <stdio.h>
 #include <string.h>
-#include "ppl7.h"
+#include "ppl6.h"
 
-namespace ppl7 {
+namespace ppl6 {
 
 static ppluint32 crc32_table[256] = {  // Lookup table array
 	0x00000000,0x77073096,0xee0e612c,0x990951ba,0x076dc419,0x706af48f,
@@ -121,7 +124,45 @@ static void Init_CRC32_Table()
 */
 
 
-ppluint32 Crc32(const void* buffer, size_t size)
+ppluint32 crc32(const char* text)
+/*!\ingroup PPLGroupMath
+ */
+{// Pass a text string to this function and it will return the CRC.
+
+      // Once the lookup table has been filled in by the two functions above,
+      // this function creates all CRCs using only the lookup table.
+
+      // Be sure to use unsigned variables,
+      // because negative values introduce high bits
+      // where zero bits are required.
+
+      // Start out with all bits set high.
+      ppluint32  ulCRC(0xffffffff);
+      int len;
+      unsigned char* buffer;
+
+      // Get the length.
+      len = strlen(text);
+      // Save the text in the buffer.
+      buffer = (unsigned char*)text;
+      // Perform the algorithm on each character
+      // in the string, using the lookup table values.
+      while(len--)
+            ulCRC = (ulCRC >> 8) ^ crc32_table[(ulCRC & 0xFF) ^ *buffer++];
+      // Exclusive OR the result with the beginning value.
+      /*
+#ifdef __BIG_ENDIAN__
+      ppluint32 crc=ulCRC ^ 0xffffffff;
+      ppluint8 *a=(ppluint8 *)&crc;
+      return (a[0])+(a[1]<<8)+(a[2]<<16)+(a[3]<<24);
+#else
+      return ulCRC ^ 0xffffffff;
+#endif
+*/
+      return ulCRC ^ 0xffffffff;
+}
+
+ppluint32 crc32(const void* buffer, int size)
 /*!\ingroup PPLGroupMath
  */
 
@@ -137,7 +178,7 @@ ppluint32 Crc32(const void* buffer, size_t size)
       // Start out with all bits set high.
       ppluint32  ulCRC(0xffffffff);
       unsigned char* b=(unsigned char*)buffer;
-	  size_t len=size;
+	  int len=size;
 
       while(len--)
             ulCRC = (ulCRC >> 8) ^ crc32_table[(ulCRC & 0xFF) ^ *b++];

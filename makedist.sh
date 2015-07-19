@@ -3,7 +3,7 @@
 ##################################################################
 VERSION=$1
 VERSION=${VERSION:=HEAD}
-NAME=ppl7
+NAME=ppl6
 
 echo "INFO: create artefakt: dist/$NAME-$VERSION.tar.bz2"
 rm -rf dist tmp
@@ -15,7 +15,7 @@ fi
 
 ##################################################################
 # Library
-find documentation include src *.m4 docs Doxyfile LICENSE.TXT HISTORY.TXT README.TXT configure ppl7-config.in Makefile.in \
+find documentation include src *.m4 docs Doxyfile HISTORY.TXT README.TXT configure ppl6-config.in Makefile.in \
     | grep -v ".svn" | cpio -pdmv tmp/$NAME-$VERSION > /dev/null 2>&1
 
 if [ $? -ne 0 ] ; then
@@ -27,7 +27,7 @@ rm -rf tmp/$NAME-$VERSION/include/*config.h
 ##################################################################
 # Tests
 cd tests
-find  src testdata gcovr Makefile.in ppl7-tests.h \
+find  src testdata gcovr Makefile.in ppl6-tests.h \
     | grep -v ".svn" | cpio -pdmv ../tmp/$NAME-$VERSION/tests > /dev/null 2>&1
 
 if [ $? -ne 0 ] ; then

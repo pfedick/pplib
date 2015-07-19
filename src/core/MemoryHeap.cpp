@@ -1,11 +1,11 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 917 $
+ * $Date: 2014-02-10 20:15:09 +0100 (Mo, 10 Feb 2014) $
+ * $Id: ppl6.h 917 2014-02-10 19:15:09Z pafe $
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
@@ -13,11 +13,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,6 +34,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
+
 
 
 #include "prolog.h"
@@ -47,10 +51,10 @@
 #include <stdarg.h>
 #endif
 
-#include "ppl7.h"
+#include "ppl6.h"
 
 
-namespace ppl7 {
+namespace ppl6 {
 
 typedef struct tagHeapElement {
 	struct tagHeapElement	*next, *previous;
@@ -67,7 +71,6 @@ typedef struct tagHeapBlock {
 	HEAPELEMENT			*elbuffer;
 
 } HEAPBLOCK;
-
 
 /*!\class MemoryHeap
  * \ingroup PPLGroupMemory
@@ -501,4 +504,4 @@ void MemoryHeap::dump() const
 	}
 }
 
-}	// EOF namespace ppl7
+}	// EOF namespace ppl6

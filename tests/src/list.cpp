@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 887 $
+ * $Date: 2014-02-04 14:24:47 +0100 (Di, 04 Feb 2014) $
+ * $Id: CDir.cpp 887 2014-02-04 13:24:47Z pafe $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -37,13 +40,13 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <ppl6.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "ppl6-tests.h"
 
 extern const wchar_t *wordlist;
 
-extern ppl7::Array Wordlist;
+extern ppl6::CArray Wordlist;
 
 namespace {
 
@@ -56,7 +59,7 @@ class ListTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
+		ppl6::SetGlobalEncoding("UTF-8");
 
 	}
 	virtual ~ListTest() {
@@ -66,12 +69,12 @@ class ListTest : public ::testing::Test {
 
 TEST_F(ListTest, ConstructorSimple) {
 	ASSERT_NO_THROW({
-		ppl7::List<ppl7::String> myList;
+		ppl6::List<ppl6::CString> myList;
 	});
 }
 
 TEST_F(ListTest, add) {
-	ppl7::List<ppl7::String> myList;
+	ppl6::List<ppl6::CString> myList;
 	myList.add("Item 1");
 	ASSERT_EQ((size_t)1,myList.count());
 	myList.add("Item 2");
@@ -79,7 +82,7 @@ TEST_F(ListTest, add) {
 }
 
 TEST_F(ListTest, clear) {
-	ppl7::List<ppl7::String> myList;
+	ppl6::List<ppl6::CString> myList;
 	myList.add("Item 1");
 	myList.add("Item 2");
 	myList.add("Item 3");
@@ -90,61 +93,61 @@ TEST_F(ListTest, clear) {
 }
 
 TEST_F(ListTest, reset) {
-	ppl7::List<ppl7::String> myList;
+	ppl6::List<ppl6::CString> myList;
 	myList.add("Item 1");
 	myList.add("Item 2");
 	myList.add("Item 3");
 
-	ppl7::List<ppl7::String>::Iterator it;
+	ppl6::List<ppl6::CString>::Iterator it;
 	myList.reset(it);
 
 }
 
 TEST_F(ListTest, getNext) {
-	ppl7::List<ppl7::String> myList;
+	ppl6::List<ppl6::CString> myList;
 	myList.add("Item 1");
 	myList.add("Item 2");
 	myList.add("Item 3");
 
-	ppl7::List<ppl7::String>::Iterator it;
+	ppl6::List<ppl6::CString>::Iterator it;
 	myList.reset(it);
 	ASSERT_EQ(true,myList.getNext(it));
-	ASSERT_EQ(ppl7::String("Item 1"),it.value());
+	ASSERT_EQ(ppl6::CString("Item 1"),it.value());
 
 	ASSERT_EQ(true,myList.getNext(it));
-	ASSERT_EQ(ppl7::String("Item 2"),it.value());
+	ASSERT_EQ(ppl6::CString("Item 2"),it.value());
 
 	ASSERT_EQ(true,myList.getNext(it));
-	ASSERT_EQ(ppl7::String("Item 3"),it.value());
+	ASSERT_EQ(ppl6::CString("Item 3"),it.value());
 
 	ASSERT_EQ(false,myList.getNext(it));
 }
 
 TEST_F(ListTest, getPrevious) {
-	ppl7::List<ppl7::String> myList;
+	ppl6::List<ppl6::CString> myList;
 	myList.add("Item 1");
 	myList.add("Item 2");
 	myList.add("Item 3");
 
-	ppl7::List<ppl7::String>::Iterator it;
+	ppl6::List<ppl6::CString>::Iterator it;
 	myList.reset(it);
 	ASSERT_EQ(true,myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String("Item 3"),it.value());
+	ASSERT_EQ(ppl6::CString("Item 3"),it.value());
 
 	ASSERT_EQ(true,myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String("Item 2"),it.value());
+	ASSERT_EQ(ppl6::CString("Item 2"),it.value());
 
 	ASSERT_EQ(true,myList.getPrevious(it));
-	ASSERT_EQ(ppl7::String("Item 1"),it.value());
+	ASSERT_EQ(ppl6::CString("Item 1"),it.value());
 
 	ASSERT_EQ(false,myList.getPrevious(it));
 }
 
 TEST_F(ListTest, addWordlist) {
-	ppl7::List<ppl7::String> myList;
-	size_t total=Wordlist.count();
+	ppl6::List<ppl6::CString> myList;
+	size_t total=Wordlist.Size();
 	myList.reserve(total+10);
-	ASSERT_EQ((size_t)124332,Wordlist.count()) << "List has unexpected size";
+	ASSERT_EQ((size_t)124332,Wordlist.Size()) << "List has unexpected size";
 	//ppl7::PrintDebugTime ("Wortliste in List laden\n");
 	for (size_t i=0;i<total;i++) {
 		myList.add(Wordlist[i]);
