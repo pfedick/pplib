@@ -2,10 +2,11 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 653 $
+ * $Date: 2013-05-19 10:57:32 +0200 (So, 19 Mai 2013) $
+ * $Id: strings.cpp 653 2013-05-19 08:57:32Z pafe $
+ * $URL: https://svn.code.sf.net/p/pplib/code/lib/branches/RELENG_6/tests/src/strings.cpp $
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
@@ -13,11 +14,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,64 +36,39 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#define PPL7TESTSUITEMAIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <ppl6.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "ppl6-tests.h"
 
 extern const char *wordlist;
 
-ppl7::Array Wordlist;
-ppl7::ConfigParser PPL7TestConfig;
+ppl6::CArray Wordlist;
 
-void help()
-{
-	printf ("PPL7 Testsuite configuration options:\n"
-			"-c CONFIG   Configuration-file for ppl7 testsuite\n"
-			"\n"
-			"Test-Framework options:\n");
-
-}
-
-void setDefaultConfigParams()
-{
-	PPL7TestConfig.createSection("tcpsocket");
-	PPL7TestConfig.add("echoserver","localhost");
-	PPL7TestConfig.add("unknownserver","unknown.server.pfp.de");
-}
 
 int main (int argc, char**argv)
 {
-	const char *tmp;
-	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) help();
-	if ((tmp=ppl7::GetArgv(argc,argv,"-c"))) {
-		PPL7TestConfig.load(tmp);
-	} else {
-		setDefaultConfigParams();
-	}
 	::testing::InitGoogleTest(&argc, argv);
-	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) return 0;
+	ppl6::PrintDebugTime ("Wortliste in String laden\n");
+	ppl6::CString w(wordlist);
+	Wordlist.Reserve(130000);
+	ppl6::PrintDebugTime ("Wortliste in Array laden\n");
+	Wordlist.Explode(w,"\n");
+	ppl6::PrintDebugTime ("done\n");
 
-
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String w(wordlist);
-	Wordlist.reserve(130000);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	Wordlist.explode(w,"\n");
-	ppl7::PrintDebugTime ("done\n");
-
+	int ret=0;
 	try {
-		return RUN_ALL_TESTS();
-	} catch (const ppl7::Exception &e) {
-		printf ("ppl7::Exception: %s\n",e.what());
+		ret=RUN_ALL_TESTS();
+	} catch (const ppl6::Exception &e) {
+		printf ("ppl6::Exception: %s\n",e.what());
 	} catch (...) {
 		printf ("Unbekannte Exception\n");
 	}
 
-	return 1;
+	ppl6::CleanupThreadData();
+	return ret;
 }
