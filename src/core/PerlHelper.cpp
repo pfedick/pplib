@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,16 +8,19 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2011, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,7 +34,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
 
 #include "prolog.h"
 #ifdef HAVE_STDIO_H
@@ -48,57 +50,58 @@
 #endif
 
 
-#include "ppl7.h"
+#include "ppl6.h"
 
 
-namespace ppl7 {
+namespace ppl6 {
 
 
 
-String PerlHelper::escapeString(const String &s)
+CString PerlHelper::escapeString(const CString &s)
 {
-	String ret=s;
-	ret.replace("\"","\\\"");
-	ret.replace("@","\\@");
+	CString ret=s;
+	ret.Replace("\"","\\\"");
+	ret.Replace("@","\\@");
 	return ret;
 }
 
-String PerlHelper::escapeRegExp(const String &s)
+CString PerlHelper::escapeRegExp(const CString &s)
 {
-	String ret=s;
-	ret.pregEscape();
+	CString ret=s;
+	ret.PregEscape();
 	return ret;
 }
 
 
-static String toHashRecurse(const AssocArray &a, const String &name)
+static ppl6::CString toHashRecurse(const CAssocArray &a, const CString &name)
 {
-	String r;
-	String key;
-	AssocArray::Iterator it;
-	a.reset(it);
-	while (a.getNext(it)) {
-		const String &key=it.key();
-		const Variant &res=it.value();
-		if (res.isAssocArray()) {
-			String newName;
-			newName=name+"{"+key+"}";
-			r+=toHashRecurse(res.toAssocArray(),newName);
+	CString r;
+	CString key;
+	CTreeWalker walk;
+	a.Reset(walk);
+	ARRAY_RESULT res;
+	while ((res=a.GetNext(walk))) {
+		a.GetKey(res,key);
+		if (a.IsArray(res)) {
+			CString newName;
+			newName.Setf("%s{%s}",(const char*)name,(const char*)key);
+			r+=toHashRecurse(*a.GetArray(res),newName);
 		} else {
-			r+=name+"{"+key+"}=\""+PerlHelper::escapeString(a.toString())+"\";\n";
+			r.Concatf("%s{%s}=\"%s\";\n",(const char*)name,(const char*)key,(const char*)PerlHelper::escapeString(a.GetChar(res)));
 		}
 	}
 	return r;
 }
 
-String PerlHelper::toHash(const AssocArray &a, const String &name)
+CString PerlHelper::toHash(const CAssocArray &a, const CString &name)
 {
-	String ret;
-	ret="my %"+name+";\n";
-	String n;
-	n="$"+name;
+	CString ret;
+	if (name.IsEmpty()) return ret;
+	ret.Setf("my %%%s;\n",(const char*)name);
+	CString n;
+	n.Setf("$%s",(const char*)name);
 	ret+=toHashRecurse(a,n);
 	return ret;
 }
 
-}	// EOF namespace ppl7
+}	// EOF namespace ppl6

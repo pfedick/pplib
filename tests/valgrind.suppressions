@@ -1,53 +1,156 @@
 {
-   False positive in google test framework
-   Memcheck:Free
-   fun:free
-   fun:_ZN7testing8internal*
+   False Positive on SSE2
+   Memcheck:Cond
+   fun:__wcscmp_sse2
+   fun:_ZN7testing8internal8EqHelperILb0EE7CompareIN4ppl68CWStringES5_EENS_15AssertionResultEPKcS8_RKT_RKT0_
+}
+
+{
+   False Positive on SSE2
+   Memcheck:Cond
+   fun:__wcscmp_sse2
+   fun:_ZN7testing8internal38HandleSehExceptionsInMethodIfSupportedINS_4TestEvEET0_PT_MS4_FS3_vEPKc
+}
+
+{
+   False Positive on SSE2
+   Memcheck:Cond
+   fun:__wcscmp_sse2
+   fun:_ZNSt8_Rb_treeIN4ppl68CWStringESt4pairIKS1_S1_ESt10_Select1stIS4_ESt4lessIS1_ESaIS4_EE14_M_lower_boundEPSt13_Rb_tree_nodeIS4_ESD_RS3_
+}
+
+{
+   False Positive on SSE2
+   Memcheck:Cond
+   fun:__wcscmp_sse2
+   fun:_ZNSt3mapIN4ppl68CWStringES1_St4lessIS1_ESaISt4pairIKS1_S1_EEE2atERS5_
+}
+
+{
+   False Positive
+   Memcheck:Cond
+   fun:wcscmp
+   fun:_ZNK4ppl68CWString6StrCmpERKS0_i
+}
+
+{
+   openssl uses uninitialized memory 1
+   Memcheck:Value8
+   fun:bn_gather5
+   fun:generate_key
+   fun:ssl3_send_server_key_exchange
+   fun:ssl3_accept
+}
+
+{
+   openssl uses uninitialized memory 2
+   Memcheck:Cond
+   obj: *libcrypto.so*
+}
+
+{
+   openssl uses uninitialized memory 3
+   Memcheck:Cond
+   fun:BN_bin2bn
+   fun:bnrand
+   fun:generate_key
+   fun:ssl3_send_server_key_exchange
+   fun:ssl3_accept
+}
+
+{
+   openssl uses uninitialized memory 4
+   Memcheck:Cond
+   fun:BN_num_bits_word
+   fun:BN_num_bits
+   fun:BN_mod_exp_mont_consttime
+   fun:generate_key
+   fun:ssl3_send_server_key_exchange
+   fun:ssl3_accept
+}
+
+{
+   openssl uses uninitialized memory 5
+   Memcheck:Value8
+   fun:BN_num_bits_word
    ...
-}
-
-
-
-{
-   False Positive outside ppl7
-   Memcheck:Addr8
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/usr/local/lib/libp11-kit.so.0
-   fun:_p11_kit_initialize_registered_unlocked_reentrant
-   fun:p11_kit_initialize_registered
-   fun:gnutls_pkcs11_init
-   fun:gnutls_global_init
-   obj:/usr/local/lib/libmicrohttpd.so.27
-   obj:/usr/local/lib/libmicrohttpd.so.27
+   fun:ssl3_accept
 }
 
 {
-   False Positive outside ppl7
-   Memcheck:Addr8
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/libexec/ld-elf.so.1
-   obj:/usr/local/lib/libp11-kit.so.0
-   fun:_p11_kit_initialize_registered_unlocked_reentrant
-   fun:p11_kit_initialize_registered
-   fun:gnutls_pkcs11_init
-   fun:gnutls_global_init
-   obj:/usr/local/lib/libmicrohttpd.so.27
+   openssl uses uninitialized memory 6
+   Memcheck:Value8
+   obj:/usr/local/lib/libcrypto.so.8
 }
 
 {
-   False Positive outside ppl
-   Memcheck:Free
-   fun:free
-   obj:/usr/local/lib/libGL.so.1
-   obj:*
-   obj:/usr/local/lib/libGL.so.1
-   obj:*
+   openssl uses uninitialized memory 7
+   Memcheck:Cond
+   obj:/usr/local/lib/libcrypto.so.8
 }
+
+{
+   openssl uses uninitialized memory 8
+   Memcheck:Param
+   ...
+   fun:_ZN4ppl610CTCPSocket10SSL_AcceptEv
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   write(buf)
+   fun:__sys_write
+   fun:write
+   fun:sock_write
+   fun:BIO_write
+   fun:buffer_ctrl
+   fun:ssl3_accept
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:ssl3_get_finished
+   fun:ssl3_accept
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/lib/libz.so.6
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/lib/libcrypto.so.7
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/lib/libcrypto.so.7
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   write(buf)
+   fun:write
+   fun:write
+   obj:/lib/libcrypto.so.7
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,16 +8,19 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2014, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -36,181 +39,155 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include <locale.h>
-#include "../include/ppl7.h"
+#include "../include/ppl6.h"
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "ppl6-tests.h"
 
 namespace {
 
-// The fixture for testing class Foo.
-class FileReadTest : public ::testing::Test {
+class CFileTest : public ::testing::Test {
 	protected:
-	FileReadTest() {
+	CFileTest() {
 		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
+		ppl6::SetGlobalEncoding("UTF-8");
 	}
-	virtual ~FileReadTest() {
+	virtual ~CFileTest() {
 
 	}
 };
 
-
-TEST_F(FileReadTest, ConstructorSimple) {
+TEST_F(CFileTest, ConstructorSimple) {
 	ASSERT_NO_THROW({
-		ppl7::File f1;
-		ASSERT_FALSE(f1.isOpen()) << "File seems to be open, but it shouldn't";
+		ppl6::CFile f1;
+		ASSERT_FALSE(f1.IsOpen()) << "File seems to be open, but it shouldn't";
 	}
 	);
 }
 
-TEST_F(FileReadTest, openNonexisting) {
-	ppl7::File f1;
-	ASSERT_THROW(f1.open("nonexisting.txt"), ppl7::FileNotFoundException);
+TEST_F(CFileTest, openNonexisting) {
+	ppl6::CFile f1;
+	ASSERT_EQ(0,f1.Open("nonexisting.txt"));
 }
 
-TEST_F(FileReadTest, openNonexistingUtf8) {
-	ppl7::File f1;
-	ASSERT_THROW(f1.open("noneäxisting.txt"), ppl7::FileNotFoundException);
+TEST_F(CFileTest, openNonexistingUtf8) {
+	ppl6::CFile f1;
+	ASSERT_EQ(0,f1.Open("noneäxisting.txt"));
 }
 
-TEST_F(FileReadTest, openExisting) {
-	ppl7::File f1;
-	ASSERT_NO_THROW(f1.open("testdata/filenameUSASCII.txt"));
+TEST_F(CFileTest, openExistingUsAscii) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Open("testdata/filenameUSASCII.txt"));
 }
 
-TEST_F(FileReadTest, openExistingUtf8) {
-	ppl7::File f1;
-	ASSERT_NO_THROW(f1.open("testdata/filenameUTF8äöü.txt"));
+TEST_F(CFileTest, openExistingUtf8) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Open("testdata/filenameUTF8äöü.txt"));
 }
 
-TEST_F(FileReadTest, size) {
-	ppl7::File f1;
-	f1.open("testdata/dirwalk/LICENSE.TXT");
-	ASSERT_EQ((ppluint64)1330,f1.size());
-	ppl7::File f2;
-	f2.open("testdata/dirwalk/testfile.txt");
-	ASSERT_EQ((ppluint64)1592096,f2.size());
-
+TEST_F(CFileTest, openfNonexisting) {
+	ppl6::CFile f1;
+	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","rb","nonexisting","txt"));
 }
 
-TEST_F(FileReadTest, openAndClose) {
-	ppl7::File f1;
-	f1.open("testdata/dirwalk/LICENSE.TXT");
-	ASSERT_EQ((ppluint64)1330,f1.size());
-	f1.close();
-	f1.open("testdata/dirwalk/testfile.txt");
-	ASSERT_EQ((ppluint64)1592096,f1.size());
-
+TEST_F(CFileTest, openfNonexistingUtf8) {
+	ppl6::CFile f1;
+	ASSERT_EQ(0,f1.Openf("testdata/%s.%s","rb","noneäxisting","txt"));
 }
 
-TEST_F(FileReadTest, md5) {
-	ppl7::File f1;
-	f1.open("testdata/dirwalk/testfile.txt");
-	ppl7::String digest=f1.md5();
-	ASSERT_EQ(ppl7::String("f386e5ea10bc186b633eaf6ba9a20d8c"),digest);
+TEST_F(CFileTest, openfExistingUsAscii) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","rb","filenameUSASCII","txt"));
 }
 
-TEST_F(FileReadTest, seekAndTell) {
-	ppl7::File f1;
-	f1.open("testdata/dirwalk/testfile.txt");
-	f1.seek(45678);
-	ASSERT_EQ((ppluint64)45678,f1.tell());
-	f1.seek(100);
-	ASSERT_EQ((ppluint64)100,f1.tell());
-	f1.seek(1024*1024);
-	ASSERT_EQ((ppluint64)1024*1024,f1.tell());
+TEST_F(CFileTest, openfExistingUtf8) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Openf("testdata/%s.%s","rb","filenameUTF8äöü","txt"));
 }
 
-TEST_F(FileReadTest, seek) {
-	ppl7::File f1;
-	f1.open("testdata/dirwalk/testfile.txt");
-	f1.seek(45678,ppl7::File::SEEKSET);
-	ASSERT_EQ((ppluint64)45678,f1.tell());
-	f1.seek(100,ppl7::File::SEEKCUR);
-	ASSERT_EQ((ppluint64)45778,f1.tell());
-	f1.seek(-1000,ppl7::File::SEEKCUR);
-	ASSERT_EQ((ppluint64)44778,f1.tell());
-	f1.seek(-1000,ppl7::File::SEEKEND);
-	ASSERT_EQ((ppluint64)1591096,f1.tell());
+TEST_F(CFileTest, Puts) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Open("file_puts.tmp","wb"));
+	ASSERT_EQ(1,f1.Puts(loremipsum));
+	ASSERT_EQ((pplint64)strlen(loremipsum),f1.Size());
+	f1.Close();
+	ASSERT_EQ(ppl6::CString(loremipsum_md5),ppl6::CFile::MD5("file_puts.tmp")) << "md5sum of file is correct";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile("file_puts.tmp")) << "deleting file";
 }
 
-TEST_F(FileReadTest, fread1024) {
-	ppl7::File f1;
-	ppl7::ByteArray ba;
-	ba.malloc(1024);
-	f1.open("testdata/dirwalk/testfile.txt");
-	f1.fread((void*)ba.adr(),1,1024);
-	//ba.hexDump();
-	ASSERT_EQ(ppl7::String("21ab51148e28167d5ce13bee07493a56"),ba.md5());
-	// load the next chunk
-	f1.fread((void*)ba.adr(),1,1024);
-	//ba.hexDump();
-	ASSERT_EQ(ppl7::String("468f6fd12d69be054643ef2ca1a19cba"),ba.md5());
+TEST_F(CFileTest, Write) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.Open("file_write.tmp","wb"));
+	ASSERT_EQ((size_t)strlen(loremipsum),f1.Write(loremipsum,strlen(loremipsum)));
+	ASSERT_EQ((pplint64)strlen(loremipsum),f1.Size());
+	f1.Close();
+	ASSERT_EQ(ppl6::CString(loremipsum_md5),ppl6::CFile::MD5("file_write.tmp")) << "md5sum of file is correct";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile("file_write.tmp")) << "deleting file";
 }
 
-TEST_F(FileReadTest, freadUntilEof) {
-	ppl7::File f1;
-	ppl7::ByteArray ba;
-	ba.malloc(1024);
-	f1.open("testdata/dirwalk/testfile.txt");
-	ppluint64 bytes=0;
-	ASSERT_THROW({
-		while (1) {
-			bytes+=f1.fread((void*)ba.adr(),1,1024);
-		}
-	}, ppl7::EndOfFileException);
-	ASSERT_EQ((ppluint64) 1592096, bytes);
+TEST_F(CFileTest, OpenTempUSAscii) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.OpenTemp("tmpXXXXXX"));
+	ppl6::CString filename=f1.Filename();
+	ASSERT_EQ((size_t)9,filename.Len());
+	ASSERT_EQ((size_t)strlen(loremipsum),f1.Write(loremipsum,strlen(loremipsum)));
+	ASSERT_EQ((pplint64)strlen(loremipsum),f1.Size());
+	f1.Close();
+	ASSERT_EQ(ppl6::CString(loremipsum_md5),ppl6::CFile::MD5(filename)) << "md5sum of file is correct";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile(filename)) << "deleting file";
 }
 
-TEST_F(FileReadTest, fgets) {
-	ppl7::File f1;
-	ppl7::ByteArray ba;
-	ba.malloc(1024);
-	char *buffer=(char*)ba.adr();
-	f1.open("testdata/dirwalk/testfile.txt");
-	char *ret;
-	ASSERT_NO_THROW({
-		ret=f1.fgets(buffer,1024);
-	});
-	ASSERT_EQ(ret, buffer);
-	size_t len=strlen(ret);
-	//printf (">>%s<< len=%zi\n",ret,strlen(ret));
-	ASSERT_EQ((size_t) 47, len);
+TEST_F(CFileTest, OpenTempUtf8) {
+	ppl6::CFile f1;
+	ASSERT_EQ(1,f1.OpenTemp("tmp_äöü_XXXXXX"));
+	ppl6::CString filename=f1.Filename();
+	ASSERT_EQ((size_t)17,filename.Len());
+	ASSERT_EQ((size_t)strlen(loremipsum),f1.Write(loremipsum,strlen(loremipsum)));
+	ASSERT_EQ((pplint64)strlen(loremipsum),f1.Size());
+	f1.Close();
+	ASSERT_EQ(ppl6::CString(loremipsum_md5),ppl6::CFile::MD5(filename)) << "md5sum of file is correct";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile(filename)) << "deleting file";
 }
 
-TEST_F(FileReadTest, getsAsString) {
-	ppl7::File f1;
-	ppl7::String s;
-	f1.open("testdata/dirwalk/testfile.txt");
-	ASSERT_NO_THROW({
-		s=f1.gets(1024);
-	});
-	s.trimRight();
-	ASSERT_EQ(ppl7::String("                    GNU GENERAL PUBLIC LICENSE"),s);
-	ASSERT_NO_THROW({
-		s=f1.gets();
-	});
-	s.trimRight();
-	ASSERT_EQ(ppl7::String("                       Version 2, June 1991"),s);
-	ASSERT_NO_THROW({
-		s=f1.gets();
-	});
-	s.trimRight();
-	ASSERT_EQ(ppl7::String(""),s);
-	ASSERT_NO_THROW({
-		s=f1.gets();
-	});
-	s.trimRight();
-	ASSERT_EQ(ppl7::String(" Copyright (C) 1989, 1991 Free Software Foundation, Inc.,"),s);
+TEST_F(CFileTest, PopenTempUSAscii) {
+	ppl6::CFile f1;
+	ppl6::CFile::DeleteFile("popentest1.tmp");
+	ASSERT_EQ(1,f1.Popen("bin/popentest.sh","w")) << "could not open pipe";
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Close());
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("popentest1.tmp",d))  << "file popentest1.tmp was not created";
+	ASSERT_EQ((size_t)480,d.Size) << "file popentest1.tmp has unexpected size";
+	ASSERT_EQ(ppl6::CString("ae02ae6bdd7036d0bb1515f6b5b3ecd0"),ppl6::CFile::MD5("popentest1.tmp")) << "md5sum of file is correct";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile("popentest1.tmp")) << "deleting file";
 }
 
+TEST_F(CFileTest, PopenTempUtf8) {
+	ppl6::CFile f1;
+	ppl6::CFile::DeleteFile("popentest2.tmp");
+	ASSERT_EQ(1,f1.Popen("bin/popentäst.sh","w")) << "could not open pipe";
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
+	ASSERT_EQ(1,f1.Puts("Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod\n"));
 
-
+	ASSERT_EQ(1,f1.Close());
+	ppl6::CDirEntry d;
+	ASSERT_EQ(1,ppl6::CFile::Stat("popentest2.tmp",d)) << "file popentest2.tmp was not created";
+	ASSERT_EQ((size_t)480,d.Size) << "file popentest2.tmp has unexpected size";
+	ASSERT_EQ(ppl6::CString("ae02ae6bdd7036d0bb1515f6b5b3ecd0"),ppl6::CFile::MD5("popentest2.tmp")) << "md5sum of file is correct";
+	ASSERT_EQ(1,ppl6::CFile::DeleteFile("popentest2.tmp")) << "deleting file";
+}
 
 
 }

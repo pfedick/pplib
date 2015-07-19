@@ -6,6 +6,7 @@
  * $Revision$
  * $Date$
  * $Id$
+ * $URL$
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
@@ -13,11 +14,14 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,64 +36,70 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#define PPL7TESTSUITEMAIN
+#define PPL6TESTSUITEMAIN
+#include "../include/prolog.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include "../include/ppl6.h"
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "ppl6-tests.h"
 
 extern const char *wordlist;
 
-ppl7::Array Wordlist;
-ppl7::ConfigParser PPL7TestConfig;
+ppl6::CArray Wordlist;
+ppl6::CConfig *PPL6TestConfig=NULL;
+
+void setDefaultConfigParams()
+{
+	PPL6TestConfig->CreateSection("tcpsocket");
+	PPL6TestConfig->Add("echoserver","localhost");
+	PPL6TestConfig->Add("unknownserver","unknown.server.pfp.de");
+	PPL6TestConfig->Add("tcpserver_host","localhost");
+	PPL6TestConfig->Add("tcpserver_port","50001");
+}
 
 void help()
 {
-	printf ("PPL7 Testsuite configuration options:\n"
-			"-c CONFIG   Configuration-file for ppl7 testsuite\n"
+	printf ("PPL6 Testsuite configuration options:\n"
+			"-c CONFIG   Configuration-file for ppl6 testsuite\n"
 			"\n"
 			"Test-Framework options:\n");
 
 }
 
-void setDefaultConfigParams()
-{
-	PPL7TestConfig.createSection("tcpsocket");
-	PPL7TestConfig.add("echoserver","localhost");
-	PPL7TestConfig.add("unknownserver","unknown.server.pfp.de");
-}
-
 int main (int argc, char**argv)
 {
 	const char *tmp;
-	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) help();
-	if ((tmp=ppl7::GetArgv(argc,argv,"-c"))) {
-		PPL7TestConfig.load(tmp);
+	PPL6TestConfig=new ppl6::CConfig;
+	if (ppl6::getargv(argc,argv,"-h")!=NULL || ppl6::getargv(argc,argv,"--help")!=NULL) help();
+	if ((tmp=ppl6::getargv(argc,argv,"-c"))) {
+		PPL6TestConfig->Load(tmp);
 	} else {
 		setDefaultConfigParams();
+		PPL6TestConfig->Load("test.conf");
 	}
 	::testing::InitGoogleTest(&argc, argv);
-	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) return 0;
+	if (ppl6::getargv(argc,argv,"-h")!=NULL || ppl6::getargv(argc,argv,"--help")!=NULL) return 0;
 
+	ppl6::PrintDebugTime ("Wortliste in String laden\n");
+	ppl6::CString w(wordlist);
+	Wordlist.Reserve(130000);
+	ppl6::PrintDebugTime ("Wortliste in Array laden\n");
+	Wordlist.Explode(w,"\n");
+	ppl6::PrintDebugTime ("done\n");
 
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String w(wordlist);
-	Wordlist.reserve(130000);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	Wordlist.explode(w,"\n");
-	ppl7::PrintDebugTime ("done\n");
-
+	int ret=0;
 	try {
-		return RUN_ALL_TESTS();
-	} catch (const ppl7::Exception &e) {
-		printf ("ppl7::Exception: %s\n",e.what());
+		ret=RUN_ALL_TESTS();
+	} catch (const ppl6::Exception &e) {
+		printf ("ppl6::Exception: %s\n",e.what());
 	} catch (...) {
 		printf ("Unbekannte Exception\n");
 	}
-
-	return 1;
+	delete PPL6TestConfig;
+	PPL6TestConfig=NULL;
+	ppl6::CleanupThreadData();
+	return ret;
 }
