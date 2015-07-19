@@ -1,12 +1,74 @@
-/*!\page PPL7History PPL7 History
-PPL7 - HISTORY
+/*!\page PPL6History PPL6 History
+PPL6 - HISTORY
 
-Version 7.0.0
-  - Complete Rewrite!!!
-  - Unittests with Google Test framework
+Version 6.4.13  vom 27.07.2012	(CVS-Tag: REL_6_4_13)
+  - Kleinere Kompatibilitätsprobleme unter Windows behoben
+  - Fehler in Postgres-DB-Anbindung behoben, wodurch mit FetchArray
+    oder FetchFields mehr Zeilen gelesen wurden, als im
+    Result vorhanden war
+  - DB-Connect mit Postgres-Datenbank unterstützt jetzt Parameter
+    "searchpath" zum Setzen des Suchpfades.
+  - CString unterstützt Ausgabe als Stream
+  - Erkennung der FreeTDS-Library für Sybase erneuert 
+  - CDateTime Genauigkeit auf Mikrosekunden erhöht
+  - Format des Integer-Wertes von CDateTime::longInt hat sich geändert
+    und ist inkompatibel zu vorher.
+  - Testsuite mit Unittests für CDateTime erstellt (Verwendung von
+    Google-Test)
+  - Bugfix in CString::PregReplace
 
+Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
+  - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen
+    gesetzt
+  - Datenbank: Datentypen werden in Abhängigkeit ihres Types und der
+    Datenbank escaped und gequoted. Neue Funktion Database::getQuoted
+  - Datenbank: Mutexe aus den Datenbanken entfernt. Die Anwendung ist
+    dafür verantwortlich parallelen Zugriff zu verhindern.
+  - Backport von PPL7: CDir::homePath und CDir::tempPath
+  - Funktion ppl6::db::GetSupportedDatabases hinzugefügt
+  - Unterstützung für Datenbank SQLite3 (experimentell)
     
-Version 6.4.7
+Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
+  - Bugfix in PNG-Laderoutine
+  - Kritischer Bugfix in Sybase::Ping: Result wurde nicht freigegeben, wodurch
+    nachfolgende Operationen blockiert und die Verbindung somit
+    unbrauchbar wurde
+  - Neue Klasse: PerlHelper
+  - CDateTime verarbeitet nun auch "null" oder das Datum "0000-00-00".
+    Beides wird als "0" interpretiert.
+  - CDateTime hat neue Funktionen zum Abfragen der Kalenderwoche:
+    week() und weekISO8601()
+  - Neue Funktion CString::setInitialBuffersize
+  - Fehlende Funktion CString::Capacity implementiert
+  - CFile::Open mit Formatstring wurde umbenannt in CFile::Openf
+  - CFont unterstützt Parameter für Rotation
+  - Font-Format 6 eingeführt (Backport aus PPL7)
+  - Bugfix: Array::Explode auf einen leeren String führt jetzt nicht mehr
+    dazu, dass ein leeres Element hinzugefügt wird 
+
+Version 6.4.10 vom 10.11.2011	(CVS-Tag: REL_6_4_10)
+  - CCurl-Klasse: Signals werden nun standardmäßig deaktiviert,
+    da Anwendungen mit mehreren Threads sonst in Probleme laufen.
+    Mit der neuen Funktion CCurl::EnableSignals können die Signals
+    explizit wieder aktiviert werden.
+
+Version 6.4.9 vom 30.10.2011	(CVS-Tag: REL_6_4_9)
+  - Kompatibilitätsprobleme mit OpenSSL 1.x.x behoben
+  - Funktion StartThread, um einen Thread ohne Verwendung der
+    Klasse CThread zu starten
+  - Webserver-Klasse, die auf libmicrohttpd aufsetzt 
+
+Version 6.4.8 vom 27.07.2011	(CVS-Tag: REL_6_4_8)
+  - Datenbankklassen: Neue Funktion "databaseType"
+  - Bugfix in Compression-Klasse: bei Verwendung des V2-Prefix
+    wurde beim Komprimieren statt Länge der unkomprimierten Daten
+    die Länge der komprimierten Daten geschrieben
+  - Bugfix in Datenbank-Connect-Funktion. Fehlerhaften "ifdef" für
+    Postgres korrigiert
+  - Bugfix in Postgres-Escape-Funktion. Das letzte Zeichen des
+    Strings wird nun nicht mehr abgeschnitten.
+
+Version 6.4.7 vom 25.05.2011	(CVS-Tag: REL_6_4_7)
   - CDateTime holt sich nun die Millisekunden via "gettimeofday",
     sofern die Funktion vorhanden ist. Bei der Ausgabe mit
     "get" wird nun der Platzhalter "%*" unterstützt, der durch die
