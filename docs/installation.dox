@@ -1,0 +1,131 @@
+/*!\page Installation Download und Installation
+
+\section inst1 Download
+Die aktuelle Version und Dokumentation der Library ist hier zu finden:
+
+    http://www.pfp.de/ppl
+
+Die Sourcen sind dort im Format ".tar.bz2" zu finden. Unter Unix kann dieses Archiv mit tar
+oder gtar ausgepackt werden (<code>tar -xjf ppl*.tar.bz2</code>), unter Windows eignet sich
+zum Beispiel <a href="http://http://www.7-zip.org/">7-Zip</a>.
+
+
+\section inst1a SVN
+Der Quellcode der Library wird bei <a href="https://sourceforge.net/projects/pplib">SourceForge.net</a>
+gehostet und kann wie nachfolgend beschrieben aus dem Subversion-Repository ausgecheckt werden.
+
+\code
+svn co https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk ppl7
+\endcode
+
+\section inst2 Installation unter UNIX 
+
+Die Library wird mit einem configure-script ausgeliefert, in dem alle optionalen
+Features ausgewählt werden können. Um eine Basisversion zu erhalten reicht oftmals ein
+einfaches configure ohne Parameter aus:
+
+\code
+./configure
+make
+make install
+\endcode
+
+Für das "make install" sind ggfs. Root-Rechte erforderlich.
+
+Das Configure untersucht das System und setzt entsprechende Defines für den
+Compiler. Optionale Features werden zum Teil automatisch eingebunden, wenn
+sie gefunden werden.
+
+Wird eine Library nicht gefunden oder nicht automatisch eingebunden, kann über
+Parameter beim Aufruf des configure-Scripts nachgeholfen werden. Beispiel:
+
+\code
+./configure --with-mysql=/usr/local/mysql
+\endcode
+
+Soll eine bestimmte Library explizit nicht eingebunden werden, kann man dies mit
+"--without-xxx" festlegen, wobei xxx für den Namen der Library steht:
+
+\code
+./configure --without-mysql
+\endcode
+
+Alle weiteren Details sind im configure zu finden, wenn man es mit "./configure --help"
+aufruft.
+
+\subsection inst2compiler Compiler auswählen
+Sofern nichts angegeben wird, wird der Defaultcompiler verwendet, in der Regel gcc bzw. g++. Sind mehrere Compiler
+vorhanden, kann durch setzen der Umgebungsvariablen CC und CXX vor Aufruf von "configure" bestimmt werden,
+welcher Compiler verwendet werden soll.
+
+\subsubsection inst2compiler_gcc47 Beispiel 1: gcc47
+Unter FreeBSD kann man verschiedene Versionen über die Ports-Collection installieren. Die installierten
+Binaries bekommen daher die Version im Dateinamen angehangen, z.B. "47". Das gcc-Binary heisst somit "gcc47",
+bzw. "g++47" für den "g++":
+
+\code
+export CC=gcc47
+export CXX=g++47
+./configure ...
+\endcode
+
+
+\subsubsection inst2compiler_clang Beispiel 2: clang
+\code
+export CC=clang
+export CXX=clang++
+./configure ...
+\endcode
+
+
+
+
+\subsection inst2debian Installation unter Debian / Ubuntu
+Wenn man alle Features der Library nutzen will, muß man folgende Pakete installieren:
+\code
+# Kern-Funktionalität
+sudo apt-get install zlib1g-dev libbz2-dev libssl-dev libpcre3-dev nasm
+# Kryptografie
+sudo apt-get instal libssl-dev libmcrypt-dev libmhash-dev
+# Internet
+sudo apt-get install libcurl4-openssl-dev libldns-dev
+# Datenbanken
+sudo apt-get install libmysqlclient-dev libpq-dev freetds-dev
+# Grafik
+sudo apt-get install libpng12-dev libjpeg62-dev libsdl1.2-dev libfreetype6-dev libmad0-dev
+# Sound
+sudo apt-get install libmp3lame-dev libmad0-dev libmpg123-dev libogg-dev libshout3-dev
+\endcode
+
+Ist alles installiert, kann man das configure mit folgenden Parametern aufrufen:
+\code
+./configure --with-libmad=/usr --with-lame=/usr
+     --with-pcre=/usr --with-openssl --with-mysql=/usr \
+     --with-libmhash --with-ogg=/usr --with-sybase=/usr \
+     --with-libiconv-prefix --with-nasm --with-pgsql \
+     --with-jpeg --with-png -with-mpg123 \
+     --with-ogg=/usr
+\endcode
+
+\subsection inst2freebsd Installation unter FreeBSD
+\code
+export CPPFLAGS=-I/usr/local/include
+export LDLAGS=-L/usr/local/lib
+./configure --with-libmad=/usr/local --with-lame=/usr/local \
+     --with-pcre=/usr/local --with-openssl --with-mysql \
+     --with-libmhash=/usr/local --with-sybase=/usr/local \
+     --with-libiconv-prefix=/usr/local --with-nasm --with-pgsql \
+     --with-jpeg --with-png --with-mpg123=/usr/local \
+     --with-ogg=/usr/local
+\endcode
+
+\section inst3 Installation unter Windows
+
+\subsection inst3mingw Installation mit MinGW32/64
+
+\subsection inst3vstudio Installation mit Visual Studio
+
+Visual Studio wird zur Zeit nicht unterstützt.
+
+
+*/

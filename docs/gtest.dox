@@ -1,0 +1,33 @@
+/*!\page unittests Unit Tests
+PPL7 comes with a bunch of unit tests, which are used in continious and nightly builds.
+
+
+
+
+\section Install Google test framework
+PPL7 uses the Google test framework version 1.6.0. You can download the framework here:
+
+   http://code.google.com/p/googletest/downloads/detail?name=gtest-1.6.0.zip
+   
+Unpack the file somewhere:
+
+\code
+cd
+wget "http://code.google.com/p/googletest/downloads/detail?name=gtest-1.6.0.zip"
+cd /usr/local
+unzip ~/gtest-1.6.0.zip
+cd gtest-1.6.0
+configure --prefix=/usr/local/gtest-1.6.0
+\endcode
+
+\section Prepare and start unit tests
+
+You must specify the installation path of google test during configure of ppl7. So if you unpacked the
+framework in /usr/local/gtest-1.6.0, you would call
+\code
+   ./configure --enable-gtest=/usr/local/gtest-1.6.0 ...
+\endcode
+
+After ppl7 is build, you can call "make test" to run the testsuite.
+
+*/

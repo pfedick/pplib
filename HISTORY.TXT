@@ -1,0 +1,1320 @@
+/*!\page PPL7History PPL7 History
+PPL7 - HISTORY
+
+Version 7.0.0
+  - Complete Rewrite!!!
+  - Unittests with Google Test framework
+
+    
+Version 6.4.7
+  - CDateTime holt sich nun die Millisekunden via "gettimeofday",
+    sofern die Funktion vorhanden ist. Bei der Ausgabe mit
+    "get" wird nun der Platzhalter "%*" unterstützt, der durch die
+    Millisekunden ersetzt wird.
+  - Überarbeitung und Vereinfachung der Exception-Klasse
+  - Neue Klasse: CIcecast zum Streamen von MP3 oder OGG Dateien
+    an einen Icecast Server
+  - Update der Dokumentation auf Doxygen 1.7.3
+  - CAssocArray unterstützt nun CDateTime und kann CWString Im- und
+    Exportieren (es erfolgt eine Konvertierung nach UTF-8)
+
+Version 6.4.6 vom 17.03.2011	(CVS-Tag: REL_6_4_6)
+  - CAssocArray hat Copy-Konstruktor und Zuweisungsoperator für CArray
+    erhalten.
+  - CDateTime vollständig dokumentiert
+  - CDir verwendet nun unter Windows die Wide-Character-Funktionen
+    zum Einlesen eines Verzeichnisses. Dadurch sollte es jetzt keine
+    Probleme mehr mit Nicht-US-ASCII-Zeichen im Dateinamen geben.
+  - Bugfix in CWikiParser: Bei der Darstellung von Sourcecode fehlt
+    das schließende "</div>".
+  - CTree hat neue const-Funktionen zum Rückwärtsdurchwandern des
+    Baums mittels CTreeWalker
+  - CAssocArray hat neue const-Funktionen zum Durchwandern des
+    Baums mittels CTreeWalker
+  - CCurl: Neue Funktionen: SetMaximumPersistantConnects, Reset
+  - CArray hat neue Funktionen: MakeUnique und fromArgs
+  - configure: Erkennung von Postgres überarbeitet
+    
+Version 6.4.5 vom 28.11.2010	(CVS-Tag: REL_6_4_5)
+  - Bugfix in Sybase::Query: Bei einem Fehlerhaften Query wurde das
+    Result-Set nicht gelöscht 
+  - Bugfix in Sybase::SetResultBufferGrowSize: Es fehlte ein #IFDEF,
+    wodurch das Kompilieren unmöglich war, wenn keine Sybase- oder
+    FreeTDS-Libs installiert waren
+  - Funktion PregMatch ist nun als eigenständige Funktion ausserhalb
+    der String-Klasse vorhanden
+  - CWString: Neue Funktion CWString::ReplaceLetterList
+  - CBinary hat jetzt eine "ToHex"-Export-Funktion, die seinen Inhalt
+    als String mit Hexwerten zurückgibt. Mit "FromHex" kann ein
+    Hex-String wieder importiert werden.
+  - CMemoryReference hat ebenfalls "toHex"-Funktion erhalten,
+    CMemory die Funktion "fromHex"
+  - CMHash Bugfix: CMHash::GetResult hat die Klasse nicht korrekt
+    reinitialisiert, so dass ein erneuter Aufruf falsche Werte
+    zurückgegeben hat.
+  - Bugfix SybaseResult::FetchResultSet. Es wurde nicht geprüft,
+    ob überhaupt ein Result vorhanden ist.
+
+Version 6.4.4 vom 01.11.2010	(CVS-Tag: REL_6_4_4)
+  - CDateTime::diffSeconds: Ermittelt die Differenz zweier CDateTime
+    Werte in Sekunden
+  - CDateTime::compareSeconds: Vergleicht zwei CDateTime-Werte auf
+    Sekundenbasis anhand einer definierbaren Toleranz
+  - CArray hat nun Sort-Funktion zum Sortieren der Werte
+  - CArray hat nun Implode-Funktion, um das Array in einen String zu
+    konvertieren
+  - Bugfix Postgres.cpp läßt sich wieder kompilieren
+  - Sybase-Datenbankklasse überarbeitet. Sie verwendet jetzt eine
+    eigene optimierte Result-Klasse und nicht mehr GenericResult.
+    Queries mit einem großen Result-Set können nun iterativ mit
+    FetchArray oder FetchFields durchlaufen werden, ohne dass zunächst
+    das komplette Result-Set in den Speicher geladen werden muss.
+
+Version 6.4.3 vom 16.10.2010	(CVS-Tag: REL_6_4_3)
+  - Update auf Doxygen 1.7.x, Anpassungen am Layout
+  - Alte Datenbank-Klassen entfernt
+  - Bugfix in CGenericList: Die Liste kann nun auch Rückwärts
+    durchlaufen werden. Zuvor wurde dabei immer nur das erste Element der
+    Liste zurückgegeben.
+  - Bugfix in der Berechnung der Anzahl Frames bei einer MP3-Datei mit
+    variabler Bitrate
+  - Bugfix in CID3Tag: Framegröße bei ID3v2-Tags Version 2.3 wird nun korrekt
+    interpretiert.
+  - Bugfix CString::IsNumeric: Komma, Punkt und Minus wurden falsch interpretiert
+  - Bugfix db::Sybase::Escape: Es wird nun ein korrekter Returnwert zurückgegeben
+  - db::Database::Save: Funktion akzeptiert jetzt einen sechsten optionalen
+    Parameter, über den man die Variablen-Typen angeben kann.
+  - db::Database: Transaktionen können nun verschachtelt werden
+  
+Version 6.4.2 vom 19.08.2010	(CVS-Tag: REL_6_4_2)
+  - ppl6::db::Sybase::GetInsertID funktioniert nun
+  - ppl6::CString: Zusätzliche PregMatch-Funktion, die als "const" deklariert
+    ist
+
+Version 6.4.1 vom 27.07.2010	(CVS-Tag: REL_6_4_1)
+  - configure prüft nun, ob "_FILE_OFFSET_BITS" definiert werden muss, um
+    grosse Dateien verwenden zu können
+  - configure prüft nun optional, ob die Library mpg123 installiert ist
+  - configure: Überprüfung von libmp3lame wurde in eigene Datei ausgelagert.
+    Zusätzlich wird nun geprüft, ob lame die neue hip_decode-Funktion
+    unterstützt. 
+  - CMP3Decode fungiert nun als Basisklasse für verschiedene Dekoder, kann jedoch
+    nach wie vor genauso benutzt werden, wie bisher. Optional kann mit der Funktion
+    CMP3Decode::Init angegeben werden, welcher Dekoder benutzt werden soll. Wird dies
+    nicht gemacht, wird standardmäßig nun Mad oder mpg123 verwendet, jenachdem
+    was installiert ist.
+  - Neue MP3-Dekoder auf Basis der mpg123 Bibliothek
+  - Bugfix in CWString::Set. Die Funktion konnte nicht kompiliert werden,
+    wenn keine libiconv vorhanden war.
+  - pplgenresource kennt jetzt Parameter "compression" in der Konfigurations-
+    datei
+  - Grafikfunktion Blt verwendet nun optimierte Copy-Funktion unter
+    Verwendung von MMX, SSE und dem L1-Cache der CPU
+  - Bugfix in den Vergleichs-Operatoren und -Funktionen der String-Klassen.
+    Es wurde bisher nicht berücksichtigt, dass zwei leere Strings auch dann
+    identisch sind, wenn die Buffer noch nicht allokiert sind. Im Gegenteil,
+    es wurde sogar explizit geprüft, ob einer der beiden Buffer auf NULL zeigt,
+    und in dessen Abhängigkeit ein bestimmer Returncode gegeben (z.B. +2 oder
+    -2). Das Verhalten wurde jetzt so geändert, dass bei einem NULL-Pointer
+    ein leerer String angenommen wird und der Vergleich mit dem anderen String
+    auf jeden Fall durchgeführt wird.
+  - CString: Vergleichsoperatoren für CString hinzugefügt
+  - CWString: Vergleichsoperatoren mit "const char*" und "CWString*" entfernt.
+    In beiden Fällen wird der Kompiler jetzt eine automatische Typ-
+    konvertierung zu CWString durchführen.
+  - CDateTime: Neue Klasse zum Speichern von Datum und Uhrzeit
+  - CVar hat keinen virtuellen Destruktor mehr. Alle davon abgeleiteten Klassen
+    benötigen dadurch weniger Speicher. Es muss nun aber static_cast statt
+    dynamic_cast verwendet werden, wenn zwischen den Datentypen gecastet wird.
+  - Exceptions überarbeitet: Es gibt jetzt nurnoch eine Exception-Klasse
+    
+Version 6.4.0 vom 30.03.2010	(CVS-Tag: REL_6_4_0)
+  - Copyrights auf 2010 aktualisiert
+  - Bugfix in der 64-Bit-Version der Font-Assembler-Routinen
+  - MkRFC822Date wurde überarbeitet und liefert nun gemäß RFC 822 die
+    englischen Bezeichnungen für Tag und Monat zurück. Ausserdem wurden einige
+    veraltete Funktions-Alternativen entfernt.
+  - GetHostByName wurde geändert. Ursprünglich hat die Funktion intern einen
+    einzelnen Aufruf der Systemfunktion getaddrinfo gemacht. In neueren libc
+    Bibliotheken scheint sich jedoch das Verhalten geändert zu haben. Hier
+    werden AAAA-Records nur dann zurückgegeben, wenn auf dem lokalen host
+    auch eine globales IPv6-Interface konfiguriert ist. Zu beobachten auf
+    Ubuntu 9.10 nach Einspielen der Updates am 13.01.2009. Die Funktion wurde
+    daher geändert und ruft getaddrinfo nun zweimal auf, einmal für IPv4/INET
+    und einmal für IPv6/INET6.
+  - nasm wird jetzt auch auf 64-Bit FreeBSD-Systemen gefunden
+  - CArray: Aufruf von Add(CArray &a) wurde geändert in Add(const CArray &a)
+  - Memory-Leak in CFileObject::Load behoben
+  - CVar und alle davon abgeleiteten Klassen: Callback-Funktionalität entfernt.
+    Dadurch ist die Klasse bei Änderungen am Datenwert nicht nur schneller,
+    sondern der Speicherbedarf auch um 8 Byte (32-Bit-Prozessoren) bzw. 16 Byte
+    (64-Bit Prozessoren) kleiner.
+  - CResolver: Neue Klasse für Nameserver-Abfragen auf Basis der ldns-Library
+    von nlnetlabs.nl (http://www.nlnetlabs.nl/projects/ldns/) (Ist noch in
+    Arbeit!)
+  - CString:
+    - Neue Funktion InstrCase
+    - Parameter zu Instr und StrCmp sind nun als const deklariert
+  - Calc unterstützt nun Potenzen (^) und erwartet eine Referenz anstelle
+    eines Pointers als zweiten Parameter. Ausserdem wird als Dezimal-
+    Trennzeichen nun auch Komma akzeptiert
+  - CSocketMessage hat nun Copy-Funktion und Copy-Konstruktor
+  - CAVLTree hat neue Funktion "Remove", die ein Element nur aus dem Baum
+    entfernt, aber nicht dessen Speicher löscht
+  - CMutex::Wait und CMutex::Signal funktionieren nun auch unter Windows
+  - CAssocArray: Reset, GetFirst und GetNext akzeptieren nun ein CTreeWalker
+    Objekt und sind als const deklariert
+  - CAssocArray: List und Count sind nun als const deklariert
+  - CLog: Array-Parameter bei PrintArray-Funktionen ist jetzt als const
+    deklariert
+  - CTCPSocket: Funktionen IsWriteable, IsReadable, WaitForIncomingData und
+    WaitForOutgoingData sind jetzt auch für Windows implementiert.
+  - CAVLTree: Einige Funktionen sind nun als "const" deklariert
+  - CAVLTree: Kritischen Fehler in der Funktion "Clear" behoben, der
+    zu Segmentation Fault und Memory-Leaks führen konnte.
+  - CLog: Es wird nun immer _vor_ der Verarbeitung der Daten geprüft, ob
+    sie auszugeben sind und nicht erst später. Das führt insbesondere beim
+    Loggen von grossen CAssocArrays oder Hexdumps, die nicht ausgegeben
+    werden müssen, zu drastischen Performance-Verbesserungen
+  - db::CPool: Bugfix in Funktion "Get". Parameter "wait" wurde nicht beachtet,
+    Funktion lief in einer Endlosschleife, wenn das Pool-Limit erreicht war.
+  - FreeTDS: configure prüft nun, ob Compiler -lrt benötigt
+  - Fehler in CLog::CheckRotate behoben
+  - Komplett-Überarbeitung der Grafik-Funktionen im neuen Namespace ppl6::grafix. 
+    Alle Zeichenfunktionen basieren jetzt auf der Basisklasse CDrawable, die
+    auch ohne Initialisierung der Grafik-Engine benutzt werden kann. Die
+    Überarbeitung ist noch nicht abgeschlossen.
+    
+    Neue Klassen der Grafik-Engine:
+      - Point
+      - Point3D
+      - Size
+      - Rect
+      - RGBFormat (ist jetzt keine Enumeration mehr!)
+      - Color
+      - AdapterCaps
+      - AdapterIdentifier
+      - AdapterMode
+      - GFXEngine (Basisklasse für alle Grafik-Engines)
+         - GFXEngineSoftware
+         - GFXEngineDX9
+         - GFXEngineSDL
+      - CDrawable
+      - CImage
+      - CImageList
+    Überarbeitete Klassen:
+      - CSurface
+      - CGrafix
+      - CSprite
+      - CFont
+      - CFilter (und alle davon abgeleiteten Klassen)
+      - CFontFile
+      - CFontEngine (und alle davon abgeleiteten Klassen)
+  
+
+Version 6.3.3 vom 12.02.2010	(CVS-Tag: REL_6_3_3, Branch: RELENG_6_3)
+  - Visual C++ 2008 Kompatibilität wiederhergestellt
+  - Doppelte Funktionen in functions.cpp und strings.cpp eliminiert
+  - Neue Klassen zum Verwalten eines einzelnen Speicherblocks:
+    - CMemory
+    - CMemoryReference
+  - Addition von CString und CWString funktioniert nun besser
+  - Bugfix in CFile::MMap: File-Offset wird jetzt intern immer auf
+    eine Seitengröße abgerundet, die über sysconf(_SC_PAGE_SIZE)
+    ermittelt wird.
+  
+Version 6.3.2 vom 04.12.2009	(CVS-Tag: REL_6_3_2)
+  - Bugfix in ppl6::db::Database::GetEscaped
+  - Bugfix in CString::PregReplace: Beim Ersetzen durch einen per RegEx
+    kopierten Strings wurde der falsche Textbuffer verwendet, wodurch nur
+    der erste Match korrekt ersetzt wurde.
+  - CString:IsNumeric Bugfix
+  - Neue Funktionen: FromBase64, ToBase64, EscapeHTMLTags
+  - Die Datenbank-Funktionen "ExecArray..." löschen nun das Ergebnisarray, bevor
+    es mit dem Ergebnis gefüllt wird
+  - Neue String-Funktionen:
+  	CString Trim(const CString &str);
+	CString Trim(const char *str);
+	CString UCase(const CString &str);
+	CString UCase(const char *str);
+	CString LCase(const CString &str);
+	CString LCase(const char *str);
+	CWString Trim(const CWString &str);
+	CWString UCase(const CWString &str);
+	CWString LCase(const CWString &str);
+	int StrCmp(const CString &s1, const CString &s2);
+	int StrCmp(const CWString &s1, const CWString &s2);
+	int StrCaseCmp(const CString &s1, const CString &s2);
+	int StrCaseCmp(const CWString &s1, const CWString &s2);
+	int Instr (const CString &string, const CString &such, size_t start=0);
+	int InstrCase (const CString &string, const CString &such, size_t start=0);
+	int Instr (const CWString &string, const CWString &such, size_t start=0);
+	int InstrCase (const CWString &string, const CWString &such, size_t start=0);
+	CString Left(const CString &str, size_t num);
+	CString Right(const CString &str, size_t num);
+	CString Mid(const CString &str, size_t start, size_t num=(size_t)-1);
+	CString SubStr(const CString &str, size_t start, size_t num=(size_t)-1);
+	CWString Left(const CWString &str, size_t num);
+	CWString Right(const CWString &str, size_t num);
+	CWString Mid(const CWString &str, size_t start, size_t num=(size_t)-1);
+	CWString SubStr(const CWString &str, size_t start, size_t num=(size_t)-1);
+	CString MD5(const CString &str);
+	CString MD5(const CWString &str);
+	CString MD5(const CBinary &bin);
+  - Kleinere Bugfixes nach statischer Code-Analyse mit cppcheck und rats
+  - Neue Time-Funktionen:
+		- CString Long2Date(const char *format, int value)
+		- CString MkDate(const char *format, ppluint64 sec)
+  
+Version 6.3.1 vom 25.10.2009	(CVS-Tag: REL_6_3_1)
+
+  - ppl6::db::MySQL::FieldType: Die MySQL-Datentypen wurden nun mit #ifdef's
+    versehen, damit auch ältere MySQL-Versionen funktionieren
+  - ppl6.m4 hat jetzt ein Macro zum Prüfen, ob ein bestimmtes Feature in die Library
+    einkompiliert wurde: AX_PPL6_FEATURE
+  - ppl6-config hat neues Flag zum Auslesen der einkompilierten Fearures:
+    --features
+  - ppl6::db::MySQL: Der Default für den zu verwendenden Zeichensatz bei der
+    Kommunikation mit dem Server wurde von UTF-8 auf Latin1 geändert, da auch
+    MySQL defaultmäßig Latin1 verwendet, wenn bei der Tabellenerstellung nicht
+    explizit ein anderer Zeichensatz angegeben wurde. Der gewünschte Zeichensatz
+    kann nun als Connect-Parameter "charset" angegeben werden.
+  - Bugfix in ppl6::db::MySQL: Die letzte Insert-Id wird nun bei Exec
+    an der richtigen Stelle im Programmcode abgefragt, wodruch GetLastInsertID
+    nun nicht mehr 0 zurückgibt.
+  - CTCPSocket wurde vollständig dokumentiert
+  - CTCPSocket: Der Konstruktor mit dem void-Pointer wurde entfernt, da dieser
+    eh nur intern aufgerufen wurde
+  - CTCPSocket::Listen hat nun einen optionalen Parameter, der das Intervall
+    definiert, in dem auf einen Stop-Wunsch geprüft wird. Ausserdem wird nun
+    "select" verwendet, um auf eingehende Connects zu prüfen. Dadurch reagiert
+    Listen schneller auf eingehende Verbindungen.
+  - CTCPSocket::ReceiveConnect erwartet nun "const char*" als zweiten Parameter
+    und nicht mehr "char*".
+  - Funktion CTCPSocket::Poll entfernt
+  - Funktion CTCPSocket::SetWriteTimeout hinzugefügt
+  - CTCPSocket::SSL_Connect umbenannt in SSL_Start
+  - CSSL: In LoadTrustedCAfromFile und LoadTrustedCAfromPath wird nun am Ende die
+    OpenSSL-Fehlerqueue gelöscht, da auch bei erfolgreichem Laden Fehler auftreten
+    können (bereits bekannte Zertifikate werden nochmal geladen), die später
+    zu Problemen führen können.
+  - CSSL: Die Enumeration "SSL_METHOD" ist nun Bestandteil der Klasse CSSL
+    und nicht mehr in einem eigenen Namespace
+  - GetMicroSeconds wurde umbenannt in GetMilliSeconds, da die Funktion
+    Millisekunden zurückliefert und keine Mikrosekunden. 
+  - Der Datentyp "ARRAY_RESULT" ist nun kein "void *" mehr, sondern ein Pointer
+    auf eine Struktur. Dadurch werden Codestellen, an denen noch GetArray(CString *)
+    statt GetArray(CString &) aufgerufen wird nun als Fehler erkannt und nicht
+    mehr vom Compiler als GetArray(ARRAY_RESULT) interpretiert.
+  - CID3Tag wurde überarbeitet:
+    - Alle String-Tags werden nun mit einem 0-Byte terminiert, wie
+      es die Spezifikation vorschreibt.
+    - Statt UTF-8 werden alle Strings nun in UTF-16 geschrieben
+    - SetComment wurde nun (hoffentlich) korrekt implementiert
+  - CString: Preg-Funktionen machen nun Fallback auf Singlebyte-Zeichen, wenn
+    der zu durchsuchende String ungültiges UTF-8 enthält
+  - strcasestr gibt nun "const char*" statt "char*" zurück
+  - CArray hat nun Copy-Funktionen
+  - CMHash::Hash kann nun auch mit einem String als Algorithmus aufgerufen
+    werden
+  - CReadMail: Mehrere Fehler behoben, unter anderem einen in GetTranscodedBody,
+    der dazu führte, dass die Funktion NULL zurückgegeben hat.
+  - Weitere Parameter von Member-Funktionen sind nun als "const" deklariert
+  - CMHash::GetResult löscht nun den Ergebnisparameter vorher
+  - CSendMail: Verbindung mit dem Mailserver wird nun ordnungsgemäß mit
+    QUIT beendet.
+  
+
+Version 6.3.0 vom 25.08.2009	(CVS-Tag: REL_6_3_0)
+  - Änderung der Parametertypen: Fast sämtliche Pointer-Parameter
+    wurden durch Referenzen ersetzt und sind jetzt - sofern sie nicht
+    verändert werden, als "const" deklariert. Auch sämtliche Member-
+    Funktionen, deren Aufruf keine internen Daten der Klasse veränderen,
+    sind nun als "const" deklariert.
+    Durch die umfangreichen Änderungen entstehen Inkompatibilitäten
+    zu früheren Versionen, so dass Anwendungen angepasst werden müssen! 
+    Betroffen sind folgende Klassen:
+       - CString
+       - CWString
+       - CBinary
+       - CTok
+       - CFile
+       - CMemFile
+       - CHostsAllow
+       - CArray
+       - CAssocArray
+       - CCurl
+       - CSendMail
+       - CReadMail
+       - CHostsAllow
+       - CLang
+       - CIconv
+       - CLog
+       - CDebug
+       - CSocketMessage
+       - CSocket
+       - CUDPSocket
+       - Cppl6Core
+       
+  - Neuer generischer AVL-Baum: CAVLTree. Dieser hat die Vergleichsfunktionen
+    in der Klasse selbst und nicht mehr in den Knoten. Auch die Verwaltung der
+    Knoten wird durch die AVL-Klasse übernommen, wodurch die Knoten nicht
+    mehr von CTreeItem abgeleitet werden müssen, sondern Pointer auf beliebige
+    Datenstrukturen sein können.     
+  - File-Klassen wurden komplett überarbeitet. CFile ist nun nicht
+    mehr Basisklasse, sondern wird von der neuen Klasse CFileObject
+    abgeleitet. CMemFile wird nun ebenfalls von CFileObject abgeleitet.
+    Diese Änderung macht es erforderlich alle Funktionen, die als
+    Parameter ein "CFile&" oder "CFile*" erwarten, zu überprüfen, ob nun
+    nicht ein CFileObject erforderlich ist.
+  - CFile::Map verwendet nun mmap, sofern verfügbar
+  - File-Klassen wurden vollständig dokumentiert
+  - Die Funktion ReadFile ist weggefallen, stattdessen kann CFile::LoadFile
+    verwendet werden 
+  - CVar hat nun Enumeration "PPLDataType", alle abgeleiteten Klassen
+    kennen ihren Datentyp. Durch Aufruf der Funktion CVar::DataType()
+    kann man den Typ herausfinden und so ein beliebiges CVar-Objekt
+    in das richtige umwandeln.
+  - Queue-Klasse CQueue überarbeitet, man kann nun beliebige Objekte
+    anhand ihrer Pointer hineingaben
+  - Kompatibilitäts typedefs entfernt, somit gibt es keine Klassen mehr,
+    die mit "Cppl..." anfangen
+  - CMCrypt: Neue Klasse zum Verschlüsseln und Entschlüsseln von Daten,
+    basierend auf libmcrypt
+  - CMHash: Neue Klasse zum Erstellen von Hashes mit verschiedenen
+    Algorithmen (z.B, MD5 oder SHA-256), basierend auf libmhash
+  - Konvertierung zwischen CString und CWString erfolgt nun über
+    Funktionen der libc, wenn Iconv nicht zur Verfügung steht. Dies
+    setzt jedoch voraus, dass die Strings in CString entweder UTF-8
+    oder US-ASCII kodiert sind. Iconv ist nun wieder optional.
+  - Neue statische Funktionen in der Klasse Cppl6Core, mit denen geprüft
+    werden kann, ob ein bestimmtes Feature einkompiliert wurde.
+    Cppl6Core::have...  (siehe \ref PPL6_Features)
+  - Neue Funktion "Random", die eine beliebige Anzahl Zufallsdaten
+    erzeugt und als CBinary-Objekt zurückgibt.
+  - RenameFile: Funktion prüft nun, ob alter und neuer Dateiname
+    identisch sind, bevor irgendetwas gemacht wird.
+  - Klasse CCompression wurde komplett überarbeitet und dokumentiert
+  - Klasse CDir wurde komplett überarbeitet
+  - CIconv hat nun statische Funktionen zum Auflisten aller
+    unterstützen Charsets
+  - libiconv wird nun zuverlässiger erkannt
+  - Bugfix in MkDir unter Windows
+  - Bugfix in CDBWrapper: Einige Funktionen haben als Returnwert den
+    Fehlercode zurückgegeben statt 0.
+  - ppl6-config liefert bei Aufruf mit "--cflags" nurnoch die tatsächlich
+    notwenigen Parameter
+  - Neue Datenbank-Klassen
+    Die Datenbank-Klassen wurden komplett überarbeitet und im neuen
+    Namespace "ppl6::db" reimplementiert. Statt einem Result-Handle, das
+    bei verschiedenen Funktionen zum Verarbeiten des Ergebnisses immer wieder
+    als Parameter übergeben werden mußte, wird nun eine Result-Klasse
+    verwendet. Diese enthält alle zur Verarbeitung des Ergebnisses
+    erforderlichen Funktionen und muss am Ende nur mit delete gelöscht
+    werden. Alle Funktionen der neuen Klassen wurden vollständig dokumentiert.
+    Die alten Klassen im ppl6-Namespace sind weiterhin enthalten, werden
+    aber in einer zukünftigen Version entfernt.
+  - Postgres-Datenbank wird mit der neuen Klasse ppl6::db::Postgres
+    erstmalig in PPL6 unterstützt. Die Klasse CDBPostgres war nie
+    wirklich implementiert.
+  - Neue Klasse ppl6::db::GenericResult zum Speichern von Ergebnissen aus
+    Datenbank-Selects und zum Kopieren von Ergebnissen.
+  - Das Verzeichnis "docs" und die Doxygen-Dateien sind nun in der
+    Source-Distribution enthalten. Aus irgendeinem Grund fehlten sie bisher. 
+  - CString und CWString haben neue Funktion "IsNumeric"
+  - CAssocArray: Bei der Sortierung der Elemente wird nun geprüft,
+    ob die zwei zu vergleichenden Schlüssel nummerisch sind. Ist dies der Fall,
+    erfolgt der Vergleich auf nummerischer Basis anstelle des Strings. Bei
+    Verwendung von "[]" wird daher die Datensatznummer nicht mehr in einen
+    10-stelligen String verwandelt.
+  - CSocket-Klasse wurde umbenannt in CTCPSocket 
+   
+Version 6.2.6 vom 09.06.2009	(CVS-Tag: REL_6_2_6, Branch: RELENG_6_2)
+  - Funktionen "PokeFloat" und "PeekFloat" hinzugefügt
+    TODO: Big Endian Implementation
+  - Neue Funktion "GetID3GenreName"
+  - Fehler in CTree::Find behoben
+  - CString und CWString haben neue Funktion UCWords
+  - IdentMPEG: Fehler in der Erkennung des MPEG-Headers gefixt
+  - CID3Tag: Es kann nun Version 2.4 gelesen werden
+  - CID3Tag: Bugfix in Save-Funktion, Framegröße > 127 Byte wird nun
+    korrekt geschrieben
+  - CID3Tag: Bugfix beim Dekodieren von Frames (CopyAndDecodeText)
+  - CTree: Kritische Bug gefixt. Beim Einfügen eines neuen Knotens
+    wurden die Pointer auf left und right sowie die Balance nicht mit
+    NULL initialisiert. Dies konnte zu Schutzverletzungen und Endlosschleifen
+    führen.
+  - CTree / CTreeItem: Dokumentation korrigiert
+  - CTreeItem hat nun Funktionen zum Auslesen der Verbindungen zu Parent,
+    Left und Right
+  - CQueue: Neue Klasse zum Verwalten von Queues
+  - Fehler im Configure behoben, der unter Windows mit MinGW dazu
+    führte, dass Iconv mit einer falschen Byteorder initialisiert
+    wurde, was wiederum zu Fehlverhalten in CWString führte
+  - RenameFile prüft nun nach dem "remove", ob die Datei an der alten
+    Position noch vorhanden ist und löscht sie gegebenenfalls
+  - Einige Memberfunctions von CString und CBinary sind nun als
+    "const" deklariert. In der nächsten Release werden weitere folgen.
+  - CString kann nun auch CBinary importieren, sowie Qt's QVariant
+
+Version 6.2.5 vom 15.05.2009			(CVS-Tag: REL_6_2_5)
+  - Neue Funktion: CFile::Sync: Dateiänderungen sofort auf die Platte
+    schreiben
+  - Dokumentation CApplication
+  - CID3Tag: Funktionen zum Auslesen der üblichen Tags (Artist, Titel, etc.)
+  - MkTime-Funktion mit Integer als Parameter
+  - CConfig: Neue Funktionen
+
+Version 6.2.4 vom 01.03.2009			(CVS-Tag: REL_6_2_4)
+  - Bugfix: Falsche Reihenfolge der Destruktor-Aufrufe in PPLExit
+  - Tippfehler in CLog beseitigt
+  - CArray: Explode-Funktion kann nun leere Zeilen ignorieren (zusätzlicher
+    Parameter erforderlich)
+  - DirectX 9 Engine vervollständigt
+  - Neue Klasse: grafix::CSprite zum Laden und Anzeigen von Sprites
+  - Das Makefile erfordert nun kein GNU-make mehr, sondern funktioniert
+    beispielsweise auch mit FreeBSD make
+  - Bugfix: Segmentation Fault und Endlosschleife beim Lesen von
+    defekten JPEG-Files behoben
+  - configure: Erkennung für "nasm"-Assembler hinzugefügt
+  - Assembler Unterstützung für AMD 64-Bit unter Unix und Windows
+  - BltColorKey nutzt nun auch Assembler
+  - Bugfix: BMP-Dateien mit 32-Bit Farbtiefe und Alphakanal werden nun
+    korrekt geladen
+  - Neu: Unit-Tests für Grafik-Funktionen
+  - Bugfix: Die Interpretation der RECT-Struktur war in einigen
+    Grafik-Funktionen fehlerhaft
+  - Fonts: Fehlerhafte Datei "liberationsans.fnt5" ersetzt durch
+    "liberationsans8.fnt5" 
+  - BltDiffuse verwendet nun auch Assembler und ist damit ca. 4 mal schneller!
+    Die C-Version verwendet nun die Integer-Variante RGBBlend255 statt der
+    Floatingpoint-Variante RGBBlend und ist damit auch mehr als doppelt so
+    schnell wie bisher.
+  - Sybase: Beim Connect kann nun die TDS-Version und Paketgröße angegeben
+    werden. Außerdem ist es nun möglich direkt auf einen Hostnamen oder
+    IP-Adresse zu connecten, ohne dass dieser in der Interfaces-Datei
+    definiert wurde.
+  - Sybase: Neue Funktionen zur globalen Initialisierung:
+  - CDBResult: Statt einem Key-Value basierten CAssocArray kann das Ergebnis
+    einer Zeile nun auch in einem durchnummerierten CArray abgelegt werden
+  - CDBResult: Neue interne Funktion ToString um einen bliebigen Datentyp
+    in einen String zu wandeln
+  - CDBResult: Ber Befehl "Result" unterstützt nun als zweiten Parameter auch
+    einen Spalten-Index statt einen Namen
+  - Configure prüft nun den CPU-Typ und aktiviert zusätzliche Compiler-Flags
+    zur Optimierung.
+  - CSurface::PutPixel ist nun vom Typ "void" und speichert Koordinaten und
+    Farbe nicht mehr. Dadurch ist die Funktion schneller. Zusätzlich
+    läßt sich über einen Auftruf der Funktion CSurface::FastPixel(true)
+    die Prüfung abschalten, ob der Pixel im erlaubten Zeichenbereich liegt.
+    Die Anwendung muss sicherstellen, dass dies nicht passiert, da es sonst
+    zu Schutzverletzungen kommen kann.
+  - CSendMail::CSendMail verwendet nun gethostname und getdomainname zur
+    Ermittlung des sendenden Hostnamens statt der Environment-Variable
+    HOSTNAME, sofern die Funktionen vorhanden sind.
+  
+Version 6.2.3 vom 24.11.2008			(CVS-Tag: REL_6_2_3)
+  - configure stoppt nun nicht mehr, wenn zwingend benötigte Libraries
+    fehlen, sondern meldet dies erst im Anschluss an die Zusammenfassung
+  - iconv ist nun zwingend erforderlich, wird indirekt von den Funktionen
+    LCase und UCase der String-Klasse benötigt
+  - IsTrue erkennt nun auch "on" und "an" als true
+  - CLog hat nun Rotate-Funktion
+  - CLog-Bugfix: Mutex in PrintArraySingleLine wurde zu spät gelocked
+  - Update auf Doxygen 1.5.7
+  - Bugfix in CApplication: Destruktor darf nicht PPL_Exit aufrufen,
+    da dies später automatisch passiert
+  - Bugfix in sybase.m4 Macro
+
+
+Version 6.2.2 vom 23.06.2008 			(CVS-Tag: REL_6_2_2)
+  
+Das "a" in der letzten Version bereitete ein paar Probleme, daher
+gibt es kurzfristig nochmal diese Version mit wenig Änderungen:
+  - configure: changed iconv detection, which now works on FreeBSD
+  - Bugfix in CSocket::SSL_Connect() bei Verwendung von Timeouts
+  - Visual Studio 2003 Project-File aktualisiert
+
+
+Version 6.2.1a vom 15.06.2008 			(CVS-Tag: REL_6_2_1)
+  - Bugfix: Bei der Übersetzung der Socketfehler wurden nun überall
+    "#ifdef"'s hinzugefügt, da nicht alle Errorcodes auf allen
+    Betriebsystemen vorhanden sind.
+
+
+Version 6.2.1 vom 15.06.2008 			(CVS-Tag: REL_6_2_1)
+  - Visual Studio 2008 Projekt-File aktualisiert
+  - Fehler im configure bzgl. Include-Pfad bei bzip2 behoben
+  - Korrektur in der iconv-Erkennung. Ein hardgecodeter Pfad (/usr/local/lib)
+    führte zu Problemen und wurde entfernt.
+  - Neue Funktion: CBinary::HexDump
+  - CAssocArray: Verschiedene Funktionen retten nun den aktuellen
+    Fehlerzustand
+  - CInt: Operator |= hinzugefügt
+  - CString: Funktionen StrCmp und StrCaseCmp erwarten als ersten
+    Parameter nun "const char *" statt "char *"
+  - Gemeinsame externe Funktionen von CSocket und CUDPSocket wurden
+    in eigene Datei socket.cpp verschoben
+  - Grafix: Mit DirectX9-Engine begonnen
+  - src/grafix6/Errors.cpp wurde in GrafikErrors.cpp umbenannt, das es
+    unter VS2008 sonst zu Überschneidungen kommt
+  - CConfig: Leerzeilen werden nicht mehr überlesen
+  - Windows-Sockets: Übersetzung von Windows-Socket-Fehlermeldungen
+  - CSocket: Neue Funktionen "IsReadable" und "IsWriteable"
+  - Bugfix CLog::LogError: Error-Text wurde nicht mehr ins Logfile geschrieben
+  - configure: lame und libmad werden nun auch unter MinGW gefunden
+
+
+Version 6.2.0 vom 15.04.2008 			(CVS-Tag: REL_6_2_0)
+  - Lizenz: Die PPL-Library steht nun endlich offiziell unter einer Open
+    Source Lizenz. Nach reiflicher Überlegung wurde eine BSD-Lizenz ohne
+    Werbungsklausel ausgewählt. Die Library kann somit ohne Einschränkung
+    auch in kommerziellen oder "Closed Source" Projekten verwendet
+    werden. Die Lizenz wurde in allen Quellcode-Dateien eingebaut.
+  - AVL-Code: Der bisherige AVL-Code basierte auf der libavl, die unter
+    der GNU General Public Licence steht. Da diese mit der BSD-Lizenz
+    unvereinbar ist, wurde der Code aus der Version vor 6.0.19 wieder
+    übernommen. Der damalige Fehler in der Löschfunktion wurde gefunden
+  - Doku: Copyright und Credits aufgenommen
+  - Die alte Grafik-Engine wurde entfernt, das Inlcude-File der neuen
+    Engine wurde von "ppl6-grafix6.h" in "ppl6-grafix.h" umbenannt.
+  - Weitere veraltete Dateien entfernt.
+  - Bugfix CReadMail: Leere Headerzeilen werden ignoriert  
+  - Weitere Funktions-Prüfungen im Configure
+  - CAssocArray Verwendet nun CTree anstelle von CAVLTree.
+  - Funktionen CAssocArray::Get...Sorted wurden entfernt, Funktionen wie "GetNext..."
+    und "GetPrevious..." liefern die Elemente nun immer sortiert zurück.
+  - Klasse CAVLTree wurde entfernt
+  - CDir verwendet nun CTree statt CAVLTree
+  - CHeap: Speicher wird automatisch freigegeben. Wenn mehr als ein Block
+    komplett unbenutzt ist, wird der erste behalten und alle weiteren
+    freigegeben
+  - CString verwendet nun CHeap für den Speicher der Klasse
+  - CWString verwendet nun CHeap für den Speicher der Klasse
+  - CString: Der initiale Buffer für Strings wurde von 128 auf 64 Byte
+    verkleinert
+  - Cppl6Core: Der Heap-Speicher für CAssocArray, CString und CWString wird
+    nun durch Cppl6Core verwaltet
+  - CAssocArray: Klasse wurde vollständig dokumentiert und ein paar kleinere
+    Verbesserungen vorgenommen.
+  - Bugfix CConfig: Beim Einlesen der kompletten Sektionen wurden führende Leerzeichen
+    entfernt, obwohl diese für CConfig::GetSection erhalten bleiben sollten
+  - pplgenresource: In der Konfigurationsdatei kann man nun eine Sektion
+    "prefix" und "suffix" definieren. Der Inhalt von "prefix" wird der Resourcen-
+    Header-Datei vorangestellt, "suffix" wird angehangen. Ideal für Copyright-
+    Vermerke.
+
+
+Version 6.1.4 vom 31.03.2008 			(CVS-Tag: REL_6_1_4)
+  - Dokumentation korrigiert: Scheinbar hab ich vergessen die neuste Version
+    der Doxygen-Konfigurationsdatei einzuchecken, wodurch die Doku nicht so
+    generiert wurde, wie es sollte
+  - Fehlernde Kompatibilitäts-typedefs nachgetragen:
+      - CpplSSL
+      - CppLCompression
+  - Neue Funktion: CBinary::ToFile
+  - Neue Funktionen in CMemFile:
+      - ppluint32 Gets(CString *buffer, int maxlinelength=1024);
+      - CString	*Gets(int maxlinelength=1024);
+      - void Puts (CString *str);
+  - Bugfix: In CDBWrapper::Save wurde intern ein Return-Code falsch
+    interpretiert und der Update String wurde falsch zusammengebaut. Scheinbar
+    hab ich "Save" zuvor noch niemals mit "Update" aufgerufen...
+  
+
+Version 6.1.3 vom 29.03.2008 			(CVS-Tag: REL_6_1_3)
+  - Win32-Bugfix: ppl6::DeleteFile wurde nicht gefunden, da Windows
+    "DeleteFile" umdefiniert. In CpplFile.cpp wurde daher ein "#undef"
+    hinzugefügt.
+  - configure: Minimum-Version für SDL auf 1.2.10 hochgesetzt, darunter schlägt
+    das Kompilieren fehl.
+  - gcc 4.2.x fixes: Ab gcc 4.2.0 ist die Umwandlung einer String-Konstante
+    in einen "char*" nicht mehr erlaubt und führt zu einer Warnung:
+    "warning: deprecated conversion from string constant to 'char*'"
+    In der PPL-Library tritt das Problem insbesondere bei Funktionen auf,
+    die einen Format-String gefolgt von einer variablen Anzahl Parametern
+    erwarten. (z.B. SetError(ppluint32, char *msg, ...). Die betroffenden
+    Datentypen wurden daher in "const char *" geändert, wodurch es möglicherweise
+    zu inkompatibilitäten kommen kann!
+    Außerdem mußten zwei der CLog::Printf-Funktionen umbenannt werden.
+  - Bugfix: In CHostsAllow::LoadFromFile wurde CpplFile::Load statt CpplFile::Open
+    benutzt
+  - Bugfix: JPEG-Filter in grafix6-Namespace funktioniert nun. Es wurden
+    Returncodes der CpplFile-Klasse nicht richtig geprüft.
+  - Change in CConfig: Taucht ein Keywort mehrfach auf, wird dessen Wert mit Newline
+    an den vorhandenen angehangen. Bisher wurde der alte Wert durch den neuen
+    ersetzt.
+  - Bugfix: Erkennung von ftruncate im Configure und in config.h.in hinzugefügt
+  - Bugfix: CpplFile::Size() hat immer nur die Größe der Datei beim Öffnen
+    zurückgegeben, aber nicht die aktuelle Größe. Size() ruft nun Lof() auf.
+  - Sämtliche verbliebene Klassen in ppl6.h, die mit Cppl begonnen haben,
+    wurden nun ebenfalls umbenannt. Aus "Cppl..." wurde "C...". Für alle
+    alten Klassennamen wurden Typedef's definiert, so dass die alten
+    Namen noch weiterverwendet werden können. Diese Typedef's lassen
+    sich nun aber durch die Definition "NO_CPPL_COMPAT" abschalten.
+  - Die alten Klassennamen werden nun intern in der Library nicht mehr
+    verwendet.
+  - Etliche Dateinamen der Sourcen wurden umbenannt von "Cppl..." in "C..."
+  - CpplMail wurde umbenannt in CSendMail
+  - Neue Klasse CReadMail zum einlesen und dekodieren von Mails
+  - Dokumentation gründlich überarbeitet
+  
+
+Version 6.1.2 vom 06.02.2008 			(CVS-Tag: REL_6_1_2)
+  - CDBPoolEx::CheckPool ist nun implementiert
+  - CDBPool::Get, Bugfix: Der Pointer auf die Liste der freien Connects wurde
+    nicht auf den Anfang der Liste gesetzt, wodurch nach Aufruf von GetStatus
+    oder CheckPool keine Connects mehr aus dem Pool verwendet wurden.
+  - Der Bugfix an CTree::Find hat einiges durcheinander gebracht und wurde zurückgenommen.
+    Fehlerhaft war die Dokumentation der beiden Funktionen CompareNode und
+    CompareValue. Diese wurde korrigiert und verbessert.
+
+Version 6.1.1 vom 15.01.2008			(CVS-Tag: REL_6_1_1)
+  - Weitere Klassen wurden umbenannt:
+    - CpplDBResult => CDBResult
+    - CpplDBWrapper => CDBWrapper
+    - CpplDBMySQL => CDBMySQL
+    - CpplDBSybase => CDBSybase
+    - CpplLog => CLog
+    Für die alten Klassennamen gibt es "typedef"s, so dass diese
+    weiterverwendet werden können.
+  - Datenbankpools
+    - CDBPool: Verwaltung eines Verbindungspools zu einer einzelnen Datenbank
+    - CDBPoolEx: Verwaltung multipler Verbindungspools zu verschiedenen Datenbanken
+  - CLog:
+    - Neue Funktionen zur Ausgabe eines zusätzlichen Modul- und Funktionsnamens
+    - Filterfunktion für Module und Funktionen
+  - GetMicrotime: Alias für getmicrotime
+  - GetMicroSeconds: Liefert Millisekunden seit 1970 zurück
+  - Code-Pflege: Fehlende Klammern, Type-Casts und andere kleinere Fehler, die beim
+    Kompilieren zu Warnungen geführt haben, wurden korrigiert
+  - Configure prüft nun mehr Wide-Char Datentypen. Einige der bisher ungeprüften
+    Funktionen (z.B. wcstoll) sind nicht auf allen Systemen vorhanden (z.B. Solaris 9).
+  - Portierung Solaris 9/10
+  - PeekNx und PokeNx führten unter Solaris zu Bus-Error, wenn die Adresse nicht
+    aligned war.
+  - CTree::Find Bugfix: Routine hat den Baum in der falschen Richtung durchsucht
+
+Version 6.1.0 vom 27.11.2007			(CVS-Tag: REL_6_1_0)
+  - Neue Grafik-Engine!
+    Die bisherige grafix6-Engine wurde verworfen und komplett neu implementiert.
+    Die neue Engine hat einen eigenen Namespace (ppl6::grafix) und ein eignes
+    Header-File (ppl6-grafix6.h). Die Engine hat ebenfalls eine neue
+    Fontengine, die FreeType und das neue Eigenformat Font5 unterstützt.
+    Die "uralt-Engine" ist weiterhin enthalten, wird aber über kurz oder
+    lang entfallen.
+  - Neues Toolkit!
+    Unter dem Namespace ppl6::tk entsteht ein neues Toolkit, mit dem
+    Eingabeformulare gebaut werden können. Das Toolkit setzt auf der neuen
+    Grafik-Engine auf. Bisher sind die Elemente CEvent, CWindow, SubWindow,
+    CWidget, Button, Frame, Label, Input, CheckBox und RadioButton implementiert.
+    Das Input-Element verwendet die neuen Cronjob-Timer zum Darstellen eines
+    blinkenden Cursors (siehe unten).
+  - MySQL: Fehler "Error in my_thread_global_end(): x threads didn't exit"
+    behoben. Dazu musste im Threadspezifischen Speicher ein Flag gesetzt
+    werden, dass beim Beenden des Thread mysql_thread_end() aufgerufen
+    werden muss. Ausserdem wird nun bei jedem MySQL-Befehl geprüft, ob
+    mysql_thread_init() schon aufgerufen wurde.
+  - Thread-spezifische Datenstruktur wurde nach thread.h ausgelagert.
+  - neue Error-Funktionen:
+    - ExtendError(ppluint32 errorcode)
+    - void SetError(ppluint32 errorcode, CpplString *msg)
+  - Neue Funktion: CpplResource *GetPPLResource();
+    Liefert einen Pointer auf die einkompilierten Resourcen
+  - CTree wurde überarbeitet und funktioniert nun
+  - Neues Fileformat: PFP-File Version 3
+  - Neue Klassen zum Erstellen und Lesen von "PFP-File Version 3"-Dateien:
+    PFPFile, PFPChunk. Beide Klassen sind vollständig dokumentiert
+  - "ident" erkennt nun PFP-File Version 3 und liefert Code 36 zurück.
+  - Klassen umbenannt:
+    - CpplVar => CVar
+    - CpplInt => CInt
+    - CpplBool => CBool
+    - CpplString => CString
+    - CpplArray => CArray
+      Ausserdem ist CArray nun von CVar abgeleitet und ruft bei Änderungen die
+      Change-Funktion auf
+    - CpplAssocArray => CAssocArray
+    - CpplBinary => CBinary
+    
+    Um kompatibel mit den alten Namen zu bleiben, gibt es für alle
+    Klassen ein "typedef" vom neuen auf den alten Namen.
+  - Neue Klasse CWString
+    Anders als bei der bisherigen String-Klasse werden die Strings hier als
+    Unicode Wide-Character (wchar_t) gespeichert. Unter Windows ist dieser
+    Datentyp 16 Bit breit, unter UNIX 32.
+  - Windows Port auf Visual Studio 2008
+  - Neue Klassen zur Timer-Steuerung: CCrontab und CCronjob
+
+Version 6.0.23 vom 26.10.2007			(CVS-Tag: REL_6_0_23)
+  - CpplFile
+    - Neue Funktion "OpenTemp" zum oeffnen einer Temporaeren Datei
+      mit einem Template als Filenamen. Nutzt die Funktion mkstemp
+    - "Delete": Die geoffnete Datei wird geschlossen und anschliessend
+      geloescht. Kann in Kombination mit OpenTemp verwendet werden.
+    - GetFileNo: Liefert das Filehandle des Betriebssystems zurück.
+  - CpplSocketMessage: Neue Protokollversion 2
+    - Mit der Member-Funktion "SetVersion" kann nun die Version 1 (default)
+      oder 2 ausgewählt werden. Die Version 2 hat einen 4-Byte längeren
+      Header, in dem nun eine CRC-Summe der Nutzdaten untergebracht wurde.
+    - In beiden Versionen wurde im Flags-Feld das Bit 1 hinzugefügt:
+      "Client supports ZLib". Dieses ist bei Nutzung der Funktion
+      CpplSocket::Write defaultmäßig immer gesetzt, kann aber mit der
+      Funktion CpplSocketMessage::DisableCompression abgeschaltet werden.
+      Die Daten werden dann nicht komprimiert.
+  - CpplThread: Interner Threadspezifischer Speicher funktioniert nun
+    auch unter WIN32
+  - CpplString: Wird vor inkludierung der Headerdatei ppl6.h die
+    Konstante WITH-QT definiert, werden Konstruktoren und Operatoren
+    für QT's QString Klasse eingebunden.
+  - Neue Funktion in CpplDBWrapper: int CpplDBWrapper::ReadKeyValue
+    Kann verwendet werden, um Key-Value-Paare aus einer Datenbank zu lesen
+  - In CpplAssocArray::CreateFromTemplate(CpplString *templ...) wurde nicht
+    überprüft, ob statt des Strings ein NULL-Pointer übergeben wurde
+  - CpplMail::SetSender prüft nun, ob der String einen Namen und Emailadresse
+    in spitzen Klammern enthält (z.B. "Mein Name <ich@domain.de>"). Ist dies
+    der Fall, wird nur der Inhalt der spitzen Klammern verwendet.
+  - Klasse umbenannt: CpplList heisst nun CPointerList
+  - Neue Klasse "CList" zum Verwalten von Listenelementen, die von
+    der ebenfalls neuen Klasse CListItem abgeleitet sind.
+  - Dokumentation der Klassen CList und CListItem
+  - Neue Klasse "CTree" zum Verwalten von Elementen in einem AVL-Baum, die von
+    der ebenfalls neuen Klasse CTreeItem abgeleitet sind.
+  - Dokumentation der Klassen CTree und CTreeItem
+  - Bugfix in "CpplSocket::Read": Wurden mehr Bytes gesendet als erwartet, wurde
+    der Buffer überschrieben. Trat nicht bei SSL-Verschlüsselung auf.
+  - CpplThread exportiert jetzt Lock und Unlock-Funktion, die beim Auslesen
+    der Liste sinnvoll ist.
+  - CpplSocket::SSL_Connect: Wurde auf einen Server connected, der kein SSL
+    unterstützt bzw. das SSL-Handshake ignoriert, blieb der Connect minutenlang
+    bis zu einem Timeout hängen. Es wird nun der Timeout berücksichtigt, der mit
+    SetConnectTimeout gesetzt wurde.
+  
+
+Version 6.0.22 vom 27.08.2007			(CVS-Tag: REL_6_0_22)
+  - CpplThread
+    - Bugfix: Beim Starten eines Threads unter UNIX wurden die Pthread-Attribute
+      nicht übergeben, wodurch eine zuvor veränderte Stackgröße keine Auswirkung
+      hatte
+    - Neue Funktion: ThreadIdle
+      Der Thread gibt seine CPU-Zeit an andere Threads ab
+    - GetThreadID liefert nun eine vom Betriebssystem unabhängige
+      Zahl zurück, die bei 0 anfängt und mit jedem weiteren Thread
+      hochgezählt wird.
+    - Interne Thread-Datenstruktur wird nun im threadspezifischen Speicher
+      des Betriebssystems abgelegt. Datenstruktur wurde um ThreadID,
+      aktuellen Fehler und Fehlerstack erweitert.
+    - Threadspezifische Fehler werden nun nicht mehr in einer internen verketteten
+      Liste gespeichert bzw. gesucht, sondern in einem threadspezifischen
+      Speicher, der beim Erstellen des Threads automatisch angelegt wird.
+      Insbesondere wenn mit vielen Threads gearbeitet wird, ist das wesentlich
+      performanter.
+  - Datenstruktur PPL_ERROR wurde verändert. Der char* errortxt wurde duch
+    die Klasse CpplString ersetzt. Falls die Struktur dynamisch erstellt wird,
+    sollte "new" statt "malloc" verwendet werden, bzw. "delete" statt "free".
+  - CpplSocket
+    - Funktion ReadOnce: Falls unter UNIX ein EAGAIN auftrat (z.B. im Non-Blocking
+      Modus), hat die Funktion fälschlicherweise true zurückgegeben. Es wird
+      nun false und der Fehlercode 277 zurückgegeben
+    - Fehlercodes bereinigt. Die Codes 279 und 306 sowie 277 und 309 hatten die
+      gleiche Bedeutung. Die Codes 306 und 309 wurden daher ersetzt. Programme,
+      die diese Codes abfragen, müssen angepasst werden!
+    - Function Connect gibt nun den Fehlercode 174 bei einem Timeout zurück.
+
+Version 6.0.21 vom 12.08.2007			(CVS-Tag: -)
+  - Experimentelle Unterstützung für MINGW
+  - Unterstützung für YASM Assembler unter UNIX und MINGW (Funktion GetCPUCaps)
+  - Library aufgesplittet in core, database, inet, inet-nossl, grafix, sound
+    und tk. Man kann nun entweder wie gewohnt die komplette Library einbinden
+    (-lppl) oder nur die Teile, die man wirklich braucht (-lppl6-core).
+  - Neue experimentelle Klasse "CID3Tag" zum setzen von ID3v1- und ID3v2-Tags
+  - Neue HexDump-Funktion mit Ausgabe in einen CpplString
+  - CpplString: 
+      - Neue Funktion void HexDump(void *buffer, ppldd bytes, bool skipheader=false);
+      - Neue Transcode-Funktionen
+  - CpplSocket::WaitForMessage: Bei einem Protokollfehler wird nun
+    der komplette Header in die Fehlermeldung gedumped.
+  - CpplAssocArray:
+      - Mutex entfernt! Der Aufrufer ist für die Threadsicherheit verantwortlich!
+      - Bugfix bei Zahlen-Keys, maxint wird nun auch bei einem "0"-Key hochgezählt
+      - Neue Funktion "GetCurrentKey", liefert den zuletzt benutzen Key zurück
+      - Neue Funktionen zum Importieren von CpplDir-Klassen
+      - Neue Funktion "int Deletef(const char *fmt, ...);"
+      - Bugfix: Beim Anlegen des ersten Elements wurde der Next-Pointer
+        falsch initialisiert. Das führte zu Problemen beim Löschen.
+  - CpplDirEntry:
+      - Neue Funktionen "Is..." zum Prüfen der File-Attribute
+      - Neue Funktion "Copy" und Operator "="
+      - Klasse ist nun vollständig dokumentiert
+  - CpplDir:
+      - Klasse ist nun vollständig dokumentiert
+  - CpplThread:
+      - Die Funktionen ThreadSetPriority und ThreadGetPriority, sowie die
+        gleichnamigen Meber-Funktionen der Klasse CpplThread funktionieren nun
+        auch unter Unix mit Pthreads
+      - ThreadWaitSuspended benutzt nun die Wait-Funktion des Mutex
+  - CpplMutex: Neue Funktionen "Wait" und "Signal"
+  - CpplThreadPool:
+      - Neue Funktion ChangePriority
+  - CpplArray:
+      - Mutex und ThreadSafe-Funktionen entfernt. Hat in dieser
+        Klasse nichts zu suchen, der Anwender ist für die threadsichere
+        programmierung zuständig.
+  - CpplIconv
+      - Neuer Konstruktor: CpplIconv(const char *fromcode, const char *tocode);
+      - Bei Transcode-Funktion kann nun die Größe angegeben werden:
+        char *Transcode(const char *str, size_t size=0);
+  - Neue Funktionen um RECT/WINRECT-Strukturen von oder in einen String zu
+    konvertieren:
+    int StringToRect(CpplString *s, WINRECT *r);
+    int StringToRect(CpplString *s, RECT *r);
+    int RectToString(WINRECT *r, CpplString *s);
+    int RectToString(RECT *r, CpplString *s);
+  - configure:
+      - Erkennung für libpng in eigenes m4-File ausgelagert und verbessert, es
+        wird nun libpng-config verwendet
+      - Erkennung für libjpeg in eigenes m4-File ausgelagert
+      - Bugfixes
+  
+		
+Version 6.0.20 vom 31.05.2007		(CVS-Tag: REL_6_0_20)
+  - CpplMemSpace hat neue Funktion StrDup
+  - Neuimplementierung der AVLTree-Klasse, basierend auf der GNU
+    AVL-Library, Version 2.0.2a. CAVLTree ersetzt CpplAVLTree.
+  - AVLTree kann nun Delete, GetFirst, GetNext, GetLast, GetPrevious,
+    Current
+  - CpplAssocArray verwendet nun AVLTree zum Suchen und Sortieren.
+    Bei einer Liste mit 122820 Elementen, hat die Klasse zuvor ca. 21 Minuten
+    zum Einlesen gebraucht. Mit AVLTree dauert es nurnoch 3 Sekunden!
+  - CpplAssocArray: Neue Funktionen zum sortierten ausgeben und traversieren:
+    ListSorted, GetFirstSorted, GetNextSorted, GetLastSorted, GetPreviousSorted
+  - CpplString: LCase und UCase sind nun UTF-8 sicher
+  - Bugfix: CpplThreadPool::Count hat immer 0 zurückgegeben
+  - CpplString: Die Regular-Expression-Funktionen setzen nun automatisch
+    das Flag "PCRE_UTF8", wenn die Umgebung (setlocale) auf UTF-8 eingestellt
+    ist.
+  - Die PokeNxx und PeekNxx-Funktionen haben auf little endian Platformen
+    (Intel/AMD) nicht in Network-Byte-Order geschrieben. Dies ist ein
+    kritischer Bug, da sich dies u.a. auf die CpplSocketMessage-Klasse auswirkt,
+    die zur TCP/IP-Kommunikation verwendet wird. Alle Anwendungen, die darüber
+    miteinander kommunizieren und auf Intel-Platformen laufen, müssen neu
+    kompiliert werden!
+  - CpplAssocArray: Die Export-Funktion hat Poke verwendet, die Import-Funktion
+    aber PeekN. Beide Funktionen benutzen nun die Network-Byteorder-Funktionen.
+  - CpplAssocArray::ToTemplate erstellt jetzt mehrere Zeilen mit führendem Keywort,
+    wenn ein Value Zeilenumbrüche enthält.
+  - Fehler in getargv beseitigt. Die Abfrage nach einem mehrbuchstabigem Flag, das
+    am Ende der Parameter steht, wurde als Wert alles ab dem zweiten Buchstaben
+    zurückgegeben, ohne die Länge des Flags zu beachten.
+    
+
+Version 6.0.19 vom 03.05.2007		(CVS-Tag: REL_6_0_19)
+  - LibIconv wird nun auch unter FreeBSD erkannt
+  - CpplIconv dokumentiert
+  - Neue Funktion CpplString::Transcode
+  - CpplApplication durch CApplication ersetzt, die keine
+    Grafikinitialisierung vornimmt, und daher nun auch in ppl6.h
+    definiert wird
+  - CpplLog::Terminate. Hat die gleichen Funktion wie der Aufruf des
+    Destruktors und Konstruktors -> Die Klasse wird in den Ausgangszustand
+    gebracht.
+  - Neue Socketklasse CUDPSocket zum Senden und Empfangen von UDP-Paketen
+  - GetHostByName und GetHostByAddr liefern nun mehr Daten zurück, u.a. eine
+    sockaddr-Struktur
+  - Fehler in CpplMemFile::Gets beseitigt, die Funktion verhält sich nun
+    so wie fgets.
+  - CpplFile-Klasse hat nun Popen-Funktion
+  - CpplMemory-Klasse als Basisklasse für alle anderen Klassen wurde
+    entfernt
+  - Mehrere Speicherzugriffsfehler und Memory-Leaks entfernt
+  - GenerateResourceHeader liest jetzt alle Sektionen einer Konfigurationsdatei
+    ein, unabhängig vom Namen.
+  - Bugfix in der Erkennung der lib-pcre im configure
+
+Version 6.0.18 vom 26.03.2007		(CVS-Tag: REL_6_0_18)
+  - Anpassung der Sybase-Datenbank-Erkennung im Configure auf
+    ASE 15.0
+  - Überprüfung aller Destruktoren, Sicherstellung, dass kein
+    Errorcode durch einen Destruktor überschrieben wird.
+  - Socket-Klasse kann nun beim Connect auf eine Remote-Addresse auf
+    einen lokalen Port gebunden werden (nur UNIX, Source-Port).
+  - Beim Aufruf von CpplSocket::Connect kann der Port jetzt auch als
+    Servicename statt als Nummer angegeben werden
+  - Neue Klasse CpplMail zum Verschicken von Mails
+  - CpplAssocArray hat Funktion um Array in Template zu speichern:
+    ToTemplate
+  
+
+Version 6.0.17 vom 01.03.2007		(CVS-Tag: REL_6_0_17)
+  - Ein weiterer kritischer Bugfix in der Socket-Funktion Write.
+    Falls die Gegenstelle nicht bereit war Daten zu empfangen und
+    ein EAGAIN-Fehler trat auf, wurde dieser nicht abgefangen,
+    so dass Daten verloren gingen.
+
+
+Version 6.0.16 vom 28.02.2007		(CVS-Tag: REL_6_0_16)
+  - Neuer DatenTyp: CpplBinary
+    Zum Speichern von Binären Daten
+  - CpplAssocArray unterstützt CpplBinary
+  - Neue Fehlerfunktionen: 
+    - SetErrorFromErrno: Setzt einen Fehler in Abhängigkeit der errno-
+      Variablen
+    - TranslateErrno: Übersetzt den Wert der errno-Variablen in einen
+      PPL Fehlercode
+  - Neue Funktionen: Chmod und FileAttr
+  - Bind-Funktion der CpplSocket-Klasse unterstützt nun unter Unix wieder
+    Wildcards als "host"-Parameter (NULL,"" oder "*"), um sich auf alle
+    Interfaces zu binden.
+  - Kritischer Bugfix in den Socket-Funktionen Read und Write. Bei
+    grossen Datenmengen, die in mehrere Pakete zerteilt werden, wurden
+    die Pointer auf die Buffer nicht hochgesetzt
+
+
+Version 6.0.15 vom 22.02.2007		(CVS-Tag: REL_6_0_15)
+  - CpplCurl überarbeitet: Threadsafe, alle Set...-Funktionen prüfen
+    Input-Parameter und geben Return-Wert zurück. POST-Methode wurde
+    erstmal entfernt, GET wurde hinzugefügt.
+  - CpplCurl wird nun immer eingebunden, liefert jedoch Fehlermeldungen
+    bei Aufruf, wenn libCurl nicht eingebunden ist.
+  - libcurl.m4-Macro aktualisiert
+  - Bugfix bei Erkennung des "-pthread"-Flags im Configure
+    
+  
+Version 6.0.14 vom 19.02.2007		(CVS-Tag: REL_6_0_14)
+  - Sortierfunktion in CpplDir funktioniert wieder und nutz nun
+    zur Beschleunigung AVL-Trees
+  - CpplDBSybase hat nun Ping-Kommando
+  - Bugfix in CpplThread: Beim starten des Threads wird nun das Stop-Flag
+    gelöscht
+  - Bugfix in CpplCompression::Uncompress
+  - Neues Tool "pplgenresource" zum Erstellen von Header-Dateien mit
+    PPL-Resourcen
+
+
+Version 6.0.13 vom 26.01.2007		(CVS-Tag: REL_6_0_13)
+  - Bugfix in CpplSocket: Beim Disconnect wurde der Filedescriptor nicht
+    auf 0 geprüft. Bei einem vorausgegangenen fehlgeschlagenen Connect
+    wurde dadurch STDIN geclosed
+  - Mehr Debug-Code in CpplSocket
+  - Neue Funktion Cppl6Core::MinVersion
+  - Verbesserte Erkennung von bzip2 im Configure
+  - Verbesserte Erkennung von pcre im Configure
+  - Verbesserung der 64-Bit Kompatibilität
+
+
+Version 6.0.12 vom 02.01.2007		(CVS-Tag: REL_6_0_12)
+  - CpplAVLTree zur Verwaltung von AVL-Baeumen, allerdings
+    funktioniert das Löschen nicht korrekt
+  - MySQL-Klasse: Schlaegt ein Query fehl, weil die Datenbank-Verbindung
+    zwischenzeitlich getrennt wurde, wird versucht sie wieder aufzubauen.
+  - Fonts und Grafikformat-Filter wurden in Unterverzeichnisse von
+    /src/grafix verschoben
+  - Font-Routinen aus PPL5 wurden provisorisch importiert
+  - Windows-Port
+    getaddrinfo steht unter Windows 2000 nicht zur Verfuegung, daher
+    wird fuer Bind, Listen, Connect der alte Code aus Version 6.0.9
+    verwendet.
+  - Adress-Resolver-Funktionen:
+    int GetHostByName(const char *name, CpplAssocArray *Result);
+    int GetHostByAddr(const char *addr, CpplAssocArray *Result);
+  - Neue Funktion: CpplDBWrapper::InsertKey
+  - Neue Funktion: Ini2Array
+  - Dokumentation mit Doxygen begonnen
+  - Timeout für Socket-Write-Funktionen
+  - Fehler in CpplDir::FindNext unter Unix behoben
+  - Fehler in CpplString[] bei Übergabe einer negativen Position behoben
+  - Neue Funktion "GenerateResourceHeader" zum generieren einer Headerdatei
+    mit Resourcen
+
+
+Version 6.0.11 vom 31.10.2006		(CVS-Tag: REL_6_0_11)
+  - Nonblocking Connect in Socket-Klasse unter UNIX. Wird vor dem
+    Connect die neue Funktion CpplSocket::SetConnectTimeout aufgerufen,
+    wird der Connect-Versuch nach der angegebenen Zeit abgebrochen
+  - CpplIconv hat neue Funktionen:
+    int TranscodeString(CpplString *str);
+    int TranscodeString(CpplString str);
+  
+  
+Version 6.0.10 vom 25.10.2006		(CVS-Tag: REL_6_0_10)
+  - CpplDBWrapper hat nun "Save"-Funktion
+  - PushError() und PopError() zum kurzzeitigen Retten eines Fehlers
+  - Release-Library hat nun keine Debugger-Symbole mehr unter UNIX und ist mit
+    -O3 optimiert
+  - CpplSocket::Bind und CpplSocket::Connect benutzen nun zur Hostaufloesung
+    getaddrinfo und unterstuetzen dadurch jetzt IPv6
+  - CpplSocket::Listen ermittelt die Remote-IP nun mit getnameinfo statt
+    inet_ntoa
+  - CpplSocketMessage als Container zur Datenübertragung mit der Socket-Klasse
+  - Neue Funktion um Datum im ISO 8601-Format zu generieren:
+    MkISO8601Date und MkTime
+  - CpplString wurde um MD5-Funktionen ergänzt
+  - Bugfixes in CpplSocket
+  - Bugfixes in CpplLog
+  - CpplSocket wurde um SSL-Funktionen erweitert und kann nun als SSL-Client
+    oder Server fungieren.
+  - Neue Klasse CpplSSL, die zur Initialisierung der SSL-Funktionen in der
+    Socket-Klasse benötigt wird.
+  - Alle Aufrufe von "localtime" wurden durch die Thread-sichere Variante
+    "localtime_r" ersetzt, sofern verfügbar.
+  - CpplError ist nun keine Klasse mehr, sondern eine Sammlung von globalen
+    Funktionen, die jetzt aber Threadsafe sind. Pro Thread wird ein Fehlercode
+    gespeichert. Alle PPL-Klassen wurden entsprechend angepasst.
+  - CpplAssocArray wurde komplett neugeschrieben und unterstuetzt nun
+    verschachtelte assoziative Arrays. Die Klasse enthaelt viele neue
+    Funktionen, ist aber kompatibel zur alten, sofern im Keywort kein Slash
+    "/" vorkommt. 
+  - CpplFile::Fseek liefert nun true (1) zurueck, wenn erfolgreich, false (0)
+    wenn nicht. Vorher war es andersrum.
+  - CpplDBSybase: Neue Datenbankklasse fuer Sybase CT-Lib
+  - Neue Funktionen in den Array-Klassen
+  - CpplDir umgeschrieben, Files werden nun in CpplDirEntry gespeichert
+  - CpplMP3Encode::EncodeFile akzeptiert nun als Input auch eine CpplMP3Decode-
+    Klasse
+  - CpplThread::ThreadGetStackSize und CpplThread::ThreadSetStackSize
+    hinzugefuegt
+  - Erkennung fuer OpenSSL und --with-openssl Option im Configure
+  - MySQL und Postgres werden nun nurnoch erkannt, wenn ausdruecklich
+    --with-mysql bzw. --with-pgsql angegeben wurde
+  - Neues Verzeichnis "config" mit Autoconf-Macros
+  - Neue Funktionen in CpplDBWrapper:
+    - int Connect(CpplAssocArray *dbdata);
+    - PPL_DB_RESULT Exec(CpplString *query);
+    - int SelectDB(const char *databasename);
+    - int SelectDB(CpplString *databasename);
+    - ExecArrayAll, alle Ergebnisse des Results werden als verschachteltes
+      CpplAssocArray zurueckgegeben
+  - Zahlreiche Bugfixes und neue Funktionen
+
+
+Version 6.0.9 vom 07.06.2006		(CVS-Tag: REL_6_0_9)
+  - Neue Klasse CpplCallback
+  - CpplVar verwendet nun CpplCallback statt CpplNotify
+  - Neue Klasse CpplBool, abgeleitet von CpplVar
+  - CpplFile-Klasse merkt sich nun den Dateinamen. Dieser kann über
+    die neue Funktion "GetFilename" abgefragt werden. Sie liefert
+    "unknown", falls kein Filename vorhanden ist. Mit der Funktion
+    "SetFilename" kann der Dateiname manuell gesetzt werden.
+  - CpplResource::Get setzt nun den Namen der Resource innerhalb
+    des CpplFile-Handles vor der Rückgabe
+  - Suche nach Resourcen innerhalb von CpplResource wurde umstrukturiert
+  - CpplList hat nun einen ThreadSafe-Schalter
+  - Die Basisklasse "ppl6::Cppl6Core PPLCore" wird nicht mehr innerhalb
+    der Library definiert, da aus irgendwelchen Gründen der Konstruktor
+    nicht aufgerufen wird, bzw. die Klasse erst garnicht angelegt wird.
+	Die Klasse ist nun als Pointer definiert und optional. Ueber die
+    Funktion PPLInit() kann sie bei Bedarf angelegt und ueber PPLExit()
+    wieder geloescht werden.
+  - GrafikEngine für DirectX 9 unterstützt nun CreatePrimarySurface,
+    Destroy, Lock, Unlock, Flip und empfängt Nachrichten.
+  - ImageFilter überarbeitet. Load und Save liefern nun "true" oder
+    "false" zurück. Load- und Save-Funktion mit Filenamen ist nun
+    Teil der Basisklasse und wurde aus den abgeleiteten Klassen
+    entfernt.
+  - CpplGrafix intitialisiert nun die ImageFilter, eine alphatabelle
+    für Blt-Operationen und ermittelt die CPU-Caps.
+  - CpplGrafix unterstützt nun CreatePrimarySurface und
+    CreateSoftwareSurface.
+  - CpplGrafix unterstützt nun LoadImage in den Hauptspeicher.
+  - Neue Grafiken in den Resourcen
+  - CpplSurface unterstützt AlphaBlt-Funktionen, MMX optimiert (NASM
+    erforderlich)
+  - CpplSurface unterstützt BltDiffuse-Funktionen, MMX optimiert (NASM)
+  - Generisches Interface für Font-Renderer
+  - Freetype-Plugin
+  - CpplGrafix::LoadFont-Routinen
+  - Neue Klasse "CpplMemMan" zum Verwalten kleiner unterschiedlich
+    grosser Speicherblöcke. Wird von CpplFontCache verwendet.
+  - Neue Klasse "CpplIconv" zum Konvertieren von Text zwischen
+    unterschiedlichen Charsets
+  - Anpassungen der Konstruktoren-Definitionen fur GCC 4
+  - CpplTok hat nun Funktion "GetRest"
+  - CpplSocket hat neue Funktionen:
+    virtual int Write(CpplString *str);
+    virtual char *Read(int bytes);
+
+
+Version 6.0.8 vom 20.12.2005       (CVS-Tag: REL_6_0_8)
+  - CpplMemSpace aus PPL5 importiert
+  - Erkennung für X11 im configure-Script
+  - Zeitfunktionen aus functions.cpp sind nun in time.cpp
+  - Macros für Sleep-Funktionen entfernt
+  - Neue Sleep-Funktionen: 
+    int USleep(ppluint64 microseconds);
+    int MSleep(ppluint64 milliseconds);
+    int SSleep(ppluint64 seconds);
+  - Code-Anpassungen für Visual C++ 8.0 (Visual Studio 2005)
+  - CpplCallback-Klasse
+
+Version 6.0.7 vom 09.11.2005		(CVS-Tag: REL_6_0_7)
+  - CpplString::Repeat-Funktionen hinzugefügt
+
+
+Version 6.0.6 vom 08.11.2005		(CVS-Tag: REL_6_0_6)
+
+  - Windows-Port an Änderungen aus 6.0.5 angeglichen
+  - Neue Kompatibilitätsfunktion: long long atoll(const char *nptr);
+  - IdentMPEG-Routine verbessert
+  - Bugfix in CpplLog-Klasse, in "Output" wurde faelschlicherweise
+    ein Mutex gelocked, der bereits von den aufrufenden Funktionen
+    gelocked wurde
+
+
+Version 6.0.5 vom 05.11.2005
+
+  - Configure prüft nun, ob flock oder fcntl vorhanden sind
+  - Locking-Funktionen von CpplFile verwenden nun primär fcntl.
+    Falls weder fcntl noch flock vorhanden sind, liefern die
+    Funktionen eine Fehlermeldung.
+  - Der GMT-Offset in der Structure "tm" ist nicht auf allen
+    Betriebssystemen vorhanden. Daher entsprechende Prüfung im
+    configure ergänzt
+  - CpplMutex und CpplThread beachten nun die Definition
+    HAVE_PTHREADS aus dem configure
+
+
+Version 6.0.4 vom 04.11.2005
+
+  - CpplInt-Klasse hinzugefügt
+  - CpplLog- und CpplDebug-Klasse überarbeitet
+  - Locking-Mechanismus fuer File-Klasse
+  - GetTime liefert nun weitere Informationen in der PPLTIME-Structure
+    zurueck
+  - Fehlende m4-Macros ergänzt
+
+
+Version 6.0.3 vom 17.10.2005
+
+  - Erkennung von libpcre im configure-Script
+  - CpplString beruecksichtigt libpcre-Erkennung
+  - Erkennung von fpos_t im configure-Script
+  - Neue Klasse CpplTimer
+
+
+Version 6.0.2 vom 24.09.2005
+
+  - Zwei crc32-Funktionen zum Berechnen von Checksummen hinzugefügt. Die
+    erste dient der Berechnung eines Strings, die zweite der eines bliebig
+    großen Buffers.
+  - GrafikEngine ist nun als Klasse definiert
+  - PPL_SURFACE ist nun in ppl6-grafix.h definiert und somit auch fuer
+    Clients zugaenglich
+  - ident-Funktionen aus PPL5 importiert
+  - Klasse CpplLang aus PPL5 importiert
+  - Klasse CpplDir aus PPL5 importiert
+  - Neue Klasse CpplString begonnen
+  - CpplFile::Gets und Open unterstuetzen String-Klasse
+  - Neue Funktionen MkDir, CopyFile, MoveFile, RenameFile, TouchFile,
+    DeleteFile, WriteFile und GetTime
+  - Port zu FreeBSD, Port zu WIN32, Port zu Solaris 9 Ultra Sparc III
+  - Bugfix CpplSocket: Fehlercodes wurden korrigiert und neuvergeben
+  - Bugfix CpplSocket: Interne Funktion inet_aton (WIN32) hatte keine
+    Fehlerprüfung
+  - Bugfix CpplSocket WIN32: Intitialisierung mit WSAStartup beim
+    Erstellen der ersten Instanz
+
+
+Version 6.0.1 vom 01.05.2005
+
+  - Datenbank-Schnittstellen aus PPL5 importiert und ueberarbeitet,
+    MySQL ist nun Threadsicher und Result ist nun vom Typ void* statt ppldd.
+    Die ExecEx-Funktion wurde abgeschafft, Exec übernimmt deren Funktion.
+  - Erkennung fuer MySQL und PostgreSQL im configure-Script hinzugefuegt
+  - Erkennung von lame und libmad im configure-Script
+  - ppl6-config Konfigurationsscript, zur Verwendung in anderen
+    Programmen
+  - Neue Klasse CpplHeap, zur Verwaltung von gleichgroßen Speicherblöcken,
+    die häufig allokiert und wieder freigegeben werden.
+  - CpplLog ist jetzt Basisklasse fuer CpplDebug und enthaelt
+    ein differenzierteres Logging-Modell. Eventuell wird CpplLog aber
+    nochmal ueberarbeitet.
+  - CpplArray hat jetzt "Reset" und "GetNext"
+  - CpplArray hat jetzt die von Perl abgeleiteten Funktionen Push, Pop,
+    Shift und Unshift
+  - CpplArray ist nun optional auch Threadsafe
+  - Neue Klasse CpplMP3Decode, zum Dekodieren von MP3-Files. Nutzt
+    libmad
+  - CpplMP3Encode aus PPL5 importiert
+  - CpplMP3Encode: Statt einem kompletten File kann nun auch ein bleibig
+    großer Buffer komprimiert werden
+  - CpplMP3Encode: Erstellen von MP3-Dateien mit variabler Bitrate
+  - CpplResource: Verwaltung von PPL6-Resourcen
+  - tools/mkresource zur Erstellung einer Include-Datei mit Resourcen
+
+  - Begonnen die Grafik-Funktionen aus PPL5 zu übernehmen:
+    - Surface Backup
+    - Primitives
+    - Colors
+    - Image-Filter
+    - ImageObject
+  - CpplGrafix::CreatePrimarySurface
+  - Merge aus 5.1.5:
+    - Neue Funktionen in CpplAssocArray:
+      - Add unterstuetzt nun einen optionalen dritten Parameter "size",
+        der angibt, wieviele Bytes aus "value" ins Array kopiert werden
+        sollen
+      - Neue Funktion Concat, mit der man Werte mit gleichem Key mit
+        einem beliebigen Trennzeichen zusammenhaengen kann
+
+
+Version 6.0.0 vom 27.03.2005
+
+PPL6 basiert auf PPL 5.1.2 vom 15.01.2005 ohne Grafik-Klassen.
+Uebernommen wurden alle Funktionen und folgende Klassen:
+  - CpplError
+  - CpplTok
+  - CpplFile
+  - CpplMemFile
+  - CpplDebug
+  - CpplAssocArray
+  - CpplConfig
+  - CpplList
+  - CpplCurl
+  - CpplNotifyHandler
+  
+Aenderungen:
+
+  - Namespace ist nun "ppl6"
+  - Suffix "ppl_" bei allen Funktionen entfernt
+  - Neue Klasse Cppl6Core, die als globale Variable PPLCore
+    immer verfügbar ist. Sie enthält neben Versions-Abfrage,
+    Memory-Verwaltung auch die globale Debug-Klasse CpplDebug.
+    Aus Kompatibilitätsgründen bleibt die global Klasse PPLDebug
+    erhalten, ist aber ein Alias auf Cppl6Core.
+  - CpplFile: Alle Filepointer sind jetzt 64 Bit, wodurch nun
+    Dateien > 4 GB unterstützt werden
+  - MD5-Funktionen werden nun immer im Namespace ppl6
+    einkompiliert
+  - Funktionen ppl_sinus und ppl_cosinus umbenannt in sinus1024
+    und cosinus1024
+  - Kompressionsfunktionen sind nun in der Klasse CpplCompression
+    zusammengefasst
+  - ThreadKlasse CpplThread wurde runderneuert und dient jetzt als
+    Basisklasse für alle Threads
+  - Neue Klasse CpplThreadPool zum logischen Zusammenfassen von
+    Threads
+  - Standard configure-Script unter Unix, erstellt mit autoconf
+  
+  - Merge aus 5.1.3:
+    - Neue Klasse CpplArray zur Verwaltung von Arrays
+    - Neue Klasse CpplMutex als Wrapper für "CriticalSections"
+      unter Windows, bzw. "pthread_mutex" unter Unix.
+
+  - Merge aus 5.1.4:
+    - Neue compat-Funktionen strndup und strncmp aus PPL 5.1.4
+    - Bug in ppl_trim beseitigt, der auftrat, wenn am Anfang der Zeile
+      Spaces geloescht wurden
+    - CpplTok verwendet nun CpplArray zum Speichern der Tokens.
+    - Mit CpplTok::Get kann nun gezielt auf bestimmte Spalten des Ergebnisses
+      zugegriffen werden.
+    - CpplFile::Puts und CpplMemFile::Puts nutzen nun vasprintf
+    - Umstellung von ppldd von unsigned long auf unsigned int
+    - Neue Klasse CpplSocket fuer TCP-Connects, inklusive Windows-Port
+      aus 5.1.5
+
+  - Merge aus 5.1.5:
+    - Bugfix in CpplDebug bezueglich der Buffergroessen. Es gibt jetzt
+      keine Limitierungen mehr fuer die Laenge der Daten (vorher 1024
+      Bytes);
+
+*/
