@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 600 $
+ * $Date: 2013-04-26 21:37:49 +0200 (Fr, 26 Apr 2013) $
+ * $Id: loggertest.cpp 600 2013-04-26 19:37:49Z pafe $
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
@@ -38,8 +38,8 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include "../include/ppl7.h"
-#include "ppl7-tests.h"
+#include "../include/ppl6.h"
+#include "ppl6-tests.h"
 
 
 int main(int agrc, char ** argv)
@@ -49,9 +49,22 @@ int main(int agrc, char ** argv)
 		printf ("setlocale fehlgeschlagen\n");
 		throw std::exception();
 	}
-	ppl7::String::setGlobalEncoding("UTF-8");
+	ppl6::SetGlobalEncoding("UTF-8");
 
-	ppl7::Logger log;
+	ppl6::CLog log;
+	log.SetLogLevel(ppl6::LOG::WARNING,10);
+	log.SetLogLevel(ppl6::LOG::INFO,10);
+	log.SetLogLevel(ppl6::LOG::DEBUG,10);
+	log.SetLogLevel(ppl6::LOG::ERROR,10);
+	log.SetLogLevel(ppl6::LOG::NOTICE,10);
+	log.openSyslog("ppl6-loggertest",ppl6::CLog::SYSLOG_USER);
+	log.Print(ppl6::LOG::WARNING,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test");
+	log.Print(ppl6::LOG::INFO,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test Info");
+	log.Print(ppl6::LOG::ERROR,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test ERROR");
+	log.Print(ppl6::LOG::NOTICE,1,"ppl6::test::loggertest","main",__FILE__,__LINE__,"Test NOTICE");
+	ppl6::SetError(2,"Test");
+	log.LogError();
+
 
 
 	return 0;
