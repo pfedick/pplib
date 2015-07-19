@@ -65,6 +65,7 @@ sinclude(autoconf/freetype.m4)
 sinclude(autoconf/ax_path_lib_pcre.m4)
 sinclude(autoconf/png.m4)
 sinclude(autoconf/jpeg.m4)
+sinclude(autoconf/libjpeg-turbo.m4)
 sinclude(autoconf/ax_pthread.m4)
 sinclude(autoconf/sdl2.m4)
 sinclude(autoconf/sdl.m4)
@@ -381,12 +382,27 @@ LDFLAGS="$LDFLAGS -L/usr/local/lib"
 CFLAGS="$CFLAGS -I/usr/local/include"
 
 
-
 ##################################################################################### JPEG
+jpeg_note=""
 AC_CHECK_LIBJPEG([6.0],
             AC_DEFINE(HAVE_JPEG, 1, [ Define if you have libjpeg. ])
             report_have_jpeg="yes"
            :)
+
+
+##################################################################################### JPEG-TURBO
+AC_CHECK_LIBJPEGTURBO([1.3.0],
+            AC_DEFINE(HAVE_LIBJPEGTURBO, 1, [ Define if you have libjpeg-turbo. ])
+            AC_DEFINE(HAVE_JPEG,1)
+            report_have_jpeg="yes"
+            jpeg_note="(using libjpeg-turbo)"
+			JPEG_LIBS="$JPEG_TURBO_LIBS"
+			JPEG_CFLAGS="$JPEG_TURBO_CFLAGS"
+            
+           :)
+AC_SUBST(JPEG_CFLAGS)
+AC_SUBST(JPEG_LIBS)
+
       
 ##################################################################################### PNG   
 AC_CHECK_LIBPNG([1.2],
@@ -775,7 +791,7 @@ AC_MSG_RESULT([
 **   TGA:                  yes (buildin)
 **   PPM:                  yes (buildin)
 **   PNG:                  $report_have_png
-**   JPEG:                 $report_have_jpeg
+**   JPEG:                 $report_have_jpeg $jpeg_note
 **   TIFF:                 $report_have_libtiff
 **   Freetype 2.x library: $report_have_freetype2
 **   ImageMagick:          $report_have_libimlib

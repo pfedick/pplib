@@ -80,7 +80,7 @@ RET=0
 check_feature()
 {
 	NAME=$1
-	DEFINE=$2
+	DEFINE=`echo "$2" | sed "s/,.*//"`
 	WANTED=$3
 	if [ -n "$WANTED" ] ; then
 		for FEATURE in $WANTED; do
