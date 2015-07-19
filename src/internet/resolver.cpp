@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: resolver.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -84,127 +87,24 @@
     #include <signal.h>
 #endif
 
-#ifdef HAVE_ARPA_NAMESER_H
-#include <arpa/nameser.h>
-#endif
-#ifdef HAVE_RESOLV_H
-#include <resolv.h>
-#endif
-
-
-#include <list>
-#include <set>
-
-#include "ppl7.h"
-#include "ppl7-inet.h"
-//#include "socket.h"
-
-namespace ppl7 {
-
-
-IPAddress::IPAddress()
-{
-	ai_addr=NULL;
-	ai_addrlen=0;
-	ai_family=0;
-	ai_socktype=0;
-	ai_protocol=0;
-}
-
-IPAddress::IPAddress(const IPAddress &other)
-{
-	name=other.name;
-	ip=other.ip;
-	ai_addr=NULL;
-	ai_addrlen=other.ai_addrlen;
-	ai_family=other.ai_family;
-	ai_socktype=other.ai_socktype;
-	ai_protocol=other.ai_protocol;
-	ai_canonname=other.ai_canonname;
-	copyAddr(other.ai_addr, other.ai_addrlen);
-}
-
-IPAddress::~IPAddress()
-{
-	free(ai_addr);
-}
-
-void IPAddress::copyAddr(void *ai_addr, size_t ai_addrlen)
-{
-	free(this->ai_addr);
-	this->ai_addrlen=ai_addrlen;
-	if (ai_addrlen>0) {
-		this->ai_addr=malloc(ai_addrlen);
-		if (!this->ai_addr) throw OutOfMemoryException();
-		memcpy(this->ai_addr,ai_addr,ai_addrlen);
-	} else {
-		this->ai_addr=NULL;
-	}
-}
-
-IPAddress &IPAddress::operator=(const IPAddress &other)
-{
-	name=other.name;
-	ip=other.ip;
-	ai_addr=NULL;
-	ai_addrlen=other.ai_addrlen;
-	ai_family=other.ai_family;
-	ai_socktype=other.ai_socktype;
-	ai_protocol=other.ai_protocol;
-	ai_canonname=other.ai_canonname;
-	copyAddr(other.ai_addr, other.ai_addrlen);
-	return *this;
-}
-
-
-bool IPAddress::operator<(const IPAddress &other) const
-{
-	if (ip<other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator<=(const IPAddress &other) const
-{
-	if (ip<=other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator==(const IPAddress &other) const
-{
-	if (ip==other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator!=(const IPAddress &other) const
-{
-	if (ip!=other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator>=(const IPAddress &other) const
-{
-	if (ip>=other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator>(const IPAddress &other) const
-{
-	if (ip>other.ip) return true;
-	return false;
-}
 
 
 
-String GetHostname()
+#include "ppl6.h"
+#include "socket.h"
+
+namespace ppl6 {
+
+CString GetHostname()
 /*!\brief Liefert den Hostnamen des Systems zurück
  *
  * Diese Funktion liefert den Hostnamen des Systems als String zurück.
  *
- * @return Bei Erfolg befindet sich der Hostname im String, bei Misserfolg ist der
+ * @return Bei Erfolg befindet sich der Hostname im String, bei Mißerfolg ist der
  * String leer. Es wird kein Fehlercode gesetzt.
  */
 {
-	String s;
+	CString s;
 #ifdef HAVE_GETHOSTNAME
 	char h[256];
 	if (gethostname(h,255)==0) {
@@ -219,123 +119,117 @@ String GetHostname()
 
 }
 
-static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &result, int flags)
+static int GetHostByNameInternal(const char *name, CAssocArray *Result, int family)
 {
-	int n;
-	struct addrinfo hints, *res, *ressave;
-	bzero(&hints,sizeof(struct addrinfo));
-	int family=flags&3;
-	switch (family) {
-		case af_inet: hints.ai_family=AF_INET; break;
-		case af_inet6: hints.ai_family=AF_INET6; break;
-		default: hints.ai_family=AF_UNSPEC; break;
-	}
-	hints.ai_socktype=SOCK_STREAM;
-	if ((n=getaddrinfo((const char*)name,NULL,&hints,&res))!=0) {
-#ifdef EAI_NODATA
-		if (n==EAI_NODATA) return 0;
-#endif
-		if (n==EAI_NONAME) return 0;
-		throw NetworkException("getaddrinfo(%s) returned %i: %s",(const char*)name,n,gai_strerror(n));
-	}
-	ressave=res;
-	IPAddress ip;
-	char hbuf[NI_MAXHOST];
-	do {
-		if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
-			ip.ip.set(hbuf);
-			ip.name=name;
-			ip.copyAddr(res->ai_addr,res->ai_addrlen);
-			ip.ai_addrlen=res->ai_addrlen;
-			ip.ai_family=res->ai_family;
-			ip.ai_socktype=res->ai_socktype;
-			ip.ai_protocol=res->ai_protocol;
-			ip.ai_canonname=res->ai_canonname;
-			result.push_back(ip);
+		int n;
+		struct addrinfo hints, *res, *ressave;
+		CBinary bin;
+		bzero(&hints,sizeof(struct addrinfo));
+		hints.ai_family=family;
+		hints.ai_socktype=SOCK_STREAM;
+		if ((n=getaddrinfo(name,NULL,&hints,&res))!=0) {
+			SetError(273,"%s, %s",name,gai_strerror(n));
+			return 0;
 		}
-	} while ((res=res->ai_next)!=NULL);
-	freeaddrinfo(ressave);
-	return result.size();
+		ressave=res;
+		if (Result) {
+			Result->Clear();
+			CAssocArray ip;
+			//int e, conres;
+			char hbuf[NI_MAXHOST];
+			do {
+				if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
+					ip.Clear();
+					bin.Clear();
+					bin.Set(res->ai_addr,res->ai_addrlen);
+					ip.Set("ip",hbuf);
+					ip.Set("name",name);
+					if (res->ai_family==AF_INET) {
+						ip.Set("type","AF_INET");
+					} else if (res->ai_family==AF_INET6) {
+						ip.Set("type","AF_INET6");
+					}
+					ip.Set("ai_addr",&bin);
+					ip.Setf("ai_addrlen","%i",res->ai_addrlen);
+					ip.Setf("ai_family","%i",res->ai_family);
+					ip.Setf("ai_protocol","%i",res->ai_protocol);
+					ip.Setf("ai_socktype","%i",res->ai_socktype);
+					Result->Set("[]",&ip);
+				}
+			} while ((res=res->ai_next)!=NULL);
+		}
+		freeaddrinfo(ressave);
+		return 1;
+	//#endif
 }
 
 
+int GetHostByName(const char *name, CAssocArray *Result)
 /*!\brief Hostauflösung anhand des Namens
  * \ingroup PPLGroupInternet
  *
- * \header \#include <ppl7-inet.h>
+ * \header \#include <ppl6.h>
  * \desc
  * Diese Funktion führt eine Namensauflösung durch. Dabei werden alle IPs zurückgegeben, die
  * auf den angegebenen Namen passen, einschließlich IPv6.
  *
  * \param name Der gesuchte Hostname oder die IP-Adresse, wobei sowohl IPv4- als auch IPv6-Adressen
  * unterstützt werden
- * \param result Liste vom Typ IPAddress, in dem die gefundenen IP-Adressen gespeichert werden. Der
- * Datentyp IPAddress hat folgenden Inhalt:
- * 	- \b ip: IP-Adresse als String
- *  - \b name: String mit dem FQDN
- *  - \b type: Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
- *  - \b ai_addr: Pointer auf eine Datenstruktur vom Typ "struct sockaddr", wie sie z.B. in einer Socket-Funktion
- *       verwendet werden kann (z.B. connect).
- *	- \b ai_addrlen: Die Länge der ai_addr-Struktur in Bytes
- * 	- \b ai_family:
- * 	- \b ai_protocol:
- *  - \b ai_socktype:
- *  - \b ai_canonname:
- * \param flags Bitmaske mit folgender Bedeutung:
- * - af_unspec: Das Betriebssystem entscheidet. Hier ist es häufig so, dass IPv6-Adressen nur
- *   dann zurückgegeben werden, wenn das System auch über eine IPv6-Anbindung verfügt.
- * - af_inet: nur nach IPv4 Adressen suchen
- * - af_inet6: nur nach IPv6 Adressen suchen
- * - af_all: IPv4 und IPv6 Adressen suchen
+ * \param Result Ein Pointer auf ein Assoziatives Array, in dem das Ergebnis gespeichert werden
+ * soll. Diese Parameter ist optional. Wird er nicht angegeben, bzw. ist er NULL, prüft die
+ * Funktion lediglich, ob der angegebene Hostname auflösbar ist und liefert true (1) oder false (0)
+ * zurück.
  *
  * \result Im Erfolgsfall, das heisst der angegebene Name konnte aufgelöst werden, liefert die
- * Funktion die Anzahl gefundener IP-Adressen zurück. Ausserdem werden die Adressen in die
- * Liste \p result kopiert. Wurde der Name \p name nicht gefunden, liefert die Funktion 0
- * zurück. Ist ein anderer Fehler aufgetreten (z.B. Netzwerkprobleme) wird eine Exception
- * geworfern
+ * Funktion true (1) zurück. Wurde der Parameter \p Result angegeben, wird das Array mit dem
+ * Ergebnis gefüllt. Das Ergebnis hat folgendes Format:
+ * 	- \b 0/ip IP-Adresse im lesbaren Format
+ *  - \b 0/name Der FQDN
+ *  - \b 0/type Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
+ *  - \b 0/ai_addr Ein Binäres Objekt vom Typ CBinary, was eine Systemspezifische Struktur vom Typ "struct sockaddr" enthält, die direkt in den Socket-Funktionen des Systems verwendet werden kann (z.B. connect).
+ *	- \b 0/ai_addrlen Die Länge der ai_addr-Struktur in Bytes
+ * 	- \b 0/ai_family
+ * 	- \b 0/ai_protocol
+ *  - \b 0/ai_socktype
  *
- * \exception NetworkException Wird geworfen, wenn ein Netzwerkproblem aufgetreten ist.
+ * Wurden mehrere IP-Adressen gefunden, wiederholt sich der Block und die Ziffer auf der
+ * obersten Ebene des Arrays wird hochgezählt.
  *
- * \note Es ist zu beachten, dass die Liste \p result erst gelöscht und dann mit den
- * gefundenen Daten gefüllt wird. Vorher vorhandene Daten gehen also verloren, bzw. müssen
+ * Im Fehlerfall, das heisst der angegebene Name konnte nicht aufgelöst werden, liefert die Funktion
+ * false (0) zurück und des optionale Array \p Result bleibt unverändert.
+ *
+ * \note Es ist zu beachte, dass das Array \p Result im Erfolgsfall erst gelöscht und dann mit den
+ * gefundenen Daten gefüllt wird. Vorher vorhandene Daten im Array gehen also verloren, bzw. müssen
  * bei Bedarf vom Anwender vorher gesichert werden.
  *
+ * \since Diese Klasse wurde mit Version 6.0.12 eingeführt
+ * \since Ab Version 6.0.19 werden die ai_*-Parameter zurückgegeben
+ *
+ * \note
+ * Ursprünglich hat die Funktion intern einen einzelnen Aufruf der Systemfunktion getaddrinfo gemacht.
+ * In neueren libc Bibliotheken scheint sich jedoch das Verhalten geändert zu haben.
+ * Hier werden AAAA-Records nur dann zurückgegeben, wenn auf dem lokalen host auch eine globales
+ * IPv6-Interface konfiguriert ist. Zu beobachten auf Ubuntu 9.10 nach Einspielen der Updates am 13.01.2009.
+ * Die Funktion wurde daher geändert und ruft getaddrinfo nun zweimal auf, einmal für IPv4/INET und
+ * einmal für IPv6/INET6.
+ *
  */
-size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags)
 {
+	if (!name) {
+		SetError(194,"GetHostByName(==> const char *name <==, CAssocArray *Result)");
+		return 0;
+	}
+
 	#ifdef _WIN32
 		InitWSA();
 	#endif
-	result.clear();
-	if (flags!=af_all) return GetHostByNameInternal(name,result,flags);
-	int ret=GetHostByNameInternal(name,result,af_inet);
-	std::list<IPAddress> additional;
-	int ret2=GetHostByNameInternal(name,additional,af_inet6);
-	// Hier könnten Duplikate entstanden sein, die wir nicht wollen (FreeBSD)
-	if (ret2>0 && ret>0) {
-		// Wir bauen uns erst ein Set aus den vorhandenen Adresen auf
-		std::set<String> have;
-		std::set<String>::iterator haveIt;
-		std::list<ppl7::IPAddress>::iterator it;
-		for (it=result.begin();it!=result.end();++it) have.insert(it->ip);
-		// Dann gleichen wir die zusätzlichen Adressen mit den vorhandenen ab
-		// und fügen nur das ins result hinzu, was noch nicht da ist
-		for (it=additional.begin();it!=additional.end();++it) {
-			haveIt=have.find(it->ip);
-			if (haveIt==have.end()) {
-				result.push_back(*it);
-				ret++;
-			}
-		}
-	} else if (ret2>0 && ret==0) {
-		result=additional;
-		return ret2;
-	}
+	int ret=GetHostByNameInternal(name,Result,AF_INET);
+	ret+=GetHostByNameInternal(name,Result,AF_INET6);
 	return ret;
 }
 
 
-size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
+int GetHostByAddr(const char *addr, CAssocArray *Result)
 /*!\brief Reverse-Lookup anhand einer IP-Adresse
  * \ingroup PPLGroupInternet
  *
@@ -379,175 +273,61 @@ size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
  *
  */
 {
+	if (!addr) {
+		SetError(194,"GetHostByAddr(==> const char *addr <==, CAssocArray *Result)");
+		return 0;
+	}
 	#ifdef _WIN32
 		InitWSA();
 	#endif
 		int n;
 		struct addrinfo hints, *res, *ressave;
-		result.clear();
+		CBinary bin;
 		bzero(&hints,sizeof(struct addrinfo));
 		hints.ai_family=AF_UNSPEC;
 		hints.ai_socktype=SOCK_STREAM;
-		if ((n=getaddrinfo((const char*)addr,NULL,&hints,&res))!=0) {
-			throw NetworkException("getaddrinfo(%s) returned: %s",(const char*)addr,gai_strerror(n));
+		if ((n=getaddrinfo(addr,NULL,&hints,&res))!=0) {
+			SetError(273,"%s, %s",addr,gai_strerror(n));
+			return 0;
 		}
 		ressave=res;
-		IPAddress ip;
-		char hbuf[NI_MAXHOST];
-		do {
-			if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
-				ip.ip=hbuf;
-				ip.name=hbuf;
-				ip.copyAddr(res->ai_addr,res->ai_addrlen);
-				ip.ai_addrlen=res->ai_addrlen;
-				ip.ai_family=res->ai_family;
-				ip.ai_socktype=res->ai_socktype;
-				ip.ai_protocol=res->ai_protocol;
-				ip.ai_canonname=res->ai_canonname;
-				if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD) == 0) {
-					ip.name=hbuf;
+		if (Result) {
+			Result->Clear();
+			CAssocArray ip;
+			//int e, conres;
+			char hbuf[NI_MAXHOST];
+			do {
+				if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
+					ip.Clear();
+					bin.Clear();
+					bin.Set(res->ai_addr,res->ai_addrlen);
+					ip.Set("ip",hbuf);
+					if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD) == 0) {
+						ip.Set("name",hbuf);
+					} else {
+						ip.Set("name",ip.Get("ip"));
+					}
+					if (res->ai_family==AF_INET) {
+						ip.Set("type","AF_INET");
+					} else if (res->ai_family==AF_INET6) {
+						ip.Set("type","AF_INET6");
+					}
+					ip.Set("ai_addr",&bin);
+					ip.Setf("ai_addrlen","%i",res->ai_addrlen);
+					ip.Setf("ai_family","%i",res->ai_family);
+					ip.Setf("ai_protocol","%i",res->ai_protocol);
+					ip.Setf("ai_socktype","%i",res->ai_socktype);
+					Result->Set("[]",&ip);
 				}
-				result.push_back(ip);
-			}
-		} while ((res=res->ai_next)!=NULL);
+			} while ((res=res->ai_next)!=NULL);
+		}
 		freeaddrinfo(ressave);
-		return result.size();
-}
+		return 1;
+	//#endif
 
-String Resolver::typeName(Type t)
-{
-        switch (t)  {
-                case A: return "A";
-                case NS: return "NS";
-                case CNAME: return "CNAME";
-                case MX: return "MX";
-                case SOA: return "SOA";
-                case PTR: return "PTR";
-                case TXT: return "TXT";
-                case AAAA: return "AAAA";
-                case NAPTR: return "NAPTR";
-                case SRV: return "SRV";
-                case DS: return "DS";
-                case DNSKEY: return "DNSKEY";
-                case NSEC: return "NSEC";
-                case NSEC3: return "NSEC3";
-                case RRSIG: return "RRSIG";
-                case OPT: return "OPT";
-                case TSIG: return "TSIG";
-                default: return "UNKNOWN";
-        }
-}
-
-String Resolver::className(Class c)
-{
-        switch (c)  {
-                case CLASS_IN: return "IN";
-                case CLASS_CH: return "CH";
-                case CLASS_HS: return "HS";
-                case CLASS_NONE: return "NONE";
-                case CLASS_ANY: return "ANY";
-                default: return "UNKNOWN";
-        }
-}
-
-
-String shortenIpv6(const String &s)
-{
-	ppl7::String r=s;
-	if (r.instr(":0:0:0:0:0:0:0:")>=0) r.replace(":0:0:0:0:0:0:0:","::");
-	else if (r.instr(":0:0:0:0:0:0:")>=0) r.replace(":0:0:0:0:0:0:","::");
-	else if (r.instr(":0:0:0:0:0:")>=0) r.replace(":0:0:0:0:0:","::");
-	else if (r.instr(":0:0:0:0:")>=0) r.replace(":0:0:0:0:","::");
-	else if (r.instr(":0:0:0:")>=0) r.replace(":0:0:0:","::");
-	else if (r.instr(":0:0:")>=0) r.replace(":0:0:","::");
-	if (r.right(3)=="::0") r.chop(1);
-	return r;
-}
-
-
-void Resolver::query(Array &r, const String &label, Type t, Class c)
-{
-#ifndef HAVE_RES_SEARCH
-	throw UnsupportedFeatureException("libbind res_search");
-#else
-	ppl7::ByteArray buf(4096);
-
-	int ret=res_search((const char*)label,c,t,(u_char*)buf.adr(),buf.size());
-	if (ret<0) {
-		switch (h_errno) {
-			case HOST_NOT_FOUND: throw HostNotFoundException(label);
-			case TRY_AGAIN: throw TryAgainException();
-			case NO_RECOVERY: throw QueryFailedException(label);
-			case NO_DATA: throw NoResultException(label);
-			case NETDB_INTERNAL: throwExceptionFromErrno(h_errno,ToString("Resolver::query NETDB_INTERNAL Error"));
-			default: throw QueryFailedException(label);
-		}
-	}
-	//buf.hexDump(ret);
-
-	ns_msg handle;
-	ret=ns_initparse((const u_char *)buf.adr(),ret,&handle);
-	/*
-	printf ("Msg-Id: %d\n",(int)ns_msg_id(handle));
-	//printf ("Flags: %d\n",(int)ns_msg_get_flag(handle,ns_f_qr));
-	printf ("Frage: %d\n",(int)ns_msg_count(handle,ns_s_qd));
-	printf ("Answers: %d\n",(int)ns_msg_count(handle,ns_s_an));
-	printf ("Zone: %d\n",(int)ns_msg_count(handle,ns_s_zn));
-	printf ("Vorbedingung: %d\n",(int)ns_msg_count(handle,ns_s_pr));
-	printf ("ns: %d\n",(int)ns_msg_count(handle,ns_s_ns));
-	printf ("ud: %d\n",(int)ns_msg_count(handle,ns_s_ud));
-	printf ("ar: %d\n",(int)ns_msg_count(handle,ns_s_ar));
-	*/
-
-	if (ns_msg_count(handle,ns_s_an)==0) throw QueryFailedException(ToString("Empty resultset"));
-	for (u_int16_t i=0;i<ns_msg_count(handle,ns_s_an);i++) {
-		ns_rr rr;
-		if (ns_parserr(&handle,ns_s_an,i,&rr)==0) {
-			//printf ("Record: %i: name: %s\n",i,ns_rr_name(rr));
-			u_int16_t type=ns_rr_type(rr);
-			if (type==NS) {
-				char buf[MAXDNAME];
-				if(ns_name_uncompress(
-						ns_msg_base(handle),
-						ns_msg_end(handle),
-						ns_rr_rdata(rr),
-						buf,
-						MAXDNAME)) {
-					//printf ("rdata: %s\n",buf);
-					r.add(buf);
-				}
-			} else if (type==A) {
-				unsigned char *adr=(unsigned char*)ns_rr_rdata(rr);
-				r.addf("%i.%i.%i.%i",(int)adr[0],(int)adr[1],(int)adr[2],(int)adr[3]);
-			} else if (type==AAAA) {
-				//printf ("AAAA, len=%i\n",(int)ns_rr_rdlen(rr));
-				//ppl7::HexDump(ns_rr_rdata(rr),ns_rr_rdlen(rr));
-				ppluint16 *adr=(ppluint16*)ns_rr_rdata(rr);
-
-				r.add(shortenIpv6(ToString("%x:%x:%x:%x:%x:%x:%x:%x",
-						(int)ntohs(adr[0]),(int)ntohs(adr[1]),(int)ntohs(adr[2]),(int)ntohs(adr[3]),
-						(int)ntohs(adr[4]),(int)ntohs(adr[5]),(int)ntohs(adr[6]),(int)ntohs(adr[7]))));
-			} else if (type==SOA) {
-				ppl7::HexDump(ns_rr_rdata(rr),ns_rr_rdlen(rr));
-				char buf[MAXDNAME];
-								if(ns_name_uncompress(
-										ns_msg_base(handle),
-										ns_msg_end(handle),
-										ns_rr_rdata(rr),
-										buf,
-										MAXDNAME)) {
-									//printf ("rdata: %s\n",buf);
-									r.add(buf);
-								}
-			}
-
-
-		}
-	}
-#endif
 }
 
 
 
-}	// namespace ppl7
+}	// namespace ppl6
 

@@ -1,33 +1,30 @@
-/*!\mainpage PPLib-Dokumentation
-\image html resource/ppl7-icon-256x256.png
+/*!\mainpage PPL6-Dokumentation
+\image html resource/ppl6-icon-256x256.png
 \section Einleitung
 PPL steht für "Patrick's Programming Library" und ist eine Sammlung nützlicher
 Funktionen und Klassen für C++-Anwendungen, geschrieben von Patrick Fedick <patrick@pfp.de>.
 Sie beinhaltet Funktionen aus verschiedenen Bereichen, wie
 
 - Datei- und Verzeichniss-Zugriff
+- Speicherverwaltung
 - Strings, Arrays, Listen, Trees
 - Multithreading
-- Sockets (TCP, UDP)
-- Verschlüsselung
+- Sockets und Verschlüsselung
 - Internet
 - Datenbanken
 - Zeit, Datum und mathematische Funktionen
-- Grafik
+- Grafik und Benutzeroberfläche
 - Sound
-- Speicherverwaltung
 
 Die erste Version erschien bereits im Jahr 1997 und bestand fast vollständig
 aus Assembler-Code für Windows. Seitdem wurde die Library mehrfach umstrukturiert und erweitert
 und besteht nun zum größten Teil aus plattform-unabhängigem C und C++-Code. Unterstützt werden
 folgende Systeme:
 
-- Linux (getestet unter Ubuntu 10.04, Ubuntu 12.04, RedHat 5, RedHat 6, jeweils 32- und 64-Bit)
-- FreeBSD (Version 8.x, 9.x, jeweils 32- und 64-Bit)
-- Windows (32-Bit, Windows XP, Vista, 7 mit MinGW)
-- Solaris (Version 9, mit GCC 4.x-Compiler, 64-Bit)
-
-Als Compiler wird gcc ab Version 4.2 benötigt oder clang ab Version 3.
+- Linux (getestet unter Fedora 4-8, Suse 8,9, Debian 3.1, Ubuntu 8.10, 32- und 64-Bit)
+- FreeBSD (Version 5.x, 6.x, 7.x, 32- und 64-Bit)
+- Windows (32-Bit, Windows 2000 und XP, VisualStudio 2008)
+- Solaris (mit GCC-Compiler)
 
 Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz und darf somit fast
 uneingeschränkt auch in kommerziellen oder "closed source" Programmen verwendet werden. Die
@@ -36,12 +33,12 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
 \section Inhalt
 
 - \subpage Installation
-- \subpage ppl7_usage "Verwendung"
-- \subpage PPLGroupDataTypes "Die speziellen Datentypen von PPLib"
-- \subpage ppl7 "PPL7 Namespace"
+- \subpage ppl6_usage "Verwendung"
+- \subpage PPLGroupDataTypes "Die speziellen Datentypen von PPL6"
+- \subpage ppl6 "PPL6 Namespace"
 - <a class="el" href="classes.html">Die Klassen</a>
 - <a class="el" href="modules.html">Übersicht der Module</a>
-	- \subpage PPL7_Features
+	- \subpage PPL6_Features
     - \subpage Errors
     - \subpage PPLGroupThreads
     - \subpage PPLGroupMemory
@@ -54,44 +51,38 @@ genauen Lizenzbestimmungen sind \ref pplPageLicense "hier" zu finden.
     - \subpage PPLGroupSound
     - \subpage PPLGroupInternet
     - \subpage PPLGroupDatabases
-    - \subpage PPL7_CRYPT
-    - \subpage PPL7_COMPRESSION
+    - \subpage PPL6_CRYPT
+    - \subpage PPL6_COMPRESSION
     
     
 - Sonstiges
-  - \subpage unittests
   - \subpage Dateiformate
   - \subpage formatstring
   - \subpage todo
   - \subpage deprecated
   
-  
-- \subpage PPLHistory
+- \subpage PPL6History
 - \subpage pplPageCredits
 - \subpage pplPageLicense
 
 
-\image html resource/ppl7-icon-48x48.png
+\image html resource/ppl6-icon-48x48.png
 */
 
 /*!\page pplPageLicense Copyright
-PPL7 steht unter der "2-Klausel BSD Lizenz". BSD-Lizenz bezeichnet eine Gruppe von Lizenzen aus
-dem Open-Source-Bereich. Der Urtyp der Lizenz stammt von der University of California,
-Berkeley, worauf das Akronym BSD hinweist: Berkeley Software Distribution.
+Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz.
+BSD steht für "Berkeley Software Distribution". Software unter der BSD-Lizenz darf frei
+verwendet werden und es ist erlaubt, sie zu kopieren, zu verändern und zu verbreiten.
+Ein Programmierer, der ein unter einer BSD-Lizenz veröffentlichtes Programm verändert
+und dann verbreitet, ist nicht verpflichtet, den Quellcode seines veränderten Programms
+mitzuveröffentlichen. Einzige Bedingung der BSD-Lizenz ist, dass der Copyright-Vermerk des
+ursprünglichen Programms nicht entfernt werden darf. Somit eignet sich unter der BSD-Lizenz
+stehende Software auch gut als Vorlage für kommerzielle Produkte.
 
-Software unter BSD-Lizenz darf frei verwendet werden. Es ist erlaubt, sie zu kopieren,
-zu verändern und zu verbreiten. Einzige Bedingung ist, dass der Copyright-Vermerk des
-ursprünglichen Programms nicht entfernt werden darf. Somit eignet sich unter einer BSD-Lizenz
-stehende Software auch als Vorlage für kommerzielle (teilproprietäre) Produkte, wie es
-beispielsweise bei „JunOS“ der Fall ist, dem Router-Betriebssystem der Firma Juniper Networks.
-
-Dieses Lizenzmodell unterscheidet sich von der GNU General Public License (GPL) darin,
-dass es kein Copyleft enthält: Ein Programmierer, der ein unter einer BSD-Lizenz
-veröffentlichtes Programm verändert und dann verbreitet, ist nicht verpflichtet,
-den Quellcode seines veränderten Programms mitzuveröffentlichen. Er ist aber verpflichtet,
-das Ergebnis seiner Änderungen wiederum unter der BSD-Lizenz zu veröffentlichen.
-
-(Quelle: http://de.wikipedia.org/wiki/BSD-Lizenz)
+Ursprünglich enthielt die BSD-Lizenz eine sogenannte “advertising clause” (Werbungsklausel).
+Sie verpflichtet die Softwareentwickler dazu, beim Bewerben ihres Produkts den Namen des
+ursprünglichen Softwareautors zu nennen. Diese Klausel wurde jedoch entfernt, so dass die
+PPL-Library auch ohne Nennung in Werbematerialien verwendet werden darf.
 
 Der Wortlaut der Lizenz lautet folgendermassen:
 
@@ -99,7 +90,7 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 
 Übersetzung:
 \code
-  Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+  Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
   All rights reserved.
  
   Weiterverbreitung und Verwendung in nichtkompilierter oder kompilierter Form,
@@ -108,6 +99,10 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 *      * Weiterverbreitete nichtkompilierte Exemplare müssen das obige Copyright,
         die Liste der Bedingungen und den folgenden Haftungsausschluss im Quelltext
         enthalten.
+*      * Weiterverbreitete kompilierte Exemplare müssen das obige Copyright,
+        die Liste der Bedingungen und den folgenden Haftungsausschluss in der
+        Dokumentation und/oder anderen Materialien, die mit dem Exemplar verbreitet
+        werden, enthalten.
 *      * Weder der Name des Copyright-Inhabers noch die Namen der Beitragsleistenden
         dürfen zum Kennzeichnen oder Bewerben von Produkten, die von dieser
         Software abgeleitet wurden, ohne spezielle vorherige schriftliche
@@ -132,20 +127,20 @@ Der Wortlaut der Lizenz lautet folgendermassen:
 */
 
 /*!
-\namespace ppl7
-\brief Der Namensraum der PPLib-Library
+\namespace ppl6
+\brief Der Namensraum der PPL6-Library
 
-ppl7 ist der Namensraum für alle in der PPLib-Library Version 7 enthaltenen Funktionen und Klassen.
+ppl6 ist der Namensraum für alle in der PPL6-Library enthaltenen Funktionen und Klassen.
 */
 
-/*!\namespace ppl7::grafix
+/*!\namespace ppl6::grafix
 \ingroup PPLGroupGrafik
 \brief Namensraum der Grafik-Funktionen
 
-Im Namespace ppl7::grafix sind alle Grafikfunktionen der Library enthalten.
+Im Namespace ppl6::grafix sind alle Grafikfunktionen der Library enthalten.
 */
 
-/*!\namespace ppl7::tk
+/*!\namespace ppl6::tk
 \ingroup PPLGroupGrafik
 \brief Namensraum des Grafik-Toolkits
 

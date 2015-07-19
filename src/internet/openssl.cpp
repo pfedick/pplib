@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:48 $
+ * $Id: openssl.cpp,v 1.2 2010/02/12 19:43:48 pafe Exp $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -45,6 +48,7 @@
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+
 #include <time.h>
 #ifdef _WIN32
     #include <winsock2.h>
@@ -92,23 +96,21 @@
 #endif
 
 
-#include "ppl7.h"
-#include "ppl7-inet.h"
+#include "ppl6.h"
 #include "socket.h"
 
-namespace ppl7 {
+namespace ppl6 {
 
 typedef struct {
-	ppl7::Mutex *mutex;
+	ppl6::CMutex *mutex;
 } MUTEX_STRUCT;
 
 #ifdef HAVE_OPENSSL
 static bool SSLisInitialized=false;
 static bool PRNGIsSeed=false;
 //static int  SSLRefCount=0;
-static Mutex	SSLMutex;
+static CMutex	SSLMutex;
 static MUTEX_STRUCT *mutex_buf=NULL;
-
 
 // seed PRNG (Pseudo Random Number Generator)
 static void SeedPRNG()
@@ -177,16 +179,15 @@ static void locking_function(int mode, int n, const char *file, int line)
 {
 	if (!mutex_buf) return;
 	if (mode & CRYPTO_LOCK)
-		mutex_buf[n].mutex->lock();
+		mutex_buf[n].mutex->Lock();
 	else
-		mutex_buf[n].mutex->unlock();
+		mutex_buf[n].mutex->Unlock();
 }
 
 static unsigned long id_function(void)
 {
-	return (unsigned long) ppl7::ThreadID();
+	return (unsigned long) ppl6::GetThreadID();
 }
-
 
 /*
 static void ssl_exit()
@@ -212,16 +213,20 @@ static const char * ssl_geterror(SSL *ssl, int code)
 	return "SSL_ERROR_UNKNOWN";
 }
 
+static int __SSLExit(void *param)
+{
+	SSL_Exit();
+	return 1;
+}
 
-#endif
-
+#endif		// #ifdef HAVE_OPENSSL
 
 
 /*!\ingroup PPLGroupInternet
  * \brief OpenSSL-Schnittstelle initialisieren
  *
  * \desc
- * Bevor eine der SSL-Funktionen in TCPSocket und die Klasse SSLContext verwendet werden kann, muss
+ * Bevor eine der SSL-Funktionen in CTCPSocket und die Klasse CSSL verwendet werden kann, muss
  * nicht nur OpenSSL beim Kompilieren der Library eingebunden werden, sondern diese bei
  * Programmstart auch initialisiert werden. Dazu muss diese Funktion aufgerufen werden.
  * \par
@@ -232,51 +237,55 @@ static const char * ssl_geterror(SSL *ssl, int code)
  * nicht mehr benötigt wird, die Funktion SSL_Exit aufgerufen werden. Dies geschieht
  * bei Programmende jedoch auch automatisch.
  *
- * @exception UnsupportedFeatureException
- * @exception OutOfMemoryException
- * @exception InitializationFailedException
+ * @return Die Funktion gibt 1 zurück, wenn OpenSSL erfolgreich initialisiert wurde,
+ * im Fehlerfall 0.
  *
  * \see
  * - SSL_Exit
- * - SSLContext
+ * - CSSL
  * - CTCPSocket
  *
- * \relates SSLContext
+ * \relates CSSL
  * \relates CTCPSocket
  */
-void SSL_Init()
+int SSL_Init()
 {
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-	SSLMutex.lock();
+	#ifndef HAVE_OPENSSL
+		SetError(292);
+		return 0;
+	#else
+	SSLMutex.Lock();
 	if (SSLisInitialized) {
-		SSLMutex.unlock();
-		return;
+		SSLMutex.Unlock();
+		return 1;
 	}
+	Cppl6Core *core=PPLInit();
 	SeedPRNG();
 	int max_locks=CRYPTO_num_locks();
 	mutex_buf=(MUTEX_STRUCT*)malloc(max_locks * sizeof(MUTEX_STRUCT));
 	if (!mutex_buf) {
-		SSLMutex.unlock();
-		throw OutOfMemoryException();
+		SetError(2);
+		SSLMutex.Unlock();
+		return 0;
 	}
 	if (!SSL_library_init()) {
 		free(mutex_buf);
-		SSLMutex.unlock();
-		throw InitializationFailedException("OpenSSL");
+		SetError(316);
+		SSLMutex.Unlock();
+		return 0;
 	}
 	SSL_load_error_strings();
 	OpenSSL_add_all_algorithms();
 	for (int i=0;i<max_locks;i++) {
-		mutex_buf[i].mutex=new Mutex;
+		mutex_buf[i].mutex=new ppl6::CMutex;
 	}
 	CRYPTO_set_id_callback(id_function);
 	CRYPTO_set_locking_callback(locking_function);
 	SSLisInitialized=true;
-	atexit(SSL_Exit);
-	SSLMutex.unlock();
-#endif
+	core->AtExit(__SSLExit,NULL);
+	SSLMutex.Unlock();
+	return 1;
+	#endif
 }
 
 /*!\ingroup PPLGroupInternet
@@ -292,20 +301,23 @@ void SSL_Init()
  *
  * \see
  * - SSL_Init
- * - SSLContext
+ * - CSSL
  * - CTCPSocket
  *
- * \relates SSLContext
+ * \relates CSSL
  * \relates CTCPSocket
  *
  */
-void SSL_Exit()
+int SSL_Exit()
 {
-	#ifdef HAVE_OPENSSL
-		SSLMutex.lock();
+	#ifndef HAVE_OPENSSL
+		SetError(292);
+		return 0;
+	#else
+		SSLMutex.Lock();
 		if (!SSLisInitialized) {
-			SSLMutex.unlock();
-			return;
+			SSLMutex.Unlock();
+			return 1;
 		}
 		CRYPTO_set_id_callback(NULL);
 		CRYPTO_set_locking_callback(NULL);
@@ -320,394 +332,11 @@ void SSL_Exit()
 		SSLisInitialized=false;
 		EVP_cleanup();
 		ERR_free_strings();
-		SSLMutex.unlock();
+		SSLMutex.Unlock();
+		return 1;
 	#endif
 }
 
-
-void ClearSSLErrorStack()
-{
-#ifdef HAVE_OPENSSL
-	while ((ERR_get_error()));
-#endif
-}
-
-int GetSSLError(SSLError &e)
-{
-#ifdef HAVE_OPENSSL
-	unsigned long ec;
-	const char *file, *data;
-	char ebuffer[256];
-	ec=ERR_get_error_line_data(&file,&e.Line,&data,&e.Flags);
-	if (ec==0) return 0;
-	ERR_error_string_n(ec,ebuffer,255);
-	e.Text.set(ebuffer);
-	e.Filename.set(file);
-	e.Data.set(data);
-	return 1;
-#else
-	return 0;
-#endif
-}
-
-int GetSSLErrors(std::list<SSLError> &e)
-{
-#ifdef HAVE_OPENSSL
-	e.clear();
-	unsigned long ec;
-	const char *file, *data;
-	char ebuffer[256];
-	SSLError se;
-
-	while ((ec=ERR_get_error_line_data(&file,&se.Line,&data,&se.Flags))) {
-		ERR_error_string_n(ec,ebuffer,255);
-		se.Text.set(ebuffer);
-		se.Filename.set(file);
-		se.Data.set(data);
-		e.push_back(se);
-	}
-	return (int) e.size();
-#else
-	return 0;
-#endif
-}
-
-
-/*
- * SSLContext-Klasse
- */
-
-/*!\class SSLContext
- * \ingroup PPLGroupInternet
- * \relates CTCPSocket
- *
- * \brief SSL-Schnittstelle
- *
- * \example TCP-Server mit SSL-Verschlüsselung
- * \dontinclude socket_examples.cpp
- * \skip Socket_Example3
- * \until EOF
- *
- */
-
-
-SSLContext::SSLContext()
-{
-	ctx=NULL;
-	references=0;
-}
-
-/*!\brief SSL-Kontext initialisieren
- *
- * \desc
- *
- * @exception UnsupportedFeatureException
- * @exception OutOfMemoryException
- * @exception InitializationFailedException
- * @exception IllegalArgumentException
- */
-SSLContext::SSLContext(int method)
-{
-	ctx=NULL;
-	references=0;
-	init(method);
-}
-
-SSLContext::~SSLContext()
-{
-	clear();
-}
-
-void SSLContext::clear()
-{
-	shutdown();
-}
-
-/*!\brief SSL-Kontext initialisieren
- *
- * \desc
- *
- * @exception UnsupportedFeatureException
- * @exception OutOfMemoryException
- * @exception InitializationFailedException
- * @exception IllegalArgumentException
- */
-void SSLContext::init(int method)
-{
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-	SSLMutex.lock();
-	if (!SSLisInitialized) {
-		SSLMutex.unlock();
-		SSL_Init();
-	} else {
-		SSLMutex.unlock();
-	}
-	shutdown();
-	mutex.lock();
-	if (!method) method=SSLContext::SSLv23;
-	while ((ERR_get_error()));	// Clear Error-Stack
-	switch (method) {
-#ifndef OPENSSL_NO_SSL2
-		case SSLContext::SSLv2:
-			ctx=SSL_CTX_new(SSLv2_method());
-			break;
-		case SSLContext::SSLv2client:
-			ctx=SSL_CTX_new(SSLv2_client_method());
-			break;
-		case SSLContext::SSLv2server:
-			ctx=SSL_CTX_new(SSLv2_server_method());
-			break;
-#endif
-		case SSLContext::SSLv3:
-			ctx=SSL_CTX_new(SSLv3_method());
-			break;
-		case SSLContext::SSLv3client:
-			ctx=SSL_CTX_new(SSLv3_client_method());
-			break;
-		case SSLContext::SSLv3server:
-			ctx=SSL_CTX_new(SSLv3_server_method());
-			break;
-		case SSLContext::SSLv23:
-			ctx=SSL_CTX_new(SSLv23_method());
-			break;
-		case SSLContext::SSLv23client:
-			ctx=SSL_CTX_new(SSLv23_client_method());
-			break;
-		case SSLContext::SSLv23server:
-			ctx=SSL_CTX_new(SSLv23_server_method());
-			break;
-		case SSLContext::TLSv1:
-			ctx=SSL_CTX_new(TLSv1_method());
-			break;
-		case SSLContext::TLSv1client:
-			ctx=SSL_CTX_new(TLSv1_client_method());
-			break;
-		case SSLContext::TLSv1server:
-			ctx=SSL_CTX_new(TLSv1_server_method());
-			break;
-		default:
-			mutex.unlock();
-			throw IllegalArgumentException("SSLContext::Init(int method=%i)",method);
-			break;
-	};
-	if (!ctx) {
-		mutex.unlock();
-		throw InitializationFailedException("SSL_CTX_new");
-	}
-	mutex.unlock();
-#endif
-}
-
-bool SSLContext::isInit()
-{
-	if (ctx) return true;
-	return false;
-}
-
-/*!\brief SSL-Kontext deinitialisieren
- *
- * \desc
- *
- * @exception SSLContextInUseException
- */
-void SSLContext::shutdown()
-{
-	#ifdef HAVE_OPENSSL
-		if (!SSLisInitialized) return;
-		mutex.lock();
-		if (references) {
-			mutex.unlock();
-			throw SSLContextInUseException("%i",references);
-		}
-    	if (ctx) {
-			SSL_CTX_free((SSL_CTX*)ctx);
-			ctx=NULL;
-    	}
-    	while ((ERR_get_error()));	// Clear Error-Stack
-    	mutex.unlock();
-	#endif
-}
-
-/*!\brief create a new SSL structure for a connection
- *
- * \desc
- * creates a new SSL structure which is needed to hold the data for a TLS/SSL connection.
- * The new structure inherits the settings of the underlying SSLContext:
- * - connection method (SSLv2/v3/TLSv1)
- * - options
- * - verification settings
- * - timeout settings.
- * \return The function allocates memory to hold a SSL-Structure. It must be freed by
- * using SSLContext::releaseSSL
- *
- * @exception UnsupportedFeatureException
- * @exception SSLContextUninitializedException
- * @exception SSLException
- */
-void *SSLContext::newSSL()
-{
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-	mutex.lock();
-	if (!ctx) {
-		mutex.unlock();
-		throw SSLContextUninitializedException();
-	}
-	while ((ERR_get_error()));	// Clear Error-Stack
-	void *ssl=SSL_new((SSL_CTX*)ctx);
-	if (!ssl) {
-		mutex.unlock();
-		throw SSLException("SSL_new failed");
-	}
-	references++;
-	mutex.unlock();
-	return ssl;
-#endif
-}
-
-/*!\brief free an allocated SSL structure
- *
- * \desc
- * Decrements the reference count of \p ssl, and removes the SSL
- * structure pointed to by \p ssl and frees up the allocated memory if the
- * reference count has reached 0.
- * @param ssl Pointer to SSL structure received by SSLContext::newSSL
- *
- * @exception UnsupportedFeatureException is thrown, when OpenSSL is not supported
- * @exception NullPointerException is thrown when \p ssl points to NULL
- * @exception SSLContextReferenceCounterMismatchException is thrown, when the internal reference
- * counter is already 0 when calling this function
- */
-void SSLContext::releaseSSL(void *ssl)
-{
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-	if (!ssl) throw NullPointerException();
-	mutex.lock();
-	SSL_free((SSL*)ssl);
-	if (references<=0) throw SSLContextReferenceCounterMismatchException();
-	references--;
-	mutex.unlock();
-#endif
-}
-
-void SSLContext::loadTrustedCAfromFile(const String &filename)
-{
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-	mutex.lock();
-	if (!ctx) {
-		mutex.unlock();
-		throw SSLContextUninitializedException();
-	}
-	while ((ERR_get_error()));	// Clear Error-Stack
-	if (SSL_CTX_load_verify_locations((SSL_CTX*)ctx,filename,NULL)!=1) {
-		mutex.unlock();
-		throw InvalidSSLCertificateException(filename);
-	}
-	mutex.unlock();
-#endif
-}
-
-void SSLContext::loadTrustedCAfromPath(const String &path)
-{
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-
-	mutex.lock();
-	if (!ctx) {
-		mutex.unlock();
-		throw SSLContextUninitializedException();
-	}
-	while ((ERR_get_error()));	// Clear Error-Stack
-	if (SSL_CTX_load_verify_locations((SSL_CTX*)ctx,NULL,path)!=1) {
-		mutex.unlock();
-		throw InvalidSSLCertificateException(path);
-	}
-	mutex.unlock();
-#endif
-}
-
-
-#ifdef HAVE_OPENSSL
-static int pem_passwd_cb(char *buf, int size, int rwflag, void *password)
-{
-	strncpy(buf, (char *)(password), size);
-	buf[size - 1] = 0;
-	return(strlen(buf));
-}
-#endif
-
-/*!\brief
- *
- * \desc
- * LoadCertificate wird benoetigt, wenn ein SSL-Server gestartet werden soll.
- * LoadCertificate laed ein Zertifikat im PEM-Format oder eine komplette Trustchain im
- * PEM-Format aus dem File "certificate". Wird "privatekey" angegeben, wird daraus der
- * Private Key geladen. Wenn nicht, wird der Private Key ebenfalls in der "certificate"-
- * Datei erwartet. Ist der Key durch ein Passwort geschuetzt, muss dieses als "password"
- * angegeben werden.
- *
- */
-void SSLContext::loadCertificate(const String &certificate, const String &privatekey, const String &password)
-{
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-	mutex.lock();
-	if (!ctx) {
-		mutex.unlock();
-		throw SSLContextUninitializedException();
-	}
-	while ((ERR_get_error()));	// Clear Error-Stack
-
-	//if (!SSL_CTX_use_certificate_file((SSL_CTX*)ctx,keyfile,SSL_FILETYPE_PEM)) {
-	if (!SSL_CTX_use_certificate_chain_file((SSL_CTX*)ctx,certificate)) {
-		mutex.unlock();
-		throw SSLException("SSL_CTX_use_certificate_chain_file");
-	}
-	if (password.notEmpty()) {
-		SSL_CTX_set_default_passwd_cb((SSL_CTX*)ctx,pem_passwd_cb);
-		SSL_CTX_set_default_passwd_cb_userdata((SSL_CTX*)ctx,(void*)password.getPtr());
-	}
-	String key=privatekey;
-	if (key.isEmpty()) key=certificate;
-	if (!SSL_CTX_use_PrivateKey_file((SSL_CTX*)ctx,key,SSL_FILETYPE_PEM)) {
-		mutex.unlock();
-		throw SSLPrivatKeyException(key);
-	}
-	mutex.unlock();
-#endif
-}
-
-
-void SSLContext::setCipherList(const String &cipherlist)
-{
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
-	mutex.lock();
-	if (!ctx) {
-		mutex.unlock();
-		throw SSLContextUninitializedException();
-	}
-	while ((ERR_get_error()));	// Clear Error-Stack
-	if (SSL_CTX_set_cipher_list((SSL_CTX*)ctx, cipherlist)!=1) {
-		mutex.unlock();
-		throw InvalidSSLCipherException(cipherlist);
-	}
-	mutex.unlock();
-#endif
-}
-
-
-#ifdef TODO
 
 /** @name SSL-Verschlüsselung
  *  Die nachfolgenden Befehle werden benötigt, wenn die Kommunikation zwischen Client
@@ -874,7 +503,7 @@ int CTCPSocket::SSL_Stop()
 			SSL_free((SSL*)ssl);
 			ssl=NULL;
 		}
-		//mutex.Unlock();
+		mutex.Unlock();
 		return 1;
 	#else
 		SetError(292);
@@ -887,13 +516,13 @@ int CTCPSocket::SSL_Stop()
  *
  * \desc
  * Falls beabsichtigt wird mit diesem Socket verschlüsselt zu kommunizieren, muss diese Funktion noch
- * vor Verbindungsaufbau aufgerufen werden. Als Parameter \p ssl bekommt sie einen Pointer auf eine SSLContext-Klasse.
+ * vor Verbindungsaufbau aufgerufen werden. Als Parameter \p ssl bekommt sie einen Pointer auf eine CSSL-Klasse.
  * Diese muss ebenfalls vor Verwendung initialisiert worden sein.
  *
- * @param[in] ssl Pointer auf eine SSLContext-Klasse
+ * @param[in] ssl Pointer auf eine CSSL-Klasse
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CTCPSocket::SSL_Init(SSLContext *ssl)
+int CTCPSocket::SSL_Init(CSSL *ssl)
 {
 	if (!ssl) {
 		SetError(194);
@@ -937,7 +566,7 @@ int CTCPSocket::SSL_Shutdown()
  * \param[in] host Der Parameter "host" muss das Format "hostname:port" haben, wobei
  * "hostname" auch eine IP-Adresse sein kann. Der Port kann entweder als Zahl oder
  * als Servicename angegeben werden, z.B. "smtp" für Port 25.
- * \param[in] ssl Optionaler Pointer auf ein SSLContext-Objekt. Wird es nicht angegeben, erstellt
+ * \param[in] ssl Optionaler Pointer auf ein CSSL-Objekt. Wird es nicht angegeben, erstellt
  * die Klasse selbst eins mit Default-Parametern. Es ist flexibler, ein eigenes Objekt
  * zu erstellen, da man damit auch beliebige zusätzliche Zertifikate laden oder bestimmte
  * Verschlüsselungs-Algorithmen definieren kann.
@@ -946,7 +575,7 @@ int CTCPSocket::SSL_Shutdown()
  * \since Seit Version 6.0.18 kann der Port statt als Nummer auch als Servicenamen angegeben
  * werden.
  */
-int CTCPSocket::ConnectSSL(const char *host, SSLContext *ssl)
+int CTCPSocket::ConnectSSL(const char *host, CSSL *ssl)
 {
     if (!host) {
         SetError(270);
@@ -974,7 +603,7 @@ int CTCPSocket::ConnectSSL(const char *host, SSLContext *ssl)
  *
  * \param[in] host Der Hostname oder die IP-Adresse des Zielrechners
  * \param[in] port Der gewünschte Zielport
- * \param[in] ssl Optionaler Pointer auf ein SSLContext-Objekt. Wird es nicht angegeben, erstellt
+ * \param[in] ssl Optionaler Pointer auf ein CSSL-Objekt. Wird es nicht angegeben, erstellt
  * die Klasse selbst eins mit Default-Parametern. Es ist flexibler, ein eigenes Objekt
  * zu erstellen, da man damit auch beliebige zusätzliche Zertifikate laden oder bestimmte
  * Verschlüsselungs-Algorithmen definieren kann.
@@ -983,7 +612,7 @@ int CTCPSocket::ConnectSSL(const char *host, SSLContext *ssl)
  * \since Seit Version 6.0.18 kann der Port statt als Nummer auch als Servicenamen angegeben
  * werden.
  */
-int CTCPSocket::ConnectSSL(const char *host, int port, SSLContext *ssl)
+int CTCPSocket::ConnectSSL(const char *host, int port, CSSL *ssl)
 {
 	if (ssl) {
 		if (!SSL_Init(ssl)) return 0;
@@ -1166,7 +795,7 @@ int CTCPSocket::SSL_Accept()
  * Mit dieser Funktion kann nach Herstellung einer SSL-Verbindung das Zertifikat der Gegenstelle
  * geprüft werden. Dabei werden insbesondere auch die Signierungsketten bis zum Root-Zertifikat überprüft
  * und dabei nicht nur die gängigen Root-Zertifikate, die in der OpenSSL-Library enthalten sind, berücksichtigt,
- * sondern auch die, die zuvor manuell mit SSLContext::LoadTrustedCAfromFile oder SSLContext::LoadTrustedCAfromPath
+ * sondern auch die, die zuvor manuell mit CSSL::LoadTrustedCAfromFile oder CSSL::LoadTrustedCAfromPath
  * geladen wurden.
  *
  * @param[in] hostname Der erwartete Name des Zertifikats. Wird NULL übergeben, wird der Name des Zertifikats
@@ -1319,8 +948,374 @@ int CTCPSocket::SSL_WaitForAccept(int timeout)
 //@}
 
 
+/*
+ * CSSL-Klasse
+ */
 
+/*!\class CSSL
+ * \ingroup PPLGroupInternet
+ * \relates CTCPSocket
+ *
+ * \brief SSL-Schnittstelle
+ *
+ * \example TCP-Server mit SSL-Verschlüsselung
+ * \dontinclude socket_examples.cpp
+ * \skip Socket_Example3
+ * \until EOF
+ *
+ */
+
+
+ typedef struct tagSSLSockets {
+ 	 tagSSLSockets	*next, *previous;
+ 	 CTCPSocket		*socket;
+ } SSLSOCKETS;
+
+
+CSSL::CSSL()
+{
+	first_ref=last_ref=NULL;
+	ctx=NULL;
+	references=0;
+	Heap.Init(sizeof(SSLSOCKETS),20,20);
+}
+
+CSSL::~CSSL()
+{
+	Clear();
+}
+
+void CSSL::Clear()
+{
+	if (Shutdown()) {
+		Heap.Clear();
+	}
+}
+
+int CSSL::Init(int method)
+{
+	#ifdef HAVE_OPENSSL
+		SSLMutex.Lock();
+		if (!SSLisInitialized) {
+			SSLMutex.Unlock();
+			SetError(317);
+			return 0;
+		}
+		SSLMutex.Unlock();
+		Shutdown();
+		Mutex.Lock();
+		if (!method) method=CSSL::SSLv23;
+		::SSL_METHOD *ssl_method=NULL;
+		switch (method) {
+			case CSSL::SSLv2:
+				ssl_method=SSLv2_method();
+				break;
+			case CSSL::SSLv2client:
+				ssl_method=SSLv2_client_method();
+				break;
+			case CSSL::SSLv2server:
+				ssl_method=SSLv2_server_method();
+				break;
+			case CSSL::SSLv3:
+				ssl_method=SSLv3_method();
+				break;
+			case CSSL::SSLv3client:
+				ssl_method=SSLv3_client_method();
+				break;
+			case CSSL::SSLv3server:
+				ssl_method=SSLv3_server_method();
+				break;
+			case CSSL::SSLv23:
+				ssl_method=SSLv2_method();
+				break;
+			case CSSL::SSLv23client:
+				ssl_method=SSLv23_client_method();
+				break;
+			case CSSL::SSLv23server:
+				ssl_method=SSLv23_server_method();
+				break;
+			case CSSL::TLSv1:
+				ssl_method=TLSv1_method();
+				break;
+			case CSSL::TLSv1client:
+				ssl_method=TLSv1_client_method();
+				break;
+			case CSSL::TLSv1server:
+				ssl_method=TLSv1_server_method();
+				break;
+			default:
+				SetError(320);
+				Mutex.Unlock();
+				return 0;
+				break;
+		};
+
+		if (!ssl_method) {
+			SetError(319,"SSLv3_client_method");
+			Mutex.Unlock();
+			return 0;
+		}
+		ctx=SSL_CTX_new(ssl_method);
+		if (!ctx) {
+			SetError(319,"SSL_CTX_new");
+			Mutex.Unlock();
+			return 0;
+		}
+		Mutex.Unlock();
+		return 1;
+	#else
+		SetError(292);
+		return 0;
+	#endif
+}
+
+int CSSL::IsInit()
+{
+	if (ctx) return 1;
+	return 0;
+}
+
+int CSSL::Shutdown()
+{
+	#ifdef HAVE_OPENSSL
+		if (!SSLisInitialized) {
+			SetError(317);
+			return 0;
+		}
+		Mutex.Lock();
+		if (references) {
+			SetError(329,"%i",references);
+			Mutex.Unlock();
+			return 0;
+		}
+    	if (ctx) {
+			SSL_CTX_free((SSL_CTX*)ctx);
+			ctx=NULL;
+    	}
+    	Mutex.Unlock();
+    	return 1;
+	#else
+		SetError(292);
+		return 0;
+	#endif
+}
+
+void * CSSL::RegisterSocket(CTCPSocket *socket)
+{
+	if (!socket) {
+		SetError(194,"CSocket *socket");
+		return NULL;
+	}
+	Mutex.Lock();
+	if (!ctx) {
+		Mutex.Unlock();
+		SetError(321);
+		return NULL;
+	}
+	SSLSOCKETS *s=(SSLSOCKETS*)Heap.Malloc();
+	if (!s) {
+		Mutex.Unlock();
+		SetError(2);
+		return NULL;
+	}
+	s->socket=socket;
+	s->previous=(SSLSOCKETS*)last_ref;
+	s->next=NULL;
+	if (last_ref) {
+		((SSLSOCKETS*)last_ref)->next=s;
+	} else {
+		last_ref=first_ref=s;
+	}
+	references++;
+	Mutex.Unlock();
+	return s;
+}
+
+int CSSL::ReleaseSocket(CTCPSocket *socket, void *data)
+{
+	if (!socket) {
+		SetError(194,"CSocket *socket");
+		return 0;
+	}
+	if (!data) {
+		SetError(194,"void *data");
+		return 0;
+	}
+	Mutex.Lock();
+	SSLSOCKETS *s=(SSLSOCKETS*)data;
+	if (s->socket!=socket) {
+		Mutex.Unlock();
+		SetError(330);
+		return 0;
+	}
+	if (s->previous) s->previous->next=s->next;
+	if (s->next) s->next->previous=s->previous;
+	if (first_ref==s) first_ref=s->next;
+	if (last_ref==s) last_ref=s->previous;
+	Heap.Free(s);
+	references--;
+	Mutex.Unlock();
+	return 1;
+}
+
+
+void *CSSL::NewSSL()
+{
+	if (!ctx) {
+		SetError(321);
+		return NULL;
+	}
+	#ifdef HAVE_OPENSSL
+	void *ssl=SSL_new((SSL_CTX*)ctx);
+	if (!ssl) {
+		SetError(322);
+		return NULL;
+	}
+	return ssl;
+	#else
+		SetError(292);
+		return NULL;
+	#endif
+}
+
+int CSSL::LoadTrustedCAfromFile(const char *filename)
+{
+	#ifdef HAVE_OPENSSL
+		if (!SSLisInitialized) {
+			SetError(317);
+			return 0;
+		}
+		if (!ctx) {
+			SetError(321);
+			return 0;
+		}
+
+		if (SSL_CTX_load_verify_locations((SSL_CTX*)ctx,filename,NULL)!=1) {
+			SetError(318,"%s",filename);
+			return 0;
+		}
+		// Auch wenn kein Fehler zurückgegeben wird, kann sich in der Fehlerqueue von OpenSSL
+		// etwas angesammelt haben, was später zu einem Problem werden kann. Daher leeren
+		// wir die Fehler-Queue
+		while ((ERR_get_error()));
+		return 1;
+	#else
+		SetError(292);
+		return 0;
+	#endif
+
+}
+
+int CSSL::LoadTrustedCAfromPath(const char *path)
+{
+	#ifdef HAVE_OPENSSL
+
+		if (!SSLisInitialized) {
+			SetError(317);
+			return 0;
+		}
+		if (!ctx) {
+			SetError(321);
+			return 0;
+		}
+		if (SSL_CTX_load_verify_locations((SSL_CTX*)ctx,NULL,path)!=1) {
+			SetError(318,"%s",path);
+			return 0;
+		}
+		// Auch wenn kein Fehler zurückgegeben wird, kann sich in der Fehlerqueue von OpenSSL
+		// etwas angesammelt haben, was später zu einem Problem werden kann. Daher leeren
+		// wir die Fehler-Queue
+		while ((ERR_get_error()));
+		return 1;
+	#else
+		SetError(292);
+		return 0;
+	#endif
+}
+
+#ifdef HAVE_OPENSSL
+static int pem_passwd_cb(char *buf, int size, int rwflag, void *password)
+{
+	strncpy(buf, (char *)(password), size);
+	buf[size - 1] = 0;
+	return(strlen(buf));
+}
 #endif
+
+int CSSL::LoadCertificate(const char *certificate, const char *privatekey, const char *password)
+{
+	#ifdef HAVE_OPENSSL
+		char ebuffer[256];
+		CString a;
+		int code;
+		int flags,line;
+		const char *data, *file;
+
+		if (!SSLisInitialized) {
+			SetError(317);
+			return 0;
+		}
+		if (!ctx) {
+			SetError(321);
+			return 0;
+		}
+		// Fehler-Queue leeren
+		//while ((ERR_get_error()));
+
+
+		//if (!SSL_CTX_use_certificate_file((SSL_CTX*)ctx,keyfile,SSL_FILETYPE_PEM)) {
+		if (!SSL_CTX_use_certificate_chain_file((SSL_CTX*)ctx,certificate)) {
+			while ((code=ERR_get_error_line_data(&file,&line,&data,&flags))) {
+				ERR_error_string(code,ebuffer);
+				if (a.NotEmpty()) a+=", ";
+				a.Concatf("OpenSSL Error %i: %s (%s)",code,ebuffer,data);
+			}
+			SetError(327,"%s",(const char*)a);
+			return 0;
+		}
+		if (password!=NULL && strlen(password)>0) {
+			SSL_CTX_set_default_passwd_cb((SSL_CTX*)ctx,pem_passwd_cb);
+			SSL_CTX_set_default_passwd_cb_userdata((SSL_CTX*)ctx,(void*)password);
+		}
+		if (privatekey==NULL || strlen(privatekey)==0) privatekey=certificate;
+		if (!SSL_CTX_use_PrivateKey_file((SSL_CTX*)ctx,privatekey,SSL_FILETYPE_PEM)) {
+			SetError(328,"%s",privatekey);
+			return 0;
+		}
+		return 1;
+	#else
+		SetError(292);
+		return 0;
+	#endif
+}
+
+int CSSL::SetCipherList(const char *cipherlist)
+{
+	#ifdef HAVE_OPENSSL
+		if (!SSLisInitialized) {
+			SetError(317);
+			return 0;
+		}
+		if (!ctx) {
+			SetError(321);
+			return 0;
+		}
+		if (!cipherlist) {
+			SetError(194,"const char *cipherlist");
+			return 0;
+		}
+		if (SSL_CTX_set_cipher_list((SSL_CTX*)ctx, cipherlist)!=1) {
+			SetError(333);
+			return 0;
+		}
+		return 1;
+	#else
+		SetError(292);
+		return 0;
+	#endif
+
+}
+
 
 } // EOF namespace ppl
 
