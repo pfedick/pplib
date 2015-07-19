@@ -1,5 +1,5 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
  * $Author$
@@ -8,16 +8,19 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -33,7 +36,6 @@
  *******************************************************************************/
 
 #include "prolog.h"
-
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -43,133 +45,107 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
+#include "ppl6.h"
+#include "ppl6-grafix.h"
+#include "ppl6-tk.h"
 
-#include "ppl7.h"
-#include "ppl7-grafix.h"
-#include "ppl7-tk.h"
+using namespace ppl6::grafix;
 
 
-namespace ppl7 {
+namespace ppl6 {
 namespace tk {
 
-using namespace ppl7;
-using namespace ppl7::grafix;
-
-
+#ifdef TODO
+/*!\class Label
+ * \ingroup PPLGroupToolkit
+ * \brief Ein Beschriftungselement
+ */
 Label::Label()
-	:Frame()
 {
-	const WidgetStyle *style=GetWidgetStyle();
-	setBorderStyle(NoBorder);
-	myColor=style->labelFontColor;
-	myFont=style->labelFont;
-	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
-	setTransparent(true);
-
+	Name="Label";
+	Style=0;
+	Style.SetCallback(this,&Style);
+	Caption.SetCallback(this,&Caption);
+	Font.Orientation=ORIENTATION::TOP;
+	Font.SetCallback(this,&Font);
+	Transparent=true;
+	Transparent.SetCallback(this,&Transparent);
 }
 
-Label::Label(int x, int y, int width, int height, const String &text, BorderStyle style)
-	:Frame(x,y,width,height)
-{
-	const WidgetStyle *wstyle=GetWidgetStyle();
-	setBorderStyle(style);
-	myColor=wstyle->labelFontColor;
-	myFont=wstyle->labelFont;
-	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
-	setTransparent(true);
-	myText=text;
-}
 
 Label::~Label()
 {
-
 }
 
-const String &Label::text() const
+void Label::Callback(void *data)
 {
-	return myText;
+	NeedRedraw();
+	CWidget::Callback(data);
 }
 
-void Label::setText(const String &text)
+int Label::Paint()
 {
-	myText=text;
-	needsRedraw();
-	geometryChanged();
-}
-
-const Color &Label::color() const
-{
-	return myColor;
-}
-
-void Label::setColor(const Color &c)
-{
-	myColor=c;
-	needsRedraw();
-}
-
-const Drawable &Label::icon() const
-{
-	return myIcon;
-}
-
-void Label::setIcon(const Drawable &icon)
-{
-	myIcon=icon;
-	needsRedraw();
-	geometryChanged();
-}
-
-const Font &Label::font() const
-{
-	return myFont;
-}
-
-void Label::setFont(const Font &font)
-{
-	myFont=font;
-	needsRedraw();
-	geometryChanged();
-}
-
-
-Size Label::contentSize() const
-{
-	Size s;
-	s=myFont.measure(myText);
-	if (myIcon.isEmpty()==false) {
-		s.width+=4+myIcon.width();
-		int h=2+myIcon.height();
-		if (s.height<h) s.height=h;
+	ppl6::grafix::CSurface *s=GetSurface();
+	if (!s) return 0;
+	COLORSTYLE *c=GetColors();
+	if (!c) return 0;
+	Font.color=c->frame.caption;
+	int w=Width();
+	int h=Height();
+	s->Lock();
+	if (!(bool)Transparent) {
+		s->FillRect(0,0,w-1,h-1,c->frame.background);
 	}
-	return s;
-}
+	//int y1=0;
+	switch ((int)Style) {
+		case WIDGETSTYLE::UPSET:
+			if (Caption.Len()) {
+				DIMENSION d;
+				s->TextSize(&Font,&d,&Caption);
+				s->Print(&Font,2,((h-d.height)>>1)-2,&Caption);
 
-String Label::widgetType() const
-{
-	return "Label";
-}
+			}
+			s->Line(0,0,w-1,0,c->frame.border_light);
+			s->Line(0,1,0,h-1,c->frame.border_light);
+			s->Line(w-1,1,w-1,h-1,c->frame.border_shadow);
+			s->Line(1,h-1,w-1,h-1,c->frame.border_shadow);
 
+			break;
+		case WIDGETSTYLE::INSET:
+			if (Caption.Len()) {
+				DIMENSION d;
+				s->TextSize(&Font,&d,&Caption);
+				s->Print(&Font,2,((h-d.height)>>1)-2,&Caption);
 
-void Label::paint(Drawable &draw)
-{
-	Frame::paint(draw);
-	Drawable d=clientDrawable(draw);
-	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());
-	int x=0;
-	if (myIcon.isEmpty()==false) {
-		d.bltAlpha(myIcon,x,(d.height())/2-myIcon.height()/2);
-		x+=4+myIcon.width();
+			}
+			s->Line(0,0,w-1,0,c->frame.border_shadow);
+			s->Line(0,1,0,h-1,c->frame.border_shadow);
+			s->Line(w-1,1,w-1,h-1,c->frame.border_light);
+			s->Line(1,h-1,w-1,h-1,c->frame.border_light);
+
+			break;
+		case WIDGETSTYLE::SIMPLE:
+			if (Caption.Len()) {
+				DIMENSION d;
+				s->TextSize(&Font,&d,&Caption);
+				s->Print(&Font,2,((h-d.height)>>1)-2,&Caption);
+
+			}
+			s->Rect(0,0,w-1,h-1,c->frame.border_shadow);
+			break;
+
+		default:
+			if (Caption.Len()) {
+				DIMENSION d;
+				s->TextSize(&Font,&d,&Caption);
+				s->Print(&Font,2,((h-d.height)>>1)-2,&Caption);
+			}
 	}
-	myFont.setColor(myColor);
-	myFont.setOrientation(Font::TOP);
-	Size s=myFont.measure(myText);
-	d.print(myFont,x,(d.height()-s.height)>>1,myText);
+	s->Unlock();
+	return 1;
 }
 
 
+#endif
 }	// EOF namespace tk
-}	// EOF namespace ppl7
+}	// EOF namespace ppl6

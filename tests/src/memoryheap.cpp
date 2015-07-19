@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 887 $
+ * $Date: 2014-02-04 14:24:47 +0100 (Di, 04 Feb 2014) $
+ * $Id: CDir.cpp 887 2014-02-04 13:24:47Z pafe $
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -37,9 +40,9 @@
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
-#include <ppl7.h>
+#include <ppl6.h>
 #include <gtest/gtest.h>
-#include "ppl7-tests.h"
+#include "ppl6-tests.h"
 
 namespace {
 
@@ -51,7 +54,7 @@ class MemoryHeapTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
+		ppl6::SetGlobalEncoding("UTF-8");
 	}
 	virtual ~MemoryHeapTest() {
 
@@ -59,42 +62,42 @@ class MemoryHeapTest : public ::testing::Test {
 };
 
 TEST_F(MemoryHeapTest, ConstructorSimple) {
-	ppl7::MemoryHeap h1;
+	ppl6::MemoryHeap h1;
 	ASSERT_EQ(h1.capacity(),(size_t)0) << "capacity is not 0";
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
-	ASSERT_EQ(h1.memoryAllocated(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryAllocated is not sizeof(MemoryHeap)";
-	ASSERT_EQ(h1.memoryUsed(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryUsed is not sizeof(MemoryHeap)";
+	ASSERT_EQ(h1.memoryAllocated(),(size_t)sizeof(ppl6::MemoryHeap)) << "memoryAllocated is not sizeof(MemoryHeap)";
+	ASSERT_EQ(h1.memoryUsed(),(size_t)sizeof(ppl6::MemoryHeap)) << "memoryUsed is not sizeof(MemoryHeap)";
 	ASSERT_EQ(h1.elementSize(),(size_t)0) << "elementSize is not 0";
 }
 
 TEST_F(MemoryHeapTest, ConstructorWithInit) {
-	ppl7::MemoryHeap h1(32,100,100);
+	ppl6::MemoryHeap h1(32,100,100);
 	ASSERT_EQ(h1.capacity(),(size_t)100) << "capacity is not 100";
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
-	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryAllocated is greater than sizeof(MemoryHeap)";
-	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryUsed is not greater than sizeof(MemoryHeap)";
+	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl6::MemoryHeap)) << "memoryAllocated is greater than sizeof(MemoryHeap)";
+	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl6::MemoryHeap)) << "memoryUsed is not greater than sizeof(MemoryHeap)";
 	ASSERT_EQ(h1.elementSize(),(size_t)32) << "elementSize is not 32";
 }
 
 TEST_F(MemoryHeapTest, Init) {
-	ppl7::MemoryHeap h1;
+	ppl6::MemoryHeap h1;
 	h1.init(32,100,100);
 	ASSERT_EQ(h1.capacity(),(size_t)100) << "capacity is not 100";
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
-	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryAllocated is greater than sizeof(MemoryHeap)";
-	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl7::MemoryHeap)) << "memoryUsed is not greater than sizeof(MemoryHeap)";
+	ASSERT_GT(h1.memoryAllocated(),(size_t)sizeof(ppl6::MemoryHeap)) << "memoryAllocated is greater than sizeof(MemoryHeap)";
+	ASSERT_GT(h1.memoryUsed(),(size_t)sizeof(ppl6::MemoryHeap)) << "memoryUsed is not greater than sizeof(MemoryHeap)";
 	ASSERT_EQ(h1.elementSize(),(size_t)32) << "elementSize is not 32";
 }
 
 TEST_F(MemoryHeapTest, malloc) {
-	ppl7::MemoryHeap h1(32,100,100);
+	ppl6::MemoryHeap h1(32,100,100);
 	void *ptr=h1.malloc();
 	ASSERT_TRUE(ptr!=NULL) << "malloc failed";
 	ASSERT_EQ(h1.count(),(size_t)1) << "count is not 1";
 }
 
 TEST_F(MemoryHeapTest, 101malloc) {
-	ppl7::MemoryHeap h1(32,100,100,30);
+	ppl6::MemoryHeap h1(32,100,100,30);
 	for (int i=0;i<101;i++) {
 		void *ptr=h1.malloc();
 		ASSERT_TRUE(ptr!=NULL) << "malloc failed";
@@ -106,7 +109,7 @@ TEST_F(MemoryHeapTest, 101malloc) {
 }
 
 TEST_F(MemoryHeapTest, 1000malloc) {
-	ppl7::MemoryHeap h1(32,100,100,30);
+	ppl6::MemoryHeap h1(32,100,100,30);
 	for (int i=0;i<1000;i++) {
 		void *ptr=h1.malloc();
 		ASSERT_TRUE(ptr!=NULL) << "malloc failed";
@@ -118,7 +121,7 @@ TEST_F(MemoryHeapTest, 1000malloc) {
 }
 
 TEST_F(MemoryHeapTest, 1000calloc) {
-	ppl7::MemoryHeap h1(32,100,100,30);
+	ppl6::MemoryHeap h1(32,100,100,30);
 	for (int i=0;i<1000;i++) {
 		void *ptr=h1.calloc();
 		ASSERT_TRUE(ptr!=NULL) << "calloc failed";
@@ -130,7 +133,7 @@ TEST_F(MemoryHeapTest, 1000calloc) {
 }
 
 TEST_F(MemoryHeapTest, 1000malloc1000free) {
-	ppl7::MemoryHeap h1(32,100,100,30);
+	ppl6::MemoryHeap h1(32,100,100,30);
 	void *ptr[1000];
 	for (int i=0;i<1000;i++) {
 		ptr[i]=h1.malloc();
@@ -145,7 +148,7 @@ TEST_F(MemoryHeapTest, 1000malloc1000free) {
 }
 
 TEST_F(MemoryHeapTest, 2000malloc1500free) {
-	ppl7::MemoryHeap h1(32,100,100,30);
+	ppl6::MemoryHeap h1(32,100,100,30);
 	void *ptr[2000];
 	for (int i=0;i<2000;i++) {
 		ptr[i]=h1.malloc();
@@ -161,7 +164,7 @@ TEST_F(MemoryHeapTest, 2000malloc1500free) {
 }
 
 TEST_F(MemoryHeapTest, 1000mallocfreeCleanup) {
-	ppl7::MemoryHeap h1(32,100,100,30);
+	ppl6::MemoryHeap h1(32,100,100,30);
 	void *ptr[1000];
 	for (int i=0;i<1000;i++) {
 		ptr[i]=h1.malloc();
@@ -178,7 +181,7 @@ TEST_F(MemoryHeapTest, 1000mallocfreeCleanup) {
 }
 
 TEST_F(MemoryHeapTest, reserve2000) {
-	ppl7::MemoryHeap h1(32,0,100,30);
+	ppl6::MemoryHeap h1(32,0,100,30);
 	h1.reserve(2000);
 	//h1.dump();
 	ASSERT_EQ(h1.count(),(size_t)0) << "count is not 0";
@@ -186,7 +189,7 @@ TEST_F(MemoryHeapTest, reserve2000) {
 }
 
 TEST_F(MemoryHeapTest, reserve2000and3000) {
-	ppl7::MemoryHeap h1(32,0,100,30);
+	ppl6::MemoryHeap h1(32,0,100,30);
 	h1.reserve(2000);
 	h1.reserve(3000);
 	//h1.dump();
@@ -195,7 +198,7 @@ TEST_F(MemoryHeapTest, reserve2000and3000) {
 }
 
 TEST_F(MemoryHeapTest, clear) {
-	ppl7::MemoryHeap h1(32,0,100,30);
+	ppl6::MemoryHeap h1(32,0,100,30);
 	for (int i=0;i<1000;i++) {
 		void *ptr=h1.calloc();
 		ASSERT_TRUE(ptr!=NULL) << "calloc failed";
