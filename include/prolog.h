@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
  * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
- *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ *  
+ * $Author: pafe $
+ * $Revision: 1.2 $
+ * $Date: 2010/02/12 19:43:57 $
+ * $Id: prolog.h,v 1.2 2010/02/12 19:43:57 pafe Exp $
+ * 
+ ******************************************************************************* 
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,17 +35,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPL7_CONFIG
-	#ifdef PPL7LIB
+#define NO_CPPL_COMPAT
+#ifndef _PPL6_CONFIG
+	#ifdef PPL6LIB
 		#ifdef HAVE_CONFIG_H
 			#include "config.h"
 		#else
 			#ifdef _WIN32
-				#include "ppl7-config.h"
+				#include "ppl6-config.h"
 			#endif
 		#endif
 	#else
-		#include <ppl7-config.h>
+		#include <ppl6-config.h>
 	#endif
 #endif
-#include "compat.h"

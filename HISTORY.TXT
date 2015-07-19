@@ -1,12 +1,7 @@
-/*!\page PPL7History PPL7 History
-PPL7 - HISTORY
+/*!\page PPL6History PPL6 History
+PPL6 - HISTORY
 
-Version 7.0.0
-  - Complete Rewrite!!!
-  - Unittests with Google Test framework
-
-    
-Version 6.4.7
+Version 6.4.7 vom 25.05.2011	(CVS-Tag: REL_6_4_7)
   - CDateTime holt sich nun die Millisekunden via "gettimeofday",
     sofern die Funktion vorhanden ist. Bei der Ausgabe mit
     "get" wird nun der Platzhalter "%*" unterstützt, der durch die
