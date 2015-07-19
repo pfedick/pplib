@@ -1,23 +1,26 @@
 /*******************************************************************************
- * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * This file is part of "Patrick's Programming Library", Version 6 (PPL6). 
  * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
- *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ *  
+ * $Author: pafe $
+ * $Revision: 1.8 $
+ * $Date: 2011/04/12 19:16:34 $
+ * $Id: config.h.in,v 1.8 2011/04/12 19:16:34 pafe Exp $
+ * 
+ ******************************************************************************* 
+ * Copyright (c) 2010, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer. 
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution. 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of the copyright holder nor the names of its
+ *       contributors may be used to endorse or promote products derived
+ *       from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -45,9 +48,6 @@
 /* Define as 1 if you have unistd.h. */
 #undef HAVE_UNISTD_H
 
-/* Define, if we have Thread Local Space */
-#undef HAVE_TLS
-
 #undef HAVE_MKTIME
 #undef size_t
 #undef wchar_t
@@ -67,7 +67,6 @@
 #undef HAVE_REALLOC
 #undef HAVE_SOCKET
 #undef HAVE_STDARG_H
-#undef HAVE_STDDEF_H
 #undef HAVE_STDBOOL_H
 #undef HAVE_STDIO_H
 #undef HAVE_STDINT_H
@@ -84,14 +83,12 @@
 #undef HAVE_STRNCAT
 #undef HAVE_STRLCAT
 #undef HAVE_MATH_H
-#undef HAVE_SYSLOG_H
 
 #undef HAVE_STRERROR
 #undef HAVE_STRFTIME
 #undef HAVE_STRINGS_H
 #undef HAVE_STRING_H
 #undef HAVE_STRNCASECMP
-#undef HAVE_STRCASECMP
 #undef HAVE_STRSTR
 #undef HAVE_STRCASESTR
 #undef HAVE_TIME_H
@@ -108,7 +105,7 @@
 #undef HAVE_NETDB_H
 #undef HAVE_ARPA_INET_H
 #undef HAVE_SYS_MMAN_H
-#undef HAVE_VALGRIND_HELGRIND_H
+
 
 #undef HAVE_VPRINTF
 #undef HAVE_ASPRINTF
@@ -130,7 +127,6 @@
 #undef STRUCT_TM_HAS_GMTOFF
 #undef HAVE_ATOLL
 #undef HAVE_STRTOLL
-#undef HAVE_STRTOULL
 #undef HAVE_SLEEP
 #undef HAVE_NAP
 #undef HAVE_USLEEP
@@ -187,7 +183,6 @@
 #undef HAVE_FTRUNCATE
 #undef HAVE_STRCMP
 #undef HAVE_STRNCMP
-#undef HAVE_STRNLEN
 #undef HAVE_BCOPY
 #undef HAVE_SYNC
 #undef HAVE_FSYNC
@@ -200,20 +195,6 @@
 #undef HAVE_CLOSEDIR
 #undef HAVE_READDIR
 #undef HAVE_READDIR_R
-#undef HAVE_HTOL
-#undef HAVE_HTOLL
-#undef HAVE_ATOI
-#undef HAVE_ATOL
-#undef HAVE_ATOLL
-#undef HAVE_ATOF
-#undef HAVE_STRTOLOWER
-#undef HAVE_STRTOUPPER
-#undef HAVE_UNLINK
-#undef HAVE_REMOVE
-#undef HAVE_SYSLOG
-#undef HAVE_OPENLOG
-#undef HAVE_CLOSELOG
-
 
 
 #undef HAVE_GETHOSTNAME
@@ -222,65 +203,15 @@
 #undef HAVE_SETDOMAINNAME
 #undef HAVE_UNAME
 
-#undef HAVE_RESOLV_H
-#undef HAVE_ARPA_NAMESER_H
-
 
 #undef _FILE_OFFSET_BITS 64
 
-
-#undef HAVE_LIBLDNS
-#undef HAVE_LIBBIND
-#undef HAVE_RES_QUERY
-#undef HAVE_RES_SEARCH
-#undef HAVE_RES_QUERYDOMAIN
-#undef HAVE_RES_MKQUERY
-#undef HAVE_RES_SEND
-#undef HAVE_DN_COMP
-#undef HAVE_DN_EXPAND
-
-#undef HAVE_LIBMICROHTTPD
-#undef HAVE_LIBIDN
-
-
-/*
- * Cryptography
- */
-#undef HAVE_OPENSSL
 #undef HAVE_LIBMCRYPT
 #undef HAVE_LIBMHASH
-#undef HAVE_GCRYPT
-#undef GCRYPT_WITH_AES
-#undef GCRYPT_WITH_ARCFOUR
-#undef GCRYPT_WITH_BLOWFISH
-#undef GCRYPT_WITH_CAST5
-#undef GCRYPT_WITH_DES
-#undef GCRYPT_WITH_IDEA
-#undef GCRYPT_WITH_RFC2268
-#undef GCRYPT_WITH_SERPENT
-#undef GCRYPT_WITH_TWOFISH
-#undef GCRYPT_WITH_CRC
-#undef GCRYPT_WITH_HAVAL
-#undef GCRYPT_WITH_MD2
-#undef GCRYPT_WITH_MD4
-#undef GCRYPT_WITH_MD5
-#undef GCRYPT_WITH_RMD160
-#undef GCRYPT_WITH_SHA0
-#undef GCRYPT_WITH_SHA1
-#undef GCRYPT_WITH_SHA224
-#undef GCRYPT_WITH_SHA256
-#undef GCRYPT_WITH_SHA384
-#undef GCRYPT_WITH_SHA512
-#undef GCRYPT_WITH_TIGER
-#undef GCRYPT_WITH_WHIRLPOOL
-#undef GCRYPT_WITH_DSA
-#undef GCRYPT_WITH_ELGAMAL
-#undef GCRYPT_WITH_RSA
-#undef LIBMCRYPT24
 
- 
- 
- 
+#undef HAVE_LIBLDNS
+#undef HAVE_LIBMICROHTTPD
+
 /*
  * Assembler
  */
@@ -312,32 +243,14 @@
  * lib curl
  */
 #undef HAVE_LIBCURL
-#undef LIBCURL_FEATURE_SSL
-#undef LIBCURL_FEATURE_IPV6
-#undef LIBCURL_FEATURE_LIBZ
-#undef LIBCURL_FEATURE_ASYNCHDNS
-#undef LIBCURL_FEATURE_GSS_API
-#undef LIBCURL_FEATURE_SPNEGO
-#undef LIBCURL_FEATURE_NTLM
-#undef LIBCURL_FEATURE_NTLM_WB
-#undef LIBCURL_FEATURE_TLS_SRP
-#undef LIBCURL_PROTOCOL_DICT
-#undef LIBCURL_PROTOCOL_FILE
-#undef LIBCURL_PROTOCOL_FTP
-#undef LIBCURL_PROTOCOL_FTPS
-#undef LIBCURL_PROTOCOL_GOPHER
 #undef LIBCURL_PROTOCOL_HTTP
 #undef LIBCURL_PROTOCOL_HTTPS
-#undef LIBCURL_PROTOCOL_IMAP
-#undef LIBCURL_PROTOCOL_IMAPS
-#undef LIBCURL_PROTOCOL_POP3
-#undef LIBCURL_PROTOCOL_POP3S
-#undef LIBCURL_PROTOCOL_RTSP
-#undef LIBCURL_PROTOCOL_SMTP
-#undef LIBCURL_PROTOCOL_SMTPS
 #undef LIBCURL_PROTOCOL_TELNET
-#undef LIBCURL_PROTOCOL_TFTP
-
+#undef LIBCURL_PROTOCOL_FTP
+#undef LIBCURL_PROTOCOL_FTPS
+#undef LIBCURL_FEATURE_LIBZ
+#undef LIBCURL_FEATURE_SSL
+#undef LIBCURL_FEATURE_IPV6
 
 /*
  * Audio
@@ -352,16 +265,15 @@
 #undef HAVE_LIBSHOUT
 #undef HAVE_LIBOGG
 
-#undef HAVE_LIBCDIO
-#undef HAVE_LIBCDDB
-
-
 /*
  * pthread
  */
 #undef HAVE_PTHREADS
 
-
+/*
+ * OpenSSL
+ */
+#undef HAVE_OPENSSL
 
 /*
  * Grafiklibraries
@@ -369,10 +281,8 @@
 #undef HAVE_TIFF
 #undef HAVE_JPEG
 #undef HAVE_PNG
-#undef HAVE_IMAGEMAGICK
 #undef HAVE_FREETYPE2
-#undef HAVE_SDL2
-#undef HAVE_SDL12
+#undef HAVE_SDL
 #undef HAVE_X11
 
 /*
@@ -380,11 +290,11 @@
  */
 #undef HAVE_MYSQL
 #undef HAVE_POSTGRESQL
-#undef POSTGRESQL_HAVE_PQsetSingleRowMode
 #undef HAVE_FREETDS
-#undef HAVE_SYBASE
-#undef HAVE_SQLITE3
+#undef HAVE_SQLITE
 
+#undef CONF_CFLAGS
+#undef CONF_LIBS
 
 #define ppluint8	undefined
 #define pplint8		undefined
