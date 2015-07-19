@@ -368,6 +368,7 @@
  */
 #undef HAVE_TIFF
 #undef HAVE_JPEG
+#undef HAVE_LIBJPEGTURBO
 #undef HAVE_PNG
 #undef HAVE_IMAGEMAGICK
 #undef HAVE_FREETYPE2
