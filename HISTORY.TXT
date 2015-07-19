@@ -1,12 +1,23 @@
-/*!\page PPL7History PPL7 History
-PPL7 - HISTORY
+/*!\page PPL6History PPL6 History
+PPL6 - HISTORY
 
-Version 7.0.0
-  - Complete Rewrite!!!
-  - Unittests with Google Test framework
+Version 6.4.9  vom 30.10.2011	(CVS-Tag: REL_6_4_9)
+  - Kompatibilitätsprobleme mit OpenSSL 1.x.x behoben
+  - Funktion StartThread, um einen Thread ohne Verwendung der
+    Klasse CThread zu starten
+  - Webserver-Klasse, die auf libmicrohttpd aufsetzt 
 
-    
-Version 6.4.7
+Version 6.4.8 vom 27.07.2011	(CVS-Tag: REL_6_4_8)
+  - Datenbankklassen: Neue Funktion "databaseType"
+  - Bugfix in Compression-Klasse: bei Verwendung des V2-Prefix
+    wurde beim Komprimieren statt Länge der unkomprimierten Daten
+    die Länge der komprimierten Daten geschrieben
+  - Bugfix in Datenbank-Connect-Funktion. Fehlerhaften "ifdef" für
+    Postgres korrigiert
+  - Bugfix in Postgres-Escape-Funktion. Das letzte Zeichen des
+    Strings wird nun nicht mehr abgeschnitten.
+
+Version 6.4.7 vom 25.05.2011	(CVS-Tag: REL_6_4_7)
   - CDateTime holt sich nun die Millisekunden via "gettimeofday",
     sofern die Funktion vorhanden ist. Bei der Ausgabe mit
     "get" wird nun der Platzhalter "%*" unterstützt, der durch die
