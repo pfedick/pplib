@@ -49,7 +49,7 @@
 
 #ifdef HAVE_X86_ASSEMBLER
 extern "C" {
-	ppluint32 GetASMBits();
+	ppluint32 PPL7_GetASMBits();
 	ppluint32 PPL7_GetCpuCaps();
 }
 #else
@@ -58,7 +58,7 @@ static ppluint32 PPL7_GetCpuCaps()
 	return 0;
 }
 
-static ppluint32 GetASMBits()
+static ppluint32 PPL7_GetASMBits()
 {
 	return sizeof(void*);
 }
@@ -87,7 +87,7 @@ ppluint32 GetCPUCaps (CPUCaps &cpu)
 {
 	if (myBits==0) {
 		myCPUCaps=PPL7_GetCpuCaps();
-		myBits=GetASMBits();
+		myBits=PPL7_GetASMBits();
 	}
 	cpu.caps=myCPUCaps;
 	cpu.bits=myBits;
@@ -98,7 +98,7 @@ ppluint32 GetCPUCaps ()
 {
 	if (myBits==0) {
 		myCPUCaps=PPL7_GetCpuCaps();
-		myBits=GetASMBits();
+		myBits=PPL7_GetASMBits();
 	}
 	return myCPUCaps;
 }
