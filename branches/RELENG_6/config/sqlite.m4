@@ -21,9 +21,6 @@ then
 			have_sqlite="no"
 		)
 	else
-		SQLITE_LIBS="-L$sqlite_prefix/lib -lsqlite3"
-		SQLITE_CFLAGS="-I$sqlite_prefix/include"
-
 		my_save_LIBS="$LIBS"
 		my_save_CFLAGS="$CFLAGS"
 		my_save_LDFLAGS="$LDFLAGS"
