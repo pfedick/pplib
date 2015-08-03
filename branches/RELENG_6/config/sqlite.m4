@@ -28,8 +28,10 @@ then
 		my_save_CFLAGS="$CFLAGS"
 		my_save_LDFLAGS="$LDFLAGS"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib"
-		CFLAGS="$CFLAGS $SQLITE_CFLAGS"
+		CFLAGS="$CFLAGS -I$sqlite_prefix/include"
 		AC_CHECK_LIB([sqlite3],[sqlite3_open],
+            SQLITE_LIBS="-L$sqlite_prefix/lib -lsqlite3"
+            SQLITE_CFLAGS="-I$sqlite_prefix/include"
 			have_sqlite="yes"
 		)
 		LIBS="$my_save_LIBS"
