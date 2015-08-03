@@ -27,7 +27,7 @@ then
 		NASM=${nasm}
 		AC_SUBST(NASM)
 		case `uname -m` in
-			win32)
+			win32|i686)
 				NASMFLAGS="-f win32"
 				NASMDEBUGFLAGS="-g"
 				;;

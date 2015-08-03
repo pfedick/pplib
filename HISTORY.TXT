@@ -17,6 +17,7 @@ Version 6.4.21
   - Memory-Leak in FileExists behoben
   - Bugfix im configure: SQLITE_LIBS und SQLITE_CFLAGS werden nur gesetzt,
     wenn sqlite auch gefunden wurde
+  - NASM-Erkennung unter MSYS 2.0 i686 gefixt
 
 Version 6.4.20 vom 13.07.2014	(SVN-Tag: REL_6_4_20)
   - Funktion GetGlobalEncoding hinzugefügt
