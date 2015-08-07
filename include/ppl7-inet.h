@@ -578,6 +578,8 @@ class Curl
 		void	verifyPeer(bool verify);
 
 		void *	getCurlHandle() const;
+
+		static String getUri(const String &uri);
 };
 
 

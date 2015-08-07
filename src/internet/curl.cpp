@@ -925,6 +925,14 @@ void *Curl::getCurlHandle() const
 #endif
 }
 
+
+String Curl::getUri(const String &uri)
+{
+	Curl curl;
+	curl.setURL(uri);
+	curl.get();
+	return curl.getResultBufferAsString();
+}
 } // namespace ppl7
 
 
