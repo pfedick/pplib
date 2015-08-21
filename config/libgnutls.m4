@@ -27,14 +27,21 @@ AC_ARG_WITH(libgnutls-prefix,
   min_libgnutls_version=ifelse([$1], ,0.1.0,$1)
   AC_MSG_CHECKING(for libgnutls - version >= $min_libgnutls_version)
   no_libgnutls=""
+  LIBGNUTLS_CONFIG="no"
   if test "$LIBGNUTLS_CONFIG" = "no" ; then
-    no_libgnutls=yes
+    PKG_CHECK_MODULES([LIBGNUTLS], [gnutls],
+          #--modversion
+          libgnutls_config_version=`pkg-config gnutls --modversion`
+          ,
+          no_libgnutls=yes
+    )
   else
     LIBGNUTLS_CFLAGS=`$LIBGNUTLS_CONFIG $libgnutls_config_args --cflags`
     LIBGNUTLS_LIBS=`$LIBGNUTLS_CONFIG $libgnutls_config_args --libs`
     libgnutls_config_version=`$LIBGNUTLS_CONFIG $libgnutls_config_args --version`
-
-
+  fi
+  
+  if [ -z "$no_libgnutls" ]; then
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"
