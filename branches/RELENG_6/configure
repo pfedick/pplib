@@ -898,6 +898,8 @@ PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 libcdio_CFLAGS
 libcdio_LIBS
+LIBGNUTLS_CFLAGS
+LIBGNUTLS_LIBS
 PNG_CFLAGS
 PNG_LIBS
 JPEG_CFLAGS
@@ -1613,6 +1615,10 @@ Some influential environment variables:
               C compiler flags for libcdio, overriding pkg-config
   libcdio_LIBS
               linker flags for libcdio, overriding pkg-config
+  LIBGNUTLS_CFLAGS
+              C compiler flags for LIBGNUTLS, overriding pkg-config
+  LIBGNUTLS_LIBS
+              linker flags for LIBGNUTLS, overriding pkg-config
   PNG_CFLAGS  C compiler flags for PNG, overriding pkg-config
   PNG_LIBS    linker flags for PNG, overriding pkg-config
   JPEG_CFLAGS C compiler flags for JPEG, overriding pkg-config
@@ -10005,14 +10011,90 @@ fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libgnutls - version >= $min_libgnutls_version" >&5
 $as_echo_n "checking for libgnutls - version >= $min_libgnutls_version... " >&6; }
   no_libgnutls=""
+  LIBGNUTLS_CONFIG="no"
   if test "$LIBGNUTLS_CONFIG" = "no" ; then
-    no_libgnutls=yes
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBGNUTLS" >&5
+$as_echo_n "checking for LIBGNUTLS... " >&6; }
+
+if test -n "$LIBGNUTLS_CFLAGS"; then
+    pkg_cv_LIBGNUTLS_CFLAGS="$LIBGNUTLS_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gnutls\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gnutls") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBGNUTLS_CFLAGS=`$PKG_CONFIG --cflags "gnutls" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBGNUTLS_LIBS"; then
+    pkg_cv_LIBGNUTLS_LIBS="$LIBGNUTLS_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"gnutls\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "gnutls") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBGNUTLS_LIBS=`$PKG_CONFIG --libs "gnutls" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBGNUTLS_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "gnutls" 2>&1`
+        else
+	        LIBGNUTLS_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "gnutls" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBGNUTLS_PKG_ERRORS" >&5
+
+	no_libgnutls=yes
+
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	no_libgnutls=yes
+
+else
+	LIBGNUTLS_CFLAGS=$pkg_cv_LIBGNUTLS_CFLAGS
+	LIBGNUTLS_LIBS=$pkg_cv_LIBGNUTLS_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	#--modversion
+          libgnutls_config_version=`pkg-config gnutls --modversion`
+
+fi
   else
     LIBGNUTLS_CFLAGS=`$LIBGNUTLS_CONFIG $libgnutls_config_args --cflags`
     LIBGNUTLS_LIBS=`$LIBGNUTLS_CONFIG $libgnutls_config_args --libs`
     libgnutls_config_version=`$LIBGNUTLS_CONFIG $libgnutls_config_args --version`
+  fi
 
-
+  if  -z "$no_libgnutls" ; then
       ac_save_CFLAGS="$CFLAGS"
       ac_save_LIBS="$LIBS"
       CFLAGS="$CFLAGS $LIBGNUTLS_CFLAGS"

@@ -26,16 +26,16 @@
 					<folderInfo id="converted.config.93810054." name="/" resourcePath="">
 						<toolChain errorParsers="" id="org.eclipse.cdt.build.core.prefbase.toolchain.1932091506" name="No ToolChain" resourceTypeBasedDiscovery="false" superClass="org.eclipse.cdt.build.core.prefbase.toolchain">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.ELF" id="converted.config.93810054..615168933" name=""/>
-							<builder appendEnvironment="true" autoBuildTarget="install_debug" buildPath="" cleanBuildTarget="clean" enableAutoBuild="true" enableCleanBuild="true" enabledIncrementalBuild="true" environment="" errorParsers="" id="org.eclipse.cdt.make.core.makeBuilder.525813249" incrementalBuildTarget="install_debug" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" stopOnErr="true" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
+							<builder appendEnvironment="true" autoBuildTarget="install_debug" buildPath="" cleanBuildTarget="clean" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" environment="" errorParsers="" id="org.eclipse.cdt.make.core.makeBuilder.525813249" incrementalBuildTarget="install_debug" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" stopOnErr="true" superClass="org.eclipse.cdt.build.core.settings.default.builder"/>
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.libs.2079445056" name="holder for library settings" superClass="org.eclipse.cdt.build.core.settings.holder.libs"/>
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.894293635" name="Assembly" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1929046434" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.1929046434" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="HAVE_OPENSSL"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1439602547" languageId="org.eclipse.cdt.core.assembly" languageName="Assembly" sourceContentType="org.eclipse.cdt.core.asmSource" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
 							</tool>
 							<tool errorParsers="org.eclipse.cdt.core.VCErrorParser;org.eclipse.cdt.core.GCCErrorParser;org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GLDErrorParser" id="org.eclipse.cdt.build.core.settings.holder.1935622884" name="GNU C++" superClass="org.eclipse.cdt.build.core.settings.holder">
-								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.988319390" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
+								<option id="org.eclipse.cdt.build.core.settings.holder.symbols.988319390" name="Symbols" superClass="org.eclipse.cdt.build.core.settings.holder.symbols" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="HAVE_OPENSSL"/>
 								</option>
 								<inputType id="org.eclipse.cdt.build.core.settings.holder.inType.1178030613" languageId="org.eclipse.cdt.core.g++" languageName="GNU C++" sourceContentType="org.eclipse.cdt.core.cxxSource,org.eclipse.cdt.core.cxxHeader" superClass="org.eclipse.cdt.build.core.settings.holder.inType"/>
