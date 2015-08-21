@@ -118,9 +118,9 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		};
 		MemoryHeap		MyHeap;
 		void clearRecursive(TreeItem *item) {
-			if (item->left) clearRecursive((TreeItem*)item->left);
+			if (item->left) clearRecursive(static_cast<TreeItem*>(item->left));
 			item->~TreeItem();
-			if (item->right) clearRecursive((TreeItem*)item->right);
+			if (item->right) clearRecursive(static_cast<TreeItem*>(item->right));
 		}
 	public:
 		class Iterator : public AVLTreeAlgorithm::Iterator
@@ -193,7 +193,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		{
 			TreeItem search, *found;
 			search.key=key;
-			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
+			found=static_cast<TreeItem*>(AVLTreeAlgorithm::findNode(&search));
 			if (!found) throw ItemNotFoundException();
 			return (found->value);
 		}
@@ -202,7 +202,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		{
 			TreeItem search, *found;
 			search.key=key;
-			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
+			found=static_cast<TreeItem*>(AVLTreeAlgorithm::findNode(&search));
 			if (!found) return (false);
 			return (true);
 		}
@@ -211,7 +211,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		{
 			TreeItem search, *found;
 			search.key=key;
-			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
+			found=static_cast<TreeItem*>(AVLTreeAlgorithm::findNode(&search));
 			if (!found) throw ItemNotFoundException();
 			return (found->value);
 		}
@@ -220,7 +220,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		{
 			TreeItem search, *found;
 			search.key=key;
-			found=(TreeItem*)AVLTreeAlgorithm::findNode(&search);
+			found=static_cast<TreeItem*>(AVLTreeAlgorithm::findNode(&search));
 			if (!found) throw ItemNotFoundException();
 			AVLTreeAlgorithm::eraseNode(found);
 			found->~TreeItem();
@@ -228,7 +228,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		}
 		void		clear()
 		{
-			TreeItem *root=(TreeItem*)AVLTreeAlgorithm::getRoot();
+			TreeItem *root=static_cast<TreeItem*>(AVLTreeAlgorithm::getRoot());
 			// Destruktoren der einzelnen Elemente aufrufen
 			if (root) clearRecursive(root);
 			MyHeap.clear();		// kompletten Speicher freigeben
@@ -254,7 +254,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		}
 		bool getFirst(Iterator &it) const
 		{
-			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getFirst(it);
+			TreeItem *item=static_cast<TreeItem*>(AVLTreeAlgorithm::getFirst(it));
 			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
@@ -262,7 +262,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		}
 		bool getNext(Iterator &it) const
 		{
-			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getNext(it);
+			TreeItem *item=static_cast<TreeItem*>(AVLTreeAlgorithm::getNext(it));
 			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
@@ -270,7 +270,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		}
 		bool getLast(Iterator &it) const
 		{
-			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getLast(it);
+			TreeItem *item=static_cast<TreeItem*>(AVLTreeAlgorithm::getLast(it));
 			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
@@ -278,7 +278,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		}
 		bool getPrevious(Iterator &it) const
 		{
-			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getPrevious(it);
+			TreeItem *item=static_cast<TreeItem*>(AVLTreeAlgorithm::getPrevious(it));
 			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
@@ -286,7 +286,7 @@ template <class K, class T> class AVLTree : private AVLTreeAlgorithm
 		}
 		bool getCurrent(Iterator &it) const
 		{
-			TreeItem *item=(TreeItem*)AVLTreeAlgorithm::getCurrent(it);
+			TreeItem *item=static_cast<TreeItem*>(AVLTreeAlgorithm::getCurrent(it));
 			if (!item) return (false);
 			it.Key=&item->key;
 			it.Value=&item->value;
