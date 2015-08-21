@@ -311,6 +311,10 @@ template <class K> class List
 				ListItem *previous, *next, *original;
 				List *owner;
 			public:
+				ListItem() {
+					previous=next=original=NULL;
+					owner=NULL;
+				}
 				void *operator new(size_t, void *p) { return (p);}
 		};
 		ListItem *first, *last;
