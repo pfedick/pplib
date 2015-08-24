@@ -1183,10 +1183,15 @@ void CThreadPool::Stop()
 {
 	SignalStop();		// Erst signalisieren, dann geht's schneller beim Stop
 	while (true) {
+		bool isRunning=false;
 		mutex.Lock();
 		THREADENTRY *e=(THREADENTRY *)first;
+		while (e) {
+			if (e->thread->ThreadIsRunning()) isRunning=true;
+			e=e->next;
+		}
 		mutex.Unlock();
-		if (!e) break;
+		if (!isRunning) break;
 		MSleep(1);
 
 	}
