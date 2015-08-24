@@ -76,20 +76,14 @@ SECTION .text
 		xor rax,rax
 		mov al, __BITS__
 		ret
-%elifidn __OUTPUT_FORMAT__, win32
+%else
 	global _GetASMBits
-	_GetASMBits:
-		xor eax,eax
-		mov al, __BITS__
-		ret
-
-%elifidn __OUTPUT_FORMAT__, elf32
 	global GetASMBits
+	_GetASMBits:
 	GetASMBits:
 		xor eax,eax
 		mov al, __BITS__
 		ret
-
 %endif
 
 ;/*********************************************************************
