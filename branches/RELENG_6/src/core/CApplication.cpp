@@ -49,7 +49,7 @@ namespace ppl6 {
 
 #ifndef MINGW32
 #ifdef _WIN32
-int PPL6MainWin (HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow, CApplication *app)
+int PPL6MainWin (HINSTANCE hInstance, HINSTANCE hPrevInstance, char * lpCmdLine, int nCmdShow, CApplication *app)
 {
 	if (!app) {
 		return 251;
