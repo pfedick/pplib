@@ -375,8 +375,8 @@ class TCPSocket
 		void setBlocking(bool value);
 		bool isWriteable();
 		bool isReadable();
-		void waitForIncomingData(int seconds, int useconds);
-		void waitForOutgoingData(int seconds, int useconds);
+		bool waitForIncomingData(int seconds, int useconds);
+		bool waitForOutgoingData(int seconds, int useconds);
 		//@}
 
 		//! @name SSL Encryption

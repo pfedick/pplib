@@ -1128,7 +1128,7 @@ bool TCPSocket::isReadable()
 		throwExceptionFromErrno(errno, "TCPSocket::isReadable");
 	}
 	if (FD_ISSET(s->sd,&eset)) {
-		throw OutOfBandDataReceivedException("TCPSocket::isWriteable");
+		throw OutOfBandDataReceivedException("TCPSocket::isReadable");
 	}
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
 	if (FD_ISSET(s->sd,&rset)) {
@@ -1144,6 +1144,103 @@ bool TCPSocket::isReadable()
 		}
 	}
 	return true;
+}
+
+
+/*!\brief Auf eingehende Daten warten
+ *
+ * \desc
+ * Diese Funktion prüft, ob Daten eingegangen sind. Ist dies der Fall,
+ * kehrt sie sofort wieder zurück. Andernfalls wartet sie solange, bis
+ * Daten eingehen, maximal aber die mit \p seconds und \p useconds
+ * angegebene Zeitspanne. Falls \p seconds und \p useconds Null sind, und
+ * keine Daten bereitstehen, kehrt die Funktion sofort zurück.
+ *
+ * @param[in] seconds Anzahl Sekunden, die gewartet werden soll
+ * @param[in] useconds Anzahl Mikrosekunden, die gewartet werden soll
+ * @return Die Funktion gibt \b true zurück, wenn Daten zum Lesen bereitstehen,
+ * sonst \b false. Im Fehlerfall wird eine Exception geworfen.
+ * @exception Diverse
+ */
+bool TCPSocket::waitForIncomingData(int seconds, int useconds)
+{
+	if (!connected) throw NotConnectedException();
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	fd_set rset, wset, eset;
+	struct timeval timeout;
+
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
+
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&rset); // Wir wollen nur prüfen, ob was zu lesen da ist
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		throwExceptionFromErrno(errno, "TCPSocket::waitForIncomingData");
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
+	}
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		// Kommt hier ein Fehler zurück?
+		if (ret<0) {
+			throwExceptionFromErrno(errno, "TCPSocket::isReadable");
+		}
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			throw BrokenPipeException();
+		}
+		return true;
+	}
+	return false;
+}
+
+/*!\brief Warten, bis der Socket beschreibbar ist
+ *
+ * \desc
+ * Diese Funktion prüft, ob Daten auf den Socket geschrieben werden können.
+ * Ist dies der Fall, kehrt sie sofort wieder zurück. Andernfalls wartet
+ * sie solange, bis der Socket beschrieben werden kann, maximal aber die
+ * mit \p seconds und \p useconds angegebene Zeitspanne.
+ * Falls \p seconds und \p useconds Null sind, und
+ * keine Daten gesendet werden können, kehrt die Funktion sofort zurück.
+ *
+ * @param[in] seconds Anzahl Sekunden, die gewartet werden soll
+ * @param[in] useconds Anzahl Mikrosekunden, die gewartet werden soll
+ * @return Die Funktion gibt \b true zurück, wenn Daten geschrieben werden können,
+ * sonst \b false. Im Fehlerfall wird eine Exception geworfen.
+ * @exception Diverse
+ *
+ */
+bool TCPSocket::waitForOutgoingData(int seconds, int useconds)
+{
+	if (!connected) throw NotConnectedException();
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	fd_set rset, wset, eset;
+	struct timeval timeout;
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
+
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&wset); // Wir wollen nur prüfen, ob wir schreiben können
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		throwExceptionFromErrno(errno, "TCPSocket::waitForOutgoingData");
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
+	}
+	if (FD_ISSET(s->sd,&wset)) {
+		return true;
+	}
+	return false;
 }
 
 
@@ -1489,279 +1586,6 @@ int CTCPSocket::Listen(int timeout)
 }
 
 
-
-
-
-/*!\brief Auf eingehende Daten warten
- *
- * \desc
- * Diese Funktion prüft, ob Daten eingegangen sind. Ist dies der Fall,
- * kehrt sie sofort wieder zurück. Andernfalls wartet sie solange, bis
- * Daten eingehen, maximal aber die mit \p seconds und \p useconds
- * angegebene Zeitspanne. Falls \p seconds und \p useconds Null sind, und
- * keine Daten bereitstehen, kehrt die Funktion sofort zurück.
- * \par
- * Falls über die Funktion CTCPSocket::WatchThread ein Thread angegeben
- * wurde, kehrt die Funktion nicht nach erreichen des Timeouts zurück,
- * sondern erst wenn dem Thread ein Stopsignal gegeben wird, bzw. wenn Daten
- * bereitstehen.
- *
- * @param[in] seconds Anzahl Sekunden, die gewartet werden soll
- * @param[in] useconds Anzahl Mikrosekunden, die gewartet werden soll
- * @return Die Funktion gibt 1 zurück, wenn Daten zum Lesen bereitstehen,
- * sonst 0. Der Fehlercode 174 zeigt an, dass ein Timeout aufgetreten ist,
- * und man die Funktion nochmal aufrufen kann. Alle anderen Fehlercodes
- * weisen auf einen richtigen Fehler hin, meist einen Verbindungsabbruch.
- *
- */
-int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
-{
-#ifndef _WIN32
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!connected) {
-		SetError(275);
-		return 0;
-	}
-	fd_set rset, wset, eset;
-	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
-
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&rset); // Wir wollen nur prüfen, ob was zu lesen da ist
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-		if (ret<0) {
-			DispatchErrno();
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
-			return 0;
-		}
-		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		if (FD_ISSET(s->sd,&rset)) {
-			char buf[2];
-			ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
-			// Kommt hier ein Fehler zurück?
-			if (ret<0) {
-				DispatchErrno();
-				return 0;
-			}
-			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-			if (ret==0) {
-				SetError(308); // EPIPE
-				return 0;
-			}
-			return 1;
-		}
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174); // Timeout
-			return 0;
-		}
-	}
-	return 0;
-#else
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!connected) {
-		SetError(275);
-		return 0;
-	}
-	fd_set rset, wset, eset;
-	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
-
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&rset); // Wir wollen nur prüfen, ob was zu lesen da ist
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-		if (ret<0) {
-			DispatchErrno();
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
-			return 0;
-		}
-		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		if (FD_ISSET(s->sd,&rset)) {
-			char buf[2];
-			ret=recv(s->sd, buf,1, MSG_PEEK);
-			// Kommt hier ein Fehler zurück?
-			if (ret<0) {
-				DispatchErrno();
-				return 0;
-			}
-			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-			if (ret==0) {
-				SetError(308); // EPIPE
-				return 0;
-			}
-			return 1;
-		}
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174); // Timeout
-			return 0;
-		}
-	}
-	return 0;
-#endif
-}
-
-/*!\brief Warten, bis der Socket beschreibbar ist
- *
- * \desc
- * Diese Funktion prüft, ob Daten auf den Socket geschrieben werden können.
- * Ist dies der Fall, kehrt sie sofort wieder zurück. Andernfalls wartet
- * sie solange, bis der Socket beschrieben werden kann, maximal aber die
- * mit \p seconds und \p useconds angegebene Zeitspanne.
- * Falls \p seconds und \p useconds Null sind, und
- * keine Daten gesendet werden können, kehrt die Funktion sofort zurück.
- * \par
- * Falls über die Funktion CTCPSocket::WatchThread ein Thread angegeben
- * wurde, kehrt die Funktion nicht nach erreichen des Timeouts zurück,
- * sondern erst wenn dem Thread ein Stopsignal gegeben wird, bzw. wenn
- * der Socket beschrieben werden kann.
- *
- * @param[in] seconds Anzahl Sekunden, die gewartet werden soll
- * @param[in] useconds Anzahl Mikrosekunden, die gewartet werden soll
- * @return Die Funktion gibt 1 zurück, wenn Daten geschrieben werden können,
- * sonst 0. Der Fehlercode 174 zeigt an, dass ein Timeout aufgetreten ist,
- * und man die Funktion nochmal aufrufen kann. Alle anderen Fehlercodes
- * weisen auf einen richtigen Fehler hin, meist einen Verbindungsabbruch.
- *
- */
-int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
-{
-#ifndef _WIN32
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!connected) {
-		SetError(275);
-		return 0;
-	}
-	fd_set rset, wset, eset;
-	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
-
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&wset); // Wir wollen nur prüfen, ob wir schreiben können
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-		if (ret<0) {
-			DispatchErrno();
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&wset)) {
-			return 1;
-		}
-		/*
-		 // Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		 if (FD_ISSET(s->sd,&rset)) {
-		 char buf[2];
-		 ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
-		 // Kommt hier ein Fehler zurück?
-		 if (ret<0) {
-		 DispatchErrno();
-		 return 0;
-		 }
-		 // Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		 if (ret==0) {
-		 SetError(308);	// EPIPE
-		 return 0;
-		 }
-		 }
-		 */
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174); // Timeout
-			return 0;
-		}
-	}
-	return 0;
-#else
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (!connected) {
-		SetError(275);
-		return 0;
-	}
-	fd_set rset, wset, eset;
-	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
-
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&wset); // Wir wollen nur prüfen, ob wir schreiben können
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-		if (ret<0) {
-			DispatchErrno();
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&wset)) {
-			return 1;
-		}
-		/*
-		 // Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		 if (FD_ISSET(s->sd,&rset)) {
-		 char buf[2];
-		 ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
-		 // Kommt hier ein Fehler zurück?
-		 if (ret<0) {
-		 DispatchErrno();
-		 return 0;
-		 }
-		 // Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		 if (ret==0) {
-		 SetError(308);	// EPIPE
-		 return 0;
-		 }
-		 }
-		 */
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174); // Timeout
-			return 0;
-		}
-	}
-	return 0;
-#endif
-}
 
 #endif	// TODO
 
