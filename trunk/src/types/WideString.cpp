@@ -432,6 +432,18 @@ size_t WideString::size() const
 	return stringlen;
 }
 
+/*!\brief Länge des Strings in Byte
+ *
+ * \desc
+ * Diese Funktion gibt die Anzahl Byte zurück, die durch den String belegt werden.
+ *
+ * @return Anzahl Bytes
+ */
+size_t WideString::byteLength() const
+{
+	return stringlen*sizeof(wchar_t);
+}
+
 /*! \brief Prüft, ob der String leer ist.
  *
  * \desc

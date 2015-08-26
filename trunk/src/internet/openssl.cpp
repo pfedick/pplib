@@ -993,7 +993,7 @@ int CTCPSocket::ConnectSSL(const char *host, int port, SSLContext *ssl)
 	if (!SSL_Start()) return 0;
 	return 1;
 }
-
+#endif
 
 /*!\brief Verschlüsselte Daten schreiben
  *
@@ -1021,14 +1021,13 @@ int CTCPSocket::ConnectSSL(const char *host, int port, SSLContext *ssl)
  *       occurred or action must be taken by the calling process. Call
  *       SSL_get_error() with the return value ret to find out the reason.
  */
-int CTCPSocket::SSL_Write(const void *buffer, int size)
+int TCPSocket::SSL_Write(const void *buffer, int size)
 {
 	#ifdef HAVE_OPENSSL
 		int bytes=::SSL_write((SSL*)ssl,buffer,size);
 		return bytes;
 	#else
-		SetError(292);
-		return 0;
+		throw UnsupportedFeatureException("OpenSSL");
 	#endif
 }
 
@@ -1047,17 +1046,17 @@ int CTCPSocket::SSL_Write(const void *buffer, int size)
  * @return Die Funktion gibt die Anzahl erfolgreich gelesener Bytes zurück, im Fehlefall
  * 0 oder einen negativen Wert.
  */
-int CTCPSocket::SSL_Read(void *buffer, int size)
+int TCPSocket::SSL_Read(void *buffer, int size)
 {
 	#ifdef HAVE_OPENSSL
 		int bytes=::SSL_read((SSL*)ssl,buffer,size);
 		return bytes;
 	#else
-		SetError(292);
-		return 0;
+		throw UnsupportedFeatureException("OpenSSL");
 	#endif
 }
 
+#ifdef TODO
 /*!\brief Socket als SSL-Server vorbereiten
  *
  * \desc
