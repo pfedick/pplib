@@ -531,6 +531,7 @@ class WideString : public Variant
 		size_t len() const;
 		size_t length() const;
 		size_t size() const;
+		size_t byteLength() const;
 		bool	isEmpty() const;
 		bool	notEmpty() const;
 		bool	isNumeric() const;

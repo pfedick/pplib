@@ -70,6 +70,11 @@ PPLEXCEPTION(CantSendAfterSocketShutdownException,NetworkException);
 PPLEXCEPTION(TooManyReferencesException,NetworkException);
 PPLEXCEPTION(HostDownException,NetworkException);
 PPLEXCEPTION(NoRouteToHostException,NetworkException);
+PPLEXCEPTION(InvalidSocketException,NetworkException);
+PPLEXCEPTION(UnknownOptionException,NetworkException);
+PPLEXCEPTION(OutOfBandDataReceivedException,NetworkException);
+PPLEXCEPTION(BrokenPipeException,NetworkException);
+
 
 
 
@@ -313,8 +318,8 @@ class TCPSocket
 		void *ssl;
 		bool	connected;
 		bool	islisten;
-		int		BytesWritten;
-		int		BytesRead;
+		//int		BytesWritten;
+		//int		BytesRead;
 		int		connect_timeout_sec;
 		int		connect_timeout_usec;
         bool    stoplisten;
@@ -335,13 +340,14 @@ class TCPSocket
 		void connect(const String &host_and_port);
 		void connect(const String &host, int port);
 		void setTimeoutConnect(int seconds, int useconds);
+		bool isConnected() const;
 		//@}
 
 		//! @name TCP-Server functions
 		//@{
 		void bind(const char *ip, int port);
 		virtual int receiveConnect(TCPSocket *socket, const String &host, int port);
-		bool isListening();
+		bool isListening() const;
         void stopListen();
 		void signalStopListen();
         void listen(int timeout=100);
@@ -355,27 +361,22 @@ class TCPSocket
 
         void disconnect();
         void shutdown();
-		int write(const String &str);
-		int write(const ByteArrayPtr &bin);
-		int write(const String *str);
-		int write(const void *buffer, int bytes);
-		int writeBuffer(const void *buffer, int bytes);
-		int writef(const char *fmt, ...);
-		int write(SocketMessage &msg);
-		int read(void *buffer, int bytes);
-		int read(String &buffer, int bytes);
-		int read(ByteArray &buffer, int bytes);
-		char *read(int bytes);
-		int readOnce(void *buffer, int bytes);
-		int readOnce(String &buffer, int bytes);
-		char *readOnce(int bytes);
+		size_t write(const String &str, size_t bytes=0);
+		size_t write(const WideString &str, size_t bytes=0);
+		size_t write(const ByteArrayPtr &bin, size_t bytes=0);
+		size_t write(const void *buffer, size_t bytes);
+		size_t writef(const char *fmt, ...);
+		//int write(SocketMessage &msg);
+		size_t read(void *buffer, size_t bytes);
+		size_t read(String &buffer, size_t bytes);
+		size_t read(ByteArray &buffer, size_t bytes);
 
 		int getDescriptor();
-		int setBlocking(bool value);
-		int isWriteable();
-		int isReadable();
-		int waitForIncomingData(int seconds, int useconds);
-		int waitForOutgoingData(int seconds, int useconds);
+		void setBlocking(bool value);
+		bool isWriteable();
+		bool isReadable();
+		void waitForIncomingData(int seconds, int useconds);
+		void waitForOutgoingData(int seconds, int useconds);
 		//@}
 
 		//! @name SSL Encryption
@@ -396,19 +397,13 @@ class TCPSocket
 
 		//! @name TODO
 		//@{
-
-		void dispatchErrno();
-		int getBytesWritten();
-		int getBytesRead();
-		bool isConnected();
-        int	waitForMessage(SocketMessage &msg, int timeout=0);
-        int watchThread(Thread *thread);
+        //int	waitForMessage(SocketMessage &msg, int timeout=0);
 		//@}
 
 		//! @name Depreceated
 		//@{
-		int connectSSL(const char *host_and_port, SSLContext *ssl=NULL);
-		int connectSSL(const char *host, int port, SSLContext *ssl=NULL);
+		//int connectSSL(const char *host_and_port, SSLContext *ssl=NULL);
+		//int connectSSL(const char *host, int port, SSLContext *ssl=NULL);
 		//@}
 };
 

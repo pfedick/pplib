@@ -214,6 +214,9 @@ void throwExceptionFromErrno(int e,const String &info)
 		case ECONNREFUSED: throw ConnectionRefusedException(info);
 		case EHOSTDOWN: throw HostDownException(info);
 		case EHOSTUNREACH: throw NoRouteToHostException(info);
+		case ENOTSOCK: throw InvalidSocketException(info);
+		case ENOPROTOOPT: throw UnknownOptionException(info);
+
 		/*
 
 		 *
