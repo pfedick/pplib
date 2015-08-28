@@ -65,7 +65,6 @@ PPLEXCEPTION(SoftwareCausedConnectionAbortException,NetworkException);
 PPLEXCEPTION(ConnectionResetByPeerException,NetworkException);
 PPLEXCEPTION(NoBufferSpaceException,NetworkException);
 PPLEXCEPTION(SocketIsAlreadyConnectedException,NetworkException);
-PPLEXCEPTION(SocketIsNotConnectedException,NetworkException);
 PPLEXCEPTION(CantSendAfterSocketShutdownException,NetworkException);
 PPLEXCEPTION(TooManyReferencesException,NetworkException);
 PPLEXCEPTION(HostDownException,NetworkException);
@@ -74,6 +73,11 @@ PPLEXCEPTION(InvalidSocketException,NetworkException);
 PPLEXCEPTION(UnknownOptionException,NetworkException);
 PPLEXCEPTION(OutOfBandDataReceivedException,NetworkException);
 PPLEXCEPTION(BrokenPipeException,NetworkException);
+PPLEXCEPTION(SSLNotInitializedException,NetworkException);
+PPLEXCEPTION(SSLInstanceNotInitializedException,NetworkException);
+PPLEXCEPTION(SSLConnectionFailedException,NetworkException);
+
+
 
 
 
@@ -311,9 +315,7 @@ class TCPSocket
 {
 	private:
 		Mutex	mutex;
-		SSLContext		*sslclass;
-		Thread	*thread;
-		void		*sslreference;
+		SSLContext		*sslcontext;
 		void *socket;
 		void *ssl;
 		bool	connected;
@@ -381,17 +383,11 @@ class TCPSocket
 
 		//! @name SSL Encryption
 		//@{
-
-		int sslInit(SSLContext *ssl);
-		int sslShutdown();
-		int sslInitClient();
-		int sslInit_Server();
-		int sslStart();
-		int sslStop();
+		void sslStart(SSLContext &context);
+		void sslStop();
 		int sslCheckCertificate(const char *hostname, bool AcceptSelfSignedCert=false);
-		int sslAccept();
+		void sslAccept(SSLContext &context);
 		int sslWaitForAccept(int timeout=0);
-
 		//@}
 
 
