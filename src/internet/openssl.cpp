@@ -707,8 +707,6 @@ void SSLContext::setCipherList(const String &cipherlist)
 }
 
 
-#ifdef TODO
-
 /** @name SSL-Verschlüsselung
  *  Die nachfolgenden Befehle werden benötigt, wenn die Kommunikation zwischen Client
  *  und Server mit SSL verschlüsselt werden soll. Voraussetzung dafür ist, dass die PPL-Library
@@ -717,138 +715,93 @@ void SSLContext::setCipherList(const String &cipherlist)
  */
 //@{
 
-/*!\brief Socket als SSL-Client vorbereiten
- *
- * \desc
- * Diese Funktion muss aufgerufen werden, wenn über eine bereits bestehende TCP-Verbindung
- * SSL-Verschlüsselung aktiviert werden soll. Dazu muss nach dem Connect zunächst CTCPSocket::SSL_Init_Client
- * gefolgt von CTCPSocket::SSL_Start aufgerufen werden.
- *
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-int CTCPSocket::SSL_Init_Client()
-{
-	#ifdef HAVE_OPENSSL
-		if (!SSLisInitialized) {
-			SetError(317);
-			return 0;
-		}
- 		if (!connected) {
-			SetError(275);
-			if (log) log->LogError(5);
-        	return 0;
-    	}
-		if (!sslclass) {
-			SetError(321);
-			return 0;
-		}
-		if (!ssl) {
-			PPLSOCKET *s=(PPLSOCKET*)socket;
-			//ssl=SSL_new((SSL_CTX*)ctx);
-			ssl=sslclass->NewSSL();
-			if (!ssl) {
-				//SetError(322,"SSL_new");
-				return 0;
-			}
-			SSL_set_fd((SSL*)ssl,s->sd);
-			//SSL_set_mode((SSL*)ssl, SSL_MODE_AUTO_RETRY);
-			SSL_set_connect_state((SSL*)ssl);
-		}
-		return 1;
-	#else
-		SetError(292);
-		return 0;
-	#endif
-}
 
 /*!\brief SSL-Kommunikation starten
  *
  * \desc
  * Durch Aufruf dieser Funktion wird die SSL-Kommunikation über eine bereits bestehende TCP-Verbindung
- * zu einem Server gestartet. Um wieder unverschlüsselt kommunizieren zu können, muss CTCPSocket::SSL_Stop
+ * zu einem Server gestartet. Um wieder unverschlüsselt kommunizieren zu können, muss CTCPSocket::sslStop
  * aufgerufen werden.
- *
- * @return Wenn die SSL-Kommunikation mit dem Server erfolgreich gestartet werden konnte, liefert die
- * Funktion 1 zurück, im Fehlerfall 0.
+ * @exception Diverse Falls die SSL-Kommunikation nicht gestartet werden kann, wird eine Exception
+ * geworfen
  */
-int CTCPSocket::SSL_Start()
+void TCPSocket::sslStart(SSLContext &context)
 {
-	#ifdef HAVE_OPENSSL
-		if (!ssl) {
-			SetError(331);
-			return 0;
-		}
-		if (connect_timeout_sec>0 || connect_timeout_usec>0) {
-			SetBlocking(false);
-			struct timeval tval;
-			fd_set rset, wset;
-			int n;
-			int sockfd=((PPLSOCKET*)socket)->sd;
-			tval.tv_sec=connect_timeout_sec;
-			tval.tv_usec=connect_timeout_usec;
-			FD_ZERO(&rset);
-			FD_SET(sockfd, &rset);
-			wset=rset;
-			int res;
-			while ((res=SSL_connect((SSL*)ssl))<1) {
-				if (thread!=NULL && thread->ThreadShouldStop()) {
-					SSL_shutdown((SSL*)ssl);
-					SSL_free((SSL*)ssl);
-					ssl=NULL;
-					SetError(336);
-					return 0;
-				}
-				if (res==0) {
-					SetError(322,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
-					SSL_shutdown((SSL*)ssl);
-					SSL_free((SSL*)ssl);
-					ssl=NULL;
-					return 0;
-				}
-				int e=SSL_get_error((SSL*)ssl,res);
-				//printf ("res=%i, e=%i, state=%x: %s\n",res,e,SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
-				if (e==SSL_ERROR_WANT_READ) {
-					if ((n=select(sockfd+1,&rset,NULL,NULL,&tval))==0) {
-						SetError(174,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
-						SSL_shutdown((SSL*)ssl);
-						SSL_free((SSL*)ssl);
-						ssl=NULL;
-						return 0;
-					}
-				} else if (e==SSL_ERROR_WANT_WRITE) {
-					if ((n=select(sockfd+1,NULL,&wset,NULL,&tval))==0) {
-						SetError(174,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
-						SSL_shutdown((SSL*)ssl);
-						SSL_free((SSL*)ssl);
-						ssl=NULL;
-						return 0;
-					}
-				} else {
-					SetError(174,"SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
-					SSL_shutdown((SSL*)ssl);
-					SSL_free((SSL*)ssl);
-					ssl=NULL;
-					return 0;
-				}
-			}
-			SetBlocking(true);
-		} else {
-			int res=SSL_connect((SSL*)ssl);
-			if (res<1) {
-				SetError(322,"SSL_connect: %s",ssl_geterror((SSL*)ssl,res));
+#ifndef HAVE_OPENSSL
+	throw UnsupportedFeatureException("OpenSSL");
+#else
+	if (ssl) sslStop();
+	ssl=context.newSSL();
+	sslcontext=&context;
+	if (!isConnected()) throw NotConnectedException();
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	SSL_set_fd((SSL*)ssl,s->sd);
+	//SSL_set_mode((SSL*)ssl, SSL_MODE_AUTO_RETRY);
+	SSL_set_connect_state((SSL*)ssl);
+
+	if (connect_timeout_sec>0 || connect_timeout_usec>0) {
+		setBlocking(false);
+		struct timeval tval;
+		fd_set rset, wset;
+		int n;
+		int sockfd=((PPLSOCKET*)socket)->sd;
+		tval.tv_sec=connect_timeout_sec;
+		tval.tv_usec=connect_timeout_usec;
+		FD_ZERO(&rset);
+		FD_SET(sockfd, &rset);
+		wset=rset;
+		int res;
+		while ((res=SSL_connect((SSL*)ssl))<1) {
+			/*
+			if (thread!=NULL && thread->ThreadShouldStop()) {
 				SSL_shutdown((SSL*)ssl);
 				SSL_free((SSL*)ssl);
 				ssl=NULL;
+				SetError(336);
 				return 0;
 			}
+			*/
+			if (res==0) {
+				ppl7::String Error;
+				Error.setf("SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+				sslStop();
+				throw SSLConnectionFailedException(Error);
+			}
+			int e=SSL_get_error((SSL*)ssl,res);
+			//printf ("res=%i, e=%i, state=%x: %s\n",res,e,SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+			if (e==SSL_ERROR_WANT_READ) {
+				if ((n=select(sockfd+1,&rset,NULL,NULL,&tval))==0) {
+					ppl7::String Error;
+					Error.setf("Socket not ready for reading. SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					sslStop();
+					throw SSLConnectionFailedException(Error);
+				}
+			} else if (e==SSL_ERROR_WANT_WRITE) {
+				if ((n=select(sockfd+1,NULL,&wset,NULL,&tval))==0) {
+					ppl7::String Error;
+					Error.setf("Socket not ready for writing. SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					sslStop();
+					throw SSLConnectionFailedException(Error);
+				}
+			} else {
+				ppl7::String Error;
+				Error.setf("SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+				sslStop();
+				throw SSLConnectionFailedException(Error);
+			}
 		}
-		return 1;
-	#else
-		SetError(292);
-		return 0;
-	#endif
+		setBlocking(false);
+	} else {
+		int res=SSL_connect((SSL*)ssl);
+		if (res<1) {
+			ppl7::String Error;
+			Error.setf("SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+			sslStop();
+			throw SSLConnectionFailedException(Error);
+		}
+	}
+#endif
 }
-
 
 /*!\brief SSL-Kommunikation stoppen
  *
@@ -857,143 +810,21 @@ int CTCPSocket::SSL_Start()
  * die Verbindung dadurch nicht geschlossen wird, kann mit der Gegenstelle wieder unverschlüsselt
  * kommuniziert werden.
  *
- * @return Wenn die SSL-Kommunikation erfolgreich beendet werden konnte, liefert die
- * Funktion 1 zurück, im Fehlerfall 0.
+ * @exception Keine Durch Aufruf dieser Funktion wird keine Exception geworfen.
  *
- * @return
  */
-int CTCPSocket::SSL_Stop()
+void TCPSocket::sslStop()
 {
-	#ifdef HAVE_OPENSSL
-		if (!SSLisInitialized) {
-			SetError(317);
-			return 0;
-		}
-		if (ssl) {
-			SSL_shutdown((SSL*)ssl);
-			SSL_free((SSL*)ssl);
-			ssl=NULL;
-		}
-		//mutex.Unlock();
-		return 1;
-	#else
-		SetError(292);
-		return 0;
-	#endif
-
-}
-
-/*!\brief Verwendung von OpenSSL initialisieren
- *
- * \desc
- * Falls beabsichtigt wird mit diesem Socket verschlüsselt zu kommunizieren, muss diese Funktion noch
- * vor Verbindungsaufbau aufgerufen werden. Als Parameter \p ssl bekommt sie einen Pointer auf eine SSLContext-Klasse.
- * Diese muss ebenfalls vor Verwendung initialisiert worden sein.
- *
- * @param[in] ssl Pointer auf eine SSLContext-Klasse
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-int CTCPSocket::SSL_Init(SSLContext *ssl)
-{
-	if (!ssl) {
-		SetError(194);
-		return 0;
-	}
-	SSL_Shutdown();
-	sslreference=ssl->RegisterSocket(this);
-	if (!sslreference) return 0;
-	sslclass=ssl;
-	return 1;
-}
-
-/*!\brief SSL für diese Klasse deinitialisieren
- *
- * \desc
- * Wurde mit dieser Socket-Klasse SSL-Verschlüsselung verwendet, muss nach beendigung der Verbindung diese Funktion
- * aufgerufen werde. Dies wird com Destruktor der Klasse automatisch durchgeführt, so dass ein manueller Aufruf
- * durch die Anwendung in der Regel nicht erforderlich ist.
- *
- * @return Die Funktion gibt zur Zeit immer 1 zurück.
- */
-
-int CTCPSocket::SSL_Shutdown()
-{
-	SSL_Stop();
-	if (sslclass) {
-		sslclass->ReleaseSocket(this,sslreference);
-		sslclass=NULL;
-		sslreference=NULL;
-	}
-	return 1;
-}
-
-
-/*!\brief Verschlüsselte Verbindung aufbauen
- *
- * \desc
- * Mit dieser Funktion wird zunächst eine Verbindung zur gewünschten Zieladresse \p host
- * aufgebaut und dann die SSL-Verschlüsselung gestartet.
- *
- * \param[in] host Der Parameter "host" muss das Format "hostname:port" haben, wobei
- * "hostname" auch eine IP-Adresse sein kann. Der Port kann entweder als Zahl oder
- * als Servicename angegeben werden, z.B. "smtp" für Port 25.
- * \param[in] ssl Optionaler Pointer auf ein SSLContext-Objekt. Wird es nicht angegeben, erstellt
- * die Klasse selbst eins mit Default-Parametern. Es ist flexibler, ein eigenes Objekt
- * zu erstellen, da man damit auch beliebige zusätzliche Zertifikate laden oder bestimmte
- * Verschlüsselungs-Algorithmen definieren kann.
- * \return Konnte die Verbindung erfolgreich aufgebaut werden, wird true (1) zurückgegeben,
- * im Fehlerfall false (0).
- * \since Seit Version 6.0.18 kann der Port statt als Nummer auch als Servicenamen angegeben
- * werden.
- */
-int CTCPSocket::ConnectSSL(const char *host, SSLContext *ssl)
-{
-    if (!host) {
-        SetError(270);
-        return 0;
-    }
-	CTok hostname;
-	hostname.Split(host,":");
-	if (hostname.Num()!=2) {
-		SetError(291);
-		return 0;
-	}
-	int port=atoi(hostname.Get(1));
-	if (port<=0) {
-        SetError(271);
-        return 0;
-	}
-	return ConnectSSL(hostname.Get(0),port, ssl);
-}
-
-/*!\brief Verschlüsselte Verbindung aufbauen
- *
- * \desc
- * Mit dieser Funktion wird zunächst eine Verbindung zur gewünschten Zieladresse \p host
- * aufgebaut und dann die SSL-Verschlüsselung gestartet.
- *
- * \param[in] host Der Hostname oder die IP-Adresse des Zielrechners
- * \param[in] port Der gewünschte Zielport
- * \param[in] ssl Optionaler Pointer auf ein SSLContext-Objekt. Wird es nicht angegeben, erstellt
- * die Klasse selbst eins mit Default-Parametern. Es ist flexibler, ein eigenes Objekt
- * zu erstellen, da man damit auch beliebige zusätzliche Zertifikate laden oder bestimmte
- * Verschlüsselungs-Algorithmen definieren kann.
- * \return Konnte die Verbindung erfolgreich aufgebaut werden, wird true (1) zurückgegeben,
- * im Fehlerfall false (0).
- * \since Seit Version 6.0.18 kann der Port statt als Nummer auch als Servicenamen angegeben
- * werden.
- */
-int CTCPSocket::ConnectSSL(const char *host, int port, SSLContext *ssl)
-{
+#ifdef HAVE_OPENSSL
 	if (ssl) {
-		if (!SSL_Init(ssl)) return 0;
+		SSL_shutdown((SSL*)ssl);
+		if (sslcontext) sslcontext->releaseSSL(ssl);
+		else SSL_free((SSL*)ssl);
 	}
-	if (!Connect(host,port)) return 0;
-	if (!SSL_Init_Client()) return 0;
-	if (!SSL_Start()) return 0;
-	return 1;
-}
+	ssl=NULL;
+	sslcontext=NULL;
 #endif
+}
 
 /*!\brief Verschlüsselte Daten schreiben
  *
@@ -1057,50 +888,7 @@ int TCPSocket::SSL_Read(void *buffer, int size)
 }
 
 #ifdef TODO
-/*!\brief Socket als SSL-Server vorbereiten
- *
- * \desc
- * Falls mit diesem Socket ein SSL-fähiger Server gestartet werden soll, muss nach Verbindungseingang CTCPSocket::Init_SSL
- * gefolgt von dieser Funktion aufgerufen werden. Damit wird dem Client mitgeteilt, dass der Server nun verschlüsselt
- * kommunizieren möchte. Mit CTCPSocket::SSL_Accept kann geprüft werden, ob der Client bereits zugestimmt hat, mit
- * CTCPSocket::SSL_WaitForAccept wird gewartet, bis der Client zustimmt oder ein Timeout auftritt.
- *
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-int CTCPSocket::SSL_Init_Server()
-{
-	#ifdef HAVE_OPENSSL
-		if (!SSLisInitialized) {
-			SetError(317);
-			return 0;
-		}
- 		if (!connected) {
-			SetError(275);
-			if (log) log->LogError(5);
-        	return 0;
-    	}
-		if (!sslclass) {
-			SetError(321);
-			return 0;
-		}
-		if (!ssl) {
-			PPLSOCKET *s=(PPLSOCKET*)socket;
-			//ssl=SSL_new((SSL_CTX*)ctx);
-			ssl=sslclass->NewSSL();
-			if (!ssl) {
-				//SetError(322,"SSL_new");
-				return 0;
-			}
-			SSL_set_fd((SSL*)ssl,s->sd);
-			//SSL_set_mode((SSL*)ssl, SSL_MODE_AUTO_RETRY);
-			SSL_set_accept_state((SSL*)ssl);
-		}
-		return 1;
-	#else
-		SetError(292);
-		return 0;
-	#endif
-}
+
 
 /*!\brief Auf eine TLS/SSL-Handshake warten
  *

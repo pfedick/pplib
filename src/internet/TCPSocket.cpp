@@ -182,11 +182,7 @@ TCPSocket::TCPSocket()
 	islisten = false;
 	stoplisten = false;
 	ssl = NULL;
-	sslclass = NULL;
-	sslreference = NULL;
-	thread = NULL;
-	//BytesWritten=0;
-	//BytesRead=0;
+	sslcontext = NULL;
 	connect_timeout_sec = 0;
 	connect_timeout_usec = 0;
 	SourcePort = 0;
@@ -202,7 +198,7 @@ TCPSocket::TCPSocket()
  */
 TCPSocket::~TCPSocket()
 {
-	// TODO: sslShutdown();
+	sslStop();
 	if (connected)
 		disconnect();
 	if (islisten)
