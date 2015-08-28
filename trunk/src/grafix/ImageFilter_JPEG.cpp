@@ -102,8 +102,8 @@ typedef struct {
 } SOURCE_MGR;
 
 static char EOI_Marker[]={
-	(ppluint8)0xFF,
-	(ppluint8)JPEG_EOI
+	(pplint8)0xFF,
+	(pplint8)JPEG_EOI
 };
 
 METHODDEF(void)

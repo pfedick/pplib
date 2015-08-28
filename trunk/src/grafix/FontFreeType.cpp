@@ -216,8 +216,8 @@ static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const
 {
 	ppluint8 v=0;
 	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
-	for (int gy=0;gy<bitmap->rows;gy++) {
-		for (int gx=0;gx<bitmap->width;gx++) {
+	for (unsigned int gy=0;gy<bitmap->rows;gy++) {
+		for (unsigned int gx=0;gx<bitmap->width;gx++) {
 			v=glyph[gx];
 			if (v>0) {
 				draw.blendPixel(x+gx,y+gy,color,v);
@@ -233,10 +233,10 @@ static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, con
 	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
 	ppluint8 bitcount;
 	ppluint8 bytecount;
-	for (int gy=0;gy<bitmap->rows;gy++) {
+	for (unsigned int gy=0;gy<bitmap->rows;gy++) {
 		bitcount=0;
 		bytecount=0;
-		for (int gx=0;gx<bitmap->width;gx++) {
+		for (unsigned int gx=0;gx<bitmap->width;gx++) {
 			if (!bitcount) {
 				v=glyph[bytecount];
 				bitcount=8;
