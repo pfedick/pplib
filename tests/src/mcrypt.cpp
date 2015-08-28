@@ -163,7 +163,9 @@ TEST_F(MCryptTest, needIV) {
 }
 
 TEST_F(MCryptTest, cryptAndDecryptWithPtr) {
-	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+	const char cryptedBytes[]={
+			(char)0xc5, (char)0xab, (char)0x39, (char)0xaf, (char)0xcc,
+			(char)0xe6, (char)0x2b, (char)0xf3, (char)0xf4, (char)0x39, (char)0x2e };
 
 	ppl7::ByteArray uncrypted("Hello World",11);
 	ppl7::ByteArray myText=uncrypted;
@@ -185,7 +187,9 @@ TEST_F(MCryptTest, cryptAndDecryptWithPtr) {
 }
 
 TEST_F(MCryptTest, cryptAndDecryptWithByteArrayPtr) {
-	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+	const char cryptedBytes[]={
+			(char)0xc5, (char)0xab, (char)0x39, (char)0xaf, (char)0xcc,
+			(char)0xe6, (char)0x2b, (char)0xf3, (char)0xf4, (char)0x39, (char)0x2e };
 
 	ppl7::ByteArray uncrypted("Hello World",11);
 	ppl7::ByteArray myText=uncrypted;
@@ -207,7 +211,9 @@ TEST_F(MCryptTest, cryptAndDecryptWithByteArrayPtr) {
 }
 
 TEST_F(MCryptTest, cryptAndDecryptWithStringVariant) {
-	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+	const char cryptedBytes[]={
+			(char)0xc5, (char)0xab, (char)0x39, (char)0xaf, (char)0xcc,
+			(char)0xe6, (char)0x2b, (char)0xf3, (char)0xf4, (char)0x39, (char)0x2e };
 
 	ppl7::ByteArray uncrypted("Hello World",11);
 	ppl7::String myText="Hello World";
@@ -246,7 +252,9 @@ TEST_F(MCryptTest, staticCryptWithoutIV) {
 }
 
 TEST_F(MCryptTest, staticCryptWithIV) {
-	const char cryptedBytes[]={0xc5, 0xab, 0x39, 0xaf, 0xcc, 0xe6, 0x2b, 0xf3, 0xf4, 0x39, 0x2e };
+	const char cryptedBytes[]={
+			(char)0xc5, (char)0xab, (char)0x39, (char)0xaf, (char)0xcc,
+			(char)0xe6, (char)0x2b, (char)0xf3, (char)0xf4, (char)0x39, (char)0x2e };
 	ppl7::ByteArray crypted(cryptedBytes,sizeof(cryptedBytes));
 	ppl7::ByteArray uncrypted("Hello World",11);
 	ppl7::ByteArray myText=uncrypted;
