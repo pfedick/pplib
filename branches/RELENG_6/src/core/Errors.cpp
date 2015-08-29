@@ -395,7 +395,7 @@ static tr_str_array const char * errors[] = {
 		"SSL ist nicht gestartet",										// 331
 		"SSL_Accept fehlgeschlagen",									// 332
 		"Ungueltige SSL-Cipher-List",									// 333
-		"Socket konnte nocht mit SO_REUSEADDR konfiguriert werden",		// 334
+		"Socket konnte nicht mit SO_REUSEADDR konfiguriert werden",		// 334
 		"PPL6Core konnte nicht initialisiert werden",					// 335
 		"Thread Stop-Flag gesetzt",										// 336
 		"Ungueltiger Datentyp",											// 337
