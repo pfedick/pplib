@@ -177,6 +177,7 @@ TCPSocket::TCPSocket()
 #ifdef _WIN32
 	InitSockets();
 #endif
+	PortNum=0;
 	socket = NULL;
 	connected = false;
 	islisten = false;
@@ -288,6 +289,7 @@ void TCPSocket::disconnect()
 	if (islisten) {
 		stopListen();
 	}
+	sslStop();
 	//if (s->sd>0) shutdown(s->sd,2);
 	connected = false;
 	if (s->sd > 0) {
@@ -327,6 +329,7 @@ void TCPSocket::shutdown()
 	if (islisten) {
 		stopListen();
 	}
+	sslStop();
 	//if (s->sd>0) shutdown(s->sd,2);
 	connected = false;
 	if (s->sd > 0) {
@@ -476,7 +479,7 @@ static int out_bind(const char *host, int port)
 	if (listenfd <= 0)
 		throw CouldNotOpenSocketException("Host: %s, Port: %d", host, port);
 	if (res == NULL)
-		throw CouldNotBindToSourceInterfaceException("Host: %s, Port: %d", host, port);
+		throw CouldNotBindToInterfaceException("Host: %s, Port: %d", host, port);
 	return listenfd;
 }
 #endif
@@ -988,8 +991,9 @@ size_t TCPSocket::read(void *buffer, size_t bytes)
 	} else {
 		BytesRead=::recv(s->sd,(char*)buffer,bytes,0);
 	}
-	if (BytesRead>=0) return BytesRead;
-	throwExceptionFromErrno(errno, "TCPSocket::read");
+	if (BytesRead<0)
+		throwExceptionFromErrno(errno, "TCPSocket::read");
+	return BytesRead;
 }
 
 size_t TCPSocket::read(String &buffer, size_t bytes)
@@ -1237,6 +1241,116 @@ bool TCPSocket::waitForOutgoingData(int seconds, int useconds)
 		return true;
 	}
 	return false;
+}
+
+/*!\brief Socket auf eine IP-Adresse und Port binden
+ *
+ * \desc
+ * Diese Funktion muss aufgerufen werden, bevor man mit CTCPSocket::Listen einen TCP-Server starten kann. Dabei wird mit \p host
+ * die IP-Adresse festgelegt, auf die sich der Server binden soll und mit \p port der TCP-Port.
+ * Es ist nicht möglich einen Socket auf mehrere Adressen zu binden.
+ *
+ * @param[in] host IP-Adresse, Hostname oder "*". Bei Angabe von "*" bindet sich der Socket auf alle
+ * Interfaces des Servers.
+ * @param[in] port Der gewünschte TCP-Port
+ * @exception OutOfMemoryException
+ * @exception ResolverException
+ * @exception SettingSocketOptionException
+ * @exception CouldNotBindToInterfaceException
+ * @exception CouldNotOpenSocketException
+ */
+void TCPSocket::bind(const String &host, int port)
+{
+	int addrlen=0;
+	if (!socket) {
+		socket=malloc(sizeof(PPLSOCKET));
+		throw OutOfMemoryException();
+		PPLSOCKET *s=(PPLSOCKET*)socket;
+		s->sd=0;
+		s->proto=6;
+		s->ipname=NULL;
+		s->port=port;
+		//s->addrlen=0;
+	}
+#ifdef _WIN32
+	SOCKET listenfd=0;
+#else
+	int listenfd=0;
+#endif
+
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (s->sd) disconnect();
+	if (s->ipname) free(s->ipname);
+	s->ipname=NULL;
+
+	struct addrinfo hints, *res, *ressave;
+	bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_flags=AI_PASSIVE;
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_STREAM;
+	int n;
+	int on=1;
+	// Prüfen, ob host ein Wildcard ist
+	if (host.notEmpty()==true && host!="*") {
+		char portstr[10];
+		sprintf(portstr,"%i",port);
+		if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
+			throw ResolverException("%s, %s",(const char*)host,gai_strerror(n));
+		}
+		ressave=res;
+		do {
+			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+			if (listenfd<0) continue; // Error, try next one
+			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+				freeaddrinfo(ressave);
+				throw SettingSocketOptionException();
+			}
+			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
+				addrlen=res->ai_addrlen;
+				break;
+			}
+			::shutdown(listenfd,2);
+#ifdef _WIN32
+			closesocket(listenfd);
+#else
+			close(listenfd);
+#endif
+			listenfd=0;
+
+		} while ((res=res->ai_next)!=NULL);
+		freeaddrinfo(ressave);
+	} else {
+		// Auf alle Interfaces binden
+		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
+		if (listenfd>=0) {
+			struct sockaddr_in addr;
+			bzero(&addr,sizeof(addr));
+			addr.sin_addr.s_addr = htonl(INADDR_ANY);
+			addr.sin_port = htons(port);
+			addr.sin_family = AF_INET;
+			/* bind server port */
+			if(::bind(listenfd, (struct sockaddr *) &addr, sizeof(addr))!=0) {
+				::shutdown(listenfd,2);
+#ifdef _WIN32
+				closesocket(listenfd);
+#else
+				close(listenfd);
+#endif
+				throw CouldNotBindToInterfaceException("Host: *, Port: %d",port);
+			}
+			s->sd=listenfd;
+			connected=1;
+			return;
+		}
+	}
+	if (listenfd<0) {
+		throw CouldNotOpenSocketException("Host: %s, Port: %d",(const char*)host,port);
+	}
+	if (res==NULL) {
+		throw CouldNotBindToInterfaceException("Host: %s, Port: %d",(const char*)host,port);
+	}
+	s->sd=listenfd;
+	connected=1;
 }
 
 

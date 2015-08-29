@@ -56,7 +56,7 @@ PPLEXCEPTION(QueryFailedException, Exception);
 PPLEXCEPTION(NotConnectedException,NetworkException);
 PPLEXCEPTION(CouldNotOpenSocketException,NetworkException);				// 393
 PPLEXCEPTION(IllegalPortException,NetworkException);				// 393
-PPLEXCEPTION(CouldNotBindToSourceInterfaceException,NetworkException);	// 394
+PPLEXCEPTION(CouldNotBindToInterfaceException,NetworkException);	// 394
 PPLEXCEPTION(ConnectionRefusedException,NetworkException);
 PPLEXCEPTION(NetworkDownException,NetworkException);
 PPLEXCEPTION(NetworkUnreachableException,NetworkException);
@@ -76,6 +76,7 @@ PPLEXCEPTION(BrokenPipeException,NetworkException);
 PPLEXCEPTION(SSLNotInitializedException,NetworkException);
 PPLEXCEPTION(SSLInstanceNotInitializedException,NetworkException);
 PPLEXCEPTION(SSLConnectionFailedException,NetworkException);
+PPLEXCEPTION(SettingSocketOptionException,NetworkException);
 
 
 
@@ -347,7 +348,7 @@ class TCPSocket
 
 		//! @name TCP-Server functions
 		//@{
-		void bind(const char *ip, int port);
+		void bind(const String &host, int port);
 		virtual int receiveConnect(TCPSocket *socket, const String &host, int port);
 		bool isListening() const;
         void stopListen();

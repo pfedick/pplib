@@ -134,6 +134,8 @@ Curl::Curl()
 {
 	#ifdef HAVE_LIBCURL
 		handle=NULL;
+		resultbuffer_size=0;
+		aboard=false;
 		CurlMutex.lock();
 		if (!ppl_curl_instance) {
 			if (!curl_global_init(CURL_GLOBAL_WIN32|CURL_GLOBAL_SSL)==0) {
