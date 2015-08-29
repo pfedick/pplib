@@ -208,7 +208,7 @@ void throwExceptionFromErrno(int e,const String &info)
 		case ECONNRESET: throw ConnectionResetByPeerException(info);
 		case ENOBUFS: throw NoBufferSpaceException(info);
 		case EISCONN: throw SocketIsAlreadyConnectedException(info);
-		case ENOTCONN: throw SocketIsNotConnectedException(info);
+		case ENOTCONN: throw NotConnectedException(info);
 		case ESHUTDOWN: throw CantSendAfterSocketShutdownException(info);
 		case ETOOMANYREFS: throw TooManyReferencesException(info);
 		case ECONNREFUSED: throw ConnectionRefusedException(info);
