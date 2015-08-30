@@ -939,7 +939,6 @@ void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw
 	int lasty=y;
 	int kerningx=0;
 	int rotate=(int)font.rotation();
-	wchar_t code;
 	size_t textlen=text.len();
 	size_t p=0;
 	getBlitter(face,draw,rotate, &BltGlyph,&ErsatzGlyph);
@@ -948,7 +947,7 @@ void Font6Renderer::renderInternal(const Font6Face &face, grafix::Drawable &draw
 		lasty+=face.MaxBearingY;
 	}
 	while (p<textlen) {
-		code=text[p++];
+		wchar_t code=text[p++];
 		if (code==10) {								// Newline
 			switch (rotate) {
 				case 0: lastx=startx; lasty+=face.MaxHeight; break;
@@ -1017,7 +1016,6 @@ Size Font6Renderer::measure(const Font &font, const WideString &text)
 	int lasty=0;
 	int kerningx=0;
 	int rotate=(int)font.rotation();
-	wchar_t code;
 	size_t textlen=text.len();
 	size_t p=0;
 	int flags=0;
@@ -1028,7 +1026,7 @@ Size Font6Renderer::measure(const Font &font, const WideString &text)
 	if (!face) return s;
 	lasty=face->MaxHeight;
 	while (p<textlen) {
-		code=text[p++];
+		wchar_t code=text[p++];
 		if (code==10) {								// Newline
 			lastx=0; lasty+=face->MaxHeight;
 			glyph=NULL;
@@ -1157,7 +1155,7 @@ void FontEngineFont6::deleteFont(FontFile *file)
 {
 	if (!file) throw NullPointerException();
 	if (file->engine!=this) throw InvalidFontEngineException();
-	Font6Renderer *render=(Font6Renderer *)file->priv;
+	Font6Renderer *render=static_cast<Font6Renderer *>(file->priv);
 	delete render;
 	file->priv=NULL;
 	file->engine=NULL;
@@ -1165,19 +1163,19 @@ void FontEngineFont6::deleteFont(FontFile *file)
 
 void FontEngineFont6::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color)
 {
-	Font6Renderer *render=(Font6Renderer *)file.priv;
+	Font6Renderer *render=static_cast<Font6Renderer *>(file.priv);
 	render->render(draw,font,x,y,text,color);
 }
 
 Size FontEngineFont6::measure(const FontFile &file, const Font &font, const WideString &text)
 {
-	Font6Renderer *render=(Font6Renderer *)file.priv;
+	Font6Renderer *render=static_cast<Font6Renderer *>(file.priv);
 	return render->measure(font,text);
 }
 
 Rect FontEngineFont6::boundary(const FontFile &file, const Font &font, const WideString &text, int x, int y)
 {
-	Font6Renderer *render=(Font6Renderer *)file.priv;
+	Font6Renderer *render=static_cast<Font6Renderer *>(file.priv);
 	return render->boundary(font,text,x,y);
 }
 

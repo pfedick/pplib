@@ -239,7 +239,7 @@ void FontEngineFont5::deleteFont(FontFile *file)
 {
 	if (!file) throw NullPointerException();
 	if (file->engine!=this) throw InvalidFontEngineException();
-	PFPFile *f=(PFPFile *)file->priv;
+	PFPFile *f=static_cast<PFPFile *>(file->priv);
 	delete f;
 	file->priv=NULL;
 	file->engine=NULL;
@@ -414,9 +414,8 @@ static int DrawGlyphAA8(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 PFPChunk *FontEngineFont5::selectFont(const FontFile &file, const Font &font)
 {
 	if (file.priv==NULL) throw NullPointerException();
-	PFPFile *f=(PFPFile *)file.priv;
+	PFPFile *f=static_cast<PFPFile *>(file.priv);
 	PFPChunk *c;
-	const char *header;
 
 	// Wir mussen zuerst den passenden Chunk finden
 	f->myMutex.lock();
@@ -428,7 +427,7 @@ PFPChunk *FontEngineFont5::selectFont(const FontFile &file, const Font &font)
 	if (font.italic()) flags|=4;
 
 	while ((c=f->findNextChunk(it,"FACE"))) {
-		header=(const char*)c->data();
+		const char *header=(const char*)c->data();
 		if (!header) continue;
 		if (((int)Peek16(header+2))==(int)font.size() && (int)Peek8(header)==flags) {
 			break;
@@ -480,7 +479,6 @@ void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &dr
 	const char *jump=NULL;
 	const char *glyph;
 	int pixelformat=Peek8(header+1);
-	int code;
 	int start=0;
 	int end=0;
 	pplint16 bearingy, bearingx, width, height, advance;
@@ -574,7 +572,7 @@ void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &dr
 	}
 	size_t textlen=text.len();
 	while (p<textlen) {
-		code=text[p];
+		int code=text[p];
 		//printf ("code[%i]= %i\n",p,code);
 		p++;
 		if (code==10) {											// Newline
@@ -634,7 +632,6 @@ Size FontEngineFont5::measure(const FontFile &file, const Font &font, const Wide
 	const char *header=(char*)c->data();
 	const char *jump=NULL;
 	const char *glyph;
-	int code;
 	int start=0;
 	int end=0;
 	pplint16 bearingy, height, advance;
@@ -647,7 +644,7 @@ Size FontEngineFont5::measure(const FontFile &file, const Font &font, const Wide
 	int x=0,y=0;
 	size_t textlen=text.len();
 	while (p<textlen) {
-		code=text[p];
+		int code=text[p];
 		p++;
 		if (code==10) {											// Newline
 			y+=MaxHeight;
