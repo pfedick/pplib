@@ -380,7 +380,9 @@ MHash::MHash()
 {
 	handle=NULL;
 	blocksize=0;
+	algo=Algo_MD5;
 	bytesHashed=0;
+	setAlgorithm(Algo_MD5);
 }
 
 MHash::MHash(Algorithm algorithm)
