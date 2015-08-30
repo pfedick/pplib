@@ -427,8 +427,8 @@ void Dir::clear()
  */
 void Dir::print(const DirEntry &de) const
 {
-	printf ("%s %3i ",(const char*)de.AttrStr,de.NumLinks);
-	printf ("%5i %5i ",de.Uid, de.Gid);
+	printf ("%s %3u ",(const char*)de.AttrStr,de.NumLinks);
+	printf ("%5u %5u ",de.Uid, de.Gid);
 	printf ("%10llu ",de.Size);
 	printf ("%s %s\n",(const char*)de.MTime.get(),(const char*)de.Filename);
 }

@@ -357,9 +357,8 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 quelloffset, ppluin
 			bytes=quellfile.size()-quellfile.tell();
 		}
 		ppluint64 rest=bytes;
-		ppluint64 by;
 		while (rest>0) {
-			by=rest;
+			ppluint64 by=rest;
 			if (by>COPYBYTES_BUFFERSIZE) by=COPYBYTES_BUFFERSIZE;
 			by=quellfile.read (buffer,(size_t)by);
 			write (buffer,(size_t)by);

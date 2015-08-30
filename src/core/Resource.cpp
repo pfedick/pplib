@@ -374,9 +374,8 @@ static void bufferOut(FileObject &out, const char *buffer, int bytes)
 {
 	static int c=0;
 	static char clear[25]="";
-	ppluint8 byte;
 	for (int i=0;i<bytes;i++) {
-		byte=(ppluint8)buffer[i];
+		ppluint8 byte=(ppluint8)buffer[i];
 		out.putsf("0x%02x,",byte);
 		if(byte>31 && byte<128 && byte!='\\' && byte!='/') clear[c]=byte;
 		else clear[c]='.';
@@ -499,7 +498,7 @@ void Resource::generateResourceHeader(const String &basispfad, const String &con
 	if (!out.Open(targetfile,"wb")) {
 		return 0;
 	}
-	printf ("Verarbeite Resourcen in: %s...\n",configfile);
+	printf ("Verarbeite Resourcen in: %s...\n",(const char*)configfile);
 	if (prefix) out.Write((void*)prefix,strlen(prefix));
 	IncludeHelp(&out, configfile);
 

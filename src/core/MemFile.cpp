@@ -420,9 +420,9 @@ wchar_t *MemFile::fgetws (wchar_t *buffer1, size_t num)
 {
 	if (MemBase!=NULL) {
 		if (pos>=mysize) throw EndOfFileException();
-		ppluint64 by;
-		by=(num-1)*sizeof(wchar_t);
-		if (pos+by>mysize) by=(ppluint64)(mysize-pos);
+		//ppluint64 by;
+		//by=(num-1)*sizeof(wchar_t);
+		//if (pos+by>mysize) by=(ppluint64)(mysize-pos);
 		wchar_t *ptr=(wchar_t*)(MemBase+pos);
 		ppluint64 i;
 		for (i=0;i<(num-1);i++) {
