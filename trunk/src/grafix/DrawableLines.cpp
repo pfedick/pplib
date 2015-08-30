@@ -342,7 +342,6 @@ static float WuInvFrac(float value)
 static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2, SurfaceColor color)
 {
 	float grad, xd,yd;//,length,xm,ym;
-	float xgap,xend,yend,yf,xf,ygap;
 	float brightness1, brightness2;
 
 	GRAFIX_FUNCTIONS *fn=data.fn;
@@ -361,6 +360,7 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 			yd=(y2-y1);
 		}
 		grad=yd/xd;					// Gradient der Linie
+		float xgap,xend,yend,yf;
 
 		// End Point 1
 		xend=WuTrunc(x1+0.5f);
@@ -410,6 +410,7 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 		}
 		grad=xd/yd;					// Gradient der Linie
 
+		float xend,yend,xf,ygap;
 		// End Point 1
 		yend=WuTrunc(y1+0.5f);
 		xend=x1+grad*(yend-y1);
@@ -455,7 +456,6 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2, SurfaceColor color, int strength)
 {
 	float grad, xd,yd;//,length,xm,ym;
-	float xgap,xend,yend,yf,xf,ygap;
 	float brightness1, brightness2;
 
 	pplint32 x,ix1,ix2,iy1,iy2,y;
@@ -478,7 +478,7 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 			yd=(y2-y1);
 		}
 		grad=yd/xd;					// Gradient der Linie
-
+		float xgap,xend,yend,yf;
 		// End Point 1
 		xend=WuTrunc(x1+0.5f);
 		yend=y1+grad*(xend-x1);
@@ -533,7 +533,7 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 			yd=(y2-y1);
 		}
 		grad=xd/yd;					// Gradient der Linie
-
+		float xend,yend,xf,ygap;
 		// End Point 1
 		yend=WuTrunc(y1+0.5f);
 		xend=x1+grad*(yend-y1);
