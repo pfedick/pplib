@@ -172,5 +172,71 @@ TEST_F(TcpSocketTest, connectAndReconnect) {
 	});
 }
 
+TEST_F(TcpSocketTest, writeAndReadString) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+	ppl7::String Expected, OutString, InString;
+	Expected="PPL7 Unittest Teststring";
+	OutString=Expected;
+	ASSERT_NO_THROW({
+		ASSERT_EQ((size_t)24,socket.write(OutString));
+		ASSERT_EQ((size_t)24,socket.read(InString,1024));
+	});
+	ASSERT_EQ(Expected,InString);
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+}
+
+TEST_F(TcpSocketTest, writeAndReadRandomByteArray) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+	ppl7::ByteArray Expected, Out, In;
+	ppl7::Random(Expected,1234);
+	Out=Expected;
+	ASSERT_NO_THROW({
+		ASSERT_EQ((size_t)1234,socket.write(Out));
+		ASSERT_EQ((size_t)1234,socket.read(In,4000));
+	});
+	ASSERT_EQ(Expected,In);
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+}
+
+TEST_F(TcpSocketTest, repetetiveReadAndwaitForIncomingData) {
+	ppl7::TCPSocket socket;
+	ppl7::String Hostname=PPL7TestConfig.getFromSection("tcpsocket","echoserver","localhost");
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+	ppl7::ByteArray Expected, Out, In, TotalIn;
+	ppl7::Random(Expected,543289);
+	Out=Expected;
+	ASSERT_NO_THROW({
+		ASSERT_EQ((size_t)543289,socket.write(Out));
+	});
+	// TODO
+	size_t bytesRead=0;
+	while (socket.waitForIncomingData(0,1000)) {
+		bytesRead+=socket.read(In,80000);
+		TotalIn.append(In);
+	}
+	ASSERT_EQ((size_t)543289,bytesRead);
+	ASSERT_EQ((size_t)543289,TotalIn.size());
+	ASSERT_EQ(Expected,TotalIn);
+	ASSERT_NO_THROW({
+		socket.connect(Hostname,7);
+	});
+}
+
+
+
 }
 
