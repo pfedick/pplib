@@ -315,8 +315,8 @@ void Drawable::cls()
 void Drawable::drawRect(const Rect &rect, const Color &c)
 {
 	if (!fn) throw EmptyDrawableException();
-	int y1,x1,y2,x2;
 	if (rect.left()<0 || rect.top()<0 || rect.right()>=data.width || rect.bottom()>=data.height) {
+		int y1,x1,y2,x2;
 		y1=rect.y1;
 		y2=rect.y2;
 		for (x1=rect.x1;x1<rect.x2;x1++) {
@@ -534,14 +534,14 @@ void Drawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fi
 {
 	if (!fn) throw EmptyDrawableException();
 	int d;
-	int x1,y1,x2=0,y2=0;
+	int x2=0,y2=0;
 
 	float pi=3.1415926535f;
 	float rad=pi/180.0f;
 
 	for (float i=0.0f;i<360.0f;i++) {
-		x1 = x + (sinf(i*rad) * (float)radx);
-		y1 = y + (cosf(i*rad) * (float)rady);
+		int x1 = x + (sinf(i*rad) * (float)radx);
+		int y1 = y + (cosf(i*rad) * (float)rady);
 		//::printf ("x1=%i, y1=%i\n",x1,y1);
 		if (i > 0) {
 			d=abs(x2-x1)+abs(y2-y1);
@@ -560,20 +560,19 @@ void Drawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fi
 void Drawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fill, const Color &fillcolor, int start, int end)
 {
 	if (!fn) throw EmptyDrawableException();
-	int d;
-	int x1,y1,x2,y2;
+
 	float st=(float)start/360.0f;
 	float en=(float)end/360.0f;
 	if (st!=en) {
-		x2 = x + (sinf(st) * (float)radx);
-		y2 = y + (cosf(st) * (float)rady);
+		int x2 = x + (sinf(st) * (float)radx);
+		int y2 = y + (cosf(st) * (float)rady);
 		putPixel (x2,y2,c);
 
 		for (float i=start;i<end+1;i++) {
-			x1 = x + (sinf(i) * radx);
-			y1 = y + (cosf(i) * rady);
+			int x1 = x + (sinf(i) * radx);
+			int y1 = y + (cosf(i) * rady);
 			if (i > 0) {
-				d=abs(x2-x1)+abs(y2-y1);
+				int d=abs(x2-x1)+abs(y2-y1);
 				if (d > 1)
 					line (x1, y1, x2, y2, c);
 				else if (d==1)
@@ -583,8 +582,8 @@ void Drawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fil
 			y2 = y1;
 		}
 		if (fill) {
-			x1 = x + (sinf((start+end)/2) * (float)(radx-2));
-			y1 = y + (cosf((start+end)/2) * (float)(rady-2));
+			int x1 = x + (sinf((start+end)/2) * (float)(radx-2));
+			int y1 = y + (cosf((start+end)/2) * (float)(rady-2));
 			floodFill (x1, y1, fillcolor, c);
 		}
 	}
