@@ -364,11 +364,10 @@ void Grafix::loadFont(FileObject &ff, const String &fontname)
 	// Passenden Filter finden
 	FontEngineList.reset(it);
 	FontEngine *engine;
-	int id;
 	try {
 		while (FontEngineList.getPrevious(it)) {
 			engine=it.value();
-			id=engine->ident(ff);
+			int id=engine->ident(ff);
 			if (id==1) {
 
 				FontFile *font=engine->loadFont(ff, fontname);

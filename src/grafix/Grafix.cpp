@@ -192,9 +192,8 @@ Grafix::~Grafix()
 	if (alphatab) free(alphatab);
 
 	List<FontEngine*>::Iterator it;
-	FontEngine *engine;
 	while (FontEngineList.getFirst(it)) {
-		engine=it.value();
+		FontEngine *engine=it.value();
 		FontEngineList.erase(engine);
 		delete engine;
 	}

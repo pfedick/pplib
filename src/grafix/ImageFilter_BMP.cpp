@@ -111,10 +111,9 @@ int ImageFilter_BMP::ident(FileObject &file, IMAGE &img)
 			return false;
 		}
 
-		const char *bmh, *bmia;
-		bmh=address;
+		const char *bmh=address;
 		if (strncmp ((char *)bmh,"BM",2)==0) {
-			bmia=address+14;
+			const char *bmia=address+14;
 			ppluint32 compression=Peek32((char *)(bmia+16));
 
 			if (compression==0 || compression==3) {
@@ -156,7 +155,6 @@ int ImageFilter_BMP::ident(FileObject &file, IMAGE &img)
 
 void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
-	RGBQUAD * rgbq,*basergbq;
 	ppluint8 * b1, *bmia;
 	ppluint32 gby,by,sourcebytesperline;
 	ppluint8 pixel;
@@ -193,7 +191,7 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 							(char *)(b1+(img.height-1-i)*sourcebytesperline),
 							img.pitch);
 					}
-					rgbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER));
+					RGBQUAD * rgbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER));
 					for (i=0;i<256;i++) {
 						// TODO:
 						//surface->SetColor(i,rgbq->rgbRed,rgbq->rgbGreen, rgbq->rgbBlue);
@@ -204,14 +202,14 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 				// Surface hat eine hoehere Bittiefe, jeder Pixel muss
 				// umgerechnet werden
 				b1=b1+img.height*sourcebytesperline;
-				basergbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER))-1;
+				RGBQUAD *basergbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER))-1;
 				//Debug.Printf ("basergbq=%u\n",basergbq);
 
 				for (int y=0;y<img.height;y++) {
 					b1-=sourcebytesperline;
 					for (int x=0;x<img.width;x++) {
 						pixel=b1[x];
-						rgbq= basergbq+pixel;
+						RGBQUAD * rgbq= basergbq+pixel;
 						surface.putPixel(x,y,Color(rgbq->rgbRed, rgbq->rgbGreen, rgbq->rgbBlue,255));
 					}
 
@@ -247,7 +245,6 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 
 void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const AssocArray &param)
 {
-	char *bmia, *bmh, *img;
 	Color pixel;
 	ppluint32 bpp, bfOffBits;
 	if (surface.bitdepth()>8) {
@@ -263,8 +260,8 @@ void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const Ass
 	char *buffer=(char *)malloc(size);
 	if (!buffer) throw OutOfMemoryException();
 	try {
-		bmh=buffer;
-		bmia=bmh+14;
+		char *bmh=buffer;
+		char *bmia=bmh+14;
 		Poke8(bmh,'B');
 		Poke8(bmh+1,'M');
 		Poke32(bmh+2,size);
@@ -284,7 +281,7 @@ void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const Ass
 		Poke32(bmia+32,0);				// biClrUsed
 		Poke32(bmia+36,0);				// biClrImportant
 
-		img=bmh+bfOffBits;
+		char *img=bmh+bfOffBits;
 		if (surface.bitdepth()==8) {		// Palette speichern
 			// Hier fehlt noch der Code, um die Palette zu speichern.
 			// Ausserdem muss noch geprueft werden, an welcher Position die
