@@ -301,8 +301,8 @@ String ToQuotedPrintable (const String &source)
 	unsigned char *ret = (unsigned char *) malloc ((size_t) (3*srcl + 3*(((3*srcl)/MAXL) + 1)));
 	unsigned char *d = ret;
 	const char *hex = (const char*)"0123456789ABCDEF";
-	unsigned char c;
 	while (srcl--) {      /* for each character */
+		unsigned char c;
 		/* true line break? */
 		if (((c = *src++) == '\012') && srcl) {
 			*d++ = '\012'; *d++ = *src++; srcl--;

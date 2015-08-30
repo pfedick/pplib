@@ -132,10 +132,17 @@ Curl::Curl()
  * von 0 wird Curl wieder Deinitialisiert.
  */
 {
+	handle=NULL;
+	resultbuffer_size=0;
+	log=NULL;
+	httppost=NULL;
+	last_httppost=NULL;
+	headers=NULL;
+	resultbuffer=NULL;
+	errorbuffer=NULL;
+	aboard=false;
+
 	#ifdef HAVE_LIBCURL
-		handle=NULL;
-		resultbuffer_size=0;
-		aboard=false;
 		CurlMutex.lock();
 		if (!ppl_curl_instance) {
 			if (!curl_global_init(CURL_GLOBAL_WIN32|CURL_GLOBAL_SSL)==0) {
@@ -156,11 +163,6 @@ Curl::Curl()
 		curl_easy_setopt((CURL*)handle, CURLOPT_NOSIGNAL, t);	// Curl soll keine Signals verwenden
 
 
-		log=NULL;
-		httppost=NULL;
-		last_httppost=NULL;
-		headers=NULL;
-		resultbuffer=NULL;
 		errorbuffer=(char*)malloc(CURL_ERROR_SIZE+32);
 		/*
 		storetofile=NULL;

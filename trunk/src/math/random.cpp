@@ -301,13 +301,12 @@ void srand(ppluint32 x)
 /*!\ingroup PPLGroupMath
  */
 {
-	register long i;
 	pplsrand_called=true;
-
 	if (rand_type == TYPE_0)
 		state[0] = x;
 	else {
 		state[0] = x;
+		register long i;
 		for (i = 1; i < rand_deg; i++)
 			state[i] = good_rand(state[i - 1]);
 		fptr = &state[rand_sep];
