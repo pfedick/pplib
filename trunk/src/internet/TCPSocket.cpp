@@ -1002,7 +1002,7 @@ size_t TCPSocket::read(String &buffer, size_t bytes)
 	if (!readbuffer) throw OutOfMemoryException();
 	try {
 		size_t BytesRead=read((void*)readbuffer,bytes);
-		buffer.set(readbuffer,bytes);
+		buffer.set(readbuffer,BytesRead);
 		free(readbuffer);
 		return BytesRead;
 	} catch (...) {
@@ -1017,7 +1017,7 @@ size_t TCPSocket::read(ByteArray &buffer, size_t bytes)
 	if (!readbuffer) throw OutOfMemoryException();
 	try {
 		size_t BytesRead=read((void*)readbuffer,bytes);
-		buffer.copy(readbuffer,bytes);
+		buffer.copy(readbuffer,BytesRead);
 		free(readbuffer);
 		return BytesRead;
 	} catch (...) {
