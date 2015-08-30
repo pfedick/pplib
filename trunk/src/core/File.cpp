@@ -1356,11 +1356,10 @@ void File::copy(const String &oldfile, const String &newfile)
 	void *buffer=malloc((size_t)bsize);
 	if (!buffer) throw OutOfMemoryException();
 	ppluint64 rest=f1.mysize;
-	ppluint64 bytes, done;
 	while (rest) {
-		bytes=bsize;
+		ppluint64 bytes=bsize;
 		if (bytes>rest) bytes=rest;
-		done=f1.fread(buffer,1,bytes);
+		ppluint64 done=f1.fread(buffer,1,bytes);
 		if (done!=bytes) {
 			// Sollte eigentlich nicht vorkommen
 			f2.close();
