@@ -119,14 +119,13 @@ const WidgetStyle *WindowManager::getWidgetStyle() const
 
 Widget *WindowManager::findMouseWidget(Widget *window, const Point &p)
 {
-	Widget *w;
 	if (!window) return NULL;
 	List<Widget*>::Iterator it;
 	Point p2;
 	if (window->childs.num()>0) {
 		window->childs.reset(it);
 		while (window->childs.getNext(it)) {
-			w=it.value();
+			Widget *w=it.value();
 			if (p.x>=w->p.x
 					&& p.y>=w->p.y
 					&& p.x < w->p.x+w->s.width
@@ -205,7 +204,7 @@ void WindowManager::dispatchEvent(Window *window, Event &event)
 				if (LastMouseDown==w) {
 					clickCount++;
 					clickEvent=*((MouseEvent*)&event);
-					if (clickCount==1) startClickEvent((Window*)window);
+					if (clickCount==1) startClickEvent(static_cast<Window*>(window));
 					//LastMouseDown->mouseClickEvent((MouseEvent*)&event);
 				} else {
 					clickCount=0;

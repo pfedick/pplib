@@ -85,9 +85,8 @@ Widget::~Widget()
 	if (parent) parent->removeChild(this);
 	List<Widget*>::Iterator it;
 	childs.reset(it);
-	Widget *child;
 	while (childs.getNext(it)) {
-		child=it.value();
+		Widget *child=it.value();
 		delete child;
 	}
 	childs.clear();
@@ -458,7 +457,6 @@ void Widget::draw(Drawable &d)
 	List<Widget*>::Iterator it;
 	Drawable mycd=drawable(d);
 	Drawable cd;
-	Widget *child;
 	if (needsredraw) {
 		paint(mycd);
 		child_needsredraw=true;
@@ -468,7 +466,7 @@ void Widget::draw(Drawable &d)
 		cd=clientDrawable(mycd);
 		childs.reset(it);
 		while (childs.getNext(it)) {
-			child=it.value();
+			Widget *child=it.value();
 			if (child->topMost==false) {
 				if (needsredraw) child->redraw(cd);
 				else child->draw(cd);
@@ -478,7 +476,7 @@ void Widget::draw(Drawable &d)
 		// Dann die TopMost Childs
 		childs.reset(it);
 		while (childs.getNext(it)) {
-			child=it.value();
+			Widget *child=it.value();
 			if (child->topMost==true) {
 				if (needsredraw) child->redraw(cd);
 				else child->draw(cd);
