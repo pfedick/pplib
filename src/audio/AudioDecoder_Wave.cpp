@@ -52,6 +52,7 @@ namespace ppl7 {
 AudioDecoder_Wave::AudioDecoder_Wave()
 {
 	position=0;
+	samplesize=0;
 	ff=NULL;
 }
 
