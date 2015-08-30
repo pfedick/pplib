@@ -185,7 +185,7 @@ void ImageFilter_TGA::load(FileObject &file, Drawable &surface, IMAGE &img)
             return;
 
 		case 10:				// Komprimierte Daten
-			int y=0,x=0,byte1,repeat;
+			int y=0,x=0;
 			int zeilen=0;
 			int ym=1;
 
@@ -193,8 +193,8 @@ void ImageFilter_TGA::load(FileObject &file, Drawable &surface, IMAGE &img)
 
 
 			while (zeilen<img.height) {
-				byte1=Peek8((char*)b1++);
-				repeat=(byte1&127)+1;
+				int byte1=Peek8((char*)b1++);
+				int repeat=(byte1&127)+1;
 				if (byte1&128) {	// Bit 7 gesetzt, es folgt daher ein Farbwert zur Wiederholung
 					if (tga->PixelDepth==24) {
 						//printf ("Addiere 3 Byte dazu\n");

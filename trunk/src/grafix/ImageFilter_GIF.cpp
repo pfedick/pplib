@@ -183,154 +183,153 @@ static int GetDataBlock(FileObject *fd, unsigned char *buf)
 
 static int GetCode(FileObject *fd, int code_size, int flag)
 {
-       static unsigned char    buf[280];
-       static int              curbit, lastbit, done, last_byte;
-       int                     i, j, ret;
-       unsigned char           count;
+	//TODO: Nicht threadsafe!
+	static unsigned char buf[280];
+	static int curbit, lastbit, done, last_byte;
+	int i, j, ret;
 
-       if (flag) {
-               curbit = 0;
-               lastbit = 0;
-               done = FALSE;
-               return 0;
-       }
+	if (flag) {
+		curbit = 0;
+		lastbit = 0;
+		done = FALSE;
+		return 0;
+	}
 
-       if ( (curbit+code_size) >= lastbit) {
-               if (done) {
-                       if (curbit >= lastbit) {
-                                /* Oh well */
-                       }
-                       return -1;
-               }
-               buf[0] = buf[last_byte-2];
-               buf[1] = buf[last_byte-1];
+	if ((curbit + code_size) >= lastbit) {
+		if (done) {
+			if (curbit >= lastbit) {
+				/* Oh well */
+			}
+			return -1;
+		}
+		buf[0] = buf[last_byte - 2];
+		buf[1] = buf[last_byte - 1];
 
-               if ((count = GetDataBlock(fd, &buf[2])) == 0)
-                       done = TRUE;
+		int count;
+		if ((count = GetDataBlock(fd, &buf[2])) == 0)
+			done = TRUE;
 
-               last_byte = 2 + count;
-               curbit = (curbit - lastbit) + 16;
-               lastbit = (2+count)*8 ;
-       }
+		last_byte = 2 + count;
+		curbit = (curbit - lastbit) + 16;
+		lastbit = (2 + count) * 8;
+	}
 
-       ret = 0;
-       for (i = curbit, j = 0; j < code_size; ++i, ++j)
-               ret |= ((buf[ i / 8 ] & (1 << (i % 8))) != 0) << j;
+	ret = 0;
+	for (i = curbit, j = 0; j < code_size; ++i, ++j)
+		ret |= ((buf[i / 8] & (1 << (i % 8))) != 0) << j;
 
-       curbit += code_size;
+	curbit += code_size;
 
-       return ret;
+	return ret;
 }
 
 static int LWZReadByte(FileObject *fd, int flag, int input_code_size)
 {
-       static int      fresh = FALSE;
-       int             code, incode;
-       static int      code_size, set_code_size;
-       static int      max_code, max_code_size;
-       static int      firstcode, oldcode;
-       static int      clear_code, end_code;
-       static int      table[2][(1<< MAX_LWZ_BITS)];
-       static int      stack[(1<<(MAX_LWZ_BITS))*2], *sp;
-       register int    i;
+	//TODO: Nicht threadsafe!
+	static int fresh = FALSE;
+	static int code_size, set_code_size;
+	static int max_code, max_code_size;
+	static int firstcode, oldcode;
+	static int clear_code, end_code;
+	static int table[2][(1 << MAX_LWZ_BITS)];
+	static int stack[(1 << (MAX_LWZ_BITS)) * 2], *sp;
+	register int i;
 
-       if (flag) {
-               set_code_size = input_code_size;
-               code_size = set_code_size+1;
-               clear_code = 1 << set_code_size ;
-               end_code = clear_code + 1;
-               max_code_size = 2*clear_code;
-               max_code = clear_code+2;
+	if (flag) {
+		set_code_size = input_code_size;
+		code_size = set_code_size + 1;
+		clear_code = 1 << set_code_size;
+		end_code = clear_code + 1;
+		max_code_size = 2 * clear_code;
+		max_code = clear_code + 2;
 
-               GetCode(fd, 0, TRUE);
+		GetCode(fd, 0, TRUE);
 
-               fresh = TRUE;
+		fresh = TRUE;
 
-               for (i = 0; i < clear_code; ++i) {
-                       table[0][i] = 0;
-                       table[1][i] = i;
-               }
-               for (; i < (1<<MAX_LWZ_BITS); ++i)
-                       table[0][i] = table[1][0] = 0;
+		for (i = 0; i < clear_code; ++i) {
+			table[0][i] = 0;
+			table[1][i] = i;
+		}
+		for (; i < (1 << MAX_LWZ_BITS); ++i)
+			table[0][i] = table[1][0] = 0;
 
-               sp = stack;
+		sp = stack;
 
-               return 0;
-       } else if (fresh) {
-               fresh = FALSE;
-               do {
-                       firstcode = oldcode =
-                               GetCode(fd, code_size, FALSE);
-               } while (firstcode == clear_code);
-               return firstcode;
-       }
+		return 0;
+	} else if (fresh) {
+		fresh = FALSE;
+		do {
+			firstcode = oldcode = GetCode(fd, code_size, FALSE);
+		} while (firstcode == clear_code);
+		return firstcode;
+	}
 
-       if (sp > stack)
-               return *--sp;
+	if (sp > stack)
+		return *--sp;
 
-	   while ((code = GetCode(fd, code_size, FALSE)) >= 0) {
-               if (code == clear_code) {
-                       for (i = 0; i < clear_code; ++i) {
-                               table[0][i] = 0;
-                               table[1][i] = i;
-                       }
-                       for (; i < (1<<MAX_LWZ_BITS); ++i)
-                               table[0][i] = table[1][i] = 0;
-                       code_size = set_code_size+1;
-                       max_code_size = 2*clear_code;
-                       max_code = clear_code+2;
-                       sp = stack;
-                       firstcode = oldcode =
-                                       GetCode(fd, code_size, FALSE);
-                       return firstcode;
-               } else if (code == end_code) {
-                       int             count;
-                       unsigned char   buf[260];
+	int code;
+	while ((code = GetCode(fd, code_size, FALSE)) >= 0) {
+		if (code == clear_code) {
+			for (i = 0; i < clear_code; ++i) {
+				table[0][i] = 0;
+				table[1][i] = i;
+			}
+			for (; i < (1 << MAX_LWZ_BITS); ++i)
+				table[0][i] = table[1][i] = 0;
+			code_size = set_code_size + 1;
+			max_code_size = 2 * clear_code;
+			max_code = clear_code + 2;
+			sp = stack;
+			firstcode = oldcode = GetCode(fd, code_size, FALSE);
+			return firstcode;
+		} else if (code == end_code) {
+			int count;
+			unsigned char buf[260];
 
-                       if (ZeroDataBlock)
-                               return -2;
+			if (ZeroDataBlock)
+				return -2;
 
-                       while ((count = GetDataBlock(fd, buf)) > 0)
-                               ;
+			while ((count = GetDataBlock(fd, buf)) > 0)
+				;
 
-                       if (count != 0)
-                       return -2;
-               }
+			if (count != 0)
+				return -2;
+		}
 
-               incode = code;
+		int incode = code;
 
-               if (code >= max_code) {
-                       *sp++ = firstcode;
-                       code = oldcode;
-               }
+		if (code >= max_code) {
+			*sp++ = firstcode;
+			code = oldcode;
+		}
 
-               while (code >= clear_code) {
-                       *sp++ = table[1][code];
-                       if (code == table[0][code]) {
-                               /* Oh well */
-                       }
-                       code = table[0][code];
-               }
+		while (code >= clear_code) {
+			*sp++ = table[1][code];
+			if (code == table[0][code]) {
+				/* Oh well */
+			}
+			code = table[0][code];
+		}
 
-               *sp++ = firstcode = table[1][code];
+		*sp++ = firstcode = table[1][code];
 
-               if ((code = max_code) <(1<<MAX_LWZ_BITS)) {
-                       table[0][code] = oldcode;
-                       table[1][code] = firstcode;
-                       ++max_code;
-                       if ((max_code >= max_code_size) &&
-                               (max_code_size < (1<<MAX_LWZ_BITS))) {
-                               max_code_size *= 2;
-                               ++code_size;
-                       }
-               }
+		if ((code = max_code) < (1 << MAX_LWZ_BITS)) {
+			table[0][code] = oldcode;
+			table[1][code] = firstcode;
+			++max_code;
+			if ((max_code >= max_code_size) && (max_code_size < (1 << MAX_LWZ_BITS))) {
+				max_code_size *= 2;
+				++code_size;
+			}
+		}
 
-               oldcode = incode;
+		oldcode = incode;
 
-               if (sp > stack)
-                       return *--sp;
-       }
-       return code;
+		if (sp > stack)
+			return *--sp;
+	}
+	return code;
 }
 
 static void ReadImage (Drawable &surface, FileObject *fd, int len, int height, unsigned char (*cmap)[256], int interlace, int ignore)

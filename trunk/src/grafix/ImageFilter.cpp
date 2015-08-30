@@ -117,12 +117,12 @@ void Grafix::unloadImageFilter(ImageFilter *filter)
 ImageFilter *Grafix::findImageFilter(const String &name)
 {
 	List<ImageFilter*>::Iterator it;
-	ImageFilter *f;
 	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
 	ImageFilterList.reset(it);
 	try {
-		while ((f=(ImageFilter*)ImageFilterList.getPrevious(it))) {
+		while (ImageFilterList.getPrevious(it)) {
+			ImageFilter *f=it.value();
 			if (name.strcasecmp(f->name())==0) {
 				myMutex.unlock();
 				return f;
@@ -155,13 +155,12 @@ ImageFilter *Grafix::findImageFilter(const String &name)
 ImageFilter *Grafix::findImageFilter(FileObject &ff, IMAGE &img)
 {
 	List<ImageFilter*>::Iterator it;
-	ImageFilter *f;
 	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
 	ImageFilterList.reset(it);
 	try {
 		while (ImageFilterList.getPrevious(it)) {
-			f=it.value();
+			ImageFilter *f=it.value();
 			if (f->ident(ff,img)==1) {
 				myMutex.unlock();
 				return f;
