@@ -87,7 +87,7 @@ typedef struct tagMutex
 		pthread_mutex_t handle;
 		pthread_cond_t	condition;
 	#else
-		void *handle;
+		//void *handle;
 	#endif
 } PPLMUTEX;
 
@@ -105,8 +105,8 @@ Mutex::Mutex()throw(OutOfMemoryException)
 {
 	handle=::malloc(sizeof(PPLMUTEX));
 	if (!handle) throw OutOfMemoryException();
-	PPLMUTEX *h=(PPLMUTEX*)handle;
 	#ifdef _WIN32
+		PPLMUTEX *h=(PPLMUTEX*)handle;
 		h->handle=CreateMutex(NULL,false,NULL);
 		h->condition = CreateEvent(
 		        NULL,         // default security attributes
@@ -116,6 +116,7 @@ Mutex::Mutex()throw(OutOfMemoryException)
 		        );
 
 	#elif defined HAVE_PTHREADS
+		PPLMUTEX *h=(PPLMUTEX*)handle;
 		pthread_mutex_init(&h->handle,NULL);
 		pthread_cond_init(&h->condition,NULL);
 	#else
@@ -124,23 +125,23 @@ Mutex::Mutex()throw(OutOfMemoryException)
 }
 
 Mutex::~Mutex() throw()
-{
+		{
 	if (handle==0) return;
+#ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	#ifdef _WIN32
-		CloseHandle(h->handle);
-	#elif defined HAVE_PTHREADS
-		pthread_mutex_destroy(&h->handle);
-		int rc=pthread_cond_destroy(&h->condition);
-		if (rc == EBUSY) {	// Thread warten noch auf Condition-Variable
-			pthread_cond_signal(&h->condition);
-		}
-	#endif
+	CloseHandle(h->handle);
+#elif defined HAVE_PTHREADS
+	PPLMUTEX *h=(PPLMUTEX*)handle;
+	pthread_mutex_destroy(&h->handle);
+	int rc=pthread_cond_destroy(&h->condition);
+	if (rc == EBUSY) {	// Thread warten noch auf Condition-Variable
+		pthread_cond_signal(&h->condition);
+	}
+#endif
 	::free(handle);
 	handle=NULL;
-}
+		}
 
-int Mutex::lock() throw()
 /*!\brief Mutex sperren
  *
  * Diese Funktion versucht einen Mutex zu sperren. Ist dieser bereits durch einen
@@ -149,20 +150,22 @@ int Mutex::lock() throw()
  * \return Konnte der Mutex erfolgreich gesperrt werden, liefert die Funktion
  * true (1) zurück, im Fehlerfall false (0)
  */
+int Mutex::lock() throw ()
 {
+#ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	#ifdef _WIN32
-		int ret=WaitForSingleObject(h->handle,INFINITE);
-		if (ret!=WAIT_FAILED) return 1;
-		return 0;
-	#elif defined HAVE_PTHREADS
-		int ret=pthread_mutex_lock(&h->handle);
-		if (ret==0) return 1;
-		return 0;
-	#endif
+	int ret=WaitForSingleObject(h->handle,INFINITE);
+	if (ret!=WAIT_FAILED) return 1;
+	return 0;
+#elif defined HAVE_PTHREADS
+	PPLMUTEX *h = (PPLMUTEX*) handle;
+	int ret = pthread_mutex_lock(&h->handle);
+	if (ret == 0)
+		return 1;
+	return 0;
+#endif
 }
 
-int Mutex::unlock() throw()
 /*!\brief Mutex entsperren
  *
  * Mit dieser Funktion wird ein zuvor mit CMutex::Lock gesperrter
@@ -171,20 +174,23 @@ int Mutex::unlock() throw()
  * \return Konnte der Mutex erfolgreich entsperrt werden, liefert die Funktion
  * true (1) zurück, im Fehlerfall false (0)
  */
+int Mutex::unlock() throw ()
 {
+#ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	#ifdef _WIN32
-		int ret=ReleaseMutex(h->handle);
-		if (ret==0) return 0;
+	int ret=ReleaseMutex(h->handle);
+	if (ret==0) return 0;
+	return 1;
+#elif defined HAVE_PTHREADS
+	PPLMUTEX *h=(PPLMUTEX*)handle;
+	int ret = pthread_mutex_unlock(&h->handle);
+	if (ret == 0)
 		return 1;
-	#elif defined HAVE_PTHREADS
-		int ret=pthread_mutex_unlock(&h->handle);
-		if (ret==0) return 1;
-		return 0;
-	#endif
+	return 0;
+#endif
 }
 
-int Mutex::tryLock() throw()
+int Mutex::tryLock() throw ()
 /*!\brief Mutex versuchen zu sperren
  *
  * Diese Funktion versucht wie CMutex::Lock einen Mutex zu sperren.
@@ -196,21 +202,23 @@ int Mutex::tryLock() throw()
  * true (1) zurück, im Fehlerfall false (0)
  */
 {
+#ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	#ifdef _WIN32
-		int ret=WaitForSingleObject(h->handle,0);
-		if (ret==WAIT_TIMEOUT) return 0;
-		if (ret!=WAIT_FAILED) return 1;
-		return 0;
-	#elif defined HAVE_PTHREADS
-		int ret=pthread_mutex_trylock(&h->handle);
-		if (ret==0) return 1;
-		return 0;
-	#endif
+	int ret=WaitForSingleObject(h->handle,0);
+	if (ret==WAIT_TIMEOUT) return 0;
+	if (ret!=WAIT_FAILED) return 1;
+	return 0;
+#elif defined HAVE_PTHREADS
+	PPLMUTEX *h = (PPLMUTEX*) handle;
+	int ret = pthread_mutex_trylock(&h->handle);
+	if (ret == 0)
+		return 1;
+	return 0;
+#endif
 }
 
 
-int Mutex::wait(int milliseconds) throw()
+int Mutex::wait(int milliseconds) throw ()
 /*! \brief Auf Signal warten
  *
  * Der aufrufende Thread wird angehalten, bis ein anderer Thread diesem Mutex
@@ -230,50 +238,52 @@ int Mutex::wait(int milliseconds) throw()
  *
  */
 {
-	int releaseatend=0;
+#ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	#ifdef _WIN32
-		ResetEvent(h->condition);
-		int ret;
-		if (milliseconds) ret=WaitForSingleObject(h->condition,milliseconds);
-		else ret=WaitForSingleObject(h->condition,INFINITE);
-		if (ret==WAIT_OBJECT_0) return 1;
+	ResetEvent(h->condition);
+	int ret;
+	if (milliseconds) ret=WaitForSingleObject(h->condition,milliseconds);
+	else ret=WaitForSingleObject(h->condition,INFINITE);
+	if (ret==WAIT_OBJECT_0) return 1;
+	return 0;
+#elif defined HAVE_PTHREADS
+	PPLMUTEX *h = (PPLMUTEX*) handle;
+	int ret = pthread_mutex_trylock(&h->handle);
+	int releaseatend = 0;
+	if (ret == 0) {
+		releaseatend = 1;
+	} else if (ret == EBUSY) { // Mutex ist schon gelocked
+		releaseatend = 0;
+	} else {
 		return 0;
-	#elif defined HAVE_PTHREADS
-		int ret=pthread_mutex_trylock(&h->handle);
-		if (ret==0) {
-			releaseatend=1;
-		} else if(ret==EBUSY) {	// Mutex ist schon gelocked
-			releaseatend=0;
-		} else {
-			return 0;
-		}
+	}
 
-		if (milliseconds>0) {
-			struct timeval now;
-			struct timespec timeout;
-			// Get current Time
-			gettimeofday(&now,NULL);
-			int s=milliseconds/1000;
-			int m=milliseconds%1000;
-			int n=(m*1000)+now.tv_usec;
-			s+=n/1000000;
-			timeout.tv_sec=now.tv_sec + s;
-			timeout.tv_nsec=n%1000000;
-			ret=pthread_cond_timedwait(&h->condition,&h->handle,&timeout);
-		} else {
-			ret=pthread_cond_wait(&h->condition,&h->handle);
-		}
-		if (releaseatend) pthread_mutex_unlock(&h->handle);
-		if (ret==0) {
-			return 1;
-		}
-		return 0;
-	#endif
+	if (milliseconds > 0) {
+		struct timeval now;
+		struct timespec timeout;
+		// Get current Time
+		gettimeofday(&now, NULL);
+		int s = milliseconds / 1000;
+		int m = milliseconds % 1000;
+		int n = (m * 1000) + now.tv_usec;
+		s += n / 1000000;
+		timeout.tv_sec = now.tv_sec + s;
+		timeout.tv_nsec = n % 1000000;
+		ret = pthread_cond_timedwait(&h->condition, &h->handle, &timeout);
+	} else {
+		ret = pthread_cond_wait(&h->condition, &h->handle);
+	}
+	if (releaseatend)
+		pthread_mutex_unlock(&h->handle);
+	if (ret == 0) {
+		return 1;
+	}
+	return 0;
+#endif
 }
 
 
-int Mutex::signal() throw()
+int Mutex::signal() throw ()
 /*! \brief Signal senden
  *
  * Mit dieser Funktion wird dem Mutex ein Signal gegeben. Hat ein Thread sich selbst
@@ -283,16 +293,18 @@ int Mutex::signal() throw()
  * \return Bei Erfolg liefert die Funktion true (1) zurück, sonst false (0).
  */
 {
+#ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	#ifdef _WIN32
-		int ret=SetEvent(h->condition);
-		if (ret==0) return 0;
+	int ret=SetEvent(h->condition);
+	if (ret==0) return 0;
+	return 1;
+#elif defined HAVE_PTHREADS
+	PPLMUTEX *h = (PPLMUTEX*) handle;
+	int ret = pthread_cond_signal(&h->condition);
+	if (ret == 0)
 		return 1;
-	#elif defined HAVE_PTHREADS
-		int ret=pthread_cond_signal(&h->condition);
-		if (ret==0) return 1;
-		return 0;
-	#endif
+	return 0;
+#endif
 }
 
 
