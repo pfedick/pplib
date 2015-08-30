@@ -217,19 +217,19 @@ TEST_F(TcpSocketTest, repetetiveReadAndwaitForIncomingData) {
 		socket.connect(Hostname,7);
 	});
 	ppl7::ByteArray Expected, Out, In, TotalIn;
-	ppl7::Random(Expected,543289);
+	size_t totalBytes=200000;
+	ppl7::Random(Expected,totalBytes);
 	Out=Expected;
 	ASSERT_NO_THROW({
-		ASSERT_EQ((size_t)543289,socket.write(Out));
+		ASSERT_EQ((size_t)totalBytes,socket.write(Out));
 	});
-	// TODO
 	size_t bytesRead=0;
 	while (socket.waitForIncomingData(0,1000)) {
-		bytesRead+=socket.read(In,80000);
+		bytesRead+=socket.read(In,20000);
 		TotalIn.append(In);
 	}
-	ASSERT_EQ((size_t)543289,bytesRead);
-	ASSERT_EQ((size_t)543289,TotalIn.size());
+	ASSERT_EQ((size_t)totalBytes,bytesRead);
+	ASSERT_EQ((size_t)totalBytes,TotalIn.size());
 	ASSERT_EQ(Expected,TotalIn);
 	ASSERT_NO_THROW({
 		socket.connect(Hostname,7);
