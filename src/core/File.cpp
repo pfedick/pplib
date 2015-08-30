@@ -671,8 +671,7 @@ ppluint64 File::seek(ppluint64 position)
 			#else
 				p=(fpos_t)position;
 			#endif
-			int ret;
-			if ((ret=::fsetpos((FILE*)ff,&p))!=0) {
+			if (::fsetpos((FILE*)ff,&p)!=0) {
 				int errnosave=errno;
 				pos=tell();
 				errno=errnosave;
@@ -688,49 +687,33 @@ ppluint64 File::seek(ppluint64 position)
 
 ppluint64 File::seek (pplint64 offset, SeekOrigin origin )
 {
-	int suberr;
-	if (ff!=NULL) {
-		#ifdef WIN32FILES
-			int o=FILE_BEGIN;
-			if (origin==SEEKCUR) o=FILE_CURRENT;
-			if (origin==SEEKEND) o=FILE_END;
-			if (origin==SEEKSET) o=FILE_BEGIN;
-			LARGE_INTEGER in,out;
-			in.QuadPart=offset;
-			if (SetFilePointerEx((HANDLE)ff,in,&out,o)) {
-				pos=out.QuadPart;
-				return 1;
-			}
-			SetError(11);
-			return 0;
-		#elif defined _HAVE_FSEEKO
-			fpos_t p;
-			p=(fpos_t) offset;
-			suberr=::fseeko((FILE*)ff,p,origin);
-		#else
-			int o=0;
-			switch (origin) {
-				case File::SEEKCUR:
-					o=SEEK_CUR;
-					break;
-				case File::SEEKSET:
-					o=SEEK_SET;
-					break;
-				case File::SEEKEND:
-					o=SEEK_END;
-					break;
-				default:
-					throw IllegalArgumentException();
-			}
-			suberr=::fseek((FILE*)ff,(long)offset,o);
-		#endif
-		if (suberr==0) {
-			pos=tell();
-			return pos;
-		}
-		throwErrno(errno,filename());
+	if (ff==NULL) throw FileNotOpenException();
+#ifdef _HAVE_FSEEKO
+	fpos_t p;
+	p=(fpos_t) offset;
+	int suberr=::fseeko((FILE*)ff,p,origin);
+#else
+	int o=0;
+	switch (origin) {
+		case File::SEEKCUR:
+			o=SEEK_CUR;
+			break;
+		case File::SEEKSET:
+			o=SEEK_SET;
+			break;
+		case File::SEEKEND:
+			o=SEEK_END;
+			break;
+		default:
+			throw IllegalArgumentException();
 	}
-	throw FileNotOpenException();
+	int suberr=::fseek((FILE*)ff,(long)offset,o);
+#endif
+	if (suberr==0) {
+		pos=tell();
+		return pos;
+	}
+	throwErrno(errno,filename());
 	return 0;
 }
 
@@ -1734,11 +1717,10 @@ void File::stat(const String &filename, DirEntry &result)
 String File::getPath(const String &path)
 {
 	size_t i,l,pos;
-	char c;
 	l=path.len();
 	pos=0;
 	for (i=0;i<l;i++) {
-		c=path[i];
+		char c=path[i];
 		if (c=='/' || c==':' || c=='\\') pos=i;
 	}
 	return path.left(pos);
@@ -1757,11 +1739,10 @@ String File::getPath(const String &path)
 String File::getFilename(const String &path)
 {
 	size_t i,l,pos;
-	char c;
 	l=path.len();
 	pos=0;
 	for (i=0;i<l;i++) {
-		c=path[i];
+		char c=path[i];
 		if (c=='/' || c==':' || c=='\\') pos=i+1;
 	}
 	return path.mid(pos);

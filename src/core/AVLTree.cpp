@@ -716,6 +716,9 @@ AVLTreeAlgorithm::Node *AVLTreeAlgorithm::findNode(const Node *value) const
  */
 AVLTreeAlgorithm::Iterator::Iterator()
 {
+	for (int i=0;i<AVL_MAX_HEIGHT;i++) {
+		stack[i]=0;
+	}
 	current=NULL;
 	stack_height=0;
 }
