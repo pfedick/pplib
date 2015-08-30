@@ -253,6 +253,7 @@ WikiParser::~WikiParser()
  */
 void WikiParser::init()
 {
+	nobr=false;
 	ispre=0;
 	ullevel=0;
 	ollevel=0;
@@ -981,10 +982,11 @@ String WikiParser::xmlDiagram2HTML(const String &xml)
 	String Body,Tmp, Param, d, Row, Text;
 	AssocArray opt, items, a;
 	Array Match;
-	int smallscale=50;
-	int bigscale=100;
 	Text=xml;
 	if (Text.pregMatch("/^(.*?)<diagram(.*?)>[\\n]*(.*?)<\\/diagram>(.*)$/ism",Match)) {
+		int smallscale=50;
+		int bigscale=100;
+
 		Param=Match[2];
 		Body=Match[3];
 		d.clear();
