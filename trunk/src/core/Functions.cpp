@@ -174,7 +174,7 @@ void HexDump(const void *address, size_t bytes, bool skipheader)
 {
     char buff[1024], tmp[10], cleartext[20];
     if (!skipheader) {
-    	sprintf (buff,"HEXDUMP: %zi Bytes starting at Address %p:",bytes,address);
+    	sprintf (buff,"HEXDUMP: %zu Bytes starting at Address %p:",bytes,address);
     	printf("%s\n",buff);
     }
 
@@ -757,21 +757,18 @@ ppluint64 PeekN64 (const void *Adresse)
 
 const char * GetArgv (int argc, char * argv[], const char * argument)
 {
-	int i;
-	size_t argl,l;
-	const char *ret;
 	if (argc>1) {
-		argl=strlen(argument);
-		for (i=1;i<argc;i++) {
+		size_t argl=strlen(argument);
+		for (int i=1;i<argc;i++) {
 			if (strncmp(argv[i],argument,argl) == 0) {
-				l=strlen(argv[i]);
+				size_t l=strlen(argv[i]);
 				if (l>argl || argv[i+1]==NULL) {
-					ret=(argv[i]+argl);
+					const char *ret=(argv[i]+argl);
 					//if (ret[0]=='-') return (char*)"";
 					//if (ret[0]=='\\' && ret[1]=='-') return ret+1;
 					return ret;
 				} else {
-					ret=(argv[i+1]);
+					const char * ret=(argv[i+1]);
 					if (ret[0]=='-') return (char*)"";
 					if (ret[0]=='\\' && ret[1]=='-') return ret+1;
 					return ret;

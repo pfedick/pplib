@@ -172,9 +172,9 @@ void Logger::terminate()
 		logff[i].close();
 	}
 	mutex.lock();
-	LOGHANDLER *c,*h=(LOGHANDLER *)firsthandler;
+	LOGHANDLER *h=(LOGHANDLER *)firsthandler;
 	while (h) {
-		c=h;
+		LOGHANDLER *c=h;
 		h=h->next;
 		free(c);
 	}
