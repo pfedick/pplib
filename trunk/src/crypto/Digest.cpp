@@ -79,13 +79,13 @@ void InitOpenSSLDigest()
 
 Digest::Digest()
 {
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
 	bytecount=0;
 	m=NULL;
 	ret=NULL;
 	ctx=NULL;
+#ifndef HAVE_OPENSSL
+	throw UnsupportedFeatureException("OpenSSL");
+#else
 	if (!__OpenSSLDigestAdded) {
 		InitOpenSSLDigest();
 	}
@@ -102,13 +102,13 @@ Digest::~Digest()
 
 Digest::Digest(const String &name)
 {
-#ifndef HAVE_OPENSSL
-	throw UnsupportedFeatureException("OpenSSL");
-#else
 	bytecount=0;
 	m=NULL;
 	ret=NULL;
 	ctx=NULL;
+#ifndef HAVE_OPENSSL
+	throw UnsupportedFeatureException("OpenSSL");
+#else
 	if (!__OpenSSLDigestAdded) {
 		InitOpenSSLDigest();
 	}
@@ -118,13 +118,13 @@ Digest::Digest(const String &name)
 
 Digest::Digest(Algorithm algorithm)
 {
+	bytecount=0;
+	m=NULL;
+	ret=NULL;
+	ctx=NULL;
 #ifndef HAVE_OPENSSL
 	throw UnsupportedFeatureException("OpenSSL");
 #else
-	bytecount=0;
-	ret=NULL;
-	m=NULL;
-	ctx=NULL;
 	if (!__OpenSSLDigestAdded) {
 		InitOpenSSLDigest();
 	}
@@ -240,10 +240,9 @@ void Digest::addData(FileObject &file)
 		throw OutOfMemoryException();
 	}
 	ppluint64 rest=fsize;
-	size_t bytes;
 	try {
 		while(rest) {
-			bytes=rest;
+			size_t bytes=rest;
 			if (bytes>bsize) bytes=bsize;
 			if (!file.read(buffer,bytes)) {
 				throw ReadException();
