@@ -408,9 +408,9 @@ void ByteArrayPtr::memset(int value)
 
 int ByteArrayPtr::memcmp(const ByteArrayPtr &other) const
 {
-	size_t max=ptrsize;
+	//size_t max=ptrsize;
 	size_t min=ptrsize;
-	if (other.ptrsize>max) max=other.ptrsize;
+	//if (other.ptrsize>max) max=other.ptrsize;
 	if (other.ptrsize<min) min=other.ptrsize;
 	for (size_t i=0;i<min;i++) {
 		if ( ((char*)ptradr)[i] < ((char*)other.ptradr)[i] ) return -1;

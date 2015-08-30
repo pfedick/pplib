@@ -101,16 +101,15 @@ static char GlobalEncoding[64]="UTF-8";
  */
 void String::setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
 {
-	char enc[64]="";
 	if (!encoding) throw NullPointerException();
 	size_t size=strlen(encoding);
 	if (size>63 || size==0) throw UnsupportedCharacterEncodingException();
-	for (size_t i=0;i<size;i++) enc[i]=toupper(encoding[i]);
-	enc[size]=0;
-
 	// Sofern wir die Multibyte-Funktionen haben, unterstützen wir
 	// UTF-8 und US-ASCII auch ohne iconv
 #ifdef HAVE_MBSTOWCS
+	char enc[64]="";
+	for (size_t i=0;i<size;i++) enc[i]=toupper(encoding[i]);
+	enc[size]=0;
 	if (::strcmp(enc,"utf8")==0
 			|| ::strcmp(enc,"utf-8")==0
 			|| ::strcmp(enc,"us-ascii")==0
@@ -458,16 +457,15 @@ bool String::notEmpty() const
  */
 bool String::isNumeric() const
 {
-	int c;
-	if (!stringlen) return false;
+	if (!stringlen) return false ;
 	for (size_t i=0;i<stringlen;i++) {
-		c=((char*)ptr)[i];
+		int c=((char*)ptr)[i];
 		if (c<'0' || c>'9') {
-			if (c!='.' && c!=',' && c!='-') return false;
+			if (c!='.' && c!=',' && c!='-') return false ;
 			if (c=='-' && i>0) return false;
 		}
 	}
-	return true;
+	return(true);
 }
 
 /*!\brief Prüft, ob der String einen Integer Wert enthält
@@ -481,10 +479,9 @@ bool String::isNumeric() const
  */
 bool String::isInteger() const
 {
-	int c;
 	if (!stringlen) return false;
 	for (size_t i=0;i<stringlen;i++) {
-		c=((char*)ptr)[i];
+		int c=((char*)ptr)[i];
 		if (c<'0' || c>'9') {
 			if (c=='-' && i==0) continue;		// Minus am Anfang ist erlaubt
 			return false;
@@ -1398,13 +1395,14 @@ String &String::fromUCS4(const ppluint32 *str, size_t size)
 	 *
 	 */
 	throw UnsupportedFeatureException("String::fromUCS not implemented yet");
-	wchar_t c;
+	/*
 	for (size_t i=0;str[i]!=0;i++) {
 		if (size!=(size_t)-1 && i>=size) break;
-		c=(wchar_t)str[i];
+		wchar_t c=(wchar_t)str[i];
 		append(c);
 	}
-	return *this;
+	*/
+	return *this ;
 }
 
 String &String::fromUCS4(const ByteArrayPtr &bin)
@@ -1892,10 +1890,9 @@ void String::lowerCase()
 		throw CharacterEncodingException();
 	}
 	// Umwandeln
-	wchar_t c,wc;
 	for (size_t i=0;i<l;i++) {
-		wc=buffer[i];
-		c=towlower(wc);
+		wchar_t wc=buffer[i];
+		wchar_t c=towlower(wc);
 		if (c!=(wchar_t)WEOF) {
 			buffer[i]=c;
 		}
@@ -1935,10 +1932,9 @@ void String::upperCase()
 		throw CharacterEncodingException();
 	}
 	// Umwandeln
-	wchar_t c,wc;
 	for (size_t i=0;i<l;i++) {
-		wc=buffer[i];
-		c=towupper(wc);
+		wchar_t wc=buffer[i];
+		wchar_t c=towupper(wc);
 		if (c!=(wchar_t)WEOF) {
 			buffer[i]=c;
 		}
@@ -1966,12 +1962,11 @@ void String::upperCaseWords()
 		free(buffer);
 		throw CharacterEncodingException();
 	}
-	wchar_t c,wc;
 	bool wordstart=true;
 	for (size_t i=0;i<l;i++) {
-		wc=buffer[i];
+		wchar_t wc=buffer[i];
 		if (wordstart) {
-			c=towupper(wc);
+			wchar_t c=towupper(wc);
 			if (c!=(wchar_t)WEOF) {
 				buffer[i]=c;
 			}
@@ -2048,10 +2043,9 @@ void String::trimRight()
 {
 	if (ptr!=NULL && stringlen>0) {
 		size_t i,ende;
-		char w;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
-			w=ptr[i-1];
+			char w=ptr[i-1];
 			if (w!=13 && w!=10 && w!=32 && w!='\t') {
 				ende=i;
 				break;
@@ -2068,10 +2062,9 @@ void String::trimLeft(const String &chars)
 {
 	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
 		size_t i,start,s,z;
-		int match;
 		start=0; s=0;
 		for (i=0;i<stringlen;i++) {
-			match=0;
+			int match=0;
 			for (z=0;z<chars.stringlen;z++) {
 				if (ptr[i]==chars.ptr[z]) {
 					if (s==0) start=i+1;
@@ -2095,12 +2088,10 @@ void String::trimRight(const String &chars)
 {
 	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
 		size_t i,ende,z;
-		int match;
-		char w;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
-			w=ptr[i-1];
-			match=0;
+			char w=ptr[i-1];
+			int match=0;
 			for (z=0;z<chars.stringlen;z++) {
 				if (w==chars.ptr[z]) {
 					//if (s==0) start=i+1;
@@ -3128,20 +3119,19 @@ String::operator std::string() const
 
 String::operator std::wstring() const
 {
-	if (stringlen==0) return std::wstring();
-	size_t wlen=0;
+	if (stringlen==0) return(std::wstring());
 	size_t buffersize=(stringlen+1)*sizeof(wchar_t);
 	wchar_t * w=(wchar_t*)malloc(buffersize);
 	if (!w) throw OutOfMemoryException();
 #ifdef HAVE_MBSTOWCS
-	wlen=mbstowcs(w, ptr, buffersize);
+	size_t wlen=mbstowcs(w, ptr, buffersize);
 	if (wlen==(size_t) -1) {
 		free(w);
 		throw CharacterEncodingException();
 	}
 	std::wstring ret(w,wlen);
 	free(w);
-	return ret;
+	return(ret);
 	/*
 #elif HAVE_ICONV
 	iconv_t iconvimport=iconv_open(ICONV_UNICODE,GlobalEncoding);
