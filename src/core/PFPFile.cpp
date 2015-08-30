@@ -660,7 +660,7 @@ Compression::Algorithm PFPFile::getCompression() const
 
 void PFPFile::saveChunk(char *buffer, size_t &pp, PFPChunk *chunk)
 {
-	for (int i=0;i<4;i++) Poke8(buffer+pp+i,chunk->chunkname[i]);
+	for (int i=0;i<4;i++) Poke8(buffer+pp+i,(unsigned int)(chunk->chunkname[i]));
 	Poke32(buffer+pp+4,chunk->chunksize+8);
 	pp+=8;
 	if (chunk->chunksize) {
@@ -702,9 +702,9 @@ void PFPFile::save(const String &filename)
 	Chunks.reset(it);
 	PFPChunk *chunk;
 	try {
-		while((chunk=(PFPChunk*)Chunks.getNext(it))) {
+		while(Chunks.getNext(it)) {
 			size+=8;
-			size+=chunk->chunksize;
+			size+=it.value()->chunksize;
 		}
 	} catch (...) {
 
@@ -719,7 +719,7 @@ void PFPFile::save(const String &filename)
 	strcpy(p,"PFP-File");
 	Poke8(p+8,3);
 	Poke8(p+9,hsize);
-	for (int i=0;i<4;i++) Poke8(p+10+i,id[i]);
+	for (int i=0;i<4;i++) Poke8((p+10+i),(unsigned int)id[i]);
 	Poke8(p+15,mainversion);
 	Poke8(p+14,subversion);
 	Poke8(p+16,comp);
@@ -743,7 +743,8 @@ void PFPFile::save(const String &filename)
 	// Restliche Chunks
 	Chunks.reset(it);
 	try {
-		while((chunk=(PFPChunk*)Chunks.getNext(it))) {
+		while(Chunks.getNext(it)) {
+			PFPChunk *chunk=it.value();
 			String cn=chunk->chunkname;
 			// Vordefinierte Chunks müssen übergangen werden, da diese weiter oben schon
 			// ausgelesen wurden
@@ -935,13 +936,12 @@ PFPChunk *PFPFile::findNextChunk(Iterator &it, const String &chunkname) const
  * \since Version 6.1.0
  */
 {
-	PFPChunk *chunk;
 	if (chunkname.notEmpty()) {
 		it.findchunk=chunkname;
 	}
 	if (it.findchunk.len()!=4) throw IllegalArgumentException();
 	while (Chunks.getNext(it)) {
-		chunk=it.value();
+		PFPChunk *chunk=it.value();
 		if (it.findchunk==chunk->chunkname) return chunk;
 	}
 	return NULL;
@@ -1035,11 +1035,10 @@ void PFPFile::list() const
 
 	Iterator it;
 	Chunks.reset(it);
-	PFPChunk *chunk;
 	printf ("\nChunks:\n");
 	while(Chunks.getNext(it)) {
-		chunk=it.value();
-		printf ("  %s: %zi Bytes\n",(const char*)chunk->chunkname,chunk->chunksize);
+		PFPChunk *chunk=it.value();
+		printf ("  %s: %zu Bytes\n",(const char*)chunk->chunkname,chunk->chunksize);
 	}
 	printf("===============================================================\n");
 }
@@ -1210,9 +1209,9 @@ void PFPFile::load(FileObject &ff)
 	}
 	// Wir haben nun den ersten Chunk ab Pointer p
 	z=0;
-	size_t size=0;
 	String Chunkname;
 	try {
+		size_t size=0;
 		while ((z+=size)<fsize) {
 			size=Peek32(p+z+4);
 			if (strncmp(p+z,"ENDF",4)==0) break;

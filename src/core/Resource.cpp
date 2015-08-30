@@ -94,10 +94,9 @@ Resource::~Resource()
 
 void Resource::clear()
 {
-	ResourceChunk *res;
-	ResourceChunk *next=(ResourceChunk *)firstchunk;
+	ResourceChunk *next=static_cast<ResourceChunk *>(firstchunk);
 	while (next) {
-		res=next;
+		ResourceChunk *res=next;
 		next=next->next;
 		delete (res);
 	}
@@ -228,7 +227,7 @@ void Resource::parse()
 
 void Resource::list()
 {
-	ResourceChunk *res=(ResourceChunk *)firstchunk;
+	ResourceChunk *res=static_cast<ResourceChunk *>(firstchunk);
 	printf ("List of Ressources\n");
 	if (!res) {
 		printf ("  no entries\n");
@@ -243,7 +242,7 @@ void Resource::list()
 
 void *Resource::find(int id)
 {
-	ResourceChunk *res=(ResourceChunk *)firstchunk;
+	ResourceChunk *res=static_cast<ResourceChunk *>(firstchunk);
 	if (!firstchunk) throw ResourceNotFoundException();
 	while (res) {
 		if (res->id==id) {
@@ -259,7 +258,7 @@ void *Resource::find(int id)
 
 void *Resource::find(const String &name)
 {
-	ResourceChunk *res=(ResourceChunk *)firstchunk;
+	ResourceChunk *res=static_cast<ResourceChunk *>(firstchunk);
 	if (!firstchunk) throw ResourceNotFoundException();
 	while (res) {
 		if (res->name==name) {
@@ -276,7 +275,7 @@ void *Resource::find(const String &name)
 ByteArrayPtr Resource::getMemory(int id)
 {
 	ByteArrayPtr m;
-	ResourceChunk *res=(ResourceChunk *)find(id);
+	ResourceChunk *res=static_cast<ResourceChunk *>(find(id));
 	m.use(res->data,res->size_u);
 	return m;
 }
@@ -284,14 +283,14 @@ ByteArrayPtr Resource::getMemory(int id)
 ByteArrayPtr Resource::getMemory(const String &name)
 {
 	ByteArrayPtr m;
-	ResourceChunk *res=(ResourceChunk *)find(name);
+	ResourceChunk *res=static_cast<ResourceChunk *>(find(name));
 	m.use(res->data,res->size_u);
 	return m;
 }
 
 FileObject *Resource::getFile(int id)
 {
-	ResourceChunk *res=(ResourceChunk *)find(id);
+	ResourceChunk *res=static_cast<ResourceChunk *>(find(id));
 	MemFile *ff=new MemFile();
 	ff->open(res->data,res->size_u);
 	ff->setFilename(res->name);
@@ -300,7 +299,7 @@ FileObject *Resource::getFile(int id)
 
 FileObject *Resource::getFile(const String &name)
 {
-	ResourceChunk *res=(ResourceChunk *)find(name);
+	ResourceChunk *res=static_cast<ResourceChunk *>(find(name));
 	MemFile *ff=new MemFile();
 	ff->open(res->data,res->size_u);
 	ff->setFilename(res->name);
@@ -310,7 +309,7 @@ FileObject *Resource::getFile(const String &name)
 void Resource::uncompress(void *resource)
 {
 	Compression comp;
-	ResourceChunk *res=(ResourceChunk*)resource;
+	ResourceChunk *res=static_cast<ResourceChunk*>(resource);
 	size_t bufferlen=res->size_u;
 	void *buffer=malloc(bufferlen);
 	if (!buffer) throw OutOfMemoryException();

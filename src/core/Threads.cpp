@@ -868,8 +868,8 @@ void Thread::run()
  */
 int Thread::threadGetPriority()
 {
-	THREADDATA *t=(THREADDATA *)threaddata;
 #ifdef WIN32
+	THREADDATA *t=(THREADDATA *)threaddata;
 	int p=GetThreadPriority(t->thread);
 	switch(p) {
 		case THREAD_PRIORITY_LOWEST:
@@ -884,6 +884,7 @@ int Thread::threadGetPriority()
 			return HIGHEST;
 	}
 #elif defined HAVE_PTHREADS
+	THREADDATA *t=(THREADDATA *)threaddata;
 	struct sched_param s;
 	int policy,c;
 	c=pthread_getschedparam(t->thread,&policy,&s);

@@ -105,12 +105,11 @@ String ToBase64(const ByteArrayPtr &bin)
 {
 	String res;
     unsigned char in[3], out[4];
-    int i, len;
     size_t p=0, filelen=bin.size();
 
     while( p<filelen ) {
-        len = 0;
-        for( i = 0; i < 3; i++ ) {
+        int len = 0;
+        for(int i = 0; i < 3; i++ ) {
             in[i] = (unsigned char) bin.get(p++);
             if( p<=filelen) {
                 len++;
@@ -118,7 +117,7 @@ String ToBase64(const ByteArrayPtr &bin)
         }
         if( len ) {
             encodeblock( in, out, len );
-            for( i = 0; i < 4; i++ ) {
+            for(int i = 0; i < 4; i++ ) {
             	res.appendf("%c",out[i]);
             }
         }
@@ -263,9 +262,8 @@ ssize_t Instr (const char * haystack, const char * needle, size_t start)
 {
 	if (!haystack) return -1;
 	if (!needle) return -1;
-	const char * _t;
 	if (start<strlen(haystack)) {
-		_t=strstr((haystack+start),needle);
+		const char *_t=strstr((haystack+start),needle);
 		if (_t!=NULL) {
 			return ((ssize_t)(_t-haystack));
 		}
@@ -276,13 +274,12 @@ ssize_t Instr (const char * haystack, const char * needle, size_t start)
 #ifndef HAVE_STRCASESTR
 static const char *mystrcasestr(const char *haystack, const char *needle)
 {
-    char c, sc;
-    size_t len;
-
+    char c;
     if ((c = *needle++) != 0) {
         c = tolower((unsigned char)c);
-        len = strlen(needle);
+        size_t len = strlen(needle);
         do {
+        	char sc;
             do {
                 if ((sc = *haystack++) == 0)
                     return (NULL);
@@ -304,8 +301,8 @@ ssize_t Instrcase (const char * haystack, const char * needle, size_t start)
 {
 	if (!haystack) return -1;
 	if (!needle) return -1;
-	const char * _t;
 	if (start<strlen(haystack)) {
+		const char * _t;
 #ifdef HAVE_STRCASESTR
 		_t=strcasestr((haystack+start),needle);
 #else
@@ -327,8 +324,8 @@ ssize_t Instr (const wchar_t * haystack, const wchar_t * needle, size_t start)
 {
 	if (!haystack) return -1;
 	if (!needle) return -1;
-	const wchar_t * _t;
 	if (start<wcslen(haystack)) {
+		const wchar_t * _t;
 		_t=wcsstr((haystack+start),needle);
 		if (_t!=NULL) {
 			return ((ssize_t)(_t-haystack));
@@ -614,10 +611,9 @@ String UrlEncode(const String &text)
 	const char *source=text.getPtr();
 	String ret;
 	static const char *digits = "0123456789ABCDEF";
-	unsigned char ch;
 	while (*source)
 	{
-		ch = (unsigned char)*source;
+		unsigned char ch = (unsigned char)*source;
 		if (*source == ' ') {
 			ret+=L"+";
 		}

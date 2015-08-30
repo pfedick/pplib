@@ -652,9 +652,7 @@ void datumsauswertung (pplchar * d, pplchar * dat)
  */
 {
 	CTok Tok;
-	size_t z,l,p,m;
 	char t [15], ad [11];
-	const char *tokptr;
 	char *strptr = t;
 
 	strcpy (t,dat);
@@ -666,14 +664,14 @@ void datumsauswertung (pplchar * d, pplchar * dat)
 		strxchg (t,"-",".");		/* umwandeln                              */
 		strxchg (t,"/",".");
 		strcat  (t,"..");
-		z=0;
-		p=0;
+		size_t z=0;
+		size_t p=0;
 		strcpy (d,"");
 		Tok.Split(strptr,".");
 		while (z<3) {
-			tokptr = Tok.GetNext();
+			const char *tokptr = Tok.GetNext();
 			if (tokptr!=NULL) {
-				l=strlen(tokptr);
+				size_t l=strlen(tokptr);
 				if (l<2 && z<2)
 					strcat (d,"0");
 				else if (l<4 && z==2)
@@ -694,7 +692,7 @@ void datumsauswertung (pplchar * d, pplchar * dat)
 	strncpy (t,d,2);
 	z=atoi(t);
 	strncpy (t,d+3,2);
-	m=atoi(t);
+	int m=atoi(t);
 	if (z<1) {
 		d[0]='0';
 		d[1]='1';

@@ -352,7 +352,7 @@ ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 				break;
 			case SEEKSET:
 				pos=offset;
-				if (pos<0) {pos=0; return pos;}
+				if ((pplint64)pos<0) {pos=0; return pos;}
 				if (pos>mysize) return pos;
 				break;
 		}
