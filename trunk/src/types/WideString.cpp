@@ -101,16 +101,18 @@ static char GlobalEncoding[64]="UTF-8";
  */
 void WideString::setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
 {
-	char enc[64]="";
+
 	if (!encoding) throw NullPointerException();
 	size_t size=strlen(encoding);
 	if (size>63 || size==0) throw UnsupportedCharacterEncodingException();
-	for (size_t i=0;i<size;i++) enc[i]=toupper(encoding[i]);
-	enc[size]=0;
 
 	// Sofern wir die Multibyte-Funktionen haben, unterstützen wir
 	// UTF-8 und US-ASCII auch ohne iconv
 #ifdef HAVE_MBSTOWCS
+	char enc[64]="";
+	for (size_t i=0;i<size;i++) enc[i]=toupper(encoding[i]);
+	enc[size]=0;
+
 	if (::strcmp(enc,"utf8")==0
 			|| ::strcmp(enc,"utf-8")==0
 			|| ::strcmp(enc,"us-ascii")==0
@@ -483,10 +485,9 @@ bool WideString::notEmpty() const
  */
 bool WideString::isNumeric() const
 {
-	wchar_t c;
 	if (!stringlen) return false;
 	for (size_t i=0;i<stringlen;i++) {
-		c=((wchar_t*)ptr)[i];
+		wchar_t c=((wchar_t*)ptr)[i];
 		if (c<'0' || c>'9') {
 			if (c!='.' && c!=',' && c!='-') return false;
 			if (c=='-' && i>0) return false;
@@ -506,10 +507,9 @@ bool WideString::isNumeric() const
  */
 bool WideString::isInteger() const
 {
-	wchar_t c;
 	if (!stringlen) return false;
 	for (size_t i=0;i<stringlen;i++) {
-		c=((wchar_t*)ptr)[i];
+		wchar_t c=((wchar_t*)ptr)[i];
 		if (c<'0' || c>'9') {
 			if (c=='-' && i==0) continue;		// Minus am Anfang ist erlaubt
 			return false;
@@ -1509,10 +1509,9 @@ ByteArray WideString::toUCS4() const
 WideString &WideString::fromUCS4(const ppluint32 *str, size_t size)
 {
 	clear();
-	wchar_t c;
 	for (size_t i=0;str[i]!=0;i++) {
 		if (size!=(size_t)-1 && i>=size) break;
-		c=(wchar_t)str[i];
+		wchar_t c=(wchar_t)str[i];
 		append(c);
 	}
 	return *this;
@@ -2010,10 +2009,9 @@ WideString WideString::substr(size_t start, size_t len) const
 void WideString::lowerCase()
 {
 	if (ptr!=NULL && stringlen>0) {
-		wchar_t c,wc;
 		for (size_t i=0;i<stringlen;i++) {
-			wc=ptr[i];
-			c=towlower(wc);
+			wchar_t wc=ptr[i];
+			wchar_t c=towlower(wc);
 			if (c!=(wchar_t)WEOF) {
 				ptr[i]=c;
 			}
@@ -2042,10 +2040,9 @@ void WideString::lowerCase()
 void WideString::upperCase()
 {
 	if (ptr!=NULL && stringlen>0) {
-		wchar_t c,wc;
 		for (size_t i=0;i<stringlen;i++) {
-			wc=ptr[i];
-			c=towupper(wc);
+			wchar_t wc=ptr[i];
+			wchar_t c=towupper(wc);
 			if (c!=(wchar_t)WEOF) {
 				ptr[i]=c;
 			}
@@ -2062,12 +2059,11 @@ void WideString::upperCase()
 void WideString::upperCaseWords()
 {
 	if (ptr!=NULL && stringlen>0) {
-		wchar_t c,wc;
 		bool wordstart=true;
 		for (size_t i=0;i<stringlen;i++) {
-			wc=ptr[i];
+			wchar_t wc=ptr[i];
 			if (wordstart) {
-				c=towupper(wc);
+				wchar_t c=towupper(wc);
 				if (c!=(wchar_t)WEOF) {
 					ptr[i]=c;
 				}
@@ -2129,10 +2125,9 @@ void WideString::trimRight()
 {
 	if (ptr!=NULL && stringlen>0) {
 		size_t i,ende;
-		wchar_t w;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
-			w=ptr[i-1];
+			wchar_t w=ptr[i-1];
 			if (w!=13 && w!=10 && w!=32 && w!='\t') {
 				ende=i;
 				break;
@@ -2149,10 +2144,9 @@ void WideString::trimLeft(const WideString &chars)
 {
 	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
 		size_t i,start,s,z;
-		int match;
 		start=0; s=0;
 		for (i=0;i<stringlen;i++) {
-			match=0;
+			int match=0;
 			for (z=0;z<chars.stringlen;z++) {
 				if (ptr[i]==chars.ptr[z]) {
 					if (s==0) start=i+1;
@@ -2176,12 +2170,10 @@ void WideString::trimRight(const WideString &chars)
 {
 	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
 		size_t i,ende,z;
-		int match;
-		wchar_t w;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
-			w=ptr[i-1];
-			match=0;
+			wchar_t w=ptr[i-1];
+			int match=0;
 			for (z=0;z<chars.stringlen;z++) {
 				if (w==chars.ptr[z]) {
 					//if (s==0) start=i+1;

@@ -480,7 +480,7 @@ static int out_bind(const char *host, int port)
 		throw CouldNotOpenSocketException("Host: %s, Port: %d", host, port);
 	if (res == NULL)
 		throw CouldNotBindToInterfaceException("Host: %s, Port: %d", host, port);
-	return listenfd;
+	return (listenfd);
 }
 #endif
 
@@ -985,7 +985,7 @@ size_t TCPSocket::read(void *buffer, size_t bytes)
 		throw NotConnectedException();
 	PPLSOCKET *s=(PPLSOCKET*)socket;
 	if (!buffer) throw IllegalArgumentException();
-	size_t BytesRead=0;
+	ssize_t BytesRead=0;
 	if (ssl) {
 		BytesRead=SSL_Read(buffer,bytes);
 	} else {
@@ -993,7 +993,7 @@ size_t TCPSocket::read(void *buffer, size_t bytes)
 	}
 	if (BytesRead<0)
 		throwExceptionFromErrno(errno, "TCPSocket::read");
-	return BytesRead;
+	return ((size_t)BytesRead);
 }
 
 size_t TCPSocket::read(String &buffer, size_t bytes)
@@ -1261,10 +1261,10 @@ bool TCPSocket::waitForOutgoingData(int seconds, int useconds)
  */
 void TCPSocket::bind(const String &host, int port)
 {
-	int addrlen=0;
+	//int addrlen=0;
 	if (!socket) {
 		socket=malloc(sizeof(PPLSOCKET));
-		throw OutOfMemoryException();
+		if (!socket) throw OutOfMemoryException();
 		PPLSOCKET *s=(PPLSOCKET*)socket;
 		s->sd=0;
 		s->proto=6;
@@ -1283,21 +1283,22 @@ void TCPSocket::bind(const String &host, int port)
 	if (s->ipname) free(s->ipname);
 	s->ipname=NULL;
 
-	struct addrinfo hints, *res, *ressave;
+	struct addrinfo hints;
 	bzero(&hints, sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_STREAM;
-	int n;
 	int on=1;
 	// Prüfen, ob host ein Wildcard ist
+	struct addrinfo *res;
 	if (host.notEmpty()==true && host!="*") {
 		char portstr[10];
 		sprintf(portstr,"%i",port);
+		int n;
 		if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
 			throw ResolverException("%s, %s",(const char*)host,gai_strerror(n));
 		}
-		ressave=res;
+		struct addrinfo *ressave=res;
 		do {
 			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
 			if (listenfd<0) continue; // Error, try next one
@@ -1306,7 +1307,7 @@ void TCPSocket::bind(const String &host, int port)
 				throw SettingSocketOptionException();
 			}
 			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
-				addrlen=res->ai_addrlen;
+				//addrlen=res->ai_addrlen;
 				break;
 			}
 			::shutdown(listenfd,2);

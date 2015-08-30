@@ -1294,7 +1294,7 @@ Array Sort(const Array &array, bool unique)
 	while (s.getNext(it)) {
 		ret.add(it.key());
 	}
-	return ret;
+	return(ret);
 }
 
 /*!\brief Inhalt eines Arrays in umgekehrter Reihenfolge sortieren
@@ -1326,7 +1326,7 @@ Array SortReverse(const Array &array, bool unique)
 	while (s.getPrevious(it)) {
 		ret.add(it.key());
 	}
-	return ret;
+	return (ret);
 }
 
 } // EOF namespace ppl7
