@@ -231,11 +231,12 @@ bool AudioCD::isAudioTrack(int track)
 #endif
 }
 
-
+/*
 static inline ppluint8 ppl_to_bcd8 (ppluint8 n)
 {
   return ((n/10)<<4) | (n%10);
 }
+*/
 
 AudioCD::Toc AudioCD::lsn2toc(size_t lsn)
 {
@@ -277,6 +278,7 @@ AudioCD::Track::Track()
 	_end=0;
 	_hasPreemphasis=false;
 	_hasCopyPermit=false;
+	_isAudioTrack=false;
 	_channels=0;
 }
 
