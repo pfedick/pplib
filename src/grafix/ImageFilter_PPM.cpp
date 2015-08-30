@@ -132,7 +132,6 @@ void ImageFilter_PPM::load(FileObject &file, Drawable &surface, IMAGE &img)
 
 void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const AssocArray &param)
 {
-	int x,y;
 	Color farbe;
     //int haupt,unter,build;
 	ppluint8 r,g,b;
@@ -149,8 +148,8 @@ void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const Ass
 		file.putsf("%d %d\n",surface.width(),surface.height());
 		file.putsf("%d\n",255);
 		c=0;
-		for (y=0;y<surface.height();y++) {
-			for (x=0;x<surface.width();x++) {
+		for (int y=0;y<surface.height();y++) {
+			for (int x=0;x<surface.width();x++) {
 				farbe=surface.getPixel(x,y);
 				r=(ppluint8)farbe.red();
 				g=(ppluint8)farbe.green();
