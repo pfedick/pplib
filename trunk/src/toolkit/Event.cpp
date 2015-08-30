@@ -74,6 +74,7 @@ Event::Event(Type t)
 	this->t=t;
 	accepted=false;
 	ignored=false;
+	eventWidget=NULL;
 }
 
 Event::~Event()
@@ -163,6 +164,8 @@ ResizeEvent::ResizeEvent()
 KeyEvent::KeyEvent()
 {
 	key=KEY_UNKNOWN;
+	modifier=0;
+	repeat=false;
 }
 
 

@@ -99,7 +99,6 @@ void HorizontalLayout::geometryChangedEvent(Event *event)
 		Widget *w;
 		size_t c=0;
 		int total=0;
-		int ww;
 		int hh=height();
 		int available=width();
 		int maxc=0;
@@ -117,7 +116,7 @@ void HorizontalLayout::geometryChangedEvent(Event *event)
 			available-=total;
 			int x=0;
 			for (size_t i=0;i<num;i++) {
-				ww=item[i].preferedWidth;
+				int ww=item[i].preferedWidth;
 				if (item[i].strategy==Widget::MAXIMUM_EXPANDING) {
 					if (available>0) {
 						ww+=(available/maxc);
