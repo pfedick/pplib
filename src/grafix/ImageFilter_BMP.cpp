@@ -56,6 +56,7 @@ namespace grafix {
 #undef tagBITMAPFILEHEADER
 
 #ifndef _WIN32
+/*
 typedef struct tagBITMAPFILEHEADER {
         ppluint16		bfType;
         ppluint32		bfSize;
@@ -63,6 +64,7 @@ typedef struct tagBITMAPFILEHEADER {
         ppluint16		bfReserved2;
         ppluint32		bfOffBits;
 } BITMAPFILEHEADER;
+*/
 
 typedef struct tagRGBQUAD {
         ppluint8		rgbBlue;
