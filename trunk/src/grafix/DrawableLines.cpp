@@ -347,8 +347,6 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 	GRAFIX_FUNCTIONS *fn=data.fn;
 	if (!fn->BlendPixel) return;
 
-	pplint32 x,ix1,ix2,iy1,iy2,y;
-
 	xd=(x2-x1);						// Breite und Hoehe der Linie
 	yd=(y2-y1);
 
@@ -368,8 +366,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		xgap=WuInvFrac(x1+0.5f);
 
-		ix1=(pplint32)xend;
-		iy1=(pplint32)yend;
+		pplint32 ix1=(pplint32)xend;
+		pplint32 iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -384,8 +382,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		xgap=WuInvFrac(x2-0.5f);
 
-		ix2=(pplint32)xend;
-		iy2=(pplint32)yend;
+		pplint32 ix2=(pplint32)xend;
+		pplint32 iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -393,7 +391,7 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 		fn->BlendPixel(data,ix2,iy2+1,color,(int)(brightness2*255));
 
 		// Main Loop
-		for (x=ix1+1; x<ix2; x++) {
+		for (pplint32 x=ix1+1; x<ix2; x++) {
 			brightness1=WuInvFrac(yf);
 			brightness2=WuFrac(yf);
 			fn->BlendPixel(data,x,(int)yf,color,(int)(brightness1*255));
@@ -417,8 +415,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		ygap=WuInvFrac(y1+0.5f);
 
-		ix1=(pplint32)xend;
-		iy1=(pplint32)yend;
+		pplint32 ix1=(pplint32)xend;
+		pplint32 iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -433,8 +431,8 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 
 		ygap=WuInvFrac(y2-0.5f);
 
-		ix2=(pplint32)xend;
-		iy2=(pplint32)yend;
+		pplint32 ix2=(pplint32)xend;
+		pplint32 iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -442,7 +440,7 @@ static void WuLine (DRAWABLE_DATA &data, float x1, float y1, float x2, float y2,
 		fn->BlendPixel(data,ix2+1,iy2,color,(int)(brightness2*255));
 
 		// Main Loop
-		for (y=iy1+1; y<iy2; y++) {
+		for (pplint32 y=iy1+1; y<iy2; y++) {
 			brightness1=WuInvFrac(xf);
 			brightness2=WuFrac(xf);
 			fn->BlendPixel(data,(int)xf,y,color,(int)(brightness1*255));
@@ -457,8 +455,6 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 {
 	float grad, xd,yd;//,length,xm,ym;
 	float brightness1, brightness2;
-
-	pplint32 x,ix1,ix2,iy1,iy2,y;
 
 	GRAFIX_FUNCTIONS *fn=data.fn;
 	if (!fn->BlendPixel) return;
@@ -485,8 +481,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		xgap=WuInvFrac(x1+0.5f);
 
-		ix1=(pplint32)xend;
-		iy1=(pplint32)yend;
+		pplint32 ix1=(pplint32)xend;
+		pplint32 iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -502,8 +498,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		xgap=WuInvFrac(x2-0.5f);
 
-		ix2=(pplint32)xend;
-		iy2=(pplint32)yend;
+		pplint32 ix2=(pplint32)xend;
+		pplint32 iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(yend)*xgap;
 		brightness2=WuFrac(yend)*xgap;
@@ -512,7 +508,7 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 		fn->BlendPixel(data,ix2,iy2+strength,color,(int)(brightness2*255));
 
 		// Main Loop
-		for (x=ix1+1; x<ix2; x++) {
+		for (pplint32 x=ix1+1; x<ix2; x++) {
 			brightness1=WuInvFrac(yf);
 			brightness2=WuFrac(yf);
 			fn->BlendPixel(data,x,(pplint32)yf,color,(int)(brightness1*255));
@@ -540,8 +536,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		ygap=WuInvFrac(y1+0.5f);
 
-		ix1=(pplint32)xend;
-		iy1=(pplint32)yend;
+		pplint32 ix1=(pplint32)xend;
+		pplint32 iy1=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -557,8 +553,8 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 
 		ygap=WuInvFrac(y2-0.5f);
 
-		ix2=(pplint32)xend;
-		iy2=(pplint32)yend;
+		pplint32 ix2=(pplint32)xend;
+		pplint32 iy2=(pplint32)yend;
 
 		brightness1=WuInvFrac(xend)*ygap;
 		brightness2=WuFrac(xend)*ygap;
@@ -567,7 +563,7 @@ static void WuLineThick (DRAWABLE_DATA &data, float x1, float y1, float x2, floa
 		fn->BlendPixel(data,ix2+strength,iy2,color,(int)(brightness2*255));
 
 		// Main Loop
-		for (y=iy1+1; y<iy2; y++) {
+		for (pplint32 y=iy1+1; y<iy2; y++) {
 			brightness1=WuInvFrac(xf);
 			brightness2=WuFrac(xf);
 			fn->BlendPixel(data,(pplint32)xf,y,color,(int)(brightness1*255));
