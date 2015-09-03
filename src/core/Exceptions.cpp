@@ -216,6 +216,7 @@ void throwExceptionFromErrno(int e,const String &info)
 		case EHOSTUNREACH: throw NoRouteToHostException(info);
 		case ENOTSOCK: throw InvalidSocketException(info);
 		case ENOPROTOOPT: throw UnknownOptionException(info);
+		case EPIPE: throw BrokenPipeException(info);
 
 		/*
 
