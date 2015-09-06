@@ -757,6 +757,8 @@ GTEST_LDFLAGS
 GTEST_CXXFLAGS
 GTEST_CPPFLAGS
 GTEST_CONFIG
+COND_CLANG_COVERAGE_FALSE
+COND_CLANG_COVERAGE_TRUE
 COND_GCOV_FALSE
 COND_GCOV_TRUE
 X_EXTRA_LIBS
@@ -883,6 +885,7 @@ enable_dependency_tracking
 enable_largefile
 with_x
 enable_gcov
+enable_clangcov
 enable_gtest
 with_libbind
 with_jpeg
@@ -1581,6 +1584,7 @@ Optional Features:
                           speeds up one-time build
   --disable-largefile     omit support for large files
   --enable-gcov           use Gcov to test the test suite
+  --enable-clang_coverage use clang codecoverage to test the test suite
   --enable-gtest          Enable tests using the Google C++ Testing Framework.
                           (Default is enabled.)
   --disable-oggtest       Do not try to compile and run a test Ogg program
@@ -8930,6 +8934,22 @@ else
 fi
 
 
+# Check whether --enable-clangcov was given.
+if test "${enable_clangcov+set}" = set; then :
+  enableval=$enable_clangcov;
+else
+  enable-clang_coverage=no
+fi
+
+ if test '!' "$enable_clang_coverage" = no; then
+  COND_CLANG_COVERAGE_TRUE=
+  COND_CLANG_COVERAGE_FALSE='#'
+else
+  COND_CLANG_COVERAGE_TRUE='#'
+  COND_CLANG_COVERAGE_FALSE=
+fi
+
+
 report_have_gtest="no"
 report_codecoverage_enabled="no"
 
@@ -9066,6 +9086,14 @@ if test "x$HAVE_GTEST" = "xyes"; then :
 
 		report_codecoverage_enabled="yes"
 
+	fi
+	if test '!' "$enable_clang_coverage" = no
+	then
+		GCOV_CFLAGS="-fprofile-instr-generate -fcoverage-mapping"
+		GCOV_LDFLAGS=""
+
+
+		report_codecoverage_enabled="yes"
 	fi
 
 else
@@ -17827,6 +17855,10 @@ fi
 
 if test -z "${COND_GCOV_TRUE}" && test -z "${COND_GCOV_FALSE}"; then
   as_fn_error $? "conditional \"COND_GCOV\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${COND_CLANG_COVERAGE_TRUE}" && test -z "${COND_CLANG_COVERAGE_FALSE}"; then
+  as_fn_error $? "conditional \"COND_CLANG_COVERAGE\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${HAVE_GTEST_TRUE}" && test -z "${HAVE_GTEST_FALSE}"; then
