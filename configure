@@ -9089,8 +9089,8 @@ if test "x$HAVE_GTEST" = "xyes"; then :
 	fi
 	if test '!' "$enable_clang_coverage" = no
 	then
-		GCOV_CFLAGS="-fprofile-instr-generate -fcoverage-mapping"
-		GCOV_LDFLAGS=""
+		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+		GCOV_LDFLAGS="--coverage"
 
 
 		report_codecoverage_enabled="yes"
