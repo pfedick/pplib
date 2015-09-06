@@ -275,6 +275,13 @@ AC_ARG_ENABLE([gcov],
     [enable_gcov=no])
 AM_CONDITIONAL([COND_GCOV],[test '!' "$enable_gcov" = no])
 
+AC_ARG_ENABLE([clangcov],
+  [AS_HELP_STRING([--enable-clang_coverage],
+    [use clang codecoverage to test the test suite])],
+    [],
+    [enable-clang_coverage=no])
+AM_CONDITIONAL([COND_CLANG_COVERAGE],[test '!' "$enable_clang_coverage" = no])
+
 report_have_gtest="no"
 report_codecoverage_enabled="no"
 GTEST_LIB_CHECK([1.6.0],
@@ -289,6 +296,14 @@ GTEST_LIB_CHECK([1.6.0],
 		AC_SUBST(GCOV_LDFLAGS)
 		report_codecoverage_enabled="yes"
 	
+	fi
+	if test '!' "$enable_clang_coverage" = no
+	then
+		GCOV_CFLAGS="-fprofile-instr-generate -fcoverage-mapping"
+		GCOV_LDFLAGS=""
+		AC_SUBST(GCOV_CFLAGS)
+		AC_SUBST(GCOV_LDFLAGS)
+		report_codecoverage_enabled="yes"
 	fi
 	],
 	report_have_gtest="no"
