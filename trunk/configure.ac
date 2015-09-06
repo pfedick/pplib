@@ -299,8 +299,8 @@ GTEST_LIB_CHECK([1.6.0],
 	fi
 	if test '!' "$enable_clang_coverage" = no
 	then
-		GCOV_CFLAGS="-fprofile-instr-generate -fcoverage-mapping"
-		GCOV_LDFLAGS=""
+		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+		GCOV_LDFLAGS="--coverage"
 		AC_SUBST(GCOV_CFLAGS)
 		AC_SUBST(GCOV_LDFLAGS)
 		report_codecoverage_enabled="yes"
