@@ -276,7 +276,7 @@ AC_ARG_ENABLE([gcov],
 AM_CONDITIONAL([COND_GCOV],[test '!' "$enable_gcov" = no])
 
 AC_ARG_ENABLE([clangcov],
-  [AS_HELP_STRING([--enable-clang_coverage],
+  [AS_HELP_STRING([--enable-clang-coverage],
     [use clang codecoverage to test the test suite])],
     [],
     [enable-clang_coverage=no])
