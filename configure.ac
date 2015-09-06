@@ -291,7 +291,7 @@ GTEST_LIB_CHECK([1.6.0],
 	if test '!' "$enable_gcov" = no
 	then
 		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-		GCOV_LDFLAGS="-lgcov"
+		GCOV_LDFLAGS=""
 		AC_SUBST(GCOV_CFLAGS)
 		AC_SUBST(GCOV_LDFLAGS)
 		report_codecoverage_enabled="yes"
