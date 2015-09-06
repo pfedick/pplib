@@ -1584,7 +1584,7 @@ Optional Features:
                           speeds up one-time build
   --disable-largefile     omit support for large files
   --enable-gcov           use Gcov to test the test suite
-  --enable-clang_coverage use clang codecoverage to test the test suite
+  --enable-clang-coverage use clang codecoverage to test the test suite
   --enable-gtest          Enable tests using the Google C++ Testing Framework.
                           (Default is enabled.)
   --disable-oggtest       Do not try to compile and run a test Ogg program
