@@ -108,14 +108,14 @@ find_c_files() {
 release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O3 -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
+	\$(CXX) -Wall -O2 -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
 "
 
 		COMPILE_COVERAGE="$COMPILE_COVERAGE
 coverage/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O3 -o coverage/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) @GCOV_CFLAGS@ $3
+	\$(CXX) -Wall -o coverage/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) @GCOV_CFLAGS@ $3
 "
 
 
