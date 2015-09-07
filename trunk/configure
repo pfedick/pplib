@@ -745,8 +745,6 @@ libpngconfig
 JPEG_LIBS
 JPEG_CFLAGS
 LIBOBJS
-GCOV_LDFLAGS
-GCOV_CFLAGS
 GTEST_PREFIX
 HAVE_GTEST_FALSE
 HAVE_GTEST_TRUE
@@ -757,8 +755,10 @@ GTEST_LDFLAGS
 GTEST_CXXFLAGS
 GTEST_CPPFLAGS
 GTEST_CONFIG
-COND_GCOV_FALSE
-COND_GCOV_TRUE
+PPLIBTESTVERSION
+GCOV_LDFLAGS
+GCOV_LDLAGS
+GCOV_CFLAGS
 X_EXTRA_LIBS
 X_LIBS
 X_PRE_LIBS
@@ -882,7 +882,7 @@ enable_silent_rules
 enable_dependency_tracking
 enable_largefile
 with_x
-enable_gcov
+enable_coverage
 enable_gtest
 with_libbind
 with_jpeg
@@ -935,6 +935,8 @@ PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 XMKMF
+GCOV_CFLAGS
+GCOV_LDLAGS
 GTEST_CONFIG
 GTEST_CPPFLAGS
 GTEST_CXXFLAGS
@@ -1580,7 +1582,7 @@ Optional Features:
   --disable-dependency-tracking
                           speeds up one-time build
   --disable-largefile     omit support for large files
-  --enable-gcov           use Gcov to test the test suite
+  --enable-coverage       Enable build of code coverage version and tests
   --enable-gtest          Enable tests using the Google C++ Testing Framework.
                           (Default is enabled.)
   --disable-oggtest       Do not try to compile and run a test Ogg program
@@ -1652,6 +1654,10 @@ Some influential environment variables:
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
   XMKMF       Path to xmkmf, Makefile generator for X Window System
+  GCOV_CFLAGS additional compiler flags to compile the code coverage version
+              of the library
+  GCOV_LDLAGS additional linker flags to compile the code coverage version of
+              the library
   GTEST_CONFIG
               The exact path of Google Test's 'gtest-config' script.
   GTEST_CPPFLAGS
@@ -3860,7 +3866,7 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
-am__api_version='1.14'
+am__api_version='1.15'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -4032,8 +4038,8 @@ test "$program_suffix" != NONE &&
 ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
-# expand $ac_aux_dir to an absolute path
-am_aux_dir=`cd $ac_aux_dir && pwd`
+# Expand $ac_aux_dir to an absolute path.
+am_aux_dir=`cd "$ac_aux_dir" && pwd`
 
 if test x"${MISSING+set}" != xset; then
   case $am_aux_dir in
@@ -4052,7 +4058,7 @@ else
 $as_echo "$as_me: WARNING: 'missing' script is too old or missing" >&2;}
 fi
 
-if test x"${install_sh}" != xset; then
+if test x"${install_sh+set}" != xset; then
   case $am_aux_dir in
   *\ * | *\	*)
     install_sh="\${SHELL} '$am_aux_dir/install-sh'" ;;
@@ -4380,8 +4386,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 # <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
-# We need awk for the "check" target.  The system "awk" is bad on
-# some platforms.
+# We need awk for the "check" target (and possibly the TAP driver).  The
+# system "awk" is bad on some platforms.
 # Always define AMTAR for backward compatibility.  Yes, it's still used
 # in the wild :-(  We should find a proper way to deprecate it ...
 AMTAR='$${TAR-tar}'
@@ -4438,6 +4444,7 @@ END
     as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
   fi
 fi
+
 
 OLD_CFLAGS=$CFLAGS
 # Checks for programs.
@@ -7450,7 +7457,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7496,7 +7503,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7520,7 +7527,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7565,7 +7572,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7589,7 +7596,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -8913,24 +8920,41 @@ fi
 fi
 
 
-# Check whether --enable-gcov was given.
-if test "${enable_gcov+set}" = set; then :
-  enableval=$enable_gcov;
+
+
+
+
+
+PPLIBTESTVERSION=release
+report_codecoverage_enabled="no"
+
+# Check whether --enable-coverage was given.
+if test "${enable_coverage+set}" = set; then :
+  enableval=$enable_coverage; if test "x$enable_coverage" != "xno"; then :
+
+	PPLIBTESTVERSION=coverage
+
+	report_codecoverage_enabled="yes"
+
 else
-  enable_gcov=no
+
+PPLIBTESTVERSION=debug
+
+
+fi
+else
+
+PPLIBTESTVERSION=debug
+
+
+
 fi
 
- if test '!' "$enable_gcov" = no; then
-  COND_GCOV_TRUE=
-  COND_GCOV_FALSE='#'
-else
-  COND_GCOV_TRUE='#'
-  COND_GCOV_FALSE=
-fi
+
 
 
 report_have_gtest="no"
-report_codecoverage_enabled="no"
+
 
 # Check whether --enable-gtest was given.
 if test "${enable_gtest+set}" = set; then :
@@ -9057,18 +9081,10 @@ if test "x$HAVE_GTEST" = "xyes"; then :
   GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 
 	report_have_gtest="yes"
-	if test '!' "$enable_gcov" = no
-	then
-		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-		GCOV_LDFLAGS=""
-
-
-		report_codecoverage_enabled="yes"
-
-	fi
 
 else
   report_have_gtest="no"
+	report_codecoverage_enabled="no"
 
 fi
 
@@ -12198,6 +12214,7 @@ fi
 
   if test "$ac_with_gcrypt" = "yes" -o "$ac_with_gcrypt" = "auto" ; then
 
+
 # Check whether --with-libgcrypt-prefix was given.
 if test "${with_libgcrypt_prefix+set}" = set; then :
   withval=$with_libgcrypt_prefix; libgcrypt_config_prefix="$withval"
@@ -12787,10 +12804,9 @@ $as_echo "no" >&6; }
 
 
 
-    if test x"$host" != x ; then
-      libgcrypt_config_host=`$LIBGCRYPT_CONFIG --host 2>/dev/null || echo none`
-      if test x"$libgcrypt_config_host" != xnone ; then
-        if test x"$libgcrypt_config_host" != x"$host" ; then
+    libgcrypt_config_host=`$LIBGCRYPT_CONFIG --host 2>/dev/null || echo none`
+    if test x"$libgcrypt_config_host" != xnone ; then
+      if test x"$libgcrypt_config_host" != x"$host" ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
 ***
 *** The config script $LIBGCRYPT_CONFIG was
@@ -12807,7 +12823,6 @@ $as_echo "$as_me: WARNING:
 *** You may want to use the configure option --with-libgcrypt-prefix
 *** to specify a matching config script.
 ***" >&2;}
-        fi
       fi
     fi
   else
@@ -17825,10 +17840,6 @@ if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
-if test -z "${COND_GCOV_TRUE}" && test -z "${COND_GCOV_FALSE}"; then
-  as_fn_error $? "conditional \"COND_GCOV\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
 if test -z "${HAVE_GTEST_TRUE}" && test -z "${HAVE_GTEST_FALSE}"; then
   as_fn_error $? "conditional \"HAVE_GTEST\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
