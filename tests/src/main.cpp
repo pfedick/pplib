@@ -58,23 +58,32 @@ void help()
 
 void setDefaultConfigParams()
 {
+	printf ("   DEBUG 1\n");
 	PPL7TestConfig.createSection("tcpsocket");
+	printf ("   DEBUG 2\n");
 	PPL7TestConfig.add("echoserver","localhost");
+	printf ("   DEBUG 3\n");
 	PPL7TestConfig.add("unknownserver","unknown.server.pfp.de");
+	printf ("   DEBUG 4\n");
 }
 
 int main (int argc, char**argv)
 {
+	printf ("DEBUG 1\n");
 	const char *tmp;
 	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) help();
 	if ((tmp=ppl7::GetArgv(argc,argv,"-c"))) {
+		printf ("DEBUG 2\n");
 		PPL7TestConfig.load(tmp);
 	} else {
+		printf ("DEBUG 3\n");
 		setDefaultConfigParams();
 	}
+	printf ("DEBUG 4\n");
 	::testing::InitGoogleTest(&argc, argv);
 	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) return 0;
 
+	printf ("DEBUG 5\n");
 
 	ppl7::PrintDebugTime ("Wortliste in String laden\n");
 	ppl7::String w(wordlist);
@@ -83,6 +92,7 @@ int main (int argc, char**argv)
 	Wordlist.explode(w,"\n");
 	ppl7::PrintDebugTime ("done\n");
 
+	printf ("DEBUG 6\n");
 	try {
 		return RUN_ALL_TESTS();
 	} catch (const ppl7::Exception &e) {
