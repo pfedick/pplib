@@ -153,6 +153,12 @@ while test $# -gt 0; do
       libname=ppl7
       objects=release
       ;;
+    coverage)
+      lib_ppl=yes
+      basename=libppl7
+      libname=ppl7
+      objects=coverage
+      ;;    
     debug)
       lib_ppl_debug=yes
       basename=libppl7-debug

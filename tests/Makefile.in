@@ -41,7 +41,7 @@ CXX			= @CXX@
 EXTRA_CFLAGS = 
 INCLUDE	= -I. -I$(GTEST_DIR)/include
 CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
-LIBS	= `../ppl7-config --libs debug source` @GCOV_LDFLAGS@ -lstdc++
+LIBS	= `../ppl7-config --libs @PPLIBTESTVERSION@ source` @GCOV_LDFLAGS@ -lstdc++
 PROGNAME = testsuite
 
 OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o compile/array.o \

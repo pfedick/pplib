@@ -268,30 +268,40 @@ AX_TM_HAS_GMTOFF()
 
 AC_PATH_XTRA
 
-AC_ARG_ENABLE([gcov],
-  [AS_HELP_STRING([--enable-gcov],
-    [use Gcov to test the test suite])],
-    [],
-    [enable_gcov=no])
-AM_CONDITIONAL([COND_GCOV],[test '!' "$enable_gcov" = no])
+
+AC_ARG_VAR(GCOV_CFLAGS, [additional compiler flags to compile the code coverage version of the library] )
+AC_ARG_VAR(GCOV_LDLAGS, [additional linker flags to compile the code coverage version of the library] )
+AC_SUBST(GCOV_CFLAGS)
+AC_SUBST(GCOV_LDFLAGS)
+PPLIBTESTVERSION=release
+report_codecoverage_enabled="no"
+
+AC_ARG_ENABLE([coverage], [  --enable-coverage       Enable build of code coverage version and tests],
+AS_IF([test "x$enable_coverage" != "xno"], [
+	PPLIBTESTVERSION=coverage
+	AC_SUBST(PPLIBTESTVERSION)
+	report_codecoverage_enabled="yes"  
+],[
+PPLIBTESTVERSION=debug
+AC_SUBST(PPLIBTESTVERSION)
+]),
+[
+PPLIBTESTVERSION=debug
+AC_SUBST(PPLIBTESTVERSION)
+]
+)
+
+
 
 report_have_gtest="no"
-report_codecoverage_enabled="no"
+
 GTEST_LIB_CHECK([1.6.0],
 	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
 	AC_SUBST(GTEST_PREFIX)
 	report_have_gtest="yes"
-	if test '!' "$enable_gcov" = no
-	then
-		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-		GCOV_LDFLAGS=""
-		AC_SUBST(GCOV_CFLAGS)
-		AC_SUBST(GCOV_LDFLAGS)
-		report_codecoverage_enabled="yes"
-	
-	fi
 	],
 	report_have_gtest="no"
+	report_codecoverage_enabled="no"
 )
 
 

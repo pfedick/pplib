@@ -52,6 +52,9 @@ case "$SYS:$REL:$KERNEL" in
 		#export CXX=g++47
         	export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
+		export GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+		export GCOV_LDFLAGS="-lgcov"
+
 		./configure --prefix=$PREFIX \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
@@ -62,7 +65,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libidn=/usr/local \
 			--with-ogg=/usr/local \
 			--with-libmicrohttpd=/usr/local \
-			--enable-gtest=/usr/local/gtest-1.7.0
+			--enable-gtest=/usr/local/gtest-1.7.0 \
+			--enable-coverage
 		;;
 	MINGW32*:1.0.16*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
