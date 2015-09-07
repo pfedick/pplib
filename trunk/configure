@@ -757,8 +757,6 @@ GTEST_LDFLAGS
 GTEST_CXXFLAGS
 GTEST_CPPFLAGS
 GTEST_CONFIG
-COND_CLANG_COVERAGE_FALSE
-COND_CLANG_COVERAGE_TRUE
 COND_GCOV_FALSE
 COND_GCOV_TRUE
 X_EXTRA_LIBS
@@ -885,7 +883,6 @@ enable_dependency_tracking
 enable_largefile
 with_x
 enable_gcov
-enable_clangcov
 enable_gtest
 with_libbind
 with_jpeg
@@ -1584,7 +1581,6 @@ Optional Features:
                           speeds up one-time build
   --disable-largefile     omit support for large files
   --enable-gcov           use Gcov to test the test suite
-  --enable-clang-coverage use clang codecoverage to test the test suite
   --enable-gtest          Enable tests using the Google C++ Testing Framework.
                           (Default is enabled.)
   --disable-oggtest       Do not try to compile and run a test Ogg program
@@ -3864,7 +3860,7 @@ test -n "$target_alias" &&
     NONENONEs,x,x, &&
   program_prefix=${target_alias}-
 
-am__api_version='1.15'
+am__api_version='1.14'
 
 # Find a good install program.  We prefer a C program (faster),
 # so one script is as good as another.  But avoid the broken or
@@ -4036,8 +4032,8 @@ test "$program_suffix" != NONE &&
 ac_script='s/[\\$]/&&/g;s/;s,x,x,$//'
 program_transform_name=`$as_echo "$program_transform_name" | sed "$ac_script"`
 
-# Expand $ac_aux_dir to an absolute path.
-am_aux_dir=`cd "$ac_aux_dir" && pwd`
+# expand $ac_aux_dir to an absolute path
+am_aux_dir=`cd $ac_aux_dir && pwd`
 
 if test x"${MISSING+set}" != xset; then
   case $am_aux_dir in
@@ -4056,7 +4052,7 @@ else
 $as_echo "$as_me: WARNING: 'missing' script is too old or missing" >&2;}
 fi
 
-if test x"${install_sh+set}" != xset; then
+if test x"${install_sh}" != xset; then
   case $am_aux_dir in
   *\ * | *\	*)
     install_sh="\${SHELL} '$am_aux_dir/install-sh'" ;;
@@ -4384,8 +4380,8 @@ MAKEINFO=${MAKEINFO-"${am_missing_run}makeinfo"}
 # <http://lists.gnu.org/archive/html/automake/2012-07/msg00014.html>
 mkdir_p='$(MKDIR_P)'
 
-# We need awk for the "check" target (and possibly the TAP driver).  The
-# system "awk" is bad on some platforms.
+# We need awk for the "check" target.  The system "awk" is bad on
+# some platforms.
 # Always define AMTAR for backward compatibility.  Yes, it's still used
 # in the wild :-(  We should find a proper way to deprecate it ...
 AMTAR='$${TAR-tar}'
@@ -4442,7 +4438,6 @@ END
     as_fn_error $? "Your 'rm' program is bad, sorry." "$LINENO" 5
   fi
 fi
-
 
 OLD_CFLAGS=$CFLAGS
 # Checks for programs.
@@ -7455,7 +7450,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7501,7 +7496,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7525,7 +7520,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7570,7 +7565,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -7594,7 +7589,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -8934,22 +8929,6 @@ else
 fi
 
 
-# Check whether --enable-clangcov was given.
-if test "${enable_clangcov+set}" = set; then :
-  enableval=$enable_clangcov;
-else
-  enable-clang_coverage=no
-fi
-
- if test '!' "$enable_clang_coverage" = no; then
-  COND_CLANG_COVERAGE_TRUE=
-  COND_CLANG_COVERAGE_FALSE='#'
-else
-  COND_CLANG_COVERAGE_TRUE='#'
-  COND_CLANG_COVERAGE_FALSE=
-fi
-
-
 report_have_gtest="no"
 report_codecoverage_enabled="no"
 
@@ -9081,19 +9060,11 @@ if test "x$HAVE_GTEST" = "xyes"; then :
 	if test '!' "$enable_gcov" = no
 	then
 		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-		GCOV_LDFLAGS="-lgcov"
+		GCOV_LDFLAGS=""
 
 
 		report_codecoverage_enabled="yes"
 
-	fi
-	if test '!' "$enable_clang_coverage" = no
-	then
-		GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-		GCOV_LDFLAGS="--coverage"
-
-
-		report_codecoverage_enabled="yes"
 	fi
 
 else
@@ -12227,7 +12198,6 @@ fi
 
   if test "$ac_with_gcrypt" = "yes" -o "$ac_with_gcrypt" = "auto" ; then
 
-
 # Check whether --with-libgcrypt-prefix was given.
 if test "${with_libgcrypt_prefix+set}" = set; then :
   withval=$with_libgcrypt_prefix; libgcrypt_config_prefix="$withval"
@@ -12817,9 +12787,10 @@ $as_echo "no" >&6; }
 
 
 
-    libgcrypt_config_host=`$LIBGCRYPT_CONFIG --host 2>/dev/null || echo none`
-    if test x"$libgcrypt_config_host" != xnone ; then
-      if test x"$libgcrypt_config_host" != x"$host" ; then
+    if test x"$host" != x ; then
+      libgcrypt_config_host=`$LIBGCRYPT_CONFIG --host 2>/dev/null || echo none`
+      if test x"$libgcrypt_config_host" != xnone ; then
+        if test x"$libgcrypt_config_host" != x"$host" ; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING:
 ***
 *** The config script $LIBGCRYPT_CONFIG was
@@ -12836,6 +12807,7 @@ $as_echo "$as_me: WARNING:
 *** You may want to use the configure option --with-libgcrypt-prefix
 *** to specify a matching config script.
 ***" >&2;}
+        fi
       fi
     fi
   else
@@ -17855,10 +17827,6 @@ fi
 
 if test -z "${COND_GCOV_TRUE}" && test -z "${COND_GCOV_FALSE}"; then
   as_fn_error $? "conditional \"COND_GCOV\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${COND_CLANG_COVERAGE_TRUE}" && test -z "${COND_CLANG_COVERAGE_FALSE}"; then
-  as_fn_error $? "conditional \"COND_CLANG_COVERAGE\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${HAVE_GTEST_TRUE}" && test -z "${HAVE_GTEST_FALSE}"; then
