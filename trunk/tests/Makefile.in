@@ -41,8 +41,10 @@ CXX			= @CXX@
 EXTRA_CFLAGS = 
 INCLUDE	= -I. -I$(GTEST_DIR)/include
 CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
-LIBS	= `../ppl7-config --libs @PPLIBTESTVERSION@ source` @GCOV_LDFLAGS@ -lstdc++
+LIBS	= `../ppl7-config --libs debug source` -lstdc++
+LIBS_COVERAGE	= `../ppl7-config --libs coverage source` @GCOV_LDFLAGS@ -lstdc++
 PROGNAME = testsuite
+
 
 OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o compile/array.o \
 	compile/memoryheap.o compile/memorygroup.o compile/wordlist.o \
@@ -65,8 +67,14 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
 
+$(PROGNAME)_coverage: compile/libgtest.a $(OBJECTS) ppl7-tests.h
+	$(CXX) -O -ggdb -o $(PROGNAME)_coverage $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS_COVERAGE)
+
+
 all: $(PROGNAME) threadtest toolkit loggertest
 
+coverage: $(PROGNAME)_coverage
+ 
 test: $(PROGNAME)
 	./$(PROGNAME)
 	
