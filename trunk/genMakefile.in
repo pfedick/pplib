@@ -62,6 +62,7 @@ find_c_files() {
 	cd $SRCDIR/$1
 	FOUND_RELEASE=""
 	FOUND_DEBUG=""
+	FOUND_COVERAGE=""
 	filelist=`ls *.cpp *.c 2>/dev/null`
 	for file in $filelist; do
 		BASENAME=`echo $file | $SED -e "s;.cpp\$;;" | $SED -e "s;.c\$;;" `
@@ -71,11 +72,13 @@ find_c_files() {
 	release/$4$BASENAME.o"
 			FOUND_DEBUG="$FOUND_DEBUG \\
 	debug/$4$BASENAME.o"
+			FOUND_COVERAGE="$FOUND_COVERAGE \\
+	coverage/$4$BASENAME.o"
 		else
 			FOUND_RELEASE="release/$4$BASENAME.o"
 			FOUND_DEBUG="debug/$4$BASENAME.o"
+			FOUND_COVERAGE="coverage/$4$BASENAME.o"
 		fi
-		###RELEASE="$RELEASE release/$4$BASENAME.o"
 		
 		NOTE="Compiling >>>$1/$file<<<"
 		if test "$1/$file" = "core/resourcen.cpp"
@@ -105,14 +108,22 @@ find_c_files() {
 release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O3 -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) @GCOV_CFLAGS@ $3
+	\$(CXX) -Wall -O3 -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
 "
+
+		COMPILE_COVERAGE="$COMPILE_COVERAGE
+coverage/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
+	###############################################################################
+	# $NOTE
+	\$(CXX) -Wall -O3 -o coverage/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) @GCOV_CFLAGS@ $3
+"
+
 
 		COMPILE_DEBUG="$COMPILE_DEBUG
 debug/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) @GCOV_CFLAGS@ -DDEBUG=DEBUG $3
+	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3
 "
 
 	done
@@ -138,9 +149,13 @@ find_asm_files() {
 		release/asm_$BASENAME.o"
 			ASM_DEBUG="$ASM_DEBUG \\
 		debug/asm_$BASENAME.o"
+			ASM_COVERAGE="$ASM_COVERAGE \\
+		coverage/asm_$BASENAME.o"
+
 		else
 			ASM_RELEASE="release/asm_$BASENAME.o"
 			ASM_DEBUG="debug/asm_$BASENAME.o"
+			ASM_COVERAGE="coverage/asm_$BASENAME.o"
 		fi
 		
 		NOTE="Compiling >>>$1/$file<<<"
@@ -150,6 +165,14 @@ release/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
 	# $NOTE
 	\$(ASM) -o release/asm_$BASENAME.o -l release/asm_$BASENAME.lst \$(srcdir)/$1/$file
 "
+
+		COMPILE_COVERAGE="$COMPILE_COVERAGE
+coverage/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
+	###############################################################################
+	# $NOTE
+	\$(ASM) -o coverage/asm_$BASENAME.o -l coverage/asm_$BASENAME.lst \$(srcdir)/$1/$file
+"
+
 
 		COMPILE_DEBUG="$COMPILE_DEBUG
 debug/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
@@ -167,12 +190,15 @@ debug/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
 find_c_files "core" "CORE"
 RELEASE="$FOUND_RELEASE"
 DEBUG="$FOUND_DEBUG"
+COVERAGE="$FOUND_COVERAGE"
 
 find_c_files "types" "TYPES" "" "type_" "\$(incdir)/ppl7-types.h"
 RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
 
 
 find_c_files "math" "MATH"
@@ -180,24 +206,35 @@ RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
+
 
 find_c_files "crypto" "CRYPTO" "" "" "\$(incdir)/ppl7-crypto.h \$(incdir)/crypto.h"
 RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
+
 
 find_c_files "internet" "INTERNET" "" "inet_" "\$(incdir)/ppl7-inet.h"
 RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
+
 
 find_c_files "database" "DATABASE" "" "db_" "\$(incdir)/ppl7-db.h"
 RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
 
 
 find_c_files "grafix" "GRAFIX" "" "gfx_" "\$(incdir)/ppl7-grafix.h"
@@ -205,6 +242,8 @@ RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
 
 
 find_c_files "toolkit" "TOOLKIT" "" "tk_" "\$(incdir)/ppl7-grafix.h \$(incdir)/ppl7-tk.h"
@@ -212,6 +251,8 @@ RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
 
 
 find_c_files "audio" "AUDIO" "" "audio_" "\$(incdir)/ppl7-audio.h"
@@ -219,6 +260,8 @@ RELEASE="$RELEASE \\
 	$FOUND_RELEASE"
 DEBUG="$DEBUG \\
 	$FOUND_DEBUG"
+COVERAGE="$COVERAGE \\
+	$FOUND_COVERAGE"
 
 find_asm_files "asm" "ASM"
 
@@ -312,7 +355,10 @@ RELEASE	= $RELEASE
 
 DEBUG	= $DEBUG
 
+COVERAGE	= $COVERAGE
+
 ASM_OBJ_RELEASE	=	$ASM_RELEASE
+ASM_OBJ_COVERAGE	=	$ASM_COVERAGE
 ASM_OBJ_DEBUG	=	$ASM_DEBUG
 
 
@@ -324,6 +370,8 @@ ASM_OBJ_DEBUG	=	$ASM_DEBUG
 
 
 release: release/\$(LIBNAME).a
+
+coverage: coverage/\$(LIBNAME).a
 
 debug: debug/\$(LIBDEBUG).a
 
@@ -337,6 +385,10 @@ release/\$(LIBNAME).a: release/make \$(RELEASE) \$(ASM_RELEASE)
 	ar -r release/\$(LIBNAME).a \$(RELEASE) \$(ASM_RELEASE)
 	-chmod a+x ppl7-config
 
+coverage/\$(LIBNAME).a: coverage/make \$(COVERAGE) \$(ASM_COVERAGE)
+	ar -r coverage/\$(LIBNAME).a \$(COVERAGE) \$(ASM_COVERAGE)
+	-chmod a+x ppl7-config
+
 debug/make:
 	-mkdir -p debug
 	-touch debug/make
@@ -344,6 +396,10 @@ debug/make:
 release/make:
 	-mkdir -p release
 	-touch release/make
+
+coverage/make:
+	-mkdir -p coverage
+	-touch coverage/make
 
 install:	release/\$(LIBNAME).a
 	mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
@@ -382,6 +438,7 @@ install_debug: debug/\$(LIBDEBUG).a
 clean:
 	-rm -rf release
 	-rm -rf debug
+	-rm -rf coverage
 	-rm -rf documentation
 	-cd tests; make clean
 
@@ -437,6 +494,11 @@ $COMPILE_RELEASE
 ### Compile Debug Files
 ###########################################################################
 $COMPILE_DEBUG
+
+###########################################################################
+### Compile Files for CodeCoverage
+###########################################################################
+$COMPILE_COVERAGE
 
 
 " > Makefile.in
