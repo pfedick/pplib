@@ -13528,7 +13528,7 @@ done
 
 	CPPFLAGS="$am_save_CPPFLAGS"
 	CFLAGS="$am_save_CFLAGS"
-	CFLAGS="$am_save_LIBS"
+	LIBS="$am_save_LIBS"
 	LDFLAGS="$am_save_LDFLAGS"
 
 
