@@ -222,6 +222,10 @@ TEST_F(ConfigParserTest, iterate) {
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(1,conf.nextSection());
+		ASSERT_EQ(ppl7::String("case_insensitive_test"),conf.getSectionName());
+	});
+	ASSERT_NO_THROW({
+		ASSERT_EQ(1,conf.nextSection());
 		ASSERT_EQ(ppl7::String("empty section"),conf.getSectionName());
 	});
 	ASSERT_NO_THROW({
@@ -253,6 +257,11 @@ TEST_F(ConfigParserTest, iterateAndCheckValue) {
 		ASSERT_EQ(1,conf.nextSection());
 		ASSERT_EQ(ppl7::String("foo=[bar]"),conf.getSectionName());
 		ASSERT_EQ(ppl7::String("value 1"),conf.get("key 1").toString());
+		ASSERT_EQ(ppl7::String(""),conf.get("key1").toString());
+	});
+	ASSERT_NO_THROW({
+		ASSERT_EQ(1,conf.nextSection());
+		ASSERT_EQ(ppl7::String("case_insensitive_test"),conf.getSectionName());
 		ASSERT_EQ(ppl7::String(""),conf.get("key1").toString());
 	});
 	ASSERT_NO_THROW({
@@ -303,6 +312,16 @@ TEST_F(ConfigParserTest, getSingleKeyFirstSection) {
 			conf.selectSection("global");
 	});
 	ASSERT_EQ(ppl7::String("value1"),conf.get("key1").toString());
+
+}
+
+TEST_F(ConfigParserTest, getKeyCaseInsensitive) {
+	ppl7::ConfigParser conf;
+	ASSERT_NO_THROW({
+			conf.load("testdata/example.conf");
+			conf.selectSection("global");
+	});
+	ASSERT_EQ(ppl7::String("value1"),conf.get("KeY1").toString());
 
 }
 
@@ -717,6 +736,11 @@ TEST_F(ConfigParserTest, save) {
 "key 2=value 2\n"
 "key 3=value 3\n"
 "key4=yes\n"
+"\n"
+"[case_insensitive_test]\n"
+"testkey=First line\n"
+"testkey=second line\n"
+"testkey=third line\n"
 "\n"
 "[empty section]\n"
 "\n"
