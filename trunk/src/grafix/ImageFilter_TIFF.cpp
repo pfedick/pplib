@@ -61,19 +61,19 @@ namespace grafix {
 #ifdef HAVE_TIFF
 static tsize_t readproc(thandle_t handle, tdata_t data, tsize_t size)
 {
-	FileObject *ff=(FileObject*) handle;
+	FileObject *ff=static_cast<FileObject*>(handle);
 	return ff->read(data,size);
 }
 
 static tsize_t writeproc(thandle_t handle, tdata_t data, tsize_t size)
 {
-	FileObject *ff=(FileObject*) handle;
+	FileObject *ff=static_cast<FileObject*>(handle);
 	return ff->write(data,size);
 }
 
 static toff_t seekproc(thandle_t handle, toff_t offset, int whence)
 {
-	FileObject *ff=(FileObject*) handle;
+	FileObject *ff=static_cast<FileObject*>(handle);
 	/*
         If whence is SEEK_SET, the offset is set to offset bytes.
 
@@ -109,7 +109,7 @@ static int closeproc(thandle_t handle)
 
 static toff_t sizeproc(thandle_t handle)
 {
-	FileObject *ff=(FileObject*) handle;
+	FileObject *ff=static_cast<FileObject*>(handle);
 	return ff->size();
 }
 

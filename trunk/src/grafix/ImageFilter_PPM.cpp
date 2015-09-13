@@ -134,8 +134,6 @@ void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const Ass
 {
 	Color farbe;
     //int haupt,unter,build;
-	ppluint8 r,g,b;
-	ppluint32 c;
 	bool SaveAsASCII=false;
 	if (param.exists("ascii")) SaveAsASCII=param.getString("ascii").toBool();
 
@@ -147,13 +145,13 @@ void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const Ass
 		file.putsf("# %s\n",PPL_COPYRIGHT);
 		file.putsf("%d %d\n",surface.width(),surface.height());
 		file.putsf("%d\n",255);
-		c=0;
+		int c=0;
 		for (int y=0;y<surface.height();y++) {
 			for (int x=0;x<surface.width();x++) {
 				farbe=surface.getPixel(x,y);
-				r=(ppluint8)farbe.red();
-				g=(ppluint8)farbe.green();
-				b=(ppluint8)farbe.blue();
+				ppluint8 r=(ppluint8)farbe.red();
+				ppluint8 g=(ppluint8)farbe.green();
+				ppluint8 b=(ppluint8)farbe.blue();
 				if (SaveAsASCII==false) {
 					file.write((char*)&r,1);
 					file.write((char*)&g,1);
