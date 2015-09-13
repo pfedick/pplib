@@ -231,11 +231,9 @@ static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, con
 {
 	ppluint8 v=0;
 	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
-	ppluint8 bitcount;
-	ppluint8 bytecount;
 	for (unsigned int gy=0;gy<bitmap->rows;gy++) {
-		bitcount=0;
-		bytecount=0;
+		ppluint8 bitcount=0;
+		ppluint8 bytecount=0;
 		for (unsigned int gx=0;gx<bitmap->width;gx++) {
 			if (!bitcount) {
 				v=glyph[bytecount];
@@ -267,13 +265,11 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	int orgx=x<<6;
 	int orgy=y<<6;
 	int lastx=orgx;
-	int code;
-	double angle;
 	bool rotate=false;
 	FT_Matrix matrix; /* transformation matrix */
 	if (font.rotation()!=0.0) {
 		rotate=true;
-		angle=font.rotation()*M_PI/180.0;
+		double angle=font.rotation()*M_PI/180.0;
 		/* set up matrix */
 		matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
 		matrix.xy = (FT_Fixed)( sin( angle ) * 0x10000L );
@@ -294,7 +290,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	size_t textlen=text.len();
 
 	while (p<textlen) {
-		code=text[p];
+		int code=text[p];
 		p++;
 		if (code==10) {											// Newline
 			lastx=orgx;
@@ -353,7 +349,6 @@ Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const W
 
 	int width=0,height=0;
 
-	int code;
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
 	FT_Vector		kerning;
@@ -362,7 +357,7 @@ Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const W
 	size_t p=0;
 	size_t textlen=text.len();
 	while (p<textlen) {
-		code=text[p];
+		int code=text[p];
 		p++;
 		if (code==10) {											// Newline
 			width=0;

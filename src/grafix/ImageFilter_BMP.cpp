@@ -73,7 +73,8 @@ typedef struct tagRGBQUAD {
         ppluint8		rgbReserved;
 } RGBQUAD;
 
-typedef struct tagBITMAPINFOHEADER {    /* bmih */
+/*
+typedef struct tagBITMAPINFOHEADER {    //
     ppluint32   biSize;                // 0   Groesse des Bitmapinfoheaders
     ppluint32   biWidth;               // 4   Breite des Bildes
     ppluint32   biHeight;              // 8   Hoehe des Bildes
@@ -86,14 +87,17 @@ typedef struct tagBITMAPINFOHEADER {    /* bmih */
     ppluint16   biClrUsed;				// 32
     ppluint16   biClrImportant;		// 34
 } BITMAPINFOHEADER;
+*/
 
 #endif
 
 #ifndef _WIN32
+/*
 typedef struct tagBITMAPINFO {
     BITMAPINFOHEADER    bmiHeader;
     RGBQUAD             bmiColors[1];
 } BITMAPINFO;
+*/
 #endif
 
 
@@ -158,9 +162,6 @@ int ImageFilter_BMP::ident(FileObject &file, IMAGE &img)
 void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
 	ppluint8 * b1, *bmia;
-	ppluint32 gby,by,sourcebytesperline;
-	ppluint8 pixel;
-
 	ppluint8 *address=(ppluint8 *)file.map();
 	if (address==NULL) throw NullPointerException();
 
@@ -170,10 +171,6 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 	bmia=address+14;
 	//data->transparent=-1;
 
-    gby=img.height*img.pitch;
-    by=gby;
-    if (img.bitdepth==8) by+=256*4;
-
 
     b1= (address+Peek32((char *)(address+10)));
 
@@ -181,7 +178,7 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 	switch (img.bitdepth) {
 		case 8:					// 8-Bit
 			if (Peek32((char *)(bmia+16))==0) {	// nur unkomprimiert
-				sourcebytesperline=img.pitch;
+				ppluint32 sourcebytesperline=img.pitch;
 				if ((sourcebytesperline & 3) != 0)
 					sourcebytesperline=((sourcebytesperline+3)/4)*4;
 				ppluint8 *b2=(ppluint8*)surface.adr();
@@ -193,7 +190,7 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 							(char *)(b1+(img.height-1-i)*sourcebytesperline),
 							img.pitch);
 					}
-					RGBQUAD * rgbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER));
+					RGBQUAD * rgbq= (RGBQUAD *) (address+18+36);
 					for (i=0;i<256;i++) {
 						// TODO:
 						//surface->SetColor(i,rgbq->rgbRed,rgbq->rgbGreen, rgbq->rgbBlue);
@@ -204,13 +201,13 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 				// Surface hat eine hoehere Bittiefe, jeder Pixel muss
 				// umgerechnet werden
 				b1=b1+img.height*sourcebytesperline;
-				RGBQUAD *basergbq= (RGBQUAD *) (address+18+sizeof(BITMAPINFOHEADER))-1;
+				RGBQUAD *basergbq= (RGBQUAD *) (address+18+36)-1;
 				//Debug.Printf ("basergbq=%u\n",basergbq);
 
 				for (int y=0;y<img.height;y++) {
 					b1-=sourcebytesperline;
 					for (int x=0;x<img.width;x++) {
-						pixel=b1[x];
+						ppluint8 pixel=b1[x];
 						RGBQUAD * rgbq= basergbq+pixel;
 						surface.putPixel(x,y,Color(rgbq->rgbRed, rgbq->rgbGreen, rgbq->rgbBlue,255));
 					}

@@ -66,7 +66,7 @@ namespace grafix {
 // PNG-Read
 static void user_read_data(png_structp png_ptr,png_bytep data, png_uint_32 length)
 {
-	FileObject *file = (FileObject*)png_get_io_ptr(png_ptr);
+	FileObject *file = static_cast<FileObject*>(png_get_io_ptr(png_ptr));
 	file->read(data,(size_t)length);
 }
 
@@ -74,14 +74,14 @@ static void user_read_data(png_structp png_ptr,png_bytep data, png_uint_32 lengt
 // PNG-Write
 static void user_write_data(png_structp png_ptr, png_bytep data, png_uint_32 length)
 {
-	FileObject *file = (FileObject*)png_get_io_ptr(png_ptr);
+	FileObject *file = static_cast<FileObject*>(png_get_io_ptr(png_ptr));
 	file->write(data,(size_t)length);
 }
 
 
 static void user_flush_data(png_structp png_ptr)
 {
-	FileObject *file = (FileObject*)png_get_io_ptr(png_ptr);
+	FileObject *file = static_cast<FileObject*>(png_get_io_ptr(png_ptr));
 	file->flush();
 }
 
@@ -205,8 +205,6 @@ int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
 #ifdef HAVE_PNG
-	int x,y,bpp;
-	int r,g,b,a;
 	file.seek(0);
 	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL ,NULL, NULL);
     if (!png_ptr) throw IllegalImageFormatException();
@@ -239,19 +237,20 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 	RGBFormat zformat=surface.rgbformat();		// Zielformat holen
 
 	if (row_pointer!=NULL) {
+		int bpp;
 		switch (png_get_color_type(png_ptr, info_ptr)) {
 
 		case PNG_COLOR_TYPE_RGB_ALPHA:
 			//bpp=png_get_bit_depth(png_ptr, info_ptr);
 			bpp=4;	// TODO: Bittiefe kann auch 16 Bit pro Farbkanal sein
 			//printf ("PNG RGBA, bpp=%i\n",bpp);
-			for (y=0;y<img.height;y++) {
+			for (int y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
-				for (x=0;x<img.width;x++) {
-					r=row_pointer[x*bpp+0];
-					g=row_pointer[x*bpp+1];
-					b=row_pointer[x*bpp+2];
-					a=row_pointer[x*bpp+3];
+				for (int x=0;x<img.width;x++) {
+					int r=row_pointer[x*bpp+0];
+					int g=row_pointer[x*bpp+1];
+					int b=row_pointer[x*bpp+2];
+					int a=row_pointer[x*bpp+3];
 					surface.putPixel(x,y,Color(r,g,b,a));
 				}
 			}
@@ -259,12 +258,12 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 		case PNG_COLOR_TYPE_RGB:
 			//bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
 			bpp=3;
-			for (y=0;y<img.height;y++) {
+			for (int y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
-				for (x=0;x<img.width;x++) {
-					r=row_pointer[x*bpp+0];
-					g=row_pointer[x*bpp+1];
-					b=row_pointer[x*bpp+2];
+				for (int x=0;x<img.width;x++) {
+					int r=row_pointer[x*bpp+0];
+					int g=row_pointer[x*bpp+1];
+					int b=row_pointer[x*bpp+2];
 					surface.putPixel(x,y,Color(r,g,b,255));
 				}
 			}
@@ -274,18 +273,18 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 			bpp=1;
 			// Ist das Zielformat auch Greyscale?
 			if (zformat==RGBFormat::A8 || zformat==RGBFormat::GREY8) {
-				for (y=0;y<img.height;y++) {
+				for (int y=0;y<img.height;y++) {
 					png_read_row(png_ptr, row_pointer, NULL);
-					for (x=0;x<img.width;x++) {
-						r=row_pointer[x*bpp+0];
+					for (int x=0;x<img.width;x++) {
+						int r=row_pointer[x*bpp+0];
 						surface.putPixel(x,y,Color(r,r,r));
 					}
 				}
 			} else {
-				for (y=0;y<img.height;y++) {
+				for (int y=0;y<img.height;y++) {
 					png_read_row(png_ptr, row_pointer, NULL);
-					for (x=0;x<img.width;x++) {
-						r=row_pointer[x*bpp+0];
+					for (int x=0;x<img.width;x++) {
+						int r=row_pointer[x*bpp+0];
 						surface.putPixel(x,y,Color(r,r,r));
 					}
 				}
@@ -294,11 +293,11 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 		case PNG_COLOR_TYPE_GRAY_ALPHA:
 			bpp=2;
 			//bpp=png_get_bit_depth(png_ptr, info_ptr)/8;
-			for (y=0;y<img.height;y++) {
+			for (int y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
-				for (x=0;x<img.width;x++) {
-					r=row_pointer[x*bpp+0];
-					a=row_pointer[x*bpp+1];
+				for (int x=0;x<img.width;x++) {
+					int r=row_pointer[x*bpp+0];
+					int a=row_pointer[x*bpp+1];
 					surface.putPixel(x,y,Color(r,r,r,a));
 				}
 			}
@@ -312,19 +311,21 @@ void ImageFilter_PNG::load(FileObject &file, Drawable &surface, IMAGE &img)
 
 			png_get_tRNS(png_ptr, info_ptr, NULL, &num_trans, NULL);
 
+			/*
 			if (num_trans>0) {
 				r=pal[num_trans-1].red;
 				g=pal[num_trans-1].green;
 				b=pal[num_trans-1].blue;
 				//surface->SetColorKey(surface->RGB(r,g,b,0));
 			}
-			for (y=0;y<img.height;y++) {
+			*/
+			for (int y=0;y<img.height;y++) {
 				png_read_row(png_ptr, row_pointer, NULL);
-				for (x=0;x<img.width;x++) {
-					a=row_pointer[x*bpp+0];
-					r=pal[a].red;
-					g=pal[a].green;
-					b=pal[a].blue;
+				for (int x=0;x<img.width;x++) {
+					int a=row_pointer[x*bpp+0];
+					int r=pal[a].red;
+					int g=pal[a].green;
+					int b=pal[a].blue;
 					if (num_trans>0) {
 						if (a==num_trans-1) a=0; else a=255;
 					} else a=255;
@@ -350,9 +351,9 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 {
 #ifdef HAVE_PNG
 	Color farbe;
-	int pitch,bpp,colortype;
+	int pitch,colortype;
 	//int r,g,b,a;
-	int x,y,width,height;
+	int width,height;
 	png_byte *buffer;
 	png_color	pc[256];
 	//RGBA	rgb;
@@ -395,7 +396,6 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 			break;
 		default:
 			colortype=PNG_COLOR_TYPE_RGB;
-			png_color_type=PNG_COLOR_TYPE_RGB;
 			pitch=width*3;
 			break;
 	};
@@ -437,7 +437,7 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 	}
 	if (buffer!=NULL) {
 		// png_write_row(png_ptr, row_pointer);
-
+		int bpp;
 		switch (colortype) {
 			case PNG_COLOR_TYPE_PALETTE:
 				bpp=1;
@@ -453,8 +453,8 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 					png_write_info(png_ptr, info_ptr);
 					//png_write_PLTE (png_ptr, &pc[0],256);
 
-					for (y=0;y<height;y++) {
-						for (x=0;x<width;x++) {
+					for (int y=0;y<height;y++) {
+						for (int x=0;x<width;x++) {
 							farbe=surface.getPixel(x,y);
 							buffer[x]=(ppluint8)(farbe.color()&0xff);
 						}
@@ -491,8 +491,8 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 			case PNG_COLOR_TYPE_RGB:
 				bpp=3;
 				png_write_info(png_ptr, info_ptr);
-				for (y=0;y<height;y++) {
-					for (x=0;x<width;x++) {
+				for (int y=0;y<height;y++) {
+					for (int x=0;x<width;x++) {
 						//farbe=surface->GetPixel(area->left+x,y);
 						farbe=surface.getPixel(x,y);
 						buffer[x*bpp+0]=(ppluint8)farbe.red();
@@ -505,8 +505,8 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 			case PNG_COLOR_TYPE_RGB_ALPHA:
 				bpp=4;
 				png_write_info(png_ptr, info_ptr);
-				for (y=0;y<height;y++) {
-					for (x=0;x<width;x++) {
+				for (int y=0;y<height;y++) {
+					for (int x=0;x<width;x++) {
 						farbe=surface.getPixel(x,y);
 						buffer[x*bpp+0]=(ppluint8)farbe.red();
 						buffer[x*bpp+1]=(ppluint8)farbe.green();
@@ -519,8 +519,8 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 			case PNG_COLOR_TYPE_GRAY:
 				bpp=1;
 				png_write_info(png_ptr, info_ptr);
-				for (y=0;y<height;y++) {
-					for (x=0;x<width;x++) {
+				for (int y=0;y<height;y++) {
+					for (int x=0;x<width;x++) {
 						farbe=surface.getPixel(x,y);
 						buffer[x*bpp]=(ppluint8)farbe.brightness();
 					}
@@ -531,8 +531,8 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 			case PNG_COLOR_TYPE_GRAY_ALPHA:
 				bpp=2;
 				png_write_info(png_ptr, info_ptr);
-				for (y=0;y<height;y++) {
-					for (x=0;x<width;x++) {
+				for (int y=0;y<height;y++) {
+					for (int x=0;x<width;x++) {
 						farbe=surface.getPixel(x,y);
 						buffer[x*bpp]=(ppluint8)farbe.brightness();
 						buffer[x*bpp+1]=(ppluint8)farbe.alpha();
