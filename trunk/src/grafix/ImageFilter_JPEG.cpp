@@ -306,8 +306,6 @@ static int jpeg_load_dht (struct jpeg_decompress_struct *info, unsigned char *dh
 {
 	unsigned int length = (dht[2] << 8) + dht[3] - 2;
 	unsigned int pos = 4;
-	unsigned int count, i;
-	int index;
 
 	JHUFF_TBL **hufftbl;
 	unsigned char bits[17];
@@ -316,9 +314,9 @@ static int jpeg_load_dht (struct jpeg_decompress_struct *info, unsigned char *dh
 	while (length > 16)
 	{
 		bits[0] = 0;
-		index = dht[pos++];
-		count = 0;
-		for (i = 1; i <= 16; ++i)
+		int index = dht[pos++];
+		unsigned int count = 0;
+		for (unsigned int i = 1; i <= 16; ++i)
 		{
 			bits[i] = dht[pos++];
 			count += bits[i];
@@ -328,7 +326,7 @@ static int jpeg_load_dht (struct jpeg_decompress_struct *info, unsigned char *dh
 		if (count > 256 || count > length)
 			return -1;
 
-		for (i = 0; i < count; ++i)
+		for (unsigned int i = 0; i < count; ++i)
 			huffval[i] = dht[pos++];
 		length -= count;
 
@@ -440,8 +438,6 @@ int ImageFilter_JPEG::ident(FileObject &file, IMAGE &img)
 void ImageFilter_JPEG::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
 #ifdef HAVE_JPEG
-	size_t buffersize;
-	ppluint32 x,y,rot,gruen,blau;
 	char *buffer;
 	const char *address=file.map(0,256);
 	if (address==NULL) throw NullPointerException();
@@ -483,21 +479,21 @@ void ImageFilter_JPEG::load(FileObject &file, Drawable &surface, IMAGE &img)
 		}
 		cinfo.out_color_components=JCS_RGB;
 		jpeg_start_decompress(&cinfo);
-		buffersize=cinfo.output_width * cinfo.output_components;
+		size_t buffersize=cinfo.output_width * cinfo.output_components;
 		buffer=(char *)malloc(buffersize);
 		if (!buffer) throw OutOfMemoryException();
-		y=0;
+		ppluint32 y=0;
 		while (cinfo.output_scanline < cinfo.output_height) {
 			jpeg_read_scanlines (&cinfo,(unsigned char **)&buffer,1);
-			rot=gruen=blau=0;
+			ppluint32 rot=0, gruen=0, blau=0;
 
 			if (img.bitdepth==8) {
-				for (x=0;x<cinfo.output_width;x++) {
+				for (ppluint32 x=0;x<cinfo.output_width;x++) {
 					rot=Peek8(buffer+x);
 					surface.putPixel(x,y,Color(rot,rot,rot));
 				}
 			} else {
-				for (x=0;x<cinfo.output_width;x++) {
+				for (ppluint32 x=0;x<cinfo.output_width;x++) {
 					rot=Peek8(buffer+x*3+0);
 					gruen=Peek8(buffer+x*3+1);
 					blau=Peek8(buffer+x*3+2);
