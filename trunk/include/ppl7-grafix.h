@@ -47,11 +47,6 @@
 namespace ppl7 {
 namespace grafix {
 
-#ifdef RGB
-#undef RGB
-#endif
-
-
 PPLEXCEPTION(UnknownColorFormatException, Exception);
 PPLEXCEPTION(UnsupportedColorFormatException, Exception);
 PPLEXCEPTION(NoGrafixEngineException, Exception);
@@ -443,7 +438,7 @@ typedef struct GRAFIX_FUNCTIONS {
 	void (*Invert)(DRAWABLE_DATA &data, const Rect &r, SurfaceColor farbe1, SurfaceColor farbe2);
 	void (*Negativ)(DRAWABLE_DATA &data, const Rect &r);
 
-	SurfaceColor (*RGB) (int r, int g, int b, int a);
+	SurfaceColor (*GetRGB) (int r, int g, int b, int a);
 	SurfaceColor (*RGBBlend) (SurfaceColor ground, SurfaceColor top, float intensity);
 	SurfaceColor (*RGBBlend255) (SurfaceColor ground, SurfaceColor top, int intensity);
 	Color (*Surface2RGB) (SurfaceColor color);
@@ -1092,14 +1087,11 @@ class Sprite
 				surface=NULL;
 			}
 			SpriteIndexItem(const SpriteIndexItem &other)
+				:r(other.r), Pivot(other.Pivot), Offset(other.Offset)
 			{
 				id=other.id;
 				surface=other.surface;
-				r=other.r;
-				Pivot=other.Pivot;
-				Offset=other.Offset;
 			}
-
 		};
 		AVLTree<int,SpriteTexture> TextureList;
 		AVLTree<int,SpriteIndexItem> SpriteList;

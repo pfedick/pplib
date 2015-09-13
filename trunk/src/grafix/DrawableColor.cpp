@@ -187,7 +187,7 @@ static SurfaceColor RGBBlend_32 (SurfaceColor ground, SurfaceColor top, float in
  */
 SurfaceColor Drawable::rgb(const Color &c) const
 {
-	if (fn->RGB) return fn->RGB(c.red(),c.green(),c.blue(),c.alpha());
+	if (fn->GetRGB) return fn->GetRGB(c.red(),c.green(),c.blue(),c.alpha());
 	return 0;
 }
 
@@ -206,7 +206,7 @@ SurfaceColor Drawable::rgb(const Color &c) const
  */
 SurfaceColor Drawable::rgb(int r, int g, int b, int alpha) const
 {
-	if (fn->RGB) return fn->RGB(r,g,b,alpha);
+	if (fn->GetRGB) return fn->GetRGB(r,g,b,alpha);
 	return 0;
 }
 
@@ -254,7 +254,7 @@ void Grafix::initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::R8G8B8:
 		case RGBFormat::A8R8G8B8:
 		case RGBFormat::X8R8G8B8:
-			fn->RGB=RGB_A8R8G8B8;
+			fn->GetRGB=RGB_A8R8G8B8;
 			fn->Surface2RGB=Surface2RGB_A8R8G8B8;
 			fn->RGBBlend=RGBBlend_32;
 			fn->RGBBlend255=RGBBlend_32_255;
@@ -262,7 +262,7 @@ void Grafix::initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 		case RGBFormat::B8G8R8:
 		case RGBFormat::A8B8G8R8:
 		case RGBFormat::X8B8G8R8:
-			fn->RGB=RGB_A8B8G8R8;
+			fn->GetRGB=RGB_A8B8G8R8;
 			fn->Surface2RGB=Surface2RGB_A8B8G8R8;
 			fn->RGBBlend=RGBBlend_32;
 			fn->RGBBlend255=RGBBlend_32_255;
@@ -276,12 +276,12 @@ void Grafix::initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			*/
 		case RGBFormat::A8:
 		case RGBFormat::GREY8:
-			fn->RGB=RGB_GREY8;
+			fn->GetRGB=RGB_GREY8;
 			fn->Surface2RGB=Surface2RGB_GREY8;
 			fn->RGBBlend=RGBBlend_NULL;
 			return;
 		default:
-			fn->RGB=RGB_NULL;
+			fn->GetRGB=RGB_NULL;
 			fn->Surface2RGB=Surface2RGB_NULL;
 			fn->RGBBlend=RGBBlend_NULL;
 			break;

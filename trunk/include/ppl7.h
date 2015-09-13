@@ -86,39 +86,6 @@
 #endif
 
 
-#ifdef putc
-#undef putc
-#endif
-
-#ifdef putwc
-#undef putwc
-#endif
-
-#ifdef puts
-#undef puts
-#endif
-
-#ifdef putws
-#undef putws
-#endif
-
-#ifdef getc
-#undef getc
-#endif
-
-#ifdef getwc
-#undef getwc
-#endif
-
-#ifdef gets
-#undef gets
-#endif
-
-#ifdef getws
-#undef getws
-#endif
-
-
 // Exceptions
 #ifdef PPL7LIB
 	#include "ppl7-exceptions.h"
@@ -1031,12 +998,6 @@ class PerlHelper
 
 
 #define NUMFACILITIES	9
-#ifdef ERROR
-#undef ERROR
-#endif
-#ifdef DEBUG
-#undef DEBUG
-#endif
 
 class LogHandler;
 
