@@ -30,7 +30,7 @@
 					<folderInfo id="converted.config.93810054." name="/" resourcePath="">
 						<toolChain id="org.eclipse.linuxtools.cdt.autotools.core.toolChain.1392866092" name="GNU Autotools Toolchain" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolChain">
 							<targetPlatform id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.targetPlatform.242527758" isAbstract="false" name="GNU Autotools Target Platform" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.targetPlatform"/>
-							<builder appendEnvironment="true" buildPath="" enableAutoBuild="true" environment="" id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder.749722151" keepEnvironmentInBuildfile="false" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder"/>
+							<builder appendEnvironment="true" buildPath="" enableAutoBuild="false" environment="" id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder.749722151" keepEnvironmentInBuildfile="false" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.builder"/>
 							<tool id="org.eclipse.linuxtools.cdt.autotools.core.gnu.toolchain.tool.configure.1211365629" name="configure" superClass="org.eclipse.linuxtools.cdt.autotools.core.gnu.toolchain.tool.configure">
 								<option id="org.eclipse.linuxtools.cdt.autotools.core.option.configure.name.1068270571" name="Name" superClass="org.eclipse.linuxtools.cdt.autotools.core.option.configure.name" value="converted.config.93810054" valueType="string"/>
 							</tool>
@@ -43,7 +43,7 @@
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1460018740" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1206095395" name="GCC C++ Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp">
-								<option id="gnu.cpp.compiler.option.preprocessor.def.1519549719" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
+								<option id="gnu.cpp.compiler.option.preprocessor.def.1519549719" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="PPL7LIB=1"/>
 									<listOptionValue builtIn="false" value="HAVE_CONFIG_H=1"/>
 								</option>

@@ -85,7 +85,7 @@ static int ppl_curl_instance=0;
 	{
 		if (!stream) return -1;
 		size_t bytes=size*nmemb;
-		Curl *curl=(Curl*)stream;
+		Curl *curl=static_cast<Curl*>(stream);
 		return curl->storeResult(ptr,bytes,1);
 	}
 
@@ -94,14 +94,14 @@ static int ppl_curl_instance=0;
 	{
 		if (!stream) return -1;
 		size_t bytes=size*nmemb;
-		Curl *curl=(Curl*)stream;
+		Curl *curl=static_cast<Curl*>(stream);
 		return curl->storeResult(ptr,bytes,2);
 	}
 
 	static int debug_function(CURL *handle, curl_infotype type, char *data, size_t size, void *stream)
 	{
 		if (!stream) return 0;
-		Curl *curl=(Curl*)stream;
+		Curl *curl=static_cast<Curl*>(stream);
 		if (curl) curl->debugHandler((int)type,data,size);
 		return 0;
 	}
@@ -155,7 +155,6 @@ Curl::Curl()
 		handle=curl_easy_init();
 		if (!handle) {
 			throw Curl::InitializationFailedException();
-			return;
 		}
 		curl_easy_setopt((CURL*)handle,CURLOPT_COOKIEJAR,"");
 
@@ -173,6 +172,61 @@ Curl::Curl()
 			errorbuffer[0]=0;
 			curl_easy_setopt((CURL*)handle,CURLOPT_ERRORBUFFER,errorbuffer);
 		}
+
+	#else
+		throw UnsupportedFeatureException("libCurl");
+	#endif
+}
+
+Curl::Curl(const Curl &other)
+{
+	handle=NULL;
+	resultbuffer_size=0;
+	log=NULL;
+	httppost=NULL;
+	last_httppost=NULL;
+	headers=NULL;
+	resultbuffer=NULL;
+	errorbuffer=NULL;
+	aboard=false;
+	#ifdef HAVE_LIBCURL
+		CurlMutex.lock();
+		if (!ppl_curl_instance) {
+			if (!curl_global_init(CURL_GLOBAL_WIN32|CURL_GLOBAL_SSL)==0) {
+				CurlMutex.unlock();
+				throw Curl::InitializationFailedException();
+			}
+		}
+		ppl_curl_instance++;
+		CurlMutex.unlock();
+		handle=curl_easy_init();
+		if (!handle) {
+			throw Curl::InitializationFailedException();
+		}
+		curl_easy_setopt((CURL*)handle,CURLOPT_COOKIEJAR,"");
+
+		long t=1;
+		curl_easy_setopt((CURL*)handle, CURLOPT_NOSIGNAL, t);	// Curl soll keine Signals verwenden
+
+
+		errorbuffer=(char*)malloc(CURL_ERROR_SIZE+32);
+		/*
+		storetofile=NULL;
+		filename=NULL;
+		filesize=0;
+		*/
+		if (errorbuffer) {
+			errorbuffer[0]=0;
+			curl_easy_setopt((CURL*)handle,CURLOPT_ERRORBUFFER,errorbuffer);
+		}
+		log=other.log;
+		Header=other.Header;
+		Browser=other.Browser;
+		Url=other.Url;
+		UserPassword=other.UserPassword;
+		Referer=other.Referer;
+		Proxy=other.Proxy;
+		GetCall=other.GetCall;
 
 	#else
 		throw UnsupportedFeatureException("libCurl");

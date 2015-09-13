@@ -497,7 +497,6 @@ class Curl
 		String GetCall;
 		char *errorbuffer;
 		bool	aboard;
-
 		void curlResultOk(int ret) const;
 
 
@@ -521,6 +520,7 @@ class Curl
 		static bool isSupported();
 
 		Curl();
+		Curl(const Curl &other);
 		~Curl();
 
 		//TODO: CNotifyHandler call_receive;
