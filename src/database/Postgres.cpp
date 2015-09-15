@@ -408,7 +408,12 @@ int Postgres::Connect(const CAssocArray &params)
 	ClearLastUse();
 
 	// Was war der Fehler?
-	SetError(77,0,PQerrorMessage((PGconn*)conn));
+	SetError(77,"Host: %s:%s, Database: %s, User: %s, Postgres-Error: %s",
+			(const char*)params["host"],
+			(const char*)params["port"],
+			(const char*)params["dbname"],
+			(const char*)params["user"],
+			PQerrorMessage((PGconn*)conn));
 	PQfinish((PGconn*)conn);
 	conn=NULL;
 	return 0;
