@@ -588,6 +588,214 @@ void UDPSocket::setTimeoutWrite(int seconds, int useconds)
 	}
 }
 
+/*!\brief Auf eingehende Daten warten
+ *
+ * \desc
+ * Diese Funktion prüft, ob Daten eingegangen sind. Ist dies der Fall,
+ * kehrt sie sofort wieder zurück. Andernfalls wartet sie solange, bis
+ * Daten eingehen, maximal aber die mit \p seconds und \p useconds
+ * angegebene Zeitspanne. Falls \p seconds und \p useconds Null sind, und
+ * keine Daten bereitstehen, kehrt die Funktion sofort zurück.
+ *
+ * @param[in] seconds Anzahl Sekunden, die gewartet werden soll
+ * @param[in] useconds Anzahl Mikrosekunden, die gewartet werden soll
+ * @return Die Funktion gibt \b true zurück, wenn Daten zum Lesen bereitstehen,
+ * sonst \b false. Im Fehlerfall wird eine Exception geworfen.
+ * @exception Diverse
+ */
+bool UDPSocket::waitForIncomingData(int seconds, int useconds)
+{
+	if (!connected) throw NotConnectedException();
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	fd_set rset, wset, eset;
+	struct timeval timeout;
+
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
+
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&rset); // Wir wollen nur prüfen, ob was zu lesen da ist
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		throwExceptionFromErrno(errno, "UDPSocket::waitForIncomingData");
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		throw OutOfBandDataReceivedException("UDPSocket::waitForIncomingData");
+	}
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		// Kommt hier ein Fehler zurück?
+		if (ret<0) {
+			throwExceptionFromErrno(errno, "UDPSocket::isReadable");
+		}
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			throw BrokenPipeException();
+		}
+		return true;
+	}
+	return false;
+}
+
+/*!\brief Warten, bis der Socket beschreibbar ist
+ *
+ * \desc
+ * Diese Funktion prüft, ob Daten auf den Socket geschrieben werden können.
+ * Ist dies der Fall, kehrt sie sofort wieder zurück. Andernfalls wartet
+ * sie solange, bis der Socket beschrieben werden kann, maximal aber die
+ * mit \p seconds und \p useconds angegebene Zeitspanne.
+ * Falls \p seconds und \p useconds Null sind, und
+ * keine Daten gesendet werden können, kehrt die Funktion sofort zurück.
+ *
+ * @param[in] seconds Anzahl Sekunden, die gewartet werden soll
+ * @param[in] useconds Anzahl Mikrosekunden, die gewartet werden soll
+ * @return Die Funktion gibt \b true zurück, wenn Daten geschrieben werden können,
+ * sonst \b false. Im Fehlerfall wird eine Exception geworfen.
+ * @exception Diverse
+ *
+ */
+bool UDPSocket::waitForOutgoingData(int seconds, int useconds)
+{
+	if (!connected) throw NotConnectedException();
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	fd_set rset, wset, eset;
+	struct timeval timeout;
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
+
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&wset); // Wir wollen nur prüfen, ob wir schreiben können
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		throwExceptionFromErrno(errno, "UDPSocket::waitForOutgoingData");
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		throw OutOfBandDataReceivedException("UDPSocket::waitForIncomingData");
+	}
+	if (FD_ISSET(s->sd,&wset)) {
+		return true;
+	}
+	return false;
+}
+
+/*!\brief Socket auf eine IP-Adresse und Port binden
+ *
+ * \desc
+ * Diese Funktion muss aufgerufen werden, bevor man mit CTCPSocket::Listen einen TCP-Server starten kann. Dabei wird mit \p host
+ * die IP-Adresse festgelegt, auf die sich der Server binden soll und mit \p port der TCP-Port.
+ * Es ist nicht möglich einen Socket auf mehrere Adressen zu binden.
+ *
+ * @param[in] host IP-Adresse, Hostname oder "*". Bei Angabe von "*" bindet sich der Socket auf alle
+ * Interfaces des Servers.
+ * @param[in] port Der gewünschte TCP-Port
+ * @exception OutOfMemoryException
+ * @exception ResolverException
+ * @exception SettingSocketOptionException
+ * @exception CouldNotBindToInterfaceException
+ * @exception CouldNotOpenSocketException
+ */
+void UDPSocket::bind(const String &host, int port)
+{
+	//int addrlen=0;
+	if (!socket) {
+		socket=malloc(sizeof(PPLSOCKET));
+		if (!socket) throw OutOfMemoryException();
+		PPLSOCKET *s=(PPLSOCKET*)socket;
+		s->sd=0;
+		s->proto=6;
+		s->ipname=NULL;
+		s->port=port;
+		//s->addrlen=0;
+	}
+#ifdef _WIN32
+	SOCKET listenfd=0;
+#else
+	int listenfd=0;
+#endif
+
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (s->sd) disconnect();
+	if (s->ipname) free(s->ipname);
+	s->ipname=NULL;
+
+	struct addrinfo hints;
+	bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_flags=AI_PASSIVE;
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_DGRAM;
+	int on=1;
+	// Prüfen, ob host ein Wildcard ist
+	struct addrinfo *res;
+	if (host.notEmpty()==true && host!="*") {
+		char portstr[10];
+		sprintf(portstr,"%i",port);
+		int n;
+		if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
+			throw ResolverException("%s, %s",(const char*)host,gai_strerror(n));
+		}
+		struct addrinfo *ressave=res;
+		do {
+			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
+			if (listenfd<0) continue; // Error, try next one
+			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+				freeaddrinfo(ressave);
+				throw SettingSocketOptionException();
+			}
+			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
+				//addrlen=res->ai_addrlen;
+				break;
+			}
+			::shutdown(listenfd,2);
+#ifdef _WIN32
+			closesocket(listenfd);
+#else
+			close(listenfd);
+#endif
+			listenfd=0;
+
+		} while ((res=res->ai_next)!=NULL);
+		freeaddrinfo(ressave);
+	} else {
+		// Auf alle Interfaces binden
+		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
+		if (listenfd>=0) {
+			struct sockaddr_in addr;
+			bzero(&addr,sizeof(addr));
+			addr.sin_addr.s_addr = htonl(INADDR_ANY);
+			addr.sin_port = htons(port);
+			addr.sin_family = AF_INET;
+			/* bind server port */
+			if(::bind(listenfd, (struct sockaddr *) &addr, sizeof(addr))!=0) {
+				::shutdown(listenfd,2);
+#ifdef _WIN32
+				closesocket(listenfd);
+#else
+				close(listenfd);
+#endif
+				throw CouldNotBindToInterfaceException("Host: *, Port: %d",port);
+			}
+			s->sd=listenfd;
+			connected=1;
+			return;
+		}
+	}
+	if (listenfd<0) {
+		throw CouldNotOpenSocketException("Host: %s, Port: %d",(const char*)host,port);
+	}
+	if (res==NULL) {
+		throw CouldNotBindToInterfaceException("Host: %s, Port: %d",(const char*)host,port);
+	}
+	s->sd=listenfd;
+	connected=1;
+}
+
+
 
 /*!\brief Daten schreiben
  *
@@ -689,6 +897,7 @@ size_t UDPSocket::writef(const char *fmt, ...)
 }
 #endif
 
+#ifdef TODO
 size_t UDPSocket::sendTo(const String &host, int port, const String &buffer)
 /*! \brief UDP-Packet verschicken
  *
@@ -704,12 +913,12 @@ size_t UDPSocket::sendTo(const String &host, int port, const String &buffer)
  *
  * \since Wurde mit Version 6.0.19 eingeführt
  */
- {
+{
 	return sendTo(host,port,(const void *)buffer.getPtr(),buffer.len());
 }
 
 
-#ifdef TODO
+
 
 size_t UDPSocket::sendTo(const String &host, int port, const void *buffer, size_t bytes)
 /*! \brief UDP-Packet verschicken
@@ -1065,5 +1274,11 @@ int UDPSocket::Bind(const char *host, int port)
 }
 
 #endif
+
+
+int UDPSocket::receiveConnect(UDPSocket *socket, const String &host, int port)
+{
+	return 0;
+}
 
 }	// EOF ppl7
