@@ -91,62 +91,593 @@
 
 namespace ppl7 {
 
-#ifdef TODO
 
-/*!\class CUDPSocket
+/*!\class UDPSocket
  * \ingroup PPLGroupInternet
  * \brief UDP-Socket-Klasse
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7-inet.h>
  * \desc
  * Mit dieser Klasse können Pakete per UDP verschickt und empfangen werden.
- *
- * \since Diese Klasse wurde mit Version 6.0.19 eingeführt
  */
 
-CUDPSocket::CUDPSocket()
+UDPSocket::UDPSocket()
 /*! \brief Konstruktor der Klasse
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7-inet.h>
  * \desc
  * Initialisiert interne Daten der Klasse
- *
- * \since Wurde mit Version 6.0.19 eingeführt
  */
 {
 #ifdef _WIN32
-	InitWSA();
+	InitSockets();
 #endif
 	timeout_sec=0;
 	timeout_usec=0;
 	socket=NULL;
+	SourcePort=0;
+	connect_timeout_sec=0;
+	connect_timeout_usec=0;
+	connected=false;
 }
 
-CUDPSocket::~CUDPSocket()
+UDPSocket::~UDPSocket()
 /*! \brief Destruktor der Klasse
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl6-inet.h>
  * \desc
  * De-Initialisiert interne Daten der Klasse
  *
- * \since Wurde mit Version 6.0.19 eingeführt
  */
 {
 	PPLSOCKET *s=(PPLSOCKET*)socket;
 	if (!s) {
 		return;
 	}
-    if ((int)s->sd>-1) ppl_closesocket(s->sd);
+    if ((int)s->sd>-1) {
+#ifdef _WIN32
+		closesocket(s->sd);
+#else
+		close(s->sd);
+#endif
+    }
 	free(s);
 }
 
-void CUDPSocket::SetTimeout(int seconds, int useconds)
-/*! \brief Timeout setzen
+void UDPSocket::setTimeoutConnect(int seconds, int useconds)
+{
+	connect_timeout_sec = seconds;
+	connect_timeout_usec = useconds;
+}
+
+/*!\brief Descriptor des Sockets auslesen
  *
- * \header \#include <ppl6.h>
  * \desc
- * Mit dieser Funktion wird der Timeout für das Empfangen von Daten gesetzt.
+ * Mit dieser Funktion kann der Betriebssystem-spezifische Socket-Descriptor ausgelesen werden.
+ * Unter Unix ist dies ein File-Descriptor vom Typ Integer, unter Windows ein Socket-Descriptor
+ * vom Typ SOCKET.
  *
+ * @return Betriebsystem-spezifischer Descriptor.
+ * @exception NotConnectedException Wird geworfen, wenn kein Socket geöffnet ist
+ */
+int UDPSocket::getDescriptor()
+{
+	if (socket==NULL)
+		throw NotConnectedException();
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+#ifdef _WIN32
+	if ((int)s->sd<0) throw NotConnectedException();
+	return (int)s->sd;
+#else
+	if (s->sd<0) throw NotConnectedException();
+	return s->sd;
+#endif
+}
+
+void UDPSocket::disconnect()
+{
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+	if (!s)
+		return;
+	/*
+	if (islisten) {
+		stopListen();
+	}
+	*/
+	if (s->sd > 0) {
+#ifdef _WIN32
+		closesocket(s->sd);
+#else
+		close(s->sd);
+#endif
+		s->sd = 0;
+	}
+	connected=false;
+}
+
+/*!\brief Quell-Interface und Port festlegen
+ *
+ * \desc
+ * Diese Funktion kann aufgerufen werden, wenn der Rechner über mehrere Netzwerkinterfaces verfügt.
+ * Normalerweise entscheidet das Betriebssytem, welches Interface für eine ausgehende Verbindung
+ * verwendet werden soll, aber manchmal kann es sinnvoll sein, dies manuell zu machen.
+ *
+ * @param[in] interface Hostname oder IP-Adresse des Quellinterfaces. Bleibt der Parameter leer,
+ * wird nur der \p port beachtet
+ * @param[in] port Port-Nummer des Quellinterfaces. Wird 0 angegeben, wird nur das \p interface
+ * beachtet
+ *
+ * \attention
+ * Diese Funktionalität wird derzeit nicht unter Windows unterstützt! Falls trotzdem ein
+ * \p host oder \p port definiert wurden, wird die Connect-Funktion fehlschlagen!
+ *
+ * \remarks
+ * Sind beide Parameter leer bzw. 0, wird das Quellinterface und Port vom Betriebssystem
+ * festgelegt.
+ *
+ */
+void UDPSocket::setSource(const String &interface, int port)
+{
+	SourceInterface = interface;
+	SourcePort = port;
+}
+
+#ifdef WIN32
+static int out_bind(SOCKET sockfd, const char *host, int port)
+{
+	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind")
+}
+
+#else
+/*!\brief Socket auf ausgehendes Interface legen
+ *
+ * \desc
+ * Diese Funktion wird intern durch die Connect-Funktionen aufgerufen, um einen ausgehenden Socket auf
+ * ein bestimmtes Netzwerk-Interface zu binden. Die Funktion wird nur dann verwendet, wenn
+ * mit CTCPSocket::SetSource ein Quellinterface definiert wurde.
+ *
+ * @param[in] host Hostname oder IP des lokalen Interfaces
+ * @param[in] port Port auf dem lokalen Interface
+ * @return Bei Erfolg liefert die Funktion die File-Nummer des Sockets zurück,
+ * im Fehlerfall wird eine Exception geworfen.
+ *
+ * @exception IllegalArgumentException Wird geworfen, wenn \p host auf NULL zeigt und \p port 0 enthält
+ *
+ * \relates ppl6::CTCPSocket
+ */
+static int out_bind(const char *host, int port)
+{
+	struct addrinfo hints, *res, *ressave;
+	bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_flags = AI_PASSIVE;
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	int listenfd;
+	int n;
+	int on = 1;
+	// Prüfen, ob host ein Wildcard ist
+	if (host != NULL && strlen(host) == 0)
+		host = NULL;
+	if (host != NULL && host[0] == '*')
+		host = NULL;
+
+	if (host != NULL && port > 0) {
+		char portstr[10];
+		sprintf(portstr, "%i", port);
+		n = getaddrinfo(host, portstr, &hints, &res);
+	} else if (host) {
+		n = getaddrinfo(host, NULL, &hints, &res);
+	} else if (port) {
+		char portstr[10];
+		sprintf(portstr, "%i", port);
+		n = getaddrinfo(NULL, portstr, &hints, &res);
+	} else {
+		throw IllegalArgumentException();
+	}
+	if (n != 0) {
+		throwExceptionFromEaiError(n, ToString("UDPSocket bind connect: %s:%i", host, port));
+	}
+	ressave = res;
+	do {
+		listenfd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if (listenfd < 0)
+			continue; // Error, try next one
+
+		if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
+			freeaddrinfo(ressave);
+			throwExceptionFromErrno(errno, ToString("UDPSocket bind connect: %s:%i", host, port));
+		}
+
+		//HexDump(res->ai_addr,res->ai_addrlen);
+		if (::bind(listenfd, res->ai_addr, res->ai_addrlen) == 0) {
+
+			break;
+		}
+		shutdown(listenfd, 2);
+		close(listenfd);
+		listenfd = 0;
+	} while ((res = res->ai_next) != NULL);
+	freeaddrinfo(ressave);
+	if (listenfd <= 0)
+		throw CouldNotOpenSocketException("Host: %s, Port: %d", host, port);
+	if (res == NULL)
+		throw CouldNotBindToInterfaceException("Host: %s, Port: %d", host, port);
+	return (listenfd);
+}
+#endif
+
+/*!\brief Verbindung aufbauen
+ *
+ */
+void UDPSocket::connect(const String &host_and_port)
+{
+	if (host_and_port.isEmpty())
+		throw IllegalArgumentException("UDPSocket::connect(const String &host_and_port)");
+	Array hostname = StrTok(host_and_port, ":");
+	if (hostname.size() != 2)
+		throw IllegalArgumentException("UDPSocket::connect(const String &host_and_port)");
+	String portname = hostname.get(1);
+	int port = portname.toInt();
+	if (port <= 0 && portname.size() > 0) {
+		// Vielleicht wurde ein Service-Namen angegeben?
+		struct servent *s = getservbyname((const char*) portname, "tcp");
+		if (s) {
+			unsigned short int p = s->s_port;
+			port = (int) ntohs(p);
+		} else {
+			throw IllegalPortException("UDPSocket::connect(const String &host_and_port=%s)", (const char*) host_and_port);
+		}
+	}
+	if (port <= 0)
+		throw IllegalPortException("UDPSocket::connect(const String &host_and_port=%s)", (const char*) host_and_port);
+	return connect(hostname.get(0), port);
+}
+
+#ifdef _WIN32
+#else
+
+/*!\brief Non-Blocking-Connect
+ *
+ * \desc
+ * Diese Funktion wird intern durch die Connect-Funktionen aufgerufen, um einen nicht blockierenden
+ * Connect auf die Zieladresse durchzuführen. Normalerweise würde ein Connect solange
+ * blockieren, bis entweder ein Fehler festgestellt wird, die Verbindung zustande kommt oder
+ * das Betriebssystem einen Timeout auslöst. Letzteres kann aber mehrere Minuten dauern.
+ * Mit dieser Funktion wird ein non-blocking-connect durchgeführt, bei dem der Timeout
+ * mikrosekundengenau angegeben werden kann.
+ *
+ * @param[in] sockfd File-ID des Sockets
+ * @param[in] serv_addr IP-Adressenstruktur mit der Ziel-IP un dem Ziel-Port
+ * @param[in] addrlen Die Länge der Adressenstruktur
+ * @param[in] sec Timeout in Sekunden
+ * @param[in] usec Timeout in Mikrosekunden. Der tatsächliche Timeout errechnet sich aus \p sec + \p usec
+ * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ *
+ * \relates ppl6::CTCPSocket
+ * \note
+ * Zur Zeit wird diese Funktion nur unter Unix unterstützt.
+ */
+static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int addrlen, int sec, int usec)
+{
+	int flags, n, error;
+	struct timeval tval;
+	socklen_t len;
+	fd_set rset, wset;
+	flags = fcntl(sockfd, F_GETFL, 0);
+	fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+	error = 0;
+	if ((n = ::connect(sockfd, serv_addr, addrlen)) < 0)
+		if (errno != EINPROGRESS)
+			return (-1);
+	if (n == 0) // Connect completed immediately
+		goto done;
+	FD_ZERO(&rset);
+	FD_SET(sockfd, &rset);
+	wset = rset;
+	tval.tv_sec = sec;
+	tval.tv_usec = usec;
+	if ((n = select(sockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
+		errno = ETIMEDOUT;
+		return -1;
+	}
+	if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
+		len = sizeof(error);
+		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
+			return -1; // Solaris pending error
+		}
+	}
+	done: fcntl(sockfd, F_SETFL, flags);
+	if (error) {
+		errno = error;
+		return (-1);
+	}
+	return 0;
+}
+#endif
+
+
+#ifdef _WIN32
+
+#else
+
+void UDPSocket::connect(const String &host, int port)
+{
+	if (connected)
+		disconnect();
+	//if (islisten)
+	//	disconnect();
+	if (!socket) {
+		socket = malloc(sizeof(PPLSOCKET));
+		if (!socket)
+			throw OutOfMemoryException();
+		PPLSOCKET *s = (PPLSOCKET*) socket;
+		s->sd = 0;
+		//s->proto=6;
+		s->proto = 0;
+		s->ipname = NULL;
+		s->port = 0;
+		//s->addrlen=0;
+	}
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+	if (s->ipname)
+		free(s->ipname);
+	s->ipname = NULL;
+
+	if (s->sd)
+		disconnect();
+	if (host.isEmpty())
+		throw IllegalArgumentException("void UDPSocket::connect(const String &host, int port): host is empty");
+	if (!port)
+		throw IllegalArgumentException("void UDPSocket::connect(const String &host, int port): port is 0");
+#ifdef _WIN32
+	SOCKET sockfd;
+#else
+	int sockfd = 0;
+#endif
+	int n;
+	struct addrinfo hints, *res, *ressave;
+	bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	char portstr[10];
+	sprintf(portstr, "%i", port);
+	if ((n = getaddrinfo((const char*) host, portstr, &hints, &res)) != 0)
+		throwExceptionFromEaiError(n, ToString("UDPSocket::connect: host=%s, port=%i", (const char*) host, port));
+	ressave = res;
+	int e = 0, conres = 0;
+	do {
+		if (SourceInterface.size() > 0 || SourcePort > 0) {
+			try {
+				sockfd = out_bind((const char*) SourceInterface, SourcePort);
+			} catch (...) {
+				::shutdown(sockfd, 2);
+				close(sockfd);
+				freeaddrinfo(ressave);
+				throw;
+			}
+		} else {
+			sockfd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+			if (sockfd < 0)
+				continue; // Error, try next one
+		}
+		if (connect_timeout_sec > 0 || connect_timeout_usec) {
+#ifdef _WIN32
+			conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
+#else
+			conres = ppl_connect_nb(sockfd, res->ai_addr, res->ai_addrlen, connect_timeout_sec, connect_timeout_usec);
+			e = errno;
+#endif
+		} else {
+			conres = ::connect(sockfd, res->ai_addr, res->ai_addrlen);
+			e = errno;
+		}
+		if (conres == 0)
+			break;
+#ifdef _WIN32
+		e=WSAGetLastError();
+		::shutdown(sockfd,2);
+		closesocket(sockfd);
+#else
+		::shutdown(sockfd, 2);
+		close(sockfd);
+#endif
+		sockfd = 0;
+	} while ((res = res->ai_next) != NULL);
+	if (conres < 0)
+		res = NULL;
+	if (sockfd < 0) {
+		freeaddrinfo(ressave);
+		throw CouldNotOpenSocketException(ToString("Host: %s, Port: %d", (const char*) host, port));
+	}
+	if (res == NULL) {
+		freeaddrinfo(ressave);
+		throwExceptionFromErrno(e, ToString("Host: %s, Port: %d", (const char*) host, port));
+	}
+	s->sd = sockfd;
+	//HostName = host;
+	//PortNum = port;
+	connected = true;
+	freeaddrinfo(ressave);
+}
+#endif
+
+/*!\brief Prüfen, ob eine Verbindung besteht
+ *
+ * \desc
+ * Mit dieser Funktion kann überprüft werden, ob eine TCP-Verbindung besteht.
+ *
+ * @return Liefert 1 zurück, wenn eine Verbindung besteht, sonst 0. Es wird kein Fehlercode gesetzt.
+ */
+bool UDPSocket::isConnected() const
+{
+	return connected;
+}
+
+/*!\brief Lese-Timeout festlegen
+ *
+ * Mit dieser Funktion kann ein Timeout für Lesezugriffe gesetzt werden. Normalerweise
+ * blockiert eine Leseoperation mit "Read" solange, bis die angeforderten Daten
+ * eingegangen sind (ausser der Socket wurde mit TCPSocket::setBlocking auf "Non-Blocking"
+ * gesetzt). Mit dieser Funktion kann jedoch ein beliebiger mikrosekunden genauer
+ * Timeout festgelegt werden. Der Timeout errechnet sich dabei aus
+ * \p seconds + \p useconds.
+ * \par
+ * Um den Timeout wieder abzustellen, kann die Funktion mit 0 als
+ * Wert für \p seconds und \p useconds aufgerufen werden.
+ *
+ * @param[in] seconds Anzahl Sekunden
+ * @param[in] useconds Anzahl Mikrosekunden (1000000 Mikrosekunden = 1 Sekunde)
+ * @exception NotConnectedException
+ * @exception InvalidSocketException
+ * @exception BadFiledescriptorException
+ * @exception UnknownOptionException
+ * @exception BadAddressException
+ * @exception InvalidArgumentsException
+ */
+void UDPSocket::setTimeoutRead(int seconds, int useconds)
+{
+	if (!connected)
+		throw NotConnectedException();
+	struct timeval tv;
+	tv.tv_sec = seconds;
+	tv.tv_usec = useconds;
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+#ifdef WIN32
+	if (setsockopt(s->sd,SOL_SOCKET,SO_RCVTIMEO,(const char*)&tv,sizeof(tv))!=0) {
+#else
+	if (setsockopt(s->sd, SOL_SOCKET, SO_RCVTIMEO, (void*) &tv, sizeof(tv)) != 0) {
+#endif
+		throwExceptionFromErrno(errno, "setTimeoutRead");
+	}
+}
+
+/*!\brief Schreib-Timeout festlegen
+ *
+ * Mit dieser Funktion kann ein Timeout für Schreibzugriffe gesetzt werden. Normalerweise
+ * blockiert eine Schreiboperation mit "Write" solange, bis alle Daten gesendet wurden.
+ * Mit dieser Funktion kann jedoch ein beliebiger mikrosekunden genauer
+ * Timeout festgelegt werden. Der Timeout errechnet sich dabei aus
+ * \p seconds + \p useconds.
+ * \par
+ * Um den Timeout wieder abzustellen, kann die Funktion mit 0 als
+ * Wert für \p seconds und \p useconds aufgerufen werden.
+ *
+ * @param[in] seconds Anzahl Sekunden
+ * @param[in] useconds Anzahl Mikrosekunden (1000000 Mikrosekunden = 1 Sekunde)
+ * @exception NotConnectedException
+ * @exception InvalidSocketException
+ * @exception BadFiledescriptorException
+ * @exception UnknownOptionException
+ * @exception BadAddressException
+ * @exception InvalidArgumentsException
+ */
+void UDPSocket::setTimeoutWrite(int seconds, int useconds)
+{
+	if (!connected)
+		throw NotConnectedException();
+	struct timeval tv;
+	tv.tv_sec = seconds;
+	tv.tv_usec = useconds;
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+#ifdef WIN32
+	if (setsockopt(s->sd,SOL_SOCKET,SO_SNDTIMEO,(const char*)&tv,sizeof(tv))!=0) {
+#else
+	if (setsockopt(s->sd, SOL_SOCKET, SO_SNDTIMEO, (void*) &tv, sizeof(tv)) != 0) {
+#endif
+		throwExceptionFromErrno(errno, "setTimeoutRead");
+	}
+}
+
+
+/*!\brief Daten schreiben
+ *
+ * \desc
+ * Mit dieser Funktionen werden \p bytes Bytes aus dem Speicherbereich \p buffer an die Gegenstelle
+ * gesendet.
+ *
+ * @param[in] buffer Pointer auf die zu sendenden Daten
+ * @param[in] bytes Anzahl zu sendender Bytes
+ * @return Wenn die Daten erfolgreich geschrieben wurden, gibt die Funktion die Anzahl geschriebener
+ * Bytes zurück. Im Fehlerfall wird eine Exception geworfen.
+ */
+size_t UDPSocket::write(const void *buffer, size_t bytes)
+{
+	if (!connected)
+		throw NotConnectedException();
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+	if (!buffer)
+		throw InvalidArgumentsException();
+	size_t BytesWritten = 0;
+	if (bytes) {
+		size_t rest = bytes;
+		ssize_t b = 0;
+		while (rest) {
+			b = ::send(s->sd, (char *) buffer, rest, 0);
+			if (b > 0) {
+				BytesWritten += b;
+				rest -= b;
+				buffer = ((const char*) buffer) + b;
+			}
+#ifdef WIN32
+			if (b==SOCKET_ERROR) {
+#else
+			if (b < 0) {
+#endif
+				if (errno == EAGAIN) {
+					waitForOutgoingData(0, 100000);
+				} else {
+					throwExceptionFromErrno(errno, "UDPSocket::write");
+				}
+			}
+		}
+	}
+	return BytesWritten;
+}
+
+size_t UDPSocket::write(const String &str, size_t bytes)
+{
+	if (bytes>0 && bytes<=str.size()) {
+		return write(str.getPtr(),bytes);
+	}
+	return write(str.getPtr(),str.size());
+}
+
+size_t UDPSocket::write(const WideString &str, size_t bytes)
+{
+	if (bytes>0 && bytes<=str.byteLength()) {
+		return write(str.getPtr(),bytes);
+	}
+	return write(str.getPtr(),str.byteLength());
+}
+
+size_t UDPSocket::write(const ByteArrayPtr &bin, size_t bytes)
+{
+	if (bytes>0 && bytes<=bin.size()) {
+		return write(bin.ptr(),bytes);
+	}
+	return write(bin.ptr(),bin.size());
+}
+
+size_t UDPSocket::writef(const char *fmt, ...)
+{
+	if (!fmt) throw IllegalArgumentException();
+	String str;
+	va_list args;
+	va_start(args, fmt);
+	str.vasprintf(fmt,args);
+	va_end(args);
+	return write(str);
+}
+
+#ifdef TODO
+
+	void UDPSocket::setTimeoutRead(int seconds, int useconds)
+	/*! \brief Timeout setzen
+	 *
+	 * \header \#include <ppl6.h>
+	 * \desc
+	 * Mit dieser Funktion wird der Timeout für das Empfangen von Daten gesetzt.
+	 *
  * \param seconds Anzahl Sekunden
  * \param useconds Anzahl Millisekunden
  * \note Diese Funktion hat zur Zeit noch keine Auswirkungen
@@ -156,8 +687,9 @@ void CUDPSocket::SetTimeout(int seconds, int useconds)
 	timeout_sec=seconds;
 	timeout_usec=useconds;
 }
+#endif
 
-int CUDPSocket::SendTo(const char *host, int port, const CString &buffer)
+size_t UDPSocket::sendTo(const String &host, int port, const String &buffer)
 /*! \brief UDP-Packet verschicken
  *
  * \header \#include <ppl6.h>
@@ -173,11 +705,13 @@ int CUDPSocket::SendTo(const char *host, int port, const CString &buffer)
  * \since Wurde mit Version 6.0.19 eingeführt
  */
  {
-	return SendTo(host,port,(const void *)buffer.GetPtr(),buffer.Len());
+	return sendTo(host,port,(const void *)buffer.getPtr(),buffer.len());
 }
 
 
-int CUDPSocket::SendTo(const char *host, int port, const void *buffer, int bytes)
+#ifdef TODO
+
+size_t UDPSocket::sendTo(const String &host, int port, const void *buffer, size_t bytes)
 /*! \brief UDP-Packet verschicken
  *
  * \header \#include <ppl6.h>
@@ -195,19 +729,19 @@ int CUDPSocket::SendTo(const char *host, int port, const void *buffer, int bytes
  */
 {
 	if (!host) {
-		ppl6::SetError(194,"int CUDPSocket::SendTo(==> char *host <== , int port, void *buffer, int bytes)");
+		ppl6::SetError(194,"int UDPSocket::SendTo(==> char *host <== , int port, void *buffer, int bytes)");
 		return -1;
 	}
 	if (!port) {
-		ppl6::SetError(194,"int CUDPSocket::SendTo(char *host, ==> int port <== , void *buffer, int bytes)");
+		ppl6::SetError(194,"int UDPSocket::SendTo(char *host, ==> int port <== , void *buffer, int bytes)");
 		return -1;
 	}
 	if (!buffer) {
-		ppl6::SetError(194,"int CUDPSocket::SendTo(char *host, int port, ==> void *buffer <== , int bytes)");
+		ppl6::SetError(194,"int UDPSocket::SendTo(char *host, int port, ==> void *buffer <== , int bytes)");
 		return -1;
 	}
 	if (bytes<0) {
-		ppl6::SetError(194,"int CUDPSocket::SendTo(char *host, int port, void *buffer, ==> int bytes <== )");
+		ppl6::SetError(194,"int UDPSocket::SendTo(char *host, int port, void *buffer, ==> int bytes <== )");
 		return -1;
 	}
 	ppl6::CAssocArray res, *a;
@@ -259,7 +793,9 @@ int CUDPSocket::SendTo(const char *host, int port, const void *buffer, int bytes
 	return ret;
 }
 
-int CUDPSocket::RecvFrom(CString &buffer, int maxlen)
+
+
+int UDPSocket::RecvFrom(CString &buffer, int maxlen)
 /*! \brief UDP-Packet empfangen
  *
  * \header \#include <ppl6.h>
@@ -284,7 +820,7 @@ int CUDPSocket::RecvFrom(CString &buffer, int maxlen)
 	return ret;
 }
 
-int CUDPSocket::SetReadTimeout(int seconds, int useconds)
+int UDPSocket::SetReadTimeout(int seconds, int useconds)
 {
 	struct timeval tv;
 	tv.tv_sec=seconds;
@@ -306,7 +842,7 @@ int CUDPSocket::SetReadTimeout(int seconds, int useconds)
 }
 
 
-int CUDPSocket::RecvFrom(void *buffer, int maxlen)
+int UDPSocket::RecvFrom(void *buffer, int maxlen)
 /*! \brief UDP-Packet empfangen
  *
  * \header \#include <ppl6.h>
@@ -350,7 +886,7 @@ int CUDPSocket::RecvFrom(void *buffer, int maxlen)
 	return ret;
 }
 
-int CUDPSocket::GetDescriptor()
+int UDPSocket::GetDescriptor()
 {
 	if (!socket) return 0;
 	PPLSOCKET *s=(PPLSOCKET*)socket;
@@ -362,7 +898,7 @@ int CUDPSocket::GetDescriptor()
 }
 
 
-int CUDPSocket::RecvFrom(void *buffer, int maxlen, CString &host, int *port)
+int UDPSocket::RecvFrom(void *buffer, int maxlen, CString &host, int *port)
 /*! \brief UDP-Packet empfangen
  *
  * \header \#include <ppl6.h>
@@ -422,7 +958,7 @@ int CUDPSocket::RecvFrom(void *buffer, int maxlen, CString &host, int *port)
 }
 
 
-int CUDPSocket::Bind(const char *host, int port)
+int UDPSocket::Bind(const char *host, int port)
 {
 	int addrlen=0;
 	if (!socket) {

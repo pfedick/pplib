@@ -36,9 +36,6 @@ namespace ppl7 {
 
 #ifdef _WIN32
 	int inet_aton(const char *cp, struct in_addr *pin);
-	#define ppl_closesocket closesocket
-#else
-	#define ppl_closesocket close
 #endif
 
 typedef struct tagPPLSocket {
