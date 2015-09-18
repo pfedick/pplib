@@ -404,19 +404,60 @@ class TCPSocket
 		//@}
 };
 
-class CUDPSocket
+class UDPSocket
 {
 	private:
+		void	*socket;
 		int		timeout_sec;
 		int		timeout_usec;
-		void	*socket;
+        String	SourceInterface;
+        int		SourcePort;
+		int		connect_timeout_sec;
+		int		connect_timeout_usec;
+		bool	connected;
 
 	public:
-		CUDPSocket();
-		~CUDPSocket();
-		void SetTimeout(int seconds, int useconds);
-		int SendTo(const char *host, int port, const void *buffer, int bytes);
-		int SendTo(const char *host, int port, const String &buffer);
+		UDPSocket();
+		~UDPSocket();
+		void setTimeoutRead(int seconds, int useconds);
+		void setTimeoutWrite(int seconds, int useconds);
+
+		//! @name Server functions
+		//@{
+		void bind(const String &host, int port);
+		virtual int receiveConnect(UDPSocket *socket, const String &host, int port);
+		bool isListening() const;
+        void stopListen();
+		void signalStopListen();
+        void listen(int timeout=100);
+        //@}
+
+        //! @name Misc
+		int getDescriptor();
+		void setBlocking(bool value);
+		bool isWriteable();
+		bool isReadable();
+		bool waitForIncomingData(int seconds, int useconds);
+		bool waitForOutgoingData(int seconds, int useconds);
+		//@}
+
+		//! @name Client functions
+		size_t sendTo(const String &host, int port, const void *buffer, size_t bytes);
+		size_t sendTo(const String &host, int port, const String &buffer);
+		void setTimeoutConnect(int seconds, int useconds);
+		void setSource(const String &interface, int port=0);
+		void connect(const String &host_and_port);
+		void connect(const String &host, int port);
+		bool isConnected() const;
+		void disconnect();
+		size_t write(const String &str, size_t bytes=0);
+		size_t write(const WideString &str, size_t bytes=0);
+		size_t write(const ByteArrayPtr &bin, size_t bytes=0);
+		size_t write(const void *buffer, size_t bytes);
+		size_t writef(const char *fmt, ...);
+		//@}
+
+
 		int RecvFrom(void *buffer, int maxlen);
 		int RecvFrom(void *buffer, int maxlen, String &host, int *port);
 		int RecvFrom(String &buffer, int maxlen);
