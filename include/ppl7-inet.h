@@ -418,7 +418,7 @@ class UDPSocket
 
 	public:
 		UDPSocket();
-		~UDPSocket();
+		virtual ~UDPSocket();
 		void setTimeoutRead(int seconds, int useconds);
 		void setTimeoutWrite(int seconds, int useconds);
 
