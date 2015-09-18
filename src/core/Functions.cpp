@@ -755,7 +755,7 @@ ppluint64 PeekN64 (const void *Adresse)
 }
 
 
-const char * GetArgv (int argc, char * argv[], const char * argument)
+String GetArgv (int argc, char * argv[], const String &argument)
 {
 	if (argc>1) {
 		size_t argl=strlen(argument);
@@ -766,17 +766,17 @@ const char * GetArgv (int argc, char * argv[], const char * argument)
 					const char *ret=(argv[i]+argl);
 					//if (ret[0]=='-') return (char*)"";
 					//if (ret[0]=='\\' && ret[1]=='-') return ret+1;
-					return ret;
+					return String(ret);
 				} else {
 					const char * ret=(argv[i+1]);
 					if (ret[0]=='-') return (char*)"";
 					if (ret[0]=='\\' && ret[1]=='-') return ret+1;
-					return ret;
+					return String(ret);
 				}
 			}
 		}
 	}
-	return (NULL);
+	return String();
 }
 
 
