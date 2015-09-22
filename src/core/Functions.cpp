@@ -779,6 +779,30 @@ String GetArgv (int argc, char * argv[], const String &argument)
 	return String();
 }
 
+bool HaveArgv (int argc, char * argv[], const String &argument)
+{
+	if (argc>1) {
+		size_t argl=strlen(argument);
+		for (int i=1;i<argc;i++) {
+			if (strncmp(argv[i],argument,argl) == 0) {
+				size_t l=strlen(argv[i]);
+				if (l>argl || argv[i+1]==NULL) {
+					const char *ret=(argv[i]+argl);
+					//if (ret[0]=='-') return (char*)"";
+					//if (ret[0]=='\\' && ret[1]=='-') return ret+1;
+					return true;
+				} else {
+					const char * ret=(argv[i+1]);
+					if (ret[0]=='-') return (char*)"";
+					if (ret[0]=='\\' && ret[1]=='-') return ret+1;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
 
 } // EOF namespace ppl7
 
