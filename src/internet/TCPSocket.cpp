@@ -91,12 +91,12 @@
 
 namespace ppl7 {
 
-/*!\class CTCPSocket
+/*!\class TCPSocket
  * \ingroup PPLGroupInternet
  *
  * \brief Socket-Klasse für TCP-Verbindungen
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7-inet.h>
  *
  * \desc
  * Mit dieser Klasse kann eine TCP-Verbindung (Transmission Control Protocol) zu einem über IP
