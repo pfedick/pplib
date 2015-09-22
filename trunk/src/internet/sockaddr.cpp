@@ -73,12 +73,51 @@
 
 namespace ppl7 {
 
+/*!\class SockAddr
+ * \ingroup PPLGroupInternet
+ *
+ * \brief Klasse zum Speichern eine Socket-Adresse
+ *
+ * \header \#include <ppl7-inet.h>
+ *
+ * \desc
+ * Diese Klasse kann zum Speichern eine Socket-Adresse verwendet werden und unterstützt sowohl IPv4
+ * als auch IPv6. Die Adresse wird dabei in einem Format gespeichert, wie es auch von den
+ * Socket-Funktionen des Betriebssystems verstanden wird.
+ *
+ * \example Verwendung in der Socket-Funktion "connect"
+ * \code
+ * ppl7::SockAddr addr=ppl7::SockAddr::fromString("127.0.0.1")
+ * struct sockaddr_in* in_addr=(struct sockaddr_in*)addr.addr();
+ * in_addr->sin_port=7;
+ * connect(sockfd,(struct sockaddr *)in_addr, in_addr->sin_len);
+ * \endcode
+ */
+
+/*!\var SockAddr::saddr
+ * \brief %Pointer auf den Speicherbereich mit der Socket-Struktur
+ */
+
+/*!\var SockAddr::addrlen
+ * \brief Länge der Socket-Struktur in Bytes
+ */
+
+/*!\brief Konstruktor der Klasse
+ *
+ * \desc
+ * Konstruktor der Klasse
+ */
 SockAddr::SockAddr()
 {
 	saddr=NULL;
 	addrlen=0;
 }
 
+/*!\brief Copy-Konstruktor
+ * \desc
+ * Copy-Konstruktor
+ * @param other Anderes SockAddr-Objekt, von dem Kopiert werden soll
+ */
 SockAddr::SockAddr(const SockAddr &other)
 {
 	if (other.saddr!=NULL) {
@@ -92,6 +131,13 @@ SockAddr::SockAddr(const SockAddr &other)
 	}
 }
 
+/*!\brief Kopieren aus einer sockaddr-Structure
+ *
+ * \desc
+ * Kopiert die Adresse aus einer sockaddr-Struktur
+ * @param addr Muss ein Pointer auf eine struct sockaddr, sockaddr_in oder sockaddr_in6 sein
+ * @param addrlen Länge der Struktur
+ */
 SockAddr::SockAddr(const void *addr, size_t addrlen)
 {
 	if (!addr) throw ppl7::IllegalArgumentException();
@@ -106,16 +152,37 @@ SockAddr::~SockAddr()
 	free(saddr);
 }
 
+/*!\brief Adresse der Socket-Struktur auslesen
+ *
+ * \desc
+ * Adresse der Socket-Struktur auslesen
+ * @return Pointer auf eine Socket-Struktur
+ */
 void *SockAddr::addr() const
 {
 	return saddr;
 }
 
+/*!\brief Länge der Socket-Struktur auslesen
+ *
+ * \desc
+ * Länge der Socket-Struktur auslesen
+ *
+ * @return Länge der Socket-Struktur in Byte
+ */
 size_t SockAddr::size() const
 {
 	return addrlen;
 }
 
+/*!\brief Inhalt einer anderen Variablen zuweisen
+ *
+ * \desc
+ * Inhalt einer anderen Variablen zuweisen
+ *
+ * @param other
+ * @return
+ */
 SockAddr &SockAddr::operator=(const SockAddr &other)
 {
 	free(saddr);
@@ -131,6 +198,13 @@ SockAddr &SockAddr::operator=(const SockAddr &other)
 	return *this;
 }
 
+/*!\brief Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
+ *
+ * \desc
+ * Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
+ *
+ * @return String mit der IPv4- oder IPv6-Adresse
+ */
 String SockAddr::toString() const
 {
 	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
@@ -155,6 +229,14 @@ String SockAddr::toString() const
 	return String(res);
 }
 
+/*!\brief String mit einer IPv4- oder IPv6-Adresse in eine Socket-Struktur umwandeln
+ *
+ * \desc
+ * Wandelt einen String mit einer IPv4- oder IPv6-Adresse in eine Socket-Struktur um.
+ *
+ * @param ip String mit der IP-Adresse
+ * @return Gibt ein neues SockAddr-Objekt zurück
+ */
 SockAddr SockAddr::fromString(const String &ip)
 {
 	struct sockaddr_storage sa;
@@ -176,11 +258,27 @@ SockAddr SockAddr::fromString(const String &ip)
 	return SockAddr(addr, addr->sin_len);
 }
 
+/*!\brief Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
+ *
+ * \desc
+ * Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
+ *
+ * @return String mit der IPv4- oder IPv6-Adresse
+ */
 SockAddr::operator String() const
 {
 	return toString();
 }
 
+
+/*!\brief Kopieren aus einer sockaddr-Structure
+ *
+ * \desc
+ * Kopiert die Adresse aus einer sockaddr-Struktur
+ *
+ * @param addr Muss ein Pointer auf eine struct sockaddr, sockaddr_in oder sockaddr_in6 sein
+ * @param addrlen Länge der Struktur
+ */
 void SockAddr::setAddr(const void *addr, size_t addrlen)
 {
 	free(saddr);
@@ -193,7 +291,15 @@ void SockAddr::setAddr(const void *addr, size_t addrlen)
 	this->addrlen=addrlen;
 }
 
-void SockAddr::setAddr(const String &addr)
+/*!\brief Setzt den Inhalt der Socket.Struktur anhand eines Strings mkit einer IP-Adresse
+ *
+ * \desc
+ * Wandelt einen String mit einer IPv4- oder IPv6-Adresse in eine Socket-Struktur um.
+ *
+ * @param ip String mit der IP-Adresse
+ * @return Gibt ein neues SockAddr-Objekt zurück
+ */
+void SockAddr::setAddr(const String &ip)
 {
 	SockAddr other=SockAddr::fromString(addr);
 	if (other.saddr!=NULL) {

@@ -116,8 +116,7 @@ class SockAddr
 		SockAddr &operator=(const SockAddr &other);
 		operator String() const;
 		void setAddr(const void *addr, size_t addrlen);
-		void setAddr(const String &addr);
-
+		void setAddr(const String &ip);
 		void *addr() const;
 		size_t size() const;
 		String toString() const;
