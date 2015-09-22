@@ -70,18 +70,17 @@ void setDefaultConfigParams()
 int main (int argc, char**argv)
 {
 	printf ("DEBUG 1\n");
-	const char *tmp;
-	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) help();
-	if ((tmp=ppl7::GetArgv(argc,argv,"-c"))) {
+	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) help();
+	if ((ppl7::HaveArgv(argc,argv,"-c"))) {
 		printf ("DEBUG 2\n");
-		PPL7TestConfig.load(tmp);
+		PPL7TestConfig.load(ppl7::GetArgv(argc,argv,"-c"));
 	} else {
 		printf ("DEBUG 3\n");
 		setDefaultConfigParams();
 	}
 	printf ("DEBUG 4\n");
 	::testing::InitGoogleTest(&argc, argv);
-	if (ppl7::GetArgv(argc,argv,"-h")!=NULL || ppl7::GetArgv(argc,argv,"--help")!=NULL) return 0;
+	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) return 0;
 
 	printf ("DEBUG 5\n");
 
