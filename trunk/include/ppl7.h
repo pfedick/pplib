@@ -235,6 +235,7 @@ Array StrTok(const String &string, const String &div);
 void StrTok(Array &result, const String &string, const String &div);
 
 String GetArgv (int argc, char * argv[], const String &argument);
+bool HaveArgv (int argc, char * argv[], const String &argument);
 
 bool PregMatch(const String &expression, const String &subject);
 bool PregMatch(const String &expression, const String &subject, Array &matches, size_t maxmatches=16);

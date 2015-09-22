@@ -684,6 +684,46 @@ bool UDPSocket::waitForOutgoingData(int seconds, int useconds)
 	return false;
 }
 
+/*!\brief Bei Lesezugriffen blockieren
+ *
+ * \desc
+ * Durch Aufruf dieser Funktion kann festgelegt werden, ob der Socket bei Lesezugriffen
+ * blockieren soll. Nach dem Öffnen des Sockets ist dieser defaultmäßig so
+ * eingestellt, dass er bei Lesezugriffen solange blockiert (wartet), bis Daten zur
+ * Verfügung stehen. Wird er auf "Non-Blocking" gestellt, kehren die Lese-Funktionen
+ * sofort mit einer Fehlermeldung zurück, wenn noch keine Daten bereitstehen.
+ *
+ * @param[in] value Der Wert "true" setzt den Socket in den Blocking-Modus, was auch der
+ * Default ist. Durch den Wert "false" wird er in den Non-Blocking-Modus gesetzt.
+ * @exception Diverse
+ */
+void UDPSocket::setBlocking(bool value)
+{
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if((!s) || (!s->sd)) throw NotConnectedException();
+	int ret=0;
+#ifdef _WIN32
+	u_long v;
+	if (value) {
+		v=0;
+		ret=ioctlsocket(s->sd,FIONBIO,NULL);
+	} else {
+		v=1;
+		ret=ioctlsocket(s->sd,FIONBIO,&v);
+	}
+	if (ret==0) return 1;
+	return 0;
+#else
+	if (value)
+	    ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK)); // Blocking
+	else
+		ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)|O_NONBLOCK);// NON-Blocking
+	if (ret<0) throwExceptionFromErrno(errno, "UDPSocket::setBlocking");
+#endif
+}
+
+
+
 /*!\brief Socket auf eine IP-Adresse und Port binden
  *
  * \desc
