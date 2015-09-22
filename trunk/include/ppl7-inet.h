@@ -77,6 +77,7 @@ PPLEXCEPTION(SSLNotInitializedException,NetworkException);
 PPLEXCEPTION(SSLInstanceNotInitializedException,NetworkException);
 PPLEXCEPTION(SSLConnectionFailedException,NetworkException);
 PPLEXCEPTION(SettingSocketOptionException,NetworkException);
+PPLEXCEPTION(InvalidIpAddressException,NetworkException);
 
 
 
@@ -100,18 +101,38 @@ enum ResolverFlags {
 	af_all=3
 };
 
+
+class SockAddr
+{
+	private:
+		void		*saddr;
+		size_t		addrlen;
+	public:
+		SockAddr();
+		SockAddr(const SockAddr &other);
+		SockAddr(const void *addr, size_t addrlen);
+		~SockAddr();
+
+		SockAddr &operator=(const SockAddr &other);
+		operator String() const;
+		void setAddr(const void *addr, size_t addrlen);
+		void setAddr(const String &addr);
+
+		void *addr() const;
+		size_t size() const;
+		String toString() const;
+		static SockAddr fromString(const String &ip);
+};
+
 class IPAddress
 {
 	public:
 		IPAddress();
 		IPAddress(const IPAddress &other);
-		~IPAddress();
 		IPAddress &operator=(const IPAddress &other);
-		void copyAddr(void *ai_addr, size_t ai_addrlen);
+		SockAddr	sockaddr;
 		String		name;
 		String		ip;
-		void		*ai_addr;
-		size_t		ai_addrlen;
         int			ai_family;
         int			ai_socktype;
         int			ai_protocol;
