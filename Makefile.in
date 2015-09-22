@@ -117,6 +117,7 @@ RELEASE	= release/AVLTree.o \
 	release/inet_inet_functions.o \
 	release/inet_openssl.o \
 	release/inet_resolver.o \
+	release/inet_sockaddr.o \
 	release/db_Database.o \
 	release/db_PostgreSQL.o \
 	release/db_ResultSet.o \
@@ -217,6 +218,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/inet_inet_functions.o \
 	debug/inet_openssl.o \
 	debug/inet_resolver.o \
+	debug/inet_sockaddr.o \
 	debug/db_Database.o \
 	debug/db_PostgreSQL.o \
 	debug/db_ResultSet.o \
@@ -317,6 +319,7 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/inet_inet_functions.o \
 	coverage/inet_openssl.o \
 	coverage/inet_resolver.o \
+	coverage/inet_sockaddr.o \
 	coverage/db_Database.o \
 	coverage/db_PostgreSQL.o \
 	coverage/db_ResultSet.o \
@@ -769,6 +772,11 @@ release/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incd
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<
 	$(CXX) -Wall -O2 -o release/inet_resolver.o -c $(srcdir)/internet/resolver.cpp $(CFLAGS) 
+
+release/inet_sockaddr.o:	$(srcdir)/internet/sockaddr.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/sockaddr.cpp<<<
+	$(CXX) -Wall -O2 -o release/inet_sockaddr.o -c $(srcdir)/internet/sockaddr.cpp $(CFLAGS) 
 
 ### DATABASE
 release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
@@ -1325,6 +1333,11 @@ debug/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(incdir
 	# Compiling >>>internet/resolver.cpp<<<
 	$(CXX) -Wall -O -o debug/inet_resolver.o -c $(srcdir)/internet/resolver.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/inet_sockaddr.o:	$(srcdir)/internet/sockaddr.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/sockaddr.cpp<<<
+	$(CXX) -Wall -O -o debug/inet_sockaddr.o -c $(srcdir)/internet/sockaddr.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 ### DATABASE
 debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
@@ -1874,6 +1887,11 @@ coverage/inet_resolver.o:	$(srcdir)/internet/resolver.cpp $(incdir)/ppl7.h $(inc
 	###############################################################################
 	# Compiling >>>internet/resolver.cpp<<<
 	$(CXX) -Wall -o coverage/inet_resolver.o -c $(srcdir)/internet/resolver.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/inet_sockaddr.o:	$(srcdir)/internet/sockaddr.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	###############################################################################
+	# Compiling >>>internet/sockaddr.cpp<<<
+	$(CXX) -Wall -o coverage/inet_sockaddr.o -c $(srcdir)/internet/sockaddr.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################

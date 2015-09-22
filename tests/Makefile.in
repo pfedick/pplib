@@ -58,7 +58,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/tcpsocket.o \
 	compile/filestatic.o compile/textsnippets.o \
 	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o \
-	compile/audioinfo.o
+	compile/audioinfo.o compile/sockaddr.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -252,4 +252,8 @@ compile/mcrypt.o: src/mcrypt.cpp Makefile ppl7-tests.h
 compile/audioinfo.o: src/audioinfo.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/audioinfo.o -c src/audioinfo.cpp $(CFLAGS) $(LIB)
+
+compile/sockaddr.o: src/sockaddr.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/sockaddr.o -c src/sockaddr.cpp $(CFLAGS) $(LIB)
 	

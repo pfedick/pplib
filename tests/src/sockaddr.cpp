@@ -2,10 +2,10 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
+ * $Author: pafe $
+ * $Revision: 600 $
+ * $Date: 2013-04-26 21:37:49 +0200 (Fr, 26. Apr 2013) $
+ * $Id: resolver.cpp 600 2013-04-26 19:37:49Z pafe $
  *
  *******************************************************************************
  * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
@@ -32,63 +32,75 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#define PPL7TESTSUITEMAIN
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
 #include <locale.h>
 #include <ppl7.h>
+#include <ppl7-inet.h>
 #include <gtest/gtest.h>
+#include <list>
 #include "ppl7-tests.h"
 
-extern const char *wordlist;
+namespace {
 
-ppl7::Array Wordlist;
-ppl7::ConfigParser PPL7TestConfig;
-
-void help()
-{
-	printf ("PPL7 Testsuite configuration options:\n"
-			"-c CONFIG   Configuration-file for ppl7 testsuite\n"
-			"\n"
-			"Test-Framework options:\n");
-
-}
-
-void setDefaultConfigParams()
-{
-	PPL7TestConfig.createSection("tcpsocket");
-	PPL7TestConfig.add("echoserver","localhost");
-	PPL7TestConfig.add("unknownserver","unknown.server.pfp.de");
-}
-
-int main (int argc, char**argv)
-{
-	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) help();
-	if ((ppl7::HaveArgv(argc,argv,"-c"))) {
-		PPL7TestConfig.load(ppl7::GetArgv(argc,argv,"-c"));
-	} else {
-		setDefaultConfigParams();
+class SockAddr : public ::testing::Test {
+	protected:
+		SockAddr() {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+			printf ("setlocale fehlgeschlagen\n");
+			throw std::exception();
+		}
+		ppl7::String::setGlobalEncoding("UTF-8");
 	}
-	::testing::InitGoogleTest(&argc, argv);
-	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) return 0;
+	virtual ~SockAddr() {
 
-
-	ppl7::PrintDebugTime ("Wortliste in String laden\n");
-	ppl7::String w(wordlist);
-	Wordlist.reserve(130000);
-	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
-	Wordlist.explode(w,"\n");
-	ppl7::PrintDebugTime ("done\n");
-
-	try {
-		return RUN_ALL_TESTS();
-	} catch (const ppl7::Exception &e) {
-		printf ("ppl7::Exception: %s\n",e.what());
-	} catch (...) {
-		printf ("Unbekannte Exception\n");
 	}
+};
 
-	return 1;
+TEST_F(SockAddr, toString) {
+	/*
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("singleipv4.ppl.pfp.de",result,ppl7::af_all);
+			ASSERT_EQ((size_t)1,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
+			ppl7::IPAddress adr;
+			adr=result.front();
+			ASSERT_EQ(ppl7::String("192.168.0.1"),adr.ip) << "Unexpected IP-Address";
+			ASSERT_EQ(ppl7::String("singleipv4.ppl.pfp.de"),adr.name) << "Unexpected Name";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+	*/
+
 }
+
+TEST_F(SockAddr, fromIPv4StringToString) {
+	ASSERT_NO_THROW ({
+		ppl7::SockAddr adr=ppl7::SockAddr::fromString("127.0.0.1");
+		ASSERT_EQ((size_t)16,adr.size()) << "Unexpected Size of IP-Address";
+		//ppl7::HexDump(adr.addr(),adr.size());
+		ASSERT_EQ(ppl7::String("127.0.0.1"),adr.toString()) << "Unexpected IP-Address";
+
+	});
+
+}
+
+TEST_F(SockAddr, fromIPv6StringToString) {
+	ASSERT_NO_THROW ({
+		ppl7::SockAddr adr=ppl7::SockAddr::fromString("2a01:4f8:202:109a::2");
+		ASSERT_EQ((size_t)28,adr.size()) << "Unexpected Size of IP-Address";
+		//ppl7::HexDump(adr.addr(),adr.size());
+		ASSERT_EQ(ppl7::String("2a01:4f8:202:109a::2"),adr.toString()) << "Unexpected IP-Address";
+	});
+
+}
+
+
+}	// EOF namespace
+

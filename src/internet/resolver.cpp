@@ -104,8 +104,6 @@ namespace ppl7 {
 
 IPAddress::IPAddress()
 {
-	ai_addr=NULL;
-	ai_addrlen=0;
 	ai_family=0;
 	ai_socktype=0;
 	ai_protocol=0;
@@ -115,44 +113,23 @@ IPAddress::IPAddress(const IPAddress &other)
 {
 	name=other.name;
 	ip=other.ip;
-	ai_addr=NULL;
-	ai_addrlen=other.ai_addrlen;
+	sockaddr=other.sockaddr;
 	ai_family=other.ai_family;
 	ai_socktype=other.ai_socktype;
 	ai_protocol=other.ai_protocol;
 	ai_canonname=other.ai_canonname;
-	copyAddr(other.ai_addr, other.ai_addrlen);
 }
 
-IPAddress::~IPAddress()
-{
-	free(ai_addr);
-}
-
-void IPAddress::copyAddr(void *ai_addr, size_t ai_addrlen)
-{
-	free(this->ai_addr);
-	this->ai_addrlen=ai_addrlen;
-	if (ai_addrlen>0) {
-		this->ai_addr=malloc(ai_addrlen);
-		if (!this->ai_addr) throw OutOfMemoryException();
-		memcpy(this->ai_addr,ai_addr,ai_addrlen);
-	} else {
-		this->ai_addr=NULL;
-	}
-}
 
 IPAddress &IPAddress::operator=(const IPAddress &other)
 {
 	name=other.name;
 	ip=other.ip;
-	ai_addr=NULL;
-	ai_addrlen=other.ai_addrlen;
+	sockaddr=other.sockaddr;
 	ai_family=other.ai_family;
 	ai_socktype=other.ai_socktype;
 	ai_protocol=other.ai_protocol;
 	ai_canonname=other.ai_canonname;
-	copyAddr(other.ai_addr, other.ai_addrlen);
 	return *this;
 }
 
@@ -245,8 +222,7 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 		if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
 			ip.ip.set(hbuf);
 			ip.name=name;
-			ip.copyAddr(res->ai_addr,res->ai_addrlen);
-			ip.ai_addrlen=res->ai_addrlen;
+			ip.sockaddr.setAddr(res->ai_addr,res->ai_addrlen);
 			ip.ai_family=res->ai_family;
 			ip.ai_socktype=res->ai_socktype;
 			ip.ai_protocol=res->ai_protocol;
@@ -398,8 +374,7 @@ size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
 			if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
 				ip.ip=hbuf;
 				ip.name=hbuf;
-				ip.copyAddr(res->ai_addr,res->ai_addrlen);
-				ip.ai_addrlen=res->ai_addrlen;
+				ip.sockaddr.setAddr(res->ai_addr,res->ai_addrlen);
 				ip.ai_family=res->ai_family;
 				ip.ai_socktype=res->ai_socktype;
 				ip.ai_protocol=res->ai_protocol;
