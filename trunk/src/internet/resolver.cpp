@@ -245,14 +245,13 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
  *
  * \param name Der gesuchte Hostname oder die IP-Adresse, wobei sowohl IPv4- als auch IPv6-Adressen
  * unterstützt werden
- * \param result Liste vom Typ IPAddress, in dem die gefundenen IP-Adressen gespeichert werden. Der
+ * \param result Liste vom Typ IPAddress, in der die gefundenen IP-Adressen gespeichert werden. Der
  * Datentyp IPAddress hat folgenden Inhalt:
  * 	- \b ip: IP-Adresse als String
  *  - \b name: String mit dem FQDN
  *  - \b type: Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
- *  - \b ai_addr: Pointer auf eine Datenstruktur vom Typ "struct sockaddr", wie sie z.B. in einer Socket-Funktion
- *       verwendet werden kann (z.B. connect).
- *	- \b ai_addrlen: Die Länge der ai_addr-Struktur in Bytes
+ *  - \b sockaddr: SockAddr-Object, das einen Pointer auf eine Datenstruktur vom Typ "struct sockaddr" enthält,
+ *       wie sie z.B. in einer Socket-Funktion verwendet werden kann (z.B. connect).
  * 	- \b ai_family:
  * 	- \b ai_protocol:
  *  - \b ai_socktype:
@@ -332,10 +331,8 @@ size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
  * 	- \b 0/ip IP-Adresse im lesbaren Format
  *  - \b 0/name Der FQDN
  *  - \b 0/type Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
- *  - \b 0/ai_addr Ein Binäres Objekt vom Typ CBinary, was eine Systemspezifische Struktur
- *    vom Typ "struct sockaddr" enthält, die direkt in den Socket-Funktionen des Systems
- *    verwendet werden kann (z.B. connect).
- *	- \b 0/ai_addrlen Die Länge der ai_addr-Struktur in Bytes
+ *  - \b sockaddr: SockAddr-Object, das einen Pointer auf eine Datenstruktur vom Typ "struct sockaddr" enthält,
+ *       wie sie z.B. in einer Socket-Funktion verwendet werden kann (z.B. connect).
  * 	- \b 0/ai_family
  * 	- \b 0/ai_protocol
  *  - \b 0/ai_socktype
