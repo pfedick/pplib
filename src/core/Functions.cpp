@@ -174,38 +174,35 @@ void HexDump(const void *address, size_t bytes, bool skipheader)
 {
     char buff[1024], tmp[10], cleartext[20];
     if (!skipheader) {
-    	sprintf (buff,"HEXDUMP: %zu Bytes starting at Address %p:",bytes,address);
-    	printf("%s\n",buff);
+    	printf ("HEXDUMP: %zu Bytes starting at Address %p:\n",bytes,address);
     }
 
-    char *_adresse=(char*)address;
+    const char *_adresse=(const char*)address;
+    const char *start_adr=_adresse;
     int spalte=0;
-    sprintf (buff,"%p: ",_adresse);
+    //sprintf (buff,"%p: ",_adresse);
+    buff[0]=0;
     bzero(cleartext,20);
     for (size_t i=0;i<bytes;i++) {
-        if (spalte>15) {
-            strcat(buff,"                                                               ");
-            buff[60]=0;
-            strcat (buff,": ");
-            strcat (buff,cleartext);
-            printf("%s\n",buff);
-            sprintf (buff,"%p: ",_adresse+i);
-            bzero(cleartext,20);
-            spalte=0;
-        }
         sprintf (tmp,"%02X ",(ppluint8)_adresse[i]);
         strcat (buff,tmp);
         if ((ppluint8)_adresse[i]>31 && (ppluint8)_adresse[i]<128)  cleartext[spalte]=(ppluint8)_adresse[i];
         else cleartext[spalte]='.';
         spalte++;
+        if (spalte>15) {
+            buff[16*3-1]=0;
+            printf("%p: %s: %s\n",start_adr, buff, cleartext);
+            buff[0]=0;
+            bzero(cleartext,20);
+            spalte=0;
+            start_adr=_adresse+i+1;
+        }
     }
 
     if (spalte>0) {
         strcat(buff,"                                                               ");
-        buff[60]=0;
-        strcat (buff,": ");
-        strcat (buff,cleartext);
-        printf("%s\n",buff);
+        buff[16*3-1]=0;
+        printf("%p: %s: %s\n",start_adr, buff, cleartext);
     }
     if (!skipheader) printf("\n");
 }
