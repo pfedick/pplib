@@ -101,6 +101,8 @@ PPLEXCEPTION(NoThreadSupportException, Exception);
 PPLEXCEPTION(ThreadStartException, Exception);
 PPLEXCEPTION(ThreadAlreadyRunningException, Exception);
 PPLEXCEPTION(ThreadOperationFailedException, Exception);
+PPLEXCEPTION(ThreadAlreadyInPoolException, Exception);
+PPLEXCEPTION(ThreadNotInPoolException, Exception);
 PPLEXCEPTION(ItemNotFoundException, Exception);
 PPLEXCEPTION(DuplicateItemException, Exception);
 PPLEXCEPTION(UnsupportedDataTypeException, Exception);

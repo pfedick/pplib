@@ -140,6 +140,7 @@ SockAddr::SockAddr(const SockAddr &other)
  */
 SockAddr::SockAddr(const void *addr, size_t addrlen)
 {
+	this->addrlen=0;
 	if (!addr) throw ppl7::IllegalArgumentException();
 	saddr=malloc(addrlen);
 	if (!saddr) throw OutOfMemoryException();
@@ -186,6 +187,7 @@ size_t SockAddr::size() const
 SockAddr &SockAddr::operator=(const SockAddr &other)
 {
 	free(saddr);
+	addrlen=0;
 	if (other.saddr!=NULL) {
 		saddr=malloc(other.addrlen);
 		if (!saddr) throw OutOfMemoryException();
@@ -283,7 +285,7 @@ void SockAddr::setAddr(const void *addr, size_t addrlen)
 {
 	free(saddr);
 	saddr=NULL;
-	addrlen=0;
+	this->addrlen=0;
 	if (!addr) throw ppl7::IllegalArgumentException();
 	saddr=malloc(addrlen);
 	if (!saddr) throw OutOfMemoryException();
