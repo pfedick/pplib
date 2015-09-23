@@ -214,13 +214,13 @@ String SockAddr::toString() const
 		res=inet_ntop(((struct sockaddr_in*)saddr)->sin_family,
 			&((struct sockaddr_in*)saddr)->sin_addr,
 			buffer,
-			((struct sockaddr_in*)saddr)->sin_len
+			sizeof(struct sockaddr_in)
 			);
 	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
 		res=inet_ntop(((struct sockaddr_in6*)saddr)->sin6_family,
 			&((struct sockaddr_in6*)saddr)->sin6_addr,
 			buffer,
-			((struct sockaddr_in6*)saddr)->sin6_len
+			sizeof(struct sockaddr_in6)
 			);
 	} else {
 		throw InvalidIpAddressException();
@@ -244,18 +244,18 @@ SockAddr SockAddr::fromString(const String &ip)
 
 	if (ip.instr(":") >= 0) {
 		sa.ss_family = AF_INET6;
-		sa.ss_len = sizeof(struct sockaddr_in6);
+		//sa.ss_len = sizeof(struct sockaddr_in6);
 		struct sockaddr_in6 *addr = (struct sockaddr_in6 *) &sa;
 		if (inet_pton(AF_INET6, (const char*) ip, &addr->sin6_addr) <= 0)
 			throw InvalidIpAddressException(ip);
-		return SockAddr(addr, addr->sin6_len);
+		return SockAddr(addr, sizeof(struct sockaddr_in6));
 	}
 	sa.ss_family = AF_INET;
-	sa.ss_len = sizeof(struct sockaddr_in);
+	//sa.ss_len = sizeof(struct sockaddr_in);
 	struct sockaddr_in *addr = (struct sockaddr_in *) &sa;
 	if (inet_pton(AF_INET, (const char*) ip, &addr->sin_addr) <= 0)
 		throw InvalidIpAddressException(ip);
-	return SockAddr(addr, addr->sin_len);
+	return SockAddr(addr, sizeof(struct sockaddr_in));
 }
 
 /*!\brief Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
@@ -301,7 +301,7 @@ void SockAddr::setAddr(const void *addr, size_t addrlen)
  */
 void SockAddr::setAddr(const String &ip)
 {
-	SockAddr other=SockAddr::fromString(addr);
+	SockAddr other=SockAddr::fromString(ip);
 	if (other.saddr!=NULL) {
 		saddr=malloc(other.addrlen);
 		if (!saddr) throw OutOfMemoryException();
