@@ -442,9 +442,6 @@ void Resolver::query(Array &r, const String &label, Type t, Class c)
 #ifndef HAVE_RES_SEARCH
 	throw UnsupportedFeatureException("libbind res_search");
 #else
-#ifndef HAVE_NS_INITPARSE
-	throw UnsupportedFeatureException("libbind ns_initparse");
-#else
 	ppl7::ByteArray buf(4096);
 
 	int ret=res_search((const char*)label,c,t,(u_char*)buf.adr(),buf.size());
@@ -519,7 +516,6 @@ void Resolver::query(Array &r, const String &label, Type t, Class c)
 
 		}
 	}
-#endif
 #endif
 }
 
