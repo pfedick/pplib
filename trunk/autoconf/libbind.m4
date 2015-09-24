@@ -168,4 +168,27 @@ then
 	AC_DEFINE(HAVE_DN_EXPAND,1, [Define if you have dn_expand function])
 fi
 
+dnl ns_initparse
+AC_SEARCH_LIBS(ns_initparse,[resolv bind],have_ns_initparse=yes,
+	[dnl Have to include resolv.h as ns_initparse is sometimes defined as a macro
+	AC_MSG_CHECKING([for ns_initparse in -lresolv (with resolv.h if present)])
+	saved_libs="$LIBS"
+	LIBS="-lresolv $LIBS"
+	AC_TRY_LINK([
+		#ifdef HAVE_RESOLV_H
+		#include <resolv.h>
+		#endif],
+		[ns_initparse(0,0,0,0,0)],
+	[AC_MSG_RESULT(yes)
+		have_ns_initparse=yes],
+	[AC_MSG_RESULT(no)
+		LIBS="$saved_libs"])
+	]
+)
+
+if test "$have_ns_initparse" = "yes"
+then
+	AC_DEFINE(HAVE_NS_INITPARSE,1, [Define if you have ns_initparse function])
+fi
+
 ])
