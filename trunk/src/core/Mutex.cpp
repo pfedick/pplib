@@ -121,6 +121,7 @@ Mutex::Mutex()throw(OutOfMemoryException)
 		pthread_mutexattr_settype(&Attr, PTHREAD_MUTEX_RECURSIVE);
 		PPLMUTEX *h=(PPLMUTEX*)handle;
 		pthread_mutex_init(&h->handle,&Attr);
+		pthread_mutexattr_destroy(&Attr);
 		pthread_cond_init(&h->condition,NULL);
 	#else
 		throw UnsupportedFeatureException();
