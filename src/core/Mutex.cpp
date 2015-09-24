@@ -234,11 +234,11 @@ int Mutex::wait(int milliseconds) throw ()
  *
  * \return Liefert true (1), wenn dem Mutex ein Signal gegeben wurde. Wenn \p microseconds
  * angegeben wurde, liefert die Funktion nach Ablauf des Timeouts 0 zurück, andernfalls wartet
- * die Funktion so lange, bis ein Signal gegeben wurde. Es wird kein Fehlercode gesetzt.
+ * die Funktion so lange, bis ein Signal gegeben wurde.
  *
  * \note
- * War der Mutex vor Aufruf dieser Funktion bereits gelocked, ist er es nach
- * Ende immer noch.
+ * War der Mutex vor Aufruf dieser Funktion bereits gelocked, ist er es nach dem Aufruf
+ * immer noch.
  *
  */
 {
