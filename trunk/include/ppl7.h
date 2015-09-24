@@ -73,11 +73,12 @@
 #include <strings.h>
 #endif
 
-#include <string>
-
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+
+#include <string>
+#include <set>
 
 #ifdef WITH_QT
 	#include <QString>
@@ -423,26 +424,34 @@ Thread::Priority ThreadGetPriority();
 class ThreadPool
 {
 	private:
-		std::set<ppl7::Thread*> threads;
+		std::set<Thread*> threads;
 		ppl7::Mutex mutex;
 
 	public:
-		typedef std::set<ppl7::Thread*>::iterator iterator;
-		typedef std::set<ppl7::Thread*>::const_iterator const_iterator;
+		typedef std::set<Thread*>::iterator iterator;
+		typedef std::set<Thread*>::const_iterator const_iterator;
 
-		void addThread(ppl7::Thread *thread);
-		void removeThread(ppl7::Thread *thread);
-		void destroyThread(ppl7::Thread *thread);
-		void clear(bool destroyThreads=true);
+		~ThreadPool();
+
+		void addThread(Thread *thread);
+		void removeThread(Thread *thread);
+		void destroyThread(Thread *thread);
+		void clear();
+		void destroyAllThreads();
 		ThreadPool::iterator begin();
 		ThreadPool::const_iterator begin() const;
 		ThreadPool::iterator end();
 		ThreadPool::const_iterator end() const;
 		void signalStopThreads();
 		void stopThreads();
-		size_t size() const;
-		bool running() const;
-}
+		void startThreads();
+		size_t size();
+		size_t count();
+		size_t count_running();
+		bool running();
+		int lock();
+		int unlock();
+};
 
 
 class FileAttr {
