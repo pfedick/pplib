@@ -1,7 +1,6 @@
 #!/bin/sh
 # Artefakt bauen
 ##################################################################
-VERSION=$1
 VERSION=${VERSION:=HEAD}
 NAME=ppl7
 
@@ -15,7 +14,7 @@ fi
 
 ##################################################################
 # Library
-find documentation include src *.m4 docs Doxyfile LICENSE.TXT HISTORY.TXT README.TXT configure ppl7-config.in Makefile.in \
+find documentation include autoconf configure.ac src resource *.m4 docs Doxyfile LICENSE.TXT HISTORY.TXT README.TXT configure ppl7-config.in Makefile.in \
     | grep -v ".svn" | cpio -pdmv tmp/$NAME-$VERSION > /dev/null 2>&1
 
 if [ $? -ne 0 ] ; then
