@@ -116,12 +116,15 @@ Mutex::Mutex()throw(OutOfMemoryException)
 		        );
 
 	#elif defined HAVE_PTHREADS
+		PPLMUTEX *h=(PPLMUTEX*)handle;
 		pthread_mutexattr_t Attr;
 		pthread_mutexattr_init(&Attr);
 		pthread_mutexattr_settype(&Attr, PTHREAD_MUTEX_RECURSIVE);
-		PPLMUTEX *h=(PPLMUTEX*)handle;
 		pthread_mutex_init(&h->handle,&Attr);
 		pthread_mutexattr_destroy(&Attr);
+		/*
+		pthread_mutex_init(&h->handle,NULL);
+		*/
 		pthread_cond_init(&h->condition,NULL);
 	#else
 		throw UnsupportedFeatureException();
