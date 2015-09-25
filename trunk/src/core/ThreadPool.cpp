@@ -321,9 +321,10 @@ bool ThreadPool::running()
 	std::set<ppl7::Thread*>::const_iterator it;
 	mutex.lock();
 	for (it = threads.begin(); it != threads.end(); ++it) {
-		if ((*it)->threadIsRunning())
+		if ((*it)->threadIsRunning()) {
 			mutex.unlock();
 			return true;
+		}
 	}
 	mutex.unlock();
 	return false;

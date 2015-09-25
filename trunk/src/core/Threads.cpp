@@ -670,14 +670,6 @@ void Thread::threadStartUp()
 	threadmutex.unlock();
 	threadSetPriority(myPriority);
 	run();
-/*
-	if (d) {
-#ifdef HAVE_MYSQL
-		if (d->mysql_thread_end!=NULL) d->mysql_thread_end(d);
-#endif
-
-	}
-*/
 	threadmutex.lock();
 	flags=0;
 	IsRunning=0;
