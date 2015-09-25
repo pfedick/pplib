@@ -316,6 +316,40 @@ void SockAddr::setAddr(const String &ip)
 }
 
 
+/*!\brief Port setzen
+ *
+ * \desc
+ * Setzt die Portnummer in der Socket-Struktur
+ *
+ * @param port Portnummer
+ */
+void SockAddr::setPort(int port)
+{
+	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
+	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) {
+		((struct sockaddr_in*)saddr)->sin_port=htons(port);
+	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
+		((struct sockaddr_in6*)saddr)->sin6_port=htons(port);
+	}
+}
+
+
+/*!\brief Port auslesen
+ *
+ * \desc
+ * Gibt die in der Socket-Struktur gesetzte Portnummer zurück.
+ * @return Portnummer
+ */
+int SockAddr::port() const
+{
+	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
+	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) {
+		return ntohs(((struct sockaddr_in*)saddr)->sin_port);
+	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
+		return ntohs(((struct sockaddr_in6*)saddr)->sin6_port);
+	}
+	throw InvalidIpAddressException("No valid IP-Address");
+}
 
 
 }	// EOF namespace ppl7
