@@ -10655,10 +10655,12 @@ done
 if test "${with_libbind+set}" = set; then :
   withval=$with_libbind; libbind_prefix="$withval"
 else
-  libbind_prefix="no"
+  libbind_prefix=""
 fi
 
 
+if test "x$libbind_prefix" != "xno"
+then
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing res_query" >&5
 $as_echo_n "checking for library containing res_query... " >&6; }
@@ -11429,6 +11431,7 @@ $as_echo "#define HAVE_NS_INITPARSE 1" >>confdefs.h
 
 fi
 
+fi
 
 report_have_libbind="no"
 if test "$have_res_query" = "yes"
