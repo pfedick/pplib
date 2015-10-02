@@ -368,7 +368,6 @@ double GetMicrotime()
 /*!\ingroup PPLGroupDateTime
  */
 {
-	double t=0.0;
 	#ifdef _WIN32
 		static double time_frequency=0.0;
 		LARGE_INTEGER gettime;
@@ -377,14 +376,13 @@ double GetMicrotime()
 			time_frequency=(double)gettime.QuadPart;
 		}
 		QueryPerformanceCounter(&gettime);
-		t=(double)gettime.QuadPart/time_frequency;
-		return t;
+		return (double)gettime.QuadPart/time_frequency;
 	#else
 		struct timeval tp;
 		if (gettimeofday(&tp,NULL)==0) {
-			t=(double)tp.tv_sec+(double)tp.tv_usec/1000000.0;
+			return (double)tp.tv_sec+(double)tp.tv_usec/1000000.0;
 		}
-		return t;
+		return 0.0;
 	#endif
 }
 
