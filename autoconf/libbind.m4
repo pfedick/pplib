@@ -3,8 +3,10 @@ AC_DEFUN([AM_CHECK_LIBBIND],[
 AC_ARG_WITH([libbind],
 	[  --with-libbind[[=PATH]]     Prefix where libbind is installed (optional)],
 	[libbind_prefix="$withval"],
-	[libbind_prefix="no"])
+	[libbind_prefix=""])
 
+if test "x$libbind_prefix" != "xno"
+then
 
 dnl res_query
 AC_SEARCH_LIBS(res_query,[resolv bind],have_res_query=yes,
@@ -191,4 +193,5 @@ then
 	AC_DEFINE(HAVE_NS_INITPARSE,1, [Define if you have ns_initparse function])
 fi
 
+fi
 ])
