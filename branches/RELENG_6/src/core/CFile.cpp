@@ -227,14 +227,11 @@ CFile::CFile (FILE * handle)
 CFile::~CFile()
 //! \brief Destruktor der Klasse
 {
-	PushError();
-	#ifdef DEBUGLOG	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DEBUG
-		Debug.Log ("%u->CFile::~CFile ()",this);
-	#endif
 	if (ff!=NULL) {
+		PushError();
 		Close();
+		PopError();
 	}
-	PopError();
 }
 
 int CFile::Open (const CString &filename, const char * mode)
