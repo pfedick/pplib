@@ -850,6 +850,7 @@ const char *MkISO8601Date (CString &buffer, PPLTIME *t)
 {
 	PPLTIME tt;
 	if (!t) {
+		memset(&tt,0,sizeof(PPLTIME));
 		t=&tt;
 		GetTime(t);
 	}
