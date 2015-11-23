@@ -645,12 +645,12 @@ class File : public FileObject
 			APPEND,
 		};
 	private:
-		const char *fmode(FileMode mode);
-		const char *fmodepopen(FileMode mode);
 		void throwErrno(int e);
 
 	public:
 		static void throwErrno(int e, const String &filename);
+		static const char *fmode(FileMode mode);
+		static const char *fmodepopen(FileMode mode);
 
 		File ();
 		File (const String &filename, FileMode mode=READ);
@@ -720,6 +720,46 @@ class File : public FileObject
 		static String getFilename(const String &path);
 		static String md5Hash(const String &filename);
 };
+
+
+class GzFile : public FileObject
+{
+	private:
+		void * ff;
+
+	public:
+		PPLEXCEPTION(IllegalFilemodeException, Exception);
+
+	private:
+		void throwErrno(int e);
+		void throwErrno(int e, const String &filename);
+
+	public:
+		GzFile ();
+		GzFile (const String &filename, File::FileMode mode=File::READ);
+		GzFile (int fd);
+		virtual ~GzFile();
+
+		void		open (const String &filename, File::FileMode mode=File::READ);
+		void		open (const char * filename, File::FileMode mode=File::READ);
+		void		open (int fd, File::FileMode mode=File::READ);
+
+		// Virtuelle Funktionen
+		virtual void		close ();
+		virtual void		rewind();
+		virtual ppluint64	seek (ppluint64 position);
+		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
+		virtual ppluint64	tell();
+		virtual bool		eof() const;
+		virtual bool		isOpen() const;
+		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
+		virtual char *		fgets (char *buffer, size_t num);
+		virtual	int			fgetc();
+		//virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
+		//virtual void		fputs (const char *str);
+		//virtual	void		fputc (int c);
+};
+
 
 
 class DirEntry
