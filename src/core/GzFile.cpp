@@ -335,7 +335,8 @@ size_t GzFile::fread(void * ptr, size_t size, size_t nmemb)
 	if (ff==NULL) throw FileNotOpenException();
 	if (ptr==NULL) throw IllegalArgumentException();
 	int by=::gzread((gzFile)ff,ptr,size*nmemb);
-	if (by>=0) return by;
+	if (by>0) return by;
+	if (by==0) throw ppl7::EndOfFileException();
 	int err=0;
 	const char *msg=gzerror((gzFile)ff,&err);
 	throw ppl7::CompressionFailedException("gzread: %s [%d]",msg,err);
@@ -350,7 +351,7 @@ char * GzFile::fgets (char *buffer, size_t num)
 	res=::gzgets((gzFile)ff,buffer, num);
 	if (res==NULL) {
 		//suberr=::ferror((FILE*)ff);
-		if (gzeof((gzFile)ff)) return NULL;
+		if (gzeof((gzFile)ff)) throw ppl7::EndOfFileException();
 		else throwErrno(errno,filename());
 	}
 	return buffer;
