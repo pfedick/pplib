@@ -50,7 +50,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/memoryheap.o compile/memorygroup.o compile/wordlist.o \
 	compile/bytearray.o compile/bytearrayptr.o \
 	compile/avltree.o compile/assocarray.o compile/pointer.o \
-	compile/file.o compile/list.o compile/functions.o \
+	compile/file.o compile/gzfile.o compile/list.o compile/functions.o \
 	compile/inet.o compile/resolver.o compile/widestrings.o \
 	compile/db_postgres.o \
 	compile/configparser.o \
@@ -167,6 +167,10 @@ compile/assocarray.o: src/assocarray.cpp Makefile compile/wordlist.o ppl7-tests.
 compile/file.o: src/file.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/file.o -c src/file.cpp $(CFLAGS) $(LIB)
+
+compile/gzfile.o: src/gzfile.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/gzfile.o -c src/gzfile.cpp $(CFLAGS) $(LIB)
 
 compile/filestatic.o: src/filestatic.cpp Makefile ppl7-tests.h
 	mkdir -p compile
