@@ -494,9 +494,13 @@ String FileObject::md5()
 	seek(0);
 	size_t bytes_read;
 	size_t len=1024*1024;
-	while (!eof()) {
-		bytes_read=fread(buffer,1,len);
-		MD5Update(&ctx,(const unsigned char *)buffer,bytes_read);
+	try {
+		while (!eof()) {
+			bytes_read=fread(buffer,1,len);
+			MD5Update(&ctx,(const unsigned char *)buffer,bytes_read);
+		}
+	} catch (const ppl7::EndOfFileException &err) {
+		// ignore
 	}
 	free(buffer);
 	seek(oldpos);
