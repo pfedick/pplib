@@ -804,6 +804,7 @@ class Array : public Variant
 		const String &getRandom() const;
 		String &get(size_t index);
 		String &getRandom();
+		String getRest(size_t index, const String &delimiter=" ");
 		const char *getPtr(size_t index) const;
 		const char *getRandomPtr() const;
 		void reset(Iterator &it) const;

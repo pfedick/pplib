@@ -682,6 +682,28 @@ const char *Array::getRandomPtr() const
 }
 
 
+/*!\brief Inhalt des Arrays ab einer bestimmten Position als String zurückgeben
+ *
+ * \desc
+ * Inhalt des Arrays ab einer bestimmten Position als String zurückgeben
+ *
+ * @param index Position im Array
+ * @param delimiter Trennzeichen, mit dem die Elemente des Arrays im String zusammengefügt
+ *        werden sollen
+ * @return String
+ */
+String Array::getRest(size_t index, const String &delimiter)
+{
+	String rest;
+	ROW *r=(ROW*)rows;
+	for (size_t i=index;i<numElements;i++) {
+		if (i>index) rest+=delimiter;
+		if (r[i].value!=NULL) rest+= *r[i].value;
+	}
+	return rest;
+}
+
+
 /*!\brief Iterator auf den Anfang setzen
  *
  * \desc
