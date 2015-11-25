@@ -428,6 +428,11 @@ TEST_F(ArrayTest, makeUnique) {
 	ASSERT_EQ(ppl7::String("red white green blue yellow black"),merged) << "Elements with wrong value";
 }
 
+TEST_F(ArrayTest, getRest) {
+	ppl7::Array a1("red white green blue red yellow  black white"," ");
+	ASSERT_EQ(ppl7::String("red.yellow..black.white"),a1.getRest(4,"."));
+}
+
 
 
 }
