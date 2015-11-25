@@ -354,6 +354,7 @@ class String : public Variant
 	    ssize_t findCase(const String &needle, ssize_t start=0) const;
 	    ssize_t instr(const String &needle, size_t start=0) const;
 	    ssize_t instrCase(const String &needle, size_t start=0) const;
+	    bool has(const String &needle, bool ignoreCase=false) const;
 
 	    String& stripSlashes();
 

@@ -2391,6 +2391,25 @@ ssize_t String::instrCase(const String &needle, size_t start) const
 	return CaseSearch.instrCase(CaseNeedle,start);
 }
 
+
+bool String::has(const String &needle, bool ignoreCase) const
+{
+	if (ignoreCase) {
+		String CaseSearch(ptr,stringlen);
+		String CaseNeedle(needle);
+		CaseNeedle.lowerCase();
+		CaseSearch.lowerCase();
+		return CaseSearch.has(CaseNeedle,false);
+	}
+	if (ptr==NULL || stringlen==0) return false;
+	if (needle.stringlen==0) return false;
+	const char * p;
+	p=::strstr(ptr,needle.ptr);
+	if (p!=NULL) return true;
+	return false;
+
+}
+
 String &String::stripSlashes()
 {
 	if (ptr==NULL || stringlen==0) return *this;
