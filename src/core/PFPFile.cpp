@@ -885,11 +885,9 @@ void PFPFile::deleteChunk(const String &chunkname)
 	PFPChunk *chunk;
 	int ret=0;
 	while ((chunk=findFirstChunk(it,s))) {
-		Chunks.erase (chunk);
+		Chunks.erase(chunk);
 		delete chunk;
-		ret=1;
 	}
-	if (!ret) throw ChunkNotFoundException();
 }
 
 PFPChunk *PFPFile::findFirstChunk(Iterator &it, const String &chunkname) const
