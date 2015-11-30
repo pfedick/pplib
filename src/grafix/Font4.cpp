@@ -49,6 +49,8 @@
 namespace ppl7 {
 namespace grafix {
 
+#ifdef TODO
+
 typedef struct {
 	ppldb	red;
 	ppldb	green;
@@ -86,6 +88,8 @@ class pplFont4 {
 		bool	fixed;
 		bool	antialias;
 } PPL_FONT_INFO;
+
+#endif
 
 #ifdef TODO
 void Font4_Init(PPL_SURFACE *surface,PPL_FONT_INFO *font,PFPSTRUCT *pfp)
@@ -136,12 +140,12 @@ void Font4_Init(PPL_SURFACE *surface,PPL_FONT_INFO *font,PFPSTRUCT *pfp)
 #endif
 
 
-FontEngineFont4::FontEngineFont4
+FontEngineFont4::FontEngineFont4()
 {
 
 }
 
-FontEngineFont4::~FontEngineFont4
+FontEngineFont4::~FontEngineFont4()
 {
 
 }
@@ -171,6 +175,8 @@ int FontEngineFont4::ident(FileObject &file) throw()
 	}
 	return 0;
 }
+
+#ifdef TODO
 
 FontFile *FontEngineFont4::loadFont(FileObject &file, const String &fontname)
 {
@@ -208,7 +214,7 @@ void FontEngineFont4::deleteFont(FontFile *file)
 	file->engine=NULL;
 }
 
-
+#endif //TODO
 
 
 #ifdef OLD
