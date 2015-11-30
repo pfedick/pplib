@@ -173,7 +173,7 @@ void PFPChunk::setData(const String &s)
  * \exception CharacterEncodingException Der String konnte nicht konvertiert werden
  */
 {
-	setData(s);
+	setData((const char*)s,s.size());
 }
 
 /*!\brief Nutzdaten des Chunks setzen
