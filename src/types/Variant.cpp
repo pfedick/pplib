@@ -659,6 +659,11 @@ NewVariant::NewVariant()
 	t=TYPE_UNKNOWN;
 }
 
+NewVariant::~NewVariant()
+{
+	clear();
+}
+
 NewVariant::NewVariant(const NewVariant &value)
 {
 	this->value=NULL;

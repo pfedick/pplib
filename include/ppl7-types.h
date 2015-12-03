@@ -85,6 +85,7 @@ class NewVariant
 		DataType	t;
 	public:
 		NewVariant();
+		~NewVariant();
 		NewVariant(const NewVariant &value);
 		NewVariant(const String &value);
 		NewVariant(const WideString &value);
