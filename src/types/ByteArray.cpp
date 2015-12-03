@@ -404,7 +404,7 @@ void *ByteArray::prepend(void *adr, size_t size)
 		::free(ptradr);
 		ptradr=NULL;
 		ptrsize=0;
-		free(p);
+		::free(p);
 		throw Exception();
 	}
 	void *target=(char*)p+size;
@@ -412,7 +412,7 @@ void *ByteArray::prepend(void *adr, size_t size)
 		::free(ptradr);
 		ptradr=NULL;
 		ptrsize=0;
-		free(p);
+		::free(p);
 		throw Exception();
 	}
 	::free(ptradr);
