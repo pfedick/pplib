@@ -71,10 +71,16 @@ TEST_F(VariantTest, TestWithString) {
 	ppl7::String s1("Hello World");
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(s1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_STRING,var1.type()) << "Variant has unexcpected type";
-			ppl7::String s2=var1.toString();
-			ASSERT_TRUE(var1.isString()) << "Variant has unexcpected type";
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_STRING,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
+
+			ASSERT_TRUE(var2.isString()) << "Variant has unexcpected type";
+			ppl7::String s2=var2.toString();
 			ASSERT_EQ(s1,s2) << "Variant has unexcpected value";
+			const ppl7::String &cs2=var1.toString();
+			ASSERT_EQ(s1,cs2) << "Variant has unexcpected value";
 			ASSERT_THROW({
 				ppl7::WideString s3=var1.toWideString();
 			},ppl7::TypeConversionException);
@@ -85,10 +91,16 @@ TEST_F(VariantTest, TestWithWideString) {
 	ppl7::WideString s1(L"Hello World");
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(s1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_WIDESTRING,var1.type()) << "Variant has unexcpected type";
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_WIDESTRING,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+
 			ASSERT_TRUE(var1.isWideString()) << "Variant has unexcpected type";
-			ppl7::WideString s2=var1.toWideString();
+			ppl7::WideString s2=var2.toWideString();
 			ASSERT_EQ(s1,s2) << "Variant has unexcpected value";
+			const ppl7::WideString &cs2=var1.toWideString();
+			ASSERT_EQ(s1,cs2) << "Variant has unexcpected value";
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
@@ -99,10 +111,16 @@ TEST_F(VariantTest, TestWithArray) {
 	//ppl7::Array  s1(L"Hello World");
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(Wordlist);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_ARRAY,var1.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var1.isArray()) << "Variant has unexcpected type";
-			ppl7::Array s2=var1.toArray();
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_ARRAY,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_ARRAY)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+
+			ASSERT_TRUE(var2.isArray()) << "Variant has unexcpected type";
+			ppl7::Array s2=var2.toArray();
 			ASSERT_EQ(Wordlist.size(),s2.size()) << "Variant has unexcpected value";
+			const ppl7::Array &cs2=var1.toArray();
+			ASSERT_EQ(Wordlist.size(),cs2.size()) << "Variant has unexcpected value";
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
@@ -124,10 +142,16 @@ TEST_F(VariantTest, TestWithAssocArray) {
 
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(a);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_ASSOCARRAY,var1.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var1.isAssocArray()) << "Variant has unexcpected type";
-			ppl7::AssocArray a2=var1.toAssocArray();
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_ASSOCARRAY,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_ASSOCARRAY)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+
+			ASSERT_TRUE(var2.isAssocArray()) << "Variant has unexcpected type";
+			ppl7::AssocArray a2=var2.toAssocArray();
 			ASSERT_EQ(a.size(),a2.size()) << "Variant has unexcpected value";
+			const ppl7::AssocArray &a2c=var1.toAssocArray();
+			ASSERT_EQ(a.size(),a2c.size()) << "Variant has unexcpected value";
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
@@ -139,12 +163,20 @@ TEST_F(VariantTest, TestWithByteArray) {
 	ppl7::ByteArray b1=ppl7::Random(2048);
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(b1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_BYTEARRAY,var1.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var1.isByteArray()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var1.isByteArrayPtr()) << "Variant has unexcpected type";
-			ppl7::ByteArray b2=var1.toByteArray();
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_BYTEARRAY,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_BYTEARRAY)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+
+			ASSERT_TRUE(var2.isByteArray()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isByteArrayPtr()) << "Variant has unexcpected type";
+			ppl7::ByteArray b2=var2.toByteArray();
 			ASSERT_EQ(b1,b2) << "Variant has unexcpected value";
 			ASSERT_EQ(2048,b2.size()) << "Variant has unexcpected size";
+			const ppl7::ByteArray &b2c=var2.toByteArray();
+			ASSERT_EQ(b1,b2c) << "Variant has unexcpected value";
+			ASSERT_EQ(2048,b2c.size()) << "Variant has unexcpected size";
+
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
@@ -156,12 +188,20 @@ TEST_F(VariantTest, TestWithByteArrayPtr) {
 	ppl7::ByteArrayPtr p1=b1;
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(p1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_BYTEARRAYPTR,var1.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var1.isByteArrayPtr()) << "Variant has unexcpected type";
-			ASSERT_FALSE(var1.isByteArray()) << "Variant has unexcpected type";
-			ppl7::ByteArrayPtr p2=var1.toByteArrayPtr();
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_BYTEARRAYPTR,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_BYTEARRAYPTR)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+
+			ASSERT_TRUE(var2.isByteArrayPtr()) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isByteArray()) << "Variant has unexcpected type";
+			ppl7::ByteArrayPtr p2=var2.toByteArrayPtr();
 			ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 			ASSERT_EQ(2048,p2.size()) << "Variant has unexcpected size";
+			const ppl7::ByteArrayPtr &p2c=var2.toByteArrayPtr();
+			ASSERT_EQ(p1,p2c) << "Variant has unexcpected value";
+			ASSERT_EQ(2048,p2c.size()) << "Variant has unexcpected size";
+
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
@@ -172,10 +212,17 @@ TEST_F(VariantTest, TestWithDateTime) {
 	ppl7::DateTime d1("2015-12-03 15:52:40");
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(d1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_DATETIME,var1.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var1.isDateTime()) << "Variant has unexcpected type";
-			ppl7::DateTime d2=var1.toDateTime();
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_DATETIME,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_DATETIME)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+
+			ASSERT_TRUE(var2.isDateTime()) << "Variant has unexcpected type";
+			ppl7::DateTime d2=var2.toDateTime();
 			ASSERT_EQ(d1,d2) << "Variant has unexcpected value";
+			const ppl7::DateTime &d2c=var2.toDateTime();
+			ASSERT_EQ(d1,d2c) << "Variant has unexcpected value";
+
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
@@ -186,15 +233,23 @@ TEST_F(VariantTest, TestWithPointer) {
 	ppl7::Pointer p1(this);
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(p1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_POINTER,var1.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var1.isPointer()) << "Variant has unexcpected type";
-			ppl7::Pointer p2=var1.toPointer();
+			ppl7::NewVariant var2(var1);
+			ASSERT_EQ(ppl7::NewVariant::TYPE_POINTER,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_POINTER)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+
+			ASSERT_TRUE(var2.isPointer()) << "Variant has unexcpected type";
+			ppl7::Pointer p2=var2.toPointer();
 			ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+			const ppl7::Pointer &p2c=var2.toPointer();
+			ASSERT_EQ(p1,p2c) << "Variant has unexcpected value";
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
 	});
 }
+
+
 
 
 } // EOF namespace
