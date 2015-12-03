@@ -191,4 +191,42 @@ Pointer &Pointer::operator=(const void *ptr)
 	return *this;
 }
 
+bool Pointer::operator<(const Pointer &other) const
+{
+	if (this->myptr<other.myptr) return true;
+	return false;
+}
+
+bool Pointer::operator<=(const Pointer &other) const
+{
+	if (this->myptr<=other.myptr) return true;
+	return false;
+}
+
+bool Pointer::operator==(const Pointer &other) const
+{
+	if (this->myptr==other.myptr) return true;
+	return false;
+}
+
+bool Pointer::operator!=(const Pointer &other) const
+{
+	if (this->myptr!=other.myptr) return true;
+	return false;
+}
+
+bool Pointer::operator>=(const Pointer &other) const
+{
+	if (this->myptr>=other.myptr) return true;
+	return false;
+}
+
+bool Pointer::operator>(const Pointer &other) const
+{
+	if (this->myptr>other.myptr) return true;
+	return false;
+}
+
+
+
 } // EOF namespace ppl7

@@ -557,6 +557,646 @@ Pointer& Variant::toPointer()
 }
 
 
+
+
+
+
+/*!\class NewVariant
+ * \ingroup PPLGroupDataTypes
+ * \brief Flexibler Datentyp, der verschiedene Datentypen aufnehmen kann
+ *
+ * \desc
+ * Dieser Datentyp kann andere Datentypen aufnehmen. Unterstützt werden:
+ *
+ * - String
+ * - WideString
+ * - Array
+ * - AssocArray
+ * - ByteArray
+ * - ByteArrayPtr
+ * - DateTime
+ * - Pointer
+ *
+ * \example
+ * \code
+void Machwas(const Variant &object)
+{
+	NewVariant::DataType t=object.type();
+	if (t==NewVariant::TYPE_BYTEARRAY) {
+			const ppl7::ByteArray &bin= static_cast<const ppl7::ByteArray&>(object);  // Objekt zu ByteArray umwandeln
+			printf ("Es ist ein ByteArray mit %i Bytes an Daten\n",bin.size());
+			return;
+	} else if (t==NewVariant::TYPE_STRING) {
+			const String &str= static_cast<const String&>(object);  // Objekt zu String umwandeln
+			printf ("Es ist ein String mit folgendem Inhalt: %s\n",(const char*)str);
+			return;
+	} else if (t==NewVariant::TYPE_ARRAY) {
+			const Array &array= static_cast<const Array&>(object);  // Objekt zu Array umwandeln
+			printf ("Es ist ein Array mit %i Elementen\n",array.count());
+			return;
+	}
+	printf ("Datentyp wird nicht unterstützt\n");
+}
+\endcode
+ *
+ */
+
+/*!\enum NewVariant::DataType
+ * \brief Enumeration der verschiedenen Datenobjekte, die in der Library verwendet werden
+ *
+ * Enumeration der verschiedenen Datenobjekte, die in der Library verwendet werden
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_UNKNOWN
+ * \brief Unbekannter Datentyp
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_STRING
+ * \brief Datentyp ist String
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_WIDESTRING
+ * \brief Datentyp ist WideString
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_BYTEARRAY
+ * \brief Datentyp ist ByteArray
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_BYTEARRAYPTR
+ * \brief Datentyp ist ByteArrayPtr
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_ASSOCARRAY
+ * \brief Datentyp ist AssocArray
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_ARRAY
+ * \brief Datentyp ist Array
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_DATETIME
+ * \brief Datentyp ist DateTime
+ */
+
+/*!\var NewVariant::DataType Variant::TYPE_POINTER
+ * \brief Datentyp ist Pointer
+ */
+
+
+/*!\var NewVariant::t
+ * \brief Variable, zum Speichern des Datentyps
+ */
+
+/*!\var NewVariant::value
+ * \brief Pointer auf den Inhalt des Datentyps
+ */
+
+
+NewVariant::NewVariant()
+{
+	value=NULL;
+	t=TYPE_UNKNOWN;
+}
+
+NewVariant::NewVariant(const NewVariant &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const String &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const WideString &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const Array &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const AssocArray &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const ByteArray &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const ByteArrayPtr &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const DateTime &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+NewVariant::NewVariant(const Pointer &value)
+{
+	this->value=NULL;
+	t=TYPE_UNKNOWN;
+	set(value);
+}
+
+void NewVariant::clear()
+{
+	if (!value) return;
+	switch (t) {
+		case TYPE_STRING:
+			delete (static_cast<String*>(value));
+			break;
+		case TYPE_ASSOCARRAY:
+			delete (static_cast<AssocArray*>(value));
+			break;
+		case TYPE_BYTEARRAY:
+			delete (static_cast<ByteArray*>(value));
+			break;
+		case TYPE_POINTER:
+			delete (static_cast<Pointer*>(value));
+			break;
+		case TYPE_WIDESTRING:
+			delete (static_cast<WideString*>(value));
+			break;
+		case TYPE_ARRAY:
+			delete (static_cast<Array*>(value));
+			break;
+		case TYPE_DATETIME:
+			delete (static_cast<DateTime*>(value));
+			break;
+		case TYPE_BYTEARRAYPTR:
+			delete (static_cast<ByteArrayPtr*>(value));
+			break;
+		default:
+			break;
+
+	}
+	value=NULL;
+	t=TYPE_UNKNOWN;
+}
+
+void NewVariant::set(const NewVariant &value)
+{
+	clear();
+	if (!value.value) return;
+	switch (value.t) {
+		case TYPE_STRING:
+			this->value=new String(*static_cast<String*>(value.value));
+			t=TYPE_STRING;
+			break;
+		case TYPE_ASSOCARRAY:
+			this->value=new AssocArray(*static_cast<AssocArray*>(value.value));
+			t=TYPE_ASSOCARRAY;
+			break;
+		case TYPE_BYTEARRAY:
+			this->value=new ByteArray(*static_cast<ByteArray*>(value.value));
+			t=TYPE_BYTEARRAY;
+			break;
+		case TYPE_POINTER:
+			this->value=new Pointer(*static_cast<Pointer*>(value.value));
+			t=TYPE_POINTER;
+			break;
+		case TYPE_WIDESTRING:
+			this->value=new WideString(*static_cast<WideString*>(value.value));
+			t=TYPE_WIDESTRING;
+			break;
+		case TYPE_ARRAY:
+			this->value=new Array(*static_cast<Array*>(value.value));
+			t=TYPE_ARRAY;
+			break;
+		case TYPE_DATETIME:
+			this->value=new DateTime(*static_cast<DateTime*>(value.value));
+			t=TYPE_DATETIME;
+			break;
+		case TYPE_BYTEARRAYPTR:
+			this->value=new ByteArrayPtr(*static_cast<ByteArrayPtr*>(value.value));
+			t=TYPE_BYTEARRAYPTR;
+			break;
+		default:
+			break;
+	}
+}
+
+void NewVariant::set(const String &value)
+{
+	clear();
+	this->value=new String(value);
+	t=TYPE_STRING;
+}
+
+void NewVariant::set(const WideString &value)
+{
+	clear();
+	this->value=new WideString(value);
+	t=TYPE_WIDESTRING;
+}
+
+void NewVariant::set(const Array &value)
+{
+	clear();
+	this->value=new Array(value);
+	t=TYPE_ARRAY;
+}
+
+void NewVariant::set(const AssocArray &value)
+{
+	clear();
+	this->value=new AssocArray(value);
+	t=TYPE_ASSOCARRAY;
+}
+
+void NewVariant::set(const ByteArray &value)
+{
+	clear();
+	this->value=new ByteArray(value);
+	t=TYPE_BYTEARRAY;
+}
+
+void NewVariant::set(const ByteArrayPtr &value)
+{
+	clear();
+	this->value=new ByteArrayPtr(value);
+	t=TYPE_BYTEARRAYPTR;
+}
+
+void NewVariant::set(const DateTime &value)
+{
+	clear();
+	this->value=new DateTime(value);
+	t=TYPE_DATETIME;
+}
+
+void NewVariant::set(const Pointer &value)
+{
+	clear();
+	this->value=new Pointer(value);
+	t=TYPE_POINTER;
+}
+
+/*!\brief Liefert den Datentyp des Objekts zurück
+ *
+ * \desc
+ * Diese Funktion liefert den Datentyp des Objekts zurück.
+ * @return ID aus der Enumeration NewVariant::DataType
+ */
+NewVariant::DataType NewVariant::type() const
+{
+	return t;
+}
+
+/*!\brief Prüft auf einen bestimmten Datentyp
+ *
+ * \desc
+ * Prüft, ob es sich bei diesem Objekt um den Datentyp \p type handelt.
+ *
+ * @param type Zu überprüfender Typ. Wert aus der Enumerationr Variant::Type
+ * @return Liefert \c true zurück, wenn es sich um den angegebenen Datentyp \p type handelt,
+ * sonst \c false.
+ */
+bool NewVariant::isType(DataType type) const
+{
+	if (this->t==type) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp String handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp String handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp String handelt, sonst \c false.
+ */
+bool NewVariant::isString() const
+{
+	if (t==TYPE_STRING) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp WideString handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp WideString handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp WideString handelt, sonst \c false.
+ */
+bool NewVariant::isWideString() const
+{
+	if (t==TYPE_WIDESTRING) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp Array handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp Array handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp Array handelt, sonst \c false.
+ */
+bool NewVariant::isArray() const
+{
+	if (t==TYPE_ARRAY) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp AssocArray handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp AssocArray handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp AssocArray handelt, sonst \c false.
+ */
+bool NewVariant::isAssocArray() const
+{
+	if (t==TYPE_ASSOCARRAY) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp ByteArray handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp ByteArray handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArray handelt, sonst \c false.
+ */
+bool NewVariant::isByteArray() const
+{
+	if (t==TYPE_BYTEARRAY) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArrayPtr handelt, sonst \c false.
+ */
+bool NewVariant::isByteArrayPtr() const
+{
+	if (t==TYPE_BYTEARRAYPTR) return true;
+	if (t==TYPE_BYTEARRAY) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp DateTime handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Datentyp DateTime handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Datentyp DateTime handelt, sonst \c false.
+ */
+bool NewVariant::isDateTime() const
+{
+	if (t==TYPE_DATETIME) return true;
+	return false;
+}
+
+/*!\brief Prüft, ob es sich um den Datentyp Pointer handelt
+ *
+ * \desc
+ * Prüft, ob es sich um den Pointer DateTime handelt
+ *
+ * @return Liefert \c true zurück, wenn es such um den Pointer DateTime handelt, sonst \c false.
+ */
+bool NewVariant::isPointer() const
+{
+	if (t==TYPE_POINTER) return true;
+	return false;
+}
+
+
+const String& NewVariant::toString() const
+{
+	if (t!=TYPE_STRING) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<String *>(value);
+}
+
+String& NewVariant::toString()
+{
+	if (t!=TYPE_STRING) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<String *>(value);
+}
+
+const WideString& NewVariant::toWideString() const
+{
+	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<WideString *>(value);
+}
+
+WideString& NewVariant::toWideString()
+{
+	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<WideString *>(value);
+}
+
+const Array& NewVariant::toArray() const
+{
+	if (t!=TYPE_ARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<Array *>(value);
+}
+
+Array& NewVariant::toArray()
+{
+	if (t!=TYPE_ARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<Array *>(value);
+}
+
+const AssocArray& NewVariant::toAssocArray() const
+{
+	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<AssocArray *>(value);
+}
+
+AssocArray& NewVariant::toAssocArray()
+{
+	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<AssocArray *>(value);
+}
+
+const ByteArray& NewVariant::toByteArray() const
+{
+	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<ByteArray *>(value);
+}
+
+ByteArray& NewVariant::toByteArray()
+{
+	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<ByteArray *>(value);
+}
+
+const ByteArrayPtr& NewVariant::toByteArrayPtr() const
+{
+	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<ByteArrayPtr *>(value);
+}
+
+ByteArrayPtr& NewVariant::toByteArrayPtr()
+{
+	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<ByteArrayPtr *>(value);
+}
+
+const DateTime& NewVariant::toDateTime() const
+{
+	if (t!=TYPE_DATETIME) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<DateTime *>(value);
+}
+
+DateTime& NewVariant::toDateTime()
+{
+	if (t!=TYPE_DATETIME) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<DateTime *>(value);
+}
+
+const Pointer& NewVariant::toPointer() const
+{
+	if (t!=TYPE_POINTER) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<Pointer *>(value);
+}
+
+Pointer& NewVariant::toPointer()
+{
+	if (t!=TYPE_POINTER) throw TypeConversionException();
+	if (!value) throw NullPointerException();
+	return *static_cast<Pointer *>(value);
+}
+
+
+NewVariant::operator String() const
+{
+	return toString();
+}
+
+NewVariant::operator WideString() const
+{
+	return toWideString();
+}
+
+NewVariant::operator Array() const
+{
+	return toArray();
+}
+
+NewVariant::operator AssocArray() const
+{
+	return toAssocArray();
+}
+
+NewVariant::operator ByteArray() const
+{
+	return toByteArray();
+}
+
+NewVariant::operator ByteArrayPtr() const
+{
+	return toByteArrayPtr();
+}
+
+NewVariant::operator DateTime() const
+{
+	return toDateTime();
+}
+
+NewVariant::operator Pointer() const
+{
+	return toPointer();
+}
+
+NewVariant &NewVariant::operator=(const NewVariant &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const String &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const WideString &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const Array &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const AssocArray &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const ByteArray &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const ByteArrayPtr &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const DateTime &other)
+{
+	set(other);
+	return *this;
+}
+
+NewVariant &NewVariant::operator=(const Pointer &other)
+{
+	set(other);
+	return *this;
+}
+
+
+
 } // EOF namespace ppl7
 
 

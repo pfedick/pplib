@@ -45,6 +45,7 @@
 
 #include <string>
 #include <iostream>
+#include <map>
 
 #ifndef true
 #define true 1
@@ -65,10 +66,97 @@ class ByteArrayPtr;
 class DateTime;
 class Pointer;
 
+class NewVariant
+{
+	public:
+		enum DataType {
+			TYPE_UNKNOWN		=0,
+			TYPE_STRING			=4,
+			TYPE_ASSOCARRAY		=5,
+			TYPE_BYTEARRAY		=6,
+			TYPE_POINTER		=7,
+			TYPE_WIDESTRING		=8,
+			TYPE_ARRAY			=9,
+			TYPE_DATETIME		=11,
+			TYPE_BYTEARRAYPTR	=12
+		};
+	private:
+		void		*value;
+		DataType	t;
+	public:
+		NewVariant();
+		NewVariant(const NewVariant &value);
+		NewVariant(const String &value);
+		NewVariant(const WideString &value);
+		NewVariant(const Array &value);
+		NewVariant(const AssocArray &value);
+		NewVariant(const ByteArray &value);
+		NewVariant(const ByteArrayPtr &value);
+		NewVariant(const DateTime &value);
+		NewVariant(const Pointer &value);
+
+		void clear();
+		void set(const NewVariant &value);
+		void set(const String &value);
+		void set(const WideString &value);
+		void set(const Array &value);
+		void set(const AssocArray &value);
+		void set(const ByteArray &value);
+		void set(const ByteArrayPtr &value);
+		void set(const DateTime &value);
+		void set(const Pointer &value);
+
+		DataType type() const;
+		bool isType(DataType type) const;
+		bool isString() const;
+		bool isWideString() const;
+		bool isArray() const;
+		bool isAssocArray() const;
+		bool isByteArray() const;
+		bool isByteArrayPtr() const;
+		bool isDateTime() const;
+		bool isPointer() const;
+
+		const String& toString() const;
+		String& toString();
+		const WideString& toWideString() const;
+		WideString& toWideString();
+		const Array& toArray() const;
+		Array& toArray();
+		const AssocArray& toAssocArray() const;
+		AssocArray& toAssocArray();
+		const ByteArray& toByteArray() const;
+		ByteArray& toByteArray();
+		const ByteArrayPtr& toByteArrayPtr() const;
+		ByteArrayPtr& toByteArrayPtr();
+		const DateTime& toDateTime() const;
+		DateTime& toDateTime();
+		const Pointer& toPointer() const;
+		Pointer& toPointer();
+
+		operator String() const;
+		operator WideString() const;
+		operator Array() const;
+		operator AssocArray() const;
+		operator ByteArray() const;
+		operator ByteArrayPtr() const;
+		operator DateTime() const;
+		operator Pointer() const;
+
+		NewVariant &operator=(const NewVariant &other);
+		NewVariant &operator=(const String &other);
+		NewVariant &operator=(const WideString &other);
+		NewVariant &operator=(const Array &other);
+		NewVariant &operator=(const AssocArray &other);
+		NewVariant &operator=(const ByteArray &other);
+		NewVariant &operator=(const ByteArrayPtr &other);
+		NewVariant &operator=(const DateTime &other);
+		NewVariant &operator=(const Pointer &other);
+};
+
 class Variant
 {
 	public:
-
 		enum Type {
 			UNKNOWN		=0,
 			//INT			=2,
@@ -135,6 +223,12 @@ class Pointer : public Variant
 		void set(const void *ptr);
 		Pointer &operator=(const Pointer &other);
 		Pointer &operator=(const void *ptr);
+		bool operator<(const Pointer &other) const;
+		bool operator<=(const Pointer &other) const;
+		bool operator==(const Pointer &other) const;
+		bool operator!=(const Pointer &other) const;
+		bool operator>=(const Pointer &other) const;
+		bool operator>(const Pointer &other) const;
 };
 
 class ByteArrayPtr : public Variant
@@ -859,6 +953,18 @@ class AssocArray : public Variant
 				bool operator>=(const ArrayKey &str) const;
 				bool operator>(const ArrayKey &str) const;
 		};
+		enum ValueType {
+			TYPE_UNKNOWN		=0,
+			TYPE_STRING			=4,
+			TYPE_ASSOCARRAY		=5,
+			TYPE_BYTEARRAY		=6,
+			TYPE_POINTER		=7,
+			TYPE_WIDESTRING		=8,
+			TYPE_ARRAY			=9,
+			TYPE_DATETIME		=11,
+			TYPE_BYTEARRAYPTR	=12
+		};
+
 		class ValueNode
 		{
 			public:
@@ -873,7 +979,6 @@ class AssocArray : public Variant
 		ppluint64		maxint;
 		size_t			num;
 		ppl7::AVLTree<ArrayKey, ValueNode> Tree;
-
 
 		ValueNode *findInternal(const ArrayKey &key) const;
 		ValueNode *createTree(const ArrayKey &key, Variant *var);
