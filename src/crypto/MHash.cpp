@@ -567,7 +567,7 @@ int MHash::getBlockSize() const
 #endif
 }
 
-void MHash::saveDigest(NewVariant &result)
+void MHash::saveDigest(ByteArray &result)
 /*!\brief Ergebnis speichern
  *
  * \descr
@@ -614,27 +614,64 @@ void MHash::saveDigest(NewVariant &result)
 	handle=NULL;
 	// Bereit machen, für nächste Hash-Berechnung
 	setAlgorithm(algo);
-	// Nun schauen wir mal, worin wir das Ergebnis speichern sollen
-	int type=result.type();
-	if (type==NewVariant::TYPE_BYTEARRAY) {
-		ByteArray &bin=result.toByteArray();
-		bin.clear();
-		bin.copy(buffer,blocksize);
-	} else if (type==NewVariant::TYPE_STRING) {
-		String &str=result.toString();
-		str.clear();
-		for(int i=0;i<blocksize;i++) str.appendf("%02x",buffer[i]);
-	} else if (type==NewVariant::TYPE_WIDESTRING) {
-		WideString &str=result.toWideString();
-		str.clear();
-		for(int i=0;i<blocksize;i++) str.appendf("%02x",buffer[i]);
-	} else {
-		free(buffer);
-		throw UnsupportedDataTypeException();
-	}
+	result.clear();
+	result.copy(buffer,blocksize);
 	free(buffer);
 #endif
 }
+
+void MHash::saveDigest(String &result)
+{
+#ifndef HAVE_LIBMHASH
+	throw UnsupportedFeatureException("MHash");
+#else
+	if (!handle) {
+		throw NoAlgorithmSpecifiedException("MHash::GetBlockSize");
+	}
+	if (bytesHashed==0) {
+		throw EmptyDataException();
+	}
+	// Wir brauchen einen Buffer für das Ergebnis
+	unsigned char *buffer=(unsigned char*) malloc(blocksize);
+	if (!buffer) {
+		throw OutOfMemoryException();
+	}
+	mhash_deinit((MHASH)handle, buffer);
+	handle=NULL;
+	// Bereit machen, für nächste Hash-Berechnung
+	setAlgorithm(algo);
+	result.clear();
+	for(int i=0;i<blocksize;i++) result.appendf("%02x",buffer[i]);
+	free(buffer);
+#endif
+}
+
+void MHash::saveDigest(WideString &result)
+{
+#ifndef HAVE_LIBMHASH
+	throw UnsupportedFeatureException("MHash");
+#else
+	if (!handle) {
+		throw NoAlgorithmSpecifiedException("MHash::GetBlockSize");
+	}
+	if (bytesHashed==0) {
+		throw EmptyDataException();
+	}
+	// Wir brauchen einen Buffer für das Ergebnis
+	unsigned char *buffer=(unsigned char*) malloc(blocksize);
+	if (!buffer) {
+		throw OutOfMemoryException();
+	}
+	mhash_deinit((MHASH)handle, buffer);
+	handle=NULL;
+	// Bereit machen, für nächste Hash-Berechnung
+	setAlgorithm(algo);
+	result.clear();
+	for(int i=0;i<blocksize;i++) result.appendf("%02x",buffer[i]);
+	free(buffer);
+#endif
+}
+
 
 /*!\brief Ergebnis auslesen
  *
@@ -658,10 +695,9 @@ void MHash::saveDigest(NewVariant &result)
  */
 ByteArray MHash::getDigest()
 {
-	ByteArray var;
-	NewVariant res(var);
+	ByteArray res;
 	saveDigest(res);
-	return res.toByteArray();
+	return res;
 }
 
 int MHash::getInt()

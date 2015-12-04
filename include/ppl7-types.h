@@ -86,15 +86,15 @@ class NewVariant
 	public:
 		NewVariant();
 		~NewVariant();
-		explicit NewVariant(const NewVariant &value);
-		explicit NewVariant(const String &value);
-		explicit NewVariant(const WideString &value);
-		explicit NewVariant(const Array &value);
-		explicit NewVariant(const AssocArray &value);
-		explicit NewVariant(const ByteArray &value);
-		explicit NewVariant(const ByteArrayPtr &value);
-		explicit NewVariant(const DateTime &value);
-		explicit NewVariant(const Pointer &value);
+		NewVariant(const NewVariant &value);
+		NewVariant(const String &value);
+		NewVariant(const WideString &value);
+		NewVariant(const Array &value);
+		NewVariant(const AssocArray &value);
+		NewVariant(const ByteArray &value);
+		NewVariant(const ByteArrayPtr &value);
+		NewVariant(const DateTime &value);
+		NewVariant(const Pointer &value);
 
 		void clear();
 		void set(const NewVariant &value);

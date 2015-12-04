@@ -240,23 +240,6 @@ TEST_F(DigestTest, TestSaveDigestToByteArray) {
 	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result.toHex());
 }
 
-TEST_F(DigestTest, TestSaveDigestToByteArrayPtr) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray buffer(20);
-	ppl7::ByteArrayPtr result=buffer;
-	ASSERT_THROW(dig.saveDigest(result),ppl7::UnsupportedDataTypeException);
-}
-
-TEST_F(DigestTest, TestSaveDigestToArray) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::Array result;
-	ASSERT_THROW(dig.saveDigest(result),ppl7::UnsupportedDataTypeException);
-}
-
 TEST_F(DigestTest, TestMultipleMD5) {
 	ppl7::Digest dig;
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));

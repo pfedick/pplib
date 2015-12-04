@@ -270,27 +270,35 @@ ppluint64 Digest::bytesHashed() const
 	return bytecount;
 }
 
-void Digest::saveDigest(NewVariant &result)
+void Digest::saveDigest(ByteArray &result)
+{
+#ifndef HAVE_OPENSSL
+	throw UnsupportedFeatureException("OpenSSL");
+#else
+	result=getDigest();
+#endif
+}
+
+void Digest::saveDigest(String &result)
 {
 #ifndef HAVE_OPENSSL
 	throw UnsupportedFeatureException("OpenSSL");
 #else
 	ByteArray ba=getDigest();
-	int type=result.type();
-	if (type==NewVariant::TYPE_BYTEARRAY) {
-		ByteArray &bin=result.toByteArray();
-		bin=ba;
-	} else if (type==NewVariant::TYPE_STRING) {
-		String &str=result.toString();
-		str=ba.toHex();
-	} else if (type==NewVariant::TYPE_WIDESTRING) {
-		WideString &str=result.toWideString();
-		str=ba.toHex();
-	} else {
-		throw UnsupportedDataTypeException();
-	}
+	result=ba.toHex();
 #endif
 }
+
+void Digest::saveDigest(WideString &result)
+{
+#ifndef HAVE_OPENSSL
+	throw UnsupportedFeatureException("OpenSSL");
+#else
+	ByteArray ba=getDigest();
+	result=ba.toHex();
+#endif
+}
+
 
 ByteArray Digest::getDigest()
 {

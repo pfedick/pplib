@@ -194,7 +194,9 @@ class MHash
 		void addData(FileObject &file);
 		void addFile(const String &filename);
 		int getBlockSize() const;
-		void saveDigest(NewVariant &result);
+		void saveDigest(ByteArray &result);
+		void saveDigest(String &result);
+		void saveDigest(WideString &result);
 		ByteArray getDigest();
 		int getInt();
 		void reset();
@@ -251,7 +253,10 @@ class Digest
 		void addData(FileObject &file);
 		void addFile(const String &filename);
 		ByteArray getDigest();
-		void saveDigest(NewVariant &result);
+		void saveDigest(ByteArray &result);
+		void saveDigest(String &result);
+		void saveDigest(WideString &result);
+
 		void reset();
 		ppluint64 bytesHashed() const;
 

@@ -199,7 +199,7 @@ TEST_F(MHashTest, TestAddDataFromPtr) {
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
-TEST_F(MHashTest, TestAddDataFromVariantString) {
+TEST_F(MHashTest, TestAddDataFromNewVariantString) {
 	ppl7::MHash hash;
 	ppl7::String data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
@@ -209,7 +209,7 @@ TEST_F(MHashTest, TestAddDataFromVariantString) {
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
-TEST_F(MHashTest, TestAddDataFromVariantByteArray) {
+TEST_F(MHashTest, TestAddDataFromNewVariantByteArray) {
 	ppl7::MHash hash;
 	ppl7::ByteArray data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
@@ -219,7 +219,7 @@ TEST_F(MHashTest, TestAddDataFromVariantByteArray) {
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
-TEST_F(MHashTest, TestAddDataFromVariantByteArrayPtr) {
+TEST_F(MHashTest, TestAddDataFromNewVariantByteArrayPtr) {
 	ppl7::MHash hash;
 	ppl7::ByteArrayPtr data((void*)loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
@@ -229,7 +229,7 @@ TEST_F(MHashTest, TestAddDataFromVariantByteArrayPtr) {
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
-TEST_F(MHashTest, TestAddDataFromVariantArray) {
+TEST_F(MHashTest, TestAddDataFromNewVariantArray) {
 	ppl7::MHash hash;
 	ppl7::Array data;
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::MHash::Algo_SHA256));
