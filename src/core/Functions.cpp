@@ -784,7 +784,7 @@ bool HaveArgv (int argc, char * argv[], const String &argument)
 			if (strncmp(argv[i],argument,argl) == 0) {
 				size_t l=strlen(argv[i]);
 				if (l>argl || argv[i+1]==NULL) {
-					const char *ret=(argv[i]+argl);
+					//const char *ret=(argv[i]+argl);
 					//if (ret[0]=='-') return (char*)"";
 					//if (ret[0]=='\\' && ret[1]=='-') return ret+1;
 					return true;
