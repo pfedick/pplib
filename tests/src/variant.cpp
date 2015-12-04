@@ -322,4 +322,154 @@ TEST_F(VariantTest, OperatorPointer) {
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 }
 
+TEST_F(VariantTest, isString) {
+	ppl7::String p1("Hello World");
+	ppl7::WideString p1a(L"Hello World");
+	ppl7::NewVariant var1(p1);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isString());
+	ASSERT_FALSE(var2.isString());
+	ASSERT_FALSE(var1.isWideString());
+	ASSERT_FALSE(var1.isArray());
+	ASSERT_FALSE(var1.isAssocArray());
+	ASSERT_FALSE(var1.isByteArray());
+	ASSERT_FALSE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var1.isDateTime());
+	ASSERT_FALSE(var1.isPointer());
+}
+
+TEST_F(VariantTest, isWideString) {
+	ppl7::WideString p1(L"Hello World");
+	ppl7::String p1a("Hello World");
+	ppl7::NewVariant var1(p1);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isWideString());
+	ASSERT_FALSE(var2.isWideString());
+	ASSERT_FALSE(var1.isString());
+	ASSERT_FALSE(var1.isArray());
+	ASSERT_FALSE(var1.isAssocArray());
+	ASSERT_FALSE(var1.isByteArray());
+	ASSERT_FALSE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var1.isDateTime());
+	ASSERT_FALSE(var1.isPointer());
+}
+
+TEST_F(VariantTest, isArray) {
+	ppl7::String p1a("Hello World");
+	ppl7::NewVariant var1(Wordlist);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isArray());
+	ASSERT_FALSE(var2.isArray());
+	ASSERT_FALSE(var1.isString());
+	ASSERT_FALSE(var1.isWideString());
+	ASSERT_FALSE(var1.isAssocArray());
+	ASSERT_FALSE(var1.isByteArray());
+	ASSERT_FALSE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var1.isDateTime());
+	ASSERT_FALSE(var1.isPointer());
+}
+
+TEST_F(VariantTest, isAssocArray) {
+	ppl7::String p1a("Hello World");
+	ppl7::NewVariant var1(TestAssocArray);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isAssocArray());
+	ASSERT_FALSE(var2.isAssocArray());
+	ASSERT_FALSE(var1.isString());
+	ASSERT_FALSE(var1.isWideString());
+	ASSERT_FALSE(var1.isArray());
+	ASSERT_FALSE(var1.isByteArray());
+	ASSERT_FALSE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var1.isDateTime());
+	ASSERT_FALSE(var1.isPointer());
+}
+
+TEST_F(VariantTest, isByteArray) {
+	ppl7::String p1a("Hello World");
+	ppl7::ByteArray p1=ppl7::Random(2048);
+	ppl7::NewVariant var1(p1);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isByteArray());
+	ASSERT_FALSE(var2.isByteArray());
+	ASSERT_FALSE(var1.isString());
+	ASSERT_FALSE(var1.isWideString());
+	ASSERT_FALSE(var1.isArray());
+	ASSERT_FALSE(var1.isAssocArray());
+	ASSERT_TRUE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var1.isDateTime());
+	ASSERT_FALSE(var1.isPointer());
+}
+
+TEST_F(VariantTest, isByteArrayPtr) {
+	ppl7::String p1a("Hello World");
+	ppl7::ByteArray b1=ppl7::Random(2048);
+	ppl7::ByteArrayPtr p1=b1;
+	ppl7::NewVariant var1(p1);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var2.isByteArrayPtr());
+	ASSERT_FALSE(var1.isString());
+	ASSERT_FALSE(var1.isWideString());
+	ASSERT_FALSE(var1.isArray());
+	ASSERT_FALSE(var1.isAssocArray());
+	ASSERT_FALSE(var1.isByteArray());
+	ASSERT_FALSE(var1.isDateTime());
+	ASSERT_FALSE(var1.isPointer());
+}
+
+TEST_F(VariantTest, isDateTime) {
+	ppl7::DateTime p1("2015-12-03 15:52:40");
+	ppl7::String p1a("Hello World");
+	ppl7::NewVariant var1(p1);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isDateTime());
+	ASSERT_FALSE(var2.isDateTime());
+	ASSERT_FALSE(var1.isString());
+	ASSERT_FALSE(var1.isWideString());
+	ASSERT_FALSE(var1.isArray());
+	ASSERT_FALSE(var1.isAssocArray());
+	ASSERT_FALSE(var1.isByteArray());
+	ASSERT_FALSE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var1.isPointer());
+}
+
+TEST_F(VariantTest, isPointer) {
+	ppl7::Pointer p1(this);
+	ppl7::String p1a("Hello World");
+	ppl7::NewVariant var1(p1);
+	ppl7::NewVariant var2(p1a);
+	ASSERT_TRUE(var1.isPointer());
+	ASSERT_FALSE(var2.isPointer());
+	ASSERT_FALSE(var1.isString());
+	ASSERT_FALSE(var1.isWideString());
+	ASSERT_FALSE(var1.isArray());
+	ASSERT_FALSE(var1.isAssocArray());
+	ASSERT_FALSE(var1.isByteArray());
+	ASSERT_FALSE(var1.isByteArrayPtr());
+	ASSERT_FALSE(var1.isDateTime());
+}
+
+
+TEST_F(VariantTest, toString) {
+	ppl7::String p1("Hello World");
+	ppl7::WideString p1a(L"Hello World");
+	ppl7::NewVariant var1(p1);
+	ppl7::NewVariant var2;
+	ppl7::NewVariant var3(p1a);
+	const ppl7::String &p2=var1.toString();
+	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+
+	ASSERT_THROW({
+		ppl7::String s3=var2.toString();
+	},ppl7::EmptyDataException);
+
+	ASSERT_THROW({
+		ppl7::String s3=var3.toString();
+	},ppl7::TypeConversionException);
+}
+
+
+
+
+
 } // EOF namespace
