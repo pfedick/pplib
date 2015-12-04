@@ -96,7 +96,6 @@ TEST_F(AssocArrayTest, addStringsMultiLevels) {
 		a.set("array2/unterkey2","value8");
 		a.set("array2/unterkey1","value9");
 	});
-	//a.list();
 	ASSERT_EQ((size_t)4,a.count()) << "Unexpected size of AssocArray";
 	ASSERT_EQ((size_t)10,a.count(true)) << "Unexpected size of AssocArray";
 	ASSERT_EQ(ppl7::String("Dieser Wert geht über\nmehrere Zeilen"),a.getString("key1")) << "unexpected value";
@@ -155,8 +154,9 @@ TEST_F(AssocArrayTest, getAssocArray) {
 		a.set("array2/unterkey2","value8");
 		a.set("array2/unterkey1","value9");
 	});
+	//a.list();
 	ASSERT_NO_THROW({
-		ppl7::AssocArray &a2=a.get("array1").toAssocArray();
+		const ppl7::AssocArray &a2=a.get("array1").toAssocArray();
 		ASSERT_EQ((size_t)3,a2.count()) << "Unexpected size of AssocArray";
 		ppl7::AssocArray &a3=a.get("array2").toAssocArray();
 		ASSERT_EQ((size_t)2,a3.count()) << "Unexpected size of AssocArray";
@@ -256,7 +256,6 @@ TEST_F(AssocArrayTest, fromConfig) {
 	ASSERT_EQ(ppl7::String("value3"),a2.getString("Abschnitt_2/key1")) << "unexpected value";
 	ASSERT_EQ(ppl7::String("value4"),a2.getString("Abschnitt_2/key2")) << "unexpected value";
 }
-
 
 }	// EOF namespace
 

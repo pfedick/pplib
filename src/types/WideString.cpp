@@ -273,15 +273,6 @@ WideString::WideString(const String &str) throw(OutOfMemoryException)
 	set(str);
 }
 
-WideString::WideString(const Variant &var) throw(OutOfMemoryException)
-{
-	type=WIDESTRING;
-	ptr=NULL;
-	stringlen=0;
-	s=0;
-	set(var);
-}
-
 /*!\brief Konstruktor aus Standard-Template String
  *
  * \desc
@@ -765,12 +756,6 @@ WideString & WideString::set(const String &str, size_t size) throw(OutOfMemoryEx
 	return set((const char*)str.c_str(),inbytes);
 }
 
-
-WideString & WideString::set(const Variant &var) throw(OutOfMemoryException)
-{
-	const WideString &str=var.toWideString();
-	return set(str.ptr,str.stringlen);
-}
 
 /*!\brief Wert eines Strings der STL übernehmen
  *
@@ -1701,22 +1686,6 @@ WideString& WideString::operator=(const String *str)
 WideString& WideString::operator=(const String &str)
 {
 	return set(str);
-}
-
-
-/*!\brief String übernehmen
- *
- * \desc
- * Mit diesem Operator wird der Inhalt des Variants \p var kopiert, sofern es
- * sich dabei um einen String handelt. Der Operator
- * ist identisch mit der Funktion WideString::set
- *
- * @param[in] var Zu kopierender String
- * @return Referenz auf diese Instanz der Klasse
- */
-WideString& WideString::operator=(const Variant &var)
-{
-	return set(var);
 }
 
 

@@ -333,7 +333,7 @@ String ConfigParser::get(const String &key, const String &defaultvalue) const
 	if (!section) throw NoSectionSelectedException();
 	String ret;
 	try {
-		ret=((SECTION *)section)->values.get(key);
+		ret=((SECTION *)section)->values.getString(key);
 	} catch (...) {
 		return defaultvalue;
 	}
@@ -346,7 +346,7 @@ String ConfigParser::getFromSection(const String &section, const String &key, co
 	if (!s) return defaultvalue;
 	String ret;
 	try {
-		ret=s->values.get(key);
+		ret=s->values.getString(key);
 	} catch (...) {
 		return defaultvalue;
 	}
@@ -359,7 +359,7 @@ bool ConfigParser::getBoolFromSection(const String &section, const String &key, 
 	if (!s) return defaultvalue;
 	String ret;
 	try {
-		ret=s->values.get(key);
+		ret=s->values.getString(key);
 	} catch (...) {
 		return defaultvalue;
 	}
@@ -371,7 +371,7 @@ bool ConfigParser::getBool(const String &key, bool defaultvalue) const
 	if (!section) throw NoSectionSelectedException();
 	String ret;
 	try {
-		ret=((SECTION*)section)->values.get(key);
+		ret=((SECTION*)section)->values.getString(key);
 	} catch (...) {
 		return defaultvalue;
 	}
@@ -384,7 +384,7 @@ int ConfigParser::getIntFromSection(const String &section, const String &key, in
 	if (!s) return defaultvalue;
 	String ret;
 	try {
-		ret=s->values.get(key);
+		ret=s->values.getString(key);
 	} catch (...) {
 		return defaultvalue;
 	}
@@ -396,7 +396,7 @@ int ConfigParser::getInt(const String &key, int defaultvalue) const
 	if (!section) throw NoSectionSelectedException();
 	String ret;
 	try {
-		ret=((SECTION*)section)->values.get(key);
+		ret=((SECTION*)section)->values.getString(key);
 	} catch (...) {
 		return defaultvalue;
 	}

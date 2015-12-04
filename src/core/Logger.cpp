@@ -393,7 +393,7 @@ void Logger::outputArray(PRIORITY prio, int level, const char *module, const cha
 	a.reset(walk);
 	while ((a.getNext(walk))) {
 		const String &k=walk.key();
-		const Variant &v=walk.value();
+		const NewVariant &v=walk.value();
 		if (v.isString()) {
 			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v.toString());
 		} else if (v.isDateTime()) {

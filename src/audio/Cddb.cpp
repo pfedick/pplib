@@ -275,13 +275,13 @@ static void storeDisc(CDDB::Disc &disc, const String &payload)
 		disc.Artist=Tmp;
 		disc.Title=Tmp;
 	}
-	disc.Extra=a["EXTD"];
+	disc.Extra=a["EXTD"].toString();
 	disc.Artist.trim();
 	disc.Title.trim();
 	disc.Extra.trim();
 	disc.Extra.replace("\\n","\n");
 	disc.year=a["DYEAR"].toString().toInt();
-	disc.genre=a["DGENRE"];
+	disc.genre=a["DGENRE"].toString();
 	disc.genre.trim();
 
 	if (payload.pregMatch("/#\\sDisc\\slength:\\s+([0-9]+)/m",matches)) {

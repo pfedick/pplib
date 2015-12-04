@@ -337,7 +337,6 @@ class String : public Variant
 		String(const String &str) throw(OutOfMemoryException);
 		String(const WideString *str) throw(OutOfMemoryException);
 		String(const WideString &str) throw(OutOfMemoryException);
-		String(const Variant &var) throw(OutOfMemoryException);
 		String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
 		String(const std::wstring &str) throw(OutOfMemoryException);
 		~String() throw();
@@ -396,7 +395,6 @@ class String : public Variant
 		String & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		String & set(char c) throw(OutOfMemoryException);
 		String & set(size_t position, char c) throw(OutOfBoundsEception);
-		String & set(const Variant &var) throw(OutOfMemoryException);
 		String & setf(const char *fmt, ...);
 
 		String & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
@@ -516,7 +514,6 @@ class String : public Variant
 		String& operator=(const wchar_t* str);
 		String& operator=(const String *str);
 		String& operator=(const String &str);
-		String& operator=(const Variant &str);
 		String& operator=(const std::string &str);
 		String& operator=(const std::wstring &str);
 		String& operator=(char c);
@@ -598,7 +595,6 @@ class WideString : public Variant
 		WideString(const WideString &str) throw(OutOfMemoryException);
 		WideString(const String *str) throw(OutOfMemoryException);
 		WideString(const String &str) throw(OutOfMemoryException);
-		WideString(const Variant &var) throw(OutOfMemoryException);
 		WideString(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
 		WideString(const std::wstring &str) throw(OutOfMemoryException);
 		~WideString() throw();
@@ -656,7 +652,6 @@ class WideString : public Variant
 		WideString & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
 		WideString & set(wchar_t c) throw(OutOfMemoryException);
 		WideString & set(size_t position, wchar_t c) throw(OutOfBoundsEception);
-		WideString & set(const Variant &var) throw(OutOfMemoryException);
 		WideString & setf(const char *fmt, ...);
 
 		WideString & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
@@ -775,7 +770,6 @@ class WideString : public Variant
 		WideString& operator=(const WideString &str);
 		WideString& operator=(const String *str);
 		WideString& operator=(const String &str);
-		WideString& operator=(const Variant &str);
 		WideString& operator=(const std::string &str);
 		WideString& operator=(const std::wstring &str);
 		WideString& operator=(wchar_t c);
@@ -954,23 +948,10 @@ class AssocArray : public Variant
 				bool operator>=(const ArrayKey &str) const;
 				bool operator>(const ArrayKey &str) const;
 		};
-		enum ValueType {
-			TYPE_UNKNOWN		=0,
-			TYPE_STRING			=4,
-			TYPE_ASSOCARRAY		=5,
-			TYPE_BYTEARRAY		=6,
-			TYPE_POINTER		=7,
-			TYPE_WIDESTRING		=8,
-			TYPE_ARRAY			=9,
-			TYPE_DATETIME		=11,
-			TYPE_BYTEARRAYPTR	=12
-		};
-
 		class ValueNode
 		{
 			public:
-				Variant *value;
-
+				NewVariant *value;
 				ValueNode();
 				ValueNode(const ValueNode &other);
 				~ValueNode();
@@ -982,7 +963,7 @@ class AssocArray : public Variant
 		ppl7::AVLTree<ArrayKey, ValueNode> Tree;
 
 		ValueNode *findInternal(const ArrayKey &key) const;
-		ValueNode *createTree(const ArrayKey &key, Variant *var);
+		ValueNode *createTree(const ArrayKey &key, NewVariant *var);
 
 
 	public:
@@ -995,10 +976,10 @@ class AssocArray : public Variant
 			private:
 				friend class AssocArray;
 				ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-				Variant empty;
+				NewVariant empty;
 			public:
 				const String &key() { return it.key(); }
-				const Variant &value() {
+				const NewVariant &value() {
 					if (it.value().value==NULL) return empty;
 					return *it.value().value;
 				};
@@ -1035,7 +1016,7 @@ class AssocArray : public Variant
 		void set(const String &key, const ByteArrayPtr &value);
 		void set(const String &key, const AssocArray &value);
 		void set(const String &key, const Pointer &value);
-		void set(const String &key, const Variant &value);
+		void set(const String &key, const NewVariant &value);
 		void setf(const String &key, const char *fmt, ...);
 		//@}
 
@@ -1068,7 +1049,7 @@ class AssocArray : public Variant
 		//@{
 		String	&getString(const String &key) const;
 		AssocArray	&getArray(const String &key) const;
-		Variant	&get(const String &key) const;
+		NewVariant	&get(const String &key) const;
 		bool	exists(const String &key) const;
 
 		//@}
@@ -1076,10 +1057,10 @@ class AssocArray : public Variant
 		//!\name Array durchwandern
 		//@{
 		void reset(Iterator &it) const;
-		bool getFirst(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
-		bool getNext(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
-		bool getLast(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
-		bool getPrevious(Iterator &it, Variant::Type type=Variant::UNKNOWN) const;
+		bool getFirst(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
+		bool getNext(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
+		bool getLast(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
+		bool getPrevious(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
 
 		bool getFirst(Iterator &it, String &key, String &value) const;
 		bool getNext(Iterator &it, String &key, String &value) const;
@@ -1089,7 +1070,7 @@ class AssocArray : public Variant
 
 		//!\name Operatoren
 		//@{
-		Variant &operator[](const String &key) const;
+		NewVariant &operator[](const String &key) const;
 		AssocArray& operator=(const AssocArray& other);
 		AssocArray& operator+=(const AssocArray& other);
 		//@}
