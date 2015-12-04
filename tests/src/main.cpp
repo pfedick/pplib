@@ -46,6 +46,7 @@ extern const char *wordlist;
 
 ppl7::Array Wordlist;
 ppl7::ConfigParser PPL7TestConfig;
+ppl7::AssocArray TestAssocArray;
 
 void help()
 {
@@ -54,6 +55,20 @@ void help()
 			"\n"
 			"Test-Framework options:\n");
 
+}
+
+static void setupTestAssocArray()
+{
+	TestAssocArray.set("key1","Dieser Wert geht über\nmehrere Zeilen");
+	TestAssocArray.set("key2","value6");
+	TestAssocArray.set("array1/unterkey1","value2");
+	TestAssocArray.set("array1/unterkey2","value3");
+	TestAssocArray.set("array1/noch ein array/unterkey1","value4");
+	TestAssocArray.set("array1/unterkey2","value5");
+	TestAssocArray.set("key2","value7");
+	TestAssocArray.set("array2/unterkey1","value7");
+	TestAssocArray.set("array2/unterkey2","value8");
+	TestAssocArray.set("array2/unterkey1","value9");
 }
 
 void setDefaultConfigParams()
@@ -81,6 +96,8 @@ int main (int argc, char**argv)
 	ppl7::PrintDebugTime ("Wortliste in Array laden\n");
 	Wordlist.explode(w,"\n");
 	ppl7::PrintDebugTime ("done\n");
+
+	setupTestAssocArray();
 
 	try {
 		return RUN_ALL_TESTS();

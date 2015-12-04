@@ -38,6 +38,7 @@
 #include "ppl7-tests.h"
 
 extern ppl7::Array Wordlist;
+extern ppl7::AssocArray TestAssocArray;
 
 namespace {
 
@@ -130,20 +131,8 @@ TEST_F(VariantTest, TestWithArray) {
 }
 
 TEST_F(VariantTest, TestWithAssocArray) {
-	ppl7::AssocArray a;
-	a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
-	a.set("key2","value6");
-	a.set("array1/unterkey1","value2");
-	a.set("array1/unterkey2","value3");
-	a.set("array1/noch ein array/unterkey1","value4");
-	a.set("array1/unterkey2","value5");
-	a.set("key2","value7");
-	a.set("array2/unterkey1","value7");
-	a.set("array2/unterkey2","value8");
-	a.set("array2/unterkey1","value9");
-
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(a);
+			ppl7::NewVariant var1(TestAssocArray);
 			ppl7::NewVariant var2(var1);
 			ASSERT_EQ(ppl7::NewVariant::TYPE_ASSOCARRAY,var2.type()) << "Variant has unexcpected type";
 			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_ASSOCARRAY)) << "Variant has unexcpected type";
@@ -151,9 +140,9 @@ TEST_F(VariantTest, TestWithAssocArray) {
 
 			ASSERT_TRUE(var2.isAssocArray()) << "Variant has unexcpected type";
 			ppl7::AssocArray a2=var2.toAssocArray();
-			ASSERT_EQ(a.size(),a2.size()) << "Variant has unexcpected value";
+			ASSERT_EQ(TestAssocArray.size(),a2.size()) << "Variant has unexcpected value";
 			const ppl7::AssocArray &a2c=var1.toAssocArray();
-			ASSERT_EQ(a.size(),a2c.size()) << "Variant has unexcpected value";
+			ASSERT_EQ(TestAssocArray.size(),a2c.size()) << "Variant has unexcpected value";
 			ASSERT_THROW({
 				ppl7::String s3=var1.toString();
 			},ppl7::TypeConversionException);
@@ -259,6 +248,14 @@ TEST_F(VariantTest, TestSetWithEmptyVariant) {
 	ASSERT_EQ(ppl7::NewVariant::TYPE_UNKNOWN,var2.type()) << "Variant has unexcpected type";
 }
 
+TEST_F(VariantTest, OperatorNewVariant) {
+	ppl7::String s1("Hello World");
+	ppl7::NewVariant var1(s1);
+	ppl7::NewVariant var2;
+	var2=var1;
+	ASSERT_EQ(s1,var2.toString()) << "Variant has unexcpected value";
+}
+
 
 TEST_F(VariantTest, OperatorString) {
 	ppl7::String p1("Hello World");
@@ -276,5 +273,53 @@ TEST_F(VariantTest, OperatorWideString) {
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 }
 
+TEST_F(VariantTest, OperatorArray) {
+	ppl7::NewVariant var1;
+	var1=Wordlist;
+	const ppl7::Array &p2=var1;
+	ASSERT_EQ(Wordlist.size(),p2.size()) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorAssocArray) {
+	ppl7::NewVariant var1;
+	var1=TestAssocArray;
+	const ppl7::AssocArray &p2=var1;
+	ASSERT_EQ(TestAssocArray.count(true),p2.count(true)) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorByteArray) {
+	ppl7::ByteArray p1=ppl7::Random(2048);
+	ppl7::NewVariant var1;
+	var1=p1;
+	const ppl7::ByteArray &p2=var1;
+	ASSERT_EQ(p1.size(),p2.size()) << "Variant has unexcpected value";
+	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorByteArrayPtr) {
+	ppl7::ByteArray b1=ppl7::Random(2048);
+	ppl7::ByteArrayPtr p1=b1;
+	ppl7::NewVariant var1;
+	var1=p1;
+	const ppl7::ByteArrayPtr &p2=var1;
+	ASSERT_EQ(p1.size(),p2.size()) << "Variant has unexcpected value";
+	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorDateTime) {
+	ppl7::DateTime p1("2015-12-03 15:52:40");
+	ppl7::NewVariant var1;
+	var1=p1;
+	const ppl7::DateTime &p2=var1;
+	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorPointer) {
+	ppl7::Pointer p1(this);
+	ppl7::NewVariant var1;
+	var1=p1;
+	const ppl7::Pointer &p2=var1;
+	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+}
 
 } // EOF namespace
