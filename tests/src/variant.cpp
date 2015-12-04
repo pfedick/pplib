@@ -260,4 +260,21 @@ TEST_F(VariantTest, TestSetWithEmptyVariant) {
 }
 
 
+TEST_F(VariantTest, OperatorString) {
+	ppl7::String p1("Hello World");
+	ppl7::NewVariant var1;
+	var1=p1;
+	const ppl7::String &p2=var1;
+	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+}
+
+TEST_F(VariantTest, OperatorWideString) {
+	ppl7::WideString p1(L"Hello World");
+	ppl7::NewVariant var1;
+	var1=p1;
+	const ppl7::WideString &p2=var1;
+	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+}
+
+
 } // EOF namespace
