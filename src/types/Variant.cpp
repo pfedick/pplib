@@ -995,112 +995,112 @@ bool NewVariant::isPointer() const
 
 const String& NewVariant::toString() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_STRING) throw TypeConversionException();
 	return *static_cast<String *>(value);
 }
 
 String& NewVariant::toString()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_STRING) throw TypeConversionException();
 	return *static_cast<String *>(value);
 }
 
 const WideString& NewVariant::toWideString() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
 	return *static_cast<WideString *>(value);
 }
 
 WideString& NewVariant::toWideString()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
 	return *static_cast<WideString *>(value);
 }
 
 const Array& NewVariant::toArray() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ARRAY) throw TypeConversionException();
 	return *static_cast<Array *>(value);
 }
 
 Array& NewVariant::toArray()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ARRAY) throw TypeConversionException();
 	return *static_cast<Array *>(value);
 }
 
 const AssocArray& NewVariant::toAssocArray() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
 	return *static_cast<AssocArray *>(value);
 }
 
 AssocArray& NewVariant::toAssocArray()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
 	return *static_cast<AssocArray *>(value);
 }
 
 const ByteArray& NewVariant::toByteArray() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArray *>(value);
 }
 
 ByteArray& NewVariant::toByteArray()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArray *>(value);
 }
 
 const ByteArrayPtr& NewVariant::toByteArrayPtr() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArrayPtr *>(value);
 }
 
 ByteArrayPtr& NewVariant::toByteArrayPtr()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArrayPtr *>(value);
 }
 
 const DateTime& NewVariant::toDateTime() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_DATETIME) throw TypeConversionException();
 	return *static_cast<DateTime *>(value);
 }
 
 DateTime& NewVariant::toDateTime()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_DATETIME) throw TypeConversionException();
 	return *static_cast<DateTime *>(value);
 }
 
 const Pointer& NewVariant::toPointer() const
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_POINTER) throw TypeConversionException();
 	return *static_cast<Pointer *>(value);
 }
 
 Pointer& NewVariant::toPointer()
 {
-	if (!value) throw NullPointerException();
+	if (!value) throw EmptyDataException();
 	if (t!=TYPE_POINTER) throw TypeConversionException();
 	return *static_cast<Pointer *>(value);
 }

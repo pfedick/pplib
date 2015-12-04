@@ -62,7 +62,7 @@ TEST_F(VariantTest, ConstructorWithoutParam) {
 			ASSERT_EQ(ppl7::NewVariant::TYPE_UNKNOWN,var1.type()) << "Variant has unexcpected type";
 			ASSERT_THROW({
 				ppl7::String s1=var1.toString();
-			},ppl7::TypeConversionException);
+			},ppl7::EmptyDataException);
 	}
 	);
 }
