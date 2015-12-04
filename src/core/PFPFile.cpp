@@ -883,7 +883,6 @@ void PFPFile::deleteChunk(const String &chunkname)
 	}
 	Iterator it;
 	PFPChunk *chunk;
-	int ret=0;
 	while ((chunk=findFirstChunk(it,s))) {
 		Chunks.erase(chunk);
 		delete chunk;
