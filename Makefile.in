@@ -102,6 +102,7 @@ RELEASE	= release/AVLTree.o \
 	release/type_Pointer.o \
 	release/type_String.o \
 	release/type_Variant.o \
+	release/type_VariantOld.o \
 	release/type_WideString.o \
 	release/crc32.o \
 	release/md5.o \
@@ -205,6 +206,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/type_Pointer.o \
 	debug/type_String.o \
 	debug/type_Variant.o \
+	debug/type_VariantOld.o \
 	debug/type_WideString.o \
 	debug/crc32.o \
 	debug/md5.o \
@@ -308,6 +310,7 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/type_Pointer.o \
 	coverage/type_String.o \
 	coverage/type_Variant.o \
+	coverage/type_VariantOld.o \
 	coverage/type_WideString.o \
 	coverage/crc32.o \
 	coverage/md5.o \
@@ -700,6 +703,11 @@ release/type_Variant.o:	$(srcdir)/types/Variant.cpp $(incdir)/ppl7.h $(incdir)/p
 	###############################################################################
 	# Compiling >>>types/Variant.cpp<<<
 	$(CXX) -Wall -O2 -o release/type_Variant.o -c $(srcdir)/types/Variant.cpp $(CFLAGS) 
+
+release/type_VariantOld.o:	$(srcdir)/types/VariantOld.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
+	###############################################################################
+	# Compiling >>>types/VariantOld.cpp<<<
+	$(CXX) -Wall -O2 -o release/type_VariantOld.o -c $(srcdir)/types/VariantOld.cpp $(CFLAGS) 
 
 release/type_WideString.o:	$(srcdir)/types/WideString.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
@@ -1271,6 +1279,11 @@ debug/type_Variant.o:	$(srcdir)/types/Variant.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>types/Variant.cpp<<<
 	$(CXX) -Wall -O -o debug/type_Variant.o -c $(srcdir)/types/Variant.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/type_VariantOld.o:	$(srcdir)/types/VariantOld.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
+	###############################################################################
+	# Compiling >>>types/VariantOld.cpp<<<
+	$(CXX) -Wall -O -o debug/type_VariantOld.o -c $(srcdir)/types/VariantOld.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/type_WideString.o:	$(srcdir)/types/WideString.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
 	# Compiling >>>types/WideString.cpp<<<
@@ -1838,6 +1851,11 @@ coverage/type_Variant.o:	$(srcdir)/types/Variant.cpp $(incdir)/ppl7.h $(incdir)/
 	###############################################################################
 	# Compiling >>>types/Variant.cpp<<<
 	$(CXX) -Wall -o coverage/type_Variant.o -c $(srcdir)/types/Variant.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/type_VariantOld.o:	$(srcdir)/types/VariantOld.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
+	###############################################################################
+	# Compiling >>>types/VariantOld.cpp<<<
+	$(CXX) -Wall -o coverage/type_VariantOld.o -c $(srcdir)/types/VariantOld.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/type_WideString.o:	$(srcdir)/types/WideString.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
