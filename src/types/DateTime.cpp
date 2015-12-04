@@ -727,6 +727,7 @@ String DateTime::get(const String &format) const
 		throw OutOfMemoryException();
 	}
 	if (::strftime(b, size,(const char*)r, &t)==0) {
+		free(b);
 		throw IllegalArgumentException("DateTime::get(\"%s\")",(const char*)r);
 	}
 	r.set(b);
