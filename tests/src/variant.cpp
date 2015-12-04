@@ -562,8 +562,8 @@ TEST_F(VariantTest, toByteArray) {
 	ppl7::String p1a("Hello World");
 	ppl7::ByteArray p1=ppl7::Random(2048);
 	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	const ppl7::NewVariant var2;
+	const ppl7::NewVariant var3(p1a);
 	const ppl7::ByteArray &p2=var1.toByteArray();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 
