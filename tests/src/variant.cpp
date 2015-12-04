@@ -72,6 +72,8 @@ TEST_F(VariantTest, TestWithString) {
 	ASSERT_NO_THROW({
 			ppl7::NewVariant var1(s1);
 			ppl7::NewVariant var2(var1);
+			ppl7::NewVariant *var3=new ppl7::NewVariant(var1);
+			delete var3;
 			ASSERT_EQ(ppl7::NewVariant::TYPE_STRING,var2.type()) << "Variant has unexcpected type";
 			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
 			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
