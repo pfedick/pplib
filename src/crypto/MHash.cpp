@@ -166,7 +166,7 @@ patrick@server: ./ppltest
  * Informationstechnik zur Bestimmung eines Prüfwerts für Daten (z. B.
  * Datenübertragung in Rechnernetzen oder eine Datei), um Fehler bei der Übertragung
  * oder Duplizierung von Daten erkennen zu können. Diese Klasse unterstützt zwei
- * Varianten des Algorithmus: MHash::Algo_CRC32 (wird im Netzwerkbereich verwendet)
+ * NewVarianten des Algorithmus: MHash::Algo_CRC32 (wird im Netzwerkbereich verwendet)
  * und MHash::Algo_CRC32B (wird z.B. in ZIP Programmen verwendet).
  */
 
@@ -232,13 +232,13 @@ patrick@server: ./ppltest
 
 /*!\var MHash::Algorithm MHash::Algo_SHA256
  * Das NIST (National Institute of Standards and Technology) hat im August 2002 drei
- * weitere Varianten des Algorithmus veröffentlicht, die größere Hash-Werte als SHA1
+ * weitere NewVarianten des Algorithmus veröffentlicht, die größere Hash-Werte als SHA1
  * erzeugen. Es handelt sich dabei um den SHA-256, SHA-384 und SHA-512 wobei die
  * angefügte Zahl jeweils die Länge des Hash-Werts (in Bit) angibt.
  * Mit SHA-384 und SHA-512 können (theoretisch) Daten bis zu einer Größe von
  * \f$ 2^{128} \f$ Bit verarbeitet werden. In der Praxis sind Dateien mit mehr
  * als \f$ 2^{64} \f$ Bit jedoch unrealistisch. Im Februar 2004 wurde eine weitere
- * Version, SHA-224, veröffentlicht. Die 4 Varianten werden zusammenfassend als
+ * Version, SHA-224, veröffentlicht. Die 4 NewVarianten werden zusammenfassend als
  * SHA-2 bezeichnet.
  */
 
@@ -567,7 +567,7 @@ int MHash::getBlockSize() const
 #endif
 }
 
-void MHash::saveDigest(Variant &result)
+void MHash::saveDigest(NewVariant &result)
 /*!\brief Ergebnis speichern
  *
  * \descr
@@ -584,7 +584,7 @@ void MHash::saveDigest(Variant &result)
  * Das Ergebnis der Algorithmen, die einen 32-Bit Wert zurückliefern (z.B. Algo_CRC32), kann
  * auch mittles der Funktion MHash::getInt() ausgelesen werden.
  *
- * @param[out] result Ein von Variant abgeleitetes Objekt, in dem das Ergebnis abgelegt werden
+ * @param[out] result Ein von NewVariant abgeleitetes Objekt, in dem das Ergebnis abgelegt werden
  * soll. Unterstützt werden ByteArray, String und WideString. Der vorherige Inhalt
  * des Objekts wird überschrieben.
  *
@@ -615,17 +615,17 @@ void MHash::saveDigest(Variant &result)
 	// Bereit machen, für nächste Hash-Berechnung
 	setAlgorithm(algo);
 	// Nun schauen wir mal, worin wir das Ergebnis speichern sollen
-	int type=result.dataType();
-	if (type==Variant::BYTEARRAY) {
-		ByteArray &bin=static_cast<ByteArray&>(result);
+	int type=result.type();
+	if (type==NewVariant::TYPE_BYTEARRAY) {
+		ByteArray &bin=result.toByteArray();
 		bin.clear();
 		bin.copy(buffer,blocksize);
-	} else if (type==Variant::STRING) {
-		String &str=static_cast<String&>(result);
+	} else if (type==NewVariant::TYPE_STRING) {
+		String &str=result.toString();
 		str.clear();
 		for(int i=0;i<blocksize;i++) str.appendf("%02x",buffer[i]);
-	} else if (type==Variant::WIDESTRING) {
-		WideString &str=static_cast<WideString&>(result);
+	} else if (type==NewVariant::TYPE_WIDESTRING) {
+		WideString &str=result.toWideString();
 		str.clear();
 		for(int i=0;i<blocksize;i++) str.appendf("%02x",buffer[i]);
 	} else {
@@ -658,9 +658,10 @@ void MHash::saveDigest(Variant &result)
  */
 ByteArray MHash::getDigest()
 {
-	ByteArray res;
+	ByteArray var;
+	NewVariant res(var);
 	saveDigest(res);
-	return res;
+	return res.toByteArray();
 }
 
 int MHash::getInt()
@@ -732,15 +733,15 @@ void MHash::addData(const void *data, size_t size)
 #endif
 }
 
-void MHash::addData(const Variant &data)
+void MHash::addData(const NewVariant &data)
 /*!\brief Daten-Objekt zur Berechnung hinzufügen
  *
  * \descr
- * Mit dieser Funktion wird der Inhalt eines von Variant-Abgeleiteten Objekts zur Berechnung
+ * Mit dieser Funktion wird der Inhalt eines von NewVariant-Abgeleiteten Objekts zur Berechnung
  * des Hash-Wertes übergeben. Die Funktion kann beliebig oft aufgerufen werden, jeder
  * neue Datenblock wird dem Hash-Wert hinzugefügt.
  *
- * @param data Ein von Variant abgeleitetes Objekt. Derzeit werden String, WideString,
+ * @param data Ein von NewVariant abgeleitetes Objekt. Derzeit werden String, WideString,
  * ByteArray und ByteArrayPtr unterstützt.
  *
  * @throws UnsupportedFeatureException
@@ -750,14 +751,14 @@ void MHash::addData(const Variant &data)
  *
  */
 {
-	int type=data.dataType();
-	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+	int type=data.type();
+	if (type==NewVariant::TYPE_BYTEARRAY || type==NewVariant::TYPE_BYTEARRAYPTR) {
 		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(data);
 		addData(bin.ptr(),bin.size());
-	} else if (type==Variant::STRING) {
+	} else if (type==NewVariant::TYPE_STRING) {
 		const String &str=static_cast<const String&>(data);
 		addData(str.getPtr(),str.size());
-	} else if (type==Variant::WIDESTRING) {
+	} else if (type==NewVariant::TYPE_WIDESTRING) {
 		const WideString &wstr=static_cast<const WideString&>(data);
 		addData(wstr.getPtr(),wstr.size());
 	} else {
@@ -840,7 +841,7 @@ void MHash::addData(FileObject &file)
 #endif
 }
 
-ByteArray MHash::hash(const Variant &data, Algorithm algorithm)
+ByteArray MHash::hash(const NewVariant &data, Algorithm algorithm)
 /*!\ingroup PPL7_CRYPT
  * \brief Hash-Wert mit einem beliebigen Algorithmus berechnen.
  *
@@ -893,14 +894,14 @@ ByteArray MHash::hash(const Variant &data, Algorithm algorithm)
  * @throws EmptyDataException Es wurden noch keine Daten gehasht
  * @throws UnsupportedDataTypeException
  */
-ByteArray MHash::hash(const Variant &data, const String &algo)
+ByteArray MHash::hash(const NewVariant &data, const String &algo)
 {
 	MHash MH(MHash::getAlgorithmFromName(algo));
 	MH.addData(data);
 	return MH.getDigest();
 }
 
-int MHash::crc32(const Variant &data)
+int MHash::crc32(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief CRC32-Summe berechnen, wie sie im Netzwerkbereich verwendet wird
  *
@@ -922,7 +923,7 @@ int MHash::crc32(const Variant &data)
 	return MH.getInt();
 }
 
-int MHash::crc32b(const Variant &data)
+int MHash::crc32b(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief CRC32-Summe berechnen, wie sie im ZIP-Programmen verwendet wird
  *
@@ -944,7 +945,7 @@ int MHash::crc32b(const Variant &data)
 	return MH.getInt();
 }
 
-int MHash::adler32(const Variant &data)
+int MHash::adler32(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief Adler32-Summe berechnen
  *
@@ -967,7 +968,7 @@ int MHash::adler32(const Variant &data)
 }
 
 
-ByteArray MHash::md4(const Variant &data)
+ByteArray MHash::md4(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief MD4-Hash berechnen
  *
@@ -988,7 +989,7 @@ ByteArray MHash::md4(const Variant &data)
 	return MHash::hash(data,Algo_MD4);
 }
 
-ByteArray MHash::md5(const Variant &data)
+ByteArray MHash::md5(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief MD5-Hash berechnen
  *
@@ -1009,7 +1010,7 @@ ByteArray MHash::md5(const Variant &data)
 	return MHash::hash(data,Algo_MD5);
 }
 
-ByteArray MHash::sha1(const Variant &data)
+ByteArray MHash::sha1(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA1-Hash berechnen
  *
@@ -1035,7 +1036,7 @@ ByteArray MHash::sha1(const Variant &data)
 	return MHash::hash(data,Algo_SHA1);
 }
 
-ByteArray MHash::sha224(const Variant &data)
+ByteArray MHash::sha224(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA224-Hash berechnen
  *
@@ -1061,7 +1062,7 @@ ByteArray MHash::sha224(const Variant &data)
 	return MHash::hash(data,Algo_SHA224);
 }
 
-ByteArray MHash::sha256(const Variant &data)
+ByteArray MHash::sha256(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA256-Hash berechnen
  *
@@ -1087,7 +1088,7 @@ ByteArray MHash::sha256(const Variant &data)
 	return MHash::hash(data,Algo_SHA256);
 }
 
-ByteArray MHash::sha384(const Variant &data)
+ByteArray MHash::sha384(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA384-Hash berechnen
  *
@@ -1113,7 +1114,7 @@ ByteArray MHash::sha384(const Variant &data)
 	return MHash::hash(data,Algo_SHA384);
 }
 
-ByteArray MHash::sha512(const Variant &data)
+ByteArray MHash::sha512(const NewVariant &data)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA512-Hash berechnen
  *
@@ -1139,7 +1140,7 @@ ByteArray MHash::sha512(const Variant &data)
 	return MHash::hash(data,Algo_SHA512);
 }
 
-ByteArray MHash::sha2(const Variant &data, Bits bits)
+ByteArray MHash::sha2(const NewVariant &data, Bits bits)
 /*!\ingroup PPL7_CRYPT
  * \brief SHA2-Hash berechnen
  *

@@ -212,16 +212,16 @@ void Digest::addData(const void *data, size_t size)
 #endif
 }
 
-void Digest::addData(const Variant &data)
+void Digest::addData(const NewVariant &data)
 {
-	int type=data.dataType();
-	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+	int type=data.type();
+	if (type==NewVariant::TYPE_BYTEARRAY || type==NewVariant::TYPE_BYTEARRAYPTR) {
 		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(data);
 		addData(bin.ptr(),bin.size());
-	} else if (type==Variant::STRING) {
+	} else if (type==NewVariant::TYPE_STRING) {
 		const String &str=static_cast<const String&>(data);
 		addData(str.getPtr(),str.size());
-	} else if (type==Variant::WIDESTRING) {
+	} else if (type==NewVariant::TYPE_WIDESTRING) {
 		const WideString &wstr=static_cast<const WideString&>(data);
 		addData(wstr.getPtr(),wstr.size());
 	} else {
@@ -270,21 +270,21 @@ ppluint64 Digest::bytesHashed() const
 	return bytecount;
 }
 
-void Digest::saveDigest(Variant &result)
+void Digest::saveDigest(NewVariant &result)
 {
 #ifndef HAVE_OPENSSL
 	throw UnsupportedFeatureException("OpenSSL");
 #else
 	ByteArray ba=getDigest();
-	int type=result.dataType();
-	if (type==Variant::BYTEARRAY) {
-		ByteArray &bin=static_cast<ByteArray&>(result);
+	int type=result.type();
+	if (type==NewVariant::TYPE_BYTEARRAY) {
+		ByteArray &bin=result.toByteArray();
 		bin=ba;
-	} else if (type==Variant::STRING) {
-		String &str=static_cast<String&>(result);
+	} else if (type==NewVariant::TYPE_STRING) {
+		String &str=result.toString();
 		str=ba.toHex();
-	} else if (type==Variant::WIDESTRING) {
-		WideString &str=static_cast<WideString&>(result);
+	} else if (type==NewVariant::TYPE_WIDESTRING) {
+		WideString &str=result.toWideString();
 		str=ba.toHex();
 	} else {
 		throw UnsupportedDataTypeException();
@@ -324,56 +324,56 @@ void Digest::reset()
 }
 
 
-ByteArray Digest::hash(const Variant &data, Algorithm algorithm)
+ByteArray Digest::hash(const NewVariant &data, Algorithm algorithm)
 {
 	Digest dig(algorithm);
 	dig.addData(data);
 	return dig.getDigest();
 }
 
-ByteArray Digest::hash(const Variant &data, const String &name)
+ByteArray Digest::hash(const NewVariant &data, const String &name)
 {
 	Digest dig(name);
 	dig.addData(data);
 	return dig.getDigest();
 }
 
-ByteArray Digest::md4(const Variant &data)
+ByteArray Digest::md4(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_MD4);
 }
 
-ByteArray Digest::md5(const Variant &data)
+ByteArray Digest::md5(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_MD5);
 }
 
-ByteArray Digest::sha1(const Variant &data)
+ByteArray Digest::sha1(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_SHA1);
 }
 
-ByteArray Digest::sha224(const Variant &data)
+ByteArray Digest::sha224(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_SHA224);
 }
 
-ByteArray Digest::sha256(const Variant &data)
+ByteArray Digest::sha256(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_SHA256);
 }
 
-ByteArray Digest::sha384(const Variant &data)
+ByteArray Digest::sha384(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_SHA384);
 }
 
-ByteArray Digest::sha512(const Variant &data)
+ByteArray Digest::sha512(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_SHA512);
 }
 
-ByteArray Digest::ecdsa(const Variant &data)
+ByteArray Digest::ecdsa(const NewVariant &data)
 {
 	return Digest::hash(data,Algo_ECDSA);
 }

@@ -156,7 +156,7 @@ entschluesselt:
  * Zufallsdaten gefüllt haben.
  * \par
  * Alternativ können auch die statischen Funktionen der Klasse verwendet werden. Ein Beispiel
- * dazu ist \ref MCrypt::crypt(ByteArrayPtr &, const Variant &, const Variant &, Algorithm, Mode) "hier" zu finden.
+ * dazu ist \ref MCrypt::crypt(ByteArrayPtr &, const NewVariant &, const NewVariant &, Algorithm, Mode) "hier" zu finden.
  */
 
 /*!\var MCrypt::mcrypt
@@ -685,7 +685,7 @@ void MCrypt::setIV(const void *buffer, size_t size)
 	IV.copy(buffer,size);
 }
 
-void MCrypt::setIV(const Variant &object)
+void MCrypt::setIV(const NewVariant &object)
 /*!\brief Initialization Vector (IV) setzen
  *
  * \descr
@@ -729,14 +729,14 @@ void MCrypt::setIV(const Variant &object)
  * vorher mit MCrypt::GetIVSize abzufragen und dann mit dieser Funktion einen passenden Wert zu setzen.
  */
 {
-	int type=object.dataType();
-	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+	int type=object.type();
+	if (type==NewVariant::TYPE_BYTEARRAY || type==NewVariant::TYPE_BYTEARRAYPTR) {
 		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(object);
 		IV.copy(bin);
-	} else if (type==Variant::STRING) {
+	} else if (type==NewVariant::TYPE_STRING) {
 		const String &str=static_cast<const String&>(object);
 		IV.copy(str.getPtr(),str.size());
-	} else if (type==Variant::WIDESTRING) {
+	} else if (type==NewVariant::TYPE_WIDESTRING) {
 		const WideString &str=static_cast<const WideString&>(object);
 		IV.copy(str.getPtr(),str.size());
 	} else {
@@ -770,7 +770,7 @@ void MCrypt::setKey(const void *buffer, size_t size)
 	Key.copy(buffer,size);
 }
 
-void MCrypt::setKey(const Variant &object)
+void MCrypt::setKey(const NewVariant &object)
 /*!\brief Schlüssel festlegen
  *
  * \descr
@@ -792,14 +792,14 @@ void MCrypt::setKey(const Variant &object)
  *
  */
 {
-	int type=object.dataType();
-	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+	int type=object.type();
+	if (type==NewVariant::TYPE_BYTEARRAY || type==NewVariant::TYPE_BYTEARRAYPTR) {
 		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(object);
 		Key.copy(bin);
-	} else if (type==Variant::STRING) {
+	} else if (type==NewVariant::TYPE_STRING) {
 		const String &str=static_cast<const String&>(object);
 		Key.copy(str.getPtr(),str.size());
-	} else if (type==Variant::WIDESTRING) {
+	} else if (type==NewVariant::TYPE_WIDESTRING) {
 		const WideString &str=static_cast<const WideString&>(object);
 		Key.copy(str.getPtr(),str.size());
 	} else {
@@ -873,7 +873,7 @@ void MCrypt::crypt(void *buffer, size_t size)
 	crypt(bin);
 }
 
-void MCrypt::crypt(const Variant &in, ByteArray &out)
+void MCrypt::crypt(const NewVariant &in, ByteArray &out)
 /*!\brief Verschlüsseln eines Objekts
  *
  * \descr
@@ -895,14 +895,14 @@ void MCrypt::crypt(const Variant &in, ByteArray &out)
  * (siehe MCrypt::SetKey) angegeben worden sein.
  */
 {
-	int type=in.dataType();
-	if (type==Variant::BYTEARRAY || type==Variant::BYTEARRAYPTR) {
+	int type=in.type();
+	if (type==NewVariant::TYPE_BYTEARRAY || type==NewVariant::TYPE_BYTEARRAYPTR) {
 		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(in);
 		out.copy(bin);
-	} else if (type==Variant::STRING) {
+	} else if (type==NewVariant::TYPE_STRING) {
 		const String &str=static_cast<const String&>(in);
 		out.copy(str.getPtr(),str.size());
-	} else if (type==Variant::WIDESTRING) {
+	} else if (type==NewVariant::TYPE_WIDESTRING) {
 		const WideString &str=static_cast<const WideString&>(in);
 		out.copy(str.getPtr(),str.size());
 	} else {
@@ -1081,7 +1081,7 @@ void MCrypt::decrypt(ByteArrayPtr &buffer)
 #endif
 }
 
-void MCrypt::crypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode)
+void MCrypt::crypt(ByteArrayPtr &buffer, const NewVariant &key, const NewVariant &IV, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten verschlüsseln
  *
@@ -1135,7 +1135,7 @@ bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
 	MC.crypt(buffer);
 }
 
-void MCrypt::crypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode)
+void MCrypt::crypt(ByteArrayPtr &buffer, const NewVariant &key, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten verschlüsseln
  *
@@ -1185,7 +1185,7 @@ bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
 }
 
 
-void MCrypt::decrypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode)
+void MCrypt::decrypt(ByteArrayPtr &buffer, const NewVariant &key, const NewVariant &IV, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten entschlüsseln
  *
@@ -1238,7 +1238,7 @@ bin.HexDump();						// Inhalt des Objekts nach der Entschlüsselung
 	MC.decrypt(buffer);
 }
 
-void MCrypt::decrypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode)
+void MCrypt::decrypt(ByteArrayPtr &buffer, const NewVariant &key, Algorithm algo, Mode mode)
 /*!\ingroup PPL7_CRYPT
  * \brief Daten entschlüsseln
  *
