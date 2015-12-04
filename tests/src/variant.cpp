@@ -596,12 +596,20 @@ TEST_F(VariantTest, toByteArray) {
 	ppl7::NewVariant var2;
 	ppl7::NewVariant var3(p1a);
 	ppl7::ByteArray &p2=var1.toByteArray();
+	ppl7::ByteArrayPtr &p4=var1.toByteArrayPtr();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+	ASSERT_EQ(p1,p4) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		ppl7::ByteArray s3=var2.toByteArray();
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
+		ppl7::ByteArrayPtr s3=var2.toByteArrayPtr();
+	},ppl7::EmptyDataException);
+	ASSERT_THROW({
 		ppl7::ByteArray s3=var3.toByteArray();
+	},ppl7::TypeConversionException);
+	ASSERT_THROW({
+		ppl7::ByteArrayPtr s3=var3.toByteArrayPtr();
 	},ppl7::TypeConversionException);
 }
 
@@ -612,13 +620,23 @@ TEST_F(VariantTest, toByteArrayConst) {
 	const ppl7::NewVariant var2;
 	const ppl7::NewVariant var3(p1a);
 	const ppl7::ByteArray &p2=var1.toByteArray();
+	const ppl7::ByteArrayPtr &p4=var1.toByteArrayPtr();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
+	ASSERT_EQ(p1,p4) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::ByteArray &s3=var2.toByteArray();
 		ASSERT_TRUE(s3.isString());
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
+		const ppl7::ByteArrayPtr &s3=var2.toByteArrayPtr();
+		ASSERT_TRUE(s3.isString());
+	},ppl7::EmptyDataException);
+	ASSERT_THROW({
 		const ppl7::ByteArray &s3=var3.toByteArray();
+		ASSERT_TRUE(s3.isString());
+	},ppl7::TypeConversionException);
+	ASSERT_THROW({
+		const ppl7::ByteArrayPtr &s3=var3.toByteArrayPtr();
 		ASSERT_TRUE(s3.isString());
 	},ppl7::TypeConversionException);
 }
