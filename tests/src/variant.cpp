@@ -252,6 +252,12 @@ TEST_F(VariantTest, TestWithPointer) {
 }
 
 
+TEST_F(VariantTest, TestSetWithEmptyVariant) {
+	ppl7::NewVariant var1;
+	ppl7::NewVariant var2;
+	var2.set(var1);
+	ASSERT_EQ(ppl7::NewVariant::TYPE_UNKNOWN,var2.type()) << "Variant has unexcpected type";
+}
 
 
 } // EOF namespace
