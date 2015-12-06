@@ -160,18 +160,33 @@ void Machwas(const Variant &object)
  * \brief Pointer auf den Inhalt des Datentyps
  */
 
-
+/*!\brief Konstruktor der Klasse
+ *
+ * \desc
+ * Der Konstruktor initialisiert den Typ der Klasse mit Variant::TYPE_UNKNOWN.
+ * Es ist aufgabe der abgeleiteten Klasse den korrekten Datentyp zu setzen.
+ */
 Variant::Variant()
 {
 	value=NULL;
 	t=TYPE_UNKNOWN;
 }
 
+/*!\brief Destruktor
+ *
+ * \desc
+ * Gibt den durch das Objekt belegten Speicher wieder frei.
+ */
 Variant::~Variant()
 {
 	clear();
 }
 
+/*!\brief Copy-Konstruktor der Klasse
+ *
+ * \desc
+ * Der Inhalt des anderen Variant-Objekts \p value wird kopiert.
+ */
 Variant::Variant(const Variant &value)
 {
 	this->value=NULL;
@@ -179,6 +194,12 @@ Variant::Variant(const Variant &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp String
+ *
+ * Der Inhalt des Strings \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const String &value)
 {
 	this->value=NULL;
@@ -186,6 +207,12 @@ Variant::Variant(const String &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp WideString
+ *
+ * Der Inhalt des WideStrings \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const WideString &value)
 {
 	this->value=NULL;
@@ -193,6 +220,12 @@ Variant::Variant(const WideString &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp Array
+ *
+ * Der Inhalt des Arrays \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const Array &value)
 {
 	this->value=NULL;
@@ -200,6 +233,12 @@ Variant::Variant(const Array &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp AssocArray
+ *
+ * Der Inhalt des AssocArrays \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const AssocArray &value)
 {
 	this->value=NULL;
@@ -207,6 +246,12 @@ Variant::Variant(const AssocArray &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp ByteArray
+ *
+ * Der Inhalt des ByteArrays \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const ByteArray &value)
 {
 	this->value=NULL;
@@ -214,6 +259,12 @@ Variant::Variant(const ByteArray &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp ByteArrayPtr
+ *
+ * Der Inhalt des ByteArrayPtrs \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const ByteArrayPtr &value)
 {
 	this->value=NULL;
@@ -221,6 +272,12 @@ Variant::Variant(const ByteArrayPtr &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp DateTime
+ *
+ * Der Inhalt des DateTimes \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const DateTime &value)
 {
 	this->value=NULL;
@@ -228,6 +285,12 @@ Variant::Variant(const DateTime &value)
 	set(value);
 }
 
+/*!\brief Konstruktor mit Datentyp Pointer
+ *
+ * Der Inhalt des Pointers \p value wird kopiert.
+ *
+ * @param value
+ */
 Variant::Variant(const Pointer &value)
 {
 	this->value=NULL;
@@ -235,6 +298,12 @@ Variant::Variant(const Pointer &value)
 	set(value);
 }
 
+/*!\brief Inhalt des Objekts löschen
+ *
+ * \desc
+ * Der im Objekte gespeicherte Datentyp wird gelöscht und sein Speicher
+ * freigegeben.
+ */
 void Variant::clear()
 {
 	if (!value) return;
@@ -271,6 +340,13 @@ void Variant::clear()
 	t=TYPE_UNKNOWN;
 }
 
+/*!\brief Wert eines anderen Variant kopieren
+ *
+ * \desc
+ * Der Wert des anderen Variant \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const Variant &value)
 {
 	clear();
@@ -313,6 +389,13 @@ void Variant::set(const Variant &value)
 	}
 }
 
+/*!\brief Der Wert eines String wird übernommen.
+ *
+ * \desc
+ * Der Wert des Strings \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const String &value)
 {
 	clear();
@@ -320,6 +403,13 @@ void Variant::set(const String &value)
 	t=TYPE_STRING;
 }
 
+/*!\brief Der Wert eines WideString wird übernommen.
+ *
+ * \desc
+ * Der Wert des WideStrings \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const WideString &value)
 {
 	clear();
@@ -327,6 +417,13 @@ void Variant::set(const WideString &value)
 	t=TYPE_WIDESTRING;
 }
 
+/*!\brief Der Wert eines Array wird übernommen.
+ *
+ * \desc
+ * Der Wert des Arrays \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const Array &value)
 {
 	clear();
@@ -334,6 +431,13 @@ void Variant::set(const Array &value)
 	t=TYPE_ARRAY;
 }
 
+/*!\brief Der Wert eines AssocArray wird übernommen.
+ *
+ * \desc
+ * Der Wert des AssocArrays \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const AssocArray &value)
 {
 	clear();
@@ -341,6 +445,13 @@ void Variant::set(const AssocArray &value)
 	t=TYPE_ASSOCARRAY;
 }
 
+/*!\brief Der Wert eines ByteArray wird übernommen.
+ *
+ * \desc
+ * Der Wert des ByteArrays \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const ByteArray &value)
 {
 	clear();
@@ -348,6 +459,13 @@ void Variant::set(const ByteArray &value)
 	t=TYPE_BYTEARRAY;
 }
 
+/*!\brief Der Wert eines ByteArrayPtr wird übernommen.
+ *
+ * \desc
+ * Der Wert des ByteArrayPtrs \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const ByteArrayPtr &value)
 {
 	clear();
@@ -355,6 +473,13 @@ void Variant::set(const ByteArrayPtr &value)
 	t=TYPE_BYTEARRAYPTR;
 }
 
+/*!\brief Der Wert eines DateTime wird übernommen.
+ *
+ * \desc
+ * Der Wert des DateTimes \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const DateTime &value)
 {
 	clear();
@@ -362,6 +487,13 @@ void Variant::set(const DateTime &value)
 	t=TYPE_DATETIME;
 }
 
+/*!\brief Der Wert eines Pointer wird übernommen.
+ *
+ * \desc
+ * Der Wert des Pointers \p value wird kopiert.
+ *
+ * \param value
+ */
 void Variant::set(const Pointer &value)
 {
 	clear();
@@ -373,6 +505,7 @@ void Variant::set(const Pointer &value)
  *
  * \desc
  * Diese Funktion liefert den Datentyp des Objekts zurück.
+ *
  * @return ID aus der Enumeration Variant::DataType
  */
 Variant::DataType Variant::type() const
@@ -385,7 +518,7 @@ Variant::DataType Variant::type() const
  * \desc
  * Prüft, ob es sich bei diesem Objekt um den Datentyp \p type handelt.
  *
- * @param type Zu überprüfender Typ. Wert aus der Enumerationr Variant::Type
+ * @param type Zu überprüfender Typ. Wert aus der Enumerationr Variant::DataType
  * @return Liefert \c true zurück, wenn es sich um den angegebenen Datentyp \p type handelt,
  * sonst \c false.
  */
@@ -500,7 +633,17 @@ bool Variant::isPointer() const
 	return false;
 }
 
-
+/*!\brief Typkonvertierung zu: const String
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+ * String zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf String
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const String& Variant::toString() const
 {
 	if (!value) throw EmptyDataException();
@@ -508,6 +651,17 @@ const String& Variant::toString() const
 	return *static_cast<String *>(value);
 }
 
+/*!\brief Typkonvertierung zu: String
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+ * String zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf String
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 String& Variant::toString()
 {
 	if (!value) throw EmptyDataException();
@@ -515,6 +669,17 @@ String& Variant::toString()
 	return *static_cast<String *>(value);
 }
 
+/*!\brief Typkonvertierung zu: const WideString
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+ * WideString zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf WideString
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const WideString& Variant::toWideString() const
 {
 	if (!value) throw EmptyDataException();
@@ -522,6 +687,17 @@ const WideString& Variant::toWideString() const
 	return *static_cast<WideString *>(value);
 }
 
+/*!\brief Typkonvertierung zu: WideString
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+ * WideString zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf WideString
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 WideString& Variant::toWideString()
 {
 	if (!value) throw EmptyDataException();
@@ -529,6 +705,17 @@ WideString& Variant::toWideString()
 	return *static_cast<WideString *>(value);
 }
 
+/*!\brief Typkonvertierung zu: const Array
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf das gespeicherten
+ * Array zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf Array
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein Array handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const Array& Variant::toArray() const
 {
 	if (!value) throw EmptyDataException();
@@ -536,6 +723,17 @@ const Array& Variant::toArray() const
 	return *static_cast<Array *>(value);
 }
 
+/*!\brief Typkonvertierung zu: Array
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine Referenz auf das gespeicherten
+ * Array zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf Array
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein Array handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 Array& Variant::toArray()
 {
 	if (!value) throw EmptyDataException();
@@ -543,6 +741,17 @@ Array& Variant::toArray()
 	return *static_cast<Array *>(value);
 }
 
+/*!\brief Typkonvertierung zu: const AssocArray
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf das gespeicherten
+ * AssocArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf AssocArray
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein AssocArray handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const AssocArray& Variant::toAssocArray() const
 {
 	if (!value) throw EmptyDataException();
@@ -550,6 +759,17 @@ const AssocArray& Variant::toAssocArray() const
 	return *static_cast<AssocArray *>(value);
 }
 
+/*!\brief Typkonvertierung zu: AssocArray
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine Referenz auf das gespeicherten
+ * AssocArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf AssocArray
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein AssocArray handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 AssocArray& Variant::toAssocArray()
 {
 	if (!value) throw EmptyDataException();
@@ -557,6 +777,17 @@ AssocArray& Variant::toAssocArray()
 	return *static_cast<AssocArray *>(value);
 }
 
+/*!\brief Typkonvertierung zu: const ByteArray
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf das gespeicherten
+ * ByteArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf ByteArray
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein ByteArray handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const ByteArray& Variant::toByteArray() const
 {
 	if (!value) throw EmptyDataException();
@@ -564,6 +795,17 @@ const ByteArray& Variant::toByteArray() const
 	return *static_cast<ByteArray *>(value);
 }
 
+/*!\brief Typkonvertierung zu: ByteArray
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine Referenz auf das gespeicherten
+ * ByteArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf ByteArray
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein ByteArray handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 ByteArray& Variant::toByteArray()
 {
 	if (!value) throw EmptyDataException();
@@ -571,6 +813,17 @@ ByteArray& Variant::toByteArray()
 	return *static_cast<ByteArray *>(value);
 }
 
+/*!\brief Typkonvertierung zu: const ByteArrayPtr
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+ * ByteArrayPtr zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf ByteArrayPtr
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const ByteArrayPtr& Variant::toByteArrayPtr() const
 {
 	if (!value) throw EmptyDataException();
@@ -578,6 +831,17 @@ const ByteArrayPtr& Variant::toByteArrayPtr() const
 	return *static_cast<ByteArrayPtr *>(value);
 }
 
+/*!\brief Typkonvertierung zu: ByteArrayPtr
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+ * ByteArrayPtr zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf ByteArrayPtr
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 ByteArrayPtr& Variant::toByteArrayPtr()
 {
 	if (!value) throw EmptyDataException();
@@ -585,6 +849,17 @@ ByteArrayPtr& Variant::toByteArrayPtr()
 	return *static_cast<ByteArrayPtr *>(value);
 }
 
+/*!\brief Typkonvertierung zu: const DateTime
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+ * DateTime zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf DateTime
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen DateTime handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const DateTime& Variant::toDateTime() const
 {
 	if (!value) throw EmptyDataException();
@@ -592,6 +867,17 @@ const DateTime& Variant::toDateTime() const
 	return *static_cast<DateTime *>(value);
 }
 
+/*!\brief Typkonvertierung zu: DateTime
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+ * DateTime zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf DateTime
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen DateTime handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 DateTime& Variant::toDateTime()
 {
 	if (!value) throw EmptyDataException();
@@ -599,6 +885,17 @@ DateTime& Variant::toDateTime()
 	return *static_cast<DateTime *>(value);
 }
 
+/*!\brief Typkonvertierung zu: const Pointer
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+ * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf Pointer
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 const Pointer& Variant::toPointer() const
 {
 	if (!value) throw EmptyDataException();
@@ -606,6 +903,17 @@ const Pointer& Variant::toPointer() const
 	return *static_cast<Pointer *>(value);
 }
 
+/*!\brief Typkonvertierung zu: Pointer
+ *
+ * \desc
+ * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+ * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+ * wird eine Exception geworfen.
+ *
+ * @return Referenz auf Pointer
+ * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
+ * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+ */
 Pointer& Variant::toPointer()
 {
 	if (!value) throw EmptyDataException();
