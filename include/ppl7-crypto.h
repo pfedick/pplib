@@ -112,24 +112,24 @@ class MCrypt
 		int getIVSize() const;
 		int getMaxKeySize() const;
 		void setIV(const void *buffer, size_t size);
-		void setIV(const NewVariant &object);
+		void setIV(const Variant &object);
 		void setKey(const void *buffer, size_t size);
-		void setKey(const NewVariant &object);
+		void setKey(const Variant &object);
 		bool needIV() const;
 		//int SupportKeySize(size_t size);
 
 		void crypt(void *buffer, size_t size);
-		void crypt(const NewVariant &in, ByteArray &out);
+		void crypt(const Variant &in, ByteArray &out);
 		void crypt(ByteArrayPtr &buffer);
 
 		void decrypt(void *buffer, size_t size);
 		void decrypt(const ByteArrayPtr &in, ByteArray &out);
 		void decrypt(ByteArrayPtr &buffer);
 
-		static void crypt(ByteArrayPtr &buffer, const NewVariant &key, Algorithm algo, Mode mode);
-		static void crypt(ByteArrayPtr &buffer, const NewVariant &key, const NewVariant &IV, Algorithm algo, Mode mode);
-		static void decrypt(ByteArrayPtr &buffer, const NewVariant &key, Algorithm algo, Mode mode);
-		static void decrypt(ByteArrayPtr &buffer, const NewVariant &key, const NewVariant &IV, Algorithm algo, Mode mode);
+		static void crypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode);
+		static void crypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode);
+		static void decrypt(ByteArrayPtr &buffer, const Variant &key, Algorithm algo, Mode mode);
+		static void decrypt(ByteArrayPtr &buffer, const Variant &key, const Variant &IV, Algorithm algo, Mode mode);
 
 };
 
@@ -190,7 +190,7 @@ class MHash
 		~MHash();
 		void setAlgorithm(Algorithm algorithm);
 		void addData(const void *data, size_t size);
-		void addData(const NewVariant &data);
+		void addData(const Variant &data);
 		void addData(FileObject &file);
 		void addFile(const String &filename);
 		int getBlockSize() const;
@@ -203,19 +203,19 @@ class MHash
 
 		static Algorithm getAlgorithmFromName(const String &name);
 
-		static ByteArray hash(const NewVariant &data, Algorithm algorithm);
-		static ByteArray hash(const NewVariant &data, const String &algorithm);
-		static int crc32(const NewVariant &data);
-		static int crc32b(const NewVariant &data);
-		static int adler32(const NewVariant &data);
-		static ByteArray md4(const NewVariant &data);
-		static ByteArray md5(const NewVariant &data);
-		static ByteArray sha1(const NewVariant &data);
-		static ByteArray sha2(const NewVariant &data, Bits bits=Bits_256);
-		static ByteArray sha224(const NewVariant &data);
-		static ByteArray sha256(const NewVariant &data);
-		static ByteArray sha384(const NewVariant &data);
-		static ByteArray sha512(const NewVariant &data);
+		static ByteArray hash(const Variant &data, Algorithm algorithm);
+		static ByteArray hash(const Variant &data, const String &algorithm);
+		static int crc32(const Variant &data);
+		static int crc32b(const Variant &data);
+		static int adler32(const Variant &data);
+		static ByteArray md4(const Variant &data);
+		static ByteArray md5(const Variant &data);
+		static ByteArray sha1(const Variant &data);
+		static ByteArray sha2(const Variant &data, Bits bits=Bits_256);
+		static ByteArray sha224(const Variant &data);
+		static ByteArray sha256(const Variant &data);
+		static ByteArray sha384(const Variant &data);
+		static ByteArray sha512(const Variant &data);
 };
 
 class Digest
@@ -249,7 +249,7 @@ class Digest
 		void setAlgorithm(Algorithm algorithm);
 		void setAlgorithm(const String &name);
 		void addData(const void *data, size_t size);
-		void addData(const NewVariant &data);
+		void addData(const Variant &data);
 		void addData(FileObject &file);
 		void addFile(const String &filename);
 		ByteArray getDigest();
@@ -260,16 +260,16 @@ class Digest
 		void reset();
 		ppluint64 bytesHashed() const;
 
-		static ByteArray hash(const NewVariant &data, Algorithm algorithm);
-		static ByteArray hash(const NewVariant &data, const String &name);
-		static ByteArray md4(const NewVariant &data);
-		static ByteArray md5(const NewVariant &data);
-		static ByteArray sha1(const NewVariant &data);
-		static ByteArray sha224(const NewVariant &data);
-		static ByteArray sha256(const NewVariant &data);
-		static ByteArray sha384(const NewVariant &data);
-		static ByteArray sha512(const NewVariant &data);
-		static ByteArray ecdsa(const NewVariant &data);
+		static ByteArray hash(const Variant &data, Algorithm algorithm);
+		static ByteArray hash(const Variant &data, const String &name);
+		static ByteArray md4(const Variant &data);
+		static ByteArray md5(const Variant &data);
+		static ByteArray sha1(const Variant &data);
+		static ByteArray sha224(const Variant &data);
+		static ByteArray sha256(const Variant &data);
+		static ByteArray sha384(const Variant &data);
+		static ByteArray sha512(const Variant &data);
+		static ByteArray ecdsa(const Variant &data);
 
 };
 

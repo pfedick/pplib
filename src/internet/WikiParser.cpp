@@ -804,7 +804,7 @@ void WikiParser::buildIndex(String &Html)
 		AssocArray::Iterator it;
 		index.reset(it);
 		String a;
-		while (index.getNext(it,NewVariant::TYPE_ASSOCARRAY)) {
+		while (index.getNext(it,Variant::TYPE_ASSOCARRAY)) {
 			const AssocArray &r=it.value().toAssocArray();
 			a.repeat(L'*',r.getString("ebene").toInt());
 			a.appendf(" %s\n",(const char*)r.getString("link"));

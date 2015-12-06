@@ -79,7 +79,7 @@ static String toHashRecurse(const AssocArray &a, const String &name)
 	a.reset(it);
 	while (a.getNext(it)) {
 		const String &key=it.key();
-		const NewVariant &res=it.value();
+		const Variant &res=it.value();
 		if (res.isAssocArray()) {
 			String newName;
 			newName=name+"{"+key+"}";

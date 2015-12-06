@@ -69,7 +69,7 @@
 namespace ppl7 {
 
 
-/*!\class NewVariant
+/*!\class Variant
  * \ingroup PPLGroupDataTypes
  * \brief Flexibler Datentyp, der verschiedene Datentypen aufnehmen kann
  *
@@ -89,16 +89,16 @@ namespace ppl7 {
  * \code
 void Machwas(const Variant &object)
 {
-	NewVariant::DataType t=object.type();
-	if (t==NewVariant::TYPE_BYTEARRAY) {
+	Variant::DataType t=object.type();
+	if (t==Variant::TYPE_BYTEARRAY) {
 			const ppl7::ByteArray &bin= static_cast<const ppl7::ByteArray&>(object);  // Objekt zu ByteArray umwandeln
 			printf ("Es ist ein ByteArray mit %i Bytes an Daten\n",bin.size());
 			return;
-	} else if (t==NewVariant::TYPE_STRING) {
+	} else if (t==Variant::TYPE_STRING) {
 			const String &str= static_cast<const String&>(object);  // Objekt zu String umwandeln
 			printf ("Es ist ein String mit folgendem Inhalt: %s\n",(const char*)str);
 			return;
-	} else if (t==NewVariant::TYPE_ARRAY) {
+	} else if (t==Variant::TYPE_ARRAY) {
 			const Array &array= static_cast<const Array&>(object);  // Objekt zu Array umwandeln
 			printf ("Es ist ein Array mit %i Elementen\n",array.count());
 			return;
@@ -109,133 +109,133 @@ void Machwas(const Variant &object)
  *
  */
 
-/*!\enum NewVariant::DataType
+/*!\enum Variant::DataType
  * \brief Enumeration der verschiedenen Datenobjekte, die in der Library verwendet werden
  *
  * Enumeration der verschiedenen Datenobjekte, die in der Library verwendet werden
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_UNKNOWN
+/*!\var Variant::DataType Variant::TYPE_UNKNOWN
  * \brief Unbekannter Datentyp
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_STRING
+/*!\var Variant::DataType Variant::TYPE_STRING
  * \brief Datentyp ist String
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_WIDESTRING
+/*!\var Variant::DataType Variant::TYPE_WIDESTRING
  * \brief Datentyp ist WideString
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_BYTEARRAY
+/*!\var Variant::DataType Variant::TYPE_BYTEARRAY
  * \brief Datentyp ist ByteArray
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_BYTEARRAYPTR
+/*!\var Variant::DataType Variant::TYPE_BYTEARRAYPTR
  * \brief Datentyp ist ByteArrayPtr
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_ASSOCARRAY
+/*!\var Variant::DataType Variant::TYPE_ASSOCARRAY
  * \brief Datentyp ist AssocArray
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_ARRAY
+/*!\var Variant::DataType Variant::TYPE_ARRAY
  * \brief Datentyp ist Array
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_DATETIME
+/*!\var Variant::DataType Variant::TYPE_DATETIME
  * \brief Datentyp ist DateTime
  */
 
-/*!\var NewVariant::DataType Variant::TYPE_POINTER
+/*!\var Variant::DataType Variant::TYPE_POINTER
  * \brief Datentyp ist Pointer
  */
 
 
-/*!\var NewVariant::t
+/*!\var Variant::t
  * \brief Variable, zum Speichern des Datentyps
  */
 
-/*!\var NewVariant::value
+/*!\var Variant::value
  * \brief Pointer auf den Inhalt des Datentyps
  */
 
 
-NewVariant::NewVariant()
+Variant::Variant()
 {
 	value=NULL;
 	t=TYPE_UNKNOWN;
 }
 
-NewVariant::~NewVariant()
+Variant::~Variant()
 {
 	clear();
 }
 
-NewVariant::NewVariant(const NewVariant &value)
+Variant::Variant(const Variant &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const String &value)
+Variant::Variant(const String &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const WideString &value)
+Variant::Variant(const WideString &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const Array &value)
+Variant::Variant(const Array &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const AssocArray &value)
+Variant::Variant(const AssocArray &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const ByteArray &value)
+Variant::Variant(const ByteArray &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const ByteArrayPtr &value)
+Variant::Variant(const ByteArrayPtr &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const DateTime &value)
+Variant::Variant(const DateTime &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-NewVariant::NewVariant(const Pointer &value)
+Variant::Variant(const Pointer &value)
 {
 	this->value=NULL;
 	t=TYPE_UNKNOWN;
 	set(value);
 }
 
-void NewVariant::clear()
+void Variant::clear()
 {
 	if (!value) return;
 	switch (t) {
@@ -271,7 +271,7 @@ void NewVariant::clear()
 	t=TYPE_UNKNOWN;
 }
 
-void NewVariant::set(const NewVariant &value)
+void Variant::set(const Variant &value)
 {
 	clear();
 	if (!value.value) return;
@@ -313,56 +313,56 @@ void NewVariant::set(const NewVariant &value)
 	}
 }
 
-void NewVariant::set(const String &value)
+void Variant::set(const String &value)
 {
 	clear();
 	this->value=new String(value);
 	t=TYPE_STRING;
 }
 
-void NewVariant::set(const WideString &value)
+void Variant::set(const WideString &value)
 {
 	clear();
 	this->value=new WideString(value);
 	t=TYPE_WIDESTRING;
 }
 
-void NewVariant::set(const Array &value)
+void Variant::set(const Array &value)
 {
 	clear();
 	this->value=new Array(value);
 	t=TYPE_ARRAY;
 }
 
-void NewVariant::set(const AssocArray &value)
+void Variant::set(const AssocArray &value)
 {
 	clear();
 	this->value=new AssocArray(value);
 	t=TYPE_ASSOCARRAY;
 }
 
-void NewVariant::set(const ByteArray &value)
+void Variant::set(const ByteArray &value)
 {
 	clear();
 	this->value=new ByteArray(value);
 	t=TYPE_BYTEARRAY;
 }
 
-void NewVariant::set(const ByteArrayPtr &value)
+void Variant::set(const ByteArrayPtr &value)
 {
 	clear();
 	this->value=new ByteArrayPtr(value);
 	t=TYPE_BYTEARRAYPTR;
 }
 
-void NewVariant::set(const DateTime &value)
+void Variant::set(const DateTime &value)
 {
 	clear();
 	this->value=new DateTime(value);
 	t=TYPE_DATETIME;
 }
 
-void NewVariant::set(const Pointer &value)
+void Variant::set(const Pointer &value)
 {
 	clear();
 	this->value=new Pointer(value);
@@ -373,9 +373,9 @@ void NewVariant::set(const Pointer &value)
  *
  * \desc
  * Diese Funktion liefert den Datentyp des Objekts zurück.
- * @return ID aus der Enumeration NewVariant::DataType
+ * @return ID aus der Enumeration Variant::DataType
  */
-NewVariant::DataType NewVariant::type() const
+Variant::DataType Variant::type() const
 {
 	return t;
 }
@@ -389,7 +389,7 @@ NewVariant::DataType NewVariant::type() const
  * @return Liefert \c true zurück, wenn es sich um den angegebenen Datentyp \p type handelt,
  * sonst \c false.
  */
-bool NewVariant::isType(DataType type) const
+bool Variant::isType(DataType type) const
 {
 	if (this->t==type) return true;
 	return false;
@@ -402,7 +402,7 @@ bool NewVariant::isType(DataType type) const
  *
  * @return Liefert \c true zurück, wenn es such um den Datentyp String handelt, sonst \c false.
  */
-bool NewVariant::isString() const
+bool Variant::isString() const
 {
 	if (t==TYPE_STRING) return true;
 	return false;
@@ -415,7 +415,7 @@ bool NewVariant::isString() const
  *
  * @return Liefert \c true zurück, wenn es such um den Datentyp WideString handelt, sonst \c false.
  */
-bool NewVariant::isWideString() const
+bool Variant::isWideString() const
 {
 	if (t==TYPE_WIDESTRING) return true;
 	return false;
@@ -428,7 +428,7 @@ bool NewVariant::isWideString() const
  *
  * @return Liefert \c true zurück, wenn es such um den Datentyp Array handelt, sonst \c false.
  */
-bool NewVariant::isArray() const
+bool Variant::isArray() const
 {
 	if (t==TYPE_ARRAY) return true;
 	return false;
@@ -441,7 +441,7 @@ bool NewVariant::isArray() const
  *
  * @return Liefert \c true zurück, wenn es such um den Datentyp AssocArray handelt, sonst \c false.
  */
-bool NewVariant::isAssocArray() const
+bool Variant::isAssocArray() const
 {
 	if (t==TYPE_ASSOCARRAY) return true;
 	return false;
@@ -454,7 +454,7 @@ bool NewVariant::isAssocArray() const
  *
  * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArray handelt, sonst \c false.
  */
-bool NewVariant::isByteArray() const
+bool Variant::isByteArray() const
 {
 	if (t==TYPE_BYTEARRAY) return true;
 	return false;
@@ -467,7 +467,7 @@ bool NewVariant::isByteArray() const
  *
  * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArrayPtr handelt, sonst \c false.
  */
-bool NewVariant::isByteArrayPtr() const
+bool Variant::isByteArrayPtr() const
 {
 	if (t==TYPE_BYTEARRAYPTR) return true;
 	if (t==TYPE_BYTEARRAY) return true;
@@ -481,7 +481,7 @@ bool NewVariant::isByteArrayPtr() const
  *
  * @return Liefert \c true zurück, wenn es such um den Datentyp DateTime handelt, sonst \c false.
  */
-bool NewVariant::isDateTime() const
+bool Variant::isDateTime() const
 {
 	if (t==TYPE_DATETIME) return true;
 	return false;
@@ -494,119 +494,119 @@ bool NewVariant::isDateTime() const
  *
  * @return Liefert \c true zurück, wenn es such um den Pointer DateTime handelt, sonst \c false.
  */
-bool NewVariant::isPointer() const
+bool Variant::isPointer() const
 {
 	if (t==TYPE_POINTER) return true;
 	return false;
 }
 
 
-const String& NewVariant::toString() const
+const String& Variant::toString() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_STRING) throw TypeConversionException();
 	return *static_cast<String *>(value);
 }
 
-String& NewVariant::toString()
+String& Variant::toString()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_STRING) throw TypeConversionException();
 	return *static_cast<String *>(value);
 }
 
-const WideString& NewVariant::toWideString() const
+const WideString& Variant::toWideString() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
 	return *static_cast<WideString *>(value);
 }
 
-WideString& NewVariant::toWideString()
+WideString& Variant::toWideString()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
 	return *static_cast<WideString *>(value);
 }
 
-const Array& NewVariant::toArray() const
+const Array& Variant::toArray() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ARRAY) throw TypeConversionException();
 	return *static_cast<Array *>(value);
 }
 
-Array& NewVariant::toArray()
+Array& Variant::toArray()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ARRAY) throw TypeConversionException();
 	return *static_cast<Array *>(value);
 }
 
-const AssocArray& NewVariant::toAssocArray() const
+const AssocArray& Variant::toAssocArray() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
 	return *static_cast<AssocArray *>(value);
 }
 
-AssocArray& NewVariant::toAssocArray()
+AssocArray& Variant::toAssocArray()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
 	return *static_cast<AssocArray *>(value);
 }
 
-const ByteArray& NewVariant::toByteArray() const
+const ByteArray& Variant::toByteArray() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArray *>(value);
 }
 
-ByteArray& NewVariant::toByteArray()
+ByteArray& Variant::toByteArray()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArray *>(value);
 }
 
-const ByteArrayPtr& NewVariant::toByteArrayPtr() const
+const ByteArrayPtr& Variant::toByteArrayPtr() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArrayPtr *>(value);
 }
 
-ByteArrayPtr& NewVariant::toByteArrayPtr()
+ByteArrayPtr& Variant::toByteArrayPtr()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
 	return *static_cast<ByteArrayPtr *>(value);
 }
 
-const DateTime& NewVariant::toDateTime() const
+const DateTime& Variant::toDateTime() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_DATETIME) throw TypeConversionException();
 	return *static_cast<DateTime *>(value);
 }
 
-DateTime& NewVariant::toDateTime()
+DateTime& Variant::toDateTime()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_DATETIME) throw TypeConversionException();
 	return *static_cast<DateTime *>(value);
 }
 
-const Pointer& NewVariant::toPointer() const
+const Pointer& Variant::toPointer() const
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_POINTER) throw TypeConversionException();
 	return *static_cast<Pointer *>(value);
 }
 
-Pointer& NewVariant::toPointer()
+Pointer& Variant::toPointer()
 {
 	if (!value) throw EmptyDataException();
 	if (t!=TYPE_POINTER) throw TypeConversionException();
@@ -614,95 +614,95 @@ Pointer& NewVariant::toPointer()
 }
 
 
-NewVariant::operator String() const
+Variant::operator String() const
 {
 	return toString();
 }
 
-NewVariant::operator WideString() const
+Variant::operator WideString() const
 {
 	return toWideString();
 }
 
-NewVariant::operator Array() const
+Variant::operator Array() const
 {
 	return toArray();
 }
 
-NewVariant::operator AssocArray() const
+Variant::operator AssocArray() const
 {
 	return toAssocArray();
 }
 
-NewVariant::operator ByteArray() const
+Variant::operator ByteArray() const
 {
 	return toByteArray();
 }
 
-NewVariant::operator ByteArrayPtr() const
+Variant::operator ByteArrayPtr() const
 {
 	return toByteArrayPtr();
 }
 
-NewVariant::operator DateTime() const
+Variant::operator DateTime() const
 {
 	return toDateTime();
 }
 
-NewVariant::operator Pointer() const
+Variant::operator Pointer() const
 {
 	return toPointer();
 }
 
-NewVariant &NewVariant::operator=(const NewVariant &other)
+Variant &Variant::operator=(const Variant &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const String &other)
+Variant &Variant::operator=(const String &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const WideString &other)
+Variant &Variant::operator=(const WideString &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const Array &other)
+Variant &Variant::operator=(const Array &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const AssocArray &other)
+Variant &Variant::operator=(const AssocArray &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const ByteArray &other)
+Variant &Variant::operator=(const ByteArray &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const ByteArrayPtr &other)
+Variant &Variant::operator=(const ByteArrayPtr &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const DateTime &other)
+Variant &Variant::operator=(const DateTime &other)
 {
 	set(other);
 	return *this;
 }
 
-NewVariant &NewVariant::operator=(const Pointer &other)
+Variant &Variant::operator=(const Pointer &other)
 {
 	set(other);
 	return *this;

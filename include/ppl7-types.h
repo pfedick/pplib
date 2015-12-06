@@ -56,7 +56,6 @@
 
 namespace ppl7 {
 
-class Variant;
 class String;
 class WideString;
 class Array;
@@ -66,7 +65,7 @@ class ByteArrayPtr;
 class DateTime;
 class Pointer;
 
-class NewVariant
+class Variant
 {
 	public:
 		enum DataType {
@@ -84,20 +83,20 @@ class NewVariant
 		void		*value;
 		DataType	t;
 	public:
-		NewVariant();
-		~NewVariant();
-		NewVariant(const NewVariant &value);
-		NewVariant(const String &value);
-		NewVariant(const WideString &value);
-		NewVariant(const Array &value);
-		NewVariant(const AssocArray &value);
-		NewVariant(const ByteArray &value);
-		NewVariant(const ByteArrayPtr &value);
-		NewVariant(const DateTime &value);
-		NewVariant(const Pointer &value);
+		Variant();
+		~Variant();
+		Variant(const Variant &value);
+		Variant(const String &value);
+		Variant(const WideString &value);
+		Variant(const Array &value);
+		Variant(const AssocArray &value);
+		Variant(const ByteArray &value);
+		Variant(const ByteArrayPtr &value);
+		Variant(const DateTime &value);
+		Variant(const Pointer &value);
 
 		void clear();
-		void set(const NewVariant &value);
+		void set(const Variant &value);
 		void set(const String &value);
 		void set(const WideString &value);
 		void set(const Array &value);
@@ -144,15 +143,15 @@ class NewVariant
 		operator DateTime() const;
 		operator Pointer() const;
 
-		NewVariant &operator=(const NewVariant &other);
-		NewVariant &operator=(const String &other);
-		NewVariant &operator=(const WideString &other);
-		NewVariant &operator=(const Array &other);
-		NewVariant &operator=(const AssocArray &other);
-		NewVariant &operator=(const ByteArray &other);
-		NewVariant &operator=(const ByteArrayPtr &other);
-		NewVariant &operator=(const DateTime &other);
-		NewVariant &operator=(const Pointer &other);
+		Variant &operator=(const Variant &other);
+		Variant &operator=(const String &other);
+		Variant &operator=(const WideString &other);
+		Variant &operator=(const Array &other);
+		Variant &operator=(const AssocArray &other);
+		Variant &operator=(const ByteArray &other);
+		Variant &operator=(const ByteArrayPtr &other);
+		Variant &operator=(const DateTime &other);
+		Variant &operator=(const Pointer &other);
 };
 
 
@@ -899,7 +898,7 @@ class AssocArray
 		class ValueNode
 		{
 			public:
-				NewVariant *value;
+				Variant *value;
 				ValueNode();
 				ValueNode(const ValueNode &other);
 				~ValueNode();
@@ -911,7 +910,7 @@ class AssocArray
 		ppl7::AVLTree<ArrayKey, ValueNode> Tree;
 
 		ValueNode *findInternal(const ArrayKey &key) const;
-		ValueNode *createTree(const ArrayKey &key, NewVariant *var);
+		ValueNode *createTree(const ArrayKey &key, Variant *var);
 
 
 	public:
@@ -924,10 +923,10 @@ class AssocArray
 			private:
 				friend class AssocArray;
 				ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-				NewVariant empty;
+				Variant empty;
 			public:
 				const String &key() { return it.key(); }
-				const NewVariant &value() {
+				const Variant &value() {
 					if (it.value().value==NULL) return empty;
 					return *it.value().value;
 				};
@@ -964,7 +963,7 @@ class AssocArray
 		void set(const String &key, const ByteArrayPtr &value);
 		void set(const String &key, const AssocArray &value);
 		void set(const String &key, const Pointer &value);
-		void set(const String &key, const NewVariant &value);
+		void set(const String &key, const Variant &value);
 		void setf(const String &key, const char *fmt, ...);
 		//@}
 
@@ -997,7 +996,7 @@ class AssocArray
 		//@{
 		String	&getString(const String &key) const;
 		AssocArray	&getArray(const String &key) const;
-		NewVariant	&get(const String &key) const;
+		Variant	&get(const String &key) const;
 		bool	exists(const String &key) const;
 
 		//@}
@@ -1005,10 +1004,10 @@ class AssocArray
 		//!\name Array durchwandern
 		//@{
 		void reset(Iterator &it) const;
-		bool getFirst(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
-		bool getNext(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
-		bool getLast(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
-		bool getPrevious(Iterator &it, NewVariant::DataType type=NewVariant::TYPE_UNKNOWN) const;
+		bool getFirst(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
+		bool getNext(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
+		bool getLast(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
+		bool getPrevious(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
 
 		bool getFirst(Iterator &it, String &key, String &value) const;
 		bool getNext(Iterator &it, String &key, String &value) const;
@@ -1018,7 +1017,7 @@ class AssocArray
 
 		//!\name Operatoren
 		//@{
-		NewVariant &operator[](const String &key) const;
+		Variant &operator[](const String &key) const;
 		AssocArray& operator=(const AssocArray& other);
 		AssocArray& operator+=(const AssocArray& other);
 		//@}

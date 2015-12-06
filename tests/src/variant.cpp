@@ -59,8 +59,8 @@ class VariantTest : public ::testing::Test {
 
 TEST_F(VariantTest, ConstructorWithoutParam) {
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1;
-			ASSERT_EQ(ppl7::NewVariant::TYPE_UNKNOWN,var1.type()) << "Variant has unexcpected type";
+			ppl7::Variant var1;
+			ASSERT_EQ(ppl7::Variant::TYPE_UNKNOWN,var1.type()) << "Variant has unexcpected type";
 			ASSERT_THROW({
 				ppl7::String s1=var1.toString();
 			},ppl7::EmptyDataException);
@@ -71,13 +71,13 @@ TEST_F(VariantTest, ConstructorWithoutParam) {
 TEST_F(VariantTest, TestWithString) {
 	ppl7::String s1("Hello World");
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(s1);
-			ppl7::NewVariant var2(var1);
-			ppl7::NewVariant *var3=new ppl7::NewVariant(var1);
+			ppl7::Variant var1(s1);
+			ppl7::Variant var2(var1);
+			ppl7::Variant *var3=new ppl7::Variant(var1);
 			delete var3;
-			ASSERT_EQ(ppl7::NewVariant::TYPE_STRING,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
+			ASSERT_EQ(ppl7::Variant::TYPE_STRING,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var2.isString()) << "Variant has unexcpected type";
 			ppl7::String s2=var2.toString();
@@ -93,11 +93,11 @@ TEST_F(VariantTest, TestWithString) {
 TEST_F(VariantTest, TestWithWideString) {
 	ppl7::WideString s1(L"Hello World");
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(s1);
-			ppl7::NewVariant var2(var1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_WIDESTRING,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ppl7::Variant var1(s1);
+			ppl7::Variant var2(var1);
+			ASSERT_EQ(ppl7::Variant::TYPE_WIDESTRING,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_WIDESTRING)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var1.isWideString()) << "Variant has unexcpected type";
 			ppl7::WideString s2=var2.toWideString();
@@ -113,11 +113,11 @@ TEST_F(VariantTest, TestWithWideString) {
 TEST_F(VariantTest, TestWithArray) {
 	//ppl7::Array  s1(L"Hello World");
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(Wordlist);
-			ppl7::NewVariant var2(var1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_ARRAY,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_ARRAY)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ppl7::Variant var1(Wordlist);
+			ppl7::Variant var2(var1);
+			ASSERT_EQ(ppl7::Variant::TYPE_ARRAY,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_ARRAY)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var2.isArray()) << "Variant has unexcpected type";
 			ppl7::Array s2=var2.toArray();
@@ -132,11 +132,11 @@ TEST_F(VariantTest, TestWithArray) {
 
 TEST_F(VariantTest, TestWithAssocArray) {
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(TestAssocArray);
-			ppl7::NewVariant var2(var1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_ASSOCARRAY,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_ASSOCARRAY)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ppl7::Variant var1(TestAssocArray);
+			ppl7::Variant var2(var1);
+			ASSERT_EQ(ppl7::Variant::TYPE_ASSOCARRAY,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_ASSOCARRAY)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var2.isAssocArray()) << "Variant has unexcpected type";
 			ppl7::AssocArray a2=var2.toAssocArray();
@@ -153,11 +153,11 @@ TEST_F(VariantTest, TestWithAssocArray) {
 TEST_F(VariantTest, TestWithByteArray) {
 	ppl7::ByteArray b1=ppl7::Random(2048);
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(b1);
-			ppl7::NewVariant var2(var1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_BYTEARRAY,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_BYTEARRAY)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ppl7::Variant var1(b1);
+			ppl7::Variant var2(var1);
+			ASSERT_EQ(ppl7::Variant::TYPE_BYTEARRAY,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_BYTEARRAY)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var2.isByteArray()) << "Variant has unexcpected type";
 			ASSERT_TRUE(var2.isByteArrayPtr()) << "Variant has unexcpected type";
@@ -178,11 +178,11 @@ TEST_F(VariantTest, TestWithByteArrayPtr) {
 	ppl7::ByteArray b1=ppl7::Random(2048);
 	ppl7::ByteArrayPtr p1=b1;
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(p1);
-			ppl7::NewVariant var2(var1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_BYTEARRAYPTR,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_BYTEARRAYPTR)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ppl7::Variant var1(p1);
+			ppl7::Variant var2(var1);
+			ASSERT_EQ(ppl7::Variant::TYPE_BYTEARRAYPTR,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_BYTEARRAYPTR)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var2.isByteArrayPtr()) << "Variant has unexcpected type";
 			ASSERT_FALSE(var2.isByteArray()) << "Variant has unexcpected type";
@@ -202,11 +202,11 @@ TEST_F(VariantTest, TestWithByteArrayPtr) {
 TEST_F(VariantTest, TestWithDateTime) {
 	ppl7::DateTime d1("2015-12-03 15:52:40");
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(d1);
-			ppl7::NewVariant var2(var1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_DATETIME,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_DATETIME)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ppl7::Variant var1(d1);
+			ppl7::Variant var2(var1);
+			ASSERT_EQ(ppl7::Variant::TYPE_DATETIME,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_DATETIME)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var2.isDateTime()) << "Variant has unexcpected type";
 			ppl7::DateTime d2=var2.toDateTime();
@@ -223,11 +223,11 @@ TEST_F(VariantTest, TestWithDateTime) {
 TEST_F(VariantTest, TestWithPointer) {
 	ppl7::Pointer p1(this);
 	ASSERT_NO_THROW({
-			ppl7::NewVariant var1(p1);
-			ppl7::NewVariant var2(var1);
-			ASSERT_EQ(ppl7::NewVariant::TYPE_POINTER,var2.type()) << "Variant has unexcpected type";
-			ASSERT_TRUE(var2.isType(ppl7::NewVariant::TYPE_POINTER)) << "Variant has unexcpected type";
-			ASSERT_FALSE(var2.isType(ppl7::NewVariant::TYPE_STRING)) << "Variant has unexcpected type";
+			ppl7::Variant var1(p1);
+			ppl7::Variant var2(var1);
+			ASSERT_EQ(ppl7::Variant::TYPE_POINTER,var2.type()) << "Variant has unexcpected type";
+			ASSERT_TRUE(var2.isType(ppl7::Variant::TYPE_POINTER)) << "Variant has unexcpected type";
+			ASSERT_FALSE(var2.isType(ppl7::Variant::TYPE_STRING)) << "Variant has unexcpected type";
 
 			ASSERT_TRUE(var2.isPointer()) << "Variant has unexcpected type";
 			ppl7::Pointer p2=var2.toPointer();
@@ -242,16 +242,16 @@ TEST_F(VariantTest, TestWithPointer) {
 
 
 TEST_F(VariantTest, TestSetWithEmptyVariant) {
-	ppl7::NewVariant var1;
-	ppl7::NewVariant var2;
+	ppl7::Variant var1;
+	ppl7::Variant var2;
 	var2.set(var1);
-	ASSERT_EQ(ppl7::NewVariant::TYPE_UNKNOWN,var2.type()) << "Variant has unexcpected type";
+	ASSERT_EQ(ppl7::Variant::TYPE_UNKNOWN,var2.type()) << "Variant has unexcpected type";
 }
 
-TEST_F(VariantTest, OperatorNewVariant) {
+TEST_F(VariantTest, OperatorVariant) {
 	ppl7::String s1("Hello World");
-	ppl7::NewVariant var1(s1);
-	ppl7::NewVariant var2;
+	ppl7::Variant var1(s1);
+	ppl7::Variant var2;
 	var2=var1;
 	ASSERT_EQ(s1,var2.toString()) << "Variant has unexcpected value";
 }
@@ -259,7 +259,7 @@ TEST_F(VariantTest, OperatorNewVariant) {
 
 TEST_F(VariantTest, OperatorString) {
 	ppl7::String p1("Hello World");
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=p1;
 	const ppl7::String &p2=var1;
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
@@ -267,21 +267,21 @@ TEST_F(VariantTest, OperatorString) {
 
 TEST_F(VariantTest, OperatorWideString) {
 	ppl7::WideString p1(L"Hello World");
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=p1;
 	const ppl7::WideString &p2=var1;
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 }
 
 TEST_F(VariantTest, OperatorArray) {
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=Wordlist;
 	const ppl7::Array &p2=var1;
 	ASSERT_EQ(Wordlist.size(),p2.size()) << "Variant has unexcpected value";
 }
 
 TEST_F(VariantTest, OperatorAssocArray) {
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=TestAssocArray;
 	const ppl7::AssocArray &p2=var1;
 	ASSERT_EQ(TestAssocArray.count(true),p2.count(true)) << "Variant has unexcpected value";
@@ -289,7 +289,7 @@ TEST_F(VariantTest, OperatorAssocArray) {
 
 TEST_F(VariantTest, OperatorByteArray) {
 	ppl7::ByteArray p1=ppl7::Random(2048);
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=p1;
 	const ppl7::ByteArray &p2=var1;
 	ASSERT_EQ(p1.size(),p2.size()) << "Variant has unexcpected value";
@@ -299,7 +299,7 @@ TEST_F(VariantTest, OperatorByteArray) {
 TEST_F(VariantTest, OperatorByteArrayPtr) {
 	ppl7::ByteArray b1=ppl7::Random(2048);
 	ppl7::ByteArrayPtr p1=b1;
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=p1;
 	const ppl7::ByteArrayPtr &p2=var1;
 	ASSERT_EQ(p1.size(),p2.size()) << "Variant has unexcpected value";
@@ -308,7 +308,7 @@ TEST_F(VariantTest, OperatorByteArrayPtr) {
 
 TEST_F(VariantTest, OperatorDateTime) {
 	ppl7::DateTime p1("2015-12-03 15:52:40");
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=p1;
 	const ppl7::DateTime &p2=var1;
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
@@ -316,7 +316,7 @@ TEST_F(VariantTest, OperatorDateTime) {
 
 TEST_F(VariantTest, OperatorPointer) {
 	ppl7::Pointer p1(this);
-	ppl7::NewVariant var1;
+	ppl7::Variant var1;
 	var1=p1;
 	const ppl7::Pointer &p2=var1;
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
@@ -325,8 +325,8 @@ TEST_F(VariantTest, OperatorPointer) {
 TEST_F(VariantTest, isString) {
 	ppl7::String p1("Hello World");
 	ppl7::WideString p1a(L"Hello World");
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isString());
 	ASSERT_FALSE(var2.isString());
 	ASSERT_FALSE(var1.isWideString());
@@ -341,8 +341,8 @@ TEST_F(VariantTest, isString) {
 TEST_F(VariantTest, isWideString) {
 	ppl7::WideString p1(L"Hello World");
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isWideString());
 	ASSERT_FALSE(var2.isWideString());
 	ASSERT_FALSE(var1.isString());
@@ -356,8 +356,8 @@ TEST_F(VariantTest, isWideString) {
 
 TEST_F(VariantTest, isArray) {
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(Wordlist);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(Wordlist);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isArray());
 	ASSERT_FALSE(var2.isArray());
 	ASSERT_FALSE(var1.isString());
@@ -371,8 +371,8 @@ TEST_F(VariantTest, isArray) {
 
 TEST_F(VariantTest, isAssocArray) {
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(TestAssocArray);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(TestAssocArray);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isAssocArray());
 	ASSERT_FALSE(var2.isAssocArray());
 	ASSERT_FALSE(var1.isString());
@@ -387,8 +387,8 @@ TEST_F(VariantTest, isAssocArray) {
 TEST_F(VariantTest, isByteArray) {
 	ppl7::String p1a("Hello World");
 	ppl7::ByteArray p1=ppl7::Random(2048);
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isByteArray());
 	ASSERT_FALSE(var2.isByteArray());
 	ASSERT_FALSE(var1.isString());
@@ -404,8 +404,8 @@ TEST_F(VariantTest, isByteArrayPtr) {
 	ppl7::String p1a("Hello World");
 	ppl7::ByteArray b1=ppl7::Random(2048);
 	ppl7::ByteArrayPtr p1=b1;
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isByteArrayPtr());
 	ASSERT_FALSE(var2.isByteArrayPtr());
 	ASSERT_FALSE(var1.isString());
@@ -420,8 +420,8 @@ TEST_F(VariantTest, isByteArrayPtr) {
 TEST_F(VariantTest, isDateTime) {
 	ppl7::DateTime p1("2015-12-03 15:52:40");
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isDateTime());
 	ASSERT_FALSE(var2.isDateTime());
 	ASSERT_FALSE(var1.isString());
@@ -436,8 +436,8 @@ TEST_F(VariantTest, isDateTime) {
 TEST_F(VariantTest, isPointer) {
 	ppl7::Pointer p1(this);
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2(p1a);
 	ASSERT_TRUE(var1.isPointer());
 	ASSERT_FALSE(var2.isPointer());
 	ASSERT_FALSE(var1.isString());
@@ -453,9 +453,9 @@ TEST_F(VariantTest, isPointer) {
 TEST_F(VariantTest, toString) {
 	ppl7::String p1("Hello World");
 	ppl7::WideString p1a(L"Hello World");
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	const ppl7::String &p2=var1.toString();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -471,9 +471,9 @@ TEST_F(VariantTest, toString) {
 TEST_F(VariantTest, toStringConst) {
 	ppl7::String p1("Hello World");
 	ppl7::WideString p1a(L"Hello World");
-	const ppl7::NewVariant var1(p1);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(p1);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::String &p2=var1.toString();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -492,9 +492,9 @@ TEST_F(VariantTest, toStringConst) {
 TEST_F(VariantTest, toWideString) {
 	ppl7::WideString p1(L"Hello World");
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	const ppl7::WideString &p2=var1.toWideString();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -509,9 +509,9 @@ TEST_F(VariantTest, toWideString) {
 TEST_F(VariantTest, toWideStringConst) {
 	ppl7::WideString p1(L"Hello World");
 	ppl7::String p1a("Hello World");
-	const ppl7::NewVariant var1(p1);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(p1);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::WideString &p2=var1.toWideString();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -527,9 +527,9 @@ TEST_F(VariantTest, toWideStringConst) {
 
 TEST_F(VariantTest, toArray) {
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(Wordlist);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(Wordlist);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	const ppl7::Array &p2=var1.toArray();
 	ASSERT_EQ(Wordlist.size(),p2.size()) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -542,9 +542,9 @@ TEST_F(VariantTest, toArray) {
 
 TEST_F(VariantTest, toArrayConst) {
 	ppl7::String p1a("Hello World");
-	const ppl7::NewVariant var1(Wordlist);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(Wordlist);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::Array &p2=var1.toArray();
 	ASSERT_EQ(Wordlist.size(),p2.size()) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -559,9 +559,9 @@ TEST_F(VariantTest, toArrayConst) {
 
 TEST_F(VariantTest, toAssocArray) {
 	ppl7::String p1a("Hello World");
-	ppl7::NewVariant var1(TestAssocArray);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(TestAssocArray);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	const ppl7::AssocArray &p2=var1.toAssocArray();
 	ASSERT_EQ(TestAssocArray.size(),p2.size()) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -574,9 +574,9 @@ TEST_F(VariantTest, toAssocArray) {
 
 TEST_F(VariantTest, toAssocArrayConst) {
 	ppl7::String p1a("Hello World");
-	const ppl7::NewVariant var1(TestAssocArray);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(TestAssocArray);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::AssocArray &p2=var1.toAssocArray();
 	ASSERT_EQ(TestAssocArray.size(),p2.size()) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -592,9 +592,9 @@ TEST_F(VariantTest, toAssocArrayConst) {
 TEST_F(VariantTest, toByteArray) {
 	ppl7::String p1a("Hello World");
 	ppl7::ByteArray p1=ppl7::Random(2048);
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	ppl7::ByteArray &p2=var1.toByteArray();
 	ppl7::ByteArrayPtr &p4=var1.toByteArrayPtr();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
@@ -616,9 +616,9 @@ TEST_F(VariantTest, toByteArray) {
 TEST_F(VariantTest, toByteArrayConst) {
 	ppl7::String p1a("Hello World");
 	ppl7::ByteArray p1=ppl7::Random(2048);
-	const ppl7::NewVariant var1(p1);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(p1);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::ByteArray &p2=var1.toByteArray();
 	const ppl7::ByteArrayPtr &p4=var1.toByteArrayPtr();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
@@ -645,9 +645,9 @@ TEST_F(VariantTest, toByteArrayPtr) {
 	ppl7::String p1a("Hello World");
 	ppl7::ByteArray b1=ppl7::Random(2048);
 	ppl7::ByteArrayPtr p1=b1;
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	const ppl7::ByteArrayPtr &p2=var1.toByteArrayPtr();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -662,9 +662,9 @@ TEST_F(VariantTest, toByteArrayPtrConst) {
 	ppl7::String p1a("Hello World");
 	ppl7::ByteArray b1=ppl7::Random(2048);
 	ppl7::ByteArrayPtr p1=b1;
-	const ppl7::NewVariant var1(p1);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(p1);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::ByteArrayPtr &p2=var1.toByteArrayPtr();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -680,9 +680,9 @@ TEST_F(VariantTest, toByteArrayPtrConst) {
 TEST_F(VariantTest, toDateTime) {
 	ppl7::String p1a("Hello World");
 	ppl7::DateTime p1("2015-12-03 15:52:40");
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	const ppl7::DateTime &p2=var1.toDateTime();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -696,9 +696,9 @@ TEST_F(VariantTest, toDateTime) {
 TEST_F(VariantTest, toDateTimeConst) {
 	ppl7::String p1a("Hello World");
 	ppl7::DateTime p1("2015-12-03 15:52:40");
-	const ppl7::NewVariant var1(p1);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(p1);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::DateTime &p2=var1.toDateTime();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -715,9 +715,9 @@ TEST_F(VariantTest, toDateTimeConst) {
 TEST_F(VariantTest, toPointer) {
 	ppl7::String p1a("Hello World");
 	ppl7::Pointer p1(this);
-	ppl7::NewVariant var1(p1);
-	ppl7::NewVariant var2;
-	ppl7::NewVariant var3(p1a);
+	ppl7::Variant var1(p1);
+	ppl7::Variant var2;
+	ppl7::Variant var3(p1a);
 	const ppl7::Pointer &p2=var1.toPointer();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
@@ -731,9 +731,9 @@ TEST_F(VariantTest, toPointer) {
 TEST_F(VariantTest, toPointerConst) {
 	ppl7::String p1a("Hello World");
 	ppl7::Pointer p1(this);
-	const ppl7::NewVariant var1(p1);
-	const ppl7::NewVariant var2;
-	const ppl7::NewVariant var3(p1a);
+	const ppl7::Variant var1(p1);
+	const ppl7::Variant var2;
+	const ppl7::Variant var3(p1a);
 	const ppl7::Pointer &p2=var1.toPointer();
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({

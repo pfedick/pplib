@@ -360,7 +360,7 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
  * das neue Element <tt>ebene1/schlüssel1/unterschlüssel1</tt> angelegt. Da Schlüssel eindeutig sein müssen,
  * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
  */
-AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, NewVariant *var)
+AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 {
 	Array tok(key,"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
@@ -390,7 +390,7 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, NewVariant *v
 		if (tok.count()>0) {          // Ja, koennen wir iterieren?
 			if (p->value->isAssocArray()==false) {
 				delete (p->value);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
-				p->value=new NewVariant(AssocArray());
+				p->value=new Variant(AssocArray());
 			}
 			return p->value->toAssocArray().createTree(rest,var);
 		}
@@ -407,7 +407,7 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, NewVariant *v
 		//printf ("Iteration\n");
 		newnode.value=NULL;
 		ValueNode &node=Tree.add(firstkey,newnode);
-		node.value=new NewVariant(AssocArray());
+		node.value=new Variant(AssocArray());
 		p=node.value->toAssocArray().createTree(rest,var);
 	} else {
 		//printf ("Neuen Variant anlegen\n");
@@ -439,7 +439,7 @@ size_t AssocArray::count(bool recursive) const
 	Tree.reset(it);
 	size_t c=num;
 	while (Tree.getNext(it)) {
-		NewVariant *p=it.value().value;
+		Variant *p=it.value().value;
 		if (p->isAssocArray()) c+=p->toAssocArray().count(recursive);
 	}
 	return c;
@@ -531,7 +531,7 @@ void AssocArray::list(const String &prefix) const
 
 	while ((Tree.getNext(it))) {
 		//printf ("AssocArray::list(%ls)\n",(const wchar_t*)prefix);
-		NewVariant *p=it.value().value;
+		Variant *p=it.value().value;
 		if (p->isString()) {
 			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)it.key(),(const char*)p->toString().getPtr());
 		} else if (p->isByteArray()) {
@@ -599,7 +599,7 @@ size_t AssocArray::capacity() const
  */
 void AssocArray::set(const String &key, const String &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -623,7 +623,7 @@ void AssocArray::set(const String &key, const String &value)
  */
 void AssocArray::set(const String &key, const String &value, size_t size)
 {
-	NewVariant *var=new NewVariant(String(value,size));
+	Variant *var=new Variant(String(value,size));
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -646,7 +646,7 @@ void AssocArray::set(const String &key, const String &value, size_t size)
  */
 void AssocArray::set(const String &key, const DateTime &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -669,7 +669,7 @@ void AssocArray::set(const String &key, const DateTime &value)
  */
 void AssocArray::set(const String &key, const ByteArray &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -692,7 +692,7 @@ void AssocArray::set(const String &key, const ByteArray &value)
  */
 void AssocArray::set(const String &key, const ByteArrayPtr &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -715,7 +715,7 @@ void AssocArray::set(const String &key, const ByteArrayPtr &value)
  */
 void AssocArray::set(const String &key, const Array &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -738,7 +738,7 @@ void AssocArray::set(const String &key, const Array &value)
  */
 void AssocArray::set(const String &key, const AssocArray &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -761,7 +761,7 @@ void AssocArray::set(const String &key, const AssocArray &value)
  */
 void AssocArray::set(const String &key, const Pointer &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -784,9 +784,9 @@ void AssocArray::set(const String &key, const Pointer &value)
  * \exception TypeConversionException: Der Datentyp des Variants wurde nicht
  * erkannt oder wird nicht unterstützt.
  */
-void AssocArray::set(const String &key, const NewVariant &value)
+void AssocArray::set(const String &key, const Variant &value)
 {
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -814,7 +814,7 @@ void AssocArray::setf(const String &key, const char *fmt, ...)
 	va_start(args, fmt);
 	value.vasprintf(fmt,args);
 	va_end(args);
-	NewVariant *var=new NewVariant(value);
+	Variant *var=new Variant(value);
 	try {
 		createTree(key,var);
 	} catch (...) {
@@ -911,7 +911,7 @@ void AssocArray::add(const AssocArray &other)
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	other.Tree.reset(it);
 	while ((other.Tree.getNext(it))) {
-		NewVariant *p=it.value().value;
+		Variant *p=it.value().value;
 		set(it.key(),*p);
 	}
 }
@@ -935,7 +935,7 @@ void AssocArray::add(const AssocArray &other)
 ppl7::String &str=a.get(L"key1").toString();
 \endcode
  */
-NewVariant& AssocArray::get(const String &key) const
+Variant& AssocArray::get(const String &key) const
 {
 	ValueNode *node=findInternal(key);
 	return *node->value;
@@ -1075,7 +1075,7 @@ void AssocArray::reset(Iterator &it) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getFirst(Iterator &it, NewVariant::DataType type) const
+bool AssocArray::getFirst(Iterator &it, Variant::DataType type) const
 {
 	Tree.reset(it.it);
 	return getNext(it,type);
@@ -1091,11 +1091,11 @@ bool AssocArray::getFirst(Iterator &it, NewVariant::DataType type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getNext(Iterator &it, NewVariant::DataType type) const
+bool AssocArray::getNext(Iterator &it, Variant::DataType type) const
 {
 	while (1) {
 		if (!Tree.getNext(it.it)) return false;
-		if (type==NewVariant::TYPE_UNKNOWN) break;
+		if (type==Variant::TYPE_UNKNOWN) break;
 		if (type==it.value().type()) break;
 	}
 	return true;
@@ -1111,7 +1111,7 @@ bool AssocArray::getNext(Iterator &it, NewVariant::DataType type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getLast(Iterator &it, NewVariant::DataType type) const
+bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
 {
 	Tree.reset(it.it);
 	return getPrevious(it,type);
@@ -1127,11 +1127,11 @@ bool AssocArray::getLast(Iterator &it, NewVariant::DataType type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getPrevious(Iterator &it, NewVariant::DataType type) const
+bool AssocArray::getPrevious(Iterator &it, Variant::DataType type) const
 {
 	while (1) {
 		if (!Tree.getPrevious(it.it)) throw OutOfBoundsEception();
-		if (type==NewVariant::TYPE_UNKNOWN) break;
+		if (type==Variant::TYPE_UNKNOWN) break;
 		if (type==it.value().type()) break;
 	}
 	return true;
@@ -1439,7 +1439,7 @@ void AssocArray::toTemplate(String &s, const String &prefix, const String &lined
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
 	while ((Tree.getNext(it))) {
-		NewVariant *p=it.value().value;
+		Variant *p=it.value().value;
 		if (p->isString()) {
 			Tok.clear();
 			Tok.explode(p->toString(),"\n");
@@ -1530,9 +1530,9 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
 	Tree.reset(it);
 	while ((Tree.getNext(it))) {
-		NewVariant *a=it.value().value;
+		Variant *a=it.value().value;
 		if (p<buffersize) {
-			if (a->isByteArrayPtr()) PokeN8(ptr+p,NewVariant::TYPE_BYTEARRAY);
+			if (a->isByteArrayPtr()) PokeN8(ptr+p,Variant::TYPE_BYTEARRAY);
 			else PokeN8(ptr+p,a->type());
 		}
 		p++;
@@ -1667,19 +1667,19 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 		key.set(ptr+p,keylen);
 		p+=keylen;
 		switch (type) {
-			case NewVariant::TYPE_STRING:
+			case Variant::TYPE_STRING:
 				vallen=PeekN32(ptr+p);
 				p+=4;
 				set(key,(const char*)ptr+p,vallen);
 				p+=vallen;
 				break;
-			case NewVariant::TYPE_ASSOCARRAY:
+			case Variant::TYPE_ASSOCARRAY:
 				na.clear();
 				bytes=na.importBinary(ptr+p,buffersize-p);
 				p+=bytes;
 				set(key,na);
 				break;
-			case NewVariant::TYPE_BYTEARRAY:
+			case Variant::TYPE_BYTEARRAY:
 				vallen=PeekN32(ptr+p);
 				p+=4;
 				nb.free();
@@ -1687,7 +1687,7 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 				p+=vallen;
 				set(key,nb);
 				break;
-			case NewVariant::TYPE_DATETIME:
+			case Variant::TYPE_DATETIME:
 				vallen=PeekN32(ptr+p);
 				p+=4;
 				dt.setLongInt(PeekN64(ptr+p));
@@ -1715,7 +1715,7 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
  * \exception InvalidKeyException: Ungültiger Schlüssel
  * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
  */
-NewVariant &AssocArray::operator[](const String &key) const
+Variant &AssocArray::operator[](const String &key) const
 {
 	ValueNode *node=findInternal(key);
 	return *node->value;
