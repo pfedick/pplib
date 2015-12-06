@@ -246,33 +246,33 @@ TEST_F(ConfigParserTest, iterateAndCheckValue) {
 	ASSERT_NO_THROW({
 		ASSERT_EQ(1,conf.firstSection());
 		ASSERT_EQ(ppl7::String("global"),conf.getSectionName());
-		ASSERT_EQ(ppl7::String("value1"),conf.get("key1").toString());
+		ASSERT_EQ(ppl7::String("value1"),conf.get("key1"));
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(1,conf.nextSection());
 		ASSERT_EQ(ppl7::String("section1"),conf.getSectionName());
-		ASSERT_EQ(ppl7::String("another value1"),conf.get("key1").toString());
+		ASSERT_EQ(ppl7::String("another value1"),conf.get("key1"));
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(1,conf.nextSection());
 		ASSERT_EQ(ppl7::String("foo=[bar]"),conf.getSectionName());
-		ASSERT_EQ(ppl7::String("value 1"),conf.get("key 1").toString());
-		ASSERT_EQ(ppl7::String(""),conf.get("key1").toString());
+		ASSERT_EQ(ppl7::String("value 1"),conf.get("key 1"));
+		ASSERT_EQ(ppl7::String(""),conf.get("key1"));
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(1,conf.nextSection());
 		ASSERT_EQ(ppl7::String("case_insensitive_test"),conf.getSectionName());
-		ASSERT_EQ(ppl7::String(""),conf.get("key1").toString());
+		ASSERT_EQ(ppl7::String(""),conf.get("key1"));
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(1,conf.nextSection());
 		ASSERT_EQ(ppl7::String("empty section"),conf.getSectionName());
-		ASSERT_EQ(ppl7::String(""),conf.get("key1").toString());
+		ASSERT_EQ(ppl7::String(""),conf.get("key1"));
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(1,conf.nextSection());
 		ASSERT_EQ(ppl7::String("last section"),conf.getSectionName());
-		ASSERT_EQ(ppl7::String("true"),conf.get("final").toString());
+		ASSERT_EQ(ppl7::String("true"),conf.get("final"));
 	});
 	ASSERT_NO_THROW({
 			ASSERT_EQ(0,conf.nextSection());
@@ -301,7 +301,7 @@ TEST_F(ConfigParserTest, trimmedValue) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("global");
 	});
-	ASSERT_EQ(ppl7::String("value3"),conf.get("key3").toString());
+	ASSERT_EQ(ppl7::String("value3"),conf.get("key3"));
 
 }
 
@@ -311,7 +311,7 @@ TEST_F(ConfigParserTest, getSingleKeyFirstSection) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("global");
 	});
-	ASSERT_EQ(ppl7::String("value1"),conf.get("key1").toString());
+	ASSERT_EQ(ppl7::String("value1"),conf.get("key1"));
 
 }
 
@@ -321,7 +321,7 @@ TEST_F(ConfigParserTest, getKeyCaseInsensitive) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("global");
 	});
-	ASSERT_EQ(ppl7::String("value1"),conf.get("KeY1").toString());
+	ASSERT_EQ(ppl7::String("value1"),conf.get("KeY1"));
 
 }
 
@@ -331,7 +331,7 @@ TEST_F(ConfigParserTest, getDuplicateKey) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("global");
 	});
-	ASSERT_EQ(ppl7::String("First line\nsecond line\nthird line"),conf.get("key4").toString());
+	ASSERT_EQ(ppl7::String("First line\nsecond line\nthird line"),conf.get("key4"));
 
 }
 
@@ -341,7 +341,7 @@ TEST_F(ConfigParserTest, getSingleKeySecondSection) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("section1");
 	});
-	ASSERT_EQ(ppl7::String("another value1"),conf.get("key1").toString());
+	ASSERT_EQ(ppl7::String("another value1"),conf.get("key1"));
 
 }
 
@@ -351,7 +351,7 @@ TEST_F(ConfigParserTest, spacesInKeyName) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("section1");
 	});
-	ASSERT_EQ(ppl7::String("42"),conf.get("answer to all questions").toString());
+	ASSERT_EQ(ppl7::String("42"),conf.get("answer to all questions"));
 }
 
 TEST_F(ConfigParserTest, nonExistentKeyWithoutDefaultValueString) {
@@ -360,7 +360,7 @@ TEST_F(ConfigParserTest, nonExistentKeyWithoutDefaultValueString) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("section1");
 	});
-	ASSERT_EQ(ppl7::String(""),conf.get("unknown key").toString());
+	ASSERT_EQ(ppl7::String(""),conf.get("unknown key"));
 }
 
 TEST_F(ConfigParserTest, nonExistentKeyWithDefaultValueString) {
@@ -369,7 +369,7 @@ TEST_F(ConfigParserTest, nonExistentKeyWithDefaultValueString) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("section1");
 	});
-	ASSERT_EQ(ppl7::String("default value"),conf.get("unknown key","default value").toString());
+	ASSERT_EQ(ppl7::String("default value"),conf.get("unknown key","default value"));
 }
 
 TEST_F(ConfigParserTest, nonExistentKeyWithoutDefaultValueBool) {
@@ -451,7 +451,7 @@ TEST_F(ConfigParserTest, getFromSection) {
 			conf.load("testdata/example.conf");
 			conf.selectSection("global");
 	});
-	ASSERT_EQ(ppl7::String("another value1"),conf.getFromSection("section1","key1").toString());
+	ASSERT_EQ(ppl7::String("another value1"),conf.getFromSection("section1","key1"));
 }
 
 TEST_F(ConfigParserTest, getBoolFromSection) {

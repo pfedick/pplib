@@ -72,6 +72,8 @@
 
 namespace ppl7 {
 
+#ifdef OLDCODE
+
 /*!\class Variant
  * \ingroup PPLGroupDataTypes
  * \brief Basisklasse für alle weiteren Datentypen
@@ -556,7 +558,7 @@ Pointer& Variant::toPointer()
 	return static_cast<Pointer&>(*this);
 }
 
-
+#endif
 
 
 } // EOF namespace ppl7

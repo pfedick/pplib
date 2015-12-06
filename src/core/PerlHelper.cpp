@@ -85,7 +85,7 @@ static String toHashRecurse(const AssocArray &a, const String &name)
 			newName=name+"{"+key+"}";
 			r+=toHashRecurse(res.toAssocArray(),newName);
 		} else {
-			r+=name+"{"+key+"}=\""+PerlHelper::escapeString(a.toString())+"\";\n";
+			r+=name+"{"+key+"}=\""+PerlHelper::escapeString(res.toString())+"\";\n";
 		}
 	}
 	return r;

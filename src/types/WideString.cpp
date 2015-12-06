@@ -162,7 +162,6 @@ void WideString::setGlobalEncoding(const char *encoding) throw(NullPointerExcept
  */
 WideString::WideString() throw()
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -178,7 +177,6 @@ WideString::WideString() throw()
  */
 WideString::WideString(const wchar_t *str) throw(OutOfMemoryException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -197,7 +195,6 @@ WideString::WideString(const wchar_t *str) throw(OutOfMemoryException)
  */
 WideString::WideString(const wchar_t *str, size_t size) throw(OutOfMemoryException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -214,7 +211,6 @@ WideString::WideString(const wchar_t *str, size_t size) throw(OutOfMemoryExcepti
  */
 WideString::WideString(const WideString *str) throw(OutOfMemoryException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -231,7 +227,6 @@ WideString::WideString(const WideString *str) throw(OutOfMemoryException)
  */
 WideString::WideString(const String *str) throw(OutOfMemoryException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -249,7 +244,6 @@ WideString::WideString(const String *str) throw(OutOfMemoryException)
  */
 WideString::WideString(const WideString &str) throw(OutOfMemoryException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -266,7 +260,6 @@ WideString::WideString(const WideString &str) throw(OutOfMemoryException)
  */
 WideString::WideString(const String &str) throw(OutOfMemoryException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -286,7 +279,6 @@ WideString::WideString(const String &str) throw(OutOfMemoryException)
  */
 WideString::WideString(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -303,7 +295,6 @@ WideString::WideString(const std::string &str) throw(OutOfMemoryException, Unsup
  */
 WideString::WideString(const std::wstring &str) throw(OutOfMemoryException)
 {
-	type=WIDESTRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;

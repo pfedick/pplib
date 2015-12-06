@@ -59,7 +59,6 @@ namespace ppl7 {
  */
 Pointer::Pointer()
 {
-	type=POINTER;
 	myptr=NULL;
 }
 
@@ -73,7 +72,6 @@ Pointer::Pointer()
  */
 Pointer::Pointer(const Pointer &other)
 {
-	type=POINTER;
 	myptr=other.myptr;
 }
 
@@ -87,7 +85,6 @@ Pointer::Pointer(const Pointer &other)
  */
 Pointer::Pointer(void *ptr)
 {
-	type=POINTER;
 	myptr=ptr;
 }
 

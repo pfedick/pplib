@@ -478,12 +478,12 @@ TEST_F(VariantTest, toStringConst) {
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::String &s3=var2.toString();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::EmptyDataException);
 
 	ASSERT_THROW({
 		const ppl7::String &s3=var3.toString();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::TypeConversionException);
 }
 
@@ -516,11 +516,11 @@ TEST_F(VariantTest, toWideStringConst) {
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::WideString &s3=var2.toWideString();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::WideString &s3=var3.toWideString();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::TypeConversionException);
 }
 
@@ -549,11 +549,11 @@ TEST_F(VariantTest, toArrayConst) {
 	ASSERT_EQ(Wordlist.size(),p2.size()) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::Array &s3=var2.toArray();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.size()>0);
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::Array &s3=var3.toArray();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.size()>0);
 	},ppl7::TypeConversionException);
 }
 
@@ -581,11 +581,11 @@ TEST_F(VariantTest, toAssocArrayConst) {
 	ASSERT_EQ(TestAssocArray.size(),p2.size()) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::AssocArray &s3=var2.toAssocArray();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.size()>0);
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::AssocArray &s3=var3.toAssocArray();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.size()>0);
 	},ppl7::TypeConversionException);
 }
 
@@ -625,19 +625,19 @@ TEST_F(VariantTest, toByteArrayConst) {
 	ASSERT_EQ(p1,p4) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::ByteArray &s3=var2.toByteArray();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::ByteArrayPtr &s3=var2.toByteArrayPtr();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::ByteArray &s3=var3.toByteArray();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::TypeConversionException);
 	ASSERT_THROW({
 		const ppl7::ByteArrayPtr &s3=var3.toByteArrayPtr();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::TypeConversionException);
 }
 
@@ -669,11 +669,11 @@ TEST_F(VariantTest, toByteArrayPtrConst) {
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::ByteArrayPtr &s3=var2.toByteArrayPtr();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::ByteArrayPtr &s3=var3.toByteArrayPtr();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::TypeConversionException);
 }
 
@@ -703,11 +703,11 @@ TEST_F(VariantTest, toDateTimeConst) {
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::DateTime &s3=var2.toDateTime();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::DateTime &s3=var3.toDateTime();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.isEmpty());
 	},ppl7::TypeConversionException);
 }
 
@@ -738,11 +738,11 @@ TEST_F(VariantTest, toPointerConst) {
 	ASSERT_EQ(p1,p2) << "Variant has unexcpected value";
 	ASSERT_THROW({
 		const ppl7::Pointer &s3=var2.toPointer();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.ptr()!=NULL);
 	},ppl7::EmptyDataException);
 	ASSERT_THROW({
 		const ppl7::Pointer &s3=var3.toPointer();
-		ASSERT_TRUE(s3.isString());
+		ASSERT_TRUE(s3.ptr()!=NULL);
 	},ppl7::TypeConversionException);
 }
 

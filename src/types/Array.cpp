@@ -107,7 +107,6 @@ static String EmptyString;
  */
 Array::Array()
 {
-	type=ARRAY;
 	numElements=0;
 	numCapacity=0;
 	rows=NULL;
@@ -122,7 +121,6 @@ Array::Array()
  */
 Array::Array(const Array &other)
 {
-	type=ARRAY;
 	numElements=0;
 	numCapacity=0;
 	rows=NULL;
@@ -147,7 +145,6 @@ Array::Array(const Array &other)
  */
 Array::Array(const String &str, const String &delimiter, size_t limit, bool skipemptylines)
 {
-	type=ARRAY;
 	numElements=0;
 	numCapacity=0;
 	rows=NULL;

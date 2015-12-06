@@ -95,7 +95,6 @@ namespace ppl7 {
  */
 ByteArray::ByteArray()
 {
-	type=BYTEARRAY;
 	ptradr=NULL;
 	ptrsize=0;
 }
@@ -122,7 +121,6 @@ ByteArray::~ByteArray()
  */
 ByteArray::ByteArray(const ByteArrayPtr &other)
 {
-	type=BYTEARRAY;
 	if (other.ptradr) {
 		ptradr=::malloc(other.ptrsize+1);
 		if (!ptradr) throw OutOfMemoryException();
@@ -144,7 +142,6 @@ ByteArray::ByteArray(const ByteArrayPtr &other)
  */
 ByteArray::ByteArray(const String &str)
 {
-	type=BYTEARRAY;
 	if (str.notEmpty()) {
 		ptradr=::malloc(str.size()+1);
 		if (!ptradr) throw OutOfMemoryException();
@@ -167,7 +164,6 @@ ByteArray::ByteArray(const String &str)
  */
 ByteArray::ByteArray(const ByteArray &other)
 {
-	type=BYTEARRAY;
 	if (other.ptradr) {
 		ptradr=::malloc(other.ptrsize+1);
 		if (!ptradr) throw OutOfMemoryException();
@@ -192,7 +188,6 @@ ByteArray::ByteArray(const ByteArray &other)
  */
 ByteArray::ByteArray(const void *adr, size_t size)
 {
-	type=BYTEARRAY;
 	ptradr=NULL;
 	ptrsize=0;
 	copy(adr,size);
@@ -209,7 +204,6 @@ ByteArray::ByteArray(const void *adr, size_t size)
  */
 ByteArray::ByteArray(size_t size)
 {
-	type=BYTEARRAY;
 	ptrsize=0;
 	ptradr=::malloc(size+1);
 	if (!ptradr) throw OutOfMemoryException();

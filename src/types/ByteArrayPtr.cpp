@@ -87,7 +87,6 @@ namespace ppl7 {
  */
 ByteArrayPtr::ByteArrayPtr()
 {
-	type=BYTEARRAYPTR;
 	ptradr=NULL;
 	ptrsize=0;
 }
@@ -102,7 +101,6 @@ ByteArrayPtr::ByteArrayPtr()
  */
 ByteArrayPtr::ByteArrayPtr(const ByteArrayPtr &other)
 {
-	type=BYTEARRAYPTR;
 	ptradr=other.ptradr;
 	ptrsize=other.ptrsize;
 }
@@ -118,7 +116,6 @@ ByteArrayPtr::ByteArrayPtr(const ByteArrayPtr &other)
  */
 ByteArrayPtr::ByteArrayPtr(void *adr, size_t size)
 {
-	type=BYTEARRAYPTR;
 	ptradr=adr;
 	ptrsize=size;
 }

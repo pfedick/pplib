@@ -155,60 +155,8 @@ class NewVariant
 		NewVariant &operator=(const Pointer &other);
 };
 
-class Variant
-{
-	public:
-		enum Type {
-			UNKNOWN		=0,
-			//INT			=2,
-			STRING		=4,
-			ASSOCARRAY	=5,
-			BYTEARRAY	=6,
-			POINTER		=7,
-			WIDESTRING	=8,
-			ARRAY		=9,
-			//BOOL		=10,
-			DATETIME	=11,
-			BYTEARRAYPTR	=12
-		};
-	protected:
-		ppluint8		type;
 
-	public:
-		//! @name Basisfuktionen des Datentyps Variant
-		//@{
-		Variant();
-		virtual ~Variant() {};
-		int dataType() const;
-		bool isType(int type) const;
-		bool isString() const;
-		bool isWideString() const;
-		bool isArray() const;
-		bool isAssocArray() const;
-		bool isByteArray() const;
-		bool isByteArrayPtr() const;
-		bool isDateTime() const;
-		bool isPointer() const;
-		const String& toString() const;
-		String& toString();
-		const WideString& toWideString() const;
-		WideString& toWideString();
-		const Array& toArray() const;
-		Array& toArray();
-		const AssocArray& toAssocArray() const;
-		AssocArray& toAssocArray();
-		const ByteArray& toByteArray() const;
-		ByteArray& toByteArray();
-		const ByteArrayPtr& toByteArrayPtr() const;
-		ByteArrayPtr& toByteArrayPtr();
-		const DateTime& toDateTime() const;
-		DateTime& toDateTime();
-		const Pointer& toPointer() const;
-		Pointer& toPointer();
-		//@}
-};
-
-class Pointer : public Variant
+class Pointer
 {
 	private:
 		void *myptr;
@@ -232,7 +180,7 @@ class Pointer : public Variant
 		bool operator>(const Pointer &other) const;
 };
 
-class ByteArrayPtr : public Variant
+class ByteArrayPtr
 {
 	friend class ByteArray;
 	private:
@@ -321,7 +269,7 @@ std::ostream& operator<<(std::ostream& s, const ByteArray &ba);
 
 ByteArray fromBase64(const String &base64);
 
-class String : public Variant
+class String
 {
 	private:
 		char *ptr;
@@ -342,12 +290,12 @@ class String : public Variant
 		~String() throw();
 #ifdef WITH_QT
 		String(const QString &q) {
-			type=STRING; ptr=NULL; stringlen=0; s=0;
+			ptr=NULL; stringlen=0; s=0;
 			QByteArray a=q.toUtf8();
 			set((const char*)a);
 		}
 		String(QString *q) {
-			type=STRING; ptr=NULL; stringlen=0; s=0;
+			ptr=NULL; stringlen=0; s=0;
 			QByteArray a=q->toUtf8();
 			set((const char*)a);
 		}
@@ -579,7 +527,7 @@ String operator+(const String &str1, const std::wstring &str2);
 
 std::ostream& operator<<(std::ostream& s, const String &str);
 
-class WideString : public Variant
+class WideString
 {
 	private:
 		wchar_t *ptr;
@@ -600,12 +548,12 @@ class WideString : public Variant
 		~WideString() throw();
 #ifdef WITH_QT
 		WideString(const QString &q) {
-			type=WIDESTRING; ptr=NULL; stringlen=0; s=0;
+			ptr=NULL; stringlen=0; s=0;
 			QByteArray a=q.toUtf8();
 			set((const char*)a);
 		}
 		WideString(QString *q) {
-			type=WIDESTRING; ptr=NULL; stringlen=0; s=0;
+			ptr=NULL; stringlen=0; s=0;
 			QByteArray a=q->toUtf8();
 			set((const char*)a);
 		}
@@ -837,7 +785,7 @@ std::ostream& operator<<(std::ostream& s, const WideString &str);
 
 
 
-class Array : public Variant
+class Array
 {
 	private:
 		size_t numElements;
@@ -930,7 +878,7 @@ class Array : public Variant
 
 Array operator+(const Array &a1, const Array& a2);
 
-class AssocArray : public Variant
+class AssocArray
 {
 	private:
 		class ArrayKey : public String
@@ -1096,7 +1044,7 @@ typedef struct tagTime {
 //! \brief Datentyp für Unix-Time
 typedef ppluint64 ppl_time_t;
 
-class DateTime : public Variant
+class DateTime
 {
 	private:
 		ppluint32 us;

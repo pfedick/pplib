@@ -159,7 +159,6 @@ void String::setGlobalEncoding(const char *encoding) throw(NullPointerException,
  */
 String::String() throw()
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -178,7 +177,6 @@ String::String() throw()
  */
 String::String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -197,7 +195,6 @@ String::String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureEx
  */
 String::String(const char *str, size_t size) throw(OutOfMemoryException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -214,7 +211,6 @@ String::String(const char *str, size_t size) throw(OutOfMemoryException)
  */
 String::String(const String *str) throw(OutOfMemoryException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -231,7 +227,6 @@ String::String(const String *str) throw(OutOfMemoryException)
  */
 String::String(const String &str) throw(OutOfMemoryException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -251,7 +246,6 @@ String::String(const String &str) throw(OutOfMemoryException)
  */
 String::String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -268,7 +262,6 @@ String::String(const std::string &str) throw(OutOfMemoryException, UnsupportedFe
  */
 String::String(const std::wstring &str) throw(OutOfMemoryException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -277,7 +270,6 @@ String::String(const std::wstring &str) throw(OutOfMemoryException)
 
 String::String(const WideString *str) throw(OutOfMemoryException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;
@@ -286,7 +278,6 @@ String::String(const WideString *str) throw(OutOfMemoryException)
 
 String::String(const WideString &str) throw(OutOfMemoryException)
 {
-	type=STRING;
 	ptr=NULL;
 	stringlen=0;
 	s=0;

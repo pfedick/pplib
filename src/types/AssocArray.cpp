@@ -243,7 +243,6 @@ AssocArray::ValueNode::~ValueNode()
  */
 AssocArray::AssocArray()
 {
-	type=Variant::ASSOCARRAY;
 	maxint=0;
 	num=0;
 }
@@ -261,7 +260,6 @@ AssocArray::AssocArray()
  */
 AssocArray::AssocArray(const AssocArray &other)
 {
-	type=Variant::ASSOCARRAY;
 	maxint=0;
 	num=0;
 	add(other);
@@ -1534,7 +1532,7 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	while ((Tree.getNext(it))) {
 		NewVariant *a=it.value().value;
 		if (p<buffersize) {
-			if (a->isByteArrayPtr()) PokeN8(ptr+p,Variant::BYTEARRAY);
+			if (a->isByteArrayPtr()) PokeN8(ptr+p,NewVariant::TYPE_BYTEARRAY);
 			else PokeN8(ptr+p,a->type());
 		}
 		p++;
@@ -1669,19 +1667,19 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 		key.set(ptr+p,keylen);
 		p+=keylen;
 		switch (type) {
-			case Variant::STRING:
+			case NewVariant::TYPE_STRING:
 				vallen=PeekN32(ptr+p);
 				p+=4;
 				set(key,(const char*)ptr+p,vallen);
 				p+=vallen;
 				break;
-			case Variant::ASSOCARRAY:
+			case NewVariant::TYPE_ASSOCARRAY:
 				na.clear();
 				bytes=na.importBinary(ptr+p,buffersize-p);
 				p+=bytes;
 				set(key,na);
 				break;
-			case Variant::BYTEARRAY:
+			case NewVariant::TYPE_BYTEARRAY:
 				vallen=PeekN32(ptr+p);
 				p+=4;
 				nb.free();
@@ -1689,7 +1687,7 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 				p+=vallen;
 				set(key,nb);
 				break;
-			case Variant::DATETIME:
+			case NewVariant::TYPE_DATETIME:
 				vallen=PeekN32(ptr+p);
 				p+=4;
 				dt.setLongInt(PeekN64(ptr+p));

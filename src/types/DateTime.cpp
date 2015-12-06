@@ -131,7 +131,6 @@ struct tm *gmtime_r(const time_t *timep, struct tm *result);
  */
 DateTime::DateTime()
 {
-	type=Variant::DATETIME;
 	clear();
 }
 
@@ -152,7 +151,6 @@ DateTime::DateTime()
  */
 DateTime::DateTime(const String &datetime)
 {
-	type=Variant::DATETIME;
 	set(datetime);
 }
 
@@ -165,7 +163,6 @@ DateTime::DateTime(const String &datetime)
  */
 DateTime::DateTime(const DateTime &other)
 {
-	type=Variant::DATETIME;
 	yy=other.yy;
 	us=other.us;
 	mm=other.mm;
