@@ -169,6 +169,7 @@ RELEASE	= release/AVLTree.o \
 	release/audio_AudioDecoder_Wave.o \
 	release/audio_AudioInfo.o \
 	release/audio_Cddb.o \
+	release/audio_ID3Tag.o \
 	release/audio_Icecast.o \
 	release/audio_Mp3.o
 
@@ -272,6 +273,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/audio_AudioDecoder_Wave.o \
 	debug/audio_AudioInfo.o \
 	debug/audio_Cddb.o \
+	debug/audio_ID3Tag.o \
 	debug/audio_Icecast.o \
 	debug/audio_Mp3.o
 
@@ -375,6 +377,7 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/audio_AudioDecoder_Wave.o \
 	coverage/audio_AudioInfo.o \
 	coverage/audio_Cddb.o \
+	coverage/audio_ID3Tag.o \
 	coverage/audio_Icecast.o \
 	coverage/audio_Mp3.o
 
@@ -1043,6 +1046,11 @@ release/audio_Cddb.o:	$(srcdir)/audio/Cddb.cpp $(incdir)/ppl7.h $(incdir)/ppl7-e
 	# Compiling >>>audio/Cddb.cpp<<<
 	$(CXX) -Wall -O2 -o release/audio_Cddb.o -c $(srcdir)/audio/Cddb.cpp $(CFLAGS) 
 
+release/audio_ID3Tag.o:	$(srcdir)/audio/ID3Tag.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/ID3Tag.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_ID3Tag.o -c $(srcdir)/audio/ID3Tag.cpp $(CFLAGS) 
+
 release/audio_Icecast.o:	$(srcdir)/audio/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/Icecast.cpp<<<
@@ -1613,6 +1621,11 @@ debug/audio_Cddb.o:	$(srcdir)/audio/Cddb.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exc
 	# Compiling >>>audio/Cddb.cpp<<<
 	$(CXX) -Wall -O -o debug/audio_Cddb.o -c $(srcdir)/audio/Cddb.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/audio_ID3Tag.o:	$(srcdir)/audio/ID3Tag.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/ID3Tag.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_ID3Tag.o -c $(srcdir)/audio/ID3Tag.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/audio_Icecast.o:	$(srcdir)/audio/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/Icecast.cpp<<<
@@ -2173,6 +2186,11 @@ coverage/audio_Cddb.o:	$(srcdir)/audio/Cddb.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	###############################################################################
 	# Compiling >>>audio/Cddb.cpp<<<
 	$(CXX) -Wall -o coverage/audio_Cddb.o -c $(srcdir)/audio/Cddb.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/audio_ID3Tag.o:	$(srcdir)/audio/ID3Tag.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/ID3Tag.cpp<<<
+	$(CXX) -Wall -o coverage/audio_ID3Tag.o -c $(srcdir)/audio/ID3Tag.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/audio_Icecast.o:	$(srcdir)/audio/Icecast.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################

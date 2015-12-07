@@ -61,6 +61,9 @@
 
 namespace ppl7 {
 
+PPLEXCEPTION(InvalidGenreException,Exception);
+
+
 //!\brief Struktur zum Speichern eines MP3-Headers
 typedef struct tagMPEGHeader{
 	ppluint64 start,end;		// Beginn und Ende der Daten
@@ -127,6 +130,126 @@ class AudioInfo
 };
 
 bool IdentAudioFile(FileObject &file, AudioInfo &info);
+
+class ID3Frame
+{
+	friend class ID3Tag;
+	private:
+		char ID[5];
+		int Flags;
+		size_t Size;
+		char *data;
+		ID3Frame *nextFrame, *previousFrame;
+
+	public:
+		ID3Frame();
+		ID3Frame(const String &name);
+		~ID3Frame();
+};
+
+class ID3Tag
+{
+	public:
+		enum TextEncoding {
+			ENC_USASCII,
+			ENC_ISO88591,
+			ENC_UTF16,
+			ENC_UTF8
+		};
+
+		enum AudioFormat {
+			AF_UNKNOWN=0,
+			AF_MP3,
+			AF_AIFF
+		};
+	private:
+		String	Filename;
+		int		Flags;
+		size_t	numFrames;
+		int		Size;
+		AudioFormat	myAudioFormat;
+		ppluint32	PaddingSize, PaddingSpace, MaxPaddingSpace;
+		ID3Frame	*firstFrame, *lastFrame;
+		int		AddFrame(ID3Frame *Frame);
+		void	CopyAndDecodeText(String &s, ID3Frame *frame, int offset) const;
+		int	Decode(ID3Frame *frame, int offset, int encoding, String &target) const;
+		int SetTextFrameUtf16(const String &framename, const String &text);
+		int SetTextFrameISO88591(const String &framename, const String &text);
+		int SetTextFrameUtf8(const String &framename, const String &text);
+
+		AudioFormat identAudioFormat(FileObject &File);
+		ppluint32 findId3Tag(FileObject &File);
+
+		int SaveMP3();
+		int SaveAiff();
+		int TrySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
+		int CopyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2);
+
+	public:
+		ID3Tag();
+		ID3Tag(const String &File);
+		~ID3Tag();
+
+		int load(const String &File);
+		int load(FileObject &File);
+		void clearTags();
+		void clear();
+		int save();
+
+		void setPaddingSize(int bytes);
+		void setPaddingSpace(int bytes);
+		void setMaxPaddingSpace(int bytes);
+
+		void removeFrame(ID3Frame *frame);
+		void deleteFrame(ID3Frame *frame);
+		ID3Frame	*findFrame(const String &name) const;
+		ID3Frame	*findUserDefinedText(const String &description) const;
+
+		void setArtist(const String &artist);
+		void setTitle(const String &title);
+		void setGenre(const String &genre);
+		void setRemixer(const String &remixer);
+		void setLabel(const String &label);
+		void setComment(const String &comment);
+		void setComment(const String &description, const String &comment);
+		void setYear(const String &year);
+		void setAlbum(const String &album);
+		void setTrack(const String &track);
+		void setBPM(const String &bpm);
+		void setKey(const String &key);
+		void setEnergyLevel(const String &energy);
+		void setTextFrame(const String &framename, const String &text, TextEncoding enc=ENC_UTF16);
+		void setPicture(int type, const ByteArrayPtr &bin, const String &MimeType);
+
+		void generateId3V2Tag(ByteArray &tag);
+		void generateId3V1Tag(ByteArray &tag);
+
+
+		void listFrames(bool hexdump=false) const;
+		size_t frameCount() const;
+
+		String getArtist() const;
+		String getTitle() const;
+		String getGenre() const;
+		String getYear() const;
+		String getComment() const;
+		String getComment(const String &description) const;
+		String getRemixer() const;
+		String getLabel() const;
+		String getAlbum() const;
+		String getTrack() const;
+		String getBPM() const;
+		String getKey() const;
+		String getEnergyLevel() const;
+		ByteArray getPicture(int type) const;
+		void getPicture(int type, ByteArray &bin) const;
+
+		int getPrivateData(ByteArray &bin, const String &identifier) const;
+		ByteArrayPtr getPrivateData(const String &identifier) const;
+
+
+		void removePicture(int type);
+};
 
 class Icecast
 {
