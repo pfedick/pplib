@@ -649,6 +649,7 @@ class Drawable
 		 */
 		//@{
 		void	print(const Font &font, int x, int y, const String &text);
+		void	print(const Font &font, int x, int y, const WideString &text);
 		void	printf(const Font &font, int x, int y, const char *fmt, ...);
 		//@}
 

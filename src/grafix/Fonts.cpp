@@ -473,7 +473,7 @@ FontFile *Grafix::findFont(const Font &font)
  * @param y Y-Koordinate
  * @param text Der auszugebende Text
  */
-void Drawable::print(const Font &font, int x, int y, const String &text)
+void Drawable::print(const Font &font, int x, int y, const WideString &text)
 {
 	Grafix *gfx=GetGrafix();
 	FontFile *file=gfx->findFont(font.name());
@@ -488,6 +488,12 @@ void Drawable::print(const Font &font, int x, int y, const String &text)
 		}
 	}
 	file->engine->render(*file,font,*this,x,y,text,font.color());
+}
+
+void Drawable::print(const Font &font, int x, int y, const String &text)
+{
+	WideString s=text;
+	print(font,x,y,s);
 }
 
 /*!\brief Formatierten Text ausgeben
@@ -505,7 +511,7 @@ void Drawable::print(const Font &font, int x, int y, const String &text)
  */
 void Drawable::printf(const Font &font, int x, int y, const char *fmt, ...)
 {
-	String s;
+	WideString s;
 	va_list args;
 	va_start(args, fmt);
 	s.vasprintf(fmt,args);
