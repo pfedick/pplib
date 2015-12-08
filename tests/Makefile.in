@@ -58,7 +58,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/tcpsocket.o \
 	compile/filestatic.o compile/textsnippets.o \
 	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o \
-	compile/audioinfo.o compile/sockaddr.o
+	compile/audioinfo.o compile/sockaddr.o compile/id3tag.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
@@ -264,4 +264,8 @@ compile/audioinfo.o: src/audioinfo.cpp Makefile ppl7-tests.h
 compile/sockaddr.o: src/sockaddr.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/sockaddr.o -c src/sockaddr.cpp $(CFLAGS) $(LIB)
+
+compile/id3tag.o: src/id3tag.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/id3tag.o -c src/id3tag.cpp $(CFLAGS) $(LIB)
 	
