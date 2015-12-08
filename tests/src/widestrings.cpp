@@ -51,7 +51,6 @@ class WideStringTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::WideString::setGlobalEncoding("UTF-8");
 	}
 	virtual ~WideStringTest() {
 
