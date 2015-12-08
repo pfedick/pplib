@@ -68,6 +68,10 @@
 #include <limits.h>
 #endif
 
+#ifdef HAVE_ICONV
+#include <iconv.h>
+#endif
+
 #include "ppl7.h"
 
 
@@ -713,7 +717,44 @@ String UrlDecode(const String &text)
 	return ret;
 }
 
+String Transcode(const char * str, size_t size, const String &fromEncoding, const String &toEncoding)
+{
+#ifndef HAVE_ICONV
+	throw UnsupportedFeatureException("Iconv");
+#else
+	iconv_t iconv_handle=iconv_open((const char*)toEncoding,(const char*)fromEncoding);
+	if ((iconv_t)(-1)==iconv_handle) {
+		throw UnsupportedCharacterEncodingException();
+	}
 
+	size_t buffersize=(size+4)*sizeof(wchar_t);
+	char *buffer=(char*)malloc(buffersize);
+	if (!buffer) {
+		iconv_close(iconv_handle);
+		throw OutOfMemoryException();
+	}
+	size_t outbytes=buffersize;
+	char *b=buffer;
+	char *inbuffer=(char*)str;
+	size_t inbytes=size;
+
+	size_t res=iconv((iconv_t)iconv_handle, (ICONV_CONST char **)&inbuffer, &inbytes,
+			(char**)&b, &outbytes);
+	iconv_close(iconv_handle);
+	if (res==(size_t)(-1)) {
+		free(buffer);
+		throw CharacterEncodingException();
+	}
+	String ret(buffer,buffersize-outbytes);
+	free(buffer);
+	return ret;
+#endif
+}
+
+String Transcode(const String &str, const String &fromEncoding, const String &toEncoding)
+{
+	return Transcode(str.c_str(),str.size(),fromEncoding,toEncoding);
+}
 
 } // EOF namespace ppl7
 

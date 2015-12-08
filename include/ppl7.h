@@ -231,6 +231,8 @@ String Mid(const String &str, size_t start, size_t num=(size_t)-1);
 String SubStr(const String &str, size_t start, size_t num=(size_t)-1);
 String ToString(const char *fmt, ...);
 String Replace(const String &string, const String &search, const String &replace);
+String Transcode(const char * str, size_t size, const String &fromEncoding, const String &toEncoding);
+String Transcode(const String &str, const String &fromEncoding, const String &toEncoding);
 bool IsTrue(const String &str);
 Array StrTok(const String &string, const String &div);
 void StrTok(Array &result, const String &string, const String &div);
