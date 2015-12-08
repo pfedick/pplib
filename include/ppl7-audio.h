@@ -62,6 +62,10 @@
 namespace ppl7 {
 
 PPLEXCEPTION(InvalidGenreException,Exception);
+PPLEXCEPTION(UnsupportedAudioFormatException,Exception);
+PPLEXCEPTION(UnsupportedID3TagVersionException,Exception);
+PPLEXCEPTION(FilenameNotSetException,Exception);
+PPLEXCEPTION(NoID3TagFoundException,Exception);
 
 
 //!\brief Struktur zum Speichern eines MP3-Headers
@@ -135,7 +139,7 @@ class ID3Frame
 {
 	friend class ID3Tag;
 	private:
-		char ID[5];
+		String ID;
 		int Flags;
 		size_t Size;
 		char *data;
@@ -170,31 +174,31 @@ class ID3Tag
 		AudioFormat	myAudioFormat;
 		ppluint32	PaddingSize, PaddingSpace, MaxPaddingSpace;
 		ID3Frame	*firstFrame, *lastFrame;
-		int		AddFrame(ID3Frame *Frame);
-		void	CopyAndDecodeText(String &s, ID3Frame *frame, int offset) const;
-		int	Decode(ID3Frame *frame, int offset, int encoding, String &target) const;
-		int SetTextFrameUtf16(const String &framename, const String &text);
-		int SetTextFrameISO88591(const String &framename, const String &text);
-		int SetTextFrameUtf8(const String &framename, const String &text);
+		void	addFrame(ID3Frame *Frame);
+		void	copyAndDecodeText(String &s, ID3Frame *frame, int offset) const;
+		int	decode(ID3Frame *frame, int offset, int encoding, String &target) const;
+		void setTextFrameUtf16(const String &framename, const String &text);
+		void setTextFrameISO88591(const String &framename, const String &text);
+		void setTextFrameUtf8(const String &framename, const String &text);
 
 		AudioFormat identAudioFormat(FileObject &File);
 		ppluint32 findId3Tag(FileObject &File);
 
-		int SaveMP3();
-		int SaveAiff();
-		int TrySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
-		int CopyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2);
+		void saveMP3();
+		void saveAiff();
+		bool trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
+		void copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2);
 
 	public:
 		ID3Tag();
 		ID3Tag(const String &File);
 		~ID3Tag();
 
-		int load(const String &File);
-		int load(FileObject &File);
+		void load(const String &filename);
+		void load(FileObject &file);
 		void clearTags();
 		void clear();
-		int save();
+		void save();
 
 		void setPaddingSize(int bytes);
 		void setPaddingSpace(int bytes);
@@ -242,9 +246,9 @@ class ID3Tag
 		String getKey() const;
 		String getEnergyLevel() const;
 		ByteArray getPicture(int type) const;
-		void getPicture(int type, ByteArray &bin) const;
+		bool getPicture(int type, ByteArray &bin) const;
 
-		int getPrivateData(ByteArray &bin, const String &identifier) const;
+		bool getPrivateData(ByteArray &bin, const String &identifier) const;
 		ByteArrayPtr getPrivateData(const String &identifier) const;
 
 

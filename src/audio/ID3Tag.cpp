@@ -240,8 +240,6 @@ String GetID3GenreName(int id)
  */
 ID3Frame::ID3Frame()
 {
-	Poke32(ID,0);
-	ID[4]=0;
 	Flags=0;
 	Size=0;
 	data=NULL;
@@ -256,9 +254,7 @@ ID3Frame::ID3Frame()
  */
 ID3Frame::ID3Frame(const String &name)
 {
-	Poke32(ID,0);
-	::strncpy(ID,(const char*)name,4);
-	ID[4]=0;
+	ID.set(name,4);
 	Flags=0;
 	Size=0;
 	data=NULL;
@@ -310,6 +306,8 @@ ID3Tag::ID3Tag()
 	PaddingSpace=128;
 	MaxPaddingSpace=1024;
 	numFrames=0;
+	Size=0;
+	Flags=0;
 	myAudioFormat=AF_UNKNOWN;
 }
 
@@ -330,6 +328,8 @@ ID3Tag::ID3Tag(const String &File)
 	PaddingSpace=128;
 	MaxPaddingSpace=1024;
 	numFrames=0;
+	Size=0;
+	Flags=0;
 	myAudioFormat=AF_UNKNOWN;
 	load(File);
 }
@@ -424,9 +424,9 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject &File)
 ppluint32 ID3Tag::findId3Tag(FileObject &File)
 {
 	myAudioFormat=identAudioFormat(File);
-	if (myAudioFormat==AF_UNKNOWN) return (ppluint32)-1;
-	if (myAudioFormat==AF_MP3) return 0;
-	if (myAudioFormat==AF_AIFF) {
+	if (myAudioFormat==AF_UNKNOWN) throw ppl7::UnsupportedAudioFormatException();
+	else if (myAudioFormat==AF_MP3) return 0;
+	else if (myAudioFormat==AF_AIFF) {
 		ppluint32 p=12;
 		ppluint32 size;
 		const char *adr;
@@ -443,79 +443,60 @@ ppluint32 ID3Tag::findId3Tag(FileObject &File)
 	return (ppluint32)-1;
 }
 
-#ifdef TODO
-
 /*!\brief ID3-Tags aus einer Audio-Datei laden
  *
  * \desc
  * Mit dieser Funktion werden die ID3-Tags aus der Audio-Datei \p file geladen.
  *
- * @param file Dateiname
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0. Wird dabei
- * der Fehlercode 402 zurückgegeben, enthält die Datei keine ID3v2-Tags. Es kann
- * aber trotzdem die Funktion CID3Tag::Save aufgerufen werden, um Tags zu
- * speichern.
+ * @param filename Dateiname
  */
-int CID3Tag::Load(const CString &File)
+void ID3Tag::load(const String &filename)
 {
-	CFile ff;
-	if (!ff.Open(File,"rb")) return 0;
-	int ret=Load(ff);
-	Filename=File;
-	return ret;
+	File ff;
+	ff.open(filename,File::WRITE);
+	load(ff);
+	Filename=filename;
 }
 
 /*!\brief ID3-Tags aus einem CFileObject laden
  *
  * \desc
  * Mit dieser Funktion werden die ID3-Tags einer bereits geöffneten Audio-Datei,
- * die durch das CFileObject \p File repräsentiert wird, in den Hauptspeicher geladen.
+ * die durch das FileObject \p file repräsentiert wird, in den Hauptspeicher geladen.
  *
- * @param[in] File Pointer auf ein CFileObject mit der geöffneten Datei
- * @return Konnten die ID3-Tags erfolgreich geladen werden, gibt die Funktion 1 zurück,
- * im Fehlerfall 0. Wird dabei der Fehlercode 402 zurückgegeben, enthält die Datei keine
- * ID3v2-Tags.
+ * @param[in] file Geöffnete Datei
  */
-int CID3Tag::Load(CFileObject &File)
+void ID3Tag::load(FileObject &file)
 {
-	Clear();
+	clear();
 	// ID3V2 Header einlesen (10 Byte)
-	ppluint32 p=findId3Tag(File);
+	ppluint32 p=findId3Tag(file);
 	if (p==(ppluint32)-1) {
-		SetError(402,"Kein \"ID3\"-Header");
-		return 0;
+		return;
 	}
-	const char *adr=File.Map(p,10);
-	if (!adr) {
-		SetError(401);
-		return 0;
-	}
+	const char *adr=file.map(p,10);
 	if (strncmp(adr,"ID3",3)!=0) {
-		SetError(402,"Kein \"ID3\"-Header an Position %d",p);
-		return 0;
+		return;
 	}
 	int version=0;
-	if (peek8(adr+3)==3 && peek8(adr+4)==0) version=3;			// Version 2.3
-	else if (peek8(adr+3)==4 && peek8(adr+4)==0) version=4;		// Version 2.4
+	if (Peek8(adr+3)==3 && Peek8(adr+4)==0) version=3;			// Version 2.3
+	else if (Peek8(adr+3)==4 && Peek8(adr+4)==0) version=4;		// Version 2.4
 	if (version==0) {
-		SetError(403);
-		return 0;
+		throw UnsupportedID3TagVersionException();
 	}
-	Flags=peek8(adr+5);
+	Flags=Peek8(adr+5);
 	if (Flags&128) {		// Unsynchonisation-Flag gesetzt
-		SetError(404);
-		return 0;
+		throw UnsupportedID3TagVersionException("Unsynchonisation-Flag is not supported");
 	}
 	if (Flags&64) {			// Extended Header Flag
-		SetError(405);
-		return 0;
+		throw UnsupportedID3TagVersionException("Extended Header-Flag is not supported");
 	}
-	Size=peek8(adr+9);
-	int s=peek8(adr+8);
+	Size=Peek8(adr+9);
+	int s=Peek8(adr+8);
 	Size|=s<<7;
-	s=peek8(adr+7);
+	s=Peek8(adr+7);
 	Size|=s<<14;
-	s=peek8(adr+6);
+	s=Peek8(adr+6);
 	Size|=s<<21;
 
 	p+=10;
@@ -523,47 +504,38 @@ int CID3Tag::Load(CFileObject &File)
 	#ifdef ID3DEBUG
 		printf ("ID3 V2-Tag gefunden, Flags: %i, Länge: %i Bytes\n",Flags,Size);
 	#endif
-	CID3Frame *Frame;
+	ID3Frame *Frame;
 	// Jetzt lesen wir alle Frames in den Speicher
 	while (1) {
-		adr=File.Map(p,10);
+		adr=file.map(p,10);
 		if (!adr) break;
 #ifdef ID3DEBUG
 		HexDump((void*)adr,10);
 #endif
-		if (peek32(adr)==0) break;
-		Frame=new CID3Frame;
-		Frame->ID[0]=adr[0];
-		Frame->ID[1]=adr[1];
-		Frame->ID[2]=adr[2];
-		Frame->ID[3]=adr[3];
-		Frame->ID[4]=0;
+		if (Peek32(adr)==0) break;
+		Frame=new ID3Frame;
+		Frame->ID.set(adr,4);
 		Frame->Flags=PeekN16(adr+8);
 		if (version==4) {
-			Frame->Size=peek8(adr+7)|(peek8(adr+6)<<7)|(peek8(adr+5)<<14)|(peek8(adr+4)<<21);
+			Frame->Size=Peek8(adr+7)|(Peek8(adr+6)<<7)|(Peek8(adr+5)<<14)|(Peek8(adr+4)<<21);
 		} else {
-			Frame->Size=peek8(adr+7)|(peek8(adr+6)<<8)|(peek8(adr+5)<<16)|(peek8(adr+4)<<24);
+			Frame->Size=Peek8(adr+7)|(Peek8(adr+6)<<8)|(Peek8(adr+5)<<16)|(Peek8(adr+4)<<24);
 		}
 		if (!Frame->Size) {
 			delete Frame;
 			break;
 		}
-		adr=File.Map(p+10,Frame->Size);
+		adr=file.map(p+10,Frame->Size);
 		if (adr) {
 			//HexDump(adr,Frame->Size);
 			Frame->data=(char*)malloc(Frame->Size);
 			if (Frame->data) memcpy(Frame->data,adr,Frame->Size);
-			AddFrame(Frame);
+			addFrame(Frame);
 		} else {
 			delete Frame;
 		}
 		p=p+10+Frame->Size;
-		//adr=File->Map(p,256);
-		//HexDump(adr,256);
 	}
-
-
-	return 1;
 }
 
 /*!\brief Frame hinzufügen
@@ -573,9 +545,8 @@ int CID3Tag::Load(CFileObject &File)
  * hinzugefügt.
  *
  * @param Frame Pointer auf ein neues CID3Frame
- * @return Die Funktion gibt immer 1 zurück.
  */
-int CID3Tag::AddFrame(CID3Frame *Frame)
+void ID3Tag::addFrame(ID3Frame *Frame)
 {
 	if (!lastFrame) {		// Erster Eintrag
 		firstFrame=lastFrame=Frame;
@@ -602,30 +573,27 @@ int CID3Tag::AddFrame(CID3Frame *Frame)
 
 		printf ("Adding Frame %s, %i Bytes, Flags: %i: %s=%s\n",Frame->ID, Frame->Size, Frame->Flags, content, content2);
 	#endif
-
-	return 1;
 }
 
-int CID3Tag::RemoveFrame(CID3Frame *frame)
+void ID3Tag::removeFrame(ID3Frame *frame)
 {
-	if (!frame) return 0;
+	if (!frame) return;
 	if (frame->previousFrame) frame->previousFrame->nextFrame=frame->nextFrame;
 	if (frame->nextFrame) frame->nextFrame->previousFrame=frame->previousFrame;
 	if (frame==firstFrame) firstFrame=frame->nextFrame;
 	if (frame==lastFrame) lastFrame=frame->previousFrame;
 	if (numFrames>0) numFrames--;
-	return 1;
+	return;
 }
 
-int CID3Tag::DeleteFrame(CID3Frame *frame)
+void ID3Tag::deleteFrame(ID3Frame *frame)
 {
-	if (!frame) return 0;
-	if (!RemoveFrame(frame)) return 0;
+	if (!frame) return;
+	removeFrame(frame);
 	delete frame;
-	return 1;
 }
 
-size_t CID3Tag::FrameCount() const
+size_t ID3Tag::frameCount() const
 {
 	return numFrames;
 }
@@ -636,12 +604,12 @@ size_t CID3Tag::FrameCount() const
  * Mit dieser Funktion werden alle Frames auf STDOUT ausgegeben. Sie ist zu
  * Debug-Zwecken gedacht.
  */
-void CID3Tag::ListFrames(int hexdump) const
+void ID3Tag::listFrames(bool hexdump) const
 {
-	CID3Frame *frame=firstFrame;
+	ID3Frame *frame=firstFrame;
 	while (frame) {
-		printf ("Frame: %s, Size: %zu, Flags: %u\n",frame->ID, frame->Size, frame->Flags);
-		if (hexdump) ppl6::HexDump(frame->data,frame->Size);
+		printf ("Frame: %s, Size: %zu, Flags: %u\n",(const char*)frame->ID, frame->Size, frame->Flags);
+		if (hexdump) HexDump(frame->data,frame->Size);
 		frame=frame->nextFrame;
 	}
 }
@@ -656,57 +624,11 @@ void CID3Tag::ListFrames(int hexdump) const
  * @return Wurde das gewünschte Frame gefunden, gibt die Funktion einen
  * Pointer auf die CID3Frame-Klasse zurück, im Fehlerfall \c NULL.
  */
-CID3Frame *CID3Tag::FindFrame(const char *name) const
+ID3Frame *ID3Tag::findFrame(const String &name) const
 {
-	CID3Frame *frame=firstFrame;
+	ID3Frame *frame=firstFrame;
 	while (frame) {
-		if(strcmp(frame->ID,name)==0) return frame;
-		frame=frame->nextFrame;
-	}
-	return NULL;
-}
-
-/*!\brief Bestimmtes Frame finden
- *
- * \desc
- * Mit dieser Funktion wird nach einem Frame mit der ID \p name
- * gesucht und ein Pointer darauf zurückgegeben.
- *
- * @param name String mit der 4-stelligen ID des gesuchten Frames.
- * @return Wurde das gewünschte Frame gefunden, gibt die Funktion einen
- * Pointer auf die CID3Frame-Klasse zurück, im Fehlerfall \c NULL.
- */
-CID3Frame *CID3Tag::FindFrame(const CString &name) const
-{
-	CID3Frame *frame=firstFrame;
-	while (frame) {
-		if(name.StrCmp(frame->ID)==0) return frame;
-		frame=frame->nextFrame;
-	}
-	return NULL;
-}
-
-
-/*!\brief Benutzerdefinierten Text in einem TXXX-Frame finden
- *
- * \desc
- * Mit dieser Funktion wird nach einem benutzerdefinierten Text
- * in einem TXXX-Frame mit dem Namen \p description gesucht
- * und ein Pointer darauf zurückgegeben.
- *
- * @param name String mit der Description des gesuchten Frames.
- * @return Wurde das gewünschte Frame gefunden, gibt die Funktion einen
- * Pointer auf die CID3Frame-Klasse zurück, im Fehlerfall \c NULL.
- */
-CID3Frame *CID3Tag::FindUserDefinedText(const char *description) const
-{
-	CString c;
-	CID3Frame *frame=firstFrame;
-	while (frame) {
-		if(strcmp(frame->ID,"TXXX")==0) {
-			Decode(frame,+1,Peek8(frame->data),c);
-			if (c.StrCmp(description)==0) return frame;
-		}
+		if (frame->ID==name) return frame;
 		frame=frame->nextFrame;
 	}
 	return NULL;
@@ -723,12 +645,12 @@ CID3Frame *CID3Tag::FindUserDefinedText(const char *description) const
  * @return Wurde das gewünschte Frame gefunden, gibt die Funktion einen
  * Pointer auf die CID3Frame-Klasse zurück, im Fehlerfall \c NULL.
  */
-CID3Frame *CID3Tag::FindUserDefinedText(const CString &description) const
+ID3Frame *ID3Tag::findUserDefinedText(const String &description) const
 {
-	CID3Frame *frame=firstFrame;
+	ID3Frame *frame=firstFrame;
 	while (frame) {
-		if(strcmp(frame->ID,"TXXX")==0) {
-			if (description.StrCmp(frame->data+1)==0) return frame;
+		if(frame->ID=="TXXX") {
+			if (description.strcmp(frame->data+1)==0) return frame;
 		}
 		frame=frame->nextFrame;
 	}
@@ -736,136 +658,120 @@ CID3Frame *CID3Tag::FindUserDefinedText(const CString &description) const
 }
 
 
-int CID3Tag::SetTextFrame(const char *framename, const CString &text, TextEncoding enc)
+void ID3Tag::setTextFrame(const String &framename, const String &text, TextEncoding enc)
 {
-	if (enc==ENC_USASCII || enc==ENC_ISO88591) return SetTextFrameISO88591(framename,text);
-	if (enc==ENC_UTF16) return SetTextFrameUtf16(framename,text);
-	return SetTextFrameUtf8(framename,text);
+	if (enc==ENC_USASCII || enc==ENC_ISO88591) setTextFrameISO88591(framename,text);
+	else if (enc==ENC_UTF16) setTextFrameUtf16(framename,text);
+	else setTextFrameUtf8(framename,text);
 }
 
-int CID3Tag::SetTextFrameUtf8(const char *framename, const CString &text)
+void ID3Tag::setTextFrameUtf8(const String &framename, const String &text)
 {
 	bool exists=false;
-	CBinary enc;
-	if (!text.Transcode(GetGlobalEncoding(),"UTF-8",enc)) return 0;
-	CID3Frame *frame=FindFrame(framename);
+	ByteArray enc;
+	enc=text.toEncoding("UTF-8");
+	ID3Frame *frame=findFrame(framename);
 	if (frame) {
 		exists=true;
 	} else {
-		frame=new CID3Frame(framename);
+		frame=new ID3Frame(framename);
 		if (!frame) {
-			SetError(2);
-			return 0;
+			throw ppl7::OutOfMemoryException();
 		}
 	}
 	frame->Flags=0;
-	frame->Size=enc.Len()+2;
+	frame->Size=enc.size()+2;
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
 	if (!frame->data)  {
 		frame->Size=0;
 		if (!exists) delete frame;
-		SetError(2);
-		return 0;
+		throw OutOfMemoryException();
 	}
 
 	Poke8(frame->data,3);
-	Poke16(frame->data+1+enc.Len(),0);	// Terminierendes 0-Byte
-	memcpy(frame->data+1,enc.GetPtr(),enc.Len());
+	Poke16(frame->data+1+enc.size(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+1,enc.ptr(),enc.size());
 	if (!exists) {
-		AddFrame(frame);
+		addFrame(frame);
 	}
-	return 1;
 }
 
 
-int toUtf16LE(const CString &text, CBinary &enc)
+static void toUtf16LE(const String &text, ByteArray &enc)
 {
-	CBinary buffer;
+	ByteArray buffer;
 	//printf ("Converting >>%s<< from %s to UTF-16\n",(const char*)text,GetGlobalEncoding());
-	if (!text.Transcode(GetGlobalEncoding(),"UTF-16LE",buffer)) return 0;
-	char *b=(char*)enc.Malloc(2+buffer.Size());
-	if (!b) { SetError(2); return 0; }
+	buffer=text.toEncoding("UTF-16LE");
+	char *b=(char*)enc.malloc(2+buffer.size());
+	if (!b) throw ppl7::OutOfMemoryException();
 	b[0]=0xff;
 	b[1]=0xfe;
-	memcpy (b+2,buffer.GetPtr(),buffer.Size());
-	//HexDump(b,enc.Size());
-	return 1;
+	memcpy (b+2,buffer.ptr(),buffer.size());
 }
 
 
 
-int CID3Tag::SetTextFrameUtf16(const char *framename, const CString &text)
+void ID3Tag::setTextFrameUtf16(const String &framename, const String &text)
 {
 	bool exists=false;
-	CBinary enc;
-	if (!toUtf16LE(text,enc)) return 0;
-	CID3Frame *frame=FindFrame(framename);
+	ByteArray enc;
+	toUtf16LE(text,enc);
+	ID3Frame *frame=findFrame(framename);
 	if (frame) {
 		exists=true;
 	} else {
-		frame=new CID3Frame(framename);
-		if (!frame) {
-			SetError(2);
-			return 0;
-		}
+		frame=new ID3Frame(framename);
+		if (!frame) throw ppl7::OutOfMemoryException();
 	}
 	frame->Flags=0;
-	frame->Size=enc.Len()+3;
+	frame->Size=enc.size()+3;
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
 	if (!frame->data)  {
 		frame->Size=0;
 		if (!exists) delete frame;
-		SetError(2);
-		return 0;
+		throw ppl7::OutOfMemoryException();
 	}
-
 	Poke8(frame->data,1);
-	Poke16(frame->data+1+enc.Len(),0);	// Terminierendes 0-Byte
-	memcpy(frame->data+1,enc.GetPtr(),enc.Len());
+	Poke16(frame->data+1+enc.size(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+1,enc.ptr(),enc.size());
 	if (!exists) {
-		AddFrame(frame);
+		addFrame(frame);
 	}
-	return 1;
 }
 
-int CID3Tag::SetTextFrameISO88591(const char *framename, const CString &text)
+void ID3Tag::setTextFrameISO88591(const String &framename, const String &text)
 {
 	bool exists=false;
-	CBinary enc;
-	if (!text.Transcode(GetGlobalEncoding(),"ISO8859-1",enc)) return 0;
-	CID3Frame *frame=FindFrame(framename);
+	ByteArray enc;
+	enc=text.toEncoding("ISO8859-1");
+	ID3Frame *frame=findFrame(framename);
 	if (frame) {
 		exists=true;
 	} else {
-		frame=new CID3Frame(framename);
-		if (!frame) {
-			SetError(2);
-			return 0;
-		}
+		frame=new ID3Frame(framename);
+		if (!frame) throw ppl7::OutOfMemoryException();
 	}
 	frame->Flags=0;
-	frame->Size=enc.Len()+2;
+	frame->Size=enc.size()+2;
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
 	if (!frame->data)  {
 		frame->Size=0;
 		if (!exists) delete frame;
-		SetError(2);
-		return 0;
+		throw ppl7::OutOfMemoryException();
 	}
 
 	Poke8(frame->data,0);
-	Poke8(frame->data+1+enc.Len(),0);	// Terminierendes 0-Byte
-	memcpy(frame->data+1,enc.GetPtr(),enc.Len());
+	Poke8(frame->data+1+enc.size(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+1,enc.ptr(),enc.size());
 	if (!exists) {
-		AddFrame(frame);
+		addFrame(frame);
 	}
-	return 1;
 }
 
 
@@ -876,11 +782,10 @@ int CID3Tag::SetTextFrameISO88591(const char *framename, const CString &text)
  * Der Wert wird im Frame "TPE1" gespeichert.
  *
  * @param[in] artist String mit dem Namen des Interpreten
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetArtist(const CString &artist)
+void ID3Tag::setArtist(const String &artist)
 {
-	return SetTextFrame("TPE1",artist);
+	setTextFrame("TPE1",artist);
 }
 
 /*!\brief Titel des Songs setzen
@@ -890,12 +795,10 @@ int CID3Tag::SetArtist(const CString &artist)
  * Der Wert wird im Frame "TIT2" gespeichert.
  *
  * @param[in] title String mit dem Titel des Songs
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-
-int CID3Tag::SetTitle(const CString &title)
+void ID3Tag::setTitle(const String &title)
 {
-	return SetTextFrame("TIT2",title);
+	setTextFrame("TIT2",title);
 }
 
 /*!\brief Name des Albums setzen
@@ -905,11 +808,10 @@ int CID3Tag::SetTitle(const CString &title)
  * Der Wert wird im Frame "TALB" gespeichert.
  *
  * @param[in] album String mit dem Namen des Albums
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetAlbum(const CString &album)
+void ID3Tag::setAlbum(const String &album)
 {
-	return SetTextFrame("TALB",album);
+	setTextFrame("TALB",album);
 }
 
 /*!\brief Name des Remixers oder des Mixes
@@ -921,45 +823,39 @@ int CID3Tag::SetAlbum(const CString &album)
  * von Native Instruments verwendet.
  *
  * @param[in] remixer String mit dem Namen des Remixers oder des Mixes.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetRemixer(const CString &remixer)
+void ID3Tag::setRemixer(const String &remixer)
 {
-	if (!SetTextFrame("TPE4",remixer)) return 0;
+	setTextFrame("TPE4",remixer);
 	bool exists=false;
-	CBinary enc, udf;
-	CString udfstring="TraktorRemixer";
-	if (!toUtf16LE(remixer,enc)) return 0;
-	if (!toUtf16LE(udfstring,udf)) return 0;
-	CID3Frame *frame;
-	frame=FindUserDefinedText("TraktorRemixer");
+	ByteArray enc, udf;
+	String udfstring="TraktorRemixer";
+	toUtf16LE(remixer,enc);
+	toUtf16LE(udfstring,udf);
+	ID3Frame *frame;
+	frame=findUserDefinedText("TraktorRemixer");
 	if (frame) {
 		exists=true;
 	} else {
-		frame=new CID3Frame("TXXX");
-		if(!frame) {
-			SetError(2);
-			return 0;
-		}
+		frame=new ID3Frame("TXXX");
+		throw ppl7::OutOfMemoryException();
 	}
 	frame->Flags=0;
-	frame->Size=enc.Len()+5+udf.Len();
+	frame->Size=enc.size()+5+udf.size();
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
 	if (!frame->data) {
 		if(!exists) delete frame;
-		SetError(2);
-		return 0;
+		throw ppl7::OutOfMemoryException();
 	}
 	Poke8(frame->data,1);
-	memcpy(frame->data+1,udf.GetPtr(),udf.Len());
-	Poke16(frame->data+1+udf.Len(),0);	// Terminierendes 0-Byte
-	memcpy(frame->data+3+udf.Len(),enc.GetPtr(),enc.Len());
-	Poke16(frame->data+3+udf.Len()+enc.Len(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+1,udf.ptr(),udf.size());
+	Poke16(frame->data+1+udf.size(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+3+udf.size(),enc.ptr(),enc.size());
+	Poke16(frame->data+3+udf.size()+enc.size(),0);	// Terminierendes 0-Byte
 	if (!exists) {
-		AddFrame(frame);
+		addFrame(frame);
 	}
-	return 1;
 }
 
 /*!\brief Name des Plattenlabels setzen
@@ -970,11 +866,10 @@ int CID3Tag::SetRemixer(const CString &remixer)
  * Der Wert wird im Frame "TPUB" gespeichert.
  *
  * @param[in] label String mit dem Namen des Plattenlabels
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetLabel(const CString &label)
+void ID3Tag::setLabel(const String &label)
 {
-	return SetTextFrame("TPUB",label);
+	setTextFrame("TPUB",label);
 }
 
 /*!\brief Nummer des Tracks setzen
@@ -989,21 +884,20 @@ int CID3Tag::SetLabel(const CString &label)
  * Der Wert wird im Frame "TRCK" gespeichert.
  *
  * @param[in] track String mit der Nummer des Tracks.
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetTrack(const CString &track)
+void ID3Tag::setTrack(const String &track)
 {
-	return SetTextFrame("TRCK",track);
+	setTextFrame("TRCK",track);
 }
 
-int CID3Tag::SetBPM(const CString &bpm)
+void ID3Tag::setBPM(const String &bpm)
 {
-	return SetTextFrame("TBPM",bpm,ENC_USASCII);
+	setTextFrame("TBPM",bpm,ENC_USASCII);
 }
 
-int CID3Tag::SetKey(const CString &key)
+void ID3Tag::setKey(const String &key)
 {
-	return SetTextFrame("TKEY",key,ENC_USASCII);
+	setTextFrame("TKEY",key,ENC_USASCII);
 }
 
 /*!\brief Erscheinungsjahr des Titels setzen
@@ -1013,11 +907,10 @@ int CID3Tag::SetKey(const CString &key)
  * Der Wert wird im Frame "TYER" gespeichert.
  *
  * @param[in] year String mit dem Erscheinungsjahr des Titels
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetYear(const CString &year)
+void ID3Tag::setYear(const String &year)
 {
-	return SetTextFrame("TYER",year);
+	setTextFrame("TYER",year);
 }
 
 /*!\brief Musikgenre setzen
@@ -1029,22 +922,21 @@ int CID3Tag::SetYear(const CString &year)
  * Der Wert wird im Frame "TCON" gespeichert.
  *
  * @param[in] genre String mit dem Namen des Musikgenres
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetGenre(const CString &genre)
+void ID3Tag::setGenre(const String &genre)
 {
-	CString gen=genre;
+	String gen=genre;
 	// Gibt es in der Genre-Liste einen passenden Eintrag?
 	int genreid=0;
 	while(genres[genreid]!=NULL) {
-		if (genre.StrCmp((char*)genres[genreid])==0) {
-			gen.Setf("(%i)",genreid);
+		if (genre.strcmp((char*)genres[genreid])==0) {
+			gen.setf("(%i)",genreid);
 			gen+=genre;
 			break;
 		}
 		genreid++;
 	}
-	return SetTextFrame("TCON",gen);
+	setTextFrame("TCON",gen);
 }
 
 /*!\brief Kommentar setzen
@@ -1054,11 +946,10 @@ int CID3Tag::SetGenre(const CString &genre)
  * Der Wert wird im Frame "COMM" gespeichert.
  *
  * @param[in] comment String mit dem Kommentar
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetComment(const CString &comment)
+void ID3Tag::setComment(const String &comment)
 {
-	return SetComment("",comment);
+	setComment("",comment);
 }
 
 /*!\brief Kommentar setzen
@@ -1069,26 +960,25 @@ int CID3Tag::SetComment(const CString &comment)
  *
  * @param[in] comment String mit dem Kommentar
  * @param[in] shortcomment String mit dem Kommentar
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CID3Tag::SetComment(const CString &description, const CString &comment)
+void ID3Tag::setComment(const String &description, const String &comment)
 {
 	const char *framename="COMM";
 	bool exists=false;
-	CBinary enc;
-	CBinary shortenc;
-	if (!toUtf16LE(description,shortenc)) return 0;
-	if (!toUtf16LE(comment,enc)) return 0;
-	CID3Frame *frame=FindFrame(framename);
+	ByteArray enc;
+	ByteArray shortenc;
+	toUtf16LE(description,shortenc);
+	toUtf16LE(comment,enc);
+	ID3Frame *frame=findFrame(framename);
 	if (frame) {
 		exists=true;
 		// Es könnte andere COMM-Frames geben, die löschen wir
-		CID3Frame *nf,*f=firstFrame;
+		ID3Frame *nf,*f=firstFrame;
 		while (f) {
-			if(strcmp(f->ID,framename)==0 && f!=frame) {
+			if(f->ID==framename && f!=frame) {
 				// Frame löschen
 				nf=f->nextFrame;
-				DeleteFrame(f);
+				deleteFrame(f);
 				f=nf;
 			} else {
 				f=f->nextFrame;
@@ -1096,36 +986,29 @@ int CID3Tag::SetComment(const CString &description, const CString &comment)
 		}
 
 	} else {
-		frame=new CID3Frame(framename);
-		if (!frame) {
-			SetError(2);
-			return 0;
-		}
+		frame=new ID3Frame(framename);
+		if (!frame) throw ppl7::OutOfMemoryException();
 	}
 	frame->Flags=0;
-	frame->Size=enc.Len()+3+3+shortenc.Len()+2;
+	frame->Size=enc.size()+3+3+shortenc.size()+2;
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
 	if (!frame->data)  {
 		frame->Size=0;
 		if (!exists) delete frame;
-		SetError(2);
-		return 0;
+		throw ppl7::OutOfMemoryException();
 	}
-
 	Poke8(frame->data,1);
-
 	//strncpy(frame->data+1,"eng",3);
 	memset(frame->data+1,0,3);
-	memcpy(frame->data+4,shortenc.GetPtr(),shortenc.Len());
-	Poke16(frame->data+4+shortenc.Len(),0);	// Terminierendes 0-Byte
-	memcpy(frame->data+6+shortenc.Len(),enc.GetPtr(),enc.Len());
-	Poke16(frame->data+6+shortenc.Len()+enc.Len(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+4,shortenc.ptr(),shortenc.size());
+	Poke16(frame->data+4+shortenc.size(),0);	// Terminierendes 0-Byte
+	memcpy(frame->data+6+shortenc.size(),enc.ptr(),enc.size());
+	Poke16(frame->data+6+shortenc.size()+enc.size(),0);	// Terminierendes 0-Byte
 	if (!exists) {
-		AddFrame(frame);
+		addFrame(frame);
 	}
-	return 1;
 }
 
 /*!\brief Tag speichern
@@ -1134,24 +1017,15 @@ int CID3Tag::SetComment(const CString &description, const CString &comment)
  * Bei Aufruf dieser Funktion wird der ID3-Tag in der zuvor mit CID3Tag::Load
  * geladenen Datei gespeichert. Es wird sowohl ein ID3v2- als auch ain ID3v1-Tag
  * geschrieben.
- *
- * @return Konnten die Tags erfolgreich geschrieben werden, gibt die Funktion 1
- * zurück, im Fehlerfall 0.
- *
- * @since Seit Version 1.3.19 hat die Funktion keine Parameter mehr, um anzugeben, ob ein
- * ID3v1- und/oder ID3v2-Tag geschrieben werden soll. Es werden immer beide Varianten
- * geschrieben.
  */
-int CID3Tag::Save()
+void ID3Tag::save()
 {
-	if (Filename.IsEmpty()) {
-		SetError(543);
-		return 0;
+	if (Filename.isEmpty()) {
+		throw FilenameNotSetException();
 	}
-	if (myAudioFormat==AF_MP3) return SaveMP3();
-	else if (myAudioFormat==AF_AIFF) return SaveAiff();
-	SetError(20,"myAudioFormat=%u",myAudioFormat);
-	return 0;
+	if (myAudioFormat==AF_MP3) saveMP3();
+	else if (myAudioFormat==AF_AIFF) saveAiff();
+	throw UnsupportedAudioFormatException("FormatId=%d",myAudioFormat);
 }
 
 /*!\brief ID3 Version 1 Tag erstellen
@@ -1163,55 +1037,54 @@ int CID3Tag::Save()
  * @param tag Speicher-Objekt, in dem der Tag gespeichert werden soll
  *
  */
-void CID3Tag::generateId3V1Tag(CBinary &tag)
+void ID3Tag::generateId3V1Tag(ByteArray &tag)
 {
 	if (firstFrame==NULL) {		// Keine Tags vorhanden
-		tag.Clear();
+		tag.clear();
 		return;
 	}
-	char *buffer=(char*)tag.Malloc(128);
+	char *buffer=(char*)tag.malloc(128);
 	if (!buffer) throw OutOfMemoryException();
-	CString text;
+	String text;
 	memset(buffer,0,128);
 	strcpy(buffer,"TAG");
-	CID3Frame *frame=FindFrame("TIT2");
+	ID3Frame *frame=findFrame("TIT2");
 	if (frame) {
-		text.Clear();
-		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
-		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(buffer+3,text,30);
+		text.clear();
+		if (frame->data[0]==0) text.set(frame->data+1,frame->Size-1);
+		if (frame->data[0]==1) text=Transcode(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
+		if (text.size()) strncpy(buffer+3,text,30);
 	}
-	frame=FindFrame("TPE1");
+	frame=findFrame("TPE1");
 	if (frame) {
-		text.Clear();
-		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
-		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(buffer+33,text,30);
+		text.clear();
+		if (frame->data[0]==0) text.set(frame->data+1,frame->Size-1);
+		if (frame->data[0]==1) text=Transcode(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
+		if (text.size()) strncpy(buffer+33,text,30);
 	}
-	frame=FindFrame("TYER");
+	frame=findFrame("TYER");
 	if (frame) {
-		text.Clear();
-		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
-		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(buffer+93,text,4);
+		text.clear();
+		if (frame->data[0]==0) text.set(frame->data+1,frame->Size-1);
+		if (frame->data[0]==1) text=Transcode(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
+		if (text.size()) strncpy(buffer+93,text,4);
 	}
 
-	frame=FindFrame("TPE4");
+	frame=findFrame("TPE4");
 	if (frame) {
-		text.Clear();
-		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
-		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.Len()) strncpy(buffer+97,text,30);
+		text.clear();
+		if (frame->data[0]==0) text.set(frame->data+1,frame->Size-1);
+		if (frame->data[0]==1) text=Transcode(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
+		if (text.size()) strncpy(buffer+97,text,30);
 	}
-	frame=FindFrame("TCON");
+	frame=findFrame("TCON");
 	if (frame) {
-		text.Clear();
-		if (frame->data[0]==0) text.Set(frame->data+1,frame->Size-1);
-		if (frame->data[0]==1) text.TranscodeText(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
-		if (text.PregMatch("/^\\(([0-9]+)\\).*$/")) {
-			int g=ppl6::atoi(text.GetMatch(1));
-			Poke8(buffer+127,g);
-			//printf ("Genre: %s: %i\n",(char*)text,g);
+		text.clear();
+		if (frame->data[0]==0) text.set(frame->data+1,frame->Size-1);
+		if (frame->data[0]==1) text=Transcode(frame->data+1,frame->Size-1,"UTF-16","ISO-8859-1");
+		Array matches;
+		if (text.pregMatch("/^\\(([0-9]+)\\).*$/",matches)) {
+			Poke8(buffer+127,matches[1].toInt());
 		} else {
 			Poke8(buffer+127,255);
 		}
@@ -1219,16 +1092,16 @@ void CID3Tag::generateId3V1Tag(CBinary &tag)
 
 }
 
-void CID3Tag::generateId3V2Tag(CBinary &tag)
+void ID3Tag::generateId3V2Tag(ByteArray &tag)
 {
 	if (firstFrame==NULL) {		// Keine Tags vorhanden
-		tag.Clear();
+		tag.clear();
 		return;
 	}
 	// Calculate required Memory
 	size_t size=0;
 	size+=10;	// ID3-Header
-	CID3Frame *Frame=firstFrame;
+	ID3Frame *Frame=firstFrame;
 	while (Frame) {
 		size+=10+Frame->Size;
 		Frame=Frame->nextFrame;
@@ -1236,7 +1109,7 @@ void CID3Tag::generateId3V2Tag(CBinary &tag)
 	size+=10;	// Empty Frame at End
 
 	// Allocate Buffer
-	char *buffer=(char*)tag.Malloc(size);
+	char *buffer=(char*)tag.malloc(size);
 	if (!buffer) throw OutOfMemoryException();
 
 	// Write Tags
@@ -1274,31 +1147,28 @@ void CID3Tag::generateId3V2Tag(CBinary &tag)
 	header[6]=(size>>21)&127;
 }
 
-int CID3Tag::SaveMP3()
+void ID3Tag::saveMP3()
 {
-	CString tmpfile=Filename;
+	String tmpfile=Filename;
 	tmpfile+=".rename.tmp";
-	CFile n;
-	CFile o;
-	if (!n.Open(&tmpfile,"w+b")) return 0;
-	if (!o.Open(Filename,"r+b")) return 0;
+	File n;
+	File o;
+	n.open(&tmpfile,File::WRITE);
+	o.open(Filename,File::WRITE);
 	// Wir benötigen exklusiven Zugriff auf das File
 	//if (!o.LockExclusive(false)) return 0;		// TODO: Hat unter Windows keine Wirkung
 
 	PPL_MPEG_HEADER mpg;
-	if (!IdentMPEG(&o, &mpg)) {
-		ppl6::PushError();
-		//o.Unlock();
-		ppl6::PopError();
-		return 0;
+	if (!IdentMPEG(o, &mpg)) {
+		throw UnsupportedAudioFormatException();
 	}
 
 	// Tags generieren
-	CBinary tagV1, tagV2;
+	ByteArray tagV1, tagV2;
 	generateId3V1Tag(tagV1);
 	generateId3V2Tag(tagV2);
 
-	size_t pn=tagV2.Size();
+	size_t pn=tagV2.size();
 	size_t rest=0;
 	bool useoldfile=false;
 	// Falls der neue Tag noch vor den ersten Frame passt und MaxPaddingSpace nicht
@@ -1307,14 +1177,14 @@ int CID3Tag::SaveMP3()
 		// Sonderfall, keine Tags vorhanden
 
 	} else if (pn>0 && pn<=mpg.start && mpg.start-pn<MaxPaddingSpace) {
-		o.Seek(0);
-		o.Write(tagV2);
+		o.seek(0);
+		o.write(tagV2);
 		// Mit Nullen auffüllen bis zum Start der Frames
 		rest=mpg.start-pn;
 		useoldfile=true;
 		//printf ("Keine Verschiebung nötig, verwende altes File\n");
 	} else {
-		n.Write(tagV2);
+		n.write(tagV2);
 		if (pn<PaddingSize) {
 			// Wir füllen mit Nullen auf
 			rest=PaddingSize-pn;
@@ -1325,53 +1195,56 @@ int CID3Tag::SaveMP3()
 	}
 	if (rest>0) {
 		char *space=(char*)calloc(1024,1);
+		if (!space) throw ppl7::OutOfMemoryException();
 		ppluint32 bytes;
-		while (rest) {
-			bytes=rest;
-			if (bytes>1024) bytes=1024;
-			if (useoldfile)	o.Write(space,bytes,pn);
-			else n.Write(space,bytes,pn);
-			pn+=bytes;
-			rest-=bytes;
+		try {
+			while (rest) {
+				bytes=rest;
+				if (bytes>1024) bytes=1024;
+				if (useoldfile)	o.write(space,bytes,pn);
+				else n.write(space,bytes,pn);
+				pn+=bytes;
+				rest-=bytes;
+			}
+		} catch (...) {
+			free(space);
+			throw;
 		}
 		free(space);
 	}
 	if (useoldfile) {
 		// Am Ende noch den v1-Tag reinschreiben
-		o.Write(tagV1.GetPtr(),tagV1.Size(),mpg.end);
-		n.Close();
-		o.Close();
-		CFile::DeleteFile(tmpfile);
+		o.write(tagV1.ptr(),tagV1.size(),mpg.end);
+		n.close();
+		o.close();
+		File::remove(tmpfile);
 	} else {
 		// Nun kopieren wir die Musikframes
-		n.Copy(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
+		((FileObject&)n).copy(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
 		//printf ("start=%u, size=%u, pn=%u\n",mpg.start,mpg.size,pn);
 		// Und am Ende noch den v1-Tag
-		if (tagV1.Size()>0) n.Write(tagV1);
-		n.Close();
-		o.Close();
-		if (!CFile::DeleteFile(Filename)) {
-			return 0;
-		}
-		CFile::RenameFile(tmpfile,Filename);
+		if (tagV1.size()>0) n.write(tagV1);
+		n.close();
+		o.close();
+		File::remove(Filename);
+		File::rename(tmpfile,Filename);
 	}
-	return 1;
 }
 
-int CID3Tag::TrySaveAiffInExistingFile(CFile &o, CBinary &tagV2)
+bool ID3Tag::trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2)
 {
 	const char *adr;
 	ppluint32 qp=12;
 	ppluint32 size;
-	while (qp<o.Size()) {
-		adr=o.Map(qp,32);
+	while (qp<o.size()) {
+		adr=o.map(qp,32);
 		if (!adr) break;
-		size=ppl6::PeekN32(adr+4);
-		if (ppl6::PeekN32(adr)==0x49443320) {	// ID3-Chunk gefunden
+		size=PeekN32(adr+4);
+		if (PeekN32(adr)==0x49443320) {	// ID3-Chunk gefunden
 			//printf ("Found ID3-Chunk with size: %u, Tag is: %u\n",size,tagV2.Size());
-			if (size>tagV2.Size()) {
+			if (size>tagV2.size()) {
 				// Reuse old slot
-				ppluint32 maximumsize=tagV2.Size();
+				ppluint32 maximumsize=tagV2.size();
 				if (maximumsize+PaddingSpace<PaddingSize) maximumsize=PaddingSize;
 				else maximumsize+=PaddingSpace;
 				maximumsize+=(maximumsize/10);
@@ -1380,38 +1253,38 @@ int CID3Tag::TrySaveAiffInExistingFile(CFile &o, CBinary &tagV2)
 					break;
 				}
 				//printf ("Reuse former Tag in old file\n");
-				o.Write(tagV2.GetPtr(),tagV2.Size(),qp+8);
-				void *space=calloc(size-tagV2.Size(),1);
+				o.write(tagV2.ptr(),tagV2.size(),qp+8);
+				void *space=calloc(size-tagV2.size(),1);
 				if (space) {
 					//memset(space,1,size-tagV2.Size());
-					o.Write(space,size-tagV2.Size());
+					o.write(space,size-tagV2.size());
 					free(space);
 				}
-				o.Close();
-				return 1;
+				o.close();
+				return true;
 			} else {
 				break;
 			}
 		}
 		qp+=size+8;
 	}
-	return 0;
+	return false;
 }
 
-int CID3Tag::CopyAiffToNewFile(CFile &o, CFile &n, CBinary &tagV2)
+void ID3Tag::copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2)
 {
 	ppluint32 qp=12;
 	ppluint32 tp=12;
 	ppluint32 size;
 	ppluint32 formsize=4;
 	const char *adr;
-	n.Copy(o,0,12,0);	// Header kopieren
-	while (qp<o.Size()) {
-		adr=o.Map(qp,32);
+	n.copy(o,0,12,0);	// Header kopieren
+	while (qp<o.size()) {
+		adr=o.map(qp,32);
 		if (!adr) break;
-		size=ppl6::PeekN32(adr+4);
-		if (ppl6::PeekN32(adr)!=0x49443320) {	// ignore former ID3-chunk
-			n.Copy(o,qp,size+8,tp);				// append chunk to temporary file
+		size=PeekN32(adr+4);
+		if (PeekN32(adr)!=0x49443320) {	// ignore former ID3-chunk
+			n.copy(o,qp,size+8,tp);				// append chunk to temporary file
 			tp+=size+8;
 			formsize+=size+8;
 		}
@@ -1419,63 +1292,69 @@ int CID3Tag::CopyAiffToNewFile(CFile &o, CFile &n, CBinary &tagV2)
 	}
 
 	// append new ID3-chunk
-	size=tagV2.Size();
+	size=tagV2.size();
 	if (size>0) {
 		char buffer[8];
 		if (size+PaddingSpace<PaddingSize) size=PaddingSize;
 		else size+=PaddingSpace;
-		ppl6::PokeN32(buffer,0x49443320);
-		ppl6::PokeN32(buffer+4,size);
-		n.Write(&buffer,8,tp);
-		n.Write(tagV2.GetPtr(),tagV2.Size(),tp+8);
+		PokeN32(buffer,0x49443320);
+		PokeN32(buffer+4,size);
+		n.write(&buffer,8,tp);
+		n.write(tagV2.ptr(),tagV2.size(),tp+8);
 		// Padding
-		void *space=calloc(size-tagV2.Size(),1);
+		void *space=calloc(size-tagV2.size(),1);
 		if (!space) {
-			SetError(2);
-			return 0;
+			throw OutOfMemoryException();
 		}
-		n.Write(space,size-tagV2.Size());
+		try {
+			n.write(space,size-tagV2.size());
+		} catch (...) {
+			free(space);
+			throw;
+		}
 		free(space);
 		formsize+=size+8;
 	}
 	char buffer[12];
-	n.Read(buffer,12,0);
-	ppl6::PokeN32(buffer+4,formsize);
-	n.Write(buffer,12,0);
-
-	return 1;
+	n.read(buffer,12,0);
+	PokeN32(buffer+4,formsize);
+	n.write(buffer,12,0);
 }
 
-int CID3Tag::SaveAiff()
+void ID3Tag::saveAiff()
 {
-	CString tmpfile=Filename;
+	String tmpfile=Filename;
 	tmpfile+=".rename.tmp";
-	CFile n;
-	CFile o;
-
-	if (!o.Open(Filename,"r+b")) return 0;
+	File n;
+	File o;
+	o.open(Filename,File::READWRITE);
 
 	// Tags generieren
-	CBinary tagV2;
+	ByteArray tagV2;
 	generateId3V2Tag(tagV2);
 
-	if (tagV2.Size()>0) {
-		if(TrySaveAiffInExistingFile(o,tagV2)==1) return 1;
+	if (tagV2.size()>0) {
+		try {
+			trySaveAiffInExistingFile(o,tagV2);
+			return;
+		} catch (...) {
+
+		}
 	}
 
 	// create temporary file for new tag
-	if (!n.Open(&tmpfile,"w+b")) return 0;
-	if (!CopyAiffToNewFile(o,n,tagV2)) {
-		PushError();
-		n.Close();
-		o.Close();
-		CFile::DeleteFile(tmpfile);
-		PopError();
-		return 0;
+	n.open(&tmpfile,File::READWRITE);
+	try {
+		copyAiffToNewFile(o,n,tagV2);
+	} catch (...) {
+		n.close();
+		o.close();
+		File::remove(tmpfile);
+		throw;
 	}
-	o.Close();
-	n.Close();
-	return CFile::RenameFile(tmpfile,Filename);
+	o.close();
+	n.close();
+	File::rename(tmpfile,Filename);
 }
 
 /*!\brief Name des Interpreten auslesen
@@ -1487,11 +1366,11 @@ int CID3Tag::SaveAiff()
  * @return Bei Erfolg wird ein String mit dem Namen des Interpreten zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetArtist() const
+String ID3Tag::getArtist() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TPE1");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TPE1");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1504,11 +1383,11 @@ CString CID3Tag::GetArtist() const
  * @return Bei Erfolg wird ein String mit dem Titel des Songs zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetTitle() const
+String ID3Tag::getTitle() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TIT2");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TIT2");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1525,30 +1404,31 @@ CString CID3Tag::GetTitle() const
  * @return Bei Erfolg wird ein String mit dem Namen des Genres zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetGenre() const
+String ID3Tag::getGenre() const
 {
-	CString r;
-	CString Tmp;
-	CID3Frame *frame=FindFrame("TCON");
-	if (frame) CopyAndDecodeText(Tmp,frame,0);
+	String r;
+	String Tmp;
+	ID3Frame *frame=findFrame("TCON");
+	if (frame) copyAndDecodeText(Tmp,frame,0);
 
 	// Manchmal beginnt das Genre mit einer in Klammern gesetzten Ziffer.
 	// Diese entspricht der GenreId des ID3v1-Tags
-	if (Tmp.PregMatch("/^\\(([0-9]+)\\)(.*)$/")) {
+	Array matches;
+	if (Tmp.pregMatch("/^\\(([0-9]+)\\)(.*)$/",matches)) {
 		// Wir bevorzugen den Text nach der Klammer
-		r=Tmp.GetMatch(2);
-		r.Trim();
-		if (r.IsEmpty()) {
+		r=matches[2];
+		r.trim();
+		if (r.isEmpty()) {
 			// Nur wenn er leer ist, verwenden wir die GenreId
-			r=Tmp.GetMatch(1);
-			r.Trim();
-			r=GetID3GenreName(r.ToInt());
+			r=matches[1];
+			r.trim();
+			r=GetID3GenreName(r.toInt());
 		}
-	} else if (Tmp.PregMatch("/^([0-9]+)$/")) {
+	} else if (Tmp.pregMatch("/^([0-9]+)$/",matches)) {
 		// Manchmal haben wir aber auch nur eine Genre-Ziffer
-		r=Tmp.GetMatch(1);
-		r.Trim();
-		r=ppl6::GetID3GenreName(r.ToInt());
+		r=matches[1];
+		r.trim();
+		r=GetID3GenreName(r.toInt());
 	} else {
 		r=Tmp;
 	}
@@ -1564,9 +1444,9 @@ CString CID3Tag::GetGenre() const
  * @return Bei Erfolg wird ein String mit dem Kommentar zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetComment() const
+String ID3Tag::getComment() const
 {
-	return GetComment("");
+	return getComment("");
 }
 
 /*!\brief Kommentar auslesen
@@ -1578,40 +1458,38 @@ CString CID3Tag::GetComment() const
  * @return Bei Erfolg wird ein String mit dem Kommentar zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetComment(const CString &description) const
+String ID3Tag::getComment(const String &description) const
 {
-	CString r, desc, best;
-	CID3Frame *frame=firstFrame;
-	CID3Frame *bestframe=NULL;
+	String r, desc, best;
+	ID3Frame *frame=firstFrame;
+	ID3Frame *bestframe=NULL;
 	size_t size;
 	while (frame) {
-		if(strcmp(frame->ID,"COMM")==0) {
+		if(frame->ID=="COMM") {
 			// Wir haben ein Comment-Feld
 			int encoding=Peek8(frame->data);
 			if (encoding<4) {
 				if (encoding==0 || encoding==3) {
 					size=strlen(frame->data+4);
-					Decode(frame,4,encoding,desc);
-					Decode(frame,5+size,encoding,r);
+					decode(frame,4,encoding,desc);
+					decode(frame,5+size,encoding,r);
 				} else {
 					size=strlen16(frame->data+4)*2;
-					Decode(frame,4,encoding,desc);
-					Decode(frame,6+size,encoding,r);
+					decode(frame,4,encoding,desc);
+					decode(frame,6+size,encoding,r);
 				}
 				//printf ("Found COMM-Frame with desc=%s => %s\n",(const char *)desc,(const char*)r);
-				if (description.Len()>0 && description==desc) return r;
+				if (description.size()>0 && description==desc) return r;
 				if (!bestframe) bestframe=frame;
-				if (description.Len()==0 && desc.Len()==0) best=r;
+				if (description.size()==0 && desc.size()==0) best=r;
 			}
-
-
 		}
 		frame=frame->nextFrame;
 	}
 	if (bestframe) {
 		return best;
 	} else {
-		r.Clear();
+		r.clear();
 	}
 	return r;
 }
@@ -1625,11 +1503,11 @@ CString CID3Tag::GetComment(const CString &description) const
  * @return Bei Erfolg wird ein String mit dem Namen des Remixers oder Mixes zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetRemixer() const
+String ID3Tag::getRemixer() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TPE4");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TPE4");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1642,11 +1520,11 @@ CString CID3Tag::GetRemixer() const
  * @return Bei Erfolg wird ein String mit dem Erscheinungsjahr des Titels zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetYear() const
+String ID3Tag::getYear() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TYER");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TYER");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1659,11 +1537,11 @@ CString CID3Tag::GetYear() const
  * @return Bei Erfolg wird ein String mit dem Namen des Plattenlabels zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetLabel() const
+String ID3Tag::getLabel() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TPUB");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TPUB");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1676,11 +1554,11 @@ CString CID3Tag::GetLabel() const
  * @return Bei Erfolg wird ein String mit dem Namen des Albums zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetAlbum() const
+String ID3Tag::getAlbum() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TALB");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TALB");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1695,94 +1573,94 @@ CString CID3Tag::GetAlbum() const
  * @return Bei Erfolg wird ein String mit der Tracknummer zurückgegeben,
  * im Fehlerfall ein leerer String.
  */
-CString CID3Tag::GetTrack() const
+String ID3Tag::getTrack() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TRCK");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TRCK");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
-CString CID3Tag::GetBPM() const
+String ID3Tag::getBPM() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TBPM");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TBPM");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
-CString CID3Tag::GetKey() const
+String ID3Tag::getKey() const
 {
-	CString r;
-	CID3Frame *frame=FindFrame("TKEY");
-	if (frame) CopyAndDecodeText(r,frame,0);
+	String r;
+	ID3Frame *frame=findFrame("TKEY");
+	if (frame) copyAndDecodeText(r,frame,0);
 	return r;
 }
 
 
-int CID3Tag::GetPicture(int type, CBinary &bin) const
+bool ID3Tag::getPicture(int type, ByteArray &bin) const
 {
-	CString name="APIC";
-	CID3Frame *frame=firstFrame;
+	String name="APIC";
+	ID3Frame *frame=firstFrame;
+	bin.clear();
 	while (frame) {
-		if(name.StrCmp(frame->ID)==0) {
+		if(frame->ID==name) {
 			// Wir haben ein Picture
-			ppl6::CString MimeType;
+			String MimeType;
 			int encoding=Peek8(frame->data);
-			int offset=Decode(frame,1,0,MimeType);
+			int offset=decode(frame,1,0,MimeType);
 			//printf ("Offset: %i, Type=%i, encoding=%i\n",offset, (int)Peek8(frame->data+offset),encoding);
 			if ((int)Peek8(frame->data+offset)==type) {
-				ppl6::CString Description;
-				offset=Decode(frame,offset+1,encoding,Description);
+				String Description;
+				offset=decode(frame,offset+1,encoding,Description);
 				//printf ("Mimetype: >>>%s<<<, offset: %i\n",(const char*)MimeType,offset);
-				bin.Copy(frame->data+offset,frame->Size-offset);
-				return 1;
+				bin.copy(frame->data+offset,frame->Size-offset);
+				return true;
 			}
-			return 1;
+			return false;
 		}
 		frame=frame->nextFrame;
 	}
-	SetError(561);
-	return 0;
+	return false;
 }
 
-int CID3Tag::GetPrivateData(CBinary &bin, const CString &identifier) const
+bool ID3Tag::getPrivateData(ByteArray &bin, const String &identifier) const
 {
-	CMemoryReference ref=GetPrivateData(identifier);
-	if (ref.isNull()) return 0;
-	bin.Copy(ref);
-	return 1;
+	ByteArrayPtr ref=getPrivateData(identifier);
+	if (ref.isNull()) return false;
+	bin.copy(ref);
+	return true;
 }
 
-CMemoryReference CID3Tag::GetPrivateData(const CString &identifier) const
+ByteArrayPtr ID3Tag::getPrivateData(const String &identifier) const
 {
-	CString name="PRIV";
-	CID3Frame *frame=firstFrame;
+	String name="PRIV";
+	ID3Frame *frame=firstFrame;
 	while (frame) {
-		if(name.StrCmp(frame->ID)==0) {
+		if(name==frame->ID) {
 			// Wir haben ein PRIV-Frame
-			if (identifier.StrCmp(frame->data)==0) {
-				return CMemoryReference(frame->data+identifier.Size()+1,frame->Size-identifier.Size()-1);
+			if (identifier.strcmp(frame->data)==0) {
+				return ByteArrayPtr(frame->data+identifier.size()+1,frame->Size-identifier.size()-1);
 			}
 		}
 		frame=frame->nextFrame;
 	}
-	return CMemoryReference();
+	return ByteArrayPtr();
 }
 
-CString CID3Tag::GetEnergyLevel() const
+String ID3Tag::getEnergyLevel() const
 {
-	ppl6::CString energy;
-	CString name="TXXX";
-	CID3Frame *frame=firstFrame;
+	String energy;
+	String name="TXXX";
+	ID3Frame *frame=firstFrame;
 	while (frame) {
-		if(name.StrCmp(frame->ID)==0) {
+		if(name==frame->ID) {
 			// Wir haben ein TXXX-Frame
 			int encoding=Peek8(frame->data);
-			ppl6::CString identifier;
-			int offset=Decode(frame,1,encoding,identifier);
+			String identifier;
+			int offset=decode(frame,1,encoding,identifier);
 			if (identifier=="EnergyLevel") {
-				Decode(frame,offset,encoding,energy);
+				decode(frame,offset,encoding,energy);
 				return energy;
 			}
 		}
@@ -1791,17 +1669,17 @@ CString CID3Tag::GetEnergyLevel() const
 	return energy;
 }
 
-int CID3Tag::SetEnergyLevel(const CString &energy)
+void ID3Tag::setEnergyLevel(const String &energy)
 {
-	CString name="TXXX";
-	CID3Frame *frame=firstFrame;
+	String name="TXXX";
+	ID3Frame *frame=firstFrame;
 	bool exists=false;
 	while (frame) {
-		if(name.StrCmp(frame->ID)==0) {
+		if(name==frame->ID) {
 			// Wir haben ein TXXX-Frame
 			int encoding=Peek8(frame->data);
-			ppl6::CString identifier;
-			Decode(frame,1,encoding,identifier);
+			String identifier;
+			decode(frame,1,encoding,identifier);
 			if (identifier=="EnergyLevel") {
 				exists=true;
 				break;
@@ -1811,45 +1689,41 @@ int CID3Tag::SetEnergyLevel(const CString &energy)
 	}
 	// Bisher kein Frame vorhanden, wir legen ein neues an
 	if (!frame)	{
-		frame=new CID3Frame("TXXX");
+		frame=new ID3Frame("TXXX");
 		if (!frame) {
-			SetError(2);
-			return 0;
+			throw ppl7::OutOfMemoryException();
 		}
 	}
 	frame->Flags=0;
-	frame->Size=14+energy.Len();
+	frame->Size=14+energy.size();
 	//printf ("Frame-Size: %i\n",frame->Size);
 	if (frame->data) free(frame->data);
 	frame->data=(char*)malloc(frame->Size);
 	if (!frame->data)  {
 		frame->Size=0;
 		if (!exists) delete frame;
-		SetError(2);
-		return 0;
+		throw ppl7::OutOfMemoryException();
 	}
 	Poke8(frame->data,3);
 	strcpy(frame->data+1,"EnergyLevel");
 	Poke8(frame->data+12,0);
-	strncpy(frame->data+13,energy.GetPtr(),energy.Len());
-	Poke8(frame->data+13+energy.Len(),0);
-
-	if (!exists) AddFrame(frame);
-	return 1;
+	strncpy(frame->data+13,energy.c_str(),energy.size());
+	Poke8(frame->data+13+energy.size(),0);
+	if (!exists) addFrame(frame);
 }
 
 
-int CID3Tag::SetPicture(int type, const CBinary &bin, const CString &MimeType)
+void ID3Tag::setPicture(int type, const ByteArrayPtr &bin, const String &MimeType)
 {
 	bool exists=false;
-	CString name="APIC";
-	CID3Frame *frame=firstFrame;
+	String name="APIC";
+	ID3Frame *frame=firstFrame;
 	while (frame) {
-		if(name.StrCmp(frame->ID)==0) {
+		if(name==frame->ID) {
 			// Wir haben ein Picture
-			ppl6::CString MimeType;
+			String MimeType;
 			//int encoding=Peek8(frame->data);
-			int offset=Decode(frame,1,0,MimeType);
+			int offset=decode(frame,1,0,MimeType);
 			if ((int)Peek8(frame->data+offset)==type) {
 				exists=true;
 				delete (frame->data);
@@ -1861,49 +1735,43 @@ int CID3Tag::SetPicture(int type, const CBinary &bin, const CString &MimeType)
 		frame=frame->nextFrame;
 	}
 	if (!frame) {
-		frame=new CID3Frame(name);
-		if (!frame) {
-			SetError(2);
-			return 0;
-		}
+		frame=new ID3Frame(name);
+		if (!frame) throw ppl7::OutOfMemoryException();
 	}
 	frame->Flags=0;
-	frame->data=(char*)malloc(bin.Size()+MimeType.Size()+4);
+	frame->data=(char*)malloc(bin.size()+MimeType.size()+4);
 	if (!frame->data) {
 		if (!exists) {
 			delete frame;
-			SetError(2);
-			return 0;
+			throw ppl7::OutOfMemoryException();
 		}
 	}
-	frame->Size=bin.Size()+MimeType.Size()+4;
+	frame->Size=bin.size()+MimeType.size()+4;
 	Poke8(frame->data,0);
-	pokesz(frame->data+1,MimeType.GetPtr());
-	Poke8(frame->data+2+MimeType.Size(),type);
-	Poke8(frame->data+3+MimeType.Size(),0);
-	memcpy(frame->data+4+MimeType.Size(),bin.GetPtr(),bin.Size());
-
+	strcpy(frame->data+1,MimeType.c_str());
+	Poke8(frame->data+2+MimeType.size(),type);
+	Poke8(frame->data+3+MimeType.size(),0);
+	memcpy(frame->data+4+MimeType.size(),bin.ptr(),bin.size());
 	if (!exists) {
-		AddFrame(frame);
+		addFrame(frame);
 	}
-	return 1;
 }
 
-void CID3Tag::RemovePicture(int type)
+void ID3Tag::removePicture(int type)
 {
-	CString name="APIC";
-	CID3Frame *frame=firstFrame;
+	String name="APIC";
+	ID3Frame *frame=firstFrame;
 	while (frame) {
-		if(name.StrCmp(frame->ID)==0) {
+		if(name==frame->ID) {
 			// Wir haben ein Picture
-			ppl6::CString MimeType;
+			String MimeType;
 			//int encoding=Peek8(frame->data);
-			int offset=Decode(frame,1,0,MimeType);
+			int offset=decode(frame,1,0,MimeType);
 			if ((int)Peek8(frame->data+offset)==type) {
 				free (frame->data);
 				frame->data=NULL;
 				frame->Size=0;
-				DeleteFrame(frame);
+				deleteFrame(frame);
 				return;
 			}
 		}
@@ -1922,49 +1790,48 @@ void CID3Tag::RemovePicture(int type)
  * @param[in] data Speicherbereich, an dem der Text beginnt
  * @param[in] size Länge des Strings in Bytes
  */
-void CID3Tag::CopyAndDecodeText(CString &s, CID3Frame *frame, int offset) const
+void ID3Tag::copyAndDecodeText(String &s, ID3Frame *frame, int offset) const
 {
 	int encoding=Peek8(frame->data+offset);
 	if (encoding<32) {
-		Decode(frame,offset+1,encoding,s);
+		decode(frame,offset+1,encoding,s);
 	} else {
-		s.TranscodeText(frame->data+offset,frame->Size-offset,"ISO-8859-1",GetGlobalEncoding());
+		s.set(Transcode(frame->data+offset,frame->Size-offset,"ISO-8859-1",String::getGlobalEncoding()));
 	}
 }
 
 
-int CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target) const
+int ID3Tag::decode(ID3Frame *frame, int offset, int encoding, String &target) const
 {
 	size_t size=0;
 	const char *data=frame->data+offset;
 	if (encoding==0) {
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"ISO-8859-1",GetGlobalEncoding());
+		target.set(Transcode(data,size,"ISO-8859-1",String::getGlobalEncoding()));
 		return offset+size+1;
 	} else if (encoding==1) {
 		size=strlen16(data)*2;
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"UTF-16",GetGlobalEncoding());
+		target.set(Transcode(data,size,"UTF-16",String::getGlobalEncoding()));
 		return offset+size+2;
 	} else if (encoding==2) {
 		size=strlen16(data)*2;
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"UTF-BE",GetGlobalEncoding());
+		target.set(Transcode(data,size,"UTF-BE",String::getGlobalEncoding()));
 		return offset+size+2;
 	} else if (encoding==3) {
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.Strncpy(data,size);
+		target.set(data,size);
 		return offset+size+1;
 	} else if (encoding>31) {
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.TranscodeText(data,size,"ISO-8859-1",GetGlobalEncoding());
+		target.set(Transcode(data,size,"ISO-8859-1",String::getGlobalEncoding()));
 		return offset+size+1;
 	}
 	return offset+size+1;
 }
 
-#endif
 }	// EOF namespace ppl7
