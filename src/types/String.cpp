@@ -84,8 +84,6 @@
 namespace ppl7 {
 
 static size_t InitialBuffersize=128;
-static char GlobalEncoding[64]="UTF-8";
-
 
 /*!\brief Zeichenkodierung festlegen
  *
@@ -99,43 +97,18 @@ static char GlobalEncoding[64]="UTF-8";
  * Die Funktion ist nicht Thread-sicher und sollte daher nur einmal am Anfang des
  * Programms aufgerufen werden.
  */
-void String::setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
+void String::setGlobalEncoding(const String &encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
 {
 	if (!encoding) throw NullPointerException();
-	size_t size=strlen(encoding);
-	if (size>63 || size==0) throw UnsupportedCharacterEncodingException();
-	// Sofern wir die Multibyte-Funktionen haben, unterstützen wir
-	// UTF-8 und US-ASCII auch ohne iconv
-#ifdef HAVE_MBSTOWCS
-	char enc[64]="";
-	for (size_t i=0;i<size;i++) enc[i]=toupper(encoding[i]);
-	enc[size]=0;
-	if (::strcmp(enc,"utf8")==0
-			|| ::strcmp(enc,"utf-8")==0
-			|| ::strcmp(enc,"us-ascii")==0
-			|| ::strcmp(enc,"usascii")==0
-			|| ::strcmp(enc,"ascii")==0
-			) {
-		sprintf(GlobalEncoding,"UTF-8");
-		return;
-	}
-#endif
-	// Für alles andere brauchen wir ICONV
-#ifndef HAVE_ICONV
-	throw UnsupportedCharacterEncodingException();
-#else
-	// Wir prüfen, ob das angegebene Encoding von Iconv unterstützt wird
-	iconv_t iconvimport=iconv_open(ICONV_UNICODE,enc);
-	if ((iconv_t)(-1)==iconvimport) {
-		throw UnsupportedCharacterEncodingException();
-	}
-	iconv_close(iconvimport);
-	strcpy(GlobalEncoding,enc);
-#endif
-
-
+	char *ret=setlocale(LC_CTYPE,(const char*)encoding);
+	if (!ret) throw UnsupportedCharacterEncodingException();
 }
 
+String String::getGlobalEncoding()
+{
+	char *ret=setlocale(LC_CTYPE,NULL);
+	return String(ret);
+}
 
 /*!\class String
  * \ingroup PPLGroupDataTypes

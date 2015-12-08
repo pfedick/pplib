@@ -84,60 +84,6 @@
 namespace ppl7 {
 
 static size_t InitialBuffersize=128;
-static char GlobalEncoding[64]="UTF-8";
-
-
-/*!\brief Zeichenkodierung festlegen
- *
- * Standardmäßig erwartet die String-Klasse bei Übergabe von "const char *", dass
- * die darin enthaltenen Strings \b UTF-8 kodiert sind. Dieses Verhalten kann man
- * mit dieser Funktion ändern.
- *
- * \param encoding
- *
- * \attention
- * Die Funktion ist nicht Thread-sicher und sollte daher nur einmal am Anfang des
- * Programms aufgerufen werden.
- */
-void WideString::setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
-{
-
-	if (!encoding) throw NullPointerException();
-	size_t size=strlen(encoding);
-	if (size>63 || size==0) throw UnsupportedCharacterEncodingException();
-
-	// Sofern wir die Multibyte-Funktionen haben, unterstützen wir
-	// UTF-8 und US-ASCII auch ohne iconv
-#ifdef HAVE_MBSTOWCS
-	char enc[64]="";
-	for (size_t i=0;i<size;i++) enc[i]=toupper(encoding[i]);
-	enc[size]=0;
-
-	if (::strcmp(enc,"utf8")==0
-			|| ::strcmp(enc,"utf-8")==0
-			|| ::strcmp(enc,"us-ascii")==0
-			|| ::strcmp(enc,"usascii")==0
-			|| ::strcmp(enc,"ascii")==0
-			) {
-		sprintf(GlobalEncoding,"UTF-8");
-		return;
-	}
-#endif
-	// Für alles andere brauchen wir ICONV
-#ifndef HAVE_ICONV
-	throw UnsupportedCharacterEncodingException();
-#else
-	// Wir prüfen, ob das angegebene Encoding von Iconv unterstützt wird
-	iconv_t iconvimport=iconv_open(ICONV_UNICODE,enc);
-	if ((iconv_t)(-1)==iconvimport) {
-		throw UnsupportedCharacterEncodingException();
-	}
-	iconv_close(iconvimport);
-	strcpy(GlobalEncoding,enc);
-#endif
-
-
-}
 
 
 /*!\class WideString
@@ -587,10 +533,13 @@ WideString & WideString::set(const char *str, size_t size) throw(OutOfMemoryExce
 		}
 	}
 #ifdef HAVE_MBSTOWCS
-	if (::strcasecmp(GlobalEncoding,"UTF-8")==0
-			|| ::strcasecmp(GlobalEncoding,"UTF8")==0
-			|| ::strcasecmp(GlobalEncoding,"USASCII")==0
-			|| ::strcasecmp(GlobalEncoding,"US-ASCII")==0
+	String GlobalEncoding=String::getGlobalEncoding();
+	if (GlobalEncoding.strcasecmp("UTF-8")==0
+			|| GlobalEncoding.strcasecmp("UTF8")==0
+			|| GlobalEncoding.strcasecmp("USASCII")==0
+			|| GlobalEncoding.strcasecmp("US-ASCII")==0
+			|| GlobalEncoding.strcasecmp("C")==0
+			|| GlobalEncoding.strcasecmp("POSIX")==0
 			) {
 		size_t ret=mbstowcs((wchar_t*)ptr, str, inbytes);
 		if (ret==(size_t) -1) {
@@ -604,7 +553,7 @@ WideString & WideString::set(const char *str, size_t size) throw(OutOfMemoryExce
 	}
 #endif
 #ifdef HAVE_ICONV
-	iconv_t iconvimport=iconv_open(ICONV_UNICODE,GlobalEncoding);
+	iconv_t iconvimport=iconv_open(ICONV_UNICODE,(const char*)GlobalEncoding);
 	if ((iconv_t)(-1)==iconvimport) {
 		throw UnsupportedCharacterEncodingException();
 	}
