@@ -56,7 +56,6 @@ class TimeTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen: LC_TIME\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
 	}
 	virtual ~TimeTest() {
 

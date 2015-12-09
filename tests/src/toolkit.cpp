@@ -52,7 +52,6 @@ int main(int agrc, char ** argv)
 		printf ("setlocale fehlgeschlagen\n");
 		throw std::exception();
 	}
-	ppl7::String::setGlobalEncoding("UTF-8");
 
 	ppl7::grafix::Grafix gfx;
 	ppl7::tk::WindowManager_SDL2 wm;

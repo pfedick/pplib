@@ -54,7 +54,6 @@ class GrafixImageFilterTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
 
 	}
 	virtual ~GrafixImageFilterTest() {

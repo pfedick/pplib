@@ -53,7 +53,6 @@ class DirTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
 		expectedNum=8;
 		if (ppl7::File::exists("testdata/.svn")) expectedNum++;
 		if (ppl7::File::exists("testdata/.")) expectedNum++;

@@ -61,7 +61,6 @@ class GrafixDrawableTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		ppl7::String::setGlobalEncoding("UTF-8");
 		surface.create(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
 		surface.cls();
 		transparent.setColor(0,0,0,0);
