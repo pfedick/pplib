@@ -303,8 +303,8 @@ class String
 
 		//! @name Statische Funktionen
 		//@{
-		static void setGlobalEncoding(const String &encoding) throw(NullPointerException,UnsupportedCharacterEncodingException);
-		static String getGlobalEncoding();
+		static void setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException);
+		static const char *getGlobalEncoding();
 		//@}
 
 		void clear() throw();

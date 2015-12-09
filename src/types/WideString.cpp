@@ -534,13 +534,14 @@ WideString & WideString::set(const char *str, size_t size) throw(OutOfMemoryExce
 	}
 #ifdef HAVE_MBSTOWCS
 	String GlobalEncoding=String::getGlobalEncoding();
-	if (GlobalEncoding.strcasecmp("UTF-8")==0
-			|| GlobalEncoding.strcasecmp("UTF8")==0
-			|| GlobalEncoding.strcasecmp("USASCII")==0
-			|| GlobalEncoding.strcasecmp("US-ASCII")==0
+	if (GlobalEncoding.instrCase("UTF-8")>=0
+			|| GlobalEncoding.instrCase("UTF8")>=0
+			|| GlobalEncoding.instrCase("USASCII")>=0
+			|| GlobalEncoding.instrCase("US-ASCII")>=0
 			|| GlobalEncoding.strcasecmp("C")==0
 			|| GlobalEncoding.strcasecmp("POSIX")==0
 			) {
+		printf ("DEBUG 2a\n");
 		size_t ret=mbstowcs((wchar_t*)ptr, str, inbytes);
 		if (ret==(size_t) -1) {
 			((wchar_t*)ptr)[0]=0;
@@ -2379,7 +2380,7 @@ ssize_t WideString::instrCase(const WideString &needle, size_t start) const
 	WideString CaseSearch(ptr,stringlen);
 	CaseNeedle.lowerCase();
 	CaseSearch.lowerCase();
-	return CaseSearch.instrCase(CaseNeedle,start);
+	return CaseSearch.instr(CaseNeedle,start);
 }
 
 WideString &WideString::stripSlashes()

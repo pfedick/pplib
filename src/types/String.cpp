@@ -97,17 +97,18 @@ static size_t InitialBuffersize=128;
  * Die Funktion ist nicht Thread-sicher und sollte daher nur einmal am Anfang des
  * Programms aufgerufen werden.
  */
-void String::setGlobalEncoding(const String &encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
+void String::setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
 {
 	if (!encoding) throw NullPointerException();
-	char *ret=setlocale(LC_CTYPE,(const char*)encoding);
+	char *ret=setlocale(LC_CTYPE,encoding);
 	if (!ret) throw UnsupportedCharacterEncodingException();
 }
 
-String String::getGlobalEncoding()
+const char *String::getGlobalEncoding()
 {
-	char *ret=setlocale(LC_CTYPE,NULL);
-	return String(ret);
+	const char *ret=setlocale(LC_CTYPE,NULL);
+	//printf ("%s\n",ret);
+	return ret;
 }
 
 /*!\class String
@@ -2320,7 +2321,7 @@ ssize_t String::instrCase(const String &needle, size_t start) const
 	String CaseSearch(ptr,stringlen);
 	CaseNeedle.lowerCase();
 	CaseSearch.lowerCase();
-	return CaseSearch.instrCase(CaseNeedle,start);
+	return CaseSearch.instr(CaseNeedle,start);
 }
 
 
