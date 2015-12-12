@@ -42,7 +42,7 @@
 #include "ppl7-tests.h"
 
 
-namespace {
+namespace ppl7 {
 
 class ID3TagTest : public ::testing::Test {
 	protected:
@@ -60,37 +60,83 @@ class ID3TagTest : public ::testing::Test {
 TEST_F(ID3TagTest, ConstructorWithoutFile) {
 	ASSERT_NO_THROW({
 		ppl7::ID3Tag Tags;
+		EXPECT_EQ((size_t)0,Tags.frameCount());
 	});
 }
 
-#ifdef TODO
+TEST_F(ID3TagTest, addFindDeleteOneFrame) {
+	ppl7::ID3Tag Tags;
+	ppl7::ID3Frame *frame=new ppl7::ID3Frame("TIT2");
+	Tags.addFrame(frame);
+	EXPECT_EQ((size_t)1,Tags.frameCount());
+	ppl7::ID3Frame *frame_found=Tags.findFrame("TIT2");
+	EXPECT_EQ(frame,frame_found);
+	Tags.deleteFrame(frame_found);
+	EXPECT_EQ((size_t)0,Tags.frameCount());
+}
+
+TEST_F(ID3TagTest, clear) {
+	ppl7::ID3Tag Tags;
+	Tags.addFrame(new ppl7::ID3Frame("TIT1"));
+	Tags.addFrame(new ppl7::ID3Frame("TIT2"));
+	Tags.addFrame(new ppl7::ID3Frame("TIT3"));
+	EXPECT_EQ((size_t)3,Tags.frameCount());
+	Tags.clear();
+	EXPECT_EQ((size_t)0,Tags.frameCount());
+}
+
 TEST_F(ID3TagTest, Mp3LoadFileWithoutTags) {
 	ppl7::ID3Tag Tags;
-	EXPECT_EQ(0,Tags.Load("testdata/test_192cbr.mp3")) << "Loading MP3 File failed";
-	EXPECT_EQ(402,ppl7::GetErrorCode()) << "Unexpected errorcode";
+	ASSERT_NO_THROW({
+		Tags.load("testdata/test_192cbr.mp3");
+	});
+	EXPECT_EQ((size_t)0,Tags.frameCount());
 }
+
+TEST_F(ID3TagTest, copyAndDecodeTextWithoutEncodingByte) {
+	ppl7::ID3Frame frame("TIT1");
+	ppl7::ID3Tag Tag;
+	ppl7::String result;
+	ppl7::ByteArray ba;
+	ppl7::String expected("Hällo Wörld");
+	ba=expected.toEncoding("ISO-8859-1");
+	frame.setData(ba);
+	Tag.copyAndDecodeText(result,&frame,0);
+	EXPECT_EQ(expected,result);
+}
+
+
 
 TEST_F(ID3TagTest, Mp3LoadFileWithTags) {
 	ppl7::ID3Tag Tags;
-	EXPECT_EQ(1,Tags.Load("testdata/test_192cbr_taggedWithCover.mp3")) << "Loading MP3 File failed";
-	EXPECT_EQ(ppl7::String("Patrick Fedick"),Tags.GetArtist());
-	EXPECT_EQ(ppl7::String("Powerplay Jingle"),Tags.GetTitle());
-	EXPECT_EQ(ppl7::String("Trance"),Tags.GetGenre());
-	EXPECT_EQ(ppl7::String("Single"),Tags.GetRemixer());
-	EXPECT_EQ(ppl7::String("Patrick F.-Productions"),Tags.GetLabel());
-	EXPECT_EQ(ppl7::String("PPL Testdata"),Tags.GetComment());
-	EXPECT_EQ(ppl7::String("2013"),Tags.GetYear());
-	EXPECT_EQ(ppl7::String("PPL Testsuite"),Tags.GetAlbum());
-	EXPECT_EQ(ppl7::String("2"),Tags.GetTrack());
-	EXPECT_EQ(ppl7::String("138"),Tags.GetBPM());
-	EXPECT_EQ(ppl7::String("am"),Tags.GetKey());
-	EXPECT_EQ(ppl7::String("9"),Tags.GetEnergyLevel());
-	ppl7::CBinary cover;
-	EXPECT_EQ(1,Tags.GetPicture(3,cover));
-	EXPECT_EQ((size_t)28402,cover.Size()) << "Embedded Cover has unexpected size";
-	EXPECT_EQ(ppl7::String("d665f69f04f1413eef91b3596de8dfb6"),cover.GetMD5Sum()) << "Embedded Cover has unexpected MD5 hash";
-}
+	ASSERT_NO_THROW({
+	try {
+		Tags.load("testdata/test_192cbr_taggedWithCover.mp3");
+	} catch (const ppl7::Exception &e) {
+		e.print();
+		throw;
+	}
+	});
+	EXPECT_EQ(ppl7::String("Patrick Fedick"),Tags.getArtist());
+	printf ("DEBUG 2\n");
 
+	EXPECT_EQ(ppl7::String("Powerplay Jingle"),Tags.getTitle());
+	EXPECT_EQ(ppl7::String("Trance"),Tags.getGenre());
+	EXPECT_EQ(ppl7::String("Single"),Tags.getRemixer());
+	EXPECT_EQ(ppl7::String("Patrick F.-Productions"),Tags.getLabel());
+	EXPECT_EQ(ppl7::String("PPL Testdata"),Tags.getComment());
+	EXPECT_EQ(ppl7::String("2013"),Tags.getYear());
+	EXPECT_EQ(ppl7::String("PPL Testsuite"),Tags.getAlbum());
+	EXPECT_EQ(ppl7::String("2"),Tags.getTrack());
+	EXPECT_EQ(ppl7::String("138"),Tags.getBPM());
+	EXPECT_EQ(ppl7::String("am"),Tags.getKey());
+	EXPECT_EQ(ppl7::String("9"),Tags.getEnergyLevel());
+	ppl7::ByteArray cover;
+	EXPECT_EQ(true,Tags.getPicture(3,cover));
+	EXPECT_EQ((size_t)28402,cover.size()) << "Embedded Cover has unexpected size";
+	EXPECT_EQ(ppl7::String("d665f69f04f1413eef91b3596de8dfb6"),cover.md5()) << "Embedded Cover has unexpected MD5 hash";
+}
+#ifdef TODO
 
 
 TEST_F(ID3TagTest, Mp3InitialTaggingWithoutPicture) {

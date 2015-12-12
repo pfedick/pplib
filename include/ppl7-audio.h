@@ -148,11 +148,14 @@ class ID3Frame
 	public:
 		ID3Frame();
 		ID3Frame(const String &name);
+		void setData(const ByteArrayPtr &data);
+		void setFlags(int flags);
 		~ID3Frame();
 };
 
 class ID3Tag
 {
+		friend class ID3TagTest_copyAndDecodeTextWithoutEncodingByte_Test;
 	public:
 		enum TextEncoding {
 			ENC_USASCII,
@@ -174,16 +177,13 @@ class ID3Tag
 		AudioFormat	myAudioFormat;
 		ppluint32	PaddingSize, PaddingSpace, MaxPaddingSpace;
 		ID3Frame	*firstFrame, *lastFrame;
-		void	addFrame(ID3Frame *Frame);
 		void	copyAndDecodeText(String &s, ID3Frame *frame, int offset) const;
 		int	decode(ID3Frame *frame, int offset, int encoding, String &target) const;
 		void setTextFrameUtf16(const String &framename, const String &text);
 		void setTextFrameISO88591(const String &framename, const String &text);
 		void setTextFrameUtf8(const String &framename, const String &text);
-
 		AudioFormat identAudioFormat(FileObject &File);
-		ppluint32 findId3Tag(FileObject &File);
-
+		ppluint64 findId3Tag(FileObject &File);
 		void saveMP3();
 		void saveAiff();
 		bool trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
@@ -204,10 +204,13 @@ class ID3Tag
 		void setPaddingSpace(int bytes);
 		void setMaxPaddingSpace(int bytes);
 
-		void removeFrame(ID3Frame *frame);
-		void deleteFrame(ID3Frame *frame);
+		void	addFrame(ID3Frame *Frame);
+		void	removeFrame(ID3Frame *frame);
+		void 	deleteFrame(ID3Frame *frame);
 		ID3Frame	*findFrame(const String &name) const;
 		ID3Frame	*findUserDefinedText(const String &description) const;
+		void listFrames(bool hexdump=false) const;
+		size_t frameCount() const;
 
 		void setArtist(const String &artist);
 		void setTitle(const String &title);
@@ -229,9 +232,6 @@ class ID3Tag
 		void generateId3V1Tag(ByteArray &tag);
 
 
-		void listFrames(bool hexdump=false) const;
-		size_t frameCount() const;
-
 		String getArtist() const;
 		String getTitle() const;
 		String getGenre() const;
@@ -247,12 +247,11 @@ class ID3Tag
 		String getEnergyLevel() const;
 		ByteArray getPicture(int type) const;
 		bool getPicture(int type, ByteArray &bin) const;
+		void removePicture(int type);
 
 		bool getPrivateData(ByteArray &bin, const String &identifier) const;
 		ByteArrayPtr getPrivateData(const String &identifier) const;
 
-
-		void removePicture(int type);
 };
 
 class Icecast

@@ -270,6 +270,24 @@ ID3Frame::~ID3Frame()
 	if(data) free(data);
 }
 
+void ID3Frame::setData(const ByteArrayPtr &data)
+{
+	if (this->data) free(this->data);
+	this->data=NULL;
+	Size=0;
+	if (data.size()>0) {
+		this->data=(char*)malloc(data.size());
+		if (!this->data) throw OutOfMemoryException();
+		Size=data.size();
+		memcpy(this->data,data.ptr(),Size);
+	}
+}
+
+void ID3Frame::setFlags(int flags)
+{
+	this->Flags=flags;
+}
+
 
 /*!\class CID3Tag
  * \ingroup PPLGroupSound
@@ -410,6 +428,7 @@ void ID3Tag::clearTags()
 
 ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject &File)
 {
+	if (File.size()<12) return AF_UNKNOWN;
 	const char *adr=File.map(0,12);
 	if (!adr) return AF_UNKNOWN;
 	//HexDump((void*)adr,12);
@@ -421,17 +440,16 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject &File)
 	return AF_UNKNOWN;
 }
 
-ppluint32 ID3Tag::findId3Tag(FileObject &File)
+ppluint64 ID3Tag::findId3Tag(FileObject &File)
 {
 	myAudioFormat=identAudioFormat(File);
 	if (myAudioFormat==AF_UNKNOWN) throw ppl7::UnsupportedAudioFormatException();
 	else if (myAudioFormat==AF_MP3) return 0;
 	else if (myAudioFormat==AF_AIFF) {
-		ppluint32 p=12;
+		ppluint64 p=12;
 		ppluint32 size;
-		const char *adr;
 		while (p<File.size()) {
-			adr=File.map(p,8);
+			const char *adr=File.map(p,8);
 			if (!adr) break;
 			if (PeekN32(adr)==0x49443320) {
 				return p+8;
@@ -453,7 +471,7 @@ ppluint32 ID3Tag::findId3Tag(FileObject &File)
 void ID3Tag::load(const String &filename)
 {
 	File ff;
-	ff.open(filename,File::WRITE);
+	ff.open(filename,File::READ);
 	load(ff);
 	Filename=filename;
 }
@@ -1792,6 +1810,11 @@ void ID3Tag::removePicture(int type)
  */
 void ID3Tag::copyAndDecodeText(String &s, ID3Frame *frame, int offset) const
 {
+	if (!frame) throw ppl7::InvalidArgumentsException();
+	if (!frame->data) {
+		s.clear();
+		return;
+	}
 	int encoding=Peek8(frame->data+offset);
 	if (encoding<32) {
 		decode(frame,offset+1,encoding,s);
