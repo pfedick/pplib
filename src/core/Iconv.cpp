@@ -115,14 +115,15 @@ void Iconv::transcode(const ByteArrayPtr &from, ByteArray &to)
 	if (!iconv_handle) throw CharacterEncodingNotInitializedException();
 	size_t inbytes=from.size();
 	size_t outbytes=inbytes*4+10;
-	char *outbuf=(char*)malloc(outbytes);
+	char *buffer=(char*)malloc(outbytes);
+	char *outbuf=buffer;
 	if (!outbuf) throw ppl7::OutOfMemoryException();
 	const char *inbuffer=(const char *)from.ptr();
 	char *ret=outbuf;
 	size_t res=iconv((iconv_t)iconv_handle, (ICONV_CONST char **)&inbuffer, &inbytes,
 			(char**)&outbuf, &outbytes);
 	if (res==(size_t)(-1)) {
-		free(outbuf);
+		free(buffer);
 		String e=inbuffer;
 		e.cut(64);
 		e.append("...");
@@ -131,7 +132,8 @@ void Iconv::transcode(const ByteArrayPtr &from, ByteArray &to)
 				(const char*)e);
 	}
 	size_t size_target=outbuf-ret;
-	to.useadr(ret,size_target);
+	to.copy(ret,size_target);
+	free(buffer);
 }
 
 void Iconv::transcode(const String &from, String &to)
@@ -142,14 +144,15 @@ void Iconv::transcode(const String &from, String &to)
 	if (!iconv_handle) throw CharacterEncodingNotInitializedException();
 	size_t inbytes=from.size();
 	size_t outbytes=inbytes*4+10;
-	char *outbuf=(char*)malloc(outbytes);
+	char *buffer=(char*)malloc(outbytes);
+	char *outbuf=buffer;
 	if (!outbuf) throw ppl7::OutOfMemoryException();
 	const char *inbuffer=from.c_str();
 	char *ret=outbuf;
 	size_t res=iconv((iconv_t)iconv_handle, (ICONV_CONST char **)&inbuffer, &inbytes,
 			(char**)&outbuf, &outbytes);
 	if (res==(size_t)(-1)) {
-		free(outbuf);
+		free(buffer);
 		String e=inbuffer;
 		e.cut(64);
 		e.append("...");
@@ -158,7 +161,7 @@ void Iconv::transcode(const String &from, String &to)
 				(const char*)e);
 	}
 	to.set(ret);
-	free(outbuf);
+	free(buffer);
 #endif
 }
 

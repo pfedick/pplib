@@ -1819,7 +1819,11 @@ void ID3Tag::copyAndDecodeText(String &s, ID3Frame *frame, int offset) const
 	if (encoding<32) {
 		decode(frame,offset+1,encoding,s);
 	} else {
-		s.set(Transcode(frame->data+offset,frame->Size-offset,"ISO-8859-1",String::getGlobalEncoding()));
+		String from(frame->data+offset,frame->Size-offset);
+		printf ("xxxx\n");
+		ppl7::HexDump(from.c_str(),from.size());
+		Iconv iconv("ISO-8859-1",Iconv::getLocalCharset());
+		iconv.transcode(from,s);
 	}
 }
 

@@ -101,7 +101,14 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithoutEncodingByte) {
 	ppl7::String expected("Hällo Wörld");
 	ba=expected.toEncoding("ISO-8859-1");
 	frame.setData(ba);
-	Tag.copyAndDecodeText(result,&frame,0);
+	ba.hexDump();
+	try {
+		Tag.copyAndDecodeText(result,&frame,0);
+	} catch (const ppl7::Exception &e) {
+		e.print();
+	}
+	ppl7::HexDump(expected.c_str(),expected.size());
+	ppl7::HexDump(result.c_str(),result.size());
 	EXPECT_EQ(expected,result);
 }
 
