@@ -1247,6 +1247,25 @@ class ConfigParser
 };
 
 
+class Iconv
+{
+	private:
+		void *iconv_handle;
+	public:
+		Iconv();
+		Iconv(const String &fromEncoding, const String &toEncoding);
+		~Iconv();
+		void init(const String &fromEncoding, const String &toEncoding);
+		void transcode(const ByteArrayPtr &from, ByteArray &to);
+		void transcode(const String &from, String &to);
+		//void transcode(const WideString &from, String &to);
+		//void transcode(const String &from, WideString &to);
+		static void enumerateCharsets(Array &list);
+		static String getLocalCharset();
+
+};
+
+
 };	// EOF namespace ppl7
 
 

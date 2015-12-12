@@ -80,6 +80,7 @@ RELEASE	= release/AVLTree.o \
 	release/FileObject.o \
 	release/Functions.o \
 	release/GzFile.o \
+	release/Iconv.o \
 	release/Logger.o \
 	release/MemFile.o \
 	release/MemoryGroup.o \
@@ -184,6 +185,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/FileObject.o \
 	debug/Functions.o \
 	debug/GzFile.o \
+	debug/Iconv.o \
 	debug/Logger.o \
 	debug/MemFile.o \
 	debug/MemoryGroup.o \
@@ -288,6 +290,7 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/FileObject.o \
 	coverage/Functions.o \
 	coverage/GzFile.o \
+	coverage/Iconv.o \
 	coverage/Logger.o \
 	coverage/MemFile.o \
 	coverage/MemoryGroup.o \
@@ -592,6 +595,11 @@ release/GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exce
 	###############################################################################
 	# Compiling >>>core/GzFile.cpp<<<
 	$(CXX) -Wall -O2 -o release/GzFile.o -c $(srcdir)/core/GzFile.cpp $(CFLAGS) 
+
+release/Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Iconv.cpp<<<
+	$(CXX) -Wall -O2 -o release/Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) 
 
 release/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
@@ -1168,6 +1176,11 @@ debug/GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-except
 	# Compiling >>>core/GzFile.cpp<<<
 	$(CXX) -Wall -O -o debug/GzFile.o -c $(srcdir)/core/GzFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Iconv.cpp<<<
+	$(CXX) -Wall -O -o debug/Iconv.o -c $(srcdir)/core/Iconv.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Logger.cpp<<<
@@ -1741,6 +1754,11 @@ coverage/GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exc
 	###############################################################################
 	# Compiling >>>core/GzFile.cpp<<<
 	$(CXX) -Wall -o coverage/GzFile.o -c $(srcdir)/core/GzFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Iconv.cpp<<<
+	$(CXX) -Wall -o coverage/Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################

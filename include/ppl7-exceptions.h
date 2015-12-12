@@ -128,6 +128,7 @@ PPLEXCEPTION(UnavailableException, Exception);
 PPLEXCEPTION(InitializationFailedException, Exception);
 PPLEXCEPTION(KeyNotFoundException, Exception);
 PPLEXCEPTION(InvalidTimezoneException, Exception);
+PPLEXCEPTION(CharacterEncodingNotInitializedException, Exception);
 
 PPLEXCEPTION(NoSectionSelectedException, Exception);
 PPLEXCEPTION(UnknownSectionException, Exception);

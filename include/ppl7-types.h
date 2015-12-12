@@ -863,6 +863,9 @@ class Array
 		void sortReverse();
 		void sortUnique();
 		void makeUnique();
+
+		size_t indexOf(const String &search);
+		bool has(const String &search);
 		//@}
 
 		//! @name Operatoren

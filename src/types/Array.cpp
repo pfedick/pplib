@@ -1284,6 +1284,28 @@ void Array::makeUnique()
 	}
 }
 
+size_t Array::indexOf(const String &search)
+{
+	if (!numElements) throw ItemNotFoundException(search);
+	ROW *r=(ROW*)rows;
+	for (size_t i=0;i<numElements;i++) {
+		if (*r[i].value==search) return i;
+	}
+	throw ItemNotFoundException(search);
+}
+
+bool Array::has(const String &search)
+{
+	if (!numElements) return false;
+	ROW *r=(ROW*)rows;
+	for (size_t i=0;i<numElements;i++) {
+		if (*r[i].value==search) return true;
+	}
+	return false;
+}
+
+
+
 /*!\brief Inhalt eines Arrays alphabetisch sortieren
  * \relates Array
  *
@@ -1347,5 +1369,6 @@ Array SortReverse(const Array &array, bool unique)
 	}
 	return (ret);
 }
+
 
 } // EOF namespace ppl7
