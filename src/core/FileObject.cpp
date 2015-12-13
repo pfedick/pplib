@@ -343,11 +343,10 @@ size_t FileObject::read (ByteArray &target, size_t bytes)
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
  */
-ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 quelloffset, ppluint64 bytes, ppluint64 zieloffset)
+ppluint64 FileObject::copyFrom (FileObject &quellfile, ppluint64 quelloffset, ppluint64 bytes, ppluint64 zieloffset)
 {
-	if (!quellfile.seek(quelloffset)) return 0;
-	if (!seek(zieloffset)) return 0;
-
+	quellfile.seek(quelloffset);
+	seek(zieloffset);
 	if (buffer==NULL) {
 		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
 		if (buffer==NULL) throw OutOfMemoryException();
@@ -383,9 +382,9 @@ ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 quelloffset, ppluin
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
  */
-ppluint64 FileObject::copy (FileObject &quellfile, ppluint64 bytes)
+ppluint64 FileObject::copyFrom (FileObject &quellfile, ppluint64 bytes)
 {
-	return (copy (quellfile,0,bytes,0));
+	return (copyFrom (quellfile,0,bytes,0));
 }
 
 /*!\brief String lesen

@@ -120,6 +120,12 @@ ByteArrayPtr::ByteArrayPtr(void *adr, size_t size)
 	ptrsize=size;
 }
 
+ByteArrayPtr::ByteArrayPtr(const void *adr, size_t size)
+{
+	ptradr=(void *)adr;
+	ptrsize=size;
+}
+
 /*!\brief Prüfen, ob Speicher referenziert ist
  *
  * \desc

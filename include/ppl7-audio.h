@@ -138,6 +138,7 @@ bool IdentAudioFile(FileObject &file, AudioInfo &info);
 class ID3Frame
 {
 	friend class ID3Tag;
+	friend class ID3TagTranscode;
 	private:
 		String ID;
 		int Flags;
@@ -150,12 +151,19 @@ class ID3Frame
 		ID3Frame(const String &name);
 		void setData(const ByteArrayPtr &data);
 		void setFlags(int flags);
+		void hexDump() const;
 		~ID3Frame();
+};
+
+class ID3TagTranscode
+{
+	public:
+		static void	copyAndDecodeText(String &s, const ID3Frame *frame, int offset);
+		static int	decode(const ID3Frame *frame, int offset, int encoding, String &target);
 };
 
 class ID3Tag
 {
-		friend class ID3TagTest_copyAndDecodeTextWithoutEncodingByte_Test;
 	public:
 		enum TextEncoding {
 			ENC_USASCII,
@@ -177,8 +185,6 @@ class ID3Tag
 		AudioFormat	myAudioFormat;
 		ppluint32	PaddingSize, PaddingSpace, MaxPaddingSpace;
 		ID3Frame	*firstFrame, *lastFrame;
-		void	copyAndDecodeText(String &s, ID3Frame *frame, int offset) const;
-		int	decode(ID3Frame *frame, int offset, int encoding, String &target) const;
 		void setTextFrameUtf16(const String &framename, const String &text);
 		void setTextFrameISO88591(const String &framename, const String &text);
 		void setTextFrameUtf8(const String &framename, const String &text);

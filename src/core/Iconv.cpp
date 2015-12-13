@@ -120,6 +120,8 @@ void Iconv::transcode(const ByteArrayPtr &from, ByteArray &to)
 	if (!outbuf) throw ppl7::OutOfMemoryException();
 	const char *inbuffer=(const char *)from.ptr();
 	char *ret=outbuf;
+	//printf ("Iconv::transcode\n");
+	//from.hexDump();
 	size_t res=iconv((iconv_t)iconv_handle, (ICONV_CONST char **)&inbuffer, &inbytes,
 			(char**)&outbuf, &outbytes);
 	if (res==(size_t)(-1)) {
@@ -133,36 +135,17 @@ void Iconv::transcode(const ByteArrayPtr &from, ByteArray &to)
 	}
 	size_t size_target=outbuf-ret;
 	to.copy(ret,size_target);
+	//to.hexDump();
 	free(buffer);
 }
 
 void Iconv::transcode(const String &from, String &to)
 {
-#ifndef HAVE_ICONV
-	throw UnsupportedFeatureException("Iconv");
-#else
-	if (!iconv_handle) throw CharacterEncodingNotInitializedException();
-	size_t inbytes=from.size();
-	size_t outbytes=inbytes*4+10;
-	char *buffer=(char*)malloc(outbytes);
-	char *outbuf=buffer;
-	if (!outbuf) throw ppl7::OutOfMemoryException();
-	const char *inbuffer=from.c_str();
-	char *ret=outbuf;
-	size_t res=iconv((iconv_t)iconv_handle, (ICONV_CONST char **)&inbuffer, &inbytes,
-			(char**)&outbuf, &outbytes);
-	if (res==(size_t)(-1)) {
-		free(buffer);
-		String e=inbuffer;
-		e.cut(64);
-		e.append("...");
-		throw CharacterEncodingException("Problematische Stelle: Byte %i, Text: %s",
-				(int)(outbuf-ret),
-				(const char*)e);
-	}
-	to.set(ret);
-	free(buffer);
-#endif
+	ByteArrayPtr ff(from.c_str(), from.size());
+	ByteArray result;
+	transcode(ff,result);
+	to.set((const char*)result.ptr(),result.size());
+	//to.hexDump();
 }
 
 

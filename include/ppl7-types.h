@@ -189,6 +189,7 @@ class ByteArrayPtr
 		ByteArrayPtr();
 		ByteArrayPtr(const ByteArrayPtr &other);
 		ByteArrayPtr(void *adr, size_t size);
+		ByteArrayPtr(const void *adr, size_t size);
 		bool isNull() const;
 		bool isEmpty() const;
 		size_t size() const;

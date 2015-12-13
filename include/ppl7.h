@@ -514,8 +514,8 @@ class FileObject
 		size_t				read (void * target, size_t bytes, ppluint64 fileposition);
 		size_t				read (void * target, size_t bytes);
 		size_t				read (ByteArray &target, size_t bytes);
-		ppluint64			copy (FileObject &quellfile, ppluint64 quelloffset, ppluint64 bytes, ppluint64 zieloffset);
-		ppluint64			copy (FileObject &quellfile, ppluint64 bytes);
+		ppluint64			copyFrom (FileObject &quellfile, ppluint64 quelloffset, ppluint64 bytes, ppluint64 zieloffset);
+		ppluint64			copyFrom (FileObject &quellfile, ppluint64 bytes);
 		int					gets (String &buffer, size_t num=1024);
 		int					getws (String &buffer, size_t num=1024);
 		String				gets (size_t num=1024);
