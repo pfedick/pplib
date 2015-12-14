@@ -380,127 +380,138 @@ TEST_F(ID3TagTest, Mp3RetagStrings) {
 	ASSERT_EQ(ppl7::String("ffdf4dc172e7c5cc07b543557c33b6d1"),ppl7::File::md5Hash("tmp/test_tagged4.mp3"));
 }
 
-#ifdef TODO
-
 TEST_F(ID3TagTest, Mp3RemovePicture) {
 	ppl7::ID3Tag Tags;
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/test_192cbr_taggedWithCover.mp3","tmp/test_tagged5.mp3"));
-	ASSERT_EQ(1,Tags.Load("tmp/test_tagged5.mp3"));
-	ASSERT_NO_THROW(Tags.RemovePicture(3));
-	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
-	ppl7::CDirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("tmp/test_tagged5.mp3",d)) << "Tagged File does not exist!";
+	ppl7::File::copy("testdata/test_192cbr_taggedWithCover.mp3","tmp/test_tagged5.mp3");
+	Tags.load("tmp/test_tagged5.mp3");
+	ASSERT_NO_THROW(Tags.removePicture(3));
+	Tags.save();
+	ppl7::DirEntry d;
+	ppl7::File::stat("tmp/test_tagged5.mp3",d);
 	ASSERT_EQ((size_t)97073,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl7::String("e2dacaeff7f3dbc0d54ed63e88ba519d"),ppl7::File::MD5("tmp/test_tagged5.mp3"));
+	ASSERT_EQ(ppl7::String("e2dacaeff7f3dbc0d54ed63e88ba519d"),ppl7::File::md5Hash("tmp/test_tagged5.mp3"));
 }
+
 
 TEST_F(ID3TagTest, Mp3RemoveAllTags) {
 	ppl7::ID3Tag Tags;
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/test_192cbr_taggedWithCover.mp3","tmp/test_tagged6.mp3"));
-	ASSERT_EQ(1,Tags.Load("tmp/test_tagged6.mp3"));
-	ASSERT_NO_THROW(Tags.ClearTags());
-	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
-	ppl7::CDirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("tmp/test_tagged6.mp3",d)) << "Tagged File does not exist!";
+	ppl7::File::copy("testdata/test_192cbr_taggedWithCover.mp3","tmp/test_tagged6.mp3");
+	Tags.load("tmp/test_tagged6.mp3");
+	ASSERT_NO_THROW(Tags.clearTags());
+	Tags.save();
+	ppl7::DirEntry d;
+	ppl7::File::stat("tmp/test_tagged6.mp3",d);
 	ASSERT_EQ((size_t)95921,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl7::String("692bf339243cee92f1c639b10ffde45e"),ppl7::File::MD5("tmp/test_tagged6.mp3"));
+	ASSERT_EQ(ppl7::String("692bf339243cee92f1c639b10ffde45e"),ppl7::File::md5Hash("tmp/test_tagged6.mp3"));
 
 }
 
 TEST_F(ID3TagTest, Mp3NoTagsAndNoChange) {
 	ppl7::ID3Tag Tags;
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/test_192cbr.mp3","tmp/test_tagged7.mp3"));
-	ASSERT_EQ(0,Tags.Load("tmp/test_tagged7.mp3"));
-	ASSERT_NO_THROW(Tags.ClearTags());
-	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
-	ppl7::CDirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("tmp/test_tagged7.mp3",d)) << "Tagged File does not exist!";
+	ppl7::File::copy("testdata/test_192cbr.mp3","tmp/test_tagged7.mp3");
+	Tags.load("tmp/test_tagged7.mp3");
+	ASSERT_NO_THROW(Tags.clearTags());
+	ASSERT_NO_THROW(Tags.save());
+	ppl7::DirEntry d;
+	ppl7::File::stat("tmp/test_tagged7.mp3",d);
 	ASSERT_EQ((size_t)95920,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl7::String("0abbdd3ce267358a0b3bf3f0a015e74e"),ppl7::File::MD5("tmp/test_tagged7.mp3"));
-
+	ASSERT_EQ(ppl7::String("0abbdd3ce267358a0b3bf3f0a015e74e"),ppl7::File::md5Hash("tmp/test_tagged7.mp3"));
 }
 
 TEST_F(ID3TagTest, Mp3RetagWithoutChanges) {
 	ppl7::ID3Tag Tags;
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/test_192cbr_tagged.mp3","tmp/test_tagged8.mp3"));
-	ASSERT_EQ(1,Tags.Load("tmp/test_tagged8.mp3"));
-	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
-	ppl7::CDirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("tmp/test_tagged8.mp3",d)) << "Tagged File does not exist!";
+	ppl7::File::copy("testdata/test_192cbr_tagged.mp3","tmp/test_tagged8.mp3");
+	Tags.load("tmp/test_tagged8.mp3");
+	Tags.save();
+	ppl7::DirEntry d;
+	ppl7::File::stat("tmp/test_tagged8.mp3",d);
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
-	ASSERT_EQ(ppl7::String("c5ff756219cba391c99423ddd6cca625"),ppl7::File::MD5("tmp/test_tagged8.mp3"));
+	ASSERT_EQ(ppl7::String("c5ff756219cba391c99423ddd6cca625"),ppl7::File::md5Hash("tmp/test_tagged8.mp3"));
 }
 
 TEST_F(ID3TagTest, AiffLoadFileWithoutTags) {
 	ppl7::ID3Tag Tags;
-	EXPECT_EQ(0,Tags.Load("testdata/test_44kHz.aiff")) << "Loading AIFF File failed";
-	EXPECT_EQ(402,ppl7::GetErrorCode()) << "Unexpected errorcode";
+	ASSERT_NO_THROW({
+		Tags.load("testdata/test_44kHz.aiff");
+	});
+	EXPECT_EQ((size_t)0,Tags.frameCount()) << "Unexpected number of ID3-Frames";
 }
 
 TEST_F(ID3TagTest, AiffLoadFileWithTags) {
 	ppl7::ID3Tag Tags;
-	EXPECT_EQ(1,Tags.Load("testdata/test_44kHz_taggedWithCover.aiff")) << "Loading MP3 File failed";
-	EXPECT_EQ(ppl7::String("Patrick Fedick"),Tags.GetArtist());
-	EXPECT_EQ(ppl7::String("Powerplay Jingle"),Tags.GetTitle());
-	EXPECT_EQ(ppl7::String("Trance"),Tags.GetGenre());
-	EXPECT_EQ(ppl7::String("Single"),Tags.GetRemixer());
-	EXPECT_EQ(ppl7::String("Patrick F.-Productions"),Tags.GetLabel());
-	EXPECT_EQ(ppl7::String("PPL Testdata"),Tags.GetComment());
-	EXPECT_EQ(ppl7::String("2013"),Tags.GetYear());
-	EXPECT_EQ(ppl7::String("PPL Testsuite"),Tags.GetAlbum());
-	EXPECT_EQ(ppl7::String("2"),Tags.GetTrack());
-	EXPECT_EQ(ppl7::String("138"),Tags.GetBPM());
-	EXPECT_EQ(ppl7::String("am"),Tags.GetKey());
-	EXPECT_EQ(ppl7::String("9"),Tags.GetEnergyLevel());
-	ppl7::CBinary cover;
-	EXPECT_EQ(1,Tags.GetPicture(3,cover));
-	EXPECT_EQ((size_t)28402,cover.Size()) << "Embedded Cover has unexpected size";
-	EXPECT_EQ(ppl7::String("d665f69f04f1413eef91b3596de8dfb6"),cover.GetMD5Sum()) << "Embedded Cover has unexpected MD5 hash";
+	ASSERT_NO_THROW({
+		Tags.load("testdata/test_44kHz_taggedWithCover.aiff");
+	});
+	EXPECT_EQ(ppl7::String("Patrick Fedick"),Tags.getArtist());
+	EXPECT_EQ(ppl7::String("Powerplay Jingle"),Tags.getTitle());
+	EXPECT_EQ(ppl7::String("Trance"),Tags.getGenre());
+	EXPECT_EQ(ppl7::String("Single"),Tags.getRemixer());
+	EXPECT_EQ(ppl7::String("Patrick F.-Productions"),Tags.getLabel());
+	EXPECT_EQ(ppl7::String("PPL Testdata"),Tags.getComment());
+	EXPECT_EQ(ppl7::String("2013"),Tags.getYear());
+	EXPECT_EQ(ppl7::String("PPL Testsuite"),Tags.getAlbum());
+	EXPECT_EQ(ppl7::String("2"),Tags.getTrack());
+	EXPECT_EQ(ppl7::String("138"),Tags.getBPM());
+	EXPECT_EQ(ppl7::String("am"),Tags.getKey());
+	EXPECT_EQ(ppl7::String("9"),Tags.getEnergyLevel());
+	ppl7::ByteArray cover;
+	EXPECT_EQ(true,Tags.getPicture(3,cover));
+	EXPECT_EQ((size_t)28402,cover.size()) << "Embedded Cover has unexpected size";
+	EXPECT_EQ(ppl7::String("d665f69f04f1413eef91b3596de8dfb6"),cover.md5()) << "Embedded Cover has unexpected MD5 hash";
 }
 
 TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture) {
 	ppl7::ID3Tag Tags;
-	ASSERT_EQ(1,ppl7::File::CopyFile("testdata/test_44kHz.aiff","tmp/test_tagged1.aiff"));
+	ppl7::File::copy("testdata/test_44kHz.aiff","tmp/test_tagged1.aiff");
+	ASSERT_NO_THROW({
+		Tags.load("tmp/test_tagged1.aiff");
+	});
+	EXPECT_EQ((size_t)0,Tags.frameCount()) << "Unexpected number of ID3-Frames";
 
-	ASSERT_EQ(0,Tags.Load("tmp/test_tagged1.aiff"));
-	EXPECT_EQ(402,ppl7::GetErrorCode()) << "Unexpected errorcode";
-	EXPECT_EQ(1,Tags.SetArtist("Patrick Fedick"));
-	EXPECT_EQ(1,Tags.SetTitle("Powerplay Jingle"));
-	EXPECT_EQ(1,Tags.SetGenre("Trance"));
-	EXPECT_EQ(1,Tags.SetRemixer("Single"));
-	EXPECT_EQ(1,Tags.SetLabel("Patrick F.-Productions"));
-	EXPECT_EQ(1,Tags.SetComment("PPL Testdata"));
-	EXPECT_EQ(1,Tags.SetYear("2013"));
-	EXPECT_EQ(1,Tags.SetAlbum("PPL Testsuite"));
-	EXPECT_EQ(1,Tags.SetTrack("2"));
-	EXPECT_EQ(1,Tags.SetBPM("138"));
-	EXPECT_EQ(1,Tags.SetKey("am"));
-	EXPECT_EQ(1,Tags.SetEnergyLevel("9"));
-	ASSERT_EQ(1,Tags.Save()) << "Saving taggs failed";
+	Tags.setArtist("Patrick Fedick");
+	Tags.setTitle("Powerplay Jingle");
+	Tags.setGenre("Trance");
+	Tags.setRemixer("Single");
+	Tags.setLabel("Patrick F.-Productions");
+	Tags.setComment("PPL Testdata");
+	Tags.setYear("2013");
+	Tags.setAlbum("PPL Testsuite");
+	Tags.setTrack("2");
+	Tags.setBPM("138");
+	Tags.setKey("am");
+	Tags.setEnergyLevel("9");
+	ASSERT_NO_THROW({
+		Tags.save();
+	});
 
-	ppl7::CDirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("tmp/test_tagged1.aiff",d)) << "Tagged File does not exist!";
+	ppl7::DirEntry d;
+	ppl7::File::stat("tmp/test_tagged1.aiff",d);
 	EXPECT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
-	EXPECT_EQ(ppl7::String("ee7fa3d57fd26f6a45e1f9448fd8c09c"),ppl7::File::MD5("tmp/test_tagged1.aiff"));
+	EXPECT_EQ(ppl7::String("ee7fa3d57fd26f6a45e1f9448fd8c09c"),ppl7::File::md5Hash("tmp/test_tagged1.aiff"));
 
 	ppl7::ID3Tag NewTags;
-	ppl7::CBinary cover;
-	EXPECT_EQ(1,NewTags.Load("tmp/test_tagged1.aiff")) << "Loading MP3 File failed";
-	EXPECT_EQ(ppl7::String("Patrick Fedick"),NewTags.GetArtist());
-	EXPECT_EQ(ppl7::String("Powerplay Jingle"),NewTags.GetTitle());
-	EXPECT_EQ(ppl7::String("Trance"),NewTags.GetGenre());
-	EXPECT_EQ(ppl7::String("Single"),NewTags.GetRemixer());
-	EXPECT_EQ(ppl7::String("Patrick F.-Productions"),NewTags.GetLabel());
-	EXPECT_EQ(ppl7::String("PPL Testdata"),NewTags.GetComment());
-	EXPECT_EQ(ppl7::String("2013"),NewTags.GetYear());
-	EXPECT_EQ(ppl7::String("PPL Testsuite"),NewTags.GetAlbum());
-	EXPECT_EQ(ppl7::String("2"),NewTags.GetTrack());
-	EXPECT_EQ(ppl7::String("138"),NewTags.GetBPM());
-	EXPECT_EQ(ppl7::String("am"),NewTags.GetKey());
-	EXPECT_EQ(ppl7::String("9"),NewTags.GetEnergyLevel());
-	EXPECT_EQ(0,NewTags.GetPicture(3,cover));
+	ppl7::ByteArray cover;
+	ASSERT_NO_THROW({
+		NewTags.load("tmp/test_tagged1.aiff");
+	});
+
+	EXPECT_EQ(ppl7::String("Patrick Fedick"),NewTags.getArtist());
+	EXPECT_EQ(ppl7::String("Powerplay Jingle"),NewTags.getTitle());
+	EXPECT_EQ(ppl7::String("Trance"),NewTags.getGenre());
+	EXPECT_EQ(ppl7::String("Single"),NewTags.getRemixer());
+	EXPECT_EQ(ppl7::String("Patrick F.-Productions"),NewTags.getLabel());
+	EXPECT_EQ(ppl7::String("PPL Testdata"),NewTags.getComment());
+	EXPECT_EQ(ppl7::String("2013"),NewTags.getYear());
+	EXPECT_EQ(ppl7::String("PPL Testsuite"),NewTags.getAlbum());
+	EXPECT_EQ(ppl7::String("2"),NewTags.getTrack());
+	EXPECT_EQ(ppl7::String("138"),NewTags.getBPM());
+	EXPECT_EQ(ppl7::String("am"),NewTags.getKey());
+	EXPECT_EQ(ppl7::String("9"),NewTags.getEnergyLevel());
+	EXPECT_EQ(false,NewTags.getPicture(3,cover));
 }
 
+
+#ifdef TODO
 TEST_F(ID3TagTest, AiffInitialTaggingWithPicture) {
 	ppl7::ID3Tag Tags;
 	ppl7::CBinary cover;
