@@ -53,8 +53,16 @@ class Pool;
 class PoolEx;
 class Database;
 
-//PPLPARAMETERISEDEXCEPTION(NetworkException);
-//PPLPARAMETERISEDEXCEPTION(IdnConversionException);
+class ConnectParameter
+{
+	public:
+		ConnectParameter();
+		String	Hostname;
+		int		Port;
+		String	DatabaseName;
+		String	UserName;
+		String	Password;
+};
 
 class ResultSet
 {
@@ -72,8 +80,6 @@ class ResultSet
 			BINARY
 		};
 		virtual ~ResultSet()=0;
-
-
 		virtual	void		clear()=0;
 		virtual ppluint64	rows() const=0;
 		virtual ppluint64	affected() const=0;
@@ -98,10 +104,10 @@ class ResultSet
 		virtual void		printAll() const=0;
 		virtual ppluint64	currentRow()=0;
 		virtual bool		next()=0;
+		void toAssocArray(std::list<AssocArray> &list);
 
 };
 
-ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res);
 Database *Connect(const AssocArray &params);
 
 class Database
@@ -111,15 +117,12 @@ class Database
 
 	private:
 		AssocArray	ConnectParam;
+		Logger		*Log;
 		ppluint64	lastuse;
 		ppluint64	lastping;
-		String		Hash;		// Wird vom Pool verwendet
-		Pool		*pool;
-		PoolEx		*poolex;
-		bool		poollock;
 
 	protected:
-		void    logQuery(const char *query, float duration);
+		void    logQuery(const String &query, float duration);
 		void	updateLastPing();
 		void	updateLastUse();
 		void	clearLastUse();
@@ -127,51 +130,53 @@ class Database
 	public:
 		Database();
 		virtual ~Database();
+		void	setLogger(Logger &logger);
+		void	removeLogger();
+		Logger	*getLogger();
 		void	setParam(const String &name, const String &value);
 		void	setParam(const String &name, int value);
-		int		connect();
-		int		close();
+		void	setParam(const AssocArray &params);
+		void	connect();
 
-		int		execf(const char *query, ...);
+		void		execf(const char *query, ...);
 		ResultSet	*queryf(const char *query, ...);
-		void	freeResult(ResultSet *res);
 
 		AssocArray execArrayf(const char *query, ...);
 		AssocArray execArray(const String &query);
 		AssocArray execArrayAllf(const char *query, ...);
 		AssocArray execArrayAll(const String &query);
-		int execArrayf(AssocArray &result, const char *query, ...);
-		int execArray(AssocArray &result, const String &query);
-		int execArrayAllf(AssocArray &result, const char *query, ...);
-		int execArrayAll(AssocArray &result, const String &query);
-		int save(const String &method, const String &table, const AssocArray &a, const String &clause="", const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
-		int saveGenQuery(String &Query, const String &method, const String &table, const AssocArray &a, const String &clause="", const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
-		int	readKeyValue(AssocArray &res, const String &query, const String &keyname, const String &valname=String());
-		ppluint64 insertKey(const String &table, const AssocArray &a, const String &keyname, const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
+		void execArrayf(AssocArray &result, const char *query, ...);
+		void execArray(AssocArray &result, const String &query);
+		void execArrayAllf(AssocArray &result, const char *query, ...);
+		void execArrayAll(AssocArray &result, const String &query);
+		void save(const String &method, const String &table, const AssocArray &a, const String &clause="", const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
+		String genQuery(const String &method, const String &table, const AssocArray &a, const String &clause="", const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
+		void readKeyValue(AssocArray &res, const String &query, const String &keyname, const String &valname=String());
 
 
 		virtual void		connect(const AssocArray &params);
 		virtual void		connectCreate(const AssocArray &params);
 		virtual void		reconnect();
-		virtual void		disconnect();
+		virtual void		close();
 		virtual void		selectDB(const String &databasename);
 		virtual void 		exec(const String &query);
 		virtual ResultSet	*query(const String &query);
 		virtual void		setMaxRows(ppluint64 rows);
-		virtual int			ping();
+		virtual bool		ping();
 		virtual String		escape(const String &str) const;
 		virtual ppluint64	getInsertID();	// Returns ID from autoincrement field
 		virtual ppluint64	getAffectedRows();
-		virtual int			startTransaction();
-		virtual int			endTransaction();
-		virtual int			cancelTransaction();
-		virtual int			cancelTransactionComplete();
-		virtual int			createDatabase(const String &name);
+		virtual void		startTransaction();
+		virtual void		endTransaction();
+		virtual void		cancelTransaction();
+		virtual void		cancelTransactionComplete();
+		virtual void		createDatabase(const String &name);
 		virtual String		databaseType() const;
 		virtual String		getQuoted(const String &value, const String &type=String()) const;
-
+		virtual void        prepare(const String &preparedStatementName, const String &query);
+		virtual ResultSet	*execute(const String &preparedStatementName, const Array &params);
+		virtual void		deallocate(const String &preparedStatementName);
 };
-
 
 class PostgreSQL: public Database
 {
@@ -192,22 +197,25 @@ class PostgreSQL: public Database
 		virtual void		connect(const AssocArray &params);
 		virtual void		connectCreate(const AssocArray &params);
 		virtual void		reconnect();
-		virtual void		disconnect();
+		virtual void		close();
 		virtual void		selectDB(const String &databasename);
 		virtual void		exec(const String &query);
 		virtual ResultSet	*query(const String &query);
 		virtual void		setMaxRows(ppluint64 rows);
-		virtual int			ping();
+		virtual bool		ping();
 		virtual String		escape(const String &str) const;
 		virtual ppluint64	getInsertID();
 		virtual ppluint64	getAffectedRows();
-		virtual int			startTransaction();
-		virtual int			endTransaction();
-		virtual int			cancelTransaction();
-		virtual int			cancelTransactionComplete();
-		virtual int			createDatabase(const String &namee);
+		virtual void		startTransaction();
+		virtual void		endTransaction();
+		virtual void		cancelTransaction();
+		virtual void		cancelTransactionComplete();
+		virtual void		createDatabase(const String &namee);
 		virtual String		databaseType() const;
 		virtual String		getQuoted(const String &value, const String &type=String()) const;
+		virtual void        prepare(const String &preparedStatementName, const String &query);
+		virtual ResultSet	*execute(const String &preparedStatementName, const Array &params);
+		virtual void		deallocate(const String &preparedStatementName);
 };
 
 

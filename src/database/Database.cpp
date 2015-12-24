@@ -196,7 +196,6 @@ void GetSupportedDatabases(AssocArray &a)
  */
 
 
-#ifdef TODO
 Database::Database()
 /*!\brief Konstruktor der Klasse
  *
@@ -207,22 +206,20 @@ Database::Database()
 	lastuse=0;
 	lastping=0;
 	Log=NULL;
-	pool=NULL;
-	poolex=NULL;
 }
 
-Database::~Database()
 /*!\brief Destruktor der Klasse
  *
  * \descr
  * Destruktor der Klasse.
  */
+Database::~Database()
 {
-	Disconnect();
-	if (Log) Log->Printf(LOG::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Stop logging of Database-Queries");
+	close();
+	if (Log) Log->print(Logger::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Stop logging of Database-Queries");
 }
 
-void Database::SetLogfile(CLog *log)
+void Database::setLogger(Logger &logger)
 /*!\brief Querylog aktivieren oder deaktivieren
  *
  * \descr
@@ -234,39 +231,24 @@ void Database::SetLogfile(CLog *log)
  * um es zu deaktivieren.
  */
 {
-	if (log==NULL && Log!=NULL) {
-		Log->Printf(LOG::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Stop logging of Database-Queries");
-	}
-	Log=log;
-	if (Log) Log->Printf(LOG::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Start logging of Database-Queries");
+	Log=&logger;
+	if (Log) Log->print(Logger::DEBUG,1,"ppl7::db::Database","setLogger",__FILE__,__LINE__,"Start logging of Database-Queries");
 }
 
-void Database::SetLogfile(CLog &log)
-/*!\brief Querylog aktivieren
- *
- * \descr
- * Mit dieser Funktion kann ein Querylog aktiviert werden. Ist es aktiviert, wird bei jedem
- * Query ein Datensatz in das Logfile geschrieben, dem man neben Datum, Uhrzeit und Query auch entnehmen
- * kann, wie lang der Query gebraucht hat.
- *
- * @param[in] log Referenz auf eine Klasse vom Typ CLog.
- *
- * \note
- * Soll das Logging deaktiviert werden, muss die Funktion mit NULL oder ohne Parameter aufgerufen werden.
- */
+void Database::removeLogger()
 {
-	Log=&log;
-	if (Log) Log->Printf(LOG::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Start logging of Database-Queries");
+	if (Log!=NULL) {
+		Log->print(Logger::DEBUG,1,"ppl7::db::Database","removeLogger",__FILE__,__LINE__,"Stop logging of Database-Queries");
+		Log=NULL;
+	}
 }
 
-
-CLog *Database::GetLogfile()
+Logger *Database::getLogger()
 {
 	return Log;
 }
 
-
-void Database::LogQuery(const char *query, float duration)
+void Database::logQuery(const String &query, float duration)
 /*!\brief Interne Funktion zum Loggen von Queries
  *
  * \descr
@@ -278,10 +260,10 @@ void Database::LogQuery(const char *query, float duration)
  */
 {
 	if (!Log) return;
-	Log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,(const char*)NULL,0,"Querytime: %0.6f, Query: %s",duration,query);
+	Log->print(Logger::DEBUG,4,"ppl7::db::Database","logQuery",__FILE__,__LINE__,ToString("Querytime: %0.6f, Query: %s",duration,(const char*)query));
 }
 
-void Database::UpdateLastPing()
+void Database::updateLastPing()
 /*!\brief Uhrzeit der letzten Datenbank-Kommunikation aktualisieren
  *
  * \descr
@@ -292,10 +274,10 @@ void Database::UpdateLastPing()
  * einen Zeitstempel, zu dem zuletzt eine Verbindung zum Server bestand.
  */
 {
-	lastping=ppl6::GetTime();
+	lastping=GetTime();
 }
 
-void Database::UpdateLastUse()
+void Database::updateLastUse()
 /*!\brief Uhrzeit der letzten Datenbank-Verwendung aktualisieren
  *
  * \descr
@@ -307,11 +289,11 @@ void Database::UpdateLastUse()
  * kann.
  */
 {
-	lastping=ppl6::GetTime();
+	lastping=GetTime();
 	lastuse=lastping;
 }
 
-void Database::ClearLastUse()
+void Database::clearLastUse()
 /*!\brief Timestamps auf 0 setzen
  *
  * \descr
@@ -322,7 +304,7 @@ void Database::ClearLastUse()
 	lastping=lastuse=0;
 }
 
-void Database::SetParam(const char *name, const char *value)
+void Database::setParam(const String &name, const String &value)
 /*!\brief Parameter für den Connect setzen
  *
  * \descr
@@ -334,10 +316,10 @@ void Database::SetParam(const char *name, const char *value)
  * @param[in] value Wert des Parameters als String
  */
 {
-	ConnectParam.Set(name,value);
+	ConnectParam.set(name,value);
 }
 
-void Database::SetParam(const char *name, int value)
+void Database::setParam(const String &name, int value)
 /*!\brief Parameter für den Connect setzen
  *
  * \descr
@@ -349,18 +331,22 @@ void Database::SetParam(const char *name, int value)
  * @param[in] value Wert des Parameters als Integer
  */
 {
-	ConnectParam.Setf(name,"%i",value);
+	ConnectParam.setf(name,"%d",value);
 }
 
-int Database::Connect()
+void Database::setParam(const AssocArray &params)
+{
+	ConnectParam.add(params);
+}
+
+void Database::connect()
 /*!\brief Connect auf eine Datenbank erstellen
  *
  * \descr
  * Mit dieser Funktion wird eine Verbindung zu einem Datenbank-Server hergestellt. Die
- * dafür erforderlichen Parameter müssen zuvor mit der Funktion Database::SetParam gesetzt worden
+ * dafür erforderlichen Parameter müssen zuvor mit der Funktion Database::setParam gesetzt worden
  * sein.
  *
- * @return Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
  *
  * \example
  * Bei dem nachfolgenden Beispiel wird eine MySQL-Datenbank verwendet. Die Klasse "Database" kann selbst nicht
@@ -372,10 +358,10 @@ int Database::Connect()
  *
  */
 {
-	return Connect(ConnectParam);
+	return connect(ConnectParam);
 }
 
-int Database::ConnectCreate(const CAssocArray &params)
+void Database::connectCreate(const AssocArray &params)
 /*!\brief Connect zum Server aufbauen und Datenbank anlegen
  *
  * \descr
@@ -400,34 +386,23 @@ int Database::ConnectCreate(const CAssocArray &params)
  * \until EOF
  */
 {
-	CAssocArray a=params;
-	a.Delete("dbname");
-	const char *dbname=params["dbname"];
+	AssocArray a=params;
+	a.remove("dbname");
+	String dbname=params["dbname"];
 	// Versuch ohne Datenbank-Name zu connecten
-	if (!Connect(a)) return 0;
+	connect(a);
 	// Wir versuchen die Datenbank auszuwählen
-	if (SelectDB(dbname)) return 1;
-	if (!CreateDatabase(dbname)) return 0;
-	if (SelectDB(dbname)) return 1;
-	return 0;
+	try {
+		selectDB(dbname);
+		return;
+	} catch (...) {
+
+	}
+	createDatabase(dbname);
+	selectDB(dbname);
 }
 
-int Database::Close()
-/*!\brief Verbindung zu Datenbank trennen
- *
- * \descr
- * Mit diesem Befehl wird die Verbindung zur Datenbank getrennt. Zu diesem Zeitpunkt sollten keine Query-
- * Results (ppl6::db::Result) mehr vorhanden sein, die mit diesem Datenbank-Connect erstellt wurden. Es
- * könnte sonst zu Fehlern kommen.
- *
- * @return Die Funktion liefert 1 zurück, wenn die Verbindung zur Datenbank erfolgreich getrennt wurde,
- * im Fehlerfall 0.
- */
-{
-	return Disconnect();
-}
-
-int Database::Execf(const char *query, ...)
+void Database::execf(const char *query, ...)
 /*!\brief Ergebnislosen SQL-Query anhand eines Formatierungsstrings bauen und ausführen
  *
  * \descr
@@ -443,15 +418,15 @@ int Database::Execf(const char *query, ...)
  * Database::GetAffectedRows kann ausgelesen werden, wieviele Datensätze durch den Query verändert wurden.
  */
 {
-	CString String;
+	String str;
 	va_list args;
 	va_start(args, query);
-	String.VaSprintf(query,args);
+	str.vasprintf(query,args);
 	va_end(args);
-	return Exec(String);
+	exec(str);
 }
 
-Result *Database::Queryf(const char *query, ...)
+ResultSet *Database::queryf(const char *query, ...)
 /*!\brief SQL-Query mit Ergebnis ausführen
  *
  * \descr
@@ -470,29 +445,15 @@ Result *Database::Queryf(const char *query, ...)
  * gelöscht werden. Im Fehlerfall wird NULL zurückgeliefert.
  */
 {
-	CString String;
+	String str;
 	va_list args;
 	va_start(args, query);
-	String.VaSprintf(query,args);
+	str.vasprintf(query,args);
 	va_end(args);
-	return Query(String);
+	return this->query(str);
 }
 
-void Database::FreeResult(Result *res)
-/*!\brief Result-Klasse freigeben
- *
- * \descr
- * Mit dieser Funktion wird die von den Funktionen Database::Query oder Database::Queryf zurückgegebene
- * Result-Klasse wieder gelöscht. Es wird jedoch empfphlen die Result-Klasse einfach mit \c delete zu
- * löschen, da dies etwas schneller ist.
-
- * @param[in] res Pointer auf eine Result-Klasse
- */
-{
-	if (res) delete res;
-}
-
-CAssocArray Database::ExecArray(const CString &query)
+AssocArray Database::execArray(const String &query)
 /*!\brief SQL-Query ausführen und ersten Datensatz als Array zurückgeben
  *
  * \descr
@@ -510,12 +471,12 @@ CAssocArray Database::ExecArray(const CString &query)
  * Im Fehlerfall ist das Array leer.
  */
 {
-	CAssocArray a;
-	ExecArray(a,query);
+	AssocArray a;
+	execArray(a,query);
 	return a;
 }
 
-CAssocArray Database::ExecArrayf(const char *query, ...)
+AssocArray Database::execArrayf(const char *query, ...)
 /*!\brief SQL-Query bauen, ausführen und ersten Datensatz als Array zurückgeben
  *
  * \descr
@@ -535,15 +496,17 @@ CAssocArray Database::ExecArrayf(const char *query, ...)
  * Im Fehlerfall ist das Array leer.
  */
 {
-	CAssocArray a;
-	CString String;
+	AssocArray a;
+	String str;
 	va_list args;
 	va_start(args, query);
-	String.VaSprintf(query,args);
+	str.vasprintf(query,args);
 	va_end(args);
-	ExecArray(a,String);
+	execArray(a,str);
 	return a;
 }
+
+#ifdef TODO
 
 CAssocArray Database::ExecArrayAll(const CString &query)
 /*!\brief SQL-Query ausführen und alle Datensätze in Array speichern
@@ -725,6 +688,7 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
 	return ExecArrayAll(result,String);
 }
 
+#endif
 
 /*!\brief Wert Datenbank-konform quoten
  *
@@ -737,16 +701,18 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
  * @param type Datentyp. Wird nichts angegeben, wird der Wert \p value als String interpretiert.
  * @return Escapeter und Gequoteter String
  */
-CString Database::getQuoted(const CString &value, const CString &type) const
+String Database::getQuoted(const String &value, const String &type) const
 {
-	CString Type=type;
-	CString s=value;
-	Type.LCase();
-	Escape(s);
+	String Type=type;
+	String s=value;
+	Type.lowerCase();
+	escape(s);
 	if (Type=="int" || Type=="integer" || Type=="bit" || Type=="boolean") return s;
 	return "'"+s+"'";
 }
 
+
+#ifdef TODO
 
 /*!\brief Query zum Speichern des Datensatzes generieren
  *
@@ -853,6 +819,8 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
 	SetError(345,(const char*)Method);
 	return 0;
 }
+
+
 
 /*!\brief Datensatz speichern
  *
@@ -986,34 +954,15 @@ ppluint64 Database::InsertKey(const char *table, CAssocArray &a, const char *key
 	return id;
 }
 
-CString	Database::GetEscaped(const CString &str)
-/*!\brief String escapen
- *
- * \descr
- * Mit dieser Funktion wird der übergebene String \p str Datenbank-konform escaped und als Return-Wert
- * zurückgegeben. Der escapete String kann gefahrlos in SQL-Statements innerhalb von Anführungszeichen
- * oder Hochkommata verwendet werden.
- *
- * \param[in] str Der zu escapende String
- * \return Liefert den escapten String zurück. Falls ein Fehler aufgetreten ist, kann der String leer sein.
- * \note
- * In der Regel muss eine Verbindung zur Datenbank bestehen, damit der Aufruf erfolgreich ist.
- */
-{
-	CString s=str;
-	Escape(s);
-	return s;
-}
-
 
 /*******************************************************************************************************
  * Die Nachfolgenden Funktionen sind virtuell und müssen von den einzelnen Datenbank-Klassen
  * implementiert werden
  *******************************************************************************************************
  */
+#endif
 
-
-int Database::Connect(const CAssocArray &params)
+void Database::connect(const AssocArray &params)
 /*!\brief Connect auf eine Datenbank erstellen
  *
  * \descr
@@ -1041,11 +990,25 @@ int Database::Connect(const CAssocArray &params)
  *
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::connect");
 }
 
-int Database::Reconnect()
+/*!\brief Verbindung zu Datenbank trennen
+ *
+ * \descr
+ * Mit diesem Befehl wird die Verbindung zur Datenbank getrennt. Zu diesem Zeitpunkt sollten keine Query-
+ * Results (ppl6::db::Result) mehr vorhanden sein, die mit diesem Datenbank-Connect erstellt wurden. Es
+ * könnte sonst zu Fehlern kommen.
+ *
+ * @return Die Funktion liefert 1 zurück, wenn die Verbindung zur Datenbank erfolgreich getrennt wurde,
+ * im Fehlerfall 0.
+ */
+void Database::close()
+{
+	throw UnimplementedVirtualFunctionException("Database::close");
+}
+
+void Database::reconnect()
 /*!\brief Verlorene Datenbank-Verbindung wieder herstellen
  *
  * \descr
@@ -1056,24 +1019,11 @@ int Database::Reconnect()
  * Funktion 1 zurück, andernfalls 0.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::reconnect");
 }
 
-int Database::Disconnect()
-/*!\brief Verbindung zur Datenbank trennen
- *
- * \descr
- * Durch Aufruf dieser Funktion wird die Verbindung zur Datenbank getrennt.
- *
- * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	SetError(180);
-	return 0;
-}
 
-int Database::SelectDB(const char *databasename)
+void Database::selectDB(const String &databasename)
 /*!\brief Aktive Datenbank auswählen
  *
  * \descr
@@ -1085,11 +1035,10 @@ int Database::SelectDB(const char *databasename)
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::selectDB");
 }
 
-int Database::Exec(const CString &query)
+void Database::exec(const String &query)
 /*!\brief SQL-Query ohne Ergebnis ausführen
  *
  * \descr
@@ -1103,11 +1052,10 @@ int Database::Exec(const CString &query)
  * Database::GetAffectedRows kann ausgelesen werden, wieviele Datensätze durch den Query verändert wurden.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::exec");
 }
 
-Result *Database::Query(const CString &query)
+ResultSet *Database::query(const String &query)
 /*!\brief SQL-Query mit Ergebnis ausführen
  *
  * \descr
@@ -1122,12 +1070,11 @@ Result *Database::Query(const CString &query)
  * gelöscht werden. Im Fehlerfall wird NULL zurückgeliefert.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::query");
 }
 
 
-void Database::SetMaxRows(ppluint64 rows)
+void Database::setMaxRows(ppluint64 rows)
 /*!\brief Maximale Anzahl Zeilen im Ergebnis eines Selects
  *
  * \descr
@@ -1137,10 +1084,10 @@ void Database::SetMaxRows(ppluint64 rows)
  * @param[in] rows Anzahl maximaler Zeilen oder 0, wenn es kein Limit geben soll.
  */
 {
-	SetError(180);
+	throw UnimplementedVirtualFunctionException("Database::setMaxRows");
 }
 
-int Database::Ping()
+bool Database::ping()
 /*!\brief Erreichbarkeit der Datenbank prüfen
  *
  * \descr
@@ -1148,16 +1095,15 @@ int Database::Ping()
  * Datenbankserver noch zur Verfügung steht. Je nach Implementierung (z.B. bei MySQL) kann es sein, dass
  * durch Aufruf dieser Funktion eine abgebrochene Verbindung automatisch wieder aufgebaut wird.
  *
- * @return Die Funktion liefert 1 zurück, wenn die Datenbankverbindung noch besteht. Ist dies nicht der
- * Fall, wird 0 zurückgegeben. Es kann dann mit der Funktion Database::Reconnect versucht werden, die
+ * @return Die Funktion liefert \p true zurück, wenn die Datenbankverbindung noch besteht. Ist dies nicht der
+ * Fall, wird \p false zurückgegeben. Es kann dann mit der Funktion Database::reconnect versucht werden, die
  * Verbindung wieder herzustellen.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::ping");
 }
 
-int Database::Escape(CString &str) const
+String Database::escape(const String &str) const
 /*!\brief String escapen
  *
  * \descr
@@ -1171,11 +1117,10 @@ int Database::Escape(CString &str) const
  * In der Regel muss eine Verbindung zur Datenbank bestehen, damit der Aufruf erfolgreich ist.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::escape");
 }
 
-ppluint64 Database::GetInsertID()
+ppluint64 Database::getInsertID()
 /*!\brief Letzer durch eine AUTO_INCREMENT-Spalte generierten Wert
  *
  * \descr
@@ -1186,11 +1131,10 @@ ppluint64 Database::GetInsertID()
  * @return Wert
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::getInsertID");
 }
 
-pplint64 Database::GetAffectedRows()
+ppluint64 Database::getAffectedRows()
 /*!\brief Betroffene Zeilen
  *
  * \descr
@@ -1198,14 +1142,13 @@ pplint64 Database::GetAffectedRows()
  * Zeilen im Ergebnis zurück. Handelete es sich um ein Update/Insert/Replace, wird die Anzahl
  * betroffener bzw. veränderter Datensätze zurückgegeben.
  *
- * @return Anzahl betroffender Datensätze, im Fehlerfall -1
+ * @return Anzahl betroffender Datensätze
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::getAffectedRows");
 }
 
-int Database::StartTransaction()
+void Database::startTransaction()
 /*!\brief Transaktion starten
  *
  * \descr
@@ -1230,11 +1173,10 @@ int Database::StartTransaction()
  * @return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::startTransaction");
 }
 
-int Database::EndTransaction()
+void Database::endTransaction()
 /*!\brief Transaktion beenden
  *
  * \descr
@@ -1247,11 +1189,10 @@ int Database::EndTransaction()
  * Änderungen wurde durchgeführt.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::endTransaction");
 }
 
-int Database::CancelTransaction()
+void Database::cancelTransaction()
 /*!\brief Letzte Transaktion abbrechen
  *
  * \descr
@@ -1262,11 +1203,10 @@ int Database::CancelTransaction()
  *
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::cancelTransaction");
 }
 
-int Database::CancelTransactionComplete()
+void Database::cancelTransactionComplete()
 /*!\brief Transaktion vollständig abbrechen
  *
  * \descr
@@ -1277,11 +1217,10 @@ int Database::CancelTransactionComplete()
  *
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::cancelTransactionComplete");
 }
 
-int Database::CreateDatabase(const char *name)
+void Database::createDatabase(const String &name)
 /*!\brief Datenbank erstellen
  *
  * \descr
@@ -1295,8 +1234,7 @@ int Database::CreateDatabase(const char *name)
  * im Fehlerfall 0.
  */
 {
-	SetError(180);
-	return 0;
+	throw UnimplementedVirtualFunctionException("Database::createDatabase");
 }
 
 /*!\brief Typ der Datenbank
@@ -1311,11 +1249,26 @@ int Database::CreateDatabase(const char *name)
  *
  * @return String mit dem Typ der Datenbank
  */
-CString	Database::databaseType() const
+String Database::databaseType() const
 {
-	return CString("unknown");
+	throw UnimplementedVirtualFunctionException("Database::databaseType");
 }
 
-#endif
+void Database::prepare(const String &preparedStatementName, const String &query)
+{
+	throw UnimplementedVirtualFunctionException("Database::prepare");
+}
+
+ResultSet *Database::execute(const String &preparedStatementName, const Array &params)
+{
+	throw UnimplementedVirtualFunctionException("Database::execute");
+}
+
+void Database::deallocate(const String &preparedStatementName)
+{
+	throw UnimplementedVirtualFunctionException("Database::deallocate");
+}
+
+
 }	// EOF namespace db
 }	// EOF namespace ppl7

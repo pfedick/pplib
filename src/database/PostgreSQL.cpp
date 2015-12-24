@@ -295,9 +295,9 @@ void Postgres92Result::PrintResult()
  */
 
 
+#endif
 
-
-Postgres92::Postgres92()
+PostgreSQL::PostgreSQL()
 {
 	conn=NULL;
 	lastinsertid=0;
@@ -306,12 +306,10 @@ Postgres92::Postgres92()
 	transactiondepth=0;
 }
 
-Postgres92::~Postgres92()
+PostgreSQL::~PostgreSQL()
 {
 #ifdef HAVE_POSTGRESQL
-	PushError();
-	if (conn) Disconnect();
-	PopError();
+	if (conn) close();
 #endif
 }
 
@@ -341,65 +339,87 @@ Postgres92::~Postgres92()
  * \until EOF
  *
  */
-int Postgres92::Connect(const CAssocArray &params)
+void PostgreSQL::connect(const AssocArray &params)
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (conn) Disconnect();
+	if (conn) close();
 	condata=params;
-	CString conninfo;
-	if (params["host"]) conninfo.Concatf("host=%s ",params["host"]);
-	if (params["port"]) conninfo.Concatf("port=%s ",params["port"]);
-	if (params["dbname"]) conninfo.Concatf("dbname='%s' ",params["dbname"]);
-	if (params["user"]) conninfo.Concatf("user='%s' ",params["user"]);
-	if (params["password"]) conninfo.Concatf("password='%s' ",params["password"]);
+	String conninfo;
+	if (params.exists("host")) conninfo.appendf("host=%s ",(const char*)params["host"].toString());
+	if (params.exists("port")) conninfo.appendf("port=%s ",(const char*)params["port"].toString());
+	if (params.exists("dbname")) conninfo.appendf("dbname='%s' ",(const char*)params["dbname"].toString());
+	if (params.exists("user")) conninfo.appendf("user='%s' ",(const char*)params["user"].toString());
+	if (params.exists("password")) conninfo.appendf("password='%s' ",(const char*)params["password"].toString());
+	if (params.exists("timeout")) conninfo.appendf("connect_timeout='%s' ",(const char*)params["timeout"].toString());
 
 	conn=PQconnectdb((const char *)conninfo);
 	if (!conn) {
-		SetError(2);
-		return 0;
+		throw OutOfMemoryException();
 	}
 	// Pruefen, ob auch wirklich eine Verbindung da ist
 	if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
-		ppl6::CString SearchPath=params["searchpath"];
-		if (SearchPath.NotEmpty()) {
-			Escape(SearchPath);
-			if (!Execf("set search_path to %s",(const char*)SearchPath)) {
-				PQfinish((PGconn*)conn);
-				conn=NULL;
-				return 0;
+		try {
+			String SearchPath=escape(params["searchpath"]);
+			if (SearchPath.notEmpty()) {
+				execf("set search_path to %s",(const char*)SearchPath);
 			}
+			updateLastUse();
+		} catch (...) {
+			PQfinish((PGconn*)conn);
+			conn=NULL;
+			throw;
 		}
-		UpdateLastUse();
-		return 1;
+		return;
 	}
-	ClearLastUse();
+	clearLastUse();
 
 	// Was war der Fehler?
-	SetError(77,0,PQerrorMessage((PGconn*)conn));
+	String err(PQerrorMessage((PGconn*)conn));
 	PQfinish((PGconn*)conn);
 	conn=NULL;
-	return 0;
+	throw ConnectionFailedException(err);
 #endif
 }
 
 
-int Postgres92::ConnectCreate(const CAssocArray &params)
+void PostgreSQL::connectCreate(const AssocArray &params)
 {
-	CAssocArray a=params;
-	a.Delete("dbname");
-	a.Set("dbname","postgres");
-	const char *dbname=params["dbname"];
+	AssocArray a=params;
+	a.remove("dbname");
+	a.set("dbname","postgres");
+	String dbname=params["dbname"];
 	// Versuch auf die immer vorhandene Datenbank "postgres" zuzugreifen
-	if (!Connect(a)) return 0;
+	connect(a);
 	// Wir versuchen die Datenbank auszuwählen
-	if (SelectDB(dbname)) return 1;
-	if (!CreateDatabase(dbname)) return 0;
-	if (SelectDB(dbname)) return 1;
-	return 0;
+	try {
+		selectDB(dbname);
+		return;
+	} catch (...) {
+
+	}
+	createDatabase(dbname);
+	selectDB(dbname);
 }
+
+void PostgreSQL::close()
+{
+#ifndef HAVE_POSTGRESQL
+	throw UnsupportedFeatureException("PostgreSQL");
+#else
+	if (!conn) {
+		return;
+	}
+	PQfinish((PGconn*)conn);
+	conn=NULL;
+	clearLastUse();
+#endif
+}
+
+
+
+#ifdef TODO
 
 int Postgres92::Reconnect()
 {
@@ -424,21 +444,6 @@ int Postgres92::Reconnect()
 #endif
 }
 
-int Postgres92::Disconnect()
-{
-#ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
-#else
-	if (!conn) {
-		return 1;
-	}
-	PQfinish((PGconn*)conn);
-	conn=NULL;
-	ClearLastUse();
-	return 1;
-#endif
-}
 
 
 

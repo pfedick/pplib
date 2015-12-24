@@ -601,14 +601,14 @@ dnl 	report_have_mysql="yes"
 dnl fi
 
 
-dnl AX_LIB_POSTGRESQL([9.0])
-dnl if test "$found_postgresql" = "yes"; then
-dnl 	report_have_postgres="yes"
-dnl 	if test $postgresql_version_number -ge 9002000 ; then
-dnl 		AC_DEFINE([POSTGRESQL_HAVE_PQsetSingleRowMode], [1],
-dnl 			[Define to 1 if PostgreSQL has function PQsetSingleRowMode])
-dnl 	fi
-dnl fi
+AX_LIB_POSTGRESQL([9.0])
+if test "$found_postgresql" = "yes"; then
+	report_have_postgres="yes"
+	if test $postgresql_version_number -ge 9002000 ; then
+		AC_DEFINE([POSTGRESQL_HAVE_PQsetSingleRowMode], [1],
+			[Define to 1 if PostgreSQL has function PQsetSingleRowMode])
+	fi
+fi
 
 dnl AX_LIB_SQLITE3()
 dnl if test "$success" = "yes"; then
