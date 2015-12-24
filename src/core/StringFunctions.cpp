@@ -723,10 +723,10 @@ String Transcode(const char * str, size_t size, const String &fromEncoding, cons
 	throw UnsupportedFeatureException("Iconv");
 #else
 	ppl7::Iconv iconv(fromEncoding,toEncoding);
-	String from(str,size);
-	String to;
-	iconv.transcode(from,to);
-	return to;
+	ppl7::ByteArrayPtr source(str,size);
+	ppl7::ByteArray target;
+	iconv.transcode(source,target);
+	return String((const char*)target.ptr(),target.size());
 #endif
 }
 

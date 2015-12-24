@@ -99,13 +99,29 @@ static const char test_string_iso88591[] =
 		{(char)0x48,(char)0xe4,(char)0x6c,(char)0x6c,(char)0x6f,(char)0x20,
 		 (char)0x57,(char)0xf6,(char)0x72,(char)0x6c,(char)0x64};
 
-TEST_F(IconvTest, transcodeWithString) {
+static const char test_string_utf16be[] =
+{
+		0x00,0x48,0x00,0xe4,0x00,0x6c,0x00,0x6c,0x00,0x6f,0x00,0x20,0x00,0x57,0x00,0xf6,
+		0x00,0x72,0x00,0x6c,0x00,0x64,0x00,0x21
+};
+
+TEST_F(IconvTest, transcodeWithString_ISO88591_UTF8) {
 	ppl7::Iconv iconv;
 	iconv.init("ISO-8859-1","UTF-8");
 	ppl7::String source(test_string_iso88591);
 	ppl7::String target;
 	iconv.transcode(source,target);
 	ASSERT_EQ(ppl7::String("Hällo Wörld"),target);
+}
+
+TEST_F(IconvTest, transcodeByteArray_UTF16BE_UTF8) {
+	ppl7::String expected("Hällo Wörld!");
+	ppl7::Iconv iconv;
+	iconv.init("UTF-16BE","UTF-8");
+	ppl7::ByteArray source(test_string_utf16be,sizeof(test_string_utf16be));
+	ppl7::ByteArray target;
+	iconv.transcode(source,target);
+	ASSERT_EQ(ppl7::ByteArray(expected),target);
 }
 
 TEST_F(IconvTest, transcodeWithByteArray) {

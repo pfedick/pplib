@@ -288,6 +288,83 @@ void ID3Frame::setFlags(int flags)
 	this->Flags=flags;
 }
 
+void ID3Frame::hexDump() const
+{
+	if (!data) return;
+	HexDump(data,Size);
+}
+
+/*!\class ID3TagTranscode
+ * \ingroup PPLGroupSound
+ * \brief Klasse mit Hilfsfunktionen für ID3Tag
+ *
+ * \desc
+ * Eine Klasse mit Hilfsfunktionen, die intern von ID3Tag verwendet werden.
+ */
+
+/*!\brief Text eines Frames dekodieren und in einen String kopieren
+ *
+ * \desc
+ * Mit dieser internen Funktion wird der Text eines Frames ab der Position
+ * \p data und einer Länge von \p size Bytes zunächst nach in das
+ * lokale Format des Systems konvertiert und dann im String \p s gespeichert.
+ *
+ * @param[out] s String, in dem der Text gespeichert werden soll
+ * @param[in] data Speicherbereich, an dem der Text beginnt
+ * @param[in] size Länge des Strings in Bytes
+ */
+void ID3TagTranscode::copyAndDecodeText(String &s, const ID3Frame *frame, int offset)
+{
+	if (!frame) throw ppl7::InvalidArgumentsException();
+	if (!frame->data) {
+		s.clear();
+		return;
+	}
+	int encoding=Peek8(frame->data+offset);
+	if (encoding<32) {
+		ID3TagTranscode::decode(frame,offset+1,encoding,s);
+	} else {
+		String from(frame->data+offset,frame->Size-offset);
+		Iconv iconv("ISO-8859-1",Iconv::getLocalCharset());
+		iconv.transcode(from,s);
+	}
+}
+
+
+int ID3TagTranscode::decode(const ID3Frame *frame, int offset, int encoding, String &target)
+{
+	size_t size=0;
+	const char *data=frame->data+offset;
+	if (encoding==0) {
+		size=strlen(data);
+		if (size+offset>frame->Size) size=frame->Size-offset;
+		Iconv iconv("ISO-8859-1",Iconv::getLocalCharset());
+		target.set(Transcode(data,size,"ISO-8859-1",Iconv::getLocalCharset()));
+		return offset+size+1;
+	} else if (encoding==1) {
+		size=strlen16(data)*2;
+		if (size+offset>frame->Size) size=frame->Size-offset;
+		target.set(Transcode(data,size,"UTF-16",Iconv::getLocalCharset()));
+		return offset+size+2;
+	} else if (encoding==2) {
+		size=strlen16(data)*2;
+		if (size+offset>frame->Size) size=frame->Size-offset;
+		target.set(Transcode(data,size,"UTF-8",Iconv::getLocalCharset()));
+		return offset+size+2;
+	} else if (encoding==3) {
+		size=strlen(data);
+		if (size+offset>frame->Size) size=frame->Size-offset;
+		target.set(data,size);
+		return offset+size+1;
+	} else if (encoding>31) {
+		size=strlen(data);
+		if (size+offset>frame->Size) size=frame->Size-offset;
+		target.set(Transcode(data,size,"ISO-8859-1",Iconv::getLocalCharset()));
+		return offset+size+1;
+	}
+	return offset+size+1;
+}
+
 
 /*!\class CID3Tag
  * \ingroup PPLGroupSound
@@ -856,7 +933,7 @@ void ID3Tag::setRemixer(const String &remixer)
 		exists=true;
 	} else {
 		frame=new ID3Frame("TXXX");
-		throw ppl7::OutOfMemoryException();
+		if (!frame) throw ppl7::OutOfMemoryException();
 	}
 	frame->Flags=0;
 	frame->Size=enc.size()+5+udf.size();
@@ -1043,7 +1120,7 @@ void ID3Tag::save()
 	}
 	if (myAudioFormat==AF_MP3) saveMP3();
 	else if (myAudioFormat==AF_AIFF) saveAiff();
-	throw UnsupportedAudioFormatException("FormatId=%d",myAudioFormat);
+	else throw UnsupportedAudioFormatException("FormatId=%d",myAudioFormat);
 }
 
 /*!\brief ID3 Version 1 Tag erstellen
@@ -1172,7 +1249,7 @@ void ID3Tag::saveMP3()
 	File n;
 	File o;
 	n.open(&tmpfile,File::WRITE);
-	o.open(Filename,File::WRITE);
+	o.open(Filename,File::READWRITE);
 	// Wir benötigen exklusiven Zugriff auf das File
 	//if (!o.LockExclusive(false)) return 0;		// TODO: Hat unter Windows keine Wirkung
 
@@ -1180,7 +1257,6 @@ void ID3Tag::saveMP3()
 	if (!IdentMPEG(o, &mpg)) {
 		throw UnsupportedAudioFormatException();
 	}
-
 	// Tags generieren
 	ByteArray tagV1, tagV2;
 	generateId3V1Tag(tagV1);
@@ -1238,8 +1314,7 @@ void ID3Tag::saveMP3()
 		File::remove(tmpfile);
 	} else {
 		// Nun kopieren wir die Musikframes
-		((FileObject&)n).copy(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
-		//printf ("start=%u, size=%u, pn=%u\n",mpg.start,mpg.size,pn);
+		ppluint64 bytes_copied=n.copyFrom(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
 		// Und am Ende noch den v1-Tag
 		if (tagV1.size()>0) n.write(tagV1);
 		n.close();
@@ -1296,13 +1371,13 @@ void ID3Tag::copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2
 	ppluint32 size;
 	ppluint32 formsize=4;
 	const char *adr;
-	n.copy(o,0,12,0);	// Header kopieren
+	n.copyFrom(o,0,12,0);	// Header kopieren
 	while (qp<o.size()) {
 		adr=o.map(qp,32);
 		if (!adr) break;
 		size=PeekN32(adr+4);
 		if (PeekN32(adr)!=0x49443320) {	// ignore former ID3-chunk
-			n.copy(o,qp,size+8,tp);				// append chunk to temporary file
+			n.copyFrom(o,qp,size+8,tp);				// append chunk to temporary file
 			tp+=size+8;
 			formsize+=size+8;
 		}
@@ -1388,7 +1463,10 @@ String ID3Tag::getArtist() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TPE1");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) {
+		//frame->hexDump();
+		ID3TagTranscode::copyAndDecodeText(r,frame,0);
+	}
 	return r;
 }
 
@@ -1405,7 +1483,7 @@ String ID3Tag::getTitle() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TIT2");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1427,7 +1505,7 @@ String ID3Tag::getGenre() const
 	String r;
 	String Tmp;
 	ID3Frame *frame=findFrame("TCON");
-	if (frame) copyAndDecodeText(Tmp,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(Tmp,frame,0);
 
 	// Manchmal beginnt das Genre mit einer in Klammern gesetzten Ziffer.
 	// Diese entspricht der GenreId des ID3v1-Tags
@@ -1489,12 +1567,12 @@ String ID3Tag::getComment(const String &description) const
 			if (encoding<4) {
 				if (encoding==0 || encoding==3) {
 					size=strlen(frame->data+4);
-					decode(frame,4,encoding,desc);
-					decode(frame,5+size,encoding,r);
+					ID3TagTranscode::decode(frame,4,encoding,desc);
+					ID3TagTranscode::decode(frame,5+size,encoding,r);
 				} else {
 					size=strlen16(frame->data+4)*2;
-					decode(frame,4,encoding,desc);
-					decode(frame,6+size,encoding,r);
+					ID3TagTranscode::decode(frame,4,encoding,desc);
+					ID3TagTranscode::decode(frame,6+size,encoding,r);
 				}
 				//printf ("Found COMM-Frame with desc=%s => %s\n",(const char *)desc,(const char*)r);
 				if (description.size()>0 && description==desc) return r;
@@ -1525,7 +1603,7 @@ String ID3Tag::getRemixer() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TPE4");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1542,7 +1620,7 @@ String ID3Tag::getYear() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TYER");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1559,7 +1637,7 @@ String ID3Tag::getLabel() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TPUB");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1576,7 +1654,7 @@ String ID3Tag::getAlbum() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TALB");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1595,7 +1673,7 @@ String ID3Tag::getTrack() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TRCK");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1603,7 +1681,7 @@ String ID3Tag::getBPM() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TBPM");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1611,7 +1689,7 @@ String ID3Tag::getKey() const
 {
 	String r;
 	ID3Frame *frame=findFrame("TKEY");
-	if (frame) copyAndDecodeText(r,frame,0);
+	if (frame) ID3TagTranscode::copyAndDecodeText(r,frame,0);
 	return r;
 }
 
@@ -1626,11 +1704,11 @@ bool ID3Tag::getPicture(int type, ByteArray &bin) const
 			// Wir haben ein Picture
 			String MimeType;
 			int encoding=Peek8(frame->data);
-			int offset=decode(frame,1,0,MimeType);
+			int offset=ID3TagTranscode::decode(frame,1,0,MimeType);
 			//printf ("Offset: %i, Type=%i, encoding=%i\n",offset, (int)Peek8(frame->data+offset),encoding);
 			if ((int)Peek8(frame->data+offset)==type) {
 				String Description;
-				offset=decode(frame,offset+1,encoding,Description);
+				offset=ID3TagTranscode::decode(frame,offset+1,encoding,Description);
 				//printf ("Mimetype: >>>%s<<<, offset: %i\n",(const char*)MimeType,offset);
 				bin.copy(frame->data+offset,frame->Size-offset);
 				return true;
@@ -1676,9 +1754,9 @@ String ID3Tag::getEnergyLevel() const
 			// Wir haben ein TXXX-Frame
 			int encoding=Peek8(frame->data);
 			String identifier;
-			int offset=decode(frame,1,encoding,identifier);
+			int offset=ID3TagTranscode::decode(frame,1,encoding,identifier);
 			if (identifier=="EnergyLevel") {
-				decode(frame,offset,encoding,energy);
+				ID3TagTranscode::decode(frame,offset,encoding,energy);
 				return energy;
 			}
 		}
@@ -1697,7 +1775,7 @@ void ID3Tag::setEnergyLevel(const String &energy)
 			// Wir haben ein TXXX-Frame
 			int encoding=Peek8(frame->data);
 			String identifier;
-			decode(frame,1,encoding,identifier);
+			ID3TagTranscode::decode(frame,1,encoding,identifier);
 			if (identifier=="EnergyLevel") {
 				exists=true;
 				break;
@@ -1741,7 +1819,7 @@ void ID3Tag::setPicture(int type, const ByteArrayPtr &bin, const String &MimeTyp
 			// Wir haben ein Picture
 			String MimeType;
 			//int encoding=Peek8(frame->data);
-			int offset=decode(frame,1,0,MimeType);
+			int offset=ID3TagTranscode::decode(frame,1,0,MimeType);
 			if ((int)Peek8(frame->data+offset)==type) {
 				exists=true;
 				delete (frame->data);
@@ -1784,7 +1862,7 @@ void ID3Tag::removePicture(int type)
 			// Wir haben ein Picture
 			String MimeType;
 			//int encoding=Peek8(frame->data);
-			int offset=decode(frame,1,0,MimeType);
+			int offset=ID3TagTranscode::decode(frame,1,0,MimeType);
 			if ((int)Peek8(frame->data+offset)==type) {
 				free (frame->data);
 				frame->data=NULL;
@@ -1797,68 +1875,6 @@ void ID3Tag::removePicture(int type)
 	}
 }
 
-/*!\brief Text eines Frames dekodieren und in einen String kopieren
- *
- * \desc
- * Mit dieser internen Funktion wird der Text eines Frames ab der Position
- * \p data und einer Länge von \p size Bytes zunächst nach in das
- * lokale Format des Systems konvertiert und dann im String \p s gespeichert.
- *
- * @param[out] s String, in dem der Text gespeichert werden soll
- * @param[in] data Speicherbereich, an dem der Text beginnt
- * @param[in] size Länge des Strings in Bytes
- */
-void ID3Tag::copyAndDecodeText(String &s, ID3Frame *frame, int offset) const
-{
-	if (!frame) throw ppl7::InvalidArgumentsException();
-	if (!frame->data) {
-		s.clear();
-		return;
-	}
-	int encoding=Peek8(frame->data+offset);
-	if (encoding<32) {
-		decode(frame,offset+1,encoding,s);
-	} else {
-		String from(frame->data+offset,frame->Size-offset);
-		printf ("xxxx\n");
-		ppl7::HexDump(from.c_str(),from.size());
-		Iconv iconv("ISO-8859-1",Iconv::getLocalCharset());
-		iconv.transcode(from,s);
-	}
-}
 
-
-int ID3Tag::decode(ID3Frame *frame, int offset, int encoding, String &target) const
-{
-	size_t size=0;
-	const char *data=frame->data+offset;
-	if (encoding==0) {
-		size=strlen(data);
-		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.set(Transcode(data,size,"ISO-8859-1",String::getGlobalEncoding()));
-		return offset+size+1;
-	} else if (encoding==1) {
-		size=strlen16(data)*2;
-		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.set(Transcode(data,size,"UTF-16",String::getGlobalEncoding()));
-		return offset+size+2;
-	} else if (encoding==2) {
-		size=strlen16(data)*2;
-		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.set(Transcode(data,size,"UTF-BE",String::getGlobalEncoding()));
-		return offset+size+2;
-	} else if (encoding==3) {
-		size=strlen(data);
-		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.set(data,size);
-		return offset+size+1;
-	} else if (encoding>31) {
-		size=strlen(data);
-		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.set(Transcode(data,size,"ISO-8859-1",String::getGlobalEncoding()));
-		return offset+size+1;
-	}
-	return offset+size+1;
-}
 
 }	// EOF namespace ppl7
