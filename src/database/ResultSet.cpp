@@ -348,6 +348,7 @@ namespace db {
  */
 
 
+
 /*!\brief Result als Liste mit assoziativen Arrays exportieren
  *
  * \descr
@@ -363,7 +364,8 @@ ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res)
 {
 	list.clear();
 	AssocArray row;
-	while (res.fetchArray(row)) {
+	while (!res.eof()) {
+		res.fetchArray(row);
 		list.push_back(row);
 	}
 	return (ppluint64)list.size();

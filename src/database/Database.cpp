@@ -215,7 +215,7 @@ Database::Database()
  */
 Database::~Database()
 {
-	close();
+	//close();
 	if (Log) Log->print(Logger::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Stop logging of Database-Queries");
 }
 
@@ -358,7 +358,7 @@ void Database::connect()
  *
  */
 {
-	return connect(ConnectParam);
+	connect(ConnectParam);
 }
 
 void Database::connectCreate(const AssocArray &params)
@@ -506,6 +506,57 @@ AssocArray Database::execArrayf(const char *query, ...)
 	return a;
 }
 
+
+
+void Database::execArray(AssocArray &result, const String &query)
+/*!\brief SQL-Query ausführen und ersten Datensatz in Array speichern
+ *
+ * \descr
+ * Mit dieser Funktion wird der SQL-Query \p query ausgeführt und die erste Zeile der Ergebnisdaten
+ * im Assoziativen Array \p result gespeichert. Die Funktion bietet sich daher für Selects an, die
+ * genau einen Datensatz zurückliefern. Liefert ein Select mehrere Datensätze zurück, kann
+ * stattdessen die Funktion Database::ExecArrayAll verwendet werden.
+ *
+ * \param[out] result Ein Assoziatives Array, in dem das Ergebnis gespeichert wird. Der ursprüngliche
+ * Inhalt des Arrays wird durch Aufruf dieser Funktion gelöscht. Falls der SQL-Befehl
+ * kein Ergebnis geliefert hat, bleibt das Array leer.
+ * \param[in] query Der Select-Befehl
+ * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ */
+{
+	ResultSet *res=this->query(query);
+	res->fetchArray(result);
+	delete res;
+}
+
+void Database::execArrayf(AssocArray &result, const char *query, ...)
+/*!\brief SQL-Query bauen, ausführen und ersten Datensatz in Array speichern
+ *
+ * \descr
+ * Mit dieser Funktion wird zunächst der SQL-Query anhand des Formatierungsstrings \p query gebaut,
+ * ausgeführt und die erste Zeile der Ergebnisdaten
+ * im Assoziativen Array \p result gespeichert. Die Funktion bietet sich daher für Selects an, die
+ * genau einen Datensatz zurückliefern. Liefert ein Select mehrere Datensätze zurück, kann
+ * stattdessen die Funktion Database::ExecArrayAll verwendet werden.
+ *
+ * \param[out] result Ein Assoziatives Array, in dem das Ergebnis gespeichert wird. Der ursprüngliche
+ * Inhalt des Arrays wird durch Aufruf dieser Funktion gelöscht. Falls der SQL-Befehl
+ * kein Ergebnis geliefert hat, bleibt das Array leer.
+ * \param[in] query Formatierungsstring für den SQL-Query
+ * \param[in] ... Optionale Parameter für den Formatierungsstring
+ *
+ * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ */
+{
+	String q;
+	va_list args;
+	va_start(args, query);
+	q.vasprintf(query,args);
+	va_end(args);
+	execArray(result,q);
+}
+
+
 #ifdef TODO
 
 CAssocArray Database::ExecArrayAll(const CString &query)
@@ -563,67 +614,6 @@ CAssocArray Database::ExecArrayAllf(const char *query, ...)
 	va_end(args);
 	ExecArrayAll(a,String);
 	return a;
-}
-
-int Database::ExecArray(CAssocArray &result, const CString &query)
-/*!\brief SQL-Query ausführen und ersten Datensatz in Array speichern
- *
- * \descr
- * Mit dieser Funktion wird der SQL-Query \p query ausgeführt und die erste Zeile der Ergebnisdaten
- * im Assoziativen Array \p result gespeichert. Die Funktion bietet sich daher für Selects an, die
- * genau einen Datensatz zurückliefern. Liefert ein Select mehrere Datensätze zurück, kann
- * stattdessen die Funktion Database::ExecArrayAll verwendet werden.
- *
- * \param[out] result Ein Assoziatives Array, in dem das Ergebnis gespeichert wird. Der ursprüngliche
- * Inhalt des Arrays wird durch Aufruf dieser Funktion gelöscht. Falls der SQL-Befehl
- * kein Ergebnis geliefert hat, bleibt das Array leer.
- * \param[in] query Der Select-Befehl
- * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	result.Clear();
-	Result *res=Query(query);
-	if (!res) return 0;
-	if (res->Rows()==0) {
-		delete res;
-		ppl6::SetError(182,"%s",(const char*)query);
-		return 0;
-	}
-	if (res->FetchArray(result)) {
-		delete res;
-		return 1;
-	}
-	PushError();
-	delete res;
-	PopError();
-	return 0;
-}
-
-int Database::ExecArrayf(CAssocArray &result, const char *query, ...)
-/*!\brief SQL-Query bauen, ausführen und ersten Datensatz in Array speichern
- *
- * \descr
- * Mit dieser Funktion wird zunächst der SQL-Query anhand des Formatierungsstrings \p query gebaut,
- * ausgeführt und die erste Zeile der Ergebnisdaten
- * im Assoziativen Array \p result gespeichert. Die Funktion bietet sich daher für Selects an, die
- * genau einen Datensatz zurückliefern. Liefert ein Select mehrere Datensätze zurück, kann
- * stattdessen die Funktion Database::ExecArrayAll verwendet werden.
- *
- * \param[out] result Ein Assoziatives Array, in dem das Ergebnis gespeichert wird. Der ursprüngliche
- * Inhalt des Arrays wird durch Aufruf dieser Funktion gelöscht. Falls der SQL-Befehl
- * kein Ergebnis geliefert hat, bleibt das Array leer.
- * \param[in] query Formatierungsstring für den SQL-Query
- * \param[in] ... Optionale Parameter für den Formatierungsstring
- *
- * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	CString String;
-	va_list args;
-	va_start(args, query);
-	String.VaSprintf(query,args);
-	va_end(args);
-	return ExecArray(result,String);
 }
 
 int Database::ExecArrayAll(CAssocArray &result, const CString &query)

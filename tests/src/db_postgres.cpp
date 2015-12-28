@@ -60,7 +60,148 @@ class DBPostgreSQL : public ::testing::Test {
 
 TEST_F(DBPostgreSQL, connect) {
 	//ppl7::db::PostgreSQL db;
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	//params.list();
+	try {
+		ppl7::db::PostgreSQL db;
+		try {
+			db.connect(params);
+		} catch (const ppl7::Exception &e) {
+			e.print();
+			FAIL() << "connect to database failed";
+		} catch (...) {
+			printf ("Das ist unerwartet\n");
+		}
+		try {
+			db.close();
+		} catch (const ppl7::Exception &e) {
+			e.print();
+			FAIL() << "close on database failed";
+		}
+	} catch (const ppl7::Exception &e) {
+		e.print();
+		FAIL() << "destructor throwed an unxpected exception";
+	}
+}
 
+TEST_F(DBPostgreSQL, setParamAndConnect) {
+	//ppl7::db::PostgreSQL db;
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	ppl7::db::PostgreSQL db;
+	db.setParam("host",params["host"]);
+	db.setParam("port",params["port"]);
+	db.setParam("dbname",params["dbname"]);
+	db.setParam("user",params["user"]);
+	db.setParam("password",params["password"]);
+	db.setParam("timeout",params["timeout"]);
+
+	try {
+		db.connect();
+	} catch (const ppl7::Exception &e) {
+		e.print();
+		FAIL() << "connect to database failed";
+	} catch (...) {
+		printf ("Das ist unerwartet\n");
+	}
+	try {
+		db.close();
+	} catch (const ppl7::Exception &e) {
+		e.print();
+		FAIL() << "close on database failed";
+	}
+}
+
+
+TEST_F(DBPostgreSQL, ping) {
+	//ppl7::db::PostgreSQL db;
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	ppl7::db::PostgreSQL db;
+	ASSERT_NO_THROW({
+		db.connect(params);
+	});
+	ASSERT_TRUE(db.ping());
+	db.close();
+	ASSERT_FALSE(db.ping());
+}
+
+TEST_F(DBPostgreSQL, reconnect) {
+	//ppl7::db::PostgreSQL db;
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	ppl7::db::PostgreSQL db;
+	ASSERT_NO_THROW({
+		db.connect(params);
+	});
+	ASSERT_NO_THROW({
+		db.reconnect();
+	});
+	ASSERT_TRUE(db.ping());
+}
+
+TEST_F(DBPostgreSQL, closeAndReconnect) {
+	//ppl7::db::PostgreSQL db;
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	ppl7::db::PostgreSQL db;
+	ASSERT_NO_THROW({
+		db.connect(params);
+	});
+	db.close();
+	ASSERT_NO_THROW({
+		db.reconnect();
+	});
+	ASSERT_TRUE(db.ping());
+}
+
+TEST_F(DBPostgreSQL, connectToPostgres) {
+	//ppl7::db::PostgreSQL db;
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	params.set("dbname","postgres");
+	ppl7::db::PostgreSQL db;
+	ASSERT_NO_THROW({
+		db.connect(params);
+	});
+	ASSERT_TRUE(db.ping());
+}
+
+TEST_F(DBPostgreSQL, selectDB) {
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	params.set("dbname","postgres");
+	ppl7::db::PostgreSQL db;
+	ASSERT_NO_THROW({
+		db.connect(params);
+	});
+	ASSERT_TRUE(db.ping());
+	ASSERT_NO_THROW({
+		db.selectDB(PPL7TestConfig.getFromSection("postgres","dbname"));
+	});
+	ASSERT_TRUE(db.ping());
+}
+
+TEST_F(DBPostgreSQL, execCreateTable) {
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "postgres");
+	ppl7::db::PostgreSQL db;
+	ASSERT_NO_THROW({
+		db.connect(params);
+	});
+	ASSERT_NO_THROW({
+		//db.exec("create schema if not exists ppl7");
+	});
+	ASSERT_NO_THROW({
+		//db.exec("drop table if exists ppl7.testcreatetable");
+	});
+	try {
+		//db.exec("create table ppl7.testcreatetable (id int4 not null)");
+	} catch (const ppl7::Exception &e) {
+		e.print();
+		FAIL()<<"unexpected exception";
+	}
 
 }
 

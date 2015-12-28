@@ -50,8 +50,6 @@ namespace ppl7 {
 PPLEXCEPTION(NetworkException,Exception);
 PPLEXCEPTION(WinsockInitialisationFailed, Exception);
 PPLEXCEPTION(IdnConversionException, Exception);
-PPLEXCEPTION(QueryFailedException, Exception);
-
 
 PPLEXCEPTION(NotConnectedException,NetworkException);
 PPLEXCEPTION(CouldNotOpenSocketException,NetworkException);				// 393

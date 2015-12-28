@@ -183,6 +183,10 @@ PPLEXCEPTION(TryAgainException, Exception);
 PPLEXCEPTION(NoResultException, Exception);
 PPLEXCEPTION(TimeoutException, Exception);
 
+PPLEXCEPTION(QueryFailedException, Exception);
+PPLEXCEPTION(EscapeFailedException, Exception);
+PPLEXCEPTION(FieldNotInResultSetException, Exception);
+
 
 
 }	// EOF namespace ppl7

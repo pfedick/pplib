@@ -61,66 +61,61 @@
 namespace ppl7 {
 namespace db {
 
-
+#ifdef HAVE_POSTGRESQL
 
 class Postgres92Result : public ResultSet
 {
-	friend class Postgres92;
+	friend class PostgreSQL;
 	private:
-#ifdef HAVE_POSTGRESQL
 		PGresult	*res;			//!\brief Postgres-spezifisches Result-Handle
 		PGconn		*conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
-#endif
 		PostgreSQL	*postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
-		pplint64	rows;			//!\brief Anzahl Zeilen im Ergebnis
-		pplint64 	lastinsertid;	//!\brief Falls es sich um einen Insert mit einem Autoincrement-Index handelte, steht hier die vergebene ID
-		pplint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
+		ppluint64	result_rows;		//!\brief Anzahl Zeilen im Ergebnis
+		ppluint64 	lastinsertid;	//!\brief Falls es sich um einen Insert mit einem Autoincrement-Index handelte, steht hier die vergebene ID
+		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
-		pplint64	nextrow;
-		bool 		bRowsCounted;
 
 	public:
 		Postgres92Result();
 		virtual ~Postgres92Result();
-		virtual	void Clear();
-		virtual pplint64 Rows();
-		virtual pplint64 Affected();
-		virtual int Fields();
-		virtual int FieldNum(const char *fieldname);
-		virtual const char *FieldName(int field);
-		virtual ResultSet::Type	FieldType(int field);
-		virtual ResultSet::Type	FieldType(const char *fieldname);
-		virtual AssocArray  FetchArray(pplint64 row=-1);
-		virtual int		FetchArray(AssocArray &array, pplint64 row=-1);
-		virtual Array  FetchFields(pplint64 row=-1);
-		virtual int		FetchFields(Array &array, pplint64 row=-1);
-		virtual int		Seek(pplint64 row);
-		virtual void    PrintResult();
+		virtual	void		clear();
+		virtual ppluint64	rows() const;
+		virtual ppluint64	affected() const;
+		virtual int			fields() const;
+		virtual String		getString(const String &fieldname);
+		virtual String		getString(int field);
+		virtual int			fieldNum(const String &fieldname);
+		virtual String		fieldName(int field);
+		virtual FieldType	fieldType(int field);
+		virtual FieldType	fieldType(const String &fieldname);
+		virtual AssocArray	fetchArray();
+		virtual void		fetchArray(AssocArray &array);
+		virtual Array		fetchFields();
+		virtual void		fetchFields(Array &array);
+		virtual void		nextRow();
+		virtual bool		eof();
 };
 
-#ifdef OLDCODE
 
 Postgres92Result::Postgres92Result()
 {
 	res=NULL;
 	postgres_class=NULL;
 	conn=NULL;
-	rows=0;
+	result_rows=0;
 	lastinsertid=0;
 	affectedrows=0;
 	num_fields=0;
-	nextrow=0;
-	bRowsCounted=false;
 }
 
 Postgres92Result::~Postgres92Result()
 {
-	Clear();
+	clear();
 }
 
-void Postgres92Result::Clear()
+void Postgres92Result::clear()
 {
-	rows=0;
+	result_rows=0;
 	if (res) PQclear(res);
 	res=NULL;
 	postgres_class=NULL;
@@ -131,158 +126,156 @@ void Postgres92Result::Clear()
 }
 
 
-pplint64 Postgres92Result::Rows()
+ppluint64 Postgres92Result::rows() const
 {
-	return rows;
+	return result_rows;
 }
 
-pplint64 Postgres92Result::Affected()
+ppluint64 Postgres92Result::affected() const
 {
 	return affectedrows;
 }
 
-int Postgres92Result::Fields()
+int Postgres92Result::fields() const
 {
 	return num_fields;
 }
 
-int Postgres92Result::FieldNum(const char *fieldname)
+
+int Postgres92Result::fieldNum(const String &fieldname)
 {
-	if (!res) {
-		SetError(182);
-		return 0;
-	}
-	if (!fieldname) {
-		SetError(194);
-		return 0;
-	}
-	int n=PQfnumber(res,fieldname);
-	if (n==-1) {
-		SetError(183,"%s",fieldname);
-		return -1;
-	}
+	if (!res) throw NoResultException();
+	if (fieldname.isEmpty()) throw IllegalArgumentException();
+	int n=PQfnumber(res,(const char*) fieldname);
+	if (n==-1) throw FieldNotInResultSetException(fieldname);
 	return n;
 }
 
-const char *Postgres92Result::FieldName(int field)
+String Postgres92Result::fieldName(int field)
 {
-	if (!res) {
-		SetError(182);
-		return 0;
-	}
-	if (field>num_fields) {
-		SetError(183,"%i",field);
-		return NULL;
-	}
+	if (!res) throw NoResultException();
+	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
 	const char *name=PQfname(res,field);
-	if (!name) {
-		SetError(183,"%i",field);
-	}
-	return name;
+	if (!name) FieldNotInResultSetException("%d",field);
+	return String(name);
 }
 
-Result::Type Postgres92Result::FieldType(int field)
+
+ResultSet::FieldType Postgres92Result::fieldType(int field)
 {
+	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
 	Oid o=PQftype(res,field);
 	switch (o) {
 		default:
-			return Result::Unknown;
+			return ResultSet::TYPE_UNKNOWN;
 	}
-	return Result::Unknown;
+	return ResultSet::TYPE_UNKNOWN;
 }
 
-Result::Type Postgres92Result::FieldType(const char *fieldname)
+ResultSet::FieldType Postgres92Result::fieldType(const String &fieldname)
 {
-	int num=FieldNum(fieldname);
-	if (num<0) return Result::Unknown;
-	return FieldType(num);
+	int num=fieldNum(fieldname);
+	return fieldType(num);
 }
 
-CAssocArray Postgres92Result::FetchArray(pplint64 row)
+AssocArray Postgres92Result::fetchArray()
 {
-	CAssocArray a;
-	FetchArray(a,row);
+	AssocArray a;
+	fetchArray(a);
 	return a;
 }
 
-int	Postgres92Result::FetchArray(CAssocArray &array, pplint64 row)
+void Postgres92Result::fetchArray(AssocArray &array)
 {
-	if (!res) {
-		SetError(182);
-		return 0;
-	}
+	if (!res) throw NoResultException();
 	if (PQntuples(res)==0) {
 		PQclear(res);
 		res=NULL;
-		SetError(182);
-		return 0;
+		throw NoResultException();
 	}
-	array.Clear();
+	array.clear();
 	for(int i=0; i<num_fields; i++) {
-		array.Set(PQfname(res,i),PQgetvalue(res,0,i));
+		array.set(String(PQfname(res,i)),String(PQgetvalue(res,0,i)));
 	}
 	PQclear(res);
 	res=PQgetResult(conn);
-	return 1;
 }
 
-CArray  Postgres92Result::FetchFields(pplint64 row)
+
+String Postgres92Result::getString(const String &fieldname)
 {
-	CArray a;
-	FetchFields(a,row);
+	int num=fieldNum(fieldname);
+	return getString(num);
+}
+
+String Postgres92Result::getString(int field)
+{
+	if (!res) throw NoResultException();
+	if (PQntuples(res)==0) {
+		PQclear(res);
+		res=NULL;
+		throw NoResultException();
+	}
+	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
+	return String(PQgetvalue(res,0,field));
+}
+
+
+
+Array Postgres92Result::fetchFields()
+{
+	Array a;
+	fetchFields(a);
 	return a;
 }
 
-int	Postgres92Result::FetchFields(CArray &array, pplint64 row)
+
+void Postgres92Result::fetchFields(Array &array)
 {
-	if (!res) {
-		SetError(182);
-		return 0;
-	}
+	if (!res) throw NoResultException();
 	if (PQntuples(res)==0) {
-		SetError(182);
 		PQclear(res);
 		res=NULL;
-		return 0;
+		throw NoResultException();
 	}
-
-	array.Clear();
+	array.clear();
 	const char *tmp;
 	for(int i=0; i<num_fields; i++) {
 		tmp=PQgetvalue(res,0,i);
-		if (tmp) array.Add(tmp);
-		else array.Add("");
+		if (tmp) array.add(tmp);
+		else array.add("");
 	}
 	PQclear(res);
 	res=PQgetResult(conn);
-	return 1;
 }
 
-int	Postgres92Result::Seek(pplint64 row)
+void Postgres92Result::nextRow()
 {
-	if (!res) {
-		SetError(182);
-		return 0;
+	if (!res) throw NoResultException();
+	if (PQntuples(res)==0) {
+		PQclear(res);
+		res=NULL;
+		throw NoResultException();
 	}
-	if (row<=rows) {
-		nextrow=row;
-		return 1;
-	}
-	SetError(222);
-	return 0;
+	PQclear(res);
+	res=PQgetResult(conn);
 }
 
-void Postgres92Result::PrintResult()
+bool Postgres92Result::eof()
 {
-
+	if (res) {
+		if (PQntuples(res)>0) return true;
+	}
+	return true;
 }
 
+#endif	// HAVE_POSTGRESQL
 
-/*!\class Postgres
+/*!\class PostgreSQL
  * \ingroup PPLGroupDatabases
  * \brief Implementierung einer Postgres-Datenbank
  *
- * \header \#include <ppl6-db.h>
+ * \header \#include <ppl7-db.h>
  *
  * \descr
  * Mit dieser Klasse kann eine Verbindung zu einer Postgres-Datenbank aufgebaut werden, um darüber
@@ -295,7 +288,7 @@ void Postgres92Result::PrintResult()
  */
 
 
-#endif
+
 
 PostgreSQL::PostgreSQL()
 {
@@ -311,6 +304,12 @@ PostgreSQL::~PostgreSQL()
 #ifdef HAVE_POSTGRESQL
 	if (conn) close();
 #endif
+}
+
+
+void PostgreSQL::connect()
+{
+	Database::connect();
 }
 
 /*!\brief Connect auf eine Postgres-Datenbank erstellen
@@ -361,9 +360,11 @@ void PostgreSQL::connect(const AssocArray &params)
 	// Pruefen, ob auch wirklich eine Verbindung da ist
 	if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
 		try {
-			String SearchPath=escape(params["searchpath"]);
-			if (SearchPath.notEmpty()) {
-				execf("set search_path to %s",(const char*)SearchPath);
+			if (params.exists("searchpath")) {
+				String SearchPath=escape(params["searchpath"]);
+				if (SearchPath.notEmpty()) {
+					execf("set search_path to %s",(const char*)SearchPath);
+				}
 			}
 			updateLastUse();
 		} catch (...) {
@@ -419,53 +420,47 @@ void PostgreSQL::close()
 
 
 
-#ifdef TODO
-
-int Postgres92::Reconnect()
+void PostgreSQL::reconnect()
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
 	if (conn) {
 		PQreset((PGconn *)conn);
 		if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
-			UpdateLastUse();
-			return 1;
+			updateLastUse();
+			return;
 		}
 	}
 	// Hat nicht geklappt, wir versuchen einen normalen Connect
-	Close();
-	CAssocArray a;
-	a.Copy(&condata);
-	if (Connect(a)) return 1;
-	SetError(299,"Reconnect failed");
-	return 0;
+	close();
+	AssocArray a=condata;
+	connect(a);
 #endif
 }
 
-
-
-
-int Postgres92::SelectDB(const char *databasename)
+void PostgreSQL::selectDB(const String &databasename)
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
-	// Scheinbar können wir die Datenbank nicht innerhalb der laufenden Verbindung
-	// wechseln
-	if (!conn) { SetError(181); return 0; }
-
-	Close();
-	CAssocArray a,b;
+	// Wir koennen die Datenbank nicht innerhalb der laufenden Verbindung wechseln
+	// Daher bauen wir eine neue Verbindung auf
+	if (!conn) throw NoConnectionException();
+	AssocArray a;
 	a=condata;
-	b=condata; // Backup
-	a.Set("dbname",databasename);
-	if (Connect(a)) return 1;
-	Connect(b);	// Mit der ursprünglichen Datenbank verbinden
-	SetError(295);
-	return 0;
+	a.set("dbname",databasename);
+	PostgreSQL newDB;
+	try {
+		newDB.connect(a);
+	} catch (...) {
+		throw;
+	}
+	close();
+	this->conn=newDB.conn;
+	transactiondepth=0;
+	condata.set("dbname",databasename);
+	newDB.conn=NULL;
 #endif
 }
 
@@ -484,24 +479,25 @@ int Postgres92::SelectDB(const char *databasename)
  * zurück, im Fehlerfall 0. Der Mutex ist bei Verlassen der Funktion auf jeden Fall gesetzt.
  *
  */
-void *Postgres92::Pgsql_Query(const CString &query)
+void *PostgreSQL::pgsqlQuery(const String &query)
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return NULL;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
 	PGresult *res=NULL;
 	ExecStatusType status;
 	int count=0;
+	ppl7::String err;
 	while (count<2) {
 		count++;
-		if (PQsendQuery((PGconn *)conn,query)!=1) {
-			SetError(138,0,"PQsendQuery failed: %s",PQerrorMessage((PGconn*)conn));
+		if (PQsendQuery((PGconn *)conn,(const char*)query)!=1) {
+			throw QueryFailedException("PQsendQuery failed: %s",PQerrorMessage((PGconn*)conn));
 		} else {
 			if (PQsetSingleRowMode((PGconn *)conn)!=1) {
-				SetError(138,0,"PQsetSingleRowMode failed: %s",PQerrorMessage((PGconn*)conn));
+				ppl7::String err;
+				err.setf("PQsetSingleRowMode failed: %s",PQerrorMessage((PGconn*)conn));
 				if (res) PQclear(res);
-				return NULL;
+				throw QueryFailedException(err);
 			}
 			res=PQgetResult((PGconn *)conn);
 			status=PQresultStatus(res);
@@ -517,10 +513,10 @@ void *Postgres92::Pgsql_Query(const CString &query)
 				else lastinsertid=oid;
 				//printf ("Oid=%i, lastinsertId=%i\n",oid,lastinsertid);
 				// Anzahl veränderter Datensätze
-				affectedrows=ppl6::atoll(PQcmdTuples(res));
+				affectedrows=atoll(PQcmdTuples(res));
 				return res;
 			} else if (status==PGRES_FATAL_ERROR) {
-				SetError(138,0,"%s",PQresultErrorMessage(res));
+				err.setf("%s",PQresultErrorMessage(res));
 				/* Laut Doku: Even when PQresultStatus indicates a fatal error, PQgetResult should
 				 * be called until it returns a null pointer, to allow libpq to process the error
 				 * information completely.
@@ -529,247 +525,230 @@ void *Postgres92::Pgsql_Query(const CString &query)
 					PQclear(res);
 					res=NULL;
 				}
-				return NULL;
+				throw QueryFailedException(err);
 			} else {
-				SetError(138,0,"%s",PQresultErrorMessage(res));
+				err.setf("%s",PQresultErrorMessage(res));
 			}
 		}
 		if (res) PQclear(res);
 		if (PQstatus((PGconn*)conn) != CONNECTION_OK) {
-			if (!Reconnect()) {
-				return NULL;
-			}
+			reconnect();
 		} else break;
 	}
-	return NULL;
+	throw QueryFailedException(err);
 #endif
 }
 
-int Postgres92::Exec(const CString &query)
+
+void PostgreSQL::exec(const String &query)
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (!conn) { SetError(181); return 0; }
+	if (!conn) throw NoConnectionException();
 	double t_start;
 	PGresult *res;
 	t_start=GetMicrotime();
-	res=(PGresult*)Pgsql_Query(query);
-	UpdateLastUse();
+	res=(PGresult*)pgsqlQuery(query);
+	updateLastUse();
 	if (res) {
 		// Result-Handle freigeben
 		PQclear(res);
-		LogQuery(query,(float)(getmicrotime()-t_start));
-		return 1;
+		logQuery(query,(float)(GetMicrotime()-t_start));
+		return;
 	}
-	return 0;
+	throw QueryFailedException();
 #endif
 }
 
-Result *Postgres92::Query(const CString &query)
+
+ResultSet *PostgreSQL::query(const String &query)
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return NULL;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (!conn) { SetError(181); return 0; }
+	if (!conn) throw NoConnectionException();
 	double t_start;
 	PGresult *res;
 	t_start=GetMicrotime();
-	res=(PGresult*)Pgsql_Query(query);
-	UpdateLastUse();
-	if (res) {
-		// Query loggen
-		LogQuery(query,(float)(getmicrotime()-t_start));
-		// Result-Klasse erstellen
-		Postgres92Result *pr=new Postgres92Result;
-		if (!pr) {
-			PQclear(res);
-			SetError(2);
-			return NULL;
-		}
-		pr->res=res;
-		pr->postgres_class=this;
-		pr->conn=(PGconn *)conn;
-		pr->rows=PQntuples(res);
-		pr->lastinsertid=lastinsertid;
-		pr->affectedrows=affectedrows;
-		pr->num_fields=PQnfields(res);
-		return pr;
+	res=(PGresult*)pgsqlQuery(query);
+	updateLastUse();
+
+	// Query loggen
+	logQuery(query,(float)(GetMicrotime()-t_start));
+	// Result-Klasse erstellen
+	Postgres92Result *pr=new Postgres92Result;
+	if (!pr) {
+		PQclear(res);
+		throw OutOfMemoryException();
 	}
-	return 0;
+	pr->res=res;
+	pr->postgres_class=this;
+	pr->conn=(PGconn *)conn;
+	pr->result_rows=PQntuples(res);
+	pr->lastinsertid=lastinsertid;
+	pr->affectedrows=affectedrows;
+	pr->num_fields=PQnfields(res);
+	return pr;
 #endif
 }
 
-void Postgres92::SetMaxRows(ppluint64 rows)
+void PostgreSQL::setMaxRows(ppluint64 rows)
 {
 	maxrows=rows;
 }
 
-int Postgres92::Ping()
+bool PostgreSQL::ping()
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	return false;
 #else
-	if (!conn) { SetError(181); return 0; }
+	if (!conn) return false;
 	PGresult *res;
-	res=(PGresult*)Pgsql_Query("select 1 as result");
-	if (res) {
-		// Result-Handle freigeben
-		PQclear(res);
-		return 1;
+	try {
+		res=(PGresult*)pgsqlQuery("select 1 as result");
+		if (res) {
+			// Result-Handle freigeben
+			PQclear(res);
+			return true;
+		}
+	} catch (...) {
+		return false;
 	}
-	SetError(181);
-	return 0;
-
+	return false;
 #endif
 }
 
-int Postgres92::Escape(CString &str) const
+String PostgreSQL::escape(const String &str) const
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
-	if (!conn) { SetError(181); return 0; }
-	size_t l=str.Len()*2+1;
+	if (!conn) throw NoConnectionException();
+	size_t l=str.size()*2+1;
 	char *buf=(char *)malloc(l);   // Buffer reservieren
 	if (!buf) {
-		SetError(2);
-		return 0;
+		throw OutOfMemoryException();
 	}
 	int error;
-	size_t newlength=PQescapeStringConn((PGconn*)conn,buf,(const char*)str,str.Len(),&error);
+	size_t newlength=PQescapeStringConn((PGconn*)conn,buf,(const char*)str,str.size(),&error);
 	if (error==0) {
 		//ppl6::HexDump(buf,newlength);
-		str.Set(buf,newlength);
+		String ret(buf,newlength);
 		free(buf);
-		return 1;
+		return ret;
 	}
 	free(buf);
-	SetError(355,0,PQerrorMessage((PGconn*)conn));
-	return 0;
+	throw EscapeFailedException("%s",PQerrorMessage((PGconn*)conn));
 #endif
 }
 
-ppluint64 Postgres92::GetInsertID()
+ppluint64 PostgreSQL::getInsertID()
 {
 	return lastinsertid;
 }
 
-pplint64 Postgres92::GetAffectedRows()
+ppluint64 PostgreSQL::getAffectedRows()
 {
 	return affectedrows;
 }
 
-int Postgres92::StartTransaction()
+void PostgreSQL::startTransaction()
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
 	if (transactiondepth==0) {	// Neue Transaktion
-		if (Exec("BEGIN")) {
-			transactiondepth++;
-			return 1;
-		}
+		exec("BEGIN");
+		transactiondepth++;
 	} else {
-		if (Execf("SAVEPOINT LEVEL%i",transactiondepth)) {
-			transactiondepth++;
-			return 1;
-		}
+		execf("SAVEPOINT LEVEL%i",transactiondepth);
+		transactiondepth++;
 	}
-	return 0;
 #endif
 }
 
-int Postgres92::EndTransaction()
+void PostgreSQL::endTransaction()
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
 	if (transactiondepth==1) {
-		if (Exec("COMMIT")) {
-			transactiondepth=0;
-			return 1;
-		}
-	} else {
-		if (Execf("RELEASE SAVEPOINT LEVEL%i",transactiondepth-1)) {
-			transactiondepth--;
-			return 1;
-		}
-	}
-	return 0;
-#endif
-}
-
-int Postgres92::CancelTransaction()
-{
-#ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
-#else
-	if (transactiondepth==1) {
-		if (Exec("ROLLBACK")) {
-			transactiondepth=0;
-			return 1;
-		}
-	} else {
-		if (Execf("ROLLBACK TO SAVEPOINT LEVEL%i",transactiondepth-1)) {
-			transactiondepth--;
-			return 1;
-		}
-	}
-	return 0;
-#endif
-}
-
-int Postgres92::CancelTransactionComplete()
-{
-#ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
-#else
-	if (Exec("ROLLBACK")) {
+		exec("COMMIT");
 		transactiondepth=0;
-		return 1;
+	} else {
+		execf("RELEASE SAVEPOINT LEVEL%i",transactiondepth-1);
+		transactiondepth--;
 	}
-	return 0;
 #endif
 }
 
-int Postgres92::CreateDatabase(const char *name)
+void PostgreSQL::cancelTransaction()
 {
 #ifndef HAVE_POSTGRESQL
-	SetError(511,"Postgres92");
-	return 0;
+	throw UnsupportedFeatureException("PostgreSQL");
 #else
-	// CREATE DATABASE dbname OWNER rolename;
-	SetError(5);
-	return 0;
+	if (transactiondepth==1) {
+		exec("ROLLBACK");
+		transactiondepth=0;
+	} else {
+		execf("ROLLBACK TO SAVEPOINT LEVEL%i",transactiondepth-1);
+		transactiondepth--;
+	}
 #endif
 }
 
-CString	Postgres92::databaseType() const
+void PostgreSQL::cancelTransactionComplete()
 {
-	return CString("Postgres92");
+#ifndef HAVE_POSTGRESQL
+	throw UnsupportedFeatureException("PostgreSQL");
+#else
+	exec("ROLLBACK");
+	transactiondepth=0;
+#endif
 }
 
-CString Postgres92::getQuoted(const CString &value, const CString &type) const
+void PostgreSQL::createDatabase(const String &name)
 {
-	CString Type=type;
-	CString s=value;
-	Type.LCase();
-	Escape(s);
+#ifndef HAVE_POSTGRESQL
+	throw UnsupportedFeatureException("PostgreSQL");
+#else
+	throw UnsupportedFeatureException("PostgreSQL::createDatabase");
+#endif
+}
+
+String PostgreSQL::databaseType() const
+{
+	return String("PostgreSQL");
+}
+
+String PostgreSQL::getQuoted(const String &value, const String &type) const
+{
+	String Type=type;
+	String s=escape(value);
+	Type.lowerCase();
 	if (Type=="int" || Type=="integer") return s;
 	if (Type=="bit" || Type=="boolean") return "'"+s+"'";
 	return "'"+s+"'";
 }
 
-#endif
+
+void PostgreSQL::prepare(const String &preparedStatementName, const String &query)
+{
+
+}
+
+ResultSet *PostgreSQL::execute(const String &preparedStatementName, const Array &params)
+{
+	return NULL;
+}
+
+void PostgreSQL::deallocate(const String &preparedStatementName)
+{
+
+}
+
+
 
 }	// EOF namespace db
 }	// EOF namespace ppl7
