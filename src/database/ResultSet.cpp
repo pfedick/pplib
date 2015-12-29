@@ -164,7 +164,10 @@ namespace db {
  * \brief Anzahl Zeilen im Ergebnis
  *
  * Diese Funktion liefert die Anzahl Zeilen im Ergebnis des vorhergehenden Selects zurück.
- * @return Anzahl Zeilen (rows). Im Fehlerfall wird -1 zurückgegeben.
+ * @return Anzahl Zeilen (rows).
+ *
+ * \note Je nach Datenbank kann es sein, dass die Funktion nicht die Gesamtzahl der Zeilen im
+ * Ergebniss zurückliefert, sondern nur einen Teil oder sogar nur 1.
  *
  * \exception UnavailableException Wird geworfen, wenn der Datenbank-Treiber die Funktion nicht
  * unterstützt.
@@ -202,7 +205,7 @@ namespace db {
  * @param[in] fieldname Der Name des auszulesenden Feldes
  * @return Ist das Feld vorhanden, wird der Wert des Feldes als String
  * zurückgegeben. Andernfalls wird eine Exception geworfen.
- * @exception TODO
+ * @exception FieldNotInResultSetException Wird geworfen, wenn das Feld nicht im Resultset vorhanden ist.
  */
 
 /*!\fn ResultSet::getString(int field)
@@ -215,7 +218,7 @@ namespace db {
  * @param[in] field Der Nummer der auszulesenden Spalte
  * @return Ist das Feld vorhanden, wird der Wert des Feldes als String
  * zurückgegeben. Andernfalls wird eine Exception geworfen.
- * @exception TODO
+ * @exception FieldNotInResultSetException Wird geworfen, wenn das Feld nicht im Resultset vorhanden ist.
  */
 
 
@@ -227,8 +230,8 @@ namespace db {
  *
  * @param[in] fieldname Name des gesuchten Feldes
  * @return Ist das Feld vorhanden, wird dessen Spaltennummer zurückgegeben. Die Zählung der Spalten
- * fängt dabei bei 0 an. Im Fehlerfall wird -1 zurückgegeben.
- * @exception TODO
+ * fängt dabei bei 0 an. Im Fehlerfall wird eine Exception geworfen.
+ * @exception FieldNotInResultSetException Wird geworfen, wenn das Feld nicht im Resultset vorhanden ist.
  */
 
 /*!\fn ResultSet::fieldName
@@ -240,7 +243,7 @@ namespace db {
  * @param[in] field Gewünschte Spaltennummer
  * @return Ist die Spalte vorhanden, wird deren Namen als String zurückgegeben,
  * im Fehlerfall wird eine Exception geworfen.
- * @exception TODO
+ * @exception FieldNotInResultSetException Wird geworfen, wenn das Feld nicht im Resultset vorhanden ist.
  */
 
 /*!\fn ResultSet::fieldType(int field)
@@ -249,8 +252,11 @@ namespace db {
  * Mit dieser Funktion kann man abfragen, was für ein Datentyp das Feld \p num ist.
  *
  * @param[in] field Die gewünschte Spalte
- * @return Liefert einen Wert vom Typ ResultSet::Type zurück,
- * im Fehlerfall Result:Error.
+ * @return Liefert einen Wert vom Typ ResultSet::FieldType zurück,
+ * im Fehlerfall wird eine Exception geworfen.
+ *
+ * @note Gegenwärtig ist diese Methode noch nicht implementiert und liefert daher TYPE_STRING
+ * zurück, sofern das Feld vorhanden ist.
  */
 
 /*!\fn ResultSet::fieldType(const String &fieldname)
@@ -259,23 +265,29 @@ namespace db {
  * Mit dieser Funktion kann man abfragen, was für ein Datentyp das Feld mit dem Namen \p fieldname ist.
  *
  * @param[in] fieldname Die gewünschte Spalte
- * @return Liefert einen Wert vom Typ ResultSet::Type zurück, im Fehlerfall Result:Error.
+ * @return Liefert einen Wert vom Typ ResultSet::FieldType zurück, im Fehlerfall wird eine Exception geworfen.
+ * @note Gegenwärtig ist diese Methode noch nicht implementiert und liefert daher TYPE_STRING
+ * zurück, sofern das Feld vorhanden ist.
+
  */
 
 /*!\fn ResultSet::fetchArray()
  * \brief Zeile in ein Assoziatives Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in ein Assoziatives Array vom Typ
- * CAssocArray kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
+ * AssocArray kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
  * wiederholtes Aufrufen der Funktion kann man somit nach und nach alle Ergebniszeilen
  * durchwandern.
  *
  * \return Liefert ein AssocArray mit Feldern und Werten der aktuellen Ergebniszeile zurück.
- * Im Fehlerfall oder falls keine weiteren Ergebniszeilen vorhanden sind, wird ein leeres
- * CAssocArray zurückgeliefert.
+ * Im Fehlerfall oder falls keine weiteren Ergebniszeilen vorhanden sind, wird eine Exception
+ * geworfen.
+ * \exception NoResultException Wird geworfen, wenn keine weitere Zeile im Resultset vorhanden ist.
+ * \note Um das werfen einer Exception am Ende des Resultsets zu vermeiden, kann vorher mit der
+ * Methode ResultSet::eof geprüft werden, ob eine weitere Zeile bereitsteht.
  * \remarks
  * Bei Aufruf dieser Funktion werden die Daten der aktuellen Zeile mehrfach kopiert. Die Funktion
- * ResultSet::FetchArray(CAssocArray &array, ppluint64 row) ist daher vorzuziehen.
+ * ResultSet::FetchArray(AssocArray &array) ist daher vorzuziehen.
  */
 
 /*!\fn ResultSet::FetchArray(AssocArray &array)
@@ -286,26 +298,31 @@ namespace db {
  * wiederholtes Aufrufen der Funktion kann man somit nach und nach alle Ergebniszeilen
  * durchwandern.
  *
- * \param[out] array Ein Objekt vom Typ CAssocArray, in dem das Ergebnis gespeichert werden
+ * \param[out] array Ein Objekt vom Typ AssocArray, in dem das Ergebnis gespeichert werden
  * soll. Daten, die vor Aufruf in \p array enthalten sind, werden durch die Funktion gelöscht.
- * \return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall oder
- * falls keine weiteren Ergebniszeilen vorhanden sind 0.
+ * \note Um das werfen einer Exception am Ende des Resultsets zu vermeiden, kann vorher mit der
+ * Methode ResultSet::eof geprüft werden, ob eine weitere Zeile bereitsteht.
+ *
+ * \exception NoResultException Wird geworfen, wenn keine weitere Zeile im Resultset vorhanden ist.
  */
 
 /*!\fn ResultSet::fetchFields()
  * \brief Zeile in ein Array kopieren
  *
  * Mit dieser Funktion wird eine komplette Ergebniszeile in ein Array vom Typ
- * CArray kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
+ * Array kopiert und der interne Zeiger auf den nächsten Datensatz vorgerückt. Durch
  * wiederholtes Aufrufen der Funktion kann man somit nach und nach alle Ergebniszeilen
  * durchwandern.
  *
- * \return Liefert ein CArray mit Feldern und Werten der aktuellen Ergebniszeile zurück.
- * Im Fehlerfall oder falls keine weiteren Ergebniszeilen vorhanden sind, wird ein leeres
- * Array zurückgeliefert.
+ * \return Liefert ein Array mit Feldern und Werten der aktuellen Ergebniszeile zurück.
+ * Im Fehlerfall oder falls keine weiteren Ergebniszeilen vorhanden sind, wird eine Exception geworfen.
+ * \exception NoResultException Wird geworfen, wenn keine weitere Zeile im Resultset vorhanden ist.
+ * \note Um das werfen einer Exception am Ende des Resultsets zu vermeiden, kann vorher mit der
+ * Methode ResultSet::eof geprüft werden, ob eine weitere Zeile bereitsteht.
+ *
  * \remarks
  * Bei Aufruf dieser Funktion werden die Daten der aktuellen Zeile mehrfach kopiert. Die Funktion
- * ResultSet::FetchFields(CArray &array, ppluint64 row) ist daher vorzuziehen.
+ * ResultSet::FetchFields(Array &array) ist daher vorzuziehen.
  */
 
 /*!\fn ResultSet::fetchFields(Array &array)
@@ -316,59 +333,52 @@ namespace db {
  * wiederholtes Aufrufen der Funktion kann man somit nach und nach alle Ergebniszeilen
  * durchwandern.
  *
- * \param[out] array Ein Objekt vom Typ CArray, in dem das Ergebnis gespeichert werden
+ * \param[out] array Ein Objekt vom Typ Array, in dem das Ergebnis gespeichert werden
  * soll. Daten, die vor Aufruf in \p array enthalten sind, werden durch die Funktion gelöscht.
- * \return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall oder
- * falls keine weiteren Ergebniszeilen vorhanden sind 0.
+ * \exception NoResultException Wird geworfen, wenn keine weitere Zeile im Resultset vorhanden ist.
+ * \note Um das werfen einer Exception am Ende des Resultsets zu vermeiden, kann vorher mit der
+ * Methode ResultSet::eof geprüft werden, ob eine weitere Zeile bereitsteht.
  */
 
-/*!\fn ResultSet::printRow
- * \brief Ergebnis auf STDOUT ausgeben
- *
- * Durch Aufruf dieser Funktion wird das Ergebnis des Selects auf STDOUT ausgegeben.
- *
- */
-
-/*!\fn ResultSet::currentRow
- * \brief Aktuelle Zeile
- *
- * Liefert die aktuelle Zeile innerhalb des ResultSets zurück.
- * @return Nummer der aktuellen Zeile
- */
-
-/*!\fn ResultSet::next
+/*!\fn ResultSet::nextRow
  * \brief Nächste Result-Zeile
  *
  * Durch Aufruf dieser Funktion wird die nächste Zeile innerhalb des
  * ResultSets geladen.
  *
- * @return Liefert \u true zurück, wenn noch eine weitere Ergebnisseite vorhanden
- * war, oder \u false, wenn keine weiteren Zeilen vorhanden sind.
+ * \note Bei Verwendung der Methoden ResultSet::fetchArray oder ResultSet::fetchFields wird
+ * automatisch die nächste Zeile geladen.
  *
  */
 
 
+/*!\fn ResultSet::eof
+ * \brief Prüfen, ob eine (weitere) Ergebniszeile vorhanden ist
+ *
+ * Mit dieser Methode kann geprüft werden, ob eine weitere Ergebniszeile vorhanden ist.
+ *
+ * \return \p true = weitere Ergebniszeile steht bereit, \p false = keine weitere Zeilen vorhanden.
+ */
 
 /*!\brief Result als Liste mit assoziativen Arrays exportieren
  *
  * \descr
  * Mit diesem Befehl wird das Result-Set dieses Objekts als Strings mit
- * Key-Value-Paaren in ein AssocArray kopiert. Da alles als String exportiert
- * wird, gehen die Datentyp-Informationen verloren.
+ * Key-Value-Paaren in ein AssocArray kopiert.
  *
- * \param[out] list Eine Liste, die das ResultSet aufnehmen soll
- * \param[in] res ResultSet
- * \return Die Funktion gibt die Anzahl Zeilen im ResultSet zurück.
+ * \param[in] res Pointer auf ein ResultSet
+ * \param[out] array Ein AssocArray, das das ResultSet aufnehmen soll
+ * \exception IllegalArgumentException Wird geworfen, wenn \p res auf NULL zeigt
  */
-ppluint64 loadResultSet(std::list<AssocArray> &list, ResultSet &res)
+void copyResultToAssocArray(ResultSet *res, AssocArray &array)
 {
-	list.clear();
+	if (!res) throw IllegalArgumentException();
+	array.clear();
 	AssocArray row;
-	while (!res.eof()) {
-		res.fetchArray(row);
-		list.push_back(row);
+	while (!res->eof()) {
+		res->fetchArray(row);
+		array.set("[]",row);
 	}
-	return (ppluint64)list.size();
 }
 
 

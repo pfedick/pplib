@@ -47,7 +47,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/avltree.o compile/assocarray.o compile/pointer.o \
 	compile/file.o compile/gzfile.o compile/list.o compile/functions.o \
 	compile/inet.o compile/resolver.o compile/widestrings.o \
-	compile/db_postgres.o compile/variant.o compile/iconv.o \
+	compile/variant.o compile/iconv.o \
 	compile/configparser.o \
 	compile/logger.o compile/time.o \
 	compile/tcpsocket.o \
@@ -55,9 +55,13 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o \
 	compile/audioinfo.o compile/sockaddr.o compile/id3tag.o
 
+DB_OBJECTS = compile/main.o compile/db_postgres.o
+
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
 # compile/gfxreftest.o
+
+all: $(PROGNAME) threadtest toolkit loggertest dbtest
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -65,10 +69,14 @@ $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 $(PROGNAME)_coverage: compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CXX) -O -ggdb -o $(PROGNAME)_coverage $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS_COVERAGE)
 
+dbtest: compile/libgtest.a $(DB_OBJECTS) ppl7-tests.h
+	$(CXX) -O -ggdb -o dbtest $(CFLAGS) $(DB_OBJECTS) compile/libgtest.a $(LIBS)
 
-all: $(PROGNAME) threadtest toolkit loggertest
+dbtest_coverage: compile/libgtest.a $(DB_OBJECTS) ppl7-tests.h
+	$(CXX) -O -ggdb -o dbtest_coverage $(CFLAGS) $(DB_OBJECTS) compile/libgtest.a $(LIBS_COVERAGE)
 
-coverage: $(PROGNAME)_coverage
+
+coverage: $(PROGNAME)_coverage dbtest_coverage
  
 test: $(PROGNAME)
 	./$(PROGNAME)
@@ -96,6 +104,7 @@ loggertest: src/loggertest.cpp ../release/libppl7.a
 clean:
 	-rm -rf compile tmp.grafixtest.png
 	-rm -rf *.core
+	-rm -rf $(PROGNAME) $(PROGNAME)_coverage dbtest dbtest_coverage
 
 compile/libgtest.a:
 	mkdir -p compile

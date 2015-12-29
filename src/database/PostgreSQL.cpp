@@ -71,7 +71,6 @@ class Postgres92Result : public ResultSet
 		PGconn		*conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
 		PostgreSQL	*postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
 		ppluint64	result_rows;		//!\brief Anzahl Zeilen im Ergebnis
-		ppluint64 	lastinsertid;	//!\brief Falls es sich um einen Insert mit einem Autoincrement-Index handelte, steht hier die vergebene ID
 		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 
@@ -103,7 +102,6 @@ Postgres92Result::Postgres92Result()
 	postgres_class=NULL;
 	conn=NULL;
 	result_rows=0;
-	lastinsertid=0;
 	affectedrows=0;
 	num_fields=0;
 }
@@ -116,11 +114,15 @@ Postgres92Result::~Postgres92Result()
 void Postgres92Result::clear()
 {
 	result_rows=0;
-	if (res) PQclear(res);
+	if (conn) {
+		while (res) {
+			PQclear(res);
+			res=PQgetResult(conn);
+		}
+	}
 	res=NULL;
 	postgres_class=NULL;
 	conn=NULL;
-	lastinsertid=0;
 	affectedrows=0;
 	num_fields=0;
 }
@@ -264,7 +266,7 @@ void Postgres92Result::nextRow()
 bool Postgres92Result::eof()
 {
 	if (res) {
-		if (PQntuples(res)>0) return true;
+		if (PQntuples(res)>0) return false;
 	}
 	return true;
 }
@@ -293,9 +295,7 @@ bool Postgres92Result::eof()
 PostgreSQL::PostgreSQL()
 {
 	conn=NULL;
-	lastinsertid=0;
 	affectedrows=0;
-	maxrows=0;
 	transactiondepth=0;
 }
 
@@ -326,11 +326,13 @@ void PostgreSQL::connect()
  * - \b dbname: Der Name der intialen Datenbank.
  * - \b user: Der Name des Benutzers, mit dem sich an der Datenbank authentifiziert werden soll
  * - \b password: Das Passwort des Benutzers im Klartext
+ * - \b timeout: Timeout für den Connect in Sekunden (optional)
  * - \b searchpath: Kommaseparierte Liste mit den Schemata, die in den Suchpfad
- *      aufgenommen werden sollen
+ *      aufgenommen werden sollen (optional)
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
- * \return Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
+ * \exception OutOfMemoryException
+ * \exception ConnectionFailedException
  *
  * \example
  * \dontinclude db_examples.cpp
@@ -374,7 +376,6 @@ void PostgreSQL::connect(const AssocArray &params)
 		}
 		return;
 	}
-	clearLastUse();
 
 	// Was war der Fehler?
 	String err(PQerrorMessage((PGconn*)conn));
@@ -414,7 +415,6 @@ void PostgreSQL::close()
 	}
 	PQfinish((PGconn*)conn);
 	conn=NULL;
-	clearLastUse();
 #endif
 }
 
@@ -469,14 +469,15 @@ void PostgreSQL::selectDB(const String &databasename)
  * \descr
  * Dies ist eine interne Funktion, die einen Query an die Postgres-Datenbank schickt.
  * Schlägt dies fehl, weil die Verbindung zur Datenbank zwischenzeitlich verloren ging,
- * wird ein Reconnect versucht und bei Erfolg der Query wiederholt. Die Klasse erwartet,
- * dass der Mutex bereits gelockt ist und die Variable Postgres::conn ein gültiges Postgres
- * Connection-Handle enthält.
+ * wird ein Reconnect versucht und bei Erfolg der Query wiederholt.
  *
  * \param[in] query String mit dem abzusetzenden Query
  *
- * \return Konnte der Query erfolgreich ausgeführt werden, liefert die Funktion 1
- * zurück, im Fehlerfall 0. Der Mutex ist bei Verlassen der Funktion auf jeden Fall gesetzt.
+ * \return Konnte der Query erfolgreich ausgeführt werden, liefert die Funktion ein
+ * Postgres-spezifisches Result-Handle vom Typ PGresult* zurück. Im Fehlerfall wird
+ * eine Exception geworfen.
+ *
+ * \exception QueryFailedException
  *
  */
 void *PostgreSQL::pgsqlQuery(const String &query)
@@ -504,15 +505,6 @@ void *PostgreSQL::pgsqlQuery(const String &query)
 			if (status==PGRES_COMMAND_OK
 					|| status==PGRES_SINGLE_TUPLE
 					|| status==PGRES_TUPLES_OK ) {
-				// InsertId eines Autoincrement holen, sofern vorhanden
-				// TODO: Das kann Postgres nicht, PQoidValue liefert die letzte OID zurück,
-				// falls vorhanden, was nichts mit dem autoincrement eines "serial"-Datentypes
-				// der Tabelle zu tun hat!
-				Oid oid=PQoidValue(res);
-				if (oid==InvalidOid) lastinsertid=0;
-				else lastinsertid=oid;
-				//printf ("Oid=%i, lastinsertId=%i\n",oid,lastinsertid);
-				// Anzahl veränderter Datensätze
 				affectedrows=atoll(PQcmdTuples(res));
 				return res;
 			} else if (status==PGRES_FATAL_ERROR) {
@@ -531,6 +523,7 @@ void *PostgreSQL::pgsqlQuery(const String &query)
 			}
 		}
 		if (res) PQclear(res);
+		res=NULL;
 		if (PQstatus((PGconn*)conn) != CONNECTION_OK) {
 			reconnect();
 		} else break;
@@ -554,6 +547,9 @@ void PostgreSQL::exec(const String &query)
 	if (res) {
 		// Result-Handle freigeben
 		PQclear(res);
+		while ((res=PQgetResult((PGconn *)conn))!=NULL) {
+			PQclear(res);
+		}
 		logQuery(query,(float)(GetMicrotime()-t_start));
 		return;
 	}
@@ -586,17 +582,12 @@ ResultSet *PostgreSQL::query(const String &query)
 	pr->postgres_class=this;
 	pr->conn=(PGconn *)conn;
 	pr->result_rows=PQntuples(res);
-	pr->lastinsertid=lastinsertid;
 	pr->affectedrows=affectedrows;
 	pr->num_fields=PQnfields(res);
 	return pr;
 #endif
 }
 
-void PostgreSQL::setMaxRows(ppluint64 rows)
-{
-	maxrows=rows;
-}
 
 bool PostgreSQL::ping()
 {
@@ -641,11 +632,6 @@ String PostgreSQL::escape(const String &str) const
 	free(buf);
 	throw EscapeFailedException("%s",PQerrorMessage((PGconn*)conn));
 #endif
-}
-
-ppluint64 PostgreSQL::getInsertID()
-{
-	return lastinsertid;
 }
 
 ppluint64 PostgreSQL::getAffectedRows()
@@ -733,6 +719,8 @@ String PostgreSQL::getQuoted(const String &value, const String &type) const
 }
 
 
+/*
+
 void PostgreSQL::prepare(const String &preparedStatementName, const String &query)
 {
 
@@ -747,7 +735,7 @@ void PostgreSQL::deallocate(const String &preparedStatementName)
 {
 
 }
-
+*/
 
 
 }	// EOF namespace db

@@ -82,8 +82,8 @@ namespace db {
  * Unterstützt werden zur Zeit folgende Datenbanken:
  * - \b mysql: MySQL-Datenbank
  * - \b postgres: Postgres-Datenbank
- * - \b sybase: Sybase-Datenbank
- * Die tatsächlich unterstützten Datenbanken hängen davon ab, wie PPL6 kompiliert wurde.
+ * - \b sqlite3: SQLite3-Datenbank
+ * Die tatsächlich unterstützten Datenbanken hängen davon ab, wie PPL7 kompiliert wurde.
  * \par
  * Postgres unterstützt zusätzlich noch die Angabe des Suchpfades:
  * - \b searchpath: Kommaseparierte Liste mit den Schemata, die in den Suchpfad
@@ -91,14 +91,14 @@ namespace db {
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
- * \return Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
+ * \return Bei Erfolg liefert die Funktion einen Pointer auf ein Database-Objekt zurück.
+ * Im Fehlerfall wird eine Exception geworfen.
  *
  * \example
  * \dontinclude db_examples.cpp
  * \skip DB_Example1
  * \until EOF
  */
-
 Database *Connect(const AssocArray &params)
 {
 	String type=params["type"];
@@ -180,7 +180,7 @@ void GetSupportedDatabases(AssocArray &a)
  * Klasse erfolgen muss, auch Funktionen, die Datenbank-unabhängig sind.
  * \par
  * Die Klasse kann nicht direkt instanziiert werden, stattdessen sollte immer die jeweilige
- * Datenbank-Klasse (siehe MySQL, Sybase, Postgres) oder die Funktion ppl6::db::Connect verwendet
+ * Datenbank-Klasse (siehe MySQL, SQLite, Postgres) oder die Funktion ppl7::db::Connect verwendet
  * werden.
  *
  * \example Verwendung der Funktion "ConnectDatabase"
@@ -196,12 +196,12 @@ void GetSupportedDatabases(AssocArray &a)
  */
 
 
-Database::Database()
 /*!\brief Konstruktor der Klasse
  *
  * \descr
  * Konstruktor der Klasse
  */
+Database::Database()
 {
 	lastuse=0;
 	lastping=0;
@@ -219,22 +219,31 @@ Database::~Database()
 	if (Log) Log->print(Logger::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Stop logging of Database-Queries");
 }
 
-void Database::setLogger(Logger &logger)
-/*!\brief Querylog aktivieren oder deaktivieren
+/*!\brief Querylog aktivieren
  *
  * \descr
- * Mit dieser Funktion kann ein Querylog aktiviert oder deaktiviert werden. Ist es aktiviert, wird bei jedem
+ * Mit dieser Funktion kann ein Querylog aktiviert werden. Ist es aktiviert, wird bei jedem
  * Query ein Datensatz in das Logfile geschrieben, dem man neben Datum, Uhrzeit und Query auch entnehmen
  * kann, wie lang der Query gebraucht hat.
  *
- * @param[in] log Pointer auf eine Klasse vom Typ CLog, um das Logging zu aktivieren, oder NULL
- * um es zu deaktivieren.
+ * @param[in] log Referenz auf eine Instanz der Klasse Logger.
+ * \see Database::getLogger
+ * \see Database::removeLogger
  */
+void Database::setLogger(Logger &logger)
 {
 	Log=&logger;
 	if (Log) Log->print(Logger::DEBUG,1,"ppl7::db::Database","setLogger",__FILE__,__LINE__,"Start logging of Database-Queries");
 }
 
+/*!\brief Querylog deaktivieren
+ *
+ * \descr
+ * Mit dieser Funktion kann das Loggen aller Queries deaktiviert werden.
+ *
+ * \see Database::setLogger
+ * \see Database::getLogger
+ */
 void Database::removeLogger()
 {
 	if (Log!=NULL) {
@@ -243,6 +252,13 @@ void Database::removeLogger()
 	}
 }
 
+/*!\brief Pointer auf den konfigurierten Logger zurückgeben
+ *
+ * @return Gibt einen Pointer auf die konfigurierte Logger-Klasse zurück, oder NULL, wenn kein Logger
+ * konfiguriert ist.
+ * \see Database::setLogger
+ * \see Database::removeLogger
+ */
 Logger *Database::getLogger()
 {
 	return Log;
@@ -253,7 +269,7 @@ void Database::logQuery(const String &query, float duration)
  *
  * \descr
  * Diese Funktion wird intern aufgerufen, um einen Query in das Logfile zu schreiben, sofern dieses
- * über Database::SetLogfile aktibviert wurde.
+ * über Database::setLogger aktiviert wurde.
  *
  * @param[in] query Der durchgeführte Query
  * @param[in] duration Laufzeit des Queries in Sekunden.
@@ -263,7 +279,6 @@ void Database::logQuery(const String &query, float duration)
 	Log->print(Logger::DEBUG,4,"ppl7::db::Database","logQuery",__FILE__,__LINE__,ToString("Querytime: %0.6f, Query: %s",duration,(const char*)query));
 }
 
-void Database::updateLastPing()
 /*!\brief Uhrzeit der letzten Datenbank-Kommunikation aktualisieren
  *
  * \descr
@@ -273,11 +288,11 @@ void Database::updateLastPing()
  * Sie aktualisiert den Wert Database::lastping mit dem aktuellen Timestamp. Dieser Wert enthält somit immer
  * einen Zeitstempel, zu dem zuletzt eine Verbindung zum Server bestand.
  */
+void Database::updateLastPing()
 {
 	lastping=GetTime();
 }
 
-void Database::updateLastUse()
 /*!\brief Uhrzeit der letzten Datenbank-Verwendung aktualisieren
  *
  * \descr
@@ -288,58 +303,56 @@ void Database::updateLastUse()
  * um zu entscheiden, wann eine Datenbank-Verbindung nicht mehr gebraucht wird und aus dem Pool entfernt werden
  * kann.
  */
+void Database::updateLastUse()
 {
 	lastping=GetTime();
 	lastuse=lastping;
 }
 
-void Database::clearLastUse()
-/*!\brief Timestamps auf 0 setzen
- *
- * \descr
- * Die Werte Database::lastping und Database::lastuse werden auf 0 gesetzt. Es ist unklar, wann diese Funktion
- * aufgerufen wird.
- */
-{
-	lastping=lastuse=0;
-}
-
-void Database::setParam(const String &name, const String &value)
 /*!\brief Parameter für den Connect setzen
  *
  * \descr
  * Die Datenbank-Klasse unterstützt zwei Connect-Funktionen: eine ohne Parameter und eine mit einem
- * Assoziativen Array als Parameter. Damit die Connect-Funktion ohne Parameter überhaupt funktioniert, müssen
- * diese zuvor mit SetParam gesetzt werden.
+ * Assoziativen Array als Parameter. Damit die Connect-Funktion ohne Parameter funktioniert, müssen
+ * diese zuvor mit setParam gesetzt werden.
  *
  * @param[in] name Name des Parameters
  * @param[in] value Wert des Parameters als String
  */
+void Database::setParam(const String &name, const String &value)
 {
 	ConnectParam.set(name,value);
 }
 
-void Database::setParam(const String &name, int value)
 /*!\brief Parameter für den Connect setzen
  *
  * \descr
  * Die Datenbank-Klasse unterstützt zwei Connect-Funktionen: eine ohne Parameter und eine mit einem
- * Assoziativen Array als Parameter. Damit die Connect-Funktion ohne Parameter überhaupt funktioniert, müssen
- * diese zuvor mit SetParam gesetzt werden.
+ * Assoziativen Array als Parameter. Damit die Connect-Funktion ohne Parameter funktioniert, müssen
+ * diese zuvor mit setParam gesetzt werden.
  *
  * @param[in] name Name des Parameters
  * @param[in] value Wert des Parameters als Integer
  */
+void Database::setParam(const String &name, int value)
 {
 	ConnectParam.setf(name,"%d",value);
 }
 
+/*!\brief Parameter für den Connect setzen
+ *
+ * \descr
+ * Die Datenbank-Klasse unterstützt zwei Connect-Funktionen: eine ohne Parameter und eine mit einem
+ * Assoziativen Array als Parameter. Damit die Connect-Funktion ohne Parameter funktioniert, müssen
+ * diese zuvor mit setParam gesetzt werden.
+ *
+ * @param[in] params Assoziatives Array mit den Connect-Parametern
+ */
 void Database::setParam(const AssocArray &params)
 {
 	ConnectParam.add(params);
 }
 
-void Database::connect()
 /*!\brief Connect auf eine Datenbank erstellen
  *
  * \descr
@@ -347,21 +360,19 @@ void Database::connect()
  * dafür erforderlichen Parameter müssen zuvor mit der Funktion Database::setParam gesetzt worden
  * sein.
  *
- *
  * \example
- * Bei dem nachfolgenden Beispiel wird eine MySQL-Datenbank verwendet. Die Klasse "Database" kann selbst nicht
- * verwendet werden, da es sich hierbei nur um eine abstrakte Basisklasse handelt.
+ * Bei dem nachfolgenden Beispiel wird eine MySQL-Datenbank verwendet.
  *
  * \dontinclude db_examples.cpp
  * \skip DB_Example2
  * \until EOF
  *
  */
+void Database::connect()
 {
 	connect(ConnectParam);
 }
 
-void Database::connectCreate(const AssocArray &params)
 /*!\brief Connect zum Server aufbauen und Datenbank anlegen
  *
  * \descr
@@ -378,13 +389,14 @@ void Database::connectCreate(const AssocArray &params)
  *
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
- * \returns Bei Erfolg liefert die 1 zurück, im Fehlerfall 0.
+ * \exception diverse
  *
  * \example
  * \dontinclude db_examples.cpp
  * \skip DB_Example4
  * \until EOF
  */
+void Database::connectCreate(const AssocArray &params)
 {
 	AssocArray a=params;
 	a.remove("dbname");
@@ -402,21 +414,20 @@ void Database::connectCreate(const AssocArray &params)
 	selectDB(dbname);
 }
 
-void Database::execf(const char *query, ...)
 /*!\brief Ergebnislosen SQL-Query anhand eines Formatierungsstrings bauen und ausführen
  *
  * \descr
- * Diese Funktion ist identisch mit Database::Exec, erwartet jedoch als Parameter einen Formatierungsstring
+ * Diese Funktion ist identisch mit Database::exec, erwartet jedoch als Parameter einen Formatierungsstring
  * \p query und eine variable Anzahl von Parametern, die in den Formatierungsstring eingesetzt werden.
  * \par
- * Die Funktion ist für INSERT, UPDATE und andere SQL-Befehle gedachtm die keine Ergebniszeilen zurückliefern.
- * Bei SELECT-Befehlen sollte stattdessen die Funktion Database::Queryf verwendet werden.
+ * Die Funktion ist für INSERT, UPDATE und andere SQL-Befehle gedacht, die keine Ergebniszeilen zurückliefern.
+ * Bei SELECT-Befehlen sollte stattdessen die Funktion Database::query bzw. Database::queryf verwendet werden.
  *
  * \param[in] query Formatierungsstring für den SQL-Befehl
  * \param[in] ... Optionale Parameter, die in den Formatierungsstring eingesetzt werden.
- * @return War die SQL-Abfrage erfolgreich, liefert die Funktion 1 zurück, im Fehlerfall 0. Über die Funktion
- * Database::GetAffectedRows kann ausgelesen werden, wieviele Datensätze durch den Query verändert wurden.
+ * \exception QueryFailedException und andere
  */
+void Database::execf(const char *query, ...)
 {
 	String str;
 	va_list args;
@@ -506,7 +517,19 @@ AssocArray Database::execArrayf(const char *query, ...)
 	return a;
 }
 
-
+ppluint64 Database::count(const String &table, const String &where)
+{
+	String query;
+	query.set("select count(*) as num from ");
+	query+=table;
+	if (where.notEmpty()) {
+		query+=" where "+where;
+	}
+	ResultSet *res=this->query(query);
+	ppluint64 num=res->getString("num").toUnsignedInt64();
+	delete res;
+	return num;
+}
 
 void Database::execArray(AssocArray &result, const String &query)
 /*!\brief SQL-Query ausführen und ersten Datensatz in Array speichern
@@ -556,10 +579,30 @@ void Database::execArrayf(AssocArray &result, const char *query, ...)
 	execArray(result,q);
 }
 
+void Database::execArrayAll(AssocArray &result, const String &query)
+/*!\brief SQL-Query ausführen und alle Datensätze in Array speichern
+ *
+ * \descr
+ * Mit dieser Funktion wird der SQL-Query \p query ausgeführt und alle Zeilen des Ergebnisses
+ * im Assoziativen Array \p result gespeichert. Die Funktion bietet sich daher für Selects an, die
+ * mehrere Datensätze zurückliefern. Liefert ein Select nur einen einzigen Datensätze zurück oder wird nur
+ * der erste Datensatz benötigt, kann stattdessen die Funktion Database::ExecArray verwendet werden.
+ *
+ * \param[out] result Ein Assoziatives Array, in dem das Ergebnis gespeichert wird. Der ursprüngliche
+ * Inhalt des Arrays wird durch Aufruf dieser Funktion gelöscht. Falls der SQL-Befehl
+ * kein Ergebnis geliefert hat, bleibt das Array leer. Das Array besteht dabei aus zwei Ebenen. Die erste
+ * Ebene ist durchnummeriert, jeder Datensatz erhält also eine Nummer. Auf der zweiten Ebene befinden sich
+ * dann die Key-Value-Paare des jeweiligen Datensatzes.
+ * \param[in] query Der Select-Befehl
+ * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
+ */
+{
+	ResultSet *res=this->query(query);
+	copyResultToAssocArray(res,result);
+	delete res;
+}
 
-#ifdef TODO
-
-CAssocArray Database::ExecArrayAll(const CString &query)
+AssocArray Database::execArrayAll(const String &query)
 /*!\brief SQL-Query ausführen und alle Datensätze in Array speichern
  *
  * \descr
@@ -579,12 +622,15 @@ CAssocArray Database::ExecArrayAll(const CString &query)
  * Im Fehlerfall ist das Array leer.
  */
 {
-	CAssocArray a;
-	ExecArrayAll(a,query);
+	AssocArray a;
+	ResultSet *res=this->query(query);
+	copyResultToAssocArray(res,a);
+	delete res;
 	return a;
 }
 
-CAssocArray Database::ExecArrayAllf(const char *query, ...)
+
+AssocArray Database::execArrayAllf(const char *query, ...)
 /*!\brief SQL-Query bauen, ausführen und alle Datensätze in Array speichern
  *
  * \descr
@@ -606,51 +652,19 @@ CAssocArray Database::ExecArrayAllf(const char *query, ...)
  * Im Fehlerfall ist das Array leer.
  */
 {
-	CAssocArray a;
-	CString String;
+	AssocArray a;
+	String q;
 	va_list args;
 	va_start(args, query);
-	String.VaSprintf(query,args);
+	q.vasprintf(query,args);
 	va_end(args);
-	ExecArrayAll(a,String);
+	ResultSet *res=this->query(q);
+	copyResultToAssocArray(res,a);
+	delete res;
 	return a;
 }
 
-int Database::ExecArrayAll(CAssocArray &result, const CString &query)
-/*!\brief SQL-Query ausführen und alle Datensätze in Array speichern
- *
- * \descr
- * Mit dieser Funktion wird der SQL-Query \p query ausgeführt und alle Zeilen des Ergebnisses
- * im Assoziativen Array \p result gespeichert. Die Funktion bietet sich daher für Selects an, die
- * mehrere Datensätze zurückliefern. Liefert ein Select nur einen einzigen Datensätze zurück oder wird nur
- * der erste Datensatz benötigt, kann stattdessen die Funktion Database::ExecArray verwendet werden.
- *
- * \param[out] result Ein Assoziatives Array, in dem das Ergebnis gespeichert wird. Der ursprüngliche
- * Inhalt des Arrays wird durch Aufruf dieser Funktion gelöscht. Falls der SQL-Befehl
- * kein Ergebnis geliefert hat, bleibt das Array leer. Das Array besteht dabei aus zwei Ebenen. Die erste
- * Ebene ist durchnummeriert, jeder Datensatz erhält also eine Nummer. Auf der zweiten Ebene befinden sich
- * dann die Key-Value-Paare des jeweiligen Datensatzes.
- * \param[in] query Der Select-Befehl
- * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-{
-	result.Clear();
-	Result *res=Query(query);
-	if (!res) return 0;
-	pplint64 nr=res->Rows();
-	for(pplint64 i=0;i<nr;i++) {
-		CAssocArray *row=new CAssocArray;
-		if (res->FetchArray(*row)) {
-			result.Set("[]",row,false);
-		} else {
-			delete row;
-		}
-	}
-	delete res;
-	return 1;
-}
-
-int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
+void Database::execArrayAllf(AssocArray &result, const char *query, ...)
 /*!\brief SQL-Query bauen, ausführen und alle Datensätze in Array speichern
  *
  * \descr
@@ -670,15 +684,16 @@ int Database::ExecArrayAllf(CAssocArray &result, const char *query, ...)
  * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	CString String;
+	String q;
 	va_list args;
 	va_start(args, query);
-	String.VaSprintf(query,args);
+	q.vasprintf(query,args);
 	va_end(args);
-	return ExecArrayAll(result,String);
+	ResultSet *res=this->query(q);
+	copyResultToAssocArray(res,result);
+	delete res;
 }
 
-#endif
 
 /*!\brief Wert Datenbank-konform quoten
  *
@@ -1063,20 +1078,6 @@ ResultSet *Database::query(const String &query)
 	throw UnimplementedVirtualFunctionException("Database::query");
 }
 
-
-void Database::setMaxRows(ppluint64 rows)
-/*!\brief Maximale Anzahl Zeilen im Ergebnis eines Selects
- *
- * \descr
- * Mit dieser Funktion wird festgelegt, wieviele Zeilen ein Select-Ergebnis maximal zurückgeben soll.
- * Je nach Datenbank wird dies erreicht, in dem dem SQL-Query noch ein Limit mitgegeben wird.
- *
- * @param[in] rows Anzahl maximaler Zeilen oder 0, wenn es kein Limit geben soll.
- */
-{
-	throw UnimplementedVirtualFunctionException("Database::setMaxRows");
-}
-
 bool Database::ping()
 /*!\brief Erreichbarkeit der Datenbank prüfen
  *
@@ -1108,20 +1109,6 @@ String Database::escape(const String &str) const
  */
 {
 	throw UnimplementedVirtualFunctionException("Database::escape");
-}
-
-ppluint64 Database::getInsertID()
-/*!\brief Letzer durch eine AUTO_INCREMENT-Spalte generierten Wert
- *
- * \descr
- * Liefert den von der vorherigen INSERT- oder UPDATE-Anweisung für eine AUTO_INCREMENT-Spalte generierten Wert.
- * Verwenden Sie diese Funktion, wenn Sie eine INSERT-Anweisung auf einer Tabelle mit einem AUTO_INCREMENT-Feld
- * ausgeführt haben.
- *
- * @return Wert
- */
-{
-	throw UnimplementedVirtualFunctionException("Database::getInsertID");
 }
 
 ppluint64 Database::getAffectedRows()
@@ -1193,7 +1180,7 @@ void Database::cancelTransaction()
  *
  */
 {
-	throw UnimplementedVirtualFunctionException("Database::cancelTransaction");
+	throw UnimplementedVirtualFunctionException("Database::rollbackTransaction");
 }
 
 void Database::cancelTransactionComplete()
@@ -1207,7 +1194,7 @@ void Database::cancelTransactionComplete()
  *
  */
 {
-	throw UnimplementedVirtualFunctionException("Database::cancelTransactionComplete");
+	throw UnimplementedVirtualFunctionException("Database::rollbackTransactionComplete");
 }
 
 void Database::createDatabase(const String &name)
@@ -1244,6 +1231,7 @@ String Database::databaseType() const
 	throw UnimplementedVirtualFunctionException("Database::databaseType");
 }
 
+/*
 void Database::prepare(const String &preparedStatementName, const String &query)
 {
 	throw UnimplementedVirtualFunctionException("Database::prepare");
@@ -1258,7 +1246,7 @@ void Database::deallocate(const String &preparedStatementName)
 {
 	throw UnimplementedVirtualFunctionException("Database::deallocate");
 }
-
+*/
 
 }	// EOF namespace db
 }	// EOF namespace ppl7
