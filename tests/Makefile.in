@@ -55,7 +55,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o \
 	compile/audioinfo.o compile/sockaddr.o compile/id3tag.o
 
-DB_OBJECTS = compile/main.o compile/db_postgres.o
+DB_OBJECTS = compile/main.o compile/db_postgres.o compile/wordlist.o
 
 # compile/grafix_drawable.o compile/grafix_imagefilter.o
 	
