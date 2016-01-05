@@ -44,6 +44,19 @@
 
 namespace ppl7 {
 
+class ID3FrameTest : public ::testing::Test {
+	protected:
+		ID3FrameTest() {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+			printf ("setlocale fehlgeschlagen\n");
+			throw std::exception();
+		}
+	}
+	virtual ~ID3FrameTest() {
+
+	}
+};
+
 class ID3TagTest : public ::testing::Test {
 	protected:
 	ID3TagTest() {
@@ -57,6 +70,59 @@ class ID3TagTest : public ::testing::Test {
 
 	}
 };
+
+TEST_F(ID3FrameTest, ConstructorWithoutName) {
+	ASSERT_NO_THROW({
+		ppl7::ID3Frame Frame;
+		EXPECT_EQ(ppl7::String(),Frame.name());
+		EXPECT_EQ((int)0,Frame.flags());
+		EXPECT_EQ((size_t)0,Frame.size());
+		EXPECT_FALSE(Frame.hasData());
+	});
+}
+
+TEST_F(ID3FrameTest, ConstructorWithName) {
+	ASSERT_NO_THROW({
+		ppl7::ID3Frame Frame("TITL");
+		EXPECT_EQ(ppl7::String("TITL"),Frame.name());
+		EXPECT_EQ((int)0,Frame.flags());
+		EXPECT_EQ((size_t)0,Frame.size());
+		EXPECT_FALSE(Frame.hasData());
+	});
+}
+
+TEST_F(ID3FrameTest, setFlagsGetFlags) {
+	ppl7::ID3Frame Frame;
+
+	ASSERT_NO_THROW({
+		Frame.setFlags(42);
+	});
+	EXPECT_EQ((int)42,Frame.flags());
+}
+
+TEST_F(ID3FrameTest, setDataGetData) {
+	ppl7::ID3Frame Frame;
+	ppl7::ByteArray cover;
+	ppl7::File::load(cover,"testdata/cover.jpg");
+
+	ASSERT_NO_THROW({
+		Frame.setData(cover);
+	});
+	EXPECT_TRUE(Frame.hasData());
+	EXPECT_EQ((size_t)28402,Frame.size());
+	ppl7::ByteArray newCover;
+	ASSERT_NO_THROW({
+		Frame.getData(newCover);
+	});
+	EXPECT_TRUE(cover == newCover);
+	ppl7::ByteArray cover2;
+	ASSERT_NO_THROW({
+		Frame.setData(cover2);
+	});
+	EXPECT_FALSE(Frame.hasData());
+
+}
+
 
 TEST_F(ID3TagTest, ConstructorWithoutFile) {
 	ASSERT_NO_THROW({
@@ -759,6 +825,18 @@ TEST_F(ID3TagTest, AiffRetagWithoutChanges) {
 	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("ddc103beb0e1687dd6631e31a4a06a62"),ppl7::File::md5Hash("tmp/test_tagged8.aiff"));
 }
+
+
+TEST_F(ID3TagTest, GetID3GenreName) {
+	ASSERT_EQ(ppl7::String("Blues"),ppl7::GetID3GenreName(0));
+	ASSERT_EQ(ppl7::String("SynthPop"),ppl7::GetID3GenreName(147));
+	ASSERT_EQ(ppl7::String("Trance"),ppl7::GetID3GenreName(31));
+	ASSERT_THROW(ppl7::GetID3GenreName(-1),ppl7::InvalidGenreException);
+	ASSERT_THROW(ppl7::GetID3GenreName(148),ppl7::InvalidGenreException);
+}
+
+
+
 
 /*
 TEST_F(ID3TagTest, AiffRetagRealFile) {

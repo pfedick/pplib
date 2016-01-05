@@ -134,6 +134,7 @@ class AudioInfo
 };
 
 bool IdentAudioFile(FileObject &file, AudioInfo &info);
+String GetID3GenreName(int id);
 
 class ID3Frame
 {
@@ -149,10 +150,16 @@ class ID3Frame
 	public:
 		ID3Frame();
 		ID3Frame(const String &name);
+		~ID3Frame();
+
 		void setData(const ByteArrayPtr &data);
 		void setFlags(int flags);
 		void hexDump() const;
-		~ID3Frame();
+		const String& name() const;
+		int flags() const;
+		size_t size() const;
+		void getData(ByteArray &data) const;
+		bool hasData() const;
 };
 
 class ID3TagTranscode

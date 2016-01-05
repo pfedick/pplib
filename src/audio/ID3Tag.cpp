@@ -297,6 +297,34 @@ void ID3Frame::hexDump() const
 	HexDump(data,Size);
 }
 
+const String& ID3Frame::name() const
+{
+	return ID;
+}
+
+int ID3Frame::flags() const
+{
+	return Flags;
+}
+
+size_t ID3Frame::size() const
+{
+	return Size;
+}
+
+void ID3Frame::getData(ByteArray &data) const
+{
+	data.copy(this->data,Size);
+}
+
+bool ID3Frame::hasData() const
+{
+	if (!data) return false;
+	if (!Size) return false;
+	return true;
+}
+
+
 /*!\class ID3TagTranscode
  * \ingroup PPLGroupSound
  * \brief Klasse mit Hilfsfunktionen für ID3Tag
@@ -1744,7 +1772,7 @@ bool ID3Tag::hasPicture(int type) const
 		if(frame->ID==name) {
 			// Wir haben ein Picture
 			String MimeType;
-			int encoding=Peek8(frame->data);
+			//int encoding=Peek8(frame->data);
 			int offset=ID3TagTranscode::decode(frame,1,0,MimeType);
 			//printf ("Offset: %i, Type=%i, encoding=%i\n",offset, (int)Peek8(frame->data+offset),encoding);
 			if ((int)Peek8(frame->data+offset)==type) {
