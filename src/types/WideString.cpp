@@ -541,7 +541,7 @@ WideString & WideString::set(const char *str, size_t size) throw(OutOfMemoryExce
 			|| GlobalEncoding.strcasecmp("C")==0
 			|| GlobalEncoding.strcasecmp("POSIX")==0
 			) {
-		printf ("DEBUG 2a\n");
+		//printf ("DEBUG 2a\n");
 		size_t ret=mbstowcs((wchar_t*)ptr, str, inbytes);
 		if (ret==(size_t) -1) {
 			((wchar_t*)ptr)[0]=0;
