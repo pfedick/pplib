@@ -731,13 +731,13 @@ void MCrypt::setIV(const Variant &object)
 {
 	int type=object.type();
 	if (type==Variant::TYPE_BYTEARRAY || type==Variant::TYPE_BYTEARRAYPTR) {
-		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(object);
+		const ByteArrayPtr &bin=object.toByteArrayPtr();
 		IV.copy(bin);
 	} else if (type==Variant::TYPE_STRING) {
-		const String &str=static_cast<const String&>(object);
+		const String &str=object.toString();
 		IV.copy(str.getPtr(),str.size());
 	} else if (type==Variant::TYPE_WIDESTRING) {
-		const WideString &str=static_cast<const WideString&>(object);
+		const WideString &str=object.toWideString();
 		IV.copy(str.getPtr(),str.size());
 	} else {
 		throw UnsupportedDataTypeException();
@@ -794,13 +794,13 @@ void MCrypt::setKey(const Variant &object)
 {
 	int type=object.type();
 	if (type==Variant::TYPE_BYTEARRAY || type==Variant::TYPE_BYTEARRAYPTR) {
-		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(object);
+		const ByteArrayPtr &bin=object.toByteArrayPtr();
 		Key.copy(bin);
 	} else if (type==Variant::TYPE_STRING) {
-		const String &str=static_cast<const String&>(object);
+		const String &str=object.toString();
 		Key.copy(str.getPtr(),str.size());
 	} else if (type==Variant::TYPE_WIDESTRING) {
-		const WideString &str=static_cast<const WideString&>(object);
+		const WideString &str=object.toWideString();
 		Key.copy(str.getPtr(),str.size());
 	} else {
 		throw UnsupportedDataTypeException();
@@ -897,13 +897,13 @@ void MCrypt::crypt(const Variant &in, ByteArray &out)
 {
 	int type=in.type();
 	if (type==Variant::TYPE_BYTEARRAY || type==Variant::TYPE_BYTEARRAYPTR) {
-		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(in);
+		const ByteArrayPtr &bin=in.toByteArrayPtr();
 		out.copy(bin);
 	} else if (type==Variant::TYPE_STRING) {
-		const String &str=static_cast<const String&>(in);
+		const String &str=in.toString();
 		out.copy(str.getPtr(),str.size());
 	} else if (type==Variant::TYPE_WIDESTRING) {
-		const WideString &str=static_cast<const WideString&>(in);
+		const WideString &str=in.toWideString();
 		out.copy(str.getPtr(),str.size());
 	} else {
 		throw UnsupportedDataTypeException();
