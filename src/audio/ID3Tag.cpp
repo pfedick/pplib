@@ -36,6 +36,9 @@
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -335,7 +338,9 @@ int ID3TagTranscode::decode(const ID3Frame *frame, int offset, int encoding, Str
 {
 	size_t size=0;
 	const char *data=frame->data+offset;
+	//printf ("frame->data=%tx, offset=%d\n", (std::ptrdiff_t)frame->data, offset);
 	if (encoding==0) {
+		//frame->hexDump();
 		size=strlen(data);
 		if (size+offset>frame->Size) size=frame->Size-offset;
 		Iconv iconv("ISO-8859-1",Iconv::getLocalCharset());
@@ -349,7 +354,7 @@ int ID3TagTranscode::decode(const ID3Frame *frame, int offset, int encoding, Str
 	} else if (encoding==2) {
 		size=strlen16(data)*2;
 		if (size+offset>frame->Size) size=frame->Size-offset;
-		target.set(Transcode(data,size,"UTF-8",Iconv::getLocalCharset()));
+		target.set(Transcode(data,size,"UTF-16BE",Iconv::getLocalCharset()));
 		return offset+size+2;
 	} else if (encoding==3) {
 		size=strlen(data);

@@ -110,7 +110,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithoutEncodingByte) {
 	EXPECT_EQ(expected,result);
 }
 
-TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte0) {
+TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte0) {	// ISO-88591
 	ppl7::ID3Frame frame("TIT1");
 	ppl7::ID3Tag Tag;
 	ppl7::String result;
@@ -119,6 +119,8 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte0) {
 	ba=expected.toEncoding("ISO-8859-1");
 	char prefix[1]={0};
 	ba.prepend(prefix,1);
+	ba.append(prefix,1);
+	//ba.hexDump();
 	frame.setData(ba);
 	try {
 		ID3TagTranscode::copyAndDecodeText(result,&frame,0);
@@ -128,7 +130,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte0) {
 	EXPECT_EQ(expected,result);
 }
 
-TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte1) {
+TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte1) {		// UTF-16 mit BOM
 	ppl7::ID3Frame frame("TIT1");
 	ppl7::ID3Tag Tag;
 	ppl7::String result;
@@ -137,6 +139,8 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte1) {
 	ba=expected.toEncoding("UTF-16");
 	char prefix[1]={1};
 	ba.prepend(prefix,1);
+	char suffix[4]={0,0,0,0};
+	ba.append(suffix,2);
 	frame.setData(ba);
 	try {
 		ID3TagTranscode::copyAndDecodeText(result,&frame,0);
@@ -146,15 +150,18 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte1) {
 	EXPECT_EQ(expected,result);
 }
 
-TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte2) {
+TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte2) {		// UTF-16BE ohne BOM
 	ppl7::ID3Frame frame("TIT1");
 	ppl7::ID3Tag Tag;
 	ppl7::String result;
 	ppl7::ByteArray ba;
 	ppl7::String expected("Hällo Wörld");
-	ba=expected.toEncoding("UTF-8");
+	ba=expected.toEncoding("UTF-16BE");
 	char prefix[1]={2};
 	ba.prepend(prefix,1);
+	char suffix[4]={0,0,0,0};
+	ba.append(suffix,2);
+
 	frame.setData(ba);
 	try {
 		ID3TagTranscode::copyAndDecodeText(result,&frame,0);
@@ -165,7 +172,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte2) {
 }
 
 
-TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte3) {
+TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte3) {		// UTF-8
 	ppl7::ID3Frame frame("TIT1");
 	ppl7::ID3Tag Tag;
 	ppl7::String result;
@@ -174,6 +181,9 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte3) {
 	ba=expected.toEncoding("US-ASCII");
 	char prefix[1]={3};
 	ba.prepend(prefix,1);
+	char suffix[4]={0,0,0,0};
+	ba.append(suffix,1);
+
 	frame.setData(ba);
 	try {
 		ID3TagTranscode::copyAndDecodeText(result,&frame,0);
