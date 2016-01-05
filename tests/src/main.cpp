@@ -71,27 +71,18 @@ static void setupTestAssocArray()
 	TestAssocArray.set("array2/unterkey1","value9");
 }
 
-void setDefaultConfigParams()
-{
-	PPL7TestConfig.createSection("tcpsocket");
-	PPL7TestConfig.add("echoserver","localhost");
-	PPL7TestConfig.add("unknownserver","unknown.server.pfp.de");
-	PPL7TestConfig.createSection("postgres");
-	PPL7TestConfig.add("host","localhost");
-	PPL7TestConfig.add("port","5432");
-	PPL7TestConfig.add("dbname","ppl7");
-	PPL7TestConfig.add("user","ppl7");
-	PPL7TestConfig.add("password","ppl7TestGe3_jxPq#67");
-	PPL7TestConfig.add("timeout","5");
-}
-
 int main (int argc, char**argv)
 {
 	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) help();
+	try {
 	if ((ppl7::HaveArgv(argc,argv,"-c"))) {
 		PPL7TestConfig.load(ppl7::GetArgv(argc,argv,"-c"));
 	} else {
-		setDefaultConfigParams();
+		PPL7TestConfig.load("test.conf");
+	}
+	} catch (const ppl7::Exception &e) {
+		e.print();
+		return 1;
 	}
 	::testing::InitGoogleTest(&argc, argv);
 	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) return 0;

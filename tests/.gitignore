@@ -4,3 +4,7 @@
 /testsuite
 /testsuite.core
 /tmp/
+/dbtest
+/loggertest
+/threadtest
+/toolkit
