@@ -480,8 +480,6 @@ TEST_F(ID3TagTest, AiffLoadFileWithTags) {
 	EXPECT_EQ(ppl7::String("d665f69f04f1413eef91b3596de8dfb6"),cover.md5()) << "Embedded Cover has unexpected MD5 hash";
 }
 
-#ifdef TODO
-
 TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture) {
 	ppl7::ID3Tag Tags;
 	ppl7::File::copy("testdata/test_44kHz.aiff","tmp/test_tagged1.aiff");
@@ -503,7 +501,12 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture) {
 	Tags.setKey("am");
 	Tags.setEnergyLevel("9");
 	ASSERT_NO_THROW({
-		Tags.save();
+		try {
+			Tags.save();
+		} catch (const ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
 	});
 
 	ppl7::DirEntry d;
@@ -531,7 +534,6 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture) {
 	EXPECT_EQ(ppl7::String("9"),NewTags.getEnergyLevel());
 	EXPECT_EQ(false,NewTags.getPicture(3,cover));
 }
-#endif
 
 #ifdef TODO
 TEST_F(ID3TagTest, AiffInitialTaggingWithPicture) {

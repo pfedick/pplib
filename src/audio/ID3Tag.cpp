@@ -1321,7 +1321,7 @@ void ID3Tag::saveMP3()
 		File::remove(tmpfile);
 	} else {
 		// Nun kopieren wir die Musikframes
-		ppluint64 bytes_copied=n.copyFrom(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
+		n.copyFrom(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
 		// Und am Ende noch den v1-Tag
 		if (tagV1.size()>0) n.write(tagV1);
 		n.close();
@@ -1435,15 +1435,15 @@ void ID3Tag::saveAiff()
 
 	if (tagV2.size()>0) {
 		try {
-			trySaveAiffInExistingFile(o,tagV2);
-			return;
+			if (trySaveAiffInExistingFile(o,tagV2)) return;
 		} catch (...) {
 
 		}
 	}
 
 	// create temporary file for new tag
-	n.open(&tmpfile,File::READWRITE);
+	n.touch(tmpfile);
+	n.open(tmpfile,File::READWRITE);
 	try {
 		copyAiffToNewFile(o,n,tagV2);
 	} catch (...) {
