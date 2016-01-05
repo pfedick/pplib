@@ -355,6 +355,8 @@ TEST_F(ID3TagTest, FindUserDefinedText) {
 	Tags.load("testdata/test_192cbr_tagged.mp3");
 	ID3Frame *frame=Tags.findUserDefinedText("TraktorRemixer");
 	ASSERT_TRUE(frame!=NULL);
+	frame=Tags.findUserDefinedText("Gibtsnicht");
+	ASSERT_TRUE(frame==NULL);
 }
 
 TEST_F(ID3TagTest, Mp3RetagStrings) {
