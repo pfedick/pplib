@@ -350,7 +350,13 @@ TEST_F(ID3TagTest, Mp3RetagWithPicture) {
 	ASSERT_EQ(ppl7::String("052fd75215f383718e1368b535520c60"),ppl7::File::md5Hash("tmp/test_tagged3.mp3"));
 }
 
-#ifdef TODO
+TEST_F(ID3TagTest, FindUserDefinedText) {
+	ppl7::ID3Tag Tags;
+	Tags.load("testdata/test_192cbr_tagged.mp3");
+	ID3Frame *frame=Tags.findUserDefinedText("TraktorRemixer");
+	ASSERT_TRUE(frame!=NULL);
+}
+
 TEST_F(ID3TagTest, Mp3RetagStrings) {
 	ppl7::ID3Tag Tags;
 	ppl7::File::copy("testdata/test_192cbr_tagged.mp3","tmp/test_tagged4.mp3");
@@ -391,7 +397,6 @@ TEST_F(ID3TagTest, Mp3RetagStrings) {
 	ASSERT_EQ(ppl7::String("ffdf4dc172e7c5cc07b543557c33b6d1"),ppl7::File::md5Hash("tmp/test_tagged4.mp3"));
 }
 
-#endif
 
 TEST_F(ID3TagTest, Mp3RemovePicture) {
 	ppl7::ID3Tag Tags;

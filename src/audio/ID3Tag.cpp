@@ -750,7 +750,9 @@ ID3Frame *ID3Tag::findUserDefinedText(const String &description) const
 	ID3Frame *frame=firstFrame;
 	while (frame) {
 		if(frame->ID=="TXXX") {
-			if (description.strcmp(frame->data+1)==0) return frame;
+			String c;
+			ID3TagTranscode::decode(frame,+1,Peek8(frame->data),c);
+			if (c.strcmp(description)==0) return frame;
 		}
 		frame=frame->nextFrame;
 	}
