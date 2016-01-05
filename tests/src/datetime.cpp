@@ -257,6 +257,24 @@ TEST_F(DateTimeTest, setLongInt) {
 	);
 }
 
+
+TEST_F(DateTimeTest, toStringWithoutFormat) {
+	ASSERT_NO_THROW({
+		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
+		ASSERT_EQ(ppl7::String("2012-05-18 11:50:11.159473"),d1.toString()) << "Unexpected date";
+	}
+	);
+}
+
+TEST_F(DateTimeTest, toStringWithFormat) {
+	ASSERT_NO_THROW({
+		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
+		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11.159473"),d1.toString("%Y-%m-%dT%H:%M:%S.%u")) << "Unexpected date";
+	}
+	);
+}
+
+
 TEST_F(DateTimeTest, getISO8601) {
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1("2012-05-18 11:50:11.159473");

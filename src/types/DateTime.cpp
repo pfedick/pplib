@@ -1383,6 +1383,28 @@ DateTime& DateTime::operator=(const DateTime &other)
 	return *this;
 }
 
+/*!\brief Rueckgabe des Timestamps als String
+ *
+ * \desc
+ * Liefert den Timestamp als String in folgendem Format zurück:
+ * "yyyy-mm-dd hh:ii:ss.micses".
+ * @return Datums-String
+ */
+String DateTime::toString() const
+{
+	String r;
+	r.setf("%04i-%02i-%02i %02i:%02i:%02i.%06i",yy,mm,dd,hh,ii,ss,us);
+	return r;
+}
+
+/*!\brief Rueckgabe des Timestamps als String mittles Fomatierungsvorgabe
+ * \copydoc DateTime::get
+ */
+String DateTime::toString(const String &format) const
+{
+	return get(format);
+}
+
 /*!\brief Operator, der einen String zurückliefert
  *
  * \desc
@@ -1390,7 +1412,6 @@ DateTime& DateTime::operator=(const DateTime &other)
  * "yyyy-mm-dd hh:ii:ss.micses".
  * @return Datums-String
  */
-
 DateTime::operator String() const
 {
 	String r;

@@ -1115,7 +1115,8 @@ class DateTime
 
 		static bool isLeapYear(int year);
 		static DateTime currentTime();
-
+		String toString() const;
+		String toString(const String &format) const;
 		operator String() const;
 
 		bool operator<(const DateTime &other) const;
