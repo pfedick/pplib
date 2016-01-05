@@ -216,13 +216,13 @@ void Digest::addData(const Variant &data)
 {
 	int type=data.type();
 	if (type==Variant::TYPE_BYTEARRAY || type==Variant::TYPE_BYTEARRAYPTR) {
-		const ByteArrayPtr &bin=static_cast<const ByteArrayPtr&>(data);
+		const ByteArrayPtr &bin=data.toByteArrayPtr();
 		addData(bin.ptr(),bin.size());
 	} else if (type==Variant::TYPE_STRING) {
-		const String &str=static_cast<const String&>(data);
+		const String &str=data.toString();
 		addData(str.getPtr(),str.size());
 	} else if (type==Variant::TYPE_WIDESTRING) {
-		const WideString &wstr=static_cast<const WideString&>(data);
+		const WideString &wstr=data.toWideString();
 		addData(wstr.getPtr(),wstr.size());
 	} else {
 		throw UnsupportedDataTypeException();
