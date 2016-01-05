@@ -253,6 +253,7 @@ class ID3Tag
 		String getEnergyLevel() const;
 		ByteArray getPicture(int type) const;
 		bool getPicture(int type, ByteArray &bin) const;
+		bool hasPicture(int type) const;
 		void removePicture(int type);
 
 		bool getPrivateData(ByteArray &bin, const String &identifier) const;

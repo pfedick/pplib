@@ -1727,6 +1727,36 @@ bool ID3Tag::getPicture(int type, ByteArray &bin) const
 	return false;
 }
 
+/*!\brief Prüft, ob ein Bild eines bestimmten Typs in den Tags enthalten ist
+ *
+ * \desc
+ * Mit dieser Funktion kann geprüft werden, ob ein Bild vom Typ \p type in den Tags
+ * vorhanden ist.
+ *
+ * @param type Integer mit dem gewünschten Bild-Typ
+ * @return true oder false
+ */
+bool ID3Tag::hasPicture(int type) const
+{
+	String name="APIC";
+	ID3Frame *frame=firstFrame;
+	while (frame) {
+		if(frame->ID==name) {
+			// Wir haben ein Picture
+			String MimeType;
+			int encoding=Peek8(frame->data);
+			int offset=ID3TagTranscode::decode(frame,1,0,MimeType);
+			//printf ("Offset: %i, Type=%i, encoding=%i\n",offset, (int)Peek8(frame->data+offset),encoding);
+			if ((int)Peek8(frame->data+offset)==type) {
+				return true;
+			}
+			return false;
+		}
+		frame=frame->nextFrame;
+	}
+	return false;
+}
+
 bool ID3Tag::getPrivateData(ByteArray &bin, const String &identifier) const
 {
 	ByteArrayPtr ref=getPrivateData(identifier);
