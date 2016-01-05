@@ -653,36 +653,36 @@ void File::rewind ()
 	throw FileNotOpenException();
 }
 
-ppluint64 File::seek(ppluint64 position)
+void File::seek(ppluint64 position)
 {
-	if (ff!=NULL) {
-		#ifdef WIN32FILES
-			LARGE_INTEGER in,out;
-			in.QuadPart=position;
-			if (SetFilePointerEx((HANDLE)ff,in,&out,FILE_BEGIN)) {
-				pos=out.QuadPart;
-			} else {
-				SetError(11);
-			}
-		#else
-			fpos_t p;
-			#ifdef FPOS_T_STRUCT
-				p.__pos=(__off64_t)position;
-			#else
-				p=(fpos_t)position;
-			#endif
-			if (::fsetpos((FILE*)ff,&p)!=0) {
-				int errnosave=errno;
-				pos=tell();
-				errno=errnosave;
-				throwErrno(errno,filename());
-			}
-			pos=tell();
-		#endif
-		if (pos!=position) throw FileSeekException();
-		return pos;
+	if (ff==NULL) {
+		throw FileNotOpenException();
 	}
-	throw FileNotOpenException();
+#ifdef WIN32FILES
+	LARGE_INTEGER in,out;
+	in.QuadPart=position;
+	if (SetFilePointerEx((HANDLE)ff,in,&out,FILE_BEGIN)) {
+		pos=out.QuadPart;
+	} else {
+		SetError(11);
+	}
+#else
+	fpos_t p;
+#ifdef FPOS_T_STRUCT
+	p.__pos=(__off64_t)position;
+#else
+	p=(fpos_t)position;
+#endif
+	if (::fsetpos((FILE*)ff,&p)!=0) {
+		int errnosave=errno;
+		pos=tell();
+		errno=errnosave;
+		throwErrno(errno,filename());
+	}
+	pos=tell();
+#endif
+	if (pos!=position) throw FileSeekException();
+	return;
 }
 
 ppluint64 File::seek (pplint64 offset, SeekOrigin origin )

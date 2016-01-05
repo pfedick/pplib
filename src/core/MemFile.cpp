@@ -320,17 +320,17 @@ void MemFile::rewind ()
 }
 
 
-ppluint64 MemFile::seek(ppluint64 position)
+void MemFile::seek(ppluint64 position)
 {
 	if (MemBase!=NULL || readonly==false) {
 		if (position<mysize) {
 			pos=position;
 		} else if (mysize==0 && position==0) {
-			return position;
+			return;
 		} else {
 			throw OverflowException();
 		}
-		return position;
+		return;
 	}
 	throw FileNotOpenException();
 }

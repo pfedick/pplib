@@ -214,7 +214,7 @@ const String& FileObject::filename() const
  */
 size_t FileObject::write (const void * source, size_t bytes, ppluint64 fileposition)
 {
-	if (!seek(fileposition)) return 0;
+	seek(fileposition);
 	return fwrite(source,1,bytes);
 }
 
@@ -275,7 +275,7 @@ size_t FileObject::write (const ByteArrayPtr &object, size_t bytes)
  */
 size_t FileObject::read (void * target, size_t bytes, ppluint64 fileposition)
 {
-	if (seek(fileposition)!=fileposition) return 0;
+	seek(fileposition);
 	return fread(target,1,bytes);
 }
 
@@ -677,13 +677,9 @@ void FileObject::rewind ()
  * Diese Funktion bewegt den internen Dateizeiger auf die gewünschte Stelle
  *
  * \param[in] position Gewünschte Position innerhalb der Datei
- * \return Liefert die neue Position zurück, wenn der Dateizeiger erfolgreich auf
- * die gewünschte Position bewegt werden konnte.
- * Im Fehlerfall wird eine Exception geworfen. Die Position des Schreib-/Lesezeigers
- * ist in diesem Fall undefiniert und sollte mittels FileObject::ftell verifiziert
- * werden.
+ * \exception diverse
  */
-ppluint64 FileObject::seek (ppluint64 position)
+void FileObject::seek (ppluint64 position)
 {
 	throw UnimplementedVirtualFunctionException();
 }

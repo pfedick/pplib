@@ -285,9 +285,9 @@ void GzFile::rewind ()
 	throw FileNotOpenException();
 }
 
-ppluint64 GzFile::seek(ppluint64 position)
+void GzFile::seek(ppluint64 position)
 {
-	return seek(position,SEEKSET);
+	seek(position,SEEKSET);
 }
 
 

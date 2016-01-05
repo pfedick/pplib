@@ -530,7 +530,7 @@ class FileObject
 
 		// Virtuelle Funktionen
 		virtual void		close ();
-		virtual ppluint64	seek (ppluint64 position);
+		virtual void		seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
 		virtual void		rewind();
@@ -591,7 +591,7 @@ class MemFile : public FileObject
 		// Virtuelle Funktionen
 		virtual void		close();
 		virtual void		rewind();
-		virtual ppluint64	seek (ppluint64 position);
+		virtual void		seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
 		virtual size_t		fread(void * ptr, size_t size, size_t nmemb);
@@ -671,7 +671,7 @@ class File : public FileObject
 		// Virtuelle Funktionen
 		virtual void		close ();
 		virtual void		rewind();
-		virtual ppluint64	seek (ppluint64 position);
+		virtual void		seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
 		virtual ppluint64	size() const;
@@ -749,7 +749,7 @@ class GzFile : public FileObject
 		// Virtuelle Funktionen
 		virtual void		close ();
 		virtual void		rewind();
-		virtual ppluint64	seek (ppluint64 position);
+		virtual void		seek (ppluint64 position);
 		virtual	ppluint64	seek (pplint64 offset, SeekOrigin origin);
 		virtual ppluint64	tell();
 		virtual bool		eof() const;
