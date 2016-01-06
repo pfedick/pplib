@@ -122,8 +122,10 @@ RELEASE	= release/AVLTree.o \
 	release/inet_Webserver.o \
 	release/inet_WikiParser.o \
 	release/db_Database.o \
+	release/db_MySQL.o \
 	release/db_PostgreSQL.o \
 	release/db_ResultSet.o \
+	release/db_Sqlite3.o \
 	release/gfx_Color.o \
 	release/gfx_DrawableBlit.o \
 	release/gfx_DrawableColor.o \
@@ -227,8 +229,10 @@ DEBUG	= debug/AVLTree.o \
 	debug/inet_Webserver.o \
 	debug/inet_WikiParser.o \
 	debug/db_Database.o \
+	debug/db_MySQL.o \
 	debug/db_PostgreSQL.o \
 	debug/db_ResultSet.o \
+	debug/db_Sqlite3.o \
 	debug/gfx_Color.o \
 	debug/gfx_DrawableBlit.o \
 	debug/gfx_DrawableColor.o \
@@ -332,8 +336,10 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/inet_Webserver.o \
 	coverage/inet_WikiParser.o \
 	coverage/db_Database.o \
+	coverage/db_MySQL.o \
 	coverage/db_PostgreSQL.o \
 	coverage/db_ResultSet.o \
+	coverage/db_Sqlite3.o \
 	coverage/gfx_Color.o \
 	coverage/gfx_DrawableBlit.o \
 	coverage/gfx_DrawableColor.o \
@@ -811,6 +817,11 @@ release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir
 	# Compiling >>>database/Database.cpp<<<
 	$(CXX) -Wall -O2 -o release/db_Database.o -c $(srcdir)/database/Database.cpp $(CFLAGS) 
 
+release/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/MySQL.cpp<<<
+	$(CXX) -Wall -O2 -o release/db_MySQL.o -c $(srcdir)/database/MySQL.cpp $(CFLAGS) 
+
 release/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/PostgreSQL.cpp<<<
@@ -820,6 +831,11 @@ release/db_ResultSet.o:	$(srcdir)/database/ResultSet.cpp $(incdir)/ppl7.h $(incd
 	###############################################################################
 	# Compiling >>>database/ResultSet.cpp<<<
 	$(CXX) -Wall -O2 -o release/db_ResultSet.o -c $(srcdir)/database/ResultSet.cpp $(CFLAGS) 
+
+release/db_Sqlite3.o:	$(srcdir)/database/Sqlite3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/Sqlite3.cpp<<<
+	$(CXX) -Wall -O2 -o release/db_Sqlite3.o -c $(srcdir)/database/Sqlite3.cpp $(CFLAGS) 
 
 ### GRAFIX
 release/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
@@ -1391,6 +1407,11 @@ debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/
 	# Compiling >>>database/Database.cpp<<<
 	$(CXX) -Wall -O -o debug/db_Database.o -c $(srcdir)/database/Database.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/MySQL.cpp<<<
+	$(CXX) -Wall -O -o debug/db_MySQL.o -c $(srcdir)/database/MySQL.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/PostgreSQL.cpp<<<
@@ -1400,6 +1421,11 @@ debug/db_ResultSet.o:	$(srcdir)/database/ResultSet.cpp $(incdir)/ppl7.h $(incdir
 	###############################################################################
 	# Compiling >>>database/ResultSet.cpp<<<
 	$(CXX) -Wall -O -o debug/db_ResultSet.o -c $(srcdir)/database/ResultSet.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/db_Sqlite3.o:	$(srcdir)/database/Sqlite3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/Sqlite3.cpp<<<
+	$(CXX) -Wall -O -o debug/db_Sqlite3.o -c $(srcdir)/database/Sqlite3.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### GRAFIX
 debug/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
@@ -1965,6 +1991,11 @@ coverage/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdi
 	# Compiling >>>database/Database.cpp<<<
 	$(CXX) -Wall -o coverage/db_Database.o -c $(srcdir)/database/Database.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
+coverage/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/MySQL.cpp<<<
+	$(CXX) -Wall -o coverage/db_MySQL.o -c $(srcdir)/database/MySQL.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
 coverage/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/PostgreSQL.cpp<<<
@@ -1974,6 +2005,11 @@ coverage/db_ResultSet.o:	$(srcdir)/database/ResultSet.cpp $(incdir)/ppl7.h $(inc
 	###############################################################################
 	# Compiling >>>database/ResultSet.cpp<<<
 	$(CXX) -Wall -o coverage/db_ResultSet.o -c $(srcdir)/database/ResultSet.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/db_Sqlite3.o:	$(srcdir)/database/Sqlite3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/Sqlite3.cpp<<<
+	$(CXX) -Wall -o coverage/db_Sqlite3.o -c $(srcdir)/database/Sqlite3.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/gfx_Color.o:	$(srcdir)/grafix/Color.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
