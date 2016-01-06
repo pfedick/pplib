@@ -52,6 +52,10 @@
 #include <openssl/evp.h>
 #endif
 
+#ifdef HAVE_LIBZ
+#include <zlib.h>
+#endif
+
 #include "ppl7.h"
 #include "ppl7-crypto.h"
 
@@ -68,10 +72,8 @@ void InitOpenSSLDigest()
 	throw UnsupportedFeatureException("OpenSSL");
 #else
 	__OpenSSLGlobalMutex.lock();
-	if(!__OpenSSLDigestAdded) {
-		::OpenSSL_add_all_digests();
-		__OpenSSLDigestAdded=true;
-	}
+	::OpenSSL_add_all_digests();
+	__OpenSSLDigestAdded=true;
 	__OpenSSLGlobalMutex.unlock();
 #endif
 }
@@ -385,6 +387,30 @@ ByteArray Digest::ecdsa(const ByteArrayPtr &data)
 	return Digest::hash(data,Algo_ECDSA);
 }
 
+ppluint32 Digest::crc32(const ByteArrayPtr &data)
+{
+#ifdef HAVE_LIBZ
+	uLong crc=::crc32(0L,Z_NULL,0);
+	return ::crc32(crc,(const Bytef*)data.ptr(),(uInt)data.size());
+#endif
+	return Crc32(data.ptr(),data.size());
+}
 
+ppluint32 Digest::adler32(const ByteArrayPtr &data)
+{
+     const unsigned char *buffer = (const unsigned char *)data.ptr();
+     size_t buflength=data.size();
+     /* ZLIB
+     uLong adler = ::adler32(0L, Z_NULL, 0);
+   	 return ::adler32(adler, buffer, buflength);
+   	 */
+     uint32_t s1 = 1;
+     uint32_t s2 = 0;
 
+     for (size_t n = 0; n < buflength; n++) {
+        s1 = (s1 + buffer[n]) % 65521;
+        s2 = (s2 + s1) % 65521;
+     }
+     return (s2 << 16) | s1;
+  }
 }

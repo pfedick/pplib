@@ -272,6 +272,8 @@ class Digest
 		static ByteArray sha384(const ByteArrayPtr &data);
 		static ByteArray sha512(const ByteArrayPtr &data);
 		static ByteArray ecdsa(const ByteArrayPtr &data);
+		static ppluint32 crc32(const ByteArrayPtr &data);
+		static ppluint32 adler32(const ByteArrayPtr &data);
 
 };
 
