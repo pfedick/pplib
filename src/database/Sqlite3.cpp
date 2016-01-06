@@ -50,7 +50,7 @@
 #include "ppl7-db.h"
 
 #ifdef HAVE_SQLITE3
-//#include <libpq-fe.h>
+#include <sqlite3.h>
 #endif
 
 namespace ppl7 {
@@ -58,21 +58,21 @@ namespace db {
 
 #ifdef HAVE_SQLITE3
 
-#ifdef TODO
-class Postgres92Result : public ResultSet
+class SQLiteResult : public ResultSet
 {
-	friend class PostgreSQL;
+	friend class SQLite;
 	private:
-		PGresult	*res;			//!\brief Postgres-spezifisches Result-Handle
-		PGconn		*conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
-		PostgreSQL	*postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
+		sqlite3			*conn;		//!\brief SQLite-spezifisches Handle des Datenbank-Connects
+		sqlite3_stmt	*stmt;		//!\brief SQLite-spezifisches Result-Handle
+		SQLite			*sqlite_class;		//!\brief Pointer auf die SQLite-Klassem die diesen Result erzeugt hat
 		ppluint64	result_rows;		//!\brief Anzahl Zeilen im Ergebnis
 		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
+		int			last_res;		//!\brief letzter Returncode von sqlite3_step()
 
 	public:
-		Postgres92Result();
-		virtual ~Postgres92Result();
+		SQLiteResult();
+		virtual ~SQLiteResult();
 		virtual	void		clear();
 		virtual ppluint64	rows() const;
 		virtual ppluint64	affected() const;
@@ -91,558 +91,410 @@ class Postgres92Result : public ResultSet
 		virtual bool		eof();
 };
 
+/*!\class SQLiteResult
+ * \ingroup PPLGroupDatabases
+ * \brief Klasse, die das Ergebnis eines SQLite-Results aufnimmt
+ *
+ * \descr
+ * Dies ist eine interne Klasse des SQLite-Datenbankmoduls. Sie ist abgeleitet von ppl6::db::Result
+ * und nimmt das Ergebnis eines Datenbank-Selects auf. Mit Ihren Funktionen kann anschließend
+ * auf das Ergebnis zugegriffen werden.
+ *
+ * Die Klasse wird durch Aufruf verschiedener Funktionen innerhalb der Klasse ppl6::db::SQLite erstellt
+ * und muss von der aufrufenden Anwendung selbst mit \c delete gelöscht werden.
+ *
+ */
 
-Postgres92Result::Postgres92Result()
+SQLiteResult::SQLiteResult()
 {
-	res=NULL;
-	postgres_class=NULL;
 	conn=NULL;
+	stmt=NULL;
+	sqlite_class=NULL;
 	result_rows=0;
 	affectedrows=0;
 	num_fields=0;
+	last_res=0;
 }
 
-Postgres92Result::~Postgres92Result()
+SQLiteResult::~SQLiteResult()
 {
 	clear();
 }
 
-void Postgres92Result::clear()
+void SQLiteResult::clear()
 {
-	result_rows=0;
-	if (conn) {
-		while (res) {
-			PQclear(res);
-			res=PQgetResult(conn);
-		}
-	}
-	res=NULL;
-	postgres_class=NULL;
+	if (stmt) sqlite3_finalize(stmt);
+	stmt=NULL;
+	sqlite_class=NULL;
 	conn=NULL;
+	result_rows=0;
 	affectedrows=0;
 	num_fields=0;
+	last_res=0;
 }
 
-
-ppluint64 Postgres92Result::rows() const
+ppluint64 SQLiteResult::rows() const
 {
 	return result_rows;
 }
 
-ppluint64 Postgres92Result::affected() const
+ppluint64 SQLiteResult::affected() const
 {
 	return affectedrows;
 }
 
-int Postgres92Result::fields() const
+int SQLiteResult::fields() const
 {
 	return num_fields;
 }
 
-
-int Postgres92Result::fieldNum(const String &fieldname)
+int SQLiteResult::fieldNum(const String &fieldname)
 {
-	if (!res) throw NoResultException();
+	if (!stmt) throw NoResultException();
 	if (fieldname.isEmpty()) throw IllegalArgumentException();
-	int n=PQfnumber(res,(const char*) fieldname);
-	if (n==-1) throw FieldNotInResultSetException(fieldname);
-	return n;
+	if (last_res!=SQLITE_ROW) throw NoResultException();
+	for (int i=0;i<num_fields;i++) {
+		if (fieldname.strcmp(sqlite3_column_name(stmt,i))==0) {
+			return i;
+		}
+	}
+	throw FieldNotInResultSetException(fieldname);
 }
 
-String Postgres92Result::fieldName(int field)
+String SQLiteResult::fieldName(int field)
 {
-	if (!res) throw NoResultException();
+	if (!stmt) throw NoResultException();
 	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
-	const char *name=PQfname(res,field);
+	if (last_res!=SQLITE_ROW) throw NoResultException();
+	const char *name=sqlite3_column_name(stmt,field);
 	if (!name) FieldNotInResultSetException("%d",field);
 	return String(name);
 }
 
-
-ResultSet::FieldType Postgres92Result::fieldType(int field)
+ResultSet::FieldType SQLiteResult::fieldType(int field)
 {
 	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
-	Oid o=PQftype(res,field);
-	switch (o) {
-		default:
-			return ResultSet::TYPE_UNKNOWN;
+	if (!stmt) throw NoResultException();
+	if (last_res!=SQLITE_ROW) throw NoResultException();
+	int type=sqlite3_column_type(stmt, field);
+	switch (type) {
+		case SQLITE_INTEGER: return ResultSet::TYPE_INTEGER;
+		case SQLITE_FLOAT: return ResultSet::TYPE_FLOAT;
+		case SQLITE_BLOB: return ResultSet::TYPE_BINARY;
+		case SQLITE_NULL: return ResultSet::TYPE_INTEGER;
+		case SQLITE_TEXT: return ResultSet::TYPE_STRING;
 	}
 	return ResultSet::TYPE_UNKNOWN;
 }
 
-ResultSet::FieldType Postgres92Result::fieldType(const String &fieldname)
+ResultSet::FieldType SQLiteResult::fieldType(const String &fieldname)
 {
 	int num=fieldNum(fieldname);
 	return fieldType(num);
 }
 
-AssocArray Postgres92Result::fetchArray()
+
+AssocArray SQLiteResult::fetchArray()
 {
 	AssocArray a;
 	fetchArray(a);
 	return a;
 }
 
-void Postgres92Result::fetchArray(AssocArray &array)
+void SQLiteResult::fetchArray(AssocArray &array)
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res)==0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
+	if (!stmt) throw NoResultException();
+	if (last_res!=SQLITE_ROW) throw NoResultException();
+
 	array.clear();
 	for(int i=0; i<num_fields; i++) {
-		array.set(String(PQfname(res,i)),String(PQgetvalue(res,0,i)));
+		const char *name=sqlite3_column_name(stmt,i);
+		const unsigned char *value=sqlite3_column_text(stmt,i);
+		int length=sqlite3_column_bytes(stmt,i);
+		array.set(String(name),String((const char*)value,length));
 	}
-	PQclear(res);
-	res=PQgetResult(conn);
+	last_res=sqlite3_step(stmt);
 }
 
-
-String Postgres92Result::getString(const String &fieldname)
+String SQLiteResult::getString(const String &fieldname)
 {
 	int num=fieldNum(fieldname);
 	return getString(num);
 }
 
-String Postgres92Result::getString(int field)
+String SQLiteResult::getString(int field)
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res)==0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
+	if (!stmt) throw NoResultException();
+	if (last_res!=SQLITE_ROW) throw NoResultException();
 	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
-	return String(PQgetvalue(res,0,field));
+	return String((const char*)sqlite3_column_text(stmt,field),sqlite3_column_bytes(stmt,field));
 }
 
-
-
-Array Postgres92Result::fetchFields()
+Array SQLiteResult::fetchFields()
 {
 	Array a;
 	fetchFields(a);
 	return a;
 }
 
-
-void Postgres92Result::fetchFields(Array &array)
+void SQLiteResult::fetchFields(Array &array)
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res)==0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
-	array.clear();
-	const char *tmp;
+	if (!stmt) throw NoResultException();
+	if (last_res!=SQLITE_ROW) throw NoResultException();
+
 	for(int i=0; i<num_fields; i++) {
-		tmp=PQgetvalue(res,0,i);
-		if (tmp) array.add(tmp);
-		else array.add("");
+		const char *value=(const char *)sqlite3_column_text(stmt,i);
+		int length=sqlite3_column_bytes(stmt,i);
+		array.add(String(value,length));
 	}
-	PQclear(res);
-	res=PQgetResult(conn);
+	last_res=sqlite3_step(stmt);
 }
 
-void Postgres92Result::nextRow()
+void SQLiteResult::nextRow()
 {
-	if (!res) throw NoResultException();
-	if (PQntuples(res)==0) {
-		PQclear(res);
-		res=NULL;
-		throw NoResultException();
-	}
-	PQclear(res);
-	res=PQgetResult(conn);
+	if (!stmt) throw NoResultException();
+	if (last_res!=SQLITE_ROW) throw NoResultException();
+	last_res=sqlite3_step(stmt);
 }
 
-bool Postgres92Result::eof()
+bool SQLiteResult::eof()
 {
-	if (res) {
-		if (PQntuples(res)>0) return false;
+	if (stmt) {
+		if (last_res==SQLITE_ROW) return false;
 	}
 	return true;
 }
 
-#endif //TODO
 
 #endif	// HAVE_SQLITE3
 
 
-#ifdef TODO
-/*!\class PostgreSQL
+/*!\class SQLite
  * \ingroup PPLGroupDatabases
- * \brief Implementierung einer Postgres-Datenbank
+ * \brief Implementierung einer SQLite-Datenbank
  *
- * \header \#include <ppl7-db.h>
+ * \header \#include <ppl6-db.h>
  *
  * \descr
- * Mit dieser Klasse kann eine Verbindung zu einer Postgres-Datenbank aufgebaut werden, um darüber
- * SQL-Queries durchzuführen.
+ * Mit dieser Klasse kann aufe eine lokale Datei mit einer SQLite-Datenbank
+ * zugegriffen werden
  *
  * \example
  * \dontinclude db_examples.cpp
- * \skip DB_Postgres_Example1
+ * \skip DB_SQLite_Example1
  * \until EOF
  */
 
 
 
 
-PostgreSQL::PostgreSQL()
+SQLite::SQLite()
 {
 	conn=NULL;
 	affectedrows=0;
 	transactiondepth=0;
 }
 
-PostgreSQL::~PostgreSQL()
+SQLite::~SQLite()
 {
-#ifdef HAVE_POSTGRESQL
+#ifdef HAVE_SQLITE3
 	if (conn) close();
 #endif
 }
 
-
-void PostgreSQL::connect()
+void SQLite::connect()
 {
 	Database::connect();
 }
 
-/*!\brief Connect auf eine Postgres-Datenbank erstellen
+/*!\brief Connect auf eine SQLite-Datenbank erstellen
  *
  * \descr
- * Mit dieser Funktion wird eine Verbindung zu einem Postgres Datenbank-Server hergestellt, wobei
+ * Mit dieser Funktion wird eine Verbindung zu einer SQLite Datenbank hergestellt, wobei
  * die dafür notwendigen Parameter dem Array \p params entnommen werden.
+ * \par
+ * Mögliche Parameter:
+ * - \b filename: Dateiname der Datenbank
  *
- * Die für den Connect erforderlichen oder optionalen Parameter hängen von der jeweiligen
- * Datenbank ab und sind in der jeweiligen Dokumentation zu finden. Es gibt jedoch eine
- * Reihe von Parametern, die bei allen Datenbanken identisch sind:
- * - \b host: Der Hostname oder die IP-Adresse des Datenbank-Servers
- * - \b port: Der TCP-Port des Datenbank-Servers
- * - \b dbname: Der Name der intialen Datenbank.
- * - \b user: Der Name des Benutzers, mit dem sich an der Datenbank authentifiziert werden soll
- * - \b password: Das Passwort des Benutzers im Klartext
- * - \b timeout: Timeout für den Connect in Sekunden (optional)
- * - \b searchpath: Kommaseparierte Liste mit den Schemata, die in den Suchpfad
- *      aufgenommen werden sollen (optional)
  * \param params Ein Assoziatives Array mit den für den Connect erforderlichen Parameter.
  *
  * \exception OutOfMemoryException
  * \exception ConnectionFailedException
  *
- * \example
- * \dontinclude db_examples.cpp
- * \skip DB_Example3
- * \until EOF
- *
  */
-void PostgreSQL::connect(const AssocArray &params)
+void SQLite::connect(const AssocArray &params)
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
 	if (conn) close();
 	condata=params;
-	String conninfo;
-	if (params.exists("host")) conninfo.appendf("host=%s ",(const char*)params["host"].toString());
-	if (params.exists("port")) conninfo.appendf("port=%s ",(const char*)params["port"].toString());
-	if (params.exists("dbname")) conninfo.appendf("dbname='%s' ",(const char*)params["dbname"].toString());
-	if (params.exists("user")) conninfo.appendf("user='%s' ",(const char*)params["user"].toString());
-	if (params.exists("password")) conninfo.appendf("password='%s' ",(const char*)params["password"].toString());
-	if (params.exists("timeout")) conninfo.appendf("connect_timeout='%s' ",(const char*)params["timeout"].toString());
-
-	conn=PQconnectdb((const char *)conninfo);
-	if (!conn) {
-		throw OutOfMemoryException();
+	String filename=params["filename"];
+	int ret=sqlite3_open((const char*)filename,(sqlite3 **)&conn);
+	if (!conn) throw OutOfMemoryException();
+	if (ret != SQLITE_OK) {
+		String err(sqlite3_errmsg((sqlite3*)conn));
+		sqlite3_close((sqlite3*)conn);
+		conn=NULL;
+		throw ConnectionFailedException(err);
 	}
-	// Pruefen, ob auch wirklich eine Verbindung da ist
-	if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
-		try {
-			if (params.exists("searchpath")) {
-				String SearchPath=escape(params["searchpath"]);
-				if (SearchPath.notEmpty()) {
-					execf("set search_path to %s",(const char*)SearchPath);
-				}
-			}
-			updateLastUse();
-		} catch (...) {
-			PQfinish((PGconn*)conn);
-			conn=NULL;
-			throw;
-		}
-		return;
-	}
-
-	// Was war der Fehler?
-	String err(PQerrorMessage((PGconn*)conn));
-	PQfinish((PGconn*)conn);
-	conn=NULL;
-	throw ConnectionFailedException(err);
 #endif
 }
 
-
-void PostgreSQL::connectCreate(const AssocArray &params)
+void SQLite::connectCreate(const AssocArray &params)
 {
-	AssocArray a=params;
-	a.remove("dbname");
-	a.set("dbname","postgres");
-	String dbname=params["dbname"];
-	// Versuch auf die immer vorhandene Datenbank "postgres" zuzugreifen
-	connect(a);
-	// Wir versuchen die Datenbank auszuwählen
-	try {
-		selectDB(dbname);
-		return;
-	} catch (...) {
-
-	}
-	createDatabase(dbname);
-	selectDB(dbname);
+	connect(params);
 }
 
-void PostgreSQL::close()
+void SQLite::close()
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite3");
 #else
 	if (!conn) {
 		return;
 	}
-	PQfinish((PGconn*)conn);
+	sqlite3_close((sqlite3*)conn);
 	conn=NULL;
 #endif
 }
 
-
-
-void PostgreSQL::reconnect()
+void SQLite::reconnect()
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
-	if (conn) {
-		PQreset((PGconn *)conn);
-		if (PQstatus((PGconn*)conn) == CONNECTION_OK) {
-			updateLastUse();
-			return;
-		}
-	}
-	// Hat nicht geklappt, wir versuchen einen normalen Connect
 	close();
 	AssocArray a=condata;
 	connect(a);
 #endif
 }
 
-void PostgreSQL::selectDB(const String &databasename)
+
+void SQLite::selectDB(const String &databasename)
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
-	// Wir koennen die Datenbank nicht innerhalb der laufenden Verbindung wechseln
-	// Daher bauen wir eine neue Verbindung auf
-	if (!conn) throw NoConnectionException();
-	AssocArray a;
-	a=condata;
-	a.set("dbname",databasename);
-	PostgreSQL newDB;
-	try {
-		newDB.connect(a);
-	} catch (...) {
-		throw;
-	}
-	close();
-	this->conn=newDB.conn;
-	transactiondepth=0;
-	condata.set("dbname",databasename);
-	newDB.conn=NULL;
+	throw UnsupportedFeatureException("SQLite:selectDB");
 #endif
 }
 
-/*!\brief Query ausführen
- *
- * \descr
- * Dies ist eine interne Funktion, die einen Query an die Postgres-Datenbank schickt.
- * Schlägt dies fehl, weil die Verbindung zur Datenbank zwischenzeitlich verloren ging,
- * wird ein Reconnect versucht und bei Erfolg der Query wiederholt.
- *
- * \param[in] query String mit dem abzusetzenden Query
- *
- * \return Konnte der Query erfolgreich ausgeführt werden, liefert die Funktion ein
- * Postgres-spezifisches Result-Handle vom Typ PGresult* zurück. Im Fehlerfall wird
- * eine Exception geworfen.
- *
- * \exception QueryFailedException
- *
- */
-void *PostgreSQL::pgsqlQuery(const String &query)
+void SQLite::exec(const String &query)
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
-#else
-	PGresult *res=NULL;
-	ExecStatusType status;
-	int count=0;
-	ppl7::String err;
-	while (count<2) {
-		count++;
-		if (PQsendQuery((PGconn *)conn,(const char*)query)!=1) {
-			throw QueryFailedException("PQsendQuery failed: %s",PQerrorMessage((PGconn*)conn));
-		} else {
-			if (PQsetSingleRowMode((PGconn *)conn)!=1) {
-				ppl7::String err;
-				err.setf("PQsetSingleRowMode failed: %s",PQerrorMessage((PGconn*)conn));
-				if (res) PQclear(res);
-				throw QueryFailedException(err);
-			}
-			res=PQgetResult((PGconn *)conn);
-			status=PQresultStatus(res);
-			if (status==PGRES_COMMAND_OK
-					|| status==PGRES_SINGLE_TUPLE
-					|| status==PGRES_TUPLES_OK ) {
-				affectedrows=atoll(PQcmdTuples(res));
-				return res;
-			} else if (status==PGRES_FATAL_ERROR) {
-				err.setf("%s",PQresultErrorMessage(res));
-				/* Laut Doku: Even when PQresultStatus indicates a fatal error, PQgetResult should
-				 * be called until it returns a null pointer, to allow libpq to process the error
-				 * information completely.
-				 */
-				while ((res=PQgetResult((PGconn *)conn))!=NULL) {
-					PQclear(res);
-					res=NULL;
-				}
-				throw QueryFailedException(err);
-			} else {
-				err.setf("%s",PQresultErrorMessage(res));
-			}
-		}
-		if (res) PQclear(res);
-		res=NULL;
-		if (PQstatus((PGconn*)conn) != CONNECTION_OK) {
-			reconnect();
-		} else break;
-	}
-	throw QueryFailedException(err);
-#endif
-}
-
-
-void PostgreSQL::exec(const String &query)
-{
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
 	if (!conn) throw NoConnectionException();
+	String err;
 	double t_start;
-	PGresult *res;
+	affectedrows=0;
+	sqlite3_stmt *stmt=NULL;
 	t_start=GetMicrotime();
-	res=(PGresult*)pgsqlQuery(query);
-	updateLastUse();
-	if (res) {
-		// Result-Handle freigeben
-		PQclear(res);
-		while ((res=PQgetResult((PGconn *)conn))!=NULL) {
-			PQclear(res);
-		}
-		logQuery(query,(float)(GetMicrotime()-t_start));
-		return;
+	int ret=sqlite3_prepare_v2((sqlite3*)conn, (const char*)query, query.size(),&stmt,NULL);
+	if (ret!=SQLITE_OK) {
+		throw QueryFailedException("sqlite3_prepare_v2 failed: %s",sqlite3_errmsg((sqlite3*)conn));
 	}
-	throw QueryFailedException();
-#endif
-}
-
-
-ResultSet *PostgreSQL::query(const String &query)
-{
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
-#else
-	if (!conn) throw NoConnectionException();
-	double t_start;
-	PGresult *res;
-	t_start=GetMicrotime();
-	res=(PGresult*)pgsqlQuery(query);
-	updateLastUse();
-
-	// Query loggen
-	logQuery(query,(float)(GetMicrotime()-t_start));
-	// Result-Klasse erstellen
-	Postgres92Result *pr=new Postgres92Result;
-	if (!pr) {
-		PQclear(res);
+	if (stmt==NULL) {
 		throw OutOfMemoryException();
 	}
-	pr->res=res;
-	pr->postgres_class=this;
-	pr->conn=(PGconn *)conn;
-	pr->result_rows=PQntuples(res);
+	ret=sqlite3_step(stmt);
+	if (ret!=SQLITE_DONE && ret!=SQLITE_ROW) {
+		err.setf("sqlite3_step: %s, Query: %s",sqlite3_errmsg((sqlite3*)conn),(const char*)query);
+		sqlite3_finalize(stmt);
+		throw QueryFailedException(err);
+	}
+	ret=sqlite3_finalize(stmt);
+	if (ret !=SQLITE_OK) {
+		err.setf("sqlite3_finalize: %s, Query: %s",sqlite3_errmsg((sqlite3*)conn),(const char*)query);
+		throw QueryFailedException(err);
+	}
+	affectedrows=sqlite3_changes((sqlite3*)conn);
+	updateLastUse();
+	logQuery(query,(float)(GetMicrotime()-t_start));
+#endif
+}
+
+ResultSet *SQLite::query(const String &query)
+{
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
+#else
+	if (!conn) throw NoConnectionException();
+	String err;
+	double t_start;
+	affectedrows=0;
+	sqlite3_stmt *stmt=NULL;
+	t_start=GetMicrotime();
+	int ret=sqlite3_prepare_v2((sqlite3*)conn, (const char*)query, query.size(),&stmt,NULL);
+	if (ret!=SQLITE_OK) {
+		throw QueryFailedException("sqlite3_prepare_v2 failed: %s",sqlite3_errmsg((sqlite3*)conn));
+	}
+	if (stmt==NULL) {
+		throw OutOfMemoryException();
+	}
+	ret=sqlite3_step(stmt);
+	if (ret!=SQLITE_DONE && ret!=SQLITE_ROW) {
+		err.setf("sqlite3_step: %s, Query: %s",sqlite3_errmsg((sqlite3*)conn),(const char*)query);
+		sqlite3_finalize(stmt);
+		throw QueryFailedException(err);
+	}
+	affectedrows=sqlite3_changes((sqlite3*)conn);
+	updateLastUse();
+	logQuery(query,(float)(GetMicrotime()-t_start));
+
+	SQLiteResult *pr=new SQLiteResult;
+	if (!pr) {
+		sqlite3_finalize(stmt);
+		throw OutOfMemoryException();
+	}
+	pr->last_res=ret;
+	pr->sqlite_class=this;
+	pr->conn=(sqlite3 *)conn;
 	pr->affectedrows=affectedrows;
-	pr->num_fields=PQnfields(res);
+	pr->num_fields=sqlite3_column_count(stmt);
 	return pr;
 #endif
 }
 
-
-bool PostgreSQL::ping()
+bool SQLite::ping()
 {
-#ifndef HAVE_POSTGRESQL
+#ifndef HAVE_SQLITE3
 	return false;
 #else
-	if (!conn) return false;
-	PGresult *res;
-	try {
-		res=(PGresult*)pgsqlQuery("select 1 as result");
-		if (res) {
-			// Result-Handle freigeben
-			PQclear(res);
-			return true;
-		}
-	} catch (...) {
-		return false;
-	}
+	if (conn) return true;
 	return false;
 #endif
 }
 
-String PostgreSQL::escape(const String &str) const
+
+String SQLite::escape(const String &str) const
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
-	if (!conn) throw NoConnectionException();
-	size_t l=str.size()*2+1;
-	char *buf=(char *)malloc(l);   // Buffer reservieren
-	if (!buf) {
-		throw OutOfMemoryException();
+	// SQLite hat keine Escape-Funktion, daher müssen wir das selbst machen
+	String n;
+	const char *tmp=str.getPtr();
+	int c;
+	while ((c=tmp[0])) {
+		if (c=='\'') n+="'";
+		n+=c;
+		tmp++;
 	}
-	int error;
-	size_t newlength=PQescapeStringConn((PGconn*)conn,buf,(const char*)str,str.size(),&error);
-	if (error==0) {
-		//ppl6::HexDump(buf,newlength);
-		String ret(buf,newlength);
-		free(buf);
-		return ret;
-	}
-	free(buf);
-	throw EscapeFailedException("%s",PQerrorMessage((PGconn*)conn));
+	return n;
 #endif
 }
 
-ppluint64 PostgreSQL::getAffectedRows()
+ppluint64 SQLite::getAffectedRows()
 {
 	return affectedrows;
 }
 
-void PostgreSQL::startTransaction()
+void SQLite::startTransaction()
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
 	if (transactiondepth==0) {	// Neue Transaktion
 		exec("BEGIN");
@@ -654,10 +506,10 @@ void PostgreSQL::startTransaction()
 #endif
 }
 
-void PostgreSQL::endTransaction()
+void SQLite::endTransaction()
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
 	if (transactiondepth==1) {
 		exec("COMMIT");
@@ -669,10 +521,10 @@ void PostgreSQL::endTransaction()
 #endif
 }
 
-void PostgreSQL::cancelTransaction()
+void SQLite::cancelTransaction()
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
 	if (transactiondepth==1) {
 		exec("ROLLBACK");
@@ -684,31 +536,31 @@ void PostgreSQL::cancelTransaction()
 #endif
 }
 
-void PostgreSQL::cancelTransactionComplete()
+void SQLite::cancelTransactionComplete()
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
 	exec("ROLLBACK");
 	transactiondepth=0;
 #endif
 }
 
-void PostgreSQL::createDatabase(const String &name)
+void SQLite::createDatabase(const String &name)
 {
-#ifndef HAVE_POSTGRESQL
-	throw UnsupportedFeatureException("PostgreSQL");
+#ifndef HAVE_SQLITE3
+	throw UnsupportedFeatureException("SQLite");
 #else
-	throw UnsupportedFeatureException("PostgreSQL::createDatabase");
+	throw UnsupportedFeatureException("SQLite::createDatabase");
 #endif
 }
 
-String PostgreSQL::databaseType() const
+String SQLite::databaseType() const
 {
-	return String("PostgreSQL");
+	return String("SQLite");
 }
 
-String PostgreSQL::getQuoted(const String &value, const String &type) const
+String SQLite::getQuoted(const String &value, const String &type) const
 {
 	String Type=type;
 	String s=escape(value);
@@ -718,7 +570,6 @@ String PostgreSQL::getQuoted(const String &value, const String &type) const
 	return "'"+s+"'";
 }
 
-#endif
 
 }	// EOF namespace db
 }	// EOF namespace ppl7

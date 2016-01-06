@@ -208,6 +208,73 @@ class PostgreSQL: public Database
 		*/
 };
 
+class MySQL: public Database
+{
+	private:
+		void		*conn;
+		ppluint64	affectedrows;
+		int			transactiondepth;
+		AssocArray	condata;
+
+		void *mysqlQuery(const String &query);
+
+	public:
+		MySQL();
+		virtual ~MySQL();
+
+		virtual void		connect();
+		virtual void		connect(const AssocArray &params);
+		virtual void		connectCreate(const AssocArray &params);
+		virtual void		reconnect();
+		virtual void		close();
+		virtual void		selectDB(const String &databasename);
+		virtual void		exec(const String &query);
+		virtual ResultSet	*query(const String &query);
+		virtual bool		ping();
+		virtual String		escape(const String &str) const;
+		virtual ppluint64	getAffectedRows();
+		virtual void		startTransaction();
+		virtual void		endTransaction();
+		virtual void		cancelTransaction();
+		virtual void		cancelTransactionComplete();
+		virtual void		createDatabase(const String &name);
+		virtual String		databaseType() const;
+		virtual String		getQuoted(const String &value, const String &type=String()) const;
+};
+
+class SQLite: public Database
+{
+	private:
+		void		*conn;
+		ppluint64	affectedrows;
+		int			transactiondepth;
+		AssocArray	condata;
+
+		void *sqliteQuery(const String &query);
+
+	public:
+		SQLite();
+		virtual ~SQLite();
+
+		virtual void		connect();
+		virtual void		connect(const AssocArray &params);
+		virtual void		connectCreate(const AssocArray &params);
+		virtual void		reconnect();
+		virtual void		close();
+		virtual void		selectDB(const String &databasename);
+		virtual void		exec(const String &query);
+		virtual ResultSet	*query(const String &query);
+		virtual bool		ping();
+		virtual String		escape(const String &str) const;
+		virtual ppluint64	getAffectedRows();
+		virtual void		startTransaction();
+		virtual void		endTransaction();
+		virtual void		cancelTransaction();
+		virtual void		cancelTransactionComplete();
+		virtual void		createDatabase(const String &name);
+		virtual String		databaseType() const;
+		virtual String		getQuoted(const String &value, const String &type=String()) const;
+};
 
 
 } // EOF namespace db
