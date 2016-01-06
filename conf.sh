@@ -107,7 +107,7 @@ case "$SYS:$REL:$KERNEL" in
 	Linux:*generic*)
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
-			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
+			--with-mysql  --with-libiconv-prefix --with-nasm \
 			--with-libmhash --with-gcrypt=auto --with-ogg=/usr \
 			--with-postgresql \
 			--with-libmicrohttpd=/usr/local \

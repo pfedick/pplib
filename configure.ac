@@ -61,7 +61,7 @@ sinclude(autoconf/ax_check_openssl.m4)
 sinclude(autoconf/libcurl.m4)
 sinclude(autoconf/ax_lib_mysql.m4)
 sinclude(autoconf/ax_lib_postgresql.m4)
-sinclude(autoconf/ax_lib_sqlite.m4)
+sinclude(autoconf/ax_lib_sqlite3.m4)
 sinclude(autoconf/freetype.m4)
 sinclude(autoconf/ax_path_lib_pcre.m4)
 sinclude(autoconf/png.m4)
@@ -598,11 +598,10 @@ AX_PATH_LIB_IMLIB([1.9.0],
 	, :)
 
 
-dnl AX_LIB_MYSQL([5.1])
-dnl if test "$mysql_version_check" = "1" ; then
-dnl 	report_have_mysql="yes"
-dnl fi
-
+AX_LIB_MYSQL([5.1.0])
+if test "$mysql_version_check" = "1" ; then
+	report_have_mysql="yes"
+fi
 
 AX_LIB_POSTGRESQL([9.0])
 if test "$found_postgresql" = "yes"; then
@@ -613,14 +612,10 @@ if test "$found_postgresql" = "yes"; then
 	fi
 fi
 
-dnl AX_LIB_SQLITE3()
-dnl if test "$success" = "yes"; then
-dnl 	report_have_sqlite3="yes"
-dnl else
-dnl 	AC_SUBST(SQLITE3_CFLAGS)
-dnl 	AC_SUBST(SQLITE3_LDFLAGS)
-dnl 	AC_SUBST(SQLITE3_VERSION)
-dnl fi
+AX_LIB_SQLITE3
+if test "$success" = "yes"; then
+ 	report_have_sqlite3="yes"
+fi
            
 
 report_have_freetds="no"
