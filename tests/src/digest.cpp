@@ -456,6 +456,23 @@ TEST_F(DigestTest, TestStaticEcdsa) {
 	});
 }
 
+TEST_F(DigestTest, TestStaticCrc32) {
+	ppl7::ByteArrayPtr data(loremipsum,strlen(loremipsum));
+	ASSERT_NO_THROW({
+		ppluint32 result=ppl7::Digest::crc32(data);
+		ASSERT_EQ((ppluint32)2852144956,(ppluint32)result);
+	});
+}
+
+TEST_F(DigestTest, TestStaticAdler32) {
+	ppl7::ByteArrayPtr data(loremipsum,strlen(loremipsum));
+	ASSERT_NO_THROW({
+		ppluint32 result=ppl7::Digest::adler32(data);
+		ASSERT_EQ((ppluint32)1871173577,(ppluint32)result);
+	});
+}
+
+
 
 }	// EOF namespace
 
