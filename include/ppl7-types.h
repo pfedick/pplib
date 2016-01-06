@@ -188,6 +188,8 @@ class ByteArrayPtr
 	public:
 		ByteArrayPtr();
 		ByteArrayPtr(const ByteArrayPtr &other);
+		ByteArrayPtr(const String &data);
+		ByteArrayPtr(const WideString &data);
 		ByteArrayPtr(void *adr, size_t size);
 		ByteArrayPtr(const void *adr, size_t size);
 		bool isNull() const;

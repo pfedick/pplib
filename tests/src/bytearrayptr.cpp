@@ -65,6 +65,62 @@ TEST_F(ByteArrayPtrTest, ConstructorSimple) {
 	);
 }
 
+TEST_F(ByteArrayPtrTest, ConstructorFromPointerAndSize) {
+	void *adr=this;
+	const void *adr2=this;
+	size_t size=1234567;
+
+	ASSERT_NO_THROW({
+		ppl7::ByteArrayPtr b1(adr,size);
+		ASSERT_FALSE(b1.isNull()) << "Array is not empty";
+		ASSERT_EQ(adr,b1.ptr());
+		ASSERT_EQ(size,b1.size());
+	}
+	);
+
+	ASSERT_NO_THROW({
+		ppl7::ByteArrayPtr b1(adr2,size);
+		ASSERT_FALSE(b1.isNull()) << "Array is not empty";
+		ASSERT_EQ(adr2,b1.ptr());
+		ASSERT_EQ(size,b1.size());
+	}
+	);
+}
+
+
+TEST_F(ByteArrayPtrTest, ConstructorFromByteArrayPtr) {
+	ppl7::ByteArrayPtr b1(this,1234567);
+	ASSERT_NO_THROW({
+		ppl7::ByteArrayPtr b2(b1);
+		ASSERT_FALSE(b2.isNull()) << "Array is not empty";
+		ASSERT_EQ(this,b2.ptr());
+		ASSERT_EQ(1234567,b2.size());
+	}
+	);
+}
+
+TEST_F(ByteArrayPtrTest, ConstructorFromString) {
+	ppl7::String s1("Hello World");
+	ASSERT_NO_THROW({
+		ppl7::ByteArrayPtr b2(s1);
+		ASSERT_FALSE(b2.isNull()) << "Array is not empty";
+		ASSERT_EQ(s1.getPtr(),b2.ptr());
+		ASSERT_EQ(s1.size(),b2.size());
+	}
+	);
+}
+
+TEST_F(ByteArrayPtrTest, ConstructorFromWideString) {
+	ppl7::WideString s1(L"Hello World");
+	ASSERT_NO_THROW({
+		ppl7::ByteArrayPtr b2(s1);
+		ASSERT_FALSE(b2.isNull()) << "Array is not empty";
+		ASSERT_EQ(s1.getPtr(),b2.ptr());
+		ASSERT_EQ(s1.size(),b2.size());
+	}
+	);
+}
+
 
 class ByteArrayPtrCompare : public ::testing::Test {
 	protected:

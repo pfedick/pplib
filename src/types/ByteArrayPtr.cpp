@@ -105,6 +105,18 @@ ByteArrayPtr::ByteArrayPtr(const ByteArrayPtr &other)
 	ptrsize=other.ptrsize;
 }
 
+ByteArrayPtr::ByteArrayPtr(const String &data)
+{
+	ptradr=(void*)data.getPtr();
+	ptrsize=data.size();
+}
+
+ByteArrayPtr::ByteArrayPtr(const WideString &data)
+{
+	ptradr=(void*)data.getPtr();
+	ptrsize=data.size();
+}
+
 /*!\brief Konstruktor mit Angabe einer Speicheradresse und Größe
  *
  * \desc
