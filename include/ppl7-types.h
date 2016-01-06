@@ -457,7 +457,6 @@ class String
 		operator double () const;
 		operator std::string() const;
 		operator std::wstring() const;
-		operator ByteArrayPtr() const;
 
 		char operator[](ssize_t pos) const;
 
@@ -711,7 +710,6 @@ class WideString
 		operator double () const;
 		operator std::string() const;
 		operator std::wstring() const;
-		operator ByteArrayPtr() const;
 
 		wchar_t operator[](ssize_t pos) const;
 
