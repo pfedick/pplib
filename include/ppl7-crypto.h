@@ -249,7 +249,9 @@ class Digest
 		void setAlgorithm(Algorithm algorithm);
 		void setAlgorithm(const String &name);
 		void addData(const void *data, size_t size);
-		void addData(const Variant &data);
+		void addData(const ByteArrayPtr &data);
+		void addData(const String &data);
+		void addData(const WideString &data);
 		void addData(FileObject &file);
 		void addFile(const String &filename);
 		ByteArray getDigest();
@@ -260,16 +262,16 @@ class Digest
 		void reset();
 		ppluint64 bytesHashed() const;
 
-		static ByteArray hash(const Variant &data, Algorithm algorithm);
-		static ByteArray hash(const Variant &data, const String &name);
-		static ByteArray md4(const Variant &data);
-		static ByteArray md5(const Variant &data);
-		static ByteArray sha1(const Variant &data);
-		static ByteArray sha224(const Variant &data);
-		static ByteArray sha256(const Variant &data);
-		static ByteArray sha384(const Variant &data);
-		static ByteArray sha512(const Variant &data);
-		static ByteArray ecdsa(const Variant &data);
+		static ByteArray hash(const ByteArrayPtr &data, Algorithm algorithm);
+		static ByteArray hash(const ByteArrayPtr &data, const String &algorithmName);
+		static ByteArray md4(const ByteArrayPtr &data);
+		static ByteArray md5(const ByteArrayPtr &data);
+		static ByteArray sha1(const ByteArrayPtr &data);
+		static ByteArray sha224(const ByteArrayPtr &data);
+		static ByteArray sha256(const ByteArrayPtr &data);
+		static ByteArray sha384(const ByteArrayPtr &data);
+		static ByteArray sha512(const ByteArrayPtr &data);
+		static ByteArray ecdsa(const ByteArrayPtr &data);
 
 };
 

@@ -274,7 +274,7 @@ TEST_F(DigestTest, TestAddDataFromPtr) {
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
-TEST_F(DigestTest, TestAddDataFromVariantString) {
+TEST_F(DigestTest, TestAddDataFromString) {
 	ppl7::Digest hash;
 	ppl7::String data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
@@ -284,7 +284,7 @@ TEST_F(DigestTest, TestAddDataFromVariantString) {
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
-TEST_F(DigestTest, TestAddDataFromVariantWideString) {
+TEST_F(DigestTest, TestAddDataFromWideString) {
 	ppl7::Digest hash;
 	ppl7::String original(loremipsum,strlen(loremipsum));
 	ppl7::WideString data=original;
@@ -295,7 +295,7 @@ TEST_F(DigestTest, TestAddDataFromVariantWideString) {
 	ASSERT_EQ(ppl7::String("1780fcdeb19fa0435ad20e02720d96dd73f1f417452b8dab0bb4d433ee01531a"),result);
 }
 
-TEST_F(DigestTest, TestAddDataFromVariantByteArray) {
+TEST_F(DigestTest, TestAddDataFromByteArray) {
 	ppl7::Digest hash;
 	ppl7::ByteArray data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
@@ -305,7 +305,7 @@ TEST_F(DigestTest, TestAddDataFromVariantByteArray) {
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
 }
 
-TEST_F(DigestTest, TestAddDataFromVariantByteArrayPtr) {
+TEST_F(DigestTest, TestAddDataFromByteArrayPtr) {
 	ppl7::Digest hash;
 	ppl7::ByteArrayPtr data((void*)loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
@@ -313,13 +313,6 @@ TEST_F(DigestTest, TestAddDataFromVariantByteArrayPtr) {
 	ppl7::String result;
 	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
-}
-
-TEST_F(DigestTest, TestAddDataFromVariantArray) {
-	ppl7::Digest hash;
-	ppl7::Array data;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_THROW(hash.addData(data),ppl7::UnsupportedDataTypeException);
 }
 
 TEST_F(DigestTest, TestAddDataFromClosedFile) {

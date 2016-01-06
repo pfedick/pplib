@@ -212,22 +212,21 @@ void Digest::addData(const void *data, size_t size)
 #endif
 }
 
-void Digest::addData(const Variant &data)
+void Digest::addData(const ByteArrayPtr &data)
 {
-	int type=data.type();
-	if (type==Variant::TYPE_BYTEARRAY || type==Variant::TYPE_BYTEARRAYPTR) {
-		const ByteArrayPtr &bin=data.toByteArrayPtr();
-		addData(bin.ptr(),bin.size());
-	} else if (type==Variant::TYPE_STRING) {
-		const String &str=data.toString();
-		addData(str.getPtr(),str.size());
-	} else if (type==Variant::TYPE_WIDESTRING) {
-		const WideString &wstr=data.toWideString();
-		addData(wstr.getPtr(),wstr.size());
-	} else {
-		throw UnsupportedDataTypeException();
-	}
+	addData(data.ptr(),data.size());
 }
+
+void Digest::addData(const String &data)
+{
+	addData(data.getPtr(),data.size());
+}
+
+void Digest::addData(const WideString &data)
+{
+	addData(data.getPtr(),data.size());
+}
+
 
 void Digest::addData(FileObject &file)
 {
@@ -332,56 +331,56 @@ void Digest::reset()
 }
 
 
-ByteArray Digest::hash(const Variant &data, Algorithm algorithm)
+ByteArray Digest::hash(const ByteArrayPtr &data, Algorithm algorithm)
 {
 	Digest dig(algorithm);
 	dig.addData(data);
 	return dig.getDigest();
 }
 
-ByteArray Digest::hash(const Variant &data, const String &name)
+ByteArray Digest::hash(const ByteArrayPtr &data, const String &algorithmName)
 {
-	Digest dig(name);
+	Digest dig(algorithmName);
 	dig.addData(data);
 	return dig.getDigest();
 }
 
-ByteArray Digest::md4(const Variant &data)
+ByteArray Digest::md4(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_MD4);
 }
 
-ByteArray Digest::md5(const Variant &data)
+ByteArray Digest::md5(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_MD5);
 }
 
-ByteArray Digest::sha1(const Variant &data)
+ByteArray Digest::sha1(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_SHA1);
 }
 
-ByteArray Digest::sha224(const Variant &data)
+ByteArray Digest::sha224(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_SHA224);
 }
 
-ByteArray Digest::sha256(const Variant &data)
+ByteArray Digest::sha256(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_SHA256);
 }
 
-ByteArray Digest::sha384(const Variant &data)
+ByteArray Digest::sha384(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_SHA384);
 }
 
-ByteArray Digest::sha512(const Variant &data)
+ByteArray Digest::sha512(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_SHA512);
 }
 
-ByteArray Digest::ecdsa(const Variant &data)
+ByteArray Digest::ecdsa(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_ECDSA);
 }
