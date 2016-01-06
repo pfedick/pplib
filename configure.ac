@@ -56,6 +56,7 @@ AC_CONFIG_HEADERS([include/ppl7-config.h])
 ###############################################################################
 # Includes
 ###############################################################################
+sinclude(autoconf/ax_cxx_compile_stdcxx.m4)
 sinclude(autoconf/ax_check_openssl.m4)
 sinclude(autoconf/libcurl.m4)
 sinclude(autoconf/ax_lib_mysql.m4)
@@ -139,6 +140,8 @@ OLD_CFLAGS=$CFLAGS
 AC_PROG_CC
 CFLAGS=$OLD_CFLAGS
 AC_PROG_CXX
+AX_CXX_COMPILE_STDCXX(11) 
+
 dnl AC_LANG(C++)
 
 dnl AX_GCC_ARCHFLAG
