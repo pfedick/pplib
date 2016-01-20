@@ -70,7 +70,6 @@ class Postgres92Result : public ResultSet
 		PGresult	*res;			//!\brief Postgres-spezifisches Result-Handle
 		PGconn		*conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
 		PostgreSQL	*postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
-		ppluint64	result_rows;		//!\brief Anzahl Zeilen im Ergebnis
 		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 
@@ -78,7 +77,6 @@ class Postgres92Result : public ResultSet
 		Postgres92Result();
 		virtual ~Postgres92Result();
 		virtual	void		clear();
-		virtual ppluint64	rows() const;
 		virtual ppluint64	affected() const;
 		virtual int			fields() const;
 		virtual String		getString(const String &fieldname);
@@ -101,7 +99,6 @@ Postgres92Result::Postgres92Result()
 	res=NULL;
 	postgres_class=NULL;
 	conn=NULL;
-	result_rows=0;
 	affectedrows=0;
 	num_fields=0;
 }
@@ -113,7 +110,6 @@ Postgres92Result::~Postgres92Result()
 
 void Postgres92Result::clear()
 {
-	result_rows=0;
 	if (conn) {
 		while (res) {
 			PQclear(res);
@@ -127,11 +123,6 @@ void Postgres92Result::clear()
 	num_fields=0;
 }
 
-
-ppluint64 Postgres92Result::rows() const
-{
-	return result_rows;
-}
 
 ppluint64 Postgres92Result::affected() const
 {
@@ -581,7 +572,7 @@ ResultSet *PostgreSQL::query(const String &query)
 	pr->res=res;
 	pr->postgres_class=this;
 	pr->conn=(PGconn *)conn;
-	pr->result_rows=PQntuples(res);
+	//pr->result_rows=PQntuples(res);
 	pr->affectedrows=affectedrows;
 	pr->num_fields=PQnfields(res);
 	return pr;

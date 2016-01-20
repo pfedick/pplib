@@ -80,7 +80,6 @@ class ResultSet
 		};
 		virtual ~ResultSet() {};
 		virtual	void		clear()=0;
-		virtual ppluint64	rows() const=0;
 		virtual ppluint64	affected() const=0;
 		virtual int			fields() const=0;
 		virtual String		getString(const String &fieldname)=0;

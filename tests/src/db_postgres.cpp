@@ -248,7 +248,6 @@ TEST_F(DBPostgreSQL, queryExistingDataGetStringEofNextRow) {
 	});
 	ASSERT_TRUE(res!=NULL);
 	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
-	ASSERT_EQ((ppluint64)1,res->rows());		// wir sehen immer nur eine Zeile
 	ASSERT_EQ((ppluint64)0,res->affected());	// bei Insert immer 0
 	ASSERT_EQ((ppluint64)4,res->fields());
 	ASSERT_EQ(ppl7::String("Fedick"),res->getString("name"));

@@ -65,7 +65,6 @@ class SQLiteResult : public ResultSet
 		sqlite3			*conn;		//!\brief SQLite-spezifisches Handle des Datenbank-Connects
 		sqlite3_stmt	*stmt;		//!\brief SQLite-spezifisches Result-Handle
 		SQLite			*sqlite_class;		//!\brief Pointer auf die SQLite-Klassem die diesen Result erzeugt hat
-		ppluint64	result_rows;		//!\brief Anzahl Zeilen im Ergebnis
 		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 		int			last_res;		//!\brief letzter Returncode von sqlite3_step()
@@ -74,7 +73,6 @@ class SQLiteResult : public ResultSet
 		SQLiteResult();
 		virtual ~SQLiteResult();
 		virtual	void		clear();
-		virtual ppluint64	rows() const;
 		virtual ppluint64	affected() const;
 		virtual int			fields() const;
 		virtual String		getString(const String &fieldname);
@@ -110,7 +108,6 @@ SQLiteResult::SQLiteResult()
 	conn=NULL;
 	stmt=NULL;
 	sqlite_class=NULL;
-	result_rows=0;
 	affectedrows=0;
 	num_fields=0;
 	last_res=0;
@@ -127,15 +124,9 @@ void SQLiteResult::clear()
 	stmt=NULL;
 	sqlite_class=NULL;
 	conn=NULL;
-	result_rows=0;
 	affectedrows=0;
 	num_fields=0;
 	last_res=0;
-}
-
-ppluint64 SQLiteResult::rows() const
-{
-	return result_rows;
 }
 
 ppluint64 SQLiteResult::affected() const
@@ -448,6 +439,7 @@ ResultSet *SQLite::query(const String &query)
 		sqlite3_finalize(stmt);
 		throw OutOfMemoryException();
 	}
+	pr->stmt=stmt;
 	pr->last_res=ret;
 	pr->sqlite_class=this;
 	pr->conn=(sqlite3 *)conn;
