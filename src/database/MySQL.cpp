@@ -94,7 +94,6 @@ class MySQLResult : public ResultSet
 		MySQLResult();
 		virtual ~MySQLResult();
 		virtual	void		clear();
-		virtual ppluint64	rows() const;
 		virtual ppluint64	affected() const;
 		virtual int			fields() const;
 		virtual String		getString(const String &fieldname);
@@ -346,7 +345,6 @@ void MySQLResult::nextRow()
 	if (!row) throw NoResultException();
 	pplMySQLThreadStart();
 	row=mysql_fetch_row(res);
-	if (!row) throw NoResultException();
 }
 
 bool MySQLResult::eof()
@@ -655,9 +653,9 @@ ResultSet *MySQL::query(const String &query)
 	t_start=GetMicrotime();
 	mysqlQuery(query);
 	updateLastUse();
-	affectedrows = mysql_affected_rows((MYSQL *)conn);
 	//lastinsertid=(ppld64)mysql_insert_id((MYSQL *)conn);
 	MYSQL_RES *res = mysql_store_result((MYSQL *)conn);
+	affectedrows = mysql_affected_rows((MYSQL *)conn);
 	logQuery(query,(float)(GetMicrotime()-t_start));
 	// Result-Klasse erstellen
 	if (!res) {

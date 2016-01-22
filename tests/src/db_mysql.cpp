@@ -55,11 +55,9 @@ class DBMySQLTest : public ::testing::Test {
 };
 
 
-#ifdef TODO
-
 TEST_F(DBMySQLTest, connect) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	try {
 		ppl7::db::MySQL db;
 		try {
@@ -84,7 +82,15 @@ TEST_F(DBMySQLTest, connect) {
 
 TEST_F(DBMySQLTest, setParamAndConnect) {
 	ppl7::db::MySQL db;
-	db.setParam("filename","tmp/sqlite_test.db");
+	ppl7::AssocArray params;
+	PPL7TestConfig.copySection(params, "mysql");
+
+	db.setParam("host",params["host"]);
+	db.setParam("port",params["port"]);
+	db.setParam("dbname",params["dbname"]);
+	db.setParam("user",params["user"]);
+	db.setParam("password",params["password"]);
+	db.setParam("timeout",params["timeout"]);
 	try {
 		db.connect();
 	} catch (const ppl7::Exception &e) {
@@ -103,7 +109,7 @@ TEST_F(DBMySQLTest, setParamAndConnect) {
 
 TEST_F(DBMySQLTest, ping) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -113,10 +119,9 @@ TEST_F(DBMySQLTest, ping) {
 	ASSERT_FALSE(db.ping());
 }
 
-
 TEST_F(DBMySQLTest, reconnect) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -129,7 +134,7 @@ TEST_F(DBMySQLTest, reconnect) {
 
 TEST_F(DBMySQLTest, closeAndReconnect) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -143,21 +148,21 @@ TEST_F(DBMySQLTest, closeAndReconnect) {
 
 TEST_F(DBMySQLTest, selectDB) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ASSERT_TRUE(db.ping());
-	ASSERT_THROW({
-		db.selectDB(PPL7TestConfig.getFromSection("postgres","dbname"));
-	},ppl7::UnsupportedFeatureException);
+	ASSERT_NO_THROW({
+		db.selectDB(PPL7TestConfig.getFromSection("mysql","dbname"));
+	});
 	ASSERT_TRUE(db.ping());
 }
 
 TEST_F(DBMySQLTest, execTransactionalInsertAndCommit) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -181,13 +186,13 @@ TEST_F(DBMySQLTest, execTransactionalInsertAndCommit) {
 	ASSERT_NO_THROW({
 		db.endTransaction();
 	});
-	ASSERT_EQ((ppluint64)1,db.getAffectedRows());
+	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
 
 }
 
 TEST_F(DBMySQLTest, execCreateTable) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -207,7 +212,7 @@ TEST_F(DBMySQLTest, execCreateTable) {
 
 TEST_F(DBMySQLTest, queryExistingDataGetStringEofNextRow) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -217,8 +222,10 @@ TEST_F(DBMySQLTest, queryExistingDataGetStringEofNextRow) {
 		res=db.query("select userid,name,surename,age from user order by userid");
 	});
 	ASSERT_TRUE(res!=NULL);
-	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
-	ASSERT_EQ((ppluint64)0,res->affected());	// bei Insert immer 0
+	// Bei einem Select liefert MySQL mit getAffectedRows die Anzahl Zeilen im
+	// Ergebnis zurueck, und verhält sich damit anders als Postgres und Sqlite
+	ASSERT_EQ((ppluint64)4,db.getAffectedRows());
+	ASSERT_EQ((ppluint64)4,res->affected());	// bei Insert immer 0
 	ASSERT_EQ((ppluint64)4,res->fields());
 	ASSERT_EQ(ppl7::String("Fedick"),res->getString("name"));
 	ASSERT_EQ(ppl7::String("Patrick"),res->getString("surename"));
@@ -260,9 +267,10 @@ TEST_F(DBMySQLTest, queryExistingDataGetStringEofNextRow) {
 	});
 }
 
+
 TEST_F(DBMySQLTest, queryFieldNumFieldName) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -287,10 +295,9 @@ TEST_F(DBMySQLTest, queryFieldNumFieldName) {
 	});
 }
 
-
 TEST_F(DBMySQLTest, queryFetchArray) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -324,7 +331,7 @@ TEST_F(DBMySQLTest, queryFetchArray) {
 
 TEST_F(DBMySQLTest, queryFetchFields) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -356,7 +363,7 @@ TEST_F(DBMySQLTest, queryFetchFields) {
 
 TEST_F(DBMySQLTest, count) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -376,7 +383,7 @@ TEST_F(DBMySQLTest, count) {
 
 TEST_F(DBMySQLTest, execArray) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -404,7 +411,7 @@ TEST_F(DBMySQLTest, execArray) {
 
 TEST_F(DBMySQLTest, execArrayf) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -432,7 +439,7 @@ TEST_F(DBMySQLTest, execArrayf) {
 
 TEST_F(DBMySQLTest, execArrayAll) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -462,7 +469,7 @@ TEST_F(DBMySQLTest, execArrayAll) {
 
 TEST_F(DBMySQLTest, execArrayAllf) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -492,7 +499,7 @@ TEST_F(DBMySQLTest, execArrayAllf) {
 
 TEST_F(DBMySQLTest, execInsertAndCount) {
 	ppl7::AssocArray params;
-	params.set("filename","tmp/sqlite_test.db");
+	PPL7TestConfig.copySection(params, "mysql");
 	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
@@ -506,7 +513,6 @@ TEST_F(DBMySQLTest, execInsertAndCount) {
 	});
 }
 
-#endif
 
 }	// EOF namespace
 
