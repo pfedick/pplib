@@ -52,4 +52,23 @@
 namespace ppl7 {
 
 
+typedef struct tagThreadData {
+	ppluint64	threadId;
+#ifdef _WIN32
+	HANDLE	thread;
+	DWORD	dwThreadID;
+#elif defined HAVE_PTHREADS
+	pthread_t thread;
+	pthread_attr_t	attr;
+#else
+	int	thread;
+#endif
+	void		(*mysql_thread_end)();
+				// Bit  0: Thread hat MySQL benutzt
+	void *clientData;
+} THREADDATA;
+
+THREADDATA * GetThreadData();
+
+
 } // EOF namespace ppl7

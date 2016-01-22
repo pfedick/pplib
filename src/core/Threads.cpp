@@ -75,22 +75,6 @@ Mutex Win32ThreadMutex;
 DWORD Win32ThreadTLS=TLS_OUT_OF_INDEXES;
 #endif
 
-typedef struct tagThreadData {
-	ppluint64	threadId;
-#ifdef _WIN32
-	HANDLE	thread;
-	DWORD	dwThreadID;
-#elif defined HAVE_PTHREADS
-	pthread_t thread;
-	pthread_attr_t	attr;
-#else
-	int	thread;
-#endif
-	void		(*mysql_thread_end)(struct tagThreadData *thread);
-				// Bit  0: Thread hat MySQL benutzt
-	void *clientData;
-} THREADDATA;
-
 
 typedef struct {
 	Thread		*threadClass;
@@ -205,9 +189,6 @@ THREADDATA * GetThreadData()
 #endif
 }
 
-
-
-
 ppluint64 ThreadID()
 {
 	THREADDATA *ptr=GetThreadData();
@@ -253,9 +234,13 @@ void SetTLSData(void *data)
 		CreateTLS(ts->td);
 		if (ts->threadClass) {
 			ts->threadClass->threadStartUp();
-			if (ts->threadClass->threadShouldDeleteOnExit()) delete ts->threadClass;
+			if (ts->td->mysql_thread_end) ts->td->mysql_thread_end();
+			if (ts->threadClass->threadShouldDeleteOnExit()) {
+				delete ts->threadClass;
+			}
 		} else {
 			ts->threadFunction(ts->data);
+			if (ts->td->mysql_thread_end) ts->td->mysql_thread_end();
 			pthread_attr_destroy(&ts->td->attr);
 		}
 
