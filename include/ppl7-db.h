@@ -49,8 +49,8 @@
 namespace ppl7 {
 namespace db {
 
-class Pool;
-class PoolEx;
+class SinglePool;
+class MultiPool;
 class Database;
 
 class ConnectParameter
@@ -101,8 +101,8 @@ void copyResultToAssocArray(ResultSet *res, AssocArray &array);
 
 class Database
 {
-	friend class Pool;
-	friend class PoolEx;
+	friend class SinglePool;
+	friend class MultiPool;
 
 	private:
 		AssocArray	ConnectParam;
@@ -276,6 +276,57 @@ class SQLite: public Database
 		virtual String		databaseType() const;
 		virtual String		getQuoted(const String &value, const String &type=String()) const;
 };
+
+
+class SinglePool
+{
+	private:
+		Mutex			PoolMutex;
+		std::list<Database *>	Used, Free;
+		AssocArray		ConnectParam;
+		String			Name;
+		String			Hash;
+		Logger			*Log;
+		int				Id;
+		int				Min, Max;
+		int				MinSpare, MaxSpare;
+		int				Grow;
+		int				IdleTimeout;
+		int				KeepAlive;
+		bool			IsInit;
+		double			LastCheck;
+		Database	*newDB();
+		void		calcHash(String &hash, const AssocArray &param);
+
+	public:
+		SinglePool();
+		~SinglePool();
+
+		void setConnectParams(const AssocArray &connect);
+		void setName(const String &Name);
+		void setId(int id);
+		void setMinimumSize(int num);
+		void setMaximumSize(int num);
+		void setMinSpare(int num);
+		void setMaxSpare(int num);
+		void setGrowth(int num);
+		void setIdleTimeout(int seconds);
+		void setKeepAliveIntervall(int seconds);
+
+
+
+
+
+		Database *get(bool wait=false, int ms=0);
+		void release(Database *db);
+		void destroy(Database *db);
+		void checkPool();
+		void clearUsedPool(bool destroy=false);
+		void clearFreePool(bool destroy=false);
+		void getStatus(AssocArray &status);
+		void setLogger(Logger &logger);
+};
+
 
 
 } // EOF namespace db
