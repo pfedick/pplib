@@ -347,6 +347,7 @@ void SQLite::close()
 	}
 	sqlite3_close((sqlite3*)conn);
 	conn=NULL;
+	clearLastUse();
 #endif
 }
 

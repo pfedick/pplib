@@ -56,13 +56,12 @@ class DBMySQLTest : public ::testing::Test {
 
 
 #ifdef TODO
+
 TEST_F(DBMySQLTest, connect) {
-	//ppl7::db::PostgreSQL db;
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	//params.list();
+	params.set("filename","tmp/sqlite_test.db");
 	try {
-		ppl7::db::PostgreSQL db;
+		ppl7::db::MySQL db;
 		try {
 			db.connect(params);
 		} catch (const ppl7::Exception &e) {
@@ -83,18 +82,9 @@ TEST_F(DBMySQLTest, connect) {
 	}
 }
 
-TEST_F(DBPostgreSQL, setParamAndConnect) {
-	//ppl7::db::PostgreSQL db;
-	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
-	db.setParam("host",params["host"]);
-	db.setParam("port",params["port"]);
-	db.setParam("dbname",params["dbname"]);
-	db.setParam("user",params["user"]);
-	db.setParam("password",params["password"]);
-	db.setParam("timeout",params["timeout"]);
-
+TEST_F(DBMySQLTest, setParamAndConnect) {
+	ppl7::db::MySQL db;
+	db.setParam("filename","tmp/sqlite_test.db");
 	try {
 		db.connect();
 	} catch (const ppl7::Exception &e) {
@@ -111,12 +101,10 @@ TEST_F(DBPostgreSQL, setParamAndConnect) {
 	}
 }
 
-
-TEST_F(DBPostgreSQL, ping) {
-	//ppl7::db::PostgreSQL db;
+TEST_F(DBMySQLTest, ping) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
@@ -125,11 +113,11 @@ TEST_F(DBPostgreSQL, ping) {
 	ASSERT_FALSE(db.ping());
 }
 
-TEST_F(DBPostgreSQL, reconnect) {
-	//ppl7::db::PostgreSQL db;
+
+TEST_F(DBMySQLTest, reconnect) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
@@ -139,11 +127,10 @@ TEST_F(DBPostgreSQL, reconnect) {
 	ASSERT_TRUE(db.ping());
 }
 
-TEST_F(DBPostgreSQL, closeAndReconnect) {
-	//ppl7::db::PostgreSQL db;
+TEST_F(DBMySQLTest, closeAndReconnect) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
@@ -154,37 +141,24 @@ TEST_F(DBPostgreSQL, closeAndReconnect) {
 	ASSERT_TRUE(db.ping());
 }
 
-TEST_F(DBPostgreSQL, connectToPostgres) {
-	//ppl7::db::PostgreSQL db;
+TEST_F(DBMySQLTest, selectDB) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	params.set("dbname","postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ASSERT_TRUE(db.ping());
-}
-
-TEST_F(DBPostgreSQL, selectDB) {
-	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	params.set("dbname","postgres");
-	ppl7::db::PostgreSQL db;
-	ASSERT_NO_THROW({
-		db.connect(params);
-	});
-	ASSERT_TRUE(db.ping());
-	ASSERT_NO_THROW({
+	ASSERT_THROW({
 		db.selectDB(PPL7TestConfig.getFromSection("postgres","dbname"));
-	});
+	},ppl7::UnsupportedFeatureException);
 	ASSERT_TRUE(db.ping());
 }
 
-TEST_F(DBPostgreSQL, execTransactionalInsertAndCommit) {
+TEST_F(DBMySQLTest, execTransactionalInsertAndCommit) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
@@ -193,7 +167,7 @@ TEST_F(DBPostgreSQL, execTransactionalInsertAndCommit) {
 	});
 	ASSERT_NO_THROW({
 		try {
-			db.exec("insert into ppl7_test.test_insert (login,name,surename) values ('test1','Tester','Fritz')");
+			db.exec("insert into test_insert (login,name,surename) values ('test1','Tester','Fritz')");
 		} catch (const ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -201,30 +175,29 @@ TEST_F(DBPostgreSQL, execTransactionalInsertAndCommit) {
 	});
 	ASSERT_EQ((ppluint64)1,db.getAffectedRows());
 	ASSERT_NO_THROW({
-		db.exec("insert into ppl7_test.test_insert (login,name,surename) values ('test2','Tester','Hans')");
+		db.exec("insert into test_insert (login,name,surename) values ('test2','Tester','Hans')");
 	});
 	ASSERT_EQ((ppluint64)1,db.getAffectedRows());
 	ASSERT_NO_THROW({
 		db.endTransaction();
 	});
-	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
+	ASSERT_EQ((ppluint64)1,db.getAffectedRows());
 
 }
 
-
-TEST_F(DBPostgreSQL, execCreateTable) {
+TEST_F(DBMySQLTest, execCreateTable) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ASSERT_NO_THROW({
-		db.exec("drop table if exists ppl7_test.testcreatetable");
+		db.exec("drop table if exists testcreatetable");
 	});
 	ASSERT_NO_THROW({
 		try {
-			db.exec("create table ppl7_test.testcreatetable (id int4 not null)");
+			db.exec("create table testcreatetable (id int4 not null)");
 		} catch (const ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -232,30 +205,29 @@ TEST_F(DBPostgreSQL, execCreateTable) {
 	});
 }
 
-TEST_F(DBPostgreSQL, queryExistingDataGetStringEofNextRow) {
+TEST_F(DBMySQLTest, queryExistingDataGetStringEofNextRow) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::db::ResultSet *res;
 	ASSERT_NO_THROW({
-		res=db.query("select userid,name,surename,age from ppl7_test.user order by userid");
+		res=db.query("select userid,name,surename,age from user order by userid");
 	});
 	ASSERT_TRUE(res!=NULL);
 	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
-	ASSERT_EQ((ppluint64)1,res->rows());		// wir sehen immer nur eine Zeile
 	ASSERT_EQ((ppluint64)0,res->affected());	// bei Insert immer 0
 	ASSERT_EQ((ppluint64)4,res->fields());
 	ASSERT_EQ(ppl7::String("Fedick"),res->getString("name"));
 	ASSERT_EQ(ppl7::String("Patrick"),res->getString("surename"));
 	ASSERT_EQ(ppl7::String("42"),res->getString("age"));
 
-	ASSERT_EQ(ppl7::String("1"),res->getString(0));
-	ASSERT_EQ(ppl7::String("Fedick"),res->getString(1));
-	ASSERT_EQ(ppl7::String("Patrick"),res->getString(2));
-	ASSERT_EQ(ppl7::String("42"),res->getString(3));
+	EXPECT_EQ(ppl7::String("1"),res->getString(0));
+	EXPECT_EQ(ppl7::String("Fedick"),res->getString(1));
+	EXPECT_EQ(ppl7::String("Patrick"),res->getString(2));
+	EXPECT_EQ(ppl7::String("42"),res->getString(3));
 
 	ASSERT_FALSE(res->eof());
 
@@ -288,17 +260,16 @@ TEST_F(DBPostgreSQL, queryExistingDataGetStringEofNextRow) {
 	});
 }
 
-
-TEST_F(DBPostgreSQL, queryFieldNumFieldName) {
+TEST_F(DBMySQLTest, queryFieldNumFieldName) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::db::ResultSet *res;
 	ASSERT_NO_THROW({
-		res=db.query("select userid,name,surename,age from ppl7_test.user order by userid");
+		res=db.query("select userid,name,surename,age from user order by userid");
 	});
 	ASSERT_TRUE(res!=NULL);
 	ASSERT_EQ((int)0,res->fieldNum("userid"));
@@ -316,16 +287,17 @@ TEST_F(DBPostgreSQL, queryFieldNumFieldName) {
 	});
 }
 
-TEST_F(DBPostgreSQL, queryFetchArray) {
+
+TEST_F(DBMySQLTest, queryFetchArray) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::db::ResultSet *res;
 	ASSERT_NO_THROW({
-		res=db.query("select userid,name,surename,age from ppl7_test.user order by userid");
+		res=db.query("select userid,name,surename,age from user order by userid");
 	});
 	ASSERT_TRUE(res!=NULL);
 	std::list<ppl7::AssocArray> resultset;
@@ -349,16 +321,17 @@ TEST_F(DBPostgreSQL, queryFetchArray) {
 	});
 }
 
-TEST_F(DBPostgreSQL, queryFetchFields) {
+
+TEST_F(DBMySQLTest, queryFetchFields) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::db::ResultSet *res;
 	ASSERT_NO_THROW({
-		res=db.query("select userid,name,surename,age from ppl7_test.user order by userid");
+		res=db.query("select userid,name,surename,age from user order by userid");
 	});
 	ASSERT_TRUE(res!=NULL);
 	std::list<ppl7::Array> resultset;
@@ -381,19 +354,19 @@ TEST_F(DBPostgreSQL, queryFetchFields) {
 	});
 }
 
-TEST_F(DBPostgreSQL, count) {
+TEST_F(DBMySQLTest, count) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ASSERT_NO_THROW({
-		ASSERT_EQ((ppluint64)4, db.count("ppl7_test.user"));
+		ASSERT_EQ((ppluint64)4, db.count("user"));
 	});
 	ASSERT_NO_THROW({
 		try {
-			ASSERT_EQ((ppluint64)2, db.count("ppl7_test.user","userid<3"));
+			ASSERT_EQ((ppluint64)2, db.count("user","userid<3"));
 		} catch (const ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -401,16 +374,16 @@ TEST_F(DBPostgreSQL, count) {
 	});
 }
 
-TEST_F(DBPostgreSQL, execArray) {
+TEST_F(DBMySQLTest, execArray) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::AssocArray a;
 	ASSERT_NO_THROW({
-		db.execArray(a,"select * from ppl7_test.user where userid=1");
+		db.execArray(a,"select * from user where userid=1");
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(ppl7::String("1"),a["userid"]);
@@ -419,7 +392,7 @@ TEST_F(DBPostgreSQL, execArray) {
 		ASSERT_EQ(ppl7::String("42"),a["age"]);
 	});
 	ASSERT_NO_THROW({
-		a=db.execArray("select * from ppl7_test.user where userid=1");
+		a=db.execArray("select * from user where userid=1");
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(ppl7::String("1"),a["userid"]);
@@ -429,17 +402,16 @@ TEST_F(DBPostgreSQL, execArray) {
 	});
 }
 
-
-TEST_F(DBPostgreSQL, execArrayf) {
+TEST_F(DBMySQLTest, execArrayf) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::AssocArray a;
 	ASSERT_NO_THROW({
-		db.execArrayf(a,"select * from ppl7_test.user where userid=%d",1);
+		db.execArrayf(a,"select * from user where userid=%d",1);
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(ppl7::String("1"),a["userid"]);
@@ -448,7 +420,7 @@ TEST_F(DBPostgreSQL, execArrayf) {
 		ASSERT_EQ(ppl7::String("42"),a["age"]);
 	});
 	ASSERT_NO_THROW({
-		a=db.execArrayf("select * from ppl7_test.user where userid=%d",1);
+		a=db.execArrayf("select * from user where userid=%d",1);
 	});
 	ASSERT_NO_THROW({
 		ASSERT_EQ(ppl7::String("1"),a["userid"]);
@@ -458,16 +430,16 @@ TEST_F(DBPostgreSQL, execArrayf) {
 	});
 }
 
-TEST_F(DBPostgreSQL, execArrayAll) {
+TEST_F(DBMySQLTest, execArrayAll) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::AssocArray a;
 	ASSERT_NO_THROW({
-		db.execArrayAll(a,"select * from ppl7_test.user");
+		db.execArrayAll(a,"select * from user");
 	});
 	ASSERT_EQ((size_t)4,a.size());
 	ASSERT_NO_THROW({
@@ -483,22 +455,21 @@ TEST_F(DBPostgreSQL, execArrayAll) {
 		ASSERT_EQ(ppl7::String("77"),a["3/age"]);
 	});
 	ASSERT_NO_THROW({
-		a=db.execArrayAll("select * from ppl7_test.user");
+		a=db.execArrayAll("select * from user");
 	});
 	ASSERT_EQ((size_t)4,a.size());
 }
 
-
-TEST_F(DBPostgreSQL, execArrayAllf) {
+TEST_F(DBMySQLTest, execArrayAllf) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ppl7::AssocArray a;
 	ASSERT_NO_THROW({
-		db.execArrayAllf(a,"select * from ppl7_test.user where userid>%d",0);
+		db.execArrayAllf(a,"select * from user where userid>%d",0);
 	});
 	ASSERT_EQ((size_t)4,a.size());
 	ASSERT_NO_THROW({
@@ -514,33 +485,28 @@ TEST_F(DBPostgreSQL, execArrayAllf) {
 		ASSERT_EQ(ppl7::String("77"),a["3/age"]);
 	});
 	ASSERT_NO_THROW({
-		a=db.execArrayAllf("select * from ppl7_test.user where userid>%d",0);
+		a=db.execArrayAllf("select * from user where userid>%d",0);
 	});
 	ASSERT_EQ((size_t)4,a.size());
 }
 
-
-TEST_F(DBPostgreSQL, execInsertAndCount) {
+TEST_F(DBMySQLTest, execInsertAndCount) {
 	ppl7::AssocArray params;
-	PPL7TestConfig.copySection(params, "postgres");
-	ppl7::db::PostgreSQL db;
+	params.set("filename","tmp/sqlite_test.db");
+	ppl7::db::MySQL db;
 	ASSERT_NO_THROW({
 		db.connect(params);
 	});
 	ASSERT_NO_THROW({
-		db.exec("insert into ppl7_test.test_insert_get_insert_id (name,surename) values ('Tester','Klaus')");
-		db.exec("insert into ppl7_test.test_insert_get_insert_id (name,surename) values ('Tester','Hans')");
+		db.exec("insert into test_insert_get_insert_id (name,surename) values ('Tester','Klaus')");
+		db.exec("insert into test_insert_get_insert_id (name,surename) values ('Tester','Hans')");
 	});
 	ASSERT_NO_THROW({
-		ASSERT_EQ((ppluint64)2, db.count("ppl7_test.test_insert_get_insert_id"));
+		ASSERT_EQ((ppluint64)2, db.count("test_insert_get_insert_id"));
 	});
-
-
 }
 
-
-#endif //TODO
-
+#endif
 
 }	// EOF namespace
 

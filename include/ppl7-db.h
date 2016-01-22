@@ -114,6 +114,7 @@ class Database
 		void    logQuery(const String &query, float duration);
 		void	updateLastPing();
 		void	updateLastUse();
+		void	clearLastUse();
 
 	public:
 		Database();
@@ -215,12 +216,11 @@ class MySQL: public Database
 		int			transactiondepth;
 		AssocArray	condata;
 
-		void *mysqlQuery(const String &query);
+		void mysqlQuery(const String &query);
 
 	public:
 		MySQL();
 		virtual ~MySQL();
-
 		virtual void		connect();
 		virtual void		connect(const AssocArray &params);
 		virtual void		connectCreate(const AssocArray &params);
@@ -239,6 +239,8 @@ class MySQL: public Database
 		virtual void		createDatabase(const String &name);
 		virtual String		databaseType() const;
 		virtual String		getQuoted(const String &value, const String &type=String()) const;
+
+		static void			libraryInit(int argc=0, char **argv=NULL, char **groups=NULL);
 };
 
 class SQLite: public Database

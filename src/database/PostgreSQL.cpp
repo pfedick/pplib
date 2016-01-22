@@ -406,6 +406,7 @@ void PostgreSQL::close()
 	}
 	PQfinish((PGconn*)conn);
 	conn=NULL;
+	clearLastUse();
 #endif
 }
 
@@ -544,7 +545,7 @@ void PostgreSQL::exec(const String &query)
 		logQuery(query,(float)(GetMicrotime()-t_start));
 		return;
 	}
-	throw QueryFailedException();
+	throw QueryFailedException(query);
 #endif
 }
 

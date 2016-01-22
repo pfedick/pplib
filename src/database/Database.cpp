@@ -309,6 +309,17 @@ void Database::updateLastUse()
 	lastuse=lastping;
 }
 
+/*!\brief Timestamps auf 0 setzen
+ *
+ * \descr
+ * Die Werte Database::lastping und Database::lastuse werden auf 0 gesetzt. Die Methode wird
+ * aufgerufen, wenn die Verbindung zur Datenbank getrennt wird.
+ */
+void Database::clearLastUse()
+{
+	lastping=lastuse=0;
+}
+
 /*!\brief Parameter für den Connect setzen
  *
  * \descr
