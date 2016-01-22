@@ -511,6 +511,7 @@ void SQLite::endTransaction()
 		execf("RELEASE SAVEPOINT LEVEL%i",transactiondepth-1);
 		transactiondepth--;
 	}
+	affectedrows=0;
 #endif
 }
 
@@ -526,6 +527,7 @@ void SQLite::cancelTransaction()
 		execf("ROLLBACK TO SAVEPOINT LEVEL%i",transactiondepth-1);
 		transactiondepth--;
 	}
+	affectedrows=0;
 #endif
 }
 
@@ -536,6 +538,7 @@ void SQLite::cancelTransactionComplete()
 #else
 	exec("ROLLBACK");
 	transactiondepth=0;
+	affectedrows=0;
 #endif
 }
 

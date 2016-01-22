@@ -179,7 +179,7 @@ TEST_F(DBSQLiteTest, execTransactionalInsertAndCommit) {
 	ASSERT_NO_THROW({
 		db.endTransaction();
 	});
-	ASSERT_EQ((ppluint64)1,db.getAffectedRows());
+	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
 
 }
 
