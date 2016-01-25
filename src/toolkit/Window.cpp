@@ -96,7 +96,7 @@ Window::Window()
 	privateData=NULL;
 	wm=NULL;
 	myBackground=style->windowBackgroundColor;
-	keyfocus=NULL;
+	keyfocus=this;
 }
 
 Window::~Window()
