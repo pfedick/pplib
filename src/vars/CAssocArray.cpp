@@ -174,10 +174,10 @@ void CArrayItem::Clear()
 {
 	if (!type) return;
 	if (type==datatype::ARRAY) delete (static_cast<CAssocArray*>(value));
-	if (type==datatype::CSTRING) delete (static_cast<CString*>(value));
-	if (type==datatype::CWSTRING) delete (static_cast<CWString*>(value));
-	if (type==datatype::BINARY) delete (static_cast<CBinary*>(value));
-	if (type==datatype::DATETIME) delete (static_cast<CDateTime*>(value));
+	else if (type==datatype::CSTRING) delete (static_cast<CString*>(value));
+	else if (type==datatype::CWSTRING) delete (static_cast<CWString*>(value));
+	else if (type==datatype::BINARY) delete (static_cast<CBinary*>(value));
+	else if (type==datatype::DATETIME) delete (static_cast<CDateTime*>(value));
 	type=0;
 	value=0;
 }
