@@ -277,8 +277,14 @@ TEST_F(CLogTest, MultithreadedTests) {
 
 	for (int i=0;i<10;i++) {
 		thread=new LogThread;
-		ASSERT_EQ(1,thread->ThreadStart(NULL)) << "Starte Thread";
-		ASSERT_EQ(1,Pool.AddThread(thread)) << "Gebe Thread in den Threadpool";
+		if (thread->ThreadStart(NULL)!=1) {
+			delete thread;
+			FAIL() << "Thread-Start fehlgeschlagen";
+		}
+		if (Pool.AddThread(thread)!=1) {
+			delete thread;
+			FAIL() << "Thread konnte nicht in den Pool gegeben werden";
+		}
 	}
 	Pool.Stop();
 	Pool.DestroyThreads();
