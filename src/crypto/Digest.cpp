@@ -400,12 +400,8 @@ ppluint32 Digest::adler32(const ByteArrayPtr &data)
 {
      const unsigned char *buffer = (const unsigned char *)data.ptr();
      size_t buflength=data.size();
-     /* ZLIB
-     uLong adler = ::adler32(0L, Z_NULL, 0);
-   	 return ::adler32(adler, buffer, buflength);
-   	 */
-     uint32_t s1 = 1;
-     uint32_t s2 = 0;
+     ppluint32 s1 = 1;
+     ppluint32 s2 = 0;
 
      for (size_t n = 0; n < buflength; n++) {
         s1 = (s1 + buffer[n]) % 65521;
