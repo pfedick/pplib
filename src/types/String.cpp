@@ -1399,7 +1399,7 @@ char String::get(ssize_t pos) const
 char String::operator[](ssize_t pos) const
 {
 	if (pos>=0 && stringlen>(size_t)pos) return ((char*)ptr)[pos];
-	if (pos<0 && (size_t)(0-pos)<stringlen) return ((char*)ptr)[stringlen+pos];
+	if (pos<0 && (size_t)(0-pos)<=stringlen) return ((char*)ptr)[stringlen+pos];
 	throw OutOfBoundsEception();
 }
 

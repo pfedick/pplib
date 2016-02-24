@@ -1282,6 +1282,52 @@ TEST_F(StringTest, ToDouble_182566142_346214893456) {
 }
 
 
+TEST_F(StringTest, OperatorCharPositionPositiv) {
+	ppl7::String s1("Hello World!");
+	EXPECT_EQ((char)'H',s1[0]) << "Unexpected Result";
+	EXPECT_EQ((char)'e',s1[1]) << "Unexpected Result";
+	EXPECT_EQ((char)'l',s1[2]) << "Unexpected Result";
+	EXPECT_EQ((char)'l',s1[3]) << "Unexpected Result";
+	EXPECT_EQ((char)'o',s1[4]) << "Unexpected Result";
+	EXPECT_EQ((char)' ',s1[5]) << "Unexpected Result";
+	EXPECT_EQ((char)'W',s1[6]) << "Unexpected Result";
+	EXPECT_EQ((char)'o',s1[7]) << "Unexpected Result";
+	EXPECT_EQ((char)'r',s1[8]) << "Unexpected Result";
+	EXPECT_EQ((char)'l',s1[9]) << "Unexpected Result";
+	EXPECT_EQ((char)'d',s1[10]) << "Unexpected Result";
+	EXPECT_EQ((char)'!',s1[11]) << "Unexpected Result";
+
+	ASSERT_THROW({
+			ASSERT_EQ((char)0,s1[12]);
+	},ppl7::OutOfBoundsEception);
+
+}
+
+TEST_F(StringTest, OperatorCharPositionNegativ) {
+	ppl7::String s1("Hello World!");
+	EXPECT_EQ((char)'H',s1[0]) << "Unexpected Result";
+	EXPECT_EQ((char)'!',s1[-1]) << "Unexpected Result";
+	EXPECT_EQ((char)'d',s1[-2]) << "Unexpected Result";
+	EXPECT_EQ((char)'l',s1[-3]) << "Unexpected Result";
+	EXPECT_EQ((char)'r',s1[-4]) << "Unexpected Result";
+	EXPECT_EQ((char)'o',s1[-5]) << "Unexpected Result";
+	EXPECT_EQ((char)'W',s1[-6]) << "Unexpected Result";
+	EXPECT_EQ((char)' ',s1[-7]) << "Unexpected Result";
+	EXPECT_EQ((char)'o',s1[-8]) << "Unexpected Result";
+	EXPECT_EQ((char)'l',s1[-9]) << "Unexpected Result";
+	EXPECT_EQ((char)'l',s1[-10]) << "Unexpected Result";
+	EXPECT_EQ((char)'e',s1[-11]) << "Unexpected Result";
+	EXPECT_EQ((char)'H',s1[-12]) << "Unexpected Result";
+	ASSERT_THROW({
+			ASSERT_EQ((char)0,s1[-13]);
+	},ppl7::OutOfBoundsEception);
+
+}
+
+
+
+
+
 }
 
 
