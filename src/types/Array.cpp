@@ -581,10 +581,14 @@ void Array::list(const String &prefix) const
  * @return Referenz auf den Inhalt des Elements
  * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
-const String &Array::get(size_t index) const
+const String &Array::get(ssize_t index) const
 {
+	if (index<0) {
+		index=numElements+index;
+		if (index<0) throw OutOfBoundsEception();
+	}
 	ROW *r=(ROW*)rows;
-	if (index>=numElements) throw OutOfBoundsEception();
+	if ((size_t)index>=numElements) throw OutOfBoundsEception();
 	if (r[index].value!=NULL) return *r[index].value;
 	return EmptyString;
 }
@@ -599,10 +603,14 @@ const String &Array::get(size_t index) const
  * @return Referenz auf den Inhalt des Elements
  * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
-String &Array::get(size_t index)
+String &Array::get(ssize_t index)
 {
+	if (index<0) {
+		index=numElements+index;
+		if (index<0) throw OutOfBoundsEception();
+	}
 	ROW *r=(ROW*)rows;
-	if (index>=numElements) throw OutOfBoundsEception();
+	if ((size_t)index>=numElements) throw OutOfBoundsEception();
 	if (r[index].value!=NULL) return *r[index].value;
 	return EmptyString;
 }
@@ -653,12 +661,9 @@ String &Array::getRandom()
  * @return Pointer auf den C-String des gewünschten Elements.
  * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
-const char *Array::getPtr(size_t index) const
+const char *Array::getPtr(ssize_t index) const
 {
-	ROW *r=(ROW*)rows;
-	if (index>=numElements) throw OutOfBoundsEception();
-	if (r[index].value!=NULL) return r[index].value->getPtr();
-	return "";
+	return get(index).getPtr();
 }
 
 /*!\brief Zufälliges Element als char Pointer auslesen
@@ -1064,12 +1069,9 @@ Array &Array::fromArgs(const String &args)
  * @return Referenz auf den Inhalt des Elements
  * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
-String &Array::operator[](size_t index)
+String &Array::operator[](ssize_t index)
 {
-	ROW *r=(ROW*)rows;
-	if (index>=numElements) throw OutOfBoundsEception();
-	if (r[index].value!=NULL) return *r[index].value;
-	return EmptyString;
+	return get(index);
 }
 
 /*!\brief Element aus dem Array als Konstante auslesen
@@ -1082,12 +1084,9 @@ String &Array::operator[](size_t index)
  * @return Referenz auf den Inhalt des Elements
  * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
-const String &Array::operator[](size_t index) const
+const String &Array::operator[](ssize_t index) const
 {
-	ROW *r=(ROW*)rows;
-	if (index>=numElements) throw OutOfBoundsEception();
-	if (r[index].value!=NULL) return *r[index].value;
-	return EmptyString;
+	return get(index);
 }
 
 

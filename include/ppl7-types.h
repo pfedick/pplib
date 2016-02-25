@@ -839,12 +839,12 @@ class Array
 
 		//! @name Elemente auslesen
 		//@{
-		const String &get(size_t index) const;
+		const String &get(ssize_t index) const;
 		const String &getRandom() const;
-		String &get(size_t index);
+		String &get(ssize_t index);
 		String &getRandom();
 		String getRest(size_t index, const String &delimiter=" ");
-		const char *getPtr(size_t index) const;
+		const char *getPtr(ssize_t index) const;
 		const char *getRandomPtr() const;
 		void reset(Iterator &it) const;
 		const String &getFirst(Iterator &it) const;
@@ -871,8 +871,8 @@ class Array
 
 		//! @name Operatoren
 		//@{
-		String &operator[](size_t index);
-		const String &operator[](size_t index) const;
+		String &operator[](ssize_t index);
+		const String &operator[](ssize_t index) const;
 		Array& operator=(const Array &other);
 		Array& operator+=(const Array &other);
 		bool operator==(const Array &other);
