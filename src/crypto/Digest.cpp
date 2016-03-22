@@ -72,8 +72,10 @@ void InitOpenSSLDigest()
 	throw UnsupportedFeatureException("OpenSSL");
 #else
 	__OpenSSLGlobalMutex.lock();
-	::OpenSSL_add_all_digests();
-	__OpenSSLDigestAdded=true;
+	if (!__OpenSSLDigestAdded) {
+		::OpenSSL_add_all_digests();
+		__OpenSSLDigestAdded=true;
+	}
 	__OpenSSLGlobalMutex.unlock();
 #endif
 }
