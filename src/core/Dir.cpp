@@ -551,7 +551,7 @@ void Dir::resortFilename()
 		sorter.insert(std::pair<String,const DirEntry*>(de.Filename,&de));
 	}
 	std::multimap<String, const DirEntry*>::const_iterator sortit;
-	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+	for (sortit=sorter.begin();sortit!=sorter.end();++sortit) {
 		SortedFiles.add((*sortit).second);
 	}
 }
@@ -578,7 +578,7 @@ void Dir::resortFilenameIgnoreCase()
 		sorter.insert(std::pair<String,const DirEntry*>(filename,&de));
 	}
 	std::multimap<String, const DirEntry*>::const_iterator sortit;
-	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+	for (sortit=sorter.begin();sortit!=sorter.end();++sortit) {
 		SortedFiles.add((*sortit).second);
 	}
 }
@@ -606,7 +606,7 @@ void Dir::resortMTime()
 		sorter.insert(std::pair<DateTime,const DirEntry*>(de.MTime,&de));
 	}
 	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
-	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+	for (sortit=sorter.begin();sortit!=sorter.end();++sortit) {
 		SortedFiles.add((*sortit).second);
 	}
 }
@@ -634,7 +634,7 @@ void Dir::resortCTime()
 		sorter.insert(std::pair<DateTime,const DirEntry*>(de.CTime,&de));
 	}
 	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
-	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+	for (sortit=sorter.begin();sortit!=sorter.end();++sortit) {
 		SortedFiles.add((*sortit).second);
 	}
 }
@@ -660,7 +660,7 @@ void Dir::resortATime()
 		sorter.insert(std::pair<DateTime,const DirEntry*>(de.ATime,&de));
 	}
 	std::multimap<DateTime, const DirEntry*>::const_iterator sortit;
-	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+	for (sortit=sorter.begin();sortit!=sorter.end();++sortit) {
 		SortedFiles.add((*sortit).second);
 	}
 }
@@ -686,7 +686,7 @@ void Dir::resortSize()
 		sorter.insert(std::pair<ppluint64,const DirEntry*>(de.Size,&de));
 	}
 	std::multimap<ppluint64, const DirEntry*>::const_iterator sortit;
-	for (sortit=sorter.begin();sortit!=sorter.end();sortit++) {
+	for (sortit=sorter.begin();sortit!=sorter.end();++sortit) {
 		SortedFiles.add((*sortit).second);
 	}
 
@@ -1080,7 +1080,7 @@ void Dir::open(const char *path, Sort s)
 	struct dirent d;
 	DirEntry de;
 	String CurrentFile;
-	while (1==1) {
+	while (1) {
 #ifdef HAVE_READDIR_R
 		struct dirent *result;
 		if (readdir_r(dir,&d,&result)!=0) {
