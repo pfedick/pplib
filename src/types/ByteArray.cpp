@@ -604,7 +604,6 @@ void *ByteArray::calloc(size_t size)
 	} else {
 		throw OutOfMemoryException();
 	}
-	((char*)ptradr)[ptrsize]=0;
 	return ptradr;
 }
 
