@@ -557,15 +557,13 @@ ppluint64 ID3Tag::findId3Tag(FileObject &File)
 	else if (myAudioFormat==AF_MP3) return 0;
 	else if (myAudioFormat==AF_AIFF) {
 		ppluint64 p=12;
-		ppluint32 size;
 		while (p<File.size()) {
 			const char *adr=File.map(p,8);
 			if (!adr) break;
 			if (PeekN32(adr)==0x49443320) {
 				return p+8;
 			}
-			size=PeekN32(adr+4);
-			p+=size+8;
+			p+=PeekN32(adr+4)+8;
 		}
 	}
 	return (ppluint32)-1;
@@ -632,7 +630,6 @@ void ID3Tag::load(FileObject &file)
 	#ifdef ID3DEBUG
 		printf ("ID3 V2-Tag gefunden, Flags: %i, Länge: %i Bytes\n",Flags,Size);
 	#endif
-	ID3Frame *Frame;
 	// Jetzt lesen wir alle Frames in den Speicher
 	while (1) {
 		adr=file.map(p,10);
@@ -641,7 +638,7 @@ void ID3Tag::load(FileObject &file)
 		HexDump((void*)adr,10);
 #endif
 		if (Peek32(adr)==0) break;
-		Frame=new ID3Frame;
+		ID3Frame *Frame=new ID3Frame;
 		Frame->ID.set(adr,4);
 		Frame->Flags=PeekN16(adr+8);
 		if (version==4) {
@@ -1324,10 +1321,9 @@ void ID3Tag::saveMP3()
 	if (rest>0) {
 		char *space=(char*)calloc(1024,1);
 		if (!space) throw ppl7::OutOfMemoryException();
-		ppluint32 bytes;
 		try {
 			while (rest) {
-				bytes=rest;
+				ppluint32 bytes=rest;
 				if (bytes>1024) bytes=1024;
 				if (useoldfile)	o.write(space,bytes,pn);
 				else n.write(space,bytes,pn);
@@ -1360,13 +1356,11 @@ void ID3Tag::saveMP3()
 
 bool ID3Tag::trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2)
 {
-	const char *adr;
 	ppluint32 qp=12;
-	ppluint32 size;
 	while (qp<o.size()) {
-		adr=o.map(qp,32);
+		const char *adr=o.map(qp,32);
 		if (!adr) break;
-		size=PeekN32(adr+4);
+		ppluint32 size=PeekN32(adr+4);
 		if (PeekN32(adr)==0x49443320) {	// ID3-Chunk gefunden
 			//printf ("Found ID3-Chunk with size: %u, Tag is: %u\n",size,tagV2.Size());
 			if (size>tagV2.size()) {
@@ -1404,10 +1398,9 @@ void ID3Tag::copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2
 	ppluint32 tp=12;
 	ppluint32 size;
 	ppluint32 formsize=4;
-	const char *adr;
 	n.copyFrom(o,0,12,0);	// Header kopieren
 	while (qp<o.size()) {
-		adr=o.map(qp,32);
+		const char *adr=o.map(qp,32);
 		if (!adr) break;
 		size=PeekN32(adr+4);
 		if (PeekN32(adr)!=0x49443320) {	// ignore former ID3-chunk
