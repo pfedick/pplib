@@ -54,6 +54,7 @@ AudioDecoder_Wave::AudioDecoder_Wave()
 	position=0;
 	samplesize=0;
 	ff=NULL;
+	memset(&wave,0,sizeof(WAVEHEADER));
 }
 
 AudioDecoder_Wave::~AudioDecoder_Wave()
