@@ -1173,10 +1173,9 @@ void ID3Tag::generateId3V1Tag(ByteArray &tag)
 		tag.clear();
 		return;
 	}
-	char *buffer=(char*)tag.malloc(128);
+	char *buffer=(char*)tag.calloc(128);
 	if (!buffer) throw OutOfMemoryException();
 	String text;
-	memset(buffer,0,128);
 	strcpy(buffer,"TAG");
 	ID3Frame *frame=findFrame("TIT2");
 	if (frame) {
