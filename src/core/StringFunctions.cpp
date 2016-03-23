@@ -114,8 +114,8 @@ String ToBase64(const ByteArrayPtr &bin)
     while( p<filelen ) {
         int len = 0;
         for(int i = 0; i < 3; i++ ) {
-            in[i] = (unsigned char) bin.get(p++);
-            if( p<=filelen) {
+        	if (p<filelen) {
+        		in[i] = (unsigned char) bin.get(p++);
                 len++;
             }
         }
