@@ -48,6 +48,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/file.o compile/gzfile.o compile/list.o compile/functions.o \
 	compile/inet.o compile/resolver.o compile/widestrings.o \
 	compile/variant.o compile/iconv.o \
+	compile/stringfunctions.o \
 	compile/configparser.o \
 	compile/logger.o compile/time.o \
 	compile/tcpsocket.o \
@@ -140,6 +141,10 @@ compile/bytearrayptr.o: src/bytearrayptr.cpp Makefile ppl7-tests.h
 compile/strings.o: src/strings.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/strings.o -c src/strings.cpp $(CFLAGS) $(LIB)
+
+compile/stringfunctions.o: src/stringfunctions.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/stringfunctions.o -c src/stringfunctions.cpp $(CFLAGS) $(LIB)
 
 compile/iconv.o: src/iconv.cpp Makefile ppl7-tests.h
 	mkdir -p compile

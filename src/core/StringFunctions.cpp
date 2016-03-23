@@ -149,14 +149,13 @@ static void decodeblock( unsigned char in[4], unsigned char out[3] )
 ByteArray FromBase64(const String &str)
 {
 	ByteArray res;
-    unsigned char in[4], out[3];
-    wchar_t v;
+    unsigned char in[4], out[3], v;
     int i, len;
     size_t p=0, filelen=str.len();
     while( p<filelen) {
         for( len = 0, i = 0; i < 4 && p<filelen; i++ ) {
             v = 0;
-            while( p<filelen+1 && v == 0 ) {
+            while( p<filelen && v == 0 ) {
                 v = str.get(p++);
                 v = ((v < 43 || v > 122) ? 0 : cd64[ v - 43 ]);
                 if( v ) {
@@ -164,8 +163,8 @@ ByteArray FromBase64(const String &str)
                 }
             }
             if( p<filelen+1 ) {
-                len++;
                 if( v ) {
+                	len++;
                     in[ i ] = (unsigned char) (v - 1);
                 }
             }
