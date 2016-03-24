@@ -260,7 +260,26 @@ TEST_F(ByteArrayPtrTest, toBase64) {
 	EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFw=="),b2.toBase64());
 	b2.use(binarydata,11);
 	EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFxJ="),b2.toBase64());
+}
 
+static const char * teststring="Hello World";
+
+TEST_F(ByteArrayPtrTest, md5) {
+	ppl7::ByteArrayPtr b2(teststring, 11);
+	EXPECT_EQ(ppl7::String("b10a8db164e0754105b7a99be72e3fe5"),b2.md5());
+}
+
+TEST_F(ByteArrayPtrTest, crc32) {
+	ppl7::ByteArrayPtr b2(teststring, 11);
+	EXPECT_EQ((ppluint32)1243066710,b2.crc32());
+}
+
+TEST_F(ByteArrayPtrTest, memset) {
+	static unsigned char localdata[]={13,14,55,66,129,255,66,0,76,23,18};
+	static unsigned char expected[]={32,32,32,32,32,32,32,32,32,32,32};
+	ppl7::ByteArrayPtr b2(localdata,sizeof(localdata));
+	b2.memset(32);
+	EXPECT_TRUE(memcmp(expected,localdata,sizeof(localdata))==0);
 }
 
 
