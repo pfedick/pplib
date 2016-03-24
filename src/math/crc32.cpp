@@ -39,7 +39,7 @@
 
 namespace ppl7 {
 
-static ppluint32 crc32_table[256] = {  // Lookup table array
+static ppluint32 crc32_table[256] = {
 	0x00000000,0x77073096,0xee0e612c,0x990951ba,0x076dc419,0x706af48f,
 	0xe963a535,0x9e6495a3,0x0edb8832,0x79dcb8a4,0xe0d5e91e,0x97d2d988,
 	0x09b64c2b,0x7eb17cbd,0xe7b82d07,0x90bf1d91,0x1db71064,0x6ab020f2,
@@ -85,72 +85,18 @@ static ppluint32 crc32_table[256] = {  // Lookup table array
 	0xb40bbe37,0xc30c8ea1,0x5a05df1b,0x2d02ef8d
 };
 
-/*
-static ppluint32 Reflect(ppluint32 ref, char ch)
-{// Used only by Init_CRC32_Table().
-
-      ppluint32 value(0);
-
-      // Swap bit 0 for bit 7
-      // bit 1 for bit 6, etc.
-      for(int i = 1; i < (ch + 1); i++)
-      {
-            if(ref & 1)
-                  value |= 1 << (ch - i);
-            ref >>= 1;
-      }
-      return value;
-}
-
-static void Init_CRC32_Table()
-{// Call this function only once to initialize the CRC table.
-
-      // This is the official polynomial used by CRC-32
-      // in PKZip, WinZip and Ethernet.
-      ppluint32 ulPolynomial = 0x04c11db7;
-
-      // 256 values representing ASCII character codes.
-      for(int i = 0; i <= 0xFF; i++)
-      {
-            crc32_table[i]=Reflect(i, 8) << 24;
-            for (int j = 0; j < 8; j++)
-                  crc32_table[i] = (crc32_table[i] << 1) ^ (crc32_table[i] & (1 << 31) ? ulPolynomial : 0);
-            crc32_table[i] = Reflect(crc32_table[i], 32);
-      }
-}
-*/
-
 
 ppluint32 Crc32(const void* buffer, size_t size)
 /*!\ingroup PPLGroupMath
  */
 
-{// Pass a text string to this function and it will return the CRC.
-
-      // Once the lookup table has been filled in by the two functions above,
-      // this function creates all CRCs using only the lookup table.
-
-      // Be sure to use unsigned variables,
-      // because negative values introduce high bits
-      // where zero bits are required.
-
-      // Start out with all bits set high.
+{
       ppluint32  ulCRC(0xffffffff);
       unsigned char* b=(unsigned char*)buffer;
 	  size_t len=size;
 
       while(len--)
             ulCRC = (ulCRC >> 8) ^ crc32_table[(ulCRC & 0xFF) ^ *b++];
-      // Exclusive OR the result with the beginning value.
-      /*
-#ifdef __BIG_ENDIAN__
-      ppluint32 crc=ulCRC ^ 0xffffffff;
-      ppluint8 *a=(ppluint8 *)&crc;
-      return (a[0])+(a[1]<<8)+(a[2]<<16)+(a[3]<<24);
-#else
-      return ulCRC ^ 0xffffffff;
-#endif
-*/
       return ulCRC ^ 0xffffffff;
 }
 
