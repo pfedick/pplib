@@ -88,13 +88,20 @@ static ppluint32 crc32_table[256] = {
 
 ppluint32 Crc32(const void* buffer, size_t size)
 /*!\ingroup PPLGroupMath
+ * \brief Berechnet den polynomischen CRC32-Wert eines Strings
+ *
+ * \desc
+ * Berechnet die zyklisch redundante polynomische Prüfsumme mit einer Länge von 32-Bit.
+ *
+ *
+ * \param buffer Pointer auf den Beginn der Daten
+ * \param size Länge der Daten in Byte
+ * \return Integer mit der Prüfsumme
  */
-
 {
       ppluint32  ulCRC(0xffffffff);
       unsigned char* b=(unsigned char*)buffer;
 	  size_t len=size;
-
       while(len--)
             ulCRC = (ulCRC >> 8) ^ crc32_table[(ulCRC & 0xFF) ^ *b++];
       return ulCRC ^ 0xffffffff;
