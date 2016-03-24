@@ -347,24 +347,7 @@ ppluint64 FileObject::copyFrom (FileObject &quellfile, ppluint64 quelloffset, pp
 {
 	quellfile.seek(quelloffset);
 	seek(zieloffset);
-	if (buffer==NULL) {
-		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
-		if (buffer==NULL) throw OutOfMemoryException();
-	}
-	if (quellfile.size()>quellfile.tell()) {
-		if ((quellfile.tell()+(ppluint64)bytes)>quellfile.size()) {
-			bytes=quellfile.size()-quellfile.tell();
-		}
-		ppluint64 rest=bytes;
-		while (rest>0) {
-			ppluint64 by=rest;
-			if (by>COPYBYTES_BUFFERSIZE) by=COPYBYTES_BUFFERSIZE;
-			by=quellfile.read (buffer,(size_t)by);
-			write (buffer,(size_t)by);
-			rest-=by;
-		}
-	}
-	return bytes;
+	return FileObject::copyFrom(quellfile,bytes);
 }
 
 /*!\brief Daten aus einer anderen Datei kopieren
@@ -384,7 +367,24 @@ ppluint64 FileObject::copyFrom (FileObject &quellfile, ppluint64 quelloffset, pp
  */
 ppluint64 FileObject::copyFrom (FileObject &quellfile, ppluint64 bytes)
 {
-	return (copyFrom (quellfile,0,bytes,0));
+	if (buffer==NULL) {
+		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
+		if (buffer==NULL) throw OutOfMemoryException();
+	}
+	if (quellfile.size()>quellfile.tell()) {
+		if ((quellfile.tell()+(ppluint64)bytes)>quellfile.size()) {
+			bytes=quellfile.size()-quellfile.tell();
+		}
+		ppluint64 rest=bytes;
+		while (rest>0) {
+			ppluint64 by=rest;
+			if (by>COPYBYTES_BUFFERSIZE) by=COPYBYTES_BUFFERSIZE;
+			by=quellfile.read (buffer,(size_t)by);
+			write (buffer,(size_t)by);
+			rest-=by;
+		}
+	}
+	return bytes;
 }
 
 /*!\brief String lesen
