@@ -98,6 +98,7 @@ typedef struct tagMPEGHeader{
 //!\brief Identifizieren von MP3-Dateien und Einlesen der Header
 bool IdentMPEG(FileObject &file, PPL_MPEG_HEADER * mpg);
 
+void GetMP3Frame(FileObject &file, PPL_MPEG_HEADER &mpg, ByteArray &buffer);
 
 class AudioInfo
 {
@@ -503,5 +504,5 @@ class AudioDecoder_Wave
 } // end of namespace ppl7
 
 
-#endif // _PPL6_INCLUDE_SOUND
+#endif // _PPL7_INCLUDE_SOUND
 
