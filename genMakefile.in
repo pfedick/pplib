@@ -409,10 +409,10 @@ install:	release/\$(LIBNAME).a
 	cp \$(incdir)/ppl7-algorithms.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-crypto.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
-#	cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
 	chmod a+x ppl7-config  
@@ -429,7 +429,7 @@ install_debug: debug/\$(LIBDEBUG).a
 	cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
-#	cp \$(incdir)/ppl7-crypt.h \$(TARGETINCLUDE)
+	cp \$(incdir)/ppl7-crypto.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-config.h \$(TARGETINCLUDE)/ppl7-config.h
 	chmod a+x ppl7-config
