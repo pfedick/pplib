@@ -52,9 +52,7 @@ AC_ARG_WITH([libcdio],
 			#include <stdio.h>
 			#include <cdio/cdio.h>
 			],[
-			int main(int argc, char **argv) {
 				CdIo_t *p_cdio = cdio_open (NULL, DRIVER_DEVICE);
-			}
 			],
 				AC_MSG_RESULT(yes)
 				have_libcdio="yes"
