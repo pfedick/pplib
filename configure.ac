@@ -156,7 +156,10 @@ esac
  
 case "$host_os" in
 	*mingw32* )
-		report_have_pthreads="yes, Win32 Threads"
+		report_have_pthreads="yes, Windows Threads"
+  		;;
+  	*mingw64* )
+		report_have_pthreads="yes, Windows Threads"
   		;;
 	*)
 		AX_PTHREAD([report_have_pthreads="yes, pthreads"]
@@ -712,6 +715,12 @@ case "$host_os" in
 	*mingw32* )
 		MINGW32=yes
 		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
+  		;;
+  	*mingw64* )
+		MINGW32=yes
+		MINGW64=yes
+		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
+		AC_DEFINE(MINGW64, 1, [Define if you compile on Windows MINGW64])
   		;;
 	* )
 		MINGW32=no

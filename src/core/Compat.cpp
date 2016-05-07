@@ -199,41 +199,39 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
 
 int vasprintf(char **buff, const char *fmt, va_list args)
 {
-#if defined HAVE___MINGW_VASPRINTF
-	return __mingw_vasprintf(buff,fmt,args);
-#elif defined HAVE_VASPRINTF
-		return ::vasprintf(buff,fmt,args);
-	#elif defined HAVE_WORKING_VSNPRINTF
-		char tb[4];
-		int size=vsnprintf(tb,1,fmt,args);
-		char *b=(char*)malloc(size+2);
-		if (b) {
-			vsnprintf(b,size+1,fmt,args);
-			*buff=b;
-			return size;
-		} else {
-			*buff=NULL;
-			return 0;
-		}
-	#elif defined _WIN32
-		// Feststellen, wie groß der String werden würde
-		int size=_vscprintf(fmt,args);
-		// Buffer allocieren
-		char *b=(char*)malloc(size+2);
-		if (b) {
-			_vsnprintf(b,size+1,fmt,args);
-			*buff=b;
-			return size;
-		} else {
-			*buff=NULL;
-			return 0;
-		}
-
-	#else
-		#pragma error No working vasprintf!!!
+#if defined HAVE_VASPRINTF
+	return ::vasprintf(buff,fmt,args);
+#elif defined HAVE_WORKING_VSNPRINTF
+	char tb[4];
+	int size=vsnprintf(tb,1,fmt,args);
+	char *b=(char*)malloc(size+2);
+	if (b) {
+		vsnprintf(b,size+1,fmt,args);
+		*buff=b;
+		return size;
+	} else {
 		*buff=NULL;
 		return 0;
-    #endif
+	}
+#elif defined _WIN32
+	// Feststellen, wie groß der String werden würde
+	int size=_vscprintf(fmt,args);
+	// Buffer allocieren
+	char *b=(char*)malloc(size+2);
+	if (b) {
+		_vsnprintf(b,size+1,fmt,args);
+		*buff=b;
+		return size;
+	} else {
+		*buff=NULL;
+		return 0;
+	}
+
+#else
+#pragma error No working vasprintf!!!
+	*buff=NULL;
+	return 0;
+#endif
 }
 
 int asprintf(char **buff, const char *format, ...)

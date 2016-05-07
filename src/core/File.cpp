@@ -1094,9 +1094,8 @@ int File::munmap(void *addr, size_t len)
 	::munmap(addr, len);
 #else
 	if ((LastMapProtection&2)) {			// Speicher war schreibbar und muss
-		if (seek(LastMapStart)) {		// Zurückgeschrieben werden
-			fwrite(MapBase,1,len);
-		}
+		seek(LastMapStart);					// Zurückgeschrieben werden
+		fwrite(MapBase,1,len);
 	}
 	free (MapBase);
 #endif
