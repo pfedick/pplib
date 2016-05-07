@@ -6004,7 +6004,10 @@ esac
 
 case "$host_os" in
 	*mingw32* )
-		report_have_pthreads="yes, Win32 Threads"
+		report_have_pthreads="yes, Windows Threads"
+  		;;
+  	*mingw64* )
+		report_have_pthreads="yes, Windows Threads"
   		;;
 	*)
 
@@ -18264,6 +18267,16 @@ case "$host_os" in
 		MINGW32=yes
 
 $as_echo "#define MINGW32 1" >>confdefs.h
+
+  		;;
+  	*mingw64* )
+		MINGW32=yes
+		MINGW64=yes
+
+$as_echo "#define MINGW32 1" >>confdefs.h
+
+
+$as_echo "#define MINGW64 1" >>confdefs.h
 
   		;;
 	* )
