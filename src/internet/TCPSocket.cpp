@@ -49,7 +49,11 @@
 #include <time.h>
 #ifdef _WIN32
 #include <winsock2.h>
-//#include <Ws2tcpip.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+#ifndef MSG_DONTWAIT
+#define MSG_DONTWAIT 0
+#endif
 #else
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -134,8 +138,10 @@ namespace ppl7 {
 
 void throwExceptionFromEaiError(int ecode, const String &msg)
 {
+#ifndef _WIN32
 	if (ecode == EAI_SYSTEM)
 		throwExceptionFromErrno(errno, msg);
+#endif
 	String m = msg;
 	if (msg.notEmpty())
 		m += " [";
@@ -401,9 +407,9 @@ void TCPSocket::setTimeoutConnect(int seconds, int useconds)
 }
 
 #ifdef WIN32
-static int out_bind(SOCKET sockfd, const char *host, int port)
+static int out_bind(const char *host, int port)
 {
-	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind")
+	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind");
 }
 
 #else
@@ -598,80 +604,6 @@ static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int addrlen, i
 }
 #endif
 
-#ifdef _WIN32
-void TCPSocket::connect(const String &host, int port)
-{
-	if (connected) disconnect();
-	if (islisten) disconnect();
-	if (!socket) {
-		socket=malloc(sizeof(PPLSOCKET));
-		if (!socket) {
-			SetError(2);
-			return 0;
-		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-		s->sd=0;
-		s->proto=6;
-		s->ipname=NULL;
-		s->port=0;
-	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->ipname) free(s->ipname);
-	s->ipname=NULL;
-
-	if (s->sd) Disconnect();
-	if (!host) {
-		SetError(270);
-		return 0;
-	}
-	if (!port) {
-		SetError(271);
-		return 0;
-	}
-	struct sockaddr_in addr;
-	bzero(&addr,sizeof(addr));
-
-	// convert host to in_addr
-	struct in_addr in;
-	if (inet_aton(host,&in)) {
-		addr.sin_addr.s_addr = in.s_addr;
-	} else { // failed, perhaps it's a hostname we have to resolve first?
-		struct hostent *h=gethostbyname(host);
-		if (!h) {
-			ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-			//int e=WSAGetLastError();
-			//SetError(273,e);
-			return 0;
-		}
-		bcopy((void*)h->h_addr,(void*)&addr.sin_addr.s_addr,h->h_length);
-	}
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-
-	// Socket erstellen
-	s->sd = ::socket(PF_INET,SOCK_STREAM,s->proto);
-	if (s->sd<=0) {
-		//ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-		SetError(272,"Return-Value of socket: %i, %s",s->sd,strerror(errno));
-		return 0;
-	}
-
-	// Try to connect
-	if (connect(s->sd, (struct sockaddr *)&addr, sizeof(addr) )!=0) {
-		ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-		PushError();
-		closesocket (s->sd);
-		s->sd=0;
-		// SetError(274,e,"errno=%i, %s",e,strerror(e));
-		PopError();
-		return 0;
-	}
-	SetError(0);
-	connected=true;
-	return 1;
-}
-
-#else
 
 void TCPSocket::connect(const String &host, int port)
 {
@@ -711,7 +643,7 @@ void TCPSocket::connect(const String &host, int port)
 #endif
 	int n;
 	struct addrinfo hints, *res, *ressave;
-	bzero(&hints, sizeof(struct addrinfo));
+	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	char portstr[10];
@@ -775,7 +707,7 @@ void TCPSocket::connect(const String &host, int port)
 	connected = true;
 	freeaddrinfo(ressave);
 }
-#endif
+
 
 /*!\brief Prüfen, ob eine Verbindung besteht
  *
@@ -1053,8 +985,8 @@ void TCPSocket::setBlocking(bool value)
 		v=1;
 		ret=ioctlsocket(s->sd,FIONBIO,&v);
 	}
-	if (ret==0) return 1;
-	return 0;
+	if (ret==0) return;
+	throwExceptionFromErrno(errno, "TCPSocket::setBlocking");
 #else
 	if (value)
 	    ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK)); // Blocking
@@ -1133,7 +1065,7 @@ bool TCPSocket::isReadable()
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
 	if (FD_ISSET(s->sd,&rset)) {
 		char buf[2];
-		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		ret=recv(s->sd, buf,1, MSG_PEEK|MSG_DONTWAIT);
 		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
 			throwExceptionFromErrno(errno, "TCPSocket::isReadable");
@@ -1186,7 +1118,7 @@ bool TCPSocket::waitForIncomingData(int seconds, int useconds)
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
 	if (FD_ISSET(s->sd,&rset)) {
 		char buf[2];
-		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		ret=recv(s->sd, buf,1, MSG_PEEK|MSG_DONTWAIT);
 		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
 			throwExceptionFromErrno(errno, "TCPSocket::isReadable");
@@ -1284,7 +1216,7 @@ void TCPSocket::bind(const String &host, int port)
 	s->ipname=NULL;
 
 	struct addrinfo hints;
-	bzero(&hints, sizeof(struct addrinfo));
+	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_STREAM;
@@ -1302,7 +1234,11 @@ void TCPSocket::bind(const String &host, int port)
 		do {
 			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
 			if (listenfd<0) continue; // Error, try next one
+#ifdef _WIN32
+			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,(const char*)&on,sizeof(on))!=0) {
+#else
 			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+#endif
 				freeaddrinfo(ressave);
 				throw SettingSocketOptionException();
 			}
@@ -1325,7 +1261,7 @@ void TCPSocket::bind(const String &host, int port)
 		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
 		if (listenfd>=0) {
 			struct sockaddr_in addr;
-			bzero(&addr,sizeof(addr));
+			memset(&addr,0,sizeof(addr));
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			addr.sin_port = htons(port);
 			addr.sin_family = AF_INET;

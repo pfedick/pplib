@@ -50,6 +50,7 @@
 #ifdef _WIN32
     #include <winsock2.h>
 	#include <Ws2tcpip.h>
+	#include <windows.h>
 #else
 	#ifdef HAVE_UNISTD_H
     #include <unistd.h>
@@ -200,7 +201,7 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 {
 	int n;
 	struct addrinfo hints, *res, *ressave;
-	bzero(&hints,sizeof(struct addrinfo));
+	memset(&hints,0,sizeof(struct addrinfo));
 	int family=flags&3;
 	switch (family) {
 		case af_inet: hints.ai_family=AF_INET; break;
@@ -279,7 +280,7 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags)
 {
 	#ifdef _WIN32
-		InitWSA();
+		InitSockets();
 	#endif
 	result.clear();
 	if (flags!=af_all) return GetHostByNameInternal(name,result,flags);
@@ -353,12 +354,12 @@ size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
  */
 {
 	#ifdef _WIN32
-		InitWSA();
+		InitSockets();
 	#endif
 		int n;
 		struct addrinfo hints, *res, *ressave;
 		result.clear();
-		bzero(&hints,sizeof(struct addrinfo));
+		memset(&hints,0,sizeof(struct addrinfo));
 		hints.ai_family=AF_UNSPEC;
 		hints.ai_socktype=SOCK_STREAM;
 		if ((n=getaddrinfo((const char*)addr,NULL,&hints,&res))!=0) {

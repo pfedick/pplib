@@ -41,6 +41,7 @@
 #undef PACKAGE_STRING
 
 #undef MINGW32
+#undef MINGW64
 
 /* Define as 1 if you have unistd.h. */
 #undef HAVE_UNISTD_H
@@ -440,8 +441,8 @@
 		#define read _read
 		*/
 	#endif
-	#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
-	#include <windows.h>
+	//#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+	//#include <windows.h>
 #endif
 
 #endif

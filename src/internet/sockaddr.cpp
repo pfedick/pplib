@@ -50,6 +50,12 @@
 #include <sys/types.h>
 #endif
 
+#ifdef _WIN32
+    #include <winsock2.h>
+	#include <Ws2tcpip.h>
+	#include <windows.h>
+#else
+
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
@@ -64,6 +70,8 @@
 
 #ifdef HAVE_ARPA_INET_H
 #include <arpa/inet.h>
+#endif
+
 #endif
 
 

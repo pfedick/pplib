@@ -94,14 +94,6 @@
 	#include <ppl7-exceptions.h>
 #endif
 
-//#ifndef MINGW32
-	#ifdef _WIN32
-		#define bzero ZeroMemory
-		//#define bcopy CopyMemory   // CopyMemory hat andere Parameter-Reihenfolge als bcopy!
-		#define strcasecmp stricmp
-		#define mode_t ppluint32
-	#endif
-//#endif
 
 
 namespace ppl7 {

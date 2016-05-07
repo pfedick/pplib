@@ -182,7 +182,7 @@ void HexDump(const void *address, size_t bytes, bool skipheader)
     int spalte=0;
     //sprintf (buff,"%p: ",_adresse);
     buff[0]=0;
-    bzero(cleartext,20);
+    memset(cleartext,0,20);
     for (size_t i=0;i<bytes;i++) {
         sprintf (tmp,"%02X ",(ppluint8)_adresse[i]);
         strcat (buff,tmp);
@@ -193,7 +193,7 @@ void HexDump(const void *address, size_t bytes, bool skipheader)
             buff[16*3-1]=0;
             printf("%p: %s: %s\n",start_adr, buff, cleartext);
             buff[0]=0;
-            bzero(cleartext,20);
+            memset(cleartext,0,20);
             spalte=0;
             start_adr=_adresse+i+1;
         }
