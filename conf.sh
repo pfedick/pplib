@@ -104,6 +104,14 @@ case "$SYS:$REL:$KERNEL" in
 			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local
 		;;
+	MINGW64*)
+		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
+		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
+		export CFLAGS="-DCURL_STATICLIB"
+		./configure --prefix=$PREFIX \
+		    --without-postgresql --without-mysql 
+		;;
+		
 	Linux:*generic*)
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \

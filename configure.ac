@@ -359,7 +359,7 @@ AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([strtolower strtoupper])
-AC_CHECK_FUNCS([bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket vasprintf asprintf])
+AC_CHECK_FUNCS([bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket __mingw_vasprintf vasprintf asprintf])
 AC_CHECK_FUNCS([gethostname sethostname getdomainname setdomainname uname])
 AC_CHECK_FUNCS([strcasecmp strlen strnlen strdup strerror strncasecmp strndup strstr strcasestr strcmp strncmp])
 AC_CHECK_FUNCS([strncpy strlcpy strncat strlcat])

@@ -1086,7 +1086,6 @@ class Logger
 			ALERT		= 2,
 			CRIT		= 3,
 			ERR			= 4,
-			ERROR		= 4,
 			WARNING		= 5,
 			NOTICE		= 6,
 			INFO		= 7,

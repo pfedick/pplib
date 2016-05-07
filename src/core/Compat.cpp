@@ -199,7 +199,9 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
 
 int vasprintf(char **buff, const char *fmt, va_list args)
 {
-	#if defined HAVE_VASPRINTF
+#if defined HAVE___MINGW_VASPRINTF
+	return __mingw_vasprintf(buff,fmt,args);
+#elif defined HAVE_VASPRINTF
 		return ::vasprintf(buff,fmt,args);
 	#elif defined HAVE_WORKING_VSNPRINTF
 		char tb[4];
