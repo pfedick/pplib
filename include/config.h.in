@@ -77,7 +77,6 @@
 #undef HAVE_WCHAR_H
 #undef HAVE_WIDEC_H
 #undef HAVE_WCTYPE_H
-#undef HAVE_STRCASECMP
 #undef HAVE_STRDUP
 #undef HAVE_STRNDUP
 #undef HAVE_STRNCPY

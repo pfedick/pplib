@@ -165,7 +165,7 @@ int AssocArray::ArrayKey::compare(const ArrayKey &str) const
 		if (v2<v1) return -1;
 		return 0;
 	}
-	int cmp=strcasecmp(str);
+	int cmp=strCaseCmp(str);
 	if (cmp==0) return 0;
 	if (cmp<0) return -1;
 	return 1;

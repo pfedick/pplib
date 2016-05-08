@@ -324,9 +324,9 @@ class String
 		bool	isFalse() const;
 
 		int strcmp(const String &str, size_t size=(size_t)-1) const;
-		int strcasecmp(const String &str, size_t size=(size_t)-1) const;
+		int strCaseCmp(const String &str, size_t size=(size_t)-1) const;
 		int strcmp(const char *str, size_t size=(size_t)-1) const;
-		int strcasecmp(const char *str, size_t size=(size_t)-1) const;
+		int strCaseCmp(const char *str, size_t size=(size_t)-1) const;
 		String left(size_t len) const;
 		String right(size_t len) const;
 		String mid(size_t start, size_t len=(size_t)-1) const;
@@ -582,7 +582,7 @@ class WideString
 		bool	isFalse() const;
 
 		int strcmp(const WideString &str, size_t size=(size_t)-1) const;
-		int strcasecmp(const WideString &str, size_t size=(size_t)-1) const;
+		int strCaseCmp(const WideString &str, size_t size=(size_t)-1) const;
 		WideString left(size_t len) const;
 		WideString right(size_t len) const;
 		WideString mid(size_t start, size_t len=(size_t)-1) const;

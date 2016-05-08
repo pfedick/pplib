@@ -109,7 +109,8 @@ case "$SYS:$REL:$KERNEL" in
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
 		export CFLAGS="-DCURL_STATICLIB"
 		./configure --prefix=$PREFIX \
-		    --without-postgresql --without-mysql 
+		    --without-postgresql --without-mysql \
+		    --enable-gtest=/usr/src/gtest-1.7.0 \
 		;;
 		
 	Linux:*generic*)

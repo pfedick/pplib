@@ -227,7 +227,7 @@ int StrCmp(const String &s1, const String &s2)
 
 int StrCaseCmp(const String &s1, const String &s2)
 {
-	int cmp=s1.strcasecmp(s2);
+	int cmp=s1.strCaseCmp(s2);
 	if (cmp<0) return -1;
 	if (cmp>0) return 1;
 	return 0;

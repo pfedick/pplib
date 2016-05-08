@@ -463,11 +463,11 @@ bool String::isTrue() const
 {
 	if (!stringlen) return false;
 	if (atol(ptr)!=0) return true;
-	if (strcasecmp("true")==0) return true;
-	if (strcasecmp("wahr")==0) return true;
-	if (strcasecmp("ja")==0) return true;
-	if (strcasecmp("yes")==0) return true;
-	if (strcasecmp("t")==0) return true;
+	if (strCaseCmp("true")==0) return true;
+	if (strCaseCmp("wahr")==0) return true;
+	if (strCaseCmp("ja")==0) return true;
+	if (strCaseCmp("yes")==0) return true;
+	if (strCaseCmp("t")==0) return true;
 	return false;
 }
 
@@ -1651,7 +1651,7 @@ String& String::operator+=(char c)
  * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
  * sind beide identisch, wird 0 zurückgegeben.
  *
- * \see strcasecmp Vergleich zweier Strings unter Ignorierung der Gross-/Kleinschreibung
+ * \see strCaseCmp Vergleich zweier Strings unter Ignorierung der Gross-/Kleinschreibung
  */
 int String::strcmp(const String &str, size_t size) const
 {
@@ -1692,7 +1692,7 @@ int String::strcmp(const char *str, size_t size) const
  *
  * \see strcmp Vergleich zweier Strings unter Berücksichtigung der Gross-/Kleinschreibung
  */
-int String::strcasecmp(const String &str, size_t size) const
+int String::strCaseCmp(const String &str, size_t size) const
 {
 	const char *mystr=ptr;
 	const char *otherstr=str.ptr;
@@ -1702,7 +1702,7 @@ int String::strcasecmp(const String &str, size_t size) const
 	return ::strcasecmp(mystr,otherstr);
 }
 
-int String::strcasecmp(const char *str, size_t size) const
+int String::strCaseCmp(const char *str, size_t size) const
 {
 	const char *mystr=ptr;
 	const char *otherstr=str;

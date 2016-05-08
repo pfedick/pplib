@@ -960,37 +960,37 @@ TEST_F(StringTest, strcmpEqual) {
 TEST_F(StringTest, strcasecmpEmpty) {
 	ppl7::String s1("");
 	ppl7::String s2("");
-	ASSERT_EQ(0,s1.strcasecmp(s2));
+	ASSERT_EQ(0,s1.strCaseCmp(s2));
 }
 
 TEST_F(StringTest, strcasecmpLower) {
 	ppl7::String s1("ABcdef");
 	ppl7::String s2("Defghi");
-	ASSERT_LT(s1.strcasecmp(s2),0);
+	ASSERT_LT(s1.strCaseCmp(s2),0);
 }
 
 TEST_F(StringTest, strcasecmpLowerWithCase) {
 	ppl7::String s1("ABcdef");
 	ppl7::String s2("abcdef");
-	ASSERT_EQ(s1.strcasecmp(s2),0);
+	ASSERT_EQ(s1.strCaseCmp(s2),0);
 }
 
 TEST_F(StringTest, strcasecmpHigher) {
 	ppl7::String s1("ABcdef");
 	ppl7::String s2("Defghi");
-	ASSERT_GT(s2.strcasecmp(s1),0);
+	ASSERT_GT(s2.strCaseCmp(s1),0);
 }
 
 TEST_F(StringTest, strcasecmpHigherWithCase) {
 	ppl7::String s1("ABcdef");
 	ppl7::String s2("abcdef");
-	ASSERT_EQ(s2.strcasecmp(s1),0);
+	ASSERT_EQ(s2.strCaseCmp(s1),0);
 }
 
 TEST_F(StringTest, strcasecmpEqual) {
 	ppl7::String s1("ABcdef");
 	ppl7::String s2("ABcdef");
-	ASSERT_EQ(s2.strcasecmp(s1),0);
+	ASSERT_EQ(s2.strCaseCmp(s1),0);
 }
 
 
