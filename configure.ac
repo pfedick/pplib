@@ -716,12 +716,14 @@ case "$host_os" in
 	*mingw32* )
 		MINGW32=yes
 		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
+		LIBS="$LIBS -lws2_32"
   		;;
   	*mingw64* )
 		MINGW32=yes
 		MINGW64=yes
 		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
 		AC_DEFINE(MINGW64, 1, [Define if you compile on Windows MINGW64])
+		LIBS="$LIBS -lws2_32"
   		;;
 	* )
 		MINGW32=no
