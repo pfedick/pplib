@@ -709,7 +709,7 @@ class File : public FileObject
 		static void save(const void *content, size_t size, const String &filename);
 		static void save(const ByteArrayPtr &object, const String &filename);
 		static void chmod(const String &filename, FileAttr::Attributes attr);
-		static void stat(const String &filename, DirEntry &result);
+		static void statFile(const String &filename, DirEntry &result);
 		static String getPath(const String &path);
 		static String getFilename(const String &path);
 		static String md5Hash(const String &filename);
