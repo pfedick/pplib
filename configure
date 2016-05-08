@@ -18283,6 +18283,7 @@ case "$host_os" in
 
 $as_echo "#define MINGW32 1" >>confdefs.h
 
+		LIBS="$LIBS -lws2_32"
   		;;
   	*mingw64* )
 		MINGW32=yes
@@ -18293,6 +18294,7 @@ $as_echo "#define MINGW32 1" >>confdefs.h
 
 $as_echo "#define MINGW64 1" >>confdefs.h
 
+		LIBS="$LIBS -lws2_32"
   		;;
 	* )
 		MINGW32=no
