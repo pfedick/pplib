@@ -135,13 +135,11 @@ char *strtoupper (char * text)
 	return text;
 }
 
+#ifndef HAVE_STRCASESTR
 /*!\brief Findet das erste Auftauchen einer Zeichenkette in einem String
  */
 const char *strcasestr(const char *haystack, const char *needle)
 {
-#ifdef HAVE_STRCASESTR
-	return ::strcasestr(haystack,needle);
-#else
     char c;
     if ((c = *needle++) != 0) {
         c = tolower((unsigned char)c);
@@ -156,14 +154,12 @@ const char *strcasestr(const char *haystack, const char *needle)
         haystack--;
     }
     return ((char *)haystack);
-#endif
 }
+#endif
 
+#ifndef HAVE_STRCASECMP
 int strcasecmp(const char *s1, const char *s2)
 {
-#ifdef HAVE_STRCASECMP
-	return ::strcasecmp(s1,s2);
-#else
 	const unsigned char
 	*us1 = (const unsigned char *)s1,
 	*us2 = (const unsigned char *)s2;
@@ -172,14 +168,12 @@ int strcasecmp(const char *s1, const char *s2)
 		if (*us1++ == '\0')
 			return (0);
 	return (tolower(*us1) - tolower(*--us2));
-	#endif
 }
+#endif
 
+#ifndef HAVE_STRNCASECMP
 int strncasecmp(const char *s1, const char *s2, size_t n)
 {
-#ifdef HAVE_STRNCASECMP
-	return ::strncasecmp(s1,s2,n);
-#else
     if (n != 0) {
         const unsigned char
                 *us1 = (const unsigned char *)s1,
@@ -193,15 +187,14 @@ int strncasecmp(const char *s1, const char *s2, size_t n)
         } while (--n != 0);
     }
     return (0);
-#endif
 }
+#endif
 
 
+#ifndef HAVE_VASPRINTF
 int vasprintf(char **buff, const char *fmt, va_list args)
 {
-#if defined HAVE_VASPRINTF
-	return ::vasprintf(buff,fmt,args);
-#elif defined HAVE_WORKING_VSNPRINTF
+#if defined HAVE_WORKING_VSNPRINTF
 	char tb[4];
 	int size=vsnprintf(tb,1,fmt,args);
 	char *b=(char*)malloc(size+2);
@@ -233,7 +226,9 @@ int vasprintf(char **buff, const char *fmt, va_list args)
 	return 0;
 #endif
 }
+#endif
 
+#ifndef HAVE_ASPRINTF
 int asprintf(char **buff, const char *format, ...)
 {
 	va_list args;
@@ -248,8 +243,10 @@ int asprintf(char **buff, const char *format, ...)
 	*buff=NULL;
 	return -1;
 }
+#endif
 
 
+#ifndef HAVE_HTOL
 long htol (const char * wert)
 {
 	long mp[]={0x1,0x10,0x100,0x1000,0x10000,0x100000,0x1000000,0x10000000};
@@ -267,45 +264,27 @@ long htol (const char * wert)
 	}
 	return (w);
 }
+#endif
 
+#ifndef HAVE_ATOLL
 long long atoll (const char *wert)
 {
 	if(!wert) return 0;
-#ifdef HAVE_ATOLL
-	return ::atoll(wert);
-#elif defined _WIN32
+#if defined _WIN32
 	return (long long) _atoi64(wert);
 #elif defined HAVE_STRTOLL
 	return strtoll(str, (char **)NULL, 10);
 #else
+#pragma error No working atoll!!!
 	return 0;
 #endif
 }
-
-int atoi(const char *wert)
-{
-	if (!wert) return 0;
-	return ::atoi(wert);
-}
-
-long atol(const char *wert)
-{
-	if (!wert) return 0;
-	return ::atol(wert);
-}
-
-double atof(const char *wert)
-{
-	if (!wert) return 0.0;
-	return ::atof(wert);
-}
+#endif
 
 
+#ifndef HAVE_STRNDUP
 char *strndup(const char *str, size_t len)
 {
-#ifdef HAVE_STRNDUP
-	return ::strndup(str,len);
-#else
 	if (!str) return NULL;
 	size_t ll=strlen(str);
 	if (ll<len) len=ll;
@@ -314,14 +293,12 @@ char *strndup(const char *str, size_t len)
 	strncpy(buff,str,len);
 	buff[len]=0;
 	return buff;
-#endif
 }
+#endif
 
+#ifndef HAVE_STRNCMP
 int strncmp(const char *s1, const char *s2, size_t len)
 {
-#ifdef HAVE_STRNCMP
-	return ::strncmp(s1,s2,len);
-#else
 	if (len==0) return 0;
 	do {
 		if (*s1 != *s2++)
@@ -329,41 +306,38 @@ int strncmp(const char *s1, const char *s2, size_t len)
 			if (*s1++ == 0) break;
 	} while (--len != 0);
 	return (0);
-#endif
 }
+#endif
 
+#ifndef HAVE_BCOPY
 void bcopy(const void *src, void *dst, size_t len)
 {
-#ifdef HAVE_BCOPY
-	::bcopy(src,dst,len);
-#elif defined _WIN32
+#if defined _WIN32
 	CopyMemory(dst,src,len);
 #elif defined HAVE_MEMMOVE
 	::memmove(dst,src,len);
-
+#else
+#pragma error No working bcopy!!!
 #endif
 }
+#endif
 
+#ifndef HAVE_BZERO
+void bzero(void *b, size_t len)
+{
+#if defined _WIN32
+	ZeroMemory(b,len);
+#elif defined HAVE_MEMMOVE
+	::memset(b,0,len);
+#else
+#pragma error No working bzero!!!
+#endif
+}
+#endif
+
+
+#ifndef HAVE_STRNLEN
 size_t strnlen(const char *str, size_t len)
-/*!\brief Länge des Strings bis zu einer bestimmten Position
- *
- * \descr
- * Diese Funktion ist vergleichbar mit der Funktion \c strlen aus der libc, mit dem Unterschied,
- * dass sie einen zweiten Parameter erwartet, der die Länge des Buffers angibt.
- * \par
- * Diese Funktion sollte verwendet werden, wenn nicht bekannt ist, ob der String am Ende
- * ein 0-Byte enthält, aber der Buffer nur eine bestimmte Länge hat. \c strlen würde in diesem
- * Fall über das Ende des Buffers hinauslesen und entweder einen falschen Wert zurückliefern
- * oder eine Schutzverletzung verursachen
- *
- * \param[in] str Pointer auf den Buffer mit dem String
- * \param[in] len Maximale Länge des Buffers/String
- * \return Liefert die Position des ersten gefundenen Null-Bytes zurück oder \p len, falls
- * kein 0-Byte gefunden wurde, \p len=0 ist oder \p str=NULL ist.
- *
- * \since
- * Wurde mit Version 6.3.0 eingeführt
- */
 {
 	if (str==NULL || len==0) return 0;
 	size_t p=0;
@@ -373,6 +347,319 @@ size_t strnlen(const char *str, size_t len)
 	}
 	return p;
 }
+#endif
+
+#ifndef HAVE_INET_NTOP
+/*
+ * Copyright (C) 2004, 2005, 2007, 2009  Internet Systems Consortium, Inc. ("ISC
+")
+ * Copyright (C) 1996-2001  Internet Software Consortium.
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+#define NS_INT16SZ       2
+#define NS_IN6ADDRSZ    16
+static const char *inet_ntop4(const unsigned char *src, char *dst,
+		socklen_t size);
+
+static const char *inet_ntop6(const unsigned char *src, char *dst,
+		socklen_t size);
+
+
+const char * inet_ntop(int af, const void *src, char *dst, socklen_t size)
+{
+    switch (af) {
+    case AF_INET:
+            return (inet_ntop4((const unsigned char*)src, dst, size));
+    case AF_INET6:
+            return (inet_ntop6((const unsigned char*)src, dst, size));
+    default:
+            errno = EAFNOSUPPORT;
+            return (NULL);
+    }
+    /* NOTREACHED */
+}
+
+static const char *inet_ntop4(const unsigned char *src, char *dst, socklen_t size)
+{
+        static const char *fmt = "%u.%u.%u.%u";
+        char tmp[sizeof("255.255.255.255")];
+
+        if ((socklen_t)sprintf(tmp, fmt, src[0], src[1], src[2], src[3]) >= size)
+        {
+                errno = ENOSPC;
+                return (NULL);
+        }
+        strcpy(dst, tmp);
+
+        return (dst);
+}
+static const char *inet_ntop6(const unsigned char *src, char *dst, socklen_t size)
+{
+        /*
+         * Note that int32_t and int16_t need only be "at least" large enough
+         * to contain a value of the specified size.  On some systems, like
+         * Crays, there is no such thing as an integer variable with 16 bits.
+         * Keep this in mind if you think this function should have been coded
+         * to use pointer overlays.  All the world's not a VAX.
+         */
+        char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")], *tp;
+        struct { int base, len; } best, cur;
+        unsigned int words[NS_IN6ADDRSZ / NS_INT16SZ];
+        int i;
+
+        /*
+         * Preprocess:
+         *      Copy the input (bytewise) array into a wordwise array.
+         *      Find the longest run of 0x00's in src[] for :: shorthanding.
+         */
+        memset(words, '\0', sizeof(words));
+        for (i = 0; i < NS_IN6ADDRSZ; i++)
+                words[i / 2] |= (src[i] << ((1 - (i % 2)) << 3));
+        best.base = -1;
+        best.len = 0;
+        cur.base = -1;
+        cur.len = 0;
+        for (i = 0; i < (NS_IN6ADDRSZ / NS_INT16SZ); i++) {
+                if (words[i] == 0) {
+                        if (cur.base == -1)
+                                cur.base = i, cur.len = 1;
+                        else
+                                cur.len++;
+                } else {
+                        if (cur.base != -1) {
+                                if (best.base == -1 || cur.len > best.len)
+                                        best = cur;
+                                cur.base = -1;
+                        }
+                }
+        }
+        if (cur.base != -1) {
+            if (best.base == -1 || cur.len > best.len)
+                    best = cur;
+    }
+    if (best.base != -1 && best.len < 2)
+            best.base = -1;
+
+    /*
+     * Format the result.
+     */
+    tp = tmp;
+    for (i = 0; i < (NS_IN6ADDRSZ / NS_INT16SZ); i++) {
+            /* Are we inside the best run of 0x00's? */
+            if (best.base != -1 && i >= best.base &&
+                i < (best.base + best.len)) {
+                    if (i == best.base)
+                            *tp++ = ':';
+                    continue;
+            }
+            /* Are we following an initial run of 0x00s or any real hex? */
+            if (i != 0)
+                    *tp++ = ':';
+            /* Is this address an encapsulated IPv4? */
+            if (i == 6 && best.base == 0 && (best.len == 6 ||
+                (best.len == 7 && words[7] != 0x0001) ||
+                (best.len == 5 && words[5] == 0xffff))) {
+                    if (!inet_ntop4(src+12, tp,
+                                    sizeof(tmp) - (tp - tmp)))
+                            return (NULL);
+                    tp += strlen(tp);
+                    break;
+            }
+            tp += sprintf(tp, "%x", words[i]);
+    }
+    /* Was it a trailing run of 0x00's? */
+    if (best.base != -1 && (best.base + best.len) ==
+        (NS_IN6ADDRSZ / NS_INT16SZ))
+            *tp++ = ':';
+    *tp++ = '\0';
+
+    /*
+     * Check for overflow, copy, and we're done.
+     */
+    if ((socklen_t)(tp - tmp) > size) {
+            errno = ENOSPC;
+            return (NULL);
+    }
+    strcpy(dst, tmp);
+    return (dst);
+}
+#endif
+
+#ifndef HAVE_INET_PTON
+/*
+ * Copyright (C) 2004, 2005, 2007, 2013, 2014  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1996-2003  Internet Software Consortium.
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#define NS_INT16SZ       2
+#define NS_INADDRSZ      4
+#define NS_IN6ADDRSZ    16
+static int inet_pton4(const char *src, unsigned char *dst);
+static int inet_pton6(const char *src, unsigned char *dst);
+
+int inet_pton(int af, const char *src, void *dst)
+{
+    switch (af) {
+    case AF_INET:
+            return (inet_pton4(src, (unsigned char*)dst));
+    case AF_INET6:
+            return (inet_pton6(src, (unsigned char*)dst));
+    default:
+            errno = EAFNOSUPPORT;
+            return (-1);
+    }
+    /* NOTREACHED */
+
+}
+
+static int
+inet_pton4(const char *src, unsigned char *dst) {
+        static const char digits[] = "0123456789";
+        int saw_digit, octets, ch;
+        unsigned char tmp[NS_INADDRSZ], *tp;
+
+        saw_digit = 0;
+        octets = 0;
+        *(tp = tmp) = 0;
+        while ((ch = *src++) != '\0') {
+                const char *pch;
+
+                if ((pch = strchr(digits, ch)) != NULL) {
+                        unsigned int new_v = *tp * 10;
+
+                        new_v += (int)(pch - digits);
+                        if (saw_digit && *tp == 0)
+                                return (0);
+                        if (new_v > 255)
+                                return (0);
+                        *tp = new_v;
+                        if (!saw_digit) {
+                                if (++octets > 4)
+                                        return (0);
+                                saw_digit = 1;
+                        }
+                } else if (ch == '.' && saw_digit) {
+                        if (octets == 4)
+                                return (0);
+                        *++tp = 0;
+                        saw_digit = 0;
+                } else
+                        return (0);
+        }
+        if (octets < 4)
+                return (0);
+        memmove(dst, tmp, NS_INADDRSZ);
+        return (1);
+}
+static int inet_pton6(const char *src, unsigned char *dst) {
+        static const char xdigits_l[] = "0123456789abcdef",
+                          xdigits_u[] = "0123456789ABCDEF";
+        unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
+        const char *xdigits, *curtok;
+        int ch, seen_xdigits;
+        unsigned int val;
+
+        memset((tp = tmp), '\0', NS_IN6ADDRSZ);
+        endp = tp + NS_IN6ADDRSZ;
+        colonp = NULL;
+        /* Leading :: requires some special handling. */
+        if (*src == ':')
+                if (*++src != ':')
+                        return (0);
+        curtok = src;
+        seen_xdigits = 0;
+        val = 0;
+        while ((ch = *src++) != '\0') {
+                const char *pch;
+
+                if ((pch = strchr((xdigits = xdigits_l), ch)) == NULL)
+                        pch = strchr((xdigits = xdigits_u), ch);
+                if (pch != NULL) {
+                        val <<= 4;
+                        val |= (pch - xdigits);
+                        if (++seen_xdigits > 4)
+                                return (0);
+                        continue;
+                }
+                if (ch == ':') {
+                        curtok = src;
+                        if (!seen_xdigits) {
+                                if (colonp)
+                                        return (0);
+                                colonp = tp;
+                                continue;
+                        }
+                        if (tp + NS_INT16SZ > endp)
+                                return (0);
+                        *tp++ = (unsigned char) (val >> 8) & 0xff;
+                        *tp++ = (unsigned char) val & 0xff;
+                        seen_xdigits = 0;
+                        val = 0;
+                        continue;
+                }
+                if (ch == '.' && ((tp + NS_INADDRSZ) <= endp) &&
+                    inet_pton4(curtok, tp) > 0) {
+                        tp += NS_INADDRSZ;
+                        seen_xdigits = 0;
+                        break;  /* '\0' was seen by inet_pton4(). */
+                }
+                return (0);
+        }
+        if (seen_xdigits) {
+                if (tp + NS_INT16SZ > endp)
+                        return (0);
+                *tp++ = (unsigned char) (val >> 8) & 0xff;
+                *tp++ = (unsigned char) val & 0xff;
+        }
+        if (colonp != NULL) {
+                /*
+                 * Since some memmove()'s erroneously fail to handle
+                 * overlapping regions, we'll do the shift by hand.
+                 */
+                const int n = (int)(tp - colonp);
+                int i;
+
+                if (tp == endp)
+                        return (0);
+                for (i = 1; i <= n; i++) {
+                        endp[- i] = colonp[n - i];
+                        colonp[n - i] = 0;
+                }
+                tp = endp;
+        }
+        if (tp != endp)
+                return (0);
+        memmove(dst, tmp, NS_IN6ADDRSZ);
+        return (1);
+}
+
+#endif
+
+
+
 
 }	// EOF namespace compat
 }	// EOF namespace ppl7
