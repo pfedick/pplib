@@ -383,6 +383,7 @@ AC_CHECK_FUNCS([wstol wstoll watoi watoll wstod watof])
 AC_CHECK_FUNCS([poll select pselect])
 AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
+AC_CHECK_FUNCS([inet_ntop inet_pton inet_aton inet_ntoa inet_ntoa_r inet_addr inet_network inet_makeaddr])
 
 # Resolver
 AM_CHECK_LIBBIND()
