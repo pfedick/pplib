@@ -30,12 +30,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "../include/prolog.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <locale.h>
-#include "../include/ppl7.h"
+#include <ppl7.h>
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
 

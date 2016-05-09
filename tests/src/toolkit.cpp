@@ -32,18 +32,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "../include/prolog.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <pthread.h>
 #include <locale.h>
-#include "../include/ppl7.h"
-#include "../include/ppl7-grafix.h"
-#include "../include/ppl7-tk.h"
+#include <ppl7.h>
+#include <ppl7-grafix.h>
+#include <ppl7-tk.h>
 #include "ppl7-tests.h"
 #include "toolkit.h"
-
 
 int main(int agrc, char ** argv)
 {
