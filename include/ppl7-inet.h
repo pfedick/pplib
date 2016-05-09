@@ -359,7 +359,7 @@ class TCPSocket
 		virtual ~TCPSocket();
 		//! @name TCP-Client functions
 		//@{
-		void setSource(const String &interface, int port=0);
+		void setSource(const String &interface_name, int port=0);
 		void connect(const String &host_and_port);
 		void connect(const String &host, int port);
 		void setTimeoutConnect(int seconds, int useconds);
@@ -465,7 +465,7 @@ class UDPSocket
 		size_t sendTo(const String &host, int port, const void *buffer, size_t bytes);
 		size_t sendTo(const String &host, int port, const String &buffer);
 		void setTimeoutConnect(int seconds, int useconds);
-		void setSource(const String &interface, int port=0);
+		void setSource(const String &interface_name, int port=0);
 		void connect(const String &host_and_port);
 		void connect(const String &host, int port);
 		bool isConnected() const;

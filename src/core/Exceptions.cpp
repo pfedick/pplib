@@ -209,10 +209,16 @@ void throwExceptionFromErrno(int e,const String &info)
 		case ENOBUFS: throw NoBufferSpaceException(info);
 		case EISCONN: throw SocketIsAlreadyConnectedException(info);
 		case ENOTCONN: throw NotConnectedException(info);
+#ifdef ESHUTDOWN
 		case ESHUTDOWN: throw CantSendAfterSocketShutdownException(info);
+#endif
+#ifdef ETOOMANYREFS
 		case ETOOMANYREFS: throw TooManyReferencesException(info);
+#endif
 		case ECONNREFUSED: throw ConnectionRefusedException(info);
+#ifdef EHOSTDOWN
 		case EHOSTDOWN: throw HostDownException(info);
+#endif
 		case EHOSTUNREACH: throw NoRouteToHostException(info);
 		case ENOTSOCK: throw InvalidSocketException(info);
 		case ENOPROTOOPT: throw UnknownOptionException(info);

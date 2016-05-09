@@ -265,7 +265,20 @@ bool IsMPEGHeader(char *header)
 }
 */
 
-
+void GetMP3Frame(FileObject &file, PPL_MPEG_HEADER &mpg, ByteArray &buffer)
+{
+	pplint64 pos=file.tell();
+	pos=FindNextHeader(file,pos,&mpg);
+	if (pos<0) {
+		buffer.clear();
+		memset(&mpg,0,sizeof(PPL_MPEG_HEADER));
+		return;
+	}
+	file.read(buffer,mpg.framesize);
+	buffer.hexDump();
+	//if (!mpg.framesize) pos+=4;
+	file.seek(pos+mpg.framesize);
+}
 
 static pplint64 FindNextHeader(FileObject &file, pplint64 pos, PPL_MPEG_HEADER *mpg)
 {

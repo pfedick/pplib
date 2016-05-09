@@ -49,7 +49,10 @@ then
 				NASMFLAGS="-f win32"
 				NASMDEBUGFLAGS="-g"
 				;;
-			
+			MINGW64*)
+				NASMFLAGS="-f win64"
+				NASMDEBUGFLAGS="-g"
+				;;			
 		esac
 		
 		AC_SUBST(NASMFLAGS)

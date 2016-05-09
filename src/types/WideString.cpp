@@ -463,11 +463,11 @@ bool WideString::isTrue() const
 {
 	if (!stringlen) return false;
 	if (wcstol(ptr,NULL,0)!=0) return true;
-	if (strcasecmp(L"true")==0) return true;
-	if (strcasecmp(L"wahr")==0) return true;
-	if (strcasecmp(L"ja")==0) return true;
-	if (strcasecmp(L"yes")==0) return true;
-	if (strcasecmp(L"t")==0) return true;
+	if (strCaseCmp(L"true")==0) return true;
+	if (strCaseCmp(L"wahr")==0) return true;
+	if (strCaseCmp(L"ja")==0) return true;
+	if (strCaseCmp(L"yes")==0) return true;
+	if (strCaseCmp(L"t")==0) return true;
 	return false;
 }
 
@@ -538,8 +538,8 @@ WideString & WideString::set(const char *str, size_t size) throw(OutOfMemoryExce
 			|| GlobalEncoding.instrCase("UTF8")>=0
 			|| GlobalEncoding.instrCase("USASCII")>=0
 			|| GlobalEncoding.instrCase("US-ASCII")>=0
-			|| GlobalEncoding.strcasecmp("C")==0
-			|| GlobalEncoding.strcasecmp("POSIX")==0
+			|| GlobalEncoding.strCaseCmp("C")==0
+			|| GlobalEncoding.strCaseCmp("POSIX")==0
 			) {
 		//printf ("DEBUG 2a\n");
 		size_t ret=mbstowcs((wchar_t*)ptr, str, inbytes);
@@ -1769,7 +1769,7 @@ WideString& WideString::operator+=(wchar_t c)
  * negativer Wert zurückgegeben, ist er größer, erfolgt ein positiver Return-Wert,
  * sind beide identisch, wird 0 zurückgegeben.
  *
- * \see strcasecmp Vergleich zweier Strings unter Ignorierung der Gross-/Kleinschreibung
+ * \see strCaseCmp Vergleich zweier Strings unter Ignorierung der Gross-/Kleinschreibung
  */
 int WideString::strcmp(const WideString &str, size_t size) const
 {
@@ -1799,7 +1799,7 @@ int WideString::strcmp(const WideString &str, size_t size) const
  *
  * \see strcmp Vergleich zweier Strings unter Berücksichtigung der Gross-/Kleinschreibung
  */
-int WideString::strcasecmp(const WideString &str, size_t size) const
+int WideString::strCaseCmp(const WideString &str, size_t size) const
 {
 	const wchar_t *mystr=ptr;
 	const wchar_t *otherstr=str.ptr;

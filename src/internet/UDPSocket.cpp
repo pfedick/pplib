@@ -48,9 +48,15 @@
 
 #include <time.h>
 #ifdef _WIN32
-    #include <winsock2.h>
-	#include <ws2tcpip.h>
-	//#include <Ws2tcpip.h>
+
+
+#include <winsock2.h>
+#include <Ws2tcpip.h>
+#include <windows.h>
+#ifndef MSG_DONTWAIT
+#define MSG_DONTWAIT 0
+#endif
+
 #else
 	#ifdef HAVE_UNISTD_H
     #include <unistd.h>
@@ -225,7 +231,7 @@ void UDPSocket::setSource(const String &interface, int port)
 #ifdef WIN32
 static int out_bind(SOCKET sockfd, const char *host, int port)
 {
-	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind")
+	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind");
 }
 
 #else
@@ -627,7 +633,7 @@ bool UDPSocket::waitForIncomingData(int seconds, int useconds)
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
 	if (FD_ISSET(s->sd,&rset)) {
 		char buf[2];
-		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		ret=recv(s->sd, buf,1, MSG_PEEK|MSG_DONTWAIT);
 		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
 			throwExceptionFromErrno(errno, "UDPSocket::isReadable");
@@ -711,8 +717,8 @@ void UDPSocket::setBlocking(bool value)
 		v=1;
 		ret=ioctlsocket(s->sd,FIONBIO,&v);
 	}
-	if (ret==0) return 1;
-	return 0;
+	if (ret==0) return;
+	throwExceptionFromErrno(errno, "UDPSocket::setBlocking");
 #else
 	if (value)
 	    ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK)); // Blocking
@@ -765,7 +771,7 @@ void UDPSocket::bind(const String &host, int port)
 	s->ipname=NULL;
 
 	struct addrinfo hints;
-	bzero(&hints, sizeof(struct addrinfo));
+	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
 	hints.ai_socktype=SOCK_DGRAM;
@@ -783,7 +789,11 @@ void UDPSocket::bind(const String &host, int port)
 		do {
 			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
 			if (listenfd<0) continue; // Error, try next one
+#ifdef _WIN32
+			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,(const char*)&on,sizeof(on))!=0) {
+#else
 			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+#endif
 				freeaddrinfo(ressave);
 				throw SettingSocketOptionException();
 			}
@@ -806,7 +816,7 @@ void UDPSocket::bind(const String &host, int port)
 		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
 		if (listenfd>=0) {
 			struct sockaddr_in addr;
-			bzero(&addr,sizeof(addr));
+			memset(&addr,0,sizeof(addr));
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			addr.sin_port = htons(port);
 			addr.sin_family = AF_INET;

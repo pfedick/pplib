@@ -173,7 +173,7 @@ void *ConfigParser::findSection(const String &sectionname) const
 {
 	SECTION *s=(SECTION *)first;
 	while (s) {
-		if (sectionname.strcasecmp(s->name)==0) return (void *) s;
+		if (sectionname.strCaseCmp(s->name)==0) return (void *) s;
 		s=s->next;
 	}
 	return NULL;

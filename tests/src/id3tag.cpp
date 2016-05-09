@@ -325,7 +325,7 @@ TEST_F(ID3TagTest, Mp3InitialTaggingWithoutPicture) {
 
 	ppl7::DirEntry d;
 	ASSERT_NO_THROW({
-		ppl7::File::stat("tmp/test_tagged1.mp3",d);
+		ppl7::File::statFile("tmp/test_tagged1.mp3",d);
 	});
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
 	EXPECT_EQ(ppl7::String("f9a333ac0f6ee3c92fae02390b25248f"),ppl7::File::md5Hash("tmp/test_tagged1.mp3"));
@@ -376,7 +376,7 @@ TEST_F(ID3TagTest, Mp3InitialTaggingWithPicture) {
 		Tags.save();
 	});
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged2.mp3",d);
+	ppl7::File::statFile("tmp/test_tagged2.mp3",d);
 	ASSERT_EQ((size_t)125073,d.Size) << "Tagged File has unexpected size";
 	EXPECT_EQ(ppl7::String("6dc503f9722059d5a0de7171e07c68e4"),ppl7::File::md5Hash("tmp/test_tagged2.mp3"));
 
@@ -411,7 +411,7 @@ TEST_F(ID3TagTest, Mp3RetagWithPicture) {
 	Tags.setPicture(3,cover,"image/jpeg");
 	Tags.save();
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged3.mp3",d);
+	ppl7::File::statFile("tmp/test_tagged3.mp3",d);
 	ASSERT_EQ((size_t)125074,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("052fd75215f383718e1368b535520c60"),ppl7::File::md5Hash("tmp/test_tagged3.mp3"));
 }
@@ -460,7 +460,7 @@ TEST_F(ID3TagTest, Mp3RetagStrings) {
 	EXPECT_EQ(ppl7::String("7"),NewTags.getEnergyLevel());
 
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged4.mp3",d);
+	ppl7::File::statFile("tmp/test_tagged4.mp3",d);
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("ffdf4dc172e7c5cc07b543557c33b6d1"),ppl7::File::md5Hash("tmp/test_tagged4.mp3"));
 }
@@ -479,7 +479,7 @@ TEST_F(ID3TagTest, Mp3RemovePicture) {
 	ASSERT_FALSE(Tags.hasPicture(3));
 
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged5.mp3",d);
+	ppl7::File::statFile("tmp/test_tagged5.mp3",d);
 	ASSERT_EQ((size_t)97073,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("e2dacaeff7f3dbc0d54ed63e88ba519d"),ppl7::File::md5Hash("tmp/test_tagged5.mp3"));
 }
@@ -492,7 +492,7 @@ TEST_F(ID3TagTest, Mp3RemoveAllTags) {
 	ASSERT_NO_THROW(Tags.clearTags());
 	Tags.save();
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged6.mp3",d);
+	ppl7::File::statFile("tmp/test_tagged6.mp3",d);
 	ASSERT_EQ((size_t)95921,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("692bf339243cee92f1c639b10ffde45e"),ppl7::File::md5Hash("tmp/test_tagged6.mp3"));
 
@@ -505,7 +505,7 @@ TEST_F(ID3TagTest, Mp3NoTagsAndNoChange) {
 	ASSERT_NO_THROW(Tags.clearTags());
 	ASSERT_NO_THROW(Tags.save());
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged7.mp3",d);
+	ppl7::File::statFile("tmp/test_tagged7.mp3",d);
 	ASSERT_EQ((size_t)95920,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("0abbdd3ce267358a0b3bf3f0a015e74e"),ppl7::File::md5Hash("tmp/test_tagged7.mp3"));
 }
@@ -516,7 +516,7 @@ TEST_F(ID3TagTest, Mp3RetagWithoutChanges) {
 	Tags.load("tmp/test_tagged8.mp3");
 	Tags.save();
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged8.mp3",d);
+	ppl7::File::statFile("tmp/test_tagged8.mp3",d);
 	ASSERT_EQ((size_t)97072,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("c5ff756219cba391c99423ddd6cca625"),ppl7::File::md5Hash("tmp/test_tagged8.mp3"));
 }
@@ -582,7 +582,7 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture) {
 	});
 
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged1.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged1.aiff",d);
 	EXPECT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
 	EXPECT_EQ(ppl7::String("ee7fa3d57fd26f6a45e1f9448fd8c09c"),ppl7::File::md5Hash("tmp/test_tagged1.aiff"));
 
@@ -633,7 +633,7 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithPicture) {
 		Tags.save();
 	});
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged2.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged2.aiff",d);
 	ASSERT_EQ((size_t)723867,d.Size) << "Tagged File has unexpected size";
 	EXPECT_EQ(ppl7::String("8b48f5ce239455880fa35f0a83ae30e5"),ppl7::File::md5Hash("tmp/test_tagged2.aiff"));
 
@@ -667,7 +667,7 @@ TEST_F(ID3TagTest, AiffRetagWithPicture) {
 	Tags.setPicture(3,cover,"image/jpeg");
 	Tags.save();
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged3.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged3.aiff",d);
 	ASSERT_EQ((size_t)723867,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("bc9d24e8dffffda4cd7208122e83e65f"),ppl7::File::md5Hash("tmp/test_tagged3.aiff"));
 }
@@ -706,7 +706,7 @@ TEST_F(ID3TagTest, AiffRetagStrings) {
 	EXPECT_EQ(ppl7::String("7"),NewTags.getEnergyLevel());
 
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged4.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged4.aiff",d);
 	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("a254ec79ef0169d2fd6ad70f98a4c193"),ppl7::File::md5Hash("tmp/test_tagged4.aiff"));
 }
@@ -766,7 +766,7 @@ TEST_F(ID3TagTest, AiffRetagStringsAndRetagWithCoverAgain) {
 	EXPECT_EQ(ppl7::String("7"),NewTags.getEnergyLevel());
 
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged10.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged10.aiff",d);
 	ASSERT_EQ((size_t)723813,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("01a1ae462ad55207e4b719d1eb83801c"),ppl7::File::md5Hash("tmp/test_tagged10.aiff"));
 }
@@ -785,7 +785,7 @@ TEST_F(ID3TagTest, AiffRemovePicture) {
 	ASSERT_FALSE(Tags.hasPicture(3));
 
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged5.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged5.aiff",d);
 	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("6d357b3f28e47d0cdc3cff6c4133b339"),ppl7::File::md5Hash("tmp/test_tagged5.aiff"));
 }
@@ -797,7 +797,7 @@ TEST_F(ID3TagTest, AiffRemoveAllTags) {
 	ASSERT_NO_THROW(Tags.clearTags());
 	Tags.save();
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged6.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged6.aiff",d);
 	ASSERT_EQ((size_t)694834,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("608bd0c668528fc0a143a4d3b8dac640"),ppl7::File::md5Hash("tmp/test_tagged6.aiff"));
 }
@@ -810,7 +810,7 @@ TEST_F(ID3TagTest, AiffNoTagsAndNoChange) {
 	ASSERT_NO_THROW(Tags.clearTags());
 	ASSERT_NO_THROW(Tags.save());
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged7.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged7.aiff",d);
 	ASSERT_EQ((size_t)694834,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("608bd0c668528fc0a143a4d3b8dac640"),ppl7::File::md5Hash("tmp/test_tagged7.aiff"));
 }
@@ -821,7 +821,7 @@ TEST_F(ID3TagTest, AiffRetagWithoutChanges) {
 	Tags.load("tmp/test_tagged8.aiff");
 	Tags.save();
 	ppl7::DirEntry d;
-	ppl7::File::stat("tmp/test_tagged8.aiff",d);
+	ppl7::File::statFile("tmp/test_tagged8.aiff",d);
 	ASSERT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";
 	ASSERT_EQ(ppl7::String("ddc103beb0e1687dd6631e31a4a06a62"),ppl7::File::md5Hash("tmp/test_tagged8.aiff"));
 }
@@ -873,7 +873,7 @@ TEST_F(ID3TagTest, AiffRetagRealFile) {
 	ASSERT_EQ(1,Tags2.Save()) << "Saving taggs failed";
 
 	ppl7::CDirEntry d;
-	ASSERT_EQ(1,ppl7::File::Stat("tmp/test_tagged9.aiff",d)) << "Tagged File does not exist!";
+	ASSERT_EQ(1,ppl7::File::statFile("tmp/test_tagged9.aiff",d)) << "Tagged File does not exist!";
 	ASSERT_EQ((size_t)44318523,d.Size) << "Tagged File has unexpected size";
 	//ASSERT_EQ(ppl7::String("ddc103beb0e1687dd6631e31a4a06a62"),ppl7::File::MD5("tmp/test_tagged9.aiff"));
 }

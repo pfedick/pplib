@@ -156,7 +156,10 @@ esac
  
 case "$host_os" in
 	*mingw32* )
-		report_have_pthreads="yes, Win32 Threads"
+		report_have_pthreads="yes, Windows Threads"
+  		;;
+  	*mingw64* )
+		report_have_pthreads="yes, Windows Threads"
   		;;
 	*)
 		AX_PTHREAD([report_have_pthreads="yes, pthreads"]
@@ -359,7 +362,7 @@ AC_FUNC_STAT
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([strtolower strtoupper])
-AC_CHECK_FUNCS([bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket vasprintf asprintf])
+AC_CHECK_FUNCS([bzero bcopy gethostbyname gettimeofday inet_ntoa memmove memset mkdir socket __mingw_vasprintf vasprintf asprintf])
 AC_CHECK_FUNCS([gethostname sethostname getdomainname setdomainname uname])
 AC_CHECK_FUNCS([strcasecmp strlen strnlen strdup strerror strncasecmp strndup strstr strcasestr strcmp strncmp])
 AC_CHECK_FUNCS([strncpy strlcpy strncat strlcat])
@@ -380,6 +383,7 @@ AC_CHECK_FUNCS([wstol wstoll watoi watoll wstod watof])
 AC_CHECK_FUNCS([poll select pselect])
 AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
+AC_CHECK_FUNCS([inet_ntop inet_pton inet_aton inet_ntoa inet_ntoa_r inet_addr inet_network inet_makeaddr])
 
 # Resolver
 AM_CHECK_LIBBIND()
@@ -712,6 +716,14 @@ case "$host_os" in
 	*mingw32* )
 		MINGW32=yes
 		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
+		LIBS="$LIBS -lws2_32"
+  		;;
+  	*mingw64* )
+		MINGW32=yes
+		MINGW64=yes
+		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
+		AC_DEFINE(MINGW64, 1, [Define if you compile on Windows MINGW64])
+		LIBS="$LIBS -lws2_32"
   		;;
 	* )
 		MINGW32=no

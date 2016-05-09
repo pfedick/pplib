@@ -506,13 +506,14 @@ void Logger::output(PRIORITY prio, int level, const char *module, const char *fu
 	bu.trim();
 	bu.replace("\n","\n     ");
 	bu.append("\n");
-
+#ifdef HAVE_SYSLOG_H
 	if (useSyslog) {
 		String log;
 		if (logThreadId) log.setf("[%2i] [%6llu]",level,ThreadID());
 		else log.setf("[%2i]",level);
 		syslog(syslog_priority_lookup[prio],"%s %s",(const char*)log,(const char*)bu);
 	}
+#endif
 	bf+=bu;
 	if (level<=debuglevel[prio] && logff[prio].isOpen()==true) {
 		logff[prio].puts(bf);

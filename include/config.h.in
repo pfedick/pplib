@@ -41,6 +41,7 @@
 #undef PACKAGE_STRING
 
 #undef MINGW32
+#undef MINGW64
 
 /* Define as 1 if you have unistd.h. */
 #undef HAVE_UNISTD_H
@@ -76,7 +77,6 @@
 #undef HAVE_WCHAR_H
 #undef HAVE_WIDEC_H
 #undef HAVE_WCTYPE_H
-#undef HAVE_STRCASECMP
 #undef HAVE_STRDUP
 #undef HAVE_STRNDUP
 #undef HAVE_STRNCPY
@@ -113,6 +113,7 @@
 #undef HAVE_VPRINTF
 #undef HAVE_ASPRINTF
 #undef HAVE_VASPRINTF
+#undef HAVE___MINGW_VASPRINTF
 #undef HAVE_WORKING_VSNPRINTF
 #undef HAVE__BOOL
 #undef FPOS_T_STRUCT
@@ -221,9 +222,18 @@
 #undef HAVE_GETDOMAINNAME
 #undef HAVE_SETDOMAINNAME
 #undef HAVE_UNAME
+#undef HAVE_INET_NTOP
+#undef HAVE_INET_PTON
+#undef HAVE_INET_ATON
+#undef HAVE_INET_NTOA
+#undef HAVE_INET_NTOA_R
+#undef HAVE_INET_ADDR
+#undef HAVE_INET_NETWORK
+#undef HAVE_INET_MAKEADDR
 
 #undef HAVE_RESOLV_H
 #undef HAVE_ARPA_NAMESER_H
+
 
 
 #undef _FILE_OFFSET_BITS 64
@@ -439,8 +449,8 @@
 		#define read _read
 		*/
 	#endif
-	#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
-	#include <windows.h>
+	//#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+	//#include <windows.h>
 #endif
 
 #endif

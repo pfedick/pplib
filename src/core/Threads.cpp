@@ -59,8 +59,11 @@
 #include <valgrind/helgrind.h>
 #endif
 
-
 #include "ppl7.h"
+#ifdef _WIN32
+#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#include <windows.h>
+#endif
 #include "threads.h"
 
 namespace ppl7 {

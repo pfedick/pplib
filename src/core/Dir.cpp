@@ -1093,7 +1093,7 @@ void Dir::open(const char *path, Sort s)
 #endif
 		if (result==NULL) break;
 		CurrentFile=Path+"/"+String(result->d_name);
-		File::stat(CurrentFile,de);
+		File::statFile(CurrentFile,de);
 		Files.add(de);
 	}
 	closedir(dir);
@@ -1108,7 +1108,7 @@ bool Dir::exists(const String &dirname)
 {
 	try {
 		DirEntry f;
-		File::stat(dirname,f);
+		File::statFile(dirname,f);
 		if (f.isDir()) return true;
 		if (f.isLink()) return true;
 		return false;

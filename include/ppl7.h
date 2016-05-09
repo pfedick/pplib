@@ -94,14 +94,6 @@
 	#include <ppl7-exceptions.h>
 #endif
 
-//#ifndef MINGW32
-	#ifdef _WIN32
-		#define bzero ZeroMemory
-		//#define bcopy CopyMemory   // CopyMemory hat andere Parameter-Reihenfolge als bcopy!
-		#define strcasecmp stricmp
-		#define mode_t ppluint32
-	#endif
-//#endif
 
 
 namespace ppl7 {
@@ -717,7 +709,7 @@ class File : public FileObject
 		static void save(const void *content, size_t size, const String &filename);
 		static void save(const ByteArrayPtr &object, const String &filename);
 		static void chmod(const String &filename, FileAttr::Attributes attr);
-		static void stat(const String &filename, DirEntry &result);
+		static void statFile(const String &filename, DirEntry &result);
 		static String getPath(const String &path);
 		static String getFilename(const String &path);
 		static String md5Hash(const String &filename);
@@ -1086,7 +1078,6 @@ class Logger
 			ALERT		= 2,
 			CRIT		= 3,
 			ERR			= 4,
-			ERROR		= 4,
 			WARNING		= 5,
 			NOTICE		= 6,
 			INFO		= 7,

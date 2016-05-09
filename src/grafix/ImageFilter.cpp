@@ -123,7 +123,7 @@ ImageFilter *Grafix::findImageFilter(const String &name)
 	try {
 		while (ImageFilterList.getPrevious(it)) {
 			ImageFilter *f=it.value();
-			if (name.strcasecmp(f->name())==0) {
+			if (name.strCaseCmp(f->name())==0) {
 				myMutex.unlock();
 				return f;
 			}

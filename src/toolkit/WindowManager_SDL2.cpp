@@ -326,10 +326,13 @@ static PRIV_WINDOW_FUNCTIONS sdlWmFunctions = {
 		sdlPresentScreen
 };
 
-
+#endif
 
 WindowManager_SDL2::WindowManager_SDL2()
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	if (wm!=NULL && wm!=this) throw DuplicateWindowManagerException();
 	wm=this;
 	/* Get init data on all the subsystems */
@@ -351,12 +354,17 @@ WindowManager_SDL2::WindowManager_SDL2()
 	screenSize.setSize(current.w, current.h);
 	screenRefreshRate=current.refresh_rate;
 	//printf ("Auflösung: %i x %i, Format: %s, Refresh: %i\n",screenSize.width,screenSize.height,(const char*)screenRGBFormat.name(),screenRefreshRate);
+#endif
 }
 
 WindowManager_SDL2::~WindowManager_SDL2()
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	if (wm==this) wm=NULL;
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+#endif
 }
 
 const Size &WindowManager_SDL2::desktopResolution() const
@@ -371,6 +379,9 @@ const RGBFormat &WindowManager_SDL2::desktopRGBFormat() const
 
 void WindowManager_SDL2::createWindow(Window &w)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	if (w.getPrivateData()!=NULL) throw WindowAlreadyCreatedException();
 
 	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)calloc(sizeof(SDL_WINDOW_PRIVATE),1);
@@ -442,10 +453,14 @@ void WindowManager_SDL2::createWindow(Window &w)
 	w.setPrivateData(priv, this,&sdlWmFunctions);
 	sdlSetWindowIcon(priv,w.windowIcon());
 	windows.add(&w);
+#endif
 }
 
 void WindowManager_SDL2::destroyWindow(Window &w)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
 	if (!priv) return;
 	windows.erase(&w);
@@ -454,6 +469,7 @@ void WindowManager_SDL2::destroyWindow(Window &w)
 	if (priv->win) SDL_DestroyWindow(priv->win);
 	free(priv);
 	w.setPrivateData(NULL,NULL,NULL);
+#endif
 }
 
 size_t WindowManager_SDL2::numWindows()
@@ -476,13 +492,20 @@ void WindowManager_SDL2::startEventLoop()
 
 Window *WindowManager_SDL2::getWindow(ppluint32 id)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	SDL_Window* win=SDL_GetWindowFromID(id);
 	if (!win) return NULL;
 	return (Window*)SDL_GetWindowData(win,"WindowClass");
+#endif
 }
 
 void WindowManager_SDL2::handleEvents()
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	SDL_Event sdl_event;
 	while (SDL_PollEvent(&sdl_event)) {		// Alle Events verarbeiten
 		switch (sdl_event.type) {
@@ -531,11 +554,14 @@ void WindowManager_SDL2::handleEvents()
 
 		}
 	}
-
+#endif
 }
 
 void WindowManager_SDL2::DispatchWindowEvent(void *e)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	const SDL_Event * event=(SDL_Event*)e;
 
 	Window *w=getWindow(event->window.windowID);
@@ -600,12 +626,15 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
                 event->window.windowID, event->window.event);
         break;
     }
-
+#endif
 }
 
 
 void WindowManager_SDL2::DispatchMouseEvent(void *e)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	MouseEvent ev;
 	Uint32 type=((SDL_Event*)e)->type;
 
@@ -687,12 +716,14 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		if (event->button==7) ev.button=MouseEvent::X2;
 		dispatchEvent(w,ev);
 	}
+#endif
 }
 
 typedef struct {
 
 } CLICK_EVENT;
 
+#ifdef HAVE_SDL2
 static Uint32 clickTimer(Uint32 interval, void *param)
 {
 	//printf("clickTimer\n");
@@ -712,13 +743,16 @@ static Uint32 clickTimer(Uint32 interval, void *param)
     SDL_PushEvent(&event);
     return(0);
 }
-
+#endif
 
 void WindowManager_SDL2::startClickEvent(Window *win)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	//printf ("WindowManager_SDL2::startClickEvent\n");
 	SDL_AddTimer(getDoubleClickIntervall(), clickTimer, win);
-
+#endif
 }
 
 
@@ -728,7 +762,7 @@ typedef struct {
 		int intervall;
 } TIMER_EVENT;
 
-
+#ifdef HAVE_SDL2
 static Uint32 timerEvent(Uint32 interval, void *param)
 {
 	//printf("clickTimer\n");
@@ -748,15 +782,23 @@ static Uint32 timerEvent(Uint32 interval, void *param)
     SDL_PushEvent(&event);
     return(0);
 }
+#endif
 
 void WindowManager_SDL2::startTimer(Widget *w, int intervall)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	SDL_AddTimer(intervall,timerEvent,w);
+#endif
 }
 
 
 void WindowManager_SDL2::DispatchKeyEvent(void *e)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	KeyEvent ev;
 	SDL_KeyboardEvent *event=(SDL_KeyboardEvent*)e;
 
@@ -842,6 +884,7 @@ void WindowManager_SDL2::DispatchKeyEvent(void *e)
 	} else if (event->type==SDL_KEYUP) {
 		keyFocusWidget->keyUpEvent(&kev);
 	}
+#endif
 }
 
 
@@ -1245,7 +1288,6 @@ void WindowManager_SDL::createSurface(Widget &w, int width, int height, const RG
 	w.setSize(width,height);
 }
 
-#endif
 
 #endif	// OLDCODE
 

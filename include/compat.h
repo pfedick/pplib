@@ -57,6 +57,26 @@
 #include <stdarg.h>
 #endif
 
+#ifdef _WIN32
+    #include <winsock2.h>
+	#include <Ws2tcpip.h>
+	#include <windows.h>
+#else
+
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+
+#endif // _WIN32
+
 namespace ppl7 {
 namespace compat {
 
@@ -98,18 +118,6 @@ long htol (const char * wert);
 long long atoll (const char *wert);
 #endif
 
-#ifndef HAVE_ATOI
-int atoi(const char *wert);
-#endif
-
-#ifndef HAVE_ATOL
-long atol(const char *wert);
-#endif
-
-#ifndef HAVE_ATOF
-double atof(const char *wert);
-#endif
-
 #ifndef HAVE_STRNDUP
 char *strndup(const char *str, size_t len);
 #endif
@@ -122,8 +130,20 @@ int strncmp(const char *s1, const char *s2, size_t len);
 void bcopy(const void *src, void *dst, size_t len);
 #endif
 
+#ifndef HAVE_BZERO
+void bzero(void *b, size_t len);
+#endif
+
 #ifndef HAVE_STRNLEN
 size_t strnlen(const char *str, size_t len);
+#endif
+
+#ifndef HAVE_INET_NTOP
+const char * inet_ntop(int af, const void *src, char *dst, socklen_t size);
+#endif
+
+#ifndef HAVE_INET_PTON
+int inet_pton(int af, const char *src, void *dst);
 #endif
 
 

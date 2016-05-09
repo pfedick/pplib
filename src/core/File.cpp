@@ -1094,9 +1094,8 @@ int File::munmap(void *addr, size_t len)
 	::munmap(addr, len);
 #else
 	if ((LastMapProtection&2)) {			// Speicher war schreibbar und muss
-		if (seek(LastMapStart)) {		// Zurückgeschrieben werden
-			fwrite(MapBase,1,len);
-		}
+		seek(LastMapStart);					// Zurückgeschrieben werden
+		fwrite(MapBase,1,len);
 	}
 	free (MapBase);
 #endif
@@ -1623,7 +1622,7 @@ String File::md5Hash(const String &filename)
  * \throw NullPointerException: Wird geworfen, wenn \p filename auf NULL zeigt
  * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
  */
-void File::stat(const String &filename, DirEntry &result)
+void File::statFile(const String &filename, DirEntry &result)
 {
 	if (filename.isEmpty()) throw IllegalArgumentException();
 #ifdef HAVE_STAT

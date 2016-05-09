@@ -61,14 +61,6 @@
 
 namespace ppl7 {
 
-#ifndef HAVE_LOCALTIME_R
-// In diesem Fall ist ein Workaround für localtime_r in core/time.cpp definiert
-struct tm * localtime_r(const time_t *clock, struct tm *result);
-#endif
-
-#ifndef HAVE_GMTIME_R
-struct tm *gmtime_r(const time_t *timep, struct tm *result);
-#endif
 
 
 /*!\class DateTime

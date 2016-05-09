@@ -967,37 +967,37 @@ TEST_F(WideStringTest, strcmpEqual) {
 TEST_F(WideStringTest, strcasecmpEmpty) {
 	ppl7::WideString s1(L"");
 	ppl7::WideString s2(L"");
-	ASSERT_EQ(0,s1.strcasecmp(s2));
+	ASSERT_EQ(0,s1.strCaseCmp(s2));
 }
 
 TEST_F(WideStringTest, strcasecmpLower) {
 	ppl7::WideString s1(L"ABcdef");
 	ppl7::WideString s2(L"Defghi");
-	ASSERT_LT(s1.strcasecmp(s2),0);
+	ASSERT_LT(s1.strCaseCmp(s2),0);
 }
 
 TEST_F(WideStringTest, strcasecmpLowerWithCase) {
 	ppl7::WideString s1(L"ABcdef");
 	ppl7::WideString s2(L"abcdef");
-	ASSERT_EQ(s1.strcasecmp(s2),0);
+	ASSERT_EQ(s1.strCaseCmp(s2),0);
 }
 
 TEST_F(WideStringTest, strcasecmpHigher) {
 	ppl7::WideString s1(L"ABcdef");
 	ppl7::WideString s2(L"Defghi");
-	ASSERT_GT(s2.strcasecmp(s1),0);
+	ASSERT_GT(s2.strCaseCmp(s1),0);
 }
 
 TEST_F(WideStringTest, strcasecmpHigherWithCase) {
 	ppl7::WideString s1(L"ABcdef");
 	ppl7::WideString s2(L"abcdef");
-	ASSERT_EQ(s2.strcasecmp(s1),0);
+	ASSERT_EQ(s2.strCaseCmp(s1),0);
 }
 
 TEST_F(WideStringTest, strcasecmpEqual) {
 	ppl7::WideString s1(L"ABcdef");
 	ppl7::WideString s2(L"ABcdef");
-	ASSERT_EQ(s2.strcasecmp(s1),0);
+	ASSERT_EQ(s2.strCaseCmp(s1),0);
 }
 
 
