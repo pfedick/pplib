@@ -40,18 +40,23 @@
 namespace ppl7 {
 
 
+static void Replace(String &expression, const String &value1, const String &operator_str, const String &value2, double &result)
+{
+	String pattern=value1+operator_str+value2;
+	pattern.pregEscape();
+	pattern="/"+pattern+"/";
+	String rep;
+	if (result<0.0) rep.setf("%f",result);
+	else rep.setf("+%f",result);
+	expression.pregReplace(pattern,rep);
+}
+
 static void ResolveAddition(String &expression)
 {
 	Array matches;
 	while (expression.pregMatch("/([-+]{0,1}[0-9\\.,]+)\\+([-+]{0,1}[0-9\\.,]+)/",matches)) {
 		double tmp=matches[1].toDouble()+matches[2].toDouble();
-		String pattern=matches[1]+"+"+matches[2];
-		pattern.pregEscape();
-		pattern="/"+pattern+"/";
-		String rep;
-		if (tmp<0.0) rep.setf("%f",tmp);
-		else rep.setf("+%f",tmp);
-		expression.pregReplace(pattern,rep);
+		Replace(expression,matches[1],"+",matches[2],tmp);
 	}
 }
 
@@ -60,19 +65,13 @@ static void ResolveSubtraction(String &expression)
 	Array matches;
 	while (expression.pregMatch("/([-+]{0,1}[0-9\\.,]+)\\-([-+]{0,1}[0-9\\.,]+)/",matches)) {
 		double tmp=matches[1].toDouble()-matches[2].toDouble();
-		String pattern=matches[1]+"-"+matches[2];
-		pattern.pregEscape();
-		pattern="/"+pattern+"/";
-		String rep;
-		if (tmp<0.0) rep.setf("%f",tmp);
-		else rep.setf("+%f",tmp);
-		expression.pregReplace(pattern,rep);
+		Replace(expression,matches[1],"-",matches[2],tmp);
 	}
 }
 
 static double Resolve(String &current)
 {
-	printf ("current=%s\n",(const char*)current);
+	//printf ("current=%s\n",(const char*)current);
 	while (1) {
 		size_t size=current.size();
 		size_t start=size+1;
@@ -83,15 +82,15 @@ static double Resolve(String &current)
 			if (ptr[i]==')') end=i;
 		}
 		if (start<size) {
-			printf ("Loese Klammer auf...\n");
+			//printf ("Loese Klammer auf...\n");
 			double tmp=Calc(current.mid(start+1,end-start-1));
 			current=current.left(start)+ToString("%f",tmp)+current.mid(end+1);
-			printf ("neues current: %s\n",(const char*)current);
+			//printf ("neues current: %s\n",(const char*)current);
 		} else {
 			break;
 		}
 	}
-	printf ("Berechne: %s\n",(const char*)current);
+	//printf ("Berechne: %s\n",(const char*)current);
 	ResolveAddition(current);
 	ResolveSubtraction(current);
 	return current.toDouble();
