@@ -195,6 +195,7 @@ String ToBase64(const ByteArrayPtr &bin);
 ByteArray FromBase64(const String &str);
 ppluint32 Crc32(const void* buffer, size_t size);
 String Md5(const void* buffer, size_t size);
+double Calc(const String &expression);
 
 String StripSlashes(const String &str);
 String EscapeHTMLTags(const String &html);
