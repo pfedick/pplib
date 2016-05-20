@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 #include <list>
 #include "ppl7.h"
 
@@ -54,6 +55,9 @@ class CalcToken
 			TYPE_MINUS,
 			TYPE_DIVIDE,
 			TYPE_MULTIPLY,
+			TYPE_POWER,
+			TYPE_SHIFT_LEFT,
+			TYPE_SHIFT_RIGHT,
 		};
 		int operator_type;
 		double value;
@@ -114,6 +118,9 @@ static double CalcType(double v1, double v2, int type)
 	if (type==CalcToken::TYPE_MINUS) return v1-v2;
 	if (type==CalcToken::TYPE_MULTIPLY) return v1*v2;
 	if (type==CalcToken::TYPE_DIVIDE) return v1/v2;
+	if (type==CalcToken::TYPE_POWER) return pow(v1,v2);
+	if (type==CalcToken::TYPE_SHIFT_LEFT) return (ppluint64)v1<<(int)v2;
+	if (type==CalcToken::TYPE_SHIFT_RIGHT) return (ppluint64)v1>>(int)v2;
 	return 0;
 }
 
@@ -198,6 +205,14 @@ double Tokenize(const String &expression, char *buffer)
 			tokenlist.push_back(CalcToken(CalcToken::TYPE_MULTIPLY,0));
 		} else if (c=='/') {
 			tokenlist.push_back(CalcToken(CalcToken::TYPE_DIVIDE,0));
+		} else if (c=='^') {
+			tokenlist.push_back(CalcToken(CalcToken::TYPE_POWER,0));
+		} else if (c=='<' && ptr[1]=='<') {
+			tokenlist.push_back(CalcToken(CalcToken::TYPE_SHIFT_LEFT,0));
+			ptr++;
+		} else if (c=='>' && ptr[1]=='>') {
+			tokenlist.push_back(CalcToken(CalcToken::TYPE_SHIFT_RIGHT,0));
+			ptr++;
 		} else if (c==0) {
 			break;
 		} else {
@@ -209,6 +224,9 @@ double Tokenize(const String &expression, char *buffer)
 	printf ("Expression: %s\n",(const char*)expression);
 	PrintTokenList(tokenlist);
 #endif
+	ResolveType(tokenlist,CalcToken::TYPE_SHIFT_LEFT);
+	ResolveType(tokenlist,CalcToken::TYPE_SHIFT_RIGHT);
+	ResolveType(tokenlist,CalcToken::TYPE_POWER);
 	ResolveType(tokenlist,CalcToken::TYPE_MULTIPLY);
 	ResolveType(tokenlist,CalcToken::TYPE_DIVIDE);
 	ResolveType(tokenlist,CalcToken::TYPE_PLUS);

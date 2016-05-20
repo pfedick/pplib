@@ -103,6 +103,19 @@ TEST_F(CalcTest, Multiply) {
 }
 
 
+TEST_F(CalcTest, Power) {
+	ASSERT_DOUBLE_EQ((double)1024,ppl7::Calc("2^10"));
+}
+
+TEST_F(CalcTest, BitshiftLeft) {
+	ASSERT_DOUBLE_EQ((double)1024,ppl7::Calc("1<<10"));
+}
+
+TEST_F(CalcTest, BitshiftRight) {
+	ASSERT_DOUBLE_EQ((double)64,ppl7::Calc("1024>>4"));
+}
+
+
 TEST_F(CalcTest, PunktVorStrich) {
 	ASSERT_DOUBLE_EQ((double)7,ppl7::Calc("2*4+8-3*3"));
 }
