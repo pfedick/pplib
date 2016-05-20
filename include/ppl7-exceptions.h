@@ -130,6 +130,8 @@ PPLEXCEPTION(KeyNotFoundException, Exception);
 PPLEXCEPTION(InvalidTimezoneException, Exception);
 PPLEXCEPTION(CharacterEncodingNotInitializedException, Exception);
 
+PPLEXCEPTION(SyntaxException, Exception);
+
 PPLEXCEPTION(NoSectionSelectedException, Exception);
 PPLEXCEPTION(UnknownSectionException, Exception);
 
@@ -140,6 +142,7 @@ PPLEXCEPTION(SSLContextReferenceCounterMismatchException, Exception);
 PPLEXCEPTION(InvalidSSLCertificateException, Exception);
 PPLEXCEPTION(InvalidSSLCipherException, Exception);
 PPLEXCEPTION(SSLPrivatKeyException, Exception);
+
 
 
 //! @name IO-Exceptions

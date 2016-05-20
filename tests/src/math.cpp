@@ -40,6 +40,7 @@
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
 
+
 namespace {
 
 // The fixture for testing class Foo.
@@ -56,28 +57,60 @@ class CalcTest : public ::testing::Test {
 	}
 };
 
-
-TEST_F(CalcTest, ResolveSimpleBracket) {
-	ASSERT_EQ((double)2.0,ppl7::Calc("(2)"));
+TEST_F(CalcTest, SinglePositiveValue) {
+	ASSERT_DOUBLE_EQ((double)2.0,ppl7::Calc(" 2	 "));
+	ASSERT_DOUBLE_EQ((double)2.0,ppl7::Calc("2"));
+	ASSERT_DOUBLE_EQ((double)19.1,ppl7::Calc("19.1"));
+	ASSERT_DOUBLE_EQ((double)23.1234,ppl7::Calc("23.1234"));
+	ASSERT_DOUBLE_EQ((double)23.1234,ppl7::Calc("+23.1234"));
 }
 
-TEST_F(CalcTest, SingleValue) {
-	ASSERT_EQ((double)2.0,ppl7::Calc("2"));
-	ASSERT_EQ((double)10.1,ppl7::Calc("10.1"));
+TEST_F(CalcTest, SingleNegativeValue) {
+	ASSERT_DOUBLE_EQ((double)-2.0,ppl7::Calc("-2"));
+	ASSERT_DOUBLE_EQ((double)-19.1,ppl7::Calc("-19.1"));
 }
 
-TEST_F(CalcTest, Addition) {
-	ASSERT_EQ((double)4.0,ppl7::Calc("2+2"));
-	ASSERT_EQ((double)19.5,ppl7::Calc("2.1 + 17.4"));
-	ASSERT_EQ((double)16.0,ppl7::Calc("9+(3+4)"));
+TEST_F(CalcTest, AdditionOfTwoPositiveValues) {
+	ASSERT_DOUBLE_EQ((double)19,ppl7::Calc("6+13"));
+	ASSERT_DOUBLE_EQ((double)19,ppl7::Calc(" 6 + 13 "));
+	ASSERT_DOUBLE_EQ((double)7,ppl7::Calc("-6 + 13 "));
 }
 
-TEST_F(CalcTest, Subtraction) {
-	ASSERT_EQ((double)7.0,ppl7::Calc("9-2"));
-	ASSERT_EQ((double)6.3,ppl7::Calc("9.4 - 3.1"));
-	ASSERT_EQ((double)8.0,ppl7::Calc("9+(3-4)"));
+TEST_F(CalcTest, AdditionOfNegativeAndPositiveValues) {
+	ASSERT_DOUBLE_EQ((double)7,ppl7::Calc("-6+13"));
+}
+TEST_F(CalcTest, AdditionOfPositiveAndNegativeValues) {
+	ASSERT_DOUBLE_EQ((double)-7,ppl7::Calc("6+-13"));
+	ASSERT_DOUBLE_EQ((double)5.87,ppl7::Calc("6+-.13"));
 }
 
+TEST_F(CalcTest, SubtractionOfTwoPositiveValues) {
+	ASSERT_DOUBLE_EQ((double)-7,ppl7::Calc("6-13"));
+}
+
+TEST_F(CalcTest, SubtractionOfTwoNegativeValues) {
+	ASSERT_DOUBLE_EQ((double)-20,ppl7::Calc("-7-13"));
+}
+
+TEST_F(CalcTest, SubtractionOfPositiveAndNegativeValues) {
+	ASSERT_DOUBLE_EQ((double)20,ppl7::Calc("7--13"));
+}
+
+TEST_F(CalcTest, Multiply) {
+	ASSERT_DOUBLE_EQ((double)9,ppl7::Calc("3*3"));
+	ASSERT_DOUBLE_EQ((double)-10.2,ppl7::Calc("3.4*-3"));
+	ASSERT_DOUBLE_EQ((double)-9.61,ppl7::Calc("3.1*-3.1"));
+}
+
+
+TEST_F(CalcTest, PunktVorStrich) {
+	ASSERT_DOUBLE_EQ((double)7,ppl7::Calc("2*4+8-3*3"));
+}
+
+
+TEST_F(CalcTest, Bracket) {
+	ASSERT_DOUBLE_EQ((double)6,ppl7::Calc("2*4+(8-3*3)*2"));
+}
 
 }
 
