@@ -125,6 +125,12 @@ TEST_F(CalcTest, Bracket) {
 	ASSERT_DOUBLE_EQ((double)6,ppl7::Calc("2*4+(8-3*3)*2"));
 }
 
+TEST_F(CalcTest, MultiBracket) {
+	ASSERT_DOUBLE_EQ((double)6,ppl7::Calc("(((2)*(4))+(8-3*3)*(2))"));
+	ASSERT_DOUBLE_EQ((double)38,ppl7::Calc("(((2)*(4))+((8-3)*3)*(2))"));
+}
+
+
 }
 
 
