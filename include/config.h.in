@@ -32,8 +32,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
  
-#ifndef _PPL6_CONFIG
-#define _PPL6_CONFIG
+#ifndef _PPL7_CONFIG
+#define _PPL7_CONFIG
 
 #undef PACKAGE_VERSION
 #undef PACKAGE_BUGREPORT
