@@ -297,35 +297,37 @@ class SocketMessage
 		bool		SupportMsgChannel;
 
 	public:
+		PPLEXCEPTION(NoDataAvailableException, Exception);
+		PPLEXCEPTION(DataInOtherFormatException, Exception);
+		PPLEXCEPTION(InvalidProtocolVersion, Exception);
+
+
 		bool		ClientSupportsCompression;
 
 		SocketMessage();
 		SocketMessage(const SocketMessage &other);
 
 		virtual ~SocketMessage();
-		void Copy(const SocketMessage &other);
-		void Copy(const SocketMessage *other);
+		void copy(const SocketMessage &other);
 
-		void Clear();
-		void SetCommandId(int id);
-		void SetId(int id);
-		int SetData(const String &msg);
-		int SetData(const char *msg);
-		int SetData(const AssocArray &msg);
-		int GetData(String &msg);
-		const char*GetData();
-		int GetData(AssocArray &msg);
-		int GetId();
-		int GetCommandId();
-		int GetType();
-		void Dump(String &buffer);
-		void Dump();
-		void Dump(Logger *Log, int facility=Logger::DEBUG, int level=1);
-		int SetVersion(int version);
-		void EnableCompression();
-		void DisableCompression();
-		void EnableMsgChannel();
-		void DisableMsgChannel();
+		void clear();
+
+
+		void setCommandId(int id);
+		void setId(int id);
+		void setData(const String &msg);
+		void setData(const AssocArray &msg);
+		void getData(String &msg);
+		void getData(AssocArray &msg);
+		int getId();
+		int getCommandId();
+		int getType();
+		void dump(String &buffer);
+		void dump();
+		void dump(Logger *Log, int facility=Logger::DEBUG, int level=1);
+		void setVersion(int version);
+		void enableCompression(bool flag=true);
+		void enableMsgChannel(bool flag=true);
 		bool isCompressionSupported() const;
 		bool isMsgChannelSupported() const;
 };
@@ -389,7 +391,7 @@ class TCPSocket
 		size_t write(const ByteArrayPtr &bin, size_t bytes=0);
 		size_t write(const void *buffer, size_t bytes);
 		size_t writef(const char *fmt, ...);
-		//int write(SocketMessage &msg);
+		size_t write(const SocketMessage &msg);
 		size_t read(void *buffer, size_t bytes);
 		size_t read(String &buffer, size_t bytes);
 		size_t read(ByteArray &buffer, size_t bytes);
