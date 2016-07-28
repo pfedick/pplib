@@ -64,13 +64,10 @@ namespace ppl7 {
 
 SocketMessage::SocketMessage()
 {
-	datatype=0;
-	data=NULL;
-	size=0;
+	payload_size=0;
+	payload_type=0;
+	payload=NULL;
 	commandId=0;
-	incoming_data=NULL;
-	incoming_size=0;
-	incoming_type=0;
 	ClientSupportsCompression=false;
 	Version=1;
 	UseCompression=true;
@@ -80,13 +77,8 @@ SocketMessage::SocketMessage()
 
 SocketMessage::SocketMessage(const SocketMessage &other)
 {
-	datatype=0;
-	data=NULL;
-	size=0;
+	payload=NULL;
 	commandId=0;
-	incoming_data=NULL;
-	incoming_size=0;
-	incoming_type=0;
 	ClientSupportsCompression=false;
 	Version=1;
 	UseCompression=true;
@@ -102,35 +94,25 @@ SocketMessage::~SocketMessage()
 
 void SocketMessage::clear()
 {
-	data=NULL;
-	datatype=0;
-	size=0;
-	if (incoming_data) free(incoming_data);
-	incoming_data=NULL;
-	incoming_size=0;
-	incoming_type=0;
+	if (!payload) return;
+	free(payload);
+	payload=NULL;
 }
 
 void SocketMessage::copy(const SocketMessage &other)
 {
 	clear();
-	datatype=other.datatype;
-	size=other.size;
-	incoming_size=other.incoming_size;
-	incoming_type=other.incoming_type;
 	commandId=other.commandId;
 	Id=other.Id;
 	Version=other.Version;
 	UseCompression=other.UseCompression;
-	data=other.data;
-	incoming_data=NULL;
-	if (incoming_size) {
-		incoming_data=malloc(incoming_size+1);
-		if (!incoming_data) {
-			incoming_size=0;
-		} else {
-			memcpy(incoming_data,other.incoming_data,incoming_size);
-		}
+	payload_size=other.payload_size;
+	payload_type=other.payload_type;
+
+	if (other.payload) {
+		payload=malloc(payload_size);
+		if (!payload) throw OutOfMemoryException();
+		memcpy(payload,other.payload,payload_size);
 	}
 }
 
@@ -164,125 +146,68 @@ void SocketMessage::setId(int id)
 	Id=id;
 }
 
-void SocketMessage::setData(const String &msg)
+
+void SocketMessage::setPayload(const String &msg)
 {
-	//printf ("SetData: msg->size()=%i, Ptr=>>%s<<\n",msg->Size(),msg->GetPtr());
-	datatype=Variant::TYPE_STRING;
-	data=(void*)&msg;
+	clear();
+	payload_type=Variant::TYPE_STRING;
+	payload_size=msg.size();
+	payload=strndup(msg.c_str(),payload_size);
+	if (!payload) throw OutOfMemoryException();
 }
 
-void SocketMessage::setData(const AssocArray &msg)
+void SocketMessage::setPayload(const AssocArray &msg)
 {
-	datatype=Variant::TYPE_ASSOCARRAY;
-	data=(void*)&msg;
+	clear();
+	payload_type=Variant::TYPE_ASSOCARRAY;
+	payload_size=msg.binarySize();
+	payload=malloc(payload_size);
+	if (!payload) throw OutOfMemoryException();
+	msg.exportBinary(payload,payload_size,NULL);
 }
 
-#ifdef TODO
-
-void CSocketMessage::Dump()
+void SocketMessage::setPayload(const ByteArrayPtr &msg)
 {
-	CString Buffer;
-	Dump(Buffer);
-	Buffer.Print(true);
+	clear();
+	payload_type=Variant::TYPE_BYTEARRAY;
+	payload_size=msg.size();
+	payload=malloc(payload_size);
+	if (!payload) throw OutOfMemoryException();
+	memcpy(payload,msg.ptr(),payload_size);
 }
 
-void CSocketMessage::Dump(CLog *Log, int facility, int level)
+void SocketMessage::getPayload(String &msg) const
 {
-	CString Buffer;
-	Dump(Buffer);
-	Log->Print(facility,level,"ppl6::CSocketMessage","Dump",__FILE__,__LINE__,(const char*)Buffer);
-}
-
-void CSocketMessage::Dump(CString &buffer)
-{
-	const char *t="unknown";
-	switch (datatype) {
-		case PPL_CHAR: t="PPL_CHAR";
-			break;
-		case PPL_STRING: t="PPL_STRING";
-			break;
-		case PPL_ASSOCARRAY: t="PPL_ASSOCARRAY";
-			break;
-	};
-	buffer.Sprintf ("CSocketMessage:\n");
-	buffer.Concatf ("   CommandId:     %i\n",commandId);
-	buffer.Concatf ("   Id:            %i\n",Id);
-	buffer.Concatf ("   Datatype Send: %s\n",t);
-	switch (datatype) {
-		case PPL_ASSOCARRAY:
-			((CAssocArray*)data)->List();
-			break;
-		case PPL_STRING:
-			((CString*)data)->Print(true);
-			break;
-		case PPL_CHAR:
-			buffer.Concatf("%s\n",(char*)data);
-			break;
-	};
-	t="unknown";
-	switch (incoming_type) {
-		case PPL_CHAR: t="PPL_CHAR";
-			break;
-		case PPL_STRING: t="PPL_STRING";
-			break;
-		case PPL_ASSOCARRAY: t="PPL_ASSOCARRAY";
-			break;
-	};
-	CAssocArray a;
-	buffer.Concatf ("   Datatype Read: %s\n",t);
-	buffer.Concatf ("   Size:          %i Bytes\n",incoming_size);
-	switch (incoming_type) {
-		case PPL_ASSOCARRAY:
-			if (GetData(a)) {
-				a.List();
-			} else {
-				PrintError();
-			}
-			break;
-		case PPL_STRING:
-		case PPL_CHAR:
-			buffer.Concatf("%s\n",(char*)incoming_data);
-			break;
-	};
-}
-
-const char *CSocketMessage::GetData()
-{
-	if (!incoming_data) {
-		SetError(338);
-		return NULL;
-	}
-	if (incoming_type==PPL_CHAR || incoming_type==PPL_STRING) {
-		return (const char*)incoming_data;
-	}
-	SetError(337);
-	return NULL;
-}
-
-#endif
-
-
-void SocketMessage::getData(String &str)
-{
-	if (!incoming_data) {
+	if (!payload) {
 		throw NoDataAvailableException();
 	}
-	if (incoming_type==1 || incoming_type==Variant::TYPE_STRING) {
-		str.set((const char*)incoming_data);
+	if (payload_type==1 || payload_type==Variant::TYPE_STRING) {
+		msg.set((const char*)payload,payload_size);
 		return;
 	}
 	throw DataInOtherFormatException();
 }
 
-void SocketMessage::getData(AssocArray &a)
+void SocketMessage::getPayload(AssocArray &msg) const
 {
-	if (!incoming_data) {
+	if (!payload) {
 		throw NoDataAvailableException();
 	}
-	if (incoming_type!=Variant::TYPE_ASSOCARRAY) {
+	if (payload_type!=Variant::TYPE_ASSOCARRAY) {
 		throw DataInOtherFormatException();
 	}
-	a.importBinary(incoming_data,incoming_size);
+	msg.importBinary(payload,payload_size);
+}
+
+void SocketMessage::getPayload(ByteArray &msg) const
+{
+	if (!payload) {
+		throw NoDataAvailableException();
+	}
+	if (payload_type!=Variant::TYPE_BYTEARRAY) {
+		throw DataInOtherFormatException();
+	}
+	msg.copy(payload,payload_size);
 }
 
 int SocketMessage::getId()
@@ -295,25 +220,60 @@ int SocketMessage::getCommandId()
 	return commandId;
 }
 
-int SocketMessage::getType()
+int SocketMessage::getPayloadType()
 {
-	if (!incoming_data) {
+	if (!payload) {
 		throw NoDataAvailableException();
 	}
-	return incoming_type;
+	return payload_type;
 }
 
-void SocketMessage::setVersion(int version)
+void SocketMessage::compilePacketHeader(char *buffer, size_t *buffer_size, const void *payload, size_t payload_size, bool is_compressed) const
 {
-	if (version==1 || version==2 ) {
-		Version=1;
-		return;
-	}
-	throw InvalidProtocolVersion("SocketMessage::setVersion = %d", version);
+	if (*buffer_size<24) throw BufferTooSmallException();
+	bzero(buffer,24);
+	int flags=0;
+	if (UseCompression) flags|=2;		// Bit 1: Client supports ZLib
+	if (SupportMsgChannel) flags|=4;	// Bit 2: Client supports MsgChannel
+	if (is_compressed) flags|=1;
+	PokeN8(buffer,'V');							// Byte 0:  "V"							(1 Byte)
+	PokeN8(buffer+1,2);							// Byte 1:  Version=2					(1 Byte)
+	PokeN16(buffer+2,commandId);				// Byte 2:  CommandId					(2 Byte)
+	PokeN32(buffer+4,Id);						// Byte 4:  Id							(4 Byte)
+	PokeN32(buffer+8,payload_size);				// Byte 8:  Bytes Nutzdaten				(4 Byte)
+	PokeN8(buffer+12,flags);					// Byte 12: Flags						(1 Byte)
+	//  											        Bit 0: Zlib-Kompression
+	//														Bit 1: Client supports ZLib
+	//														Bit 2: Client supports MsgChannel
+	PokeN8(buffer+13,payload_type);				// Byte 13: Datatype, PPL_ARRAY, usw.	(1 Byte)
+	PokeN16(buffer+14,rand(177,65534));			// Byte 14: Zufallszahl					(2 Byte)
+	ppluint32 crc_data=0;
+	if (payload_size) crc_data=Crc32(payload,payload_size);
+	PokeN32(buffer+16,crc_data);				// Byte 16: CRC-Summe ueber die Daten	(4 Byte)
+	PokeN32(buffer+20,Crc32(buffer,20));		// Byte 20: CRC-Summe ueber den Header	(4 Byte)
+	*buffer_size=24;
 }
 
+void SocketMessage::readFromPacketHeader(const char *msgbuffer, int &flags)
+{
+	commandId=PeekN16(msgbuffer+2);
+	flags=PeekN8(msgbuffer+12);
+	payload_type=PeekN8(msgbuffer+13);
+	Id=PeekN32(msgbuffer+4);
+	payload_size=PeekN32(msgbuffer+8);
+	if (Version==1) {
+		if (PeekN32(msgbuffer+16)!=Crc32(msgbuffer,16)) throw InvalidPacketException("CRC checksum");
+	} else if (PeekN8(msgbuffer)=='V' && PeekN8(msgbuffer+1)==2) {
+		//int data_crc=PeekN32(msgbuffer+16);
+		if (PeekN32(msgbuffer+20)!=Crc32(msgbuffer,20)) throw InvalidPacketException("CRC checksum");
+	}
+	if (flags&2) ClientSupportsCompression=true;
+	else ClientSupportsCompression=false;
 
+	if (flags&4) SupportMsgChannel=true;
+	else SupportMsgChannel=false;
 
+}
 
 size_t TCPSocket::write(const SocketMessage &msg)
 /*!\brief Nachricht verschicken
@@ -325,112 +285,35 @@ size_t TCPSocket::write(const SocketMessage &msg)
 {
 	Compression comp(Compression::Algo_ZLIB,Compression::Level_High);
 	ByteArray compressed;
-	char header[24];
 	comp.usePrefix(Compression::Prefix_V1);
-	bzero(header,24);
-	int flags=0;
-	if (msg.UseCompression) flags|=2;		// Bit 1: Client supports ZLib
-	if (msg.SupportMsgChannel) flags|=4;	// Bit 2: Client supports MsgChannel
-	bool freedata=false;
-	void *data=NULL;
-	const void *send=NULL;
-	size_t size=0;
-	ppluint32 crc=0;
-	int rnd=rand(177,65534);
-	size_t msg_size=0;
-	switch (msg.datatype) {
-		case Variant::TYPE_ASSOCARRAY:
-			msg_size=((AssocArray*)(msg.data))->size();
-			data=malloc(msg_size);
-			freedata=true;
-			try {
-				((AssocArray*)(msg.data))->exportBinary(data,msg_size,&size);
-			} catch (...) {
-				free(data);
-				throw;
-			}
-			msg_size=size;
-			break;
-		case Variant::TYPE_STRING:
-			data=(void*)((String*)(msg.data))->getPtr();
-			msg_size=((String*)(msg.data))->size();
-			break;
-		case 1:
-			data=msg.data;
-			msg_size=strlen((char*)data)+1;
-			break;
-	};
+	const void *msg_payload=msg.payload;
+	size_t msg_size=msg.payload_size;
+	bool is_compressed=false;
 	if (msg_size>64 && msg.ClientSupportsCompression==true && msg.UseCompression==true) {
 		try {
-			comp.compress(compressed,data,msg_size);
-			send=compressed.ptr();
-			size=compressed.size();
-			if (size>msg_size) {
-				// Nachricht ist komprimiert größer als unkomprimiert, wir senden daher unkomprimiert
-				size=msg_size;
-				send=data;
-			} else {
-				flags|=1;
+			comp.compress(compressed,msg_payload,msg_size);
+			if (compressed.size()<msg_size) {
+				is_compressed=true;
+				msg_payload=compressed.ptr();
+				msg_size=compressed.size();
 			}
 		} catch (...) {
-			size=msg_size;
-			send=data;
 		}
-	} else {
-		size=msg_size;
-		send=data;
 	}
-	int headersize=0;
-	//printf ("MSG Size: %i Bytes\n",size);
-	if (msg.Version==2) {
-		PokeN8(header,'V');							// Byte 0:  "V"							(1 Byte)
-		PokeN8(header+1,2);							// Byte 1:  Version=2					(1 Byte)
-		PokeN16(header+2,msg.commandId);			// Byte 2:  CommandId					(2 Byte)
-		PokeN32(header+4,msg.Id);					// Byte 4:  Id							(4 Byte)
-		PokeN32(header+8,size);						// Byte 8:  Bytes Nutzdaten				(4 Byte)
-		PokeN8(header+12,flags);					// Byte 12: Flags						(1 Byte)
-		//  											        Bit 0: Zlib-Kompression
-		//														Bit 1: Client supports ZLib
-		PokeN8(header+13,msg.datatype);			// Byte 13: Datatype, PPL_ARRAY, usw.	(1 Byte)
-		PokeN16(header+14,rnd);						// Byte 14: Zufallszahl					(2 Byte)
-		ppluint32 crc_data=0;
-		if (size) crc_data=Crc32(send,size);
-		PokeN32(header+16,crc_data);				// Byte 16: CRC-Summe ueber die Daten	(4 Byte)
-		crc=Crc32(header,20);
-		PokeN32(header+20,crc);						// Byte 20: CRC-Summe ueber den Header	(4 Byte)
-		headersize=24;
-	} else {
-		PokeN8(header,'V');							// Byte 0:  "V"							(1 Byte)
-		PokeN8(header+1,1);							// Byte 1:  Version=1					(1 Byte)
-		PokeN16(header+2,msg.commandId);			// Byte 2:  CommandId					(2 Byte)
-		PokeN32(header+4,msg.Id);					// Byte 4:  Id							(4 Byte)
-		PokeN32(header+8,size);						// Byte 8:  Bytes Nutzdaten				(4 Byte)
-		PokeN8(header+12,flags);					// Byte 12: Flags						(1 Byte)
-		// 														Bit 0: Zlib-Kompression
-		//														Bit 1: Client supports ZLib
-		PokeN8(header+13,msg.datatype);			// Byte 13: Datatype, PPL_ARRAY, usw.	(1 Byte)
-		PokeN16(header+14,rnd);						// Byte 14: Zufallszahl					(2 Byte)
-		crc=Crc32(header,16);
-		PokeN32(header+16,crc);						// Byte 16: CRC-Summe ueber den Header	(4 Byte)
-		headersize=20;
-	}
+	if (msg_size>0xffffffff) throw SocketMessage::PayloadTooBigException();
+	char header[24];
+	size_t headersize=24;
+	msg.compilePacketHeader(header,&headersize,msg_payload,msg_size,is_compressed);
 	size_t bytes_send=0;
-	try {
-		bytes_send+=write(header,headersize);
-		if (size) {
-			bytes_send+=write(send,size);
-		}
-	} catch (...) {
-		if (freedata) free(data);
-		throw;
+	bytes_send+=write(header,headersize);
+	if (msg_size) {
+		bytes_send+=write(msg_payload,msg_size);
 	}
-	if (freedata) free(data);
 	return bytes_send;
 }
 
-#ifdef TODO
 
-int TCPSocket::waitForMessage(SocketMessage &msg, int timeout_seconds)
+bool TCPSocket::waitForMessage(SocketMessage &msg, int timeout_seconds, Thread *watch_thread)
 /*!\brief Auf Nachricht warten
  *
  * \desc
@@ -438,126 +321,60 @@ int TCPSocket::waitForMessage(SocketMessage &msg, int timeout_seconds)
  * \copydoc PPLSocketMessage
  */
 {
-	CCompression comp(CCompression::Algo_ZLIB,CCompression::Level_High);
-	CBinary uncompressed;
-	comp.UsePrefix(CCompression::Prefix_V1);
-	ppluint64 tt=GetTime()+timeout;
+	Compression comp(Compression::Algo_ZLIB,Compression::Level_High);
+	ByteArray uncompressed;
+	comp.usePrefix(Compression::Prefix_V1);
+	ppluint64 tt=GetTime()+timeout_seconds;
 	char msgbuffer[28];
 	void *buffer=NULL;
-	void *newbuffer=NULL;
-	int flags,type,size,validheader;
-	ppluint32 crc=0, data_crc=0;
-	int version=0;
-	CString hex;
-	while (timeout==0 || GetTime()<=tt) {
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
+	int flags;
+	while (timeout_seconds==0 || GetTime()<=tt) {
+		if (watch_thread) {
+			if (watch_thread->threadShouldStop()) {
+				return false;
 			}
 		}
 		bzero(msgbuffer,24);
-		if (!WaitForIncomingData(0,100000)) {
-			if (GetErrorCode()==174) continue;
-			return 0;
-		}
-		if (!this->Read(msgbuffer,20)) {
-			return 0;
-		}
-		msg.commandId=PeekN16(msgbuffer+2);
-		flags=PeekN8(msgbuffer+12);
-		type=PeekN8(msgbuffer+13);
-		msg.Id=PeekN32(msgbuffer+4);
-		size=PeekN32(msgbuffer+8);
-		validheader=0;
-		if (PeekN8(msgbuffer)=='V' && PeekN8(msgbuffer+1)==1) {
-			data_crc=0;
-			crc=crc32(msgbuffer,16);
-			if (crc==PeekN32(msgbuffer+16)) validheader=1;
-			else {
-				hex.Setf("Version Soll: V1, Ist: %c%i, CRC Soll: %x, Ist: %x\n",
-					PeekN8(msgbuffer),PeekN8(msgbuffer+1),
-					crc,
-					PeekN32(msgbuffer+16));
-				hex.HexDump(msgbuffer,20);
-			}
-			version=1;
-		} else if (PeekN8(msgbuffer)=='V' && PeekN8(msgbuffer+1)==2) {
-			if (!this->Read(msgbuffer+20,4)) return 0;
-			data_crc=PeekN32(msgbuffer+16);
-			crc=crc32(msgbuffer,20);
-			if (crc==PeekN32(msgbuffer+20)) validheader=1;
-			else {
-				hex.Setf("Version Soll: V2, Ist: %c%i, CRC Soll: %x, Ist: %x\n",
-					PeekN8(msgbuffer),PeekN8(msgbuffer+1),
-					crc,
-					PeekN32(msgbuffer+20));
-				hex.HexDump(msgbuffer,24);
-			}
-			version=2;
-		}
-		if (!validheader) {
-			SetError(346,(const char*)hex);
-			return 0;
-		}
-		if (flags&2) {
-			msg.ClientSupportsCompression=true;
-		}
-		else msg.ClientSupportsCompression=false;
-		if (flags&4) msg.SupportMsgChannel=true;
-		else msg.SupportMsgChannel=false;
+		if (!waitForIncomingData(0,100000)) continue;
 
-		//printf ("crc ok\n");
-		msg.Clear();
-		msg.Version=version;
-		if (size) {
-			buffer=malloc(size+1);
-			if (!buffer) {
-				SetError(2);
-				return 0;
-			}
-			if (!this->Read(buffer,size)) {
-				free(buffer);
-				return 0;
-			}
-			if (version>1) {	// CRC prüfen
-				crc=crc32(buffer,size);
-				if (crc!=data_crc) {
-					free(buffer);
-					SetError(411,"Soll: %x, Ist: %x", data_crc, crc);
-					return 0;
-				}
-			}
-			//printf ("Read ok\n");
-			if (flags&1) {
-				//ppl6::HexDump(buffer,64);
-				if (!comp.Uncompress(uncompressed,buffer,size,false)) {
-					free(buffer);
-					return 0;
-				}
-				size=uncompressed.Size();
-				newbuffer=realloc(buffer,size+1);
-				if (!newbuffer) {
-					free(buffer);
-					SetError(2);
-					return 0;
-				}
-				buffer=newbuffer;
-				memcpy(buffer,uncompressed.GetPtr(),size);
-			}
-			((char*)buffer)[size]=0;
-			msg.incoming_data=buffer;
-			msg.incoming_type=type;
-			msg.incoming_size=size;
+		// Datenpaket vorhanden
+		if (this->read(msgbuffer,20)!=20) return false;
+		msg.Version=PeekN8(msgbuffer+1);
+		if (msgbuffer[0]=='V' && msg.Version==2) {
+			if (this->read(msgbuffer+20,4)!=4) return false;
+		} else if (msgbuffer[0]!='V' || msg.Version!=1) {
+			throw SocketMessage::InvalidProtocolVersion();
 		}
-		return 1;
+		msg.clear();
+		msg.readFromPacketHeader(msgbuffer, flags);
+		if (msg.payload_size) {
+			buffer=malloc(msg.payload_size);
+			if (!buffer) throw OutOfMemoryException();
+			if (this->read(buffer,msg.payload_size)!=msg.payload_size) {
+				free(buffer);
+				throw SocketMessage::InvalidPacketException("Packet incomplete");
+			}
+			if (msg.Version>1) {	// CRC prüfen
+				if (PeekN32(msgbuffer+16)!=Crc32(buffer,msg.payload_size)) {
+					free(buffer);
+					throw SocketMessage::InvalidPacketException("CRC checksum of payload");
+				}
+			}
+			if (flags&1) {
+				comp.uncompress(uncompressed,buffer,msg.payload_size);
+				free(buffer);
+				msg.payload_size=uncompressed.size();
+				msg.payload=malloc(msg.payload_size);
+				if (!msg.payload) throw OutOfMemoryException();
+				memcpy(msg.payload,uncompressed.ptr(),msg.payload_size);
+			}
+		}
+		return true;
 	}
-	SetError(174);
-	return 0;
+	return false;
 }
 
 
-#endif // TODO
 }
 
 

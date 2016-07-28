@@ -284,22 +284,24 @@ class SocketMessage
 {
 	friend class TCPSocket;
 	private:
-		int			datatype;
-		void		*data;
-		void		*incoming_data;
-		int			size;
-		int			incoming_size;
-		int			incoming_type;
+		void		*payload;
+		size_t		payload_size;
+		int			payload_type;
 		int			commandId;
 		int			Id;
 		int			Version;
 		bool		UseCompression;
 		bool		SupportMsgChannel;
 
+		void compilePacketHeader(char *buffer, size_t *buffer_size, const void *payload, size_t payload_size, bool is_compressed) const;
+		void readFromPacketHeader(const char *msgbuffer, int &flags);
+
 	public:
 		PPLEXCEPTION(NoDataAvailableException, Exception);
 		PPLEXCEPTION(DataInOtherFormatException, Exception);
 		PPLEXCEPTION(InvalidProtocolVersion, Exception);
+		PPLEXCEPTION(InvalidPacketException, Exception);
+		PPLEXCEPTION(PayloadTooBigException, Exception);
 
 
 		bool		ClientSupportsCompression;
@@ -314,18 +316,16 @@ class SocketMessage
 
 
 		void setCommandId(int id);
-		void setId(int id);
-		void setData(const String &msg);
-		void setData(const AssocArray &msg);
-		void getData(String &msg);
-		void getData(AssocArray &msg);
-		int getId();
 		int getCommandId();
-		int getType();
-		void dump(String &buffer);
-		void dump();
-		void dump(Logger *Log, int facility=Logger::DEBUG, int level=1);
-		void setVersion(int version);
+		void setId(int id);
+		int getId();
+		void setPayload(const String &msg);
+		void setPayload(const AssocArray &msg);
+		void setPayload(const ByteArrayPtr &msg);
+		void getPayload(String &msg) const;
+		void getPayload(AssocArray &msg) const;
+		void getPayload(ByteArray &msg) const;
+		int getPayloadType();
 		void enableCompression(bool flag=true);
 		void enableMsgChannel(bool flag=true);
 		bool isCompressionSupported() const;
@@ -416,7 +416,7 @@ class TCPSocket
 
 		//! @name TODO
 		//@{
-        //int	waitForMessage(SocketMessage &msg, int timeout=0);
+        bool waitForMessage(SocketMessage &msg, int timeout_seconds=0, Thread *watch_thread=NULL);
 		//@}
 
 		//! @name Depreceated
