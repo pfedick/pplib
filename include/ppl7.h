@@ -357,6 +357,36 @@ class Mutex
 };
 
 
+//! \brief Signals
+class Signal
+{
+	private:
+	public:
+		enum SignalType {
+			Signal_SIGHUP=1,
+			Signal_SIGINT=2,
+			Signal_SIGQUIT=3,
+			Signal_SIGILL=4,
+			Signal_SIGABRT=6,
+			Signal_SIGFPE=8,
+			Signal_SIGKILL=9,
+			Signal_SIGSEGV=11,
+			Signal_SIGPIPE=13,
+			Signal_SIGALRM=14,
+			Signal_SIGTERM=15,
+		};
+
+
+		Signal();
+		virtual ~Signal();
+		void catchSignal(SignalType sig);
+		void ignoreSignal(SignalType sig);
+		void clearSignal(SignalType sig);
+
+		virtual void signalHandler(SignalType sig);
+};
+
+
 // Threads
 ppluint64 ThreadID();
 void	*GetTLSData();

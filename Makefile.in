@@ -91,6 +91,7 @@ RELEASE	= release/AVLTree.o \
 	release/PFPFile.o \
 	release/Resource.o \
 	release/Resourcen.o \
+	release/Signal.o \
 	release/StringFunctions.o \
 	release/ThreadPool.o \
 	release/Threads.o \
@@ -201,6 +202,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/PFPFile.o \
 	debug/Resource.o \
 	debug/Resourcen.o \
+	debug/Signal.o \
 	debug/StringFunctions.o \
 	debug/ThreadPool.o \
 	debug/Threads.o \
@@ -311,6 +313,7 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/PFPFile.o \
 	coverage/Resource.o \
 	coverage/Resourcen.o \
+	coverage/Signal.o \
 	coverage/StringFunctions.o \
 	coverage/ThreadPool.o \
 	coverage/Threads.o \
@@ -665,6 +668,11 @@ release/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	###############################################################################
 	# Compiling >>>core/Resourcen.cpp<<<
 	$(CXX) -Wall -O2 -o release/Resourcen.o -c $(srcdir)/core/Resourcen.cpp $(CFLAGS) 
+
+release/Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Signal.cpp<<<
+	$(CXX) -Wall -O2 -o release/Signal.o -c $(srcdir)/core/Signal.cpp $(CFLAGS) 
 
 release/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
@@ -1271,6 +1279,11 @@ debug/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	# Compiling >>>core/Resourcen.cpp<<<
 	$(CXX) -Wall -O -o debug/Resourcen.o -c $(srcdir)/core/Resourcen.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Signal.cpp<<<
+	$(CXX) -Wall -O -o debug/Signal.o -c $(srcdir)/core/Signal.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/StringFunctions.cpp<<<
@@ -1874,6 +1887,11 @@ coverage/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/pp
 	###############################################################################
 	# Compiling >>>core/Resourcen.cpp<<<
 	$(CXX) -Wall -o coverage/Resourcen.o -c $(srcdir)/core/Resourcen.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Signal.cpp<<<
+	$(CXX) -Wall -o coverage/Signal.o -c $(srcdir)/core/Signal.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
