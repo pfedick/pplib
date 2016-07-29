@@ -375,7 +375,7 @@ class TCPSocket
 		bool isListening() const;
         void stopListen();
 		void signalStopListen();
-        void listen(int timeout=100);
+        void listen(int backlog=64, int timeout=100);
 
 		//@}
 
