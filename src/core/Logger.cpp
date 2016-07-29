@@ -471,17 +471,17 @@ void Logger::hexDump (PRIORITY prio, int level, const void * address, int bytes)
 
 void Logger::printException(const Exception &e)
 {
-
+	print (ERR, 1, e.toString());
 }
 
 void Logger::printException(const char *file, int line, const Exception &e)
 {
-
+	print (ERR, 1, file, line, e.toString());
 }
 
 void Logger::printException(const char *file, int line, const char *module, const char *function, const Exception &e)
 {
-
+	print (ERR, 1, module, function, file, line, e.toString());
 }
 
 void Logger::output(PRIORITY prio, int level, const char *module, const char *function, const char *file, int line, const String &buffer, bool printdate)
