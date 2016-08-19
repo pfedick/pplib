@@ -367,6 +367,8 @@ bool TCPSocket::waitForMessage(SocketMessage &msg, int timeout_seconds, Thread *
 				msg.payload=malloc(msg.payload_size);
 				if (!msg.payload) throw OutOfMemoryException();
 				memcpy(msg.payload,uncompressed.ptr(),msg.payload_size);
+			} else {
+				msg.payload=buffer;
 			}
 		}
 		return true;
