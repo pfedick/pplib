@@ -1519,7 +1519,7 @@ size_t AssocArray::binarySize() const
 void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize) const
 {
 	char *ptr=(char*)buffer;
-	*realsize=0;
+	if (realsize) *realsize=0;
 	size_t p=0;
 	size_t vallen=0;
 	ByteArray key;
