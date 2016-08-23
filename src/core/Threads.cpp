@@ -804,6 +804,16 @@ void Thread::threadWaitSuspended(int msec)
 	threadmutex.unlock();
 }
 
+void Thread::threadSleep(int msec)
+{
+	threadmutex.lock();
+	IsSuspended=1;
+	threadmutex.wait(msec);
+	IsSuspended=0;
+	threadmutex.unlock();
+}
+
+
 /*! \brief ThreadID zurückgeben
  *
  * Diese Funktion liefert die interne ID des Threads zurück.

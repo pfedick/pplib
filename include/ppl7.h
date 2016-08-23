@@ -429,6 +429,7 @@ class Thread
 		ppluint64  threadGetID();
 		int		threadShouldStop();
 		void	threadWaitSuspended(int msec=0);
+		void	threadSleep(int msec=0);
 		void	threadDeleteOnExit(int flag=1);
 		int		threadShouldDeleteOnExit();
 		int		threadSetPriority(int priority);
