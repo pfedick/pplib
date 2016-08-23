@@ -270,12 +270,9 @@ int Mutex::wait(int milliseconds) throw ()
 		struct timespec timeout;
 		// Get current Time
 		gettimeofday(&now, NULL);
-		int s = milliseconds / 1000;
-		int m = milliseconds % 1000;
-		int n = (m * 1000) + now.tv_usec;
-		s += n / 1000000;
-		timeout.tv_sec = now.tv_sec + s;
-		timeout.tv_nsec = n % 1000000;
+		timeout.tv_nsec = now.tv_usec * 1000 + (milliseconds * 1000000);
+		timeout.tv_sec = now.tv_sec + (timeout.tv_nsec / 1000000000);
+		timeout.tv_nsec = timeout.tv_nsec % 1000000000;
 		ret = pthread_cond_timedwait(&h->condition, &h->handle, &timeout);
 	} else {
 		ret = pthread_cond_wait(&h->condition, &h->handle);
