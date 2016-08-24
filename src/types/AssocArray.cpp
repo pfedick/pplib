@@ -1551,7 +1551,8 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 			p+=vallen;
 		} else if (a->isAssocArray()) {
 			size_t asize=0;
-			a->toAssocArray().exportBinary(ptr+p,buffersize-p,&asize);
+			if (!buffer) a->toAssocArray().exportBinary(NULL,0,&asize);
+			else a->toAssocArray().exportBinary(ptr+p,buffersize-p,&asize);
 			p+=asize;
 		} else if (a->isDateTime()) {
 			vallen=8;
