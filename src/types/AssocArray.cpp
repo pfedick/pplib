@@ -45,6 +45,10 @@
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+#ifdef HAVE_TYPES_H
+#include <types.h>
+#endif
+
 #include <ostream>
 
 #include "ppl7.h"
@@ -1575,8 +1579,8 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	if (p<buffersize) PokeN8(ptr+p,0);
 	p++;
 	if (realsize)*realsize=p;
-	if (buffersize==0 || buffersize<=p) return;
-	throw ExportBufferToSmallException();
+	if (buffersize==0 || p<=buffersize) return;
+	throw ExportBufferToSmallException("%zd < %zd",buffersize,p);
 }
 
 /*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
