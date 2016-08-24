@@ -119,7 +119,7 @@ Mutex::Mutex()throw(OutOfMemoryException)
 		PPLMUTEX *h=(PPLMUTEX*)handle;
 		pthread_mutexattr_t Attr;
 		pthread_mutexattr_init(&Attr);
-		pthread_mutexattr_settype(&Attr, PTHREAD_MUTEX_RECURSIVE);
+		pthread_mutexattr_settype(&Attr, PTHREAD_MUTEX_ERRORCHECK);
 		pthread_mutex_init(&h->handle,&Attr);
 		pthread_mutexattr_destroy(&Attr);
 		/*
@@ -154,50 +154,51 @@ Mutex::~Mutex() throw()
  * Diese Funktion versucht einen Mutex zu sperren. Ist dieser bereits durch einen
  * anderen Thread blockiert, wird gewartet, bis der Mutex wieder frei wird.
  *
- * \return Konnte der Mutex erfolgreich gesperrt werden, liefert die Funktion
- * true (1) zurück, im Fehlerfall false (0)
+ * \exception DeadlockException Wird geworfen, wenn durch das Sperren des Mutex ein
+ * Deadlock entstehen würde
+ * \exception MutexLockingException Mutex konnte nicht gesperrt werden
  */
-int Mutex::lock() throw ()
+void Mutex::lock()
 {
 #ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	int ret=WaitForSingleObject(h->handle,INFINITE);
-	if (ret!=WAIT_FAILED) return 1;
-	return 0;
+	if (ret!=WAIT_FAILED) return;
+	throw CouldNotLockMutexException("Mutex::lock");
 #elif defined HAVE_PTHREADS
 	PPLMUTEX *h = (PPLMUTEX*) handle;
 	int ret = pthread_mutex_lock(&h->handle);
-	if (ret == 0)
-		return 1;
-	return 0;
+	if (ret == 0) return;
+	else if (ret==EDEADLK) throw DeadlockException("Mutex::lock");
+	throw MutexLockingException("Mutex::lock");
 #endif
 }
 
 /*!\brief Mutex entsperren
  *
- * Mit dieser Funktion wird ein zuvor mit CMutex::Lock gesperrter
+ * Mit dieser Funktion wird ein zuvor mit Mutex::lock gesperrter
  * Mutex wieder frei gegeben.
  *
- * \return Konnte der Mutex erfolgreich entsperrt werden, liefert die Funktion
- * true (1) zurück, im Fehlerfall false (0)
+ * \exception MutexNotLockedException Mutex war nicht gesperrt
+ * \exception MutexLockingException Mutex konnte nicht entsperrt werden
  */
-int Mutex::unlock() throw ()
+void Mutex::unlock()
 {
 #ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	int ret=ReleaseMutex(h->handle);
-	if (ret==0) return 0;
-	return 1;
+	if (ret==0) return;
+	throw MutexLockingException("Mutex::unlock");
 #elif defined HAVE_PTHREADS
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	int ret = pthread_mutex_unlock(&h->handle);
-	if (ret == 0)
-		return 1;
-	return 0;
+	if (ret == 0) return;
+	if (ret == EPERM) throw MutexNotLockedException("Mutex::unlock");
+	throw MutexLockingException("Mutex::unlock");
 #endif
 }
 
-int Mutex::tryLock() throw ()
+bool Mutex::tryLock() throw ()
 /*!\brief Mutex versuchen zu sperren
  *
  * Diese Funktion versucht wie CMutex::Lock einen Mutex zu sperren.
@@ -212,15 +213,15 @@ int Mutex::tryLock() throw ()
 #ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	int ret=WaitForSingleObject(h->handle,0);
-	if (ret==WAIT_TIMEOUT) return 0;
-	if (ret!=WAIT_FAILED) return 1;
-	return 0;
+	if (ret==WAIT_TIMEOUT) return false;
+	if (ret!=WAIT_FAILED) return true;
+	return false;
 #elif defined HAVE_PTHREADS
 	PPLMUTEX *h = (PPLMUTEX*) handle;
 	int ret = pthread_mutex_trylock(&h->handle);
 	if (ret == 0)
-		return 1;
-	return 0;
+		return true;
+	return false;
 #endif
 }
 
@@ -264,7 +265,6 @@ int Mutex::wait(int milliseconds) throw ()
 	} else {
 		return 0;
 	}
-
 	if (milliseconds > 0) {
 		struct timeval now;
 		struct timespec timeout;

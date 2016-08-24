@@ -349,9 +349,9 @@ class Mutex
 	public:
 		Mutex() throw(OutOfMemoryException);
 		~Mutex() throw();
-		int lock() throw();
-		int unlock() throw();
-		int tryLock() throw();
+		void lock();
+		void unlock();
+		bool tryLock() throw();
 		int wait(int milliseconds=0) throw();
 		int signal() throw();
 };
@@ -475,8 +475,8 @@ class ThreadPool
 		size_t count();
 		size_t count_running();
 		bool running();
-		int lock();
-		int unlock();
+		void lock();
+		void unlock();
 };
 
 

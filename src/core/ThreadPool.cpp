@@ -338,12 +338,13 @@ bool ThreadPool::running()
  * gesperrt werden. Nach Abschluss der Operationen muss der Pool mit  ThreadPool::unlock wieder
  * freigegeben werden.
  *
- * @return Konnte der Mutex erfolgreich gesperrt werden, liefert die Funktion
- * true (1) zurück, im Fehlerfall false (0)
+ * \exception DeadlockException Wird geworfen, wenn durch das Sperren des Mutex ein
+ * Deadlock entstehen würde
+ * \exception MutexLockingException Mutex konnte nicht gesperrt werden
  */
-int ThreadPool::lock()
+void ThreadPool::lock()
 {
-	return mutex.lock();
+	mutex.lock();
 }
 
 /*!\brief %ThreadPool entsperren
@@ -351,12 +352,12 @@ int ThreadPool::lock()
  * \desc
  * Entsperrt einen zuvor mit ThreadPool::lock gesperrten Pool.
  *
- * @return Konnte der Mutex erfolgreich entsperrt werden, liefert die Funktion
- * true (1) zurück, im Fehlerfall false (0)
+ * \exception MutexNotLockedException Mutex war nicht gesperrt
+ * \exception MutexLockingException Mutex konnte nicht entsperrt werden
  */
-int ThreadPool::unlock()
+void ThreadPool::unlock()
 {
-	return mutex.unlock();
+	mutex.unlock();
 }
 
 
