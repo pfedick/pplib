@@ -165,8 +165,8 @@ int AssocArray::ArrayKey::compare(const ArrayKey &str) const
 	if (isNumeric()==true && str.isNumeric()==true) {
 		pplint64 v1=toInt64();
 		pplint64 v2=str.toInt64();
-		if (v2>v1) return 1;
-		if (v2<v1) return -1;
+		if (v2<v1) return 1;
+		if (v2>v1) return -1;
 		return 0;
 	}
 	int cmp=strCaseCmp(str);
@@ -980,6 +980,22 @@ String& AssocArray::getString(const String &key) const
 	ValueNode *node=findInternal(key);
 	return node->value->toString();
 }
+
+/*!\brief AssocArray auslesen
+ *
+ * \desc
+ *
+ * @param key Name des Schlüssels
+ * @return Referenz auf einen String mit dem Wert des Schlüssels
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+ */
+AssocArray& AssocArray::getArray(const String &key) const
+{
+	ValueNode *node=findInternal(key);
+	return node->value->toAssocArray();
+}
+
 
 
 /*!\brief Einzelnen Schlüssel löschen
