@@ -284,48 +284,50 @@ class SocketMessage
 {
 	friend class TCPSocket;
 	private:
-		int			datatype;
-		void		*data;
-		void		*incoming_data;
-		int			size;
-		int			incoming_size;
-		int			incoming_type;
+		void		*payload;
+		size_t		payload_size;
+		int			payload_type;
 		int			commandId;
 		int			Id;
 		int			Version;
 		bool		UseCompression;
 		bool		SupportMsgChannel;
 
+		void compilePacketHeader(char *buffer, size_t *buffer_size, const void *payload, size_t payload_size, bool is_compressed) const;
+		void readFromPacketHeader(const char *msgbuffer, int &flags);
+
 	public:
+		PPLEXCEPTION(NoDataAvailableException, Exception);
+		PPLEXCEPTION(DataInOtherFormatException, Exception);
+		PPLEXCEPTION(InvalidProtocolVersion, Exception);
+		PPLEXCEPTION(InvalidPacketException, Exception);
+		PPLEXCEPTION(PayloadTooBigException, Exception);
+
+
 		bool		ClientSupportsCompression;
 
 		SocketMessage();
 		SocketMessage(const SocketMessage &other);
 
 		virtual ~SocketMessage();
-		void Copy(const SocketMessage &other);
-		void Copy(const SocketMessage *other);
+		void copy(const SocketMessage &other);
 
-		void Clear();
-		void SetCommandId(int id);
-		void SetId(int id);
-		int SetData(const String &msg);
-		int SetData(const char *msg);
-		int SetData(const AssocArray &msg);
-		int GetData(String &msg);
-		const char*GetData();
-		int GetData(AssocArray &msg);
-		int GetId();
-		int GetCommandId();
-		int GetType();
-		void Dump(String &buffer);
-		void Dump();
-		void Dump(Logger *Log, int facility=Logger::DEBUG, int level=1);
-		int SetVersion(int version);
-		void EnableCompression();
-		void DisableCompression();
-		void EnableMsgChannel();
-		void DisableMsgChannel();
+		void clear();
+
+
+		void setCommandId(int id);
+		int getCommandId();
+		void setId(int id);
+		int getId();
+		void setPayload(const String &msg);
+		void setPayload(const AssocArray &msg);
+		void setPayload(const ByteArrayPtr &msg);
+		void getPayload(String &msg) const;
+		void getPayload(AssocArray &msg) const;
+		void getPayload(ByteArray &msg) const;
+		int getPayloadType();
+		void enableCompression(bool flag=true);
+		void enableMsgChannel(bool flag=true);
 		bool isCompressionSupported() const;
 		bool isMsgChannelSupported() const;
 };
@@ -373,7 +375,7 @@ class TCPSocket
 		bool isListening() const;
         void stopListen();
 		void signalStopListen();
-        void listen(int timeout=100);
+        void listen(int backlog=64, int timeout=100);
 
 		//@}
 
@@ -389,7 +391,7 @@ class TCPSocket
 		size_t write(const ByteArrayPtr &bin, size_t bytes=0);
 		size_t write(const void *buffer, size_t bytes);
 		size_t writef(const char *fmt, ...);
-		//int write(SocketMessage &msg);
+		size_t write(const SocketMessage &msg);
 		size_t read(void *buffer, size_t bytes);
 		size_t read(String &buffer, size_t bytes);
 		size_t read(ByteArray &buffer, size_t bytes);
@@ -414,7 +416,7 @@ class TCPSocket
 
 		//! @name TODO
 		//@{
-        //int	waitForMessage(SocketMessage &msg, int timeout=0);
+        bool waitForMessage(SocketMessage &msg, int timeout_seconds=0, Thread *watch_thread=NULL);
 		//@}
 
 		//! @name Depreceated

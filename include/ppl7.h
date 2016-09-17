@@ -349,11 +349,41 @@ class Mutex
 	public:
 		Mutex() throw(OutOfMemoryException);
 		~Mutex() throw();
-		int lock() throw();
-		int unlock() throw();
-		int tryLock() throw();
+		void lock();
+		void unlock();
+		bool tryLock() throw();
 		int wait(int milliseconds=0) throw();
 		int signal() throw();
+};
+
+
+//! \brief Signals
+class Signal
+{
+	private:
+	public:
+		enum SignalType {
+			Signal_SIGHUP=1,
+			Signal_SIGINT=2,
+			Signal_SIGQUIT=3,
+			Signal_SIGILL=4,
+			Signal_SIGABRT=6,
+			Signal_SIGFPE=8,
+			Signal_SIGKILL=9,
+			Signal_SIGSEGV=11,
+			Signal_SIGPIPE=13,
+			Signal_SIGALRM=14,
+			Signal_SIGTERM=15,
+		};
+
+
+		Signal();
+		virtual ~Signal();
+		void catchSignal(SignalType sig);
+		void ignoreSignal(SignalType sig);
+		void clearSignal(SignalType sig);
+
+		virtual void signalHandler(SignalType sig);
 };
 
 
@@ -399,6 +429,7 @@ class Thread
 		ppluint64  threadGetID();
 		int		threadShouldStop();
 		void	threadWaitSuspended(int msec=0);
+		void	threadSleep(int msec=0);
 		void	threadDeleteOnExit(int flag=1);
 		int		threadShouldDeleteOnExit();
 		int		threadSetPriority(int priority);
@@ -444,8 +475,8 @@ class ThreadPool
 		size_t count();
 		size_t count_running();
 		bool running();
-		int lock();
-		int unlock();
+		void lock();
+		void unlock();
 };
 
 

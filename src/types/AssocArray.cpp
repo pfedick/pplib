@@ -45,6 +45,10 @@
 #ifdef HAVE_STDARG_H
 #include <stdarg.h>
 #endif
+#ifdef HAVE_TYPES_H
+#include <types.h>
+#endif
+
 #include <ostream>
 
 #include "ppl7.h"
@@ -161,8 +165,8 @@ int AssocArray::ArrayKey::compare(const ArrayKey &str) const
 	if (isNumeric()==true && str.isNumeric()==true) {
 		pplint64 v1=toInt64();
 		pplint64 v2=str.toInt64();
-		if (v2>v1) return 1;
-		if (v2<v1) return -1;
+		if (v2<v1) return 1;
+		if (v2>v1) return -1;
 		return 0;
 	}
 	int cmp=strCaseCmp(str);
@@ -977,6 +981,22 @@ String& AssocArray::getString(const String &key) const
 	return node->value->toString();
 }
 
+/*!\brief AssocArray auslesen
+ *
+ * \desc
+ *
+ * @param key Name des Schlüssels
+ * @return Referenz auf einen String mit dem Wert des Schlüssels
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+ */
+AssocArray& AssocArray::getArray(const String &key) const
+{
+	ValueNode *node=findInternal(key);
+	return node->value->toAssocArray();
+}
+
+
 
 /*!\brief Einzelnen Schlüssel löschen
  *
@@ -1519,7 +1539,7 @@ size_t AssocArray::binarySize() const
 void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize) const
 {
 	char *ptr=(char*)buffer;
-	*realsize=0;
+	if (realsize) *realsize=0;
 	size_t p=0;
 	size_t vallen=0;
 	ByteArray key;
@@ -1551,7 +1571,8 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 			p+=vallen;
 		} else if (a->isAssocArray()) {
 			size_t asize=0;
-			a->toAssocArray().exportBinary(ptr+p,buffersize-p,&asize);
+			if (!buffer) a->toAssocArray().exportBinary(NULL,0,&asize);
+			else a->toAssocArray().exportBinary(ptr+p,buffersize-p,&asize);
 			p+=asize;
 		} else if (a->isDateTime()) {
 			vallen=8;
@@ -1574,8 +1595,8 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	if (p<buffersize) PokeN8(ptr+p,0);
 	p++;
 	if (realsize)*realsize=p;
-	if (buffersize==0 || buffersize<=p) return;
-	throw ExportBufferToSmallException();
+	if (buffersize==0 || p<=buffersize) return;
+	throw ExportBufferToSmallException("%zd < %zd",buffersize,p);
 }
 
 /*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren

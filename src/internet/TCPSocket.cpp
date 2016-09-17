@@ -1291,197 +1291,6 @@ void TCPSocket::bind(const String &host, int port)
 }
 
 
-#ifdef TODO
-
-
-
-#ifdef _WIN32
-int CTCPSocket::Bind(const char *host, int port)
-{
-	if (!socket) {
-		socket=malloc(sizeof(PPLSOCKET));
-		if (!socket) {
-			SetError(2);
-			return 0;
-		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-		s->sd=0;
-		s->proto=6;
-		s->ipname=NULL;
-		s->port=0;
-	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->sd) Disconnect();
-	if (s->ipname) free(s->ipname);
-	s->ipname=NULL;
-	struct sockaddr_in addr;
-	bzero(&addr,sizeof(addr));
-
-	if (!host) {
-		addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	} else {
-		// convert host to in_addr
-		struct in_addr in;
-		if (inet_aton(host,&in)) {
-			addr.sin_addr.s_addr = in.s_addr;
-		} else { // failed, perhaps it's a hostname we have to resolve first?
-			struct hostent *h=gethostbyname(host);
-			if (!h) {
-				SetError(273);
-				return 0;
-			}
-			// Copy hostaddress
-			bcopy((void*)h->h_addr,(void*)&addr.sin_addr.s_addr,h->h_length);
-		}
-	}
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-
-	/* create socket */
-	s->sd = ::socket(AF_INET, SOCK_STREAM, 0);
-	if(s->sd<0) {
-		SetError(265);
-		return 0;
-	}
-
-	/* bind server port */
-	if(bind(s->sd, (struct sockaddr *) &addr, sizeof(addr))<0) {
-		shutdown(s->sd,2);
-		closesocket(s->sd);
-		s->sd=0;
-		SetError(266);
-		return 0;
-	}
-	connected=1;
-	SetError(0);
-	return 1;
-}
-
-#else
-
-/*!\brief Socket auf eine IP-Adresse und Port binden
- *
- * \desc
- * Diese Funktion muss aufgerufen werden, bevor man mit CTCPSocket::Listen einen TCP-Server starten kann. Dabei wird mit \p host
- * die IP-Adresse festgelegt, auf die sich der Server binden soll und mit \p port der TCP-Port.
- * Es ist nicht möglich einen Socket auf mehrere Adressen zu binden.
- *
- * @param[in] host IP-Adresse, Hostname, "*" oder NULL. Bei Angabe von "*" oder NULL bindet sich der Socket auf alle
- * Interfaces des Servers.
- * @param[in] port Der gewünschte TCP-Port
- * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
- */
-int CTCPSocket::Bind(const char *host, int port)
-{
-	int addrlen=0;
-	if (!socket) {
-		socket=malloc(sizeof(PPLSOCKET));
-		if (!socket) {
-			SetError(2);
-			return 0;
-		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-		s->sd=0;
-		s->proto=6;
-		s->ipname=NULL;
-		s->port=port;
-		//s->addrlen=0;
-	}
-#ifdef _WIN32
-	SOCKET listenfd=0;
-#else
-	int listenfd=0;
-#endif
-
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if (s->sd) Disconnect();
-	if (s->ipname) free(s->ipname);
-	s->ipname=NULL;
-
-	struct addrinfo hints, *res, *ressave;
-	bzero(&hints, sizeof(struct addrinfo));
-	hints.ai_flags=AI_PASSIVE;
-	hints.ai_family=AF_UNSPEC;
-	hints.ai_socktype=SOCK_STREAM;
-	int n;
-	int on=1;
-	// Prüfen, ob host ein Wildcard ist
-	if (host!=NULL && strlen(host)==0) host=NULL;
-	if (host!=NULL && host[0]=='*') host=NULL;
-
-	if (host) {
-		char portstr[10];
-		sprintf(portstr,"%i",port);
-		if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
-			SetError(273,"%s, %s",host,gai_strerror(n));
-			return 0;
-		}
-		ressave=res;
-		do {
-			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-			if (listenfd<0) continue; // Error, try next one
-			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
-				freeaddrinfo(ressave);
-				SetError(334);
-				return 0;
-			}
-			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
-				addrlen=res->ai_addrlen;
-				break;
-			}
-			shutdown(listenfd,2);
-#ifdef _WIN32
-			closesocket(listenfd);
-#else
-			close(listenfd);
-#endif
-			listenfd=0;
-
-		}while ((res=res->ai_next)!=NULL);
-		freeaddrinfo(ressave);
-	} else {
-		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
-		if (listenfd>=0) {
-			struct sockaddr_in addr;
-			bzero(&addr,sizeof(addr));
-			addr.sin_addr.s_addr = htonl(INADDR_ANY);
-			addr.sin_port = htons(port);
-			addr.sin_family = AF_INET;
-			/* bind server port */
-			if(::bind(listenfd, (struct sockaddr *) &addr, sizeof(addr))!=0) {
-				shutdown(listenfd,2);
-#ifdef _WIN32
-				closesocket(listenfd);
-#else
-				close(listenfd);
-#endif
-				SetError(266);
-				return 0;
-			}
-			s->sd=listenfd;
-			//s->addrlen=0;
-			connected=1;
-			return 1;
-		}
-	}
-	if (listenfd<0) {
-		SetError(265,"Host: %s, Port: %d",host,port);
-		return 0;
-	}
-	if (res==NULL) {
-		SetError(266,"Host: %s, Port: %d",host,port);
-		return 0;
-	}
-	s->sd=listenfd;
-	//s->addrlen=addrlen;
-	connected=1;
-	return 1;
-}
-
-#endif
-
-
-
 /*!\brief Server starten und auf eingehende Verbindung warten
  *
  * \desc
@@ -1496,6 +1305,10 @@ int CTCPSocket::Bind(const char *host, int port)
  * wird jedoch geprüft, ob die Funktion sich beenden soll. Dies wird durch Aufruf der Funktion
  * CTCPSocket::SignalStopListen oder CTCPSocket::StopListen signalisiert.
  *
+ * \param[in] backlog The backlog argument defines the maximum length to which the queue of pending connections for sockfd may grow.  If a connection
+ *      request  arrives when the queue is full, the client may receive an error with an indication of ECONNREFUSED or, if the underly‐
+ *      ing protocol supports retransmission, the request may be ignored so that a later reattempt at connection succeeds.
+ *
  * \param[in] timeout Intervall in Millisekunden, nachdem geprüpft werden soll, ob
  * weiter auf eingehende Verbindungen gewartet werden soll. Je niedriger der Wert, desto
  * schneller wird auf einen Stop-Befehl reagiert, jedoch steigt dadurch auch die
@@ -1505,7 +1318,7 @@ int CTCPSocket::Bind(const char *host, int port)
  * In diesem Fall liefert sie den Wert 1 zurück. Konnte der Server nicht gestartet werden, wird 0 zurückgegeben.
  *
  */
-int CTCPSocket::Listen(int timeout)
+void TCPSocket::listen(int backlog, int timeout)
 {
 #ifdef _WIN32
 	struct sockaddr_in cliAddr;
@@ -1515,37 +1328,33 @@ int CTCPSocket::Listen(int timeout)
 	struct timeval tv;
 #endif
 	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if((!s) || (!s->sd)) {
-		SetError(267);
-		return 0;
-	}
-	StopListen();
-	mutex.Lock();
+	if((!s) || (!s->sd)) throw NotConnectedException();
+	stopListen();
+	mutex.lock();
 	stoplisten=false;
 	islisten=true;
-	mutex.Unlock();
+	mutex.unlock();
 
 	// Listen
-	if (listen(s->sd,5)!=0) {
-		mutex.Lock();
+	if (::listen(s->sd,backlog)!=0) {
+		int e=errno;
+		mutex.lock();
 		islisten=false;
-		mutex.Unlock();
-		SetError(268);
-		return 0;
+		mutex.unlock();
+		throwExceptionFromErrno(e, "TCPSocket::listen");
 	}
-	SetBlocking(true);
+	setBlocking(true);
 
 	while (1) {
-		//printf ("Listen...\n");
-		mutex.Lock();
+		mutex.lock();
 		if (stoplisten) {
-			//printf ("stoplisten detected\n");
-			mutex.Unlock();
+			mutex.unlock();
 			break;
 		}
-		mutex.Unlock();
+		mutex.unlock();
 		socklen_t cliLen=sizeof(cliAddr);
-#ifdef _WIN32
+#ifdef TODO
+		// WIN32
 		SOCKET newSd;
 		newSd = accept(s->sd, (struct sockaddr *) &cliAddr, &cliLen);
 		if (newSd!=INVALID_SOCKET) {
@@ -1569,7 +1378,7 @@ int CTCPSocket::Listen(int timeout)
 		} else {
 			MSleep(100);
 		}
-#else
+#endif
 		int newSd;
 		// Prüfen, ob der Socket lesbar ist
 		FD_ZERO(&rset);
@@ -1579,9 +1388,6 @@ int CTCPSocket::Listen(int timeout)
 		if (select(s->sd+1,&rset,NULL,NULL,&tv)<=0) continue;
 		newSd = accept(s->sd, (struct sockaddr *) &cliAddr, &cliLen);
 		if(newSd>0) {
-#ifdef DEBUGOUT
-			printf ("%010.6f Verbindung angenommen\n",ppl6::GetMicrotime());
-#endif
 			char hostname[1024];
 			char servname[32];
 			bzero(hostname,1024);
@@ -1595,46 +1401,30 @@ int CTCPSocket::Listen(int timeout)
 #endif
 				continue;
 			}
-			CTCPSocket *newsocket=new CTCPSocket();
+			TCPSocket *newsocket=new TCPSocket();
 			if (newsocket) newsocket->socket=malloc(sizeof(PPLSOCKET));
 			if (newsocket==NULL || newsocket->socket==NULL) {
 				if (newsocket) delete newsocket;
-				if (log) log->Printf (LOG::ERROR,1,__FILE__,__LINE__,"Out of memory, could not handle connect from: %s:%d\n",hostname,atoi(servname));
-				SetError(2);
-				continue;
+				throw OutOfMemoryException();
 			}
-			newsocket->connected=1;
+			newsocket->connected=true;
 			PPLSOCKET *ns=(PPLSOCKET*)newsocket->socket;
 			ns->proto=6;
 			ns->sd=newSd;
 			ns->ipname=strdup(hostname);
 			ns->port=atoi(servname);
-			if (log) log->Printf (LOG::DEBUG,3,__FILE__,__LINE__,"Connect from: %s:%d\n",ns->ipname, ns->port);
 
-#ifdef DEBUGOUT
-			printf ("%010.6f Dispatch an ReceiveConnect\n",ppl6::GetMicrotime());
-#endif
-			if (!ReceiveConnect(newsocket,ns->ipname,ns->port)) {
-				if (log) log->Printf (LOG::DEBUG,3,__FILE__,__LINE__,"Connect from: %s:%d refused by CTCPSocket::ReceiveConnect\n",ns->ipname, ns->port);
+			if (!receiveConnect(newsocket,ns->ipname,ns->port)) {
 				delete newsocket;
 			}
 
-#ifdef _WIN32
-		} else {
-			MSleep(100);
-#endif
 		}
-#endif
 	}
-	mutex.Lock();
+	mutex.lock();
 	islisten=false;
-	mutex.Unlock();
-	return 1;
+	mutex.unlock();
 }
 
-
-
-#endif	// TODO
 
 }
  // EOF namespace ppl

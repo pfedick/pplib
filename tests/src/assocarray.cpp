@@ -255,5 +255,80 @@ TEST_F(AssocArrayTest, fromConfig) {
 	ASSERT_EQ(ppl7::String("value4"),a2.getString("Abschnitt_2/key2")) << "unexpected value";
 }
 
+static void createDefaultAssocArray(ppl7::AssocArray &a)
+{
+	ppl7::AssocArray data;
+	a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
+	a.set("key2","value6");
+	a.set("array1/unterkey1","value2");
+	a.set("array1/unterkey2","value3");
+	a.set("array1/noch ein array/unterkey1","value4");
+	a.set("array1/unterkey2","value5");
+	a.set("key2","value7");
+	a.set("array2/unterkey1","value7");
+	a.set("array2/unterkey2","value8");
+	a.set("array2/unterkey1","value9");
+
+	data.setf("sampleTime","%0.6f",22362546.32543);
+	data.setf("net_receive/bytes","%lu",(unsigned long)1);
+	data.setf("net_receive/packets","%lu",(unsigned long)2);
+	data.setf("net_receive/errs","%lu",(unsigned long)3);
+	data.setf("net_receive/drop","%lu",(unsigned long)4);
+	data.setf("net_transmit/bytes","%lu",(unsigned long)5);
+	data.setf("net_transmit/packets","%lu",(unsigned long)6);
+	data.setf("net_transmit/errs","%lu",(unsigned long)7);
+	data.setf("net_transmit/drop","%lu",(unsigned long)8);
+
+	data.setf("cpu/user","%d",1);
+	data.setf("cpu/nice","%d",2);
+	data.setf("cpu/system","%d",3);
+	data.setf("cpu/idle","%d",4);
+	data.setf("cpu/iowait","%d",5);
+
+	data.setf("sysinfo/uptime","%ld",(long)32324234213);
+	data.setf("sysinfo/freeswap","%ld",(long)2345215545);
+	data.setf("sysinfo/totalswap","%ld",(long)65463635);
+	data.setf("sysinfo/freeram","%ld",(long)5467254523);
+	data.setf("sysinfo/bufferram","%ld",(long)549153452345);
+	data.setf("sysinfo/totalram","%ld",(long)24346579);
+	data.setf("sysinfo/sharedram","%ld",(long)232356657);
+	data.setf("sysinfo/procs","%d",12321);
+	a.set("data/[]",data);
+	a.set("data/[]",data);
+}
+
+TEST_F(AssocArrayTest, binarySize) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+		createDefaultAssocArray(a);
+	});
+	ASSERT_EQ((size_t)1215,a.binarySize());
+}
+
+TEST_F(AssocArrayTest, exportAndImportBinary) {
+	ppl7::AssocArray a;
+	ppl7::AssocArray b;
+	ASSERT_NO_THROW({
+		createDefaultAssocArray(a);
+	});
+	void *buffer=malloc(8192);
+	ASSERT_TRUE(buffer!=NULL) << "out of memory";
+	size_t realsize=0;
+	EXPECT_NO_THROW({
+		a.exportBinary(buffer,8192,&realsize);
+		ASSERT_EQ((size_t)1215,realsize);
+		b.importBinary(buffer,realsize);
+	});
+	free(buffer);
+
+	ASSERT_EQ(a.count(),b.count()) << "Unexpected size of AssocArray";
+	ASSERT_EQ(a.count(true), b.count(true)) << "Unexpected size of AssocArray";
+	ASSERT_EQ(ppl7::String("Dieser Wert geht über\nmehrere Zeilen"),b.getString("key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String("value7"),b.getString("key2")) << "unexpected value";
+	ASSERT_EQ(ppl7::String("value5"),b.getString("array1/unterkey2")) << "unexpected value";
+	ASSERT_EQ(ppl7::String("32324234213"),b.getString("data/1/sysinfo/uptime")) << "unexpected value";
+	ASSERT_EQ(ppl7::String("3"),b.getString("data/0/cpu/system")) << "unexpected value";
+}
+
 }	// EOF namespace
 

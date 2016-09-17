@@ -489,9 +489,7 @@ void Thread::threadStop()
 	flags|=1;
 	//THREADDATA *t=(THREADDATA *)threaddata;
 	if (IsSuspended) {
-		threadmutex.unlock();
-		threadResume();
-		threadmutex.lock();
+		threadmutex.signal();
 	}
 	while (IsRunning) {
 		threadmutex.unlock();
@@ -516,8 +514,7 @@ void Thread::threadSignalStop()
 	flags|=1;
 	//THREADDATA *t=(THREADDATA *)threaddata;
 	if (IsSuspended) {
-		threadmutex.unlock();
-		threadResume();
+		threadmutex.signal();
 	} else {
 		threadmutex.unlock();
 	}
@@ -803,6 +800,16 @@ void Thread::threadWaitSuspended(int msec)
 	IsSuspended=0;
 	threadmutex.unlock();
 }
+
+void Thread::threadSleep(int msec)
+{
+	threadmutex.lock();
+	IsSuspended=1;
+	threadmutex.wait(msec);
+	IsSuspended=0;
+	threadmutex.unlock();
+}
+
 
 /*! \brief ThreadID zurückgeben
  *
