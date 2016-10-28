@@ -922,9 +922,9 @@ size_t TCPSocket::read(void *buffer, size_t bytes)
 		BytesRead=SSL_Read(buffer,bytes);
 	} else {
 		BytesRead=::recv(s->sd,(char*)buffer,bytes,0);
+		if (BytesRead<0)
+			throwExceptionFromErrno(errno, "TCPSocket::read");
 	}
-	if (BytesRead<0)
-		throwExceptionFromErrno(errno, "TCPSocket::read");
 	return ((size_t)BytesRead);
 }
 

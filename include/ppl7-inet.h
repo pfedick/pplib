@@ -288,6 +288,7 @@ class SSLError
 
 int GetSSLError(SSLError &e);
 int GetSSLErrors(std::list<SSLError> &e);
+int GetSSLErrors(String &e);
 void ClearSSLErrorStack();
 
 
@@ -420,7 +421,7 @@ class TCPSocket
 		//@{
 		void sslStart(SSLContext &context);
 		void sslStop();
-		int sslCheckCertificate(const char *hostname, bool AcceptSelfSignedCert=false);
+		int sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSignedCert=false);
 		void sslAccept(SSLContext &context);
 		int sslWaitForAccept(int timeout=0);
 		//@}

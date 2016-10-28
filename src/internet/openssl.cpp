@@ -372,6 +372,23 @@ int GetSSLErrors(std::list<SSLError> &e)
 #endif
 }
 
+int GetSSLErrors(String &e)
+{
+	e.clear();
+	std::list<SSLError> elist;
+	if (!GetSSLErrors(elist)) return 0;
+	std::list<SSLError>::const_iterator it;
+	for (it=elist.begin();it!=elist.end();++it) {
+		e.appendf("%s:%d:%llu:%s:%s, ",(const char*)(*it).Filename,
+				(*it).Line,
+				(*it).Code,
+				(const char*)(*it).Text,
+				(const char*)(*it).Data);
+	}
+	e.chopRight(2);
+	return (int)elist.size();
+}
+
 
 /*
  * SSLContext-Klasse
@@ -955,13 +972,21 @@ int TCPSocket::SSL_Read(void *buffer, int size)
 {
 	#ifdef HAVE_OPENSSL
 		int bytes=::SSL_read((SSL*)ssl,buffer,size);
+		if (bytes==0) {
+			throw BrokenPipeException();
+		} else if ( bytes <0) {
+			String sslerrorstack;
+			GetSSLErrors(sslerrorstack);
+			int e=SSL_get_error((SSL*)ssl,bytes);
+			throw SSLException("%s, %s [%s]",ssl_geterror((SSL*)ssl,bytes),
+					ERR_error_string(e,NULL),
+					(const char*)sslerrorstack);
+		}
 		return bytes;
 	#else
 		throw UnsupportedFeatureException("OpenSSL");
 	#endif
 }
-
-#ifdef TODO
 
 
 /*!\brief Auf eine TLS/SSL-Handshake warten
@@ -976,50 +1001,39 @@ int TCPSocket::SSL_Read(void *buffer, int size)
  *
  * @return Bei erfolgreichem Handshake liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CTCPSocket::SSL_Accept()
+void TCPSocket::sslAccept(SSLContext &context)
 {
-	#ifdef HAVE_OPENSSL
-		if (!ssl) {
-			SetError(331);
-			return 0;
+#ifdef HAVE_OPENSSL
+	if (ssl) sslStop();
+	ssl=context.newSSL();
+	sslcontext=&context;
+	if (!isConnected()) throw NotConnectedException();
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (1 != SSL_set_fd((SSL*)ssl,s->sd)) {
+		String sslerrorstack;
+		GetSSLErrors(sslerrorstack);
+		throw SSLException("SSL_set_fd failed [%s]", (const char*)sslerrorstack);
+	}
+	int res=SSL_accept((SSL*)ssl);
+	if (res<1) {
+		int e=SSL_get_error((SSL*)ssl,res);
+		if (e==SSL_ERROR_WANT_READ || e==SSL_ERROR_WANT_WRITE) {
+			// Non-Blocking
+			throw OperationBlockedException();
+		} else {
+			String sslerrorstack;
+			GetSSLErrors(sslerrorstack);
+			throw SSLException("%s, %s [%s]",ssl_geterror((SSL*)ssl,res),
+					ERR_error_string(e,NULL),
+					(const char*)sslerrorstack);
 		}
-		/*
-		 *
-       If the underlying BIO is non-blocking, SSL_accept() will also return when the underlying BIO could not satisfy the needs of
-       SSL_accept() to continue the handshake, indicating the problem by the return value -1.  In this case a call to SSL_get_error() with
-       the return value of SSL_accept() will yield SSL_ERROR_WANT_READ or SSL_ERROR_WANT_WRITE. The calling process then must repeat the
-       call after taking appropriate action to satisfy the needs of SSL_accept().  The action depends on the underlying BIO. When using a
-       non-blocking socket, nothing is to be done, but select() can be used to check for the required condition. When using a buffering BIO,
-       like a BIO pair, data must be written into or retrieved out of the BIO before being able to continue.
-		 */
-		int res=SSL_accept((SSL*)ssl);
-		if (res<1) {
-			int e=SSL_get_error((SSL*)ssl,res);
-			if (e==SSL_ERROR_WANT_READ || e==SSL_ERROR_WANT_WRITE) {
-				// Non-Blocking
-				SetError(309);
-				return 0;
-			} else {
-				SetError(332,"%s, %s",ssl_geterror((SSL*)ssl,res), ERR_error_string(e,NULL));
-				/*
-		        char *ERR_error_string(unsigned long e, char *buf);
-        const char *ERR_lib_error_string(unsigned long e);
-        const char *ERR_func_error_string(unsigned long e);
-        const char *ERR_reason_error_string(unsigned long e);
-        */
-
-				SSL_shutdown((SSL*)ssl);
-				SSL_free((SSL*)ssl);
-				ssl=NULL;
-				return 0;
-			}
-		}
-		return 1;
-	#else
-		SetError(292);
-		return 0;
-	#endif
+	}
+#else
+	throw UnsupportedFeatureException("OpenSSL");
+#endif
 }
+
+#ifdef TODO
 
 /*!\brief SSL-Zertifikat der Gegenstelle prüfen
  *
