@@ -379,6 +379,9 @@ class String
 		void upperCaseWords();
 		void trim();
 		String trimmed() const;
+		String toLowerCase() const;
+		String toUpperCase() const;
+		String toUpperCaseWords() const;
 		void trimLeft();
 		void trimRight();
 		void trim(const String &chars);
