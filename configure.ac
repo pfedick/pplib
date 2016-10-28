@@ -560,6 +560,25 @@ AX_PATH_LIB_PCRE(
 AX_CHECK_OPENSSL(
 	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
 	report_have_openssl="yes"
+	
+	am_save_CPPFLAGS="$CPPFLAGS"
+	am_save_CFLAGS="$CFLAGS"
+	am_save_LIBS="$LIBS"
+	am_save_LDFLAGS="$LDFLAGS"
+	
+	LIBS="$LIBS $OPENSSL_LIBS"
+	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
+	
+	AC_CHECK_FUNCS([TLSv1_method TLSv1_server_method TLSv1_client_method])
+	AC_CHECK_FUNCS([TLSv1_1_method TLSv1_1_server_method TLSv1_1_client_method])
+	AC_CHECK_FUNCS([TLSv1_2_method TLSv1_2_server_method TLSv1_2_client_method])
+	AC_CHECK_FUNCS([DTLSv1_method DTLSv1_server_method DTLSv1_client_method])
+	
+	CPPFLAGS="$am_save_CPPFLAGS"
+	CFLAGS="$am_save_CFLAGS"
+	LIBS="$am_save_LIBS"
+	LDFLAGS="$am_save_LDFLAGS"	
+	
 	, :)
 
 

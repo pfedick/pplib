@@ -242,7 +242,19 @@ class SSLContext
 			TLSv1server,
 			SSLv23,				// Unterstuetzt SSLv2, v3 und TLSv1
 			SSLv23client,		// Unterstuetzt SSLv2, v3 und TLSv1
-			SSLv23server		// Unterstuetzt SSLv2, v3 und TLSv1
+			SSLv23server,		// Unterstuetzt SSLv2, v3 und TLSv1
+			TLSv1_1,
+			TLSv1_1client,
+			TLSv1_1server,
+			TLSv1_2,
+			TLSv1_2client,
+			TLSv1_2server,
+			TLS,				// Verwendet SSLv23, SSL wird aber disabled, so dass nur TLS unterstuetzt wird
+			TLSclient,
+			TLSserver,
+			DTLSv1,
+			DTLSv1client,
+			DTLSv1server,
 		};
 
 		SSLContext();

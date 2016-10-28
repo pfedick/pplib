@@ -423,6 +423,14 @@ void SSLContext::clear()
 	shutdown();
 }
 
+
+#ifdef HAVE_OPENSSL
+static void disable_ssl_on_ctx(SSL_CTX *ctx) {
+	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
+}
+#endif
+
 /*!\brief SSL-Kontext initialisieren
  *
  * \desc
@@ -478,15 +486,81 @@ void SSLContext::init(int method)
 		case SSLContext::SSLv23server:
 			ctx=SSL_CTX_new(SSLv23_server_method());
 			break;
+#ifdef HAVE_TLSV1_METHOD
 		case SSLContext::TLSv1:
 			ctx=SSL_CTX_new(TLSv1_method());
 			break;
+#endif
+#ifdef HAVE_TLSV1_CLIENT_METHOD
 		case SSLContext::TLSv1client:
 			ctx=SSL_CTX_new(TLSv1_client_method());
 			break;
+#endif
+#ifdef HAVE_TLSV1_SERVER_METHOD
 		case SSLContext::TLSv1server:
 			ctx=SSL_CTX_new(TLSv1_server_method());
 			break;
+#endif
+#ifdef HAVE_TLSV1_1_METHOD
+		case SSLContext::TLSv1_1:
+			ctx=SSL_CTX_new(TLSv1_1_method());
+			break;
+#endif
+#ifdef HAVE_TLSV1_1_CLIENT_METHOD
+		case SSLContext::TLSv1_1client:
+			ctx=SSL_CTX_new(TLSv1_1_client_method());
+			break;
+#endif
+#ifdef HAVE_TLSV1_1_SERVER_METHOD
+		case SSLContext::TLSv1_1server:
+			ctx=SSL_CTX_new(TLSv1_1_server_method());
+			break;
+#endif
+#ifdef HAVE_TLSV1_2_METHOD
+		case SSLContext::TLSv1_2:
+			ctx=SSL_CTX_new(TLSv1_2_method());
+			SSL_CTX_set_options((SSL_CTX*)ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+			break;
+#endif
+#ifdef HAVE_TLSV1_2_CLIENT_METHOD
+		case SSLContext::TLSv1_2client:
+			ctx=SSL_CTX_new(TLSv1_2_client_method());
+			SSL_CTX_set_options((SSL_CTX*)ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+			break;
+#endif
+#ifdef HAVE_TLSV1_2_SERVER_METHOD
+		case SSLContext::TLSv1_2server:
+			ctx=SSL_CTX_new(TLSv1_2_server_method());
+			SSL_CTX_set_options((SSL_CTX*)ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+			break;
+#endif
+		case SSLContext::TLS:
+			ctx=SSL_CTX_new(SSLv23_method());
+			disable_ssl_on_ctx((SSL_CTX*)ctx);
+			break;
+		case SSLContext::TLSclient:
+			ctx=SSL_CTX_new(SSLv23_client_method());
+			disable_ssl_on_ctx((SSL_CTX*)ctx);
+			break;
+		case SSLContext::TLSserver:
+			ctx=SSL_CTX_new(SSLv23_server_method());
+			disable_ssl_on_ctx((SSL_CTX*)ctx);
+			break;
+#ifdef HAVE_DTLSV1_METHOD
+		case SSLContext::DTLSv1:
+			ctx=SSL_CTX_new(DTLSv1_method());
+			break;
+#endif
+#ifdef HAVE_DTLSV1_CLIENT_METHOD
+		case SSLContext::DTLSv1client:
+			ctx=SSL_CTX_new(DTLSv1_client_method());
+			break;
+#endif
+#ifdef HAVE_DTLSV1_SERVER_METHOD
+		case SSLContext::DTLSv1server:
+			ctx=SSL_CTX_new(DTLSv1_server_method());
+			break;
+#endif
 		default:
 			mutex.unlock();
 			throw IllegalArgumentException("SSLContext::Init(int method=%i)",method);
