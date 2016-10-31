@@ -2219,6 +2219,8 @@ int CFile::Stat(const CString &filename, CDirEntry &out)
 
 	if (st.st_mode & S_IFDIR) out.Attrib|=CPPLDIR_DIR;
 	if (st.st_mode & S_IFREG) out.Attrib|=CPPLDIR_FILE;
+	memset(out.AttrStr,'-',10);
+	out.AttrStr[10]=0;
 
 	//#if ( defined (WIN32) || defined (__DJGPP__) )
 	#ifdef _WIN32
