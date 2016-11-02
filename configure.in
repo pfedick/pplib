@@ -188,9 +188,7 @@ AM_CONDITIONAL([COND_GCOV],[test '!' "$enable_gcov" = no])
 
 report_have_gtest="no"
 report_codecoverage_enabled="no"
-GTEST_LIB_CHECK([1.6.0],
-	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
-	AC_SUBST(GTEST_PREFIX)
+AC_CHECK_GTEST(
 	report_have_gtest="yes"
 	if test '!' "$enable_gcov" = no
 	then
@@ -199,11 +197,12 @@ GTEST_LIB_CHECK([1.6.0],
 		AC_SUBST(GCOV_CFLAGS)
 		AC_SUBST(GCOV_LDFLAGS)
 		report_codecoverage_enabled="yes"
-	
 	fi
-	],
+	
+	,
 	report_have_gtest="no"
 )
+
 
 AC_CHECK_HEADERS([stdlib.h])
 AC_CHECK_HEADERS([unistd.h])
