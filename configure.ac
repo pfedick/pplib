@@ -300,12 +300,9 @@ AC_SUBST(PPLIBTESTVERSION)
 
 
 report_have_gtest="no"
-
-GTEST_LIB_CHECK([1.6.0],
-	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
-	AC_SUBST(GTEST_PREFIX)
+AC_CHECK_GTEST(
 	report_have_gtest="yes"
-	],
+	,
 	report_have_gtest="no"
 	report_codecoverage_enabled="no"
 )
