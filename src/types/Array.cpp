@@ -381,9 +381,10 @@ void Array::insert(size_t index, const Array &other)
 	// Nun verschieben wir alle Elemente ab Position index um die größe des anderen
 	// Arrays nach hinten
 	if (numElements>index) {
-		for (size_t i=numElements-1;i>=index;i--) {
-			r[i+other.numElements].value=r[i].value;
-			r[i].value=NULL;
+		for (size_t i=numElements;i>index;--i) {
+			size_t ii=i-1;
+			r[ii+other.numElements].value=r[ii].value;
+			r[ii].value=NULL;
 		}
 		numElements+=other.numElements;
 	}
