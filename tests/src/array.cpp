@@ -412,13 +412,13 @@ TEST_F(ArrayTest, insertEnd) {
 	ASSERT_NO_THROW({
 			ppl7::Array a1("red green blue yellow black white"," ");
 			a1.insert(6,"grey");
-			ASSERT_EQ(ppl7::String("red"),a1.get(0)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("green"),a1.get(1)) << "Element 1 has wrong value";
-			ASSERT_EQ(ppl7::String("blue"),a1.get(2)) << "Element 2 has wrong value";
-			ASSERT_EQ(ppl7::String("yellow"),a1.get(3)) << "Element 3 has wrong value";
-			ASSERT_EQ(ppl7::String("black"),a1.get(4)) << "Element 4 has wrong value";
-			ASSERT_EQ(ppl7::String("white"),a1.get(5)) << "Element 5 has wrong value";
-			ASSERT_EQ(ppl7::String("grey"),a1.get(6)) << "Element 6 has wrong value";
+			ASSERT_EQ(ppl7::String("red"),a1.get(0)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("green"),a1.get(1)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("blue"),a1.get(2)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("yellow"),a1.get(3)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("black"),a1.get(4)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("white"),a1.get(5)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("grey"),a1.get(6)) << "Element has wrong value";
 			ASSERT_EQ((size_t)7,a1.count()) << "Array does not contain 7 elements";
 	}
 	);
@@ -428,14 +428,14 @@ TEST_F(ArrayTest, insertAfterEnd) {
 	ASSERT_NO_THROW({
 			ppl7::Array a1("red green blue yellow black white"," ");
 			a1.insert(7,"grey");
-			ASSERT_EQ(ppl7::String("red"),a1.get(0)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("green"),a1.get(1)) << "Element 1 has wrong value";
-			ASSERT_EQ(ppl7::String("blue"),a1.get(2)) << "Element 2 has wrong value";
-			ASSERT_EQ(ppl7::String("yellow"),a1.get(3)) << "Element 3 has wrong value";
-			ASSERT_EQ(ppl7::String("black"),a1.get(4)) << "Element 4 has wrong value";
-			ASSERT_EQ(ppl7::String("white"),a1.get(5)) << "Element 5 has wrong value";
-			ASSERT_EQ(ppl7::String(""),a1.get(6)) << "Element 6 has wrong value";
-			ASSERT_EQ(ppl7::String("grey"),a1.get(7)) << "Element 7 has wrong value";
+			ASSERT_EQ(ppl7::String("red"),a1.get(0)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("green"),a1.get(1)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("blue"),a1.get(2)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("yellow"),a1.get(3)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("black"),a1.get(4)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("white"),a1.get(5)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String(""),a1.get(6)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("grey"),a1.get(7)) << "Element has wrong value";
 			ASSERT_EQ((size_t)8,a1.count()) << "Array does not contain 8 elements";
 	}
 	);
@@ -447,15 +447,15 @@ TEST_F(ArrayTest, insertArrayStart) {
 			ppl7::Array a2("dog cat bird"," ");
 			a1.insert(0,a2);
 			ASSERT_EQ((size_t)9,a1.count()) << "Unexpected amount of Elements";
-			ASSERT_EQ(ppl7::String("dog"),a1.get(0)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("cat"),a1.get(1)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("bird"),a1.get(2)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("red"),a1.get(3)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("green"),a1.get(4)) << "Element 1 has wrong value";
-			ASSERT_EQ(ppl7::String("blue"),a1.get(5)) << "Element 2 has wrong value";
-			ASSERT_EQ(ppl7::String("yellow"),a1.get(6)) << "Element 3 has wrong value";
-			ASSERT_EQ(ppl7::String("black"),a1.get(7)) << "Element 4 has wrong value";
-			ASSERT_EQ(ppl7::String("white"),a1.get(8)) << "Element 5 has wrong value";
+			ASSERT_EQ(ppl7::String("dog"),a1.get(0)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("cat"),a1.get(1)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("bird"),a1.get(2)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("red"),a1.get(3)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("green"),a1.get(4)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("blue"),a1.get(5)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("yellow"),a1.get(6)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("black"),a1.get(7)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("white"),a1.get(8)) << "Element has wrong value";
 
 	}
 	);
@@ -467,15 +467,15 @@ TEST_F(ArrayTest, insertArrayMiddle) {
 			ppl7::Array a2("dog cat bird"," ");
 			a1.insert(2,a2);
 			ASSERT_EQ((size_t)9,a1.count()) << "Unexpected amount of Elements";
-			ASSERT_EQ(ppl7::String("red"),a1.get(0)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("green"),a1.get(1)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("dog"),a1.get(2)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("cat"),a1.get(3)) << "Element 0 has wrong value";
-			ASSERT_EQ(ppl7::String("bird"),a1.get(4)) << "Element 1 has wrong value";
-			ASSERT_EQ(ppl7::String("blue"),a1.get(5)) << "Element 2 has wrong value";
-			ASSERT_EQ(ppl7::String("yellow"),a1.get(6)) << "Element 3 has wrong value";
-			ASSERT_EQ(ppl7::String("black"),a1.get(7)) << "Element 4 has wrong value";
-			ASSERT_EQ(ppl7::String("white"),a1.get(8)) << "Element 5 has wrong value";
+			ASSERT_EQ(ppl7::String("red"),a1.get(0)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("green"),a1.get(1)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("dog"),a1.get(2)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("cat"),a1.get(3)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("bird"),a1.get(4)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("blue"),a1.get(5)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("yellow"),a1.get(6)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("black"),a1.get(7)) << "Element has wrong value";
+			ASSERT_EQ(ppl7::String("white"),a1.get(8)) << "Element has wrong value";
 	}
 	);
 }

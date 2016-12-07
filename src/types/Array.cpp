@@ -375,9 +375,9 @@ void Array::insert(size_t index, const String &value)
 void Array::insert(size_t index, const Array &other)
 {
 	if (other.numElements==0) return;	// Anderes Array ist leer
-	ROW *r=(ROW*)rows;
 	// Zunächst sorgen wir dafür, dass im Array genug Platz ist
 	reserve(numElements+other.numElements+2);
+	ROW *r=(ROW*)rows;
 	// Nun verschieben wir alle Elemente ab Position index um die größe des anderen
 	// Arrays nach hinten
 	if (numElements>index) {
