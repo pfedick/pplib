@@ -386,7 +386,6 @@ void Array::insert(size_t index, const Array &other)
 			r[ii+other.numElements].value=r[ii].value;
 			r[ii].value=NULL;
 		}
-		numElements+=other.numElements;
 	}
 	// Die neuen Werte einfügen
 	ROW *r2=(ROW*)other.rows;
@@ -397,6 +396,7 @@ void Array::insert(size_t index, const Array &other)
 			r[index+i].value->set(r2[i].value);
 		}
 	}
+	numElements+=other.numElements;
 }
 
 /*!\brief Element mittels Formatstring einfügen
