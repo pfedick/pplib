@@ -396,6 +396,7 @@ void Array::insert(size_t index, const Array &other)
 			r[index+i].value->set(r2[i].value);
 		}
 	}
+	if (index>numElements) numElements+=(index-numElements);
 	numElements+=other.numElements;
 }
 
