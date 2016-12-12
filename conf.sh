@@ -11,7 +11,9 @@ echo ""
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
-        export CPPFLAGS=-I/usr/local/include
+	    export CC=clang37
+        export CXX=clang++37
+	    export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --prefix=$PREFIX \
 			--with-libmad=/usr/local --with-lame=/usr/local \
