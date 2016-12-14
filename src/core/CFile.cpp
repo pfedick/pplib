@@ -336,12 +336,12 @@ int CFile::OpenTemp(const CString &filetemplate)
 		t=filetemplate;
 		int f=mkstemp((char*)((const char*)t));
 		if (f<0) {
-			SetError(TranslateErrno(errno),errno,"CFile::OpenTemp");
+			SetError(TranslateErrno(errno),errno,"CFile::OpenTemp [%s]",(const char*)t);
 			return 0;
 		}
 		FILE *ff=fdopen(f, "r+b");
 		if (!ff) {
-			SetError(TranslateErrno(errno),errno,"CFile::OpenTemp");
+			SetError(TranslateErrno(errno),errno,"CFile::OpenTemp [fdopen (%i), %s]",f,(const char*)t);
 			return 0;
 		}
 		if (!Open(ff)) {
@@ -2219,6 +2219,8 @@ int CFile::Stat(const CString &filename, CDirEntry &out)
 
 	if (st.st_mode & S_IFDIR) out.Attrib|=CPPLDIR_DIR;
 	if (st.st_mode & S_IFREG) out.Attrib|=CPPLDIR_FILE;
+	memset(out.AttrStr,'-',10);
+	out.AttrStr[10]=0;
 
 	//#if ( defined (WIN32) || defined (__DJGPP__) )
 	#ifdef _WIN32

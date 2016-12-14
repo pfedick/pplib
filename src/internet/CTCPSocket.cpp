@@ -1118,15 +1118,17 @@ int CTCPSocket::Read(void *buffer, int bytes)
 		int rest=bytes;
 		int b=0;
 		while (rest) {
+			WaitForIncomingData(0,100000);
 			if (thread) {
 				if (thread->ThreadShouldStop()) {
 					SetError(336);
 					return 0;
 				}
 			}
-			WaitForIncomingData(0,100000);
+
 			if (ssl) {
 				b=SSL_Read(buffer,rest);
+				//printf ("SSL_Read hat %d Bytes zurueckgegeben\n",b);
 			} else {
 				//b=::recv(s->sd,(char*)buffer,rest,0);
 				b=::recv(s->sd,(char*)buffer,rest,0);

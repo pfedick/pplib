@@ -719,6 +719,11 @@ int CTCPSocket::SSL_Read(void *buffer, int size)
 {
 	#ifdef HAVE_OPENSSL
 		int bytes=::SSL_read((SSL*)ssl,buffer,size);
+		if (bytes==0) {
+			errno=EPIPE;
+		} else if (bytes<0) {
+			errno=ETIMEDOUT;
+		}
 		return bytes;
 	#else
 		SetError(292);

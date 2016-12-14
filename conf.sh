@@ -11,7 +11,9 @@ echo ""
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
-        export CPPFLAGS=-I/usr/local/include
+	    export CC=clang37
+        export CXX=clang++37
+	    export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --prefix=$PREFIX \
 			--with-libmad=/usr/local --with-lame=/usr/local \
@@ -89,19 +91,9 @@ case "$SYS:$REL:$KERNEL" in
 			--with-postgresql --with-libldns \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix=/usr \
-			--enable-gtest=/usr/local/gtest-1.7.0 \
+			--enable-gtest=/usr/local/googletest-release-1.7.0 \
 			--with-freetds --with-libjpeg --with-libpng -with-mpg123 --with-libmicrohttpd=/home/patrickf
 		;;	
-	*:Linux:*:*Ubuntu*)
-		./configure --prefix=$PREFIX \
-			--with-libmad --with-lame --with-pcre=/usr --with-x \
-			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
-			--with-freetds=/usr/local --with-postgresql=/usr/local/pgsql/bin/pg_config \
-			--with-libgcrypt-prefix \
-			--with-libgnutls-prefix \
-			--with-libjpeg --with-libpng --with-libmicrohttpd=/usr/local \
-			--with-libmhash --with-mpg123 --with-ogg=/usr
-		;;
 	*)
 		echo "Unknown host"
 		;;
