@@ -57,14 +57,12 @@ endstruc
 ;/** void BltGlyph_M8_32(GLYPH *glyph)                               **
 ;/*********************************************************************
 
-%if elf64=1 || win64=1
-	%if elf64=1
-		global BltGlyph_M8_32
-		BltGlyph_M8_32:
+%if arch_elf64=1 || arch_win64=1
+	global BltGlyph_M8_32
+	BltGlyph_M8_32:
+	%if arch_elf64=1
 			mov r8,rdi		; Pointer auf Glyph-Data nach r8
-	%elif win64=1
-		global _BltGlyph_M8_32
-		_BltGlyph_M8_32:
+	%elif arch_win64=1
 			push rdi
 			push rsi
 			mov r8,rcx		; Pointer auf Glyph-Data nach r8
@@ -101,7 +99,7 @@ endstruc
 	emms
 	pop rbx
 	xor rax,rax
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -158,14 +156,12 @@ _BltGlyph_M8_32:
 ;/** void BltGlyph_M1_32(GLYPH *glyph)                               **
 ;/*********************************************************************
 
-%if elf64=1 || win64=1
-	%if elf64=1
-		global BltGlyph_M1_32
-		BltGlyph_M1_32:
+%if arch_elf64=1 || arch_win64=1
+	global BltGlyph_M1_32
+	BltGlyph_M1_32:
+	%if arch_elf64=1
 			mov r8,rdi		; Pointer auf Glyph-Data nach r8
-	%elif win64=1
-		global _BltGlyph_M1_32
-		_BltGlyph_M1_32:
+	%elif arch_win64=1
 			mov r8,rcx		; Pointer auf Glyph-Data nach r8
 			push rdi
 			push rsi
@@ -211,7 +207,7 @@ _BltGlyph_M8_32:
 	emms
 	pop rbx
 	xor eax,eax
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -274,14 +270,12 @@ _BltGlyph_M1_32:
 ;/**                                                                 **
 ;/** void BltGlyph_AA8_32(GLYPH *glyph)                              **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
-		global BltGlyph_AA8_32
-		BltGlyph_AA8_32:
+%if arch_elf64=1 || arch_win64=1
+	global BltGlyph_AA8_32
+	BltGlyph_AA8_32:
+	%if arch_elf64=1
 			mov r8,rdi			; Pointer auf Glyph-Data nach r8
-	%elif win64=1
-		global _BltGlyph_AA8_32
-		_BltGlyph_AA8_32:
+	%elif arch_win64=1
 			mov r8,rcx			; Pointer auf Glyph-Data nach r8
 			push rdi
 			push rsi
@@ -351,7 +345,7 @@ _BltGlyph_M1_32:
 	emms
 	xor rax,rax
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -446,14 +440,12 @@ _BltGlyph_AA8_32:
 BlendAA2_128:		dd	200
 BlendAA2_64:		dd	100
 
-%if elf64=1 || win64=1
-	%if elf64=1
-		global BltGlyph_AA2_32
-		BltGlyph_AA2_32:
+%if arch_elf64=1 || arch_win64=1
+	global BltGlyph_AA2_32
+	BltGlyph_AA2_32:
+	%if arch_elf64=1
 			mov r8,rdi		; Pointer auf Glyph-Data nach r8
-	%elif win64=1
-		global _BltGlyph_AA2_32
-		_BltGlyph_AA2_32:
+	%elif arch_win64=1
 			push rdi
 			push rsi
 			mov r8,rcx		; Pointer auf Glyph-Data nach r8
@@ -543,7 +535,7 @@ BlendAA2_64:		dd	100
 	xor eax,eax
 	pop r10
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -673,12 +665,12 @@ BlendAA4:	dd	0			; 0
 			dd	15*255/15	; 15
 
 
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		global BltGlyph_AA4_32
 		BltGlyph_AA4_32:
 			mov r8,rdi		; Pointer auf Glyph-Data nach r8
-	%elif win64=1
+	%elif arch_win64=1
 		global _BltGlyph_AA4_32
 		_BltGlyph_AA4_32:
 			push rdi
@@ -770,7 +762,7 @@ BlendAA4:	dd	0			; 0
 	xor eax,eax
 	pop r10
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif

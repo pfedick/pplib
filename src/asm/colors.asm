@@ -51,8 +51,8 @@ SECTION .text
 ;/**                                                                 **
 ;/** void ASM_RGB_A8R8G8B8(int red, int green, int blue, int alpha)  **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		global RGB_A8R8G8B8
 		RGB_A8R8G8B8:	; red=rdi, green=rsi, blue=rdx, alpha=rcx
 			mov r8d,edi
@@ -63,7 +63,7 @@ SECTION .text
 			mov ah,cl
 			mov al,dl
 			ret
-	%elif win64=1
+	%elif arch_win64=1
 		global _RGB_A8R8G8B8
 		_RGB_A8R8G8B8:	; red=rcx, green=rdx, blue=r8, alpha=r9
 
@@ -99,8 +99,8 @@ SECTION .text
 ;/**                                                                 **
 ;/** void RGBBlend_32_255(int ground, int top, int intensity         **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		global RGBBlend_32_255
 		RGBBlend_32_255:			; ground=rdi, top=rsi, intensity=rdx
 		or rdx,rdx					; Alpha=0?
@@ -112,7 +112,7 @@ SECTION .text
 			movq mm3,rsi			; Color nach mm3
 			movq mm0,rdx			; Alphachannel nach mm0
 
-	%elif win64=1
+	%elif arch_win64=1
 		global _RGBBlend_32_255
 		_RGBBlend_32_255:			; ground=rcx, top=rdx, intensity=r8
 		or r8,r8					; Alpha=0?

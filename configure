@@ -9017,7 +9017,7 @@ done
 
 
 case $host_os in
-	*mingw32* )
+	*mingw32*|msys )
 		report_have_pthreads="Win32 Threads"
 
 $as_echo "#define HAVE_LOCALTIME_R 1" >>confdefs.h
@@ -15319,22 +15319,19 @@ fi
 	then
 		NASM=${nasm}
 
-		case `uname -m` in
-			win32|i686)
+		NASMDEBUGFLAGS="-g"
+		case `uname -m`-`uname -s` in
+			win32*)
 				NASMFLAGS="-f win32"
-				NASMDEBUGFLAGS="-g"
 				;;
-			win64)
+			win64*|x86_64-MSYS*)
 				NASMFLAGS="-f win64"
-				NASMDEBUGFLAGS="-g"
 				;;
-			x86_64|amd64)
+			x86_64*|amd64*)
 				NASMFLAGS="-f elf64"
-				NASMDEBUGFLAGS="-g"
 				;;
 			*)
 				NASMFLAGS="-f elf32"
-				NASMDEBUGFLAGS="-g"
 				;;
 		esac
 		case `uname -s` in
@@ -15342,7 +15339,10 @@ fi
 				NASMFLAGS="-f win32"
 				NASMDEBUGFLAGS="-g"
 				;;
-
+			MINGW64*)
+				NASMFLAGS="-f win64"
+				NASMDEBUGFLAGS="-g"
+				;;
 		esac
 
 
@@ -15382,7 +15382,7 @@ SRCDIR=`pwd`
 
 
 case $host_os in
-	*mingw32* )
+	*mingw32*|msys )
 		MINGW32=yes
 
 $as_echo "#define MINGW32 1" >>confdefs.h

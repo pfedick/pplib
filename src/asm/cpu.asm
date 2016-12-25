@@ -55,6 +55,7 @@ global _Have3DNow2
 global _HaveSSE
 
 
+
 SECTION .data
 SECTION .text
 
@@ -63,16 +64,9 @@ SECTION .text
 ;/**                                                                 **
 ;/** ppluint32 GetASMBits()                                          **
 ;/*********************************************************************
-%ifidn __OUTPUT_FORMAT__, elf64
+%if arch_elf64=1 || arch_win64=1
 	global GetASMBits
 	GetASMBits:
-		xor rax,rax
-		mov al, __BITS__
-		ret
-
-%elifidn __OUTPUT_FORMAT__, win64
-	global _GetASMBits
-	_GetASMBits:
 		xor rax,rax
 		mov al, __BITS__
 		ret
@@ -92,7 +86,7 @@ SECTION .text
 ;/** ppluint32 HaveCPUID()                                           **
 ;/*********************************************************************
 
-%ifidn __OUTPUT_FORMAT__, elf64
+%if arch_elf64=1 || arch_win64=1
 	global HaveCPUID
 	HaveCPUID:
 		; check whether CPUID is supported
@@ -107,7 +101,7 @@ SECTION .text
 		pushfq						; save updated Eflags
 		pop rax						; transfers Eflags into EAX
 		xor eax,edx					; updated Eflags and original differ?
-		jz NO_CPUID					; no fiffer, bit 21 can't be toggled
+		jz NO_CPUID					; no differ, bit 21 can't be toggled
 			xor rax,rax
 			mov al,1
 			mov dl,1

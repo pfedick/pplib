@@ -60,12 +60,12 @@ endstruc
 ;/**                                                                 **
 ;/** void ASM_FillRect32(RECTDATA *data)                             **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		global ASM_FillRect32
 		ASM_FillRect32:
 			mov r8,rdi		; Pointer auf data nach r8
-	%elif win64=1
+	%elif arch_win64=1
 		global _ASM_FillRect32
 		_ASM_FillRect32:
 			push rdi
@@ -166,7 +166,7 @@ endstruc
 			jnz .box1_a_loop2
 	.end:
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif

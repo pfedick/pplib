@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.62)
+AC_PREREQ(2.69)
 AC_INIT([ppl], [6.4.21], [patrick@pfp.de], [ppl-6.4.21.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
