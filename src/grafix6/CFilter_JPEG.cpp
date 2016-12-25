@@ -102,7 +102,7 @@ typedef struct {
   ppldd				pos;			// Position in der Datei
 } SOURCE_MGR;
 
-static char EOI_Marker[]={
+static unsigned char EOI_Marker[]={
 	(ppldb)0xFF,
 	(ppldb)JPEG_EOI
 };
