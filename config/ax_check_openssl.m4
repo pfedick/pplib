@@ -106,7 +106,7 @@ AC_DEFUN([AX_CHECK_OPENSSL], [
     LIBS="$OPENSSL_LIBS $LIBS"
     CPPFLAGS="$OPENSSL_INCLUDES $CPPFLAGS"
     case "${host_cpu}-${host_os}" in
-		*mingw32*)
+		*mingw32*|*msys*)
 			LIBS="$LIBS -lwsock32 -luser32 -lgdi32"
 			;;
 	esac

@@ -14,7 +14,6 @@ AC_CONFIG_FILES([tests/Makefile])
 AC_CONFIG_HEADERS([include/config.h])
 AC_CONFIG_HEADERS([include/ppl6-unixconfig.h])
 
-sinclude(config/openssl.m4)
 sinclude(config/ax_check_openssl.m4)
 sinclude(config/libcurl.m4)
 sinclude(config/mysql.m4)
