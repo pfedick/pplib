@@ -51,6 +51,9 @@
 #ifndef _BSD_SOURCE
 #define _BSD_SOURCE
 #endif
+#ifdef MINGW32
+_POSIX_THREAD_SAFE_FUNCTIONS
+#endif
 #include <time.h>
 #ifdef HAVE_SYS_TIME_H
 	#include <sys/time.h>
