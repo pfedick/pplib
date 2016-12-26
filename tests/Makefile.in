@@ -3,8 +3,8 @@ CC			= @CC@
 CXX			= @CXX@
 EXTRA_CFLAGS = 
 INCLUDE	= -I. -I../include -I$(GTEST_DIR)/include
-CFLAGS	= -ggdb -Wall -DPPL6LIB $(INCLUDE) `../ppl6-config --cflags debug source` $(EXTRA_CFLAGS)
-LIBS	= `../ppl6-config --libs debug source` @GCOV_LDFLAGS@ -lstdc++
+CFLAGS	= -ggdb -Wall -DPPL6LIB $(INCLUDE) `../ppl6-config --cflags release source` $(EXTRA_CFLAGS)
+LIBS	= `../ppl6-config --libs release source` @GCOV_LDFLAGS@ -lstdc++
 PROGNAME = testsuite
 OBJECTS = compile/wordlist.o \
 	compile/textsnippets.o \
@@ -24,6 +24,7 @@ OBJECTS = compile/wordlist.o \
 	compile/memoryheap.o \
 	compile/list.o \
 	compile/audioinfo.o \
+	compile/grafix.o \
 	compile/clientserver.o
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS)
@@ -146,3 +147,7 @@ compile/textsnippets.o: src/textsnippets.cpp Makefile
 compile/clientserver.o: src/clientserver.cpp Makefile
 	mkdir -p compile
 	$(CXX) $(CFLAGS) -o compile/clientserver.o -c src/clientserver.cpp
+	
+compile/grafix.o: src/grafix.cpp Makefile
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/grafix.o -c src/grafix.cpp

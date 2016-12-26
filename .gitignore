@@ -6,3 +6,5 @@
 /ppl6-config
 /.settings/
 /autom4te.cache/
+/jenkins_conf.sh
+/ld.exe.stackdump
