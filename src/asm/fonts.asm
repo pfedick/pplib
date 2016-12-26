@@ -671,8 +671,8 @@ BlendAA4:	dd	0			; 0
 		BltGlyph_AA4_32:
 			mov r8,rdi		; Pointer auf Glyph-Data nach r8
 	%elif arch_win64=1
-		global _BltGlyph_AA4_32
-		_BltGlyph_AA4_32:
+		global BltGlyph_AA4_32
+		BltGlyph_AA4_32:
 			push rdi
 			push rsi
 			mov r8,rcx		; Pointer auf Glyph-Data nach r8

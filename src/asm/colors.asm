@@ -64,8 +64,8 @@ SECTION .text
 			mov al,dl
 			ret
 	%elif arch_win64=1
-		global _RGB_A8R8G8B8
-		_RGB_A8R8G8B8:	; red=rcx, green=rdx, blue=r8, alpha=r9
+		global RGB_A8R8G8B8
+		RGB_A8R8G8B8:	; red=rcx, green=rdx, blue=r8, alpha=r9
 
 			mov ah,cl	; red
 			shl r9d,24
@@ -113,8 +113,8 @@ SECTION .text
 			movq mm0,rdx			; Alphachannel nach mm0
 
 	%elif arch_win64=1
-		global _RGBBlend_32_255
-		_RGBBlend_32_255:			; ground=rcx, top=rdx, intensity=r8
+		global RGBBlend_32_255
+		RGBBlend_32_255:			; ground=rcx, top=rdx, intensity=r8
 		or r8,r8					; Alpha=0?
 		jz .useBackground			; Wenn Alpha=0 ist, dann geben wir ground zurück
 			inc r8b

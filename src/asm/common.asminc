@@ -44,24 +44,20 @@
 
 
 %ifidn __OUTPUT_FORMAT__,elf64
-nop
 %define arch_elf64 1
 %define PTR resq
 %endif
 
 %ifidn __OUTPUT_FORMAT__,elf32
-nop
 %define arch_elf32 1
 %endif
 
 %ifidn __OUTPUT_FORMAT__,win64
-nop
 %define arch_win64 1
 %define PTR resq
 %endif
 
 %ifidn __OUTPUT_FORMAT__,win32
-nop
 %define arch_win32 1
 %endif
 

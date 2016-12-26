@@ -81,6 +81,29 @@ case "$SYS:$REL:$KERNEL" in
 			--without-libmicrohttpd --without-libgnutls-prefix \
 			--disable-sdltest --without-sdl-prefix --without-sdl-exec-prefix
 		;;
+	MSYS_NT-10*)
+		if [ -d /jenkins/local/bin ] ; then
+			PREFIX=/jenkins/local
+		fi
+		echo "configuring for MSYS2 MINGW64, PREFIX=$PREFIX"
+		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
+		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
+		export CFLAGS="-DCURL_STATICLIB"
+		export SQLITE_CFLAGS="-I/usr/local/include"
+		export SQLITE_LIBS="-L/usr/local/lib -lsqlite3"
+		./configure --prefix=$PREFIX \
+			--with-pcre==$PREFIX --with-bzip2==$PREFIX --with-zlib==$PREFIX \
+			--with-nasm --with-libiconv-prefix==$PREFIX \
+			--without-mysql \
+			--with-lame=$PREFIX --with-mpg123=$PREFIX --disable-freetypetest --with-ft-prefix=$PREFIX \
+			--with-libjpeg=$PREFIX --with-libpng=$PREFIX --with-libmhash=$PREFIX \
+			--with-libmcrypt-prefix=$PREFIX \
+			--with-openssl=$PREFIX --with-libcurl=$PREFIX \
+			--without-libmicrohttpd --without-libgnutls-prefix \
+			--disable-sdltest --without-sdl-prefix --without-sdl-exec-prefix \
+			--with-libldns=$PREFIX \
+			--enable-gtest=/usr/local/gtest-1.7.0		
+		;;
 		
 		
 	Linux:*generic*)

@@ -144,8 +144,8 @@ SECTION .text
 
 ; WIN 64 ************************ WIN 64 ************************ WIN 64 ************************ WIN 64
 %elifidn __OUTPUT_FORMAT__, win64
-	global _GetPixel_32
-	_GetPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8
+	global GetPixel_32
+	GetPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8
 		xor eax,eax
 		cmp r8d,[rcx+DRAWABLE_DATA.height]
 		jae .end							; Ziel Größer oder Gleich width
@@ -241,8 +241,8 @@ SECTION .text
 
 ; WIN 64 ************************ WIN 64 ************************ WIN 64 ************************ WIN 64
 %elifidn __OUTPUT_FORMAT__, win64
-	global _AlphaPixel_32
-	_AlphaPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8, color=r9
+	global AlphaPixel_32
+	AlphaPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8, color=r9
 		; r8d muss >= 0 und < DRAWABLE_DATA.height
 		cmp r8d,[rcx+DRAWABLE_DATA.height]
 		jae .end_noemms					; Ziel Größer oder Gleich width

@@ -66,8 +66,8 @@ endstruc
 		ASM_FillRect32:
 			mov r8,rdi		; Pointer auf data nach r8
 	%elif arch_win64=1
-		global _ASM_FillRect32
-		_ASM_FillRect32:
+		global ASM_FillRect32
+		ASM_FillRect32:
 			push rdi
 			push rsi
 			mov r8,rcx		; Pointer auf data nach r8
