@@ -47,7 +47,7 @@ SECTION .text
 ;/*****************************************************************************
 
 ; ELF 64 ************************ ELF 64 ************************ ELF 64 ************************ ELF 64
-%if elf64=1
+%ifidn __OUTPUT_FORMAT__, elf64
 	global PutPixel_32
 	PutPixel_32:						; DRAWABLE_DATA=rdi, x=rsi, y=rdx, color=rcx
 		; Pixel muss in Grafik passen, d.h....
@@ -70,9 +70,9 @@ SECTION .text
 		ret
 
 ; WIN 64 ************************ WIN 64 ************************ WIN 64 ************************ WIN 64
-%elif win64=1
-	global _PutPixel_32
-	_PutPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8, color=r9
+%elifidn __OUTPUT_FORMAT__, win64
+	global PutPixel_32
+	PutPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8, color=r9
 		cmp r8d,[rcx+DRAWABLE_DATA.height]
 		jae .end							; Ziel Größer oder Gleich width
 		; esi muss >= 0 und < DRAWABLE_DATA.width
@@ -87,7 +87,7 @@ SECTION .text
 		ret
 		
 ; ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32
-%elif elf32=1 || win32=1
+%else
 	global PutPixel_32
 	global _PutPixel_32
 	PutPixel_32:
@@ -115,7 +115,7 @@ SECTION .text
 ;/*****************************************************************************
 
 ; ELF 64 ************************ ELF 64 ************************ ELF 64 ************************ ELF 64
-%if elf64=1
+%ifidn __OUTPUT_FORMAT__, elf64
 	global GetPixel_32
 	GetPixel_32:							; DRAWABLE_DATA=rdi, x=rsi, y=rdx
 		xor eax,eax
@@ -139,9 +139,9 @@ SECTION .text
 		ret
 
 ; WIN 64 ************************ WIN 64 ************************ WIN 64 ************************ WIN 64
-%elif win64=1
-	global _GetPixel_32
-	_GetPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8
+%elifidn __OUTPUT_FORMAT__, win64
+	global GetPixel_32
+	GetPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8
 		xor eax,eax
 		cmp r8d,[rcx+DRAWABLE_DATA.height]
 		jae .end							; Ziel Größer oder Gleich width
@@ -157,7 +157,7 @@ SECTION .text
 		ret
 		
 ; ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32
-%elif elf32=1 || win32=1
+%else
 	global GetPixel_32
 	global _GetPixel_32
 	GetPixel_32:
@@ -185,7 +185,7 @@ SECTION .text
 ;/*****************************************************************************
 
 ; ELF 64 ************************ ELF 64 ************************ ELF 64 ************************ ELF 64
-%if elf64=1
+%ifidn __OUTPUT_FORMAT__, elf64
 	global AlphaPixel_32
 	AlphaPixel_32:						; DRAWABLE_DATA=rdi, x=rsi, y=rdx, color=rcx
 		; Pixel muss in Grafik passen...
@@ -236,9 +236,9 @@ SECTION .text
 		ret
 
 ; WIN 64 ************************ WIN 64 ************************ WIN 64 ************************ WIN 64
-%elif win64=1
-	global _AlphaPixel_32
-	_AlphaPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8, color=r9
+%elifidn __OUTPUT_FORMAT__, win64
+	global AlphaPixel_32
+	AlphaPixel_32:						; DRAWABLE_DATA=rcx, x=rdx, y=r8, color=r9
 		; r8d muss >= 0 und < DRAWABLE_DATA.height
 		cmp r8d,[rcx+DRAWABLE_DATA.height]
 		jae .end_noemms					; Ziel Größer oder Gleich width
@@ -284,7 +284,7 @@ SECTION .text
 		
 
 ; ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32
-%elif elf32=1 || win32=1
+%else
 	global AlphaPixel_32
 	global _AlphaPixel_32
 	AlphaPixel_32:

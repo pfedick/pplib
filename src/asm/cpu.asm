@@ -51,33 +51,20 @@ SECTION .text
 ;/**                                                                 **
 ;/** ppluint32 GetASMBits()                                          **
 ;/*********************************************************************
-%ifidn __OUTPUT_FORMAT__, elf64
+%if arch_elf64=1 || arch_win64=1
 	global PPL7_GetASMBits
 	PPL7_GetASMBits:
 		xor rax,rax
 		mov al, __BITS__
 		ret
-
-%elifidn __OUTPUT_FORMAT__, win64
+%else
 	global _PPL7_GetASMBits
 	_PPL7_GetASMBits:
-		xor rax,rax
-		mov al, __BITS__
-		ret
-%elifidn __OUTPUT_FORMAT__, win32
-	global _PPL7_GetASMBits
-	_PPL7_GetASMBits:
-		xor eax,eax
-		mov al, __BITS__
-		ret
-
-%elifidn __OUTPUT_FORMAT__, elf32
 	global PPL7_GetASMBits
 	PPL7_GetASMBits:
 		xor eax,eax
 		mov al, __BITS__
 		ret
-
 %endif
 
 ;/*********************************************************************
@@ -86,11 +73,9 @@ SECTION .text
 ;/** ppluint32 HaveCPUID()                                           **
 ;/*********************************************************************
 
-%ifidn __OUTPUT_FORMAT__, elf64
+%if arch_elf64=1 || arch_win64=1
 	global PPL7_HaveCPUID
-	global _PPL7_HaveCPUID
 	PPL7_HaveCPUID:
-	_PPL7_HaveCPUID:
 		; check whether CPUID is supported
 		; (bit 21 of Eflags can be toggled)
 		; // cli							// Interupts abschalten
@@ -106,6 +91,7 @@ SECTION .text
 		jz NO_CPUID					; no differ, bit 21 can't be toggled
 			xor rax,rax
 			mov al,1
+			mov dl,1
 			ret
 		NO_CPUID:
 			xor rax,rax
