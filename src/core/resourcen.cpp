@@ -39,9 +39,7 @@
 #include "ppl6.h"
 #include "ppl6-grafix.h"
 //#include "grafix.h"
-#ifdef WIN32
-#pragma message( "*** Kompiliere Resourcen, das kann eine Weile dauern..." )
-#endif
+
 
 namespace ppl6 {
 #include "../resource/res.h"

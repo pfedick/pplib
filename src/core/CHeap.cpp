@@ -126,7 +126,10 @@ void CHeap::Clear()
 	mem_used=sizeof(CHeap);
 	mutex.Unlock();
 }
-
+#ifdef MINGW32
+	#undef printf
+	#define printf __mingw_printf
+#endif
 void CHeap::Dump()
 {
 	mutex.Lock();

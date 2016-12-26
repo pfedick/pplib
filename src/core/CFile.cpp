@@ -1475,8 +1475,9 @@ void CFile::Unmap()
 {
 	this->munmap(MapBase, (size_t)LastMapSize);
 }
-
+#ifdef HAVE_SYSCONF
 static int __pagesize=0;
+#endif
 
 void *CFile::mmap(ppluint64 position, size_t size, int prot, int flags)
 {

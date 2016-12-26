@@ -237,7 +237,11 @@ void dumphex (char *adresse,ppldd zeilen)
 
 	_adresse=(char *)adresse;
 	for (_z=0;_z<zeilen;_z++) {
+#ifdef MINGW32
+		__mingw_sprintf (tmp,"%8zX:",(ppliptr)(_adresse));
+#else
 		sprintf (tmp,"%8zX:",(ppliptr)(_adresse));
+#endif
 		strxchg (tmp, (char*)" ",(char*)"0");
 		printf ("%s ",tmp);
 		for (_i=0;_i<16;_i++) {
@@ -1044,7 +1048,11 @@ void HexDump(const void *address, ppldd bytes, bool skipheader)
 {
     char buff[1024], tmp[10], cleartext[20];
     if (!skipheader) {
+	#ifdef MINGW32
+    	__mingw_sprintf (buff,"HEXDUMP: %u Bytes starting at Address 0x%016zX (%zu):",bytes,(ppliptr)address,(ppliptr)address);
+    	#else
     	sprintf (buff,"HEXDUMP: %u Bytes starting at Address 0x%016zX (%zu):",bytes,(ppliptr)address,(ppliptr)address);
+	#endif
     	PrintDebug("%s\n",buff);
     }
 

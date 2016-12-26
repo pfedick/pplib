@@ -652,7 +652,7 @@ int CThread::ThreadStart(void *param)
 	IsSuspended=0;
 	threadmutex.Unlock();
 	#ifdef _WIN32
-		t->thread=CreateThread(NULL,NULL,(LPTHREAD_START_ROUTINE)ThreadProc,this,NULL,&t->dwThreadID);
+		t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,this,0,&t->dwThreadID);
 		if (t->thread!=NULL) {
 			return 1;
 		}
