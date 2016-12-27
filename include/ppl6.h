@@ -3933,8 +3933,6 @@ class CCronjob : private CListItem
 		CCallback	*callback;
 		void			*callback_data;
 
-		int started;
-
 	public:
 		CCronjob();
 		virtual ~CCronjob();

@@ -975,10 +975,10 @@ void CDir::Print(const CDirEntry *de)
 {
 	if (!de) return;
 	CString s;
-	printf ("%s %3i ",(char*)de->AttrStr,de->NumLinks);
-	printf ("%10llu ",de->Size);
+	ppl_printf ("%s %3i ",(char*)de->AttrStr,de->NumLinks);
+	ppl_printf ("%10zu ",de->Size);
 	MkDate(s,"%d %b %Y",de->MTime);
-	printf ("%s %s\n",(const char*)s,(const char*)de->Filename);
+	ppl_printf ("%s %s\n",(const char*)s,(const char*)de->Filename);
 }
 
 

@@ -727,11 +727,11 @@ ppl6::CString CDateTime::getISO8601() const
 		t.tm_isdst=-1;
 		mktime(&t);
 
-		int s=abs(t.tm_gmtoff/60);
+		int s=abs((int)(t.tm_gmtoff/60));
 		if (t.tm_gmtoff>=0) {
-			r.Concatf("+%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+			r.Concatf("+%02i:%02i",(int)(s/60),(int)(t.tm_gmtoff%60));
 		} else {
-			r.Concatf("-%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+			r.Concatf("-%02i:%02i",(int)(s/60),(int)(t.tm_gmtoff%60));
 		}
 	}
 #elif defined WIN32
@@ -782,11 +782,11 @@ ppl6::CString CDateTime::getISO8601withMsec() const
 		t.tm_isdst=-1;
 		mktime(&t);
 
-		int s=abs(t.tm_gmtoff/60);
+		int s=abs((int)(t.tm_gmtoff/60));
 		if (t.tm_gmtoff>=0) {
-			r.Concatf("+%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+			r.Concatf("+%02i:%02i",(int)(s/60),(int)(t.tm_gmtoff%60));
 		} else {
-			r.Concatf("-%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+			r.Concatf("-%02i:%02i",(int)(s/60),(int)(t.tm_gmtoff%60));
 		}
 	}
 #endif
@@ -824,11 +824,11 @@ ppl6::CString CDateTime::getISO8601withUsec() const
 		t.tm_isdst=-1;
 		mktime(&t);
 
-		int s=abs(t.tm_gmtoff/60);
+		int s=abs((int)(t.tm_gmtoff/60));
 		if (t.tm_gmtoff>=0) {
-			r.Concatf("+%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+			r.Concatf("+%02i:%02i",(int)(s/60),(int)(t.tm_gmtoff%60));
 		} else {
-			r.Concatf("-%02i:%02i",(int)(s/60),t.tm_gmtoff%60);
+			r.Concatf("-%02i:%02i",(int)(s/60),(int)(t.tm_gmtoff%60));
 		}
 	}
 #endif

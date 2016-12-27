@@ -1559,19 +1559,21 @@ void CWString::ReCalcLen()
  * (Segmentation fault).
  */
 {
-	if (!buffer) return;
-	int l=buffersize/sizeof(wchar_t);
-	for (int i=0;i<l;i++) {
-		if (buffer[i]==0) {
-			len=i;
-			bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
-			return;
+	if (buffersize>0 && buffer!=NULL) {
+		size_t l=buffersize/sizeof(wchar_t);
+		for (size_t i=0;i<l;i++) {
+			if (buffer[i]==0) {
+				len=i;
+				bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
+				return;
+			}
 		}
+		len=(buffersize/sizeof(wchar_t))-1;
+		buffer[len]=0;
+		bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
+	} else {
+		len=0;
 	}
-	len=(buffersize/sizeof(wchar_t))-1;
-	if (len<0) len=0;
-	buffer[len]=0;
-	bufferused=len*sizeof(wchar_t)+sizeof(wchar_t);
 }
 
 

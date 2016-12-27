@@ -129,6 +129,7 @@ static const int syslog_facility_lookup[] = {
 
 };
 
+/*
 static const int syslog_priority_lookup[] = {
 		LOG_DEBUG,
 		LOG_EMERG,
@@ -140,6 +141,7 @@ static const int syslog_priority_lookup[] = {
 		LOG_INFO,
 		LOG_DEBUG
 };
+*/
 
 #endif
 

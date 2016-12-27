@@ -446,7 +446,7 @@ void datumsauswertung (pplchar * d, pplchar * dat)
  */
 {
 	CTok Tok;
-	size_t z,l,p,m;
+	int z,l,p,m;
 	char t [15], ad [11];
 	const char *tokptr;
 	char *strptr = t;

@@ -237,28 +237,24 @@ void dumphex (char *adresse,ppldd zeilen)
 
 	_adresse=(char *)adresse;
 	for (_z=0;_z<zeilen;_z++) {
-#ifdef MINGW32
-		__mingw_sprintf (tmp,"%8zX:",(ppliptr)(_adresse));
-#else
-		sprintf (tmp,"%8zX:",(ppliptr)(_adresse));
-#endif
+		ppl_sprintf (tmp,"%8zX:",(ppliptr)(_adresse));
 		strxchg (tmp, (char*)" ",(char*)"0");
-		printf ("%s ",tmp);
+		ppl_printf ("%s ",tmp);
 		for (_i=0;_i<16;_i++) {
 			b=_adresse[_i];
-			sprintf (tmp,"%2X",b);
+			ppl_sprintf (tmp,"%2X",b);
 			strxchg (tmp, (char*)" ",(char*)"0");
-			printf ("%s ",tmp);
+			ppl_printf ("%s ",tmp);
 		}
 		printf (" ");
 		for (_i=0;_i<16;_i++) {
 			b=_adresse[_i];
 			if (b>31)
-				printf ("%c",b);
+				ppl_printf ("%c",b);
 			else
-				printf (".");
+				ppl_printf (".");
 		}
-		printf ("\n");
+		ppl_printf ("\n");
 		_adresse+=16;
 	}
 }
@@ -1048,17 +1044,13 @@ void HexDump(const void *address, ppldd bytes, bool skipheader)
 {
     char buff[1024], tmp[10], cleartext[20];
     if (!skipheader) {
-	#ifdef MINGW32
-    	__mingw_sprintf (buff,"HEXDUMP: %u Bytes starting at Address 0x%016zX (%zu):",bytes,(ppliptr)address,(ppliptr)address);
-    	#else
-    	sprintf (buff,"HEXDUMP: %u Bytes starting at Address 0x%016zX (%zu):",bytes,(ppliptr)address,(ppliptr)address);
-	#endif
+    	ppl_sprintf (buff,"HEXDUMP: %u Bytes starting at Address 0x%016zX (%zu):",bytes,(ppliptr)address,(ppliptr)address);
     	PrintDebug("%s\n",buff);
     }
 
     const char *_adresse=(char*)address;
     ppldd spalte=0;
-    sprintf (buff,"0x%08X: ",0);
+    ppl_sprintf (buff,"0x%08X: ",0);
     memset(cleartext,0,20);
     for (ppldd i=0;i<bytes;i++) {
         if (spalte>15) {
@@ -1067,11 +1059,11 @@ void HexDump(const void *address, ppldd bytes, bool skipheader)
             strcat (buff,": ");
             strcat (buff,cleartext);
             PrintDebug("%s\n",buff);
-            sprintf (buff,"0x%08X: ",i);
+            ppl_sprintf (buff,"0x%08X: ",i);
             memset(cleartext,0,20);
             spalte=0;
         }
-        sprintf (tmp,"%02X ",(ppldb)_adresse[i]);
+        ppl_sprintf (tmp,"%02X ",(ppldb)_adresse[i]);
         strcat (buff,tmp);
         if ((ppldb)_adresse[i]>31 && (ppldb)_adresse[i]<128)  cleartext[spalte]=(ppldb)_adresse[i];
         else cleartext[spalte]='.';
@@ -1097,7 +1089,7 @@ void HexDump(CString *s, const void *address, ppldd bytes, bool skipheader)
     }
     const char *_adresse=(char*)address;
     ppldd spalte=0;
-    sprintf (buff,"0x%08X: ",0);
+    ppl_sprintf (buff,"0x%08X: ",0);
     memset(cleartext,0,20);
     for (ppldd i=0;i<bytes;i++) {
         if (spalte>15) {
@@ -1106,11 +1098,11 @@ void HexDump(CString *s, const void *address, ppldd bytes, bool skipheader)
             strcat (buff,": ");
             strcat (buff,cleartext);
             s->Concatf("%s\n",buff);
-            sprintf (buff,"0x%08X: ",i);
+            ppl_sprintf (buff,"0x%08X: ",i);
             memset(cleartext,0,20);
             spalte=0;
         }
-        sprintf (tmp,"%02X ",(ppldb)_adresse[i]);
+        ppl_sprintf (tmp,"%02X ",(ppldb)_adresse[i]);
         strcat (buff,tmp);
         if ((ppldb)_adresse[i]>31 && (ppldb)_adresse[i]<128)  cleartext[spalte]=(ppldb)_adresse[i];
         else cleartext[spalte]='.';

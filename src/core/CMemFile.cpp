@@ -266,18 +266,16 @@ int	 CMemFile::Fseek (ppluint64 offset, int origin )
 			case SEEK_CUR:
 				pos+=offset;
 				if (pos>size) return 1;
-				if (pos<0) {pos=0;return 1; }
-				break;
+				return 1;
 			case SEEK_END:
+				if (offset>size) {
+					pos=0; return 1;
+				}
 				pos=size-offset;
-				if (pos>size) return 1;
-				if (pos<0) {pos=0; return 1;}
-				break;
+				return 1;
 			case SEEK_SET:
 				pos=offset;
-				if (pos<0) {pos=0; return 1;}
-				if (pos>size) return 1;
-				break;
+				return 1;
 		}
 		return 0;
 	}

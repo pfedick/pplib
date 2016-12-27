@@ -93,6 +93,7 @@ typedef struct tagMadStruct{
  * use this routine if high-quality output is desired.
  */
 
+#ifdef INCLUDEDEBUG
 static inline signed int scale(mad_fixed_t sample)
 {
   /* round */
@@ -107,6 +108,7 @@ static inline signed int scale(mad_fixed_t sample)
   /* quantize */
   return sample >> (MAD_F_FRACBITS + 1 - 16);
 }
+#endif
 
 /****************************************************************************
  * Converts a sample from libmad's fixed point number format to a signed	*

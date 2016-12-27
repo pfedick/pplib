@@ -45,6 +45,7 @@
 				#include "ppl6-config.h"
 			#endif
 		#endif
+		#include "compat.h"
 	#else
 		#include <ppl6-config.h>
 	#endif

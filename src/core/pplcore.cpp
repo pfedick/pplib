@@ -143,7 +143,7 @@ void PrintDebug(const char *format, ...)
 		OutputDebugString(buff);
 #endif
 	} else {
-		printf("%s",buff);
+		ppl_printf("%s",buff);
 	}
 	free(buff);
 }
@@ -179,7 +179,7 @@ void PrintDebugTime(const char *format, ...)
 		OutputDebugString(buff);
 #endif
 	} else {
-		printf("%s%s",(const char*)Time,buff);
+		ppl_printf("%s%s",(const char*)Time,buff);
 	}
 	free(buff);
 }

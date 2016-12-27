@@ -816,12 +816,15 @@ const char *SybaseResult::Get(pplint64 row, int field)
 
 Sybase::Sybase()
 {
-#ifdef HAVE_FREETDS
+	lastinsertid=0;
 	lastServerMsgNumber=0;
+	lastClientMsgNumber=0;
 	connected=false;
 	transactiondepth=0;
 	maxrows=0;
 	rows_affected=0;
+	conn=NULL;
+#ifdef HAVE_FREETDS
 	conn=malloc(sizeof(SYBCONNECT));
 	if (!conn) {
 		SetError(2,"malloc conn");
@@ -975,7 +978,6 @@ Sybase::Sybase()
 	SetError(0);
 	syb_refcount++;
 	refmutex.Unlock();
-	lastinsertid=0;
 #endif
 }
 

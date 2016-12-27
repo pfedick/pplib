@@ -948,16 +948,18 @@ void CString::ReCalcLen()
  * Strings festzustellen.
  */
 {
-	if (!buffer) return;
-	for (ppluint32 i=0;i<buffersize;i++) {
-		if (buffer[i]==0) {
-			len=i;
-			return;
+	if (buffersize>0 && buffer!=NULL) {
+		for (ppluint32 i=0;i<buffersize;i++) {
+			if (buffer[i]==0) {
+				len=i;
+				return;
+			}
 		}
+		len=buffersize-1;
+		buffer[len]=0;
+	} else {
+		len=0;
 	}
-	len=buffersize-1;
-	if (len<0) len=0;
-	buffer[len]=0;
 }
 
 //! \brief Gibt den Inhalt des Strings auf STDOUT aus.
