@@ -233,6 +233,7 @@ ppluint64 GetTime(PPLTIME *t, ppluint64 now)
 	struct tm tmstruct;
 	time_t n=(time_t)now;
 	if (!t) return now;
+	memset(t,0,sizeof(PPLTIME));
 	if (!localtime_r(&n,&tmstruct)) {
 		return 0;
 	}
@@ -276,6 +277,7 @@ ppluint64 GetTime(PPLTIME &t, ppluint64 now)
 {
 	struct tm tmstruct;
 	time_t n=(time_t)now;
+	memset(&t,0,sizeof(PPLTIME));
 	if (!localtime_r(&n,&tmstruct)) {
 		return 0;
 	}

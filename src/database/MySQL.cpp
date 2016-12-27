@@ -975,8 +975,8 @@ CString	MySQL::databaseType() const
 
 int MySQL::LibraryInit(int argc, char **argv, char **groups)
 {
-	int ret=1;
 #ifdef HAVE_MYSQL
+	int ret=1;
 	MySQLGlobalMutex.Lock();
 	if (__mysql_init==0) {
 		ret=mysql_library_init(argc, argv, groups);

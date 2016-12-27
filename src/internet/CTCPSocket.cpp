@@ -392,15 +392,7 @@ int CTCPSocket::getPort() const
 	return PortNum;
 }
 
-
-#ifdef WIN32
-static int out_bind(SOCKET sockfd, const char *host, int port)
-{
-	SetError(219,"Connect mit vorherigem Bind");
-	return 0;
-}
-
-#else
+#ifndef _WIN32
 /*!\brief Socket auf ausgehendes Interface legen
  *
  * \desc
@@ -479,7 +471,6 @@ static int out_bind(const char *host, int port)
 	return listenfd;
 }
 #endif
-
 
 /*!\brief Verbindung aufbauen
  *

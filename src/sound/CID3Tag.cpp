@@ -648,7 +648,7 @@ void CID3Tag::ListFrames(int hexdump) const
 {
 	CID3Frame *frame=firstFrame;
 	while (frame) {
-		printf ("Frame: %s, Size: %zu, Flags: %u\n",frame->ID, frame->Size, frame->Flags);
+		ppl_printf ("Frame: %s, Size: %zu, Flags: %u\n",frame->ID, frame->Size, frame->Flags);
 		if (hexdump) ppl6::HexDump(frame->data,frame->Size);
 		frame=frame->nextFrame;
 	}

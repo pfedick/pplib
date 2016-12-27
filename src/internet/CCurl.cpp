@@ -74,11 +74,12 @@ namespace ppl6 {
  *
  */
 
+#ifdef HAVE_LIBCURL
 static ppl6::CMutex CurlMutex;
 static int ppl_curl_instance=0;
 
 
-#ifdef HAVE_LIBCURL
+
 	static size_t write_function(void *ptr, size_t size, size_t nmemb, void *stream)
 	{
 		if (!stream) return -1;
