@@ -282,6 +282,7 @@ void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const Ass
 
 		char *img=bmh+bfOffBits;
 		if (surface.bitdepth()==8) {		// Palette speichern
+			throw ppl7::UnsupportedFeatureException("Cannot save a ppl7::Drawable with bitdepth of 8");
 			// Hier fehlt noch der Code, um die Palette zu speichern.
 			// Ausserdem muss noch geprueft werden, an welcher Position die
 			// Palette im BMP-File gespeichert werden muss, und was sich

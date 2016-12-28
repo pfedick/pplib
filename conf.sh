@@ -48,8 +48,8 @@ echo ""
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
-		#export CC=gcc47
-		#export CXX=g++47
+		export CC=clang37
+		export CXX=clang++37
         	export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		export GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
@@ -57,10 +57,10 @@ case "$SYS:$REL:$KERNEL" in
 
 		./configure --prefix=$PREFIX \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
-			--with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
-			--with-libmhash=/usr/local --with-gcrypt=auto \
+			--with-pcre=/usr/local --with-x --with-openssl=/usr/local --with-mysql \
+			--with-libmhash=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
-			--with-jpeg --with-libjpegturbo --with-libpng --with-libtiff=/usr/local \
+			--with-libjpegturbo=/usr/local --with-libpng --with-libtiff=/usr/local \
 			--with-postgresql \
 			--with-libidn=/usr/local \
 			--with-ogg=/usr/local \

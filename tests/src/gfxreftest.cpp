@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <locale.h>
 #include <math.h>
-#include "../include/prolog.h"
 #include "../include/ppl7.h"
 #include "../include/ppl7-grafix.h"
 
@@ -1412,7 +1411,7 @@ int main(int argc, char **argv)
 	printf ("sizeof(ImageList)=%i\n",(int)sizeof(ImageList));
 	printf ("sizeof(Font)=%i\n",(int)sizeof(Font));
 
-	ImageFilter_PNG png;
+	ImageFilter_BMP bmp;
 
 	/*
 	try {
@@ -1479,7 +1478,7 @@ int main(int argc, char **argv)
 	Image.putPixel(60,60,Color(255,255,255));
 	Image.putPixel(70,70,Color(255,255,255));
 
-	png.saveFile("tmp.grafixtest.png", Image);
+	bmp.saveFile("tmp.grafixtest.bmp", Image);
 
 	return 0;
 }

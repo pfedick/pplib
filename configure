@@ -874,6 +874,7 @@ enable_coverage
 enable_gtest
 with_libbind
 with_jpeg
+with_libjpegturbo
 with_libpng
 with_libmicrohttpd
 with_libmcrypt_prefix
@@ -11671,13 +11672,13 @@ $as_echo "no" >&6; }
 
 ##################################################################################### JPEG-TURBO
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libjpeg" >&5
-$as_echo_n "checking for libjpeg... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libjpegturbo" >&5
+$as_echo_n "checking for libjpegturbo... " >&6; }
 
 
-# Check whether --with-jpeg was given.
-if test "${with_jpeg+set}" = set; then :
-  withval=$with_jpeg; libjpegturbo_prefix="$withval"
+# Check whether --with-libjpegturbo was given.
+if test "${with_libjpegturbo+set}" = set; then :
+  withval=$with_libjpegturbo; libjpegturbo_prefix="$withval"
 else
   libjpegturbo_prefix=""
 fi

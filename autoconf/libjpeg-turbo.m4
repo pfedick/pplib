@@ -1,9 +1,9 @@
 dnl AC_CHECK_LIBJPEGTURBO([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 
 AC_DEFUN([AC_CHECK_LIBJPEGTURBO],[
-AC_MSG_CHECKING(for libjpeg)
+AC_MSG_CHECKING(for libjpegturbo)
 
-AC_ARG_WITH([jpeg],
+AC_ARG_WITH([libjpegturbo],
 	[  --with-libjpegturbo[[=PATH]]     Prefix where libjpeg-turbo is installed (optional)],
 	[libjpegturbo_prefix="$withval"],
 	[libjpegturbo_prefix=""])
