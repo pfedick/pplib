@@ -36,7 +36,7 @@
 ###############################################################################
 
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.63)
+AC_PREREQ(2.69)
 AC_INIT([ppl], [7.0.0], [patrick@pfp.de], [ppl-7.0.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
@@ -79,7 +79,6 @@ sinclude(autoconf/ax_check_zlib.m4)
 sinclude(autoconf/libmcrypt.m4)
 sinclude(autoconf/libmhash.m4)
 sinclude(autoconf/ax_lib_crypto.m4)
-sinclude(autoconf/ax_lib_gcrypt.m4)
 sinclude(autoconf/checkfuncs.m4)
 sinclude(autoconf/ax_gcc_x86_cpuid.m4)
 sinclude(autoconf/ax_check_compiler_flags.m4)
@@ -128,7 +127,6 @@ report_have_postgres="no"
 report_have_sqlite3="no"
 report_have_ldns="no"
 report_have_nasm="no"
-report_have_libgcrypt="no"
 
 
 AC_CANONICAL_TARGET
@@ -155,7 +153,7 @@ case "$host_os" in
 esac
  
 case "$host_os" in
-	*mingw32* )
+	*mingw32*|msys )
 		report_have_pthreads="yes, Windows Threads"
   		;;
   	*mingw64* )
@@ -165,7 +163,6 @@ case "$host_os" in
 		AX_PTHREAD([report_have_pthreads="yes, pthreads"]
 			AC_DEFINE(HAVE_PTHREADS,1, [Define to 1 if we have pthreads])			
 		)
-
 		;;
 esac
 
@@ -300,12 +297,9 @@ AC_SUBST(PPLIBTESTVERSION)
 
 
 report_have_gtest="no"
-
-GTEST_LIB_CHECK([1.6.0],
-	[GTEST_PREFIX=`$GTEST_CONFIG --prefix`
-	AC_SUBST(GTEST_PREFIX)
+AC_CHECK_GTEST(
 	report_have_gtest="yes"
-	],
+	,
 	report_have_gtest="no"
 	report_codecoverage_enabled="no"
 )
@@ -437,15 +431,6 @@ AM_LIBMICROHTTPD(,
             ,
             :)
 
-AX_LIB_GCRYPT
-if test "$HAVE_GCRYPT" = "1"
-then
-	report_have_libgcrypt="yes"
-fi
-            
-            
-
-
 AM_PATH_LIBMCRYPT([2.5.7],
             AC_DEFINE(HAVE_LIBMCRYPT, 1, [ Define if you have libmcrypt. ])
             report_have_libmcrypt="yes",
@@ -560,6 +545,25 @@ AX_PATH_LIB_PCRE(
 AX_CHECK_OPENSSL(
 	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
 	report_have_openssl="yes"
+	
+	am_save_CPPFLAGS="$CPPFLAGS"
+	am_save_CFLAGS="$CFLAGS"
+	am_save_LIBS="$LIBS"
+	am_save_LDFLAGS="$LDFLAGS"
+	
+	LIBS="$LIBS $OPENSSL_LIBS"
+	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
+	
+	AC_CHECK_FUNCS([TLSv1_method TLSv1_server_method TLSv1_client_method])
+	AC_CHECK_FUNCS([TLSv1_1_method TLSv1_1_server_method TLSv1_1_client_method])
+	AC_CHECK_FUNCS([TLSv1_2_method TLSv1_2_server_method TLSv1_2_client_method])
+	AC_CHECK_FUNCS([DTLSv1_method DTLSv1_server_method DTLSv1_client_method])
+	
+	CPPFLAGS="$am_save_CPPFLAGS"
+	CFLAGS="$am_save_CFLAGS"
+	LIBS="$am_save_LIBS"
+	LDFLAGS="$am_save_LDFLAGS"	
+	
 	, :)
 
 
@@ -718,7 +722,7 @@ case "$host_os" in
 		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
 		LIBS="$LIBS -lws2_32"
   		;;
-  	*mingw64* )
+  	*mingw64*|msys )
 		MINGW32=yes
 		MINGW64=yes
 		AC_DEFINE(MINGW32, 1, [Define if you compile on Windows MINGW32])
@@ -750,7 +754,6 @@ AC_SUBST(report_have_lame)
 AC_SUBST(report_have_libmad)
 AC_SUBST(report_have_curl)
 AC_SUBST(report_have_openssl)
-AC_SUBST(report_have_libgcrypt)
 AC_SUBST(report_have_pcre)
 AC_SUBST(report_have_iconv)
 AC_SUBST(report_have_libmcrypt)
@@ -825,7 +828,6 @@ AC_MSG_RESULT([
 **   cdio library:         $report_have_libcdio
 **
 ** Cryptography:
-**   Libgcrypt:            $report_have_libgcrypt
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
 **   MHash:                $report_have_libmhash

@@ -59,12 +59,12 @@ endstruc
 
 
 ALIGN 16
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		global ASM_BltChromaKey32
 		ASM_BltChromaKey32:					; Pointer auf data ist in rdi
 		mov r8,rdi							; Pointer nach r8 schieben
-	%elif win64=1
+	%elif arch_win64=1
 		global _ASM_BltChromaKey32
 		_ASM_BltChromaKey32:				; Pointer auf data ist zunächst in rcx
 		mov r8,rcx							; Pointer nach r8 schieben
@@ -119,10 +119,10 @@ akehr:  dq 0x00ff00ff00ff00ff
 
 ALIGN 16
 ASM_BltChromaKey32_1:
-%if elf64=1 || win64=1
+%if arch_elf64=1 || arch_win64=1
 	; IN: r8 => Pointer auf Datenstruktur
-	%if win64=1
-		push rdi							; rdi und rsi müssen unter WIN64 gerettet werden
+	%if arch_win64=1
+		push rdi							; rdi und rsi müssen unter arch_win64 gerettet werden
 		push rsi
 	%endif
 	push rbx
@@ -250,7 +250,7 @@ ASM_BltChromaKey32_1:
 	pop r12
 	inc al
 	pop rbx							; rbx, r10 und r11 retten
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -317,10 +317,10 @@ andmask:	dd 0x000000ff
 
 ALIGN 16
 ASM_BltChromaKey32_4:
-%if elf64=1 || win64=1
+%if arch_elf64=1 || arch_win64=1
 	; IN: r8 => Pointer auf Datenstruktur
-	%if win64=1
-		push rdi							; rdi und rsi müssen unter WIN64 gerettet werden
+	%if arch_win64=1
+		push rdi							; rdi und rsi müssen unter arch_win64 gerettet werden
 		push rsi
 	%endif
 	push rbx
@@ -464,7 +464,7 @@ ASM_BltChromaKey32_4:
 	pop r12
 	inc al							; Returnwert auf 1 setzen
 	pop rbx							; rbx, r10 und r11 retten
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif

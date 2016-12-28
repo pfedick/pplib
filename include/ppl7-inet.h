@@ -242,7 +242,19 @@ class SSLContext
 			TLSv1server,
 			SSLv23,				// Unterstuetzt SSLv2, v3 und TLSv1
 			SSLv23client,		// Unterstuetzt SSLv2, v3 und TLSv1
-			SSLv23server		// Unterstuetzt SSLv2, v3 und TLSv1
+			SSLv23server,		// Unterstuetzt SSLv2, v3 und TLSv1
+			TLSv1_1,
+			TLSv1_1client,
+			TLSv1_1server,
+			TLSv1_2,
+			TLSv1_2client,
+			TLSv1_2server,
+			TLS,				// Verwendet SSLv23, SSL wird aber disabled, so dass nur TLS unterstuetzt wird
+			TLSclient,
+			TLSserver,
+			DTLSv1,
+			DTLSv1client,
+			DTLSv1server,
 		};
 
 		SSLContext();
@@ -276,6 +288,7 @@ class SSLError
 
 int GetSSLError(SSLError &e);
 int GetSSLErrors(std::list<SSLError> &e);
+int GetSSLErrors(String &e);
 void ClearSSLErrorStack();
 
 
@@ -408,7 +421,7 @@ class TCPSocket
 		//@{
 		void sslStart(SSLContext &context);
 		void sslStop();
-		int sslCheckCertificate(const char *hostname, bool AcceptSelfSignedCert=false);
+		int sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSignedCert=false);
 		void sslAccept(SSLContext &context);
 		int sslWaitForAccept(int timeout=0);
 		//@}

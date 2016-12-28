@@ -42,31 +42,22 @@
 %define win32 0
 %define PTR resd
 
-
-%ifidn __OUTPUT_FORMAT__, elf64
-%ifidn __BITS__, 64
-%define elf64 1
+%ifidn __OUTPUT_FORMAT__,elf64
+%define arch_elf64 1
 %define PTR resq
 %endif
+
+%ifidn __OUTPUT_FORMAT__,elf32
+%define arch_elf32 1
 %endif
 
-%ifidn __OUTPUT_FORMAT__, elf32
-%ifidn __BITS__, 32
-%define elf32 1
-%endif
-%endif
-
-%ifidn __OUTPUT_FORMAT__, win64
-%ifidn __BITS__, 64
-%define win64 1
+%ifidn __OUTPUT_FORMAT__,win64
+%define arch_win64 1
 %define PTR resq
 %endif
-%endif
 
-%ifidn __OUTPUT_FORMAT__, win32
-%ifidn __BITS__, 32
-%define win32 1
-%endif
+%ifidn __OUTPUT_FORMAT__,win32
+%define arch_win32 1
 %endif
 
 

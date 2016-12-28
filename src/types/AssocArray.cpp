@@ -1451,7 +1451,7 @@ foo/key2=value6
 	AssocArray::fromConfig) fügen diese wieder zu einer einzelnen Variable mit Zeilenumbruch
 	zusammen.
  */
-void AssocArray::toTemplate(String &s, const String &prefix, const String &linedelimiter, const String &splitchar)
+void AssocArray::toTemplate(String &s, const String &prefix, const String &linedelimiter, const String &splitchar) const
 {
 	String	key, pre, value, index;
 	Array		Tok;

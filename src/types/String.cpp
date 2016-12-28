@@ -1950,6 +1950,28 @@ String String::trimmed() const
 	return ret;
 }
 
+String String::toLowerCase() const
+{
+	String res(this);
+	res.lowerCase();
+	return res;
+}
+
+String String::toUpperCase() const
+{
+	String res(this);
+	res.upperCase();
+	return res;
+}
+
+String String::toUpperCaseWords() const
+{
+	String res(this);
+	res.upperCaseWords();
+	return res;
+}
+
+
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab
 void String::trimLeft()
 {

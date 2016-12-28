@@ -63,11 +63,11 @@ global _ASM_BltBlend32_MMX
 ASM_BltBlend32_MMX:
 _ASM_BltBlend32_MMX:
 
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		mov r8,rdi					; Pointer nach r8 schieben
 		movd mm4,esi				; Faktor ist in rsi, wovon uns aber nur das untere Byte interessiert
-	%elif win64=1
+	%elif arch_win64=1
 		mov r8,rcx
 		movd mm4,edx				;// Faktor nach mm4
 		push rdi
@@ -120,7 +120,7 @@ _ASM_BltBlend32_MMX:
 	xor rax,rax
 	inc rax					; Returnwert auf 1 setzen
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -196,11 +196,11 @@ global _ASM_BltBlend32_SSE_Align1
 
 ASM_BltBlend32_SSE_Align1:
 _ASM_BltBlend32_SSE_Align1:
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		mov r8,rdi					; Pointer nach r8 schieben
 		movd xmm4,esi				; Faktor ist in rsi, wovon uns aber nur das untere Byte interessiert
-	%elif win64=1
+	%elif arch_win64=1
 		mov r8,rcx
 		movd xmm4,edx				;// Faktor nach mm4
 		push rdi
@@ -252,7 +252,7 @@ _ASM_BltBlend32_SSE_Align1:
 	xor rax,rax
 	inc rax					; Returnwert auf 1 setzen
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -327,11 +327,11 @@ global _ASM_BltBlend32_SSE_Align2
 
 ASM_BltBlend32_SSE_Align2:
 _ASM_BltBlend32_SSE_Align2:
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		mov r8,rdi					; Pointer nach r8 schieben
 		movd xmm4,esi				; Faktor ist in rsi, wovon uns aber nur das untere Byte interessiert
-	%elif win64=1
+	%elif arch_win64=1
 		mov r8,rcx
 		movd xmm4,edx				;// Faktor nach mm4
 		push rdi
@@ -381,7 +381,7 @@ _ASM_BltBlend32_SSE_Align2:
 	xor rax,rax
 	inc rax					; Returnwert auf 1 setzen
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif

@@ -36,6 +36,9 @@
 ;###############################################################################
 
 
+;/*********************************************************************
+;/** blt.asm                                                         **
+;/*********************************************************************
 
 %include "src/asm/common.asm"
 
@@ -64,14 +67,14 @@ endstruc
 ;/**                                                                 **
 ;/** void ASM_AlphaBlt32(BLTDATA *data)                              **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
-		global ASM_AlphaBlt32
-		ASM_AlphaBlt32:				; Pointer auf data ist in rdi
+%if arch_elf64=1 || arch_win64=1
+	global ASM_AlphaBlt32
+	ASM_AlphaBlt32:
+	%if arch_elf64=1
+									; Pointer auf data ist in rdi
 		mov r8,rdi					; Pointer nach r8 schieben
-	%elif win64=1
-		global _ASM_AlphaBlt32
-		_ASM_AlphaBlt32:			; Pointer auf data ist zunächst in rcx
+	%elif arch_win64=1
+									; Pointer auf data ist zunächst in rcx
 		mov r8,rcx					; Pointer nach r8 schieben
 		push rdi					; rdi und rsi müssen unter WIN64 gerettet werden
 		push rsi
@@ -138,7 +141,7 @@ endstruc
 	xor rax,rax
 	inc rax					; Returnwert auf 1 setzen
 	pop rbx
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -147,7 +150,6 @@ endstruc
 %else								; 32-Bit-Version
 	global ASM_AlphaBlt32
 	global _ASM_AlphaBlt32
-
 	ASM_AlphaBlt32:
 	_ASM_AlphaBlt32:
 		push ebp
@@ -215,7 +217,7 @@ endstruc
 		ret
 %endif
 
-%if elf64=1 || win64=1
+%if arch_elf64=1 || arch_win64=1
 CopyBuffered:
 	; Input:
 	;	rsi: Quelladresse
@@ -340,14 +342,14 @@ CopyBuffered:
 ;/**                                                                 **
 ;/** void ASM_Blt32(BLTDATA *data)                                   **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		global ASM_Blt32
 		ASM_Blt32:					; Pointer auf data ist in rdi
 		mov rcx,rdi					; Pointer nach rcx schieben
-	%elif win64=1
-		global _ASM_Blt32
-		_ASM_Blt32:					; Pointer auf data ist in ecx
+	%elif arch_win64=1
+		global ASM_Blt32
+		ASM_Blt32:					; Pointer auf data ist in ecx
 		push rdi
 		push rsi
 	%endif
@@ -375,7 +377,7 @@ CopyBuffered:
 		emms					; Wir haben keine MMX-Register verwendet
 		pop rbx
 		xor rax,rax
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -422,14 +424,14 @@ CopyBuffered:
 ;/**                                                                 **
 ;/** void ASM_BltColorKey32(BLTDATA *data)                           **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
+%if arch_elf64=1 || arch_win64=1
+	%if arch_elf64=1
 		global ASM_BltColorKey32
 		ASM_BltColorKey32:			; Pointer auf data ist in rdi
 		mov rcx,rdi					; Pointer nach rcx schieben
-	%elif win64=1
-		global _ASM_BltColorKey32
-		_ASM_BltColorKey32:			; Pointer auf data ist in ecx
+	%elif arch_win64=1
+		global ASM_BltColorKey32
+		ASM_BltColorKey32:			; Pointer auf data ist in ecx
 		push rdi
 		push rsi
 	%endif
@@ -467,7 +469,7 @@ CopyBuffered:
 		pop r10
 		pop rbx
 		inc rax			; Returnwert auf 1 setzen
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -523,15 +525,13 @@ CopyBuffered:
 ;/**                                                                 **
 ;/** void ASM_BltDiffuse32(BLTDATA *data)                            **
 ;/*********************************************************************
-%if elf64=1 || win64=1
-	%if elf64=1
-		global ASM_BltDiffuse32
-		ASM_BltDiffuse32:			; Pointer auf data ist in rdi
-		mov r8,rdi					; Pointer nach r8 schieben
-	%elif win64=1
-		global _ASM_BltDiffuse32
-		_ASM_BltDiffuse32:			; Pointer auf data ist in ecx
-		mov r8,rcx
+%if arch_elf64=1 || arch_win64=1
+	global ASM_BltDiffuse32
+	ASM_BltDiffuse32:
+	%if arch_elf64=1
+		mov r8,rdi					; Pointer auf data ist in rdi, wir schieben ihn nach r8
+	%elif arch_win64=1
+		mov r8,rcx					; Pointer auf data ist in ecx, wir schieben ihn nach r8
 		push rdi
 		push rsi
 	%endif
@@ -602,7 +602,7 @@ CopyBuffered:
 		pop r10
 		pop rbx
 		inc rax			; Returnwert auf 1 setzen
-	%if win64=1
+	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
@@ -675,5 +675,3 @@ CopyBuffered:
 		pop ebp
 		ret
 %endif
-
-

@@ -123,7 +123,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-jpeg --with-libpng=$PREFIX --with-libtiff \
 			--with-libtiff=/usr --with-mpg123 \
             --with-libidn \
-			--enable-gtest=/usr/local/gtest-1.7.0
+			--enable-gtest=/usr/local/googletest-release-1.7.0
 		;;	
 	*)
 		echo "Unknown host"

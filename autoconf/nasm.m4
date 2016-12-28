@@ -26,22 +26,19 @@ then
 	then
 		NASM=${nasm}
 		AC_SUBST(NASM)
-		case `uname -m` in
-			win32)
+		NASMDEBUGFLAGS="-g"
+		case `uname -m`-`uname -s` in
+			win32*)
 				NASMFLAGS="-f win32"
-				NASMDEBUGFLAGS="-g"
 				;;
-			win64)
+			win64*|x86_64-MSYS*)
 				NASMFLAGS="-f win64"
-				NASMDEBUGFLAGS="-g"
 				;;
-			x86_64|amd64)
+			x86_64*|amd64*)
 				NASMFLAGS="-f elf64"
-				NASMDEBUGFLAGS="-g"
 				;;
 			*)
 				NASMFLAGS="-f elf32"
-				NASMDEBUGFLAGS="-g"
 				;;
 		esac
 		case `uname -s` in

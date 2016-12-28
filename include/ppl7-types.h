@@ -379,6 +379,9 @@ class String
 		void upperCaseWords();
 		void trim();
 		String trimmed() const;
+		String toLowerCase() const;
+		String toUpperCase() const;
+		String toUpperCaseWords() const;
 		void trimLeft();
 		void trimRight();
 		void trim(const String &chars);
@@ -989,7 +992,7 @@ class AssocArray
 		//@{
 		size_t	fromTemplate(const String &templ, const String &linedelimiter="\n", const String &splitchar="=", const String &concat="\n", bool dotrim=false);
 		size_t	fromConfig(const String &content, const String &linedelimiter="\n", const String &splitchar="=", const String &concat="\n", bool dotrim=false);
-		void toTemplate(String &s, const String &prefix="", const String &linedelimiter="\n", const String &splitchar="=");
+		void toTemplate(String &s, const String &prefix="", const String &linedelimiter="\n", const String &splitchar="=") const;
 		size_t binarySize() const;
 		void exportBinary(void *buffer, size_t buffersize, size_t *realsize) const;
 		void exportBinary(ByteArray &buffer) const;
