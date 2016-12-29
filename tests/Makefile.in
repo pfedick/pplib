@@ -55,7 +55,10 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/filestatic.o compile/textsnippets.o \
 	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o \
 	compile/audioinfo.o compile/sockaddr.o compile/id3tag.o \
-	compile/grafix.o compile/grafix_drawable.o compile/grafix_imagefilter.o
+	compile/grafix.o compile/grafix_drawable.o compile/grafix_imagefilter.o \
+	compile/grafix_color.o compile/grafix_font.o compile/grafix_image.o \
+	compile/grafix_point.o compile/grafix_point3d.o compile/grafix_rect.o \
+	compile/grafix_rgbformat.o compile/grafix_size.o
 
 DB_OBJECTS = compile/main.o compile/db_postgres.o compile/wordlist.o \
 	compile/db_sqlite.o compile/db_mysql.o
@@ -224,14 +227,47 @@ compile/gfxreftest.o: src/gfxreftest.cpp Makefile ppl7-tests.h
 compile/grafix.o: src/grafix.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/grafix.o -c src/grafix.cpp $(CFLAGS) $(LIB)
-	
-compile/grafix_imagefilter.o: src/grafix_imagefilter.cpp Makefile ppl7-tests.h
+
+compile/grafix_color.o: src/grafix_color.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/grafix_imagefilter.o -c src/grafix_imagefilter.cpp $(CFLAGS) $(LIB)
-	
+	$(CXX) -o compile/grafix_color.o -c src/grafix_color.cpp $(CFLAGS) $(LIB)
+
 compile/grafix_drawable.o: src/grafix_drawable.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/grafix_drawable.o -c src/grafix_drawable.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_font.o: src/grafix_font.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_font.o -c src/grafix_font.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_image.o: src/grafix_image.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_image.o -c src/grafix_image.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_imagefilter.o: src/grafix_imagefilter.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_imagefilter.o -c src/grafix_imagefilter.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_point.o: src/grafix_point.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_point.o -c src/grafix_point.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_point3d.o: src/grafix_point3d.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_point3d.o -c src/grafix_point3d.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_rect.o: src/grafix_rect.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_rect.o -c src/grafix_rect.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_rgbformat.o: src/grafix_rgbformat.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_rgbformat.o -c src/grafix_rgbformat.cpp $(CFLAGS) $(LIB)
+
+compile/grafix_size.o: src/grafix_size.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/grafix_size.o -c src/grafix_size.cpp $(CFLAGS) $(LIB)
+
 	
 compile/threadtest.o: src/threadtest.cpp Makefile ppl7-tests.h
 	mkdir -p compile

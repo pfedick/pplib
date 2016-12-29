@@ -42,7 +42,8 @@
     #endif
 #endif
 
-
+#include <map>
+#include <list>
 
 namespace ppl7 {
 namespace grafix {
@@ -849,7 +850,7 @@ class FontFile
 		void *priv;
 
 		FontFile();
-		virtual ~FontFile();
+        ~FontFile();
 };
 
 class FontEngine

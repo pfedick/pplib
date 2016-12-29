@@ -45,21 +45,20 @@
 namespace {
 
 // The fixture for testing class Foo.
-class GrafixImageFilterTest : public ::testing::Test {
-	protected:
-        ppl7::grafix::Grafix *gfx;
-	GrafixImageFilterTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
+class GrafixImageTest : public ::testing::Test {
+protected:
+    ppl7::grafix::Grafix *gfx;
+    GrafixImageTest() {
+        if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+            printf ("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
         gfx=NULL;
 
-	}
-	virtual ~GrafixImageFilterTest() {
 
-	}
-
+    }
+    virtual ~GrafixImageTest() {
+    }
     virtual void SetUp() {
         gfx=new ppl7::grafix::Grafix();
     }
@@ -69,18 +68,31 @@ class GrafixImageFilterTest : public ::testing::Test {
 };
 
 
-TEST_F(GrafixImageFilterTest, loadpng) {
-	ppl7::grafix::Image img;
-	ASSERT_NO_THROW({
-		img.load("testdata/test.png");
-	});
-	ASSERT_EQ(120,img.width());
-	ASSERT_EQ(95,img.height());
-	ASSERT_EQ(32,img.bitdepth());
-	ASSERT_EQ(ppl7::grafix::RGBFormat::X8R8G8B8,img.rgbformat());
+TEST_F(GrafixImageTest, constructor_without_parameter) {
+    ASSERT_NO_THROW({
+        ppl7::grafix::Image img;
+    });
+}
 
-	ppl7::grafix::ImageFilter_PNG png;
-	png.saveFile("save.png",img);
+TEST_F(GrafixImageTest, constructor_create) {
+    ASSERT_NO_THROW({
+        ppl7::grafix::Image img(320,200);
+        ASSERT_EQ((int)320,img.width());
+        ASSERT_EQ((int)200,img.height());
+        ASSERT_EQ((int)32,img.bitdepth());
+        ASSERT_EQ(ppl7::grafix::RGBFormat::A8R8G8B8,img.rgbformat());
+    });
+}
+
+TEST_F(GrafixImageTest, create) {
+    ppl7::grafix::Image img;
+    ASSERT_NO_THROW({
+        img.create(320,200);
+    });
+    ASSERT_EQ((int)320,img.width());
+    ASSERT_EQ((int)200,img.height());
+    ASSERT_EQ((int)32,img.bitdepth());
+    ASSERT_EQ(ppl7::grafix::RGBFormat::A8R8G8B8,img.rgbformat());
 
 }
 

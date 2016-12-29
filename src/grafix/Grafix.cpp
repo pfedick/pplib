@@ -108,6 +108,7 @@ Grafix::Grafix()
 	if (pplgfx) {
 		throw DuplicateGrafixEngineException();
 	}
+    ::printf ("Grafix::Grafix()\n");
 	alphatab=NULL;
 	filter_png=NULL;
 	filter_jpeg=NULL;
@@ -186,17 +187,9 @@ Grafix::Grafix()
 
 Grafix::~Grafix()
 {
-	/*
-	FontList.Clear(true);
-	*/
+    ::printf ("Grafix::~Grafix()\n");
 	if (alphatab) free(alphatab);
 
-	List<FontEngine*>::Iterator it;
-	while (FontEngineList.getFirst(it)) {
-		FontEngine *engine=it.value();
-		FontEngineList.erase(engine);
-		delete engine;
-	}
 	if (filter_magick) {
 		ImageFilterList.erase(filter_magick);
 		delete filter_magick;
@@ -230,6 +223,25 @@ Grafix::~Grafix()
 		ImageFilterList.erase(filter_tiff);
 		delete filter_tiff;
 	}
+
+    // cleanup fonts
+    {
+        AVLTree<String, FontFile*>::Iterator it;
+        FontList.reset(it);
+        while (FontList.getNext(it)) {
+            FontFile *ff=it.value();
+            if (ff) delete ff;
+        }
+    }
+    // cleanup font engines
+    {
+        List<FontEngine*>::Iterator it;
+        while (FontEngineList.getFirst(it)) {
+            FontEngine *engine=it.value();
+            FontEngineList.erase(engine);
+            delete engine;
+        }
+    }
 
 	if (pplgfx==this) pplgfx=NULL;
 }

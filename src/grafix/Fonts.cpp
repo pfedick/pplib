@@ -310,6 +310,7 @@ FontFile::FontFile()
 FontFile::~FontFile()
 {
 	if (engine) engine->deleteFont(this);
+    engine=NULL;
 }
 
 

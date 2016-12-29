@@ -43,16 +43,16 @@
 #include "ppl7-tests.h"
 
 using namespace ppl7;
-using namespace ppl7::grafix;
+//using namespace ppl7::grafix;
 
 namespace {
 
 // The fixture for testing class Foo.
 class GrafixDrawableTest : public ::testing::Test {
 	protected:
-	ppl7::grafix::Grafix gfx;
-	ppl7::grafix::Image surface;
-	Color transparent,black,white,red,green,blue;
+    ppl7::grafix::Grafix *gfx;
+
+    ppl7::grafix::Color transparent,black,white,red,green,blue;
 
 
 	GrafixDrawableTest() {
@@ -60,9 +60,6 @@ class GrafixDrawableTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
-		return;
-		surface.create(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
-		surface.cls();
 		transparent.setColor(0,0,0,0);
 		black.setColor(0,0,0,255);
 		white.setColor(255,255,255,255);
@@ -75,12 +72,21 @@ class GrafixDrawableTest : public ::testing::Test {
 	virtual ~GrafixDrawableTest() {
 
 	}
+    virtual void SetUp() {
+        gfx=new ppl7::grafix::Grafix();
+    }
+    virtual void TearDown() {
+        delete gfx;
+    }
 };
 
 
 TEST_F(GrafixDrawableTest, cls) {
-	return;
+
+    ppl7::grafix::Image surface(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
+    return;
 	surface.cls(transparent);
+
 	EXPECT_EQ(transparent,surface.getPixel(0,0));
 	EXPECT_EQ(transparent,surface.getPixel(333,111));
 	EXPECT_EQ(transparent,surface.getPixel(639,479));
@@ -112,8 +118,10 @@ TEST_F(GrafixDrawableTest, cls) {
 }
 
 TEST_F(GrafixDrawableTest, lines) {
-	return;
-	Color c[10];
+    ppl7::grafix::Image surface(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
+    ppl7::grafix::Color c[10];
+    return;
+    surface.cls();
 	c[0]=transparent;
 	c[1]=black;
 	c[2]=white;
@@ -121,7 +129,7 @@ TEST_F(GrafixDrawableTest, lines) {
 	c[4]=green;
 	c[5]=blue;
 	for (int i=0;i<=5;i++) {
-		Color color=c[i];
+        ppl7::grafix::Color color=c[i];
 		int x=i*50;
 		int y;
 
