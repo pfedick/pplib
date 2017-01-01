@@ -44,11 +44,11 @@ SECTION .text
 
 
 struc RECTDATA
-	tgt:		PTR		1			; ebp+0
-	width:		resd	1			; ebp+4
-	height:		resd	1			; ebp+8
-	pitch:		resd	1			; ebp+12
-	color:		resd	1			; ebp+16
+        tgt:		PTR_TYPE    1			; ebp+0
+        width:		resd        1			; ebp+4
+        height:		resd        1			; ebp+8
+        pitch:		resd        1			; ebp+12
+        color:		resd        1			; ebp+16
 endstruc
 
 ;/*********************************************************************
@@ -59,9 +59,9 @@ endstruc
 %if arch_elf64=1 || arch_win64=1
 	global ASM_FillRect32
 	ASM_FillRect32:
-	%if arch_elf64=1
+        %ifidn __OUTPUT_FORMAT__, elf64
 			mov r8,rdi		; Pointer auf data nach r8
-	%elif arch_win64=1
+        %elifidn __OUTPUT_FORMAT__, win64
 			push rdi
 			push rsi
 			mov r8,rcx		; Pointer auf data nach r8
@@ -69,23 +69,22 @@ endstruc
 	push rbx
 	mov ebx,[r8+width]		; Breite nach ebx
 	mov rdi,[r8+tgt]		; Zieladresse nach edi
-	mov ecx,ebx				; Breite nach ecx kopieren für Abzug non Pitch
+        mov ecx,ebx			; Breite nach ecx kopieren für Abzug non Pitch
 	mov esi,[r8+pitch]		; Pitch nach esi
 	shl ecx,2
-	sub rsi,rcx				; Breite*4 muss von Pitch abgezogen werden
-
+        sub rsi,rcx			; Breite*4 muss von Pitch abgezogen werden
 	; Wenn das Rechteck kleiner als 16 Pixel ist, benutzen wir eine gesonderte Routine mit stosd
-	cmp ebx,16
-	ja .BiggerRect
+        cmp ebx,16
+        ja .BiggerRect
 		mov eax,[r8+color]
 		mov edx,[r8+height]	; Höhe nach edx
-		.box1_loop:
-			mov ecx,ebx		; width
-			rep stosd
-			add rdi,rsi
-			dec edx
-			jnz .box1_loop
-			jmp near .end
+                .box1_loop:
+                        mov ecx,ebx		; width
+                        rep stosd
+                        add rdi,rsi
+                        dec edx
+                        jnz .box1_loop
+                jmp near .end
 
 	.BiggerRect:
 	test ebx,15		; Restpixel
@@ -127,8 +126,9 @@ endstruc
 			dec ebx
 			jnz .box1_a_loop4
 		sfence
-		emms
-		jmp near .end
+                emms
+                jmp near .end
+
 	.NoRest:
 		movd mm0,[r8+color]
 		mov ecx,ebx					; In ecx brauchen wir die Breite geteilt durch 16
@@ -158,9 +158,11 @@ endstruc
 			add rdi,rsi
 			dec ebx
 			jnz .box1_a_loop2
-	.end:
+                sfence
+                emms
+        .end:
 	pop rbx
-	%if arch_win64=1
+        %ifidn __OUTPUT_FORMAT__, win64
 		pop rsi
 		pop rdi
 	%endif
@@ -251,7 +253,6 @@ _ASM_FillRect32:
 		mov ebx,[ebp+height]		; Höhe nach ebx
 		psllq mm1,32
 		por mm0,mm1
-
 		.box1_a_loop2:
 			mov eax,ecx
 			ALIGN 16
@@ -270,7 +271,7 @@ _ASM_FillRect32:
 			add edx,esi
 			dec ebx
 			jnz .box1_a_loop2
-		.end:
+                .end:
 		sfence
 		emms
 		popad

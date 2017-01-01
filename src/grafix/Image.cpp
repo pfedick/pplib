@@ -87,10 +87,9 @@ namespace grafix {
  * Speicherbereich geladen werden.
  *
  */
-Image::Image()
+Image::Image() : Drawable()
 {
-	memset(&data,0,sizeof(data));
-	fn=NULL;
+
 }
 
 /*!\brief Copy-Konstruktor
@@ -100,10 +99,8 @@ Image::Image()
  *
  * @param other Anderes Image
  */
-Image::Image(const Image &other)
+Image::Image(const Image &other) : Drawable()
 {
-	memset(&data,0,sizeof(data));
-	fn=NULL;
 	copy(other);
 }
 
@@ -114,10 +111,8 @@ Image::Image(const Image &other)
  *
  * @param other Ein Drawable, von dem kopiert werden soll
  */
-Image::Image(const Drawable &other)
+Image::Image(const Drawable &other) : Drawable()
 {
-	memset(&data,0,sizeof(data));
-	fn=NULL;
 	copy(other);
 }
 
@@ -133,10 +128,8 @@ Image::Image(const Drawable &other)
  * \exception Exception::InitialisationFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht erstellt werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(int width, int height, const RGBFormat &format)
+Image::Image(int width, int height, const RGBFormat &format) : Drawable()
 {
-	memset(&data,0,sizeof(data));
-	fn=NULL;
 	create(width,height,format);
 }
 
@@ -153,7 +146,7 @@ Image::Image(int width, int height, const RGBFormat &format)
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(const String &Filename, const RGBFormat &format)
+Image::Image(const String &Filename, const RGBFormat &format) : Drawable()
 {
 	File ff;
 	ff.open(Filename,File::READ);
@@ -171,7 +164,7 @@ Image::Image(const String &Filename, const RGBFormat &format)
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(FileObject &file, const RGBFormat &format)
+Image::Image(FileObject &file, const RGBFormat &format) : Drawable()
 {
 	load(file,format);
 }
@@ -187,7 +180,7 @@ Image::Image(FileObject &file, const RGBFormat &format)
  * @exception Exception::ImageLoadFailed Diese Exception wird geworfen, wenn die Grafik
  * nicht geladen werden konnte. Die genaue Ursache kann über die Fehlercodes ausgelesen werden.
  */
-Image::Image(const ByteArrayPtr &mem, const RGBFormat &format)
+Image::Image(const ByteArrayPtr &mem, const RGBFormat &format) : Drawable()
 {
 	load(mem,format);
 }

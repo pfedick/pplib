@@ -60,7 +60,7 @@ typedef struct {
 } RECTDATA;
 
 extern "C" {
-	int ASM_FillRect32(RECTDATA *d);
+    void ASM_FillRect32(RECTDATA *d);
 }
 #endif
 
@@ -140,8 +140,8 @@ static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 		d.height=in.height();
 		d.pitch=data.pitch;
 		d.color=color;
-		ASM_FillRect32(&d);
-	#else
+        ASM_FillRect32(&d);
+    #else
 		ppluint32 * pp;
 		int y,x;
 		ppluint32 pitch32=data.pitch>>2;

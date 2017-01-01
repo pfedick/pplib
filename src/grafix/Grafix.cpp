@@ -108,7 +108,7 @@ Grafix::Grafix()
 	if (pplgfx) {
 		throw DuplicateGrafixEngineException();
 	}
-    ::printf ("Grafix::Grafix()\n");
+    //::printf ("Grafix::Grafix()\n");
 	alphatab=NULL;
 	filter_png=NULL;
 	filter_jpeg=NULL;
@@ -187,7 +187,7 @@ Grafix::Grafix()
 
 Grafix::~Grafix()
 {
-    ::printf ("Grafix::~Grafix()\n");
+    //::printf ("Grafix::~Grafix()\n");
 	if (alphatab) free(alphatab);
 
 	if (filter_magick) {

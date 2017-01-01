@@ -84,9 +84,8 @@ class GrafixDrawableTest : public ::testing::Test {
 TEST_F(GrafixDrawableTest, cls) {
 
     ppl7::grafix::Image surface(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
-    return;
 	surface.cls(transparent);
-
+    return;
 	EXPECT_EQ(transparent,surface.getPixel(0,0));
 	EXPECT_EQ(transparent,surface.getPixel(333,111));
 	EXPECT_EQ(transparent,surface.getPixel(639,479));

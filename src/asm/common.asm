@@ -36,15 +36,17 @@
 ;###############################################################################
 
 
-%define elf64 0
-%define win64 0
-%define elf32 0
-%define win32 0
+%define arch_elf64 0
+%define arch_win64 0
+%define arch_elf32 0
+%define arch_win32 0
 %define PTR resd
+%define PTR_TYPE resd
 
 %ifidn __OUTPUT_FORMAT__,elf64
 %define arch_elf64 1
 %define PTR resq
+%define PTR_TYPE resq
 %endif
 
 %ifidn __OUTPUT_FORMAT__,elf32
@@ -53,7 +55,7 @@
 
 %ifidn __OUTPUT_FORMAT__,win64
 %define arch_win64 1
-%define PTR resq
+%define PTR_TYPE resq
 %endif
 
 %ifidn __OUTPUT_FORMAT__,win32
@@ -97,9 +99,9 @@
 
 
 struc DRAWABLE_DATA
-	.GRAFIX_FUNCTIONS:		PTR		1
-	.base:					PTR		1
-	.pitch:					resd	1
-	.width:					resd	1
-	.height:				resd	1
+        .GRAFIX_FUNCTIONS:		PTR_TYPE		1
+        .base:				PTR_TYPE		1
+        .pitch:				resd	1
+        .width:				resd	1
+        .height:			resd	1
 endstruc
