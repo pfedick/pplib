@@ -164,23 +164,18 @@ Point Rect::bottomRight() const
 	return Point(x2,y2);
 }
 
+inline static void swap_int(int &i1, int &i2)
+{
+    int t=i1;
+    i1=i2;
+    i2=t;
+}
+
 Rect Rect::normalized () const
 {
-	Rect r;
-	if (x2>=x1) {
-		r.x1=x1;
-		r.x2=x2;
-	} else {
-		r.x1=x2;
-		r.x2=x1;
-	}
-	if (y2>=y1) {
-		r.y1=y1;
-		r.y2=y2;
-	} else {
-		r.y1=y2;
-		r.y2=y1;
-	}
+    Rect r(*this);
+    if (x2<x1) swap_int(r.x1,r.x2);
+    if (y2<y1) swap_int(r.y1,r.y2);
 	return r;
 }
 
@@ -190,7 +185,6 @@ bool Rect::intersects(const Rect &other)
 			&& other.x2 > x1
 			&& other.y1 < y2
 			&& other.y2 > y1);
-
 }
 
 #ifndef max
@@ -212,8 +206,7 @@ inline static int min(int v1, int v2)
 Rect Rect::intersected(const Rect &other)
 {
 	Rect r;
-	if (isNull()) return r;
-	if (other.isNull()) return r;
+    if (isNull()==true || other.isNull()==true) return r;
 	if (!intersects(other)) return r;
 	r.x1=max(x1,other.x1);
 	r.y1=max(y1,other.y1);
