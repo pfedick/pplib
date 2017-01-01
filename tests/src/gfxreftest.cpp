@@ -544,24 +544,13 @@ int LoadFonts(Drawable &surface, int &num)
 	bool failed=false;
 	Grafix *gfx=GetGrafix();
 	try {
-		gfx->loadFont("../resource/liberationsans8.fnt5","PPL Liberation Sans 8");
-		gfx->loadFont("../resource/liberationsans2.fnt5","PPL Liberation Sans 2");
-		gfx->loadFont("testdata/LiberationSans-Bold.ttf","PPL Liberation Sans Bold TTF");
+        gfx->loadFont("testdata/fonts/liberationsans8.fnt5","PPL Liberation Sans 8");
+        gfx->loadFont("../resource/liberationsans2.fnt6","PPL Liberation Sans 2");
+		gfx->loadFont("testdata/fonts/LiberationSans-Bold.ttf","PPL Liberation Sans Bold TTF");
+        gfx->loadFont("testdata/fonts/freesans4.fnt5","PPL FreeSans 4");
+        gfx->loadFont("testdata/fonts/segoeui4.fnt5","SegoeUI");
 
-
-		/*
-	if (!gfx->LoadFont("../../fonts/freesans4.fnt5","PPL FreeSans 4")) {
-		failed=true;
-		PrintError();
-	}
-
-	if (!gfx->LoadFont("../../fonts/segoeui4.fnt5","SegoeUI")) {
-		failed=true;
-		PrintError();
-	}
-		 */
-
-	} catch (Exception &e) {
+    } catch (ppl7::Exception &e) {
 		printf ("failed! %s\n",e.what());
 		gfx->listFonts();
 		return 0;
@@ -647,8 +636,9 @@ int DoFontsAA2(Drawable &surface, int &num)
 		Font.setBold(true);
 		surface.print(Font,5,470,"Ein Font-Test FreeSans");
 
-	} catch (Exception &e) {
-		printf ("failed! %s\n",e.what());
+    } catch (ppl7::Exception &e) {
+        printf ("failed! %s\n",e.what());
+        e.print();
 		return 0;
 	}
 	if (failed ){
@@ -683,8 +673,9 @@ int DoFontsAA8(Drawable &surface, int &num)
 		if (!c.match(0xff000000)) failed=true;
 		//printf ("Farbe: %x\n",c);
 
-	} catch (Exception &e) {
+    } catch (ppl7::Exception &e) {
 		printf ("failed! %s\n",e.what());
+        e.print();
 		return 0;
 	}
 
@@ -1403,6 +1394,7 @@ int DoSprites(Drawable &surface, int &num)
 
 int main(int argc, char **argv)
 {
+    ppl7::Dir::mkDir("tmp");
 	int failed=0;
 	int succeeded=0;
 	Grafix Grafix;
@@ -1478,7 +1470,7 @@ int main(int argc, char **argv)
 	Image.putPixel(60,60,Color(255,255,255));
 	Image.putPixel(70,70,Color(255,255,255));
 
-	bmp.saveFile("tmp.grafixtest.bmp", Image);
+    bmp.saveFile("tmp/gfxreftest.bmp", Image);
 
 	return 0;
 }

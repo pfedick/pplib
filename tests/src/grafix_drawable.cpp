@@ -85,7 +85,6 @@ TEST_F(GrafixDrawableTest, cls) {
 
     ppl7::grafix::Image surface(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
 	surface.cls(transparent);
-    return;
 	EXPECT_EQ(transparent,surface.getPixel(0,0));
 	EXPECT_EQ(transparent,surface.getPixel(333,111));
 	EXPECT_EQ(transparent,surface.getPixel(639,479));
@@ -119,7 +118,6 @@ TEST_F(GrafixDrawableTest, cls) {
 TEST_F(GrafixDrawableTest, lines) {
     ppl7::grafix::Image surface(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
     ppl7::grafix::Color c[10];
-    return;
     surface.cls();
 	c[0]=transparent;
 	c[1]=black;
