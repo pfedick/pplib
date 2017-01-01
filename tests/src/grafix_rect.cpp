@@ -170,5 +170,138 @@ TEST_F(GrafixRectTest, size) {
     ASSERT_EQ(ppl7::grafix::Size(51,52),r.size());
 }
 
+TEST_F(GrafixRectTest, topLeft) {
+    ppl7::grafix::Rect r(10,20,51,52);
+    ASSERT_EQ(ppl7::grafix::Point(10,20),r.topLeft());
+}
+
+TEST_F(GrafixRectTest, topRight) {
+    ppl7::grafix::Rect r(10,20,51,52);
+    ASSERT_EQ(ppl7::grafix::Point(61,20),r.topRight());
+}
+
+TEST_F(GrafixRectTest, bottomLeft) {
+    ppl7::grafix::Rect r(10,20,51,52);
+    ASSERT_EQ(ppl7::grafix::Point(10,72),r.bottomLeft());
+}
+
+TEST_F(GrafixRectTest, bottomRight) {
+    ppl7::grafix::Rect r(10,20,51,52);
+    ASSERT_EQ(ppl7::grafix::Point(61,72),r.bottomRight());
+}
+
+TEST_F(GrafixRectTest, normalized) {
+    ppl7::grafix::Rect r1;
+    r1.x1=50;
+    r1.x2=20;
+    r1.y1=60;
+    r1.y2=30;
+    ppl7::grafix::Rect r2=r1.normalized();
+    ASSERT_EQ((int)20,r2.x1);
+    ASSERT_EQ((int)50,r2.x2);
+    ASSERT_EQ((int)30,r2.y1);
+    ASSERT_EQ((int)60,r2.y2);
+
+    ppl7::grafix::Rect r3=r1.normalized();
+    ASSERT_EQ((int)20,r3.x1);
+    ASSERT_EQ((int)50,r3.x2);
+    ASSERT_EQ((int)30,r3.y1);
+    ASSERT_EQ((int)60,r3.y2);
+}
+
+TEST_F(GrafixRectTest, intersects) {
+    ppl7::grafix::Rect r1(10,20,60,60);
+    ppl7::grafix::Rect r2(80,30,30,30);
+    ASSERT_FALSE(r2.intersects(r1));
+
+    ppl7::grafix::Rect r3(20,30,90,90);
+    ASSERT_TRUE(r3.intersects(r1));
+}
+
+
+TEST_F(GrafixRectTest, intersected) {
+    ppl7::grafix::Rect r1(10,20,60,60);
+    ppl7::grafix::Rect r2(80,30,30,30);
+    ppl7::grafix::Rect r3(20,30,90,90);
+    ppl7::grafix::Rect null;
+
+    ASSERT_TRUE(r2.intersected(r1).isNull());
+    ASSERT_TRUE(null.intersected(r1).isNull());
+    ASSERT_TRUE(r2.intersected(null).isNull());
+
+    ppl7::grafix::Rect r=r3.intersected(r1);
+    ASSERT_FALSE(r.isNull());
+    ASSERT_EQ((int)20,r.x1);
+    ASSERT_EQ((int)70,r.x2);
+    ASSERT_EQ((int)30,r.y1);
+    ASSERT_EQ((int)80,r.y2);
+}
+
+TEST_F(GrafixRectTest, setTopLeft) {
+    ppl7::grafix::Rect r;
+    r.setTopLeft(ppl7::grafix::Point(31,22));
+    ASSERT_EQ((int)31,r.x1);
+    ASSERT_EQ((int)22,r.y1);
+    ASSERT_EQ((int)0,r.x2);
+    ASSERT_EQ((int)0,r.y2);
+}
+
+TEST_F(GrafixRectTest, setBottomRight) {
+    ppl7::grafix::Rect r;
+    r.setBottomRight(ppl7::grafix::Point(31,22));
+    ASSERT_EQ((int)0,r.x1);
+    ASSERT_EQ((int)0,r.y1);
+    ASSERT_EQ((int)31,r.x2);
+    ASSERT_EQ((int)22,r.y2);
+}
+
+TEST_F(GrafixRectTest, setRect_withInts) {
+    ppl7::grafix::Rect r;
+    r.setRect(31,22,40,50);
+    ASSERT_EQ((int)31,r.x1);
+    ASSERT_EQ((int)22,r.y1);
+    ASSERT_EQ((int)71,r.x2);
+    ASSERT_EQ((int)72,r.y2);
+}
+
+TEST_F(GrafixRectTest, setRect_withRect) {
+    ppl7::grafix::Rect r1(45,72,44,33);
+    ppl7::grafix::Rect r;
+    r.setRect(r1);
+    ASSERT_EQ((int)45,r.x1);
+    ASSERT_EQ((int)72,r.y1);
+    ASSERT_EQ((int)45+44,r.x2);
+    ASSERT_EQ((int)72+33,r.y2);
+}
+
+TEST_F(GrafixRectTest, setRect_withStructRECT) {
+    ppl7::grafix::RECT r1={45,72,45+44,72+33};
+    ppl7::grafix::Rect r;
+    r.setRect(r1);
+    ASSERT_EQ((int)45,r.x1);
+    ASSERT_EQ((int)72,r.y1);
+    ASSERT_EQ((int)45+44,r.x2);
+    ASSERT_EQ((int)72+33,r.y2);
+}
+
+TEST_F(GrafixRectTest, setCoords_withInt) {
+    ppl7::grafix::Rect r;
+    r.setCoords(31,22,40,50);
+    ASSERT_EQ((int)31,r.x1);
+    ASSERT_EQ((int)22,r.y1);
+    ASSERT_EQ((int)40,r.x2);
+    ASSERT_EQ((int)50,r.y2);
+}
+
+TEST_F(GrafixRectTest, setCoords_withPoints) {
+    ppl7::grafix::Rect r;
+    r.setCoords(ppl7::grafix::Point(31,22), ppl7::grafix::Point(40,50));
+    ASSERT_EQ((int)31,r.x1);
+    ASSERT_EQ((int)22,r.y1);
+    ASSERT_EQ((int)40,r.x2);
+    ASSERT_EQ((int)50,r.y2);
+}
+
+
 }	// EOF namespace
 
