@@ -54,6 +54,7 @@ class GrafixImageFilterTest : public ::testing::Test {
 			throw std::exception();
 		}
         gfx=NULL;
+        ppl7::Dir::mkDir("tmp");
 
 	}
 	virtual ~GrafixImageFilterTest() {
@@ -80,7 +81,7 @@ TEST_F(GrafixImageFilterTest, loadpng) {
 	ASSERT_EQ(ppl7::grafix::RGBFormat::X8R8G8B8,img.rgbformat());
 
 	ppl7::grafix::ImageFilter_PNG png;
-	png.saveFile("save.png",img);
+    png.saveFile("tmp/save.png",img);
 
 }
 

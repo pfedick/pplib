@@ -60,11 +60,114 @@ class GrafixRectTest : public ::testing::Test {
 };
 
 
-TEST_F(GrafixRectTest, constructor) {
-    ASSERT_NO_THROW({
-        //ppl7::grafix::Grafix gfx;
-    });
+TEST_F(GrafixRectTest, constructor_withoutParams) {
 
+    ASSERT_NO_THROW({
+        ppl7::grafix::Rect r;
+        ASSERT_EQ((int)0,r.x1);
+        ASSERT_EQ((int)0,r.y1);
+        ASSERT_EQ((int)0,r.x2);
+        ASSERT_EQ((int)0,r.y2);
+    });
+}
+
+TEST_F(GrafixRectTest, constructor_fromPoints) {
+    ppl7::grafix::Point p1(10,20);
+    ppl7::grafix::Point p2(60,70);
+
+    ASSERT_NO_THROW({
+        ppl7::grafix::Rect r(p1,p2);
+        ASSERT_EQ((int)10,r.x1);
+        ASSERT_EQ((int)20,r.y1);
+        ASSERT_EQ((int)60,r.x2);
+        ASSERT_EQ((int)70,r.y2);
+    });
+}
+
+TEST_F(GrafixRectTest, constructor_fromPointAndSize) {
+    ppl7::grafix::Point p1(10,20);
+    ppl7::grafix::Size s1(50,50);
+
+    ASSERT_NO_THROW({
+        ppl7::grafix::Rect r(p1,s1);
+        ASSERT_EQ((int)10,r.x1);
+        ASSERT_EQ((int)20,r.y1);
+        ASSERT_EQ((int)60,r.x2);
+        ASSERT_EQ((int)70,r.y2);
+    });
+}
+
+TEST_F(GrafixRectTest, constructor_fromIntegers) {
+
+    ASSERT_NO_THROW({
+        ppl7::grafix::Rect r(10,20,50,50);
+        ASSERT_EQ((int)10,r.x1);
+        ASSERT_EQ((int)20,r.y1);
+        ASSERT_EQ((int)60,r.x2);
+        ASSERT_EQ((int)70,r.y2);
+    });
+}
+
+TEST_F(GrafixRectTest, constructor_fromOtherRect) {
+    ppl7::grafix::Rect r1(10,20,50,50);
+    ASSERT_NO_THROW({
+        ppl7::grafix::Rect r(r1);
+        ASSERT_EQ((int)10,r.x1);
+        ASSERT_EQ((int)20,r.y1);
+        ASSERT_EQ((int)60,r.x2);
+        ASSERT_EQ((int)70,r.y2);
+    });
+}
+
+TEST_F(GrafixRectTest, isNull) {
+    ppl7::grafix::Rect r1;
+    ASSERT_TRUE(r1.isNull());
+    ppl7::grafix::Rect r2(10,20,0,0);
+    ASSERT_TRUE(r2.isNull());
+
+    ppl7::grafix::Rect r3(10,20,0,30);
+    ASSERT_FALSE(r3.isNull());
+
+    ppl7::grafix::Rect r4(10,20,20,0);
+    ASSERT_FALSE(r4.isNull());
+
+    ppl7::grafix::Rect r5(10,20,50,50);
+    ASSERT_FALSE(r5.isNull());
+}
+
+TEST_F(GrafixRectTest, left) {
+    ppl7::grafix::Rect r(10,20,50,50);
+    ASSERT_EQ((int)10,r.left());
+}
+
+TEST_F(GrafixRectTest, right) {
+    ppl7::grafix::Rect r(10,20,50,50);
+    ASSERT_EQ((int)59,r.right());
+}
+
+TEST_F(GrafixRectTest, top) {
+    ppl7::grafix::Rect r(10,20,50,50);
+    ASSERT_EQ((int)20,r.top());
+}
+
+TEST_F(GrafixRectTest, bottom) {
+    ppl7::grafix::Rect r(10,20,50,50);
+    ASSERT_EQ((int)69,r.bottom());
+}
+
+TEST_F(GrafixRectTest, width) {
+    ppl7::grafix::Rect r(10,20,51,52);
+    ASSERT_EQ((int)51,r.width());
+}
+
+TEST_F(GrafixRectTest, height) {
+    ppl7::grafix::Rect r(10,20,51,52);
+    ASSERT_EQ((int)52,r.height());
+}
+
+TEST_F(GrafixRectTest, size) {
+    ppl7::grafix::Rect r(10,20,51,52);
+    ASSERT_EQ(ppl7::grafix::Size(51,52),r.size());
 }
 
 }	// EOF namespace
