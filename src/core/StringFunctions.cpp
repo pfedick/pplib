@@ -558,7 +558,7 @@ String EscapeHTMLTags(const String &html)
 {
 	String s;
 	s=html;
-	s.replace("&","&amp");
+	s.replace("&","&amp;");
 	s.replace("<","&lt;");
 	s.replace(">","&gt;");
 	return s;
@@ -568,7 +568,7 @@ String UnescapeHTMLTags(const String &html)
 {
 	String s;
 	s=html;
-	s.replace("&amp","&");
+	s.replace("&amp;","&");
 	s.replace("&lt;","<");
 	s.replace("&gt;",">");
 	return s;
