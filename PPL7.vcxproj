@@ -191,7 +191,10 @@ copy  "$(OutputPath)\PPL7.lib" c:\local\lib\ppl7.lib</Command>
     <ClCompile Include="src\core\cpu.cpp" />
     <ClCompile Include="src\core\DirEntry.cpp" />
     <ClCompile Include="src\core\Exceptions.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="src\core\File.cpp" />
+=======
+>>>>>>> branch 'master' of https://github.com/pfedick/pplib.git
     <ClCompile Include="src\core\FileObject.cpp" />
     <ClCompile Include="src\core\Functions.cpp" />
     <ClCompile Include="src\core\Iconv.cpp" />
