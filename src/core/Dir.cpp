@@ -90,7 +90,7 @@
 #include <io.h>
 #define WIN32_LEAN_AND_MEAN		// Keine MFCs
 #include <windows.h>
-
+#include <direct.h>
 #endif
 #include "ppl7.h"
 
@@ -336,7 +336,9 @@ String Dir::tempPath()
 #ifdef _WIN32
 	TCHAR TempPath[MAX_PATH];
 	GetTempPath(MAX_PATH, TempPath);
-	return String(TempPath);
+	String s;
+	s.set(TempPath);
+	return s;
 #endif
 	const char *dir = getenv("TMPDIR");
 	if (dir!=NULL && strlen(dir)>0) return String(dir);

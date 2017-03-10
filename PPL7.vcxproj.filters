@@ -284,6 +284,9 @@
     <ClCompile Include="src\core\Signal.cpp">
       <Filter>Quelldateien\Core</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\Dir.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\asm\common.asm">
