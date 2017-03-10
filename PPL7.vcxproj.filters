@@ -16,7 +16,6 @@
     <Filter Include="Quelldateien\Types">
       <UniqueIdentifier>{66e3414f-3a67-4d52-8ffc-53c1959c915e}</UniqueIdentifier>
     </Filter>
-<<<<<<< HEAD
     <Filter Include="Quelldateien\Core">
       <UniqueIdentifier>{3a8e2399-8b23-4023-853c-954a5915e0cd}</UniqueIdentifier>
     </Filter>
@@ -296,74 +295,6 @@
     <None Include="src\asm\rect.asm">
       <Filter>Quelldateien\Assembler</Filter>
     </None>
-=======
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\compat.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\crypto.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-algorithms.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-audio.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-crypto.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-db.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-exceptions.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-grafix.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-inet.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-tk.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-types.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\prolog.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\socket.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\threads.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ppl7-visualc-config.h">
-      <Filter>Headerdateien</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\types\Variant.cpp">
-      <Filter>Quelldateien\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="src\types\Pointer.cpp">
-      <Filter>Quelldateien\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="src\types\Array.cpp">
-      <Filter>Quelldateien\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="src\types\String.cpp">
-      <Filter>Quelldateien\Types</Filter>
-    </ClCompile>
->>>>>>> branch 'master' of https://github.com/pfedick/pplib.git
+
   </ItemGroup>
 </Project>

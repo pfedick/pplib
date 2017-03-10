@@ -71,7 +71,6 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-<<<<<<< HEAD
     <IncludePath>D:\jenkins\local\include;D:\jenkins\local\include\freetype2;include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -321,88 +320,6 @@ copy  "$(OutputPath)\PPL7.lib" c:\local\lib\ppl7.lib</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">C:\msys64\usr\bin\nasm.exe -f win64 -l $(IntDir)/asm_rect.lst -o $(IntDir)/asm_rect.obj src/asm/rect.asm</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)/asm_rect.obj</Outputs>
     </CustomBuild>
-=======
-    <IncludePath>$(MSBuildProjectDirectory)\include;$(IncludePath)</IncludePath>
-  </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>PPL7LIB;PPLVISUALC;_DEBUG;_LIB;PPL7LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>PPL7LIB;PPLVISUALC;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\compat.h" />
-    <ClInclude Include="include\crypto.h" />
-    <ClInclude Include="include\ppl7-algorithms.h" />
-    <ClInclude Include="include\ppl7-audio.h" />
-    <ClInclude Include="include\ppl7-crypto.h" />
-    <ClInclude Include="include\ppl7-db.h" />
-    <ClInclude Include="include\ppl7-exceptions.h" />
-    <ClInclude Include="include\ppl7-grafix.h" />
-    <ClInclude Include="include\ppl7-inet.h" />
-    <ClInclude Include="include\ppl7-tk.h" />
-    <ClInclude Include="include\ppl7-types.h" />
-    <ClInclude Include="include\ppl7-visualc-config.h" />
-    <ClInclude Include="include\ppl7.h" />
-    <ClInclude Include="include\prolog.h" />
-    <ClInclude Include="include\socket.h" />
-    <ClInclude Include="include\threads.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\types\Array.cpp" />
-    <ClCompile Include="src\types\Pointer.cpp" />
-    <ClCompile Include="src\types\String.cpp" />
-    <ClCompile Include="src\types\Variant.cpp" />
->>>>>>> branch 'master' of https://github.com/pfedick/pplib.git
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
