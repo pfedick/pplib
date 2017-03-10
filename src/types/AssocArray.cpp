@@ -1558,14 +1558,14 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 		p++;
 		key=it.key();
 		size_t keylen=key.size();
-		if (p+4<buffersize) PokeN16(ptr+p,keylen);
+		if (p+4<buffersize) PokeN16(ptr+p,(int)keylen);
 		p+=2;
-		if (p+keylen<buffersize) strncpy(ptr+p,(const char*)key,keylen);
+		if (p+keylen<buffersize) strncpy(ptr+p,(const char*)key,(int)keylen);
 		p+=keylen;
 		if (a->isString()) {
 			string=a->toString();
 			vallen=string.size();
-			if (p+4<buffersize) PokeN32(ptr+p,vallen);
+			if (p+4<buffersize) PokeN32(ptr+p,(int)vallen);
 			p+=4;
 			if (p+vallen<buffersize) strncpy(ptr+p,(const char*)string,vallen);
 			p+=vallen;
@@ -1576,13 +1576,13 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 			p+=asize;
 		} else if (a->isDateTime()) {
 			vallen=8;
-			if (p+4<buffersize) PokeN32(ptr+p,vallen);
+			if (p+4<buffersize) PokeN32(ptr+p,(int)vallen);
 			p+=4;
 			if (p+vallen<buffersize) PokeN64(ptr+p,a->toDateTime().longInt());
 			p+=vallen;
 		} else if (a->isByteArray()==true || a->isByteArrayPtr()==true) {
 			vallen=a->toByteArray().size();
-			if (p+4<buffersize) PokeN32(ptr+p,vallen);
+			if (p+4<buffersize) PokeN32(ptr+p,(int)vallen);
 			p+=4;
 			if (p+vallen<buffersize) memcpy(ptr+p,a->toByteArrayPtr().adr(),vallen);
 			p+=vallen;

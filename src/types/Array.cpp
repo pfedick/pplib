@@ -1201,12 +1201,12 @@ Array::Iterator::Iterator()
  */
 void Array::sort()
 {
-	ppl7::AVLTree<ppl7::String, int> s;
+	ppl7::AVLTree<ppl7::String, size_t> s;
 	s.allowDupes(true);
 	for (size_t i=0;i<numElements;i++) {
 		s.add(get(i),i);
 	}
-	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	ppl7::AVLTree<ppl7::String, size_t>::Iterator it;
 	s.reset(it);
 	clear();
 	while (s.getNext(it)) {
@@ -1222,12 +1222,12 @@ void Array::sort()
  */
 void Array::sortReverse()
 {
-	ppl7::AVLTree<ppl7::String, int> s;
+	ppl7::AVLTree<ppl7::String, size_t> s;
 	s.allowDupes(true);
 	for (size_t i=0;i<numElements;i++) {
 		s.add(get(i),i);
 	}
-	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	ppl7::AVLTree<ppl7::String, size_t>::Iterator it;
 	s.reset(it);
 	clear();
 	while (s.getPrevious(it)) {
@@ -1242,7 +1242,7 @@ void Array::sortReverse()
  */
 void Array::sortUnique()
 {
-	ppl7::AVLTree<ppl7::String, int> s;
+	ppl7::AVLTree<ppl7::String, size_t> s;
 	s.allowDupes(false);
 	for (size_t i=0;i<numElements;i++) {
 		try {
@@ -1251,7 +1251,7 @@ void Array::sortUnique()
 
 		}
 	}
-	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	ppl7::AVLTree<ppl7::String, size_t>::Iterator it;
 	s.reset(it);
 	clear();
 	while (s.getNext(it)) {
@@ -1272,7 +1272,7 @@ void Array::sortUnique()
 void Array::makeUnique()
 {
 	String value;
-	ppl7::AVLTree<ppl7::String, int> s;
+	ppl7::AVLTree<ppl7::String, size_t> s;
 	s.allowDupes(false);
 	for (size_t i=0;i<numElements;i++) {
 		value=get(i);
@@ -1321,7 +1321,7 @@ bool Array::has(const String &search)
 Array Sort(const Array &array, bool unique)
 {
 	Array ret;
-	ppl7::AVLTree<ppl7::String, int> s;
+	ppl7::AVLTree<ppl7::String, size_t> s;
 	s.allowDupes(!unique);
 	size_t num=array.count();
 	for (size_t i=0;i<num;i++) {
@@ -1331,7 +1331,7 @@ Array Sort(const Array &array, bool unique)
 
 		}
 	}
-	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	ppl7::AVLTree<ppl7::String, size_t>::Iterator it;
 	s.reset(it);
 	while (s.getNext(it)) {
 		ret.add(it.key());
@@ -1353,7 +1353,7 @@ Array Sort(const Array &array, bool unique)
 Array SortReverse(const Array &array, bool unique)
 {
 	Array ret;
-	ppl7::AVLTree<ppl7::String, int> s;
+	ppl7::AVLTree<ppl7::String, size_t> s;
 	s.allowDupes(!unique);
 	size_t num=array.count();
 	for (size_t i=0;i<num;i++) {
@@ -1363,7 +1363,7 @@ Array SortReverse(const Array &array, bool unique)
 
 		}
 	}
-	ppl7::AVLTree<ppl7::String, int>::Iterator it;
+	ppl7::AVLTree<ppl7::String, size_t>::Iterator it;
 	s.reset(it);
 	while (s.getPrevious(it)) {
 		ret.add(it.key());

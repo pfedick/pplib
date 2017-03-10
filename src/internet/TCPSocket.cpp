@@ -1324,9 +1324,10 @@ void TCPSocket::listen(int backlog, int timeout)
 	struct sockaddr_in cliAddr;
 #else
 	struct sockaddr cliAddr;
-	fd_set rset;
-	struct timeval tv;
 #endif
+    fd_set rset;
+    struct timeval tv;
+
 	PPLSOCKET *s=(PPLSOCKET*)socket;
 	if((!s) || (!s->sd)) throw NotConnectedException();
 	stopListen();

@@ -164,7 +164,7 @@ void Mutex::lock()
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	int ret=WaitForSingleObject(h->handle,INFINITE);
 	if (ret!=WAIT_FAILED) return;
-	throw CouldNotLockMutexException("Mutex::lock");
+    throw MutexLockingException("Mutex::lock");
 #elif defined HAVE_PTHREADS
 	PPLMUTEX *h = (PPLMUTEX*) handle;
 	int ret = pthread_mutex_lock(&h->handle);

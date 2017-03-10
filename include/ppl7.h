@@ -47,6 +47,8 @@
 	#ifdef PPL7LIB
 		#ifdef MINGW32
 			#include "config.h"
+		#elif defined PPLVISUALC
+			#include "ppl7-visualc-config.h"
 		#elif defined _WIN32
 			#include "ppl7-config.h"
 		#else
@@ -77,7 +79,10 @@
 #include <stdarg.h>
 #endif
 
+#ifdef HAVE_STRING_H
 #include <string>
+#endif 
+
 #include <set>
 
 #ifdef WITH_QT
@@ -347,7 +352,7 @@ class Mutex
 		void *handle;
 
 	public:
-		Mutex() throw(OutOfMemoryException);
+		Mutex();
 		~Mutex() throw();
 		void lock();
 		void unlock();

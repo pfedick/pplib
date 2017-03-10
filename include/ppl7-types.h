@@ -281,14 +281,14 @@ class String
 		//@{
 
 		String() throw();
-		String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String(const char *str, size_t size) throw(OutOfMemoryException);
-		String(const String *str) throw(OutOfMemoryException);
-		String(const String &str) throw(OutOfMemoryException);
-		String(const WideString *str) throw(OutOfMemoryException);
-		String(const WideString &str) throw(OutOfMemoryException);
-		String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String(const std::wstring &str) throw(OutOfMemoryException);
+		String(const char *str);
+		String(const char *str, size_t size);
+		String(const String *str);
+		String(const String &str);
+		String(const WideString *str);
+		String(const WideString &str);
+		String(const std::string &str);
+		String(const std::wstring &str);
 		~String() throw();
 #ifdef WITH_QT
 		String(const QString &q) {
@@ -306,7 +306,7 @@ class String
 
 		//! @name Statische Funktionen
 		//@{
-		static void setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException);
+		static void setGlobalEncoding(const char *encoding);
 		static const char *getGlobalEncoding();
 		//@}
 
@@ -336,37 +336,37 @@ class String
 		//! @name String setzen und verändern
 		//@{
 
-		String & set(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String & set(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & set(char c) throw(OutOfMemoryException);
-		String & set(size_t position, char c) throw(OutOfBoundsEception);
+		String & set(const char *str, size_t size=(size_t)-1);
+		String & set(const String *str, size_t size=(size_t)-1);
+		String & set(const String &str, size_t size=(size_t)-1);
+		String & set(const WideString *str, size_t size=(size_t)-1);
+		String & set(const WideString &str, size_t size=(size_t)-1);
+		String & set(const std::string &str, size_t size=(size_t)-1);
+		String & set(const std::wstring &str, size_t size=(size_t)-1);
+		String & set(const wchar_t *str, size_t size = (size_t)-1);
+		String & set(char c);
+		String & set(size_t position, char c);
 		String & setf(const char *fmt, ...);
 
-		String & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String & append(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & append(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & append(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & append(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & append(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & append(const char *str, size_t size=(size_t)-1);
+		String & append(const String *str, size_t size=(size_t)-1);
+		String & append(const String &str, size_t size=(size_t)-1);
+		String & append(const std::string &str, size_t size=(size_t)-1);
+		String & append(const std::wstring &str, size_t size=(size_t)-1);
+		String & append(const wchar_t *str, size_t size=(size_t)-1);
 		String & appendf(const char *fmt, ...);
-		String & append(char c) throw(OutOfMemoryException);
+		String & append(char c);
 
-		String & prepend(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		String & prepend(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & prepend(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & prepend(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & prepend(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		String & prepend(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		String & prepend(const char *str, size_t size = (size_t)-1);
+		String & prepend(const String *str, size_t size = (size_t)-1);
+		String & prepend(const String &str, size_t size = (size_t)-1);
+		String & prepend(const std::string &str, size_t size = (size_t)-1);
+		String & prepend(const std::wstring &str, size_t size = (size_t)-1);
+		String & prepend(const wchar_t *str, size_t size = (size_t)-1);
 		String & prependf(const char *fmt, ...);
-		String & prepend(char c) throw(OutOfMemoryException);
+		String & prepend(char c);
 
-		String & vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException);
+		String & vasprintf(const char *fmt, va_list args);
 
 		String& repeat(size_t num);
 		String& repeat(char code, size_t num);
@@ -542,14 +542,14 @@ class WideString
 		//@{
 
 		WideString() throw();
-		WideString(const wchar_t *str) throw(OutOfMemoryException);
-		WideString(const wchar_t *str, size_t size) throw(OutOfMemoryException);
-		WideString(const WideString *str) throw(OutOfMemoryException);
-		WideString(const WideString &str) throw(OutOfMemoryException);
-		WideString(const String *str) throw(OutOfMemoryException);
-		WideString(const String &str) throw(OutOfMemoryException);
-		WideString(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		WideString(const std::wstring &str) throw(OutOfMemoryException);
+		WideString(const wchar_t *str);
+		WideString(const wchar_t *str, size_t size);
+		WideString(const WideString *str);
+		WideString(const WideString &str);
+		WideString(const String *str);
+		WideString(const String &str);
+		WideString(const std::string &str);
+		WideString(const std::wstring &str);
 		~WideString() throw();
 #ifdef WITH_QT
 		WideString(const QString &q) {
@@ -567,7 +567,7 @@ class WideString
 
 		//! @name Statische Funktionen
 		//@{
-		static void setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException);
+		static void setGlobalEncoding(const char *encoding);
 		//@}
 
 		void clear() throw();
@@ -595,38 +595,37 @@ class WideString
 		//! @name String setzen und verändern
 		//@{
 
-		WideString & set(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		WideString & set(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & set(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & set(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & set(const String *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & set(const String &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & set(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & set(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & set(wchar_t c) throw(OutOfMemoryException);
-		WideString & set(size_t position, wchar_t c) throw(OutOfBoundsEception);
+		WideString & set(const char *str, size_t size = (size_t)-1);
+		WideString & set(const wchar_t *str, size_t size = (size_t)-1);
+		WideString & set(const WideString *str, size_t size = (size_t)-1);
+		WideString & set(const WideString &str, size_t size = (size_t)-1);
+		WideString & set(const String *str, size_t size = (size_t)-1);
+		WideString & set(const String &str, size_t size = (size_t)-1);
+		WideString & set(const std::string &str, size_t size = (size_t)-1);
+		WideString & set(const std::wstring &str, size_t size = (size_t)-1);
+		WideString & set(wchar_t c);
+		WideString & set(size_t position, wchar_t c);
 		WideString & setf(const char *fmt, ...);
 
-		WideString & append(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		WideString & append(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & append(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & append(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & append(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & append(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & append(const char *str, size_t size = (size_t)-1);
+		WideString & append(const wchar_t *str, size_t size = (size_t)-1);
+		WideString & append(const WideString *str, size_t size=(size_t)-1);
+		WideString & append(const WideString &str, size_t size=(size_t)-1);
+		WideString & append(const std::string &str, size_t size=(size_t)-1);
+		WideString & append(const std::wstring &str, size_t size=(size_t)-1);
 		WideString & appendf(const char *fmt, ...);
-		WideString & append(wchar_t c) throw(OutOfMemoryException);
+		WideString & append(wchar_t c);
 
-		WideString & prepend(const char *str, size_t size=(size_t)-1) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException);
-		WideString & prepend(const wchar_t *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & prepend(const WideString *str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & prepend(const WideString &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & prepend(const std::string &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
-		WideString & prepend(const std::wstring &str, size_t size=(size_t)-1) throw(OutOfMemoryException);
+		WideString & prepend(const char *str, size_t size = (size_t)-1);
+		WideString & prepend(const wchar_t *str, size_t size = (size_t)-1);
+		WideString & prepend(const WideString *str, size_t size=(size_t)-1);
+		WideString & prepend(const WideString &str, size_t size=(size_t)-1);
+		WideString & prepend(const std::string &str, size_t size=(size_t)-1);
+		WideString & prepend(const std::wstring &str, size_t size=(size_t)-1);
 		WideString & prependf(const char *fmt, ...);
-		WideString & prepend(wchar_t c) throw(OutOfMemoryException);
+		WideString & prepend(wchar_t c);
 
-		WideString & vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException);
-
+		WideString & vasprintf(const char *fmt, va_list args);
 		WideString& repeat(size_t num);
 		WideString& repeat(wchar_t unicode, size_t num);
 		WideString& repeat(const WideString& str, size_t num);

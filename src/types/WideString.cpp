@@ -121,7 +121,7 @@ WideString::WideString() throw()
  * @param str Wide-Character-String, der mit einem 0-Wert Endet
  * @exception OutOfMemoryException
  */
-WideString::WideString(const wchar_t *str) throw(OutOfMemoryException)
+WideString::WideString(const wchar_t *str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -139,7 +139,7 @@ WideString::WideString(const wchar_t *str) throw(OutOfMemoryException)
  * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
  * @exception OutOfMemoryException
  */
-WideString::WideString(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+WideString::WideString(const wchar_t *str, size_t size)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -155,7 +155,7 @@ WideString::WideString(const wchar_t *str, size_t size) throw(OutOfMemoryExcepti
  * @param str Pointer auf einen anderen String
  * @exception OutOfMemoryException
  */
-WideString::WideString(const WideString *str) throw(OutOfMemoryException)
+WideString::WideString(const WideString *str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -171,7 +171,7 @@ WideString::WideString(const WideString *str) throw(OutOfMemoryException)
  * @param str Pointer auf einen anderen String
  * @exception OutOfMemoryException
  */
-WideString::WideString(const String *str) throw(OutOfMemoryException)
+WideString::WideString(const String *str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -188,7 +188,7 @@ WideString::WideString(const String *str) throw(OutOfMemoryException)
  * @param str Referenz auf einen anderen String
  * @exception OutOfMemoryException
  */
-WideString::WideString(const WideString &str) throw(OutOfMemoryException)
+WideString::WideString(const WideString &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -204,7 +204,7 @@ WideString::WideString(const WideString &str) throw(OutOfMemoryException)
  * @param str Referenz auf einen anderen String
  * @exception OutOfMemoryException
  */
-WideString::WideString(const String &str) throw(OutOfMemoryException)
+WideString::WideString(const String &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -223,7 +223,7 @@ WideString::WideString(const String &str) throw(OutOfMemoryException)
  * @exception UnsupportedCharacterEncodingException
  * @exception CharacterEncodingException
  */
-WideString::WideString(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+WideString::WideString(const std::string &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -239,7 +239,7 @@ WideString::WideString(const std::string &str) throw(OutOfMemoryException, Unsup
  * @param str Referenz auf Wide-String der STL
  * @exception OutOfMemoryException
  */
-WideString::WideString(const std::wstring &str) throw(OutOfMemoryException)
+WideString::WideString(const std::wstring &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -511,7 +511,7 @@ bool WideString::isFalse() const
  * Multibyte-Characters zählen als ein Zeichen.
  *
  */
-WideString & WideString::set(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+WideString & WideString::set(const char *str, size_t size)
 {
 	if (!str) {
 		clear();
@@ -589,7 +589,7 @@ WideString & WideString::set(const char *str, size_t size) throw(OutOfMemoryExce
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-WideString & WideString::set(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::set(const wchar_t *str, size_t size)
 {
 	if (!str) {
 		clear();
@@ -629,7 +629,7 @@ WideString & WideString::set(const wchar_t *str, size_t size) throw(OutOfMemoryE
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-WideString & WideString::set(const WideString *str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::set(const WideString *str, size_t size)
 {
 	if (!str) {
 		clear();
@@ -654,7 +654,7 @@ WideString & WideString::set(const WideString *str, size_t size) throw(OutOfMemo
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-WideString & WideString::set(const WideString &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::set(const WideString &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -675,7 +675,7 @@ WideString & WideString::set(const WideString &str, size_t size) throw(OutOfMemo
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-WideString & WideString::set(const String *str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::set(const String *str, size_t size)
 {
 	if (!str) {
 		clear();
@@ -688,7 +688,7 @@ WideString & WideString::set(const String *str, size_t size) throw(OutOfMemoryEx
 	return set((const char*)str->c_str(),inbytes);
 }
 
-WideString & WideString::set(const String &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::set(const String &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -710,7 +710,7 @@ WideString & WideString::set(const String &str, size_t size) throw(OutOfMemoryEx
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-WideString & WideString::set(const std::string &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::set(const std::string &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -731,7 +731,7 @@ WideString & WideString::set(const std::string &str, size_t size) throw(OutOfMem
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-WideString & WideString::set(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::set(const std::wstring &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -753,7 +753,7 @@ WideString & WideString::set(const std::wstring &str, size_t size) throw(OutOfMe
  * \throw OutOfBoundsEception: Wird geworfen, wenn \p position größer ist, als die
  * Länge des Strings
  */
-WideString & WideString::set(size_t position, wchar_t c) throw(OutOfBoundsEception)
+WideString & WideString::set(size_t position, wchar_t c)
 {
 	if (position>=stringlen) throw OutOfBoundsEception();
 	ptr[position]=c;
@@ -818,7 +818,7 @@ WideString & WideString::setf(const char *fmt, ...)
  *
  * @return Referenz auf den String
  */
-WideString & WideString::set(wchar_t c) throw(OutOfMemoryException)
+WideString & WideString::set(wchar_t c)
 {
 	wchar_t buffer[2];
 	buffer[0]=c;
@@ -849,7 +849,7 @@ void MyFunction(const char *fmt, ...)
  *
  * \copydoc sprintf.dox
  */
-WideString & WideString::vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException)
+WideString & WideString::vasprintf(const char *fmt, va_list args)
 {
 	char *buff=NULL;
 #ifdef HAVE_VASPRINTF
@@ -882,7 +882,7 @@ WideString & WideString::vasprintf(const char *fmt, va_list args) throw(OutOfMem
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::append(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::append(const wchar_t *str, size_t size)
 {
 	if (!str) return *this;
 	if (!ptr) {
@@ -927,7 +927,7 @@ WideString & WideString::append(const wchar_t *str, size_t size) throw(OutOfMemo
  * \exception CharacterEncodingException
  *
  */
-WideString & WideString::append(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+WideString & WideString::append(const char *str, size_t size)
 {
 	WideString a;
 	a.set(str,size);
@@ -948,7 +948,7 @@ WideString & WideString::append(const char *str, size_t size) throw(OutOfMemoryE
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::append(const WideString *str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::append(const WideString *str, size_t size)
 {
 	if (!str) return *this;
 	return append((wchar_t*)str->ptr,size);
@@ -966,7 +966,7 @@ WideString & WideString::append(const WideString *str, size_t size) throw(OutOfM
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::append(const WideString &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::append(const WideString &str, size_t size)
 {
 	return append((wchar_t*)str.ptr,size);
 }
@@ -983,7 +983,7 @@ WideString & WideString::append(const WideString &str, size_t size) throw(OutOfM
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::append(const std::string &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::append(const std::string &str, size_t size)
 {
 	WideString a;
 	a.set(str,size);
@@ -1002,7 +1002,7 @@ WideString & WideString::append(const std::string &str, size_t size) throw(OutOf
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::append(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::append(const std::wstring &str, size_t size)
 {
 	WideString a;
 	a.set(str,size);
@@ -1069,7 +1069,7 @@ WideString & WideString::appendf(const char *fmt, ...)
  *
  * @return Referenz auf den String
  */
-WideString & WideString::append(wchar_t c) throw(OutOfMemoryException)
+WideString & WideString::append(wchar_t c)
 {
 	wchar_t buffer[2];
 	buffer[0]=c;
@@ -1090,7 +1090,7 @@ WideString & WideString::append(wchar_t c) throw(OutOfMemoryException)
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::prepend(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::prepend(const wchar_t *str, size_t size)
 {
 	if (!str) return *this;
 	if (!ptr) {
@@ -1131,7 +1131,7 @@ WideString & WideString::prepend(const wchar_t *str, size_t size) throw(OutOfMem
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::prepend(const WideString *str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::prepend(const WideString *str, size_t size)
 {
 	if (!str) return *this;
 	if (!ptr) {
@@ -1155,7 +1155,7 @@ WideString & WideString::prepend(const WideString *str, size_t size) throw(OutOf
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::prepend(const WideString &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::prepend(const WideString &str, size_t size)
 {
 	if (!ptr) {
 		set(str,size);
@@ -1178,7 +1178,7 @@ WideString & WideString::prepend(const WideString &str, size_t size) throw(OutOf
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::prepend(const std::string &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::prepend(const std::string &str, size_t size)
 {
 	if (!ptr) {
 		set(str,size);
@@ -1201,7 +1201,7 @@ WideString & WideString::prepend(const std::string &str, size_t size) throw(OutO
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::prepend(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+WideString & WideString::prepend(const std::wstring &str, size_t size)
 {
 	if (!ptr) {
 		set(str,size);
@@ -1224,7 +1224,7 @@ WideString & WideString::prepend(const std::wstring &str, size_t size) throw(Out
  *
  * \exception OutOfMemoryException
  */
-WideString & WideString::prepend(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+WideString & WideString::prepend(const char *str, size_t size)
 {
 	WideString a;
 	a.set(str,size);
@@ -1289,7 +1289,7 @@ WideString & WideString::prependf(const char *fmt, ...)
  *
  * @return Referenz auf den String
  */
-WideString & WideString::prepend(wchar_t c) throw(OutOfMemoryException)
+WideString & WideString::prepend(wchar_t c)
 {
 	wchar_t buffer[2];
 	buffer[0]=c;
@@ -1808,9 +1808,9 @@ int WideString::strCaseCmp(const WideString &str, size_t size) const
 #ifdef HAVE_WCSCASECMP
 	if (size) return wcsncasecmp(mystr,otherstr,size);
 	return wcscasecmp(mystr,otherstr);
-#elif WIN32
-	if (size) return wcsnicmp(mystr,otherstr,size);
-	return wcsicmp(mystr,otherstr);
+#elif defined WIN32
+	if (size) return _wcsnicmp(mystr,otherstr,size);
+	return _wcsicmp(mystr,otherstr);
 #else
 	String b=mystr;
 	String s=otherstr;
@@ -3025,7 +3025,7 @@ pplint64 WideString::toInt64() const
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOLL
 	return (pplint64) wcstoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (pplint64) _wcstoi64(ptr,NULL,10);
 #else
 	return (pplint64) pplwcstoll(ptr,NULL,10);
@@ -3037,7 +3037,7 @@ ppluint64 WideString::toUnsignedInt64() const
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOULL
 	return (ppluint64) wcstoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (ppluint64) _wcstoi64(ptr,NULL,10);
 #else
 	return (ppluint64) pplwcstoll(ptr,NULL,10);
@@ -3069,7 +3069,7 @@ long long WideString::toLongLong() const
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOLL
 	return (long long) wcstoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (long long) _wcstoi64(ptr,NULL,10);
 #else
 	return (long long) pplwcstoll(ptr,NULL,10);
@@ -3081,9 +3081,9 @@ unsigned long long WideString::toUnsignedLongLong() const
 	if (!stringlen) return 0;
 #ifdef HAVE_WCSTOULL
 	return (unsigned long long) wcstoull(ptr,NULL,10);
-#elif HAVE_WCSTOLL
+#elif defined HAVE_WCSTOLL
 	return (unsigned long long) wcstoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (unsigned long long) _wcstoi64(ptr,NULL,10);
 #else
 	return (unsigned long long) pplwcstoll(ptr,NULL,10);
@@ -3095,9 +3095,9 @@ float WideString::toFloat() const
 	if (!stringlen) return 0;
 #ifdef WIN32
 	return (float)wcstod(ptr,NULL);
-#elif HAVE_WCSTOF
+#elif defined HAVE_WCSTOF
 	return (float)wcstof(ptr,NULL);
-#elif HAVE_WCSTOD
+#elif defined HAVE_WCSTOD
 	return (float)wcstod(ptr,NULL);
 #else
 	#error *** Keine Funktion, um einen Wide-String in einen float zu konvertieren!
@@ -3110,7 +3110,7 @@ double WideString::toDouble() const
 	if (!stringlen) return 0;
 #ifdef WIN32
 	return wcstod(ptr,NULL);
-#elif HAVE_WCSTOD
+#elif defined HAVE_WCSTOD
 	return wcstod(ptr,NULL);
 #else
 	#error *** Keine Funktion, um einen Wide-String in einen double zu konvertieren!

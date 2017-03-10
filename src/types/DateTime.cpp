@@ -534,14 +534,18 @@ void DateTime::set(const PPLTIME &t)
  */
 void DateTime::setTime_t(ppluint64 t)
 {
-	struct tm tt, *r;
+	struct tm tt;
 	if (t==0) {
 		clear();
 		return;
 	}
 	::time_t tp=(::time_t)t;
-	r=localtime_r(&tp,&tt);
+#ifdef WIN32
+	if (NULL != localtime_s(&tt, &tp)) throw InvalidDateException();
+#else
+	struct tm *r=localtime_r(&tp,&tt);
 	if (!r) throw InvalidDateException();
+#endif
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;
@@ -563,14 +567,18 @@ void DateTime::setTime_t(ppluint64 t)
  */
 void DateTime::setEpoch(ppluint64 t)
 {
-	struct tm tt, *r;
+	struct tm tt;
 	if (t==0) {
 		clear();
 		return;
 	}
 	::time_t tp=(::time_t)t;
-	r=localtime_r(&tp,&tt);
+#ifdef WIN32
+	if (NULL!=localtime_s(&tt, &tp)) throw InvalidDateException();
+#else
+	struct tm *r=localtime_r(&tp,&tt);
 	if (!r) throw InvalidDateException();
+#endif
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;
@@ -602,7 +610,7 @@ void DateTime::setLongInt(ppluint64 i)
 	dd=(i%31)+1;
 	i=i/31;
 	mm=(i%12)+1;
-	yy=i/12;
+	yy=(ppluint16)i/12;
 }
 
 
@@ -614,10 +622,14 @@ void DateTime::setLongInt(ppluint64 i)
  */
 void DateTime::setCurrentTime()
 {
-	struct tm tt, *r;
+	struct tm tt;
 	::time_t tp=time(NULL);
-	r=localtime_r(&tp,&tt);
+#ifdef WIN32
+	if (NULL!=localtime_s(&tt, &tp)) throw InvalidDateException();
+#else
+	struct tm *r=localtime_r(&tp,&tt);
 	if (!r) throw InvalidDateException();
+#endif
 	ss=tt.tm_sec;
 	ii=tt.tm_min;
 	hh=tt.tm_hour;
@@ -946,14 +958,21 @@ String DateTime::strftime(const String &format) const
 	char *buf=(char*)malloc(s);
 	if (!buf) throw OutOfMemoryException();
 
-	struct tm tt, *r;
+	struct tm tt;
 	::time_t tp=time_t();
-	r=localtime_r(&tp,&tt);
+#ifdef WIN32
+	if (NULL != localtime_s(&tt, &tp)) {
+		free(buf);
+		throw InvalidDateException();
+	}
+#else
+	struct tm *r=localtime_r(&tp,&tt);
 	if (!r) {
 		free(buf);
 		throw InvalidDateException();
 	}
-	size_t res=::strftime(buf, s,(const char*) format, r);
+#endif
+	size_t res=::strftime(buf, s,(const char*) format, &tt);
 	if (res==0) {
 		free(buf);
 		throw InvalidFormatException();
@@ -1153,7 +1172,11 @@ int DateTime::weekISO8601() const
 	t.tm_year=yy-1900;
 	t.tm_isdst=-1;
 	::time_t clock=mktime(&t);
+#ifdef WIN32
+	gmtime_s(&t,&clock);
+#else
 	gmtime_r(&clock, &t);
+#endif
 	char buffer[10];
 	if (::strftime(buffer, 10, "%V", &t)==0) {
 		throw InvalidDateException();
@@ -1185,7 +1208,11 @@ int DateTime::week() const
 	t.tm_year=yy-1900;
 	t.tm_isdst=-1;
 	::time_t clock=mktime(&t);
+#ifdef WIN32
+	gmtime_s(&t, &clock);
+#else
 	gmtime_r(&clock, &t);
+#endif
 	char buffer[10];
 	if (::strftime(buffer, 10, "%U", &t)==0) {
 		throw InvalidDateException();
