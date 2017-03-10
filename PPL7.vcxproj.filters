@@ -266,35 +266,45 @@
     <ClCompile Include="src\grafix\Sprite.cpp">
       <Filter>Quelldateien\Grafix</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\FileObject.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\MemFile.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\File.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\asm\blt.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
-    <None Include="src\asm\blt_blend.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
-    <None Include="src\asm\chromakey.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
-    <None Include="src\asm\colors.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
     <None Include="src\asm\common.asm">
       <Filter>Quelldateien\Assembler</Filter>
     </None>
-    <None Include="src\asm\cpu.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
-    <None Include="src\asm\fonts.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
-    <None Include="src\asm\pixel.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
-    <None Include="src\asm\rect.asm">
-      <Filter>Quelldateien\Assembler</Filter>
-    </None>
-
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="src\asm\blt.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\asm\blt_blend.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\asm\chromakey.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\asm\colors.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\asm\cpu.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\asm\fonts.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\asm\pixel.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\asm\rect.asm">
+      <Filter>Quelldateien</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

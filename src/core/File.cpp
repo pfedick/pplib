@@ -71,9 +71,10 @@
 #ifdef HAVE_ERRNO_H
 	#include <errno.h>
 #endif
-#ifdef _WIN32
+#ifdef WIN32
 #include <io.h>
 #define WIN32_LEAN_AND_MEAN		// Keine MFCs
+#define _CRT_SECURE_NO_WARNINGS 1
 #define popen _popen
 #define pclose _pclose
 
