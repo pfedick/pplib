@@ -149,7 +149,7 @@ int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 		img.height=png_get_image_height(png_ptr, info_ptr);
 		img.bitdepth=png_get_bit_depth(png_ptr, info_ptr);
 		img.colors=0;
-		img.pitch=png_get_rowbytes(png_ptr, info_ptr);
+		img.pitch=(int)png_get_rowbytes(png_ptr, info_ptr);
 		//img->pfp.header_version=0;
 		bool supported=true;
 		img.format=RGBFormat::unknown;

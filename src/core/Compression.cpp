@@ -34,14 +34,30 @@
 
 
 #include "prolog.h"
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+#ifdef HAVE_TIME_H
 #include <time.h>
+#endif
+#ifdef HAVE_FXNTL_H
 #include <fcntl.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
+#ifdef HAVE_STDARG_H
 #include <stdarg.h>
+#endif
 
 #include "ppl7.h"
 
@@ -423,7 +439,7 @@ void Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size
 			break;
 	}
 	dstlen_zlib=(uLongf)*dstlen;
-	int res=::compress2((Bytef*)dst,(uLongf *)&dstlen_zlib,(const Bytef*)src,size,zcomplevel);
+	int res=::compress2((Bytef*)dst,(uLongf *)&dstlen_zlib,(const Bytef*)src,(uLong)size,zcomplevel);
 	if (res==Z_OK) {
 		*dstlen=(ppluint32)dstlen_zlib;
 		return;
@@ -475,7 +491,7 @@ void Compression::doBzip2(void *dst, size_t *dstlen, const void *src, size_t siz
 			break;
 	}
 	int ret=BZ2_bzBuffToBuffCompress((char*)dst,(unsigned int *)dstlen,(char*)src,
-		size,zcomplevel,0,30);
+		(int)size,zcomplevel,0,30);
 	if (ret==BZ_OK) {
 		return;
 	} else if (ret==BZ_MEM_ERROR) {
@@ -535,11 +551,11 @@ void Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t src
 #ifndef HAVE_LIBZ
 	throw UnsupportedFeatureException("Zlib");
 #else
-	ppluint32 d;
+	size_t d;
 	uLongf dstlen_zlib;
 	d=*dstlen;
 	dstlen_zlib=(uLongf)d;
-	int ret=::uncompress((Bytef*)dst,&dstlen_zlib,(const Bytef*) src,srclen);
+	int ret=::uncompress((Bytef*)dst,&dstlen_zlib,(const Bytef*) src,(uLong)srclen);
 	if (ret==Z_OK) {
 		*dstlen=(ppluint32)dstlen_zlib;
 		return;
@@ -579,7 +595,7 @@ void Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t sr
 #ifndef HAVE_BZIP2
 	throw UnsupportedFeatureException("Bzip2");
 #else
-	int ret=BZ2_bzBuffToBuffDecompress((char*)dst,(unsigned int*)dstlen,(char*)src,srclen,0,0);
+	int ret=BZ2_bzBuffToBuffDecompress((char*)dst,(unsigned int*)dstlen,(char*)src,(int)srclen,0,0);
 	if (ret==BZ_OK) {
 		return;
 	} else if (ret==BZ_MEM_ERROR) {
@@ -680,8 +696,8 @@ ByteArrayPtr Compression::compress(const void *ptr, size_t size)
 	} else if (prefix==Prefix_V1) {
 		char *prefix=(char*)buffer;
 		Poke8(prefix,(aaa&7));	// Nur die unteren 3 Bits sind gültig, Rest 0
-		Poke32(prefix+1,size);	// Größe Unkomprimiert
-		Poke32(prefix+5,dstlen);// Größe Komprimiert
+		Poke32(prefix+1,(int)size);	// Größe Unkomprimiert
+		Poke32(prefix+5,(int)dstlen);// Größe Komprimiert
 		return ByteArrayPtr(prefix,dstlen+9);
 	} else if (prefix==Prefix_V2) {
 		// Zuerst prüfen wir, wieviel Bytes wir für die jeweiligen Blöcke brauchen
@@ -701,33 +717,33 @@ ByteArrayPtr Compression::compress(const void *ptr, size_t size)
 
 		// Daten unkomprimiert
 		if (b_unc==1) {
-			Poke8(prefix+1,size);
+			Poke8(prefix+1,(int)size);
 			p2=prefix+2;
 		} else if (b_unc==2) {
-			Poke16(prefix+1,size);
+			Poke16(prefix+1,(int)size);
 			p2=prefix+3;
 			flag|=16;
 		} else if (b_unc==3) {
-			Poke24(prefix+1,size);
+			Poke24(prefix+1,(int)size);
 			p2=prefix+4;
 			flag|=32;
 		} else {
-			Poke32(prefix+1,size);
+			Poke32(prefix+1,(int)size);
 			p2=prefix+5;
 			flag|=(16+32);
 		}
 
 		// Daten komprimiert
 		if (b_comp==1) {
-			Poke8(p2,dstlen);
+			Poke8(p2,(int)dstlen);
 		} else if (b_unc==2) {
-			Poke16(p2,dstlen);
+			Poke16(p2,(int)dstlen);
 			flag|=64;
 		} else if (b_unc==3) {
-			Poke24(p2,dstlen);
+			Poke24(p2,(int)dstlen);
 			flag|=128;
 		} else {
-			Poke32(p2,dstlen);
+			Poke32(p2,(int)dstlen);
 			flag|=(128+64);
 		}
 		Poke8(prefix,flag);

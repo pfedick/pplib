@@ -60,7 +60,8 @@ namespace grafix {
 ImageList::ImageList()
 {
 	method=BLT;
-	width=height=numIcons=0;
+	width=height=0;
+	numIcons = 0;
 	numX=numY=0;
 }
 
@@ -97,7 +98,8 @@ ImageList::~ImageList()
 void ImageList::clear()
 {
 	method=BLT;
-	width=height=numIcons=0;
+	width = height = 0;
+	numIcons = 0;
 	numX=numY=0;
 }
 
@@ -196,8 +198,8 @@ Rect ImageList::getRect(size_t nr) const
 	Rect r;
 	if (numIcons==0 || nr>=numIcons) throw OutOfBoundsEception();
 	int h,w;
-	h=nr/numX;
-	w=nr%numX;
+	h=(int)(nr/numX);
+	w=(int)(nr%numX);
 	r.setRect(w*width,h*height,width,height);
 	return r;
 }

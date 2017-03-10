@@ -16,6 +16,18 @@
     <Filter Include="Quelldateien\Types">
       <UniqueIdentifier>{66e3414f-3a67-4d52-8ffc-53c1959c915e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Quelldateien\Core">
+      <UniqueIdentifier>{3a8e2399-8b23-4023-853c-954a5915e0cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Assembler">
+      <UniqueIdentifier>{95507578-a2c6-4b6b-b375-3f35bfbb6f93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Math">
+      <UniqueIdentifier>{c7dafec5-b489-48f2-8678-407c3550fc4e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Quelldateien\Grafix">
+      <UniqueIdentifier>{d39b4bf7-3477-4635-83c3-5f81b0149947}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -83,5 +95,205 @@
     <ClCompile Include="src\types\String.cpp">
       <Filter>Quelldateien\Types</Filter>
     </ClCompile>
+    <ClCompile Include="src\core\Compat.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\types\ByteArray.cpp">
+      <Filter>Quelldateien\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\types\ByteArrayPtr.cpp">
+      <Filter>Quelldateien\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\types\AssocArray.cpp">
+      <Filter>Quelldateien\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\types\DateTime.cpp">
+      <Filter>Quelldateien\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\types\WideString.cpp">
+      <Filter>Quelldateien\Types</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\AVLTree.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Compression.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\ConfigParser.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\cpu.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\DirEntry.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Exceptions.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Functions.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\StringFunctions.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\calc.cpp">
+      <Filter>Quelldateien\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\crc32.cpp">
+      <Filter>Quelldateien\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\md5.cpp">
+      <Filter>Quelldateien\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\random.cpp">
+      <Filter>Quelldateien\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\MemoryGroup.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\MemoryHeap.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Iconv.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Time.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Mutex.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\PerlHelper.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\PFPFile.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Resource.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Resourcen.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\core\Threads.cpp">
+      <Filter>Quelldateien\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Color.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Drawable.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\DrawableBlit.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\DrawableColor.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\DrawableLines.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\DrawablePixel.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\DrawableShapes.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Font4.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Font5.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Font6.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\FontFreeType.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Fonts.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Grafix.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Image.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter_BMP.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter_GIF.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter_JPEG.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter_PNG.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter_PPM.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter_TGA.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageFilter_TIFF.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\ImageList.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Point.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Point3D.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Rect.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\RGBFormat.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Size.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+    <ClCompile Include="src\grafix\Sprite.cpp">
+      <Filter>Quelldateien\Grafix</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="src\asm\blt.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\blt_blend.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\chromakey.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\colors.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\common.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\cpu.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\fonts.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\pixel.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
+    <None Include="src\asm\rect.asm">
+      <Filter>Quelldateien\Assembler</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -390,7 +390,7 @@ int Sprite::numTextures() const
  * \returns Anzahl Texturen oder 0, wenn keine geladen sind.
  */
 {
-	return TextureList.num();
+	return (int)TextureList.num();
 }
 
 int Sprite::numSprites() const
@@ -401,7 +401,7 @@ int Sprite::numSprites() const
  * \returns Anzahl Sprites oder 0, wenn keine geladen sind.
  */
 {
-	return SpriteList.num();
+	return (int)SpriteList.num();
 }
 
 

@@ -109,20 +109,20 @@ static void CreateTLS(THREADDATA *ptr)
 	(void) pthread_once(&key_once, make_key);
 	(void) pthread_setspecific(thread_key, myThreadData);
 #elif defined  _WIN32
-	Win32ThreadMutex.Lock();
+	Win32ThreadMutex.lock();
 	if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
 		Win32ThreadTLS=TlsAlloc();
 		if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
-			::MessageBox(NULL,"TLS_OUT_OF_INDEXES","Error: ppl7::CreateTLS",MB_ICONERROR);
+			::MessageBox(NULL,L"TLS_OUT_OF_INDEXES",L"Error: ppl7::CreateTLS",MB_ICONERROR);
 			exit(0);
 		}
 	}
 	ptr->thread=GetCurrentProcess();
 	if (!TlsSetValue(Win32ThreadTLS,ptr)) {
-		::MessageBox(NULL,"TlsSetValue failed","Error: ppl6::GetThreadData",MB_ICONERROR);
+		::MessageBox(NULL,L"TlsSetValue failed",L"Error: ppl7::CreateTLS",MB_ICONERROR);
 		exit(0);
 	}
-	Win32ThreadMutex.Unlock();
+	Win32ThreadMutex.unlock();
 #else
 	throw NoThreadSupportException();
 #endif
@@ -167,7 +167,7 @@ THREADDATA * GetThreadData()
 	if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
 		Win32ThreadTLS=TlsAlloc();
 		if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
-			::MessageBox(NULL,"TLS_OUT_OF_INDEXES","Error: ppl6::GetThreadData",MB_ICONERROR);
+			::MessageBox(NULL,L"TLS_OUT_OF_INDEXES",L"Error: ppl7::GetThreadData",MB_ICONERROR);
 			exit(0);
 		}
 	}
@@ -181,7 +181,7 @@ THREADDATA * GetThreadData()
 		global_thread_id++;
 		GlobalThreadMutex.unlock();
 		if (!TlsSetValue(Win32ThreadTLS,ptr)) {
-			::MessageBox(NULL,"TlsSetValue failed","Error: ppl6::GetThreadData",MB_ICONERROR);
+			::MessageBox(NULL,L"TlsSetValue failed",L"Error: ppl7::GetThreadData",MB_ICONERROR);
 			exit(0);
 		}
 	}

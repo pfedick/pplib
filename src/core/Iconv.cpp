@@ -112,6 +112,9 @@ void Iconv::init(const String &fromEncoding, const String &toEncoding)
 
 void Iconv::transcode(const ByteArrayPtr &from, ByteArray &to)
 {
+#ifndef HAVE_ICONV
+	throw UnsupportedFeatureException("Iconv");
+#else
 	if (!iconv_handle) throw CharacterEncodingNotInitializedException();
 	size_t inbytes=from.size();
 	size_t outbytes=inbytes*4+10;
@@ -137,6 +140,7 @@ void Iconv::transcode(const ByteArrayPtr &from, ByteArray &to)
 	to.copy(ret,size_target);
 	//to.hexDump();
 	free(buffer);
+#endif
 }
 
 void Iconv::transcode(const String &from, String &to)

@@ -90,6 +90,7 @@ static inline int clamp(int value)
 	return value;
 }
 
+
 /*!\brief Konstruktor ohne Angabe von Werten
  *
  * \desc
@@ -667,7 +668,10 @@ bool Color::operator>(const Color &other) const
 const Color operator* (const Color &color, float factor)
 {
 	if (factor<0) factor=0.0f;
-	return Color(clamp((float)color.r*factor),clamp((float)color.g*factor),clamp((float)color.b*factor),color.a);
+	return Color(clamp((int)((float)color.r*factor)),
+		clamp((int)((float)color.g*factor)),
+		clamp((int)((float)color.b*factor)),
+		color.a);
 }
 
 /*!\brief Multiplikation einer Farbe mit einem Faktor
@@ -687,7 +691,10 @@ const Color operator* (const Color &color, float factor)
 const Color operator* (float factor, const Color &color)
 {
 	if (factor<0) factor=0.0;
-	return Color(clamp((float)color.r*factor),clamp((float)color.g*factor),clamp((float)color.b*factor),color.a);
+	return Color(clamp((int)((float)color.r*factor)),
+		clamp((int)((float)color.g*factor)),
+		clamp((int)((float)color.b*factor)),
+		color.a);
 }
 
 std::ostream& operator<<(std::ostream& s, const Color &c)

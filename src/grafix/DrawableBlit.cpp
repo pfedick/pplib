@@ -320,11 +320,13 @@ union  {
 };
 } PIXEL;
 
+#ifndef max
 static inline int max(int a, int b)
 {
    if (a>b) {return (a);}
    return (b);
 }
+#endif
 
 static inline double colorclose(int Cb_p,int Cr_p,int Cb_key,int Cr_key,int tola,int tolb)
 {
@@ -401,10 +403,10 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 			} else if (mask==1.0) {
 				tgadr[x]=bg.c;
 			} else {
-				t.r=max(c.r-mask*c.r,0)+mask*bg.r;
-				t.g=max(c.g-mask*c.g,0)+mask*bg.g;
-				t.b=max(c.b-mask*c.b,0)+mask*bg.b;
-				t.a=max(c.a-mask*c.a,0)+mask*bg.a;
+				t.r=(ppluint8)(max(c.r-mask*c.r,0)+mask*bg.r);
+				t.g=(ppluint8)(max(c.g-mask*c.g,0)+mask*bg.g);
+				t.b=(ppluint8)(max(c.b-mask*c.b,0)+mask*bg.b);
+				t.a=(ppluint8)(max(c.a-mask*c.a,0)+mask*bg.a);
 				tgadr[x]=t.c;
 			}
 		}
@@ -466,10 +468,10 @@ static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_D
 			} else if (mask==1.0) {
 				tgadr[x]=bg.c;
 			} else {
-				t.r=max(c.r-mask*c.r,0)+mask*bg.r;
-				t.g=max(c.g-mask*c.g,0)+mask*bg.g;
-				t.b=max(c.b-mask*c.b,0)+mask*bg.b;
-				t.a=max(c.a-mask*c.a,0)+mask*bg.a;
+				t.r=(ppluint8)(max(c.r-mask*c.r,0)+mask*bg.r);
+				t.g= (ppluint8)(max(c.g-mask*c.g,0)+mask*bg.g);
+				t.b= (ppluint8)(max(c.b-mask*c.b,0)+mask*bg.b);
+				t.a= (ppluint8)(max(c.a-mask*c.a,0)+mask*bg.a);
 				tgadr[x]=t.c;
 			}
 		}

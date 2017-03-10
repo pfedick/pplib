@@ -113,10 +113,17 @@ int datum (char *str1)
 	time_t now;
 	struct tm tmstruct;
 	time(&now);
+#ifdef WIN32
+	if (NULL == localtime_s(&tmstruct, &now)) {
+		sprintf(str1, "%02d.%02d.%04d", tmstruct.tm_mday, tmstruct.tm_mon + 1, tmstruct.tm_year + 1900);
+		return 1;
+	}
+#else
 	if (localtime_r(&now,&tmstruct)) {
 		sprintf (str1,"%02d.%02d.%04d",tmstruct.tm_mday,tmstruct.tm_mon+1,tmstruct.tm_year+1900);
 		return 1;
 	}
+#endif
 	return 0;
 }
 
@@ -172,8 +179,8 @@ ppluint64 GetTime(PPLTIME &t)
  * \param now enthält die Sekunden seit 1970, die in die PPLTIME-Struktur umgewandelt werden
  * sollen.
  * \returns Bei Erfolg werden die über den Parameter \a now angegebenen Sekunden
- * zurückgeliefert und die Struktur PPLTIME wird gefüllt, Bei Auftreten eines Fehlers
- * wird 0 zurückgegeben.
+ * zurückgeliefert und die Struktur PPLTIME wird gefüllt,
+ * \exception Bei Auftreten eines Fehlers wird eine InvalidDateException geworfen.
  *
  * \see ppl6::GetTime()
  * \see ppl6::GetTime(PPLTIME *t)
@@ -184,9 +191,11 @@ ppl_time_t GetTime(PPLTIME *t, ppl_time_t now)
 	struct tm tmstruct;
 	time_t n=(time_t)now;
 	if (!t) return now;
-	if (!localtime_r(&n,&tmstruct)) {
-		return 0;
-	}
+#ifdef WIN32
+	if (NULL != localtime_s(&tmstruct, &n)) throw InvalidDateException();
+#else
+	if (!localtime_r(&n,&tmstruct)) throw InvalidDateException();
+#endif
 	t->year=tmstruct.tm_year+1900;
 	t->month=tmstruct.tm_mon+1;
 	t->day=tmstruct.tm_mday;
@@ -216,8 +225,8 @@ ppl_time_t GetTime(PPLTIME *t, ppl_time_t now)
  * \param now enthält die Sekunden seit 1970, die in die PPLTIME-Struktur umgewandelt werden
  * sollen.
  * \returns Bei Erfolg werden die über den Parameter \a now angegebenen Sekunden
- * zurückgeliefert und die Struktur PPLTIME wird gefüllt, Bei Auftreten eines Fehlers
- * wird 0 zurückgegeben.
+ * zurückgeliefert und die Struktur PPLTIME wird gefüllt.
+ * \exception Bei Auftreten eines Fehlers wird eine InvalidDateException geworfen.
  *
  * \see ppl6::GetTime()
  * \see ppl6::GetTime(PPLTIME *t)
@@ -230,9 +239,11 @@ ppl_time_t GetTime(PPLTIME &t, ppl_time_t now)
 	memset(&t,0,sizeof(t));
 
 	time_t n=(time_t)now;
-	if (!localtime_r(&n,&tmstruct)) {
-		return 0;
-	}
+#ifdef WIN32
+	if (NULL != localtime_s(&tmstruct, &n)) throw InvalidDateException();
+#else
+	if (!localtime_r(&n, &tmstruct)) throw InvalidDateException();
+#endif
 	t.year=tmstruct.tm_year+1900;
 	t.month=tmstruct.tm_mon+1;
 	t.day=tmstruct.tm_mday;
@@ -568,7 +579,8 @@ String MkISO8601Date (const PPLTIME &t)
  * entahlten darf (siehe unten)
  * \param sec
  * \return Bei Erfolg gibt die Funktion einen neuen String mit dem formatierten
- * Zeitpunkt zurück, im Fehlerfall einen leeren String.
+ * Zeitpunkt zurück.
+ * \exception Im Fehlerfall wird eine Exception geworfen
  *
  * \par Syntax-Formatstring
  * \copydoc strftime.dox
@@ -582,7 +594,11 @@ String MkDate(const String &format, ppl_time_t sec)
 	struct tm t;
 	const time_t tt=(const time_t)sec;
 
-	localtime_r(&tt, &t);
+#ifdef WIN32
+	if (NULL != localtime_s(&t, &tt)) throw InvalidDateException();
+#else
+	if (!localtime_r(&tt, &t)) throw InvalidDateException();
+#endif
 	if (strftime(b, size,format, &t)==0) {
 		free(b);
 		throw OperationFailedException();

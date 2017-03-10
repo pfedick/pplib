@@ -661,7 +661,7 @@ Compression::Algorithm PFPFile::getCompression() const
 void PFPFile::saveChunk(char *buffer, size_t &pp, PFPChunk *chunk)
 {
 	for (int i=0;i<4;i++) Poke8(buffer+pp+i,(unsigned int)(chunk->chunkname[i]));
-	Poke32(buffer+pp+4,chunk->chunksize+8);
+	Poke32(buffer+pp+4,(int)chunk->chunksize+8);
 	pp+=8;
 	if (chunk->chunksize) {
 		memcpy(buffer+pp,chunk->chunkdata,chunk->chunksize);
@@ -718,7 +718,7 @@ void PFPFile::save(const String &filename)
 	size_t hsize=24;
 	strcpy(p,"PFP-File");
 	Poke8(p+8,3);
-	Poke8(p+9,hsize);
+	Poke8(p+9,(int)hsize);
 	for (int i=0;i<4;i++) Poke8((p+10+i),(unsigned int)id[i]);
 	Poke8(p+15,mainversion);
 	Poke8(p+14,subversion);
@@ -790,8 +790,8 @@ void PFPFile::save(const String &filename)
 	ff.write(p,hsize);
 	if (comp) {
 		char t[8];
-		Poke32(t,pp-hsize);
-		Poke32(t+4,savesize);
+		Poke32(t,(int)(pp-hsize));
+		Poke32(t+4,(int)savesize);
 		ff.write(t,8);
 		ff.write(save,savesize);
 	} else {

@@ -157,7 +157,7 @@ int FontEngineFreeType::ident(FileObject &file) throw()
 	const FT_Byte *buffer=(const FT_Byte *)file.map();
 	size_t size=file.size();
 	FT_Face face;
-	int error = FT_New_Memory_Face(f->ftlib, buffer, size, 0, &face );
+	int error = FT_New_Memory_Face(f->ftlib, buffer, (FT_Long)size, 0, &face );
 	if (error!=0) return 0;
 	FT_Done_Face(face);
 	return 1;
@@ -175,7 +175,7 @@ FontFile *FontEngineFreeType::loadFont(FileObject &file, const String &fontname)
 	if (!face) throw OutOfMemoryException();
 	face->buffer=(FT_Byte *)file.load();
 	size_t size=file.size();
-	int error = FT_New_Memory_Face(f->ftlib, face->buffer, size, 0, &face->face );
+	int error = FT_New_Memory_Face(f->ftlib, face->buffer, (FT_Long)size, 0, &face->face );
 	if (error!=0) {
 		free(face->buffer);
 		free(face);
@@ -269,7 +269,7 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	FT_Matrix matrix; /* transformation matrix */
 	if (font.rotation()!=0.0) {
 		rotate=true;
-		double angle=font.rotation()*M_PI/180.0;
+		double angle=font.rotation()*3.14159265359/180.0;
 		/* set up matrix */
 		matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
 		matrix.xy = (FT_Fixed)( sin( angle ) * 0x10000L );

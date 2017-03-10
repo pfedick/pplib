@@ -540,8 +540,8 @@ void Drawable::elipse (int x, int y, int radx, int rady, const Color &c, bool fi
 	float rad=pi/180.0f;
 
 	for (float i=0.0f;i<360.0f;i++) {
-		int x1 = x + (sinf(i*rad) * (float)radx);
-		int y1 = y + (cosf(i*rad) * (float)rady);
+		int x1 = x + (int)(sinf(i*rad) * (float)radx);
+		int y1 = y + (int)(cosf(i*rad) * (float)rady);
 		//::printf ("x1=%i, y1=%i\n",x1,y1);
 		if (i > 0) {
 			d=abs(x2-x1)+abs(y2-y1);
@@ -564,13 +564,13 @@ void Drawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fil
 	float st=(float)start/360.0f;
 	float en=(float)end/360.0f;
 	if (st!=en) {
-		int x2 = x + (sinf(st) * (float)radx);
-		int y2 = y + (cosf(st) * (float)rady);
+		int x2 = x + (int)(sinf(st) * (float)radx);
+		int y2 = y + (int)(cosf(st) * (float)rady);
 		putPixel (x2,y2,c);
 
-		for (float i=start;i<end+1;i++) {
-			int x1 = x + (sinf(i) * radx);
-			int y1 = y + (cosf(i) * rady);
+		for (int i=start;i<end+1;i++) {
+			int x1 = x + (int)(sinf((float)i) * radx);
+			int y1 = y + (int)(cosf((float)i) * rady);
 			if (i > 0) {
 				int d=abs(x2-x1)+abs(y2-y1);
 				if (d > 1)
@@ -582,8 +582,8 @@ void Drawable::elipse(int x, int y, int radx, int rady, const Color &c, bool fil
 			y2 = y1;
 		}
 		if (fill) {
-			int x1 = x + (sinf((start+end)/2) * (float)(radx-2));
-			int y1 = y + (cosf((start+end)/2) * (float)(rady-2));
+			int x1 = x + (int)(sinf((float)(start+end)/2) * (float)(radx-2));
+			int y1 = y + (int)(cosf((float)(start+end)/2) * (float)(rady-2));
 			floodFill (x1, y1, fillcolor, c);
 		}
 	}

@@ -119,7 +119,11 @@ void PrintDebug(const char *format, ...)
 	va_end(args);
 	if (!buff) return;
 	if (printdebug==1) {
-#ifdef WIN32
+#ifdef PPLVISUALC
+		WideString ws;
+		ws.set(buff);
+		OutputDebugString((LPCWSTR)ws);
+#elif definded WIN32
 		OutputDebugString(buff);
 #endif
 	} else {
@@ -160,7 +164,13 @@ void PrintDebugTime(const char *format, ...)
 	Time+=": ";
 
 	if (printdebug==1) {
-#ifdef WIN32
+#ifdef PPLVISUALC
+		WideString ws;
+		ws.set(Time);
+		OutputDebugString((LPCWSTR)ws);
+		ws.set(buff);
+		OutputDebugString((LPCWSTR)ws);
+#elif definded WIN32
 		OutputDebugString((const char*)Time);
 		OutputDebugString(buff);
 #endif

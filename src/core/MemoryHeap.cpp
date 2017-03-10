@@ -395,7 +395,7 @@ void MemoryHeap::free(void *mem)
 		if (mem>=bl->buffer && mem<=bl->bufferend) {
 			// Nummer des Blocks errechnen
 			HEAPELEMENT *el=bl->elbuffer;
-			int element=(ppluint32)((ppluint8*)mem-(ppluint8*)bl->buffer)/myElementSize;
+			int element=(ppluint32)((ppluint8*)mem-(ppluint8*)bl->buffer)/(int)myElementSize;
 			if(el[element].ptr!=mem) {
 				// Hier stimmt was nicht!!!!
 				throw HeapCorruptedException();

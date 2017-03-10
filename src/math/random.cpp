@@ -521,7 +521,7 @@ ByteArray Random(size_t bytes)
 	char *buffer=(char*)malloc(bytes);
 	if (!buffer) return bin;
 	for (size_t i=0;i<bytes;i++) {
-		buffer[i]=rand(0,255);
+		buffer[i]=(char)rand(0,255);
 	}
 	bin.useadr(buffer,bytes);
 	return bin;
@@ -543,7 +543,7 @@ ByteArray &Random(ByteArray &buffer, size_t bytes)
 	char *b=(char*)malloc(bytes);
 	if (!b) return buffer;
 	for (size_t i=0;i<bytes;i++) {
-		b[i]=rand(0,255);
+		b[i]=(char)rand(0,255);
 	}
 	buffer.useadr(b,bytes);
 	return buffer;

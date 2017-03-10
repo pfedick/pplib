@@ -101,7 +101,7 @@ typedef struct tagMutex
  *
  */
 
-Mutex::Mutex()throw(OutOfMemoryException)
+Mutex::Mutex()
 {
 	handle=::malloc(sizeof(PPLMUTEX));
 	if (!handle) throw OutOfMemoryException();

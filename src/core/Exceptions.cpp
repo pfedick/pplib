@@ -53,6 +53,10 @@
 #include "ppl7.h"
 #include "ppl7-inet.h"
 
+#ifdef WIN32
+#define strdup _strdup
+#endif
+
 namespace ppl7 {
 
 Exception::Exception() throw()
@@ -135,22 +139,22 @@ const char* Exception::text() const throw()
 String Exception::toString() const throw()
 {
 	String str;
-	str.setf("%s",what());
-	if (ErrorText) str.appendf(" [%s]",(const char*)ErrorText);
+	str.setf("%s", what());
+	if (ErrorText) str.appendf(" [%s]", (const char*)ErrorText);
 	return str;
 }
 
 void Exception::print() const
 {
-	PrintDebug("Exception: %s",what());
-	if (ErrorText) PrintDebug(" [%s]",(const char*)ErrorText);
-	PrintDebug ("\n");
+	PrintDebug("Exception: %s", what());
+	if (ErrorText) PrintDebug(" [%s]", (const char*)ErrorText);
+	PrintDebug("\n");
 }
 
 std::ostream& operator<<(std::ostream& s, const Exception &e)
 {
-	String str=e.toString();
-	return s.write((const char*)str,str.size());
+	String str = e.toString();
+	return s.write((const char*)str, str.size());
 }
 
 
@@ -164,73 +168,77 @@ std::ostream& operator<<(std::ostream& s, const Exception &e)
  * @param e Errorcode aus der errno-Variablen
  * @param info Zusätzliche Informationen zum Fehler (optional)
  */
-void throwExceptionFromErrno(int e,const String &info)
+void throwExceptionFromErrno(int e, const String &info)
 {
 	switch (e) {
-		case ENOMEM: throw OutOfMemoryException();
-		case EINVAL: throw InvalidArgumentsException();
-		case ENOTDIR:
-		case ENAMETOOLONG: throw InvalidFileNameException(info);
-		case EACCES:
-		case EPERM: throw PermissionDeniedException(info);
-		case ENOENT: throw FileNotFoundException(info);
+	case ENOMEM: throw OutOfMemoryException();
+	case EINVAL: throw InvalidArgumentsException();
+	case ENOTDIR:
+	case ENAMETOOLONG: throw InvalidFileNameException(info);
+	case EACCES:
+	case EPERM: throw PermissionDeniedException(info);
+	case ENOENT: throw FileNotFoundException(info);
 #ifdef ELOOP
-		case ELOOP: throw TooManySymbolicLinksException(info);
+	case ELOOP: throw TooManySymbolicLinksException(info);
 #endif
-		case EISDIR: throw NoRegularFileException(info);
-		case EROFS: throw ReadOnlyException(info);
-		case EMFILE: throw TooManyOpenFilesException();
+	case EISDIR: throw NoRegularFileException(info);
+	case EROFS: throw ReadOnlyException(info);
+	case EMFILE: throw TooManyOpenFilesException();
 #ifdef EOPNOTSUPP
-		case EOPNOTSUPP: throw UnsupportedFileOperationException(info);
+	case EOPNOTSUPP: throw UnsupportedFileOperationException(info);
 #endif
-		case ENOSPC: throw FilesystemFullException();
+	case ENOSPC: throw FilesystemFullException();
 #ifdef EDQUOT
-		case EDQUOT: throw QuotaExceededException();
+	case EDQUOT: throw QuotaExceededException();
 #endif
-		case EIO: throw IOErrorException();
-		case EBADF: throw BadFiledescriptorException();
-		case EFAULT: throw BadAddressException();
+	case EIO: throw IOErrorException();
+	case EBADF: throw BadFiledescriptorException();
+	case EFAULT: throw BadAddressException();
 #ifdef EOVERFLOW
-		case EOVERFLOW: throw OverflowException();
+	case EOVERFLOW: throw OverflowException();
 #endif
-		case EEXIST: throw FileExistsException();
-		case EAGAIN: throw OperationBlockedException();
-		case EDEADLK: throw DeadlockException();
-		case EINTR: throw OperationInterruptedException();
-		case ENOLCK: throw TooManyLocksException();
-		case ESPIPE: throw IllegalOperationOnPipeException();
-		case ETIMEDOUT: throw TimeoutException(info);
+	case EEXIST: throw FileExistsException();
+	case EAGAIN: throw OperationBlockedException();
+	case EDEADLK: throw DeadlockException();
+	case EINTR: throw OperationInterruptedException();
+	case ENOLCK: throw TooManyLocksException();
+	case ESPIPE: throw IllegalOperationOnPipeException();
+	case ETIMEDOUT: throw TimeoutException(info);
 
-		case ENETDOWN: throw NetworkDownException(info);
-		case ENETUNREACH: throw NetworkUnreachableException(info);
-		case ENETRESET: throw NetworkDroppedConnectionOnResetException(info);
-		case ECONNABORTED: throw SoftwareCausedConnectionAbortException(info);
-		case ECONNRESET: throw ConnectionResetByPeerException(info);
-		case ENOBUFS: throw NoBufferSpaceException(info);
-		case EISCONN: throw SocketIsAlreadyConnectedException(info);
-		case ENOTCONN: throw NotConnectedException(info);
+	case ENETDOWN: throw NetworkDownException(info);
+	case ENETUNREACH: throw NetworkUnreachableException(info);
+	case ENETRESET: throw NetworkDroppedConnectionOnResetException(info);
+	case ECONNABORTED: throw SoftwareCausedConnectionAbortException(info);
+	case ECONNRESET: throw ConnectionResetByPeerException(info);
+	case ENOBUFS: throw NoBufferSpaceException(info);
+	case EISCONN: throw SocketIsAlreadyConnectedException(info);
+	case ENOTCONN: throw NotConnectedException(info);
 #ifdef ESHUTDOWN
-		case ESHUTDOWN: throw CantSendAfterSocketShutdownException(info);
+	case ESHUTDOWN: throw CantSendAfterSocketShutdownException(info);
 #endif
 #ifdef ETOOMANYREFS
-		case ETOOMANYREFS: throw TooManyReferencesException(info);
+	case ETOOMANYREFS: throw TooManyReferencesException(info);
 #endif
-		case ECONNREFUSED: throw ConnectionRefusedException(info);
+	case ECONNREFUSED: throw ConnectionRefusedException(info);
 #ifdef EHOSTDOWN
-		case EHOSTDOWN: throw HostDownException(info);
+	case EHOSTDOWN: throw HostDownException(info);
 #endif
-		case EHOSTUNREACH: throw NoRouteToHostException(info);
-		case ENOTSOCK: throw InvalidSocketException(info);
-		case ENOPROTOOPT: throw UnknownOptionException(info);
-		case EPIPE: throw BrokenPipeException(info);
+	case EHOSTUNREACH: throw NoRouteToHostException(info);
+	case ENOTSOCK: throw InvalidSocketException(info);
+	case ENOPROTOOPT: throw UnknownOptionException(info);
+	case EPIPE: throw BrokenPipeException(info);
 
-		/*
 
-		 *
-		 */
-
-		default: {
-			String ret=strerror(e);
+	default: {
+		String ret;
+#ifdef HAVE_STRERROR_S
+		ByteArray buffer(128);
+		if (NULL == strerror_s((char*)buffer.ptr(), buffer.size(), e)) {
+			ret.set((const char*)buffer);
+		}
+#else
+				ret=strerror(e);
+#endif
 			ret+=": "+info;
 			throw UnknownException(ret);
 		}

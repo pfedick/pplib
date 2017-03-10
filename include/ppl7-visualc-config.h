@@ -21,11 +21,31 @@
 #define HAVE_LOCALE_H 1
 #define HAVE_ERRNO_H 1
 //#define HAVE_WIDEC_H 0
+#define HAVE_TIME_H 1
+#define HAVE_FCNTL_H 1
+//#define HAVE_SYS_MMAN_H 0
+//#define HAVE_UNISTD_H 0
+//#define HAVE_DIRENT_H 0
+//#define HAVE_SYS_FILE_H 0
+#define HAVE_MATH_H
+
 
 #define HAVE_STRNCPY_S 1
 #define HAVE_WCSNCPY_S 1
 #define HAVE_WCSTOMBS_S 1
 #define HAVE_MBSTOWCS_S 1
+#define HAVE_STRERROR_S 1
+
+/*
+* External Features
+*/
+#define HAVE_LIBZ 1
+#define HAVE_BZIP2 1
+#define HAVE_X86_ASSEMBLER 1
+#define HAVE_FREETYPE2 1
+#define HAVE_JPEG 1
+#define HAVE_PNG 1
+#define HAVE_TIFF 1
 
 
 
