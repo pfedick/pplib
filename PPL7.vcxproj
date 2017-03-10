@@ -194,7 +194,9 @@ copy  "$(OutputPath)\PPL7.lib" c:\local\lib\ppl7.lib</Command>
     <ClCompile Include="src\core\File.cpp" />
     <ClCompile Include="src\core\FileObject.cpp" />
     <ClCompile Include="src\core\Functions.cpp" />
+    <ClCompile Include="src\core\GzFile.cpp" />
     <ClCompile Include="src\core\Iconv.cpp" />
+    <ClCompile Include="src\core\Logger.cpp" />
     <ClCompile Include="src\core\MemFile.cpp" />
     <ClCompile Include="src\core\MemoryGroup.cpp" />
     <ClCompile Include="src\core\MemoryHeap.cpp" />
@@ -203,6 +205,7 @@ copy  "$(OutputPath)\PPL7.lib" c:\local\lib\ppl7.lib</Command>
     <ClCompile Include="src\core\PFPFile.cpp" />
     <ClCompile Include="src\core\Resource.cpp" />
     <ClCompile Include="src\core\Resourcen.cpp" />
+    <ClCompile Include="src\core\Signal.cpp" />
     <ClCompile Include="src\core\StringFunctions.cpp" />
     <ClCompile Include="src\core\Threads.cpp" />
     <ClCompile Include="src\core\Time.cpp" />

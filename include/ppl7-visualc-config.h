@@ -28,6 +28,8 @@
 //#define HAVE_DIRENT_H 0
 //#define HAVE_SYS_FILE_H 0
 #define HAVE_MATH_H
+#define HAVE_SIGNAL_H
+
 #define HAVE_STAT
 
 
