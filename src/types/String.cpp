@@ -97,7 +97,7 @@ static size_t InitialBuffersize=128;
  * Die Funktion ist nicht Thread-sicher und sollte daher nur einmal am Anfang des
  * Programms aufgerufen werden.
  */
-void String::setGlobalEncoding(const char *encoding) throw(NullPointerException,UnsupportedCharacterEncodingException)
+void String::setGlobalEncoding(const char *encoding)
 {
 	if (!encoding) throw NullPointerException();
 	char *ret=setlocale(LC_CTYPE,encoding);
@@ -149,7 +149,7 @@ String::String() throw()
  * @exception UnsupportedCharacterEncodingException
  * @exception CharacterEncodingException
  */
-String::String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+String::String(const char *str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -167,7 +167,7 @@ String::String(const char *str) throw(OutOfMemoryException, UnsupportedFeatureEx
  * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
  * @exception OutOfMemoryException
  */
-String::String(const char *str, size_t size) throw(OutOfMemoryException)
+String::String(const char *str, size_t size)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -183,7 +183,7 @@ String::String(const char *str, size_t size) throw(OutOfMemoryException)
  * @param str Pointer auf einen anderen String
  * @exception OutOfMemoryException
  */
-String::String(const String *str) throw(OutOfMemoryException)
+String::String(const String *str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -199,7 +199,7 @@ String::String(const String *str) throw(OutOfMemoryException)
  * @param str Referenz auf einen anderen String
  * @exception OutOfMemoryException
  */
-String::String(const String &str) throw(OutOfMemoryException)
+String::String(const String &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -218,7 +218,7 @@ String::String(const String &str) throw(OutOfMemoryException)
  * @exception UnsupportedCharacterEncodingException
  * @exception CharacterEncodingException
  */
-String::String(const std::string &str) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+String::String(const std::string &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -234,7 +234,7 @@ String::String(const std::string &str) throw(OutOfMemoryException, UnsupportedFe
  * @param str Referenz auf Wide-String der STL
  * @exception OutOfMemoryException
  */
-String::String(const std::wstring &str) throw(OutOfMemoryException)
+String::String(const std::wstring &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -242,7 +242,7 @@ String::String(const std::wstring &str) throw(OutOfMemoryException)
 	set(str.data(),str.size());
 }
 
-String::String(const WideString *str) throw(OutOfMemoryException)
+String::String(const WideString *str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -250,7 +250,7 @@ String::String(const WideString *str) throw(OutOfMemoryException)
 	set(str);
 }
 
-String::String(const WideString &str) throw(OutOfMemoryException)
+String::String(const WideString &str)
 {
 	ptr=NULL;
 	stringlen=0;
@@ -511,7 +511,7 @@ bool String::isFalse() const
  * Multibyte-Characters zählen als ein Zeichen.
  *
  */
-String & String::set(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+String & String::set(const char *str, size_t size)
 {
 	if (!str) {
 		clear();
@@ -532,7 +532,11 @@ String & String::set(const char *str, size_t size) throw(OutOfMemoryException, U
 			throw OutOfMemoryException();
 		}
 	}
+#ifdef HAVE_STRNCPY_S
+	strncpy_s((char*)ptr, s, str, inbytes);
+#else
 	strncpy((char*)ptr,str,inbytes);
+#endif
 	stringlen=inbytes;
 	((char*)ptr)[stringlen]=0;
 	return *this;
@@ -550,7 +554,7 @@ String & String::set(const char *str, size_t size) throw(OutOfMemoryException, U
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+String & String::set(const wchar_t *str, size_t size)
 {
 	if (str==NULL || size==0) {
 		clear();
@@ -559,9 +563,15 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 	wchar_t *tmpbuffer=NULL;
 	size_t inbytes;
 	if (size!=(size_t)-1) {
-		tmpbuffer=(wchar_t*)malloc((size+1)*sizeof(wchar_t));
+		size_t buffersize = (size + 1) * sizeof(wchar_t);
+		tmpbuffer=(wchar_t*)malloc(buffersize);
 		if (!tmpbuffer) throw OutOfMemoryException();
+#ifdef HAVE_WCSNCPY_S
+		wcsncpy_s(tmpbuffer, buffersize, str, size);
+		str = tmpbuffer;
+#else
 		str=wcsncpy(tmpbuffer,str,size);
+#endif
 		tmpbuffer[size]=0;
 		inbytes=size;
 	} else {
@@ -580,7 +590,23 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
 			throw OutOfMemoryException();
 		}
 	}
+#ifdef HAVE_WCSTOMBS_S
+	// ptr=char* ziel
+	// str=wchar_t *quelle
+	// s=Size von ziel
+	/*errno_t wcstombs_s(  
+   size_t *pReturnValue,  
+   char *mbstr,  
+   size_t sizeInBytes,  
+   const wchar_t *wcstr,  
+   size_t count   
+); 
+	*/
+	wcstombs_s(&stringlen, ptr, s, str, s);
+
+#else
 	stringlen=wcstombs(ptr, str, s);
+#endif
 	free(tmpbuffer);
 	if (stringlen==(size_t)-1) {
 		stringlen=0;
@@ -602,7 +628,7 @@ String & String::set(const wchar_t *str, size_t size) throw(OutOfMemoryException
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-String & String::set(const String *str, size_t size) throw(OutOfMemoryException)
+String & String::set(const String *str, size_t size)
 {
 	if (!str) {
 		clear();
@@ -627,7 +653,7 @@ String & String::set(const String *str, size_t size) throw(OutOfMemoryException)
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-String & String::set(const String &str, size_t size) throw(OutOfMemoryException)
+String & String::set(const String &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -636,7 +662,7 @@ String & String::set(const String &str, size_t size) throw(OutOfMemoryException)
 	return set(str.ptr,inbytes);
 }
 
-String & String::set(const WideString *str, size_t size) throw(OutOfMemoryException)
+String & String::set(const WideString *str, size_t size)
 {
 	if (!str) {
 		clear();
@@ -649,7 +675,7 @@ String & String::set(const WideString *str, size_t size) throw(OutOfMemoryExcept
 	return set(str->getPtr(),inbytes);
 }
 
-String & String::set(const WideString &str, size_t size) throw(OutOfMemoryException)
+String & String::set(const WideString &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -670,7 +696,7 @@ String & String::set(const WideString &str, size_t size) throw(OutOfMemoryExcept
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-String & String::set(const std::string &str, size_t size) throw(OutOfMemoryException)
+String & String::set(const std::string &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -691,7 +717,7 @@ String & String::set(const std::string &str, size_t size) throw(OutOfMemoryExcep
  * \return Referenz auf den String
  * \exception OutOfMemoryException
  */
-String & String::set(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+String & String::set(const std::wstring &str, size_t size)
 {
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
@@ -713,7 +739,7 @@ String & String::set(const std::wstring &str, size_t size) throw(OutOfMemoryExce
  * \throw OutOfBoundsEception: Wird geworfen, wenn \p position größer ist, als die
  * Länge des Strings
  */
-String & String::set(size_t position, char c) throw(OutOfBoundsEception)
+String & String::set(size_t position, char c)
 {
 	if (position>=stringlen) throw OutOfBoundsEception();
 	ptr[position]=c;
@@ -778,7 +804,7 @@ String & String::setf(const char *fmt, ...)
  *
  * @return Referenz auf den String
  */
-String & String::set(char c) throw(OutOfMemoryException)
+String & String::set(char c)
 {
 	char buffer[2];
 	buffer[0]=c;
@@ -809,7 +835,7 @@ void MyFunction(const char *fmt, ...)
  *
  * \copydoc sprintf.dox
  */
-String & String::vasprintf(const char *fmt, va_list args) throw(OutOfMemoryException, UnsupportedFeatureException)
+String & String::vasprintf(const char *fmt, va_list args)
 {
 	char *buff=NULL;
 #ifdef HAVE_VASPRINTF
@@ -842,7 +868,7 @@ String & String::vasprintf(const char *fmt, va_list args) throw(OutOfMemoryExcep
  *
  * \exception OutOfMemoryException
  */
-String & String::append(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+String & String::append(const wchar_t *str, size_t size)
 {
 	String a;
 	a.set(str,size);
@@ -867,7 +893,7 @@ String & String::append(const wchar_t *str, size_t size) throw(OutOfMemoryExcept
  * \exception CharacterEncodingException
  *
  */
-String & String::append(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+String & String::append(const char *str, size_t size)
 {
 	if (str==NULL || size==0) return *this;
 	if (!ptr) {
@@ -907,7 +933,7 @@ String & String::append(const char *str, size_t size) throw(OutOfMemoryException
  *
  * \exception OutOfMemoryException
  */
-String & String::append(const String *str, size_t size) throw(OutOfMemoryException)
+String & String::append(const String *str, size_t size)
 {
 	if (!str) return *this;
 	return append(str->ptr,size);
@@ -925,7 +951,7 @@ String & String::append(const String *str, size_t size) throw(OutOfMemoryExcepti
  *
  * \exception OutOfMemoryException
  */
-String & String::append(const String &str, size_t size) throw(OutOfMemoryException)
+String & String::append(const String &str, size_t size)
 {
 	return append(str.ptr,size);
 }
@@ -942,7 +968,7 @@ String & String::append(const String &str, size_t size) throw(OutOfMemoryExcepti
  *
  * \exception OutOfMemoryException
  */
-String & String::append(const std::string &str, size_t size) throw(OutOfMemoryException)
+String & String::append(const std::string &str, size_t size)
 {
 	if (size==(size_t)-1) return append(str.data(),str.size());
 	return append(str.data(),size);
@@ -960,7 +986,7 @@ String & String::append(const std::string &str, size_t size) throw(OutOfMemoryEx
  *
  * \exception OutOfMemoryException
  */
-String & String::append(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+String & String::append(const std::wstring &str, size_t size)
 {
 	if (size==(size_t)-1) return append(str.data(),str.size());
 	return append(str.data(),size);
@@ -1026,7 +1052,7 @@ String & String::appendf(const char *fmt, ...)
  *
  * @return Referenz auf den String
  */
-String & String::append(char c) throw(OutOfMemoryException)
+String & String::append(char c)
 {
 	char buffer[2];
 	buffer[0]=c;
@@ -1047,7 +1073,7 @@ String & String::append(char c) throw(OutOfMemoryException)
  *
  * \exception OutOfMemoryException
  */
-String & String::prepend(const wchar_t *str, size_t size) throw(OutOfMemoryException)
+String & String::prepend(const wchar_t *str, size_t size)
 {
 	String a;
 	a.set(str,size);
@@ -1066,7 +1092,7 @@ String & String::prepend(const wchar_t *str, size_t size) throw(OutOfMemoryExcep
  *
  * \exception OutOfMemoryException
  */
-String & String::prepend(const String *str, size_t size) throw(OutOfMemoryException)
+String & String::prepend(const String *str, size_t size)
 {
 	if (!str) return *this;
 	if (!ptr) {
@@ -1090,7 +1116,7 @@ String & String::prepend(const String *str, size_t size) throw(OutOfMemoryExcept
  *
  * \exception OutOfMemoryException
  */
-String & String::prepend(const String &str, size_t size) throw(OutOfMemoryException)
+String & String::prepend(const String &str, size_t size)
 {
 	if (!ptr) {
 		set(str,size);
@@ -1113,7 +1139,7 @@ String & String::prepend(const String &str, size_t size) throw(OutOfMemoryExcept
  *
  * \exception OutOfMemoryException
  */
-String & String::prepend(const std::string &str, size_t size) throw(OutOfMemoryException)
+String & String::prepend(const std::string &str, size_t size)
 {
 	if (!ptr) {
 		set(str,size);
@@ -1136,7 +1162,7 @@ String & String::prepend(const std::string &str, size_t size) throw(OutOfMemoryE
  *
  * \exception OutOfMemoryException
  */
-String & String::prepend(const std::wstring &str, size_t size) throw(OutOfMemoryException)
+String & String::prepend(const std::wstring &str, size_t size)
 {
 	if (!ptr) {
 		set(str,size);
@@ -1159,7 +1185,7 @@ String & String::prepend(const std::wstring &str, size_t size) throw(OutOfMemory
  *
  * \exception OutOfMemoryException
  */
-String & String::prepend(const char *str, size_t size) throw(OutOfMemoryException, UnsupportedFeatureException, UnsupportedCharacterEncodingException, CharacterEncodingException)
+String & String::prepend(const char *str, size_t size)
 {
 	if (str==NULL || size==0) return *this;
 	if (!ptr) {
@@ -1247,7 +1273,7 @@ String & String::prependf(const char *fmt, ...)
  *
  * @return Referenz auf den String
  */
-String & String::prepend(char c) throw(OutOfMemoryException)
+String & String::prepend(char c)
 {
 	char buffer[2];
 	buffer[0]=c;
@@ -2410,7 +2436,11 @@ String& String::repeat(size_t num)
 	if (!buf) throw OutOfMemoryException();
 	char *tmp=buf;
 	for (size_t i=0;i<num;i++) {
+#ifdef HAVE_STRNCPY_S
+		strncpy_s(tmp, newsize, ptr, stringlen);
+#else
 		strncpy(tmp,ptr,stringlen);
+#endif
 		tmp+=stringlen;
 	}
 	free(ptr);
@@ -3150,7 +3180,7 @@ pplint64 String::toInt64() const
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOLL
 	return (pplint64) strtoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (pplint64) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
@@ -3162,9 +3192,9 @@ ppluint64 String::toUnsignedInt64() const
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOULL
 	return (ppluint64) strtoull(ptr,NULL,10);
-#elif HAVE_STRTOLL
+#elif defined HAVE_STRTOLL
 	return (ppluint64) strtoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (ppluint64) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
@@ -3196,7 +3226,7 @@ long long String::toLongLong() const
 	if (!stringlen) return 0;
 #ifdef HAVE_STRTOLL
 	return (long long) strtoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (long long) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
@@ -3210,7 +3240,7 @@ unsigned long long String::toUnsignedLongLong() const
 	return (unsigned long long) strtoull(ptr,NULL,10);
 #elif defined HAVE_STRTOLL
 	return (unsigned long long) strtoll(ptr,NULL,10);
-#elif WIN32
+#elif defined WIN32
 	return (unsigned long long) _strtoi64(ptr,NULL,10);
 #else
 	throw TypeConversionException();
@@ -3220,7 +3250,7 @@ unsigned long long String::toUnsignedLongLong() const
 float String::toFloat() const
 {
 	if (!stringlen) return 0.0f;
-	return atof(ptr);
+	return (float)atof(ptr);
 }
 
 double String::toDouble() const

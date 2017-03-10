@@ -40,7 +40,9 @@
 		#ifdef HAVE_CONFIG_H
 			#include "config.h"
 		#else
-			#ifdef _WIN32
+			#ifdef PPLVISUALC
+				#include "ppl7-visualc-config.h"
+			#elif defined _WIN32
 				#include "ppl7-config.h"
 			#endif
 		#endif
