@@ -272,12 +272,9 @@
     <ClCompile Include="src\core\MemFile.cpp">
       <Filter>Quelldateien\Core</Filter>
     </ClCompile>
-<<<<<<< HEAD
     <ClCompile Include="src\core\File.cpp">
       <Filter>Quelldateien\Core</Filter>
     </ClCompile>
-=======
->>>>>>> branch 'master' of https://github.com/pfedick/pplib.git
   </ItemGroup>
   <ItemGroup>
     <None Include="src\asm\common.asm">
