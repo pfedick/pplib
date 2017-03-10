@@ -123,7 +123,7 @@ void PrintDebug(const char *format, ...)
 		WideString ws;
 		ws.set(buff);
 		OutputDebugString((LPCWSTR)ws);
-#elif definded WIN32
+#elif defined WIN32
 		OutputDebugString(buff);
 #endif
 	} else {
@@ -170,7 +170,7 @@ void PrintDebugTime(const char *format, ...)
 		OutputDebugString((LPCWSTR)ws);
 		ws.set(buff);
 		OutputDebugString((LPCWSTR)ws);
-#elif definded WIN32
+#elif defined WIN32
 		OutputDebugString((const char*)Time);
 		OutputDebugString(buff);
 #endif
