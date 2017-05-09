@@ -35,6 +35,7 @@
 #ifndef PPL7EXCEPTIONS_H_
 #define PPL7EXCEPTIONS_H_
 #include <exception>
+#include <ostream>
 
 namespace ppl7 {
 
