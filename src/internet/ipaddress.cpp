@@ -131,7 +131,7 @@ void IPAddress::toSockAddr(void *sockaddr, size_t sockaddr_len) const
 		s->sin_family=AF_INET;
 		memcpy(&s->sin_addr,_addr,4);
 #ifdef HAVE_SOCKADDR_SA_LEN
-		s->sa_len=4;
+		s->sin_len=sizeof(struct sockaddr_in);
 #endif
 	} else {
 		if (sockaddr_len<sizeof(struct sockaddr_in6)) throw BufferTooSmallException();
@@ -139,7 +139,7 @@ void IPAddress::toSockAddr(void *sockaddr, size_t sockaddr_len) const
 		s->sin6_family=AF_INET6;
 		memcpy(&s->sin6_addr,_addr,16);
 #ifdef HAVE_SOCKADDR_SA_LEN
-		s->sa_len=16;
+		s->sin6_len=sizeof(struct sockaddr_in6);
 #endif
 	}
 }
