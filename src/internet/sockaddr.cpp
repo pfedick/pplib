@@ -156,6 +156,20 @@ SockAddr::SockAddr(const void *addr, size_t addrlen)
 	this->addrlen=addrlen;
 }
 
+/*!\brief Kopieren aus IPAddress und Port
+ *
+ * \desc
+ * Kopiert die Adresse aus einer sockaddr-Struktur
+ * @param addr Muss ein Pointer auf eine struct sockaddr, sockaddr_in oder sockaddr_in6 sein
+ * @param addrlen Länge der Struktur
+ */
+SockAddr::SockAddr(const IPAddress &addr, int port)
+{
+	saddr=NULL;
+	addrlen=0;
+	setAddr(addr,port);
+}
+
 SockAddr::~SockAddr()
 {
 	free(saddr);
@@ -208,78 +222,6 @@ SockAddr &SockAddr::operator=(const SockAddr &other)
 	return *this;
 }
 
-/*!\brief Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
- *
- * \desc
- * Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
- *
- * @return String mit der IPv4- oder IPv6-Adresse
- */
-String SockAddr::toString() const
-{
-	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
-	char buffer[128];
-	const char *res=NULL;
-	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) {
-		res=inet_ntop(((struct sockaddr_in*)saddr)->sin_family,
-			&((struct sockaddr_in*)saddr)->sin_addr,
-			buffer,
-			sizeof(struct sockaddr_in)
-			);
-	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
-		res=inet_ntop(((struct sockaddr_in6*)saddr)->sin6_family,
-			&((struct sockaddr_in6*)saddr)->sin6_addr,
-			buffer,
-			sizeof(struct sockaddr_in6)
-			);
-	} else {
-		throw InvalidIpAddressException();
-	}
-	if (!res) throw InvalidIpAddressException();
-	return String(res);
-}
-
-/*!\brief String mit einer IPv4- oder IPv6-Adresse in eine Socket-Struktur umwandeln
- *
- * \desc
- * Wandelt einen String mit einer IPv4- oder IPv6-Adresse in eine Socket-Struktur um.
- *
- * @param ip String mit der IP-Adresse
- * @return Gibt ein neues SockAddr-Objekt zurück
- */
-SockAddr SockAddr::fromString(const String &ip)
-{
-	struct sockaddr_storage sa;
-	memset(&sa,0,sizeof(sa));
-
-	if (ip.instr(":") >= 0) {
-		sa.ss_family = AF_INET6;
-		//sa.ss_len = sizeof(struct sockaddr_in6);
-		struct sockaddr_in6 *addr = (struct sockaddr_in6 *) &sa;
-		if (inet_pton(AF_INET6, (const char*) ip, &addr->sin6_addr) <= 0)
-			throw InvalidIpAddressException(ip);
-		return SockAddr(addr, sizeof(struct sockaddr_in6));
-	}
-	sa.ss_family = AF_INET;
-	//sa.ss_len = sizeof(struct sockaddr_in);
-	struct sockaddr_in *addr = (struct sockaddr_in *) &sa;
-	if (inet_pton(AF_INET, (const char*) ip, &addr->sin_addr) <= 0)
-		throw InvalidIpAddressException(ip);
-	return SockAddr(addr, sizeof(struct sockaddr_in));
-}
-
-/*!\brief Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
- *
- * \desc
- * Wandelt die IP-Adresse in der Struktur in einen Lesbaren String um
- *
- * @return String mit der IPv4- oder IPv6-Adresse
- */
-SockAddr::operator String() const
-{
-	return toString();
-}
-
 
 /*!\brief Kopieren aus einer sockaddr-Structure
  *
@@ -309,18 +251,32 @@ void SockAddr::setAddr(const void *addr, size_t addrlen)
  * @param ip String mit der IP-Adresse
  * @return Gibt ein neues SockAddr-Objekt zurück
  */
-void SockAddr::setAddr(const String &ip)
+void SockAddr::setAddr(const IPAddress &ip)
 {
-	SockAddr other=SockAddr::fromString(ip);
-	if (other.saddr!=NULL) {
-		saddr=malloc(other.addrlen);
-		if (!saddr) throw OutOfMemoryException();
-		memcpy(saddr,other.saddr,other.addrlen);
-		addrlen=other.addrlen;
+	free(saddr);
+	saddr=NULL;
+	if (ip.family()==4) {
+		addrlen=sizeof(struct sockaddr_in);
+		saddr=calloc(1, addrlen);
+		struct sockaddr_in *s=(struct sockaddr_in*)&saddr;
+		s->sin_family=AF_INET;
+		memcpy(&s->sin_addr,ip.addr(),ip.addr_len());
+
+	} else if (ip.family()==6) {
+		addrlen=sizeof(struct sockaddr_in6);
+		saddr=calloc(1, addrlen);
+		struct sockaddr_in6 *s=(struct sockaddr_in6*)&saddr;
+		s->sin6_family=AF_INET6;
+		memcpy(&s->sin6_addr,ip.addr(),ip.addr_len());
 	} else {
-		saddr=NULL;
-		addrlen=0;
+		throw InvalidIpAddressException();
 	}
+}
+
+void SockAddr::setAddr(const IPAddress &ip, int port)
+{
+	setAddr(ip);
+	setPort(port);
 }
 
 
@@ -359,5 +315,17 @@ int SockAddr::port() const
 	throw InvalidIpAddressException("No valid IP-Address");
 }
 
+IPAddress SockAddr::toIPAddress() const
+{
+	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
+	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) {
+		return IPAddress(IPAddress::IPv4,
+				&((struct sockaddr_in*)saddr)->sin_addr,4);
+	} else if (((struct sockaddr_in*)saddr)->sin_family==AF_INET6) {
+		return IPAddress(IPAddress::IPv6,
+				&((struct sockaddr_in6*)saddr)->sin6_addr,16);
+	}
+	throw InvalidIpAddressException("No valid IP-Address");
+}
 
 }	// EOF namespace ppl7

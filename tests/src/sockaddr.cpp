@@ -43,61 +43,34 @@
 #include <list>
 #include "ppl7-tests.h"
 
+#include <sys/socket.h>
+
+#include <netdb.h>
+
+#include <netinet/in.h>
+
+#include <arpa/inet.h>
+
 namespace {
 
-class SockAddr : public ::testing::Test {
+class SockAddrTest : public ::testing::Test {
 	protected:
-		SockAddr() {
+		SockAddrTest() {
 		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
 	}
-	virtual ~SockAddr() {
+	virtual ~SockAddrTest() {
 
 	}
 };
 
-TEST_F(SockAddr, toString) {
-	/*
-	ASSERT_NO_THROW ({
-		try {
-			std::list<ppl7::IPAddress> result;
-			size_t num=ppl7::GetHostByName("singleipv4.ppl.pfp.de",result,ppl7::af_all);
-			ASSERT_EQ((size_t)1,num) << "Unexpected return value";
-			ASSERT_EQ((size_t)1,result.size()) << "Unexpected number of results";
-			ppl7::IPAddress adr;
-			adr=result.front();
-			ASSERT_EQ(ppl7::String("192.168.0.1"),adr.ip) << "Unexpected IP-Address";
-			ASSERT_EQ(ppl7::String("singleipv4.ppl.pfp.de"),adr.name) << "Unexpected Name";
-		} catch (ppl7::Exception &e) {
-			e.print();
-			throw;
-		}
-	});
-	*/
-
-}
-
-TEST_F(SockAddr, fromIPv4StringToString) {
-	ASSERT_NO_THROW ({
-		ppl7::SockAddr adr=ppl7::SockAddr::fromString("127.0.0.1");
-		ASSERT_EQ((size_t)16,adr.size()) << "Unexpected Size of IP-Address";
-		//ppl7::HexDump(adr.addr(),adr.size());
-		ASSERT_EQ(ppl7::String("127.0.0.1"),adr.toString()) << "Unexpected IP-Address";
-
-	});
-
-}
-
-TEST_F(SockAddr, fromIPv6StringToString) {
-	ASSERT_NO_THROW ({
-		ppl7::SockAddr adr=ppl7::SockAddr::fromString("2a01:4f8:202:109a::2");
-		ASSERT_EQ((size_t)28,adr.size()) << "Unexpected Size of IP-Address";
-		//ppl7::HexDump(adr.addr(),adr.size());
-		ASSERT_EQ(ppl7::String("2a01:4f8:202:109a::2"),adr.toString()) << "Unexpected IP-Address";
-	});
-
+TEST_F(SockAddrTest, Constructor)
+{
+	printf ("sizeof(struct sockaddr): %d\n", sizeof(struct sockaddr));
+	printf ("sizeof(struct sockaddr_in): %d\n", sizeof(struct sockaddr_in));
+	printf ("sizeof(struct sockaddr_in6): %d\n", sizeof(struct sockaddr_in6));
 }
 
 

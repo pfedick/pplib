@@ -97,29 +97,6 @@ enum ResolverFlags {
 };
 
 
-class SockAddr
-{
-	private:
-		void		*saddr;
-		size_t		addrlen;
-	public:
-		SockAddr();
-		SockAddr(const SockAddr &other);
-		SockAddr(const void *addr, size_t addrlen);
-		~SockAddr();
-
-		SockAddr &operator=(const SockAddr &other);
-		operator String() const;
-		void setAddr(const void *addr, size_t addrlen);
-		void setAddr(const String &ip);
-		void setPort(int port);
-		void *addr() const;
-		size_t size() const;
-		int port() const;
-		String toString() const;
-		static SockAddr fromString(const String &ip);
-};
-
 class IPAddress
 {
 	public:
@@ -135,6 +112,7 @@ class IPAddress
 		IPAddress();
 		IPAddress(const IPAddress &other);
 		IPAddress(const String &other);
+		IPAddress(IP_FAMILY family, void *addr, size_t addr_len);
 		IPAddress &operator=(const IPAddress &other);
 		IPAddress &operator=(const String &other);
 		void set(const IPAddress &other);
@@ -154,8 +132,42 @@ class IPAddress
 		bool operator!=(const IPAddress &other) const;
 		bool operator>=(const IPAddress &other) const;
 		bool operator>(const IPAddress &other) const;
-
 };
+
+class IPNetwork
+{
+	public:
+	private:
+		IPAddress	_addr;
+		int			netmask;
+	public:
+		IPNetwork();
+		void set(const IPNetwork &other);
+		void set(const String &network);
+};
+
+class SockAddr
+{
+	private:
+		void		*saddr;
+		size_t		addrlen;
+	public:
+		SockAddr();
+		SockAddr(const SockAddr &other);
+		SockAddr(const void *addr, size_t addrlen);
+		SockAddr(const IPAddress &addr, int port);
+		~SockAddr();
+		SockAddr &operator=(const SockAddr &other);
+		void setAddr(const void *addr, size_t addrlen);
+		void setAddr(const IPAddress &ip, int port);
+		void setAddr(const IPAddress &ip);
+		void setPort(int port);
+		void *addr() const;
+		size_t size() const;
+		int port() const;
+		IPAddress toIPAddress() const;
+};
+
 
 std::ostream& operator<<(std::ostream& s, const IPAddress &addr);
 

@@ -114,21 +114,30 @@ IPAddress::IPAddress(const String &other)
 	set(other);
 }
 
+IPAddress::IPAddress(IP_FAMILY family, void *addr, size_t addr_len)
+{
+	_family=UNKNOWN;
+	set(family, addr, addr_len);
+}
+
 
 void IPAddress::toSockAddr(void *sockaddr, size_t sockaddr_len) const
 {
 	if (_family==UNKNOWN) throw InvalidIpAddressException();
 	memset(sockaddr,0,sockaddr_len);
-	struct sockaddr *s=(struct sockaddr *)sockaddr;
 	if (_family==IPv4) {
-		s->sa_family=AF_INET;
-		memcpy(s->sa_data,_addr,4);
+		if (sockaddr_len<sizeof(struct sockaddr_in)) throw BufferTooSmallException();
+		struct sockaddr_in *s=(struct sockaddr_in *)sockaddr;
+		s->sin_family=AF_INET;
+		memcpy(&s->sin_addr,_addr,4);
 #ifdef HAVE_SOCKADDR_SA_LEN
 		s->sa_len=4;
 #endif
 	} else {
-		s->sa_family=AF_INET6;
-		memcpy(s->sa_data,_addr,16);
+		if (sockaddr_len<sizeof(struct sockaddr_in6)) throw BufferTooSmallException();
+		struct sockaddr_in6 *s=(struct sockaddr_in6 *)sockaddr;
+		s->sin6_family=AF_INET6;
+		memcpy(&s->sin6_addr,_addr,16);
 #ifdef HAVE_SOCKADDR_SA_LEN
 		s->sa_len=16;
 #endif
