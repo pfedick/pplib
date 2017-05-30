@@ -102,7 +102,7 @@
 
 namespace ppl7 {
 
-
+/*
 IPAddress::IPAddress()
 {
 	ai_family=0;
@@ -171,6 +171,8 @@ bool IPAddress::operator>(const IPAddress &other) const
 	return false;
 }
 
+*/
+
 
 
 String GetHostname()
@@ -217,17 +219,14 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 		throw NetworkException("getaddrinfo(%s) returned %i: %s",(const char*)name,n,gai_strerror(n));
 	}
 	ressave=res;
-	IPAddress ip;
 	char hbuf[NI_MAXHOST];
 	do {
 		if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
-			ip.ip.set(hbuf);
-			ip.name=name;
-			ip.sockaddr.setAddr(res->ai_addr,res->ai_addrlen);
-			ip.ai_family=res->ai_family;
-			ip.ai_socktype=res->ai_socktype;
-			ip.ai_protocol=res->ai_protocol;
-			ip.ai_canonname=res->ai_canonname;
+			IPAddress ip;
+			if (res->ai_family==AF_INET)
+				ip.set(IPAddress::IPv4, res->ai_addr, res->ai_addrlen);
+			else if (res->ai_family==AF_INET6)
+				ip.set(IPAddress::IPv6, res->ai_addr, res->ai_addrlen);
 			result.push_back(ip);
 		}
 	} while ((res=res->ai_next)!=NULL);
@@ -277,7 +276,7 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
  * bei Bedarf vom Anwender vorher gesichert werden.
  *
  */
-size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags)
+size_t GetHostByName(const String &name, std::list<IPAddress> &result, ResolverFlags flags)
 {
 	#ifdef _WIN32
 		InitSockets();
@@ -290,14 +289,14 @@ size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFl
 	// Hier könnten Duplikate entstanden sein, die wir nicht wollen (FreeBSD)
 	if (ret2>0 && ret>0) {
 		// Wir bauen uns erst ein Set aus den vorhandenen Adresen auf
-		std::set<String> have;
-		std::set<String>::iterator haveIt;
+		std::set<ppl7::IPAddress> have;
+		std::set<ppl7::IPAddress>::iterator haveIt;
 		std::list<ppl7::IPAddress>::iterator it;
-		for (it=result.begin();it!=result.end();++it) have.insert(it->ip);
+		for (it=result.begin();it!=result.end();++it) have.insert(*it);
 		// Dann gleichen wir die zusätzlichen Adressen mit den vorhandenen ab
 		// und fügen nur das ins result hinzu, was noch nicht da ist
 		for (it=additional.begin();it!=additional.end();++it) {
-			haveIt=have.find(it->ip);
+			haveIt=have.find(*it);
 			if (haveIt==have.end()) {
 				result.push_back(*it);
 				ret++;
@@ -311,80 +310,34 @@ size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFl
 }
 
 
-size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result)
+String GetHostByAddr(const IPAddress &addr)
 /*!\brief Reverse-Lookup anhand einer IP-Adresse
  * \ingroup PPLGroupInternet
  *
- * \header \#include <ppl6.h>
+ * \header \#include <ppl7-inet.h>
  * \desc
  * Diese Funktion führt eine Reverse-Abfrage einer IP-Adresse durch.
  *
  * \param addr Die gesuchte IP-Adresse, wobei sowohl IPv4- als auch IPv6-Adressen
  * unterstützt werden
- * \param Result Ein Pointer auf ein Assoziatives Array, in dem das Ergebnis gespeichert werden
- * soll. Diese Parameter ist optional. Wird er nicht angegeben, bzw. ist er NULL, prüft die
- * Funktion lediglich, ob die angegebene IP-Adresse auflösbar ist und liefert true (1) oder false (0)
- * zurück.
+ * \return String mit dem gefundenen Hostnamen
  *
- * \result Im Erfolgsfall, das heisst die angegebene IP konnte aufgelöst werden, liefert die
- * Funktion true (1) zurück. Wurde der Parameter \p Result angegeben, wird das Array mit dem
- * Ergebnis gefüllt. Das Ergebnis hat folgendes Format:
- * 	- \b 0/ip IP-Adresse im lesbaren Format
- *  - \b 0/name Der FQDN
- *  - \b 0/type Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
- *  - \b sockaddr: SockAddr-Object, das einen Pointer auf eine Datenstruktur vom Typ "struct sockaddr" enthält,
- *       wie sie z.B. in einer Socket-Funktion verwendet werden kann (z.B. connect).
- * 	- \b 0/ai_family
- * 	- \b 0/ai_protocol
- *  - \b 0/ai_socktype
- *
- * Wurden mehrere Namen-Adressen gefunden, wiederholt sich der Block und die Ziffer auf der
- * obersten Ebene des Arrays wird hochgezählt.
- *
- * Im Fehlerfall, das heisst die angegebene IP konnte nicht aufgelöst werden, liefert die Funktion
- * false (0) zurück und des optionale Array \p Result bleibt unverändert.
- *
- * \note Es ist zu beachte, dass das Array \p Result im Erfolgsfall erst gelöscht und dann mit den
- * gefundenen Daten gefüllt wird. Vorher vorhandene Daten im Array gehen also verloren, bzw. müssen
- * bei Bedarf vom Anwender vorher gesichert werden.
- *
- * \since Diese Klasse wurde mit Version 6.0.12 eingeführt
- * \since Ab Version 6.0.19 werden die ai_*-Parameter zurückgegeben
- *
+ * \exception
  */
 {
-	#ifdef _WIN32
-		InitSockets();
-	#endif
-		int n;
-		struct addrinfo hints, *res, *ressave;
-		result.clear();
-		memset(&hints,0,sizeof(struct addrinfo));
-		hints.ai_family=AF_UNSPEC;
-		hints.ai_socktype=SOCK_STREAM;
-		if ((n=getaddrinfo((const char*)addr,NULL,&hints,&res))!=0) {
-			throw NetworkException("getaddrinfo(%s) returned: %s",(const char*)addr,gai_strerror(n));
-		}
-		ressave=res;
-		IPAddress ip;
-		char hbuf[NI_MAXHOST];
-		do {
-			if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
-				ip.ip=hbuf;
-				ip.name=hbuf;
-				ip.sockaddr.setAddr(res->ai_addr,res->ai_addrlen);
-				ip.ai_family=res->ai_family;
-				ip.ai_socktype=res->ai_socktype;
-				ip.ai_protocol=res->ai_protocol;
-				ip.ai_canonname=res->ai_canonname;
-				if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD) == 0) {
-					ip.name=hbuf;
-				}
-				result.push_back(ip);
-			}
-		} while ((res=res->ai_next)!=NULL);
-		freeaddrinfo(ressave);
-		return result.size();
+#ifdef _WIN32
+	InitSockets();
+#endif
+	struct sockaddr saddr;
+	addr.toSockAddr(&saddr, sizeof(saddr));
+
+	char hbuf[NI_MAXHOST];
+	unsigned int sa_len=4;
+	if (saddr.sa_family==AF_INET6) sa_len=16;
+	if (getnameinfo(&saddr,sa_len, hbuf, sizeof(hbuf), NULL, 0, NI_NAMEREQD) == 0) {
+		return String(hbuf);
+	}
+	throw UnknownHostException(addr.toString());
 }
 
 String Resolver::typeName(Type t)

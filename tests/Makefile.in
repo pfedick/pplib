@@ -47,6 +47,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/avltree.o compile/assocarray.o compile/pointer.o \
 	compile/file.o compile/gzfile.o compile/list.o compile/functions.o \
 	compile/inet.o compile/resolver.o compile/widestrings.o \
+	compile/inet_ipaddress.o compile/inet_ipnetwork.o \
 	compile/variant.o compile/iconv.o \
 	compile/stringfunctions.o compile/math.o\
 	compile/configparser.o \
@@ -215,6 +216,14 @@ compile/dir.o: src/dir.cpp Makefile ppl7-tests.h
 compile/inet.o: src/inet.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/inet.o -c src/inet.cpp $(CFLAGS) $(LIB)
+
+compile/inet_ipaddress.o: src/inet_ipaddress.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/inet_ipaddress.o -c src/inet_ipaddress.cpp $(CFLAGS) $(LIB)
+
+compile/inet_ipnetwork.o: src/inet_ipnetwork.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/inet_ipnetwork.o -c src/inet_ipnetwork.cpp $(CFLAGS) $(LIB)
 
 compile/list.o: src/list.cpp Makefile compile/wordlist.o ppl7-tests.h
 	mkdir -p compile

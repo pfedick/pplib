@@ -379,6 +379,15 @@ AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_FUNCS([inet_ntop inet_pton inet_aton inet_ntoa inet_ntoa_r inet_addr inet_network inet_makeaddr])
 
+AC_CACHE_CHECK([for sa_len in struct sockaddr], ac_cv_struct_sa_len,
+[AC_TRY_COMPILE([#include <sys/types.h>
+#include <sys/socket.h>], [struct sockaddr s; s.sa_len;],
+ac_cv_struct_sa_len=yes, ac_cv_struct_sa_len=no)])
+if test $ac_cv_struct_sa_len = yes; then
+  AC_DEFINE(HAVE_SOCKADDR_SA_LEN)
+fi
+
+
 # Resolver
 AM_CHECK_LIBBIND()
 report_have_libbind="no"

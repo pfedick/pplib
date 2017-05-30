@@ -77,6 +77,8 @@ mixedv4v6.ppl       IN  A 192.168.16.76
  *
  */
 
+
+/*
 TEST_F(Resolver, SingleIPv4_af_all) {
 	ASSERT_NO_THROW ({
 		try {
@@ -387,6 +389,9 @@ TEST_F(Resolver, MixedIPv4v6_af_inet6) {
 		}
 	});
 }
+
+
+*/
 
 TEST_F(Resolver, query_NS) {
 	ppl7::Array a;

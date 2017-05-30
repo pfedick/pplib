@@ -67,6 +67,7 @@
 #undef HAVE_MKDIR
 #undef HAVE_REALLOC
 #undef HAVE_SOCKET
+#undef HAVE_SOCKADDR_SA_LEN
 #undef HAVE_STDARG_H
 #undef HAVE_STDDEF_H
 #undef HAVE_STDBOOL_H

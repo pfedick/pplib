@@ -78,12 +78,9 @@ PPLEXCEPTION(SettingSocketOptionException,NetworkException);
 PPLEXCEPTION(InvalidIpAddressException,NetworkException);
 
 
-
-
-
-
-
 PPLEXCEPTION(ResolverException,Exception);
+PPLEXCEPTION(UnknownHostException,Exception);
+
 
 
 
@@ -126,17 +123,31 @@ class SockAddr
 class IPAddress
 {
 	public:
+		enum IP_FAMILY {
+			UNKNOWN=0,
+			IPv4=4,
+			IPv6=6
+		};
+	private:
+		unsigned char _addr[16];
+		IP_FAMILY _family;
+	public:
 		IPAddress();
 		IPAddress(const IPAddress &other);
+		IPAddress(const String &other);
 		IPAddress &operator=(const IPAddress &other);
-		SockAddr	sockaddr;
-		String		name;
-		String		ip;
-        int			ai_family;
-        int			ai_socktype;
-        int			ai_protocol;
-        String		ai_canonname;
-
+		IPAddress &operator=(const String &other);
+		void set(const IPAddress &other);
+		void set(const String &address);
+		void set(IP_FAMILY family, void *addr, size_t addr_len);
+		//void setFromSockAddr(const void *sockaddr, size_t sockaddr_len);
+		IPAddress::IP_FAMILY family() const;
+		const void *addr() const;
+		size_t addr_len() const;
+		String toString() const;
+		operator String() const;
+		void toSockAddr(void *sockaddr, size_t sockaddr_len) const;
+		int compare(const IPAddress &other) const;
 		bool operator<(const IPAddress &other) const;
 		bool operator<=(const IPAddress &other) const;
 		bool operator==(const IPAddress &other) const;
@@ -146,9 +157,11 @@ class IPAddress
 
 };
 
+std::ostream& operator<<(std::ostream& s, const IPAddress &addr);
+
 void InitSockets();
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
-size_t GetHostByAddr(const String &addr, std::list<IPAddress> &result);
+size_t GetHostByAddr(const IPAddress &addr, String &hostname);
 ppluint32 Ntohl(ppluint32 net);
 ppluint32 Htonl(ppluint32 host);
 ppluint16 Ntohs(ppluint16 net);
