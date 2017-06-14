@@ -132,6 +132,9 @@ TEST_F(InetIPAddressTest, IPv6toString) {
 	ppl7::IPAddress adr;
 	adr.set("2001:678:2A::53");
 	ASSERT_EQ(ppl7::String("2001:678:2a::53"), adr.toString());
+	adr.set("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+	ASSERT_EQ(ppl7::String("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"), adr.toString());
+
 }
 
 TEST_F(InetIPAddressTest, UnsetIpAddressThrowsException) {
@@ -306,8 +309,71 @@ TEST_F(InetIPAddressTest, sortIPAddresses) {
 	ASSERT_EQ(ppl7::IPAddress("2001:678:2::1"),(*it++));
 	ASSERT_EQ(ppl7::IPAddress("2001:678:2A::53"),(*it++));
 	ASSERT_EQ(ppl7::IPAddress("2002:dead:2::1"),(*it++));
+}
+
+TEST_F(InetIPAddressTest, mask_v4) {
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.255"),ppl7::IPAddress("255.255.255.255").mask(32));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.254"),ppl7::IPAddress("255.255.255.255").mask(31));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.252"),ppl7::IPAddress("255.255.255.255").mask(30));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.248"),ppl7::IPAddress("255.255.255.255").mask(29));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.240"),ppl7::IPAddress("255.255.255.255").mask(28));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.224"),ppl7::IPAddress("255.255.255.255").mask(27));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.192"),ppl7::IPAddress("255.255.255.255").mask(26));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.128"),ppl7::IPAddress("255.255.255.255").mask(25));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.0"),ppl7::IPAddress("255.255.255.255").mask(24));
+
+	ASSERT_EQ(ppl7::IPAddress("255.255.254.0"),ppl7::IPAddress("255.255.255.255").mask(23));
+	ASSERT_EQ(ppl7::IPAddress("255.255.252.0"),ppl7::IPAddress("255.255.255.255").mask(22));
+	ASSERT_EQ(ppl7::IPAddress("255.255.248.0"),ppl7::IPAddress("255.255.255.255").mask(21));
+	ASSERT_EQ(ppl7::IPAddress("255.255.240.0"),ppl7::IPAddress("255.255.255.255").mask(20));
+	ASSERT_EQ(ppl7::IPAddress("255.255.224.0"),ppl7::IPAddress("255.255.255.255").mask(19));
+	ASSERT_EQ(ppl7::IPAddress("255.255.192.0"),ppl7::IPAddress("255.255.255.255").mask(18));
+	ASSERT_EQ(ppl7::IPAddress("255.255.128.0"),ppl7::IPAddress("255.255.255.255").mask(17));
+	ASSERT_EQ(ppl7::IPAddress("255.255.0.0"),ppl7::IPAddress("255.255.255.255").mask(16));
+
+	ASSERT_EQ(ppl7::IPAddress("255.254.0.0"),ppl7::IPAddress("255.255.255.255").mask(15));
+	ASSERT_EQ(ppl7::IPAddress("255.252.0.0"),ppl7::IPAddress("255.255.255.255").mask(14));
+	ASSERT_EQ(ppl7::IPAddress("255.248.0.0"),ppl7::IPAddress("255.255.255.255").mask(13));
+	ASSERT_EQ(ppl7::IPAddress("255.240.0.0"),ppl7::IPAddress("255.255.255.255").mask(12));
+	ASSERT_EQ(ppl7::IPAddress("255.224.0.0"),ppl7::IPAddress("255.255.255.255").mask(11));
+	ASSERT_EQ(ppl7::IPAddress("255.192.0.0"),ppl7::IPAddress("255.255.255.255").mask(10));
+	ASSERT_EQ(ppl7::IPAddress("255.128.0.0"),ppl7::IPAddress("255.255.255.255").mask(9));
+	ASSERT_EQ(ppl7::IPAddress("255.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(8));
+
+	ASSERT_EQ(ppl7::IPAddress("254.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(7));
+	ASSERT_EQ(ppl7::IPAddress("252.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(6));
+	ASSERT_EQ(ppl7::IPAddress("248.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(5));
+	ASSERT_EQ(ppl7::IPAddress("240.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(4));
+	ASSERT_EQ(ppl7::IPAddress("224.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(3));
+	ASSERT_EQ(ppl7::IPAddress("192.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(2));
+	ASSERT_EQ(ppl7::IPAddress("128.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(1));
+	ASSERT_EQ(ppl7::IPAddress("0.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(0));
 
 }
+
+TEST_F(InetIPAddressTest, mask_v6) {
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(128));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(127));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffc"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(126));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fff8"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(125));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fff0"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(124));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffe0"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(123));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffc0"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(122));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(112));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(96));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(64));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(48));
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(32));
+	ASSERT_EQ(ppl7::IPAddress("ffff:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(16));
+	ASSERT_EQ(ppl7::IPAddress("ff00:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(8));
+	ASSERT_EQ(ppl7::IPAddress("fe00:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(7));
+	ASSERT_EQ(ppl7::IPAddress("f000:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(4));
+	ASSERT_EQ(ppl7::IPAddress("e000:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(3));
+	ASSERT_EQ(ppl7::IPAddress("c000:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(2));
+	ASSERT_EQ(ppl7::IPAddress("8000:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(1));
+	ASSERT_EQ(ppl7::IPAddress("0000:0000:0000:0000:0000:0000:0000:0000"),ppl7::IPAddress("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").mask(0));
+}
+
 
 }	// EOF namespace
 

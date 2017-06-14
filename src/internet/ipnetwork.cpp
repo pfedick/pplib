@@ -86,6 +86,98 @@
 
 namespace ppl7 {
 
+IPNetwork::IPNetwork()
+{
+	_prefixlen=-1;
+}
+
+IPNetwork::IPNetwork(const IPNetwork &other)
+{
+	_prefixlen=-1;
+	set(other);
+}
+
+IPNetwork::IPNetwork(const String &other)
+{
+	_prefixlen=-1;
+	set(other);
+}
+
+IPNetwork &IPNetwork::operator=(const IPNetwork &other)
+{
+	set(other);
+	return *this;
+}
+
+IPNetwork &IPNetwork::operator=(const String &other)
+{
+	set(other);
+	return *this;
+}
+
+
+void IPNetwork::set(const IPAddress &other, int prefixlen)
+{
+	_addr=other.mask(prefixlen);
+	_prefixlen=prefixlen;
+}
+
+void IPNetwork::set(const IPNetwork &other)
+{
+	_prefixlen=other._prefixlen;
+	_addr=other._addr;
+}
+
+void IPNetwork::set(const String &network)
+{
+	int t=network.instr("/");
+	if (t<0) throw InvalidNetworkAddressException(network);
+	IPAddress addr=network.left(t);
+	String mask=network.mid(t+1);
+	int prefixlen=0;
+	if (mask.instr(".")>=0) {
+		// netzmaske
+	} else {
+		prefixlen=mask.toInt();
+	}
+	_addr=addr.mask(prefixlen);
+	_prefixlen=prefixlen;
+}
+
+IPAddress::IP_FAMILY IPNetwork::family() const
+{
+	return _addr.family();
+}
+
+IPAddress IPNetwork::first() const
+{
+	if (_prefixlen<0) throw InvalidNetworkAddressException();
+	return _addr;
+}
+
+IPAddress IPNetwork::last() const
+{
+	if (_prefixlen<0) throw InvalidNetworkAddressException();
+	// TODO
+	return _addr;
+}
+
+int IPNetwork::prefixlen() const
+{
+	if (_prefixlen<0) throw InvalidNetworkAddressException();
+	return _prefixlen;
+}
+
+String IPNetwork::toString() const
+{
+	if (_prefixlen<0) throw InvalidNetworkAddressException();
+	return ppl7::ToString("%s/%d",(const char*)_addr.toString(),_prefixlen);
+}
+
+IPNetwork::operator String() const
+{
+	return toString();
+}
 
 
 }	// namespace ppl7

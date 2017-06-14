@@ -96,6 +96,54 @@ static int cmp_addr(IPAddress::IP_FAMILY f1, const void * a1, IPAddress::IP_FAMI
 	return memcmp(a1,a2,16);
 }
 
+static unsigned int maskv4[]={
+		0x00000000,
+		0x80000000,
+		0xc0000000,
+		0xe0000000,
+		0xf0000000,
+		0xf8000000,
+		0xfc000000,
+		0xfe000000,
+		0xff000000,
+		0xff800000,
+		0xffc00000,
+		0xffe00000,
+		0xfff00000,
+		0xfff80000,
+		0xfffc0000,
+		0xfffe0000,
+		0xffff0000,
+		0xffff8000,
+		0xffffc000,
+		0xffffe000,
+		0xfffff000,
+		0xfffff800,
+		0xfffffc00,
+		0xfffffe00,
+		0xffffff00,
+		0xffffff80,
+		0xffffffc0,
+		0xffffffe0,
+		0xfffffff0,
+		0xfffffff8,
+		0xfffffffc,
+		0xfffffffe,
+		0xffffffff
+};
+
+static unsigned int bytemask[]={
+		0x00,
+		0x80,
+		0xc0,
+		0xe0,
+		0xf0,
+		0xf8,
+		0xfc,
+		0xfe,
+		0xff
+};
+
 
 IPAddress::IPAddress()
 {
@@ -175,7 +223,7 @@ void IPAddress::set(const String &address)
 	}
 	if (res!=1) {
 		_family=UNKNOWN;
-		throw InvalidIpAddressException(address);
+		throw InvalidIpAddressException("%s",(const char*)address);
 	}
 }
 
@@ -214,13 +262,14 @@ size_t IPAddress::addr_len() const
 String IPAddress::toString() const
 {
 	if (_family==UNKNOWN) throw InvalidIpAddressException();
-	char hbuf[INET_ADDRSTRLEN];
+	char hbuf[INET6_ADDRSTRLEN];
+	memset(hbuf,0,INET_ADDRSTRLEN);
 	if (_family==IPv4) {
-		if (NULL==inet_ntop(AF_INET, &_addr, hbuf,INET_ADDRSTRLEN)) {
+		if (NULL==inet_ntop(AF_INET, &_addr, hbuf,INET6_ADDRSTRLEN)) {
 			throw InvalidIpAddressException();
 		}
 	} else {
-		if (NULL==inet_ntop(AF_INET6, &_addr, hbuf,INET_ADDRSTRLEN)) {
+		if (NULL==inet_ntop(AF_INET6, &_addr, hbuf,INET6_ADDRSTRLEN)) {
 			throw InvalidIpAddressException();
 		}
 	}
@@ -230,6 +279,31 @@ String IPAddress::toString() const
 IPAddress::operator String() const
 {
 	return toString();
+}
+
+IPAddress IPAddress::mask(int prefixlen) const
+{
+	if (_family==IPAddress::IPv4) {
+		if (prefixlen<0 || prefixlen>32) throw InvalidNetmaskOrPrefixlenException("%d",prefixlen);
+		IPAddress tmp(*this);
+		((unsigned int*)tmp._addr)[0]&=htonl(maskv4[prefixlen]);
+		return tmp;
+	} else if (_family==IPAddress::IPv6) {
+		if (prefixlen<0 || prefixlen>128) throw InvalidNetmaskOrPrefixlenException("%d",prefixlen);
+		IPAddress tmp(*this);
+		int prange=120;
+		for (int byte=15;byte>=0;byte--) {
+			if (prefixlen>prange) {
+				tmp._addr[byte]=(unsigned char)bytemask[prefixlen-prange];
+				byte=0;
+			} else {
+				tmp._addr[byte]=(unsigned char)0;
+			}
+			prange-=8;
+		}
+		return tmp;
+	}
+	throw InvalidIpAddressException();
 }
 
 int IPAddress::compare(const IPAddress &other) const

@@ -76,6 +76,8 @@ PPLEXCEPTION(SSLInstanceNotInitializedException,NetworkException);
 PPLEXCEPTION(SSLConnectionFailedException,NetworkException);
 PPLEXCEPTION(SettingSocketOptionException,NetworkException);
 PPLEXCEPTION(InvalidIpAddressException,NetworkException);
+PPLEXCEPTION(InvalidNetworkAddressException,NetworkException);
+PPLEXCEPTION(InvalidNetmaskOrPrefixlenException,NetworkException);
 
 
 PPLEXCEPTION(ResolverException,Exception);
@@ -124,6 +126,9 @@ class IPAddress
 		size_t addr_len() const;
 		String toString() const;
 		operator String() const;
+
+		IPAddress mask(int prefixlen) const;
+
 		void toSockAddr(void *sockaddr, size_t sockaddr_len) const;
 		int compare(const IPAddress &other) const;
 		bool operator<(const IPAddress &other) const;
@@ -139,11 +144,32 @@ class IPNetwork
 	public:
 	private:
 		IPAddress	_addr;
-		int			netmask;
+		int			_prefixlen;
 	public:
 		IPNetwork();
+		IPNetwork(const IPNetwork &other);
+		IPNetwork(const String &other);
+		IPNetwork &operator=(const IPNetwork &other);
+		IPNetwork &operator=(const String &other);
+		void set(const IPAddress &other, int prefixlen);
 		void set(const IPNetwork &other);
 		void set(const String &network);
+		IPAddress::IP_FAMILY family() const;
+		IPAddress first() const;
+		IPAddress last() const;
+		int prefixlen() const;
+		String toString() const;
+		operator String() const;
+		bool contains(const IPAddress &addr) const;
+
+		int compare(const IPNetwork &other) const;
+		bool operator<(const IPNetwork &other) const;
+		bool operator<=(const IPNetwork &other) const;
+		bool operator==(const IPNetwork &other) const;
+		bool operator!=(const IPNetwork &other) const;
+		bool operator>=(const IPNetwork &other) const;
+		bool operator>(const IPNetwork &other) const;
+
 };
 
 class SockAddr
