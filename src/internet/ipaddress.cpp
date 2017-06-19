@@ -261,7 +261,7 @@ IPAddress IPAddress::mask(int prefixlen) const
 	int prange=hbyte*8;
 	for (int byte=hbyte;byte>=0;byte--) {
 		if (prefixlen>prange) {
-			tmp._addr[byte]=(unsigned char)bytemask[prefixlen-prange];
+			tmp._addr[byte]&=(unsigned char)bytemask[prefixlen-prange];
 			byte=0;
 		} else {
 			tmp._addr[byte]=(unsigned char)0;

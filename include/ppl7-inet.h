@@ -139,6 +139,8 @@ class IPAddress
 		bool operator>(const IPAddress &other) const;
 };
 
+std::ostream& operator<<(std::ostream& s, const IPAddress &addr);
+
 class IPNetwork
 {
 	public:
@@ -155,12 +157,15 @@ class IPNetwork
 		void set(const IPNetwork &other);
 		void set(const String &network);
 		IPAddress::IP_FAMILY family() const;
+		IPAddress addr() const;
 		IPAddress first() const;
 		IPAddress last() const;
+		IPAddress netmask() const;
 		int prefixlen() const;
 		String toString() const;
 		operator String() const;
 		bool contains(const IPAddress &addr) const;
+
 
 		int compare(const IPNetwork &other) const;
 		bool operator<(const IPNetwork &other) const;
@@ -171,6 +176,8 @@ class IPNetwork
 		bool operator>(const IPNetwork &other) const;
 
 };
+
+std::ostream& operator<<(std::ostream& s, const IPNetwork &net);
 
 class SockAddr
 {
@@ -194,8 +201,6 @@ class SockAddr
 		IPAddress toIPAddress() const;
 };
 
-
-std::ostream& operator<<(std::ostream& s, const IPAddress &addr);
 
 void InitSockets();
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);

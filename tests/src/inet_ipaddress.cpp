@@ -134,7 +134,6 @@ TEST_F(InetIPAddressTest, IPv6toString) {
 	ASSERT_EQ(ppl7::String("2001:678:2a::53"), adr.toString());
 	adr.set("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
 	ASSERT_EQ(ppl7::String("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"), adr.toString());
-
 }
 
 TEST_F(InetIPAddressTest, UnsetIpAddressThrowsException) {
@@ -314,16 +313,16 @@ TEST_F(InetIPAddressTest, sortIPAddresses) {
 TEST_F(InetIPAddressTest, mask_v4) {
 	ASSERT_EQ(ppl7::IPAddress("255.255.255.255"),ppl7::IPAddress("255.255.255.255").mask(32));
 	ASSERT_EQ(ppl7::IPAddress("255.255.255.254"),ppl7::IPAddress("255.255.255.255").mask(31));
-	ASSERT_EQ(ppl7::IPAddress("255.255.255.252"),ppl7::IPAddress("255.255.255.255").mask(30));
-	ASSERT_EQ(ppl7::IPAddress("255.255.255.248"),ppl7::IPAddress("255.255.255.255").mask(29));
-	ASSERT_EQ(ppl7::IPAddress("255.255.255.240"),ppl7::IPAddress("255.255.255.255").mask(28));
-	ASSERT_EQ(ppl7::IPAddress("255.255.255.224"),ppl7::IPAddress("255.255.255.255").mask(27));
-	ASSERT_EQ(ppl7::IPAddress("255.255.255.192"),ppl7::IPAddress("255.255.255.255").mask(26));
-	ASSERT_EQ(ppl7::IPAddress("255.255.255.128"),ppl7::IPAddress("255.255.255.255").mask(25));
-	ASSERT_EQ(ppl7::IPAddress("255.255.255.0"),ppl7::IPAddress("255.255.255.255").mask(24));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.252"),ppl7::IPAddress("255.255.255.253").mask(30));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.248"),ppl7::IPAddress("255.255.255.249").mask(29));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.240"),ppl7::IPAddress("255.255.255.241").mask(28));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.224"),ppl7::IPAddress("255.255.255.225").mask(27));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.192"),ppl7::IPAddress("255.255.255.193").mask(26));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.128"),ppl7::IPAddress("255.255.255.129").mask(25));
+	ASSERT_EQ(ppl7::IPAddress("255.255.255.0"),ppl7::IPAddress("255.255.255.1").mask(24));
 
 	ASSERT_EQ(ppl7::IPAddress("255.255.254.0"),ppl7::IPAddress("255.255.255.255").mask(23));
-	ASSERT_EQ(ppl7::IPAddress("255.255.252.0"),ppl7::IPAddress("255.255.255.255").mask(22));
+	ASSERT_EQ(ppl7::IPAddress("255.255.252.0"),ppl7::IPAddress("255.255.253.255").mask(22));
 	ASSERT_EQ(ppl7::IPAddress("255.255.248.0"),ppl7::IPAddress("255.255.255.255").mask(21));
 	ASSERT_EQ(ppl7::IPAddress("255.255.240.0"),ppl7::IPAddress("255.255.255.255").mask(20));
 	ASSERT_EQ(ppl7::IPAddress("255.255.224.0"),ppl7::IPAddress("255.255.255.255").mask(19));
@@ -348,6 +347,7 @@ TEST_F(InetIPAddressTest, mask_v4) {
 	ASSERT_EQ(ppl7::IPAddress("192.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(2));
 	ASSERT_EQ(ppl7::IPAddress("128.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(1));
 	ASSERT_EQ(ppl7::IPAddress("0.0.0.0"),ppl7::IPAddress("255.255.255.255").mask(0));
+	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),ppl7::IPAddress("172.16.102.1").mask(22));
 
 }
 

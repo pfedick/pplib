@@ -86,6 +86,19 @@
 
 namespace ppl7 {
 
+static unsigned int bytemask[]={
+		0x00,
+		0x80,
+		0xc0,
+		0xe0,
+		0xf0,
+		0xf8,
+		0xfc,
+		0xfe,
+		0xff
+};
+
+
 IPNetwork::IPNetwork()
 {
 	_prefixlen=-1;
@@ -149,6 +162,12 @@ IPAddress::IP_FAMILY IPNetwork::family() const
 	return _addr.family();
 }
 
+IPAddress IPNetwork::addr() const
+{
+	if (_prefixlen<0) throw InvalidNetworkAddressException();
+	return _addr;
+}
+
 IPAddress IPNetwork::first() const
 {
 	if (_prefixlen<0) throw InvalidNetworkAddressException();
@@ -158,8 +177,13 @@ IPAddress IPNetwork::first() const
 IPAddress IPNetwork::last() const
 {
 	if (_prefixlen<0) throw InvalidNetworkAddressException();
-	// TODO
-	return _addr;
+	IPAddress mask=netmask();
+	IPAddress ret(_addr);
+	unsigned char *adr=(unsigned char*)mask.addr();
+	unsigned char *r=(unsigned char*)ret.addr();
+	for (size_t i=0;i<mask.addr_len();i++)
+		r[i]+=255-adr[i];
+	return ret;
 }
 
 int IPNetwork::prefixlen() const
@@ -178,6 +202,102 @@ IPNetwork::operator String() const
 {
 	return toString();
 }
+
+
+IPAddress IPNetwork::netmask() const
+{
+	int hbyte=0;
+	if (_addr.family()==IPAddress::IPv4) {
+		hbyte=3;
+	} else if (_addr.family()==IPAddress::IPv6) {
+		hbyte=15;
+	} else {
+		throw InvalidIpAddressException();
+	}
+	unsigned char tmp[16];
+	memset(tmp,255,16);
+	int prange=hbyte*8;
+	for (int byte=hbyte;byte>=0;byte--) {
+		if (_prefixlen>prange) {
+			tmp[byte]=(unsigned char)bytemask[_prefixlen-prange];
+			byte=0;
+		} else {
+			tmp[byte]=(unsigned char)0;
+		}
+		prange-=8;
+	}
+	return IPAddress(_addr.family(),&tmp,_addr.addr_len());
+}
+
+bool IPNetwork::contains(const IPAddress &addr) const
+{
+	IPAddress start=first();
+	IPAddress end=last();
+	if (addr>=start && addr<=end) return true;
+	return false;
+}
+
+
+static int cmp_net(const IPNetwork &net1, const IPNetwork &net2)
+{
+	int ret=net1.addr().compare(net2.addr());
+	if (ret==0) {
+		if (net1.prefixlen()<net2.prefixlen()) ret=1;
+		else if (net1.prefixlen()>net2.prefixlen()) ret=-1;
+	}
+	return ret;
+}
+
+
+int IPNetwork::compare(const IPNetwork &other) const
+{
+	return cmp_net(*this, other);
+}
+
+bool IPNetwork::operator<(const IPNetwork &other) const
+{
+	if (cmp_net(*this, other)<0) return true;
+	return false;
+}
+
+bool IPNetwork::operator<=(const IPNetwork &other) const
+{
+	if (cmp_net(*this, other)<=0) return true;
+	return false;
+}
+
+bool IPNetwork::operator==(const IPNetwork &other) const
+{
+	if (cmp_net(*this, other)==0) return true;
+	return false;
+}
+
+bool IPNetwork::operator!=(const IPNetwork &other) const
+{
+	if (cmp_net(*this, other)!=0) return true;
+	return false;
+}
+
+bool IPNetwork::operator>=(const IPNetwork &other) const
+{
+	if (cmp_net(*this, other)>=0) return true;
+	return false;
+}
+
+bool IPNetwork::operator>(const IPNetwork &other) const
+{
+	if (cmp_net(*this, other)>0) return true;
+	return false;
+}
+
+
+std::ostream& operator<<(std::ostream& s, const IPNetwork &net)
+{
+	String str=net.toString();
+	return s.write((const char*)str,str.size());
+}
+
+
 
 
 }	// namespace ppl7
