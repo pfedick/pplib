@@ -103,6 +103,10 @@ TEST_F(InetIPNetworkTest, setFromString) {
 		net.set("194.3.4.1/33");
 	},ppl7::InvalidNetmaskOrPrefixlenException);
 	ASSERT_THROW({
+		net.set("194.3.4.1/255.255.255.0");
+	},ppl7::InvalidNetmaskOrPrefixlenException);
+
+	ASSERT_THROW({
 		net.set("194.3.4.1");
 	},ppl7::InvalidNetworkAddressException);
 }
@@ -118,6 +122,10 @@ TEST_F(InetIPNetworkTest, setFromIPAddressAndPrefixlen) {
 	ASSERT_THROW({
 		net.set(adr,33);
 	},ppl7::InvalidNetmaskOrPrefixlenException);
+
+	ASSERT_THROW({
+		net.set(ppl7::IPAddress(),24);
+	},ppl7::InvalidIpAddressException);
 }
 
 TEST_F(InetIPNetworkTest, OperatorSetWithNetwork) {

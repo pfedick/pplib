@@ -149,6 +149,7 @@ void IPNetwork::set(const String &network)
 	String mask=network.mid(t+1);
 	int prefixlen=0;
 	if (mask.instr(".")>=0) {
+		throw InvalidNetmaskOrPrefixlenException(network);
 		// netzmaske
 	} else {
 		prefixlen=mask.toInt();
