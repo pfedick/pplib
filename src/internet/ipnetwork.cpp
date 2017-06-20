@@ -149,6 +149,7 @@ void IPNetwork::set(const String &network)
 	String mask=network.mid(t+1);
 	int prefixlen=0;
 	if (mask.instr(".")>=0) {
+		throw InvalidNetmaskOrPrefixlenException(network);
 		// netzmaske
 	} else {
 		prefixlen=mask.toInt();
@@ -212,7 +213,7 @@ IPAddress IPNetwork::netmask() const
 	} else if (_addr.family()==IPAddress::IPv6) {
 		hbyte=15;
 	} else {
-		throw InvalidIpAddressException();
+		throw InvalidNetworkAddressException();
 	}
 	unsigned char tmp[16];
 	memset(tmp,255,16);

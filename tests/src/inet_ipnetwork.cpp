@@ -103,6 +103,10 @@ TEST_F(InetIPNetworkTest, setFromString) {
 		net.set("194.3.4.1/33");
 	},ppl7::InvalidNetmaskOrPrefixlenException);
 	ASSERT_THROW({
+		net.set("194.3.4.1/255.255.255.0");
+	},ppl7::InvalidNetmaskOrPrefixlenException);
+
+	ASSERT_THROW({
 		net.set("194.3.4.1");
 	},ppl7::InvalidNetworkAddressException);
 }
@@ -118,6 +122,10 @@ TEST_F(InetIPNetworkTest, setFromIPAddressAndPrefixlen) {
 	ASSERT_THROW({
 		net.set(adr,33);
 	},ppl7::InvalidNetmaskOrPrefixlenException);
+
+	ASSERT_THROW({
+		net.set(ppl7::IPAddress(),24);
+	},ppl7::InvalidIpAddressException);
 }
 
 TEST_F(InetIPNetworkTest, OperatorSetWithNetwork) {
@@ -143,23 +151,54 @@ TEST_F(InetIPNetworkTest, toString) {
 	ASSERT_EQ(ppl7::String("172.16.100.0/22"), ppl7::IPNetwork("172.16.102.54/22").toString());
 	ASSERT_EQ(ppl7::String("2001:678:2a::/64"), ppl7::IPNetwork("2001:678:2A::53/64").toString());
 	ASSERT_EQ(ppl7::String("2001:678:2a::/64"), (ppl7::String)ppl7::IPNetwork("2001:678:2A::53/64"));
+	ASSERT_THROW({
+		ppl7::IPNetwork().toString();
+	},ppl7::InvalidNetworkAddressException);
 }
+
+TEST_F(InetIPNetworkTest, prefixlen) {
+	ppl7::IPNetwork net("172.16.102.54/22");
+	ASSERT_EQ((int) 22, net.prefixlen());
+	ASSERT_THROW({
+		ppl7::IPNetwork().prefixlen();
+	},ppl7::InvalidNetworkAddressException);
+}
+
 
 TEST_F(InetIPNetworkTest, netmask) {
 	ppl7::IPNetwork net;
 	net.set("172.16.102.1/22");
 	ASSERT_EQ(ppl7::String("172.16.100.0/22"),net.toString());
 	ASSERT_EQ(ppl7::IPAddress("255.255.252.0"),net.netmask());
+	net.set("2a01:4f8:202:109a::2/64");
+	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff::"),net.netmask());
+	ASSERT_THROW({
+			ppl7::IPNetwork().netmask();
+	},ppl7::InvalidNetworkAddressException);
+}
+
+TEST_F(InetIPNetworkTest, addr) {
+	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),ppl7::IPNetwork("172.16.102.54/22").addr());
+	ASSERT_EQ(ppl7::IPAddress("2a01:4f8:202:109a::"),ppl7::IPNetwork("2a01:4f8:202:109a::2/64").addr());
+	ASSERT_THROW({
+		ppl7::IPNetwork().addr();
+	},ppl7::InvalidNetworkAddressException);
 }
 
 TEST_F(InetIPNetworkTest, first) {
 	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),ppl7::IPNetwork("172.16.102.54/22").first());
 	ASSERT_EQ(ppl7::IPAddress("2a01:4f8:202:109a::"),ppl7::IPNetwork("2a01:4f8:202:109a::2/64").first());
+	ASSERT_THROW({
+		ppl7::IPNetwork().first();
+	},ppl7::InvalidNetworkAddressException);
 }
 
 TEST_F(InetIPNetworkTest, last) {
 	ASSERT_EQ(ppl7::IPAddress("172.16.103.255"),ppl7::IPNetwork("172.16.102.54/22").last());
 	ASSERT_EQ(ppl7::IPAddress("2a01:4f8:202:109a:ffff:ffff:ffff:ffff"),ppl7::IPNetwork("2a01:4f8:202:109a::2/64").last());
+	ASSERT_THROW({
+		ppl7::IPNetwork().last();
+	},ppl7::InvalidNetworkAddressException);
 }
 
 TEST_F(InetIPNetworkTest, contains) {
