@@ -96,6 +96,21 @@ TEST_F(InetIPNetworkTest, setFromString) {
 	ASSERT_EQ(ppl7::IPAddress("2001:678:2a::"),net.addr());
 	ASSERT_EQ((int)64,net.prefixlen());
 
+	ASSERT_NO_THROW ({
+		net.set("194.3.4.1/255.255.255.0");
+	});
+	ASSERT_EQ(ppl7::IPAddress::IPv4, net.family());
+	ASSERT_EQ(ppl7::IPAddress("194.3.4.0"),net.addr());
+	ASSERT_EQ((int)24,net.prefixlen());
+
+	ASSERT_NO_THROW ({
+		net.set("2001:678:2a::53/ffff:ffff:ffff::");
+	});
+	ASSERT_EQ(ppl7::IPAddress::IPv6, net.family());
+	ASSERT_EQ(ppl7::IPAddress("2001:678:2a::"),net.addr());
+	ASSERT_EQ((int)48,net.prefixlen());
+
+
 	ASSERT_THROW({
 		net.set("257.3.4.1/24");
 	},ppl7::InvalidIpAddressException);
@@ -103,12 +118,40 @@ TEST_F(InetIPNetworkTest, setFromString) {
 		net.set("194.3.4.1/33");
 	},ppl7::InvalidNetmaskOrPrefixlenException);
 	ASSERT_THROW({
-		net.set("194.3.4.1/255.255.255.0");
+		net.set("194.3.4.1/255.255.255.17");
 	},ppl7::InvalidNetmaskOrPrefixlenException);
-
 	ASSERT_THROW({
 		net.set("194.3.4.1");
 	},ppl7::InvalidNetworkAddressException);
+	ASSERT_THROW({
+		net.set(ppl7::String());
+	},ppl7::InvalidNetworkAddressException);
+}
+
+TEST_F(InetIPNetworkTest, getPrefixlenFromNetmask) {
+	ASSERT_EQ((int)128,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
+	ASSERT_EQ((int)127,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe"));
+	ASSERT_EQ((int)126,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffc"));
+	ASSERT_EQ((int)125,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fff8"));
+	ASSERT_EQ((int)124,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fff0"));
+	ASSERT_EQ((int)123,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffe0"));
+	ASSERT_EQ((int)122,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffc0"));
+	ASSERT_EQ((int)121,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff80"));
+	ASSERT_EQ((int)120,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff00"));
+	ASSERT_EQ((int)16,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff::"));
+	ASSERT_EQ((int)32,ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.255.255"));
+	ASSERT_EQ((int)24,ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.255.0"));
+	ASSERT_EQ((int)22,ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.252.0"));
+
+	ASSERT_THROW({
+		ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:00f0");
+	},ppl7::InvalidNetmaskOrPrefixlenException);
+	ASSERT_THROW({
+		ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.255.13");
+	},ppl7::InvalidNetmaskOrPrefixlenException);
+	ASSERT_THROW({
+		ppl7::IPNetwork::getPrefixlenFromNetmask("255.0.255.255");
+	},ppl7::InvalidNetmaskOrPrefixlenException);
 }
 
 TEST_F(InetIPNetworkTest, setFromIPAddressAndPrefixlen) {

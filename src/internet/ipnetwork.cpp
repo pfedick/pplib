@@ -141,6 +141,53 @@ void IPNetwork::set(const IPNetwork &other)
 	_addr=other._addr;
 }
 
+static int validateNetmaskByte(unsigned char byte)
+{
+	switch(byte) {
+		case 0xfe: return 7;
+		case 0xfc: return 6;
+		case 0xf8: return 5;
+		case 0xf0: return 4;
+		case 0xe0: return 3;
+		case 0xc0: return 2;
+		case 0x80: return 1;
+		case 0x00: return 0;
+		default: return -1;
+	}
+	return -1;
+}
+
+int IPNetwork::getPrefixlenFromNetmask(const String &netmask)
+{
+	unsigned char _addr[16];
+	int len;
+	int res=0;
+	if (netmask.has(":")) {
+		res=inet_pton(AF_INET6, netmask.getPtr(), &_addr);
+		len=16;
+	} else {
+		res=inet_pton(AF_INET, netmask.getPtr(), &_addr);
+		len=4;
+	}
+	if (res!=1) throw InvalidNetmaskOrPrefixlenException("%s",(const char*)netmask);
+	int stage=0;
+	int prefixlen=0;
+	for (int i=0;i<len;i++) {
+		unsigned char byte=_addr[i];
+		if (stage==0 && byte==0xff) {
+			prefixlen+=8;
+		} else if (stage==1 && byte!=0) {
+			throw InvalidNetmaskOrPrefixlenException("%s",(const char*)netmask);
+		} else if (stage==0 && byte!=0xff) {
+			stage=1;
+			int bits=validateNetmaskByte(byte);
+			if (bits<0) throw InvalidNetmaskOrPrefixlenException("%s",(const char*)netmask);
+			prefixlen+=bits;
+		}
+	}
+	return prefixlen;
+}
+
 void IPNetwork::set(const String &network)
 {
 	int t=network.instr("/");
@@ -148,9 +195,9 @@ void IPNetwork::set(const String &network)
 	IPAddress addr=network.left(t);
 	String mask=network.mid(t+1);
 	int prefixlen=0;
-	if (mask.instr(".")>=0) {
-		throw InvalidNetmaskOrPrefixlenException(network);
-		// netzmaske
+	if (mask.instr(".")>=0 || mask.instr(":")>=0) {
+		prefixlen=getPrefixlenFromNetmask(mask);
+		if (prefixlen<0) throw InvalidNetmaskOrPrefixlenException("%s",(const char*)mask);
 	} else {
 		prefixlen=mask.toInt();
 	}

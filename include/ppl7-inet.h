@@ -86,11 +86,6 @@ PPLEXCEPTION(UnknownHostException,Exception);
 
 
 
-// TODO
-//int GetHostByName(const char *name, CAssocArray *Result);
-//int GetHostByAddr(const char *addr, CAssocArray *Result);
-String GetHostname();
-
 enum ResolverFlags {
 	af_unspec=0,
 	af_inet=1,
@@ -175,6 +170,8 @@ class IPNetwork
 		bool operator>=(const IPNetwork &other) const;
 		bool operator>(const IPNetwork &other) const;
 
+		static int getPrefixlenFromNetmask(const String &netmask);
+
 };
 
 std::ostream& operator<<(std::ostream& s, const IPNetwork &net);
@@ -203,6 +200,7 @@ class SockAddr
 
 
 void InitSockets();
+String GetHostname();
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
 size_t GetHostByAddr(const IPAddress &addr, String &hostname);
 ppluint32 Ntohl(ppluint32 net);
