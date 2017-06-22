@@ -48,8 +48,8 @@ echo ""
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
-		export CC=clang37
-		export CXX=clang++37
+		export CC=clang40
+		export CXX=clang++40
         	export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		export GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
