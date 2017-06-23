@@ -11,8 +11,14 @@ echo ""
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
-	    export CC=clang37
-        export CXX=clang++37
+	    CLANGVERSION=""
+        if [ -x /usr/local/bin/clang40 ]; then
+            CLANGVERSION=40
+        elif [ -x /usr/local/bin/clang37 ]; then
+            CLANGVERSION=37
+        fi
+        export CC=clang$CLANGVERSION
+        export CXX=clang++$CLANGVERSION
 	    export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --prefix=$PREFIX \
