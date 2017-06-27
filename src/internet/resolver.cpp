@@ -219,16 +219,22 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
 		throw NetworkException("getaddrinfo(%s) returned %i: %s",(const char*)name,n,gai_strerror(n));
 	}
 	ressave=res;
-	char hbuf[NI_MAXHOST];
+	//char hbuf[INET6_ADDRSTRLEN];
 	do {
-		if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
+		//if (getnameinfo(res->ai_addr,res->ai_addrlen, hbuf, sizeof(hbuf), NULL, 0, NI_NUMERICHOST) == 0) {
 			IPAddress ip;
-			if (res->ai_family==AF_INET)
-				ip.set(IPAddress::IPv4, res->ai_addr, res->ai_addrlen);
-			else if (res->ai_family==AF_INET6)
-				ip.set(IPAddress::IPv6, res->ai_addr, res->ai_addrlen);
+			//ip.set(String(hbuf));
+
+			if (res->ai_family==AF_INET) {
+				//HexDump(&((struct sockaddr_in*)res->ai_addr)->sin_addr,4);
+				ip.set(IPAddress::IPv4, &((struct sockaddr_in*)res->ai_addr)->sin_addr,4);
+			} else if (res->ai_family==AF_INET6) {
+				//HexDump(&((struct sockaddr_in6*)res->ai_addr)->sin6_addr,16);
+				ip.set(IPAddress::IPv6, &((struct sockaddr_in6*)res->ai_addr)->sin6_addr,16);
+			}
+
 			result.push_back(ip);
-		}
+		//}
 	} while ((res=res->ai_next)!=NULL);
 	freeaddrinfo(ressave);
 	return result.size();
