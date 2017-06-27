@@ -41,6 +41,17 @@
 #include <ppl7-inet.h>
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
+#ifdef _WIN32
+    #include <winsock2.h>
+	#include <Ws2tcpip.h>
+	#include <windows.h>
+#else
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#endif
+
 
 namespace {
 
@@ -69,297 +80,73 @@ TEST_F(InetSockAddrTest, Constructor) {
 	*/
 }
 
-TEST_F(InetSockAddrTest, setAddrFromIPAddress) {
+TEST_F(InetSockAddrTest, setAddrFromIPv4Address) {
 	ppl7::SockAddr saddr;
 	ASSERT_NO_THROW ({
-		saddr.setAddr(ppl7::IPAddress("172.16.102.1"));
+		saddr.setAddr(ppl7::IPAddress("172.16.102.1"),4711);
 	});
-
+	ASSERT_EQ(ppl7::IPAddress("172.16.102.1"),saddr.toIPAddress());
+	ASSERT_EQ((int)4711,saddr.port());
+	ASSERT_EQ((size_t)sizeof(sockaddr_in),saddr.size());
 }
 
-
-/*
-TEST_F(InetIPNetworkTest, ConstructorWithString) {
-	ppl7::IPNetwork net(ppl7::String("172.16.102.66/22"));
-	ASSERT_EQ(ppl7::IPAddress::IPv4, net.family());
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),net.addr());
-	ASSERT_EQ((int)22,net.prefixlen());
-}
-
-TEST_F(InetIPNetworkTest, CopyConstructor) {
-	ppl7::IPNetwork net1("172.16.102.66/22");
-	ppl7::IPNetwork net2(net1);
-	ASSERT_EQ(ppl7::IPAddress::IPv4, net2.family());
-	ASSERT_EQ(22, net2.prefixlen());
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),net2.addr());
-}
-
-TEST_F(InetIPNetworkTest, setFromString) {
-	ppl7::IPNetwork net;
+TEST_F(InetSockAddrTest, setAddrFromIPv6Address) {
+	ppl7::SockAddr saddr;
 	ASSERT_NO_THROW ({
-		net.set("172.16.102.13/22");
+		saddr.setAddr(ppl7::IPAddress("2001:dead:cafe::42"),4711);
 	});
-	ASSERT_EQ(ppl7::IPAddress::IPv4, net.family());
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),net.addr());
-	ASSERT_EQ((int)22,net.prefixlen());
+	ASSERT_EQ(ppl7::IPAddress("2001:dead:cafe::42"),saddr.toIPAddress());
+	ASSERT_EQ((int)4711,saddr.port());
+	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr.size());
+}
 
+static unsigned char saddr_in_mem[]={0x0a, 0x00, 0x12, 0x67, 0x00, 0x00, 0x00,
+		0x00, 0x20, 0x01, 0xDE,	0xAD, 0xCA, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00, 0x00};
+
+TEST_F(InetSockAddrTest, setAddrFromMemory) {
+	ppl7::SockAddr saddr;
 	ASSERT_NO_THROW ({
-		net.set("2001:678:2a::53/64");
+		saddr.setAddr(saddr_in_mem,sizeof(saddr_in_mem));
 	});
-	ASSERT_EQ(ppl7::IPAddress::IPv6, net.family());
-	ASSERT_EQ(ppl7::IPAddress("2001:678:2a::"),net.addr());
-	ASSERT_EQ((int)64,net.prefixlen());
+	ASSERT_EQ(ppl7::IPAddress("2001:dead:cafe::42"),saddr.toIPAddress());
+	ASSERT_EQ((int)4711,saddr.port());
+	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr.size());
 
-	ASSERT_NO_THROW ({
-		net.set("194.3.4.1/255.255.255.0");
-	});
-	ASSERT_EQ(ppl7::IPAddress::IPv4, net.family());
-	ASSERT_EQ(ppl7::IPAddress("194.3.4.0"),net.addr());
-	ASSERT_EQ((int)24,net.prefixlen());
-
-	ASSERT_NO_THROW ({
-		net.set("2001:678:2a::53/ffff:ffff:ffff::");
-	});
-	ASSERT_EQ(ppl7::IPAddress::IPv6, net.family());
-	ASSERT_EQ(ppl7::IPAddress("2001:678:2a::"),net.addr());
-	ASSERT_EQ((int)48,net.prefixlen());
-
-
-	ASSERT_THROW({
-		net.set("257.3.4.1/24");
-	},ppl7::InvalidIpAddressException);
-	ASSERT_THROW({
-		net.set("194.3.4.1/33");
-	},ppl7::InvalidNetmaskOrPrefixlenException);
-	ASSERT_THROW({
-		net.set("194.3.4.1/255.255.255.17");
-	},ppl7::InvalidNetmaskOrPrefixlenException);
-	ASSERT_THROW({
-		net.set("194.3.4.1");
-	},ppl7::InvalidNetworkAddressException);
-	ASSERT_THROW({
-		net.set(ppl7::String());
-	},ppl7::InvalidNetworkAddressException);
+	//ppl7::HexDump(saddr.addr(),saddr.size());
 }
 
-TEST_F(InetIPNetworkTest, getPrefixlenFromNetmask) {
-	ASSERT_EQ((int)128,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"));
-	ASSERT_EQ((int)127,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffe"));
-	ASSERT_EQ((int)126,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffc"));
-	ASSERT_EQ((int)125,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fff8"));
-	ASSERT_EQ((int)124,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:fff0"));
-	ASSERT_EQ((int)123,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffe0"));
-	ASSERT_EQ((int)122,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffc0"));
-	ASSERT_EQ((int)121,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff80"));
-	ASSERT_EQ((int)120,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff00"));
-	ASSERT_EQ((int)16,ppl7::IPNetwork::getPrefixlenFromNetmask("ffff::"));
-	ASSERT_EQ((int)32,ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.255.255"));
-	ASSERT_EQ((int)24,ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.255.0"));
-	ASSERT_EQ((int)22,ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.252.0"));
-
-	ASSERT_THROW({
-		ppl7::IPNetwork::getPrefixlenFromNetmask("ffff:ffff:ffff:ffff:ffff:ffff:ffff:00f0");
-	},ppl7::InvalidNetmaskOrPrefixlenException);
-	ASSERT_THROW({
-		ppl7::IPNetwork::getPrefixlenFromNetmask("255.255.255.13");
-	},ppl7::InvalidNetmaskOrPrefixlenException);
-	ASSERT_THROW({
-		ppl7::IPNetwork::getPrefixlenFromNetmask("255.0.255.255");
-	},ppl7::InvalidNetmaskOrPrefixlenException);
+TEST_F(InetSockAddrTest, CopyConstructor) {
+	ppl7::SockAddr saddr1(ppl7::IPAddress("2001:dead:cafe::42"),4711);
+	ppl7::SockAddr saddr2(saddr1);
+	ASSERT_EQ(ppl7::IPAddress("2001:dead:cafe::42"),saddr2.toIPAddress());
+	ASSERT_EQ((int)4711,saddr2.port());
+	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr2.size());
+	ASSERT_EQ((int)0,memcmp(saddr1.addr(),saddr2.addr(),saddr1.size()));
 }
 
-TEST_F(InetIPNetworkTest, setFromIPAddressAndPrefixlen) {
-	ppl7::IPAddress adr("172.16.102.66");
-	ppl7::IPNetwork net;
-	net.set(adr,22);
-	ASSERT_EQ(ppl7::IPAddress::IPv4, net.family());
-	ASSERT_EQ(22, net.prefixlen());
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),net.addr());
-
-	ASSERT_THROW({
-		net.set(adr,33);
-	},ppl7::InvalidNetmaskOrPrefixlenException);
-
-	ASSERT_THROW({
-		net.set(ppl7::IPAddress(),24);
-	},ppl7::InvalidIpAddressException);
+TEST_F(InetSockAddrTest, ConstructorWithIPAddressAndPort) {
+	ppl7::SockAddr saddr(ppl7::IPAddress("2001:dead:cafe::42"),4711);
+	ASSERT_EQ(ppl7::IPAddress("2001:dead:cafe::42"),saddr.toIPAddress());
+	ASSERT_EQ((int)4711,saddr.port());
+	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr.size());
 }
 
-TEST_F(InetIPNetworkTest, OperatorSetWithNetwork) {
-	ppl7::IPNetwork net1("172.16.102.66/22");
-	ppl7::IPNetwork net2;
-	net2=net1;
-	ASSERT_EQ(ppl7::IPAddress::IPv4, net2.family());
-	ASSERT_EQ(22, net2.prefixlen());
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),net2.addr());
+TEST_F(InetSockAddrTest, ConstructorWithMemoryAddress) {
+	ppl7::SockAddr saddr(saddr_in_mem,sizeof(saddr_in_mem));
+	ASSERT_EQ(ppl7::IPAddress("2001:dead:cafe::42"),saddr.toIPAddress());
+	ASSERT_EQ((int)4711,saddr.port());
+	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr.size());
 }
 
-TEST_F(InetIPNetworkTest, OperatorSetWithString) {
-	ppl7::String net1("172.16.102.66/22");
-	ppl7::IPNetwork net2;
-	net2=net1;
-	ASSERT_EQ(ppl7::IPAddress::IPv4, net2.family());
-	ASSERT_EQ(22, net2.prefixlen());
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),net2.addr());
+TEST_F(InetSockAddrTest, OperatorAssign) {
+	ppl7::SockAddr saddr1(ppl7::IPAddress("2001:dead:cafe::42"),4711);
+	ppl7::SockAddr saddr2;
+	saddr2=saddr1;
+	ASSERT_EQ(ppl7::IPAddress("2001:dead:cafe::42"),saddr2.toIPAddress());
+	ASSERT_EQ((int)4711,saddr2.port());
+	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr2.size());
 }
-
-
-TEST_F(InetIPNetworkTest, toString) {
-	ASSERT_EQ(ppl7::String("172.16.100.0/22"), ppl7::IPNetwork("172.16.102.54/22").toString());
-	ASSERT_EQ(ppl7::String("2001:678:2a::/64"), ppl7::IPNetwork("2001:678:2A::53/64").toString());
-	ASSERT_EQ(ppl7::String("2001:678:2a::/64"), (ppl7::String)ppl7::IPNetwork("2001:678:2A::53/64"));
-	ASSERT_THROW({
-		ppl7::IPNetwork().toString();
-	},ppl7::InvalidNetworkAddressException);
-}
-
-TEST_F(InetIPNetworkTest, prefixlen) {
-	ppl7::IPNetwork net("172.16.102.54/22");
-	ASSERT_EQ((int) 22, net.prefixlen());
-	ASSERT_THROW({
-		ppl7::IPNetwork().prefixlen();
-	},ppl7::InvalidNetworkAddressException);
-}
-
-
-TEST_F(InetIPNetworkTest, netmask) {
-	ppl7::IPNetwork net;
-	net.set("172.16.102.1/22");
-	ASSERT_EQ(ppl7::String("172.16.100.0/22"),net.toString());
-	ASSERT_EQ(ppl7::IPAddress("255.255.252.0"),net.netmask());
-	net.set("2a01:4f8:202:109a::2/64");
-	ASSERT_EQ(ppl7::IPAddress("ffff:ffff:ffff:ffff::"),net.netmask());
-	ASSERT_THROW({
-			ppl7::IPNetwork().netmask();
-	},ppl7::InvalidNetworkAddressException);
-}
-
-TEST_F(InetIPNetworkTest, addr) {
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),ppl7::IPNetwork("172.16.102.54/22").addr());
-	ASSERT_EQ(ppl7::IPAddress("2a01:4f8:202:109a::"),ppl7::IPNetwork("2a01:4f8:202:109a::2/64").addr());
-	ASSERT_THROW({
-		ppl7::IPNetwork().addr();
-	},ppl7::InvalidNetworkAddressException);
-}
-
-TEST_F(InetIPNetworkTest, first) {
-	ASSERT_EQ(ppl7::IPAddress("172.16.100.0"),ppl7::IPNetwork("172.16.102.54/22").first());
-	ASSERT_EQ(ppl7::IPAddress("2a01:4f8:202:109a::"),ppl7::IPNetwork("2a01:4f8:202:109a::2/64").first());
-	ASSERT_THROW({
-		ppl7::IPNetwork().first();
-	},ppl7::InvalidNetworkAddressException);
-}
-
-TEST_F(InetIPNetworkTest, last) {
-	ASSERT_EQ(ppl7::IPAddress("172.16.103.255"),ppl7::IPNetwork("172.16.102.54/22").last());
-	ASSERT_EQ(ppl7::IPAddress("2a01:4f8:202:109a:ffff:ffff:ffff:ffff"),ppl7::IPNetwork("2a01:4f8:202:109a::2/64").last());
-	ASSERT_THROW({
-		ppl7::IPNetwork().last();
-	},ppl7::InvalidNetworkAddressException);
-}
-
-TEST_F(InetIPNetworkTest, contains) {
-	ASSERT_TRUE(ppl7::IPNetwork("172.16.102.54/22").contains(ppl7::IPAddress("172.16.103.255")));
-	ASSERT_TRUE(ppl7::IPNetwork("172.16.100.0/22").contains(ppl7::IPAddress("172.16.100.0")));
-	ASSERT_FALSE(ppl7::IPNetwork("172.16.100.0/22").contains(ppl7::IPAddress("172.16.104.0")));
-	ASSERT_FALSE(ppl7::IPNetwork("172.16.100.0/22").contains(ppl7::IPAddress("172.16.99.255")));
-	ASSERT_TRUE(ppl7::IPNetwork("2a01:4f8:202::/48").contains(ppl7::IPAddress("2a01:4f8:202::")));
-	ASSERT_TRUE(ppl7::IPNetwork("2a01:4f8:202::/48").contains(ppl7::IPAddress("2a01:4f8:202:ffff:ffff:ffff:ffff:ffff")));
-	ASSERT_FALSE(ppl7::IPNetwork("2a01:4f8:202::/48").contains(ppl7::IPAddress("2a01:4f8:203::")));
-	ASSERT_FALSE(ppl7::IPNetwork("2a01:4f8:202::/48").contains(ppl7::IPAddress("2a01:4f8:201:ffff:ffff:ffff:ffff:ffff")));
-}
-
-
-TEST_F(InetIPNetworkTest, compare) {
-	ppl7::IPNetwork net1("172.16.100.0/22");
-	ppl7::IPNetwork net2("2001:678:2A::/64");
-	ppl7::IPNetwork net3("172.16.103.0/24");
-	ppl7::IPNetwork net4("172.16.99.0/21");
-	ppl7::IPNetwork net5("172.16.100.0/24");
-
-	ASSERT_TRUE(net1.compare(net2)<0);
-	ASSERT_TRUE(net1.compare(net1)==0);
-	ASSERT_TRUE(net3.compare(net1)>0);
-	ASSERT_TRUE(net4.compare(net1)<0);
-	ASSERT_TRUE(net1.compare(net5)>0);
-}
-
-TEST_F(InetIPNetworkTest, operator_LT) {
-	ppl7::IPNetwork net1("194.77.8.1/24");
-	ppl7::IPNetwork net2("195.77.9.2/24");
-
-	ASSERT_TRUE(net1<net2);
-	ASSERT_FALSE(net2<net1);
-}
-
-TEST_F(InetIPNetworkTest, operator_LTEQ) {
-	ppl7::IPNetwork adr1("194.77.8.1/24");
-	ppl7::IPNetwork adr2("195.77.9.2/24");
-	ppl7::IPNetwork adr3("194.77.8.0/24");
-
-	ASSERT_TRUE(adr1<=adr2);
-	ASSERT_TRUE(adr1<=adr3);
-	ASSERT_FALSE(adr2<=adr1);
-}
-
-TEST_F(InetIPNetworkTest, operator_EQ) {
-	ppl7::IPNetwork adr1("194.77.8.1/24");
-	ppl7::IPNetwork adr2("195.77.9.2/24");
-	ppl7::IPNetwork adr3("194.77.8.1/24");
-	ASSERT_TRUE(adr1==adr3);
-	ASSERT_FALSE(adr1==adr2);
-}
-
-TEST_F(InetIPNetworkTest, operator_NE) {
-	ppl7::IPNetwork adr1("194.77.8.1/24");
-	ppl7::IPNetwork adr2("195.77.9.2/24");
-	ppl7::IPNetwork adr3("194.77.8.1/24");
-	ASSERT_TRUE(adr1!=adr2);
-	ASSERT_FALSE(adr1!=adr3);
-}
-
-TEST_F(InetIPNetworkTest, operator_GT) {
-	ppl7::IPNetwork adr1("194.77.8.1/24");
-	ppl7::IPNetwork adr2("195.77.9.2/24");
-
-	ASSERT_TRUE(adr2>adr1);
-	ASSERT_FALSE(adr1>adr2);
-}
-
-TEST_F(InetIPNetworkTest, operator_GTEQ) {
-	ppl7::IPNetwork adr1("194.77.8.1/24");
-	ppl7::IPNetwork adr2("195.77.9.2/24");
-	ppl7::IPNetwork adr3("194.77.8.1/24");
-
-	ASSERT_TRUE(adr2>=adr1);
-	ASSERT_TRUE(adr3>=adr1);
-	ASSERT_FALSE(adr1>=adr2);
-}
-
-TEST_F(InetIPNetworkTest, sortIPNetworks) {
-	std::set<ppl7::IPNetwork> list;
-	list.insert(ppl7::IPNetwork("194.2.3.4/24"));
-	list.insert(ppl7::IPNetwork("2001:678:2A::53/48"));
-	list.insert(ppl7::IPNetwork("1.2.3.4/22"));
-	list.insert(ppl7::IPNetwork("255.0.0.0/24"));
-	list.insert(ppl7::IPNetwork("2001:678:2::1/64"));
-	list.insert(ppl7::IPNetwork("66.7.1.0/25"));
-	list.insert(ppl7::IPNetwork("2002:dead:2::1/48"));
-
-	ASSERT_EQ((size_t)7,list.size());
-
-	std::set<ppl7::IPNetwork>::const_iterator it;
-	it=list.begin();
-	ASSERT_EQ(ppl7::IPNetwork("1.2.3.4/22"),(*it++));
-	ASSERT_EQ(ppl7::IPNetwork("66.7.1.0/25"),(*it++));
-	ASSERT_EQ(ppl7::IPNetwork("194.2.3.4/24"),(*it++));
-	ASSERT_EQ(ppl7::IPNetwork("255.0.0.0/24"),(*it++));
-	ASSERT_EQ(ppl7::IPNetwork("2001:678:2::1/64"),(*it++));
-	ASSERT_EQ(ppl7::IPNetwork("2001:678:2A::53/48"),(*it++));
-	ASSERT_EQ(ppl7::IPNetwork("2002:dead:2::1/48"),(*it++));
-}
-
-*/
 
 
 
