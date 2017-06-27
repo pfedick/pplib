@@ -148,6 +148,7 @@ SockAddr::SockAddr(const SockAddr &other)
  */
 SockAddr::SockAddr(const void *addr, size_t addrlen)
 {
+	this->saddr=NULL;
 	this->addrlen=0;
 	if (!addr) throw ppl7::IllegalArgumentException();
 	saddr=malloc(addrlen);
@@ -258,14 +259,13 @@ void SockAddr::setAddr(const IPAddress &ip)
 	if (ip.family()==4) {
 		addrlen=sizeof(struct sockaddr_in);
 		saddr=calloc(1, addrlen);
-		struct sockaddr_in *s=(struct sockaddr_in*)&saddr;
+		struct sockaddr_in *s=(struct sockaddr_in*)saddr;
 		s->sin_family=AF_INET;
 		memcpy(&s->sin_addr,ip.addr(),ip.addr_len());
-
 	} else if (ip.family()==6) {
 		addrlen=sizeof(struct sockaddr_in6);
 		saddr=calloc(1, addrlen);
-		struct sockaddr_in6 *s=(struct sockaddr_in6*)&saddr;
+		struct sockaddr_in6 *s=(struct sockaddr_in6*)saddr;
 		s->sin6_family=AF_INET6;
 		memcpy(&s->sin6_addr,ip.addr(),ip.addr_len());
 	} else {

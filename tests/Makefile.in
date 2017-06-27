@@ -55,7 +55,7 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/tcpsocket.o \
 	compile/filestatic.o compile/textsnippets.o \
 	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o \
-	compile/audioinfo.o compile/sockaddr.o compile/id3tag.o \
+	compile/audioinfo.o compile/inet_sockaddr.o compile/id3tag.o \
 	compile/grafix.o compile/grafix_drawable.o compile/grafix_imagefilter.o \
 	compile/grafix_color.o compile/grafix_font.o compile/grafix_image.o \
 	compile/grafix_point.o compile/grafix_point3d.o compile/grafix_rect.o \
@@ -225,6 +225,10 @@ compile/inet_ipnetwork.o: src/inet_ipnetwork.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/inet_ipnetwork.o -c src/inet_ipnetwork.cpp $(CFLAGS) $(LIB)
 
+compile/inet_sockaddr.o: src/inet_sockaddr.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/inet_sockaddr.o -c src/inet_sockaddr.cpp $(CFLAGS) $(LIB)
+
 compile/list.o: src/list.cpp Makefile compile/wordlist.o ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/list.o -c src/list.cpp $(CFLAGS) $(LIB)
@@ -333,10 +337,6 @@ compile/mcrypt.o: src/mcrypt.cpp Makefile ppl7-tests.h
 compile/audioinfo.o: src/audioinfo.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/audioinfo.o -c src/audioinfo.cpp $(CFLAGS) $(LIB)
-
-compile/sockaddr.o: src/sockaddr.cpp Makefile ppl7-tests.h
-	mkdir -p compile
-	$(CXX) -o compile/sockaddr.o -c src/sockaddr.cpp $(CFLAGS) $(LIB)
 
 compile/id3tag.o: src/id3tag.cpp Makefile ppl7-tests.h
 	mkdir -p compile
