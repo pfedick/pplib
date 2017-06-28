@@ -100,6 +100,7 @@ TEST_F(InetSockAddrTest, setAddrFromIPv6Address) {
 	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr.size());
 }
 
+/*
 static unsigned char saddr_in_mem[]={0x0a, 0x00, 0x12, 0x67, 0x00, 0x00, 0x00,
 		0x00, 0x20, 0x01, 0xDE,	0xAD, 0xCA, 0xFE, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x42, 0x00, 0x00, 0x00, 0x00};
@@ -115,6 +116,7 @@ TEST_F(InetSockAddrTest, setAddrFromMemory) {
 
 	//ppl7::HexDump(saddr.addr(),saddr.size());
 }
+*/
 
 TEST_F(InetSockAddrTest, CopyConstructor) {
 	ppl7::SockAddr saddr1(ppl7::IPAddress("2001:dead:cafe::42"),4711);
@@ -132,12 +134,14 @@ TEST_F(InetSockAddrTest, ConstructorWithIPAddressAndPort) {
 	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr.size());
 }
 
+/*
 TEST_F(InetSockAddrTest, ConstructorWithMemoryAddress) {
 	ppl7::SockAddr saddr(saddr_in_mem,sizeof(saddr_in_mem));
 	ASSERT_EQ(ppl7::IPAddress("2001:dead:cafe::42"),saddr.toIPAddress());
 	ASSERT_EQ((int)4711,saddr.port());
 	ASSERT_EQ((size_t)sizeof(sockaddr_in6),saddr.size());
 }
+*/
 
 TEST_F(InetSockAddrTest, OperatorAssign) {
 	ppl7::SockAddr saddr1(ppl7::IPAddress("2001:dead:cafe::42"),4711);
