@@ -102,78 +102,6 @@
 
 namespace ppl7 {
 
-/*
-IPAddress::IPAddress()
-{
-	ai_family=0;
-	ai_socktype=0;
-	ai_protocol=0;
-}
-
-IPAddress::IPAddress(const IPAddress &other)
-{
-	name=other.name;
-	ip=other.ip;
-	sockaddr=other.sockaddr;
-	ai_family=other.ai_family;
-	ai_socktype=other.ai_socktype;
-	ai_protocol=other.ai_protocol;
-	ai_canonname=other.ai_canonname;
-}
-
-
-IPAddress &IPAddress::operator=(const IPAddress &other)
-{
-	name=other.name;
-	ip=other.ip;
-	sockaddr=other.sockaddr;
-	ai_family=other.ai_family;
-	ai_socktype=other.ai_socktype;
-	ai_protocol=other.ai_protocol;
-	ai_canonname=other.ai_canonname;
-	return *this;
-}
-
-
-bool IPAddress::operator<(const IPAddress &other) const
-{
-	if (ip<other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator<=(const IPAddress &other) const
-{
-	if (ip<=other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator==(const IPAddress &other) const
-{
-	if (ip==other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator!=(const IPAddress &other) const
-{
-	if (ip!=other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator>=(const IPAddress &other) const
-{
-	if (ip>=other.ip) return true;
-	return false;
-}
-
-bool IPAddress::operator>(const IPAddress &other) const
-{
-	if (ip>other.ip) return true;
-	return false;
-}
-
-*/
-
-
 
 String GetHostname()
 /*!\brief Liefert den Hostnamen des Systems zurück
@@ -251,17 +179,7 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
  *
  * \param name Der gesuchte Hostname oder die IP-Adresse, wobei sowohl IPv4- als auch IPv6-Adressen
  * unterstützt werden
- * \param result Liste vom Typ IPAddress, in der die gefundenen IP-Adressen gespeichert werden. Der
- * Datentyp IPAddress hat folgenden Inhalt:
- * 	- \b ip: IP-Adresse als String
- *  - \b name: String mit dem FQDN
- *  - \b type: Bei einer IPv4 Adresse ist dieser Wert immer AF_INET, bei IPv6 AF_INET6
- *  - \b sockaddr: SockAddr-Object, das einen Pointer auf eine Datenstruktur vom Typ "struct sockaddr" enthält,
- *       wie sie z.B. in einer Socket-Funktion verwendet werden kann (z.B. connect).
- * 	- \b ai_family:
- * 	- \b ai_protocol:
- *  - \b ai_socktype:
- *  - \b ai_canonname:
+ * \param result Liste vom Typ IPAddress, in der die gefundenen IP-Adressen gespeichert werden.
  * \param flags Bitmaske mit folgender Bedeutung:
  * - af_unspec: Das Betriebssystem entscheidet. Hier ist es häufig so, dass IPv6-Adressen nur
  *   dann zurückgegeben werden, wenn das System auch über eine IPv6-Anbindung verfügt.
@@ -278,8 +196,7 @@ static size_t GetHostByNameInternal(const String &name, std::list<IPAddress> &re
  * \exception NetworkException Wird geworfen, wenn ein Netzwerkproblem aufgetreten ist.
  *
  * \note Es ist zu beachten, dass die Liste \p result erst gelöscht und dann mit den
- * gefundenen Daten gefüllt wird. Vorher vorhandene Daten gehen also verloren, bzw. müssen
- * bei Bedarf vom Anwender vorher gesichert werden.
+ * gefundenen Daten gefüllt wird. Vorher vorhandene Daten gehen also verloren.
  *
  */
 size_t GetHostByName(const String &name, std::list<IPAddress> &result, ResolverFlags flags)
