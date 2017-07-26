@@ -76,6 +76,7 @@
 
 #include <string>
 #include <iostream>
+#include <list>
 
 
 #ifdef HAVE_STDARG_H
@@ -3258,6 +3259,28 @@ class CSSL
 		int		SetTmpDHParam(const CString &dh_param_file);
 		void	*GetSSLContext();
 };
+
+class SSLError
+{
+	public:
+		SSLError() {
+			Code=0;
+			Line=Flags=0;
+		}
+		CString			Text;
+		CString			Filename;
+		CString			Data;
+		unsigned long	Code;
+		int				Line;
+		int				Flags;
+};
+
+int GetSSLError(SSLError &e);
+int GetSSLErrors(std::list<SSLError> &e);
+int GetSSLErrors(CString &e);
+void ClearSSLErrorStack();
+
+
 
 //! \brief TCP-Socket-Nachrichten
 class CSocketMessage

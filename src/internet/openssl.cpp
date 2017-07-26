@@ -342,6 +342,72 @@ int SSL_Exit()
 	#endif
 }
 
+void ClearSSLErrorStack()
+{
+#ifdef HAVE_OPENSSL
+	while ((ERR_get_error()));
+#endif
+}
+
+int GetSSLError(SSLError &e)
+{
+#ifdef HAVE_OPENSSL
+	unsigned long ec;
+	const char *file, *data;
+	char ebuffer[256];
+	ec=ERR_get_error_line_data(&file,&e.Line,&data,&e.Flags);
+	if (ec==0) return 0;
+	ERR_error_string_n(ec,ebuffer,255);
+	e.Text.Set(ebuffer);
+	e.Filename.Set(file);
+	e.Data.Set(data);
+	return 1;
+#else
+	return 0;
+#endif
+}
+
+int GetSSLErrors(std::list<SSLError> &e)
+{
+#ifdef HAVE_OPENSSL
+	e.clear();
+	unsigned long ec;
+	const char *file, *data;
+	char ebuffer[256];
+	SSLError se;
+
+	while ((ec=ERR_get_error_line_data(&file,&se.Line,&data,&se.Flags))) {
+		ERR_error_string_n(ec,ebuffer,255);
+		se.Text.Set(ebuffer);
+		se.Filename.Set(file);
+		se.Data.Set(data);
+		e.push_back(se);
+	}
+	return (int) e.size();
+#else
+	return 0;
+#endif
+}
+
+int GetSSLErrors(CString &e)
+{
+	e.Clear();
+	std::list<SSLError> elist;
+	if (!GetSSLErrors(elist)) return 0;
+	std::list<SSLError>::const_iterator it;
+	for (it=elist.begin();it!=elist.end();++it) {
+		e.Concatf("%s:%d:%llu:%s:%s, ",(const char*)(*it).Filename,
+				(*it).Line,
+				(*it).Code,
+				(const char*)(*it).Text,
+				(const char*)(*it).Data);
+	}
+	e.Chop(2);
+	return (int)elist.size();
+}
+
+
+
 
 /** @name SSL-Verschlüsselung
  *  Die nachfolgenden Befehle werden benötigt, wenn die Kommunikation zwischen Client
@@ -719,11 +785,23 @@ int CTCPSocket::SSL_Read(void *buffer, int size)
 {
 	#ifdef HAVE_OPENSSL
 		int bytes=::SSL_read((SSL*)ssl,buffer,size);
+		/*
+		printf ("DEBUG ppl6::CTCPSocket::SSL_Read, bytes=%d of %d\n",bytes, size);
 		if (bytes==0) {
-			errno=EPIPE;
+			printf ("DEBUG ppl6::CTCPSocket::SSL_Read EPIPE, bytes==0\n");
+			//errno=EPIPE;
 		} else if (bytes<0) {
-			errno=ETIMEDOUT;
+			printf ("DEBUG ppl6::CTCPSocket::SSL_Read ERROR, bytes<0\n");
+			CString sslerrorstack;
+			GetSSLErrors(sslerrorstack);
+			int e=SSL_get_error((SSL*)ssl,bytes);
+			printf ("%s, %s [%s]\n",ssl_geterror((SSL*)ssl,bytes),
+					ERR_error_string(e,NULL),
+					(const char*)sslerrorstack);
+
+			//errno=ETIMEDOUT;
 		}
+		*/
 		return bytes;
 	#else
 		SetError(292);
