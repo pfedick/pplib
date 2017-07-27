@@ -928,25 +928,27 @@ void TCPSocket::sslStop()
  *
  * @param[in] buffer Beginn des zu sendenden Speicherbereichs
  * @param[in] size Anzahl zu sendender Bytes.
- * @return Die Funktion gibt die Anzahl erfolgreich geschriebener Bytes zurück, im Fehlerfall
- * 0 oder einen negativen Wert. Aus der Manpage zu SSL_write(3):
- * - 0: The write operation was not successful. Probably the underlying
- *     connection was closed. Call SSL_get_error() with the return value
- *     ret to find out, whether an error occurred or the connection was
- *     shut down cleanly (SSL_ERROR_ZERO_RETURN).
- *     \par
- *     SSLv2 (deprecated) does not support a shutdown alert protocol, so
- *     it can only be detected, whether the underlying connection was
- *     closed. It cannot be checked, why the closure happened.
- *
- * - <0: The write operation was not successful, because either an error
- *       occurred or action must be taken by the calling process. Call
- *       SSL_get_error() with the return value ret to find out the reason.
+ * @return Die Funktion gibt die Anzahl erfolgreich geschriebener Bytes zurück, was auch 0 sein kann.
+ * @exception SSLException wird geworfen, wenn ein Fehler aufgetreten ist
  */
 int TCPSocket::SSL_Write(const void *buffer, int size)
 {
 	#ifdef HAVE_OPENSSL
 		int bytes=::SSL_write((SSL*)ssl,buffer,size);
+		switch(::SSL_get_error((SSL*)ssl,bytes)) {
+			case SSL_ERROR_NONE:
+				return bytes;
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+            	return 0;
+            default:
+            	String sslerrorstack;
+            	GetSSLErrors(sslerrorstack);
+            	int e=SSL_get_error((SSL*)ssl,bytes);
+            	throw SSLException("%s, %s [%s]",ssl_geterror((SSL*)ssl,bytes),
+            			ERR_error_string(e,NULL),
+						(const char*)sslerrorstack);
+		}
 		return bytes;
 	#else
 		throw UnsupportedFeatureException("OpenSSL");
@@ -965,22 +967,26 @@ int TCPSocket::SSL_Write(const void *buffer, int size)
  * @param[in] buffer Bereits allokierter Speicherbereich, in den die gelesenen Daten
  * geschrieben werden sollen
  * @param[in] size Anzahl zu lesender Bytes.
- * @return Die Funktion gibt die Anzahl erfolgreich gelesener Bytes zurück, im Fehlefall
- * 0 oder einen negativen Wert.
+ * @return Die Funktion gibt die Anzahl erfolgreich gelesener Bytes zurück, was auch 0 sein kann
+ * @exception SSLException wird geworfen, wenn ein Fehler aufgetreten ist
  */
 int TCPSocket::SSL_Read(void *buffer, int size)
 {
 	#ifdef HAVE_OPENSSL
 		int bytes=::SSL_read((SSL*)ssl,buffer,size);
-		if (bytes==0) {
-			throw BrokenPipeException();
-		} else if ( bytes <0) {
-			String sslerrorstack;
-			GetSSLErrors(sslerrorstack);
-			int e=SSL_get_error((SSL*)ssl,bytes);
-			throw SSLException("%s, %s [%s]",ssl_geterror((SSL*)ssl,bytes),
-					ERR_error_string(e,NULL),
-					(const char*)sslerrorstack);
+		switch(::SSL_get_error((SSL*)ssl,bytes)) {
+			case SSL_ERROR_NONE:
+				return bytes;
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+            	return 0;
+            default:
+            	String sslerrorstack;
+            	GetSSLErrors(sslerrorstack);
+            	int e=SSL_get_error((SSL*)ssl,bytes);
+            	throw SSLException("%s, %s [%s]",ssl_geterror((SSL*)ssl,bytes),
+            			ERR_error_string(e,NULL),
+						(const char*)sslerrorstack);
 		}
 		return bytes;
 	#else
