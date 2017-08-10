@@ -1087,7 +1087,9 @@ void Dir::open(const char *path, Sort s)
 	if (!dir) {
 		File::throwErrno(errno,path);
 	}
+#ifdef HAVE_READDIR_R
 	struct dirent d;
+#endif
 	DirEntry de;
 	String CurrentFile;
 	while (1) {

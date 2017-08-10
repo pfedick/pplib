@@ -76,8 +76,10 @@ namespace ppl7 {
  *
  */
 
+#ifdef HAVE_LIBCURL
 static ppl7::Mutex CurlMutex;
 static int ppl_curl_instance=0;
+#endif
 
 
 #ifdef HAVE_LIBCURL

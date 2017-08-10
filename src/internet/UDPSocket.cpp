@@ -229,7 +229,7 @@ void UDPSocket::setSource(const String &interface, int port)
 }
 
 #ifdef WIN32
-static int out_bind(SOCKET sockfd, const char *host, int port)
+static int out_bind(const char *host, int port)
 {
 	throw UnsupportedFeatureException("TCPSocket.connect after TCPSocket.bind");
 }
@@ -402,9 +402,6 @@ static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int addrlen, i
 #endif
 
 
-#ifdef _WIN32
-
-#else
 
 void UDPSocket::connect(const String &host, int port)
 {
@@ -505,7 +502,6 @@ void UDPSocket::connect(const String &host, int port)
 	connected = true;
 	freeaddrinfo(ressave);
 }
-#endif
 
 /*!\brief Prüfen, ob eine Verbindung besteht
  *

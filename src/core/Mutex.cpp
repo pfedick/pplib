@@ -162,7 +162,7 @@ void Mutex::lock()
 {
 #ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	int ret=WaitForSingleObject(h->handle,INFINITE);
+	DWORD ret=WaitForSingleObject(h->handle,INFINITE);
 	if (ret!=WAIT_FAILED) return;
     throw MutexLockingException("Mutex::lock");
 #elif defined HAVE_PTHREADS
@@ -212,7 +212,7 @@ bool Mutex::tryLock() throw ()
 {
 #ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	int ret=WaitForSingleObject(h->handle,0);
+	DWORD ret=WaitForSingleObject(h->handle,0);
 	if (ret==WAIT_TIMEOUT) return false;
 	if (ret!=WAIT_FAILED) return true;
 	return false;

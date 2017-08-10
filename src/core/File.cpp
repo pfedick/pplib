@@ -1106,8 +1106,9 @@ int File::munmap(void *addr, size_t len)
 	return 1;
 }
 
-
+#ifdef HAVE_SYSCONF
 static int __pagesize=0;
+#endif
 
 void *File::mmap(ppluint64 position, size_t size, int prot, int flags)
 {

@@ -114,7 +114,7 @@ int datum (char *str1)
 	struct tm tmstruct;
 	time(&now);
 #ifdef WIN32
-	if (NULL == localtime_s(&tmstruct, &now)) {
+	if (0 == localtime_s(&tmstruct, &now)) {
 		sprintf(str1, "%02d.%02d.%04d", tmstruct.tm_mday, tmstruct.tm_mon + 1, tmstruct.tm_year + 1900);
 		return 1;
 	}
@@ -192,7 +192,7 @@ ppl_time_t GetTime(PPLTIME *t, ppl_time_t now)
 	time_t n=(time_t)now;
 	if (!t) return now;
 #ifdef WIN32
-	if (NULL != localtime_s(&tmstruct, &n)) throw InvalidDateException();
+	if (0 != localtime_s(&tmstruct, &n)) throw InvalidDateException();
 #else
 	if (!localtime_r(&n,&tmstruct)) throw InvalidDateException();
 #endif
@@ -240,7 +240,7 @@ ppl_time_t GetTime(PPLTIME &t, ppl_time_t now)
 
 	time_t n=(time_t)now;
 #ifdef WIN32
-	if (NULL != localtime_s(&tmstruct, &n)) throw InvalidDateException();
+	if (0 != localtime_s(&tmstruct, &n)) throw InvalidDateException();
 #else
 	if (!localtime_r(&n, &tmstruct)) throw InvalidDateException();
 #endif
@@ -595,7 +595,7 @@ String MkDate(const String &format, ppl_time_t sec)
 	const time_t tt=(const time_t)sec;
 
 #ifdef WIN32
-	if (NULL != localtime_s(&t, &tt)) throw InvalidDateException();
+	if (0 != localtime_s(&t, &tt)) throw InvalidDateException();
 #else
 	if (!localtime_r(&tt, &t)) throw InvalidDateException();
 #endif

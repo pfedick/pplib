@@ -541,7 +541,7 @@ void DateTime::setTime_t(ppluint64 t)
 	}
 	::time_t tp=(::time_t)t;
 #ifdef WIN32
-	if (NULL != localtime_s(&tt, &tp)) throw InvalidDateException();
+	if (0 != localtime_s(&tt, &tp)) throw InvalidDateException();
 #else
 	struct tm *r=localtime_r(&tp,&tt);
 	if (!r) throw InvalidDateException();
@@ -574,7 +574,7 @@ void DateTime::setEpoch(ppluint64 t)
 	}
 	::time_t tp=(::time_t)t;
 #ifdef WIN32
-	if (NULL!=localtime_s(&tt, &tp)) throw InvalidDateException();
+	if (0!=localtime_s(&tt, &tp)) throw InvalidDateException();
 #else
 	struct tm *r=localtime_r(&tp,&tt);
 	if (!r) throw InvalidDateException();
@@ -625,7 +625,7 @@ void DateTime::setCurrentTime()
 	struct tm tt;
 	::time_t tp=time(NULL);
 #ifdef WIN32
-	if (NULL!=localtime_s(&tt, &tp)) throw InvalidDateException();
+	if (0!=localtime_s(&tt, &tp)) throw InvalidDateException();
 #else
 	struct tm *r=localtime_r(&tp,&tt);
 	if (!r) throw InvalidDateException();
@@ -961,7 +961,7 @@ String DateTime::strftime(const String &format) const
 	struct tm tt;
 	::time_t tp=time_t();
 #ifdef WIN32
-	if (NULL != localtime_s(&tt, &tp)) {
+	if (0 != localtime_s(&tt, &tp)) {
 		free(buf);
 		throw InvalidDateException();
 	}

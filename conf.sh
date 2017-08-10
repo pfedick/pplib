@@ -43,7 +43,7 @@ KERNEL=`uname -v`
 
 PREFIX=$1
 PREFIX=${PREFIX:=$HOME}
-echo "PREFIX=$PREFIX"
+echo "PREFIX=$PREFIX, $SYS:$REL:$KERNEL"
 echo ""
 
 case "$SYS:$REL:$KERNEL" in
@@ -118,7 +118,29 @@ case "$SYS:$REL:$KERNEL" in
 		    --without-postgresql --without-mysql \
 		    --enable-gtest=/usr/src/gtest-1.7.0 \
 		;;
-		
+	MSYS_NT-10*)
+		if [ -d /jenkins/local/bin ] ; then
+			PREFIX=/jenkins/local
+		fi
+		echo "configuring for MSYS2 MINGW64, PREFIX=$PREFIX"
+		export CPPFLAGS="-DCURL_STATICLIB -I$PREFIX/include -I/usr/local/include -I/sdk/WindowsSDK/include"
+		export LDLAGS="-DCURL_STATICLIB -L$PREFIX/lib -L/usr/local/lib -L/sdk/WindowsSDK/lib"
+		export CFLAGS="-DCURL_STATICLIB"
+		export SQLITE_CFLAGS="-I$PREFIX/include -I/usr/local/include"
+		export SQLITE_LIBS="-L$PREFIX/include -L/usr/local/lib -lsqlite3"
+		./configure --prefix=$PREFIX \
+			--with-pcre=$PREFIX --with-bzip2=$PREFIX --with-zlib=$PREFIX \
+			--with-nasm --with-libiconv-prefix=$PREFIX \
+			--with-lame=$PREFIX --with-mpg123=$PREFIX --disable-freetypetest --with-ft-prefix=$PREFIX \
+			--with-libtiff=$PREFIX \
+			--with-libjpegturbo=$PREFIX --with-libpng=$PREFIX --with-libmhash=$PREFIX \
+			--with-libmcrypt-prefix=$PREFIX \
+			--with-openssl=$PREFIX \
+			--with-libldns=$PREFIX --with-libidn=$PREFIX \
+		    --without-postgresql --without-mysql \
+		    --enable-gtest=/usr/local/gtest-1.7.0 \
+				
+		;;		
 	Linux:*generic*)
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \

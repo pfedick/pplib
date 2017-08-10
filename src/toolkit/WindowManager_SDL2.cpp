@@ -359,9 +359,7 @@ WindowManager_SDL2::WindowManager_SDL2()
 
 WindowManager_SDL2::~WindowManager_SDL2()
 {
-#ifndef HAVE_SDL2
-	throw UnsupportedFeatureException("SDL2");
-#else
+#ifdef HAVE_SDL2
 	if (wm==this) wm=NULL;
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 #endif
