@@ -108,7 +108,7 @@ fi
 
 lib_ppl=yes
 basename=libppl7
-libname=ppl7
+libname=""
 
 while test $# -gt 0; do
   case "$1" in
@@ -151,19 +151,19 @@ while test $# -gt 0; do
     release)
       lib_ppl=yes
       basename=libppl7
-      libname=ppl7
+      libname=-lppl7
       objects=release
       ;;
     coverage)
       lib_ppl=yes
       basename=libppl7
-      libname=ppl7
+      libname=-lppl7
       objects=coverage
       ;;    
     debug)
       lib_ppl_debug=yes
       basename=libppl7-debug
-      libname=ppl7-debug
+      libname=-lppl7-debug
       objects=debug
       ;;
     source)
@@ -175,12 +175,38 @@ while test $# -gt 0; do
       features_wanted=$*
       break
       ;;
+    core)
+      libname="$libname -lppl7-core"
+      ;;
+    crypto)
+      libname="$libname -lppl7-crypto"
+      ;;
+    inet)
+      libname="$libname -lppl7-inet"
+      ;;
+    gfx)
+      libname="$libname -lppl7-gfx"
+      ;;
+    db)
+      libname="$libname -lppl7-db"
+      ;;
+    tk)
+      libname="$libname -lppl7-tk"
+      ;;
+    audio)
+      libname="$libname -lppl7-audio"
+      ;;
+      
     *)
       usage 1 1>&2
       ;;
   esac
   shift
 done
+
+if test -z "$libname" ; then
+   libname="-lppl7"
+fi
 
 if test "$echo_prefix" = "yes"; then
 	echo $prefix
@@ -229,7 +255,7 @@ fi
 PPLLIB="$prefix/lib/$basename.a"
 if test "$usesource" != "yes"; then
 	ARCHIVE="$PPLLIB $LIBS"
-	LIBS="-L$TARGETLIB -l$libname $LIBS"
+	LIBS="-L$TARGETLIB $libname $LIBS"
 fi
 
 

@@ -187,81 +187,64 @@ debug/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
 
 
 
-find_c_files "core" "CORE"
-RELEASE="$FOUND_RELEASE"
-DEBUG="$FOUND_DEBUG"
-COVERAGE="$FOUND_COVERAGE"
+find_c_files "core" "CORE" "" "core_"
+CORE_RELEASE="$FOUND_RELEASE"
+CORE_DEBUG="$FOUND_DEBUG"
+CORE_COVERAGE="$FOUND_COVERAGE"
 
 find_c_files "types" "TYPES" "" "type_" "\$(incdir)/ppl7-types.h"
-RELEASE="$RELEASE \\
+CORE_RELEASE="$CORE_RELEASE \\
 	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
+CORE_DEBUG="$CORE_DEBUG \\
 	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
+CORE_COVERAGE="$CORE_COVERAGE \\
 	$FOUND_COVERAGE"
 
 
-find_c_files "math" "MATH"
-RELEASE="$RELEASE \\
+find_c_files "math" "MATH" "" "math_"
+CORE_RELEASE="$CORE_RELEASE \\
 	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
+CORE_DEBUG="$CORE_DEBUG \\
 	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
+CORE_COVERAGE="$CORE_COVERAGE \\
 	$FOUND_COVERAGE"
+	
 
 
-find_c_files "crypto" "CRYPTO" "" "" "\$(incdir)/ppl7-crypto.h \$(incdir)/crypto.h"
-RELEASE="$RELEASE \\
-	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
-	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
-	$FOUND_COVERAGE"
+find_c_files "crypto" "CRYPTO" "" "crypto_" "\$(incdir)/ppl7-crypto.h \$(incdir)/crypto.h"
+CRYPTO_RELEASE="$FOUND_RELEASE"
+CRYPTO_DEBUG="$FOUND_DEBUG"
+CRYPTO_COVERAGE="$FOUND_COVERAGE"
 
 
 find_c_files "internet" "INTERNET" "" "inet_" "\$(incdir)/ppl7-inet.h"
-RELEASE="$RELEASE \\
-	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
-	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
-	$FOUND_COVERAGE"
+INET_RELEASE="$FOUND_RELEASE"
+INET_DEBUG="$FOUND_DEBUG"
+INET_COVERAGE="$FOUND_COVERAGE"
 
 
 find_c_files "database" "DATABASE" "" "db_" "\$(incdir)/ppl7-db.h"
-RELEASE="$RELEASE \\
-	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
-	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
-	$FOUND_COVERAGE"
+DB_RELEASE="$FOUND_RELEASE"
+DB_DEBUG="$FOUND_DEBUG"
+DB_COVERAGE="$FOUND_COVERAGE"
 
 
 find_c_files "grafix" "GRAFIX" "" "gfx_" "\$(incdir)/ppl7-grafix.h"
-RELEASE="$RELEASE \\
-	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
-	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
-	$FOUND_COVERAGE"
+GFX_RELEASE="$FOUND_RELEASE"
+GFX_DEBUG="$FOUND_DEBUG"
+GFX_COVERAGE="$FOUND_COVERAGE"
 
 
 find_c_files "toolkit" "TOOLKIT" "" "tk_" "\$(incdir)/ppl7-grafix.h \$(incdir)/ppl7-tk.h"
-RELEASE="$RELEASE \\
-	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
-	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
-	$FOUND_COVERAGE"
+TK_RELEASE="$FOUND_RELEASE"
+TK_DEBUG="$FOUND_DEBUG"
+TK_COVERAGE="$FOUND_COVERAGE"
 
 
 find_c_files "audio" "AUDIO" "" "audio_" "\$(incdir)/ppl7-audio.h"
-RELEASE="$RELEASE \\
-	$FOUND_RELEASE"
-DEBUG="$DEBUG \\
-	$FOUND_DEBUG"
-COVERAGE="$COVERAGE \\
-	$FOUND_COVERAGE"
+AUDIO_RELEASE="$FOUND_RELEASE"
+AUDIO_DEBUG="$FOUND_DEBUG"
+AUDIO_COVERAGE="$FOUND_COVERAGE"
 
 find_asm_files "asm" "ASM"
 
@@ -347,20 +330,45 @@ LIBDEBUG	= $LIBNAME-debug
 DISTNAME	= ${DISTNAME}
 ASM			= @ASM@ @ASMFLAGS@
 ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@	
+
 ###########################################################################
-### Object Files
+### Object Files RELEASE
 ###########################################################################
 
-RELEASE	= $RELEASE
+RELEASE	= $CORE_RELEASE $CRYPTO_RELEASE $INET_RELEASE $DB_RELEASE $GFX_RELEASE $TK_RELEASE $AUDIO_RELEASE
 
-DEBUG	= $DEBUG
+CORE_RELEASE = $CORE_RELEASE
 
-COVERAGE	= $COVERAGE
+CRYPTO_RELEASE = $CRYPTO_RELEASE
+
+INET_RELEASE = $INET_RELEASE
+
+DB_RELEASE = $DB_RELEASE
+
+GFX_RELEASE = $GFX_RELEASE
+
+TK_RELEASE = $TK_RELEASE
+
+AUDIO_RELEASE = $AUDIO_RELEASE
 
 ASM_OBJ_RELEASE	=	$ASM_RELEASE
-ASM_OBJ_COVERAGE	=	$ASM_COVERAGE
+
+###########################################################################
+### Object Files DEBUG
+###########################################################################
+
+DEBUG	= $CORE_DEBUG $CRYPTO_DEBUG $INET_DEBUG $DB_DEBUG $GFX_DEBUG $TK_DEBUG $AUDIO_DEBUG
+
 ASM_OBJ_DEBUG	=	$ASM_DEBUG
 
+
+###########################################################################
+### Object Files COVERAGE
+###########################################################################
+
+COVERAGE	= $CORE_COVERAGE $CRYPTO_COVERAGE $INET_COVERAGE $DB_COVERAGE $GFX_COVERAGE $TK_COVERAGE $AUDIO_COVERAGE
+
+ASM_OBJ_COVERAGE	=	$ASM_COVERAGE
 
 @HAVE_X86_ASSEMBLER@
 
@@ -369,25 +377,47 @@ ASM_OBJ_DEBUG	=	$ASM_DEBUG
 ###########################################################################
 
 
-release: release/\$(LIBNAME).a
-
+release: release/\$(LIBNAME).a release/\$(LIBNAME)-core.a release/\$(LIBNAME)-crypto.a \
+         release/\$(LIBNAME)-inet.a release/\$(LIBNAME)-db.a release/\$(LIBNAME)-gfx.a \
+         release/\$(LIBNAME)-tk.a debug/make release/\$(LIBNAME)-audio.a
+	
 coverage: coverage/\$(LIBNAME).a
-
+	
 debug: debug/\$(LIBDEBUG).a
-
+	
 all:	install_debug install
 
 debug/\$(LIBDEBUG).a: debug/make \$(DEBUG) \$(ASM_DEBUG)
 	ar -r debug/\$(LIBDEBUG).a \$(DEBUG) \$(ASM_DEBUG)
-	-chmod a+x ppl7-config
 
 release/\$(LIBNAME).a: release/make \$(RELEASE) \$(ASM_RELEASE)
 	ar -r release/\$(LIBNAME).a \$(RELEASE) \$(ASM_RELEASE)
-	-chmod a+x ppl7-config
 
 coverage/\$(LIBNAME).a: coverage/make \$(COVERAGE) \$(ASM_COVERAGE)
 	ar -r coverage/\$(LIBNAME).a \$(COVERAGE) \$(ASM_COVERAGE)
 	-chmod a+x ppl7-config
+
+release/\$(LIBNAME)-core.a: debug/make \$(CORE_RELEASE) \$(ASM_RELEASE)
+	ar -r release/\$(LIBNAME)-core.a \$(CORE_RELEASE) \$(ASM_RELEASE)
+
+release/\$(LIBNAME)-crypto.a: debug/make \$(CRYPTO_RELEASE)
+	ar -r release/\$(LIBNAME)-crypto.a \$(CRYPTO_RELEASE)
+
+release/\$(LIBNAME)-inet.a: debug/make \$(INET_RELEASE)
+	ar -r release/\$(LIBNAME)-inet.a \$(INET_RELEASE)
+
+release/\$(LIBNAME)-db.a: debug/make \$(DB_RELEASE)
+	ar -r release/\$(LIBNAME)-db.a \$(DB_RELEASE)
+	
+release/\$(LIBNAME)-gfx.a: debug/make \$(GFX_RELEASE)
+	ar -r release/\$(LIBNAME)-gfx.a \$(GFX_RELEASE)
+
+release/\$(LIBNAME)-tk.a: debug/make \$(TK_RELEASE)
+	ar -r release/\$(LIBNAME)-tk.a \$(TK_RELEASE)
+
+release/\$(LIBNAME)-audio.a: debug/make \$(AUDIO_RELEASE)
+	ar -r release/\$(LIBNAME)-audio.a \$(AUDIO_RELEASE)
+
 
 debug/make:
 	-mkdir -p debug
@@ -401,7 +431,9 @@ coverage/make:
 	-mkdir -p coverage
 	-touch coverage/make
 
-install:	release/\$(LIBNAME).a
+install:	release/\$(LIBNAME).a release/\$(LIBNAME)-core.a release/\$(LIBNAME)-crypto.a \
+            release/\$(LIBNAME)-inet.a release/\$(LIBNAME)-db.a release/\$(LIBNAME)-gfx.a \
+            release/\$(LIBNAME)-tk.a debug/make release/\$(LIBNAME)-audio.a
 	mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
 	cp release/\$(LIBNAME)*.a \$(TARGETLIB)
 	cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
