@@ -65,8 +65,9 @@ LIBDEBUG	= libppl7-debug
 DISTNAME	= ppl
 ASM			= @ASM@ @ASMFLAGS@
 ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@	
+
 ###########################################################################
-### Object Files
+### Object Files RELEASE
 ###########################################################################
 
 RELEASE	= release/core_AVLTree.o \
@@ -175,221 +176,6 @@ RELEASE	= release/core_AVLTree.o \
 	release/audio_Icecast.o \
 	release/audio_ID3Tag.o \
 	release/audio_Mp3.o
-
-DEBUG	= debug/core_AVLTree.o \
-	debug/core_Compat.o \
-	debug/core_Compression.o \
-	debug/core_ConfigParser.o \
-	debug/core_cpu.o \
-	debug/core_Dir.o \
-	debug/core_DirEntry.o \
-	debug/core_Exceptions.o \
-	debug/core_File.o \
-	debug/core_FileObject.o \
-	debug/core_Functions.o \
-	debug/core_GzFile.o \
-	debug/core_Iconv.o \
-	debug/core_Logger.o \
-	debug/core_MemFile.o \
-	debug/core_MemoryGroup.o \
-	debug/core_MemoryHeap.o \
-	debug/core_Mutex.o \
-	debug/core_PerlHelper.o \
-	debug/core_PFPFile.o \
-	debug/core_Resource.o \
-	debug/core_Resourcen.o \
-	debug/core_Signal.o \
-	debug/core_StringFunctions.o \
-	debug/core_ThreadPool.o \
-	debug/core_Threads.o \
-	debug/core_Time.o \
-	debug/type_Array.o \
-	debug/type_AssocArray.o \
-	debug/type_ByteArray.o \
-	debug/type_ByteArrayPtr.o \
-	debug/type_DateTime.o \
-	debug/type_Pointer.o \
-	debug/type_String.o \
-	debug/type_Variant.o \
-	debug/type_WideString.o \
-	debug/math_ca.o \
-	debug/math_crc32.o \
-	debug/math_md5.o \
-	debug/math_random.o debug/crypto_Crypt.o \
-	debug/crypto_Digest.o \
-	debug/crypto_MCrypt.o \
-	debug/crypto_MHash.o debug/inet_curl.o \
-	debug/inet_inet_functions.o \
-	debug/inet_ipaddress.o \
-	debug/inet_ipnetwork.o \
-	debug/inet_openssl.o \
-	debug/inet_resolver.o \
-	debug/inet_sockaddr.o \
-	debug/inet_SocketMessage.o \
-	debug/inet_TCPSocket.o \
-	debug/inet_UDPSocket.o \
-	debug/inet_Webserver.o \
-	debug/inet_WikiParser.o debug/db_Database.o \
-	debug/db_MySQL.o \
-	debug/db_Pool_MultiPool.o \
-	debug/db_Pool_SinglePool.o \
-	debug/db_PostgreSQL.o \
-	debug/db_ResultSet.o \
-	debug/db_Sqlite3.o debug/gfx_Color.o \
-	debug/gfx_DrawableBlit.o \
-	debug/gfx_DrawableColor.o \
-	debug/gfx_Drawable.o \
-	debug/gfx_DrawableLines.o \
-	debug/gfx_DrawablePixel.o \
-	debug/gfx_DrawableShapes.o \
-	debug/gfx_Font4.o \
-	debug/gfx_Font5.o \
-	debug/gfx_Font6.o \
-	debug/gfx_FontFreeType.o \
-	debug/gfx_Fonts.o \
-	debug/gfx_Grafix.o \
-	debug/gfx_Image.o \
-	debug/gfx_ImageFilter_BMP.o \
-	debug/gfx_ImageFilter.o \
-	debug/gfx_ImageFilter_GIF.o \
-	debug/gfx_ImageFilter_ImageMagick.o \
-	debug/gfx_ImageFilter_JPEG.o \
-	debug/gfx_ImageFilter_PNG.o \
-	debug/gfx_ImageFilter_PPM.o \
-	debug/gfx_ImageFilter_TGA.o \
-	debug/gfx_ImageFilter_TIFF.o \
-	debug/gfx_ImageList.o \
-	debug/gfx_Point3D.o \
-	debug/gfx_Point.o \
-	debug/gfx_Rect.o \
-	debug/gfx_RGBFormat.o \
-	debug/gfx_Size.o \
-	debug/gfx_Sprite.o debug/tk_Button.o \
-	debug/tk_Divider.o \
-	debug/tk_Event.o \
-	debug/tk_Frame.o \
-	debug/tk_Label.o \
-	debug/tk_Layout.o \
-	debug/tk_LineInput.o \
-	debug/tk_Surface.o \
-	debug/tk_Widget.o \
-	debug/tk_Window.o \
-	debug/tk_WindowManager.o \
-	debug/tk_WindowManager_SDL2.o debug/audio_AudioCD.o \
-	debug/audio_AudioDecoder_Wave.o \
-	debug/audio_AudioInfo.o \
-	debug/audio_Cddb.o \
-	debug/audio_Icecast.o \
-	debug/audio_ID3Tag.o \
-	debug/audio_Mp3.o
-
-COVERAGE	= coverage/core_AVLTree.o \
-	coverage/core_Compat.o \
-	coverage/core_Compression.o \
-	coverage/core_ConfigParser.o \
-	coverage/core_cpu.o \
-	coverage/core_Dir.o \
-	coverage/core_DirEntry.o \
-	coverage/core_Exceptions.o \
-	coverage/core_File.o \
-	coverage/core_FileObject.o \
-	coverage/core_Functions.o \
-	coverage/core_GzFile.o \
-	coverage/core_Iconv.o \
-	coverage/core_Logger.o \
-	coverage/core_MemFile.o \
-	coverage/core_MemoryGroup.o \
-	coverage/core_MemoryHeap.o \
-	coverage/core_Mutex.o \
-	coverage/core_PerlHelper.o \
-	coverage/core_PFPFile.o \
-	coverage/core_Resource.o \
-	coverage/core_Resourcen.o \
-	coverage/core_Signal.o \
-	coverage/core_StringFunctions.o \
-	coverage/core_ThreadPool.o \
-	coverage/core_Threads.o \
-	coverage/core_Time.o \
-	coverage/type_Array.o \
-	coverage/type_AssocArray.o \
-	coverage/type_ByteArray.o \
-	coverage/type_ByteArrayPtr.o \
-	coverage/type_DateTime.o \
-	coverage/type_Pointer.o \
-	coverage/type_String.o \
-	coverage/type_Variant.o \
-	coverage/type_WideString.o \
-	coverage/math_ca.o \
-	coverage/math_crc32.o \
-	coverage/math_md5.o \
-	coverage/math_random.o coverage/crypto_Crypt.o \
-	coverage/crypto_Digest.o \
-	coverage/crypto_MCrypt.o \
-	coverage/crypto_MHash.o coverage/inet_curl.o \
-	coverage/inet_inet_functions.o \
-	coverage/inet_ipaddress.o \
-	coverage/inet_ipnetwork.o \
-	coverage/inet_openssl.o \
-	coverage/inet_resolver.o \
-	coverage/inet_sockaddr.o \
-	coverage/inet_SocketMessage.o \
-	coverage/inet_TCPSocket.o \
-	coverage/inet_UDPSocket.o \
-	coverage/inet_Webserver.o \
-	coverage/inet_WikiParser.o coverage/db_Database.o \
-	coverage/db_MySQL.o \
-	coverage/db_Pool_MultiPool.o \
-	coverage/db_Pool_SinglePool.o \
-	coverage/db_PostgreSQL.o \
-	coverage/db_ResultSet.o \
-	coverage/db_Sqlite3.o coverage/gfx_Color.o \
-	coverage/gfx_DrawableBlit.o \
-	coverage/gfx_DrawableColor.o \
-	coverage/gfx_Drawable.o \
-	coverage/gfx_DrawableLines.o \
-	coverage/gfx_DrawablePixel.o \
-	coverage/gfx_DrawableShapes.o \
-	coverage/gfx_Font4.o \
-	coverage/gfx_Font5.o \
-	coverage/gfx_Font6.o \
-	coverage/gfx_FontFreeType.o \
-	coverage/gfx_Fonts.o \
-	coverage/gfx_Grafix.o \
-	coverage/gfx_Image.o \
-	coverage/gfx_ImageFilter_BMP.o \
-	coverage/gfx_ImageFilter.o \
-	coverage/gfx_ImageFilter_GIF.o \
-	coverage/gfx_ImageFilter_ImageMagick.o \
-	coverage/gfx_ImageFilter_JPEG.o \
-	coverage/gfx_ImageFilter_PNG.o \
-	coverage/gfx_ImageFilter_PPM.o \
-	coverage/gfx_ImageFilter_TGA.o \
-	coverage/gfx_ImageFilter_TIFF.o \
-	coverage/gfx_ImageList.o \
-	coverage/gfx_Point3D.o \
-	coverage/gfx_Point.o \
-	coverage/gfx_Rect.o \
-	coverage/gfx_RGBFormat.o \
-	coverage/gfx_Size.o \
-	coverage/gfx_Sprite.o coverage/tk_Button.o \
-	coverage/tk_Divider.o \
-	coverage/tk_Event.o \
-	coverage/tk_Frame.o \
-	coverage/tk_Label.o \
-	coverage/tk_Layout.o \
-	coverage/tk_LineInput.o \
-	coverage/tk_Surface.o \
-	coverage/tk_Widget.o \
-	coverage/tk_Window.o \
-	coverage/tk_WindowManager.o \
-	coverage/tk_WindowManager_SDL2.o coverage/audio_AudioCD.o \
-	coverage/audio_AudioDecoder_Wave.o \
-	coverage/audio_AudioInfo.o \
-	coverage/audio_Cddb.o \
-	coverage/audio_Icecast.o \
-	coverage/audio_ID3Tag.o \
-	coverage/audio_Mp3.o
-
 
 CORE_RELEASE = release/core_AVLTree.o \
 	release/core_Compat.o \
@@ -510,7 +296,6 @@ AUDIO_RELEASE = release/audio_AudioCD.o \
 	release/audio_ID3Tag.o \
 	release/audio_Mp3.o
 
-
 ASM_OBJ_RELEASE	=	release/asm_blt.o \
 		release/asm_blt_blend.o \
 		release/asm_chromakey.o \
@@ -521,15 +306,116 @@ ASM_OBJ_RELEASE	=	release/asm_blt.o \
 		release/asm_pixel.o \
 		release/asm_rect.o
 
-ASM_OBJ_COVERAGE	=	coverage/asm_blt.o \
-		coverage/asm_blt_blend.o \
-		coverage/asm_chromakey.o \
-		coverage/asm_colors.o \
-		coverage/asm_common.o \
-		coverage/asm_cpu.o \
-		coverage/asm_fonts.o \
-		coverage/asm_pixel.o \
-		coverage/asm_rect.o
+###########################################################################
+### Object Files DEBUG
+###########################################################################
+
+DEBUG	= debug/core_AVLTree.o \
+	debug/core_Compat.o \
+	debug/core_Compression.o \
+	debug/core_ConfigParser.o \
+	debug/core_cpu.o \
+	debug/core_Dir.o \
+	debug/core_DirEntry.o \
+	debug/core_Exceptions.o \
+	debug/core_File.o \
+	debug/core_FileObject.o \
+	debug/core_Functions.o \
+	debug/core_GzFile.o \
+	debug/core_Iconv.o \
+	debug/core_Logger.o \
+	debug/core_MemFile.o \
+	debug/core_MemoryGroup.o \
+	debug/core_MemoryHeap.o \
+	debug/core_Mutex.o \
+	debug/core_PerlHelper.o \
+	debug/core_PFPFile.o \
+	debug/core_Resource.o \
+	debug/core_Resourcen.o \
+	debug/core_Signal.o \
+	debug/core_StringFunctions.o \
+	debug/core_ThreadPool.o \
+	debug/core_Threads.o \
+	debug/core_Time.o \
+	debug/type_Array.o \
+	debug/type_AssocArray.o \
+	debug/type_ByteArray.o \
+	debug/type_ByteArrayPtr.o \
+	debug/type_DateTime.o \
+	debug/type_Pointer.o \
+	debug/type_String.o \
+	debug/type_Variant.o \
+	debug/type_WideString.o \
+	debug/math_ca.o \
+	debug/math_crc32.o \
+	debug/math_md5.o \
+	debug/math_random.o debug/crypto_Crypt.o \
+	debug/crypto_Digest.o \
+	debug/crypto_MCrypt.o \
+	debug/crypto_MHash.o debug/inet_curl.o \
+	debug/inet_inet_functions.o \
+	debug/inet_ipaddress.o \
+	debug/inet_ipnetwork.o \
+	debug/inet_openssl.o \
+	debug/inet_resolver.o \
+	debug/inet_sockaddr.o \
+	debug/inet_SocketMessage.o \
+	debug/inet_TCPSocket.o \
+	debug/inet_UDPSocket.o \
+	debug/inet_Webserver.o \
+	debug/inet_WikiParser.o debug/db_Database.o \
+	debug/db_MySQL.o \
+	debug/db_Pool_MultiPool.o \
+	debug/db_Pool_SinglePool.o \
+	debug/db_PostgreSQL.o \
+	debug/db_ResultSet.o \
+	debug/db_Sqlite3.o debug/gfx_Color.o \
+	debug/gfx_DrawableBlit.o \
+	debug/gfx_DrawableColor.o \
+	debug/gfx_Drawable.o \
+	debug/gfx_DrawableLines.o \
+	debug/gfx_DrawablePixel.o \
+	debug/gfx_DrawableShapes.o \
+	debug/gfx_Font4.o \
+	debug/gfx_Font5.o \
+	debug/gfx_Font6.o \
+	debug/gfx_FontFreeType.o \
+	debug/gfx_Fonts.o \
+	debug/gfx_Grafix.o \
+	debug/gfx_Image.o \
+	debug/gfx_ImageFilter_BMP.o \
+	debug/gfx_ImageFilter.o \
+	debug/gfx_ImageFilter_GIF.o \
+	debug/gfx_ImageFilter_ImageMagick.o \
+	debug/gfx_ImageFilter_JPEG.o \
+	debug/gfx_ImageFilter_PNG.o \
+	debug/gfx_ImageFilter_PPM.o \
+	debug/gfx_ImageFilter_TGA.o \
+	debug/gfx_ImageFilter_TIFF.o \
+	debug/gfx_ImageList.o \
+	debug/gfx_Point3D.o \
+	debug/gfx_Point.o \
+	debug/gfx_Rect.o \
+	debug/gfx_RGBFormat.o \
+	debug/gfx_Size.o \
+	debug/gfx_Sprite.o debug/tk_Button.o \
+	debug/tk_Divider.o \
+	debug/tk_Event.o \
+	debug/tk_Frame.o \
+	debug/tk_Label.o \
+	debug/tk_Layout.o \
+	debug/tk_LineInput.o \
+	debug/tk_Surface.o \
+	debug/tk_Widget.o \
+	debug/tk_Window.o \
+	debug/tk_WindowManager.o \
+	debug/tk_WindowManager_SDL2.o debug/audio_AudioCD.o \
+	debug/audio_AudioDecoder_Wave.o \
+	debug/audio_AudioInfo.o \
+	debug/audio_Cddb.o \
+	debug/audio_Icecast.o \
+	debug/audio_ID3Tag.o \
+	debug/audio_Mp3.o
 
 ASM_OBJ_DEBUG	=	debug/asm_blt.o \
 		debug/asm_blt_blend.o \
@@ -541,6 +427,127 @@ ASM_OBJ_DEBUG	=	debug/asm_blt.o \
 		debug/asm_pixel.o \
 		debug/asm_rect.o
 
+
+###########################################################################
+### Object Files COVERAGE
+###########################################################################
+
+COVERAGE	= coverage/core_AVLTree.o \
+	coverage/core_Compat.o \
+	coverage/core_Compression.o \
+	coverage/core_ConfigParser.o \
+	coverage/core_cpu.o \
+	coverage/core_Dir.o \
+	coverage/core_DirEntry.o \
+	coverage/core_Exceptions.o \
+	coverage/core_File.o \
+	coverage/core_FileObject.o \
+	coverage/core_Functions.o \
+	coverage/core_GzFile.o \
+	coverage/core_Iconv.o \
+	coverage/core_Logger.o \
+	coverage/core_MemFile.o \
+	coverage/core_MemoryGroup.o \
+	coverage/core_MemoryHeap.o \
+	coverage/core_Mutex.o \
+	coverage/core_PerlHelper.o \
+	coverage/core_PFPFile.o \
+	coverage/core_Resource.o \
+	coverage/core_Resourcen.o \
+	coverage/core_Signal.o \
+	coverage/core_StringFunctions.o \
+	coverage/core_ThreadPool.o \
+	coverage/core_Threads.o \
+	coverage/core_Time.o \
+	coverage/type_Array.o \
+	coverage/type_AssocArray.o \
+	coverage/type_ByteArray.o \
+	coverage/type_ByteArrayPtr.o \
+	coverage/type_DateTime.o \
+	coverage/type_Pointer.o \
+	coverage/type_String.o \
+	coverage/type_Variant.o \
+	coverage/type_WideString.o \
+	coverage/math_ca.o \
+	coverage/math_crc32.o \
+	coverage/math_md5.o \
+	coverage/math_random.o coverage/crypto_Crypt.o \
+	coverage/crypto_Digest.o \
+	coverage/crypto_MCrypt.o \
+	coverage/crypto_MHash.o coverage/inet_curl.o \
+	coverage/inet_inet_functions.o \
+	coverage/inet_ipaddress.o \
+	coverage/inet_ipnetwork.o \
+	coverage/inet_openssl.o \
+	coverage/inet_resolver.o \
+	coverage/inet_sockaddr.o \
+	coverage/inet_SocketMessage.o \
+	coverage/inet_TCPSocket.o \
+	coverage/inet_UDPSocket.o \
+	coverage/inet_Webserver.o \
+	coverage/inet_WikiParser.o coverage/db_Database.o \
+	coverage/db_MySQL.o \
+	coverage/db_Pool_MultiPool.o \
+	coverage/db_Pool_SinglePool.o \
+	coverage/db_PostgreSQL.o \
+	coverage/db_ResultSet.o \
+	coverage/db_Sqlite3.o coverage/gfx_Color.o \
+	coverage/gfx_DrawableBlit.o \
+	coverage/gfx_DrawableColor.o \
+	coverage/gfx_Drawable.o \
+	coverage/gfx_DrawableLines.o \
+	coverage/gfx_DrawablePixel.o \
+	coverage/gfx_DrawableShapes.o \
+	coverage/gfx_Font4.o \
+	coverage/gfx_Font5.o \
+	coverage/gfx_Font6.o \
+	coverage/gfx_FontFreeType.o \
+	coverage/gfx_Fonts.o \
+	coverage/gfx_Grafix.o \
+	coverage/gfx_Image.o \
+	coverage/gfx_ImageFilter_BMP.o \
+	coverage/gfx_ImageFilter.o \
+	coverage/gfx_ImageFilter_GIF.o \
+	coverage/gfx_ImageFilter_ImageMagick.o \
+	coverage/gfx_ImageFilter_JPEG.o \
+	coverage/gfx_ImageFilter_PNG.o \
+	coverage/gfx_ImageFilter_PPM.o \
+	coverage/gfx_ImageFilter_TGA.o \
+	coverage/gfx_ImageFilter_TIFF.o \
+	coverage/gfx_ImageList.o \
+	coverage/gfx_Point3D.o \
+	coverage/gfx_Point.o \
+	coverage/gfx_Rect.o \
+	coverage/gfx_RGBFormat.o \
+	coverage/gfx_Size.o \
+	coverage/gfx_Sprite.o coverage/tk_Button.o \
+	coverage/tk_Divider.o \
+	coverage/tk_Event.o \
+	coverage/tk_Frame.o \
+	coverage/tk_Label.o \
+	coverage/tk_Layout.o \
+	coverage/tk_LineInput.o \
+	coverage/tk_Surface.o \
+	coverage/tk_Widget.o \
+	coverage/tk_Window.o \
+	coverage/tk_WindowManager.o \
+	coverage/tk_WindowManager_SDL2.o coverage/audio_AudioCD.o \
+	coverage/audio_AudioDecoder_Wave.o \
+	coverage/audio_AudioInfo.o \
+	coverage/audio_Cddb.o \
+	coverage/audio_Icecast.o \
+	coverage/audio_ID3Tag.o \
+	coverage/audio_Mp3.o
+
+ASM_OBJ_COVERAGE	=	coverage/asm_blt.o \
+		coverage/asm_blt_blend.o \
+		coverage/asm_chromakey.o \
+		coverage/asm_colors.o \
+		coverage/asm_common.o \
+		coverage/asm_cpu.o \
+		coverage/asm_fonts.o \
+		coverage/asm_pixel.o \
+		coverage/asm_rect.o
 
 @HAVE_X86_ASSEMBLER@
 
@@ -559,10 +566,12 @@ all:	install_debug install
 
 debug/$(LIBDEBUG).a: debug/make $(DEBUG) $(ASM_DEBUG)
 	ar -r debug/$(LIBDEBUG).a $(DEBUG) $(ASM_DEBUG)
-
+	-chmod a+x ppl7-config
+	
 release/$(LIBNAME).a: release/make $(RELEASE) $(ASM_RELEASE)
 	ar -r release/$(LIBNAME).a $(RELEASE) $(ASM_RELEASE)
-
+	-chmod a+x ppl7-config
+	
 coverage/$(LIBNAME).a: coverage/make $(COVERAGE) $(ASM_COVERAGE)
 	ar -r coverage/$(LIBNAME).a $(COVERAGE) $(ASM_COVERAGE)
 	-chmod a+x ppl7-config

@@ -389,10 +389,12 @@ all:	install_debug install
 
 debug/\$(LIBDEBUG).a: debug/make \$(DEBUG) \$(ASM_DEBUG)
 	ar -r debug/\$(LIBDEBUG).a \$(DEBUG) \$(ASM_DEBUG)
-
+	-chmod a+x ppl7-config
+	
 release/\$(LIBNAME).a: release/make \$(RELEASE) \$(ASM_RELEASE)
 	ar -r release/\$(LIBNAME).a \$(RELEASE) \$(ASM_RELEASE)
-
+	-chmod a+x ppl7-config
+	
 coverage/\$(LIBNAME).a: coverage/make \$(COVERAGE) \$(ASM_COVERAGE)
 	ar -r coverage/\$(LIBNAME).a \$(COVERAGE) \$(ASM_COVERAGE)
 	-chmod a+x ppl7-config
