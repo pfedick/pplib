@@ -69,33 +69,33 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 ### Object Files
 ###########################################################################
 
-RELEASE	= release/AVLTree.o \
-	release/Compat.o \
-	release/Compression.o \
-	release/ConfigParser.o \
-	release/cpu.o \
-	release/Dir.o \
-	release/DirEntry.o \
-	release/Exceptions.o \
-	release/File.o \
-	release/FileObject.o \
-	release/Functions.o \
-	release/GzFile.o \
-	release/Iconv.o \
-	release/Logger.o \
-	release/MemFile.o \
-	release/MemoryGroup.o \
-	release/MemoryHeap.o \
-	release/Mutex.o \
-	release/PerlHelper.o \
-	release/PFPFile.o \
-	release/Resource.o \
-	release/Resourcen.o \
-	release/Signal.o \
-	release/StringFunctions.o \
-	release/ThreadPool.o \
-	release/Threads.o \
-	release/Time.o \
+RELEASE	= release/core_AVLTree.o \
+	release/core_Compat.o \
+	release/core_Compression.o \
+	release/core_ConfigParser.o \
+	release/core_cpu.o \
+	release/core_Dir.o \
+	release/core_DirEntry.o \
+	release/core_Exceptions.o \
+	release/core_File.o \
+	release/core_FileObject.o \
+	release/core_Functions.o \
+	release/core_GzFile.o \
+	release/core_Iconv.o \
+	release/core_Logger.o \
+	release/core_MemFile.o \
+	release/core_MemoryGroup.o \
+	release/core_MemoryHeap.o \
+	release/core_Mutex.o \
+	release/core_PerlHelper.o \
+	release/core_PFPFile.o \
+	release/core_Resource.o \
+	release/core_Resourcen.o \
+	release/core_Signal.o \
+	release/core_StringFunctions.o \
+	release/core_ThreadPool.o \
+	release/core_Threads.o \
+	release/core_Time.o \
 	release/type_Array.o \
 	release/type_AssocArray.o \
 	release/type_ByteArray.o \
@@ -105,15 +105,13 @@ RELEASE	= release/AVLTree.o \
 	release/type_String.o \
 	release/type_Variant.o \
 	release/type_WideString.o \
-	release/ca.o \
-	release/crc32.o \
-	release/md5.o \
-	release/random.o \
-	release/Crypt.o \
-	release/Digest.o \
-	release/MCrypt.o \
-	release/MHash.o \
-	release/inet_curl.o \
+	release/math_ca.o \
+	release/math_crc32.o \
+	release/math_md5.o \
+	release/math_random.o release/crypto_Crypt.o \
+	release/crypto_Digest.o \
+	release/crypto_MCrypt.o \
+	release/crypto_MHash.o release/inet_curl.o \
 	release/inet_inet_functions.o \
 	release/inet_ipaddress.o \
 	release/inet_ipnetwork.o \
@@ -124,15 +122,13 @@ RELEASE	= release/AVLTree.o \
 	release/inet_TCPSocket.o \
 	release/inet_UDPSocket.o \
 	release/inet_Webserver.o \
-	release/inet_WikiParser.o \
-	release/db_Database.o \
+	release/inet_WikiParser.o release/db_Database.o \
 	release/db_MySQL.o \
 	release/db_Pool_MultiPool.o \
 	release/db_Pool_SinglePool.o \
 	release/db_PostgreSQL.o \
 	release/db_ResultSet.o \
-	release/db_Sqlite3.o \
-	release/gfx_Color.o \
+	release/db_Sqlite3.o release/gfx_Color.o \
 	release/gfx_DrawableBlit.o \
 	release/gfx_DrawableColor.o \
 	release/gfx_Drawable.o \
@@ -161,8 +157,7 @@ RELEASE	= release/AVLTree.o \
 	release/gfx_Rect.o \
 	release/gfx_RGBFormat.o \
 	release/gfx_Size.o \
-	release/gfx_Sprite.o \
-	release/tk_Button.o \
+	release/gfx_Sprite.o release/tk_Button.o \
 	release/tk_Divider.o \
 	release/tk_Event.o \
 	release/tk_Frame.o \
@@ -173,8 +168,7 @@ RELEASE	= release/AVLTree.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
 	release/tk_WindowManager.o \
-	release/tk_WindowManager_SDL2.o \
-	release/audio_AudioCD.o \
+	release/tk_WindowManager_SDL2.o release/audio_AudioCD.o \
 	release/audio_AudioDecoder_Wave.o \
 	release/audio_AudioInfo.o \
 	release/audio_Cddb.o \
@@ -182,33 +176,33 @@ RELEASE	= release/AVLTree.o \
 	release/audio_ID3Tag.o \
 	release/audio_Mp3.o
 
-DEBUG	= debug/AVLTree.o \
-	debug/Compat.o \
-	debug/Compression.o \
-	debug/ConfigParser.o \
-	debug/cpu.o \
-	debug/Dir.o \
-	debug/DirEntry.o \
-	debug/Exceptions.o \
-	debug/File.o \
-	debug/FileObject.o \
-	debug/Functions.o \
-	debug/GzFile.o \
-	debug/Iconv.o \
-	debug/Logger.o \
-	debug/MemFile.o \
-	debug/MemoryGroup.o \
-	debug/MemoryHeap.o \
-	debug/Mutex.o \
-	debug/PerlHelper.o \
-	debug/PFPFile.o \
-	debug/Resource.o \
-	debug/Resourcen.o \
-	debug/Signal.o \
-	debug/StringFunctions.o \
-	debug/ThreadPool.o \
-	debug/Threads.o \
-	debug/Time.o \
+DEBUG	= debug/core_AVLTree.o \
+	debug/core_Compat.o \
+	debug/core_Compression.o \
+	debug/core_ConfigParser.o \
+	debug/core_cpu.o \
+	debug/core_Dir.o \
+	debug/core_DirEntry.o \
+	debug/core_Exceptions.o \
+	debug/core_File.o \
+	debug/core_FileObject.o \
+	debug/core_Functions.o \
+	debug/core_GzFile.o \
+	debug/core_Iconv.o \
+	debug/core_Logger.o \
+	debug/core_MemFile.o \
+	debug/core_MemoryGroup.o \
+	debug/core_MemoryHeap.o \
+	debug/core_Mutex.o \
+	debug/core_PerlHelper.o \
+	debug/core_PFPFile.o \
+	debug/core_Resource.o \
+	debug/core_Resourcen.o \
+	debug/core_Signal.o \
+	debug/core_StringFunctions.o \
+	debug/core_ThreadPool.o \
+	debug/core_Threads.o \
+	debug/core_Time.o \
 	debug/type_Array.o \
 	debug/type_AssocArray.o \
 	debug/type_ByteArray.o \
@@ -218,15 +212,13 @@ DEBUG	= debug/AVLTree.o \
 	debug/type_String.o \
 	debug/type_Variant.o \
 	debug/type_WideString.o \
-	debug/ca.o \
-	debug/crc32.o \
-	debug/md5.o \
-	debug/random.o \
-	debug/Crypt.o \
-	debug/Digest.o \
-	debug/MCrypt.o \
-	debug/MHash.o \
-	debug/inet_curl.o \
+	debug/math_ca.o \
+	debug/math_crc32.o \
+	debug/math_md5.o \
+	debug/math_random.o debug/crypto_Crypt.o \
+	debug/crypto_Digest.o \
+	debug/crypto_MCrypt.o \
+	debug/crypto_MHash.o debug/inet_curl.o \
 	debug/inet_inet_functions.o \
 	debug/inet_ipaddress.o \
 	debug/inet_ipnetwork.o \
@@ -237,15 +229,13 @@ DEBUG	= debug/AVLTree.o \
 	debug/inet_TCPSocket.o \
 	debug/inet_UDPSocket.o \
 	debug/inet_Webserver.o \
-	debug/inet_WikiParser.o \
-	debug/db_Database.o \
+	debug/inet_WikiParser.o debug/db_Database.o \
 	debug/db_MySQL.o \
 	debug/db_Pool_MultiPool.o \
 	debug/db_Pool_SinglePool.o \
 	debug/db_PostgreSQL.o \
 	debug/db_ResultSet.o \
-	debug/db_Sqlite3.o \
-	debug/gfx_Color.o \
+	debug/db_Sqlite3.o debug/gfx_Color.o \
 	debug/gfx_DrawableBlit.o \
 	debug/gfx_DrawableColor.o \
 	debug/gfx_Drawable.o \
@@ -274,8 +264,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/gfx_Rect.o \
 	debug/gfx_RGBFormat.o \
 	debug/gfx_Size.o \
-	debug/gfx_Sprite.o \
-	debug/tk_Button.o \
+	debug/gfx_Sprite.o debug/tk_Button.o \
 	debug/tk_Divider.o \
 	debug/tk_Event.o \
 	debug/tk_Frame.o \
@@ -286,8 +275,7 @@ DEBUG	= debug/AVLTree.o \
 	debug/tk_Widget.o \
 	debug/tk_Window.o \
 	debug/tk_WindowManager.o \
-	debug/tk_WindowManager_SDL2.o \
-	debug/audio_AudioCD.o \
+	debug/tk_WindowManager_SDL2.o debug/audio_AudioCD.o \
 	debug/audio_AudioDecoder_Wave.o \
 	debug/audio_AudioInfo.o \
 	debug/audio_Cddb.o \
@@ -295,33 +283,33 @@ DEBUG	= debug/AVLTree.o \
 	debug/audio_ID3Tag.o \
 	debug/audio_Mp3.o
 
-COVERAGE	= coverage/AVLTree.o \
-	coverage/Compat.o \
-	coverage/Compression.o \
-	coverage/ConfigParser.o \
-	coverage/cpu.o \
-	coverage/Dir.o \
-	coverage/DirEntry.o \
-	coverage/Exceptions.o \
-	coverage/File.o \
-	coverage/FileObject.o \
-	coverage/Functions.o \
-	coverage/GzFile.o \
-	coverage/Iconv.o \
-	coverage/Logger.o \
-	coverage/MemFile.o \
-	coverage/MemoryGroup.o \
-	coverage/MemoryHeap.o \
-	coverage/Mutex.o \
-	coverage/PerlHelper.o \
-	coverage/PFPFile.o \
-	coverage/Resource.o \
-	coverage/Resourcen.o \
-	coverage/Signal.o \
-	coverage/StringFunctions.o \
-	coverage/ThreadPool.o \
-	coverage/Threads.o \
-	coverage/Time.o \
+COVERAGE	= coverage/core_AVLTree.o \
+	coverage/core_Compat.o \
+	coverage/core_Compression.o \
+	coverage/core_ConfigParser.o \
+	coverage/core_cpu.o \
+	coverage/core_Dir.o \
+	coverage/core_DirEntry.o \
+	coverage/core_Exceptions.o \
+	coverage/core_File.o \
+	coverage/core_FileObject.o \
+	coverage/core_Functions.o \
+	coverage/core_GzFile.o \
+	coverage/core_Iconv.o \
+	coverage/core_Logger.o \
+	coverage/core_MemFile.o \
+	coverage/core_MemoryGroup.o \
+	coverage/core_MemoryHeap.o \
+	coverage/core_Mutex.o \
+	coverage/core_PerlHelper.o \
+	coverage/core_PFPFile.o \
+	coverage/core_Resource.o \
+	coverage/core_Resourcen.o \
+	coverage/core_Signal.o \
+	coverage/core_StringFunctions.o \
+	coverage/core_ThreadPool.o \
+	coverage/core_Threads.o \
+	coverage/core_Time.o \
 	coverage/type_Array.o \
 	coverage/type_AssocArray.o \
 	coverage/type_ByteArray.o \
@@ -331,15 +319,13 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/type_String.o \
 	coverage/type_Variant.o \
 	coverage/type_WideString.o \
-	coverage/ca.o \
-	coverage/crc32.o \
-	coverage/md5.o \
-	coverage/random.o \
-	coverage/Crypt.o \
-	coverage/Digest.o \
-	coverage/MCrypt.o \
-	coverage/MHash.o \
-	coverage/inet_curl.o \
+	coverage/math_ca.o \
+	coverage/math_crc32.o \
+	coverage/math_md5.o \
+	coverage/math_random.o coverage/crypto_Crypt.o \
+	coverage/crypto_Digest.o \
+	coverage/crypto_MCrypt.o \
+	coverage/crypto_MHash.o coverage/inet_curl.o \
 	coverage/inet_inet_functions.o \
 	coverage/inet_ipaddress.o \
 	coverage/inet_ipnetwork.o \
@@ -350,15 +336,13 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/inet_TCPSocket.o \
 	coverage/inet_UDPSocket.o \
 	coverage/inet_Webserver.o \
-	coverage/inet_WikiParser.o \
-	coverage/db_Database.o \
+	coverage/inet_WikiParser.o coverage/db_Database.o \
 	coverage/db_MySQL.o \
 	coverage/db_Pool_MultiPool.o \
 	coverage/db_Pool_SinglePool.o \
 	coverage/db_PostgreSQL.o \
 	coverage/db_ResultSet.o \
-	coverage/db_Sqlite3.o \
-	coverage/gfx_Color.o \
+	coverage/db_Sqlite3.o coverage/gfx_Color.o \
 	coverage/gfx_DrawableBlit.o \
 	coverage/gfx_DrawableColor.o \
 	coverage/gfx_Drawable.o \
@@ -387,8 +371,7 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/gfx_Rect.o \
 	coverage/gfx_RGBFormat.o \
 	coverage/gfx_Size.o \
-	coverage/gfx_Sprite.o \
-	coverage/tk_Button.o \
+	coverage/gfx_Sprite.o coverage/tk_Button.o \
 	coverage/tk_Divider.o \
 	coverage/tk_Event.o \
 	coverage/tk_Frame.o \
@@ -399,14 +382,134 @@ COVERAGE	= coverage/AVLTree.o \
 	coverage/tk_Widget.o \
 	coverage/tk_Window.o \
 	coverage/tk_WindowManager.o \
-	coverage/tk_WindowManager_SDL2.o \
-	coverage/audio_AudioCD.o \
+	coverage/tk_WindowManager_SDL2.o coverage/audio_AudioCD.o \
 	coverage/audio_AudioDecoder_Wave.o \
 	coverage/audio_AudioInfo.o \
 	coverage/audio_Cddb.o \
 	coverage/audio_Icecast.o \
 	coverage/audio_ID3Tag.o \
 	coverage/audio_Mp3.o
+
+
+CORE_RELEASE = release/core_AVLTree.o \
+	release/core_Compat.o \
+	release/core_Compression.o \
+	release/core_ConfigParser.o \
+	release/core_cpu.o \
+	release/core_Dir.o \
+	release/core_DirEntry.o \
+	release/core_Exceptions.o \
+	release/core_File.o \
+	release/core_FileObject.o \
+	release/core_Functions.o \
+	release/core_GzFile.o \
+	release/core_Iconv.o \
+	release/core_Logger.o \
+	release/core_MemFile.o \
+	release/core_MemoryGroup.o \
+	release/core_MemoryHeap.o \
+	release/core_Mutex.o \
+	release/core_PerlHelper.o \
+	release/core_PFPFile.o \
+	release/core_Resource.o \
+	release/core_Resourcen.o \
+	release/core_Signal.o \
+	release/core_StringFunctions.o \
+	release/core_ThreadPool.o \
+	release/core_Threads.o \
+	release/core_Time.o \
+	release/type_Array.o \
+	release/type_AssocArray.o \
+	release/type_ByteArray.o \
+	release/type_ByteArrayPtr.o \
+	release/type_DateTime.o \
+	release/type_Pointer.o \
+	release/type_String.o \
+	release/type_Variant.o \
+	release/type_WideString.o \
+	release/math_ca.o \
+	release/math_crc32.o \
+	release/math_md5.o \
+	release/math_random.o
+
+CRYPTO_RELEASE = release/crypto_Crypt.o \
+	release/crypto_Digest.o \
+	release/crypto_MCrypt.o \
+	release/crypto_MHash.o
+
+INET_RELEASE = release/inet_curl.o \
+	release/inet_inet_functions.o \
+	release/inet_ipaddress.o \
+	release/inet_ipnetwork.o \
+	release/inet_openssl.o \
+	release/inet_resolver.o \
+	release/inet_sockaddr.o \
+	release/inet_SocketMessage.o \
+	release/inet_TCPSocket.o \
+	release/inet_UDPSocket.o \
+	release/inet_Webserver.o \
+	release/inet_WikiParser.o
+
+DB_RELEASE = release/db_Database.o \
+	release/db_MySQL.o \
+	release/db_Pool_MultiPool.o \
+	release/db_Pool_SinglePool.o \
+	release/db_PostgreSQL.o \
+	release/db_ResultSet.o \
+	release/db_Sqlite3.o
+
+GFX_RELEASE = release/gfx_Color.o \
+	release/gfx_DrawableBlit.o \
+	release/gfx_DrawableColor.o \
+	release/gfx_Drawable.o \
+	release/gfx_DrawableLines.o \
+	release/gfx_DrawablePixel.o \
+	release/gfx_DrawableShapes.o \
+	release/gfx_Font4.o \
+	release/gfx_Font5.o \
+	release/gfx_Font6.o \
+	release/gfx_FontFreeType.o \
+	release/gfx_Fonts.o \
+	release/gfx_Grafix.o \
+	release/gfx_Image.o \
+	release/gfx_ImageFilter_BMP.o \
+	release/gfx_ImageFilter.o \
+	release/gfx_ImageFilter_GIF.o \
+	release/gfx_ImageFilter_ImageMagick.o \
+	release/gfx_ImageFilter_JPEG.o \
+	release/gfx_ImageFilter_PNG.o \
+	release/gfx_ImageFilter_PPM.o \
+	release/gfx_ImageFilter_TGA.o \
+	release/gfx_ImageFilter_TIFF.o \
+	release/gfx_ImageList.o \
+	release/gfx_Point3D.o \
+	release/gfx_Point.o \
+	release/gfx_Rect.o \
+	release/gfx_RGBFormat.o \
+	release/gfx_Size.o \
+	release/gfx_Sprite.o
+
+TK_RELEASE = release/tk_Button.o \
+	release/tk_Divider.o \
+	release/tk_Event.o \
+	release/tk_Frame.o \
+	release/tk_Label.o \
+	release/tk_Layout.o \
+	release/tk_LineInput.o \
+	release/tk_Surface.o \
+	release/tk_Widget.o \
+	release/tk_Window.o \
+	release/tk_WindowManager.o \
+	release/tk_WindowManager_SDL2.o
+
+AUDIO_RELEASE = release/audio_AudioCD.o \
+	release/audio_AudioDecoder_Wave.o \
+	release/audio_AudioInfo.o \
+	release/audio_Cddb.o \
+	release/audio_Icecast.o \
+	release/audio_ID3Tag.o \
+	release/audio_Mp3.o
+
 
 ASM_OBJ_RELEASE	=	release/asm_blt.o \
 		release/asm_blt_blend.o \
@@ -417,6 +520,7 @@ ASM_OBJ_RELEASE	=	release/asm_blt.o \
 		release/asm_fonts.o \
 		release/asm_pixel.o \
 		release/asm_rect.o
+
 ASM_OBJ_COVERAGE	=	coverage/asm_blt.o \
 		coverage/asm_blt_blend.o \
 		coverage/asm_chromakey.o \
@@ -426,6 +530,7 @@ ASM_OBJ_COVERAGE	=	coverage/asm_blt.o \
 		coverage/asm_fonts.o \
 		coverage/asm_pixel.o \
 		coverage/asm_rect.o
+
 ASM_OBJ_DEBUG	=	debug/asm_blt.o \
 		debug/asm_blt_blend.o \
 		debug/asm_chromakey.o \
@@ -444,25 +549,45 @@ ASM_OBJ_DEBUG	=	debug/asm_blt.o \
 ###########################################################################
 
 
-release: release/$(LIBNAME).a
-
+release: release/$(LIBNAME).a release/$(LIBNAME)-core.a release/$(LIBNAME)-crypto.a          release/$(LIBNAME)-inet.a release/$(LIBNAME)-db.a release/$(LIBNAME)-gfx.a          release/$(LIBNAME)-tk.a debug/make release/$(LIBNAME)-audio.a
+	
 coverage: coverage/$(LIBNAME).a
-
+	
 debug: debug/$(LIBDEBUG).a
-
+	
 all:	install_debug install
 
 debug/$(LIBDEBUG).a: debug/make $(DEBUG) $(ASM_DEBUG)
 	ar -r debug/$(LIBDEBUG).a $(DEBUG) $(ASM_DEBUG)
-	-chmod a+x ppl7-config
 
 release/$(LIBNAME).a: release/make $(RELEASE) $(ASM_RELEASE)
 	ar -r release/$(LIBNAME).a $(RELEASE) $(ASM_RELEASE)
-	-chmod a+x ppl7-config
 
 coverage/$(LIBNAME).a: coverage/make $(COVERAGE) $(ASM_COVERAGE)
 	ar -r coverage/$(LIBNAME).a $(COVERAGE) $(ASM_COVERAGE)
 	-chmod a+x ppl7-config
+
+release/$(LIBNAME)-core.a: debug/make $(CORE_RELEASE) $(ASM_RELEASE)
+	ar -r release/$(LIBNAME)-core.a $(CORE_RELEASE) $(ASM_RELEASE)
+
+release/$(LIBNAME)-crypto.a: debug/make $(CRYPTO_RELEASE)
+	ar -r release/$(LIBNAME)-crypto.a $(CRYPTO_RELEASE)
+
+release/$(LIBNAME)-inet.a: debug/make $(INET_RELEASE)
+	ar -r release/$(LIBNAME)-inet.a $(INET_RELEASE)
+
+release/$(LIBNAME)-db.a: debug/make $(DB_RELEASE)
+	ar -r release/$(LIBNAME)-db.a $(DB_RELEASE)
+	
+release/$(LIBNAME)-gfx.a: debug/make $(GFX_RELEASE)
+	ar -r release/$(LIBNAME)-gfx.a $(GFX_RELEASE)
+
+release/$(LIBNAME)-tk.a: debug/make $(TK_RELEASE)
+	ar -r release/$(LIBNAME)-tk.a $(TK_RELEASE)
+
+release/$(LIBNAME)-audio.a: debug/make $(AUDIO_RELEASE)
+	ar -r release/$(LIBNAME)-audio.a $(AUDIO_RELEASE)
+
 
 debug/make:
 	-mkdir -p debug
@@ -476,7 +601,7 @@ coverage/make:
 	-mkdir -p coverage
 	-touch coverage/make
 
-install:	release/$(LIBNAME).a
+install:	release/$(LIBNAME).a release/$(LIBNAME)-core.a release/$(LIBNAME)-crypto.a             release/$(LIBNAME)-inet.a release/$(LIBNAME)-db.a release/$(LIBNAME)-gfx.a             release/$(LIBNAME)-tk.a debug/make release/$(LIBNAME)-audio.a
 	mkdir -p $(TARGETLIB) $(TARGETINCLUDE) $(TARGETBIN)
 	cp release/$(LIBNAME)*.a $(TARGETLIB)
 	cp $(incdir)/ppl7.h $(TARGETINCLUDE)
@@ -565,140 +690,140 @@ memcheck:
 ###########################################################################
 
 ### CORE
-release/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
+release/core_AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
 	###############################################################################
 	# Compiling >>>core/AVLTree.cpp<<<
-	$(CXX) -Wall -O2 -o release/AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) 
 
-release/Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Compat.cpp<<<
-	$(CXX) -Wall -O2 -o release/Compat.o -c $(srcdir)/core/Compat.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Compat.o -c $(srcdir)/core/Compat.cpp $(CFLAGS) 
 
-release/Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Compression.cpp<<<
-	$(CXX) -Wall -O2 -o release/Compression.o -c $(srcdir)/core/Compression.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Compression.o -c $(srcdir)/core/Compression.cpp $(CFLAGS) 
 
-release/ConfigParser.o:	$(srcdir)/core/ConfigParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_ConfigParser.o:	$(srcdir)/core/ConfigParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/ConfigParser.cpp<<<
-	$(CXX) -Wall -O2 -o release/ConfigParser.o -c $(srcdir)/core/ConfigParser.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_ConfigParser.o -c $(srcdir)/core/ConfigParser.cpp $(CFLAGS) 
 
-release/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -O2 -o release/cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) 
 
-release/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Dir.cpp<<<
-	$(CXX) -Wall -O2 -o release/Dir.o -c $(srcdir)/core/Dir.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Dir.o -c $(srcdir)/core/Dir.cpp $(CFLAGS) 
 
-release/DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/DirEntry.cpp<<<
-	$(CXX) -Wall -O2 -o release/DirEntry.o -c $(srcdir)/core/DirEntry.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_DirEntry.o -c $(srcdir)/core/DirEntry.cpp $(CFLAGS) 
 
-release/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Exceptions.cpp<<<
-	$(CXX) -Wall -O2 -o release/Exceptions.o -c $(srcdir)/core/Exceptions.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Exceptions.o -c $(srcdir)/core/Exceptions.cpp $(CFLAGS) 
 
-release/File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/File.cpp<<<
-	$(CXX) -Wall -O2 -o release/File.o -c $(srcdir)/core/File.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_File.o -c $(srcdir)/core/File.cpp $(CFLAGS) 
 
-release/FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/FileObject.cpp<<<
-	$(CXX) -Wall -O2 -o release/FileObject.o -c $(srcdir)/core/FileObject.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_FileObject.o -c $(srcdir)/core/FileObject.cpp $(CFLAGS) 
 
-release/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Functions.cpp<<<
-	$(CXX) -Wall -O2 -o release/Functions.o -c $(srcdir)/core/Functions.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Functions.o -c $(srcdir)/core/Functions.cpp $(CFLAGS) 
 
-release/GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/GzFile.cpp<<<
-	$(CXX) -Wall -O2 -o release/GzFile.o -c $(srcdir)/core/GzFile.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_GzFile.o -c $(srcdir)/core/GzFile.cpp $(CFLAGS) 
 
-release/Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Iconv.cpp<<<
-	$(CXX) -Wall -O2 -o release/Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) 
 
-release/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Logger.cpp<<<
-	$(CXX) -Wall -O2 -o release/Logger.o -c $(srcdir)/core/Logger.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Logger.o -c $(srcdir)/core/Logger.cpp $(CFLAGS) 
 
-release/MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemFile.cpp<<<
-	$(CXX) -Wall -O2 -o release/MemFile.o -c $(srcdir)/core/MemFile.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_MemFile.o -c $(srcdir)/core/MemFile.cpp $(CFLAGS) 
 
-release/MemoryGroup.o:	$(srcdir)/core/MemoryGroup.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_MemoryGroup.o:	$(srcdir)/core/MemoryGroup.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemoryGroup.cpp<<<
-	$(CXX) -Wall -O2 -o release/MemoryGroup.o -c $(srcdir)/core/MemoryGroup.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_MemoryGroup.o -c $(srcdir)/core/MemoryGroup.cpp $(CFLAGS) 
 
-release/MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemoryHeap.cpp<<<
-	$(CXX) -Wall -O2 -o release/MemoryHeap.o -c $(srcdir)/core/MemoryHeap.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_MemoryHeap.o -c $(srcdir)/core/MemoryHeap.cpp $(CFLAGS) 
 
-release/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Mutex.cpp<<<
-	$(CXX) -Wall -O2 -o release/Mutex.o -c $(srcdir)/core/Mutex.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Mutex.o -c $(srcdir)/core/Mutex.cpp $(CFLAGS) 
 
-release/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PerlHelper.cpp<<<
-	$(CXX) -Wall -O2 -o release/PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) 
 
-release/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
-	$(CXX) -Wall -O2 -o release/PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) 
 
-release/Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Resource.cpp<<<
-	$(CXX) -Wall -O2 -o release/Resource.o -c $(srcdir)/core/Resource.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Resource.o -c $(srcdir)/core/Resource.cpp $(CFLAGS) 
 
-release/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Resourcen.cpp<<<
-	$(CXX) -Wall -O2 -o release/Resourcen.o -c $(srcdir)/core/Resourcen.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Resourcen.o -c $(srcdir)/core/Resourcen.cpp $(CFLAGS) 
 
-release/Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Signal.cpp<<<
-	$(CXX) -Wall -O2 -o release/Signal.o -c $(srcdir)/core/Signal.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Signal.o -c $(srcdir)/core/Signal.cpp $(CFLAGS) 
 
-release/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/StringFunctions.cpp<<<
-	$(CXX) -Wall -O2 -o release/StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp $(CFLAGS) 
 
-release/ThreadPool.o:	$(srcdir)/core/ThreadPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_ThreadPool.o:	$(srcdir)/core/ThreadPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/ThreadPool.cpp<<<
-	$(CXX) -Wall -O2 -o release/ThreadPool.o -c $(srcdir)/core/ThreadPool.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_ThreadPool.o -c $(srcdir)/core/ThreadPool.cpp $(CFLAGS) 
 
-release/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Threads.cpp<<<
-	$(CXX) -Wall -O2 -o release/Threads.o -c $(srcdir)/core/Threads.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Threads.o -c $(srcdir)/core/Threads.cpp $(CFLAGS) 
 
-release/Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/core_Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Time.cpp<<<
-	$(CXX) -Wall -O2 -o release/Time.o -c $(srcdir)/core/Time.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/core_Time.o -c $(srcdir)/core/Time.cpp $(CFLAGS) 
 
 ### TYPES
 release/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
@@ -747,46 +872,46 @@ release/type_WideString.o:	$(srcdir)/types/WideString.cpp $(incdir)/ppl7.h $(inc
 	$(CXX) -Wall -O2 -o release/type_WideString.o -c $(srcdir)/types/WideString.cpp $(CFLAGS) 
 
 ### MATH
-release/ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/math_ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/calc.cpp<<<
-	$(CXX) -Wall -O2 -o release/ca.o -c $(srcdir)/math/calc.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/math_ca.o -c $(srcdir)/math/calc.cpp $(CFLAGS) 
 
-release/crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/math_crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/crc32.cpp<<<
-	$(CXX) -Wall -O2 -o release/crc32.o -c $(srcdir)/math/crc32.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/math_crc32.o -c $(srcdir)/math/crc32.cpp $(CFLAGS) 
 
-release/md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/math_md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/md5.cpp<<<
-	$(CXX) -Wall -O2 -o release/md5.o -c $(srcdir)/math/md5.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/math_md5.o -c $(srcdir)/math/md5.cpp $(CFLAGS) 
 
-release/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+release/math_random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/random.cpp<<<
-	$(CXX) -Wall -O2 -o release/random.o -c $(srcdir)/math/random.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/math_random.o -c $(srcdir)/math/random.cpp $(CFLAGS) 
 
 ### CRYPTO
-release/Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+release/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Crypt.cpp<<<
-	$(CXX) -Wall -O2 -o release/Crypt.o -c $(srcdir)/crypto/Crypt.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/crypto_Crypt.o -c $(srcdir)/crypto/Crypt.cpp $(CFLAGS) 
 
-release/Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+release/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Digest.cpp<<<
-	$(CXX) -Wall -O2 -o release/Digest.o -c $(srcdir)/crypto/Digest.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/crypto_Digest.o -c $(srcdir)/crypto/Digest.cpp $(CFLAGS) 
 
-release/MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+release/crypto_MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/MCrypt.cpp<<<
-	$(CXX) -Wall -O2 -o release/MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/crypto_MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp $(CFLAGS) 
 
-release/MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+release/crypto_MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/MHash.cpp<<<
-	$(CXX) -Wall -O2 -o release/MHash.o -c $(srcdir)/crypto/MHash.cpp $(CFLAGS) 
+	$(CXX) -Wall -O2 -o release/crypto_MHash.o -c $(srcdir)/crypto/MHash.cpp $(CFLAGS) 
 
 ### INTERNET
 release/inet_curl.o:	$(srcdir)/internet/curl.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
@@ -1185,140 +1310,140 @@ release/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
 ###########################################################################
 
 ### CORE
-debug/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
+debug/core_AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
 	###############################################################################
 	# Compiling >>>core/AVLTree.cpp<<<
-	$(CXX) -Wall -O -o debug/AVLTree.o -c $(srcdir)/core/AVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_AVLTree.o -c $(srcdir)/core/AVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Compat.cpp<<<
-	$(CXX) -Wall -O -o debug/Compat.o -c $(srcdir)/core/Compat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Compat.o -c $(srcdir)/core/Compat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Compression.cpp<<<
-	$(CXX) -Wall -O -o debug/Compression.o -c $(srcdir)/core/Compression.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Compression.o -c $(srcdir)/core/Compression.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/ConfigParser.o:	$(srcdir)/core/ConfigParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_ConfigParser.o:	$(srcdir)/core/ConfigParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/ConfigParser.cpp<<<
-	$(CXX) -Wall -O -o debug/ConfigParser.o -c $(srcdir)/core/ConfigParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_ConfigParser.o -c $(srcdir)/core/ConfigParser.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -O -o debug/cpu.o -c $(srcdir)/core/cpu.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_cpu.o -c $(srcdir)/core/cpu.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Dir.cpp<<<
-	$(CXX) -Wall -O -o debug/Dir.o -c $(srcdir)/core/Dir.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Dir.o -c $(srcdir)/core/Dir.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/DirEntry.cpp<<<
-	$(CXX) -Wall -O -o debug/DirEntry.o -c $(srcdir)/core/DirEntry.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_DirEntry.o -c $(srcdir)/core/DirEntry.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Exceptions.cpp<<<
-	$(CXX) -Wall -O -o debug/Exceptions.o -c $(srcdir)/core/Exceptions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Exceptions.o -c $(srcdir)/core/Exceptions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/File.cpp<<<
-	$(CXX) -Wall -O -o debug/File.o -c $(srcdir)/core/File.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_File.o -c $(srcdir)/core/File.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/FileObject.cpp<<<
-	$(CXX) -Wall -O -o debug/FileObject.o -c $(srcdir)/core/FileObject.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_FileObject.o -c $(srcdir)/core/FileObject.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Functions.cpp<<<
-	$(CXX) -Wall -O -o debug/Functions.o -c $(srcdir)/core/Functions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Functions.o -c $(srcdir)/core/Functions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/GzFile.cpp<<<
-	$(CXX) -Wall -O -o debug/GzFile.o -c $(srcdir)/core/GzFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_GzFile.o -c $(srcdir)/core/GzFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Iconv.cpp<<<
-	$(CXX) -Wall -O -o debug/Iconv.o -c $(srcdir)/core/Iconv.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Iconv.o -c $(srcdir)/core/Iconv.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Logger.cpp<<<
-	$(CXX) -Wall -O -o debug/Logger.o -c $(srcdir)/core/Logger.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Logger.o -c $(srcdir)/core/Logger.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemFile.cpp<<<
-	$(CXX) -Wall -O -o debug/MemFile.o -c $(srcdir)/core/MemFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_MemFile.o -c $(srcdir)/core/MemFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/MemoryGroup.o:	$(srcdir)/core/MemoryGroup.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_MemoryGroup.o:	$(srcdir)/core/MemoryGroup.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemoryGroup.cpp<<<
-	$(CXX) -Wall -O -o debug/MemoryGroup.o -c $(srcdir)/core/MemoryGroup.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_MemoryGroup.o -c $(srcdir)/core/MemoryGroup.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemoryHeap.cpp<<<
-	$(CXX) -Wall -O -o debug/MemoryHeap.o -c $(srcdir)/core/MemoryHeap.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_MemoryHeap.o -c $(srcdir)/core/MemoryHeap.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Mutex.cpp<<<
-	$(CXX) -Wall -O -o debug/Mutex.o -c $(srcdir)/core/Mutex.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Mutex.o -c $(srcdir)/core/Mutex.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PerlHelper.cpp<<<
-	$(CXX) -Wall -O -o debug/PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
-	$(CXX) -Wall -O -o debug/PFPFile.o -c $(srcdir)/core/PFPFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_PFPFile.o -c $(srcdir)/core/PFPFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Resource.cpp<<<
-	$(CXX) -Wall -O -o debug/Resource.o -c $(srcdir)/core/Resource.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Resource.o -c $(srcdir)/core/Resource.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Resourcen.cpp<<<
-	$(CXX) -Wall -O -o debug/Resourcen.o -c $(srcdir)/core/Resourcen.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Resourcen.o -c $(srcdir)/core/Resourcen.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Signal.cpp<<<
-	$(CXX) -Wall -O -o debug/Signal.o -c $(srcdir)/core/Signal.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Signal.o -c $(srcdir)/core/Signal.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/StringFunctions.cpp<<<
-	$(CXX) -Wall -O -o debug/StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/ThreadPool.o:	$(srcdir)/core/ThreadPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_ThreadPool.o:	$(srcdir)/core/ThreadPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/ThreadPool.cpp<<<
-	$(CXX) -Wall -O -o debug/ThreadPool.o -c $(srcdir)/core/ThreadPool.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_ThreadPool.o -c $(srcdir)/core/ThreadPool.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Threads.cpp<<<
-	$(CXX) -Wall -O -o debug/Threads.o -c $(srcdir)/core/Threads.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Threads.o -c $(srcdir)/core/Threads.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/core_Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Time.cpp<<<
-	$(CXX) -Wall -O -o debug/Time.o -c $(srcdir)/core/Time.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/core_Time.o -c $(srcdir)/core/Time.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### TYPES
 debug/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
@@ -1367,46 +1492,46 @@ debug/type_WideString.o:	$(srcdir)/types/WideString.cpp $(incdir)/ppl7.h $(incdi
 	$(CXX) -Wall -O -o debug/type_WideString.o -c $(srcdir)/types/WideString.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### MATH
-debug/ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/math_ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/calc.cpp<<<
-	$(CXX) -Wall -O -o debug/ca.o -c $(srcdir)/math/calc.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/math_ca.o -c $(srcdir)/math/calc.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/math_crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/crc32.cpp<<<
-	$(CXX) -Wall -O -o debug/crc32.o -c $(srcdir)/math/crc32.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/math_crc32.o -c $(srcdir)/math/crc32.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/math_md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/md5.cpp<<<
-	$(CXX) -Wall -O -o debug/md5.o -c $(srcdir)/math/md5.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/math_md5.o -c $(srcdir)/math/md5.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+debug/math_random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/random.cpp<<<
-	$(CXX) -Wall -O -o debug/random.o -c $(srcdir)/math/random.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/math_random.o -c $(srcdir)/math/random.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### CRYPTO
-debug/Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+debug/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Crypt.cpp<<<
-	$(CXX) -Wall -O -o debug/Crypt.o -c $(srcdir)/crypto/Crypt.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/crypto_Crypt.o -c $(srcdir)/crypto/Crypt.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+debug/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Digest.cpp<<<
-	$(CXX) -Wall -O -o debug/Digest.o -c $(srcdir)/crypto/Digest.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/crypto_Digest.o -c $(srcdir)/crypto/Digest.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+debug/crypto_MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/MCrypt.cpp<<<
-	$(CXX) -Wall -O -o debug/MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/crypto_MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+debug/crypto_MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/MHash.cpp<<<
-	$(CXX) -Wall -O -o debug/MHash.o -c $(srcdir)/crypto/MHash.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+	$(CXX) -Wall -O -o debug/crypto_MHash.o -c $(srcdir)/crypto/MHash.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### INTERNET
 debug/inet_curl.o:	$(srcdir)/internet/curl.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
@@ -1804,140 +1929,140 @@ debug/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
 ### Compile Files for CodeCoverage
 ###########################################################################
 
-coverage/AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
+coverage/core_AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
 	###############################################################################
 	# Compiling >>>core/AVLTree.cpp<<<
-	$(CXX) -Wall -o coverage/AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Compat.cpp<<<
-	$(CXX) -Wall -o coverage/Compat.o -c $(srcdir)/core/Compat.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Compat.o -c $(srcdir)/core/Compat.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Compression.o:	$(srcdir)/core/Compression.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Compression.cpp<<<
-	$(CXX) -Wall -o coverage/Compression.o -c $(srcdir)/core/Compression.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Compression.o -c $(srcdir)/core/Compression.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/ConfigParser.o:	$(srcdir)/core/ConfigParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_ConfigParser.o:	$(srcdir)/core/ConfigParser.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/ConfigParser.cpp<<<
-	$(CXX) -Wall -o coverage/ConfigParser.o -c $(srcdir)/core/ConfigParser.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_ConfigParser.o -c $(srcdir)/core/ConfigParser.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_cpu.o:	$(srcdir)/core/cpu.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/cpu.cpp<<<
-	$(CXX) -Wall -o coverage/cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_cpu.o -c $(srcdir)/core/cpu.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Dir.o:	$(srcdir)/core/Dir.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Dir.cpp<<<
-	$(CXX) -Wall -o coverage/Dir.o -c $(srcdir)/core/Dir.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Dir.o -c $(srcdir)/core/Dir.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_DirEntry.o:	$(srcdir)/core/DirEntry.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/DirEntry.cpp<<<
-	$(CXX) -Wall -o coverage/DirEntry.o -c $(srcdir)/core/DirEntry.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_DirEntry.o -c $(srcdir)/core/DirEntry.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Exceptions.o:	$(srcdir)/core/Exceptions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Exceptions.cpp<<<
-	$(CXX) -Wall -o coverage/Exceptions.o -c $(srcdir)/core/Exceptions.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Exceptions.o -c $(srcdir)/core/Exceptions.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_File.o:	$(srcdir)/core/File.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/File.cpp<<<
-	$(CXX) -Wall -o coverage/File.o -c $(srcdir)/core/File.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_File.o -c $(srcdir)/core/File.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_FileObject.o:	$(srcdir)/core/FileObject.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/FileObject.cpp<<<
-	$(CXX) -Wall -o coverage/FileObject.o -c $(srcdir)/core/FileObject.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_FileObject.o -c $(srcdir)/core/FileObject.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Functions.o:	$(srcdir)/core/Functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Functions.cpp<<<
-	$(CXX) -Wall -o coverage/Functions.o -c $(srcdir)/core/Functions.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Functions.o -c $(srcdir)/core/Functions.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_GzFile.o:	$(srcdir)/core/GzFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/GzFile.cpp<<<
-	$(CXX) -Wall -o coverage/GzFile.o -c $(srcdir)/core/GzFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_GzFile.o -c $(srcdir)/core/GzFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Iconv.cpp<<<
-	$(CXX) -Wall -o coverage/Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Logger.cpp<<<
-	$(CXX) -Wall -o coverage/Logger.o -c $(srcdir)/core/Logger.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Logger.o -c $(srcdir)/core/Logger.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_MemFile.o:	$(srcdir)/core/MemFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemFile.cpp<<<
-	$(CXX) -Wall -o coverage/MemFile.o -c $(srcdir)/core/MemFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_MemFile.o -c $(srcdir)/core/MemFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/MemoryGroup.o:	$(srcdir)/core/MemoryGroup.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_MemoryGroup.o:	$(srcdir)/core/MemoryGroup.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemoryGroup.cpp<<<
-	$(CXX) -Wall -o coverage/MemoryGroup.o -c $(srcdir)/core/MemoryGroup.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_MemoryGroup.o -c $(srcdir)/core/MemoryGroup.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/MemoryHeap.cpp<<<
-	$(CXX) -Wall -o coverage/MemoryHeap.o -c $(srcdir)/core/MemoryHeap.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_MemoryHeap.o -c $(srcdir)/core/MemoryHeap.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Mutex.cpp<<<
-	$(CXX) -Wall -o coverage/Mutex.o -c $(srcdir)/core/Mutex.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Mutex.o -c $(srcdir)/core/Mutex.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PerlHelper.cpp<<<
-	$(CXX) -Wall -o coverage/PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
-	$(CXX) -Wall -o coverage/PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Resource.cpp<<<
-	$(CXX) -Wall -o coverage/Resource.o -c $(srcdir)/core/Resource.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Resource.o -c $(srcdir)/core/Resource.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Resourcen.o:	$(srcdir)/core/Resourcen.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Resourcen.cpp<<<
-	$(CXX) -Wall -o coverage/Resourcen.o -c $(srcdir)/core/Resourcen.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Resourcen.o -c $(srcdir)/core/Resourcen.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Signal.o:	$(srcdir)/core/Signal.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Signal.cpp<<<
-	$(CXX) -Wall -o coverage/Signal.o -c $(srcdir)/core/Signal.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Signal.o -c $(srcdir)/core/Signal.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_StringFunctions.o:	$(srcdir)/core/StringFunctions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/StringFunctions.cpp<<<
-	$(CXX) -Wall -o coverage/StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_StringFunctions.o -c $(srcdir)/core/StringFunctions.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/ThreadPool.o:	$(srcdir)/core/ThreadPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_ThreadPool.o:	$(srcdir)/core/ThreadPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/ThreadPool.cpp<<<
-	$(CXX) -Wall -o coverage/ThreadPool.o -c $(srcdir)/core/ThreadPool.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_ThreadPool.o -c $(srcdir)/core/ThreadPool.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Threads.o:	$(srcdir)/core/Threads.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Threads.cpp<<<
-	$(CXX) -Wall -o coverage/Threads.o -c $(srcdir)/core/Threads.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Threads.o -c $(srcdir)/core/Threads.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/core_Time.o:	$(srcdir)/core/Time.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Time.cpp<<<
-	$(CXX) -Wall -o coverage/Time.o -c $(srcdir)/core/Time.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/core_Time.o -c $(srcdir)/core/Time.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/type_Array.o:	$(srcdir)/types/Array.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
@@ -1984,45 +2109,45 @@ coverage/type_WideString.o:	$(srcdir)/types/WideString.cpp $(incdir)/ppl7.h $(in
 	# Compiling >>>types/WideString.cpp<<<
 	$(CXX) -Wall -o coverage/type_WideString.o -c $(srcdir)/types/WideString.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/math_ca.o:	$(srcdir)/math/calc.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/calc.cpp<<<
-	$(CXX) -Wall -o coverage/ca.o -c $(srcdir)/math/calc.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/math_ca.o -c $(srcdir)/math/calc.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/math_crc32.o:	$(srcdir)/math/crc32.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/crc32.cpp<<<
-	$(CXX) -Wall -o coverage/crc32.o -c $(srcdir)/math/crc32.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/math_crc32.o -c $(srcdir)/math/crc32.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/math_md5.o:	$(srcdir)/math/md5.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/md5.cpp<<<
-	$(CXX) -Wall -o coverage/md5.o -c $(srcdir)/math/md5.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/math_md5.o -c $(srcdir)/math/md5.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+coverage/math_random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>math/random.cpp<<<
-	$(CXX) -Wall -o coverage/random.o -c $(srcdir)/math/random.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/math_random.o -c $(srcdir)/math/random.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+coverage/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Crypt.cpp<<<
-	$(CXX) -Wall -o coverage/Crypt.o -c $(srcdir)/crypto/Crypt.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/crypto_Crypt.o -c $(srcdir)/crypto/Crypt.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+coverage/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Digest.cpp<<<
-	$(CXX) -Wall -o coverage/Digest.o -c $(srcdir)/crypto/Digest.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/crypto_Digest.o -c $(srcdir)/crypto/Digest.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+coverage/crypto_MCrypt.o:	$(srcdir)/crypto/MCrypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/MCrypt.cpp<<<
-	$(CXX) -Wall -o coverage/MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/crypto_MCrypt.o -c $(srcdir)/crypto/MCrypt.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+coverage/crypto_MHash.o:	$(srcdir)/crypto/MHash.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/MHash.cpp<<<
-	$(CXX) -Wall -o coverage/MHash.o -c $(srcdir)/crypto/MHash.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+	$(CXX) -Wall -o coverage/crypto_MHash.o -c $(srcdir)/crypto/MHash.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/inet_curl.o:	$(srcdir)/internet/curl.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	###############################################################################
