@@ -40,12 +40,15 @@ DEFS="@DEFS@"
 CFLAGS="@CFLAGS@ @PTHREAD_CFLAGS@"
 CPPFLAGS="@CPPFLAGS@"
 LDFLAGS="@LDFLAGS@"
-LIBS="@LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @ICONV_LIBS@"
-LIBS="$LIBS @JPEG_LIBS@ @PNG_LIBS@ @TIFF_LIBS@ @SDL_LIBS@ @SDL2_LIBS@ @LIBCURL@"
-LIBS="$LIBS @LIBCDIO_LDFLAGS@ "
-LIBS="$LIBS @MYSQL_LDFLAGS@ @POSTGRESQL_LDFLAGS@ @SQLITE3_LDFLAGS@ @MPG123_LIBS@ @LAME_LIBS@ @LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@ @LIBLDNS_LIBS@ @FT2_LIBS@ @IMLIB_LIBS@ @LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@"
-LIBS="$LIBS @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ -lstdc++"
-### LIBS+="  @SYBASE_LIBS@  @MAD_LIBS@ "
+
+LIBS_CORE="@LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @ICONV_LIBS@"
+LIBS_CRYPTO="@LIBMCRYPT_LIBS@ @LIBMHASH_LIBS@"
+LIBS_GXF="@JPEG_LIBS@ @PNG_LIBS@ @TIFF_LIBS@ @SDL_LIBS@ @SDL2_LIBS@ @FT2_LIBS@ @IMLIB_LIBS@"
+LIBS_INET="@LIBCURL@ @LIBLDNS_LIBS@ @LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@"
+LIBS_AUDIO="@LIBCDIO_LDFLAGS@ @MPG123_LIBS@ @LAME_LIBS@"
+LIBS_DB="@MYSQL_LDFLAGS@ @POSTGRESQL_LDFLAGS@ @SQLITE3_LDFLAGS@"
+LIBS_TK=""
+
 LIBNAME="libppl7"
 LIBDEBUG="libppl7-debug"
 VERSION="@PACKAGE_VERSION@"
@@ -177,24 +180,31 @@ while test $# -gt 0; do
       ;;
     core)
       libname="$libname -lppl7-core"
+      LIBS="$LIBS $LIBS_CORE"
       ;;
     crypto)
       libname="$libname -lppl7-crypto"
+      LIBS="$LIBS $LIBS_CRYPTO"
       ;;
     inet)
       libname="$libname -lppl7-inet"
+      LIBS="$LIBS $LIBS_INET"
       ;;
     gfx)
       libname="$libname -lppl7-gfx"
+      LIBS="$LIBS $LIBS_GFX"
       ;;
     db)
       libname="$libname -lppl7-db"
+      LIBS="$LIBS $LIBS_DB"
       ;;
     tk)
       libname="$libname -lppl7-tk"
+      LIBS="$LIBS $LIBS_TK"
       ;;
     audio)
       libname="$libname -lppl7-audio"
+      LIBS="$LIBS $LIBS_AUDIO"
       ;;
       
     *)
@@ -203,6 +213,11 @@ while test $# -gt 0; do
   esac
   shift
 done
+
+if test -z "$LIBS" ; then
+   LIBS="$LIBS_CORE $LIBS_CRYPTO $LIBS_GFX $LIBS_INET $LIBS_DB $LIBS_AUDIO $LIBS_TK"
+fi
+LIBS="$LIBS -lstdc++"
 
 if test -z "$libname" ; then
    libname="-lppl7"
