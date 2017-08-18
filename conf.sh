@@ -123,9 +123,9 @@ case "$SYS:$REL:$KERNEL" in
 			PREFIX=/jenkins/local
 		fi
 		echo "configuring for MSYS2 MINGW64, PREFIX=$PREFIX"
-		export CPPFLAGS="-DCURL_STATICLIB -I$PREFIX/include -I/usr/local/include -I/sdk/WindowsSDK/include"
+		export CPPFLAGS="-DCURL_STATICLIB -DPCRE_STATIC -I$PREFIX/include -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L$PREFIX/lib -L/usr/local/lib -L/sdk/WindowsSDK/lib"
-		export CFLAGS="-DCURL_STATICLIB"
+		export CFLAGS="-DCURL_STATICLIB -DPCRE_STATIC"
 		export SQLITE_CFLAGS="-I$PREFIX/include -I/usr/local/include"
 		export SQLITE_LIBS="-L$PREFIX/include -L/usr/local/lib -lsqlite3"
 		./configure --prefix=$PREFIX \
