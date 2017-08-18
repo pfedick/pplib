@@ -65,8 +65,8 @@ ALIGN 16
 		ASM_BltChromaKey32:					; Pointer auf data ist in rdi
 		mov r8,rdi							; Pointer nach r8 schieben
 	%elif arch_win64=1
-		global _ASM_BltChromaKey32
-		_ASM_BltChromaKey32:				; Pointer auf data ist zunächst in rcx
+		global ASM_BltChromaKey32
+		ASM_BltChromaKey32:					; Pointer auf data ist zunächst in rcx
 		mov r8,rcx							; Pointer nach r8 schieben
 	%endif
 	; Prüfen, ob Breite durch 4 teilbar ist und Speicheradressen der Grafiken durch 16
