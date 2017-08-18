@@ -231,6 +231,27 @@ _PPL7_GetCpuCaps:
 	jz .NO_AES		; if set, AES is supported
 		or edi,0x2000
 	.NO_AES:
+	; AVX
+	test ecx, BIT28		; bit 28 in ECX: AVX
+	jz .NO_AVX
+		or edi,0x4000
+	.NO_AVX:
+
+	mov eax, 7			; CPUID Funktion Fn0000_0007 aufrufen
+	cpuid
+	test ebx, BIT5		; bit 5 in EBX: AVX2
+	jz .NO_AVX2
+		or edi,0x8000
+	.NO_AVX2:
+	test ebx, BIT16		; bit 16 in EBX: AVX512
+	jz .NO_AVX512
+		or edi,0x10000
+	.NO_AVX512:
+	test ebx, BIT29		; bit 29 in EBX: SHA
+	jz .NO_SHA
+		or edi,0x20000
+	.NO_SHA:
+
 
 	; Extended Function vorhanden?
 	mov eax, 80000000h		; call extended function 80000000h
