@@ -23,10 +23,17 @@ AC_ARG_WITH([libtiff],
 		am_save_LDFLAGS="$LDFLAGS"
 		am_save_CFLAGS="$CFLAGS"
 		
-		LIBS="$LIBS $intLIBTIFF_LIBS"
-		CFLAGS="$CFLAGS $intLIBTIFF_CFLAGS"
-		AC_CHECK_HEADERS([tiffio.h],
+		AC_CHECK_LIB(lzma,lzma_code,
+			intLIBTIFF_LIBS="$intLIBTIFF_LIBS -llzma"
+			AC_MSG_RESULT(yes)
+			,
+			AC_MSG_RESULT(no)
+		)
 				
+		LIBS="$LIBS $intLIBTIFF_LIBS $JPEG_LIBS -lz"
+		CFLAGS="$CFLAGS $intLIBTIFF_CFLAGS $JPEG_CFLAGS"
+				
+		AC_CHECK_HEADERS([tiffio.h],
 			AC_CHECK_LIB(tiff,TIFFClientOpen,
 				TIFF_LIBS=$intLIBTIFF_LIBS
 				TIFF_CFLAGS=$intLIBTIFF_CFLAGS

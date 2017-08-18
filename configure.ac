@@ -416,8 +416,8 @@ AC_CHECK_LIBJPEGTURBO([1.3.0],
             AC_DEFINE(HAVE_JPEG,1)
             report_have_jpeg="yes"
             jpeg_note="(using libjpeg-turbo)"
-			JPEG_LIBS="$JPEG_TURBO_LIBS"
-			JPEG_CFLAGS="$JPEG_TURBO_CFLAGS"
+			JPEG_LIBS="$TURBOJPEG_LIBS"
+			JPEG_CFLAGS="$TURBOJPEG_CFLAGS"
             
            :)
 AC_SUBST(JPEG_CFLAGS)

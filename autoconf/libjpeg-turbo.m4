@@ -15,8 +15,7 @@ AC_ARG_WITH([libjpegturbo],
 		am_save_LIBS="$LIBS"
 		am_save_LDFLAGS="$LDFLAGS"
 		LIBS=""
-
-		PKG_CHECK_MODULES([JPEG], [libturbojpeg >= $1],
+		PKG_CHECK_MODULES([TURBOJPEG], [libturbojpeg >= $1],
 			ifelse([$2], , :, [$2])
 			,
 			AC_SEARCH_LIBS( [tjInitDecompress],[turbojpeg],
@@ -25,8 +24,8 @@ AC_ARG_WITH([libjpegturbo],
 				dnl echo "CFLAGS=$CFLAGS"
 				dnl echo "CPPFLAGS=$CPPFLAGS"
 			
-				JPEG_TURBO_LIBS="$LIBS"
-				JPEG_TURBO_CFLAGS=""
+				TURBOJPEG_LIBS="$LIBS"
+				TURBOJPEG_CFLAGS=""
 				ifelse([$2], , :, [$2])
   				,
 				ifelse([$3], , :, [$3])
