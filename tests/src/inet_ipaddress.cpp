@@ -41,8 +41,9 @@
 #include <ppl7-inet.h>
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
-
+#ifndef WIN32
 #include <netinet/in.h>
+#endif
 #include <set>
 
 namespace {

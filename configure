@@ -657,6 +657,7 @@ report_have_jpeg
 report_have_png
 report_have_bzip2
 report_have_zlib
+WINDOWS_WINSOCK_LIBS
 SRCDIR
 ASMDEBUGFLAGS
 ASMFLAGS
@@ -17655,14 +17656,15 @@ _ACEOF
 
 
 
-
+WINDOWS_WINSOCK_LIBS=""
 case "$host_os" in
 	*mingw32* )
 		MINGW32=yes
 
 $as_echo "#define MINGW32 1" >>confdefs.h
 
-		LIBS="$LIBS -lws2_32"
+		#LIBS="$LIBS -lws2_32"
+		WINDOWS_WINSOCK_LIBS="-lws2_32"
   		;;
   	*mingw64*|msys )
 		MINGW32=yes
@@ -17673,12 +17675,14 @@ $as_echo "#define MINGW32 1" >>confdefs.h
 
 $as_echo "#define MINGW64 1" >>confdefs.h
 
-		LIBS="$LIBS -lws2_32"
+		WINDOWS_WINSOCK_LIBS="-lws2_32"
   		;;
 	* )
 		MINGW32=no
 		;;
 esac
+
+
 
 case "${host_cpu}-${host_os}" in
 	*solaris*)
