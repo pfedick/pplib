@@ -44,6 +44,10 @@ global _PPL7_GetCpuCaps
 
 
 SECTION .data
+align 16
+PPL7CPUCAPS@:	dd -1                  ; local name to avoid problems in shared objects
+
+
 SECTION .text
 
 ;/*********************************************************************
@@ -163,6 +167,13 @@ GetCpuCaps_Vendor_AMD:
 
 PPL7_GetCpuCaps:
 _PPL7_GetCpuCaps:
+	mov  eax, [PPL7CPUCAPS@]
+    test eax, eax
+    js   .FirstTime              ; Negative means first time
+        ; Early return. Has been called before
+    ret                            ; Return value is in eax
+    .FirstTime:
+
 	%ifidn __OUTPUT_FORMAT__, elf64
 		push rbx
 		push rdi
@@ -270,6 +281,7 @@ _PPL7_GetCpuCaps:
 
 	.end:
 	mov eax,edi
+	mov [PPL7CPUCAPS@], edi ; save value in global variable
 	%ifidn __OUTPUT_FORMAT__, elf64
 		pop rdi
 		pop rbx
