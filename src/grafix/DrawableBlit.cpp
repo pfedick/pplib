@@ -204,7 +204,7 @@ static int BltBlend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 	if (f>255) f=255;
 	//::printf ("factor=%0.2f, f=%i\n",factor,f);
 
-	if ((GetCPUCaps()&CPUCAPS::HAVE_SSE2)) {
+	if ((GetCPUCaps()&CPUCAPS::CPU_HAVE_SSE2)) {
 		if ((data.width&1)==0 && (((ptrdiff_t)data.src)&7)==0 && (((ptrdiff_t)data.tgt)&7)==0 ) {
 			if (ASM_BltBlend32_SSE_Align2(&data,f)) return 1;
 		} else {
@@ -355,7 +355,7 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 {
 	if (tol2<tol1) tol2=tol1;
 #ifdef HAVE_X86_ASSEMBLER
-	if ((GetCPUCaps()&CPUCAPS::HAVE_SSE2)) {
+	if ((GetCPUCaps()&CPUCAPS::CPU_HAVE_SSE2)) {
 		BLTCHROMADATA data;
 		data.sadr=(char*)adr(source,srect.left(),srect.top());
 		data.bgadr=(char*)adr(target,x,y);
@@ -421,7 +421,7 @@ static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_D
 {
 	if (tol2<tol1) tol2=tol1;
 #ifdef HAVE_X86_ASSEMBLER
-	if ((GetCPUCaps()&CPUCAPS::HAVE_SSE2)) {
+	if ((GetCPUCaps()&CPUCAPS::CPU_HAVE_SSE2)) {
 		BLTCHROMADATA data;
 		data.sadr=(char*)adr(target,srect.left(),srect.top());
 		data.bgadr=(char*)adr(background,x,y);

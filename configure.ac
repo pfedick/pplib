@@ -681,6 +681,12 @@ case $target in
 			report_have_nasm="yes"
 		)
 		;;
+esac
+
+case $target in
+	x86_64*|amd64*)
+		AC_DEFINE(HAVE_AMD64,1,)
+		;;
 esac		
 
 if test $report_have_nasm = "yes"

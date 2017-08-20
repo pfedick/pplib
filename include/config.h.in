@@ -42,6 +42,7 @@
 
 #undef MINGW32
 #undef MINGW64
+#undef HAVE_AMD64
 
 /* Define as 1 if you have unistd.h. */
 #undef HAVE_UNISTD_H

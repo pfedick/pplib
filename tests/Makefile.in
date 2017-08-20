@@ -37,6 +37,7 @@ EXTRA_CFLAGS =
 INCLUDE	= -I. -I$(GTEST_DIR)/include
 CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 LIBS	= `../ppl7-config --libs debug source` -lstdc++
+LIBS_REL = `../ppl7-config --libs release source` -lstdc++
 LIBS_COVERAGE	= `../ppl7-config --libs coverage source` @GCOV_LDFLAGS@ -lstdc++
 PROGNAME = testsuite
 
@@ -65,7 +66,7 @@ DB_OBJECTS = compile/main.o compile/db_postgres.o compile/wordlist.o \
 	compile/db_sqlite.o compile/db_mysql.o
 
 
-all: $(PROGNAME) threadtest toolkit loggertest dbtest gfxreftest
+all: $(PROGNAME) threadtest toolkit loggertest dbtest gfxreftest stringspeed
 
 $(PROGNAME): compile/libgtest.a $(OBJECTS) ppl7-tests.h
 	$(CXX) -O -ggdb -o $(PROGNAME) $(CFLAGS) $(OBJECTS) compile/libgtest.a $(LIBS)
@@ -79,7 +80,9 @@ dbtest: compile/libgtest.a $(DB_OBJECTS) ppl7-tests.h
 dbtest_coverage: compile/libgtest.a $(DB_OBJECTS) ppl7-tests.h
 	$(CXX) -O -ggdb -o dbtest_coverage $(CFLAGS) $(DB_OBJECTS) compile/libgtest.a $(LIBS_COVERAGE)
 
-
+stringspeed: compile/stringspeed.o compile/wordlist.o ppl7-tests.h
+	$(CXX) -O -ggdb -o stringspeed $(CFLAGS) compile/stringspeed.o compile/wordlist.o $(LIBS_REL)
+	
 threadtest: compile/threadtest.o ppl7-tests.h
 	$(CXX) -O -ggdb -o threadtest $(CFLAGS) compile/threadtest.o $(LIBS)
 
@@ -345,4 +348,8 @@ compile/id3tag.o: src/id3tag.cpp Makefile ppl7-tests.h
 compile/math.o: src/math.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/math.o -c src/math.cpp $(CFLAGS) $(LIB)
-	
+
+compile/stringspeed.o: src/stringspeed.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/stringspeed.o -c src/stringspeed.cpp $(CFLAGS) $(LIB)
+		

@@ -85,6 +85,8 @@ namespace ppl7 {
 
 static size_t InitialBuffersize=128;
 
+static char*empty_string=(char*)"";
+
 /*!\brief Zeichenkodierung festlegen
  *
  * Standardmäßig erwartet die String-Klasse bei Übergabe von "const char *", dass
@@ -133,7 +135,7 @@ const char *String::getGlobalEncoding()
  */
 String::String() throw()
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 }
@@ -151,7 +153,7 @@ String::String() throw()
  */
 String::String(const char *str)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str);
@@ -169,7 +171,7 @@ String::String(const char *str)
  */
 String::String(const char *str, size_t size)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str,size);
@@ -185,7 +187,7 @@ String::String(const char *str, size_t size)
  */
 String::String(const String *str)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str);
@@ -201,7 +203,7 @@ String::String(const String *str)
  */
 String::String(const String &str)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str);
@@ -220,7 +222,7 @@ String::String(const String &str)
  */
 String::String(const std::string &str)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str.data(),str.size());
@@ -236,7 +238,7 @@ String::String(const std::string &str)
  */
 String::String(const std::wstring &str)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str.data(),str.size());
@@ -244,7 +246,7 @@ String::String(const std::wstring &str)
 
 String::String(const WideString *str)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str);
@@ -252,7 +254,7 @@ String::String(const WideString *str)
 
 String::String(const WideString &str)
 {
-	ptr=NULL;
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 	set(str,str.size());
@@ -266,7 +268,7 @@ String::String(const WideString &str)
  */
 String::~String() throw()
 {
-	free(ptr);
+	if (ptr!=empty_string) free(ptr);
 }
 
 /*!\brief String leeren
@@ -277,8 +279,8 @@ String::~String() throw()
  */
 void String::clear() throw()
 {
-	free(ptr);
-	ptr=NULL;
+	if (ptr!=empty_string) free(ptr);
+	ptr=empty_string;
 	stringlen=0;
 	s=0;
 }
@@ -316,7 +318,9 @@ void String::reserve(size_t size)
 {
 	size_t bytes=(size+1)*sizeof(char);
 	if (s>=bytes) return; // Nothing to do
-	char *p=(char*)realloc(ptr,bytes);
+	char *p;
+	if (ptr==empty_string) p=(char*)malloc(bytes);
+	else p=(char*)realloc(ptr,bytes);
 	if (!p) throw OutOfMemoryException();
 	ptr=p;
 	s=bytes;
@@ -519,10 +523,14 @@ String & String::set(const char *str, size_t size)
 	}
 	size_t inbytes;
 	if (size!=(size_t)-1) inbytes=size;
-	else inbytes=strlen(str);
+	else inbytes=::strlen(str);
+	if (inbytes==0) {
+		clear();
+		return *this;
+	}
 	size_t outbytes=inbytes*sizeof(char)+1;
 	if (outbytes>=s) {
-		if (ptr) free(ptr);
+		if (ptr!=empty_string) free(ptr);
 		stringlen=0;
 		s=InitialBuffersize;
 		if (s<=outbytes) s=((outbytes/InitialBuffersize)+1)*InitialBuffersize+1;
@@ -579,7 +587,7 @@ String & String::set(const wchar_t *str, size_t size)
 	}
 	size_t outbytes=inbytes*sizeof(wchar_t)+4;
 	if (outbytes>=s) {
-		if (ptr) free(ptr);
+		if (ptr!=empty_string) free(ptr);
 		stringlen=0;
 		s=InitialBuffersize;
 		if (s<=outbytes) s=((outbytes/InitialBuffersize)+1)*InitialBuffersize+4;
@@ -896,7 +904,7 @@ String & String::append(const wchar_t *str, size_t size)
 String & String::append(const char *str, size_t size)
 {
 	if (str==NULL || size==0) return *this;
-	if (!ptr) {
+	if (ptr==empty_string) {
 		return set(str,size);
 	}
 	size_t inchars;
@@ -1095,7 +1103,7 @@ String & String::prepend(const wchar_t *str, size_t size)
 String & String::prepend(const String *str, size_t size)
 {
 	if (!str) return *this;
-	if (!ptr) {
+	if (ptr==empty_string) {
 		set(str,size);
 		return *this;
 	}
@@ -1118,7 +1126,7 @@ String & String::prepend(const String *str, size_t size)
  */
 String & String::prepend(const String &str, size_t size)
 {
-	if (!ptr) {
+	if (ptr==empty_string) {
 		set(str,size);
 		return *this;
 	}
@@ -1141,7 +1149,7 @@ String & String::prepend(const String &str, size_t size)
  */
 String & String::prepend(const std::string &str, size_t size)
 {
-	if (!ptr) {
+	if (ptr==empty_string) {
 		set(str,size);
 		return *this;
 	}
@@ -1164,7 +1172,7 @@ String & String::prepend(const std::string &str, size_t size)
  */
 String & String::prepend(const std::wstring &str, size_t size)
 {
-	if (!ptr) {
+	if (ptr==empty_string) {
 		set(str,size);
 		return *this;
 	}
@@ -1188,7 +1196,7 @@ String & String::prepend(const std::wstring &str, size_t size)
 String & String::prepend(const char *str, size_t size)
 {
 	if (str==NULL || size==0) return *this;
-	if (!ptr) {
+	if (ptr==empty_string) {
 		set(str,size);
 		return *this;
 	}
@@ -1445,7 +1453,7 @@ char String::operator[](ssize_t pos) const
  */
 void String::print(bool withNewline) const throw()
 {
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		if (withNewline) printf("%s\n",(char*)ptr);
 		else printf("%s",(char*)ptr);
 	} else if (withNewline) {
@@ -1681,22 +1689,14 @@ String& String::operator+=(char c)
  */
 int String::strcmp(const String &str, size_t size) const
 {
-	const char *mystr=ptr;
-	const char *otherstr=str.ptr;
-	if (stringlen==0) mystr="";
-	if (str.stringlen==0) otherstr="";
-	if (size!=(size_t)-1) return ::strncmp(mystr,otherstr,size);
-	return ::strcmp(mystr,otherstr);
+	if (size!=(size_t)-1) return ::strncmp(ptr,str.ptr,size);
+	return ::strcmp(ptr,str.ptr);
 }
 
 int String::strcmp(const char *str, size_t size) const
 {
-	const char *mystr=ptr;
-	const char *otherstr=str;
-	if (stringlen==0) mystr="";
-	if (str==NULL || strlen(str)==0) otherstr="";
-	if (size!=(size_t)-1) return ::strncmp(mystr,otherstr,size);
-	return ::strcmp(mystr,otherstr);
+	if (size!=(size_t)-1) return ::strncmp(ptr,str,size);
+	return ::strcmp(ptr,str);
 }
 
 
@@ -1720,22 +1720,14 @@ int String::strcmp(const char *str, size_t size) const
  */
 int String::strCaseCmp(const String &str, size_t size) const
 {
-	const char *mystr=ptr;
-	const char *otherstr=str.ptr;
-	if (stringlen==0) mystr="";
-	if (str.stringlen==0) otherstr="";
-	if (size!=(size_t)-1) return strncasecmp(mystr,otherstr,size);
-	return strcasecmp(mystr,otherstr);
+	if (size!=(size_t)-1) return strncasecmp(ptr,str.ptr,size);
+	return strcasecmp(ptr,str.ptr);
 }
 
 int String::strCaseCmp(const char *str, size_t size) const
 {
-	const char *mystr=ptr;
-	const char *otherstr=str;
-	if (stringlen==0) mystr="";
-	if (str==NULL || strlen(str)==0) otherstr="";
-	if (size!=(size_t)-1) return strncasecmp(mystr,otherstr,size);
-	return strcasecmp(mystr,otherstr);
+	if (size!=(size_t)-1) return strncasecmp(ptr,str,size);
+	return strcasecmp(ptr,str);
 }
 
 
@@ -1749,7 +1741,7 @@ int String::strCaseCmp(const char *str, size_t size) const
  */
 String String::left(size_t len) const
 {
-	if(ptr != NULL && stringlen > 0) {
+	if(stringlen > 0) {
 		if(len > stringlen) len = stringlen;
 		return String(ptr,len);
 	}
@@ -1766,7 +1758,7 @@ String String::left(size_t len) const
   */
 String String::right(size_t len) const
 {
-	if(ptr != NULL && stringlen > 0) {
+	if(stringlen > 0) {
 		if(len > stringlen) len = stringlen;
 		return String(ptr+stringlen-len,len);
 	}
@@ -1787,7 +1779,7 @@ String String::right(size_t len) const
 String String::mid(size_t start, size_t len) const
 {
 	if (len==(size_t)-1) len=stringlen;
-	if (start<stringlen && ptr!=NULL && len>0) {
+	if (start<stringlen && stringlen>0 && len>0) {
 		if (start+len>stringlen) len=stringlen-start;
 		return String(ptr+start,len);
 	}
@@ -1808,7 +1800,7 @@ String String::mid(size_t start, size_t len) const
 String String::substr(size_t start, size_t len) const
 {
 	if (len==(size_t)-1) len=stringlen;
-	if (start<stringlen && ptr!=NULL && len>0) {
+	if (start<stringlen && stringlen>0 && len>0) {
 		if (start+len>stringlen) len=stringlen-start;
 		return String(ptr+start,len);
 	}
@@ -1839,7 +1831,7 @@ String String::substr(size_t start, size_t len) const
  */
 void String::lowerCase()
 {
-	if (ptr==NULL || stringlen==0) return;
+	if (stringlen==0) return;
 	// Wir wandeln den String zunächst nach Unicode um
 	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
 	if (!buffer) throw OutOfMemoryException();
@@ -1886,7 +1878,7 @@ void String::lowerCase()
  */
 void String::upperCase()
 {
-	if (ptr==NULL || stringlen==0) return;
+	if (stringlen==0) return;
 	// Wir wandeln den String zunächst nach Unicode um
 	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
 	if (!buffer) throw OutOfMemoryException();
@@ -1921,7 +1913,7 @@ void String::upperCase()
  */
 void String::upperCaseWords()
 {
-	if (ptr==NULL || stringlen==0) return;
+	if (stringlen==0) return;
 
 	// Wir wandeln den String zunächst nach Unicode um
 	wchar_t *buffer=(wchar_t*)malloc((stringlen+1)*sizeof(wchar_t));
@@ -1958,7 +1950,7 @@ void String::upperCaseWords()
 //! \brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
 void String::trim()
 {
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		size_t i,start,ende,s;
 		start=0; s=0;
 		ende=stringlen;
@@ -2016,7 +2008,7 @@ String String::toUpperCaseWords() const
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab
 void String::trimLeft()
 {
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		size_t i,start,s;
 		start=0; s=0;
 		//ende=stringlen;
@@ -2037,7 +2029,7 @@ void String::trimLeft()
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
 void String::trimRight()
 {
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		size_t i,ende;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
@@ -2056,7 +2048,7 @@ void String::trimRight()
 //! \brief Schneidet die definierten Zeichen am Anfang des Strings ab
 void String::trimLeft(const String &chars)
 {
-	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
+	if (stringlen>0 && chars.stringlen>0) {
 		size_t i,start,s,z;
 		start=0; s=0;
 		for (i=0;i<stringlen;i++) {
@@ -2082,7 +2074,7 @@ void String::trimLeft(const String &chars)
 //! \brief Schneidet die definierten Zeichen am Ende des Strings ab
 void String::trimRight(const String &chars)
 {
-	if (ptr!=NULL && stringlen>0 && chars.stringlen>0) {
+	if (stringlen>0 && chars.stringlen>0) {
 		size_t i,ende,z;
 		ende=0;
 		for (i=stringlen;i>0;i--) {
@@ -2122,7 +2114,7 @@ void String::trim(const String &chars)
  */
 void String::chopRight(size_t num)
 {
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		if (stringlen<num) num=stringlen;
 		stringlen-=num;
 		ptr[stringlen]=0;
@@ -2142,7 +2134,7 @@ void String::chopRight(size_t num)
  */
 void String::chop(size_t num)
 {
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		if (stringlen<num) num=stringlen;
 		stringlen-=num;
 		ptr[stringlen]=0;
@@ -2159,7 +2151,7 @@ void String::chop(size_t num)
  */
 void String::chopLeft(size_t num)
 {
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		if (stringlen<num) num=stringlen;
 		memmove(ptr,ptr+num,(stringlen-num)*sizeof(char));
 		stringlen-=num;
@@ -2186,7 +2178,7 @@ void String::chomp()
  */
 void String::cut(size_t pos)
 {
-	if (ptr==NULL &&stringlen==0) return;
+	if (stringlen==0) return;
 	if (pos>stringlen) return;
 	ptr[pos]=0;
 	stringlen=pos;
@@ -2200,7 +2192,7 @@ void String::cut(size_t pos)
  */
 void String::cut(const String &letter)
 {
-	if (ptr==NULL &&stringlen==0) return;
+	if (stringlen==0) return;
 	if (letter.isEmpty()) return;
 	ssize_t p=instr(letter,0);
 	if (p>=0) {
@@ -2213,7 +2205,7 @@ void String::cut(const String &letter)
 String String::strchr(char c) const
 {
 	String ret;
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		char *p=::strchr(ptr, c);
 		if (p) ret.set(p);
 	}
@@ -2223,7 +2215,7 @@ String String::strchr(char c) const
 String String::strrchr(char c) const
 {
 	String ret;
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		char *p=::strrchr(ptr, c);
 		if (p) ret.set(p);
 	}
@@ -2250,7 +2242,7 @@ String String::strrchr(char c) const
 String String::strstr(const String &needle) const
 {
 	String ret;
-	if (ptr!=NULL && stringlen>0) {
+	if (stringlen>0) {
 		if (needle.len()==0) return *this;
 		char *p=::strstr(ptr, needle.ptr);
 		if (p) ret.set(p);
@@ -2273,7 +2265,7 @@ String String::strstr(const String &needle) const
  */
 ssize_t String::find(const String &needle, ssize_t start) const
 {
-	if (ptr==NULL || stringlen==0) return -1;
+	if (stringlen==0) return -1;
 	if (needle.stringlen==0) return 0;
 	if (start>0 && (size_t)start>=stringlen) return -1;
 	if (start<0 && ((size_t)((ssize_t)stringlen+start))>=stringlen) return -1;
@@ -2353,7 +2345,7 @@ ssize_t String::findCase(const String &needle, ssize_t start) const
  */
 ssize_t String::instr(const String &needle, size_t start) const
 {
-	if (ptr==NULL || stringlen==0) return -1;
+	if (stringlen==0) return -1;
 	if (needle.stringlen==0) return 0;
 	if (start>=stringlen) return -1;
 	const char * p;
@@ -2397,7 +2389,7 @@ bool String::has(const String &needle, bool ignoreCase) const
 		CaseSearch.lowerCase();
 		return CaseSearch.has(CaseNeedle,false);
 	}
-	if (ptr==NULL || stringlen==0) return false;
+	if (stringlen==0) return false;
 	if (needle.stringlen==0) return false;
 	const char * p;
 	p=::strstr(ptr,needle.ptr);
@@ -2408,7 +2400,7 @@ bool String::has(const String &needle, bool ignoreCase) const
 
 String &String::stripSlashes()
 {
-	if (ptr==NULL || stringlen==0) return *this;
+	if (stringlen==0) return *this;
 	size_t p=0, np=0;
 	char a, lastchar=0;
 	while ((a=ptr[p])) {
@@ -2441,7 +2433,7 @@ String &String::stripSlashes()
  */
 String& String::repeat(size_t num)
 {
-	if (ptr==NULL || stringlen==0) return *this;
+	if (stringlen==0) return *this;
 	if (num==0) {
 		clear();
 		return *this;
@@ -2486,7 +2478,7 @@ String& String::repeat(char code, size_t num)
 	char *buf=(char*)malloc(newsize);
 	if (!buf) throw OutOfMemoryException();
 	for (size_t i=0;i<num;i++) buf[i]=code;
-	free(ptr);
+	if (ptr!=empty_string) free(ptr);
 	ptr=buf;
 	stringlen=num;
 	ptr[stringlen]=0;
@@ -2506,7 +2498,7 @@ String& String::repeat(char code, size_t num)
  */
 String& String::repeat(const String& str, size_t num)
 {
-	if (str.stringlen==0 || num==0 || str.ptr==NULL) {
+	if (str.stringlen==0 || num==0) {
 		clear();
 		return *this;
 	}
@@ -2526,7 +2518,7 @@ String& String::repeat(const String& str, size_t num)
 #endif
 		tmp+=str.stringlen;
 	}
-	free(ptr);
+	if (ptr!=empty_string) free(ptr);
 	ptr=buf;
 	stringlen=num;
 	ptr[stringlen]=0;
@@ -2555,7 +2547,7 @@ String String::repeated(size_t count) const
 String& String::replace(const String &search, const String &replacement)
 //! \brief Ersetzt einen Teilstring durch einen anderen
 {
-	if (ptr==NULL || stringlen==0 || search.ptr==NULL || search.stringlen==0) return *this;
+	if (stringlen==0 || search.stringlen==0) return *this;
 	size_t start = 0, slen = search.stringlen;
 	ssize_t end;
 	// collect the result
@@ -2584,7 +2576,7 @@ String &String::pregEscape()
  * Folgende Zeichen werden escaped: - + \ * /
  */
 {
-	if (ptr==NULL || stringlen==0) return *this;
+	if (stringlen==0) return *this;
 	String t;
 	String compare="-+\\*/";
 	String letter;
@@ -2615,7 +2607,7 @@ bool String::pregMatch(const String &expression) const
 	#ifndef HAVE_PCRE
 		throw UnsupportedFeatureException("PCRE");
 	#else
-		if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return false;
+		if (stringlen==0 || expression.stringlen==0) return false;
 		ByteArray expr=expression;
 		int flags=PCRE_UTF8;
 		// letzten Slash in regex finden
@@ -2677,7 +2669,7 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		throw UnsupportedFeatureException("PCRE");
 	#else
 		matches.clear();
-		if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return false;
+		if (stringlen==0 || expression.stringlen==0) return false;
 		ByteArray expr=expression;
 		int flags=PCRE_UTF8;
 		// letzten Slash in regex finden
@@ -2749,7 +2741,7 @@ String & String::pregReplace(const String &expression, const String &replacement
 #ifndef HAVE_PCRE
 	throw UnsupportedFeatureException("PCRE");
 #else
-	if (ptr==NULL || stringlen==0 || expression.ptr==NULL || expression.stringlen==0) return *this;
+	if (stringlen==0 || expression.stringlen==0) return *this;
 
 	String pattern;
 	int ret=0;
@@ -2842,7 +2834,7 @@ CString__PregReplace_Restart:
  */
 bool String::operator<(const String &str) const
 {
-	if (strcmp(str)<0) return true;
+	if (::strcmp(ptr,str.ptr)<0) return true;
 	return false;
 }
 
@@ -3043,7 +3035,6 @@ void PrintString(const ppl7::String &text)
  */
 const char * String::getPtr() const
 {
-	if (ptr==NULL || stringlen==0) return "";
 	return (const char*)ptr;
 }
 
@@ -3053,7 +3044,6 @@ const char * String::getPtr() const
  */
 const char * String::c_str() const
 {
-	if (ptr==NULL || stringlen==0) return "";
 	return (const char*)ptr;
 }
 
@@ -3063,7 +3053,6 @@ const char * String::c_str() const
  */
 const char * String::toChar() const
 {
-	if (ptr==NULL || stringlen==0) return "";
 	return (const char*)ptr;
 }
 
@@ -3073,7 +3062,6 @@ const char * String::toChar() const
  */
 String::operator const char *() const
 {
-	if (ptr==NULL || stringlen==0) return "";
 	return (const char*)ptr;
 }
 
@@ -3083,7 +3071,6 @@ String::operator const char *() const
  */
 String::operator const unsigned char *() const
 {
-	if (ptr==NULL || stringlen==0) return (const unsigned char*)"";
 	return (const unsigned char*)ptr;
 }
 

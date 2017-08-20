@@ -532,8 +532,13 @@ WideString & WideString::set(const char *str, size_t size)
 			throw OutOfMemoryException();
 		}
 	}
-#ifdef HAVE_MBSTOWCS
 	String GlobalEncoding=String::getGlobalEncoding();
+#ifdef WIN32
+	if (GlobalEncoding.instrCase(".1252")>0) {
+		GlobalEncoding="WINDOWS-1252";
+	}
+#endif
+#ifdef HAVE_MBSTOWCS
 	if (GlobalEncoding.instrCase("UTF-8")>=0
 			|| GlobalEncoding.instrCase("UTF8")>=0
 			|| GlobalEncoding.instrCase("USASCII")>=0
@@ -554,9 +559,11 @@ WideString & WideString::set(const char *str, size_t size)
 	}
 #endif
 #ifdef HAVE_ICONV
+	printf ("DEBUG: ICONV: %s\n",(const char*)GlobalEncoding);
 	iconv_t iconvimport=iconv_open(ICONV_UNICODE,(const char*)GlobalEncoding);
 	if ((iconv_t)(-1)==iconvimport) {
-		throw UnsupportedCharacterEncodingException();
+		printf ("MIST\n");
+		throw UnsupportedCharacterEncodingException(GlobalEncoding);
 	}
 	char *outbuf=(char*)ptr;
 	//HexDump(str,inbytes);
