@@ -47,8 +47,7 @@ SECTION .text
 ;/**                                                                 **
 ;/** void ASM_RGB_A8R8G8B8(int red, int green, int blue, int alpha)  **
 ;/*********************************************************************
-%if arch_elf64=1 || arch_win64=1
-	%if arch_elf64=1
+%ifidn __OUTPUT_FORMAT__, elf64
 		global RGB_A8R8G8B8
 		RGB_A8R8G8B8:	; red=rdi, green=rsi, blue=rdx, alpha=rcx
 			mov r8d,edi
@@ -59,18 +58,18 @@ SECTION .text
 			mov ah,cl
 			mov al,dl
 			ret
-	%elif arch_win64=1
+%elifidn __OUTPUT_FORMAT__, win64
 		global RGB_A8R8G8B8
 		RGB_A8R8G8B8:	; red=rcx, green=rdx, blue=r8, alpha=r9
-
-			mov ah,cl	; red
-			shl r9d,24
-			shl eax,8
-			mov ah,dl	; green
-			mov al,r9b	; blue
-			or eax,r9d	; alpha
+			; r9,rcx,rdx,r8
+			xor rax,rax
+			mov al,r9b
+			shl rax,8
+			mov al,cl
+			shl rax,16
+			mov ah,dl
+			mov al,r8b
 			ret
-	%endif
 %else
 	global RGB_A8R8G8B8
 	global _RGB_A8R8G8B8
