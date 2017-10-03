@@ -216,24 +216,22 @@ namespace FILEATTR {
 	};
 }
 
-#ifndef _WINDEF_
-	typedef struct {    // rc
-		int left;
-		int top;
-		int right;
-		int bottom;
-	} RECT;
+typedef struct {    // rc
+	int left;
+	int top;
+	int right;
+	int bottom;
+} RECT;
 
-	typedef struct {
-		ppldds x;
-		ppldds y;
-	} POINT;
+typedef struct {
+	ppldds x;
+	ppldds y;
+} POINT;
 
-	typedef struct {
-		int cx;
-		int cy;
-	} SIZE;
-#endif
+typedef struct {
+	int cx;
+	int cy;
+} SIZE;
 
 typedef struct {
 	int left;
