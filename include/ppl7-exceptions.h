@@ -130,7 +130,8 @@ PPLEXCEPTION(InitializationFailedException, Exception);
 PPLEXCEPTION(KeyNotFoundException, Exception);
 PPLEXCEPTION(InvalidTimezoneException, Exception);
 PPLEXCEPTION(CharacterEncodingNotInitializedException, Exception);
-PPLEXCEPTION(MutexLockingException, Exception);
+PPLEXCEPTION(MutexException, Exception);
+PPLEXCEPTION(MutexLockingException, MutexException);
 PPLEXCEPTION(MutexNotLockedException, MutexLockingException);
 
 PPLEXCEPTION(SyntaxException, Exception);

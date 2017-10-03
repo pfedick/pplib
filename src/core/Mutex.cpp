@@ -108,12 +108,16 @@ Mutex::Mutex()
 	#ifdef _WIN32
 		PPLMUTEX *h=(PPLMUTEX*)handle;
 		h->handle=CreateMutex(NULL,false,NULL);
+		if (!h->handle)
+			throw MutexException("could not create mutex");
 		h->condition = CreateEvent(
 		        NULL,         // default security attributes
 		        TRUE,         // manual-reset event
 		        TRUE,         // initial state is signaled
 		        NULL 		 // object name
 		        );
+		if (!h->condition)
+			throw MutexException("could not create mutex condition");
 
 	#elif defined HAVE_PTHREADS
 		PPLMUTEX *h=(PPLMUTEX*)handle;
@@ -163,7 +167,7 @@ void Mutex::lock()
 #ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
 	DWORD ret=WaitForSingleObject(h->handle,INFINITE);
-	if (ret!=WAIT_FAILED) return;
+	if (ret==WAIT_OBJECT_0) return;
     throw MutexLockingException("Mutex::lock");
 #elif defined HAVE_PTHREADS
 	PPLMUTEX *h = (PPLMUTEX*) handle;
@@ -186,8 +190,7 @@ void Mutex::unlock()
 {
 #ifdef _WIN32
 	PPLMUTEX *h=(PPLMUTEX*)handle;
-	int ret=ReleaseMutex(h->handle);
-	if (ret==0) return;
+	if (ReleaseMutex(h->handle)) return;
 	throw MutexLockingException("Mutex::unlock");
 #elif defined HAVE_PTHREADS
 	PPLMUTEX *h=(PPLMUTEX*)handle;
