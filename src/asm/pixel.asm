@@ -86,7 +86,7 @@ SECTION .text
 		; Zunächst benötigen wir die Surface-Adresse
 		imul r8d, [rcx+DRAWABLE_DATA.pitch]	; y*pitch
 		add r8,[rcx+DRAWABLE_DATA.base]		; plus Basisadresse
-		mov [r8+rdx*4],ecx					; Pixel schreiben
+		mov [r8+rdx*4],r9d					; Pixel schreiben
 		.end:
 		ret
 		
