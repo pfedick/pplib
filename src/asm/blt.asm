@@ -53,8 +53,8 @@ tbuf:         resb    2048
 SECTION .text
 
 struc BLTDATA
-	src:		PTR		1			; ebp+0
-	tgt:		PTR		1			; ebp+4
+	src:		PTR_TYPE	1			; ebp+0
+	tgt:		PTR_TYPE	1			; ebp+4
 	width:		resd	1			; ebp+8
 	height:		resd	1			; ebp+12
 	pitchsrc:	resd	1			; ebp+16
@@ -79,7 +79,7 @@ endstruc
 		push rdi					; rdi und rsi müssen unter WIN64 gerettet werden
 		push rsi
 	%endif
-	push rbx					; rbx, r10 und r11 retten
+	push rbx					; rbx retten
 	mov eax, 0xff000000
 	pxor mm6,mm6
 	movd mm3,eax				;// Fuer Or-Maske, damit Alpha-Channel immer ff ist
@@ -343,46 +343,48 @@ CopyBuffered:
 ;/** void ASM_Blt32(BLTDATA *data)                                   **
 ;/*********************************************************************
 %if arch_elf64=1 || arch_win64=1
+	global ASM_Blt32
+	ASM_Blt32:
 	%if arch_elf64=1
-		global ASM_Blt32
-		ASM_Blt32:					; Pointer auf data ist in rdi
+									; Pointer auf data ist in rdi
 		mov rcx,rdi					; Pointer nach rcx schieben
 	%elif arch_win64=1
-		global ASM_Blt32
-		ASM_Blt32:					; Pointer auf data ist in ecx
-		push rdi
+									; Pointer auf data ist schon in rcx
+		push rdi					; rdi + rsi muessen gerettet werden
 		push rsi
 	%endif
-		push rbx				; rbx wird nicht benutzt
-		mov r8d,[rcx+width]		; Breite nach r8d
-		mov r10d,[rcx+pitchsrc]	; Pitch der Quelle nach r10
-		shl r8,2				; Breite * 4
-		mov r11d,[rcx+pitchtgt]	; Pitch des Ziels nach r11
-		mov rdi,[rcx+tgt]		; Zieladresse nach rdi
-		sub r10,r8				; Breite*4 muss von SourcePitch abgezogen werden
-		sub r11,r8				; Breite*4 muss von TargetPitch abgezogen werden
-		mov rsi,[rcx+src]		; Quelladresse nach rsi
-		mov r9d,[rcx+height]	; Höhe nach r9d
+	push rbx				; rbx wird nicht benutzt
+	mov r8d,[rcx+width]		; Breite nach r8d
+	mov r10d,[rcx+pitchsrc]	; Pitch der Quelle nach r10
+	shl r8,2				; Breite * 4
+	mov r11d,[rcx+pitchtgt]	; Pitch des Ziels nach r11
+	mov rdi,[rcx+tgt]		; Zieladresse nach rdi
+	sub r10,r8				; Breite*4 muss von SourcePitch abgezogen werden
+	sub r11,r8				; Breite*4 muss von TargetPitch abgezogen werden
+	mov rsi,[rcx+src]		; Quelladresse nach rsi
+	mov r8d,[rcx+width]		; Breite nach r8d
+	mov r9d,[rcx+height]	; Höhe nach r9d
 
 	.loopLine:
-
 		mov rcx,r8				; Breite nach rcx
-		call CopyBuffered
+		;call CopyBuffered
+		rep movsd
 		add rsi,r10				; Nächste Zeile
 		add rdi,r11
 		dec r9d
 	jnz .loopLine
 
 	.end:
-		emms					; Wir haben keine MMX-Register verwendet
-		pop rbx
-		xor rax,rax
+	emms					; Wir haben keine MMX-Register verwendet
+	pop rbx
+	xor rax,rax
+	xor rdx,rdx
 	%if arch_win64=1
 		pop rsi
 		pop rdi
 	%endif
-		inc rax					; Returnwert auf 1 setzen
-		ret
+	inc rax					; Returnwert auf 1 setzen
+	ret
 
 %else			; Die 32-Bit Variante
 	global ASM_Blt32
