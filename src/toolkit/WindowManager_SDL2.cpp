@@ -339,8 +339,12 @@ WindowManager_SDL2::WindowManager_SDL2()
 	subsystem_init=SDL_WasInit(SDL_INIT_EVERYTHING);
 
 	if(!(subsystem_init&SDL_INIT_VIDEO)) {
-		if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) throw InitializationException("WindowManager_SDL2");
+		if (SDL_InitSubSystem(SDL_INIT_VIDEO)<0) throw InitializationException("WindowManager_SDL2: SDL_INIT_VIDEO");
 	}
+	if(!(subsystem_init&SDL_INIT_TIMER)) {
+		if (SDL_InitSubSystem(SDL_INIT_TIMER)<0) throw InitializationException("WindowManager_SDL2: SDL_INIT_TIMER");
+	}
+
 	atexit(SDL_Quit);
 
 	SDL_DisplayMode current;
@@ -541,10 +545,12 @@ void WindowManager_SDL2::handleEvents()
 				printf ("Event: SDL_TEXTEDITING\n");
 				break;
 			case SDL_USEREVENT:
+
 				if (sdl_event.user.code==1) {	// ClickTimer
-					//printf ("SDL_USEREVENT\n");
+					//printf ("SDL_USEREVENT 1\n");
 					dispatchClickEvent((Window*)sdl_event.user.data1);
 				} else if (sdl_event.user.code==2) {	// TimerEvent
+					//printf ("SDL_USEREVENT 2\n");
 					Event e;
 					e.setWidget((Widget*)sdl_event.user.data1);
 					((Widget*)sdl_event.user.data1)->timerEvent(&e);
@@ -787,7 +793,7 @@ static Uint32 timerEvent(Uint32 interval, void *param)
     userevent.type = SDL_USEREVENT;
     userevent.code = 2;
     userevent.data1 = param;
-    userevent.data2 = NULL;
+    userevent.data2 = (void*)interval;
     userevent.windowID=0;
     userevent.timestamp=0;
 
@@ -795,7 +801,7 @@ static Uint32 timerEvent(Uint32 interval, void *param)
     event.user = userevent;
 
     SDL_PushEvent(&event);
-    return(0);
+    return(interval);
 }
 #endif
 
