@@ -127,6 +127,7 @@ String Event::name() const
 		case KeyUp: return "KeyUp";
 		case Show: return "Show";
 		case Close: return "Close";
+		case Quit: return "Quit";
 		case Resize: return "Resize";
 		case Move: return "Move";
 		case FocusIn: return "FocusIn";
@@ -260,6 +261,17 @@ void EventHandler::mouseLeaveEvent(MouseEvent *event)
 	if (handler) handler->mouseLeaveEvent(event);
 }
 
+void EventHandler::quitEvent(Event *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::quitEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
+#endif
+
+	if (handler) handler->quitEvent(event);
+}
+
 void EventHandler::closeEvent(Event *event)
 {
 #ifdef EVENT_DEBUG
@@ -308,9 +320,9 @@ void EventHandler::lostFocusEvent(FocusEvent *event)
 void EventHandler::textInputEvent(TextInputEvent *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::textInputEvent(%s, %s), text=%s\n",
+	printf ("EventHandler::textInputEvent(%s, %s), text=%ls\n",
 			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar(),(const char*)event->text);
+			event->eventWidget->name().toChar(),(const wchar_t*)event->text);
 #endif
 	if (handler) handler->textInputEvent(event);
 }
@@ -338,9 +350,9 @@ void EventHandler::keyUpEvent(KeyEvent *event)
 void EventHandler::timerEvent(Event *event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::timerEvent(%s, %s), key: %i\n",
+	printf ("EventHandler::timerEvent(%s, %s)\n",
 			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar(),event->key);
+			event->eventWidget->name().toChar());
 #endif
 	if (handler) handler->timerEvent(event);
 }

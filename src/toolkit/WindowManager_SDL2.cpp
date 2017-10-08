@@ -288,7 +288,6 @@ static void sdlDrawWindowSurface (void *privatedata)
 	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)privatedata;
 	if (!priv) throw NullPointerException();
 	SDL_RenderCopy(priv->renderer,priv->gui,NULL,NULL);
-	SDL_UnlockTexture(priv->gui);
 }
 
 static void *sdlGetRenderer (void *privatedata)
@@ -506,8 +505,11 @@ void WindowManager_SDL2::handleEvents()
 #else
 	SDL_Event sdl_event;
 	while (SDL_PollEvent(&sdl_event)) {		// Alle Events verarbeiten
+		//printf ("event vorhanden: %d\n",sdl_event.type);
 		switch (sdl_event.type) {
-
+			case SDL_QUIT:
+				DispatchQuitEvent(&sdl_event);
+				break;
 			case SDL_WINDOWEVENT:
 				DispatchWindowEvent(&sdl_event);
 				break;
@@ -554,6 +556,21 @@ void WindowManager_SDL2::handleEvents()
 	}
 #endif
 }
+
+void WindowManager_SDL2::DispatchQuitEvent(void *e)
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	const SDL_Event * event=(SDL_Event*)e;
+	Window *w=getWindow(event->window.windowID);
+	if (!w) return;
+	Event ev(Event::Quit);
+	ev.setWidget(w);
+	w->quitEvent(&ev);
+#endif
+}
+
 
 void WindowManager_SDL2::DispatchWindowEvent(void *e)
 {
@@ -620,7 +637,7 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
     	}
         break;
     default:
-        printf("SDL Window %d got unknown event %d",
+        printf("SDL Window %d got unknown event %d\n",
                 event->window.windowID, event->window.event);
         break;
     }

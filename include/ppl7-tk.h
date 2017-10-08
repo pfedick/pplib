@@ -108,6 +108,7 @@ class Event
 			FocusIn,
 			FocusOut,
 			GeometryChanged,
+			Quit,
 		};
 	private:
 		Type t;
@@ -265,6 +266,7 @@ class EventHandler
 		void setEventHandler(EventHandler *handler);
 
 		virtual void closeEvent(Event *event);
+		virtual void quitEvent(Event *event);
 
 		virtual void mouseMoveEvent(MouseEvent *event);
 		virtual void mouseDownEvent(MouseEvent *event);
@@ -573,6 +575,7 @@ class WindowManager_SDL2 : public WindowManager
 		void DispatchKeyEvent(void *e);
 		void DispatchSdlResizeEvent(void *e);
 		void DispatchEvent(void *e);
+		void DispatchQuitEvent(void *e);
 
 		void DispatchWindowEvent(void *e);
 
