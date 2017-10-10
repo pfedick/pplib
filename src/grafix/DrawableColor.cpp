@@ -76,6 +76,11 @@ static SurfaceColor RGBBlend_NULL (SurfaceColor ground, SurfaceColor top, float 
 	return 0;
 }
 
+static SurfaceColor RGBBlend_255_NULL (SurfaceColor ground, SurfaceColor top, int intensity)
+{
+	return 0;
+}
+
 // Grey 8-Bit ************************************************************************
 static SurfaceColor RGB_GREY8 (int red, int green, int blue, int alpha)
 {
@@ -187,8 +192,7 @@ static SurfaceColor RGBBlend_32 (SurfaceColor ground, SurfaceColor top, float in
  */
 SurfaceColor Drawable::rgb(const Color &c) const
 {
-	if (fn->GetRGB) return fn->GetRGB(c.red(),c.green(),c.blue(),c.alpha());
-	return 0;
+	return fn->GetRGB(c.red(),c.green(),c.blue(),c.alpha());
 }
 
 /*!\brief Farbe in einen Farbformatspezifischen Wert umrechnen
@@ -206,8 +210,7 @@ SurfaceColor Drawable::rgb(const Color &c) const
  */
 SurfaceColor Drawable::rgb(int r, int g, int b, int alpha) const
 {
-	if (fn->GetRGB) return fn->GetRGB(r,g,b,alpha);
-	return 0;
+	return fn->GetRGB(r,g,b,alpha);
 }
 
 
@@ -279,11 +282,13 @@ void Grafix::initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 			fn->GetRGB=RGB_GREY8;
 			fn->Surface2RGB=Surface2RGB_GREY8;
 			fn->RGBBlend=RGBBlend_NULL;
+			fn->RGBBlend255=RGBBlend_255_NULL;
 			return;
 		default:
 			fn->GetRGB=RGB_NULL;
 			fn->Surface2RGB=Surface2RGB_NULL;
 			fn->RGBBlend=RGBBlend_NULL;
+			fn->RGBBlend255=RGBBlend_255_NULL;
 			break;
 	}
 	throw UnsupportedColorFormatException("RGBFormat=%s (%i)",(const char*)format.name(),format.format());

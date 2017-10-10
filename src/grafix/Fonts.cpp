@@ -66,6 +66,7 @@ Font::Font()
 	flags=0;
 	ori=0;
 	rotationDegrees=0.0;
+	cForeground.set(0,0,0,255);
 }
 
 Font::Font(const Font &other)

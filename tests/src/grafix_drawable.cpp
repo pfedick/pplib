@@ -60,6 +60,7 @@ class GrafixDrawableTest : public ::testing::Test {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
+		gfx=NULL;
 		transparent.setColor(0,0,0,0);
 		black.setColor(0,0,0,255);
 		white.setColor(255,255,255,255);
@@ -226,11 +227,96 @@ TEST_F(GrafixDrawableTest, lines) {
 
 	}
 
-
 	/*
 	ImageFilter_PNG png;
 	png.saveFile("tmp.grafix.drawable.lines.png", surface);
 	*/
+}
+
+void putPixels(ppl7::grafix::Drawable &draw, const ppl7::grafix::Color &background)
+{
+	ppl7::grafix::Color white(255,255,255,255);
+	ppl7::grafix::Color red(255,0,0,255);
+	ppl7::grafix::Color green(0,255,0,255);
+	ppl7::grafix::Color blue(0,0,255,255);
+
+	ppl7::grafix::Color half_white(255,255,255,127);
+	ppl7::grafix::Color half_red(255,0,0,127);
+	ppl7::grafix::Color half_green(0,255,0,127);
+	ppl7::grafix::Color half_blue(0,0,255,127);
+
+	draw.cls(background);
+
+	for (int x=10;x<90;x++) {
+		draw.putPixel(x,10,white);
+		draw.putPixel(x,11,white);
+		draw.putPixel(x,12,white);
+
+		draw.putPixel(x,20,red);
+		draw.putPixel(x,21,red);
+		draw.putPixel(x,22,red);
+
+		draw.putPixel(x,30,green);
+		draw.putPixel(x,31,green);
+		draw.putPixel(x,32,green);
+
+		draw.putPixel(x,40,blue);
+		draw.putPixel(x,41,blue);
+		draw.putPixel(x,42,blue);
+
+		draw.putPixel(x,50,half_white);
+		draw.putPixel(x,51,half_white);
+		draw.putPixel(x,52,half_white);
+
+		draw.putPixel(x,60,half_red);
+		draw.putPixel(x,61,half_red);
+		draw.putPixel(x,62,half_red);
+
+		draw.putPixel(x,70,half_green);
+		draw.putPixel(x,71,half_green);
+		draw.putPixel(x,72,half_green);
+
+		draw.putPixel(x,80,half_blue);
+		draw.putPixel(x,81,half_blue);
+		draw.putPixel(x,82,half_blue);
+	}
+}
+
+TEST_F(GrafixDrawableTest, pixelTest) {
+	ppl7::grafix::Image surface(640,480,ppl7::grafix::RGBFormat::A8R8G8B8);
+	surface.cls(ppl7::grafix::Color(0,0,0,255));
+	ppl7::grafix::Image draw(100,100,ppl7::grafix::RGBFormat::A8R8G8B8);
+
+	putPixels(draw, ppl7::grafix::Color(0,0,0,0));
+	surface.blt(draw, 0,0);
+	putPixels(draw, ppl7::grafix::Color(0,0,0,255));
+	surface.blt(draw, 100,0);
+	putPixels(draw, ppl7::grafix::Color(255,0,0,255));
+	surface.blt(draw, 200,0);
+	putPixels(draw, ppl7::grafix::Color(0,255,0,255));
+	surface.blt(draw, 300,0);
+	putPixels(draw, ppl7::grafix::Color(0,0,255,255));
+	surface.blt(draw, 400,0);
+	putPixels(draw, ppl7::grafix::Color(255,255,255,255));
+	surface.blt(draw, 500,0);
+
+	surface.fillRect(0,150,100,250,ppl7::grafix::Color(0,0,0,0));
+	surface.fillRect(100,150,200,250,ppl7::grafix::Color(0,0,0,255));
+	surface.fillRect(200,150,300,250,ppl7::grafix::Color(255,0,0,255));
+	surface.fillRect(300,150,400,250,ppl7::grafix::Color(0,255,0,255));
+	surface.fillRect(400,150,500,250,ppl7::grafix::Color(0,0,255,255));
+	surface.fillRect(500,150,600,250,ppl7::grafix::Color(255,255,255,255));
+	putPixels(draw, ppl7::grafix::Color(0,0,0,0));
+	surface.bltAlpha(draw, 0,150);
+	surface.bltAlpha(draw, 100,150);
+	surface.bltAlpha(draw, 200,150);
+	surface.bltAlpha(draw, 300,150);
+	surface.bltAlpha(draw, 400,150);
+	surface.bltAlpha(draw, 500,150);
+
+
+	ppl7::grafix::ImageFilter_PNG png;
+		png.saveFile("pixeltest.png", surface);
 }
 
 

@@ -119,10 +119,29 @@ static void AlphaPixel_32 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor
 
 static void BlendPixel_32 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor color, int brightness)
 {
-	color=(color&0xffffff) | (brightness<<24);
-	AlphaPixel_32(data,x,y,color);
+	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
+	SurfaceColor screen=(SurfaceColor)data.base32[(data.pitch>>2)*y+x];
+	SurfaceColor c=data.fn->RGBBlend255(screen,color,brightness);
+	data.base32[(data.pitch>>2)*y+x]=(ppluint32)c;
 }
 
+
+static void PutPixel_NULL (const DRAWABLE_DATA &data, int x, int y, SurfaceColor color)
+{
+}
+
+static SurfaceColor GetPixel_NULL (const DRAWABLE_DATA &data, int x, int y)
+{
+	return 0;
+}
+
+static void BlendPixel_NULL (const DRAWABLE_DATA &data, int x, int y, SurfaceColor c, int brightness)
+{
+}
+
+static void AlphaPixel_NULL (const DRAWABLE_DATA &data, int x, int y, SurfaceColor c)
+{
+}
 
 /*******************************************************************
  * Drawable
@@ -131,45 +150,49 @@ static void BlendPixel_32 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor
 
 void Drawable::putPixel(int x, int y, const Color &c)
 {
-	if (fn->PutPixel) fn->PutPixel(data,x,y,rgb(c));
+	fn->PutPixel(data,x,y,rgb(c));
 
 }
 
 void Drawable::putPixel(const Point &p, const Color &c)
 {
-	if (fn->PutPixel) fn->PutPixel(data,p.x,p.y,rgb(c));
+	fn->PutPixel(data,p.x,p.y,rgb(c));
 }
 
 void Drawable::alphaPixel(int x, int y, const Color &c)
 {
-	if (fn->AlphaPixel) fn->AlphaPixel(data,x,y,rgb(c));
+	fn->AlphaPixel(data,x,y,rgb(c));
 }
 
 void Drawable::alphaPixel(const Point &p, const Color &c)
 {
-	if (fn->AlphaPixel) fn->AlphaPixel(data,p.x,p.y,rgb(c));
+	fn->AlphaPixel(data,p.x,p.y,rgb(c));
 }
 
-Color Drawable::blendPixel(int x, int y, const Color &c, float brightness)
+void Drawable::blendPixel(int x, int y, const Color &c, float brightness)
 {
-	if (x<0 || y<0 || x>=data.width || y>=data.height) return Color();
-	if (!fn->GetPixel) return Color();
-	if (!fn->RGBBlend) return Color();
+	fn->BlendPixel(data,x,y,rgb(c),(int)(brightness*255));
+	/*
+	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
+	if (!fn->GetPixel) return;
+	if (!fn->RGBBlend) return;
 	SurfaceColor color,screen=fn->GetPixel(data,x,y);
 	color=rgb(c);
 	color=fn->RGBBlend(screen,color,brightness);
 	fn->PutPixel(data,x,y,color);
-	return fn->Surface2RGB(color);
+	*/
 }
 
-Color Drawable::blendPixel(int x, int y, const Color &c, int brightness)
+void Drawable::blendPixel(int x, int y, const Color &c, int brightness)
 {
-	if (x<0 || y<0 || x>=data.width || y>=data.height) return Color();
+	fn->BlendPixel(data,x,y,rgb(c),brightness*255);
+	/*
+	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
 	SurfaceColor color,screen=fn->GetPixel(data,x,y);
 	color=rgb(c);
 	color=fn->RGBBlend255(screen,color,brightness);
 	fn->PutPixel(data,x,y,color);
-	return fn->Surface2RGB(color);
+	*/
 }
 
 Color Drawable::getPixel(int x, int y) const
@@ -186,6 +209,12 @@ Color Drawable::getPixel(const Point &p) const
 
 void Grafix::initPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 {
+	fn->PutPixel=PutPixel_NULL;
+	fn->GetPixel=GetPixel_NULL;
+	fn->BlendPixel=BlendPixel_NULL;
+	fn->AlphaPixel=AlphaPixel_NULL;
+
+
 	switch (format) {
 		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
 		case RGBFormat::A8B8G8R8:

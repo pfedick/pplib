@@ -606,8 +606,8 @@ class Drawable
 		void	putPixel(const Point &p, const Color &c);
 		void	alphaPixel(int x, int y, const Color &c);
 		void 	alphaPixel(const Point &p, const Color &c);
-		Color	blendPixel(int x, int y, const Color &c, float brightness);
-		Color	blendPixel(int x, int y, const Color &c, int brightness);
+		void	blendPixel(int x, int y, const Color &c, float brightness);
+		void	blendPixel(int x, int y, const Color &c, int brightness);
 		Color	getPixel(int x, int y) const;
 		Color	getPixel(const Point &p) const;
 		//@}
