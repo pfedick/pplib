@@ -140,22 +140,45 @@ static Color Surface2RGB_A8B8G8R8 (SurfaceColor color)
 // Die C-Version ist hier schneller als MMX, oder doch nicht?
 static SurfaceColor RGBBlend_32_255 (SurfaceColor ground, SurfaceColor top, int intensity)
 {
-	ppluint32 r1,g1,b1,r2,g2,b2,i1,i2;
+	ppluint32 a1,r1,g1,b1,a2,r2,g2,b2,i1,i2;
 	r1=ground&255;
 	g1=(ground>>8)&255;
 	b1=(ground>>16)&255;
+	a1=(ground>>24)&255;
 	r2=top&255;
 	g2=(top>>8)&255;
 	b2=(top>>16)&255;
+	a2=(top>>24)&255;
 	i2=intensity&255;
 	i1=255-i2;
 	r1=((r1*i1) + (r2*i2))/255;
 	g1=((g1*i1) + (g2*i2))/255;
 	b1=((b1*i1) + (b2*i2))/255;
+	a1=((a1*i1) + (a2*i2))/255;
+	return r1|(g1<<8)|(b1<<16)|(a1<<24);
 
-	return r1+(g1<<8)+(b1<<16)+0xff000000;
 }
 #endif
+
+static SurfaceColor RGBBlend_32_255_C (SurfaceColor ground, SurfaceColor top, int intensity)
+{
+	ppluint32 a1,r1,g1,b1,a2,r2,g2,b2,i1,i2;
+	r1=ground&255;
+	g1=(ground>>8)&255;
+	b1=(ground>>16)&255;
+	a1=(ground>>24)&255;
+	r2=top&255;
+	g2=(top>>8)&255;
+	b2=(top>>16)&255;
+	a2=(top>>24)&255;
+	i2=intensity&255;
+	i1=255-i2;
+	r1=((r1*i1) + (r2*i2))/255;
+	g1=((g1*i1) + (g2*i2))/255;
+	b1=((b1*i1) + (b2*i2))/255;
+	a1=((a1*i1) + (a2*i2))/255;
+	return r1|(g1<<8)|(b1<<16)|(a1<<24);
+}
 
 static SurfaceColor RGBBlend_32 (SurfaceColor ground, SurfaceColor top, float intensity)
 {

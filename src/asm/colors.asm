@@ -99,9 +99,9 @@ SECTION .text
 		global RGBBlend_32_255
 		RGBBlend_32_255:			; ground=rdi, top=rsi, intensity=rdx
 		or rdx,rdx					; Alpha=0?
-		jz .useBackground			; Wenn Alpha=0 ist, dann geben wir ground zurück
+		jz .useBackground			; Wenn intensity=0 ist, dann geben wir ground zurück
 			inc dl
-			jz .useForeground		; Wenn Alpha=255 ist, dann geben wir top zurück
+			jz .useForeground		; Wenn intensity=255 ist, dann geben wir top zurück
 			pxor mm6,mm6			; mm6 benötigen wir für PUNPCKLBW und muß 0 sein
 			movq mm2,rdi			; Hintergrund nach mm2
 			movq mm3,rsi			; Color nach mm3
@@ -134,17 +134,16 @@ SECTION .text
 			packuswb mm3,mm6		; die 4 16-Bit Farbwerte in 32Bit unterbringen
 			movq rax,mm3
 			emms
-			;or eax,0xff000000		; Alpha-Kanal auf 0xff
 			ret
+
 		.useBackground:
-		mov rax,rdi
-		;or eax,0xff000000
+		mov rax,INT_PARAM1
 		ret
 
 		.useForeground:
-		mov rax,rsi
-		;or eax,0xff000000
+		mov rax,INT_PARAM2
 		ret
+
 
 %else
 	global RGBBlend_32_255

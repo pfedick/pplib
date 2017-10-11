@@ -424,7 +424,7 @@ static void DrawGlyphAA2_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, 
 			}
 			if ((v2=v&192)) {
 				if (v2==192) data.fn->BlendPixel(data,xx+x,yy+y,c,255);
-				else if (v2==128) data.fn->BlendPixel(data,xx+x,yy+y,c,200);		// 200
+				else if (v2==128) data.fn->BlendPixel(data,xx+x,yy+y,c,192);		// 200
 				else data.fn->BlendPixel(data,xx+x,yy+y,c,100);					// 100
 			}
 			v=v<<2;

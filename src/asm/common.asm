@@ -47,6 +47,10 @@
 %define arch_elf64 1
 %define PTR resq
 %define PTR_TYPE resq
+%define INT_PARAM1 rdi
+%define INT_PARAM2 rsi
+%define INT_PARAM3 rdx
+%define INT_PARAM4 rcx
 %endif
 
 %ifidn __OUTPUT_FORMAT__,elf32
@@ -56,6 +60,10 @@
 %ifidn __OUTPUT_FORMAT__,win64
 %define arch_win64 1
 %define PTR_TYPE resq
+%define INT_PARAM1 rcx
+%define INT_PARAM2 rdx
+%define INT_PARAM3 r8
+%define INT_PARAM4 r9
 %endif
 
 %ifidn __OUTPUT_FORMAT__,win32
