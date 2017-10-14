@@ -102,6 +102,15 @@ Rect::Rect(int x, int y, int width, int height)
 	y2=y+height;
 }
 
+Rect::Rect(const RECT &r)
+{
+	x1=r.left;
+	y1=r.top;
+	x2=r.right;
+	y2=r.bottom;
+}
+
+
 
 bool Rect::isNull() const
 {

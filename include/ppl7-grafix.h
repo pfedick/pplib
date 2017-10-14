@@ -209,6 +209,7 @@ class Rect
 		Rect(const Point &p, const Size &s);
 		Rect(int x, int y, int width, int height);
 		Rect(const Rect &r);
+		Rect(const RECT &r);
 
 		bool isNull() const;
 		int left() const;
