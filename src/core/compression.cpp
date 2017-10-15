@@ -734,10 +734,10 @@ int CCompression::Compress(CBinary &out, const void *ptr, size_t size, bool copy
 		// Daten komprimiert
 		if (b_comp==1) {
 			ppl6::Poke8(p2,dstlen);
-		} else if (b_unc==2) {
+		} else if (b_comp==2) {
 			ppl6::Poke16(p2,dstlen);
 			flag|=64;
-		} else if (b_unc==3) {
+		} else if (b_comp==3) {
 			ppl6::Poke24(p2,dstlen);
 			flag|=128;
 		} else {
