@@ -565,7 +565,7 @@ void Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t src
 		*dstlen=(ppluint32)dstlen_zlib;
 		throw BufferTooSmallException();
 	} else if (ret==Z_DATA_ERROR) {
-		throw CorruptedDataException();
+		throw CorruptedDataException("Z_DATA_ERROR");
 	}
 	throw DecompressionFailedException();
 #endif
@@ -736,10 +736,10 @@ ByteArrayPtr Compression::compress(const void *ptr, size_t size)
 		// Daten komprimiert
 		if (b_comp==1) {
 			Poke8(p2,(int)dstlen);
-		} else if (b_unc==2) {
+		} else if (b_comp==2) {
 			Poke16(p2,(int)dstlen);
 			flag|=64;
-		} else if (b_unc==3) {
+		} else if (b_comp==3) {
 			Poke24(p2,(int)dstlen);
 			flag|=128;
 		} else {
@@ -747,6 +747,11 @@ ByteArrayPtr Compression::compress(const void *ptr, size_t size)
 			flag|=(128+64);
 		}
 		Poke8(prefix,flag);
+		/*
+		printf ("DEBUG\n");
+		printf ("b_unc=%d, b_comp=%d, bytes=%d, flag=%d\n", b_unc, b_comp, bytes, flag);
+		printf ("size unc=%zd, size_comp=%zd\n", size, dstlen);
+		*/
 		return ByteArrayPtr(prefix,dstlen+bytes);
 	}
 	// Bis hierhin sollte es nicht kommen
@@ -948,7 +953,7 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 		int flag=Peek8(buffer);
 		Algorithm a=(Algorithm)(flag&7);
 		if ((flag&8)==0) {	// Bit 3 muss aber gesetzt sein
-			throw CorruptedDataException();
+			throw CorruptedDataException("wrong flag");
 		}
 		int b_unc=4, b_comp=4;
 		if ((flag&48)==0) b_unc=1;
@@ -971,7 +976,13 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 		if (!uncbuffer) throw OutOfMemoryException();
 		size_t dstlen=size_unc;
 		size_t bytes=1+b_unc+b_comp;
-		//printf ("dstlen= %u, bytes=%u, size=%u\n",(int)dstlen,(int)bytes,(int)size);
+		/*
+		printf ("b_unc=%d, b_comp=%d, bytes=%d, dstlen=%zd, size=%zd\n",
+				b_unc, b_comp, bytes, dstlen,size);
+		if (size==804) {
+			HexDump(buffer,size);
+		}
+		*/
 		try {
 			uncompress(uncbuffer,&dstlen,buffer+bytes,size-bytes,a);
 			return ByteArrayPtr(uncbuffer,dstlen);
