@@ -1076,42 +1076,13 @@ void Dir::open(const String &path, Sort s)
  */
 void Dir::open(const char *path, Sort s)
 {
-#if defined  HAVE_OPENDIR or defined WIN32
+#ifdef HAVE_OPENDIR
 	clear();
 	sort=s;
 	Path=path;
 	Path.trim();
 	Path.trimRight("/");
 	Path.trimRight("\\");
-#ifdef WIN32
-	ppl7::PrintDebugTime ("Dir::open\n");
-	struct _wfinddatai64_t data;
-	memset(&data,0,sizeof(data));
-	ppl7::PrintDebugTime ("Dir::open\n");
-	WideString Pattern;
-	Pattern.set(Path);
-	Pattern+="/*";
-	ppl7::PrintDebugTime ("Dir::open\n");
-	intptr_t handle=_wfindfirsti64 ((const wchar_t*)Pattern, &data);
-
-	ppl7::PrintDebugTime ("handle=%d\n",handle);
-	if (handle<0) {
-		ppl7::PrintDebugTime ("ERROR\n");
-		File::throwErrno(errno,path);
-	}
-	DirEntry de;
-	String CurrentFile;
-	while (1) {
-		/*
-		CurrentFile=Path+"/"+String(WideString((const wchar_t*)&data.name));
-		ppl7::PrintDebugTime ("DEBUG: CurrentFile=%s\n",(const char*)CurrentFile);
-		File::statFile(CurrentFile,de);
-		Files.add(de);
-		*/
-		if (_wfindnexti64(handle,&data)<0) break;
-	}
-	_findclose(handle);
-#else
 	DIR *dir=opendir((const char*)Path);
 	if (!dir) {
 		File::throwErrno(errno,path);
@@ -1134,12 +1105,11 @@ void Dir::open(const char *path, Sort s)
 #endif
 		if (result==NULL) break;
 		CurrentFile=Path+"/"+String(result->d_name);
-		ppl7::PrintDebugTime ("DEBUG: CurrentFile=%s\n",(const char*)CurrentFile);
+		//ppl7::PrintDebugTime ("DEBUG: CurrentFile=%s\n",(const char*)CurrentFile);
 		File::statFile(CurrentFile,de);
 		Files.add(de);
 	}
 	closedir(dir);
-#endif
 	resort(sort);
 #else
 	throw UnsupportedFeatureException("Dir::open");
