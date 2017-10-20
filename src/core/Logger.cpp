@@ -188,7 +188,9 @@ void Logger::terminate()
 		debuglevel[i]=0;
 	}
 	mutex.unlock();
+#ifdef HAVE_OPENLOG
 	closeSyslog();
+#endif
 }
 
 

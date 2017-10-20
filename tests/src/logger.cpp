@@ -39,6 +39,7 @@
 #include <ppl7.h>
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
+#include "config.h"
 
 namespace {
 
@@ -64,6 +65,7 @@ TEST_F(LoggerTest, ConstructorSimple) {
 	//log.openSyslog("ppl7::Logger");
 	//log.print("Test");
 }
+#ifdef HAVE_OPENLOG
 
 TEST_F(LoggerTest, openSyslog) {
 	ASSERT_NO_THROW({
@@ -74,7 +76,7 @@ TEST_F(LoggerTest, openSyslog) {
 	//
 	//log.print("Test");
 }
-
+#endif
 
 
 
