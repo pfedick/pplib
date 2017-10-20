@@ -483,6 +483,15 @@ void WindowManager_SDL2::getMouseState(Point &p, int &buttonMask)
 
 }
 
+MouseState WindowManager_SDL2::getMouseState() const
+{
+	MouseState mouse;
+	int buttons;
+	SDL_PumpEvents();
+	buttons=SDL_GetMouseState(&mouse.p.x, &mouse.p.y);
+	return mouse;
+}
+
 void WindowManager_SDL2::startEventLoop()
 {
 	while (numWindows()>0) {
