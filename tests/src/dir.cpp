@@ -41,7 +41,34 @@
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
 
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 namespace {
+
+
+ppl7::String UTF8toNative(const ppl7::String &utf8)
+{
+	ppl7::String result;
+#ifdef WIN32
+	unsigned int codepage=GetACP();
+	int bufferlen=MultiByteToWideChar(CP_UTF8,0, (const char*)utf8, utf8.len(), NULL, 0 )+2;
+	//printf ("codepage: %d, in: >>>%s<<<, bufferlen=%d\n",codepage,(const char*)utf8,bufferlen);
+	wchar_t *buffer=(wchar_t*)malloc(bufferlen*sizeof(wchar_t));
+	MultiByteToWideChar(CP_UTF8,0, (const char*)utf8, utf8.len(), buffer, bufferlen);
+	ppl7::WideString wide;
+	wide.set(buffer, bufferlen-2);
+	int len=WideCharToMultiByte(codepage,0,(const wchar_t*)wide,wide.len(),(char*)buffer,bufferlen*sizeof(wchar_t),NULL,NULL);
+	result.set((const char*)buffer,len);
+#else
+
+#endif
+	return result;
+}
+
+
 
 // The fixture for testing class Foo.
 class DirTest : public ::testing::Test {
@@ -130,6 +157,7 @@ TEST_F(DirTest, resortBySize) {
 }
 
 TEST_F(DirTest, dirWalkFilename) {
+	//printf ("äöü => %s\n",ppl7::String::getGlobalEncoding());
 	ppl7::Dir d1("testdata/dirwalk", ppl7::Dir::SORT_FILENAME);
 	ppl7::Dir::Iterator it;
 	//d1.print();
@@ -139,6 +167,7 @@ TEST_F(DirTest, dirWalkFilename) {
 		e=d1.getNext(it);
 		if (e.Filename!="." && e.Filename!=".." && e.Filename!=".svn") break;
 	}
+
 	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename);
 	ASSERT_EQ((size_t)1330,e.Size);
 
@@ -159,7 +188,7 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	e=d1.getNext(it);
-	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename);
+	ASSERT_EQ(UTF8toNative(ppl7::String("file4äöü.txt")),e.Filename);
 	ASSERT_EQ((size_t)5281,e.Size);
 
 	e=d1.getNext(it);
@@ -202,7 +231,7 @@ TEST_F(DirTest, dirWalkSize) {
 	ASSERT_EQ((size_t)1330,e.Size);
 
 	ASSERT_NO_THROW(e=getNextFile(d1,it));
-	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename )<< "Real Filename 2: "<<e.Filename;
+	ASSERT_EQ(UTF8toNative(ppl7::String("file4äöü.txt")),e.Filename )<< "Real Filename 2: "<<e.Filename;
 	ASSERT_EQ((size_t)5281,e.Size);
 
 	ASSERT_NO_THROW(e=getNextFile(d1,it));
@@ -263,7 +292,7 @@ TEST_F(DirTest, patternWalk) {
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	e=d1.getNextPattern(it,"file*");
-	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename);
+	ASSERT_EQ(UTF8toNative(ppl7::String("file4äöü.txt")),e.Filename);
 	ASSERT_EQ((size_t)5281,e.Size);
 
 
@@ -292,7 +321,7 @@ TEST_F(DirTest, patternWalk2) {
 	ASSERT_EQ((size_t)6519,e.Size);
 
 	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
-	ASSERT_EQ(ppl7::String("file4äöü.txt"),e.Filename);
+	ASSERT_EQ(UTF8toNative(ppl7::String("file4äöü.txt")),e.Filename);
 	ASSERT_EQ((size_t)5281,e.Size);
 
 	// We expect an EndOfListException next

@@ -545,6 +545,7 @@ WideString & WideString::set(const char *str, size_t size)
 			|| GlobalEncoding.instrCase("US-ASCII")>=0
 			|| GlobalEncoding.strCaseCmp("C")==0
 			|| GlobalEncoding.strCaseCmp("POSIX")==0
+			|| GlobalEncoding.strCaseCmp("WINDOWS-1252")==0
 			) {
 		//printf ("DEBUG 2a\n");
 		size_t ret=mbstowcs((wchar_t*)ptr, str, inbytes);
@@ -559,7 +560,7 @@ WideString & WideString::set(const char *str, size_t size)
 	}
 #endif
 #ifdef HAVE_ICONV
-	printf ("DEBUG: ICONV: %s\n",(const char*)GlobalEncoding);
+	//printf ("DEBUG: ICONV: %s\n",(const char*)GlobalEncoding);
 	iconv_t iconvimport=iconv_open(ICONV_UNICODE,(const char*)GlobalEncoding);
 	if ((iconv_t)(-1)==iconvimport) {
 		printf ("MIST\n");

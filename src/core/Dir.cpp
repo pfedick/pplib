@@ -1106,8 +1106,12 @@ void Dir::open(const char *path, Sort s)
 		if (result==NULL) break;
 		CurrentFile=Path+"/"+String(result->d_name);
 		//ppl7::PrintDebugTime ("DEBUG: CurrentFile=%s\n",(const char*)CurrentFile);
-		File::statFile(CurrentFile,de);
-		Files.add(de);
+		try {
+			File::statFile(CurrentFile,de);
+			Files.add(de);
+		} catch (...) {
+
+		}
 	}
 	closedir(dir);
 	resort(sort);
