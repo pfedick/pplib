@@ -67,33 +67,15 @@ case "$SYS:$REL:$KERNEL" in
 			--disable-sdltest --without-sdl-prefix --without-sdl-exec-prefix
 		;;
 		
-	MINGW64*)
-		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
-		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
-		export CFLAGS="-DCURL_STATICLIB"
-		export SQLITE_CFLAGS="-I/usr/local/include"
-		export SQLITE_LIBS="-L/usr/local/lib -lsqlite3"
-		./configure --prefix=$PREFIX \
-			--with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
-			--with-nasm --with-libiconv-prefix=/usr/local --with-libmad=/usr/local \
-			--with-postgresql=/usr/local/pgsql/bin/pg_config \
-			--without-mysql \
-			--with-sqlite=/usr/local \
-			--with-lame=/usr/local --with-mpg123=/usr/local \
-			--with-libjpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
-			--with-libmcrypt-prefix=/usr/local \
-			--with-openssl=/usr/local --with-libcurl \
-			--with-ogg=/usr/local \
-			--without-libmicrohttpd --without-libgnutls-prefix \
-			--disable-sdltest --without-sdl-prefix --without-sdl-exec-prefix
-		;;
 	MSYS_NT-10*)
+		# MINGW 64
 		if [ -d /jenkins/local/bin ] ; then
 			PREFIX=/jenkins/local
 		fi
 		echo "configuring for MSYS2 MINGW64, PREFIX=$PREFIX"
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
+		export LIBS="-lCrypt32"
 		export CFLAGS="-DCURL_STATICLIB"
 		export SQLITE_CFLAGS="-I/usr/local/include"
 		export SQLITE_LIBS="-L/usr/local/lib -lsqlite3"
