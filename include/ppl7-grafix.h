@@ -338,6 +338,7 @@ class Color
 {
 	friend const Color operator* (const Color &size, float factor);
 	friend const Color operator* (float factor, const Color &size);
+	friend const Color operator+ (const Color &color1, const Color &color2);
 
 	private:
 #ifdef __LITTLE_ENDIAN__
@@ -389,6 +390,7 @@ union  {
 		Color &blendf(const Color &background, const Color &foreground, float intensity);
 
 		Color &operator*= (float factor);
+		Color &operator+= (const Color &other);
 		operator ppluint32() const;
 		operator pplint32() const;
 
@@ -405,6 +407,7 @@ union  {
 
 const Color operator* (const Color &color, float factor);
 const Color operator* (float factor, const Color &color);
+const Color operator+ (const Color &color1, const Color &color2);
 std::ostream& operator<<(std::ostream& s, const Color &c);
 
 

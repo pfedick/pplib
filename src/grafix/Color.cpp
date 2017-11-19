@@ -526,6 +526,16 @@ Color &Color::operator*= (float factor)
 	return *this;
 }
 
+Color &Color::operator+= (const Color &other)
+{
+	r=clamp(r+other.r);
+	g=clamp(g+other.g);
+	b=clamp(b+other.b);
+	a=clamp(a+other.a);
+	return *this;
+}
+
+
 /*!\brief Farbe in das YCbCr-Farbmodell umrechnen
  *
  * \desc
@@ -727,6 +737,15 @@ Color Color::getBlendedf(const Color &background, const Color &foreground, float
 	c.b=(int)((background.b*i1) + (foreground.b*i2));
 	c.a=255;
 	return c;
+}
+
+
+const Color operator+ (const Color &color1, const Color &color2)
+{
+	return Color(clamp(color1.r+color2.r),
+			clamp(color1.g+color2.g),
+			clamp(color1.r+color2.b),
+			clamp(color1.a+color2.a));
 }
 
 
