@@ -83,7 +83,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-pcre==$PREFIX --with-bzip2==$PREFIX --with-zlib==$PREFIX \
 			--with-nasm --with-libiconv-prefix==$PREFIX \
 			--without-mysql \
-			--with-lame=$PREFIX --with-mpg123=$PREFIX --disable-freetypetest --with-ft-prefix=$PREFIX \
+			--with-lame=$PREFIX --with-mpg123 --with-libmad --disable-freetypetest --with-ft-prefix=$PREFIX \
 			--with-libjpeg=$PREFIX --with-libpng=$PREFIX --with-libmhash=$PREFIX \
 			--with-libmcrypt-prefix=$PREFIX \
 			--with-openssl=$PREFIX --with-libcurl=$PREFIX \
