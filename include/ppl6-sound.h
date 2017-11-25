@@ -46,10 +46,6 @@
 #endif
 
 
-#ifndef LPVOID
-#define LPVOID void*
-#endif
-
 #include <stdlib.h>
 #include <list>
 
