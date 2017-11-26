@@ -60,7 +60,9 @@ OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o comp
 	compile/grafix.o compile/grafix_drawable.o compile/grafix_imagefilter.o \
 	compile/grafix_color.o compile/grafix_font.o compile/grafix_image.o \
 	compile/grafix_point.o compile/grafix_point3d.o compile/grafix_rect.o \
-	compile/grafix_rgbformat.o compile/grafix_size.o
+	compile/grafix_rgbformat.o compile/grafix_size.o \
+	compile/audio_decoder_mp3.o compile/audio_decoder_aiff.o compile/audio_decoder_wave.o \
+	compile/audio_encoder_mp3.o compile/audio_encoder_aiff.o compile/audio_encoder_wave.o \
 
 DB_OBJECTS = compile/main.o compile/db_postgres.o compile/wordlist.o \
 	compile/db_sqlite.o compile/db_mysql.o
@@ -353,3 +355,28 @@ compile/stringspeed.o: src/stringspeed.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/stringspeed.o -c src/stringspeed.cpp $(CFLAGS) $(LIB)
 		
+
+compile/audio_decoder_aiff.o: src/audio_decoder_aiff.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/audio_decoder_aiff.o -c src/audio_decoder_aiff.cpp $(CFLAGS) $(LIB)
+
+compile/audio_decoder_wave.o: src/audio_decoder_wave.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/audio_decoder_wave.o -c src/audio_decoder_wave.cpp $(CFLAGS) $(LIB)
+
+compile/audio_decoder_mp3.o: src/audio_decoder_mp3.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/audio_decoder_mp3.o -c src/audio_decoder_mp3.cpp $(CFLAGS) $(LIB)
+
+compile/audio_encoder_aiff.o: src/audio_encoder_aiff.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/audio_encoder_aiff.o -c src/audio_encoder_aiff.cpp $(CFLAGS) $(LIB)
+
+compile/audio_encoder_wave.o: src/audio_encoder_wave.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/audio_encoder_wave.o -c src/audio_encoder_wave.cpp $(CFLAGS) $(LIB)
+
+compile/audio_encoder_mp3.o: src/audio_encoder_mp3.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/audio_encoder_mp3.o -c src/audio_encoder_mp3.cpp $(CFLAGS) $(LIB)
+	
