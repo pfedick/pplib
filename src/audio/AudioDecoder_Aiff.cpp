@@ -55,5 +55,57 @@ AudioDecoder_Aiff::~AudioDecoder_Aiff()
 
 }
 
+void AudioDecoder_Aiff::open(FileObject &file, const AudioInfo *info)
+{
+	if (!info) {
+		if (!IdentAudioFile(file, this->info)) {
+			throw UnsupportedAudioFormatException();
+		}
+		if (this->info.Format!=AudioInfo::AIFF) throw UnsupportedAudioFormatException();
+	} else {
+		this->info=*info;
+	}
+	position=0;
+	this->ff=&file;
+}
+
+const AudioInfo & AudioDecoder_Aiff::getAudioInfo() const
+{
+	return info;
+}
+
+void AudioDecoder_Aiff::getAudioInfo(AudioInfo &info) const
+{
+	info=this->info;
+}
+
+void AudioDecoder_Aiff::seekSample(size_t sample)
+{
+	if (sample<info.Samples) position=sample;
+	position=info.Samples;
+}
+
+size_t AudioDecoder_Aiff::getPosition() const
+{
+	return position;
+}
+
+size_t AudioDecoder_Aiff::getSamples(size_t num, void *interleafed)
+{
+	return 0;
+}
+
+size_t AudioDecoder_Aiff::getSamples(size_t num, float *left, float *right)
+{
+	return 0;
+}
+
+size_t AudioDecoder_Aiff::getSamples(size_t num, void *left, void *right)
+{
+	return 0;
+}
+
+
+
 }	// EOF namespace ppl7
 

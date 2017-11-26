@@ -42,6 +42,19 @@
 
 namespace ppl7 {
 
+
+AudioDecoder *GetAudioDecoder(FileObject &file)
+{
+	AudioInfo info;
+	if (!IdentAudioFile(file, info)) return NULL;
+	AudioDecoder *decoder=NULL;
+	if (info.Format==AudioInfo::AIFF) decoder=(AudioDecoder *)new AudioDecoder_Aiff();
+	if (!decoder) return NULL;
+	decoder->open(file,&info);
+	return decoder;
+}
+
+
 AudioInfo::AudioInfo()
 {
 	Format=WAVE;
@@ -110,8 +123,10 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 			info.Bitrate=((ppluint64)info.Frequency*(ppluint64)info.BytesPerSample*8/1000);
 
 		} else if (PeekN32(adr)==0x53534e44) {	// SSND-Chunk gefunden
-			info.AudioStart=p+8;
-			info.AudioSize=size-8;
+			if (PeekN32(adr+8)!=0) return false;
+			if (PeekN32(adr+12)!=0) return false;
+			info.AudioStart=p+16;
+			info.AudioSize=size-16;
 			info.AudioEnd=info.AudioStart+info.AudioSize-1;
 		} else if (PeekN32(adr)==0x49443320) {	// ID3-Chunk gefunden
 			info.HaveID3v2Tag=true;

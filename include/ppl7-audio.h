@@ -109,7 +109,8 @@ class AudioInfo
 			UNKNOWN,
 			WAVE,
 			AIFF,
-			MP3
+			MP3,
+			OGG
 		};
 		enum ChannelMode {
 			STEREO,
@@ -467,16 +468,17 @@ typedef struct tagWAVEHeader {
 class AudioDecoder
 {
 public:
-	virtual void open(const String &filename)=0;
-	virtual void open(FileObject &file)=0;
-	virtual void close()=0;
+	virtual void open(FileObject &file, const AudioInfo *info=NULL)=0;
 	virtual const AudioInfo & getAudioInfo() const=0;
 	virtual void getAudioInfo(AudioInfo &info) const=0;
 	virtual void seekSample(size_t sample)=0;
+	virtual size_t getPosition() const=0;
 	virtual size_t getSamples(size_t num, void *interleafed)=0;
 	virtual size_t getSamples(size_t num, float *left, float *right)=0;
 	virtual size_t getSamples(size_t num, void *left, void *right)=0;
 };
+
+AudioDecoder *GetAudioDecoder(FileObject &file);
 
 class AudioDecoder_Wave
 {
@@ -502,6 +504,7 @@ class AudioDecoder_Wave
 		size_t bitdepth() const;
 		size_t bytesPerSample() const;
 		void seekSample(size_t sample);
+		size_t getPosition() const;
 		size_t getSamples(size_t num, void *interleafed);
 		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, void *left, void *right);
@@ -510,7 +513,6 @@ class AudioDecoder_Wave
 class AudioDecoder_Aiff : public AudioDecoder
 {
 	private:
-		File			myFile;
 		FileObject		*ff;
 		AudioInfo		info;
 		size_t position;
@@ -519,12 +521,11 @@ class AudioDecoder_Aiff : public AudioDecoder
 	public:
 		AudioDecoder_Aiff();
 		~AudioDecoder_Aiff();
-		void open(const String &filename);
-		void open(FileObject &file);
-		void close();
+		void open(FileObject &file, const AudioInfo *info=NULL);
 		const AudioInfo & getAudioInfo() const;
 		void getAudioInfo(AudioInfo &info) const;
 		void seekSample(size_t sample);
+		size_t getPosition() const;
 		size_t getSamples(size_t num, void *interleafed);
 		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, void *left, void *right);
@@ -533,7 +534,6 @@ class AudioDecoder_Aiff : public AudioDecoder
 class AudioDecoder_MP3 : public AudioDecoder
 {
 	private:
-		File			myFile;
 		FileObject		*ff;
 		AudioInfo		info;
 		size_t position;
@@ -542,12 +542,32 @@ class AudioDecoder_MP3 : public AudioDecoder
 	public:
 		AudioDecoder_MP3();
 		~AudioDecoder_MP3();
-		void open(const String &filename);
-		void open(FileObject &file);
-		void close();
+		void open(FileObject &file, const AudioInfo *info=NULL);
 		const AudioInfo & getAudioInfo() const;
 		void getAudioInfo(AudioInfo &info) const;
 		void seekSample(size_t sample);
+		size_t getPosition() const;
+		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, float *left, float *right);
+		size_t getSamples(size_t num, void *left, void *right);
+};
+
+class AudioDecoder_Ogg : public AudioDecoder
+{
+	private:
+		FileObject		*ff;
+		AudioInfo		info;
+		size_t position;
+		size_t samplesize;
+
+	public:
+		AudioDecoder_Ogg();
+		~AudioDecoder_Ogg();
+		void open(FileObject &file, const AudioInfo *info=NULL);
+		const AudioInfo & getAudioInfo() const;
+		void getAudioInfo(AudioInfo &info) const;
+		void seekSample(size_t sample);
+		size_t getPosition() const;
 		size_t getSamples(size_t num, void *interleafed);
 		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, void *left, void *right);
