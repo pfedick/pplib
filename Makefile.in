@@ -170,7 +170,14 @@ RELEASE	= release/core_AVLTree.o \
 	release/tk_Window.o \
 	release/tk_WindowManager.o \
 	release/tk_WindowManager_SDL2.o release/audio_AudioCD.o \
+	release/audio_AudioDecoder_Aiff.o \
+	release/audio_AudioDecoder_MP3.o \
+	release/audio_AudioDecoder_Ogg.o \
 	release/audio_AudioDecoder_Wave.o \
+	release/audio_AudioEncoder_Aiff.o \
+	release/audio_AudioEncoder_MP3.o \
+	release/audio_AudioEncoder_Ogg.o \
+	release/audio_AudioEncoder_Wave.o \
 	release/audio_AudioInfo.o \
 	release/audio_Cddb.o \
 	release/audio_Icecast.o \
@@ -289,7 +296,14 @@ TK_RELEASE = release/tk_Button.o \
 	release/tk_WindowManager_SDL2.o
 
 AUDIO_RELEASE = release/audio_AudioCD.o \
+	release/audio_AudioDecoder_Aiff.o \
+	release/audio_AudioDecoder_MP3.o \
+	release/audio_AudioDecoder_Ogg.o \
 	release/audio_AudioDecoder_Wave.o \
+	release/audio_AudioEncoder_Aiff.o \
+	release/audio_AudioEncoder_MP3.o \
+	release/audio_AudioEncoder_Ogg.o \
+	release/audio_AudioEncoder_Wave.o \
 	release/audio_AudioInfo.o \
 	release/audio_Cddb.o \
 	release/audio_Icecast.o \
@@ -410,7 +424,14 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/tk_Window.o \
 	debug/tk_WindowManager.o \
 	debug/tk_WindowManager_SDL2.o debug/audio_AudioCD.o \
+	debug/audio_AudioDecoder_Aiff.o \
+	debug/audio_AudioDecoder_MP3.o \
+	debug/audio_AudioDecoder_Ogg.o \
 	debug/audio_AudioDecoder_Wave.o \
+	debug/audio_AudioEncoder_Aiff.o \
+	debug/audio_AudioEncoder_MP3.o \
+	debug/audio_AudioEncoder_Ogg.o \
+	debug/audio_AudioEncoder_Wave.o \
 	debug/audio_AudioInfo.o \
 	debug/audio_Cddb.o \
 	debug/audio_Icecast.o \
@@ -532,7 +553,14 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/tk_Window.o \
 	coverage/tk_WindowManager.o \
 	coverage/tk_WindowManager_SDL2.o coverage/audio_AudioCD.o \
+	coverage/audio_AudioDecoder_Aiff.o \
+	coverage/audio_AudioDecoder_MP3.o \
+	coverage/audio_AudioDecoder_Ogg.o \
 	coverage/audio_AudioDecoder_Wave.o \
+	coverage/audio_AudioEncoder_Aiff.o \
+	coverage/audio_AudioEncoder_MP3.o \
+	coverage/audio_AudioEncoder_Ogg.o \
+	coverage/audio_AudioEncoder_Wave.o \
 	coverage/audio_AudioInfo.o \
 	coverage/audio_Cddb.o \
 	coverage/audio_Icecast.o \
@@ -1237,10 +1265,45 @@ release/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)/
 	# Compiling >>>audio/AudioCD.cpp<<<
 	$(CXX) -Wall -O2 -o release/audio_AudioCD.o -c $(srcdir)/audio/AudioCD.cpp $(CFLAGS) 
 
+release/audio_AudioDecoder_Aiff.o:	$(srcdir)/audio/AudioDecoder_Aiff.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Aiff.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_AudioDecoder_Aiff.o -c $(srcdir)/audio/AudioDecoder_Aiff.cpp $(CFLAGS) 
+
+release/audio_AudioDecoder_MP3.o:	$(srcdir)/audio/AudioDecoder_MP3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_MP3.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_AudioDecoder_MP3.o -c $(srcdir)/audio/AudioDecoder_MP3.cpp $(CFLAGS) 
+
+release/audio_AudioDecoder_Ogg.o:	$(srcdir)/audio/AudioDecoder_Ogg.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Ogg.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_AudioDecoder_Ogg.o -c $(srcdir)/audio/AudioDecoder_Ogg.cpp $(CFLAGS) 
+
 release/audio_AudioDecoder_Wave.o:	$(srcdir)/audio/AudioDecoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/AudioDecoder_Wave.cpp<<<
 	$(CXX) -Wall -O2 -o release/audio_AudioDecoder_Wave.o -c $(srcdir)/audio/AudioDecoder_Wave.cpp $(CFLAGS) 
+
+release/audio_AudioEncoder_Aiff.o:	$(srcdir)/audio/AudioEncoder_Aiff.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Aiff.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_AudioEncoder_Aiff.o -c $(srcdir)/audio/AudioEncoder_Aiff.cpp $(CFLAGS) 
+
+release/audio_AudioEncoder_MP3.o:	$(srcdir)/audio/AudioEncoder_MP3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_MP3.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_AudioEncoder_MP3.o -c $(srcdir)/audio/AudioEncoder_MP3.cpp $(CFLAGS) 
+
+release/audio_AudioEncoder_Ogg.o:	$(srcdir)/audio/AudioEncoder_Ogg.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Ogg.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_AudioEncoder_Ogg.o -c $(srcdir)/audio/AudioEncoder_Ogg.cpp $(CFLAGS) 
+
+release/audio_AudioEncoder_Wave.o:	$(srcdir)/audio/AudioEncoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Wave.cpp<<<
+	$(CXX) -Wall -O2 -o release/audio_AudioEncoder_Wave.o -c $(srcdir)/audio/AudioEncoder_Wave.cpp $(CFLAGS) 
 
 release/audio_AudioInfo.o:	$(srcdir)/audio/AudioInfo.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
@@ -1857,10 +1920,45 @@ debug/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)/pp
 	# Compiling >>>audio/AudioCD.cpp<<<
 	$(CXX) -Wall -O -o debug/audio_AudioCD.o -c $(srcdir)/audio/AudioCD.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/audio_AudioDecoder_Aiff.o:	$(srcdir)/audio/AudioDecoder_Aiff.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Aiff.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioDecoder_Aiff.o -c $(srcdir)/audio/AudioDecoder_Aiff.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/audio_AudioDecoder_MP3.o:	$(srcdir)/audio/AudioDecoder_MP3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_MP3.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioDecoder_MP3.o -c $(srcdir)/audio/AudioDecoder_MP3.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/audio_AudioDecoder_Ogg.o:	$(srcdir)/audio/AudioDecoder_Ogg.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Ogg.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioDecoder_Ogg.o -c $(srcdir)/audio/AudioDecoder_Ogg.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/audio_AudioDecoder_Wave.o:	$(srcdir)/audio/AudioDecoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/AudioDecoder_Wave.cpp<<<
 	$(CXX) -Wall -O -o debug/audio_AudioDecoder_Wave.o -c $(srcdir)/audio/AudioDecoder_Wave.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/audio_AudioEncoder_Aiff.o:	$(srcdir)/audio/AudioEncoder_Aiff.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Aiff.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioEncoder_Aiff.o -c $(srcdir)/audio/AudioEncoder_Aiff.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/audio_AudioEncoder_MP3.o:	$(srcdir)/audio/AudioEncoder_MP3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_MP3.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioEncoder_MP3.o -c $(srcdir)/audio/AudioEncoder_MP3.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/audio_AudioEncoder_Ogg.o:	$(srcdir)/audio/AudioEncoder_Ogg.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Ogg.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioEncoder_Ogg.o -c $(srcdir)/audio/AudioEncoder_Ogg.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/audio_AudioEncoder_Wave.o:	$(srcdir)/audio/AudioEncoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Wave.cpp<<<
+	$(CXX) -Wall -O -o debug/audio_AudioEncoder_Wave.o -c $(srcdir)/audio/AudioEncoder_Wave.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/audio_AudioInfo.o:	$(srcdir)/audio/AudioInfo.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
@@ -2468,10 +2566,45 @@ coverage/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)
 	# Compiling >>>audio/AudioCD.cpp<<<
 	$(CXX) -Wall -o coverage/audio_AudioCD.o -c $(srcdir)/audio/AudioCD.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
+coverage/audio_AudioDecoder_Aiff.o:	$(srcdir)/audio/AudioDecoder_Aiff.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Aiff.cpp<<<
+	$(CXX) -Wall -o coverage/audio_AudioDecoder_Aiff.o -c $(srcdir)/audio/AudioDecoder_Aiff.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/audio_AudioDecoder_MP3.o:	$(srcdir)/audio/AudioDecoder_MP3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_MP3.cpp<<<
+	$(CXX) -Wall -o coverage/audio_AudioDecoder_MP3.o -c $(srcdir)/audio/AudioDecoder_MP3.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/audio_AudioDecoder_Ogg.o:	$(srcdir)/audio/AudioDecoder_Ogg.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioDecoder_Ogg.cpp<<<
+	$(CXX) -Wall -o coverage/audio_AudioDecoder_Ogg.o -c $(srcdir)/audio/AudioDecoder_Ogg.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
 coverage/audio_AudioDecoder_Wave.o:	$(srcdir)/audio/AudioDecoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
 	# Compiling >>>audio/AudioDecoder_Wave.cpp<<<
 	$(CXX) -Wall -o coverage/audio_AudioDecoder_Wave.o -c $(srcdir)/audio/AudioDecoder_Wave.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/audio_AudioEncoder_Aiff.o:	$(srcdir)/audio/AudioEncoder_Aiff.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Aiff.cpp<<<
+	$(CXX) -Wall -o coverage/audio_AudioEncoder_Aiff.o -c $(srcdir)/audio/AudioEncoder_Aiff.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/audio_AudioEncoder_MP3.o:	$(srcdir)/audio/AudioEncoder_MP3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_MP3.cpp<<<
+	$(CXX) -Wall -o coverage/audio_AudioEncoder_MP3.o -c $(srcdir)/audio/AudioEncoder_MP3.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/audio_AudioEncoder_Ogg.o:	$(srcdir)/audio/AudioEncoder_Ogg.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Ogg.cpp<<<
+	$(CXX) -Wall -o coverage/audio_AudioEncoder_Ogg.o -c $(srcdir)/audio/AudioEncoder_Ogg.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/audio_AudioEncoder_Wave.o:	$(srcdir)/audio/AudioEncoder_Wave.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
+	###############################################################################
+	# Compiling >>>audio/AudioEncoder_Wave.cpp<<<
+	$(CXX) -Wall -o coverage/audio_AudioEncoder_Wave.o -c $(srcdir)/audio/AudioEncoder_Wave.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/audio_AudioInfo.o:	$(srcdir)/audio/AudioInfo.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################

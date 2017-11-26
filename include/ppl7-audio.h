@@ -106,6 +106,7 @@ class AudioInfo
 		AudioInfo();
 
 		enum AudioFormat {
+			UNKNOWN,
 			WAVE,
 			AIFF,
 			MP3
@@ -135,6 +136,7 @@ class AudioInfo
 };
 
 bool IdentAudioFile(FileObject &file, AudioInfo &info);
+AudioInfo::AudioFormat IdentAudioFile(FileObject &file);
 String GetID3GenreName(int id);
 
 class ID3Frame
@@ -464,12 +466,16 @@ typedef struct tagWAVEHeader {
 
 class AudioDecoder
 {
-	public:
-};
-
-class AudioEncoder
-{
-
+public:
+	virtual void open(const String &filename)=0;
+	virtual void open(FileObject &file)=0;
+	virtual void close()=0;
+	virtual const AudioInfo & getAudioInfo() const=0;
+	virtual void getAudioInfo(AudioInfo &info) const=0;
+	virtual void seekSample(size_t sample)=0;
+	virtual size_t getSamples(size_t num, void *interleafed)=0;
+	virtual size_t getSamples(size_t num, float *left, float *right)=0;
+	virtual size_t getSamples(size_t num, void *left, void *right)=0;
 };
 
 class AudioDecoder_Wave
@@ -491,12 +497,146 @@ class AudioDecoder_Wave
 		void open(const String &filename);
 		void open(FileObject &file);
 		void getWaveHeader(WAVEHEADER &header) const;
+		//const AudioInfo & getAudioInfo() const;
+		//void getAudioInfo(AudioInfo &info) const;
 		size_t bitdepth() const;
 		size_t bytesPerSample() const;
 		void seekSample(size_t sample);
 		size_t getSamples(size_t num, void *interleafed);
 		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, void *left, void *right);
+};
+
+class AudioDecoder_Aiff : public AudioDecoder
+{
+	private:
+		File			myFile;
+		FileObject		*ff;
+		AudioInfo		info;
+		size_t position;
+		size_t samplesize;
+
+	public:
+		AudioDecoder_Aiff();
+		~AudioDecoder_Aiff();
+		void open(const String &filename);
+		void open(FileObject &file);
+		void close();
+		const AudioInfo & getAudioInfo() const;
+		void getAudioInfo(AudioInfo &info) const;
+		void seekSample(size_t sample);
+		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, float *left, float *right);
+		size_t getSamples(size_t num, void *left, void *right);
+};
+
+class AudioDecoder_MP3 : public AudioDecoder
+{
+	private:
+		File			myFile;
+		FileObject		*ff;
+		AudioInfo		info;
+		size_t position;
+		size_t samplesize;
+
+	public:
+		AudioDecoder_MP3();
+		~AudioDecoder_MP3();
+		void open(const String &filename);
+		void open(FileObject &file);
+		void close();
+		const AudioInfo & getAudioInfo() const;
+		void getAudioInfo(AudioInfo &info) const;
+		void seekSample(size_t sample);
+		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, float *left, float *right);
+		size_t getSamples(size_t num, void *left, void *right);
+};
+
+
+typedef pplint16 SAMPLE;
+
+//!\brief Struktur zum Speichern eines Stereo-Samples
+typedef struct tagSTEREOSAMPLE{
+    pplint16 left;
+    pplint16 right;
+} STEREOSAMPLE;
+
+class AudioEncoder
+{
+
+};
+
+//!\brief Struktur zum Speichern des Fortschritts bei einem MP3-Encode-Vorgang
+typedef struct tagSOUNDPROGRESS{
+	double	timestarted;
+	double	timeend;
+	double	now;
+	double	past;
+	float	percent;
+	float	faktor;
+	double	eta;
+	ppluint64	position;
+	ppluint64	bytes;
+	ppluint64	position_thisfile;
+	ppluint64	bytes_thisfile;
+	//PPL_WAVEHEADER *wav;
+	//PPL_MPEG_HEADER *mpg;
+} PPL_SOUNDPROGRESS;
+
+class AudioEncoder_MP3
+{
+private:
+	void * gfp;
+	//PPL_WAVEHEADER firstwave;
+	//PPL_SOUNDPROGRESS progress;
+	FileObject		*out;
+	char			*readcache;
+	int				mp3bufsize;
+	int				encoderdelay;
+	unsigned char	*mp3buf;
+
+	ppluint32	samples;
+
+	void (*ProgressFunc) (PPL_SOUNDPROGRESS *prog);
+
+	bool have_firstwave;
+	bool started;
+	bool bStopEncode;
+
+	void WriteEncodedBytes(char *buffer, size_t bytes);
+
+public:
+	AudioEncoder_MP3();
+	~AudioEncoder_MP3();
+
+	void SetBitrate(int kbps=192);
+	void SetVBR(int min=32, int max=320, int quality=2);
+	void SetCBR(int kbps=192, int quality=2);
+	void SetABR(int kbps=192, int quality=2);
+	void SetQuality(int quality=2);			// 1=best, 10=lowest
+	void SetStereoMode(AudioInfo::ChannelMode mode=AudioInfo::JOINT_STEREO);
+	void SetLowpassFreq(int freq=-1);		// -1=Disabled
+	void SetHighpassFreq(int freq=-1);		// -1=Disabled
+
+	void SetProgressFunction(void (*Progress) (PPL_SOUNDPROGRESS *prog, void *data), void *data);
+	void SetEncoderDelay(int milliseconds);
+
+	int StartEncode(FileObject &output);
+	int StartEncode(int frequency, int channels);
+	int EncodeFile(FileObject &file);
+	int EncodeFile(AudioDecoder &decoder);
+	int EncodeBuffer(SAMPLE *left, SAMPLE *right, int num, void *mp3buf, size_t buffersize);
+	int EncodeBuffer(STEREOSAMPLE *buffer, int num, void *mp3buf, size_t buffersize);
+	int FlushBuffer(void *mp3buf, size_t buffersize);
+	void StopEncode();
+
+	int FinishEncode();
+
+	//int ReadWaveHeader(FileObject &ff, PPL_WAVEHEADER *wav);
+
+	const char *GetLameVersion();
+	const char *GetPSYVersion();
 
 };
 

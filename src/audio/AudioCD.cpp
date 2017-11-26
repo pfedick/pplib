@@ -1,14 +1,8 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
- *
- * $Author: pafe $
- * $Revision: 707 $
- * $Date: 2013-06-16 09:10:38 +0200 (So, 16 Jun 2013) $
- * $Id: AudioDecoder_Wave.cpp 707 2013-06-16 07:10:38Z pafe $
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

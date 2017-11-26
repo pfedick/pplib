@@ -1,14 +1,8 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
- *
- * $Author: pafe $
- * $Revision: 707 $
- * $Date: 2013-06-16 09:10:38 +0200 (So, 16 Jun 2013) $
- * $Id: AudioDecoder_Wave.cpp 707 2013-06-16 07:10:38Z pafe $
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +25,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-
 
 #include "prolog.h"
 #ifdef HAVE_STDIO_H
@@ -221,7 +214,28 @@ bool IdentAudioFile(FileObject &file, AudioInfo &info)
 	PPL_MPEG_HEADER mp3;
 	if (IdentMPEG(file,&mp3)) return IdentMP3(file,info,mp3);
 	return false;
+}
 
+AudioInfo::AudioFormat IdentAudioFile(FileObject &file)
+{
+	const char *adr=file.map(0,12);
+	if (!adr) return AudioInfo::UNKNOWN;
+	// AIFF
+	if (PeekN32(adr+4)<file.size()
+				&& PeekN32(adr+0)==0x464F524D
+				&& PeekN32(adr+8)==0x41494646) return AudioInfo::AIFF;
+	// RIFF / WAV
+	if (strncmp(adr,"RIFF",4)==0) {
+		if (strncmp(adr+8,"WAVE",4)==0) {
+			if (strncmp(adr+12,"fmt ",4)==0) {
+				if (Peek16(adr+20)==1) return AudioInfo::WAVE;
+			}
+		}
+	}
+
+	PPL_MPEG_HEADER mp3;
+	if (IdentMPEG(file,&mp3)) return AudioInfo::MP3;
+	return AudioInfo::UNKNOWN;
 }
 
 } // EOF namespace ppl7
