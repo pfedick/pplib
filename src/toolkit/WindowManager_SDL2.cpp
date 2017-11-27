@@ -485,19 +485,27 @@ void WindowManager_SDL2::getMouseState(Point &p, int &buttonMask)
 
 MouseState WindowManager_SDL2::getMouseState() const
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	MouseState mouse;
 	int buttons;
 	SDL_PumpEvents();
 	buttons=SDL_GetMouseState(&mouse.p.x, &mouse.p.y);
 	return mouse;
+#endif
 }
 
 void WindowManager_SDL2::startEventLoop()
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	while (numWindows()>0) {
 		handleEvents();
 		ppl7::MSleep(5);
 	}
+#endif
 }
 
 Window *WindowManager_SDL2::getWindow(ppluint32 id)
