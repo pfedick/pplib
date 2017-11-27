@@ -128,10 +128,11 @@ class AudioInfo
 		ppluint32	AudioEnd;
 		ppluint32	AudioSize;
 		ppluint32	Samples;
-		ppluint8	BytesPerSample;
 		ppluint32	Length;		// Length in ms
 		ppluint32	Frequency;
 		ppluint16	Bitrate;
+		ppluint8	BitsPerSample;
+		ppluint8	BytesPerSample;
 		ppluint8	Channels;
 		ChannelMode	Mode;
 };
@@ -464,6 +465,13 @@ typedef struct tagWAVEHeader {
 	ppluint8	bitdepth;
 } WAVEHEADER;
 
+typedef pplint16 SAMPLE16;
+
+//!\brief Struktur zum Speichern eines Stereo-Samples
+typedef struct tagSTEREOSAMPLE16{
+	SAMPLE16 left;
+	SAMPLE16 right;
+} STEREOSAMPLE16;
 
 class AudioDecoder
 {
@@ -473,9 +481,9 @@ public:
 	virtual void getAudioInfo(AudioInfo &info) const=0;
 	virtual void seekSample(size_t sample)=0;
 	virtual size_t getPosition() const=0;
-	virtual size_t getSamples(size_t num, void *interleafed)=0;
+	virtual size_t getSamples(size_t num, STEREOSAMPLE16 *buffer)=0;
 	virtual size_t getSamples(size_t num, float *left, float *right)=0;
-	virtual size_t getSamples(size_t num, void *left, void *right)=0;
+	virtual size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right)=0;
 };
 
 AudioDecoder *GetAudioDecoder(FileObject &file);
@@ -505,9 +513,9 @@ class AudioDecoder_Wave
 		size_t bytesPerSample() const;
 		void seekSample(size_t sample);
 		size_t getPosition() const;
-		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
 		size_t getSamples(size_t num, float *left, float *right);
-		size_t getSamples(size_t num, void *left, void *right);
+		size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right);
 };
 
 class AudioDecoder_Aiff : public AudioDecoder
@@ -526,9 +534,9 @@ class AudioDecoder_Aiff : public AudioDecoder
 		void getAudioInfo(AudioInfo &info) const;
 		void seekSample(size_t sample);
 		size_t getPosition() const;
-		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
 		size_t getSamples(size_t num, float *left, float *right);
-		size_t getSamples(size_t num, void *left, void *right);
+		size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right);
 };
 
 class AudioDecoder_MP3 : public AudioDecoder
@@ -547,9 +555,9 @@ class AudioDecoder_MP3 : public AudioDecoder
 		void getAudioInfo(AudioInfo &info) const;
 		void seekSample(size_t sample);
 		size_t getPosition() const;
-		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
 		size_t getSamples(size_t num, float *left, float *right);
-		size_t getSamples(size_t num, void *left, void *right);
+		size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right);
 };
 
 class AudioDecoder_Ogg : public AudioDecoder
@@ -568,19 +576,13 @@ class AudioDecoder_Ogg : public AudioDecoder
 		void getAudioInfo(AudioInfo &info) const;
 		void seekSample(size_t sample);
 		size_t getPosition() const;
-		size_t getSamples(size_t num, void *interleafed);
+		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
 		size_t getSamples(size_t num, float *left, float *right);
-		size_t getSamples(size_t num, void *left, void *right);
+		size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right);
 };
 
 
-typedef pplint16 SAMPLE;
 
-//!\brief Struktur zum Speichern eines Stereo-Samples
-typedef struct tagSTEREOSAMPLE{
-    pplint16 left;
-    pplint16 right;
-} STEREOSAMPLE;
 
 class AudioEncoder
 {
@@ -624,39 +626,34 @@ private:
 	bool started;
 	bool bStopEncode;
 
-	void WriteEncodedBytes(char *buffer, size_t bytes);
+	void writeEncodedBytes(char *buffer, size_t bytes);
 
 public:
 	AudioEncoder_MP3();
 	~AudioEncoder_MP3();
+	void setVBR(int min=32, int max=320);
+	void setCBR(int kbps=320);
+	void setABR(int kbps=192);
+	void setQuality(int quality=2);			// 1=best, 10=lowest
+	void setStereoMode(AudioInfo::ChannelMode mode=AudioInfo::JOINT_STEREO);
+	void setLowpassFreq(int freq=-1);		// -1=Disabled
+	void setHighpassFreq(int freq=-1);		// -1=Disabled
+	//void setProgressFunction(void (*Progress) (PPL_SOUNDPROGRESS *prog, void *data), void *data);
+	void setEncoderDelay(int milliseconds);
+	void startEncode(FileObject &output);
+	//void startEncode(int frequency, int channels);
+	void writeID3v2Tag(const ID3Tag &tag);
+	void writeID3v1Tag(const ID3Tag &tag);
+	void encodeFile(FileObject &file);
+	void encode(AudioDecoder &decoder);
+	void encodeBuffer(SAMPLE16 *left, SAMPLE16 *right, int num, void *mp3buf, size_t buffersize);
+	void encodeBuffer(STEREOSAMPLE16 *buffer, int num, void *mp3buf, size_t buffersize);
+	void flushBuffer(void *mp3buf, size_t buffersize);
+	void stopEncode();
 
-	void SetBitrate(int kbps=192);
-	void SetVBR(int min=32, int max=320, int quality=2);
-	void SetCBR(int kbps=192, int quality=2);
-	void SetABR(int kbps=192, int quality=2);
-	void SetQuality(int quality=2);			// 1=best, 10=lowest
-	void SetStereoMode(AudioInfo::ChannelMode mode=AudioInfo::JOINT_STEREO);
-	void SetLowpassFreq(int freq=-1);		// -1=Disabled
-	void SetHighpassFreq(int freq=-1);		// -1=Disabled
-
-	void SetProgressFunction(void (*Progress) (PPL_SOUNDPROGRESS *prog, void *data), void *data);
-	void SetEncoderDelay(int milliseconds);
-
-	int StartEncode(FileObject &output);
-	int StartEncode(int frequency, int channels);
-	int EncodeFile(FileObject &file);
-	int EncodeFile(AudioDecoder &decoder);
-	int EncodeBuffer(SAMPLE *left, SAMPLE *right, int num, void *mp3buf, size_t buffersize);
-	int EncodeBuffer(STEREOSAMPLE *buffer, int num, void *mp3buf, size_t buffersize);
-	int FlushBuffer(void *mp3buf, size_t buffersize);
-	void StopEncode();
-
-	int FinishEncode();
-
-	//int ReadWaveHeader(FileObject &ff, PPL_WAVEHEADER *wav);
-
-	const char *GetLameVersion();
-	const char *GetPSYVersion();
+	int finishEncode();
+	const char *getLameVersion();
+	const char *getPSYVersion();
 
 };
 

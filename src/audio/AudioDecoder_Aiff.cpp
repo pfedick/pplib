@@ -65,6 +65,10 @@ void AudioDecoder_Aiff::open(FileObject &file, const AudioInfo *info)
 	} else {
 		this->info=*info;
 	}
+	if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
+	if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
+	if (this->info.Channels!=2) throw UnsupportedAudioFormatException("Channels != 2");
+	if (this->info.BytesPerSample!=4) throw UnsupportedAudioFormatException("BytesPerSample != 4");
 	position=0;
 	this->ff=&file;
 }
@@ -82,7 +86,7 @@ void AudioDecoder_Aiff::getAudioInfo(AudioInfo &info) const
 void AudioDecoder_Aiff::seekSample(size_t sample)
 {
 	if (sample<info.Samples) position=sample;
-	position=info.Samples;
+	else position=info.Samples;
 }
 
 size_t AudioDecoder_Aiff::getPosition() const
@@ -90,19 +94,41 @@ size_t AudioDecoder_Aiff::getPosition() const
 	return position;
 }
 
-size_t AudioDecoder_Aiff::getSamples(size_t num, void *interleafed)
+size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE16 *buffer)
 {
-	return 0;
+	size_t samples=num;
+	if (position+samples>info.Samples) samples=info.Samples-position;
+	const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
+	if (info.BitsPerSample==16) {
+		for (size_t i=0;i<samples;i++) {
+			buffer[i].left=PeekN16(data);
+			buffer[i].right=PeekN16(data+2);
+			data+=4;
+		}
+	}
+	position+=samples;
+	return samples;
 }
 
 size_t AudioDecoder_Aiff::getSamples(size_t num, float *left, float *right)
 {
-	return 0;
+	ppl7::UnsupportedFeatureException("AudioDecoder_Aiff::getSamples(size_t num, float *left, float *right)");
 }
 
-size_t AudioDecoder_Aiff::getSamples(size_t num, void *left, void *right)
+size_t AudioDecoder_Aiff::getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right)
 {
-	return 0;
+	size_t samples=num;
+	if (position+samples>info.Samples) samples=info.Samples-position;
+	const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
+	if (info.BitsPerSample==16) {
+		for (size_t i=0;i<samples;i++) {
+			left[i]=PeekN16(data);
+			right[i]=PeekN16(data+2);
+			data+=4;
+		}
+	}
+	position+=samples;
+	return samples;
 }
 
 

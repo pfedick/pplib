@@ -72,9 +72,13 @@ TEST_F(AudioDecoder_Aiff_Test, open) {
 	const ppl7::AudioInfo &info=decoder.getAudioInfo();
 	ASSERT_EQ(ppl7::AudioInfo::AIFF, info.Format);
 	printf ("Samples: %d\n",info.Samples);
+	printf ("AudioSize: %d\n",info.AudioSize);
+	printf ("AudioSize: %d\n",info.AudioSize);
 }
 
 
 
 }	// EOF namespace
+
+
 

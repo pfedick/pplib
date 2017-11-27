@@ -67,6 +67,7 @@ AudioInfo::AudioInfo()
 	AudioSize=0;
 	Samples=0;
 	BytesPerSample=0;
+	BitsPerSample=0;
 	Length=0;
 	Frequency=0;
 	Bitrate=0;
@@ -103,6 +104,7 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 			else return false;	// Not supported
 			info.Samples=PeekN32(adr+10);
 			info.BytesPerSample=(PeekN16(adr+14)*info.Channels)/8;
+			info.BitsPerSample=PeekN16(adr+14);
 			long double frequency=44100.0;	// 80 bit IEEE Standard 754 floating point number
 			//ppl6::HexDump(&frequency,sizeof(long double));
 			frequency=0.0;
@@ -126,7 +128,7 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 			if (PeekN32(adr+8)!=0) return false;
 			if (PeekN32(adr+12)!=0) return false;
 			info.AudioStart=p+16;
-			info.AudioSize=size-16;
+			info.AudioSize=size-8;
 			info.AudioEnd=info.AudioStart+info.AudioSize-1;
 		} else if (PeekN32(adr)==0x49443320) {	// ID3-Chunk gefunden
 			info.HaveID3v2Tag=true;
@@ -163,6 +165,7 @@ static bool IdentWave(FileObject &file, AudioInfo &info)
 	if (strncmp(buffer,(const char*)"data",4)!=0) return false;	// no data chunk
 
 	info.Samples=0;
+	info.BitsPerSample=bitdepth;
 	info.BytesPerSample=(bitdepth/8)*info.Channels;
 	info.AudioStart=fmtchunklen+28;
 	info.AudioSize=Peek32(buffer+4);
@@ -190,6 +193,7 @@ static bool IdentMP3(FileObject &file, AudioInfo &info, PPL_MPEG_HEADER &mp3)
 	info.Bitrate=mp3.bitrate;
 	info.Frequency=mp3.frequency;
 	info.BytesPerSample=mp3.stereo*2;
+	info.BitsPerSample=16;
 	info.Length=mp3.mslength;
 	switch (mp3.mode) {
 		case 0: info.Mode=AudioInfo::STEREO; break;

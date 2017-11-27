@@ -40,6 +40,9 @@
 									<listOptionValue builtIn="false" value="PPL7LIB=1"/>
 									<listOptionValue builtIn="false" value="HAVE_CONFIG_H=1"/>
 								</option>
+								<option id="gnu.c.compiler.option.include.paths.87481308" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;C:\jenkins\local\include&quot;"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.322443003" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp.1774392251" name="GCC C++ Compiler" superClass="org.eclipse.linuxtools.cdt.autotools.core.toolchain.tool.gpp">

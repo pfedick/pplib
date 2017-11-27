@@ -161,7 +161,7 @@ void AudioDecoder_Wave::seekSample(size_t sample)
 	ff->seek(position*wave.bytespersample+wave.datastart);
 }
 
-size_t AudioDecoder_Wave::getSamples(size_t num, void *interleafed)
+size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16 *interleafed)
 {
 	if (position+num>=wave.numSamples) num=wave.numSamples-position;
 	size_t read=ff->read(interleafed,num*wave.bytespersample)/wave.bytespersample;
@@ -169,7 +169,7 @@ size_t AudioDecoder_Wave::getSamples(size_t num, void *interleafed)
 	return read;
 }
 
-size_t AudioDecoder_Wave::getSamples(size_t num, void *left, void *right)
+size_t AudioDecoder_Wave::getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right)
 {
 	if (position+num>=wave.numSamples) num=wave.numSamples-position;
 	void *buffer=malloc(num*wave.bytespersample);
