@@ -71,7 +71,7 @@ static void ProgressFunc(int progress, void *priv)
 TEST_F(AudioEncoder_MP3_Test, EncodeCBRFromAiff) {
 	ppl7::AudioEncoder_MP3 encoder;
 	ppl7::AudioDecoder_Aiff decoder;
-	ppl7::File file("testdata/test_44kHz_tagged.aiff");
+	ppl7::File file("testdata/test_44kHz_taggedWithCover.aiff");
 	ppl7::ID3Tag tag;
 	tag.load(file);
 	decoder.open(file);
@@ -88,9 +88,9 @@ TEST_F(AudioEncoder_MP3_Test, EncodeCBRFromAiff) {
 	} catch (const ppl7::Exception &exp) {
 		exp.print();
 	}
-
-
 }
+
+
 
 
 }	// EOF namespace
