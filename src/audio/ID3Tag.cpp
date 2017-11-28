@@ -1158,7 +1158,7 @@ void ID3Tag::save()
  * @param tag Speicher-Objekt, in dem der Tag gespeichert werden soll
  *
  */
-void ID3Tag::generateId3V1Tag(ByteArray &tag)
+void ID3Tag::generateId3V1Tag(ByteArray &tag) const
 {
 	if (firstFrame==NULL) {		// Keine Tags vorhanden
 		tag.clear();
@@ -1212,7 +1212,7 @@ void ID3Tag::generateId3V1Tag(ByteArray &tag)
 
 }
 
-void ID3Tag::generateId3V2Tag(ByteArray &tag)
+void ID3Tag::generateId3V2Tag(ByteArray &tag) const
 {
 	if (firstFrame==NULL) {		// Keine Tags vorhanden
 		tag.clear();

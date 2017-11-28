@@ -61,11 +61,12 @@ namespace ppl7 {
 AudioEncoder_MP3::AudioEncoder_MP3()
 {
 	out=NULL;
+	ProgressFunc=NULL;
+	ProgressFuncPrivData=NULL;
 	readcache=NULL;
 	mp3bufsize=0;
-	encoderdelay=0;
 	mp3buf=NULL;
-	have_firstwave=false;
+	have_firstaudio=false;
 	started=false;
 	bStopEncode=false;
 	ProgressFunc=NULL;
@@ -75,6 +76,7 @@ AudioEncoder_MP3::AudioEncoder_MP3()
 	if (!gfp) throw ppl7::InitializationFailedException("AudioEncoder_MP3: Lame");
 
 	// LAME mit Standardwerten initialisieren
+	lame_set_bWriteVbrTag((lame_global_flags*)gfp,0);
 	/*
 	lame_set_quality((lame_global_flags*)gfp,2);	// Beste Qualitaet und gute Performance
 	lame_set_mode((lame_global_flags*)gfp,STEREO);
@@ -102,7 +104,7 @@ AudioEncoder_MP3::~AudioEncoder_MP3()
 	*/
 }
 
-void AudioEncoder_MP3::setCBR(int kbps)
+void AudioEncoder_MP3::setCBR(int kbps, int quality)
 {
 #ifndef HAVE_LAME
 	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
@@ -110,11 +112,12 @@ void AudioEncoder_MP3::setCBR(int kbps)
 	if (!started) {
 		lame_set_VBR((lame_global_flags*)gfp, vbr_off);
 		lame_set_brate((lame_global_flags*)gfp,kbps);
+		lame_set_quality((lame_global_flags*)gfp,quality);
 	}
 #endif
 }
-#ifdef TODO
-void AudioEncoder_MP3::setVBR(int min, int max)
+
+void AudioEncoder_MP3::setVBR(int min, int max, int quality)
 {
 #ifndef HAVE_LAME
 	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
@@ -126,8 +129,8 @@ void AudioEncoder_MP3::setVBR(int min, int max)
 			min=max;
 			max=tmp;
 		}
-		lame_set_quality((lame_global_flags*)gfp,quality);
 		lame_set_VBR((lame_global_flags*)gfp, vbr_mtrh);
+		lame_set_quality((lame_global_flags*)gfp,quality);
 		lame_set_VBR_q((lame_global_flags*)gfp, quality);
 		lame_set_VBR_quality((lame_global_flags*)gfp, (float)quality);
 		lame_set_VBR_min_bitrate_kbps((lame_global_flags*)gfp, min);
@@ -136,7 +139,8 @@ void AudioEncoder_MP3::setVBR(int min, int max)
 #endif
 }
 
-void AudioEncoder_MP3::setABR(int avg)
+
+void AudioEncoder_MP3::setABR(int avg, int quality)
 {
 #ifndef HAVE_LAME
 	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
@@ -150,7 +154,8 @@ void AudioEncoder_MP3::setABR(int avg)
 #endif
 }
 
-void CMP3Encode::setQuality(int quality)
+
+void AudioEncoder_MP3::setQuality(int quality)
 {
 #ifndef HAVE_LAME
 	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
@@ -163,21 +168,23 @@ void CMP3Encode::setQuality(int quality)
 }
 
 
-void CMP3Encode::SetMode(int mode)
+void AudioEncoder_MP3::setStereoMode(const AudioInfo::ChannelMode mode)
 {
-	if ((!started) && gfp!=NULL) {
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) {
 		MPEG_mode m;
 		switch (mode) {
-			case MP3::MODE::STEREO:
+			case AudioInfo::STEREO:
 				m=STEREO;
 				break;
-			case MP3::MODE::JOINT_STEREO:
+			case AudioInfo::JOINT_STEREO:
 				m=JOINT_STEREO;
 				break;
-			case MP3::MODE::DUAL_CHANNEL:
-				m=DUAL_CHANNEL;
-				break;
-			case MP3::MODE::MONO:
+			case AudioInfo::DUAL_CHANNEL:
+				throw UnsupportedFeatureException("AudioEncoder_MP3::setStereoMode (AudioInfo::ChannelMode::DUAL_CHANNEL)");
+			case AudioInfo::MONO:
 				m=MONO;
 				break;
 			default:
@@ -186,106 +193,267 @@ void CMP3Encode::SetMode(int mode)
 		}
 		lame_set_mode((lame_global_flags*)gfp,m);
 	}
+#endif
 }
 
-void CMP3Encode::SetLowpassFreq(int freq)
-{
-	if ((!started) && gfp!=NULL) lame_set_lowpassfreq((lame_global_flags*)gfp,freq);
-}
 
-void CMP3Encode::SetHighpassFreq(int freq)
+/*!Lowpass Frequenz für Filter setzen
+ * @param [in] freq Frequenz:
+ * * -1 = keinen Filter verwenden
+ * * 0 = Lame entscheidet
+ * * >0 = Frequenz in Hz
+ */
+void AudioEncoder_MP3::setLowpassFreq(int freq)
 {
-	if ((!started) && gfp!=NULL) lame_set_highpassfreq((lame_global_flags*)gfp,freq);
-}
-
-void CMP3Encode::SetEncoderDelay(int milliseconds)
-{
-	encoderdelay=milliseconds;
-}
-
-int CMP3Encode::HandleWatchThread()
-{
-	if (!WatchThread) return 1;
-	WatchThread->ThreadWaitSuspended(100);
-	if (WatchThread->ThreadShouldStop()) return 0;
-	return 1;
-}
-
-int CMP3Encode::StartEncode(CFileObject *output)
-{
-	if (started) {
-		SetError(217,"Encoder laeuft bereits");
-		return 0;
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) {
+		lame_set_lowpassfreq((lame_global_flags*)gfp,freq);
 	}
-	if (!gfp) {
-		SetError(217,"lame_init() fehlgeschlagen");
-		return 0;
+#endif
+}
+
+/*!Highpass Frequenz für Filter setzen
+ * @param [in] freq Frequenz:
+ * * -1 = keinen Filter verwenden
+ * * 0 = Lame entscheidet
+ * * >0 = Frequenz in Hz
+ */
+void AudioEncoder_MP3::setHighpassFreq(int freq)
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) {
+		lame_set_highpassfreq((lame_global_flags*)gfp,freq);
 	}
-	out=output;
+#endif
+}
+
+void AudioEncoder_MP3::startEncode(FileObject &output)
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (started) throw EncoderAlreadyStartedException();
+	out=&output;
 	started=true;
-	have_firstwave=false;
-	progress.position=0;
-	progress.percent=0.0f;
-	progress.eta=0;
-	progress.timestarted=getmicrotime();
-	progress.wav=NULL;
+	have_firstaudio=false;
 	bStopEncode=false;
-	return 1;
+#endif
 }
 
-int CMP3Encode::StartEncode(int frequency, int channels)
+void AudioEncoder_MP3::startEncode(int frequency, int channels)
 {
-	if (!StartEncode(NULL)) return 0;
-
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (started) throw EncoderAlreadyStartedException();
+	out=NULL;
+	started=true;
+	have_firstaudio=true;
+	bStopEncode=false;
+	firstAudio.frequency=frequency;
+	firstAudio.channels=channels;
 	lame_set_in_samplerate((lame_global_flags*)gfp,frequency);
 	lame_set_num_channels((lame_global_flags*)gfp,channels);
 	if (lame_init_params((lame_global_flags*)gfp)<0) {
-		SetError(217,"lame_init_params() fehlgeschlagen => falsche Parameter");
-		return 0;
+		throw EncoderInitializationException();
 	}
-	return 1;
+#endif
 }
 
-int CMP3Encode::EncodeBuffer(SAMPLE *left, SAMPLE *right, int num, void *mp3buf, int buffersize)
+static inline void dispatchEncoderError(int code)
 {
-	if (!started) {
-		SetError(218);
-		return 0;
-	}
+	if (code==-1) throw EncoderBufferTooSmallException();
+	if (code==-2) throw OutOfMemoryException();
+	if (code==-3) throw EncoderNotStartedException();
+	if (code==-4) throw EncoderPsychoAcousticException();
+	throw EncoderException("Unknown Error");
+}
+
+int AudioEncoder_MP3::encodeBuffer(STEREOSAMPLE16 *buffer, int num, void *mp3buf, size_t buffersize)
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) throw EncoderNotStartedException();
+	int ret=lame_encode_buffer_interleaved((lame_global_flags*)gfp,
+		(short int *) buffer,
+		num,
+		(unsigned char*) mp3buf,
+		(int)buffersize);
+	if (ret<0) dispatchEncoderError(ret);
+	return ret;
+#endif
+}
+
+int AudioEncoder_MP3::encodeBuffer(SAMPLE16 *left, SAMPLE16 *right, int num, void *mp3buf, size_t buffersize)
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) throw EncoderNotStartedException();
 	int ret=lame_encode_buffer((lame_global_flags*)gfp,
 		(const short int *) left,
 		(const short int *) right,
 		num,
 		(unsigned char*) mp3buf,
-		buffersize);
+		(int)buffersize);
+	if (ret<0) dispatchEncoderError(ret);
 	return ret;
+#endif
 }
 
-int CMP3Encode::EncodeBuffer(STEREOSAMPLE *buffer, int num, void *mp3buf, int buffersize)
-{
-	if (!started) {
-		SetError(218);
-		return 0;
-	}
-	int ret=lame_encode_buffer_interleaved((lame_global_flags*)gfp,
-		(short int *) buffer,
-		num,
-		(unsigned char*) mp3buf,
-		buffersize);
-	return ret;
-}
 
-int CMP3Encode::FlushBuffer(void *mp3buf, int buffersize)
+int AudioEncoder_MP3::flushBuffer(void *mp3buf, size_t buffersize)
 {
-	if (!started) {
-		SetError(218);
-		return 0;
-	}
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) return 0;
 	int ret=lame_encode_flush((lame_global_flags*)gfp,
 		(unsigned char*) mp3buf,
-		buffersize);
+		(int)buffersize);
 	return ret;
+#endif
 }
+
+void AudioEncoder_MP3::encode(AudioDecoder &decoder)
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) throw EncoderNotStartedException();
+	if (bStopEncode) throw EncoderAbortedException();
+	const AudioInfo &info=decoder.getAudioInfo();
+	if (!have_firstaudio) {
+		firstAudio.frequency=info.Frequency;
+		firstAudio.channels=info.Channels;
+		lame_set_in_samplerate((lame_global_flags*)gfp,firstAudio.frequency);
+		lame_set_num_channels((lame_global_flags*)gfp,firstAudio.channels);
+		if (lame_init_params((lame_global_flags*)gfp)<0) {
+			throw EncoderInitializationException();
+		}
+		have_firstaudio=true;
+	} else {
+		if (info.Frequency!=firstAudio.frequency || info.Channels!=firstAudio.channels)
+			throw EncoderAudioFormatMismatchException();
+	}
+	ppluint32 samples_left=info.Samples;
+	if (!samples_left) return;
+
+	mp3bufsize=(int)(1.25*samples+7200+100000);
+	if (mp3buf) free(mp3buf);
+	mp3buf=(unsigned char*)malloc(mp3bufsize);
+	if (!mp3buf) throw OutOfMemoryException();
+	if (readcache) free(readcache);
+	size_t readcache_size=samples*info.BytesPerSample+100;
+	readcache=(char *)malloc(readcache_size);
+	if (!readcache) throw OutOfMemoryException();
+	decoder.seekSample(0);
+	int last_progress=0;
+	while (samples_left>0) {
+		ppluint32 current_samples=samples;
+		if (current_samples>samples_left) current_samples=samples_left;
+		size_t samples_got=decoder.getSamples(current_samples,(STEREOSAMPLE16*)readcache);
+		samples_left-=samples_got;
+		ppluint32 encodedbytes=lame_encode_buffer_interleaved((lame_global_flags*)gfp,(short*)readcache,samples_got,mp3buf,mp3bufsize);
+		if (encodedbytes) {
+			writeEncodedBytes((char *)mp3buf,encodedbytes);
+		} else if (encodedbytes<0) dispatchEncoderError(encodedbytes);
+		if (bStopEncode) throw EncoderAbortedException();
+		if (ProgressFunc) {
+			int progress=(info.Samples-samples_left)*100/info.Samples;
+			if (progress!=last_progress) ProgressFunc(progress,ProgressFuncPrivData);
+			last_progress=progress;
+		}
+	}
+#endif
+}
+
+void AudioEncoder_MP3::finish()
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	if (!started) throw EncoderNotStartedException();
+	if (have_firstaudio) {
+		if (mp3buf) {
+			ppluint32 encodedbytes=lame_encode_flush_nogap((lame_global_flags*)gfp,mp3buf,mp3bufsize);
+			if (encodedbytes) writeEncodedBytes((const char *)mp3buf,encodedbytes);
+		} else {
+			mp3buf=(unsigned char*)malloc(16192);
+			if (!mp3buf) throw OutOfMemoryException();
+			ppluint32 encodedbytes=lame_encode_flush_nogap((lame_global_flags*)gfp,mp3buf,16192);
+			if (encodedbytes) writeEncodedBytes((const char *)mp3buf,encodedbytes);
+		}
+	}
+	free (mp3buf);
+	mp3buf=NULL;
+	free(readcache);
+	readcache=NULL;
+	have_firstaudio=false;
+	started=false;
+#endif
+}
+
+void AudioEncoder_MP3::stop()
+{
+	bStopEncode=true;
+}
+
+const char *AudioEncoder_MP3::getLameVersion()
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	return get_lame_version();
+#endif
+}
+
+const char *AudioEncoder_MP3::getPSYVersion()
+{
+#ifndef HAVE_LAME
+	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
+#else
+	return get_psy_version();
+#endif
+}
+
+void AudioEncoder_MP3::writeEncodedBytes(const char *buffer, size_t bytes)
+{
+	if (out) {
+		out->write(buffer,bytes);
+	}
+}
+
+void AudioEncoder_MP3::setProgressFunction(void (*ProgressFunc) (int progress, void *priv), void *priv)
+{
+	this->ProgressFunc=ProgressFunc;
+	this->ProgressFuncPrivData=priv;
+}
+
+void AudioEncoder_MP3::writeID3v2Tag(const ID3Tag &tag)
+{
+	if (!out) return;
+	ByteArray ba;
+	tag.generateId3V2Tag(ba);
+	out->write(ba.ptr(),ba.size());
+}
+
+void AudioEncoder_MP3::writeID3v1Tag(const ID3Tag &tag)
+{
+	if (!out) return;
+	ByteArray ba;
+	tag.generateId3V1Tag(ba);
+	out->write(ba.ptr(),ba.size());
+}
+
+
+
+#ifdef TODO
 
 int CMP3Encode::EncodeFile(CFileObject *file)
 {
@@ -524,65 +692,16 @@ int CMP3Encode::EncodeFile(CMP3Decode *decode)
 	return 1;
 }
 
-int CMP3Encode::FinishEncode()
-{
-	if (!started) {
-		SetError(218);
-		return 0;
-	}
-
-	ppldd encodedbytes=0;
-	if (mp3buf) {
-		if (!have_firstwave) {
-			SetError(217,"Nothing to encode");
-			return 0;
-		}
-
-		encodedbytes=lame_encode_flush((lame_global_flags*)gfp,mp3buf,mp3bufsize);
-		if (encodedbytes) WriteEncodedBytes((char *)mp3buf,encodedbytes);
-	} else {
-		mp3buf=(unsigned char*)malloc(16192);
-		encodedbytes=lame_encode_flush((lame_global_flags*)gfp,mp3buf,16192);
-	}
-	free (mp3buf);
-	mp3buf=NULL;
-	free(readcache);
-	readcache=NULL;
-
-	have_firstwave=false;
-	started=false;
-	return 1;
-}
-
-void CMP3Encode::WriteEncodedBytes(char *buffer, ppldd bytes)
-{
-	if (out) {
-		out->Write(buffer,bytes);
-	}
-}
-
-void CMP3Encode::SetProgressFunction(void (*Progress) (PPL_SOUNDPROGRESS *prog), void *data)
-{
-	ProgressFunc=Progress;
-	progress.data=data;
-}
 
 
-void CMP3Encode::StopEncode()
-{
-	bStopEncode=true;
-}
 
-const char *CMP3Encode::GetLameVersion()
-{
-	return get_lame_version();
-}
 
-const char *CMP3Encode::GetPSYVersion()
-{
-	return get_psy_version();
-}
+
 #endif
 
+
+
 } // end of namespace ppl
+
+
 

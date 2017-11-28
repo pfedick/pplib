@@ -66,6 +66,16 @@ PPLEXCEPTION(UnsupportedAudioFormatException,Exception);
 PPLEXCEPTION(UnsupportedID3TagVersionException,Exception);
 PPLEXCEPTION(FilenameNotSetException,Exception);
 PPLEXCEPTION(NoID3TagFoundException,Exception);
+PPLEXCEPTION(EncoderException,Exception);
+PPLEXCEPTION(EncoderAlreadyStartedException,EncoderException);
+PPLEXCEPTION(EncoderNotStartedException,EncoderException);
+PPLEXCEPTION(EncoderBufferTooSmallException,EncoderException);
+PPLEXCEPTION(EncoderPsychoAcousticException,EncoderException);
+PPLEXCEPTION(EncoderInitializationException,EncoderException);
+PPLEXCEPTION(EncoderAbortedException,EncoderException);
+PPLEXCEPTION(EncoderAudioFormatMismatchException,EncoderException);
+
+
 
 
 //!\brief Struktur zum Speichern eines MP3-Headers
@@ -246,8 +256,8 @@ class ID3Tag
 		void setTextFrame(const String &framename, const String &text, TextEncoding enc=ENC_UTF16);
 		void setPicture(int type, const ByteArrayPtr &bin, const String &MimeType);
 
-		void generateId3V2Tag(ByteArray &tag);
-		void generateId3V1Tag(ByteArray &tag);
+		void generateId3V2Tag(ByteArray &tag) const;
+		void generateId3V1Tag(ByteArray &tag) const;
 
 
 		String getArtist() const;
@@ -609,49 +619,54 @@ typedef struct tagSOUNDPROGRESS{
 class AudioEncoder_MP3
 {
 private:
+	class FirstAudio
+	{
+	public:
+		int frequency;
+		int channels;
+	};
 	void * gfp;
-	//PPL_WAVEHEADER firstwave;
+	FirstAudio		firstAudio;
 	//PPL_SOUNDPROGRESS progress;
 	FileObject		*out;
 	char			*readcache;
 	int				mp3bufsize;
-	int				encoderdelay;
 	unsigned char	*mp3buf;
 
 	ppluint32	samples;
 
-	void (*ProgressFunc) (PPL_SOUNDPROGRESS *prog);
+	void (*ProgressFunc) (int progress, void *priv);
+	void *ProgressFuncPrivData;
 
-	bool have_firstwave;
+	bool have_firstaudio;
 	bool started;
 	bool bStopEncode;
 
-	void writeEncodedBytes(char *buffer, size_t bytes);
+	void writeEncodedBytes(const char *buffer, size_t bytes);
 
 public:
 	AudioEncoder_MP3();
 	~AudioEncoder_MP3();
-	void setVBR(int min=32, int max=320);
-	void setCBR(int kbps=320);
-	void setABR(int kbps=192);
-	void setQuality(int quality=2);			// 1=best, 10=lowest
-	void setStereoMode(AudioInfo::ChannelMode mode=AudioInfo::JOINT_STEREO);
+	void setVBR(int min=32, int max=320, int quality=2);
+	void setCBR(int kbps=320, int quality=2);
+	void setABR(int kbps=192, int quality=2);
+	void setQuality(int quality=2);
+	void setStereoMode(const AudioInfo::ChannelMode mode=AudioInfo::JOINT_STEREO);
 	void setLowpassFreq(int freq=-1);		// -1=Disabled
 	void setHighpassFreq(int freq=-1);		// -1=Disabled
-	//void setProgressFunction(void (*Progress) (PPL_SOUNDPROGRESS *prog, void *data), void *data);
-	void setEncoderDelay(int milliseconds);
+	void setProgressFunction(void (*ProgressFunc) (int progress, void *priv), void *priv);
 	void startEncode(FileObject &output);
-	//void startEncode(int frequency, int channels);
 	void writeID3v2Tag(const ID3Tag &tag);
 	void writeID3v1Tag(const ID3Tag &tag);
-	void encodeFile(FileObject &file);
 	void encode(AudioDecoder &decoder);
-	void encodeBuffer(SAMPLE16 *left, SAMPLE16 *right, int num, void *mp3buf, size_t buffersize);
-	void encodeBuffer(STEREOSAMPLE16 *buffer, int num, void *mp3buf, size_t buffersize);
-	void flushBuffer(void *mp3buf, size_t buffersize);
-	void stopEncode();
+	void finish();
+	void stop();
 
-	int finishEncode();
+	void startEncode(int frequency, int channels);
+	int encodeBuffer(SAMPLE16 *left, SAMPLE16 *right, int num, void *mp3buf, size_t buffersize);
+	int encodeBuffer(STEREOSAMPLE16 *buffer, int num, void *mp3buf, size_t buffersize);
+	int flushBuffer(void *mp3buf, size_t buffersize);
+
 	const char *getLameVersion();
 	const char *getPSYVersion();
 
@@ -662,4 +677,5 @@ public:
 
 
 #endif // _PPL7_INCLUDE_SOUND
+
 

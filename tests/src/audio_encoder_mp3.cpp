@@ -57,6 +57,40 @@ class AudioEncoder_MP3_Test : public ::testing::Test {
 	}
 };
 
+TEST_F(AudioEncoder_MP3_Test, Constructor) {
+	ASSERT_NO_THROW({
+		ppl7::AudioEncoder_MP3 encoder;
+	});
+}
+
+static void ProgressFunc(int progress, void *priv)
+{
+	printf ("%d %%\n",progress);
+}
+
+TEST_F(AudioEncoder_MP3_Test, EncodeCBRFromAiff) {
+	ppl7::AudioEncoder_MP3 encoder;
+	ppl7::AudioDecoder_Aiff decoder;
+	ppl7::File file("testdata/test_44kHz_tagged.aiff");
+	ppl7::ID3Tag tag;
+	tag.load(file);
+	decoder.open(file);
+	try {
+		encoder.setCBR(320,0);
+		encoder.setStereoMode(AudioInfo::JOINT_STEREO);
+		encoder.setProgressFunction(ProgressFunc, this);
+		ppl7::File out("tmp/encoder_cbr320.mp3", ppl7::File::WRITE);
+		encoder.startEncode(out);
+		encoder.writeID3v2Tag(tag);
+		encoder.encode(decoder);
+		encoder.finish();
+		encoder.writeID3v1Tag(tag);
+	} catch (const ppl7::Exception &exp) {
+		exp.print();
+	}
+
+
+}
 
 
 }	// EOF namespace
