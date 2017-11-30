@@ -66,6 +66,7 @@ PPLEXCEPTION(UnsupportedAudioFormatException,Exception);
 PPLEXCEPTION(UnsupportedID3TagVersionException,Exception);
 PPLEXCEPTION(FilenameNotSetException,Exception);
 PPLEXCEPTION(NoID3TagFoundException,Exception);
+
 PPLEXCEPTION(EncoderException,Exception);
 PPLEXCEPTION(EncoderAlreadyStartedException,EncoderException);
 PPLEXCEPTION(EncoderNotStartedException,EncoderException);
@@ -75,7 +76,8 @@ PPLEXCEPTION(EncoderInitializationException,EncoderException);
 PPLEXCEPTION(EncoderAbortedException,EncoderException);
 PPLEXCEPTION(EncoderAudioFormatMismatchException,EncoderException);
 
-
+PPLEXCEPTION(DecoderException,Exception);
+PPLEXCEPTION(DecoderInitializationException,DecoderException);
 
 
 //!\brief Struktur zum Speichern eines MP3-Headers
@@ -498,12 +500,11 @@ public:
 
 AudioDecoder *GetAudioDecoder(FileObject &file);
 
-class AudioDecoder_Wave
+class AudioDecoder_Wave: public AudioDecoder
 {
 	private:
-		File			myFile;
 		FileObject		*ff;
-		WAVEHEADER wave;
+		AudioInfo		info;
 		size_t position;
 		size_t samplesize;
 		void readWaveHeader(FileObject &file, WAVEHEADER &header);
@@ -511,16 +512,9 @@ class AudioDecoder_Wave
 	public:
 		AudioDecoder_Wave();
 		~AudioDecoder_Wave();
-		void close();
-		bool ident(const String &filename);
-		bool ident(FileObject &file);
-		void open(const String &filename);
-		void open(FileObject &file);
-		void getWaveHeader(WAVEHEADER &header) const;
-		//const AudioInfo & getAudioInfo() const;
-		//void getAudioInfo(AudioInfo &info) const;
-		size_t bitdepth() const;
-		size_t bytesPerSample() const;
+		void open(FileObject &file, const AudioInfo *info=NULL);
+		const AudioInfo & getAudioInfo() const;
+		void getAudioInfo(AudioInfo &info) const;
 		void seekSample(size_t sample);
 		size_t getPosition() const;
 		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
@@ -552,10 +546,19 @@ class AudioDecoder_Aiff : public AudioDecoder
 class AudioDecoder_MP3 : public AudioDecoder
 {
 	private:
+		void			*decoder;
 		FileObject		*ff;
+		ppluint8		*readbuffer;
+		ppluint8		*outbuffer;
+
 		AudioInfo		info;
-		size_t position;
-		size_t samplesize;
+		size_t			position;
+		size_t			samplesize;
+		size_t			out_offset, out_size;
+		bool			isRunning;
+		bool			needInput;
+
+		size_t fillDecodeBuffer();
 
 	public:
 		AudioDecoder_MP3();

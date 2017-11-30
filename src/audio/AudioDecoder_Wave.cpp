@@ -48,160 +48,92 @@ AudioDecoder_Wave::AudioDecoder_Wave()
 	position=0;
 	samplesize=0;
 	ff=NULL;
-	memset(&wave,0,sizeof(WAVEHEADER));
 }
 
 AudioDecoder_Wave::~AudioDecoder_Wave()
 {
-	close();
+
 }
 
-void AudioDecoder_Wave::close()
+void AudioDecoder_Wave::open(FileObject &file, const AudioInfo *info)
 {
-	ff=NULL;
-	position=0;
-	samplesize=0;
-	memset(&wave,0,sizeof(WAVEHEADER));
-}
-
-bool AudioDecoder_Wave::ident(const String &filename)
-{
-	File ff;
-	ff.open(filename);
-	return ident(ff);
-}
-
-bool AudioDecoder_Wave::ident(FileObject &file)
-{
-	try {
-		if (file.size()<64) return false;
-		const char *buffer=file.map(0,64);					// Die ersten 64 Bytes des Files laden
-		if (!buffer) return false;
-		if (::strncmp(buffer,"RIFF",4)!=0) return false;
-		if (::strncmp(buffer+8,"WAVE",4)!=0) return false;
-		if (::strncmp(buffer+12,"fmt ",4)!=0) return false;
-		const char *fmt=buffer+12;
-		if (Peek16(fmt+8)!=1) return false;					// Keine PCM Daten
-		int bitdepth=Peek16(fmt+0x16);
-		if (bitdepth!=8 && bitdepth!=16) return false;
-		int channels=Peek16(fmt+0x0a);
-		if (channels!=1 && channels!=2) return false;
-		ppluint32 fmtchunklen=Peek32(fmt+4);
-		buffer=file.map(fmtchunklen+20,8);					// Jetzt zum Datenchunk
-		if (!buffer) return false;							// File zu klein
-		if (::strncmp(buffer,"data",4)!=0) return false;	// Kein Datenchunk
-	} catch (...) {
-		return false;
+	if (!info) {
+		if (!IdentAudioFile(file, this->info)) {
+			throw UnsupportedAudioFormatException();
+		}
+	} else {
+		this->info=*info;
 	}
-	return true;
+	if (this->info.Format!=AudioInfo::WAVE) throw UnsupportedAudioFormatException();
+	//if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
+	//if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
+	if (this->info.Channels!=2) throw UnsupportedAudioFormatException("Channels != 2");
+	if (this->info.BitsPerSample!=16) throw UnsupportedAudioFormatException("BitsPerSample != 16");
+	if (this->info.BytesPerSample!=4) throw UnsupportedAudioFormatException("BytesPerSample != 4");
+	position=0;
+	this->ff=&file;
 }
 
-void AudioDecoder_Wave::readWaveHeader(FileObject &file, WAVEHEADER &header)
+const AudioInfo & AudioDecoder_Wave::getAudioInfo() const
 {
-	const char *buffer=NULL;
-	const char *fmt=NULL;
-	buffer=file.map(0,64);			// Die ersten 64 Bytes des Files laden
-	if (!buffer) throw InvalidFormatException();
-	fmt=buffer+12;
-	ppluint32 fmtchunklen=Peek32(fmt+4);
-	header.channels=(ppluint8)Peek16(fmt+0x0a);
-	header.frequency=Peek32(fmt+0x0c);
-	header.bitdepth=(ppluint8)Peek16(fmt+0x16);
-
-	buffer=file.map(fmtchunklen+20,8);	// Jetzt zum Datenchunk
-	if (!buffer) throw InvalidFormatException();
-	if (strncmp(buffer,"data",4)!=0) throw InvalidFormatException();
-	header.bytes=Peek32(buffer+4);
-	header.datastart=fmtchunklen+28;
-	samplesize=header.bitdepth/8;
-	header.bytespersample=header.channels*samplesize;
-	header.numSamples=header.bytes/header.bytespersample;
-	header.bytespersecond=header.frequency*header.bytespersample;
-	header.seconds=header.numSamples/header.frequency;
-
+	return info;
 }
 
-void AudioDecoder_Wave::open(const String &filename)
+void AudioDecoder_Wave::getAudioInfo(AudioInfo &info) const
 {
-	if (ff) close();
-	myFile.open(filename);
-	open(myFile);
-}
-
-void AudioDecoder_Wave::open(FileObject &file)
-{
-	if (ff) close();
-	if (!ident(file)) throw InvalidFormatException();
-	ff=&file;
-	readWaveHeader(file,wave);
-	file.seek(wave.datastart);
-	const char *buffer=file.map(wave.datastart,64);
-	ppl7::HexDump(buffer,64);
-}
-
-void AudioDecoder_Wave::getWaveHeader(WAVEHEADER &header) const
-{
-	memcpy(&header,&wave,sizeof(WAVEHEADER));
-}
-
-size_t AudioDecoder_Wave::bitdepth() const
-{
-	return wave.bitdepth;
-}
-
-size_t AudioDecoder_Wave::bytesPerSample() const
-{
-	return samplesize;
+	info=this->info;
 }
 
 void AudioDecoder_Wave::seekSample(size_t sample)
 {
-	if (sample>=wave.numSamples) throw OutOfBoundsEception();
-	position=sample;
-	ff->seek(position*wave.bytespersample+wave.datastart);
+	if (sample<info.Samples) position=sample;
+	else position=info.Samples;
 }
+
+size_t AudioDecoder_Wave::getPosition() const
+{
+	return position;
+}
+
 
 size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16 *interleafed)
 {
-	if (position+num>=wave.numSamples) num=wave.numSamples-position;
-	size_t read=ff->read(interleafed,num*wave.bytespersample)/wave.bytespersample;
+	size_t samples=num;
+	if (position+samples>info.Samples) samples=info.Samples-position;
+	ff->seek(info.AudioStart+position*info.BytesPerSample);
+	size_t read=ff->read(interleafed,samples*info.BytesPerSample)/info.BytesPerSample;
 	position+=read;
 	return read;
 }
 
 size_t AudioDecoder_Wave::getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right)
 {
-	if (position+num>=wave.numSamples) num=wave.numSamples-position;
-	void *buffer=malloc(num*wave.bytespersample);
-	if (!buffer) throw OutOfMemoryException();
-	size_t read=ff->read(buffer,num*wave.bytespersample)/wave.bytespersample;
-	for (size_t i=0;i<read;i++) {
-		memcpy((char*)left+i*samplesize,(char*)buffer+i*wave.bytespersample,samplesize);
-		memcpy((char*)right+i*samplesize,(char*)buffer+i*wave.bytespersample+samplesize,samplesize);
+	size_t samples=num;
+	if (position+samples>info.Samples) samples=info.Samples-position;
+	const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
+	if (info.BitsPerSample==16) {
+		for (size_t i=0;i<samples;i++) {
+			left[i]=Peek16(data);
+			right[i]=Peek16(data+2);
+			data+=4;
+		}
 	}
-
-	free(buffer);
-	return read;
+	position+=samples;
+	return samples;
 }
 
 size_t AudioDecoder_Wave::getSamples(size_t num, float *left, float *right)
 {
-	if (position+num>=wave.numSamples) num=wave.numSamples-position;
-	void *buffer=malloc(num*wave.bytespersample);
-	if (!buffer) throw OutOfMemoryException();
-	size_t read=ff->read(buffer,num*wave.bytespersample)/wave.bytespersample;
-	if (wave.bitdepth==16) {
-		pplint16 *buffer16=(pplint16*)buffer;
-		for (size_t i=0;i<read;i++) {
-			left[i]=(float)buffer16[i*2]/32768.0;
-			right[i]=(float)buffer16[i*2+1]/32768.0;
-		}
-	} else {
-		free(buffer);
-		throw UnsupportedDataTypeException();
+	size_t samples=num;
+	if (position+samples>info.Samples) samples=info.Samples-position;
+	const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
+	pplint16 *buffer16=(pplint16*)data;
+	for (size_t i=0;i<samples;i++) {
+		left[i]=(float)buffer16[i*2]/32768.0;
+		right[i]=(float)buffer16[i*2+1]/32768.0;
 	}
-	free(buffer);
-	return read;
+	position+=samples;
+	return samples;
 }
 
 }	// EOF namespace ppl7

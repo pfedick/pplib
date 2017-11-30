@@ -61,10 +61,10 @@ void AudioDecoder_Aiff::open(FileObject &file, const AudioInfo *info)
 		if (!IdentAudioFile(file, this->info)) {
 			throw UnsupportedAudioFormatException();
 		}
-		if (this->info.Format!=AudioInfo::AIFF) throw UnsupportedAudioFormatException();
 	} else {
 		this->info=*info;
 	}
+	if (this->info.Format!=AudioInfo::AIFF) throw UnsupportedAudioFormatException();
 	//if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
 	//if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
 	if (this->info.Channels!=2) throw UnsupportedAudioFormatException("Channels != 2");
