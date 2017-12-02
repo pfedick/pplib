@@ -95,9 +95,9 @@ CDDB::CDDB()
 	Server="freedb.freedb.org";
 	ClientName="pplib";
 	ClientVersion.setf("%i.%i.%i",
-			PPL_VERSION_MAJOR,
-			PPL_VERSION_MINOR,
-			PPL_VERSION_BUILD);
+			PPL7_VERSION_MAJOR,
+			PPL7_VERSION_MINOR,
+			PPL7_VERSION_BUILD);
 	UserName="anonymous";
 	Hostname="localhost";
 	port=80;
