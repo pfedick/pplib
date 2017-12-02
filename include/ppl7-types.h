@@ -921,9 +921,9 @@ class AssocArray
 
 
 	public:
-		PPLEXCEPTION(InvalidKeyException, Exception);
-		PPLEXCEPTION(ExportBufferToSmallException, Exception);
-		PPLEXCEPTION(ImportFailedException, Exception);
+		PPL7EXCEPTION(InvalidKeyException, Exception);
+		PPL7EXCEPTION(ExportBufferToSmallException, Exception);
+		PPL7EXCEPTION(ImportFailedException, Exception);
 
 		class Iterator
 		{

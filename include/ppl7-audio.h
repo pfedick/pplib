@@ -51,33 +51,29 @@
 #endif
 
 
-#ifndef LPVOID
-#define LPVOID void*
-#endif
-
 #include <stdlib.h>
 #include <list>
 
 
 namespace ppl7 {
 
-PPLEXCEPTION(InvalidGenreException,Exception);
-PPLEXCEPTION(UnsupportedAudioFormatException,Exception);
-PPLEXCEPTION(UnsupportedID3TagVersionException,Exception);
-PPLEXCEPTION(FilenameNotSetException,Exception);
-PPLEXCEPTION(NoID3TagFoundException,Exception);
+PPL7EXCEPTION(InvalidGenreException,Exception);
+PPL7EXCEPTION(UnsupportedAudioFormatException,Exception);
+PPL7EXCEPTION(UnsupportedID3TagVersionException,Exception);
+PPL7EXCEPTION(FilenameNotSetException,Exception);
+PPL7EXCEPTION(NoID3TagFoundException,Exception);
 
-PPLEXCEPTION(EncoderException,Exception);
-PPLEXCEPTION(EncoderAlreadyStartedException,EncoderException);
-PPLEXCEPTION(EncoderNotStartedException,EncoderException);
-PPLEXCEPTION(EncoderBufferTooSmallException,EncoderException);
-PPLEXCEPTION(EncoderPsychoAcousticException,EncoderException);
-PPLEXCEPTION(EncoderInitializationException,EncoderException);
-PPLEXCEPTION(EncoderAbortedException,EncoderException);
-PPLEXCEPTION(EncoderAudioFormatMismatchException,EncoderException);
+PPL7EXCEPTION(EncoderException,Exception);
+PPL7EXCEPTION(EncoderAlreadyStartedException,EncoderException);
+PPL7EXCEPTION(EncoderNotStartedException,EncoderException);
+PPL7EXCEPTION(EncoderBufferTooSmallException,EncoderException);
+PPL7EXCEPTION(EncoderPsychoAcousticException,EncoderException);
+PPL7EXCEPTION(EncoderInitializationException,EncoderException);
+PPL7EXCEPTION(EncoderAbortedException,EncoderException);
+PPL7EXCEPTION(EncoderAudioFormatMismatchException,EncoderException);
 
-PPLEXCEPTION(DecoderException,Exception);
-PPLEXCEPTION(DecoderInitializationException,DecoderException);
+PPL7EXCEPTION(DecoderException,Exception);
+PPL7EXCEPTION(DecoderInitializationException,DecoderException);
 
 
 //!\brief Struktur zum Speichern eines MP3-Headers
@@ -348,9 +344,9 @@ class AudioCD
 		void countAudioTracks();
 
 	public:
-		PPLEXCEPTION(DeviceOpenFailed,Exception);
-		PPLEXCEPTION(DeviceNotOpen,Exception);
-		PPLEXCEPTION(InvalidAudioTrack,Exception);
+		PPL7EXCEPTION(DeviceOpenFailed,Exception);
+		PPL7EXCEPTION(DeviceNotOpen,Exception);
+		PPL7EXCEPTION(InvalidAudioTrack,Exception);
 
 		class Toc
 		{
@@ -408,8 +404,8 @@ class AudioCD
 class CDDB
 {
 	public:
-		PPLEXCEPTION(QueryFailed, Exception);
-		PPLEXCEPTION(InvalidDiscId, Exception);
+		PPL7EXCEPTION(QueryFailed, Exception);
+		PPL7EXCEPTION(InvalidDiscId, Exception);
 		class Track
 		{
 			public:

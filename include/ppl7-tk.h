@@ -54,16 +54,16 @@
 namespace ppl7 {
 namespace tk {
 
-PPLEXCEPTION(NoWindowManagerException, Exception);
-PPLEXCEPTION(DuplicateWindowManagerException, Exception);
-PPLEXCEPTION(InitializationException, Exception);
-PPLEXCEPTION(ExistingPrimaryWindowException, Exception);
-PPLEXCEPTION(WindowCreateException, Exception);
-PPLEXCEPTION(WindowAlreadyCreatedException, Exception);
-PPLEXCEPTION(SurfaceCreateException, Exception);
-PPLEXCEPTION(EventLoopException, Exception);
-PPLEXCEPTION(UnknownEventException, Exception);
-PPLEXCEPTION(NoWindowException, Exception);
+PPL7EXCEPTION(NoWindowManagerException, Exception);
+PPL7EXCEPTION(DuplicateWindowManagerException, Exception);
+PPL7EXCEPTION(InitializationException, Exception);
+PPL7EXCEPTION(ExistingPrimaryWindowException, Exception);
+PPL7EXCEPTION(WindowCreateException, Exception);
+PPL7EXCEPTION(WindowAlreadyCreatedException, Exception);
+PPL7EXCEPTION(SurfaceCreateException, Exception);
+PPL7EXCEPTION(EventLoopException, Exception);
+PPL7EXCEPTION(UnknownEventException, Exception);
+PPL7EXCEPTION(NoWindowException, Exception);
 
 using namespace ppl7::grafix;
 

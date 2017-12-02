@@ -39,8 +39,8 @@
 #define PPL_VERSION_MAJOR	7
 #define PPL_VERSION_MINOR	0
 #define PPL_VERSION_BUILD	0
-#define PPL_RELEASEDATE		20111230
-#define PPL_COPYRIGHT		"Copyright (c) 2011 by Patrick Fedick"
+#define PPL_RELEASEDATE	20171202
+#define PPL_COPYRIGHT		"Copyright (c) 2017 by Patrick Fedick"
 
 // Inlcude PPL7 configuration file
 #ifndef _PPL7_CONFIG
@@ -117,10 +117,10 @@ namespace ppl7 {
  		void		increase(size_t num);
 
  	public:
- 		PPLEXCEPTION(NotInitializedException, Exception);
- 		PPLEXCEPTION(AlreadyInitializedException, Exception);
- 		PPLEXCEPTION(HeapCorruptedException, Exception);
- 		PPLEXCEPTION(ElementNotInHeapException, Exception);
+ 		PPL7EXCEPTION(NotInitializedException, Exception);
+ 		PPL7EXCEPTION(AlreadyInitializedException, Exception);
+ 		PPL7EXCEPTION(HeapCorruptedException, Exception);
+ 		PPL7EXCEPTION(ElementNotInHeapException, Exception);
 
 
 
@@ -672,7 +672,7 @@ class File : public FileObject
 
 
 	public:
-		PPLEXCEPTION(IllegalFilemodeException, Exception);
+		PPL7EXCEPTION(IllegalFilemodeException, Exception);
 		enum FileMode {
 			READ=1,
 			WRITE,
@@ -763,7 +763,7 @@ class GzFile : public FileObject
 		void * ff;
 
 	public:
-		PPLEXCEPTION(IllegalFilemodeException, Exception);
+		PPL7EXCEPTION(IllegalFilemodeException, Exception);
 
 	private:
 		void throwErrno(int e);
@@ -852,10 +852,10 @@ class Dir
 		void resortNone();
 
 	public:
-		PPLEXCEPTION(PathnameTooLongException, Exception);
-		PPLEXCEPTION(NonexistingPathException, Exception);
-		PPLEXCEPTION(PermissionDeniedException, Exception);
-		PPLEXCEPTION(CreateDirectoryFailedException, Exception);
+		PPL7EXCEPTION(PathnameTooLongException, Exception);
+		PPL7EXCEPTION(NonexistingPathException, Exception);
+		PPL7EXCEPTION(PermissionDeniedException, Exception);
+		PPL7EXCEPTION(CreateDirectoryFailedException, Exception);
 
 		typedef ppl7::List<const DirEntry*>::Iterator Iterator;
 

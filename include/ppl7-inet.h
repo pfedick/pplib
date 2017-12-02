@@ -47,41 +47,41 @@
 
 namespace ppl7 {
 
-PPLEXCEPTION(NetworkException,Exception);
-PPLEXCEPTION(WinsockInitialisationFailed, Exception);
-PPLEXCEPTION(IdnConversionException, Exception);
+PPL7EXCEPTION(NetworkException,Exception);
+PPL7EXCEPTION(WinsockInitialisationFailed, Exception);
+PPL7EXCEPTION(IdnConversionException, Exception);
 
-PPLEXCEPTION(NotConnectedException,NetworkException);
-PPLEXCEPTION(CouldNotOpenSocketException,NetworkException);				// 393
-PPLEXCEPTION(IllegalPortException,NetworkException);				// 393
-PPLEXCEPTION(CouldNotBindToInterfaceException,NetworkException);	// 394
-PPLEXCEPTION(ConnectionRefusedException,NetworkException);
-PPLEXCEPTION(NetworkDownException,NetworkException);
-PPLEXCEPTION(NetworkUnreachableException,NetworkException);
-PPLEXCEPTION(NetworkDroppedConnectionOnResetException,NetworkException);
-PPLEXCEPTION(SoftwareCausedConnectionAbortException,NetworkException);
-PPLEXCEPTION(ConnectionResetByPeerException,NetworkException);
-PPLEXCEPTION(NoBufferSpaceException,NetworkException);
-PPLEXCEPTION(SocketIsAlreadyConnectedException,NetworkException);
-PPLEXCEPTION(CantSendAfterSocketShutdownException,NetworkException);
-PPLEXCEPTION(TooManyReferencesException,NetworkException);
-PPLEXCEPTION(HostDownException,NetworkException);
-PPLEXCEPTION(NoRouteToHostException,NetworkException);
-PPLEXCEPTION(InvalidSocketException,NetworkException);
-PPLEXCEPTION(UnknownOptionException,NetworkException);
-PPLEXCEPTION(OutOfBandDataReceivedException,NetworkException);
-PPLEXCEPTION(BrokenPipeException,NetworkException);
-PPLEXCEPTION(SSLNotInitializedException,NetworkException);
-PPLEXCEPTION(SSLInstanceNotInitializedException,NetworkException);
-PPLEXCEPTION(SSLConnectionFailedException,NetworkException);
-PPLEXCEPTION(SettingSocketOptionException,NetworkException);
-PPLEXCEPTION(InvalidIpAddressException,NetworkException);
-PPLEXCEPTION(InvalidNetworkAddressException,NetworkException);
-PPLEXCEPTION(InvalidNetmaskOrPrefixlenException,NetworkException);
+PPL7EXCEPTION(NotConnectedException,NetworkException);
+PPL7EXCEPTION(CouldNotOpenSocketException,NetworkException);				// 393
+PPL7EXCEPTION(IllegalPortException,NetworkException);				// 393
+PPL7EXCEPTION(CouldNotBindToInterfaceException,NetworkException);	// 394
+PPL7EXCEPTION(ConnectionRefusedException,NetworkException);
+PPL7EXCEPTION(NetworkDownException,NetworkException);
+PPL7EXCEPTION(NetworkUnreachableException,NetworkException);
+PPL7EXCEPTION(NetworkDroppedConnectionOnResetException,NetworkException);
+PPL7EXCEPTION(SoftwareCausedConnectionAbortException,NetworkException);
+PPL7EXCEPTION(ConnectionResetByPeerException,NetworkException);
+PPL7EXCEPTION(NoBufferSpaceException,NetworkException);
+PPL7EXCEPTION(SocketIsAlreadyConnectedException,NetworkException);
+PPL7EXCEPTION(CantSendAfterSocketShutdownException,NetworkException);
+PPL7EXCEPTION(TooManyReferencesException,NetworkException);
+PPL7EXCEPTION(HostDownException,NetworkException);
+PPL7EXCEPTION(NoRouteToHostException,NetworkException);
+PPL7EXCEPTION(InvalidSocketException,NetworkException);
+PPL7EXCEPTION(UnknownOptionException,NetworkException);
+PPL7EXCEPTION(OutOfBandDataReceivedException,NetworkException);
+PPL7EXCEPTION(BrokenPipeException,NetworkException);
+PPL7EXCEPTION(SSLNotInitializedException,NetworkException);
+PPL7EXCEPTION(SSLInstanceNotInitializedException,NetworkException);
+PPL7EXCEPTION(SSLConnectionFailedException,NetworkException);
+PPL7EXCEPTION(SettingSocketOptionException,NetworkException);
+PPL7EXCEPTION(InvalidIpAddressException,NetworkException);
+PPL7EXCEPTION(InvalidNetworkAddressException,NetworkException);
+PPL7EXCEPTION(InvalidNetmaskOrPrefixlenException,NetworkException);
 
 
-PPLEXCEPTION(ResolverException,Exception);
-PPLEXCEPTION(UnknownHostException,Exception);
+PPL7EXCEPTION(ResolverException,Exception);
+PPL7EXCEPTION(UnknownHostException,Exception);
 
 
 
@@ -364,11 +364,11 @@ class SocketMessage
 		void readFromPacketHeader(const char *msgbuffer, int &flags);
 
 	public:
-		PPLEXCEPTION(NoDataAvailableException, Exception);
-		PPLEXCEPTION(DataInOtherFormatException, Exception);
-		PPLEXCEPTION(InvalidProtocolVersion, Exception);
-		PPLEXCEPTION(InvalidPacketException, Exception);
-		PPLEXCEPTION(PayloadTooBigException, Exception);
+		PPL7EXCEPTION(NoDataAvailableException, Exception);
+		PPL7EXCEPTION(DataInOtherFormatException, Exception);
+		PPL7EXCEPTION(InvalidProtocolVersion, Exception);
+		PPL7EXCEPTION(InvalidPacketException, Exception);
+		PPL7EXCEPTION(PayloadTooBigException, Exception);
 
 
 		bool		ClientSupportsCompression;
@@ -604,11 +604,11 @@ class Webserver
 
 
 
-		PPLEXCEPTION(CouldNotBindToSocket, Exception);
-		PPLEXCEPTION(InvalidSSLCertificate, Exception);
-		PPLEXCEPTION(NoAddressSpecified, Exception);
-		PPLEXCEPTION(CouldNotStartDaemon, Exception);
-		PPLEXCEPTION(SSLInitializationFailed, Exception);
+		PPL7EXCEPTION(CouldNotBindToSocket, Exception);
+		PPL7EXCEPTION(InvalidSSLCertificate, Exception);
+		PPL7EXCEPTION(NoAddressSpecified, Exception);
+		PPL7EXCEPTION(CouldNotStartDaemon, Exception);
+		PPL7EXCEPTION(SSLInitializationFailed, Exception);
 
 };
 
@@ -633,12 +633,12 @@ class Curl
 
 	public:
 
-		PPLEXCEPTION(InitializationFailedException, Exception);
-		PPLEXCEPTION(MiscException, Exception);
-		PPLEXCEPTION(StringEscapeException, Exception);
-		PPLEXCEPTION(InvalidURLException, Exception);
-		PPLEXCEPTION(NoResultException, Exception);
-		PPLEXCEPTION(OperationFailedException, Exception);
+		PPL7EXCEPTION(InitializationFailedException, Exception);
+		PPL7EXCEPTION(MiscException, Exception);
+		PPL7EXCEPTION(StringEscapeException, Exception);
+		PPL7EXCEPTION(InvalidURLException, Exception);
+		PPL7EXCEPTION(NoResultException, Exception);
+		PPL7EXCEPTION(OperationFailedException, Exception);
 
 
 		enum HTTPVERSION {

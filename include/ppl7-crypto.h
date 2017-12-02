@@ -45,14 +45,14 @@
 
 namespace ppl7 {
 
-PPLEXCEPTION (InvalidAlgorithmException, Exception);
-PPLEXCEPTION (NoAlgorithmSpecifiedException, Exception);
-PPLEXCEPTION (InvalidBlocksizeException, Exception);
-PPLEXCEPTION (HashFailedException, OperationFailedException);
-PPLEXCEPTION (NoKeySpecifiedException, Exception);
-PPLEXCEPTION (NoIVSpecifiedException, Exception);
-PPLEXCEPTION (EncryptionFailedException, OperationFailedException);
-PPLEXCEPTION (DecryptionFailedException, OperationFailedException);
+PPL7EXCEPTION (InvalidAlgorithmException, Exception);
+PPL7EXCEPTION (NoAlgorithmSpecifiedException, Exception);
+PPL7EXCEPTION (InvalidBlocksizeException, Exception);
+PPL7EXCEPTION (HashFailedException, OperationFailedException);
+PPL7EXCEPTION (NoKeySpecifiedException, Exception);
+PPL7EXCEPTION (NoIVSpecifiedException, Exception);
+PPL7EXCEPTION (EncryptionFailedException, OperationFailedException);
+PPL7EXCEPTION (DecryptionFailedException, OperationFailedException);
 
 class MCrypt
 {
