@@ -666,8 +666,8 @@ public:
 	int encodeBuffer(STEREOSAMPLE16 *buffer, int num, void *mp3buf, size_t buffersize);
 	int flushBuffer(void *mp3buf, size_t buffersize);
 
-	const char *getLameVersion();
-	const char *getPSYVersion();
+	static const char *getLameVersion();
+	static const char *getPSYVersion();
 
 };
 

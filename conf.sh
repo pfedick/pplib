@@ -131,7 +131,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-pcre=$PREFIX --with-bzip2=$PREFIX --with-zlib=$PREFIX \
 			--with-nasm --with-libiconv-prefix=$PREFIX \
-			--with-lame=$PREFIX --with-mpg123 --with-ogg \
+			--with-lame --with-mpg123 --with-ogg \
 			--disable-freetypetest --with-ft-prefix=$PREFIX \
 			--with-libtiff=$PREFIX \
 			--with-libjpegturbo=$PREFIX --with-libpng=$PREFIX --with-libmhash=$PREFIX \
