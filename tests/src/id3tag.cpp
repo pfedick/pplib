@@ -834,6 +834,10 @@ TEST_F(ID3TagTest, GetID3GenreName) {
 }
 
 
+TEST_F(ID3TagTest, Overflow) {
+	ppl7::ID3Tag Tags;
+	Tags.load("testdata/tags_at_eof.aiff");
+}
 
 
 /*
