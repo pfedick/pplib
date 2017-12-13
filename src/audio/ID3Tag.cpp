@@ -590,8 +590,8 @@ void ID3Tag::load(FileObject &file)
 {
 	clear();
 	// ID3V2 Header einlesen (10 Byte)
-	ppluint32 p=findId3Tag(file);
-	if (p==(ppluint32)-1) {
+	ppluint64 p=findId3Tag(file);
+	if (p==(ppluint64)-1) {
 		return;
 	}
 	const char *adr=file.map(p,10);
@@ -625,7 +625,7 @@ void ID3Tag::load(FileObject &file)
 		printf ("ID3 V2-Tag gefunden, Flags: %i, Länge: %i Bytes\n",Flags,Size);
 	#endif
 	// Jetzt lesen wir alle Frames in den Speicher
-	while (1) {
+	while (p<file.size()-10) {
 		adr=file.map(p,10);
 		if (!adr) break;
 #ifdef ID3DEBUG
