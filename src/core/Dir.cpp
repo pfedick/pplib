@@ -810,13 +810,13 @@ const DirEntry &Dir::getNextPattern(Iterator &it, const String &pattern, bool ig
 	Pattern.replace("\\*",".*");
 	Pattern.replace("\\?",".");
 	Pattern="/^"+Pattern;
-	Pattern+="$/";
+	Pattern+="$/s";
 	if (ignorecase) Pattern+="i";
-	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	//printf ("Pattern: %s\n",(const char*)Pattern);
 	while (SortedFiles.getNext(it)) {
 		const DirEntry *de=it.value();
 		// Patternmatch
-		//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
+		//printf ("Match gegen: %s\n",(const char*)de->Filename);
 		if (de->Filename.pregMatch(Pattern)) return *de;
 	}
 	throw EndOfListException();

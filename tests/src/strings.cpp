@@ -47,7 +47,7 @@ namespace {
 class StringTest : public ::testing::Test {
 	protected:
 	StringTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+		if (setlocale(LC_ALL,"")==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}

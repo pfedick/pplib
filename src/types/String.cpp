@@ -2609,7 +2609,8 @@ bool String::pregMatch(const String &expression) const
 	#else
 		if (stringlen==0 || expression.stringlen==0) return false;
 		ByteArray expr=expression;
-		int flags=PCRE_UTF8;
+		int flags=PCRE_UTF8|PCRE_NO_UTF8_CHECK;
+		flags=0;
 		// letzten Slash in regex finden
 
 		const char *options=::strrchr((const char*)expr,'/');
@@ -2671,7 +2672,7 @@ bool String::pregMatch(const String &expression, Array &matches, size_t maxmatch
 		matches.clear();
 		if (stringlen==0 || expression.stringlen==0) return false;
 		ByteArray expr=expression;
-		int flags=PCRE_UTF8;
+		int flags=PCRE_UTF8|PCRE_NO_UTF8_CHECK;
 		// letzten Slash in regex finden
 		const char *options=::strrchr((const char*)expr,'/');
 		if (options) {
@@ -2746,7 +2747,7 @@ String & String::pregReplace(const String &expression, const String &replacement
 	String pattern;
 	int ret=0;
 	char *r=::strdup(expression.ptr+1);
-	int flags=PCRE_UTF8;
+	int flags=PCRE_UTF8|PCRE_NO_UTF8_CHECK;
 	char *tmp;
 	// letzten Slash in regex finden
 	char *options=::strrchr(r,'/');
