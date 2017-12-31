@@ -181,6 +181,7 @@ CGrafix::~CGrafix()
 	FontEngines.Clear(true);
 	ImageFilter.Clear(true);
 	if (alphatab) free(alphatab);
+	if (pplgfx==this) pplgfx=NULL;
 }
 
 void CGrafix::InitAlphatab()
