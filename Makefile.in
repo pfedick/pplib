@@ -143,7 +143,6 @@ RELEASE	= release/core_AVLTree.o \
 	release/gfx_Fonts.o \
 	release/gfx_Grafix.o \
 	release/gfx_Image.o \
-	release/gfx_ImageFilter.o \
 	release/gfx_ImageFilter_BMP.o \
 	release/gfx_ImageFilter_GIF.o \
 	release/gfx_ImageFilter_ImageMagick.o \
@@ -152,6 +151,7 @@ RELEASE	= release/core_AVLTree.o \
 	release/gfx_ImageFilter_PPM.o \
 	release/gfx_ImageFilter_TGA.o \
 	release/gfx_ImageFilter_TIFF.o \
+	release/gfx_ImageFilter.o \
 	release/gfx_ImageList.o \
 	release/gfx_Point.o \
 	release/gfx_Point3D.o \
@@ -168,8 +168,8 @@ RELEASE	= release/core_AVLTree.o \
 	release/tk_Surface.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
-	release/tk_WindowManager.o \
-	release/tk_WindowManager_SDL2.o release/audio_AudioCD.o \
+	release/tk_WindowManager_SDL2.o \
+	release/tk_WindowManager.o release/audio_AudioCD.o \
 	release/audio_AudioDecoder_Aiff.o \
 	release/audio_AudioDecoder_MP3.o \
 	release/audio_AudioDecoder_Ogg.o \
@@ -265,7 +265,6 @@ GFX_RELEASE = release/gfx_Color.o \
 	release/gfx_Fonts.o \
 	release/gfx_Grafix.o \
 	release/gfx_Image.o \
-	release/gfx_ImageFilter.o \
 	release/gfx_ImageFilter_BMP.o \
 	release/gfx_ImageFilter_GIF.o \
 	release/gfx_ImageFilter_ImageMagick.o \
@@ -274,6 +273,7 @@ GFX_RELEASE = release/gfx_Color.o \
 	release/gfx_ImageFilter_PPM.o \
 	release/gfx_ImageFilter_TGA.o \
 	release/gfx_ImageFilter_TIFF.o \
+	release/gfx_ImageFilter.o \
 	release/gfx_ImageList.o \
 	release/gfx_Point.o \
 	release/gfx_Point3D.o \
@@ -292,8 +292,8 @@ TK_RELEASE = release/tk_Button.o \
 	release/tk_Surface.o \
 	release/tk_Widget.o \
 	release/tk_Window.o \
-	release/tk_WindowManager.o \
-	release/tk_WindowManager_SDL2.o
+	release/tk_WindowManager_SDL2.o \
+	release/tk_WindowManager.o
 
 AUDIO_RELEASE = release/audio_AudioCD.o \
 	release/audio_AudioDecoder_Aiff.o \
@@ -310,8 +310,8 @@ AUDIO_RELEASE = release/audio_AudioCD.o \
 	release/audio_ID3Tag.o \
 	release/audio_Mp3.o
 
-ASM_OBJ_RELEASE	=	release/asm_blt.o \
-		release/asm_blt_blend.o \
+ASM_OBJ_RELEASE	=	release/asm_blt_blend.o \
+		release/asm_blt.o \
 		release/asm_chromakey.o \
 		release/asm_colors.o \
 		release/asm_common.o \
@@ -397,7 +397,6 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/gfx_Fonts.o \
 	debug/gfx_Grafix.o \
 	debug/gfx_Image.o \
-	debug/gfx_ImageFilter.o \
 	debug/gfx_ImageFilter_BMP.o \
 	debug/gfx_ImageFilter_GIF.o \
 	debug/gfx_ImageFilter_ImageMagick.o \
@@ -406,6 +405,7 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/gfx_ImageFilter_PPM.o \
 	debug/gfx_ImageFilter_TGA.o \
 	debug/gfx_ImageFilter_TIFF.o \
+	debug/gfx_ImageFilter.o \
 	debug/gfx_ImageList.o \
 	debug/gfx_Point.o \
 	debug/gfx_Point3D.o \
@@ -422,8 +422,8 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/tk_Surface.o \
 	debug/tk_Widget.o \
 	debug/tk_Window.o \
-	debug/tk_WindowManager.o \
-	debug/tk_WindowManager_SDL2.o debug/audio_AudioCD.o \
+	debug/tk_WindowManager_SDL2.o \
+	debug/tk_WindowManager.o debug/audio_AudioCD.o \
 	debug/audio_AudioDecoder_Aiff.o \
 	debug/audio_AudioDecoder_MP3.o \
 	debug/audio_AudioDecoder_Ogg.o \
@@ -438,8 +438,8 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/audio_ID3Tag.o \
 	debug/audio_Mp3.o
 
-ASM_OBJ_DEBUG	=	debug/asm_blt.o \
-		debug/asm_blt_blend.o \
+ASM_OBJ_DEBUG	=	debug/asm_blt_blend.o \
+		debug/asm_blt.o \
 		debug/asm_chromakey.o \
 		debug/asm_colors.o \
 		debug/asm_common.o \
@@ -526,7 +526,6 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/gfx_Fonts.o \
 	coverage/gfx_Grafix.o \
 	coverage/gfx_Image.o \
-	coverage/gfx_ImageFilter.o \
 	coverage/gfx_ImageFilter_BMP.o \
 	coverage/gfx_ImageFilter_GIF.o \
 	coverage/gfx_ImageFilter_ImageMagick.o \
@@ -535,6 +534,7 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/gfx_ImageFilter_PPM.o \
 	coverage/gfx_ImageFilter_TGA.o \
 	coverage/gfx_ImageFilter_TIFF.o \
+	coverage/gfx_ImageFilter.o \
 	coverage/gfx_ImageList.o \
 	coverage/gfx_Point.o \
 	coverage/gfx_Point3D.o \
@@ -551,8 +551,8 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/tk_Surface.o \
 	coverage/tk_Widget.o \
 	coverage/tk_Window.o \
-	coverage/tk_WindowManager.o \
-	coverage/tk_WindowManager_SDL2.o coverage/audio_AudioCD.o \
+	coverage/tk_WindowManager_SDL2.o \
+	coverage/tk_WindowManager.o coverage/audio_AudioCD.o \
 	coverage/audio_AudioDecoder_Aiff.o \
 	coverage/audio_AudioDecoder_MP3.o \
 	coverage/audio_AudioDecoder_Ogg.o \
@@ -567,8 +567,8 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/audio_ID3Tag.o \
 	coverage/audio_Mp3.o
 
-ASM_OBJ_COVERAGE	=	coverage/asm_blt.o \
-		coverage/asm_blt_blend.o \
+ASM_OBJ_COVERAGE	=	coverage/asm_blt_blend.o \
+		coverage/asm_blt.o \
 		coverage/asm_chromakey.o \
 		coverage/asm_colors.o \
 		coverage/asm_common.o \
@@ -1118,11 +1118,6 @@ release/gfx_Image.o:	$(srcdir)/grafix/Image.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	# Compiling >>>grafix/Image.cpp<<<
 	$(CXX) -Wall -O2 -o release/gfx_Image.o -c $(srcdir)/grafix/Image.cpp $(CFLAGS) 
 
-release/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/ImageFilter.cpp<<<
-	$(CXX) -Wall -O2 -o release/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp $(CFLAGS) 
-
 release/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
@@ -1162,6 +1157,11 @@ release/gfx_ImageFilter_TIFF.o:	$(srcdir)/grafix/ImageFilter_TIFF.cpp $(incdir)/
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_TIFF.cpp<<<
 	$(CXX) -Wall -O2 -o release/gfx_ImageFilter_TIFF.o -c $(srcdir)/grafix/ImageFilter_TIFF.cpp $(CFLAGS) 
+
+release/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter.cpp<<<
+	$(CXX) -Wall -O2 -o release/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp $(CFLAGS) 
 
 release/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -1249,15 +1249,15 @@ release/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>toolkit/Window.cpp<<<
 	$(CXX) -Wall -O2 -o release/tk_Window.o -c $(srcdir)/toolkit/Window.cpp $(CFLAGS) 
 
-release/tk_WindowManager.o:	$(srcdir)/toolkit/WindowManager.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
-	###############################################################################
-	# Compiling >>>toolkit/WindowManager.cpp<<<
-	$(CXX) -Wall -O2 -o release/tk_WindowManager.o -c $(srcdir)/toolkit/WindowManager.cpp $(CFLAGS) 
-
 release/tk_WindowManager_SDL2.o:	$(srcdir)/toolkit/WindowManager_SDL2.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/WindowManager_SDL2.cpp<<<
 	$(CXX) -Wall -O2 -o release/tk_WindowManager_SDL2.o -c $(srcdir)/toolkit/WindowManager_SDL2.cpp $(CFLAGS) 
+
+release/tk_WindowManager.o:	$(srcdir)/toolkit/WindowManager.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/WindowManager.cpp<<<
+	$(CXX) -Wall -O2 -o release/tk_WindowManager.o -c $(srcdir)/toolkit/WindowManager.cpp $(CFLAGS) 
 
 ### AUDIO
 release/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
@@ -1331,15 +1331,15 @@ release/audio_Mp3.o:	$(srcdir)/audio/Mp3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exc
 	$(CXX) -Wall -O2 -o release/audio_Mp3.o -c $(srcdir)/audio/Mp3.cpp $(CFLAGS) 
 
 ### ASM
-release/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
-	###############################################################################
-	# Compiling >>>asm/blt.asm<<<
-	$(ASM) -o release/asm_blt.o -l release/asm_blt.lst $(srcdir)/asm/blt.asm
-
 release/asm_blt_blend.o:	$(srcdir)/asm/blt_blend.asm Makefile
 	###############################################################################
 	# Compiling >>>asm/blt_blend.asm<<<
 	$(ASM) -o release/asm_blt_blend.o -l release/asm_blt_blend.lst $(srcdir)/asm/blt_blend.asm
+
+release/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/blt.asm<<<
+	$(ASM) -o release/asm_blt.o -l release/asm_blt.lst $(srcdir)/asm/blt.asm
 
 release/asm_chromakey.o:	$(srcdir)/asm/chromakey.asm Makefile
 	###############################################################################
@@ -1773,11 +1773,6 @@ debug/gfx_Image.o:	$(srcdir)/grafix/Image.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>grafix/Image.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_Image.o -c $(srcdir)/grafix/Image.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/ImageFilter.cpp<<<
-	$(CXX) -Wall -O -o debug/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
@@ -1817,6 +1812,11 @@ debug/gfx_ImageFilter_TIFF.o:	$(srcdir)/grafix/ImageFilter_TIFF.cpp $(incdir)/pp
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_TIFF.cpp<<<
 	$(CXX) -Wall -O -o debug/gfx_ImageFilter_TIFF.o -c $(srcdir)/grafix/ImageFilter_TIFF.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter.cpp<<<
+	$(CXX) -Wall -O -o debug/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -1904,15 +1904,15 @@ debug/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	# Compiling >>>toolkit/Window.cpp<<<
 	$(CXX) -Wall -O -o debug/tk_Window.o -c $(srcdir)/toolkit/Window.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/tk_WindowManager.o:	$(srcdir)/toolkit/WindowManager.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
-	###############################################################################
-	# Compiling >>>toolkit/WindowManager.cpp<<<
-	$(CXX) -Wall -O -o debug/tk_WindowManager.o -c $(srcdir)/toolkit/WindowManager.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/tk_WindowManager_SDL2.o:	$(srcdir)/toolkit/WindowManager_SDL2.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/WindowManager_SDL2.cpp<<<
 	$(CXX) -Wall -O -o debug/tk_WindowManager_SDL2.o -c $(srcdir)/toolkit/WindowManager_SDL2.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/tk_WindowManager.o:	$(srcdir)/toolkit/WindowManager.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/WindowManager.cpp<<<
+	$(CXX) -Wall -O -o debug/tk_WindowManager.o -c $(srcdir)/toolkit/WindowManager.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### AUDIO
 debug/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
@@ -1986,15 +1986,15 @@ debug/audio_Mp3.o:	$(srcdir)/audio/Mp3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-excep
 	$(CXX) -Wall -O -o debug/audio_Mp3.o -c $(srcdir)/audio/Mp3.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### ASM
-debug/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
-	###############################################################################
-	# Compiling >>>asm/blt.asm<<<
-	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_blt.o  -l debug/asm_blt.lst $(srcdir)/asm/blt.asm -D_DEBUG -DDEBUG=DEBUG
-
 debug/asm_blt_blend.o:	$(srcdir)/asm/blt_blend.asm Makefile
 	###############################################################################
 	# Compiling >>>asm/blt_blend.asm<<<
 	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_blt_blend.o  -l debug/asm_blt_blend.lst $(srcdir)/asm/blt_blend.asm -D_DEBUG -DDEBUG=DEBUG
+
+debug/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/blt.asm<<<
+	$(ASM) $(ASMDEBUGFLAGS) -o debug/asm_blt.o  -l debug/asm_blt.lst $(srcdir)/asm/blt.asm -D_DEBUG -DDEBUG=DEBUG
 
 debug/asm_chromakey.o:	$(srcdir)/asm/chromakey.asm Makefile
 	###############################################################################
@@ -2421,11 +2421,6 @@ coverage/gfx_Image.o:	$(srcdir)/grafix/Image.cpp $(incdir)/ppl7.h $(incdir)/ppl7
 	# Compiling >>>grafix/Image.cpp<<<
 	$(CXX) -Wall -o coverage/gfx_Image.o -c $(srcdir)/grafix/Image.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
-	###############################################################################
-	# Compiling >>>grafix/ImageFilter.cpp<<<
-	$(CXX) -Wall -o coverage/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp $(CFLAGS) @GCOV_CFLAGS@ 
-
 coverage/gfx_ImageFilter_BMP.o:	$(srcdir)/grafix/ImageFilter_BMP.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_BMP.cpp<<<
@@ -2465,6 +2460,11 @@ coverage/gfx_ImageFilter_TIFF.o:	$(srcdir)/grafix/ImageFilter_TIFF.cpp $(incdir)
 	###############################################################################
 	# Compiling >>>grafix/ImageFilter_TIFF.cpp<<<
 	$(CXX) -Wall -o coverage/gfx_ImageFilter_TIFF.o -c $(srcdir)/grafix/ImageFilter_TIFF.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/gfx_ImageFilter.o:	$(srcdir)/grafix/ImageFilter.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	###############################################################################
+	# Compiling >>>grafix/ImageFilter.cpp<<<
+	$(CXX) -Wall -o coverage/gfx_ImageFilter.o -c $(srcdir)/grafix/ImageFilter.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/gfx_ImageList.o:	$(srcdir)/grafix/ImageList.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	###############################################################################
@@ -2551,15 +2551,15 @@ coverage/tk_Window.o:	$(srcdir)/toolkit/Window.cpp $(incdir)/ppl7.h $(incdir)/pp
 	# Compiling >>>toolkit/Window.cpp<<<
 	$(CXX) -Wall -o coverage/tk_Window.o -c $(srcdir)/toolkit/Window.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/tk_WindowManager.o:	$(srcdir)/toolkit/WindowManager.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
-	###############################################################################
-	# Compiling >>>toolkit/WindowManager.cpp<<<
-	$(CXX) -Wall -o coverage/tk_WindowManager.o -c $(srcdir)/toolkit/WindowManager.cpp $(CFLAGS) @GCOV_CFLAGS@ 
-
 coverage/tk_WindowManager_SDL2.o:	$(srcdir)/toolkit/WindowManager_SDL2.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
 	###############################################################################
 	# Compiling >>>toolkit/WindowManager_SDL2.cpp<<<
 	$(CXX) -Wall -o coverage/tk_WindowManager_SDL2.o -c $(srcdir)/toolkit/WindowManager_SDL2.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/tk_WindowManager.o:	$(srcdir)/toolkit/WindowManager.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h $(incdir)/ppl7-tk.h 
+	###############################################################################
+	# Compiling >>>toolkit/WindowManager.cpp<<<
+	$(CXX) -Wall -o coverage/tk_WindowManager.o -c $(srcdir)/toolkit/WindowManager.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/audio_AudioCD.o:	$(srcdir)/audio/AudioCD.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-audio.h 
 	###############################################################################
@@ -2631,15 +2631,15 @@ coverage/audio_Mp3.o:	$(srcdir)/audio/Mp3.cpp $(incdir)/ppl7.h $(incdir)/ppl7-ex
 	# Compiling >>>audio/Mp3.cpp<<<
 	$(CXX) -Wall -o coverage/audio_Mp3.o -c $(srcdir)/audio/Mp3.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
-	###############################################################################
-	# Compiling >>>asm/blt.asm<<<
-	$(ASM) -o coverage/asm_blt.o -l coverage/asm_blt.lst $(srcdir)/asm/blt.asm
-
 coverage/asm_blt_blend.o:	$(srcdir)/asm/blt_blend.asm Makefile
 	###############################################################################
 	# Compiling >>>asm/blt_blend.asm<<<
 	$(ASM) -o coverage/asm_blt_blend.o -l coverage/asm_blt_blend.lst $(srcdir)/asm/blt_blend.asm
+
+coverage/asm_blt.o:	$(srcdir)/asm/blt.asm Makefile
+	###############################################################################
+	# Compiling >>>asm/blt.asm<<<
+	$(ASM) -o coverage/asm_blt.o -l coverage/asm_blt.lst $(srcdir)/asm/blt.asm
 
 coverage/asm_chromakey.o:	$(srcdir)/asm/chromakey.asm Makefile
 	###############################################################################

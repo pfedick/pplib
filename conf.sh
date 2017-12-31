@@ -65,8 +65,7 @@ case "$SYS:$REL:$KERNEL" in
                         --with-libidn=/usr/local \
                         --with-ogg=/usr/local \
                         --with-libmicrohttpd=/usr/local \
-                        --enable-gtest=/usr/local/gtest-1.7.0 \
-                        --enable-coverage
+                        --enable-gtest=/usr/local/gtest-1.7.0
 
 		;;
 	FreeBSD:10.*)
@@ -93,8 +92,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libidn=/usr/local \
 			--with-ogg=/usr/local \
 			--with-libmicrohttpd=/usr/local \
-			--enable-gtest=/usr/local/gtest-1.7.0 \
-			--enable-coverage
+			--enable-gtest=/usr/local/gtest-1.7.0
+			
 		;;
 	MINGW32*:1.0.16*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"

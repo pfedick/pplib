@@ -11491,8 +11491,8 @@ $as_echo "yes" >&6; }
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libjpeg >= 6.0.0" >&5
-$as_echo_n "checking for libjpeg >= 6.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JPEG" >&5
+$as_echo_n "checking for JPEG... " >&6; }
 
 if test -n "$JPEG_CFLAGS"; then
     pkg_cv_JPEG_CFLAGS="$JPEG_CFLAGS"
@@ -11532,7 +11532,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -11617,7 +11617,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing jpeg_finish_decompress" >&5
 $as_echo_n "checking for library containing jpeg_finish_decompress... " >&6; }
@@ -11735,8 +11735,8 @@ $as_echo "yes" >&6; }
 		LIBS=""
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libturbojpeg >= 1.3.0" >&5
-$as_echo_n "checking for libturbojpeg >= 1.3.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TURBOJPEG" >&5
+$as_echo_n "checking for TURBOJPEG... " >&6; }
 
 if test -n "$TURBOJPEG_CFLAGS"; then
     pkg_cv_TURBOJPEG_CFLAGS="$TURBOJPEG_CFLAGS"
@@ -11776,7 +11776,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -11867,7 +11867,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing tjInitDecompress" >&5
 $as_echo_n "checking for library containing tjInitDecompress... " >&6; }
@@ -12041,8 +12041,8 @@ fi
 
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libpng" >&5
-$as_echo_n "checking for libpng... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PNG" >&5
+$as_echo_n "checking for PNG... " >&6; }
 
 if test -n "$PNG_CFLAGS"; then
     pkg_cv_PNG_CFLAGS="$PNG_CFLAGS"
@@ -12082,7 +12082,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -12115,7 +12115,7 @@ fi
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	have_libpng="no"
 				PNG_LIBS="-lpng -lz -lm"
@@ -14114,7 +14114,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -14133,7 +14133,7 @@ fi
 	LIBCDIO_LDFLAGS="-lcdio "
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	LIBCDIO_LDFLAGS="-lcdio "
 
@@ -16157,8 +16157,8 @@ fi
   if test "x$sdl_prefix$sdl_exec_prefix" = x ; then
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sdl2 >= $min_sdl_version" >&5
-$as_echo_n "checking for sdl2 >= $min_sdl_version... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for SDL2" >&5
+$as_echo_n "checking for SDL2... " >&6; }
 
 if test -n "$SDL2_CFLAGS"; then
     pkg_cv_SDL2_CFLAGS="$SDL2_CFLAGS"
@@ -16198,7 +16198,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -16216,7 +16216,7 @@ fi
 
 	sdl_pc=no
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	sdl_pc=no
 else
