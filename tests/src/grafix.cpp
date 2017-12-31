@@ -71,6 +71,13 @@ TEST_F(CGrafixTest, ConstructorSimple) {
 
 }
 
+TEST_F(CGrafixTest, ImageCls) {
+	ppl6::grafix::CGrafix gfx;
+	ASSERT_NO_THROW({
+		ppl6::grafix::CImage img(320,200,ppl6::grafix::RGBFormat::A8R8G8B8);
+		img.cls();
+	});
+}
 
 
 
