@@ -48,7 +48,7 @@ echo ""
 
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:11.*)
-		CLANGVERSION=40
+		CLANGVERSION=
 		export CC=clang$CLANGVERSION
                 export CXX=clang++$CLANGVERSION
         export CPPFLAGS=-I/usr/local/include
