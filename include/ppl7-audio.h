@@ -484,6 +484,7 @@ typedef struct tagSTEREOSAMPLE16{
 class AudioDecoder
 {
 public:
+	virtual ~AudioDecoder() {};
 	virtual void open(FileObject &file, const AudioInfo *info=NULL)=0;
 	virtual const AudioInfo & getAudioInfo() const=0;
 	virtual void getAudioInfo(AudioInfo &info) const=0;
