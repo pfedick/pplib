@@ -1704,6 +1704,14 @@ void File::statFile(const String &filename, DirEntry &result)
 	if (result.Attrib&FileAttr::OTH_EXECUTE) result.AttrStr.set(9,'x');
 }
 
+DirEntry File::statFile(const String &filename)
+{
+	DirEntry e;
+	File::statFile(filename, e);
+	return e;
+}
+
+
 /*!\brief Pfad ohne Dateinamen
  *
  * \desc
