@@ -153,6 +153,7 @@ void AudioDecoder_MP3::seekSample(size_t sample)
 {
 	if (sample==0) {
 		ff->seek(info.AudioStart);
+		return;
 	}
 	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3::seekSample");
 	//if (sample<info.Samples) position=sample;
