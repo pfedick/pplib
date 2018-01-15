@@ -4,10 +4,13 @@
 # stolen back from Frank Belew
 # stolen from Manish Singh
 # Shamelessly stolen from Owen Taylor
+#
+# Changelog:
+# * also look for SDL2.framework under Mac OS X
 
 # serial 1
 
-dnl AM_PATH_SDL([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
+dnl AM_PATH_SDL2([MINIMUM-VERSION, [ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
 dnl Test for SDL, and define SDL2_CFLAGS and SDL2_LIBS
 dnl
 AC_DEFUN([AM_PATH_SDL2],
@@ -20,11 +23,15 @@ AC_ARG_WITH(sdl-exec-prefix,[  --with-sdl-exec-prefix=PFX Exec prefix where SDL 
             sdl_exec_prefix="$withval", sdl_exec_prefix="")
 AC_ARG_ENABLE(sdltest, [  --disable-sdltest       Do not try to compile and run a test SDL program],
 		    , enable_sdltest=yes)
+AC_ARG_ENABLE(sdlframework, [  --disable-sdlframework Do not search for SDL2.framework],
+        , search_sdl_framework=yes)
 
-  min_sdl_version=ifelse([$1], ,0.9.0,$1)
+AC_ARG_VAR(SDL2_FRAMEWORK, [Path to SDL2.framework])
+
+  min_sdl_version=ifelse([$1], ,2.0.0,$1)
 
   if test "x$sdl_prefix$sdl_exec_prefix" = x ; then
-    PKG_CHECK_MODULES([SDL2], [sdl2 >= $min_sdl_version],
+    PKG_CHECK_MODULES([SDL], [sdl2 >= $min_sdl_version],
            [sdl_pc=yes],
            [sdl_pc=no])
   else
@@ -53,14 +60,36 @@ AC_ARG_ENABLE(sdltest, [  --disable-sdltest       Do not try to compile and run 
     fi
     AC_PATH_PROG(SDL2_CONFIG, sdl2-config, no, [$PATH])
     PATH="$as_save_PATH"
-    AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
     no_sdl=""
 
-    if test "$SDL2_CONFIG" = "no" ; then
-      no_sdl=yes
-    else
-      SDL2_CFLAGS=`$SDL2_CONFIG $sdl_config_args --cflags`
-      SDL2_LIBS=`$SDL2_CONFIG $sdl_config_args --libs`
+    if test "$SDL2_CONFIG" = "no" -a "x$search_sdl_framework" = "xyes"; then
+      AC_MSG_CHECKING(for SDL2.framework)
+      if test "x$SDL2_FRAMEWORK" != x; then
+        sdl_framework=$SDL2_FRAMEWORK
+      else
+        for d in / ~/ /System/; do
+          if test -d "$dLibrary/Frameworks/SDL2.framework"; then
+            sdl_framework="$dLibrary/Frameworks/SDL2.framework"
+          fi
+        done
+      fi
+
+      if test -d $sdl_framework; then
+        AC_MSG_RESULT($sdl_framework)
+        sdl_framework_dir=`dirname $sdl_framework`
+        SDL2_CFLAGS="-F$sdl_framework_dir -Wl,-framework,SDL2 -I$sdl_framework/include"
+        SDL2_LIBS="-F$sdl_framework_dir -Wl,-framework,SDL2"
+      else
+        no_sdl=yes
+      fi
+    fi
+
+    if test "$SDL2_CONFIG" != "no"; then
+      if test "x$sdl_pc" = "xno"; then
+        AC_MSG_CHECKING(for SDL - version >= $min_sdl_version)
+        SDL2_CFLAGS=`$SDL2_CONFIG $sdl_config_args --cflags`
+        SDL2_LIBS=`$SDL2_CONFIG $sdl_config_args --libs`
+      fi
 
       sdl_major_version=`$SDL2_CONFIG $sdl_config_args --version | \
              sed 's/\([[0-9]]*\).\([[0-9]]*\).\([[0-9]]*\)/\1/'`
@@ -141,12 +170,15 @@ int main (int argc, char *argv[])
         CFLAGS="$ac_save_CFLAGS"
         CXXFLAGS="$ac_save_CXXFLAGS"
         LIBS="$ac_save_LIBS"
+
       fi
-    fi
-    if test "x$no_sdl" = x ; then
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT(no)
+      if test "x$sdl_pc" = "xno"; then
+        if test "x$no_sdl" = "xyes"; then
+          AC_MSG_RESULT(no)
+        else
+          AC_MSG_RESULT(yes)
+        fi
+      fi
     fi
   fi
   if test "x$no_sdl" = x ; then
@@ -164,7 +196,7 @@ int main (int argc, char *argv[])
           echo "*** Could not run SDL test program, checking why..."
           CFLAGS="$CFLAGS $SDL2_CFLAGS"
           CXXFLAGS="$CXXFLAGS $SDL2_CFLAGS"
-          LIBS="$LIBS $SDL_LIBS"
+          LIBS="$LIBS $SDL2_LIBS"
           AC_TRY_LINK([
 #include <stdio.h>
 #include "SDL.h"

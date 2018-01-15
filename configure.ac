@@ -69,7 +69,6 @@ sinclude(autoconf/jpeg.m4)
 sinclude(autoconf/libjpeg-turbo.m4)
 sinclude(autoconf/ax_pthread.m4)
 sinclude(autoconf/sdl2.m4)
-sinclude(autoconf/sdl.m4)
 sinclude(autoconf/freetds.m4)
 sinclude(autoconf/nasm.m4)
 sinclude(autoconf/lib-link.m4)
@@ -118,7 +117,6 @@ report_have_zlib="no"
 report_have_pcre="no"
 report_have_openssl="no"
 report_have_freetype2="no"
-report_have_sdl1="no"
 report_have_sdl2="no"
 report_have_png="no"
 report_have_libimlib="no"
@@ -583,7 +581,6 @@ AC_CHECK_FT2(9.0.0,
 
 dnl Check for SDL
 report_have_sdl2="no"
-report_have_sdl="no"
 AM_PATH_SDL2([2.0.0],
             AC_DEFINE(HAVE_SDL2, 1, [ Define if you have libsdl2. ])
             report_have_sdl2="yes"
@@ -591,20 +588,6 @@ AM_PATH_SDL2([2.0.0],
 			AC_SUBST(SDL2_CFLAGS)
 			AC_SUBST(SDL2_LIBS)
             ,:)
-
-
-if test "$report_have_sdl" = "no"
-then
-
-AM_PATH_SDL([1.2.0],
-            AC_DEFINE(HAVE_SDL12, 1, [ Define if you have libsdl12. ])
-            report_have_sdl1="yes"
-            report_have_sdl="yes - Version 1.x"
-			AC_SUBST(SDL_CFLAGS)
-			AC_SUBST(SDL_LIBS)
-            ,:)
-fi
-
 
 
 AX_PATH_LIB_IMLIB([1.9.0],
@@ -767,7 +750,6 @@ AC_SUBST(report_have_bzip2)
 AC_SUBST(report_have_png)
 AC_SUBST(report_have_jpeg)
 AC_SUBST(report_have_freetype2)
-AC_SUBST(report_have_sdl1)
 AC_SUBST(report_have_sdl2)
 AC_SUBST(report_have_lame)
 AC_SUBST(report_have_libmad)
