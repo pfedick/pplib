@@ -173,7 +173,11 @@ size_t AudioDecoder_MP3::fillDecodeBuffer()
 	while (size==0) {
 		ret=mpg123_read((mpg123_handle*)decoder,outbuffer,OUTBUFF,&size);
 		if (ret==MPG123_NEED_MORE) {
-			size_t len = ff->read(readbuffer,READBUFFER);
+			size_t restbytes=ff->size()-ff->tell();
+			size_t maxbytes=READBUFFER;
+			if (maxbytes>restbytes) maxbytes=restbytes;
+			if (maxbytes==0) return 0;
+			size_t len = ff->read(readbuffer,maxbytes);
 			if (len==0) return 0;
 			ret=mpg123_feed((mpg123_handle*)decoder,readbuffer,len);
 			if (ret!=MPG123_OK) {
