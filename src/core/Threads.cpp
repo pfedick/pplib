@@ -223,11 +223,13 @@ void SetTLSData(void *data)
 		} else {
 			ts->threadFunction(ts->data);
 		}
-		free(ts);
 #ifdef HAVE_TLS
-		delete(myThreadData);
+		if (ts->threadClass==NULL) {
+			delete(myThreadData);
+		}
 		myThreadData=NULL;
 #endif
+		free(ts);
 		return 0;
 	}
 #elif defined HAVE_PTHREADS
