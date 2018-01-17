@@ -293,12 +293,12 @@ class String
 #ifdef WITH_QT
 		String(const QString &q) {
 			ptr=NULL; stringlen=0; s=0;
-			QByteArray a=q.toUtf8();
+			QByteArray a=q.toLocal8Bit();
 			set((const char*)a);
 		}
 		String(QString *q) {
 			ptr=NULL; stringlen=0; s=0;
-			QByteArray a=q->toUtf8();
+			QByteArray a=q->toLocal8Bit();
 			set((const char*)a);
 		}
 #endif
@@ -507,12 +507,12 @@ class String
 		}
 
 		String& operator=(const QString& q) {
-			QByteArray a=q.toUtf8();
+			QByteArray a=q.toLocal8Bit();
 			set((const char*)a);
 			return *this;
 		}
 		String& operator=(const QString *q) {
-			QByteArray a=q->toUtf8();
+			QByteArray a=q->toLocal8Bit();
 			set((const char*)a);
 			return *this;
 		}
