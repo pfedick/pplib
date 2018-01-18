@@ -469,6 +469,8 @@ class TCPSocket
 		bool isReadable();
 		bool waitForIncomingData(int seconds, int useconds);
 		bool waitForOutgoingData(int seconds, int useconds);
+		SockAddr getSockAddr() const;
+		SockAddr getPeerAddr() const;
 		//@}
 
 		//! @name SSL Encryption
@@ -528,6 +530,8 @@ class UDPSocket
 		bool isReadable();
 		bool waitForIncomingData(int seconds, int useconds);
 		bool waitForOutgoingData(int seconds, int useconds);
+		SockAddr getSockAddr() const;
+		SockAddr getPeerAddr() const;
 		//@}
 
 		//! @name Client functions
