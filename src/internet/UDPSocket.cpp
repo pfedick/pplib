@@ -841,6 +841,49 @@ void UDPSocket::bind(const String &host, int port)
 	connected=1;
 }
 
+/*\brief lokale Socket-Adresse auslesen
+ *
+ * @desc
+ * Gibt ein SockAddr-Objekt zurueck, dass die Socket-Adresse der lokalen
+ * Seite des Sockets enthaelt.
+ *
+ * @return SockAddr
+ *
+ * \note Kann nur verwendet werden, wenn der Socket verbunden ist
+ */
+SockAddr UDPSocket::getSockAddr() const
+{
+	if (!connected)
+		throw NotConnectedException();
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+	struct sockaddr addr;
+	socklen_t len=sizeof(addr);
+	int ret=getsockname(s->sd, &addr, &len);
+	if (ret<0) throwExceptionFromErrno(errno, "UDPSocket::getSockAddr");
+	return ppl7::SockAddr((const void*)&addr,(size_t)len);
+}
+
+/*\brief Socket-Adresse der Gegenstelle auslesen
+ *
+ * @desc
+ * Gibt ein SockAddr-Objekt zurueck, dass die Socket-Adresse der
+ * Gegenstelle des Sockets enthaelt.
+ *
+ * @return SockAddr
+ *
+ * \note Kann nur verwendet werden, wenn der Socket verbunden ist
+ */
+SockAddr UDPSocket::getPeerAddr() const
+{
+	if (!connected)
+		throw NotConnectedException();
+	PPLSOCKET *s = (PPLSOCKET*) socket;
+	struct sockaddr addr;
+	socklen_t len=sizeof(addr);
+	int ret=getpeername(s->sd, &addr, &len);
+	if (ret<0) throwExceptionFromErrno(errno, "UDPSocket::getSockAddr");
+	return ppl7::SockAddr((const void*)&addr,(size_t)len);
+}
 
 
 /*!\brief Daten schreiben
