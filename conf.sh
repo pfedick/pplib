@@ -17,13 +17,17 @@ case "$SYS:$REL:$KERNEL" in
         elif [ -x /usr/local/bin/clang37 ]; then
             CLANGVERSION=37
         fi
+        OPENSSL="/usr"
+        if [ -f /usr/local/lib/libssl.a ] ; then
+        	OPENSSL="/usr/local"
+        fi
         export CC=clang$CLANGVERSION
         export CXX=clang++$CLANGVERSION
 	    export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --prefix=$PREFIX \
 			--with-libmad=/usr/local --with-lame=/usr/local \
-			--with-pcre=/usr/local --with-x --with-openssl=/usr/local --with-mysql \
+			--with-pcre=/usr/local --with-x --with-openssl=$OPENSSL --with-mysql \
 			--with-libmhash=/usr/local --with-freetds=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm   \
 			--with-libjpeg --with-libpng --with-mpg123=/usr/local \
