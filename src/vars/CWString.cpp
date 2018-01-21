@@ -2182,7 +2182,7 @@ void CWString::UCWords()
 				buffer[i]=c;
 			}
 		}
-		if (wc<48 || (wc>57 && wc<65) || (wc>90 && wc<97) || (wc>122 && wc<127) ) {
+		if (wc!='\'' && (wc<48 || (wc>57 && wc<65) || (wc>90 && wc<97) || (wc>122 && wc<127)) ) {
 			wordstart=true;
 		} else {
 			wordstart=false;
