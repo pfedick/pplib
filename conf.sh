@@ -164,6 +164,8 @@ case "$SYS:$REL:$KERNEL" in
 				
 		;;		
 	Linux:*generic*)
+	
+	    export CFLAGS="-no-pie "
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
 			--with-mysql  --with-libiconv-prefix --with-nasm \

@@ -584,7 +584,6 @@ report_have_sdl2="no"
 AM_PATH_SDL2([2.0.0],
             AC_DEFINE(HAVE_SDL2, 1, [ Define if you have libsdl2. ])
             report_have_sdl2="yes"
-            report_have_sdl="yes - Version 2.x"
 			AC_SUBST(SDL2_CFLAGS)
 			AC_SUBST(SDL2_LIBS)
             ,:)
@@ -821,7 +820,7 @@ AC_MSG_RESULT([
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
-**   SDL library:          $report_have_sdl
+**   SDL2 library:         $report_have_sdl
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg	  
