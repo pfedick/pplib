@@ -560,7 +560,7 @@ ppluint64 ID3Tag::findId3Tag(FileObject &File)
 			p+=PeekN32(adr+4)+8;
 		}
 	}
-	return (ppluint32)-1;
+	return (ppluint64)-1;
 }
 
 /*!\brief ID3-Tags aus einer Audio-Datei laden
