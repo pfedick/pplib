@@ -500,7 +500,7 @@ int CTCPSocket::SSL_Start()
 				int e=SSL_get_error((SSL*)ssl,res);
 
 				if (res==0) {
-					SetError(322,"Handshake not successfull: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					SetError(322,"Handshake not successfull: %s, State: %s",ssl_geterror((SSL*)ssl,res), SSL_state_string_long((SSL*)ssl));
 					ERR_print_errors_fp(stdout);
 					SSL_shutdown((SSL*)ssl);
 					SSL_free((SSL*)ssl);
@@ -547,7 +547,7 @@ int CTCPSocket::SSL_Start()
 						PrintDebugTime("ERROR %i: Unbekannter Fehler: %i\n",i,e);
 					}
 					*/
-					SetError(322,"SSL_connect failed: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					SetError(322,"SSL_connect failed: %s, State: %s",ssl_geterror((SSL*)ssl,res), SSL_state_string_long((SSL*)ssl));
 					SSL_shutdown((SSL*)ssl);
 					SSL_free((SSL*)ssl);
 					ssl=NULL;
@@ -1202,6 +1202,7 @@ int CSSL::Init(int method)
 		Mutex.Lock();
 		if (!method) method=CSSL::SSLv23;
 		switch (method) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #ifndef OPENSSL_NO_SSL2
 			case CSSL::SSLv2:
 				ctx=SSL_CTX_new(SSLv2_method());
@@ -1231,6 +1232,7 @@ int CSSL::Init(int method)
 			case CSSL::SSLv23server:
 				ctx=SSL_CTX_new(SSLv23_server_method());
 				break;
+#endif // OPENSSL_VERSION_NUMBER < 0x10100000L
 #ifdef HAVE_TLSV1_METHOD
 			case CSSL::TLSv1:
 				ctx=SSL_CTX_new(TLSv1_method());
