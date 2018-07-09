@@ -425,6 +425,8 @@ int instr (const char * string, const char * such, unsigned int start)
  */
 int instrcase (const char * string, const char * such, unsigned int start)
 {
+	if (!string) return -1;
+	if (!such) return -1;
 	const char * _t;
 	if (start<strlen(string)) {
 		_t=strcasestr((string+start),such);
