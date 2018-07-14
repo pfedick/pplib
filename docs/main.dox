@@ -22,12 +22,11 @@ aus Assembler-Code für Windows. Seitdem wurde die Library mehrfach umstrukturie
 und besteht nun zum größten Teil aus plattform-unabhängigem C und C++-Code. Unterstützt werden
 folgende Systeme:
 
-- Linux (getestet unter Ubuntu 10.04, Ubuntu 12.04, RedHat 5, RedHat 6, jeweils 32- und 64-Bit)
-- FreeBSD (Version 8.x, 9.x, jeweils 32- und 64-Bit)
-- Windows (32-Bit, Windows XP, Vista, 7 mit MinGW)
-- Solaris (Version 9, mit GCC 4.x-Compiler, 64-Bit)
+- Linux (getestet unter CentOS 6/7, Ubuntu 16.04, 18.04 in der 64-Bit-Version)
+- FreeBSD (Version 10.x und 11.x in 64-Bit)
+- Windows 7/10 (mit MinGW in 32- und 64-Bit)
 
-Als Compiler wird gcc ab Version 4.2 benötigt oder clang ab Version 3.
+Als Compiler wird gcc ab Version 4.4 benötigt oder clang ab Version 3.
 
 Seit Version 6.2.0 steht die PPL-Library unter einer Open Source BSD-Lizenz und darf somit fast
 uneingeschränkt auch in kommerziellen oder "closed source" Programmen verwendet werden. Die

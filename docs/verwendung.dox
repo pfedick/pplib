@@ -66,7 +66,7 @@ CC		= gcc
 EXTRA_CFLAGS =
 INCLUDE	= -I. -I../include
 CFLAGS	= -ggdb -Wall $(INCLUDE) $(EXTRA_CFLAGS) `ppl7-config --cflags debug`
-LIB = -lstdc++ `ppl7-config --libs debug`
+LIB = `ppl7-config --libs debug` -lstdc++
 PROGRAM	= ppltestprog
 
 OBJECTS=compile/main.o
@@ -134,7 +134,7 @@ CC		= gcc
 EXTRA_CFLAGS =
 INCLUDE	= -I. -I../include
 CFLAGS	= -ggdb -Wall $(INCLUDE) $(EXTRA_CFLAGS) @LIBPPL7_CFLAGS@
-LIB = -lstdc++ @LIBPPL7_RELEASE_LIBS@
+LIB = @LIBPPL7_RELEASE_LIBS@ -lstdc++
 PROGRAM	= ppltestprog
 
 OBJECTS=compile/main.o

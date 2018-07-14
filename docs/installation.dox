@@ -10,13 +10,14 @@ oder gtar ausgepackt werden (<code>tar -xjf ppl*.tar.bz2</code>), unter Windows 
 zum Beispiel <a href="http://http://www.7-zip.org/">7-Zip</a>.
 
 
-\section inst1a SVN
-Der Quellcode der Library wird bei <a href="https://sourceforge.net/projects/pplib">SourceForge.net</a>
-gehostet und kann wie nachfolgend beschrieben aus dem Subversion-Repository ausgecheckt werden.
+\section inst1a Git
+Der Quellcode der Library wird bei <a href="https://github.com/pfedick/pplib">GitHub</a>
+gehostet und kann wie nachfolgend beschrieben aus dem Repository ausgecheckt werden.
 
 \code
-svn co https://pplib.svn.sourceforge.net/svnroot/pplib/lib/trunk ppl7
+git clone https://github.com/pfedick/pplib.git ppl7
 \endcode
+
 
 \section inst2 Installation unter UNIX 
 
@@ -58,22 +59,22 @@ Sofern nichts angegeben wird, wird der Defaultcompiler verwendet, in der Regel g
 vorhanden, kann durch setzen der Umgebungsvariablen CC und CXX vor Aufruf von "configure" bestimmt werden,
 welcher Compiler verwendet werden soll.
 
-\subsubsection inst2compiler_gcc47 Beispiel 1: gcc47
+\subsubsection inst2compiler_gcc47 Beispiel 1: gcc Version 5
 Unter FreeBSD kann man verschiedene Versionen über die Ports-Collection installieren. Die installierten
-Binaries bekommen daher die Version im Dateinamen angehangen, z.B. "47". Das gcc-Binary heisst somit "gcc47",
-bzw. "g++47" für den "g++":
+Binaries bekommen dann die Version im Dateinamen angehangen, z.B. "5". Das gcc-Binary heisst somit "gcc5",
+bzw. "g++5":
 
 \code
-export CC=gcc47
-export CXX=g++47
+export CC=gcc5
+export CXX=g++5
 ./configure ...
 \endcode
 
 
-\subsubsection inst2compiler_clang Beispiel 2: clang
+\subsubsection inst2compiler_clang Beispiel 2: clang Version 6
 \code
-export CC=clang
-export CXX=clang++
+export CC=clang60
+export CXX=clang++60
 ./configure ...
 \endcode
 
@@ -99,29 +100,137 @@ sudo apt-get install libmp3lame-dev libmad0-dev libmpg123-dev libogg-dev libshou
 
 Ist alles installiert, kann man das configure mit folgenden Parametern aufrufen:
 \code
-./configure --with-libmad=/usr --with-lame=/usr
-     --with-pcre=/usr --with-openssl --with-mysql=/usr \
-     --with-libmhash --with-ogg=/usr --with-sybase=/usr \
-     --with-libiconv-prefix --with-nasm --with-pgsql \
-     --with-jpeg --with-png -with-mpg123 \
-     --with-ogg=/usr
+export CFLAGS="-no-pie "
+echo "configuring for generic Linux"
+./configure --prefix=$PREFIX \
+    --with-lame --with-pcre --with-x --with-openssl \
+    --with-mysql  --with-libiconv-prefix --with-nasm \
+    --with-libmhash --with-ogg \
+    --with-postgresql \
+    --with-libmicrohttpd \
+    --with-jpeg --with-libpng --with-libtiff \
+    --with-libtiff --with-mpg123 \
+    --with-libidn \
+    --enable-gtest=/usr/local/googletest-release-1.7.0
 \endcode
 
 \subsection inst2freebsd Installation unter FreeBSD
 \code
+export PREFIX=/usr/local
+export CFLAGS="-I/usr/local/include"
+export LDFLAGS="-L/usr/local/lib"
 export CPPFLAGS=-I/usr/local/include
-export LDLAGS=-L/usr/local/lib
-./configure --with-libmad=/usr/local --with-lame=/usr/local \
-     --with-pcre=/usr/local --with-openssl --with-mysql \
-     --with-libmhash=/usr/local --with-sybase=/usr/local \
-     --with-libiconv-prefix=/usr/local --with-nasm --with-pgsql \
-     --with-jpeg --with-png --with-mpg123=/usr/local \
-     --with-ogg=/usr/local
+export CC=clang$CLANG_VERSION
+export CXX=clang++$CLANG_VERSION
+
+./configure --prefix=$PREFIX \
+   --with-lame=/usr/local --with-mpg123=/usr/local \
+   --with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
+   --with-libmhash=/usr/local \
+   --with-libiconv-prefix=/usr/local --with-nasm  \
+   --with-jpeg --with-libpng --with-libtiff=/usr/local \
+   --with-postgresql \
+   --with-libidn=/usr/local \
+   --with-ogg=/usr/local \
+   --with-libmicrohttpd=/usr/local \
+   --enable-gtest=/usr/local/gtest-1.7.0
 \endcode
 
 \section inst3 Installation unter Windows
 
 \subsection inst3mingw Installation mit MinGW32/64
+Für fast alle unterstützten Module gibt es fertige Pakete, die mit "pacman" installiert werden können.
+Einzig für mcrypt und mhash gibt es keine Pakete.  
+
+\subsubsection inst3mingw_pacman Pakete installieren
+Um alle Features nutzen zu können, müssen folgende Pakete installiert werden:
+\code
+pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-bzip2 mingw-w64-x86_64-curl mingw-w64-x86_64-freetype \
+    mingw-w64-x86_64-gtest mingw-w64-x86_64-iconv mingw-w64-x86_64-lame mingw-w64-x86_64-ldns \
+    mingw-w64-x86_64-libiconv mingw-w64-x86_64-libidn mingw-w64-x86_64-libjpeg-turbo \
+    mingw-w64-x86_64-libmad mingw-w64-x86_64-libpng mingw-w64-x86_64-libogg mingw-w64-x86_64-libtiff \
+    mingw-w64-x86_64-mpg123 mingw-w64-x86_64-nasm mingw-w64-x86_64-openssl mingw-w64-x86_64-pcre \
+    mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-zlib
+\endcode
+
+\subsubsection inst3mingw_mhash MHash installieren
+Im folgenden wird angenommen, dass wir die 64-Bit-Version von MHash erstellen und unter /usr/local installieren wollen:
+\code
+export VERSION=0.9.9.9
+export PREFIX=/usr/local
+export MINGW=/mingw64
+export PATH=$MINGW/bin:$PATH
+
+rm -rf mhash-$VERSION.tar.gz
+wget -O mhash-$VERSION.tar.gz "http://sourceforge.net/projects/mhash/files/mhash/$VERSION/mhash-$VERSION.tar.gz/download"
+
+rm -rf mhash-$VERSION
+tar -xzf mhash-$VERSION.tar.gz
+cd mhash-$VERSION
+
+if [ ! -f lib/mhash.c_original ] ; then
+	cp lib/mhash.c lib/mhash.c_original
+fi
+cat lib/mhash.c_original | sed -e "s/int main/int __mhash_main/" > lib/mhash.c
+
+rm -rf config.sub
+automake -a 
+
+./configure --prefix=$PREFIX --enable-static --disable-shared --build=x86_64-w64-mingw32
+mkdir -p $PREFIX/lib $PREFIX/include $PREFIX/include/mutils
+make -j2
+make install
+
+\endcode
+
+
+\subsubsection inst3mingw_mcrypt MCrypt installieren
+Im folgenden wird angenommen, dass wir die 64-Bit-Version von MCrypt erstellen und unter /usr/local installieren wollen:
+\code
+export VERSION=2.5.8
+export PREFIX=/usr/local
+export MINGW=/mingw64
+export PATH=$MINGW/bin:$PATH
+
+rm -rf libmcrypt-$VERSION.tar.gz
+wget -O libmcrypt-$VERSION.tar.gz "http://sourceforge.net/projects/mcrypt/files/Libmcrypt/$VERSION/libmcrypt-$VERSION.tar.gz/download"
+rm -rf libmcrypt-$VERSION
+tar -xzf libmcrypt-$VERSION.tar.gz
+
+cd libmcrypt-$VERSION
+grep -v "\-no\-undefined" configure > configure2
+rm config.sub
+automake -a
+
+./configure2 --prefix=$PREFIX --enable-static --disable-shared
+make
+make install
+
+\endcode
+
+
+\subsubsection inst3mingw_ppl7
+
+\code
+export MINGW=/mingw64
+export PATH=$MINGW/bin:$PATH
+export CPPFLAGS="-I/usr/local/include"
+export LDLAGS="-L/usr/local/lib"
+export CFLAGS="-I/usr/local/include"
+
+./configure --prefix=/usr/local \
+    --with-pcre=$MINGW --with-bzip2=$MINGW --with-zlib=$MINGW \
+    --with-nasm=$MINGW/bin --with-libiconv-prefix=$MINGW \
+    --with-lame=$MINGW --with-mpg123=$MINGW --disable-freetypetest --with-ft-prefix=$MINGW \
+    --with-libtiff=$MINGW --with-jpeg=$MINGW \
+    --with-libjpegturbo=$MINGW --with-libpng=$MINGW --with-libmhash=/usr/local \
+    --with-libmcrypt-prefix=/usr/local \
+    --with-openssl=$MINGW  --with-libcurl=$MINGW \
+    --with-libldns=$MINGW --with-libidn=$MINGW \
+    --with-sdl-prefix=$MINGW \
+    --without-postgresql --without-mysql \
+    --enable-gtest=/usr/local/gtest-1.7.0 \
+\endcode
 
 \subsection inst3vstudio Installation mit Visual Studio
 
