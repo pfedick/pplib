@@ -31,7 +31,7 @@ AC_ARG_VAR(SDL2_FRAMEWORK, [Path to SDL2.framework])
   min_sdl_version=ifelse([$1], ,2.0.0,$1)
 
   if test "x$sdl_prefix$sdl_exec_prefix" = x ; then
-    PKG_CHECK_MODULES([SDL], [sdl2 >= $min_sdl_version],
+    PKG_CHECK_MODULES([SDL2], [sdl2 >= $min_sdl_version],
            [sdl_pc=yes],
            [sdl_pc=no])
   else
