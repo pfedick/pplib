@@ -144,21 +144,22 @@ case "$SYS:$REL:$KERNEL" in
 			PREFIX=/jenkins/local
 		fi
 		echo "configuring for MSYS2 MINGW64, PREFIX=$PREFIX"
-		export CPPFLAGS="-DCURL_STATICLIB -DPCRE_STATIC -I$PREFIX/include -I/usr/local/include -I/sdk/WindowsSDK/include"
-		export LDLAGS="-DCURL_STATICLIB -L$PREFIX/lib -L/usr/local/lib -L/sdk/WindowsSDK/lib"
-		export CFLAGS="-DCURL_STATICLIB -DPCRE_STATIC"
-		export SQLITE_CFLAGS="-I$PREFIX/include -I/usr/local/include"
-		export SQLITE_LIBS="-L$PREFIX/include -L/usr/local/lib -lsqlite3"
+		MINGW=/mingw64
+		#export CPPFLAGS="-DCURL_STATICLIB -DPCRE_STATIC -I$PREFIX/include -I/usr/local/include -I/sdk/WindowsSDK/include"
+		#export LDLAGS="-DCURL_STATICLIB -L$PREFIX/lib -L/usr/local/lib -L/sdk/WindowsSDK/lib"
+		#export CFLAGS="-DCURL_STATICLIB -DPCRE_STATIC"
+		#export SQLITE_CFLAGS="-I$PREFIX/include -I/usr/local/include"
+		#export SQLITE_LIBS="-L$PREFIX/include -L/usr/local/lib -lsqlite3"
 		./configure --prefix=$PREFIX \
-			--with-pcre=$PREFIX --with-bzip2=$PREFIX --with-zlib=$PREFIX \
-			--with-nasm --with-libiconv-prefix=$PREFIX \
+			--with-pcre=$MINGW --with-bzip2=$MINGW --with-zlib=$MINGW \
+			--with-nasm --with-libiconv-prefix=$MINGW \
 			--with-lame --with-mpg123 --with-ogg \
-			--disable-freetypetest --with-ft-prefix=$PREFIX \
-			--with-libtiff=$PREFIX \
-			--with-libjpegturbo=$PREFIX --with-libpng=$PREFIX --with-libmhash=$PREFIX \
+			--with-ft-prefix=$MINGW \
+			--with-libtiff=$MINGW \
+			--with-libjpegturbo=$MINGW --with-libpng=$MINGW --with-libmhash=$PREFIX \
 			--with-libmcrypt-prefix=$PREFIX \
-			--with-openssl=$PREFIX \
-			--with-libldns=$PREFIX --with-libidn=$PREFIX \
+			--with-openssl=$MINGW \
+			--with-libldns=$MINGW --with-libidn=$MINGW \
 		    --without-postgresql --without-mysql \
 		    --enable-gtest=/usr/local/gtest-1.7.0 \
 				
