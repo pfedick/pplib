@@ -100,7 +100,12 @@ Digest::~Digest()
 {
 #ifdef HAVE_OPENSSL
 	free(ret);
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	if (ctx) EVP_MD_CTX_free((EVP_MD_CTX*)ctx);
+#else
 	if (ctx) EVP_MD_CTX_destroy((EVP_MD_CTX*)ctx);
+#endif
+
 #endif
 }
 
@@ -146,7 +151,11 @@ void Digest::setAlgorithm(const String &name)
 		throw InvalidAlgorithmException("%s",(const char*)name);
 	}
 	if (!ctx) {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+		ctx=EVP_MD_CTX_new();
+#else
 		ctx=EVP_MD_CTX_create();
+#endif
 		if (!ctx) throw OutOfMemoryException();
 	} else {
 		reset();
@@ -170,8 +179,10 @@ void Digest::setAlgorithm(Algorithm algorithm)
 #endif
 #ifndef OPENSSL_NO_SHA
 		case Algo_SHA1: m=EVP_sha1(); break;
-		case Algo_ECDSA: m=EVP_ecdsa(); break;
-
+		case Algo_ECDSA:
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+			m=EVP_ecdsa(); break;
+#endif
 #endif
 #ifndef OPENSSL_NO_SHA256
 		case Algo_SHA224: m=EVP_sha224(); break;
@@ -196,7 +207,11 @@ void Digest::setAlgorithm(Algorithm algorithm)
 		throw InvalidAlgorithmException("%i",algorithm);
 	}
 	if (!ctx) {
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+		ctx=EVP_MD_CTX_new();
+#else
 		ctx=EVP_MD_CTX_create();
+#endif
 		if (!ctx) throw OutOfMemoryException();
 	} else {
 		reset();
@@ -314,7 +329,11 @@ ByteArray Digest::getDigest()
 		if (!ret) throw OutOfMemoryException();
 	}
 	EVP_DigestFinal((EVP_MD_CTX*)ctx,ret,&len);
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	EVP_MD_CTX_reset((EVP_MD_CTX*)ctx);
+#else
 	EVP_MD_CTX_cleanup((EVP_MD_CTX*)ctx);
+#endif
 	EVP_DigestInit_ex((EVP_MD_CTX*)ctx,(const EVP_MD*)m, NULL);
 	bytecount=0;
 	return ByteArray(ret,len);
@@ -328,7 +347,11 @@ void Digest::reset()
 #else
 	if (!m) throw NoAlgorithmSpecifiedException();
 	if (!ctx) throw NoAlgorithmSpecifiedException();
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+	EVP_MD_CTX_reset((EVP_MD_CTX*)ctx);
+#else
 	EVP_MD_CTX_cleanup((EVP_MD_CTX*)ctx);
+#endif
 	EVP_DigestInit((EVP_MD_CTX*)ctx,(const EVP_MD*)m);
 	bytecount=0;
 #endif

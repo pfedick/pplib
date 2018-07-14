@@ -16432,6 +16432,10 @@ $as_echo "yes" >&6; }
       fi
     fi
   fi
+  if test "$SDL2_CONFIG" = "no"; then
+    no_sdl="yes"
+  fi
+
   if test "x$no_sdl" = x ; then
 
 $as_echo "#define HAVE_SDL2 1" >>confdefs.h
@@ -18996,7 +19000,11 @@ fi
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
+<<<<<<< HEAD
 **   SDL2 library:         $report_have_sdl2
+=======
+**   SDL2 library:         $report_have_sdl
+>>>>>>> branch 'master' of https://github.com/pfedick/pplib.git
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg
@@ -19063,7 +19071,11 @@ $as_echo "
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
+<<<<<<< HEAD
 **   SDL2 library:         $report_have_sdl2
+=======
+**   SDL2 library:         $report_have_sdl
+>>>>>>> branch 'master' of https://github.com/pfedick/pplib.git
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   ogg library:          $report_have_libogg

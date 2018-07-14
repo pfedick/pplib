@@ -474,6 +474,7 @@ void SSLContext::init(int method)
 	if (!method) method=SSLContext::SSLv23;
 	while ((ERR_get_error()));	// Clear Error-Stack
 	switch (method) {
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #ifndef OPENSSL_NO_SSL2
 		case SSLContext::SSLv2:
 			ctx=SSL_CTX_new(SSLv2_method());
@@ -503,6 +504,8 @@ void SSLContext::init(int method)
 		case SSLContext::SSLv23server:
 			ctx=SSL_CTX_new(SSLv23_server_method());
 			break;
+#endif // OPENSSL_VERSION_NUMBER < 0x10100000L
+
 #ifdef HAVE_TLSV1_METHOD
 		case SSLContext::TLSv1:
 			ctx=SSL_CTX_new(TLSv1_method());
@@ -854,7 +857,7 @@ void TCPSocket::sslStart(SSLContext &context)
 			*/
 			if (res==0) {
 				ppl7::String Error;
-				Error.setf("SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+				Error.setf("SSL_connect: %s, State: %s",ssl_geterror((SSL*)ssl,res), SSL_state_string_long((SSL*)ssl));
 				sslStop();
 				throw SSLConnectionFailedException(Error);
 			}
@@ -863,20 +866,20 @@ void TCPSocket::sslStart(SSLContext &context)
 			if (e==SSL_ERROR_WANT_READ) {
 				if ((n=select(sockfd+1,&rset,NULL,NULL,&tval))==0) {
 					ppl7::String Error;
-					Error.setf("Socket not ready for reading. SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					Error.setf("Socket not ready for reading. SSL_connect: %s, State: %s",ssl_geterror((SSL*)ssl,res), SSL_state_string_long((SSL*)ssl));
 					sslStop();
 					throw SSLConnectionFailedException(Error);
 				}
 			} else if (e==SSL_ERROR_WANT_WRITE) {
 				if ((n=select(sockfd+1,NULL,&wset,NULL,&tval))==0) {
 					ppl7::String Error;
-					Error.setf("Socket not ready for writing. SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+					Error.setf("Socket not ready for writing. SSL_connect: %s, State: %s",ssl_geterror((SSL*)ssl,res), SSL_state_string_long((SSL*)ssl));
 					sslStop();
 					throw SSLConnectionFailedException(Error);
 				}
 			} else {
 				ppl7::String Error;
-				Error.setf("SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+				Error.setf("SSL_connect: %s, State: %s",ssl_geterror((SSL*)ssl,res), SSL_state_string_long((SSL*)ssl));
 				sslStop();
 				throw SSLConnectionFailedException(Error);
 			}
@@ -886,7 +889,7 @@ void TCPSocket::sslStart(SSLContext &context)
 		int res=SSL_connect((SSL*)ssl);
 		if (res<1) {
 			ppl7::String Error;
-			Error.setf("SSL_connect: %s, State: 0x%X %s",ssl_geterror((SSL*)ssl,res),SSL_state((SSL*)ssl), SSL_state_string_long((SSL*)ssl));
+			Error.setf("SSL_connect: %s, State: %s",ssl_geterror((SSL*)ssl,res), SSL_state_string_long((SSL*)ssl));
 			sslStop();
 			throw SSLConnectionFailedException(Error);
 		}

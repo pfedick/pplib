@@ -1278,7 +1278,7 @@ TEST_F(StringTest, ToFloat_182566142_346214893456) {
 
 TEST_F(StringTest, ToDouble_182566142_346214893456) {
 	ppl7::String s1("182566142.346214893456");
-	EXPECT_EQ((double)182566142.346214893456,s1.toDouble()) << "Unexpected Result";
+	EXPECT_EQ(((float)182566142.346214893456),((float)s1.toDouble())) << "Unexpected Result";
 }
 
 

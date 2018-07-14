@@ -560,7 +560,7 @@ ppluint64 ID3Tag::findId3Tag(FileObject &File)
 			p+=PeekN32(adr+4)+8;
 		}
 	}
-	return (ppluint32)-1;
+	return (ppluint64)-1;
 }
 
 /*!\brief ID3-Tags aus einer Audio-Datei laden
@@ -605,11 +605,12 @@ void ID3Tag::load(FileObject &file)
 		throw UnsupportedID3TagVersionException();
 	}
 	Flags=Peek8(adr+5);
+	bool extendedHeader=false;
 	if (Flags&128) {		// Unsynchonisation-Flag gesetzt
 		throw UnsupportedID3TagVersionException("Unsynchonisation-Flag is not supported");
 	}
 	if (Flags&64) {			// Extended Header Flag
-		throw UnsupportedID3TagVersionException("Extended Header-Flag is not supported");
+		extendedHeader=true;
 	}
 	Size=Peek8(adr+9);
 	int s=Peek8(adr+8);
@@ -620,6 +621,18 @@ void ID3Tag::load(FileObject &file)
 	Size|=s<<21;
 
 	p+=10;
+	if (extendedHeader) {
+		adr=file.map(p,4);
+#ifdef ID3DEBUG
+		printf ("Extended Header detected:\n");
+		HexDump(adr,4);
+#endif
+		int exHdrSize=Peek8(adr+3);
+		exHdrSize|=(Peek8(adr+2))<<7;
+		exHdrSize|=(Peek8(adr+1))<<14;
+		exHdrSize|=(Peek8(adr+0))<<21;
+		p+=exHdrSize;
+	}
 
 	#ifdef ID3DEBUG
 		printf ("ID3 V2-Tag gefunden, Flags: %i, Länge: %i Bytes\n",Flags,Size);

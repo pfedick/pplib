@@ -181,6 +181,10 @@ int main (int argc, char *argv[])
       fi
     fi
   fi
+  if test "$SDL2_CONFIG" = "no"; then
+    no_sdl="yes"
+  fi
+  
   if test "x$no_sdl" = x ; then
      ifelse([$2], , :, [$2])
   else
