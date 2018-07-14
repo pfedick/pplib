@@ -98,7 +98,7 @@ static void write_row_callback(png_structp png_ptr, png_uint_32 row, int pass)
 ImageFilter_PNG::ImageFilter_PNG()
 {
 	//compression_level=Z_BEST_COMPRESSION;
-	//color_type=ppl6::COLORTYPE::RGB;
+	//color_type=ppl7::COLORTYPE::RGB;
 }
 
 ImageFilter_PNG::~ImageFilter_PNG()

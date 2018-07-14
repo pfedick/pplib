@@ -249,4 +249,4 @@ void Grafix::initPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn)
 }
 
 } // EOF namespace grafix
-} // EOF namespace ppl6
+} // EOF namespace ppl7

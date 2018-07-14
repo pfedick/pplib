@@ -57,11 +57,11 @@ namespace grafix {
  *
  * \example
  * \code
- * #include <ppl6.h>
- * #include <ppl6-grafix.h>
+ * #include <ppl7.h>
+ * #include <ppl7-grafix.h>
  *
- * using namespace ppl6;
- * using namespace ppl6::grafix;
+ * using namespace ppl7;
+ * using namespace ppl7::grafix;
  *
  * int main(int argc, char **argv) {
  * 	Grafix gfx;									// Grafik-Engine initialisieren
@@ -458,4 +458,4 @@ Image::operator ByteArrayPtr() const
 
 
 } // EOF namespace grafix
-} // EOF namespace ppl6
+} // EOF namespace ppl7

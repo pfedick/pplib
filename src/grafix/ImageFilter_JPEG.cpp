@@ -62,7 +62,7 @@ extern "C" {
 namespace ppl7 {
 namespace grafix {
 
-/*!\class ppl6::grafix::CFilter_JPEG
+/*!\class ppl7::grafix::CFilter_JPEG
  * \ingroup PPLGroupGrafik
  * \brief Import-/Export-Filter für JPEG-Dateien
  *

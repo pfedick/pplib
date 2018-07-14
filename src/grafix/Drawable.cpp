@@ -143,7 +143,7 @@ Drawable::Drawable(const Drawable &other)
  * @param other Ein anderes Drawable
  * @param rect Bildausschnitt
  *
- * \exception ppl6::Exception::InitialisationFailed Diese Exception wird geworfen,
+ * \exception ppl7::Exception::InitialisationFailed Diese Exception wird geworfen,
  * wenn das Drawable nicht kopiert werden kann. Die genaue Ursache kann über den Fehlercode
  * ausgelesen werden.
  */
@@ -162,7 +162,7 @@ Drawable::Drawable(const Drawable &other, const Rect &rect)
  * @param p Koordinate der linken oberen Ecke
  * @param s Breite und Höhe
  *
- * \exception ppl6::Exception::InitialisationFailed Diese Exception wird geworfen,
+ * \exception ppl7::Exception::InitialisationFailed Diese Exception wird geworfen,
  * wenn das Drawable nicht kopiert werden kann. Die genaue Ursache kann über den Fehlercode
  * ausgelesen werden.
  */
@@ -185,7 +185,7 @@ Drawable::Drawable(const Drawable &other, const Point &p, const Size &s)
  * @param height Höhe der Grafik in Pixel
  * @param format Farbformat
  *
- * \exception ppl6::Exception::InitialisationFailed Diese Exception wird geworfen,
+ * \exception ppl7::Exception::InitialisationFailed Diese Exception wird geworfen,
  * wenn das Drawable nicht mit den angegebenen Parametern erstellt werden kann.
  * Die genaue Ursache kann über den Fehlercode ausgelesen werden.
  */

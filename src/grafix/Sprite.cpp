@@ -142,7 +142,7 @@ Pixel.
 </li>
 </ul>
 
-Die Pixel-Daten werden mit der Funktion ppl6::CCompression::CompressZlib komprimiert. Sie beginnen daher
+Die Pixel-Daten werden mit der Funktion ppl7::CCompression::CompressZlib komprimiert. Sie beginnen daher
 mit einem 9-Byte langen Header, gefolgt von den eigentlichen Zlib-komprimierten Daten:
 \code
 Byte 0:  Komprimierunsart, ist immer 1 für Zlib       1 Byte
@@ -273,7 +273,7 @@ void Sprite::loadTexture(PFPChunk *chunk)
  *
  * \param[in] chunk Pointer auf den zu ladenden SURF-Chunk
  * \param[in] flags Flags, mit dem das Texture-Surfaces erstellt werden soll.
- * Dies ist eine Kombination der Werte innerhalb der Enumeration ppl6::grafix::Surface::Flags
+ * Dies ist eine Kombination der Werte innerhalb der Enumeration ppl7::grafix::Surface::Flags
  * \returns Konnte die Textur erfolgreich geladen werden,
  * liefert die Funktion true (1) zurück, andernfalls false (0).
  */
@@ -320,7 +320,7 @@ void Sprite::load(const String &filename)
  *
  * \param[in] filename Name der zu ladenden Datei
  * \param[in] flags Flags mit der die Textur-Surfaces erstellt werden sollen. Dies ist eine Kombination der Werte
- * innerhalb der Enumeration ppl6::grafix::Surface::Flags
+ * innerhalb der Enumeration ppl7::grafix::Surface::Flags
  * \returns Konnte die Datei erfolgreich geladern werden, gibt die Funktion 1 (true) zurück,
  * im Fehlerfall 0 (false). Im Fehlerfall wird ein entsprechender Fehlercode gesetzt.
  */
@@ -338,7 +338,7 @@ void Sprite::load(FileObject &ff)
  *
  * \param[in] ff Pointer auf die CFileObject-Klasse, die die Daten enthält.
  * \param[in] flags Flags mit der die Textur-Surfaces erstellt werden sollen. Dies ist eine Kombination der Werte
- * innerhalb der Enumeration ppl6::grafix::Surface::Flags
+ * innerhalb der Enumeration ppl7::grafix::Surface::Flags
  * \returns Konnte die Datei erfolgreich geladern werden, gibt die Funktion 1 (true) zurück,
  * im Fehlerfall 0 (false). Im Fehlerfall wird ein entsprechender Fehlercode gesetzt.
  */
