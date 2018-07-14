@@ -2,11 +2,311 @@
 PPL7 - HISTORY
 
 Version 7.0.0
-  - Complete Rewrite!!!
+  - Complete Rewrite, based on Version 6.4.7
   - Unittests with Google Test framework
 
+Version 6.4.21
+  - IdentAudioFile unterstützt nun Wave-Dateien
+  - CTCPSocket::SSL_Stop: Return-Wert von SSL_shutdown wird jetzt
+    korrekt interpretiert. Es wird kein shutdown mehr auf den Socket
+    gemacht, da dies bei einer Abgebrochenden Verbindung zu einer
+    Blockade führen kann.
+  - CCurl: Neue Methode "getCurlHandle" liefert das interne Handle
+    der libcurl zurück
+  - CSSL: Unterstützung für TLS 1.1, TLS 1.2 und DTLS 1, sowie
+    der Komfortmethode "TLS", die alle TLS-Versionen unterstützt,
+    aber kein SSLv2 oder SSLv3.
+  - Memory-Leak in MkDate behoben
+  - Memory-Leak in CDateTime::get behoben
+  - Memory-Leak in FileExists behoben
+  - Bugfix im configure: SQLITE_LIBS und SQLITE_CFLAGS werden nur gesetzt,
+    wenn sqlite auch gefunden wurde
+  - NASM-Erkennung unter MSYS 2.0 i686 gefixt
+  - Fixed: Deadlock in CThreadPool::Stop behoben
+  - LPSTR wird nicht mehr verwendet
+
+Version 6.4.20 vom 13.07.2014	(SVN-Tag: REL_6_4_20)
+  - Funktion GetGlobalEncoding hinzugefügt
+  - CID3Tag beachtet nun die globale Einstellung für die Kodierung
+    der Strings
+  - CID3Tag speichert Text-Tags nun grundsätzlich in UTF-16LE
+  - Neue Funktionen: XmlEscape und XMLUnEscape
+  - Neue Klasse: PythonHelper
+  - Address-Parameter der HexDump-Funktionen ist nun als "const void *"
+    deklariert
+  - CID3Tag: Fehler beim Schreiben von Tags in AIFF-Files behoben
+  - Überflüssige .svn-Ordner aus der Distribution entfernt
+  - Unterstützung von AudioCD-s und CDDB mittels der neuen Klassen
+    AudioCD und CDDB
+  - Configure-Erkennung für nasm, png und jpeg verbessert
+
+Version 6.4.19 vom 16.02.2014	(SVN-Tag: REL_6_4_19)
+  - CBinary hat Malloc- und Calloc-Funktion bekommen,
+    Save wurde umbenannt in Savef, Load in Loadf. Neue Save- und Load-
+    funktionen, die "const CString &" als einzigen Parameter erwarten 
+  - CID3Tag kann ID3-Tags aus AIFF-Dateien lesen und schreiben
+  - UnitTests für CID3Tag-Funktionen erstellt
+  - MemoryHeap-Klasse sammt Unit-Tests aus PPL7 importiert
+  - Algorithmus "List" sammt Unit-Tests aus PPL7 importiert
+  - CDir wurde refakturiert: "Get" Funktionen geben jetzt
+    "const CDirEntry*" statt "CDirEntry*" zurück, Sortierfunktionen
+    aus PPL7 importiert, als Sortieralgorithmus wird nun std::multimap
+    statt der eigenen AVL-Methoden verwendet. Dies fixt ein Problem
+    bei der Sortierung, wenn identische Schlüssel mehrfach auftauchen
+    (z.B. gleiche Timestamps oder Dateigrößen). Zusätzlich kann nun
+    auch nach ATime, CTime, MTime und Dateigröße sortiert werden.
+  - CDirEntry: "Is..."-Funktionen sind nun als "const" deklariert
+  - Valgrind: Mismatched free() / delete / delete [] in
+    ppl6::CID3Tag::RemovePicture gefixt
+  - CID3Frame Destruktor verändert die Framekette nicht mehr, dafür ist
+    allein CID3Tag zuständig
+  - CID3Tag: Fehler in der Berechnung der Framegröße bei Textframes
+    mit ISO-8859-1 oder UTF-8 Kodierung behoben. (Valgrind Fehler: Invalid
+    read/write of size 1)
+  - IdentAudioFile: Neue Funktion zum Ermitteln des Audioformats einer
+    Datei, sowie deren Kennzahlen, wie Frequenz, Kanäle, Samples, und Länge.
+    Die Daten werden im ebenfalls neuen Objekt "AudioInfo" abgelegt.
+    Die Funktion soll IdentMPEG ablösen und neben MP3 auch andere Formate
+    unterstützen. Gegenwärtig wird MP3 und AIFF unterstützt.
+  - CFile::RenameFile löscht unter Windows die Zieldatei vor dem Rename.
+    Die C-Funktion "rename" bzw. "_wrename" verhält sich unter Windows
+    anders als unter Unix.
+  - CFile::Exists verwendet nun "stat" bzw. unter Windows "_wstat" um
+    ein konsistentes Verhalten zu bekommen. Bisher wurde versucht die
+    Datei zu öffnen, was unter Unix auch auf Verzeichnisse funktioniert,
+    unter Windows aber nicht.
+  - Win32: Problem mit CFile::mmap behoben
+  - CID3Tag: Bugfix beim Update eines vorhandenen Tags unter Windows
+  
+Version 6.4.18 vom 04.02.2014	(SVN-Tag: REL_6_4_18)
+  - CID3Tag: Neue Funktion zum Auslesen von PRIV-Frames (PrivateData)
+  - CID3Tag unterstützt TXXX-Tag mit EnergyLevel
+  - CID3Tag liefert Anzahl Frames zurück mit CID3Tag::FrameCount()
+  - Webserver: Funktionen queueResponse und queueBasicAuthFailedResponse haben
+    keinen Rückgabewert mehr und werfen eine Exception im Fehlerfall
+  - Webserver: Fehlerbehandlung in answer_to_connection implementiert
+  - CConfig: Spaces am Anfang und Ende von Werten werden nicht mehr abge-
+    schnitten
+  - Bugfix: Die LTrim-Funktionen der beiden String-Klassen CString und
+    CWString haben beim Verschieben des Strings ein Byte über das Ende des
+    internen Buffers hinausgelesen.
+  - CTCPSocket::Read: Fehlercode EINTR wird wie EAGAIN behandelt und
+    ignoriert, bzw. ein Retry initiiert
+  - Funktion IdentMPEG kann besser mit fehlerhaften MP3-dateien umgehen
+  - CFile::CopyFile funktioniert nun. Bisher wurde das neue File nicht
+    angelegt und das alte gelöscht :-(  => Unittests angelegt
+  - Statische Funktionen von CFile refakturiert: statt "const char*"
+    wird nun "const CString &" erwartet, ausser dort, wo ein Formatstring
+    übergeben wird. Funktionen mit Formatstring haben ein "f" am Ende des
+    Funktionsnamens erhalten
+  - File-Funktionen unter Windows: Es werden jetzt Non-US-ASCII-Zeichen
+    im Dateinamen unterstützt.
+  - CFile::Truncate wird nun auch unter Windows unterstützt
+  - Bugfix: Absturz unter Windows durch unbehandelte Exception im Destruktor
+    der CLog-Klasse behoben. Seit Version 6.4.15 wird Syslog unter Unix
+    unterstützt. Der Destruktor hat die Funktion zum Schließen von Syslog
+    aber auch unter Windows aufgerufen und die dabei entstehende Exception
+    nicht abgefangen. 
+  - Funktion CString MD5(const void *data, size_t size) implementiert
+  - Unittests für statische Funktionen aus CFile implementiert
+  - CID3Tag::GetGenre liefert einen bereits geparsten String zurück, der den
+    Namen des Genres enthält. Bisher wurde der Inhalt des Tags TCON ungefiltert
+    zurückgegeben
+  - CFile::Popen(const char *command, const char *mode, ...) umbenannt in
+    Popenf
+  - OpenTemp akzeptiert nurnoch einen Parameter vom Typ CString, die bisherige
+    Funktion mit Formatstring und variabler Anzahl Parameter heisst jetzt
+    OpenTempf
+  - CFile::Size führt zunächst ein fflush aus, damit möglicherweise noch im
+    Puffer befindliche Daten geschrieben werden.
+  - CFileObject::SetFilename(const char *filename, ...) umbenannt in
+    SetFilenamef
+  - CFile::Seek, Fseek, Ftell, Size und Lof haben keine Funktion mehr,
+    bzw. geben 0 zurück, wenn die geöffnete Datei eine Pipe ist.
+  - Diverse Compiler-Warnings mit gcc 4.6.x gefixt
+  - CDir: Bugfix im Konstruktor behebt möglichen Absturz durch nicht
+    rechtzeitig initialisierte Variable.
+  - Unittests für CDir implementiert
+  
+Version 6.4.17 vom 03.11.2013	(SVN-Tag: REL_6_4_17)
+  - Cppl6Core ist nicht mehr von CDebug/CLog abgeleitet
+  - CArray::Explode: Performance wurde drastisch verbessert
+  - CArray: Neue Funktion "Reserve", zum Vorallokieren von Speicher
+  - CArray: Neuer Konstruktor mit Explode-Funktion
+  - Bugfix in CAssocArray::CreateFromConfig: Bei Angabe von "dotrim=false"
+    wurde am Ende doch getrimmt
+  - Testsuite um Tests für CAssocArray-Klasse ergänzt (Backport von PPL7)
+  - Bugfix: CleanupThreadData hat zwar das Datenobjekt gelöscht, nicht aber
+    den Pointer darauf innerhalb der posix threads
+  - PPLExit ruft nun CleanupThreadData auf
+  - CleanupThreadData ist nun auch für Windows implementiert
+  - Makefile: pplgenresource verwendet nun das lokale config-ppl6-Skript
+    und die lokale Bibliothek
+  - configure: libshout kann jetzt mit --without-libshout abgeschaltet
+    werden
+  - ppl6-unixconfig.h enthält nurnoch die Typdefinitionen, aber nicht mehr die
+    ganzen HAVE_xzy Direktiven
+  - Datentyp "mode_t" wird in ppl.h nicht mehr verwendet
+  - CTCPSocket::Bind: Hostname und Port werden nun gespeichert und können mit
+    den neuen Funktionen "getHostname" und "getPort" abgefragt werden.
+  - Webserver::start: Exception "CouldNotStartDaemon" hat jetzt zusätzliche
+    Informationen über den aufgetretenen Fehler
+  - Webserver: Neue Funktionen: getHostname, getPort
+  - configure: Erkennung für libmicrohttpd verbessert
+  - configure: Erkennung für curl-config verbessert
+  - ppl6-config: Option "--features" unterstützt nun optionale Angabe der
+    gewünschten Features. Ist ein Feature nicht eingebunden, wird eine
+    ERROR-Meldung ausgegeben und der Returncode ist ungleich 0
+  - Bugfix in MySQL::Query: Ein Fehlerfall beim Speichern des Query-Results
+    wurde zwar festgestellt, aber kein passender Fehlercode gesetzt. 
+  - Freetype-Font-Rendering verbessert, das Hinting funktioniert jetzt besser
+    (Code aus ppl7 übernommen)
+  - Makefile sollte nun abbrechen, wenn beim "make install" ein Fehler auftritt
+  - Statische Funktionen in CFile umbenannt und erweitert: Exists, TouchFile,
+    DeleteFile und FileAttr akzeptieren nurnoch einen Parameter mit dem Datei-
+    namen und keinen Formatstring mehr (zu fehleranfällig). Die neuen
+    Funktionen Existsf, TouchFilef, DeleteFilef und FileAttrf übernehmen die
+    alte Funktionalität und erwarten einen Formatstring.
+  - Bugfix: fehlendes Semikolon in EscapeHTMLTags und UnescapeHTMLTags beim
+    Tag "&amp;" ergänzt
+  - Bugfix: "Conditional jump or move depends on uninitialised value" in
+    MkTime behoben.
+  - Bugfix: Race Condition in CAssocArray::Copy behoben
+  - CMutex wirft jetzt eine Exception im Konstruktor, wenn kein Speicher für die
+    internen Variablen allokiert werden konnte. Daher konnten in den Member-
+    Functions einige Prüfungen wegoptimiert werden.
+  - Fehler bei der Initialisierung von MySQL behoben. Neue statische Funktion
+    zum Initialisieren der MySQL-Bibliothek.
+  - mögliche Race Condition Pool::CheckPool behoben
+  - bzero durch memset ersetzt, da bzero in POSIX.1-2008 entfernt wurde
+  - CID3Tag unterstützt TKEY
+  - CID3Tag::SetTextFrame unterstützt optionalen dritten Parameter zur Angabe
+    des gewünschten Encodings
+
+Version 6.4.16 vom 19.05.2013	(SVN-Tag: REL_6_4_16)
+  - Bugfix: Fehlende "IFDEF"'s zur Prüfung der Syslog-Unterstützung in CLog
+    ergänzt (behebt Compiler-Fehler unter MinGW)
+  - Bugfix: "Invalid read of size 1" in ppl6::CLog::Printf behoben
+  - Bugfix: Memory-Leak in CSSL::~CSSL() gefixt
+  - Bugfix: Diverse Memory-Leaks in CWString::Setf und CWString::Sprintf
+    behoben
+  - Neue Funktion: CleanupThreadData. Diese muss aufgerufen werden, bevor
+    ein Thread, der nicht mittles der PPL-Funktionen gestartet wurde,
+    beendet wird.
+  - Bugfix: Memory-Leak in der Restschnittstelle behoben
+  - Bugfix: Memory-Leak im Zusammenhang mit MySQL gefixt
+  - Überflüssige Variablen in Trim-Funktionen der Klasse CWString entfernt
+  - Bugfix: Fehler in CString::RTrim behoben, durch den zu wenig Zeichen am
+    Ende des Strings abgeschnitten wurden (Backport von PPL7)
+  - Bugfix: Fehler in CWString::RTrim behoben, durch den zu wenig Zeichen am
+    Ende des Strings abgeschnitten wurden (Backport von PPL7)
+  - Bugfix: Memory Leak und "silly malloc" in CString::PregMatch und
+    CWString::PregMatch behoben
+  - Testsuite um Tests für CString-Klasse ergänzt (Backport von PPL7)
+  - Testsuite um Tests für CWString-Klasse ergänzt (Backport von PPL7)
+  - CWString hat Konstruktor für std::wstring bekommen und Operator für
+    std::ostream
+  - Bugfix in CString::IsNumeric und CWString::IsNumeric
+  - CWString: Vergleichsoperatoren für CWString und einige weitere Operatoren
+    und Funktionen sind jetzt als "const" deklariert
+  - Bugfix in CWString::Chomp: Es konnten zu viele Zeichen abgeschnitten werden
+  - CWString::Concat führte zu "Conditional jump or move depends on
+    uninitialised value"
+  - Bugfix in CWString::Delete: Falscher Returnwert wurde zurückgegeben, wenn
+    Zeichen am Ende des Strings abgeschnitten wurden.
+  - Bugfix in CString::Shr und CWString::Shr: Zeichen am Ende des Strings
+    wurden nicht abgeschnitten, String konnte länger werden, als der Original-
+    string
+  - CWString: Operator bool() entfernt, da dieser nicht funktioniert
+  - CString: Zusätzliche Set- und SetChar-Funktionen
+  - CString: Funktionen IsTrue und IsFalse eingeführt
     
-Version 6.4.7
+  Achtung: Mögliches Kompatibilitätsproblem:
+  - Änderung in CWString::Set: Bei Verwendung eines char *, std::string oder
+    CString als Input, wird der optionale zweite Parameter nicht mehr als
+    Bytes, sondern als Zeichen interpretiert! Dieses Verhalten war bereits
+    so, wenn keine Iconv-Library installiert war, und somit ein Fallback auf
+    die Funktion mbstowcs erfolgte. 
+
+Version 6.4.15 vom 30.04.2013	(SVN-Tag: REL_6_4_15)
+  - CLog-Klasse unterstützt nun Syslog
+
+Version 6.4.14 vom 21.03.2013	(CVS-Tag: REL_6_4_14)
+  - Bugfix beim Einlesen von ID3-Tag-Covern mit UTF-16-Encoding
+  - Bugfix: Potentieller Memory-Leak in CTCPSocket::WaitForMessage gefixt
+  - Bugfix: Fehler im Aufbau der verketteten Liste der Klasse CSSL behoben
+  - Change: CSSL verwendet malloc und free statt CHeap
+  - Bugfix: CTCPSocket: Beim Disconnect oder Shutdown wurde kein SSL_Stop
+    aufgerufen. Dadurch konnte der SSL-Stack durcheinander kommen.
+  
+Version 6.4.13  vom 27.07.2012	(CVS-Tag: REL_6_4_13)
+  - Kleinere Kompatibilitätsprobleme unter Windows behoben
+  - Fehler in Postgres-DB-Anbindung behoben, wodurch mit FetchArray
+    oder FetchFields mehr Zeilen gelesen wurden, als im
+    Result vorhanden war
+  - DB-Connect mit Postgres-Datenbank unterstützt jetzt Parameter
+    "searchpath" zum Setzen des Suchpfades.
+  - CString unterstützt Ausgabe als Stream
+  - Erkennung der FreeTDS-Library für Sybase erneuert 
+  - CDateTime Genauigkeit auf Mikrosekunden erhöht
+  - Format des Integer-Wertes von CDateTime::longInt hat sich geändert
+    und ist inkompatibel zu vorher.
+  - Testsuite mit Unittests für CDateTime erstellt (Verwendung von
+    Google-Test)
+  - Bugfix in CString::PregReplace
+
+Version 6.4.12  vom 04.04.2012	(CVS-Tag: REL_6_4_12)
+  - Datenbank: Strings werden nun in Hochkommata statt Anführungszeichen
+    gesetzt
+  - Datenbank: Datentypen werden in Abhängigkeit ihres Types und der
+    Datenbank escaped und gequoted. Neue Funktion Database::getQuoted
+  - Datenbank: Mutexe aus den Datenbanken entfernt. Die Anwendung ist
+    dafür verantwortlich parallelen Zugriff zu verhindern.
+  - Backport von PPL7: CDir::homePath und CDir::tempPath
+  - Funktion ppl6::db::GetSupportedDatabases hinzugefügt
+  - Unterstützung für Datenbank SQLite3 (experimentell)
+    
+Version 6.4.11 vom 19.02.2012	(CVS-Tag: REL_6_4_11)
+  - Bugfix in PNG-Laderoutine
+  - Kritischer Bugfix in Sybase::Ping: Result wurde nicht freigegeben, wodurch
+    nachfolgende Operationen blockiert und die Verbindung somit
+    unbrauchbar wurde
+  - Neue Klasse: PerlHelper
+  - CDateTime verarbeitet nun auch "null" oder das Datum "0000-00-00".
+    Beides wird als "0" interpretiert.
+  - CDateTime hat neue Funktionen zum Abfragen der Kalenderwoche:
+    week() und weekISO8601()
+  - Neue Funktion CString::setInitialBuffersize
+  - Fehlende Funktion CString::Capacity implementiert
+  - CFile::Open mit Formatstring wurde umbenannt in CFile::Openf
+  - CFont unterstützt Parameter für Rotation
+  - Font-Format 6 eingeführt (Backport aus PPL7)
+  - Bugfix: Array::Explode auf einen leeren String führt jetzt nicht mehr
+    dazu, dass ein leeres Element hinzugefügt wird 
+
+Version 6.4.10 vom 10.11.2011	(CVS-Tag: REL_6_4_10)
+  - CCurl-Klasse: Signals werden nun standardmäßig deaktiviert,
+    da Anwendungen mit mehreren Threads sonst in Probleme laufen.
+    Mit der neuen Funktion CCurl::EnableSignals können die Signals
+    explizit wieder aktiviert werden.
+
+Version 6.4.9 vom 30.10.2011	(CVS-Tag: REL_6_4_9)
+  - Kompatibilitätsprobleme mit OpenSSL 1.x.x behoben
+  - Funktion StartThread, um einen Thread ohne Verwendung der
+    Klasse CThread zu starten
+  - Webserver-Klasse, die auf libmicrohttpd aufsetzt 
+
+Version 6.4.8 vom 27.07.2011	(CVS-Tag: REL_6_4_8)
+  - Datenbankklassen: Neue Funktion "databaseType"
+  - Bugfix in Compression-Klasse: bei Verwendung des V2-Prefix
+    wurde beim Komprimieren statt Länge der unkomprimierten Daten
+    die Länge der komprimierten Daten geschrieben
+  - Bugfix in Datenbank-Connect-Funktion. Fehlerhaften "ifdef" für
+    Postgres korrigiert
+  - Bugfix in Postgres-Escape-Funktion. Das letzte Zeichen des
+    Strings wird nun nicht mehr abgeschnitten.
+    
+Version 6.4.7 vom 25.05.2011	(CVS-Tag: REL_6_4_7)
   - CDateTime holt sich nun die Millisekunden via "gettimeofday",
     sofern die Funktion vorhanden ist. Bei der Ausgabe mit
     "get" wird nun der Platzhalter "%*" unterstützt, der durch die
