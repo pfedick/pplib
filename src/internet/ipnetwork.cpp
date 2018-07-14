@@ -98,6 +98,12 @@ static unsigned int bytemask[]={
 		0xff
 };
 
+/*!\class IPNetwork
+ * \ingroup PPLGroupInternet
+ *
+ *
+ */
+
 
 IPNetwork::IPNetwork()
 {

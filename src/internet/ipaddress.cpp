@@ -108,6 +108,11 @@ static unsigned int bytemask[]={
 		0xff
 };
 
+/*!\class IPAddress
+ * \ingroup PPLGroupInternet
+ *
+ *
+ */
 
 IPAddress::IPAddress()
 {

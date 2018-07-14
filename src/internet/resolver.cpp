@@ -105,6 +105,7 @@ namespace ppl7 {
 
 String GetHostname()
 /*!\brief Liefert den Hostnamen des Systems zurück
+ * \ingroup PPLGroupInternet
  *
  * Diese Funktion liefert den Hostnamen des Systems als String zurück.
  *
@@ -263,6 +264,13 @@ String GetHostByAddr(const IPAddress &addr)
 	throw UnknownHostException(addr.toString());
 }
 
+
+/*!\class Resolver
+ * \ingroup PPLGroupInternet
+ *
+ *
+ */
+
 String Resolver::typeName(Type t)
 {
         switch (t)  {
@@ -301,6 +309,17 @@ String Resolver::className(Class c)
 
 
 String shortenIpv6(const String &s)
+/*!\brief Reverse-Lookup anhand einer IP-Adresse
+ * \ingroup PPLGroupInternet
+ *
+ * \header \#include <ppl7-inet.h>
+ * \desc
+ * Diese Funktion führt eine Reverse-Abfrage einer IP-Adresse durch.
+ *
+ * \param s String mit IPv6-Adresse
+ * \return String abgekürzter IPv6-Adresse
+ *
+ */
 {
 	ppl7::String r=s;
 	if (r.instr(":0:0:0:0:0:0:0:")>=0) r.replace(":0:0:0:0:0:0:0:","::");

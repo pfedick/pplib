@@ -136,6 +136,7 @@ void InitSockets()
 
 
 /*!\brief Ace-Form aus einem IDN-String berechnen
+ * \ingroup PPLGroupInternet
  *
  * \desc
  * Wandelt einen IDN-String in seine Ace-Form um.
@@ -172,7 +173,7 @@ String Idn2Ace(const String &idn)
 }
 
 /*!\brief Ace-Form aus einem IDN-String berechnen
- *
+ * \ingroup PPLGroupInternet
  * \desc
  * Wandelt einen IDN-String in seine Ace-Form um.
  *
@@ -247,6 +248,7 @@ String Ace2Idn(const String &ace)
 
 
 /*!\brief Ace-Form einer Domain in die IDN-Form umwandeln
+ * \ingroup PPLGroupInternet
  *
  * \desc
  * Wandelt einen ACE-String in seine lesbare IDN-Form um.
@@ -286,6 +288,7 @@ WideString Ace2Idn(const WideString &ace)
 #define MAXL (size_t) 75    /* 76th position only used by continuation = */
 
 /*!\brief Konvertiert einen 8Bit-String in Quoted Printable (RFC-822)
+ * \ingroup PPLGroupInternet
  *
  * \desc
  * Diese Funktion wandelt einen String in Quoted Printable um.
@@ -339,6 +342,7 @@ String ToQuotedPrintable (const String &source)
 }
 
 /*!\brief 32-Bit-Wert von Host-Byteorder in Hostbyteorder wandeln
+ * \ingroup PPLGroupInternet
  *
  * \desc
  * Mit dieser statischen Funktion kann ein 32-Bit-Wert von Netzwerk-Byte-Order
@@ -354,6 +358,7 @@ ppluint32 Ntohl(ppluint32 net)
 }
 
 /*!\brief 32-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
+ * \ingroup PPLGroupInternet
  *
  * \desc
  * Mit dieser statischen Funktion kann ein 32-Bit-Wert von der
@@ -370,6 +375,7 @@ ppluint32 Htonl(ppluint32 host)
 }
 
 /*!\brief 16-Bit-Wert von Netzwerk-Byteorder in Host-Byteorder wandeln
+ * \ingroup PPLGroupInternet
  *
  * \desc
  * Mit dieser statischen Funktion kann ein 16-Bit-Wert von Netzwerk-Byte-Order
@@ -385,6 +391,7 @@ ppluint16 Ntohs(ppluint16 net)
 }
 
 /*!\brief 16-Bit-Wert von Host-Byteorder in Netzwerk-Byteorder wandeln
+ * \ingroup PPLGroupInternet
  *
  * \desc
  * Mit dieser statischen Funktion kann ein 16-Bit-Wert von der
