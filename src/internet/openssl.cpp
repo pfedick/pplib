@@ -1550,7 +1550,13 @@ int CSSL::LoadCertificate(const char *certificate, const char *privatekey, const
 		}
 		if (privatekey==NULL || strlen(privatekey)==0) privatekey=certificate;
 		if (!SSL_CTX_use_PrivateKey_file((SSL_CTX*)ctx,privatekey,SSL_FILETYPE_PEM)) {
-			SetError(328,"%s",privatekey);
+			a.Clear();
+			while ((code=ERR_get_error_line_data(&file,&line,&data,&flags))) {
+				ERR_error_string(code,ebuffer);
+				if (a.NotEmpty()) a+=", ";
+				a.Concatf("OpenSSL Error %i: %s (%s)",code,ebuffer,data);
+			}
+			SetError(328,"%s [%s]",(const char*)a, privatekey);
 			return 0;
 		}
 		return 1;
