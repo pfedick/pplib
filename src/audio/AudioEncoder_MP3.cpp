@@ -130,12 +130,28 @@ void AudioEncoder_MP3::setVBR(int min, int max, int quality)
 			min=max;
 			max=tmp;
 		}
+		int preset=V2;
+		switch (quality) {
+			case 0: preset=V0; break;
+			case 1: preset=V1; break;
+			case 2: preset=V2; break;
+			case 3: preset=V3; break;
+			case 4: preset=V4; break;
+			case 5: preset=V5; break;
+			case 6: preset=V6; break;
+			case 7: preset=V7; break;
+			case 8: preset=V8; break;
+			case 9: preset=V9; break;
+			default: preset=V2; break;
+		}
+		//lame_set_preset((lame_global_flags*)gfp, preset);
+		lame_set_bWriteVbrTag((lame_global_flags*)gfp,1);
 		lame_set_VBR((lame_global_flags*)gfp, vbr_mtrh);
 		lame_set_quality((lame_global_flags*)gfp,quality);
 		lame_set_VBR_q((lame_global_flags*)gfp, quality);
 		lame_set_VBR_quality((lame_global_flags*)gfp, (float)quality);
 		lame_set_brate((lame_global_flags*)gfp, min);
-		lame_set_VBR_min_bitrate_kbps((lame_global_flags*)gfp, lame_get_brate((lame_global_flags*)gfp));
+		lame_set_VBR_min_bitrate_kbps((lame_global_flags*)gfp, min);
 		lame_set_VBR_max_bitrate_kbps((lame_global_flags*)gfp, max);
 	}
 #endif
@@ -148,6 +164,7 @@ void AudioEncoder_MP3::setABR(int avg, int quality)
 	throw ppl7::UnsupportedFeatureException("AudioEncoder_MP3: Lame");
 #else
 	if (!started) {
+		lame_set_bWriteVbrTag((lame_global_flags*)gfp,1);
 		lame_set_preset((lame_global_flags*)gfp, avg);
 		//lame_set_VBR((lame_global_flags*)gfp, vbr_abr);
 		//lame_set_VBR_q((lame_global_flags*)gfp, quality);
