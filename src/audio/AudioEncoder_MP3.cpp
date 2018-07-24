@@ -77,6 +77,7 @@ AudioEncoder_MP3::AudioEncoder_MP3()
 
 	// LAME mit Standardwerten initialisieren
 	lame_set_bWriteVbrTag((lame_global_flags*)gfp,0);
+	lame_set_write_id3tag_automatic((lame_global_flags*)gfp, 0);
 	/*
 	lame_set_quality((lame_global_flags*)gfp,2);	// Beste Qualitaet und gute Performance
 	lame_set_mode((lame_global_flags*)gfp,STEREO);
@@ -368,8 +369,10 @@ void AudioEncoder_MP3::encode(AudioDecoder &decoder)
 		} else if (encodedbytes<0) dispatchEncoderError(encodedbytes);
 		if (bStopEncode) throw EncoderAbortedException();
 		if (ProgressFunc) {
-			int progress=(info.Samples-samples_left)*100/info.Samples;
-			if (progress!=last_progress) ProgressFunc(progress,ProgressFuncPrivData);
+			int progress=(int)((pplint64)(info.Samples-samples_left)*100/info.Samples);
+			if (progress!=last_progress) {
+				ProgressFunc(progress,ProgressFuncPrivData);
+			}
 			last_progress=progress;
 		}
 	}
