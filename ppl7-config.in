@@ -255,6 +255,7 @@ if test "$listfeatures" = "yes"; then
 	check_feature "nasm" "@report_have_nasm@" "$features_wanted"
 	check_feature "pthreads" "@report_have_pthreads@" "$features_wanted"
 	check_feature "ldns" "@report_have_ldns@" "$features_wanted"
+	check_feature "mpg123" "@report_have_mpg123@" "$features_wanted"
 	check_feature "ogg" "@report_have_libogg@" "$features_wanted"
 	check_feature "shout" "@report_have_libshout@" "$features_wanted"
 	check_feature "imlib" "@report_have_libimlib@" "$features_wanted"
