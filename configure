@@ -628,6 +628,7 @@ ac_func_list=
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
+report_have_mpg123
 report_have_libbind
 report_have_libidn
 report_have_libmicrohttpd
@@ -17458,6 +17459,7 @@ case "${host_cpu}-${host_os}" in
 		CFLAGS=`echo $CFLAGS | $SED 's/-I\/usr\/local\/include //g' | $SED 's/-I\/usr\/include //g' `
         ;;
 esac;
+
 
 
 

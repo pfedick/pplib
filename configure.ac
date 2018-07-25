@@ -772,6 +772,7 @@ AC_SUBST(report_have_libtiff)
 AC_SUBST(report_have_libmicrohttpd)
 AC_SUBST(report_have_libidn)
 AC_SUBST(report_have_libbind)
+AC_SUBST(report_have_mpg123)
 
 
 ###############################################################################
