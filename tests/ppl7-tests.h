@@ -36,7 +36,7 @@
 #define PPL7_TESTS_H_
 
 #ifdef WIN32
-#define DEFAULT_LOCALE	"german"
+#define DEFAULT_LOCALE	""
 #else
 #define DEFAULT_LOCALE	"de_DE.UTF-8"
 #endif
