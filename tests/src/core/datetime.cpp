@@ -40,9 +40,13 @@
 #include <ppl7.h>
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
+
+#undef _PPL7_CONFIG
+#undef _WIN32_WINNT
 #include "../include/config.h"
 
 namespace {
+
 
 // The fixture for testing class Foo.
 class DateTimeTest : public ::testing::Test {
@@ -692,7 +696,6 @@ TEST_F(DateTimeTest, GreaterThanEqualMicroSecond) {
 	}
 	);
 }
-
 
 }
 
