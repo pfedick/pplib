@@ -52,56 +52,50 @@ OBJECTS_CORE = compile/array.o compile/assocarray.o compile/avltree.o \
 	compile/pointer.o compile/stringfunctions.o compile/strings.o \
 	compile/time.o compile/variant.o compile/widestrings.o
 
-OBJECTS_CRYPTO = compile/crypto.o compile/digest.cpp compile/mcrypt.o compile/mhash.o
+OBJECTS_CRYPTO = compile/crypto.o compile/digest.o compile/mcrypt.o compile/mhash.o
 
-OBJECTS = compile/dir.o compile/main.o compile/strings.o compile/datetime.o compile/array.o \
-	compile/memoryheap.o compile/memorygroup.o compile/wordlist.o \
-	compile/bytearray.o compile/bytearrayptr.o \
-	compile/avltree.o compile/assocarray.o compile/pointer.o \
-	compile/file.o compile/gzfile.o compile/list.o compile/functions.o \
-	compile/inet.o compile/resolver.o compile/widestrings.o \
-	compile/inet_ipaddress.o compile/inet_ipnetwork.o \
-	compile/variant.o compile/iconv.o \
-	compile/stringfunctions.o compile/math.o\
-	compile/configparser.o \
-	compile/logger.o compile/time.o \
-	compile/tcpsocket.o \
-	compile/filestatic.o compile/textsnippets.o \
-	compile/mhash.o compile/mcrypt.o compile/digest.o compile/crypto.o \
-	compile/audioinfo.o compile/inet_sockaddr.o compile/id3tag.o \
-	compile/grafix.o compile/grafix_drawable.o compile/grafix_imagefilter.o \
+OBJECTS_DATABASE = compile/db_postgres.o compile/db_sqlite.o compile/db_mysql.o
+
+OBJECTS_GRAFIX = compile/grafix.o compile/grafix_drawable.o compile/grafix_imagefilter.o \
 	compile/grafix_color.o compile/grafix_font.o compile/grafix_image.o \
 	compile/grafix_point.o compile/grafix_point3d.o compile/grafix_rect.o \
-	compile/grafix_rgbformat.o compile/grafix_size.o \
+	compile/grafix_rgbformat.o compile/grafix_size.o
+
+OBJECTS_INET =  compile/inet.o compile/resolver.o compile/inet_ipaddress.o compile/inet_ipnetwork.o \
+	compile/tcpsocket.o compile/inet_sockaddr.o 
+
+OBJECTS_AUDIO = compile/audioinfo.o compile/id3tag.o \
 	compile/audio_decoder_mp3.o compile/audio_decoder_aiff.o compile/audio_decoder_wave.o \
-	compile/audio_encoder_mp3.o compile/audio_encoder_aiff.o compile/audio_encoder_wave.o \
-
-OBJECTS_DB = compile/main.o compile/db_postgres.o compile/wordlist.o \
-	compile/db_sqlite.o compile/db_mysql.o
+	compile/audio_encoder_mp3.o compile/audio_encoder_aiff.o compile/audio_encoder_wave.o
 
 
-TESTSUITES = test_core test_crypto
+OBJECTS_LEGACY = $(OBJECTS_CORE) $(OBJECTS_CRYPTO) $(OBJECTS_GRAFIX) $(OBJECTS_INET) \
+	$(OBJECTS_AUDIO)
+ 
+
+TESTSUITES = testsuite test_core test_crypto test_database test_audio test_grafix test_inet
 
 all: $(TESTSUITES) toolkit loggertest dbtest gfxreftest stringspeed
 
 
-dbtest: compile/libgtest.a $(DB_OBJECTS) ppl7-tests.h
-	$(CXX) -O -ggdb -o dbtest $(CFLAGS) $(DB_OBJECTS) compile/libgtest.a $(LIBS)
-
-dbtest_coverage: compile/libgtest.a $(DB_OBJECTS) ppl7-tests.h
-	$(CXX) -O -ggdb -o dbtest_coverage $(CFLAGS) $(DB_OBJECTS) compile/libgtest.a $(LIBS_COVERAGE)
-
-	
 coverage: $(PROGNAME)_coverage dbtest_coverage
  
 test: $(TESTSUITES)
 	./test_core
+	./test_audio
+	./test_crypto
+	./test_grafix
+	./test_inet
 	
 xml: $(TESTSUITES)
 	./test_core --gtest_output=xml:testresult_core.xml
+	./test_audio --gtest_output=xml:testresult_audio.xml
+	./test_crypto --gtest_output=xml:testresult_crypto.xml
+	./test_grafix --gtest_output=xml:testresult_grafix.xml
+	./test_inet --gtest_output=xml:testresult_inet.xml
 	
 memcheck: $(TESTSUITES)
-	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testresult_core.valgrind ./test_core
+	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testresult_core.valgrind ./testsuite
 
 
 clean:
@@ -125,7 +119,48 @@ test_crypto: $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) ppl7-tests.h
 test_crypto_coverage: $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) -O -ggdb -o test_crypto_coverage $(CFLAGS) $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
+test_database: $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_database $(CFLAGS) $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) $(LIBS)
 	
+test_database_coverage: $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_database_coverage $(CFLAGS) $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
+
+test_audio: $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_audio $(CFLAGS) $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) $(LIBS)
+	
+test_audio_coverage: $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_audio_coverage $(CFLAGS) $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
+
+test_grafix: $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_grafix $(CFLAGS) $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) $(LIBS)
+	
+test_grafix_coverage: $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_grafix_coverage $(CFLAGS) $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
+
+test_inet: $(OBJECTS_INET) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_inet $(CFLAGS) $(OBJECTS_INET) $(OBJECTS_TESTSUITE) $(LIBS)
+	
+test_inet_coverage: $(OBJECTS_INET) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_inet_coverage $(CFLAGS) $(OBJECTS_INET) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
+
+
+################################################################################
+# LEGACY TESTSUITES
+################################################################################
+
+testsuite: $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o testsuite $(CFLAGS) $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) $(LIBS)
+	
+testsuite_coverage: $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o testsuite_coverage $(CFLAGS) $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
+
+
+dbtest: $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o dbtest $(CFLAGS) $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) $(LIBS)
+	
+dbtest_coverage: $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o dbtest_coverage $(CFLAGS) $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
+
 threadtest: compile/threadtest.o ppl7-tests.h
 	$(CXX) -O -ggdb -o threadtest $(CFLAGS) compile/threadtest.o $(LIBS)
 
@@ -364,38 +399,38 @@ compile/toolkit.o: src/toolkit.cpp Makefile ppl7-tests.h src/toolkit.h
 # DATABASE
 ################################################################################
 	
-compile/db_postgres.o: src/db_postgres.cpp Makefile ppl7-tests.h
+compile/db_postgres.o: src/database/db_postgres.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/db_postgres.o -c src/db_postgres.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/db_postgres.o -c src/database/db_postgres.cpp $(CFLAGS) $(LIB)
 
-compile/db_sqlite.o: src/db_sqlite.cpp Makefile ppl7-tests.h
+compile/db_sqlite.o: src/database/db_sqlite.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/db_sqlite.o -c src/db_sqlite.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/db_sqlite.o -c src/database/db_sqlite.cpp $(CFLAGS) $(LIB)
 
-compile/db_mysql.o: src/db_mysql.cpp Makefile ppl7-tests.h
+compile/db_mysql.o: src/database/db_mysql.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/db_mysql.o -c src/db_mysql.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/db_mysql.o -c src/database/db_mysql.cpp $(CFLAGS) $(LIB)
 	
 
 ################################################################################
 # CRYPTO
 ################################################################################
 	
-compile/digest.o: src/digest.cpp Makefile ppl7-tests.h
+compile/digest.o: src/crypto/digest.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/digest.o -c src/digest.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/digest.o -c src/crypto/digest.cpp $(CFLAGS) $(LIB)
 
-compile/crypto.o: src/crypto.cpp Makefile ppl7-tests.h
+compile/crypto.o: src/crypto/crypto.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/crypto.o -c src/crypto.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/crypto.o -c src/crypto/crypto.cpp $(CFLAGS) $(LIB)
 
-compile/mhash.o: src/mhash.cpp Makefile ppl7-tests.h
+compile/mhash.o: src/crypto/mhash.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/mhash.o -c src/mhash.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/mhash.o -c src/crypto/mhash.cpp $(CFLAGS) $(LIB)
 
-compile/mcrypt.o: src/mcrypt.cpp Makefile ppl7-tests.h
+compile/mcrypt.o: src/crypto/mcrypt.cpp Makefile ppl7-tests.h
 	mkdir -p compile
-	$(CXX) -o compile/mcrypt.o -c src/mcrypt.cpp $(CFLAGS) $(LIB)
+	$(CXX) -o compile/mcrypt.o -c src/crypto/mcrypt.cpp $(CFLAGS) $(LIB)
 
 ################################################################################
 # AUDIO
@@ -432,4 +467,4 @@ compile/audio_encoder_wave.o: src/audio/audio_encoder_wave.cpp Makefile ppl7-tes
 compile/audio_encoder_mp3.o: src/audio/audio_encoder_mp3.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/audio_encoder_mp3.o -c src/audio/audio_encoder_mp3.cpp $(CFLAGS) $(LIB)
-	
+
