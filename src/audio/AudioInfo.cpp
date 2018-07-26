@@ -215,7 +215,7 @@ static bool IdentMP3(FileObject &file, AudioInfo &info, PPL_MPEG_HEADER &mp3)
 
 bool IdentAudioFile(FileObject &file, AudioInfo &info)
 {
-	const char *adr=file.map(0,12);
+	const char *adr=file.map(0,24);
 	if (!adr) return false;
 	// AIFF
 	if (PeekN32(adr+4)<file.size()
@@ -237,7 +237,7 @@ bool IdentAudioFile(FileObject &file, AudioInfo &info)
 
 AudioInfo::AudioFormat IdentAudioFile(FileObject &file)
 {
-	const char *adr=file.map(0,12);
+	const char *adr=file.map(0,24);
 	if (!adr) return AudioInfo::UNKNOWN;
 	// AIFF
 	if (PeekN32(adr+4)<file.size()
