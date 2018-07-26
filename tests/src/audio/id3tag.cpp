@@ -179,7 +179,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte0) {	// ISO-88591
 	ppl7::ID3Tag Tag;
 	ppl7::String result;
 	ppl7::ByteArray ba;
-	ppl7::String expected("Hällo Wörld");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("Hällo Wörld"));
 	ba=expected.toEncoding("ISO-8859-1");
 	char prefix[1]={0};
 	ba.prepend(prefix,1);
@@ -199,7 +199,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte1) {		// UTF-16 mit BOM
 	ppl7::ID3Tag Tag;
 	ppl7::String result;
 	ppl7::ByteArray ba;
-	ppl7::String expected("Hällo Wörld");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("Hällo Wörld"));
 	ba=expected.toEncoding("UTF-16");
 	char prefix[1]={1};
 	ba.prepend(prefix,1);
@@ -219,7 +219,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte2) {		// UTF-16BE ohne BOM
 	ppl7::ID3Tag Tag;
 	ppl7::String result;
 	ppl7::ByteArray ba;
-	ppl7::String expected("Hällo Wörld");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("Hällo Wörld"));
 	ba=expected.toEncoding("UTF-16BE");
 	char prefix[1]={2};
 	ba.prepend(prefix,1);
@@ -578,7 +578,6 @@ TEST_F(ID3TagTest, AiffInitialTaggingWithoutPicture) {
 			throw;
 		}
 	});
-
 	ppl7::DirEntry d;
 	ppl7::File::statFile("tmp/test_tagged1.aiff",d);
 	EXPECT_EQ((size_t)695866,d.Size) << "Tagged File has unexpected size";

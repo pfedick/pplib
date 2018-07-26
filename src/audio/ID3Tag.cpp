@@ -1454,11 +1454,12 @@ void ID3Tag::saveAiff()
 	tmpfile+=".rename.tmp";
 	File n;
 	File o;
-	o.open(Filename,File::READWRITE);
 
 	// Tags generieren
 	ByteArray tagV2;
 	generateId3V2Tag(tagV2);
+
+	o.open(Filename,File::READWRITE);
 
 	if (tagV2.size()>0) {
 		try {
@@ -1467,7 +1468,6 @@ void ID3Tag::saveAiff()
 
 		}
 	}
-
 	// create temporary file for new tag
 	n.touch(tmpfile);
 	n.open(tmpfile,File::READWRITE);
@@ -1481,6 +1481,7 @@ void ID3Tag::saveAiff()
 	}
 	o.close();
 	n.close();
+	File::remove(Filename);
 	File::rename(tmpfile,Filename);
 }
 
