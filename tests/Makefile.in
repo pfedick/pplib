@@ -81,18 +81,18 @@ all: $(TESTSUITES) toolkit loggertest dbtest gfxreftest stringspeed
 coverage: $(PROGNAME)_coverage dbtest_coverage
  
 test: $(TESTSUITES)
-	./test_core
-	./test_audio
-	./test_crypto
-	./test_grafix
-	./test_inet
+	-./test_core
+	-./test_audio
+	-./test_crypto
+	-./test_grafix
+	-./test_inet
 	
 xml: $(TESTSUITES)
-	./test_core --gtest_output=xml:testresult_core.xml
-	./test_audio --gtest_output=xml:testresult_audio.xml
-	./test_crypto --gtest_output=xml:testresult_crypto.xml
-	./test_grafix --gtest_output=xml:testresult_grafix.xml
-	./test_inet --gtest_output=xml:testresult_inet.xml
+	-./test_core --gtest_output=xml:testresult_core.xml
+	-./test_audio --gtest_output=xml:testresult_audio.xml
+	-./test_crypto --gtest_output=xml:testresult_crypto.xml
+	-./test_grafix --gtest_output=xml:testresult_grafix.xml
+	-./test_inet --gtest_output=xml:testresult_inet.xml
 	
 memcheck: $(TESTSUITES)
 	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testresult_core.valgrind ./testsuite
@@ -182,6 +182,12 @@ toolkit: compile/toolkit.o src/toolkit.h ../release/libppl7.a
 loggertest: src/loggertest.cpp ../release/libppl7.a
 	mkdir -p compile
 	$(CXX) -O -ggdb -o loggertest $(CFLAGS) src/loggertest.cpp $(LIBS)
+
+
+compile/gfxreftest.o: src/gfxreftest.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/gfxreftest.o -c src/gfxreftest.cpp $(CFLAGS) $(LIB)
+
 
 gfxreftest: compile/gfxreftest.o ../release/libppl7.a
 	mkdir -p compile
@@ -342,10 +348,6 @@ compile/tcpsocket.o: src/inet/tcpsocket.cpp Makefile ppl7-tests.h
 ################################################################################
 # GRAFIX
 ################################################################################
-
-compile/gfxreftest.o: src/gfxreftest.cpp Makefile ppl7-tests.h
-	mkdir -p compile
-	$(CXX) -o compile/gfxreftest.o -c src/gfxreftest.cpp $(CFLAGS) $(LIB)
 
 compile/grafix.o: src/grafix/grafix.cpp Makefile ppl7-tests.h
 	mkdir -p compile
