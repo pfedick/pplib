@@ -152,6 +152,14 @@ void Iconv::transcode(const String &from, String &to)
 	//to.hexDump();
 }
 
+String Iconv::transcode(const String &from)
+{
+	ByteArrayPtr ff(from.c_str(), from.size());
+	ByteArray result;
+	transcode(ff,result);
+	return String((const char*)result.ptr(), result.size());
+}
+
 
 const char *iconv_charsets=
 "437,500,500V1,850,851,852,855,856,857,860,861,862,863,864,865,866,866NAV,869,874,904,1026,1046,1047,8859_1,8859_2,"
@@ -317,9 +325,29 @@ String Iconv::getLocalCharset()
 	loc.upperCase();
 	if (loc=="C" || loc=="POSIX") return String ("US_ASCII");
 	size_t p=loc.instr(".");
-	if (p>=0) return loc.mid(p+1);
+	if (p>=0) {
+#ifdef WIN32
+		String tmp=loc.mid(p+1);
+		if (tmp.isNumeric()) return "CP"+tmp;
+#else
+		return loc.mid(p+1);
+#endif
+	}
 	throw CharacterEncodingException();
 }
+
+String Iconv::Utf8ToLocal(const String &text)
+{
+	Iconv iconv("UTF-8",Iconv::getLocalCharset());
+	return iconv.transcode(text);
+}
+
+String Iconv::LocalToUtf8(const String &text)
+{
+	Iconv iconv(Iconv::getLocalCharset(),"UTF-8");
+	return iconv.transcode(text);
+}
+
 
 
 
