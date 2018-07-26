@@ -36,9 +36,11 @@
 #define PPL7_TESTS_H_
 
 #ifdef WIN32
-#define DEFAULT_LOCALE	""
+#define DEFAULT_LOCALE	".1252"
+#define LATIN1_LOCALE ".1252"
 #else
 #define DEFAULT_LOCALE	"de_DE.UTF-8"
+#define LATIN1_LOCALE "de_DE.ISO8859-1"
 #endif
 
 #ifndef PPL7TESTSUITEMAIN
