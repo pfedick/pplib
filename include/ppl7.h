@@ -39,8 +39,8 @@
 #define PPL7_VERSION_MAJOR	7
 #define PPL7_VERSION_MINOR	0
 #define PPL7_VERSION_BUILD	0
-#define PPL7_RELEASEDATE	20171202
-#define PPL7_COPYRIGHT		"Copyright (c) 2017 by Patrick Fedick"
+#define PPL7_RELEASEDATE	20180718
+#define PPL7_COPYRIGHT		"Copyright (c) 2018 by Patrick Fedick"
 
 // Inlcude PPL7 configuration file
 #ifndef _PPL7_CONFIG
