@@ -41,7 +41,12 @@
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
 
+#undef _PPL7_CONFIG
+#undef _WIN32_WINNT
+#include "../include/config.h"
+
 namespace {
+
 
 // The fixture for testing class Foo.
 class DateTimeTest : public ::testing::Test {
@@ -278,7 +283,11 @@ TEST_F(DateTimeTest, toStringWithFormat) {
 TEST_F(DateTimeTest, getISO8601) {
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
+#ifdef STRUCT_TM_HAS_GMTOFF
 		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11+02:00"),d1.getISO8601()) << "Unexpected date";
+#else
+		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11"),d1.getISO8601()) << "Unexpected date";
+#endif
 	}
 	);
 }
@@ -286,7 +295,11 @@ TEST_F(DateTimeTest, getISO8601) {
 TEST_F(DateTimeTest, getISO8601withMsec) {
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
+#ifdef STRUCT_TM_HAS_GMTOFF
 		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11.159+02:00"),d1.getISO8601withMsec()) << "Unexpected date";
+#else
+		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11.159"),d1.getISO8601withMsec()) << "Unexpected date";
+#endif
 	}
 	);
 }
@@ -294,7 +307,11 @@ TEST_F(DateTimeTest, getISO8601withMsec) {
 TEST_F(DateTimeTest, getISO8601withMsecNoRoundUp) {
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1("2012-05-18 11:50:11.159999");
+#ifdef STRUCT_TM_HAS_GMTOFF
 		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11.159+02:00"),d1.getISO8601withMsec()) << "Unexpected date";
+#else
+		ASSERT_EQ(ppl7::String("2012-05-18T11:50:11.159"),d1.getISO8601withMsec()) << "Unexpected date";
+#endif
 	}
 	);
 }
@@ -679,7 +696,6 @@ TEST_F(DateTimeTest, GreaterThanEqualMicroSecond) {
 	}
 	);
 }
-
 
 }
 

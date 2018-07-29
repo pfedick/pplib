@@ -49,7 +49,7 @@ namespace {
 class InetTest : public ::testing::Test {
 	protected:
 	InetTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+		if (setlocale(LC_CTYPE,"")==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
@@ -61,10 +61,14 @@ class InetTest : public ::testing::Test {
 
 TEST_F(InetTest, Idn2AceUtf8) {
 	ASSERT_NO_THROW({
-		ppl7::String idn="tästmé.de";
-		//printf ("String: >>%s<<\n",(const char*)idn);
-		ppl7::String ace=ppl7::Idn2Ace(idn);
-		ASSERT_EQ(ppl7::String("xn--tstm-loa7a.de"),ace) << "Convertion failed";
+		ppl7::String idn=ppl7::Iconv::Utf8ToLocal("tästmé.de");
+		try {
+			ppl7::String ace=ppl7::Idn2Ace(idn);
+			ASSERT_EQ(ppl7::String("xn--tstm-loa7a.de"),ace) << "Convertion failed";
+		} catch (const ppl7::Exception &exp) {
+			exp.print();
+			throw;
+		}
 	}
 	);
 }
@@ -73,7 +77,7 @@ TEST_F(InetTest, Ace2IdnUtf8) {
 	ASSERT_NO_THROW({
 		ppl7::String ace="xn--tstm-loa7a.de";
 		ppl7::String idn=ppl7::Ace2Idn(ace);
-		ASSERT_EQ(ppl7::String("tästmé.de"),idn) << "Convertion failed";
+		ASSERT_EQ(ppl7::String(ppl7::Iconv::Utf8ToLocal("tästmé.de")),idn) << "Convertion failed";
 	}
 	);
 }

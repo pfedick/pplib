@@ -148,28 +148,8 @@ void InitSockets()
  */
 String Idn2Ace(const String &idn)
 {
-#ifdef HAVE_LIBIDN
-	String ace;
-	char *a=NULL;
-	if (IDNA_SUCCESS==idna_to_ascii_lz((const char*)idn,&a,0) && a!=NULL) {
-		ace.set(a);
-#ifdef _WIN32
-		idn_free(a);
-#else
-		free(a);
-#endif
-		return ace;
-    }
-#ifdef _WIN32
-		idn_free(a);
-#else
-		free(a);
-#endif
-
-		throw IdnConversionException("%s",(const char*)idn);
-#else
-	throw UnsupportedFeatureException("libidn");
-#endif
+	WideString ws_idn(idn);
+	return Idn2Ace(ws_idn);
 }
 
 /*!\brief Ace-Form aus einem IDN-String berechnen
@@ -222,28 +202,8 @@ WideString Idn2Ace(const WideString &idn)
  */
 String Ace2Idn(const String &ace)
 {
-#ifdef HAVE_LIBIDN
-	String idn;
-	char *a=NULL;
-    if (IDNA_SUCCESS==idna_to_unicode_8z8z((const char*)ace, &a,0) && a!=NULL) {
-		idn.set(a);
-#ifdef _WIN32
-		idn_free(a);
-#else
-		free(a);
-#endif
-		return idn;
-    }
-#ifdef _WIN32
-		idn_free(a);
-#else
-		free(a);
-#endif
-
-	throw IdnConversionException("%s",(const char*)ace);
-#else
-	throw UnsupportedFeatureException("libidn");
-#endif
+	WideString ws_ace(ace);
+	return Ace2Idn(ws_ace);
 }
 
 

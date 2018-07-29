@@ -42,6 +42,10 @@
 #include <gtest/gtest.h>
 #include <list>
 #include "ppl7-tests.h"
+#undef _PPL7_CONFIG
+#undef _WIN32_WINNT
+#include "../include/config.h"
+
 
 namespace {
 
@@ -208,6 +212,36 @@ TEST_F(GetHostByName, ThreeIPv4_af_inet6) {
 	});
 }
 
+TEST_F(GetHostByName, SingleIPv6_af_inet) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("singleipv6.ppl.pfp.de",result,ppl7::af_inet);
+			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+TEST_F(GetHostByName, ThreeIPv6_af_inet) {
+	ASSERT_NO_THROW ({
+		try {
+			std::list<ppl7::IPAddress> result;
+			size_t num=ppl7::GetHostByName("threeipv6.ppl.pfp.de",result,ppl7::af_inet);
+			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
+			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
+		} catch (ppl7::Exception &e) {
+			e.print();
+			throw;
+		}
+	});
+}
+
+#ifndef WIN32
+
 TEST_F(GetHostByName, SingleIPv6_af_all) {
 	ASSERT_NO_THROW ({
 		try {
@@ -218,20 +252,6 @@ TEST_F(GetHostByName, SingleIPv6_af_all) {
 			ppl7::IPAddress adr;
 			adr=result.front();
 			ASSERT_EQ(ppl7::IPAddress("2001:470:1f0b:3e4::1"),adr) << "Unexpected IP-Address";
-		} catch (ppl7::Exception &e) {
-			e.print();
-			throw;
-		}
-	});
-}
-
-TEST_F(GetHostByName, SingleIPv6_af_inet) {
-	ASSERT_NO_THROW ({
-		try {
-			std::list<ppl7::IPAddress> result;
-			size_t num=ppl7::GetHostByName("singleipv6.ppl.pfp.de",result,ppl7::af_inet);
-			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
-			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -275,20 +295,6 @@ TEST_F(GetHostByName, ThreeIPv6_af_all) {
 			ASSERT_EQ(ppl7::IPAddress("2001:470:1f0a:3e4::99:1b4c"),*lit) << "Unexpected IP-Address";
 			lit++;
 			ASSERT_EQ(ppl7::IPAddress("2001:470:1f0b:3e4::1"),*lit) << "Unexpected IP-Address";
-		} catch (ppl7::Exception &e) {
-			e.print();
-			throw;
-		}
-	});
-}
-
-TEST_F(GetHostByName, ThreeIPv6_af_inet) {
-	ASSERT_NO_THROW ({
-		try {
-			std::list<ppl7::IPAddress> result;
-			size_t num=ppl7::GetHostByName("threeipv6.ppl.pfp.de",result,ppl7::af_inet);
-			ASSERT_EQ((size_t)0,num) << "Unexpected return value";
-			ASSERT_EQ((size_t)0,result.size()) << "Unexpected number of results";
 		} catch (ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -399,6 +405,10 @@ TEST_F(GetHostByName, MixedIPv4v6_af_inet6) {
 	});
 }
 
+#endif
+
+#ifdef HAVE_RES_SEARCH
+
 TEST_F(Resolver, query_NS) {
 	ppl7::Array a;
 	ASSERT_NO_THROW ({
@@ -495,6 +505,8 @@ TEST_F(Resolver, query_SOA) {
 	EXPECT_EQ(ppl7::String("2001:470:1f0a:3e4::99:1b4c"),a[0]) << "Unexpected value of result record 0";
 }
 */
+
+#endif
 
 }
 

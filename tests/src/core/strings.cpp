@@ -47,7 +47,7 @@ namespace {
 class StringTest : public ::testing::Test {
 	protected:
 	StringTest() {
-		if (setlocale(LC_ALL,"")==NULL) {
+		if (setlocale(LC_ALL,DEFAULT_LOCALE)==NULL) {
 			printf ("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
@@ -138,16 +138,22 @@ TEST_F(StringTest, ConstructorFromStdString) {
 }
 
 TEST_F(StringTest, ConstructorFromStdWString) {
-	ASSERT_NO_THROW({
+
 		std::wstring s1(L"A test string with unicode characters: äöü");
 		ASSERT_EQ((size_t)42,s1.size()) << "std:wstring has unexpected size";
 		ppl7::String s2(s1);
-		ASSERT_EQ((size_t)45,s2.len()) << "String does not have length of 45";
 		const char *buf=s2.getPtr();
 		ASSERT_TRUE(NULL!=buf) << "Class did not return a pointer to a c-string";
 		ASSERT_EQ('A',(unsigned char)s2[0]) << "Unexpected Character in string";
+#ifdef WIN32
+		ASSERT_EQ((size_t)42,s2.len()) << "String does not have length of 42";
+		ASSERT_EQ(252,(unsigned char)s2[41]) << "Unexpected Character in string";
+#else
+		ASSERT_EQ((size_t)45,s2.len()) << "String does not have length of 45";
 		ASSERT_EQ(188,(unsigned char)s2[44]) << "Unexpected Character in string";
-	});
+
+#endif
+
 }
 
 TEST_F(StringTest, clear) {
@@ -392,21 +398,21 @@ TEST_F(StringTest, setSTDStringRefWithSize) {
 }
 
 TEST_F(StringTest, setSTDWStringRefWithoutSize) {
-	ppl7::String s2("äöü, a test string with unicode characters");
+	ppl7::String s2(ppl7::Iconv::Utf8ToLocal("äöü, a test string with unicode characters"));
 	std::wstring s3(L"äöü, a test string with unicode characters");
 	ppl7::String s1;
 	s1.set(s3);
-	ASSERT_EQ(s1,s2) << "String as unexpected value";
-	ASSERT_EQ((size_t)45,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(s1,s2) << "String has unexpected value";
+	ASSERT_EQ(s2.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, setSTDWStringRefWithSize) {
-	ppl7::String s2("äöü, a tes");
+	ppl7::String s2(ppl7::Iconv::Utf8ToLocal("äöü, a tes"));
 	std::wstring s3(L"äöü, a test string with unicode characters");
 	ppl7::String s1;
 	s1.set(s3,10);
 	ASSERT_EQ(s2,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)13,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(s2.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, setf) {
@@ -443,21 +449,21 @@ TEST_F(StringTest, vasprintf) {
 }
 
 TEST_F(StringTest, appendConstWchartWithoutSize) {
-	ppl7::String expected("First Part äöü, äöü Second Part");
-	ppl7::String s1("First Part äöü, ");
-	s1.append("äöü Second Part");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü Second Part"));
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
+	s1.append(L"äöü Second Part");
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)37,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(expected.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, appendConstWchartWithSize) {
-	ppl7::String expected("First Part äöü, äöü S");
-	ppl7::String s1("First Part äöü, ");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü S"));
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
 	s1.append(L"äöü Second Part",5);
 
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)27,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(expected.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, appendConstCharPtrWithoutSize) {
@@ -533,21 +539,21 @@ TEST_F(StringTest, appendStdStringWithSize) {
 }
 
 TEST_F(StringTest, appendStdWStringWithoutSize) {
-	ppl7::String expected("First Part äöü, äöü Second Part");
-	ppl7::String s1("First Part äöü, ");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü Second Part"));
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
 	std::wstring s2(L"äöü Second Part");
 	s1.append(s2);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)37,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(expected.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, appendStdWStringWithSize) {
-	ppl7::String expected("First Part äöü, äöü Seco");
-	ppl7::String s1("First Part äöü, ");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü Seco"));
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
 	std::wstring s2(L"äöü Second Part");
 	s1.append(s2,8);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)30,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(expected.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, appendf) {
@@ -654,21 +660,21 @@ TEST_F(StringTest, prependStdStringWithSize) {
 }
 
 TEST_F(StringTest, prependStdWStringWithoutSize) {
-	ppl7::String expected("äöü Second PartFirst Part äöü, ");
-	ppl7::String s1("First Part äöü, ");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("äöü Second PartFirst Part äöü, "));
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
 	std::wstring s2(L"äöü Second Part");
 	s1.prepend(s2);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)37,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(expected.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, prependStdWStringWithSize) {
-	ppl7::String expected("äöü SFirst Part äöü, ");
-	ppl7::String s1("First Part äöü, ");
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("äöü SFirst Part äöü, "));
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
 	std::wstring s2(L"äöü Second Part");
 	s1.prepend(s2,5);
 	ASSERT_EQ(expected,s1) << "String has unexpected value";
-	ASSERT_EQ((size_t)27,s1.size()) << "String has unexpected length";
+	ASSERT_EQ(expected.size(),s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, prependf) {
@@ -1032,22 +1038,22 @@ TEST_F(StringTest, substrWithoutLength) {
 }
 
 TEST_F(StringTest, lowerCase) {
-	ppl7::String s1("The Quick Brown Fox Jumps over ÄÖÜ");
-	ppl7::String expected("the quick brown fox jumps over äöü");
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps over ÄÖÜ"));
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("the quick brown fox jumps over äöü"));
 	ASSERT_NO_THROW(s1.lowerCase());
 	ASSERT_EQ(expected,s1);
 }
 
 TEST_F(StringTest, upperCase) {
-	ppl7::String s1("The Quick Brown Fox Jumps over äöü");
-	ppl7::String expected("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ");
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps over äöü"));
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"));
 	ASSERT_NO_THROW(s1.upperCase());
 	ASSERT_EQ(expected,s1);
 }
 
 TEST_F(StringTest, upperCaseWords) {
-	ppl7::String s1("the quick brown fox jumps over äöü");
-	ppl7::String expected("The Quick Brown Fox Jumps Over Äöü");
+	ppl7::String s1(ppl7::Iconv::Utf8ToLocal("the quick brown fox jumps over äöü"));
+	ppl7::String expected(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps Over Äöü"));
 	ASSERT_NO_THROW(s1.upperCaseWords());
 	ASSERT_EQ(expected,s1);
 }
@@ -1101,7 +1107,7 @@ TEST_F(StringTest, pregReplace) {
 
 
 
-
+#ifndef WIN32
 TEST_F(StringTest, Utf8toUtf8) {
 	ASSERT_NO_THROW({
 		ppl7::String s1("A test string with unicode characters: äöü");
@@ -1112,10 +1118,18 @@ TEST_F(StringTest, Utf8toUtf8) {
 	});
 }
 
+#endif
+
 TEST_F(StringTest, ISO88591toUtf8) {
-	if (setlocale(LC_ALL,"de_DE.ISO8859-1")==NULL) {
+#ifdef WIN32
+	if (setlocale(LC_CTYPE,".1252")==NULL) {
 		FAIL() << "setlocale fehlgeschlagen\n";
 	}
+	#else
+	if (setlocale(LC_CTYPE,"de_DE.ISO8859-1")==NULL) {
+		FAIL() << "setlocale fehlgeschlagen\n";
+	}
+#endif
 	ppl7::String s1;
 	EXPECT_NO_THROW({
 		s1.set("A test string with unicode characters: ");

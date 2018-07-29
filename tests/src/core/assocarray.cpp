@@ -258,7 +258,7 @@ TEST_F(AssocArrayTest, fromConfig) {
 static void createDefaultAssocArray(ppl7::AssocArray &a)
 {
 	ppl7::AssocArray data;
-	a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
+	a.set("key1","Dieser Wert geht ueber\nmehrere Zeilen");
 	a.set("key2","value6");
 	a.set("array1/unterkey1","value2");
 	a.set("array1/unterkey2","value3");
@@ -285,16 +285,17 @@ static void createDefaultAssocArray(ppl7::AssocArray &a)
 	data.setf("cpu/idle","%d",4);
 	data.setf("cpu/iowait","%d",5);
 
-	data.setf("sysinfo/uptime","%ld",(long)32324234213);
-	data.setf("sysinfo/freeswap","%ld",(long)2345215545);
-	data.setf("sysinfo/totalswap","%ld",(long)65463635);
-	data.setf("sysinfo/freeram","%ld",(long)5467254523);
-	data.setf("sysinfo/bufferram","%ld",(long)549153452345);
-	data.setf("sysinfo/totalram","%ld",(long)24346579);
-	data.setf("sysinfo/sharedram","%ld",(long)232356657);
+	data.setf("sysinfo/uptime","%lld",(long long)32324234213);
+	data.setf("sysinfo/freeswap","%lld",(long long)2345215545);
+	data.setf("sysinfo/totalswap","%lld",(long long)65463635);
+	data.setf("sysinfo/freeram","%lld",(long long)5467254523);
+	data.setf("sysinfo/bufferram","%lld",(long long)549153452345);
+	data.setf("sysinfo/totalram","%lld",(long long)24346579);
+	data.setf("sysinfo/sharedram","%lld",(long long)232356657);
 	data.setf("sysinfo/procs","%d",12321);
 	a.set("data/[]",data);
 	a.set("data/[]",data);
+	//a.list();
 }
 
 TEST_F(AssocArrayTest, binarySize) {
@@ -323,7 +324,7 @@ TEST_F(AssocArrayTest, exportAndImportBinary) {
 
 	ASSERT_EQ(a.count(),b.count()) << "Unexpected size of AssocArray";
 	ASSERT_EQ(a.count(true), b.count(true)) << "Unexpected size of AssocArray";
-	ASSERT_EQ(ppl7::String("Dieser Wert geht über\nmehrere Zeilen"),b.getString("key1")) << "unexpected value";
+	ASSERT_EQ(ppl7::String("Dieser Wert geht ueber\nmehrere Zeilen"),b.getString("key1")) << "unexpected value";
 	ASSERT_EQ(ppl7::String("value7"),b.getString("key2")) << "unexpected value";
 	ASSERT_EQ(ppl7::String("value5"),b.getString("array1/unterkey2")) << "unexpected value";
 	ASSERT_EQ(ppl7::String("32324234213"),b.getString("data/1/sysinfo/uptime")) << "unexpected value";

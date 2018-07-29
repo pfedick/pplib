@@ -292,7 +292,14 @@ TEST_F(DigestTest, TestAddDataFromWideString) {
 	ASSERT_NO_THROW(hash.addData(data));
 	ppl7::String result;
 	ASSERT_NO_THROW(hash.saveDigest(result));
+
+#ifdef WIN32
+	// wchar_t is 2 byte on windows
+	ASSERT_EQ(ppl7::String("8c6d8979fd6c6de310f794f0c5d40b4efc15218d335e1b9c777825845c2342ad"),result);
+#else
+	// wchar_t is 4 byte on unix
 	ASSERT_EQ(ppl7::String("1780fcdeb19fa0435ad20e02720d96dd73f1f417452b8dab0bb4d433ee01531a"),result);
+#endif
 }
 
 TEST_F(DigestTest, TestAddDataFromByteArray) {

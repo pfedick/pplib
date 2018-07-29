@@ -74,7 +74,7 @@ TEST_F(IconvTest, enumerateCharsets) {
 
 TEST_F(IconvTest, getLocalCharset) {
 #ifdef WIN32
-	ASSERT_EQ("UTF-8",ppl7::Iconv::getLocalCharset());
+	ASSERT_EQ(ppl7::String("CP1252"),ppl7::Iconv::getLocalCharset());
 #else
 	ASSERT_EQ(ppl7::String("UTF-8"),ppl7::Iconv::getLocalCharset());
 #endif

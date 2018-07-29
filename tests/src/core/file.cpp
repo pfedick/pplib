@@ -80,9 +80,9 @@ TEST_F(FileReadTest, openExisting) {
 	ASSERT_NO_THROW(f1.open("testdata/filenameUSASCII.txt"));
 }
 
-TEST_F(FileReadTest, openExistingUtf8) {
+TEST_F(FileReadTest, openExistingLocal) {
 	ppl7::File f1;
-	ASSERT_NO_THROW(f1.open("testdata/filenameUTF8äöü.txt"));
+	ASSERT_NO_THROW(f1.open(ppl7::Iconv::Utf8ToLocal("testdata/filenameUTF8äöü.txt")));
 }
 
 TEST_F(FileReadTest, size) {
