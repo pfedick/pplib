@@ -1,6 +1,9 @@
 /*!\page PPL7History PPL7 History
 PPL7 - HISTORY
 
+Version 7.0.1
+  - updated unittests to googletest 1.8.0
+
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7
   - Unittests with Google Test framework

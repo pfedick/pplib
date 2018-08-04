@@ -65,7 +65,7 @@ case "$SYS:$REL:$KERNEL" in
                         --with-libidn=/usr/local \
                         --with-ogg=/usr/local \
                         --with-libmicrohttpd=/usr/local \
-                        --enable-gtest=/usr/local/gtest-1.7.0
+                        --enable-gtest=/usr/local
 
 		;;
 	FreeBSD:10.*)
@@ -92,7 +92,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libidn=/usr/local \
 			--with-ogg=/usr/local \
 			--with-libmicrohttpd=/usr/local \
-			--enable-gtest=/usr/local/gtest-1.7.0
+			--enable-gtest=/usr/local
 			
 		;;
 	MINGW32*:1.0.16*)

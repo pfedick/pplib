@@ -26,3 +26,10 @@
 /test_grafix.exe
 /test_inet.exe
 /testresult_core.xml
+/googletest/
+/test_audio
+/test_core
+/test_crypto
+/test_database
+/test_grafix
+/test_inet
