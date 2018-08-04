@@ -79,9 +79,35 @@ export CXX=clang++60
 \endcode
 
 
+\subsection inst2ubuntu1804 Installation unter Ubuntu 18.04 LTS
+Wenn man alle Features der Library nutzen will, muß man folgende Pakete installieren:
+
+\code
+sudo apt install -y gcc g++ nasm googletest \
+   zlib1g-dev libbz2-dev libssl-dev libpcre3-dev \
+   libmcrypt-dev libmhash-dev libgtest-dev libcurl4-openssl-dev libldns-dev \
+   libbind-dev libmysqlclient-dev libpq-dev libpng-dev libjpeg-dev \
+   libsdl2-dev libfreetype6-dev libmad0-dev libmp3lame-dev libmpg123-dev \
+   libogg-dev libshout3-dev libmicrohttpd-dev libtiff-dev libidn11-dev
+\endcode
+
+Ist alles installiert, kann man das configure mit folgenden Parametern aufrufen:
+\code
+export CFLAGS="-no-pie "
+./configure --prefix=$HOME \
+    --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
+    --with-mysql  --with-libiconv-prefix --with-nasm \
+    --with-libmhash --with-gcrypt=auto --with-ogg=/usr \
+    --with-postgresql \
+    --with-libmicrohttpd=/usr/local \
+    --with-jpeg --with-libpng=$PREFIX --with-libtiff \
+    --with-libtiff=/usr --with-mpg123 \
+    --with-libidn \
+    --enable-gtest
+\endcode
 
 
-\subsection inst2debian Installation unter Debian / Ubuntu
+\subsection inst2debian Installation unter Debian / Ubuntu (Veraltet)
 Wenn man alle Features der Library nutzen will, muß man folgende Pakete installieren:
 \code
 # Kern-Funktionalität
@@ -133,7 +159,7 @@ export CXX=clang++$CLANG_VERSION
    --with-libidn=/usr/local \
    --with-ogg=/usr/local \
    --with-libmicrohttpd=/usr/local \
-   --enable-gtest=/usr/local/gtest-1.7.0
+   --enable-gtest=/usr/local
 \endcode
 
 \section inst3 Installation unter Windows
