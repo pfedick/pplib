@@ -176,7 +176,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libmicrohttpd=/usr/local \
 			--with-jpeg --with-libpng=$PREFIX --with-libtiff \
 			--with-libtiff=/usr --with-mpg123 \
-            --with-libidn \
+            --with-libidn --with-libldns=/usr \
 			--enable-gtest=/usr/local/googletest-release-1.7.0
 		;;	
 	*)

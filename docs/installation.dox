@@ -86,9 +86,10 @@ Wenn man alle Features der Library nutzen will, muß man folgende Pakete install
 sudo apt install -y gcc g++ nasm googletest \
    zlib1g-dev libbz2-dev libssl-dev libpcre3-dev \
    libmcrypt-dev libmhash-dev libgtest-dev libcurl4-openssl-dev libldns-dev \
-   libbind-dev libmysqlclient-dev libpq-dev libpng-dev libjpeg-dev \
-   libsdl2-dev libfreetype6-dev libmad0-dev libmp3lame-dev libmpg123-dev \
-   libogg-dev libshout3-dev libmicrohttpd-dev libtiff-dev libidn11-dev
+   libbind-dev libmysqlclient-dev libpq-dev libsqlite3-dev \
+   libpng-dev libjpeg-dev libtiff-dev libsdl2-dev libfreetype6-dev \
+   libmad0-dev libmp3lame-dev libmpg123-dev \
+   libogg-dev libshout3-dev libmicrohttpd-dev libidn11-dev
 \endcode
 
 Ist alles installiert, kann man das configure mit folgenden Parametern aufrufen:
@@ -98,12 +99,11 @@ export CFLAGS="-no-pie "
     --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
     --with-mysql  --with-libiconv-prefix --with-nasm \
     --with-libmhash --with-gcrypt=auto --with-ogg=/usr \
-    --with-postgresql \
+    --with-postgresql --with-sqlite3 \
     --with-libmicrohttpd=/usr/local \
     --with-jpeg --with-libpng=$PREFIX --with-libtiff \
     --with-libtiff=/usr --with-mpg123 \
-    --with-libidn \
-    --enable-gtest
+    --with-libidn --with-libldns=/usr
 \endcode
 
 
