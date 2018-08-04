@@ -295,7 +295,7 @@ AC_SUBST(PPLIBTESTVERSION)
 
 
 report_have_gtest="no"
-GTEST_LIB_CHECK([1.8.0],
+AC_CHECK_GTEST(
 	report_have_gtest="yes"
 	,
 	report_have_gtest="no"

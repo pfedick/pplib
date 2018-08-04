@@ -30,18 +30,19 @@
 #
 ###############################################################################
 
+GTEST_DIR	= @GTEST_PREFIX@
 CC			= @CC@
 CXX			= @CXX@
 EXTRA_CFLAGS = 
-INCLUDE	= -I. 
-CFLAGS	= -ggdb -Wall  @GTEST_CPPFLAGS@ $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
-LIBS	= `../ppl7-config --libs debug source` @GTEST_LDFLAGS@ @GTEST_LIBS@ -lstdc++
-LIBS_REL = `../ppl7-config --libs release source` @GTEST_LDFLAGS@ @GTEST_LIBS@ -lstdc++
-LIBS_COVERAGE	= `../ppl7-config --libs coverage source` @GTEST_LDFLAGS@ @GTEST_LIBS@ @GCOV_LDFLAGS@ -lstdc++
+INCLUDE	= -I. -I$(GTEST_DIR)/include
+CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
+LIBS	= `../ppl7-config --libs debug source` -lstdc++
+LIBS_REL = `../ppl7-config --libs release source` -lstdc++
+LIBS_COVERAGE	= `../ppl7-config --libs coverage source` @GCOV_LDFLAGS@ -lstdc++
 
 OBJECTS_COMMON = compile/textsnippets.o compile/wordlist.o
 
-OBJECTS_TESTSUITE = $(OBJECTS_COMMON) compile/main.o
+OBJECTS_TESTSUITE = $(OBJECTS_COMMON) compile/main.o compile/libgtest.a
 
 OBJECTS_CORE = compile/array.o compile/assocarray.o compile/avltree.o \
 	compile/bytearray.o compile/bytearrayptr.o compile/configparser.o \
@@ -195,6 +196,12 @@ gfxreftest: compile/gfxreftest.o ../release/libppl7.a
 ################################################################################
 # COMMON
 ################################################################################
+
+compile/libgtest.a:
+	mkdir -p compile
+	$(CXX) -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
+	ar -rv compile/libgtest.a compile/gtest-all.o
+
 
 compile/main.o: src/main.cpp Makefile ppl7-tests.h
 	mkdir -p compile
