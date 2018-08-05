@@ -97,7 +97,7 @@
 }
 
 {
-   <insert_a_suppression_name_here>
+   openssl 9
    Memcheck:Param
    write(buf)
    fun:__sys_write
@@ -109,32 +109,32 @@
 }
 
 {
-   <insert_a_suppression_name_here>
+   openssl 10
    Memcheck:Cond
    fun:ssl3_get_finished
    fun:ssl3_accept
 }
 
 {
-   <insert_a_suppression_name_here>
+   openssl 11
    Memcheck:Value8
    obj:/lib/libz.so.6
 }
 
 {
-   <insert_a_suppression_name_here>
+   openssl 12
    Memcheck:Cond
    obj:/lib/libcrypto.so.7
 }
 
 {
-   <insert_a_suppression_name_here>
+   openssl 13
    Memcheck:Value8
    obj:/lib/libcrypto.so.7
 }
 
 {
-   <insert_a_suppression_name_here>
+   openssl 14
    Memcheck:Param
    write(buf)
    fun:write
