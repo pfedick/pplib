@@ -567,7 +567,7 @@ int SQLite::StartTransaction()
 {
 #ifndef HAVE_SQLITE
 	SetError(511,"SQLite");
-	return NULL;
+	return 0;
 #else
 	if (transactiondepth==0) {	// Neue Transaktion
 		if (Exec("BEGIN")) {
@@ -588,7 +588,7 @@ int SQLite::EndTransaction()
 {
 #ifndef HAVE_SQLITE
 	SetError(511,"SQLite");
-	return NULL;
+	return 0;
 #else
 	if (transactiondepth==1) {
 		if (Exec("COMMIT")) {
@@ -609,7 +609,7 @@ int SQLite::CancelTransaction()
 {
 #ifndef HAVE_SQLITE
 	SetError(511,"SQLite");
-	return NULL;
+	return 0;
 #else
 	if (transactiondepth==1) {
 		if (Exec("ROLLBACK")) {
@@ -630,7 +630,7 @@ int SQLite::CancelTransactionComplete()
 {
 #ifndef HAVE_SQLITE
 	SetError(511,"SQLite");
-	return NULL;
+	return 0;
 #else
 	if (Exec("ROLLBACK")) {
 		transactiondepth=0;
@@ -644,7 +644,7 @@ int SQLite::Escape(CString &str) const
 {
 #ifndef HAVE_SQLITE
 	SetError(511,"SQLite");
-	return NULL;
+	return 0;
 #else
 	// SQLite hat keine Escape-Funktion, daher müssen wir das selbst machen
 	CString n;
