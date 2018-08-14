@@ -166,7 +166,7 @@ case "$SYS:$REL:$KERNEL" in
 		;;		
 	Linux:*generic*)
 	
-	    export CFLAGS="-no-pie "
+	    # export CFLAGS="-no-pie "
 		echo "configuring for generic Linux"
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
