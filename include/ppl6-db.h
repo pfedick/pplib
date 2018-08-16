@@ -427,6 +427,9 @@ class Pool
 		int CalcHash(CString &hash, CAssocArray &param);
 
 		void checkUsedPool();
+		void createMinimum();
+		void createSpare();
+		void releaseSpare();
 
 	public:
 		Pool();

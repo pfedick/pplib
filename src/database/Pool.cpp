@@ -757,9 +757,67 @@ int Pool::GetStatus(CAssocArray &status)
 	return 1;
 }
 
+void Pool::releaseSpare()
+{
+	if (MaxSpare<1) return;
+	Mutex.Lock();
+	if (Log) {
+		if (Free.Num()>MaxSpare) {
+			Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","releaseSpare",__FILE__,__LINE__,
+					"Reduziere Spare-Connects im Pool von %i auf %i",Free.Num(), MaxSpare);
+		}
+	}
+	while (Free.Num()>MaxSpare) {
+		Free.Reset();
+		Database *p=(Database*)Free.GetNext();
+		if (!p) break;
+		Free.Delete(p);
+		delete p;
+	}
+	Mutex.Unlock();
+}
+
+void Pool::createSpare()
+{
+	if (MinSpare<1) return;
+	Mutex.Lock();
+	if (Log) {
+		if (Free.Num()<MinSpare) {
+			Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","createSpare",__FILE__,__LINE__,
+					"Versuche Spare-Connects im Pool von %i auf %i zu erhöhen",Free.Num(), MinSpare);
+		}
+	}
+	while (Free.Num()<MinSpare) {
+		Database *p=New();
+		if (!p) break;
+		Free.Add(p);
+	}
+	Mutex.Unlock();
+}
+
+void Pool::createMinimum()
+{
+	if (Min<1) return;
+	Mutex.Lock();
+	if (Log) {
+		if (Free.Num()+Used.Num()<Min) {
+			Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","createSpare",__FILE__,__LINE__,
+					"Versuche Minimum Connects im Pool zu erreichen: %i => %i",Free.Num()+Used.Num(), Min);
+		}
+	}
+	while (Free.Num()+Used.Num()<Min) {
+		Database *p=New();
+		if (!p) break;
+		Free.Add(p);
+	}
+	Mutex.Unlock();
+}
+
+
 
 void Pool::checkUsedPool()
 {
+	Mutex.Lock();
 	ppluint64 now=ppl6::GetTime();
 	Database *p;
 	if (Used.Num()>0) {
@@ -786,8 +844,8 @@ void Pool::checkUsedPool()
 				Used.Reset();
 			}
 		}
-
 	}
+	Mutex.Unlock();
 }
 
 /*!\brief Datenbank-Pools überprüfen
@@ -806,6 +864,12 @@ void Pool::CheckPool()
 	Mutex.Lock();
 	if (Log) Log->Printf(ppl6::LOG::DEBUG,6,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"%i:%s, Connects: %i, Free: %i, Used: %i",Id,(const char*)Name, Free.Num()+Used.Num(),Free.Num(), Used.Num());
 	Mutex.Unlock();
+
+	createMinimum();
+	createSpare();
+	releaseSpare();
+	checkUsedPool();
+
 	ppluint64 now;
 	Database *p;
 	// Timeout
@@ -823,8 +887,6 @@ void Pool::CheckPool()
 			Free.Reset();
 		}
 	}
-	// Used-Pool
-	checkUsedPool();
 
 	// Keepalive
 	if (Log) Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"Prüfe auf KeepAlive");
