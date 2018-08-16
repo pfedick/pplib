@@ -801,7 +801,7 @@ void Pool::createMinimum()
 	Mutex.Lock();
 	if (Log) {
 		if (Free.Num()+Used.Num()<Min) {
-			Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","createSpare",__FILE__,__LINE__,
+			Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","createMinimum",__FILE__,__LINE__,
 					"Versuche Minimum Connects im Pool zu erreichen: %i => %i",Free.Num()+Used.Num(), Min);
 		}
 	}
