@@ -268,7 +268,7 @@ if test "$echo_libs" = "yes"; then
 			src="$SRCDIR/$objects/$basename.a"
 		fi
 
-      echo $src $libdirs $my_glib_libs 
+      echo "@NOPIE@ $src $libdirs $my_glib_libs" 
 fi      
 
 if test "$echo_archive" = "yes"; then
