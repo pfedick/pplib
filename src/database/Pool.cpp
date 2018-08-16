@@ -517,6 +517,7 @@ Database *Pool::Get(bool wait, int ms)
 			Free.Delete(p);
 			Used.Add(p);
 			Mutex.Unlock();
+			p->clearQuerylog();
 			if (Log) Log->Printf(ppl6::LOG::INFO,4,"ppl6::db::Pool","Get",__FILE__,__LINE__,"Verwende Verbindung aus dem Pool");
 			return p;
 		}
@@ -755,6 +756,39 @@ int Pool::GetStatus(CAssocArray &status)
 	return 1;
 }
 
+
+void Pool::checkUsedPool()
+{
+	ppluint64 now=ppl6::GetTime();
+	Database *p;
+	if (Used.Num()>0) {
+		Used.Reset();
+		if (Log) Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"Prüfe Used-Pool: %i",Used.Num());
+		while ((p=(Database*)Used.GetNext())) {
+			if (Log) Log->Printf(ppl6::LOG::DEBUG,10,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"Server: %s, lastuse: %llu, now: %llu, Timeout: %llu, locked: %i\n",(const char*)Name, p->lastuse,now, p->lastuse+120,(int)p->poollock);
+			if (p->lastuse+120<now) {
+				if (Log) {
+					Log->Printf(ppl6::LOG::ERROR,7,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"DB-Verbindung wird nicht genutzt und gelöscht\n");
+					std::queue<QueryLogEntry> &querylog=p->getQueryLog();
+					while (!querylog.empty()) {
+						const QueryLogEntry &entry=querylog.front();
+						Log->Printf(ppl6::LOG::ERROR,7,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"   LASTQUERY %s, %0.3f, %s",
+								(const char*) entry.timestamp.get("%H:%M:%S.%u"),
+								entry.duration,
+								(const char*)entry.query);
+						querylog.pop();
+					}
+				}
+
+				Used.Delete(p);
+				delete p;
+				Used.Reset();
+			}
+		}
+
+	}
+}
+
 /*!\brief Datenbank-Pools überprüfen
  *
  * \desc
@@ -788,6 +822,8 @@ void Pool::CheckPool()
 			Free.Reset();
 		}
 	}
+	// Used-Pool
+	checkUsedPool();
 
 	// Keepalive
 	if (Log) Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","CheckPool",__FILE__,__LINE__,"Prüfe auf KeepAlive");

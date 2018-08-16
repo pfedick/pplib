@@ -263,6 +263,18 @@ CLog *Database::GetLogfile()
 }
 
 
+QueryLogEntry::QueryLogEntry(const char *query, float duration)
+{
+	timestamp=CDateTime::currentTime();
+	this->duration=duration;
+	this->query.Set(query);
+}
+
+void Database::clearQuerylog()
+{
+	while (!QueryLog.empty()) QueryLog.pop();
+}
+
 void Database::LogQuery(const char *query, float duration)
 /*!\brief Interne Funktion zum Loggen von Queries
  *
@@ -274,8 +286,15 @@ void Database::LogQuery(const char *query, float duration)
  * @param[in] duration Laufzeit des Queries in Sekunden.
  */
 {
+	QueryLog.push(QueryLogEntry(query, duration));
+	if (QueryLog.size()>10) QueryLog.pop();
 	if (!Log) return;
 	Log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,(const char*)NULL,0,"Querytime: %0.6f, Query: %s",duration,query);
+}
+
+std::queue<QueryLogEntry> &Database::getQueryLog()
+{
+	return QueryLog;
 }
 
 void Database::UpdateLastPing()

@@ -46,6 +46,8 @@
     #endif
 #endif
 
+#include <queue>
+
 namespace ppl6 {
 
 namespace db {
@@ -151,7 +153,14 @@ class GenericResult : public Result
 
 };
 
-
+class QueryLogEntry
+{
+public:
+	QueryLogEntry(const char *query, float duration);
+	CDateTime	timestamp;
+	float 		duration;
+	CString		query;
+};
 
 class Database
 {
@@ -167,6 +176,8 @@ class Database
 		Pool		*pool;
 		PoolEx		*poolex;
 		bool		poollock;
+
+		std::queue<QueryLogEntry> QueryLog;
 
 	protected:
 		void    LogQuery(const char *query, float duration);
@@ -190,6 +201,9 @@ class Database
 		int		Execf(const char *query, ...);
 		Result	*Queryf(const char *query, ...);
 		void	FreeResult(Result *res);
+
+		std::queue<QueryLogEntry> &getQueryLog();
+		void clearQuerylog();
 
 		CAssocArray ExecArrayf(const char *query, ...);
 		CAssocArray ExecArray(const CString &query);
@@ -410,6 +424,8 @@ class Pool
 		double			LastCheck;
 		Database		*New();
 		int CalcHash(CString &hash, CAssocArray &param);
+
+		void checkUsedPool();
 
 	public:
 		Pool();
