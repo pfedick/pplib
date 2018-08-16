@@ -221,6 +221,7 @@ Pool::Pool()
 	MaxSpare=0;
 	Grow=1;
 	Timeout=300;
+	UsedTimeout=600;
 	KeepAlive=60;
 	IsInit=false;
 	Log=NULL;
@@ -765,8 +766,9 @@ void Pool::checkUsedPool()
 		Used.Reset();
 		if (Log) Log->Printf(ppl6::LOG::DEBUG,9,"ppl6::db::Pool","checkUsedPool",__FILE__,__LINE__,"Prüfe Used-Pool: %i",Used.Num());
 		while ((p=(Database*)Used.GetNext())) {
-			if (Log) Log->Printf(ppl6::LOG::DEBUG,10,"ppl6::db::Pool","checkUsedPool",__FILE__,__LINE__,"Server: %s, lastuse: %llu, now: %llu, Timeout: %llu, locked: %i\n",(const char*)Name, p->lastuse,now, p->lastuse+120,(int)p->poollock);
-			if (p->lastuse+120<now) {
+			if (Log) Log->Printf(ppl6::LOG::DEBUG,10,"ppl6::db::Pool","checkUsedPool",__FILE__,__LINE__,
+					"Server: %s, lastuse: %llu, now: %llu, Timeout: %llu, locked: %i\n",(const char*)Name, p->lastuse,now, p->lastuse+UsedTimeout,(int)p->poollock);
+			if (p->lastuse+UsedTimeout<now) {
 				if (Log) {
 					Log->Printf(ppl6::LOG::ERROR,7,"ppl6::db::Pool","checkUsedPool",__FILE__,__LINE__,"DB-Verbindung wird nicht genutzt und gelöscht\n");
 					std::queue<QueryLogEntry> &querylog=p->getQueryLog();

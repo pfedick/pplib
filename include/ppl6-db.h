@@ -419,6 +419,7 @@ class Pool
 		int				MinSpare, MaxSpare;
 		int				Grow;
 		int				Timeout;
+		int				UsedTimeout;
 		int				KeepAlive;
 		bool			IsInit;
 		double			LastCheck;
