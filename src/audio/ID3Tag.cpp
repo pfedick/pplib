@@ -1406,8 +1406,8 @@ void ID3Tag::copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2
 	ppluint32 size;
 	ppluint32 formsize=4;
 	n.copyFrom(o,0,12,0);	// Header kopieren
-	while (qp<o.size()) {
-		const char *adr=o.map(qp,32);
+	while (qp+8<o.size()) {
+		const char *adr=o.map(qp,8);
 		if (!adr) break;
 		size=PeekN32(adr+4);
 		if (PeekN32(adr)!=0x49443320) {	// ignore former ID3-chunk
@@ -1460,7 +1460,6 @@ void ID3Tag::saveAiff()
 	generateId3V2Tag(tagV2);
 
 	o.open(Filename,File::READWRITE);
-
 	if (tagV2.size()>0) {
 		try {
 			if (trySaveAiffInExistingFile(o,tagV2)) return;
