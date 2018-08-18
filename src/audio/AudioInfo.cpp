@@ -88,8 +88,8 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 
 	//printf ("Checking AIFF, p=12, file.Size=%u\n",file.Size());
 
-	while (p<file.size()) {
-		adr=file.map(p,32);
+	while (p+8<file.size()) {
+		adr=file.map(p,8);
 		if (!adr) break;
 		size=PeekN32(adr+4);
 		String ChunkName;
@@ -98,6 +98,7 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 		if (PeekN32(adr)==0x434f4d4d) {			// COMM-Chunk gefunden
 			//printf ("COMM-Chunk gefunden\n");
 			//ppl6::HexDump((void*)(adr+8),size);
+			adr=file.map(p,32);
 			info.Channels=PeekN16(adr+8);
 			if (info.Channels==1) info.Mode=AudioInfo::MONO;
 			else if (info.Channels==2) info.Mode=AudioInfo::STEREO;
@@ -125,6 +126,7 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 			info.Bitrate=((ppluint64)info.Frequency*(ppluint64)info.BytesPerSample*8/1000);
 
 		} else if (PeekN32(adr)==0x53534e44) {	// SSND-Chunk gefunden
+			adr=file.map(p,16);
 			if (PeekN32(adr+8)!=0) return false;
 			if (PeekN32(adr+12)!=0) return false;
 			info.AudioStart=p+16;

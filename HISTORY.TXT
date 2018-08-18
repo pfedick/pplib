@@ -3,6 +3,7 @@ PPL7 - HISTORY
 
 Version 7.0.1
   - Fixed overflow exception in ID3Tag::copyAiffToNewFile
+  - Fixed overflow exception in IdentAIFF
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7
