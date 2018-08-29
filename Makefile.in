@@ -124,9 +124,9 @@ RELEASE	= release/core_AVLTree.o \
 	release/inet_UDPSocket.o \
 	release/inet_Webserver.o \
 	release/inet_WikiParser.o release/db_Database.o \
+	release/db_DBPool.o \
+	release/db_DBPoolOfPools.o \
 	release/db_MySQL.o \
-	release/db_Pool_MultiPool.o \
-	release/db_Pool_SinglePool.o \
 	release/db_PostgreSQL.o \
 	release/db_ResultSet.o \
 	release/db_Sqlite3.o release/gfx_Color.o \
@@ -244,9 +244,9 @@ INET_RELEASE = release/inet_curl.o \
 	release/inet_WikiParser.o
 
 DB_RELEASE = release/db_Database.o \
+	release/db_DBPool.o \
+	release/db_DBPoolOfPools.o \
 	release/db_MySQL.o \
-	release/db_Pool_MultiPool.o \
-	release/db_Pool_SinglePool.o \
 	release/db_PostgreSQL.o \
 	release/db_ResultSet.o \
 	release/db_Sqlite3.o
@@ -378,9 +378,9 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/inet_UDPSocket.o \
 	debug/inet_Webserver.o \
 	debug/inet_WikiParser.o debug/db_Database.o \
+	debug/db_DBPool.o \
+	debug/db_DBPoolOfPools.o \
 	debug/db_MySQL.o \
-	debug/db_Pool_MultiPool.o \
-	debug/db_Pool_SinglePool.o \
 	debug/db_PostgreSQL.o \
 	debug/db_ResultSet.o \
 	debug/db_Sqlite3.o debug/gfx_Color.o \
@@ -507,9 +507,9 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/inet_UDPSocket.o \
 	coverage/inet_Webserver.o \
 	coverage/inet_WikiParser.o coverage/db_Database.o \
+	coverage/db_DBPool.o \
+	coverage/db_DBPoolOfPools.o \
 	coverage/db_MySQL.o \
-	coverage/db_Pool_MultiPool.o \
-	coverage/db_Pool_SinglePool.o \
 	coverage/db_PostgreSQL.o \
 	coverage/db_ResultSet.o \
 	coverage/db_Sqlite3.o coverage/gfx_Color.o \
@@ -1017,20 +1017,20 @@ release/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir
 	# Compiling >>>database/Database.cpp<<<
 	$(CXX) -Wall -O2 -o release/db_Database.o -c $(srcdir)/database/Database.cpp $(CFLAGS) 
 
+release/db_DBPool.o:	$(srcdir)/database/DBPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/DBPool.cpp<<<
+	$(CXX) -Wall -O2 -o release/db_DBPool.o -c $(srcdir)/database/DBPool.cpp $(CFLAGS) 
+
+release/db_DBPoolOfPools.o:	$(srcdir)/database/DBPoolOfPools.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/DBPoolOfPools.cpp<<<
+	$(CXX) -Wall -O2 -o release/db_DBPoolOfPools.o -c $(srcdir)/database/DBPoolOfPools.cpp $(CFLAGS) 
+
 release/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/MySQL.cpp<<<
 	$(CXX) -Wall -O2 -o release/db_MySQL.o -c $(srcdir)/database/MySQL.cpp $(CFLAGS) 
-
-release/db_Pool_MultiPool.o:	$(srcdir)/database/Pool_MultiPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
-	###############################################################################
-	# Compiling >>>database/Pool_MultiPool.cpp<<<
-	$(CXX) -Wall -O2 -o release/db_Pool_MultiPool.o -c $(srcdir)/database/Pool_MultiPool.cpp $(CFLAGS) 
-
-release/db_Pool_SinglePool.o:	$(srcdir)/database/Pool_SinglePool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
-	###############################################################################
-	# Compiling >>>database/Pool_SinglePool.cpp<<<
-	$(CXX) -Wall -O2 -o release/db_Pool_SinglePool.o -c $(srcdir)/database/Pool_SinglePool.cpp $(CFLAGS) 
 
 release/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
@@ -1672,20 +1672,20 @@ debug/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdir)/
 	# Compiling >>>database/Database.cpp<<<
 	$(CXX) -Wall -O -o debug/db_Database.o -c $(srcdir)/database/Database.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/db_DBPool.o:	$(srcdir)/database/DBPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/DBPool.cpp<<<
+	$(CXX) -Wall -O -o debug/db_DBPool.o -c $(srcdir)/database/DBPool.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
+debug/db_DBPoolOfPools.o:	$(srcdir)/database/DBPoolOfPools.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/DBPoolOfPools.cpp<<<
+	$(CXX) -Wall -O -o debug/db_DBPoolOfPools.o -c $(srcdir)/database/DBPoolOfPools.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/MySQL.cpp<<<
 	$(CXX) -Wall -O -o debug/db_MySQL.o -c $(srcdir)/database/MySQL.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/db_Pool_MultiPool.o:	$(srcdir)/database/Pool_MultiPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
-	###############################################################################
-	# Compiling >>>database/Pool_MultiPool.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Pool_MultiPool.o -c $(srcdir)/database/Pool_MultiPool.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
-debug/db_Pool_SinglePool.o:	$(srcdir)/database/Pool_SinglePool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
-	###############################################################################
-	# Compiling >>>database/Pool_SinglePool.cpp<<<
-	$(CXX) -Wall -O -o debug/db_Pool_SinglePool.o -c $(srcdir)/database/Pool_SinglePool.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 debug/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
@@ -2321,20 +2321,20 @@ coverage/db_Database.o:	$(srcdir)/database/Database.cpp $(incdir)/ppl7.h $(incdi
 	# Compiling >>>database/Database.cpp<<<
 	$(CXX) -Wall -o coverage/db_Database.o -c $(srcdir)/database/Database.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
+coverage/db_DBPool.o:	$(srcdir)/database/DBPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/DBPool.cpp<<<
+	$(CXX) -Wall -o coverage/db_DBPool.o -c $(srcdir)/database/DBPool.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/db_DBPoolOfPools.o:	$(srcdir)/database/DBPoolOfPools.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
+	###############################################################################
+	# Compiling >>>database/DBPoolOfPools.cpp<<<
+	$(CXX) -Wall -o coverage/db_DBPoolOfPools.o -c $(srcdir)/database/DBPoolOfPools.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
 coverage/db_MySQL.o:	$(srcdir)/database/MySQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################
 	# Compiling >>>database/MySQL.cpp<<<
 	$(CXX) -Wall -o coverage/db_MySQL.o -c $(srcdir)/database/MySQL.cpp $(CFLAGS) @GCOV_CFLAGS@ 
-
-coverage/db_Pool_MultiPool.o:	$(srcdir)/database/Pool_MultiPool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
-	###############################################################################
-	# Compiling >>>database/Pool_MultiPool.cpp<<<
-	$(CXX) -Wall -o coverage/db_Pool_MultiPool.o -c $(srcdir)/database/Pool_MultiPool.cpp $(CFLAGS) @GCOV_CFLAGS@ 
-
-coverage/db_Pool_SinglePool.o:	$(srcdir)/database/Pool_SinglePool.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
-	###############################################################################
-	# Compiling >>>database/Pool_SinglePool.cpp<<<
-	$(CXX) -Wall -o coverage/db_Pool_SinglePool.o -c $(srcdir)/database/Pool_SinglePool.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/db_PostgreSQL.o:	$(srcdir)/database/PostgreSQL.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-db.h 
 	###############################################################################

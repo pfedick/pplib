@@ -53,17 +53,6 @@ class SinglePool;
 class MultiPool;
 class Database;
 
-class ConnectParameter
-{
-	public:
-		ConnectParameter();
-		String	Hostname;
-		int		Port;
-		String	DatabaseName;
-		String	UserName;
-		String	Password;
-};
-
 class ResultSet
 {
 	public:
@@ -101,8 +90,8 @@ void copyResultToAssocArray(ResultSet *res, AssocArray &array);
 
 class Database
 {
-	friend class SinglePool;
-	friend class MultiPool;
+	friend class DBPool;
+	friend class DBPoolOfPools;
 
 	private:
 		AssocArray	ConnectParam;
@@ -278,31 +267,39 @@ class SQLite: public Database
 };
 
 
-class SinglePool
+class DBPool
 {
+	friend class DBPoolOfPools;
 	private:
 		Mutex			PoolMutex;
 		std::list<Database *>	Used, Free;
 		AssocArray		ConnectParam;
 		String			Name;
-		String			Hash;
 		Logger			*Log;
+		int				ConnectParamVersion;
 		int				Id;
 		int				Min, Max;
 		int				MinSpare, MaxSpare;
 		int				Grow;
 		int				IdleTimeout;
+		int				UsedTimeout;
 		int				KeepAlive;
 		bool			IsInit;
 		double			LastCheck;
 		Database	*newDB();
-		void		calcHash(String &hash, const AssocArray &param);
+
+		void checkUsedPool();
+		void createMinimum();
+		void createSpare();
+		void releaseSpare();
 
 	public:
-		SinglePool();
-		~SinglePool();
+		DBPool();
+		~DBPool();
 
 		void setConnectParams(const AssocArray &connect);
+		void setOptions(const AssocArray &options);
+		void setOption(const String &Name, const String &Value);
 		void setName(const String &Name);
 		void setId(int id);
 		void setMinimumSize(int num);
@@ -311,20 +308,26 @@ class SinglePool
 		void setMaxSpare(int num);
 		void setGrowth(int num);
 		void setIdleTimeout(int seconds);
+		void setUsedTimeout(int seconds);
 		void setKeepAliveIntervall(int seconds);
-
-
-
-
-
 		Database *get(bool wait=false, int ms=0);
 		void release(Database *db);
 		void destroy(Database *db);
 		void checkPool();
-		void clearUsedPool(bool destroy=false);
-		void clearFreePool(bool destroy=false);
+		void clearUsedPool();
+		void clearFreePool();
 		void getStatus(AssocArray &status);
 		void setLogger(Logger &logger);
+};
+
+class DBPoolOfPools
+{
+private:
+public:
+	DBPoolOfPools();
+	~DBPoolOfPools();
+
+
 };
 
 
