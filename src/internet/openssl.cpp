@@ -1042,7 +1042,6 @@ void TCPSocket::sslAccept(SSLContext &context)
 #endif
 }
 
-#ifdef TODO
 
 /*!\brief SSL-Zertifikat der Gegenstelle prüfen
  *
@@ -1060,111 +1059,104 @@ void TCPSocket::sslAccept(SSLContext &context)
  * @return Ist das Zertifikat gültig und alle Prüfungen erfolgreich, gibt die Funktion 1 zurück,
  * ansonsten 0.
  */
-int CTCPSocket::SSL_CheckCertificate(const char *hostname, bool AcceptSelfSignedCert)
+void TCPSocket::sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSignedCert)
 {
-	#ifdef HAVE_OPENSSL
-		if (!ssl) {
-			SetError(321);
-			return 0;
-		}
-		if (hostname) {
-			// Den Namen Überprüfen
-			X509 *peer=SSL_get_peer_certificate((SSL*)ssl);
-			char peer_CN[256];
-			X509_NAME_get_text_by_NID(X509_get_subject_name(peer),NID_commonName,peer_CN,256);
-			if (strcasecmp(peer_CN,(char*)hostname)!=0) {
-				SetError(324,"Expected: \"%s\", got: \"%s\"",hostname,peer_CN);
-				X509_free(peer);
-				return 0;
-			}
+#ifdef HAVE_OPENSSL
+	if (!ssl) throw SSLNotStartedException();
+	if (name.notEmpty()) {
+		// Den Namen Überprüfen
+		X509 *peer=SSL_get_peer_certificate((SSL*)ssl);
+		char peer_CN[256];
+		X509_NAME_get_text_by_NID(X509_get_subject_name(peer),NID_commonName,peer_CN,256);
+		if (strcasecmp(peer_CN,(const char*)name)!=0) {
 			X509_free(peer);
+			throw InvalidSSLCertificateException("Name mismatch: %s != %s",(const char*)name,peer_CN);
 		}
+		X509_free(peer);
+	}
 
-		// Zertifikat Überprüfen
-		int ret=SSL_get_verify_result((SSL*)ssl);
-		//if (ret!=X509_V_OK && ret!=X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) {
-		if (ret!=X509_V_OK) {
-			const char *a="unknown";
-			switch (ret) {
-				case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
-					a="X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT";
-					break;
-				case X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE:
-					a="X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE";
-					break;
-				case X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY:
-					a="X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY";
-					break;
-				case X509_V_ERR_CERT_SIGNATURE_FAILURE:
-					a="X509_V_ERR_CERT_SIGNATURE_FAILURE";
-					break;
-				case X509_V_ERR_CERT_NOT_YET_VALID:
-					a="X509_V_ERR_CERT_NOT_YET_VALID";
-					break;
-				case X509_V_ERR_CERT_HAS_EXPIRED:
-					a="X509_V_ERR_CERT_HAS_EXPIRED";
-					break;
-				case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
-					a="X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD";
-					break;
-				case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
-					a="X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD";
-					break;
-				case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
-					a="X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT";
-					break;
-				case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-					a="X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN";
-					break;
-				case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
-					a="X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY";
-					break;
-				case X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
-					a="X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE";
-					break;
-				case X509_V_ERR_INVALID_CA:
-					a="X509_V_ERR_INVALID_CA";
-					break;
-				case X509_V_ERR_PATH_LENGTH_EXCEEDED:
-					a="X509_V_ERR_PATH_LENGTH_EXCEEDED";
-					break;
-				case X509_V_ERR_INVALID_PURPOSE:
-					a="X509_V_ERR_INVALID_PURPOSE";
-					break;
-				case X509_V_ERR_CERT_UNTRUSTED:
-					a="X509_V_ERR_CERT_UNTRUSTED";
-					break;
-				case X509_V_ERR_CERT_REJECTED:
-					a="X509_V_ERR_CERT_REJECTED";
-					break;
-				case X509_V_ERR_SUBJECT_ISSUER_MISMATCH:
-					a="X509_V_ERR_SUBJECT_ISSUER_MISMATCH";
-					break;
-				case X509_V_ERR_AKID_SKID_MISMATCH:
-					a="X509_V_ERR_AKID_SKID_MISMATCH";
-					break;
-				case X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH:
-					a="X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH";
-					break;
-				case X509_V_ERR_KEYUSAGE_NO_CERTSIGN:
-					a="X509_V_ERR_KEYUSAGE_NO_CERTSIGN";
-					break;
-				case X509_V_ERR_CERT_REVOKED:
-					a="X509_V_ERR_CERT_REVOKED";
-					break;
-			}
-			SetError(323,"Host: %s, SSL-Error: %s",(const char*)HostName,a);
-			if (AcceptSelfSignedCert==false || ret!=X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) {
-				return 0;
-			}
+	// Zertifikat Überprüfen
+	int ret=SSL_get_verify_result((SSL*)ssl);
+	//if (ret!=X509_V_OK && ret!=X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) {
+	if (ret!=X509_V_OK) {
+		const char *a="unknown";
+		switch (ret) {
+		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
+			a="X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT";
+			break;
+		case X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE:
+			a="X509_V_ERR_UNABLE_TO_DECRYPT_CERT_SIGNATURE";
+			break;
+		case X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY:
+			a="X509_V_ERR_UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY";
+			break;
+		case X509_V_ERR_CERT_SIGNATURE_FAILURE:
+			a="X509_V_ERR_CERT_SIGNATURE_FAILURE";
+			break;
+		case X509_V_ERR_CERT_NOT_YET_VALID:
+			a="X509_V_ERR_CERT_NOT_YET_VALID";
+			break;
+		case X509_V_ERR_CERT_HAS_EXPIRED:
+			a="X509_V_ERR_CERT_HAS_EXPIRED";
+			break;
+		case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
+			a="X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD";
+			break;
+		case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
+			a="X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD";
+			break;
+		case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+			if (AcceptSelfSignedCert) return;
+			a="X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT";
+			break;
+		case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
+			a="X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN";
+			break;
+		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+			a="X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY";
+			break;
+		case X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE:
+			a="X509_V_ERR_UNABLE_TO_VERIFY_LEAF_SIGNATURE";
+			break;
+		case X509_V_ERR_INVALID_CA:
+			a="X509_V_ERR_INVALID_CA";
+			break;
+		case X509_V_ERR_PATH_LENGTH_EXCEEDED:
+			a="X509_V_ERR_PATH_LENGTH_EXCEEDED";
+			break;
+		case X509_V_ERR_INVALID_PURPOSE:
+			a="X509_V_ERR_INVALID_PURPOSE";
+			break;
+		case X509_V_ERR_CERT_UNTRUSTED:
+			a="X509_V_ERR_CERT_UNTRUSTED";
+			break;
+		case X509_V_ERR_CERT_REJECTED:
+			a="X509_V_ERR_CERT_REJECTED";
+			break;
+		case X509_V_ERR_SUBJECT_ISSUER_MISMATCH:
+			a="X509_V_ERR_SUBJECT_ISSUER_MISMATCH";
+			break;
+		case X509_V_ERR_AKID_SKID_MISMATCH:
+			a="X509_V_ERR_AKID_SKID_MISMATCH";
+			break;
+		case X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH:
+			a="X509_V_ERR_AKID_ISSUER_SERIAL_MISMATCH";
+			break;
+		case X509_V_ERR_KEYUSAGE_NO_CERTSIGN:
+			a="X509_V_ERR_KEYUSAGE_NO_CERTSIGN";
+			break;
+		case X509_V_ERR_CERT_REVOKED:
+			a="X509_V_ERR_CERT_REVOKED";
+			break;
 		}
-		return 1;
-	#else
-		SetError(292);
-		return 0;
-	#endif
+		throw InvalidSSLCertificateException("SSL-Error: %s", a);
+	}
+#else
+	throw UnsupportedFeatureException("OpenSSL");
+#endif
 }
 
+#ifdef TODO
 /*!\brief Auf eine TLS/SSL-Handshake warten
 
  * \desc
@@ -1200,11 +1192,11 @@ int CTCPSocket::SSL_WaitForAccept(int timeout)
 	return 0;
 }
 
-//@}
 
 
 
 #endif
+//@}
 
 } // EOF namespace ppl
 

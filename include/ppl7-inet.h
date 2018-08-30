@@ -71,8 +71,7 @@ PPL7EXCEPTION(InvalidSocketException,NetworkException);
 PPL7EXCEPTION(UnknownOptionException,NetworkException);
 PPL7EXCEPTION(OutOfBandDataReceivedException,NetworkException);
 PPL7EXCEPTION(BrokenPipeException,NetworkException);
-PPL7EXCEPTION(SSLNotInitializedException,NetworkException);
-PPL7EXCEPTION(SSLInstanceNotInitializedException,NetworkException);
+PPL7EXCEPTION(SSLNotStartedException,NetworkException);
 PPL7EXCEPTION(SSLConnectionFailedException,NetworkException);
 PPL7EXCEPTION(SettingSocketOptionException,NetworkException);
 PPL7EXCEPTION(InvalidIpAddressException,NetworkException);
@@ -477,7 +476,7 @@ class TCPSocket
 		//@{
 		void sslStart(SSLContext &context);
 		void sslStop();
-		int sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSignedCert=false);
+		void sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSignedCert=false);
 		void sslAccept(SSLContext &context);
 		int sslWaitForAccept(int timeout=0);
 		//@}
