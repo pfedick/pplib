@@ -834,6 +834,7 @@ void TCPSocket::sslStart(SSLContext &context)
 	SSL_set_connect_state((SSL*)ssl);
 
 	if (connect_timeout_sec>0 || connect_timeout_usec>0) {
+		bool blocking_before=isBlocking();
 		setBlocking(false);
 		struct timeval tval;
 		fd_set rset, wset;
@@ -884,7 +885,7 @@ void TCPSocket::sslStart(SSLContext &context)
 				throw SSLConnectionFailedException(Error);
 			}
 		}
-		setBlocking(false);
+		setBlocking(blocking_before);
 	} else {
 		int res=SSL_connect((SSL*)ssl);
 		if (res<1) {
