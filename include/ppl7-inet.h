@@ -409,6 +409,7 @@ class TCPSocket
 		void *ssl;
 		bool	connected;
 		bool	islisten;
+		bool	blocking;
 		//int		BytesWritten;
 		//int		BytesRead;
 		int		connect_timeout_sec;
@@ -464,6 +465,7 @@ class TCPSocket
 
 		int getDescriptor();
 		void setBlocking(bool value);
+		bool isBlocking() const;
 		bool isWriteable();
 		bool isReadable();
 		bool waitForIncomingData(int seconds, int useconds);

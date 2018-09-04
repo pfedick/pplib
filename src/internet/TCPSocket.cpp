@@ -188,6 +188,7 @@ TCPSocket::TCPSocket()
 	connected = false;
 	islisten = false;
 	stoplisten = false;
+	blocking=true;
 	ssl = NULL;
 	sslcontext = NULL;
 	connect_timeout_sec = 0;
@@ -985,7 +986,10 @@ void TCPSocket::setBlocking(bool value)
 		v=1;
 		ret=ioctlsocket(s->sd,FIONBIO,&v);
 	}
-	if (ret==0) return;
+	if (ret==0) {
+		blocking=value;
+		return;
+	}
 	throwExceptionFromErrno(errno, "TCPSocket::setBlocking");
 #else
 	if (value)
@@ -993,7 +997,23 @@ void TCPSocket::setBlocking(bool value)
 	else
 		ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)|O_NONBLOCK);// NON-Blocking
 	if (ret<0) throwExceptionFromErrno(errno, "TCPSocket::setBlocking");
+	blocking=value;
 #endif
+}
+
+/*!\brief Prüfen, ob der Socket im Blocking- oder Non-Blocking-Mode ist
+ *
+ * \desc
+ * Prüfen, ob der Socket im Blocking- oder Non-Blocking-Mode ist
+ *
+ * @return Liefert \b true zurück, wenn der Socket im Blocking-Mode ist (was
+ * der Default ist), \b false wenn nicht.
+ */
+bool TCPSocket::isBlocking() const
+{
+	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if((!s) || (!s->sd)) throw NotConnectedException();
+	return blocking;
 }
 
 
