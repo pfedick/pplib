@@ -1493,6 +1493,16 @@ SockAddr TCPSocket::getPeerAddr() const
 
 
 
+int	TCPSocket::port() const
+{
+	return PortNum;
+}
+
+const String& TCPSocket::hostname() const
+{
+	return HostName;
+}
+
 
 }
  // EOF namespace ppl

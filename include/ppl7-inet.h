@@ -433,6 +433,8 @@ class TCPSocket
 		void connect(const String &host, int port);
 		void setTimeoutConnect(int seconds, int useconds);
 		bool isConnected() const;
+		int	port() const;
+		const String& hostname() const;
 		//@}
 
 		//! @name TCP-Server functions
@@ -489,11 +491,6 @@ class TCPSocket
         bool waitForMessage(SocketMessage &msg, int timeout_seconds=0, Thread *watch_thread=NULL);
 		//@}
 
-		//! @name Depreceated
-		//@{
-		//int connectSSL(const char *host_and_port, SSLContext *ssl=NULL);
-		//int connectSSL(const char *host, int port, SSLContext *ssl=NULL);
-		//@}
 };
 
 class UDPSocket
