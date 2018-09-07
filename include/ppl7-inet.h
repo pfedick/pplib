@@ -313,7 +313,7 @@ class SSLContext
 		SSLContext();
 		SSLContext(int method);
 		~SSLContext();
-		void 	init(int method=SSLv3);
+		void 	init(int method=TLSv1_2);
 		bool	isInit();
 		void 	shutdown();
 		void 	*newSSL();
