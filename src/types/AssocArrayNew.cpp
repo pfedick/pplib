@@ -53,8 +53,7 @@
 
 #include "ppl7.h"
 
-#ifndef NEW_PPL7_ASSOCARRAY
-
+#ifdef NEW_PPL7_ASSOCARRAY
 
 namespace ppl7 {
 
@@ -225,23 +224,6 @@ bool AssocArray::ArrayKey::operator>(const ArrayKey &str) const
 }
 
 
-AssocArray::ValueNode::ValueNode()
-{
-	value=NULL;
-}
-
-AssocArray::ValueNode::ValueNode(const ValueNode &other)
-{
-	value=other.value;
-}
-
-AssocArray::ValueNode::~ValueNode()
-{
-	if (value!=NULL) delete value;
-}
-
-
-
 /*!\brief Konstruktor des Assoziativen Arrays
  *
  * \desc
@@ -250,7 +232,6 @@ AssocArray::ValueNode::~ValueNode()
 AssocArray::AssocArray()
 {
 	maxint=0;
-	num=0;
 }
 
 /*!\brief Copy-Konstruktor des Assoziativen Arrays
@@ -267,7 +248,6 @@ AssocArray::AssocArray()
 AssocArray::AssocArray(const AssocArray &other)
 {
 	maxint=0;
-	num=0;
 	add(other);
 }
 
@@ -292,11 +272,13 @@ AssocArray::~AssocArray()
  */
 void AssocArray::clear()
 {
+	iterator it;
+	for (it=Tree.begin();it!=Tree.end();++it) {
+		delete (*it).second;
+	}
 	Tree.clear();
-	num=0;
 	maxint=0;
 }
-
 
 /*!\brief Interne Funktion zum Suchen eines Elements
  *
@@ -310,38 +292,31 @@ void AssocArray::clear()
  *
  * \param[in] key String mit dem gesuchten Schlüssel
  * \return Konnte der Schlüssel gefunden werden, wir der Pointer auf das Element (Variant)
- * zurückgegeben. Wurde der Schlüssel nicht gefunden, wird eine Exception geworfen
+ * zurückgegeben. Wurde der Schlüssel nicht gefunden, wird NULL zurückgegeben
  * \exception InvalidKeyException: Wird geworfen, wenn der Schlüssel ungültig oder leer ist
- * \exception KeyNotFoundException: Wird geworfen, wenn der Schlüssel nicht vorhanden ist
- * \note
+  * \note
  * Die Funktion wird von allen Get...- und Concat-Funktionen verwendet.
  */
-AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
+Variant *AssocArray::findInternal(const ArrayKey &key) const
 {
 	//printf ("AssocArray::findInternal (key=%ls)\n",(const wchar_t*)key);
 	Array tok(key,"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
 	ArrayKey firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
-	ValueNode *p;
-	try {
-		ValueNode &node=Tree.find(firstkey);
-		p=&node;
 
-	} catch (ItemNotFoundException &) {
-		throw KeyNotFoundException(firstkey);
-	}
+	const_iterator it=Tree.find(firstkey);
+	if (it==Tree.end()) throw KeyNotFoundException(firstkey);
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {			// Ja, koennen wir iterieren?
-		if (p->value->isAssocArray()) {
-			return p->value->toAssocArray().findInternal(rest);
+		if (it->second!=NULL && it->second->isAssocArray()) {
+			return it->second->toAssocArray().findInternal(rest);
 		} else {
-			throw KeyNotFoundException(firstkey);
+			return NULL;
 		}
 	}
-	return p;
+	return it->second;
 }
-
 
 /*!\brief Interne Funktion, die ein Element im Baum sucht oder anlegt
  *
@@ -366,7 +341,7 @@ AssocArray::ValueNode *AssocArray::findInternal(const ArrayKey &key) const
  * das neue Element <tt>ebene1/schlüssel1/unterschlüssel1</tt> angelegt. Da Schlüssel eindeutig sein müssen,
  * wird der String <tt>ebene1/schlüssel1</tt> gelöscht und in ein Array umgewandelt.
  */
-AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
+void AssocArray::createTree(const ArrayKey &key, Variant *var)
 {
 	Array tok(key,"/",0,true);
 	if (tok.count()==0) throw InvalidKeyException(key);
@@ -383,50 +358,36 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 		if (keyint>=maxint) maxint=keyint+1;
 	}
 
-	ValueNode *p=NULL;
-	try {
-		ValueNode &node=Tree.find(firstkey);
-		p=&node;
-	} catch (ItemNotFoundException &) {
-		//printf ("Item not found\n");
-		p=NULL;
-	}
-	if (p) {
+	iterator it=Tree.find(firstkey);
+	if (it!=Tree.end()) {
 		// Ist noch was im Pfad rest?
 		if (tok.count()>0) {          // Ja, koennen wir iterieren?
-			if (p->value->isAssocArray()==false) {
-				delete (p->value);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
-				p->value=new Variant(AssocArray());
+			if (it->second->isAssocArray()==false) {
+				delete (it->second);		// Nein, wir loeschen daher diesen Zweig und machen ein Array draus
+				it->second=new Variant(ppl7::AssocArray());
 			}
-			return p->value->toAssocArray().createTree(rest,var);
+			it->second->toAssocArray().createTree(rest,var);
+			return;
 		}
 		// Nein, wir haben die Zielposition gefunden
-		delete p->value;
-		p->value=var;
-		return p;
+		delete it->second;
+		it->second=var;
+		return;
 	}
 
 	// Key ist nicht in diesem Array, wir legen ihn an
-	ValueNode newnode;
+
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {          // Ja, wir erstellen ein Array und iterieren
 		//printf ("Iteration\n");
-		newnode.value=NULL;
-		ValueNode &node=Tree.add(firstkey,newnode);
-		node.value=new Variant(AssocArray());
-		p=node.value->toAssocArray().createTree(rest,var);
+		Variant *newnode=new Variant(ppl7::AssocArray());
+		Tree.insert(std::pair<ArrayKey, Variant*>(firstkey,newnode));
+		newnode->toAssocArray().createTree(rest,var);
 	} else {
-		//printf ("Neuen Variant anlegen\n");
-		newnode.value=NULL;
-		ValueNode &node=Tree.add(firstkey,newnode);
-		node.value=var;
-		//printf ("AssocArray::createTree, node adr=%tu\n",(ptrdiff_t)&node);
-		p=(ValueNode*)&node;
-		//printf ("AssocArray::createTree, p=%tu\n",(ptrdiff_t)p);
+		Tree.insert(std::pair<ArrayKey, Variant*>(firstkey,var));
 	}
-	num++;
-	return p;
 }
+
 
 /*!\brief Anzahl Schlüssel zählen
  *
@@ -440,15 +401,13 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
  */
 size_t AssocArray::count(bool recursive) const
 {
-	if (!recursive) return num;
-	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-	Tree.reset(it);
-	size_t c=num;
-	while (Tree.getNext(it)) {
-		Variant *p=it.value().value;
-		if (p->isAssocArray()) c+=p->toAssocArray().count(recursive);
+	if (!recursive) return Tree.size();
+	const_iterator it;
+	size_t num=Tree.size();
+	for (it=Tree.begin();it!=Tree.end();++it) {
+		if (it->second->isAssocArray()) num+=it->second->toAssocArray().count(recursive);
 	}
-	return c;
+	return num;
 }
 
 /*!\brief Anzahl Elemente
@@ -460,7 +419,7 @@ size_t AssocArray::count(bool recursive) const
  */
 size_t AssocArray::size() const
 {
-	return num;
+	return Tree.size();
 }
 
 /*!\brief Anzahl Schlüssel für ein bestimmtes Element zählen
@@ -476,13 +435,9 @@ size_t AssocArray::size() const
  */
 size_t AssocArray::count(const String &key, bool recursive) const
 {
-	ValueNode *p;
-	try {
-		p=findInternal(key);
-	} catch (KeyNotFoundException &) {
-		return 0;
-	}
-	if (p->value->isAssocArray()) return p->value->toAssocArray().count(recursive);
+	const Variant *p=findInternal(key);
+	if (!p) return (size_t) 0;
+	if (p->isAssocArray()) return p->toAssocArray().count(recursive);
 	return 1;
 }
 
@@ -532,64 +487,32 @@ void AssocArray::list(const String &prefix) const
 	String key;
 	String pre;
 	if (prefix.notEmpty()) key=prefix+"/";
-	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-	Tree.reset(it);
 
-	while ((Tree.getNext(it))) {
-		//printf ("AssocArray::list(%ls)\n",(const wchar_t*)prefix);
-		Variant *p=it.value().value;
+	const_iterator it;
+	for (it=Tree.begin();it!=Tree.end();++it) {
+		Variant *p=it->second;
 		if (p->isString()) {
-			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)it.key(),(const char*)p->toString().getPtr());
+			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)it->first,(const char*)p->toString().getPtr());
 		} else if (p->isByteArray()) {
-			PrintDebug("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)it.key(),p->toByteArray().size());
+			PrintDebug("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)it->first,p->toByteArray().size());
 		} else if (p->isByteArrayPtr()) {
-			PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n",(const char*)key,(const char*)it.key(),p->toByteArrayPtr().size());
+			PrintDebug("%s%s=ByteArrayPtr, %zu Bytes\n",(const char*)key,(const char*)it->first,p->toByteArrayPtr().size());
 		} else if (p->isAssocArray()) {
-			pre.setf("%s%s",(const char*)key,(const char*)it.key());
+			pre.setf("%s%s",(const char*)key,(const char*)it->first);
 			p->toAssocArray().list(pre);
 		} else if (p->isPointer()) {
-			PrintDebug("%s%s=Pointer, %tu\n",(const char*)key,(const char*)it.key(),(std::ptrdiff_t)p->toPointer().ptr());
+			PrintDebug("%s%s=Pointer, %tu\n",(const char*)key,(const char*)it->first,(std::ptrdiff_t)p->toPointer().ptr());
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
 			for (size_t i=0;i<a.size();i++) {
-				PrintDebug("%s%s/Array(%zu)=%s\n",(const char*)key,(const char*)it.key(),i,(const char*)a[i]);
+				PrintDebug("%s%s/Array(%zu)=%s\n",(const char*)key,(const char*)it->first,i,(const char*)a[i]);
 			}
 		} else if (p->isDateTime()) {
-			PrintDebug("%s%s=DateTime %s\n",(const char*)key,(const char*)it.key(), (const char*) p->toDateTime().getISO8601withMsec());
+			PrintDebug("%s%s=DateTime %s\n",(const char*)key,(const char*)it->first, (const char*) p->toDateTime().getISO8601withMsec());
 		} else {
-			PrintDebug("%s%s=UnknownDataType Id=%i\n",(const char*)key,(const char*)it.key(),p->type());
+			PrintDebug("%s%s=UnknownDataType Id=%i\n",(const char*)key,(const char*)it->first,p->type());
 		}
 	}
-}
-
-/*!\brief Speicher reservieren
- *
- * \desc
- * Mit dieser Funktion kann vorab Speicher für eine bestimmte Anzahl Elemente reserviert werden.
- * Der Aufruf dieser Funktion ist immer dann sinnvoll, wenn schon vorher bekannt ist, wieviele
- * Elemente benötigt werden, insbesondere, wenn sehr viele Elemente benötigt werden.
- *
- * @param num Anzahl Elemente, für die Speicher vorab allokiert werden soll
- *
- * \note Falls schon Speicher allokiert wurde, wird die Anzahl der bereits allokierten Elemente
- * mit \p num verrechnet und nur die Differenz zusätzlich reserviert.
- */
-void AssocArray::reserve(size_t num)
-{
-	Tree.reserve(num);
-}
-
-/*!\brief Aktuelle Kapazität des %AssocArrays
- *
- * \desc
- * Gibt zurück, wieviele Elemente diese Ebene des Assoziativen Arrays verwalten kann,
- * ohne dass neuer Speicher allokiert werden muss.
- *
- * \return Anzahl Elemente
- */
-size_t AssocArray::capacity() const
-{
-	return Tree.capacity();
 }
 
 /*!\brief %String hinzufügen
@@ -847,15 +770,13 @@ void AssocArray::setf(const String &key, const char *fmt, ...)
  */
 void AssocArray::append(const String &key, const String &value, const String &concat)
 {
-	ValueNode *node=NULL;
-	try {
-		node=findInternal(key);
-	} catch (KeyNotFoundException &) {
+	Variant *node=findInternal(key);
+	if (!node) {
 		set(key,value);
 		return;
 	}
-	if (concat.notEmpty()) node->value->toString().append(concat);
-	node->value->toString().append(value);
+	if (concat.notEmpty()) node->toString().append(concat);
+	node->toString().append(value);
 }
 
 /*!\brief %String mit Formatiertem String verlängern
@@ -883,18 +804,7 @@ void AssocArray::appendf(const String &key, const String &concat, const char *fm
 	va_start(args, fmt);
 	var.vasprintf(fmt,args);
 	va_end(args);
-
-	ValueNode *node=NULL;
-	try {
-		node=findInternal(key);
-	} catch (KeyNotFoundException &) {
-		set(key,var);
-	}
-	if (node->value->isString()==false) {
-		throw TypeConversionException();
-	}
-	if (concat.notEmpty()) node->value->toString().append(concat);
-	node->value->toString().append(var);
+	append(key,var,concat);
 }
 
 /*!\brief %AssocArray kopieren
@@ -913,12 +823,9 @@ void AssocArray::appendf(const String &key, const String &concat, const char *fm
  */
 void AssocArray::add(const AssocArray &other)
 {
-	Tree.reserve(num+other.num);	// Speicher vorab reservieren
-	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-	other.Tree.reset(it);
-	while ((other.Tree.getNext(it))) {
-		Variant *p=it.value().value;
-		set(it.key(),*p);
+	const_iterator it;
+	for (it=other.Tree.begin();it!=other.Tree.end();++it) {
+		set(it->first,*it->second);
 	}
 }
 
@@ -943,8 +850,9 @@ ppl7::String &str=a.get(L"key1").toString();
  */
 Variant& AssocArray::get(const String &key) const
 {
-	ValueNode *node=findInternal(key);
-	return *node->value;
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	return (*node);
 }
 
 /*!\brief Schlüssel vorhanden
@@ -958,12 +866,8 @@ Variant& AssocArray::get(const String &key) const
  */
 bool AssocArray::exists(const String &key) const
 {
-	try {
-		findInternal(key);
-	} catch (KeyNotFoundException &) {
-		return false;
-	}
-	return true;
+	if (findInternal(key)) return true;
+	return false;
 }
 
 /*!\brief String auslesen
@@ -979,8 +883,9 @@ bool AssocArray::exists(const String &key) const
  */
 String& AssocArray::getString(const String &key) const
 {
-	ValueNode *node=findInternal(key);
-	return node->value->toString();
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	return node->toString();
 }
 
 /*!\brief AssocArray auslesen
@@ -994,8 +899,9 @@ String& AssocArray::getString(const String &key) const
  */
 AssocArray& AssocArray::getArray(const String &key) const
 {
-	ValueNode *node=findInternal(key);
-	return node->value->toAssocArray();
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	return node->toAssocArray();
 }
 
 
@@ -1005,9 +911,8 @@ AssocArray& AssocArray::getArray(const String &key) const
  * \desc
  * Mit dieser Funktion wird ein einzelner Schlüssel aus dem Array gelöscht.
  *
- * \param[in] key Pointer auf den Namen des zu löschenden Schlüssels
+ * \param[in] key String mit dem Namen des zu löschenden Schlüssels
  *
- * \returns Bei Erfolg liefert die die Funktion true (1) zurück, im Fehlerfall false (0).*
  */
 void AssocArray::erase(const String &key)
 {
@@ -1015,25 +920,18 @@ void AssocArray::erase(const String &key)
 	if (tok.count()==0) throw InvalidKeyException(key);
 	ArrayKey firstkey=tok.shift();
 	ArrayKey rest=tok.implode("/");
-	ValueNode *p;
-	try {
-		ValueNode &node=Tree.find(firstkey);
-		p=&node;
-
-	} catch (ItemNotFoundException &) {
-		throw KeyNotFoundException();
-	}
+	iterator it=Tree.find(firstkey);
+	if (it==Tree.end()) return;		// nothing to do
 	// Ist noch was im Pfad rest?
-	if (tok.count()>1) {			// Ja, koennen wir iterieren?
-		if (p->value->isAssocArray()) {
-			p->value->toAssocArray().erase(rest);
+	if (tok.count()>0) {			// Ja, koennen wir iterieren?
+		if (it->second!=NULL && it->second->isAssocArray()) {
+			it->second->toAssocArray().erase(rest);
 			return;
 		} else {
-			throw KeyNotFoundException();
+			return;
 		}
 	}
-	Tree.erase(firstkey);
-	num--;
+	Tree.erase(it);
 }
 
 /*!\brief Einzelnen Schlüssel löschen
@@ -1041,37 +939,58 @@ void AssocArray::erase(const String &key)
  * \desc
  * Mit dieser Funktion wird ein einzelner Schlüssel aus dem Array gelöscht.
  *
- * \param[in] key Pointer auf den Namen des zu löschenden Schlüssels
+ * \param[in] key String mit dem Namen des zu löschenden Schlüssels
  *
- * \returns Bei Erfolg liefert die die Funktion true (1) zurück, im Fehlerfall false (0).*
  */
 void AssocArray::remove(const String &key)
 {
-	Array tok(key,"/",0,true);
-	if (tok.count()==0) throw InvalidKeyException(key);
-	ArrayKey firstkey=tok.shift();
-	ArrayKey rest=tok.implode("/");
-	ValueNode *p;
-	try {
-		ValueNode &node=Tree.find(firstkey);
-		p=&node;
-
-	} catch (ItemNotFoundException &) {
-		throw KeyNotFoundException();
-	}
-	// Ist noch was im Pfad rest?
-	if (tok.count()>1) {			// Ja, koennen wir iterieren?
-		if (p->value->isAssocArray()) {
-			p->value->toAssocArray().erase(rest);
-			return;
-		} else {
-			throw KeyNotFoundException();
-		}
-	}
-	Tree.erase(firstkey);
-	num--;
+	erase(key);
 }
 
+AssocArray::iterator AssocArray::begin()
+{
+	return Tree.begin();
+}
+
+AssocArray::const_iterator AssocArray::begin() const
+{
+	return Tree.begin();
+}
+
+AssocArray::iterator AssocArray::end()
+{
+	return Tree.end();
+}
+
+AssocArray::const_iterator AssocArray::end() const
+{
+	return Tree.end();
+}
+
+AssocArray::reverse_iterator AssocArray::rbegin()
+{
+	return Tree.rbegin();
+}
+
+AssocArray::const_reverse_iterator AssocArray::rbegin() const
+{
+	return Tree.rbegin();
+}
+
+
+AssocArray::reverse_iterator AssocArray::rend()
+{
+	return Tree.rend();
+}
+
+AssocArray::const_reverse_iterator AssocArray::rend() const
+{
+	return Tree.rend();
+}
+
+
+
+#ifdef TODO
 /*!\brief Zeiger für das Durchwandern des Arrays zurücksetzen
  *
  * \desc
@@ -1241,6 +1160,8 @@ bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
 	return false;
 }
 
+#endif // TODO
+
 /*! \brief Wandelt ein Key-Value Template in ein Assoziatives Array um
  *
  * \desc
@@ -1396,6 +1317,8 @@ size_t AssocArray::fromConfig(const String &content, const String &linedelimiter
 	return rows;
 }
 
+
+#ifdef TODO
 
 /*!\brief Inhalt des Assoziativen Arrays in ein Template exportieren
  *
@@ -1634,6 +1557,8 @@ void AssocArray::exportBinary(ByteArray &buffer) const
 	exportBinary((void*)buffer.adr(),buffer.size(),NULL);
 }
 
+#endif //TODO
+
 /*!\brief Daten aus einem vorherigen Export wieder importieren
  *
  * \desc
@@ -1740,8 +1665,9 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
  */
 Variant &AssocArray::operator[](const String &key) const
 {
-	ValueNode *node=findInternal(key);
-	return *node->value;
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	return *node;
 }
 
 /*!\brief Assoziatives Array kopieren
@@ -1787,4 +1713,4 @@ AssocArray& AssocArray::operator+=(const AssocArray& other)
 
 } // EOF namespace ppl7
 
-#endif // not NEW_PPL7_ASSOCARRAY
+#endif // NEW_PPL7_ASSOCARRAY

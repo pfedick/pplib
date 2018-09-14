@@ -54,6 +54,8 @@
 #define false 0
 #endif
 
+//#define NEW_PPL7_ASSOCARRAY 1
+
 namespace ppl7 {
 
 class String;
@@ -902,6 +904,15 @@ class AssocArray
 				bool operator>=(const ArrayKey &str) const;
 				bool operator>(const ArrayKey &str) const;
 		};
+
+#ifdef NEW_PPL7_ASSOCARRAY
+		std::map<ArrayKey, Variant*> Tree;
+		ppluint64		maxint;
+
+		Variant *findInternal(const ArrayKey &key) const;
+		void createTree(const ArrayKey &key, Variant *var);
+
+#else
 		class ValueNode
 		{
 			public:
@@ -912,12 +923,13 @@ class AssocArray
 		};
 
 
+		ppl7::AVLTree<ArrayKey, ValueNode> Tree;
 		ppluint64		maxint;
 		size_t			num;
-		ppl7::AVLTree<ArrayKey, ValueNode> Tree;
 
 		ValueNode *findInternal(const ArrayKey &key) const;
 		ValueNode *createTree(const ArrayKey &key, Variant *var);
+#endif
 
 
 	public:
@@ -925,6 +937,26 @@ class AssocArray
 		PPL7EXCEPTION(ExportBufferToSmallException, Exception);
 		PPL7EXCEPTION(ImportFailedException, Exception);
 
+#ifdef NEW_PPL7_ASSOCARRAY
+		typedef std::map<ArrayKey, Variant*>::iterator iterator;
+		typedef std::map<ArrayKey, Variant*>::const_iterator const_iterator;
+		typedef std::map<ArrayKey, Variant*>::reverse_iterator reverse_iterator;
+		typedef std::map<ArrayKey, Variant*>::const_reverse_iterator const_reverse_iterator;
+
+		class Iterator
+		{
+			private:
+				friend class AssocArray;
+				std::map<ArrayKey, Variant*>::iterator it;
+				Variant empty;
+			public:
+				const String &key() { return (*it).first; }
+				const Variant &value() {
+					if ((*it).second==NULL) return empty;
+					return *(*it).second;
+				};
+		};
+#else
 		class Iterator
 		{
 			private:
@@ -938,6 +970,7 @@ class AssocArray
 					return *it.value().value;
 				};
 		};
+#endif
 
 
 
@@ -955,8 +988,10 @@ class AssocArray
 		size_t count(const String &key, bool recursive=false) const;
 		size_t size() const;
 		void list(const String &prefix="") const;
+#ifndef NEW_PPL7_ASSOCARRAY
 		void reserve(size_t num);
 		size_t capacity() const;
+#endif
 		//@}
 
 		//!\name Werte setzen
@@ -1010,6 +1045,16 @@ class AssocArray
 
 		//!\name Array durchwandern
 		//@{
+#ifdef NEW_PPL7_ASSOCARRAY
+		iterator begin();
+		const_iterator begin() const;
+		iterator end();
+		const_iterator end() const;
+		reverse_iterator rbegin();
+		const_reverse_iterator rbegin() const;
+		reverse_iterator rend();
+		const_reverse_iterator rend() const;
+#endif
 		void reset(Iterator &it) const;
 		bool getFirst(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
 		bool getNext(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
@@ -1029,7 +1074,7 @@ class AssocArray
 		AssocArray& operator+=(const AssocArray& other);
 		//@}
 };
-
+AssocArray operator+(const AssocArray &a1, const AssocArray& a2);
 
 //! \brief Eine Struktur zum Erfassen von Uhrzeit und Datum
 typedef struct tagTime {
