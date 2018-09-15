@@ -1690,12 +1690,20 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
  * \exception InvalidKeyException: Ungültiger Schlüssel
  * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
  */
-Variant &AssocArray::operator[](const String &key) const
+const Variant &AssocArray::operator[](const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
 	return *node;
 }
+
+Variant &AssocArray::operator[](const String &key)
+{
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	return *node;
+}
+
 
 /*!\brief Assoziatives Array kopieren
  *
@@ -1737,6 +1745,30 @@ AssocArray& AssocArray::operator+=(const AssocArray& other)
 	add(other);
 	return *this;
 }
+
+bool AssocArray::operator==(const AssocArray &other)
+{
+	ByteArray b1,b2;
+	exportBinary(b1);
+	other.exportBinary(b2);
+	if (b1==b2) return true;
+	return false;
+}
+
+bool AssocArray::operator!=(const AssocArray &other)
+{
+	if (*this == other) return false;
+	return true;
+}
+
+AssocArray operator+(const AssocArray &a1, const AssocArray& a2)
+{
+	AssocArray a(a1);
+	a.add(a2);
+	return a;
+}
+
+
 
 } // EOF namespace ppl7
 
