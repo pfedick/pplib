@@ -144,7 +144,6 @@ dnl AX_GCC_ARCHFLAG
 #AX_CC_MAXOPT
 
 AX_CHECK_COMPILE_FLAG([-no-pie],
-    CFLAGS="-no-pie $CFLAGS"
     LDFLAGS="-no-pie $LDFLAGS"
     NOPIE="-no-pie",
     NOPIE=""
