@@ -78,7 +78,7 @@ int main (int argc, char**argv)
 	if ((ppl7::HaveArgv(argc,argv,"-c"))) {
 		PPL7TestConfig.load(ppl7::GetArgv(argc,argv,"-c"));
 	} else {
-		//PPL7TestConfig.load("test.conf");
+		PPL7TestConfig.load("test.conf");
 	}
 	} catch (const ppl7::Exception &e) {
 		e.print();

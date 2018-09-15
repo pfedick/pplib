@@ -415,24 +415,24 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString) {
 	createWalkingArray(a);
 	ppl7::AssocArray::Iterator it;
 
-	ASSERT_TRUE(a.getFirst(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getFirst(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("blah"),it.key());
 	ASSERT_TRUE(it.value().isString());
 	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
 
-	ASSERT_TRUE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("key1"),it.key());
 	ASSERT_TRUE(it.value().isString());
 
-	ASSERT_TRUE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("key2"),it.key());
 	ASSERT_TRUE(it.value().isString());
 
-	ASSERT_TRUE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("key3"),it.key());
 	ASSERT_TRUE(it.value().isString());
 
-	ASSERT_FALSE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_FALSE(a.getNext(it, ppl7::Variant::TYPE_STRING));
 }
 
 TEST_F(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams) {
@@ -517,24 +517,24 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString) {
 	ppl7::AssocArray::Iterator it;
 
 
-	ASSERT_TRUE(a.getLast(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getLast(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("key3"),it.key());
 	ASSERT_TRUE(it.value().isString());
 
-	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("key2"),it.key());
 	ASSERT_TRUE(it.value().isString());
 
-	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("key1"),it.key());
 	ASSERT_TRUE(it.value().isString());
 
-	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("blah"),it.key());
 	ASSERT_TRUE(it.value().isString());
 	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
 
-	ASSERT_FALSE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_FALSE(a.getPrevious(it, ppl7::Variant::TYPE_STRING));
 }
 
 TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams) {
