@@ -53,6 +53,8 @@
 
 #include "ppl7.h"
 
+
+
 #ifdef NEW_PPL7_ASSOCARRAY
 
 namespace ppl7 {
@@ -990,7 +992,6 @@ AssocArray::const_reverse_iterator AssocArray::rend() const
 
 
 
-#ifdef TODO
 /*!\brief Zeiger für das Durchwandern des Arrays zurücksetzen
  *
  * \desc
@@ -1003,7 +1004,8 @@ AssocArray::const_reverse_iterator AssocArray::rend() const
  */
 void AssocArray::reset(Iterator &it) const
 {
-	Tree.reset(it.it);
+	it.it=Tree.begin();
+	it.revit=Tree.rbegin();
 }
 
 /*!\brief Erstes Element zurückgeben
@@ -1018,8 +1020,14 @@ void AssocArray::reset(Iterator &it) const
  */
 bool AssocArray::getFirst(Iterator &it, Variant::DataType type) const
 {
-	Tree.reset(it.it);
-	return getNext(it,type);
+	it.it=Tree.begin();
+	while (1) {
+		if (it.it==Tree.end()) return false;
+		if (type==Variant::TYPE_UNKNOWN) break;
+		if (type==it.it->second->type()) break;
+		++it.it;
+	}
+	return true;
 }
 
 /*!\brief Nächstes Element zurückgeben
@@ -1034,10 +1042,12 @@ bool AssocArray::getFirst(Iterator &it, Variant::DataType type) const
  */
 bool AssocArray::getNext(Iterator &it, Variant::DataType type) const
 {
+	if (it.it==Tree.end()) return false;
 	while (1) {
-		if (!Tree.getNext(it.it)) return false;
+		++it.it;
+		if (it.it==Tree.end()) return false;
 		if (type==Variant::TYPE_UNKNOWN) break;
-		if (type==it.value().type()) break;
+		if (type==it.it->second->type()) break;
 	}
 	return true;
 }
@@ -1054,8 +1064,11 @@ bool AssocArray::getNext(Iterator &it, Variant::DataType type) const
  */
 bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
 {
+#ifdef TODO
 	Tree.reset(it.it);
 	return getPrevious(it,type);
+#endif
+	return false;
 }
 
 /*!\brief Vorhergehendes Element zurückgeben
@@ -1070,12 +1083,14 @@ bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
  */
 bool AssocArray::getPrevious(Iterator &it, Variant::DataType type) const
 {
+#ifdef TODO
 	while (1) {
 		if (!Tree.getPrevious(it.it)) throw OutOfBoundsEception();
 		if (type==Variant::TYPE_UNKNOWN) break;
 		if (type==it.value().type()) break;
 	}
-	return true;
+#endif
+	return false;
 }
 
 /*!\brief Ersten %String im %Array finden und Key und Value in Strings speichern
@@ -1091,8 +1106,11 @@ bool AssocArray::getPrevious(Iterator &it, Variant::DataType type) const
  */
 bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
 {
+#ifdef TODO
 	Tree.reset(it.it);
 	return getNext(it,key,value);
+#endif
+	return false;
 }
 
 /*!\brief Nächsten %String im %Array finden und Key und Value in Strings speichern
@@ -1108,6 +1126,7 @@ bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
  */
 bool AssocArray::getNext(Iterator &it, String &key, String &value) const
 {
+#ifdef TODO
 	while (1) {
 		if (!Tree.getNext(it.it)) return false;
 		if (it.value().isString()) {
@@ -1116,6 +1135,7 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
 			return true;
 		}
 	}
+#endif
 	return false;
 }
 
@@ -1132,8 +1152,11 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
  */
 bool AssocArray::getLast(Iterator &it, String &key, String &value) const
 {
+#ifdef TODO
 	Tree.reset(it.it);
 	return getPrevious(it,key,value);
+#endif
+	return false;
 }
 
 /*!\brief Vorhergehenden %String im %Array finden und Key und Value in Strings speichern
@@ -1149,6 +1172,7 @@ bool AssocArray::getLast(Iterator &it, String &key, String &value) const
  */
 bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
 {
+#ifdef TODO
 	while (1) {
 		if (!Tree.getPrevious(it.it)) return false;
 		if (it.value().isString()) {
@@ -1157,10 +1181,11 @@ bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
 			return true;
 		}
 	}
+#endif
 	return false;
 }
 
-#endif // TODO
+
 
 /*! \brief Wandelt ein Key-Value Template in ein Assoziatives Array um
  *
@@ -1318,7 +1343,6 @@ size_t AssocArray::fromConfig(const String &content, const String &linedelimiter
 }
 
 
-#ifdef TODO
 
 /*!\brief Inhalt des Assoziativen Arrays in ein Template exportieren
  *
@@ -1378,6 +1402,7 @@ foo/key2=value6
  */
 void AssocArray::toTemplate(String &s, const String &prefix, const String &linedelimiter, const String &splitchar) const
 {
+#ifdef TODO
 	String	key, pre, value, index;
 	Array		Tok;
 	if (prefix.notEmpty()) key=prefix+"/";
@@ -1408,6 +1433,7 @@ void AssocArray::toTemplate(String &s, const String &prefix, const String &lined
 			s+=key+it.key()+splitchar+p->toDateTime().getISO8601withMsec()+linedelimiter;
 		}
 	}
+#endif
 }
 
 /*!\brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
@@ -1465,6 +1491,7 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 {
 	char *ptr=(char*)buffer;
 	if (realsize) *realsize=0;
+#ifdef TODO
 	size_t p=0;
 	size_t vallen=0;
 	ByteArray key;
@@ -1522,6 +1549,7 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	if (realsize)*realsize=p;
 	if (buffersize==0 || p<=buffersize) return;
 	throw ExportBufferToSmallException("%zd < %zd",buffersize,p);
+#endif
 }
 
 /*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
@@ -1557,7 +1585,6 @@ void AssocArray::exportBinary(ByteArray &buffer) const
 	exportBinary((void*)buffer.adr(),buffer.size(),NULL);
 }
 
-#endif //TODO
 
 /*!\brief Daten aus einem vorherigen Export wieder importieren
  *

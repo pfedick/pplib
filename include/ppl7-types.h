@@ -947,7 +947,8 @@ class AssocArray
 		{
 			private:
 				friend class AssocArray;
-				std::map<ArrayKey, Variant*>::iterator it;
+				const_iterator it;
+				const_reverse_iterator revit;
 				Variant empty;
 			public:
 				const String &key() { return (*it).first; }

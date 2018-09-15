@@ -103,14 +103,16 @@ TEST_F(AssocArrayTest, addStringsMultiLevels) {
 
 TEST_F(AssocArrayTest, addMixed) {
 	ppl7::AssocArray a;
-	ppl7::DateTime now;
+	ppl7::DateTime now=ppl7::DateTime::currentTime();
+	ppl7::ByteArray ba(1234);
+	ppl7::ByteArrayPtr bap=ba;
+	ppl7::Random(ba, 1234);
+
 	ASSERT_NO_THROW({
 		a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
 		a.set("key2","value6");
 		now.setCurrentTime();
 		a.set("time",now);
-		ppl7::ByteArray ba(1234);
-		ppl7::ByteArrayPtr bap=ba;
 		a.set("bytearray",ba);
 		a.set("bytearrayptr",bap);
 		ppl7::Array a1("red green blue yellow black white"," ");
@@ -121,6 +123,8 @@ TEST_F(AssocArrayTest, addMixed) {
 	ASSERT_EQ(ppl7::String("value6"),a.getString("key2")) << "unexpected value";
 	ppl7::String s=a.get("array1").toArray().implode(" ");
 	ASSERT_EQ(ppl7::String("red green blue yellow black white"),s) << "unexpected value";
+	ASSERT_EQ(ba,a.get("bytearray").toByteArray()) << "unexpected value";
+	ASSERT_EQ(bap,a.get("bytearrayptr").toByteArrayPtr()) << "unexpected value";
 
 	//a.list();
 }
@@ -164,7 +168,9 @@ TEST_F(AssocArrayTest, getAssocArray) {
 TEST_F(AssocArrayTest, addAndDeleteWordlist) {
 	ppl7::AssocArray a;
 	size_t total=Wordlist.count();
+#ifndef NEW_PPL7_ASSOCARRAY
 	a.reserve(total+10);
+#endif
 	ppl7::PrintDebugTime ("Loading wordlist\n");
 	ppl7::String empty;
 	for (size_t i=0;i<total;i++) {
@@ -173,7 +179,7 @@ TEST_F(AssocArrayTest, addAndDeleteWordlist) {
 	ppl7::PrintDebugTime ("done\n");
 	//ASSERT_EQ(total,a.count()) << "Tree has unexpected size";
 
-	ppl7::PrintDebugTime ("Wortliste aus AVLTree loeschen\n");
+	ppl7::PrintDebugTime ("Deleting wordlist\n");
 	for (size_t i=0;i<total;i++) {
 		try {
 			a.erase(Wordlist[i]);
@@ -330,6 +336,232 @@ TEST_F(AssocArrayTest, exportAndImportBinary) {
 	ASSERT_EQ(ppl7::String("32324234213"),b.getString("data/1/sysinfo/uptime")) << "unexpected value";
 	ASSERT_EQ(ppl7::String("3"),b.getString("data/0/cpu/system")) << "unexpected value";
 }
+
+static void createWalkingArray(ppl7::AssocArray &a)
+{
+	ppl7::DateTime now=ppl7::DateTime::currentTime();
+	ppl7::ByteArray ba(1234);
+	ppl7::ByteArrayPtr bap=ba;
+	ppl7::Random(ba, 1234);
+	a.set("time",now);
+	a.set("blah","blubb");
+	a.set("bytearray",ba);
+	a.set("bytearrayptr",bap);
+	ppl7::Array a1("red green blue yellow black white"," ");
+	a.set("array0",a1);
+	a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
+	a.set("key2","value6");
+	a.set("array1/unterkey1","value2");
+	a.set("array1/unterkey2","value3");
+	a.set("array1/noch ein array/unterkey1","value4");
+	a.set("array1/unterkey2","value5");
+	a.set("key3","value7");
+	a.set("array2/unterkey1","value7");
+	a.set("array2/unterkey2","value8");
+	a.set("array2/unterkey1","value9");
+}
+
+TEST_F(AssocArrayTest, IterateGetFirstGetNextWithoutDatatype) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+
+	ASSERT_TRUE(a.getFirst(it));
+	ASSERT_EQ(ppl7::String("array0"),it.key());
+	ASSERT_TRUE(it.value().isArray());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("array1"),it.key());
+	ASSERT_TRUE(it.value().isAssocArray());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("array2"),it.key());
+	ASSERT_TRUE(it.value().isAssocArray());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("blah"),it.key());
+	ASSERT_TRUE(it.value().isString());
+	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("bytearray"),it.key());
+	ASSERT_TRUE(it.value().isByteArray());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("bytearrayptr"),it.key());
+	ASSERT_TRUE(it.value().isByteArrayPtr());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("key1"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("key2"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("time"),it.key());
+	ASSERT_TRUE(it.value().isDateTime());
+
+	ASSERT_FALSE(a.getNext(it));
+}
+
+TEST_F(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+
+	ASSERT_TRUE(a.getFirst(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("blah"),it.key());
+	ASSERT_TRUE(it.value().isString());
+	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
+
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("key1"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("key2"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_FALSE(a.getNext(it, ppl7::Variant::DataType::TYPE_STRING));
+}
+
+TEST_F(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+	ppl7::String key, value;
+	ASSERT_TRUE(a.getFirst(it, key,value));
+	ASSERT_EQ(ppl7::String("blah"),key);
+	ASSERT_EQ(ppl7::String("blubb"),value);
+
+	ASSERT_TRUE(a.getNext(it, key,value));
+	ASSERT_EQ(ppl7::String("key1"),it.key());
+	ASSERT_EQ(ppl7::String("Dieser Wert geht über\nmehrere Zeilen"),value);
+
+	ASSERT_TRUE(a.getNext(it, key,value));
+	ASSERT_EQ(ppl7::String("key2"),it.key());
+	ASSERT_EQ(ppl7::String("value6"),value);
+
+	ASSERT_TRUE(a.getNext(it, key,value));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_EQ(ppl7::String("value7"),value);
+
+	ASSERT_FALSE(a.getNext(it, key, value));
+}
+
+
+TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+
+	ASSERT_TRUE(a.getLast(it));
+	ASSERT_EQ(ppl7::String("time"),it.key());
+	ASSERT_TRUE(it.value().isDateTime());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("key2"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("key1"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("bytearrayptr"),it.key());
+	ASSERT_TRUE(it.value().isByteArrayPtr());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("bytearray"),it.key());
+	ASSERT_TRUE(it.value().isByteArray());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("blah"),it.key());
+	ASSERT_TRUE(it.value().isString());
+	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("array2"),it.key());
+	ASSERT_TRUE(it.value().isAssocArray());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("array1"),it.key());
+	ASSERT_TRUE(it.value().isAssocArray());
+
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("array0"),it.key());
+	ASSERT_TRUE(it.value().isArray());
+
+
+	ASSERT_FALSE(a.getPrevious(it));
+
+}
+
+TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+
+
+	ASSERT_TRUE(a.getLast(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("key2"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("key1"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("blah"),it.key());
+	ASSERT_TRUE(it.value().isString());
+	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
+
+	ASSERT_FALSE(a.getPrevious(it, ppl7::Variant::DataType::TYPE_STRING));
+}
+
+TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+	ppl7::String key, value;
+	ASSERT_TRUE(a.getLast(it, key,value));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_EQ(ppl7::String("value7"),value);
+
+	ASSERT_TRUE(a.getPrevious(it, key,value));
+	ASSERT_EQ(ppl7::String("key2"),it.key());
+	ASSERT_EQ(ppl7::String("value6"),value);
+
+	ASSERT_TRUE(a.getPrevious(it, key,value));
+	ASSERT_EQ(ppl7::String("key1"),it.key());
+	ASSERT_EQ(ppl7::String("Dieser Wert geht über\nmehrere Zeilen"),value);
+
+	ASSERT_TRUE(a.getPrevious(it, key,value));
+	ASSERT_EQ(ppl7::String("blah"),key);
+	ASSERT_EQ(ppl7::String("blubb"),value);
+
+	ASSERT_FALSE(a.getPrevious(it, key, value));
+}
+
+
 
 }	// EOF namespace
 
