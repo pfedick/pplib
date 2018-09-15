@@ -1016,6 +1016,38 @@ Variant &Variant::operator=(const Pointer &other)
 	return *this;
 }
 
+bool Variant::operator==(const Variant &other) const
+{
+	if (t!=other.t) return false;
+	switch (t) {
+		case TYPE_STRING:
+			return (*static_cast<String*>(value) == *static_cast<String*>(other.value));
+		case TYPE_ASSOCARRAY:
+			return (*static_cast<AssocArray*>(value) == *static_cast<AssocArray*>(other.value));
+		case TYPE_BYTEARRAY:
+			return (*static_cast<ByteArray*>(value) == *static_cast<ByteArray*>(other.value));
+		case TYPE_POINTER:
+			return (*static_cast<Pointer*>(value) == *static_cast<Pointer*>(other.value));
+		case TYPE_WIDESTRING:
+			return (*static_cast<WideString*>(value) == *static_cast<WideString*>(other.value));
+		case TYPE_ARRAY:
+			return (*static_cast<Array*>(value) == *static_cast<Array*>(other.value));
+		case TYPE_DATETIME:
+			return (*static_cast<DateTime*>(value) == *static_cast<DateTime*>(other.value));
+		case TYPE_BYTEARRAYPTR:
+			return (*static_cast<ByteArrayPtr*>(value) == *static_cast<ByteArrayPtr*>(other.value));
+		default:
+			break;
+	}
+	return false;
+}
+
+bool Variant::operator!=(const Variant &other) const
+{
+	if (*this==other) return false;
+	return true;
+}
+
 
 
 } // EOF namespace ppl7

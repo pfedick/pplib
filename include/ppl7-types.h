@@ -154,6 +154,9 @@ class Variant
 		Variant &operator=(const ByteArrayPtr &other);
 		Variant &operator=(const DateTime &other);
 		Variant &operator=(const Pointer &other);
+
+		bool operator==(const Variant &other) const;
+		bool operator!=(const Variant &other) const;
 };
 
 
@@ -1070,9 +1073,13 @@ class AssocArray
 
 		//!\name Operatoren
 		//@{
-		Variant &operator[](const String &key) const;
+		Variant &operator[](const String &key);
+		const Variant &operator[](const String &key) const;
 		AssocArray& operator=(const AssocArray& other);
 		AssocArray& operator+=(const AssocArray& other);
+
+		bool operator==(const AssocArray &other);
+		bool operator!=(const AssocArray &other);
 		//@}
 };
 AssocArray operator+(const AssocArray &a1, const AssocArray& a2);
