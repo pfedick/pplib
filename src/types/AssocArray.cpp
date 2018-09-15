@@ -54,8 +54,6 @@
 #include "ppl7.h"
 
 #ifndef NEW_PPL7_ASSOCARRAY
-
-
 namespace ppl7 {
 
 /*!\class AssocArray
@@ -1152,7 +1150,7 @@ bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
 bool AssocArray::getPrevious(Iterator &it, Variant::DataType type) const
 {
 	while (1) {
-		if (!Tree.getPrevious(it.it)) throw OutOfBoundsEception();
+		if (!Tree.getPrevious(it.it)) return false;
 		if (type==Variant::TYPE_UNKNOWN) break;
 		if (type==it.value().type()) break;
 	}
