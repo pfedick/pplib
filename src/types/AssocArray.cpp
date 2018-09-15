@@ -390,6 +390,7 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 		p=NULL;
 	}
 	if (p) {
+		//printf("FirstKey ist da: %s, rest: %s\n",(const char*)firstkey, (const char*)rest);
 		// Ist noch was im Pfad rest?
 		if (tok.count()>0) {          // Ja, koennen wir iterieren?
 			if (p->value->isAssocArray()==false) {
@@ -403,6 +404,8 @@ AssocArray::ValueNode *AssocArray::createTree(const ArrayKey &key, Variant *var)
 		p->value=var;
 		return p;
 	}
+
+	//printf ("key wird angelegt: %s, firstkey: %s\n", (const char*)key, (const char*) firstkey);
 
 	// Key ist nicht in diesem Array, wir legen ihn an
 	ValueNode newnode;
@@ -1736,7 +1739,24 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
  * \exception InvalidKeyException: Ungültiger Schlüssel
  * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
  */
-Variant &AssocArray::operator[](const String &key) const
+Variant &AssocArray::operator[](const String &key)
+{
+	ValueNode *node=findInternal(key);
+	return *node->value;
+}
+
+/*!\brief Schlüssel auslesen
+ *
+ * \desc
+ * Dieser Operator liefert den Wert des Schlüssels \p key als Variant zurück. Dieser kann
+ * von der aufrufenden Anwendung in den jeweiligen Datentyp umgewandelt werden.
+ *
+ * @param key Name des Schlüssels
+ * @return Referenz auf den einen Variant mit dem Wert des Schlüssels
+ * \exception InvalidKeyException: Ungültiger Schlüssel
+ * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
+ */
+const Variant &AssocArray::operator[](const String &key) const
 {
 	ValueNode *node=findInternal(key);
 	return *node->value;
@@ -1781,6 +1801,29 @@ AssocArray& AssocArray::operator+=(const AssocArray& other)
 {
 	add(other);
 	return *this;
+}
+
+bool AssocArray::operator==(const AssocArray &other)
+{
+	ByteArray b1,b2;
+	exportBinary(b1);
+	other.exportBinary(b2);
+	if (b1==b2) return true;
+	return false;
+}
+
+bool AssocArray::operator!=(const AssocArray &other)
+{
+	if (*this == other) return false;
+	return true;
+}
+
+
+AssocArray operator+(const AssocArray &a1, const AssocArray& a2)
+{
+	AssocArray a(a1);
+	a.add(a2);
+	return a;
 }
 
 } // EOF namespace ppl7

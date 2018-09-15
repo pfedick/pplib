@@ -561,6 +561,179 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams) {
 	ASSERT_FALSE(a.getPrevious(it, key, value));
 }
 
+TEST_F(AssocArrayTest, CountNonRecursive)
+{
+	ppl7::AssocArray a1;
+	ASSERT_EQ((size_t)0,a1.count(false));
+	a1.set("key1", "value1");
+	ASSERT_EQ((size_t)1,a1.count(false));
+	a1.set("array1/key1", "value2");
+	ASSERT_EQ((size_t)2,a1.count(false));
+	a1.set("array1/key2", "value3");
+	ASSERT_EQ((size_t)2,a1.count(false));
+	a1.set("array2/key1", "value3a");
+	ASSERT_EQ((size_t)3,a1.count(false));
+	a1.set("key2", "value4");
+	ASSERT_EQ((size_t)4,a1.count(false));
+	a1.set("key3", "value5");
+	ASSERT_EQ((size_t)5,a1.count(false));
+
+	ASSERT_EQ((size_t)5,a1.size());
+}
+
+TEST_F(AssocArrayTest, CountRecursive)
+{
+	ppl7::AssocArray a1;
+	ASSERT_EQ((size_t)0,a1.count(true));
+	a1.set("key1", "value1");
+	ASSERT_EQ((size_t)1,a1.count(true));
+	a1.set("array1/key1", "value2");
+	ASSERT_EQ((size_t)3,a1.count(true));
+	a1.set("array1/key2", "value3");
+	ASSERT_EQ((size_t)4,a1.count(true));
+	a1.set("array2/key1", "value3a");
+	ASSERT_EQ((size_t)6,a1.count(true));
+	a1.set("key2", "value4");
+	ASSERT_EQ((size_t)7,a1.count(true));
+	a1.set("key3", "value5");
+	ASSERT_EQ((size_t)8,a1.count(true));
+
+	ASSERT_EQ((size_t)5,a1.size());
+}
+
+TEST_F(AssocArrayTest, OperatorPlus)
+{
+	ppl7::AssocArray a1, a2;
+	a1.set("key1", "value1");
+	a1.set("array1/key1", "value2");
+	a1.set("array1/key2", "value3");
+	a1.set("array2/key1", "value3a");
+	a1.set("key2", "value4");
+	a1.set("key3", "value5");
+	ASSERT_EQ((size_t)5,a1.count(false));
+	ASSERT_EQ((size_t)8,a1.count(true));
+
+	a2.set("key3", "value6");
+	a2.set("array1/key3", "value7");
+	a2.set("array2/key1", "value8");
+	a2.set("array2/key2", "value8a");
+	a2.set("array2/key3", "value8b");
+	a2.set("array3/key1", "value9");
+	a2.set("key4", "value10");
+	ASSERT_EQ((size_t)5,a2.count(false));
+	ASSERT_EQ((size_t)10,a2.count(true));
+
+	ppl7::AssocArray ret=a1+a2;
+	//ret.list();
+
+	ASSERT_EQ((size_t)12,ret.count(true));
+	ASSERT_EQ((size_t)7,ret.size());
+
+	ASSERT_EQ(ppl7::String("value1"),ret.getString("key1"));
+	ASSERT_EQ(ppl7::String("value4"),ret.getString("key2"));
+	ASSERT_EQ(ppl7::String("value6"),ret.getString("key3"));
+	ASSERT_EQ(ppl7::String("value10"),ret.getString("key4"));
+
+	ASSERT_THROW({ret.getString("array1/key1");},ppl7::KeyNotFoundException);
+	ASSERT_EQ(ppl7::String("value7"),ret.getString("array1/key3"));
+	ASSERT_EQ(ppl7::String("value8"),ret.getString("array2/key1"));
+	ASSERT_EQ(ppl7::String("value9"),ret.getString("array3/key1"));
+
+
+}
+
+TEST_F(AssocArrayTest, OperatorPlusEqual)
+{
+	ppl7::AssocArray a1, a2;
+	a1.set("key1", "value1");
+	a1.set("array1/key1", "value2");
+	a1.set("array1/key2", "value3");
+	a1.set("array2/key1", "value3a");
+	a1.set("key2", "value4");
+	a1.set("key3", "value5");
+
+
+	a2.set("key3", "value6");
+	a2.set("array1/key3", "value7");
+	a2.set("array2/key1", "value8");
+	a2.set("array2/key2", "value8a");
+	a2.set("array2/key3", "value8b");
+	a2.set("array3/key1", "value9");
+	a2.set("key4", "value10");
+
+	a1+=a2;
+
+	ASSERT_EQ((size_t)12,a1.count(true));
+	ASSERT_EQ((size_t)7,a1.size());
+
+	ASSERT_EQ(ppl7::String("value1"),a1.getString("key1"));
+	ASSERT_EQ(ppl7::String("value4"),a1.getString("key2"));
+	ASSERT_EQ(ppl7::String("value6"),a1.getString("key3"));
+	ASSERT_EQ(ppl7::String("value10"),a1.getString("key4"));
+
+	ASSERT_THROW({a1.getString("array1/key1");},ppl7::KeyNotFoundException);
+	ASSERT_EQ(ppl7::String("value7"),a1.getString("array1/key3"));
+	ASSERT_EQ(ppl7::String("value8"),a1.getString("array2/key1"));
+	ASSERT_EQ(ppl7::String("value9"),a1.getString("array3/key1"));
+}
+
+TEST_F(AssocArrayTest, OperatorEqualEqual)
+{
+	ppl7::AssocArray a1, a2;
+	a1.set("key1", "value1");
+	a1.set("array1/key1", "value2");
+	a1.set("array1/key2", "value3");
+	a1.set("array2/key1", "value3a");
+	a1.set("key2", "value4");
+	a1.set("key3", "value5");
+
+	a2.set("key1", "value1");
+	a2.set("array1/key1", "value2");
+	a2.set("array1/key2", "value3");
+	a2.set("array2/key1", "value3a");
+	a2.set("key2", "value4");
+	a2.set("key3", "value5");
+
+	ASSERT_TRUE(a1==a2);
+	ASSERT_FALSE(a1!=a2);
+}
+
+TEST_F(AssocArrayTest, OperatorNotEqual)
+{
+	ppl7::AssocArray a1, a2;
+	a1.set("key1", "value1");
+	a1.set("array1/key1", "value2");
+	a1.set("array1/key2", "value3");
+	a1.set("array2/key1", "value3a");
+	a1.set("key2", "value4");
+	a1.set("key3", "value5");
+
+	a2.set("key1", "value1");
+	a2.set("array1/key1", "value7");
+	a2.set("array1/key2", "value3");
+	a2.set("array2/key1", "value3a");
+	a2.set("key2", "value4");
+	a2.set("key3", "value5");
+
+	ASSERT_TRUE(a1!=a2);
+	ASSERT_FALSE(a1==a2);
+}
+
+TEST_F(AssocArrayTest, OperatorElement)
+{
+	ppl7::AssocArray a1, a2;
+	a1.set("key1", "value1");
+	a1.set("array1/key1", "value2");
+	a1.set("array1/key2", "value3");
+	a1.set("array2/key1", "value3a");
+	a1.set("key2", "value4");
+	a1.set("key3", "value5");
+
+	ASSERT_EQ(ppl7::Variant(ppl7::String("value2")),a1["array1/key1"]);
+	ASSERT_EQ(ppl7::Variant(ppl7::String("value4")),a1["key2"]);
+
+}
+
 
 
 }	// EOF namespace
