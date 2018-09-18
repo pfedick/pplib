@@ -367,6 +367,7 @@ static void createWalkingArray(ppl7::AssocArray &a)
 	ppl7::ByteArrayPtr bap=ba;
 	ppl7::Random(ba, 1234);
 	a.set("time",now);
+	a.set("aaaa","first element");
 	a.set("blah","blubb");
 	a.set("bytearray",ba);
 	a.set("bytearrayptr",bap);
@@ -384,12 +385,27 @@ static void createWalkingArray(ppl7::AssocArray &a)
 	a.set("array2/unterkey1","value9");
 }
 
+TEST_F(AssocArrayTest, IterateResetGetNextWithoutDatatype) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+	a.reset(it);
+	ASSERT_TRUE(a.getNext(it));
+	ASSERT_EQ(ppl7::String("aaaa"),it.key());
+	ASSERT_TRUE(it.value().isString());
+}
+
+
 TEST_F(AssocArrayTest, IterateGetFirstGetNextWithoutDatatype) {
 	ppl7::AssocArray a;
 	createWalkingArray(a);
 	ppl7::AssocArray::Iterator it;
 
 	ASSERT_TRUE(a.getFirst(it));
+	ASSERT_EQ(ppl7::String("aaaa"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
+	ASSERT_TRUE(a.getNext(it));
 	ASSERT_EQ(ppl7::String("array0"),it.key());
 	ASSERT_TRUE(it.value().isArray());
 
@@ -433,12 +449,28 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithoutDatatype) {
 	ASSERT_FALSE(a.getNext(it));
 }
 
+TEST_F(AssocArrayTest, IterateResetGetNextWithDatatypeString) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+	a.reset(it);
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("aaaa"),it.key());
+	ASSERT_TRUE(it.value().isString());
+	ASSERT_EQ(ppl7::String("first element"),it.value().toString());
+}
+
 TEST_F(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString) {
 	ppl7::AssocArray a;
 	createWalkingArray(a);
 	ppl7::AssocArray::Iterator it;
 
 	ASSERT_TRUE(a.getFirst(it, ppl7::Variant::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("aaaa"),it.key());
+	ASSERT_TRUE(it.value().isString());
+	ASSERT_EQ(ppl7::String("first element"),it.value().toString());
+
+	ASSERT_TRUE(a.getNext(it, ppl7::Variant::TYPE_STRING));
 	ASSERT_EQ(ppl7::String("blah"),it.key());
 	ASSERT_TRUE(it.value().isString());
 	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
@@ -458,12 +490,27 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithDatatypeString) {
 	ASSERT_FALSE(a.getNext(it, ppl7::Variant::TYPE_STRING));
 }
 
+TEST_F(AssocArrayTest, IterateResetGetNextWithKeyValueParams) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::Iterator it;
+	ppl7::String key, value;
+	a.reset(it);
+	ASSERT_TRUE(a.getNext(it, key,value));
+	ASSERT_EQ(ppl7::String("aaaa"),key);
+	ASSERT_EQ(ppl7::String("first element"),value);
+}
+
 TEST_F(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams) {
 	ppl7::AssocArray a;
 	createWalkingArray(a);
 	ppl7::AssocArray::Iterator it;
 	ppl7::String key, value;
 	ASSERT_TRUE(a.getFirst(it, key,value));
+	ASSERT_EQ(ppl7::String("aaaa"),key);
+	ASSERT_EQ(ppl7::String("first element"),value);
+
+	ASSERT_TRUE(a.getNext(it, key,value));
 	ASSERT_EQ(ppl7::String("blah"),key);
 	ASSERT_EQ(ppl7::String("blubb"),value);
 
@@ -482,6 +529,16 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams) {
 	ASSERT_FALSE(a.getNext(it, key, value));
 }
 
+
+TEST_F(AssocArrayTest, IterateResetGetPreviousWithoutDatatype) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::ReverseIterator it;
+	a.reset(it);
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("time"),it.key());
+	ASSERT_TRUE(it.value().isDateTime());
+}
 
 TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype) {
 	ppl7::AssocArray a;
@@ -529,9 +586,23 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype) {
 	ASSERT_EQ(ppl7::String("array0"),it.key());
 	ASSERT_TRUE(it.value().isArray());
 
+	ASSERT_TRUE(a.getPrevious(it));
+	ASSERT_EQ(ppl7::String("aaaa"),it.key());
+	ASSERT_TRUE(it.value().isString());
+
 
 	ASSERT_FALSE(a.getPrevious(it));
 
+}
+
+TEST_F(AssocArrayTest, IterateResetGetPreviousWithDatatypeString) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::ReverseIterator it;
+	a.reset(it);
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_TRUE(it.value().isString());
 }
 
 TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString) {
@@ -557,7 +628,24 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString) {
 	ASSERT_TRUE(it.value().isString());
 	ASSERT_EQ(ppl7::String("blubb"),it.value().toString());
 
+	ASSERT_TRUE(a.getPrevious(it, ppl7::Variant::TYPE_STRING));
+	ASSERT_EQ(ppl7::String("aaaa"),it.key());
+	ASSERT_TRUE(it.value().isString());
+	ASSERT_EQ(ppl7::String("first element"),it.value().toString());
+
 	ASSERT_FALSE(a.getPrevious(it, ppl7::Variant::TYPE_STRING));
+}
+
+TEST_F(AssocArrayTest, IterateResetGetPreviousWithKeyValueParams) {
+	ppl7::AssocArray a;
+	createWalkingArray(a);
+	ppl7::AssocArray::ReverseIterator it;
+	ppl7::String key, value;
+
+	a.reset(it);
+	ASSERT_TRUE(a.getPrevious(it, key,value));
+	ASSERT_EQ(ppl7::String("key3"),it.key());
+	ASSERT_EQ(ppl7::String("value7"),value);
 }
 
 TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams) {
@@ -580,6 +668,10 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams) {
 	ASSERT_TRUE(a.getPrevious(it, key,value));
 	ASSERT_EQ(ppl7::String("blah"),key);
 	ASSERT_EQ(ppl7::String("blubb"),value);
+
+	ASSERT_TRUE(a.getPrevious(it, key,value));
+	ASSERT_EQ(ppl7::String("aaaa"),key);
+	ASSERT_EQ(ppl7::String("first element"),value);
 
 	ASSERT_FALSE(a.getPrevious(it, key, value));
 }
