@@ -1088,6 +1088,11 @@ void AssocArray::reset(Iterator &it) const
 	Tree.reset(it.it);
 }
 
+void AssocArray::reset(ReverseIterator &it) const
+{
+	Tree.reset(it.it);
+}
+
 /*!\brief Erstes Element zurückgeben
  *
  * \desc
@@ -1134,7 +1139,7 @@ bool AssocArray::getNext(Iterator &it, Variant::DataType type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
+bool AssocArray::getLast(ReverseIterator &it, Variant::DataType type) const
 {
 	Tree.reset(it.it);
 	return getPrevious(it,type);
@@ -1150,7 +1155,7 @@ bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getPrevious(Iterator &it, Variant::DataType type) const
+bool AssocArray::getPrevious(ReverseIterator &it, Variant::DataType type) const
 {
 	while (1) {
 		if (!Tree.getPrevious(it.it)) return false;
@@ -1212,7 +1217,7 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
  */
-bool AssocArray::getLast(Iterator &it, String &key, String &value) const
+bool AssocArray::getLast(ReverseIterator &it, String &key, String &value) const
 {
 	Tree.reset(it.it);
 	return getPrevious(it,key,value);
@@ -1229,7 +1234,7 @@ bool AssocArray::getLast(Iterator &it, String &key, String &value) const
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
  */
-bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
+bool AssocArray::getPrevious(ReverseIterator &it, String &key, String &value) const
 {
 	while (1) {
 		if (!Tree.getPrevious(it.it)) return false;

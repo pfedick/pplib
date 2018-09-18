@@ -140,6 +140,29 @@ TEST_F(AssocArrayTest, append) {
 	//a.list();
 }
 
+TEST_F(AssocArrayTest, appendRecursive) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+		a.set("level1/key","First Value");
+		a.append("level1/key","Second Value","\n");
+	});
+	ASSERT_EQ((size_t)1,a.count()) << "Unexpected size of AssocArray";
+	ASSERT_EQ(ppl7::String("First Value\nSecond Value"),a.getString("level1/key")) << "unexpected value";
+	//a.list();
+}
+
+TEST_F(AssocArrayTest, appendNonExisting) {
+	ppl7::AssocArray a;
+	ASSERT_NO_THROW({
+		a.append("key","First Value","\n");
+		a.append("level1/key","Second Value","\n");
+	});
+	ASSERT_EQ((size_t)2,a.count()) << "Unexpected size of AssocArray";
+	ASSERT_EQ(ppl7::String("First Value"),a.getString("key")) << "unexpected value";
+	ASSERT_EQ(ppl7::String("Second Value"),a.getString("level1/key")) << "unexpected value";
+	//a.list();
+}
+
 
 TEST_F(AssocArrayTest, getAssocArray) {
 	ppl7::AssocArray a;
@@ -463,7 +486,7 @@ TEST_F(AssocArrayTest, IterateGetFirstGetNextWithKeyValueParams) {
 TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype) {
 	ppl7::AssocArray a;
 	createWalkingArray(a);
-	ppl7::AssocArray::Iterator it;
+	ppl7::AssocArray::ReverseIterator it;
 
 	ASSERT_TRUE(a.getLast(it));
 	ASSERT_EQ(ppl7::String("time"),it.key());
@@ -514,7 +537,7 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithoutDatatype) {
 TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString) {
 	ppl7::AssocArray a;
 	createWalkingArray(a);
-	ppl7::AssocArray::Iterator it;
+	ppl7::AssocArray::ReverseIterator it;
 
 
 	ASSERT_TRUE(a.getLast(it, ppl7::Variant::TYPE_STRING));
@@ -540,7 +563,7 @@ TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithDatatypeString) {
 TEST_F(AssocArrayTest, IterateGetLastGetPreviousWithKeyValueParams) {
 	ppl7::AssocArray a;
 	createWalkingArray(a);
-	ppl7::AssocArray::Iterator it;
+	ppl7::AssocArray::ReverseIterator it;
 	ppl7::String key, value;
 	ASSERT_TRUE(a.getLast(it, key,value));
 	ASSERT_EQ(ppl7::String("key3"),it.key());

@@ -308,7 +308,7 @@ Variant *AssocArray::findInternal(const ArrayKey &key) const
 	ArrayKey rest=tok.implode("/");
 
 	const_iterator it=Tree.find(firstkey);
-	if (it==Tree.end()) throw KeyNotFoundException(firstkey);
+	if (it==Tree.end()) return NULL;
 	// Ist noch was im Pfad rest?
 	if (tok.count()>0) {			// Ja, koennen wir iterieren?
 		if (it->second!=NULL && it->second->isAssocArray()) {
@@ -1005,7 +1005,11 @@ AssocArray::const_reverse_iterator AssocArray::rend() const
 void AssocArray::reset(Iterator &it) const
 {
 	it.it=Tree.begin();
-	it.revit=Tree.rbegin();
+}
+
+void AssocArray::reset(ReverseIterator &it) const
+{
+	it.it=Tree.rbegin();
 }
 
 /*!\brief Erstes Element zurückgeben
@@ -1062,13 +1066,16 @@ bool AssocArray::getNext(Iterator &it, Variant::DataType type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
+bool AssocArray::getLast(ReverseIterator &it, Variant::DataType type) const
 {
-#ifdef TODO
-	Tree.reset(it.it);
-	return getPrevious(it,type);
-#endif
-	return false;
+	it.it=Tree.rbegin();
+	while (1) {
+		if (it.it==Tree.rend()) return false;
+		if (type==Variant::TYPE_UNKNOWN) break;
+		if (type==it.it->second->type()) break;
+		++it.it;
+	}
+	return true;
 }
 
 /*!\brief Vorhergehendes Element zurückgeben
@@ -1081,16 +1088,16 @@ bool AssocArray::getLast(Iterator &it, Variant::DataType type) const
  * @param type Optional der gewünschte Datentyp (siehe Variant::Type)
  * @return \c true, wenn ein Element vorhanden war, sonst \c false
  */
-bool AssocArray::getPrevious(Iterator &it, Variant::DataType type) const
+bool AssocArray::getPrevious(ReverseIterator &it, Variant::DataType type) const
 {
-#ifdef TODO
+	if (it.it==Tree.rend()) return false;
 	while (1) {
-		if (!Tree.getPrevious(it.it)) throw OutOfBoundsEception();
+		++it.it;
+		if (it.it==Tree.rend()) return false;
 		if (type==Variant::TYPE_UNKNOWN) break;
-		if (type==it.value().type()) break;
+		if (type==it.it->second->type()) break;
 	}
-#endif
-	return false;
+	return true;
 }
 
 /*!\brief Ersten %String im %Array finden und Key und Value in Strings speichern
@@ -1106,11 +1113,15 @@ bool AssocArray::getPrevious(Iterator &it, Variant::DataType type) const
  */
 bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
 {
-#ifdef TODO
-	Tree.reset(it.it);
-	return getNext(it,key,value);
-#endif
-	return false;
+	it.it=Tree.begin();
+	while (1) {
+		if (it.it==Tree.end()) return false;
+		if (it.it->second->isString()) break;
+		++it.it;
+	}
+	key.set(it.it->first);
+	value.set(it.it->second->toString());
+	return true;
 }
 
 /*!\brief Nächsten %String im %Array finden und Key und Value in Strings speichern
@@ -1126,17 +1137,15 @@ bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
  */
 bool AssocArray::getNext(Iterator &it, String &key, String &value) const
 {
-#ifdef TODO
+	if (it.it==Tree.end()) return false;
 	while (1) {
-		if (!Tree.getNext(it.it)) return false;
-		if (it.value().isString()) {
-			key.set(it.key());
-			value.set(it.value().toString());
-			return true;
-		}
+		++it.it;
+		if (it.it==Tree.end()) return false;
+		if (it.it->second->isString()) break;
 	}
-#endif
-	return false;
+	key.set(it.it->first);
+	value.set(it.it->second->toString());
+	return true;
 }
 
 /*!\brief Letzten %String im %Array finden und Key und Value in Strings speichern
@@ -1150,7 +1159,7 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
  */
-bool AssocArray::getLast(Iterator &it, String &key, String &value) const
+bool AssocArray::getLast(ReverseIterator &it, String &key, String &value) const
 {
 #ifdef TODO
 	Tree.reset(it.it);
@@ -1170,7 +1179,7 @@ bool AssocArray::getLast(Iterator &it, String &key, String &value) const
  * @param[out] value String, in dem der Wert gespeichert werden soll.
  * \return Solange Elemente gefunden werden, liefert die Funktion \c true zurück, sonst \c false.
  */
-bool AssocArray::getPrevious(Iterator &it, String &key, String &value) const
+bool AssocArray::getPrevious(ReverseIterator &it, String &key, String &value) const
 {
 #ifdef TODO
 	while (1) {

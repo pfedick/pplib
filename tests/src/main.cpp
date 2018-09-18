@@ -75,13 +75,15 @@ int main (int argc, char**argv)
 {
 	if (ppl7::HaveArgv(argc,argv,"-h") || ppl7::HaveArgv(argc,argv,"--help")) help();
 	try {
-	if ((ppl7::HaveArgv(argc,argv,"-c"))) {
-		PPL7TestConfig.load(ppl7::GetArgv(argc,argv,"-c"));
-	} else {
-		PPL7TestConfig.load("test.conf");
-	}
+		if ((ppl7::HaveArgv(argc,argv,"-c"))) {
+			PPL7TestConfig.load(ppl7::GetArgv(argc,argv,"-c"));
+		} else {
+			PPL7TestConfig.load("test.conf");
+		}
 	} catch (const ppl7::Exception &e) {
+		printf ("ERROR: Failed to load test configuration-file\n");
 		e.print();
+		throw;
 		return 1;
 	}
 	::testing::InitGoogleTest(&argc, argv);

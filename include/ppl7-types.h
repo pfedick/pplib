@@ -951,7 +951,6 @@ class AssocArray
 			private:
 				friend class AssocArray;
 				const_iterator it;
-				const_reverse_iterator revit;
 				Variant empty;
 			public:
 				const String &key() { return (*it).first; }
@@ -960,6 +959,20 @@ class AssocArray
 					return *(*it).second;
 				};
 		};
+		class ReverseIterator
+		{
+			private:
+				friend class AssocArray;
+				const_reverse_iterator it;
+				Variant empty;
+			public:
+				const String &key() { return (*it).first; }
+				const Variant &value() {
+					if ((*it).second==NULL) return empty;
+					return *(*it).second;
+				};
+		};
+
 #else
 		class Iterator
 		{
@@ -974,6 +987,7 @@ class AssocArray
 					return *it.value().value;
 				};
 		};
+		class ReverseIterator : public Iterator {};
 #endif
 
 
@@ -1060,15 +1074,16 @@ class AssocArray
 		const_reverse_iterator rend() const;
 #endif
 		void reset(Iterator &it) const;
+		void reset(ReverseIterator &it) const;
 		bool getFirst(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
 		bool getNext(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
-		bool getLast(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
-		bool getPrevious(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
+		bool getLast(ReverseIterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
+		bool getPrevious(ReverseIterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;
 
 		bool getFirst(Iterator &it, String &key, String &value) const;
 		bool getNext(Iterator &it, String &key, String &value) const;
-		bool getLast(Iterator &it, String &key, String &value) const;
-		bool getPrevious(Iterator &it, String &key, String &value) const;
+		bool getLast(ReverseIterator &it, String &key, String &value) const;
+		bool getPrevious(ReverseIterator &it, String &key, String &value) const;
 		//@}
 
 		//!\name Operatoren

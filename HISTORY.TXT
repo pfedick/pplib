@@ -15,6 +15,7 @@ Version 7.0.1
   - Added compare operator to Variant
   - Added more operators for AssocArray
   - fixed "-no-pie" compiler warnings
+  - Reverse iteration over AssocArray now requires a ReverseIterator
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7
