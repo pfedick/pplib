@@ -757,6 +757,37 @@ TEST_F(AssocArrayTest, OperatorElement)
 
 }
 
+TEST_F(AssocArrayTest, ToTemplate)
+{
+	ppl7::AssocArray a;
+	ppl7::ByteArray bin;
+	ppl7::String out;
+	ppl7::File::load(bin,"src/main.cpp");
+	a.set("key1","Dieser Wert geht über\nmehrere Zeilen");
+	a.set("array1/unterkey1","value2");
+	a.set("array1/unterkey2","value3");
+	a.set("array1/noch ein array/unterkey1","value4");
+	a.set("array1/unterkey2","value5");
+	a.set("key2","value6");
+	a.set("dateien/main.cpp",&bin);
+	a.set("array2/unterkey1","value7");
+	a.set("array2/unterkey2","value8");
+	a.set("array2/unterkey1","value9");
+	a.toTemplate(out,"foo");
+	//out.printnl();
+	ASSERT_EQ(ppl7::String(
+			"foo/array1/noch ein array/unterkey1=value4\n"
+			"foo/array1/unterkey1=value2\n"
+			"foo/array1/unterkey2=value5\n"
+			"foo/array2/unterkey1=value9\n"
+			"foo/array2/unterkey2=value8\n"
+			"foo/key1=Dieser Wert geht über\n"
+			"foo/key1=mehrere Zeilen\n"
+			"foo/key2=value6\n"
+	),out);
+}
+
+
 
 
 }	// EOF namespace
