@@ -1161,11 +1161,15 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
  */
 bool AssocArray::getLast(ReverseIterator &it, String &key, String &value) const
 {
-#ifdef TODO
-	Tree.reset(it.it);
-	return getPrevious(it,key,value);
-#endif
-	return false;
+	it.it=Tree.rbegin();
+	while (1) {
+		if (it.it==Tree.rend()) return false;
+		if (it.it->second->isString()) break;
+		++it.it;
+	}
+	key.set(it.it->first);
+	value.set(it.it->second->toString());
+	return true;
 }
 
 /*!\brief Vorhergehenden %String im %Array finden und Key und Value in Strings speichern
@@ -1181,17 +1185,15 @@ bool AssocArray::getLast(ReverseIterator &it, String &key, String &value) const
  */
 bool AssocArray::getPrevious(ReverseIterator &it, String &key, String &value) const
 {
-#ifdef TODO
+	if (it.it==Tree.rend()) return false;
 	while (1) {
-		if (!Tree.getPrevious(it.it)) return false;
-		if (it.value().isString()) {
-			key.set(it.key());
-			value.set(it.value().toString());
-			return true;
-		}
+		++it.it;
+		if (it.it==Tree.rend()) return false;
+		if (it.it->second->isString()) break;
 	}
-#endif
-	return false;
+	key.set(it.it->first);
+	value.set(it.it->second->toString());
+	return true;
 }
 
 
@@ -1411,22 +1413,20 @@ foo/key2=value6
  */
 void AssocArray::toTemplate(String &s, const String &prefix, const String &linedelimiter, const String &splitchar) const
 {
-#ifdef TODO
 	String	key, pre, value, index;
 	Array		Tok;
 	if (prefix.notEmpty()) key=prefix+"/";
-	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-	Tree.reset(it);
-	while ((Tree.getNext(it))) {
-		Variant *p=it.value().value;
+	ppl7::AssocArray::const_iterator it;
+	for (it=Tree.begin();it!=Tree.end();++it) {
+		Variant *p=it->second;
 		if (p->isString()) {
 			Tok.clear();
 			Tok.explode(p->toString(),"\n");
 			for (size_t i=0;i<Tok.size();i++) {
-				s+=key+it.key()+splitchar+Tok[i]+linedelimiter;
+				s+=key+it->first+splitchar+Tok[i]+linedelimiter;
 			}
 		} else if (p->isAssocArray()) {
-			pre.setf("%s%s",(const char*)key,(const char*)it.key());
+			pre.setf("%s%s",(const char*)key,(const char*)it->first);
 			p->toAssocArray().toTemplate(s,pre,linedelimiter,splitchar);
 		} else if (p->isArray()) {
 			const Array &a=(const Array &)*p;
@@ -1435,14 +1435,13 @@ void AssocArray::toTemplate(String &s, const String &prefix, const String &lined
 				Tok.explode(a[i],"\n");
 				index.setf("%zu",i);
 				for (size_t z=0;z<Tok.size();z++) {
-					s+=key+it.key()+"/"+index+splitchar+Tok[z]+linedelimiter;
+					s+=key+it->first+"/"+index+splitchar+Tok[z]+linedelimiter;
 				}
 			}
 		} else if (p->isDateTime()) {
-			s+=key+it.key()+splitchar+p->toDateTime().getISO8601withMsec()+linedelimiter;
+			s+=key+it->first+splitchar+p->toDateTime().getISO8601withMsec()+linedelimiter;
 		}
 	}
-#endif
 }
 
 /*!\brief Liefert Anzahl Bytes, die für exportBinary erforderlich sind
@@ -1500,7 +1499,6 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 {
 	char *ptr=(char*)buffer;
 	if (realsize) *realsize=0;
-#ifdef TODO
 	size_t p=0;
 	size_t vallen=0;
 	ByteArray key;
@@ -1508,16 +1506,15 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	if (!buffer) buffersize=0;
 	if (p+7<buffersize) strncpy(ptr,"PPLASOC",7);
 	p+=7;
-	ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-	Tree.reset(it);
-	while ((Tree.getNext(it))) {
-		Variant *a=it.value().value;
+	AssocArray::const_iterator it;
+	for (it=Tree.begin();it!=Tree.end();++it) {
+		const Variant *a=it->second;
 		if (p<buffersize) {
 			if (a->isByteArrayPtr()) PokeN8(ptr+p,Variant::TYPE_BYTEARRAY);
 			else PokeN8(ptr+p,a->type());
 		}
 		p++;
-		key=it.key();
+		key=it->first;
 		size_t keylen=key.size();
 		if (p+4<buffersize) PokeN16(ptr+p,(int)keylen);
 		p+=2;
@@ -1558,7 +1555,6 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 	if (realsize)*realsize=p;
 	if (buffersize==0 || p<=buffersize) return;
 	throw ExportBufferToSmallException("%zd < %zd",buffersize,p);
-#endif
 }
 
 /*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren

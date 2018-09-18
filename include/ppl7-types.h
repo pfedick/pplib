@@ -54,7 +54,7 @@
 #define false 0
 #endif
 
-//#define NEW_PPL7_ASSOCARRAY 1
+#define NEW_PPL7_ASSOCARRAY 1
 
 namespace ppl7 {
 

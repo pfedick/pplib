@@ -16,6 +16,10 @@ Version 7.0.1
   - Added more operators for AssocArray
   - fixed "-no-pie" compiler warnings
   - Reverse iteration over AssocArray now requires a ReverseIterator
+  - refactored AssocArray to use std::map instead of own AVLTreeAlgorithm.
+    As a side effect, this change had a huge performance improvement on
+    setting, getting and deleting values. The unittest addAndDeleteWordlist
+    now takes 794ms instead of 1432ms on my workstation.   
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7
