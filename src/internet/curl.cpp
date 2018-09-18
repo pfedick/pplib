@@ -147,7 +147,7 @@ Curl::Curl()
 	#ifdef HAVE_LIBCURL
 		CurlMutex.lock();
 		if (!ppl_curl_instance) {
-			if (!curl_global_init(CURL_GLOBAL_WIN32|CURL_GLOBAL_SSL)==0) {
+			if (!(curl_global_init(CURL_GLOBAL_WIN32|CURL_GLOBAL_SSL)==0)) {
 				CurlMutex.unlock();
 				throw Curl::InitializationFailedException();
 			}
@@ -194,7 +194,7 @@ Curl::Curl(const Curl &other)
 	#ifdef HAVE_LIBCURL
 		CurlMutex.lock();
 		if (!ppl_curl_instance) {
-			if (!curl_global_init(CURL_GLOBAL_WIN32|CURL_GLOBAL_SSL)==0) {
+			if (!(curl_global_init(CURL_GLOBAL_WIN32|CURL_GLOBAL_SSL)==0)) {
 				CurlMutex.unlock();
 				throw Curl::InitializationFailedException();
 			}
