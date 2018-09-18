@@ -1004,12 +1004,12 @@ AssocArray::const_reverse_iterator AssocArray::rend() const
  */
 void AssocArray::reset(Iterator &it) const
 {
-	it.it=Tree.begin();
+	it.reset=true;
 }
 
 void AssocArray::reset(ReverseIterator &it) const
 {
-	it.it=Tree.rbegin();
+	it.reset=true;
 }
 
 /*!\brief Erstes Element zurückgeben
@@ -1025,6 +1025,7 @@ void AssocArray::reset(ReverseIterator &it) const
 bool AssocArray::getFirst(Iterator &it, Variant::DataType type) const
 {
 	it.it=Tree.begin();
+	it.reset=false;
 	while (1) {
 		if (it.it==Tree.end()) return false;
 		if (type==Variant::TYPE_UNKNOWN) break;
@@ -1046,6 +1047,7 @@ bool AssocArray::getFirst(Iterator &it, Variant::DataType type) const
  */
 bool AssocArray::getNext(Iterator &it, Variant::DataType type) const
 {
+	if (it.reset) return getFirst(it,type);
 	if (it.it==Tree.end()) return false;
 	while (1) {
 		++it.it;
@@ -1069,6 +1071,7 @@ bool AssocArray::getNext(Iterator &it, Variant::DataType type) const
 bool AssocArray::getLast(ReverseIterator &it, Variant::DataType type) const
 {
 	it.it=Tree.rbegin();
+	it.reset=false;
 	while (1) {
 		if (it.it==Tree.rend()) return false;
 		if (type==Variant::TYPE_UNKNOWN) break;
@@ -1090,6 +1093,7 @@ bool AssocArray::getLast(ReverseIterator &it, Variant::DataType type) const
  */
 bool AssocArray::getPrevious(ReverseIterator &it, Variant::DataType type) const
 {
+	if (it.reset) return getLast(it,type);
 	if (it.it==Tree.rend()) return false;
 	while (1) {
 		++it.it;
@@ -1114,6 +1118,7 @@ bool AssocArray::getPrevious(ReverseIterator &it, Variant::DataType type) const
 bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
 {
 	it.it=Tree.begin();
+	it.reset=false;
 	while (1) {
 		if (it.it==Tree.end()) return false;
 		if (it.it->second->isString()) break;
@@ -1137,6 +1142,7 @@ bool AssocArray::getFirst(Iterator &it, String &key, String &value) const
  */
 bool AssocArray::getNext(Iterator &it, String &key, String &value) const
 {
+	if (it.reset) return getFirst(it,key,value);
 	if (it.it==Tree.end()) return false;
 	while (1) {
 		++it.it;
@@ -1162,6 +1168,7 @@ bool AssocArray::getNext(Iterator &it, String &key, String &value) const
 bool AssocArray::getLast(ReverseIterator &it, String &key, String &value) const
 {
 	it.it=Tree.rbegin();
+	it.reset=false;
 	while (1) {
 		if (it.it==Tree.rend()) return false;
 		if (it.it->second->isString()) break;
@@ -1185,6 +1192,7 @@ bool AssocArray::getLast(ReverseIterator &it, String &key, String &value) const
  */
 bool AssocArray::getPrevious(ReverseIterator &it, String &key, String &value) const
 {
+	if (it.reset) return getLast(it,key,value);
 	if (it.it==Tree.rend()) return false;
 	while (1) {
 		++it.it;

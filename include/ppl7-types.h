@@ -952,7 +952,9 @@ class AssocArray
 				friend class AssocArray;
 				const_iterator it;
 				Variant empty;
+				bool reset;
 			public:
+				Iterator() { reset=true; }
 				const String &key() { return (*it).first; }
 				const Variant &value() {
 					if ((*it).second==NULL) return empty;
@@ -965,7 +967,9 @@ class AssocArray
 				friend class AssocArray;
 				const_reverse_iterator it;
 				Variant empty;
+				bool reset;
 			public:
+				ReverseIterator() { reset=true; }
 				const String &key() { return (*it).first; }
 				const Variant &value() {
 					if ((*it).second==NULL) return empty;
