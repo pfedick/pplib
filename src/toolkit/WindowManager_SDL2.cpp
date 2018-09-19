@@ -801,6 +801,9 @@ typedef struct {
 } TIMER_EVENT;
 
 #ifdef HAVE_SDL2
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
+
 static Uint32 timerEvent(Uint32 interval, void *param)
 {
 	//printf("clickTimer\n");
@@ -820,6 +823,7 @@ static Uint32 timerEvent(Uint32 interval, void *param)
     SDL_PushEvent(&event);
     return(interval);
 }
+#pragma GCC diagnostic pop
 #endif
 
 void WindowManager_SDL2::startTimer(Widget *w, int intervall)
