@@ -670,5 +670,63 @@ int	CBinary::FromHex(const CString &s)
 	return 1;
 }
 
+int CBinary::memcmp(const CBinary &other) const
+{
+	size_t min=size;
+	//if (other.ptrsize>max) max=other.ptrsize;
+	if (other.size<min) min=other.size;
+	for (size_t i=0;i<min;i++) {
+		if ( ((char*)ptr)[i] < ((char*)other.ptr)[i] ) return -1;
+		if ( ((char*)ptr)[i] > ((char*)other.ptr)[i] ) return 1;
+	}
+	if (size<other.size) return -1;
+	if (size>other.size) return 1;
+	return 0;
+}
+
+
+bool CBinary::operator<(const CBinary &other) const
+{
+	int c=memcmp(other);
+	if (c<0) return true;
+	return false;
+}
+
+bool CBinary::operator<=(const CBinary &other) const
+{
+	int c=memcmp(other);
+	if (c<=0) return true;
+	return false;
+}
+
+bool CBinary::operator==(const CBinary &other) const
+{
+	int c=memcmp(other);
+	if (c==0) return true;
+	return false;
+}
+
+bool CBinary::operator!=(const CBinary &other) const
+{
+	int c=memcmp(other);
+	if (c!=0) return true;
+	return false;
+}
+
+bool CBinary::operator>=(const CBinary &other) const
+{
+	int c=memcmp(other);
+	if (c>=0) return true;
+	return false;
+}
+
+bool CBinary::operator>(const CBinary &other) const
+{
+	int c=memcmp(other);
+	if (c>0) return true;
+	return false;
+}
+
+
 } // EOF namespace ppl6
 

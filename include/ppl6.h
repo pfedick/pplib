@@ -1108,6 +1108,14 @@ class CBinary : public CVar
 		char operator[](size_t pos) const;
 		operator CMemoryReference() const;
 
+		int memcmp(const CBinary &other) const;
+		bool operator<(const CBinary &other) const;
+		bool operator<=(const CBinary &other) const;
+		bool operator==(const CBinary &other) const;
+		bool operator!=(const CBinary &other) const;
+		bool operator>=(const CBinary &other) const;
+		bool operator>(const CBinary &other) const;
+
 };
 
 
