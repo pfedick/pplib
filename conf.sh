@@ -50,23 +50,23 @@ case "$SYS:$REL:$KERNEL" in
 	FreeBSD:11.*)
 		CLANGVERSION=
 		export CC=clang$CLANGVERSION
-                export CXX=clang++$CLANGVERSION
-        export CPPFLAGS=-I/usr/local/include
-                export LDLAGS=-L/usr/local/lib
-                export GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
-                export GCOV_LDFLAGS="-lgcov"
-               ./configure --prefix=$PREFIX \
-                        --with-lame=/usr/local --with-mpg123=/usr/local \
-                        --with-pcre=/usr/local --with-x --with-mysql \
-                        --with-libmhash=/usr/local \
-                        --with-openssl=/usr/local \
-                        --with-libiconv-prefix=/usr/local --with-nasm  \
-                        --with-libjpegturbo=/usr/local --with-libpng --with-libtiff=/usr/local \
-                        --with-postgresql \
-                        --with-libidn=/usr/local \
-                        --with-ogg=/usr/local \
-                        --with-libmicrohttpd=/usr/local \
-                        --enable-gtest=/usr/local/gtest-1.7.0
+		export CXX=clang++$CLANGVERSION
+		export CPPFLAGS=-I/usr/local/include
+		export LDLAGS=-L/usr/local/lib
+		export GCOV_CFLAGS="-fprofile-arcs -ftest-coverage"
+		export GCOV_LDFLAGS="-lgcov"
+		./configure --prefix=$PREFIX \
+			--with-lame=/usr/local --with-mpg123=/usr/local \
+			--with-pcre=/usr/local --with-x --with-mysql \
+			--with-libmhash=/usr/local \
+			--with-openssl=/usr/local \
+			--with-libiconv-prefix=/usr/local --with-nasm  \
+			--with-libjpegturbo=/usr/local --with-libpng --with-libtiff=/usr/local \
+			--with-postgresql \
+			--with-libidn=/usr/local \
+			--with-ogg=/usr/local \
+			--with-libmicrohttpd=/usr/local \
+			--enable-gtest=/usr/local/gtest-1.7.0
 
 		;;
 	MINGW32*:1.0.16*)

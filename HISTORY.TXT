@@ -19,7 +19,11 @@ Version 7.0.1
   - refactored AssocArray to use std::map instead of own AVLTreeAlgorithm.
     As a side effect, this change had a huge performance improvement on
     setting, getting and deleting values. The unittest addAndDeleteWordlist
-    now takes 794ms instead of 1432ms on my workstation.   
+    now takes 794ms instead of 1432ms on my workstation.
+  - SSLContext: dropped support for deprecated SSL and TLS versions.
+    Only the methods "TLS", "TLSclient" and "TLSserver" are supported.
+    The actual protocol version used will be negotiated to the highest
+    version mutually supported by the client and the server. 
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7

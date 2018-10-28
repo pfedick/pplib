@@ -284,36 +284,15 @@ class SSLContext
 		void 		clear();
 	public:
 		enum SSL_METHOD {
-			SSLv2	= 1,
-			SSLv2client,
-			SSLv2server,
-			SSLv3,
-			SSLv3client,
-			SSLv3server,
-			TLSv1,
-			TLSv1client,
-			TLSv1server,
-			SSLv23,				// Unterstuetzt SSLv2, v3 und TLSv1
-			SSLv23client,		// Unterstuetzt SSLv2, v3 und TLSv1
-			SSLv23server,		// Unterstuetzt SSLv2, v3 und TLSv1
-			TLSv1_1,
-			TLSv1_1client,
-			TLSv1_1server,
-			TLSv1_2,
-			TLSv1_2client,
-			TLSv1_2server,
 			TLS,				// Verwendet SSLv23, SSL wird aber disabled, so dass nur TLS unterstuetzt wird
 			TLSclient,
 			TLSserver,
-			DTLSv1,
-			DTLSv1client,
-			DTLSv1server,
 		};
 
 		SSLContext();
-		SSLContext(int method);
+		SSLContext(SSL_METHOD method);
 		~SSLContext();
-		void 	init(int method=TLSv1_2);
+		void 	init(SSL_METHOD method=TLS);
 		bool	isInit();
 		void 	shutdown();
 		void 	*newSSL();
