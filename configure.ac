@@ -570,10 +570,8 @@ AX_CHECK_OPENSSL(
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 	
-	AC_CHECK_FUNCS([TLSv1_method TLSv1_server_method TLSv1_client_method])
-	AC_CHECK_FUNCS([TLSv1_1_method TLSv1_1_server_method TLSv1_1_client_method])
-	AC_CHECK_FUNCS([TLSv1_2_method TLSv1_2_server_method TLSv1_2_client_method])
-	AC_CHECK_FUNCS([DTLSv1_method DTLSv1_server_method DTLSv1_client_method])
+	AC_CHECK_FUNCS([TLS_method TLS_server_method TLS_client_method])
+	AC_CHECK_FUNCS([SSLv23_method SSLv23_server_method SSLv23_client_method])
 	
 	CPPFLAGS="$am_save_CPPFLAGS"
 	CFLAGS="$am_save_CFLAGS"

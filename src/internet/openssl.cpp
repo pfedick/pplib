@@ -474,16 +474,26 @@ void SSLContext::init(SSL_METHOD method)
 	if (!method) method=SSLContext::TLS;
 	while ((ERR_get_error()));	// Clear Error-Stack
 	switch (method) {
-
-
 		case SSLContext::TLS:
+#ifdef HAVE_TLS_METHOD
 			ctx=SSL_CTX_new(TLS_method());
+#else
+			ctx=SSL_CTX_new(SSLv23_method());
+#endif
 			break;
 		case SSLContext::TLSclient:
+#ifdef HAVE_TLS_CLIENT_METHOD
 			ctx=SSL_CTX_new(TLS_client_method());
+#else
+			ctx=SSL_CTX_new(SSLv23_client_method());
+#endif
 			break;
 		case SSLContext::TLSserver:
+#ifdef HAVE_TLS_SERVER_METHOD
 			ctx=SSL_CTX_new(TLS_server_method());
+#else
+			ctx=SSL_CTX_new(SSLv23_server_method());
+#endif
 			break;
 		default:
 			mutex.unlock();
