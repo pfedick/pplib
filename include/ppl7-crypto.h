@@ -236,8 +236,7 @@ class Digest
 			Algo_SHA384,
 			Algo_SHA512,
 			Algo_WHIRLPOOL,
-			Algo_RIPEMD160,
-			Algo_ECDSA
+			Algo_RIPEMD160
 		};
 
 

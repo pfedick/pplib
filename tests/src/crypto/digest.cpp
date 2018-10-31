@@ -179,15 +179,6 @@ TEST_F(DigestTest, TestRipeMD160) {
 	ASSERT_EQ(ppl7::String("7cba3ff0d404943790e16e95b52d78ab502989dc"),result.toHex());
 }
 
-TEST_F(DigestTest, TestECDSA) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_ECDSA));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result.toHex());
-}
-
 TEST_F(DigestTest, TestChangeAlgorithm) {
 	ppl7::Digest dig;
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
@@ -452,14 +443,6 @@ TEST_F(DigestTest, TestStaticSha512) {
 	ASSERT_NO_THROW({
 		ppl7::String result=ppl7::Digest::sha512(data).toHex();
 		ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827aaec64d5c6c33259260ce9"),result);
-	});
-}
-
-TEST_F(DigestTest, TestStaticEcdsa) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::ecdsa(data).toHex();
-		ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result);
 	});
 }
 

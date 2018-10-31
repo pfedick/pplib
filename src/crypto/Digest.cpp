@@ -179,10 +179,6 @@ void Digest::setAlgorithm(Algorithm algorithm)
 #endif
 #ifndef OPENSSL_NO_SHA
 		case Algo_SHA1: m=EVP_sha1(); break;
-		case Algo_ECDSA:
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-			m=EVP_ecdsa(); break;
-#endif
 #endif
 #ifndef OPENSSL_NO_SHA256
 		case Algo_SHA224: m=EVP_sha224(); break;
@@ -405,11 +401,6 @@ ByteArray Digest::sha384(const ByteArrayPtr &data)
 ByteArray Digest::sha512(const ByteArrayPtr &data)
 {
 	return Digest::hash(data,Algo_SHA512);
-}
-
-ByteArray Digest::ecdsa(const ByteArrayPtr &data)
-{
-	return Digest::hash(data,Algo_ECDSA);
 }
 
 ppluint32 Digest::crc32(const ByteArrayPtr &data)
