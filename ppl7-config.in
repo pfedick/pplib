@@ -178,6 +178,10 @@ while test $# -gt 0; do
       features_wanted=$*
       break
       ;;
+    inet)
+      libname="$libname -lppl7-inet"
+      LIBS="$LIBS $LIBS_INET"
+      ;;
     core)
       libname="$libname -lppl7-core"
       LIBS="$LIBS $LIBS_CORE"
@@ -185,10 +189,6 @@ while test $# -gt 0; do
     crypto)
       libname="$libname -lppl7-crypto"
       LIBS="$LIBS $LIBS_CRYPTO"
-      ;;
-    inet)
-      libname="$libname -lppl7-inet"
-      LIBS="$LIBS $LIBS_INET"
       ;;
     gfx)
       libname="$libname -lppl7-gfx"
@@ -215,7 +215,7 @@ while test $# -gt 0; do
 done
 
 if test -z "$LIBS" ; then
-   LIBS="$LIBS_CORE $LIBS_CRYPTO $LIBS_GFX $LIBS_INET $LIBS_DB $LIBS_AUDIO $LIBS_TK"
+   LIBS="$LIBS_INET $LIBS_CORE $LIBS_CRYPTO $LIBS_GFX $LIBS_DB $LIBS_AUDIO $LIBS_TK"
 fi
 LIBS="$LIBS -lstdc++"
 
