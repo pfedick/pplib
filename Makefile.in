@@ -83,6 +83,7 @@ RELEASE	= release/core_AVLTree.o \
 	release/core_Functions.o \
 	release/core_GzFile.o \
 	release/core_Iconv.o \
+	release/core_Json.o \
 	release/core_Logger.o \
 	release/core_MemFile.o \
 	release/core_MemoryGroup.o \
@@ -198,6 +199,7 @@ CORE_RELEASE = release/core_AVLTree.o \
 	release/core_Functions.o \
 	release/core_GzFile.o \
 	release/core_Iconv.o \
+	release/core_Json.o \
 	release/core_Logger.o \
 	release/core_MemFile.o \
 	release/core_MemoryGroup.o \
@@ -339,6 +341,7 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/core_Functions.o \
 	debug/core_GzFile.o \
 	debug/core_Iconv.o \
+	debug/core_Json.o \
 	debug/core_Logger.o \
 	debug/core_MemFile.o \
 	debug/core_MemoryGroup.o \
@@ -469,6 +472,7 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/core_Functions.o \
 	coverage/core_GzFile.o \
 	coverage/core_Iconv.o \
+	coverage/core_Json.o \
 	coverage/core_Logger.o \
 	coverage/core_MemFile.o \
 	coverage/core_MemoryGroup.o \
@@ -795,6 +799,11 @@ release/core_Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-e
 	###############################################################################
 	# Compiling >>>core/Iconv.cpp<<<
 	$(CXX) -Wall -O2 -o release/core_Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) 
+
+release/core_Json.o:	$(srcdir)/core/Json.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Json.cpp<<<
+	$(CXX) -Wall -O2 -o release/core_Json.o -c $(srcdir)/core/Json.cpp $(CFLAGS) 
 
 release/core_Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
@@ -1456,6 +1465,11 @@ debug/core_Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exc
 	# Compiling >>>core/Iconv.cpp<<<
 	$(CXX) -Wall -O -o debug/core_Iconv.o -c $(srcdir)/core/Iconv.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/core_Json.o:	$(srcdir)/core/Json.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Json.cpp<<<
+	$(CXX) -Wall -O -o debug/core_Json.o -c $(srcdir)/core/Json.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/core_Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Logger.cpp<<<
@@ -2114,6 +2128,11 @@ coverage/core_Iconv.o:	$(srcdir)/core/Iconv.cpp $(incdir)/ppl7.h $(incdir)/ppl7-
 	###############################################################################
 	# Compiling >>>core/Iconv.cpp<<<
 	$(CXX) -Wall -o coverage/core_Iconv.o -c $(srcdir)/core/Iconv.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/core_Json.o:	$(srcdir)/core/Json.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/Json.cpp<<<
+	$(CXX) -Wall -o coverage/core_Json.o -c $(srcdir)/core/Json.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/core_Logger.o:	$(srcdir)/core/Logger.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################

@@ -4,7 +4,7 @@
 #
 ###############################################################################
 #
-# Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+# Copyright (c) 2018, Patrick Fedick <patrick@pfp.de>
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,8 @@ OBJECTS_CORE = compile/array.o compile/assocarray.o compile/avltree.o \
 	compile/functions.o compile/gzfile.o compile/iconv.o compile/list.o \
 	compile/logger.o compile/math.o compile/memorygroup.o compile/memoryheap.o \
 	compile/pointer.o compile/stringfunctions.o compile/strings.o \
-	compile/time.o compile/variant.o compile/widestrings.o
+	compile/time.o compile/variant.o compile/widestrings.o \
+	compile/json.o
 
 OBJECTS_CRYPTO = compile/crypto.o compile/digest.o compile/mcrypt.o compile/mhash.o
 
@@ -316,6 +317,9 @@ compile/math.o: src/core/math.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/math.o -c src/core/math.cpp $(CFLAGS) $(LIB)
 
+compile/json.o: src/core/json.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/json.o -c src/core/json.cpp $(CFLAGS) $(LIB)
 
 ################################################################################
 # INET

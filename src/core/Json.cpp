@@ -1,0 +1,262 @@
+/*******************************************************************************
+ * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
+ * Web: http://www.pfp.de/ppl/
+ *
+ * $Author$
+ * $Revision$
+ * $Date$
+ * $Id$
+ *
+ *******************************************************************************
+ * Copyright (c) 2018, Patrick Fedick <patrick@pfp.de>
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *    1. Redistributions of source code must retain the above copyright notice, this
+ *       list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright notice,
+ *       this list of conditions and the following disclaimer in the documentation
+ *       and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER AND CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+ * THE POSSIBILITY OF SUCH DAMAGE.
+ *******************************************************************************/
+
+
+#include "prolog.h"
+#ifdef HAVE_STDIO_H
+#include <stdio.h>
+#endif
+#ifdef HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
+#ifdef HAVE_STDARG_H
+#include <stdarg.h>
+#endif
+
+
+#include "ppl7.h"
+
+namespace ppl7 {
+
+struct ParserState
+{
+	enum state {
+		ExpectingKey,
+		ExpectingColon,
+		ExpectingValue,
+		ExpectingNextOrEnd,
+	};
+};
+
+static void readDict(ppl7::AssocArray &data, ppl7::FileObject &file);
+static void readArray(ppl7::AssocArray &data, ppl7::FileObject &file);
+
+static ppl7::String getString(ppl7::FileObject &file)
+{
+	ppl7::String str;
+	int c;
+	while (!file.eof()) {
+		c=file.fgetc();
+		if (c=='\\') {
+			c=file.fgetc();
+			if (c=='n') str.append("\n");
+			else if (c=='r') str.append("\r");
+			else if (c=='t') str.append("\t");
+			else if (c=='b') str.append("\b");
+			else if (c=='f') str.append("\f");
+			else if (c=='"') str.append('"');
+			else if (c=='\\') str.append('\\');
+			else if (c=='/') str.append('/');
+			else throw InvalidEscapeSequenceException("\\%c",c);
+		} else if (c=='"') {
+			return str;
+		} else {
+			str.append(c);
+		}
+	}
+	throw ppl7::UnexpectedEndOfDataException();
+}
+
+static ppl7::String getNumber(ppl7::FileObject &file)
+{
+	ppl7::String str;
+	int c;
+	while (!file.eof()) {
+		c=file.fgetc();
+		if (c=='.' || (c>='0' && c<='9')) {
+			str.append(c);
+		} else {
+			file.seek(-1,ppl7::File::SEEKCUR);
+			return str;
+		}
+	}
+	throw ppl7::UnexpectedEndOfDataException();
+}
+
+static void readChars(ppl7::FileObject &file, const char *chars)
+{
+	int c,p=0;
+	while (chars[p]!=0) {
+		if (file.eof()) throw ppl7::UnexpectedEndOfDataException();
+		c=file.fgetc();
+		if (c!=chars[p])
+			throw ppl7::UnexpectedCharacterException("Excpected: >>%s<<, character: >>%c<<, got: >>%c<<",
+					chars,chars[p],c);
+		p++;
+	}
+}
+
+static bool readVaue(ppl7::AssocArray &data, const ppl7::String &key, ppl7::FileObject &file, int c)
+{
+	if (c=='"') {
+		ppl7::String value=getString(file);
+		data.set(key,value);
+		return true;
+	} else if (c=='[') {  // Array
+		ppl7::AssocArray value;
+		readArray(value,file);
+		data.set(key,value);
+		return true;
+	} else if (c=='{') {  // dict
+		ppl7::AssocArray value;
+		readDict(value,file);
+		data.set(key,value);
+		return true;
+	} else if (c=='.' ||( c>='0' && c<='9')) {
+		file.seek(-1,ppl7::File::SEEKCUR);
+		ppl7::String value=getNumber(file);
+		data.set(key,value);
+		return true;
+	} else if (c=='t') {  // true
+		file.seek(-1,ppl7::File::SEEKCUR);
+		readChars(file, "true");
+		data.set(key,ppl7::String("true"));
+		return true;
+	} else if (c=='f') {  // false
+		file.seek(-1,ppl7::File::SEEKCUR);
+		readChars(file, "false");
+		data.set(key,ppl7::String("false"));
+		return true;
+	} else if (c=='n') {  // null
+		file.seek(-1,ppl7::File::SEEKCUR);
+		readChars(file, "null");
+		data.set(key,ppl7::String("null"));
+		return true;
+	}
+	return false;
+}
+
+static void readArray(ppl7::AssocArray &data, ppl7::FileObject &file)
+{
+	int c;
+	ParserState::state state=ParserState::ExpectingValue;
+	while (!file.eof()) {
+		c=file.fgetc();
+		if (state==ParserState::ExpectingValue && readVaue(data,"[]",file,c)==true) {
+			state=ParserState::ExpectingNextOrEnd;
+		} else if (c==',' && state==ParserState::ExpectingNextOrEnd) {
+			state=ParserState::ExpectingValue;
+		} else if (c==']' && (state==ParserState::ExpectingValue || state==ParserState::ExpectingNextOrEnd)) {
+			return;
+		} else if (c!=' ' && c!='\n' && c!='\r' && c!='\t') {
+			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing array",c,file.tell());
+		}
+	}
+	throw ppl7::UnexpectedEndOfDataException();
+}
+
+
+static void readDict(ppl7::AssocArray &data, ppl7::FileObject &file)
+{
+	int c;
+	ppl7::String key;
+	ParserState::state state=ParserState::ExpectingKey;
+	while (!file.eof()) {
+		c=file.fgetc();
+		if (c=='"' && state==ParserState::ExpectingKey) {
+			key=getString(file);
+			state=ParserState::ExpectingColon;
+		} else if (c==':' && state==ParserState::ExpectingColon) {
+			state=ParserState::ExpectingValue;
+		} else if (c==',' && state==ParserState::ExpectingNextOrEnd) {
+			state=ParserState::ExpectingKey;
+		} else if (state==ParserState::ExpectingValue && readVaue(data,key,file,c)==true) {
+			state=ParserState::ExpectingNextOrEnd;
+		} else if (c=='}' && (state==ParserState::ExpectingNextOrEnd || state==ParserState::ExpectingKey)) {
+			return;
+		} else if (c!=' ' && c!='\n' && c!='\r' && c!='\t') {
+			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict",c,file.tell());
+		}
+	}
+	throw ppl7::UnexpectedEndOfDataException();
+}
+
+static void expectEof(ppl7::FileObject &file)
+{
+	int c;
+	while (!file.eof()) {
+		c=file.fgetc();
+		if (c!=' ' && c!='\n' && c!='\r' && c!='\t') {
+			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict",c,file.tell());
+		}
+	}
+}
+
+void Json::loads(ppl7::AssocArray &data, const ppl7::String &json)
+{
+	ppl7::MemFile file((void*)json.getPtr(),json.size());
+	Json::load(data,file);
+}
+
+void Json::load(ppl7::AssocArray &data, ppl7::FileObject &file)
+{
+	int c;
+	while (!file.eof()) {
+		c=file.fgetc();
+		if (c=='{') {
+			readDict(data,file);
+			expectEof(file);
+			return;
+		} else if (c=='[') {
+			readArray(data,file);
+			expectEof(file);
+			return;
+		} else if (c!=' ' && c!='\n' && c!='\r' && c!='\t') {
+			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict",c,file.tell());
+		}
+	}
+}
+
+ppl7::AssocArray Json::loads(const ppl7::String &json)
+{
+	ppl7::AssocArray result;
+	Json::loads(result,json);
+	return result;
+}
+
+ppl7::AssocArray Json::load(ppl7::FileObject &file)
+{
+	ppl7::AssocArray result;
+	Json::load(result,file);
+	return result;
+}
+
+
+
+
+} // end of namespace ppl7
+

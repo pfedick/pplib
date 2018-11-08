@@ -1,0 +1,27 @@
+{
+	"RootKey": "Root Value",
+	"EscapeSecences": "newline\n, tab\ttab, backs\\ash",
+	"integer": 12345,
+	"float": 17.999,
+	"dict": { "innerdict_key1": "value1",
+	"key2": "value2"
+	},
+	"array_same_line": ["String1","String2",   "String3"],
+	"array_multiline": [
+		"String1",
+		"String2",
+		22.443,
+		["schachtel1", "schachtel2"],
+		{ "schachteldict1": "value1",
+		"schachteldict2":"value2"},
+		12345
+	],
+	"empty_array": [],
+	"empty_dict": {},
+	"empty_string": "",
+	"Zeilenumbruch": "Dieser String geht über\nmehrere Zeilen.",
+	"key2": "value2",
+	"true": true,
+	"false": false,
+	"null": null
+}

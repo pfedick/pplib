@@ -1300,6 +1300,18 @@ class Iconv
 		static String LocalToUtf8(const String &text);
 };
 
+class Json
+{
+public:
+	static void loads(ppl7::AssocArray &data, const ppl7::String &json);
+	static void load(ppl7::AssocArray &data, ppl7::FileObject &file);
+	static ppl7::AssocArray loads(const ppl7::String &json);
+	static ppl7::AssocArray load(ppl7::FileObject &file);
+
+	static void dumps(ppl7::String &json, const ppl7::AssocArray &data);
+	static void dump(ppl7::FileObject &file, const ppl7::AssocArray &data);
+	static ppl7::String dumps(const ppl7::AssocArray &data);
+};
 
 };	// EOF namespace ppl7
 

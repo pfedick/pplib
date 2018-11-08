@@ -133,7 +133,9 @@ PPL7EXCEPTION(CharacterEncodingNotInitializedException, Exception);
 PPL7EXCEPTION(MutexException, Exception);
 PPL7EXCEPTION(MutexLockingException, MutexException);
 PPL7EXCEPTION(MutexNotLockedException, MutexLockingException);
-
+PPL7EXCEPTION(UnexpectedEndOfDataException, Exception);
+PPL7EXCEPTION(InvalidEscapeSequenceException, Exception);
+PPL7EXCEPTION(UnexpectedCharacterException, Exception);
 PPL7EXCEPTION(SyntaxException, Exception);
 
 PPL7EXCEPTION(NoSectionSelectedException, Exception);

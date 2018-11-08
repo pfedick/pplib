@@ -1,0 +1,7 @@
+ [
+  "value1",
+  { "key1": "inner_value1",
+    "key2": "inner_value2"},
+  "value3"
+]
+garbage
