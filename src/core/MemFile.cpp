@@ -342,7 +342,7 @@ ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 		switch (origin) {
 			case SEEKCUR:
 				pos+=offset;
-				if (pos>mysize) return pos;
+				if (pos<mysize) return pos;
 				if ((pplint64)pos<0) {pos=0;return pos; }
 				break;
 			case SEEKEND:
@@ -357,7 +357,7 @@ ppluint64 MemFile::seek (pplint64 offset, SeekOrigin origin )
 				break;
 		}
 		pos=oldpos;
-		throw FileSeekException();
+		throw FileSeekException("pos=%lld, offset=%lld, origin=%d",pos, offset, origin);
 	}
 	throw FileNotOpenException();
 }

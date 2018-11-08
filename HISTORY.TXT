@@ -27,6 +27,8 @@ Version 7.0.1
   - SSLContext: added fallback to SSLv23_method when TLS_method is
     not available
   - Digest: removed ECDSA from available hash algorithms
+  - Bugfix in MemFile::seek
+  
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7
