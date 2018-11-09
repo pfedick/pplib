@@ -275,12 +275,13 @@ void MemFile::resizeBuffer(size_t size)
 {
 	if (readonly) throw ReadOnlyException();
 	if (maxsize>0 && size>maxsize) throw BufferExceedsLimitException();
+	size=(size&8191)+8192;	// Round on 8KB
 	if (size>buffersize) {
-		char *buf=(char*)realloc(buffer,size+8192);
+		char *buf=(char*)realloc(buffer,size);
 		if (!buf) throw OutOfMemoryException();
 		buffer=buf;
 		MemBase=buf;
-		buffersize=size+8192;
+		buffersize=size;
 	}
 	mysize=size;
 	if (pos>mysize) pos=mysize;
