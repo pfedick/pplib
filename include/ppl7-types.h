@@ -340,7 +340,6 @@ class String
 
 		//! @name String setzen und verändern
 		//@{
-
 		String & set(const char *str, size_t size=(size_t)-1);
 		String & set(const String *str, size_t size=(size_t)-1);
 		String & set(const String &str, size_t size=(size_t)-1);
@@ -352,6 +351,7 @@ class String
 		String & set(char c);
 		String & set(size_t position, char c);
 		String & setf(const char *fmt, ...);
+		String & useadr(void *adr, size_t size, size_t stringlen=(size_t)-1);
 
 		String & append(const char *str, size_t size=(size_t)-1);
 		String & append(const String *str, size_t size=(size_t)-1);
