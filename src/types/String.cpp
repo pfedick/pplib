@@ -887,7 +887,7 @@ String & String::vasprintf(const char *fmt, va_list args)
 String & String::useadr(void *adr, size_t size, size_t stringlen)
 {
 	if (adr==NULL || size==0) throw IllegalArgumentException("adr and size must not be 0");
-	free(ptr);
+	if (ptr!=empty_string) free(ptr);
 	ptr=(char*)adr;
 	s=size;
 	ptr[s-1]=0;

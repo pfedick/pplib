@@ -605,7 +605,6 @@ class MemFile : public FileObject
 		bool	readonly;
 
 		void resizeBuffer(size_t size);
-		void increaseBuffer(size_t bytes);
 
 	public:
 
@@ -1311,6 +1310,8 @@ public:
 	static void dumps(ppl7::String &json, const ppl7::AssocArray &data);
 	static void dump(ppl7::FileObject &file, const ppl7::AssocArray &data);
 	static ppl7::String dumps(const ppl7::AssocArray &data);
+	static ppl7::String pp(const ppl7::String &json);
+
 };
 
 };	// EOF namespace ppl7

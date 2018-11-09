@@ -179,23 +179,21 @@ MemFile::~MemFile()
  */
 void MemFile::open (void * adresse, size_t size, bool writeable)
 {
-	if (adresse==NULL || size==0) throw IllegalArgumentException();
+	//if (adresse==NULL || size==0) throw IllegalArgumentException();
 	if (buffer) {
 		free(buffer);
 		buffer=NULL;
 		buffersize=0;
 	}
+	MemBase=(char*)adresse;
+	mysize=size;
+	pos=0;
+
 	if (writeable==true) {
-		MemBase=(char*)adresse;
 		buffer=MemBase;
-		mysize=size;
-		pos=0;
 		readonly=false;
 		buffersize=size;
 	} else {
-		MemBase=(char*)adresse;
-		mysize=size;
-		pos=0;
 		buffersize=0;
 		readonly=true;
 	}
@@ -286,12 +284,6 @@ void MemFile::resizeBuffer(size_t size)
 	mysize=size;
 	if (pos>mysize) pos=mysize;
 }
-
-void MemFile::increaseBuffer(size_t bytes)
-{
-	resizeBuffer(mysize*bytes);
-}
-
 
 bool MemFile::isOpen() const
 {

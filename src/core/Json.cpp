@@ -255,6 +255,122 @@ ppl7::AssocArray Json::load(ppl7::FileObject &file)
 	return result;
 }
 
+void Json::dumps(ppl7::String &json, const ppl7::AssocArray &data)
+{
+	ppl7::MemFile file((void*)NULL,0,true);
+	Json::dump(file,data);
+	size_t size=file.tell();
+	unsigned char *str=(unsigned char *)malloc(size+1);
+	if (!str) throw OutOfMemoryException();
+	file.rewind();
+	file.fread(str,size,1);
+	str[size]=0;
+	json.useadr(str,size+1,size);
+}
+
+ppl7::String Json::dumps(const ppl7::AssocArray &data)
+{
+	ppl7::String result;
+	Json::dumps(result,data);
+	return result;
+}
+
+static bool isArray(const ppl7::AssocArray &data)
+{
+	ppluint64 v=0;
+	ppl7::AssocArray::const_iterator it;
+	for (it=data.begin();it!=data.end();++it) {
+		ppl7::String expectedkey;
+		expectedkey.setf("%llu",v);
+		if ((*it).first!=expectedkey) return false;
+		v++;
+	}
+	if (data.begin()==data.end()) return false;
+	return true;
+}
+
+static void writeArray(const ppl7::AssocArray &data, ppl7::FileObject &file);
+static void writeArray(const ppl7::Array &data, ppl7::FileObject &file);
+static void writeDict(const ppl7::AssocArray &data, ppl7::FileObject &file);
+
+static void writeValue(ppl7::FileObject &file, const ppl7::String &key, const ppl7::Variant *value)
+{
+	if (value->isString()) {
+		const ppl7::String &str=value->toString();
+		if (str.isNumeric() && (!str.has(","))) file.putsf("%s",(const char*)str);
+		else if(str=="true" || str=="false" || str=="null") file.puts(str);
+		else file.putsf("\"%s\"",(const char*)str);
+	} else if (value->isWideString()) {
+		const ppl7::WideString &wstr=value->toWideString();
+		ppl7::ByteArray ba=wstr.toUtf8();
+		ppl7::String str(ba);
+		if (str.isNumeric() && (!str.has(","))) file.putsf("%s",(const char*)str);
+		else if(str=="true" || str=="false" || str=="null") file.puts(str);
+		else file.putsf("\"%s\"",(const char*)str);
+	} else if (value->isArray()) {
+		writeArray(value->toArray(),file);
+	} else if (value->isAssocArray()) {
+		writeDict(value->toAssocArray(),file);
+	} else if (value->isByteArrayPtr()) {
+		const ppl7::ByteArrayPtr &ba=value->toByteArrayPtr();
+		ppl7::String str=ba.toBase64();
+		file.fputc('"');
+		file.fputs(str);
+		file.fputc('"');
+
+	} else {
+		//printf ("Unexpected %s: %d\n",(const char*)key,value->type());
+		throw UnsupportedDataTypeException("AssocArray Type >>%d<< at key >>%s<<",value->type(),(const char*)key);
+	}
+
+}
+
+static void writeArray(const ppl7::AssocArray &data, ppl7::FileObject &file)
+{
+	file.fputc('[');
+	ppl7::AssocArray::const_iterator it;
+	ppl7::String key="array";
+	for (it=data.begin();it!=data.end();++it) {
+		if (it!=data.begin()) file.fputc(',');
+		writeValue(file,key,(*it).second);
+	}
+	file.fputc(']');
+}
+
+static void writeArray(const ppl7::Array &data, ppl7::FileObject &file)
+{
+	file.fputc('[');
+	for(size_t i=0;i<data.size();i++) {
+		if (i>0) file.fputc(',');
+		file.putsf("\"%s\"",(const char*)data.getPtr(i));
+	}
+	file.fputc(']');
+}
+
+static void writeDict(const ppl7::AssocArray &data, ppl7::FileObject &file)
+{
+	if (isArray(data)) {
+		writeArray(data,file);
+		return;
+	}
+	file.fputc('{');
+	ppl7::AssocArray::const_iterator it;
+	for (it=data.begin();it!=data.end();++it) {
+		if (it!=data.begin()) file.fputc(',');
+		const ppl7::String &key=(*it).first;
+		file.putsf("\"%s\":",(const char*)key);
+		writeValue(file,key,(*it).second);
+	}
+	file.fputc('}');
+
+}
+
+void Json::dump(ppl7::FileObject &file, const ppl7::AssocArray &data)
+{
+	file.rewind();
+	file.truncate(0);
+	writeDict(data,file);
+}
 
 
 

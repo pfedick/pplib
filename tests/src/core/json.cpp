@@ -152,6 +152,132 @@ TEST_F(JsonTest, NegativTest_MissingValue) {
 }
 
 
+TEST_F(JsonTest, DumpsEmptyArrayToString) {
+	ppl7::AssocArray data;
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		str=ppl7::Json::dumps(data);
+	});
+	ASSERT_EQ(ppl7::String("{}"),str);
+}
+
+TEST_F(JsonTest, DumpsSimpleKeyValue) {
+	ppl7::AssocArray data;
+	data.set("key1","value1");
+	data.set("key2","12345");
+	data.set("true","true");
+	data.set("false","false");
+	data.set("null","null");
+	data.set("float","-344.123");
+	data.set("notfloat","344,123");
+	data.set("wide",ppl7::Variant(ppl7::WideString(L"widestring")));
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		str=ppl7::Json::dumps(data);
+	});
+	ASSERT_EQ(ppl7::String("{\"false\":false,\"float\":-344.123,\"key1\":\"value1\","
+			"\"key2\":12345,\"notfloat\":\"344,123\",\"null\":null,\"true\":true,"
+			"\"wide\":\"widestring\"}"),str);
+}
+
+TEST_F(JsonTest, DumpsNestetAssocArray) {
+	ppl7::AssocArray data;
+	data.set("key1","value1");
+	data.set("key2/innerkey1","value2");
+	data.set("key2/innerkey2/innerst1","value3");
+	data.set("key2/innerkey2/innerst2","value4");
+	data.set("key3","value1");
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		str=ppl7::Json::dumps(data);
+	});
+	ASSERT_EQ(ppl7::String("{\"key1\":\"value1\",\"key2\":{\"innerkey1\":\"value2\",\"innerkey2\":"
+			"{\"innerst1\":\"value3\",\"innerst2\":\"value4\"}},\"key3\":\"value1\"}"),str);
+
+	//str.printnl();
+}
+
+TEST_F(JsonTest, DumpsSimpleListAtFirstLevel) {
+	ppl7::AssocArray data;
+	data.set("[]","value1");
+	data.set("[]","value2");
+	data.set("[]","value3");
+	data.set("[]","value4");
+	data.set("[]","value1");
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		str=ppl7::Json::dumps(data);
+	});
+	ASSERT_EQ(ppl7::String("[\"value1\",\"value2\",\"value3\",\"value4\",\"value1\"]"),str);
+}
+
+TEST_F(JsonTest, DumpsNestedListAtFirstLevel) {
+	ppl7::AssocArray data;
+	data.set("[]","value1");
+	data.set("[]/innerkey1","value2");
+	data.set("[]/innerkey2/innerst1","value3");
+	data.set("[]/innerkey2/innerst2","value4");
+	data.set("[]","value1");
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		try {
+			str=ppl7::Json::dumps(data);
+		} catch (const ppl7::Exception &exp) {
+			exp.print();
+			throw;
+		}
+	});
+	ASSERT_EQ(ppl7::String("[\"value1\",{\"innerkey1\":\"value2\"},{\"innerkey2\":{\"innerst1\":"
+			"\"value3\"}},{\"innerkey2\":{\"innerst2\":\"value4\"}},\"value1\"]"),str);
+}
+
+TEST_F(JsonTest, DumpsNestedListAtSecondLevel) {
+	ppl7::AssocArray data;
+	data.set("key1","value1");
+	data.set("key2/[]","value2");
+	data.set("key2/[]","value3");
+	data.set("key2/[]","value4");
+	data.set("key3","value5");
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		str=ppl7::Json::dumps(data);
+	});
+	ASSERT_EQ(ppl7::String("{\"key1\":\"value1\",\"key2\":[\"value2\",\"value3\","
+			"\"value4\"],\"key3\":\"value5\"}"),str);
+}
+
+TEST_F(JsonTest, DumpsNestedListWithRealArray) {
+	ppl7::AssocArray data;
+	ppl7::Array a;
+	a.add("str1");
+	a.add("str2");
+	a.add("str3");
+	data.set("key1","value1");
+	data.set("key2/",a);
+	data.set("key3","value5");
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		str=ppl7::Json::dumps(data);
+	});
+	ASSERT_EQ(ppl7::String("{\"key1\":\"value1\",\"key2\":[\"str1\",\"str2\",\"str3\"],"
+			"\"key3\":\"value5\"}"),str);
+}
+
+TEST_F(JsonTest, DumpsWithBinary) {
+	ppl7::AssocArray data;
+	ppl7::ByteArray ba;
+	ppl7::Random(ba,1024);
+	ppl7::String b64=ba.toBase64();
+	data.set("key1","value1");
+	data.set("bytearray",ba);
+	data.set("key3","value3");
+	ppl7::String str;
+	ASSERT_NO_THROW({
+		str=ppl7::Json::dumps(data);
+	});
+	ASSERT_EQ(ppl7::String("{\"bytearray\":\""+b64+"\",\"key1\":\"value1\",\"key3\":\"value3\"}"),str);
+}
+
 
 
 }
