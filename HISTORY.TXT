@@ -30,6 +30,8 @@ Version 7.0.1
   - Bugfix in MemFile::seek
   - Added JSON-Parser and -Writer
   - String: added method useadr
+  - removed MHash class and dependencies on mhash library.
+    Please use the Digest-Class as replacement. 
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7

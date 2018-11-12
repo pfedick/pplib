@@ -246,7 +246,6 @@ berücksichtigt werden.
 - FreeType2 (http://www.freetype.org/)
 - Iconv (http://www.gnu.org/software/libiconv/)
 - MCrypt (http://mcrypt.sourceforge.net/)
-- MHash (http://mhash.sourceforge.net/)
 - Lame (http://lame.sourceforge.net/)
 - LibMad (http://mad.sourceforge.net/)
 - Curl (http://curl.haxx.se/)

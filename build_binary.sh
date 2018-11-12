@@ -156,7 +156,7 @@ then
         export CPPFLAGS=-I/usr/local/include
 		export LDLAGS=-L/usr/local/lib
 		./configure --prefix=$ROOT \
-			--with-pcre=/usr/local  --with-libmhash=/usr/local --with-libiconv-prefix=/usr/local --with-nasm \
+			--with-pcre=/usr/local --with-libiconv-prefix=/usr/local --with-nasm \
 			--with-libmcrypt-prefix=/usr/local --with-libiconv-prefix=/usr/local \
 			--without-pgsql --without-png --without-lame --without-ft-prefix \
 			--without-libmad --without-lame --without-x --without-mysql --without-sybase \
@@ -165,7 +165,7 @@ then
 	Ubuntu:*)
 		./configure --prefix=$ROOT \
 			--with-pcre=/usr  --with-libiconv-prefix --with-nasm \
-			--with-libmcrypt-prefix=/usr --with-libmhash=/usr \
+			--with-libmcrypt-prefix=/usr \
 			--without-pgsql --without-png --without-lame --without-ft-prefix \
 			--without-libmad --without-lame --without-x --without-mysql --without-sybase \
 			--without-libcurl --with-sdl-prefix=$ROOT
@@ -173,7 +173,7 @@ then
 	Fedora:*)
 		./configure --prefix=$ROOT \
 			--with-pcre=/usr  --with-libiconv-prefix --with-nasm \
-			--with-libmcrypt-prefix=/usr --with-libmhash=/usr \
+			--with-libmcrypt-prefix=/usr \
 			--without-pgsql --without-png --without-lame --without-ft-prefix \
 			--without-libmad --without-lame --without-x --without-mysql --without-sybase \
 			--without-libcurl --with-sdl-prefix=$ROOT
@@ -188,14 +188,13 @@ then
                         --without-pgsql --without-png --without-lame --without-ft-prefix \
 						--without-libmad --without-lame --without-x --without-mysql --without-sybase \
 						--without-libcurl --with-sdl-prefix=$ROOT \
-                        --with-libmhash=/usr/local \
                         --with-libmcrypt-prefix=/usr/local \
                         --with-openssl=/mingw --with-libcurl
 		;;
 	*)
 		./configure --prefix=$ROOT \
 			--with-pcre=/usr --with-libiconv-prefix --with-nasm \
-			--with-libmcrypt-prefix=/usr --with-libmhash=/usr \
+			--with-libmcrypt-prefix=/usr \
 			--without-pgsql --without-png --without-lame --without-ft-prefix \
 			--without-libmad --without-lame --without-x --without-mysql --without-sybase \
 			--without-libcurl --with-sdl-prefix=$ROOT
@@ -377,7 +376,7 @@ build_specfile() {
 	echo "Source:	DENIC-ITStt-TestGUI-%{version}-src-complete.tar.gz"
 	echo "BuildRoot:	%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)"
 	echo ""
-	echo "BuildRequires:	gcc, gcc-c++, libgcc, bzip2-devel, zlib-devel, libstdc++-devel, openssl-devel, mhash-devel, qt-devel, libidn-devel, libmcrypt-devel, glibc-devel, libxml2-devel, pcre-devel"
+	echo "BuildRequires:	gcc, gcc-c++, libgcc, bzip2-devel, zlib-devel, libstdc++-devel, openssl-devel, qt-devel, libidn-devel, libmcrypt-devel, glibc-devel, libxml2-devel, pcre-devel"
 	echo "#Requires:"
 	echo ""	
 	echo "%description"

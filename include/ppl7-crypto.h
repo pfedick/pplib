@@ -133,91 +133,6 @@ class MCrypt
 
 };
 
-class MHash
-{
-	public:
-		enum Algorithm {
-			Algo_CRC32,
-			Algo_CRC32B,
-			Algo_ADLER32,
-			Algo_MD2,
-			Algo_MD4,
-			Algo_MD5,
-			Algo_SHA1,
-			Algo_SHA224,
-			Algo_SHA256,
-			Algo_SHA384,
-			Algo_SHA512,
-			Algo_WHIRLPOOL,
-			Algo_HAVAL256,
-			Algo_HAVAL224,
-			Algo_HAVAL192,
-			Algo_HAVAL160,
-			Algo_HAVAL128,
-			Algo_RIPEMD128,
-			Algo_RIPEMD160,
-			Algo_RIPEMD256,
-			Algo_RIPEMD320,
-			Algo_TIGER128,
-			Algo_TIGER160,
-			Algo_TIGER192,
-			Algo_GOST,
-			Algo_SNEFRU128,
-			Algo_SNEFRU256
-		};
-
-		enum Bits {
-			Bits_Default,
-			Bits_128,
-			Bits_160,
-			Bits_192,
-			Bits_224,
-			Bits_256,
-			Bits_320,
-			Bits_384,
-			Bits_512
-		};
-
-	private:
-		void *handle;
-		int blocksize;
-		Algorithm algo;
-		ppluint64 bytesHashed;
-
-	public:
-		MHash();
-		MHash(Algorithm algorithm);
-		~MHash();
-		void setAlgorithm(Algorithm algorithm);
-		void addData(const void *data, size_t size);
-		void addData(const Variant &data);
-		void addData(FileObject &file);
-		void addFile(const String &filename);
-		int getBlockSize() const;
-		void saveDigest(ByteArray &result);
-		void saveDigest(String &result);
-		void saveDigest(WideString &result);
-		ByteArray getDigest();
-		int getInt();
-		void reset();
-
-		static Algorithm getAlgorithmFromName(const String &name);
-
-		static ByteArray hash(const Variant &data, Algorithm algorithm);
-		static ByteArray hash(const Variant &data, const String &algorithm);
-		static int crc32(const Variant &data);
-		static int crc32b(const Variant &data);
-		static int adler32(const Variant &data);
-		static ByteArray md4(const Variant &data);
-		static ByteArray md5(const Variant &data);
-		static ByteArray sha1(const Variant &data);
-		static ByteArray sha2(const Variant &data, Bits bits=Bits_256);
-		static ByteArray sha224(const Variant &data);
-		static ByteArray sha256(const Variant &data);
-		static ByteArray sha384(const Variant &data);
-		static ByteArray sha512(const Variant &data);
-};
-
 class Digest
 {
 	private:
@@ -270,7 +185,6 @@ class Digest
 		static ByteArray sha256(const ByteArrayPtr &data);
 		static ByteArray sha384(const ByteArrayPtr &data);
 		static ByteArray sha512(const ByteArrayPtr &data);
-		static ByteArray ecdsa(const ByteArrayPtr &data);
 		static ppluint32 crc32(const ByteArrayPtr &data);
 		static ppluint32 adler32(const ByteArrayPtr &data);
 

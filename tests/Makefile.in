@@ -53,7 +53,7 @@ OBJECTS_CORE = compile/array.o compile/assocarray.o compile/avltree.o \
 	compile/time.o compile/variant.o compile/widestrings.o \
 	compile/json.o
 
-OBJECTS_CRYPTO = compile/crypto.o compile/digest.o compile/mcrypt.o compile/mhash.o
+OBJECTS_CRYPTO = compile/crypto.o compile/digest.o compile/mcrypt.o
 
 OBJECTS_DATABASE = compile/db_postgres.o compile/db_sqlite.o compile/db_mysql.o
 
@@ -429,10 +429,6 @@ compile/digest.o: src/crypto/digest.cpp Makefile ppl7-tests.h
 compile/crypto.o: src/crypto/crypto.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/crypto.o -c src/crypto/crypto.cpp $(CFLAGS) $(LIB)
-
-compile/mhash.o: src/crypto/mhash.cpp Makefile ppl7-tests.h
-	mkdir -p compile
-	$(CXX) -o compile/mhash.o -c src/crypto/mhash.cpp $(CFLAGS) $(LIB)
 
 compile/mcrypt.o: src/crypto/mcrypt.cpp Makefile ppl7-tests.h
 	mkdir -p compile

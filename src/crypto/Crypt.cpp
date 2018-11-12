@@ -42,11 +42,6 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_LIBMHASH
-#define PROTOTYPES 1
-#undef HAVE__BOOL
-#include <mutils/mhash.h>
-#endif
 
 #ifdef HAVE_OPENSSL
 #include <openssl/evp.h>

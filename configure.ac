@@ -76,7 +76,6 @@ sinclude(autoconf/iconv.m4)
 sinclude(autoconf/bzip2.m4)
 sinclude(autoconf/ax_check_zlib.m4)
 sinclude(autoconf/libmcrypt.m4)
-sinclude(autoconf/libmhash.m4)
 sinclude(autoconf/ax_lib_crypto.m4)
 sinclude(autoconf/checkfuncs.m4)
 sinclude(autoconf/ax_gcc_x86_cpuid.m4)
@@ -102,7 +101,6 @@ report_have_jpeg="no"
 report_have_libmicrohttpd="no"
 report_have_libmcrypt="no"
 report_have_libcrypto="no"
-report_have_libmhash="no"
 report_have_libidn="no"
 report_have_libtiff="no"
 report_have_curl="no"
@@ -452,11 +450,6 @@ AM_PATH_LIBMCRYPT([2.5.7],
             report_have_libmcrypt="yes",
             :)
 
-AM_PATH_LIBMHASH([0.9.9],
-            AC_DEFINE(HAVE_LIBMHASH, 1, [ Define if you have libmhash. ])
-            report_have_libmhash="yes",
-            :)
-
 AM_LIBIDN([0.5.4],
 	report_have_libidn="yes"
 	AC_DEFINE(HAVE_LIBIDN, 1, [ Define if you have libidn. ])
@@ -764,7 +757,6 @@ AC_SUBST(report_have_openssl)
 AC_SUBST(report_have_pcre)
 AC_SUBST(report_have_iconv)
 AC_SUBST(report_have_libmcrypt)
-AC_SUBST(report_have_libmhash)
 AC_SUBST(report_have_mysql)
 AC_SUBST(report_have_postgres)
 AC_SUBST(report_have_freetds)
@@ -838,7 +830,6 @@ AC_MSG_RESULT([
 ** Cryptography:
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
-**   MHash:                $report_have_libmhash
 **
 ** Internet:
 **   Bind resolver lib:    $report_have_libbind

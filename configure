@@ -643,7 +643,6 @@ report_have_sqlite3
 report_have_freetds
 report_have_postgres
 report_have_mysql
-report_have_libmhash
 report_have_libmcrypt
 report_have_iconv
 report_have_pcre
@@ -727,8 +726,6 @@ TIFF_LIBS
 TIFF_CFLAGS
 LIBIDN_LIBS
 LIBIDN_CFLAGS
-LIBMHASH_CFLAGS
-LIBMHASH_LIBS
 LIBMCRYPT_LIBS
 LIBMCRYPT_CFLAGS
 LIBMCRYPT_CONFIG
@@ -881,7 +878,6 @@ with_libjpegturbo
 with_libpng
 with_libmicrohttpd
 with_libmcrypt_prefix
-with_libmhash
 with_libidn
 with_libtiff
 with_libcurl
@@ -1606,7 +1602,6 @@ Optional Packages:
   --with-libpng[=PATH]     Prefix where libpng is installed (optional)
   --with-libmicrohttpd[=PATH]     Prefix where libmicrohttpd is installed (optional)
   --with-libmcrypt-prefix=PFX   Prefix where libmcrypt is installed (optional)
-  --with-libmhash[=PATH]     Prefix where libmhash is installed (optional)
   --with-libidn[=PATH]     Prefix where libidn is installed (optional)
   --with-libtiff[=PATH]     Prefix where libtiff is installed (optional)
   --with-libcurl=PREFIX   look for the curl library in PREFIX/lib and headers
@@ -3509,8 +3504,6 @@ ac_config_headers="$ac_config_headers include/ppl7-config.h"
 
 
 
-
-
 # ===========================================================================
 #       http://www.gnu.org/software/autoconf-archive/ax_lib_crypto.html
 # ===========================================================================
@@ -3788,7 +3781,6 @@ report_have_jpeg="no"
 report_have_libmicrohttpd="no"
 report_have_libmcrypt="no"
 report_have_libcrypto="no"
-report_have_libmhash="no"
 report_have_libidn="no"
 report_have_libtiff="no"
 report_have_curl="no"
@@ -12685,87 +12677,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmhash" >&5
-$as_echo_n "checking for libmhash... " >&6; }
-
-# Check whether --with-libmhash was given.
-if test "${with_libmhash+set}" = set; then :
-  withval=$with_libmhash; libmhash_prefix="$withval"
-else
-  libmhash_prefix="no"
-fi
-
-
-am_save_CPPFLAGS="$CPPFLAGS"
-am_save_LIBS="$LIBS"
-am_save_LDFLAGS="$LDFLAGS"
-LIBMHASH_LIBS="-lmhash"
-LIBMHASH_CFLAGS=""
-have_libmhash="no"
-	if test "$libmhash_prefix" != "yes"
-	then
-		if test "$libmhash_prefix" != "no"
-		then
-			LIBS="-L$libmhash_prefix/lib -lmhash"
-			CPPFLAGS="-I$libmhash_prefix/include"
-			LIBMHASH_LIBS="-L$libmhash_prefix/lib -lmhash"
-			LIBMHASH_CFLAGS="-I$libmhash_prefix/include"
-		fi
-	else
-		LIBS="$LIBS -lmhash"
-		LIBMHASH_LIBS="-lmhash"
-	fi
-	if test "$libmhash_prefix" != "no"
-	then
-
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-         #include <mhash.h>
-         int main()
-         {
-            void *handle=mhash_init(MHASH_MD5);
-         }
-
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-      	have_libmhash="yes"
-
-
-
-
-else
-
-         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-    fi
-
-CPPFLAGS=$am_save_CPPFLAGS
-LIBS=$am_save_LIBS
-LDFLAGS=$am_save_LDFLAGS
-
-if test "$have_libmhash" = "yes"
-then
-
-$as_echo "#define HAVE_LIBMHASH 1" >>confdefs.h
-
-            report_have_libmhash="yes"
-else
-	LIBMHASH_LIBS=""
-	LIBMHASH_CFLAGS=""
-	:
-fi
-
-
-
-
 
 
 # Check whether --with-libidn was given.
@@ -17575,7 +17486,6 @@ esac;
 
 
 
-
 ###############################################################################
 # Output
 ###############################################################################
@@ -19092,7 +19002,6 @@ fi
 ** Cryptography:
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
-**   MHash:                $report_have_libmhash
 **
 ** Internet:
 **   Bind resolver lib:    $report_have_libbind
@@ -19159,7 +19068,6 @@ $as_echo "
 ** Cryptography:
 **   OpenSSL:              $report_have_openssl
 **   MCrypt library:       $report_have_libmcrypt
-**   MHash:                $report_have_libmhash
 **
 ** Internet:
 **   Bind resolver lib:    $report_have_libbind

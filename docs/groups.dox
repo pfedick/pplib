@@ -54,8 +54,7 @@ kryptographischen Algorithmen verschlüsselt und entschlüsselt werden können, 
 Klassen und Funktionen zum Berechnen von Hash-Werten oder Prüfsummen nach verschiedenen
 Algorithmen.
 \par
-Die Funktionen der Klassen ppl7::MHash und ppl7::MCrypt basieren auf den Bibliotheken
-<a href="http://mhash.sourceforge.net/">libmhash</a> und
+Die Funktionen der Klasse ppl7::MCrypt basieren auf der Bibliothek
 <a href="http://mcrypt.sourceforge.net/">libmcrypt</a> und sind daher nur
 verfügbar, wenn diese beim Kompilieren der PPL-Library eingebunden wurden.
 Die Klasse ppl7::Digest setzt auf <a href="http://www.openssl.org/">OpenSSL</a> auf

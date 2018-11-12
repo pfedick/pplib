@@ -58,7 +58,6 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-pcre=/usr/local --with-x --with-mysql \
-			--with-libmhash=/usr/local \
 			--with-openssl=/usr/local \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-libjpegturbo=/usr/local --with-libpng --with-libtiff=/usr/local \
@@ -87,7 +86,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
 			--with-nasm --with-libiconv-prefix=/mingw \
 			--with-lame=/mingw --with-mpg123=/mingw \
-			--with-jpeg=/mingw --with-png=/mingw --with-libmhash=/mingw \
+			--with-jpeg=/mingw --with-png=/mingw \
 			--with-libmcrypt-prefix=/mingw --with-gcrypt=auto \
 			--with-openssl=/mingw --with-libcurl \
 			--with-ogg=/mingw
@@ -100,7 +99,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
 			--with-nasm --with-libiconv-prefix=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
-			--with-jpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
+			--with-jpeg=/usr/local --with-libpng=/usr/local \
 			--with-libmcrypt-prefix=/usr/local --with-gcrypt=auto \
 			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local
@@ -130,7 +129,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-lame --with-mpg123 --with-ogg \
 			--with-ft-prefix=$MINGW \
 			--with-libtiff=$MINGW \
-			--with-libjpegturbo=$MINGW --with-libpng=$MINGW --with-libmhash=$PREFIX \
+			--with-libjpegturbo=$MINGW --with-libpng=$MINGW \
 			--with-libmcrypt-prefix=$PREFIX \
 			--with-openssl=$MINGW \
 			--with-libldns=$MINGW --with-libidn=$MINGW \
@@ -145,7 +144,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
 			--with-mysql  --with-libiconv-prefix --with-nasm \
-			--with-libmhash --with-gcrypt=auto --with-ogg=/usr \
+			--with-gcrypt=auto --with-ogg=/usr \
 			--with-postgresql \
 			--with-libmicrohttpd=/usr/local \
 			--with-jpeg --with-libpng=$PREFIX --with-libtiff \

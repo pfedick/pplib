@@ -85,7 +85,7 @@ Wenn man alle Features der Library nutzen will, muß man folgende Pakete install
 \code
 sudo apt install -y gcc g++ nasm googletest \
    zlib1g-dev libbz2-dev libssl-dev libpcre3-dev \
-   libmcrypt-dev libmhash-dev libgtest-dev libcurl4-openssl-dev libldns-dev \
+   libmcrypt-dev libgtest-dev libcurl4-openssl-dev libldns-dev \
    libbind-dev libmysqlclient-dev libpq-dev libsqlite3-dev \
    libpng-dev libjpeg-dev libtiff-dev libsdl2-dev libfreetype6-dev \
    libmad0-dev libmp3lame-dev libmpg123-dev \
@@ -98,7 +98,7 @@ export CFLAGS="-no-pie "
 ./configure --prefix=$HOME \
     --with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
     --with-mysql  --with-libiconv-prefix --with-nasm \
-    --with-libmhash --with-gcrypt=auto --with-ogg=/usr \
+    --with-gcrypt=auto --with-ogg=/usr \
     --with-postgresql --with-sqlite3 \
     --with-libmicrohttpd=/usr/local \
     --with-jpeg --with-libpng=$PREFIX --with-libtiff \
@@ -113,7 +113,7 @@ Wenn man alle Features der Library nutzen will, muß man folgende Pakete install
 # Kern-Funktionalität
 sudo apt-get install zlib1g-dev libbz2-dev libssl-dev libpcre3-dev nasm
 # Kryptografie
-sudo apt-get instal libssl-dev libmcrypt-dev libmhash-dev
+sudo apt-get instal libssl-dev libmcrypt-dev
 # Internet
 sudo apt-get install libcurl4-openssl-dev libldns-dev
 # Datenbanken
@@ -131,7 +131,7 @@ echo "configuring for generic Linux"
 ./configure --prefix=$PREFIX \
     --with-lame --with-pcre --with-x --with-openssl \
     --with-mysql  --with-libiconv-prefix --with-nasm \
-    --with-libmhash --with-ogg \
+    --with-ogg \
     --with-postgresql \
     --with-libmicrohttpd \
     --with-jpeg --with-libpng --with-libtiff \
@@ -152,7 +152,6 @@ export CXX=clang++$CLANG_VERSION
 ./configure --prefix=$PREFIX \
    --with-lame=/usr/local --with-mpg123=/usr/local \
    --with-pcre=/usr/local --with-x --with-openssl=/usr --with-mysql \
-   --with-libmhash=/usr/local \
    --with-libiconv-prefix=/usr/local --with-nasm  \
    --with-jpeg --with-libpng --with-libtiff=/usr/local \
    --with-postgresql \
@@ -166,7 +165,7 @@ export CXX=clang++$CLANG_VERSION
 
 \subsection inst3mingw Installation mit MinGW32/64
 Für fast alle unterstützten Module gibt es fertige Pakete, die mit "pacman" installiert werden können.
-Einzig für mcrypt und mhash gibt es keine Pakete.  
+Einzig für mcrypt gibt es keine Pakete.  
 
 \subsubsection inst3mingw_pacman Pakete installieren
 Um alle Features nutzen zu können, müssen folgende Pakete installiert werden:
@@ -178,37 +177,6 @@ pacman -S mingw-w64-x86_64-SDL2 mingw-w64-x86_64-bzip2 mingw-w64-x86_64-curl min
     mingw-w64-x86_64-mpg123 mingw-w64-x86_64-nasm mingw-w64-x86_64-openssl mingw-w64-x86_64-pcre \
     mingw-w64-x86_64-sqlite3 mingw-w64-x86_64-zlib
 \endcode
-
-\subsubsection inst3mingw_mhash MHash installieren
-Im folgenden wird angenommen, dass wir die 64-Bit-Version von MHash erstellen und unter /usr/local installieren wollen:
-\code
-export VERSION=0.9.9.9
-export PREFIX=/usr/local
-export MINGW=/mingw64
-export PATH=$MINGW/bin:$PATH
-
-rm -rf mhash-$VERSION.tar.gz
-wget -O mhash-$VERSION.tar.gz "http://sourceforge.net/projects/mhash/files/mhash/$VERSION/mhash-$VERSION.tar.gz/download"
-
-rm -rf mhash-$VERSION
-tar -xzf mhash-$VERSION.tar.gz
-cd mhash-$VERSION
-
-if [ ! -f lib/mhash.c_original ] ; then
-	cp lib/mhash.c lib/mhash.c_original
-fi
-cat lib/mhash.c_original | sed -e "s/int main/int __mhash_main/" > lib/mhash.c
-
-rm -rf config.sub
-automake -a 
-
-./configure --prefix=$PREFIX --enable-static --disable-shared --build=x86_64-w64-mingw32
-mkdir -p $PREFIX/lib $PREFIX/include $PREFIX/include/mutils
-make -j2
-make install
-
-\endcode
-
 
 \subsubsection inst3mingw_mcrypt MCrypt installieren
 Im folgenden wird angenommen, dass wir die 64-Bit-Version von MCrypt erstellen und unter /usr/local installieren wollen:
@@ -249,7 +217,7 @@ export CFLAGS="-I/usr/local/include"
     --with-nasm=$MINGW/bin --with-libiconv-prefix=$MINGW \
     --with-lame=$MINGW --with-mpg123=$MINGW --disable-freetypetest --with-ft-prefix=$MINGW \
     --with-libtiff=$MINGW --with-jpeg=$MINGW \
-    --with-libjpegturbo=$MINGW --with-libpng=$MINGW --with-libmhash=/usr/local \
+    --with-libjpegturbo=$MINGW --with-libpng=$MINGW \
     --with-libmcrypt-prefix=/usr/local \
     --with-openssl=$MINGW  --with-libcurl=$MINGW \
     --with-libldns=$MINGW --with-libidn=$MINGW \
