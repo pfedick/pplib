@@ -197,6 +197,11 @@ class ID3Tag
 			AF_MP3,
 			AF_AIFF
 		};
+
+		enum PictureType {
+			PIC_COVER_FRONT=3,
+			PIC_COVER_BACK=4,
+		};
 	private:
 		String	Filename;
 		int		Flags;

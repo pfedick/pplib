@@ -58,7 +58,7 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-pcre=/usr/local --with-x --with-mysql \
-			--with-openssl=/usr/local \
+			--with-openssl=/usr \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-libjpegturbo=/usr/local --with-libpng --with-libtiff=/usr/local \
 			--with-postgresql \
