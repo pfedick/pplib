@@ -185,7 +185,7 @@ void Drawable::blendPixel(int x, int y, const Color &c, float brightness)
 
 void Drawable::blendPixel(int x, int y, const Color &c, int brightness)
 {
-	fn->BlendPixel(data,x,y,rgb(c),brightness*255);
+	fn->BlendPixel(data,x,y,rgb(c),255);
 	/*
 	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
 	SurfaceColor color,screen=fn->GetPixel(data,x,y);

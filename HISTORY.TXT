@@ -33,6 +33,7 @@ Version 7.0.1
   - removed MHash class and dependencies on mhash library.
     Please use the Digest-Class as replacement.
   - added ID3Tag::PictureType
+  - fixed bug in Drawable::blendPixel
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7
