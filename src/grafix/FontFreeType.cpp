@@ -219,13 +219,14 @@ static void putPixel(Drawable &draw, int x, int y, const Color &color, int inten
 	if (a==255) {
 		vg.setAlpha(a);
 		draw.putPixel(x,y,vg);
+		return;
 	}
-	Color &bg=draw.getPixel(x,y);
+	Color bg=draw.getPixel(x,y);
 	int reva=255-a;
-	int red=bg.red()*reva+vg.red()*a;
-	int green=bg.green()*reva+vg.green()*a;
-	int blue=bg.blue()*reva+vg.blue()*a;
-	int alpha=bg.alpha()*reva+vg.alpha()*a;
+	int red=(bg.red()*reva+vg.red()*a)/255;
+	int green=(bg.green()*reva+vg.green()*a)/255;
+	int blue=(bg.blue()*reva+vg.blue()*a)/255;
+	int alpha=(bg.alpha()*reva+vg.alpha()*a)/255;
 	draw.putPixel(x,y,Color(red,green,blue,alpha));
 }
 
@@ -238,7 +239,7 @@ static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const
 		for (unsigned int gx=0;gx<bitmap->width;gx++) {
 			v=glyph[gx];
 			if (v>0) {
-				putPixel(x+gx,y+gy,color,v);
+				putPixel(draw,x+gx,y+gy,color,v);
 				//draw.blendPixel(x+gx,y+gy,color,v);
 			}
 		}
@@ -260,7 +261,7 @@ static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, con
 				bytecount++;
 			}
 			if(v&128) {
-				putPixel(x+gx,y+gy,color,255);
+				putPixel(draw,x+gx,y+gy,color,255);
 				//draw.alphaPixel(x+gx,y+gy,color);
 			}
 			v=v<<1;
