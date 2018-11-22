@@ -67,5 +67,54 @@ TEST_F(GrafixPointTest, constructor) {
 
 }
 
+TEST_F(GrafixPointTest, operator_lower) {
+	ppl7::grafix::Point p1(40,30);
+	ppl7::grafix::Point p2(45,40);
+	ASSERT_TRUE(p1<p2);
+	ASSERT_FALSE(p2<p1);
+}
+
+TEST_F(GrafixPointTest, operator_lowereq) {
+	ppl7::grafix::Point p1(40,30);
+	ppl7::grafix::Point p2(45,40);
+	ppl7::grafix::Point p3(45,40);
+	ASSERT_TRUE(p1<=p2);
+	ASSERT_TRUE(p3<=p2);
+	ASSERT_FALSE(p2<=p1);
+}
+
+TEST_F(GrafixPointTest, operator_eq) {
+	ppl7::grafix::Point p1(40,30);
+	ppl7::grafix::Point p2(40,30);
+	ppl7::grafix::Point p3(41,31);
+	ASSERT_TRUE(p1==p2);
+	ASSERT_FALSE(p1==p3);
+}
+
+TEST_F(GrafixPointTest, operator_noteq) {
+	ppl7::grafix::Point p1(40,30);
+	ppl7::grafix::Point p2(41,31);
+	ppl7::grafix::Point p3(41,31);
+	ASSERT_TRUE(p1!=p2);
+	ASSERT_FALSE(p2!=p3);
+}
+
+TEST_F(GrafixPointTest, operator_higher) {
+	ppl7::grafix::Point p1(40,45);
+	ppl7::grafix::Point p2(45,40);
+	ASSERT_TRUE(p1>p2);
+	ASSERT_FALSE(p2>p1);
+}
+
+TEST_F(GrafixPointTest, operator_highereq) {
+	ppl7::grafix::Point p1(40,45);
+	ppl7::grafix::Point p2(45,40);
+	ppl7::grafix::Point p3(40,45);
+	ASSERT_TRUE(p1>=p2);
+	ASSERT_TRUE(p1>=p3);
+	ASSERT_FALSE(p2>=p1);
+}
+
+
 }	// EOF namespace
 

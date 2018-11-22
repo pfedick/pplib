@@ -112,10 +112,16 @@ class Point
 		Point &operator+= (const Point &point);
 		Point &operator-= (const Point &point);
 		Point &operator/= (double divisor);
+
+		bool operator<(const Point &other) const;
+		bool operator<=(const Point &other) const;
+		bool operator==(const Point &other) const;
+		bool operator!=(const Point &other) const;
+		bool operator>=(const Point &other) const;
+		bool operator>(const Point &other) const;
+
 };
 
-bool operator!= (const Point &p1, const Point &p2);
-bool operator== (const Point &p1, const Point &p2);
 const Point operator* (const Point &point, double factor);
 const Point operator* (double factor, const Point &point);
 const Point operator+ (const Point &p1, const Point &p2);

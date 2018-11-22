@@ -324,20 +324,6 @@ Point &Point::operator/= (double divisor)
 	return *this;
 }
 
-bool operator!= (const Point &p1, const Point &p2)
-{
-	if (p1.x!=p2.x) return true;
-	if (p1.y!=p2.y) return true;
-	return false;
-}
-
-bool operator== (const Point &p1, const Point &p2)
-{
-	if (p1.x!=p2.x) return false;
-	if (p1.y!=p2.y) return false;
-	return true;
-}
-
 const Point operator* (const Point &point, double factor)
 {
 	return Point ((int)(point.x*factor),(int)(point.y*factor));
@@ -367,6 +353,62 @@ const Point operator/ (const Point &point, double divisor)
 {
 	return Point((int)(point.x/divisor),(int)(point.y/divisor));
 }
+
+static int cmp(const Point &p1, const Point &p2)
+{
+	if (p1.y<p2.y) return -1;
+	if (p1.y>p2.y) return 1;
+	if (p1.x<p2.x) return -1;
+	if (p1.x>p2.x) return -1;
+	return 0;
+}
+
+bool Point::operator<(const Point &other) const
+{
+	int c=cmp(*this,other);
+	if (c<0) return true;
+	return false;
+}
+
+bool Point::operator<=(const Point &other) const
+{
+	int c=cmp(*this,other);
+	if (c<=0) return true;
+	return false;
+
+}
+
+bool Point::operator==(const Point &other) const
+{
+	int c=cmp(*this,other);
+	if (c==0) return true;
+	return false;
+
+}
+
+bool Point::operator!=(const Point &other) const
+{
+	int c=cmp(*this,other);
+	if (c!=0) return true;
+	return false;
+}
+
+bool Point::operator>=(const Point &other) const
+{
+	int c=cmp(*this,other);
+	if (c>=0) return true;
+	return false;
+}
+
+bool Point::operator>(const Point &other) const
+{
+	int c=cmp(*this,other);
+	if (c>0) return true;
+	return false;
+
+}
+
+
 
 } // EOF namespace grafix
 } // EOF namespace ppl7
