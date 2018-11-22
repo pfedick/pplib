@@ -211,6 +211,24 @@ void FontEngineFreeType::deleteFont(FontFile *file)
 }
 
 
+static void putPixel(Drawable &draw, int x, int y, const Color &color, int intensity)
+{
+	Color vg=color;
+	int a=vg.alpha()*intensity/255;
+	if (a==0) return;
+	if (a==255) {
+		vg.setAlpha(a);
+		draw.putPixel(x,y,vg);
+	}
+	Color &bg=draw.getPixel(x,y);
+	int reva=255-a;
+	int red=bg.red()*reva+vg.red()*a;
+	int green=bg.green()*reva+vg.green()*a;
+	int blue=bg.blue()*reva+vg.blue()*a;
+	int alpha=bg.alpha()*reva+vg.alpha()*a;
+	draw.putPixel(x,y,Color(red,green,blue,alpha));
+}
+
 #ifdef HAVE_FREETYPE2
 static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
 {
@@ -220,7 +238,8 @@ static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const
 		for (unsigned int gx=0;gx<bitmap->width;gx++) {
 			v=glyph[gx];
 			if (v>0) {
-				draw.blendPixel(x+gx,y+gy,color,v);
+				putPixel(x+gx,y+gy,color,v);
+				//draw.blendPixel(x+gx,y+gy,color,v);
 			}
 		}
 		glyph+=bitmap->pitch;
@@ -241,7 +260,8 @@ static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, con
 				bytecount++;
 			}
 			if(v&128) {
-				draw.putPixel(x+gx,y+gy,color);
+				putPixel(x+gx,y+gy,color,255);
+				//draw.alphaPixel(x+gx,y+gy,color);
 			}
 			v=v<<1;
 			bitcount--;
