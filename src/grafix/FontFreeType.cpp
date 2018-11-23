@@ -214,19 +214,20 @@ void FontEngineFreeType::deleteFont(FontFile *file)
 static void putPixel(Drawable &draw, int x, int y, const Color &color, int intensity)
 {
 	Color vg=color;
+	Color bg=draw.getPixel(x,y);
 	int a=vg.alpha()*intensity/255;
 	if (a==0) return;
 	if (a==255) {
-		vg.setAlpha(a);
+		vg.setAlpha(bg.alpha()+a);
 		draw.putPixel(x,y,vg);
 		return;
 	}
-	Color bg=draw.getPixel(x,y);
+
 	int reva=255-a;
 	int red=(bg.red()*reva+vg.red()*a)/255;
 	int green=(bg.green()*reva+vg.green()*a)/255;
 	int blue=(bg.blue()*reva+vg.blue()*a)/255;
-	int alpha=(bg.alpha()*reva+vg.alpha()*a)/255;
+	int alpha=bg.alpha()+a;
 	draw.putPixel(x,y,Color(red,green,blue,alpha));
 }
 
