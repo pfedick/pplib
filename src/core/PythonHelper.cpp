@@ -72,6 +72,16 @@ String PythonHelper::escapeRegExp(const String &s)
 	return ret;
 }
 
+static ppl7::String getValue(const ppl7::String str)
+{
+	ppl7::String lstr=str.toLowerCase();
+	if (str.isNumeric() && (str.instr(",")<0)) return str;
+	else if(lstr=="true") return "True";
+	else if(lstr=="false") return "False";
+	else if(lstr=="null" || lstr=="none") return "None";
+	else return ppl7::ToString("\"%s\"",(const char*)PythonHelper::escapeString(str));
+}
+
 
 static ppl7::String toHashRecurse(const AssocArray &a, int indention)
 {
@@ -85,13 +95,17 @@ static ppl7::String toHashRecurse(const AssocArray &a, int indention)
 		const String &key=it.key();
 		const Variant &res=it.value();
 		if (res.isAssocArray()) {
-			r.appendf("%s%s : {\n",(const char*)indent,(const char*)key);
+			r.appendf("%s\"%s\": {\n",(const char*)indent,(const char*)key);
 			r+=toHashRecurse(res.toAssocArray(),indention+4);
 			r.appendf("%s}\n",(const char*)indent);
 		} else {
-			r.appendf("%s%s : \"%s\"\n",(const char*)indent,(const char*)key,(const char*)PythonHelper::escapeString(res.toString()));
+			r.appendf("%s\"%s\": ",(const char*)indent,(const char*)key);
+			r+=getValue(res.toString());
+			r+=",\n";
 		}
 	}
+	r.trimRight(",\n");
+	r+="\n";
 	return r;
 }
 

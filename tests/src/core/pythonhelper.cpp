@@ -103,14 +103,22 @@ TEST_F(PythonHelperTest, toHashNonRecursive) {
 	ppl7::AssocArray a;
 	ppl7::String res;
 	ppl7::String expected="key = {\n"
-			"    key1 : \"value1\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
+			"    \"key1\": \"value1\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\",\n"
+			"    \"key4\": True,\n"
+			"    \"key5\": False,\n"
+			"    \"key6\": None,\n"
+			"    \"key7\": -17.22334\n"
 			"}\n";
 
 	a.set("key1","value1");
 	a.set("key2","20");
 	a.set("key3","Geht\nueber\nmehrere\nZeilen\n");
+	a.set("key4","true");
+	a.set("key5","false");
+	a.set("key6","none");
+	a.set("key7","-17.22334");
 	ASSERT_NO_THROW ({
 		res=ppl7::PythonHelper::toHash(a,"key");
 	});
@@ -121,9 +129,9 @@ TEST_F(PythonHelperTest, toHashNonRecursiveWithQuotationMark) {
 	ppl7::AssocArray a;
 	ppl7::String res;
 	ppl7::String expected="key = {\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" Zeichen\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
 			"}\n";
 
 	a.set("key1","Ein \"besonderes\" Zeichen");
@@ -139,10 +147,10 @@ TEST_F(PythonHelperTest, toHashNonRecursiveWithAtChar) {
 	ppl7::AssocArray a;
 	ppl7::String res;
 	ppl7::String expected="key = {\n"
-			"    email : \"ppl@pfp.de\"\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
+			"    \"email\": \"ppl@pfp.de\",\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" Zeichen\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
 			"}\n";
 
 	a.set("key1","Ein \"besonderes\" Zeichen");
@@ -159,12 +167,12 @@ TEST_F(PythonHelperTest, toHashRecursive) {
 	ppl7::AssocArray a;
 	ppl7::String res;
 	ppl7::String expected="key = {\n"
-			"    key1 : \"value1\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
-			"    tree1 : {\n"
-			"        key1 : \"subvalue1\"\n"
-			"        key2 : \"subvalue2\"\n"
+			"    \"key1\": \"value1\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\",\n"
+			"    \"tree1\": {\n"
+			"        \"key1\": \"subvalue1\",\n"
+			"        \"key2\": \"subvalue2\"\n"
 			"    }\n"
 			"}\n";
 
@@ -183,13 +191,13 @@ TEST_F(PythonHelperTest, toHashRecursiveWithQuotationMark) {
 	ppl7::AssocArray a;
 	ppl7::String res;
 	ppl7::String expected="key = {\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
-			"    tree1 : {\n"
-			"        key1 : \"subvalue1\"\n"
-			"        key2 : \"subvalue2\"\n"
-			"        key3 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" Zeichen\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\",\n"
+			"    \"tree1\": {\n"
+			"        \"key1\": \"subvalue1\",\n"
+			"        \"key2\": \"subvalue2\",\n"
+			"        \"key3\": \"Ein \\\"besonderes\\\" Zeichen\"\n"
 			"    }\n"
 			"}\n";
 
@@ -211,14 +219,14 @@ TEST_F(PythonHelperTest, toHashRecursiveWithAtChar) {
 	ppl7::AssocArray a;
 	ppl7::String res;
 	ppl7::String expected="key = {\n"
-			"    email : \"ppl@pfp.de\"\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
-			"    tree1 : {\n"
-			"        email : \"test@test.de\"\n"
-			"        key1 : \"subvalue1\"\n"
-			"        key2 : \"subvalue2\"\n"
+			"    \"email\": \"ppl@pfp.de\",\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" Zeichen\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\",\n"
+			"    \"tree1\": {\n"
+			"        \"email\": \"test@test.de\",\n"
+			"        \"key1\": \"subvalue1\",\n"
+			"        \"key2\": \"subvalue2\"\n"
 			"    }\n"
 			"}\n";
 
