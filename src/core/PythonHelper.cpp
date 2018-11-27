@@ -79,7 +79,7 @@ static ppl6::CString getValue(const ppl6::CString str)
 {
 	ppl6::CString lstr=str;
 	lstr.LCase();
-	if (str.IsNumeric() && (str.Instr(",")<0)) return ppl6::ToString("%s",(const char*)str);
+	if (str.IsNumeric() && (str.Instr(",")<0)) return str;
 	else if(lstr=="true") return "True";
 	else if(lstr=="false") return "False";
 	else if(lstr=="null" || lstr=="none") return "None";
