@@ -109,9 +109,9 @@ TEST_F(PythonHelperTest, toHashNonRecursive) {
 	ppl6::CAssocArray a;
 	ppl6::CString res;
 	ppl6::CString expected="key = {\n"
-			"    key1 : \"value1\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
+			"    \"key1\": \"value1\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
 			"}\n";
 
 	a.Set("key1","value1");
@@ -123,13 +123,14 @@ TEST_F(PythonHelperTest, toHashNonRecursive) {
 	ASSERT_EQ(expected,res);
 }
 
+
 TEST_F(PythonHelperTest, toHashNonRecursiveWithQuotationMark) {
 	ppl6::CAssocArray a;
 	ppl6::CString res;
 	ppl6::CString expected="key = {\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" Zeichen\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
 			"}\n";
 
 	a.Set("key1","Ein \"besonderes\" Zeichen");
@@ -145,13 +146,13 @@ TEST_F(PythonHelperTest, toHashNonRecursiveWithAtChar) {
 	ppl6::CAssocArray a;
 	ppl6::CString res;
 	ppl6::CString expected="key = {\n"
-			"    email : \"ppl@pfp.de\"\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
+			"    \"email\": \"ppl@pfp.de\",\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" Zeichen: Backslash \\\\\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
 			"}\n";
 
-	a.Set("key1","Ein \"besonderes\" Zeichen");
+	a.Set("key1","Ein \"besonderes\" Zeichen: Backslash \\");
 	a.Set("key2","20");
 	a.Set("key3","Geht\nueber\nmehrere\nZeilen\n");
 	a.Set("email","ppl@pfp.de");
@@ -165,12 +166,12 @@ TEST_F(PythonHelperTest, toHashRecursive) {
 	ppl6::CAssocArray a;
 	ppl6::CString res;
 	ppl6::CString expected="key = {\n"
-			"    key1 : \"value1\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
-			"    tree1 : {\n"
-			"        key1 : \"subvalue1\"\n"
-			"        key2 : \"subvalue2\"\n"
+			"    \"key1\": \"value1\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\",\n"
+			"    \"tree1\": {\n"
+			"        \"key1\": \"subvalue1\",\n"
+			"        \"key2\": \"subvalue2\"\n"
 			"    }\n"
 			"}\n";
 
@@ -189,23 +190,23 @@ TEST_F(PythonHelperTest, toHashRecursiveWithQuotationMark) {
 	ppl6::CAssocArray a;
 	ppl6::CString res;
 	ppl6::CString expected="key = {\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
-			"    tree1 : {\n"
-			"        key1 : \"subvalue1\"\n"
-			"        key2 : \"subvalue2\"\n"
-			"        key3 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" \\\\Zeichen\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\",\n"
+			"    \"tree1\": {\n"
+			"        \"key1\": \"subvalue1\",\n"
+			"        \"key2\": \"subvalue2\",\n"
+			"        \"key3\": \"Ein \\\"besonderes\\\" \\\\Zeichen\"\n"
 			"    }\n"
 			"}\n";
 
 
-	a.Set("key1","Ein \"besonderes\" Zeichen");
+	a.Set("key1","Ein \"besonderes\" \\Zeichen");
 	a.Set("key2","20");
 	a.Set("key3","Geht\nueber\nmehrere\nZeilen\n");
 	a.Set("tree1/key1","subvalue1");
 	a.Set("tree1/key2","subvalue2");
-	a.Set("tree1/key3","Ein \"besonderes\" Zeichen");
+	a.Set("tree1/key3","Ein \"besonderes\" \\Zeichen");
 
 	ASSERT_NO_THROW ({
 		res=ppl6::PythonHelper::toHash(a,"key");
@@ -217,18 +218,18 @@ TEST_F(PythonHelperTest, toHashRecursiveWithAtChar) {
 	ppl6::CAssocArray a;
 	ppl6::CString res;
 	ppl6::CString expected="key = {\n"
-			"    email : \"ppl@pfp.de\"\n"
-			"    key1 : \"Ein \\\"besonderes\\\" Zeichen\"\n"
-			"    key2 : \"20\"\n"
-			"    key3 : \"Geht\\nueber\\nmehrere\\nZeilen\\n\"\n"
-			"    tree1 : {\n"
-			"        email : \"test@test.de\"\n"
-			"        key1 : \"subvalue1\"\n"
-			"        key2 : \"subvalue2\"\n"
+			"    \"email\": \"ppl@pfp.de\",\n"
+			"    \"key1\": \"Ein \\\"besonderes\\\" \\\\Zeichen\",\n"
+			"    \"key2\": 20,\n"
+			"    \"key3\": \"Geht\\nueber\\nmehrere\\nZeilen\\n\",\n"
+			"    \"tree1\": {\n"
+			"        \"email\": \"test@test.de\",\n"
+			"        \"key1\": \"subvalue1\",\n"
+			"        \"key2\": \"subvalue2\"\n"
 			"    }\n"
 			"}\n";
 
-	a.Set("key1","Ein \"besonderes\" Zeichen");
+	a.Set("key1","Ein \"besonderes\" \\Zeichen");
 	a.Set("key2","20");
 	a.Set("key3","Geht\nueber\nmehrere\nZeilen\n");
 	a.Set("email","ppl@pfp.de");
@@ -241,7 +242,6 @@ TEST_F(PythonHelperTest, toHashRecursiveWithAtChar) {
 	});
 	ASSERT_EQ(expected,res);
 }
-
 
 }
 

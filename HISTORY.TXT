@@ -4,6 +4,8 @@ PPL6 - HISTORY
 Version 6.4.22
   - fixed build when sqlite3 is not available
   - Perl- and Python-Helper escape backslash
+  - PythonHelper produces working python code (fixed output of variables
+    and dictionaries)
   
 Version 6.4.21 vom 29.07.2018	(Repo-Tag: REL_6_4_21)
   - IdentAudioFile unterstützt nun Wave-Dateien

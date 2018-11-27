@@ -74,6 +74,18 @@ CString PythonHelper::escapeRegExp(const CString &s)
 }
 
 
+
+static ppl6::CString getValue(const ppl6::CString str)
+{
+	ppl6::CString lstr=str;
+	lstr.LCase();
+	if (str.IsNumeric() && (str.Instr(",")<0)) return ppl6::ToString("%s",(const char*)str);
+	else if(str=="true") return "True";
+	else if(str=="false") return "False";
+	else if(str=="null" || str=="none") return "None";
+	else return ppl6::ToString("\"%s\"",(const char*)PythonHelper::escapeString(str));
+}
+
 static ppl6::CString toHashRecurse(const CAssocArray &a, int indention)
 {
 	CString r;
@@ -86,17 +98,21 @@ static ppl6::CString toHashRecurse(const CAssocArray &a, int indention)
 	while ((res=a.GetNext(walk))) {
 		a.GetKey(res,key);
 		if (a.IsArray(res)) {
-			r.Concatf("%s%s : {",(const char*)indent,(const char*)key);
+			r.Concatf("%s\"%s\": {",(const char*)indent,(const char*)key);
 			CAssocArray *child=a.GetArray(res);
 			if (child!=NULL && child->Count()>0) {
 				r+="\n";
 				r+=toHashRecurse(*child,indention+4);
 			}
-			r.Concatf("%s}\n",(const char*)indent);
+			r.Concatf("%s},\n",(const char*)indent);
 		} else {
-			r.Concatf("%s%s : \"%s\"\n",(const char*)indent,(const char*)key,(const char*)PythonHelper::escapeString(a.GetChar(res)));
+			r.Concatf("%s\"%s\": ",(const char*)indent,(const char*)key);
+			r+=getValue(a.GetCString(key));
+			r+=",\n";
 		}
 	}
+	r.RTrim(",\n");
+	r+="\n";
 	return r;
 }
 
