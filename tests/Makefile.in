@@ -51,7 +51,7 @@ OBJECTS_CORE = compile/array.o compile/assocarray.o compile/avltree.o \
 	compile/logger.o compile/math.o compile/memorygroup.o compile/memoryheap.o \
 	compile/pointer.o compile/stringfunctions.o compile/strings.o \
 	compile/time.o compile/variant.o compile/widestrings.o \
-	compile/json.o
+	compile/json.o compile/perlhelper.o compile/pythonhelper.o  
 
 OBJECTS_CRYPTO = compile/crypto.o compile/digest.o compile/mcrypt.o
 
@@ -320,6 +320,14 @@ compile/math.o: src/core/math.cpp Makefile ppl7-tests.h
 compile/json.o: src/core/json.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/json.o -c src/core/json.cpp $(CFLAGS) $(LIB)
+
+compile/perlhelper.o: src/core/perlhelper.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/perlhelper.o -c src/core/perlhelper.cpp $(CFLAGS) $(LIB)
+
+compile/pythonhelper.o: src/core/pythonhelper.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/pythonhelper.o -c src/core/pythonhelper.cpp $(CFLAGS) $(LIB)
 
 ################################################################################
 # INET

@@ -51,20 +51,21 @@
 #include "ppl7.h"
 
 
+
 namespace ppl7 {
 
 
 
-String PerlHelper::escapeString(const String &s)
+String PythonHelper::escapeString(const String &s)
 {
 	String ret=s;
 	ret.replace("\\","\\\\");
 	ret.replace("\"","\\\"");
-	ret.replace("@","\\@");
+	ret.replace("\n","\\n");
 	return ret;
 }
 
-String PerlHelper::escapeRegExp(const String &s)
+String PythonHelper::escapeRegExp(const String &s)
 {
 	String ret=s;
 	ret.pregEscape();
@@ -72,35 +73,43 @@ String PerlHelper::escapeRegExp(const String &s)
 }
 
 
-static String toHashRecurse(const AssocArray &a, const String &name)
+static ppl7::String toHashRecurse(const AssocArray &a, int indention)
 {
 	String r;
 	String key;
 	AssocArray::Iterator it;
 	a.reset(it);
+	String indent;
+	indent.repeat(' ',indention);
 	while (a.getNext(it)) {
 		const String &key=it.key();
 		const Variant &res=it.value();
 		if (res.isAssocArray()) {
-			String newName;
-			newName=name+"{"+key+"}";
-			r+=toHashRecurse(res.toAssocArray(),newName);
+			r.appendf("%s%s : {\n",(const char*)indent,(const char*)key);
+			r+=toHashRecurse(res.toAssocArray(),indention+4);
+			r.appendf("%s}\n",(const char*)indent);
 		} else {
-			r+=name+"{"+key+"}=\""+PerlHelper::escapeString(res.toString())+"\";\n";
+			r.appendf("%s%s : \"%s\"\n",(const char*)indent,(const char*)key,(const char*)PythonHelper::escapeString(res.toString()));
 		}
 	}
 	return r;
 }
 
-String PerlHelper::toHash(const AssocArray &a, const String &name)
+String PythonHelper::toHash(const AssocArray &a, const String &name, int indention)
 {
 	String ret;
+	String indent;
+	indent.repeat(' ',indention);
+
 	if (name.isEmpty()) return ret;
-	ret="my %"+name+";\n";
-	String n;
-	n="$"+name;
-	ret+=toHashRecurse(a,n);
+	ret.setf("%s%s = {",(const char*)indent,(const char*)name);
+	if (a.count()) {
+		ret+="\n";
+		ret+=toHashRecurse(a,indention+4);
+		ret+=indent;
+	}
+	ret+="}\n";
 	return ret;
 }
 
-}	// EOF namespace ppl7
+}	// EOF namespace ppl6

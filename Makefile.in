@@ -91,6 +91,7 @@ RELEASE	= release/core_AVLTree.o \
 	release/core_Mutex.o \
 	release/core_PerlHelper.o \
 	release/core_PFPFile.o \
+	release/core_PythonHelper.o \
 	release/core_Resource.o \
 	release/core_Resourcen.o \
 	release/core_Signal.o \
@@ -206,6 +207,7 @@ CORE_RELEASE = release/core_AVLTree.o \
 	release/core_Mutex.o \
 	release/core_PerlHelper.o \
 	release/core_PFPFile.o \
+	release/core_PythonHelper.o \
 	release/core_Resource.o \
 	release/core_Resourcen.o \
 	release/core_Signal.o \
@@ -347,6 +349,7 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/core_Mutex.o \
 	debug/core_PerlHelper.o \
 	debug/core_PFPFile.o \
+	debug/core_PythonHelper.o \
 	debug/core_Resource.o \
 	debug/core_Resourcen.o \
 	debug/core_Signal.o \
@@ -477,6 +480,7 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/core_Mutex.o \
 	coverage/core_PerlHelper.o \
 	coverage/core_PFPFile.o \
+	coverage/core_PythonHelper.o \
 	coverage/core_Resource.o \
 	coverage/core_Resourcen.o \
 	coverage/core_Signal.o \
@@ -835,6 +839,11 @@ release/core_PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/pp
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
 	$(CXX) -Wall -O2 -o release/core_PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) 
+
+release/core_PythonHelper.o:	$(srcdir)/core/PythonHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PythonHelper.cpp<<<
+	$(CXX) -Wall -O2 -o release/core_PythonHelper.o -c $(srcdir)/core/PythonHelper.cpp $(CFLAGS) 
 
 release/core_Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
@@ -1496,6 +1505,11 @@ debug/core_PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/ppl7
 	# Compiling >>>core/PFPFile.cpp<<<
 	$(CXX) -Wall -O -o debug/core_PFPFile.o -c $(srcdir)/core/PFPFile.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/core_PythonHelper.o:	$(srcdir)/core/PythonHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PythonHelper.cpp<<<
+	$(CXX) -Wall -O -o debug/core_PythonHelper.o -c $(srcdir)/core/PythonHelper.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/core_Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################
 	# Compiling >>>core/Resource.cpp<<<
@@ -2154,6 +2168,11 @@ coverage/core_PFPFile.o:	$(srcdir)/core/PFPFile.cpp $(incdir)/ppl7.h $(incdir)/p
 	###############################################################################
 	# Compiling >>>core/PFPFile.cpp<<<
 	$(CXX) -Wall -o coverage/core_PFPFile.o -c $(srcdir)/core/PFPFile.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/core_PythonHelper.o:	$(srcdir)/core/PythonHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	###############################################################################
+	# Compiling >>>core/PythonHelper.cpp<<<
+	$(CXX) -Wall -o coverage/core_PythonHelper.o -c $(srcdir)/core/PythonHelper.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/core_Resource.o:	$(srcdir)/core/Resource.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	###############################################################################

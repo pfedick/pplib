@@ -1105,6 +1105,15 @@ class PerlHelper
 
 };
 
+class PythonHelper
+{
+	public:
+		static String escapeString(const String &s);
+		static String escapeRegExp(const String &s);
+		static String toHash(const AssocArray &a, const String &name, int indention=0);
+
+};
+
 
 #define NUMFACILITIES	9
 
