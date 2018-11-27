@@ -60,6 +60,7 @@ namespace ppl6 {
 CString PerlHelper::escapeString(const CString &s)
 {
 	CString ret=s;
+	ret.Replace("\\","\\\\");
 	ret.Replace("\"","\\\"");
 	ret.Replace("@","\\@");
 	return ret;
