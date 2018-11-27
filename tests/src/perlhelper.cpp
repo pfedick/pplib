@@ -77,6 +77,18 @@ TEST_F(PerlHelperTest, escapeString) {
 }
 
 
+TEST_F(PerlHelperTest, escapeStringWithBackslashes) {
+	ppl6::CString res;
+
+	ASSERT_NO_THROW ({
+		res=ppl6::PerlHelper::escapeString("test\\,test");
+	});
+	ASSERT_EQ(ppl6::CString("test\\\\,test"),res);
+}
+
+
+
+
 TEST_F(PerlHelperTest, toHashWithEmptyArray) {
 	ppl6::CAssocArray a;
 	ppl6::CString res;

@@ -76,6 +76,15 @@ TEST_F(PythonHelperTest, escapeString) {
 	ASSERT_EQ(ppl6::CString("Emailadresse: \\\"test@test.de\\\""),res);
 }
 
+TEST_F(PythonHelperTest, escapeStringWithBackslashes) {
+	ppl6::CString res;
+
+	ASSERT_NO_THROW ({
+		res=ppl6::PythonHelper::escapeString("test\\,test");
+	});
+	ASSERT_EQ(ppl6::CString("test\\\\,test"),res);
+}
+
 
 TEST_F(PythonHelperTest, toHashWithEmptyArray) {
 	ppl6::CAssocArray a;
