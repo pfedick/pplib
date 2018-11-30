@@ -14,10 +14,10 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer. 
+ *       list of conditions and the following disclaimer.
  *    2. Redistributions in binary form must reproduce the above copyright notice,
  *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution. 
+ *       and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -31,40 +31,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
- 
-#ifndef _PPL7_CONFIG
-#define _PPL7_CONFIG
 
-#undef HAVE_SYS_TYPES_H
-#undef HAVE_STDLIB_H
-#undef HAVE_STDIO_H
-#undef HAVE_STRINGS_H
-#undef HAVE_STDARG_H
+#ifndef PPL7_PPL6COMPAT_H_
+#define PPL7_PPL6COMPAT_H_
 
-#undef MINGW32
-
-#undef size_t
-
-#ifndef _PPL6_CONFIG
-/*
- * Type definitions
- */
-
-#define ppluint8	undefined
-#define pplint8		undefined
-#define ppluint16	undefined
-#define pplint16	undefined
-#define ppluint32	undefined
-#define pplint32	undefined
-#define ppluint64	undefined
-#define pplint64	undefined
-
-#define pplfloat	float
-#define ppldouble	double
-#define pplbool		bool
-#define pplchar		char
-#define ppluchar	unsigned char
-#define ppliptr		undefined
-#endif // #ifndef _PPL6_CONFIG
-
+#ifndef _PPL6_INCLUDE
+    #include <ppl6.h>
 #endif
+#endif
+#ifndef _PPL7_INCLUDE
+    #ifdef PPL7LIB
+        #include "ppl7.h"
+    #else
+        #include <ppl7.h>
+    #endif
+#endif
+
+
+#endif /* PPL7_PPL6COMPAT_H_ */
