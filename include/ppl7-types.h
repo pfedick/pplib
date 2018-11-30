@@ -309,9 +309,11 @@ class String
 #endif
 #ifdef _PPL6_INCLUDE
 		String(const ppl6::CString &q) {
+			ptr=NULL; stringlen=0; s=0;
 			set(q.GetPtr(),q.Size());
 		}
 		String(const ppl6::CString *q) {
+			ptr=NULL; stringlen=0; s=0;
 			set(q->GetPtr(),q->Size());
 		}
 #endif
