@@ -152,6 +152,19 @@ CString::CString(const char *str)
 	Set(str);
 }
 
+CString::CString(const char *str, size_t size)
+/*!
+ * \brief Konstruktor der String-Klasse
+ *
+ * Erzeugt einen neuen String mit dem Inhalt von \c str
+ * \param str ist ein <tt>const char *</tt> auf einen 0-terminierten String.
+ */
+{
+	Init();
+	//printf("Aufruf mit const char *str: %s\n",str);
+	Set(str,(int)size);
+}
+
 CString::CString(const wchar_t *str)
 /*!
  * \brief Konstruktor der String-Klasse

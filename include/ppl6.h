@@ -543,6 +543,7 @@ class CString : public CVar
 	public:
 		CString();
 		CString(const char *str);
+		CString(const char *str, size_t size);
 		CString(const wchar_t *str);
 		CString(CString *str);
 		CString(const CString &str);
