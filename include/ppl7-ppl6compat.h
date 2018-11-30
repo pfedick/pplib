@@ -38,7 +38,6 @@
 #ifndef _PPL6_INCLUDE
     #include <ppl6.h>
 #endif
-#endif
 #ifndef _PPL7_INCLUDE
     #ifdef PPL7LIB
         #include "ppl7.h"
@@ -47,5 +46,9 @@
     #endif
 #endif
 
+namespace ppl7 {
+
+
+} // EOF namespace ppl7
 
 #endif /* PPL7_PPL6COMPAT_H_ */

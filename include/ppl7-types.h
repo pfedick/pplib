@@ -307,6 +307,14 @@ class String
 			set((const char*)a);
 		}
 #endif
+#ifdef _PPL6_INCLUDE
+		String(const ppl6::CString &q) {
+			set(q.GetPtr(),q.Size());
+		}
+		String(const ppl6::CString *q) {
+			set(q->GetPtr(),q->Size());
+		}
+#endif
 		//@}
 
 		//! @name Statische Funktionen
@@ -522,6 +530,27 @@ class String
 			return *this;
 		}
 		//@}
+#endif
+#ifdef _PPL6_INCLUDE
+		//! @name Operatoren zur Verwendung der Klasse mit ppl6
+		//@{
+		operator ppl6::CString() const {
+			return ppl6::CString(ptr,stringlen);
+		}
+		ppl6::CString toPpl6CString() const {
+			return ppl6::CString(ptr,stringlen);
+		}
+
+		String& operator=(const ppl6::CString &q) {
+			set(q.GetPtr(),q.Size());
+			return *this;
+		}
+		String& operator=(const ppl6::CString *q) {
+			set(q->GetPtr(),q->Size());
+			return *this;
+		}
+		//@}
+
 #endif
 };
 
