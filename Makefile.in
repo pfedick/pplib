@@ -101,7 +101,6 @@ RELEASE	= release/core_AVLTree.o \
 	release/core_Time.o \
 	release/type_Array.o \
 	release/type_AssocArray.o \
-	release/type_AssocArrayNew.o \
 	release/type_ByteArray.o \
 	release/type_ByteArrayPtr.o \
 	release/type_DateTime.o \
@@ -217,7 +216,6 @@ CORE_RELEASE = release/core_AVLTree.o \
 	release/core_Time.o \
 	release/type_Array.o \
 	release/type_AssocArray.o \
-	release/type_AssocArrayNew.o \
 	release/type_ByteArray.o \
 	release/type_ByteArrayPtr.o \
 	release/type_DateTime.o \
@@ -359,7 +357,6 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/core_Time.o \
 	debug/type_Array.o \
 	debug/type_AssocArray.o \
-	debug/type_AssocArrayNew.o \
 	debug/type_ByteArray.o \
 	debug/type_ByteArrayPtr.o \
 	debug/type_DateTime.o \
@@ -490,7 +487,6 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/core_Time.o \
 	coverage/type_Array.o \
 	coverage/type_AssocArray.o \
-	coverage/type_AssocArrayNew.o \
 	coverage/type_ByteArray.o \
 	coverage/type_ByteArrayPtr.o \
 	coverage/type_DateTime.o \
@@ -892,11 +888,6 @@ release/type_AssocArray.o:	$(srcdir)/types/AssocArray.cpp $(incdir)/ppl7.h $(inc
 	###############################################################################
 	# Compiling >>>types/AssocArray.cpp<<<
 	$(CXX) -Wall -O2 -o release/type_AssocArray.o -c $(srcdir)/types/AssocArray.cpp $(CFLAGS) 
-
-release/type_AssocArrayNew.o:	$(srcdir)/types/AssocArrayNew.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
-	###############################################################################
-	# Compiling >>>types/AssocArrayNew.cpp<<<
-	$(CXX) -Wall -O2 -o release/type_AssocArrayNew.o -c $(srcdir)/types/AssocArrayNew.cpp $(CFLAGS) 
 
 release/type_ByteArray.o:	$(srcdir)/types/ByteArray.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
@@ -1558,11 +1549,6 @@ debug/type_AssocArray.o:	$(srcdir)/types/AssocArray.cpp $(incdir)/ppl7.h $(incdi
 	# Compiling >>>types/AssocArray.cpp<<<
 	$(CXX) -Wall -O -o debug/type_AssocArray.o -c $(srcdir)/types/AssocArray.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/type_AssocArrayNew.o:	$(srcdir)/types/AssocArrayNew.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
-	###############################################################################
-	# Compiling >>>types/AssocArrayNew.cpp<<<
-	$(CXX) -Wall -O -o debug/type_AssocArrayNew.o -c $(srcdir)/types/AssocArrayNew.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/type_ByteArray.o:	$(srcdir)/types/ByteArray.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################
 	# Compiling >>>types/ByteArray.cpp<<<
@@ -2220,11 +2206,6 @@ coverage/type_AssocArray.o:	$(srcdir)/types/AssocArray.cpp $(incdir)/ppl7.h $(in
 	###############################################################################
 	# Compiling >>>types/AssocArray.cpp<<<
 	$(CXX) -Wall -o coverage/type_AssocArray.o -c $(srcdir)/types/AssocArray.cpp $(CFLAGS) @GCOV_CFLAGS@ 
-
-coverage/type_AssocArrayNew.o:	$(srcdir)/types/AssocArrayNew.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
-	###############################################################################
-	# Compiling >>>types/AssocArrayNew.cpp<<<
-	$(CXX) -Wall -o coverage/type_AssocArrayNew.o -c $(srcdir)/types/AssocArrayNew.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/type_ByteArray.o:	$(srcdir)/types/ByteArray.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-types.h 
 	###############################################################################

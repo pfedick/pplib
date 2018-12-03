@@ -70,6 +70,8 @@ OBJECTS_AUDIO = compile/audioinfo.o compile/id3tag.o \
 	compile/audio_encoder_mp3.o compile/audio_encoder_aiff.o compile/audio_encoder_wave.o
 
 
+OBJECTS_PPL6COMPAT = compile/ppl6strings.o compile/ppl6assocarray.o
+
 OBJECTS_LEGACY = $(OBJECTS_CORE) $(OBJECTS_CRYPTO) $(OBJECTS_GRAFIX) $(OBJECTS_INET) \
 	$(OBJECTS_AUDIO)
  
@@ -143,6 +145,9 @@ test_inet: $(OBJECTS_INET) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	
 test_inet_coverage: $(OBJECTS_INET) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) -O -ggdb -o test_inet_coverage $(CFLAGS) $(OBJECTS_INET) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
+
+test_ppl6: $(OBJECTS_PPL6COMPAT) $(OBJECTS_TESTSUITE) ppl7-tests.h
+	$(CXX) -O -ggdb -o test_ppl6 $(CFLAGS) $(OBJECTS_PPL6COMPAT) $(OBJECTS_TESTSUITE) -lppl6 $(LIBS)
 
 
 ################################################################################
@@ -478,3 +483,17 @@ compile/audio_encoder_mp3.o: src/audio/audio_encoder_mp3.cpp Makefile ppl7-tests
 	mkdir -p compile
 	$(CXX) -o compile/audio_encoder_mp3.o -c src/audio/audio_encoder_mp3.cpp $(CFLAGS) $(LIB)
 
+################################################################################
+# PPL6COMPAT
+################################################################################
+
+compile/ppl6assocarray.o: src/ppl6/assocarray.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/ppl6assocarray.o -c src/ppl6/assocarray.cpp
+	
+compile/ppl6strings.o: src/ppl6/strings.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) $(CFLAGS) -o compile/ppl6strings.o -c src/ppl6/strings.cpp
+	
+	
+	

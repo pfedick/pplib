@@ -191,9 +191,6 @@ TEST_F(AssocArrayTest, getAssocArray) {
 TEST_F(AssocArrayTest, addAndDeleteWordlist) {
 	ppl7::AssocArray a;
 	size_t total=Wordlist.count();
-#ifndef NEW_PPL7_ASSOCARRAY
-	a.reserve(total+10);
-#endif
 	ppl7::PrintDebugTime ("Loading wordlist\n");
 	ppl7::String empty;
 	for (size_t i=0;i<total;i++) {
@@ -297,6 +294,9 @@ static void createDefaultAssocArray(ppl7::AssocArray &a)
 	a.set("array2/unterkey1","value7");
 	a.set("array2/unterkey2","value8");
 	a.set("array2/unterkey1","value9");
+	a.set("widestring",ppl7::WideString(L"this is a widestring - äöü"));
+	a.set("datetime",ppl7::DateTime("2018-12-03 13:49:10.123456"));
+
 
 	data.setf("sampleTime","%0.6f",22362546.32543);
 	data.setf("net_receive/bytes","%lu",(unsigned long)1);
@@ -332,7 +332,7 @@ TEST_F(AssocArrayTest, binarySize) {
 	ASSERT_NO_THROW({
 		createDefaultAssocArray(a);
 	});
-	ASSERT_EQ((size_t)1215,a.binarySize());
+	ASSERT_EQ((size_t)1284,a.binarySize());
 }
 
 TEST_F(AssocArrayTest, exportAndImportBinary) {
@@ -345,8 +345,15 @@ TEST_F(AssocArrayTest, exportAndImportBinary) {
 	ASSERT_TRUE(buffer!=NULL) << "out of memory";
 	size_t realsize=0;
 	EXPECT_NO_THROW({
-		a.exportBinary(buffer,8192,&realsize);
-		ASSERT_EQ((size_t)1215,realsize);
+		try {
+			a.exportBinary(buffer,8192,&realsize);
+		} catch (const ppl7::Exception &exp) {
+			exp.print();
+			throw;
+		}
+	});
+	ASSERT_EQ((size_t)1284,realsize);
+	EXPECT_NO_THROW({
 		b.importBinary(buffer,realsize);
 	});
 	free(buffer);
@@ -358,6 +365,8 @@ TEST_F(AssocArrayTest, exportAndImportBinary) {
 	ASSERT_EQ(ppl7::String("value5"),b.getString("array1/unterkey2")) << "unexpected value";
 	ASSERT_EQ(ppl7::String("32324234213"),b.getString("data/1/sysinfo/uptime")) << "unexpected value";
 	ASSERT_EQ(ppl7::String("3"),b.getString("data/0/cpu/system")) << "unexpected value";
+	ASSERT_EQ(ppl7::WideString(L"this is a widestring - äöü"),b.get("widestring").toWideString()) << "unexpected value";
+	ASSERT_EQ(ppl7::DateTime("2018-12-03 13:49:10.123456"),b.get("datetime").toDateTime()) << "unexpected value";
 }
 
 static void createWalkingArray(ppl7::AssocArray &a)

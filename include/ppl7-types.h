@@ -54,8 +54,6 @@
 #define false 0
 #endif
 
-#define NEW_PPL7_ASSOCARRAY 1
-
 namespace ppl7 {
 
 class String;
@@ -78,7 +76,7 @@ class Variant
 			TYPE_POINTER		=7,
 			TYPE_WIDESTRING		=8,
 			TYPE_ARRAY			=9,
-			TYPE_DATETIME		=11,
+			TYPE_DATETIME		=10,
 			TYPE_BYTEARRAYPTR	=12
 		};
 	private:
@@ -491,8 +489,6 @@ class String
 		String& operator+=(const std::string &str);
 		String& operator+=(const std::wstring &str);
 		String& operator+=(char c);
-
-
 		bool operator<(const String &str) const;
 		bool operator<=(const String &str) const;
 		bool operator==(const String &str) const;
@@ -536,7 +532,7 @@ class String
 #ifdef _PPL6_INCLUDE
 		//! @name Operatoren zur Verwendung der Klasse mit ppl6
 		//@{
-		operator ppl6::CString() const {
+		operator const ppl6::CString() const {
 			return ppl6::CString(ptr,stringlen);
 		}
 		ppl6::CString toPpl6CString() const {
@@ -551,6 +547,11 @@ class String
 			set(q->GetPtr(),q->Size());
 			return *this;
 		}
+		String& operator+=(const ppl6::CString& str) {
+			ppl7::String p7(str);
+			return (*this)+=p7;
+		}
+
 		//@}
 
 #endif
@@ -939,39 +940,17 @@ class AssocArray
 				bool operator>(const ArrayKey &str) const;
 		};
 
-#ifdef NEW_PPL7_ASSOCARRAY
 		std::map<ArrayKey, Variant*> Tree;
 		ppluint64		maxint;
 
 		Variant *findInternal(const ArrayKey &key) const;
 		void createTree(const ArrayKey &key, Variant *var);
 
-#else
-		class ValueNode
-		{
-			public:
-				Variant *value;
-				ValueNode();
-				ValueNode(const ValueNode &other);
-				~ValueNode();
-		};
-
-
-		ppl7::AVLTree<ArrayKey, ValueNode> Tree;
-		ppluint64		maxint;
-		size_t			num;
-
-		ValueNode *findInternal(const ArrayKey &key) const;
-		ValueNode *createTree(const ArrayKey &key, Variant *var);
-#endif
-
-
 	public:
 		PPL7EXCEPTION(InvalidKeyException, Exception);
 		PPL7EXCEPTION(ExportBufferToSmallException, Exception);
 		PPL7EXCEPTION(ImportFailedException, Exception);
 
-#ifdef NEW_PPL7_ASSOCARRAY
 		typedef std::map<ArrayKey, Variant*>::iterator iterator;
 		typedef std::map<ArrayKey, Variant*>::const_iterator const_iterator;
 		typedef std::map<ArrayKey, Variant*>::reverse_iterator reverse_iterator;
@@ -1008,25 +987,6 @@ class AssocArray
 				};
 		};
 
-#else
-		class Iterator
-		{
-			private:
-				friend class AssocArray;
-				ppl7::AVLTree<ArrayKey, ValueNode>::Iterator it;
-				Variant empty;
-			public:
-				const String &key() { return it.key(); }
-				const Variant &value() {
-					if (it.value().value==NULL) return empty;
-					return *it.value().value;
-				};
-		};
-		class ReverseIterator : public Iterator {};
-#endif
-
-
-
 
 		//!\name Konstruktoren und Destruktoren
 		//@{
@@ -1041,10 +1001,7 @@ class AssocArray
 		size_t count(const String &key, bool recursive=false) const;
 		size_t size() const;
 		void list(const String &prefix="") const;
-#ifndef NEW_PPL7_ASSOCARRAY
-		void reserve(size_t num);
-		size_t capacity() const;
-#endif
+
 		//@}
 
 		//!\name Werte setzen
@@ -1052,6 +1009,7 @@ class AssocArray
 		void add(const AssocArray &other);
 		void set(const String &key, const String &value);
 		void set(const String &key, const String &value, size_t size);
+		void set(const String &key, const WideString &value);
 		void set(const String &key, const Array &value);
 		void set(const String &key, const DateTime &value);
 		void set(const String &key, const ByteArray &value);
@@ -1098,7 +1056,6 @@ class AssocArray
 
 		//!\name Array durchwandern
 		//@{
-#ifdef NEW_PPL7_ASSOCARRAY
 		iterator begin();
 		const_iterator begin() const;
 		iterator end();
@@ -1107,7 +1064,7 @@ class AssocArray
 		const_reverse_iterator rbegin() const;
 		reverse_iterator rend();
 		const_reverse_iterator rend() const;
-#endif
+
 		void reset(Iterator &it) const;
 		void reset(ReverseIterator &it) const;
 		bool getFirst(Iterator &it, Variant::DataType type=Variant::TYPE_UNKNOWN) const;

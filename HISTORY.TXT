@@ -36,7 +36,11 @@ Version 7.0.1
   - fixed bug in Drawable::blendPixel
   - added compare operators to class grafix::Point
   - migrated PythonHelper from ppl6 and added unit tests for Perl- and
-    PythonHelper. Fixed escaping of backslash. 
+    PythonHelper. Fixed escaping of backslash.
+  - Fixed ID of datatype DateTime
+  - Removed old AssocArray code
+  - AssocArray: added export and import of WideString 
+   
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7
