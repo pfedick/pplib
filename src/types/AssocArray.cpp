@@ -1572,6 +1572,18 @@ void AssocArray::exportBinary(void *buffer, size_t buffersize, size_t *realsize)
 			if (!buffer) a->toAssocArray().exportBinary(NULL,0,&asize);
 			else a->toAssocArray().exportBinary(ptr+p,buffersize-p,&asize);
 			p+=asize;
+		} else if (a->isArray()) {
+			ppl7::Array aaa(a->toArray());
+			if (p+4<buffersize) PokeN32(ptr+p,(int)aaa.size());
+			p+=4;
+			for (ssize_t i=0;i<(ssize_t)aaa.size();i++) {
+				const String s=aaa.get(i);
+				if (p+4<buffersize) PokeN32(ptr+p,(int)s.size());
+				p+=4;
+				vallen=s.size();
+				if (p+vallen<buffersize) strncpy(ptr+p,(const char*)s,vallen);
+				p+=vallen;
+			}
 		} else if (a->isDateTime()) {
 			vallen=8;
 			if (p+4<buffersize) PokeN32(ptr+p,(int)vallen);
@@ -1676,7 +1688,7 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 	p+=7;
 	int type;
 	size_t vallen,bytes;
-	String key;
+	String key,str;
 	DateTime dt;
 	AssocArray na;
 	ByteArray nb;
@@ -1714,6 +1726,20 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 				bytes=na.importBinary(ptr+p,buffersize-p);
 				p+=bytes;
 				set(key,na);
+				break;
+			case Variant::TYPE_ARRAY:
+			{
+				size_t elements=PeekN32(ptr+p);
+				p+=4;
+				Array stringarray;
+				stringarray.reserve(elements);
+				for (size_t i=0;i<elements;i++) {
+					str.set(ptr+p+4,PeekN32(ptr+p));
+					p+=PeekN32(ptr+p)+4;
+					stringarray.add(str);
+				}
+				set(key,stringarray);
+			}
 				break;
 			case Variant::TYPE_BYTEARRAY:
 				vallen=PeekN32(ptr+p);

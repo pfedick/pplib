@@ -294,6 +294,9 @@ static void createDefaultAssocArray(ppl7::AssocArray &a)
 	a.set("array2/unterkey1","value7");
 	a.set("array2/unterkey2","value8");
 	a.set("array2/unterkey1","value9");
+	a.set("stringarray",ppl7::Array("red green blue white"," "));
+
+
 	a.set("widestring",ppl7::WideString(L"this is a widestring - äöü"));
 	a.set("datetime",ppl7::DateTime("2018-12-03 13:49:10.123456"));
 
@@ -332,7 +335,7 @@ TEST_F(AssocArrayTest, binarySize) {
 	ASSERT_NO_THROW({
 		createDefaultAssocArray(a);
 	});
-	ASSERT_EQ((size_t)1284,a.binarySize());
+	ASSERT_EQ((size_t)1335,a.binarySize());
 }
 
 TEST_F(AssocArrayTest, exportAndImportBinary) {
@@ -352,7 +355,8 @@ TEST_F(AssocArrayTest, exportAndImportBinary) {
 			throw;
 		}
 	});
-	ASSERT_EQ((size_t)1284,realsize);
+	//ppl7::HexDump(buffer,realsize);
+	ASSERT_EQ((size_t)1335,realsize);
 	EXPECT_NO_THROW({
 		b.importBinary(buffer,realsize);
 	});
@@ -367,6 +371,7 @@ TEST_F(AssocArrayTest, exportAndImportBinary) {
 	ASSERT_EQ(ppl7::String("3"),b.getString("data/0/cpu/system")) << "unexpected value";
 	ASSERT_EQ(ppl7::WideString(L"this is a widestring - äöü"),b.get("widestring").toWideString()) << "unexpected value";
 	ASSERT_EQ(ppl7::DateTime("2018-12-03 13:49:10.123456"),b.get("datetime").toDateTime()) << "unexpected value";
+	ASSERT_EQ(ppl7::Array("red green blue white"," "),b.get("stringarray").toArray()) << "unexpected value";
 }
 
 static void createWalkingArray(ppl7::AssocArray &a)

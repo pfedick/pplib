@@ -39,7 +39,8 @@ Version 7.0.1
     PythonHelper. Fixed escaping of backslash.
   - Fixed ID of datatype DateTime
   - Removed old AssocArray code
-  - AssocArray: added export and import of WideString 
+  - AssocArray: added export and import of WideString
+  - AssocArray: added export and import of Array  
   - Array operators == and != are now defined as const
    
 
