@@ -803,7 +803,7 @@ int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
 	if (!buffer) buffersize=0;
 	if (buffersize<0) buffersize=0;
 	CArrayItem *a;
-	CIconv iconv("wchar_t","UTF-8");
+	CIconv iconv(ICONV_UNICODE,"UTF-8");
 	if (p+7<buffersize) strncpy(ptr,"PPLASOC",7);
 	p+=7;
 	while ((a=(CArrayItem*)Tree.GetNext())) {
@@ -934,7 +934,7 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 	p+=7;
 	int type,keylen,vallen,bytes;
 #ifdef HAVE_ICONV
-	CIconv iconv("UTF-8","wchar_t");
+	CIconv iconv("UTF-8",ICONV_UNICODE);
 #endif
 	CString key,str;
 	CWString ws;
