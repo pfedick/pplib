@@ -62,7 +62,8 @@ TEST_F(PPL6CompatAssocArrayTest, 6to7ExportImport) {
 	ppl6::CAssocArray a6;
 	a6.Set("key1","Dieser Wert geht über\nmehrere Zeilen");
 	a6.Set("key2","value6");
-	a6.Set("time",ppl6::CDateTime("03.12.2018 08:39:00"));
+	a6.Set("ebene1/ebene2/key1","value42");
+	a6.Set("time",ppl6::CDateTime("03.12.2018 08:39:00.123456"));
 	a6.Set("bytearray",bin);
 	ppl6::CArray ar6("red green blue yellow black white"," ");
 	a6.Set("array1",ar6);
@@ -70,7 +71,7 @@ TEST_F(PPL6CompatAssocArrayTest, 6to7ExportImport) {
 
 	int requiredsize=0;
 	ASSERT_EQ(1,a6.ExportBinary(NULL,0,&requiredsize));
-	ASSERT_EQ((int)257,requiredsize);
+	ASSERT_EQ((int)337,requiredsize);
 	void *buffer=malloc(requiredsize+1);
 	ASSERT_TRUE(buffer!=NULL);
 	int realsize=0;
@@ -86,7 +87,14 @@ TEST_F(PPL6CompatAssocArrayTest, 6to7ExportImport) {
 		}
 	});
 	free(buffer);
-	a7.list();
+
+	EXPECT_EQ(ppl7::String("Dieser Wert geht über\nmehrere Zeilen"),a7.get("key1").toString());
+	EXPECT_EQ(ppl7::WideString(L"This as a wide string äöü"),a7.get("widestring").toWideString());
+	EXPECT_EQ(ppl7::DateTime("03.12.2018 08:39:00.123456"),a7.get("time").toDateTime());
+	EXPECT_EQ(ppl7::String("value42"),a7.get("ebene1/ebene2/key1").toString());
+	EXPECT_EQ(ppl7::ByteArray(ppl7::String("Ein Binary-Object mit reinem ASCII-Text")),a7.get("bytearray").toByteArray());
+
+	//a7.list();
 
 
 }

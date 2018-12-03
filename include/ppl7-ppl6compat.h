@@ -48,6 +48,37 @@
 
 namespace ppl7 {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
+
+static ppl7::String operator+(const ppl7::String &str1, const ppl6::CString& str2)
+{
+	ppl7::String p7(str2);
+	return str1+p7;
+}
+
+static ppl7::String operator+(const ppl6::CString &str1, const ppl7::String& str2)
+{
+	ppl7::String p7(str1);
+	return p7+str2;
+}
+
+static ppl6::CString to6(const ppl7::String &str)
+{
+	return ppl6::CString(str.c_str(),str.size());
+}
+
+static ppl6::CAssocArray to6(const ppl7::AssocArray &arr)
+{
+	return ppl6::CAssocArray();
+}
+
+static ppl7::AssocArray to7(const ppl6::CAssocArray &arr)
+{
+	return ppl7::AssocArray();
+}
+
+#pragma GCC diagnostic pop
 
 } // EOF namespace ppl7
 
