@@ -914,8 +914,8 @@ class Array
 		const String &operator[](ssize_t index) const;
 		Array& operator=(const Array &other);
 		Array& operator+=(const Array &other);
-		bool operator==(const Array &other);
-		bool operator!=(const Array &other);
+		bool operator==(const Array &other) const;
+		bool operator!=(const Array &other) const;
 		//@}
 };
 

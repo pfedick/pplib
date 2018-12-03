@@ -1133,7 +1133,7 @@ Array& Array::operator+=(const Array &other)
  * @param other Referenz auf ein zweites Array
  * @return Liefert \c true zurück, wenn beide Arrays identisch sind, sonst \c false.
  */
-bool Array::operator==(const Array &other)
+bool Array::operator==(const Array &other) const
 {
 	if (numElements!=other.numElements) return false;
 	for (size_t i=0;i<numElements;i++)
@@ -1151,7 +1151,7 @@ bool Array::operator==(const Array &other)
  * @param other Referenz auf ein zweites Array
  * @return Liefert \c true zurück, wenn beide Arrays unterschiedlich sind, sonst \c false.
  */
-bool Array::operator!=(const Array &other)
+bool Array::operator!=(const Array &other) const
 {
 	if (numElements!=other.numElements) return true;
 	for (size_t i=0;i<numElements;i++)
