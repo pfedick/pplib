@@ -6,6 +6,8 @@ Version 6.4.22
   - Perl- and Python-Helper escape backslash
   - PythonHelper produces working python code (fixed output of variables
     and dictionaries)
+  - consistency over datatype IDs: switched CDateTime and CBool,
+    to make ist consistent with class datatype.  
   
 Version 6.4.21 vom 29.07.2018	(Repo-Tag: REL_6_4_21)
   - IdentAudioFile unterstützt nun Wave-Dateien

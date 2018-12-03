@@ -179,7 +179,8 @@ class datatype {
 			POINTER		=7, /*!< void-pointer */
 			CWSTRING	=8, /*!< CWString-Klasse */
 			CARRAY		=9,	/*!< CArray-Klasse */
-			DATETIME	=10	/*!< CDateTime-Klasse */
+			DATETIME	=10,/*!< CDateTime-Klasse */
+			BOOLEAN		=11 /*!< Boolean */
 		};
 };
 
@@ -431,8 +432,8 @@ class CVar
 			CBINARY		=6,
 			CWSTRING	=8,
 			CARRAY		=9,
-			CBOOL		=10,
-			CDATETIME	=11,
+			CDATETIME	=10,
+			CBOOL		=11,
 		};
 	protected:
 		ppluint8		type;
