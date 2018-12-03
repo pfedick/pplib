@@ -493,6 +493,8 @@ void AssocArray::list(const String &prefix) const
 		Variant *p=it->second;
 		if (p->isString()) {
 			PrintDebug("%s%s=%s\n",(const char*)key,(const char*)it->first,(const char*)p->toString().getPtr());
+		} else if (p->isWideString()) {
+			PrintDebug("%s%s=%ls\n",(const char*)key,(const char*)it->first,(const wchar_t*)p->toWideString().getPtr());
 		} else if (p->isByteArray()) {
 			PrintDebug("%s%s=ByteArray, %zu Bytes\n",(const char*)key,(const char*)it->first,p->toByteArray().size());
 		} else if (p->isByteArrayPtr()) {
