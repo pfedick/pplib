@@ -803,6 +803,7 @@ int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
 	if (!buffer) buffersize=0;
 	if (buffersize<0) buffersize=0;
 	CArrayItem *a;
+	CIconv iconv("wchar_t","UTF-8");
 	if (p+7<buffersize) strncpy(ptr,"PPLASOC",7);
 	p+=7;
 	while ((a=(CArrayItem*)Tree.GetNext())) {
@@ -820,12 +821,24 @@ int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
 			if (p+vallen<buffersize) strncpy(ptr+p,((CString*)a->value)->GetPtr(),vallen);
 			p+=vallen;
 		} else if (a->type==datatype::CWSTRING) {
+#ifdef HAVE_ICONV
+			CBinary utf8;
+			if(!iconv.Transcode((const char*)((CWString*)a->value)->GetWPtr(),((CWString*)a->value)->Size(),utf8)) {
+				return 0;
+			}
+			vallen=utf8.Size();
+			if (p+4<buffersize) ppl6::PokeN32(ptr+p,vallen);
+			p+=4;
+			if (p+vallen<buffersize) strncpy(ptr+p,(const char*)utf8.GetPtr(),vallen);
+			p+=vallen;
+#else
 			CString utf8=*((CWString*)a);
 			vallen=utf8.Size();
 			if (p+4<buffersize) ppl6::PokeN32(ptr+p,vallen);
 			p+=4;
 			if (p+vallen<buffersize) strncpy(ptr+p,utf8.GetPtr(),vallen);
 			p+=vallen;
+#endif
 		} else if (a->type==datatype::ARRAY) {
 			int asize=0;
 			((CAssocArray*)a->value)->ExportBinary(ptr+p,buffersize-p,&asize);
@@ -840,7 +853,7 @@ int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
 			vallen=8;
 			if (p+4<buffersize) ppl6::PokeN32(ptr+p,vallen);
 			p+=4;
-			if (p+vallen<buffersize) PokeN64(ptr+p,((CDateTime*)a)->longInt());
+			if (p+vallen<buffersize) PokeN64(ptr+p,((CDateTime*)a->value)->longInt());
 			p+=vallen;
 		} else if (a->type==datatype::BINARY) {
 			vallen=((CBinary*)a->value)->Size();
@@ -920,11 +933,14 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 	}
 	p+=7;
 	int type,keylen,vallen,bytes;
-	CString key;
+#ifdef HAVE_ICONV
+	CIconv iconv("UTF-8","wchar_t");
+#endif
+	CString key,str;
 	CWString ws;
 	CDateTime dt;
 	CAssocArray *na;
-	CBinary *nb;
+	CBinary *nb,bin;
 	while (p<buffersize && (type=PeekN8(ptr+p))!=0) {
 		p++;
 		keylen=PeekN16(ptr+p);
@@ -942,7 +958,12 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 			case datatype::CWSTRING:
 				vallen=PeekN32(ptr+p);
 				p+=4;
+#ifdef HAVE_ICONV
+				iconv.Transcode((const char*)ptr+p,vallen,bin);
+				ws.Set((const wchar_t*)bin.GetPtr(),bin.Size());
+#else
 				ws.Set((const char*)ptr+p,vallen);
+#endif
 				Set(key,ws);
 				p+=vallen;
 				break;
