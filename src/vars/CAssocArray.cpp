@@ -974,6 +974,20 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 				p+=bytes;
 				Set(key,na,false);
 				break;
+			case datatype::CARRAY:
+				{
+					int elements=PeekN32(ptr+p);
+					p+=4;
+					CArray stringarray;
+					stringarray.Reserve(elements);
+					for (int i=0;i<elements;i++) {
+						str.Set(ptr+p+4,PeekN32(ptr+p));
+						p+=PeekN32(ptr+p)+4;
+						stringarray.Add(str);
+					}
+					Set(key,stringarray);
+				}
+				break;
 			case datatype::BINARY:
 				vallen=PeekN32(ptr+p);
 				p+=4;

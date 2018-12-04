@@ -12,6 +12,8 @@ Version 6.4.22
     - CWideString is converted to UTF-8 and not system encoding
     - CDateTime is exported correctly
     - added unittests
+    - Datatype CArray from ppl7::AssocArray::exportBinary can be
+      imported
   
 Version 6.4.21 vom 29.07.2018	(Repo-Tag: REL_6_4_21)
   - IdentAudioFile unterstützt nun Wave-Dateien
