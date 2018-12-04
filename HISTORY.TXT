@@ -7,7 +7,7 @@ Version 6.4.22
   - PythonHelper produces working python code (fixed output of variables
     and dictionaries)
   - consistency over datatype IDs: switched CDateTime and CBool,
-    to make ist consistent with class datatype.
+    to make it consistent with class datatype.
   - fixed CAssocArray export and import:
     - CWideString is converted to UTF-8 and not system encoding
     - CDateTime is exported correctly
