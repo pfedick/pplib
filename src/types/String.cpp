@@ -418,11 +418,16 @@ bool String::notEmpty() const
 bool String::isNumeric() const
 {
 	if (!stringlen) return false ;
+	size_t dotcount=0;
 	for (size_t i=0;i<stringlen;i++) {
 		int c=((char*)ptr)[i];
 		if (c<'0' || c>'9') {
 			if (c!='.' && c!=',' && c!='-') return false ;
 			if (c=='-' && i>0) return false;
+			if (c=='.' || c==',') {
+				dotcount++;
+				if (dotcount>1) return false;
+			}
 		}
 	}
 	return(true);

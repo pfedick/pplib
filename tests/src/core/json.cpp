@@ -168,6 +168,7 @@ TEST_F(JsonTest, DumpsSimpleKeyValue) {
 	data.set("true","true");
 	data.set("false","false");
 	data.set("null","null");
+	data.set("ipaddress","127.0.0.1");
 	data.set("float","-344.123");
 	data.set("notfloat","344,123");
 	data.set("wide",ppl7::Variant(ppl7::WideString(L"widestring")));
@@ -175,7 +176,7 @@ TEST_F(JsonTest, DumpsSimpleKeyValue) {
 	ASSERT_NO_THROW({
 		str=ppl7::Json::dumps(data);
 	});
-	ASSERT_EQ(ppl7::String("{\"false\":false,\"float\":-344.123,\"key1\":\"value1\","
+	ASSERT_EQ(ppl7::String("{\"false\":false,\"float\":-344.123,\"ipaddress\":\"127.0.0.1\",\"key1\":\"value1\","
 			"\"key2\":12345,\"notfloat\":\"344,123\",\"null\":null,\"true\":true,"
 			"\"wide\":\"widestring\"}"),str);
 }

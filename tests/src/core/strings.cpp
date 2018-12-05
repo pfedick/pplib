@@ -220,10 +220,14 @@ TEST_F(StringTest, isNumeric) {
 	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
 	s1.set("12345");
 	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	s1.set("-123451,12");
+	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	s1.set("-123451.12");
+	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
 	s1.set("123.451,12");
-	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	ASSERT_EQ(s1.isNumeric(),false) << "String should be numeric";
 	s1.set("-123.451,12");
-	ASSERT_EQ(s1.isNumeric(),true) << "String should be numeric";
+	ASSERT_EQ(s1.isNumeric(),false) << "String should be numeric";
 	s1.set("-123.451,12-9");
 	ASSERT_EQ(s1.isNumeric(),false) << "String should not be numeric";
 }

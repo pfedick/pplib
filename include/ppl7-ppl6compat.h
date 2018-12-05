@@ -75,6 +75,17 @@ static ppl6::CAssocArray to6(const ppl7::AssocArray &arr)
 
 static ppl7::AssocArray to7(const ppl6::CAssocArray &arr)
 {
+	ppl6::CBinary *bin=arr.ExportBinary();
+	if (bin)  {
+		try {
+			ppl7::AssocArray a7;
+			a7.importBinary(bin->GetPtr(),bin->Size());
+			delete bin;
+			return a7;
+		} catch (...) {
+		}
+		delete bin;
+	}
 	return ppl7::AssocArray();
 }
 

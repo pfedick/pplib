@@ -297,14 +297,14 @@ static void writeValue(ppl7::FileObject &file, const ppl7::String &key, const pp
 {
 	if (value->isString()) {
 		const ppl7::String &str=value->toString();
-		if (str.isNumeric() && (!str.has(","))) file.putsf("%s",(const char*)str);
+		if (str.isNumeric() && (!str.has(","))) file.puts(str);
 		else if(str=="true" || str=="false" || str=="null") file.puts(str);
-		else file.putsf("\"%s\"",(const char*)str);
+		else file.putsf("\"%s\"",(const char*)ppl7::PythonHelper::escapeString(str));
 	} else if (value->isWideString()) {
 		const ppl7::WideString &wstr=value->toWideString();
 		ppl7::ByteArray ba=wstr.toUtf8();
 		ppl7::String str(ba);
-		if (str.isNumeric() && (!str.has(","))) file.putsf("%s",(const char*)str);
+		if (str.isNumeric() && (!str.has(","))) file.puts(str);
 		else if(str=="true" || str=="false" || str=="null") file.puts(str);
 		else file.putsf("\"%s\"",(const char*)str);
 	} else if (value->isArray()) {
