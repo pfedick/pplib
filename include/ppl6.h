@@ -2731,12 +2731,12 @@ class CAssocArray : public CVar
 
 		//!\name Import und Export von Daten
 		//@{
-		int		Size();
+		int		Size() const;
 		int		CreateFromTemplate(const char *templ, const char *linedelimiter="\n", const char *splitchar="=", const char *concat="\n", bool dotrim=false);
 		int		CreateFromConfig(const char *content, const char *splitchar=":", const char *concat="\n", bool dotrim=false);
 		void	ToTemplate(CString &s, const char *prefix=NULL, const char *linedelimiter="\n", const char *splitchar="=");
-		int		ExportBinary(void *buffer, int buffersize, int *realsize);
-		CBinary *ExportBinary();
+		int		ExportBinary(void *buffer, int buffersize, int *realsize) const;
+		CBinary *ExportBinary() const;
 		int		ImportBinary(const void *buffer, int buffersize);
 		int		ImportBinary(const CBinary &bin);
 

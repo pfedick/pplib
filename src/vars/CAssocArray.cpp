@@ -720,7 +720,7 @@ foo/key2=value6
 	}
 }
 
-int CAssocArray::Size()
+int CAssocArray::Size() const
 /*!\brief Liefert Anzahl Bytes, die für ExportBinary erforderlich sind
  *
  * \desc
@@ -740,7 +740,7 @@ int CAssocArray::Size()
 	return 0;
 }
 
-CBinary *CAssocArray::ExportBinary()
+CBinary *CAssocArray::ExportBinary() const
 {
 	CBinary *bin=NULL;
 	void *buffer;
@@ -767,7 +767,7 @@ CBinary *CAssocArray::ExportBinary()
 	return bin;
 }
 
-int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
+int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize) const
 /*!\brief Inhalt des Arrays in einem plattform-unabhängigen Binären-Format exportieren
  *
  * \desc
@@ -806,7 +806,9 @@ int CAssocArray::ExportBinary(void *buffer, int buffersize, int *realsize)
 	CIconv iconv(ICONV_UNICODE,"UTF-8");
 	if (p+7<buffersize) strncpy(ptr,"PPLASOC",7);
 	p+=7;
-	while ((a=(CArrayItem*)Tree.GetNext())) {
+	CTreeWalker walk;
+	Tree.Reset(walk);
+	while ((a=(CArrayItem*)Tree.GetNext(walk))) {
 		if (p<buffersize) ppl6::PokeN8(ptr+p,a->type);
 		p++;
 		keylen=a->key.Len();
