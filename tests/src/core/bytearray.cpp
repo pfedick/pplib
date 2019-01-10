@@ -84,6 +84,18 @@ TEST_F(ByteArrayTest, AssignmentWithEmptyObject) {
 
 }
 
+TEST_F(ByteArrayTest, load_and_base64) {
+	ppl7::ByteArray ba;
+	ppl7::File::load(ba,"testdata/screenshot1.png");
+	ASSERT_EQ((size_t)59627,ba.size());
+	ppl7::String ba64=ba.toBase64();
+	ppl7::ByteArray ba2=ppl7::FromBase64(ba64);
+	ASSERT_EQ((size_t)59627,ba2.size());
+}
+
+
+
+
 // memBlock1 > MemBlock2
 // memBlock2 < MemBlock1
 static unsigned char memBlock1[]={123,77,42,255,192,16,9};
