@@ -283,14 +283,13 @@ void WikiParser::init()
  * @param[out] Html String mit der HTML-Übersetzung
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
  */
-int WikiParser::render(const String &Source, String &Html)
+void WikiParser::render(const String &Source, String &Html)
 {
 	init();
-	if (!getHeader(Html)) return 0;
-	int ret=renderInternal(Source,Html);
+	getHeader(Html);
+	renderInternal(Source,Html);
 	Html+="</body></html>\n";
 	//Html.Print(true);
-	return ret;
 }
 
 /*!\brief Komplette HTML-Seite mit Header und Stylesheet erstellen
@@ -319,11 +318,10 @@ String WikiParser::render(const String &Source)
  * @param[out] Html String mit der HTML-Übersetzung
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0
  */
-int WikiParser::renderBody(const String &Source, String &Html)
+void WikiParser::renderBody(const String &Source, String &Html)
 {
 	init();
-	int ret=renderInternal(Source,Html);
-	return ret;
+	renderInternal(Source,Html);
 }
 
 /*!\brief Nur den HTML-Body erstellen
@@ -343,7 +341,7 @@ String WikiParser::renderBody(const String &Source)
 }
 
 
-int WikiParser::getHeader(String &Html)
+void WikiParser::getHeader(String &Html)
 {
 	Html="<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd\">\n";
 	Html+="<html><head><style type=\"text/css\">\n";
@@ -354,7 +352,6 @@ int WikiParser::getHeader(String &Html)
 	}
 	Html+="</style>\n";
 	Html+="</head><body>\n";
-	return 1;
 }
 
 String WikiParser::header()
@@ -922,7 +919,7 @@ void WikiParser::finalizeDiagrams()
 	}
 }
 
-int WikiParser::renderInternal(const String &Source, String &Html)
+void WikiParser::renderInternal(const String &Source, String &Html)
 {
 	String Tmp;
 	String Text=Source;
@@ -970,8 +967,6 @@ int WikiParser::renderInternal(const String &Source, String &Html)
 
 	if (indexenabled) buildIndex(Html);	// Index hinzufügen
 	Html+=ret;
-	return 1;
-
 }
 
 
