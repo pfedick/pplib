@@ -361,9 +361,9 @@ class SocketMessage
 
 
 		void setCommandId(int id);
-		int getCommandId();
+		int getCommandId() const;
 		void setId(int id);
-		int getId();
+		int getId() const;
 		void setPayload(const String &msg);
 		void setPayload(const AssocArray &msg);
 		void setPayload(const ByteArrayPtr &msg);

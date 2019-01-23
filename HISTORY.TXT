@@ -44,6 +44,7 @@ Version 7.0.1
   - Array operators == and != are now defined as const
   - changed behaviour of String::isNumeric
   - WikiParser: various methods do not get a return value anymore
+  - SocketMessage: defined some functions as const
    
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
