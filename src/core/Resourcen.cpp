@@ -37,8 +37,6 @@
 #include <stdlib.h>
 #endif
 #include "ppl7.h"
-#include "ppl7-grafix.h"
-//#include "grafix.h"
 #ifdef WIN32
 #pragma message( "*** Kompiliere Resourcen, das kann eine Weile dauern..." )
 #endif
