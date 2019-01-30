@@ -70,7 +70,11 @@ static ppl6::CString to6(const ppl7::String &str)
 
 static ppl6::CAssocArray to6(const ppl7::AssocArray &arr)
 {
-	return ppl6::CAssocArray();
+	ppl7::ByteArray bin;
+	arr.exportBinary(bin);
+	ppl6::CAssocArray a6;
+	a6.ImportBinary(bin.ptr(),bin.size());
+	return a6;
 }
 
 static ppl7::AssocArray to7(const ppl6::CAssocArray &arr)
