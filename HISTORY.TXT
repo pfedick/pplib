@@ -45,6 +45,7 @@ Version 7.0.1
   - changed behaviour of String::isNumeric
   - WikiParser: various methods do not get a return value anymore
   - SocketMessage: defined some functions as const
+  - WikiParser: fixed some OutOfBoundsExceptions
    
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)

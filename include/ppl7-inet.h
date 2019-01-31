@@ -692,7 +692,7 @@ class WikiParser
 	private:
 		int ispre;
 		int ullevel;
-		int ollevel;
+		size_t ollevel;
 		int indexcount;
 		int intable;
 		int inrow;

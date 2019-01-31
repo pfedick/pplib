@@ -563,15 +563,15 @@ void WikiParser::parseDoxygen(String &Line)
 int WikiParser::parseUL(String &Line)
 {
 	// Aufzählung UL?
-	if (Line[0]==L'*') {
+	if (Line.size()>0 && Line[0]==L'*') {
 		if (!ullevel) {
 			ullevel=1;
 			ret+="<ul>";
 		}
 		// Wie tief?
-		int c=1;
+		size_t c=1;
 		//$ul="";
-		while (Line[c]==L'*') c++;
+		while (Line.size()>c && Line[c]==L'*') c++;
 		Line=Line.substr(c);
 		Line.trim();
 		ret.appendf("<li style=\"margin-left: %ipx;\">%s</li>\n",((c-1)*20),(const char*)Line);
@@ -585,15 +585,15 @@ int WikiParser::parseUL(String &Line)
 
 int WikiParser::parseIndent(String &Line)
 {
-	int c=0;
-	while (Line[c]==L':') c++;
+	size_t c=0;
+	while (Line.size()>c && Line[c]==L':') c++;
 	if (c>0) {
 		Line=Line.substr(c);
 		Line.trim();
 		ret.appendf("<div style=\"margin-left: %ipx;\">%s</div>\n",(c*20),(const char*)Line);
 		return 1;
 	}
-	if (Line[0]==L';') {
+	if (Line.size()>0 && Line[0]==L';') {
 		Line=Line.substr(1);
 		Line.trim();
 		Line="<b class=\"definition\">"+Line+"</b>";
@@ -606,15 +606,15 @@ int WikiParser::parseOL(String &Line)
 {
 	// Aufzählung OL?
 	//printf ("OL-Prüfung auf: >>>%s\n",(const char*)Line);
-	if (Line[0]==L'#') {
+	if (Line.size()>0 && Line[0]==L'#') {
 		// Wie tief?
-		int c=1;
-		while (Line[c]==L'#') c++;
+		size_t c=1;
+		while (Line.size()>c && Line[c]==L'#') c++;
 		//printf("OL-Match, ollevel=%i, c=%i\n",ollevel,c);
 		Line=Line.substr(c);
 		Line.trim();
-		if (c>ollevel) for (int i=ollevel;i<c;i++) ret+="<ol>";
-		if (c<ollevel) for (int i=ollevel;i>c;i--) ret+="</ol>";
+		if (c>ollevel) for (size_t i=ollevel;i<c;i++) ret+="<ol>";
+		if (c<ollevel) for (size_t i=ollevel;i>c;i--) ret+="</ol>";
 		ollevel=c;
 		ret.appendf("<li style=\"margin-left: %ipx;\">%s</li>\n",((c-1)*20),(const char*)Line);
 		//ret.Print(true);
@@ -632,7 +632,7 @@ int WikiParser::parseOL(String &Line)
 void WikiParser::parseAutoPRE(String &Line)
 {
 	// Zeilen mit Space am Anfang?
-	if (Line[0]==' ') {
+	if (Line.size()>0 && Line[0]==' ') {
 		if (!ispre) ret+="<pre>";
 		ispre++;
 		nobr=true;
@@ -819,7 +819,7 @@ void WikiParser::finalize()
 {
 	Array Match;
 	for (int i=0;i<ullevel;i++) ret+="</ul>\n";
-	for (int i=0;i<ollevel;i++) ret+="</ol>\n";
+	for (size_t i=0;i<ollevel;i++) ret+="</ol>\n";
 	for (int i=0;i<ispre;i++) ret+="</pre>\n";
 
 	for (int i=indentlevel;i>0;i--) ret+="</div>";
