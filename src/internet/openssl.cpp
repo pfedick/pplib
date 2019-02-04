@@ -1191,13 +1191,6 @@ static void disable_ssl_on_ctx(SSL_CTX *ctx) {
 int CSSL::Init(int method)
 {
 	#ifdef HAVE_OPENSSL
-		SSLMutex.Lock();
-		if (!SSLisInitialized) {
-			SSLMutex.Unlock();
-			SetError(317);
-			return 0;
-		}
-		SSLMutex.Unlock();
 		Shutdown();
 		Mutex.Lock();
 		if (!method) method=CSSL::SSLv23;
