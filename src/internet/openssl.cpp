@@ -330,6 +330,9 @@ void SSL_Exit()
 		}
 		CRYPTO_set_id_callback(NULL);
 		CRYPTO_set_locking_callback(NULL);
+		CRYPTO_set_dynlock_create_callback(NULL);
+		CRYPTO_set_dynlock_lock_callback(NULL);
+		CRYPTO_set_dynlock_destroy_callback(NULL);
 		if (mutex_buf) {
 			int max_locks=CRYPTO_num_locks();
 			for (int i=0;i<max_locks;i++) {
