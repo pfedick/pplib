@@ -149,7 +149,7 @@ PPL7EXCEPTION(SSLContextReferenceCounterMismatchException, Exception);
 PPL7EXCEPTION(InvalidSSLCertificateException, Exception);
 PPL7EXCEPTION(InvalidSSLCipherException, Exception);
 PPL7EXCEPTION(SSLPrivatKeyException, Exception);
-
+PPL7EXCEPTION(SSLFailedToReadDHParams, Exception);
 
 
 //! @name IO-Exceptions

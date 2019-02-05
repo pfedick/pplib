@@ -731,6 +731,38 @@ void SSLContext::setCipherList(const String &cipherlist)
 #endif
 }
 
+void SSLContext::setTmpDHParam(const String &dh_param_file)
+{
+#ifndef HAVE_OPENSSL
+	throw UnsupportedFeatureException("OpenSSL");
+#else
+	mutex.lock();
+	if (!ctx) {
+		mutex.unlock();
+		throw SSLContextUninitializedException();
+	}
+	FILE *ff=NULL;
+#ifdef WIN32
+	WideString wideFilename=dh_param_file;
+	WideString wideMode="r";
+	if ((ff=(FILE*)_wfopen((const wchar_t *)wideFilename,(const wchar_t*)wideMode))==NULL) {
+
+#else
+	if ((ff=(FILE*)fopen((const char*)dh_param_file,"r"))==NULL) {
+#endif
+		throwExceptionFromErrno(errno,dh_param_file);
+	}
+	DH *dh=PEM_read_DHparams(ff, NULL, NULL, NULL);
+	if (!dh) {
+		throw SSLFailedToReadDHParams(dh_param_file);
+	}
+	if (!SSL_CTX_set_tmp_dh((SSL_CTX*)ctx,dh)) {
+		throw SSLFailedToReadDHParams(dh_param_file);
+	}
+#endif
+}
+
+
 
 /** @name SSL-Verschlüsselung
  *  Die nachfolgenden Befehle werden benötigt, wenn die Kommunikation zwischen Client
@@ -1151,6 +1183,7 @@ int TCPSocket::sslGetCipherBits() const
 #endif
 	return 0;
 }
+
 
 
 //@}

@@ -78,7 +78,6 @@ PPL7EXCEPTION(InvalidIpAddressException,NetworkException);
 PPL7EXCEPTION(InvalidNetworkAddressException,NetworkException);
 PPL7EXCEPTION(InvalidNetmaskOrPrefixlenException,NetworkException);
 
-
 PPL7EXCEPTION(ResolverException,Exception);
 PPL7EXCEPTION(UnknownHostException,Exception);
 
@@ -301,6 +300,7 @@ class SSLContext
 		void	loadTrustedCAfromPath(const String &path);
 		void	loadCertificate(const String &certificate, const String &privatekey=String(), const String &password=String());
 		void	setCipherList(const String &cipherlist);		// "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH"
+		void	setTmpDHParam(const String &dh_param_file);
 };
 
 class SSLError
