@@ -457,11 +457,16 @@ class TCPSocket
 
 		//! @name SSL Encryption
 		//@{
-		void sslStart(SSLContext &context);
-		void sslStop();
-		void sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSignedCert=false);
-		void sslAccept(SSLContext &context);
-		int sslWaitForAccept(int timeout=0);
+		void	sslStart(SSLContext &context);
+		void	sslStop();
+		void	sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSignedCert=false);
+		void	sslAccept(SSLContext &context);
+		void	sslWaitForAccept(SSLContext &context, int timeout_ms=0);
+		bool	sslIsEncrypted() const;
+		String	sslGetCipherName() const;
+		String	sslGetCipherVersion() const;
+		int		sslGetCipherBits() const;
+
 		//@}
 
 

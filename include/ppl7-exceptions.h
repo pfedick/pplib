@@ -89,6 +89,7 @@ PPL7EXCEPTION(IllegalArgumentException, Exception);
 PPL7EXCEPTION(MissingArgumentException, Exception);
 PPL7EXCEPTION(IllegalRegularExpressionException, Exception);
 PPL7EXCEPTION(OperationFailedException, Exception);
+PPL7EXCEPTION(OperationAbortedException, Exception);
 PPL7EXCEPTION(DuplicateInstanceException, Exception);
 PPL7EXCEPTION(ConnectionFailedException, Exception);
 PPL7EXCEPTION(SocketException, Exception);

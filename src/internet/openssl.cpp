@@ -974,6 +974,35 @@ void TCPSocket::sslAccept(SSLContext &context)
 #endif
 }
 
+/*!\brief Auf eine TLS/SSL-Handshake warten
+
+ * \desc
+ * SSL_WaitForAccept wartet darauf, dass der mit dem Socket verbundene Client eine TLS/SSL Verbindung
+ * startet. Vor Aufruf sollte der Socket auf "non-Blocking" gestellt werden (siehe TCPSocket::setBlocking).
+ * Die Funktion wartet solange, bis entweder ein Handshake zustande kommt oder der angegebene Timeout
+ * erreicht wurde, oder der Überwachungsthread (siehe CTCPSocket::WatchThread)
+ * beendet werden soll.
+ *
+ * @param timeout_ms Ein Timeout in Millisekunden. Bei Angabe von 0, wartet die Funktion unbegenzt lange.
+ */
+void TCPSocket::sslWaitForAccept(SSLContext &context, int timeout_ms)
+{
+	ppluint64 tt=GetMilliSeconds()+timeout_ms;
+	while (timeout_ms==0 || GetMilliSeconds()<=tt) {
+		if (stoplisten) {
+			throw ppl7::OperationAbortedException("TCPSocket::sslWaitForAccept");
+		}
+		try {
+			sslAccept(context);
+			return;
+		} catch (const ppl7::OperationBlockedException &exp) {
+			MSleep(10);
+		}
+	}
+	throw ppl7::TimeoutException("Timeout while waiting for SSL handshake [TCPSocket::sslWaitForAccept]");
+}
+
+
 
 /*!\brief SSL-Zertifikat der Gegenstelle prüfen
  *
@@ -1088,46 +1117,42 @@ void TCPSocket::sslCheckCertificate(const ppl7::String &name, bool AcceptSelfSig
 #endif
 }
 
-#ifdef TODO
-/*!\brief Auf eine TLS/SSL-Handshake warten
 
- * \desc
- * SSL_WaitForAccept wartet darauf, dass der mit dem Socket verbundene Client eine TLS/SSL Verbindung
- * startet. Vor AUfruf sollte der Socket auf "non-Blocking" gestellt werden (siehe CTCPSocket::SetBlocking).
- * Die Funktion wartet solange, bis entweder ein Handshake zustande kommt, der angegebene Timeout
- * erreicht oder die Verbindung getrennt wurde, oder der Überwachungsthread (siehe CTCPSocket::WatchThread)
- * beendet werden soll.
- *
- * @param timeout Ein Timeout in Sekunden. Bei Angabe von 0, wartet die Funktion unbegenzt lange.
- * @return Bei erfolgreichem Handshake liefert die Funktion 1 zurück, im Fehlerfall 0.
- */
-int CTCPSocket::SSL_WaitForAccept(int timeout)
+
+bool TCPSocket::sslIsEncrypted() const
 {
-	ppluint64 tt=GetMilliSeconds()+(timeout*1000);
-	while (timeout==0 || GetMilliSeconds()<=tt) {
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		}
-		if (!SSL_Accept()) {
-			if (ppl6::GetErrorCode()!=309) {	// Non-Blocking
-				return 0;
-			}
-		} else {
-			return 1;
-		}
-		MSleep(10);
-	}
-	SetError(174);
+#ifdef HAVE_OPENSSL
+	if (ssl) return true;
+#endif
+	return false;
+}
+
+String TCPSocket::sslGetCipherName() const
+{
+#ifdef HAVE_OPENSSL
+	if (ssl) return SSL_get_cipher((SSL*)ssl);
+#endif
+	return String();
+}
+
+String TCPSocket::sslGetCipherVersion() const
+{
+#ifdef HAVE_OPENSSL
+	if (ssl) return SSL_get_cipher_version((SSL*)ssl);
+#endif
+	return String();
+}
+
+int TCPSocket::sslGetCipherBits() const
+{
+#ifdef HAVE_OPENSSL
+	int np=0;
+	if (ssl) return SSL_get_cipher_bits((SSL*)ssl, &np);
+#endif
 	return 0;
 }
 
 
-
-
-#endif
 //@}
 
 } // EOF namespace ppl
