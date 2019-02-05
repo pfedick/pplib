@@ -77,6 +77,11 @@ static ppl6::CAssocArray to6(const ppl7::AssocArray &arr)
 	return a6;
 }
 
+static ppl7::String to7(const ppl6::CString &str)
+{
+	return ppl7::String(str.GetPtr(),str.Size());
+}
+
 static ppl7::AssocArray to7(const ppl6::CAssocArray &arr)
 {
 	ppl6::CBinary *bin=arr.ExportBinary();
