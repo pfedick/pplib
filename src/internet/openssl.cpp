@@ -187,24 +187,25 @@ static unsigned long id_function(void)
 	return (unsigned long) ppl7::ThreadID();
 }
 
-
-static ppl7::Mutex *dyn_create_function(char *file, int line)
+/*
+static CRYPTO_dynlock_value *dyn_create_function(char *file, int line)
 {
-	return new ppl7::Mutex;
+	return (CRYPTO_dynlock_value *) new ppl7::Mutex;
 }
 
-static void dyn_lock_function (int mode, ppl7::Mutex *l, const char *file, int line)
+static void dyn_lock_function (int mode, CRYPTO_dynlock_value *l, const char *file, int line)
 {
 	if (mode & CRYPTO_LOCK)
-			l->lock();
+			((ppl7::Mutex*)l)->lock();
 		else
-			l->unlock();
+			((ppl7::Mutex*)l)->unlock();
 }
 
-static void dyn_destroy_function (ppl7::Mutex *l, const char *file, int line)
+static void dyn_destroy_function (CRYPTO_dynlock_value *l, const char *file, int line)
 {
-	delete l;
+	delete ((ppl7::Mutex*)l);
 }
+*/
 
 /*
 static void ssl_exit()
@@ -291,9 +292,11 @@ void SSL_Init()
 	}
 	CRYPTO_set_id_callback(id_function);
 	CRYPTO_set_locking_callback(locking_function);
+	/*
 	CRYPTO_set_dynlock_create_callback(dyn_create_function);
 	CRYPTO_set_dynlock_lock_callback(dyn_lock_function);
 	CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function);
+	*/
 	SSLisInitialized=true;
 	atexit(SSL_Exit);
 	SSLMutex.unlock();
