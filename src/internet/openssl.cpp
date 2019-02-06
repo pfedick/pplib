@@ -750,15 +750,20 @@ void SSLContext::setTmpDHParam(const String &dh_param_file)
 #else
 	if ((ff=(FILE*)fopen((const char*)dh_param_file,"r"))==NULL) {
 #endif
-		throwExceptionFromErrno(errno,dh_param_file);
+		int e=errno;
+		mutex.unlock();
+		throwExceptionFromErrno(e,dh_param_file);
 	}
 	DH *dh=PEM_read_DHparams(ff, NULL, NULL, NULL);
 	if (!dh) {
+		mutex.unlock();
 		throw SSLFailedToReadDHParams(dh_param_file);
 	}
 	if (!SSL_CTX_set_tmp_dh((SSL_CTX*)ctx,dh)) {
+		mutex.unlock();
 		throw SSLFailedToReadDHParams(dh_param_file);
 	}
+	mutex.unlock();
 #endif
 }
 
@@ -985,18 +990,27 @@ void TCPSocket::sslAccept(SSLContext &context)
 	if (1 != SSL_set_fd((SSL*)ssl,s->sd)) {
 		String sslerrorstack;
 		GetSSLErrors(sslerrorstack);
+		context.releaseSSL(ssl);
+		ssl=NULL;
 		throw SSLException("SSL_set_fd failed [%s]", (const char*)sslerrorstack);
 	}
+	SSL_set_accept_state((SSL*)ssl);
 	int res=SSL_accept((SSL*)ssl);
 	if (res<1) {
 		int e=SSL_get_error((SSL*)ssl,res);
 		if (e==SSL_ERROR_WANT_READ || e==SSL_ERROR_WANT_WRITE) {
 			// Non-Blocking
+			context.releaseSSL(ssl);
+			ssl=NULL;
 			throw OperationBlockedException();
 		} else {
+			printf("e=%d\n",e);
 			String sslerrorstack;
 			GetSSLErrors(sslerrorstack);
-			throw SSLException("%s, %s [%s]",ssl_geterror((SSL*)ssl,res),
+			const char *errortext=ssl_geterror((SSL*)ssl,res);
+			context.releaseSSL(ssl);
+			ssl=NULL;
+			throw SSLException("%s, %s [%s]",errortext,
 					ERR_error_string(e,NULL),
 					(const char*)sslerrorstack);
 		}
@@ -1019,19 +1033,27 @@ void TCPSocket::sslAccept(SSLContext &context)
  */
 void TCPSocket::sslWaitForAccept(SSLContext &context, int timeout_ms)
 {
+	try {
 	ppluint64 tt=GetMilliSeconds()+timeout_ms;
 	while (timeout_ms==0 || GetMilliSeconds()<=tt) {
 		if (stoplisten) {
+
+			printf ("stop\n");
 			throw ppl7::OperationAbortedException("TCPSocket::sslWaitForAccept");
 		}
 		try {
 			sslAccept(context);
 			return;
 		} catch (const ppl7::OperationBlockedException &exp) {
+			printf ("Blocked\n");
 			MSleep(10);
 		}
 	}
 	throw ppl7::TimeoutException("Timeout while waiting for SSL handshake [TCPSocket::sslWaitForAccept]");
+	} catch (const ppl7::Exception &exp) {
+		exp.print();
+				throw;
+	}
 }
 
 
