@@ -444,6 +444,8 @@ class TCPSocket
 		size_t read(String &buffer, size_t bytes);
 		size_t read(ByteArray &buffer, size_t bytes);
 
+		void readLoop(void *buffer, size_t bytes, int timeout_seconds=0, Thread *watch_thread=NULL);
+
 		int getDescriptor();
 		void setBlocking(bool value);
 		bool isBlocking() const;
