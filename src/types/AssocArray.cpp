@@ -902,6 +902,14 @@ String& AssocArray::getString(const String &key) const
 	return node->toString();
 }
 
+int AssocArray::getInt(const String &key) const
+{
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	return node->toString().toInt();
+}
+
+
 /*!\brief AssocArray auslesen
  *
  * \desc
