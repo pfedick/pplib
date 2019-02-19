@@ -1047,11 +1047,15 @@ class AssocArray
 
 		//!\name Werte direkt auslesen
 		//@{
-		String	&getString(const String &key) const;
-		int		getInt(const String &key) const;
-		AssocArray	&getArray(const String &key) const;
 		Variant	&get(const String &key) const;
+		String	&getString(const String &key) const;
+		String	&getString(const String &key, String &default_value) const;
+		int		getInt(const String &key) const;
+		int		getInt(const String &key, int default_value) const;
+		AssocArray	&getArray(const String &key) const;
+		AssocArray	&getArray(const String &key, AssocArray &default_value) const;
 		bool	exists(const String &key) const;
+		bool	isTrue(const String &key) const;
 
 		//@}
 

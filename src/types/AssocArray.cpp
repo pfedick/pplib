@@ -902,11 +902,46 @@ String& AssocArray::getString(const String &key) const
 	return node->toString();
 }
 
+String& AssocArray::getString(const String &key, String &default_value) const
+{
+	Variant *node=findInternal(key);
+	if (!node) return default_value;
+	if (node->isString() || node->isWideString()) return node->toString();
+	return default_value;
+}
+
 int AssocArray::getInt(const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
 	return node->toString().toInt();
+}
+
+int AssocArray::getInt(const String &key, int default_value) const
+{
+	Variant *node=findInternal(key);
+	if (!node) return default_value;
+	if (node->isString() || node->isWideString()) return node->toString().toInt();
+	return default_value;
+}
+
+/*!\brief Key vorhanden und True
+ *
+ * \desc
+ * Liefert True zurück, wenn der Schlüssel \b key vorhanden ist,
+ * und dessen Value einen String oder WideString enthält, dessen
+ * Boolean Wert True entspricht.
+ *
+ * @param key Name des Schlüssels
+ * @return True oder False
+ */
+bool AssocArray::isTrue(const String &key) const
+{
+	Variant *node=findInternal(key);
+	if (!node) return false;
+	if (node->isString()) return node->toString().isTrue();
+	if (node->isWideString()) return node->toWideString().isTrue();
+	return false;
 }
 
 
@@ -924,6 +959,14 @@ AssocArray& AssocArray::getArray(const String &key) const
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
 	return node->toAssocArray();
+}
+
+AssocArray& AssocArray::getArray(const String &key, AssocArray &default_value) const
+{
+	Variant *node=findInternal(key);
+	if (!node) return default_value;
+	if (node->isAssocArray()) return node->toAssocArray();
+	return default_value;
 }
 
 
