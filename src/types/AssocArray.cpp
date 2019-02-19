@@ -954,18 +954,33 @@ bool AssocArray::isTrue(const String &key) const
  * \exception InvalidKeyException: Ungültiger Schlüssel
  * \exception KeyNotFoundException: Schlüssel wurde nicht gefunden
  */
-AssocArray& AssocArray::getArray(const String &key) const
+AssocArray& AssocArray::getAssocArray(const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
 	return node->toAssocArray();
 }
 
-AssocArray& AssocArray::getArray(const String &key, AssocArray &default_value) const
+AssocArray& AssocArray::getAssocArray(const String &key, AssocArray &default_value) const
 {
 	Variant *node=findInternal(key);
 	if (!node) return default_value;
 	if (node->isAssocArray()) return node->toAssocArray();
+	return default_value;
+}
+
+Array& AssocArray::getArray(const String &key) const
+{
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	return node->toArray();
+}
+
+Array& AssocArray::getArray(const String &key, Array &default_value) const
+{
+	Variant *node=findInternal(key);
+	if (!node) return default_value;
+	if (node->isArray()) return node->toArray();
 	return default_value;
 }
 

@@ -873,7 +873,7 @@ void WikiParser::finalizePRE()
 	if (precount>0) {
 		while (ret.pregMatch("/^(.*)<pre ([0-9]+)>(.*)$/sim",Match)) {
 			try {
-				const AssocArray &p=pre.getArray(Match[2]);
+				const AssocArray &p=pre.getAssocArray(Match[2]);
 				if (p.exists("class")) {
 					ret.setf("%s<pre class=\"%s\">\n%s</pre>\n%s",
 							(const char*)Match[1],
@@ -1055,7 +1055,7 @@ String WikiParser::xmlDiagram2HTML(const String &xml)
 				if (Row.pregMatch("/value=\"(.*?)\"/is",Match)) value=Match[1];
 				if (id.notEmpty()) {
 					try {
-						AssocArray &i=items.getArray(id);
+						AssocArray &i=items.getAssocArray(id);
 						if (i.size()>0) {
 							d+="<tr><td style=\"font-size: 80%;\">"+i.getString("name").replace(" ","&nbsp;")+"L</td>";
 							d+="<td style=\"width: 100%; font-size: 80%;\">";

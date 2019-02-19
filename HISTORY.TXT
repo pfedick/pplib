@@ -46,6 +46,12 @@ Version 7.0.1
   - WikiParser: various methods do not get a return value anymore
   - SocketMessage: defined some functions as const
   - WikiParser: fixed some OutOfBoundsExceptions
+  - AssocArray: added comfort getter-functions, which return a
+    default value instead of throwing an exception, when key is
+    not found or of different data type.
+  - AssocArray: getArray now returns an Array instead of AssocArray!
+    Use new method getAssocArray, if you want an AssocArray!
+    
    
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
