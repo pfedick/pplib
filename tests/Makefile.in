@@ -63,7 +63,7 @@ OBJECTS_GRAFIX = compile/grafix.o compile/grafix_drawable.o compile/grafix_image
 	compile/grafix_rgbformat.o compile/grafix_size.o
 
 OBJECTS_INET =  compile/inet.o compile/resolver.o compile/inet_ipaddress.o compile/inet_ipnetwork.o \
-	compile/tcpsocket.o compile/inet_sockaddr.o 
+	compile/tcpsocket.o compile/inet_sockaddr.o compile/wikiparser.o
 
 OBJECTS_AUDIO = compile/audioinfo.o compile/id3tag.o \
 	compile/audio_decoder_mp3.o compile/audio_decoder_aiff.o compile/audio_decoder_wave.o \
@@ -361,6 +361,9 @@ compile/tcpsocket.o: src/inet/tcpsocket.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) -o compile/tcpsocket.o -c src/inet/tcpsocket.cpp $(CFLAGS) $(LIB)
 
+compile/wikiparser.o: src/inet/wikiparser.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) -o compile/wikiparser.o -c src/inet/wikiparser.cpp $(CFLAGS) $(LIB)
 
 ################################################################################
 # GRAFIX

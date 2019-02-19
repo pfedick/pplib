@@ -540,9 +540,9 @@ Array StrTok(const String &string, const String &div)
  */
 void StrTok(Array &result, const String &string, const String &div)
 {
-	if (string.isEmpty()) throw EmptyDataException();
-	if (div.isEmpty()) throw EmptyDataException();
+	if (div.isEmpty()) throw EmptyDataException("ppl7::StrTok, divider is empty");
 	result.clear();
+	if (string.isEmpty()) return;
 	String Line;
 	Array a;
 	a.explode(string,div);
