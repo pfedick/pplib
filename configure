@@ -630,6 +630,7 @@ am__EXEEXT_TRUE
 LTLIBOBJS
 report_have_mpg123
 report_have_libbind
+report_have_libidn2
 report_have_libidn
 report_have_libmicrohttpd
 report_have_libtiff
@@ -879,6 +880,7 @@ with_libpng
 with_libmicrohttpd
 with_libmcrypt_prefix
 with_libidn
+with_libidn2
 with_libtiff
 with_libcurl
 with_mpg123
@@ -1603,6 +1605,7 @@ Optional Packages:
   --with-libmicrohttpd[=PATH]     Prefix where libmicrohttpd is installed (optional)
   --with-libmcrypt-prefix=PFX   Prefix where libmcrypt is installed (optional)
   --with-libidn[=PATH]     Prefix where libidn is installed (optional)
+  --with-libidn2[=PATH]     Prefix where libidn2 is installed (optional)
   --with-libtiff[=PATH]     Prefix where libtiff is installed (optional)
   --with-libcurl=PREFIX   look for the curl library in PREFIX/lib and headers
                           in PREFIX/include
@@ -3776,12 +3779,15 @@ ac_config_headers="$ac_config_headers include/ppl7-config.h"
 
 
 
+
+
 report_have_pthreads="no"
 report_have_jpeg="no"
 report_have_libmicrohttpd="no"
 report_have_libmcrypt="no"
 report_have_libcrypto="no"
 report_have_libidn="no"
+report_have_libidn2="no"
 report_have_libtiff="no"
 report_have_curl="no"
 report_have_mpg123="no"
@@ -12775,6 +12781,133 @@ fi
 
 
 
+# Check whether --with-libidn2 was given.
+if test "${with_libidn2+set}" = set; then :
+  withval=$with_libidn2; libidn2_prefix="$withval"
+else
+  libidn2_prefix="no"
+fi
+
+
+am_save_CPPFLAGS="$CPPFLAGS"
+am_save_LIBS="$LIBS"
+am_save_LDFLAGS="$LDFLAGS"
+LIBIDN2_LIBS=""
+LIBIDN2_CFLAGS=""
+have_libidn="no"
+	if test "$libidn2_prefix" != "yes"
+	then
+		if test "$libidn2_prefix" != "no"
+		then
+			LIBS="-L$libidn2_prefix/lib -lidn2 $LIBS"
+			CPPFLAGS="$CPPFLAGS -I$libidn2_prefix/include"
+			LIBIDN2_LIBS="-L$libidn2_prefix/lib -lidn2"
+			LIBIDN2_CFLAGS="-I$libidn2_prefix/include"
+		else
+			LIBS="-lidn2 $LIBS"
+			LIBIDN2_LIBS="-lidn2"
+		fi
+	else
+		LIBS="-lidn2 $LIBS"
+		LIBIDN2_LIBS="-lidn2"
+	fi
+	ac_fn_c_check_header_mongrel "$LINENO" "idn2.h" "ac_cv_header_idn2_h" "$ac_includes_default"
+if test "x$ac_cv_header_idn2_h" = xyes; then :
+
+
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for idn2 library and linking" >&5
+$as_echo_n "checking for idn2 library and linking... " >&6; }
+    	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+        	 #include <idn2.h>
+         	int main()
+         	{
+         		char *idn=NULL;
+         		char *a=NULL;
+				if (IDNA_SUCCESS==idn2_to_ascii_8z(idn, &a,0) && a!=NULL) {
+					return 1;
+				}
+         		return 0;
+         	}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      	have_libidn2="yes"
+
+else
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+    	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for existing IDN2_NO_TR46-flag in idn2 library" >&5
+$as_echo_n "checking for existing IDN2_NO_TR46-flag in idn2 library... " >&6; }
+    	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+        	 #include <idn2.h>
+         	int main()
+         	{
+         		char *idn=NULL;
+         		char *a=NULL;
+				if (IDNA_SUCCESS==idn2_to_ascii_8z(idn, &a,IDN2_NO_TR46) && a!=NULL) {
+					return 1;
+				}
+         		return 0;
+         	}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+      	have_libidn2_IDN2_NO_TR46="yes"
+
+$as_echo "#define HAVE_LIBIDN2_IDN2_NO_TR46 1" >>confdefs.h
+
+
+else
+
+         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+
+fi
+
+
+CPPFLAGS=$am_save_CPPFLAGS
+LIBS=$am_save_LIBS
+LDFLAGS=$am_save_LDFLAGS
+
+if test "$have_libidn2" = "yes"
+then
+	report_have_libidn2="yes"
+
+$as_echo "#define HAVE_LIBIDN2 1" >>confdefs.h
+
+	CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+	CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
+	LIBS="$LIBIDN2_LIBS $LIBS"
+
+else
+	report_have_libidn2="no"
+
+fi
+
+
+
+
+
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libtiff" >&5
 $as_echo_n "checking for libtiff... " >&6; }
@@ -17486,6 +17619,7 @@ esac;
 
 
 
+
 ###############################################################################
 # Output
 ###############################################################################
@@ -19008,7 +19142,8 @@ fi
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd
 **   ldns library:         $report_have_ldns
-**   IDN library:          $report_have_libidn
+**   IDN1 library:         $report_have_libidn
+**   IDN2 library:         $report_have_libidn2
 **
 ** Databases:
 **   SQLite3:              $report_have_sqlite3
@@ -19074,7 +19209,8 @@ $as_echo "
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd
 **   ldns library:         $report_have_ldns
-**   IDN library:          $report_have_libidn
+**   IDN1 library:         $report_have_libidn
+**   IDN2 library:         $report_have_libidn2
 **
 ** Databases:
 **   SQLite3:              $report_have_sqlite3

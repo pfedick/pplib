@@ -51,8 +51,8 @@ Version 7.0.1
     not found or of different data type.
   - AssocArray: getArray now returns an Array instead of AssocArray!
     Use new method getAssocArray, if you want an AssocArray!
-    
-   
+  - use libidn2 instead of libidn if available
+       
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7

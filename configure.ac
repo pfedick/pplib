@@ -90,6 +90,7 @@ sinclude(autoconf/imagemagick.m4)
 sinclude(autoconf/libtiff.m4)
 sinclude(autoconf/libmicrohttpd.m4)
 sinclude(autoconf/libidn.m4)
+sinclude(autoconf/libidn2.m4)
 sinclude(autoconf/libbind.m4)
 sinclude(autoconf/gtest.m4)
 sinclude(autoconf/libcdio.m4)
@@ -102,6 +103,7 @@ report_have_libmicrohttpd="no"
 report_have_libmcrypt="no"
 report_have_libcrypto="no"
 report_have_libidn="no"
+report_have_libidn2="no"
 report_have_libtiff="no"
 report_have_curl="no"
 report_have_mpg123="no"
@@ -462,6 +464,16 @@ AM_LIBIDN([0.5.4],
 
 
 
+AM_LIBIDN2([2.0.0],
+	report_have_libidn2="yes"
+	AC_DEFINE(HAVE_LIBIDN2, 1, [ Define if you have libidn2. ])
+	CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+	CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
+	LIBS="$LIBIDN2_LIBS $LIBS"
+	,
+	report_have_libidn2="no"
+	)	
+
 
 
 AC_CHECK_LIBTIFF([1.2],
@@ -770,6 +782,7 @@ AC_SUBST(report_have_libimlib)
 AC_SUBST(report_have_libtiff)
 AC_SUBST(report_have_libmicrohttpd)
 AC_SUBST(report_have_libidn)
+AC_SUBST(report_have_libidn2)
 AC_SUBST(report_have_libbind)
 AC_SUBST(report_have_mpg123)
 
@@ -836,7 +849,8 @@ AC_MSG_RESULT([
 **   Curl library:         $report_have_curl
 **   Libmicrohttpd:        $report_have_libmicrohttpd		
 **   ldns library:         $report_have_ldns
-**   IDN library:          $report_have_libidn
+**   IDN1 library:         $report_have_libidn
+**   IDN2 library:         $report_have_libidn2
 **
 ** Databases:
 **   SQLite3:              $report_have_sqlite3
