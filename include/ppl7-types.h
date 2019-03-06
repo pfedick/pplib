@@ -1052,6 +1052,8 @@ class AssocArray
 		String	&getString(const String &key, String &default_value) const;
 		int		getInt(const String &key) const;
 		int		getInt(const String &key, int default_value) const;
+		long long		getLongLong(const String &key) const;
+		long long		getLongLong(const String &key, long long default_value) const;
 		AssocArray	&getAssocArray(const String &key) const;
 		AssocArray	&getAssocArray(const String &key, AssocArray &default_value) const;
 		Array	&getArray(const String &key) const;

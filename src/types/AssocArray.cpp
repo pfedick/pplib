@@ -915,17 +915,38 @@ int AssocArray::getInt(const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
-	if (!node->isString()) throw TypeConversionException("%s cannot be converted to Int",(const char*)key);
-	return node->toString().toInt();
+	if (node->isString()) return node->toString().toInt();
+	if (node->isWideString()) return node->toWideString().toInt();
+	throw TypeConversionException("%s cannot be converted to Int",(const char*)key);
 }
 
 int AssocArray::getInt(const String &key, int default_value) const
 {
 	Variant *node=findInternal(key);
 	if (!node) return default_value;
-	if (node->isString() || node->isWideString()) return node->toString().toInt();
+	if (node->isString()) return node->toString().toInt();
+	if (node->isWideString()) return node->toWideString().toInt();
 	return default_value;
 }
+
+long long AssocArray::getLongLong(const String &key) const
+{
+	Variant *node=findInternal(key);
+	if (!node) throw KeyNotFoundException(key);
+	if (node->isString()) return node->toString().toLongLong();
+	if (node->isWideString()) return node->toWideString().toLongLong();
+	throw TypeConversionException("%s cannot be converted to long long int",(const char*)key);
+}
+
+long long AssocArray::getLongLong(const String &key, long long default_value) const
+{
+	Variant *node=findInternal(key);
+	if (!node) return default_value;
+	if (node->isString()) return node->toString().toLongLong();
+	if (node->isWideString()) return node->toWideString().toLongLong();
+	return default_value;
+}
+
 
 /*!\brief Key vorhanden und True
  *
