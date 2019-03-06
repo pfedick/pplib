@@ -899,6 +899,7 @@ String& AssocArray::getString(const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
+	if (!node->isString()) throw TypeConversionException("%s is not a String",(const char*)key);
 	return node->toString();
 }
 
@@ -914,6 +915,7 @@ int AssocArray::getInt(const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
+	if (!node->isString()) throw TypeConversionException("%s cannot be converted to Int",(const char*)key);
 	return node->toString().toInt();
 }
 
@@ -958,6 +960,7 @@ AssocArray& AssocArray::getAssocArray(const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
+	if (!node->isAssocArray()) throw TypeConversionException("%s is not an AssocArray",(const char*)key);
 	return node->toAssocArray();
 }
 
@@ -973,6 +976,7 @@ Array& AssocArray::getArray(const String &key) const
 {
 	Variant *node=findInternal(key);
 	if (!node) throw KeyNotFoundException(key);
+	if (!node->isArray()) throw TypeConversionException("%s is not an Array",(const char*)key);
 	return node->toArray();
 }
 
