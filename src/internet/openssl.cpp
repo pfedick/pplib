@@ -747,7 +747,7 @@ void SSLContext::setTmpDHParam(const String &dh_param_file)
 	FILE *ff=NULL;
 #ifdef WIN32
 	WideString wideFilename=dh_param_file;
-	WideString wideMode="r";
+	WideString wideMode=L"r";
 	if ((ff=(FILE*)_wfopen((const wchar_t *)wideFilename,(const wchar_t*)wideMode))==NULL) {
 
 #else
