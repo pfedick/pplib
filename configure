@@ -12683,6 +12683,8 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 
+LIBIDN_CFLAGS=
+LIBIDN_LIBS=
 
 
 # Check whether --with-libidn was given.
@@ -12765,9 +12767,6 @@ then
 $as_echo "#define HAVE_LIBIDN 1" >>confdefs.h
 
 
-
-
-
 else
 	LIBIDN_LIBS=""
 	LIBIDN_CFLAGS=""
@@ -12790,6 +12789,7 @@ fi
 
 
 am_save_CPPFLAGS="$CPPFLAGS"
+am_save_CFLAGS="$CFLAGS"
 am_save_LIBS="$LIBS"
 am_save_LDFLAGS="$LDFLAGS"
 LIBIDN2_LIBS=""
@@ -12801,6 +12801,7 @@ have_libidn="no"
 		then
 			LIBS="-L$libidn2_prefix/lib -lidn2 $LIBS"
 			CPPFLAGS="$CPPFLAGS -I$libidn2_prefix/include"
+			CFLAGS="$CFLAGS -I$libidn2_prefix/include"
 			LIBIDN2_LIBS="-L$libidn2_prefix/lib -lidn2"
 			LIBIDN2_CFLAGS="-I$libidn2_prefix/include"
 		else
@@ -12884,6 +12885,7 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 
 
+CFLAGS=$am_save_CFLAGS
 CPPFLAGS=$am_save_CPPFLAGS
 LIBS=$am_save_LIBS
 LDFLAGS=$am_save_LDFLAGS
@@ -12894,14 +12896,15 @@ then
 
 $as_echo "#define HAVE_LIBIDN2 1" >>confdefs.h
 
-	CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-	CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
-	LIBS="$LIBIDN2_LIBS $LIBS"
+	LIBIDN_CFLAGS="$LIBIDN2_CFLAGS"
+	LIBIDN_LIBS="$LIBIDN2_LIBS"
 
 else
 	report_have_libidn2="no"
 
 fi
+
+
 
 
 

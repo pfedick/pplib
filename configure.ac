@@ -452,14 +452,12 @@ AM_PATH_LIBMCRYPT([2.5.7],
             report_have_libmcrypt="yes",
             :)
 
+LIBIDN_CFLAGS=
+LIBIDN_LIBS=
 AM_LIBIDN([0.5.4],
 	report_have_libidn="yes"
 	AC_DEFINE(HAVE_LIBIDN, 1, [ Define if you have libidn. ])
-	AC_SUBST(LIBIDN_CFLAGS)
-	AC_SUBST(LIBIDN_LIBS)
-
 	,
-	
 	)
 
 
@@ -467,12 +465,13 @@ AM_LIBIDN([0.5.4],
 AM_LIBIDN2([2.0.0],
 	report_have_libidn2="yes"
 	AC_DEFINE(HAVE_LIBIDN2, 1, [ Define if you have libidn2. ])
-	CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-	CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
-	LIBS="$LIBIDN2_LIBS $LIBS"
+	LIBIDN_CFLAGS="$LIBIDN2_CFLAGS"
+	LIBIDN_LIBS="$LIBIDN2_LIBS"
 	,
 	report_have_libidn2="no"
 	)	
+AC_SUBST(LIBIDN_CFLAGS)
+AC_SUBST(LIBIDN_LIBS)
 
 
 

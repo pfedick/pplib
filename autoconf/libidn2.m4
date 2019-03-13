@@ -6,6 +6,7 @@ AC_ARG_WITH([libidn2],
 	[libidn2_prefix="no"])
 
 am_save_CPPFLAGS="$CPPFLAGS"
+am_save_CFLAGS="$CFLAGS"
 am_save_LIBS="$LIBS"
 am_save_LDFLAGS="$LDFLAGS"
 LIBIDN2_LIBS=""
@@ -17,6 +18,7 @@ have_libidn="no"
 		then
 			LIBS="-L$libidn2_prefix/lib -lidn2 $LIBS"
 			CPPFLAGS="$CPPFLAGS -I$libidn2_prefix/include"
+			CFLAGS="$CFLAGS -I$libidn2_prefix/include"
 			LIBIDN2_LIBS="-L$libidn2_prefix/lib -lidn2"
 			LIBIDN2_CFLAGS="-I$libidn2_prefix/include"
 		else
@@ -73,6 +75,7 @@ have_libidn="no"
       	]
     	)
     ])
+CFLAGS=$am_save_CFLAGS    
 CPPFLAGS=$am_save_CPPFLAGS
 LIBS=$am_save_LIBS
 LDFLAGS=$am_save_LDFLAGS
