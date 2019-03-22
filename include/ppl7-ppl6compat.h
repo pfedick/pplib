@@ -82,6 +82,20 @@ static ppl7::String to7(const ppl6::CString &str)
 	return ppl7::String(str.GetPtr(),str.Size());
 }
 
+static ppl7::DateTime to7(const ppl6::CDateTime &date)
+{
+	ppl7::DateTime d;
+	d.setLongInt(date.longInt());
+	return d;
+}
+
+static ppl7::DateTime to6(const ppl7::DateTime &date)
+{
+	ppl6::CDateTime d;
+	d.setLongInt(date.longInt());
+	return d;
+}
+
 static ppl7::AssocArray to7(const ppl6::CAssocArray &arr)
 {
 	ppl6::CBinary *bin=arr.ExportBinary();
