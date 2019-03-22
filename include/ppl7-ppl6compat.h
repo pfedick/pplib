@@ -89,7 +89,7 @@ static ppl7::DateTime to7(const ppl6::CDateTime &date)
 	return d;
 }
 
-static ppl7::DateTime to6(const ppl7::DateTime &date)
+static ppl6::CDateTime to6(const ppl7::DateTime &date)
 {
 	ppl6::CDateTime d;
 	d.setLongInt(date.longInt());
