@@ -107,13 +107,13 @@ if test $ac_cv_sizeof_int -eq 4; then
 	AC_DEFINE(pplint32,signed int)
 fi
 
-if test $ac_cv_sizeof_long -eq 8; then
-		AC_DEFINE(ppluint64,unsigned long)
-		AC_DEFINE(pplint64,signed long)
-else
-	if test $ac_cv_sizeof_long_long -eq 8; then
+if test $ac_cv_sizeof_long_long -eq 8; then
 		AC_DEFINE(ppluint64,unsigned long long)
 		AC_DEFINE(pplint64,signed long long)
+else
+	if test $ac_cv_sizeof_long -eq 8; then
+		AC_DEFINE(ppluint64,unsigned long)
+		AC_DEFINE(pplint64,signed long)
 	fi
 fi
 

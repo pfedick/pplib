@@ -5804,16 +5804,16 @@ if test $ac_cv_sizeof_int -eq 4; then
 
 fi
 
-if test $ac_cv_sizeof_long -eq 8; then
-		$as_echo "#define ppluint64 unsigned long" >>confdefs.h
-
-		$as_echo "#define pplint64 signed long" >>confdefs.h
-
-else
-	if test $ac_cv_sizeof_long_long -eq 8; then
+if test $ac_cv_sizeof_long_long -eq 8; then
 		$as_echo "#define ppluint64 unsigned long long" >>confdefs.h
 
 		$as_echo "#define pplint64 signed long long" >>confdefs.h
+
+else
+	if test $ac_cv_sizeof_long -eq 8; then
+		$as_echo "#define ppluint64 unsigned long" >>confdefs.h
+
+		$as_echo "#define pplint64 signed long" >>confdefs.h
 
 	fi
 fi
