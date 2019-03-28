@@ -102,12 +102,22 @@ typedef struct {
 	ppl7::Mutex *mutex;
 } MUTEX_STRUCT;
 
+static inline int getErrno()
+{
+#ifdef WIN32
+	return WSAGetLastError();
+#else
+	return errno;
+#endif
+}
+
 #ifdef HAVE_OPENSSL
 static bool SSLisInitialized=false;
 static bool PRNGIsSeed=false;
 //static int  SSLRefCount=0;
 static Mutex	SSLMutex;
 static MUTEX_STRUCT *mutex_buf=NULL;
+
 
 
 // seed PRNG (Pseudo Random Number Generator)
@@ -753,7 +763,7 @@ void SSLContext::setTmpDHParam(const String &dh_param_file)
 #else
 	if ((ff=(FILE*)fopen((const char*)dh_param_file,"r"))==NULL) {
 #endif
-		int e=errno;
+		int e=getErrno();
 		mutex.unlock();
 		throwExceptionFromErrno(e,dh_param_file);
 	}

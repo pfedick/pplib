@@ -136,11 +136,21 @@ namespace ppl7 {
 #define socklen_t	int
 #endif
 
+
+static inline int getErrno()
+{
+#ifdef WIN32
+	return WSAGetLastError();
+#else
+	return errno;
+#endif
+}
+
 void throwExceptionFromEaiError(int ecode, const String &msg)
 {
 #ifndef _WIN32
 	if (ecode == EAI_SYSTEM)
-		throwExceptionFromErrno(errno, msg);
+		throwExceptionFromErrno(getErrno(), msg);
 #endif
 	String m = msg;
 	if (msg.notEmpty())
@@ -763,12 +773,8 @@ void TCPSocket::setTimeoutRead(int seconds, int useconds)
 	tv.tv_sec = seconds;
 	tv.tv_usec = useconds;
 	PPLSOCKET *s = (PPLSOCKET*) socket;
-#ifdef WIN32
 	if (setsockopt(s->sd,SOL_SOCKET,SO_RCVTIMEO,(const char*)&tv,sizeof(tv))!=0) {
-#else
-	if (setsockopt(s->sd, SOL_SOCKET, SO_RCVTIMEO, (void*) &tv, sizeof(tv)) != 0) {
-#endif
-		throwExceptionFromErrno(errno, "setTimeoutRead");
+		throwExceptionFromErrno(getErrno(), "setTimeoutRead");
 	}
 }
 
@@ -800,12 +806,8 @@ void TCPSocket::setTimeoutWrite(int seconds, int useconds)
 	tv.tv_sec = seconds;
 	tv.tv_usec = useconds;
 	PPLSOCKET *s = (PPLSOCKET*) socket;
-#ifdef WIN32
 	if (setsockopt(s->sd,SOL_SOCKET,SO_SNDTIMEO,(const char*)&tv,sizeof(tv))!=0) {
-#else
-	if (setsockopt(s->sd, SOL_SOCKET, SO_SNDTIMEO, (void*) &tv, sizeof(tv)) != 0) {
-#endif
-		throwExceptionFromErrno(errno, "setTimeoutRead");
+		throwExceptionFromErrno(getErrno(), "setTimeoutRead");
 	}
 }
 
@@ -843,6 +845,7 @@ size_t TCPSocket::write(const void *buffer, size_t bytes)
 			}
 #ifdef WIN32
 			if (b==SOCKET_ERROR) {
+				errno=WSAGetLastError();
 #else
 			if (b < 0) {
 #endif
@@ -924,7 +927,7 @@ size_t TCPSocket::read(void *buffer, size_t bytes)
 	} else {
 		BytesRead=::recv(s->sd,(char*)buffer,bytes,0);
 		if (BytesRead<0)
-			throwExceptionFromErrno(errno, "TCPSocket::read");
+			throwExceptionFromErrno(getErrno(), "TCPSocket::read");
 	}
 	return ((size_t)BytesRead);
 }
@@ -1009,7 +1012,7 @@ void TCPSocket::setBlocking(bool value)
 		blocking=value;
 		return;
 	}
-	throwExceptionFromErrno(errno, "TCPSocket::setBlocking");
+	throwExceptionFromErrno(getErrno(), "TCPSocket::setBlocking");
 #else
 	if (value)
 	    ret=fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK)); // Blocking
@@ -1059,7 +1062,7 @@ bool TCPSocket::isWriteable()
 	timeout.tv_usec=0;
 	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
 	if (ret<0) {
-		throwExceptionFromErrno(errno, "TCPSocket::isWriteable");
+		throwExceptionFromErrno(getErrno(), "TCPSocket::isWriteable");
 	}
 	if (FD_ISSET(s->sd,&eset)) {
 		throw OutOfBandDataReceivedException("TCPSocket::isWriteable");
@@ -1107,7 +1110,7 @@ bool TCPSocket::isReadable()
 		ret=recv(s->sd, buf,1, MSG_PEEK|MSG_DONTWAIT);
 		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
-			throwExceptionFromErrno(errno, "TCPSocket::isReadable");
+			throwExceptionFromErrno(getErrno(), "TCPSocket::isReadable");
 		}
 		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
 		if (ret==0) {
@@ -1149,7 +1152,7 @@ bool TCPSocket::waitForIncomingData(int seconds, int useconds)
 	FD_SET(s->sd,&rset); // Wir wollen nur prüfen, ob was zu lesen da ist
 	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
 	if (ret<0) {
-		throwExceptionFromErrno(errno, "TCPSocket::waitForIncomingData");
+		throwExceptionFromErrno(getErrno(), "TCPSocket::waitForIncomingData");
 	}
 	if (FD_ISSET(s->sd,&eset)) {
 		throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
@@ -1160,7 +1163,7 @@ bool TCPSocket::waitForIncomingData(int seconds, int useconds)
 		ret=recv(s->sd, buf,1, MSG_PEEK|MSG_DONTWAIT);
 		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
-			throwExceptionFromErrno(errno, "TCPSocket::isReadable");
+			throwExceptionFromErrno(getErrno(), "TCPSocket::isReadable");
 		}
 		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
 		if (ret==0) {
@@ -1203,7 +1206,7 @@ bool TCPSocket::waitForOutgoingData(int seconds, int useconds)
 	FD_SET(s->sd,&wset); // Wir wollen nur prüfen, ob wir schreiben können
 	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
 	if (ret<0) {
-		throwExceptionFromErrno(errno, "TCPSocket::waitForOutgoingData");
+		throwExceptionFromErrno(getErrno(), "TCPSocket::waitForOutgoingData");
 	}
 	if (FD_ISSET(s->sd,&eset)) {
 		throw OutOfBandDataReceivedException("TCPSocket::waitForIncomingData");
@@ -1484,7 +1487,7 @@ SockAddr TCPSocket::getSockAddr() const
 	struct sockaddr addr;
 	socklen_t len=sizeof(addr);
 	int ret=getsockname(s->sd, &addr, &len);
-	if (ret<0) throwExceptionFromErrno(errno, "UDPSocket::getSockAddr");
+	if (ret<0) throwExceptionFromErrno(getErrno(), "TCPSocket::getSockAddr");
 	return ppl7::SockAddr((const void*)&addr,(size_t)len);
 }
 
@@ -1506,7 +1509,7 @@ SockAddr TCPSocket::getPeerAddr() const
 	struct sockaddr addr;
 	socklen_t len=sizeof(addr);
 	int ret=getpeername(s->sd, &addr, &len);
-	if (ret<0) throwExceptionFromErrno(errno, "UDPSocket::getSockAddr");
+	if (ret<0) throwExceptionFromErrno(getErrno(), "TCPSocket::getSockAddr");
 	return ppl7::SockAddr((const void*)&addr,(size_t)len);
 }
 
