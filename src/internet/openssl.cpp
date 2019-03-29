@@ -765,7 +765,7 @@ void SSLContext::setTmpDHParam(const String &dh_param_file)
 #endif
 		int e=getErrno();
 		mutex.unlock();
-		throwExceptionFromErrno(e,dh_param_file);
+		throwSocketException(e,dh_param_file);
 	}
 	DH *dh=PEM_read_DHparams(ff, NULL, NULL, NULL);
 	if (!dh) {
