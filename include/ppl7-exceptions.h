@@ -227,6 +227,8 @@ PPL7EXCEPTION(CallWasCanceledException, IOException); 				// WSA_E_CANCELLED
 PPL7EXCEPTION(QueryRefusedException, IOException); 					// WSAEREFUSED
 PPL7EXCEPTION(NonauthoritativeHostNotFound, IOException); 			// WSATRY_AGAIN
 PPL7EXCEPTION(UnrecoverableErrorException, IOException);			// WSANO_RECOVERY
+PPL7EXCEPTION(ObjectNotInSignaledStateException, IOException);		// WSA_IO_INCOMPLETE
+PPL7EXCEPTION(OverlappedOperationPendingException, IOException);	// WSA_IO_PENDING
 PPL7EXCEPTION(QoSException, IOException);							// Windows WSA_QOS_*
 
 

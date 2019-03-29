@@ -262,9 +262,9 @@ void throwSocketException(int e,const String &info)
 		case WSA_INVALID_HANDLE: throw InvalidArgumentsException(info);
 		case WSA_NOT_ENOUGH_MEMORY: throw OutOfMemoryException(info);
 		case WSA_INVALID_PARAMETER: throw InvalidArgumentsException(info);
-		case WSA_OPERATION_ABORTED: throw todo(info);
-		case WSA_IO_INCOMPLETE: throw todo(info);
-		case WSA_IO_PENDING: throw todo(info);
+		case WSA_OPERATION_ABORTED: throw OperationAbortedException(info);
+		case WSA_IO_INCOMPLETE: throw ObjectNotInSignaledStateException(info);
+		case WSA_IO_PENDING: throw OverlappedOperationPendingException(info);
 		case WSAEINTR: throw OperationInterruptedException(info);
 		case WSAEBADF: throw BadFiledescriptorException(info);
 		case WSAEACCES: throw PermissionDeniedException(info);
