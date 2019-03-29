@@ -344,7 +344,6 @@ void throwSocketException(int e,const String &info)
 		case WSA_QOS_EFILTERTYPE:
 		case WSA_QOS_EFILTERCOUNT:
 		case WSA_QOS_EOBJLENGTH:
-		case WSA_QOS_EOBJLENGTH:
 		case WSA_QOS_EUNKOWNPSOBJ:
 		case WSA_QOS_EPOLICYOBJ:
 		case WSA_QOS_EFLOWDESC:
