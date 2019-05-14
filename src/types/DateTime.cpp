@@ -994,7 +994,7 @@ String DateTime::strftime(const String &format) const
  */
 ppluint64 DateTime::time_t() const
 {
-	if (yy<1900) return 0;
+	if (yy<1970) return 0;
 	struct tm t;
 	t.tm_sec=ss;
 	t.tm_min=ii;
