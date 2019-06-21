@@ -430,6 +430,7 @@ bool String::isNumeric() const
 			}
 		}
 	}
+	if(ptr[stringlen-1]=='.') return false;
 	return(true);
 }
 
