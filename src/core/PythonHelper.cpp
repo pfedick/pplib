@@ -62,6 +62,8 @@ String PythonHelper::escapeString(const String &s)
 	ret.replace("\\","\\\\");
 	ret.replace("\"","\\\"");
 	ret.replace("\n","\\n");
+	ret.replace("\r","\\r");
+	ret.replace("\t","\\t");
 	return ret;
 }
 
