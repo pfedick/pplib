@@ -12,7 +12,9 @@ echo ""
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
 	    CLANGVERSION=""
-        if [ -x /usr/local/bin/clang40 ]; then
+        if [ -x /usr/local/bin/clang60 ]; then
+            CLANGVERSION=60
+        elif [ -x /usr/local/bin/clang40 ]; then
             CLANGVERSION=40
         elif [ -x /usr/local/bin/clang37 ]; then
             CLANGVERSION=37
