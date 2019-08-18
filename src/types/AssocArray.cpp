@@ -1807,9 +1807,9 @@ size_t AssocArray::importBinary(const void *buffer, size_t buffersize)
 				p+=4;
 #ifdef HAVE_ICONV
 				iconv.transcode(ByteArrayPtr((const char*)ptr+p,vallen),nb);
-				ws.set((const wchar_t *)nb.ptr(),nb.size());
+				ws.set((const wchar_t *)nb.ptr(),nb.size()/sizeof(wchar_t));
 #else
-				ws.set((const wchar_t*)ptr+p,vallen);
+				ws.set((const char*)ptr+p,vallen);
 #endif
 				set(key,ws);
 				p+=vallen;
