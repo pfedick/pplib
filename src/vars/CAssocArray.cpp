@@ -961,8 +961,10 @@ int CAssocArray::ImportBinary(const void *buffer, int buffersize)
 				vallen=PeekN32(ptr+p);
 				p+=4;
 #ifdef HAVE_ICONV
-				iconv.Transcode((const char*)ptr+p,vallen,bin);
-				ws.Set((const wchar_t*)bin.GetPtr(),bin.Size());
+				if (!iconv.Transcode((const char*)ptr+p,vallen,bin)) {
+					return 0;
+				}
+				ws.Set((const wchar_t*)bin.GetPtr(),bin.Size()/sizeof(wchar_t));
 #else
 				ws.Set((const char*)ptr+p,vallen);
 #endif
