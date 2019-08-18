@@ -254,6 +254,34 @@ TEST_F(AssocArrayTest, fromConfig) {
 	ASSERT_EQ(ppl6::CString("value4"),a2.ToCString("Abschnitt_2/key2")) << "unexpected value";
 }
 
+TEST_F(AssocArrayTest, exportImport) {
+	ppl6::CAssocArray a1, a2;
+	ppl6::CString string("this is a cstring");
+	ppl6::CWString widestring(L"this is a widestring - äöü");
+	ppl6::CDateTime datetime("2018-12-03 11:38:01.123456");
+	a1.Set("string",string);
+	a1.Set("widestring",widestring);
+	a1.Set("datetime",datetime);
+
+
+	int requiredsize=0;
+	ASSERT_EQ(1,a1.ExportBinary(NULL,0,&requiredsize));
+	void *buffer=malloc(requiredsize+1);
+	ASSERT_TRUE(buffer!=NULL);
+	int realsize=0;
+	ASSERT_EQ(1,a1.ExportBinary(buffer,requiredsize,&realsize));
+	//ppl6::HexDump(buffer,realsize);
+	a2.ImportBinary(buffer,realsize);
+	free(buffer);
+
+	//a1.List();
+	//a2.List();
+
+	EXPECT_EQ(string,a2.ToCString("string"));
+	EXPECT_EQ(widestring,a2.ToCWString("widestring"));
+	EXPECT_EQ(datetime,a2.GetDateTime("datetime"));
+
+}
 
 }	// EOF namespace
 

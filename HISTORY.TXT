@@ -3,6 +3,18 @@ PPL6 - HISTORY
 
 Version 6.4.22
   - fixed build when sqlite3 is not available
+  - Perl- and Python-Helper escape backslash
+  - PythonHelper produces working python code (fixed output of variables
+    and dictionaries)
+  - consistency over datatype IDs: switched CDateTime and CBool,
+    to make it consistent with class datatype.
+  - fixed CAssocArray export and import:
+    - CWideString is converted to UTF-8 and not system encoding
+    - CDateTime is exported correctly
+    - added unittests
+    - Datatype CArray from ppl7::AssocArray::exportBinary can be
+      imported
+    - Size- and ExportBinary-methods declared as "const" 
   
 Version 6.4.21 vom 29.07.2018	(Repo-Tag: REL_6_4_21)
   - IdentAudioFile unterstützt nun Wave-Dateien
