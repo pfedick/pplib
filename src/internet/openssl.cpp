@@ -1243,6 +1243,7 @@ int CSSL::Init(int method)
 #else
 			ctx=SSL_CTX_new(SSLv23_server_method());
 #endif
+			break;
 		default:
 			SetError(320);
 			Mutex.Unlock();
