@@ -3220,7 +3220,11 @@ class CSSL
 		int			ReleaseSocket(CTCPSocket *socket, void *data);
 	public:
 		enum SSL_METHOD {
-			SSLv2	= 1,
+			TLS,				// uses TLS on openssl version >=1.1.1 and SSLv23 on older versions
+			TLSclient,
+			TLSserver,
+			// The following Methods are obsolete!
+			SSLv2,
 			SSLv2client,
 			SSLv2server,
 			SSLv3,
@@ -3238,12 +3242,9 @@ class CSSL
 			TLSv1_2,
 			TLSv1_2client,
 			TLSv1_2server,
-			TLS,				// Verwendet SSLv23, SSL wird aber disabled, so dass nur TLS unterstuetzt wird
-			TLSclient,
-			TLSserver,
 			DTLSv1,
 			DTLSv1client,
-			DTLSv1server,
+			DTLSv1server
 		};
 
 		CSSL();
