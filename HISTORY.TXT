@@ -15,6 +15,7 @@ Version 6.4.22
     - Datatype CArray from ppl7::AssocArray::exportBinary can be
       imported
     - Size- and ExportBinary-methods declared as "const" 
+  - CID3Tag can read and write popularity meters
   
 Version 6.4.21 vom 29.07.2018	(Repo-Tag: REL_6_4_21)
   - IdentAudioFile unterstützt nun Wave-Dateien
