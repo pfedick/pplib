@@ -47,7 +47,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
 			--with-nasm --with-libiconv-prefix=/mingw --with-libmad=/mingw \
 			--with-lame=/mingw --with-libjpeg=/mingw --with-libpng=/mingw \
-			--with-libmcrypt-prefix=/mingw --with-libmhash=/mingw \
+			--with-libmhash=/mingw \
 			--with-openssl=/mingw --with-libcurl \
 			--with-ogg=/usr/local
 		;;
@@ -66,7 +66,6 @@ case "$SYS:$REL:$KERNEL" in
 			--with-sqlite=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-libjpeg=/usr/local --with-libpng=/usr/local --with-libmhash=/usr/local \
-			--with-libmcrypt-prefix=/usr/local \
 			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local \
 			--without-libmicrohttpd --without-libgnutls-prefix \
