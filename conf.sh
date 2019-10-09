@@ -47,7 +47,7 @@ echo "PREFIX=$PREFIX, $SYS:$REL:$KERNEL"
 echo ""
 
 case "$SYS:$REL:$KERNEL" in
-	FreeBSD:11.*)
+	FreeBSD:1[12].*)
 		CLANGVERSION=
 		export CC=clang$CLANGVERSION
 		export CXX=clang++$CLANGVERSION
@@ -65,7 +65,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libidn=/usr/local \
 			--with-ogg=/usr/local \
 			--with-libmicrohttpd=/usr/local \
-			--enable-gtest=/usr/local/gtest-1.7.0
+			--enable-gtest=/usr/local/googletest-release-1.10.0
 
 		;;
 	MINGW32*:1.0.16*)

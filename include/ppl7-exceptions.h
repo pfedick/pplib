@@ -52,17 +52,17 @@ class Exception : std::exception
 	private:
 		char *ErrorText;
 	public:
-		Exception() throw();
-		Exception(const Exception &other) throw();
-		Exception& operator= (const Exception &other) throw();
-		Exception(const char *msg, ...) throw();
-		virtual ~Exception() throw();
-		virtual const char* what() const throw();
-		const char* text() const throw();
-		String toString() const throw();
+        Exception() noexcept;
+        Exception(const Exception &other) noexcept;
+        Exception& operator= (const Exception &other) noexcept;
+        Exception(const char *msg, ...) noexcept;
+        virtual ~Exception() noexcept;
+        virtual const char* what() const noexcept;
+        const char* text() const noexcept;
+        String toString() const noexcept;
 		void print() const;
-		void copyText(const char *str) throw();
-		void copyText(const char *fmt, va_list args) throw();
+        void copyText(const char *str) noexcept;
+        void copyText(const char *fmt, va_list args) noexcept;
 };
 
 std::ostream& operator<<(std::ostream& s, const Exception &e);
@@ -70,12 +70,12 @@ std::ostream& operator<<(std::ostream& s, const Exception &e);
 
 #define STR_VALUE(arg)      #arg
 #define PPL7EXCEPTION(name,inherit)	class name : public ppl7::inherit { public: \
-	name() throw() {}; \
-	name(const char *msg, ...) throw() {  \
-		va_list args; va_start(args, msg); copyText(msg,args); \
-		va_end(args); } \
-		virtual const char* what() const throw() { return (STR_VALUE(name)); } \
-	};
+    name() noexcept {} \
+    name(const char *msg, ...) noexcept {  \
+        va_list args; va_start(args, msg); copyText(msg,args); \
+        va_end(args); } \
+    virtual const char* what() const noexcept { return (STR_VALUE(name)); } \
+    };
 
 PPL7EXCEPTION(UnknownException, Exception);
 PPL7EXCEPTION(OutOfMemoryException, Exception);

@@ -53,7 +53,9 @@ Version 7.0.1
     Use new method getAssocArray, if you want an AssocArray!
   - use libidn2 instead of libidn if available
   - AssocArray: TypeConversionExceptions in getter-Methods with more
-    details 
+    details
+  - ID3Tag can read and write popularity meters
+  - Updated googletest detection in configure
        
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)

@@ -1939,6 +1939,81 @@ void ID3Tag::removePicture(int type)
 	}
 }
 
+String ID3Tag::getNullPaddedString(ID3Frame *frame, size_t offset) const
+{
+	size_t p=offset;
+	while (p<frame->Size && frame->data[p]!=0) {
+		p++;
+	}
+	String data;
+	if (frame->data[p]==0) {
+		data.set(frame->data,p);
+		return data;
+	}
+	return data;
+}
+
+void ID3Tag::getAllPopularimeters(std::map<String,unsigned char> &data) const
+{
+	data.clear();
+	ID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			String email=getNullPaddedString(frame,0);
+			if (email.notEmpty()) {
+				unsigned char rating=ppl7::Peek8(frame->data+email.size()+2);
+				data.insert(std::pair<String,unsigned char>(email,rating));
+			}
+		}
+		frame=frame->nextFrame;
+	}
+}
+
+unsigned char ID3Tag::getPopularimeter(const String &email) const
+{
+	if (email.isEmpty()) return 0;
+	ID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			String existingemail=getNullPaddedString(frame,0);
+			if (existingemail==email) {
+				return ppl7::Peek8(frame->data+existingemail.size()+2);
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	return 0;
+}
+
+void ID3Tag::setPopularimeter(const String &email, unsigned char rating)
+{
+	if (email.isEmpty()) return;
+	ID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			String existingemail=getNullPaddedString(frame,0);
+			if (existingemail==email) {
+				if (rating==0) {
+					deleteFrame(frame);
+					return;
+				}
+				ppl7::Poke8(frame->data+existingemail.size()+2, rating);
+				return;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	frame=new ID3Frame("POPM");
+	frame->Size=email.size()+6;
+	frame->data=(char*)calloc(frame->Size,1);
+	if (!frame->data) {
+		delete frame;
+		throw ppl7::OutOfMemoryException();
+	}
+	memcpy(frame->data,email.getPtr(),email.size());
+	frame->data[email.size()+2]=rating;
+	addFrame(frame);
+}
 
 
 }	// EOF namespace ppl7

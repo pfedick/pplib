@@ -219,6 +219,7 @@ class ID3Tag
 		void saveAiff();
 		bool trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
 		void copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2);
+		String getNullPaddedString(ID3Frame *frame, size_t offset=0) const;
 
 	public:
 		ID3Tag();
@@ -258,6 +259,7 @@ class ID3Tag
 		void setEnergyLevel(const String &energy);
 		void setTextFrame(const String &framename, const String &text, TextEncoding enc=ENC_UTF16);
 		void setPicture(int type, const ByteArrayPtr &bin, const String &MimeType);
+		void setPopularimeter(const String &email, unsigned char rating);
 
 		void generateId3V2Tag(ByteArray &tag) const;
 		void generateId3V1Tag(ByteArray &tag) const;
@@ -283,6 +285,8 @@ class ID3Tag
 
 		bool getPrivateData(ByteArray &bin, const String &identifier) const;
 		ByteArrayPtr getPrivateData(const String &identifier) const;
+		unsigned char getPopularimeter(const String &email) const;
+		void getAllPopularimeters(std::map<String,unsigned char> &data) const;
 
 };
 
