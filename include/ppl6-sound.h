@@ -48,6 +48,7 @@
 
 #include <stdlib.h>
 #include <list>
+#include <map>
 
 namespace ppl6 {
 
@@ -412,6 +413,7 @@ class CID3Tag
 		int SetTextFrameUtf16(const char *framename, const CString &text);
 		int SetTextFrameISO88591(const char *framename, const CString &text);
 		int SetTextFrameUtf8(const char *framename, const CString &text);
+		CString getNullPaddedString(CID3Frame *frame, size_t offset=0) const;
 
 		AudioFormat identAudioFormat(CFileObject &File);
 		ppluint32 findId3Tag(CFileObject &File);
@@ -482,6 +484,12 @@ class CID3Tag
 		int GetPicture(int type, CBinary &bin) const;
 		int SetPicture(int type, const CBinary &bin, const CString &MimeType);
 		void RemovePicture(int type);
+
+		unsigned char GetPopularimeter(const CString &email) const;
+		bool HasPopularimeter(const CString &email) const;
+		void SetPopularimeter(const CString &email, unsigned char rating);
+		void GetAllPopularimeters(std::map<CString,unsigned char> &data) const;
+
 		~CID3Tag();
 };
 

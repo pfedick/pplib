@@ -107,13 +107,13 @@ if test $ac_cv_sizeof_int -eq 4; then
 	AC_DEFINE(pplint32,signed int)
 fi
 
-if test $ac_cv_sizeof_long -eq 8; then
-		AC_DEFINE(ppluint64,unsigned long)
-		AC_DEFINE(pplint64,signed long)
-else
-	if test $ac_cv_sizeof_long_long -eq 8; then
+if test $ac_cv_sizeof_long_long -eq 8; then
 		AC_DEFINE(ppluint64,unsigned long long)
 		AC_DEFINE(pplint64,signed long long)
+else
+	if test $ac_cv_sizeof_long -eq 8; then
+		AC_DEFINE(ppluint64,unsigned long)
+		AC_DEFINE(pplint64,signed long)
 	fi
 fi
 
@@ -480,7 +480,9 @@ AX_CHECK_OPENSSL(
 	
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
-	
+
+	AC_CHECK_FUNCS([TLS_method TLS_client_method TLS_server_method])
+	AC_CHECK_FUNCS([SSLv23_method SSLv23_client_method SSLv23_server_method])
 	AC_CHECK_FUNCS([TLSv1_method TLSv1_server_method TLSv1_client_method])
 	AC_CHECK_FUNCS([TLSv1_1_method TLSv1_1_server_method TLSv1_1_client_method])
 	AC_CHECK_FUNCS([TLSv1_2_method TLSv1_2_server_method TLSv1_2_client_method])

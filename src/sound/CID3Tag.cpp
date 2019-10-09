@@ -1974,4 +1974,99 @@ int CID3Tag::Decode(CID3Frame *frame, int offset, int encoding, CString &target)
 	return offset+size+1;
 }
 
+CString CID3Tag::getNullPaddedString(CID3Frame *frame, size_t offset) const
+{
+	size_t p=offset;
+	while (p<frame->Size && frame->data[p]!=0) {
+		p++;
+	}
+	CString data;
+	if (frame->data[p]==0) {
+		data.Set(frame->data,p);
+		return data;
+	}
+	return data;
+}
+
+void CID3Tag::GetAllPopularimeters(std::map<CString,unsigned char> &data) const
+{
+	data.clear();
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			//ppl6::HexDump(frame->data,frame->Size);
+			CString email=getNullPaddedString(frame,0);
+			if (email.NotEmpty()) {
+				unsigned char rating=ppl6::Peek8(frame->data+email.Size()+1);
+				data.insert(std::pair<CString,unsigned char>(email,rating));
+			}
+		}
+		frame=frame->nextFrame;
+	}
+}
+
+bool CID3Tag::HasPopularimeter(const CString &email) const
+{
+	if (email.IsEmpty()) return false;
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			CString existingemail=getNullPaddedString(frame,0);
+			if (existingemail==email) {
+				return true;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	return false;
+}
+
+unsigned char CID3Tag::GetPopularimeter(const CString &email) const
+{
+	if (email.IsEmpty()) return 0;
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			CString existingemail=getNullPaddedString(frame,0);
+			if (existingemail==email) {
+				return ppl6::Peek8(frame->data+existingemail.Size()+1);
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	return 0;
+}
+
+void CID3Tag::SetPopularimeter(const CString &email, unsigned char rating)
+{
+	if (email.IsEmpty()) return;
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			CString existingemail=getNullPaddedString(frame,0);
+			if (existingemail==email) {
+				if (rating==0) {
+					DeleteFrame(frame);
+					return;
+				}
+				ppl6::Poke8(frame->data+existingemail.Size()+1, rating);
+				return;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	frame=new CID3Frame("POPM");
+	frame->Size=email.Size()+6;
+	frame->data=(char*)calloc(frame->Size,1);
+	if (!frame->data) {
+		delete frame;
+		throw ppl6::OutOfMemoryException();
+	}
+	memcpy(frame->data,email.GetPtr(),email.Size());
+	frame->data[email.Size()+1]=rating;
+	AddFrame(frame);
+}
+
+
+
 }	// EOF namespace ppl6

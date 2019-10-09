@@ -289,7 +289,7 @@ DH *tmp_dh_callback(SSL *s, int is_export, int keylength)
 
 bool ServerThread::setupSSL()
 {
-	if (!SSLServerContext.Init(ppl6::CSSL::TLSv1_2server)) return false;
+	if (!SSLServerContext.Init(ppl6::CSSL::TLSserver)) return false;
 	if (!SSLServerContext.LoadCertificate("testdata/ssl/ppl6.cert",
 			"testdata/ssl/ppl6.key","bGl7R_3JkaRT=1+A")) return false;
 	SSL_CTX *ctx=(SSL_CTX*)SSLServerContext.GetSSLContext();
@@ -433,7 +433,7 @@ TEST_F(ClientServerTest, ConnectPingStartTLSPingDisconnect) {
 	server->resetTestFlags();
 	ppl6::CSSL SSLContext;
 	ppl6::CTCPSocket Socket;
-	ASSERT_TRUE(SSLContext.Init(ppl6::CSSL::TLSv1_2));
+	ASSERT_TRUE(SSLContext.Init(ppl6::CSSL::TLSclient));
 
 	ASSERT_TRUE(Socket.SSL_Init(&SSLContext));
 

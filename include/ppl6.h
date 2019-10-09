@@ -179,7 +179,8 @@ class datatype {
 			POINTER		=7, /*!< void-pointer */
 			CWSTRING	=8, /*!< CWString-Klasse */
 			CARRAY		=9,	/*!< CArray-Klasse */
-			DATETIME	=10	/*!< CDateTime-Klasse */
+			DATETIME	=10,/*!< CDateTime-Klasse */
+			BOOLEAN		=11 /*!< Boolean */
 		};
 };
 
@@ -431,8 +432,8 @@ class CVar
 			CBINARY		=6,
 			CWSTRING	=8,
 			CARRAY		=9,
-			CBOOL		=10,
-			CDATETIME	=11,
+			CDATETIME	=10,
+			CBOOL		=11,
 		};
 	protected:
 		ppluint8		type;
@@ -543,6 +544,7 @@ class CString : public CVar
 	public:
 		CString();
 		CString(const char *str);
+		CString(const char *str, size_t size);
 		CString(const wchar_t *str);
 		CString(CString *str);
 		CString(const CString &str);
@@ -2729,12 +2731,12 @@ class CAssocArray : public CVar
 
 		//!\name Import und Export von Daten
 		//@{
-		int		Size();
+		int		Size() const;
 		int		CreateFromTemplate(const char *templ, const char *linedelimiter="\n", const char *splitchar="=", const char *concat="\n", bool dotrim=false);
 		int		CreateFromConfig(const char *content, const char *splitchar=":", const char *concat="\n", bool dotrim=false);
 		void	ToTemplate(CString &s, const char *prefix=NULL, const char *linedelimiter="\n", const char *splitchar="=");
-		int		ExportBinary(void *buffer, int buffersize, int *realsize);
-		CBinary *ExportBinary();
+		int		ExportBinary(void *buffer, int buffersize, int *realsize) const;
+		CBinary *ExportBinary() const;
 		int		ImportBinary(const void *buffer, int buffersize);
 		int		ImportBinary(const CBinary &bin);
 
@@ -3220,7 +3222,11 @@ class CSSL
 		int			ReleaseSocket(CTCPSocket *socket, void *data);
 	public:
 		enum SSL_METHOD {
-			SSLv2	= 1,
+			TLS,				// uses TLS on openssl version >=1.1.1 and SSLv23 on older versions
+			TLSclient,
+			TLSserver,
+			// The following Methods are obsolete!
+			SSLv2,
 			SSLv2client,
 			SSLv2server,
 			SSLv3,
@@ -3238,12 +3244,9 @@ class CSSL
 			TLSv1_2,
 			TLSv1_2client,
 			TLSv1_2server,
-			TLS,				// Verwendet SSLv23, SSL wird aber disabled, so dass nur TLS unterstuetzt wird
-			TLSclient,
-			TLSserver,
 			DTLSv1,
 			DTLSv1client,
-			DTLSv1server,
+			DTLSv1server
 		};
 
 		CSSL();
