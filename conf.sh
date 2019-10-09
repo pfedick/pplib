@@ -84,16 +84,16 @@ case "$SYS:$REL:$KERNEL" in
 		export SQLITE_CFLAGS="-I/usr/local/include"
 		export SQLITE_LIBS="-L/usr/local/lib -lsqlite3"
 		./configure --prefix=$PREFIX \
-			--with-pcre==$PREFIX --with-bzip2==$PREFIX --with-zlib==$PREFIX \
-			--with-nasm --with-libiconv-prefix==$PREFIX \
+			--with-pcre --with-bzip2 --with-zlib \
+			--with-nasm --with-libiconv-prefix \
 			--without-mysql \
-			--with-lame=$PREFIX --with-mpg123 --with-libmad --disable-freetypetest --with-ft-prefix=$PREFIX \
-			--with-libjpeg=$PREFIX --with-libpng=$PREFIX --with-libmhash=$PREFIX \
+			--with-lame --with-mpg123 --with-libmad \
+			--with-libjpeg --with-libpng --with-libmhash=$PREFIX \
 			--with-libmcrypt-prefix=$PREFIX \
-			--with-openssl=$PREFIX --with-libcurl=$PREFIX \
+			--with-libcurl \
 			--without-libmicrohttpd --without-libgnutls-prefix \
 			--disable-sdltest --without-sdl-prefix --without-sdl-exec-prefix \
-			--with-libldns=$PREFIX \
+			--with-libldns \
 			--enable-gtest=/usr/local/gtest-1.7.0		
 		;;
 		
