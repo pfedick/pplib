@@ -486,6 +486,7 @@ class CID3Tag
 		void RemovePicture(int type);
 
 		unsigned char GetPopularimeter(const CString &email) const;
+		bool HasPopularimeter(const CString &email) const;
 		void SetPopularimeter(const CString &email, unsigned char rating);
 		void GetAllPopularimeters(std::map<CString,unsigned char> &data) const;
 

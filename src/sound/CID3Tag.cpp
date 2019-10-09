@@ -1994,14 +1994,31 @@ void CID3Tag::GetAllPopularimeters(std::map<CString,unsigned char> &data) const
 	CID3Frame *frame=firstFrame;
 	while (frame) {
 		if(strcmp(frame->ID,"POPM")==0) {
+			//ppl6::HexDump(frame->data,frame->Size);
 			CString email=getNullPaddedString(frame,0);
 			if (email.NotEmpty()) {
-				unsigned char rating=ppl6::Peek8(frame->data+email.Size()+2);
+				unsigned char rating=ppl6::Peek8(frame->data+email.Size()+1);
 				data.insert(std::pair<CString,unsigned char>(email,rating));
 			}
 		}
 		frame=frame->nextFrame;
 	}
+}
+
+bool CID3Tag::HasPopularimeter(const CString &email) const
+{
+	if (email.IsEmpty()) return false;
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			CString existingemail=getNullPaddedString(frame,0);
+			if (existingemail==email) {
+				return true;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	return false;
 }
 
 unsigned char CID3Tag::GetPopularimeter(const CString &email) const
@@ -2012,7 +2029,7 @@ unsigned char CID3Tag::GetPopularimeter(const CString &email) const
 		if(strcmp(frame->ID,"POPM")==0) {
 			CString existingemail=getNullPaddedString(frame,0);
 			if (existingemail==email) {
-				return ppl6::Peek8(frame->data+existingemail.Size()+2);
+				return ppl6::Peek8(frame->data+existingemail.Size()+1);
 			}
 		}
 		frame=frame->nextFrame;
@@ -2032,7 +2049,7 @@ void CID3Tag::SetPopularimeter(const CString &email, unsigned char rating)
 					DeleteFrame(frame);
 					return;
 				}
-				ppl6::Poke8(frame->data+existingemail.Size()+2, rating);
+				ppl6::Poke8(frame->data+existingemail.Size()+1, rating);
 				return;
 			}
 		}
@@ -2046,7 +2063,7 @@ void CID3Tag::SetPopularimeter(const CString &email, unsigned char rating)
 		throw ppl6::OutOfMemoryException();
 	}
 	memcpy(frame->data,email.GetPtr(),email.Size());
-	frame->data[email.Size()+2]=rating;
+	frame->data[email.Size()+1]=rating;
 	AddFrame(frame);
 }
 
