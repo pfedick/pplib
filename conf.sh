@@ -12,7 +12,13 @@ echo ""
 case "$SYS:$REL:$KERNEL" in
 	FreeBSD:*)
 	    CLANGVERSION=""
-        if [ -x /usr/local/bin/clang60 ]; then
+        if [ -x /usr/local/bin/clang90 ]; then
+            CLANGVERSION=90
+        elif [ -x /usr/local/bin/clang80 ]; then
+            CLANGVERSION=80
+        elif [ -x /usr/local/bin/clang70 ]; then
+            CLANGVERSION=70
+        elif [ -x /usr/local/bin/clang60 ]; then
             CLANGVERSION=60
         elif [ -x /usr/local/bin/clang40 ]; then
             CLANGVERSION=40
@@ -37,7 +43,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libgnutls-prefix \
 			--with-postgresql=/usr/local \
 			--with-ogg=/usr/local --with-libmicrohttpd=/usr/local \
-			--enable-gtest=/usr/local/gtest-1.7.0
+			--enable-gtest=/usr/local/googletest-release-1.10.0/googletest
 		;;
 	MINGW32*:1.0.12*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
