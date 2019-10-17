@@ -1961,12 +1961,28 @@ void ID3Tag::getAllPopularimeters(std::map<String,unsigned char> &data) const
 		if(strcmp(frame->ID,"POPM")==0) {
 			String email=getNullPaddedString(frame,0);
 			if (email.notEmpty()) {
-				unsigned char rating=ppl7::Peek8(frame->data+email.size()+2);
+				unsigned char rating=ppl7::Peek8(frame->data+email.size()+1);
 				data.insert(std::pair<String,unsigned char>(email,rating));
 			}
 		}
 		frame=frame->nextFrame;
 	}
+}
+
+bool ID3Tag::hasPopularimeter(const String &email) const
+{
+	if (email.isEmpty()) return false;
+	ID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			String existingemail=getNullPaddedString(frame,0);
+			if (existingemail==email) {
+				return true;
+			}
+		}
+		frame=frame->nextFrame;
+	}
+	return false;
 }
 
 unsigned char ID3Tag::getPopularimeter(const String &email) const
@@ -1977,7 +1993,7 @@ unsigned char ID3Tag::getPopularimeter(const String &email) const
 		if(strcmp(frame->ID,"POPM")==0) {
 			String existingemail=getNullPaddedString(frame,0);
 			if (existingemail==email) {
-				return ppl7::Peek8(frame->data+existingemail.size()+2);
+				return ppl7::Peek8(frame->data+existingemail.size()+1);
 			}
 		}
 		frame=frame->nextFrame;
@@ -1997,7 +2013,7 @@ void ID3Tag::setPopularimeter(const String &email, unsigned char rating)
 					deleteFrame(frame);
 					return;
 				}
-				ppl7::Poke8(frame->data+existingemail.size()+2, rating);
+				ppl7::Poke8(frame->data+existingemail.size()+1, rating);
 				return;
 			}
 		}
@@ -2011,9 +2027,33 @@ void ID3Tag::setPopularimeter(const String &email, unsigned char rating)
 		throw ppl7::OutOfMemoryException();
 	}
 	memcpy(frame->data,email.getPtr(),email.size());
-	frame->data[email.size()+2]=rating;
+	frame->data[email.size()+1]=rating;
 	addFrame(frame);
 }
 
+void ID3Tag::removePopularimeter()
+{
+	ID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			deleteFrame(frame);
+			frame=firstFrame;
+		} else {
+			frame=frame->nextFrame;
+		}
+	}
+}
+
+bool ID3Tag::hasPopularimeter() const
+{
+	ID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			return true;
+		}
+		frame=frame->nextFrame;
+	}
+	return false;
+}
 
 }	// EOF namespace ppl7

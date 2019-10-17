@@ -285,9 +285,13 @@ class ID3Tag
 
 		bool getPrivateData(ByteArray &bin, const String &identifier) const;
 		ByteArrayPtr getPrivateData(const String &identifier) const;
-		unsigned char getPopularimeter(const String &email) const;
-		void getAllPopularimeters(std::map<String,unsigned char> &data) const;
 
+		unsigned char getPopularimeter(const String &email) const;
+		unsigned char GetPopularimeter() const;
+		bool hasPopularimeter(const String &email) const;
+		void getAllPopularimeters(std::map<String,unsigned char> &data) const;
+		void removePopularimeter();
+		bool hasPopularimeter() const;
 };
 
 class Icecast
