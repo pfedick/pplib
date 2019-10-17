@@ -56,7 +56,10 @@ Version 7.0.1
     details
   - ID3Tag can read and write popularity meters
   - Updated googletest detection in configure
-       
+  - introduced preprocessor define "PPL_QT_STRING_UTF8". If set before
+    including ppl7.h or ppl7-types.h, string conversions between ppl7::String
+    and Qt's QString will be based on Utf8 and not local 8 bit encoding 
+        
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
   - Complete Rewrite, based on Version 6.4.7

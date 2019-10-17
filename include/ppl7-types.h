@@ -296,12 +296,20 @@ class String
 #ifdef WITH_QT
 		String(const QString &q) {
 			ptr=NULL; stringlen=0; s=0;
+#ifdef PPL_QT_STRING_UTF8
+			QByteArray a=q.toUtf8();
+#else
 			QByteArray a=q.toLocal8Bit();
+#endif
 			set((const char*)a);
 		}
 		String(QString *q) {
 			ptr=NULL; stringlen=0; s=0;
+#ifdef PPL_QT_STRING_UTF8
+			QByteArray a=q->toUtf8();
+#else
 			QByteArray a=q->toLocal8Bit();
+#endif
 			set((const char*)a);
 		}
 #endif
@@ -509,21 +517,37 @@ class String
 		//! @name Operatoren zur Verwendung der Klasse mit Qt
 		//@{
 		operator const QString() const {
+#ifdef PPL_QT_STRING_UTF8
+			return QString::fromUtf8 (ptr,stringlen);
+#else
 			return QString::fromLocal8Bit (ptr,stringlen);
+#endif
 		}
 
 		operator const QVariant() const {
+#ifdef PPL_QT_STRING_UTF8
+			QVariant v=QString::fromUtf8 (ptr,stringlen);
+#else
 			QVariant v=QString::fromLocal8Bit (ptr,stringlen);
+#endif
 			return v;
 		}
 
 		String& operator=(const QString& q) {
+#ifdef PPL_QT_STRING_UTF8
+			QByteArray a=q.toUtf8();
+#else
 			QByteArray a=q.toLocal8Bit();
+#endif
 			set((const char*)a);
 			return *this;
 		}
 		String& operator=(const QString *q) {
+#ifdef PPL_QT_STRING_UTF8
+			QByteArray a=q->toUtf8();
+#else
 			QByteArray a=q->toLocal8Bit();
+#endif
 			set((const char*)a);
 			return *this;
 		}
@@ -591,12 +615,20 @@ class WideString
 #ifdef WITH_QT
 		WideString(const QString &q) {
 			ptr=NULL; stringlen=0; s=0;
+#ifdef PPL_QT_STRING_UTF8
 			QByteArray a=q.toUtf8();
+#else
+			QByteArray a=q.toLocal8Bit();
+#endif
 			set((const char*)a);
 		}
 		WideString(QString *q) {
 			ptr=NULL; stringlen=0; s=0;
+#ifdef PPL_QT_STRING_UTF8
 			QByteArray a=q->toUtf8();
+#else
+			QByteArray a=q->toLocal8Bit();
+#endif
 			set((const char*)a);
 		}
 #endif
@@ -798,12 +830,20 @@ class WideString
 		}
 
 		WideString& operator=(const QString& q) {
+#ifdef PPL_QT_STRING_UTF8
 			QByteArray a=q.toUtf8();
+#else
+			QByteArray a=q.toLocal8Bit();
+#endif
 			set((const char*)a);
 			return *this;
 		}
 		WideString& operator=(const QString *q) {
+#ifdef PPL_QT_STRING_UTF8
 			QByteArray a=q->toUtf8();
+#else
+			QByteArray a=q->toLocal8Bit();
+#endif
 			set((const char*)a);
 			return *this;
 		}
