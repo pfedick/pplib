@@ -58,7 +58,9 @@ Version 7.0.1
   - Updated googletest detection in configure
   - introduced preprocessor define "PPL_QT_STRING_UTF8". If set before
     including ppl7.h or ppl7-types.h, string conversions between ppl7::String
-    and Qt's QString will be based on Utf8 and not local 8 bit encoding 
+    and Qt's QString will be based on Utf8 and not local 8 bit encoding
+  - String class: added constructor with ByteArrayPtr as input
+  - Crypto: introduced Encrypt and Decrypt class based on OpenSSL
         
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
