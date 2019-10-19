@@ -209,6 +209,14 @@ String::String(const String &str)
 	set(str);
 }
 
+String::String(const ByteArrayPtr &str)
+{
+    ptr=empty_string;
+    stringlen=0;
+    s=0;
+    set(str);
+}
+
 /*!\brief Konstruktor aus Standard-Template String
  *
  * \desc
@@ -674,6 +682,15 @@ String & String::set(const String &str, size_t size)
 	else inbytes=str.stringlen;
 	if (inbytes>str.stringlen) inbytes=str.stringlen;
 	return set(str.ptr,inbytes);
+}
+
+String & String::set(const ByteArrayPtr &str, size_t size)
+{
+    size_t inbytes;
+    if (size!=(size_t)-1) inbytes=size;
+    else inbytes=str.size();
+    if (inbytes>str.size()) inbytes=str.size();
+    return set((const char*)str.adr(),inbytes);
 }
 
 String & String::set(const WideString *str, size_t size)

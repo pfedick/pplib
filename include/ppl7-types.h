@@ -290,6 +290,7 @@ class String
 		String(const String &str);
 		String(const WideString *str);
 		String(const WideString &str);
+        String(const ByteArrayPtr &str);
 		String(const std::string &str);
 		String(const std::wstring &str);
 		~String() throw();
@@ -359,6 +360,7 @@ class String
 		String & set(const char *str, size_t size=(size_t)-1);
 		String & set(const String *str, size_t size=(size_t)-1);
 		String & set(const String &str, size_t size=(size_t)-1);
+        String & set(const ByteArrayPtr &str, size_t size=(size_t)-1);
 		String & set(const WideString *str, size_t size=(size_t)-1);
 		String & set(const WideString &str, size_t size=(size_t)-1);
 		String & set(const std::string &str, size_t size=(size_t)-1);
