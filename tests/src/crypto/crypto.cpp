@@ -186,8 +186,8 @@ TEST_F(CryptoTest, EncryptDecrypt_TRIPLE_DES_CBC) {
 
     ppl7::ByteArray decrypteddata;
     decrypt.decrypt(crypteddata, decrypteddata);
-    crypteddata.hexDump();
-    decrypteddata.hexDump();
+    //crypteddata.hexDump();
+    //decrypteddata.hexDump();
     ASSERT_EQ(29,decrypteddata.size());
     ASSERT_EQ(clearData, ppl7::String(decrypteddata));
 }
