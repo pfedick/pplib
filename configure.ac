@@ -69,7 +69,6 @@ sinclude(autoconf/jpeg.m4)
 sinclude(autoconf/libjpeg-turbo.m4)
 sinclude(autoconf/ax_pthread.m4)
 sinclude(autoconf/sdl2.m4)
-sinclude(autoconf/freetds.m4)
 sinclude(autoconf/nasm.m4)
 sinclude(autoconf/lib-link.m4)
 sinclude(autoconf/iconv.m4)
@@ -628,14 +627,6 @@ if test "$success" = "yes"; then
 fi
            
 
-report_have_freetds="no"
-dnl AC_CHECK_FREETDS([],
-dnl             AC_DEFINE(HAVE_FREETDS, 1, [ Define if you have FreeTDS library. ])
-dnl             report_have_freetds="yes"
-dnl 			AC_SUBST(FREETDS_CFLAGS)
-dnl 			AC_SUBST(FREETDS_LIBS),
-dnl             :)
-
 
 AC_SUBST(MYSQL_CFLAGS)
 AC_SUBST(MYSQL_LDFLAGS)
@@ -648,9 +639,6 @@ AC_SUBST(SQLITE3_VERSION)
 AC_SUBST(POSTGRESQL_CFLAGS)
 AC_SUBST(POSTGRESQL_LDFLAGS)
 AC_SUBST(POSTGRESQL_VERSION)
-
-AC_SUBST(FREETDS_CFLAGS)
-AC_SUBST(FREETDS_LIBS)
 
 
 AX_PATH_LIB_LDNS([1.6.3],
@@ -769,7 +757,6 @@ AC_SUBST(report_have_pcre)
 AC_SUBST(report_have_iconv)
 AC_SUBST(report_have_mysql)
 AC_SUBST(report_have_postgres)
-AC_SUBST(report_have_freetds)
 AC_SUBST(report_have_sqlite3)
 AC_SUBST(report_have_nasm)
 AC_SUBST(report_have_pthreads)

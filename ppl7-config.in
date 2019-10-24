@@ -247,8 +247,6 @@ if test "$listfeatures" = "yes"; then
 	check_feature "iconv" "@report_have_iconv@" "$features_wanted"
 	check_feature "mysql" "@report_have_mysql@" "$features_wanted"
 	check_feature "postgres" "@report_have_postgres@" "$features_wanted"
-	check_feature "freetds" "@report_have_freetds@" "$features_wanted"
-	check_feature "sybase" "@report_have_freetds@" "$features_wanted"
 	check_feature "sqlite3" "@report_have_sqlite3@" "$features_wanted"
 	check_feature "nasm" "@report_have_nasm@" "$features_wanted"
 	check_feature "pthreads" "@report_have_pthreads@" "$features_wanted"
