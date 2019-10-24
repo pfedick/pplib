@@ -108,14 +108,14 @@ find_c_files() {
 release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O2 -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
+	\$(CXX) -Wall \$(CXXFLAGS) -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
 "
 
 		COMPILE_COVERAGE="$COMPILE_COVERAGE
 coverage/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -o coverage/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) @GCOV_CFLAGS@ $3
+	\$(CXX) -Wall \$(CXXFLAGS) -o coverage/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) @GCOV_CFLAGS@ $3
 "
 
 
@@ -123,7 +123,7 @@ coverage/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-ex
 debug/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
 	###############################################################################
 	# $NOTE
-	\$(CXX) -Wall -O -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3
+	\$(CXX) -Wall \$(CXXFLAGS) -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3
 "
 
 	done
@@ -315,8 +315,8 @@ CFLAGS		=  -I\${incdir} $DEFINES @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ \
 	@LIBMCRYPT_CFLAGS@ @FT2_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@
 	
 	
-###	@X_CFLAGS@   @SYBASE_CFLAGS@   @MAD_CFLAGS@ 
 CPPFLAGS	= @CPPFLAGS@
+CXXFLAGS	= @CXXFLAGS@
 LDFLAGS		= @LDFLAGS@
 LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @IMLIB_LIBS@ \
 	@FT2_LIBS@ @ICONV_LIBS@ @MYSQL_LDFLAGS@ @POSTGRESQL_LDFLAGS@ @SQLITE3_LDFLAGS@ \
@@ -324,7 +324,6 @@ LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ 
 	@SDL2_LIBS@ @LIBCURL@ @LIBCDIO_LDFLAGS@ \
 	@LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@
 	
-###  @SYBASE_LIBS@  @MAD_LIBS@
 LIBNAME		= $LIBNAME
 LIBDEBUG	= $LIBNAME-debug
 DISTNAME	= ${DISTNAME}
