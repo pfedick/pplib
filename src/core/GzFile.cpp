@@ -285,13 +285,13 @@ void GzFile::rewind ()
 	throw FileNotOpenException();
 }
 
-void GzFile::seek(ppluint64 position)
+void GzFile::seek(uint64_t position)
 {
 	seek(position,SEEKSET);
 }
 
 
-ppluint64 GzFile::seek (pplint64 offset, SeekOrigin origin )
+uint64_t GzFile::seek (int64_t offset, SeekOrigin origin )
 {
 	if (ff==NULL) throw FileNotOpenException();
 	int o=0;
@@ -315,10 +315,10 @@ ppluint64 GzFile::seek (pplint64 offset, SeekOrigin origin )
 	return 0;
 }
 
-ppluint64 GzFile::tell()
+uint64_t GzFile::tell()
 {
 	if (ff!=NULL) {
-		return (ppluint64) gztell((gzFile)ff);
+		return (uint64_t) gztell((gzFile)ff);
 	}
 	throw FileNotOpenException();
 }
@@ -416,7 +416,7 @@ void File::sync()
 #endif
 }
 
-void File::truncate(ppluint64 length)
+void File::truncate(uint64_t length)
 {
 	if (ff==NULL) throw FileNotOpenException();
 #ifdef HAVE_FTRUNCATE

@@ -202,10 +202,10 @@ void InitSockets();
 String GetHostname();
 size_t GetHostByName(const String &name, std::list<IPAddress> &result,ResolverFlags flags=af_unspec);
 size_t GetHostByAddr(const IPAddress &addr, String &hostname);
-ppluint32 Ntohl(ppluint32 net);
-ppluint32 Htonl(ppluint32 host);
-ppluint16 Ntohs(ppluint16 net);
-ppluint16 Htons(ppluint16 host);
+uint32_t Ntohl(uint32_t net);
+uint32_t Htonl(uint32_t host);
+uint16_t Ntohs(uint16_t net);
+uint16_t Htons(uint16_t host);
 bool IsBigEndian();
 bool IsLittleEndian();
 

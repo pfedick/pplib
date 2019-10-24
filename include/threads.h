@@ -53,7 +53,7 @@ namespace ppl7 {
 
 
 typedef struct tagThreadData {
-	ppluint64	threadId;
+	uint64_t	threadId;
 #ifdef _WIN32
 	HANDLE	thread;
 	DWORD	dwThreadID;

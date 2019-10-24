@@ -78,8 +78,8 @@ PPL7EXCEPTION(DecoderInitializationException,DecoderException);
 
 //!\brief Struktur zum Speichern eines MP3-Headers
 typedef struct tagMPEGHeader{
-	ppluint64 start,end;		// Beginn und Ende der Daten
-	ppluint64 size,filesize;
+	uint64_t start,end;		// Beginn und Ende der Daten
+	uint64_t size,filesize;
 	int version;
     int layer;
     int error_protection;
@@ -97,9 +97,9 @@ typedef struct tagMPEGHeader{
     int stereo;
 	int	framesize;
 	int frames;
-	ppluint64 mslength;			// Laenge in ms
-	ppluint64 length;			// Laenge in s
-	ppluint64 samples;
+	uint64_t mslength;			// Laenge in ms
+	uint64_t length;			// Laenge in s
+	uint64_t samples;
 	bool vbr;
 } PPL_MPEG_HEADER;
 
@@ -130,18 +130,18 @@ class AudioInfo
 		AudioFormat	Format;
 		bool		HaveID3v2Tag;
 		bool		IsVBR;
-		ppluint32 	ID3v2TagStart;
-		ppluint32	FileSize;
-		ppluint32	AudioStart;
-		ppluint32	AudioEnd;
-		ppluint32	AudioSize;
-		ppluint32	Samples;
-		ppluint32	Length;		// Length in ms
-		ppluint32	Frequency;
-		ppluint16	Bitrate;
-		ppluint8	BitsPerSample;
-		ppluint8	BytesPerSample;
-		ppluint8	Channels;
+		uint32_t 	ID3v2TagStart;
+		uint32_t	FileSize;
+		uint32_t	AudioStart;
+		uint32_t	AudioEnd;
+		uint32_t	AudioSize;
+		uint32_t	Samples;
+		uint32_t	Length;		// Length in ms
+		uint32_t	Frequency;
+		uint16_t	Bitrate;
+		uint8_t	BitsPerSample;
+		uint8_t	BytesPerSample;
+		uint8_t	Channels;
 		ChannelMode	Mode;
 };
 
@@ -208,13 +208,13 @@ class ID3Tag
 		size_t	numFrames;
 		int		Size;
 		AudioFormat	myAudioFormat;
-		ppluint32	PaddingSize, PaddingSpace, MaxPaddingSpace;
+		uint32_t	PaddingSize, PaddingSpace, MaxPaddingSpace;
 		ID3Frame	*firstFrame, *lastFrame;
 		void setTextFrameUtf16(const String &framename, const String &text);
 		void setTextFrameISO88591(const String &framename, const String &text);
 		void setTextFrameUtf8(const String &framename, const String &text);
 		AudioFormat identAudioFormat(FileObject &File);
-		ppluint64 findId3Tag(FileObject &File);
+		uint64_t findId3Tag(FileObject &File);
 		void saveMP3();
 		void saveAiff();
 		bool trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
@@ -364,7 +364,7 @@ class AudioCD
 		class Toc
 		{
 			public:
-				ppluint8 min,sec,frames;
+				uint8_t min,sec,frames;
 		};
 
 		class Track
@@ -475,18 +475,18 @@ class CDDB
 
 //!\brief Struktur zum Speichern eines WAVE-Headers
 typedef struct tagWAVEHeader {
-	ppluint32	datastart;
-	ppluint32	numSamples;
-	ppluint32	bytes;
-	ppluint32	frequency;
-	ppluint32	bytespersample;
-	ppluint32	bytespersecond;
-	ppluint32	seconds;
-	ppluint8	channels;
-	ppluint8	bitdepth;
+	uint32_t	datastart;
+	uint32_t	numSamples;
+	uint32_t	bytes;
+	uint32_t	frequency;
+	uint32_t	bytespersample;
+	uint32_t	bytespersecond;
+	uint32_t	seconds;
+	uint8_t	channels;
+	uint8_t	bitdepth;
 } WAVEHEADER;
 
-typedef pplint16 SAMPLE16;
+typedef int16_t SAMPLE16;
 
 //!\brief Struktur zum Speichern eines Stereo-Samples
 typedef struct tagSTEREOSAMPLE16{
@@ -558,8 +558,8 @@ class AudioDecoder_MP3 : public AudioDecoder
 	private:
 		void			*decoder;
 		FileObject		*ff;
-		ppluint8		*readbuffer;
-		ppluint8		*outbuffer;
+		uint8_t		*readbuffer;
+		uint8_t		*outbuffer;
 
 		AudioInfo		info;
 		size_t			position;
@@ -621,10 +621,10 @@ typedef struct tagSOUNDPROGRESS{
 	float	percent;
 	float	faktor;
 	double	eta;
-	ppluint64	position;
-	ppluint64	bytes;
-	ppluint64	position_thisfile;
-	ppluint64	bytes_thisfile;
+	uint64_t	position;
+	uint64_t	bytes;
+	uint64_t	position_thisfile;
+	uint64_t	bytes_thisfile;
 	//PPL_WAVEHEADER *wav;
 	//PPL_MPEG_HEADER *mpg;
 } PPL_SOUNDPROGRESS;
@@ -646,7 +646,7 @@ private:
 	int				mp3bufsize;
 	unsigned char	*mp3buf;
 
-	ppluint32	samples;
+	uint32_t	samples;
 
 	void (*ProgressFunc) (int progress, void *priv);
 	void *ProgressFuncPrivData;

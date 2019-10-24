@@ -277,7 +277,7 @@ ppl7::String Json::dumps(const ppl7::AssocArray &data)
 
 static bool isArray(const ppl7::AssocArray &data)
 {
-	ppluint64 v=0;
+	uint64_t v=0;
 	ppl7::AssocArray::const_iterator it;
 	for (it=data.begin();it!=data.end();++it) {
 		ppl7::String expectedkey;

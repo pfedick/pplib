@@ -270,7 +270,7 @@ void Logger::setLogfile(PRIORITY prio, const String &filename, int level)
 	}
 }
 
-void Logger::setLogRotate(ppluint64 maxsize, int generations)
+void Logger::setLogRotate(uint64_t maxsize, int generations)
 {
 	if (generations>1 && maxsize>1024*1024) {
 		mutex.lock();
@@ -401,7 +401,7 @@ void Logger::outputArray(PRIORITY prio, int level, const char *module, const cha
 		} else if (v.isDateTime()) {
 			Out->appendf("%s%s=%s\n",(const char*)key,(const char*)k,(const char*)v.toDateTime().get());
 		} else if (v.isPointer()) {
-			Out->appendf("%s%s=%llu\n",(const char*)key,(const char*)k,((ppluint64)(const ppliptr)v.toPointer().ptr()));
+			Out->appendf("%s%s=%tu\n",(const char*)key,(const char*)k,((uintptr_t)v.toPointer().ptr()));
 		} else if (v.isAssocArray()) {
 			pre.setf("%s%s",(const char*)key,(const char*)k);
 			outputArray(prio,level,module,function,file,line,v.toAssocArray(),(const char*)pre,Out);
@@ -434,13 +434,13 @@ void Logger::hexDump (PRIORITY prio, int level, const void * address, int bytes)
 	char zeichen[2];
 	zeichen[1]=0;
 	//char buff[1024], tmp[10], cleartext[20];
-	line.setf("HEXDUMP: %u Bytes starting at Address 0x%08llX (%llu):",
-			bytes,(ppluint64)(ppliptr)address,(ppluint64)(ppliptr)address);
+	line.setf("HEXDUMP: %u Bytes starting at Address 0x%08tX (%tu):",
+			bytes,(uintptr_t)address,(uintptr_t)address);
 	output(prio,level,NULL,NULL,NULL,0,(const char*)line,true);
 
 	char *_adresse=(char*)address;
-	ppluint32 spalte=0;
-	line.setf("0x%08llX: ",(ppluint64)(ppliptr)_adresse);
+	uint32_t spalte=0;
+	line.setf("0x%08tX: ",(uintptr_t)_adresse);
 	cleartext.clear();
 	for (int i=0;i<bytes;i++) {
 		if (spalte>15) {
@@ -449,13 +449,13 @@ void Logger::hexDump (PRIORITY prio, int level, const void * address, int bytes)
 			line.append(": ");
 			line.append(cleartext);
 			output(prio,level,NULL,NULL,NULL,0,(const char*)line,false);
-			line.setf("0x%08llX: ",(ppluint64)(ppliptr)(_adresse+i));
+			line.setf("0x%08tX: ",(uintptr_t)(_adresse+i));
 			cleartext.clear();
 			spalte=0;
 		}
-		line.appendf("%02X ",(ppluint8)_adresse[i]);
-		zeichen[0]=(ppluint8)_adresse[i];
-		if ((ppluint8)_adresse[i]>31)	cleartext.append(zeichen);
+		line.appendf("%02X ",(uint8_t)_adresse[i]);
+		zeichen[0]=(uint8_t)_adresse[i];
+		if ((uint8_t)_adresse[i]>31)	cleartext.append(zeichen);
 		else cleartext.append(".");
 		spalte++;
 	}
@@ -692,8 +692,8 @@ void Logger::checkRotate(PRIORITY prio)
 	String f1,f2;
 	if (inrotate) return;
 	if (rotate_mechanism==1) {
-		pplint64 size=logff[prio].size();
-		if (size>0 && (ppluint64)size>maxsize) {
+		uint64_t size=logff[prio].size();
+		if (size>0 && (uint64_t)size>maxsize) {
 			inrotate=true;
 			output(prio,0,"ppl7::Logger","CheckRotate",__FILE__,__LINE__,"Logfile Rotated");
 			logff[prio].close();

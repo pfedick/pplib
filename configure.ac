@@ -192,29 +192,18 @@ AC_CHECK_SIZEOF(float)
 AC_CHECK_SIZEOF(double)
 AC_CHECK_SIZEOF(void*)
 
-if test $ac_cv_sizeof_char -eq 1; then
-	AC_DEFINE(ppluint8,unsigned char)
-	AC_DEFINE(pplint8,signed char)
-fi
-if test $ac_cv_sizeof_short -eq 2; then
-	AC_DEFINE(ppluint16,unsigned short)
-	AC_DEFINE(pplint16,signed short)
-fi
+AC_TYPE_INT8_T
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+AC_TYPE_INT64_T
+AC_TYPE_UINT8_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_SIZE_T
+AC_TYPE_SSIZE_T
+AC_TYPE_UINTPTR_T
 
-if test $ac_cv_sizeof_int -eq 4; then
-	AC_DEFINE(ppluint32,unsigned int)
-	AC_DEFINE(pplint32,signed int)
-fi
-
-if test $ac_cv_sizeof_long_long -eq 8; then
-		AC_DEFINE(ppluint64,unsigned long long)
-		AC_DEFINE(pplint64,signed long long)
-else
-	if test $ac_cv_sizeof_long -eq 8; then
-		AC_DEFINE(ppluint64,unsigned long)
-		AC_DEFINE(pplint64,signed long)
-	fi
-fi
 
 if test $ac_cv_sizeof_wchar_t -eq 4; then
 	if test "$report_byteorder" = "LITTLE ENDIAN"; then
@@ -231,15 +220,6 @@ else
 fi
 
 
-
-if test $ac_cv_sizeof_voidp -eq 4; then
-	AC_DEFINE(ppliptr,ppluint32)
-elif test $ac_cv_sizeof_voidp -eq 8; then
-	AC_DEFINE(ppliptr,ppluint64)
-else
-	AC_MSG_ERROR(size of void* is not supported)
-	
-fi
 
 AC_CHECK_SIZEOF(fpos_t)
 
@@ -312,7 +292,7 @@ AC_CHECK_GTEST(
 )
 
 
-AC_CHECK_HEADERS([stdlib.h])
+AC_CHECK_HEADERS([stdlib.h stdint.h inttypes.h])
 AC_CHECK_HEADERS([unistd.h])
 AC_CHECK_HEADERS([stdarg.h])
 AC_CHECK_HEADERS([stddef.h])

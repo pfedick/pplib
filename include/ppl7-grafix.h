@@ -91,7 +91,7 @@ typedef struct tagSIZE {
 } SIZE, *PSIZE;
 
 
-typedef ppluint32 SurfaceColor;
+typedef uint32_t SurfaceColor;
 
 class Point
 {
@@ -349,25 +349,25 @@ class Color
 	private:
 #ifdef __LITTLE_ENDIAN__
 union  {
-	struct { ppluint8 r,g,b,a; };
-	ppluint32 c;
+	struct { uint8_t r,g,b,a; };
+	uint32_t c;
 };
 #else
 union  {
-	struct { ppluint8 a,r,g,b; };
-	ppluint32 c;
+	struct { uint8_t a,r,g,b; };
+	uint32_t c;
 };
 #endif
 
 	public:
 		Color();
 		Color(int red, int green, int blue, int alpha=255);
-		Color(ppluint32 rgba);
-		Color(ppluint32 rgb, int alpha);
+		Color(uint32_t rgba);
+		Color(uint32_t rgb, int alpha);
 
-		ppluint32 color() const;
-		ppluint32 rgb() const;
-		ppluint32 rgba() const;
+		uint32_t color() const;
+		uint32_t rgb() const;
+		uint32_t rgba() const;
 		int red() const;
 		int green() const;
 		int blue() const;
@@ -384,8 +384,8 @@ union  {
 		void set(int red, int green, int blue, int alpha=255);
 		void set(const Color &other);
 		void setColor(int red, int green, int blue, int alpha=255);
-		void setColor(ppluint32 rgba);
-		void setColor(ppluint32 rgb, int alpha);
+		void setColor(uint32_t rgba);
+		void setColor(uint32_t rgb, int alpha);
 
 		int getY() const;
 		int getYCb() const;
@@ -397,8 +397,8 @@ union  {
 
 		Color &operator*= (float factor);
 		Color &operator+= (const Color &other);
-		operator ppluint32() const;
-		operator pplint32() const;
+		operator uint32_t() const;
+		operator int32_t() const;
 
 		bool operator<(const Color &other) const;
 		bool operator<=(const Color &other) const;
@@ -426,11 +426,11 @@ typedef struct {
 	GRAFIX_FUNCTIONS *fn;
 	union {
 		void		*base;
-		ppluint8	*base8;
-		ppluint16	*base16;
-		ppluint32	*base32;
+		uint8_t	*base8;
+		uint16_t	*base16;
+		uint32_t	*base32;
 	};
-	ppluint32	pitch;
+	uint32_t	pitch;
 	int			width;
 	int			height;
 	RGBFormat	rgbformat;
@@ -491,9 +491,9 @@ class Font
 		Color	cForeground;
 		Color	cBorder;
 		Color	cShadow;
-		ppluint16	fontSize;
-		ppluint8	flags;
-		ppluint8	ori;
+		uint16_t	fontSize;
+		uint8_t	flags;
+		uint8_t	ori;
 		double		rotationDegrees;
 	public:
 		enum Orientation {
@@ -565,7 +565,7 @@ class Drawable
 		Drawable(const Drawable &other);
 		Drawable(const Drawable &other, const Rect &rect);
 		Drawable(const Drawable &other, const Point &p, const Size &s);
-		Drawable(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
+		Drawable(void *base, uint32_t pitch, int width, int height, const RGBFormat &format);
 		~Drawable();
 		//@}
 
@@ -578,7 +578,7 @@ class Drawable
 		void copy(const Drawable &other);
 		void copy(const Drawable &other, const Rect &rect);
 		void copy(const Drawable &other, const Point &p, const Size &s);
-		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format);
+		void create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format);
 		Drawable &operator=(const Drawable &other);
 
 		Rect rect() const;
@@ -714,7 +714,7 @@ class Image : public Drawable
 		//@{
 		void clear();
 		void create(int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
-		void create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
+		void create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
 		void load(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
 		void load(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
 		void load(const ByteArrayPtr &Mem, const RGBFormat &format=RGBFormat::unknown);
