@@ -641,7 +641,6 @@ report_have_ldns
 report_have_pthreads
 report_have_nasm
 report_have_sqlite3
-report_have_freetds
 report_have_postgres
 report_have_mysql
 report_have_iconv
@@ -669,8 +668,6 @@ nasm
 ldnsconfig
 LIBLDNS_LIBS
 LIBLDNS_CFLAGS
-FREETDS_LIBS
-FREETDS_CFLAGS
 SQLITE3_VERSION
 SQLITE3_LDFLAGS
 SQLITE3_CFLAGS
@@ -3348,10 +3345,6 @@ ac_config_headers="$ac_config_headers include/ppl7-config.h"
 # * also look for SDL2.framework under Mac OS X
 
 # serial 1
-
-
-
-
 
 
 
@@ -18162,11 +18155,6 @@ if test "$success" = "yes"; then
 fi
 
 
-report_have_freetds="no"
-
-
-
-
 
 
 
@@ -18563,7 +18551,6 @@ case "${host_cpu}-${host_os}" in
 		CFLAGS=`echo $CFLAGS | $SED 's/-I\/usr\/local\/include //g' | $SED 's/-I\/usr\/include //g' `
         ;;
 esac;
-
 
 
 
