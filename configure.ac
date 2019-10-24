@@ -136,7 +136,10 @@ OLD_CFLAGS=$CFLAGS
 AC_PROG_CC
 CFLAGS=$OLD_CFLAGS
 AC_PROG_CXX
+
+AX_CXX_COMPILE_STDCXX_11
 dnl AX_CXX_COMPILE_STDCXX(11) 
+
 
 dnl AC_LANG(C++)
 
@@ -575,7 +578,11 @@ AX_CHECK_OPENSSL(
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 	
 	AC_CHECK_FUNCS([TLS_method TLS_server_method TLS_client_method])
+	AC_CHECK_FUNCS([EVP_aes_128_ecb EVP_aes_192_ecb EVP_aes_256_ecb EVP_aria_128_ecb EVP_aria_192_ecb EVP_aria_256_ecb])
+	AC_CHECK_FUNCS([EVP_bf_ecb EVP_camellia_128_ecb EVP_camellia_192_ecb EVP_camellia_256_ecb EVP_cast5_ecb])
+	AC_CHECK_FUNCS([EVP_des_ecb EVP_des_ede3_ecb EVP_idea_ecb EVP_rc2_ecb EVP_rc5_32_12_16_ecb])
 	AC_CHECK_FUNCS([SSLv23_method SSLv23_server_method SSLv23_client_method])
+	
 	
 	CPPFLAGS="$am_save_CPPFLAGS"
 	CFLAGS="$am_save_CFLAGS"

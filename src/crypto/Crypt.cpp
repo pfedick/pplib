@@ -56,6 +56,7 @@ namespace ppl7 {
 static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
 {
     switch (algo) {
+#ifdef HAVE_EVP_AES_128_ECB
     case Crypt::Algo_AES_128:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -67,6 +68,8 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_aes_128_ofb();
         }
+#endif
+#ifdef HAVE_EVP_AES_192_ECB
     case Crypt::Algo_AES_192:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -78,6 +81,8 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_aes_192_ofb();
         }
+#endif
+#ifdef HAVE_EVP_AES_256_ECB
     case Crypt::Algo_AES_256:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -89,7 +94,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_aes_256_ofb();
         }
+#endif
 #ifndef OPENSSL_NO_ARIA
+#ifdef HAVE_EVP_ARIA_128_ECB
     case Crypt::Algo_ARIA_128:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -101,6 +108,8 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_aria_128_ofb();
         }
+#endif
+#ifdef HAVE_EVP_ARIA_192_ECB
     case Crypt::Algo_ARIA_192:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -112,6 +121,8 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_aria_192_ofb();
         }
+#endif
+#ifdef HAVE_EVP_ARIA_256_ECB
     case Crypt::Algo_ARIA_256:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -124,7 +135,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
             return EVP_aria_256_ofb();
         }
 #endif
+#endif
 #ifndef OPENSSL_NO_BF
+#ifdef HAVE_EVP_BF_ECB
     case Crypt::Algo_BLOWFISH:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -137,7 +150,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
             return EVP_bf_ofb();
         }
 #endif
+#endif
 #ifndef OPENSSL_NO_CAMELLIA
+#ifdef HAVE_EVP_CAMELLIA_128_ECB
     case Crypt::Algo_CAMELLIA_128:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -149,6 +164,8 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_camellia_128_ofb();
         }
+#endif
+#ifdef HAVE_EVP_CAMELLIA_192_ECB
     case Crypt::Algo_CAMELLIA_192:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -160,6 +177,8 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_camellia_192_ofb();
         }
+#endif
+#ifdef HAVE_EVP_CAMELLIA_256_ECB
     case Crypt::Algo_CAMELLIA_256:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -172,7 +191,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
             return EVP_camellia_256_ofb();
         }
 #endif
+#endif
 #ifndef OPENSSL_NO_CAST
+#ifdef HAVE_EVP_CAST5_ECB
     case Crypt::Algo_CAST5:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -185,7 +206,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
             return EVP_cast5_ofb();
         }
 #endif
+#endif
 #ifndef OPENSSL_NO_DES
+#ifdef HAVE_EVP_DES_ECB
     case Crypt::Algo_DES:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -197,6 +220,8 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_des_ofb();
         }
+#endif
+#ifdef HAVE_EVP_DES_EDE3_ECB
     case Crypt::Algo_TRIPLE_DES:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -209,7 +234,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
             return EVP_des_ede3_ofb();
         }
 #endif
+#endif
 #ifndef OPENSSL_NO_IDEA
+#ifdef HAVE_EVP_IDEA_ECB
     case Crypt::Algo_IDEA:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -222,7 +249,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
             return EVP_idea_ofb();
         }
 #endif
+#endif
 #ifndef OPENSSL_NO_RC2
+#ifdef HAVE_EVP_RC2_ECB
     case Crypt::Algo_RC2:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -235,7 +264,9 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
             return EVP_rc2_ofb();
         }
 #endif
+#endif
 #ifndef OPENSSL_NO_RC5
+#ifdef HAVE_EVP_RC5_32_12_16_ECB
     case Crypt::Algo_RC5:
         switch(mode) {
         case Crypt::Mode_ECB:
@@ -247,6 +278,7 @@ static const EVP_CIPHER *getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
         case Crypt::Mode_OFB:
             return EVP_rc5_32_12_16_ofb();
         }
+#endif
 #endif
     }
     return nullptr;
