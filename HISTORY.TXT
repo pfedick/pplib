@@ -61,6 +61,8 @@ Version 7.0.1
     and Qt's QString will be based on Utf8 and not local 8 bit encoding
   - String class: added constructor with ByteArrayPtr as input
   - Crypto: introduced Encrypt and Decrypt class based on OpenSSL
+  - removed support for libmcrypt, removed class MCrypt
+  - added CXXFLAGS
         
 
 Version 7.0.0 vom 29.07.2018 (Repo-Tag: REL_7_0_0)
