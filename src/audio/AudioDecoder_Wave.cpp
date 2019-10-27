@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -127,7 +127,7 @@ size_t AudioDecoder_Wave::getSamples(size_t num, float *left, float *right)
 	size_t samples=num;
 	if (position+samples>info.Samples) samples=info.Samples-position;
 	const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
-	pplint16 *buffer16=(pplint16*)data;
+	int16_t *buffer16=(int16_t*)data;
 	for (size_t i=0;i<samples;i++) {
 		left[i]=(float)buffer16[i*2]/32768.0;
 		right[i]=(float)buffer16[i*2+1]/32768.0;

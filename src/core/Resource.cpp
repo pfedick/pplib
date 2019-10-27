@@ -32,11 +32,12 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+
+#include "prolog_ppl7.h"
 #include "ppl7.h"
 
 
@@ -49,8 +50,8 @@ class ResourceChunk
 		ResourceChunk *next;
 		int		id;
 		String	name;
-		ppluint32	size_u;
-		ppluint32	size_c;
+		uint32_t	size_u;
+		uint32_t	size_c;
 		int			compression;
 		void	*data;
 		const void	*uncompressed;
@@ -375,7 +376,7 @@ static void bufferOut(FileObject &out, const char *buffer, int bytes)
 	static int c=0;
 	static char clear[25]="";
 	for (int i=0;i<bytes;i++) {
-		ppluint8 byte=(ppluint8)buffer[i];
+		uint8_t byte=(uint8_t)buffer[i];
 		out.putsf("0x%02x,",byte);
 		if(byte>31 && byte<128 && byte!='\\' && byte!='/') clear[c]=byte;
 		else clear[c]='.';
@@ -402,7 +403,7 @@ static void output(FileObject &ff, int resid, const String &name, const String &
 	char *buf=(char*)malloc(64);
 	if (!buf) throw OutOfMemoryException();
 
-	ppluint32 chunksize=bytes+name.size()+17;
+	uint32_t chunksize=bytes+name.size()+17;
 	Poke32(buf+0,chunksize);
 	Poke16(buf+4,resid);
 	Poke32(buf+6,size_u);
@@ -436,7 +437,7 @@ static int compress(FileObject &ff, char **buffer, size_t *size, int *type)
 	// Was war kleiner?
 	if (size_u<=size_bz2 && size_u<=size_zlib) {
 		free(buf);
-		printf ("Using no compression: %u Bytes (Zlib: %u, BZ2: %u)\n",(ppluint32)size_u, (ppluint32)size_zlib, (ppluint32)size_bz2);
+		printf ("Using no compression: %u Bytes (Zlib: %u, BZ2: %u)\n",(uint32_t)size_u, (uint32_t)size_zlib, (uint32_t)size_bz2);
 		*size=size_u;
 		*type=0;
 		*buffer=(char*)malloc(size_u);
@@ -444,7 +445,7 @@ static int compress(FileObject &ff, char **buffer, size_t *size, int *type)
 		return 1;
 	}
 	if (size_bz2<size_zlib) {
-		printf ("Using bzip2: %u Bytes von %u Bytes (zlib: %u Bytes)\n",(ppluint32)size_bz2,(ppluint32)size_u,(ppluint32)size_zlib);
+		printf ("Using bzip2: %u Bytes von %u Bytes (zlib: %u Bytes)\n",(uint32_t)size_bz2,(uint32_t)size_u,(uint32_t)size_zlib);
 		*buffer=buf;
 		*size=size_bz2;
 		*type=2;
@@ -453,7 +454,7 @@ static int compress(FileObject &ff, char **buffer, size_t *size, int *type)
 	size_zlib=size_c;
 	comp.init(Compression::Algo_ZLIB,Compression::Level_High);
 	comp.compress(buf,&size_zlib,source,size_u);
-	printf ("Using zlib: %u Bytes von %u Bytes (bzip2: %u Bytes)\n",(ppluint32)size_zlib,(ppluint32)size_u,(ppluint32)size_bz2);
+	printf ("Using zlib: %u Bytes von %u Bytes (bzip2: %u Bytes)\n",(uint32_t)size_zlib,(uint32_t)size_u,(uint32_t)size_bz2);
 	*buffer=buf;
 	*size=size_zlib;
 	*type=1;
@@ -545,15 +546,15 @@ void Resource::generateResourceHeader(const String &basispfad, const String &con
 			printf ("Konnte Resource %s nicht oeffnen\n",filename);
 		} else {
 			char *buffer=NULL;
-			ppluint32 size=0;
+			uint32_t size=0;
 			int type=0;
 			printf ("%s: ",filename);
 			if (compression) {
 				CString forcecomp=LCase(Trim(compression));
 				if (forcecomp=="none") {
 					buffer=ff.Load();
-					printf ("Forced no compression: %u Bytes\n",(ppluint32)ff.Size());
-					Output(&out,atoi(id),name,filename,(ppluint32)ff.Size(),buffer,(ppluint32)ff.Size(),0);
+					printf ("Forced no compression: %u Bytes\n",(uint32_t)ff.Size());
+					Output(&out,atoi(id),name,filename,(uint32_t)ff.Size(),buffer,(uint32_t)ff.Size(),0);
 					free(buffer);
 					continue;
 				}
@@ -561,7 +562,7 @@ void Resource::generateResourceHeader(const String &basispfad, const String &con
 				return 0;
 			}
 			if (Compress(&ff,&buffer,&size,&type)) {
-				Output(&out,atoi(id),name,filename,(ppluint32)ff.Size(),buffer,size,type);
+				Output(&out,atoi(id),name,filename,(uint32_t)ff.Size(),buffer,size,type);
 				free(buffer);
 			}
 		}

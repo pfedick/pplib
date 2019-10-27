@@ -145,7 +145,7 @@ int DB_Sybase_Example2() {
 	if (!res) {	// Fehler abfangen
 		ppl6::PrintError();
 	} else {
-		pplint64 rows=0;
+		int64_t rows=0;
 		ppl6::CAssocArray row;
 		// Durch das Ergebnis durchiterieren
 		while (res->FetchArray(row)) {
@@ -362,7 +362,7 @@ ppl6::db::Result *DB_GenericResult_Example1(const CString &Query) {
 	}
 
 	// Ergebniszeilen übergeben
-	for (pplint64 r=0;r<num_rows;r++) {
+	for (int64_t r=0;r<num_rows;r++) {
 		// Neue Zeile
 		res->NewRow();
 		// Felder durchgehen

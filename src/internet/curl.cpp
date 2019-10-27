@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -659,7 +659,7 @@ size_t Curl::storeResult(void *ptr, size_t bytes, int type)
 			char *buffer=(char*)realloc(resultbuffer,b+1);
 			if (!buffer) return 0;
 			resultbuffer=buffer;
-			memcpy((ppluint8*)resultbuffer+resultbuffer_size,ptr,bytes);
+			memcpy((uint8_t*)resultbuffer+resultbuffer_size,ptr,bytes);
 			resultbuffer_size+=bytes;
 			resultbuffer[resultbuffer_size]=0;
 			//call_receive.Notify(&bytes);

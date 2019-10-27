@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -83,8 +83,8 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 	info.Length=0;	// will be calculated later
 
 	const char *adr;
-	ppluint32 p=12;
-	ppluint32 size;
+	uint32_t p=12;
+	uint32_t size;
 
 	//printf ("Checking AIFF, p=12, file.Size=%u\n",file.Size());
 
@@ -121,9 +121,9 @@ static bool IdentAIFF(FileObject &file, AudioInfo &info)
 			f[8]=adr[17];
 			f[9]=adr[16];
 			//ppl6::HexDump(f,sizeof(long double));
-			info.Frequency=(ppluint32)frequency;
-			if (info.Frequency>0 && info.Samples>0) info.Length=(ppluint32)((ppluint64)info.Samples*1000/info.Frequency);
-			info.Bitrate=((ppluint64)info.Frequency*(ppluint64)info.BytesPerSample*8/1000);
+			info.Frequency=(uint32_t)frequency;
+			if (info.Frequency>0 && info.Samples>0) info.Length=(uint32_t)((uint64_t)info.Samples*1000/info.Frequency);
+			info.Bitrate=((uint64_t)info.Frequency*(uint64_t)info.BytesPerSample*8/1000);
 
 		} else if (PeekN32(adr)==0x53534e44) {	// SSND-Chunk gefunden
 			adr=file.map(p,16);
@@ -151,7 +151,7 @@ static bool IdentWave(FileObject &file, AudioInfo &info)
 	const char *buffer=file.map(0,64);
 	const char *fmt=buffer+12;
 
-	ppluint32 fmtchunklen=Peek32(fmt+4);
+	uint32_t fmtchunklen=Peek32(fmt+4);
 	info.Channels=Peek16(fmt+0x0a);
 	if (info.Channels==1) info.Mode=AudioInfo::MONO;
 	else if (info.Channels==2) info.Mode=AudioInfo::STEREO;
@@ -173,8 +173,8 @@ static bool IdentWave(FileObject &file, AudioInfo &info)
 	info.AudioSize=Peek32(buffer+4);
 	info.AudioEnd=info.AudioStart+info.AudioSize-1;
 	info.Samples=info.AudioSize/info.BytesPerSample;
-	if (info.Frequency>0 && info.Samples>0) info.Length=(ppluint32)((ppluint64)info.Samples*1000/info.Frequency);
-	info.Bitrate=((ppluint64)info.Frequency*(ppluint64)info.BytesPerSample*8/1000);
+	if (info.Frequency>0 && info.Samples>0) info.Length=(uint32_t)((uint64_t)info.Samples*1000/info.Frequency);
+	info.Bitrate=((uint64_t)info.Frequency*(uint64_t)info.BytesPerSample*8/1000);
 	info.HaveID3v2Tag=false;
 	info.ID3v2TagStart=0;
 	return true;

@@ -43,7 +43,7 @@
 
 #undef _PPL7_CONFIG
 #undef _WIN32_WINNT
-#include "../include/config.h"
+#include "../../../include/config_ppl7.h"
 
 namespace {
 
@@ -221,7 +221,7 @@ TEST_F(DateTimeTest, CopyConstructor) {
 }
 
 TEST_F(DateTimeTest, ConstructorWithTime_t) {
-	ppluint64 t=1337335350; // 2012-05-18 12:02:30
+	uint64_t t=1337335350; // 2012-05-18 12:02:30
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1(t);
 		ASSERT_TRUE(d1.notEmpty()==true) << "Class is empty";
@@ -246,14 +246,14 @@ TEST_F(DateTimeTest, Assignment) {
 TEST_F(DateTimeTest, getLongInt) {
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1("2012-05-18 11:50:11.159473");
-		ppluint64 t=d1.longInt();
-		ASSERT_EQ((ppluint64)64679514611159473,t) << "Unexpected date";
+		uint64_t t=d1.longInt();
+		ASSERT_EQ((uint64_t)64679514611159473,t) << "Unexpected date";
 	}
 	);
 }
 
 TEST_F(DateTimeTest, setLongInt) {
-	ppluint64 v=64679514611159473;
+	uint64_t v=64679514611159473;
 	ASSERT_NO_THROW({
 		ppl7::DateTime d1;
 		d1.setLongInt(v);

@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -53,10 +53,10 @@
 #ifdef HAVE_X86_ASSEMBLER
 typedef struct {
 	void		*tgt;
-	ppluint32	width;
-	ppluint32	height;
-	ppluint32	pitch;
-	ppluint32	color;
+	uint32_t	width;
+	uint32_t	height;
+	uint32_t	pitch;
+	uint32_t	color;
 } RECTDATA;
 
 extern "C" {
@@ -88,10 +88,10 @@ static int ClearScreen_16 (SURFACE *surface, COLOR color)
 static void ClearScreen_8 (DRAWABLE_DATA &data, SurfaceColor c)
 {
 	int x,y;
-	ppluint8 *adr;
+	uint8_t *adr;
 	adr=data.base8;
 	for (y=0;y<data.height;y++) {
-		for (x=0;x<data.width;x++) adr[x]=(ppluint8)c;
+		for (x=0;x<data.width;x++) adr[x]=(uint8_t)c;
 		adr+=data.pitch;
 	}
 }
@@ -101,11 +101,11 @@ static void ClearScreen_32 (DRAWABLE_DATA &data, SurfaceColor c)
 	FillRect_32(data,Rect(0,0,data.width,data.height),c);
 	/*
 	int x,y;
-	ppluint32 *adr32;
+	uint32_t *adr32;
 	adr32=data.base32;
-	ppluint32 pitch32=data.pitch>>2;
+	uint32_t pitch32=data.pitch>>2;
 	for (y=0;y<data.height;y++) {
-		for (x=0;x<data.width;x++) adr32[x]=(ppluint32)c;
+		for (x=0;x<data.width;x++) adr32[x]=(uint32_t)c;
 		adr32+=pitch32;
 	}
 	*/
@@ -115,17 +115,17 @@ static void ClearScreen_32 (DRAWABLE_DATA &data, SurfaceColor c)
 static void DrawRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 {
 	int x,y;
-	ppluint32 * pp;
-	ppluint32 pitch32=data.pitch>>2;
+	uint32_t * pp;
+	uint32_t pitch32=data.pitch>>2;
 	pp=data.base32+r.top()*pitch32+r.left();
-	for (x=0;x<r.width();x++) pp[x]=(ppluint32)color;
+	for (x=0;x<r.width();x++) pp[x]=(uint32_t)color;
 	x=r.width()-1;
 	for (y=1;y<r.height();y++) {
 		pp+=pitch32;
-		pp[0]=(ppluint32)color;
-		pp[x]=(ppluint32)color;
+		pp[0]=(uint32_t)color;
+		pp[x]=(uint32_t)color;
 	}
-	for (x=0;x<r.width();x++) pp[x]=(ppluint32)color;
+	for (x=0;x<r.width();x++) pp[x]=(uint32_t)color;
 }
 
 static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
@@ -142,12 +142,12 @@ static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 		d.color=color;
         ASM_FillRect32(&d);
     #else
-		ppluint32 * pp;
+		uint32_t * pp;
 		int y,x;
-		ppluint32 pitch32=data.pitch>>2;
+		uint32_t pitch32=data.pitch>>2;
 		pp=data.base32+in.top()*pitch32;
 		for (y=in.top();y<=in.bottom();y++) {
-			for (x=in.left();x<=in.right();x++) pp[x]=(ppluint32)color;
+			for (x=in.left();x<=in.right();x++) pp[x]=(uint32_t)color;
 			pp+=pitch32;
 		}
 	#endif
@@ -156,20 +156,20 @@ static void FillRect_32 (DRAWABLE_DATA &data, const Rect &r, SurfaceColor color)
 /*
 static int Xchange_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR farbe, COLOR ersatzfarbe)
 {
-	pplint32 y,x;
+	int32_t y,x;
 	RECT r;
-	pplint32 breite;
+	int32_t breite;
 	ppldb * pp;
-	ppluint32 * ppw;
+	uint32_t * ppw;
 
 	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
 	if (!data->Surface->FitRect (&r)) return 0;
 	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(ppluint32 *)pp;
+	ppw=(uint32_t *)pp;
 	breite=r.right-r.left+1;
 	for (y=r.top;y<r.bottom+1;y++) {
 		for (x=0;x<breite;x++) {
-			if (ppw[x]==(ppluint32)farbe) ppw[x]=(ppluint32)ersatzfarbe;
+			if (ppw[x]==(uint32_t)farbe) ppw[x]=(uint32_t)ersatzfarbe;
 		}
 		ppw+=data->pitch32;
 	}
@@ -179,16 +179,16 @@ static int Xchange_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR farb
 static int Invert_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR color1, COLOR color2)
 {
 	COLOR pixel;
-	pplint32 y,x;
+	int32_t y,x;
 	RECT r;
-	pplint32 breite;
+	int32_t breite;
 	ppldb * pp;
-	ppluint32 * ppw;
+	uint32_t * ppw;
 
 	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
 	if (!data->Surface->FitRect (&r)) return 0;
 	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(ppluint32 *)pp;
+	ppw=(uint32_t *)pp;
 	breite=r.right-r.left+1;
 	for (y=r.top;y<r.bottom+1;y++) {
 		for (x=0;x<breite;x++) {
@@ -204,16 +204,16 @@ static int Invert_32 (SURFACE* data, int x1, int y1, int x2, int y2, COLOR color
 static int Negativ_32 (SURFACE* data, int x1, int y1, int x2, int y2)
 {
 	RGBA pixel;
-	pplint32 y,x;
+	int32_t y,x;
 	RECT r;
-	pplint32 breite;
+	int32_t breite;
 	ppldb * pp;
-	ppluint32 * ppw;
+	uint32_t * ppw;
 
 	r.left=x1; r.top=y1; r.right=x2; r.bottom=y2;
 	if (!data->Surface->FitRect (&r)) return 0;
 	pp=(ppldb *) (data->base8+r.top*data->pitch8+x1*data->bytes_per_pixel);
-	ppw=(ppluint32 *)pp;
+	ppw=(uint32_t *)pp;
 	breite=r.right-r.left+1;
 	for (y=r.top;y<r.bottom+1;y++) {
 		for (x=0;x<breite;x++) {
@@ -628,12 +628,12 @@ void Drawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, co
 {
 	if (!fn) throw EmptyDrawableException();
 	Color c;
-	ppluint32 w1,w2;
+	uint32_t w1,w2;
 	int range;
 	c.setAlpha(255);
 	if (direction==0) {
 		range=x2-x1+1;
-		for (pplint32 x=0; x<range; x++) {
+		for (int32_t x=0; x<range; x++) {
 			w1=range-x;
 			w2=x;
 			c.setRed((c1.red()*w1/range)+(c2.red()*w2/range));
@@ -643,7 +643,7 @@ void Drawable::colorGradient(int x1, int y1, int x2, int y2, const Color &c1, co
 		}
 	} else {
 		range=y2-y1+1;
-		for (pplint32 y=0; y<range; y++) {
+		for (int32_t y=0; y<range; y++) {
 			w1=range-y;
 			w2=y;
 			c.setRed((c1.red()*w1/range)+(c2.red()*w2/range));

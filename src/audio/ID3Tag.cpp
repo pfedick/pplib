@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -202,7 +202,7 @@ static const char * genres[] = {
 static size_t strlen16(const char *data)
 {
 	size_t l=0;
-	ppluint16 *d=(ppluint16*)data;
+	uint16_t *d=(uint16_t*)data;
 	while (d[l]!=0) l++;
 	return l;
 }
@@ -536,7 +536,7 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject &File)
 	const char *adr=File.map(0,12);
 	if (!adr) return AF_UNKNOWN;
 	//HexDump((void*)adr,12);
-	//printf ("PeekN32(adr+4)=%d, File.Size=%d\n",ppl6::PeekN32(adr+4), (ppluint32)File.Size() );
+	//printf ("PeekN32(adr+4)=%d, File.Size=%d\n",ppl6::PeekN32(adr+4), (uint32_t)File.Size() );
 	if (PeekN32(adr+4)<File.size()
 			&& PeekN32(adr+0)==0x464F524D
 			&& PeekN32(adr+8)==0x41494646) return AF_AIFF;
@@ -544,13 +544,13 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject &File)
 	return AF_UNKNOWN;
 }
 
-ppluint64 ID3Tag::findId3Tag(FileObject &File)
+uint64_t ID3Tag::findId3Tag(FileObject &File)
 {
 	myAudioFormat=identAudioFormat(File);
 	if (myAudioFormat==AF_UNKNOWN) throw ppl7::UnsupportedAudioFormatException();
 	else if (myAudioFormat==AF_MP3) return 0;
 	else if (myAudioFormat==AF_AIFF) {
-		ppluint64 p=12;
+		uint64_t p=12;
 		while (p<File.size()) {
 			const char *adr=File.map(p,8);
 			if (!adr) break;
@@ -560,7 +560,7 @@ ppluint64 ID3Tag::findId3Tag(FileObject &File)
 			p+=PeekN32(adr+4)+8;
 		}
 	}
-	return (ppluint64)-1;
+	return (uint64_t)-1;
 }
 
 /*!\brief ID3-Tags aus einer Audio-Datei laden
@@ -590,8 +590,8 @@ void ID3Tag::load(FileObject &file)
 {
 	clear();
 	// ID3V2 Header einlesen (10 Byte)
-	ppluint64 p=findId3Tag(file);
-	if (p==(ppluint64)-1) {
+	uint64_t p=findId3Tag(file);
+	if (p==(uint64_t)-1) {
 		return;
 	}
 	const char *adr=file.map(p,10);
@@ -1262,7 +1262,7 @@ void ID3Tag::generateId3V2Tag(ByteArray &tag) const
 		frame[2]=Frame->ID[2];
 		frame[3]=Frame->ID[3];
 		// Descynchronisieren
-		ppluint32 s=Frame->Size;
+		uint32_t s=Frame->Size;
 		Poke8(frame+7,(s&127));
 		Poke8(frame+6,((s>>7)&127));
 		Poke8(frame+5,((s>>14)&127));
@@ -1330,7 +1330,7 @@ void ID3Tag::saveMP3()
 		if (!space) throw ppl7::OutOfMemoryException();
 		try {
 			while (rest) {
-				ppluint32 bytes=rest;
+				uint32_t bytes=rest;
 				if (bytes>1024) bytes=1024;
 				if (useoldfile)	o.write(space,bytes,pn);
 				else n.write(space,bytes,pn);
@@ -1351,7 +1351,7 @@ void ID3Tag::saveMP3()
 		File::remove(tmpfile);
 	} else {
 		// Nun kopieren wir die Musikframes
-		n.copyFrom(o,(ppluint64)mpg.start,(ppluint64)mpg.size,(ppluint64)pn);
+		n.copyFrom(o,(uint64_t)mpg.start,(uint64_t)mpg.size,(uint64_t)pn);
 		// Und am Ende noch den v1-Tag
 		if (tagV1.size()>0) n.write(tagV1);
 		n.close();
@@ -1363,16 +1363,16 @@ void ID3Tag::saveMP3()
 
 bool ID3Tag::trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2)
 {
-	ppluint32 qp=12;
+	uint32_t qp=12;
 	while (qp<o.size()) {
 		const char *adr=o.map(qp,32);
 		if (!adr) break;
-		ppluint32 size=PeekN32(adr+4);
+		uint32_t size=PeekN32(adr+4);
 		if (PeekN32(adr)==0x49443320) {	// ID3-Chunk gefunden
 			//printf ("Found ID3-Chunk with size: %u, Tag is: %u\n",size,tagV2.Size());
 			if (size>tagV2.size()) {
 				// Reuse old slot
-				ppluint32 maximumsize=tagV2.size();
+				uint32_t maximumsize=tagV2.size();
 				if (maximumsize+PaddingSpace<PaddingSize) maximumsize=PaddingSize;
 				else maximumsize+=PaddingSpace;
 				maximumsize+=(maximumsize/10);
@@ -1401,10 +1401,10 @@ bool ID3Tag::trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2)
 
 void ID3Tag::copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2)
 {
-	ppluint32 qp=12;
-	ppluint32 tp=12;
-	ppluint32 size;
-	ppluint32 formsize=4;
+	uint32_t qp=12;
+	uint32_t tp=12;
+	uint32_t size;
+	uint32_t formsize=4;
 	n.copyFrom(o,0,12,0);	// Header kopieren
 	while (qp+8<o.size()) {
 		const char *adr=o.map(qp,8);

@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -48,7 +48,7 @@ namespace ppl7 {
 
 #ifdef HAVE_MPG123
 static Mutex MPG123_GlobalMutex;
-static ppluint64 mpg123_instances=0;
+static uint64_t mpg123_instances=0;
 #define READBUFFER	1024*1024
 #define OUTBUFF 32768
 #endif
@@ -128,11 +128,11 @@ void AudioDecoder_MP3::open(FileObject &file, const AudioInfo *info)
 	needInput=true;
 	// Buffer Reservieren, falls noch nicht vorhanden
 	if (!readbuffer) {
-		readbuffer=(ppluint8*)malloc(READBUFFER);
+		readbuffer=(uint8_t*)malloc(READBUFFER);
 		if (!readbuffer) throw OutOfMemoryException();
 	}
 	if (!outbuffer) {
-		outbuffer=(ppluint8*)malloc(OUTBUFF);
+		outbuffer=(uint8_t*)malloc(OUTBUFF);
 		if (!outbuffer) throw OutOfMemoryException();
 	}
 	this->ff->seek(this->info.AudioStart);

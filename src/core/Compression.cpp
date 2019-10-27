@@ -33,7 +33,7 @@
  *******************************************************************************/
 
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -441,12 +441,12 @@ void Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size
 	dstlen_zlib=(uLongf)*dstlen;
 	int res=::compress2((Bytef*)dst,(uLongf *)&dstlen_zlib,(const Bytef*)src,(uLong)size,zcomplevel);
 	if (res==Z_OK) {
-		*dstlen=(ppluint32)dstlen_zlib;
+		*dstlen=(uint32_t)dstlen_zlib;
 		return;
 	} else if (res==Z_MEM_ERROR) {
 		throw OutOfMemoryException();
 	} else if (res==Z_BUF_ERROR) {
-		*dstlen=(ppluint32)dstlen_zlib;
+		*dstlen=(uint32_t)dstlen_zlib;
 		throw BufferTooSmallException();
 	} else if (res==Z_STREAM_ERROR) throw CompressionFailedException();
 	throw CompressionFailedException();
@@ -557,12 +557,12 @@ void Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t src
 	dstlen_zlib=(uLongf)d;
 	int ret=::uncompress((Bytef*)dst,&dstlen_zlib,(const Bytef*) src,(uLong)srclen);
 	if (ret==Z_OK) {
-		*dstlen=(ppluint32)dstlen_zlib;
+		*dstlen=(uint32_t)dstlen_zlib;
 		return;
 	} else if (ret==Z_MEM_ERROR) {
 		throw OutOfMemoryException();
 	} else if (ret==Z_BUF_ERROR) {
-		*dstlen=(ppluint32)dstlen_zlib;
+		*dstlen=(uint32_t)dstlen_zlib;
 		throw BufferTooSmallException();
 	} else if (ret==Z_DATA_ERROR) {
 		throw CorruptedDataException("Z_DATA_ERROR");

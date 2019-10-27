@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -248,13 +248,13 @@ Grafix::~Grafix()
 
 void Grafix::initAlphatab()
 {
-	ppluint32 alpha,i,a;
+	uint32_t alpha,i,a;
 	alphatab=(char*)malloc(65536);
 	if (!alphatab) throw OutOfMemoryException();
 	for (alpha=0;alpha<256;alpha++) {
 		for (i=0;i<256;i++) {
 			a=alpha<<8;
-			alphatab[a+i]=(ppluint8)((i*alpha)>>8);
+			alphatab[a+i]=(uint8_t)((i*alpha)>>8);
 		}
 	}
 }

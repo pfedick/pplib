@@ -34,11 +34,11 @@
 
 
 
-#include "prolog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include "prolog_ppl7.h"
 
 #ifndef _WIN32
 #include <strings.h>
@@ -49,16 +49,16 @@
 
 #ifdef HAVE_X86_ASSEMBLER
 extern "C" {
-	ppluint32 PPL7_GetASMBits();
-	ppluint32 PPL7_GetCpuCaps();
+	uint32_t PPL7_GetASMBits();
+	uint32_t PPL7_GetCpuCaps();
 }
 #else
-static ppluint32 PPL7_GetCpuCaps()
+static uint32_t PPL7_GetCpuCaps()
 {
 	return 0;
 }
 
-static ppluint32 PPL7_GetASMBits()
+static uint32_t PPL7_GetASMBits()
 {
 	return sizeof(void*);
 }
@@ -67,23 +67,23 @@ static ppluint32 PPL7_GetASMBits()
 namespace ppl7 {
 
 
-static ppluint32 myCPUCaps=0;
-static ppluint32 myBits=0;
+static uint32_t myCPUCaps=0;
+static uint32_t myBits=0;
 
 
 
-String binaryString(ppluint64 value)
+String binaryString(uint64_t value)
 {
 	String ret;
 	for (int i=63;i>=0;i--) {
-		if (value&((ppluint64)1<<i)) ret+="1";
+		if (value&((uint64_t)1<<i)) ret+="1";
 		else ret+="0";
 	}
 	return ret;
 }
 
 
-ppluint32 GetCPUCaps (CPUCaps &cpu)
+uint32_t GetCPUCaps (CPUCaps &cpu)
 {
 	if (myBits==0) {
 		myCPUCaps=PPL7_GetCpuCaps();
@@ -94,7 +94,7 @@ ppluint32 GetCPUCaps (CPUCaps &cpu)
 	return myCPUCaps;
 }
 
-ppluint32 GetCPUCaps ()
+uint32_t GetCPUCaps ()
 {
 	if (myBits==0) {
 		myCPUCaps=PPL7_GetCpuCaps();

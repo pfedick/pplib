@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -164,12 +164,12 @@ void Window::setRGBFormat(const RGBFormat &format)
 }
 
 
-ppluint32 Window::flags() const
+uint32_t Window::flags() const
 {
 	return windowFlags;
 }
 
-void Window::setFlags(ppluint32 flags)
+void Window::setFlags(uint32_t flags)
 {
 	windowFlags=flags;
 }

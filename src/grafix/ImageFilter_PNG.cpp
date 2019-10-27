@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -456,7 +456,7 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 					for (int y=0;y<height;y++) {
 						for (int x=0;x<width;x++) {
 							farbe=surface.getPixel(x,y);
-							buffer[x]=(ppluint8)(farbe.color()&0xff);
+							buffer[x]=(uint8_t)(farbe.color()&0xff);
 						}
 						png_write_row(png_ptr, buffer);
 					}
@@ -495,9 +495,9 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 					for (int x=0;x<width;x++) {
 						//farbe=surface->GetPixel(area->left+x,y);
 						farbe=surface.getPixel(x,y);
-						buffer[x*bpp+0]=(ppluint8)farbe.red();
-						buffer[x*bpp+1]=(ppluint8)farbe.green();
-						buffer[x*bpp+2]=(ppluint8)farbe.blue();
+						buffer[x*bpp+0]=(uint8_t)farbe.red();
+						buffer[x*bpp+1]=(uint8_t)farbe.green();
+						buffer[x*bpp+2]=(uint8_t)farbe.blue();
 					}
 					png_write_row(png_ptr, buffer);
 				}
@@ -508,10 +508,10 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 				for (int y=0;y<height;y++) {
 					for (int x=0;x<width;x++) {
 						farbe=surface.getPixel(x,y);
-						buffer[x*bpp+0]=(ppluint8)farbe.red();
-						buffer[x*bpp+1]=(ppluint8)farbe.green();
-						buffer[x*bpp+2]=(ppluint8)farbe.blue();
-						buffer[x*bpp+3]=(ppluint8)farbe.alpha();
+						buffer[x*bpp+0]=(uint8_t)farbe.red();
+						buffer[x*bpp+1]=(uint8_t)farbe.green();
+						buffer[x*bpp+2]=(uint8_t)farbe.blue();
+						buffer[x*bpp+3]=(uint8_t)farbe.alpha();
 					}
 					png_write_row(png_ptr, buffer);
 				}
@@ -522,7 +522,7 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 				for (int y=0;y<height;y++) {
 					for (int x=0;x<width;x++) {
 						farbe=surface.getPixel(x,y);
-						buffer[x*bpp]=(ppluint8)farbe.brightness();
+						buffer[x*bpp]=(uint8_t)farbe.brightness();
 					}
 					png_write_row(png_ptr, buffer);
 				}
@@ -534,8 +534,8 @@ void ImageFilter_PNG::save (const Drawable &surface, FileObject &file, const Ass
 				for (int y=0;y<height;y++) {
 					for (int x=0;x<width;x++) {
 						farbe=surface.getPixel(x,y);
-						buffer[x*bpp]=(ppluint8)farbe.brightness();
-						buffer[x*bpp+1]=(ppluint8)farbe.alpha();
+						buffer[x*bpp]=(uint8_t)farbe.brightness();
+						buffer[x*bpp+1]=(uint8_t)farbe.alpha();
 					}
 					png_write_row(png_ptr, buffer);
 				}

@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -91,7 +91,7 @@
 
 #include "ppl7.h"
 #include "ppl7-inet.h"
-#include "socket.h"
+#include "socket_ppl7.h"
 
 namespace ppl7 {
 
@@ -967,7 +967,7 @@ void TCPSocket::readLoop(void *buffer, size_t bytes, int timeout_seconds, Thread
 {
 	size_t todo=bytes;
 	unsigned char *ptr=(unsigned char*)buffer;
-	ppluint64 timeout=ppl7::GetMilliSeconds()+timeout_seconds*1000;
+	uint64_t timeout=ppl7::GetMilliSeconds()+timeout_seconds*1000;
 	while (todo>0) {
 		if (watch_thread) {
 			if (watch_thread->threadShouldStop()) throw OperationAbortedException("TCPSocket::readLoop");

@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -97,7 +97,7 @@ static Color Surface2RGB_GREY8 (SurfaceColor color)
 #ifndef HAVE_X86_ASSEMBLER
 static SurfaceColor RGB_A8R8G8B8 (int red, int green, int blue, int alpha)
 {
-	ppluint32 r,g,b,a;
+	uint32_t r,g,b,a;
 	r=red & 255;
 	g=green & 255;
 	b=blue & 255;
@@ -108,7 +108,7 @@ static SurfaceColor RGB_A8R8G8B8 (int red, int green, int blue, int alpha)
 
 static SurfaceColor RGB_A8B8G8R8 (int red, int green, int blue, int alpha)
 {
-	ppluint32 r,g,b,a;
+	uint32_t r,g,b,a;
 	r=red & 255;
 	g=green & 255;
 	b=blue & 255;
@@ -140,7 +140,7 @@ static Color Surface2RGB_A8B8G8R8 (SurfaceColor color)
 // Die C-Version ist hier schneller als MMX, oder doch nicht?
 static SurfaceColor RGBBlend_32_255 (SurfaceColor ground, SurfaceColor top, int intensity)
 {
-	ppluint32 a1,r1,g1,b1,a2,r2,g2,b2,i1,i2;
+	uint32_t a1,r1,g1,b1,a2,r2,g2,b2,i1,i2;
 	r1=ground&255;
 	g1=(ground>>8)&255;
 	b1=(ground>>16)&255;

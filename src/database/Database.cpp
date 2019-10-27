@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -523,7 +523,7 @@ AssocArray Database::execArrayf(const char *query, ...)
 	return a;
 }
 
-ppluint64 Database::count(const String &table, const String &where)
+uint64_t Database::count(const String &table, const String &where)
 {
 	String query;
 	query.set("select count(*) as num from ");
@@ -532,7 +532,7 @@ ppluint64 Database::count(const String &table, const String &where)
 		query+=" where "+where;
 	}
 	ResultSet *res=this->query(query);
-	ppluint64 num=res->getString("num").toUnsignedInt64();
+	uint64_t num=res->getString("num").toUnsignedInt64();
 	delete res;
 	return num;
 }
@@ -894,9 +894,9 @@ int Database::ReadKeyValue(CAssocArray &res, const char *query, const char *keyn
 	}
 	Result *r=Query(query);
 	if (!r) return 0;
-	pplint32 nr=(pplint32)r->Rows();
+	int32_t nr=(int32_t)r->Rows();
 	CAssocArray row;
-	for (pplint32 i=0;i<nr;i++) {
+	for (int32_t i=0;i<nr;i++) {
 		row.Clear();
 		if (r->FetchArray(row,i)) {
 			const char *key=row[keyname];
@@ -918,7 +918,7 @@ int Database::ReadKeyValue(CAssocArray &res, const char *query, const char *keyn
 	return 1;
 }
 
-ppluint64 Database::InsertKey(const char *table, CAssocArray &a, const char *keyname, const CAssocArray &exclude)
+uint64_t Database::InsertKey(const char *table, CAssocArray &a, const char *keyname, const CAssocArray &exclude)
 /*!\brief Datensatz mit incrementellem Schlüssel speichern
  *
  * \descr
@@ -945,7 +945,7 @@ ppluint64 Database::InsertKey(const char *table, CAssocArray &a, const char *key
 		PopError();
 		return 0;
 	}
-	ppluint64 id;
+	uint64_t id;
 	CAssocArray r;
 	if (!ExecArrayf(r,"select max(%s)+1 as newid from %s",keyname,table)) {
 		PushError();
@@ -1117,7 +1117,7 @@ String Database::escape(const String &str) const
 	throw UnimplementedVirtualFunctionException("Database::escape");
 }
 
-ppluint64 Database::getAffectedRows()
+uint64_t Database::getAffectedRows()
 /*!\brief Betroffene Zeilen
  *
  * \descr

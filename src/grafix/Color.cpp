@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -135,7 +135,7 @@ Color::Color(int red, int green, int blue, int alpha)
  * - Byte 3 enthält den Blau-Wert zwischen 0 und 255
  * - Byte 4 den Alpha-Wert zwischen 0 und 255
  */
-Color::Color(ppluint32 rgba)
+Color::Color(uint32_t rgba)
 {
 	setColor(rgba);
 }
@@ -154,7 +154,7 @@ Color::Color(ppluint32 rgba)
  * @param alpha Der Transparenz-Wert der Farbe zwischen 0 (völlig transparent)
  * und 255 (vollständig sichtbar).
  */
-Color::Color(ppluint32 rgb, int alpha)
+Color::Color(uint32_t rgb, int alpha)
 {
 	setColor(rgb, alpha);
 }
@@ -171,7 +171,7 @@ Color::Color(ppluint32 rgb, int alpha)
  * - Byte 3 enthält den Blau-Wert
  * - Byte 4 den Alpha-Wert
  */
-ppluint32 Color::color() const
+uint32_t Color::color() const
 {
 	return c;
 }
@@ -187,7 +187,7 @@ ppluint32 Color::color() const
  * - Byte 3 enthält den Blau-Wert
  * - Byte 4 den Alpha-Wert
  */
-ppluint32 Color::rgba() const
+uint32_t Color::rgba() const
 {
 	return c;
 }
@@ -204,7 +204,7 @@ ppluint32 Color::rgba() const
  * - Byte 3 enthält den Blau-Wert
  * - Byte 4 ist immer 0
  */
-ppluint32 Color::rgb() const
+uint32_t Color::rgb() const
 {
 	return c&0xffffff;
 }
@@ -374,7 +374,7 @@ void Color::set(const Color &other)
  * - Byte 3 enthält den Blau-Wert
  * - Byte 4 den Alpha-Wert
  */
-void Color::setColor(ppluint32 rgba)
+void Color::setColor(uint32_t rgba)
 {
 	r=rgba&255;
 	g=(rgba>>8)&255;
@@ -395,7 +395,7 @@ void Color::setColor(ppluint32 rgba)
  * @param alpha Der Transparenz-Wert der Farbe zwischen 0 (völlig transparent)
  * und 255 (vollständig sichtbar).
  */
-void Color::setColor(ppluint32 rgb, int alpha)
+void Color::setColor(uint32_t rgb, int alpha)
 {
 	r=rgb&255;
 	g=(rgb>>8)&255;
@@ -581,7 +581,7 @@ int Color::getYCr() const
  * - Byte 3 enthält den Blau-Wert
  * - Byte 4 den Alpha-Wert
  */
-Color::operator ppluint32() const
+Color::operator uint32_t() const
 {
 	return c;
 }
@@ -597,7 +597,7 @@ Color::operator ppluint32() const
  * - Byte 3 enthält den Blau-Wert
  * - Byte 4 den Alpha-Wert
  */
-Color::operator pplint32() const
+Color::operator int32_t() const
 {
 	return c;
 }

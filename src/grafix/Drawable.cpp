@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -189,7 +189,7 @@ Drawable::Drawable(const Drawable &other, const Point &p, const Size &s)
  * wenn das Drawable nicht mit den angegebenen Parametern erstellt werden kann.
  * Die genaue Ursache kann über den Fehlercode ausgelesen werden.
  */
-Drawable::Drawable(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format)
+Drawable::Drawable(void *base, uint32_t pitch, int width, int height, const RGBFormat &format)
 {
 	memset(&data,0,sizeof(data));
 	fn=NULL;
@@ -327,7 +327,7 @@ void Drawable::copy(const Drawable &other, const Point &p, const Size &s)
  * @exception UnsupportedColorFormatException Das Farbformat \p format wird nicht unterstützt
  * @exception NoGrafixEngineException Die Grafikengine ist nicht initialisiert
  */
-void Drawable::create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format)
+void Drawable::create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format)
 {
 	if (!base) throw NullPointerException();
 	if (!pitch) throw IllegalArgumentException();

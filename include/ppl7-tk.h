@@ -351,7 +351,7 @@ class Widget : public EventHandler
 		Size		MaxSize, MinSize;
 		Rect		myClientOffset;
 		List<Widget*>	childs;
-		ppluint32	lockcount;
+		uint32_t	lockcount;
 		bool		visible;
 		bool		enabled;
 		bool		needsredraw;
@@ -461,7 +461,7 @@ class Window : public Widget
 		PRIV_WINDOW_FUNCTIONS	*fn;
 		WindowManager	*wm;
 		Widget *keyfocus;
-		ppluint32 windowFlags;
+		uint32_t windowFlags;
 		String WindowTitle;
 		Image WindowIcon;
 		RGBFormat WindowRGBFormat;
@@ -487,8 +487,8 @@ class Window : public Widget
 		};
 		Window();
 		~Window();
-		ppluint32 flags() const;
-		void setFlags(ppluint32 flags);
+		uint32_t flags() const;
+		void setFlags(uint32_t flags);
 		const String &windowTitle() const;
 		void setWindowTitle(const String &title);
 		const Drawable &windowIcon() const;
@@ -579,7 +579,7 @@ class WindowManager_SDL2 : public WindowManager
 
 		void DispatchWindowEvent(void *e);
 
-		Window *getWindow(ppluint32 id);
+		Window *getWindow(uint32_t id);
 
 	public:
 		WindowManager_SDL2();

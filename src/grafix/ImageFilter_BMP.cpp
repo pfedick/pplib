@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -58,34 +58,34 @@ namespace grafix {
 #ifndef _WIN32
 /*
 typedef struct tagBITMAPFILEHEADER {
-        ppluint16		bfType;
-        ppluint32		bfSize;
-        ppluint16		bfReserved1;
-        ppluint16		bfReserved2;
-        ppluint32		bfOffBits;
+        uint16_t		bfType;
+        uint32_t		bfSize;
+        uint16_t		bfReserved1;
+        uint16_t		bfReserved2;
+        uint32_t		bfOffBits;
 } BITMAPFILEHEADER;
 */
 
 typedef struct tagRGBQUAD {
-        ppluint8		rgbBlue;
-        ppluint8		rgbGreen;
-        ppluint8		rgbRed;
-        ppluint8		rgbReserved;
+        uint8_t		rgbBlue;
+        uint8_t		rgbGreen;
+        uint8_t		rgbRed;
+        uint8_t		rgbReserved;
 } RGBQUAD;
 
 /*
 typedef struct tagBITMAPINFOHEADER {    //
-    ppluint32   biSize;                // 0   Groesse des Bitmapinfoheaders
-    ppluint32   biWidth;               // 4   Breite des Bildes
-    ppluint32   biHeight;              // 8   Hoehe des Bildes
-    ppluint16   biPlanes;              // 12  Planes
-    ppluint16   biBitCount;            // 14  Bits/Pixel: 4,8 oder 24
-    ppluint32   biCompression;         // 16  0=Keine Kompression
-    ppluint32   biSizeImage;           // 20  0, wenn keine Kompression, sonst Groesse
-    ppluint32   biXPelsPerMeter;		// 24
-    ppluint32   biYPelsPerMeter;		// 28
-    ppluint16   biClrUsed;				// 32
-    ppluint16   biClrImportant;		// 34
+    uint32_t   biSize;                // 0   Groesse des Bitmapinfoheaders
+    uint32_t   biWidth;               // 4   Breite des Bildes
+    uint32_t   biHeight;              // 8   Hoehe des Bildes
+    uint16_t   biPlanes;              // 12  Planes
+    uint16_t   biBitCount;            // 14  Bits/Pixel: 4,8 oder 24
+    uint32_t   biCompression;         // 16  0=Keine Kompression
+    uint32_t   biSizeImage;           // 20  0, wenn keine Kompression, sonst Groesse
+    uint32_t   biXPelsPerMeter;		// 24
+    uint32_t   biYPelsPerMeter;		// 28
+    uint16_t   biClrUsed;				// 32
+    uint16_t   biClrImportant;		// 34
 } BITMAPINFOHEADER;
 */
 
@@ -120,7 +120,7 @@ int ImageFilter_BMP::ident(FileObject &file, IMAGE &img)
 		const char *bmh=address;
 		if (strncmp ((char *)bmh,"BM",2)==0) {
 			const char *bmia=address+14;
-			ppluint32 compression=Peek32((char *)(bmia+16));
+			uint32_t compression=Peek32((char *)(bmia+16));
 
 			if (compression==0 || compression==3) {
 				if (compression!=0 && compression!=3) {	// Nur unkomprimierte BMP's
@@ -161,8 +161,8 @@ int ImageFilter_BMP::ident(FileObject &file, IMAGE &img)
 
 void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
-	ppluint8 * b1, *bmia;
-	ppluint8 *address=(ppluint8 *)file.map();
+	uint8_t * b1, *bmia;
+	uint8_t *address=(uint8_t *)file.map();
 	if (address==NULL) throw NullPointerException();
 
 	//S2i *data=(S2i *)surface->internaldata;
@@ -178,14 +178,14 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 	switch (img.bitdepth) {
 		case 8:					// 8-Bit
 			if (Peek32((char *)(bmia+16))==0) {	// nur unkomprimiert
-				ppluint32 sourcebytesperline=img.pitch;
+				uint32_t sourcebytesperline=img.pitch;
 				if ((sourcebytesperline & 3) != 0)
 					sourcebytesperline=((sourcebytesperline+3)/4)*4;
-				ppluint8 *b2=(ppluint8*)surface.adr();
+				uint8_t *b2=(uint8_t*)surface.adr();
 				// Ist eine Umwandlung der Bittiefe notwendig?
 				if (surface.bitdepth()==img.bitdepth) { // nein
 					int i;
-					for (i=0;i<(pplint32)img.height;i++) {
+					for (i=0;i<(int32_t)img.height;i++) {
 						memcpy((char *)(b2+i*img.pitch),
 							(char *)(b1+(img.height-1-i)*sourcebytesperline),
 							img.pitch);
@@ -207,7 +207,7 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 				for (int y=0;y<img.height;y++) {
 					b1-=sourcebytesperline;
 					for (int x=0;x<img.width;x++) {
-						ppluint8 pixel=b1[x];
+						uint8_t pixel=b1[x];
 						RGBQUAD * rgbq= basergbq+pixel;
 						surface.putPixel(x,y,Color(rgbq->rgbRed, rgbq->rgbGreen, rgbq->rgbBlue,255));
 					}
@@ -245,7 +245,7 @@ void ImageFilter_BMP::load(FileObject &file, Drawable &surface, IMAGE &img)
 void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const AssocArray &param)
 {
 	Color pixel;
-	ppluint32 bpp, bfOffBits;
+	uint32_t bpp, bfOffBits;
 	if (surface.bitdepth()>8) {
 		bpp=3;
 		bfOffBits=54;
@@ -255,7 +255,7 @@ void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const Ass
 		throw UnsupportedFeatureException("ImageFilter_BMP::save with Palette");
 	}
 
-	ppluint32 size=bfOffBits+(surface.width()*surface.height())*bpp;
+	uint32_t size=bfOffBits+(surface.width()*surface.height())*bpp;
 	char *buffer=(char *)malloc(size);
 	if (!buffer) throw OutOfMemoryException();
 	try {
@@ -292,9 +292,9 @@ void ImageFilter_BMP::save (const Drawable &surface, FileObject &file, const Ass
 			if (surface.bitdepth()>8) {
 				for (int x=0;x<(surface.width());x++) {
 					pixel=surface.getPixel(x,y);
-					img[x*bpp]=(ppluint8)pixel.blue();
-					img[x*bpp+1]=(ppluint8)pixel.green();
-					img[x*bpp+2]=(ppluint8)pixel.red();
+					img[x*bpp]=(uint8_t)pixel.blue();
+					img[x*bpp+1]=(uint8_t)pixel.green();
+					img[x*bpp+2]=(uint8_t)pixel.red();
 				}
 			}
 			img+=surface.width()*bpp;

@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -65,7 +65,7 @@ namespace ppl7 {
 
 
 static void CheckVBR(FileObject &file, PPL_MPEG_HEADER *mpg);
-static pplint64 FindNextHeader(FileObject &file, pplint64 pos,PPL_MPEG_HEADER * mpg);
+static int64_t FindNextHeader(FileObject &file, int64_t pos,PPL_MPEG_HEADER * mpg);
 
 static int MPEGVersion []= {3,0,2,1};
 //static int MPEGLayer []={0,3,2,1};
@@ -111,7 +111,7 @@ bool IdentMPEG(FileObject &file, PPL_MPEG_HEADER * mpg)
  */
 {
 	PPL_MPEG_HEADER mpgheader;
-	pplint64 p=0;
+	int64_t p=0;
 	unsigned char *buffer;
 	if (!mpg) mpg=&mpgheader;
 	memset(mpg,0,sizeof(PPL_MPEG_HEADER));
@@ -146,7 +146,7 @@ bool IdentMPEG(FileObject &file, PPL_MPEG_HEADER * mpg)
 	p=FindNextHeader(file,mpg->start,mpg);
 	if (p<0) return (false);
 	if (mpg==&mpgheader) return true;
-	mpg->start=(ppluint64)p;
+	mpg->start=(uint64_t)p;
 	//printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
 
 	// Jetzt noch das Ende der Daten suchen
@@ -175,7 +175,7 @@ bool IdentMPEG(FileObject &file, PPL_MPEG_HEADER * mpg)
 		mpg->mslength=mpg->size*8/(mpg->bitrate);
 		mpg->length=mpg->mslength/1000;
 	}
-	mpg->samples=(ppluint64)((double)mpg->frequency*(double)mpg->mslength/1000.0);
+	mpg->samples=(uint64_t)((double)mpg->frequency*(double)mpg->mslength/1000.0);
 	//mpg->samples=0;
 	CheckVBR(file,mpg);
 
@@ -261,7 +261,7 @@ bool IsMPEGHeader(char *header)
 
 void GetMP3Frame(FileObject &file, PPL_MPEG_HEADER &mpg, ByteArray &buffer)
 {
-	pplint64 pos=file.tell();
+	int64_t pos=file.tell();
 	pos=FindNextHeader(file,pos,&mpg);
 	if (pos<0) {
 		buffer.clear();
@@ -274,13 +274,13 @@ void GetMP3Frame(FileObject &file, PPL_MPEG_HEADER &mpg, ByteArray &buffer)
 	file.seek(pos+mpg.framesize);
 }
 
-static pplint64 FindNextHeader(FileObject &file, pplint64 pos, PPL_MPEG_HEADER *mpg)
+static int64_t FindNextHeader(FileObject &file, int64_t pos, PPL_MPEG_HEADER *mpg)
 {
 	// Befindet sich an dieser Position ein MPEG-Header?
 	const char *header,*buffer;
-	ppluint64 p,temp;
-	ppluint64 mapsize;
-	ppluint64 filesize=file.size();
+	uint64_t p,temp;
+	uint64_t mapsize;
+	uint64_t filesize=file.size();
 
 	mapsize=filesize-pos;
 	if (mapsize<16) return -1;
@@ -343,7 +343,7 @@ static pplint64 FindNextHeader(FileObject &file, pplint64 pos, PPL_MPEG_HEADER *
 						mpg->mslength=mpg->size*8/(mpg->bitrate);
 						mpg->length=mpg->mslength/1000;
 					}
-					mpg->samples=(ppluint64)((double)mpg->frequency*(double)mpg->mslength/1000.0);
+					mpg->samples=(uint64_t)((double)mpg->frequency*(double)mpg->mslength/1000.0);
 
 					return pos;
 			}
@@ -375,17 +375,17 @@ static void CheckVBR(FileObject &file, PPL_MPEG_HEADER *mpg)
 	m.size=mpg->size;
 	m.filesize=mpg->filesize;
 
-	ppluint64 frames=0;
+	uint64_t frames=0;
 	int lastbitrate;
-	pplint64 pos;
-	ppluint64 avgbitrate=0;
+	int64_t pos;
+	uint64_t avgbitrate=0;
 	mpg->vbr=false;
 
 	lastbitrate=mpg->bitrate;
 	file.setMapReadAhead(1024*1024);	// 1MB Read-Cache
 	pos=FindNextHeader(file,mpg->start,&m);
 	if (pos<0) return;
-	while ((ppluint64)pos<mpg->end) {
+	while ((uint64_t)pos<mpg->end) {
 		//printf ("checkvbr: %i\n",frames);
 		frames++;
 		// Informationen im Header auswerten
@@ -399,7 +399,7 @@ static void CheckVBR(FileObject &file, PPL_MPEG_HEADER *mpg)
 			pos+=m.framesize;
 			if (!m.framesize) pos+=4;
 			pos=FindNextHeader(file,pos,&m);
-			if ((pos<0) || (ppluint64)pos>mpg->end) break;
+			if ((pos<0) || (uint64_t)pos>mpg->end) break;
 			if (m.layer==mpg->layer && m.version==mpg->version) break;
 			else {
 				m.end=mpg->end;
@@ -409,7 +409,7 @@ static void CheckVBR(FileObject &file, PPL_MPEG_HEADER *mpg)
 				frames=0;
 			}
 		}
-		if ((pos<0) || (ppluint64)pos>mpg->end) break;
+		if ((pos<0) || (uint64_t)pos>mpg->end) break;
 	}
 	pos=0;
 	if (mpg->vbr==true) {
@@ -418,9 +418,9 @@ static void CheckVBR(FileObject &file, PPL_MPEG_HEADER *mpg)
 			mpg->samples=frames*384;
 		else
 			mpg->samples=frames*1152;
-		mpg->mslength=(ppluint64)(((ppluint64)(mpg->samples)*1000)/(ppluint64)(mpg->frequency));
+		mpg->mslength=(uint64_t)(((uint64_t)(mpg->samples)*1000)/(uint64_t)(mpg->frequency));
 		mpg->length=mpg->samples/mpg->frequency;
-		mpg->bitrate=(ppluint32)(avgbitrate/frames);
+		mpg->bitrate=(uint32_t)(avgbitrate/frames);
 	}
 }
 

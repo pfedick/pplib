@@ -69,7 +69,7 @@ class ResultSet
 		};
 		virtual ~ResultSet() {};
 		virtual	void		clear()=0;
-		virtual ppluint64	affected() const=0;
+		virtual uint64_t	affected() const=0;
 		virtual int			fields() const=0;
 		virtual String		getString(const String &fieldname)=0;
 		virtual String		getString(int field)=0;
@@ -96,8 +96,8 @@ class Database
 	private:
 		AssocArray	ConnectParam;
 		Logger		*Log;
-		ppluint64	lastuse;
-		ppluint64	lastping;
+		uint64_t	lastuse;
+		uint64_t	lastping;
 
 	protected:
 		void    logQuery(const String &query, float duration);
@@ -127,7 +127,7 @@ class Database
 		void execArrayAllf(AssocArray &result, const char *query, ...);
 		void execArrayAll(AssocArray &result, const String &query);
 
-		ppluint64 count(const String &table, const String &where=String());
+		uint64_t count(const String &table, const String &where=String());
 		/*
 		void save(const String &method, const String &table, const AssocArray &a, const String &clause="", const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
 		String genQuery(const String &method, const String &table, const AssocArray &a, const String &clause="", const AssocArray &exclude=AssocArray(), const AssocArray &types=AssocArray());
@@ -143,7 +143,7 @@ class Database
 		virtual ResultSet	*query(const String &query);
 		virtual bool		ping();
 		virtual String		escape(const String &str) const;
-		virtual ppluint64	getAffectedRows();
+		virtual uint64_t	getAffectedRows();
 		virtual void		startTransaction();
 		virtual void		endTransaction();
 		virtual void		cancelTransaction();
@@ -162,7 +162,7 @@ class PostgreSQL: public Database
 {
 	private:
 		void		*conn;
-		ppluint64	affectedrows;
+		uint64_t	affectedrows;
 		int			transactiondepth;
 		AssocArray	condata;
 
@@ -182,7 +182,7 @@ class PostgreSQL: public Database
 		virtual ResultSet	*query(const String &query);
 		virtual bool		ping();
 		virtual String		escape(const String &str) const;
-		virtual ppluint64	getAffectedRows();
+		virtual uint64_t	getAffectedRows();
 		virtual void		startTransaction();
 		virtual void		endTransaction();
 		virtual void		cancelTransaction();
@@ -201,7 +201,7 @@ class MySQL: public Database
 {
 	private:
 		void		*conn;
-		ppluint64	affectedrows;
+		uint64_t	affectedrows;
 		int			transactiondepth;
 		AssocArray	condata;
 
@@ -220,7 +220,7 @@ class MySQL: public Database
 		virtual ResultSet	*query(const String &query);
 		virtual bool		ping();
 		virtual String		escape(const String &str) const;
-		virtual ppluint64	getAffectedRows();
+		virtual uint64_t	getAffectedRows();
 		virtual void		startTransaction();
 		virtual void		endTransaction();
 		virtual void		cancelTransaction();
@@ -236,7 +236,7 @@ class SQLite: public Database
 {
 	private:
 		void		*conn;
-		ppluint64	affectedrows;
+		uint64_t	affectedrows;
 		int			transactiondepth;
 		AssocArray	condata;
 
@@ -256,7 +256,7 @@ class SQLite: public Database
 		virtual ResultSet	*query(const String &query);
 		virtual bool		ping();
 		virtual String		escape(const String &str) const;
-		virtual ppluint64	getAffectedRows();
+		virtual uint64_t	getAffectedRows();
 		virtual void		startTransaction();
 		virtual void		endTransaction();
 		virtual void		cancelTransaction();

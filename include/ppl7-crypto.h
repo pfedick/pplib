@@ -129,7 +129,7 @@ class Digest
 		const void *m;
 		void *ctx;
 		unsigned char *ret;
-		ppluint64 bytecount;
+		uint64_t bytecount;
 
 	public:
 		enum Algorithm {
@@ -164,7 +164,7 @@ class Digest
 		void saveDigest(WideString &result);
 
 		void reset();
-		ppluint64 bytesHashed() const;
+		uint64_t bytesHashed() const;
 
 		static ByteArray hash(const ByteArrayPtr &data, Algorithm algorithm);
 		static ByteArray hash(const ByteArrayPtr &data, const String &algorithmName);
@@ -175,8 +175,8 @@ class Digest
 		static ByteArray sha256(const ByteArrayPtr &data);
 		static ByteArray sha384(const ByteArrayPtr &data);
 		static ByteArray sha512(const ByteArrayPtr &data);
-		static ppluint32 crc32(const ByteArrayPtr &data);
-		static ppluint32 adler32(const ByteArrayPtr &data);
+		static uint32_t crc32(const ByteArrayPtr &data);
+		static uint32_t adler32(const ByteArrayPtr &data);
 
 };
 

@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -48,7 +48,7 @@
 #endif
 #include "ppl7.h"
 #include "ppl7-db.h"
-#include "threads.h"
+#include "threads_ppl7.h"
 
 #ifdef HAVE_MYSQL
 #ifdef MINGW32
@@ -87,14 +87,14 @@ class MySQLResult : public ResultSet
 		MYSQL_ROW	row;			//!\brief Pointer auf die aktuelle Result-Zeile
 		MYSQL		*conn;			//!\brief MySQL-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
 		MySQL		*mysql_class;	//!\brief Die ppl7::db::MySQL-Klasse, die das Result erzeugt hat
-		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
+		uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 
 	public:
 		MySQLResult();
 		virtual ~MySQLResult();
 		virtual	void		clear();
-		virtual ppluint64	affected() const;
+		virtual uint64_t	affected() const;
 		virtual int			fields() const;
 		virtual String		getString(const String &fieldname);
 		virtual String		getString(int field);
@@ -137,7 +137,7 @@ void MySQLResult::clear()
 	num_fields=0;
 }
 
-ppluint64 MySQLResult::affected() const
+uint64_t MySQLResult::affected() const
 {
 	return affectedrows;
 }
@@ -714,7 +714,7 @@ String MySQL::escape(const String &str) const
 #endif
 }
 
-ppluint64 MySQL::getAffectedRows()
+uint64_t MySQL::getAffectedRows()
 {
 	return affectedrows;
 }

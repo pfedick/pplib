@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -50,8 +50,8 @@
 typedef struct tagGLYPH {
 	const char *data;
 	char *target;
-	ppluint32 pitch;
-	pplint32 color;
+	uint32_t pitch;
+	int32_t color;
 } GLYPH;
 
 extern "C" {
@@ -250,10 +250,10 @@ void FontEngineFont5::deleteFont(FontFile *file)
 extern "C" {
 void BltGlyph_M8_32 (GLYPH *g)
 {
-	pplint16 width=Peek16(g->data);
-	pplint16 height=Peek16(g->data+2);
+	int16_t width=Peek16(g->data);
+	int16_t height=Peek16(g->data+2);
 	const char *bitmap=g->data+10;
-	ppluint32 *t=(ppluint32 *)g->target;
+	uint32_t *t=(uint32_t *)g->target;
 	int pitch=g->pitch>>2;
 	SurfaceColor c=g->color;
 	int v;
@@ -271,10 +271,10 @@ void BltGlyph_M8_32 (GLYPH *g)
 
 static int DrawGlyphMono8(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
+	int16_t width=Peek16(glyph);
+	int16_t height=Peek16(glyph+2);
+	int16_t bearingx=Peek16(glyph+4);
+	int16_t bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -294,10 +294,10 @@ static int DrawGlyphMono8(DRAWABLE_DATA &data, const char *glyph, int x, int y, 
 
 static int DrawGlyphMono1(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
+	int16_t width=Peek16(glyph);
+	int16_t height=Peek16(glyph+2);
+	int16_t bearingx=Peek16(glyph+4);
+	int16_t bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -305,7 +305,7 @@ static int DrawGlyphMono1(DRAWABLE_DATA &data, const char *glyph, int x, int y, 
 
 	const char *bitmap=glyph+10;
 	int v=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<height;yy++) {
 		for (int xx=0;xx<width;xx++) {
 			if (!bitcount) {
@@ -325,10 +325,10 @@ static int DrawGlyphMono1(DRAWABLE_DATA &data, const char *glyph, int x, int y, 
 
 static int DrawGlyphAA2(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
+	int16_t width=Peek16(glyph);
+	int16_t height=Peek16(glyph+2);
+	int16_t bearingx=Peek16(glyph+4);
+	int16_t bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -336,7 +336,7 @@ static int DrawGlyphAA2(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 	const char *bitmap=glyph+10;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<height;yy++) {
 		for (int xx=0;xx<width;xx++) {
 			if (!bitcount) {
@@ -358,10 +358,10 @@ static int DrawGlyphAA2(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 static int DrawGlyphAA4(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
+	int16_t width=Peek16(glyph);
+	int16_t height=Peek16(glyph+2);
+	int16_t bearingx=Peek16(glyph+4);
+	int16_t bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -369,7 +369,7 @@ static int DrawGlyphAA4(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 	const char *bitmap=glyph+10;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<height;yy++) {
 		for (int xx=0;xx<width;xx++) {
 			if (!bitcount) {
@@ -390,10 +390,10 @@ static int DrawGlyphAA4(DRAWABLE_DATA &data, const char *glyph, int x, int y, Su
 
 static int DrawGlyphAA8(DRAWABLE_DATA &data, const char *glyph, int x, int y, SurfaceColor c)
 {
-	pplint16 width=Peek16(glyph);
-	pplint16 height=Peek16(glyph+2);
-	pplint16 bearingx=Peek16(glyph+4);
-	pplint16 bearingy=Peek16(glyph+6);
+	int16_t width=Peek16(glyph);
+	int16_t height=Peek16(glyph+2);
+	int16_t bearingx=Peek16(glyph+4);
+	int16_t bearingy=Peek16(glyph+6);
 	int y1=y;
 	int x1=x;
 	x=x1+bearingx;
@@ -481,8 +481,8 @@ void FontEngineFont5::renderInternal(PFPChunk *c, const Font &font, Drawable &dr
 	int pixelformat=Peek8(header+1);
 	int start=0;
 	int end=0;
-	pplint16 bearingy, bearingx, width, height, advance;
-	pplint16 MaxHeight, MaxBearingY;
+	int16_t bearingy, bearingx, width, height, advance;
+	int16_t MaxHeight, MaxBearingY;
 	MaxHeight=Peek16(header+6);
 	MaxBearingY=Peek16(header+4);
 
@@ -634,8 +634,8 @@ Size FontEngineFont5::measure(const FontFile &file, const Font &font, const Wide
 	const char *glyph;
 	int start=0;
 	int end=0;
-	pplint16 bearingy, height, advance;
-	pplint16 MaxHeight;
+	int16_t bearingy, height, advance;
+	int16_t MaxHeight;
 	MaxHeight=Peek16(header+6);
 	//MaxBearingY=Peek16(header+4);
 

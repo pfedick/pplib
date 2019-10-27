@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -54,34 +54,34 @@ namespace grafix {
  */
 
 typedef struct _TgaHeader {
-	ppluint8 IDLength;		/* 00h Size of Image ID field */
-	ppluint8 ColorMapType;	/* 01h Color map type */
-	ppluint8 ImageType;		/* 02h Image type code */
-	ppluint16 CMapStart;		/* 03h Color map origin */
-	ppluint16 CMapLength;	/* 05h Color map length */
-	ppluint8 CMapDepth;		/* 07h Depth of color map entries */
-	ppluint16 XOffset;		/* 08h X origin of image */
-	ppluint16 YOffset;		/* 0Ah Y origin of image */
-	ppluint16 Width;		/* 0Ch Width of image */
-	ppluint16 Height;		/* 0Eh Height of image */
-	ppluint8 PixelDepth;	/* 10h Image pixel size */
-	ppluint8 ImageDescriptor;	/* 11h Image descriptor byte */
+	uint8_t IDLength;		/* 00h Size of Image ID field */
+	uint8_t ColorMapType;	/* 01h Color map type */
+	uint8_t ImageType;		/* 02h Image type code */
+	uint16_t CMapStart;		/* 03h Color map origin */
+	uint16_t CMapLength;	/* 05h Color map length */
+	uint8_t CMapDepth;		/* 07h Depth of color map entries */
+	uint16_t XOffset;		/* 08h X origin of image */
+	uint16_t YOffset;		/* 0Ah Y origin of image */
+	uint16_t Width;		/* 0Ch Width of image */
+	uint16_t Height;		/* 0Eh Height of image */
+	uint8_t PixelDepth;	/* 10h Image pixel size */
+	uint8_t ImageDescriptor;	/* 11h Image descriptor byte */
 } TGAHEAD;
 
 static void PeekHeader(const char *address, TGAHEAD *tga)
 {
-	tga->IDLength=(ppluint8)Peek8(address+0);
-	tga->ColorMapType=(ppluint8)Peek8(address+1);
-	tga->ImageType=(ppluint8)Peek8(address+2);
-	tga->CMapStart=(ppluint16)Peek16(address+3);
-	tga->CMapLength=(ppluint16)Peek16(address+5);
-	tga->CMapDepth=(ppluint8)Peek8(address+7);
-	tga->XOffset=(ppluint16)Peek16(address+8);
-	tga->YOffset=(ppluint16)Peek16(address+10);
-	tga->Width=(ppluint16)Peek16(address+12);
-	tga->Height=(ppluint16)Peek16(address+14);
-	tga->PixelDepth=(ppluint8)Peek8(address+16);
-	tga->ImageDescriptor=(ppluint8)Peek8(address+17);
+	tga->IDLength=(uint8_t)Peek8(address+0);
+	tga->ColorMapType=(uint8_t)Peek8(address+1);
+	tga->ImageType=(uint8_t)Peek8(address+2);
+	tga->CMapStart=(uint16_t)Peek16(address+3);
+	tga->CMapLength=(uint16_t)Peek16(address+5);
+	tga->CMapDepth=(uint8_t)Peek8(address+7);
+	tga->XOffset=(uint16_t)Peek16(address+8);
+	tga->YOffset=(uint16_t)Peek16(address+10);
+	tga->Width=(uint16_t)Peek16(address+12);
+	tga->Height=(uint16_t)Peek16(address+14);
+	tga->PixelDepth=(uint8_t)Peek8(address+16);
+	tga->ImageDescriptor=(uint8_t)Peek8(address+17);
 }
 
 /*
@@ -126,11 +126,11 @@ int ImageFilter_TGA::ident(FileObject &file, IMAGE &img)
 				(tga->ImageDescriptor==32 || tga->ImageDescriptor==0) &&
 				(tga->PixelDepth==24 || tga->PixelDepth==32) &&
 				(tga->ImageType==2	|| tga->ImageType==10) ) {
-			img.width=(ppluint32)tga->Width;
-			img.height=(ppluint32)tga->Height;
-			img.bitdepth=(ppluint32)tga->PixelDepth;
+			img.width=(uint32_t)tga->Width;
+			img.height=(uint32_t)tga->Height;
+			img.bitdepth=(uint32_t)tga->PixelDepth;
 			img.pitch=img.width*img.bitdepth/8;
-			img.colors=(ppluint32)256*256*256;
+			img.colors=(uint32_t)256*256*256;
 			return 1;
 
 		}
@@ -143,9 +143,9 @@ int ImageFilter_TGA::ident(FileObject &file, IMAGE &img)
 void ImageFilter_TGA::load(FileObject &file, Drawable &surface, IMAGE &img)
 {
 	TGAHEAD tgafield, *tga=&tgafield;
-	ppluint8 	* b1;
+	uint8_t 	* b1;
 	Color	farbwert;
-    ppluint8 *address=(ppluint8*)file.map();
+    uint8_t *address=(uint8_t*)file.map();
 
 	PeekHeader((char*)address,tga);
 
@@ -158,7 +158,7 @@ void ImageFilter_TGA::load(FileObject &file, Drawable &surface, IMAGE &img)
     //printf ("img->width: %u, img->height: %u, img->bitdepth: %u\n",img->width, img->height, img->bitdepth);
 
 	b1=address+18+tga->IDLength;
-	ppluint32 mpl=3;
+	uint32_t mpl=3;
 
 	switch (tga->ImageType) {
 		case 2:					// Unkomprimierte Daten

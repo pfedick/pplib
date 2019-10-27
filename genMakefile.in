@@ -211,7 +211,7 @@ CORE_COVERAGE="$CORE_COVERAGE \\
 	
 
 
-find_c_files "crypto" "CRYPTO" "" "crypto_" "\$(incdir)/ppl7-crypto.h \$(incdir)/crypto.h"
+find_c_files "crypto" "CRYPTO" "" "crypto_" "\$(incdir)/ppl7-crypto.h"
 CRYPTO_RELEASE="$FOUND_RELEASE"
 CRYPTO_DEBUG="$FOUND_DEBUG"
 CRYPTO_COVERAGE="$FOUND_COVERAGE"

@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -53,7 +53,6 @@
 
 #include "ppl7.h"
 #include "ppl7-crypto.h"
-
 
 namespace ppl7 {
 
@@ -242,13 +241,13 @@ void Digest::addData(FileObject &file)
 {
 	file.seek(0);
 	size_t bsize=1024*1024*1;		// We allocate 1 MB maximum
-	ppluint64 fsize=file.size();
+	uint64_t fsize=file.size();
 	if (fsize<bsize) bsize=fsize;	// or filesize if file is < 1 MB
 	void *buffer=malloc(bsize);
 	if (!buffer) {
 		throw OutOfMemoryException();
 	}
-	ppluint64 rest=fsize;
+	uint64_t rest=fsize;
 	try {
 		while(rest) {
 			size_t bytes=rest;
@@ -274,7 +273,7 @@ void Digest::addFile(const String &filename)
 	addData(ff);
 }
 
-ppluint64 Digest::bytesHashed() const
+uint64_t Digest::bytesHashed() const
 {
 	return bytecount;
 }
@@ -398,7 +397,7 @@ ByteArray Digest::sha512(const ByteArrayPtr &data)
 	return Digest::hash(data,Algo_SHA512);
 }
 
-ppluint32 Digest::crc32(const ByteArrayPtr &data)
+uint32_t Digest::crc32(const ByteArrayPtr &data)
 {
 #ifdef HAVE_LIBZ
 	uLong crc=::crc32(0L,Z_NULL,0);
@@ -407,12 +406,12 @@ ppluint32 Digest::crc32(const ByteArrayPtr &data)
 	return Crc32(data.ptr(),data.size());
 }
 
-ppluint32 Digest::adler32(const ByteArrayPtr &data)
+uint32_t Digest::adler32(const ByteArrayPtr &data)
 {
      const unsigned char *buffer = (const unsigned char *)data.ptr();
      size_t buflength=data.size();
-     ppluint32 s1 = 1;
-     ppluint32 s2 = 0;
+     uint32_t s1 = 1;
+     uint32_t s2 = 0;
 
      for (size_t n = 0; n < buflength; n++) {
         s1 = (s1 + buffer[n]) % 65521;

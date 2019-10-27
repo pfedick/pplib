@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -93,7 +93,7 @@
 
 #include "ppl7.h"
 #include "ppl7-inet.h"
-#include "socket.h"
+#include "socket_ppl7.h"
 
 namespace ppl7 {
 

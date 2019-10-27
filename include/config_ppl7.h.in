@@ -53,6 +53,16 @@
 #undef HAVE_MKTIME
 #undef size_t
 #undef wchar_t
+#undef int8_t
+#undef int16_t
+#undef int32_t
+#undef int64_t
+#undef uint8_t
+#undef uint16_t
+#undef uint32_t
+#undef uint64_t
+#undef uintptr_t
+
 
 #undef HAVE_ALARM
 #undef HAVE_BZERO
@@ -391,23 +401,6 @@
 #undef POSTGRESQL_HAVE_PQsetSingleRowMode
 #undef HAVE_SQLITE3
 
-
-#define ppluint8	undefined
-#define pplint8		undefined
-#define ppluint16	undefined
-#define pplint16	undefined
-#define ppluint32	undefined
-#define pplint32	undefined
-#define ppluint64	undefined
-#define pplint64	undefined
-
-#define ppliptr		undefined
-
-#define pplfloat	float
-#define ppldouble	double
-#define pplbool		bool
-#define pplchar		char
-#define ppluchar	unsigned char
 
 #define ICONV_UNICODE	undefined
 

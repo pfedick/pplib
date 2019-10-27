@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -191,10 +191,10 @@ erstellen, zum Beispiel innerhalb eines binären Baumes.
 typedef struct tagRenderContext {
 	const char *bitmap;
 	char *target;
-	ppluint32 pitch;
-	pplint32 color;
-	pplint16 width;
-	pplint16 height;
+	uint32_t pitch;
+	int32_t color;
+	int16_t width;
+	int16_t height;
 } RENDER_CONTEXT;
 
 
@@ -237,7 +237,7 @@ class Font6Renderer
 {
 	private:
 		PFPFile ff;
-		std::map<ppluint32,Font6Face> Faces;
+		std::map<uint32_t,Font6Face> Faces;
 		String Name, Author, Copyright, Description;
 
 		void loadFace(const char *data, size_t size);
@@ -330,7 +330,7 @@ static void DrawGlyphMono1_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -351,7 +351,7 @@ static void DrawGlyphMono1_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int 
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -372,7 +372,7 @@ static void DrawGlyphMono1_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -393,7 +393,7 @@ static void DrawGlyphMono1_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -414,7 +414,7 @@ static void DrawGlyphAA2_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, 
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -437,7 +437,7 @@ static void DrawGlyphAA2_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x,
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -460,7 +460,7 @@ static void DrawGlyphAA2_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -483,7 +483,7 @@ static void DrawGlyphAA2_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -507,7 +507,7 @@ static void DrawGlyphAA4_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, 
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -529,7 +529,7 @@ static void DrawGlyphAA4_90(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x,
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -551,7 +551,7 @@ static void DrawGlyphAA4_180(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -573,7 +573,7 @@ static void DrawGlyphAA4_270(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x
 {
 	const char *bitmap=glyph.bitmap;
 	int v=0, v2=0;
-	ppluint8 bitcount=0;
+	uint8_t bitcount=0;
 	for (int yy=0;yy<glyph.height;yy++) {
 		for (int xx=0;xx<glyph.width;xx++) {
 			if (!bitcount) {
@@ -717,14 +717,14 @@ void Font6Renderer::loadFace(const char *data, size_t size)
 	Face.MaxHeight=Peek16(data+6);
 	Face.Underscore=Peek16(data+8);
 	size_t numGlyphs=Peek16(data+10);
-	ppluint32 id;
+	uint32_t id;
 	id=(Face.Flags&7)<<16;
 	id|=Face.Size;
 	size_t p=12;
 	//printf ("Lade Face mit id %i, Size: %i, Flags: %i, Bytes: %zi\n",id,Face.Size,Face.Flags,size);
 
 	// Wir fügen zuerst das Face in die Map ein
-	Faces.insert(std::pair<ppluint32,Font6Face>(id,Face));
+	Faces.insert(std::pair<uint32_t,Font6Face>(id,Face));
 
 	// Damit wir im nächsten Schritt die Glyphen direkt innerhalb des Eintrags in der Map
 	// ergänzen können, was uns eine ganze Menge Kopiererei erspart
@@ -770,11 +770,11 @@ void Font6Renderer::loadGlyph(Font6Face &Face, const char *data, size_t size)
 
 const Font6Face* Font6Renderer::getFace(int size, int flags)
 {
-	ppluint32 id;
+	uint32_t id;
 	id=(flags&7)<<16;
 	id|=(size&0xffff);
 	//printf("Suche id %i aus %zi Faces\n",id,Faces.size());
-	std::map<ppluint32,Font6Face>::const_iterator it;
+	std::map<uint32_t,Font6Face>::const_iterator it;
 	it=Faces.find(id);
 	if (it==Faces.end()) return NULL;
 	return &it->second;

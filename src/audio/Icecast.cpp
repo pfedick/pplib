@@ -26,7 +26,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -48,7 +48,7 @@ namespace ppl7 {
 
 #ifdef HAVE_LIBSHOUT
 static Mutex		MutexInstance;
-static ppluint32	instance=0;
+static uint32_t	instance=0;
 #endif
 
 /*!\class Icecast
