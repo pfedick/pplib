@@ -61,7 +61,6 @@
  * This code is the same as the code published by RSA Inc.  It has been
  * edited for clarity and style only.
  */
-#include "prolog.h"
 #include <sys/types.h>
 #include <string.h>
 #include <fcntl.h>
@@ -69,6 +68,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "../../include/prolog_ppl7.h"
 #ifdef _WIN32
 #include <io.h>
 #else

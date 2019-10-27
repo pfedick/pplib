@@ -32,10 +32,10 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../../include/prolog_ppl7.h"
 
 /*
        The glibc version of struct tm has additional fields

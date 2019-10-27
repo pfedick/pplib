@@ -33,13 +33,13 @@
  *******************************************************************************/
 
 
-#include "prolog.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <time.h>
+
+#include "../../include/prolog_ppl7.h"
 #ifdef HAVE_UNISTD_H
 	#include <unistd.h>
 #endif

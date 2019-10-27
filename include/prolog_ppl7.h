@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
@@ -50,4 +51,4 @@
 		#include <ppl7-config.h>
 	#endif
 #endif
-#include "compat.h"
+#include "compat_ppl7.h"

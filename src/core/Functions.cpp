@@ -33,7 +33,7 @@
  *******************************************************************************/
 
 
-#include "prolog.h"
+#include "../../include/prolog_ppl7.h"
 #ifdef HAVE_WIDEC_H
 #include <widec.h>
 #endif

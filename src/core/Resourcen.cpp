@@ -32,7 +32,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog.h"
+#include "../../include/prolog_ppl7.h"
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
