@@ -1,14 +1,8 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2019, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,9 +32,9 @@
 
 #define PPL7_VERSION_MAJOR	7
 #define PPL7_VERSION_MINOR	0
-#define PPL7_VERSION_BUILD	0
-#define PPL7_RELEASEDATE	20180718
-#define PPL7_COPYRIGHT		"Copyright (c) 2018 by Patrick Fedick"
+#define PPL7_VERSION_BUILD	1
+#define PPL7_RELEASEDATE	20191027
+#define PPL7_COPYRIGHT		"Copyright (c) 2019 by Patrick Fedick"
 
 // Inlcude PPL7 configuration file
 #ifndef _PPL7_CONFIG
