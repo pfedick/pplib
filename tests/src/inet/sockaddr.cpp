@@ -45,10 +45,6 @@
     #include <winsock2.h>
 	#include <Ws2tcpip.h>
 	#include <windows.h>
-namespace ppl7 { namespace compat {
-	int inet_pton(int af, const char *src, void *dst);
-} }
-	using ppl7::compat::inet_pton;
 #else
 #include <sys/socket.h>
 #include <netdb.h>
