@@ -37,7 +37,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "../../include/prolog_ppl7.h"
+#include "prolog_ppl7.h"
 #include "ppl7.h"
 
 

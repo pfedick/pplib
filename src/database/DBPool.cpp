@@ -27,7 +27,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "../../include/prolog_ppl7.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif

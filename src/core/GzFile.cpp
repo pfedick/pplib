@@ -35,7 +35,7 @@
 
 #include <time.h>
 
-#include "../../include/prolog_ppl7.h"
+#include "prolog_ppl7.h"
 #ifdef HAVE_UNISTD_H
 	#include <unistd.h>
 #endif
