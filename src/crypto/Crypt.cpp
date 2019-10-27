@@ -48,6 +48,7 @@
 #endif
 
 #include "ppl7.h"
+#include "ppl7-crypto.h"
 
 namespace ppl7 {
 

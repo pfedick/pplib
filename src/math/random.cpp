@@ -297,7 +297,7 @@ static bool pplsrand_called=false;
 
 namespace ppl7 {
 
-void srand(ppluint32 x)
+void srand(uint32_t x)
 /*!\ingroup PPLGroupMath
  */
 {
@@ -478,7 +478,7 @@ size_t rand(size_t min, size_t max)
 			pid_t p=getpid();
 			srand(time(NULL)+p);
 		#else
-			srand((pplint32)time(NULL));
+			srand((int32_t)time(NULL));
 		#endif
 	}
 

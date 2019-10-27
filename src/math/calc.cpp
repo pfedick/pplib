@@ -120,8 +120,8 @@ static double CalcType(double v1, double v2, int type)
 	if (type==CalcToken::TYPE_MULTIPLY) return v1*v2;
 	if (type==CalcToken::TYPE_DIVIDE) return v1/v2;
 	if (type==CalcToken::TYPE_POWER) return pow(v1,v2);
-	if (type==CalcToken::TYPE_SHIFT_LEFT) return (ppluint64)v1<<(int)v2;
-	if (type==CalcToken::TYPE_SHIFT_RIGHT) return (ppluint64)v1>>(int)v2;
+	if (type==CalcToken::TYPE_SHIFT_LEFT) return (uint64_t)v1<<(int)v2;
+	if (type==CalcToken::TYPE_SHIFT_RIGHT) return (uint64_t)v1>>(int)v2;
 	return 0;
 }
 

@@ -437,81 +437,81 @@ TEST_F(PeekAndPokeTest, Peek8) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint32)0xa4,ppl7::Peek8(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0,ppl7::Peek8(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0xff,ppl7::Peek8(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xa4,ppl7::Peek8(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0,ppl7::Peek8(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xff,ppl7::Peek8(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, Peek16) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint32)0xe9a4,ppl7::Peek16(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0,ppl7::Peek16(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0xffff,ppl7::Peek16(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xe9a4,ppl7::Peek16(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0,ppl7::Peek16(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xffff,ppl7::Peek16(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, Peek24) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint32)0x2ae9a4,ppl7::Peek24(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0,ppl7::Peek24(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0xffffff,ppl7::Peek24(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0x2ae9a4,ppl7::Peek24(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0,ppl7::Peek24(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xffffff,ppl7::Peek24(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, Peek32) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint32)0xf02ae9a4,ppl7::Peek32(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0,ppl7::Peek32(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0xffffffff,ppl7::Peek32(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xf02ae9a4,ppl7::Peek32(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0,ppl7::Peek32(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xffffffff,ppl7::Peek32(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, Peek64) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint64)0xa1479deef02ae9a4,ppl7::Peek64(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint64)0,ppl7::Peek64(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint64)0xffffffffffffffff,ppl7::Peek64(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint64_t)0xa1479deef02ae9a4,ppl7::Peek64(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint64_t)0,ppl7::Peek64(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint64_t)0xffffffffffffffff,ppl7::Peek64(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, PeekN8) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint32)0xa4,ppl7::PeekN8(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0,ppl7::PeekN8(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0xff,ppl7::PeekN8(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xa4,ppl7::PeekN8(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0,ppl7::PeekN8(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xff,ppl7::PeekN8(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, PeekN16) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint32)0xa4e9,ppl7::PeekN16(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0,ppl7::PeekN16(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0xffff,ppl7::PeekN16(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xa4e9,ppl7::PeekN16(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0,ppl7::PeekN16(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xffff,ppl7::PeekN16(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, PeekN32) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint32)0xa4e92af0,ppl7::PeekN32(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0,ppl7::PeekN32(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint32)0xffffffff,ppl7::PeekN32(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xa4e92af0,ppl7::PeekN32(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0,ppl7::PeekN32(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint32_t)0xffffffff,ppl7::PeekN32(buffer3)) << "Unexpected Value";
 }
 
 TEST_F(PeekAndPokeTest, PeekN64) {
 	unsigned char buffer1[8]={0xa4,0xe9,0x2a,0xf0,0xee,0x9d,0x47,0xa1};
 	unsigned char buffer2[8]={0,0,0,0,0,0,0,0};
 	unsigned char buffer3[8]={255,255,255,255,255,255,255,255,};
-	ASSERT_EQ((ppluint64)0xa4e92af0ee9d47a1,ppl7::PeekN64(buffer1)) << "Unexpected Value";
-	ASSERT_EQ((ppluint64)0,ppl7::PeekN64(buffer2)) << "Unexpected Value";
-	ASSERT_EQ((ppluint64)0xffffffffffffffff,ppl7::PeekN64(buffer3)) << "Unexpected Value";
+	ASSERT_EQ((uint64_t)0xa4e92af0ee9d47a1,ppl7::PeekN64(buffer1)) << "Unexpected Value";
+	ASSERT_EQ((uint64_t)0,ppl7::PeekN64(buffer2)) << "Unexpected Value";
+	ASSERT_EQ((uint64_t)0xffffffffffffffff,ppl7::PeekN64(buffer3)) << "Unexpected Value";
 }
 
 }

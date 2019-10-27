@@ -65,20 +65,20 @@
 typedef struct {
 	void		*src;
 	void		*tgt;
-	ppluint32	width;
-	ppluint32	height;
-	ppluint32	pitchsrc;
-	ppluint32	pitchtgt;
-	ppluint32	color;
+	uint32_t	width;
+	uint32_t	height;
+	uint32_t	pitchsrc;
+	uint32_t	pitchtgt;
+	uint32_t	color;
 } BLTDATA;
 
 typedef struct {
 	char *sadr;
 	char *bgadr;
 	char *tgadr;
-	ppluint32 spitch;
-	ppluint32 bgpitch;
-	ppluint32 tgpitch;
+	uint32_t spitch;
+	uint32_t bgpitch;
+	uint32_t tgpitch;
 	int width;
 	int height;
 	int cb_key;
@@ -116,8 +116,8 @@ static int Blt_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rec
 {
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
-	data.tgt=(ppluint32*)adr(target,x,y);
+	data.src=(uint32_t*)adr(source,srect.left(),srect.top());
+	data.tgt=(uint32_t*)adr(target,x,y);
 	data.width=srect.width();
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
@@ -136,9 +136,9 @@ static int Blt_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rec
 	}
 	return 0;
 #endif
-	ppluint8 *q, *z;
-	q=(ppluint8 *)adr(source,srect.left(),srect.top());
-	z=(ppluint8 *)adr(target,x,y);
+	uint8_t *q, *z;
+	q=(uint8_t *)adr(source,srect.left(),srect.top());
+	z=(uint8_t *)adr(target,x,y);
 	int mywidth=srect.width()*target.rgbformat.bytesPerPixel();
 	int yy;
 	for (yy=0;yy<srect.height();yy++) {
@@ -153,8 +153,8 @@ static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 {
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
-	data.tgt=(ppluint32*)adr(target,x,y);
+	data.src=(uint32_t*)adr(source,srect.left(),srect.top());
+	data.tgt=(uint32_t*)adr(target,x,y);
 	data.width=srect.width();
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
@@ -164,10 +164,10 @@ static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 	}
 	return 0;
 #endif
-	ppluint32 alpha1,psrc;
-	ppluint32 *src, *tgt;
-	src=(ppluint32*)adr(source,srect.left(),srect.top());
-	tgt=(ppluint32*)adr(target,x,y);
+	uint32_t alpha1,psrc;
+	uint32_t *src, *tgt;
+	src=(uint32_t*)adr(source,srect.left(),srect.top());
+	tgt=(uint32_t*)adr(target,x,y);
 	int width=srect.width();
 	int yy, xx;
 	if (!alphatab) return 0;
@@ -193,8 +193,8 @@ static int BltBlend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 {
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
-	data.tgt=(ppluint32*)adr(target,x,y);
+	data.src=(uint32_t*)adr(source,srect.left(),srect.top());
+	data.tgt=(uint32_t*)adr(target,x,y);
 	data.width=srect.width();
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
@@ -214,9 +214,9 @@ static int BltBlend_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 		if (ASM_BltBlend32_MMX(&data,f)) return 1;
 	}
 #endif
-	ppluint32 *src, *tgt;
-	src=(ppluint32*)adr(source,srect.left(),srect.top());
-	tgt=(ppluint32*)adr(target,x,y);
+	uint32_t *src, *tgt;
+	src=(uint32_t*)adr(source,srect.left(),srect.top());
+	tgt=(uint32_t*)adr(target,x,y);
 	int width=srect.width();
 	int yy, xx;
 	if (!alphatab) return 0;
@@ -242,8 +242,8 @@ static int BltColorKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, c
 {
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
-	data.tgt=(ppluint32*)adr(target,x,y);
+	data.src=(uint32_t*)adr(source,srect.left(),srect.top());
+	data.tgt=(uint32_t*)adr(target,x,y);
 	data.width=srect.width();
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
@@ -253,10 +253,10 @@ static int BltColorKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, c
 		return 1;
 	}
 #endif
-	ppluint32 *q, *z;
+	uint32_t *q, *z;
 	SurfaceColor qc;
-	q=(ppluint32*)adr(source,srect.left(),srect.top());
-	z=(ppluint32*)adr(target,x,y);
+	q=(uint32_t*)adr(source,srect.left(),srect.top());
+	z=(uint32_t*)adr(target,x,y);
 	int pitch_tgt=target.pitch>>2;
 	int pitch_src=source.pitch>>2;
 	int yy, xx;
@@ -276,8 +276,8 @@ static int BltDiffuse_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, co
 {
 #ifdef HAVE_X86_ASSEMBLER
 	BLTDATA data;
-	data.src=(ppluint32*)adr(source,srect.left(),srect.top());
-	data.tgt=(ppluint32*)adr(target,x,y);
+	data.src=(uint32_t*)adr(source,srect.left(),srect.top());
+	data.tgt=(uint32_t*)adr(target,x,y);
 	data.width=srect.width();
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
@@ -288,11 +288,11 @@ static int BltDiffuse_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, co
 	}
 	return 0;
 #endif
-	ppluint32 *z;
-	ppluint8 *q;
+	uint32_t *z;
+	uint8_t *q;
 	SurfaceColor qc;
-	q=(ppluint8*)adr(source,srect.left(),srect.top());
-	z=(ppluint32*)adr(target,x,y);
+	q=(uint8_t*)adr(source,srect.left(),srect.top());
+	z=(uint32_t*)adr(target,x,y);
 	int pitch32=target.pitch>>2;
 	int yy, xx;
 	int width=srect.width();
@@ -315,8 +315,8 @@ static int BltDiffuse_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, co
 
 typedef struct {
 union  {
-	struct { ppluint8 b,g,r,a; };
-	ppluint32 c;
+	struct { uint8_t b,g,r,a; };
+	uint32_t c;
 };
 } PIXEL;
 
@@ -380,14 +380,14 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 
 	PIXEL c,bg,t;
 
-	ppluint32 *sadr=(ppluint32*)adr(source,srect.left(),srect.top());
-	ppluint32 spitch=source.pitch/4;
+	uint32_t *sadr=(uint32_t*)adr(source,srect.left(),srect.top());
+	uint32_t spitch=source.pitch/4;
 
-	ppluint32 *bgadr=(ppluint32*)adr(target,x,y);
-	ppluint32 bgpitch=target.pitch/4;
+	uint32_t *bgadr=(uint32_t*)adr(target,x,y);
+	uint32_t bgpitch=target.pitch/4;
 
-	ppluint32 *tgadr=(ppluint32*)adr(target,x,y);
-	ppluint32 tgpitch=target.pitch/4;
+	uint32_t *tgadr=(uint32_t*)adr(target,x,y);
+	uint32_t tgpitch=target.pitch/4;
 
 	for (int y=0;y<srect.height();y++) {
 		for (int x=0;x<srect.width();x++) {
@@ -403,10 +403,10 @@ static void BltChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source,
 			} else if (mask==1.0) {
 				tgadr[x]=bg.c;
 			} else {
-				t.r=(ppluint8)(max(c.r-mask*c.r,0)+mask*bg.r);
-				t.g=(ppluint8)(max(c.g-mask*c.g,0)+mask*bg.g);
-				t.b=(ppluint8)(max(c.b-mask*c.b,0)+mask*bg.b);
-				t.a=(ppluint8)(max(c.a-mask*c.a,0)+mask*bg.a);
+				t.r=(uint8_t)(max(c.r-mask*c.r,0)+mask*bg.r);
+				t.g=(uint8_t)(max(c.g-mask*c.g,0)+mask*bg.g);
+				t.b=(uint8_t)(max(c.b-mask*c.b,0)+mask*bg.b);
+				t.a=(uint8_t)(max(c.a-mask*c.a,0)+mask*bg.a);
 				tgadr[x]=t.c;
 			}
 		}
@@ -445,14 +445,14 @@ static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_D
 
 	PIXEL c,bg,t;
 
-	ppluint32 *sadr=(ppluint32*)adr(target,srect.left(),srect.top());
-	ppluint32 spitch=target.pitch/4;
+	uint32_t *sadr=(uint32_t*)adr(target,srect.left(),srect.top());
+	uint32_t spitch=target.pitch/4;
 
-	ppluint32 *bgadr=(ppluint32*)adr(background,x,y);
-	ppluint32 bgpitch=background.pitch/4;
+	uint32_t *bgadr=(uint32_t*)adr(background,x,y);
+	uint32_t bgpitch=background.pitch/4;
 
-	ppluint32 *tgadr=(ppluint32*)adr(target,x,y);
-	ppluint32 tgpitch=target.pitch/4;
+	uint32_t *tgadr=(uint32_t*)adr(target,x,y);
+	uint32_t tgpitch=target.pitch/4;
 
 	for (int y=0;y<srect.height();y++) {
 		for (int x=0;x<srect.width();x++) {
@@ -468,10 +468,10 @@ static void BltBackgroundOnChromaKey_32 (DRAWABLE_DATA &target, const DRAWABLE_D
 			} else if (mask==1.0) {
 				tgadr[x]=bg.c;
 			} else {
-				t.r=(ppluint8)(max(c.r-mask*c.r,0)+mask*bg.r);
-				t.g= (ppluint8)(max(c.g-mask*c.g,0)+mask*bg.g);
-				t.b= (ppluint8)(max(c.b-mask*c.b,0)+mask*bg.b);
-				t.a= (ppluint8)(max(c.a-mask*c.a,0)+mask*bg.a);
+				t.r=(uint8_t)(max(c.r-mask*c.r,0)+mask*bg.r);
+				t.g= (uint8_t)(max(c.g-mask*c.g,0)+mask*bg.g);
+				t.b= (uint8_t)(max(c.b-mask*c.b,0)+mask*bg.b);
+				t.a= (uint8_t)(max(c.a-mask*c.a,0)+mask*bg.a);
 				tgadr[x]=t.c;
 			}
 		}

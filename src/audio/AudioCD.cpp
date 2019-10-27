@@ -226,7 +226,7 @@ bool AudioCD::isAudioTrack(int track)
 }
 
 /*
-static inline ppluint8 ppl_to_bcd8 (ppluint8 n)
+static inline uint8_t ppl_to_bcd8 (uint8_t n)
 {
   return ((n/10)<<4) | (n%10);
 }

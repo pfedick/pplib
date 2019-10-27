@@ -115,9 +115,9 @@ TEST_F(DigestTest, TestMD5) {
 TEST_F(DigestTest, TestSHA1) {
 	ppl7::Digest dig;
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
-	ASSERT_EQ((ppluint64)0,dig.bytesHashed());
+	ASSERT_EQ((uint64_t)0,dig.bytesHashed());
 	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((ppluint64)591,dig.bytesHashed());
+	ASSERT_EQ((uint64_t)591,dig.bytesHashed());
 	ppl7::ByteArray result;
 	ASSERT_NO_THROW(result=dig.getDigest());
 	ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result.toHex());
@@ -182,17 +182,17 @@ TEST_F(DigestTest, TestRipeMD160) {
 TEST_F(DigestTest, TestChangeAlgorithm) {
 	ppl7::Digest dig;
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
-	ASSERT_EQ((ppluint64)0,dig.bytesHashed());
+	ASSERT_EQ((uint64_t)0,dig.bytesHashed());
 	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((ppluint64)591,dig.bytesHashed());
+	ASSERT_EQ((uint64_t)591,dig.bytesHashed());
 	ppl7::ByteArray result;
 	ASSERT_NO_THROW(result=dig.getDigest());
 	ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result.toHex());
 
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA224));
-	ASSERT_EQ((ppluint64)0,dig.bytesHashed());
+	ASSERT_EQ((uint64_t)0,dig.bytesHashed());
 	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((ppluint64)591,dig.bytesHashed());
+	ASSERT_EQ((uint64_t)591,dig.bytesHashed());
 	ASSERT_NO_THROW(result=dig.getDigest());
 	ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"),result.toHex());
 
@@ -345,7 +345,7 @@ TEST_F(DigestTest, TestAddDataFromSeveralFiles) {
 	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
 	ASSERT_NO_THROW(hash.addFile("testdata/test.gif"));
 	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/afile.txt"));
-	ASSERT_EQ((ppluint64)1615253,hash.bytesHashed());
+	ASSERT_EQ((uint64_t)1615253,hash.bytesHashed());
 	ppl7::String result;
 	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("327b824bbe2b201c0a59c34e430d0a1523b20683c58309064e14426f53c1b703"),result);
@@ -358,10 +358,10 @@ TEST_F(DigestTest, TestReset) {
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((ppluint64)2364,hash.bytesHashed());
+	ASSERT_EQ((uint64_t)2364,hash.bytesHashed());
 	hash.reset();
 	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((ppluint64)591,hash.bytesHashed());
+	ASSERT_EQ((uint64_t)591,hash.bytesHashed());
 	ppl7::String result;
 	ASSERT_NO_THROW(hash.saveDigest(result));
 	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
@@ -449,16 +449,16 @@ TEST_F(DigestTest, TestStaticSha512) {
 TEST_F(DigestTest, TestStaticCrc32) {
 	ppl7::ByteArrayPtr data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW({
-		ppluint32 result=ppl7::Digest::crc32(data);
-		ASSERT_EQ((ppluint32)2852144956,(ppluint32)result);
+		uint32_t result=ppl7::Digest::crc32(data);
+		ASSERT_EQ((uint32_t)2852144956,(uint32_t)result);
 	});
 }
 
 TEST_F(DigestTest, TestStaticAdler32) {
 	ppl7::ByteArrayPtr data(loremipsum,strlen(loremipsum));
 	ASSERT_NO_THROW({
-		ppluint32 result=ppl7::Digest::adler32(data);
-		ASSERT_EQ((ppluint32)1871173577,(ppluint32)result);
+		uint32_t result=ppl7::Digest::adler32(data);
+		ASSERT_EQ((uint32_t)1871173577,(uint32_t)result);
 	});
 }
 

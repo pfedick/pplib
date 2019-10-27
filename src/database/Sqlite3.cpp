@@ -65,7 +65,7 @@ class SQLiteResult : public ResultSet
 		sqlite3			*conn;		//!\brief SQLite-spezifisches Handle des Datenbank-Connects
 		sqlite3_stmt	*stmt;		//!\brief SQLite-spezifisches Result-Handle
 		SQLite			*sqlite_class;		//!\brief Pointer auf die SQLite-Klassem die diesen Result erzeugt hat
-		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
+		uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 		int			last_res;		//!\brief letzter Returncode von sqlite3_step()
 
@@ -73,7 +73,7 @@ class SQLiteResult : public ResultSet
 		SQLiteResult();
 		virtual ~SQLiteResult();
 		virtual	void		clear();
-		virtual ppluint64	affected() const;
+		virtual uint64_t	affected() const;
 		virtual int			fields() const;
 		virtual String		getString(const String &fieldname);
 		virtual String		getString(int field);
@@ -129,7 +129,7 @@ void SQLiteResult::clear()
 	last_res=0;
 }
 
-ppluint64 SQLiteResult::affected() const
+uint64_t SQLiteResult::affected() const
 {
 	return affectedrows;
 }
@@ -479,7 +479,7 @@ String SQLite::escape(const String &str) const
 #endif
 }
 
-ppluint64 SQLite::getAffectedRows()
+uint64_t SQLite::getAffectedRows()
 {
 	return affectedrows;
 }

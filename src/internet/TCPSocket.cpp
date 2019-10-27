@@ -967,7 +967,7 @@ void TCPSocket::readLoop(void *buffer, size_t bytes, int timeout_seconds, Thread
 {
 	size_t todo=bytes;
 	unsigned char *ptr=(unsigned char*)buffer;
-	ppluint64 timeout=ppl7::GetMilliSeconds()+timeout_seconds*1000;
+	uint64_t timeout=ppl7::GetMilliSeconds()+timeout_seconds*1000;
 	while (todo>0) {
 		if (watch_thread) {
 			if (watch_thread->threadShouldStop()) throw OperationAbortedException("TCPSocket::readLoop");

@@ -362,7 +362,7 @@ void AudioEncoder_MP3::encode(AudioDecoder &decoder)
 		if (info.Frequency!=firstAudio.frequency || info.Channels!=firstAudio.channels)
 			throw EncoderAudioFormatMismatchException();
 	}
-	ppluint32 samples_left=info.Samples;
+	uint32_t samples_left=info.Samples;
 	if (!samples_left) return;
 
 	mp3bufsize=(int)(1.25*samples+7200+100000);
@@ -376,18 +376,18 @@ void AudioEncoder_MP3::encode(AudioDecoder &decoder)
 	decoder.seekSample(0);
 	int last_progress=0;
 	while (samples_left>0) {
-		ppluint32 current_samples=samples;
+		uint32_t current_samples=samples;
 		if (current_samples>samples_left) current_samples=samples_left;
 		size_t samples_got=decoder.getSamples(current_samples,(STEREOSAMPLE16*)readcache);
 		if (samples_got==0) break;
 		samples_left-=samples_got;
-		ppluint32 encodedbytes=lame_encode_buffer_interleaved((lame_global_flags*)gfp,(short*)readcache,samples_got,mp3buf,mp3bufsize);
+		uint32_t encodedbytes=lame_encode_buffer_interleaved((lame_global_flags*)gfp,(short*)readcache,samples_got,mp3buf,mp3bufsize);
 		if (encodedbytes) {
 			writeEncodedBytes((char *)mp3buf,encodedbytes);
 		} else if (encodedbytes<0) dispatchEncoderError(encodedbytes);
 		if (bStopEncode) throw EncoderAbortedException();
 		if (ProgressFunc) {
-			int progress=(int)((pplint64)(info.Samples-samples_left)*100/info.Samples);
+			int progress=(int)((int64_t)(info.Samples-samples_left)*100/info.Samples);
 			if (progress!=last_progress) {
 				ProgressFunc(progress,ProgressFuncPrivData);
 			}
@@ -405,12 +405,12 @@ void AudioEncoder_MP3::finish()
 	if (!started) throw EncoderNotStartedException();
 	if (have_firstaudio) {
 		if (mp3buf) {
-			ppluint32 encodedbytes=lame_encode_flush_nogap((lame_global_flags*)gfp,mp3buf,mp3bufsize);
+			uint32_t encodedbytes=lame_encode_flush_nogap((lame_global_flags*)gfp,mp3buf,mp3bufsize);
 			if (encodedbytes) writeEncodedBytes((const char *)mp3buf,encodedbytes);
 		} else {
 			mp3buf=(unsigned char*)malloc(16192);
 			if (!mp3buf) throw OutOfMemoryException();
-			ppluint32 encodedbytes=lame_encode_flush_nogap((lame_global_flags*)gfp,mp3buf,16192);
+			uint32_t encodedbytes=lame_encode_flush_nogap((lame_global_flags*)gfp,mp3buf,16192);
 			if (encodedbytes) writeEncodedBytes((const char *)mp3buf,encodedbytes);
 		}
 	}

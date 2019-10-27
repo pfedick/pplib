@@ -202,15 +202,15 @@ TEST_F(DBPostgreSQL, execTransactionalInsertAndCommit) {
 			throw;
 		}
 	});
-	ASSERT_EQ((ppluint64)1,db.getAffectedRows());
+	ASSERT_EQ((uint64_t)1,db.getAffectedRows());
 	ASSERT_NO_THROW({
 		db.exec("insert into ppl7_test.test_insert (login,name,surename) values ('test2','Tester','Hans')");
 	});
-	ASSERT_EQ((ppluint64)1,db.getAffectedRows());
+	ASSERT_EQ((uint64_t)1,db.getAffectedRows());
 	ASSERT_NO_THROW({
 		db.endTransaction();
 	});
-	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
+	ASSERT_EQ((uint64_t)0,db.getAffectedRows());
 
 }
 
@@ -247,9 +247,9 @@ TEST_F(DBPostgreSQL, queryExistingDataGetStringEofNextRow) {
 		res=db.query("select userid,name,surename,age from ppl7_test.user order by userid");
 	});
 	ASSERT_TRUE(res!=NULL);
-	ASSERT_EQ((ppluint64)0,db.getAffectedRows());
-	ASSERT_EQ((ppluint64)0,res->affected());	// bei Insert immer 0
-	ASSERT_EQ((ppluint64)4,res->fields());
+	ASSERT_EQ((uint64_t)0,db.getAffectedRows());
+	ASSERT_EQ((uint64_t)0,res->affected());	// bei Insert immer 0
+	ASSERT_EQ((uint64_t)4,res->fields());
 	ASSERT_EQ(ppl7::String("Fedick"),res->getString("name"));
 	ASSERT_EQ(ppl7::String("Patrick"),res->getString("surename"));
 	ASSERT_EQ(ppl7::String("42"),res->getString("age"));
@@ -391,11 +391,11 @@ TEST_F(DBPostgreSQL, count) {
 		db.connect(params);
 	});
 	ASSERT_NO_THROW({
-		ASSERT_EQ((ppluint64)4, db.count("ppl7_test.user"));
+		ASSERT_EQ((uint64_t)4, db.count("ppl7_test.user"));
 	});
 	ASSERT_NO_THROW({
 		try {
-			ASSERT_EQ((ppluint64)2, db.count("ppl7_test.user","userid<3"));
+			ASSERT_EQ((uint64_t)2, db.count("ppl7_test.user","userid<3"));
 		} catch (const ppl7::Exception &e) {
 			e.print();
 			throw;
@@ -534,7 +534,7 @@ TEST_F(DBPostgreSQL, execInsertAndCount) {
 		db.exec("insert into ppl7_test.test_insert_get_insert_id (name,surename) values ('Tester','Hans')");
 	});
 	ASSERT_NO_THROW({
-		ASSERT_EQ((ppluint64)2, db.count("ppl7_test.test_insert_get_insert_id"));
+		ASSERT_EQ((uint64_t)2, db.count("ppl7_test.test_insert_get_insert_id"));
 	});
 
 

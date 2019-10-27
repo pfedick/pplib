@@ -586,7 +586,7 @@ PACKAGE_BUGREPORT='patrick@pfp.de'
 PACKAGE_URL=''
 
 ac_unique_file="include/ppl7.h"
-ac_unique_file="include/config.h.in"
+ac_unique_file="include/config_ppl7.h.in"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -2941,7 +2941,7 @@ ac_config_files="$ac_config_files tests/Makefile"
 
 ac_config_files="$ac_config_files ppl7-config"
 
-ac_config_headers="$ac_config_headers include/config.h"
+ac_config_headers="$ac_config_headers include/config_ppl7.h"
 
 ac_config_headers="$ac_config_headers include/ppl7-config.h"
 
@@ -19566,7 +19566,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "ppl7-config") CONFIG_FILES="$CONFIG_FILES ppl7-config" ;;
-    "include/config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config.h" ;;
+    "include/config_ppl7.h") CONFIG_HEADERS="$CONFIG_HEADERS include/config_ppl7.h" ;;
     "include/ppl7-config.h") CONFIG_HEADERS="$CONFIG_HEADERS include/ppl7-config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
 

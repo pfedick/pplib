@@ -271,7 +271,7 @@ TEST_F(ByteArrayPtrTest, md5) {
 
 TEST_F(ByteArrayPtrTest, crc32) {
 	ppl7::ByteArrayPtr b2(teststring, 11);
-	EXPECT_EQ((ppluint32)1243066710,b2.crc32());
+	EXPECT_EQ((uint32_t)1243066710,b2.crc32());
 }
 
 TEST_F(ByteArrayPtrTest, memset) {

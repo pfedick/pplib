@@ -117,7 +117,7 @@ namespace ppl7 {
 /*!\var DirEntry::Size
  * \brief Größe der Datei in Bytes
  *
- * Größe der Datei in Bytes als vorzeichenloser 64-Bit-Wert (ppluint64).
+ * Größe der Datei in Bytes als vorzeichenloser 64-Bit-Wert (uint64_t).
  */
 
 /*!\var DirEntry::Attrib

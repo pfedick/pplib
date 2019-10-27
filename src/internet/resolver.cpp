@@ -390,7 +390,7 @@ void Resolver::query(Array &r, const String &label, Type t, Class c)
 			} else if (type==AAAA) {
 				//printf ("AAAA, len=%i\n",(int)ns_rr_rdlen(rr));
 				//ppl7::HexDump(ns_rr_rdata(rr),ns_rr_rdlen(rr));
-				ppluint16 *adr=(ppluint16*)ns_rr_rdata(rr);
+				uint16_t *adr=(uint16_t*)ns_rr_rdata(rr);
 
 				r.add(shortenIpv6(ToString("%x:%x:%x:%x:%x:%x:%x:%x",
 						(int)ntohs(adr[0]),(int)ntohs(adr[1]),(int)ntohs(adr[2]),(int)ntohs(adr[3]),

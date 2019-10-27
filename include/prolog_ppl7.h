@@ -39,7 +39,7 @@
 #ifndef _PPL7_CONFIG
 	#ifdef PPL7LIB
 		#ifdef HAVE_CONFIG_H
-			#include "config.h"
+			#include "config_ppl7.h"
 		#else
 			#ifdef PPLVISUALC
 				#include "ppl7-visualc-config.h"

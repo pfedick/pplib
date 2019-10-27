@@ -41,7 +41,7 @@ AC_INIT([ppl], [7.0.0], [patrick@pfp.de], [ppl-7.0.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
 AC_CONFIG_SRCDIR([include/ppl7.h])
-AC_CONFIG_SRCDIR([include/config.h.in])
+AC_CONFIG_SRCDIR([include/config_ppl7.h.in])
 #AC_CONFIG_SRCDIR([src/core/pplcore.cpp])
 #AC_CONFIG_SRCDIR([src/core/functions.cpp])
 #AC_CONFIG_SRCDIR([src/math/math.cpp])
@@ -49,7 +49,7 @@ AC_CONFIG_SRCDIR([include/config.h.in])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([tests/Makefile])
 AC_CONFIG_FILES([ppl7-config])
-AC_CONFIG_HEADERS([include/config.h])
+AC_CONFIG_HEADERS([include/config_ppl7.h])
 AC_CONFIG_HEADERS([include/ppl7-config.h])
 
 

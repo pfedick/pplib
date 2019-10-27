@@ -46,13 +46,13 @@
 #ifndef _PPL7_CONFIG
 	#ifdef PPL7LIB
 		#ifdef MINGW32
-			#include "config.h"
+			#include "config_ppl7.h"
 		#elif defined PPLVISUALC
 			#include "ppl7-visualc-config.h"
 		#elif defined _WIN32
 			#include "ppl7-config.h"
 		#else
-			#include "config.h"
+			#include "config_ppl7.h"
 		#endif
 	#else
 		#include <ppl7-config.h>

@@ -186,7 +186,7 @@ void ImageFilter_TIFF::load(FileObject &file, Drawable &surface, IMAGE &img)
 		throw OutOfMemoryException();
 	}
 	if (TIFFReadRGBAImage(tif, w, h, raster, 0)) {
-		ppluint32 p=0, abgr;
+		uint32_t p=0, abgr;
 		Color c;
 		for (uint32 y=0;y<h;y++) {
 			for (uint32 x=0;x<w;x++) {

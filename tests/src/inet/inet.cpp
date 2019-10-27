@@ -102,33 +102,33 @@ TEST_F(InetTest, Ace2IdnWideString) {
 
 TEST_F(InetTest, Ntohl) {
 	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((ppluint32)0x44332211,ppl7::Ntohl(0x11223344));
+		ASSERT_EQ((uint32_t)0x44332211,ppl7::Ntohl(0x11223344));
 	} else {
-		ASSERT_EQ((ppluint32)0x11223344,ppl7::Ntohl(0x11223344));
+		ASSERT_EQ((uint32_t)0x11223344,ppl7::Ntohl(0x11223344));
 	}
 }
 
 TEST_F(InetTest, Ntohs) {
 	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((ppluint32)0x2211,ppl7::Ntohs(0x1122));
+		ASSERT_EQ((uint32_t)0x2211,ppl7::Ntohs(0x1122));
 	} else {
-		ASSERT_EQ((ppluint32)0x1122,ppl7::Ntohs(0x1122));
+		ASSERT_EQ((uint32_t)0x1122,ppl7::Ntohs(0x1122));
 	}
 }
 
 TEST_F(InetTest, Htonl) {
 	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((ppluint32)0x44332211,ppl7::Htonl(0x11223344));
+		ASSERT_EQ((uint32_t)0x44332211,ppl7::Htonl(0x11223344));
 	} else {
-		ASSERT_EQ((ppluint32)0x11223344,ppl7::Htonl(0x11223344));
+		ASSERT_EQ((uint32_t)0x11223344,ppl7::Htonl(0x11223344));
 	}
 }
 
 TEST_F(InetTest, Htons) {
 	if (ppl7::IsLittleEndian()) {
-		ASSERT_EQ((ppluint32)0x2211,ppl7::Htons(0x1122));
+		ASSERT_EQ((uint32_t)0x2211,ppl7::Htons(0x1122));
 	} else {
-		ASSERT_EQ((ppluint32)0x1122,ppl7::Htons(0x1122));
+		ASSERT_EQ((uint32_t)0x1122,ppl7::Htons(0x1122));
 	}
 }
 

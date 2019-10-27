@@ -941,12 +941,12 @@ release/math_random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7
 	$(CXX) -Wall $(CXXFLAGS) -o release/math_random.o -c $(srcdir)/math/random.cpp $(CFLAGS) 
 
 ### CRYPTO
-release/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+release/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Crypt.cpp<<<
 	$(CXX) -Wall $(CXXFLAGS) -o release/crypto_Crypt.o -c $(srcdir)/crypto/Crypt.cpp $(CFLAGS) 
 
-release/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+release/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Digest.cpp<<<
 	$(CXX) -Wall $(CXXFLAGS) -o release/crypto_Digest.o -c $(srcdir)/crypto/Digest.cpp $(CFLAGS) 
@@ -1596,12 +1596,12 @@ debug/math_random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl7-e
 	$(CXX) -Wall $(CXXFLAGS) -o debug/math_random.o -c $(srcdir)/math/random.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
 ### CRYPTO
-debug/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+debug/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Crypt.cpp<<<
 	$(CXX) -Wall $(CXXFLAGS) -o debug/crypto_Crypt.o -c $(srcdir)/crypto/Crypt.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
-debug/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+debug/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Digest.cpp<<<
 	$(CXX) -Wall $(CXXFLAGS) -o debug/crypto_Digest.o -c $(srcdir)/crypto/Digest.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
@@ -2247,12 +2247,12 @@ coverage/math_random.o:	$(srcdir)/math/random.cpp $(incdir)/ppl7.h $(incdir)/ppl
 	# Compiling >>>math/random.cpp<<<
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/math_random.o -c $(srcdir)/math/random.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+coverage/crypto_Crypt.o:	$(srcdir)/crypto/Crypt.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Crypt.cpp<<<
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/crypto_Crypt.o -c $(srcdir)/crypto/Crypt.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
-coverage/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h $(incdir)/crypto.h 
+coverage/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-crypto.h 
 	###############################################################################
 	# Compiling >>>crypto/Digest.cpp<<<
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/crypto_Digest.o -c $(srcdir)/crypto/Digest.cpp $(CFLAGS) @GCOV_CFLAGS@ 

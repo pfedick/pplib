@@ -53,16 +53,16 @@
 
 
 
-#define ppluint8 unsigned char
-#define pplint8 signed char
-#define ppluint16 unsigned short
-#define pplint16 signed short
-#define ppluint32 unsigned int
-#define pplint32 signed int
-#define ppluint64 unsigned long long
-#define pplint64 signed long long
+#define uint8_t unsigned char
+#define int8_t signed char
+#define uint16_t unsigned short
+#define int16_t signed short
+#define uint32_t unsigned int
+#define int32_t signed int
+#define uint64_t unsigned long long
+#define int64_t signed long long
 
-#define ppliptr ppluint64
+#define ppliptr uint64_t
 
 #define pplfloat	float
 #define ppldouble	double

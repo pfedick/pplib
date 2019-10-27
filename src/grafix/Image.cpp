@@ -237,8 +237,8 @@ void Image::copy(const Drawable &other)
 	data.rgbformat=other.data.rgbformat;
 	data.pitch=data.width*(data.rgbformat.bitdepth()/8);
 	// Jetzt die Pixel kopieren
-	ppluint8 *qq=other.data.base8;
-	ppluint8 *tt=data.base8;
+	uint8_t *qq=other.data.base8;
+	uint8_t *tt=data.base8;
 	for (int y=0;y<data.height;y++) {
 		memcpy(tt,qq,data.pitch);
 		qq+=other.data.pitch;
@@ -330,7 +330,7 @@ void Image::create(int width, int height, const RGBFormat &format)
  * @param format Farbformat
  * @return Im Erfolgsfall liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Image::create(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format)
+void Image::create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format)
 {
 	copy(Drawable(base,pitch,width,height,format));
 }

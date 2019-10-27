@@ -88,20 +88,20 @@ TEST_F(FileReadTest, openExistingLocal) {
 TEST_F(FileReadTest, size) {
 	ppl7::File f1;
 	f1.open("testdata/dirwalk/LICENSE.TXT");
-	ASSERT_EQ((ppluint64)1330,f1.size());
+	ASSERT_EQ((uint64_t)1330,f1.size());
 	ppl7::File f2;
 	f2.open("testdata/dirwalk/testfile.txt");
-	ASSERT_EQ((ppluint64)1592096,f2.size());
+	ASSERT_EQ((uint64_t)1592096,f2.size());
 
 }
 
 TEST_F(FileReadTest, openAndClose) {
 	ppl7::File f1;
 	f1.open("testdata/dirwalk/LICENSE.TXT");
-	ASSERT_EQ((ppluint64)1330,f1.size());
+	ASSERT_EQ((uint64_t)1330,f1.size());
 	f1.close();
 	f1.open("testdata/dirwalk/testfile.txt");
-	ASSERT_EQ((ppluint64)1592096,f1.size());
+	ASSERT_EQ((uint64_t)1592096,f1.size());
 
 }
 
@@ -116,24 +116,24 @@ TEST_F(FileReadTest, seekAndTell) {
 	ppl7::File f1;
 	f1.open("testdata/dirwalk/testfile.txt");
 	f1.seek(45678);
-	ASSERT_EQ((ppluint64)45678,f1.tell());
+	ASSERT_EQ((uint64_t)45678,f1.tell());
 	f1.seek(100);
-	ASSERT_EQ((ppluint64)100,f1.tell());
+	ASSERT_EQ((uint64_t)100,f1.tell());
 	f1.seek(1024*1024);
-	ASSERT_EQ((ppluint64)1024*1024,f1.tell());
+	ASSERT_EQ((uint64_t)1024*1024,f1.tell());
 }
 
 TEST_F(FileReadTest, seek) {
 	ppl7::File f1;
 	f1.open("testdata/dirwalk/testfile.txt");
 	f1.seek(45678,ppl7::File::SEEKSET);
-	ASSERT_EQ((ppluint64)45678,f1.tell());
+	ASSERT_EQ((uint64_t)45678,f1.tell());
 	f1.seek(100,ppl7::File::SEEKCUR);
-	ASSERT_EQ((ppluint64)45778,f1.tell());
+	ASSERT_EQ((uint64_t)45778,f1.tell());
 	f1.seek(-1000,ppl7::File::SEEKCUR);
-	ASSERT_EQ((ppluint64)44778,f1.tell());
+	ASSERT_EQ((uint64_t)44778,f1.tell());
 	f1.seek(-1000,ppl7::File::SEEKEND);
-	ASSERT_EQ((ppluint64)1591096,f1.tell());
+	ASSERT_EQ((uint64_t)1591096,f1.tell());
 }
 
 TEST_F(FileReadTest, fread1024) {
@@ -155,13 +155,13 @@ TEST_F(FileReadTest, freadUntilEof) {
 	ppl7::ByteArray ba;
 	ba.malloc(1024);
 	f1.open("testdata/dirwalk/testfile.txt");
-	ppluint64 bytes=0;
+	uint64_t bytes=0;
 	ASSERT_THROW({
 		while (1) {
 			bytes+=f1.fread((void*)ba.adr(),1,1024);
 		}
 	}, ppl7::EndOfFileException);
-	ASSERT_EQ((ppluint64) 1592096, bytes);
+	ASSERT_EQ((uint64_t) 1592096, bytes);
 }
 
 TEST_F(FileReadTest, fgets) {

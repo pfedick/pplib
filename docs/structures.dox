@@ -12,7 +12,7 @@
  * 
  * \code
 typedef struct tagTime {
-	ppluint64	epoch;
+	uint64_t	epoch;
 	int			year;
 	int			month;
 	int			day;

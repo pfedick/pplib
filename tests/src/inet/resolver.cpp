@@ -44,7 +44,7 @@
 #include "ppl7-tests.h"
 #undef _PPL7_CONFIG
 #undef _WIN32_WINNT
-#include "../include/config.h"
+#include "../../../include/config_ppl7.h"
 
 
 namespace {

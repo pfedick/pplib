@@ -38,8 +38,8 @@
 #include <locale.h>
 #include <ppl7.h>
 #include <gtest/gtest.h>
+#include "../../../include/config_ppl7.h"
 #include "ppl7-tests.h"
-#include "config.h"
 
 namespace {
 

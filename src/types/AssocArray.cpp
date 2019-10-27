@@ -164,8 +164,8 @@ AssocArray::ArrayKey::ArrayKey(const String &other)
 int AssocArray::ArrayKey::compare(const ArrayKey &str) const
 {
 	if (isNumeric()==true && str.isNumeric()==true) {
-		pplint64 v1=toInt64();
-		pplint64 v2=str.toInt64();
+		int64_t v1=toInt64();
+		int64_t v2=str.toInt64();
 		if (v2<v1) return 1;
 		if (v2>v1) return -1;
 		return 0;
@@ -354,7 +354,7 @@ void AssocArray::createTree(const ArrayKey &key, Variant *var)
 	}
 	// Beginnt Firstkey mit einer Zahl?
 	if (firstkey.isNumeric()) {
-		ppluint64 keyint=firstkey.toInt64();
+		uint64_t keyint=firstkey.toInt64();
 		if (keyint>=maxint) maxint=keyint+1;
 	}
 

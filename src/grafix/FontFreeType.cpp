@@ -62,8 +62,8 @@
 typedef struct tagGLYPH {
 	const char *data;
 	char *target;
-	ppluint32 pitch;
-	pplint32 color;
+	uint32_t pitch;
+	int32_t color;
 } GLYPH;
 
 extern "C" {
@@ -234,8 +234,8 @@ static void putPixel(Drawable &draw, int x, int y, const Color &color, int inten
 #ifdef HAVE_FREETYPE2
 static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
 {
-	ppluint8 v=0;
-	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
+	uint8_t v=0;
+	uint8_t *glyph=(uint8_t *)bitmap->buffer;
 	for (unsigned int gy=0;gy<bitmap->rows;gy++) {
 		for (unsigned int gx=0;gx<bitmap->width;gx++) {
 			v=glyph[gx];
@@ -250,11 +250,11 @@ static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const
 
 static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
 {
-	ppluint8 v=0;
-	ppluint8 *glyph=(ppluint8 *)bitmap->buffer;
+	uint8_t v=0;
+	uint8_t *glyph=(uint8_t *)bitmap->buffer;
 	for (unsigned int gy=0;gy<bitmap->rows;gy++) {
-		ppluint8 bitcount=0;
-		ppluint8 bytecount=0;
+		uint8_t bitcount=0;
+		uint8_t bytecount=0;
 		for (unsigned int gx=0;gx<bitmap->width;gx++) {
 			if (!bitcount) {
 				v=glyph[bytecount];

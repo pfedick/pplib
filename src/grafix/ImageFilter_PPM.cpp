@@ -115,8 +115,8 @@ void ImageFilter_PPM::load(FileObject &file, Drawable &surface, IMAGE &img)
 	//farbtiefe=line.toInt();
 
 	int x,y;
-	ppluint8 r,g,b;
-	ppluint64 pp=file.tell();
+	uint8_t r,g,b;
+	uint64_t pp=file.tell();
 	const char *adresse;
 	for (y=0;y<surface.height();y++) {
 		adresse=file.map(pp,img.pitch);	// Zeile fuer Zeile einlesen
@@ -149,9 +149,9 @@ void ImageFilter_PPM::save (const Drawable &surface, FileObject &file, const Ass
 		for (int y=0;y<surface.height();y++) {
 			for (int x=0;x<surface.width();x++) {
 				farbe=surface.getPixel(x,y);
-				ppluint8 r=(ppluint8)farbe.red();
-				ppluint8 g=(ppluint8)farbe.green();
-				ppluint8 b=(ppluint8)farbe.blue();
+				uint8_t r=(uint8_t)farbe.red();
+				uint8_t g=(uint8_t)farbe.green();
+				uint8_t b=(uint8_t)farbe.blue();
 				if (SaveAsASCII==false) {
 					file.write((char*)&r,1);
 					file.write((char*)&g,1);

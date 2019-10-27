@@ -102,8 +102,8 @@ typedef struct {
 } SOURCE_MGR;
 
 static char EOI_Marker[]={
-	(pplint8)0xFF,
-	(pplint8)JPEG_EOI
+	(int8_t)0xFF,
+	(int8_t)JPEG_EOI
 };
 
 METHODDEF(void)
@@ -113,10 +113,10 @@ init_source (j_decompress_ptr cinfo)
 	SOURCE_MGR *src=(SOURCE_MGR*)cinfo->src;
 	FileObject *file=src->file;
 	nbytes=PREREAD;
-	src->pub.next_input_byte=(ppluint8*)file->map(0,PREREAD);
+	src->pub.next_input_byte=(uint8_t*)file->map(0,PREREAD);
 	if (!src->pub.next_input_byte) {
 		ERREXIT(cinfo, JERR_INPUT_EMPTY);
-		src->pub.next_input_byte=(ppluint8*)EOI_Marker;
+		src->pub.next_input_byte=(uint8_t*)EOI_Marker;
 		nbytes=2;
 	}
 	src->pub.bytes_in_buffer = nbytes;
@@ -140,10 +140,10 @@ fill_input_buffer (j_decompress_ptr cinfo)
 		if (nbytes>READBUFFER) nbytes=READBUFFER;
 	}
 
-	src->pub.next_input_byte=(ppluint8*)file->map(src->pos,nbytes);
+	src->pub.next_input_byte=(uint8_t*)file->map(src->pos,nbytes);
 	if (!src->pub.next_input_byte) {
 		ERREXIT(cinfo, JERR_INPUT_EMPTY);
-		src->pub.next_input_byte=(ppluint8*)EOI_Marker;
+		src->pub.next_input_byte=(uint8_t*)EOI_Marker;
 		nbytes=2;
 	}
 	src->pub.bytes_in_buffer = nbytes;
@@ -221,7 +221,7 @@ init_destination (j_compress_ptr cinfo)
 	// Allocate the output buffer --- it will be released when done with image
 	dest->buffer = (char *) (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_IMAGE,  OUTPUT_BUF_SIZE * sizeof(JOCTET));
 	dest->file->seek(0);
-	dest->pub.next_output_byte = (ppluint8*)dest->buffer;
+	dest->pub.next_output_byte = (uint8_t*)dest->buffer;
 	dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
 }
 
@@ -238,7 +238,7 @@ empty_output_buffer (j_compress_ptr cinfo)
 	*/
 	if (dest->file->write(dest->buffer,OUTPUT_BUF_SIZE)!=OUTPUT_BUF_SIZE)
 		ERREXIT(cinfo, JERR_FILE_WRITE);
-	dest->pub.next_output_byte = (ppluint8*)dest->buffer;
+	dest->pub.next_output_byte = (uint8_t*)dest->buffer;
 	dest->pub.free_in_buffer = OUTPUT_BUF_SIZE;
 	return TRUE;
 }
@@ -482,18 +482,18 @@ void ImageFilter_JPEG::load(FileObject &file, Drawable &surface, IMAGE &img)
 		size_t buffersize=cinfo.output_width * cinfo.output_components;
 		buffer=(char *)malloc(buffersize);
 		if (!buffer) throw OutOfMemoryException();
-		ppluint32 y=0;
+		uint32_t y=0;
 		while (cinfo.output_scanline < cinfo.output_height) {
 			jpeg_read_scanlines (&cinfo,(unsigned char **)&buffer,1);
-			ppluint32 rot=0, gruen=0, blau=0;
+			uint32_t rot=0, gruen=0, blau=0;
 
 			if (img.bitdepth==8) {
-				for (ppluint32 x=0;x<cinfo.output_width;x++) {
+				for (uint32_t x=0;x<cinfo.output_width;x++) {
 					rot=Peek8(buffer+x);
 					surface.putPixel(x,y,Color(rot,rot,rot));
 				}
 			} else {
-				for (ppluint32 x=0;x<cinfo.output_width;x++) {
+				for (uint32_t x=0;x<cinfo.output_width;x++) {
 					rot=Peek8(buffer+x*3+0);
 					gruen=Peek8(buffer+x*3+1);
 					blau=Peek8(buffer+x*3+2);
@@ -570,9 +570,9 @@ void ImageFilter_JPEG::save (const Drawable &surface, FileObject &file, const As
 	for (y=0;y<surface.height();y++) {
 		for (x=0;x<surface.width();x++) {
 			farbe=surface.getPixel(x,y);
-			buffer[x*3]=(ppluint8)farbe.red();
-			buffer[x*3+1]=(ppluint8)farbe.green();
-			buffer[x*3+2]=(ppluint8)farbe.blue();
+			buffer[x*3]=(uint8_t)farbe.red();
+			buffer[x*3+1]=(uint8_t)farbe.green();
+			buffer[x*3+2]=(uint8_t)farbe.blue();
 		}
 		jpeg_write_scanlines(&cinfo,row_pointer,1);
 	}

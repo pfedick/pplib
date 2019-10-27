@@ -81,10 +81,10 @@ typedef struct {
 
 typedef struct {
 	int depth;
-	ppluint32 Rmask;
-	ppluint32 Gmask;
-	ppluint32 Bmask;
-	ppluint32 Amask;
+	uint32_t Rmask;
+	uint32_t Gmask;
+	uint32_t Bmask;
+	uint32_t Amask;
 } SDL_COLORFORMAT;
 
 static RGBFormat SDL2RGBFormat(const Uint32 f)
@@ -335,7 +335,7 @@ WindowManager_SDL2::WindowManager_SDL2()
 	if (wm!=NULL && wm!=this) throw DuplicateWindowManagerException();
 	wm=this;
 	/* Get init data on all the subsystems */
-	ppluint32 subsystem_init;
+	uint32_t subsystem_init;
 	subsystem_init=SDL_WasInit(SDL_INIT_EVERYTHING);
 
 	if(!(subsystem_init&SDL_INIT_VIDEO)) {
@@ -388,7 +388,7 @@ void WindowManager_SDL2::createWindow(Window &w)
 	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)calloc(sizeof(SDL_WINDOW_PRIVATE),1);
 	if (!priv) throw OutOfMemoryException();
 	int flags=SDL_WINDOW_SHOWN;
-	ppluint32 wf=w.flags();
+	uint32_t wf=w.flags();
 	if (wf&Window::NoBorder) flags|=SDL_WINDOW_BORDERLESS;
 	if (wf&Window::Resizeable) flags|=SDL_WINDOW_RESIZABLE;
 	if (wf&Window::Maximized) flags|=SDL_WINDOW_MAXIMIZED;
@@ -508,7 +508,7 @@ void WindowManager_SDL2::startEventLoop()
 #endif
 }
 
-Window *WindowManager_SDL2::getWindow(ppluint32 id)
+Window *WindowManager_SDL2::getWindow(uint32_t id)
 {
 #ifndef HAVE_SDL2
 	throw UnsupportedFeatureException("SDL2");
@@ -688,7 +688,7 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.p.y=event->y;
 		ev.buttonMask=(MouseEvent::MouseButton)0;
 		ev.button=(MouseEvent::MouseButton)0;
-		ppluint8 state=event->state;
+		uint8_t state=event->state;
 		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
 		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
 		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
@@ -709,7 +709,7 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.p.y=event->y;
 		ev.buttonMask=(MouseEvent::MouseButton)0;
 		ev.button=(MouseEvent::MouseButton)0;
-		ppluint8 state=SDL_GetMouseState(NULL,NULL);
+		uint8_t state=SDL_GetMouseState(NULL,NULL);
 
 		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
 		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
@@ -737,7 +737,7 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.p.y=event->y;
 		ev.buttonMask=(MouseEvent::MouseButton)0;
 		ev.button=(MouseEvent::MouseButton)0;
-		ppluint8 state=SDL_GetMouseState(NULL,NULL);
+		uint8_t state=SDL_GetMouseState(NULL,NULL);
 		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
 		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
 		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
@@ -994,7 +994,7 @@ void WindowManager_SDL::createWindow(Window &w, int width, int height, const RGB
 	}
 	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)malloc(sizeof(SDL_WINDOW_PRIVATE));
 	if (!priv) throw OutOfMemoryException();
-	ppluint32 flags=0;
+	uint32_t flags=0;
 	int bits=screenRGBFormat.bitdepth();
 	if (w.rgbFormat()!=RGBFormat::unknown) bits=w.rgbFormat().bitdepth();
 	if (wf&Window::NoBorder) flags|=SDL_NOFRAME;
@@ -1166,7 +1166,7 @@ void WindowManager_SDL::DispatchSdlKeyEvent(void *e)
 void WindowManager_SDL::DispatchSdlMouseEvent(void *e)
 {
 	MouseEvent ev;
-	ppluint8 type=((SDL_Event*)e)->type;
+	uint8_t type=((SDL_Event*)e)->type;
 	if (type==SDL_MOUSEMOTION) {
 		SDL_MouseMotionEvent *event=(SDL_MouseMotionEvent*)e;
 		ev.setType(Event::MouseMove);
@@ -1188,7 +1188,7 @@ void WindowManager_SDL::DispatchSdlMouseEvent(void *e)
 		ev.setType(Event::MouseDown);
 		ev.p.x=event->x;
 		ev.p.y=event->y;
-		ppluint8 state=SDL_GetMouseState(NULL,NULL);
+		uint8_t state=SDL_GetMouseState(NULL,NULL);
 		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
 		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
 		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
@@ -1209,7 +1209,7 @@ void WindowManager_SDL::DispatchSdlMouseEvent(void *e)
 		ev.setType(Event::MouseUp);
 		ev.p.x=event->x;
 		ev.p.y=event->y;
-		ppluint8 state=SDL_GetMouseState(NULL,NULL);
+		uint8_t state=SDL_GetMouseState(NULL,NULL);
 		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
 		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
 		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
@@ -1241,7 +1241,7 @@ void WindowManager_SDL::DispatchSdlResizeEvent(void *e)
 
 void WindowManager_SDL::getMouseStatus(Point &p, int &buttonMask)
 {
-	ppluint8 state=SDL_GetMouseState(&p.x,&p.y);
+	uint8_t state=SDL_GetMouseState(&p.x,&p.y);
 	buttonMask=0;
 	if (state&1) buttonMask=(MouseEvent::MouseButton)(buttonMask|MouseEvent::Left);
 	if (state&2) buttonMask=(MouseEvent::MouseButton)(buttonMask|MouseEvent::Middle);

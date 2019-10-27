@@ -358,8 +358,8 @@ void PFPFile::setVersion(int main, int sub)
  */
 {
 	if (main<0 || main>255 || sub<0 || sub>255) throw IllegalArgumentException();
-	mainversion=(ppluint8)(main&0xff);
-	subversion=(ppluint8)(sub&0xff);
+	mainversion=(uint8_t)(main&0xff);
+	subversion=(uint8_t)(sub&0xff);
 }
 
 void PFPFile::setId(const String &id)
@@ -726,7 +726,7 @@ void PFPFile::save(const String &filename)
 	Poke8(p+17,0);
 	Poke8(p+18,0);
 	Poke8(p+19,0);
-	Poke32(p+20,(ppluint32)GetTime());
+	Poke32(p+20,(uint32_t)GetTime());
 
 	size_t pp=hsize;
 	// Chunks zusammenfassen

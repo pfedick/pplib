@@ -1047,7 +1047,7 @@ void TCPSocket::sslAccept(SSLContext &context)
 void TCPSocket::sslWaitForAccept(SSLContext &context, int timeout_ms)
 {
 	try {
-	ppluint64 tt=GetMilliSeconds()+timeout_ms;
+	uint64_t tt=GetMilliSeconds()+timeout_ms;
 	while (timeout_ms==0 || GetMilliSeconds()<=tt) {
 		if (stoplisten) {
 

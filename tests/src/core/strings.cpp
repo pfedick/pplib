@@ -1203,21 +1203,21 @@ TEST_F(StringTest, toUnsignedInt) {
 }
 
 TEST_F(StringTest, toInt64) {
-	EXPECT_EQ((pplint64)1234,ppl7::String("1234").toInt64()) << "Unexpected Result";
-	EXPECT_EQ((pplint64)-1234,ppl7::String("-1234").toInt64()) << "Unexpected Result";
-	EXPECT_EQ((pplint64)1234,ppl7::String("01234").toInt64()) << "Unexpected Result";
-	EXPECT_EQ((pplint64)-1234,ppl7::String("-01234").toInt64()) << "Unexpected Result";
-	EXPECT_EQ((pplint64)0,ppl7::String("abc123").toInt64()) << "Unexpected Result";
-	EXPECT_EQ((pplint64)0,ppl7::String("0x1234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)1234,ppl7::String("1234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)-1234,ppl7::String("-1234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)1234,ppl7::String("01234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)-1234,ppl7::String("-01234").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)0,ppl7::String("abc123").toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)0,ppl7::String("0x1234").toInt64()) << "Unexpected Result";
 }
 
 TEST_F(StringTest, toUnsignedInt64) {
-	EXPECT_EQ((ppluint64)1234,ppl7::String("1234").toUnsignedInt64()) << "Unexpected Result";
-	EXPECT_EQ((ppluint64)-1234,ppl7::String("-1234").toUnsignedInt64()) << "Unexpected Result";
-	EXPECT_EQ((ppluint64)1234,ppl7::String("01234").toUnsignedInt64()) << "Unexpected Result";
-	EXPECT_EQ((ppluint64)-1234,ppl7::String("-01234").toUnsignedInt64()) << "Unexpected Result";
-	EXPECT_EQ((ppluint64)0,ppl7::String("abc123").toUnsignedInt64()) << "Unexpected Result";
-	EXPECT_EQ((ppluint64)0,ppl7::String("0x1234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((uint64_t)1234,ppl7::String("1234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((uint64_t)-1234,ppl7::String("-1234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((uint64_t)1234,ppl7::String("01234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((uint64_t)-1234,ppl7::String("-01234").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((uint64_t)0,ppl7::String("abc123").toUnsignedInt64()) << "Unexpected Result";
+	EXPECT_EQ((uint64_t)0,ppl7::String("0x1234").toUnsignedInt64()) << "Unexpected Result";
 }
 
 TEST_F(StringTest, toInt_withoutNumber) {
@@ -1242,12 +1242,12 @@ TEST_F(StringTest, toInt_123456_point_567) {
 
 TEST_F(StringTest, toInt64_1242346214893456) {
 	ppl7::String s1("1242346214893456");
-	EXPECT_EQ((pplint64)1242346214893456,s1.toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)1242346214893456,s1.toInt64()) << "Unexpected Result";
 }
 
 TEST_F(StringTest, toInt64_minus1242346214893456) {
 	ppl7::String s1("-1242346214893456");
-	EXPECT_EQ((pplint64)-1242346214893456,s1.toInt64()) << "Unexpected Result";
+	EXPECT_EQ((int64_t)-1242346214893456,s1.toInt64()) << "Unexpected Result";
 }
 
 TEST_F(StringTest, toBool) {

@@ -65,7 +65,7 @@ extern "C" {
 static void PutPixel_8 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor color)
 {
 	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
-	data.base8[data.pitch*y+x]=(ppluint8)(color&0xff);
+	data.base8[data.pitch*y+x]=(uint8_t)(color&0xff);
 }
 
 static SurfaceColor GetPixel_8 (const DRAWABLE_DATA &data, int x, int y)
@@ -80,7 +80,7 @@ static SurfaceColor GetPixel_8 (const DRAWABLE_DATA &data, int x, int y)
 static void PutPixel_16 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor color)
 {
 	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
-	data.base16[(data.pitch>>1)*y+x]=(ppluint16)(color&0xffff);
+	data.base16[(data.pitch>>1)*y+x]=(uint16_t)(color&0xffff);
 }
 
 static SurfaceColor GetPixel_16 (const DRAWABLE_DATA &data, int x, int y)
@@ -96,7 +96,7 @@ static SurfaceColor GetPixel_16 (const DRAWABLE_DATA &data, int x, int y)
 static void PutPixel_32 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor color)
 {
 	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
-	data.base32[(data.pitch>>2)*y+x]=(ppluint32)color;
+	data.base32[(data.pitch>>2)*y+x]=(uint32_t)color;
 }
 
 
@@ -112,7 +112,7 @@ static void AlphaPixel_32 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor
 	if (!data.fn->RGBBlend255) return;
 	SurfaceColor screen=(SurfaceColor)data.base32[(data.pitch>>2)*y+x];
 	SurfaceColor c=data.fn->RGBBlend255(screen,color,(color>>24));
-	data.base32[(data.pitch>>2)*y+x]=(ppluint32)c;
+	data.base32[(data.pitch>>2)*y+x]=(uint32_t)c;
 }
 #endif
 
@@ -122,7 +122,7 @@ static void BlendPixel_32 (const DRAWABLE_DATA &data, int x, int y, SurfaceColor
 	if (x<0 || y<0 || x>=data.width || y>=data.height) return;
 	SurfaceColor screen=(SurfaceColor)data.base32[(data.pitch>>2)*y+x];
 	SurfaceColor c=data.fn->RGBBlend255(screen,color,brightness);
-	data.base32[(data.pitch>>2)*y+x]=(ppluint32)c;
+	data.base32[(data.pitch>>2)*y+x]=(uint32_t)c;
 }
 
 

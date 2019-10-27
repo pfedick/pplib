@@ -4,14 +4,14 @@ PPL7 verwendet in vielen Fällen spezielle Datentypen, um sicherzustellen, dass
 diese auf allen Platformen gleich groß sind. Diese sind:
 <table>
 <tr><th>Datentyp</th><th>Beschreibung</th></tr>
-<tr><td>ppluint8</td><td>Vorzeichenloser 8-Bit Wert</td></tr>
-<tr><td>ppluint16</td><td>Vorzeichenloser 16-Bit Wert</td></tr>
-<tr><td>ppluint32</td><td>Vorzeichenloser 32-Bit Wert</td></tr>
-<tr><td>ppluint64</td><td>Vorzeichenloser 64-Bit Wert</td></tr>
-<tr><td>ppluint8</td><td>8-Bit Wert mit Vorzeichen</td></tr>
-<tr><td>ppluint16</td><td>16-Bit Wert mit Vorzeichen</td></tr>
-<tr><td>ppluint32</td><td>32-Bit Wert mit Vorzeichen</td></tr>
-<tr><td>ppluint64</td><td>64-Bit Wert mit Vorzeichen</td></tr>
+<tr><td>uint8_t</td><td>Vorzeichenloser 8-Bit Wert</td></tr>
+<tr><td>uint16_t</td><td>Vorzeichenloser 16-Bit Wert</td></tr>
+<tr><td>uint32_t</td><td>Vorzeichenloser 32-Bit Wert</td></tr>
+<tr><td>uint64_t</td><td>Vorzeichenloser 64-Bit Wert</td></tr>
+<tr><td>uint8_t</td><td>8-Bit Wert mit Vorzeichen</td></tr>
+<tr><td>uint16_t</td><td>16-Bit Wert mit Vorzeichen</td></tr>
+<tr><td>uint32_t</td><td>32-Bit Wert mit Vorzeichen</td></tr>
+<tr><td>uint64_t</td><td>64-Bit Wert mit Vorzeichen</td></tr>
 </table>
 
 \section DatenTypOther Andere Datenstrukturen

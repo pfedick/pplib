@@ -70,14 +70,14 @@ class Postgres92Result : public ResultSet
 		PGresult	*res;			//!\brief Postgres-spezifisches Result-Handle
 		PGconn		*conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
 		PostgreSQL	*postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
-		ppluint64	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
+		uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 
 	public:
 		Postgres92Result();
 		virtual ~Postgres92Result();
 		virtual	void		clear();
-		virtual ppluint64	affected() const;
+		virtual uint64_t	affected() const;
 		virtual int			fields() const;
 		virtual String		getString(const String &fieldname);
 		virtual String		getString(int field);
@@ -124,7 +124,7 @@ void Postgres92Result::clear()
 }
 
 
-ppluint64 Postgres92Result::affected() const
+uint64_t Postgres92Result::affected() const
 {
 	return affectedrows;
 }
@@ -626,7 +626,7 @@ String PostgreSQL::escape(const String &str) const
 #endif
 }
 
-ppluint64 PostgreSQL::getAffectedRows()
+uint64_t PostgreSQL::getAffectedRows()
 {
 	return affectedrows;
 }

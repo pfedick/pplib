@@ -81,7 +81,7 @@ namespace ppl7 {
 
 
 #ifndef u_int32_t
-#define u_int32_t	ppluint32
+#define u_int32_t	uint32_t
 #endif
 
 #define LENGTH 16
@@ -91,8 +91,8 @@ static void MD5Transform (u_int32_t state[4], const unsigned char block[64]);
 
 // MD5 Berechnung
 typedef struct MD5Context {
-		ppluint32 state[4];   /* state (ABCD) */
-		ppluint32 count[2];   /* number of bits, modulo 2^64 (lsb first) */
+		uint32_t state[4];   /* state (ABCD) */
+		uint32_t count[2];   /* number of bits, modulo 2^64 (lsb first) */
 		unsigned char buffer[64]; /* input buffer */
 } MD5_CTX;
 static void   MD5Init (MD5_CTX *);
@@ -491,7 +491,7 @@ String FileObject::md5()
 	char tmp[33];
 	MD5_CTX ctx;
 	MD5Init(&ctx);
-	ppluint64 oldpos=tell();
+	uint64_t oldpos=tell();
 	seek(0);
 	size_t bytes_read;
 	size_t len=1024*1024;

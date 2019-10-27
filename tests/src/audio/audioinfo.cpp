@@ -71,14 +71,14 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithoutID3) {
 	ASSERT_TRUE(ppl7::IdentAudioFile(file,info));
 	EXPECT_EQ(ppl7::AudioInfo::MP3,info.Format);
 	EXPECT_FALSE(info.HaveID3v2Tag);
-	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_EQ((uint32_t)0,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR);
-	EXPECT_EQ((ppluint16)192,info.Bitrate);
-	EXPECT_EQ((ppluint8)2,info.Channels);
-	EXPECT_EQ((ppluint8)16,info.BitsPerSample);
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
-	EXPECT_EQ((ppluint32)44100,info.Frequency);
-	EXPECT_EQ((ppluint32)176223,info.Samples);
+	EXPECT_EQ((uint16_t)192,info.Bitrate);
+	EXPECT_EQ((uint8_t)2,info.Channels);
+	EXPECT_EQ((uint8_t)16,info.BitsPerSample);
+	EXPECT_EQ((uint8_t)4,info.BytesPerSample);
+	EXPECT_EQ((uint32_t)44100,info.Frequency);
+	EXPECT_EQ((uint32_t)176223,info.Samples);
 	EXPECT_EQ(ppl7::AudioInfo::JOINT_STEREO,info.Mode);
 }
 
@@ -89,14 +89,14 @@ TEST_F(AudioInfoTest, IdentMp3CBR320WithoutID3) {
 	ASSERT_TRUE(ppl7::IdentAudioFile(file,info));
 	EXPECT_EQ(ppl7::AudioInfo::MP3,info.Format);
 	EXPECT_FALSE(info.HaveID3v2Tag);
-	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_EQ((uint32_t)0,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR);
-	EXPECT_EQ((ppluint16)320,info.Bitrate);
-	EXPECT_EQ((ppluint8)2,info.Channels);
-	EXPECT_EQ((ppluint8)16,info.BitsPerSample);
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
-	EXPECT_EQ((ppluint32)44100,info.Frequency);
-	EXPECT_EQ((ppluint32)176223,info.Samples);
+	EXPECT_EQ((uint16_t)320,info.Bitrate);
+	EXPECT_EQ((uint8_t)2,info.Channels);
+	EXPECT_EQ((uint8_t)16,info.BitsPerSample);
+	EXPECT_EQ((uint8_t)4,info.BytesPerSample);
+	EXPECT_EQ((uint32_t)44100,info.Frequency);
+	EXPECT_EQ((uint32_t)176223,info.Samples);
 }
 
 TEST_F(AudioInfoTest, IdentMp3VBR192WithoutID3) {
@@ -106,14 +106,14 @@ TEST_F(AudioInfoTest, IdentMp3VBR192WithoutID3) {
 	ASSERT_TRUE(ppl7::IdentAudioFile(file,info));
 	EXPECT_EQ(ppl7::AudioInfo::MP3,info.Format);
 	EXPECT_FALSE(info.HaveID3v2Tag);
-	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_EQ((uint32_t)0,info.ID3v2TagStart);
 	EXPECT_TRUE(info.IsVBR);
-	EXPECT_EQ((ppluint16)176,info.Bitrate);
-	EXPECT_EQ((ppluint8)2,info.Channels);
-	EXPECT_EQ((ppluint8)16,info.BitsPerSample);
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
-	EXPECT_EQ((ppluint32)44100,info.Frequency);
-	EXPECT_EQ((ppluint32)176256,info.Samples);
+	EXPECT_EQ((uint16_t)176,info.Bitrate);
+	EXPECT_EQ((uint8_t)2,info.Channels);
+	EXPECT_EQ((uint8_t)16,info.BitsPerSample);
+	EXPECT_EQ((uint8_t)4,info.BytesPerSample);
+	EXPECT_EQ((uint32_t)44100,info.Frequency);
+	EXPECT_EQ((uint32_t)176256,info.Samples);
 }
 
 TEST_F(AudioInfoTest, IdentMp3CBR192WithID3) {
@@ -123,14 +123,14 @@ TEST_F(AudioInfoTest, IdentMp3CBR192WithID3) {
 	ASSERT_TRUE(ppl7::IdentAudioFile(file,info));
 	EXPECT_EQ(ppl7::AudioInfo::MP3,info.Format);
 	EXPECT_TRUE(info.HaveID3v2Tag);
-	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_EQ((uint32_t)0,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR);
-	EXPECT_EQ((ppluint16)192,info.Bitrate);
-	EXPECT_EQ((ppluint8)2,info.Channels);
-	EXPECT_EQ((ppluint8)16,info.BitsPerSample);
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample);
-	EXPECT_EQ((ppluint32)44100,info.Frequency);
-	EXPECT_EQ((ppluint32)176223,info.Samples);
+	EXPECT_EQ((uint16_t)192,info.Bitrate);
+	EXPECT_EQ((uint8_t)2,info.Channels);
+	EXPECT_EQ((uint8_t)16,info.BitsPerSample);
+	EXPECT_EQ((uint8_t)4,info.BytesPerSample);
+	EXPECT_EQ((uint32_t)44100,info.Frequency);
+	EXPECT_EQ((uint32_t)176223,info.Samples);
 }
 
 
@@ -141,15 +141,15 @@ TEST_F(AudioInfoTest, IdentAiffWithoutID3) {
 	ASSERT_TRUE(ppl7::IdentAudioFile(file,info)) << "Audio format was not recognized";
 	EXPECT_EQ(ppl7::AudioInfo::AIFF,info.Format) << "Wrong audio format detected";
 	EXPECT_FALSE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
-	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_EQ((uint32_t)0,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
-	EXPECT_EQ((ppluint16)1411,info.Bitrate) << "Unexpected Bitrate";
-	EXPECT_EQ((ppluint8)2,info.Channels) << "Unexpected number of channels";
-	EXPECT_EQ((ppluint8)16,info.BitsPerSample) << "Unexpected Bits per Sample";
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample) << "Unexpected bytes per sample";
-	EXPECT_EQ((ppluint32)44100,info.Frequency) << "Unexpected frequency";
-	EXPECT_EQ((ppluint32)173695,info.Samples) << "Unexpected number of samples";
-	EXPECT_EQ((ppluint32)3938,info.Length) << "Unexpected length";
+	EXPECT_EQ((uint16_t)1411,info.Bitrate) << "Unexpected Bitrate";
+	EXPECT_EQ((uint8_t)2,info.Channels) << "Unexpected number of channels";
+	EXPECT_EQ((uint8_t)16,info.BitsPerSample) << "Unexpected Bits per Sample";
+	EXPECT_EQ((uint8_t)4,info.BytesPerSample) << "Unexpected bytes per sample";
+	EXPECT_EQ((uint32_t)44100,info.Frequency) << "Unexpected frequency";
+	EXPECT_EQ((uint32_t)173695,info.Samples) << "Unexpected number of samples";
+	EXPECT_EQ((uint32_t)3938,info.Length) << "Unexpected length";
 }
 
 TEST_F(AudioInfoTest, IdentAiffWithID3) {
@@ -159,15 +159,15 @@ TEST_F(AudioInfoTest, IdentAiffWithID3) {
 	ASSERT_TRUE(ppl7::IdentAudioFile(file,info)) << "Audio format was not recognized";
 	EXPECT_EQ(ppl7::AudioInfo::AIFF,info.Format) << "Wrong audio format detected";
 	EXPECT_TRUE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
-	EXPECT_EQ((ppluint32)694842,info.ID3v2TagStart);
+	EXPECT_EQ((uint32_t)694842,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
-	EXPECT_EQ((ppluint16)1411,info.Bitrate) << "Unexpected Bitrate";
-	EXPECT_EQ((ppluint8)2,info.Channels) << "Unexpected number of channels";
-	EXPECT_EQ((ppluint8)16,info.BitsPerSample) << "Unexpected Bits per Sample";
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample) << "Unexpected bytes per sample";
-	EXPECT_EQ((ppluint32)44100,info.Frequency) << "Unexpected frequency";
-	EXPECT_EQ((ppluint32)173695,info.Samples) << "Unexpected number of samples";
-	EXPECT_EQ((ppluint32)3938,info.Length) << "Unexpected length";
+	EXPECT_EQ((uint16_t)1411,info.Bitrate) << "Unexpected Bitrate";
+	EXPECT_EQ((uint8_t)2,info.Channels) << "Unexpected number of channels";
+	EXPECT_EQ((uint8_t)16,info.BitsPerSample) << "Unexpected Bits per Sample";
+	EXPECT_EQ((uint8_t)4,info.BytesPerSample) << "Unexpected bytes per sample";
+	EXPECT_EQ((uint32_t)44100,info.Frequency) << "Unexpected frequency";
+	EXPECT_EQ((uint32_t)173695,info.Samples) << "Unexpected number of samples";
+	EXPECT_EQ((uint32_t)3938,info.Length) << "Unexpected length";
 }
 
 
@@ -178,20 +178,20 @@ TEST_F(AudioInfoTest, IdentWaveWithoutID3) {
 	ASSERT_TRUE(ppl7::IdentAudioFile(file,info)) << "Audio format was not recognized";
 	EXPECT_EQ(ppl7::AudioInfo::WAVE,info.Format) << "Wrong audio format detected";
 	EXPECT_FALSE(info.HaveID3v2Tag) << "ID3-Tag detected, but there is none in the file";
-	EXPECT_EQ((ppluint32)0,info.ID3v2TagStart);
+	EXPECT_EQ((uint32_t)0,info.ID3v2TagStart);
 	EXPECT_FALSE(info.IsVBR) << "VBR detected, but it shouldn't";
-	EXPECT_EQ((ppluint16)1411,info.Bitrate) << "Unexpected Bitrate";
-	EXPECT_EQ((ppluint8)2,info.Channels) << "Unexpected number of channels";
-	EXPECT_EQ((ppluint8)16,info.BitsPerSample) << "Unexpected Bits per Sample";
-	EXPECT_EQ((ppluint8)4,info.BytesPerSample) << "Unexpected bytes per sample";
-	EXPECT_EQ((ppluint32)44100,info.Frequency) << "Unexpected frequency";
-	EXPECT_EQ((ppluint32)173695,info.Samples) << "Unexpected number of samples";
-	EXPECT_EQ((ppluint32)3938,info.Length) << "Unexpected length";
+	EXPECT_EQ((uint16_t)1411,info.Bitrate) << "Unexpected Bitrate";
+	EXPECT_EQ((uint8_t)2,info.Channels) << "Unexpected number of channels";
+	EXPECT_EQ((uint8_t)16,info.BitsPerSample) << "Unexpected Bits per Sample";
+	EXPECT_EQ((uint8_t)4,info.BytesPerSample) << "Unexpected bytes per sample";
+	EXPECT_EQ((uint32_t)44100,info.Frequency) << "Unexpected frequency";
+	EXPECT_EQ((uint32_t)173695,info.Samples) << "Unexpected number of samples";
+	EXPECT_EQ((uint32_t)3938,info.Length) << "Unexpected length";
 
-	EXPECT_EQ((ppluint32)694824,info.FileSize) << "Unexpected filesize";
-	EXPECT_EQ((ppluint32)44,info.AudioStart) << "Unexpected audio start";
-	EXPECT_EQ((ppluint32)694824-44,info.AudioSize) << "Unexpected audio size";
-	EXPECT_EQ((ppluint32)694823,info.AudioEnd) << "Unexpected audio end";
+	EXPECT_EQ((uint32_t)694824,info.FileSize) << "Unexpected filesize";
+	EXPECT_EQ((uint32_t)44,info.AudioStart) << "Unexpected audio start";
+	EXPECT_EQ((uint32_t)694824-44,info.AudioSize) << "Unexpected audio size";
+	EXPECT_EQ((uint32_t)694823,info.AudioEnd) << "Unexpected audio end";
 }
 
 }	// EOF namespace
