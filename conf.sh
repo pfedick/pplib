@@ -113,8 +113,9 @@ case "$SYS:$REL:$KERNEL" in
 			--with-postgresql --with-libldns \
 			--with-libgcrypt-prefix \
 			--with-libgnutls-prefix=/usr \
+			--with-libcurl=/usr \
 			--enable-gtest=/usr/local/googletest-release-1.7.0 \
-			--with-freetds --with-libjpeg --with-libpng -with-mpg123 --with-libmicrohttpd=/home/patrickf
+			--with-freetds --with-libjpeg --with-libpng -with-mpg123 --with-libmicrohttpd=/usr
 		;;	
 	*)
 		echo "Unknown host"
