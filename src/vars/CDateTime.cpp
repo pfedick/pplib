@@ -845,7 +845,7 @@ ppl6::CString CDateTime::getISO8601withUsec() const
  */
 ppluint64 CDateTime::time_t() const
 {
-	if (yy<1900) return 0;
+	if (yy<1970) return 0;
 	struct tm t;
 	t.tm_sec=ss;
 	t.tm_min=ii;
