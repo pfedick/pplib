@@ -272,8 +272,6 @@ public:
 };
 std::ostream& operator<<(std::ostream& s, const ByteArray &ba);
 
-ByteArray fromBase64(const String &base64);
-
 class String
 {
 	private:

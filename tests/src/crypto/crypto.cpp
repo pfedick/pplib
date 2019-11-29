@@ -192,6 +192,39 @@ TEST_F(CryptoTest, EncryptDecrypt_TRIPLE_DES_CBC) {
     ASSERT_EQ(clearData, ppl7::String(decrypteddata));
 }
 
+TEST_F(CryptoTest, EncryptDecryptWithBase64_AES_256_CFB) {
+    ppl7::Encrypt encrypt(ppl7::Crypt::Algo_AES_256, ppl7::Crypt::Mode_CFB);
+    ppl7::Decrypt decrypt(ppl7::Crypt::Algo_AES_256, ppl7::Crypt::Mode_CFB);
+
+    ASSERT_EQ(32,encrypt.keyLength());
+    ASSERT_EQ(16,encrypt.ivLength());
+    ASSERT_EQ(1,encrypt.blockSize());
+
+    ASSERT_EQ(32,decrypt.keyLength());
+    ASSERT_EQ(16,decrypt.ivLength());
+    ASSERT_EQ(1,decrypt.blockSize());
+
+    encrypt.setKey(ppl7::ByteArrayPtr(key,32));
+    encrypt.setIV(ppl7::ByteArrayPtr(iv,sizeof(iv)));
+
+    decrypt.setKey(ppl7::ByteArrayPtr(key,32));
+    decrypt.setIV(ppl7::ByteArrayPtr(iv,sizeof(iv)));
+
+    ppl7::String clearData("this is an unencrypted string");
+    ppl7::String crypteddata;
+
+    crypteddata=encrypt.encrypt(clearData).toBase64();
+
+    ASSERT_EQ(40,crypteddata.size());
+    ASSERT_EQ(ppl7::String("O2k5VBdaAV/4KXSLjjGxHexJoIdy/P148zvHAR7="),crypteddata);
+
+    ppl7::ByteArray decrypteddata;
+    decrypt.decrypt(ppl7::FromBase64(crypteddata), decrypteddata);
+
+    ASSERT_EQ(29,decrypteddata.size());
+    ASSERT_EQ(clearData, ppl7::String(decrypteddata));
+}
+
 
 }	// EOF namespace
 
