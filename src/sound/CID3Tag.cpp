@@ -2067,6 +2067,45 @@ void CID3Tag::SetPopularimeter(const CString &email, unsigned char rating)
 	AddFrame(frame);
 }
 
+void CID3Tag::RemovePopularimeter()
+{
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			DeleteFrame(frame);
+			frame=firstFrame;
+		} else {
+			frame=frame->nextFrame;
+		}
+	}
+}
+
+bool CID3Tag::HasPopularimeter() const
+{
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			return true;
+		}
+		frame=frame->nextFrame;
+	}
+	return false;
+}
+
+unsigned char CID3Tag::GetPopularimeter() const
+{
+	CID3Frame *frame=firstFrame;
+	while (frame) {
+		if(strcmp(frame->ID,"POPM")==0) {
+			CString existingemail=getNullPaddedString(frame,0);
+			return ppl6::Peek8(frame->data+existingemail.Size()+1);
+		}
+		frame=frame->nextFrame;
+	}
+	return 0;
+}
+
+
 
 
 }	// EOF namespace ppl6

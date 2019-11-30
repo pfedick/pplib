@@ -489,6 +489,9 @@ class CID3Tag
 		bool HasPopularimeter(const CString &email) const;
 		void SetPopularimeter(const CString &email, unsigned char rating);
 		void GetAllPopularimeters(std::map<CString,unsigned char> &data) const;
+		void RemovePopularimeter();
+		bool HasPopularimeter() const;
+		unsigned char GetPopularimeter() const;
 
 		~CID3Tag();
 };
