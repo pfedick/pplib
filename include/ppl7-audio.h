@@ -195,7 +195,8 @@ class ID3Tag
 		enum AudioFormat {
 			AF_UNKNOWN=0,
 			AF_MP3,
-			AF_AIFF
+			AF_AIFF,
+			AF_WAVE
 		};
 
 		enum PictureType {

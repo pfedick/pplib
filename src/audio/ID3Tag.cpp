@@ -536,10 +536,14 @@ ID3Tag::AudioFormat ID3Tag::identAudioFormat(FileObject &File)
 	const char *adr=File.map(0,12);
 	if (!adr) return AF_UNKNOWN;
 	//HexDump((void*)adr,12);
-	//printf ("PeekN32(adr+4)=%d, File.Size=%d\n",ppl6::PeekN32(adr+4), (uint32_t)File.Size() );
+	//printf ("PeekN32(adr+4)=%ud, File.Size=%d\n",ppl7::PeekN32(adr+4), (uint32_t)File.size() );
 	if (PeekN32(adr+4)<File.size()
 			&& PeekN32(adr+0)==0x464F524D
 			&& PeekN32(adr+8)==0x41494646) return AF_AIFF;
+	if (Peek32(adr+4)<=File.size()-8
+			&& strncmp(adr+0,"RIFF",4)==0
+			&& strncmp(adr+8,"WAVE",4)==0) return AF_WAVE;
+
 	if (IdentMPEG(File,NULL)) return AF_MP3;
 	return AF_UNKNOWN;
 }
@@ -558,6 +562,20 @@ uint64_t ID3Tag::findId3Tag(FileObject &File)
 				return p+8;
 			}
 			p+=PeekN32(adr+4)+8;
+		}
+	} else if (myAudioFormat==AF_WAVE) {
+		printf ("Have WAVE\n");
+		uint64_t p=12;
+		while (p<File.size()) {
+			const char *adr=File.map(p,8);
+			if (!adr) break;
+			ppl7::HexDump(adr,8);
+			/*
+			if (Peek32(adr)==0x49443320) {
+				return p+8;
+			}
+			*/
+			p+=Peek32(adr+4)+8;
 		}
 	}
 	return (uint64_t)-1;
