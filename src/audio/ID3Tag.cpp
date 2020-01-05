@@ -564,18 +564,26 @@ uint64_t ID3Tag::findId3Tag(FileObject &File)
 			p+=PeekN32(adr+4)+8;
 		}
 	} else if (myAudioFormat==AF_WAVE) {
-		printf ("Have WAVE\n");
+#ifdef ID3DEBUG
+		printf ("ID3Tag::findId3Tag: Have WAVE, Filesize: %llu\n",File.size());
+#endif
 		uint64_t p=12;
-		while (p<File.size()) {
+		while (p<File.size()-8) {
 			const char *adr=File.map(p,8);
 			if (!adr) break;
+#ifdef ID3DEBUG
 			ppl7::HexDump(adr,8);
-			/*
-			if (Peek32(adr)==0x49443320) {
+#endif
+			if (Peek32(adr)==0x20336469) {
+#ifdef ID3DEBUG
+				printf ("found id3 tag\n");
+#endif
 				return p+8;
 			}
-			*/
 			p+=Peek32(adr+4)+8;
+#ifdef ID3DEBUG
+			printf ("size ist: %u+8, p ist jetzt: %llu\n", Peek32(adr+4),p);
+#endif
 		}
 	}
 	return (uint64_t)-1;
@@ -1177,6 +1185,7 @@ void ID3Tag::save()
 	}
 	if (myAudioFormat==AF_MP3) saveMP3();
 	else if (myAudioFormat==AF_AIFF) saveAiff();
+	//else if (myAudioFormat==AF_WAVE) saveWave();
 	else throw UnsupportedAudioFormatException("FormatId=%d",myAudioFormat);
 }
 

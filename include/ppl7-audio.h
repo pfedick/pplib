@@ -218,8 +218,11 @@ class ID3Tag
 		uint64_t findId3Tag(FileObject &File);
 		void saveMP3();
 		void saveAiff();
+		void saveWave();
 		bool trySaveAiffInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
+		bool trySaveWaveInExistingFile(FileObject &o, ByteArrayPtr &tagV2);
 		void copyAiffToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2);
+		void copyWaveToNewFile(FileObject &o, FileObject &n, ByteArrayPtr &tagV2);
 		String getNullPaddedString(ID3Frame *frame, size_t offset=0) const;
 
 	public:

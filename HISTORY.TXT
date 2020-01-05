@@ -1,6 +1,9 @@
 /*!\page PPL7History PPL7 History
 PPL7 - HISTORY
 
+Version 7.0.2
+  - ID3Tag can read tags from WAVE-files (.wav)
+
 Version 7.0.1 vom 27.10.2019 (Repo-Tag: REL_7_0_1)
   - Fixed overflow exception in ID3Tag::copyAiffToNewFile
   - Fixed overflow exception in IdentAIFF
