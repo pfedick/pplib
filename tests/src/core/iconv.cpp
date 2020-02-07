@@ -109,7 +109,7 @@ static const char test_string_utf16be[] =
 TEST_F(IconvTest, transcodeWithString_ISO88591_UTF8) {
 	ppl7::Iconv iconv;
 	iconv.init("ISO-8859-1","UTF-8");
-	ppl7::String source(test_string_iso88591);
+	ppl7::String source(test_string_iso88591,sizeof(test_string_iso88591));
 	ppl7::String target;
 	iconv.transcode(source,target);
 	ASSERT_EQ(ppl7::String("Hällo Wörld"),target);
