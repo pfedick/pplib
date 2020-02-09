@@ -14,3 +14,10 @@
 /documentation/
 /.settings/
 .vscode/
+/ppl7.cflags
+/ppl7.config
+/ppl7.creator
+/ppl7.creator.user
+/ppl7.cxxflags
+/ppl7.files
+/ppl7.includes

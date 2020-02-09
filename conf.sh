@@ -87,7 +87,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-nasm --with-libiconv-prefix=/mingw \
 			--with-lame=/mingw --with-mpg123=/mingw \
 			--with-jpeg=/mingw --with-png=/mingw \
-			--with-libmcrypt-prefix=/mingw --with-gcrypt=auto \
+			--with-gcrypt=auto \
 			--with-openssl=/mingw --with-libcurl \
 			--with-ogg=/mingw
 		;;
@@ -100,7 +100,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-nasm --with-libiconv-prefix=/usr/local \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
 			--with-jpeg=/usr/local --with-libpng=/usr/local \
-			--with-libmcrypt-prefix=/usr/local --with-gcrypt=auto \
+			--with-gcrypt=auto \
 			--with-openssl=/usr/local --with-libcurl \
 			--with-ogg=/usr/local
 		;;
@@ -130,7 +130,6 @@ case "$SYS:$REL:$KERNEL" in
 			--with-ft-prefix=$MINGW \
 			--with-libtiff=$MINGW \
 			--with-libjpegturbo=$MINGW --with-libpng=$MINGW \
-			--with-libmcrypt-prefix=$PREFIX \
 			--with-openssl=$MINGW \
 			--with-libldns=$MINGW --with-libidn=$MINGW \
 		    --without-postgresql --without-mysql \
