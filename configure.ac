@@ -328,6 +328,7 @@ AC_CHECK_HEADERS([locale.h])
 AC_CHECK_HEADERS([wchar.h])
 AC_CHECK_HEADERS([widec.h])
 AC_CHECK_HEADERS([syslog.h])
+AC_CHECK_HEADERS([pthread.h pthread_np.h])
 AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([valgrind/helgrind.h])
 
@@ -366,6 +367,12 @@ AC_CHECK_FUNCS([poll select pselect])
 AC_CHECK_FUNCS([opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
 AC_CHECK_FUNCS([inet_ntop inet_pton inet_aton inet_ntoa inet_ntoa_r inet_addr inet_network inet_makeaddr])
+
+AC_CHECK_LIB(pthread, pthread_set_name_np,
+	AC_DEFINE(HAVE_PTHREAD_SET_NAME_NP,1),,)
+AC_CHECK_LIB(pthread, pthread_setname_np,
+	AC_DEFINE(HAVE_PTHREAD_SETNAME_NP,1),,)
+
 
 AC_CACHE_CHECK([for sa_len in struct sockaddr], ac_cv_struct_sa_len,
 [AC_TRY_COMPILE([#include <sys/types.h>

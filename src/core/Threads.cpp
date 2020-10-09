@@ -46,8 +46,11 @@
 #include <stdarg.h>
 #endif
 
-#ifdef HAVE_PTHREADS
+#ifdef HAVE_PTHREAD_H
 	#include <pthread.h>
+#endif
+#ifdef HAVE_PTHREAD_NP_H
+	#include <pthread_np.h>
 #endif
 
 #ifdef HAVE_LIMITS_H
@@ -471,6 +474,21 @@ Thread::~Thread()
 	VALGRIND_HG_CLEAN_MEMORY(this,sizeof(Thread));
 #endif
 }
+
+void Thread::threadSetName(const char *name)
+{
+	THREADDATA *t=(THREADDATA *)threaddata;
+	if (!t) return;
+	#ifdef HAVE_PTHREADS
+#ifdef HAVE_PTHREAD_SET_NAME_NP
+		pthread_set_name_np(t->thread,name);
+#elif defined HAVE_PTHREAD_SETNAME_NP
+		pthread_setname_np(t->thread,name);
+#endif
+	#endif
+}
+
+
 
 /*! \brief Der Thread wird gestoppt
  *
