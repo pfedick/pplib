@@ -136,7 +136,7 @@ case "$SYS:$REL:$KERNEL" in
 		    --enable-gtest=/usr/local/gtest-1.7.0 \
 				
 		;;		
-	Linux:*generic*)
+	Linux:*)
 	
 	    # export CFLAGS="-no-pie "
 		echo "configuring for generic Linux"
