@@ -36,6 +36,8 @@ then
     
       ],
       [
+        unset LIBMICROHTTPD_LIBS
+        unset LIBMICROHTTPD_CFLAGS
       	AC_MSG_RESULT(no)
         ifelse([$3], , :, [$3])
       ]

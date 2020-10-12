@@ -13371,6 +13371,8 @@ $as_echo "#define HAVE_LIBMICROHTTPD 1" >>confdefs.h
 
 else
 
+        unset LIBMICROHTTPD_LIBS
+        unset LIBMICROHTTPD_CFLAGS
       	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
         :
