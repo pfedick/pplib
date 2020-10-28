@@ -332,17 +332,31 @@ File::~File()
  * @param mode Filemodus aus der Enumeration FileMode
  * @return C-String
  */
-const char *File::fmode(FileMode mode)
+#ifdef WIN32
+const wchar_t *fmode(File::FileMode mode)
 {
 	switch (mode) {
-		case READ: return "rb";
-		case WRITE: return "wb";
-		case READWRITE: return "r+b";
-		case APPEND: return "ab";
+		case File::READ: return L"rb";
+		case File::WRITE: return L"wb";
+		case File::READWRITE: return L"r+b";
+		case File::APPEND: return L"ab";
 		default:
 			throw IllegalFilemodeException();
 	}
 }
+#else
+const char *fmode(File::FileMode mode)
+{
+	switch (mode) {
+		case File::READ: return "rb";
+		case File::WRITE: return "wb";
+		case File::READWRITE: return "r+b";
+		case File::APPEND: return "ab";
+		default:
+			throw IllegalFilemodeException();
+	}
+}
+#endif
 
 /*!\brief C-Filemode-String für popen
  *
@@ -353,16 +367,29 @@ const char *File::fmode(FileMode mode)
  * @param mode Filemodus aus der Enumeration FileMode
  * @return C-String
  */
-const char *File::fmodepopen(FileMode mode)
+#ifdef WIN32
+const wchar_t *fmodepopen(File::FileMode mode)
 {
 	switch (mode) {
-		case READ: return "r";
-		case WRITE: return "w";
-		case READWRITE: return "r+";
+		case File::READ: return L"r";
+		case File::WRITE: return L"w";
+		case File::READWRITE: return L"r+";
 		default:
 			throw IllegalFilemodeException();
 	}
 }
+#else
+const char *fmodepopen(File::FileMode mode)
+{
+	switch (mode) {
+		case File::READ: return "r";
+		case File::WRITE: return "w";
+		case File::READWRITE: return "r+";
+		default:
+			throw IllegalFilemodeException();
+	}
+}
+#endif
 
 /*!\brief %Exception anhand errno-Variable werfen
  *
@@ -403,11 +430,17 @@ void File::throwErrno(int e)
 void File::open (const String &filename, FileMode mode)
 {
 	close();
-	// fopen stuerzt ab, wenn filename leer ist
 	if (filename.isEmpty()) throw IllegalArgumentException();
+#ifdef WIN32
+	if ((ff=(FILE*)::_wfopen((const wchar_t*)WideString(filename),fmode(mode)))==NULL) {
+		throwErrno(errno,filename);
+	}
+
+#else
 	if ((ff=(FILE*)::fopen((const char*)filename,fmode(mode)))==NULL) {
 		throwErrno(errno,filename);
 	}
+#endif
 	mysize=size();
 	seek(0);
 	setFilename(filename);
@@ -427,9 +460,15 @@ void File::open (const char * filename, FileMode mode)
 {
 	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
 	close();
+#ifdef WIN32
+	if ((ff=(FILE*)::_wfopen((const wchar_t*)WideString(filename),fmode(mode)))==NULL) {
+		throwErrno(errno,filename);
+	}
+#else
 	if ((ff=(FILE*)::fopen(filename,fmode(mode)))==NULL) {
 		throwErrno(errno,filename);
 	}
+#endif
 	mysize=size();
 	seek(0);
 	setFilename(filename);
@@ -585,10 +624,16 @@ void File::popen (const String &command, FileMode mode)
 {
 	close();
 	if (command.isEmpty()) throw IllegalArgumentException();
+#ifdef WIN32
+	if ((ff=(FILE*)::_wpopen((const wchar_t*)WideString(command),fmodepopen(mode)))==NULL) {
+		throwErrno(errno,command);
+	}
 
+#else
 	if ((ff=(FILE*)::popen((const char*)command,fmodepopen(mode)))==NULL) {
 		throwErrno(errno,command);
 	}
+#endif
 	isPopen=true;
 	mysize=size();
 	setFilename(command);
@@ -615,9 +660,15 @@ void File::popen (const char * command, FileMode mode)
 {
 	if (command==NULL || strlen(command)==0) throw IllegalArgumentException();
 	close();
+#ifdef WIN32
+	if ((ff=(FILE*)::_wpopen((const wchar_t*)WideString(command),fmodepopen(mode)))==NULL) {
+		throwErrno(errno,command);
+	}
+#else
 	if ((ff=(FILE*)::popen(command,fmodepopen(mode)))==NULL) {
 		throwErrno(errno,command);
 	}
+#endif
 	isPopen=true;
 	mysize=size();
 	setFilename(command);
@@ -1321,7 +1372,11 @@ bool File::exists(const String &filename)
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	FILE *fd=NULL;
 	//printf ("buffer=%s\n",buff);
+#ifdef WIN32
+	fd=_wfopen((const wchar_t*)WideString(filename),L"rb");		// Versuchen die Datei zu oeffnen
+#else
 	fd=fopen((const char*)filename,"rb");		// Versuchen die Datei zu oeffnen
+#endif
 	if (fd) {
 		fclose(fd);
 		return true;
@@ -1414,16 +1469,32 @@ void File::rename(const String &oldfile, const String &newfile)
 
 	String desc;
 	desc.setf("rename %s => %s",(const char*)oldfile,(const char*)newfile);
+#ifdef WIN32
+	if (::_wrename((const wchar_t*)WideString(oldfile),(const wchar_t*)WideString(newfile))==0) {
+#else
 	if (::rename((const char*)oldfile,(const char*)newfile)==0) {
+#endif
 		FILE *fd=NULL;
 		//printf ("buffer=%s\n",buff);
+#ifdef WIN32
+		fd=_wfopen((const wchar_t*)WideString(oldfile),L"rb");		// Ist die alte Datei noch da?
+#else
 		fd=fopen((const char*)oldfile,"rb");		// Ist die alte Datei noch da?
+#endif
 		if (fd) {
 			// Ja, wir löschen sie manuell
 			fclose(fd);
+#ifdef WIN32
+			if (::_wunlink((const wchar_t*)WideString(oldfile))==0) return;
+#else
 			if (::unlink((const char*)oldfile)==0) return;
+#endif
 			int saveerrno=errno;
+#ifdef WIN32
+			::_wunlink((const wchar_t*)WideString(newfile));
+#else
 			::unlink((const char*)newfile);
+#endif
 			errno=saveerrno;
 			throwErrno(errno,desc);
 		}
@@ -1431,7 +1502,11 @@ void File::rename(const String &oldfile, const String &newfile)
 	}
 	if (errno==EXDEV) {	// oldfile und newfile befinden sich nicht im gleichen Filesystem.
 		copy(oldfile,newfile);
+#ifdef WIN32
+		if (::_wunlink((const wchar_t*)WideString(oldfile))==0) return;
+#else
 		if (::unlink((const char*)oldfile)==0) return;
+#endif
 	}
 	throwErrno(errno,desc);
 
@@ -1453,14 +1528,14 @@ void File::rename(const String &oldfile, const String &newfile)
 void File::erase(const String &filename)
 {
 	if (filename.isEmpty()) throw IllegalArgumentException("File::erase");
-#ifdef HAVE_REMOVE
+#ifdef WIN32
+	if (::_wunlink((const wchar_t*)WideString(filename))==0) return;
+	throwErrno(errno,filename);
+#elif defined HAVE_REMOVE
 	if (::remove((const char*)filename)==0) return;
 	throwErrno(errno,filename);
 #elif defined HAVE_UNLINK
 	if (::unlink((const char*)filename)==0) return;
-	throwErrno(errno,filename);
-#elif defined _WIN32
-	if (::_unlink((const char*)filename)==0) return;
 	throwErrno(errno,filename);
 #else
 	throw UnsupportedFeatureException("File::erase");
@@ -1593,7 +1668,7 @@ void File::chmod(const String &filename, FileAttr::Attributes attr)
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	mode_t m=translate_FileAttr(attr);
 #ifdef _WIN32
-	if (_chmod((const char*)filename,m)==0) return;
+	if (_wchmod((const wchar_t*)WideString(filename),m)==0) return;
 #else
 	if (::chmod((const char*)filename,m)==0) return;
 #endif
@@ -1624,14 +1699,16 @@ String File::md5Hash(const String &filename)
 void File::statFile(const String &filename, DirEntry &result)
 {
 	if (filename.isEmpty()) throw IllegalArgumentException();
-#ifdef HAVE_STAT
-	struct stat st;
-	if (::stat((const char*)filename,&st)!=0) throwErrno(errno,filename);
-#elif defined _WIN32
+#ifdef WIN32
 	struct _stat st;
 	String File=filename;
 	File.replace("/","\\");
-	if (_stat((const char*)File.toLocalEncoding(),&st)!=0) throwErrno(errno,filename);
+	if (_wstat((const wchar_t*)WideString(File),&st)!=0) throwErrno(errno,filename);
+#elif defined HAVE_STAT
+	struct stat st;
+	if (::stat((const char*)filename,&st)!=0) throwErrno(errno,filename);
+#else
+	throw UnsupportedFeatureException("File::statFile");
 #endif
 	result.ATime.setTime_t(st.st_atime);
 	result.CTime.setTime_t(st.st_ctime);

@@ -686,8 +686,6 @@ class File : public FileObject
 
 	public:
 		static void throwErrno(int e, const String &filename);
-		static const char *fmode(FileMode mode);
-		static const char *fmodepopen(FileMode mode);
 
 		File ();
 		File (const String &filename, FileMode mode=READ);

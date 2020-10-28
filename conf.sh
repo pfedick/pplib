@@ -133,6 +133,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-openssl=$MINGW \
 			--with-libldns=$MINGW --with-libidn=$MINGW \
 		    --without-postgresql --without-mysql \
+		    --with-sdl-prefix=no \
 		    --enable-gtest=/usr/local/gtest-1.7.0 \
 				
 		;;		

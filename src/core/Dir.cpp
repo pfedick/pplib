@@ -1076,6 +1076,19 @@ void Dir::open(const String &path, Sort s)
  */
 void Dir::open(const char *path, Sort s)
 {
+#ifdef TODO_WIN32
+	HANDLE hFind;
+	WIN32_FIND_DATA FindFileData;
+
+	if((hFind = FindFirstFile("C:/some/folder/*.txt", &FindFileData)) != INVALID_HANDLE_VALUE){
+	    do{
+	        printf("%s\n", FindFileData.cFileName);
+	    }while(FindNextFile(hFind, &FindFileData));
+	    FindClose(hFind);
+	}
+#endif
+
+
 #ifdef HAVE_OPENDIR
 	clear();
 	sort=s;
@@ -1130,7 +1143,7 @@ void Dir::mkDir(const String &path)
 
 void Dir::mkDir(const String &path, bool recursive)
 {
-#ifdef _WIN32
+#ifdef WIN32
 	Dir::mkDir(path,0,recursive);
 #else
 	Dir::mkDir(path,
@@ -1149,10 +1162,10 @@ void Dir::mkDir(const String &path, mode_t mode, bool recursive)
 	//printf ("path=%s\n",(const char*)path);
 	// 1=erfolgreich, 0=Fehler
 	if (!recursive) {
-#ifdef _WIN32
+#ifdef WIN32
 		s=path;
 		s.replace("/","\\");
-		if (mkdir(s)==0) return;
+		if (_wmkdir((const wchar_t*)WideString(s))==0) return;
 #else
 		if (mkdir((const char*)path,mode)==0) return;
 #endif
@@ -1174,7 +1187,7 @@ void Dir::mkDir(const String &path, mode_t mode, bool recursive)
 #ifdef _WIN32
 			if(s.right(1)!=":") {
 				s.replace("/","\\");
-				if (mkdir((const char*)s)!=0) throw CreateDirectoryFailedException();
+				if (_wmkdir((const wchar_t*)WideString(s))!=0) throw CreateDirectoryFailedException();
 			}
 #else
 			if (mkdir((const char*)s,mode)!=0) throw CreateDirectoryFailedException();

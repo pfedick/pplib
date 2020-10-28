@@ -64,7 +64,7 @@ class DirTest : public ::testing::Test {
 		}
 		//printf ("current locale: %s\n",setlocale(LC_ALL,NULL));
 
-		expectedNum=10;
+        expectedNum=11;
 		if (ppl7::File::exists("testdata/dirwalk/.svn")) expectedNum++;
 		//if (ppl7::File::exists("testdata/dirwalk/.")) expectedNum++;
 		//if (ppl7::File::exists("testdata/dirwalk/..")) expectedNum++;
@@ -185,6 +185,11 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ(ppl7::String("zfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)9819,e.Size);
 
+    e=d1.getNext(it);
+    ASSERT_EQ(ppl7::WideString(L"èxôtíŒ.txt"),ppl7::WideString(e.Filename));
+    ASSERT_EQ((size_t)1330,e.Size);
+
+
 	// We expect an EndOfListException next
 	ASSERT_THROW(e=d1.getNext(it), ppl7::EndOfListException);
 
@@ -215,6 +220,11 @@ TEST_F(DirTest, dirWalkSize) {
 	});
 	ASSERT_EQ(ppl7::String("LICENSE.TXT"),e.Filename )<< "Real Filename 1: "<<e.Filename;
 	ASSERT_EQ((size_t)1330,e.Size);
+
+
+    ASSERT_NO_THROW(e=getNextFile(d1,it));
+    ASSERT_EQ(ppl7::WideString(L"èxôtíŒ.txt"),ppl7::WideString(e.Filename));
+    ASSERT_EQ((size_t)1330,e.Size);
 
 	ASSERT_NO_THROW(e=getNextFile(d1,it));
 	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename) )<< "Real Filename 2: "<<e.Filename;
