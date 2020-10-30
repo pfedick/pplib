@@ -105,6 +105,17 @@ TEST_F(FileReadTest, openAndClose) {
 
 }
 
+TEST_F(FileReadTest, openAndCloseNonUSASCIIFilenames) {
+	ppl7::File f1;
+	f1.open("testdata/dirwalk/èxôtíŒ.txt");
+	ASSERT_EQ((uint64_t)1330,f1.size());
+	f1.close();
+	f1.open("testdata/dirwalk/file4✼.txt");
+	ASSERT_EQ((uint64_t)5281,f1.size());
+
+}
+
+
 TEST_F(FileReadTest, md5) {
 	ppl7::File f1;
 	f1.open("testdata/dirwalk/testfile.txt");

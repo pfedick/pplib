@@ -64,7 +64,7 @@ class DirTest : public ::testing::Test {
 		}
 		//printf ("current locale: %s\n",setlocale(LC_ALL,NULL));
 
-        expectedNum=11;
+        expectedNum=12;
 		if (ppl7::File::exists("testdata/dirwalk/.svn")) expectedNum++;
 		//if (ppl7::File::exists("testdata/dirwalk/.")) expectedNum++;
 		//if (ppl7::File::exists("testdata/dirwalk/..")) expectedNum++;
@@ -178,6 +178,11 @@ TEST_F(DirTest, dirWalkFilename) {
 	ASSERT_EQ((size_t)5281,e.Size);
 
 	e=d1.getNext(it);
+	//printf ("%s\n",(const char*)e.Filename);
+	ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
+	ASSERT_EQ((size_t)5281,e.Size);
+
+	e=d1.getNext(it);
 	ASSERT_EQ(ppl7::String("testfile.txt"),e.Filename);
 	ASSERT_EQ((size_t)1592096,e.Size);
 
@@ -226,7 +231,11 @@ TEST_F(DirTest, dirWalkSize) {
     ASSERT_EQ(ppl7::WideString(L"èxôtíŒ.txt"),ppl7::WideString(e.Filename));
     ASSERT_EQ((size_t)1330,e.Size);
 
-	ASSERT_NO_THROW(e=getNextFile(d1,it));
+    ASSERT_NO_THROW(e=getNextFile(d1,it));
+    ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
+    ASSERT_EQ((size_t)5281,e.Size);
+
+    ASSERT_NO_THROW(e=getNextFile(d1,it));
 	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename) )<< "Real Filename 2: "<<e.Filename;
 	ASSERT_EQ((size_t)5281,e.Size);
 
@@ -291,6 +300,10 @@ TEST_F(DirTest, patternWalk) {
 	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename));
 	ASSERT_EQ((size_t)5281,e.Size);
 
+	e=d1.getNextPattern(it,"file*");
+	ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
+	ASSERT_EQ((size_t)5281,e.Size);
+
 	// We expect an EndOfListException next
 	ASSERT_THROW(e=d1.getNextPattern(it,"file*"), ppl7::EndOfListException);
 
@@ -317,6 +330,10 @@ TEST_F(DirTest, patternWalk2) {
 
 	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
 	ASSERT_EQ(ppl7::WideString(L"file4äöü.txt"),ppl7::WideString(e.Filename));
+	ASSERT_EQ((size_t)5281,e.Size);
+
+	ASSERT_TRUE(d1.getNextPattern(e,it,"file*"));
+	ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
 	ASSERT_EQ((size_t)5281,e.Size);
 
 	// We expect an EndOfListException next
