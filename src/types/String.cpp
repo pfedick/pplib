@@ -84,6 +84,9 @@
 namespace ppl7 {
 
 static size_t InitialBuffersize=128;
+#ifdef WIN32
+static String __GlobalStringEncoding("UTF-8");
+#endif
 
 static char*empty_string=(char*)"";
 
@@ -102,15 +105,22 @@ static char*empty_string=(char*)"";
 void String::setGlobalEncoding(const char *encoding)
 {
 	if (!encoding) throw NullPointerException();
+#ifdef WIN32
+	__GlobalStringEncoding.set(encoding);
+#else
 	char *ret=setlocale(LC_CTYPE,encoding);
 	if (!ret) throw UnsupportedCharacterEncodingException();
+#endif
 }
 
 const char *String::getGlobalEncoding()
 {
+#ifdef WIN32
+	return (const char*)__GlobalStringEncoding;
+#else
 	const char *ret=setlocale(LC_CTYPE,NULL);
-	//printf ("%s\n",ret);
 	return ret;
+#endif
 }
 
 /*!\class String
@@ -616,13 +626,13 @@ String & String::set(const wchar_t *str, size_t size)
 	// ptr=char* ziel
 	// str=wchar_t *quelle
 	// s=Size von ziel
-	/*errno_t wcstombs_s(  
-   size_t *pReturnValue,  
-   char *mbstr,  
-   size_t sizeInBytes,  
-   const wchar_t *wcstr,  
-   size_t count   
-); 
+	/*errno_t wcstombs_s(
+   size_t *pReturnValue,
+   char *mbstr,
+   size_t sizeInBytes,
+   const wchar_t *wcstr,
+   size_t count
+);
 	*/
 	wcstombs_s(&stringlen, ptr, s, str, s);
 
