@@ -86,6 +86,13 @@
 
 namespace ppl7 {
 
+
+#ifdef WIN32
+const wchar_t *fmode(File::FileMode mode);
+#else
+const char *fmode(File::FileMode mode);
+#endif
+
 /*!\class GzFile
  * \ingroup PPLGroupFileIO
  * \brief Zugriff auf eine mit gzip komprimierte Datei
@@ -189,7 +196,7 @@ void GzFile::open (const String &filename, File::FileMode mode)
 	close();
 	// fopen stuerzt ab, wenn filename leer ist
 	if (filename.isEmpty()) throw IllegalArgumentException();
-	if ((ff=gzopen((const char*)filename,File::fmode(mode)))==NULL) {
+	if ((ff=gzopen((const char*)filename,fmode(mode)))==NULL) {
 		throwErrno(errno,filename);
 	}
 	seek(0);
@@ -210,7 +217,7 @@ void GzFile::open (const char * filename, File::FileMode mode)
 {
 	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
 	close();
-	if ((ff=gzopen(filename,File::fmode(mode)))==NULL) {
+	if ((ff=gzopen(filename,fmode(mode)))==NULL) {
 		throwErrno(errno,filename);
 	}
 	seek(0);
@@ -230,7 +237,7 @@ void GzFile::open (int fd, File::FileMode mode)
 {
 	if (fd==0) throw IllegalArgumentException();
 	close();
-	if ((ff=gzdopen(fd,File::fmode(mode)))==NULL) {
+	if ((ff=gzdopen(fd,fmode(mode)))==NULL) {
 		throwErrno(errno,"FILE");
 	}
 	seek(0);

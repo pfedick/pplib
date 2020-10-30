@@ -306,13 +306,26 @@ AC_CHECK_HEADERS([sys/time.h])
 AC_CHECK_HEADERS([sys/types.h])
 AC_CHECK_HEADERS([sys/socket.h])
 AC_CHECK_HEADERS([sys/poll.h])
+AC_CHECK_HEADERS([sys/select.h])
+AC_CHECK_HEADERS([sys/sysinfo.h])
+AC_CHECK_HEADERS([sys/sysctl.h])
+AC_CHECK_HEADERS([sys/resource.h])
 AC_CHECK_HEADERS([netinet/in.h])
 AC_CHECK_HEADERS([arpa/nameser.h])
-AC_CHECK_HEADERS([resolv.h],,,[
+AC_CHECK_HEADERS([resolv.h],[],[],
+[
+#ifdef HAVE_SYS_TYPES_H
 	#include <sys/types.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 	#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_NAMESER_H
 	#include <arpa/nameser.h>
+#endif
 ])
+
+
 AC_CHECK_HEADERS([netdb.h])
 AC_CHECK_HEADERS([arpa/inet.h])
 AC_CHECK_HEADERS([strings.h])

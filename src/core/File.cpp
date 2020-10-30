@@ -341,7 +341,7 @@ const wchar_t *fmode(File::FileMode mode)
 		case File::READWRITE: return L"r+b";
 		case File::APPEND: return L"ab";
 		default:
-			throw IllegalFilemodeException();
+			throw File::IllegalFilemodeException();
 	}
 }
 #else
@@ -353,7 +353,7 @@ const char *fmode(File::FileMode mode)
 		case File::READWRITE: return "r+b";
 		case File::APPEND: return "ab";
 		default:
-			throw IllegalFilemodeException();
+			throw File::IllegalFilemodeException();
 	}
 }
 #endif
@@ -375,7 +375,7 @@ const wchar_t *fmodepopen(File::FileMode mode)
 		case File::WRITE: return L"w";
 		case File::READWRITE: return L"r+";
 		default:
-			throw IllegalFilemodeException();
+			throw File::IllegalFilemodeException();
 	}
 }
 #else
@@ -386,7 +386,7 @@ const char *fmodepopen(File::FileMode mode)
 		case File::WRITE: return "w";
 		case File::READWRITE: return "r+";
 		default:
-			throw IllegalFilemodeException();
+			throw File::IllegalFilemodeException();
 	}
 }
 #endif
