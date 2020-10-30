@@ -333,7 +333,7 @@ File::~File()
  * @return C-String
  */
 #ifdef WIN32
-const wchar_t *fmode(File::FileMode mode)
+static const wchar_t *fmode(File::FileMode mode)
 {
 	switch (mode) {
 		case File::READ: return L"rb";
@@ -345,7 +345,7 @@ const wchar_t *fmode(File::FileMode mode)
 	}
 }
 #else
-const char *fmode(File::FileMode mode)
+static const char *fmode(File::FileMode mode)
 {
 	switch (mode) {
 		case File::READ: return "rb";
@@ -461,7 +461,7 @@ void File::open (const char * filename, FileMode mode)
 	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
 	close();
 #ifdef WIN32
-	if ((ff=(FILE*)::_wfopen((const wchar_t*)WideString(filename),fmode(mode)))==NULL) {
+	if ((ff=(FILE*)::_wfopen((const wchar_t*)WideString(String(filename)),fmode(mode)))==NULL) {
 		throwErrno(errno,filename);
 	}
 #else
@@ -661,7 +661,7 @@ void File::popen (const char * command, FileMode mode)
 	if (command==NULL || strlen(command)==0) throw IllegalArgumentException();
 	close();
 #ifdef WIN32
-	if ((ff=(FILE*)::_wpopen((const wchar_t*)WideString(command),fmodepopen(mode)))==NULL) {
+	if ((ff=(FILE*)::_wpopen((const wchar_t*)WideString(String(command)),fmodepopen(mode)))==NULL) {
 		throwErrno(errno,command);
 	}
 #else

@@ -761,6 +761,7 @@ class File : public FileObject
 class GzFile : public FileObject
 {
 	private:
+		File * fh;
 		void * ff;
 
 	public:

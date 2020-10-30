@@ -87,11 +87,17 @@
 namespace ppl7 {
 
 
-#ifdef WIN32
-const wchar_t *fmode(File::FileMode mode);
-#else
-const char *fmode(File::FileMode mode);
-#endif
+static const char *fmode(File::FileMode mode)
+{
+	switch (mode) {
+		case File::READ: return "rb";
+		case File::WRITE: return "wb";
+		case File::READWRITE: return "r+b";
+		case File::APPEND: return "ab";
+		default:
+			throw File::IllegalFilemodeException();
+	}
+}
 
 /*!\class GzFile
  * \ingroup PPLGroupFileIO
@@ -113,6 +119,7 @@ const char *fmode(File::FileMode mode);
 GzFile::GzFile ()
 {
 	ff=NULL;
+	fh=NULL;
 }
 
 /*!\brief Konstruktor der Klasse mit gleichzeitigem Öffnen einer Datei
@@ -125,6 +132,7 @@ GzFile::GzFile ()
 GzFile::GzFile (const String &filename, File::FileMode mode)
 {
 	ff=NULL;
+	fh=NULL;
 	open (filename,mode);
 }
 
@@ -138,6 +146,7 @@ GzFile::GzFile (const String &filename, File::FileMode mode)
 GzFile::GzFile (int fd)
 {
 	ff=NULL;
+	fh=NULL;
 	open(fd);
 }
 
@@ -152,6 +161,10 @@ GzFile::~GzFile()
 {
 	if (ff!=NULL) {
 		close();
+	}
+	if (fh!=NULL) {
+		fh->close();
+		delete(fh);
 	}
 }
 
@@ -194,13 +207,10 @@ void GzFile::throwErrno(int e)
 void GzFile::open (const String &filename, File::FileMode mode)
 {
 	close();
-	// fopen stuerzt ab, wenn filename leer ist
 	if (filename.isEmpty()) throw IllegalArgumentException();
-	if ((ff=gzopen((const char*)filename,fmode(mode)))==NULL) {
-		throwErrno(errno,filename);
-	}
-	seek(0);
+	fh=new File(filename, mode);
 	setFilename(filename);
+	this->open(fh->getFileNo(), mode);
 }
 
 /*!\brief Datei zum Lesen oder Schreiben öffnen
@@ -217,11 +227,10 @@ void GzFile::open (const char * filename, File::FileMode mode)
 {
 	if (filename==NULL || strlen(filename)==0) throw IllegalArgumentException();
 	close();
-	if ((ff=gzopen(filename,fmode(mode)))==NULL) {
-		throwErrno(errno,filename);
-	}
-	seek(0);
+	fh=new File;
+	fh->open(filename, mode);
 	setFilename(filename);
+	this->open(fh->getFileNo(), mode);
 }
 
 /*
@@ -272,6 +281,11 @@ void GzFile::close()
 		else if (ret==Z_ERRNO) throwErrno(errno,filename());
 		else if (ret==Z_MEM_ERROR) throw ppl7::OutOfMemoryException();
 		throw ppl7::CompressionFailedException();
+	}
+	if (fh!=NULL) {
+		fh->close();
+		delete(fh);
+		fh=NULL;
 	}
 }
 
