@@ -192,7 +192,7 @@ TEST_F(DirTest, dirWalkFilename) {
 
     e=d1.getNext(it);
     ASSERT_EQ(ppl7::WideString(L"èxôtíŒ.txt"),ppl7::WideString(e.Filename));
-    ASSERT_EQ((size_t)1330,e.Size);
+    ASSERT_EQ((size_t)1356,e.Size);
 
 
 	// We expect an EndOfListException next
@@ -229,7 +229,7 @@ TEST_F(DirTest, dirWalkSize) {
 
     ASSERT_NO_THROW(e=getNextFile(d1,it));
     ASSERT_EQ(ppl7::WideString(L"èxôtíŒ.txt"),ppl7::WideString(e.Filename));
-    ASSERT_EQ((size_t)1330,e.Size);
+    ASSERT_EQ((size_t)1356,e.Size);
 
     ASSERT_NO_THROW(e=getNextFile(d1,it));
     ASSERT_EQ(ppl7::WideString(L"file4✼.txt"),ppl7::WideString(e.Filename));
