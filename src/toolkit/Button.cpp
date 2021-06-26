@@ -61,20 +61,20 @@ using namespace ppl7::grafix;
 
 Button::Button()
 {
-	const WidgetStyle *style=GetWidgetStyle();
-	background=style->buttonBackgroundColor;
-	foreground=style->buttonFontColor;
-	myFont=style->buttonFont;
+	const WidgetStyle &style=GetWidgetStyle();
+	background=style.buttonBackgroundColor;
+	foreground=style.buttonFontColor;
+	myFont=style.buttonFont;
 	setClientOffset(3,3,3,3);
 	isDown=false;
 }
 
 Button::Button(int x, int y, int width, int height, const String &text, const Drawable &icon)
 {
-	const WidgetStyle *style=GetWidgetStyle();
-	background=style->buttonBackgroundColor;
-	foreground=style->buttonFontColor;
-	myFont=style->buttonFont;
+	const WidgetStyle &style=GetWidgetStyle();
+	background=style.buttonBackgroundColor;
+	foreground=style.buttonFontColor;
+	myFont=style.buttonFont;
 	create(x,y,width,height);
 	setClientOffset(3,3,3,3);
 	isDown=false;

@@ -61,6 +61,43 @@ using namespace ppl7;
 using namespace ppl7::grafix;
 
 
+WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
+{
+	labelFont.setName("Default");
+	labelFont.setSize(12);
+	labelFont.setAntialias(true);
+	buttonFont.setName("Default");
+	buttonFont.setSize(12);
+	buttonFont.setAntialias(true);
+	buttonFont.setBold(true);
+
+	inputFont.setName("Default");
+	inputFont.setAntialias(true);
+	inputFont.setSize(12);
+	inputFont.setBold(true);
+
+	if (style==Light) {
+		windowBackgroundColor.setColor(220,220,220,255);
+		frameBackgroundColor.setColor(230,230,230,255);
+		frameBorderColorLight.setColor(250,250,250,255);
+		frameBorderColorShadow.setColor(96,96,96,255);
+		labelFontColor.setColor(0,0,0,255);
+		buttonBackgroundColor.setColor(230,230,230,255);
+		buttonFontColor.setColor(0,0,0,255);
+		inputFontColor.setColor(0,0,0,255);
+		inputBackgroundColor.setColor(255,255,255,255);
+	} else {
+		windowBackgroundColor.setColor(47,47,47,255);
+		frameBackgroundColor.setColor(71,71,74,255);
+		frameBorderColorLight.setColor(127,127,123,255);
+		frameBorderColorShadow.setColor(81,86,88,255);
+		labelFontColor.setColor(216,216,214,255);
+		buttonBackgroundColor.setColor(71,71,74,255);
+		buttonFontColor.setColor(223,223,220,255);
+		inputFontColor.setColor(43,43,40,255);
+		inputBackgroundColor.setColor(216,216,214,255);
+	}
+}
 
 Widget::Widget()
 {

@@ -70,9 +70,15 @@ using namespace ppl7::grafix;
 class WidgetStyle
 {
 	public:
+		enum PredefinedStyle {
+			Light=0,
+			Dark=1
+		};
+		WidgetStyle(PredefinedStyle style=Light);
 		Color	windowBackgroundColor;
 		Color	frameBackgroundColor;
-		Color	frameBorderColor;
+		Color	frameBorderColorLight;
+		Color	frameBorderColorShadow;
 		Color	labelFontColor;
 		Font	labelFont;
 		Color	buttonBackgroundColor;
@@ -530,7 +536,8 @@ class WindowManager
 	public:
 		WindowManager();
 		virtual ~WindowManager();
-		const WidgetStyle *getWidgetStyle() const;
+		const WidgetStyle &getWidgetStyle() const;
+		void setWidgetStyle(const WidgetStyle &style);
 		void dispatchEvent(Window *window, Event &event);
 		void dispatchClickEvent(Window *window);
 		void setDoubleClickIntervall(int ms);
@@ -557,7 +564,7 @@ class WindowManager
 };
 
 WindowManager *GetWindowManager();
-const WidgetStyle *GetWidgetStyle();
+const WidgetStyle &GetWidgetStyle();
 
 
 class WindowManager_SDL2 : public WindowManager
@@ -645,7 +652,7 @@ class Frame : public Widget
 {
 	private:
 		int		myBorderStyle;
-		Color	myBackground, myBorderColor;
+		Color	myBackground, myBorderColorLight, myBorderColorShadow;
 	public:
 		enum BorderStyle {
 			NoBorder=0,
@@ -660,8 +667,10 @@ class Frame : public Widget
 		void setBorderStyle(BorderStyle s);
 		const Color &backgroundColor() const;
 		void setBackgroundColor(const Color &c);
-		const Color &borderColor() const;
-		void setBorderColor(const Color &c);
+		const Color &borderColorLight() const;
+		void setBorderColorLight(const Color &c);
+		const Color &borderColorShadow() const;
+		void setBorderColorShadow(const Color &c);
 
 		virtual String widgetType() const;
 		virtual void paint(Drawable &draw);
