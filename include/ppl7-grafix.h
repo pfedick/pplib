@@ -522,8 +522,8 @@ class Font
 		bool monospace() const;
 		int size() const;
 		Orientation orientation() const;
-		Size measure(const String &text) const;
-		Rect boundary(const String &text, int x=0, int y=0) const;
+		Size measure(const WideString &text) const;
+		Rect boundary(const WideString &text, int x=0, int y=0) const;
 		double rotation() const;
 
 		int setName(const String &name);

@@ -251,7 +251,7 @@ void Font::setRotation(double degrees)
 	rotationDegrees=degrees;
 }
 
-Size Font::measure(const String &text) const
+Size Font::measure(const WideString &text) const
 {
 	Size s;
 	Grafix *gfx=GetGrafix();
@@ -261,7 +261,7 @@ Size Font::measure(const String &text) const
 	return file->engine->measure(*file,*this,text);
 }
 
-Rect Font::boundary(const String &text, int x, int y) const
+Rect Font::boundary(const WideString &text, int x, int y) const
 {
 	Rect r;
 	Grafix *gfx=GetGrafix();
