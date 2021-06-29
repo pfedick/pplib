@@ -62,11 +62,11 @@ using namespace ppl7::grafix;
 LineInput::LineInput()
 	:Frame()
 {
-	const WidgetStyle *style=GetWidgetStyle();
+	const WidgetStyle &style=GetWidgetStyle();
 	setBorderStyle(Inset);
-	myColor=style->inputFontColor;
-	myFont=style->inputFont;
-	setBackgroundColor(style->inputBackgroundColor);
+	myColor=style.inputFontColor;
+	myFont=style.inputFont;
+	setBackgroundColor(style.inputBackgroundColor);
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(false);
 	cursorpos=0;
@@ -79,11 +79,11 @@ LineInput::LineInput()
 LineInput::LineInput(int x, int y, int width, int height, const String &text)
 	:Frame(x,y,width,height)
 {
-	const WidgetStyle *style=GetWidgetStyle();
+	const WidgetStyle &style=GetWidgetStyle();
 	setBorderStyle(Inset);
-	myColor=style->inputFontColor;
-	myFont=style->inputFont;
-	setBackgroundColor(style->inputBackgroundColor);
+	myColor=style.inputFontColor;
+	myFont=style.inputFont;
+	setBackgroundColor(style.inputBackgroundColor);
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(false);
 	myText=text;

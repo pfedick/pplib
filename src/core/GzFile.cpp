@@ -160,7 +160,7 @@ GzFile::GzFile (int fd)
 GzFile::~GzFile()
 {
 	if (ff!=NULL) {
-		close();
+		this->close();
 	}
 	if (fh!=NULL) {
 		fh->close();
@@ -206,11 +206,17 @@ void GzFile::throwErrno(int e)
  */
 void GzFile::open (const String &filename, File::FileMode mode)
 {
-	close();
 	if (filename.isEmpty()) throw IllegalArgumentException();
+	close();
 	fh=new File(filename, mode);
+	int dupfd=dup(fh->getFileNo());
+	if ((ff=gzdopen(dupfd,fmode(mode)))==NULL) {
+		int save_errno=errno;
+		::close(dupfd);
+		throwErrno(save_errno,filename);
+	}
+	seek(0);
 	setFilename(filename);
-	this->open(fh->getFileNo(), mode);
 }
 
 /*!\brief Datei zum Lesen oder Schreiben öffnen
@@ -229,8 +235,14 @@ void GzFile::open (const char * filename, File::FileMode mode)
 	close();
 	fh=new File;
 	fh->open(filename, mode);
+	int dupfd=dup(fh->getFileNo());
+	if ((ff=gzdopen(dupfd,fmode(mode)))==NULL) {
+		int save_errno=errno;
+		::close(dupfd);
+		throwErrno(save_errno,filename);
+	}
+	seek(0);
 	setFilename(filename);
-	this->open(fh->getFileNo(), mode);
 }
 
 /*
@@ -270,17 +282,19 @@ void GzFile::open (int fd, File::FileMode mode)
 void GzFile::close()
 {
 	setFilename("");
+	if (buffer!=NULL) {
+		free (buffer);
+		buffer=NULL;
+	}
+
 	if (ff!=NULL) {
-		if (buffer!=NULL) {
-			free (buffer);
-			buffer=NULL;
-		}
 		int ret=gzclose ((gzFile)ff);
 		ff=NULL;
-		if (ret==Z_OK) return;
-		else if (ret==Z_ERRNO) throwErrno(errno,filename());
-		else if (ret==Z_MEM_ERROR) throw ppl7::OutOfMemoryException();
-		throw ppl7::CompressionFailedException();
+		if (ret!=Z_OK) {
+			if (ret==Z_ERRNO) throwErrno(errno,filename());
+			else if (ret==Z_MEM_ERROR) throw ppl7::OutOfMemoryException();
+			throw ppl7::CompressionFailedException();
+		}
 	}
 	if (fh!=NULL) {
 		fh->close();

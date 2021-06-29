@@ -62,10 +62,10 @@ using namespace ppl7::grafix;
 Label::Label()
 	:Frame()
 {
-	const WidgetStyle *style=GetWidgetStyle();
+	const WidgetStyle &style=GetWidgetStyle();
 	setBorderStyle(NoBorder);
-	myColor=style->labelFontColor;
-	myFont=style->labelFont;
+	myColor=style.labelFontColor;
+	myFont=style.labelFont;
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(true);
 
@@ -74,10 +74,10 @@ Label::Label()
 Label::Label(int x, int y, int width, int height, const String &text, BorderStyle style)
 	:Frame(x,y,width,height)
 {
-	const WidgetStyle *wstyle=GetWidgetStyle();
+	const WidgetStyle &wstyle=GetWidgetStyle();
 	setBorderStyle(style);
-	myColor=wstyle->labelFontColor;
-	myFont=wstyle->labelFont;
+	myColor=wstyle.labelFontColor;
+	myFont=wstyle.labelFont;
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(true);
 	myText=text;

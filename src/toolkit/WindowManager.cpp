@@ -67,7 +67,7 @@ WindowManager *GetWindowManager()
 	return wm;
 }
 
-const WidgetStyle *GetWidgetStyle()
+const WidgetStyle &GetWidgetStyle()
 {
 	if (!wm) throw NoWindowManagerException();
 	return wm->getWidgetStyle();
@@ -77,28 +77,6 @@ WindowManager::WindowManager()
 {
 	if (wm!=NULL) throw DuplicateWindowManagerException();
 	wm=this;
-	Style.windowBackgroundColor.setColor(220,220,220,255);
-	Style.frameBackgroundColor.setColor(230,230,230,255);
-	Style.frameBorderColor.setColor(96,96,96,255);
-	Style.labelFontColor.setColor(0,0,0,255);
-	Style.labelFont.setName("Default");
-	Style.labelFont.setSize(12);
-	Style.labelFont.setAntialias(true);
-	Style.buttonBackgroundColor.setColor(230,230,230,255);
-	Style.buttonFontColor.setColor(0,0,0,255);
-	Style.buttonFont.setName("Default");
-	Style.buttonFont.setSize(12);
-	Style.buttonFont.setAntialias(true);
-	Style.buttonFont.setBold(true);
-
-	Style.inputFont.setName("Default");
-	Style.inputFont.setAntialias(true);
-	Style.inputFont.setSize(12);
-	Style.inputFont.setBold(true);
-	Style.inputFontColor.setColor(0,0,0,255);
-	Style.inputBackgroundColor.setColor(255,255,255,255);
-
-
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
 	clickCount=0;
@@ -111,9 +89,14 @@ WindowManager::~WindowManager()
 	if (wm==this) wm=NULL;
 }
 
-const WidgetStyle *WindowManager::getWidgetStyle() const
+const WidgetStyle &WindowManager::getWidgetStyle() const
 {
-	return &Style;
+	return Style;
+}
+
+void WindowManager::setWidgetStyle(const WidgetStyle &style)
+{
+	Style=style;
 }
 
 

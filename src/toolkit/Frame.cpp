@@ -61,20 +61,22 @@ using namespace ppl7::grafix;
 
 Frame::Frame()
 {
-	const WidgetStyle *style=GetWidgetStyle();
+	const WidgetStyle &style=GetWidgetStyle();
 	myBorderStyle=Upset;
-	myBackground=style->frameBackgroundColor;
-	myBorderColor=style->frameBorderColor;
+	myBackground=style.frameBackgroundColor;
+	myBorderColorLight=style.frameBorderColorLight;
+	myBorderColorShadow=style.frameBorderColorShadow;
 	setTransparent(false);
 	setClientOffset(3,3,3,3);
 }
 
 Frame::Frame(int x, int y, int width, int height, BorderStyle style)
 {
-	const WidgetStyle *wstyle=GetWidgetStyle();
+	const WidgetStyle &wstyle=GetWidgetStyle();
 	myBorderStyle=style;
-	myBackground=wstyle->frameBackgroundColor;
-	myBorderColor=wstyle->frameBorderColor;
+	myBackground=wstyle.frameBackgroundColor;
+	myBorderColorLight=wstyle.frameBorderColorLight;
+	myBorderColorShadow=wstyle.frameBorderColorShadow;
 	create(x,y,width,height);
 	setTransparent(false);
 	setClientOffset(3,3,3,3);
@@ -107,16 +109,23 @@ void Frame::setBackgroundColor(const Color &c)
 	needsRedraw();
 }
 
-const Color &Frame::borderColor() const
+const Color &Frame::borderColorLight() const
 {
-	return myBorderColor;
+	return myBorderColorLight;
 }
 
-void Frame::setBorderColor(const Color &c)
+void Frame::setBorderColorLight(const Color &c)
 {
-	myBorderColor=c;
+	myBorderColorLight=c;
 	needsRedraw();
 }
+
+void Frame::setBorderColorShadow(const Color &c)
+{
+	myBorderColorShadow=c;
+	needsRedraw();
+}
+
 
 void Frame::paint(Drawable &draw)
 {
@@ -132,27 +141,27 @@ void Frame::paint(Drawable &draw)
 			break;
 		case Normal:
 			if (!myTransparent) draw.cls(myBackground);
-			draw.drawRect(0,0,w,h,myBorderColor);
+			draw.drawRect(0,0,w,h,myBorderColorShadow);
 			break;
 		case Upset:
 			if (!myTransparent) {
 				bg=myBackground;
 				draw.cls(bg);
 			}
-			draw.line(0,0,w,0,white);
-			draw.line(0,0,0,h,white);
-			draw.line(0,h,w,h,myBorderColor);
-			draw.line(w,0,w,h,myBorderColor);
+			draw.line(0,0,w,0,myBorderColorLight);
+			draw.line(0,0,0,h,myBorderColorLight);
+			draw.line(0,h,w,h,myBorderColorShadow);
+			draw.line(w,0,w,h,myBorderColorShadow);
 			break;
 		case Inset:
 			if (!myTransparent) {
 				bg=myBackground;
 				draw.cls(bg);
 			}
-			draw.line(0,0,w,0,myBorderColor);
-			draw.line(0,0,0,h,myBorderColor);
-			draw.line(0,h,w,h,white);
-			draw.line(w,0,w,h,white);
+			draw.line(0,0,w,0,myBorderColorShadow);
+			draw.line(0,0,0,h,myBorderColorShadow);
+			draw.line(0,h,w,h,myBorderColorLight);
+			draw.line(w,0,w,h,myBorderColorLight);
 			break;
 	}
 }

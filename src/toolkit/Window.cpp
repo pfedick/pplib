@@ -88,14 +88,14 @@ static PRIV_WINDOW_FUNCTIONS defWmFunctions = {
 
 Window::Window()
 {
-	const WidgetStyle *style=GetWidgetStyle();
+	const WidgetStyle &style=GetWidgetStyle();
 	windowFlags=DefaultWindow;
 	WindowTitle="PPL7 Window";
 	fn=&defWmFunctions;
 	setSize(640,480);
 	privateData=NULL;
 	wm=NULL;
-	myBackground=style->windowBackgroundColor;
+	myBackground=style.windowBackgroundColor;
 	keyfocus=this;
 }
 
