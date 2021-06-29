@@ -546,7 +546,7 @@ class WindowManager
 		virtual const RGBFormat &desktopRGBFormat() const =0;
 
 		virtual MouseState getMouseState() const =0;
-		virtual void getMouseState(Point &p, int &buttonMask)=0;
+		virtual void getMouseState(Point &p, int &buttonMask) const=0;
 		virtual void startEventLoop() = 0;
 		virtual void handleEvents() = 0;
 		virtual size_t numWindows() = 0;
