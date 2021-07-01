@@ -93,6 +93,8 @@ typedef struct tagSIZE {
 
 typedef uint32_t SurfaceColor;
 
+class Rect;
+
 class Point
 {
 	public:
@@ -102,6 +104,7 @@ class Point
 		Point(int x, int y);
 		Point(const String &s);
 		bool isNull() const;
+		bool inside(const Rect &r);
 		double vectorLength() const;
 		int manhattanLength() const;
 		void setX(int x);

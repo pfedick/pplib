@@ -260,6 +260,16 @@ int Point::manhattanLength() const
 	return abs(x)+abs(y);
 }
 
+bool Point::inside(const Rect &r)
+{
+	if (r.x1<=x<=r.x2) {
+		if (r.y1<=y<=r.y2) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /*!\brief Multiplikation mit einem Faktor
  *
  * \desc
