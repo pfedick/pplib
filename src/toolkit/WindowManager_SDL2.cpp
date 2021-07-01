@@ -478,7 +478,7 @@ size_t WindowManager_SDL2::numWindows()
 	return windows.size();
 }
 
-void WindowManager_SDL2::getMouseState(Point &p, int &buttonMask)
+void WindowManager_SDL2::getMouseState(Point &p, int &buttonMask) const
 {
 
 }

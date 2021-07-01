@@ -598,7 +598,7 @@ class WindowManager_SDL2 : public WindowManager
 		virtual const Size &desktopResolution() const;
 		virtual const RGBFormat &desktopRGBFormat() const;
 		virtual MouseState getMouseState() const;
-		virtual void getMouseState(Point &p, int &buttonMask);
+		virtual void getMouseState(Point &p, int &buttonMask) const;
 		virtual void startEventLoop();
 		virtual void handleEvents();
 		virtual size_t numWindows();
