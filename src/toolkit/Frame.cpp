@@ -129,9 +129,7 @@ void Frame::setBorderColorShadow(const Color &c)
 
 void Frame::paint(Drawable &draw)
 {
-	Color white(255,255,255,255);
 	Color bg;
-
 	int w=width()-1;
 	int h=height()-1;
 	bool myTransparent=isTransparent();
@@ -164,6 +162,7 @@ void Frame::paint(Drawable &draw)
 			draw.line(w,0,w,h,myBorderColorLight);
 			break;
 	}
+	//draw.drawRect(0,0,w,h,Color(255,0,0,255));
 }
 
 String Frame::widgetType() const
