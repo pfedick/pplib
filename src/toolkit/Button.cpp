@@ -175,12 +175,14 @@ void Button::mouseDownEvent(MouseEvent *event)
 {
 	isDown=true;
 	needsRedraw();
+	EventHandler::mouseDownEvent(event);
 }
 
 void Button::mouseUpEvent(MouseEvent *event)
 {
 	isDown=false;
 	needsRedraw();
+	EventHandler::mouseUpEvent(event);
 }
 
 void Button::mouseLeaveEvent(MouseEvent *event)
@@ -189,6 +191,7 @@ void Button::mouseLeaveEvent(MouseEvent *event)
 		isDown=false;
 		needsRedraw();
 	}
+	EventHandler::mouseLeaveEvent(event);
 }
 
 void Button::paint(Drawable &draw)
