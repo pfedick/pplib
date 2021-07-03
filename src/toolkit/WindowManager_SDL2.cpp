@@ -669,6 +669,18 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
 }
 
 
+static void getButtonMask(MouseState &ev)
+{
+	uint8_t state=SDL_GetMouseState(NULL,NULL);
+	if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
+	if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
+	if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
+	if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
+	if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
+	if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
+	if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+}
+
 void WindowManager_SDL2::DispatchMouseEvent(void *e)
 {
 #ifndef HAVE_SDL2
@@ -689,14 +701,7 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.p.y=event->y;
 		ev.buttonMask=(MouseEvent::MouseButton)0;
 		ev.button=(MouseEvent::MouseButton)0;
-		uint8_t state=event->state;
-		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
-		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
-		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
-		if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
-		if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
-		if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
-		if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+		getButtonMask(ev);
 		dispatchEvent(w,ev);
 
 	} else if (type==SDL_MOUSEBUTTONDOWN) {
@@ -710,15 +715,7 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.p.y=event->y;
 		ev.buttonMask=(MouseEvent::MouseButton)0;
 		ev.button=(MouseEvent::MouseButton)0;
-		uint8_t state=SDL_GetMouseState(NULL,NULL);
-
-		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
-		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
-		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
-		if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
-		if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
-		if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
-		if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+		getButtonMask(ev);
 		if (event->button==1) ev.button=MouseEvent::Left;
 		if (event->button==2) ev.button=MouseEvent::Middle;
 		if (event->button==3) ev.button=MouseEvent::Right;
@@ -738,14 +735,7 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		ev.p.y=event->y;
 		ev.buttonMask=(MouseEvent::MouseButton)0;
 		ev.button=(MouseEvent::MouseButton)0;
-		uint8_t state=SDL_GetMouseState(NULL,NULL);
-		if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
-		if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
-		if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
-		if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
-		if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
-		if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
-		if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+		getButtonMask(ev);
 		if (event->button==1) ev.button=MouseEvent::Left;
 		if (event->button==2) ev.button=MouseEvent::Middle;
 		if (event->button==3) ev.button=MouseEvent::Right;
@@ -758,6 +748,17 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		SDL_MouseWheelEvent *event=(SDL_MouseWheelEvent*)e;
 		Window *w=getWindow(event->windowID);
 		if (!w) return;
+		ev.setType(Event::MouseWheel);
+		MouseState mouse;
+		ev.buttonMask=(MouseEvent::MouseButton)0;
+		ev.button=(MouseEvent::MouseButton)0;
+		SDL_GetMouseState(&ev.p.x, &ev.p.y);
+		getButtonMask(ev);
+		ev.wheel.x=event->x;
+		ev.wheel.y=event->y;
+		//printf ("MouseWheelEvent %d:%d\n", ev.wheel.x, ev.wheel.y);
+		dispatchEvent(w,ev);
+
 		//ev.setType(Event::MouseUp);
 
 	}

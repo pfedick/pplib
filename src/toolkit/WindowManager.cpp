@@ -214,6 +214,15 @@ void WindowManager::dispatchEvent(Window *window, Event &event)
 				}
 			}
 			return;
+		case Event::MouseWheel:
+			window->mouseState=(MouseEvent&)event;
+			w=findMouseWidget(window,((MouseEvent*)&event)->p);
+			if (w) {
+				event.setWidget(w);
+				w->mouseWheelEvent((MouseEvent*)&event);
+			}
+			return;
+
 
 		default:
 			printf("WindowManager::dispatchEvent(%tu, %s)  ==> Unhandled Event\n",(std::ptrdiff_t)window,event.name().toChar());

@@ -154,6 +154,7 @@ class MouseState
 			X2=64
 		};
 		Point p;
+		Point wheel;
 		MouseButton buttonMask;
 		MouseButton button;
 };
@@ -281,6 +282,7 @@ class EventHandler
 		virtual void mouseClickEvent(MouseEvent *event);
 		virtual void mouseEnterEvent(MouseEvent *event);
 		virtual void mouseLeaveEvent(MouseEvent *event);
+		virtual void mouseWheelEvent(MouseEvent *event);
 		virtual void geometryChangedEvent(Event *event);
 
 		virtual void gotFocusEvent(FocusEvent *event);

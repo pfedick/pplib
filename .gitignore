@@ -23,3 +23,7 @@
 /ppl7.includes
 /.cproject
 /.project
+/.cproject/
+/.project/
+.cproject
+.project

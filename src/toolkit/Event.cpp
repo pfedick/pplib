@@ -261,6 +261,18 @@ void EventHandler::mouseLeaveEvent(MouseEvent *event)
 	if (handler) handler->mouseLeaveEvent(event);
 }
 
+void EventHandler::mouseWheelEvent(MouseEvent *event)
+{
+#ifdef EVENT_DEBUG
+	printf ("EventHandler::mouseWheelEvent(%s, %s)\n",
+			event->eventWidget->widgetType().toChar(),
+			event->eventWidget->name().toChar());
+#endif
+
+	if (handler) handler->mouseWheelEvent(event);
+}
+
+
 void EventHandler::quitEvent(Event *event)
 {
 #ifdef EVENT_DEBUG
