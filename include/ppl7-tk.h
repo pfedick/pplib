@@ -532,8 +532,11 @@ class WindowManager
 		int			doubleClickIntervall;
 
 		Widget	*KeyboardFocus;
+		void updateButtonSymbols();
 
 	public:
+		ImageList	ButtonSymbols;
+
 		WindowManager();
 		virtual ~WindowManager();
 		const WidgetStyle &getWidgetStyle() const;

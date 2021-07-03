@@ -75,6 +75,12 @@ ID=15
 Name=Cursor
 File=cursor.png
 
+[16]
+ID=16
+Name=ButtonSymbols15
+File=ButtonSymbols15.png
+
+
 [34]
 ID=34
 Name=PPL Liberation Sans

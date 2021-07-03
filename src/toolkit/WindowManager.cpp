@@ -82,6 +82,7 @@ WindowManager::WindowManager()
 	clickCount=0;
 	doubleClickIntervall=200;
 	KeyboardFocus=NULL;
+	updateButtonSymbols();
 }
 
 WindowManager::~WindowManager()
@@ -97,6 +98,19 @@ const WidgetStyle &WindowManager::getWidgetStyle() const
 void WindowManager::setWidgetStyle(const WidgetStyle &style)
 {
 	Style=style;
+	updateButtonSymbols();
+}
+
+void WindowManager::updateButtonSymbols()
+{
+	Resource *res=GetPPLResource();
+	ppl7::grafix::ImageList tmp;
+	tmp.load(res->getMemory(16),15,15,ImageList::DIFFUSE);
+	ppl7::grafix::Size s=tmp.size();
+	ButtonSymbols.create(s.width, s.height);
+	ButtonSymbols.bltDiffuse(tmp, 0, 0, Style.buttonFontColor);
+	ButtonSymbols.setIconSize(15, 15);
+
 }
 
 
