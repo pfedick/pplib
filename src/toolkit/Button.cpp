@@ -193,7 +193,7 @@ void Button::mouseLeaveEvent(MouseEvent *event)
 
 void Button::paint(Drawable &draw)
 {
-	Color light=background*1.2f;
+	Color light=background*1.8f;
 	Color shadow=background*0.4f;
 	Color shade1=background*1.05f;
 	Color shade2=background*0.95f;

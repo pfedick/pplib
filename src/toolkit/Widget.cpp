@@ -92,7 +92,7 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		frameBorderColorLight.setColor(127,127,123,255);
 		frameBorderColorShadow.setColor(81,86,88,255);
 		labelFontColor.setColor(216,216,214,255);
-		buttonBackgroundColor.setColor(71,71,74,255);
+		buttonBackgroundColor.setColor(91,91,98,255);
 		buttonFontColor.setColor(223,223,220,255);
 		inputFontColor.setColor(43,43,40,255);
 		inputBackgroundColor.setColor(216,216,214,255);
@@ -475,8 +475,8 @@ Rect Widget::clientRect() const
 	return Rect(
 			myClientOffset.x1,
 			myClientOffset.y1,
-			s.width-myClientOffset.x2,
-			s.height-myClientOffset.y2
+			s.width-myClientOffset.x2-myClientOffset.x1,
+			s.height-myClientOffset.y2-myClientOffset.y1
 			);
 }
 
