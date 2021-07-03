@@ -180,6 +180,9 @@ void ImageList::setIconSize(int width, int height)
 {
 	this->width=width;
 	this->height=height;
+	numX=Image::width()/width;
+	numY=Image::height()/height;
+	numIcons=numX*numY;
 }
 
 
