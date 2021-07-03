@@ -262,8 +262,8 @@ int Point::manhattanLength() const
 
 bool Point::inside(const Rect &r)
 {
-	if (r.x1<=x<=r.x2) {
-		if (r.y1<=y<=r.y2) {
+	if (r.x1<=x && x<=r.x2) {
+		if (r.y1<=y && y<=r.y2) {
 			return true;
 		}
 	}
