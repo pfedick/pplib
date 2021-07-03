@@ -162,8 +162,8 @@ void Frame::paint(Drawable &draw)
 			draw.line(w,0,w,h,myBorderColorLight);
 			break;
 	}
-	Rect r=this->clientRect();
-	draw.drawRect(r,Color(255,0,0,255));
+	//Rect r=this->clientRect();
+	//draw.drawRect(r,Color(255,0,0,255));
 }
 
 String Frame::widgetType() const
