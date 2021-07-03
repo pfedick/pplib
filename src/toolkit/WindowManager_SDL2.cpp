@@ -537,6 +537,7 @@ void WindowManager_SDL2::handleEvents()
 			case SDL_MOUSEMOTION:
 			case SDL_MOUSEBUTTONDOWN:
 			case SDL_MOUSEBUTTONUP:
+			case SDL_MOUSEWHEEL:
 				DispatchMouseEvent(&sdl_event);
 				break;
 			case SDL_KEYDOWN:
@@ -753,6 +754,12 @@ void WindowManager_SDL2::DispatchMouseEvent(void *e)
 		if (event->button==6) ev.button=MouseEvent::X1;
 		if (event->button==7) ev.button=MouseEvent::X2;
 		dispatchEvent(w,ev);
+	} else if (type==SDL_MOUSEWHEEL) {
+		SDL_MouseWheelEvent *event=(SDL_MouseWheelEvent*)e;
+		Window *w=getWindow(event->windowID);
+		if (!w) return;
+		//ev.setType(Event::MouseUp);
+
 	}
 #endif
 }
