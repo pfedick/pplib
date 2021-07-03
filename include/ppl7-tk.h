@@ -115,6 +115,7 @@ class Event
 			FocusOut,
 			GeometryChanged,
 			Quit,
+			ValueChanged
 		};
 	private:
 		Type t;
@@ -249,6 +250,8 @@ class TextInputEvent : public Event
 		WideString text;
 };
 
+
+
 class ResizeEvent : public Event
 {
 	public:
@@ -293,6 +296,8 @@ class EventHandler
 		virtual void textInputEvent(TextInputEvent *event);
 
 		virtual void timerEvent(Event *event);
+
+		virtual void valueChangedEvent(Event *event, int value);
 
 };
 

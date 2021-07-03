@@ -369,6 +369,12 @@ void EventHandler::timerEvent(Event *event)
 	if (handler) handler->timerEvent(event);
 }
 
+void EventHandler::valueChangedEvent(Event *event, int value)
+{
+	if (handler) handler->valueChangedEvent(event, value);
+}
+
+
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7
