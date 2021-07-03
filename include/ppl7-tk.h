@@ -547,7 +547,7 @@ class WindowManager
 		void setKeyboardFocus(Widget *w);
 		Widget *getKeyboardFocus() const;
 		int getDoubleClickIntervall() const;
-		Widget *findMouseWidget(Widget *window, const Point &p);
+		Widget *findMouseWidget(Widget *window, Point &p);
 
 		virtual void createWindow(Window &w) = 0;
 		virtual void destroyWindow(Window &w) = 0;

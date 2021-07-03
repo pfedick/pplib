@@ -114,9 +114,13 @@ void WindowManager::updateButtonSymbols()
 }
 
 
-Widget *WindowManager::findMouseWidget(Widget *window, const Point &p)
+Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 {
 	if (!window) return NULL;
+	/*printf ("Iterate: %s:%s, %d:%d, Point: %d:%d\n", (const char*)window->widgetType(),
+			(const char*)window->name(), window->x(), window->y(),
+			p.x, p.y);
+			*/
 	List<Widget*>::Iterator it;
 	Point p2;
 	if (window->childs.num()>0) {
@@ -128,9 +132,10 @@ Widget *WindowManager::findMouseWidget(Widget *window, const Point &p)
 					&& p.x < w->p.x+w->s.width
 					&& p.y < w->p.y+w->s.height) {
 				// Passendes Widget gefunden, Koordinaten des Events auf das Widget umrechnen
-				p2.x=p.x-w->p.x+w->myClientOffset.x1;
-				p2.y=p.y-w->p.y+w->myClientOffset.y1;
-				return findMouseWidget(w,p2);	// Iterieren
+				p2.x=p.x-w->p.x-w->myClientOffset.x1;
+				p2.y=p.y-w->p.y-w->myClientOffset.y1;
+				p=p2;
+				return findMouseWidget(w,p);	// Iterieren
 			}
 		}
 	}
