@@ -311,6 +311,18 @@ static void sdlPresentScreen (void *privatedata)
 	SDL_RenderPresent(priv->renderer);
 }
 
+static void getButtonMask(MouseState &ev)
+{
+	uint8_t state=SDL_GetMouseState(NULL,NULL);
+	if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
+	if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
+	if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
+	if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
+	if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
+	if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
+	if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
+}
+
 
 static PRIV_WINDOW_FUNCTIONS sdlWmFunctions = {
 		sdlSetWindowTitle,
@@ -488,10 +500,12 @@ MouseState WindowManager_SDL2::getMouseState() const
 #ifndef HAVE_SDL2
 	throw UnsupportedFeatureException("SDL2");
 #else
+	//MouseEvent ev;
 	MouseState mouse;
-	int buttons;
-	SDL_PumpEvents();
-	buttons=SDL_GetMouseState(&mouse.p.x, &mouse.p.y);
+	getButtonMask(mouse);
+	SDL_GetMouseState(&mouse.p.x,&mouse.p.y);
+	//mouse.buttonMask=ev.buttonMask;
+	mouse.button=mouse.buttonMask;
 	return mouse;
 #endif
 }
@@ -668,18 +682,6 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
 #endif
 }
 
-
-static void getButtonMask(MouseState &ev)
-{
-	uint8_t state=SDL_GetMouseState(NULL,NULL);
-	if (state&1) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Left);
-	if (state&2) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Middle);
-	if (state&4) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::Right);
-	if (state&8) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelUp);
-	if (state&16) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::WheelDown);
-	if (state&32) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X1);
-	if (state&64) ev.buttonMask=(MouseEvent::MouseButton)(ev.buttonMask|MouseEvent::X2);
-}
 
 void WindowManager_SDL2::DispatchMouseEvent(void *e)
 {
