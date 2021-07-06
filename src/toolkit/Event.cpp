@@ -133,6 +133,8 @@ String Event::name() const
 		case FocusIn: return "FocusIn";
 		case FocusOut: return "FocusOut";
 		case GeometryChanged: return "GeometryChanged";
+		case ValueChanged: return "ValueChanged";
+		case Toggled: return "Toggled";
 	}
 	throw UnknownEventException();
 }
@@ -373,6 +375,12 @@ void EventHandler::valueChangedEvent(Event *event, int value)
 {
 	if (handler) handler->valueChangedEvent(event, value);
 }
+
+void EventHandler::toggledEvent(Event *event, bool checked)
+{
+	if (handler) handler->toggledEvent(event, checked);
+}
+
 
 
 

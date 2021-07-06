@@ -115,7 +115,8 @@ class Event
 			FocusOut,
 			GeometryChanged,
 			Quit,
-			ValueChanged
+			ValueChanged,
+			Toggled
 		};
 	private:
 		Type t;
@@ -298,6 +299,7 @@ class EventHandler
 		virtual void timerEvent(Event *event);
 
 		virtual void valueChangedEvent(Event *event, int value);
+		virtual void toggledEvent(Event *event, bool checked);
 
 };
 
