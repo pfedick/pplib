@@ -121,12 +121,11 @@ Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 			(const char*)window->name(), window->x(), window->y(),
 			p.x, p.y);
 			*/
-	List<Widget*>::Iterator it;
+	std::list<Widget*>::iterator it;
 	Point p2;
-	if (window->childs.num()>0) {
-		window->childs.reset(it);
-		while (window->childs.getNext(it)) {
-			Widget *w=it.value();
+	if (window->childs.size()>0) {
+		for(it=window->childs.begin();it!=window->childs.end();++it) {
+			Widget *w=*it;
 			if (p.x>=w->p.x
 					&& p.y>=w->p.y
 					&& p.x < w->p.x+w->s.width

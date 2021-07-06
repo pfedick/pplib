@@ -91,18 +91,19 @@ void HorizontalLayout::geometryChangedEvent(Event *event)
 				int		strategy;
 				int		preferedWidth;
 		} ITEM;
-		List<Widget*>::Iterator it;
+		std::list<Widget*>::iterator it;
 
 		ITEM *item=(ITEM*)malloc(sizeof(ITEM)*num);
 		if (!item) throw OutOfMemoryException();
-		resetIterator(it);
 		Widget *w;
 		size_t c=0;
 		int total=0;
 		int hh=height();
 		int available=width();
 		int maxc=0;
-		while ((w=getNextChild(it))) {
+
+		for (it=childsBegin();it!=childsEnd();++it) {
+			w=*it;
 			item[c].widget=w;
 			item[c].strategy=w->sizeStrategyWidth();
 			if (item[c].strategy==Widget::MAXIMUM_EXPANDING) maxc++;

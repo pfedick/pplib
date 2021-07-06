@@ -50,6 +50,8 @@
     #endif
 #endif
 
+#include <list>
+
 
 namespace ppl7 {
 namespace tk {
@@ -365,7 +367,7 @@ class Widget : public EventHandler
 		Size		s;
 		Size		MaxSize, MinSize;
 		Rect		myClientOffset;
-		List<Widget*>	childs;
+		std::list<Widget*>	childs;
 		uint32_t	lockcount;
 		bool		visible;
 		bool		enabled;
@@ -386,8 +388,12 @@ class Widget : public EventHandler
 		Widget();
 		virtual ~Widget();
 		size_t numChilds() const;
-		void resetIterator(List<Widget*>::Iterator &it);
-		Widget *getNextChild(List<Widget*>::Iterator &it);
+		std::list<Widget*>::iterator childsBegin();
+		std::list<Widget*>::iterator childsEnd();
+		std::list<Widget*>::const_iterator childsBegin() const;
+		std::list<Widget*>::const_iterator childsEnd() const;
+
+		Widget *getParent() const;
 
 		const Point &pos() const;
 		const Size &size() const;

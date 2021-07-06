@@ -120,31 +120,50 @@ Widget::Widget()
 Widget::~Widget()
 {
 	if (parent) parent->removeChild(this);
+	std::list<Widget*>::iterator it;
+	for (it=childs.begin();it!=childs.end();++it) {
+		delete(*it);
+	}
+	/*
 	List<Widget*>::Iterator it;
 	childs.reset(it);
 	while (childs.getNext(it)) {
 		Widget *child=it.value();
 		delete child;
 	}
+	*/
 	childs.clear();
 }
 
 size_t Widget::numChilds() const
 {
-	return childs.num();
+	return childs.size();
 }
 
-void Widget::resetIterator(List<Widget*>::Iterator &it)
+std::list<Widget*>::iterator Widget::childsBegin()
 {
-	childs.reset(it);
+	return childs.begin();
 }
 
-Widget *Widget::getNextChild(List<Widget*>::Iterator &it)
+std::list<Widget*>::iterator Widget::childsEnd()
 {
-	if (childs.getNext(it)) return it.value();
-	return NULL;
+	return childs.end();
 }
 
+std::list<Widget*>::const_iterator Widget::childsBegin() const
+{
+	return childs.begin();
+}
+
+std::list<Widget*>::const_iterator Widget::childsEnd() const
+{
+	return childs.end();
+}
+
+Widget *Widget::getParent() const
+{
+	return parent;
+}
 
 void Widget::setSizeStrategyWidth(SizeStrategy s)
 {
@@ -178,7 +197,7 @@ void Widget::addChild(Widget *w)
 	if (w==NULL) throw NullPointerException();
 	if (w==this) return;
 	if (w->parent) w->parent->removeChild(this);
-	childs.add(w);
+	childs.push_back(w);
 	w->parent=this;
 	childNeedsRedraw();
 	geometryChanged();
@@ -188,7 +207,7 @@ void Widget::removeChild(Widget *w)
 {
 	if (w==NULL) throw NullPointerException();
 	if (w==this) return;
-	childs.erase(w);
+	childs.remove(w);
 	w->parent=NULL;
 	needsRedraw();
 	geometryChanged();
@@ -240,7 +259,7 @@ void Widget::toTop(Widget *w)
 		return;
 	}
 	if (w==this) return;
-	childs.erase(w);
+	childs.remove(w);
 	w->parent=NULL;
 	needsRedraw();
 	childs.push_front(w);
@@ -491,7 +510,7 @@ Size Widget::clientSize() const
 void Widget::draw(Drawable &d)
 {
 	if (needsredraw==false && child_needsredraw==false) return;
-	List<Widget*>::Iterator it;
+	std::list<Widget*>::iterator it;
 	Drawable mycd=drawable(d);
 	Drawable cd;
 	if (needsredraw) {
@@ -501,9 +520,8 @@ void Widget::draw(Drawable &d)
 	if (child_needsredraw) {
 		// Jetzt die unten liegenden Childs
 		cd=clientDrawable(mycd);
-		childs.reset(it);
-		while (childs.getNext(it)) {
-			Widget *child=it.value();
+		for(it=childs.begin();it!=childs.end();++it) {
+			Widget *child=*it;
 			if (child->topMost==false) {
 				if (needsredraw) child->redraw(cd);
 				else child->draw(cd);
@@ -511,9 +529,8 @@ void Widget::draw(Drawable &d)
 		}
 
 		// Dann die TopMost Childs
-		childs.reset(it);
-		while (childs.getNext(it)) {
-			Widget *child=it.value();
+		for(it=childs.begin();it!=childs.end();++it) {
+			Widget *child=*it;
 			if (child->topMost==true) {
 				if (needsredraw) child->redraw(cd);
 				else child->draw(cd);
@@ -526,7 +543,7 @@ void Widget::draw(Drawable &d)
 
 void Widget::redraw(Drawable &d)
 {
-	List<Widget*>::Iterator it;
+	std::list<Widget*>::iterator it;
 	Widget *child;
 	Drawable mycd=drawable(d);
 	Drawable cd;
@@ -534,16 +551,14 @@ void Widget::redraw(Drawable &d)
 	needsredraw=false;
 	cd=clientDrawable(mycd);
 	// Jetzt unten liegenden Childs
-	childs.reset(it);
-	while (childs.getNext(it)) {
-		child=it.value();
+	for(it=childs.begin();it!=childs.end();++it) {
+		child=*it;
 		if (child->topMost==false) child->redraw(cd);
 	}
 
 	// Dann die TopMost Childs
-	childs.reset(it);
-	while (childs.getNext(it)) {
-		child=it.value();
+	for(it=childs.begin();it!=childs.end();++it) {
+		child=*it;
 		if (child->topMost==true) child->redraw(cd);
 	}
 	child_needsredraw=false;
