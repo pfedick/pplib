@@ -121,17 +121,10 @@ Widget::~Widget()
 {
 	if (parent) parent->removeChild(this);
 	std::list<Widget*>::iterator it;
-	for (it=childs.begin();it!=childs.end();++it) {
-		delete(*it);
+	while (childs.begin()!=childs.end()) {
+		Widget *child=*childs.begin();
+		delete(child);
 	}
-	/*
-	List<Widget*>::Iterator it;
-	childs.reset(it);
-	while (childs.getNext(it)) {
-		Widget *child=it.value();
-		delete child;
-	}
-	*/
 	childs.clear();
 }
 
