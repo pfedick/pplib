@@ -104,7 +104,7 @@ class Point
 		Point(int x, int y);
 		Point(const String &s);
 		bool isNull() const;
-		bool inside(const Rect &r);
+		bool inside(const Rect &r) const;
 		double vectorLength() const;
 		int manhattanLength() const;
 		void setX(int x);
