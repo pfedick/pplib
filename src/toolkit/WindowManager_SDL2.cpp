@@ -632,6 +632,9 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
         break;
     case SDL_WINDOWEVENT_EXPOSED:
         //fprintf(stderr, "Window %d exposed", event->window.windowID);
+    	w->clearScreen();
+    	w->drawWidgets();
+    	w->presentScreen();
         break;
     case SDL_WINDOWEVENT_MOVED:
         //fprintf(stderr, "Window %d moved to %d,%d",
@@ -643,6 +646,8 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
         //        event->window.windowID, event->window.data1,
         //        event->window.data2);
         break;
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+    	break;
     case SDL_WINDOWEVENT_MINIMIZED:
         //fprintf(stderr, "Window %d minimized", event->window.windowID);
         break;
@@ -674,6 +679,10 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
     		w->closeEvent(&e);
     	}
         break;
+    case SDL_WINDOWEVENT_TAKE_FOCUS:
+    	break;
+    case SDL_WINDOWEVENT_HIT_TEST:
+    	break;
     default:
         printf("SDL Window %d got unknown event %d\n",
                 event->window.windowID, event->window.event);
