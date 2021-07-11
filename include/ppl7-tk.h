@@ -230,6 +230,7 @@ class KeyEvent : public Event
 			KEYMOD_RIGHTALT		= 0x0020,
 			KEYMOD_LEFTGUI		= 0x0040,
 			KEYMOD_RIGHTGUI		= 0x0080,
+			KEYMOD_MODIFIER		= 0x00ff,
 			KEYMOD_NUM			= 0x0100,
 			KEYMOD_CAPS			= 0x0200,
 			KEYMOD_MODE			= 0x0400,
