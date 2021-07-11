@@ -632,9 +632,11 @@ void WindowManager_SDL2::DispatchWindowEvent(void *e)
         break;
     case SDL_WINDOWEVENT_EXPOSED:
         //fprintf(stderr, "Window %d exposed", event->window.windowID);
+    	/*
     	w->clearScreen();
     	w->drawWidgets();
     	w->presentScreen();
+    	*/
         break;
     case SDL_WINDOWEVENT_MOVED:
         //fprintf(stderr, "Window %d moved to %d,%d",
