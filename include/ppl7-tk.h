@@ -395,9 +395,10 @@ class Widget : public EventHandler
 		std::list<Widget*>::const_iterator childsEnd() const;
 
 		Widget *getParent() const;
+		Widget *getTopmostParent() const;
 
 		const Point &pos() const;
-		const Point &absolutePosition() const;
+		Point absolutePosition() const;
 		const Size &size() const;
 		Rect rect() const;
 		Rect clientRect() const;

@@ -158,6 +158,12 @@ Widget *Widget::getParent() const
 	return parent;
 }
 
+Widget *Widget::getTopmostParent() const
+{
+	if (parent) return parent->getTopmostParent();
+	return (Widget*)this;
+}
+
 void Widget::setSizeStrategyWidth(SizeStrategy s)
 {
 	if (s!=strategy.width) {
@@ -270,10 +276,10 @@ const Point &Widget::pos() const
 	return p;
 }
 
-const Point &Widget::absolutePosition() const
+Point Widget::absolutePosition() const
 {
-	if (parent) return parent->absolutePosition()+p;
-	return p;
+	if (parent) return parent->absolutePosition()+p+myClientOffset.topLeft();
+	return p+myClientOffset.topLeft();
 }
 
 const Size &Widget::size() const
