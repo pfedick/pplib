@@ -397,6 +397,7 @@ class Widget : public EventHandler
 		Widget *getParent() const;
 
 		const Point &pos() const;
+		const Point &absolutePosition() const;
 		const Size &size() const;
 		Rect rect() const;
 		Rect clientRect() const;

@@ -270,6 +270,12 @@ const Point &Widget::pos() const
 	return p;
 }
 
+const Point &Widget::absolutePosition() const
+{
+	if (parent) return parent->absolutePosition()+p;
+	return p;
+}
+
 const Size &Widget::size() const
 {
 	return s;
