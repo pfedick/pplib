@@ -143,9 +143,34 @@ Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 	return window;
 }
 
+void WindowManager::deferedDeleteWidgets(Widget *widget)
+{
+	bool match=true;
+	while (match) {
+		match=false;
+		std::list<Widget*>::iterator it;
+		for (it=widget->childs.begin();it!=widget->childs.end();++it) {
+			Widget *child=(*it);
+			deferedDeleteWidgets(child);
+			if (child->deleteRequested) {
+				it=widget->childs.end();
+				if (LastMouseDown==child) LastMouseDown=NULL;
+				if (LastMouseEnter==child) LastMouseEnter=NULL;
+				if (KeyboardFocus==child) KeyboardFocus=NULL;
+
+				delete (child);
+				match=true;
+
+			}
+		}
+	}
+}
+
 void WindowManager::dispatchEvent(Window *window, Event &event)
 {
 	Widget *w;
+	//printf("WindowManager::dispatchEvent\n");
+	deferedDeleteWidgets(window);
 	switch (event.type()) {
 		case Event::MouseEnter:
 			window->mouseState=(MouseEvent&)event;

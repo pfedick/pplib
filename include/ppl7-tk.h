@@ -376,6 +376,7 @@ class Widget : public EventHandler
 		bool		child_needsredraw;
 		bool		topMost;
 		bool		transparent;
+		bool		deleteRequested;
 		Size		strategy;
 		String		myName;
 
@@ -394,6 +395,7 @@ class Widget : public EventHandler
 		std::list<Widget*>::const_iterator childsBegin() const;
 		std::list<Widget*>::const_iterator childsEnd() const;
 
+		void deleteLater();
 		Widget *getParent() const;
 		Widget *getTopmostParent() const;
 
@@ -551,6 +553,7 @@ class WindowManager
 
 		Widget	*KeyboardFocus;
 		void updateButtonSymbols();
+		void deferedDeleteWidgets(Widget *widget);
 
 	public:
 		ImageList	ButtonSymbols;

@@ -109,6 +109,7 @@ Widget::Widget()
 	transparent=false;
 	child_needsredraw=false;
 	topMost=false;
+	deleteRequested=false;
 	MaxSize.width=65535;
 	MaxSize.height=65535;
 	MinSize.width=0;
@@ -126,6 +127,11 @@ Widget::~Widget()
 		delete(child);
 	}
 	childs.clear();
+}
+
+void Widget::deleteLater()
+{
+	deleteRequested=true;
 }
 
 size_t Widget::numChilds() const
