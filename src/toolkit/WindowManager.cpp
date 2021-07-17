@@ -117,14 +117,15 @@ void WindowManager::updateButtonSymbols()
 Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 {
 	if (!window) return NULL;
-	/*printf ("Iterate: %s:%s, %d:%d, Point: %d:%d\n", (const char*)window->widgetType(),
+	/*
+	printf ("Iterate: %s:%s, %d:%d, Point: %d:%d\n", (const char*)window->widgetType(),
 			(const char*)window->name(), window->x(), window->y(),
 			p.x, p.y);
-			*/
-	std::list<Widget*>::iterator it;
+	*/
+	std::list<Widget*>::const_reverse_iterator it;
 	Point p2;
 	if (window->childs.size()>0) {
-		for(it=window->childs.begin();it!=window->childs.end();++it) {
+		for(it=window->childs.rbegin();it!=window->childs.rend();++it) {
 			Widget *w=*it;
 			if (p.x>=w->p.x
 					&& p.y>=w->p.y
@@ -138,6 +139,7 @@ Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 			}
 		}
 	}
+	//printf ("MATCH\n");
 	return window;
 }
 
