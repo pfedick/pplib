@@ -120,7 +120,7 @@ int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 {
 #ifdef HAVE_PNG
 	try {
-		const char *address=file.map(0,256);
+		const char *address=file.map(0,100);
 		file.seek(0);
 		if (address==NULL) return 0;
 
@@ -154,7 +154,9 @@ int ImageFilter_PNG::ident(FileObject &file, IMAGE &img)
 		bool supported=true;
 		img.format=RGBFormat::unknown;
 		if (img.bitdepth!=8) supported=false;		// Nur 8-Bit/Farbwert wird unterstützt
-
+		//printf ("DEBUG 1 >>%s<<\n", (const char*)file.filename());
+		//printf ("width: %d, height: %d, bitdepth: %d, pitch: %d, color_type: %d\n",
+		//		img.width, img.height, img.bitdepth, img.pitch, png_get_color_type(png_ptr, info_ptr));
 		switch (png_get_color_type(png_ptr, info_ptr)) {
 			case PNG_COLOR_TYPE_GRAY:
 				img.bitdepth=8;
