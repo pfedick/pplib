@@ -179,7 +179,7 @@ static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 				if ((psrc&0xff000000)==0xff000000) tgt[xx]=psrc;
 				else {
 					alpha1=psrc>>24;
-					tgt[xx]=target.fn->RGBBlend255(tgt[xx],psrc,alpha1);
+					tgt[xx]=target.fn->RGBBlend255(tgt[xx],psrc,alpha1)|0xff000000;
 				}
 			}
 		}
