@@ -111,6 +111,12 @@ size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE16 *buffer)
 	return samples;
 }
 
+size_t AudioDecoder_Aiff::addSamples(size_t num, STEREOSAMPLE32 *buffer)
+{
+	return 0;
+}
+
+
 size_t AudioDecoder_Aiff::getSamples(size_t num, float *left, float *right)
 {
 	throw ppl7::UnsupportedFeatureException("AudioDecoder_Aiff::getSamples(size_t num, float *left, float *right)");

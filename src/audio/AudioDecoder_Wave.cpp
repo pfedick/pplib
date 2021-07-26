@@ -106,6 +106,12 @@ size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16 *interleafed)
 	return read;
 }
 
+size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32 *buffer)
+{
+	return 0;
+}
+
+
 size_t AudioDecoder_Wave::getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right)
 {
 	size_t samples=num;

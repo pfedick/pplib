@@ -498,6 +498,14 @@ typedef struct tagSTEREOSAMPLE16{
 	SAMPLE16 right;
 } STEREOSAMPLE16;
 
+typedef int32_t SAMPLE32;
+
+//!\brief Struktur zum Speichern eines Stereo-Samples
+typedef struct tagSTEREOSAMPLE32{
+	SAMPLE32 left;
+	SAMPLE32 right;
+} STEREOSAMPLE32;
+
 class AudioDecoder
 {
 public:
@@ -508,6 +516,7 @@ public:
 	virtual void seekSample(size_t sample)=0;
 	virtual size_t getPosition() const=0;
 	virtual size_t getSamples(size_t num, STEREOSAMPLE16 *buffer)=0;
+	virtual size_t addSamples(size_t num, STEREOSAMPLE32 *buffer)=0;
 	virtual size_t getSamples(size_t num, float *left, float *right)=0;
 	virtual size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right)=0;
 };
@@ -532,6 +541,7 @@ class AudioDecoder_Wave: public AudioDecoder
 		void seekSample(size_t sample);
 		size_t getPosition() const;
 		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
+		size_t addSamples(size_t num, STEREOSAMPLE32 *buffer);
 		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right);
 };
@@ -553,6 +563,7 @@ class AudioDecoder_Aiff : public AudioDecoder
 		void seekSample(size_t sample);
 		size_t getPosition() const;
 		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
+		size_t addSamples(size_t num, STEREOSAMPLE32 *buffer);
 		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right);
 };
@@ -583,6 +594,7 @@ class AudioDecoder_MP3 : public AudioDecoder
 		void seekSample(size_t sample);
 		size_t getPosition() const;
 		size_t getSamples(size_t num, STEREOSAMPLE16 *buffer);
+		size_t addSamples(size_t num, STEREOSAMPLE32 *buffer);
 		size_t getSamples(size_t num, float *left, float *right);
 		size_t getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right);
 };
