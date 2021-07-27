@@ -439,7 +439,7 @@ void Dir::print(const DirEntry &de) const
 {
 	printf ("%s %3u ",(const char*)de.AttrStr,de.NumLinks);
 	printf ("%5u %5u ",de.Uid, de.Gid);
-	printf ("%10llu ",de.Size);
+	printf ("%10llu ",(unsigned long long)de.Size);
 	printf ("%s %s\n",(const char*)de.MTime.get(),(const char*)de.Filename);
 }
 
