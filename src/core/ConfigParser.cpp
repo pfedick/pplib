@@ -590,7 +590,7 @@ void ConfigParser::load(FileObject &file)
 				}
 			}
 		}
-	} catch (const ppl7::EndOfFileException) {
+	} catch (const ppl7::EndOfFileException &) {
 		section=NULL;
 		return;
 	}
