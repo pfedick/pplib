@@ -210,7 +210,7 @@ void FontEngineFreeType::deleteFont(FontFile *file)
 #endif
 }
 
-
+#ifdef HAVE_FREETYPE2
 static void putPixel(Drawable &draw, int x, int y, const Color &color, int intensity)
 {
 	Color vg=color;
@@ -231,7 +231,7 @@ static void putPixel(Drawable &draw, int x, int y, const Color &color, int inten
 	draw.putPixel(x,y,Color(red,green,blue,alpha));
 }
 
-#ifdef HAVE_FREETYPE2
+
 static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
 {
 	uint8_t v=0;
