@@ -755,7 +755,7 @@ void PFPFile::save(const String &filename)
 	} catch (...) {
 
 	}
-	strncpy(p+pp,"ENDF",4);
+	memcpy(p+pp,"ENDF",4);
 	Poke32(p+pp+4,0);
 	pp+=8;
 
