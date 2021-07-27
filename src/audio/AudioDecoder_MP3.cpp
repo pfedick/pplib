@@ -119,7 +119,7 @@ void AudioDecoder_MP3::open(FileObject &file, const AudioInfo *info)
 	if (!decoder) throw DecoderInitializationException("mpg123_new: %s", mpg123_plain_strerror(err));
 	err=mpg123_open_feed((mpg123_handle*)decoder);
 	if (err!=MPG123_OK) throw DecoderException("mpg123_open_feed: %s", mpg123_plain_strerror(err));
-	mpg123_param((mpg123_handle*)decoder, MPG123_VERBOSE,2,0);
+	//mpg123_param((mpg123_handle*)decoder, MPG123_VERBOSE,2,0);
 	mpg123_format_none((mpg123_handle*)decoder);
 	mpg123_format((mpg123_handle*)decoder,44100,2, MPG123_ENC_SIGNED_16);
 	out_offset=0;
