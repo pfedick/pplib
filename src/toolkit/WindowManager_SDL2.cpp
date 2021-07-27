@@ -823,7 +823,7 @@ typedef struct {
 
 #ifdef HAVE_SDL2
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wint-to-void-pointer-cast"
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
 
 static Uint32 timerEvent(Uint32 interval, void *param)
 {
