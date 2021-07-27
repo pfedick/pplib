@@ -64,12 +64,16 @@ void AudioDecoder_Aiff::open(FileObject &file, const AudioInfo *info)
 	} else {
 		this->info=*info;
 	}
+	printf ("frequency: %d\n",this->info.Frequency);
+	printf ("Channels: %d\n",this->info.Channels);
+	printf ("BitsPerSample: %d\n",this->info.BitsPerSample);
+	printf ("BytesPerSample: %d\n",this->info.BytesPerSample);
 	if (this->info.Format!=AudioInfo::AIFF) throw UnsupportedAudioFormatException();
 	//if (this->info.Frequency!=44100) throw UnsupportedAudioFormatException("Frequency != 44100");
 	//if (this->info.Bitrate!=1411) throw UnsupportedAudioFormatException("Bitrate != 1411");
 	if (this->info.Channels!=2) throw UnsupportedAudioFormatException("Channels != 2");
-	if (this->info.BitsPerSample!=16) throw UnsupportedAudioFormatException("BitsPerSample != 16");
-	if (this->info.BytesPerSample!=4) throw UnsupportedAudioFormatException("BytesPerSample != 4");
+	if (this->info.BitsPerSample!=16 && this->info.BitsPerSample!=24) throw UnsupportedAudioFormatException("BitsPerSample is not 16 or 24");
+	if (this->info.BytesPerSample!=4 && this->info.BytesPerSample!=6) throw UnsupportedAudioFormatException("BytesPerSample is not 4 or 6");
 	position=0;
 	this->ff=&file;
 }
@@ -106,6 +110,12 @@ size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE16 *buffer)
 			buffer[i].right=PeekN16(data+2);
 			data+=4;
 		}
+	} else if (info.BitsPerSample==24) {
+		for (size_t i=0;i<samples;i++) {
+			buffer[i].left=PeekN32(data)>>16;
+			buffer[i].right=PeekN32(data+3)>>16;
+			data+=4;
+		}
 	}
 	position+=samples;
 	return samples;
@@ -113,7 +123,24 @@ size_t AudioDecoder_Aiff::getSamples(size_t num, STEREOSAMPLE16 *buffer)
 
 size_t AudioDecoder_Aiff::addSamples(size_t num, STEREOSAMPLE32 *buffer)
 {
-	return 0;
+	size_t samples=num;
+	if (position+samples>info.Samples) samples=info.Samples-position;
+	const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
+	if (info.BitsPerSample==16) {
+		for (size_t i=0;i<samples;i++) {
+			buffer[i].left+=PeekN16(data);
+			buffer[i].right+=PeekN16(data+2);
+			data+=4;
+		}
+	} else if (info.BitsPerSample==24) {
+		for (size_t i=0;i<samples;i++) {
+			buffer[i].left+=PeekN16(data);
+			buffer[i].right+=PeekN16(data+3);
+			data+=6;
+		}
+	}
+	position+=samples;
+	return samples;
 }
 
 
@@ -131,6 +158,12 @@ size_t AudioDecoder_Aiff::getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right
 		for (size_t i=0;i<samples;i++) {
 			left[i]=PeekN16(data);
 			right[i]=PeekN16(data+2);
+			data+=4;
+		}
+	} else if (info.BitsPerSample==16) {
+		for (size_t i=0;i<samples;i++) {
+			left[i]=PeekN16(data);
+			right[i]=PeekN16(data+3);
 			data+=4;
 		}
 	}

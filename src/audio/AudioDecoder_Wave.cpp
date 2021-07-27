@@ -108,7 +108,18 @@ size_t AudioDecoder_Wave::getSamples(size_t num, STEREOSAMPLE16 *interleafed)
 
 size_t AudioDecoder_Wave::addSamples(size_t num, STEREOSAMPLE32 *buffer)
 {
-	return 0;
+	size_t samples=num;
+	if (position+samples>info.Samples) samples=info.Samples-position;
+	const char *data=ff->map(info.AudioStart+position*info.BytesPerSample, samples*info.BytesPerSample);
+	if (info.BitsPerSample==16) {
+		for (size_t i=0;i<samples;i++) {
+			buffer[i].left+=Peek16(data);
+			buffer[i].right+=Peek16(data+2);
+			data+=4;
+		}
+	}
+	position+=samples;
+	return samples;
 }
 
 
