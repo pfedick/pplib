@@ -208,7 +208,7 @@ void Image::clear()
 {
 	myMemory.clear();
 	fn=NULL;
-	memset(&data,0,sizeof(data));
+	clearDrawableData();
 }
 
 /*!\brief Grafik von einem Drawable kopieren
@@ -221,7 +221,7 @@ void Image::clear()
  */
 void Image::copy(const Drawable &other)
 {
-	memset(&data,0,sizeof(data));
+	clearDrawableData();
 	fn=NULL;
 	if (other.isEmpty()) return;
 	// Das andere Drawable kann auch einen Ausschnitt aus einem größeren Bild
@@ -270,13 +270,13 @@ void Image::copy(const Drawable &other, const Rect &rect)
  */
 void Image::copy(const Image &other)
 {
-	memset(&data,0,sizeof(data));
+	clearDrawableData();
 	fn=NULL;
 	if (other.isEmpty()) return;
 	if (!myMemory.copy(other.myMemory)) {
 		throw OutOfMemoryException();
 	}
-	memcpy(&data,&other.data,sizeof(data));
+	copyDrawableData(other.data);
 	fn=other.fn;
 	data.base=(void*)myMemory.adr();
 }
@@ -299,7 +299,7 @@ void Image::create(int width, int height, const RGBFormat &format)
 		return;
 	}
 	fn=NULL;
-	memset(&data,0,sizeof(data));
+	clearDrawableData();
 	myMemory.free();
 
 	if (format==RGBFormat::unknown || format>=RGBFormat::MaxIdentifiers) {

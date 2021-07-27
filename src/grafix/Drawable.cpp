@@ -116,7 +116,7 @@ namespace grafix {
  */
 Drawable::Drawable()
 {
-	memset(&data,0,sizeof(data));
+	clearDrawableData();
 	fn=NULL;
 }
 
@@ -130,7 +130,7 @@ Drawable::Drawable()
  */
 Drawable::Drawable(const Drawable &other)
 {
-	memcpy(&data,&other.data,sizeof(data));
+	copyDrawableData(other.data);
 	fn=other.fn;
 }
 
@@ -191,7 +191,7 @@ Drawable::Drawable(const Drawable &other, const Point &p, const Size &s)
  */
 Drawable::Drawable(void *base, uint32_t pitch, int width, int height, const RGBFormat &format)
 {
-	memset(&data,0,sizeof(data));
+	clearDrawableData();
 	fn=NULL;
 	create(base,pitch,width,height,format);
 }
@@ -206,6 +206,27 @@ Drawable::~Drawable()
 {
 
 }
+
+void Drawable::clearDrawableData()
+{
+	data.fn=NULL;
+	data.base=NULL;
+	data.pitch=0;
+	data.width=0;
+	data.height=0;
+	data.rgbformat=RGBFormat::unknown;
+}
+
+void Drawable::copyDrawableData(const DRAWABLE_DATA &other)
+{
+	data.fn=other.fn;
+	data.base=other.base;
+	data.pitch=other.pitch;
+	data.width=other.width;
+	data.height=other.height;
+	data.rgbformat=other.rgbformat;
+}
+
 
 /*!\brief Pointer auf die Grafik-Funktionen für das Farbformat dieses Drawable holen
  *
@@ -261,7 +282,7 @@ void Drawable::initFunctions(const RGBFormat &format)
  */
 void Drawable::copy(const Drawable &other)
 {
-	memcpy(&data,&other.data,sizeof(data));
+	copyDrawableData(other.data);
 	fn=other.fn;
 }
 
@@ -279,7 +300,7 @@ void Drawable::copy(const Drawable &other, const Rect &rect)
 {
 	Rect o(0,0,other.data.width,other.data.height);
 	Rect r=o.intersected(rect);
-	memset(&data,0,sizeof(data));
+	clearDrawableData();
 	data.base8=other.data.base8
 		+r.top()*other.data.pitch
 		+r.left()*other.data.rgbformat.bytesPerPixel();
@@ -351,7 +372,7 @@ void Drawable::create(void *base, uint32_t pitch, int width, int height, const R
  */
 Drawable &Drawable::operator=(const Drawable &other)
 {
-	memcpy(&data,&other.data,sizeof(data));
+	copyDrawableData(other.data);
 	fn=other.fn;
 	return *this;
 }

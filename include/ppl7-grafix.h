@@ -429,7 +429,7 @@ typedef struct {
 	GRAFIX_FUNCTIONS *fn;
 	union {
 		void		*base;
-		uint8_t	*base8;
+		uint8_t		*base8;
 		uint16_t	*base16;
 		uint32_t	*base32;
 	};
@@ -559,6 +559,8 @@ class Drawable
 		GRAFIX_FUNCTIONS	*fn;
 		DRAWABLE_DATA		data;
 		void initFunctions(const RGBFormat &format);
+		void clearDrawableData();
+		void copyDrawableData(const DRAWABLE_DATA &other);
 
 	public:
 		/** @name Konstruktoren
