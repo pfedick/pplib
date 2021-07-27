@@ -206,6 +206,7 @@ class Font6Glyph
 {
 	private:
 	public:
+		Font6Glyph();
 		int width;
 		int height;
 		int bearingX;
@@ -272,6 +273,16 @@ class Font6Renderer
 
 };
 
+
+Font6Glyph::Font6Glyph()
+{
+	width=0;
+	height=0;
+	bearingX=0;
+	bearingY=0;
+	advance=0;
+	bitmap=NULL;
+}
 
 static void DrawGlyphMono8_0(DRAWABLE_DATA &data, const Font6Glyph &glyph, int x, int y, SurfaceColor c)
 {
