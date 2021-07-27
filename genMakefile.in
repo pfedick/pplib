@@ -80,11 +80,6 @@ find_c_files() {
 			FOUND_COVERAGE="coverage/$4$BASENAME.o"
 		fi
 		
-		NOTE="Compiling >>>$1/$file<<<"
-		if test "$1/$file" = "core/resourcen.cpp"
-		then
-			NOTE="$NOTE ***** This could take some time! *****"
-		fi
 		ADDITIONAL_DEPENDENCY=""
 		if test "$1/$file" = "grafix/CGrafix.cpp"
 		then
@@ -106,23 +101,17 @@ find_c_files() {
 
 		COMPILE_RELEASE="$COMPILE_RELEASE
 release/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
-	###############################################################################
-	# $NOTE
 	\$(CXX) -Wall \$(CXXFLAGS) -o release/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) $3
 "
 
 		COMPILE_COVERAGE="$COMPILE_COVERAGE
 coverage/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
-	###############################################################################
-	# $NOTE
 	\$(CXX) -Wall \$(CXXFLAGS) -o coverage/$4$BASENAME.o -c \$(srcdir)/$1/$file \$(CFLAGS) @GCOV_CFLAGS@ $3
 "
 
 
 		COMPILE_DEBUG="$COMPILE_DEBUG
 debug/$4$BASENAME.o:	\$(srcdir)/$1/$file \$(incdir)/ppl7.h \$(incdir)/ppl7-exceptions.h \$(incdir)/ppl7-types.h \$(incdir)/ppl7-config.h Makefile $5 $ADDITIONAL_DEPENDENCY
-	###############################################################################
-	# $NOTE
 	\$(CXX) -Wall \$(CXXFLAGS) -o debug/$4$BASENAME.o -c \$(srcdir)/$1/$file -ggdb -D_DEBUG \$(CFLAGS) -DDEBUG=DEBUG $3
 "
 
@@ -158,26 +147,19 @@ find_asm_files() {
 			ASM_COVERAGE="coverage/asm_$BASENAME.o"
 		fi
 		
-		NOTE="Compiling >>>$1/$file<<<"
 		COMPILE_RELEASE="$COMPILE_RELEASE
 release/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
-	###############################################################################
-	# $NOTE
 	\$(ASM) -o release/asm_$BASENAME.o -l release/asm_$BASENAME.lst \$(srcdir)/$1/$file
 "
 
 		COMPILE_COVERAGE="$COMPILE_COVERAGE
 coverage/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
-	###############################################################################
-	# $NOTE
 	\$(ASM) -o coverage/asm_$BASENAME.o -l coverage/asm_$BASENAME.lst \$(srcdir)/$1/$file
 "
 
 
 		COMPILE_DEBUG="$COMPILE_DEBUG
 debug/asm_$BASENAME.o:	\$(srcdir)/$1/$file Makefile
-	###############################################################################
-	# $NOTE
 	\$(ASM) \$(ASMDEBUGFLAGS) -o debug/asm_$BASENAME.o  -l debug/asm_$BASENAME.lst \$(srcdir)/$1/$file -D_DEBUG -DDEBUG=DEBUG
 "
 
