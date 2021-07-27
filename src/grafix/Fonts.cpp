@@ -382,7 +382,7 @@ void Grafix::loadFont(FileObject &ff, const String &fontname)
 						FontList.erase(font->Name);
 						old->engine->deleteFont(old);
 					}
-				} catch (ItemNotFoundException) {
+				} catch (const ItemNotFoundException &) {
 					// Das macht nix
 				} catch (...) {
 					font->engine->deleteFont(font);
