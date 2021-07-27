@@ -663,18 +663,20 @@ void ID3Tag::load(FileObject &file)
 	Flags=Peek8(adr+5);
 	bool extendedHeader=false;
 	bool unsyncFlag=false;
-	bool experimentalFlag=false;
-	bool footerFlag=false;
+	//bool experimentalFlag=false;
+	//bool footerFlag=false;
 	if (Flags&128) {		// Unsynchonisation-Flag gesetzt
 		unsyncFlag=true;
 	}
 	if (Flags&64) {			// Extended Header Flag
 		extendedHeader=true;
 	}
+	/*
 	if (version>3) {
 		if (Flags&32) experimentalFlag=true;	// Experimental Flag is set
 		if (Flags&16) footerFlag=true;			// Footer is present
 	}
+	*/
 	Size=Peek8(adr+9);
 	int s=Peek8(adr+8);
 	Size|=s<<7;
