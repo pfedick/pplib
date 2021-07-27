@@ -160,11 +160,11 @@ size_t AudioDecoder_Aiff::getSamples(size_t num, SAMPLE16 *left, SAMPLE16 *right
 			right[i]=PeekN16(data+2);
 			data+=4;
 		}
-	} else if (info.BitsPerSample==16) {
+	} else if (info.BitsPerSample==24) {
 		for (size_t i=0;i<samples;i++) {
 			left[i]=PeekN16(data);
 			right[i]=PeekN16(data+3);
-			data+=4;
+			data+=6;
 		}
 	}
 	position+=samples;
