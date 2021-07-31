@@ -377,6 +377,7 @@ class Widget : public EventHandler
 		bool		topMost;
 		bool		transparent;
 		bool		deleteRequested;
+		bool		modal;
 		Size		strategy;
 		String		myName;
 
@@ -437,6 +438,9 @@ class Widget : public EventHandler
 		bool isEnabed() const;
 		void setVisible(bool flag);
 		bool isVisible() const;
+
+		void setModal(bool flag);
+		bool isModal() const;
 
 		Drawable drawable(const Drawable &parent) const;
 		Drawable clientDrawable(const Drawable &parent) const;

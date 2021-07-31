@@ -109,6 +109,7 @@ Widget::Widget()
 	transparent=false;
 	child_needsredraw=false;
 	topMost=false;
+	modal=false;
 	deleteRequested=false;
 	MaxSize.width=65535;
 	MaxSize.height=65535;
@@ -411,6 +412,17 @@ bool Widget::isVisible() const
 {
 	return visible;
 }
+
+void Widget::setModal(bool flag)
+{
+	modal=flag;
+}
+
+bool Widget::isModal() const
+{
+	return modal;
+}
+
 
 
 void Widget::create(int x, int y, int width, int height)

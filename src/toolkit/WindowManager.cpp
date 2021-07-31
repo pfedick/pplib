@@ -137,6 +137,7 @@ Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 				p=p2;
 				return findMouseWidget(w,p);	// Iterieren
 			}
+			if (w->isModal()) return window;
 		}
 	}
 	//printf ("MATCH\n");
