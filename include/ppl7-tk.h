@@ -571,6 +571,7 @@ class WindowManager
 		void dispatchClickEvent(Window *window);
 		void setDoubleClickIntervall(int ms);
 		void setKeyboardFocus(Widget *w);
+		void unregisterWidget(Widget *w);
 		Widget *getKeyboardFocus() const;
 		int getDoubleClickIntervall() const;
 		Widget *findMouseWidget(Widget *window, Point &p);

@@ -121,6 +121,7 @@ Widget::Widget()
 
 Widget::~Widget()
 {
+	GetWindowManager()->unregisterWidget(this);
 	if (parent) parent->removeChild(this);
 	std::list<Widget*>::iterator it;
 	while (childs.begin()!=childs.end()) {
