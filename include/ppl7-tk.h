@@ -554,6 +554,7 @@ class WindowManager
 		Widget	*KeyboardFocus;
 		void updateButtonSymbols();
 		void deferedDeleteWidgets(Widget *widget);
+		void cleanUpChilds(Widget *widget);
 
 	public:
 		ImageList	ButtonSymbols;

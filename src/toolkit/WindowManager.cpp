@@ -143,6 +143,17 @@ Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 	return window;
 }
 
+void WindowManager::cleanUpChilds(Widget *widget)
+{
+	if (LastMouseDown==widget) LastMouseDown=NULL;
+	if (LastMouseEnter==widget) LastMouseEnter=NULL;
+	if (KeyboardFocus==widget) KeyboardFocus=NULL;
+	std::list<Widget*>::iterator it;
+	for (it=widget->childs.begin();it!=widget->childs.end();++it) {
+		cleanUpChilds(*it);
+	}
+}
+
 void WindowManager::deferedDeleteWidgets(Widget *widget)
 {
 	bool match=true;
@@ -153,14 +164,10 @@ void WindowManager::deferedDeleteWidgets(Widget *widget)
 			Widget *child=(*it);
 			deferedDeleteWidgets(child);
 			if (child->deleteRequested) {
-				it=widget->childs.end();
-				if (LastMouseDown==child) LastMouseDown=NULL;
-				if (LastMouseEnter==child) LastMouseEnter=NULL;
-				if (KeyboardFocus==child) KeyboardFocus=NULL;
-
+				cleanUpChilds(child);
 				delete (child);
+				it=widget->childs.end();
 				match=true;
-
 			}
 		}
 	}
