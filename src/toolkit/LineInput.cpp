@@ -175,21 +175,26 @@ void LineInput::mouseDownEvent(MouseEvent *event)
 
 void LineInput::gotFocusEvent(FocusEvent *event)
 {
+	printf ("LineInput::gotFocusEvent\n");
 	blinker=true;
-	GetWindowManager()->startTimer(this,500);
+	//GetWindowManager()->startTimer(this,500);
+	needsRedraw();
 }
 
 void LineInput::lostFocusEvent(FocusEvent *event)
 {
+	printf ("LineInput::lostFocusEvent\n");
 	blinker=false;
 	needsRedraw();
 }
 
 void LineInput::textInputEvent(TextInputEvent *event)
 {
-	//printf ("LineInput::textInputEvent(%s, %s), text=%ls\n",
-	//			this->widgetType().toChar(),
-	//			this->name().toChar(),(const wchar_t*)event->text);
+	/*
+	printf ("LineInput::textInputEvent(%s, %s), text=%ls\n",
+				this->widgetType().toChar(),
+				this->name().toChar(),(const wchar_t*)event->text);
+				*/
 	WideString left,right;
 	left=myText.left(cursorpos);
 	right=myText.mid(cursorpos);
@@ -203,12 +208,16 @@ void LineInput::textInputEvent(TextInputEvent *event)
 void LineInput::keyDownEvent(KeyEvent *event)
 {
 	//printf ("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
-	if (event->modifier==KeyEvent::KEYMOD_NONE) {
+	if ((event->modifier&KeyEvent::KEYMOD_MODIFIER)==KeyEvent::KEYMOD_NONE) {
 		if (event->key==KeyEvent::KEY_LEFT && cursorpos>0) {
 			cursorpos--;
 			calcCursorPosition();
 		} else if (event->key==KeyEvent::KEY_RIGHT && cursorpos<myText.size()) {
 			cursorpos++;
+			calcCursorPosition();
+		} else if (event->key==KeyEvent::KEY_LEFT && cursorpos>0) {
+			//printf ("left\n");
+			cursorpos--;
 			calcCursorPosition();
 		} else if (event->key==KeyEvent::KEY_HOME && cursorpos>0) {
 			cursorpos=0;
@@ -236,8 +245,8 @@ void LineInput::timerEvent(Event *event)
 {
 	blinker=!blinker;
 	needsRedraw();
-	if (GetWindowManager()->getKeyboardFocus()==this) GetWindowManager()->startTimer(this,500);
-	else blinker=false;
+	//if (GetWindowManager()->getKeyboardFocus()==this) GetWindowManager()->startTimer(this,500);
+	//else blinker=false;
 
 }
 
