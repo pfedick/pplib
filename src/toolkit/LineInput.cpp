@@ -175,7 +175,7 @@ void LineInput::mouseDownEvent(MouseEvent *event)
 
 void LineInput::gotFocusEvent(FocusEvent *event)
 {
-	printf ("LineInput::gotFocusEvent\n");
+	//printf ("LineInput::gotFocusEvent\n");
 	blinker=true;
 	//GetWindowManager()->startTimer(this,500);
 	needsRedraw();
@@ -183,7 +183,7 @@ void LineInput::gotFocusEvent(FocusEvent *event)
 
 void LineInput::lostFocusEvent(FocusEvent *event)
 {
-	printf ("LineInput::lostFocusEvent\n");
+	//printf ("LineInput::lostFocusEvent\n");
 	blinker=false;
 	needsRedraw();
 }
@@ -202,6 +202,9 @@ void LineInput::textInputEvent(TextInputEvent *event)
 	myText.set(left);
 	cursorpos++;
 	calcCursorPosition();
+	Event ev(Event::Type::TextChanged);
+	ev.setWidget(this);
+	textChangedEvent(&ev, myText);
 }
 
 
@@ -215,10 +218,6 @@ void LineInput::keyDownEvent(KeyEvent *event)
 		} else if (event->key==KeyEvent::KEY_RIGHT && cursorpos<myText.size()) {
 			cursorpos++;
 			calcCursorPosition();
-		} else if (event->key==KeyEvent::KEY_LEFT && cursorpos>0) {
-			//printf ("left\n");
-			cursorpos--;
-			calcCursorPosition();
 		} else if (event->key==KeyEvent::KEY_HOME && cursorpos>0) {
 			cursorpos=0;
 			calcCursorPosition();
@@ -227,10 +226,16 @@ void LineInput::keyDownEvent(KeyEvent *event)
 			calcCursorPosition();
 		} else if (event->key==KeyEvent::KEY_BACKSPACE && cursorpos>0) {
 			myText=myText.left(cursorpos-1)+myText.mid(cursorpos);
+			Event ev(Event::Type::TextChanged);
+			ev.setWidget(this);
+			textChangedEvent(&ev, myText);
 			cursorpos--;
 			calcCursorPosition();
 		} else if (event->key==KeyEvent::KEY_DELETE) {
 			myText=myText.left(cursorpos)+myText.mid(cursorpos+1);
+			Event ev(Event::Type::TextChanged);
+			ev.setWidget(this);
+			textChangedEvent(&ev, myText);
 			calcCursorPosition();
 		}
 	}

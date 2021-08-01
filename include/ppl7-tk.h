@@ -118,7 +118,8 @@ class Event
 			GeometryChanged,
 			Quit,
 			ValueChanged,
-			Toggled
+			Toggled,
+			TextChanged
 		};
 	private:
 		Type t;
@@ -303,6 +304,7 @@ class EventHandler
 
 		virtual void valueChangedEvent(Event *event, int value);
 		virtual void toggledEvent(Event *event, bool checked);
+		virtual void textChangedEvent(Event *event, const ppl7::String &text);
 
 };
 

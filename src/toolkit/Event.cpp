@@ -135,6 +135,7 @@ String Event::name() const
 		case GeometryChanged: return "GeometryChanged";
 		case ValueChanged: return "ValueChanged";
 		case Toggled: return "Toggled";
+		case TextChanged: return "TextChanged";
 	}
 	throw UnknownEventException();
 }
@@ -381,6 +382,10 @@ void EventHandler::toggledEvent(Event *event, bool checked)
 	if (handler) handler->toggledEvent(event, checked);
 }
 
+void EventHandler::textChangedEvent(Event *event, const ppl7::String &text)
+{
+	if (handler) handler->textChangedEvent(event, text);
+}
 
 
 
