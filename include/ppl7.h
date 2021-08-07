@@ -246,6 +246,7 @@ bool PregMatch(const String &expression, const String &subject, Array &matches, 
 Array Sort(const Array &array, bool unique=false);
 Array SortReverse(const Array &array, bool unique=false);
 size_t rand(size_t min, size_t max);
+double randf(double min, double max);
 ByteArray Random(size_t bytes);
 ByteArray &Random(ByteArray &buffer, size_t bytes);
 
