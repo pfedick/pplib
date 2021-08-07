@@ -552,7 +552,7 @@ ByteArray &Random(ByteArray &buffer, size_t bytes)
 double randf(double min, double max)
 {
 	double range=max-min;
-	return (drand48()*range)+min;
+	return ((::rand()/(RAND_MAX+1.0))*range)+min;
 }
 
 } // end of namespace ppl
