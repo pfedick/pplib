@@ -95,6 +95,7 @@ typedef uint32_t SurfaceColor;
 
 class Rect;
 
+class PointF;
 class Point
 {
 	public:
@@ -102,6 +103,8 @@ class Point
 
 		Point();
 		Point(int x, int y);
+		Point(const Point &other);
+		Point(const PointF &other);
 		Point(const String &s);
 		bool isNull() const;
 		bool inside(const Rect &r) const;
@@ -111,6 +114,7 @@ class Point
 		void setY(int y);
 		void setPoint(int x, int y);
 		void setPoint(const Point &other);
+		void setPoint(const PointF &other);
 		Point &operator*= (double factor);
 		Point &operator+= (const Point &point);
 		Point &operator-= (const Point &point);
@@ -132,6 +136,45 @@ const Point operator- (const Point &p1, const Point &p2);
 const Point operator- (const Point &point);
 const Point operator/ (const Point &point, double divisor);
 double Distance(const Point &p1, const Point &p2);
+
+class PointF
+{
+	public:
+		float x,y;
+
+		PointF();
+		PointF(float x, float y);
+		PointF(const Point &other);
+		PointF(const PointF &other);
+		bool isNull() const;
+		bool inside(const Rect &r) const;
+		double vectorLength() const;
+		float manhattanLength() const;
+		void setPoint(float x, float y);
+		void setPoint(const Point &other);
+		void setPoint(const PointF &other);
+		PointF &operator*= (double factor);
+		PointF &operator+= (const PointF &point);
+		PointF &operator-= (const PointF &point);
+		PointF &operator/= (double divisor);
+
+		bool operator<(const PointF &other) const;
+		bool operator<=(const PointF &other) const;
+		bool operator==(const PointF &other) const;
+		bool operator!=(const PointF &other) const;
+		bool operator>=(const PointF &other) const;
+		bool operator>(const PointF &other) const;
+
+};
+const PointF operator* (const PointF &point, double factor);
+const PointF operator* (double factor, const PointF &point);
+const PointF operator+ (const PointF &p1, const PointF &p2);
+const PointF operator- (const PointF &p1, const PointF &p2);
+const PointF operator- (const PointF &point);
+const PointF operator/ (const PointF &point, double divisor);
+double Distance(const PointF &p1, const PointF &p2);
+
+
 
 class Point3D
 {

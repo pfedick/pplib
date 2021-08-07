@@ -8,7 +8,7 @@
  * $Id$
  *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2021, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,38 +50,20 @@
 namespace ppl7 {
 namespace grafix {
 
-/*!\class Point
+/*!\class PointF
  * \ingroup PPLGroupGrafik
  * \brief Repräsentiert einen Punkt in einem zweidimensionalen Koordinatensystem
  *
  * \desc
  * Diese Klasse repräsentiert einen Punkt in einem zweidimensionalen Koordinatensystem.
- * Zum Speichern der Koordinaten werden Integer (Ganzzahlen) verwendet.
- * \image html Class_Point.png
- * \image latex Class_Point.png
+ * Zum Speichern der Koordinaten werden Floats verwendet.
  * \par
- * Ein Punkt wird durch seine X- und Y-Koordinate definiert, die mit den Funktionen
- * setX() und setY() gesetzt und mit x() und y() ausgelesen werden können.
- * Dir Funktionen rx() und ry() liefern Referenzen auf die Koordinaten und erlauben es so die Werte direkt
- * zu manipulieren.
+ * Ein Punkt wird durch seine X- und Y-Koordinate definiert.
  * \par
- * Beispiele:
- * \code
- Point p1(4,12);
- Point p2;
- Point p3;
- p2.setX(4);
- p2.setY(12);
- p3.rx()=4;
- p3.ry()=12;
- * \endcode
  * \par
  * Ein Punkt kann auch als Vektor benutzt werden. Bei Addition und Subtraktion wird jede Komponente separat berechnet.
  * Ein Point-Object kann ausserdem mit einem Integer oder Double multipliziert oder geteilt werden.
  *
- * \see
- * Die Klasse Point3D bietet die gleiche Funktionalität, repräsentiert jedoch einen Punkt
- * in einem dreidimensionalen Koordinatensystem.
  */
 
 
@@ -93,15 +75,10 @@ namespace grafix {
  * \brief Speichert die Y-Koordinate des Punktes
  */
 
-/*!\brief Konstruktor mit Initialisierung auf (0/0)
- *
- * \desc
- * Durch Verwendung dieses Konstruktors wird der Punkt mit den Koordinaten (0/0) initialisiert.
- */
-Point::Point()
+PointF::PointF()
 {
-	x=0;
-	y=0;
+	x=0.0f;
+	y=0.0f;
 }
 
 /*!\brief Konstruktor mit Initialisierung auf die angegebenen Koordinaten
@@ -111,40 +88,24 @@ Point::Point()
  * \param[in] x Die gewünschte X-Koordinate
  * \param[in] y Die gewünschte Y-Koordinate
  */
-Point::Point(int x, int y)
+PointF::PointF(float x, float y)
 {
 	this->x=x;
 	this->y=y;
 }
 
-/*!\brief Konstruktor mit Initialisierung auf die im String angegebenen Koordinaten
- *
- * \desc
- * Durch Verwendung dieses Konstruktors wird der Punkt mit den im String
- * \p s vorhandenen Koordinaten initialisiert.
- * \param[in] s String mit den Komma-getrennten Koordinaten
- */
-Point::Point(const String &s)
+PointF::PointF(const Point &other)
 {
-	String c=s;
-	c.replace(";",",");
-	Array a;
-	a.explode(c,",",0,true);
-	x=a[0].toInt();
-	y=a[1].toInt();
+	this->x=(float)other.x;
+	this->y=(float)other.y;
 }
 
-Point::Point(const Point &other)
+PointF::PointF(const PointF &other)
 {
-	x=other.x;
-	y=other.y;
+	this->x=other.x;
+	this->y=other.y;
 }
 
-Point::Point(const PointF &other)
-{
-	x=(int)other.x;
-	y=(int)other.y;
-}
 
 /*!\brief Liefert \c true zurück, wenn sowohl x als auch y 0 sind.
  *
@@ -154,32 +115,10 @@ Point::Point(const PointF &other)
  * Liefert \c true zurück, wenn x und y 0 sind. Ist dies nicht der Fall, gibt die Funktion false zurück.
  *
  */
-bool Point::isNull() const
+bool PointF::isNull() const
 {
-	if (x==0 && y==0) return true;
+	if (x==0.0f && y==0.0f) return true;
 	return false;
-}
-
-/*!\brief X-Koordinate setzen
- *
- * \desc
- * Mit dieser Funktion kann die X-Koordinate des Punktes gesetzt werden.
- * \param[in] x X-Koordinate
- */
-void Point::setX(int x)
-{
-	this->x=x;
-}
-
-/*!\brief Y-Koordinate setzen
- *
- * \desc
- * Mit dieser Funktion kann die Y-Koordinate des Punktes gesetzt werden.
- * \param[in] y Y-Koordinate
- */
-void Point::setY(int y)
-{
-	this->y=y;
 }
 
 /*!\brief X und Y-Koordinate gleichzeitig setzen
@@ -189,7 +128,7 @@ void Point::setY(int y)
  * \param[in] x X-Koordinate
  * \param[in] y Y-Koordinate
  */
-void Point::setPoint(int x, int y)
+void PointF::setPoint(float x, float y)
 {
 	this->x=x;
 	this->y=y;
@@ -202,16 +141,16 @@ void Point::setPoint(int x, int y)
  * übernommen.
  * \param[in] other Ein anderer Punkt
  */
-void Point::setPoint(const Point &other)
+void PointF::setPoint(const PointF &other)
 {
 	x=other.x;
 	y=other.y;
 }
 
-void Point::setPoint(const PointF &other)
+void PointF::setPoint(const Point &other)
 {
-	x=(int)other.x;
-	y=(int)other.y;
+	x=(float)other.x;
+	y=(float)other.y;
 }
 
 
@@ -229,7 +168,7 @@ void Point::setPoint(const PointF &other)
  * berechnet.
  *
  */
-double Point::vectorLength() const
+double PointF::vectorLength() const
 {
 	return sqrt((double)((x*x)+(y*y)));
 }
@@ -250,10 +189,10 @@ double Point::vectorLength() const
  *
  * \relates Point
  */
-double Distance(const Point &p1, const Point &p2)
+double Distance(const PointF &p1, const PointF &p2)
 {
-	double a=abs(p2.x-p1.x);
-	double b=abs(p2.y-p1.y);
+	double a=fabs(p2.x-p1.x);
+	double b=fabs(p2.y-p1.y);
 	return sqrt((a*a)+(b*b));
 }
 
@@ -273,12 +212,12 @@ double Distance(const Point &p1, const Point &p2)
  * \returns Die Länge zwischen dem Ursprung des Koordinatensystems (0/0) und dem Punkt als Integer.
  *
  */
-int Point::manhattanLength() const
+float PointF::manhattanLength() const
 {
-	return abs(x)+abs(y);
+	return fabsf(x)+fabsf(y);
 }
 
-bool Point::inside(const Rect &r) const
+bool PointF::inside(const Rect &r) const
 {
 	if (r.x1<=x && x<=r.x2) {
 		if (r.y1<=y && y<=r.y2) {
@@ -297,10 +236,10 @@ bool Point::inside(const Rect &r) const
  * \param[in] factor Der Faktor, mit dem die Koordinate multipliziert werden soll
  * \return Referenz auf den Point
  */
-Point &Point::operator*= (double factor)
+PointF &PointF::operator*= (double factor)
 {
-	x=(int)((double)x*factor);
-	y=(int)((double)y*factor);
+	x=(float)((double)x*factor);
+	y=(float)((double)y*factor);
 	return *this;
 }
 
@@ -313,7 +252,7 @@ Point &Point::operator*= (double factor)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-Point &Point::operator+= (const Point &point)
+PointF &PointF::operator+= (const PointF &point)
 {
 	x+=point.x;
 	y+=point.y;
@@ -329,7 +268,7 @@ Point &Point::operator+= (const Point &point)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-Point &Point::operator-= (const Point &point)
+PointF &PointF::operator-= (const PointF &point)
 {
 	x-=point.x;
 	y-=point.y;
@@ -345,44 +284,44 @@ Point &Point::operator-= (const Point &point)
  * \param[in] divisor Der Divisor, durch den die aktuelle Koordinate geteilt werden soll
  * \return Referenz auf den Point
  */
-Point &Point::operator/= (double divisor)
+PointF &PointF::operator/= (double divisor)
 {
-	x=(int)((double)x/divisor);
-	y=(int)((double)y/divisor);
+	x=(float)((double)x/divisor);
+	y=(float)((double)y/divisor);
 	return *this;
 }
 
-const Point operator* (const Point &point, double factor)
+const PointF operator* (const PointF &point, double factor)
 {
-	return Point ((int)(point.x*factor),(int)(point.y*factor));
+	return PointF ((float)(point.x*factor),(float)(point.y*factor));
 }
 
-const Point operator* (double factor, const Point &point)
+const PointF operator* (double factor, const PointF &point)
 {
-	return Point ((int)(point.x*factor),(int)(point.y*factor));
+	return PointF ((float)(point.x*factor),(float)(point.y*factor));
 }
 
-const Point operator+ (const Point &p1, const Point &p2)
+const PointF operator+ (const PointF &p1, const PointF &p2)
 {
-	return Point (p1.x+p2.x,p1.y+p2.y);
+	return PointF (p1.x+p2.x,p1.y+p2.y);
 }
 
-const Point operator- (const Point &p1, const Point &p2)
+const PointF operator- (const PointF &p1, const PointF &p2)
 {
-	return Point (p1.x-p2.x,p1.y-p2.y);
+	return PointF (p1.x-p2.x,p1.y-p2.y);
 }
 
-const Point operator- (const Point &point)
+const PointF operator- (const PointF &point)
 {
-	return Point (0-point.x,0-point.y);
+	return PointF(0-point.x,0-point.y);
 }
 
-const Point operator/ (const Point &point, double divisor)
+const PointF operator/ (const PointF &point, double divisor)
 {
-	return Point((int)(point.x/divisor),(int)(point.y/divisor));
+	return PointF((float)(point.x/divisor),(float)(point.y/divisor));
 }
 
-static int cmp(const Point &p1, const Point &p2)
+static int cmp(const PointF &p1, const PointF &p2)
 {
 	if (p1.y<p2.y) return -1;
 	if (p1.y>p2.y) return 1;
@@ -391,14 +330,14 @@ static int cmp(const Point &p1, const Point &p2)
 	return 0;
 }
 
-bool Point::operator<(const Point &other) const
+bool PointF::operator<(const PointF &other) const
 {
 	int c=cmp(*this,other);
 	if (c<0) return true;
 	return false;
 }
 
-bool Point::operator<=(const Point &other) const
+bool PointF::operator<=(const PointF &other) const
 {
 	int c=cmp(*this,other);
 	if (c<=0) return true;
@@ -406,7 +345,7 @@ bool Point::operator<=(const Point &other) const
 
 }
 
-bool Point::operator==(const Point &other) const
+bool PointF::operator==(const PointF &other) const
 {
 	int c=cmp(*this,other);
 	if (c==0) return true;
@@ -414,21 +353,21 @@ bool Point::operator==(const Point &other) const
 
 }
 
-bool Point::operator!=(const Point &other) const
+bool PointF::operator!=(const PointF &other) const
 {
 	int c=cmp(*this,other);
 	if (c!=0) return true;
 	return false;
 }
 
-bool Point::operator>=(const Point &other) const
+bool PointF::operator>=(const PointF &other) const
 {
 	int c=cmp(*this,other);
 	if (c>=0) return true;
 	return false;
 }
 
-bool Point::operator>(const Point &other) const
+bool PointF::operator>(const PointF &other) const
 {
 	int c=cmp(*this,other);
 	if (c>0) return true;

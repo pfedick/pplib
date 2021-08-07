@@ -154,6 +154,7 @@ RELEASE	= release/core_AVLTree.o \
 	release/gfx_ImageList.o \
 	release/gfx_Point3D.o \
 	release/gfx_Point.o \
+	release/gfx_PointF.o \
 	release/gfx_Rect.o \
 	release/gfx_RGBFormat.o \
 	release/gfx_Size.o \
@@ -276,6 +277,7 @@ GFX_RELEASE = release/gfx_Color.o \
 	release/gfx_ImageList.o \
 	release/gfx_Point3D.o \
 	release/gfx_Point.o \
+	release/gfx_PointF.o \
 	release/gfx_Rect.o \
 	release/gfx_RGBFormat.o \
 	release/gfx_Size.o \
@@ -408,6 +410,7 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/gfx_ImageList.o \
 	debug/gfx_Point3D.o \
 	debug/gfx_Point.o \
+	debug/gfx_PointF.o \
 	debug/gfx_Rect.o \
 	debug/gfx_RGBFormat.o \
 	debug/gfx_Size.o \
@@ -537,6 +540,7 @@ COVERAGE	= coverage/core_AVLTree.o \
 	coverage/gfx_ImageList.o \
 	coverage/gfx_Point3D.o \
 	coverage/gfx_Point.o \
+	coverage/gfx_PointF.o \
 	coverage/gfx_Rect.o \
 	coverage/gfx_RGBFormat.o \
 	coverage/gfx_Size.o \
@@ -1001,6 +1005,9 @@ release/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/p
 release/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	$(CXX) -Wall $(CXXFLAGS) -o release/gfx_Point.o -c $(srcdir)/grafix/Point.cpp $(CFLAGS) 
 
+release/gfx_PointF.o:	$(srcdir)/grafix/PointF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	$(CXX) -Wall $(CXXFLAGS) -o release/gfx_PointF.o -c $(srcdir)/grafix/PointF.cpp $(CFLAGS) 
+
 release/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	$(CXX) -Wall $(CXXFLAGS) -o release/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp $(CFLAGS) 
 
@@ -1400,6 +1407,9 @@ debug/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/ppl
 debug/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	$(CXX) -Wall $(CXXFLAGS) -o debug/gfx_Point.o -c $(srcdir)/grafix/Point.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/gfx_PointF.o:	$(srcdir)/grafix/PointF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	$(CXX) -Wall $(CXXFLAGS) -o debug/gfx_PointF.o -c $(srcdir)/grafix/PointF.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	$(CXX) -Wall $(CXXFLAGS) -o debug/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
@@ -1791,6 +1801,9 @@ coverage/gfx_Point3D.o:	$(srcdir)/grafix/Point3D.cpp $(incdir)/ppl7.h $(incdir)/
 
 coverage/gfx_Point.o:	$(srcdir)/grafix/Point.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/gfx_Point.o -c $(srcdir)/grafix/Point.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/gfx_PointF.o:	$(srcdir)/grafix/PointF.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
+	$(CXX) -Wall $(CXXFLAGS) -o coverage/gfx_PointF.o -c $(srcdir)/grafix/PointF.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/gfx_Rect.o:	$(srcdir)/grafix/Rect.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-grafix.h 
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/gfx_Rect.o -c $(srcdir)/grafix/Rect.cpp $(CFLAGS) @GCOV_CFLAGS@ 
