@@ -117,10 +117,16 @@ Color::Color()
  */
 Color::Color(int red, int green, int blue, int alpha)
 {
+	/*
 	r=clamp(red);
 	g=clamp(green);
 	b=clamp(blue);
 	a=clamp(alpha);
+	*/
+	r=red&0xff;
+	g=green&0xff;
+	b=blue&0xff;
+	a=alpha&0xff;
 }
 
 /*!\brief Konstruktor mit Angabe eines Farbwertes als 32-Bit Wert
@@ -327,10 +333,10 @@ void Color::setAlpha(int alpha)
  */
 void Color::setColor(int red, int green, int blue, int alpha)
 {
-	r=clamp(red);
-	g=clamp(green);
-	b=clamp(blue);
-	a=clamp(alpha);
+	r=red&0xff;
+	g=green&0xff;
+	b=blue&0xff;
+	a=alpha&0xff;
 }
 
 /*!\brief Farbwert anhand der einzelnen Farbkomponenten setzen
@@ -348,18 +354,15 @@ void Color::setColor(int red, int green, int blue, int alpha)
  */
 void Color::set(int red, int green, int blue, int alpha)
 {
-	r=clamp(red);
-	g=clamp(green);
-	b=clamp(blue);
-	a=clamp(alpha);
+	r=red&0xff;
+	g=green&0xff;
+	b=blue&0xff;
+	a=alpha&0xff;
 }
 
 void Color::set(const Color &other)
 {
-	r=other.r;
-	g=other.g;
-	b=other.b;
-	a=other.a;
+	c=other.c;
 }
 
 /*!\brief Farbwert anhand eines 32-Bit-Wertes setzen

@@ -118,12 +118,14 @@ static SurfaceColor RGB_A8B8G8R8 (int red, int green, int blue, int alpha)
 
 static Color Surface2RGB_A8R8G8B8 (SurfaceColor color)
 {
-	Color c;
+	return Color((color>>16)&255, (color>>8)&255, color&255, (color>>24)&255);
+	/*
 	c.setBlue(color&255);
 	c.setGreen((color>>8)&255);
 	c.setRed((color>>16)&255);
 	c.setAlpha((color>>24)&255);
 	return c;
+	*/
 }
 
 static Color Surface2RGB_A8B8G8R8 (SurfaceColor color)
