@@ -533,6 +533,7 @@ Size Widget::clientSize() const
 
 void Widget::draw(Drawable &d)
 {
+	if (!visible) return;
 	if (needsredraw==false && child_needsredraw==false) return;
 	std::list<Widget*>::iterator it;
 	Drawable mycd=drawable(d);
@@ -567,6 +568,7 @@ void Widget::draw(Drawable &d)
 
 void Widget::redraw(Drawable &d)
 {
+	if (!visible) return;
 	std::list<Widget*>::iterator it;
 	Widget *child;
 	Drawable mycd=drawable(d);
