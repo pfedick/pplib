@@ -120,6 +120,7 @@ class IPAddress
 		size_t addr_len() const;
 		String toString() const;
 		operator String() const;
+		int version() const;
 
 		IPAddress mask(int prefixlen) const;
 
@@ -194,6 +195,7 @@ class SockAddr
 		void *addr() const;
 		size_t size() const;
 		int port() const;
+		int version() const;
 		IPAddress toIPAddress() const;
 };
 
