@@ -53,6 +53,10 @@
 	#include <pthread_np.h>
 #endif
 
+#ifdef HAVE_SCHED_H
+#include <sched.h>
+#endif
+
 #ifdef HAVE_LIMITS_H
 	#include <limits.h>
 #endif
@@ -607,7 +611,12 @@ void Thread::threadIdle()
 #elif defined HAVE_PTHREADS
 	#ifdef SOLARIS
 	#else
+		// DEPRECATED, use sched_yield instead
+#ifdef HAVE_SCHED_YIELD
+		sched_yield();
+#elif defined HAVE_PTHREAD_YIELD
 		pthread_yield();
+#endif
 	#endif
 #endif
 }

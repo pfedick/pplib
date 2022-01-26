@@ -341,7 +341,7 @@ AC_CHECK_HEADERS([locale.h])
 AC_CHECK_HEADERS([wchar.h])
 AC_CHECK_HEADERS([widec.h])
 AC_CHECK_HEADERS([syslog.h])
-AC_CHECK_HEADERS([pthread.h pthread_np.h])
+AC_CHECK_HEADERS([pthread.h pthread_np.h sched.h])
 AC_CHECK_HEADERS([sys/mman.h])
 AC_CHECK_HEADERS([valgrind/helgrind.h])
 
@@ -385,6 +385,9 @@ AC_CHECK_LIB(pthread, pthread_set_name_np,
 	AC_DEFINE(HAVE_PTHREAD_SET_NAME_NP,1),,)
 AC_CHECK_LIB(pthread, pthread_setname_np,
 	AC_DEFINE(HAVE_PTHREAD_SETNAME_NP,1),,)
+	
+AC_CHECK_FUNCS([sched_yield pthread_yield])
+
 
 
 AC_CACHE_CHECK([for sa_len in struct sockaddr], ac_cv_struct_sa_len,
