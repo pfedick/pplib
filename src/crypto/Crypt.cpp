@@ -293,9 +293,7 @@ Crypt::Crypt()
 
 Crypt::~Crypt()
 {
-#ifndef HAVE_OPENSSL
-    throw ppl7::UnsupportedFeatureException("OpenSSL");
-#else
+#ifdef HAVE_OPENSSL
     if (ctx) EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
 #endif
 }
