@@ -1060,5 +1060,32 @@ size_t Thread::threadGetStackSize()
 	return 0;
 }
 
+void Thread::threadJoin()
+{
+#ifdef WIN32
+	THREADDATA *t=(THREADDATA *)threaddata;
+	DWORD ret=WaitForSingleObject(t->thread,INFINITE);
+	if (ret!=0) {
+		ThreadOperationFailedException();
+	}
+
+	throw UnsupportedFeatureException("Thread::threadJoin");
+#elif defined HAVE_PTHREADS
+	THREADDATA *t=(THREADDATA *)threaddata;
+	int ret=pthread_join(t->thread, NULL);
+	if (ret!=0) {
+		switch (ret) {
+		case EDEADLK: throw DeadlockException();
+		case EINVAL: ThreadOperationFailedException("Thread is not joinable");
+		case ESRCH: ThreadOperationFailedException("Thread not found");
+		default:
+			ppl7::throwExceptionFromErrno(ret, "Thread is not joinable");
+		}
+	}
+#else
+	throw UnsupportedFeatureException("Thread::threadJoin");
+#endif
+}
+
 
 } // EOF namespace ppl7

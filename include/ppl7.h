@@ -453,6 +453,7 @@ class Thread
 		int		threadSetStackSize(size_t size=0);
 		size_t	threadGetStackSize();
 		size_t	threadGetMinimumStackSize();
+		void	threadJoin();
 
 		virtual void run();
 };
