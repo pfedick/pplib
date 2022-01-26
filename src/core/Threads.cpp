@@ -451,6 +451,7 @@ Thread::Thread()
 	IsRunning=0;
 	IsSuspended=0;
 	deleteMe=0;
+	runcount=0;
 	#ifdef HAVE_PTHREADS
 		pthread_attr_init(&t->attr);
 	#endif
@@ -679,6 +680,7 @@ void Thread::threadResume()
 void Thread::threadStartUp()
 {
 	threadmutex.lock();
+	runcount++;
 	IsRunning=1;
 	IsSuspended=0;
 	threadmutex.unlock();
@@ -800,6 +802,11 @@ int Thread::threadShouldStop()
 	ret=flags&1;
 	threadmutex.unlock();
 	return ret;
+}
+
+size_t Thread::threadRunCount()
+{
+	return runcount;
 }
 
 /*! \brief Prüfen, ob der Thread schlafen soll
@@ -1008,7 +1015,7 @@ int Thread::threadSetStackSize(size_t size)
 		#endif
 		THREADDATA *t=(THREADDATA *)threaddata;
 		if (size==0) size=PTHREAD_STACK_MIN;
-		if (size<PTHREAD_STACK_MIN) {
+		if (size<(size_t)PTHREAD_STACK_MIN) {
 			throw IllegalArgumentException("Stacksize must not be smaller than %u Bytes",PTHREAD_STACK_MIN);
 			return 0;
 		}

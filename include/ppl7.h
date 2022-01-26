@@ -410,6 +410,7 @@ class Thread
 	private:
 		Mutex	threadmutex;
 		void *threaddata;
+		size_t runcount;
 		int flags;
 		int IsRunning;
 		int IsSuspended;
@@ -439,6 +440,7 @@ class Thread
 		int		threadIsRunning();
 		int		threadIsSuspended();
 		int		threadGetFlags();
+		size_t	threadRunCount();
 		uint64_t  threadGetID();
 		int		threadShouldStop();
 		void	threadWaitSuspended(int msec=0);
