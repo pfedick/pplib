@@ -120,6 +120,14 @@ static void readChars(ppl7::FileObject &file, const char *chars)
 	}
 }
 
+static void skipToEOL(ppl7::FileObject &file)
+{
+	while (!file.eof()) {
+		int c=file.fgetc();
+		if (c=='\n') return;
+	}
+}
+
 static bool readVaue(ppl7::AssocArray &data, const ppl7::String &key, ppl7::FileObject &file, int c)
 {
 	if (c=='"') {
@@ -198,8 +206,17 @@ static void readDict(ppl7::AssocArray &data, ppl7::FileObject &file)
 			state=ParserState::ExpectingNextOrEnd;
 		} else if (c=='}' && (state==ParserState::ExpectingNextOrEnd || state==ParserState::ExpectingKey)) {
 			return;
+		} else if (c=='/' && state==ParserState::ExpectingKey) {
+			int c2=file.fgetc();
+			file.seek(-1,ppl7::File::SEEKCUR);
+			if (c2=='/') skipToEOL(file);
+			else {
+				throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict, parsestate=%d",
+									c,file.tell(),state);
+			}
 		} else if (c!=' ' && c!='\n' && c!='\r' && c!='\t') {
-			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict",c,file.tell());
+			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict, parsestate=%d",
+					c,file.tell(),state);
 		}
 	}
 	throw ppl7::UnexpectedEndOfDataException();
@@ -211,7 +228,7 @@ static void expectEof(ppl7::FileObject &file)
 	while (!file.eof()) {
 		c=file.fgetc();
 		if (c!=' ' && c!='\n' && c!='\r' && c!='\t') {
-			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict",c,file.tell());
+			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict 2",c,file.tell());
 		}
 	}
 }
@@ -236,7 +253,7 @@ void Json::load(ppl7::AssocArray &data, ppl7::FileObject &file)
 			expectEof(file);
 			return;
 		} else if (c!=' ' && c!='\n' && c!='\r' && c!='\t') {
-			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict",c,file.tell());
+			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict 1",c,file.tell());
 		}
 	}
 }
