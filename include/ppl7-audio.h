@@ -175,13 +175,6 @@ class ID3Frame
 		bool hasData() const;
 };
 
-class ID3TagTranscode
-{
-	public:
-		static void	copyAndDecodeText(String &s, const ID3Frame *frame, int offset);
-		static int	decode(const ID3Frame *frame, int offset, int encoding, String &target);
-};
-
 class ID3Tag
 {
 	public:
@@ -205,6 +198,7 @@ class ID3Tag
 		};
 	private:
 		String	Filename;
+		String	localCharset;
 		int		Flags;
 		size_t	numFrames;
 		int		Size;
@@ -214,6 +208,11 @@ class ID3Tag
 		void setTextFrameUtf16(const String &framename, const String &text);
 		void setTextFrameISO88591(const String &framename, const String &text);
 		void setTextFrameUtf8(const String &framename, const String &text);
+
+		void copyAndDecodeText(String &s, const ID3Frame *frame, int offset) const;
+		int	decode(const ID3Frame *frame, int offset, int encoding, String &target) const;
+
+
 		AudioFormat identAudioFormat(FileObject &File);
 		uint64_t findId3Tag(FileObject &File);
 		void saveMP3();
@@ -236,6 +235,7 @@ class ID3Tag
 		void clear();
 		void save();
 
+		void setLocalCharset(const String &charset);
 		void setPaddingSize(int bytes);
 		void setPaddingSpace(int bytes);
 		void setMaxPaddingSpace(int bytes);
