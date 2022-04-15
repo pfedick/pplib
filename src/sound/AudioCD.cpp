@@ -47,10 +47,6 @@
 #endif
 
 #ifdef HAVE_LIBCDIO
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-#undef PACKAGE_VERSION
 #include <cdio/cdio.h>
 #endif
 

@@ -1101,10 +1101,6 @@ int Cppl6Core::haveDirectX9()
 #endif
 
 #ifdef HAVE_LIBMHASH
-#undef PACKAGE_VERSION
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
 #include <mutils/mhash_config.h>
 #endif
 
