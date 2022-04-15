@@ -818,13 +818,19 @@ int CString::IsNumeric() const
 {
 	int c;
 	if (!len) return 0;
+	size_t dotcount=0;
 	for (ppluint32 i=0;i<len;i++) {
 		c=buffer[i];
 		if (c<'0' || c>'9') {
 			if (c!='.' && c!=',' && c!='-') return 0;
 			if (c=='-' && i>0) return 0;
+			if (c=='.' || c==',') {
+				dotcount++;
+				if (dotcount>1) return 0;
+			}
 		}
 	}
+	if(buffer[len-1]=='.') return 0;
 	return 1;
 }
 
