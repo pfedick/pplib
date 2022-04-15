@@ -471,7 +471,7 @@ void MySQL::connect(const AssocArray &params)
 		updateLastUse();
 		String charset="latin1";
 		if (params.exists("charset")) {
-			charset=params["charset"];
+			charset=params["charset"].toString();
 		}
 		int ret=mysql_set_character_set((MYSQL *)conn, (const char*)charset);
 		if (ret!=0) {
