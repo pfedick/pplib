@@ -35,11 +35,6 @@
 #ifndef _PPL7_CONFIG
 #define _PPL7_CONFIG
 
-#undef PACKAGE_VERSION
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_STRING
-
 #undef MINGW32
 #undef MINGW64
 #undef HAVE_AMD64
