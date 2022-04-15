@@ -105,7 +105,7 @@ case "$SYS:$REL:$KERNEL" in
 		;;
 		
 		
-	Linux:*generic*)
+	Linux:*)
 		./configure --prefix=$PREFIX \
 			--with-libmad --with-lame --with-pcre=/usr --with-x \
 			--with-mysql=/usr  --with-libiconv-prefix --with-nasm \
@@ -118,7 +118,7 @@ case "$SYS:$REL:$KERNEL" in
 			--with-freetds --with-libjpeg --with-libpng -with-mpg123 --with-libmicrohttpd=/usr
 		;;	
 	*)
-		echo "Unknown host"
+		echo "Unknown host: $SYS:$REL:$KERNEL"
 		;;
 esac
 
