@@ -88,7 +88,7 @@
 namespace ppl6 {
 
 #ifdef HAVE_LIBMICROHTTPD
-static int KeyValueIterator (void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+static MHD_Result KeyValueIterator (void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
 {
 	ppl6::CAssocArray *a=(ppl6::CAssocArray *)cls;
 	a->Set(key,value);
@@ -96,7 +96,7 @@ static int KeyValueIterator (void *cls, enum MHD_ValueKind kind, const char *key
 }
 
 
-int answer_to_connection (void *cls, struct MHD_Connection *connection,
+MHD_Result answer_to_connection (void *cls, struct MHD_Connection *connection,
                           const char *url,
                           const char *method, const char *version,
                           const char *upload_data,
