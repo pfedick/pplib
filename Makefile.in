@@ -682,7 +682,7 @@ clean:
 	-rm -rf debug
 	-rm -rf coverage
 	-rm -rf documentation
-	-cd tests; make clean
+	-@ $(MAKE) --directory=tests clean > /dev/null 2>&1
 
 deinstall:
 	-rm -f $(TARGETINCLUDE)/ppl7*.h
@@ -692,6 +692,7 @@ deinstall:
 	
 distclean: clean
 	-rm -rf $(incdir)/ppl7-config.h $(incdir)/config.h config.log config.status autom4te.cache configure.scan
+	-rm -rf Makefile tests/Makefile
 
 configure: genConfigure genMakefile.in configure.in
 	sh genConfigure
