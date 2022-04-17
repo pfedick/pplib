@@ -607,26 +607,49 @@ coverage/$(LIBNAME).a: coverage/make $(COVERAGE) $(ASM_COVERAGE)
 	ar -r coverage/$(LIBNAME).a $(COVERAGE) $(ASM_COVERAGE)
 	-chmod a+x ppl7-config
 
-release/$(LIBNAME)-core.a: debug/make $(CORE_RELEASE) $(ASM_RELEASE)
+release/$(LIBNAME)-core.a: release/make $(CORE_RELEASE) $(ASM_RELEASE)
 	ar -r release/$(LIBNAME)-core.a $(CORE_RELEASE) $(ASM_RELEASE)
 
-release/$(LIBNAME)-crypto.a: debug/make $(CRYPTO_RELEASE)
+release/$(LIBNAME)-crypto.a: release/make $(CRYPTO_RELEASE)
 	ar -r release/$(LIBNAME)-crypto.a $(CRYPTO_RELEASE)
 
-release/$(LIBNAME)-inet.a: debug/make $(INET_RELEASE)
+release/$(LIBNAME)-inet.a: release/make $(INET_RELEASE)
 	ar -r release/$(LIBNAME)-inet.a $(INET_RELEASE)
 
-release/$(LIBNAME)-db.a: debug/make $(DB_RELEASE)
+release/$(LIBNAME)-db.a: release/make $(DB_RELEASE)
 	ar -r release/$(LIBNAME)-db.a $(DB_RELEASE)
 	
-release/$(LIBNAME)-gfx.a: debug/make $(GFX_RELEASE)
+release/$(LIBNAME)-gfx.a: release/make $(GFX_RELEASE)
 	ar -r release/$(LIBNAME)-gfx.a $(GFX_RELEASE)
 
-release/$(LIBNAME)-tk.a: debug/make $(TK_RELEASE)
+release/$(LIBNAME)-tk.a: release/make $(TK_RELEASE)
 	ar -r release/$(LIBNAME)-tk.a $(TK_RELEASE)
 
-release/$(LIBNAME)-audio.a: debug/make $(AUDIO_RELEASE)
+release/$(LIBNAME)-audio.a: release/make $(AUDIO_RELEASE)
 	ar -r release/$(LIBNAME)-audio.a $(AUDIO_RELEASE)
+
+
+
+debug/$(LIBNAME)-core.a: debug/make $(CORE_DEBUG) $(ASM_DEBUG)
+	ar -r debug/$(LIBNAME)-core.a $(CORE_DEBUG) $(ASM_DEBUG)
+
+debug/$(LIBNAME)-crypto.a: debug/make $(CRYPTO_DEBUG)
+	ar -r debug/$(LIBNAME)-crypto.a $(CRYPTO_DEBUG)
+
+debug/$(LIBNAME)-inet.a: debug/make $(INET_DEBUG)
+	ar -r debug/$(LIBNAME)-inet.a $(INET_DEBUG)
+
+debug/$(LIBNAME)-db.a: debug/make $(DB_DEBUG)
+	ar -r debug/$(LIBNAME)-db.a $(DB_DEBUG)
+	
+debug/$(LIBNAME)-gfx.a: debug/make $(GFX_DEBUG)
+	ar -r debug/$(LIBNAME)-gfx.a $(GFX_DEBUG)
+
+debug/$(LIBNAME)-tk.a: debug/make $(TK_DEBUG)
+	ar -r debug/$(LIBNAME)-tk.a $(TK_DEBUG)
+
+debug/$(LIBNAME)-audio.a: debug/make $(AUDIO_DEBUG)
+	ar -r debug/$(LIBNAME)-audio.a $(AUDIO_DEBUG)
 
 
 debug/make:
@@ -682,7 +705,7 @@ clean:
 	-rm -rf debug
 	-rm -rf coverage
 	-rm -rf documentation
-	-@ $(MAKE) --directory=tests clean > /dev/null 2>&1
+	-cd tests; make clean
 
 deinstall:
 	-rm -f $(TARGETINCLUDE)/ppl7*.h
@@ -692,7 +715,6 @@ deinstall:
 	
 distclean: clean
 	-rm -rf $(incdir)/ppl7-config.h $(incdir)/config.h config.log config.status autom4te.cache configure.scan
-	-rm -rf Makefile tests/Makefile
 
 configure: genConfigure genMakefile.in configure.in
 	sh genConfigure
