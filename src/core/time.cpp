@@ -859,7 +859,7 @@ const char *MkISO8601Date (CString &buffer, PPLTIME *t)
 		t=&tt;
 		GetTime(t);
 	}
-	char offset[10];
+	char offset[11];
 	if (t->have_gmt_offset) {
 		int off=abs(t->gmt_offset)/60;
 		int h=(off/60);

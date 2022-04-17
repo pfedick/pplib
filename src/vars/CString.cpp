@@ -2137,7 +2137,7 @@ CString& CString::Repeat(const char *str, int num)
 	if (!buf) return *this;
 	char *tmp=buf;
 	for (int i=0;i<num;i++) {
-		strncpy(tmp,str,l);
+		memcpy(tmp,str,l);
 		tmp+=l;
 	}
 	tmp[0]=0;

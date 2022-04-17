@@ -1030,7 +1030,7 @@ int CThread::ThreadSetStackSize(size_t size)
 		#endif
 		THREADDATA *t=(THREADDATA *)threaddata;
 		if (size==0) size=PTHREAD_STACK_MIN;
-		if (size<PTHREAD_STACK_MIN) {
+		if (size<(size_t)PTHREAD_STACK_MIN) {
 			SetError(314,PTHREAD_STACK_MIN,"Stacksize muss mindestens %u Byte sein",PTHREAD_STACK_MIN);
 			return 0;
 		}
