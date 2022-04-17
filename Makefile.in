@@ -440,6 +440,133 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/audio_ID3Tag.o \
 	debug/audio_Mp3.o
 
+CORE_DEBUG = debug/core_AVLTree.o \
+	debug/core_Compat.o \
+	debug/core_Compression.o \
+	debug/core_ConfigParser.o \
+	debug/core_cpu.o \
+	debug/core_Dir.o \
+	debug/core_DirEntry.o \
+	debug/core_Exceptions.o \
+	debug/core_File.o \
+	debug/core_FileObject.o \
+	debug/core_Functions.o \
+	debug/core_GzFile.o \
+	debug/core_Iconv.o \
+	debug/core_Json.o \
+	debug/core_Logger.o \
+	debug/core_MemFile.o \
+	debug/core_MemoryGroup.o \
+	debug/core_MemoryHeap.o \
+	debug/core_Mutex.o \
+	debug/core_PerlHelper.o \
+	debug/core_PFPFile.o \
+	debug/core_PythonHelper.o \
+	debug/core_Resource.o \
+	debug/core_Resourcen.o \
+	debug/core_Signal.o \
+	debug/core_StringFunctions.o \
+	debug/core_ThreadPool.o \
+	debug/core_Threads.o \
+	debug/core_Time.o \
+	debug/type_Array.o \
+	debug/type_AssocArray.o \
+	debug/type_ByteArray.o \
+	debug/type_ByteArrayPtr.o \
+	debug/type_DateTime.o \
+	debug/type_Pointer.o \
+	debug/type_String.o \
+	debug/type_Variant.o \
+	debug/type_WideString.o \
+	debug/math_ca.o \
+	debug/math_crc32.o \
+	debug/math_md5.o \
+	debug/math_random.o
+
+CRYPTO_DEBUG = debug/crypto_Crypt.o \
+	debug/crypto_Digest.o
+
+INET_DEBUG = debug/inet_curl.o \
+	debug/inet_inet_functions.o \
+	debug/inet_ipaddress.o \
+	debug/inet_ipnetwork.o \
+	debug/inet_openssl.o \
+	debug/inet_resolver.o \
+	debug/inet_sockaddr.o \
+	debug/inet_SocketMessage.o \
+	debug/inet_TCPSocket.o \
+	debug/inet_UDPSocket.o \
+	debug/inet_Webserver.o \
+	debug/inet_WikiParser.o
+
+DB_DEBUG = debug/db_Database.o \
+	debug/db_DBPool.o \
+	debug/db_DBPoolOfPools.o \
+	debug/db_MySQL.o \
+	debug/db_PostgreSQL.o \
+	debug/db_ResultSet.o \
+	debug/db_Sqlite3.o
+
+GFX_DEBUG = debug/gfx_Color.o \
+	debug/gfx_DrawableBlit.o \
+	debug/gfx_DrawableColor.o \
+	debug/gfx_Drawable.o \
+	debug/gfx_DrawableLines.o \
+	debug/gfx_DrawablePixel.o \
+	debug/gfx_DrawableShapes.o \
+	debug/gfx_Font4.o \
+	debug/gfx_Font5.o \
+	debug/gfx_Font6.o \
+	debug/gfx_FontFreeType.o \
+	debug/gfx_Fonts.o \
+	debug/gfx_Grafix.o \
+	debug/gfx_Image.o \
+	debug/gfx_ImageFilter_BMP.o \
+	debug/gfx_ImageFilter.o \
+	debug/gfx_ImageFilter_GIF.o \
+	debug/gfx_ImageFilter_ImageMagick.o \
+	debug/gfx_ImageFilter_JPEG.o \
+	debug/gfx_ImageFilter_PNG.o \
+	debug/gfx_ImageFilter_PPM.o \
+	debug/gfx_ImageFilter_TGA.o \
+	debug/gfx_ImageFilter_TIFF.o \
+	debug/gfx_ImageList.o \
+	debug/gfx_Point3D.o \
+	debug/gfx_Point.o \
+	debug/gfx_PointF.o \
+	debug/gfx_Rect.o \
+	debug/gfx_RGBFormat.o \
+	debug/gfx_Size.o \
+	debug/gfx_Sprite.o
+
+TK_DEBUG = debug/tk_Button.o \
+	debug/tk_Divider.o \
+	debug/tk_Event.o \
+	debug/tk_Frame.o \
+	debug/tk_Label.o \
+	debug/tk_Layout.o \
+	debug/tk_LineInput.o \
+	debug/tk_Surface.o \
+	debug/tk_Widget.o \
+	debug/tk_Window.o \
+	debug/tk_WindowManager.o \
+	debug/tk_WindowManager_SDL2.o
+
+AUDIO_DEBUG = debug/audio_AudioCD.o \
+	debug/audio_AudioDecoder_Aiff.o \
+	debug/audio_AudioDecoder_MP3.o \
+	debug/audio_AudioDecoder_Ogg.o \
+	debug/audio_AudioDecoder_Wave.o \
+	debug/audio_AudioEncoder_Aiff.o \
+	debug/audio_AudioEncoder_MP3.o \
+	debug/audio_AudioEncoder_Ogg.o \
+	debug/audio_AudioEncoder_Wave.o \
+	debug/audio_AudioInfo.o \
+	debug/audio_Cddb.o \
+	debug/audio_Icecast.o \
+	debug/audio_ID3Tag.o \
+	debug/audio_Mp3.o
+
 ASM_OBJ_DEBUG	=	debug/asm_blt.o \
 		debug/asm_blt_blend.o \
 		debug/asm_chromakey.o \
