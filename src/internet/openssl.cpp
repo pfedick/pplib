@@ -174,7 +174,7 @@ static void SeedPRNG()
 	RAND_seed(buf,p);
 	free(buf);
 }
-
+#ifdef HAVE_OPENSSL
 static void locking_function(int mode, int n, const char *file, int line)
 {
 	if (!mutex_buf) return;
@@ -187,10 +187,12 @@ static void locking_function(int mode, int n, const char *file, int line)
 	}
 }
 
+
 static unsigned long id_function(void)
 {
 	return (unsigned long) ppl6::GetThreadID();
 }
+#endif
 
 /*
 static void ssl_exit()
@@ -1180,13 +1182,6 @@ void CSSL::Clear()
 	}
 	first_ref=last_ref=NULL;
 }
-
-#ifdef HAVE_OPENSSL
-static void disable_ssl_on_ctx(SSL_CTX *ctx) {
-	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
-	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3);
-}
-#endif
 
 int CSSL::Init(int method)
 {

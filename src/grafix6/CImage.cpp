@@ -81,6 +81,17 @@ namespace grafix {
  * \endcode
  */
 
+
+static void initialize_drawable(DRAWABLE_DATA &data)
+{
+	data.fn=NULL;
+	data.base=NULL;
+	data.pitch=0;
+	data.width=0;
+	data.height=0;
+	data.rgbformat=RGBFormat::unknown;
+}
+
 /*!\brief Konstruktor der Klasse
  *
  * \desc
@@ -92,7 +103,7 @@ namespace grafix {
  */
 CImage::CImage()
 {
-	memset(&data,0,sizeof(data));
+	initialize_drawable(data);
 	fn=NULL;
 }
 
@@ -105,6 +116,7 @@ CImage::CImage()
  */
 CImage::CImage(const CImage &other)
 {
+	initialize_drawable(data);
 	copy(other);
 }
 
@@ -117,6 +129,7 @@ CImage::CImage(const CImage &other)
  */
 CImage::CImage(const CDrawable &other)
 {
+	initialize_drawable(data);
 	copy(other);
 }
 
@@ -134,7 +147,7 @@ CImage::CImage(const CDrawable &other)
  */
 CImage::CImage(int width, int height, const RGBFormat &format)
 {
-	memset(&data,0,sizeof(data));
+	initialize_drawable(data);
 	fn=NULL;
 	if (!create(width,height,format)) throw Exception();
 }
@@ -213,7 +226,7 @@ CImage::~CImage()
  */
 int CImage::copy(const CDrawable &other)
 {
-	memset(&data,0,sizeof(data));
+	initialize_drawable(data);
 	fn=NULL;
 	// Das andere CDrawable kann auch einen Ausschnitt aus einem größeren Bild
 	// repräsentieren, daher kopieren wir die Pixeldaten Zeilenweise
@@ -269,12 +282,17 @@ int CImage::copy(const CDrawable &other, const Rect &rect)
 int CImage::copy(const CImage &other)
 {
 	if (!myMemory.copy(other.myMemory)) {
-		memset(&data,0,sizeof(data));
+		initialize_drawable(data);
 		fn=NULL;
 		return 0;
 	}
-	memcpy(&data,&other.data,sizeof(data));
+	data.fn=other.data.fn;
 	fn=other.fn;
+	data.width=other.data.width;
+	data.height=other.data.height;
+	data.rgbformat=other.data.rgbformat;
+	data.pitch=data.width*(data.rgbformat.bitdepth()/8);
+	data.fn=other.data.fn;
 	data.base=myMemory.adr();
 	return 1;
 }
@@ -292,7 +310,7 @@ int CImage::copy(const CImage &other)
  */
 int CImage::create(int width, int height, const RGBFormat &format)
 {
-	memset(&data,0,sizeof(data));
+	initialize_drawable(data);
 	myMemory.free();
 
 	if (format==RGBFormat::unknown) {
@@ -318,7 +336,7 @@ int CImage::create(int width, int height, const RGBFormat &format)
 	data.height=height;
 	if (!initFunctions(data.rgbformat)) {
 		PushError();
-		memset(&data,0,sizeof(data));
+		initialize_drawable(data);
 		myMemory.free();
 		PopError();
 		return 0;

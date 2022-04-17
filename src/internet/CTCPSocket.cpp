@@ -422,7 +422,7 @@ static int out_bind(const char *host, int port)
 	if (host!=NULL && host[0]=='*') host=NULL;
 
 	if (host!=NULL && port>0) {
-		char portstr[10];
+		char portstr[11];
 		sprintf(portstr,"%i",port);
 		n=getaddrinfo(host,portstr,&hints,&res);
 	} else if (host) {

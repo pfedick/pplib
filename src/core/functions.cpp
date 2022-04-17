@@ -189,8 +189,8 @@ void strxchg (char * str1, char *alt, char *neu)
 	if (strlen(neu)>ll) return;
 	if (!ll) return;
 	for ( i=0; i<l; i++) {
-		if (strncmp(&str1[i],alt,ll)==0)
-			strncpy(&str1[i],neu,ll);
+		if (memcpy(&str1[i],alt,ll)==0)
+			memcpy(&str1[i],neu,ll);
 	}
 }
 
@@ -213,8 +213,8 @@ void strxchg (char * str1, const char *alt, const char *neu)
 	if (strlen(neu)>ll) return;
 	if (!ll) return;
 	for ( i=0; i<l; i++) {
-		if (strncmp(&str1[i],alt,ll)==0)
-			strncpy(&str1[i],neu,ll);
+		if (memcpy(&str1[i],alt,ll)==0)
+			memcpy(&str1[i],neu,ll);
 	}
 }
 

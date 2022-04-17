@@ -254,7 +254,7 @@ static long *end_ptr = &randtbl[DEG_3 + 1];
 #endif
 
 //static __inline long good_rand __P((long));
-static __inline long good_rand (register long x)
+static __inline long good_rand (long x)
 {
 #ifdef  USE_WEAK_SEEDING
 /*
@@ -272,7 +272,7 @@ static __inline long good_rand (register long x)
  * Park and Miller, Communications of the ACM, vol. 31, no. 10,
  * October 1988, p. 1195.
  */
-	register long hi, lo;
+	long hi, lo;
 
 	hi = x / 127773;
 	lo = x % 127773;
@@ -304,7 +304,7 @@ void srand(ppldd x)
 /*!\ingroup PPLGroupMath
  */
 {
-	register long i;
+	long i;
 	pplsrand_called=true;
 
 	if (rand_type == TYPE_0)
@@ -351,8 +351,8 @@ char * rand_initstate(unsigned long seed, char *arg_state, long n)
 	//char *arg_state;		/* pointer to state array */
 	//long n;				/* # bytes of state info */
 {
-	register char *ostate = (char *)(&state[-1]);
-	register long *long_arg_state = (long *) arg_state;
+	char *ostate = (char *)(&state[-1]);
+	long *long_arg_state = (long *) arg_state;
 
 	if (rand_type == TYPE_0)
 		state[-1] = rand_type;
@@ -418,9 +418,9 @@ char * rand_setstate(char *arg_state)
  */
 	//char *arg_state;		/* pointer to state array */
 {
-	register long *new_state = (long *) arg_state;
-	register long type = new_state[0] % MAX_TYPES;
-	register long rear = new_state[0] / MAX_TYPES;
+	long *new_state = (long *) arg_state;
+	long type = new_state[0] % MAX_TYPES;
+	long rear = new_state[0] / MAX_TYPES;
 	char *ostate = (char *)(&state[-1]);
 
 	if (rand_type == TYPE_0)
@@ -473,8 +473,8 @@ ppluint32 rand(ppluint32 min, ppluint32 max)
 {
 	ppluint32 range=max-min+1;
 	if(range==0) range=0xffffffff;
-	register long i;
-	register long *f, *r;
+	long i;
+	long *f, *r;
 
 	if (!pplsrand_called) {
 		#ifndef _WIN32

@@ -163,7 +163,7 @@ int datum (char *str1)
 	struct tm tmstruct;
 	time(&now);
 	if (localtime_r(&now,&tmstruct)) {
-		sprintf (str1,"%02d.%02d.%04d",tmstruct.tm_mday,tmstruct.tm_mon+1,tmstruct.tm_year+1900);
+		sprintf (str1,"%02u.%02u.%04u",tmstruct.tm_mday,tmstruct.tm_mon+1,tmstruct.tm_year+1900);
 		return 1;
 	}
 	return 0;

@@ -216,6 +216,11 @@ class Font6Glyph
 		int advance;
 		const char *bitmap;
 		std::map<wchar_t,int> Hints;
+		Font6Glyph()
+		{
+			width=height=bearingX=bearingY=advance=0;
+			bitmap=NULL;
+		}
 		int getHint(wchar_t nextGlyph) const;
 };
 
@@ -231,6 +236,10 @@ class Font6Face
 		int MaxHeight;
 		int Underscore;
 		std::map<wchar_t,Font6Glyph> Glyphs;
+		Font6Face()
+		{
+			Flags=Pixelformat=Size=MaxBearingY=MaxHeight=Underscore=0;
+		}
 
 		const Font6Glyph* getGlyph(wchar_t code) const;
 

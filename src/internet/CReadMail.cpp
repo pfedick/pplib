@@ -351,10 +351,10 @@ int CReadMail::Decode_QuotedPrintable()
 {
 	const unsigned char *str=(const unsigned char *)Body.GetPtr();
 	size_t length=(size_t)Body.Len();
-    register unsigned int i;
-    register unsigned const char *p1;
-    register unsigned char *p2;
-    register unsigned int h_nbl, l_nbl;
+    unsigned int i;
+    unsigned const char *p1;
+    unsigned char *p2;
+    unsigned int h_nbl, l_nbl;
 
     size_t decoded_len, buf_size;
     unsigned char *retval;

@@ -109,6 +109,16 @@ namespace grafix {
  * \include CDrawable.cpp
  */
 
+static void initialize_drawable(DRAWABLE_DATA &data)
+{
+	data.fn=NULL;
+	data.base=NULL;
+	data.pitch=0;
+	data.width=0;
+	data.height=0;
+	data.rgbformat=RGBFormat::unknown;
+}
+
 /*!\class Konstruktor
  *
  * \desc
@@ -119,7 +129,7 @@ namespace grafix {
  */
 CDrawable::CDrawable()
 {
-	memset(&data,0,sizeof(data));
+	initialize_drawable(data);
 	fn=NULL;
 }
 
@@ -133,7 +143,7 @@ CDrawable::CDrawable()
  */
 CDrawable::CDrawable(const CDrawable &other)
 {
-	memcpy(&data,&other.data,sizeof(data));
+	initialize_drawable(data);
 	fn=other.fn;
 }
 
@@ -173,7 +183,7 @@ CDrawable::CDrawable(const CDrawable &other, const Rect &rect)
  */
 CDrawable::CDrawable(void *base, ppluint32 pitch, int width, int height, const RGBFormat &format)
 {
-	memset(&data,0,sizeof(data));
+	initialize_drawable(data);
 	fn=NULL;
 	if (!create(base,pitch,width,height,format)) throw ppl6::Exception();
 }
@@ -269,7 +279,7 @@ int CDrawable::copy(const CDrawable &other, const Rect &rect)
 {
 	Rect o(0,0,other.data.width,other.data.height);
 	Rect r=o.intersected(rect);
-	memset(&data,0,sizeof(data));
+	initialize_drawable(data);
 	data.base8=other.data.base8
 		+r.top()*other.data.pitch
 		+r.left()*other.data.rgbformat.bytesPerPixel();

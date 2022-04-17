@@ -450,10 +450,10 @@ int PFPFile::Save(const char *filename)
 		return 0;
 	}
 	int hsize=24;
-	strcpy(p,"PFP-File");
+	memcpy(p,"PFP-File",8);
 	poke8(p+8,3);
 	poke8(p+9,hsize);
-	strncpy(p+10,id,4);
+	memcpy(p+10,id,4);
 	poke8(p+15,mainversion);
 	poke8(p+14,subversion);
 	poke8(p+16,comp);
@@ -468,7 +468,7 @@ int PFPFile::Save(const char *filename)
 	Chunks.Reset();
 	chunk=FindFirstChunk("NAME");
 	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
+		memcpy(p+pp,chunk->chunkname,4);
 		poke32(p+pp+4,chunk->size+8);
 		memcpy(p+pp+8,chunk->data,chunk->size);
 		pp+=8;
@@ -476,7 +476,7 @@ int PFPFile::Save(const char *filename)
 	}
 	chunk=FindFirstChunk("AUTH");
 	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
+		memcpy(p+pp,chunk->chunkname,4);
 		poke32(p+pp+4,chunk->size+8);
 		memcpy(p+pp+8,chunk->data,chunk->size);
 		pp+=8;
@@ -484,7 +484,7 @@ int PFPFile::Save(const char *filename)
 	}
 	chunk=FindFirstChunk("DESC");
 	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
+		memcpy(p+pp,chunk->chunkname,4);
 		poke32(p+pp+4,chunk->size+8);
 		memcpy(p+pp+8,chunk->data,chunk->size);
 		pp+=8;
@@ -492,7 +492,7 @@ int PFPFile::Save(const char *filename)
 	}
 	chunk=FindFirstChunk("COPY");
 	if (chunk) {
-		strncpy(p+pp,chunk->chunkname,4);
+		memcpy(p+pp,chunk->chunkname,4);
 		poke32(p+pp+4,chunk->size+8);
 		memcpy(p+pp+8,chunk->data,chunk->size);
 		pp+=8;
@@ -507,7 +507,7 @@ int PFPFile::Save(const char *filename)
 		// Vordefinierte Chunks müssen übergangen werden, da diese weiter oben schon
 		// ausgelesen wurden
 		if (cn!="NAME" && cn!="AUTH" && cn!="DESC" && cn!="COPY") {
-			strncpy(p+pp,chunk->chunkname,4);
+			memcpy(p+pp,chunk->chunkname,4);
 			poke32(p+pp+4,chunk->size+8);
 			if (chunk->size) {
 				memcpy(p+pp+8,chunk->data,chunk->size);
@@ -516,7 +516,7 @@ int PFPFile::Save(const char *filename)
 			pp+=8;
 		}
 	}
-	strncpy(p+pp,"ENDF",4);
+	memcpy(p+pp,"ENDF",4);
 	poke32(p+pp+4,0);
 	pp+=8;
 

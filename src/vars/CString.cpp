@@ -379,7 +379,7 @@ void CString::Set(const char *text, int bytes)
 	if (bytes>=0) l=ppl6::strnlen(text,bytes);
 	else l=(int)strlen(text);
 	if ((ppluint32)l<buffersize) {
-		strncpy(buffer,text,l);
+		memcpy(buffer,text,l);
 		len=l;
 		buffer[len]=0;
 		return;
@@ -390,14 +390,14 @@ void CString::Set(const char *text, int bytes)
 
 	if ((ppluint32)l<InitialBuffersize) {
 		buffer=(char *)malloc(InitialBuffersize);
-		strncpy(buffer,text,l);
+		memcpy(buffer,text,l);
 		len=l;
 		buffer[len]=0;
 		buffersize=InitialBuffersize;
 	} else {
 		buffersize=l+1;
 		buffer=(char *)malloc(buffersize);
-		strncpy(buffer,text,l);
+		memcpy(buffer,text,l);
 		len=l;
 		buffer[len]=0;
 	}
@@ -908,7 +908,7 @@ void CString::Concat(const char *text, int bytes)
 	if (bytes>=0) l=bytes;
 	else l=strlen(text);
 	if (len+l<buffersize) {
-		strncat(buffer,text,l);
+		memcpy(buffer+len,text,l);
 		len+=l;
 		buffer[len]=0;
 		return;
@@ -922,7 +922,7 @@ void CString::Concat(const char *text, int bytes)
 	//free(buffer);			//
 	buffersize=len+l+4;
 	buffer=t;
-	strncat(buffer,text,l);
+	memcpy(buffer+len,text,l);
 	len+=l;
 	buffer[len]=0;
 }

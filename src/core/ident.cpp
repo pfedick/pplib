@@ -118,11 +118,11 @@ int is_pfp (const char * adresse, PFPSTRUCT *pfs)
 	//err=0;
 	if (ispfp==1) {
 		if (pfs!=NULL) {			// Header fuer PFP-File 1.0 fuellen
-			strncpy ((char *)pfs->header,"PFS-File",8);
+			memcpy ((char *)pfs->header,"PFS-File",8);
 			pfs->header_version=1;
 			pfs->header_length=30;
 			pfs->file_id[3]=' ';
-			strncpy ((char *)pfs->file_id,(char *) adresse+10,3);
+			memcpy ((char *)pfs->file_id,(char *) adresse+10,3);
 			pfs->subversion=(ppldb) peek8(adresse+9);
 			pfs->mainversion=(ppldb) peek8(adresse+8);
 			pfs->offset_name=(ppldw) peek16(adresse+13);
@@ -136,10 +136,10 @@ int is_pfp (const char * adresse, PFPSTRUCT *pfs)
 		return (1);
 	} else if (ispfp==2) {
 		if (pfs!=NULL) {			// Header fuer PFP-File 2.0 fuellen
-			strncpy ((char *)pfs->header,"PFP-File",8);
+			memcpy ((char *)pfs->header,"PFP-File",8);
 			pfs->header_version=2;
 			pfs->header_length=(ppldb) peek8(adresse+9);
-			strncpy ((char *)pfs->file_id, adresse+10,4);
+			memcpy ((char *)pfs->file_id, adresse+10,4);
 			pfs->subversion=(ppldb) peek8(adresse+14);
 			pfs->mainversion=(ppldb) peek8(adresse+15);
 			pfs->offset_name=(ppldw) peek16(adresse+16);
@@ -153,10 +153,10 @@ int is_pfp (const char * adresse, PFPSTRUCT *pfs)
 		return (1);
 	} else if (ispfp==3) {
 		if (pfs!=NULL) {			// Header fuer PFP-File 2.0 fuellen
-			strncpy ((char *)pfs->header,"PFP-File",8);
+			memcpy ((char *)pfs->header,"PFP-File",8);
 			pfs->header_version=3;
 			pfs->header_length=(ppldb) peek8(adresse+9);
-			strncpy ((char *)pfs->file_id, adresse+10,4);
+			memcpy ((char *)pfs->file_id, adresse+10,4);
 			pfs->subversion=(ppldb) peek8(adresse+14);
 			pfs->mainversion=(ppldb) peek8(adresse+15);
 			pfs->offset_name=0;

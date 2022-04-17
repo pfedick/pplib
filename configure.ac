@@ -276,6 +276,12 @@ AC_CHECK_FUNCS([_wopendir _wclosedir opendir closedir readdir readdir_r stat])
 AC_CHECK_FUNCS([clock_gettime])
 
 
+AC_CHECK_LIB(pthread, pthread_set_name_np,
+	AC_DEFINE(HAVE_PTHREAD_SET_NAME_NP,1),,)
+AC_CHECK_LIB(pthread, pthread_setname_np,
+	AC_DEFINE(HAVE_PTHREAD_SETNAME_NP,1),,)
+	
+AC_CHECK_FUNCS([sched_yield pthread_yield])
 
 
 dnl Checks for programs.

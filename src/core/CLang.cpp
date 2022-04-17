@@ -178,7 +178,7 @@ int CLang::Compile(char *lang, char *file)
 
 	// Jetzt die fertige Datei zusammenbauen
 	PresetPFPHeader(&pfp);
-	strncpy((char*)pfp.file_id,"LANG",4);
+	memcpy((char*)pfp.file_id,"LANG",4);
 	pfp.mainversion=5;
 	pfp.subversion=0;
 
@@ -202,7 +202,7 @@ int CLang::Compile(char *lang, char *file)
 	tmp=tok.GetFirst(country,",");
 	if (!tmp) tmp=(char*)"en";
 	while (tmp) {
-		strncpy(lbuffer+p,tmp,2);
+		memcpy(lbuffer+p,tmp,2);
 		p+=2;
 		tmp=tok.GetNext();
 	}
@@ -420,7 +420,7 @@ void CLang::Replace(char *alt, char *neu, char *buffer, ppldd size)
 			}
 			textlen=textlen+(neulen-altlen);
 		}
-		strncpy(buffer+p,neu,neulen);
+		memcpy(buffer+p,neu,neulen);
 
 	}
 
