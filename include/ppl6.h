@@ -3045,6 +3045,7 @@ class CDirEntry
 {
 	public:
 		CDirEntry();
+		CDirEntry(const CDirEntry &other);
 
 		CString		Filename;
 		CString		Path;
