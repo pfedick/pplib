@@ -63,7 +63,7 @@ find_c_files() {
 	FOUND_RELEASE=""
 	FOUND_DEBUG=""
 	FOUND_COVERAGE=""
-	filelist=`ls *.cpp *.c 2>/dev/null`
+	filelist=`ls *.cpp *.c 2>/dev/null |sort` 
 	for file in $filelist; do
 		BASENAME=`echo $file | $SED -e "s;.cpp\$;;" | $SED -e "s;.c\$;;" `
 		SOURCEN="$SOURCEN $1/$file"
@@ -129,7 +129,7 @@ find_asm_files() {
 ### $2"
 	d=`pwd`
 	cd $SRCDIR/$1
-	filelist=`ls *.asm *.c 2>/dev/null`
+	filelist=`ls *.asm *.c 2>/dev/null | sort`
 	for file in $filelist; do
 		BASENAME=`echo $file | $SED -e "s;.asm\$;;" `
 		SOURCEN="$SOURCEN $1/$file"
