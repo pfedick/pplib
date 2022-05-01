@@ -417,6 +417,9 @@ class String
 		void cut(size_t pos);
 		void cut(const String &letter);
 
+		void shl(char c, size_t size);
+		void shr(char c, size_t size);
+
 	    String strchr(char c) const;
 	    String strrchr(char c) const;
 	    String strstr(const String &needle) const;

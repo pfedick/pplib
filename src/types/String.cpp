@@ -2893,6 +2893,50 @@ CString__PregReplace_Restart:
 #endif
 }
 
+/*! \brief Schiebt den String nach links
+ *
+ * Der String wird um die mit \c size angegebenen Zeichen nach links verschoben und rechts mit dem durch \c c angegebenen
+ * Zeichen aufgefüllt.
+ * \param c Das Zeichen, mit dem der String auf der rechten Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
+ * Auffüllung statt, d.h. der String verkürzt sich einfach.
+ * \param size Die Anzahl Zeichen, um die der String nach links verschoben werden soll. Ist \c size größer als die Länge
+ * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
+ */
+void String::shl(char c, size_t size)
+{
+	if (!stringlen) return;
+	if (!size) return;
+	if (size>stringlen) size=stringlen;
+	String t=mid(size);
+	if (c) {
+		String a;
+		a.repeat(c,size);
+		t+=a;
+	}
+	set(t);
+}
+
+
+/*! \brief Schiebt den String nach rechts
+ *
+ * Der String wird um die mit \c size angegebenen Zeichen nach rechts verschoben und links mit dem durch \c c angegebenen
+ * Zeichen aufgefüllt.
+ * \param c Das Zeichen, mit dem der String auf der linken Seite aufgefüllt werden soll. \c c muß größer 0 sein.
+ * \param size Die Anzahl Zeichen, um die der String nach rechts verschoben werden soll. Ist \c size größer als die Länge
+ * des Strings, wird der String komplett geleert und ist anschließend so groß wie size.
+ */
+void String::shr(char c, size_t size)
+{
+	if (!stringlen) return;
+	if (!size) return;
+	if (!c) return;
+	if (size>stringlen) size=stringlen;
+	String t;
+	t.repeat(c,size);
+	t+=left(stringlen-size);
+	set(t);
+}
+
 
 
 /*!\brief Kleiner als
