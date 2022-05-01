@@ -72,6 +72,20 @@ TEST_F(IconvTest, enumerateCharsets) {
 	ASSERT_TRUE(list.has("UTF-32"));
 }
 
+TEST_F(IconvTest, enumerateCharsetsStdList) {
+	std::list<ppl7::String> list;
+	ppl7::Iconv::enumerateCharsets(list);
+	ASSERT_GT(list.size(),(size_t)10);
+	//list.list();
+	/* TODO
+	ASSERT_TRUE(list.has("US-ASCII"));
+	ASSERT_TRUE(list.has("UTF-8"));
+	ASSERT_TRUE(list.has("LATIN1"));
+	ASSERT_TRUE(list.has("UTF-16"));
+	ASSERT_TRUE(list.has("UTF-32"));
+	*/
+}
+
 TEST_F(IconvTest, getLocalCharset) {
 #ifdef WIN32
 	ASSERT_EQ(ppl7::String("CP1252"),ppl7::Iconv::getLocalCharset());

@@ -278,6 +278,22 @@ static int iconv_enumerate_do_one(unsigned int namescount, const char * const *n
 	}
 	return 0;
 }
+
+static int iconv_enumerate_do_one_std_list(unsigned int namescount, const char * const *names, void *data)
+{
+	std::list<ppl7::String> *a=(std::list<ppl7::String>*)data;
+	if (!a) return 0;
+	if (namescount) {
+		//printf ("namescount=%u: ",namescount);
+		for (unsigned int i=0;i<namescount;i++) {
+			//printf ("%s, ",names[i]);
+			a->push_back(names[i]);
+		}
+		//printf ("\n");
+	}
+	return 0;
+}
+
 #endif
 
 
@@ -314,6 +330,32 @@ void Iconv::enumerateCharsets(Array &list)
 #endif
 #endif
 }
+
+void Iconv::enumerateCharsets(std::list<ppl7::String> &list)
+{
+#ifndef HAVE_ICONV
+	throw UnsupportedFeatureException("Iconv");
+#else
+	list.clear();
+#ifdef iconvlist
+	iconvlist (iconv_enumerate_do_one_std_list,&list);
+#else
+	// Wir nehmen die interne Liste und überprüfen, was Iconv davon kennt
+
+	Array a;
+	a.explode(iconv_charsets,",");
+	size_t count=a.size();
+	for (size_t i=0;i<count;i++) {
+		iconv_t cd=iconv_open("UTF-8",(const char*)a[i]);
+		if ((iconv_t)(-1)!=cd) {
+			list.push_back(a[i]);
+			iconv_close(cd);
+		}
+	}
+#endif
+#endif
+}
+
 
 String Iconv::getLocalCharset()
 {

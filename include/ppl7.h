@@ -81,10 +81,11 @@
 #endif
 
 #ifdef HAVE_STRING_H
-#include <string>
+#include <string.h>
 #endif 
 
 #include <set>
+#include <list>
 
 #ifdef WITH_QT
 	#include <QString>
@@ -1309,6 +1310,7 @@ class Iconv
 		//void transcode(const WideString &from, String &to);
 		//void transcode(const String &from, WideString &to);
 		static void enumerateCharsets(Array &list);
+		static void enumerateCharsets(std::list<ppl7::String> &list);
 		static String getLocalCharset();
 		static String Utf8ToLocal(const String &text);
 		static String LocalToUtf8(const String &text);
