@@ -2934,6 +2934,7 @@ void String::shr(char c, size_t size)
 	String t;
 	t.repeat(c,size);
 	t+=left(stringlen-size);
+	t.cut(size);
 	set(t);
 }
 
