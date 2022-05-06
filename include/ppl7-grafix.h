@@ -1,14 +1,8 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +26,15 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+
 #ifndef _PPL7_INCLUDE_GRAFIX
 #define _PPL7_INCLUDE_GRAFIX
 #ifndef _PPL7_INCLUDE
-    #ifdef PPL7LIB
-        #include "ppl7.h"
-    #else
-        #include <ppl7.h>
-    #endif
+#ifdef PPL7LIB
+#include "ppl7.h"
+#else
+#include <ppl7.h>
+#endif
 #endif
 
 #include <map>
@@ -72,23 +67,23 @@ PPL7EXCEPTION(UnknownFontFaceException, Exception);
 
 // Microsoft kompatible Strukturen
 typedef struct _RECT {
-		long left;
-		long top;
-		long right;
-		long bottom;
-} RECT, *PRECT;
+	long left;
+	long top;
+	long right;
+	long bottom;
+} RECT, * PRECT;
 
 typedef struct tagPOINT {
-		long x;
-		long y;
-} POINT, *PPOINT;
+	long x;
+	long y;
+} POINT, * PPOINT;
 
 
 
 typedef struct tagSIZE {
-		long cx;
-		long cy;
-} SIZE, *PSIZE;
+	long cx;
+	long cy;
+} SIZE, * PSIZE;
 
 
 typedef uint32_t SurfaceColor;
@@ -98,209 +93,209 @@ class Rect;
 class PointF;
 class Point
 {
-	public:
-		int x,y;
+public:
+	int x, y;
 
-		Point();
-		Point(int x, int y);
-		Point(const Point &other);
-		Point(const PointF &other);
-		Point(const String &s);
-		bool isNull() const;
-		bool inside(const Rect &r) const;
-		double vectorLength() const;
-		int manhattanLength() const;
-		void setX(int x);
-		void setY(int y);
-		void setPoint(int x, int y);
-		void setPoint(const Point &other);
-		void setPoint(const PointF &other);
-		Point &operator*= (double factor);
-		Point &operator+= (const Point &point);
-		Point &operator-= (const Point &point);
-		Point &operator/= (double divisor);
+	Point();
+	Point(int x, int y);
+	Point(const Point& other);
+	Point(const PointF& other);
+	Point(const String& s);
+	bool isNull() const;
+	bool inside(const Rect& r) const;
+	double vectorLength() const;
+	int manhattanLength() const;
+	void setX(int x);
+	void setY(int y);
+	void setPoint(int x, int y);
+	void setPoint(const Point& other);
+	void setPoint(const PointF& other);
+	Point& operator*= (double factor);
+	Point& operator+= (const Point& point);
+	Point& operator-= (const Point& point);
+	Point& operator/= (double divisor);
 
-		bool operator<(const Point &other) const;
-		bool operator<=(const Point &other) const;
-		bool operator==(const Point &other) const;
-		bool operator!=(const Point &other) const;
-		bool operator>=(const Point &other) const;
-		bool operator>(const Point &other) const;
+	bool operator<(const Point& other) const;
+	bool operator<=(const Point& other) const;
+	bool operator==(const Point& other) const;
+	bool operator!=(const Point& other) const;
+	bool operator>=(const Point& other) const;
+	bool operator>(const Point& other) const;
 
 };
 
-const Point operator* (const Point &point, double factor);
-const Point operator* (double factor, const Point &point);
-const Point operator+ (const Point &p1, const Point &p2);
-const Point operator- (const Point &p1, const Point &p2);
-const Point operator- (const Point &point);
-const Point operator/ (const Point &point, double divisor);
-double Distance(const Point &p1, const Point &p2);
+const Point operator* (const Point& point, double factor);
+const Point operator* (double factor, const Point& point);
+const Point operator+ (const Point& p1, const Point& p2);
+const Point operator- (const Point& p1, const Point& p2);
+const Point operator- (const Point& point);
+const Point operator/ (const Point& point, double divisor);
+double Distance(const Point& p1, const Point& p2);
 
 class PointF
 {
-	public:
-		float x,y;
+public:
+	float x, y;
 
-		PointF();
-		PointF(float x, float y);
-		PointF(const Point &other);
-		PointF(const PointF &other);
-		bool isNull() const;
-		bool inside(const Rect &r) const;
-		double vectorLength() const;
-		float manhattanLength() const;
-		void setPoint(float x, float y);
-		void setPoint(const Point &other);
-		void setPoint(const PointF &other);
-		PointF &operator*= (double factor);
-		PointF &operator+= (const PointF &point);
-		PointF &operator-= (const PointF &point);
-		PointF &operator/= (double divisor);
+	PointF();
+	PointF(float x, float y);
+	PointF(const Point& other);
+	PointF(const PointF& other);
+	bool isNull() const;
+	bool inside(const Rect& r) const;
+	double vectorLength() const;
+	float manhattanLength() const;
+	void setPoint(float x, float y);
+	void setPoint(const Point& other);
+	void setPoint(const PointF& other);
+	PointF& operator*= (double factor);
+	PointF& operator+= (const PointF& point);
+	PointF& operator-= (const PointF& point);
+	PointF& operator/= (double divisor);
 
-		bool operator<(const PointF &other) const;
-		bool operator<=(const PointF &other) const;
-		bool operator==(const PointF &other) const;
-		bool operator!=(const PointF &other) const;
-		bool operator>=(const PointF &other) const;
-		bool operator>(const PointF &other) const;
+	bool operator<(const PointF& other) const;
+	bool operator<=(const PointF& other) const;
+	bool operator==(const PointF& other) const;
+	bool operator!=(const PointF& other) const;
+	bool operator>=(const PointF& other) const;
+	bool operator>(const PointF& other) const;
 
 };
-const PointF operator* (const PointF &point, double factor);
-const PointF operator* (double factor, const PointF &point);
-const PointF operator+ (const PointF &p1, const PointF &p2);
-const PointF operator- (const PointF &p1, const PointF &p2);
-const PointF operator- (const PointF &point);
-const PointF operator/ (const PointF &point, double divisor);
-double Distance(const PointF &p1, const PointF &p2);
+const PointF operator* (const PointF& point, double factor);
+const PointF operator* (double factor, const PointF& point);
+const PointF operator+ (const PointF& p1, const PointF& p2);
+const PointF operator- (const PointF& p1, const PointF& p2);
+const PointF operator- (const PointF& point);
+const PointF operator/ (const PointF& point, double divisor);
+double Distance(const PointF& p1, const PointF& p2);
 
 
 
 class Point3D
 {
 	// Freunde der Klasse
-	friend bool operator== (const Point3D &p1, const Point3D &p2);
-	friend bool operator!= (const Point3D &p1, const Point3D &p2);
-	friend const Point3D operator* (const Point3D &point, double factor);
-	friend const Point3D operator* (double factor, const Point3D &point);
-	friend const Point3D operator+ (const Point3D &p1, const Point3D &p2);
-	friend const Point3D operator- (const Point3D &p1, const Point3D &p2);
-	friend const Point3D operator- (const Point3D &point);
-	friend const Point3D operator/ (const Point3D &point, double divisor);
+	friend bool operator== (const Point3D& p1, const Point3D& p2);
+	friend bool operator!= (const Point3D& p1, const Point3D& p2);
+	friend const Point3D operator* (const Point3D& point, double factor);
+	friend const Point3D operator* (double factor, const Point3D& point);
+	friend const Point3D operator+ (const Point3D& p1, const Point3D& p2);
+	friend const Point3D operator- (const Point3D& p1, const Point3D& p2);
+	friend const Point3D operator- (const Point3D& point);
+	friend const Point3D operator/ (const Point3D& point, double divisor);
 
-	private:
+private:
 
-	public:
-		int x,y,z;
-		Point3D();
-		Point3D(int x, int y, int z);
-		Point3D(const Point3D &other);
-		bool isNull() const;
-		void setX(int x);
-		void setY(int y);
-		void setZ(int z);
-		void setPoint(int x, int y, int z);
-		void setPoint(const Point3D &other);
-		Point3D &operator*= (double factor);
-		Point3D &operator+= (const Point3D &point);
-		Point3D &operator-= (const Point3D &point);
-		Point3D &operator/= (double divisor);
+public:
+	int x, y, z;
+	Point3D();
+	Point3D(int x, int y, int z);
+	Point3D(const Point3D& other);
+	bool isNull() const;
+	void setX(int x);
+	void setY(int y);
+	void setZ(int z);
+	void setPoint(int x, int y, int z);
+	void setPoint(const Point3D& other);
+	Point3D& operator*= (double factor);
+	Point3D& operator+= (const Point3D& point);
+	Point3D& operator-= (const Point3D& point);
+	Point3D& operator/= (double divisor);
 };
 
-bool operator!= (const Point3D &p1, const Point3D &p2);
-bool operator== (const Point3D &p1, const Point3D &p2);
-const Point3D operator* (const Point3D &point, double factor);
-const Point3D operator* (double factor, const Point3D &point);
-const Point3D operator+ (const Point3D &p1, const Point3D &p2);
-const Point3D operator- (const Point3D &p1, const Point3D &p2);
-const Point3D operator- (const Point3D &point);
-const Point3D operator/ (const Point3D &point, double divisor);
+bool operator!= (const Point3D& p1, const Point3D& p2);
+bool operator== (const Point3D& p1, const Point3D& p2);
+const Point3D operator* (const Point3D& point, double factor);
+const Point3D operator* (double factor, const Point3D& point);
+const Point3D operator+ (const Point3D& p1, const Point3D& p2);
+const Point3D operator- (const Point3D& p1, const Point3D& p2);
+const Point3D operator- (const Point3D& point);
+const Point3D operator/ (const Point3D& point, double divisor);
 
 class Size
 {
-	public:
-		int width,height;
+public:
+	int width, height;
 
-		Size();
-		Size(int width, int height);
-		Size(const Size &other);
-		bool isNull() const;
-		bool isEmpty() const;
-		bool isValid() const;
-		void setHeight(int height);
-		void setWidth(int width);
-		void setSize(int width, int height);
-		void setSize(const Size &s);
-		Size &operator*= (double factor);
-		Size &operator+= (const Size &size);
-		Size &operator-= (const Size &size);
-		Size &operator/= (double divisor);
+	Size();
+	Size(int width, int height);
+	Size(const Size& other);
+	bool isNull() const;
+	bool isEmpty() const;
+	bool isValid() const;
+	void setHeight(int height);
+	void setWidth(int width);
+	void setSize(int width, int height);
+	void setSize(const Size& s);
+	Size& operator*= (double factor);
+	Size& operator+= (const Size& size);
+	Size& operator-= (const Size& size);
+	Size& operator/= (double divisor);
 };
 
-bool operator!= (const Size &s1, const Size &s2);
-bool operator== (const Size & s1, const Size &s2);
-const Size operator* (const Size &size, double factor);
-const Size operator* (double factor, const Size &size);
-const Size operator+ (const Size &s1, const Size &s2);
-const Size operator- (const Size &s1, const Size &s2);
-const Size operator- (const Size &size);
-const Size operator/ (const Size &size, double divisor);
+bool operator!= (const Size& s1, const Size& s2);
+bool operator== (const Size& s1, const Size& s2);
+const Size operator* (const Size& size, double factor);
+const Size operator* (double factor, const Size& size);
+const Size operator+ (const Size& s1, const Size& s2);
+const Size operator- (const Size& s1, const Size& s2);
+const Size operator- (const Size& size);
+const Size operator/ (const Size& size, double divisor);
 
 
 class Rect
 {
-	friend bool operator!= (const Rect &r1, const Rect &r2);
-	friend bool operator== (const Rect &r1, const Rect &r2);
+	friend bool operator!= (const Rect& r1, const Rect& r2);
+	friend bool operator== (const Rect& r1, const Rect& r2);
 
-	private:
-	public:
-		int x1,y1;
-		int x2,y2;
-		Rect();
-		Rect(const Point &p1, const Point &p2);
-		Rect(const Point &p, const Size &s);
-		Rect(int x, int y, int width, int height);
-		Rect(const Rect &r);
-		Rect(const RECT &r);
+private:
+public:
+	int x1, y1;
+	int x2, y2;
+	Rect();
+	Rect(const Point& p1, const Point& p2);
+	Rect(const Point& p, const Size& s);
+	Rect(int x, int y, int width, int height);
+	Rect(const Rect& r);
+	Rect(const RECT& r);
 
-		bool isNull() const;
-		int left() const;
-		int right() const;
-		int top() const;
-		int bottom() const;
-		int width() const;
-		int height() const;
-		Size size() const;
+	bool isNull() const;
+	int left() const;
+	int right() const;
+	int top() const;
+	int bottom() const;
+	int width() const;
+	int height() const;
+	Size size() const;
 
-		Point topLeft() const;
-		Point topRight() const;
-		Point bottomLeft() const;
-		Point bottomRight() const;
+	Point topLeft() const;
+	Point topRight() const;
+	Point bottomLeft() const;
+	Point bottomRight() const;
 
-		Rect normalized () const;
-		Rect intersected(const Rect &other);
-		bool intersects(const Rect &other);
+	Rect normalized() const;
+	Rect intersected(const Rect& other);
+	bool intersects(const Rect& other);
 
-		void setTopLeft(const Point &topLeft);
-		void setBottomRight(const Point &bottomRight);
-		void setRect(const RECT &r);
-		void setRect(const Rect &r);
-		void setRect(int x, int y, int width, int height);
-		void setCoords(int x1, int y1, int x2, int y2);
-		void setCoords(const Point &p1, const Point &p2);
-		void setLeft(int left);
-		void setRight(int right);
-		void setTop(int top);
-		void setBottom(int bottom);
-		void setX(int x);
-		void setY(int y);
-		void setSize(const Size &size);
-		void setWidth(int width);
-		void setHeight(int height);
+	void setTopLeft(const Point& topLeft);
+	void setBottomRight(const Point& bottomRight);
+	void setRect(const RECT& r);
+	void setRect(const Rect& r);
+	void setRect(int x, int y, int width, int height);
+	void setCoords(int x1, int y1, int x2, int y2);
+	void setCoords(const Point& p1, const Point& p2);
+	void setLeft(int left);
+	void setRight(int right);
+	void setTop(int top);
+	void setBottom(int bottom);
+	void setX(int x);
+	void setY(int y);
+	void setSize(const Size& size);
+	void setWidth(int width);
+	void setHeight(int height);
 };
 
-bool operator!= (const Rect &r1, const Rect &r2);
-bool operator== (const Rect &r1, const Rect &r2);
+bool operator!= (const Rect& r1, const Rect& r2);
+bool operator== (const Rect& r1, const Rect& r2);
 
 class RGBFormat
 {
@@ -345,10 +340,10 @@ public:
 
 	RGBFormat();
 	RGBFormat(Identifier id);
-	RGBFormat(const String &Identifier);
+	RGBFormat(const String& Identifier);
 
 	void setFormat(Identifier id);
-	void setFormat(const String &Identifier);
+	void setFormat(const String& Identifier);
 
 	int format() const;
 	String name() const;
@@ -356,24 +351,24 @@ public:
 	int bytesPerPixel() const;
 	int bitsPerPixel() const;
 
-	RGBFormat &operator=(Identifier id);
+	RGBFormat& operator=(Identifier id);
 	operator int() const;
 
-	friend bool operator!= (const RGBFormat &r1, const RGBFormat &r2);
-	friend bool operator== (const RGBFormat &r1, const RGBFormat &r2);
-	friend bool operator== (const RGBFormat &r1, RGBFormat::Identifier r2);
-	friend bool operator!= (const RGBFormat &r1, RGBFormat::Identifier r2);
-	friend bool operator== (RGBFormat::Identifier r1, const RGBFormat &r2);
-	friend bool operator!= (RGBFormat::Identifier r1, const RGBFormat &r2);
+	friend bool operator!= (const RGBFormat& r1, const RGBFormat& r2);
+	friend bool operator== (const RGBFormat& r1, const RGBFormat& r2);
+	friend bool operator== (const RGBFormat& r1, RGBFormat::Identifier r2);
+	friend bool operator!= (const RGBFormat& r1, RGBFormat::Identifier r2);
+	friend bool operator== (RGBFormat::Identifier r1, const RGBFormat& r2);
+	friend bool operator!= (RGBFormat::Identifier r1, const RGBFormat& r2);
 
 };
 
-bool operator!= (const RGBFormat &r1, const RGBFormat &r2);
-bool operator== (const RGBFormat &r1, const RGBFormat &r2);
-bool operator== (const RGBFormat &r1, RGBFormat::Identifier r2);
-bool operator!= (const RGBFormat &r1, RGBFormat::Identifier r2);
-bool operator== (RGBFormat::Identifier r1, const RGBFormat &r2);
-bool operator!= (RGBFormat::Identifier r1, const RGBFormat &r2);
+bool operator!= (const RGBFormat& r1, const RGBFormat& r2);
+bool operator== (const RGBFormat& r1, const RGBFormat& r2);
+bool operator== (const RGBFormat& r1, RGBFormat::Identifier r2);
+bool operator!= (const RGBFormat& r1, RGBFormat::Identifier r2);
+bool operator== (RGBFormat::Identifier r1, const RGBFormat& r2);
+bool operator!= (RGBFormat::Identifier r1, const RGBFormat& r2);
 
 
 typedef struct {
@@ -388,79 +383,79 @@ typedef struct {
 
 class Color
 {
-	friend const Color operator* (const Color &size, float factor);
-	friend const Color operator* (float factor, const Color &size);
-	friend const Color operator+ (const Color &color1, const Color &color2);
+	friend const Color operator* (const Color& size, float factor);
+	friend const Color operator* (float factor, const Color& size);
+	friend const Color operator+ (const Color& color1, const Color& color2);
 
-	private:
+private:
 #ifdef __LITTLE_ENDIAN__
-union  {
-	struct { uint8_t r,g,b,a; };
-	uint32_t c;
-};
+	union {
+		struct { uint8_t r, g, b, a; };
+		uint32_t c;
+	};
 #else
-union  {
-	struct { uint8_t a,r,g,b; };
-	uint32_t c;
-};
+	union {
+		struct { uint8_t a, r, g, b; };
+		uint32_t c;
+	};
 #endif
 
-	public:
-		Color();
-		Color(int red, int green, int blue, int alpha=255);
-		Color(uint32_t rgba);
-		Color(uint32_t rgb, int alpha);
+public:
+	Color();
+	Color(int red, int green, int blue, int alpha=255);
+	Color(uint32_t rgba);
+	Color(uint32_t rgb, int alpha);
 
-		uint32_t color() const;
-		uint32_t rgb() const;
-		uint32_t rgba() const;
-		int red() const;
-		int green() const;
-		int blue() const;
-		int alpha() const;
-		int brightness() const;
-		Color grey() const;
-		Color negativ() const;
-		bool match(const Color &other, int tolerance=0) const;
+	uint32_t color() const;
+	uint32_t rgb() const;
+	uint32_t rgba() const;
+	int red() const;
+	int green() const;
+	int blue() const;
+	int alpha() const;
+	int brightness() const;
+	Color grey() const;
+	Color negativ() const;
+	bool match(const Color& other, int tolerance=0) const;
 
-		void setRed(int red);
-		void setGreen(int green);
-		void setBlue(int blue);
-		void setAlpha(int alpha);
-		void set(int red, int green, int blue, int alpha=255);
-		void set(const Color &other);
-		void setColor(int red, int green, int blue, int alpha=255);
-		void setColor(uint32_t rgba);
-		void setColor(uint32_t rgb, int alpha);
+	void setRed(int red);
+	void setGreen(int green);
+	void setBlue(int blue);
+	void setAlpha(int alpha);
+	void set(int red, int green, int blue, int alpha=255);
+	void set(const Color& other);
+	void setColor(int red, int green, int blue, int alpha=255);
+	void setColor(uint32_t rgba);
+	void setColor(uint32_t rgb, int alpha);
 
-		int getY() const;
-		int getYCb() const;
-		int getYCr() const;
+	int getY() const;
+	int getYCb() const;
+	int getYCr() const;
 
 
-		Color &blend(const Color &background, const Color &foreground, int intensity);
-		Color &blendf(const Color &background, const Color &foreground, float intensity);
+	Color& blend(const Color& background, const Color& foreground, int intensity);
+	Color& blendf(const Color& background, const Color& foreground, float intensity);
 
-		Color &operator*= (float factor);
-		Color &operator+= (const Color &other);
-		operator uint32_t() const;
-		operator int32_t() const;
+	Color& operator*= (float factor);
+	Color& operator+= (const Color& other);
+	operator uint32_t() const;
+	operator int32_t() const;
 
-		bool operator<(const Color &other) const;
-		bool operator<=(const Color &other) const;
-		bool operator==(const Color &other) const;
-		bool operator!=(const Color &other) const;
-		bool operator>=(const Color &other) const;
-		bool operator>(const Color &other) const;
+	bool operator<(const Color& other) const;
+	bool operator<=(const Color& other) const;
+	bool operator==(const Color& other) const;
+	bool operator!=(const Color& other) const;
+	bool operator>=(const Color& other) const;
+	bool operator>(const Color& other) const;
 
-		static Color getBlended(const Color &background, const Color &foreground, int intensity);
-		static Color getBlendedf(const Color &background, const Color &foreground, float intensity);
+	static Color getBlended(const Color& background, const Color& foreground, int intensity);
+	static Color getBlendedf(const Color& background, const Color& foreground, float intensity);
 };
 
-const Color operator* (const Color &color, float factor);
-const Color operator* (float factor, const Color &color);
-const Color operator+ (const Color &color1, const Color &color2);
-std::ostream& operator<<(std::ostream& s, const Color &c);
+const Color operator* (const Color& color, float factor);
+const Color operator* (float factor, const Color& color);
+const Color operator+ (const Color& color1, const Color& color2);
+std::ostream& operator<<(std::ostream& s, const Color& c);
 
 
 
@@ -469,12 +464,12 @@ std::ostream& operator<<(std::ostream& s, const Color &c);
 struct GRAFIX_FUNCTIONS;
 
 typedef struct {
-	GRAFIX_FUNCTIONS *fn;
+	GRAFIX_FUNCTIONS* fn;
 	union {
-		void		*base;
-		uint8_t		*base8;
-		uint16_t	*base16;
-		uint32_t	*base32;
+		void* base;
+		uint8_t* base8;
+		uint16_t* base16;
+		uint32_t* base32;
 	};
 	uint32_t	pitch;
 	int			width;
@@ -483,32 +478,32 @@ typedef struct {
 } DRAWABLE_DATA;
 
 typedef struct GRAFIX_FUNCTIONS {
-	void (*CLS) (DRAWABLE_DATA &data, SurfaceColor c);
-	void (*PutPixel) (const DRAWABLE_DATA &data, int x, int y, SurfaceColor c);
-	void (*BlendPixel) (const DRAWABLE_DATA &data, int x, int y, SurfaceColor c, int brightness);
-	void (*AlphaPixel) (const DRAWABLE_DATA &data, int x, int y, SurfaceColor c);
-	SurfaceColor (*GetPixel) (const DRAWABLE_DATA &data, int x, int y);
+	void (*CLS) (DRAWABLE_DATA& data, SurfaceColor c);
+	void (*PutPixel) (const DRAWABLE_DATA& data, int x, int y, SurfaceColor c);
+	void (*BlendPixel) (const DRAWABLE_DATA& data, int x, int y, SurfaceColor c, int brightness);
+	void (*AlphaPixel) (const DRAWABLE_DATA& data, int x, int y, SurfaceColor c);
+	SurfaceColor(*GetPixel) (const DRAWABLE_DATA& data, int x, int y);
 
-	void (*DrawRect)(DRAWABLE_DATA &data, const Rect &r, SurfaceColor c);
-	void (*FillRect)(DRAWABLE_DATA &data, const Rect &r, SurfaceColor c);
-	void (*Xchange)(DRAWABLE_DATA &data, const Rect &r, SurfaceColor farbe, SurfaceColor ersatzfarbe);
-	void (*Invert)(DRAWABLE_DATA &data, const Rect &r, SurfaceColor farbe1, SurfaceColor farbe2);
-	void (*Negativ)(DRAWABLE_DATA &data, const Rect &r);
+	void (*DrawRect)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor c);
+	void (*FillRect)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor c);
+	void (*Xchange)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor farbe, SurfaceColor ersatzfarbe);
+	void (*Invert)(DRAWABLE_DATA& data, const Rect& r, SurfaceColor farbe1, SurfaceColor farbe2);
+	void (*Negativ)(DRAWABLE_DATA& data, const Rect& r);
 
-	SurfaceColor (*GetRGB) (int r, int g, int b, int a);
-	SurfaceColor (*RGBBlend) (SurfaceColor ground, SurfaceColor top, float intensity);
-	SurfaceColor (*RGBBlend255) (SurfaceColor ground, SurfaceColor top, int intensity);
-	Color (*Surface2RGB) (SurfaceColor color);
-	void (*LineAA) (DRAWABLE_DATA &data, int x1, int y1, int x2, int y2,SurfaceColor color, int strength);
-	void (*Line) (DRAWABLE_DATA &data, int x1, int y1, int x2, int y2, SurfaceColor color);
+	SurfaceColor(*GetRGB) (int r, int g, int b, int a);
+	SurfaceColor(*RGBBlend) (SurfaceColor ground, SurfaceColor top, float intensity);
+	SurfaceColor(*RGBBlend255) (SurfaceColor ground, SurfaceColor top, int intensity);
+	Color(*Surface2RGB) (SurfaceColor color);
+	void (*LineAA) (DRAWABLE_DATA& data, int x1, int y1, int x2, int y2, SurfaceColor color, int strength);
+	void (*Line) (DRAWABLE_DATA& data, int x1, int y1, int x2, int y2, SurfaceColor color);
 
-	int (*Blt) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y);
-	int (*BltDiffuse) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c);
-	int (*BltColorKey) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, SurfaceColor c);
-	int (*BltAlpha) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y);
-	int (*BltBlend) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y, float factor);
-	void (*BltChromaKey) (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y);
-	void (*BltBackgoundOnChromaKey) (DRAWABLE_DATA &target, const DRAWABLE_DATA &background, const Rect &srect, const Color &key, int tol1, int tol2, int x, int y);
+	int (*Blt) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y);
+	int (*BltDiffuse) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c);
+	int (*BltColorKey) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c);
+	int (*BltAlpha) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y);
+	int (*BltBlend) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, float factor);
+	void (*BltChromaKey) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
+	void (*BltBackgoundOnChromaKey) (DRAWABLE_DATA& target, const DRAWABLE_DATA& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
 
 } GRAFIX_FUNCTIONS;
 
@@ -519,314 +514,314 @@ class Image;
 
 class Font
 {
-	friend bool operator!= (const Font &f1, const Font &f2);
-	friend bool operator== (const Font &f1, const Font &f2);
+	friend bool operator!= (const Font& f1, const Font& f2);
+	friend bool operator== (const Font& f1, const Font& f2);
 
-	private:
-		enum FontFlags {
-			fBold=1,
-			fItalic=2,
-			fAntialias=4,
-			fDrawBorder=8,
-			fDrawShadow=16,
-			fUnderline=32,
-			fMonospace=64
-		};
+private:
+	enum FontFlags {
+		fBold=1,
+		fItalic=2,
+		fAntialias=4,
+		fDrawBorder=8,
+		fDrawShadow=16,
+		fUnderline=32,
+		fMonospace=64
+	};
 
-		String Name;
-		Color	cForeground;
-		Color	cBorder;
-		Color	cShadow;
-		uint16_t	fontSize;
-		uint8_t	flags;
-		uint8_t	ori;
-		double		rotationDegrees;
-	public:
-		enum Orientation {
-			LEFT =1,
-			MIDDLE,
-			RIGHT,
-			TOP,
-			BOTTOM,
-			BASE
-		};
+	String Name;
+	Color	cForeground;
+	Color	cBorder;
+	Color	cShadow;
+	uint16_t	fontSize;
+	uint8_t	flags;
+	uint8_t	ori;
+	double		rotationDegrees;
+public:
+	enum Orientation {
+		LEFT =1,
+		MIDDLE,
+		RIGHT,
+		TOP,
+		BOTTOM,
+		BASE
+	};
 
 
-		Font();
-		Font(const Font &other);
+	Font();
+	Font(const Font& other);
 
-		const String &name() const;
-		Color color() const;
-		Color borderColor() const;
-		Color shadowColor() const;
-		bool bold() const;
-		bool italic() const;
-		bool antialias() const;
-		bool drawBorder() const;
-		bool drawShadow() const;
-		bool drawUnderline() const;
-		bool monospace() const;
-		int size() const;
-		Orientation orientation() const;
-		Size measure(const WideString &text) const;
-		Rect boundary(const WideString &text, int x=0, int y=0) const;
-		double rotation() const;
+	const String& name() const;
+	Color color() const;
+	Color borderColor() const;
+	Color shadowColor() const;
+	bool bold() const;
+	bool italic() const;
+	bool antialias() const;
+	bool drawBorder() const;
+	bool drawShadow() const;
+	bool drawUnderline() const;
+	bool monospace() const;
+	int size() const;
+	Orientation orientation() const;
+	Size measure(const WideString& text) const;
+	Rect boundary(const WideString& text, int x=0, int y=0) const;
+	double rotation() const;
 
-		int setName(const String &name);
-		void setColor(const Color &c);
-		void setBorderColor(const Color &c);
-		void setShadowColor(const Color &c);
-		void setColors(const Color &Foreground, const Color &Border, const Color &Shadow);
-		void setBold(bool enable);
-		void setItalic(bool enable);
-		void setAntialias(bool enable);
-		void setDrawBorder(bool enable);
-		void setDrawShadow(bool enable);
-		void setDrawUnderline(bool enable);
-		void setMonospace(bool enable);
-		void setSize(int size);
-		void setOrientation(Orientation o);
-		void setRotation(double degrees);
+	int setName(const String& name);
+	void setColor(const Color& c);
+	void setBorderColor(const Color& c);
+	void setShadowColor(const Color& c);
+	void setColors(const Color& Foreground, const Color& Border, const Color& Shadow);
+	void setBold(bool enable);
+	void setItalic(bool enable);
+	void setAntialias(bool enable);
+	void setDrawBorder(bool enable);
+	void setDrawShadow(bool enable);
+	void setDrawUnderline(bool enable);
+	void setMonospace(bool enable);
+	void setSize(int size);
+	void setOrientation(Orientation o);
+	void setRotation(double degrees);
 
-		Font &operator=(const Font &other);
+	Font& operator=(const Font& other);
 };
-bool operator!= (const Font &f1, const Font &f2);
-bool operator== (const Font &f1, const Font &f2);
+bool operator!= (const Font& f1, const Font& f2);
+bool operator== (const Font& f1, const Font& f2);
 
 
 
 class Drawable
 {
 	friend class Image;
-	private:
-		GRAFIX_FUNCTIONS	*fn;
-		DRAWABLE_DATA		data;
-		void initFunctions(const RGBFormat &format);
-		void clearDrawableData();
-		void copyDrawableData(const DRAWABLE_DATA &other);
+private:
+	GRAFIX_FUNCTIONS* fn;
+	DRAWABLE_DATA		data;
+	void initFunctions(const RGBFormat& format);
+	void clearDrawableData();
+	void copyDrawableData(const DRAWABLE_DATA& other);
 
-	public:
-		/** @name Konstruktoren
-		 */
-		//@{
-		Drawable();
-		Drawable(const Drawable &other);
-		Drawable(const Drawable &other, const Rect &rect);
-		Drawable(const Drawable &other, const Point &p, const Size &s);
-		Drawable(void *base, uint32_t pitch, int width, int height, const RGBFormat &format);
-		~Drawable();
-		//@}
+public:
+	/** @name Konstruktoren
+	 */
+	//@{
+	Drawable();
+	Drawable(const Drawable& other);
+	Drawable(const Drawable& other, const Rect& rect);
+	Drawable(const Drawable& other, const Point& p, const Size& s);
+	Drawable(void* base, uint32_t pitch, int width, int height, const RGBFormat& format);
+	~Drawable();
+	//@}
 
-		/** @name Verschiedenes
-		 */
-		//@{
-		GRAFIX_FUNCTIONS *getFunctions();
-		DRAWABLE_DATA *getData();
+	/** @name Verschiedenes
+	 */
+	//@{
+	GRAFIX_FUNCTIONS* getFunctions();
+	DRAWABLE_DATA* getData();
 
-		void copy(const Drawable &other);
-		void copy(const Drawable &other, const Rect &rect);
-		void copy(const Drawable &other, const Point &p, const Size &s);
-		void create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format);
-		Drawable &operator=(const Drawable &other);
+	void copy(const Drawable& other);
+	void copy(const Drawable& other, const Rect& rect);
+	void copy(const Drawable& other, const Point& p, const Size& s);
+	void create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format);
+	Drawable& operator=(const Drawable& other);
 
-		Rect rect() const;
-		Size size() const;
-		int width() const;
-		int height() const;
-		int pitch() const;
-		int bytesPerPixel() const;
-		int bitdepth() const;
-		RGBFormat rgbformat() const;
-		bool isEmpty() const;
-		void *adr() const;
-		void *adr(int x, int y) const;
-		void	cls(const Color &c);
-		void	cls();
-		Drawable getDrawable() const;
-		Drawable getDrawable(const Rect &rect) const;
-		Drawable getDrawable(const Point &p, const Size &s) const;
-		Drawable getDrawable(int x1, int y1, int x2, int y2) const;
-		Image scaled(int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
-		void scale(Image &tgt, int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
-		//@}
+	Rect rect() const;
+	Size size() const;
+	int width() const;
+	int height() const;
+	int pitch() const;
+	int bytesPerPixel() const;
+	int bitdepth() const;
+	RGBFormat rgbformat() const;
+	bool isEmpty() const;
+	void* adr() const;
+	void* adr(int x, int y) const;
+	void	cls(const Color& c);
+	void	cls();
+	Drawable getDrawable() const;
+	Drawable getDrawable(const Rect& rect) const;
+	Drawable getDrawable(const Point& p, const Size& s) const;
+	Drawable getDrawable(int x1, int y1, int x2, int y2) const;
+	Image scaled(int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
+	void scale(Image& tgt, int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
+	//@}
 
-		/** @name Farben
-		 */
-		//@{
-		SurfaceColor rgb(const Color &c) const;
-		SurfaceColor rgb(int r, int g, int b, int alpha) const;
-		//@}
+	/** @name Farben
+	 */
+	//@{
+	SurfaceColor rgb(const Color& c) const;
+	SurfaceColor rgb(int r, int g, int b, int alpha) const;
+	//@}
 
-		/** @name Pixel
-		 */
-		//@{
-		void	putPixel(int x, int y, const Color &c);
-		void	putPixel(const Point &p, const Color &c);
-		void	alphaPixel(int x, int y, const Color &c);
-		void 	alphaPixel(const Point &p, const Color &c);
-		void	blendPixel(int x, int y, const Color &c, float brightness);
-		void	blendPixel(int x, int y, const Color &c, int brightness);
-		Color	getPixel(int x, int y) const;
-		Color	getPixel(const Point &p) const;
-		//@}
-
-
-		/** @name Geometrische Formen
-		 */
-		//@{
-		void	drawRect(const Rect &rect, const Color &c);
-		void	drawRect(int x1, int y1, int x2, int y2, const Color &c);
-		void	fillRect(const Rect &rect, const Color &c);
-		void	fillRect(int x1, int y1, int x2, int y2, const Color &c);
-		void	floodFill(int x, int y, const Color &color, const Color &border);
-		void	elipse(int x, int y, int radx, int rady, const Color &c, bool fill=false);
-		void	elipse(int x, int y, int radx, int rady, const Color &c, bool fill, const Color &fillcolor, int startangle, int endangle);
-		void	circle(int x, int y, int rad, const Color &c, bool fill=false);
-		void	circle(const Point &p, int rad, const Color &c, bool fill=false);
-		//@}
-
-		/** @name Effekte
-		 */
-		//@{
-		void	xchange(const Rect &rect, const Color &color, const Color &replace);
-		void	invert(const Rect &rect, const Color &color1, const Color &color2);
-		void	negativ(const Rect &rect);
-		void	colorGradient(const Rect &rect, const Color &c1, const Color &c2, int direction);
-		void	colorGradient(int x1, int y1, int x2, int y2, const Color &c1, const Color &c2, int direction);
-		//@}
-
-		/** @name Linien zeichnen
-		 */
-		//@{
-		void	line(int x1, int y1, int x2, int y2, const Color &c);
-		void	line(const Point &start, const Point &end, const Color &c);
-		void	lineAA(int x1, int y1, int x2, int y2, const Color &c, int strength=1);
-		void	lineAA(const Point &start, const Point &end, const Color &c, int strength=1);
-		//@}
-
-		/** @name Textausgabe
-		 */
-		//@{
-		void	print(const Font &font, int x, int y, const String &text);
-		void	print(const Font &font, int x, int y, const WideString &text);
-		void	printf(const Font &font, int x, int y, const char *fmt, ...);
-		//@}
-
-		/** @name Blit-Funktionen
-		 * Kopieren von Grafiken mit verschiedenen Methoden
-		 */
-		//@{
-		int fitRect(int &x, int &y, Rect &r);
-		void blt(const Drawable &source, int x=0, int y=0);
-		void blt(const Drawable &source, const Rect &srect, int x=0, int y=0);
-		void bltDiffuse(const Drawable &source, int x=0, int y=0, const Color &c=Color());
-		void bltDiffuse(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
-		void bltColorKey(const Drawable &source, int x=0, int y=0, const Color &c=Color());
-		void bltColorKey(const Drawable &source, const Rect &srect, int x=0, int y=0, const Color &c=Color());
-		void bltAlpha(const Drawable &source, int x=0, int y=0);
-		void bltAlpha(const Drawable &source, const Rect &srect, int x=0, int y=0);
-		void bltBlend(const Drawable &source, float factor, int x=0, int y=0);
-		void bltBlend(const Drawable &source, float factor, const Rect &srect, int x=0, int y=0);
-		void bltChromaKey(const Drawable &source, const Color &key, int tol1, int tol2, int x=0, int y=0);
-		void bltChromaKey(const Drawable &source, const Rect &srect, const Color &key, int tol1, int tol2, int x=0, int y=0);
-		void bltBackgroundOnChromaKey(const Drawable &background, const Color &key, int tol1, int tol2, int x=0, int y=0);
-		void bltBackgroundOnChromaKey(const Drawable &background, const Rect &srect, const Color &key, int tol1, int tol2, int x=0, int y=0);
+	/** @name Pixel
+	 */
+	//@{
+	void	putPixel(int x, int y, const Color& c);
+	void	putPixel(const Point& p, const Color& c);
+	void	alphaPixel(int x, int y, const Color& c);
+	void 	alphaPixel(const Point& p, const Color& c);
+	void	blendPixel(int x, int y, const Color& c, float brightness);
+	void	blendPixel(int x, int y, const Color& c, int brightness);
+	Color	getPixel(int x, int y) const;
+	Color	getPixel(const Point& p) const;
+	//@}
 
 
-		void draw(const ImageList &iml, int nr, int x, int y);
-		void draw(const ImageList &iml, int nr, int x, int y, const Color &diffuse);
-		void draw(const Sprite &sprite, int nr, int x, int y);
-		//@}
+	/** @name Geometrische Formen
+	 */
+	//@{
+	void	drawRect(const Rect& rect, const Color& c);
+	void	drawRect(int x1, int y1, int x2, int y2, const Color& c);
+	void	fillRect(const Rect& rect, const Color& c);
+	void	fillRect(int x1, int y1, int x2, int y2, const Color& c);
+	void	floodFill(int x, int y, const Color& color, const Color& border);
+	void	elipse(int x, int y, int radx, int rady, const Color& c, bool fill=false);
+	void	elipse(int x, int y, int radx, int rady, const Color& c, bool fill, const Color& fillcolor, int startangle, int endangle);
+	void	circle(int x, int y, int rad, const Color& c, bool fill=false);
+	void	circle(const Point& p, int rad, const Color& c, bool fill=false);
+	//@}
+
+	/** @name Effekte
+	 */
+	//@{
+	void	xchange(const Rect& rect, const Color& color, const Color& replace);
+	void	invert(const Rect& rect, const Color& color1, const Color& color2);
+	void	negativ(const Rect& rect);
+	void	colorGradient(const Rect& rect, const Color& c1, const Color& c2, int direction);
+	void	colorGradient(int x1, int y1, int x2, int y2, const Color& c1, const Color& c2, int direction);
+	//@}
+
+	/** @name Linien zeichnen
+	 */
+	//@{
+	void	line(int x1, int y1, int x2, int y2, const Color& c);
+	void	line(const Point& start, const Point& end, const Color& c);
+	void	lineAA(int x1, int y1, int x2, int y2, const Color& c, int strength=1);
+	void	lineAA(const Point& start, const Point& end, const Color& c, int strength=1);
+	//@}
+
+	/** @name Textausgabe
+	 */
+	//@{
+	void	print(const Font& font, int x, int y, const String& text);
+	void	print(const Font& font, int x, int y, const WideString& text);
+	void	printf(const Font& font, int x, int y, const char* fmt, ...);
+	//@}
+
+	/** @name Blit-Funktionen
+	 * Kopieren von Grafiken mit verschiedenen Methoden
+	 */
+	//@{
+	int fitRect(int& x, int& y, Rect& r);
+	void blt(const Drawable& source, int x=0, int y=0);
+	void blt(const Drawable& source, const Rect& srect, int x=0, int y=0);
+	void bltDiffuse(const Drawable& source, int x=0, int y=0, const Color& c=Color());
+	void bltDiffuse(const Drawable& source, const Rect& srect, int x=0, int y=0, const Color& c=Color());
+	void bltColorKey(const Drawable& source, int x=0, int y=0, const Color& c=Color());
+	void bltColorKey(const Drawable& source, const Rect& srect, int x=0, int y=0, const Color& c=Color());
+	void bltAlpha(const Drawable& source, int x=0, int y=0);
+	void bltAlpha(const Drawable& source, const Rect& srect, int x=0, int y=0);
+	void bltBlend(const Drawable& source, float factor, int x=0, int y=0);
+	void bltBlend(const Drawable& source, float factor, const Rect& srect, int x=0, int y=0);
+	void bltChromaKey(const Drawable& source, const Color& key, int tol1, int tol2, int x=0, int y=0);
+	void bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, int tol1, int tol2, int x=0, int y=0);
+	void bltBackgroundOnChromaKey(const Drawable& background, const Color& key, int tol1, int tol2, int x=0, int y=0);
+	void bltBackgroundOnChromaKey(const Drawable& background, const Rect& srect, const Color& key, int tol1, int tol2, int x=0, int y=0);
+
+
+	void draw(const ImageList& iml, int nr, int x, int y);
+	void draw(const ImageList& iml, int nr, int x, int y, const Color& diffuse);
+	void draw(const Sprite& sprite, int nr, int x, int y);
+	//@}
 };
 
 class Image : public Drawable
 {
-	private:
-		ByteArray	myMemory;
-	public:
-		/** @name Konstruktoren
-		 */
-		//@{
-		Image();
-		Image(const Image &other);
-		Image(const Drawable &other);
-		Image(int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
-		Image(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
-		Image(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
-		Image(const ByteArrayPtr &mem, const RGBFormat &format=RGBFormat::unknown);
-		~Image();
-		//@}
+private:
+	ByteArray	myMemory;
+public:
+	/** @name Konstruktoren
+	 */
+	//@{
+	Image();
+	Image(const Image& other);
+	Image(const Drawable& other);
+	Image(int width, int height, const RGBFormat& format=RGBFormat::A8R8G8B8);
+	Image(const String& Filename, const RGBFormat& format=RGBFormat::unknown);
+	Image(FileObject& file, const RGBFormat& format=RGBFormat::unknown);
+	Image(const ByteArrayPtr& mem, const RGBFormat& format=RGBFormat::unknown);
+	~Image();
+	//@}
 
-		/** @name Verschiedenes
-		 */
-		//@{
-		void clear();
-		void create(int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
-		void create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format=RGBFormat::A8R8G8B8);
-		void load(const String &Filename, const RGBFormat &format=RGBFormat::unknown);
-		void load(FileObject &file, const RGBFormat &format=RGBFormat::unknown);
-		void load(const ByteArrayPtr &Mem, const RGBFormat &format=RGBFormat::unknown);
-		void copy(const Drawable &other);
-		void copy(const Drawable &other, const Rect &rect);
-		void copy(const Image &other);
-		Image &operator=(const Drawable &other);
-		Image &operator=(const Image &other);
-		size_t numBytes() const;
-		ByteArrayPtr memory() const;
-		operator ByteArrayPtr() const;
-		//@}
+	/** @name Verschiedenes
+	 */
+	//@{
+	void clear();
+	void create(int width, int height, const RGBFormat& format=RGBFormat::A8R8G8B8);
+	void create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format=RGBFormat::A8R8G8B8);
+	void load(const String& Filename, const RGBFormat& format=RGBFormat::unknown);
+	void load(FileObject& file, const RGBFormat& format=RGBFormat::unknown);
+	void load(const ByteArrayPtr& Mem, const RGBFormat& format=RGBFormat::unknown);
+	void copy(const Drawable& other);
+	void copy(const Drawable& other, const Rect& rect);
+	void copy(const Image& other);
+	Image& operator=(const Drawable& other);
+	Image& operator=(const Image& other);
+	size_t numBytes() const;
+	ByteArrayPtr memory() const;
+	operator ByteArrayPtr() const;
+	//@}
 
 };
 
 class ImageList : public Image
 {
 	friend class Drawable;
-	public:
-		enum DRAWMETHOD {
-			BLT=1,
-			COLORKEY,
-			ALPHABLT,
-			DIFFUSE
-		};
-	private:
-		size_t	numIcons;
-		int		width, height;
-		int		numX, numY;
-		Color	colorkey;
-		Color	diffuse;
-		DRAWMETHOD method;
+public:
+	enum DRAWMETHOD {
+		BLT=1,
+		COLORKEY,
+		ALPHABLT,
+		DIFFUSE
+	};
+private:
+	size_t	numIcons;
+	int		width, height;
+	int		numX, numY;
+	Color	colorkey;
+	Color	diffuse;
+	DRAWMETHOD method;
 
-	public:
+public:
 
-		ImageList();
-		ImageList(const ImageList &other);
-		ImageList(const Drawable &draw, int icon_width, int icon_height, DRAWMETHOD method);
-		ImageList(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method);
-		ImageList(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method);
-		ImageList(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method);
-		~ImageList();
+	ImageList();
+	ImageList(const ImageList& other);
+	ImageList(const Drawable& draw, int icon_width, int icon_height, DRAWMETHOD method);
+	ImageList(const String& Filename, int icon_width, int icon_height, DRAWMETHOD method);
+	ImageList(FileObject& file, int icon_width, int icon_height, DRAWMETHOD method);
+	ImageList(const ByteArrayPtr& mem, int icon_width, int icon_height, DRAWMETHOD method);
+	~ImageList();
 
-		void clear();
-		void setDrawMethod(DRAWMETHOD method);
-		void setColorKey(const Color &key);
-		void setDiffuseColor(const Color &c);
-		void setIconSize(int width, int height);
+	void clear();
+	void setDrawMethod(DRAWMETHOD method);
+	void setColorKey(const Color& key);
+	void setDiffuseColor(const Color& c);
+	void setIconSize(int width, int height);
 
-		void copy(const ImageList &other);
-		void load(const Drawable &draw,int icon_width, int icon_height, DRAWMETHOD method);
-		void load(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method);
-		void load(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method);
-		void load(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method);
+	void copy(const ImageList& other);
+	void load(const Drawable& draw, int icon_width, int icon_height, DRAWMETHOD method);
+	void load(const String& Filename, int icon_width, int icon_height, DRAWMETHOD method);
+	void load(FileObject& file, int icon_width, int icon_height, DRAWMETHOD method);
+	void load(const ByteArrayPtr& mem, int icon_width, int icon_height, DRAWMETHOD method);
 
-		size_t num() const;
-		Size iconSize() const;
-		Rect getRect(size_t nr) const;
-		DRAWMETHOD drawMethod() const;
-		Drawable getDrawable(size_t nr) const;
-		Color colorKey() const;
-		Color diffuseColor() const;
+	size_t num() const;
+	Size iconSize() const;
+	Rect getRect(size_t nr) const;
+	DRAWMETHOD drawMethod() const;
+	Drawable getDrawable(size_t nr) const;
+	Color colorKey() const;
+	Color diffuseColor() const;
 
-		ImageList &operator=(const ImageList &other);
+	ImageList& operator=(const ImageList& other);
 
 };
 
@@ -837,62 +832,62 @@ class FontFile;
 
 class Grafix
 {
-	private:
-		Mutex		myMutex;
-		List<ImageFilter*>	ImageFilterList;
-		List<FontEngine*>	FontEngineList;
-		AVLTree<String, FontFile*> FontList;
+private:
+	Mutex		myMutex;
+	List<ImageFilter*>	ImageFilterList;
+	List<FontEngine*>	FontEngineList;
+	AVLTree<String, FontFile*> FontList;
 
-		ImageFilter		*filter_png;
-		ImageFilter		*filter_jpeg;
-		ImageFilter		*filter_bmp;
-		ImageFilter		*filter_gif;
-		ImageFilter		*filter_ppm;
-		ImageFilter		*filter_tga;
-		ImageFilter		*filter_tiff;
-		ImageFilter		*filter_magick;
-		RGBFormat	PrimaryRGBFormat;
-
-
-		void initAlphatab();
-
-		void initFunctions(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		void initColors(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		void initPixel(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		void initShapes(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		void initLines(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
-		void initBlits(const RGBFormat &format, GRAFIX_FUNCTIONS *fn);
+	ImageFilter* filter_png;
+	ImageFilter* filter_jpeg;
+	ImageFilter* filter_bmp;
+	ImageFilter* filter_gif;
+	ImageFilter* filter_ppm;
+	ImageFilter* filter_tga;
+	ImageFilter* filter_tiff;
+	ImageFilter* filter_magick;
+	RGBFormat	PrimaryRGBFormat;
 
 
-	public:
-		Grafix();
-		~Grafix();
+	void initAlphatab();
 
-		ImageList	Toolbar;
-		ImageList	ButtonSymbolsSmall;
-		ImageList	Icons32;
+	void initFunctions(const RGBFormat& format, GRAFIX_FUNCTIONS* fn);
+	void initColors(const RGBFormat& format, GRAFIX_FUNCTIONS* fn);
+	void initPixel(const RGBFormat& format, GRAFIX_FUNCTIONS* fn);
+	void initShapes(const RGBFormat& format, GRAFIX_FUNCTIONS* fn);
+	void initLines(const RGBFormat& format, GRAFIX_FUNCTIONS* fn);
+	void initBlits(const RGBFormat& format, GRAFIX_FUNCTIONS* fn);
 
 
-		GRAFIX_FUNCTIONS *getGrafixFunctions(const RGBFormat &format);
+public:
+	Grafix();
+	~Grafix();
 
-		// Image-Filter und Loader
-		void addImageFilter(ImageFilter *filter);
-		void unloadImageFilter(ImageFilter *filter);
-		ImageFilter *findImageFilter(const String &name);
-		ImageFilter *findImageFilter(FileObject &ff, IMAGE &img);
+	ImageList	Toolbar;
+	ImageList	ButtonSymbolsSmall;
+	ImageList	Icons32;
 
-		// Fonts
-		void addFontEngine(FontEngine *engine);
-		void loadFont(const String &filename, const String &fontname=String());
-		void loadFont(FileObject &ff, const String &fontname=String());
-		void loadFont(const ByteArrayPtr &memory, const String &fontname=String());
-		void unloadFont(const String &fontname);
-		FontFile *findFont(const String &fontname);
-		FontFile *findFont(const Font &font);
-		void listFonts();
+
+	GRAFIX_FUNCTIONS* getGrafixFunctions(const RGBFormat& format);
+
+	// Image-Filter und Loader
+	void addImageFilter(ImageFilter* filter);
+	void unloadImageFilter(ImageFilter* filter);
+	ImageFilter* findImageFilter(const String& name);
+	ImageFilter* findImageFilter(FileObject& ff, IMAGE& img);
+
+	// Fonts
+	void addFontEngine(FontEngine* engine);
+	void loadFont(const String& filename, const String& fontname=String());
+	void loadFont(FileObject& ff, const String& fontname=String());
+	void loadFont(const ByteArrayPtr& memory, const String& fontname=String());
+	void unloadFont(const String& fontname);
+	FontFile* findFont(const String& fontname);
+	FontFile* findFont(const Font& font);
+	void listFonts();
 };
 
-Grafix *GetGrafix();
+Grafix* GetGrafix();
 
 
 
@@ -900,107 +895,107 @@ Grafix *GetGrafix();
 class FontFile
 {
 	friend class Grafix;
-	private:
-	public:
-		String Name;
-		ByteArray Memory;
-		FontEngine *engine;
-		void *priv;
+private:
+public:
+	String Name;
+	ByteArray Memory;
+	FontEngine* engine;
+	void* priv;
 
-		FontFile();
-        ~FontFile();
+	FontFile();
+	~FontFile();
 };
 
 class FontEngine
 {
 	friend class Grafix;
-	private:
-	public:
-		FontEngine();
-		virtual ~FontEngine();
+private:
+public:
+	FontEngine();
+	virtual ~FontEngine();
 
-		virtual void init();
-		virtual int ident(FileObject &file) throw();
-		virtual FontFile *loadFont(FileObject &file, const String &fontname);
-		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
-		virtual Rect boundary(const FontFile &file, const Font &font, const WideString &text, int x, int y);
-		virtual String name() const;
-		virtual String description() const;
+	virtual void init();
+	virtual int ident(FileObject& file) throw();
+	virtual FontFile* loadFont(FileObject& file, const String& fontname);
+	virtual void deleteFont(FontFile* file);
+	virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
+	virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
+	virtual Rect boundary(const FontFile& file, const Font& font, const WideString& text, int x, int y);
+	virtual String name() const;
+	virtual String description() const;
 };
 
 class FontEngineFont4 : public FontEngine
 {
-	private:
-		PFPChunk *selectFont(const FontFile &file, const Font &font);
-		void renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
+private:
+	PFPChunk* selectFont(const FontFile& file, const Font& font);
+	void renderInternal(PFPChunk* c, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
 
-	public:
-		FontEngineFont4();
-		virtual ~FontEngineFont4();
-		virtual void init();
-		virtual int ident(FileObject &file) throw();
-		virtual FontFile *loadFont(FileObject &file, const String &fontname);
-		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
-		virtual String name() const;
-		virtual String description() const;
+public:
+	FontEngineFont4();
+	virtual ~FontEngineFont4();
+	virtual void init();
+	virtual int ident(FileObject& file) throw();
+	virtual FontFile* loadFont(FileObject& file, const String& fontname);
+	virtual void deleteFont(FontFile* file);
+	virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
+	virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
+	virtual String name() const;
+	virtual String description() const;
 };
 
 class FontEngineFont5 : public FontEngine
 {
-	private:
-		PFPChunk *selectFont(const FontFile &file, const Font &font);
-		void renderInternal(PFPChunk *c, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
+private:
+	PFPChunk* selectFont(const FontFile& file, const Font& font);
+	void renderInternal(PFPChunk* c, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
 
-	public:
-		FontEngineFont5();
-		virtual ~FontEngineFont5();
-		virtual void init();
-		virtual int ident(FileObject &file) throw();
-		virtual FontFile *loadFont(FileObject &file, const String &fontname);
-		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
-		virtual String name() const;
-		virtual String description() const;
+public:
+	FontEngineFont5();
+	virtual ~FontEngineFont5();
+	virtual void init();
+	virtual int ident(FileObject& file) throw();
+	virtual FontFile* loadFont(FileObject& file, const String& fontname);
+	virtual void deleteFont(FontFile* file);
+	virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
+	virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
+	virtual String name() const;
+	virtual String description() const;
 };
 
 class FontEngineFont6 : public FontEngine
 {
-	private:
+private:
 
-	public:
-		FontEngineFont6();
-		virtual ~FontEngineFont6();
-		virtual void init();
-		virtual int ident(FileObject &file) throw();
-		virtual FontFile *loadFont(FileObject &file, const String &fontname);
-		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
-		virtual Rect boundary(const FontFile &file, const Font &font, const WideString &text, int x, int y);
-		virtual String name() const;
-		virtual String description() const;
+public:
+	FontEngineFont6();
+	virtual ~FontEngineFont6();
+	virtual void init();
+	virtual int ident(FileObject& file) throw();
+	virtual FontFile* loadFont(FileObject& file, const String& fontname);
+	virtual void deleteFont(FontFile* file);
+	virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
+	virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
+	virtual Rect boundary(const FontFile& file, const Font& font, const WideString& text, int x, int y);
+	virtual String name() const;
+	virtual String description() const;
 };
 
 class FontEngineFreeType : public FontEngine
 {
-	private:
-		void *ft;
-	public:
-		FontEngineFreeType();
-		virtual ~FontEngineFreeType();
-		virtual void init();
-		virtual int ident(FileObject &file) throw();
-		virtual FontFile *loadFont(FileObject &file, const String &fontname);
-		virtual void deleteFont(FontFile *file);
-		virtual void render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color);
-		virtual Size measure(const FontFile &file, const Font &font, const WideString &text);
-		virtual String name() const;
-		virtual String description() const;
+private:
+	void* ft;
+public:
+	FontEngineFreeType();
+	virtual ~FontEngineFreeType();
+	virtual void init();
+	virtual int ident(FileObject& file) throw();
+	virtual FontFile* loadFont(FileObject& file, const String& fontname);
+	virtual void deleteFont(FontFile* file);
+	virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
+	virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
+	virtual String name() const;
+	virtual String description() const;
 };
 
 
@@ -1008,123 +1003,123 @@ class FontEngineFreeType : public FontEngine
 
 class ImageFilter
 {
-	private:
+private:
 
-	public:
-		PPL7EXCEPTION(IllegalImageFormatException, Exception);
-		PPL7EXCEPTION(EmptyImageException, Exception);
+public:
+	PPL7EXCEPTION(IllegalImageFormatException, Exception);
+	PPL7EXCEPTION(EmptyImageException, Exception);
 
-		ImageFilter();
-		virtual ~ImageFilter();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const Rect &area, const AssocArray &param=AssocArray());
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+	ImageFilter();
+	virtual ~ImageFilter();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const Rect& area, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 
-		void saveFile (const String &filename, const Drawable &surface, const Rect &area, const AssocArray &param=AssocArray());
-		void saveFile (const String &filename, const Drawable &surface, const AssocArray &param=AssocArray());
+	void saveFile(const String& filename, const Drawable& surface, const Rect& area, const AssocArray& param=AssocArray());
+	void saveFile(const String& filename, const Drawable& surface, const AssocArray& param=AssocArray());
 };
 
 class ImageFilter_PNG : public ImageFilter
 {
-	public:
-		ImageFilter_PNG();
-		virtual ~ImageFilter_PNG();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_PNG();
+	virtual ~ImageFilter_PNG();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 class ImageFilter_JPEG : public ImageFilter
 {
-	public:
-		ImageFilter_JPEG();
-		virtual ~ImageFilter_JPEG();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_JPEG();
+	virtual ~ImageFilter_JPEG();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 
 class ImageFilter_BMP : public ImageFilter
 {
-	public:
-		ImageFilter_BMP();
-		virtual ~ImageFilter_BMP();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_BMP();
+	virtual ~ImageFilter_BMP();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 class ImageFilter_TIFF : public ImageFilter
 {
-	public:
-		ImageFilter_TIFF();
-		virtual ~ImageFilter_TIFF();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_TIFF();
+	virtual ~ImageFilter_TIFF();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 class ImageFilter_ImageMagick : public ImageFilter
 {
-	public:
-		ImageFilter_ImageMagick();
-		virtual ~ImageFilter_ImageMagick();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_ImageMagick();
+	virtual ~ImageFilter_ImageMagick();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 
 
 class ImageFilter_GIF : public ImageFilter
 {
-	public:
-		ImageFilter_GIF();
-		virtual ~ImageFilter_GIF();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_GIF();
+	virtual ~ImageFilter_GIF();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 
 class ImageFilter_PPM : public ImageFilter
 {
-	public:
-		ImageFilter_PPM();
-		virtual ~ImageFilter_PPM();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_PPM();
+	virtual ~ImageFilter_PPM();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 class ImageFilter_TGA : public ImageFilter
 {
-	public:
-		ImageFilter_TGA();
-		virtual ~ImageFilter_TGA();
-		virtual int ident(FileObject &file, IMAGE &img);
-		virtual void load(FileObject &file, Drawable &surface, IMAGE &img);
-		virtual void save (const Drawable &surface, FileObject &file, const AssocArray &param=AssocArray());
-		virtual String name();
-		virtual String description();
+public:
+	ImageFilter_TGA();
+	virtual ~ImageFilter_TGA();
+	virtual int ident(FileObject& file, IMAGE& img);
+	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual String name();
+	virtual String description();
 };
 
 
@@ -1132,62 +1127,62 @@ class ImageFilter_TGA : public ImageFilter
 
 class Sprite
 {
-	private:
-		class SpriteTexture
-		{
-		public:
-			int id;
-			int width, height;
-			int bitdepth;
-			RGBFormat rgbformat;
-			Image surface;
-
-			SpriteTexture()
-			{
-				id=width=height=bitdepth=0;
-			}
-			~SpriteTexture()
-			{
-			}
-		};
-
-		class SpriteIndexItem
-		{
-		public:
-			int id;
-			const Drawable *surface;
-			Rect r;
-			Point Pivot;
-			Point Offset;
-
-			SpriteIndexItem()
-			{
-				id=0;
-				surface=NULL;
-			}
-			SpriteIndexItem(const SpriteIndexItem &other)
-				:r(other.r), Pivot(other.Pivot), Offset(other.Offset)
-			{
-				id=other.id;
-				surface=other.surface;
-			}
-		};
-		AVLTree<int,SpriteTexture> TextureList;
-		AVLTree<int,SpriteIndexItem> SpriteList;
-
-		void loadTexture(PFPChunk *chunk);
-		void loadIndex(PFPChunk *chunk);
-		const Drawable *findTexture(int id) const;
-
+private:
+	class SpriteTexture
+	{
 	public:
-		Sprite();
-		~Sprite();
-		void load(const String &filename);
-		void load(FileObject &ff);
-		void clear();
-		void draw(Drawable &target, int x, int y, int id) const;
-		int numTextures() const;
-		int numSprites() const;
+		int id;
+		int width, height;
+		int bitdepth;
+		RGBFormat rgbformat;
+		Image surface;
+
+		SpriteTexture()
+		{
+			id=width=height=bitdepth=0;
+		}
+		~SpriteTexture()
+		{
+		}
+	};
+
+	class SpriteIndexItem
+	{
+	public:
+		int id;
+		const Drawable* surface;
+		Rect r;
+		Point Pivot;
+		Point Offset;
+
+		SpriteIndexItem()
+		{
+			id=0;
+			surface=NULL;
+		}
+		SpriteIndexItem(const SpriteIndexItem& other)
+			:r(other.r), Pivot(other.Pivot), Offset(other.Offset)
+		{
+			id=other.id;
+			surface=other.surface;
+		}
+	};
+	AVLTree<int, SpriteTexture> TextureList;
+	AVLTree<int, SpriteIndexItem> SpriteList;
+
+	void loadTexture(PFPChunk* chunk);
+	void loadIndex(PFPChunk* chunk);
+	const Drawable* findTexture(int id) const;
+
+public:
+	Sprite();
+	~Sprite();
+	void load(const String& filename);
+	void load(FileObject& ff);
+	void clear();
+	void draw(Drawable& target, int x, int y, int id) const;
+	int numTextures() const;
+	int numSprites() const;
 };
 
 
@@ -1197,5 +1192,3 @@ class Sprite
 
 
 #endif // _PPL7_INCLUDE_GRAFIX
-
-

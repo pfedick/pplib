@@ -1,14 +1,8 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +26,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+
 #ifndef PPL7_PPL6COMPAT_H_
 #define PPL7_PPL6COMPAT_H_
 
 #ifndef _PPL6_INCLUDE
-    #include <ppl6.h>
+#include <ppl6.h>
 #endif
 #ifndef _PPL7_INCLUDE
-    #ifdef PPL7LIB
-        #include "ppl7.h"
-    #else
-        #include <ppl7.h>
-    #endif
+#ifdef PPL7LIB
+#include "ppl7.h"
+#else
+#include <ppl7.h>
+#endif
 #endif
 
 namespace ppl7 {
@@ -51,58 +46,58 @@ namespace ppl7 {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-static ppl7::String operator+(const ppl7::String &str1, const ppl6::CString& str2)
+static ppl7::String operator+(const ppl7::String& str1, const ppl6::CString& str2)
 {
 	ppl7::String p7(str2);
-	return str1+p7;
+	return str1 + p7;
 }
 
-static ppl7::String operator+(const ppl6::CString &str1, const ppl7::String& str2)
+static ppl7::String operator+(const ppl6::CString& str1, const ppl7::String& str2)
 {
 	ppl7::String p7(str1);
-	return p7+str2;
+	return p7 + str2;
 }
 
-static ppl6::CString to6(const ppl7::String &str)
+static ppl6::CString to6(const ppl7::String& str)
 {
-	return ppl6::CString(str.c_str(),str.size());
+	return ppl6::CString(str.c_str(), str.size());
 }
 
-static ppl6::CAssocArray to6(const ppl7::AssocArray &arr)
+static ppl6::CAssocArray to6(const ppl7::AssocArray& arr)
 {
 	ppl7::ByteArray bin;
 	arr.exportBinary(bin);
 	ppl6::CAssocArray a6;
-	a6.ImportBinary(bin.ptr(),bin.size());
+	a6.ImportBinary(bin.ptr(), bin.size());
 	return a6;
 }
 
-static ppl7::String to7(const ppl6::CString &str)
+static ppl7::String to7(const ppl6::CString& str)
 {
-	return ppl7::String(str.GetPtr(),str.Size());
+	return ppl7::String(str.GetPtr(), str.Size());
 }
 
-static ppl7::DateTime to7(const ppl6::CDateTime &date)
+static ppl7::DateTime to7(const ppl6::CDateTime& date)
 {
 	ppl7::DateTime d;
 	d.setLongInt(date.longInt());
 	return d;
 }
 
-static ppl6::CDateTime to6(const ppl7::DateTime &date)
+static ppl6::CDateTime to6(const ppl7::DateTime& date)
 {
 	ppl6::CDateTime d;
 	d.setLongInt(date.longInt());
 	return d;
 }
 
-static ppl7::AssocArray to7(const ppl6::CAssocArray &arr)
+static ppl7::AssocArray to7(const ppl6::CAssocArray& arr)
 {
-	ppl6::CBinary *bin=arr.ExportBinary();
-	if (bin)  {
+	ppl6::CBinary* bin=arr.ExportBinary();
+	if (bin) {
 		try {
 			ppl7::AssocArray a7;
-			a7.importBinary(bin->GetPtr(),bin->Size());
+			a7.importBinary(bin->GetPtr(), bin->Size());
 			delete bin;
 			return a7;
 		} catch (...) {
