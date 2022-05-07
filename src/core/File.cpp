@@ -1863,6 +1863,13 @@ String File::getFilename(const String & path)
 	return path.mid(pos);
 }
 
+String File::getSuffix(const String & path)
+{
+	Array Token(path, ".");
+	return Token.get(-1);
+}
+
+
 
 bool File::isDir(const String & filename)
 {
