@@ -1,14 +1,8 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -1682,34 +1676,8 @@ String File::md5Hash(const String & filename)
 	return ff.md5();
 }
 
-
-/*!\brief Informationen zu einer Datei oder Verzeichnis
- *
- * \desc
- * Mit dieser statischen Funktion können Informationen zur Datei oder
- * Verzeichnis \p filename ausgelesen werden. Das Ergebnis wird in
- * \p result gespeichert.
- *
- * @param filename Dateiname
- * @param result Objekt, in dem die Daten gespeichert werden
- * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
- * \throw NullPointerException: Wird geworfen, wenn \p filename auf NULL zeigt
- * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
- */
-void File::statFile(const String & filename, DirEntry & result)
+static void getResultFromStat(struct stat& st, DirEntry & result, const ppl7::String & filename)
 {
-	if (filename.isEmpty()) throw IllegalArgumentException();
-#ifdef WIN32
-	struct _stat st;
-	String File=filename;
-	File.replace("/", "\\");
-	if (_wstat((const wchar_t*)WideString(File), &st) != 0) throwErrno(errno, filename);
-#elif defined HAVE_STAT
-	struct stat st;
-	if (::stat((const char*)filename, &st) != 0) throwErrno(errno, filename);
-#else
-	throw UnsupportedFeatureException("File::statFile");
-#endif
 	result.ATime.setTime_t(st.st_atime);
 	result.CTime.setTime_t(st.st_ctime);
 	result.MTime.setTime_t(st.st_mtime);
@@ -1778,11 +1746,76 @@ void File::statFile(const String & filename, DirEntry & result)
 	if (result.Attrib & FileAttr::OTH_EXECUTE) result.AttrStr.set(9, 'x');
 }
 
+/*!\brief Informationen zu einer Datei oder Verzeichnis
+ *
+ * \desc
+ * Mit dieser statischen Funktion können Informationen zur Datei oder
+ * Verzeichnis \p filename ausgelesen werden. Das Ergebnis wird in
+ * \p result gespeichert.
+ *
+ * @param filename Dateiname
+ * @param result Objekt, in dem die Daten gespeichert werden
+ * \return Kein Returnwert. Im Fehlerfall wird eine Exception geworfen.
+ * \throw NullPointerException: Wird geworfen, wenn \p filename auf NULL zeigt
+ * \throw FileNotFoundException: Datei oder Verzeichnis nicht vorhanden
+ */
+void File::statFile(const String & filename, DirEntry & result)
+{
+	if (filename.isEmpty()) throw IllegalArgumentException();
+#ifdef WIN32
+	struct _stat st;
+	String File=filename;
+	File.replace("/", "\\");
+	if (_wstat((const wchar_t*)WideString(File), &st) != 0) throwErrno(errno, filename);
+#elif defined HAVE_STAT
+	struct stat st;
+	if (::stat((const char*)filename, &st) != 0) throwErrno(errno, filename);
+#else
+	throw UnsupportedFeatureException("File::statFile");
+#endif
+	getResultFromStat(st, result, filename);
+
+}
+
 DirEntry File::statFile(const String & filename)
 {
 	DirEntry e;
 	File::statFile(filename, e);
 	return e;
+}
+
+/*\brief Informationen zu einer Datei oder Verzeichnis
+ *
+ * \desc
+ * Diese Funktion liefert true zurück, wenn die gesuchte Datei existiert und deren
+ * Eigenschaften ermittelt werden konnten. In \p result sind dann die Eigenschaften zu
+ * finden.
+ *
+ * @param[in] filename Dateiname
+ * @param[out] result Objekt mit dem Ergebnis
+ *
+ * \return true oder false
+ * \throw UnsupportedFeatureException wird geworfen, wenn die stat-Methode vom System
+ * nicht unterstützt wird
+ *
+ */
+bool File::stat(const String & filename, DirEntry & result)
+{
+	if (filename.isEmpty()) return false;
+	if (!File::exists(filename)) return false;
+#ifdef WIN32
+	struct _stat st;
+	String File=filename;
+	File.replace("/", "\\");
+	if (_wstat((const wchar_t*)WideString(File), &st) != 0) return false;
+#elif defined HAVE_STAT
+	struct stat st;
+	if (::stat((const char*)filename, &st) != 0) return false;
+#else
+	throw UnsupportedFeatureException("File::stat");
+#endif
+	getResultFromStat(st, result, filename);
+	return true;
 }
 
 
