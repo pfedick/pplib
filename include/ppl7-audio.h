@@ -226,6 +226,8 @@ public:
 
 	void load(const String& filename);
 	void load(FileObject& file);
+	bool loaded(const String& filename);
+	bool loaded(FileObject& file);
 	void clearTags();
 	void clear();
 	void save();
