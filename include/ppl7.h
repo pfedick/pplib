@@ -1228,6 +1228,11 @@ public:
 	void	print(PRIORITY prio, int level, const String& text);
 	void	print(PRIORITY prio, int level, const char* file, int line, const String& text);
 	void	print(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const String& text);
+	void	printf(const String& text, ...);
+	void	printf(int level, const String& text, ...);
+	void	printf(PRIORITY prio, int level, const String& text, ...);
+	void	printf(PRIORITY prio, int level, const char* file, int line, const String& text, ...);
+	void	printf(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const String& text, ...);
 	void	printArray(PRIORITY prio, int level, const AssocArray& a, const String& text);
 	void	printArray(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const AssocArray& a, const String& text);
 	void	printArraySingleLine(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const AssocArray& a, const String& text);
