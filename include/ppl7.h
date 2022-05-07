@@ -880,6 +880,7 @@ public:
 	~Dir();
 	void open(const char* path, Sort s=SORT_NONE);
 	void open(const String& path, Sort s=SORT_NONE);
+	bool tryOpen(const String& path, Sort s=SORT_NONE);
 	void resort(Sort s);
 	void clear();
 	size_t num() const;
