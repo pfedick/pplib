@@ -244,6 +244,7 @@ void Logger::setLogfile(PRIORITY prio, const String& filename)
 		if (filename.notEmpty()) {
 			logfilename[prio]=filename;
 			logff[prio].open(filename, File::APPEND);
+			mutex.unlock();
 			print(prio, 0, "ppl7::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
 		}
 	} catch (...) {
@@ -262,6 +263,7 @@ void Logger::setLogfile(PRIORITY prio, const String& filename, int level)
 		if (filename.notEmpty()) {
 			logfilename[prio]=filename;
 			logff[prio].open(filename, File::APPEND);
+			mutex.unlock();
 			print(prio, 0, "ppl7::Logger", "SetLogfile", __FILE__, __LINE__, ToString("=== Logfile started for %s", prioritylist[prio]));
 		}
 	} catch (...) {
