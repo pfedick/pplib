@@ -756,7 +756,7 @@ public:
 	static void save(const ByteArrayPtr& object, const String& filename);
 	static void chmod(const String& filename, FileAttr::Attributes attr);
 	static void statFile(const String& filename, DirEntry& result);
-	static bool stat(const String& filename, DirEntry& result);
+	static bool tryStatFile(const String& filename, DirEntry& result);
 	static DirEntry statFile(const String& filename);
 	static String getPath(const String& path);
 	static String getFilename(const String& path);

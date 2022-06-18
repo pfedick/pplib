@@ -412,29 +412,15 @@
 #endif
 #endif
 
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN		// Keine MFCs
-#define _WIN32_WINNT 0x0600
-// Ab Visual Studio 2005 (Visual C++ 8.0) gibt es einige �nderungen
-#if _MSC_VER >= 1400
-#define _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_DEPRECATE
-#define _AFX_SECURE_NO_DEPRECATE
-#define _ATL_SECURE_NO_DEPRECATE
-#pragma warning(disable : 4996)
-#pragma warning(disable : 4800)
+#endif
 
-/*
-#define unlink _unlink
-#define strdup _strdup
-#define fileno _fileno
-#define mkdir _mkdir
-#define open _open
-#define close _close
-#define read _read
-*/
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x0600
 #endif
-//#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
-//#include <windows.h>
-#endif
+
+#endif	// _WIN32
+
 
 #endif

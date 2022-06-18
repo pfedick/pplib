@@ -1803,7 +1803,7 @@ DirEntry File::statFile(const String & filename)
  * nicht unterstützt wird
  *
  */
-bool File::stat(const String & filename, DirEntry & result)
+bool File::tryStatFile(const String & filename, DirEntry & result)
 {
 	if (filename.isEmpty()) return false;
 	if (!File::exists(filename)) return false;
