@@ -1676,7 +1676,11 @@ String File::md5Hash(const String & filename)
 	return ff.md5();
 }
 
+#ifdef WIN32
+static void getResultFromStat(struct _stat& st, DirEntry & result, const ppl7::String & filename)
+#else
 static void getResultFromStat(struct stat& st, DirEntry & result, const ppl7::String & filename)
+#endif
 {
 	result.ATime.setTime_t(st.st_atime);
 	result.CTime.setTime_t(st.st_ctime);
