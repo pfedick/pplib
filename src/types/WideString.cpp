@@ -544,7 +544,7 @@ WideString & WideString::set(const char *str, size_t size)
 		GlobalEncoding="WINDOWS-1252";
 	}
 #endif
-#ifndef WIN32
+//#ifndef WIN32
 #ifdef HAVE_MBSTOWCS
 	if (GlobalEncoding.instrCase("UTF-8")>=0
 			|| GlobalEncoding.instrCase("UTF8")>=0
@@ -559,6 +559,7 @@ WideString & WideString::set(const char *str, size_t size)
 		if (ret==(size_t) -1) {
 			((wchar_t*)ptr)[0]=0;
 			stringlen=0;
+			//printf ("BAENG!\n");
 			throw CharacterEncodingException();
 		}
 		((wchar_t*)ptr)[ret]=0;
@@ -566,7 +567,7 @@ WideString & WideString::set(const char *str, size_t size)
 		return *this;
 	}
 #endif
-#endif
+//#endif
 #ifdef HAVE_ICONV
 	//printf ("DEBUG: ICONV: %s\n",(const char*)GlobalEncoding);
 	iconv_t iconvimport=iconv_open(ICONV_UNICODE,(const char*)GlobalEncoding);
@@ -583,6 +584,7 @@ WideString & WideString::set(const char *str, size_t size)
 		((wchar_t*)ptr)[0]=0;
 		stringlen=0;
 		//SetError(289,"%s",strerror(errno));
+		//printf ("BAENG!\n");
 		throw CharacterEncodingException();
 	}
 	((wchar_t*)outbuf)[0]=0;
