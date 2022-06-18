@@ -1156,7 +1156,10 @@ void ID3Tag::setBPM(const String& bpm)
 
 void ID3Tag::setKey(const String& key)
 {
-	setTextFrame("TKEY", key, ENC_USASCII);
+	String k=key;
+	k.replace("♯", "#");
+	k.replace("♭", "b");
+	setTextFrame("TKEY", k, ENC_USASCII);
 }
 
 /*!\brief Erscheinungsjahr des Titels setzen
