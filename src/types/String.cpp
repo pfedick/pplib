@@ -817,9 +817,9 @@ String & String::setf(const char *fmt, ...)
 	va_start(args, fmt);
 	char *buff=NULL;
 #ifdef HAVE_VASPRINTF
-	if (::vasprintf (&buff, (char*)fmt, args)>0 && buff>=0) {
+	if (::vasprintf (&buff, (char*)fmt, args)>=0 && buff!=NULL) {
 #else
-	if (compat::vasprintf (&buff, (char*)fmt, args)>0 && buff>=0) {
+	if (compat::vasprintf (&buff, (char*)fmt, args)>=0 && buff!=NULL) {
 #endif
 		try {
 			set(buff);
@@ -880,9 +880,9 @@ String & String::vasprintf(const char *fmt, va_list args)
 {
 	char *buff=NULL;
 #ifdef HAVE_VASPRINTF
-	if (::vasprintf (&buff, (char*)fmt, args)>0 && buff>=0) {
+	if (::vasprintf (&buff, (char*)fmt, args)>=0 && buff!=NULL) {
 #else
-	if (compat::vasprintf (&buff, (char*)fmt, args)>0 && buff>=0) {
+	if (compat::vasprintf (&buff, (char*)fmt, args)>=0 && buff!=NULL) {
 #endif
 		try {
 			set(buff);
@@ -1096,9 +1096,9 @@ String & String::appendf(const char *fmt, ...)
 	va_start(args, fmt);
 	char *buff=NULL;
 #ifdef HAVE_VASPRINTF
-	if (::vasprintf (&buff, (const char*)fmt, args)>0 && buff>=0) {
+	if (::vasprintf (&buff, (const char*)fmt, args)>=0 && buff!=NULL) {
 #else
-	if (compat::vasprintf (&buff, (const char*)fmt, args)>0 && buff>=0) {
+	if (compat::vasprintf (&buff, (const char*)fmt, args)>=0 && buff!=NULL) {
 #endif
 		try {
 			String a;
@@ -1316,9 +1316,9 @@ String & String::prependf(const char *fmt, ...)
 	va_start(args, fmt);
 	char *buff=NULL;
 #ifdef HAVE_VASPRINTF
-	if (::vasprintf (&buff, (const char*)fmt, args)>0 && buff!=NULL) {
+	if (::vasprintf (&buff, (const char*)fmt, args)>=0 && buff!=NULL) {
 #else
-	if (compat::vasprintf (&buff, (const char*)fmt, args)>0 && buff!=NULL) {
+	if (compat::vasprintf (&buff, (const char*)fmt, args)>=0 && buff!=NULL) {
 #endif
 		try {
 			String a;
