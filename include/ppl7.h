@@ -1322,8 +1322,8 @@ public:
 	void transcode(const ByteArrayPtr& from, ByteArray& to);
 	void transcode(const String& from, String& to);
 	String transcode(const String& from);
-	//void transcode(const WideString &from, String &to);
-	//void transcode(const String &from, WideString &to);
+	static String fromUnicode(const WideString &from, const String& toEncoding);
+	static WideString toUnicode(const String &from, const String& fromEncoding);
 	static void enumerateCharsets(Array& list);
 	static void enumerateCharsets(std::list<ppl7::String>& list);
 	static String getLocalCharset();

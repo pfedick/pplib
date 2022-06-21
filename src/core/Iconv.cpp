@@ -390,6 +390,22 @@ String Iconv::LocalToUtf8(const String &text)
 	return iconv.transcode(text);
 }
 
+String Iconv::fromUnicode(const WideString &from, const String& toEncoding)
+{
+	Iconv iconv(ICONV_UNICODE,toEncoding);
+	ByteArray buffer;
+	iconv.transcode(ByteArrayPtr(from.getPtr(),from.size()*sizeof(wchar_t)), buffer);
+	return String((const char*)buffer.ptr(),buffer.size());
+}
+
+WideString Iconv::toUnicode(const String &from, const String& fromEncoding)
+{
+	Iconv iconv(fromEncoding, ICONV_UNICODE);
+	ByteArray buffer;
+	iconv.transcode(ByteArrayPtr(from.getPtr(),from.size()), buffer);
+	return WideString((const wchar_t*)buffer.ptr(),buffer.size()/sizeof(wchar_t));
+}
+
 
 
 
