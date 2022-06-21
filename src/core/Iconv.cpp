@@ -359,7 +359,7 @@ void Iconv::enumerateCharsets(std::list<ppl7::String> &list)
 
 String Iconv::getLocalCharset()
 {
-	char *locale=setlocale(LC_CTYPE,NULL);
+	const char *locale=String::getGlobalEncoding();
 	if (!locale) {
 		throw CharacterEncodingException();
 	}
@@ -375,7 +375,8 @@ String Iconv::getLocalCharset()
 		return loc.mid(p+1);
 #endif
 	}
-	throw CharacterEncodingException();
+	return loc;
+	//throw CharacterEncodingException();
 }
 
 String Iconv::Utf8ToLocal(const String &text)
