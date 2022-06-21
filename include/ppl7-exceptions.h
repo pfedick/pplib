@@ -225,11 +225,8 @@ PPL7EXCEPTION(UnrecoverableErrorException, IOException);			// WSANO_RECOVERY
 PPL7EXCEPTION(ObjectNotInSignaledStateException, IOException);		// WSA_IO_INCOMPLETE
 PPL7EXCEPTION(OverlappedOperationPendingException, IOException);	// WSA_IO_PENDING
 PPL7EXCEPTION(QoSException, IOException);							// Windows WSA_QOS_*
-
-
-
-
 PPL7EXCEPTION(BufferExceedsLimitException, IOException);
+PPL7EXCEPTION(CouldNotOpenDirectoryException, IOException);
 
 //@}
 
