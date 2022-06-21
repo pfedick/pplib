@@ -1071,26 +1071,46 @@ void Dir::open(const String & path, Sort s)
  */
 void Dir::open(const char* path, Sort s)
 {
-#ifdef TODO_WIN32
-	HANDLE hFind;
-	WIN32_FIND_DATA FindFileData;
-
-	if ((hFind = FindFirstFile("C:/some/folder/*.txt", &FindFileData)) != INVALID_HANDLE_VALUE) {
-		do {
-			printf("%s\n", FindFileData.cFileName);
-		} while (FindNextFile(hFind, &FindFileData));
-		FindClose(hFind);
-	}
-#endif
-
-
-#ifdef HAVE_OPENDIR
 	clear();
 	sort=s;
 	Path=path;
 	Path.trim();
 	Path.trimRight("/");
 	Path.trimRight("\\");
+#ifdef WIN32
+	{
+		HANDLE hFind;
+		WIN32_FIND_DATAW FindFileData;
+		ppl7::WideString w_path(Path);
+		ppl7::WideString path_pattern=w_path+L"/*";
+
+		if ((hFind = FindFirstFileW((const wchar_t*)path_pattern, &FindFileData)) == INVALID_HANDLE_VALUE) {
+			throw CouldNotOpenDirectoryException("%s", (const char*)Path);
+		}
+		DirEntry de;
+		WideString CurrentFile;
+		do {
+			CurrentFile=w_path+L"/";
+			CurrentFile+=FindFileData.cFileName;
+			//printf ("found: %ls\n",(const wchar_t*)CurrentFile);
+			//CurrentFile.hexDump();
+			try {
+				File::statFile(CurrentFile, de);
+				Files.add(de);
+				//printf ("stat ok: %s\n",(const char*)de.Filename);
+				//de.Filename.hexDump();
+			} catch (...) {
+
+			}
+		} while (FindNextFileW(hFind, &FindFileData) == true);
+		FindClose(hFind);
+		resort(sort);
+		return;
+	}
+#endif
+
+
+#ifdef HAVE_OPENDIR
 	DIR* dir=opendir((const char*)Path);
 	if (!dir) {
 		File::throwErrno(errno, path);
@@ -1102,6 +1122,7 @@ void Dir::open(const char* path, Sort s)
 		if (result == NULL) break;
 		CurrentFile=Path + "/" + String(result->d_name);
 		//ppl7::PrintDebugTime ("DEBUG: CurrentFile=%s\n",(const char*)CurrentFile);
+		//CurrentFile.hexDump();
 		try {
 			File::statFile(CurrentFile, de);
 			Files.add(de);
