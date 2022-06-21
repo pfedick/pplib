@@ -592,6 +592,20 @@ String & String::set(const wchar_t *str, size_t size)
 		clear();
 		return *this;
 	}
+	size_t inchars;
+	if (size!=(size_t)-1) inchars=size;
+	else inchars=wcslen(str);
+	size_t inbytes=inchars*sizeof(wchar_t);
+
+
+	String GlobalEncoding=String::getGlobalEncoding();
+#ifdef WIN32
+	if (GlobalEncoding.instr(".1252")>0)  {
+		GlobalEncoding="WINDOWS-1252";
+	}
+#endif
+
+#ifndef WIN32
 	wchar_t *tmpbuffer=NULL;
 	size_t inbytes;
 	if (size!=(size_t)-1) {
@@ -623,17 +637,6 @@ String & String::set(const wchar_t *str, size_t size)
 		}
 	}
 #ifdef HAVE_WCSTOMBS_S
-	// ptr=char* ziel
-	// str=wchar_t *quelle
-	// s=Size von ziel
-	/*errno_t wcstombs_s(
-   size_t *pReturnValue,
-   char *mbstr,
-   size_t sizeInBytes,
-   const wchar_t *wcstr,
-   size_t count
-);
-	*/
 	wcstombs_s(&stringlen, ptr, s, str, s);
 
 #else
@@ -645,6 +648,16 @@ String & String::set(const wchar_t *str, size_t size)
 		throw CharacterEncodingException();
 	}
 	return *this;
+#endif
+#ifdef HAVE_ICONV
+	Iconv iconv(ICONV_UNICODE, GlobalEncoding);
+	ByteArray buffer(inbytes+4);
+	iconv.transcode(ByteArrayPtr(str,inbytes), buffer);
+	set((const char*)buffer.ptr(),buffer.size());
+	return *this;
+#else
+	throw UnsupportedFeatureException();
+#endif
 }
 
 /*!\brief String anhand eines String-Pointers setzen
