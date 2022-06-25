@@ -285,8 +285,12 @@ static int64_t FindNextHeader(FileObject &file, int64_t pos, PPL_MPEG_HEADER *mp
 	mapsize=filesize-pos;
 	if (mapsize<16) return -1;
 	if (mapsize>1024) mapsize=1024;
-	buffer=file.map(pos,mapsize);
-	if (!buffer) return -1;
+	try {
+		buffer=file.map(pos,mapsize);
+		if (!buffer) return -1;
+	} catch (...) {
+		return -1;
+	}
 	p=0;
 	//printf ("FindNextHeader ab Pos: %llu\n",pos+p);
 	// Jetzt den ersten MP3-Header suchen
@@ -354,8 +358,12 @@ static int64_t FindNextHeader(FileObject &file, int64_t pos, PPL_MPEG_HEADER *mp
 			mapsize=filesize-pos;
 			if (mapsize<16) return -1;
 			if (mapsize>1024) mapsize=1024;
-			buffer=file.map(pos,mapsize);
-			if (!buffer) return -1;
+			try {
+				buffer=file.map(pos,mapsize);
+				if (!buffer) return -1;
+			} catch (...) {
+				return -1;
+			}
 			p=0;
 		}
 	}
