@@ -242,5 +242,18 @@ void Window::paint(Drawable &draw)
 	draw.cls(myBackground);
 }
 
+void Window::setPos(int x, int y)
+{
+	Widget::setPos(x,y);
+	if (wm) {
+		wm->setWindowPosition(*this,x,y);
+	}
+}
+
+void Window::setPos(const Point& p)
+{
+	setPos(p.x, p.y);
+}
+
 }	// EOF namespace tk
 }	// EOF namespace ppl7

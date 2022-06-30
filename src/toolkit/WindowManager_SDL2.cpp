@@ -485,6 +485,17 @@ void WindowManager_SDL2::destroyWindow(Window &w)
 #endif
 }
 
+void WindowManager_SDL2::setWindowPosition(Window& w, int x, int y)
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	SDL_WINDOW_PRIVATE *priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
+	if (!priv) return;
+	SDL_SetWindowPosition(priv->win,x,y);
+#endif
+}
+
 size_t WindowManager_SDL2::numWindows()
 {
 	return windows.size();

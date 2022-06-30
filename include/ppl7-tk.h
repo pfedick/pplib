@@ -522,6 +522,9 @@ public:
 	const RGBFormat& rgbFormat() const;
 	void setRGBFormat(const RGBFormat& format);
 
+	void setPos(int x, int y);
+	void setPos(const Point& p);
+
 	const Color& backgroundColor() const;
 	void setBackgroundColor(const Color& c);
 
@@ -573,6 +576,7 @@ public:
 
 	virtual void createWindow(Window& w) = 0;
 	virtual void destroyWindow(Window& w) = 0;
+	virtual void setWindowPosition(Window& w, int x, int y) =0;
 
 	virtual const Size& desktopResolution() const =0;
 	virtual const RGBFormat& desktopRGBFormat() const =0;
@@ -619,6 +623,7 @@ public:
 	//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface);
 	virtual void createWindow(Window& w);
 	virtual void destroyWindow(Window& w);
+	virtual void setWindowPosition(Window& w, int x, int y);
 
 	virtual const Size& desktopResolution() const;
 	virtual const RGBFormat& desktopRGBFormat() const;
