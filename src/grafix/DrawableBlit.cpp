@@ -149,6 +149,32 @@ static int Blt_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rec
 	return 1;
 }
 
+#ifdef __LITTLE_ENDIAN__
+	union Pixel32_t{
+		struct { uint8_t red, green, blue, alpha; };
+		uint32_t c;
+	};
+#else
+	union Pixel32_t{
+		struct { uint8_t alpha, red, green, blue; };
+		uint32_t c;
+	};
+#endif
+
+static inline Pixel32_t GetColorBltAlphablend_32 (Pixel32_t ground, Pixel32_t top)
+{
+	Pixel32_t result;
+	result.alpha=255-((255-ground.alpha)*(255-top.alpha)/255);
+	uint8_t areverse=255-top.alpha;
+	// red   = (colorRGBA1[0] * (255 - colorRGBA2[3]) + colorRGBA2[0] * colorRGBA2[3]) / 255
+	result.red=(ground.red * areverse+top.red*top.alpha)/255;
+	result.green=(ground.green * areverse+top.green*top.alpha)/255;
+	result.blue=(ground.blue * areverse+top.blue*top.alpha)/255;
+	return result;
+
+}
+
+
 static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, const Rect &srect, int x, int y)
 {
 #ifdef HAVE_X86_ASSEMBLER
@@ -164,22 +190,17 @@ static int BltAlpha_32 (DRAWABLE_DATA &target, const DRAWABLE_DATA &source, cons
 	}
 	return 0;
 #endif
-	uint32_t alpha1,psrc;
-	uint32_t *src, *tgt;
-	src=(uint32_t*)adr(source,srect.left(),srect.top());
-	tgt=(uint32_t*)adr(target,x,y);
+	Pixel32_t *src, *tgt;
+	src=(Pixel32_t*)adr(source,srect.left(),srect.top());
+	tgt=(Pixel32_t*)adr(target,x,y);
 	int width=srect.width();
 	int yy, xx;
-	if (!alphatab) return 0;
-
 	for (yy=0;yy<srect.height();yy++) {
 		for (xx=0;xx<width;xx++) {
-			psrc=src[xx];
-			if (psrc) {
-				if ((psrc&0xff000000)==0xff000000) tgt[xx]=psrc;
+			if (src[xx].c) {
+				if (src[xx].alpha==0xff) tgt[xx]=src[xx];
 				else {
-					alpha1=psrc>>24;
-					tgt[xx]=target.fn->RGBBlend255(tgt[xx],psrc,alpha1)|0xff000000;
+					tgt[xx]=GetColorBltAlphablend_32(tgt[xx],src[xx]);
 				}
 			}
 		}
