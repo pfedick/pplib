@@ -153,6 +153,12 @@ void AudioDecoder_MP3::seekSample(size_t sample)
 {
 	if (sample==0) {
 		ff->seek(info.AudioStart);
+		out_offset=0;
+		out_size=0;
+		#ifdef HAVE_MPG123
+		off_t input_offset=0;
+		mpg123_feedseek((mpg123_handle*)decoder,0,SEEK_SET,&input_offset);
+		#endif
 		return;
 	}
 	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3::seekSample");
