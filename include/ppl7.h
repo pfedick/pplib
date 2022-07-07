@@ -908,6 +908,7 @@ public:
 	static String tempPath();
 
 	static bool exists(const String& dirname);
+	static bool canOpen(const String& path);
 	static void mkDir(const String& path);
 	static void mkDir(const String& path, bool recursive);
 	static void mkDir(const String& path, mode_t mode, bool recursive);

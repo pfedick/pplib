@@ -1715,7 +1715,6 @@ static void getResultFromStat(struct stat& st, DirEntry & result, const ppl7::St
 	if (st.st_mode & _S_IREAD) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
 	if (st.st_mode & _S_IWRITE) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
 	if (st.st_mode & _S_IEXEC) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_EXECUTE);
-	//printf ("filename: %s, st_mode=%d\n",(const char*)filename,st.st_mode);
 #else
 	if (st.st_mode & S_IRUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
 	if (st.st_mode & S_IWUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);

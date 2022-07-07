@@ -1083,7 +1083,7 @@ void Dir::open(const char* path, Sort s)
 		WIN32_FIND_DATAW FindFileData;
 		ppl7::WideString w_path(Path);
 		ppl7::WideString path_pattern=w_path+L"/*";
-
+		path_pattern.replace(L"/",L"\\");
 		if ((hFind = FindFirstFileW((const wchar_t*)path_pattern, &FindFileData)) == INVALID_HANDLE_VALUE) {
 			throw CouldNotOpenDirectoryException("%s", (const char*)Path);
 		}
@@ -1094,6 +1094,10 @@ void Dir::open(const char* path, Sort s)
 			CurrentFile+=FindFileData.cFileName;
 			//printf ("found: %ls\n",(const wchar_t*)CurrentFile);
 			//CurrentFile.hexDump();
+			//printf ("dirwalk dwFileAttributes: %ls: %ld\n",(const wchar_t*)CurrentFile, FindFileData.dwFileAttributes);
+			if (FindFileData.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT) continue;
+			if (FindFileData.dwFileAttributes&FILE_ATTRIBUTE_HIDDEN) continue;
+
 			try {
 				File::statFile(CurrentFile, de);
 				Files.add(de);
@@ -1135,6 +1139,36 @@ void Dir::open(const char* path, Sort s)
 #else
 	throw UnsupportedFeatureException("Dir::open");
 #endif
+}
+
+bool Dir::canOpen(const String& path)
+{
+	ppl7::String CheckPath=path;
+	CheckPath.trim();
+	CheckPath.trimRight("/");
+	CheckPath.trimRight("\\");
+#ifdef WIN32
+	{
+		HANDLE hFind;
+		WIN32_FIND_DATAW FindFileData;
+		ppl7::WideString w_path(CheckPath);
+		ppl7::WideString path_pattern=w_path+L"/*";
+		path_pattern.replace(L"/",L"\\");
+		if ((hFind = FindFirstFileW((const wchar_t*)path_pattern, &FindFileData)) == INVALID_HANDLE_VALUE) {
+			return false;
+		}
+		FindClose(hFind);
+		return true;
+	}
+
+#endif
+#ifdef HAVE_OPENDIR
+	DIR* dir=opendir((const char*)CheckPath);
+	if (!dir) return false;
+	closedir(dir);
+	return true;
+#endif
+	return false;
 }
 
 bool Dir::tryOpen(const String & path, Sort s)
