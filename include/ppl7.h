@@ -906,6 +906,8 @@ public:
 	static String currentPath();
 	static String homePath();
 	static String tempPath();
+	static String applicationDataPath();
+	static String applicationDataPath(const String &company, const String &application);
 
 	static bool exists(const String& dirname);
 	static bool canOpen(const String& path);

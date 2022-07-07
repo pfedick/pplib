@@ -86,6 +86,7 @@
 #define WIN32_LEAN_AND_MEAN		// Keine MFCs
 #include <windows.h>
 #include <direct.h>
+#include <shlobj.h>
 #endif
 #include "ppl7.h"
 
@@ -328,12 +329,23 @@ String Dir::homePath()
  */
 String Dir::tempPath()
 {
-#ifdef _WIN32
-	TCHAR TempPath[MAX_PATH];
-	GetTempPath(MAX_PATH, TempPath);
-	String s;
-	s.set(TempPath);
-	return s;
+#ifdef WIN32
+	wchar_t *buffer=(wchar_t*)malloc(MAX_PATH*sizeof(wchar_t));
+	if (!buffer) throw OutOfMemoryException();
+	DWORD ret=GetTempPathW(MAX_PATH,buffer);
+	if (ret>MAX_PATH) {
+		free(buffer);
+		buffer=(wchar_t*)malloc(ret*sizeof(wchar_t));
+		if (!buffer) throw OutOfMemoryException();
+		ret=GetTempPathW(ret,buffer);
+	}
+	if (!ret) {
+		free(buffer);
+		return String();
+	}
+	WideString s(buffer);
+	free(buffer);
+	return String(s);
 #endif
 	const char* dir = getenv("TMPDIR");
 	if (dir != NULL && strlen(dir) > 0) return String(dir);
@@ -342,6 +354,36 @@ String Dir::tempPath()
 #endif
 	if (dir != NULL && strlen(dir) > 0) return String(dir);
 	return String("/tmp");
+}
+
+
+String Dir::applicationDataPath()
+{
+	String path;
+#ifdef WIN32
+	wchar_t *p=_wgetenv(L"LOCALAPPDATA");
+	if (!p) throw KeyNotFoundException("LOCALAPPDATA");
+	WideString wpath(p);
+	path=String(wpath);
+#else
+	path=homePath()+"/.config";
+#endif
+	path.replace("//","/");
+#ifdef WIN32
+	path.replace("/","\\");
+#endif
+	return path;
+}
+
+String Dir::applicationDataPath(const String &company, const String &application)
+{
+	String path=Dir::applicationDataPath();
+	path+="/"+company+"/"+application;
+	path.replace("//","/");
+#ifdef WIN32
+	path.replace("/","\\");
+#endif
+	return path;
 }
 
 
