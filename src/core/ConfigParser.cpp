@@ -56,7 +56,7 @@
 namespace ppl7 {
 
 typedef struct tagSections {
-	struct tagSections *last, *next;
+	struct tagSections* last, * next;
 	String name;
 	AssocArray values;
 } SECTION;
@@ -121,14 +121,14 @@ ConfigParser::ConfigParser()
 	first=last=section=NULL;
 }
 
-ConfigParser::ConfigParser(const String &filename)
+ConfigParser::ConfigParser(const String& filename)
 {
 	setSeparator("=");
 	first=last=section=NULL;
 	load(filename);
 }
 
-ConfigParser::ConfigParser(FileObject &file)
+ConfigParser::ConfigParser(FileObject& file)
 {
 	setSeparator("=");
 	first=last=section=NULL;
@@ -143,37 +143,37 @@ ConfigParser::~ConfigParser()
 void ConfigParser::unload()
 {
 	sections.clear();
-	SECTION *s=(SECTION *)first;
+	SECTION* s=(SECTION*)first;
 	while (s) {
 		s=s->next;
-		delete ((SECTION *)first);
+		delete ((SECTION*)first);
 		first=s;
 	}
 	section=first=last=NULL;
 }
 
-void ConfigParser::setSeparator(const String &string)
+void ConfigParser::setSeparator(const String& string)
 {
 	separator=string;
 	if (separator.isEmpty()) separator="=";
 }
 
-const String &ConfigParser::getSeparator() const
+const String& ConfigParser::getSeparator() const
 {
 	return separator;
 }
 
-void ConfigParser::selectSection(const String &sectionname)
+void ConfigParser::selectSection(const String& sectionname)
 {
 	section=findSection(sectionname);
 	if (!section) throw UnknownSectionException(sectionname);
 }
 
-void *ConfigParser::findSection(const String &sectionname) const
+void* ConfigParser::findSection(const String& sectionname) const
 {
-	SECTION *s=(SECTION *)first;
+	SECTION* s=(SECTION*)first;
 	while (s) {
-		if (sectionname.strCaseCmp(s->name)==0) return (void *) s;
+		if (sectionname.strCaseCmp(s->name) == 0) return (void*)s;
 		s=s->next;
 	}
 	return NULL;
@@ -188,23 +188,27 @@ int ConfigParser::firstSection()
 
 int ConfigParser::nextSection()
 {
-	SECTION *s=(SECTION *)section;
+	SECTION* s=(SECTION*)section;
 	if (!s) return 0;
 	section=s->next;
 	if (!section) return 0;
 	return 1;
 }
 
-const String & ConfigParser::getSectionName() const
+const String& ConfigParser::getSectionName() const
 {
 	if (!section) throw NoSectionSelectedException();
 	return ((SECTION*)section)->name;
 }
 
-
-void ConfigParser::createSection(const String &sectionname)
+void ConfigParser::createSection(const String& sectionname)
 {
-	SECTION *s;
+	setSection(sectionname);
+}
+
+void ConfigParser::setSection(const String& sectionname)
+{
+	SECTION* s;
 	s=(SECTION*)findSection(sectionname);
 	if (s) {			// Section existiert bereits
 		section=s;
@@ -217,194 +221,201 @@ void ConfigParser::createSection(const String &sectionname)
 	}
 	s->name=sectionname;
 	s->next=NULL;
-	s->last=(SECTION *) last;				// In die Kette haengen
-	if (last) ((SECTION *)last)->next=s;
+	s->last=(SECTION*)last;				// In die Kette haengen
+	if (last) ((SECTION*)last)->next=s;
 	last=s;
 	if (!first) first=s;
 	section=s;
 }
 
-void ConfigParser::deleteSection(const String &sectionname)
+void ConfigParser::deleteSection(const String& sectionname)
 {
-	SECTION *s=(SECTION *)findSection(sectionname);
+	SECTION* s=(SECTION*)findSection(sectionname);
 	if (!s) return;
 	if (s->last) s->last->next=s->next;		// aus der Kette nehmen
 	if (s->next) s->next->last=s->last;
-	if (s==(SECTION *)last) last=s->last;
-	if (s==(SECTION *)first) first=s->next;
+	if (s == (SECTION*)last) last=s->last;
+	if (s == (SECTION*)first) first=s->next;
 	delete(s);
-	if(s==section) section=NULL;
+	if (s == section) section=NULL;
 }
 
 void ConfigParser::reset()
 {
 	if (!section) return;
-	return ((SECTION *)section)->values.reset(it);
+	return ((SECTION*)section)->values.reset(it);
 }
 
-bool ConfigParser::getFirst(String &key, String &value)
+bool ConfigParser::getFirst(String& key, String& value)
 {
 	if (!section) return false;
-	return ((SECTION *)section)->values.getFirst(it,key,value);
+	return ((SECTION*)section)->values.getFirst(it, key, value);
 }
 
-bool ConfigParser::getNext(String &key, String &value)
+bool ConfigParser::getNext(String& key, String& value)
 {
 	if (!section) return false;
-	return ((SECTION *)section)->values.getNext(it,key,value);
+	return ((SECTION*)section)->values.getNext(it, key, value);
 }
 
-void ConfigParser::add(const String &section, const String &key, const String &value)
+void ConfigParser::add(const String& section, const String& key, const String& value)
 {
-	SECTION *s=(SECTION *)findSection(section);
+	SECTION* s=(SECTION*)findSection(section);
 	if (!s) {
 		createSection(section);
-		s=(SECTION *)findSection(section);
+		s=(SECTION*)findSection(section);
 		if (!s) throw UnknownSectionException(section);
 	}
-	s->values.append(key,value,"\n");
+	s->values.append(key, value, "\n");
 }
 
-void ConfigParser::add(const String &section, const String &key, const char *value)
+void ConfigParser::add(const String& section, const String& key, const char* value)
 {
-	SECTION *s=(SECTION *)findSection(section);
+	SECTION* s=(SECTION*)findSection(section);
 	if (!s) {
 		createSection(section);
-		s=(SECTION *)findSection(section);
+		s=(SECTION*)findSection(section);
 		if (!s) throw UnknownSectionException(section);
 	}
-	s->values.append(key,String(value),"\n");
+	s->values.append(key, String(value), "\n");
 }
 
-void ConfigParser::add(const String &section, const String &key, int value)
+void ConfigParser::add(const String& section, const String& key, int value)
 {
-	add(section,key,ToString("%i",value));
+	add(section, key, ToString("%i", value));
 }
 
-void ConfigParser::add(const String &section, const String &key, bool value)
+void ConfigParser::add(const String& section, const String& key, bool value)
 {
-	add(section,key,ToString("%s",(value?"yes":"no")));
+	add(section, key, ToString("%s", (value ? "yes" : "no")));
 }
 
 
-void ConfigParser::add(const String &key, const String &value)
-{
-	if (!section) throw NoSectionSelectedException();
-	add(((SECTION *)section)->name,key,value);
-}
-
-void ConfigParser::add(const String &key, const char *value)
+void ConfigParser::add(const String& key, const String& value)
 {
 	if (!section) throw NoSectionSelectedException();
-	add(((SECTION *)section)->name,key,String(value));
+	add(((SECTION*)section)->name, key, value);
 }
 
-void ConfigParser::add(const String &key, int value)
+void ConfigParser::add(const String& key, const char* value)
 {
 	if (!section) throw NoSectionSelectedException();
-	add(((SECTION *)section)->name,key,value);
+	add(((SECTION*)section)->name, key, String(value));
 }
 
-void ConfigParser::add(const String &key, bool value)
+void ConfigParser::add(const String& key, int value)
 {
 	if (!section) throw NoSectionSelectedException();
-	add(((SECTION *)section)->name,key,value);
+	add(((SECTION*)section)->name, key, value);
 }
 
-void ConfigParser::deleteKey(const String &key)
+void ConfigParser::add(const String& key, bool value)
 {
 	if (!section) throw NoSectionSelectedException();
-	return deleteKey(((SECTION *)section)->name,key);
+	add(((SECTION*)section)->name, key, value);
 }
 
-void ConfigParser::deleteKey(const String &section, const String &key)
+void ConfigParser::deleteKey(const String& key)
 {
-	SECTION *s=(SECTION *)findSection(section);
+	if (!section) throw NoSectionSelectedException();
+	return deleteKey(((SECTION*)section)->name, key);
+}
+
+void ConfigParser::deleteKey(const String& section, const String& key)
+{
+	SECTION* s=(SECTION*)findSection(section);
 	if (!s) return;
 	try {
 		s->values.remove(key);
-	} catch (const KeyNotFoundException &) {
+	}
+	catch (const KeyNotFoundException&) {
 
 	}
 }
 
-String ConfigParser::get(const String &key, const String &defaultvalue) const
-{
-	if (!section) throw NoSectionSelectedException();
-	String ret;
-	try {
-		ret=((SECTION *)section)->values.getString(key);
-	} catch (...) {
-		return defaultvalue;
-	}
-	return ret;
-}
-
-String ConfigParser::getFromSection(const String &section, const String &key, const String &defaultvalue) const
-{
-	SECTION *s=(SECTION *)findSection(section);
-	if (!s) return defaultvalue;
-	String ret;
-	try {
-		ret=s->values.getString(key);
-	} catch (...) {
-		return defaultvalue;
-	}
-	return ret;
-}
-
-bool ConfigParser::getBoolFromSection(const String &section, const String &key, bool defaultvalue) const
-{
-	SECTION *s=(SECTION *)findSection(section);
-	if (!s) return defaultvalue;
-	String ret;
-	try {
-		ret=s->values.getString(key);
-	} catch (...) {
-		return defaultvalue;
-	}
-	return IsTrue(ret);
-}
-
-bool ConfigParser::getBool(const String &key, bool defaultvalue) const
+String ConfigParser::get(const String& key, const String& defaultvalue) const
 {
 	if (!section) throw NoSectionSelectedException();
 	String ret;
 	try {
 		ret=((SECTION*)section)->values.getString(key);
-	} catch (...) {
+	}
+	catch (...) {
+		return defaultvalue;
+	}
+	return ret;
+}
+
+String ConfigParser::getFromSection(const String& section, const String& key, const String& defaultvalue) const
+{
+	SECTION* s=(SECTION*)findSection(section);
+	if (!s) return defaultvalue;
+	String ret;
+	try {
+		ret=s->values.getString(key);
+	}
+	catch (...) {
+		return defaultvalue;
+	}
+	return ret;
+}
+
+bool ConfigParser::getBoolFromSection(const String& section, const String& key, bool defaultvalue) const
+{
+	SECTION* s=(SECTION*)findSection(section);
+	if (!s) return defaultvalue;
+	String ret;
+	try {
+		ret=s->values.getString(key);
+	}
+	catch (...) {
 		return defaultvalue;
 	}
 	return IsTrue(ret);
 }
 
-int ConfigParser::getIntFromSection(const String &section, const String &key, int defaultvalue) const
-{
-	SECTION *s=(SECTION *)findSection(section);
-	if (!s) return defaultvalue;
-	String ret;
-	try {
-		ret=s->values.getString(key);
-	} catch (...) {
-		return defaultvalue;
-	}
-	return ret.toInt();
-}
-
-int ConfigParser::getInt(const String &key, int defaultvalue) const
+bool ConfigParser::getBool(const String& key, bool defaultvalue) const
 {
 	if (!section) throw NoSectionSelectedException();
 	String ret;
 	try {
 		ret=((SECTION*)section)->values.getString(key);
-	} catch (...) {
+	}
+	catch (...) {
+		return defaultvalue;
+	}
+	return IsTrue(ret);
+}
+
+int ConfigParser::getIntFromSection(const String& section, const String& key, int defaultvalue) const
+{
+	SECTION* s=(SECTION*)findSection(section);
+	if (!s) return defaultvalue;
+	String ret;
+	try {
+		ret=s->values.getString(key);
+	}
+	catch (...) {
+		return defaultvalue;
+	}
+	return ret.toInt();
+}
+
+int ConfigParser::getInt(const String& key, int defaultvalue) const
+{
+	if (!section) throw NoSectionSelectedException();
+	String ret;
+	try {
+		ret=((SECTION*)section)->values.getString(key);
+	}
+	catch (...) {
 		return defaultvalue;
 	}
 	return ret.toInt();
 }
 
 
-const String& ConfigParser::getSection(const String &name) const
+const String& ConfigParser::getSection(const String& name) const
 /*!\brief Inhalt einer Sektion als String
  *
  * \header \#include <ppl7.h>
@@ -436,9 +447,9 @@ const String& ConfigParser::getSection(const String &name) const
  * \param target Assoziatives Array, in dem die Sektion gespeichert werden soll
  * \param section Der Name der Sektion ohne Eckige Klammern
  */
-void ConfigParser::copySection(AssocArray &target, const String &section) const
+void ConfigParser::copySection(AssocArray& target, const String& section) const
 {
-	SECTION *s=(SECTION *)findSection(section);
+	SECTION* s=(SECTION*)findSection(section);
 	if (!s) throw UnknownSectionException(section);
 	target.add(s->values);
 }
@@ -452,16 +463,16 @@ void ConfigParser::copySection(AssocArray &target, const String &section) const
  */
 void ConfigParser::print() const
 {
-	SECTION *s=(SECTION *)first;
+	SECTION* s=(SECTION*)first;
 	while (s) {
-		printf ("[%s]\n",s->name.getPtr());
+		printf("[%s]\n", s->name.getPtr());
 		s->values.list();
-		printf ("\n");
+		printf("\n");
 		s=s->next;
 	}
 }
 
-void ConfigParser::load(const String &filename)
+void ConfigParser::load(const String& filename)
 /*!\brief Konfiguration aus einer Datei laden
  *
  * \header \#include <ppl7.h>
@@ -472,7 +483,7 @@ void ConfigParser::load(const String &filename)
  */
 {
 	File ff;
-	ff.open(filename,File::READ);
+	ff.open(filename, File::READ);
 	load(ff);
 }
 
@@ -487,12 +498,12 @@ void ConfigParser::load(const String &filename)
  * \param bytes Die Größe des Speicherbereichs
  *
  */
-void ConfigParser::loadFromMemory(const void *buffer, size_t bytes)
+void ConfigParser::loadFromMemory(const void* buffer, size_t bytes)
 {
 	if (!buffer) throw IllegalArgumentException("buffer");
 	if (!bytes) throw IllegalArgumentException("bytes");
 	MemFile ff;
-	ff.open((void*)buffer,bytes);
+	ff.open((void*)buffer, bytes);
 	ff.load();
 }
 
@@ -505,14 +516,14 @@ void ConfigParser::loadFromMemory(const void *buffer, size_t bytes)
  *
  * \param ptr Referenz auf ein ByteArray oder ByteArrayPtr Objekt
  */
-void ConfigParser::loadFromMemory(const ByteArrayPtr &ptr)
+void ConfigParser::loadFromMemory(const ByteArrayPtr& ptr)
 {
 	MemFile ff;
 	ff.open(ptr);
 	ff.load();
 }
 
-void ConfigParser::loadFromString(const String &string)
+void ConfigParser::loadFromString(const String& string)
 /*!\brief Konfiguration aus einem String laden
  *
  * \header \#include <ppl7.h>
@@ -526,7 +537,7 @@ void ConfigParser::loadFromString(const String &string)
 {
 
 	MemFile ff;
-	ff.open((void*)string.getPtr(),string.size());
+	ff.open((void*)string.getPtr(), string.size());
 	ff.load();
 }
 
@@ -546,11 +557,11 @@ void ConfigParser::loadFromString(const String &string)
  * \see load(const String &filename);
  * \see loadFromMemory(const void *buffer, size_t bytes)
  */
-void ConfigParser::load(FileObject &file)
+void ConfigParser::load(FileObject& file)
 {
 	unload();
-	String key,value;
-	String buffer,trimmedBuffer;
+	String key, value;
+	String buffer, trimmedBuffer;
 	String sectionname;
 
 	size_t separatorLength=separator.length();
@@ -560,37 +571,38 @@ void ConfigParser::load(FileObject &file)
 
 	try {
 		while (!file.eof()) {			// Zeilen lesen, bis keine mehr kommt
-			if (!file.gets(buffer,65535)) break;
+			if (!file.gets(buffer, 65535)) break;
 			trimmedBuffer=buffer.trimmed();
 			size_t l=trimmedBuffer.size();
 			if (sectionname.notEmpty()) {
-				if (l==0 || (l>0 && trimmedBuffer[0]!='[' && trimmedBuffer[l-1]!=']')) {
-					sections.append(sectionname,buffer);
+				if (l == 0 || (l > 0 && trimmedBuffer[0] != '[' && trimmedBuffer[l - 1] != ']')) {
+					sections.append(sectionname, buffer);
 				}
 			}
 
 
-			if (l>0) {
-				if (trimmedBuffer[0]=='[' && trimmedBuffer[l-1]==']') {	// Neue [Sektion] erkannt
+			if (l > 0) {
+				if (trimmedBuffer[0] == '[' && trimmedBuffer[l - 1] == ']') {	// Neue [Sektion] erkannt
 					sectionname.clear();
-					if (l<1024) {							// nur gültig, wenn < 1024 Zeichen
-						sectionname=trimmedBuffer.mid(1,l-2);
-						sections.append(sectionname,"","");
+					if (l < 1024) {							// nur gültig, wenn < 1024 Zeichen
+						sectionname=trimmedBuffer.mid(1, l - 2);
+						sections.append(sectionname, "", "");
 						createSection(sectionname);
 					}
-				} else if ((sectionname.notEmpty()) && trimmedBuffer[0]!='#' && trimmedBuffer[0]!=';') {	// Kommentare ignorieren
+				} else if ((sectionname.notEmpty()) && trimmedBuffer[0] != '#' && trimmedBuffer[0] != ';') {	// Kommentare ignorieren
 					size_t trenn=trimmedBuffer.instr(separator);			// Trennzeichen suchen
-					if (trenn>0) {							// Wenn eins gefunden wurde, dann
+					if (trenn > 0) {							// Wenn eins gefunden wurde, dann
 						key=trimmedBuffer.left(trenn);				// Key ist alles vor dem Trennzeichen
 						key.trim();
-						value=trimmedBuffer.mid(trenn+separatorLength);	// Value der rest danach
+						value=trimmedBuffer.mid(trenn + separatorLength);	// Value der rest danach
 						value.trim();
-						add(sectionname,key,value);			// Und das ganze dann hinzufügen ins Array
+						add(sectionname, key, value);			// Und das ganze dann hinzufügen ins Array
 					}
 				}
 			}
 		}
-	} catch (const ppl7::EndOfFileException &) {
+	}
+	catch (const ppl7::EndOfFileException&) {
 		section=NULL;
 		return;
 	}
@@ -612,10 +624,10 @@ void ConfigParser::load(FileObject &file)
  * Kommentare.
  *
  */
-void ConfigParser::save(const String &filename)
+void ConfigParser::save(const String& filename)
 {
 	File ff;
-	ff.open(filename,File::WRITE);
+	ff.open(filename, File::WRITE);
 	save(ff);
 }
 
@@ -632,27 +644,27 @@ void ConfigParser::save(const String &filename)
  * geöffnete Datei enthält
  *
  */
-void ConfigParser::save(FileObject &file)
+void ConfigParser::save(FileObject& file)
 {
 	AssocArray::Iterator it;
 	String key, value;
 	if (!file.isOpen()) throw FileNotOpenException();
 
-	SECTION *s=(SECTION *)first;
+	SECTION* s=(SECTION*)first;
 	while (s) {
-		if (s!=first) file.puts("\n");
-		file.putsf("[%s]\n",s->name.getPtr());
+		if (s != first) file.puts("\n");
+		file.putsf("[%s]\n", s->name.getPtr());
 		s->values.reset(it);
-		while (s->values.getNext(it,key,value)) {
-			if (value.instr("\n")>=0) {	// Value muss auf mehrere Zeilen aufgesplittet werden
+		while (s->values.getNext(it, key, value)) {
+			if (value.instr("\n") >= 0) {	// Value muss auf mehrere Zeilen aufgesplittet werden
 				Array a;
-				a.explode(value,"\n");
-				for (size_t i=0;i<a.size();i++) {
-					file.putsf("%s%s%s\n",(const char*)key,(const char*)separator,(const char*)a[i]);
+				a.explode(value, "\n");
+				for (size_t i=0;i < a.size();i++) {
+					file.putsf("%s%s%s\n", (const char*)key, (const char*)separator, (const char*)a[i]);
 				}
 
 			} else {
-				file.putsf("%s%s%s\n",(const char*)key,(const char*)separator,(const char*)value);
+				file.putsf("%s%s%s\n", (const char*)key, (const char*)separator, (const char*)value);
 			}
 		}
 		s=s->next;
@@ -661,4 +673,3 @@ void ConfigParser::save(FileObject &file)
 
 
 } // end of namespace ppl7
-
