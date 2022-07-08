@@ -60,6 +60,7 @@ PPL7EXCEPTION(SurfaceCreateException, Exception);
 PPL7EXCEPTION(EventLoopException, Exception);
 PPL7EXCEPTION(UnknownEventException, Exception);
 PPL7EXCEPTION(NoWindowException, Exception);
+PPL7EXCEPTION(SDLException, Exception);
 
 using namespace ppl7::grafix;
 
@@ -276,6 +277,7 @@ public:
 
 	virtual void closeEvent(Event* event);
 	virtual void quitEvent(Event* event);
+	virtual void resizeEvent(ResizeEvent* event);
 
 	virtual void mouseMoveEvent(MouseEvent* event);
 	virtual void mouseDownEvent(MouseEvent* event);
@@ -503,6 +505,7 @@ public:
 		Minimized					=	0x00000008,
 		TopMost						=	0x00000010,
 		Fullscreen					=	0x00000020,
+		FullscreenDesktop			=	0x00000040,
 		WaitVsync					=	0x00200000,
 		ZBuffer						=	0x00400000,
 		StencilBuffer				=	0x00800000,
@@ -510,7 +513,25 @@ public:
 		OpenGL						=	0x08000000,
 		DefaultWindow				=	WaitVsync,
 		DefaultFullscreen			=	NoBorder | WaitVsync | Fullscreen | TopMost,
+		DefaultFullscreenDesktop	=	NoBorder | WaitVsync | FullscreenDesktop | TopMost,
 	};
+
+	enum class WindowMode {
+		Window=0,
+		Fullscreen,
+		FullscreenDesktop
+	};
+
+	class DisplayMode {
+	public:
+		DisplayMode();
+		DisplayMode(const ppl7::grafix::RGBFormat& format, int width, int height, int refresh_rate);
+		ppl7::grafix::RGBFormat	format;
+		int			width;
+		int			height;
+		int			refresh_rate;
+	};
+
 	Window();
 	~Window();
 	uint32_t flags() const;
@@ -527,6 +548,8 @@ public:
 
 	const Color& backgroundColor() const;
 	void setBackgroundColor(const Color& c);
+
+	void setWindowDisplayMode(const DisplayMode& mode);
 
 	void drawWidgets();
 	void redrawWidgets();
@@ -577,6 +600,8 @@ public:
 	virtual void createWindow(Window& w) = 0;
 	virtual void destroyWindow(Window& w) = 0;
 	virtual void setWindowPosition(Window& w, int x, int y) =0;
+	virtual void resizeWindow(Window& w, int width, int height)=0;
+	virtual void setWindowDisplayMode(Window& w, const Window::DisplayMode& mode)=0;
 
 	virtual const Size& desktopResolution() const =0;
 	virtual const RGBFormat& desktopRGBFormat() const =0;
@@ -624,6 +649,8 @@ public:
 	virtual void createWindow(Window& w);
 	virtual void destroyWindow(Window& w);
 	virtual void setWindowPosition(Window& w, int x, int y);
+	virtual void resizeWindow(Window& w, int width, int height);
+	virtual void setWindowDisplayMode(Window& w, const Window::DisplayMode& mode);
 
 	virtual const Size& desktopResolution() const;
 	virtual const RGBFormat& desktopRGBFormat() const;
@@ -634,6 +661,9 @@ public:
 	virtual size_t numWindows();
 	virtual void startClickEvent(Window* win);
 	virtual void startTimer(Widget* w, int intervall);
+
+	void changeWindowMode(Window& w, Window::WindowMode mode);
+
 };
 
 

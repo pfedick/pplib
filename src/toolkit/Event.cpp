@@ -115,37 +115,37 @@ bool Event::isAccepted() const
 String Event::name() const
 {
 	switch (t) {
-		case Unknown: return "Unknown";
-		case MouseEnter: return "MouseEnter";
-		case MouseMove: return "MouseMove";
-		case MouseLeave: return "MouseLeave";
-		case MouseDown: return "MouseDown";
-		case MouseUp: return "MouseUp";
-		case MouseDblClick: return "MouseDblClick";
-		case MouseWheel: return "MouseWheel";
-		case KeyDown: return "KeyDown";
-		case KeyUp: return "KeyUp";
-		case Show: return "Show";
-		case Close: return "Close";
-		case Quit: return "Quit";
-		case Resize: return "Resize";
-		case Move: return "Move";
-		case FocusIn: return "FocusIn";
-		case FocusOut: return "FocusOut";
-		case GeometryChanged: return "GeometryChanged";
-		case ValueChanged: return "ValueChanged";
-		case Toggled: return "Toggled";
-		case TextChanged: return "TextChanged";
+	case Unknown: return "Unknown";
+	case MouseEnter: return "MouseEnter";
+	case MouseMove: return "MouseMove";
+	case MouseLeave: return "MouseLeave";
+	case MouseDown: return "MouseDown";
+	case MouseUp: return "MouseUp";
+	case MouseDblClick: return "MouseDblClick";
+	case MouseWheel: return "MouseWheel";
+	case KeyDown: return "KeyDown";
+	case KeyUp: return "KeyUp";
+	case Show: return "Show";
+	case Close: return "Close";
+	case Quit: return "Quit";
+	case Resize: return "Resize";
+	case Move: return "Move";
+	case FocusIn: return "FocusIn";
+	case FocusOut: return "FocusOut";
+	case GeometryChanged: return "GeometryChanged";
+	case ValueChanged: return "ValueChanged";
+	case Toggled: return "Toggled";
+	case TextChanged: return "TextChanged";
 	}
 	throw UnknownEventException();
 }
 
-Widget *Event::widget() const
+Widget* Event::widget() const
 {
 	return eventWidget;
 }
 
-void Event::setWidget(Widget *w)
+void Event::setWidget(Widget* w)
 {
 	eventWidget=w;
 }
@@ -160,6 +160,7 @@ MouseState::MouseState()
 
 ResizeEvent::ResizeEvent()
 {
+	setType(Event::Resize);
 	width=0;
 	height=0;
 }
@@ -183,122 +184,134 @@ EventHandler::~EventHandler()
 
 }
 
-void EventHandler::setEventHandler(EventHandler *handler)
+void EventHandler::setEventHandler(EventHandler* handler)
 {
 	this->handler=handler;
 }
 
-void EventHandler::mouseMoveEvent(MouseEvent *event)
+void EventHandler::mouseMoveEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseMoveEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseMoveEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 	if (handler) handler->mouseMoveEvent(event);
 }
 
-void EventHandler::mouseDownEvent(MouseEvent *event)
+void EventHandler::mouseDownEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseDownEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseDownEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseDownEvent(event);
 }
 
-void EventHandler::mouseUpEvent(MouseEvent *event)
+void EventHandler::mouseUpEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseUpEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseUpEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseUpEvent(event);
 }
 
-void EventHandler::mouseDblClickEvent(MouseEvent *event)
+void EventHandler::mouseDblClickEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseDblClickEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseDblClickEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseDblClickEvent(event);
 }
 
-void EventHandler::mouseClickEvent(MouseEvent *event)
+void EventHandler::mouseClickEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseClickEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseClickEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseClickEvent(event);
 }
 
-void EventHandler::mouseEnterEvent(MouseEvent *event)
+void EventHandler::mouseEnterEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseEnterEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseEnterEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseEnterEvent(event);
 }
 
-void EventHandler::mouseLeaveEvent(MouseEvent *event)
+void EventHandler::mouseLeaveEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseLeaveEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseLeaveEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseLeaveEvent(event);
 }
 
-void EventHandler::mouseWheelEvent(MouseEvent *event)
+void EventHandler::mouseWheelEvent(MouseEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::mouseWheelEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::mouseWheelEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->mouseWheelEvent(event);
 }
 
 
-void EventHandler::quitEvent(Event *event)
+void EventHandler::quitEvent(Event* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::quitEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::quitEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->quitEvent(event);
 }
 
-void EventHandler::closeEvent(Event *event)
+void EventHandler::closeEvent(Event* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::closeEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::closeEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 
 	if (handler) handler->closeEvent(event);
 }
 
-void EventHandler::geometryChangedEvent(Event *event)
+void EventHandler::resizeEvent(ResizeEvent* event)
+{
+#ifdef EVENT_DEBUG
+	printf("EventHandler::resizeEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
+#endif
+
+	if (handler) handler->resizeEvent(event);
+}
+
+
+void EventHandler::geometryChangedEvent(Event* event)
 {
 #ifdef EVENT_DEBUG
 	/*
@@ -312,77 +325,77 @@ void EventHandler::geometryChangedEvent(Event *event)
 	if (handler) handler->geometryChangedEvent(event);
 }
 
-void EventHandler::gotFocusEvent(FocusEvent *event)
+void EventHandler::gotFocusEvent(FocusEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::gotFocusEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::gotFocusEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 	if (handler) handler->gotFocusEvent(event);
 }
 
-void EventHandler::lostFocusEvent(FocusEvent *event)
+void EventHandler::lostFocusEvent(FocusEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::lostFocusEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::lostFocusEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 	if (handler) handler->lostFocusEvent(event);
 }
 
-void EventHandler::textInputEvent(TextInputEvent *event)
+void EventHandler::textInputEvent(TextInputEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::textInputEvent(%s, %s), text=%ls\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar(),(const wchar_t*)event->text);
+	printf("EventHandler::textInputEvent(%s, %s), text=%ls\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar(), (const wchar_t*)event->text);
 #endif
 	if (handler) handler->textInputEvent(event);
 }
 
-void EventHandler::keyDownEvent(KeyEvent *event)
+void EventHandler::keyDownEvent(KeyEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::keyDownEvent(%s, %s), key: %i\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar(),event->key);
+	printf("EventHandler::keyDownEvent(%s, %s), key: %i\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar(), event->key);
 #endif
 	if (handler) handler->keyDownEvent(event);
 }
 
-void EventHandler::keyUpEvent(KeyEvent *event)
+void EventHandler::keyUpEvent(KeyEvent* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::keyUpEvent(%s, %s), key: %i\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar(),event->key);
+	printf("EventHandler::keyUpEvent(%s, %s), key: %i\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar(), event->key);
 #endif
 	if (handler) handler->keyUpEvent(event);
 }
 
-void EventHandler::timerEvent(Event *event)
+void EventHandler::timerEvent(Event* event)
 {
 #ifdef EVENT_DEBUG
-	printf ("EventHandler::timerEvent(%s, %s)\n",
-			event->eventWidget->widgetType().toChar(),
-			event->eventWidget->name().toChar());
+	printf("EventHandler::timerEvent(%s, %s)\n",
+		event->eventWidget->widgetType().toChar(),
+		event->eventWidget->name().toChar());
 #endif
 	if (handler) handler->timerEvent(event);
 }
 
-void EventHandler::valueChangedEvent(Event *event, int value)
+void EventHandler::valueChangedEvent(Event* event, int value)
 {
 	if (handler) handler->valueChangedEvent(event, value);
 }
 
-void EventHandler::toggledEvent(Event *event, bool checked)
+void EventHandler::toggledEvent(Event* event, bool checked)
 {
 	if (handler) handler->toggledEvent(event, checked);
 }
 
-void EventHandler::textChangedEvent(Event *event, const ppl7::String &text)
+void EventHandler::textChangedEvent(Event* event, const ppl7::String& text)
 {
 	if (handler) handler->textChangedEvent(event, text);
 }
