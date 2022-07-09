@@ -330,14 +330,14 @@ String Dir::homePath()
 String Dir::tempPath()
 {
 #ifdef WIN32
-	wchar_t *buffer=(wchar_t*)malloc(MAX_PATH*sizeof(wchar_t));
+	wchar_t* buffer=(wchar_t*)malloc(MAX_PATH * sizeof(wchar_t));
 	if (!buffer) throw OutOfMemoryException();
-	DWORD ret=GetTempPathW(MAX_PATH,buffer);
-	if (ret>MAX_PATH) {
+	DWORD ret=GetTempPathW(MAX_PATH, buffer);
+	if (ret > MAX_PATH) {
 		free(buffer);
-		buffer=(wchar_t*)malloc(ret*sizeof(wchar_t));
+		buffer=(wchar_t*)malloc(ret * sizeof(wchar_t));
 		if (!buffer) throw OutOfMemoryException();
-		ret=GetTempPathW(ret,buffer);
+		ret=GetTempPathW(ret, buffer);
 	}
 	if (!ret) {
 		free(buffer);
@@ -361,27 +361,27 @@ String Dir::applicationDataPath()
 {
 	String path;
 #ifdef WIN32
-	wchar_t *p=_wgetenv(L"LOCALAPPDATA");
+	wchar_t* p=_wgetenv(L"LOCALAPPDATA");
 	if (!p) throw KeyNotFoundException("LOCALAPPDATA");
 	WideString wpath(p);
 	path=String(wpath);
 #else
-	path=homePath()+"/.config";
+	path=homePath() + "/.config";
 #endif
-	path.replace("//","/");
+	path.replace("//", "/");
 #ifdef WIN32
-	path.replace("/","\\");
+	path.replace("/", "\\");
 #endif
 	return path;
 }
 
-String Dir::applicationDataPath(const String &company, const String &application)
+String Dir::applicationDataPath(const String & company, const String & application)
 {
 	String path=Dir::applicationDataPath();
-	path+="/"+company+"/"+application;
-	path.replace("//","/");
+	path+="/" + company + "/" + application;
+	path.replace("//", "/");
 #ifdef WIN32
-	path.replace("/","\\");
+	path.replace("/", "\\");
 #endif
 	return path;
 }
@@ -1124,28 +1124,29 @@ void Dir::open(const char* path, Sort s)
 		HANDLE hFind;
 		WIN32_FIND_DATAW FindFileData;
 		ppl7::WideString w_path(Path);
-		ppl7::WideString path_pattern=w_path+L"/*";
-		path_pattern.replace(L"/",L"\\");
+		ppl7::WideString path_pattern=w_path + L"/*";
+		path_pattern.replace(L"/", L"\\");
 		if ((hFind = FindFirstFileW((const wchar_t*)path_pattern, &FindFileData)) == INVALID_HANDLE_VALUE) {
 			throw CouldNotOpenDirectoryException("%s", (const char*)Path);
 		}
 		DirEntry de;
 		WideString CurrentFile;
 		do {
-			CurrentFile=w_path+L"/";
+			CurrentFile=w_path + L"/";
 			CurrentFile+=FindFileData.cFileName;
 			//printf ("found: %ls\n",(const wchar_t*)CurrentFile);
 			//CurrentFile.hexDump();
 			//printf ("dirwalk dwFileAttributes: %ls: %ld\n",(const wchar_t*)CurrentFile, FindFileData.dwFileAttributes);
-			if (FindFileData.dwFileAttributes&FILE_ATTRIBUTE_REPARSE_POINT) continue;
-			if (FindFileData.dwFileAttributes&FILE_ATTRIBUTE_HIDDEN) continue;
+			if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) continue;
+			if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) continue;
 
 			try {
 				File::statFile(CurrentFile, de);
 				Files.add(de);
 				//printf ("stat ok: %s\n",(const char*)de.Filename);
 				//de.Filename.hexDump();
-			} catch (...) {
+			}
+			catch (...) {
 
 			}
 		} while (FindNextFileW(hFind, &FindFileData) == true);
@@ -1172,7 +1173,8 @@ void Dir::open(const char* path, Sort s)
 		try {
 			File::statFile(CurrentFile, de);
 			Files.add(de);
-		} catch (...) {
+		}
+		catch (...) {
 
 		}
 	}
@@ -1183,7 +1185,7 @@ void Dir::open(const char* path, Sort s)
 #endif
 }
 
-bool Dir::canOpen(const String& path)
+bool Dir::canOpen(const String & path)
 {
 	ppl7::String CheckPath=path;
 	CheckPath.trim();
@@ -1194,8 +1196,8 @@ bool Dir::canOpen(const String& path)
 		HANDLE hFind;
 		WIN32_FIND_DATAW FindFileData;
 		ppl7::WideString w_path(CheckPath);
-		ppl7::WideString path_pattern=w_path+L"/*";
-		path_pattern.replace(L"/",L"\\");
+		ppl7::WideString path_pattern=w_path + L"/*";
+		path_pattern.replace(L"/", L"\\");
 		if ((hFind = FindFirstFileW((const wchar_t*)path_pattern, &FindFileData)) == INVALID_HANDLE_VALUE) {
 			return false;
 		}
@@ -1219,7 +1221,8 @@ bool Dir::tryOpen(const String & path, Sort s)
 		open(path, s);
 		return true;
 
-	} catch (...) {
+	}
+	catch (...) {
 
 	}
 	return false;
@@ -1234,7 +1237,8 @@ bool Dir::exists(const String & dirname)
 		if (f.isDir()) return true;
 		if (f.isLink()) return true;
 		return false;
-	} catch (...) {
+	}
+	catch (...) {
 		return false;
 	}
 	return false;
@@ -1259,7 +1263,7 @@ void Dir::mkDir(const String & path, bool recursive)
 void Dir::mkDir(const String & path, mode_t mode, bool recursive)
 {
 	String s;
-	if (path.isEmpty()) throw IllegalArgumentException("IllegalArgumentException");
+	if (path.isEmpty()) throw IllegalArgumentException("Dir::mkDir got an empty path");
 	// Wenn es das Verzeichnis schon gibt, koennen wir sofort aussteigen
 	if (Dir::exists(path)) return;
 
@@ -1273,16 +1277,17 @@ void Dir::mkDir(const String & path, mode_t mode, bool recursive)
 #else
 		if (mkdir((const char*)path, mode) == 0) return;
 #endif
-		throw CreateDirectoryFailedException();
+		throw CreateDirectoryFailedException("%s", (const char*)path);
 	}
 	// Wir hangeln uns von unten nach oben
-	s.clear();
+	s=path;
+	s.replace("\\", "/");
 	Array tok;
-	StrTok(tok, path, "/");
+	StrTok(tok, s, "/");
 	//tok.explode(path,"/");
 	//tok.list("tok");
 	//throw UnknownException();
-
+	s.clear();
 	if (path[0] == '/') s.append("/");
 	for (size_t i=0;i < tok.count();i++) {
 		s.append(tok[i]);
@@ -1291,14 +1296,14 @@ void Dir::mkDir(const String & path, mode_t mode, bool recursive)
 #ifdef _WIN32
 			if (s.right(1) != ":") {
 				s.replace("/", "\\");
-				if (_wmkdir((const wchar_t*)WideString(s)) != 0) throw CreateDirectoryFailedException();
-		}
+				if (_wmkdir((const wchar_t*)WideString(s)) != 0) throw CreateDirectoryFailedException("%s", (const char*)s);
+			}
 #else
-			if (mkdir((const char*)s, mode) != 0) throw CreateDirectoryFailedException();
+			if (mkdir((const char*)s, mode) != 0) throw CreateDirectoryFailedException("%s", (const char*)s);
 #endif
-	}
+		}
 		s.append("/");
-}
+	}
 }
 
 } // EOF namespace ppl7
