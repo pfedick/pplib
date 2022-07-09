@@ -85,6 +85,7 @@ public:
 	Color	inputFontColor;
 	Font	inputFont;
 	Color	inputBackgroundColor;
+	Color	sliderHighlightColor;
 };
 
 class Widget;
