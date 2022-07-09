@@ -398,6 +398,8 @@ public:
 	Widget* getParent() const;
 	Widget* getTopmostParent() const;
 
+	void destroyChilds();
+
 	const Point& pos() const;
 	Point absolutePosition() const;
 	const Size& size() const;
