@@ -669,6 +669,7 @@ public:
 	virtual void startTimer(Widget* w, int intervall);
 
 	void changeWindowMode(Window& w, Window::WindowMode mode);
+	Window::WindowMode getWindowMode(Window& w);
 
 };
 

@@ -997,6 +997,21 @@ void WindowManager_SDL2::changeWindowMode(Window& w, Window::WindowMode mode)
 #endif
 }
 
+Window::WindowMode WindowManager_SDL2::getWindowMode(Window& w)
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	SDL_WINDOW_PRIVATE* priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
+	if (!priv) throw NoWindowException();
+
+	uint32_t flags=SDL_GetWindowFlags(priv->win);
+	if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) return Window::WindowMode::FullscreenDesktop;
+	if (flags & SDL_WINDOW_FULLSCREEN) return Window::WindowMode::Fullscreen;
+	return Window::WindowMode::Window;
+#endif
+}
+
 void WindowManager_SDL2::setWindowDisplayMode(Window& w, const Window::DisplayMode& mode)
 {
 #ifndef HAVE_SDL2
