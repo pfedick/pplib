@@ -59,15 +59,15 @@ using namespace ppl7;
 using namespace ppl7::grafix;
 
 
-static WindowManager *wm=NULL;
+static WindowManager* wm=NULL;
 
-WindowManager *GetWindowManager()
+WindowManager* GetWindowManager()
 {
 	if (!wm) throw NoWindowManagerException();
 	return wm;
 }
 
-const WidgetStyle &GetWidgetStyle()
+const WidgetStyle& GetWidgetStyle()
 {
 	if (!wm) throw NoWindowManagerException();
 	return wm->getWidgetStyle();
@@ -75,27 +75,28 @@ const WidgetStyle &GetWidgetStyle()
 
 WindowManager::WindowManager()
 {
-	if (wm!=NULL) throw DuplicateWindowManagerException();
+	if (wm != NULL) throw DuplicateWindowManagerException();
 	wm=this;
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
 	clickCount=0;
 	doubleClickIntervall=200;
 	KeyboardFocus=NULL;
+	grabMouseWidget=NULL;
 	updateButtonSymbols();
 }
 
 WindowManager::~WindowManager()
 {
-	if (wm==this) wm=NULL;
+	if (wm == this) wm=NULL;
 }
 
-const WidgetStyle &WindowManager::getWidgetStyle() const
+const WidgetStyle& WindowManager::getWidgetStyle() const
 {
 	return Style;
 }
 
-void WindowManager::setWidgetStyle(const WidgetStyle &style)
+void WindowManager::setWidgetStyle(const WidgetStyle& style)
 {
 	Style=style;
 	updateButtonSymbols();
@@ -103,9 +104,9 @@ void WindowManager::setWidgetStyle(const WidgetStyle &style)
 
 void WindowManager::updateButtonSymbols()
 {
-	Resource *res=GetPPLResource();
+	Resource* res=GetPPLResource();
 	ppl7::grafix::ImageList tmp;
-	tmp.load(res->getMemory(16),15,15,ImageList::DIFFUSE);
+	tmp.load(res->getMemory(16), 15, 15, ImageList::DIFFUSE);
 	ppl7::grafix::Size s=tmp.size();
 	ButtonSymbols.create(s.width, s.height);
 	ButtonSymbols.bltDiffuse(tmp, 0, 0, Style.buttonFontColor);
@@ -113,8 +114,17 @@ void WindowManager::updateButtonSymbols()
 
 }
 
+void WindowManager::grabMouse(Widget* w)
+{
+	grabMouseWidget=w;
+}
 
-Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
+void WindowManager::releaseMouse(Widget* w)
+{
+	if (grabMouseWidget == w) grabMouseWidget=NULL;
+}
+
+Widget* WindowManager::findMouseWidget(Widget* window, Point& p)
 {
 	if (!window) return NULL;
 	/*
@@ -122,20 +132,25 @@ Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 			(const char*)window->name(), window->x(), window->y(),
 			p.x, p.y);
 	*/
+	if (grabMouseWidget) {
+		Point wp=grabMouseWidget->absolutePosition();
+		p-=wp;
+		return grabMouseWidget;
+	}
 	std::list<Widget*>::const_reverse_iterator it;
 	Point p2;
-	if (window->childs.size()>0) {
-		for(it=window->childs.rbegin();it!=window->childs.rend();++it) {
-			Widget *w=*it;
-			if (p.x>=w->p.x
-					&& p.y>=w->p.y
-					&& p.x < w->p.x+w->s.width
-					&& p.y < w->p.y+w->s.height) {
-				// Passendes Widget gefunden, Koordinaten des Events auf das Widget umrechnen
-				p2.x=p.x-w->p.x-w->myClientOffset.x1;
-				p2.y=p.y-w->p.y-w->myClientOffset.y1;
+	if (window->childs.size() > 0) {
+		for (it=window->childs.rbegin();it != window->childs.rend();++it) {
+			Widget* w=*it;
+			if (p.x >= w->p.x
+				&& p.y >= w->p.y
+				&& p.x < w->p.x + w->s.width
+				&& p.y < w->p.y + w->s.height) {
+			// Passendes Widget gefunden, Koordinaten des Events auf das Widget umrechnen
+				p2.x=p.x - w->p.x - w->myClientOffset.x1;
+				p2.y=p.y - w->p.y - w->myClientOffset.y1;
 				p=p2;
-				return findMouseWidget(w,p);	// Iterieren
+				return findMouseWidget(w, p);	// Iterieren
 			}
 			if (w->isModal()) return window;
 		}
@@ -144,21 +159,21 @@ Widget *WindowManager::findMouseWidget(Widget *window, Point &p)
 	return window;
 }
 
-void WindowManager::unregisterWidget(Widget *widget)
+void WindowManager::unregisterWidget(Widget* widget)
 {
-	if (LastMouseDown==widget) LastMouseDown=NULL;
-	if (LastMouseEnter==widget) LastMouseEnter=NULL;
-	if (KeyboardFocus==widget) KeyboardFocus=NULL;
+	if (LastMouseDown == widget) LastMouseDown=NULL;
+	if (LastMouseEnter == widget) LastMouseEnter=NULL;
+	if (KeyboardFocus == widget) KeyboardFocus=NULL;
 }
 
-void WindowManager::deferedDeleteWidgets(Widget *widget)
+void WindowManager::deferedDeleteWidgets(Widget* widget)
 {
 	bool match=true;
 	while (match) {
 		match=false;
 		std::list<Widget*>::iterator it;
-		for (it=widget->childs.begin();it!=widget->childs.end();++it) {
-			Widget *child=(*it);
+		for (it=widget->childs.begin();it != widget->childs.end();++it) {
+			Widget* child=(*it);
 			deferedDeleteWidgets(child);
 			if (child->deleteRequested) {
 				delete (child);
@@ -169,93 +184,93 @@ void WindowManager::deferedDeleteWidgets(Widget *widget)
 	}
 }
 
-void WindowManager::dispatchEvent(Window *window, Event &event)
+void WindowManager::dispatchEvent(Window* window, Event& event)
 {
-	Widget *w;
+	Widget* w;
 	//printf("WindowManager::dispatchEvent\n");
 	deferedDeleteWidgets(window);
 	switch (event.type()) {
-		case Event::MouseEnter:
-			window->mouseState=(MouseEvent&)event;
-			event.setWidget(window);
-			LastMouseEnter=window;
-			window->mouseEnterEvent((MouseEvent*)&event);
-			return;
-		case Event::MouseLeave:
-			window->mouseState=(MouseEvent&)event;
-			if (LastMouseEnter) {
-				event.setWidget(LastMouseEnter);
-				LastMouseEnter->mouseLeaveEvent((MouseEvent*)&event);
-				LastMouseEnter=NULL;
-			}
-			event.setWidget(window);
-			window->mouseLeaveEvent((MouseEvent*)&event);
-			return;
-		case Event::MouseMove:
-			window->mouseState=(MouseEvent&)event;
-			//printf ("window->mouseState.p.x=%i\n",window->mouseState.p.x);
-			w=findMouseWidget(window,((MouseEvent*)&event)->p);
-			if (w) {
-				if (w!=LastMouseEnter) {
-					if (LastMouseEnter) {
-						event.setWidget(LastMouseEnter);
-						LastMouseEnter->mouseLeaveEvent((MouseEvent*)&event);
-					}
-					event.setWidget(w);
-					w->mouseEnterEvent((MouseEvent*)&event);
-					LastMouseEnter=w;
+	case Event::MouseEnter:
+		window->mouseState=(MouseEvent&)event;
+		event.setWidget(window);
+		LastMouseEnter=window;
+		window->mouseEnterEvent((MouseEvent*)&event);
+		return;
+	case Event::MouseLeave:
+		window->mouseState=(MouseEvent&)event;
+		if (LastMouseEnter) {
+			event.setWidget(LastMouseEnter);
+			LastMouseEnter->mouseLeaveEvent((MouseEvent*)&event);
+			LastMouseEnter=NULL;
+		}
+		event.setWidget(window);
+		window->mouseLeaveEvent((MouseEvent*)&event);
+		return;
+	case Event::MouseMove:
+		window->mouseState=(MouseEvent&)event;
+		//printf ("window->mouseState.p.x=%i\n",window->mouseState.p.x);
+		w=findMouseWidget(window, ((MouseEvent*)&event)->p);
+		if (w) {
+			if (w != LastMouseEnter) {
+				if (LastMouseEnter) {
+					event.setWidget(LastMouseEnter);
+					LastMouseEnter->mouseLeaveEvent((MouseEvent*)&event);
 				}
 				event.setWidget(w);
-				w->mouseMoveEvent((MouseEvent*)&event);
-			} else if (LastMouseEnter) {
-				event.setWidget(LastMouseEnter);
-				LastMouseEnter->mouseLeaveEvent((MouseEvent*)&event);
-				LastMouseEnter=NULL;
+				w->mouseEnterEvent((MouseEvent*)&event);
+				LastMouseEnter=w;
 			}
-			return;
-		case Event::MouseDown:
-			window->mouseState=(MouseEvent&)event;
-			w=findMouseWidget(window,((MouseEvent*)&event)->p);
-			if (w) {
-				if (w!=LastMouseDown) {
-					clickCount=0;
-				}
-				LastMouseDown=w;
-				event.setWidget(w);
-				w->mouseDownEvent((MouseEvent*)&event);
+			event.setWidget(w);
+			w->mouseMoveEvent((MouseEvent*)&event);
+		} else if (LastMouseEnter) {
+			event.setWidget(LastMouseEnter);
+			LastMouseEnter->mouseLeaveEvent((MouseEvent*)&event);
+			LastMouseEnter=NULL;
+		}
+		return;
+	case Event::MouseDown:
+		window->mouseState=(MouseEvent&)event;
+		w=findMouseWidget(window, ((MouseEvent*)&event)->p);
+		if (w) {
+			if (w != LastMouseDown) {
+				clickCount=0;
 			}
-			return;
+			LastMouseDown=w;
+			event.setWidget(w);
+			w->mouseDownEvent((MouseEvent*)&event);
+		}
+		return;
 
-		case Event::MouseUp:
-			window->mouseState=(MouseEvent&)event;
-			w=findMouseWidget(window,((MouseEvent*)&event)->p);
-			if (w) {
-				event.setWidget(w);
-				w->mouseUpEvent((MouseEvent*)&event);
-				if (LastMouseDown==w) {
-					clickCount++;
-					clickEvent=*((MouseEvent*)&event);
-					if (clickCount==1) startClickEvent(static_cast<Window*>(window));
-					//LastMouseDown->mouseClickEvent((MouseEvent*)&event);
-				} else {
-					clickCount=0;
-					LastMouseDown=NULL;
-				}
+	case Event::MouseUp:
+		window->mouseState=(MouseEvent&)event;
+		w=findMouseWidget(window, ((MouseEvent*)&event)->p);
+		if (w) {
+			event.setWidget(w);
+			w->mouseUpEvent((MouseEvent*)&event);
+			if (LastMouseDown == w) {
+				clickCount++;
+				clickEvent=*((MouseEvent*)&event);
+				if (clickCount == 1) startClickEvent(static_cast<Window*>(window));
+				//LastMouseDown->mouseClickEvent((MouseEvent*)&event);
+			} else {
+				clickCount=0;
+				LastMouseDown=NULL;
 			}
-			return;
-		case Event::MouseWheel:
-			window->mouseState=(MouseEvent&)event;
-			w=findMouseWidget(window,((MouseEvent*)&event)->p);
-			if (w) {
-				event.setWidget(w);
-				w->mouseWheelEvent((MouseEvent*)&event);
-			}
-			return;
+		}
+		return;
+	case Event::MouseWheel:
+		window->mouseState=(MouseEvent&)event;
+		w=findMouseWidget(window, ((MouseEvent*)&event)->p);
+		if (w) {
+			event.setWidget(w);
+			w->mouseWheelEvent((MouseEvent*)&event);
+		}
+		return;
 
 
-		default:
-			printf("WindowManager::dispatchEvent(%tu, %s)  ==> Unhandled Event\n",(std::ptrdiff_t)window,event.name().toChar());
-			return;
+	default:
+		printf("WindowManager::dispatchEvent(%tu, %s)  ==> Unhandled Event\n", (std::ptrdiff_t)window, event.name().toChar());
+		return;
 	}
 
 }
@@ -272,19 +287,19 @@ int WindowManager::getDoubleClickIntervall() const
 
 
 
-void WindowManager::dispatchClickEvent(Window *window)
+void WindowManager::dispatchClickEvent(Window* window)
 {
 	if (!window) return;
 	if (!LastMouseDown) return;
-	if (clickCount==1) LastMouseDown->mouseClickEvent(&clickEvent);
-	else if (clickCount>1) LastMouseDown->mouseDblClickEvent(&clickEvent);
+	if (clickCount == 1) LastMouseDown->mouseClickEvent(&clickEvent);
+	else if (clickCount > 1) LastMouseDown->mouseDblClickEvent(&clickEvent);
 	clickCount=0;
 	LastMouseDown=NULL;
 }
 
-void WindowManager::setKeyboardFocus(Widget *w)
+void WindowManager::setKeyboardFocus(Widget* w)
 {
-	if (w==KeyboardFocus) return;
+	if (w == KeyboardFocus) return;
 	if (KeyboardFocus) {
 		FocusEvent e;
 		KeyboardFocus->lostFocusEvent(&e);
@@ -294,7 +309,7 @@ void WindowManager::setKeyboardFocus(Widget *w)
 	KeyboardFocus->gotFocusEvent(&e);
 }
 
-Widget *WindowManager::getKeyboardFocus() const
+Widget* WindowManager::getKeyboardFocus() const
 {
 	return KeyboardFocus;
 }

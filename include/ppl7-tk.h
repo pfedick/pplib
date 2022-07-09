@@ -581,6 +581,7 @@ private:
 	int			doubleClickIntervall;
 
 	Widget* KeyboardFocus;
+	Widget* grabMouseWidget;
 	void updateButtonSymbols();
 	void deferedDeleteWidgets(Widget* widget);
 
@@ -595,6 +596,8 @@ public:
 	void dispatchClickEvent(Window* window);
 	void setDoubleClickIntervall(int ms);
 	void setKeyboardFocus(Widget* w);
+	void grabMouse(Widget* w);
+	void releaseMouse(Widget* w);
 	void unregisterWidget(Widget* w);
 	Widget* getKeyboardFocus() const;
 	int getDoubleClickIntervall() const;
