@@ -879,12 +879,21 @@ static Uint32 timerEvent(Uint32 interval, void* param)
 #pragma GCC diagnostic pop
 #endif
 
-void WindowManager_SDL2::startTimer(Widget* w, int intervall)
+int WindowManager_SDL2::startTimer(Widget* w, int intervall)
 {
 #ifndef HAVE_SDL2
 	throw UnsupportedFeatureException("SDL2");
 #else
-	SDL_AddTimer(intervall, timerEvent, w);
+	return SDL_AddTimer(intervall, timerEvent, w);
+#endif
+}
+
+void WindowManager_SDL2::removeTimer(int timer_id)
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	SDL_RemoveTimer((SDL_TimerID)timer_id);
 #endif
 }
 

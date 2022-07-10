@@ -618,7 +618,8 @@ public:
 	virtual void handleEvents() = 0;
 	virtual size_t numWindows() = 0;
 	virtual void startClickEvent(Window* win) = 0;
-	virtual void startTimer(Widget* w, int intervall) =0;
+	virtual int startTimer(Widget* w, int intervall) =0;
+	virtual void removeTimer(int timer_id)=0;
 	//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface) = 0;
 
 };
@@ -666,7 +667,8 @@ public:
 	virtual void handleEvents();
 	virtual size_t numWindows();
 	virtual void startClickEvent(Window* win);
-	virtual void startTimer(Widget* w, int intervall);
+	int startTimer(Widget* w, int intervall);
+	void removeTimer(int timer_id);
 
 	void changeWindowMode(Window& w, Window::WindowMode mode);
 	Window::WindowMode getWindowMode(Window& w);
