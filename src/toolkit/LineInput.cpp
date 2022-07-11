@@ -62,7 +62,7 @@ using namespace ppl7::grafix;
 LineInput::LineInput()
 	:Frame()
 {
-	const WidgetStyle &style=GetWidgetStyle();
+	const WidgetStyle& style=GetWidgetStyle();
 	setBorderStyle(Inset);
 	myColor=style.inputFontColor;
 	myFont=style.inputFont;
@@ -76,10 +76,10 @@ LineInput::LineInput()
 	blinker=false;
 }
 
-LineInput::LineInput(int x, int y, int width, int height, const String &text)
-	:Frame(x,y,width,height)
+LineInput::LineInput(int x, int y, int width, int height, const String& text)
+	:Frame(x, y, width, height)
 {
-	const WidgetStyle &style=GetWidgetStyle();
+	const WidgetStyle& style=GetWidgetStyle();
 	setBorderStyle(Inset);
 	myColor=style.inputFontColor;
 	myFont=style.inputFont;
@@ -99,12 +99,12 @@ LineInput::~LineInput()
 
 }
 
-const WideString &LineInput::text() const
+const WideString& LineInput::text() const
 {
 	return myText;
 }
 
-void LineInput::setText(const String &text)
+void LineInput::setText(const String& text)
 {
 	myText=text;
 	cursorpos=0;
@@ -114,23 +114,23 @@ void LineInput::setText(const String &text)
 	geometryChanged();
 }
 
-const Color &LineInput::color() const
+const Color& LineInput::color() const
 {
 	return myColor;
 }
 
-void LineInput::setColor(const Color &c)
+void LineInput::setColor(const Color& c)
 {
 	myColor=c;
 	needsRedraw();
 }
 
-const Font &LineInput::font() const
+const Font& LineInput::font() const
 {
 	return myFont;
 }
 
-void LineInput::setFont(const Font &font)
+void LineInput::setFont(const Font& font)
 {
 	myFont=font;
 	needsRedraw();
@@ -149,7 +149,7 @@ String LineInput::widgetType() const
 }
 
 
-void LineInput::paint(Drawable &draw)
+void LineInput::paint(Drawable& draw)
 {
 	Frame::paint(draw);
 	Drawable d=clientDrawable(draw);
@@ -158,12 +158,12 @@ void LineInput::paint(Drawable &draw)
 	myFont.setColor(myColor);
 	myFont.setOrientation(Font::TOP);
 	Size s=myFont.measure(myText);
-	d.print(myFont,x,(d.height()-s.height)>>1,myText);
+	d.print(myFont, x, (d.height() - s.height) >> 1, myText);
 	//d.invert(Rect(cursorx,0,cursorx+cursorwidth,d.height()),myColor,backgroundColor());
-	if (blinker) d.fillRect(cursorx,0,cursorx+cursorwidth,d.height(),myColor);
+	if (blinker) d.fillRect(cursorx, 0, cursorx + cursorwidth, d.height(), myColor);
 }
 
-void LineInput::mouseDownEvent(MouseEvent *event)
+void LineInput::mouseDownEvent(MouseEvent* event)
 {
 	//printf ("LineInput::mouseDownEvent\n");
 	GetWindowManager()->setKeyboardFocus(this);
@@ -173,7 +173,7 @@ void LineInput::mouseDownEvent(MouseEvent *event)
 	blinker=true;
 }
 
-void LineInput::gotFocusEvent(FocusEvent *event)
+void LineInput::gotFocusEvent(FocusEvent* event)
 {
 	//printf ("LineInput::gotFocusEvent\n");
 	blinker=true;
@@ -181,24 +181,24 @@ void LineInput::gotFocusEvent(FocusEvent *event)
 	needsRedraw();
 }
 
-void LineInput::lostFocusEvent(FocusEvent *event)
+void LineInput::lostFocusEvent(FocusEvent* event)
 {
 	//printf ("LineInput::lostFocusEvent\n");
 	blinker=false;
 	needsRedraw();
 }
 
-void LineInput::textInputEvent(TextInputEvent *event)
+void LineInput::textInputEvent(TextInputEvent* event)
 {
 	/*
 	printf ("LineInput::textInputEvent(%s, %s), text=%ls\n",
 				this->widgetType().toChar(),
 				this->name().toChar(),(const wchar_t*)event->text);
 				*/
-	WideString left,right;
+	WideString left, right;
 	left=myText.left(cursorpos);
 	right=myText.mid(cursorpos);
-	left+=event->text+right;
+	left+=event->text + right;
 	myText.set(left);
 	cursorpos++;
 	calcCursorPosition();
@@ -208,45 +208,47 @@ void LineInput::textInputEvent(TextInputEvent *event)
 }
 
 
-void LineInput::keyDownEvent(KeyEvent *event)
+void LineInput::keyDownEvent(KeyEvent* event)
 {
-	//printf ("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
-	if ((event->modifier&KeyEvent::KEYMOD_MODIFIER)==KeyEvent::KEYMOD_NONE) {
-		if (event->key==KeyEvent::KEY_LEFT && cursorpos>0) {
+	//printf("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n", event->key, event->repeat, event->modifier);
+	if ((event->modifier & KeyEvent::KEYMOD_MODIFIER) == KeyEvent::KEYMOD_NONE) {
+		if (event->key == KeyEvent::KEY_LEFT && cursorpos > 0) {
 			cursorpos--;
 			calcCursorPosition();
-		} else if (event->key==KeyEvent::KEY_RIGHT && cursorpos<myText.size()) {
+		} else if (event->key == KeyEvent::KEY_RIGHT && cursorpos < myText.size()) {
 			cursorpos++;
 			calcCursorPosition();
-		} else if (event->key==KeyEvent::KEY_HOME && cursorpos>0) {
+		} else if (event->key == KeyEvent::KEY_HOME && cursorpos > 0) {
 			cursorpos=0;
 			calcCursorPosition();
-		} else if (event->key==KeyEvent::KEY_END && cursorpos<myText.size()) {
+		} else if (event->key == KeyEvent::KEY_END && cursorpos < myText.size()) {
 			cursorpos=myText.size();
 			calcCursorPosition();
-		} else if (event->key==KeyEvent::KEY_BACKSPACE && cursorpos>0) {
-			myText=myText.left(cursorpos-1)+myText.mid(cursorpos);
+		} else if (event->key == KeyEvent::KEY_BACKSPACE && cursorpos > 0) {
+			myText=myText.left(cursorpos - 1) + myText.mid(cursorpos);
 			Event ev(Event::Type::TextChanged);
 			ev.setWidget(this);
 			textChangedEvent(&ev, myText);
 			cursorpos--;
 			calcCursorPosition();
-		} else if (event->key==KeyEvent::KEY_DELETE) {
-			myText=myText.left(cursorpos)+myText.mid(cursorpos+1);
+		} else if (event->key == KeyEvent::KEY_DELETE) {
+			myText=myText.left(cursorpos) + myText.mid(cursorpos + 1);
 			Event ev(Event::Type::TextChanged);
 			ev.setWidget(this);
 			textChangedEvent(&ev, myText);
 			calcCursorPosition();
 		}
 	}
+	Frame::keyDownEvent(event);
 }
 
-void LineInput::keyUpEvent(KeyEvent *event)
+void LineInput::keyUpEvent(KeyEvent* event)
 {
 	//printf ("LineInput::keyUpEvent(keycode=%i, repeat=%i, modifier: %i)\n",event->key, event->repeat, event->modifier);
+	Frame::keyUpEvent(event);
 }
 
-void LineInput::timerEvent(Event *event)
+void LineInput::timerEvent(Event* event)
 {
 	blinker=!blinker;
 	needsRedraw();
@@ -258,11 +260,11 @@ void LineInput::timerEvent(Event *event)
 
 void LineInput::calcCursorPosition()
 {
-	WideString text=myText, left,right;
+	WideString text=myText, left, right;
 	Size s1;
-	if ((ssize_t)cursorpos<0) cursorpos=0;
-	if (cursorpos>text.size()) cursorpos=text.size();
-	if (cursorpos==0) {
+	if ((ssize_t)cursorpos < 0) cursorpos=0;
+	if (cursorpos > text.size()) cursorpos=text.size();
+	if (cursorpos == 0) {
 		cursorx=0;
 		startpos=0;
 	} else {
@@ -280,10 +282,10 @@ int LineInput::calcPosition(int x)
 	WideString text;
 	size_t c=0;
 	Size s1;
-	while (c<myText.size()) {
-		text=myText.left(c+1);
+	while (c < myText.size()) {
+		text=myText.left(c + 1);
 		s1=myFont.measure(text);
-		if (x<s1.width) break;
+		if (x < s1.width) break;
 		c++;
 	}
 
