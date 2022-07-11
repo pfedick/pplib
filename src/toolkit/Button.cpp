@@ -61,22 +61,22 @@ using namespace ppl7::grafix;
 
 Button::Button()
 {
-	const WidgetStyle &style=GetWidgetStyle();
+	const WidgetStyle& style=GetWidgetStyle();
 	background=style.buttonBackgroundColor;
 	foreground=style.buttonFontColor;
 	myFont=style.buttonFont;
-	setClientOffset(3,3,3,3);
+	setClientOffset(3, 3, 3, 3);
 	isDown=false;
 }
 
-Button::Button(int x, int y, int width, int height, const String &text, const Drawable &icon)
+Button::Button(int x, int y, int width, int height, const String& text, const Drawable& icon)
 {
-	const WidgetStyle &style=GetWidgetStyle();
+	const WidgetStyle& style=GetWidgetStyle();
 	background=style.buttonBackgroundColor;
 	foreground=style.buttonFontColor;
 	myFont=style.buttonFont;
-	create(x,y,width,height);
-	setClientOffset(3,3,3,3);
+	create(x, y, width, height);
+	setClientOffset(3, 3, 3, 3);
 	isDown=false;
 	Text=text;
 	Icon=icon;
@@ -87,24 +87,24 @@ Button::~Button()
 
 }
 
-const String &Button::text() const
+const String& Button::text() const
 {
 	return Text;
 }
 
-void Button::setText(const String &text)
+void Button::setText(const String& text)
 {
 	Text=text;
 	needsRedraw();
 	geometryChanged();
 }
 
-const Drawable &Button::icon() const
+const Drawable& Button::icon() const
 {
 	return Icon;
 }
 
-void Button::setIcon(const Drawable &icon)
+void Button::setIcon(const Drawable& icon)
 {
 	Icon=icon;
 	needsRedraw();
@@ -118,34 +118,34 @@ int Button::style() const
 }
 
 
-const Color &Button::color() const
+const Color& Button::color() const
 {
 	return foreground;
 }
 
-void Button::setColor(const Color &c)
+void Button::setColor(const Color& c)
 {
 	foreground=c;
 	needsRedraw();
 }
 
-const Color &Button::backgroundColor() const
+const Color& Button::backgroundColor() const
 {
 	return background;
 }
 
-void Button::setBackgroundColor(const Color &c)
+void Button::setBackgroundColor(const Color& c)
 {
 	background=c;
 	needsRedraw();
 }
 
-const Font &Button::font() const
+const Font& Button::font() const
 {
 	return myFont;
 }
 
-void Button::setFont(const Font &font)
+void Button::setFont(const Font& font)
 {
 	myFont=font;
 	needsRedraw();
@@ -162,30 +162,30 @@ Size Button::contentSize() const
 {
 	Size s;
 	s=myFont.measure(Text);
-	if (Icon.isEmpty()==false) {
-		s.width+=4+Icon.width();
-		int h=2+Icon.height();
-		if (s.height<h) s.height=h;
+	if (Icon.isEmpty() == false) {
+		s.width+=4 + Icon.width();
+		int h=2 + Icon.height();
+		if (s.height < h) s.height=h;
 	}
 	s.width+=6;
 	return s;
 }
 
-void Button::mouseDownEvent(MouseEvent *event)
+void Button::mouseDownEvent(MouseEvent* event)
 {
 	isDown=true;
 	needsRedraw();
 	EventHandler::mouseDownEvent(event);
 }
 
-void Button::mouseUpEvent(MouseEvent *event)
+void Button::mouseUpEvent(MouseEvent* event)
 {
 	isDown=false;
 	needsRedraw();
 	EventHandler::mouseUpEvent(event);
 }
 
-void Button::mouseLeaveEvent(MouseEvent *event)
+void Button::mouseLeaveEvent(MouseEvent* event)
 {
 	if (isDown) {
 		isDown=false;
@@ -194,61 +194,63 @@ void Button::mouseLeaveEvent(MouseEvent *event)
 	EventHandler::mouseLeaveEvent(event);
 }
 
-void Button::paint(Drawable &draw)
+void Button::paint(Drawable& draw)
 {
-	Color light=background*1.8f;
-	Color shadow=background*0.4f;
-	Color shade1=background*1.05f;
-	Color shade2=background*0.95f;
-	Color shade3=background*0.90f;
-	Color shade4=background*0.85f;
+	Color light=background * 1.8f;
+	Color shadow=background * 0.4f;
+	Color shade1=background * 1.05f;
+	Color shade2=background * 0.95f;
+	Color shade3=background * 0.90f;
+	Color shade4=background * 0.85f;
 
-	int w=width()-1;
-	int h=height()-1;
+	int w=width() - 1;
+	int h=height() - 1;
 	//draw.cls(background);
 
 	if (isDown) {
-		shade1=background*1.00f;
-		shade2=background*0.90f;
-		shade3=background*0.85f;
-		shade4=background*0.80f;
+		shade1=background * 1.00f;
+		shade2=background * 0.90f;
+		shade3=background * 0.85f;
+		shade4=background * 0.80f;
 	}
 
 	Rect r1=draw.rect();
 	Rect r2=draw.rect();
-	r1.y2-=((r1.y2-r1.y1)/2);
+	r1.y2-=((r1.y2 - r1.y1) / 2);
 	if (isDown) r1.y2++;
 	r2.y1=r1.y2;
 
 
-	draw.colorGradient(r1,shade1,shade2,1);
-	draw.colorGradient(r2,shade3,shade4,1);
+	draw.colorGradient(r1, shade1, shade2, 1);
+	draw.colorGradient(r2, shade3, shade4, 1);
 
 	int x=0;
 	int y=0;
 	if (isDown) {
-		draw.line(0,0,w,0,shadow);
-		draw.line(0,0,0,h,shadow);
-		draw.line(0,h,w,h,light);
-		draw.line(w,0,w,h,light);
+		draw.line(0, 0, w, 0, shadow);
+		draw.line(0, 0, 0, h, shadow);
+		draw.line(0, h, w, h, light);
+		draw.line(w, 0, w, h, light);
 		x++;
 		y++;
 	} else {
-		draw.line(0,0,w,0,light);
-		draw.line(0,0,0,h,light);
-		draw.line(0,h,w,h,shadow);
-		draw.line(w,0,w,h,shadow);
+		draw.line(0, 0, w, 0, light);
+		draw.line(0, 0, 0, h, light);
+		draw.line(0, h, w, h, shadow);
+		draw.line(w, 0, w, h, shadow);
 	}
 	Drawable d=clientDrawable(draw);
-	if (Icon.isEmpty()==false) {
-		d.bltAlpha(Icon,x+2,y+(d.height()-Icon.height())/2);
-		x+=6+Icon.width();
+	if (Icon.isEmpty() == false) {
+		if (this->isEnabled()) d.bltAlpha(Icon, x + 2, y + (d.height() - Icon.height()) / 2);
+		else d.bltBlend(Icon, 0.5f, x + 2, y + (d.height() - Icon.height()) / 2);
+		x+=6 + Icon.width();
 	}
-	myFont.setColor(foreground);
+	if (this->isEnabled()) myFont.setColor(foreground);
+	else myFont.setColor(Color::getBlendedf(background, foreground, 0.5f));
 	myFont.setOrientation(Font::TOP);
 
 	Size s=myFont.measure(Text);
-	d.print(myFont,x,y+((d.height()-s.height)>>1),Text);
+	d.print(myFont, x, y + ((d.height() - s.height) >> 1), Text);
 	return;
 
 /*

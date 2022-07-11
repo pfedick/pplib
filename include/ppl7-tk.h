@@ -436,7 +436,7 @@ public:
 	void setTransparent(bool flag);
 	bool isTransparent() const;
 	void setEnabled(bool flag);
-	bool isEnabed() const;
+	bool isEnabled() const;
 	void setVisible(bool flag);
 	bool isVisible() const;
 

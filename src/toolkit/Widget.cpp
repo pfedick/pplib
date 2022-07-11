@@ -407,7 +407,7 @@ void Widget::setEnabled(bool flag)
 	}
 }
 
-bool Widget::isEnabed() const
+bool Widget::isEnabled() const
 {
 	return enabled;
 }
