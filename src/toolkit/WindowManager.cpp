@@ -146,11 +146,13 @@ Widget* WindowManager::findMouseWidget(Widget* window, Point& p)
 				&& p.y >= w->p.y
 				&& p.x < w->p.x + w->s.width
 				&& p.y < w->p.y + w->s.height) {
-			// Passendes Widget gefunden, Koordinaten des Events auf das Widget umrechnen
-				p2.x=p.x - w->p.x - w->myClientOffset.x1;
-				p2.y=p.y - w->p.y - w->myClientOffset.y1;
-				p=p2;
-				return findMouseWidget(w, p);	// Iterieren
+				if (w->isEnabled()) {
+					// Passendes Widget gefunden, Koordinaten des Events auf das Widget umrechnen
+					p2.x=p.x - w->p.x - w->myClientOffset.x1;
+					p2.y=p.y - w->p.y - w->myClientOffset.y1;
+					p=p2;
+					return findMouseWidget(w, p);	// Iterieren
+				}
 			}
 			if (w->isModal()) return window;
 		}
