@@ -1154,12 +1154,15 @@ void Dir::open(const char* path, Sort s)
 		resort(sort);
 		return;
 	}
+#else
+	if (Path.isEmpty()) Path="/";
 #endif
 
 
 #ifdef HAVE_OPENDIR
 	DIR* dir=opendir((const char*)Path);
 	if (!dir) {
+		printf("opendir fehlschlag\n");
 		File::throwErrno(errno, path);
 	}
 	DirEntry de;
