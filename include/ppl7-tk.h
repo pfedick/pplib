@@ -920,13 +920,7 @@ public:
 
 class ListWidget : public ppl7::tk::Frame
 {
-private:
-	Scrollbar* scrollbar;
-	ppl7::String myCurrentText;
-	ppl7::String myCurrentIdentifier;
-	size_t myCurrentIndex;
-	size_t visibleItems;
-	int mouseOverIndex;
+public:
 	class ListWidgetItem
 	{
 	public:
@@ -934,6 +928,14 @@ private:
 		ppl7::String identifier;
 		size_t index;
 	};
+private:
+	Scrollbar* scrollbar;
+	ppl7::String myCurrentText;
+	ppl7::String myCurrentIdentifier;
+	size_t myCurrentIndex;
+	size_t visibleItems;
+	int mouseOverIndex;
+
 	std::list<ListWidgetItem> items;
 public:
 	ListWidget(int x, int y, int width, int height);
@@ -944,9 +946,13 @@ public:
 	void setCurrentIndex(size_t index);
 	size_t currentIndex() const;
 
+	std::list<ListWidgetItem> getItems() const;
+
 	void clear();
 
 	void add(const ppl7::String& text, const ppl7::String& identifier=ppl7::String());
+	void remove(size_t index);
+	void remove(const ppl7::String& identifier);
 
 	virtual ppl7::String widgetType() const;
 	virtual void paint(ppl7::grafix::Drawable& draw);

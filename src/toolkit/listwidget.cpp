@@ -128,6 +128,32 @@ void ListWidget::add(const ppl7::String& text, const ppl7::String& identifier)
 	needsRedraw();
 }
 
+void ListWidget::remove(size_t index)
+{
+	std::list<ListWidgetItem>::iterator it;
+	for (it=items.begin();it != items.end();++it) {
+		if ((*it).index == index) {
+			items.erase(it);
+			break;
+		}
+	}
+	scrollbar->setSize((int)items.size());
+	needsRedraw();
+}
+
+
+void ListWidget::remove(const ppl7::String& identifier)
+{
+	std::list<ListWidgetItem>::iterator it;
+	for (it=items.begin();it != items.end();++it) {
+		if ((*it).identifier == identifier) {
+			items.erase(it);
+			break;
+		}
+	}
+	scrollbar->setSize((int)items.size());
+	needsRedraw();
+}
 
 void ListWidget::clear()
 {
@@ -137,6 +163,11 @@ void ListWidget::clear()
 	scrollbar->setPosition(0);
 	scrollbar->setSize(0);
 	needsRedraw();
+}
+
+std::list<ListWidget::ListWidgetItem> ListWidget::getItems() const
+{
+	return items;
 }
 
 ppl7::String ListWidget::widgetType() const
@@ -220,7 +251,7 @@ void ListWidget::mouseMoveEvent(ppl7::tk::MouseEvent* event)
 
 void ListWidget::lostFocusEvent(ppl7::tk::FocusEvent* event)
 {
-	//printf ("ListWidget::lostFocusEvent\n");
+	printf("ListWidget::lostFocusEvent\n");
 }
 
 } //EOF namespace

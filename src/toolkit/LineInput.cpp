@@ -207,10 +207,11 @@ void LineInput::lostFocusEvent(FocusEvent* event)
 
 void LineInput::textInputEvent(TextInputEvent* event)
 {
-
+	/*
 	printf("LineInput::textInputEvent(%s, %s), text=%ls\n",
 		this->widgetType().toChar(),
 		this->name().toChar(), (const wchar_t*)event->text);
+		*/
 
 	WideString left, right;
 	left=myText.left(cursorpos);
