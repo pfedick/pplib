@@ -62,6 +62,7 @@ using namespace ppl7::grafix;
 LineInput::LineInput()
 	:Frame()
 {
+	validator=NULL;
 	const WidgetStyle& style=GetWidgetStyle();
 	setBorderStyle(Inset);
 	myColor=style.inputFontColor;
@@ -80,6 +81,7 @@ LineInput::LineInput()
 LineInput::LineInput(int x, int y, int width, int height, const String& text)
 	:Frame(x, y, width, height)
 {
+	validator=NULL;
 	const WidgetStyle& style=GetWidgetStyle();
 	setBorderStyle(Inset);
 	myColor=style.inputFontColor;
@@ -102,6 +104,11 @@ LineInput::~LineInput()
 	timerId=0;
 }
 
+void LineInput::setInputValidator(InputValidator* validator)
+{
+	this->validator=validator;
+}
+
 const WideString& LineInput::text() const
 {
 	return myText;
@@ -109,12 +116,17 @@ const WideString& LineInput::text() const
 
 void LineInput::setText(const String& text)
 {
-	myText=text;
+	WideString new_text=text;
+	if (validator != NULL && validator->validateText(new_text) == false) return;
+	myText=new_text;
 	cursorpos=0;
 	startpos=0;
 	cursorx=0;
 	needsRedraw();
 	geometryChanged();
+	Event ev(Event::Type::TextChanged);
+	ev.setWidget(this);
+	textChangedEvent(&ev, myText);
 }
 
 const Color& LineInput::color() const
@@ -195,15 +207,16 @@ void LineInput::lostFocusEvent(FocusEvent* event)
 
 void LineInput::textInputEvent(TextInputEvent* event)
 {
-	/*
-	printf ("LineInput::textInputEvent(%s, %s), text=%ls\n",
-				this->widgetType().toChar(),
-				this->name().toChar(),(const wchar_t*)event->text);
-				*/
+
+	printf("LineInput::textInputEvent(%s, %s), text=%ls\n",
+		this->widgetType().toChar(),
+		this->name().toChar(), (const wchar_t*)event->text);
+
 	WideString left, right;
 	left=myText.left(cursorpos);
 	right=myText.mid(cursorpos);
 	left+=event->text + right;
+	if (validator != NULL && validator->validateText(left) == false) return;
 	myText.set(left);
 	cursorpos++;
 	calcCursorPosition();
@@ -231,14 +244,18 @@ void LineInput::keyDownEvent(KeyEvent* event)
 				cursorpos=myText.size();
 				calcCursorPosition();
 			} else if (event->key == KeyEvent::KEY_BACKSPACE && cursorpos > 0) {
-				myText=myText.left(cursorpos - 1) + myText.mid(cursorpos);
+				WideString new_text=myText.left(cursorpos - 1) + myText.mid(cursorpos);
+				if (validator != NULL && validator->validateText(new_text) == false) return;
+				myText=new_text;
 				Event ev(Event::Type::TextChanged);
 				ev.setWidget(this);
 				textChangedEvent(&ev, myText);
 				cursorpos--;
 				calcCursorPosition();
 			} else if (event->key == KeyEvent::KEY_DELETE) {
-				myText=myText.left(cursorpos) + myText.mid(cursorpos + 1);
+				WideString new_text=myText.left(cursorpos) + myText.mid(cursorpos + 1);
+				if (validator != NULL && validator->validateText(new_text) == false) return;
+				myText=new_text;
 				Event ev(Event::Type::TextChanged);
 				ev.setWidget(this);
 				textChangedEvent(&ev, myText);

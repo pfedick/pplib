@@ -99,14 +99,14 @@ void AbstractSpinBox::createUi()
 void AbstractSpinBox::resizeUi()
 {
     Rect client=this->clientRect();
-    text_input->setSize(client.width() - 30, client.height());
+    text_input->setSize(client.width() - 25, client.height());
     text_input->setPos(client.left(), client.top());
 
-    up_button->setSize(30, client.height() / 2);
-    up_button->setPos(client.width() - 30, client.top());
+    up_button->setSize(25, client.height() / 2);
+    up_button->setPos(client.width() - 25, client.top());
 
-    down_button->setSize(30, client.height() / 2);
-    down_button->setPos(client.width() - 30, client.top() + client.height() / 2);
+    down_button->setSize(25, client.height() / 2);
+    down_button->setPos(client.width() - 25, client.top() + client.height() / 2);
 }
 
 const Color& AbstractSpinBox::color() const
@@ -129,13 +129,26 @@ void AbstractSpinBox::setFont(const Font& font)
     text_input->setFont(font);
 }
 
+void AbstractSpinBox::setText(const String& value)
+{
+    text_input->setText(value);
+}
+
+String AbstractSpinBox::text() const
+{
+    return String(text_input->text());
+}
+
 String AbstractSpinBox::widgetType() const
 {
     return "AbstractSpinBox";
 }
 
+
+
 void AbstractSpinBox::debugEvent(const ppl7::String& name, Event* event)
 {
+    return;
     Widget* w=event->widget();
     ppl7::String wname="unknown";
     if (w == this) wname="AbstractSpinBox";
@@ -147,6 +160,11 @@ void AbstractSpinBox::debugEvent(const ppl7::String& name, Event* event)
 
 }
 
+void AbstractSpinBox::setInputValidator(InputValidator* validator)
+{
+    text_input->setInputValidator(validator);
+}
+
 void AbstractSpinBox::paint(Drawable& draw)
 {
 
@@ -155,11 +173,17 @@ void AbstractSpinBox::paint(Drawable& draw)
 void AbstractSpinBox::mouseDownEvent(MouseEvent* event)
 {
     debugEvent("AbstractSpinBox::mouseDownEvent", event);
+    Widget* w=event->widget();
+    if (w == up_button) stepUp();
+    else if (w == down_button) stepDown();
+    GetWindowManager()->setKeyboardFocus(text_input);
+
 }
 
 void AbstractSpinBox::gotFocusEvent(FocusEvent* event)
 {
     debugEvent("AbstractSpinBox::gotFocusEvent", event);
+    GetWindowManager()->setKeyboardFocus(text_input);
 }
 
 void AbstractSpinBox::lostFocusEvent(FocusEvent* event)
@@ -175,11 +199,22 @@ void AbstractSpinBox::textInputEvent(TextInputEvent* event)
 void AbstractSpinBox::keyDownEvent(KeyEvent* event)
 {
     debugEvent("AbstractSpinBox::keyDownEvent", event);
+    KeyEvent new_event=*event;
+    new_event.setWidget(this);
+    EventHandler::keyDownEvent(&new_event);
 }
 
 void AbstractSpinBox::keyUpEvent(KeyEvent* event)
 {
     debugEvent("AbstractSpinBox::keyUpEvent", event);
+}
+
+void AbstractSpinBox::textChangedEvent(Event* event, const String& text)
+{
+    debugEvent("AbstractSpinBox::textChangedEvent", event);
+    Event new_event=*event;
+    new_event.setWidget(this);
+    EventHandler::textChangedEvent(&new_event, text);
 }
 
 
@@ -189,18 +224,20 @@ SpinBox::SpinBox()
     step_size=1;
     min=0;
     max=0;
+    setInputValidator(this);
 }
 
 SpinBox::SpinBox(int x, int y, int width, int height, int64_t value)
     :AbstractSpinBox(x, y, width, height)
 {
-    my_value=value;
+    my_value=0;
     step_size=1;
     min=0;
     max=0;
+    setInputValidator(this);
     if (value < min) min=value;
     if (value > max) max=value;
-
+    setValue(value);
 }
 
 String SpinBox::widgetType() const
@@ -212,11 +249,12 @@ void SpinBox::setValue(int64_t value)
 {
     if (value<min || value>max) return;
     my_value=value;
+    setText(ppl7::ToString("%ld", value));
 }
 
 int64_t SpinBox::value() const
 {
-    return my_value;
+    return text().toInt64();
 }
 
 void SpinBox::setMinimum(int64_t value)
@@ -258,6 +296,30 @@ int64_t SpinBox::stepSize() const
 }
 
 
+void SpinBox::stepUp()
+{
+    int64_t v=value() + step_size;
+    if (v > max) v=max;
+    setValue(v);
+}
+
+void SpinBox::stepDown()
+{
+    int64_t v=value() - step_size;
+    if (v < min) v=min;
+    setValue(v);
+}
+
+bool SpinBox::validateText(const ppl7::WideString& text)
+{
+    ppl7::String t=text;
+    if (t.pregMatch("/^-?[0-9]*$/")) {
+        int64_t v=text.toInt64();
+        if (v >= min && v <= max) return true;
+    }
+    return false;
+}
+
 DoubleSpinBox::DoubleSpinBox()
 {
     my_value=0.0f;
@@ -265,6 +327,7 @@ DoubleSpinBox::DoubleSpinBox()
     step_size=1;
     min=0;
     max=0;
+    setInputValidator(this);
 }
 
 DoubleSpinBox::DoubleSpinBox(int x, int y, int width, int height, double value, int decimals)
@@ -274,9 +337,10 @@ DoubleSpinBox::DoubleSpinBox(int x, int y, int width, int height, double value, 
     step_size=1;
     min=0;
     max=0;
+    setInputValidator(this);
     if (value < min) min=value;
     if (value > max) max=value;
-
+    setValue(value);
 }
 
 String DoubleSpinBox::widgetType() const
@@ -288,11 +352,15 @@ void DoubleSpinBox::setValue(double value)
 {
     if (value<min || value>max) return;
     my_value=value;
+    ppl7::String format;
+    format.setf("%%0.%df", my_decimals);
+    setText(ppl7::ToString((const char*)format, value));
+
 }
 
 double DoubleSpinBox::value() const
 {
-    return my_value;
+    return text().toDouble();
 }
 
 void DoubleSpinBox::setMinimum(double value)
@@ -333,6 +401,29 @@ double DoubleSpinBox::stepSize() const
     return step_size;
 }
 
+void DoubleSpinBox::stepUp()
+{
+    int64_t v=value() + step_size;
+    if (v > max) v=max;
+    setValue(v);
+}
+
+void DoubleSpinBox::stepDown()
+{
+    int64_t v=value() - step_size;
+    if (v < min) v=min;
+    setValue(v);
+}
+
+bool DoubleSpinBox::validateText(const ppl7::WideString& text)
+{
+    ppl7::String t=text;
+    if (t.pregMatch("/^-?[0-9\\.,]*$/")) {
+        double v=text.toDouble();
+        if (v >= min && v <= max) return true;
+    }
+    return false;
+}
 
 
 }   // EOF namespace

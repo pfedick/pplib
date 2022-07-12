@@ -814,6 +814,12 @@ public:
 
 };
 
+class InputValidator
+{
+public:
+	virtual bool validateText(const ppl7::WideString& text)=0;
+};
+
 class LineInput : public Frame
 {
 private:
@@ -827,6 +833,7 @@ private:
 	int		cursorwidth;
 	bool	blinker;
 	int		timerId;
+	InputValidator* validator;
 
 	void calcCursorPosition();
 	int calcPosition(int x);
@@ -840,6 +847,8 @@ public:
 	void setColor(const Color& c);
 	const Font& font() const;
 	void setFont(const Font& font);
+
+	void setInputValidator(InputValidator* validator);
 
 	virtual String widgetType() const;
 	virtual void paint(Drawable& draw);
@@ -1061,6 +1070,13 @@ public:
 	const Font& font() const;
 	void setFont(const Font& font);
 
+	void setText(const String& value);
+	String text() const;
+
+	void setInputValidator(InputValidator* validator);
+
+	//virtual bool validateText(const ppl7::WideString& text)=0;
+
 	virtual String widgetType() const;
 	virtual void paint(Drawable& draw);
 
@@ -1071,10 +1087,14 @@ public:
 	virtual void textInputEvent(TextInputEvent* event);
 	virtual void keyDownEvent(KeyEvent* event);
 	virtual void keyUpEvent(KeyEvent* event);
+	virtual void textChangedEvent(Event* event, const String& text);
+
+	virtual void stepUp()=0;
+	virtual void stepDown()=0;
 
 };
 
-class SpinBox : public AbstractSpinBox
+class SpinBox : public AbstractSpinBox, public InputValidator
 {
 private:
 	int64_t my_value;
@@ -1095,9 +1115,14 @@ public:
 	int64_t maximum() const;
 	void setStepSize(int64_t value);
 	int64_t stepSize() const;
+
+	void stepUp();
+	void stepDown();
+
+	bool validateText(const ppl7::WideString& text);
 };
 
-class DoubleSpinBox : public AbstractSpinBox
+class DoubleSpinBox : public AbstractSpinBox, public InputValidator
 {
 private:
 	int my_decimals;
@@ -1120,6 +1145,12 @@ public:
 	double stepSize() const;
 	void setDecimals(int decimals);
 	int decimals() const;
+
+	void stepUp();
+	void stepDown();
+
+
+	bool validateText(const ppl7::WideString& text);
 
 };
 
