@@ -2,13 +2,8 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,25 +56,25 @@ using namespace ppl7::grafix;
 
 Frame::Frame()
 {
-	const WidgetStyle &style=GetWidgetStyle();
+	const WidgetStyle& style=GetWidgetStyle();
 	myBorderStyle=Upset;
 	myBackground=style.frameBackgroundColor;
 	myBorderColorLight=style.frameBorderColorLight;
 	myBorderColorShadow=style.frameBorderColorShadow;
 	setTransparent(false);
-	setClientOffset(3,3,3,3);
+	setClientOffset(3, 3, 3, 3);
 }
 
 Frame::Frame(int x, int y, int width, int height, BorderStyle style)
 {
-	const WidgetStyle &wstyle=GetWidgetStyle();
+	const WidgetStyle& wstyle=GetWidgetStyle();
 	myBorderStyle=style;
 	myBackground=wstyle.frameBackgroundColor;
 	myBorderColorLight=wstyle.frameBorderColorLight;
 	myBorderColorShadow=wstyle.frameBorderColorShadow;
-	create(x,y,width,height);
+	create(x, y, width, height);
 	setTransparent(false);
-	setClientOffset(3,3,3,3);
+	setClientOffset(3, 3, 3, 3);
 }
 
 Frame::~Frame()
@@ -98,69 +93,69 @@ void Frame::setBorderStyle(BorderStyle s)
 	needsRedraw();
 }
 
-const Color &Frame::backgroundColor() const
+const Color& Frame::backgroundColor() const
 {
 	return myBackground;
 }
 
-void Frame::setBackgroundColor(const Color &c)
+void Frame::setBackgroundColor(const Color& c)
 {
 	myBackground=c;
 	needsRedraw();
 }
 
-const Color &Frame::borderColorLight() const
+const Color& Frame::borderColorLight() const
 {
 	return myBorderColorLight;
 }
 
-void Frame::setBorderColorLight(const Color &c)
+void Frame::setBorderColorLight(const Color& c)
 {
 	myBorderColorLight=c;
 	needsRedraw();
 }
 
-void Frame::setBorderColorShadow(const Color &c)
+void Frame::setBorderColorShadow(const Color& c)
 {
 	myBorderColorShadow=c;
 	needsRedraw();
 }
 
 
-void Frame::paint(Drawable &draw)
+void Frame::paint(Drawable& draw)
 {
 	Color bg;
-	int w=width()-1;
-	int h=height()-1;
+	int w=width() - 1;
+	int h=height() - 1;
 	bool myTransparent=isTransparent();
-	switch(myBorderStyle) {
-		case NoBorder:
-			if (!myTransparent) draw.cls(myBackground);
-			break;
-		case Normal:
-			if (!myTransparent) draw.cls(myBackground);
-			draw.drawRect(0,0,w,h,myBorderColorShadow);
-			break;
-		case Upset:
-			if (!myTransparent) {
-				bg=myBackground;
-				draw.cls(bg);
-			}
-			draw.line(0,0,w,0,myBorderColorLight);
-			draw.line(0,0,0,h,myBorderColorLight);
-			draw.line(0,h,w,h,myBorderColorShadow);
-			draw.line(w,0,w,h,myBorderColorShadow);
-			break;
-		case Inset:
-			if (!myTransparent) {
-				bg=myBackground;
-				draw.cls(bg);
-			}
-			draw.line(0,0,w,0,myBorderColorShadow);
-			draw.line(0,0,0,h,myBorderColorShadow);
-			draw.line(0,h,w,h,myBorderColorLight);
-			draw.line(w,0,w,h,myBorderColorLight);
-			break;
+	switch (myBorderStyle) {
+	case NoBorder:
+		if (!myTransparent) draw.cls(myBackground);
+		break;
+	case Normal:
+		if (!myTransparent) draw.cls(myBackground);
+		draw.drawRect(0, 0, w, h, myBorderColorShadow);
+		break;
+	case Upset:
+		if (!myTransparent) {
+			bg=myBackground;
+			draw.cls(bg);
+		}
+		draw.line(0, 0, w, 0, myBorderColorLight);
+		draw.line(0, 0, 0, h, myBorderColorLight);
+		draw.line(0, h, w, h, myBorderColorShadow);
+		draw.line(w, 0, w, h, myBorderColorShadow);
+		break;
+	case Inset:
+		if (!myTransparent) {
+			bg=myBackground;
+			draw.cls(bg);
+		}
+		draw.line(0, 0, w, 0, myBorderColorShadow);
+		draw.line(0, 0, 0, h, myBorderColorShadow);
+		draw.line(0, h, w, h, myBorderColorLight);
+		draw.line(w, 0, w, h, myBorderColorLight);
+		break;
 	}
 	//Rect r=this->clientRect();
 	//draw.drawRect(r,Color(255,0,0,255));
@@ -175,4 +170,3 @@ String Frame::widgetType() const
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7
-

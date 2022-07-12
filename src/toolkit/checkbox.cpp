@@ -46,125 +46,65 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 
+namespace ppl7::tk {
 
-namespace ppl7 {
-namespace tk {
-
-using namespace ppl7;
-using namespace ppl7::grafix;
-
-
-Label::Label()
-	:Frame()
+CheckBox::CheckBox()
+	: ppl7::tk::Label()
 {
-	const WidgetStyle& style=GetWidgetStyle();
-	setBorderStyle(NoBorder);
-	myColor=style.labelFontColor;
-	myFont=style.labelFont;
-	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
-	setTransparent(true);
-
+	ischecked=false;
 }
 
-Label::Label(int x, int y, int width, int height, const String& text, BorderStyle style)
-	:Frame(x, y, width, height)
+CheckBox::CheckBox(int x, int y, int width, int height, const ppl7::String& text, bool checked) // @suppress("Class members should be properly initialized")
+	: ppl7::tk::Label(x, y, width, height, text)
 {
-	const WidgetStyle& wstyle=GetWidgetStyle();
-	setBorderStyle(style);
-	myColor=wstyle.labelFontColor;
-	myFont=wstyle.labelFont;
-	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
-	setTransparent(true);
-	myText=text;
+	ischecked=checked;
 }
 
-Label::~Label()
+CheckBox::~CheckBox()
 {
 
 }
 
-const String& Label::text() const
+ppl7::String CheckBox::widgetType() const
 {
-	return myText;
+	return ppl7::String("CheckBox");
 }
 
-void Label::setText(const String& text)
+bool CheckBox::checked() const
 {
-	myText=text;
-	needsRedraw();
-	geometryChanged();
+	return ischecked;
 }
 
-const Color& Label::color() const
+void CheckBox::setChecked(bool checked)
 {
-	return myColor;
-}
-
-void Label::setColor(const Color& c)
-{
-	myColor=c;
+	ischecked=checked;
 	needsRedraw();
 }
 
-const Drawable& Label::icon() const
+
+void CheckBox::paint(ppl7::grafix::Drawable& draw)
 {
-	return myIcon;
+	int s=draw.height() * 3 / 5;
+	int sh=s / 2;
+
+	const ppl7::tk::WidgetStyle& style=ppl7::tk::GetWidgetStyle();
+	ppl7::grafix::Drawable d=draw.getDrawable(s + (s / 3), 0, draw.width() - (s + s / 3), draw.height());
+	Label::paint(d);
+	int y1=draw.height() / 2 - sh;
+	int y2=draw.height() / 2 + sh;
+	draw.drawRect(2, y1, 2 + s, y2, style.frameBorderColorLight);
+	draw.drawRect(3, y1 + 1, 1 + s, y2 - 1, style.frameBorderColorLight);
+	if (ischecked) draw.fillRect(5, y1 + 3, 2 + s - 3, y2 - 3, this->color());
 }
 
-void Label::setIcon(const Drawable& icon)
+void CheckBox::mouseDownEvent(ppl7::tk::MouseEvent* event)
 {
-	myIcon=icon;
+	ischecked=!ischecked;
 	needsRedraw();
-	geometryChanged();
-}
-
-const Font& Label::font() const
-{
-	return myFont;
-}
-
-void Label::setFont(const Font& font)
-{
-	myFont=font;
-	needsRedraw();
-	geometryChanged();
+	ppl7::tk::Event ev(ppl7::tk::Event::Toggled);
+	ev.setWidget(this);
+	toggledEvent(&ev, ischecked);
 }
 
 
-Size Label::contentSize() const
-{
-	Size s;
-	s=myFont.measure(myText);
-	if (myIcon.isEmpty() == false) {
-		s.width+=4 + myIcon.width();
-		int h=2 + myIcon.height();
-		if (s.height < h) s.height=h;
-	}
-	return s;
-}
-
-String Label::widgetType() const
-{
-	return "Label";
-}
-
-
-void Label::paint(Drawable& draw)
-{
-	Frame::paint(draw);
-	Drawable d=clientDrawable(draw);
-	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());
-	int x=0;
-	if (myIcon.isEmpty() == false) {
-		d.bltAlpha(myIcon, x, (d.height()) / 2 - myIcon.height() / 2);
-		x+=4 + myIcon.width();
-	}
-	myFont.setColor(myColor);
-	myFont.setOrientation(Font::TOP);
-	Size s=myFont.measure(myText);
-	d.print(myFont, x, (d.height() - s.height) >> 1, myText);
-}
-
-
-}	// EOF namespace tk
-}	// EOF namespace ppl7
+} //EOF namespace

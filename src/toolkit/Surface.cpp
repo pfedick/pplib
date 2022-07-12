@@ -2,13 +2,8 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,16 +55,16 @@ namespace tk {
 using namespace ppl7;
 using namespace ppl7::grafix;
 
-static void defLock (void *privatedata, Drawable &draw) {};
-static void defUnlock (void *privatedata) {};
-static void defDestroy (void *privatedata) {};
-static void defUpdate (void *privatedata, const Drawable &source) {};
+static void defLock(void* privatedata, Drawable& draw) {};
+static void defUnlock(void* privatedata) {};
+static void defDestroy(void* privatedata) {};
+static void defUpdate(void* privatedata, const Drawable& source) {};
 
-static PRIV_SURFACE_FUNCTIONS defFunctions = {
+static PRIV_SURFACE_FUNCTIONS defFunctions ={
 		defLock,
 		defUnlock,
 		defDestroy,
-		defUpdate};
+		defUpdate };
 
 
 
@@ -87,7 +82,7 @@ Surface::~Surface()
 	fn->destroy(privatedata);
 }
 
-const RGBFormat &Surface::rgbFormat() const
+const RGBFormat& Surface::rgbFormat() const
 {
 	return myFormat;
 }
@@ -109,13 +104,13 @@ int Surface::height() const
 
 bool Surface::isLoackable() const
 {
-	if (myFlags&Lockable) return true;
+	if (myFlags & Lockable) return true;
 	return false;
 }
 
-void Surface::lock(Drawable &draw)
+void Surface::lock(Drawable& draw)
 {
-	fn->lock(privatedata,draw);
+	fn->lock(privatedata, draw);
 }
 
 void Surface::unlock()
@@ -128,7 +123,7 @@ void Surface::setFlags(SurfaceFlags flags)
 	myFlags=flags;
 }
 
-void Surface::setRGBFormat(const RGBFormat &format)
+void Surface::setRGBFormat(const RGBFormat& format)
 {
 	myFormat=format;
 }
@@ -139,13 +134,13 @@ void Surface::setSize(int width, int height)
 	h=height;
 }
 
-void Surface::setPrivateData(void *data, PRIV_SURFACE_FUNCTIONS *fn)
+void Surface::setPrivateData(void* data, PRIV_SURFACE_FUNCTIONS* fn)
 {
 	privatedata=data;
 	this->fn=fn;
 }
 
-void *Surface::getPrivateData()
+void* Surface::getPrivateData()
 {
 	return privatedata;
 }

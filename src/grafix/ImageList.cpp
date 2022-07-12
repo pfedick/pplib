@@ -65,29 +65,29 @@ ImageList::ImageList()
 	numX=numY=0;
 }
 
-ImageList::ImageList(const ImageList &other)
+ImageList::ImageList(const ImageList& other)
 {
 	copy(other);
 }
 
-ImageList::ImageList(const Drawable &draw, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(const Drawable& draw, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(draw,icon_width,icon_height,method);
+	load(draw, icon_width, icon_height, method);
 }
 
-ImageList::ImageList(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(const String& Filename, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(Filename,icon_width,icon_height,method);
+	load(Filename, icon_width, icon_height, method);
 }
 
-ImageList::ImageList(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(FileObject& file, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(file,icon_width,icon_height,method);
+	load(file, icon_width, icon_height, method);
 }
 
-ImageList::ImageList(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method)
+ImageList::ImageList(const ByteArrayPtr& mem, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(mem,icon_width,icon_height,method);
+	load(mem, icon_width, icon_height, method);
 }
 
 ImageList::~ImageList()
@@ -103,7 +103,7 @@ void ImageList::clear()
 	numX=numY=0;
 }
 
-void ImageList::copy(const ImageList &other)
+void ImageList::copy(const ImageList& other)
 {
 	Image::copy(other);
 	width=other.width;
@@ -116,48 +116,48 @@ void ImageList::copy(const ImageList &other)
 	numY=other.numY;
 }
 
-void ImageList::load(const Drawable &draw,int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(const Drawable& draw, int icon_width, int icon_height, DRAWMETHOD method)
 {
 	Image::copy(draw);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=Image::width()/width;
-	numY=Image::height()/height;
-	numIcons=numX*numY;
+	numX=Image::width() / width;
+	numY=Image::height() / height;
+	numIcons=numX * numY;
 }
 
-void ImageList::load(const String &Filename, int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(const String& Filename, int icon_width, int icon_height, DRAWMETHOD method)
 {
 	Image::load(Filename);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=Image::width()/width;
-	numY=Image::height()/height;
-	numIcons=numX*numY;
+	numX=Image::width() / width;
+	numY=Image::height() / height;
+	numIcons=numX * numY;
 }
 
-void ImageList::load(FileObject &file, int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(FileObject& file, int icon_width, int icon_height, DRAWMETHOD method)
 {
 	Image::load(file);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=Image::width()/width;
-	numY=Image::height()/height;
-	numIcons=numX*numY;
+	numX=Image::width() / width;
+	numY=Image::height() / height;
+	numIcons=numX * numY;
 }
 
-void ImageList::load(const ByteArrayPtr &mem, int icon_width, int icon_height, DRAWMETHOD method)
+void ImageList::load(const ByteArrayPtr& mem, int icon_width, int icon_height, DRAWMETHOD method)
 {
 	Image::load(mem);
 	width=icon_width;
 	height=icon_height;
 	this->method=method;
-	numX=Image::width()/width;
-	numY=Image::height()/height;
-	numIcons=numX*numY;
+	numX=Image::width() / width;
+	numY=Image::height() / height;
+	numIcons=numX * numY;
 }
 
 
@@ -166,12 +166,12 @@ void ImageList::setDrawMethod(DRAWMETHOD method)
 	this->method=method;
 }
 
-void ImageList::setColorKey(const Color &key)
+void ImageList::setColorKey(const Color& key)
 {
 	colorkey=key;
 }
 
-void ImageList::setDiffuseColor(const Color &c)
+void ImageList::setDiffuseColor(const Color& c)
 {
 	diffuse=c;
 }
@@ -180,9 +180,9 @@ void ImageList::setIconSize(int width, int height)
 {
 	this->width=width;
 	this->height=height;
-	numX=Image::width()/width;
-	numY=Image::height()/height;
-	numIcons=numX*numY;
+	numX=Image::width() / width;
+	numY=Image::height() / height;
+	numIcons=numX * numY;
 }
 
 
@@ -193,17 +193,17 @@ size_t ImageList::num() const
 
 Size ImageList::iconSize() const
 {
-	return Size(width,height);
+	return Size(width, height);
 }
 
 Rect ImageList::getRect(size_t nr) const
 {
 	Rect r;
-	if (numIcons==0 || nr>=numIcons) throw OutOfBoundsEception();
-	int h,w;
-	h=(int)(nr/numX);
-	w=(int)(nr%numX);
-	r.setRect(w*width,h*height,width,height);
+	if (numIcons == 0 || nr >= numIcons) throw OutOfBoundsEception();
+	int h, w;
+	h=(int)(nr / numX);
+	w=(int)(nr % numX);
+	r.setRect(w * width, h * height, width, height);
 	return r;
 }
 
@@ -215,7 +215,16 @@ ImageList::DRAWMETHOD ImageList::drawMethod() const
 Drawable ImageList::getDrawable(size_t nr) const
 {
 	Rect r=getRect(nr);
-	return Drawable(*this,r);
+	return Drawable(*this, r);
+}
+
+Image ImageList::getDrawable(size_t nr, const Color& diffuse_color) const
+{
+	Rect r=getRect(nr);
+	Drawable d(*this, r);
+	Image img(d.width(), d.height());
+	img.bltDiffuse(d, 0, 0, diffuse_color);
+	return img;
 }
 
 Color ImageList::colorKey() const
@@ -228,7 +237,7 @@ Color ImageList::diffuseColor() const
 	return diffuse;
 }
 
-ImageList &ImageList::operator=(const ImageList &other)
+ImageList& ImageList::operator=(const ImageList& other)
 {
 	copy(other);
 	return *this;

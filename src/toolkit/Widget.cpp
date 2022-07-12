@@ -2,13 +2,8 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -87,6 +82,7 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		inputFontColor.setColor(0, 0, 0, 255);
 		inputBackgroundColor.setColor(255, 255, 255, 255);
 		sliderHighlightColor.setColor(61, 174, 233, 255);
+		buttonSymbolColor.setColor(26, 16, 16, 255);
 	} else {
 		windowBackgroundColor.setColor(47, 47, 47, 255);
 		frameBackgroundColor.setColor(71, 71, 74, 255);
@@ -98,6 +94,7 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		inputFontColor.setColor(43, 43, 40, 255);
 		inputBackgroundColor.setColor(216, 216, 214, 255);
 		sliderHighlightColor.setColor(61, 174, 233, 255);
+		buttonSymbolColor.setColor(255, 250, 250, 255);
 	}
 }
 

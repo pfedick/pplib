@@ -46,125 +46,73 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 
+namespace ppl7::tk {
 
-namespace ppl7 {
-namespace tk {
-
-using namespace ppl7;
-using namespace ppl7::grafix;
-
-
-Label::Label()
-	:Frame()
+RadioButton::RadioButton()
+	: ppl7::tk::Label()
 {
-	const WidgetStyle& style=GetWidgetStyle();
-	setBorderStyle(NoBorder);
-	myColor=style.labelFontColor;
-	myFont=style.labelFont;
-	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
-	setTransparent(true);
-
+	ischecked=false;
 }
 
-Label::Label(int x, int y, int width, int height, const String& text, BorderStyle style)
-	:Frame(x, y, width, height)
+RadioButton::RadioButton(int x, int y, int width, int height, const ppl7::String& text, bool checked) // @suppress("Class members should be properly initialized")
+	: ppl7::tk::Label(x, y, width, height, text)
 {
-	const WidgetStyle& wstyle=GetWidgetStyle();
-	setBorderStyle(style);
-	myColor=wstyle.labelFontColor;
-	myFont=wstyle.labelFont;
-	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
-	setTransparent(true);
-	myText=text;
+	ischecked=checked;
 }
 
-Label::~Label()
+RadioButton::~RadioButton()
 {
 
 }
 
-const String& Label::text() const
+ppl7::String RadioButton::widgetType() const
 {
-	return myText;
+	return ppl7::String("RadioButton");
 }
 
-void Label::setText(const String& text)
+bool RadioButton::checked() const
 {
-	myText=text;
+	return ischecked;
+}
+
+void RadioButton::setChecked(bool checked)
+{
+	bool laststate=ischecked;
+	ischecked=checked;
 	needsRedraw();
-	geometryChanged();
-}
-
-const Color& Label::color() const
-{
-	return myColor;
-}
-
-void Label::setColor(const Color& c)
-{
-	myColor=c;
-	needsRedraw();
-}
-
-const Drawable& Label::icon() const
-{
-	return myIcon;
-}
-
-void Label::setIcon(const Drawable& icon)
-{
-	myIcon=icon;
-	needsRedraw();
-	geometryChanged();
-}
-
-const Font& Label::font() const
-{
-	return myFont;
-}
-
-void Label::setFont(const Font& font)
-{
-	myFont=font;
-	needsRedraw();
-	geometryChanged();
-}
-
-
-Size Label::contentSize() const
-{
-	Size s;
-	s=myFont.measure(myText);
-	if (myIcon.isEmpty() == false) {
-		s.width+=4 + myIcon.width();
-		int h=2 + myIcon.height();
-		if (s.height < h) s.height=h;
+	// uncheck all other RadioButtons in Parent-Widget
+	if (checked == true && this->getParent()) {
+		Widget* parent=this->getParent();
+		std::list<Widget*>::iterator it;
+		for (it=parent->childsBegin(); it != parent->childsEnd();++it) {
+			if (typeid(**it) == typeid(RadioButton) && *it != this) {
+				((RadioButton*)(*it))->setChecked(false);
+			}
+		}
 	}
-	return s;
-}
-
-String Label::widgetType() const
-{
-	return "Label";
-}
-
-
-void Label::paint(Drawable& draw)
-{
-	Frame::paint(draw);
-	Drawable d=clientDrawable(draw);
-	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());
-	int x=0;
-	if (myIcon.isEmpty() == false) {
-		d.bltAlpha(myIcon, x, (d.height()) / 2 - myIcon.height() / 2);
-		x+=4 + myIcon.width();
+	ppl7::tk::Event ev(ppl7::tk::Event::Toggled);
+	ev.setWidget(this);
+	if (checked != laststate) {
+		toggledEvent(&ev, checked);
 	}
-	myFont.setColor(myColor);
-	myFont.setOrientation(Font::TOP);
-	Size s=myFont.measure(myText);
-	d.print(myFont, x, (d.height() - s.height) >> 1, myText);
 }
 
 
-}	// EOF namespace tk
-}	// EOF namespace ppl7
+void RadioButton::paint(ppl7::grafix::Drawable& draw)
+{
+	const ppl7::tk::WidgetStyle& style=ppl7::tk::GetWidgetStyle();
+	ppl7::grafix::Drawable d=draw.getDrawable(16, 0, draw.width() - 16, draw.height());
+	Label::paint(d);
+	int y1=draw.height() / 2;
+	draw.circle(9, y1, 7, style.frameBorderColorLight);
+	draw.circle(9, y1, 6, style.frameBorderColorLight);
+	if (ischecked) draw.floodFill(9, y1, this->color(), style.frameBorderColorLight);
+}
+
+void RadioButton::mouseDownEvent(ppl7::tk::MouseEvent* event)
+{
+	setChecked(true);
+}
+
+
+} //EOF namespace

@@ -2,13 +2,8 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,56 +70,56 @@ String HorizontalLayout::widgetType() const
 	return "HorizontalLayout";
 }
 
-void HorizontalLayout::paint(Drawable &draw)
+void HorizontalLayout::paint(Drawable& draw)
 {
 
 }
 
 
-void HorizontalLayout::geometryChangedEvent(Event *event)
+void HorizontalLayout::geometryChangedEvent(Event* event)
 {
 	//printf ("HorizontalLayout::geometryChangedEvent, %i Childs\n",numChilds());
 	size_t num=numChilds();
 	if (num) {
 		typedef struct {
-				Widget *widget;
-				int		strategy;
-				int		preferedWidth;
+			Widget* widget;
+			int		strategy;
+			int		preferedWidth;
 		} ITEM;
 		std::list<Widget*>::iterator it;
 
-		ITEM *item=(ITEM*)malloc(sizeof(ITEM)*num);
+		ITEM* item=(ITEM*)malloc(sizeof(ITEM) * num);
 		if (!item) throw OutOfMemoryException();
-		Widget *w;
+		Widget* w;
 		size_t c=0;
 		int total=0;
 		int hh=height();
 		int available=width();
 		int maxc=0;
 
-		for (it=childsBegin();it!=childsEnd();++it) {
+		for (it=childsBegin();it != childsEnd();++it) {
 			w=*it;
 			item[c].widget=w;
 			item[c].strategy=w->sizeStrategyWidth();
-			if (item[c].strategy==Widget::MAXIMUM_EXPANDING) maxc++;
-			item[c].preferedWidth=w->preferedSize().width+spacing;
+			if (item[c].strategy == Widget::MAXIMUM_EXPANDING) maxc++;
+			item[c].preferedWidth=w->preferedSize().width + spacing;
 			total+=item[c].preferedWidth;
 			//printf ("Widtget %i, strategy=%i, preferedWidth=%i\n",c,item[c].strategy,item[c].preferedWidth);
 			c++;
 		}
-		if (total!=lastTotal) {
+		if (total != lastTotal) {
 			lastTotal=total;
 			available-=total;
 			int x=0;
-			for (size_t i=0;i<num;i++) {
+			for (size_t i=0;i < num;i++) {
 				int ww=item[i].preferedWidth;
-				if (item[i].strategy==Widget::MAXIMUM_EXPANDING) {
-					if (available>0) {
-						ww+=(available/maxc);
+				if (item[i].strategy == Widget::MAXIMUM_EXPANDING) {
+					if (available > 0) {
+						ww+=(available / maxc);
 					}
 				}
-				item[i].widget->setPos(x,0);
-				item[i].widget->setSize(ww-spacing,hh);
+				item[i].widget->setPos(x, 0);
+				item[i].widget->setSize(ww - spacing, hh);
 				x+=ww;
 			}
 		}
@@ -146,7 +141,7 @@ String HorizontalSpacer::widgetType() const
 	return "HorizontalSpacer";
 }
 
-void HorizontalSpacer::paint(Drawable &draw)
+void HorizontalSpacer::paint(Drawable& draw)
 {
 
 }

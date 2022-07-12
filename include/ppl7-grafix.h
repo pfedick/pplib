@@ -818,6 +818,7 @@ public:
 	Rect getRect(size_t nr) const;
 	DRAWMETHOD drawMethod() const;
 	Drawable getDrawable(size_t nr) const;
+	Image getDrawable(size_t nr, const Color& diffuse_color) const;
 	Color colorKey() const;
 	Color diffuseColor() const;
 

@@ -2,13 +2,8 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,22 +63,22 @@ VerticalDivider::VerticalDivider()
 
 VerticalDivider::VerticalDivider(int x, int y, int width, int height)
 {
-	this->setSize(6,height);
-	this->setPos(x,y);
+	this->setSize(6, height);
+	this->setPos(x, y);
 }
 
 
-void VerticalDivider::paint(Drawable &draw)
+void VerticalDivider::paint(Drawable& draw)
 {
-	Color white(255,255,255,255);
-	Color dark(92,92,92,255);
+	Color white(255, 255, 255, 255);
+	Color dark(92, 92, 92, 255);
 	Color bg;
 
 	//int w=width()-1;
-	int h=height()-1;
+	int h=height() - 1;
 
-	draw.line(2,0,2,h-1,white);
-	draw.line(3,1,3,h,dark);
+	draw.line(2, 0, 2, h - 1, white);
+	draw.line(3, 1, 3, h, dark);
 }
 
 String VerticalDivider::widgetType() const
@@ -93,7 +88,7 @@ String VerticalDivider::widgetType() const
 
 Size VerticalDivider::contentSize() const
 {
-	return Size(6,height());
+	return Size(6, height());
 }
 
 HorizontalDivider::HorizontalDivider()
@@ -103,21 +98,21 @@ HorizontalDivider::HorizontalDivider()
 
 HorizontalDivider::HorizontalDivider(int x, int y, int width, int height)
 {
-	this->setSize(width,6);
-	this->setPos(x,y);
+	this->setSize(width, 6);
+	this->setPos(x, y);
 }
 
-void HorizontalDivider::paint(Drawable &draw)
+void HorizontalDivider::paint(Drawable& draw)
 {
-	Color white(255,255,255,255);
-	Color dark(92,92,92,255);
+	Color white(255, 255, 255, 255);
+	Color dark(92, 92, 92, 255);
 	Color bg;
 
 	//int w=width()-1;
-	int h=height()-1;
+	int h=height() - 1;
 
-	draw.line(2,0,2,h-1,white);
-	draw.line(3,1,3,h,dark);
+	draw.line(2, 0, 2, h - 1, white);
+	draw.line(3, 1, 3, h, dark);
 }
 
 String HorizontalDivider::widgetType() const
@@ -127,11 +122,10 @@ String HorizontalDivider::widgetType() const
 
 Size HorizontalDivider::contentSize() const
 {
-	return Size(width(),6);
+	return Size(width(), 6);
 }
 
 
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7
-

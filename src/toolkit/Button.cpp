@@ -2,13 +2,8 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: http://www.pfp.de/ppl/
  *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -241,72 +236,22 @@ void Button::paint(Drawable& draw)
 	}
 	Drawable d=clientDrawable(draw);
 	if (Icon.isEmpty() == false) {
-		if (this->isEnabled()) d.bltAlpha(Icon, x + 2, y + (d.height() - Icon.height()) / 2);
-		else d.bltBlend(Icon, 0.5f, x + 2, y + (d.height() - Icon.height()) / 2);
+		int icon_x=x + 2;
+		if (Text.isEmpty()) icon_x=(d.width() - Icon.width()) / 2;
+
+		if (this->isEnabled()) d.bltAlpha(Icon, icon_x, y + (d.height() - Icon.height()) / 2);
+		else d.bltBlend(Icon, 0.5f, icon_x, y + (d.height() - Icon.height()) / 2);
 		x+=6 + Icon.width();
 	}
-	if (this->isEnabled()) myFont.setColor(foreground);
-	else myFont.setColor(Color::getBlendedf(background, foreground, 0.5f));
-	myFont.setOrientation(Font::TOP);
+	if (Text.notEmpty()) {
+		if (this->isEnabled()) myFont.setColor(foreground);
+		else myFont.setColor(Color::getBlendedf(background, foreground, 0.5f));
+		myFont.setOrientation(Font::TOP);
 
-	Size s=myFont.measure(Text);
-	d.print(myFont, x, y + ((d.height() - s.height) >> 1), Text);
-	return;
-
-/*
-
-
-
-
-	Rect r=draw.rect();
-	Color bright1=background*1.3f;
-	Color bright2=background*1.0f;
-	Color dark1=background*0.8f;
-	Color dark2=background*0.7f;
-	draw.drawRect(r,Color(66,66,66));
-	int x1=r.x1+1;
-	int y1=r.y1+1;
-	int x2=r.x2-1;
-	int y2=r.y2-1;
-	int m=(y2-y1)/2+y1;
-	draw.line(x1,y1,x2,y1,Color(219,219,219));
-	draw.colorGradient(x1,y1+1,x2,m,bright1,bright2,1);
-	draw.colorGradient(x1,m+1,x2,y2,dark1,dark2,1);
-
-	draw.colorGradient(x1,y1,x1,m,Color(219,219,219),Color(130,130,130),1);
-	draw.colorGradient(x2,y1,x2,m,Color(219,219,219),Color(130,130,130),1);
-	draw.line(x1,m,x2,m,Color(83,83,83));
-	Color c;
-	Point mp((x2-x1)/2+x1,y2+(y2-m));
-	Point p;
-	float d,maxd;
-	float brightness;
-	p.setPoint(x1,y1);
-	maxd=Distance(mp,p)*0.8;
-	for (int y=y1;y<y2;y++) {
-		for (int x=x1+1;x<x2;x++) {
-			p.setPoint(x,y);
-			c=draw.getPixel(x,y);
-			// Entfernung zum Mittelpunkt berechnen
-			d=Distance(mp,p);
-			brightness=(maxd-d)/maxd;
-			if (brightness<0) brightness=0.0f;
-			//printf ("Distance von %i:%i zu %i:%i: %.2f\n",p.x(),p.y(),mp.x(),mp.y(),d);
-			draw.blendPixel(x,y,Color(128,128,256),brightness);
-		}
+		Size s=myFont.measure(Text);
+		d.print(myFont, x, y + ((d.height() - s.height) >> 1), Text);
 	}
-	if (Icon.isEmpty()) {
-		x1+=2;
-	} else {
-		draw.bltAlpha(Icon,x1+2,(y2-y1)/2-Icon.height()/2);
-		x1+=4+Icon.width();
 
-	}
-	myFont.setColor(foreground);
-
-
-	draw.print(myFont,x1,m+5,Text);
-	*/
 }
 
 

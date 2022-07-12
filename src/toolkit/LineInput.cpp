@@ -74,6 +74,7 @@ LineInput::LineInput()
 	cursorx=0;
 	cursorwidth=2;
 	blinker=false;
+	timerId=0;
 }
 
 LineInput::LineInput(int x, int y, int width, int height, const String& text)
@@ -92,11 +93,13 @@ LineInput::LineInput(int x, int y, int width, int height, const String& text)
 	cursorx=0;
 	cursorwidth=2;
 	blinker=false;
+	timerId=0;
 }
 
 LineInput::~LineInput()
 {
-
+	if (timerId) GetWindowManager()->removeTimer(timerId);
+	timerId=0;
 }
 
 const WideString& LineInput::text() const
@@ -177,7 +180,7 @@ void LineInput::gotFocusEvent(FocusEvent* event)
 {
 	//printf ("LineInput::gotFocusEvent\n");
 	blinker=true;
-	//GetWindowManager()->startTimer(this,500);
+	timerId=GetWindowManager()->startTimer(this, 500);
 	needsRedraw();
 }
 
@@ -185,6 +188,8 @@ void LineInput::lostFocusEvent(FocusEvent* event)
 {
 	//printf ("LineInput::lostFocusEvent\n");
 	blinker=false;
+	if (timerId) GetWindowManager()->removeTimer(timerId);
+	timerId=0;
 	needsRedraw();
 }
 
@@ -211,32 +216,34 @@ void LineInput::textInputEvent(TextInputEvent* event)
 void LineInput::keyDownEvent(KeyEvent* event)
 {
 	//printf("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n", event->key, event->repeat, event->modifier);
-	if ((event->modifier & KeyEvent::KEYMOD_MODIFIER) == KeyEvent::KEYMOD_NONE) {
-		if (event->key == KeyEvent::KEY_LEFT && cursorpos > 0) {
-			cursorpos--;
-			calcCursorPosition();
-		} else if (event->key == KeyEvent::KEY_RIGHT && cursorpos < myText.size()) {
-			cursorpos++;
-			calcCursorPosition();
-		} else if (event->key == KeyEvent::KEY_HOME && cursorpos > 0) {
-			cursorpos=0;
-			calcCursorPosition();
-		} else if (event->key == KeyEvent::KEY_END && cursorpos < myText.size()) {
-			cursorpos=myText.size();
-			calcCursorPosition();
-		} else if (event->key == KeyEvent::KEY_BACKSPACE && cursorpos > 0) {
-			myText=myText.left(cursorpos - 1) + myText.mid(cursorpos);
-			Event ev(Event::Type::TextChanged);
-			ev.setWidget(this);
-			textChangedEvent(&ev, myText);
-			cursorpos--;
-			calcCursorPosition();
-		} else if (event->key == KeyEvent::KEY_DELETE) {
-			myText=myText.left(cursorpos) + myText.mid(cursorpos + 1);
-			Event ev(Event::Type::TextChanged);
-			ev.setWidget(this);
-			textChangedEvent(&ev, myText);
-			calcCursorPosition();
+	if (isEnabled()) {
+		if ((event->modifier & KeyEvent::KEYMOD_MODIFIER) == KeyEvent::KEYMOD_NONE) {
+			if (event->key == KeyEvent::KEY_LEFT && cursorpos > 0) {
+				cursorpos--;
+				calcCursorPosition();
+			} else if (event->key == KeyEvent::KEY_RIGHT && cursorpos < myText.size()) {
+				cursorpos++;
+				calcCursorPosition();
+			} else if (event->key == KeyEvent::KEY_HOME && cursorpos > 0) {
+				cursorpos=0;
+				calcCursorPosition();
+			} else if (event->key == KeyEvent::KEY_END && cursorpos < myText.size()) {
+				cursorpos=myText.size();
+				calcCursorPosition();
+			} else if (event->key == KeyEvent::KEY_BACKSPACE && cursorpos > 0) {
+				myText=myText.left(cursorpos - 1) + myText.mid(cursorpos);
+				Event ev(Event::Type::TextChanged);
+				ev.setWidget(this);
+				textChangedEvent(&ev, myText);
+				cursorpos--;
+				calcCursorPosition();
+			} else if (event->key == KeyEvent::KEY_DELETE) {
+				myText=myText.left(cursorpos) + myText.mid(cursorpos + 1);
+				Event ev(Event::Type::TextChanged);
+				ev.setWidget(this);
+				textChangedEvent(&ev, myText);
+				calcCursorPosition();
+			}
 		}
 	}
 	Frame::keyDownEvent(event);
