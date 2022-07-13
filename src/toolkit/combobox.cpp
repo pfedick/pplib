@@ -72,8 +72,15 @@ ComboBox::~ComboBox()
 void ComboBox::setCurrentText(const ppl7::String& text)
 {
 	if (text != myCurrentText) {
-		myCurrentText=text;
-		needsRedraw();
+		std::list<ComboBoxItem>::iterator it;
+		for (it=items.begin();it != items.end();++it) {
+			if ((*it).text == text) {
+				myCurrentIndex=(*it).index;
+				myCurrentText=(*it).text;
+				myCurrentIdentifier=(*it).identifier;
+				needsRedraw();
+			}
+		}
 	}
 }
 

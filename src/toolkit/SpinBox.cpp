@@ -132,6 +132,9 @@ void AbstractSpinBox::setFont(const Font& font)
 void AbstractSpinBox::setText(const String& value)
 {
     text_input->setText(value);
+    Event new_event(Event::TextChanged);
+    new_event.setWidget(this);
+    EventHandler::textChangedEvent(&new_event, value);
 }
 
 String AbstractSpinBox::text() const
