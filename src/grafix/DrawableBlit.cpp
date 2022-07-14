@@ -216,14 +216,24 @@ static inline Pixel32_t GetColorBltAlphablendMod_32(Pixel32_t ground, Pixel32_t 
 	result.alpha=255 - ((255 - ground.alpha) * (255 - top.alpha) / 255);
 	uint8_t areverse=255 - top.alpha;
 	// red   = (colorRGBA1[0] * (255 - colorRGBA2[3]) + colorRGBA2[0] * colorRGBA2[3]) / 255
-	result.red=(ground.red * areverse + top.red * top.alpha) * mod.red / 65025;
-	result.green=(ground.green * areverse + top.green * top.alpha) * mod.green / 65025;
-	result.blue=(ground.blue * areverse + top.blue * top.alpha) * mod.blue / 65025;
+	result.red=(ground.red * areverse + top.red * top.alpha * mod.red / 255) / 255;
+	result.green=(ground.green * areverse + top.green * top.alpha * mod.green / 255) / 255;
+	result.blue=(ground.blue * areverse + top.blue * top.alpha * mod.blue / 255) / 255;
 	return result;
 
 }
 
-static int BltAlphaMod_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, const Color& mod, int x, int y)
+static inline Pixel32_t GetColorModulated(Pixel32_t top, Pixel32_t mod)
+{
+	Pixel32_t result;
+	result.alpha=top.alpha;
+	result.red=top.red * mod.red / 255;
+	result.green=top.green * mod.green / 255;
+	result.blue=top.blue * mod.blue / 255;
+	return result;
+}
+
+static int BltAlphaMod_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, SurfaceColor mod, int x, int y)
 {
 #ifdef HAVE_X86_ASSEMBLER
 /*
@@ -234,7 +244,7 @@ static int BltAlphaMod_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, co
 	data.height=srect.height();
 	data.pitchsrc=source.pitch;
 	data.pitchtgt=target.pitch;
-	data.color=rgb(Color(mod.red(), mod.green(), mod.blue(), 255);
+	data.color=mod;
 	if (ASM_AlphaBltMod32(&data)) {
 		return 1;
 	}
@@ -247,14 +257,12 @@ static int BltAlphaMod_32(DRAWABLE_DATA& target, const DRAWABLE_DATA& source, co
 	int width=srect.width();
 	int yy, xx;
 	Pixel32_t modulation;
-	modulation.alpha=255;
-	modulation.red=mod.red();
-	modulation.green=mod.green();
-	modulation.blue=mod.blue();
+	modulation.c=mod;
 	for (yy=0;yy < srect.height();yy++) {
 		for (xx=0;xx < width;xx++) {
 			if (src[xx].c) {
-				if (src[xx].alpha == 0xff) tgt[xx]=src[xx];
+				Pixel32_t pixel=GetColorModulated(src[xx], modulation);
+				if (src[xx].alpha == 0xff) tgt[xx]=pixel;
 				else {
 					tgt[xx]=GetColorBltAlphablendMod_32(tgt[xx], src[xx], modulation);
 				}
@@ -939,7 +947,7 @@ void Drawable::bltAlphaMod(const Drawable& source, const Rect& srect, const Colo
 	}
 	if (!fitRect(x, y, q)) return;
 	if (!fn->BltAlphaMod) throw FunctionUnavailableException("Drawable::bltAlpha");
-	fn->BltAlphaMod(data, source.data, q, mod, x, y);
+	fn->BltAlphaMod(data, source.data, q, rgb(mod), x, y);
 }
 
 

@@ -501,7 +501,7 @@ typedef struct GRAFIX_FUNCTIONS {
 	int (*BltDiffuse) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c);
 	int (*BltColorKey) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, SurfaceColor c);
 	int (*BltAlpha) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y);
-	int (*BltAlphaMod) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, const Color& mod, int x, int y);
+	int (*BltAlphaMod) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, SurfaceColor mod, int x, int y);
 	int (*BltBlend) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, int x, int y, float factor);
 	void (*BltChromaKey) (DRAWABLE_DATA& target, const DRAWABLE_DATA& source, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
 	void (*BltBackgoundOnChromaKey) (DRAWABLE_DATA& target, const DRAWABLE_DATA& background, const Rect& srect, const Color& key, int tol1, int tol2, int x, int y);
