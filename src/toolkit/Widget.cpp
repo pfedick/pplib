@@ -118,6 +118,27 @@ Widget::Widget()
 	strategy.height=MINIMUM_EXPANDING;
 }
 
+Widget::Widget(int x, int y, int width, int height)
+{
+	parent=NULL;
+	lockcount=0;
+	visible=true;
+	enabled=true;
+	needsredraw=true;
+	transparent=false;
+	child_needsredraw=false;
+	topMost=false;
+	modal=false;
+	deleteRequested=false;
+	MaxSize.width=65535;
+	MaxSize.height=65535;
+	MinSize.width=0;
+	MinSize.height=0;
+	strategy.width=MINIMUM_EXPANDING;
+	strategy.height=MINIMUM_EXPANDING;
+	create(x, y, width, height);
+}
+
 Widget::~Widget()
 {
 	GetWindowManager()->unregisterWidget(this);

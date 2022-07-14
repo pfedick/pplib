@@ -389,6 +389,7 @@ public:
 	};
 
 	Widget();
+	Widget(int x, int y, int width, int height);
 	virtual ~Widget();
 	size_t numChilds() const;
 	std::list<Widget*>::iterator childsBegin();
@@ -1075,6 +1076,9 @@ public:
 	void setColor(const Color& c);
 	const Font& font() const;
 	void setFont(const Font& font);
+
+	void setBackgroundColor(const ppl7::grafix::Color& color);
+	const Color& backgroundColor() const;
 
 	void setText(const String& value);
 	String text() const;
