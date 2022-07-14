@@ -119,6 +119,17 @@ void AbstractSpinBox::setColor(const Color& c)
     text_input->setColor(c);
 }
 
+void AbstractSpinBox::setBackgroundColor(const ppl7::grafix::Color& color)
+{
+    text_input->setBackgroundColor(color);
+}
+
+const Color& AbstractSpinBox::backgroundColor() const
+{
+    return text_input->backgroundColor();
+}
+
+
 const Font& AbstractSpinBox::font() const
 {
     return text_input->font();
