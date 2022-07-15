@@ -85,7 +85,7 @@ void RadioButton::setChecked(bool checked)
 		Widget* parent=this->getParent();
 		std::list<Widget*>::iterator it;
 		for (it=parent->childsBegin(); it != parent->childsEnd();++it) {
-			if (typeid(*it) == typeid(RadioButton) && *it != this) {
+			if (typeid(**it) == typeid(RadioButton) && *it != this) {
 				((RadioButton*)(*it))->setChecked(false);
 			}
 		}
