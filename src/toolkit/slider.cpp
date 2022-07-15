@@ -168,7 +168,7 @@ void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
 
 void HorizontalSlider::mouseDownEvent(ppl7::tk::MouseEvent* event)
 {
-    if (event->buttonMask && ppl7::tk::MouseEvent::MouseButton::Left) {
+    if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
         //printf("HorizontalSlider::mouseDownEvent: %d, %d\n", event->p.x, event->p.y);
         if (event->p.inside(slider_pos)) {
             drag_started=true;
@@ -207,7 +207,7 @@ void HorizontalSlider::mouseUpEvent(ppl7::tk::MouseEvent* event)
 
 void HorizontalSlider::mouseMoveEvent(ppl7::tk::MouseEvent* event)
 {
-    if (event->buttonMask && ppl7::tk::MouseEvent::MouseButton::Left) {
+    if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
         if (drag_started) {
             int y1=height() * 1 / 5;
             int y2=height() * 4 / 5;
