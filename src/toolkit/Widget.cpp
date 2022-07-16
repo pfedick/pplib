@@ -91,8 +91,8 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		labelFontColor.setColor(216, 216, 214, 255);
 		buttonBackgroundColor.setColor(91, 91, 98, 255);
 		buttonFontColor.setColor(223, 223, 220, 255);
-		inputFontColor.setColor(43, 43, 40, 255);
-		inputBackgroundColor.setColor(216, 216, 214, 255);
+		inputFontColor.setColor(240, 240, 235, 255);
+		inputBackgroundColor.setColor(50, 50, 47, 255);
 		sliderHighlightColor.setColor(61, 174, 233, 255);
 		buttonSymbolColor.setColor(255, 250, 250, 255);
 	}
