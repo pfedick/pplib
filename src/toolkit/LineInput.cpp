@@ -191,8 +191,8 @@ String LineInput::widgetType() const
 void LineInput::paint(Drawable& draw)
 {
 	const WidgetStyle& style=GetWidgetStyle();
-	if (myText == validatedText) Frame::setBackgroundColor(myBackgroundColor);
-	else Frame::setBackgroundColor(style.inputInvalidBackgroundColor);
+	if (myText != validatedText && validator != NULL) Frame::setBackgroundColor(style.inputInvalidBackgroundColor);
+	else Frame::setBackgroundColor(myBackgroundColor);
 	Frame::paint(draw);
 	Drawable d=clientDrawable(draw);
 	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());

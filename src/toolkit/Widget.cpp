@@ -617,33 +617,17 @@ void Widget::draw(Drawable& d)
 		}
 		child_needsredraw=false;
 	}
-	if (use_own_drawbuffer) d.bltAlpha(drawbuffer, p.x, p.y);
+	if (use_own_drawbuffer) {
+		//printf("Blt Widget with own drawbuffer\n");
+		d.blt(drawbuffer, p.x, p.y);
+	}
 	needsredraw=false;
 }
 
 void Widget::redraw(Drawable& d)
 {
-	if (!visible) return;
-	std::list<Widget*>::iterator it;
-	Widget* child;
-	Drawable mycd=drawable(d);
-	Drawable cd;
-	paint(mycd);
-	needsredraw=false;
-	cd=clientDrawable(mycd);
-	// Jetzt unten liegenden Childs
-	for (it=childs.begin();it != childs.end();++it) {
-		child=*it;
-		if (child->topMost == false) child->redraw(cd);
-	}
-
-	// Dann die TopMost Childs
-	for (it=childs.begin();it != childs.end();++it) {
-		child=*it;
-		if (child->topMost == true) child->redraw(cd);
-	}
-	if (use_own_drawbuffer) d.bltAlpha(drawbuffer, p.x, p.y);
-	child_needsredraw=false;
+	needsRedraw();
+	draw(d);
 }
 
 void Widget::paint(Drawable& draw)
