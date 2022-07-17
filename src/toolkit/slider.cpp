@@ -60,7 +60,6 @@ AbstractSlider::AbstractSlider(int x, int y, int width, int height)
     my_steps=20;
 }
 
-
 void AbstractSlider::setMinimum(int64_t value)
 {
     min=value;
@@ -84,10 +83,12 @@ void AbstractSlider::setLimits(int64_t min, int64_t max)
 
 void AbstractSlider::setValue(int64_t value)
 {
+    if (value == current_value) return;
     if (value >= min && value <= max) current_value=value;
     if (value < min) current_value=min;
     if (value > max) current_value=max;
     parentMustRedraw();
+    sliderValueChanged(value);
     needsRedraw();
 }
 
@@ -123,6 +124,8 @@ HorizontalSlider::HorizontalSlider(int x, int y, int width, int height)
     : AbstractSlider(x, y, width, height)
 {
     drag_started=false;
+    start_x=0;
+    spinbox=NULL;
 }
 
 HorizontalSlider::~HorizontalSlider()
@@ -133,6 +136,36 @@ HorizontalSlider::~HorizontalSlider()
     }
 }
 
+void HorizontalSlider::enableSpinBox(bool enabled, int64_t stepsize, int width)
+{
+    if (spinbox) delete spinbox;
+    spinbox=NULL;
+    start_x=0;
+    if (enabled) {
+        start_x=width + 10;
+        spinbox=new SpinBox(0, 0, width, height());
+        spinbox->setLimits(minimum(), maximum());
+        spinbox->setStepSize(stepsize);
+        spinbox->setValue(value());
+        spinbox->setEventHandler(this);
+        addChild(spinbox);
+    }
+    needsRedraw();
+}
+
+
+void HorizontalSlider::sliderValueChanged(int64_t value)
+{
+    if (spinbox) spinbox->setValue(value);
+}
+
+void HorizontalSlider::valueChangedEvent(ppl7::tk::Event* event, int64_t value)
+{
+    if (event->widget() == spinbox && spinbox != NULL) {
+        setValue(value);
+
+    }
+}
 
 void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
 {
@@ -142,9 +175,9 @@ void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
     int y1=draw.height() * 1 / 5;
     int y2=draw.height() * 4 / 5;
     int h=y2 - y1;
-    int draw_range=draw.width() - h;
+    int draw_range=draw.width() - h - start_x;
     int slider_range=maximum() - minimum();
-    int x1=(value() - minimum()) * draw_range / slider_range;
+    int x1=start_x + (value() - minimum()) * draw_range / slider_range;
     int x2=x1 + h;
     slider_pos.setRect(x1, y1, h, h);
 
@@ -152,9 +185,9 @@ void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
     y1=draw.height() * 2 / 5;
     y2=draw.height() * 3 / 5;
 
-    draw.fillRect(0, y1, draw.width(), y2, style.buttonBackgroundColor);
-    draw.fillRect(0, y1, x1, y2, style.sliderHighlightColor);
-    draw.drawRect(0, y1, draw.width(), y2, style.frameBorderColorLight);
+    draw.fillRect(start_x, y1, draw.width(), y2, style.buttonBackgroundColor);
+    draw.fillRect(start_x, y1, x1, y2, style.sliderHighlightColor);
+    draw.drawRect(start_x, y1, draw.width(), y2, style.frameBorderColorLight);
 
     y1=draw.height() * 1 / 5;
     y2=draw.height() * 4 / 5;
@@ -172,10 +205,10 @@ void HorizontalSlider::mouseDownEvent(ppl7::tk::MouseEvent* event)
         //printf("HorizontalSlider::mouseDownEvent: %d, %d\n", event->p.x, event->p.y);
         if (event->p.inside(slider_pos)) {
             drag_started=true;
-            drag_offset=event->p.x - slider_pos.x1;
+            drag_offset=event->p.x - slider_pos.x1 + start_x;
             drag_start_pos=event->p;
             ppl7::tk::GetWindowManager()->grabMouse(this);
-        } else if (event->p.x < slider_pos.x1) {
+        } else if (event->p.x < slider_pos.x1 && event->p.x>start_x) {
             setValue(value() - stepSize());
             ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
             ev.setWidget(this);
@@ -212,7 +245,7 @@ void HorizontalSlider::mouseMoveEvent(ppl7::tk::MouseEvent* event)
             int y1=height() * 1 / 5;
             int y2=height() * 4 / 5;
             int h=y2 - y1;
-            int draw_range=width() - h;
+            int draw_range=width() - h - start_x;
             int64_t v=minimum() + (event->p.x - drag_offset) * (maximum() - minimum()) / draw_range;
             setValue(v);
             ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);

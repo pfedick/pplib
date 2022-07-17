@@ -384,10 +384,15 @@ String DoubleSpinBox::widgetType() const
 void DoubleSpinBox::setValue(double value)
 {
     if (value<min || value>max) return;
+    if (value == my_value) return;
     my_value=value;
     ppl7::String format;
     format.setf("%%0.%df", my_decimals);
     setText(ppl7::ToString((const char*)format, value));
+
+    Event new_event(Event::ValueChanged);
+    new_event.setWidget(this);
+    EventHandler::valueChangedEvent(&new_event, value);
 
 }
 
@@ -436,14 +441,14 @@ double DoubleSpinBox::stepSize() const
 
 void DoubleSpinBox::stepUp()
 {
-    int64_t v=value() + step_size;
+    double v=value() + step_size;
     if (v > max) v=max;
     setValue(v);
 }
 
 void DoubleSpinBox::stepDown()
 {
-    int64_t v=value() - step_size;
+    double v=value() - step_size;
     if (v < min) v=min;
     setValue(v);
 }
