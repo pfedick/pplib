@@ -85,6 +85,7 @@ public:
 	Color	inputFontColor;
 	Font	inputFont;
 	Color	inputBackgroundColor;
+	Color	inputInvalidBackgroundColor;
 	Color	sliderHighlightColor;
 	Color	buttonSymbolColor;
 };
@@ -828,9 +829,11 @@ class LineInput : public Frame
 {
 private:
 	WideString	myText;
+	WideString validatedText;
 	Font	myFont;
 	Image	myIcon;
 	Color	myColor;
+	Color	myBackgroundColor;
 	size_t	cursorpos;
 	size_t	startpos;
 	int		cursorx;
@@ -841,6 +844,7 @@ private:
 
 	void calcCursorPosition();
 	int calcPosition(int x);
+	void validateAndSendEvent(const WideString& text);
 public:
 	LineInput();
 	LineInput(int x, int y, int width, int height, const String& text=String());
@@ -851,6 +855,9 @@ public:
 	void setColor(const Color& c);
 	const Font& font() const;
 	void setFont(const Font& font);
+	const Color& backgroundColor() const;
+	void setBackgroundColor(const Color& c);
+
 
 	void setInputValidator(InputValidator* validator);
 
@@ -1020,101 +1027,6 @@ public:
 	virtual void valueChangedEvent(ppl7::tk::Event* event, int value);
 };
 
-class AbstractSlider : public ppl7::tk::Widget
-{
-	friend class HorizontalSlider;
-private:
-	int64_t min;
-	int64_t max;
-	int64_t current_value;
-	int64_t my_steps;
-public:
-	AbstractSlider(int x, int y, int width, int height);
-
-	void setMinimum(int64_t value);
-	void setMaximum(int64_t value);
-	void setLimits(int64_t min, int64_t max);
-	void setValue(int64_t value);
-	void setSteps(int64_t value);
-
-	int64_t value() const;
-	int64_t minimum() const;
-	int64_t maximum() const;
-	int64_t stepSize() const;
-	int64_t steps() const;
-
-};
-
-class DoubleAbstractSlider : public ppl7::tk::Widget
-{
-	friend class HorizontalSlider;
-private:
-	double min;
-	double max;
-	double current_value;
-	double my_steps;
-public:
-	DoubleAbstractSlider(int x, int y, int width, int height);
-
-	void setMinimum(double value);
-	void setMaximum(double value);
-	void setLimits(double min, double max);
-	void setValue(double value);
-	void setSteps(double value);
-
-	double value() const;
-	double minimum() const;
-	double maximum() const;
-	double stepSize() const;
-	double steps() const;
-
-};
-
-class HorizontalSlider : public AbstractSlider
-{
-private:
-	ppl7::grafix::Rect slider_pos;
-	bool drag_started;
-	int drag_offset;
-	ppl7::grafix::Point drag_start_pos;
-public:
-	HorizontalSlider(int x, int y, int width, int height);
-	~HorizontalSlider();
-
-	virtual void paint(ppl7::grafix::Drawable& draw);
-	virtual void mouseDownEvent(ppl7::tk::MouseEvent* event);
-	virtual void mouseUpEvent(ppl7::tk::MouseEvent* event);
-	virtual void lostFocusEvent(ppl7::tk::FocusEvent* event);
-	virtual void mouseMoveEvent(ppl7::tk::MouseEvent* event);
-	virtual void mouseWheelEvent(ppl7::tk::MouseEvent* event);
-
-
-};
-
-class DoubleHorizontalSlider : public DoubleAbstractSlider
-{
-private:
-	ppl7::grafix::Rect slider_pos;
-	bool drag_started;
-	int drag_offset;
-	ppl7::grafix::Point drag_start_pos;
-public:
-	DoubleHorizontalSlider(int x, int y, int width, int height);
-	~DoubleHorizontalSlider();
-
-	virtual void paint(ppl7::grafix::Drawable& draw);
-	virtual void mouseDownEvent(ppl7::tk::MouseEvent* event);
-	virtual void mouseUpEvent(ppl7::tk::MouseEvent* event);
-	virtual void lostFocusEvent(ppl7::tk::FocusEvent* event);
-	virtual void mouseMoveEvent(ppl7::tk::MouseEvent* event);
-	virtual void mouseWheelEvent(ppl7::tk::MouseEvent* event);
-
-
-};
-
-
-
-
 class AbstractSpinBox : public Widget
 {
 private:
@@ -1202,6 +1114,7 @@ private:
 	double my_value;
 	double step_size;
 	double min, max;
+
 public:
 	DoubleSpinBox();
 	DoubleSpinBox(int x, int y, int width, int height, double value=0.0f, int decimals=2);
@@ -1229,6 +1142,120 @@ public:
 
 };
 
+class AbstractSlider : public ppl7::tk::Widget
+{
+	friend class HorizontalSlider;
+private:
+	int64_t min;
+	int64_t max;
+	int64_t current_value;
+	int64_t my_steps;
+protected:
+	virtual void sliderValueChanged(int64_t value)=0;
+
+public:
+	AbstractSlider(int x, int y, int width, int height);
+
+	void setMinimum(int64_t value);
+	void setMaximum(int64_t value);
+	void setLimits(int64_t min, int64_t max);
+	void setValue(int64_t value);
+	void setSteps(int64_t value);
+
+	int64_t value() const;
+	int64_t minimum() const;
+	int64_t maximum() const;
+	int64_t stepSize() const;
+	int64_t steps() const;
+
+
+
+};
+
+class DoubleAbstractSlider : public ppl7::tk::Widget
+{
+	friend class HorizontalSlider;
+private:
+	double min;
+	double max;
+	double current_value;
+	double my_steps;
+protected:
+	virtual void sliderValueChanged(double value)=0;
+
+public:
+	DoubleAbstractSlider(int x, int y, int width, int height);
+
+	void setMinimum(double value);
+	void setMaximum(double value);
+	void setLimits(double min, double max);
+	void setValue(double value);
+	void setSteps(double value);
+
+	double value() const;
+	double minimum() const;
+	double maximum() const;
+	double stepSize() const;
+	double steps() const;
+
+};
+
+class HorizontalSlider : public AbstractSlider
+{
+private:
+	ppl7::grafix::Rect slider_pos;
+	bool drag_started;
+	int drag_offset;
+	ppl7::grafix::Point drag_start_pos;
+	SpinBox* spinbox;
+	int start_x;
+
+	void sliderValueChanged(int64_t value);
+	void valueChangedEvent(ppl7::tk::Event* event, int64_t value);
+
+public:
+	HorizontalSlider(int x, int y, int width, int height);
+	~HorizontalSlider();
+	void enableSpinBox(bool enabled, int64_t stepsize=1, int width=100);
+
+	virtual void paint(ppl7::grafix::Drawable& draw);
+	virtual void mouseDownEvent(ppl7::tk::MouseEvent* event);
+	virtual void mouseUpEvent(ppl7::tk::MouseEvent* event);
+	virtual void lostFocusEvent(ppl7::tk::FocusEvent* event);
+	virtual void mouseMoveEvent(ppl7::tk::MouseEvent* event);
+	virtual void mouseWheelEvent(ppl7::tk::MouseEvent* event);
+
+
+
+};
+
+class DoubleHorizontalSlider : public DoubleAbstractSlider
+{
+private:
+	ppl7::grafix::Rect slider_pos;
+	bool drag_started;
+	int drag_offset;
+	ppl7::grafix::Point drag_start_pos;
+	DoubleSpinBox* spinbox;
+	int start_x;
+
+	void sliderValueChanged(double value);
+	void valueChangedEvent(ppl7::tk::Event* event, double value);
+
+public:
+	DoubleHorizontalSlider(int x, int y, int width, int height);
+	~DoubleHorizontalSlider();
+	void enableSpinBox(bool enabled, double stepsize=0.1f, int decimals=2, int width=100);
+
+	virtual void paint(ppl7::grafix::Drawable& draw);
+	virtual void mouseDownEvent(ppl7::tk::MouseEvent* event);
+	virtual void mouseUpEvent(ppl7::tk::MouseEvent* event);
+	virtual void lostFocusEvent(ppl7::tk::FocusEvent* event);
+	virtual void mouseMoveEvent(ppl7::tk::MouseEvent* event);
+	virtual void mouseWheelEvent(ppl7::tk::MouseEvent* event);
+
+
+};
 
 
 } // EOF namespace tk

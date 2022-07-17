@@ -66,6 +66,7 @@ LineInput::LineInput()
 	const WidgetStyle& style=GetWidgetStyle();
 	setBorderStyle(Inset);
 	myColor=style.inputFontColor;
+	myBackgroundColor=style.inputBackgroundColor;
 	myFont=style.inputFont;
 	setBackgroundColor(style.inputBackgroundColor);
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
@@ -90,6 +91,9 @@ LineInput::LineInput(int x, int y, int width, int height, const String& text)
 	setSizeStrategyWidth(Widget::MINIMUM_EXPANDING);
 	setTransparent(false);
 	myText=text;
+	if (validator) {
+		if (validator->validateText(text) == true) validatedText=text;
+	}
 	cursorpos=0;
 	startpos=0;
 	cursorx=0;
@@ -111,12 +115,24 @@ void LineInput::setInputValidator(InputValidator* validator)
 
 const WideString& LineInput::text() const
 {
-	return myText;
+	return validatedText;
+}
+
+void LineInput::validateAndSendEvent(const WideString& text)
+{
+	if (validator) {
+		if (validator->validateText(text) == false) return;
+	}
+	validatedText=text;
+	Event ev(Event::Type::TextChanged);
+	ev.setWidget(this);
+	textChangedEvent(&ev, validatedText);
 }
 
 void LineInput::setText(const String& text)
 {
 	WideString new_text=text;
+	if (new_text == myText) return;
 	if (validator != NULL && validator->validateText(new_text) == false) return;
 	myText=new_text;
 	cursorpos=0;
@@ -124,9 +140,7 @@ void LineInput::setText(const String& text)
 	cursorx=0;
 	needsRedraw();
 	geometryChanged();
-	Event ev(Event::Type::TextChanged);
-	ev.setWidget(this);
-	textChangedEvent(&ev, myText);
+	validateAndSendEvent(myText);
 }
 
 const Color& LineInput::color() const
@@ -139,6 +153,16 @@ void LineInput::setColor(const Color& c)
 	myColor=c;
 	needsRedraw();
 }
+
+const Color& LineInput::backgroundColor() const
+{
+	return myBackgroundColor;
+}
+void LineInput::setBackgroundColor(const Color& c)
+{
+	myBackgroundColor=c;
+}
+
 
 const Font& LineInput::font() const
 {
@@ -166,6 +190,9 @@ String LineInput::widgetType() const
 
 void LineInput::paint(Drawable& draw)
 {
+	const WidgetStyle& style=GetWidgetStyle();
+	if (myText == validatedText) Frame::setBackgroundColor(myBackgroundColor);
+	else Frame::setBackgroundColor(style.inputInvalidBackgroundColor);
 	Frame::paint(draw);
 	Drawable d=clientDrawable(draw);
 	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());
@@ -207,23 +234,25 @@ void LineInput::lostFocusEvent(FocusEvent* event)
 
 void LineInput::textInputEvent(TextInputEvent* event)
 {
-	/*
-	printf("LineInput::textInputEvent(%s, %s), text=%ls\n",
+	/*printf("LineInput::textInputEvent(%s, %s), text=%ls\n",
 		this->widgetType().toChar(),
 		this->name().toChar(), (const wchar_t*)event->text);
 		*/
+	if (validator) {
+		if (validator->validateInput(event->text) == false) return;
+	}
 
 	WideString left, right;
 	left=myText.left(cursorpos);
 	right=myText.mid(cursorpos);
 	left+=event->text + right;
-	if (validator != NULL && validator->validateText(left) == false) return;
-	myText.set(left);
+	myText=left;
 	cursorpos++;
 	calcCursorPosition();
-	Event ev(Event::Type::TextChanged);
-	ev.setWidget(this);
-	textChangedEvent(&ev, myText);
+	validateAndSendEvent(myText);
+	if (validator) {
+		if (validator->validateText(myText) == false) return;
+	}
 }
 
 
@@ -246,21 +275,15 @@ void LineInput::keyDownEvent(KeyEvent* event)
 				calcCursorPosition();
 			} else if (event->key == KeyEvent::KEY_BACKSPACE && cursorpos > 0) {
 				WideString new_text=myText.left(cursorpos - 1) + myText.mid(cursorpos);
-				if (validator != NULL && validator->validateText(new_text) == false) return;
 				myText=new_text;
-				Event ev(Event::Type::TextChanged);
-				ev.setWidget(this);
-				textChangedEvent(&ev, myText);
 				cursorpos--;
 				calcCursorPosition();
+				validateAndSendEvent(myText);
 			} else if (event->key == KeyEvent::KEY_DELETE) {
 				WideString new_text=myText.left(cursorpos) + myText.mid(cursorpos + 1);
-				if (validator != NULL && validator->validateText(new_text) == false) return;
 				myText=new_text;
-				Event ev(Event::Type::TextChanged);
-				ev.setWidget(this);
-				textChangedEvent(&ev, myText);
 				calcCursorPosition();
+				validateAndSendEvent(myText);
 			}
 		}
 	}
@@ -316,6 +339,7 @@ int LineInput::calcPosition(int x)
 
 	return c;
 }
+
 
 
 }	// EOF namespace tk
