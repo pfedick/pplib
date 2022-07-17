@@ -385,6 +385,18 @@ void EventHandler::valueChangedEvent(Event* event, int value)
 	if (handler) handler->valueChangedEvent(event, value);
 }
 
+void EventHandler::valueChangedEvent(Event* event, int64_t value)
+{
+	if (handler) handler->valueChangedEvent(event, value);
+}
+
+
+void EventHandler::valueChangedEvent(Event* event, double value)
+{
+	if (handler) handler->valueChangedEvent(event, value);
+}
+
+
 void EventHandler::toggledEvent(Event* event, bool checked)
 {
 	if (handler) handler->toggledEvent(event, checked);

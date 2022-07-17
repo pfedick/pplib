@@ -301,6 +301,8 @@ public:
 	virtual void timerEvent(Event* event);
 
 	virtual void valueChangedEvent(Event* event, int value);
+	virtual void valueChangedEvent(Event* event, double value);
+	virtual void valueChangedEvent(Event* event, int64_t value);
 	virtual void toggledEvent(Event* event, bool checked);
 	virtual void textChangedEvent(Event* event, const ppl7::String& text);
 
@@ -819,6 +821,7 @@ class InputValidator
 {
 public:
 	virtual bool validateText(const ppl7::WideString& text)=0;
+	virtual bool validateInput(const ppl7::WideString& text)=0;
 };
 
 class LineInput : public Frame
@@ -1019,7 +1022,7 @@ public:
 
 	void setMinimum(int value);
 	void setMaximum(int value);
-	void setDimension(int min, int max);
+	void setLimits(int min, int max);
 	void setValue(int value);
 	void setSteps(int value);
 
@@ -1028,6 +1031,31 @@ public:
 	int maximum() const;
 	int stepSize() const;
 	int steps() const;
+
+};
+
+class DoubleAbstractSlider : public ppl7::tk::Widget
+{
+	friend class HorizontalSlider;
+private:
+	double min;
+	double max;
+	double current_value;
+	double my_steps;
+public:
+	DoubleAbstractSlider(int x, int y, int width, int height);
+
+	void setMinimum(double value);
+	void setMaximum(double value);
+	void setLimits(double min, double max);
+	void setValue(double value);
+	void setSteps(double value);
+
+	double value() const;
+	double minimum() const;
+	double maximum() const;
+	double stepSize() const;
+	double steps() const;
 
 };
 
@@ -1051,6 +1079,28 @@ public:
 
 
 };
+
+class DoubleHorizontalSlider : public DoubleAbstractSlider
+{
+private:
+	ppl7::grafix::Rect slider_pos;
+	bool drag_started;
+	int drag_offset;
+	ppl7::grafix::Point drag_start_pos;
+public:
+	DoubleHorizontalSlider(int x, int y, int width, int height);
+	~DoubleHorizontalSlider();
+
+	virtual void paint(ppl7::grafix::Drawable& draw);
+	virtual void mouseDownEvent(ppl7::tk::MouseEvent* event);
+	virtual void mouseUpEvent(ppl7::tk::MouseEvent* event);
+	virtual void lostFocusEvent(ppl7::tk::FocusEvent* event);
+	virtual void mouseMoveEvent(ppl7::tk::MouseEvent* event);
+	virtual void mouseWheelEvent(ppl7::tk::MouseEvent* event);
+
+
+};
+
 
 
 
@@ -1130,6 +1180,8 @@ public:
 	void stepDown();
 
 	bool validateText(const ppl7::WideString& text);
+	bool validateInput(const ppl7::WideString& text);
+	virtual void textChangedEvent(Event* event, const String& text);
 };
 
 class DoubleSpinBox : public AbstractSpinBox, public InputValidator
@@ -1161,6 +1213,8 @@ public:
 
 
 	bool validateText(const ppl7::WideString& text);
+	bool validateInput(const ppl7::WideString& text);
+	virtual void textChangedEvent(Event* event, const String& text);
 
 };
 

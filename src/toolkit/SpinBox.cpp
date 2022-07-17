@@ -335,6 +335,24 @@ bool SpinBox::validateText(const ppl7::WideString& text)
     return false;
 }
 
+bool SpinBox::validateInput(const ppl7::WideString& text)
+{
+    ppl7::String t=text;
+    if (t.isEmpty() || t.pregMatch("/^-?[0-9]*$/")) {
+        return true;
+    }
+    return false;
+}
+
+void SpinBox::textChangedEvent(Event* event, const String& text)
+{
+    Event new_event=*event;
+    new_event.setWidget(this);
+    EventHandler::valueChangedEvent(&new_event, text.toInt64());
+}
+
+
+
 DoubleSpinBox::DoubleSpinBox()
 {
     my_value=0.0f;
@@ -439,6 +457,23 @@ bool DoubleSpinBox::validateText(const ppl7::WideString& text)
     }
     return false;
 }
+
+bool DoubleSpinBox::validateInput(const ppl7::WideString& text)
+{
+    ppl7::String t=text;
+    if (t.isEmpty() || t.pregMatch("/^-?[0-9\\.,]*$/")) {
+        return true;
+    }
+    return false;
+}
+
+void DoubleSpinBox::textChangedEvent(Event* event, const String& text)
+{
+    Event new_event=*event;
+    new_event.setWidget(this);
+    EventHandler::valueChangedEvent(&new_event, text.toDouble());
+}
+
 
 
 }   // EOF namespace
