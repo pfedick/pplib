@@ -365,6 +365,7 @@ class Widget : public EventHandler
 	friend class WindowManager;
 private:
 	Widget* parent;
+	Image 	drawbuffer;
 	//Surface		*surface;
 	RGBFormat	format;
 	Point		p;
@@ -381,8 +382,10 @@ private:
 	bool		transparent;
 	bool		deleteRequested;
 	bool		modal;
+	bool        use_own_drawbuffer;
 	Size		strategy;
 	String		myName;
+	void updateDrawbuffer();
 
 public:
 	enum SizeStrategy {
@@ -404,6 +407,7 @@ public:
 	Widget* getParent() const;
 	Widget* getTopmostParent() const;
 
+	void setUseOwnDrawbuffer(bool enable);
 	void destroyChilds();
 
 	const Point& pos() const;

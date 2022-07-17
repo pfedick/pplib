@@ -118,6 +118,7 @@ Widget::Widget()
 	MinSize.height=0;
 	strategy.width=MINIMUM_EXPANDING;
 	strategy.height=MINIMUM_EXPANDING;
+	use_own_drawbuffer=false;
 }
 
 Widget::Widget(int x, int y, int width, int height)
@@ -138,6 +139,7 @@ Widget::Widget(int x, int y, int width, int height)
 	MinSize.height=0;
 	strategy.width=MINIMUM_EXPANDING;
 	strategy.height=MINIMUM_EXPANDING;
+	use_own_drawbuffer=false;
 	create(x, y, width, height);
 }
 
@@ -151,6 +153,20 @@ Widget::~Widget()
 		delete(child);
 	}
 	childs.clear();
+}
+
+void Widget::updateDrawbuffer()
+{
+	if (!use_own_drawbuffer) return;
+	if (drawbuffer.width() == s.width && drawbuffer.height() == s.height) return;
+	drawbuffer.create(s.width, s.height);
+	needsRedraw();
+}
+
+void Widget::setUseOwnDrawbuffer(bool enable)
+{
+	use_own_drawbuffer=enable;
+	updateDrawbuffer();
 }
 
 void Widget::destroyChilds()
@@ -464,6 +480,7 @@ void Widget::create(int x, int y, int width, int height)
 	p.y=y;
 	s.width=width;
 	s.height=height;
+	updateDrawbuffer();
 	parentMustRedraw();
 }
 
@@ -495,12 +512,14 @@ void Widget::setPos(const Point& p)
 void Widget::setWidth(int width)
 {
 	s.width=width;
+	updateDrawbuffer();
 	parentMustRedraw();
 }
 
 void Widget::setHeight(int height)
 {
 	s.height=height;
+	updateDrawbuffer();
 	parentMustRedraw();
 }
 
@@ -508,12 +527,14 @@ void Widget::setSize(int width, int height)
 {
 	s.width=width;
 	s.height=height;
+	updateDrawbuffer();
 	parentMustRedraw();
 }
 
 void Widget::setSize(const Size& s)
 {
 	this->s=s;
+	updateDrawbuffer();
 	parentMustRedraw();
 }
 
@@ -527,6 +548,7 @@ void Widget::setClientOffset(int left, int top, int right, int bottom)
 
 Drawable Widget::drawable(const Drawable& parent) const
 {
+	if (use_own_drawbuffer) return drawbuffer;
 	Drawable d;
 	d.copy(parent, p, s);
 	return d;
@@ -595,6 +617,7 @@ void Widget::draw(Drawable& d)
 		}
 		child_needsredraw=false;
 	}
+	if (use_own_drawbuffer) d.bltAlpha(drawbuffer, p.x, p.y);
 	needsredraw=false;
 }
 
@@ -619,6 +642,7 @@ void Widget::redraw(Drawable& d)
 		child=*it;
 		if (child->topMost == true) child->redraw(cd);
 	}
+	if (use_own_drawbuffer) d.bltAlpha(drawbuffer, p.x, p.y);
 	child_needsredraw=false;
 }
 
