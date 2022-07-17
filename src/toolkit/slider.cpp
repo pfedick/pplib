@@ -61,28 +61,28 @@ AbstractSlider::AbstractSlider(int x, int y, int width, int height)
 }
 
 
-void AbstractSlider::setMinimum(int value)
+void AbstractSlider::setMinimum(int64_t value)
 {
     min=value;
 }
 
-void AbstractSlider::setMaximum(int value)
+void AbstractSlider::setMaximum(int64_t value)
 {
     max=value;
 }
 
-void AbstractSlider::setSteps(int value)
+void AbstractSlider::setSteps(int64_t value)
 {
     my_steps=value;
 }
 
-void AbstractSlider::setLimits(int min, int max)
+void AbstractSlider::setLimits(int64_t min, int64_t max)
 {
     this->min=min;
     this->max=max;
 }
 
-void AbstractSlider::setValue(int value)
+void AbstractSlider::setValue(int64_t value)
 {
     if (value >= min && value <= max) current_value=value;
     if (value < min) current_value=min;
@@ -91,27 +91,27 @@ void AbstractSlider::setValue(int value)
     needsRedraw();
 }
 
-int AbstractSlider::value() const
+int64_t AbstractSlider::value() const
 {
     return current_value;
 }
 
-int AbstractSlider::minimum() const
+int64_t AbstractSlider::minimum() const
 {
     return min;
 }
 
-int AbstractSlider::maximum() const
+int64_t AbstractSlider::maximum() const
 {
     return max;
 }
 
-int AbstractSlider::steps() const
+int64_t AbstractSlider::steps() const
 {
     return my_steps;
 }
 
-int AbstractSlider::stepSize() const
+int64_t AbstractSlider::stepSize() const
 {
     int step=(max - min) / my_steps;
     if (step < 1) step=1;
@@ -213,7 +213,7 @@ void HorizontalSlider::mouseMoveEvent(ppl7::tk::MouseEvent* event)
             int y2=height() * 4 / 5;
             int h=y2 - y1;
             int draw_range=width() - h;
-            int v=minimum() + (event->p.x - drag_offset) * (maximum() - minimum()) / draw_range;
+            int64_t v=minimum() + (event->p.x - drag_offset) * (maximum() - minimum()) / draw_range;
             setValue(v);
             ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
             ev.setWidget(this);

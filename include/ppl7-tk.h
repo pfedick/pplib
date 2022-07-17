@@ -1013,24 +1013,24 @@ class AbstractSlider : public ppl7::tk::Widget
 {
 	friend class HorizontalSlider;
 private:
-	int min;
-	int max;
-	int current_value;
-	int my_steps;
+	int64_t min;
+	int64_t max;
+	int64_t current_value;
+	int64_t my_steps;
 public:
 	AbstractSlider(int x, int y, int width, int height);
 
-	void setMinimum(int value);
-	void setMaximum(int value);
-	void setLimits(int min, int max);
-	void setValue(int value);
-	void setSteps(int value);
+	void setMinimum(int64_t value);
+	void setMaximum(int64_t value);
+	void setLimits(int64_t min, int64_t max);
+	void setValue(int64_t value);
+	void setSteps(int64_t value);
 
-	int value() const;
-	int minimum() const;
-	int maximum() const;
-	int stepSize() const;
-	int steps() const;
+	int64_t value() const;
+	int64_t minimum() const;
+	int64_t maximum() const;
+	int64_t stepSize() const;
+	int64_t steps() const;
 
 };
 
