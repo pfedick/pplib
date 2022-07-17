@@ -878,8 +878,14 @@ private:
 	int pos;
 	int visibleItems;
 
+	ppl7::grafix::Rect slider_pos;
+	bool drag_started;
+	int drag_offset;
+	ppl7::grafix::Point drag_start_pos;
+
 public:
 	Scrollbar(int x, int y, int width, int height);
+	~Scrollbar();
 	void setSize(int size);
 	void setPosition(int position);
 	void setVisibleItems(int items);
@@ -887,6 +893,11 @@ public:
 	virtual ppl7::String widgetType() const;
 	virtual void paint(ppl7::grafix::Drawable& draw);
 	void mouseDownEvent(ppl7::tk::MouseEvent* event);
+	void mouseUpEvent(ppl7::tk::MouseEvent* event);
+	void lostFocusEvent(ppl7::tk::FocusEvent* event);
+	void mouseMoveEvent(ppl7::tk::MouseEvent* event);
+	void mouseWheelEvent(ppl7::tk::MouseEvent* event);
+
 };
 
 class CheckBox : public ppl7::tk::Label

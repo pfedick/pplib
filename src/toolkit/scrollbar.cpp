@@ -67,6 +67,15 @@ Scrollbar::Scrollbar(int x, int y, int width, int height) // @suppress("Class me
 	size=0;
 	pos=0;
 	visibleItems=0;
+	drag_started=false;
+}
+
+Scrollbar::~Scrollbar()
+{
+	if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
 }
 
 ppl7::String Scrollbar::widgetType() const
@@ -119,6 +128,9 @@ void Scrollbar::paint(ppl7::grafix::Drawable& draw)
 		r1.y2=r1.y1 + visibleItems * pxi;
 		if (r1.y2 >= indicator.height()) r1.y2=indicator.height() - 1;
 	}
+	slider_pos=r1;
+	slider_pos.y1+=25;
+	slider_pos.y2+=25;
 
 	ppl7::grafix::Color scrollarea=style.windowBackgroundColor * 1.2f;
 	indicator.cls(scrollarea);
@@ -141,6 +153,7 @@ void Scrollbar::mouseDownEvent(ppl7::tk::MouseEvent* event)
 		ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
 		ev.setWidget(this);
 		valueChangedEvent(&ev, pos);
+		return;
 
 	} else if (event->widget() == down_button && pos < size - 1) {
 		pos++;
@@ -148,8 +161,81 @@ void Scrollbar::mouseDownEvent(ppl7::tk::MouseEvent* event)
 		ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
 		ev.setWidget(this);
 		valueChangedEvent(&ev, pos);
+		return;
+	}
+	if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
+		//printf("HorizontalSlider::mouseDownEvent: %d, %d\n", event->p.x, event->p.y);
+		if (event->p.inside(slider_pos)) {
+			drag_started=true;
+			drag_offset=event->p.y - slider_pos.y1;
+			drag_start_pos=event->p;
+			ppl7::tk::GetWindowManager()->grabMouse(this);
+		} else if (event->p.y < slider_pos.y1 && pos>0) {
+			pos--;
+			needsRedraw();
+			ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
+			ev.setWidget(this);
+			valueChangedEvent(&ev, pos);
+		} else if (event->p.y > slider_pos.y2 && pos < size - 1) {
+			pos++;
+			needsRedraw();
+			ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
+			ev.setWidget(this);
+			valueChangedEvent(&ev, pos);
+		}
 	}
 }
 
+void Scrollbar::lostFocusEvent(ppl7::tk::FocusEvent* event)
+{
+	if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
+}
+
+void Scrollbar::mouseUpEvent(ppl7::tk::MouseEvent* event)
+{
+	if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
+}
+
+void Scrollbar::mouseMoveEvent(ppl7::tk::MouseEvent* event)
+{
+	if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
+		if (drag_started) {
+			int draw_range=height() - 50;
+			int64_t v=(event->p.y - drag_offset) * size / draw_range;
+			if (v < 0) v=0;
+			if (v > size - 1) v=size - 1;
+			pos=v;
+			ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
+			ev.setWidget(this);
+			valueChangedEvent(&ev, pos);
+
+		}
+	} else if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
+}
+
+void Scrollbar::mouseWheelEvent(ppl7::tk::MouseEvent* event)
+{
+	if (event->wheel.y < 0 && pos < size - 1) {
+		pos++;
+		ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
+		ev.setWidget(this);
+		valueChangedEvent(&ev, pos);
+	} else if (event->wheel.y > 0 && pos > 0) {
+		pos--;
+		ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
+		ev.setWidget(this);
+		valueChangedEvent(&ev, pos);
+
+	}
+}
 
 } //EOF namespace
