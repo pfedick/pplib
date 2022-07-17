@@ -49,40 +49,40 @@
 namespace ppl7::tk {
 
 
-AbstractSlider::AbstractSlider(int x, int y, int width, int height)
+DoubleAbstractSlider::DoubleAbstractSlider(int x, int y, int width, int height)
     : ppl7::tk::Widget()
 {
     create(x, y, width, height);
     setClientOffset(0, 0, 0, 0);
-    min=0;
-    max=100;
-    current_value=0;
-    my_steps=20;
+    min=0.0f;
+    max=1.0f;
+    current_value=0.0f;
+    my_steps=0.1f;
 }
 
 
-void AbstractSlider::setMinimum(int value)
+void DoubleAbstractSlider::setMinimum(double value)
 {
     min=value;
 }
 
-void AbstractSlider::setMaximum(int value)
+void DoubleAbstractSlider::setMaximum(double value)
 {
     max=value;
 }
 
-void AbstractSlider::setSteps(int value)
+void DoubleAbstractSlider::setSteps(double value)
 {
     my_steps=value;
 }
 
-void AbstractSlider::setLimits(int min, int max)
+void DoubleAbstractSlider::setLimits(double min, double max)
 {
     this->min=min;
     this->max=max;
 }
 
-void AbstractSlider::setValue(int value)
+void DoubleAbstractSlider::setValue(double value)
 {
     if (value >= min && value <= max) current_value=value;
     if (value < min) current_value=min;
@@ -91,27 +91,27 @@ void AbstractSlider::setValue(int value)
     needsRedraw();
 }
 
-int AbstractSlider::value() const
+double DoubleAbstractSlider::value() const
 {
     return current_value;
 }
 
-int AbstractSlider::minimum() const
+double DoubleAbstractSlider::minimum() const
 {
     return min;
 }
 
-int AbstractSlider::maximum() const
+double DoubleAbstractSlider::maximum() const
 {
     return max;
 }
 
-int AbstractSlider::steps() const
+double DoubleAbstractSlider::steps() const
 {
     return my_steps;
 }
 
-int AbstractSlider::stepSize() const
+double DoubleAbstractSlider::stepSize() const
 {
     int step=(max - min) / my_steps;
     if (step < 1) step=1;
@@ -119,13 +119,14 @@ int AbstractSlider::stepSize() const
 }
 
 
-HorizontalSlider::HorizontalSlider(int x, int y, int width, int height)
-    : AbstractSlider(x, y, width, height)
+
+DoubleHorizontalSlider::DoubleHorizontalSlider(int x, int y, int width, int height)
+    : DoubleAbstractSlider(x, y, width, height)
 {
     drag_started=false;
 }
 
-HorizontalSlider::~HorizontalSlider()
+DoubleHorizontalSlider::~DoubleHorizontalSlider()
 {
     if (drag_started) {
         drag_started=false;
@@ -134,7 +135,7 @@ HorizontalSlider::~HorizontalSlider()
 }
 
 
-void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
+void DoubleHorizontalSlider::paint(ppl7::grafix::Drawable& draw)
 {
     const ppl7::tk::WidgetStyle& style=ppl7::tk::GetWidgetStyle();
 
@@ -143,7 +144,7 @@ void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
     int y2=draw.height() * 4 / 5;
     int h=y2 - y1;
     int draw_range=draw.width() - h;
-    int slider_range=maximum() - minimum();
+    double slider_range=maximum() - minimum();
     int x1=(value() - minimum()) * draw_range / slider_range;
     int x2=x1 + h;
     slider_pos.setRect(x1, y1, h, h);
@@ -166,7 +167,7 @@ void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
 
 }
 
-void HorizontalSlider::mouseDownEvent(ppl7::tk::MouseEvent* event)
+void DoubleHorizontalSlider::mouseDownEvent(ppl7::tk::MouseEvent* event)
 {
     if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
         //printf("HorizontalSlider::mouseDownEvent: %d, %d\n", event->p.x, event->p.y);
@@ -189,7 +190,7 @@ void HorizontalSlider::mouseDownEvent(ppl7::tk::MouseEvent* event)
     }
 }
 
-void HorizontalSlider::lostFocusEvent(ppl7::tk::FocusEvent* event)
+void DoubleHorizontalSlider::lostFocusEvent(ppl7::tk::FocusEvent* event)
 {
     if (drag_started) {
         drag_started=false;
@@ -197,7 +198,7 @@ void HorizontalSlider::lostFocusEvent(ppl7::tk::FocusEvent* event)
     }
 }
 
-void HorizontalSlider::mouseUpEvent(ppl7::tk::MouseEvent* event)
+void DoubleHorizontalSlider::mouseUpEvent(ppl7::tk::MouseEvent* event)
 {
     if (drag_started) {
         drag_started=false;
@@ -205,7 +206,7 @@ void HorizontalSlider::mouseUpEvent(ppl7::tk::MouseEvent* event)
     }
 }
 
-void HorizontalSlider::mouseMoveEvent(ppl7::tk::MouseEvent* event)
+void DoubleHorizontalSlider::mouseMoveEvent(ppl7::tk::MouseEvent* event)
 {
     if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
         if (drag_started) {
@@ -213,7 +214,7 @@ void HorizontalSlider::mouseMoveEvent(ppl7::tk::MouseEvent* event)
             int y2=height() * 4 / 5;
             int h=y2 - y1;
             int draw_range=width() - h;
-            int v=minimum() + (event->p.x - drag_offset) * (maximum() - minimum()) / draw_range;
+            double v=minimum() + (event->p.x - drag_offset) * (maximum() - minimum()) / draw_range;
             setValue(v);
             ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
             ev.setWidget(this);
@@ -227,7 +228,7 @@ void HorizontalSlider::mouseMoveEvent(ppl7::tk::MouseEvent* event)
 
 }
 
-void HorizontalSlider::mouseWheelEvent(ppl7::tk::MouseEvent* event)
+void DoubleHorizontalSlider::mouseWheelEvent(ppl7::tk::MouseEvent* event)
 {
     if (event->wheel.y < 0 && value()>minimum()) {
         setValue(value() - stepSize());
