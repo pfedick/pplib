@@ -164,8 +164,8 @@ void DoubleHorizontalSlider::valueChangedEvent(ppl7::tk::Event* event, double va
 {
     if (event->widget() == spinbox && spinbox != NULL) {
         setValue(value);
-
     }
+    DoubleAbstractSlider::valueChangedEvent(event, value);
 }
 
 

@@ -163,8 +163,8 @@ void HorizontalSlider::valueChangedEvent(ppl7::tk::Event* event, int64_t value)
 {
     if (event->widget() == spinbox && spinbox != NULL) {
         setValue(value);
-
     }
+    AbstractSlider::valueChangedEvent(event, value);
 }
 
 void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
