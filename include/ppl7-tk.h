@@ -386,6 +386,7 @@ private:
 	Size		strategy;
 	String		myName;
 	void updateDrawbuffer();
+	void markWidgetsAboveForRedraw(Widget* widget);
 
 public:
 	enum SizeStrategy {

@@ -620,6 +620,7 @@ void Widget::draw(Drawable& d)
 	if (use_own_drawbuffer) {
 		//printf("Blt Widget with own drawbuffer\n");
 		d.blt(drawbuffer, p.x, p.y);
+		if (parent) parent->markWidgetsAboveForRedraw(this);
 	}
 	needsredraw=false;
 }
@@ -628,6 +629,36 @@ void Widget::redraw(Drawable& d)
 {
 	needsRedraw();
 	draw(d);
+}
+
+void Widget::markWidgetsAboveForRedraw(Widget* widget)
+{
+	if (parent) parent->markWidgetsAboveForRedraw(this);
+	std::list<Widget*>::iterator it;
+	Rect wrect=widget->rect();
+	bool found=false;
+	if (widget->topMost == false) {
+		for (it=childs.begin();it != childs.end();++it) {
+			Widget* child=*it;
+			if (child->topMost == false) {
+				if (child == widget) found=true;
+				else if (found) {
+					// must redraw if in range of widget
+					if (wrect.intersects(child->rect())) child->needsRedraw();
+				}
+			}
+		}
+	}
+	for (it=childs.begin();it != childs.end();++it) {
+		Widget* child=*it;
+		if (child->topMost == true) {
+			if (child == widget) found=true;
+			else if (found) {
+				// must redraw if in range of widget
+				if (wrect.intersects(child->rect())) child->needsRedraw();
+			}
+		}
+	}
 }
 
 void Widget::paint(Drawable& draw)
