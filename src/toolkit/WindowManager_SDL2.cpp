@@ -953,6 +953,10 @@ void WindowManager_SDL2::DispatchKeyEvent(void* e)
 	case SDLK_KP_ENTER: kev.key=KeyEvent::KEY_ENTER; break;
 	case SDLK_NUMLOCKCLEAR: kev.key=KeyEvent::KEY_NUMLOCK; break;
 	case SDLK_MODE: kev.key=KeyEvent::KEY_MODE; break;
+	case SDLK_c: kev.key=KeyEvent::KEY_c; break;
+	case SDLK_v: kev.key=KeyEvent::KEY_v; break;
+	case SDLK_z: kev.key=KeyEvent::KEY_z; break;
+	case SDLK_y: kev.key=KeyEvent::KEY_y; break;
 
 
 	default: kev.key=KeyEvent::KEY_UNKNOWN; break;
@@ -1066,6 +1070,9 @@ void WindowManager_SDL2::setWindowDisplayMode(Window& w, const Window::DisplayMo
 
 void WindowManager_SDL2::resizeWindow(Window& w, int width, int height)
 {
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
 	SDL_WINDOW_PRIVATE* priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
 	if (!priv) return;
 	//printf("recreating gui texture\n");
@@ -1083,7 +1090,44 @@ void WindowManager_SDL2::resizeWindow(Window& w, int width, int height)
 		throw WindowCreateException("SDL_SetTextureBlendMode ERROR: %s", e);
 	}
 	w.needsRedraw();
+#endif
 
+
+}
+
+void WindowManager_SDL2::setClipboardText(const ppl7::String& text)
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	SDL_SetClipboardText((const char*)text);
+#endif
+}
+
+bool WindowManager_SDL2::hasClipboardText() const
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	return SDL_HasClipboardText();
+#endif
+
+}
+
+String WindowManager_SDL2::getClipboardText() const
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	String t;
+	char* text=SDL_GetClipboardText();
+	if (text) {
+		t.set(text);
+		SDL_free(text);
+	}
+	return t;
+
+#endif
 
 }
 

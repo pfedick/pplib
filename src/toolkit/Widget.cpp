@@ -82,6 +82,7 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		inputFontColor.setColor(0, 0, 0, 255);
 		inputBackgroundColor.setColor(255, 255, 255, 255);
 		inputInvalidBackgroundColor.setColor(255, 200, 200, 255);
+		inputSelectedBackgroundColor.setColor(196, 196, 255, 255);
 		sliderHighlightColor.setColor(61, 174, 233, 255);
 		buttonSymbolColor.setColor(26, 16, 16, 255);
 	} else {
@@ -95,6 +96,7 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		inputFontColor.setColor(240, 240, 235, 255);
 		inputBackgroundColor.setColor(50, 50, 47, 255);
 		inputInvalidBackgroundColor.setColor(80, 40, 40, 255);
+		inputSelectedBackgroundColor.setColor(40, 78, 118, 255);
 		sliderHighlightColor.setColor(61, 174, 233, 255);
 		buttonSymbolColor.setColor(255, 250, 250, 255);
 	}

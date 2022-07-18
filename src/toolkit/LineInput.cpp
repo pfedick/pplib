@@ -77,6 +77,7 @@ LineInput::LineInput()
 	cursorwidth=2;
 	blinker=false;
 	timerId=0;
+	drag_started=false;
 }
 
 LineInput::LineInput(int x, int y, int width, int height, const String& text)
@@ -100,12 +101,18 @@ LineInput::LineInput(int x, int y, int width, int height, const String& text)
 	cursorwidth=2;
 	blinker=false;
 	timerId=0;
+	drag_started=false;
 }
 
 LineInput::~LineInput()
 {
 	if (timerId) GetWindowManager()->removeTimer(timerId);
 	timerId=0;
+	if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
+
 }
 
 void LineInput::setInputValidator(InputValidator* validator)
@@ -195,6 +202,7 @@ void LineInput::paint(Drawable& draw)
 	else Frame::setBackgroundColor(myBackgroundColor);
 	Frame::paint(draw);
 	Drawable d=clientDrawable(draw);
+	if (selection.x1 != selection.x2) d.fillRect(selection.x1, 0, selection.x2, d.height(), style.inputSelectedBackgroundColor);
 	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());
 	int x=0;
 	myFont.setColor(myColor);
@@ -210,14 +218,57 @@ void LineInput::mouseDownEvent(MouseEvent* event)
 	//printf ("LineInput::mouseDownEvent\n");
 	GetWindowManager()->setKeyboardFocus(this);
 	cursorpos=calcPosition(event->p.x);
+	selection.clear();
+	blinker=true;
+	if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
+		drag_started=true;
+		drag_start_position=cursorpos;
+		selection.begin((int)cursorpos);
+		ppl7::tk::GetWindowManager()->grabMouse(this);
+	} else if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Middle) {
+		WideString clipboard=String(GetWindowManager()->getClipboardText());
+		WideString new_text=myText.left(cursorpos) + clipboard + myText.mid(cursorpos);
+		myText=new_text;
+		cursorpos+=clipboard.size();
+
+	}
 	calcCursorPosition();
 	needsRedraw();
-	blinker=true;
+
+}
+
+
+void LineInput::mouseMoveEvent(ppl7::tk::MouseEvent* event)
+{
+	if (event->buttonMask & ppl7::tk::MouseEvent::MouseButton::Left) {
+		cursorpos=calcPosition(event->p.x);
+		if ((int)cursorpos < drag_start_position) {
+			selection.start=cursorpos;
+			selection.end=drag_start_position;
+		} else if ((int)cursorpos > drag_start_position) {
+			selection.start=drag_start_position;
+			selection.end=cursorpos;
+		}
+		calcCursorPosition();
+		calcSelectionPosition();
+		needsRedraw();
+	} else if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
+}
+
+void LineInput::mouseUpEvent(ppl7::tk::MouseEvent* event)
+{
+	if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
 }
 
 void LineInput::gotFocusEvent(FocusEvent* event)
 {
-	printf("LineInput::gotFocusEvent\n");
+	//printf("LineInput::gotFocusEvent\n");
 	blinker=true;
 	if (!timerId) timerId=GetWindowManager()->startTimer(this, 500);
 	needsRedraw();
@@ -226,6 +277,10 @@ void LineInput::gotFocusEvent(FocusEvent* event)
 void LineInput::lostFocusEvent(FocusEvent* event)
 {
 	//printf ("LineInput::lostFocusEvent\n");
+	if (drag_started) {
+		drag_started=false;
+		ppl7::tk::GetWindowManager()->releaseMouse(this);
+	}
 	blinker=false;
 	if (timerId) GetWindowManager()->removeTimer(timerId);
 	timerId=0;
@@ -249,6 +304,7 @@ void LineInput::textInputEvent(TextInputEvent* event)
 	myText=left;
 	cursorpos++;
 	calcCursorPosition();
+	selection.clear();
 	validateAndSendEvent(myText);
 	if (validator) {
 		if (validator->validateText(myText) == false) return;
@@ -260,7 +316,8 @@ void LineInput::keyDownEvent(KeyEvent* event)
 {
 	//printf("LineInput::keyDownEvent(keycode=%i, repeat=%i, modifier: %i)\n", event->key, event->repeat, event->modifier);
 	if (isEnabled()) {
-		if ((event->modifier & KeyEvent::KEYMOD_MODIFIER) == KeyEvent::KEYMOD_NONE) {
+		int key_modifier=event->modifier & KeyEvent::KEYMOD_MODIFIER;
+		if (key_modifier == KeyEvent::KEYMOD_NONE) {
 			if (event->key == KeyEvent::KEY_LEFT && cursorpos > 0) {
 				cursorpos--;
 				calcCursorPosition();
@@ -274,18 +331,93 @@ void LineInput::keyDownEvent(KeyEvent* event)
 				cursorpos=myText.size();
 				calcCursorPosition();
 			} else if (event->key == KeyEvent::KEY_BACKSPACE && cursorpos > 0) {
-				WideString new_text=myText.left(cursorpos - 1) + myText.mid(cursorpos);
-				myText=new_text;
-				cursorpos--;
+				if (selection.exists()) {
+					WideString new_text=myText.left(selection.start) + myText.mid(selection.end);
+					myText=new_text;
+					cursorpos=selection.start;
+					calcCursorPosition();
+					selection.clear();
+				} else {
+					WideString new_text=myText.left(cursorpos - 1) + myText.mid(cursorpos);
+					myText=new_text;
+					cursorpos--;
+				}
 				calcCursorPosition();
 				validateAndSendEvent(myText);
 			} else if (event->key == KeyEvent::KEY_DELETE) {
-				WideString new_text=myText.left(cursorpos) + myText.mid(cursorpos + 1);
-				myText=new_text;
+				if (selection.exists()) {
+					WideString new_text=myText.left(selection.start) + myText.mid(selection.end);
+					myText=new_text;
+					cursorpos=selection.start;
+					calcCursorPosition();
+					selection.clear();
+				} else {
+					WideString new_text=myText.left(cursorpos) + myText.mid(cursorpos + 1);
+					myText=new_text;
+				}
 				calcCursorPosition();
 				validateAndSendEvent(myText);
 			}
+			selection.clear();
+			calcSelectionPosition();
+
+		} else if (key_modifier == KeyEvent::KEYMOD_LEFTCTRL) {
+			//printf("key=%d\n", event->key);
+			if (event->key == KeyEvent::KEY_c) {
+				ppl7::String text;
+				if (selection.exists()) {
+					ppl7::String t=myText.mid(selection.start, selection.end - selection.start);
+					text=String(t);
+					//printf("selection=%s\n", (const char*)text);
+					GetWindowManager()->setClipboardText(text);
+				}
+			} else if (event->key == KeyEvent::KEY_v) {
+				if (selection.exists()) {
+					WideString new_text=myText.left(selection.start) + myText.mid(selection.end);
+					myText=new_text;
+					cursorpos=selection.start;
+					selection.clear();
+				}
+				WideString clipboard=String(GetWindowManager()->getClipboardText());
+				WideString new_text=myText.left(cursorpos) + clipboard + myText.mid(cursorpos);
+				myText=new_text;
+				cursorpos+=clipboard.size();
+				calcCursorPosition();
+
+			}
+
+		} else if (key_modifier == KeyEvent::KEYMOD_LEFTSHIFT || key_modifier == KeyEvent::KEYMOD_RIGHTSHIFT) {
+			if (event->key == KeyEvent::KEY_LEFT && cursorpos > 0) {
+				if (!selection.exists()) selection.begin(cursorpos);
+				cursorpos--;
+				if (selection.start > (int)cursorpos) selection.start=cursorpos;
+				else selection.end=cursorpos;
+				calcCursorPosition();
+				calcSelectionPosition();
+			} else if (event->key == KeyEvent::KEY_RIGHT && cursorpos < myText.size()) {
+				if (!selection.exists()) selection.begin(cursorpos);
+				cursorpos++;
+				if (selection.end < (int)cursorpos) selection.end=cursorpos;
+				else selection.start=cursorpos;
+				calcCursorPosition();
+				calcSelectionPosition();
+			} else if (event->key == KeyEvent::KEY_HOME && cursorpos > 0) {
+				if (!selection.exists()) selection.begin(cursorpos);
+				if ((int)cursorpos == selection.end) selection.end=selection.start;
+				cursorpos=0;
+				selection.start=cursorpos;
+				calcCursorPosition();
+				calcSelectionPosition();
+			} else if (event->key == KeyEvent::KEY_END && cursorpos < myText.size()) {
+				if (!selection.exists()) selection.begin(cursorpos);
+				if ((int)cursorpos == selection.start) selection.start=selection.end;
+				cursorpos=myText.size();
+				selection.end=cursorpos;
+				calcCursorPosition();
+				calcSelectionPosition();
+			}
 		}
+
 	}
 	Frame::keyDownEvent(event);
 }
@@ -303,6 +435,17 @@ void LineInput::timerEvent(Event* event)
 	//if (GetWindowManager()->getKeyboardFocus()==this) GetWindowManager()->startTimer(this,500);
 	//else blinker=false;
 
+}
+
+void LineInput::mouseDblClickEvent(MouseEvent* event)
+{
+	selection.clear();
+	if (myText.notEmpty()) {
+		selection.start=0;
+		selection.end=(int)myText.size();
+		calcSelectionPosition();
+		needsRedraw();
+	}
 }
 
 
@@ -340,7 +483,49 @@ int LineInput::calcPosition(int x)
 	return c;
 }
 
+int LineInput::getDrawStartPositionOfChar(size_t pos)
+{
+	WideString text=myText.left(pos);
+	Size s1=myFont.measure(text);
+	return s1.width;
+}
 
+void LineInput::calcSelectionPosition()
+{
+	if (selection.exists()) {
+		selection.x1=getDrawStartPositionOfChar(selection.start);
+		selection.x2=getDrawStartPositionOfChar(selection.end);
+	} else {
+		selection.x1=0;
+		selection.x2=0;
+	}
+}
+
+
+LineInput::Selection::Selection()
+{
+	x1=x2=0;
+	start=-1;
+	end=-1;
+}
+
+bool LineInput::Selection::exists() const
+{
+	if (start > -1 && end > -1) return true;
+	return false;
+}
+
+void LineInput::Selection::clear()
+{
+	x1=x2=0;
+	start=-1;
+	end=-1;
+}
+
+void LineInput::Selection::begin(int position)
+{
+	start=end=position;
+}
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

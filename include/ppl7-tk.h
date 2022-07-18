@@ -86,6 +86,7 @@ public:
 	Font	inputFont;
 	Color	inputBackgroundColor;
 	Color	inputInvalidBackgroundColor;
+	Color   inputSelectedBackgroundColor;
 	Color	sliderHighlightColor;
 	Color	buttonSymbolColor;
 };
@@ -175,6 +176,42 @@ class KeyEvent : public Event
 public:
 	enum keycode {
 		KEY_UNKNOWN = 0,
+		KEY_0			=1,
+		KEY_1			=2,
+		KEY_2			=3,
+		KEY_3			=4,
+		KEY_4			=5,
+		KEY_5			=6,
+		KEY_6			=7,
+		KEY_7			=8,
+		KEY_8			=9,
+		KEY_9			=10,
+		KEY_a			=11,
+		KEY_b			=12,
+		KEY_c			=13,
+		KEY_d			=14,
+		KEY_e			=15,
+		KEY_f			=16,
+		KEY_g			=17,
+		KEY_h			=18,
+		KEY_i			=19,
+		KEY_j			=20,
+		KEY_k			=21,
+		KEY_l			=22,
+		KEY_m			=23,
+		KEY_n			=24,
+		KEY_o			=25,
+		KEY_p			=26,
+		KEY_q			=27,
+		KEY_r			=28,
+		KEY_s			=29,
+		KEY_t			=30,
+		KEY_u			=31,
+		KEY_v			=32,
+		KEY_w			=33,
+		KEY_x			=34,
+		KEY_y			=35,
+		KEY_z			=36,
 		KEY_RETURN		= 40,
 		KEY_ESCAPE		= 41,
 		KEY_BACKSPACE	= 42,
@@ -645,6 +682,9 @@ public:
 	virtual void removeTimer(int timer_id)=0;
 	//virtual void createSurface(Widget &w, int width, int height, const RGBFormat &format=RGBFormat(), int flags=Surface::DefaultSurface) = 0;
 
+	virtual void setClipboardText(const ppl7::String& text)=0;
+	virtual bool hasClipboardText() const=0;
+	virtual String getClipboardText() const=0;
 };
 
 WindowManager* GetWindowManager();
@@ -690,6 +730,12 @@ public:
 	virtual void handleEvents();
 	virtual size_t numWindows();
 	virtual void startClickEvent(Window* win);
+
+	virtual void setClipboardText(const ppl7::String& text);
+	virtual bool hasClipboardText() const;
+	virtual String getClipboardText() const;
+
+
 	int startTimer(Widget* w, int intervall);
 	void removeTimer(int timer_id);
 
@@ -846,6 +892,20 @@ public:
 class LineInput : public Frame
 {
 private:
+	class Selection
+	{
+	public:
+		int x1;
+		int x2;
+		int start, end;
+
+		Selection();
+		bool exists() const;
+		void clear();
+		void begin(int position);
+
+
+	};
 	WideString	myText;
 	WideString validatedText;
 	Font	myFont;
@@ -854,14 +914,19 @@ private:
 	Color	myBackgroundColor;
 	size_t	cursorpos;
 	size_t	startpos;
+	Selection selection;
 	int		cursorx;
 	int		cursorwidth;
 	bool	blinker;
+	bool 	drag_started;
+	int		drag_start_position;
 	int		timerId;
 	InputValidator* validator;
 
+	void calcSelectionPosition();
 	void calcCursorPosition();
 	int calcPosition(int x);
+	int getDrawStartPositionOfChar(size_t pos);
 	void validateAndSendEvent(const WideString& text);
 public:
 	LineInput();
@@ -884,12 +949,15 @@ public:
 	virtual Size contentSize() const;
 
 	virtual void mouseDownEvent(MouseEvent* event);
+	virtual void mouseMoveEvent(ppl7::tk::MouseEvent* event);
+	virtual void mouseUpEvent(ppl7::tk::MouseEvent* event);
 	virtual void gotFocusEvent(FocusEvent* event);
 	virtual void lostFocusEvent(FocusEvent* event);
 	virtual void textInputEvent(TextInputEvent* event);
 	virtual void keyDownEvent(KeyEvent* event);
 	virtual void keyUpEvent(KeyEvent* event);
 	virtual void timerEvent(Event* event);
+	virtual void mouseDblClickEvent(MouseEvent* event);
 
 };
 

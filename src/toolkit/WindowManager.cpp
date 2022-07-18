@@ -281,12 +281,12 @@ void WindowManager::setMouseFocus(Widget* w)
 {
 	if (w != LastMouseFocus) {
 		if (LastMouseFocus) {
-			printf("Widget lost Mouse focus: %s:%s\n", (const char*)LastMouseFocus->widgetType(), (const char*)LastMouseFocus->name());
+			//printf("Widget lost Mouse focus: %s:%s\n", (const char*)LastMouseFocus->widgetType(), (const char*)LastMouseFocus->name());
 			FocusEvent event(Event::FocusOut, LastMouseFocus, w);
 			LastMouseFocus->lostFocusEvent(&event);
 			if (!event.accepted()) return;
 		}
-		printf("Widget got Mouse focus: %s:%s\n", (const char*)w->widgetType(), (const char*)w->name());
+		//printf("Widget got Mouse focus: %s:%s\n", (const char*)w->widgetType(), (const char*)w->name());
 		FocusEvent event(Event::FocusIn, LastMouseFocus, w);
 		w->gotFocusEvent(&event);
 	}
