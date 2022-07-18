@@ -210,6 +210,7 @@ void ComboBox::mouseDownEvent(ppl7::tk::MouseEvent* event)
 			}
 			selection->setCurrentIndex(myCurrentIndex);
 			window->addChild(selection);
+			GetWindowManager()->setMouseFocus(selection);
 		}
 	} else {
 		EventHandler::mouseDownEvent(event);
@@ -229,6 +230,15 @@ void ComboBox::valueChangedEvent(ppl7::tk::Event* event, int value)
 		valueChangedEvent(&ev, myCurrentIndex);
 	} else {
 		EventHandler::valueChangedEvent(event, value);
+	}
+}
+
+void ComboBox::lostFocusEvent(ppl7::tk::FocusEvent* event)
+{
+	printf("ComboBox::lostFocusEvent\n");
+	if (selection != NULL && event->newWidget() != selection) {
+		selection->deleteLater();
+		selection=NULL;
 	}
 }
 

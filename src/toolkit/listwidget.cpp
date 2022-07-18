@@ -251,7 +251,18 @@ void ListWidget::mouseMoveEvent(ppl7::tk::MouseEvent* event)
 
 void ListWidget::lostFocusEvent(ppl7::tk::FocusEvent* event)
 {
+	Widget* new_widget=event->newWidget();
+	if (new_widget) {
+		if (new_widget == this || new_widget->isChildOf(this)) {
+			printf("ListWidget::lostFocusEvent, but we are still inside of childs of this widget\n");
+			event->accept(false);
+			return;
+		}
+	}
+	event->accept(true);
 	printf("ListWidget::lostFocusEvent\n");
+	FocusEvent new_event(Event::FocusOut, this, new_widget);
+	Frame::lostFocusEvent(&new_event);
 }
 
 } //EOF namespace

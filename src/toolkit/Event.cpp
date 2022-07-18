@@ -168,6 +168,35 @@ KeyEvent::KeyEvent()
 	repeat=false;
 }
 
+FocusEvent::FocusEvent(Event::Type t, Widget* old_widget, Widget* new_widget)
+{
+	bAccepted=true;
+	setType(t);
+	this->setWidget(old_widget);
+	this->new_widget=new_widget;
+
+}
+
+Widget* FocusEvent::oldWidget() const
+{
+	return widget();
+}
+
+Widget* FocusEvent::newWidget() const
+{
+	return new_widget;
+}
+
+void FocusEvent::accept(bool flag)
+{
+	bAccepted=flag;
+}
+
+bool FocusEvent::accepted() const
+{
+	return bAccepted;
+}
+
 
 EventHandler::EventHandler()
 {

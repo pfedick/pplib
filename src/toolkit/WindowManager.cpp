@@ -74,6 +74,7 @@ WindowManager::WindowManager()
 	wm=this;
 	LastMouseDown=NULL;
 	LastMouseEnter=NULL;
+	LastMouseFocus=NULL;
 	clickCount=0;
 	doubleClickIntervall=200;
 	KeyboardFocus=NULL;
@@ -161,6 +162,8 @@ void WindowManager::unregisterWidget(Widget* widget)
 	if (LastMouseDown == widget) LastMouseDown=NULL;
 	if (LastMouseEnter == widget) LastMouseEnter=NULL;
 	if (KeyboardFocus == widget) KeyboardFocus=NULL;
+	if (LastMouseFocus == widget) LastMouseFocus=NULL;
+
 }
 
 void WindowManager::deferedDeleteWidgets(Widget* widget)
@@ -233,6 +236,8 @@ void WindowManager::dispatchEvent(Window* window, Event& event)
 				clickCount=0;
 			}
 			LastMouseDown=w;
+			setMouseFocus(w);
+
 			event.setWidget(w);
 			w->mouseDownEvent((MouseEvent*)&event);
 		}
@@ -272,6 +277,22 @@ void WindowManager::dispatchEvent(Window* window, Event& event)
 
 }
 
+void WindowManager::setMouseFocus(Widget* w)
+{
+	if (w != LastMouseFocus) {
+		if (LastMouseFocus) {
+			printf("Widget lost Mouse focus: %s:%s\n", (const char*)LastMouseFocus->widgetType(), (const char*)LastMouseFocus->name());
+			FocusEvent event(Event::FocusOut, LastMouseFocus, w);
+			LastMouseFocus->lostFocusEvent(&event);
+			if (!event.accepted()) return;
+		}
+		printf("Widget got Mouse focus: %s:%s\n", (const char*)w->widgetType(), (const char*)w->name());
+		FocusEvent event(Event::FocusIn, LastMouseFocus, w);
+		w->gotFocusEvent(&event);
+	}
+	LastMouseFocus=w;
+}
+
 void WindowManager::setDoubleClickIntervall(int ms)
 {
 	doubleClickIntervall=ms;
@@ -298,11 +319,11 @@ void WindowManager::setKeyboardFocus(Widget* w)
 {
 	if (w == KeyboardFocus) return;
 	if (KeyboardFocus) {
-		FocusEvent e;
+		FocusEvent e(Event::FocusOut, KeyboardFocus, w);
 		KeyboardFocus->lostFocusEvent(&e);
 	}
 	KeyboardFocus=w;
-	FocusEvent e;
+	FocusEvent e(Event::FocusIn, KeyboardFocus, w);
 	KeyboardFocus->gotFocusEvent(&e);
 }
 

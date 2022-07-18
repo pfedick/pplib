@@ -217,9 +217,9 @@ void LineInput::mouseDownEvent(MouseEvent* event)
 
 void LineInput::gotFocusEvent(FocusEvent* event)
 {
-	//printf ("LineInput::gotFocusEvent\n");
+	printf("LineInput::gotFocusEvent\n");
 	blinker=true;
-	timerId=GetWindowManager()->startTimer(this, 500);
+	if (!timerId) timerId=GetWindowManager()->startTimer(this, 500);
 	needsRedraw();
 }
 

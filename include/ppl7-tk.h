@@ -264,8 +264,15 @@ public:
 
 class FocusEvent : public Event
 {
+private:
+	Widget* new_widget;
+	bool bAccepted;
 public:
-
+	FocusEvent(Event::Type t, Widget* old_widget, Widget* new_widget);
+	Widget* oldWidget() const;
+	Widget* newWidget() const;
+	void accept(bool flag);
+	bool accepted() const;
 };
 
 
@@ -471,6 +478,10 @@ public:
 	Size preferedSize() const;
 	void setName(const String& name);
 	String name() const;
+
+	bool isChildOf(Widget* other) const;
+
+
 	virtual String widgetType() const;
 
 	virtual void paint(Drawable& draw);
@@ -585,6 +596,7 @@ private:
 	WidgetStyle Style;
 	Widget* LastMouseDown;
 	Widget* LastMouseEnter;
+	Widget* LastMouseFocus;
 
 	MouseEvent	clickEvent;
 	int			clickCount;
@@ -606,6 +618,7 @@ public:
 	void dispatchClickEvent(Window* window);
 	void setDoubleClickIntervall(int ms);
 	void setKeyboardFocus(Widget* w);
+	void setMouseFocus(Widget* w);
 	void grabMouse(Widget* w);
 	void releaseMouse(Widget* w);
 	void unregisterWidget(Widget* w);
@@ -1030,6 +1043,7 @@ public:
 	virtual void mouseDownEvent(ppl7::tk::MouseEvent* event);
 	virtual void mouseWheelEvent(ppl7::tk::MouseEvent* event);
 	virtual void valueChangedEvent(ppl7::tk::Event* event, int value);
+	virtual void lostFocusEvent(ppl7::tk::FocusEvent* event);
 };
 
 class AbstractSpinBox : public Widget

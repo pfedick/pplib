@@ -730,6 +730,12 @@ String Widget::widgetType() const
 	return String("Widget");
 }
 
+bool Widget::isChildOf(Widget* other) const
+{
+	if (parent == other) return true;
+	if (parent) return parent->isChildOf(other);
+	return false;
+}
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7
