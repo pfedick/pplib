@@ -260,7 +260,6 @@ void ListWidget::lostFocusEvent(ppl7::tk::FocusEvent* event)
 		}
 	}
 	event->accept(true);
-	printf("ListWidget::lostFocusEvent\n");
 	FocusEvent new_event(Event::FocusOut, this, new_widget);
 	Frame::lostFocusEvent(&new_event);
 }

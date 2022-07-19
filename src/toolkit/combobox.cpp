@@ -235,7 +235,6 @@ void ComboBox::valueChangedEvent(ppl7::tk::Event* event, int value)
 
 void ComboBox::lostFocusEvent(ppl7::tk::FocusEvent* event)
 {
-	printf("ComboBox::lostFocusEvent\n");
 	if (selection != NULL && event->newWidget() != selection) {
 		selection->deleteLater();
 		selection=NULL;
