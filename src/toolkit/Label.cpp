@@ -90,6 +90,7 @@ const String& Label::text() const
 
 void Label::setText(const String& text)
 {
+	if (text == myText) return;
 	myText=text;
 	needsRedraw();
 	geometryChanged();
@@ -102,6 +103,7 @@ const Color& Label::color() const
 
 void Label::setColor(const Color& c)
 {
+	if (c == myColor) return;
 	myColor=c;
 	needsRedraw();
 }
