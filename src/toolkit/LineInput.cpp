@@ -76,6 +76,7 @@ LineInput::LineInput()
 	cursorx=0;
 	cursorwidth=2;
 	blinker=false;
+	overwrite=false;
 	timerId=0;
 	drag_started=false;
 }
@@ -100,6 +101,7 @@ LineInput::LineInput(int x, int y, int width, int height, const String& text)
 	cursorx=0;
 	cursorwidth=2;
 	blinker=false;
+	overwrite=false;
 	timerId=0;
 	drag_started=false;
 }
@@ -142,9 +144,10 @@ void LineInput::setText(const String& text)
 	if (new_text == myText) return;
 	if (validator != NULL && validator->validateText(new_text) == false) return;
 	myText=new_text;
-	cursorpos=0;
 	startpos=0;
-	cursorx=0;
+	if (cursorpos > myText.size()) cursorpos=myText.size();
+	calcCursorPosition();
+	selection.clear();
 	needsRedraw();
 	geometryChanged();
 	validateAndSendEvent(myText);
@@ -298,6 +301,7 @@ void LineInput::textInputEvent(TextInputEvent* event)
 	}
 
 	WideString left, right;
+	deleteSelection();
 	left=myText.left(cursorpos);
 	right=myText.mid(cursorpos);
 	left+=event->text + right;
@@ -311,6 +315,16 @@ void LineInput::textInputEvent(TextInputEvent* event)
 	}
 }
 
+void LineInput::deleteSelection()
+{
+	if (selection.exists()) {
+		WideString new_text=myText.left(selection.start) + myText.mid(selection.end);
+		myText=new_text;
+		cursorpos=selection.start;
+		calcCursorPosition();
+		selection.clear();
+	}
+}
 
 void LineInput::keyDownEvent(KeyEvent* event)
 {
@@ -332,11 +346,7 @@ void LineInput::keyDownEvent(KeyEvent* event)
 				calcCursorPosition();
 			} else if (event->key == KeyEvent::KEY_BACKSPACE && cursorpos > 0) {
 				if (selection.exists()) {
-					WideString new_text=myText.left(selection.start) + myText.mid(selection.end);
-					myText=new_text;
-					cursorpos=selection.start;
-					calcCursorPosition();
-					selection.clear();
+					deleteSelection();
 				} else {
 					WideString new_text=myText.left(cursorpos - 1) + myText.mid(cursorpos);
 					myText=new_text;
@@ -346,11 +356,7 @@ void LineInput::keyDownEvent(KeyEvent* event)
 				validateAndSendEvent(myText);
 			} else if (event->key == KeyEvent::KEY_DELETE) {
 				if (selection.exists()) {
-					WideString new_text=myText.left(selection.start) + myText.mid(selection.end);
-					myText=new_text;
-					cursorpos=selection.start;
-					calcCursorPosition();
-					selection.clear();
+					deleteSelection();
 				} else {
 					WideString new_text=myText.left(cursorpos) + myText.mid(cursorpos + 1);
 					myText=new_text;
@@ -372,12 +378,7 @@ void LineInput::keyDownEvent(KeyEvent* event)
 					GetWindowManager()->setClipboardText(text);
 				}
 			} else if (event->key == KeyEvent::KEY_v) {
-				if (selection.exists()) {
-					WideString new_text=myText.left(selection.start) + myText.mid(selection.end);
-					myText=new_text;
-					cursorpos=selection.start;
-					selection.clear();
-				}
+				deleteSelection();
 				WideString clipboard=String(GetWindowManager()->getClipboardText());
 				WideString new_text=myText.left(cursorpos) + clipboard + myText.mid(cursorpos);
 				myText=new_text;
@@ -465,7 +466,6 @@ void LineInput::calcCursorPosition()
 		cursorx=s1.width;
 	}
 	needsRedraw();
-	blinker=true;
 }
 
 int LineInput::calcPosition(int x)

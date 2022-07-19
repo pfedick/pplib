@@ -919,6 +919,7 @@ private:
 	int		cursorwidth;
 	bool	blinker;
 	bool 	drag_started;
+	bool	overwrite;
 	int		drag_start_position;
 	int		timerId;
 	InputValidator* validator;
@@ -928,6 +929,7 @@ private:
 	int calcPosition(int x);
 	int getDrawStartPositionOfChar(size_t pos);
 	void validateAndSendEvent(const WideString& text);
+	void deleteSelection();
 public:
 	LineInput();
 	LineInput(int x, int y, int width, int height, const String& text=String());

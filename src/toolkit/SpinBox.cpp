@@ -259,11 +259,13 @@ String SpinBox::widgetType() const
     return "SpinBox";
 }
 
-void SpinBox::setValue(int64_t value)
+void SpinBox::setValue(int64_t new_value)
 {
-    if (value<min || value>max) return;
-    my_value=value;
-    setText(ppl7::ToString("%ld", value));
+    if (new_value<min || new_value>max) return;
+    if (new_value != value()) {
+        my_value=new_value;
+        setText(ppl7::ToString("%ld", new_value));
+    }
 }
 
 int64_t SpinBox::value() const
@@ -381,18 +383,18 @@ String DoubleSpinBox::widgetType() const
     return "DoubleSpinBox";
 }
 
-void DoubleSpinBox::setValue(double value)
+void DoubleSpinBox::setValue(double new_value)
 {
-    if (value<min || value>max) return;
-    if (value == my_value) return;
-    my_value=value;
+    if (new_value<min || new_value>max) return;
+    if (new_value == value()) return;
+    my_value=new_value;
     ppl7::String format;
     format.setf("%%0.%df", my_decimals);
-    setText(ppl7::ToString((const char*)format, value));
+    setText(ppl7::ToString((const char*)format, new_value));
 
     Event new_event(Event::ValueChanged);
     new_event.setWidget(this);
-    EventHandler::valueChangedEvent(&new_event, value);
+    EventHandler::valueChangedEvent(&new_event, new_value);
 
 }
 
