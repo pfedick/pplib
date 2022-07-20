@@ -162,8 +162,14 @@ void DoubleHorizontalSlider::sliderValueChanged(double value)
 
 void DoubleHorizontalSlider::valueChangedEvent(ppl7::tk::Event* event, double value)
 {
+    //printf("DoubleHorizontalSlider::valueChangedEvent: %0.1f\n", value);
     if (event->widget() == spinbox && spinbox != NULL) {
-        setValue(value);
+        if (value != this->value()) {
+            setValue(value);
+            ppl7::tk::Event ev(ppl7::tk::Event::ValueChanged);
+            ev.setWidget(this);
+            valueChangedEvent(&ev, value);
+        }
     }
     DoubleAbstractSlider::valueChangedEvent(event, value);
 }
