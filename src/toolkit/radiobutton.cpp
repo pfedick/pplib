@@ -80,6 +80,7 @@ void RadioButton::setChecked(bool checked)
 	bool laststate=ischecked;
 	ischecked=checked;
 	needsRedraw();
+	parentMustRedraw();
 	// uncheck all other RadioButtons in Parent-Widget
 	if (checked == true && this->getParent()) {
 		Widget* parent=this->getParent();
