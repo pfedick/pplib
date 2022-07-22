@@ -752,5 +752,13 @@ const Color operator+ (const Color& color1, const Color& color2)
 }
 
 
+Color multiplyWithAlpha(const Color& c, float factor)
+{
+	return Color(clamp((int)((float)c.r * factor)),
+		clamp((int)((float)c.g * factor)),
+		clamp((int)((float)c.b * factor)),
+		clamp((int)((float)c.a * factor)));
+}
+
 } // EOF namespace grafix
 } // EOF namespace ppl7

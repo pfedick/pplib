@@ -386,7 +386,7 @@ class Color
 	friend const Color operator* (const Color& size, float factor);
 	friend const Color operator* (float factor, const Color& size);
 	friend const Color operator+ (const Color& color1, const Color& color2);
-
+	friend Color multiplyWithAlpha(const Color& c, float factor);;
 private:
 #ifdef __LITTLE_ENDIAN__
 	union {
@@ -451,6 +451,8 @@ public:
 	static Color getBlended(const Color& background, const Color& foreground, int intensity);
 	static Color getBlendedf(const Color& background, const Color& foreground, float intensity);
 };
+
+Color multiplyWithAlpha(const Color& c, float factor);
 
 const Color operator* (const Color& color, float factor);
 const Color operator* (float factor, const Color& color);
