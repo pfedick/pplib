@@ -85,8 +85,8 @@ namespace grafix {
 
 static inline int clamp(int value)
 {
-	if (value<0) return 0;
-	if (value>255) return 255;
+	if (value < 0) return 0;
+	if (value > 255) return 255;
 	return value;
 }
 
@@ -123,10 +123,10 @@ Color::Color(int red, int green, int blue, int alpha)
 	b=clamp(blue);
 	a=clamp(alpha);
 	*/
-	r=red&0xff;
-	g=green&0xff;
-	b=blue&0xff;
-	a=alpha&0xff;
+	r=red & 0xff;
+	g=green & 0xff;
+	b=blue & 0xff;
+	a=alpha & 0xff;
 }
 
 /*!\brief Konstruktor mit Angabe eines Farbwertes als 32-Bit Wert
@@ -212,7 +212,7 @@ uint32_t Color::rgba() const
  */
 uint32_t Color::rgb() const
 {
-	return c&0xffffff;
+	return c & 0xffffff;
 }
 
 /*!\brief rot-Anteil auslesen
@@ -333,10 +333,10 @@ void Color::setAlpha(int alpha)
  */
 void Color::setColor(int red, int green, int blue, int alpha)
 {
-	r=red&0xff;
-	g=green&0xff;
-	b=blue&0xff;
-	a=alpha&0xff;
+	r=red & 0xff;
+	g=green & 0xff;
+	b=blue & 0xff;
+	a=alpha & 0xff;
 }
 
 /*!\brief Farbwert anhand der einzelnen Farbkomponenten setzen
@@ -354,13 +354,13 @@ void Color::setColor(int red, int green, int blue, int alpha)
  */
 void Color::set(int red, int green, int blue, int alpha)
 {
-	r=red&0xff;
-	g=green&0xff;
-	b=blue&0xff;
-	a=alpha&0xff;
+	r=red & 0xff;
+	g=green & 0xff;
+	b=blue & 0xff;
+	a=alpha & 0xff;
 }
 
-void Color::set(const Color &other)
+void Color::set(const Color& other)
 {
 	c=other.c;
 }
@@ -379,10 +379,10 @@ void Color::set(const Color &other)
  */
 void Color::setColor(uint32_t rgba)
 {
-	r=rgba&255;
-	g=(rgba>>8)&255;
-	b=(rgba>>16)&255;
-	a=(rgba>>24)&255;
+	r=rgba & 255;
+	g=(rgba >> 8) & 255;
+	b=(rgba >> 16) & 255;
+	a=(rgba >> 24) & 255;
 }
 
 /*!\brief Farbwert anhand eines 32-Bit-Farbwertes und der Transparenz setzen
@@ -400,9 +400,9 @@ void Color::setColor(uint32_t rgba)
  */
 void Color::setColor(uint32_t rgb, int alpha)
 {
-	r=rgb&255;
-	g=(rgb>>8)&255;
-	b=(rgb>>16)&255;
+	r=rgb & 255;
+	g=(rgb >> 8) & 255;
+	b=(rgb >> 16) & 255;
 	a=clamp(alpha);
 }
 
@@ -420,7 +420,7 @@ void Color::setColor(uint32_t rgb, int alpha)
  */
 int Color::brightness() const
 {
-	return (r * 11 + g * 16 + b * 5)/32;
+	return (r * 11 + g * 16 + b * 5) / 32;
 }
 
 /*!\brief Grauwert der Farbe
@@ -436,12 +436,12 @@ int Color::brightness() const
 Color Color::grey() const
 {
 	int v=brightness();
-	return Color(v,v,v,a);
+	return Color(v, v, v, a);
 }
 
 Color Color::negativ() const
 {
-	return Color(255-r,255-g,255-b,a);
+	return Color(255 - r, 255 - g, 255 - b, a);
 }
 
 /*!\brief Farbübereinstimmung prüfen
@@ -456,12 +456,12 @@ Color Color::negativ() const
  * von 0-255 angibt. Der Default ist 0
  * @return Stimmen die Farbwerte überein, liefert die Funktion \c true zurück, andernfalls \c false.
  */
-bool Color::match(const Color &other, int tolerance) const
+bool Color::match(const Color& other, int tolerance) const
 {
-	if (c==other.c) return true;
-	if (abs(r-other.r)>tolerance) return false;
-	if (abs(g-other.g)>tolerance) return false;
-	if (abs(b-other.b)>tolerance) return false;
+	if (c == other.c) return true;
+	if (abs(r - other.r) > tolerance) return false;
+	if (abs(g - other.g) > tolerance) return false;
+	if (abs(b - other.b) > tolerance) return false;
 	return true;
 }
 
@@ -477,13 +477,13 @@ bool Color::match(const Color &other, int tolerance) const
  * @param intensity Intensität der Vordergrundfarbe auf einer Skala von 0-255
  * @return Neuer Farbwert
  */
-Color &Color::blend(const Color &background, const Color &foreground, int intensity)
+Color& Color::blend(const Color& background, const Color& foreground, int intensity)
 {
-	int i2=intensity&255;
-	int i1=255-i2;
-	r=((background.r*i1) + (foreground.r*i2))/255;
-	g=((background.g*i1) + (foreground.g*i2))/255;
-	b=((background.b*i1) + (foreground.b*i2))/255;
+	int i2=intensity & 255;
+	int i1=255 - i2;
+	r=((background.r * i1) + (foreground.r * i2)) / 255;
+	g=((background.g * i1) + (foreground.g * i2)) / 255;
+	b=((background.b * i1) + (foreground.b * i2)) / 255;
 	a=255;
 	return *this;
 }
@@ -500,13 +500,13 @@ Color &Color::blend(const Color &background, const Color &foreground, int intens
  * @param intensity Intensität der Vordergrundfarbe auf einer Skala von 0.0 bis 1.0
  * @return Neuer Farbwert
  */
-Color &Color::blendf(const Color &background, const Color &foreground, float intensity)
+Color& Color::blendf(const Color& background, const Color& foreground, float intensity)
 {
 	float i2=intensity;
-	float i1=1.0f-i2;
-	r=(int)((background.r*i1) + (foreground.r*i2));
-	g=(int)((background.g*i1) + (foreground.g*i2));
-	b=(int)((background.b*i1) + (foreground.b*i2));
+	float i1=1.0f - i2;
+	r=(int)((background.r * i1) + (foreground.r * i2));
+	g=(int)((background.g * i1) + (foreground.g * i2));
+	b=(int)((background.b * i1) + (foreground.b * i2));
 	a=255;
 	return *this;
 }
@@ -521,20 +521,20 @@ Color &Color::blendf(const Color &background, const Color &foreground, float int
  * @param factor Der Multiplikator als float-Wert
  * @return Neuer Farbwert
  */
-Color &Color::operator*= (float factor)
+Color& Color::operator*= (float factor)
 {
-	r=clamp((int)(r*factor));
-	g=clamp((int)(r*factor));
-	b=clamp((int)(r*factor));
+	r=clamp((int)(r * factor));
+	g=clamp((int)(r * factor));
+	b=clamp((int)(r * factor));
 	return *this;
 }
 
-Color &Color::operator+= (const Color &other)
+Color& Color::operator+= (const Color& other)
 {
-	r=clamp(r+other.r);
-	g=clamp(g+other.g);
-	b=clamp(b+other.b);
-	a=clamp(a+other.a);
+	r=clamp(r + other.r);
+	g=clamp(g + other.g);
+	b=clamp(b + other.b);
+	a=clamp(a + other.a);
 	return *this;
 }
 
@@ -556,19 +556,19 @@ Color &Color::operator+= (const Color &other)
  */
 int Color::getY() const
 {
-	return (int) round(0.299*r + 0.587*g + 0.114*b);
+	return (int)round(0.299 * r + 0.587 * g + 0.114 * b);
 }
 
 //!\copydoc Color::getY
 int Color::getYCb() const
 {
-	return (int) round(128 + -0.168736*r - 0.331264*g + 0.5*b);
+	return (int)round(128 + -0.168736 * r - 0.331264 * g + 0.5 * b);
 }
 
 //!\copydoc Color::getY
 int Color::getYCr() const
 {
-	return (int) round(128 + 0.5*r - 0.418688*g - 0.081312*b);
+	return (int)round(128 + 0.5 * r - 0.418688 * g - 0.081312 * b);
 }
 
 
@@ -605,15 +605,15 @@ Color::operator int32_t() const
 	return c;
 }
 
-bool Color::operator<(const Color &other) const
+bool Color::operator<(const Color& other) const
 {
-	if (c<other.c) return true;
+	if (c < other.c) return true;
 	return false;
 }
 
-bool Color::operator<=(const Color &other) const
+bool Color::operator<=(const Color& other) const
 {
-	if (c<=other.c) return true;
+	if (c <= other.c) return true;
 	return false;
 }
 
@@ -628,11 +628,11 @@ bool Color::operator<=(const Color &other) const
  * \p != wird \c true zurückgegeben, wenn die Farbwerte unterschiedlich sind und \c false, wenn
  * sie identisch sind.
  */
-bool Color::operator==(const Color &other) const
-		{
-	if (c==other.c) return true;
+bool Color::operator==(const Color& other) const
+{
+	if (c == other.c) return true;
 	return false;
-		}
+}
 
 /*!\brief Vergleich zweier Farben
  *
@@ -645,21 +645,21 @@ bool Color::operator==(const Color &other) const
  * \p != wird \c true zurückgegeben, wenn die Farbwerte unterschiedlich sind und \c false, wenn
  * sie identisch sind.
  */
-bool Color::operator!=(const Color &other) const
-		{
-	if (c!=other.c) return true;
-	return false;
-		}
-
-bool Color::operator>=(const Color &other) const
-		{
-	if (c>=other.c) return true;
-	return false;
-		}
-
-bool Color::operator>(const Color &other) const
+bool Color::operator!=(const Color& other) const
 {
-	if (c>other.c) return true;
+	if (c != other.c) return true;
+	return false;
+}
+
+bool Color::operator>=(const Color& other) const
+{
+	if (c >= other.c) return true;
+	return false;
+}
+
+bool Color::operator>(const Color& other) const
+{
+	if (c > other.c) return true;
 	return false;
 }
 
@@ -678,12 +678,12 @@ bool Color::operator>(const Color &other) const
  * @param factor Multiplikations-Faktor
  * @return Neuer Farbwert
  */
-const Color operator* (const Color &color, float factor)
+const Color operator* (const Color& color, float factor)
 {
-	if (factor<0) factor=0.0f;
-	return Color(clamp((int)((float)color.r*factor)),
-		clamp((int)((float)color.g*factor)),
-		clamp((int)((float)color.b*factor)),
+	if (factor < 0) factor=0.0f;
+	return Color(clamp((int)((float)color.r * factor)),
+		clamp((int)((float)color.g * factor)),
+		clamp((int)((float)color.b * factor)),
 		color.a);
 }
 
@@ -701,54 +701,54 @@ const Color operator* (const Color &color, float factor)
  * @param color Farbwert
  * @return Neuer Farbwert
  */
-const Color operator* (float factor, const Color &color)
+const Color operator* (float factor, const Color& color)
 {
-	if (factor<0) factor=0.0;
-	return Color(clamp((int)((float)color.r*factor)),
-		clamp((int)((float)color.g*factor)),
-		clamp((int)((float)color.b*factor)),
+	if (factor < 0) factor=0.0;
+	return Color(clamp((int)((float)color.r * factor)),
+		clamp((int)((float)color.g * factor)),
+		clamp((int)((float)color.b * factor)),
 		color.a);
 }
 
-std::ostream& operator<<(std::ostream& s, const Color &c)
+std::ostream& operator<<(std::ostream& s, const Color& c)
 {
 	String t;
-	t.setf("RGB(red=%i, green=%i, blue=%i, alpha=%i)",c.red(), c.green(), c.blue(), c.alpha());
-	return s.write((const char*)t.getPtr(),t.size());
+	t.setf("RGB(red=%i, green=%i, blue=%i, alpha=%i)", c.red(), c.green(), c.blue(), c.alpha());
+	return s.write((const char*)t.getPtr(), t.size());
 }
 
 
-Color Color::getBlended(const Color &background, const Color &foreground, int intensity)
+Color Color::getBlended(const Color& background, const Color& foreground, int intensity)
 {
 	Color c;
-	int i2=intensity&255;
-	int i1=255-i2;
-	c.r=((background.r*i1) + (foreground.r*i2))/255;
-	c.g=((background.g*i1) + (foreground.g*i2))/255;
-	c.b=((background.b*i1) + (foreground.b*i2))/255;
+	int i2=intensity & 255;
+	int i1=255 - i2;
+	c.r=((background.r * i1) + (foreground.r * i2)) / 255;
+	c.g=((background.g * i1) + (foreground.g * i2)) / 255;
+	c.b=((background.b * i1) + (foreground.b * i2)) / 255;
 	c.a=255;
 	return c;
 }
 
-Color Color::getBlendedf(const Color &background, const Color &foreground, float intensity)
+Color Color::getBlendedf(const Color& background, const Color& foreground, float intensity)
 {
 	Color c;
 	float i2=intensity;
-	float i1=1.0f-i2;
-	c.r=(int)((background.r*i1) + (foreground.r*i2));
-	c.g=(int)((background.g*i1) + (foreground.g*i2));
-	c.b=(int)((background.b*i1) + (foreground.b*i2));
+	float i1=1.0f - i2;
+	c.r=(int)((background.r * i1) + (foreground.r * i2));
+	c.g=(int)((background.g * i1) + (foreground.g * i2));
+	c.b=(int)((background.b * i1) + (foreground.b * i2));
 	c.a=255;
 	return c;
 }
 
 
-const Color operator+ (const Color &color1, const Color &color2)
+const Color operator+ (const Color& color1, const Color& color2)
 {
-	return Color(clamp(color1.r+color2.r),
-			clamp(color1.g+color2.g),
-			clamp(color1.r+color2.b),
-			clamp(color1.a+color2.a));
+	return Color(clamp(color1.r + color2.r),
+		clamp(color1.g + color2.g),
+		clamp(color1.b + color2.b),
+		clamp(color1.a + color2.a));
 }
 
 
