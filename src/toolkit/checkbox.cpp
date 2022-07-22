@@ -79,6 +79,7 @@ void CheckBox::setChecked(bool checked)
 {
 	ischecked=checked;
 	needsRedraw();
+	parentMustRedraw();
 }
 
 

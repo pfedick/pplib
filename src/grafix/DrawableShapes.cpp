@@ -132,6 +132,7 @@ static void FillRect_32(DRAWABLE_DATA& data, const Rect& r, SurfaceColor color)
 {
 	Rect s(0, 0, data.width, data.height);
 	Rect in=s.intersected(r);
+	if (r.x2 < r.x1 || r.y2 < r.y1) return;
 	if (in.isNull()) return;
 #ifdef HAVE_X86_ASSEMBLER
 	RECTDATA d;
