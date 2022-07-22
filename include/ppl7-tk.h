@@ -118,7 +118,8 @@ public:
 		Quit,
 		ValueChanged,
 		Toggled,
-		TextChanged
+		TextChanged,
+		SelectionChanged
 	};
 private:
 	Type t;
@@ -350,6 +351,7 @@ public:
 	virtual void valueChangedEvent(Event* event, int64_t value);
 	virtual void toggledEvent(Event* event, bool checked);
 	virtual void textChangedEvent(Event* event, const ppl7::String& text);
+	virtual void selectionChangedEvent(Event* event);
 
 };
 

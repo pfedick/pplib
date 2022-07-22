@@ -436,6 +436,12 @@ void EventHandler::textChangedEvent(Event* event, const ppl7::String& text)
 	if (handler) handler->textChangedEvent(event, text);
 }
 
+void EventHandler::selectionChangedEvent(Event* event)
+{
+	if (handler) handler->selectionChangedEvent(event);
+}
+
+
 
 
 }	// EOF namespace tk
