@@ -361,6 +361,7 @@ DoubleSpinBox::DoubleSpinBox()
     step_size=1;
     min=0;
     max=0;
+    setValue(0);
     setInputValidator(this);
 }
 
@@ -371,10 +372,11 @@ DoubleSpinBox::DoubleSpinBox(int x, int y, int width, int height, double value, 
     step_size=1;
     min=0;
     max=0;
-    setInputValidator(this);
+    my_value=0.0f;
     if (value < min) min=value;
     if (value > max) max=value;
     setValue(value);
+    setInputValidator(this);
 }
 
 String DoubleSpinBox::widgetType() const
