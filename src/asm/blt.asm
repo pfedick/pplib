@@ -4178,6 +4178,7 @@ CALCULATEDALPHA@:
 		mov r8,rcx					; Pointer nach r8 schieben
 		push rdi					; rdi und rsi müssen unter WIN64 gerettet werden
 		push rsi
+                push r12
 	%endif
 	push rbx					; rbx retten bx
 	mov eax, 0x00ffffff
@@ -4712,6 +4713,7 @@ CopyBuffered:
 		pop rbx
 		inc rax			; Returnwert auf 1 setzen
 	%if arch_win64=1
+                pop r12
 		pop rsi
 		pop rdi
 	%endif
