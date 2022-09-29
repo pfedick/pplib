@@ -218,7 +218,7 @@ static void putPixel(Drawable& draw, int x, int y, const Color& color, int inten
 	int a=vg.alpha() * intensity / 255;
 	if (a == 0) return;
 	if (a == 255) {
-		vg.setAlpha(bg.alpha() + a);
+		vg.setAlpha(255);
 		draw.putPixel(x, y, vg);
 		return;
 	}
@@ -227,8 +227,8 @@ static void putPixel(Drawable& draw, int x, int y, const Color& color, int inten
 	int red=(bg.red() * reva + vg.red() * a) / 255;
 	int green=(bg.green() * reva + vg.green() * a) / 255;
 	int blue=(bg.blue() * reva + vg.blue() * a) / 255;
-	int alpha=(bg.alpha() * reva + vg.alpha() * a) / 255;
-	//int alpha=bg.alpha()+a;
+	//int alpha=(bg.alpha() * reva + vg.alpha() * a) / 255;
+	int alpha=bg.alpha() + (255 - bg.alpha()) * a / 255;
 	draw.putPixel(x, y, Color(red, green, blue, alpha));
 }
 
