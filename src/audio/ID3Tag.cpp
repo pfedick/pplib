@@ -768,7 +768,8 @@ bool ID3Tag::loaded(const String& filename)
 		load(ff);
 		Filename=filename;
 		return true;
-	} catch (...) {}
+	}
+	catch (...) {}
 	return false;
 }
 
@@ -788,7 +789,8 @@ bool ID3Tag::loaded(FileObject& file)
 	try {
 		load(file);
 		return true;
-	} catch (...) {}
+	}
+	catch (...) {}
 	return false;
 }
 
@@ -1466,7 +1468,8 @@ void ID3Tag::saveMP3()
 				pn+=bytes;
 				rest-=bytes;
 			}
-		} catch (...) {
+		}
+		catch (...) {
 			free(space);
 			throw;
 		}
@@ -1564,7 +1567,8 @@ void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2
 		}
 		try {
 			n.write(space, size - tagV2.size());
-		} catch (...) {
+		}
+		catch (...) {
 			free(space);
 			throw;
 		}
@@ -1592,7 +1596,8 @@ void ID3Tag::saveAiff()
 	if (tagV2.size() > 0) {
 		try {
 			if (trySaveAiffInExistingFile(o, tagV2)) return;
-		} catch (...) {
+		}
+		catch (...) {
 
 		}
 	}
@@ -1601,7 +1606,8 @@ void ID3Tag::saveAiff()
 	n.open(tmpfile, File::READWRITE);
 	try {
 		copyAiffToNewFile(o, n, tagV2);
-	} catch (...) {
+	}
+	catch (...) {
 		n.close();
 		o.close();
 		File::remove(tmpfile);
@@ -1853,6 +1859,8 @@ String ID3Tag::getKey() const
 	String r;
 	ID3Frame* frame=findFrame("TKEY");
 	if (frame) copyAndDecodeText(r, frame, 0);
+	r.replace("♯", "#");
+	r.replace("♭", "b");
 	return r;
 }
 
