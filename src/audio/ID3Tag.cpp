@@ -1859,8 +1859,6 @@ String ID3Tag::getKey() const
 	String r;
 	ID3Frame* frame=findFrame("TKEY");
 	if (frame) copyAndDecodeText(r, frame, 0);
-	r.replace("♯", "#");
-	r.replace("♭", "b");
 	return r;
 }
 
