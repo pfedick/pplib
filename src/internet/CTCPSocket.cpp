@@ -2227,49 +2227,48 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
     }
 	fd_set rset, wset, eset;
 	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
 
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		DispatchErrno();
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		SetError(453);
+		return 0;
+	}
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
 			DispatchErrno();
 			return 0;
 		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			SetError(308);	// EPIPE
 			return 0;
 		}
-		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		if (FD_ISSET(s->sd,&rset)) {
-			char buf[2];
-			ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
-			// Kommt hier ein Fehler zurück?
-			if (ret<0) {
-				DispatchErrno();
-				return 0;
-			}
-			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-			if (ret==0) {
-				SetError(308);	// EPIPE
-				return 0;
-			}
-			return 1;
-		}
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174);	// Timeout
-			return 0;
-		}
+		return 1;
 	}
+	if (thread) {
+		if (thread->ThreadShouldStop()) {
+			SetError(336);
+			return 0;
+		}
+	} else {
+		SetError(174);	// Timeout
+		return 0;
+	}
+	SetError(174);	// Timeout
 	return 0;
 #else
 	PPLSOCKET *s=(PPLSOCKET*)socket;
@@ -2279,49 +2278,48 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
     }
 	fd_set rset, wset, eset;
 	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
 
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		DispatchErrno();
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		SetError(453);
+		return 0;
+	}
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, buf,1, MSG_PEEK);
+		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
 			DispatchErrno();
 			return 0;
 		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			SetError(308);	// EPIPE
 			return 0;
 		}
-		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		if (FD_ISSET(s->sd,&rset)) {
-			char buf[2];
-			ret=recv(s->sd, buf,1, MSG_PEEK);
-			// Kommt hier ein Fehler zurück?
-			if (ret<0) {
-				DispatchErrno();
-				return 0;
-			}
-			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-			if (ret==0) {
-				SetError(308);	// EPIPE
-				return 0;
-			}
-			return 1;
-		}
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174);	// Timeout
-			return 0;
-		}
+		return 1;
 	}
+	if (thread) {
+		if (thread->ThreadShouldStop()) {
+			SetError(336);
+			return 0;
+		}
+	} else {
+		SetError(174);	// Timeout
+		return 0;
+	}
+	SetError(174);	// Timeout
 	return 0;
 #endif
 }
@@ -2359,53 +2357,52 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
     }
 	fd_set rset, wset, eset;
 	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
 
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&wset);	// Wir wollen nur prüfen, ob wir schreiben können
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&wset);	// Wir wollen nur prüfen, ob wir schreiben können
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		DispatchErrno();
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		SetError(453);
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&wset)) {
+		return 1;
+	}
+	/*
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
 			DispatchErrno();
 			return 0;
 		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&wset)) {
-			return 1;
-		}
-		/*
-		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		if (FD_ISSET(s->sd,&rset)) {
-			char buf[2];
-			ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
-			// Kommt hier ein Fehler zurück?
-			if (ret<0) {
-				DispatchErrno();
-				return 0;
-			}
-			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-			if (ret==0) {
-				SetError(308);	// EPIPE
-				return 0;
-			}
-		}
-		*/
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174);	// Timeout
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			SetError(308);	// EPIPE
 			return 0;
 		}
 	}
+	*/
+	if (thread) {
+		if (thread->ThreadShouldStop()) {
+			SetError(336);
+			return 0;
+		}
+	} else {
+		SetError(174);	// Timeout
+		return 0;
+	}
+	SetError(174);	// Timeout
 	return 0;
 #else
 	PPLSOCKET *s=(PPLSOCKET*)socket;
@@ -2415,53 +2412,52 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
     }
 	fd_set rset, wset, eset;
 	struct timeval timeout;
-	while (1) {
-		timeout.tv_sec=seconds;
-		timeout.tv_usec=useconds;
+	timeout.tv_sec=seconds;
+	timeout.tv_usec=useconds;
 
-		FD_ZERO(&rset);
-		FD_ZERO(&wset);
-		FD_ZERO(&eset);
-		FD_SET(s->sd,&wset);	// Wir wollen nur prüfen, ob wir schreiben können
-		int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	FD_ZERO(&rset);
+	FD_ZERO(&wset);
+	FD_ZERO(&eset);
+	FD_SET(s->sd,&wset);	// Wir wollen nur prüfen, ob wir schreiben können
+	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
+	if (ret<0) {
+		DispatchErrno();
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&eset)) {
+		SetError(453);
+		return 0;
+	}
+	if (FD_ISSET(s->sd,&wset)) {
+		return 1;
+	}
+	/*
+	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
+	if (FD_ISSET(s->sd,&rset)) {
+		char buf[2];
+		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		// Kommt hier ein Fehler zurück?
 		if (ret<0) {
 			DispatchErrno();
 			return 0;
 		}
-		if (FD_ISSET(s->sd,&eset)) {
-			SetError(453);
-			return 0;
-		}
-		if (FD_ISSET(s->sd,&wset)) {
-			return 1;
-		}
-		/*
-		// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-		if (FD_ISSET(s->sd,&rset)) {
-			char buf[2];
-			ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
-			// Kommt hier ein Fehler zurück?
-			if (ret<0) {
-				DispatchErrno();
-				return 0;
-			}
-			// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-			if (ret==0) {
-				SetError(308);	// EPIPE
-				return 0;
-			}
-		}
-		*/
-		if (thread) {
-			if (thread->ThreadShouldStop()) {
-				SetError(336);
-				return 0;
-			}
-		} else {
-			SetError(174);	// Timeout
+		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
+		if (ret==0) {
+			SetError(308);	// EPIPE
 			return 0;
 		}
 	}
+	*/
+	if (thread) {
+		if (thread->ThreadShouldStop()) {
+			SetError(336);
+			return 0;
+		}
+	} else {
+		SetError(174);	// Timeout
+		return 0;
+	}
+	SetError(174);	// Timeout
 	return 0;
 #endif
 }
