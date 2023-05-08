@@ -88,6 +88,9 @@
 namespace ppl6 {
 
 #ifdef HAVE_LIBMICROHTTPD
+#if MHD_VERSION < 0x00097600
+#define MHD_Result int
+#endif
 static MHD_Result KeyValueIterator(void* cls, enum MHD_ValueKind kind, const char* key, const char* value)
 {
 	ppl6::CAssocArray* a=(ppl6::CAssocArray*)cls;
