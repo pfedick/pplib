@@ -50,27 +50,27 @@
 #include <stdarg.h>
 #endif
 #ifdef _WIN32
-    #include <winsock2.h>
-	//#include <Ws2tcpip.h>
+#include <winsock2.h>
+//#include <Ws2tcpip.h>
 #else
-	#ifdef HAVE_UNISTD_H
-    #include <unistd.h>
-	#endif
-	#ifdef HAVE_SYS_SOCKET_H
-    #include <sys/socket.h>
-	#endif
-	#ifdef HAVE_SYS_POLL_H
-    #include <sys/poll.h>
-	#endif
-	#ifdef HAVE_NETINET_IN_H
-    #include <netinet/in.h>
-	#endif
-	#ifdef HAVE_NETDB_H
-    #include <netdb.h>
-	#endif
-	#ifdef HAVE_ARPA_INET_H
-    #include <arpa/inet.h>
-	#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
 #endif
 
 #ifdef HAVE_ERRNO_H
@@ -88,21 +88,21 @@
 namespace ppl6 {
 
 #ifdef HAVE_LIBMICROHTTPD
-static int KeyValueIterator (void *cls, enum MHD_ValueKind kind, const char *key, const char *value)
+static MHD_Result KeyValueIterator(void* cls, enum MHD_ValueKind kind, const char* key, const char* value)
 {
-	ppl6::CAssocArray *a=(ppl6::CAssocArray *)cls;
-	a->Set(key,value);
+	ppl6::CAssocArray* a=(ppl6::CAssocArray*)cls;
+	a->Set(key, value);
 	return MHD_YES;
 }
 
 
-int answer_to_connection (void *cls, struct MHD_Connection *connection,
-                          const char *url,
-                          const char *method, const char *version,
-                          const char *upload_data,
-                          size_t *upload_data_size, void **con_cls)
+MHD_Result answer_to_connection(void* cls, struct MHD_Connection* connection,
+	const char* url,
+	const char* method, const char* version,
+	const char* upload_data,
+	size_t* upload_data_size, void** con_cls)
 {
-	Webserver::Request * r = (Webserver::Request*)*con_cls;
+	Webserver::Request* r = (Webserver::Request*)*con_cls;
 	//printf ("answer_to_connection, url=%s, method=%s, versimn=%s\n",url,method,version);
 	//HexDump((void*)upload_data, *upload_data_size);
 	if (!r) {
@@ -118,21 +118,21 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	} else {
 		//printf ("answer_to_connection, bestehender Request\n");
 	}
-	Webserver *w=(Webserver*) cls;
+	Webserver* w=(Webserver*)cls;
 	if (w->useBasicAuthentication()) {
-		char *pass=NULL;
-		char *user = MHD_basic_auth_get_username_password (connection, &pass);
+		char* pass=NULL;
+		char* user = MHD_basic_auth_get_username_password(connection, &pass);
 		int auth=0;
-		if (user!=NULL) {
-			auth=w->authenticate(user,pass, *r);
+		if (user != NULL) {
+			auth=w->authenticate(user, pass, *r);
 			free(user);
 			if (pass) free(pass);
 		}
 		if (!auth) {
 			try {
 				w->queueBasicAuthFailedResponse(*r);
-			} catch (const ppl6::Exception &e) {
-				w->queueResponseException(*r,e);
+			} catch (const ppl6::Exception& e) {
+				w->queueResponseException(*r, e);
 			}
 			delete (r);
 			CleanupThreadData();
@@ -142,8 +142,8 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 	}
 
 
-	MHD_get_connection_values (connection,MHD_GET_ARGUMENT_KIND,KeyValueIterator,&r->data);
-	MHD_get_connection_values (connection,MHD_HEADER_KIND,KeyValueIterator,&r->header);
+	MHD_get_connection_values(connection, MHD_GET_ARGUMENT_KIND, KeyValueIterator, &r->data);
+	MHD_get_connection_values(connection, MHD_HEADER_KIND, KeyValueIterator, &r->header);
 
 
 
@@ -158,8 +158,8 @@ int answer_to_connection (void *cls, struct MHD_Connection *connection,
 		if (!w->request(*r)) {
 			w->queueResponseError(*r);
 		}
-	} catch (const ppl6::Exception &e) {
-		w->queueResponseException(*r,e);
+	} catch (const ppl6::Exception& e) {
+		w->queueResponseException(*r, e);
 	}
 	delete (r);
 	CleanupThreadData();
@@ -185,21 +185,21 @@ Webserver::~Webserver()
 #endif
 }
 
-void Webserver::setLogfile(CLog *log)
+void Webserver::setLogfile(CLog* log)
 {
 	this->log=log;
 }
 
-void Webserver::bind(const ppl6::CString &adr, int port)
+void Webserver::bind(const ppl6::CString& adr, int port)
 {
 #ifdef HAVE_LIBMICROHTTPD
-	if (!Socket.Bind(adr,port)) throw CouldNotBindToSocket(Error2String());
+	if (!Socket.Bind(adr, port)) throw CouldNotBindToSocket(Error2String());
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
 }
 
-const CString & Webserver::getHostname() const
+const CString& Webserver::getHostname() const
 {
 	return Socket.getHostname();
 }
@@ -210,7 +210,7 @@ int Webserver::getPort() const
 }
 
 
-void Webserver::loadCertificate(const CString &certificate, const CString &privatekey, const CString &password)
+void Webserver::loadCertificate(const CString& certificate, const CString& privatekey, const CString& password)
 {
 	CString e;
 	/*
@@ -219,11 +219,11 @@ void Webserver::loadCertificate(const CString &certificate, const CString &priva
 		throw InvalidSSLCertificate(e);
 	}
 	*/
-	if (!CFile::LoadFile(sslkey,privatekey)) {
+	if (!CFile::LoadFile(sslkey, privatekey)) {
 		Error2String(e);
 		throw InvalidSSLCertificate(e);
 	}
-	if (!CFile::LoadFile(sslcert,certificate)) {
+	if (!CFile::LoadFile(sslcert, certificate)) {
 		Error2String(e);
 		throw InvalidSSLCertificate(e);
 	}
@@ -250,33 +250,33 @@ void Webserver::start()
 #ifdef HAVE_LIBMICROHTTPD
 	int sd=Socket.GetDescriptor();
 	if (!sd) throw NoAddressSpecified();
-	if (::listen(sd,5)!=0) {
+	if (::listen(sd, 5) != 0) {
 		int e=TranslateErrno(errno);
-		throw CouldNotStartDaemon(ppl6::ToString("listen => %i: %s [%s:%i]",e,GetError(e),(const char*)Socket.getHostname(),Socket.getPort()));
+		throw CouldNotStartDaemon(ppl6::ToString("listen => %i: %s [%s:%i]", e, GetError(e), (const char*)Socket.getHostname(), Socket.getPort()));
 	}
 
 	if (!SSLEnabled) {
-		daemon=MHD_start_daemon (
-				MHD_USE_THREAD_PER_CONNECTION, 8090, NULL,NULL, answer_to_connection,this,
-				MHD_OPTION_LISTEN_SOCKET,
-				sd,
-				MHD_OPTION_END
+		daemon=MHD_start_daemon(
+			MHD_USE_THREAD_PER_CONNECTION, 8090, NULL, NULL, answer_to_connection, this,
+			MHD_OPTION_LISTEN_SOCKET,
+			sd,
+			MHD_OPTION_END
 		);
 	} else {
-		daemon=MHD_start_daemon (
-				MHD_USE_THREAD_PER_CONNECTION | MHD_USE_SSL,
-				8090, NULL,NULL, answer_to_connection,this,
-				MHD_OPTION_LISTEN_SOCKET,
-				sd,
-				MHD_OPTION_HTTPS_MEM_KEY,
-				(const char*)sslkey,
-				MHD_OPTION_HTTPS_MEM_CERT,
-				(const char*)sslcert,
-				MHD_OPTION_END
+		daemon=MHD_start_daemon(
+			MHD_USE_THREAD_PER_CONNECTION | MHD_USE_SSL,
+			8090, NULL, NULL, answer_to_connection, this,
+			MHD_OPTION_LISTEN_SOCKET,
+			sd,
+			MHD_OPTION_HTTPS_MEM_KEY,
+			(const char*)sslkey,
+			MHD_OPTION_HTTPS_MEM_CERT,
+			(const char*)sslcert,
+			MHD_OPTION_END
 		);
 
 	}
-	if (!daemon) throw CouldNotStartDaemon("MHD_start_daemon failed [%s:%i]",(const char*)Socket.getHostname(),Socket.getPort());
+	if (!daemon) throw CouldNotStartDaemon("MHD_start_daemon failed [%s:%i]", (const char*)Socket.getHostname(), Socket.getPort());
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
@@ -294,89 +294,89 @@ void Webserver::stop()
 }
 
 
-void Webserver::queueResponseError(const Request &req)
+void Webserver::queueResponseError(const Request& req)
 {
 	ppl6::CString e=ppl6::Error2String();
 	try {
-		queueResponse(req,e,500);
+		queueResponse(req, e, 500);
 	} catch (...) {
 		// Es gibt keine Möglichkeit die Fehlermeldung an den Client zu senden
 	}
 }
 
-void Webserver::queueResponseException(const Request &req, const ppl6::Exception &e)
+void Webserver::queueResponseException(const Request& req, const ppl6::Exception& e)
 {
 	try {
-		queueResponse(req,e.toString(),500);
+		queueResponse(req, e.toString(), 500);
 	} catch (...) {
 		// Es gibt keine Möglichkeit die Fehlermeldung an den Client zu senden
 	}
 }
 
 
-void Webserver::queueResponse(const Request &req, const ppl6::CString &text, int httpStatus)
+void Webserver::queueResponse(const Request& req, const ppl6::CString& text, int httpStatus)
 {
 #ifdef HAVE_LIBMICROHTTPD
-	struct MHD_Response *response;
+	struct MHD_Response* response;
 	int ret;
-	response = MHD_create_response_from_buffer (text.Size(),
-			(void *) text.GetPtr(), MHD_RESPMEM_MUST_COPY);
+	response = MHD_create_response_from_buffer(text.Size(),
+		(void*)text.GetPtr(), MHD_RESPMEM_MUST_COPY);
 	if (!response) throw CouldNotCreateResponse();
-	MHD_add_response_header (response, "Content-Type", "text/html");
+	MHD_add_response_header(response, "Content-Type", "text/html");
 
-	ret = MHD_queue_response ((struct MHD_Connection *)req.connection, httpStatus, response);
-	MHD_destroy_response (response);
-	if(ret!=MHD_YES) throw CouldNotQueueResponse();
+	ret = MHD_queue_response((struct MHD_Connection*)req.connection, httpStatus, response);
+	MHD_destroy_response(response);
+	if (ret != MHD_YES) throw CouldNotQueueResponse();
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
 
 }
 
-void Webserver::queueBasicAuthFailedResponse(const Request &req)
+void Webserver::queueBasicAuthFailedResponse(const Request& req)
 {
 #ifdef HAVE_LIBMICROHTTPD
-	struct MHD_Response *response;
+	struct MHD_Response* response;
 	int ret;
 	CString msg=getDenyMessage();
-	response = MHD_create_response_from_buffer (msg.Size(),
-			(void *) msg.GetPtr(), MHD_RESPMEM_MUST_COPY);
+	response = MHD_create_response_from_buffer(msg.Size(),
+		(void*)msg.GetPtr(), MHD_RESPMEM_MUST_COPY);
 	if (!response) throw CouldNotCreateResponse();
-	ret = MHD_queue_basic_auth_fail_response ((struct MHD_Connection *)req.connection, (const char*)realm, response);
-	MHD_destroy_response (response);
-	if(ret!=MHD_YES) throw CouldNotQueueResponse();
+	ret = MHD_queue_basic_auth_fail_response((struct MHD_Connection*)req.connection, (const char*)realm, response);
+	MHD_destroy_response(response);
+	if (ret != MHD_YES) throw CouldNotQueueResponse();
 #else
 	throw UnsupportedFeatureException("libmicrohttpd");
 #endif
 
 }
 
-int Webserver::request(Request &req)
+int Webserver::request(Request& req)
 {
-	ppl6::CString Answer,text;
+	ppl6::CString Answer, text;
 	ppl6::CWikiParser wiki;
-	text="Hallo Browser\n== Connection ==\n* URL: "+req.url+"\n";
-	text+="* Method: "+req.method+"\n";
-	text+="* Version: "+req.version+"\n";
+	text="Hallo Browser\n== Connection ==\n* URL: " + req.url + "\n";
+	text+="* Method: " + req.method + "\n";
+	text+="* Version: " + req.version + "\n";
 
 
-	ppl6::CString Key,Value;
+	ppl6::CString Key, Value;
 	text+="== Header ==\n";
 	req.header.Reset();
-	while (req.header.GetNext(Key,Value)) {
-		text+="* "+Key+": "+Value+"\n";
+	while (req.header.GetNext(Key, Value)) {
+		text+="* " + Key + ": " + Value + "\n";
 	}
 	text+="== Data ==\n";
 	req.data.Reset();
-	while (req.data.GetNext(Key,Value)) {
-		text+="* "+Key+": "+Value+"\n";
+	while (req.data.GetNext(Key, Value)) {
+		text+="* " + Key + ": " + Value + "\n";
 	}
 	Answer=wiki.render(text);
-	queueResponse(req,Answer);
+	queueResponse(req, Answer);
 	return 1;
 }
 
-void Webserver::requireBasicAuthentication(bool enable, const CString &realm)
+void Webserver::requireBasicAuthentication(bool enable, const CString& realm)
 {
 	basicAuthentication=enable;
 	this->realm=realm;
@@ -400,7 +400,7 @@ bool Webserver::useBasicAuthentication() const
  *
  * @return Die Funktion muss 1 zurückgeben, wenn der Zugriff gewährt wird, andernfalls 0.
  */
-int Webserver::authenticate(const CString &username, const CString &password, Request &req)
+int Webserver::authenticate(const CString& username, const CString& password, Request& req)
 {
 	return 0;
 }

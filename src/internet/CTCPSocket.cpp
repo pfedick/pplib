@@ -86,6 +86,19 @@
 #include <signal.h>
 #endif
 
+#ifdef NO_SSL
+#undef HAVE_OPENSSL
+#endif
+
+#ifdef HAVE_OPENSSL
+#include <openssl/ssl.h>
+#include <openssl/rand.h>
+#include <openssl/err.h>
+#include <openssl/md5.h>
+#include <openssl/x509v3.h>
+#endif
+
+
 //#define DEBUGOUT
 
 #include "ppl6.h"
@@ -1109,19 +1122,18 @@ int CTCPSocket::Read(void* buffer, int bytes)
 		int rest=bytes;
 		int b=0;
 		while (rest) {
-			WaitForIncomingData(0, 10000);
+			int e=WaitForIncomingData(0, 100000);
 			if (thread) {
 				if (thread->ThreadShouldStop()) {
 					SetError(336);
 					return 0;
 				}
 			}
+			if (e == 0) continue;
 
 			if (ssl) {
 				b=SSL_Read(buffer, rest);
-				//printf ("SSL_Read hat %d Bytes zurueckgegeben\n",b);
 			} else {
-				//b=::recv(s->sd,(char*)buffer,rest,0);
 				b=::recv(s->sd, (char*)buffer, rest, 0);
 			}
 			if (b > 0) {
@@ -2224,6 +2236,13 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 	if (!connected) {
 		SetError(275);
 		return 0;
+	}
+	if (ssl) {
+#ifdef HAVE_OPENSSL
+		char buffer[2];
+		int bytes=::SSL_peek((SSL*)ssl, buffer, 1);
+		if (bytes) return 1;
+#endif
 	}
 	fd_set rset, wset, eset;
 	struct timeval timeout;
