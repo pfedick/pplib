@@ -51,27 +51,27 @@
 
 #include <time.h>
 #ifdef _WIN32
-    #include <winsock2.h>
-	//#include <Ws2tcpip.h>
+#include <winsock2.h>
+//#include <Ws2tcpip.h>
 #else
-	#ifdef HAVE_UNISTD_H
-    #include <unistd.h>
-	#endif
-	#ifdef HAVE_SYS_SOCKET_H
-    #include <sys/socket.h>
-	#endif
-	#ifdef HAVE_SYS_POLL_H
-    #include <sys/poll.h>
-	#endif
-	#ifdef HAVE_NETINET_IN_H
-    #include <netinet/in.h>
-	#endif
-	#ifdef HAVE_NETDB_H
-    #include <netdb.h>
-	#endif
-	#ifdef HAVE_ARPA_INET_H
-    #include <arpa/inet.h>
-	#endif
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_SYS_POLL_H
+#include <sys/poll.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_NETDB_H
+#include <netdb.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
 #endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -83,7 +83,7 @@
 #include <errno.h>
 #endif
 #ifdef HAVE_SIGNAL_H
-    #include <signal.h>
+#include <signal.h>
 #endif
 
 //#define DEBUGOUT
@@ -145,7 +145,7 @@ CTCPSocket::CTCPSocket()
 	InitWSA();
 #endif
 	socket=NULL;
-    connected=0;
+	connected=0;
 	islisten=0;
 	stoplisten=false;
 	ssl=NULL;
@@ -161,7 +161,7 @@ CTCPSocket::CTCPSocket()
 
 #ifndef _WIN32
 	// signal SIGPIPE ignorieren
-	signal(SIGPIPE,SIG_IGN);
+	signal(SIGPIPE, SIG_IGN);
 #endif
 }
 
@@ -172,16 +172,16 @@ CTCPSocket::CTCPSocket()
 CTCPSocket::~CTCPSocket()
 {
 	PushError();
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::~CTCPSocket()");
+	if (log) log->Printf(LOG::DEBUG, 4, __FILE__, __LINE__, "CTCPSocket::~CTCPSocket()");
 	SSL_Shutdown();
-    if (connected) Disconnect();
-    if (islisten) Disconnect();
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (connected) Disconnect();
+	if (islisten) Disconnect();
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (!s) {
 		PopError();
 		return;
 	}
-    if (s->sd) Disconnect();
+	if (s->sd) Disconnect();
 	if (s->ipname) free(s->ipname);
 	free(s);
 	socket=NULL;
@@ -201,7 +201,7 @@ CTCPSocket::~CTCPSocket()
  * @param[in] thread Pointer auf die zu überwachende Thread-Klasse
  * @return Liefert immer 1 zurück.
  */
-int CTCPSocket::WatchThread(CThread *thread)
+int CTCPSocket::WatchThread(CThread* thread)
 {
 	this->thread=thread;
 	return 1;
@@ -216,7 +216,7 @@ int CTCPSocket::WatchThread(CThread *thread)
  * @param[in] log Pointer auf eine CLog-Klasse oder NULL, um das Logging zu deaktivieren
  *
  */
-void CTCPSocket::SetLogfile(CLog *log)
+void CTCPSocket::SetLogfile(CLog* log)
 {
 	this->log=log;
 }
@@ -233,82 +233,82 @@ void CTCPSocket::SetLogfile(CLog *log)
  */
 void CTCPSocket::DispatchErrno()
 {
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::DispatchErrno()");
+	if (log) log->Printf(LOG::DEBUG, 4, __FILE__, __LINE__, "CTCPSocket::DispatchErrno()");
 	int e=TranslateErrno(errno);
-	if (e==3) {
-		SetError(312,errno,strerror(errno));
+	if (e == 3) {
+		SetError(312, errno, strerror(errno));
 	} else {
-		SetError(e,errno,strerror(errno));
+		SetError(e, errno, strerror(errno));
 	}
 #ifdef OLDDISPATCH
-	#ifdef WIN32
+#ifdef WIN32
 	int e=WSAGetLastError();
 	switch (e) {
-		case WSANOTINITIALISED: SetError(312,"WSANOTINITIALISED");
-			break;
-		case WSAENETDOWN: SetError(312,"WSAENETDOWN");
-			break;
-		case WSAEACCES: SetError(312,"WSAEACCES");
-			break;
-		case WSAEINTR: SetError(312,"WSAEINTR");
-			break;
-		case WSAEINPROGRESS: SetError(312,"WSAEINPROGRESS");
-			break;
-		case WSAEFAULT: SetError(312,"WSAEFAULT");
-			break;
-		case WSAENETRESET: SetError(312,"WSAENETRESET");
-			break;
-		case WSAENOBUFS: SetError(312,"WSAENOBUFS");
-			break;
-		case WSAENOTCONN: SetError(312,"WSAENOTCONN");
-			break;
-		case WSAENOTSOCK: SetError(312,"WSAENOTSOCK");
-			break;
-		case WSAEOPNOTSUPP: SetError(312,"WSAEOPNOTSUPP");
-			break;
-		case WSAESHUTDOWN: SetError(308,"The socket has been shut down");
-			break;
-		case WSAEWOULDBLOCK: SetError(309,errno,"Mit  O_NONBLOCK wurde nicht-blockierende Ein-/Ausgabe gewaehlt, aber in der mit fd verbundenen pipe oder dem Socket war kein Platz mehr, um die Daten sofort zu schreiben/lesen.");
-			break;
-		case WSAEMSGSIZE: SetError(312,"WSAEMSGSIZE");
-			break;
-		case WSAEHOSTUNREACH: SetError(312,"WSAEHOSTUNREACH");
-			break;
-		case WSAEINVAL: SetError(312,"WSAEINVAL");
-			break;
-		case WSAECONNABORTED: SetError(312,"WSAECONNRESET");
-			break;
-		case WSAECONNRESET: SetError(312,"WSAECONNRESET");
-			break;
-		case WSAETIMEDOUT: SetError(312,"WSAETIMEDOUT");
-			break;
-		default:
-			SetError(312,e);
+	case WSANOTINITIALISED: SetError(312, "WSANOTINITIALISED");
+		break;
+	case WSAENETDOWN: SetError(312, "WSAENETDOWN");
+		break;
+	case WSAEACCES: SetError(312, "WSAEACCES");
+		break;
+	case WSAEINTR: SetError(312, "WSAEINTR");
+		break;
+	case WSAEINPROGRESS: SetError(312, "WSAEINPROGRESS");
+		break;
+	case WSAEFAULT: SetError(312, "WSAEFAULT");
+		break;
+	case WSAENETRESET: SetError(312, "WSAENETRESET");
+		break;
+	case WSAENOBUFS: SetError(312, "WSAENOBUFS");
+		break;
+	case WSAENOTCONN: SetError(312, "WSAENOTCONN");
+		break;
+	case WSAENOTSOCK: SetError(312, "WSAENOTSOCK");
+		break;
+	case WSAEOPNOTSUPP: SetError(312, "WSAEOPNOTSUPP");
+		break;
+	case WSAESHUTDOWN: SetError(308, "The socket has been shut down");
+		break;
+	case WSAEWOULDBLOCK: SetError(309, errno, "Mit  O_NONBLOCK wurde nicht-blockierende Ein-/Ausgabe gewaehlt, aber in der mit fd verbundenen pipe oder dem Socket war kein Platz mehr, um die Daten sofort zu schreiben/lesen.");
+		break;
+	case WSAEMSGSIZE: SetError(312, "WSAEMSGSIZE");
+		break;
+	case WSAEHOSTUNREACH: SetError(312, "WSAEHOSTUNREACH");
+		break;
+	case WSAEINVAL: SetError(312, "WSAEINVAL");
+		break;
+	case WSAECONNABORTED: SetError(312, "WSAECONNRESET");
+		break;
+	case WSAECONNRESET: SetError(312, "WSAECONNRESET");
+		break;
+	case WSAETIMEDOUT: SetError(312, "WSAETIMEDOUT");
+		break;
+	default:
+		SetError(312, e);
 	}
-	#else
+#else
 	switch (errno) {
-		case EBADF:	SetError(72,errno,"fd ist keine gueltige Dateikennzahl oder die Datei wurde nicht zum Schreiben geoeffnet.");
-			break;
-		case EINVAL: SetError(306,errno,"fd gehoert zu einer Datei, welche nicht zum Schreiben geeignet ist.");
-			break;
-		case EFAULT: SetError(307,errno,"buf ist ausserhalb Deines ansprechbaren Adressraumes.");
-			break;
-		case EPIPE: SetError(308,errno,"fd  ist  mit einer pipe oder einem socket verbunden, deren lesendes Ende geschlossen ist. In diesem Falle empfaengt der schreibende Prozess ein SIGPIPE Signal. Wird  dieses  abgefangen, blockiert oder ignoriert, wird EPIPE zurueckgegeben.");
-			break;
-		case EAGAIN: SetError(309,errno,"Mit  O_NONBLOCK wurde nicht-blockierende Ein-/Ausgabe gewaehlt, aber in der mit fd verbundenen pipe oder dem Socket war kein Platz mehr, um die Daten sofort zu schreiben/lesen.");
-			break;
-		case EINTR: SetError(310,errno,"Der Aufruf wurde durch ein Signal unterbrochen, bevor Daten geschrieben werden konnten.");
-			break;
-		case ENOSPC: SetError(311,errno,"Das Geraet, welches die Datei enthaelt, welche durch fd referenziert ist, hat keinen  Platz fuer die Daten.");
-			break;
-		case EISDIR: SetError(313,errno,"fd referenziert ein Verzeichnis.");
-			break;
-		//case EWOULDBLOCK: SetError(174,errno,"Timeout bei Socket-Operation");
-			break;
-		default:
-			SetError(312,errno,strerror(errno));
+	case EBADF:	SetError(72, errno, "fd ist keine gueltige Dateikennzahl oder die Datei wurde nicht zum Schreiben geoeffnet.");
+		break;
+	case EINVAL: SetError(306, errno, "fd gehoert zu einer Datei, welche nicht zum Schreiben geeignet ist.");
+		break;
+	case EFAULT: SetError(307, errno, "buf ist ausserhalb Deines ansprechbaren Adressraumes.");
+		break;
+	case EPIPE: SetError(308, errno, "fd  ist  mit einer pipe oder einem socket verbunden, deren lesendes Ende geschlossen ist. In diesem Falle empfaengt der schreibende Prozess ein SIGPIPE Signal. Wird  dieses  abgefangen, blockiert oder ignoriert, wird EPIPE zurueckgegeben.");
+		break;
+	case EAGAIN: SetError(309, errno, "Mit  O_NONBLOCK wurde nicht-blockierende Ein-/Ausgabe gewaehlt, aber in der mit fd verbundenen pipe oder dem Socket war kein Platz mehr, um die Daten sofort zu schreiben/lesen.");
+		break;
+	case EINTR: SetError(310, errno, "Der Aufruf wurde durch ein Signal unterbrochen, bevor Daten geschrieben werden konnten.");
+		break;
+	case ENOSPC: SetError(311, errno, "Das Geraet, welches die Datei enthaelt, welche durch fd referenziert ist, hat keinen  Platz fuer die Daten.");
+		break;
+	case EISDIR: SetError(313, errno, "fd referenziert ein Verzeichnis.");
+		break;
+	//case EWOULDBLOCK: SetError(174,errno,"Timeout bei Socket-Operation");
+		break;
+	default:
+		SetError(312, errno, strerror(errno));
 	};
-	#endif
+#endif
 #endif
 	if (log) {
 		PushError();
@@ -329,7 +329,7 @@ void CTCPSocket::DispatchErrno()
 int CTCPSocket::GetDescriptor()
 {
 	if (!connected) return 0;
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 #ifdef _WIN32
 	return (int)s->sd;
 #else
@@ -376,7 +376,7 @@ void CTCPSocket::SetConnectTimeout(int seconds, int useconds)
  * festgelegt.
  *
  */
-void CTCPSocket::SetSource(const char *host, int port)
+void CTCPSocket::SetSource(const char* host, int port)
 {
 	SourceHost=host;
 	SourcePort=port;
@@ -407,9 +407,9 @@ int CTCPSocket::getPort() const
  *
  * \relates ppl6::CTCPSocket
  */
-static int out_bind(const char *host, int port)
+static int out_bind(const char* host, int port)
 {
-	struct addrinfo hints, *res, *ressave;
+	struct addrinfo hints, * res, * ressave;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
@@ -418,54 +418,54 @@ static int out_bind(const char *host, int port)
 	int n;
 	int on=1;
 	// Prüfen, ob host ein Wildcard ist
-	if (host!=NULL && strlen(host)==0) host=NULL;
-	if (host!=NULL && host[0]=='*') host=NULL;
+	if (host != NULL && strlen(host) == 0) host=NULL;
+	if (host != NULL && host[0] == '*') host=NULL;
 
-	if (host!=NULL && port>0) {
+	if (host != NULL && port > 0) {
 		char portstr[11];
-		sprintf(portstr,"%i",port);
-		n=getaddrinfo(host,portstr,&hints,&res);
+		sprintf(portstr, "%i", port);
+		n=getaddrinfo(host, portstr, &hints, &res);
 	} else if (host) {
-		n=getaddrinfo(host,NULL,&hints,&res);
+		n=getaddrinfo(host, NULL, &hints, &res);
 	} else if (port) {
 		char portstr[10];
-		sprintf(portstr,"%i",port);
-		n=getaddrinfo(NULL,portstr,&hints,&res);
+		sprintf(portstr, "%i", port);
+		n=getaddrinfo(NULL, portstr, &hints, &res);
 	} else {
 		SetError(194);
 		return 0;
 	}
-	if (n!=0) {
-		SetError(273,"Sourceport: %s:%i, %s",host,port,gai_strerror(n));
+	if (n != 0) {
+		SetError(273, "Sourceport: %s:%i, %s", host, port, gai_strerror(n));
 		return 0;
 	}
 	ressave=res;
 	do {
-		listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-		if (listenfd<0) continue;		// Error, try next one
+		listenfd=::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+		if (listenfd < 0) continue;		// Error, try next one
 
-		if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+		if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
 			freeaddrinfo(ressave);
-			SetError(334,"Sourceport: %s",host);
+			SetError(334, "Sourceport: %s", host);
 			return 0;
 		}
 
 		//HexDump(res->ai_addr,res->ai_addrlen);
-		if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
+		if (::bind(listenfd, res->ai_addr, res->ai_addrlen) == 0) {
 
 			break;
 		}
-		shutdown(listenfd,2);
+		shutdown(listenfd, 2);
 		close(listenfd);
 		listenfd=0;
-	} while ((res=res->ai_next)!=NULL);
+	} while ((res=res->ai_next) != NULL);
 	freeaddrinfo(ressave);
-	if (listenfd<=0) {
-		SetError(393,"Host: %s, Port: %d",host,port);
+	if (listenfd <= 0) {
+		SetError(393, "Host: %s, Port: %d", host, port);
 		return 0;
 	}
-	if (res==NULL) {
-		SetError(394,"Host: %s, Port: %d",host,port);
+	if (res == NULL) {
+		SetError(394, "Host: %s, Port: %d", host, port);
 		return 0;
 	}
 	return listenfd;
@@ -484,35 +484,35 @@ static int out_bind(const char *host, int port)
  * \since Seit Version 6.0.18 kann der Port statt als Nummer auch als Servicenamen angegeben
  * werden.
  */
-int CTCPSocket::Connect(const char *host)
+int CTCPSocket::Connect(const char* host)
 {
-    if (!host) {
-        SetError(270);
-        return 0;
-    }
+	if (!host) {
+		SetError(270);
+		return 0;
+	}
 	CTok hostname;
-	hostname.Split(host,":");
-	if (hostname.Num()!=2) {
+	hostname.Split(host, ":");
+	if (hostname.Num() != 2) {
 		SetError(291);
 		return 0;
 	}
-	const char *portname=hostname.Get(1);
+	const char* portname=hostname.Get(1);
 	int port=ppl6::atoi(portname);
 	//printf ("Debug: host=%s, portname=%s, port=%i\n",host,portname,port);
-	if (port<=0 && strlen(portname)>0) {
+	if (port <= 0 && strlen(portname) > 0) {
 		// Vielleicht wurde ein Service-Namen angegeben?
-		struct servent *s=getservbyname(portname, "tcp");
+		struct servent* s=getservbyname(portname, "tcp");
 		if (s) {
 			unsigned short int p=s->s_port;
-			port=(int) ntohs(p);
+			port=(int)ntohs(p);
 		}
 	}
 	//printf ("Debug: host=%s, hostname=%s, portname=%s, port=%i\n",host,hostname.Get(0),portname,port);
-	if (port<=0) {
-        SetError(271,"%s",host);
-        return 0;
+	if (port <= 0) {
+		SetError(271, "%s", host);
+		return 0;
 	}
-	return Connect(hostname.Get(0),port);
+	return Connect(hostname.Get(0), port);
 }
 
 #ifdef _WIN32
@@ -539,42 +539,42 @@ int CTCPSocket::Connect(const char *host)
  * \note
  * Zur Zeit wird diese Funktion nur unter Unix unterstützt.
  */
-static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int  addrlen, int sec, int usec)
+static int ppl_connect_nb(int sockfd, struct sockaddr* serv_addr, int  addrlen, int sec, int usec)
 {
-	int flags,n,error;
+	int flags, n, error;
 	struct timeval tval;
 	socklen_t len;
-	fd_set rset,wset;
-	flags=fcntl(sockfd,F_GETFL,0);
-	fcntl(sockfd,F_SETFL,flags|O_NONBLOCK);
+	fd_set rset, wset;
+	flags=fcntl(sockfd, F_GETFL, 0);
+	fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 	error=0;
-	if ((n=::connect(sockfd,serv_addr,addrlen))<0)
-		if (errno!=EINPROGRESS)
+	if ((n=::connect(sockfd, serv_addr, addrlen)) < 0)
+		if (errno != EINPROGRESS)
 			return (-1);
-	if (n==0)			// Connect completed immediately
+	if (n == 0)			// Connect completed immediately
 		goto done;
 	FD_ZERO(&rset);
-	FD_SET(sockfd,&rset);
+	FD_SET(sockfd, &rset);
 	wset=rset;
 	tval.tv_sec=sec;
 	tval.tv_usec=usec;
-	if ((n=select(sockfd+1,&rset,&wset,NULL,&tval))==0) {
+	if ((n=select(sockfd + 1, &rset, &wset, NULL, &tval)) == 0) {
 		errno=ETIMEDOUT;
 		return -1;
 	}
-	if (FD_ISSET(sockfd,&rset) || FD_ISSET(sockfd,&wset)) {
+	if (FD_ISSET(sockfd, &rset) || FD_ISSET(sockfd, &wset)) {
 		len=sizeof(error);
-		if (getsockopt(sockfd,SOL_SOCKET,SO_ERROR,&error,&len)<0) {
+		if (getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &error, &len) < 0) {
 			return -1;		// Solaris pending error
 		}
 	}
-	done:
-		fcntl(sockfd,F_SETFL,flags);
-		if (error) {
-			errno=error;
-			return (-1);
-		}
-		return 0;
+done:
+	fcntl(sockfd, F_SETFL, flags);
+	if (error) {
+		errno=error;
+		return (-1);
+	}
+	return 0;
 }
 #endif
 
@@ -590,85 +590,85 @@ static int ppl_connect_nb(int sockfd, struct sockaddr *serv_addr, int  addrlen, 
  * im Fehlerfall false (0).
  */
 #ifdef _WIN32
-int CTCPSocket::Connect(const char *host, int port)
+int CTCPSocket::Connect(const char* host, int port)
 {
-    if (connected) Disconnect();
-    if (islisten) Disconnect();
+	if (connected) Disconnect();
+	if (islisten) Disconnect();
 	if (!socket) {
 		socket=malloc(sizeof(PPLSOCKET));
 		if (!socket) {
 			SetError(2);
 			return 0;
 		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-    	s->sd=0;
+		PPLSOCKET* s=(PPLSOCKET*)socket;
+		s->sd=0;
 		s->proto=6;
 		s->ipname=NULL;
 		s->port=0;
 	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (s->ipname) free(s->ipname);
 	s->ipname=NULL;
 
-    if (s->sd) Disconnect();
-    if (!host) {
-        SetError(270);
-        return 0;
-    }
-    if (!port) {
-        SetError(271);
-        return 0;
-    }
-    struct sockaddr_in addr;
-    memset(&addr,0,sizeof(addr));
+	if (s->sd) Disconnect();
+	if (!host) {
+		SetError(270);
+		return 0;
+	}
+	if (!port) {
+		SetError(271);
+		return 0;
+	}
+	struct sockaddr_in addr;
+	memset(&addr, 0, sizeof(addr));
 
-    // convert host to in_addr
-    struct in_addr in;
-	if (inet_aton(host,&in)) {
-        addr.sin_addr.s_addr = in.s_addr;
-    } else {                // failed, perhaps it's a hostname we have to resolve first?
-        struct hostent *h=gethostbyname(host);
-        if (!h) {
-        	ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
+	// convert host to in_addr
+	struct in_addr in;
+	if (inet_aton(host, &in)) {
+		addr.sin_addr.s_addr = in.s_addr;
+	} else {                // failed, perhaps it's a hostname we have to resolve first?
+		struct hostent* h=gethostbyname(host);
+		if (!h) {
+			ppl6::SetError(TranslateSocketError(), "%s:%i", host, port);
 			//int e=WSAGetLastError();
-           	//SetError(273,e);
+			//SetError(273,e);
 			return 0;
-        }
-		bcopy((void*)h->h_addr,(void*)&addr.sin_addr.s_addr,h->h_length);
-    }
-    addr.sin_port = htons(port);
-    addr.sin_family = AF_INET;
+		}
+		bcopy((void*)h->h_addr, (void*)&addr.sin_addr.s_addr, h->h_length);
+	}
+	addr.sin_port = htons(port);
+	addr.sin_family = AF_INET;
 
 	// Socket erstellen
-    s->sd = ::socket(PF_INET,SOCK_STREAM,s->proto);
-    if (s->sd<=0) {
-    	//ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-        SetError(272,"Return-Value of socket: %i, %s",s->sd,strerror(errno));
-        return 0;
-    }
+	s->sd = ::socket(PF_INET, SOCK_STREAM, s->proto);
+	if (s->sd <= 0) {
+		//ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
+		SetError(272, "Return-Value of socket: %i, %s", s->sd, strerror(errno));
+		return 0;
+	}
 
-    // Try to connect
-    if (connect(s->sd, (struct sockaddr *)&addr, sizeof(addr) )!=0) {
-    	ppl6::SetError(TranslateSocketError(),"%s:%i",host,port);
-    	PushError();
-		closesocket (s->sd);
+	// Try to connect
+	if (connect(s->sd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
+		ppl6::SetError(TranslateSocketError(), "%s:%i", host, port);
+		PushError();
+		closesocket(s->sd);
 		s->sd=0;
 		// SetError(274,e,"errno=%i, %s",e,strerror(e));
 		PopError();
-        return 0;
-    }
-    SetError(0);
-    connected=1;
-    return 1;
+		return 0;
+	}
+	SetError(0);
+	connected=1;
+	return 1;
 }
 
 
 #else
 
-int CTCPSocket::Connect(const char *host, int port)
+int CTCPSocket::Connect(const char* host, int port)
 {
-    if (connected) Disconnect();
-    if (islisten) Disconnect();
+	if (connected) Disconnect();
+	if (islisten) Disconnect();
 	BytesWritten=0;
 	BytesRead=0;
 	if (!socket) {
@@ -677,110 +677,110 @@ int CTCPSocket::Connect(const char *host, int port)
 			SetError(2);
 			return 0;
 		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-    	s->sd=0;
+		PPLSOCKET* s=(PPLSOCKET*)socket;
+		s->sd=0;
 		//s->proto=6;
 		s->proto=0;
 		s->ipname=NULL;
 		s->port=0;
 		//s->addrlen=0;
 	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (s->ipname) free(s->ipname);
 	s->ipname=NULL;
 
-    if (s->sd) Disconnect();
-    if (!host) {
-        SetError(270);
-        return 0;
-    }
-    if (!port) {
-        SetError(271);
-        return 0;
-    }
-	#ifdef _WIN32
-		SOCKET	sockfd;
-	#else
-		int sockfd;
-	#endif
-    int n;
-    struct addrinfo hints, *res, *ressave;
-    memset(&hints,0,sizeof(struct addrinfo));
-    hints.ai_family=AF_UNSPEC;
-    hints.ai_socktype=SOCK_STREAM;
+	if (s->sd) Disconnect();
+	if (!host) {
+		SetError(270);
+		return 0;
+	}
+	if (!port) {
+		SetError(271);
+		return 0;
+	}
+#ifdef _WIN32
+	SOCKET	sockfd;
+#else
+	int sockfd;
+#endif
+	int n;
+	struct addrinfo hints, * res, * ressave;
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family=AF_UNSPEC;
+	hints.ai_socktype=SOCK_STREAM;
 	char portstr[10];
-	sprintf(portstr,"%i",port);
-	if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
-		SetError(273,"%s, %s",host,gai_strerror(n));
+	sprintf(portstr, "%i", port);
+	if ((n=getaddrinfo(host, portstr, &hints, &res)) != 0) {
+		SetError(273, "%s, %s", host, gai_strerror(n));
 		return 0;
 	}
 	ressave=res;
 	int e=0, conres=0;
 	do {
-		if (SourceHost.Len()>0 || SourcePort>0) {
-			if ((sockfd=out_bind((const char*)SourceHost,SourcePort))<=0) {
-				shutdown(sockfd,2);
+		if (SourceHost.Len() > 0 || SourcePort > 0) {
+			if ((sockfd=out_bind((const char*)SourceHost, SourcePort)) <= 0) {
+				shutdown(sockfd, 2);
 				close(sockfd);
 				freeaddrinfo(ressave);
 				return 0;
 			}
 		} else {
-			sockfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-			if (sockfd<0) continue;		// Error, try next one
+			sockfd=::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+			if (sockfd < 0) continue;		// Error, try next one
 		}
 		if (log) {
-			log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Got Descriptor: %i\n",host,port,sockfd);
-			log->HexDump(LOG::DEBUG,10,res->ai_addr,res->ai_addrlen);
+			log->Printf(LOG::DEBUG, 6, __FILE__, __LINE__, "CTCPSocket::Connect(%s,%i) => Got Descriptor: %i\n", host, port, sockfd);
+			log->HexDump(LOG::DEBUG, 10, res->ai_addr, res->ai_addrlen);
 		}
-		if (connect_timeout_sec>0 || connect_timeout_usec) {
-			#ifdef _WIN32
-				conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
-			#else
-				conres=ppl_connect_nb(sockfd,res->ai_addr,res->ai_addrlen,connect_timeout_sec,connect_timeout_usec);
-				e=errno;
-			#endif
-		} else {
-			conres=::connect(sockfd,res->ai_addr,res->ai_addrlen);
+		if (connect_timeout_sec > 0 || connect_timeout_usec) {
+#ifdef _WIN32
+			conres=::connect(sockfd, res->ai_addr, res->ai_addrlen);
+#else
+			conres=ppl_connect_nb(sockfd, res->ai_addr, res->ai_addrlen, connect_timeout_sec, connect_timeout_usec);
 			e=errno;
-			if (conres<0) {
-				if (log) log->HexDump(LOG::DEBUG,6,res->ai_addr,res->ai_addrlen);
+#endif
+		} else {
+			conres=::connect(sockfd, res->ai_addr, res->ai_addrlen);
+			e=errno;
+			if (conres < 0) {
+				if (log) log->HexDump(LOG::DEBUG, 6, res->ai_addr, res->ai_addrlen);
 			}
 
 		}
-		if (conres==0) {
-			if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Connected with Descriptor: %i\n",host,port,sockfd);
+		if (conres == 0) {
+			if (log) log->Printf(LOG::DEBUG, 6, __FILE__, __LINE__, "CTCPSocket::Connect(%s,%i) => Connected with Descriptor: %i\n", host, port, sockfd);
 			break;
 		}
-		#ifdef _WIN32
-			e=WSAGetLastError();
-			shutdown(sockfd,2);
-			closesocket(sockfd);
-		#else
-			shutdown(sockfd,2);
-			close(sockfd);
-		#endif
-		if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Close Descriptor: %i\n",host,port,sockfd);
+#ifdef _WIN32
+		e=WSAGetLastError();
+		shutdown(sockfd, 2);
+		closesocket(sockfd);
+#else
+		shutdown(sockfd, 2);
+		close(sockfd);
+#endif
+		if (log) log->Printf(LOG::DEBUG, 6, __FILE__, __LINE__, "CTCPSocket::Connect(%s,%i) => Close Descriptor: %i\n", host, port, sockfd);
 		sockfd=0;
-	} while ((res=res->ai_next)!=NULL);
-	if (conres<0) {
+	} while ((res=res->ai_next) != NULL);
+	if (conres < 0) {
 		res=NULL;
 	}
-	if (sockfd<0) {
+	if (sockfd < 0) {
 		freeaddrinfo(ressave);
-		SetError(265,e,"Host: %s, Port: %d",host,port);
+		SetError(265, e, "Host: %s, Port: %d", host, port);
 		return 0;
 	}
-	if (res==NULL) {
+	if (res == NULL) {
 		int pple=TranslateErrno(e);
-		if (pple==174) {
-			SetError(174,e,"Host: %s, Port: %d, errno=%i, %s",host,port,e,strerror(e));
+		if (pple == 174) {
+			SetError(174, e, "Host: %s, Port: %d, errno=%i, %s", host, port, e, strerror(e));
 		} else {
-			SetError(274,e,"Host: %s, Port: %d, errno=%i, %s >>%s<<",host,port,e,strerror(e), GetError(TranslateErrno(e)));
+			SetError(274, e, "Host: %s, Port: %d, errno=%i, %s >>%s<<", host, port, e, strerror(e), GetError(TranslateErrno(e)));
 		}
 		freeaddrinfo(ressave);
 		return 0;
 	}
-	if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Connect(%s,%i) => Connect ok, Descriptor: %i\n",host,port,sockfd);
+	if (log) log->Printf(LOG::DEBUG, 6, __FILE__, __LINE__, "CTCPSocket::Connect(%s,%i) => Connect ok, Descriptor: %i\n", host, port, sockfd);
 	s->sd=sockfd;
 	//s->addrlen=res->ai_addrlen;
 	HostName=host;
@@ -812,31 +812,31 @@ int CTCPSocket::Connect(const char *host, int port)
  */
 int CTCPSocket::Disconnect()
 {
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::Disconnect()");
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (log) log->Printf(LOG::DEBUG, 4, __FILE__, __LINE__, "CTCPSocket::Disconnect()");
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (!s) return 1;
 	if (islisten) {
 		StopListen();
 	}
 	SSL_Stop();
-    //if (s->sd>0) shutdown(s->sd,2);
-    connected=false;
-    if (s->sd>0) {
-    	if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Disconnect() => Close Descriptor: %i\n",(const char*)HostName,PortNum,s->sd);
-    	//printf ("Socket Disconnect Descriptor: %i\n",s->sd);
-		#ifdef _WIN32
-			closesocket(s->sd);
-		#else
-			close (s->sd);
-		#endif
-        s->sd=0;
-    }
-    HostName="";
-    PortNum=0;
+	//if (s->sd>0) shutdown(s->sd,2);
+	connected=false;
+	if (s->sd > 0) {
+		if (log) log->Printf(LOG::DEBUG, 6, __FILE__, __LINE__, "CTCPSocket::Disconnect() => Close Descriptor: %i\n", (const char*)HostName, PortNum, s->sd);
+		//printf ("Socket Disconnect Descriptor: %i\n",s->sd);
+#ifdef _WIN32
+		closesocket(s->sd);
+#else
+		close(s->sd);
+#endif
+		s->sd=0;
+	}
+	HostName="";
+	PortNum=0;
 	islisten=false;
 	BytesWritten=0;
 	BytesRead=0;
-    return 1;
+	return 1;
 }
 
 /*!\brief Verbindung trennen
@@ -858,31 +858,31 @@ int CTCPSocket::Disconnect()
  */
 int CTCPSocket::Shutdown()
 {
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::Disconnect()");
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	if (log) log->Printf(LOG::DEBUG, 4, __FILE__, __LINE__, "CTCPSocket::Disconnect()");
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (!s) return 1;
 	if (islisten) {
 		StopListen();
 	}
 	SSL_Stop();
-    //if (s->sd>0) shutdown(s->sd,2);
-    connected=false;
-    if (s->sd>0) {
-    	if (log) log->Printf(LOG::DEBUG,6,__FILE__,__LINE__,"CTCPSocket::Disconnect() => Close Descriptor: %i\n",(const char*)HostName,PortNum,s->sd);
-    	//printf ("Socket Disconnect Descriptor: %i\n",s->sd);
-		#ifdef _WIN32
-			closesocket(s->sd);
-		#else
-			shutdown (s->sd,SHUT_RDWR);
-		#endif
-        s->sd=0;
-    }
-    HostName="";
-    PortNum=0;
+	//if (s->sd>0) shutdown(s->sd,2);
+	connected=false;
+	if (s->sd > 0) {
+		if (log) log->Printf(LOG::DEBUG, 6, __FILE__, __LINE__, "CTCPSocket::Disconnect() => Close Descriptor: %i\n", (const char*)HostName, PortNum, s->sd);
+		//printf ("Socket Disconnect Descriptor: %i\n",s->sd);
+#ifdef _WIN32
+		closesocket(s->sd);
+#else
+		shutdown(s->sd, SHUT_RDWR);
+#endif
+		s->sd=0;
+	}
+	HostName="";
+	PortNum=0;
 	islisten=false;
 	BytesWritten=0;
 	BytesRead=0;
-    return 1;
+	return 1;
 }
 
 /*!\brief Prüfen, ob eine Verbindung besteht
@@ -945,20 +945,20 @@ int CTCPSocket::GetBytesRead()
  * Falls ein Fehler aufgetreten ist, kann mit der Funktion CTCPSocket::GetBytesWritten abgefragt werden,
  * wieviele Bytes wirklich geschrieben wurden.
  */
-int CTCPSocket::Write(const void *buffer, int bytes)
+int CTCPSocket::Write(const void* buffer, int bytes)
 {
 	if (log) {
-		log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::Write(void *buffer, int bytes=%i",bytes);
+		log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::Write(void *buffer, int bytes=%i", bytes);
 		//log->HexDump(LOG::DEBUG,11,buffer,bytes);
 	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
 		if (log) log->LogError(5);
-        return 0;
-    }
+		return 0;
+	}
 	if (!buffer) {
-		SetError(194,"void *buffer");
+		SetError(194, "void *buffer");
 		if (log) log->LogError(5);
 		return 0;
 	}
@@ -967,30 +967,30 @@ int CTCPSocket::Write(const void *buffer, int bytes)
 		int rest=bytes;
 		int b=0;
 		while (rest) {
-			if (ssl) b=SSL_Write(buffer,rest);
-			else b=::send(s->sd,(char *)buffer,rest,0);
-			if (b>0) {
+			if (ssl) b=SSL_Write(buffer, rest);
+			else b=::send(s->sd, (char*)buffer, rest, 0);
+			if (b > 0) {
 				BytesWritten+=b;
 				rest-=b;
-				buffer=((char*)buffer)+b;
+				buffer=((char*)buffer) + b;
 			}
-			if (log) log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::Write: ::write, bytes=%i, b=%i, rest=%i",bytes,b,rest);
-			#ifdef WIN32
-			if (b==SOCKET_ERROR) {
-			#else
-			if (b<0) {
-			#endif
-				if (errno==EAGAIN) {
-					WaitForOutgoingData(0,100000);
-				} else  {
-					if (log) log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::Write: ERROR");
+			if (log) log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::Write: ::write, bytes=%i, b=%i, rest=%i", bytes, b, rest);
+#ifdef WIN32
+			if (b == SOCKET_ERROR) {
+#else
+			if (b < 0) {
+#endif
+				if (errno == EAGAIN) {
+					WaitForOutgoingData(0, 100000);
+				} else {
+					if (log) log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::Write: ERROR");
 					DispatchErrno();
 					return 0;
 				}
 			}
 		}
 	}
-	if (log) log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::Write: OK");
+	if (log) log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::Write: OK");
 	return 1;
 }
 
@@ -1017,16 +1017,16 @@ int CTCPSocket::SetReadTimeout(int seconds, int useconds)
 	struct timeval tv;
 	tv.tv_sec=seconds;
 	tv.tv_usec=useconds;
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
 		if (log) log->LogError(5);
-        return 0;
-    }
+		return 0;
+	}
 #ifdef WIN32
-	if (setsockopt(s->sd,SOL_SOCKET,SO_RCVTIMEO,(const char*)&tv,sizeof(tv))!=0) {
+	if (setsockopt(s->sd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) != 0) {
 #else
-	if (setsockopt(s->sd,SOL_SOCKET,SO_RCVTIMEO,(void*)&tv,sizeof(tv))!=0) {
+	if (setsockopt(s->sd, SOL_SOCKET, SO_RCVTIMEO, (void*)&tv, sizeof(tv)) != 0) {
 #endif
 		SetError(350);
 		return 0;
@@ -1055,16 +1055,16 @@ int CTCPSocket::SetWriteTimeout(int seconds, int useconds)
 	struct timeval tv;
 	tv.tv_sec=seconds;
 	tv.tv_usec=useconds;
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (!connected) {
 		SetError(275);
 		if (log) log->LogError(5);
 		return 0;
 	}
 #ifdef WIN32
-	if (setsockopt(s->sd,SOL_SOCKET,SO_SNDTIMEO,(const char*)&tv,sizeof(tv))!=0) {
+	if (setsockopt(s->sd, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tv, sizeof(tv)) != 0) {
 #else
-	if (setsockopt(s->sd,SOL_SOCKET,SO_SNDTIMEO,(void*)&tv,sizeof(tv))!=0) {
+	if (setsockopt(s->sd, SOL_SOCKET, SO_SNDTIMEO, (void*)&tv, sizeof(tv)) != 0) {
 #endif
 		SetError(350);
 		return 0;
@@ -1088,19 +1088,19 @@ int CTCPSocket::SetWriteTimeout(int seconds, int useconds)
  * gelesen wurden, im Fehlerfall 0. Ist ein Fehler aufgetreten, kann mit der Funktion
  * CTCPSocket::GetBytesRead abgefragt werden, wieviel Bytes tatsächlich gelesen wurden.
  */
-int CTCPSocket::Read(void *buffer, int bytes)
+int CTCPSocket::Read(void* buffer, int bytes)
 {
 	if (log) {
-		log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::Read(void *buffer, int bytes=%i",bytes);
+		log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::Read(void *buffer, int bytes=%i", bytes);
 	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
 		if (log) log->LogError(5);
-        return 0;
-    }
+		return 0;
+	}
 	if (!buffer) {
-		SetError(194,"void *buffer");
+		SetError(194, "void *buffer");
 		if (log) log->LogError(5);
 		return 0;
 	}
@@ -1109,7 +1109,7 @@ int CTCPSocket::Read(void *buffer, int bytes)
 		int rest=bytes;
 		int b=0;
 		while (rest) {
-			WaitForIncomingData(0,100000);
+			WaitForIncomingData(0, 10000);
 			if (thread) {
 				if (thread->ThreadShouldStop()) {
 					SetError(336);
@@ -1118,44 +1118,44 @@ int CTCPSocket::Read(void *buffer, int bytes)
 			}
 
 			if (ssl) {
-				b=SSL_Read(buffer,rest);
+				b=SSL_Read(buffer, rest);
 				//printf ("SSL_Read hat %d Bytes zurueckgegeben\n",b);
 			} else {
 				//b=::recv(s->sd,(char*)buffer,rest,0);
-				b=::recv(s->sd,(char*)buffer,rest,0);
+				b=::recv(s->sd, (char*)buffer, rest, 0);
 			}
-			if (b>0) {
+			if (b > 0) {
 				BytesRead+=b;
 				rest-=b;
-				buffer=((char*)buffer)+b;
+				buffer=((char*)buffer) + b;
 			}
-			if (log) log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::Read: ::read, bytes=%i, b=%i, rest=%i",bytes,b,rest);
-			if (b==0) {
-				if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::Read: 0-Byte gelesen, ERROR %i: %s",errno,strerror(errno));
-				SetError(308,errno,"0-Byte gelesen");
+			if (log) log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::Read: ::read, bytes=%i, b=%i, rest=%i", bytes, b, rest);
+			if (b == 0) {
+				if (log) log->Printf(LOG::DEBUG, 5, "CTCPSocket::Read: 0-Byte gelesen, ERROR %i: %s", errno, strerror(errno));
+				SetError(308, errno, "0-Byte gelesen");
 				return 0;
 			}
-			#ifdef WIN32
-			if (b==SOCKET_ERROR) {
-					if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::Read: ERROR %i: %s",errno,strerror(errno));
-					DispatchErrno();
-					return 0;
+#ifdef WIN32
+			if (b == SOCKET_ERROR) {
+				if (log) log->Printf(LOG::DEBUG, 5, "CTCPSocket::Read: ERROR %i: %s", errno, strerror(errno));
+				DispatchErrno();
+				return 0;
 			}
-			#else
-			if (b<0) {
-				if (errno==EAGAIN || errno==EINTR) {
+#else
+			if (b < 0) {
+				if (errno == EAGAIN || errno == EINTR) {
 					continue;
 				} else {
-					if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::Read: ERROR %i: %s",errno,strerror(errno));
+					if (log) log->Printf(LOG::DEBUG, 5, "CTCPSocket::Read: ERROR %i: %s", errno, strerror(errno));
 					DispatchErrno();
 					return 0;
 				}
 			}
-			#endif
+#endif
 		}
 	}
 	if (log) {
-		log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::Read: OK");
+		log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::Read: OK");
 		//log->HexDump(LOG::DEBUG,11,buffer,bytes);
 	}
 	return 1;
@@ -1178,58 +1178,58 @@ int CTCPSocket::Read(void *buffer, int bytes)
  * gelesen wurden, im Fehlerfall 0. Die Anzahl tatsächlich gelesener Bytes kann mit
  * CTCPSocket::GetBytesRead abgefragt werden.
  */
-int CTCPSocket::ReadOnce(void *buffer, int bytes)
+int CTCPSocket::ReadOnce(void* buffer, int bytes)
 {
 	if (log) {
-		log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::ReadOnce(void *buffer, int bytes=%i",bytes);
+		log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::ReadOnce(void *buffer, int bytes=%i", bytes);
 	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
 		if (log) log->LogError(5);
-        return 0;
-    }
+		return 0;
+	}
 	if (!buffer) {
-		SetError(194,"void *buffer");
+		SetError(194, "void *buffer");
 		if (log) log->LogError(5);
 		return 0;
 	}
 	BytesRead=0;
 	if (bytes) {
-		if (ssl) BytesRead=SSL_Read(buffer,bytes);
-		else BytesRead=::recv(s->sd,(char*)buffer,bytes,0);
-		if (log) log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::ReadOnce: ::read, bytes=%i, b=%i",bytes,BytesRead);
-		if (BytesRead==0) {
+		if (ssl) BytesRead=SSL_Read(buffer, bytes);
+		else BytesRead=::recv(s->sd, (char*)buffer, bytes, 0);
+		if (log) log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::ReadOnce: ::read, bytes=%i, b=%i", bytes, BytesRead);
+		if (BytesRead == 0) {
 			if (!errno) {
 				// Das dürfte nicht vorkommen, es sei denn, die Verbindung wurde getrennt/unterbrochen
-				if (!IsReadable ()) return 0;
+				if (!IsReadable()) return 0;
 				SetError(312);
 				return 0;
 			}
 			DispatchErrno();
-			if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::ReadOnce: 0-Byte gelesen, ERROR %i: %s",errno,strerror(errno));
+			if (log) log->Printf(LOG::DEBUG, 5, "CTCPSocket::ReadOnce: 0-Byte gelesen, ERROR %i: %s", errno, strerror(errno));
 			//SetError(308,errno,"0-Byte gelesen");
 			return 0;
 		}
-		#ifdef WIN32
-			if (BytesRead==SOCKET_ERROR) {
-				if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::ReadOnce: ERROR %i: %s",errno,strerror(errno));
-				DispatchErrno();
-				return 0;
-			}
-		#else
-			if (BytesRead<0) {
-				//if (errno=EAGAIN) return 1;
-				//else  {
-					//if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::ReadOnce: ERROR %i: %s",errno,strerror(errno));
-					DispatchErrno();
-					return 0;
-				//}
-			}
-		#endif
+#ifdef WIN32
+		if (BytesRead == SOCKET_ERROR) {
+			if (log) log->Printf(LOG::DEBUG, 5, "CTCPSocket::ReadOnce: ERROR %i: %s", errno, strerror(errno));
+			DispatchErrno();
+			return 0;
+		}
+#else
+		if (BytesRead < 0) {
+			//if (errno=EAGAIN) return 1;
+			//else  {
+				//if (log) log->Printf(LOG::DEBUG,5,"CTCPSocket::ReadOnce: ERROR %i: %s",errno,strerror(errno));
+			DispatchErrno();
+			return 0;
+		//}
+		}
+#endif
 	}
 	if (log) {
-		log->Printf(LOG::DEBUG,5,__FILE__,__LINE__,"CTCPSocket::ReadOnce: OK");
+		log->Printf(LOG::DEBUG, 5, __FILE__, __LINE__, "CTCPSocket::ReadOnce: OK");
 		//log->HexDump(LOG::DEBUG,11,buffer,BytesRead);
 	}
 	return 1;
@@ -1247,9 +1247,9 @@ int CTCPSocket::ReadOnce(void *buffer, int bytes)
  * Falls ein Fehler aufgetreten ist, kann mit der Funktion CTCPSocket::GetBytesWritten abgefragt werden,
  * wieviele Bytes wirklich geschrieben wurden.
  */
-int CTCPSocket::WriteBuffer(const void *buffer, int bytes)
+int CTCPSocket::WriteBuffer(const void* buffer, int bytes)
 {
-	return Write(buffer,bytes);
+	return Write(buffer, bytes);
 }
 
 /*!\brief String schreiben
@@ -1263,9 +1263,9 @@ int CTCPSocket::WriteBuffer(const void *buffer, int bytes)
  * Falls ein Fehler aufgetreten ist, kann mit der Funktion CTCPSocket::GetBytesWritten abgefragt werden,
  * wieviele Bytes wirklich geschrieben wurden.
  */
-int CTCPSocket::Write(const CString &str)
+int CTCPSocket::Write(const CString & str)
 {
-	return Write((const void*)str.GetPtr(),str.Len());
+	return Write((const void*)str.GetPtr(), str.Len());
 }
 
 /*!\brief String schreiben
@@ -1279,13 +1279,13 @@ int CTCPSocket::Write(const CString &str)
  * Falls ein Fehler aufgetreten ist, kann mit der Funktion CTCPSocket::GetBytesWritten abgefragt werden,
  * wieviele Bytes wirklich geschrieben wurden.
  */
-int CTCPSocket::Write(const CString *str)
+int CTCPSocket::Write(const CString * str)
 {
 	if (!str) {
 		SetError(194);
 		return 0;
 	}
-	return Write((const void*)str->GetPtr(),str->Len());
+	return Write((const void*)str->GetPtr(), str->Len());
 }
 
 /*!\brief Formatierten String schreiben
@@ -1301,16 +1301,16 @@ int CTCPSocket::Write(const CString *str)
  * Falls ein Fehler aufgetreten ist, kann mit der Funktion CTCPSocket::GetBytesWritten abgefragt werden,
  * wieviele Bytes wirklich geschrieben wurden.
  */
-int CTCPSocket::Writef(const char *fmt, ...)
+int CTCPSocket::Writef(const char* fmt, ...)
 {
 	if (!fmt) {
-		SetError(194,"char *fmt");
+		SetError(194, "char *fmt");
 		return 0;
 	}
 	CString str;
 	va_list args;
 	va_start(args, fmt);
-	str.Vasprintf(fmt,args);
+	str.Vasprintf(fmt, args);
 	va_end(args);
 	return Write(str);
 }
@@ -1326,9 +1326,9 @@ int CTCPSocket::Writef(const char *fmt, ...)
  * Falls ein Fehler aufgetreten ist, kann mit der Funktion CTCPSocket::GetBytesWritten abgefragt werden,
  * wieviele Bytes wirklich geschrieben wurden.
  */
-int CTCPSocket::Write(const CBinary &bin)
+int CTCPSocket::Write(const CBinary & bin)
 {
-	return Write((const void*)bin.GetPtr(),bin.GetSize());
+	return Write((const void*)bin.GetPtr(), bin.GetSize());
 }
 
 
@@ -1347,19 +1347,19 @@ int CTCPSocket::Write(const CBinary &bin)
  * gelesen wurden, im Fehlerfall 0. Ist ein Fehler aufgetreten, kann mit der Funktion
  * CTCPSocket::GetBytesRead abgefragt werden, wieviel Bytes tatsächlich gelesen wurden.
  */
-int CTCPSocket::Read(CString &buffer, int bytes)
+int CTCPSocket::Read(CString & buffer, int bytes)
 {
-	char *b=(char*)malloc(bytes+1);
+	char* b=(char*)malloc(bytes + 1);
 	if (!b) {
 		SetError(2);
 		return 0;
 	}
-	int ret=Read(b,bytes);
+	int ret=Read(b, bytes);
 	if (!ret) {
 		bytes=GetBytesRead();
 	}
 	b[bytes]=0;
-	buffer.ImportBuffer(b,bytes+1);
+	buffer.ImportBuffer(b, bytes + 1);
 	return ret;
 }
 
@@ -1378,23 +1378,23 @@ int CTCPSocket::Read(CString &buffer, int bytes)
  * gelesen wurden, im Fehlerfall 0. Ist ein Fehler aufgetreten, kann mit der Funktion
  * CTCPSocket::GetBytesRead abgefragt werden, wieviel Bytes tatsächlich gelesen wurden.
  */
-int CTCPSocket::Read(CString *buffer, int bytes)
+int CTCPSocket::Read(CString * buffer, int bytes)
 {
 	if (!buffer) {
 		SetError(194);
 		return 0;
 	}
-	char *b=(char*)malloc(bytes+1);
+	char* b=(char*)malloc(bytes + 1);
 	if (!b) {
 		SetError(2);
 		return 0;
 	}
-	int ret=Read(b,bytes);
+	int ret=Read(b, bytes);
 	if (!ret) {
 		bytes=BytesRead;
 	}
 	b[bytes]=0;
-	buffer->ImportBuffer(b,bytes+1);
+	buffer->ImportBuffer(b, bytes + 1);
 	return ret;
 }
 
@@ -1413,19 +1413,19 @@ int CTCPSocket::Read(CString *buffer, int bytes)
  * gelesen wurden, im Fehlerfall 0. Ist ein Fehler aufgetreten, kann mit der Funktion
  * CTCPSocket::GetBytesRead abgefragt werden, wieviel Bytes tatsächlich gelesen wurden.
  */
-int CTCPSocket::Read(CBinary &buffer, int bytes)
+int CTCPSocket::Read(CBinary & buffer, int bytes)
 {
-	char *b=(char*)malloc(bytes);
+	char* b=(char*)malloc(bytes);
 	if (!b) {
 		SetError(2);
 		return 0;
 	}
-	int ret=Read(b,bytes);
+	int ret=Read(b, bytes);
 	if (!ret) {
 		bytes=GetBytesRead();
 	}
 	b[bytes]=0;
-	buffer.Set(b,bytes);
+	buffer.Set(b, bytes);
 	buffer.ManageMemory();
 	return ret;
 }
@@ -1448,13 +1448,13 @@ int CTCPSocket::Read(CBinary &buffer, int bytes)
  * gelesenen Daten abgelegt wurden. Dieser muss von der Anwendung mit "free"
  * wieder freigegeben werden. Im Fehlerfall wird NULL zurückgegeben.
  */
-char *CTCPSocket::Read(int bytes)
+char* CTCPSocket::Read(int bytes)
 {
 	if (!bytes) return NULL;
-	char *str=(char*)malloc(bytes+1);
+	char* str=(char*)malloc(bytes + 1);
 	if (!str) return NULL;
 	str[bytes]=0;
-	int ret=Read(str,bytes);
+	int ret=Read(str, bytes);
 	if (!ret) {
 		free(str);
 		return NULL;
@@ -1478,17 +1478,17 @@ char *CTCPSocket::Read(int bytes)
  * gelesen wurden, im Fehlerfall 0. Die Anzahl tatsächlich gelesener Bytes kann mit
  * CTCPSocket::GetBytesRead abgefragt werden.
  */
-int CTCPSocket::ReadOnce(CString &buffer, int bytes)
+int CTCPSocket::ReadOnce(CString & buffer, int bytes)
 {
-	char *b=(char*)malloc(bytes+1);
+	char* b=(char*)malloc(bytes + 1);
 	if (!b) {
 		SetError(2);
 		return 0;
 	}
-	int ret=ReadOnce(b,bytes);
+	int ret=ReadOnce(b, bytes);
 	if (ret) {
 		b[BytesRead]=0;
-		buffer.ImportBuffer(b,bytes+1);
+		buffer.ImportBuffer(b, bytes + 1);
 	}
 	return ret;
 }
@@ -1509,21 +1509,21 @@ int CTCPSocket::ReadOnce(CString &buffer, int bytes)
  * gelesen wurden, im Fehlerfall 0. Die Anzahl tatsächlich gelesener Bytes kann mit
  * CTCPSocket::GetBytesRead abgefragt werden.
  */
-int CTCPSocket::ReadOnce(CString *buffer, int bytes)
+int CTCPSocket::ReadOnce(CString * buffer, int bytes)
 {
 	if (!buffer) {
 		SetError(194);
 		return 0;
 	}
-	char *b=(char*)malloc(bytes+1);
+	char* b=(char*)malloc(bytes + 1);
 	if (!b) {
 		SetError(2);
 		return 0;
 	}
-	int ret=ReadOnce(b,bytes);
+	int ret=ReadOnce(b, bytes);
 	if (ret) {
 		b[BytesRead]=0;
-		buffer->ImportBuffer(b,bytes+1);
+		buffer->ImportBuffer(b, bytes + 1);
 	}
 	return ret;
 }
@@ -1550,13 +1550,13 @@ int CTCPSocket::ReadOnce(CString *buffer, int bytes)
  * wieder freigegeben werden. Im Fehlerfall wird NULL zurückgegeben.
  * Die Anzahl tatsächlich gelesener Bytes kann mit CTCPSocket::GetBytesRead abgefragt werden.
  */
-char *CTCPSocket::ReadOnce(int bytes)
+char* CTCPSocket::ReadOnce(int bytes)
 {
 	if (!bytes) return NULL;
-	char *str=(char*)malloc(bytes+1);
+	char* str=(char*)malloc(bytes + 1);
 	if (!str) return NULL;
 	str[bytes]=0;
-	int ret=ReadOnce(str,bytes);
+	int ret=ReadOnce(str, bytes);
 	if (!ret) {
 		free(str);
 		return NULL;
@@ -1578,7 +1578,7 @@ char *CTCPSocket::ReadOnce(int bytes)
  */
 int CTCPSocket::StopListen()
 {
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::StopListen()");
+	if (log) log->Printf(LOG::DEBUG, 4, __FILE__, __LINE__, "CTCPSocket::StopListen()");
 	mutex.Lock();
 	stoplisten=true;
 	while (islisten) {
@@ -1588,7 +1588,7 @@ int CTCPSocket::StopListen()
 	}
 	stoplisten=false;
 	mutex.Unlock();
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::StopListen() DONE");
+	if (log) log->Printf(LOG::DEBUG, 4, __FILE__, __LINE__, "CTCPSocket::StopListen() DONE");
 	return 1;
 }
 
@@ -1603,13 +1603,13 @@ int CTCPSocket::StopListen()
  */
 int CTCPSocket::SignalStopListen()
 {
-	if (log) log->Printf(LOG::DEBUG,4,__FILE__,__LINE__,"CTCPSocket::SignalStopListen()");
+	if (log) log->Printf(LOG::DEBUG, 4, __FILE__, __LINE__, "CTCPSocket::SignalStopListen()");
 	stoplisten=true;
 	return 1;
 }
 
 #ifdef _WIN32
-int CTCPSocket::Bind(const char *host, int port)
+int CTCPSocket::Bind(const char* host, int port)
 {
 	if (!socket) {
 		socket=malloc(sizeof(PPLSOCKET));
@@ -1617,18 +1617,18 @@ int CTCPSocket::Bind(const char *host, int port)
 			SetError(2);
 			return 0;
 		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-    	s->sd=0;
+		PPLSOCKET* s=(PPLSOCKET*)socket;
+		s->sd=0;
 		s->proto=6;
 		s->ipname=NULL;
 		s->port=0;
 	}
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (s->sd) Disconnect();
 	if (s->ipname) free(s->ipname);
 	s->ipname=NULL;
 	struct sockaddr_in addr;
-	memset(&addr,0,sizeof(addr));
+	memset(&addr, 0, sizeof(addr));
 
 	PortNum=port;
 
@@ -1639,31 +1639,31 @@ int CTCPSocket::Bind(const char *host, int port)
 		HostName=host;
 		// convert host to in_addr
 		struct in_addr in;
-		if (inet_aton(host,&in)) {
+		if (inet_aton(host, &in)) {
 			addr.sin_addr.s_addr = in.s_addr;
 		} else {                // failed, perhaps it's a hostname we have to resolve first?
-			struct hostent *h=gethostbyname(host);
+			struct hostent* h=gethostbyname(host);
 			if (!h) {
 				SetError(273);
 				return 0;
 			}
 			// Copy hostaddress
-			bcopy((void*)h->h_addr,(void*)&addr.sin_addr.s_addr,h->h_length);
+			bcopy((void*)h->h_addr, (void*)&addr.sin_addr.s_addr, h->h_length);
 		}
 	}
 	addr.sin_port = htons(port);
-    addr.sin_family = AF_INET;
+	addr.sin_family = AF_INET;
 
-    /* create socket */
-    s->sd = ::socket(AF_INET, SOCK_STREAM, 0);
-    if(s->sd<0) {
-        SetError(265);
-        return 0;
-    }
+	/* create socket */
+	s->sd = ::socket(AF_INET, SOCK_STREAM, 0);
+	if (s->sd < 0) {
+		SetError(265);
+		return 0;
+	}
 
-    /* bind server port */
-    if(bind(s->sd, (struct sockaddr *) &addr, sizeof(addr))<0) {
-		shutdown(s->sd,2);
+	/* bind server port */
+	if (bind(s->sd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
+		shutdown(s->sd, 2);
 		closesocket(s->sd);
 		s->sd=0;
 		SetError(266);
@@ -1688,7 +1688,7 @@ int CTCPSocket::Bind(const char *host, int port)
  * @param[in] port Der gewünschte TCP-Port
  * @return Bei Erfolg gibt die Funktion 1 zurück, im Fehlerfall 0.
  */
-int CTCPSocket::Bind(const char *host, int port)
+int CTCPSocket::Bind(const char* host, int port)
 {
 	//int addrlen=0;
 	if (!socket) {
@@ -1697,8 +1697,8 @@ int CTCPSocket::Bind(const char *host, int port)
 			SetError(2);
 			return 0;
 		}
-		PPLSOCKET *s=(PPLSOCKET*)socket;
-    	s->sd=0;
+		PPLSOCKET* s=(PPLSOCKET*)socket;
+		s->sd=0;
 		s->proto=6;
 		s->ipname=NULL;
 		s->port=port;
@@ -1710,12 +1710,12 @@ int CTCPSocket::Bind(const char *host, int port)
 	int listenfd=0;
 #endif
 
-	PPLSOCKET *s=(PPLSOCKET*)socket;
+	PPLSOCKET* s=(PPLSOCKET*)socket;
 	if (s->sd) Disconnect();
 	if (s->ipname) free(s->ipname);
 	s->ipname=NULL;
 
-	struct addrinfo hints, *res, *ressave;
+	struct addrinfo hints, * res, * ressave;
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_flags=AI_PASSIVE;
 	hints.ai_family=AF_UNSPEC;
@@ -1723,72 +1723,72 @@ int CTCPSocket::Bind(const char *host, int port)
 	int n;
 	int on=1;
 	// Prüfen, ob host ein Wildcard ist
-	if (host!=NULL && strlen(host)==0) host=NULL;
-	if (host!=NULL && host[0]=='*') host=NULL;
+	if (host != NULL && strlen(host) == 0) host=NULL;
+	if (host != NULL && host[0] == '*') host=NULL;
 
 	if (host) {
 		char portstr[10];
-		sprintf(portstr,"%i",port);
-		if ((n=getaddrinfo(host,portstr,&hints,&res))!=0) {
-			SetError(273,"%s, %s",host,gai_strerror(n));
+		sprintf(portstr, "%i", port);
+		if ((n=getaddrinfo(host, portstr, &hints, &res)) != 0) {
+			SetError(273, "%s, %s", host, gai_strerror(n));
 			return 0;
 		}
 		ressave=res;
 		do {
-			listenfd=::socket(res->ai_family,res->ai_socktype,res->ai_protocol);
-			if (listenfd<0) continue;		// Error, try next one
-			if (setsockopt(listenfd,SOL_SOCKET,SO_REUSEADDR,&on,sizeof(on))!=0) {
+			listenfd=::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+			if (listenfd < 0) continue;		// Error, try next one
+			if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) != 0) {
 				freeaddrinfo(ressave);
 				SetError(334);
 				return 0;
 			}
-			if (::bind(listenfd,res->ai_addr,res->ai_addrlen)==0) {
+			if (::bind(listenfd, res->ai_addr, res->ai_addrlen) == 0) {
 				//addrlen=res->ai_addrlen;
 				break;
 			}
-			shutdown(listenfd,2);
-			#ifdef _WIN32
-				closesocket(listenfd);
-			#else
-				close(listenfd);
-			#endif
+			shutdown(listenfd, 2);
+#ifdef _WIN32
+			closesocket(listenfd);
+#else
+			close(listenfd);
+#endif
 			listenfd=0;
 
-		} while ((res=res->ai_next)!=NULL);
+		} while ((res=res->ai_next) != NULL);
 		freeaddrinfo(ressave);
 	} else {
 		listenfd=::socket(AF_INET, SOCK_STREAM, 0);
-		if (listenfd>=0) {
+		if (listenfd >= 0) {
 			struct sockaddr_in addr;
-			memset(&addr,0,sizeof(addr));
+			memset(&addr, 0, sizeof(addr));
 			addr.sin_addr.s_addr = htonl(INADDR_ANY);
 			addr.sin_port = htons(port);
 			addr.sin_family = AF_INET;
-		    /* bind server port */
-    		if(::bind(listenfd, (struct sockaddr *) &addr, sizeof(addr))!=0) {
-				shutdown(listenfd,2);
-				#ifdef _WIN32
-					closesocket(listenfd);
-				#else
-					close(listenfd);
-				#endif
+			/* bind server port */
+			if (::bind(listenfd, (struct sockaddr*)&addr, sizeof(addr)) != 0) {
+				shutdown(listenfd, 2);
+#ifdef _WIN32
+				closesocket(listenfd);
+#else
+				close(listenfd);
+#endif
 				SetError(266);
 				return 0;
-    		}
-    		s->sd=listenfd;
-    		//s->addrlen=0;
-    		connected=1;
-    		HostName="*";
-    		PortNum=port;
-    		return 1;
+			}
+			s->sd=listenfd;
+			//s->addrlen=0;
+			connected=1;
+			HostName="*";
+			PortNum=port;
+			return 1;
 		}
 	}
-	if (listenfd<0) {
-		SetError(265,"Host: %s, Port: %d",host,port);
+	if (listenfd < 0) {
+		SetError(265, "Host: %s, Port: %d", host, port);
 		return 0;
 	}
-	if (res==NULL) {
-		SetError(266,"Host: %s, Port: %d",host,port);
+	if (res == NULL) {
+		SetError(266, "Host: %s, Port: %d", host, port);
 		return 0;
 	}
 	s->sd=listenfd;
@@ -1816,8 +1816,8 @@ int CTCPSocket::Bind(const char *host, int port)
  */
 int CTCPSocket::SetBlocking(bool value)
 {
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if((!s) || (!s->sd)) {
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if ((!s) || (!s->sd)) {
 		SetError(267);
 		return 0;
 	}
@@ -1826,18 +1826,18 @@ int CTCPSocket::SetBlocking(bool value)
 	u_long v;
 	if (value) {
 		v=0;
-		ret=ioctlsocket(s->sd,FIONBIO,NULL);
+		ret=ioctlsocket(s->sd, FIONBIO, NULL);
 	} else {
 		v=1;
-		ret=ioctlsocket(s->sd,FIONBIO,&v);
+		ret=ioctlsocket(s->sd, FIONBIO, &v);
 	}
-	if (ret==0) return 1;
+	if (ret == 0) return 1;
 	return 0;
 #else
 	if (value)
-		fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)&(~O_NONBLOCK));    // Blocking
+		fcntl(s->sd, F_SETFL, fcntl(s->sd, F_GETFL, 0) & (~O_NONBLOCK));    // Blocking
 	else
-		fcntl(s->sd,F_SETFL,fcntl(s->sd,F_GETFL,0)|O_NONBLOCK);   // NON-Blocking
+		fcntl(s->sd, F_SETFL, fcntl(s->sd, F_GETFL, 0) | O_NONBLOCK);   // NON-Blocking
 	//if (ret==0) return 1;
 	return 1;
 #endif
@@ -1869,15 +1869,15 @@ int CTCPSocket::SetBlocking(bool value)
  */
 int CTCPSocket::Listen(int timeout)
 {
-	#ifdef _WIN32
-		struct sockaddr_in cliAddr;
-	#else
-		struct sockaddr cliAddr;
-		fd_set rset;
-		struct timeval tv;
-	#endif
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-	if((!s) || (!s->sd)) {
+#ifdef _WIN32
+	struct sockaddr_in cliAddr;
+#else
+	struct sockaddr cliAddr;
+	fd_set rset;
+	struct timeval tv;
+#endif
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if ((!s) || (!s->sd)) {
 		SetError(267);
 		return 0;
 	}
@@ -1888,7 +1888,7 @@ int CTCPSocket::Listen(int timeout)
 	mutex.Unlock();
 
 	// Listen
-	if (listen(s->sd,5)!=0) {
+	if (listen(s->sd, 5) != 0) {
 		mutex.Lock();
 		islisten=false;
 		mutex.Unlock();
@@ -1907,86 +1907,86 @@ int CTCPSocket::Listen(int timeout)
 		}
 		mutex.Unlock();
 		socklen_t cliLen=sizeof(cliAddr);
-		#ifdef _WIN32
-			SOCKET newSd;
-			newSd = accept(s->sd, (struct sockaddr *) &cliAddr, &cliLen);
-			if (newSd!=INVALID_SOCKET) {
-				CTCPSocket *newsocket=new CTCPSocket();
-				if (newsocket) newsocket->socket=malloc(sizeof(PPLSOCKET));
-				if (newsocket==NULL || newsocket->socket==NULL) {
-					if (newsocket) delete newsocket;
-					if (log) log->Printf (LOG::ERROR,1,__FILE__,__LINE__,"Out of memory, could not handle connect from: %s:%d\n",inet_ntoa(cliAddr.sin_addr),ntohs(cliAddr.sin_port));
-					SetError(2);
-					continue;
-				}
-				newsocket->connected=1;
-				PPLSOCKET *ns=(PPLSOCKET*)newsocket->socket;
-				ns->proto=6;
-				ns->sd=newSd;
-				ns->ipname=strdup(inet_ntoa(cliAddr.sin_addr));
-				ns->port=ntohs(cliAddr.sin_port);
-				if (!ReceiveConnect(newsocket,ns->ipname,ns->port)) {
-					delete newsocket;
-				}
-			} else {
-				MSleep(100);
-			}
-		#else
-			int newSd;
-			// Prüfen, ob der Socket lesbar ist
-			FD_ZERO(&rset);
-			FD_SET(s->sd,&rset);
-			tv.tv_sec=0;
-			tv.tv_usec=timeout*1000; // Timeout für select setzen
-			if (select(s->sd+1,&rset,NULL,NULL,&tv)<=0) continue;
-			newSd = accept(s->sd, (struct sockaddr *) &cliAddr, &cliLen);
-			if(newSd>0) {
-#ifdef DEBUGOUT
-				printf ("%010.6f Verbindung angenommen\n",ppl6::GetMicrotime());
-#endif
-				char hostname[1024];
-				char servname[32];
-				memset(hostname,0,1024);
-				memset(servname,0,32);
-				if (getnameinfo((const sockaddr*)&cliAddr,sizeof(cliAddr),
-						hostname,1023, servname,31,NI_NUMERICHOST|NI_NUMERICSERV)!=0) {
 #ifdef _WIN32
-					closesocket(newSd);
+		SOCKET newSd;
+		newSd = accept(s->sd, (struct sockaddr*)&cliAddr, &cliLen);
+		if (newSd != INVALID_SOCKET) {
+			CTCPSocket* newsocket=new CTCPSocket();
+			if (newsocket) newsocket->socket=malloc(sizeof(PPLSOCKET));
+			if (newsocket == NULL || newsocket->socket == NULL) {
+				if (newsocket) delete newsocket;
+				if (log) log->Printf(LOG::ERROR, 1, __FILE__, __LINE__, "Out of memory, could not handle connect from: %s:%d\n", inet_ntoa(cliAddr.sin_addr), ntohs(cliAddr.sin_port));
+				SetError(2);
+				continue;
+			}
+			newsocket->connected=1;
+			PPLSOCKET* ns=(PPLSOCKET*)newsocket->socket;
+			ns->proto=6;
+			ns->sd=newSd;
+			ns->ipname=strdup(inet_ntoa(cliAddr.sin_addr));
+			ns->port=ntohs(cliAddr.sin_port);
+			if (!ReceiveConnect(newsocket, ns->ipname, ns->port)) {
+				delete newsocket;
+			}
+		} else {
+			MSleep(100);
+		}
 #else
-					close (newSd);
+		int newSd;
+		// Prüfen, ob der Socket lesbar ist
+		FD_ZERO(&rset);
+		FD_SET(s->sd, &rset);
+		tv.tv_sec=0;
+		tv.tv_usec=timeout * 1000; // Timeout für select setzen
+		if (select(s->sd + 1, &rset, NULL, NULL, &tv) <= 0) continue;
+		newSd = accept(s->sd, (struct sockaddr*)&cliAddr, &cliLen);
+		if (newSd > 0) {
+#ifdef DEBUGOUT
+			printf("%010.6f Verbindung angenommen\n", ppl6::GetMicrotime());
 #endif
-					continue;
-				}
-				CTCPSocket *newsocket=new CTCPSocket();
-				if (newsocket) newsocket->socket=malloc(sizeof(PPLSOCKET));
-				if (newsocket==NULL || newsocket->socket==NULL) {
-					if (newsocket) delete newsocket;
-					if (log) log->Printf (LOG::ERROR,1,__FILE__,__LINE__,"Out of memory, could not handle connect from: %s:%d\n",hostname,atoi(servname));
-					SetError(2);
-					continue;
-				}
-				newsocket->connected=1;
-				PPLSOCKET *ns=(PPLSOCKET*)newsocket->socket;
-				ns->proto=6;
-				ns->sd=newSd;
-				ns->ipname=strdup(hostname);
-				ns->port=atoi(servname);
-				if (log) log->Printf (LOG::DEBUG,3,__FILE__,__LINE__,"Connect from: %s:%d\n",ns->ipname, ns->port);
+			char hostname[1024];
+			char servname[32];
+			memset(hostname, 0, 1024);
+			memset(servname, 0, 32);
+			if (getnameinfo((const sockaddr*)&cliAddr, sizeof(cliAddr),
+				hostname, 1023, servname, 31, NI_NUMERICHOST | NI_NUMERICSERV) != 0) {
+#ifdef _WIN32
+				closesocket(newSd);
+#else
+				close(newSd);
+#endif
+				continue;
+			}
+			CTCPSocket* newsocket=new CTCPSocket();
+			if (newsocket) newsocket->socket=malloc(sizeof(PPLSOCKET));
+			if (newsocket == NULL || newsocket->socket == NULL) {
+				if (newsocket) delete newsocket;
+				if (log) log->Printf(LOG::ERROR, 1, __FILE__, __LINE__, "Out of memory, could not handle connect from: %s:%d\n", hostname, atoi(servname));
+				SetError(2);
+				continue;
+			}
+			newsocket->connected=1;
+			PPLSOCKET* ns=(PPLSOCKET*)newsocket->socket;
+			ns->proto=6;
+			ns->sd=newSd;
+			ns->ipname=strdup(hostname);
+			ns->port=atoi(servname);
+			if (log) log->Printf(LOG::DEBUG, 3, __FILE__, __LINE__, "Connect from: %s:%d\n", ns->ipname, ns->port);
 
 #ifdef DEBUGOUT
-				printf ("%010.6f Dispatch an ReceiveConnect\n",ppl6::GetMicrotime());
+			printf("%010.6f Dispatch an ReceiveConnect\n", ppl6::GetMicrotime());
 #endif
-				if (!ReceiveConnect(newsocket,ns->ipname,ns->port)) {
-					if (log) log->Printf (LOG::DEBUG,3,__FILE__,__LINE__,"Connect from: %s:%d refused by CTCPSocket::ReceiveConnect\n",ns->ipname, ns->port);
-					delete newsocket;
-				}
+			if (!ReceiveConnect(newsocket, ns->ipname, ns->port)) {
+				if (log) log->Printf(LOG::DEBUG, 3, __FILE__, __LINE__, "Connect from: %s:%d refused by CTCPSocket::ReceiveConnect\n", ns->ipname, ns->port);
+				delete newsocket;
+			}
 
 #ifdef _WIN32
-			} else {
-				MSleep(100);
+		} else {
+			MSleep(100);
 #endif
-			}
-		#endif
+		}
+#endif
 	}
 	mutex.Lock();
 	islisten=false;
@@ -2005,30 +2005,30 @@ int CTCPSocket::Listen(int timeout)
 int CTCPSocket::IsWriteable()
 {
 #ifndef _WIN32
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&wset);
+	FD_SET(s->sd, &wset);
 	struct timeval timeout;
 	timeout.tv_sec=0;
 	timeout.tv_usec=0;
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
 
-	if (FD_ISSET(s->sd,&wset)) {
+	if (FD_ISSET(s->sd, &wset)) {
 		return 1;
 	}
 	/*
@@ -2052,30 +2052,30 @@ int CTCPSocket::IsWriteable()
 	return 0;
 
 #else
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&wset);
+	FD_SET(s->sd, &wset);
 	struct timeval timeout;
 	timeout.tv_sec=0;
 	timeout.tv_usec=0;
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
 
-	if (FD_ISSET(s->sd,&wset)) {
+	if (FD_ISSET(s->sd, &wset)) {
 		return 1;
 	}
 	/*
@@ -2112,39 +2112,39 @@ int CTCPSocket::IsWriteable()
 int CTCPSocket::IsReadable()
 {
 #ifndef _WIN32
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&rset);
+	FD_SET(s->sd, &rset);
 	struct timeval timeout;
 	timeout.tv_sec=0;
 	timeout.tv_usec=0;
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-	if (FD_ISSET(s->sd,&rset)) {
+	if (FD_ISSET(s->sd, &rset)) {
 		char buf[2];
-		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		ret=recv(s->sd, &buf, 1, MSG_PEEK | MSG_DONTWAIT);
 		// Kommt hier ein Fehler zurück?
-		if (ret<0) {
+		if (ret < 0) {
 			DispatchErrno();
 			return 0;
 		}
 		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		if (ret==0) {
+		if (ret == 0) {
 			SetError(308);	// EPIPE
 			return 0;
 		}
@@ -2152,39 +2152,39 @@ int CTCPSocket::IsReadable()
 	return 1;
 
 #else
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&rset);
+	FD_SET(s->sd, &rset);
 	struct timeval timeout;
 	timeout.tv_sec=0;
 	timeout.tv_usec=0;
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-	if (FD_ISSET(s->sd,&rset)) {
+	if (FD_ISSET(s->sd, &rset)) {
 		char buf[2];
-		ret=recv(s->sd, buf,1, MSG_PEEK);
+		ret=recv(s->sd, buf, 1, MSG_PEEK);
 		// Kommt hier ein Fehler zurück?
-		if (ret<0) {
+		if (ret < 0) {
 			DispatchErrno();
 			return 0;
 		}
 		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		if (ret==0) {
+		if (ret == 0) {
 			SetError(308);	// EPIPE
 			return 0;
 		}
@@ -2220,11 +2220,11 @@ int CTCPSocket::IsReadable()
 int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 {
 #ifndef _WIN32
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	struct timeval timeout;
 	timeout.tv_sec=seconds;
@@ -2233,27 +2233,27 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	FD_SET(s->sd, &rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-	if (FD_ISSET(s->sd,&rset)) {
+	if (FD_ISSET(s->sd, &rset)) {
 		char buf[2];
-		ret=recv(s->sd, &buf,1, MSG_PEEK|MSG_DONTWAIT);
+		ret=recv(s->sd, &buf, 1, MSG_PEEK | MSG_DONTWAIT);
 		// Kommt hier ein Fehler zurück?
-		if (ret<0) {
+		if (ret < 0) {
 			DispatchErrno();
 			return 0;
 		}
 		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		if (ret==0) {
+		if (ret == 0) {
 			SetError(308);	// EPIPE
 			return 0;
 		}
@@ -2271,11 +2271,11 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 	SetError(174);	// Timeout
 	return 0;
 #else
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	struct timeval timeout;
 	timeout.tv_sec=seconds;
@@ -2284,27 +2284,27 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	FD_SET(s->sd, &rset);	// Wir wollen nur prüfen, ob was zu lesen da ist
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
 	// Falls Daten zum Lesen bereitstehen, könnte dies auch eine Verbindungstrennung anzeigen
-	if (FD_ISSET(s->sd,&rset)) {
+	if (FD_ISSET(s->sd, &rset)) {
 		char buf[2];
-		ret=recv(s->sd, buf,1, MSG_PEEK);
+		ret=recv(s->sd, buf, 1, MSG_PEEK);
 		// Kommt hier ein Fehler zurück?
-		if (ret<0) {
+		if (ret < 0) {
 			DispatchErrno();
 			return 0;
 		}
 		// Ein Wert von 0 zeigt an, dass die Verbindung getrennt wurde
-		if (ret==0) {
+		if (ret == 0) {
 			SetError(308);	// EPIPE
 			return 0;
 		}
@@ -2350,11 +2350,11 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
 {
 #ifndef _WIN32
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	struct timeval timeout;
 	timeout.tv_sec=seconds;
@@ -2363,17 +2363,17 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&wset);	// Wir wollen nur prüfen, ob wir schreiben können
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	FD_SET(s->sd, &wset);	// Wir wollen nur prüfen, ob wir schreiben können
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&wset)) {
+	if (FD_ISSET(s->sd, &wset)) {
 		return 1;
 	}
 	/*
@@ -2405,11 +2405,11 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
 	SetError(174);	// Timeout
 	return 0;
 #else
-	PPLSOCKET *s=(PPLSOCKET*)socket;
-    if (!connected) {
-        SetError(275);
-        return 0;
-    }
+	PPLSOCKET* s=(PPLSOCKET*)socket;
+	if (!connected) {
+		SetError(275);
+		return 0;
+	}
 	fd_set rset, wset, eset;
 	struct timeval timeout;
 	timeout.tv_sec=seconds;
@@ -2418,17 +2418,17 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
 	FD_ZERO(&rset);
 	FD_ZERO(&wset);
 	FD_ZERO(&eset);
-	FD_SET(s->sd,&wset);	// Wir wollen nur prüfen, ob wir schreiben können
-	int ret=select(s->sd+1,&rset,&wset,&eset,&timeout);
-	if (ret<0) {
+	FD_SET(s->sd, &wset);	// Wir wollen nur prüfen, ob wir schreiben können
+	int ret=select(s->sd + 1, &rset, &wset, &eset, &timeout);
+	if (ret < 0) {
 		DispatchErrno();
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&eset)) {
+	if (FD_ISSET(s->sd, &eset)) {
 		SetError(453);
 		return 0;
 	}
-	if (FD_ISSET(s->sd,&wset)) {
+	if (FD_ISSET(s->sd, &wset)) {
 		return 1;
 	}
 	/*
@@ -2479,7 +2479,7 @@ int CTCPSocket::WaitForOutgoingData(int seconds, int useconds)
  * zurückgeben. Soll die Verbindung wieder getrennt werden, muss die
  * Funktion 0 zurückgeben.
  */
-int CTCPSocket::ReceiveConnect(CTCPSocket *socket, const char *host, int port)
+int CTCPSocket::ReceiveConnect(CTCPSocket * socket, const char* host, int port)
 {
 	return 0;
 }
