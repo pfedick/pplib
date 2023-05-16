@@ -2237,13 +2237,13 @@ int CTCPSocket::WaitForIncomingData(int seconds, int useconds)
 		SetError(275);
 		return 0;
 	}
-	if (ssl) {
 #ifdef HAVE_OPENSSL
+	if (ssl) {
 		char buffer[2];
 		int bytes=::SSL_peek((SSL*)ssl, buffer, 1);
-		if (bytes) return 1;
-#endif
+		if (bytes > 0) return 1;
 	}
+#endif
 	fd_set rset, wset, eset;
 	struct timeval timeout;
 	timeout.tv_sec=seconds;
