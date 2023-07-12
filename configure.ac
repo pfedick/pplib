@@ -11,15 +11,15 @@
 #
 # Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
 #   1. Redistributions of source code must retain the above copyright notice,
-#      this list of conditions and the following disclaimer. 
+#      this list of conditions and the following disclaimer.
 #   2. Redistributions in binary form must reproduce the above copyright notice,
 #      this list of conditions and the following disclaimer in the documentation
-#      and/or other materials provided with the distribution. 
+#      and/or other materials provided with the distribution.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -136,7 +136,7 @@ CFLAGS=$OLD_CFLAGS
 AC_PROG_CXX
 
 AX_CXX_COMPILE_STDCXX_11
-dnl AX_CXX_COMPILE_STDCXX(11) 
+dnl AX_CXX_COMPILE_STDCXX(11)
 
 
 dnl AC_LANG(C++)
@@ -146,20 +146,21 @@ dnl AX_GCC_ARCHFLAG
 
 AX_CHECK_COMPILE_FLAG([-no-pie],
     LDFLAGS="-no-pie $LDFLAGS"
+	CFLAGS="$CFLAGS -fPIE "
     NOPIE="-no-pie",
     NOPIE=""
 )
 AC_SUBST(NOPIE)
 
 
-  
+
 case "$host_os" in
 	freebsd* )
 		CFLAGS="-I/usr/local/include $CFLAGS"
 		LDFLAGS="-L/usr/local/lib $LDFLAGS"
   		;;
 esac
- 
+
 case "$host_os" in
 	*mingw32*|msys )
 		report_have_pthreads="yes, Windows Threads"
@@ -169,7 +170,7 @@ case "$host_os" in
   		;;
 	*)
 		AX_PTHREAD([report_have_pthreads="yes, pthreads"]
-			AC_DEFINE(HAVE_PTHREADS,1, [Define to 1 if we have pthreads])			
+			AC_DEFINE(HAVE_PTHREADS,1, [Define to 1 if we have pthreads])
 		)
 		;;
 esac
@@ -229,7 +230,7 @@ AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
 # AX_HAVE_QT scheint unter FreeBSD nicht kompatibel zu sein. Der produzierte Code
-# läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW 
+# läuft zwar unter FreeBSD, aber nicht unter Linux oder MinGW
 dnl AX_HAVE_QT
 
 PKG_PROG_PKG_CONFIG()
@@ -271,7 +272,7 @@ AC_ARG_ENABLE([coverage], [  --enable-coverage       Enable build of code covera
 AS_IF([test "x$enable_coverage" != "xno"], [
 	PPLIBTESTVERSION=coverage
 	AC_SUBST(PPLIBTESTVERSION)
-	report_codecoverage_enabled="yes"  
+	report_codecoverage_enabled="yes"
 ],[
 PPLIBTESTVERSION=debug
 AC_SUBST(PPLIBTESTVERSION)
@@ -385,7 +386,7 @@ AC_CHECK_LIB(pthread, pthread_set_name_np,
 	AC_DEFINE(HAVE_PTHREAD_SET_NAME_NP,1),,)
 AC_CHECK_LIB(pthread, pthread_setname_np,
 	AC_DEFINE(HAVE_PTHREAD_SETNAME_NP,1),,)
-	
+
 AC_CHECK_FUNCS([sched_yield pthread_yield])
 
 
@@ -429,25 +430,25 @@ AC_CHECK_LIBJPEGTURBO([1.3.0],
             jpeg_note="(using libjpeg-turbo)"
 			JPEG_LIBS="$JPEG_LIBS $TURBOJPEG_LIBS"
 			JPEG_CFLAGS="$JPEG_CFLAGS $TURBOJPEG_CFLAGS"
-            
+
            :)
 AC_SUBST(JPEG_CFLAGS)
 AC_SUBST(JPEG_LIBS)
 
-      
-##################################################################################### PNG   
+
+##################################################################################### PNG
 AC_CHECK_LIBPNG([1.2],
             AC_DEFINE(HAVE_PNG, 1, [ Define if you have libpng. ])
             report_have_png="yes"
            :)
-      
+
 
 AM_LIBMICROHTTPD(,
             AC_DEFINE(HAVE_LIBMICROHTTPD, 1, [ Define if you have libmicrohttpd. ])
             report_have_libmicrohttpd="yes"
             AC_SUBST(LIBMICROHTTPD_CFLAGS)
 			AC_SUBST(LIBMICROHTTPD_LIBS)
-            
+
             ,
             :)
 
@@ -468,7 +469,7 @@ AM_LIBIDN2([2.0.0],
 	LIBIDN_LIBS="$LIBIDN2_LIBS"
 	,
 	report_have_libidn2="no"
-	)	
+	)
 AC_SUBST(LIBIDN_CFLAGS)
 AC_SUBST(LIBIDN_LIBS)
 
@@ -530,7 +531,7 @@ AX_CHECK_LIBCDIO(
 
 
 AM_ICONV
-if test "$am_cv_func_iconv_works" = "yes" 
+if test "$am_cv_func_iconv_works" = "yes"
 then
 	report_have_iconv="yes"
 	ICONV_CFLAGS=$INCICONV
@@ -560,31 +561,31 @@ AX_PATH_LIB_PCRE(
             report_have_pcre="yes"
             ,
             )
-       
+
 AX_CHECK_OPENSSL(
 	AC_DEFINE(HAVE_OPENSSL, 1, [ Define if you have openssl. ])
 	report_have_openssl="yes"
-	
+
 	am_save_CPPFLAGS="$CPPFLAGS"
 	am_save_CFLAGS="$CFLAGS"
 	am_save_LIBS="$LIBS"
 	am_save_LDFLAGS="$LDFLAGS"
-	
+
 	LIBS="$LIBS $OPENSSL_LIBS"
 	CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
-	
+
 	AC_CHECK_FUNCS([TLS_method TLS_server_method TLS_client_method])
 	AC_CHECK_FUNCS([EVP_aes_128_ecb EVP_aes_192_ecb EVP_aes_256_ecb EVP_aria_128_ecb EVP_aria_192_ecb EVP_aria_256_ecb])
 	AC_CHECK_FUNCS([EVP_bf_ecb EVP_camellia_128_ecb EVP_camellia_192_ecb EVP_camellia_256_ecb EVP_cast5_ecb])
 	AC_CHECK_FUNCS([EVP_des_ecb EVP_des_ede3_ecb EVP_idea_ecb EVP_rc2_ecb EVP_rc5_32_12_16_ecb])
 	AC_CHECK_FUNCS([SSLv23_method SSLv23_server_method SSLv23_client_method])
-	
-	
+
+
 	CPPFLAGS="$am_save_CPPFLAGS"
 	CFLAGS="$am_save_CFLAGS"
 	LIBS="$am_save_LIBS"
-	LDFLAGS="$am_save_LDFLAGS"	
-	
+	LDFLAGS="$am_save_LDFLAGS"
+
 	, :)
 
 
@@ -629,7 +630,7 @@ AX_LIB_SQLITE3
 if test "$success" = "yes"; then
  	report_have_sqlite3="yes"
 fi
-           
+
 
 
 AC_SUBST(MYSQL_CFLAGS)
@@ -672,7 +673,7 @@ case $target in
 	x86_64*|amd64*)
 		AC_DEFINE(HAVE_AMD64,1,)
 		;;
-esac		
+esac
 
 if test $report_have_nasm = "yes"
 then
@@ -695,8 +696,8 @@ SRCDIR=`pwd`
 AC_SUBST(SRCDIR)
 
 
- 
- 
+
+
 # If we support __thread, that can speed up tcmalloc a bit.
 # Note, however, that our code tickles a bug in gcc < 4.1.2
 # involving TLS and -fPIC (which our libraries will use) on x86:
@@ -712,7 +713,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#if defined(__GNUC__) && (defined(__i386__) || 
 
 # We also need to check if the kernel supports __thread, which requires uname()
 AC_CHECK_DECLS(uname,,, [#include <sys/utsname.h>])
- 
+
 
 
 
@@ -724,7 +725,7 @@ case "$host_os" in
 		#LIBS="$LIBS -lws2_32"
 		AC_DEFINE(HAVE_LOCALTIME_R,1,[on mingw-w64 we always have localtime_r])
 		AC_DEFINE(HAVE_GMTIME_R,1,[on mingw-w64 we always have gmtime_r])
-		
+
 		WINDOWS_WINSOCK_LIBS="-lws2_32"
   		;;
   	*mingw64*|msys )
@@ -734,7 +735,7 @@ case "$host_os" in
 		AC_DEFINE(MINGW64, 1, [Define if you compile on Windows MINGW64])
 		AC_DEFINE(HAVE_LOCALTIME_R,1,[on mingw-w64 we always have localtime_r])
 		AC_DEFINE(HAVE_GMTIME_R,1,[on mingw-w64 we always have gmtime_r])
-		
+
 		WINDOWS_WINSOCK_LIBS="-lws2_32"
   		;;
 	* )
@@ -750,7 +751,7 @@ case "${host_cpu}-${host_os}" in
         ;;
 esac;
 
-         
+
 
 
 AC_SUBST(report_have_zlib)
@@ -798,13 +799,13 @@ AC_MSG_RESULT([
 ******************************************************************************
 ** Configuration summary for $PACKAGE_NAME Version $PACKAGE_VERSION
 ** Target: $target_os        CPU: $target_cpu
-** 
+**
 ** Byteorder: $report_byteorder
 **   Size of char         $ac_cv_sizeof_char     Size of float        $ac_cv_sizeof_float
 **   Size of short        $ac_cv_sizeof_short     Size of double       $ac_cv_sizeof_double
 **   Size of int          $ac_cv_sizeof_int     Size of void*        $ac_cv_sizeof_voidp
 **   Size of long         $ac_cv_sizeof_long     Size of wchar_t      $ac_cv_sizeof_wchar_t
-**   Size of long long    $ac_cv_sizeof_long_long     
+**   Size of long long    $ac_cv_sizeof_long_long
 **   Size of size_t       $ac_cv_sizeof_size_t
 ******************************************************************************
 ** Assembler:
@@ -831,7 +832,7 @@ AC_MSG_RESULT([
 **   SDL2 library:         $report_have_sdl2
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
-**   ogg library:          $report_have_libogg	  
+**   ogg library:          $report_have_libogg
 **   shout library:        $report_have_libshout
 **   cdio library:         $report_have_libcdio
 **
@@ -841,7 +842,7 @@ AC_MSG_RESULT([
 ** Internet:
 **   Bind resolver lib:    $report_have_libbind
 **   Curl library:         $report_have_curl
-**   Libmicrohttpd:        $report_have_libmicrohttpd		
+**   Libmicrohttpd:        $report_have_libmicrohttpd
 **   ldns library:         $report_have_ldns
 **   IDN1 library:         $report_have_libidn
 **   IDN2 library:         $report_have_libidn2
@@ -860,4 +861,3 @@ AC_MSG_RESULT([
 **   Codecoverage:         $report_codecoverage_enabled
 ******************************************************************************
 ])
-

@@ -123,6 +123,10 @@ case "$SYS:$REL:$KERNEL" in
 		#export CFLAGS="-DCURL_STATICLIB -DPCRE_STATIC"
 		#export SQLITE_CFLAGS="-I$PREFIX/include -I/usr/local/include"
 		#export SQLITE_LIBS="-L$PREFIX/include -L/usr/local/lib -lsqlite3"
+		export CFLAGS="-I/mingw64/include/freetype2 "
+		export CPPFLAGS="-I/mingw64/include/freetype2 "
+		export LDFLAGS="-L/mingw64/lib "
+		export LIBS="-lfreetype"
 		./configure --prefix=$PREFIX \
 			--with-pcre=$MINGW --with-bzip2=$MINGW --with-zlib=$MINGW \
 			--with-nasm --with-libiconv-prefix=$MINGW \

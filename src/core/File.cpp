@@ -513,11 +513,13 @@ void File::openTemp(const String& filetemplate)
 	if (!ff) throwErrno(errno, filetemplate);
 	try {
 		open(ff);
-	} catch (...) {
+	}
+	catch (...) {
 		try {
 			::fclose(ff);
 			::close(f);
-		} catch (...) {
+		}
+		catch (...) {
 
 		}
 		throw;
@@ -1192,7 +1194,8 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
 	if (pos != position) seek(position);
 	try {
 		bytes=fread(adr, 1, size);
-	} catch (...) {
+	}
+	catch (...) {
 		free(adr);
 		throw;
 	}
@@ -1284,7 +1287,8 @@ void File::load(String& object, const String& filename)
 	buffer[by]=0;
 	try {
 		object.set(buffer, by);
-	} catch (...) {
+	}
+	catch (...) {
 		free(buffer);
 		throw;
 	}
@@ -1479,6 +1483,9 @@ void File::rename(const String& oldfile, const String& newfile)
 			// Ja, wir löschen sie manuell
 			fclose(fd);
 #ifdef WIN32
+			ppl7::String o1=oldfile.toLowerCase();
+			ppl7::String n1=newfile.toLowerCase();
+			if (n1 == o1) return;
 			if (::_wunlink((const wchar_t*)WideString(oldfile)) == 0) return;
 #else
 			if (::unlink((const char*)oldfile) == 0) return;

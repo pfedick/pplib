@@ -60,18 +60,18 @@
 
 // Font-Blitter
 typedef struct tagGLYPH {
-	const char *data;
-	char *target;
+	const char* data;
+	char* target;
 	uint32_t pitch;
 	int32_t color;
 } GLYPH;
 
 extern "C" {
-	int BltGlyph_M8_32 (GLYPH *g);
-	int BltGlyph_M1_32 (GLYPH *g);
-	int BltGlyph_AA8_32 (GLYPH *g);
-	int BltGlyph_AA2_32 (GLYPH *g);
-	int BltGlyph_AA4_32 (GLYPH *g);
+	int BltGlyph_M8_32(GLYPH* g);
+	int BltGlyph_M1_32(GLYPH* g);
+	int BltGlyph_AA8_32(GLYPH* g);
+	int BltGlyph_AA2_32(GLYPH* g);
+	int BltGlyph_AA4_32(GLYPH* g);
 }
 
 namespace ppl7 {
@@ -95,7 +95,7 @@ typedef struct tagFreeTypeEngineData {
 } FREETYPE_ENGINE_DATA;
 
 typedef struct tagFreeTypeFaceData {
-	FT_Byte *buffer;
+	FT_Byte* buffer;
 	FT_Face	face;
 	int		kerning;
 } FREETYPE_FACE_DATA;
@@ -111,7 +111,7 @@ FontEngineFreeType::FontEngineFreeType()
 FontEngineFreeType::~FontEngineFreeType()
 {
 #ifdef HAVE_FREETYPE2
-	FREETYPE_ENGINE_DATA *f=(FREETYPE_ENGINE_DATA*)ft;
+	FREETYPE_ENGINE_DATA* f=(FREETYPE_ENGINE_DATA*)ft;
 	if (f) {
 		FT_Done_FreeType(f->ftlib);
 		free(f);
@@ -136,9 +136,9 @@ void FontEngineFreeType::init()
 	throw UnsupportedFeatureException("Freetype2");
 #else
 	if (ft) return;
-	FREETYPE_ENGINE_DATA *f=(FREETYPE_ENGINE_DATA *)malloc(sizeof(FREETYPE_ENGINE_DATA));
+	FREETYPE_ENGINE_DATA* f=(FREETYPE_ENGINE_DATA*)malloc(sizeof(FREETYPE_ENGINE_DATA));
 	if (!f) throw OutOfMemoryException();
-	int error=FT_Init_FreeType(&f->ftlib );
+	int error=FT_Init_FreeType(&f->ftlib);
 	if (error) {
 		free(f);
 		throw FontEngineInitializationException();
@@ -147,44 +147,44 @@ void FontEngineFreeType::init()
 #endif
 }
 
-int FontEngineFreeType::ident(FileObject &file) throw()
+int FontEngineFreeType::ident(FileObject& file) throw()
 {
 #ifndef HAVE_FREETYPE2
 	return 0;
 #else
-	FREETYPE_ENGINE_DATA *f=(FREETYPE_ENGINE_DATA*)ft;
+	FREETYPE_ENGINE_DATA* f=(FREETYPE_ENGINE_DATA*)ft;
 	if (!f) return 0;
-	const FT_Byte *buffer=(const FT_Byte *)file.map();
+	const FT_Byte* buffer=(const FT_Byte*)file.map();
 	size_t size=file.size();
 	FT_Face face;
-	int error = FT_New_Memory_Face(f->ftlib, buffer, (FT_Long)size, 0, &face );
-	if (error!=0) return 0;
+	int error = FT_New_Memory_Face(f->ftlib, buffer, (FT_Long)size, 0, &face);
+	if (error != 0) return 0;
 	FT_Done_Face(face);
 	return 1;
 #endif
 }
 
-FontFile *FontEngineFreeType::loadFont(FileObject &file, const String &fontname)
+FontFile* FontEngineFreeType::loadFont(FileObject& file, const String& fontname)
 {
 #ifndef HAVE_FREETYPE2
 	throw UnsupportedFeatureException("Freetype2");
 #else
-	FREETYPE_ENGINE_DATA *f=(FREETYPE_ENGINE_DATA*)ft;
+	FREETYPE_ENGINE_DATA* f=(FREETYPE_ENGINE_DATA*)ft;
 	if (!f) throw FontEngineUninitializedException();
-	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)malloc(sizeof(FREETYPE_FACE_DATA));
+	FREETYPE_FACE_DATA* face=(FREETYPE_FACE_DATA*)malloc(sizeof(FREETYPE_FACE_DATA));
 	if (!face) throw OutOfMemoryException();
-	face->buffer=(FT_Byte *)file.load();
+	face->buffer=(FT_Byte*)file.load();
 	size_t size=file.size();
-	int error = FT_New_Memory_Face(f->ftlib, face->buffer, (FT_Long)size, 0, &face->face );
-	if (error!=0) {
+	int error = FT_New_Memory_Face(f->ftlib, face->buffer, (FT_Long)size, 0, &face->face);
+	if (error != 0) {
 		free(face->buffer);
 		free(face);
-		if (error!=0) throw InvalidFontException();
+		if (error != 0) throw InvalidFontException();
 	}
 	String name=fontname;
 	if (name.isEmpty()) name.set(face->face->family_name);
 	face->kerning=(int)FT_HAS_KERNING(face->face);		// Kerning unterstützt?
-	FontFile *ff=new FontFile;
+	FontFile* ff=new FontFile;
 	ff->Name=fontname;
 	ff->engine=this;
 	ff->priv=face;
@@ -192,14 +192,14 @@ FontFile *FontEngineFreeType::loadFont(FileObject &file, const String &fontname)
 #endif
 }
 
-void FontEngineFreeType::deleteFont(FontFile *file)
+void FontEngineFreeType::deleteFont(FontFile* file)
 {
 #ifndef HAVE_FREETYPE2
 	throw UnsupportedFeatureException("Freetype2");
 #else
 	if (!file) throw NullPointerException();
-	if (file->engine!=this) throw InvalidFontEngineException();
-	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file->priv;
+	if (file->engine != this) throw InvalidFontEngineException();
+	FREETYPE_FACE_DATA* face=(FREETYPE_FACE_DATA*)file->priv;
 	if (face) {
 		FT_Done_Face(face->face);
 		free(face->buffer);
@@ -211,36 +211,37 @@ void FontEngineFreeType::deleteFont(FontFile *file)
 }
 
 #ifdef HAVE_FREETYPE2
-static void putPixel(Drawable &draw, int x, int y, const Color &color, int intensity)
+static void putPixel(Drawable& draw, int x, int y, const Color& color, int intensity)
 {
 	Color vg=color;
-	Color bg=draw.getPixel(x,y);
-	int a=vg.alpha()*intensity/255;
-	if (a==0) return;
-	if (a==255) {
-		vg.setAlpha(bg.alpha()+a);
-		draw.putPixel(x,y,vg);
+	Color bg=draw.getPixel(x, y);
+	int a=vg.alpha() * intensity / 255;
+	if (a == 0) return;
+	if (a == 255) {
+		vg.setAlpha(255);
+		draw.putPixel(x, y, vg);
 		return;
 	}
 
-	int reva=255-a;
-	int red=(bg.red()*reva+vg.red()*a)/255;
-	int green=(bg.green()*reva+vg.green()*a)/255;
-	int blue=(bg.blue()*reva+vg.blue()*a)/255;
-	int alpha=bg.alpha()+a;
-	draw.putPixel(x,y,Color(red,green,blue,alpha));
+	int reva=255 - a;
+	int red=(bg.red() * reva + vg.red() * a) / 255;
+	int green=(bg.green() * reva + vg.green() * a) / 255;
+	int blue=(bg.blue() * reva + vg.blue() * a) / 255;
+	//int alpha=(bg.alpha() * reva + vg.alpha() * a) / 255;
+	int alpha=bg.alpha() + (255 - bg.alpha()) * a / 255;
+	draw.putPixel(x, y, Color(red, green, blue, alpha));
 }
 
 
-static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
+static void renderGlyphAA(Drawable& draw, FT_Bitmap* bitmap, int x, int y, const Color& color)
 {
 	uint8_t v=0;
-	uint8_t *glyph=(uint8_t *)bitmap->buffer;
-	for (unsigned int gy=0;gy<bitmap->rows;gy++) {
-		for (unsigned int gx=0;gx<bitmap->width;gx++) {
+	uint8_t* glyph=(uint8_t*)bitmap->buffer;
+	for (unsigned int gy=0;gy < bitmap->rows;gy++) {
+		for (unsigned int gx=0;gx < bitmap->width;gx++) {
 			v=glyph[gx];
-			if (v>0) {
-				putPixel(draw,x+gx,y+gy,color,v);
+			if (v > 0) {
+				putPixel(draw, x + gx, y + gy, color, v);
 				//draw.blendPixel(x+gx,y+gy,color,v);
 			}
 		}
@@ -248,24 +249,24 @@ static void renderGlyphAA(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const
 	}
 }
 
-static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, const Color &color)
+static void renderGlyphMono(Drawable& draw, FT_Bitmap* bitmap, int x, int y, const Color& color)
 {
 	uint8_t v=0;
-	uint8_t *glyph=(uint8_t *)bitmap->buffer;
-	for (unsigned int gy=0;gy<bitmap->rows;gy++) {
+	uint8_t* glyph=(uint8_t*)bitmap->buffer;
+	for (unsigned int gy=0;gy < bitmap->rows;gy++) {
 		uint8_t bitcount=0;
 		uint8_t bytecount=0;
-		for (unsigned int gx=0;gx<bitmap->width;gx++) {
+		for (unsigned int gx=0;gx < bitmap->width;gx++) {
 			if (!bitcount) {
 				v=glyph[bytecount];
 				bitcount=8;
 				bytecount++;
 			}
-			if(v&128) {
-				putPixel(draw,x+gx,y+gy,color,255);
+			if (v & 128) {
+				putPixel(draw, x + gx, y + gy, color, 255);
 				//draw.alphaPixel(x+gx,y+gy,color);
 			}
-			v=v<<1;
+			v=v << 1;
 			bitcount--;
 		}
 		glyph+=bitmap->pitch;
@@ -274,32 +275,32 @@ static void renderGlyphMono(Drawable &draw, FT_Bitmap *bitmap, int x, int y, con
 
 #endif
 
-void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable &draw, int x, int y, const WideString &text, const Color &color)
+void FontEngineFreeType::render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color)
 {
 #ifndef HAVE_FREETYPE2
 	throw UnsupportedFeatureException("Freetype2");
 #else
-	if (file.priv==NULL) throw InvalidFontException();
-	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file.priv;
-	int error=FT_Set_Pixel_Sizes(face->face,0,font.size()+2);
-	if (error!=0) throw InvalidFontException();
+	if (file.priv == NULL) throw InvalidFontException();
+	FREETYPE_FACE_DATA* face=(FREETYPE_FACE_DATA*)file.priv;
+	int error=FT_Set_Pixel_Sizes(face->face, 0, font.size() + 2);
+	if (error != 0) throw InvalidFontException();
 
-	int orgx=x<<6;
-	int orgy=y<<6;
+	int orgx=x << 6;
+	int orgy=y << 6;
 	int lastx=orgx;
 	bool rotate=false;
 	FT_Matrix matrix; /* transformation matrix */
-	if (font.rotation()!=0.0) {
+	if (font.rotation() != 0.0) {
 		rotate=true;
-		double angle=font.rotation()*3.14159265359/180.0;
+		double angle=font.rotation() * 3.14159265359 / 180.0;
 		/* set up matrix */
-		matrix.xx = (FT_Fixed)( cos( angle ) * 0x10000L );
-		matrix.xy = (FT_Fixed)( sin( angle ) * 0x10000L );
-		matrix.yx = (FT_Fixed)( -sin( angle ) * 0x10000L );
-		matrix.yy = (FT_Fixed)( cos( angle ) * 0x10000L );
-		FT_Set_Transform( face->face, &matrix, NULL );
+		matrix.xx = (FT_Fixed)(cos(angle) * 0x10000L);
+		matrix.xy = (FT_Fixed)(sin(angle) * 0x10000L);
+		matrix.yx = (FT_Fixed)(-sin(angle) * 0x10000L);
+		matrix.yy = (FT_Fixed)(cos(angle) * 0x10000L);
+		FT_Set_Transform(face->face, &matrix, NULL);
 	} else {
-		FT_Set_Transform( face->face, NULL, NULL );
+		FT_Set_Transform(face->face, NULL, NULL);
 	}
 
 	FT_GlyphSlot slot=face->face->glyph;
@@ -311,44 +312,44 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 	size_t p=0;
 	size_t textlen=text.len();
 
-	while (p<textlen) {
+	while (p < textlen) {
 		int code=text[p];
 		p++;
-		if (code==10) {											// Newline
+		if (code == 10) {											// Newline
 			lastx=orgx;
-			orgy+=(font.size()+2)<<6;
+			orgy+=(font.size() + 2) << 6;
 			last_glyph=0;
 		} else {
 			y=orgy;
 			x=lastx;
-			glyph_index=FT_Get_Char_Index(face->face,code);
+			glyph_index=FT_Get_Char_Index(face->face, code);
 			if (!glyph_index) continue;
 			// Antialiasing
 			if (font.antialias()) {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL);
+				error=FT_Load_Glyph(face->face, glyph_index, FT_LOAD_DEFAULT | FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
 			} else {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
+				error=FT_Load_Glyph(face->face, glyph_index, FT_LOAD_DEFAULT | FT_LOAD_TARGET_MONO | FT_LOAD_RENDER);
 			}
-			if (error!=0) continue;
+			if (error != 0) continue;
 			//x=x+(slot->bitmap_left<<6);
 			//y=y-(slot->bitmap_top<<6);
-			if (face->kerning>0 && last_glyph>0 && rotate==false) {
-				FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
+			if (face->kerning > 0 && last_glyph > 0 && rotate == false) {
+				FT_Get_Kerning(face->face, last_glyph, glyph_index, FT_KERNING_DEFAULT, &kerning);
 				x+=kerning.x;
 				y+=kerning.y;
 			}
 
 			if (font.antialias()) {
-				renderGlyphAA(draw,&slot->bitmap,(x>>6)+slot->bitmap_left,
-						(y>>6)-slot->bitmap_top,color);
+				renderGlyphAA(draw, &slot->bitmap, (x >> 6) + slot->bitmap_left,
+					(y >> 6) - slot->bitmap_top, color);
 			} else {
-				renderGlyphMono(draw,&slot->bitmap,(x>>6)+slot->bitmap_left,
-						(y>>6)-slot->bitmap_top,color);
+				renderGlyphMono(draw, &slot->bitmap, (x >> 6) + slot->bitmap_left,
+					(y >> 6) - slot->bitmap_top, color);
 			}
 			if (font.drawUnderline()) {
 
 			}
-			lastx=x+slot->advance.x;
+			lastx=x + slot->advance.x;
 			orgy-=slot->advance.y;
 			last_glyph=glyph_index;
 		}
@@ -356,20 +357,20 @@ void FontEngineFreeType::render(const FontFile &file, const Font &font, Drawable
 #endif
 }
 
-Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const WideString &text)
+Size FontEngineFreeType::measure(const FontFile& file, const Font& font, const WideString& text)
 {
 	Size s;
 #ifndef HAVE_FREETYPE2
 	throw UnsupportedFeatureException("Freetype2");
 #else
-	if (file.priv==NULL) throw InvalidFontException();
-	FREETYPE_FACE_DATA *face=(FREETYPE_FACE_DATA*)file.priv;
-	int error=FT_Set_Pixel_Sizes(face->face,0,font.size()+2);
-	if (error!=0) throw InvalidFontException();
+	if (file.priv == NULL) throw InvalidFontException();
+	FREETYPE_FACE_DATA* face=(FREETYPE_FACE_DATA*)file.priv;
+	int error=FT_Set_Pixel_Sizes(face->face, 0, font.size() + 2);
+	if (error != 0) throw InvalidFontException();
 
-	FT_Set_Transform( face->face, NULL, NULL );
+	FT_Set_Transform(face->face, NULL, NULL);
 
-	int width=0,height=0;
+	int width=0, height=0;
 
 	FT_GlyphSlot slot=face->face->glyph;
 	FT_UInt			glyph_index, last_glyph=0;
@@ -378,36 +379,36 @@ Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const W
 	kerning.y=0;
 	size_t p=0;
 	size_t textlen=text.len();
-	while (p<textlen) {
+	while (p < textlen) {
 		int code=text[p];
 		p++;
-		if (code==10) {											// Newline
+		if (code == 10) {											// Newline
 			width=0;
-			height+=(font.size()+2);
+			height+=(font.size() + 2);
 			last_glyph=0;
 		} else {
-			glyph_index=FT_Get_Char_Index(face->face,code);
+			glyph_index=FT_Get_Char_Index(face->face, code);
 			if (!glyph_index) continue;
 			// Antialiasing
 			if (font.antialias()) {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_RENDER|FT_LOAD_TARGET_NORMAL);
+				error=FT_Load_Glyph(face->face, glyph_index, FT_LOAD_DEFAULT | FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL);
 			} else {
-				error=FT_Load_Glyph(face->face,glyph_index,FT_LOAD_DEFAULT|FT_LOAD_TARGET_MONO|FT_LOAD_RENDER);
+				error=FT_Load_Glyph(face->face, glyph_index, FT_LOAD_DEFAULT | FT_LOAD_TARGET_MONO | FT_LOAD_RENDER);
 			}
-			if (error!=0) continue;
+			if (error != 0) continue;
 			//x=x+slot->bitmap_left;
 			//y=y-slot->bitmap_top;
-			if (face->kerning>0 && last_glyph>0) {
-				error=FT_Get_Kerning(face->face,last_glyph,glyph_index,FT_KERNING_DEFAULT,&kerning);
+			if (face->kerning > 0 && last_glyph > 0) {
+				error=FT_Get_Kerning(face->face, last_glyph, glyph_index, FT_KERNING_DEFAULT, &kerning);
 				width+=kerning.x;
 			}
 			width+=(slot->advance.x);
-			if (width>s.width) s.width=width;
+			if (width > s.width) s.width=width;
 			last_glyph=glyph_index;
 		}
 	}
-	s.setHeight(height+font.size()+2);
-	s.width=s.width>>6;
+	s.setHeight(height + font.size() + 2);
+	s.width=s.width >> 6;
 	return s;
 #endif
 }
@@ -415,4 +416,3 @@ Size FontEngineFreeType::measure(const FontFile &file, const Font &font, const W
 
 } // EOF namespace grafix
 } // EOF namespace ppl7
-
