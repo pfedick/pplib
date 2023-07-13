@@ -386,6 +386,37 @@ String Dir::applicationDataPath(const String & company, const String & applicati
 	return path;
 }
 
+String Dir::documentsPath()
+{
+	String path;
+#ifdef WIN32
+	wchar_t* buffer=(wchar_t*)malloc(MAX_PATH * sizeof(wchar_t));
+	HRESULT result = SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, buffer);
+	if (result != S_OK) {
+		free(buffer);
+		throw KeyNotFoundException("CSIDL_PERSONAL");
+	}
+	WideString wpath(buffer);
+	path=String(wpath);
+	free(buffer);
+#else
+	path=Dir::homePath() + "/Documents";
+#endif
+	return path;
+}
+
+String Dir::documentsPath(const String & company, const String & application)
+{
+	String path=Dir::documentsPath();
+	path+="/" + company + "/" + application;
+#ifdef WIN32
+	path.replace("/", "\\");
+#else
+	path.replace("//", "/");
+#endif
+	return path;
+}
+
 
 /*!\brief Konstruktor der Klasse
  *
@@ -1145,8 +1176,7 @@ void Dir::open(const char* path, Sort s)
 				Files.add(de);
 				//printf ("stat ok: %s\n",(const char*)de.Filename);
 				//de.Filename.hexDump();
-			}
-			catch (...) {
+			} catch (...) {
 
 			}
 		} while (FindNextFileW(hFind, &FindFileData) == true);
@@ -1176,8 +1206,7 @@ void Dir::open(const char* path, Sort s)
 		try {
 			File::statFile(CurrentFile, de);
 			Files.add(de);
-		}
-		catch (...) {
+		} catch (...) {
 
 		}
 	}
@@ -1224,8 +1253,7 @@ bool Dir::tryOpen(const String & path, Sort s)
 		open(path, s);
 		return true;
 
-	}
-	catch (...) {
+	} catch (...) {
 
 	}
 	return false;
@@ -1240,8 +1268,7 @@ bool Dir::exists(const String & dirname)
 		if (f.isDir()) return true;
 		if (f.isLink()) return true;
 		return false;
-	}
-	catch (...) {
+	} catch (...) {
 		return false;
 	}
 	return false;
