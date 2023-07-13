@@ -2,14 +2,9 @@
 ;# This file is part of "Patrick's Programming Library", Version 7 (PPL7).
 ;# Web: http://www.pfp.de/ppl/
 ;#
-;# $Author$
-;# $Revision$
-;# $Date$
-;# $Id$
-;#
 ;###############################################################################
 ;#
-;# Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+;# Copyright (c) 2023, Patrick Fedick <patrick@pfp.de>
 ;# All rights reserved.
 ;#
 ;# Redistribution and use in source and binary forms, with or without
@@ -35,6 +30,15 @@
 ;#
 ;###############################################################################
 
+%ifidn __OUTPUT_FORMAT__,elf
+section .note.GNU-stack noalloc noexec nowrite progbits
+%endif
+%ifidn __OUTPUT_FORMAT__,elf32
+section .note.GNU-stack noalloc noexec nowrite progbits
+%endif
+%ifidn __OUTPUT_FORMAT__,elf64
+section .note.GNU-stack noalloc noexec nowrite progbits
+%endif
 
 %define arch_elf64 0
 %define arch_win64 0

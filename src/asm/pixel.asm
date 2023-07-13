@@ -2,14 +2,9 @@
 ;# This file is part of "Patrick's Programming Library", Version 7 (PPL7).
 ;# Web: http://www.pfp.de/ppl/
 ;#
-;# $Author$
-;# $Revision$
-;# $Date$
-;# $Id$
-;#
 ;###############################################################################
 ;#
-;# Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+;# Copyright (c) 2023, Patrick Fedick <patrick@pfp.de>
 ;# All rights reserved.
 ;#
 ;# Redistribution and use in source and binary forms, with or without
@@ -85,7 +80,7 @@ SECTION .text
 		mov [r8+rdx*4],r9d					; Pixel schreiben
 		.end:
 		ret
-		
+
 ; ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32
 %else
 	global PutPixel_32
@@ -155,7 +150,7 @@ SECTION .text
 		mov eax, [r8+rdx*4]					; Pixel lesen
 		.end:
 		ret
-		
+
 ; ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32
 %else
 	global GetPixel_32
@@ -281,7 +276,7 @@ SECTION .text
 		.end_noemms:
 		ret
 
-		
+
 
 ; ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32 *************** ELF 32 / WIN 32
 %else
