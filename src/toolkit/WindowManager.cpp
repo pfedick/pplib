@@ -54,6 +54,8 @@ using namespace ppl7;
 using namespace ppl7::grafix;
 
 
+//#define DEBUGEVENTS 1
+
 static WindowManager* wm=NULL;
 
 WindowManager* GetWindowManager()
@@ -229,6 +231,10 @@ void WindowManager::dispatchEvent(Window* window, Event& event)
 		}
 		return;
 	case Event::MouseDown:
+#ifdef DEBUGEVENTS
+		ppl7::PrintDebugTime("WindowManager::dispatchEvent, MouseDown\n");
+#endif
+
 		window->mouseState=(MouseEvent&)event;
 		w=findMouseWidget(window, ((MouseEvent*)&event)->p);
 		if (w) {
@@ -244,6 +250,9 @@ void WindowManager::dispatchEvent(Window* window, Event& event)
 		return;
 
 	case Event::MouseUp:
+#ifdef DEBUGEVENTS
+		ppl7::PrintDebugTime("WindowManager::dispatchEvent, MouseUp\n");
+#endif
 		window->mouseState=(MouseEvent&)event;
 		w=findMouseWidget(window, ((MouseEvent*)&event)->p);
 		if (w) {
@@ -271,7 +280,9 @@ void WindowManager::dispatchEvent(Window* window, Event& event)
 
 
 	default:
-		printf("WindowManager::dispatchEvent(%tu, %s)  ==> Unhandled Event\n", (std::ptrdiff_t)window, event.name().toChar());
+#ifdef DEBUGEVENTS
+		PrintDebugTime("WindowManager::dispatchEvent(%tu, %s)  ==> Unhandled Event\n", (std::ptrdiff_t)window, event.name().toChar());
+#endif
 		return;
 	}
 
@@ -309,6 +320,9 @@ void WindowManager::dispatchClickEvent(Window* window)
 {
 	if (!window) return;
 	if (!LastMouseDown) return;
+#ifdef DEBUGEVENTS
+	ppl7::PrintDebugTime("WindowManager::dispatchClickEvent, clickCount=%d\n", clickCount);
+#endif
 	if (clickCount == 1) LastMouseDown->mouseClickEvent(&clickEvent);
 	else if (clickCount > 1) LastMouseDown->mouseDblClickEvent(&clickEvent);
 	clickCount=0;
