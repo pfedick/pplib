@@ -806,7 +806,7 @@ public:
 	virtual size_t		fread(void* ptr, size_t size, size_t nmemb);
 	virtual char* fgets(char* buffer, size_t num);
 	virtual	int			fgetc();
-	//virtual size_t		fwrite(const void * ptr, size_t size, size_t nmemb);
+	virtual size_t		fwrite(const void* ptr, size_t size, size_t nmemb);
 	//virtual void		fputs (const char *str);
 	//virtual	void		fputc (int c);
 };
