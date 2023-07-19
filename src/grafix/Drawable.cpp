@@ -128,7 +128,7 @@ Drawable::Drawable()
  *
  * @param other Ein anderes Drawable
  */
-Drawable::Drawable(const Drawable &other)
+Drawable::Drawable(const Drawable& other)
 {
 	copyDrawableData(other.data);
 	fn=other.fn;
@@ -147,9 +147,9 @@ Drawable::Drawable(const Drawable &other)
  * wenn das Drawable nicht kopiert werden kann. Die genaue Ursache kann über den Fehlercode
  * ausgelesen werden.
  */
-Drawable::Drawable(const Drawable &other, const Rect &rect)
+Drawable::Drawable(const Drawable& other, const Rect& rect)
 {
-	copy(other,rect);
+	copy(other, rect);
 }
 
 /*!\brief Copy-Konstruktor mit Bildausschnitt
@@ -166,10 +166,10 @@ Drawable::Drawable(const Drawable &other, const Rect &rect)
  * wenn das Drawable nicht kopiert werden kann. Die genaue Ursache kann über den Fehlercode
  * ausgelesen werden.
  */
-Drawable::Drawable(const Drawable &other, const Point &p, const Size &s)
+Drawable::Drawable(const Drawable& other, const Point& p, const Size& s)
 {
-	Rect r(p,s);
-	copy(other,r);
+	Rect r(p, s);
+	copy(other, r);
 }
 
 
@@ -189,11 +189,11 @@ Drawable::Drawable(const Drawable &other, const Point &p, const Size &s)
  * wenn das Drawable nicht mit den angegebenen Parametern erstellt werden kann.
  * Die genaue Ursache kann über den Fehlercode ausgelesen werden.
  */
-Drawable::Drawable(void *base, uint32_t pitch, int width, int height, const RGBFormat &format)
+Drawable::Drawable(void* base, uint32_t pitch, int width, int height, const RGBFormat& format)
 {
 	clearDrawableData();
 	fn=NULL;
-	create(base,pitch,width,height,format);
+	create(base, pitch, width, height, format);
 }
 
 /*!\brief Destruktor der Klasse
@@ -217,7 +217,7 @@ void Drawable::clearDrawableData()
 	data.rgbformat=RGBFormat::unknown;
 }
 
-void Drawable::copyDrawableData(const DRAWABLE_DATA &other)
+void Drawable::copyDrawableData(const DRAWABLE_DATA& other)
 {
 	data.fn=other.fn;
 	data.base=other.base;
@@ -238,7 +238,7 @@ void Drawable::copyDrawableData(const DRAWABLE_DATA &other)
  * @return Pointer auf eine GRAFIX_FUNCTIONS Struktur oder NULL. Es wird kein
  * Fehlercode gesetzt.
  */
-GRAFIX_FUNCTIONS *Drawable::getFunctions()
+GRAFIX_FUNCTIONS* Drawable::getFunctions()
 {
 	return fn;
 }
@@ -253,7 +253,7 @@ GRAFIX_FUNCTIONS *Drawable::getFunctions()
  *
  * @return Pointer auf die DRAWABLE_DATA Struktur des Drawable.
  */
-DRAWABLE_DATA *Drawable::getData()
+DRAWABLE_DATA* Drawable::getData()
 {
 	return &data;
 }
@@ -267,9 +267,9 @@ DRAWABLE_DATA *Drawable::getData()
  * @param format Das gewünschte Farbformat
  * @exception NoGrafixEngineException Die Grafikengine ist nicht initialisiert
  */
-void Drawable::initFunctions(const RGBFormat &format)
+void Drawable::initFunctions(const RGBFormat& format)
 {
-	Grafix *gfx=GetGrafix();
+	Grafix* gfx=GetGrafix();
 	fn=data.fn=gfx->getGrafixFunctions(format);
 }
 
@@ -280,7 +280,7 @@ void Drawable::initFunctions(const RGBFormat &format)
  *
  * @param other Ein anderes Drawable
  */
-void Drawable::copy(const Drawable &other)
+void Drawable::copy(const Drawable& other)
 {
 	copyDrawableData(other.data);
 	fn=other.fn;
@@ -296,14 +296,14 @@ void Drawable::copy(const Drawable &other)
  * @param rect Bildausschnitt
  *
  */
-void Drawable::copy(const Drawable &other, const Rect &rect)
+void Drawable::copy(const Drawable& other, const Rect& rect)
 {
-	Rect o(0,0,other.data.width,other.data.height);
+	Rect o(0, 0, other.data.width, other.data.height);
 	Rect r=o.intersected(rect);
 	clearDrawableData();
 	data.base8=other.data.base8
-		+r.top()*other.data.pitch
-		+r.left()*other.data.rgbformat.bytesPerPixel();
+		+ r.top() * other.data.pitch
+		+ r.left() * other.data.rgbformat.bytesPerPixel();
 	data.pitch=other.data.pitch;
 	data.width=r.width();
 	data.height=r.height();
@@ -324,10 +324,10 @@ void Drawable::copy(const Drawable &other, const Rect &rect)
  * @param s Breite und Höhe
  *
  */
-void Drawable::copy(const Drawable &other, const Point &p, const Size &s)
+void Drawable::copy(const Drawable& other, const Point& p, const Size& s)
 {
-	Rect r(p,s);
-	copy(other,r);
+	Rect r(p, s);
+	copy(other, r);
 }
 
 
@@ -348,11 +348,11 @@ void Drawable::copy(const Drawable &other, const Point &p, const Size &s)
  * @exception UnsupportedColorFormatException Das Farbformat \p format wird nicht unterstützt
  * @exception NoGrafixEngineException Die Grafikengine ist nicht initialisiert
  */
-void Drawable::create(void *base, uint32_t pitch, int width, int height, const RGBFormat &format)
+void Drawable::create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format)
 {
 	if (!base) throw NullPointerException();
 	if (!pitch) throw IllegalArgumentException();
-	if (width==0 || height==0) throw IllegalArgumentException();
+	if (width == 0 || height == 0) throw IllegalArgumentException();
 	data.base=base;
 	data.pitch=pitch;
 	data.width=width;
@@ -370,7 +370,7 @@ void Drawable::create(void *base, uint32_t pitch, int width, int height, const R
  * @param other Anderes Drawable
  * @return Referenz auf das neue Drawable
  */
-Drawable &Drawable::operator=(const Drawable &other)
+Drawable& Drawable::operator=(const Drawable& other)
 {
 	copyDrawableData(other.data);
 	fn=other.fn;
@@ -387,7 +387,7 @@ Drawable &Drawable::operator=(const Drawable &other)
  */
 Rect Drawable::rect() const
 {
-	return Rect(0,0,data.width,data.height);
+	return Rect(0, 0, data.width, data.height);
 }
 
 /*!\brief Größe des Drawable auslesen
@@ -399,7 +399,7 @@ Rect Drawable::rect() const
  */
 Size Drawable::size() const
 {
-	return Size(data.width,data.height);
+	return Size(data.width, data.height);
 }
 
 /*!\brief Enthält dieses Drawable eine Grafik?
@@ -414,7 +414,7 @@ Size Drawable::size() const
  */
 bool Drawable::isEmpty() const
 {
-	if (data.base==0 || data.width==0 || data.height==0) return true;
+	if (data.base == 0 || data.width == 0 || data.height == 0) return true;
 	return false;
 }
 
@@ -479,7 +479,7 @@ int Drawable::pitch() const
  */
 int Drawable::bytesPerPixel() const
 {
-	return data.rgbformat.bitdepth()/8;
+	return data.rgbformat.bitdepth() / 8;
 }
 
 /*!\brief Bittiefe der Grafik (Bits pro Pixel)
@@ -514,9 +514,9 @@ Drawable Drawable::getDrawable() const
  * @param rect Der gewünschte Bildausschnitt
  * @return Neues Drawable, das den gewünschten Ausschnitt repräsentiert
  */
-Drawable Drawable::getDrawable(const Rect &rect) const
+Drawable Drawable::getDrawable(const Rect& rect) const
 {
-	return Drawable(*this,rect);
+	return Drawable(*this, rect);
 }
 
 /*!\brief Ein neues Drawable anhand eines Ausschnitts erstellen
@@ -533,12 +533,12 @@ Drawable Drawable::getDrawable(const Rect &rect) const
  */
 Drawable Drawable::getDrawable(int x1, int y1, int x2, int y2) const
 {
-	return Drawable(*this,Rect(x1,y1,x2-x1+1,y2-y1+1));
+	return Drawable(*this, Rect(x1, y1, x2 - x1 + 1, y2 - y1 + 1));
 }
 
-Drawable Drawable::getDrawable(const Point &p, const Size &s) const
+Drawable Drawable::getDrawable(const Point& p, const Size& s) const
 {
-	return Drawable(*this,p,s);
+	return Drawable(*this, p, s);
 }
 
 /*!\brief Speicheradresse der Grafik
@@ -549,7 +549,7 @@ Drawable Drawable::getDrawable(const Point &p, const Size &s) const
  *
  * \return Speicheradresse
  */
-void *Drawable::adr() const
+void* Drawable::adr() const
 {
 	return data.base;
 }
@@ -564,52 +564,52 @@ void *Drawable::adr() const
  * @return Speicheradresse
  * @exception OutOfBoundsEception Wird geworfen, wenn \p x oder \p y außerhalb des Zeichenbereichs liegen
  */
-void *Drawable::adr(int x, int y) const
+void* Drawable::adr(int x, int y) const
 {
-	if (x<data.width && y<data.height) return data.base8+(y*data.pitch)+(x*data.rgbformat.bitdepth()/8);
+	if (x < data.width && y < data.height) return data.base8 + (y * data.pitch) + (x * data.rgbformat.bitdepth() / 8);
 	throw OutOfBoundsEception();
 }
 
-Image Drawable::scaled(int width, int height, bool keepAspectRation, bool smoothTransform)
+Image Drawable::scaled(int width, int height, bool keepAspectRation, bool smoothTransform) const
 {
 	Image img;
-	scale(img,width,height,keepAspectRation,smoothTransform);
+	scale(img, width, height, keepAspectRation, smoothTransform);
 	return img;
 }
 
-void Drawable::scale(Image &tgt, int width, int height, bool keepAspectRation, bool smoothTransform)
+void Drawable::scale(Image& tgt, int width, int height, bool keepAspectRation, bool smoothTransform) const
 {
-	tgt.create(width,height,data.rgbformat);
+	tgt.create(width, height, data.rgbformat);
 	int ow=data.width;
 	int oh=data.height;
-	int ox,oy;
+	int ox, oy;
 
 	if (keepAspectRation) {
-		int x1,y1,nw,nh;
-		float ratio=(float)data.width/(float)data.height;
-		if (height*ratio>width) {
+		int x1, y1, nw, nh;
+		float ratio=(float)data.width / (float)data.height;
+		if (height * ratio > width) {
 			nw=width;
-			nh=(int)((float)nw/ratio);
+			nh=(int)((float)nw / ratio);
 		} else {
 			nh=height;
-			nw=(int)((float)nh*ratio);
+			nw=(int)((float)nh * ratio);
 		}
 		//::printf ("old: %i x %i, new: %i x %i, new Image: %i x %i\n",ow,oh,width,height,nw,nh);
-		x1=(width-nw)/2;
-		y1=(height-nh)/2;
-		for (int y=0;y<nh;y++) {
-			for (int x=0;x<nw;x++) {
-				ox=x*ow/nw;
-				oy=y*oh/nh;
-				tgt.putPixel(x+x1,y+y1,getPixel(ox,oy));
+		x1=(width - nw) / 2;
+		y1=(height - nh) / 2;
+		for (int y=0;y < nh;y++) {
+			for (int x=0;x < nw;x++) {
+				ox=x * ow / nw;
+				oy=y * oh / nh;
+				tgt.putPixel(x + x1, y + y1, getPixel(ox, oy));
 			}
 		}
 	} else {
-		for (int y=0;y<height;y++) {
-			for (int x=0;x<width;x++) {
-				ox=x*ow/width;
-				oy=y*oh/height;
-				tgt.putPixel(x,y,getPixel(ox,oy));
+		for (int y=0;y < height;y++) {
+			for (int x=0;x < width;x++) {
+				ox=x * ow / width;
+				oy=y * oh / height;
+				tgt.putPixel(x, y, getPixel(ox, oy));
 			}
 		}
 	}

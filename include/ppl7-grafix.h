@@ -644,8 +644,8 @@ public:
 	Drawable getDrawable(const Rect& rect) const;
 	Drawable getDrawable(const Point& p, const Size& s) const;
 	Drawable getDrawable(int x1, int y1, int x2, int y2) const;
-	Image scaled(int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
-	void scale(Image& tgt, int width, int height, bool keepAspectRation=true, bool smoothTransform=false);
+	Image scaled(int width, int height, bool keepAspectRation=true, bool smoothTransform=false) const;
+	void scale(Image& tgt, int width, int height, bool keepAspectRation=true, bool smoothTransform=false) const;
 	//@}
 
 	/** @name Farben
