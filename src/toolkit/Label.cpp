@@ -158,8 +158,14 @@ void Label::paint(Drawable& draw)
 	//printf ("Text: %s, width: %i, height: %i\n",(const char*)myText, d.width(), d.height());
 	int x=0;
 	if (myIcon.isEmpty() == false) {
-		d.bltAlpha(myIcon, x, (d.height()) / 2 - myIcon.height() / 2);
-		x+=4 + myIcon.width();
+		if (myText.isEmpty()) {
+			d.bltAlpha(myIcon, (d.width()) / 2 - myIcon.width() / 2, (d.height()) / 2 - myIcon.height() / 2);
+			return;
+
+		} else {
+			d.bltAlpha(myIcon, x, (d.height()) / 2 - myIcon.height() / 2);
+			x+=4 + myIcon.width();
+		}
 	}
 	myFont.setColor(myColor);
 	myFont.setOrientation(Font::TOP);
