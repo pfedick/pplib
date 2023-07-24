@@ -590,7 +590,7 @@ void WindowManager_SDL2::handleEvents()
 			break;
 		}
 		case SDL_TEXTEDITING:
-			printf("Event: SDL_TEXTEDITING\n");
+			//printf("Event: SDL_TEXTEDITING\n");
 			break;
 		case SDL_USEREVENT:
 
