@@ -319,7 +319,6 @@ void ImageFilter_BMP::save(const Drawable& surface, FileObject& file, const Asso
 
 			}
 		} else if (bpp == 4) {
-			printf("save 4 byte per pixel\n");
 			for (int y=(surface.height() - 1);y >= 0;y--) {
 				for (int x=0;x < (surface.width());x++) {
 					pixel=surface.getPixel(x, y);
