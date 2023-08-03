@@ -762,6 +762,8 @@ private:
 	Image	Icon;
 	Color	foreground, background;
 	bool	isDown;
+	bool	is_checkable;
+	bool	is_checked;
 public:
 	Button();
 	Button(int x, int y, int width, int height, const String& text=String(), const Drawable& icon=Drawable());
@@ -777,6 +779,13 @@ public:
 	void setBackgroundColor(const Color& c);
 	const Font& font() const;
 	void setFont(const Font& font);
+
+	bool isCheckable() const;
+	void setCheckable(bool);
+	bool isChecked() const;
+	void setChecked(bool);
+
+
 
 	virtual String widgetType() const;
 	virtual void paint(Drawable& draw);

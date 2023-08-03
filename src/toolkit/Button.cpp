@@ -62,6 +62,8 @@ Button::Button()
 	myFont=style.buttonFont;
 	setClientOffset(3, 3, 3, 3);
 	isDown=false;
+	is_checkable=false;
+	is_checked=false;
 }
 
 Button::Button(int x, int y, int width, int height, const String& text, const Drawable& icon)
@@ -75,6 +77,9 @@ Button::Button(int x, int y, int width, int height, const String& text, const Dr
 	isDown=false;
 	Text=text;
 	Icon=icon;
+	is_checkable=false;
+	is_checked=false;
+
 }
 
 Button::~Button()
@@ -110,6 +115,26 @@ void Button::setIcon(const Drawable& icon)
 int Button::style() const
 {
 	return 0;
+}
+
+bool Button::isCheckable() const
+{
+	return is_checkable;
+}
+
+void Button::setCheckable(bool flag)
+{
+	is_checkable=flag;
+}
+
+bool Button::isChecked() const
+{
+	return is_checked;
+}
+
+void Button::setChecked(bool flag)
+{
+	is_checked=flag;
 }
 
 
@@ -175,16 +200,23 @@ void Button::mouseDownEvent(MouseEvent* event)
 
 void Button::mouseUpEvent(MouseEvent* event)
 {
-	isDown=false;
+	if (is_checkable) {
+		is_checked=!is_checked;
+		isDown=is_checked;
+	} else {
+		isDown=false;
+	}
 	needsRedraw();
 	EventHandler::mouseUpEvent(event);
 }
 
 void Button::mouseLeaveEvent(MouseEvent* event)
 {
-	if (isDown) {
-		isDown=false;
-		needsRedraw();
+	if (!is_checkable) {
+		if (isDown) {
+			isDown=false;
+			needsRedraw();
+		}
 	}
 	EventHandler::mouseLeaveEvent(event);
 }
