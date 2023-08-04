@@ -193,6 +193,12 @@ Size Button::contentSize() const
 
 void Button::mouseDownEvent(MouseEvent* event)
 {
+	if (is_checkable) {
+		is_checked=!is_checked;
+		ppl7::tk::Event ev(ppl7::tk::Event::Toggled);
+		ev.setWidget(this);
+		toggledEvent(&ev, is_checked);
+	}
 	isDown=true;
 	needsRedraw();
 	EventHandler::mouseDownEvent(event);
@@ -201,7 +207,6 @@ void Button::mouseDownEvent(MouseEvent* event)
 void Button::mouseUpEvent(MouseEvent* event)
 {
 	if (is_checkable) {
-		is_checked=!is_checked;
 		isDown=is_checked;
 	} else {
 		isDown=false;
