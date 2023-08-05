@@ -110,6 +110,8 @@ public:
 	void setPoint(int x, int y);
 	void setPoint(const Point& other);
 	void setPoint(const PointF& other);
+	Point& operator= (const Point& other);
+	Point& operator= (const PointF& other);
 	Point& operator*= (double factor);
 	Point& operator+= (const Point& point);
 	Point& operator-= (const Point& point);
@@ -148,6 +150,8 @@ public:
 	void setPoint(float x, float y);
 	void setPoint(const Point& other);
 	void setPoint(const PointF& other);
+	PointF& operator= (const Point& other);
+	PointF& operator= (const PointF& other);
 	PointF& operator*= (double factor);
 	PointF& operator+= (const PointF& point);
 	PointF& operator-= (const PointF& point);

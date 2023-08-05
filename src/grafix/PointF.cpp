@@ -94,13 +94,13 @@ PointF::PointF(float x, float y)
 	this->y=y;
 }
 
-PointF::PointF(const Point &other)
+PointF::PointF(const Point& other)
 {
 	this->x=(float)other.x;
 	this->y=(float)other.y;
 }
 
-PointF::PointF(const PointF &other)
+PointF::PointF(const PointF& other)
 {
 	this->x=other.x;
 	this->y=other.y;
@@ -117,7 +117,7 @@ PointF::PointF(const PointF &other)
  */
 bool PointF::isNull() const
 {
-	if (x==0.0f && y==0.0f) return true;
+	if (x == 0.0f && y == 0.0f) return true;
 	return false;
 }
 
@@ -141,13 +141,13 @@ void PointF::setPoint(float x, float y)
  * übernommen.
  * \param[in] other Ein anderer Punkt
  */
-void PointF::setPoint(const PointF &other)
+void PointF::setPoint(const PointF& other)
 {
 	x=other.x;
 	y=other.y;
 }
 
-void PointF::setPoint(const Point &other)
+void PointF::setPoint(const Point& other)
 {
 	x=(float)other.x;
 	y=(float)other.y;
@@ -170,7 +170,7 @@ void PointF::setPoint(const Point &other)
  */
 double PointF::vectorLength() const
 {
-	return sqrt((double)((x*x)+(y*y)));
+	return sqrt((double)((x * x) + (y * y)));
 }
 
 /*!\brief Berechnet den Abstand zwischen zwei Punkten
@@ -189,11 +189,11 @@ double PointF::vectorLength() const
  *
  * \relates Point
  */
-double Distance(const PointF &p1, const PointF &p2)
+double Distance(const PointF& p1, const PointF& p2)
 {
-	double a=fabs(p2.x-p1.x);
-	double b=fabs(p2.y-p1.y);
-	return sqrt((a*a)+(b*b));
+	double a=fabs(p2.x - p1.x);
+	double b=fabs(p2.y - p1.y);
+	return sqrt((a * a) + (b * b));
 }
 
 
@@ -214,18 +214,33 @@ double Distance(const PointF &p1, const PointF &p2)
  */
 float PointF::manhattanLength() const
 {
-	return fabsf(x)+fabsf(y);
+	return fabsf(x) + fabsf(y);
 }
 
-bool PointF::inside(const Rect &r) const
+bool PointF::inside(const Rect& r) const
 {
-	if (r.x1<=x && x<=r.x2) {
-		if (r.y1<=y && y<=r.y2) {
+	if (r.x1 <= x && x <= r.x2) {
+		if (r.y1 <= y && y <= r.y2) {
 			return true;
 		}
 	}
 	return false;
 }
+
+PointF& PointF::operator= (const Point& other)
+{
+	x=(float)other.x;
+	y=(float)other.y;
+	return *this;
+}
+
+PointF& PointF::operator= (const PointF& other)
+{
+	x=other.x;
+	y=other.y;
+	return *this;
+}
+
 
 /*!\brief Multiplikation mit einem Faktor
  *
@@ -236,10 +251,10 @@ bool PointF::inside(const Rect &r) const
  * \param[in] factor Der Faktor, mit dem die Koordinate multipliziert werden soll
  * \return Referenz auf den Point
  */
-PointF &PointF::operator*= (double factor)
+PointF& PointF::operator*= (double factor)
 {
-	x=(float)((double)x*factor);
-	y=(float)((double)y*factor);
+	x=(float)((double)x * factor);
+	y=(float)((double)y * factor);
 	return *this;
 }
 
@@ -252,7 +267,7 @@ PointF &PointF::operator*= (double factor)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-PointF &PointF::operator+= (const PointF &point)
+PointF& PointF::operator+= (const PointF& point)
 {
 	x+=point.x;
 	y+=point.y;
@@ -268,7 +283,7 @@ PointF &PointF::operator+= (const PointF &point)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-PointF &PointF::operator-= (const PointF &point)
+PointF& PointF::operator-= (const PointF& point)
 {
 	x-=point.x;
 	y-=point.y;
@@ -284,93 +299,93 @@ PointF &PointF::operator-= (const PointF &point)
  * \param[in] divisor Der Divisor, durch den die aktuelle Koordinate geteilt werden soll
  * \return Referenz auf den Point
  */
-PointF &PointF::operator/= (double divisor)
+PointF& PointF::operator/= (double divisor)
 {
-	x=(float)((double)x/divisor);
-	y=(float)((double)y/divisor);
+	x=(float)((double)x / divisor);
+	y=(float)((double)y / divisor);
 	return *this;
 }
 
-const PointF operator* (const PointF &point, double factor)
+const PointF operator* (const PointF& point, double factor)
 {
-	return PointF ((float)(point.x*factor),(float)(point.y*factor));
+	return PointF((float)(point.x * factor), (float)(point.y * factor));
 }
 
-const PointF operator* (double factor, const PointF &point)
+const PointF operator* (double factor, const PointF& point)
 {
-	return PointF ((float)(point.x*factor),(float)(point.y*factor));
+	return PointF((float)(point.x * factor), (float)(point.y * factor));
 }
 
-const PointF operator+ (const PointF &p1, const PointF &p2)
+const PointF operator+ (const PointF& p1, const PointF& p2)
 {
-	return PointF (p1.x+p2.x,p1.y+p2.y);
+	return PointF(p1.x + p2.x, p1.y + p2.y);
 }
 
-const PointF operator- (const PointF &p1, const PointF &p2)
+const PointF operator- (const PointF& p1, const PointF& p2)
 {
-	return PointF (p1.x-p2.x,p1.y-p2.y);
+	return PointF(p1.x - p2.x, p1.y - p2.y);
 }
 
-const PointF operator- (const PointF &point)
+const PointF operator- (const PointF& point)
 {
-	return PointF(0-point.x,0-point.y);
+	return PointF(0 - point.x, 0 - point.y);
 }
 
-const PointF operator/ (const PointF &point, double divisor)
+const PointF operator/ (const PointF& point, double divisor)
 {
-	return PointF((float)(point.x/divisor),(float)(point.y/divisor));
+	return PointF((float)(point.x / divisor), (float)(point.y / divisor));
 }
 
-static int cmp(const PointF &p1, const PointF &p2)
+static int cmp(const PointF& p1, const PointF& p2)
 {
-	if (p1.y<p2.y) return -1;
-	if (p1.y>p2.y) return 1;
-	if (p1.x<p2.x) return -1;
-	if (p1.x>p2.x) return -1;
+	if (p1.y < p2.y) return -1;
+	if (p1.y > p2.y) return 1;
+	if (p1.x < p2.x) return -1;
+	if (p1.x > p2.x) return -1;
 	return 0;
 }
 
-bool PointF::operator<(const PointF &other) const
+bool PointF::operator<(const PointF& other) const
 {
-	int c=cmp(*this,other);
-	if (c<0) return true;
+	int c=cmp(*this, other);
+	if (c < 0) return true;
 	return false;
 }
 
-bool PointF::operator<=(const PointF &other) const
+bool PointF::operator<=(const PointF& other) const
 {
-	int c=cmp(*this,other);
-	if (c<=0) return true;
-	return false;
-
-}
-
-bool PointF::operator==(const PointF &other) const
-{
-	int c=cmp(*this,other);
-	if (c==0) return true;
+	int c=cmp(*this, other);
+	if (c <= 0) return true;
 	return false;
 
 }
 
-bool PointF::operator!=(const PointF &other) const
+bool PointF::operator==(const PointF& other) const
 {
-	int c=cmp(*this,other);
-	if (c!=0) return true;
+	int c=cmp(*this, other);
+	if (c == 0) return true;
+	return false;
+
+}
+
+bool PointF::operator!=(const PointF& other) const
+{
+	int c=cmp(*this, other);
+	if (c != 0) return true;
 	return false;
 }
 
-bool PointF::operator>=(const PointF &other) const
+bool PointF::operator>=(const PointF& other) const
 {
-	int c=cmp(*this,other);
-	if (c>=0) return true;
+	int c=cmp(*this, other);
+	if (c >= 0) return true;
 	return false;
 }
 
-bool PointF::operator>(const PointF &other) const
+bool PointF::operator>(const PointF& other) const
 {
-	int c=cmp(*this,other);
-	if (c>0) return true;
+	int c=cmp(*this, other);
+	if (c > 0) return true;
 	return false;
 
 }

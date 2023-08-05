@@ -124,23 +124,23 @@ Point::Point(int x, int y)
  * \p s vorhandenen Koordinaten initialisiert.
  * \param[in] s String mit den Komma-getrennten Koordinaten
  */
-Point::Point(const String &s)
+Point::Point(const String& s)
 {
 	String c=s;
-	c.replace(";",",");
+	c.replace(";", ",");
 	Array a;
-	a.explode(c,",",0,true);
+	a.explode(c, ",", 0, true);
 	x=a[0].toInt();
 	y=a[1].toInt();
 }
 
-Point::Point(const Point &other)
+Point::Point(const Point& other)
 {
 	x=other.x;
 	y=other.y;
 }
 
-Point::Point(const PointF &other)
+Point::Point(const PointF& other)
 {
 	x=(int)other.x;
 	y=(int)other.y;
@@ -156,7 +156,7 @@ Point::Point(const PointF &other)
  */
 bool Point::isNull() const
 {
-	if (x==0 && y==0) return true;
+	if (x == 0 && y == 0) return true;
 	return false;
 }
 
@@ -202,13 +202,13 @@ void Point::setPoint(int x, int y)
  * übernommen.
  * \param[in] other Ein anderer Punkt
  */
-void Point::setPoint(const Point &other)
+void Point::setPoint(const Point& other)
 {
 	x=other.x;
 	y=other.y;
 }
 
-void Point::setPoint(const PointF &other)
+void Point::setPoint(const PointF& other)
 {
 	x=(int)other.x;
 	y=(int)other.y;
@@ -231,7 +231,7 @@ void Point::setPoint(const PointF &other)
  */
 double Point::vectorLength() const
 {
-	return sqrt((double)((x*x)+(y*y)));
+	return sqrt((double)((x * x) + (y * y)));
 }
 
 /*!\brief Berechnet den Abstand zwischen zwei Punkten
@@ -250,11 +250,11 @@ double Point::vectorLength() const
  *
  * \relates Point
  */
-double Distance(const Point &p1, const Point &p2)
+double Distance(const Point& p1, const Point& p2)
 {
-	double a=abs(p2.x-p1.x);
-	double b=abs(p2.y-p1.y);
-	return sqrt((a*a)+(b*b));
+	double a=abs(p2.x - p1.x);
+	double b=abs(p2.y - p1.y);
+	return sqrt((a * a) + (b * b));
 }
 
 
@@ -275,18 +275,33 @@ double Distance(const Point &p1, const Point &p2)
  */
 int Point::manhattanLength() const
 {
-	return abs(x)+abs(y);
+	return abs(x) + abs(y);
 }
 
-bool Point::inside(const Rect &r) const
+bool Point::inside(const Rect& r) const
 {
-	if (r.x1<=x && x<=r.x2) {
-		if (r.y1<=y && y<=r.y2) {
+	if (r.x1 <= x && x <= r.x2) {
+		if (r.y1 <= y && y <= r.y2) {
 			return true;
 		}
 	}
 	return false;
 }
+
+Point& Point::operator= (const Point& other)
+{
+	x=other.x;
+	y=other.y;
+	return *this;
+}
+
+Point& Point::operator= (const PointF& other)
+{
+	x=(int)other.x;
+	y=(int)other.y;
+	return *this;
+}
+
 
 /*!\brief Multiplikation mit einem Faktor
  *
@@ -297,10 +312,10 @@ bool Point::inside(const Rect &r) const
  * \param[in] factor Der Faktor, mit dem die Koordinate multipliziert werden soll
  * \return Referenz auf den Point
  */
-Point &Point::operator*= (double factor)
+Point& Point::operator*= (double factor)
 {
-	x=(int)((double)x*factor);
-	y=(int)((double)y*factor);
+	x=(int)((double)x * factor);
+	y=(int)((double)y * factor);
 	return *this;
 }
 
@@ -313,7 +328,7 @@ Point &Point::operator*= (double factor)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-Point &Point::operator+= (const Point &point)
+Point& Point::operator+= (const Point& point)
 {
 	x+=point.x;
 	y+=point.y;
@@ -329,7 +344,7 @@ Point &Point::operator+= (const Point &point)
  * \param[in] point Referenz auf einen anderen Point
  * \return Referenz auf den Point
  */
-Point &Point::operator-= (const Point &point)
+Point& Point::operator-= (const Point& point)
 {
 	x-=point.x;
 	y-=point.y;
@@ -345,93 +360,93 @@ Point &Point::operator-= (const Point &point)
  * \param[in] divisor Der Divisor, durch den die aktuelle Koordinate geteilt werden soll
  * \return Referenz auf den Point
  */
-Point &Point::operator/= (double divisor)
+Point& Point::operator/= (double divisor)
 {
-	x=(int)((double)x/divisor);
-	y=(int)((double)y/divisor);
+	x=(int)((double)x / divisor);
+	y=(int)((double)y / divisor);
 	return *this;
 }
 
-const Point operator* (const Point &point, double factor)
+const Point operator* (const Point& point, double factor)
 {
-	return Point ((int)(point.x*factor),(int)(point.y*factor));
+	return Point((int)(point.x * factor), (int)(point.y * factor));
 }
 
-const Point operator* (double factor, const Point &point)
+const Point operator* (double factor, const Point& point)
 {
-	return Point ((int)(point.x*factor),(int)(point.y*factor));
+	return Point((int)(point.x * factor), (int)(point.y * factor));
 }
 
-const Point operator+ (const Point &p1, const Point &p2)
+const Point operator+ (const Point& p1, const Point& p2)
 {
-	return Point (p1.x+p2.x,p1.y+p2.y);
+	return Point(p1.x + p2.x, p1.y + p2.y);
 }
 
-const Point operator- (const Point &p1, const Point &p2)
+const Point operator- (const Point& p1, const Point& p2)
 {
-	return Point (p1.x-p2.x,p1.y-p2.y);
+	return Point(p1.x - p2.x, p1.y - p2.y);
 }
 
-const Point operator- (const Point &point)
+const Point operator- (const Point& point)
 {
-	return Point (0-point.x,0-point.y);
+	return Point(0 - point.x, 0 - point.y);
 }
 
-const Point operator/ (const Point &point, double divisor)
+const Point operator/ (const Point& point, double divisor)
 {
-	return Point((int)(point.x/divisor),(int)(point.y/divisor));
+	return Point((int)(point.x / divisor), (int)(point.y / divisor));
 }
 
-static int cmp(const Point &p1, const Point &p2)
+static int cmp(const Point& p1, const Point& p2)
 {
-	if (p1.y<p2.y) return -1;
-	if (p1.y>p2.y) return 1;
-	if (p1.x<p2.x) return -1;
-	if (p1.x>p2.x) return -1;
+	if (p1.y < p2.y) return -1;
+	if (p1.y > p2.y) return 1;
+	if (p1.x < p2.x) return -1;
+	if (p1.x > p2.x) return -1;
 	return 0;
 }
 
-bool Point::operator<(const Point &other) const
+bool Point::operator<(const Point& other) const
 {
-	int c=cmp(*this,other);
-	if (c<0) return true;
+	int c=cmp(*this, other);
+	if (c < 0) return true;
 	return false;
 }
 
-bool Point::operator<=(const Point &other) const
+bool Point::operator<=(const Point& other) const
 {
-	int c=cmp(*this,other);
-	if (c<=0) return true;
-	return false;
-
-}
-
-bool Point::operator==(const Point &other) const
-{
-	int c=cmp(*this,other);
-	if (c==0) return true;
+	int c=cmp(*this, other);
+	if (c <= 0) return true;
 	return false;
 
 }
 
-bool Point::operator!=(const Point &other) const
+bool Point::operator==(const Point& other) const
 {
-	int c=cmp(*this,other);
-	if (c!=0) return true;
+	int c=cmp(*this, other);
+	if (c == 0) return true;
+	return false;
+
+}
+
+bool Point::operator!=(const Point& other) const
+{
+	int c=cmp(*this, other);
+	if (c != 0) return true;
 	return false;
 }
 
-bool Point::operator>=(const Point &other) const
+bool Point::operator>=(const Point& other) const
 {
-	int c=cmp(*this,other);
-	if (c>=0) return true;
+	int c=cmp(*this, other);
+	if (c >= 0) return true;
 	return false;
 }
 
-bool Point::operator>(const Point &other) const
+bool Point::operator>(const Point& other) const
 {
-	int c=cmp(*this,other);
-	if (c>0) return true;
+	int c=cmp(*this, other);
+	if (c > 0) return true;
 	return false;
 
 }
