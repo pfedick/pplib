@@ -124,7 +124,8 @@ void LineInput::setInputValidator(InputValidator* validator)
 
 const WideString& LineInput::text() const
 {
-	return validatedText;
+	if (validator) return validatedText;
+	else return myText;
 }
 
 void LineInput::validateAndSendEvent(const WideString& text)
