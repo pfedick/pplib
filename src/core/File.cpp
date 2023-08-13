@@ -513,13 +513,11 @@ void File::openTemp(const String& filetemplate)
 	if (!ff) throwErrno(errno, filetemplate);
 	try {
 		open(ff);
-	}
-	catch (...) {
+	} catch (...) {
 		try {
 			::fclose(ff);
 			::close(f);
-		}
-		catch (...) {
+		} catch (...) {
 
 		}
 		throw;
@@ -902,7 +900,7 @@ int File::fgetc()
 		pos++;
 		return ret;
 	}
-	throwErrno(errno);
+	if (errno != 0) throwErrno(errno);
 	return 0;
 }
 
@@ -933,7 +931,7 @@ wchar_t File::fgetwc()
 		pos+=sizeof(wchar_t);
 		return(wchar_t)ret;
 	}
-	throwErrno(errno);
+	if (errno != 0)throwErrno(errno);
 	return 0;
 #endif
 }
@@ -1194,8 +1192,7 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
 	if (pos != position) seek(position);
 	try {
 		bytes=fread(adr, 1, size);
-	}
-	catch (...) {
+	} catch (...) {
 		free(adr);
 		throw;
 	}
@@ -1287,8 +1284,7 @@ void File::load(String& object, const String& filename)
 	buffer[by]=0;
 	try {
 		object.set(buffer, by);
-	}
-	catch (...) {
+	} catch (...) {
 		free(buffer);
 		throw;
 	}
