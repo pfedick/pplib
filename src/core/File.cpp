@@ -900,6 +900,7 @@ int File::fgetc()
 		pos++;
 		return ret;
 	}
+	if (ret == EOF) return EOF;
 	if (errno != 0) throwErrno(errno);
 	return 0;
 }

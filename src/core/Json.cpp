@@ -227,6 +227,7 @@ static void expectEof(ppl7::FileObject& file)
 	int c;
 	while (!file.eof()) {
 		c=file.fgetc();
+		if (c == EOF) return;
 		if (c != ' ' && c != '\n' && c != '\r' && c != '\t' && c != 0) {
 			throw ppl7::UnexpectedCharacterException(">>%c<< at position %lld while parsing dict 2", c, file.tell());
 		}
