@@ -1364,7 +1364,7 @@ void File::truncate(const String& filename, uint64_t bytes)
  */
 bool File::exists(const String& filename)
 {
-	if (filename.isEmpty()) throw IllegalArgumentException();
+	if (filename.isEmpty()) throw false;
 	FILE* fd=NULL;
 	//printf ("buffer=%s\n",buff);
 #ifdef WIN32
