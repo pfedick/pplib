@@ -62,6 +62,7 @@ Event::Event()
 	accepted=false;
 	ignored=false;
 	eventWidget=NULL;
+	custom_id=0;
 }
 
 Event::Event(Type t)
@@ -70,6 +71,7 @@ Event::Event(Type t)
 	accepted=false;
 	ignored=false;
 	eventWidget=NULL;
+	custom_id=0;
 }
 
 Event::~Event()
@@ -97,6 +99,11 @@ void Event::accept()
 	accepted=true;
 }
 
+void Event::setCustomId(int id)
+{
+	custom_id=id;
+}
+
 bool Event::isIgnored() const
 {
 	return ignored;
@@ -105,6 +112,11 @@ bool Event::isIgnored() const
 bool Event::isAccepted() const
 {
 	return accepted;
+}
+
+int Event::customId() const
+{
+	return custom_id;
 }
 
 String Event::name() const

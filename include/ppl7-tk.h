@@ -126,6 +126,8 @@ private:
 	bool accepted;
 	bool ignored;
 	Widget* eventWidget;
+	int custom_id;
+
 
 public:
 	Event();
@@ -134,10 +136,12 @@ public:
 
 	Type type() const;
 	void setType(Type t);
+	void setCustomId(int id);
 	void ignore();
 	void accept();
 	bool isIgnored() const;
 	bool isAccepted() const;
+	int customId() const;
 	String name() const;
 	Widget* widget() const;
 	void setWidget(Widget* w);
