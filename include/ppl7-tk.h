@@ -119,7 +119,10 @@ public:
 		ValueChanged,
 		Toggled,
 		TextChanged,
-		SelectionChanged
+		SelectionChanged,
+		GameControllerAxisMotion,
+		GameControllerButtonDown,
+		GameControllerButtonUp
 	};
 private:
 	Type t;
@@ -317,6 +320,22 @@ public:
 	bool accepted() const;
 };
 
+class GameControllerAxisEvent : public Event
+{
+public:
+	int which;
+	int axis;
+	int value;
+};
+
+class GameControllerButtonEvent : public Event
+{
+public:
+	int which;
+	int button;
+	int state;
+};
+
 
 class EventHandler
 {
@@ -356,6 +375,10 @@ public:
 	virtual void toggledEvent(Event* event, bool checked);
 	virtual void textChangedEvent(Event* event, const ppl7::String& text);
 	virtual void selectionChangedEvent(Event* event);
+
+	virtual void gameControllerAxisMotionEvent(GameControllerAxisEvent* event);
+	virtual void gameControllerButtonDownEvent(GameControllerButtonEvent* event);
+	virtual void gameControllerButtonUpEvent(GameControllerButtonEvent* event);
 
 };
 
@@ -646,6 +669,7 @@ private:
 	int			doubleClickIntervall;
 
 	Widget* KeyboardFocus;
+	Widget* GameControllerFocus;
 	Widget* grabMouseWidget;
 	void updateButtonSymbols();
 	void deferedDeleteWidgets(Widget* widget);
@@ -661,11 +685,13 @@ public:
 	void dispatchClickEvent(Window* window);
 	void setDoubleClickIntervall(int ms);
 	void setKeyboardFocus(Widget* w);
+	void setGameControllerFocus(Widget* w);
 	void setMouseFocus(Widget* w);
 	void grabMouse(Widget* w);
 	void releaseMouse(Widget* w);
 	void unregisterWidget(Widget* w);
 	Widget* getKeyboardFocus() const;
+	Widget* getGameControllerFocus() const;
 	int getDoubleClickIntervall() const;
 	Widget* findMouseWidget(Widget* window, Point& p);
 

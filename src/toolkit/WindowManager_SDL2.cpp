@@ -605,6 +605,52 @@ void WindowManager_SDL2::handleEvents()
 				w->timerEvent(&e);
 			}
 			break;
+		case SDL_CONTROLLERAXISMOTION:
+		{
+			Widget* gcWidget=getGameControllerFocus();
+			if (gcWidget) {
+				SDL_ControllerAxisEvent* event=(SDL_ControllerAxisEvent*)&sdl_event;
+				GameControllerAxisEvent ev;
+				ev.setType(Event::GameControllerAxisMotion);
+				ev.setWidget(gcWidget);
+				ev.axis=event->axis;
+				ev.value=event->value;
+				gcWidget->gameControllerAxisMotionEvent(&ev);
+				//printf("Event: SDL_CONTROLLERAXISMOTION id=%d, axis=%d, value=%d\n", event->which, event->axis, event->value);
+
+			}
+			break;
+		}
+		case SDL_CONTROLLERBUTTONDOWN:
+		{
+			Widget* gcWidget=getGameControllerFocus();
+			if (gcWidget) {
+				SDL_ControllerButtonEvent* event=(SDL_ControllerButtonEvent*)&sdl_event;
+				GameControllerButtonEvent ev;
+				ev.setType(Event::GameControllerButtonDown);
+				ev.setWidget(gcWidget);
+				ev.button=event->button;
+				ev.state=event->state;
+				gcWidget->gameControllerButtonDownEvent(&ev);
+				//printf("Event: SDL_CONTROLLERBUTTONDOWN, id=%d, button=%d, state=%d\n", event->which, event->button, event->state);
+			}
+			break;
+		}
+		case SDL_CONTROLLERBUTTONUP:
+		{
+			Widget* gcWidget=getGameControllerFocus();
+			if (gcWidget) {
+				SDL_ControllerButtonEvent* event=(SDL_ControllerButtonEvent*)&sdl_event;
+				GameControllerButtonEvent ev;
+				ev.setType(Event::GameControllerButtonUp);
+				ev.setWidget(gcWidget);
+				ev.button=event->button;
+				ev.state=event->state;
+				gcWidget->gameControllerButtonUpEvent(&ev);
+				//printf("Event: SDL_CONTROLLERBUTTONDOWN, id=%d, button=%d, state=%d\n", event->which, event->button, event->state);
+			}
+			break;
+		}
 
 		}
 	}

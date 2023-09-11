@@ -143,6 +143,10 @@ String Event::name() const
 	case ValueChanged: return "ValueChanged";
 	case Toggled: return "Toggled";
 	case TextChanged: return "TextChanged";
+	case SelectionChanged: return "SelectionChanged";
+	case GameControllerAxisMotion: return "GameControllerAxisMotion";
+	case GameControllerButtonDown: return "GameControllerButtonDown";
+	case GameControllerButtonUp: return "GameControllerButtonUp";
 	}
 	throw UnknownEventException();
 }
@@ -453,6 +457,20 @@ void EventHandler::selectionChangedEvent(Event* event)
 	if (handler) handler->selectionChangedEvent(event);
 }
 
+void EventHandler::gameControllerAxisMotionEvent(GameControllerAxisEvent* event)
+{
+	if (handler) handler->gameControllerAxisMotionEvent(event);
+}
+
+void EventHandler::gameControllerButtonDownEvent(GameControllerButtonEvent* event)
+{
+	if (handler) handler->gameControllerButtonDownEvent(event);
+}
+
+void EventHandler::gameControllerButtonUpEvent(GameControllerButtonEvent* event)
+{
+	if (handler) handler->gameControllerButtonUpEvent(event);
+}
 
 
 

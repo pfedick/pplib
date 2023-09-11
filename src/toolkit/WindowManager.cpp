@@ -81,6 +81,7 @@ WindowManager::WindowManager()
 	doubleClickIntervall=200;
 	KeyboardFocus=NULL;
 	grabMouseWidget=NULL;
+	GameControllerFocus=NULL;
 	updateButtonSymbols();
 }
 
@@ -165,6 +166,7 @@ void WindowManager::unregisterWidget(Widget* widget)
 	if (LastMouseEnter == widget) LastMouseEnter=NULL;
 	if (KeyboardFocus == widget) KeyboardFocus=NULL;
 	if (LastMouseFocus == widget) LastMouseFocus=NULL;
+	if (GameControllerFocus == widget) GameControllerFocus=NULL;
 
 }
 
@@ -344,6 +346,23 @@ void WindowManager::setKeyboardFocus(Widget* w)
 Widget* WindowManager::getKeyboardFocus() const
 {
 	return KeyboardFocus;
+}
+
+void WindowManager::setGameControllerFocus(Widget* w)
+{
+	if (w == GameControllerFocus) return;
+	if (GameControllerFocus) {
+		FocusEvent e(Event::FocusOut, GameControllerFocus, w);
+		GameControllerFocus->lostFocusEvent(&e);
+	}
+	GameControllerFocus=w;
+	FocusEvent e(Event::FocusIn, GameControllerFocus, w);
+	GameControllerFocus->gotFocusEvent(&e);
+}
+
+Widget* WindowManager::getGameControllerFocus() const
+{
+	return GameControllerFocus;
 }
 
 
