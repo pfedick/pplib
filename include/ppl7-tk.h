@@ -122,7 +122,9 @@ public:
 		SelectionChanged,
 		GameControllerAxisMotion,
 		GameControllerButtonDown,
-		GameControllerButtonUp
+		GameControllerButtonUp,
+		GameControllerDeviceAdded,
+		GameControllerDeviceRemoved
 	};
 private:
 	Type t;
@@ -336,6 +338,12 @@ public:
 	int state;
 };
 
+class GameControllerEvent : public Event
+{
+public:
+	int which;
+};
+
 
 class EventHandler
 {
@@ -379,6 +387,8 @@ public:
 	virtual void gameControllerAxisMotionEvent(GameControllerAxisEvent* event);
 	virtual void gameControllerButtonDownEvent(GameControllerButtonEvent* event);
 	virtual void gameControllerButtonUpEvent(GameControllerButtonEvent* event);
+	virtual void gameControllerDeviceAdded(GameControllerEvent* event);
+	virtual void gameControllerDeviceRemoved(GameControllerEvent* event);
 
 };
 

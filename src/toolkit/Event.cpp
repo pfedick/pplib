@@ -147,6 +147,8 @@ String Event::name() const
 	case GameControllerAxisMotion: return "GameControllerAxisMotion";
 	case GameControllerButtonDown: return "GameControllerButtonDown";
 	case GameControllerButtonUp: return "GameControllerButtonUp";
+	case GameControllerDeviceAdded: return "GameControllerDeviceAdded";
+	case GameControllerDeviceRemoved: return "GameControllerDeviceRemoved";
 	}
 	throw UnknownEventException();
 }
@@ -472,7 +474,15 @@ void EventHandler::gameControllerButtonUpEvent(GameControllerButtonEvent* event)
 	if (handler) handler->gameControllerButtonUpEvent(event);
 }
 
+void EventHandler::gameControllerDeviceAdded(GameControllerEvent* event)
+{
+	if (handler) handler->gameControllerDeviceAdded(event);
+}
 
+void EventHandler::gameControllerDeviceRemoved(GameControllerEvent* event)
+{
+	if (handler) handler->gameControllerDeviceRemoved(event);
+}
 
 }	// EOF namespace tk
 }	// EOF namespace ppl7

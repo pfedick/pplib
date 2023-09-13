@@ -651,7 +651,32 @@ void WindowManager_SDL2::handleEvents()
 			}
 			break;
 		}
+		case SDL_CONTROLLERDEVICEADDED:
+		{
+			Widget* gcWidget=getGameControllerFocus();
+			if (gcWidget) {
+				SDL_ControllerDeviceEvent* event=(SDL_ControllerDeviceEvent*)&sdl_event;
+				GameControllerEvent ev;
+				ev.setType(Event::GameControllerButtonUp);
+				ev.setWidget(gcWidget);
+				ev.which=event->which;
+				gcWidget->gameControllerDeviceAdded(&ev);
+			}
 
+		}
+		break;
+		case SDL_CONTROLLERDEVICEREMOVED:
+		{
+			Widget* gcWidget=getGameControllerFocus();
+			if (gcWidget) {
+				SDL_ControllerDeviceEvent* event=(SDL_ControllerDeviceEvent*)&sdl_event;
+				GameControllerEvent ev;
+				ev.setType(Event::GameControllerButtonUp);
+				ev.setWidget(gcWidget);
+				ev.which=event->which;
+				gcWidget->gameControllerDeviceRemoved(&ev);
+			}
+		}
 		}
 	}
 #endif
