@@ -84,6 +84,7 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		inputInvalidBackgroundColor.setColor(255, 200, 200, 255);
 		inputSelectedBackgroundColor.setColor(196, 196, 255, 255);
 		sliderHighlightColor.setColor(61, 174, 233, 255);
+		sliderSelectedColor.setColor(61, 61, 55, 255);
 		buttonSymbolColor.setColor(26, 16, 16, 255);
 	} else {
 		windowBackgroundColor.setColor(47, 47, 47, 255);
@@ -98,6 +99,7 @@ WidgetStyle::WidgetStyle(WidgetStyle::PredefinedStyle style)
 		inputInvalidBackgroundColor.setColor(80, 40, 40, 255);
 		inputSelectedBackgroundColor.setColor(40, 78, 118, 255);
 		sliderHighlightColor.setColor(61, 174, 233, 255);
+		sliderSelectedColor.setColor(210, 210, 205, 255);
 		buttonSymbolColor.setColor(255, 250, 250, 255);
 	}
 }
@@ -736,6 +738,17 @@ bool Widget::isChildOf(Widget* other) const
 {
 	if (parent == other) return true;
 	if (parent) return parent->isChildOf(other);
+	return false;
+}
+
+void Widget::setFocus()
+{
+	GetWindowManager()->setKeyboardFocus(this);
+}
+
+bool Widget::hasFocus() const
+{
+	if (GetWindowManager()->getKeyboardFocus() == this) return true;
 	return false;
 }
 

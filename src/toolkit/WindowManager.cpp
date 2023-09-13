@@ -242,9 +242,23 @@ void WindowManager::dispatchEvent(Window* window, Event& event)
 		if (w) {
 			if (w != LastMouseDown) {
 				clickCount=0;
+				if (LastMouseDown) {
+					LastMouseDown->needsRedraw();
+				}
+				/*
+				FocusEvent fe(Event::Type::FocusOut, LastMouseDown, w);
+				if (LastMouseDown) {
+					LastMouseDown->lostFocusEvent(&fe);
+					LastMouseDown->needsRedraw();
+				}
+				fe.setType(Event::Type::FocusIn);
+				w->gotFocusEvent(&fe);
+				*/
 			}
 			LastMouseDown=w;
 			setMouseFocus(w);
+			setKeyboardFocus(w);
+			w->needsRedraw();
 
 			event.setWidget(w);
 			w->mouseDownEvent((MouseEvent*)&event);
@@ -337,10 +351,12 @@ void WindowManager::setKeyboardFocus(Widget* w)
 	if (KeyboardFocus) {
 		FocusEvent e(Event::FocusOut, KeyboardFocus, w);
 		KeyboardFocus->lostFocusEvent(&e);
+		KeyboardFocus->needsRedraw();
 	}
 	KeyboardFocus=w;
 	FocusEvent e(Event::FocusIn, KeyboardFocus, w);
 	KeyboardFocus->gotFocusEvent(&e);
+	KeyboardFocus->needsRedraw();
 }
 
 Widget* WindowManager::getKeyboardFocus() const

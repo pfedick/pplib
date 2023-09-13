@@ -174,6 +174,7 @@ void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
 {
     const ppl7::tk::WidgetStyle& style=ppl7::tk::GetWidgetStyle();
 
+    bool has_focus=hasFocus();
 
     int y1=draw.height() * 1 / 5;
     int y2=draw.height() * 4 / 5;
@@ -190,13 +191,17 @@ void HorizontalSlider::paint(ppl7::grafix::Drawable& draw)
 
     draw.fillRect(start_x, y1, draw.width(), y2, style.buttonBackgroundColor);
     draw.fillRect(start_x, y1, x1, y2, style.sliderHighlightColor);
+
     draw.drawRect(start_x, y1, draw.width(), y2, style.frameBorderColorLight);
 
     y1=draw.height() * 1 / 5;
     y2=draw.height() * 4 / 5;
 
-
-    draw.fillRect(x1, y1, x2, y2, style.windowBackgroundColor);
+    if (has_focus) {
+        draw.fillRect(x1, y1, x2, y2, style.sliderSelectedColor);
+    } else {
+        draw.fillRect(x1, y1, x2, y2, style.windowBackgroundColor);
+    }
     draw.drawRect(x1, y1, x2, y2, style.frameBorderColorLight);
 
 

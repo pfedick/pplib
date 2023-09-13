@@ -179,7 +179,7 @@ void DoubleHorizontalSlider::paint(ppl7::grafix::Drawable& draw)
 {
     const ppl7::tk::WidgetStyle& style=ppl7::tk::GetWidgetStyle();
 
-
+    bool has_focus=hasFocus();
     int y1=draw.height() * 1 / 5;
     int y2=draw.height() * 4 / 5;
     int h=y2 - y1;
@@ -200,8 +200,11 @@ void DoubleHorizontalSlider::paint(ppl7::grafix::Drawable& draw)
     y1=draw.height() * 1 / 5;
     y2=draw.height() * 4 / 5;
 
-
-    draw.fillRect(x1, y1, x2, y2, style.windowBackgroundColor);
+    if (has_focus) {
+        draw.fillRect(x1, y1, x2, y2, style.sliderSelectedColor);
+    } else {
+        draw.fillRect(x1, y1, x2, y2, style.windowBackgroundColor);
+    }
     draw.drawRect(x1, y1, x2, y2, style.frameBorderColorLight);
 
 

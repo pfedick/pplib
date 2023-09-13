@@ -88,6 +88,7 @@ public:
 	Color	inputInvalidBackgroundColor;
 	Color   inputSelectedBackgroundColor;
 	Color	sliderHighlightColor;
+	Color	sliderSelectedColor;
 	Color	buttonSymbolColor;
 };
 
@@ -532,6 +533,9 @@ public:
 	bool isEnabled() const;
 	void setVisible(bool flag);
 	bool isVisible() const;
+	void setFocus();
+	bool hasFocus() const;
+
 
 	void setModal(bool flag);
 	bool isModal() const;
@@ -785,13 +789,6 @@ public:
 	Window::WindowMode getWindowMode(Window& w);
 
 };
-
-
-
-
-
-
-
 
 
 class Button : public Widget
