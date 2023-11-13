@@ -564,11 +564,7 @@ String& String::set(const char* str, size_t size)
 			throw OutOfMemoryException();
 		}
 	}
-#ifdef HAVE_STRNCPY_S
-	strncpy_s((char*)ptr, s, str, inbytes);
-#else
-	strncpy((char*)ptr, str, inbytes);
-#endif
+	memmove((char*)ptr, str, inbytes);
 	stringlen=inbytes;
 	((char*)ptr)[stringlen]=0;
 	return *this;
@@ -657,21 +653,21 @@ String& String::set(const wchar_t* str, size_t size)
 #else
 	throw UnsupportedFeatureException();
 #endif
-}
+	}
 
-/*!\brief String anhand eines String-Pointers setzen
- *
- * \desc
- * Mit dieser Funktion wird der String anhand des Pointers \p str eines anderen
- * Strings gesetzt.
- *
- * \param str Pointer auf einen String
- * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
- * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
- * der angegebene String, wird er ignoriert und der komplette String importiert.
- * \return Referenz auf den String
- * \exception OutOfMemoryException
- */
+	/*!\brief String anhand eines String-Pointers setzen
+	 *
+	 * \desc
+	 * Mit dieser Funktion wird der String anhand des Pointers \p str eines anderen
+	 * Strings gesetzt.
+	 *
+	 * \param str Pointer auf einen String
+	 * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+	 * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+	 * der angegebene String, wird er ignoriert und der komplette String importiert.
+	 * \return Referenz auf den String
+	 * \exception OutOfMemoryException
+	 */
 String& String::set(const String* str, size_t size)
 {
 	if (!str) {
@@ -2598,25 +2594,25 @@ String& String::repeat(const String & str, size_t num)
 		strncpy(tmp, str.ptr, str.stringlen);
 #endif
 		tmp+=str.stringlen;
-	}
+}
 	if (ptr != empty_string) free(ptr);
 	ptr=buf;
 	stringlen=num;
 	ptr[stringlen]=0;
 	s=newsize;
 	return *this;
-}
+	}
 
-/*!\brief String multiplizieren
- *
- * \desc
- * Der aktuelle String wird \p count mal hintereinander wiederholt und
- * als neuer String zurückgegeben.
- *
- * @param[in] count Anzahl wiederholungen
- * @return Neuer String
- * \exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
- */
+	/*!\brief String multiplizieren
+	 *
+	 * \desc
+	 * Der aktuelle String wird \p count mal hintereinander wiederholt und
+	 * als neuer String zurückgegeben.
+	 *
+	 * @param[in] count Anzahl wiederholungen
+	 * @return Neuer String
+	 * \exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
+	 */
 String String::repeated(size_t count) const
 {
 	String ret;
@@ -3298,7 +3294,7 @@ String::operator std::wstring() const
 	free(w);
 	throw UnsupportedFeatureException();
 #endif
-}
+	}
 
 int String::toInt() const
 {
