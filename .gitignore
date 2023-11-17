@@ -27,3 +27,5 @@
 /.project/
 .cproject
 .project
+autoconf/*.m4~
+autoconf/autom4te.cache

@@ -433,18 +433,16 @@ AC_DEFUN([AX_PATH_QT_DIRECT],
       ax_qt_LIBS="$LIBS"
       ax_save_CXXFLAGS="$CXXFLAGS"
       CXXFLAGS="-I$ax_qt_include_dir"
-      AC_TRY_LINK([#include <$qt_direct_test_header>],
-        $qt_direct_test_main,
-      [
+      AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <$qt_direct_test_header>]], [[$qt_direct_test_main]])],[
         # Success.
         # We can link with no special library directory.
         ax_qt_lib_dir=
-      ], [
+      ],[
         # That did not work. Try the multi-threaded version
         echo "Non-critical error, please neglect the above." >&AS_MESSAGE_LOG_FD
         ax_qt_lib=qt-mt
         LIBS="-l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-        AC_TRY_LINK([#include <$qt_direct_test_header>],
+        _au_m4_changequote([,])AC_TRY_LINK([#include <$qt_direct_test_header>],
           $qt_direct_test_main,
         [
           # Success.
@@ -455,7 +453,7 @@ AC_DEFUN([AX_PATH_QT_DIRECT],
           echo "Non-critical error, please neglect the above." >&AS_MESSAGE_LOG_FD
           ax_qt_lib=qt-gl
           LIBS="-l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-          AC_TRY_LINK([#include <$qt_direct_test_header>],
+          _au_m4_changequote([,])AC_TRY_LINK([#include <$qt_direct_test_header>],
             $qt_direct_test_main,
           [
             # Success.
@@ -491,7 +489,7 @@ AC_DEFUN([AX_PATH_QT_DIRECT],
             done
             # Try with that one
             LIBS="-l$ax_qt_lib $X_PRE_LIBS $X_LIBS -lX11 -lXext -lXmu -lXt -lXi $X_EXTRA_LIBS"
-            AC_TRY_LINK([#include <$qt_direct_test_header>],
+            _au_m4_changequote([,])AC_TRY_LINK([#include <$qt_direct_test_header>],
               $qt_direct_test_main,
             [
               # Success.
