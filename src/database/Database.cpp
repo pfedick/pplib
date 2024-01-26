@@ -40,9 +40,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -94,43 +92,43 @@ namespace db {
  * \skip DB_Example1
  * \until EOF
  */
-Database *Connect(const AssocArray &params)
+Database* Connect(const AssocArray& params)
 {
 	String type=params["type"];
 	if (type.isEmpty()) throw MissingArgumentException("type");
 	type.lowerCase();
-	Database *db=NULL;
-	#ifdef HAVE_MYSQL
-		throw UnsupportedFeatureException("MySQL");
-		/*
-		if (type=="mysql") {
-			db=new MySQL;
-		}
-		*/
-	#endif
-	#ifdef HAVE_FREETDS
-		throw UnsupportedFeatureException("Sybase");
-		/*
-		if (type=="sybase") {
-			db=new Sybase;
-		}
-		*/
-	#endif
-	#ifdef HAVE_POSTGRESQL
-		if (type=="postgres" || type=="postgresql") {
-			db=new PostgreSQL;
-		}
-	#endif
-	#ifdef HAVE_SQLITE
-		throw UnsupportedFeatureException("sqlite");
-		/*
-		if (type=="sqlite") {
-			db=new SQLite;
-		}
-		*/
-	#endif
+	Database* db=NULL;
+#ifdef HAVE_MYSQL
+	throw UnsupportedFeatureException("MySQL");
+	/*
+	if (type=="mysql") {
+		db=new MySQL;
+	}
+	*/
+#endif
+#ifdef HAVE_FREETDS
+	throw UnsupportedFeatureException("Sybase");
+	/*
+	if (type=="sybase") {
+		db=new Sybase;
+	}
+	*/
+#endif
+#ifdef HAVE_POSTGRESQL
+	if (type == "postgres" || type == "postgresql") {
+		db=new PostgreSQL;
+	}
+#endif
+#ifdef HAVE_SQLITE
+	throw UnsupportedFeatureException("sqlite");
+	/*
+	if (type=="sqlite") {
+		db=new SQLite;
+	}
+	*/
+#endif
 	if (!db) {
-		throw UnsupportedFeatureException("Database-Type: %s",(const char*)type);
+		throw UnsupportedFeatureException("Database-Type: %s", (const char*)type);
 	}
 	try {
 		db->connect(params);
@@ -141,24 +139,24 @@ Database *Connect(const AssocArray &params)
 	return db;
 }
 
-void GetSupportedDatabases(AssocArray &a)
+void GetSupportedDatabases(AssocArray& a)
 {
 	a.clear();
 #ifdef HAVE_MYSQL
-	a.set("mysql/type","mysql");
-	a.set("mysql/name","MySQL");
+	a.set("mysql/type", "mysql");
+	a.set("mysql/name", "MySQL");
 #endif
 #ifdef HAVE_FREETDS
-	a.set("sybase/type","sybase");
-	a.set("sybase/name","Sybase Open Client / ASE");
+	a.set("sybase/type", "sybase");
+	a.set("sybase/name", "Sybase Open Client / ASE");
 #endif
 #ifdef HAVE_POSTGRESQL
-	a.set("postgres/type","postgres");
-	a.set("postgres/name","PostgreSQL");
+	a.set("postgres/type", "postgres");
+	a.set("postgres/name", "PostgreSQL");
 #endif
 #ifdef HAVE_SQLITE3
-	a.set("sqlite/type","sqlite");
-	a.set("sqlite/name","SQLite");
+	a.set("sqlite/type", "sqlite");
+	a.set("sqlite/name", "SQLite");
 #endif
 }
 
@@ -211,7 +209,7 @@ Database::Database()
 Database::~Database()
 {
 	//close();
-	if (Log) Log->print(Logger::DEBUG,1,"ppl6::db::Database","SetLogfile",__FILE__,__LINE__,"Stop logging of Database-Queries");
+	if (Log) Log->print(Logger::DEBUG, 1, "ppl6::db::Database", "SetLogfile", __FILE__, __LINE__, "Stop logging of Database-Queries");
 }
 
 /*!\brief Querylog aktivieren
@@ -225,10 +223,10 @@ Database::~Database()
  * \see Database::getLogger
  * \see Database::removeLogger
  */
-void Database::setLogger(Logger &logger)
+void Database::setLogger(Logger& logger)
 {
 	Log=&logger;
-	if (Log) Log->print(Logger::DEBUG,1,"ppl7::db::Database","setLogger",__FILE__,__LINE__,"Start logging of Database-Queries");
+	if (Log) Log->print(Logger::DEBUG, 1, "ppl7::db::Database", "setLogger", __FILE__, __LINE__, "Start logging of Database-Queries");
 }
 
 /*!\brief Querylog deaktivieren
@@ -241,8 +239,8 @@ void Database::setLogger(Logger &logger)
  */
 void Database::removeLogger()
 {
-	if (Log!=NULL) {
-		Log->print(Logger::DEBUG,1,"ppl7::db::Database","removeLogger",__FILE__,__LINE__,"Stop logging of Database-Queries");
+	if (Log != NULL) {
+		Log->print(Logger::DEBUG, 1, "ppl7::db::Database", "removeLogger", __FILE__, __LINE__, "Stop logging of Database-Queries");
 		Log=NULL;
 	}
 }
@@ -254,12 +252,12 @@ void Database::removeLogger()
  * \see Database::setLogger
  * \see Database::removeLogger
  */
-Logger *Database::getLogger()
+Logger* Database::getLogger()
 {
 	return Log;
 }
 
-void Database::logQuery(const String &query, float duration)
+void Database::logQuery(const String& query, float duration)
 /*!\brief Interne Funktion zum Loggen von Queries
  *
  * \descr
@@ -271,7 +269,7 @@ void Database::logQuery(const String &query, float duration)
  */
 {
 	if (!Log) return;
-	Log->print(Logger::DEBUG,4,"ppl7::db::Database","logQuery",__FILE__,__LINE__,ToString("Querytime: %0.6f, Query: %s",duration,(const char*)query));
+	Log->print(Logger::DEBUG, 4, "ppl7::db::Database", "logQuery", __FILE__, __LINE__, ToString("Querytime: %0.6f, Query: %s", duration, (const char*)query));
 }
 
 /*!\brief Uhrzeit der letzten Datenbank-Kommunikation aktualisieren
@@ -325,9 +323,9 @@ void Database::clearLastUse()
  * @param[in] name Name des Parameters
  * @param[in] value Wert des Parameters als String
  */
-void Database::setParam(const String &name, const String &value)
+void Database::setParam(const String& name, const String& value)
 {
-	ConnectParam.set(name,value);
+	ConnectParam.set(name, value);
 }
 
 /*!\brief Parameter für den Connect setzen
@@ -340,9 +338,9 @@ void Database::setParam(const String &name, const String &value)
  * @param[in] name Name des Parameters
  * @param[in] value Wert des Parameters als Integer
  */
-void Database::setParam(const String &name, int value)
+void Database::setParam(const String& name, int value)
 {
-	ConnectParam.setf(name,"%d",value);
+	ConnectParam.setf(name, "%d", value);
 }
 
 /*!\brief Parameter für den Connect setzen
@@ -354,7 +352,7 @@ void Database::setParam(const String &name, int value)
  *
  * @param[in] params Assoziatives Array mit den Connect-Parametern
  */
-void Database::setParam(const AssocArray &params)
+void Database::setParam(const AssocArray& params)
 {
 	ConnectParam.add(params);
 }
@@ -402,7 +400,7 @@ void Database::connect()
  * \skip DB_Example4
  * \until EOF
  */
-void Database::connectCreate(const AssocArray &params)
+void Database::connectCreate(const AssocArray& params)
 {
 	AssocArray a=params;
 	a.remove("dbname");
@@ -433,17 +431,17 @@ void Database::connectCreate(const AssocArray &params)
  * \param[in] ... Optionale Parameter, die in den Formatierungsstring eingesetzt werden.
  * \exception QueryFailedException und andere
  */
-void Database::execf(const char *query, ...)
+void Database::execf(const char* query, ...)
 {
 	String str;
 	va_list args;
 	va_start(args, query);
-	str.vasprintf(query,args);
+	str.vasprintf(query, args);
 	va_end(args);
 	exec(str);
 }
 
-ResultSet *Database::queryf(const char *query, ...)
+ResultSet* Database::queryf(const char* query, ...)
 /*!\brief SQL-Query mit Ergebnis ausführen
  *
  * \descr
@@ -465,12 +463,12 @@ ResultSet *Database::queryf(const char *query, ...)
 	String str;
 	va_list args;
 	va_start(args, query);
-	str.vasprintf(query,args);
+	str.vasprintf(query, args);
 	va_end(args);
 	return this->query(str);
 }
 
-AssocArray Database::execArray(const String &query)
+AssocArray Database::execArray(const String& query)
 /*!\brief SQL-Query ausführen und ersten Datensatz als Array zurückgeben
  *
  * \descr
@@ -489,11 +487,11 @@ AssocArray Database::execArray(const String &query)
  */
 {
 	AssocArray a;
-	execArray(a,query);
+	execArray(a, query);
 	return a;
 }
 
-AssocArray Database::execArrayf(const char *query, ...)
+AssocArray Database::execArrayf(const char* query, ...)
 /*!\brief SQL-Query bauen, ausführen und ersten Datensatz als Array zurückgeben
  *
  * \descr
@@ -517,27 +515,27 @@ AssocArray Database::execArrayf(const char *query, ...)
 	String str;
 	va_list args;
 	va_start(args, query);
-	str.vasprintf(query,args);
+	str.vasprintf(query, args);
 	va_end(args);
-	execArray(a,str);
+	execArray(a, str);
 	return a;
 }
 
-uint64_t Database::count(const String &table, const String &where)
+uint64_t Database::count(const String& table, const String& where)
 {
 	String query;
 	query.set("select count(*) as num from ");
 	query+=table;
 	if (where.notEmpty()) {
-		query+=" where "+where;
+		query+=" where " + where;
 	}
-	ResultSet *res=this->query(query);
+	ResultSet* res=this->query(query);
 	uint64_t num=res->getString("num").toUnsignedInt64();
 	delete res;
 	return num;
 }
 
-void Database::execArray(AssocArray &result, const String &query)
+void Database::execArray(AssocArray& result, const String& query)
 /*!\brief SQL-Query ausführen und ersten Datensatz in Array speichern
  *
  * \descr
@@ -553,12 +551,12 @@ void Database::execArray(AssocArray &result, const String &query)
  * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	ResultSet *res=this->query(query);
+	ResultSet* res=this->query(query);
 	res->fetchArray(result);
 	delete res;
 }
 
-void Database::execArrayf(AssocArray &result, const char *query, ...)
+void Database::execArrayf(AssocArray& result, const char* query, ...)
 /*!\brief SQL-Query bauen, ausführen und ersten Datensatz in Array speichern
  *
  * \descr
@@ -580,12 +578,12 @@ void Database::execArrayf(AssocArray &result, const char *query, ...)
 	String q;
 	va_list args;
 	va_start(args, query);
-	q.vasprintf(query,args);
+	q.vasprintf(query, args);
 	va_end(args);
-	execArray(result,q);
+	execArray(result, q);
 }
 
-void Database::execArrayAll(AssocArray &result, const String &query)
+void Database::execArrayAll(AssocArray& result, const String& query)
 /*!\brief SQL-Query ausführen und alle Datensätze in Array speichern
  *
  * \descr
@@ -603,12 +601,12 @@ void Database::execArrayAll(AssocArray &result, const String &query)
  * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
 {
-	ResultSet *res=this->query(query);
-	copyResultToAssocArray(res,result);
+	ResultSet* res=this->query(query);
+	copyResultToAssocArray(res, result);
 	delete res;
 }
 
-AssocArray Database::execArrayAll(const String &query)
+AssocArray Database::execArrayAll(const String& query)
 /*!\brief SQL-Query ausführen und alle Datensätze in Array speichern
  *
  * \descr
@@ -629,14 +627,14 @@ AssocArray Database::execArrayAll(const String &query)
  */
 {
 	AssocArray a;
-	ResultSet *res=this->query(query);
-	copyResultToAssocArray(res,a);
+	ResultSet* res=this->query(query);
+	copyResultToAssocArray(res, a);
 	delete res;
 	return a;
 }
 
 
-AssocArray Database::execArrayAllf(const char *query, ...)
+AssocArray Database::execArrayAllf(const char* query, ...)
 /*!\brief SQL-Query bauen, ausführen und alle Datensätze in Array speichern
  *
  * \descr
@@ -662,15 +660,15 @@ AssocArray Database::execArrayAllf(const char *query, ...)
 	String q;
 	va_list args;
 	va_start(args, query);
-	q.vasprintf(query,args);
+	q.vasprintf(query, args);
 	va_end(args);
-	ResultSet *res=this->query(q);
-	copyResultToAssocArray(res,a);
+	ResultSet* res=this->query(q);
+	copyResultToAssocArray(res, a);
 	delete res;
 	return a;
 }
 
-void Database::execArrayAllf(AssocArray &result, const char *query, ...)
+void Database::execArrayAllf(AssocArray& result, const char* query, ...)
 /*!\brief SQL-Query bauen, ausführen und alle Datensätze in Array speichern
  *
  * \descr
@@ -693,10 +691,10 @@ void Database::execArrayAllf(AssocArray &result, const char *query, ...)
 	String q;
 	va_list args;
 	va_start(args, query);
-	q.vasprintf(query,args);
+	q.vasprintf(query, args);
 	va_end(args);
-	ResultSet *res=this->query(q);
-	copyResultToAssocArray(res,result);
+	ResultSet* res=this->query(q);
+	copyResultToAssocArray(res, result);
 	delete res;
 }
 
@@ -712,14 +710,14 @@ void Database::execArrayAllf(AssocArray &result, const char *query, ...)
  * @param type Datentyp. Wird nichts angegeben, wird der Wert \p value als String interpretiert.
  * @return Escapeter und Gequoteter String
  */
-String Database::getQuoted(const String &value, const String &type) const
+String Database::getQuoted(const String& value, const String& type) const
 {
 	String Type=type;
 	String s=value;
 	Type.lowerCase();
 	escape(s);
-	if (Type=="int" || Type=="integer" || Type=="bit" || Type=="boolean") return s;
-	return "'"+s+"'";
+	if (Type == "int" || Type == "integer" || Type == "bit" || Type == "boolean") return s;
+	return "'" + s + "'";
 }
 
 
@@ -768,17 +766,17 @@ String Database::getQuoted(const String &value, const String &type) const
  * \skip DB_Save_Example1
  * \until EOF
  */
-int Database::SaveGenQuery(CString &Query, const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude, const CAssocArray &types)
+int Database::SaveGenQuery(CString& Query, const char* method, const char* table, CAssocArray& a, const char* clause, const CAssocArray& exclude, const CAssocArray& types)
 {
 	if (!method) {
-		SetError(194,"const char *method");
+		SetError(194, "const char *method");
 		return 0;
 	}
 	if (!table) {
-		SetError(194,"const char *table");
+		SetError(194, "const char *table");
 		return 0;
 	}
-	if (a.Count()==0) {
+	if (a.Count() == 0) {
 		SetError(343);
 		return 0;
 	}
@@ -787,47 +785,47 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
 	Method=method;
 	Table=table;
 	Method.LCase();
-	if (Table.Len()==0) {
+	if (Table.Len() == 0) {
 		SetError(344);
 		return 0;
 	}
 	if (clause) Clause=clause;
 	a.Reset();
-	if (Method=="insert" || Method=="replace") {
-		while (a.GetNext(Key,Value)) {
-			if (exclude.GetChar(Key)==NULL) {
+	if (Method == "insert" || Method == "replace") {
+		while (a.GetNext(Key, Value)) {
+			if (exclude.GetChar(Key) == NULL) {
 				Keys.Concat(Key);
 				Keys.Concat(",");
 				//printf ("Key=%s, Value=%s\n",(const char*)Key,(const char*)Value);
 				Type=types.ToCString(Key);
-				Vals+=getQuoted(Value,Type);
+				Vals+=getQuoted(Value, Type);
 				Vals+=",";
 			}
 		}
 		Keys.Chop();
 		Vals.Chop();
 
-		Query.Setf("%s into %s (%s) values (%s)",(const char*)Method, (const char*)Table, (const char*)Keys, (const char*)Vals);
+		Query.Setf("%s into %s (%s) values (%s)", (const char*)Method, (const char*)Table, (const char*)Keys, (const char*)Vals);
 		//printf ("Query: %s\n",(const char*)Query);
 		return 1;
-	} else if (Method=="update") {
-		Query.Setf("%s %s set ",(const char*)Method, (const char*)Table);
-		while (a.GetNext(Key,Value)) {
-			if (exclude.GetChar(Key)==NULL) {
+	} else if (Method == "update") {
+		Query.Setf("%s %s set ", (const char*)Method, (const char*)Table);
+		while (a.GetNext(Key, Value)) {
+			if (exclude.GetChar(Key) == NULL) {
 				Type=types.ToCString(Key);
-				Query+=Key+"="+getQuoted(Value,Type)+",";
+				Query+=Key + "=" + getQuoted(Value, Type) + ",";
 			}
 		}
 		Query.Chop();
 		Clause.Trim();
-		if (Clause.Len()>0) {
+		if (Clause.Len() > 0) {
 			Query.Concat(" ");
 			if (!Clause.PregMatch("/^where\\s/i")) Query.Concat("where ");
 			Query.Concat(Clause);
 		}
 		return 1;
 	}
-	SetError(345,(const char*)Method);
+	SetError(345, (const char*)Method);
 	return 0;
 }
 
@@ -875,42 +873,42 @@ int Database::SaveGenQuery(CString &Query, const char *method, const char *table
  * \skip DB_Save_Example1
  * \until EOF
  */
-int Database::Save(const char *method, const char *table, CAssocArray &a, const char *clause, const CAssocArray &exclude, const CAssocArray &types)
+int Database::Save(const char* method, const char* table, CAssocArray& a, const char* clause, const CAssocArray& exclude, const CAssocArray& types)
 {
 	CString Query;
-	if (!SaveGenQuery(Query,method,table,a,clause,exclude,types)) return 0;
+	if (!SaveGenQuery(Query, method, table, a, clause, exclude, types)) return 0;
 	return Exec(Query);
 }
 
-int Database::ReadKeyValue(CAssocArray &res, const char *query, const char *keyname, const char *valname)
+int Database::ReadKeyValue(CAssocArray& res, const char* query, const char* keyname, const char* valname)
 {
 	if (!query) {
-		SetError(194,"int Database::ReadKeyValue(CAssocArray *res, ==> const char *query <==, const char *keyname, const char *valname)");
+		SetError(194, "int Database::ReadKeyValue(CAssocArray *res, ==> const char *query <==, const char *keyname, const char *valname)");
 		return 0;
 	}
 	if (!keyname) {
-		SetError(194,"int Database::ReadKeyValue(CAssocArray *res, const char *query, ==> const char *keyname <==, const char *valname)");
+		SetError(194, "int Database::ReadKeyValue(CAssocArray *res, const char *query, ==> const char *keyname <==, const char *valname)");
 		return 0;
 	}
-	Result *r=Query(query);
+	Result* r=Query(query);
 	if (!r) return 0;
 	int32_t nr=(int32_t)r->Rows();
 	CAssocArray row;
-	for (int32_t i=0;i<nr;i++) {
+	for (int32_t i=0;i < nr;i++) {
 		row.Clear();
-		if (r->FetchArray(row,i)) {
-			const char *key=row[keyname];
+		if (r->FetchArray(row, i)) {
+			const char* key=row[keyname];
 			if (!key) {
 				delete r;
-				SetError(294,"%s",keyname);
+				SetError(294, "%s", keyname);
 				return 0;
 			}
 			if (valname) {
 				//$a[$r[$keyfield]]=$r[$valfield];
-				const char *val=row[valname];
-				if (val) res.Set(key,val);
+				const char* val=row[valname];
+				if (val) res.Set(key, val);
 			} else {
-				res.Set(key,row);
+				res.Set(key, row);
 			}
 		}
 	}
@@ -918,7 +916,7 @@ int Database::ReadKeyValue(CAssocArray &res, const char *query, const char *keyn
 	return 1;
 }
 
-uint64_t Database::InsertKey(const char *table, CAssocArray &a, const char *keyname, const CAssocArray &exclude)
+uint64_t Database::InsertKey(const char* table, CAssocArray& a, const char* keyname, const CAssocArray& exclude)
 /*!\brief Datensatz mit incrementellem Schlüssel speichern
  *
  * \descr
@@ -939,7 +937,7 @@ uint64_t Database::InsertKey(const char *table, CAssocArray &a, const char *keyn
  * wurde, im Fehlerfall 0.
  */
 {
-	if (!Execf("lock tables %s write",table)) {
+	if (!Execf("lock tables %s write", table)) {
 		PushError();
 		Exec("unlock tables");
 		PopError();
@@ -947,7 +945,7 @@ uint64_t Database::InsertKey(const char *table, CAssocArray &a, const char *keyn
 	}
 	uint64_t id;
 	CAssocArray r;
-	if (!ExecArrayf(r,"select max(%s)+1 as newid from %s",keyname,table)) {
+	if (!ExecArrayf(r, "select max(%s)+1 as newid from %s", keyname, table)) {
 		PushError();
 		Exec("unlock tables");
 		PopError();
@@ -955,8 +953,8 @@ uint64_t Database::InsertKey(const char *table, CAssocArray &a, const char *keyn
 	}
 	id=atoll(r.Get("newid"));
 	if (!id) id=1;
-	a.Setf(keyname,"%llu",id);
-	int ret=Save("insert",table,a,NULL,exclude);
+	a.Setf(keyname, "%llu", id);
+	int ret=Save("insert", table, a, NULL, exclude);
 	//PrintError();
 	PushError();
 	Exec("unlock tables");
@@ -973,7 +971,7 @@ uint64_t Database::InsertKey(const char *table, CAssocArray &a, const char *keyn
  */
 #endif
 
-void Database::connect(const AssocArray &params)
+void Database::connect(const AssocArray& params)
 /*!\brief Connect auf eine Datenbank erstellen
  *
  * \descr
@@ -1034,7 +1032,7 @@ void Database::reconnect()
 }
 
 
-void Database::selectDB(const String &databasename)
+void Database::selectDB(const String& databasename)
 /*!\brief Aktive Datenbank auswählen
  *
  * \descr
@@ -1049,7 +1047,7 @@ void Database::selectDB(const String &databasename)
 	throw UnimplementedVirtualFunctionException("Database::selectDB");
 }
 
-void Database::exec(const String &query)
+void Database::exec(const String& query)
 /*!\brief SQL-Query ohne Ergebnis ausführen
  *
  * \descr
@@ -1066,7 +1064,7 @@ void Database::exec(const String &query)
 	throw UnimplementedVirtualFunctionException("Database::exec");
 }
 
-ResultSet *Database::query(const String &query)
+ResultSet* Database::query(const String& query)
 /*!\brief SQL-Query mit Ergebnis ausführen
  *
  * \descr
@@ -1100,7 +1098,7 @@ bool Database::ping()
 	throw UnimplementedVirtualFunctionException("Database::ping");
 }
 
-String Database::escape(const String &str) const
+String Database::escape(const String& str) const
 /*!\brief String escapen
  *
  * \descr
@@ -1203,7 +1201,7 @@ void Database::cancelTransactionComplete()
 	throw UnimplementedVirtualFunctionException("Database::rollbackTransactionComplete");
 }
 
-void Database::createDatabase(const String &name)
+void Database::createDatabase(const String& name)
 /*!\brief Datenbank erstellen
  *
  * \descr

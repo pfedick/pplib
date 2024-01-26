@@ -40,9 +40,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -69,9 +67,9 @@ static int __mysql_init=0;
 
 static inline void pplMySQLThreadStart()
 {
-	THREADDATA * d=GetThreadData();
+	THREADDATA* d=GetThreadData();
 	if (d->mysql_thread_end) return;
-	if (mysql_thread_init()==0) {
+	if (mysql_thread_init() == 0) {
 		d->mysql_thread_end=mysql_thread_end;
 		return;
 	}
@@ -82,32 +80,32 @@ static inline void pplMySQLThreadStart()
 class MySQLResult : public ResultSet
 {
 	friend class MySQL;
-	private:
-		MYSQL_RES	*res;			//!\brief MySQL-spezifisches Result-Handle
-		MYSQL_ROW	row;			//!\brief Pointer auf die aktuelle Result-Zeile
-		MYSQL		*conn;			//!\brief MySQL-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
-		MySQL		*mysql_class;	//!\brief Die ppl7::db::MySQL-Klasse, die das Result erzeugt hat
-		uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
-		int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
+private:
+	MYSQL_RES* res;			//!\brief MySQL-spezifisches Result-Handle
+	MYSQL_ROW	row;			//!\brief Pointer auf die aktuelle Result-Zeile
+	MYSQL* conn;			//!\brief MySQL-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
+	MySQL* mysql_class;	//!\brief Die ppl7::db::MySQL-Klasse, die das Result erzeugt hat
+	uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
+	int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 
-	public:
-		MySQLResult();
-		virtual ~MySQLResult();
-		virtual	void		clear();
-		virtual uint64_t	affected() const;
-		virtual int			fields() const;
-		virtual String		getString(const String &fieldname);
-		virtual String		getString(int field);
-		virtual int			fieldNum(const String &fieldname);
-		virtual String		fieldName(int field);
-		virtual FieldType	fieldType(int field);
-		virtual FieldType	fieldType(const String &fieldname);
-		virtual AssocArray	fetchArray();
-		virtual void		fetchArray(AssocArray &array);
-		virtual Array		fetchFields();
-		virtual void		fetchFields(Array &array);
-		virtual void		nextRow();
-		virtual bool		eof();
+public:
+	MySQLResult();
+	virtual ~MySQLResult();
+	virtual	void		clear();
+	virtual uint64_t	affected() const;
+	virtual int			fields() const;
+	virtual String		getString(const String& fieldname);
+	virtual String		getString(int field);
+	virtual int			fieldNum(const String& fieldname);
+	virtual String		fieldName(int field);
+	virtual FieldType	fieldType(int field);
+	virtual FieldType	fieldType(const String& fieldname);
+	virtual AssocArray	fetchArray();
+	virtual void		fetchArray(AssocArray& array);
+	virtual Array		fetchFields();
+	virtual void		fetchFields(Array& array);
+	virtual void		nextRow();
+	virtual bool		eof();
 };
 
 
@@ -147,18 +145,18 @@ int MySQLResult::fields() const
 	return num_fields;
 }
 
-int MySQLResult::fieldNum(const String &fieldname)
+int MySQLResult::fieldNum(const String& fieldname)
 {
 	if (!res) throw NoResultException();
 	if (fieldname.isEmpty()) throw IllegalArgumentException();
 	pplMySQLThreadStart();
 
 	// Das Feld suchen
-	MYSQL_FIELD *field;
+	MYSQL_FIELD* field;
 	field = mysql_fetch_fields(res);
-	const char *searchname=(const char*)fieldname;
-	for(int i=0; i<num_fields; i++) {
-		if (strcmp(field[i].name,searchname)==0) {
+	const char* searchname=(const char*)fieldname;
+	for (int i=0; i < num_fields; i++) {
+		if (strcmp(field[i].name, searchname) == 0) {
 			return i;
 		}
 	}
@@ -168,10 +166,10 @@ int MySQLResult::fieldNum(const String &fieldname)
 String MySQLResult::fieldName(int field)
 {
 	if (!res) throw NoResultException();
-	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
+	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
 	pplMySQLThreadStart();
 
-	MYSQL_FIELD *mf;
+	MYSQL_FIELD* mf;
 	mf = mysql_fetch_fields(res);
 	return String(mf[field].name);
 }
@@ -179,94 +177,94 @@ String MySQLResult::fieldName(int field)
 ResultSet::FieldType MySQLResult::fieldType(int field)
 {
 	if (!res) throw NoResultException();
-	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
+	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
 	pplMySQLThreadStart();
-	MYSQL_FIELD *mf;
+	MYSQL_FIELD* mf;
 	mf = mysql_fetch_fields(res);
 	switch (mf[field].type) {
 #ifdef FIELD_TYPE_TINY
-		case MYSQL_TYPE_TINY:
-			return ResultSet::TYPE_INTEGER;
+	case MYSQL_TYPE_TINY:
+		return ResultSet::TYPE_INTEGER;
 #endif
 #ifdef FIELD_TYPE_SHORT
-		case MYSQL_TYPE_SHORT:
-			return ResultSet::TYPE_INTEGER;
+	case MYSQL_TYPE_SHORT:
+		return ResultSet::TYPE_INTEGER;
 #endif
 #ifdef FIELD_TYPE_LONG
-		case MYSQL_TYPE_LONG:
-			return ResultSet::TYPE_INTEGER;
+	case MYSQL_TYPE_LONG:
+		return ResultSet::TYPE_INTEGER;
 #endif
 #ifdef FIELD_TYPE_INT24
-		case MYSQL_TYPE_INT24:
-			return ResultSet::TYPE_INTEGER;
+	case MYSQL_TYPE_INT24:
+		return ResultSet::TYPE_INTEGER;
 #endif
 #ifdef FIELD_TYPE_LONGLONG
-		case MYSQL_TYPE_LONGLONG:
-			return ResultSet::TYPE_INTEGER;
+	case MYSQL_TYPE_LONGLONG:
+		return ResultSet::TYPE_INTEGER;
 #endif
 #ifdef FIELD_TYPE_DECIMAL
-		case MYSQL_TYPE_DECIMAL:
-			return ResultSet::TYPE_FLOAT;
+	case MYSQL_TYPE_DECIMAL:
+		return ResultSet::TYPE_FLOAT;
 #endif
 #ifdef  FIELD_TYPE_NEWDECIMAL
-		case MYSQL_TYPE_NEWDECIMAL:
-			return ResultSet::TYPE_FLOAT;
+	case MYSQL_TYPE_NEWDECIMAL:
+		return ResultSet::TYPE_FLOAT;
 #endif
 #ifdef FIELD_TYPE_FLOAT
-		case MYSQL_TYPE_FLOAT:
-			return ResultSet::TYPE_FLOAT;
+	case MYSQL_TYPE_FLOAT:
+		return ResultSet::TYPE_FLOAT;
 #endif
 #ifdef FIELD_TYPE_DOUBLE
-		case MYSQL_TYPE_DOUBLE:
-			return ResultSet::TYPE_DOUBLE;
+	case MYSQL_TYPE_DOUBLE:
+		return ResultSet::TYPE_DOUBLE;
 #endif
 #ifdef FIELD_TYPE_BIT
-		case MYSQL_TYPE_BIT:
-			return ResultSet::TYPE_BOOLEAN;
+	case MYSQL_TYPE_BIT:
+		return ResultSet::TYPE_BOOLEAN;
 #endif
 #ifdef FIELD_TYPE_TIMESTAMP
-		case MYSQL_TYPE_TIMESTAMP:
-			return ResultSet::TYPE_DATETIME;
+	case MYSQL_TYPE_TIMESTAMP:
+		return ResultSet::TYPE_DATETIME;
 #endif
 #ifdef FIELD_TYPE_DATE
-		case MYSQL_TYPE_DATE:
-			return ResultSet::TYPE_DATETIME;
+	case MYSQL_TYPE_DATE:
+		return ResultSet::TYPE_DATETIME;
 #endif
 #ifdef FIELD_TYPE_YEAR
-		case MYSQL_TYPE_YEAR:
-			return ResultSet::TYPE_DATETIME;
+	case MYSQL_TYPE_YEAR:
+		return ResultSet::TYPE_DATETIME;
 #endif
 #ifdef FIELD_TYPE_TIME
-		case MYSQL_TYPE_TIME:
-			return ResultSet::TYPE_DATETIME;
+	case MYSQL_TYPE_TIME:
+		return ResultSet::TYPE_DATETIME;
 #endif
 #ifdef FIELD_TYPE_DATETIME
-		case MYSQL_TYPE_DATETIME:
-			return ResultSet::TYPE_DATETIME;
+	case MYSQL_TYPE_DATETIME:
+		return ResultSet::TYPE_DATETIME;
 #endif
 #ifdef FIELD_TYPE_STRING
-		case MYSQL_TYPE_STRING:
-			return ResultSet::TYPE_STRING;
+	case MYSQL_TYPE_STRING:
+		return ResultSet::TYPE_STRING;
 #endif
 #ifdef FIELD_TYPE_VAR_STRING
-		case MYSQL_TYPE_VAR_STRING:
-			return ResultSet::TYPE_STRING;
+	case MYSQL_TYPE_VAR_STRING:
+		return ResultSet::TYPE_STRING;
 #endif
 #if MYSQL_TYPE_VARCHAR > 0
-		case MYSQL_TYPE_VARCHAR:
-			return ResultSet::TYPE_STRING;
+	case MYSQL_TYPE_VARCHAR:
+		return ResultSet::TYPE_STRING;
 #endif
 #ifdef FIELD_TYPE_BLOB
-		case MYSQL_TYPE_BLOB:
-			return ResultSet::TYPE_BINARY;
+	case MYSQL_TYPE_BLOB:
+		return ResultSet::TYPE_BINARY;
 #endif
-		default:
-			return ResultSet::TYPE_UNKNOWN;
+	default:
+		return ResultSet::TYPE_UNKNOWN;
 	}
 	return ResultSet::TYPE_UNKNOWN;
 }
 
-ResultSet::FieldType MySQLResult::fieldType(const String &fieldname)
+ResultSet::FieldType MySQLResult::fieldType(const String& fieldname)
 {
 	int num=fieldNum(fieldname);
 	return fieldType(num);
@@ -279,25 +277,25 @@ AssocArray MySQLResult::fetchArray()
 	return a;
 }
 
-void MySQLResult::fetchArray(AssocArray &array)
+void MySQLResult::fetchArray(AssocArray& array)
 {
 	if (!res) throw NoResultException();
 	if (!row) throw NoResultException();
 	pplMySQLThreadStart();
 
-	MYSQL_FIELD *fields;
+	MYSQL_FIELD* fields;
 	fields = mysql_fetch_fields(res);
 	if (!fields) throw NoResultException();
 	array.clear();
-	for(int i=0; i<num_fields; i++) {
-		if (row[i]) array.set(String(fields[i].name),String(row[i]));
-		else array.set(String(fields[i].name),String(""));
+	for (int i=0; i < num_fields; i++) {
+		if (row[i]) array.set(String(fields[i].name), String(row[i]));
+		else array.set(String(fields[i].name), String(""));
 	}
 	// Nächste Zeile holen
 	row=mysql_fetch_row(res);
 }
 
-String MySQLResult::getString(const String &fieldname)
+String MySQLResult::getString(const String& fieldname)
 {
 	int num=fieldNum(fieldname);
 	return getString(num);
@@ -307,7 +305,7 @@ String MySQLResult::getString(int field)
 {
 	if (!res) throw NoResultException();
 	if (!row) throw NoResultException();
-	if (field>num_fields) throw FieldNotInResultSetException("%d",field);
+	if (field > num_fields) throw FieldNotInResultSetException("%d", field);
 
 	if (row[field]) return String(row[field]);
 	return String();
@@ -321,17 +319,17 @@ Array MySQLResult::fetchFields()
 }
 
 
-void MySQLResult::fetchFields(Array &array)
+void MySQLResult::fetchFields(Array& array)
 {
 	if (!res) throw NoResultException();
 	if (!row) throw NoResultException();
 	pplMySQLThreadStart();
 
-	MYSQL_FIELD *fields;
+	MYSQL_FIELD* fields;
 	fields = mysql_fetch_fields(res);
 	if (!fields) throw NoResultException();
 	array.clear();
-	for(int i=0; i<num_fields; i++) {
+	for (int i=0; i < num_fields; i++) {
 		if (row[i]) array.add(String(row[i]));
 		else array.add(String(""));
 	}
@@ -396,14 +394,14 @@ MySQL::~MySQL()
 #endif
 }
 
-void MySQL::libraryInit(int argc, char **argv, char **groups)
+void MySQL::libraryInit(int argc, char** argv, char** groups)
 {
 #ifdef HAVE_MYSQL
-	if (__mysql_init==1) return;
+	if (__mysql_init == 1) return;
 	MySQLGlobalMutex.lock();
-	if (__mysql_init==0) {
-		if (mysql_library_init(argc, argv, groups)==0) {
-			if (atexit(mysql_library_end)!=0) {
+	if (__mysql_init == 0) {
+		if (mysql_library_init(argc, argv, groups) == 0) {
+			if (atexit(mysql_library_end) != 0) {
 				mysql_library_end();
 				MySQLGlobalMutex.unlock();
 				throw InitializationFailedException("MySQL::libraryInit [atexit]");
@@ -450,7 +448,7 @@ void MySQL::connect()
  * \until EOF
  *
  */
-void MySQL::connect(const AssocArray &params)
+void MySQL::connect(const AssocArray& params)
 {
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
@@ -460,25 +458,25 @@ void MySQL::connect(const AssocArray &params)
 	condata=params;
 	conn=mysql_init(NULL);					// MySQL-Handle erzeugen
 	if (!conn) throw ConnectionFailedException("mysql_init");
-	MYSQL *result=mysql_real_connect((MYSQL *)conn,
-			(const char*)params["host"].toString(),
-			(const char*)params["user"].toString(),
-			(const char*)params["password"].toString(),
-			(const char*)params["dbname"].toString(),
-			params["port"].toString().toInt(),
-			NULL,0);
-	if (result!=NULL) {
+	MYSQL* result=mysql_real_connect((MYSQL*)conn,
+		(const char*)params["host"].toString(),
+		(const char*)params["user"].toString(),
+		(const char*)params["password"].toString(),
+		(const char*)params["dbname"].toString(),
+		params["port"].toString().toInt(),
+		NULL, 0);
+	if (result != NULL) {
 		updateLastUse();
 		String charset="latin1";
 		if (params.exists("charset")) {
 			charset=params["charset"].toString();
 		}
-		int ret=mysql_set_character_set((MYSQL *)conn, (const char*)charset);
-		if (ret!=0) {
+		int ret=mysql_set_character_set((MYSQL*)conn, (const char*)charset);
+		if (ret != 0) {
 			String err;
 			err.setf("mysql_set_character_set %s => %i: %s",
-					(const char*)charset,
-					mysql_errno((MYSQL *)conn),mysql_error((MYSQL *)conn));
+				(const char*)charset,
+				mysql_errno((MYSQL*)conn), mysql_error((MYSQL*)conn));
 			try {
 				close();
 			} catch (...) {
@@ -491,24 +489,24 @@ void MySQL::connect(const AssocArray &params)
 	// Was war der Fehler?
 	String err;
 	err.setf("MySQL-Error: %d: %s, Host: %s:%d, User: %s, Database: %s",
-			mysql_errno((MYSQL *)conn),
-			mysql_error((MYSQL *)conn),
-			(const char*) params["host"].toString(),
-			params["port"].toString().toInt(),
-			(const char*) params["user"].toString(),
-			(const char*) params["dbname"].toString());
-	mysql_close((MYSQL *)conn);
+		mysql_errno((MYSQL*)conn),
+		mysql_error((MYSQL*)conn),
+		(const char*)params["host"].toString(),
+		params["port"].toString().toInt(),
+		(const char*)params["user"].toString(),
+		(const char*)params["dbname"].toString());
+	mysql_close((MYSQL*)conn);
 	clearLastUse();
 	conn=NULL;
 	throw ConnectionFailedException(err);
 #endif
 }
 
-void MySQL::connectCreate(const AssocArray &params)
+void MySQL::connectCreate(const AssocArray& params)
 {
 	AssocArray a=params;
 	a.remove("dbname");
-	a.set("dbname","mysql");
+	a.set("dbname", "mysql");
 	String dbname=params["dbname"];
 	// Versuch auf die immer vorhandene Datenbank "postgres" zuzugreifen
 	connect(a);
@@ -533,7 +531,7 @@ void MySQL::close()
 		return;
 	}
 	pplMySQLThreadStart();
-	mysql_close((MYSQL *)conn);
+	mysql_close((MYSQL*)conn);
 	conn=NULL;
 	clearLastUse();
 #endif
@@ -546,7 +544,7 @@ void MySQL::reconnect()
 #else
 	if (conn) {
 		pplMySQLThreadStart();
-		if (mysql_ping((MYSQL *)conn)==0) return;
+		if (mysql_ping((MYSQL*)conn) == 0) return;
 	}
 	close();
 	AssocArray a=condata;
@@ -554,28 +552,28 @@ void MySQL::reconnect()
 #endif
 }
 
-void MySQL::selectDB(const String &databasename)
+void MySQL::selectDB(const String& databasename)
 {
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
 #else
 	if (!conn) throw NoConnectionException();
 	pplMySQLThreadStart();
-	if ( mysql_select_db((MYSQL *)conn, (const char*)databasename)==0 ) {
+	if (mysql_select_db((MYSQL*)conn, (const char*)databasename) == 0) {
 		updateLastUse();
 		return;
 	}
-	int e=mysql_errno((MYSQL *)conn);
-	if (e==CR_SERVER_GONE_ERROR || e==CR_SERVER_LOST) {
+	int e=mysql_errno((MYSQL*)conn);
+	if (e == CR_SERVER_GONE_ERROR || e == CR_SERVER_LOST) {
 		reconnect();
-		if ( mysql_select_db((MYSQL *)conn, (const char*) databasename)==0 ) {
+		if (mysql_select_db((MYSQL*)conn, (const char*)databasename) == 0) {
 			updateLastUse();
 			return;
 		}
 	}
 	// Was war der Fehler?
 	String err;
-	err.setf("MySQL-Error: %u, %s",mysql_errno((MYSQL *)conn),mysql_error((MYSQL *)conn));
+	err.setf("MySQL-Error: %u, %s", mysql_errno((MYSQL*)conn), mysql_error((MYSQL*)conn));
 	throw OperationFailedException(err);
 #endif
 }
@@ -595,26 +593,26 @@ void MySQL::selectDB(const String &databasename)
  * zurück, im Fehlerfall 0. Der Mutex ist bei Verlassen der Funktion auf jeden Fall gesetzt.
  *
  */
-void MySQL::mysqlQuery(const String &query)
+void MySQL::mysqlQuery(const String& query)
 {
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
 #else
-	if (mysql_real_query((MYSQL *)conn, query.c_str(), query.size())==0) return;
+	if (mysql_real_query((MYSQL*)conn, query.c_str(), query.size()) == 0) return;
 	// Vielleicht ist die DB-Verbindung weg?
-	int e=mysql_errno((MYSQL *)conn);
-	if (e==CR_SERVER_GONE_ERROR || e==CR_SERVER_LOST) {
+	int e=mysql_errno((MYSQL*)conn);
+	if (e == CR_SERVER_GONE_ERROR || e == CR_SERVER_LOST) {
 		reconnect();
-		if (mysql_real_query((MYSQL *)conn, query.c_str(), query.size())==0) return;
+		if (mysql_real_query((MYSQL*)conn, query.c_str(), query.size()) == 0) return;
 	}
 	// Was war der Fehler?
 	String err;
-	err.setf("MySQL-Error: %u, %s",mysql_errno((MYSQL *)conn),mysql_error((MYSQL *)conn));
+	err.setf("MySQL-Error: %u, %s", mysql_errno((MYSQL*)conn), mysql_error((MYSQL*)conn));
 	throw QueryFailedException(err);
 #endif
 }
 
-void MySQL::exec(const String &query)
+void MySQL::exec(const String& query)
 {
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
@@ -626,22 +624,22 @@ void MySQL::exec(const String &query)
 	t_start=GetMicrotime();
 	mysqlQuery(query);
 	updateLastUse();
-	affectedrows = mysql_affected_rows((MYSQL *)conn);
+	affectedrows = mysql_affected_rows((MYSQL*)conn);
 	//lastinsertid=(ppld64)mysql_insert_id((MYSQL *)conn);
-	MYSQL_RES *res = mysql_store_result((MYSQL *)conn);
-	logQuery(query,(float)(GetMicrotime()-t_start));
+	MYSQL_RES* res = mysql_store_result((MYSQL*)conn);
+	logQuery(query, (float)(GetMicrotime() - t_start));
 	if (res) {
 		mysql_free_result(res);
 		return;
 	}
-	if (mysql_errno((MYSQL *)conn)==0) {	// Query hat kein Ergebnis zurückgeliefert
+	if (mysql_errno((MYSQL*)conn) == 0) {	// Query hat kein Ergebnis zurückgeliefert
 		return;
 	}
 	throw QueryFailedException(query);
 #endif
 }
 
-ResultSet *MySQL::query(const String &query)
+ResultSet* MySQL::query(const String& query)
 {
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
@@ -654,14 +652,14 @@ ResultSet *MySQL::query(const String &query)
 	mysqlQuery(query);
 	updateLastUse();
 	//lastinsertid=(ppld64)mysql_insert_id((MYSQL *)conn);
-	MYSQL_RES *res = mysql_store_result((MYSQL *)conn);
-	affectedrows = mysql_affected_rows((MYSQL *)conn);
-	logQuery(query,(float)(GetMicrotime()-t_start));
+	MYSQL_RES* res = mysql_store_result((MYSQL*)conn);
+	affectedrows = mysql_affected_rows((MYSQL*)conn);
+	logQuery(query, (float)(GetMicrotime() - t_start));
 	// Result-Klasse erstellen
 	if (!res) {
 		throw NoResultException(query);
 	}
-	MySQLResult *pr=new MySQLResult;
+	MySQLResult* pr=new MySQLResult;
 	if (!pr) {
 		mysql_free_result(res);
 		throw OutOfMemoryException();
@@ -669,7 +667,7 @@ ResultSet *MySQL::query(const String &query)
 	pr->res=res;
 	pr->row=mysql_fetch_row(res);
 	pr->mysql_class=this;
-	pr->conn=(MYSQL *)conn;
+	pr->conn=(MYSQL*)conn;
 	pr->affectedrows=affectedrows;
 	pr->num_fields=mysql_num_fields(res);
 	return pr;
@@ -683,7 +681,7 @@ bool MySQL::ping()
 #else
 	if (!conn) return false;
 	pplMySQLThreadStart();
-	if (mysql_ping((MYSQL *)conn)==0) {		// Server ist noch connected
+	if (mysql_ping((MYSQL*)conn) == 0) {		// Server ist noch connected
 		updateLastPing();
 		return true;
 	}
@@ -691,21 +689,21 @@ bool MySQL::ping()
 #endif
 }
 
-String MySQL::escape(const String &str) const
+String MySQL::escape(const String& str) const
 {
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
 #else
 	if (!conn) throw NoConnectionException();
 	pplMySQLThreadStart();
-	size_t l=str.size()*2+1;
-	char *buf=(char *)malloc(l);   // Buffer reservieren
+	size_t l=str.size() * 2 + 1;
+	char* buf=(char*)malloc(l);   // Buffer reservieren
 	if (!buf) {
 		throw OutOfMemoryException();
 	}
-	size_t newlength=mysql_real_escape_string((MYSQL *)conn,buf,str.c_str(),(unsigned long)str.size());
-	if (newlength!=(size_t)-1) {
-		String ret(buf,newlength);
+	size_t newlength=mysql_real_escape_string((MYSQL*)conn, buf, str.c_str(), (unsigned long)str.size());
+	if (newlength != (size_t)-1) {
+		String ret(buf, newlength);
 		free(buf);
 		return ret;
 	}
@@ -724,11 +722,11 @@ void MySQL::startTransaction()
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
 #else
-	if (transactiondepth==0) {	// Neue Transaktion
+	if (transactiondepth == 0) {	// Neue Transaktion
 		exec("BEGIN");
 		transactiondepth++;
 	} else {
-		execf("SAVEPOINT LEVEL%i",transactiondepth);
+		execf("SAVEPOINT LEVEL%i", transactiondepth);
 		transactiondepth++;
 	}
 #endif
@@ -739,11 +737,11 @@ void MySQL::endTransaction()
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
 #else
-	if (transactiondepth==1) {
+	if (transactiondepth == 1) {
 		exec("COMMIT");
 		transactiondepth=0;
 	} else {
-		execf("RELEASE SAVEPOINT LEVEL%i",transactiondepth-1);
+		execf("RELEASE SAVEPOINT LEVEL%i", transactiondepth - 1);
 		transactiondepth--;
 	}
 #endif
@@ -754,11 +752,11 @@ void MySQL::cancelTransaction()
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
 #else
-	if (transactiondepth==1) {
+	if (transactiondepth == 1) {
 		exec("ROLLBACK");
 		transactiondepth=0;
 	} else {
-		execf("ROLLBACK TO SAVEPOINT LEVEL%i",transactiondepth-1);
+		execf("ROLLBACK TO SAVEPOINT LEVEL%i", transactiondepth - 1);
 		transactiondepth--;
 	}
 #endif
@@ -774,7 +772,7 @@ void MySQL::cancelTransactionComplete()
 #endif
 }
 
-void MySQL::createDatabase(const String &name)
+void MySQL::createDatabase(const String& name)
 {
 #ifndef HAVE_MYSQL
 	throw UnsupportedFeatureException("MySQL");
@@ -788,18 +786,16 @@ String MySQL::databaseType() const
 	return String("MySQL");
 }
 
-String MySQL::getQuoted(const String &value, const String &type) const
+String MySQL::getQuoted(const String& value, const String& type) const
 {
 	String Type=type;
 	String s=escape(value);
 	Type.lowerCase();
-	if (Type=="int" || Type=="integer") return s;
-	if (Type=="bit" || Type=="boolean") return "'"+s+"'";
-	return "'"+s+"'";
+	if (Type == "int" || Type == "integer") return s;
+	if (Type == "bit" || Type == "boolean") return "'" + s + "'";
+	return "'" + s + "'";
 }
 
 
 }	// EOF namespace db
 }	// EOF namespace ppl7
-
-

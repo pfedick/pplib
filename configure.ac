@@ -36,8 +36,8 @@
 ###############################################################################
 
 dnl Process this file with autoconf to produce a configure script.
-AC_PREREQ(2.69)
-AC_INIT([ppl], [7.0.0], [patrick@pfp.de], [ppl-7.0.0.tar.bz2])
+AC_PREREQ([2.71])
+AC_INIT([ppl],[7.0.0],[patrick@pfp.de],[ppl-7.0.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
 AC_CONFIG_SRCDIR([include/ppl7.h])
@@ -242,13 +242,13 @@ PKG_PROG_PKG_CONFIG()
 #--------------------------------------------------------------------
 
 AC_HEADER_STDBOOL
-AC_HEADER_TIME
+AC_CHECK_HEADERS_ONCE([sys/time.h])
 AC_TYPE_MODE_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
 AC_TYPE_OFF_T
-dnl AC_SIZEOF_TYPE(off_t)
+dnl AC_CHECK_SIZEOF([off_t])
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -392,9 +392,8 @@ AC_CHECK_FUNCS([sched_yield pthread_yield])
 
 
 AC_CACHE_CHECK([for sa_len in struct sockaddr], ac_cv_struct_sa_len,
-[AC_TRY_COMPILE([#include <sys/types.h>
-#include <sys/socket.h>], [struct sockaddr s; s.sa_len;],
-ac_cv_struct_sa_len=yes, ac_cv_struct_sa_len=no)])
+[AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <sys/types.h>
+#include <sys/socket.h>]], [[struct sockaddr s; s.sa_len;]])],[ac_cv_struct_sa_len=yes],[ac_cv_struct_sa_len=no])])
 if test $ac_cv_struct_sa_len = yes; then
   AC_DEFINE(HAVE_SOCKADDR_SA_LEN)
 fi

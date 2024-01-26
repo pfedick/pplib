@@ -44,9 +44,7 @@
 #ifdef HAVE_WCHAR_H
 #include <wchar.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -1215,7 +1213,7 @@ void Dir::open(const char* path, Sort s)
 #else
 	throw UnsupportedFeatureException("Dir::open");
 #endif
-}
+	}
 
 bool Dir::canOpen(const String & path)
 {
@@ -1245,7 +1243,7 @@ bool Dir::canOpen(const String & path)
 	return true;
 #endif
 	return false;
-}
+	}
 
 bool Dir::tryOpen(const String & path, Sort s)
 {
@@ -1331,9 +1329,9 @@ void Dir::mkDir(const String & path, mode_t mode, bool recursive)
 #else
 			if (mkdir((const char*)s, mode) != 0) throw CreateDirectoryFailedException("%s", (const char*)s);
 #endif
-		}
+			}
 		s.append("/");
+		}
 	}
-}
 
 } // EOF namespace ppl7

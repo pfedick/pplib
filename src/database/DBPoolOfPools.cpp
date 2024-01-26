@@ -40,9 +40,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif

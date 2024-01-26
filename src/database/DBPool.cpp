@@ -40,9 +40,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -193,7 +191,7 @@ DBPool::~DBPool()
 	clearUsedPool();
 }
 
-static String calcHash(const AssocArray &param)
+static String calcHash(const AssocArray& param)
 {
 	ByteArray buffer;
 	param.exportBinary(buffer);
@@ -211,16 +209,16 @@ static String calcHash(const AssocArray &param)
  * ppl6::db::Connect, bzw. der jeweiligen Datenbank-Klasse unterstützt werden.
  * \returns Die Funktion liefert bei Erfolg true (1) zurück, sonst false (0).
  */
-void DBPool::setConnectParams(const AssocArray &connect)
+void DBPool::setConnectParams(const AssocArray& connect)
 {
-	if (Log) Log->print(ppl7::Logger::INFO,4,"ppl7::db::DBPool","setConnectParams",__FILE__,__LINE__,
-			ppl7::ToString("Setze Connect Parameter für Pool id=%i, name=\"%s\"",Id,(const char*)Name));
+	if (Log) Log->print(ppl7::Logger::INFO, 4, "ppl7::db::DBPool", "setConnectParams", __FILE__, __LINE__,
+		ppl7::ToString("Setze Connect Parameter für Pool id=%i, name=\"%s\"", Id, (const char*)Name));
 	PoolMutex.lock();
-	if (calcHash(connect)!=calcHash(this->ConnectParam)) {
+	if (calcHash(connect) != calcHash(this->ConnectParam)) {
 		// increment version and remove remaining connections from free pool
 		ConnectParamVersion++;
-		std::list<Database *>::iterator it;
-		for (it=Free.begin();it!=Free.end();++it) {
+		std::list<Database*>::iterator it;
+		for (it=Free.begin();it != Free.end();++it) {
 			delete(*it);
 		}
 		Free.clear();
@@ -230,7 +228,7 @@ void DBPool::setConnectParams(const AssocArray &connect)
 	PoolMutex.unlock();
 }
 
-void DBPool::setOptions(const AssocArray &options)
+void DBPool::setOptions(const AssocArray& options)
 {
 	AssocArray::Iterator it;
 	String Key, Value;
@@ -240,7 +238,7 @@ void DBPool::setOptions(const AssocArray &options)
 	}
 }
 
-void DBPool::setOption(const String &Name, const String &Value)
+void DBPool::setOption(const String& Name, const String& Value)
 {
 	/*
 	CString Opt=Name;
@@ -264,7 +262,7 @@ void DBPool::setOption(const String &Name, const String &Value)
 		*/
 }
 
-void DBPool::setName(const String &Name)
+void DBPool::setName(const String& Name)
 {
 	this->Name=Name;
 }
@@ -314,7 +312,7 @@ void DBPool::setKeepAliveIntervall(int seconds)
 	this->KeepAlive=seconds;
 }
 
-void DBPool::setLogger(Logger &logger)
+void DBPool::setLogger(Logger& logger)
 {
 	this->Log=&logger;
 }

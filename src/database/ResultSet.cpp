@@ -45,9 +45,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -370,14 +368,14 @@ namespace db {
  * \param[out] array Ein AssocArray, das das ResultSet aufnehmen soll
  * \exception IllegalArgumentException Wird geworfen, wenn \p res auf NULL zeigt
  */
-void copyResultToAssocArray(ResultSet *res, AssocArray &array)
+void copyResultToAssocArray(ResultSet* res, AssocArray& array)
 {
 	if (!res) throw IllegalArgumentException();
 	array.clear();
 	AssocArray row;
 	while (!res->eof()) {
 		res->fetchArray(row);
-		array.set("[]",row);
+		array.set("[]", row);
 	}
 }
 

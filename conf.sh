@@ -13,15 +13,15 @@
 #
 # Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
 #   1. Redistributions of source code must retain the above copyright notice,
-#      this list of conditions and the following disclaimer. 
+#      this list of conditions and the following disclaimer.
 #   2. Redistributions in binary form must reproduce the above copyright notice,
 #      this list of conditions and the following disclaimer in the documentation
-#      and/or other materials provided with the distribution. 
+#      and/or other materials provided with the distribution.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -73,14 +73,14 @@ case "$SYS:$REL:$KERNEL" in
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
 		export CFLAGS="-DCURL_STATICLIB"
 		echo "Building for MinGW 1.0.16 - 32 Bit"
-		
+
 			#		preprocessor definitions will be in effect:
 			# * #define _WIN64 1 (also WIN64, __WIN64, and __WIN64__)
 			# * #define __MINGW64__ 1
 			# * #define __x86_64 1 (also __x86_64__)
 			# * #define __amd64 1 (also __amd64__)
-			#Be sure to use "-m32" or "-m64" at both the compile stage and the link stage. 
-		
+			#Be sure to use "-m32" or "-m64" at both the compile stage and the link stage.
+
 		./configure --prefix=$PREFIX \
 			--build=i686-w64-mingw32 \
 			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
@@ -139,15 +139,15 @@ case "$SYS:$REL:$KERNEL" in
 		    --without-postgresql --without-mysql \
 		    --with-sdl-prefix=no \
 		    --enable-gtest=/usr/local/gtest-1.7.0 \
-				
-		;;		
+
+		;;
 	Linux:*)
-	
+
 	    # export CFLAGS="-no-pie "
 		echo "configuring for generic Linux"
 		./configure --prefix=$PREFIX \
 			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
-			--with-mysql  --with-libiconv-prefix --with-nasm \
+			--with-mysql  --with-libiconv-prefix --without-nasm \
 			--with-gcrypt=auto --with-ogg=/usr \
 			--with-postgresql \
 			--with-libmicrohttpd=/usr/local \
@@ -155,9 +155,8 @@ case "$SYS:$REL:$KERNEL" in
 			--with-libtiff=/usr --with-mpg123 \
             --with-libidn --with-libidn2 --with-libldns=/usr \
 			--enable-gtest=/usr/local/googletest-release-1.7.0
-		;;	
+		;;
 	*)
 		echo "Unknown host"
 		;;
 esac
-

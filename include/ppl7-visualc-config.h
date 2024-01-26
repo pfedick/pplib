@@ -21,7 +21,7 @@
 #define HAVE_LOCALE_H 1
 #define HAVE_ERRNO_H 1
 //#define HAVE_WIDEC_H 0
-#define HAVE_TIME_H 1
+#define HAVE_SYS_TIME_H 1
 #define HAVE_FCNTL_H 1
 //#define HAVE_SYS_MMAN_H 0
 //#define HAVE_UNISTD_H 0

@@ -43,9 +43,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_TIME_H
 #include <time.h>
-#endif
 #ifdef HAVE_FXNTL_H
 #include <fcntl.h>
 #endif
@@ -139,11 +137,11 @@ int main (int argc, char **argv)
  *
 \verbatim
 Byte 0: Kompressions-Flag (siehe oben)
-        Bits 0-2: Kompressionsart
-                  0=keine
-                  1=Zlib
-                  2=Bzip2
-        Bits 3-7: unbenutzt, müssen 0 sein
+		Bits 0-2: Kompressionsart
+				  0=keine
+				  1=Zlib
+				  2=Bzip2
+		Bits 3-7: unbenutzt, müssen 0 sein
 Byte 1: Bytes Unkomprimiert (4 Byte)
 Byte 5: Bytes Komprimiert (4 Byte)
 \endverbatim
@@ -157,15 +155,15 @@ Byte 5: Bytes Komprimiert (4 Byte)
  *
 \verbatim
 Byte 0: Kompression-Flag
-        Bits 0-2: Kompressionsart
-                  0=keine
-                  1=Zlib
-                  2=Bzip2
-        Bit 3:    Headerversion
-        Bits 4-5: Bytezahl Uncompressed Value
-                  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
-        Bits 6-7: Bytezahl Compressed Value
-                  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
+		Bits 0-2: Kompressionsart
+				  0=keine
+				  1=Zlib
+				  2=Bzip2
+		Bit 3:    Headerversion
+		Bits 4-5: Bytezahl Uncompressed Value
+				  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
+		Bits 6-7: Bytezahl Compressed Value
+				  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
 Byte 1: Bytes Unkomprimiert (1-4 Byte)
 Byte n: Bytes Komprimiert (1-4 Byte)
 \endverbatim
@@ -328,8 +326,8 @@ Compression::~Compression()
  * ebenfalls ungültig und darf nicht mehr verwendet werden.
  */
 {
-	if(buffer) free(buffer);
-	if(uncbuffer) free(uncbuffer);
+	if (buffer) free(buffer);
+	if (uncbuffer) free(uncbuffer);
 }
 
 void Compression::usePrefix(Prefix prefix)
@@ -362,12 +360,12 @@ void Compression::init(Algorithm method, Level level)
  */
 {
 #ifndef HAVE_LIBZ
-	if (method==Algo_ZLIB) {
+	if (method == Algo_ZLIB) {
 		throw UnsupportedFeatureException("Zlib");
 	}
 #endif
 #ifndef HAVE_BZIP2
-	if (method==Algo_BZIP2) {
+	if (method == Algo_BZIP2) {
 		throw UnsupportedFeatureException("Bzip2");
 	}
 #endif
@@ -376,7 +374,7 @@ void Compression::init(Algorithm method, Level level)
 	lll=level;
 }
 
-void Compression::doNone(void *dst, size_t *dstlen, const void *src, size_t size)
+void Compression::doNone(void* dst, size_t* dstlen, const void* src, size_t size)
 /*!\brief Keine Komprimierung verwenden
  *
  * \descr
@@ -392,15 +390,15 @@ void Compression::doNone(void *dst, size_t *dstlen, const void *src, size_t size
  * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
  */
 {
-	if (*dstlen<size) {
+	if (*dstlen < size) {
 		*dstlen=size;
 		throw BufferTooSmallException();
 	}
-	memcpy(dst,src,size);
+	memcpy(dst, src, size);
 	*dstlen=size;
 }
 
-void Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size)
+void Compression::doZlib(void* dst, size_t* dstlen, const void* src, size_t size)
 /*!\brief Zlib-Komprimierung verwenden
  *
  * \descr
@@ -425,35 +423,35 @@ void Compression::doZlib(void *dst, size_t *dstlen, const void *src, size_t size
 	uLongf dstlen_zlib;
 	int zcomplevel;
 	switch (lll) {			// Kompressionslevel festlegen
-		case Level_Fast:
-			zcomplevel=Z_BEST_SPEED;
-			break;
-		case Level_Normal:
-			zcomplevel=5;
-			break;
-		case Level_High:
-			zcomplevel=Z_BEST_COMPRESSION;
-			break;
-		default:
-			zcomplevel=Z_DEFAULT_COMPRESSION;
-			break;
+	case Level_Fast:
+		zcomplevel=Z_BEST_SPEED;
+		break;
+	case Level_Normal:
+		zcomplevel=5;
+		break;
+	case Level_High:
+		zcomplevel=Z_BEST_COMPRESSION;
+		break;
+	default:
+		zcomplevel=Z_DEFAULT_COMPRESSION;
+		break;
 	}
 	dstlen_zlib=(uLongf)*dstlen;
-	int res=::compress2((Bytef*)dst,(uLongf *)&dstlen_zlib,(const Bytef*)src,(uLong)size,zcomplevel);
-	if (res==Z_OK) {
+	int res=::compress2((Bytef*)dst, (uLongf*)&dstlen_zlib, (const Bytef*)src, (uLong)size, zcomplevel);
+	if (res == Z_OK) {
 		*dstlen=(uint32_t)dstlen_zlib;
 		return;
-	} else if (res==Z_MEM_ERROR) {
+	} else if (res == Z_MEM_ERROR) {
 		throw OutOfMemoryException();
-	} else if (res==Z_BUF_ERROR) {
+	} else if (res == Z_BUF_ERROR) {
 		*dstlen=(uint32_t)dstlen_zlib;
 		throw BufferTooSmallException();
-	} else if (res==Z_STREAM_ERROR) throw CompressionFailedException();
+	} else if (res == Z_STREAM_ERROR) throw CompressionFailedException();
 	throw CompressionFailedException();
 #endif
 }
 
-void Compression::doBzip2(void *dst, size_t *dstlen, const void *src, size_t size)
+void Compression::doBzip2(void* dst, size_t* dstlen, const void* src, size_t size)
 /*!\brief Bzip2-Komprimierung verwenden
  *
  * \descr
@@ -477,33 +475,33 @@ void Compression::doBzip2(void *dst, size_t *dstlen, const void *src, size_t siz
 #else
 	int zcomplevel;
 	switch (lll) {
-		case Level_Fast:
-			zcomplevel=1;
-			break;
-		case Level_Normal:
-			zcomplevel=5;
-			break;
-		case Level_High:
-			zcomplevel=9;
-			break;
-		default:
-			zcomplevel=5;
-			break;
+	case Level_Fast:
+		zcomplevel=1;
+		break;
+	case Level_Normal:
+		zcomplevel=5;
+		break;
+	case Level_High:
+		zcomplevel=9;
+		break;
+	default:
+		zcomplevel=5;
+		break;
 	}
-	int ret=BZ2_bzBuffToBuffCompress((char*)dst,(unsigned int *)dstlen,(char*)src,
-		(int)size,zcomplevel,0,30);
-	if (ret==BZ_OK) {
+	int ret=BZ2_bzBuffToBuffCompress((char*)dst, (unsigned int*)dstlen, (char*)src,
+		(int)size, zcomplevel, 0, 30);
+	if (ret == BZ_OK) {
 		return;
-	} else if (ret==BZ_MEM_ERROR) {
+	} else if (ret == BZ_MEM_ERROR) {
 		throw OutOfMemoryException();
-	} else if (ret==BZ_OUTBUFF_FULL) {
+	} else if (ret == BZ_OUTBUFF_FULL) {
 		throw BufferTooSmallException();
 	}
 	throw CompressionFailedException();
 #endif
 }
 
-void Compression::unNone (void *dst, size_t *dstlen, const void *src, size_t srclen)
+void Compression::unNone(void* dst, size_t* dstlen, const void* src, size_t srclen)
 /*!\brief Speicherbereich ohne Dekompression kopieren
  *
  * \descr
@@ -519,15 +517,15 @@ void Compression::unNone (void *dst, size_t *dstlen, const void *src, size_t src
  * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
  */
 {
-	if (*dstlen<srclen) {
+	if (*dstlen < srclen) {
 		*dstlen=srclen;
 		throw BufferTooSmallException();
 	}
-	memcpy(dst,src,srclen);
+	memcpy(dst, src, srclen);
 	*dstlen=srclen;
 }
 
-void Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t srclen)
+void Compression::unZlib(void* dst, size_t* dstlen, const void* src, size_t srclen)
 /*!\brief Zlib-Komprimierte Daten entpacken
  *
  * \descr
@@ -555,23 +553,23 @@ void Compression::unZlib (void *dst, size_t *dstlen, const void *src, size_t src
 	uLongf dstlen_zlib;
 	d=*dstlen;
 	dstlen_zlib=(uLongf)d;
-	int ret=::uncompress((Bytef*)dst,&dstlen_zlib,(const Bytef*) src,(uLong)srclen);
-	if (ret==Z_OK) {
+	int ret=::uncompress((Bytef*)dst, &dstlen_zlib, (const Bytef*)src, (uLong)srclen);
+	if (ret == Z_OK) {
 		*dstlen=(uint32_t)dstlen_zlib;
 		return;
-	} else if (ret==Z_MEM_ERROR) {
+	} else if (ret == Z_MEM_ERROR) {
 		throw OutOfMemoryException();
-	} else if (ret==Z_BUF_ERROR) {
+	} else if (ret == Z_BUF_ERROR) {
 		*dstlen=(uint32_t)dstlen_zlib;
 		throw BufferTooSmallException();
-	} else if (ret==Z_DATA_ERROR) {
+	} else if (ret == Z_DATA_ERROR) {
 		throw CorruptedDataException("Z_DATA_ERROR");
 	}
 	throw DecompressionFailedException();
 #endif
 }
 
-void Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t srclen)
+void Compression::unBzip2(void* dst, size_t* dstlen, const void* src, size_t srclen)
 /*!\brief Bzip2-Komprimierte Daten entpacken
  *
  * \descr
@@ -595,14 +593,14 @@ void Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t sr
 #ifndef HAVE_BZIP2
 	throw UnsupportedFeatureException("Bzip2");
 #else
-	int ret=BZ2_bzBuffToBuffDecompress((char*)dst,(unsigned int*)dstlen,(char*)src,(int)srclen,0,0);
-	if (ret==BZ_OK) {
+	int ret=BZ2_bzBuffToBuffDecompress((char*)dst, (unsigned int*)dstlen, (char*)src, (int)srclen, 0, 0);
+	if (ret == BZ_OK) {
 		return;
-	} else if (ret==BZ_MEM_ERROR) {
+	} else if (ret == BZ_MEM_ERROR) {
 		throw OutOfMemoryException();
-	} else if (ret==BZ_OUTBUFF_FULL) {
+	} else if (ret == BZ_OUTBUFF_FULL) {
 		throw BufferTooSmallException();
-	} else if (ret==BZ_DATA_ERROR || ret==BZ_DATA_ERROR_MAGIC || ret==BZ_UNEXPECTED_EOF) {
+	} else if (ret == BZ_DATA_ERROR || ret == BZ_DATA_ERROR_MAGIC || ret == BZ_UNEXPECTED_EOF) {
 		throw CorruptedDataException();
 	}
 	throw DecompressionFailedException();
@@ -613,7 +611,7 @@ void Compression::unBzip2 (void *dst, size_t *dstlen, const void *src, size_t sr
 
 
 
-void Compression::compress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm a)
+void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a)
 /*!\brief Komprimierung eines Speicherbereiches in einen anderen
  *
  * \descr
@@ -644,23 +642,23 @@ void Compression::compress(void *dst, size_t *dstlen, const void *src, size_t sr
  */
 {
 	if ((!src) || (!dst)) throw NullPointerException();
-	if (dstlen==NULL) throw NullPointerException();
-	if (a==Unknown) a=aaa;
+	if (dstlen == NULL) throw NullPointerException();
+	if (a == Unknown) a=aaa;
 	switch (a) {
-		case Algo_NONE:
-			doNone(dst,dstlen,src,srclen);
-			return;
-		case Algo_ZLIB:
-			doZlib(dst,dstlen,src,srclen);
-			return;
-		case Algo_BZIP2:
-			doBzip2(dst,dstlen,src,srclen);
-			return;
-		default: throw UnsupportedFeatureException();
+	case Algo_NONE:
+		doNone(dst, dstlen, src, srclen);
+		return;
+	case Algo_ZLIB:
+		doZlib(dst, dstlen, src, srclen);
+		return;
+	case Algo_BZIP2:
+		doBzip2(dst, dstlen, src, srclen);
+		return;
+	default: throw UnsupportedFeatureException();
 	}
 }
 
-ByteArrayPtr Compression::compress(const void *ptr, size_t size)
+ByteArrayPtr Compression::compress(const void* ptr, size_t size)
 /*!\brief Komprimierung eines Speicherbereiches
  *
  * \descr
@@ -686,79 +684,79 @@ ByteArrayPtr Compression::compress(const void *ptr, size_t size)
  */
 {
 	if (buffer) free(buffer);
-	size_t dstlen=size+64;
-	buffer=malloc(dstlen+9);
+	size_t dstlen=size + 64;
+	buffer=malloc(dstlen + 9);
 	if (!buffer) throw OutOfMemoryException();
-	char *tgt=(char*)buffer+9;
-	compress(tgt,&dstlen,ptr,size);
-	if (prefix==Prefix_None) {
-		return ByteArrayPtr(tgt,dstlen);
-	} else if (prefix==Prefix_V1) {
-		char *prefix=(char*)buffer;
-		Poke8(prefix,(aaa&7));	// Nur die unteren 3 Bits sind gültig, Rest 0
-		Poke32(prefix+1,(int)size);	// Größe Unkomprimiert
-		Poke32(prefix+5,(int)dstlen);// Größe Komprimiert
-		return ByteArrayPtr(prefix,dstlen+9);
-	} else if (prefix==Prefix_V2) {
+	char* tgt=(char*)buffer + 9;
+	compress(tgt, &dstlen, ptr, size);
+	if (prefix == Prefix_None) {
+		return ByteArrayPtr(tgt, dstlen);
+	} else if (prefix == Prefix_V1) {
+		char* prefix=(char*)buffer;
+		Poke8(prefix, (aaa & 7));	// Nur die unteren 3 Bits sind gültig, Rest 0
+		Poke32(prefix + 1, (int)size);	// Größe Unkomprimiert
+		Poke32(prefix + 5, (int)dstlen);// Größe Komprimiert
+		return ByteArrayPtr(prefix, dstlen + 9);
+	} else if (prefix == Prefix_V2) {
 		// Zuerst prüfen wir, wieviel Bytes wir für die jeweiligen Blöcke brauchen
 		int b_unc=4, b_comp=4;
-		int flag=aaa&7;					// Nur die unteren 3 Bits sind gültig, Rest 0
+		int flag=aaa & 7;					// Nur die unteren 3 Bits sind gültig, Rest 0
 		flag|=8;						// Version 2-Bit setzen
 
-		if (size<=0xff) b_unc=1;
-		else if (size<=0xffff) b_unc=2;
-		else if (size<=0xffffff) b_unc=3;
-		if (dstlen<=0xff) b_comp=1;
-		else if (dstlen<=0xffff) b_comp=2;
-		else if (dstlen<=0xffffff) b_comp=3;
-		int bytes=1+b_unc+b_comp;
-		char *prefix=tgt-bytes;
-		char *p2=prefix+1;
+		if (size <= 0xff) b_unc=1;
+		else if (size <= 0xffff) b_unc=2;
+		else if (size <= 0xffffff) b_unc=3;
+		if (dstlen <= 0xff) b_comp=1;
+		else if (dstlen <= 0xffff) b_comp=2;
+		else if (dstlen <= 0xffffff) b_comp=3;
+		int bytes=1 + b_unc + b_comp;
+		char* prefix=tgt - bytes;
+		char* p2=prefix + 1;
 
 		// Daten unkomprimiert
-		if (b_unc==1) {
-			Poke8(prefix+1,(int)size);
-			p2=prefix+2;
-		} else if (b_unc==2) {
-			Poke16(prefix+1,(int)size);
-			p2=prefix+3;
+		if (b_unc == 1) {
+			Poke8(prefix + 1, (int)size);
+			p2=prefix + 2;
+		} else if (b_unc == 2) {
+			Poke16(prefix + 1, (int)size);
+			p2=prefix + 3;
 			flag|=16;
-		} else if (b_unc==3) {
-			Poke24(prefix+1,(int)size);
-			p2=prefix+4;
+		} else if (b_unc == 3) {
+			Poke24(prefix + 1, (int)size);
+			p2=prefix + 4;
 			flag|=32;
 		} else {
-			Poke32(prefix+1,(int)size);
-			p2=prefix+5;
-			flag|=(16+32);
+			Poke32(prefix + 1, (int)size);
+			p2=prefix + 5;
+			flag|=(16 + 32);
 		}
 
 		// Daten komprimiert
-		if (b_comp==1) {
-			Poke8(p2,(int)dstlen);
-		} else if (b_comp==2) {
-			Poke16(p2,(int)dstlen);
+		if (b_comp == 1) {
+			Poke8(p2, (int)dstlen);
+		} else if (b_comp == 2) {
+			Poke16(p2, (int)dstlen);
 			flag|=64;
-		} else if (b_comp==3) {
-			Poke24(p2,(int)dstlen);
+		} else if (b_comp == 3) {
+			Poke24(p2, (int)dstlen);
 			flag|=128;
 		} else {
-			Poke32(p2,(int)dstlen);
-			flag|=(128+64);
+			Poke32(p2, (int)dstlen);
+			flag|=(128 + 64);
 		}
-		Poke8(prefix,flag);
+		Poke8(prefix, flag);
 		/*
 		printf ("DEBUG\n");
 		printf ("b_unc=%d, b_comp=%d, bytes=%d, flag=%d\n", b_unc, b_comp, bytes, flag);
 		printf ("size unc=%zd, size_comp=%zd\n", size, dstlen);
 		*/
-		return ByteArrayPtr(prefix,dstlen+bytes);
+		return ByteArrayPtr(prefix, dstlen + bytes);
 	}
 	// Bis hierhin sollte es nicht kommen
 	throw UnknownException();
 }
 
-ByteArrayPtr Compression::compress(const ByteArrayPtr &in)
+ByteArrayPtr Compression::compress(const ByteArrayPtr& in)
 /*!\brief Komprimierung eines Speicherbereiches
  *
  * \descr
@@ -783,10 +781,10 @@ ByteArrayPtr Compression::compress(const ByteArrayPtr &in)
  *
  */
 {
-	return compress(in.ptr(),in.size());
+	return compress(in.ptr(), in.size());
 }
 
-void Compression::compress(ByteArray &out, const void *ptr, size_t size)
+void Compression::compress(ByteArray& out, const void* ptr, size_t size)
 /*!\brief Komprimierung eines Speicherbereiches in ein ByteArray Objekt
  *
  * \descr
@@ -809,11 +807,11 @@ void Compression::compress(ByteArray &out, const void *ptr, size_t size)
  *
  */
 {
-	ByteArrayPtr r=compress(ptr,size);
+	ByteArrayPtr r=compress(ptr, size);
 	out.copy(r);
 }
 
-void Compression::compress(ByteArray &out, const ByteArrayPtr &in)
+void Compression::compress(ByteArray& out, const ByteArrayPtr& in)
 /*!\brief Komprimierung eines Speicherbereichs in ein CMemory-Objekt
  *
  * \descr
@@ -834,10 +832,10 @@ void Compression::compress(ByteArray &out, const ByteArrayPtr &in)
  *
  */
 {
-	compress(out,in.adr(),in.size());
+	compress(out, in.adr(), in.size());
 }
 
-void Compression::uncompress(void *dst, size_t *dstlen, const void *src, size_t srclen, Algorithm a)
+void Compression::uncompress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a)
 /*!\brief Dekomprimierung eines Speicherbereiches in einen anderen
  *
  * \descr
@@ -868,24 +866,24 @@ void Compression::uncompress(void *dst, size_t *dstlen, const void *src, size_t 
  */
 {
 	if ((!src) || (!dst)) throw NullPointerException();
-	if (dstlen==NULL) throw NullPointerException();
-	if (a==Unknown) a=aaa;
+	if (dstlen == NULL) throw NullPointerException();
+	if (a == Unknown) a=aaa;
 	switch (a) {
-		case Algo_NONE:
-			unNone(dst,dstlen,src,srclen);
-			return;
-		case Algo_ZLIB:
-			unZlib(dst,dstlen,src,srclen);
-			return;
-		case Algo_BZIP2:
-			unBzip2(dst,dstlen,src,srclen);
-			return;
-		default:
-			throw UnsupportedFeatureException();
+	case Algo_NONE:
+		unNone(dst, dstlen, src, srclen);
+		return;
+	case Algo_ZLIB:
+		unZlib(dst, dstlen, src, srclen);
+		return;
+	case Algo_BZIP2:
+		unBzip2(dst, dstlen, src, srclen);
+		return;
+	default:
+		throw UnsupportedFeatureException();
 	}
 }
 
-ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
+ByteArrayPtr Compression::uncompress(const void* ptr, size_t size)
 /*!\brief Dekomprimierung eines Speicherbereichs in ein CBinary Objekt
  *
  * \descr
@@ -910,8 +908,8 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 {
 	if (uncbuffer) free(uncbuffer);
 	uncbuffer=NULL;
-	if (prefix==Prefix_None) {
-		size_t bsize=size*3;
+	if (prefix == Prefix_None) {
+		size_t bsize=size * 3;
 		while (1) {
 			if (uncbuffer) free(uncbuffer);
 			uncbuffer=malloc(bsize);
@@ -919,9 +917,9 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 			// Wir prüfen, ob das Ergebnis in den Buffer passt
 			size_t dstlen=bsize;
 			try {
-				uncompress(uncbuffer,&dstlen,ptr,size);
-				return ByteArrayPtr(uncbuffer,dstlen);
-			} catch (BufferTooSmallException &) {
+				uncompress(uncbuffer, &dstlen, ptr, size);
+				return ByteArrayPtr(uncbuffer, dstlen);
+			} catch (BufferTooSmallException&) {
 				// Der Buffer war nicht gross genug, wir vergrößern ihn
 				bsize+=size;
 			} catch (...) {
@@ -930,52 +928,52 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 				throw;
 			}
 		}
-	} else if (prefix==Prefix_V1) {
-		char *buffer=(char*)ptr;
+	} else if (prefix == Prefix_V1) {
+		char* buffer=(char*)ptr;
 		int flag=Peek8(buffer);
-		size_t size_unc=Peek32(buffer+1);
-		size_t size_comp=Peek32(buffer+5);
+		size_t size_unc=Peek32(buffer + 1);
+		size_t size_comp=Peek32(buffer + 5);
 		//printf ("Flag: %i, unc: %u, comp: %u\n",flag,size_unc, size_comp);
 		if (uncbuffer) free(uncbuffer);
 		uncbuffer=malloc(size_unc);
 		if (!uncbuffer) throw OutOfMemoryException();
 		size_t dstlen=size_unc;
 		try {
-			uncompress(uncbuffer,&dstlen,buffer+9,size_comp,(Algorithm)(flag&7));
-			return ByteArrayPtr(uncbuffer,dstlen);
+			uncompress(uncbuffer, &dstlen, buffer + 9, size_comp, (Algorithm)(flag & 7));
+			return ByteArrayPtr(uncbuffer, dstlen);
 		} catch (...) {
 			free(uncbuffer);
 			uncbuffer=NULL;
 			throw;
 		}
-	} else if (prefix==Prefix_V2) {
-		char *buffer=(char*)ptr;
+	} else if (prefix == Prefix_V2) {
+		char* buffer=(char*)ptr;
 		int flag=Peek8(buffer);
-		Algorithm a=(Algorithm)(flag&7);
-		if ((flag&8)==0) {	// Bit 3 muss aber gesetzt sein
+		Algorithm a=(Algorithm)(flag & 7);
+		if ((flag & 8) == 0) {	// Bit 3 muss aber gesetzt sein
 			throw CorruptedDataException("wrong flag");
 		}
 		int b_unc=4, b_comp=4;
-		if ((flag&48)==0) b_unc=1;
-		else if ((flag&48)==16) b_unc=2;
-		else if ((flag&48)==32) b_unc=3;
+		if ((flag & 48) == 0) b_unc=1;
+		else if ((flag & 48) == 16) b_unc=2;
+		else if ((flag & 48) == 32) b_unc=3;
 		else b_unc=4;
-		if ((flag&192)==0) b_comp=1;
-		else if ((flag&192)==64) b_comp=2;
-		else if ((flag&192)==128) b_comp=3;
+		if ((flag & 192) == 0) b_comp=1;
+		else if ((flag & 192) == 64) b_comp=2;
+		else if ((flag & 192) == 128) b_comp=3;
 		else b_comp=4;
 
 		size_t size_unc=0;
-		if (b_unc==1) size_unc=Peek8(buffer+1);
-		else if (b_unc==2) size_unc=Peek16(buffer+1);
-		else if (b_unc==3) size_unc=Peek24(buffer+1);
-		else size_unc=Peek32(buffer+1);
+		if (b_unc == 1) size_unc=Peek8(buffer + 1);
+		else if (b_unc == 2) size_unc=Peek16(buffer + 1);
+		else if (b_unc == 3) size_unc=Peek24(buffer + 1);
+		else size_unc=Peek32(buffer + 1);
 
 		if (uncbuffer) free(uncbuffer);
 		uncbuffer=malloc(size_unc);
 		if (!uncbuffer) throw OutOfMemoryException();
 		size_t dstlen=size_unc;
-		size_t bytes=1+b_unc+b_comp;
+		size_t bytes=1 + b_unc + b_comp;
 		/*
 		printf ("b_unc=%d, b_comp=%d, bytes=%d, dstlen=%zd, size=%zd\n",
 				b_unc, b_comp, bytes, dstlen,size);
@@ -984,8 +982,8 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 		}
 		*/
 		try {
-			uncompress(uncbuffer,&dstlen,buffer+bytes,size-bytes,a);
-			return ByteArrayPtr(uncbuffer,dstlen);
+			uncompress(uncbuffer, &dstlen, buffer + bytes, size - bytes, a);
+			return ByteArrayPtr(uncbuffer, dstlen);
 		} catch (...) {
 			free(uncbuffer);
 			uncbuffer=NULL;
@@ -995,7 +993,7 @@ ByteArrayPtr Compression::uncompress(const void *ptr, size_t size)
 	throw DecompressionFailedException();
 }
 
-ByteArrayPtr Compression::uncompress(const ByteArrayPtr &in)
+ByteArrayPtr Compression::uncompress(const ByteArrayPtr& in)
 /*!\brief Dekomprimierung eines Speicherbereichs in ein CBinary Objekt
  *
  * \descr
@@ -1017,10 +1015,10 @@ ByteArrayPtr Compression::uncompress(const ByteArrayPtr &in)
  *
  */
 {
-	return uncompress(in.ptr(),in.size());
+	return uncompress(in.ptr(), in.size());
 }
 
-void Compression::uncompress(ByteArray &out, const void *ptr, size_t size)
+void Compression::uncompress(ByteArray& out, const void* ptr, size_t size)
 /*!\brief Dekomprimierung eines Speicherbereichs in ein CBinary Objekt
  *
  * \descr
@@ -1046,7 +1044,7 @@ void Compression::uncompress(ByteArray &out, const void *ptr, size_t size)
 	out.copy(b);
 }
 
-void Compression::uncompress(ByteArray &out, const ByteArrayPtr &object)
+void Compression::uncompress(ByteArray& out, const ByteArrayPtr& object)
 /*!\brief Dekomprimierung eines ByteArrayPtr Objektes
  *
  * \descr
@@ -1066,7 +1064,7 @@ void Compression::uncompress(ByteArray &out, const ByteArrayPtr &object)
  *
  */
 {
-	uncompress(out,object.ptr(), object.size());
+	uncompress(out, object.ptr(), object.size());
 }
 
 
@@ -1089,12 +1087,12 @@ void Compression::uncompress(ByteArray &out, const ByteArrayPtr &object)
  * \see Compression
  * @return
  */
-void Compress(ByteArray &out, const ByteArrayPtr &in, Compression::Algorithm method, Compression::Level level)
+void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level)
 {
 	Compression comp;
-	comp.init(method,level);
+	comp.init(method, level);
 	comp.usePrefix(Compression::Prefix_V2);
-	comp.compress(out,in);
+	comp.compress(out, in);
 }
 
 /*!\ingroup PPL7_COMPRESSION
@@ -1117,15 +1115,15 @@ void Compress(ByteArray &out, const ByteArrayPtr &in, Compression::Algorithm met
  *
  * \see Compression
  */
-void Uncompress(ByteArray &out, const ByteArrayPtr &in)
+void Uncompress(ByteArray& out, const ByteArrayPtr& in)
 {
 	Compression comp;
 	comp.usePrefix(Compression::Prefix_V2);
-	comp.uncompress(out,in);
+	comp.uncompress(out, in);
 }
 
 
-void CompressZlib(ByteArray &out, const ByteArrayPtr &in, Compression::Level level)
+void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
 /*!\ingroup PPL7_COMPRESSION
  * \relatesalso Compression
  * \brief Daten mit ZLib komprimieren
@@ -1147,11 +1145,11 @@ void CompressZlib(ByteArray &out, const ByteArrayPtr &in, Compression::Level lev
  * \see Compression
  */
 {
-	Compress(out,in,Compression::Algo_ZLIB,level);
+	Compress(out, in, Compression::Algo_ZLIB, level);
 }
 
 
-void CompressBZip2(ByteArray &out, const ByteArrayPtr &in, Compression::Level level)
+void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
 /*!\ingroup PPL7_COMPRESSION
  * \relatesalso Compression
  * \brief Daten mit BZip2 komprimieren
@@ -1175,7 +1173,7 @@ void CompressBZip2(ByteArray &out, const ByteArrayPtr &in, Compression::Level le
  * \see Compression
  */
 {
-	Compress(out,in,Compression::Algo_BZIP2,level);
+	Compress(out, in, Compression::Algo_BZIP2, level);
 }
 
 
