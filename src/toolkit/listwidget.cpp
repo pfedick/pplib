@@ -45,7 +45,8 @@
 #include "ppl7.h"
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
-namespace ppl7::tk {
+namespace ppl7 {
+namespace tk {
 
 ListWidget::ListWidget(int x, int y, int width, int height)
 	: ppl7::tk::Frame(x, y, width, height)
@@ -264,4 +265,5 @@ void ListWidget::lostFocusEvent(ppl7::tk::FocusEvent* event)
 	Frame::lostFocusEvent(&new_event);
 }
 
+}
 } //EOF namespace

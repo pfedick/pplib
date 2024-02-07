@@ -46,7 +46,8 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 
-namespace ppl7::tk {
+namespace ppl7 {
+namespace tk {
 
 
 AbstractSpinBox::AbstractSpinBox()
@@ -484,4 +485,5 @@ void DoubleSpinBox::textChangedEvent(Event* event, const String& text)
 
 
 
+}
 }   // EOF namespace

@@ -46,7 +46,8 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 
-namespace ppl7::tk {
+namespace ppl7 {
+namespace tk {
 
 
 DoubleAbstractSlider::DoubleAbstractSlider(int x, int y, int width, int height)
@@ -286,4 +287,5 @@ void DoubleHorizontalSlider::mouseWheelEvent(ppl7::tk::MouseEvent* event)
     }
 }
 
+}
 }   // EOF namespace

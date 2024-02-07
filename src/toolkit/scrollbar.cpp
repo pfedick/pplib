@@ -46,7 +46,8 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 
-namespace ppl7::tk {
+namespace ppl7 {
+namespace tk {
 
 
 Scrollbar::Scrollbar(int x, int y, int width, int height) // @suppress("Class members should be properly initialized")
@@ -238,4 +239,5 @@ void Scrollbar::mouseWheelEvent(ppl7::tk::MouseEvent* event)
 	}
 }
 
+}
 } //EOF namespace

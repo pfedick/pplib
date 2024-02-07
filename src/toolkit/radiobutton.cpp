@@ -46,7 +46,8 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 
-namespace ppl7::tk {
+namespace ppl7 {
+namespace tk {
 
 RadioButton::RadioButton()
 	: ppl7::tk::Label()
@@ -116,4 +117,5 @@ void RadioButton::mouseDownEvent(ppl7::tk::MouseEvent* event)
 }
 
 
+}
 } //EOF namespace
