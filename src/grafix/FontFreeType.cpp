@@ -237,8 +237,8 @@ static void renderGlyphAA(Drawable& draw, FT_Bitmap* bitmap, int x, int y, const
 {
 	uint8_t v=0;
 	uint8_t* glyph=(uint8_t*)bitmap->buffer;
-	for (unsigned int gy=0;gy < bitmap->rows;gy++) {
-		for (unsigned int gx=0;gx < bitmap->width;gx++) {
+	for (unsigned int gy=0;gy < (unsigned int)bitmap->rows;gy++) {
+		for (unsigned int gx=0;gx < (unsigned int)bitmap->width;gx++) {
 			v=glyph[gx];
 			if (v > 0) {
 				putPixel(draw, x + gx, y + gy, color, v);
@@ -253,10 +253,10 @@ static void renderGlyphMono(Drawable& draw, FT_Bitmap* bitmap, int x, int y, con
 {
 	uint8_t v=0;
 	uint8_t* glyph=(uint8_t*)bitmap->buffer;
-	for (unsigned int gy=0;gy < bitmap->rows;gy++) {
+	for (unsigned int gy=0;gy < (unsigned int)bitmap->rows;gy++) {
 		uint8_t bitcount=0;
 		uint8_t bytecount=0;
-		for (unsigned int gx=0;gx < bitmap->width;gx++) {
+		for (unsigned int gx=0;gx < (unsigned int)bitmap->width;gx++) {
 			if (!bitcount) {
 				v=glyph[bytecount];
 				bitcount=8;
