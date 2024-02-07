@@ -46,7 +46,8 @@
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
 
-namespace ppl7::tk {
+namespace ppl7 {
+	namespace tk {
 
 CheckBox::CheckBox()
 	: ppl7::tk::Label()
@@ -108,4 +109,4 @@ void CheckBox::mouseDownEvent(ppl7::tk::MouseEvent* event)
 }
 
 
-} //EOF namespace
+}} //EOF namespace

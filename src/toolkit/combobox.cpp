@@ -45,7 +45,8 @@
 #include "ppl7.h"
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
-namespace ppl7::tk {
+namespace ppl7 {
+	namespace tk {
 
 ComboBox::ComboBox(int x, int y, int width, int height)
 	: ppl7::tk::Widget()
@@ -243,4 +244,4 @@ void ComboBox::lostFocusEvent(ppl7::tk::FocusEvent* event)
 
 
 
-} //EOF namespace
+}} //EOF namespace
