@@ -42,6 +42,8 @@
 #include <stdarg.h>
 #endif
 
+#include <typeinfo>
+
 #include "ppl7.h"
 #include "ppl7-grafix.h"
 #include "ppl7-tk.h"
