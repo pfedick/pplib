@@ -339,7 +339,7 @@ void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset) con
 	}
 	int encoding=Peek8(frame->data + offset);
 	if (encoding < 32) {
-		decode(frame, offset + 1, encoding, s);
+		ID3Tag::decode(frame, offset + 1, encoding, s, localCharset);
 	} else {
 		String from(frame->data + offset, frame->Size - offset);
 		Iconv iconv("ISO-8859-1", localCharset);
@@ -348,7 +348,28 @@ void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset) con
 }
 
 
+void ID3Tag::copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const ppl7::String& charset)
+{
+	if (!frame) throw ppl7::InvalidArgumentsException();
+	if (!frame->data) {
+		s.clear();
+		return;
+	}
+	int encoding=Peek8(frame->data + offset);
+	if (encoding < 32) {
+		ID3Tag::decode(frame, offset + 1, encoding, s, charset);
+	} else {
+		String from(frame->data + offset, frame->Size - offset);
+		Iconv iconv("ISO-8859-1", charset);
+		iconv.transcode(from, s);
+	}
+}
 int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& target) const
+{
+	return ID3Tag::decode(frame, offset, encoding, target, localCharset);
+}
+
+int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& target, const ppl7::String& charset)
 {
 	size_t size=0;
 	const char* data=frame->data + offset;
@@ -358,17 +379,17 @@ int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& targ
 		size=strlen(data);
 		if (size + offset > frame->Size) size=frame->Size - offset;
 		//Iconv iconv("ISO-8859-1",localCharset);
-		target.set(Transcode(data, size, "ISO-8859-1", localCharset));
+		target.set(Transcode(data, size, "ISO-8859-1", charset));
 		return offset + size + 1;
 	} else if (encoding == 1) {
 		size=strlen16(data) * 2;
 		if (size + offset > frame->Size) size=frame->Size - offset;
-		target.set(Transcode(data, size, "UTF-16", localCharset));
+		target.set(Transcode(data, size, "UTF-16", charset));
 		return offset + size + 2;
 	} else if (encoding == 2) {
 		size=strlen16(data) * 2;
 		if (size + offset > frame->Size) size=frame->Size - offset;
-		target.set(Transcode(data, size, "UTF-16BE", localCharset));
+		target.set(Transcode(data, size, "UTF-16BE", charset));
 		return offset + size + 2;
 	} else if (encoding == 3) {
 		size=strlen(data);
@@ -378,7 +399,7 @@ int ID3Tag::decode(const ID3Frame* frame, int offset, int encoding, String& targ
 	} else if (encoding > 31) {
 		size=strlen(data);
 		if (size + offset > frame->Size) size=frame->Size - offset;
-		target.set(Transcode(data, size, "ISO-8859-1", localCharset));
+		target.set(Transcode(data, size, "ISO-8859-1", charset));
 		return offset + size + 1;
 	}
 	return offset + size + 1;
@@ -768,8 +789,7 @@ bool ID3Tag::loaded(const String& filename)
 		load(ff);
 		Filename=filename;
 		return true;
-	}
-	catch (...) {}
+	} catch (...) {}
 	return false;
 }
 
@@ -789,8 +809,7 @@ bool ID3Tag::loaded(FileObject& file)
 	try {
 		load(file);
 		return true;
-	}
-	catch (...) {}
+	} catch (...) {}
 	return false;
 }
 
@@ -1468,8 +1487,7 @@ void ID3Tag::saveMP3()
 				pn+=bytes;
 				rest-=bytes;
 			}
-		}
-		catch (...) {
+		} catch (...) {
 			free(space);
 			throw;
 		}
@@ -1567,8 +1585,7 @@ void ID3Tag::copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2
 		}
 		try {
 			n.write(space, size - tagV2.size());
-		}
-		catch (...) {
+		} catch (...) {
 			free(space);
 			throw;
 		}
@@ -1596,8 +1613,7 @@ void ID3Tag::saveAiff()
 	if (tagV2.size() > 0) {
 		try {
 			if (trySaveAiffInExistingFile(o, tagV2)) return;
-		}
-		catch (...) {
+		} catch (...) {
 
 		}
 	}
@@ -1606,8 +1622,7 @@ void ID3Tag::saveAiff()
 	n.open(tmpfile, File::READWRITE);
 	try {
 		copyAiffToNewFile(o, n, tagV2);
-	}
-	catch (...) {
+	} catch (...) {
 		n.close();
 		o.close();
 		File::remove(tmpfile);

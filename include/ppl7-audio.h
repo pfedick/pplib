@@ -293,6 +293,9 @@ public:
 	void getAllPopularimeters(std::map<String, unsigned char>& data) const;
 	void removePopularimeter();
 	bool hasPopularimeter() const;
+
+	static void copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const ppl7::String& charset);
+	static int decode(const ID3Frame* frame, int offset, int encoding, String& target, const ppl7::String& charset);
 };
 
 class Icecast
