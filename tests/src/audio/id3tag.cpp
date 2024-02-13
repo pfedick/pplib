@@ -167,7 +167,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithoutEncodingByte) {
 	ba=expected.toEncoding("ISO-8859-1");
 	frame.setData(ba);
 	try {
-		ID3Tag::copyAndDecodeText(result, &frame, 0, "ISO-8859-1");
+		ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
 	} catch (const ppl7::Exception& e) {
 		e.print();
 	}
@@ -187,7 +187,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte0) {	// ISO-88591
 	//ba.hexDump();
 	frame.setData(ba);
 	try {
-		ID3Tag::copyAndDecodeText(result, &frame, 0, "ISO-8859-1");
+		ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
 	} catch (const ppl7::Exception& e) {
 		e.print();
 	}
@@ -207,7 +207,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte1) {		// UTF-16 mit BOM
 	ba.append(suffix, 2);
 	frame.setData(ba);
 	try {
-		ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-16");
+		ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
 	} catch (const ppl7::Exception& e) {
 		e.print();
 	}
@@ -228,7 +228,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte2) {		// UTF-16BE ohne BOM
 
 	frame.setData(ba);
 	try {
-		ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-16BE");
+		ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
 	} catch (const ppl7::Exception& e) {
 		e.print();
 	}
@@ -250,7 +250,7 @@ TEST_F(ID3TagTest, copyAndDecodeTextWithEncodingByte3) {		// UTF-8
 
 	frame.setData(ba);
 	try {
-		ID3Tag::copyAndDecodeText(result, &frame, 0, "US-ASCII");
+		ID3Tag::copyAndDecodeText(result, &frame, 0, "UTF-8");
 	} catch (const ppl7::Exception& e) {
 		e.print();
 	}
