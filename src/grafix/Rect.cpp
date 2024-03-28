@@ -70,7 +70,7 @@ Rect::Rect()
 	y2=0;
 }
 
-Rect::Rect(const Point &p1, const Point &p2)
+Rect::Rect(const Point& p1, const Point& p2)
 {
 	x1=p1.x;
 	y1=p1.y;
@@ -78,15 +78,15 @@ Rect::Rect(const Point &p1, const Point &p2)
 	y2=p2.y;
 }
 
-Rect::Rect(const Point &p, const Size &s)
+Rect::Rect(const Point& p, const Size& s)
 {
 	x1=p.x;
 	y1=p.y;
-	x2=x1+s.width;
-	y2=y1+s.height;
+	x2=x1 + s.width;
+	y2=y1 + s.height;
 }
 
-Rect::Rect(const Rect &other)
+Rect::Rect(const Rect& other)
 {
 	x1=other.x1;
 	y1=other.y1;
@@ -98,11 +98,11 @@ Rect::Rect(int x, int y, int width, int height)
 {
 	x1=x;
 	y1=y;
-	x2=x+width;
-	y2=y+height;
+	x2=x + width;
+	y2=y + height;
 }
 
-Rect::Rect(const RECT &r)
+Rect::Rect(const RECT& r)
 {
 	x1=r.left;
 	y1=r.top;
@@ -114,7 +114,7 @@ Rect::Rect(const RECT &r)
 
 bool Rect::isNull() const
 {
-	if (x1==x2 && y1==y2) return true;
+	if (x1 == x2 && y1 == y2) return true;
 	return false;
 }
 
@@ -125,7 +125,7 @@ int Rect::left() const
 
 int Rect::right() const
 {
-	return x2-1;
+	return x2 - 1;
 }
 
 int Rect::top() const
@@ -135,71 +135,71 @@ int Rect::top() const
 
 int Rect::bottom() const
 {
-	return y2-1;
+	return y2 - 1;
 }
 
 int Rect::width() const
 {
-	return x2-x1;
+	return x2 - x1;
 }
 
 int Rect::height() const
 {
-	return y2-y1;
+	return y2 - y1;
 }
 
 Size Rect::size() const
 {
-	return Size(x2-x1,y2-y1);
+	return Size(x2 - x1, y2 - y1);
 }
 
 Point Rect::topLeft() const
 {
-	return Point(x1,y1);
+	return Point(x1, y1);
 }
 
 Point Rect::topRight() const
 {
-	return Point(x2,y1);
+	return Point(x2, y1);
 }
 
 Point Rect::bottomLeft() const
 {
-	return Point(x1,y2);
+	return Point(x1, y2);
 }
 
 Point Rect::bottomRight() const
 {
-	return Point(x2,y2);
+	return Point(x2, y2);
 }
 
-inline static void swap_int(int &i1, int &i2)
+inline static void swap_int(int& i1, int& i2)
 {
-    int t=i1;
-    i1=i2;
-    i2=t;
+	int t=i1;
+	i1=i2;
+	i2=t;
 }
 
-Rect Rect::normalized () const
+Rect Rect::normalized() const
 {
-    Rect r(*this);
-    if (x2<x1) swap_int(r.x1,r.x2);
-    if (y2<y1) swap_int(r.y1,r.y2);
+	Rect r(*this);
+	if (x2 < x1) swap_int(r.x1, r.x2);
+	if (y2 < y1) swap_int(r.y1, r.y2);
 	return r;
 }
 
-bool Rect::intersects(const Rect &other)
+bool Rect::intersects(const Rect& other) const
 {
 	return (other.x1< x2
-			&& other.x2 > x1
-			&& other.y1 < y2
-			&& other.y2 > y1);
+		&& other.x2 > x1
+		&& other.y1 < y2
+		&& other.y2 > y1);
 }
 
 #ifndef max
 inline static int max(int v1, int v2)
 {
-	if (v1>v2) return v1;
+	if (v1 > v2) return v1;
 	return v2;
 }
 #endif
@@ -207,30 +207,30 @@ inline static int max(int v1, int v2)
 #ifndef min
 inline static int min(int v1, int v2)
 {
-	if (v1<v2) return v1;
+	if (v1 < v2) return v1;
 	return v2;
 }
 #endif
 
-Rect Rect::intersected(const Rect &other)
+Rect Rect::intersected(const Rect& other) const
 {
 	Rect r;
-    if (isNull()==true || other.isNull()==true) return r;
+	if (isNull() == true || other.isNull() == true) return r;
 	if (!intersects(other)) return r;
-	r.x1=max(x1,other.x1);
-	r.y1=max(y1,other.y1);
-	r.x2=min(x2,other.x2);
-	r.y2=min(y2,other.y2);
+	r.x1=max(x1, other.x1);
+	r.y1=max(y1, other.y1);
+	r.x2=min(x2, other.x2);
+	r.y2=min(y2, other.y2);
 	return r;
 }
 
-void Rect::setTopLeft(const Point &topLeft)
+void Rect::setTopLeft(const Point& topLeft)
 {
 	x1=topLeft.x;
 	y1=topLeft.y;
 }
 
-void Rect::setBottomRight(const Point &bottomRight)
+void Rect::setBottomRight(const Point& bottomRight)
 {
 	x2=bottomRight.x;
 	y2=bottomRight.y;
@@ -240,11 +240,11 @@ void Rect::setRect(int x, int y, int width, int height)
 {
 	x1=x;
 	y1=y;
-	x2=x+width;
-	y2=y+height;
+	x2=x + width;
+	y2=y + height;
 }
 
-void Rect::setRect(const RECT &r)
+void Rect::setRect(const RECT& r)
 {
 	x1=r.left;
 	y1=r.top;
@@ -253,7 +253,7 @@ void Rect::setRect(const RECT &r)
 }
 
 
-void Rect::setRect(const Rect &other)
+void Rect::setRect(const Rect& other)
 {
 	x1=other.x1;
 	y1=other.y1;
@@ -270,7 +270,7 @@ void Rect::setCoords(int x1, int y1, int x2, int y2)
 	this->y2=y2;
 }
 
-void Rect::setCoords(const Point &p1, const Point &p2)
+void Rect::setCoords(const Point& p1, const Point& p2)
 {
 	x1=p1.x;
 	y1=p1.y;
@@ -308,38 +308,38 @@ void Rect::setY(int y)
 	y1=y;
 }
 
-void Rect::setSize(const Size &size)
+void Rect::setSize(const Size& size)
 {
-	x2=x1+size.width;
-	y2=y1+size.height;
+	x2=x1 + size.width;
+	y2=y1 + size.height;
 }
 
 void Rect::setWidth(int width)
 {
-	x2=x1+width;
+	x2=x1 + width;
 }
 
 void Rect::setHeight(int height)
 {
-	y2=y1+height;
+	y2=y1 + height;
 }
 
 
-bool operator!= (const Rect &r1, const Rect &r2)
+bool operator!= (const Rect& r1, const Rect& r2)
 {
-	if (r1.x1!=r2.x1) return true;
-	if (r1.y1!=r2.y1) return true;
-	if (r1.x2!=r2.x2) return true;
-	if (r1.y2!=r2.y2) return true;
+	if (r1.x1 != r2.x1) return true;
+	if (r1.y1 != r2.y1) return true;
+	if (r1.x2 != r2.x2) return true;
+	if (r1.y2 != r2.y2) return true;
 	return false;
 }
 
-bool operator== (const Rect &r1, const Rect &r2)
+bool operator== (const Rect& r1, const Rect& r2)
 {
-	if (r1.x1!=r2.x1) return false;
-	if (r1.y1!=r2.y1) return false;
-	if (r1.x2!=r2.x2) return false;
-	if (r1.y2!=r2.y2) return false;
+	if (r1.x1 != r2.x1) return false;
+	if (r1.y1 != r2.y1) return false;
+	if (r1.x2 != r2.x2) return false;
+	if (r1.y2 != r2.y2) return false;
 	return true;
 }
 
