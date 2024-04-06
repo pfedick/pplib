@@ -51,8 +51,12 @@
 
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN		// Keine MFCs
-#define _WIN32_WINNT 0x501
+#endif
+#ifndef _WIN32_WINNT
+#define _WIN32_WINNT 0x600
+#endif
 #define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
 #include <windows.h>
 #endif
@@ -303,18 +307,18 @@ void Curl::curlResultOk(int ret) const
 	if (ret == CURLE_OK) return;
 	const char* e=curl_easy_strerror((CURLcode)ret);
 	switch (ret) {
-	case CURLE_OPERATION_TIMEOUTED:
-		throw TimeoutException("%s", e);
-		break;
-	case CURLE_COULDNT_RESOLVE_HOST:
-		throw ResolverException("%s", e);
-		break;
-	case CURLE_COULDNT_CONNECT:
-		throw ConnectionFailedException("%s", e);
-		break;
-	default:
-		throw Curl::MiscException("result code=%i, error=%s", ret, e);
-		break;
+		case CURLE_OPERATION_TIMEOUTED:
+			throw TimeoutException("%s", e);
+			break;
+		case CURLE_COULDNT_RESOLVE_HOST:
+			throw ResolverException("%s", e);
+			break;
+		case CURLE_COULDNT_CONNECT:
+			throw ConnectionFailedException("%s", e);
+			break;
+		default:
+			throw Curl::MiscException("result code=%i, error=%s", ret, e);
+			break;
 	}
 	return;
 #else
@@ -738,47 +742,47 @@ void Curl::debugHandler(int type, const char* data, size_t size)
 	String msg;
 	msg.set(data, size);
 	switch (type) {
-	case CURLINFO_TEXT:
-		log->print(Logger::DEBUG, 5, "CCurl", "DebugHandler", __FILE__, __LINE__,
-			ToString("INFO: %s", (const char*)msg));
-	/*
-	if (strncmp(d,"Getting file with size:",23)==0) {
-		filesize=atol(d+24);
-	}
-	*/
-		break;
-	case CURLINFO_HEADER_IN:
-		log->print(Logger::DEBUG, 5, "CCurl", "DebugHandler", __FILE__, __LINE__,
-			ToString("HEADER_IN: %s", (const char*)msg));
-	/*
-	if (strncmp(d,"Content-Length: ",16)==0) {
-		filesize=atol(d+16);
-		if ((comdebug) && (PPLCore)) PPLCore->Printf("Filesize detected: %u",filesize);
-	}
-	*/
-		break;
-	case CURLINFO_HEADER_OUT:
-		log->print(Logger::DEBUG, 5, "CCurl", "DebugHandler", __FILE__, __LINE__,
-			ToString("HEADER_OUT: %s", (const char*)msg));
-	/*
-	if (strncmp(d,"RETR ",5)==0) {
-		if (filename) free(filename);
-		filename=strdup(d+5);
-		trim(filename);
-		if ((comdebug)  && (PPLCore)) PPLCore->Printf("Filename detected: %s",filename);
-	}
-	*/
-		break;
-	case CURLINFO_DATA_IN:				// Protocol data
-		log->print(Logger::DEBUG, 10, "CCurl", "DebugHandler", __FILE__, __LINE__,
-			ToString("DATA_IN: %s", (const char*)msg));
-	//call_receive.Notify(NULL);
-		break;
-	case CURLINFO_DATA_OUT:
-		log->print(Logger::DEBUG, 10, "CCurl", "DebugHandler", __FILE__, __LINE__,
-			ToString("DATA_OUT: %s", (const char*)msg));
-	//call_send.Notify(NULL);
-		break;
+		case CURLINFO_TEXT:
+			log->print(Logger::DEBUG, 5, "CCurl", "DebugHandler", __FILE__, __LINE__,
+				ToString("INFO: %s", (const char*)msg));
+		/*
+		if (strncmp(d,"Getting file with size:",23)==0) {
+			filesize=atol(d+24);
+		}
+		*/
+			break;
+		case CURLINFO_HEADER_IN:
+			log->print(Logger::DEBUG, 5, "CCurl", "DebugHandler", __FILE__, __LINE__,
+				ToString("HEADER_IN: %s", (const char*)msg));
+		/*
+		if (strncmp(d,"Content-Length: ",16)==0) {
+			filesize=atol(d+16);
+			if ((comdebug) && (PPLCore)) PPLCore->Printf("Filesize detected: %u",filesize);
+		}
+		*/
+			break;
+		case CURLINFO_HEADER_OUT:
+			log->print(Logger::DEBUG, 5, "CCurl", "DebugHandler", __FILE__, __LINE__,
+				ToString("HEADER_OUT: %s", (const char*)msg));
+		/*
+		if (strncmp(d,"RETR ",5)==0) {
+			if (filename) free(filename);
+			filename=strdup(d+5);
+			trim(filename);
+			if ((comdebug)  && (PPLCore)) PPLCore->Printf("Filename detected: %s",filename);
+		}
+		*/
+			break;
+		case CURLINFO_DATA_IN:				// Protocol data
+			log->print(Logger::DEBUG, 10, "CCurl", "DebugHandler", __FILE__, __LINE__,
+				ToString("DATA_IN: %s", (const char*)msg));
+		//call_receive.Notify(NULL);
+			break;
+		case CURLINFO_DATA_OUT:
+			log->print(Logger::DEBUG, 10, "CCurl", "DebugHandler", __FILE__, __LINE__,
+				ToString("DATA_OUT: %s", (const char*)msg));
+		//call_send.Notify(NULL);
+			break;
 	}
 #endif
 }
