@@ -37,13 +37,6 @@
 
 %include "src/asm/common.asm"
 
-SECTION .bss
-; Copy-Buffer
-ALIGN 64
-; Der statische Copy-Buffer ist NICHT Threadsafe!!!!
-tbuf:         resb    2048
-
-
 SECTION .text
 
 struc BLTDATA
@@ -4320,124 +4313,6 @@ CALCULATEDALPHA@:
 		ret
 %endif
 
-%if arch_elf64=1 || arch_win64=1
-CopyBuffered:
-	; Input:
-	;	rsi: Quelladresse
-	;	rdi: Zieladresse
-	;	rcx: Anzahl Bytes
-	; Register rax, rcx und rdx, sowie MMX-Register mm0-mm7 werden verändert.
-	; Die aufrufende Prozedur muss diese gegebenenfalls "retten" und am Ende "emms" aufrufen.
-
-	mov rdx,rcx
-	shr rdx,11					; Anzahl 2048 Blöcke berechnen
-	jz .end2048loop				; Es gibt keine, zu wenig Bytes
-		.loop2k:				; Copy 2k into temporary buffer
-			push rdi
-			mov rdi, tbuf
-			mov eax, 32			; 2048 Byte in 64-Byte-Häppchen = 32 Durchgänge
-			.loopMemToL1:
-				prefetchnta [rsi+64]	; Prefetch next loop, non-temporal
-				prefetchnta [rsi+96]
-				movq mm1, [rsi] 		; Read in source data
-				movq mm2, [rsi+8]
-				movq mm3, [rsi+16]
-				movq mm4, [rsi+24]
-				movq mm5, [rsi+32]
-				movq mm6, [rsi+40]
-				movq mm7, [rsi+48]
-				movq mm0, [rsi+56]
-
-				movq [rdi], mm1 		; Store into L1-Cache
-				movq [rdi+8], mm2
-				movq [rdi+16], mm3
-				movq [rdi+24], mm4
-				movq [rdi+32], mm5
-				movq [rdi+40], mm6
-				movq [rdi+48], mm7
-				movq [rdi+56], mm0
-				add rsi, 64
-				add rdi, 64
-				dec eax
-			jnz .loopMemToL1
-			pop rdi 				; Now copy from L1 to system memory
-			push rsi
-			mov rsi, tbuf
-			mov eax, 32			; 2048 Byte in 64-Byte-Häppchen = 32 Durchgänge
-			.loopL1ToMem:
-				movq mm1, [rsi] 		; Read in L1-Cache
-				movq mm2, [rsi+8]
-				movq mm3, [rsi+16]
-				movq mm4, [rsi+24]
-				movq mm5, [rsi+32]
-				movq mm6, [rsi+40]
-				movq mm7, [rsi+48]
-				movq mm0, [rsi+56]
-
-				movntq [rdi], mm1 		; Store into Memory
-				movntq [rdi+8], mm2
-				movntq [rdi+16], mm3
-				movntq [rdi+24], mm4
-				movntq [rdi+32], mm5
-				movntq [rdi+40], mm6
-				movntq [rdi+48], mm7
-				movntq [rdi+56], mm0
-				add rsi, 64
-				add rdi, 64
-				dec eax
-			jnz .loopL1ToMem
-			pop rsi
-
-			.next:
-			dec rdx
-			jnz .loop2k
-
-		.end2048loop:
-			and rcx,2047			; Restliche Bytes maskieren
-			mov rdx,rcx
-			shr rdx,6				; Anzahl 64-Byte-Blöcke berechnen
-			jz .rest
-				.loop64Byte:
-					prefetchnta [rsi+64]	; Prefetch next loop, non-temporal
-					prefetchnta [rsi+96]
-					movq mm1, [rsi] 		; Read in source data
-					movq mm2, [rsi+8]
-					movq mm3, [rsi+16]
-					movq mm4, [rsi+24]
-					movq mm5, [rsi+32]
-					movq mm6, [rsi+40]
-					movq mm7, [rsi+48]
-					movq mm0, [rsi+56]
-
-					movntq [rdi], mm1 		; Store into Memory
-					movntq [rdi+8], mm2
-					movntq [rdi+16], mm3
-					movntq [rdi+24], mm4
-					movntq [rdi+32], mm5
-					movntq [rdi+40], mm6
-					movntq [rdi+48], mm7
-					movntq [rdi+56], mm0
-
-					add rdi,64
-					add rsi,64
-					dec rdx
-				jnz .loop64Byte
-
-			.rest:
-			and rcx,63				; Restliche Bytes maskieren
-			push rcx
-			shr rcx,2				; Durch 4 Teilen
-			jz .no4Byte
-				rep movsd			; Kopieren
-			.no4Byte:
-			pop rcx
-			and rcx,3
-			jz .end
-				rep movsb
-			.end:
-
-		ret
-%endif
 
 
 ;/*********************************************************************
@@ -4470,7 +4345,6 @@ CopyBuffered:
 
 	.loopLine:
 		mov rcx,r8				; Breite nach rcx
-		;call CopyBuffered
 		rep movsd
 		add rsi,r10				; Nächste Zeile
 		add rdi,r11
