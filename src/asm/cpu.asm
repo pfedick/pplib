@@ -162,7 +162,7 @@ GetCpuCaps_Vendor_AMD:
 
 PPL7_GetCpuCaps:
 _PPL7_GetCpuCaps:
-	mov  eax, [PPL7CPUCAPS@]
+	mov  eax, [rel PPL7CPUCAPS@]
     test eax, eax
     js   .FirstTime              ; Negative means first time
         ; Early return. Has been called before
@@ -276,7 +276,7 @@ _PPL7_GetCpuCaps:
 
 	.end:
 	mov eax,edi
-	mov [PPL7CPUCAPS@], edi ; save value in global variable
+	mov [rel PPL7CPUCAPS@], edi ; save value in global variable
 	%ifidn __OUTPUT_FORMAT__, elf64
 		pop rdi
 		pop rbx

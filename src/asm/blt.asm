@@ -37,7 +37,6 @@
 
 %include "src/asm/common.asm"
 
-
 SECTION .bss
 ; Copy-Buffer
 ALIGN 64
@@ -4191,6 +4190,7 @@ CALCULATEDALPHA@:
 	mov edx,[r8+height]
 	pshufw mm7,mm7, 0
 	mov r9d,[r8+width]			; Breite nach r9
+        lea r12, [rel CALCULATEDALPHA@]         ; Pointer to CALCULATEDALPHA Table to r12
 	jmp near .aYLoop
 	ALIGN 16
 	.aYLoop:
@@ -4212,10 +4212,9 @@ CALCULATEDALPHA@:
 					shr ebx,16
 					punpcklbw mm0,mm6
 					mov ah,bh
-					lea r12d,CALCULATEDALPHA@
 					pshufw mm4,mm4,0
 					punpcklbw mm2,mm6
-					mov al, [r12d+eax]
+					mov al, [r12+rax]
 					psubusw mm5,mm4
 					pmullw mm0,mm4
 					pmullw mm2,mm5
@@ -4245,6 +4244,7 @@ CALCULATEDALPHA@:
 	inc rax					; Returnwert auf 1 setzen
 	pop rbx
 	%if arch_win64=1
+                pop r12
 		pop rsi
 		pop rdi
 	%endif
@@ -4708,7 +4708,6 @@ CopyBuffered:
 		pop rbx
 		inc rax			; Returnwert auf 1 setzen
 	%if arch_win64=1
-                pop r12
 		pop rsi
 		pop rdi
 	%endif

@@ -206,7 +206,7 @@ _ASM_BltBlend32_SSE_Align1:
 	push rbx
 	pxor xmm1,xmm1
 	mov rdi,[r8+tgt]			;// Zieladresse nach r8 => rdi
-	movdqa xmm5,[blendmask]
+	movdqa xmm5,[rel blendmask]
 	mov rsi,[r8+src]
 	mov r10d,[r8+pitchsrc]
 	mov r11d,[r8+pitchtgt]
@@ -338,7 +338,7 @@ _ASM_BltBlend32_SSE_Align2:
 	pxor xmm1,xmm1
 	pshuflw xmm4,xmm4,0
 	mov rdi,[r8+tgt]			;// Zieladresse nach r8 => rdi
-	movdqa xmm5,[blendmask]
+	movdqa xmm5,[rel blendmask]
 	mov rsi,[r8+src]
 	mov r10d,[r8+pitchsrc]
 	pshufd xmm4,xmm4,0

@@ -36,7 +36,6 @@
 
 %include "src/asm/common.asm"
 
-SECTION .data
 SECTION .text
 
 struc GLYPH
@@ -480,10 +479,10 @@ BlendAA2_64:		dd	100
 				jz .blend64
 				test ah,64
 				jnz .noblend
-					movd mm0,[BlendAA2_128]	; Alphachannel nach mm0
+					movd mm0,[rel BlendAA2_128]	; Alphachannel nach mm0
 					jmp .blend
 				.blend64:
-					movd mm0,[BlendAA2_64]	; Alphachannel nach mm0
+					movd mm0,[rel BlendAA2_64]	; Alphachannel nach mm0
 
 				.blend:
 					punpcklbw mm3,mm6		; Farbe in mm3 ist jetzt: 0a0r0g0b
@@ -580,10 +579,10 @@ _BltGlyph_AA2_32:
 				jz .blend64
 				test ah,64
 				jnz .noblend
-					movd mm0,[BlendAA2_128]	; Alphachannel nach mm0
+					movd mm0,[rel BlendAA2_128]	; Alphachannel nach mm0
 					jmp .blend
 				.blend64:
-					movd mm0,[BlendAA2_64]	; Alphachannel nach mm0
+					movd mm0,[rel BlendAA2_64]	; Alphachannel nach mm0
 
 				.blend:
 					punpcklbw mm3,mm6		; Farbe in mm3 ist jetzt: 0a0r0g0b
@@ -686,6 +685,7 @@ BlendAA4:	dd	0			; 0
 	.draw:
 	add rsi,10
 	mov eax,0xff
+	lea r11, [rel BlendAA4]
 	movd mm7,eax
 	pshufw mm7,mm7,0		; 0x00ff00ff00ff00ff in mm7 für Bildung der Differenz und
 							; zum Maskieren
@@ -708,7 +708,7 @@ BlendAA4:	dd	0			; 0
 				movd eax,mm2
 				jmp near .noblend
 				.blend:
-					movd mm0,[BlendAA4+rax*4]
+					movd mm0,[r11+rax*4]
 					movd eax,mm2
 
 					punpcklbw mm3,mm6		; Farbe in mm3 ist jetzt: 0a0r0g0b
@@ -795,6 +795,8 @@ _BltGlyph_AA4_32:
 	mov al,2				; Anzahl Rest-Doppelbits in al=4
 	inc esi
 
+	lea r8, [rel BlendAA4]
+
 	.loopHoehe:
 		xor edx,edx
 		push ecx			; Breite auf den Stack
@@ -809,7 +811,7 @@ _BltGlyph_AA4_32:
 				movd eax,mm2
 				jmp near .noblend
 				.blend:
-					movd mm0,[BlendAA4+eax*4]
+					movd mm0,[r8+eax*4]
 					movd eax,mm2
 
 					punpcklbw mm3,mm6		; Farbe in mm3 ist jetzt: 0a0r0g0b

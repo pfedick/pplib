@@ -167,19 +167,19 @@ ASM_BltChromaKey32_1:
 			cvtsi2ss xmm5,eax		; // xmm5=rot
 			cvtsi2ss xmm7,eax		; // xmm7=rot
 			cvtsi2ss xmm6,edx		; // xmm6=gruen
-			mulss  xmm5, [sflt2]	; rot * -0.168736
-			mulss  xmm7, [sflt1]	; rot * 0.5
+			mulss  xmm5, [rel sflt2]	; rot * -0.168736
+			mulss  xmm7, [rel sflt1]	; rot * 0.5
 			movzx edx,dil			; edx=blau
-			mulss  xmm4, [sflt3]	; gruen * 0.331264
-			mulss  xmm6, [sflt4]	; gruen * 0.418688
-			addss  xmm5, [sflt6]	; gruen +128
-			addss  xmm7, [sflt6]	; gruen +128
+			mulss  xmm4, [rel sflt3]	; gruen * 0.331264
+			mulss  xmm6, [rel sflt4]	; gruen * 0.418688
+			addss  xmm5, [rel sflt6]	; gruen +128
+			addss  xmm7, [rel sflt6]	; gruen +128
 			addss  xmm5,xmm4		; gruen+rot
 			addss  xmm7,xmm6		; gruen+rot
 			cvtsi2ss xmm4,edx		; // xmm4=blau
 			cvtsi2ss xmm6,edx		; // xmm6=blau
-			mulss  xmm4, [sflt1]	; blau * 0.5
-			mulss  xmm6, [sflt5]	; blau * 0.081312
+			mulss  xmm4, [rel sflt1]	; blau * 0.5
+			mulss  xmm6, [rel sflt5]	; blau * 0.081312
 			addss  xmm5,xmm4		; dazuaddieren
 			addss  xmm7,xmm6		; dazuaddieren
 			; xmm5=Cr_p, xmm7=Cb_p
@@ -215,8 +215,8 @@ ASM_BltChromaKey32_1:
 			movd xmm5,edi		; Vordergrund nach xmm5
 			divss xmm1,xmm4		; Alphawert ist nun als float in xmm1
 			pxor xmm6,xmm6
-			mulss xmm1,[sflt8]	; und jetzt als float 0..255
-			movq xmm0,[akehr]
+			mulss xmm1,[rel sflt8]	; und jetzt als float 0..255
+			movq xmm0,[rel akehr]
 			punpcklbw xmm7,xmm6	; Background in xmm7 in Worte umgewandelt
 			cvtps2dq xmm4,xmm1	; und jetzt als integer 0..255 in xmm4
 			punpcklbw xmm5,xmm6 ; Vordergrund in xmm5 in Worte umgewandelt
@@ -353,7 +353,7 @@ ASM_BltChromaKey32_4:
 			prefetchw [r8+rcx-256]
 
 			movdqa xmm10,[r8+rcx-16]	; 4 Farbwerte nach xmm10
-			movdqa xmm11,[andmask];
+			movdqa xmm11,[rel andmask];
 			movdqa xmm4, xmm10			; xmm4: blau
 			movdqa xmm5, xmm10			; xmm5: gruen
 			movdqa xmm6, xmm10			; xmm6: rot
@@ -370,14 +370,14 @@ ASM_BltChromaKey32_4:
 			movdqa xmm13,xmm5			; xmm13: gruen
 			movdqa xmm14,xmm6			; xmm14: rot
 
-			mulps xmm4,[s4flt1]			; blau * 0.5
-			mulps xmm12,[s4flt5]		; blau * 0.081312
-			mulps xmm5,[s4flt3]			; gruen * 0.331264
-			mulps xmm13,[s4flt4]		; gruen * 0.418688
-			mulps xmm6,[s4flt2]			; rot * -0.168736
-			mulps xmm14,[s4flt1]		; rot * 0.5
-			addps xmm4, [s4flt6]		; Cb = blau + 128
-			addps xmm12, [s4flt6]		; Cr = blau + 128
+			mulps xmm4,[rel s4flt1]			; blau * 0.5
+			mulps xmm12,[rel s4flt5]		; blau * 0.081312
+			mulps xmm5,[rel s4flt3]			; gruen * 0.331264
+			mulps xmm13,[rel s4flt4]		; gruen * 0.418688
+			mulps xmm6,[rel s4flt2]			; rot * -0.168736
+			mulps xmm14,[rel s4flt1]		; rot * 0.5
+			addps xmm4, [rel s4flt6]		; Cb = blau + 128
+			addps xmm12, [rel s4flt6]		; Cr = blau + 128
 			addps xmm4,xmm5				; Cb = blau + gruen
 			addps xmm12,xmm13			; Cr = blau + gruen
 			addps xmm4,xmm6				; Cb = Cb + rot
@@ -497,8 +497,8 @@ ALIGN 16
 		subss xmm13,xmm2		; tolb-tola
 		divss xmm0,xmm13	; Alphawert ist nun als float in xmm0
 		pxor xmm6,xmm6
-		mulss xmm0,[s4flt8]	; und jetzt als float 0..255
-		movq xmm12,[akehr]
+		mulss xmm0,[rel s4flt8]	; und jetzt als float 0..255
+		movq xmm12,[rel akehr]
 		punpcklbw xmm4,xmm6	; Background in xmm4 in Worte umgewandelt
 		cvtps2dq xmm0,xmm0	; und jetzt als integer 0..255 in xmm0
 		punpcklbw xmm5,xmm6 ; Vordergrund in xmm5 in Worte umgewandelt
