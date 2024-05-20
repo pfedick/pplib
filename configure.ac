@@ -488,7 +488,8 @@ LIBCURL_CHECK_CONFIG([yes],[7.30.0],
 	#CFLAGS="$CFLAGS $LIBCURL_CPPFLAGS "
 	AC_SUBST(LIBCURL)
 	AC_SUBST(LIBCURL_CPPFLAGS)
-	report_have_curl="yes",:)
+	report_have_curl="yes",
+	:)
 
 
 
@@ -498,7 +499,7 @@ AC_CHECK_LIBMPG123([1.0.0],
 			AC_SUBST(MPG123_CFLAGS)
 			AC_SUBST(MPG123_LIBS)
             ,
-            )
+            :)
 
 
 AC_CHECK_LIBMP3LAME([3.98.0],
