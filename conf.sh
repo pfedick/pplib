@@ -68,42 +68,6 @@ case "$SYS:$REL:$KERNEL" in
 			--enable-gtest=/usr/local/googletest-release-1.10.0
 
 		;;
-	MINGW32*:1.0.16*)
-		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
-		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
-		export CFLAGS="-DCURL_STATICLIB"
-		echo "Building for MinGW 1.0.16 - 32 Bit"
-
-			#		preprocessor definitions will be in effect:
-			# * #define _WIN64 1 (also WIN64, __WIN64, and __WIN64__)
-			# * #define __MINGW64__ 1
-			# * #define __x86_64 1 (also __x86_64__)
-			# * #define __amd64 1 (also __amd64__)
-			#Be sure to use "-m32" or "-m64" at both the compile stage and the link stage.
-
-		./configure --prefix=$PREFIX \
-			--build=i686-w64-mingw32 \
-			--with-pcre=/mingw --with-bzip2=/mingw --with-zlib=/mingw \
-			--with-nasm --with-libiconv-prefix=/mingw \
-			--with-lame=/mingw --with-mpg123=/mingw \
-			--with-jpeg=/mingw --with-png=/mingw \
-			--with-gcrypt=auto \
-			--with-openssl=/mingw --with-libcurl \
-			--with-ogg=/mingw
-		;;
-	MINGW32*)
-		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
-		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
-		export CFLAGS="-DCURL_STATICLIB"
-		./configure --prefix=$PREFIX \
-			--with-pcre=/usr/local --with-bzip2=/usr/local --with-zlib=/usr/local \
-			--with-nasm --with-libiconv-prefix=/usr/local \
-			--with-lame=/usr/local --with-mpg123=/usr/local \
-			--with-jpeg=/usr/local --with-libpng=/usr/local \
-			--with-gcrypt=auto \
-			--with-openssl=/usr/local --with-libcurl \
-			--with-ogg=/usr/local
-		;;
 	MINGW64*)
 		export CPPFLAGS="-DCURL_STATICLIB -I/usr/local/include -I/sdk/WindowsSDK/include"
 		export LDLAGS="-DCURL_STATICLIB -L/usr/local/lib -L/sdk/WindowsSDK/lib"
@@ -111,36 +75,9 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 		    --without-postgresql --without-mysql \
 		    --enable-gtest=/usr/src/gtest-1.7.0 \
+			--with-freetype2=/ucrt64
 		;;
-	MSYS_NT-10*)
-		if [ -d /jenkins/local/bin ] ; then
-			PREFIX=/jenkins/local
-		fi
-		echo "configuring for MSYS2 MINGW64, PREFIX=$PREFIX"
-		MINGW=/mingw64
-		#export CPPFLAGS="-DCURL_STATICLIB -DPCRE_STATIC -I$PREFIX/include -I/usr/local/include -I/sdk/WindowsSDK/include"
-		#export LDLAGS="-DCURL_STATICLIB -L$PREFIX/lib -L/usr/local/lib -L/sdk/WindowsSDK/lib"
-		#export CFLAGS="-DCURL_STATICLIB -DPCRE_STATIC"
-		#export SQLITE_CFLAGS="-I$PREFIX/include -I/usr/local/include"
-		#export SQLITE_LIBS="-L$PREFIX/include -L/usr/local/lib -lsqlite3"
-		export CFLAGS="-I/mingw64/include/freetype2 "
-		export CPPFLAGS="-I/mingw64/include/freetype2 "
-		export LDFLAGS="-L/mingw64/lib "
-		export LIBS="-lfreetype"
-		./configure --prefix=$PREFIX \
-			--with-pcre=$MINGW --with-bzip2=$MINGW --with-zlib=$MINGW \
-			--with-nasm --with-libiconv-prefix=$MINGW \
-			--with-lame --with-mpg123 --with-ogg \
-			--with-ft-prefix=$MINGW \
-			--with-libtiff=$MINGW \
-			--with-libjpegturbo=$MINGW --with-libpng=$MINGW \
-			--with-openssl=$MINGW \
-			--with-libldns=$MINGW --with-libidn=$MINGW \
-		    --without-postgresql --without-mysql \
-		    --with-sdl-prefix=no \
-		    --enable-gtest=/usr/local/gtest-1.7.0 \
 
-		;;
 	Linux:*)
 
 	    # export CFLAGS="-no-pie "
