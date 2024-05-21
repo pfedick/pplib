@@ -5,17 +5,24 @@ AC_MSG_CHECKING(if we should use freetype)
 AC_ARG_WITH([freetype2],
 	[  --with-freetype2[[=PATH]]     Prefix where freetype2 is installed (optional)],
 	[freetype_prefix="$withval"],
-	[freetype_prefix="auto"])
+	[freetype_prefix=""])
 	if test "$freetype2_prefix" != "no"
 	then
 		AC_MSG_RESULT(yes)
+		FT2_CONFIG="x"
 		if test "$freetype_prefix" != "yes"
 		then
 			intFREETYPE_LIBS="-L $freetype_prefix/lib -lfreetype"
 			intFREETYPE_CFLAGS="-I $freetype_prefix/include/freetype2"
+			AC_PATH_TOOL([FT2_CONFIG], [freetype-config], [no], "$freetype_prefix/bin:$PATH")
 		else
 			intFREETYPE_LIBS="-lfreetype"
-			intFREETYPE_CFLAGS="-Ifreetype2"
+			intFREETYPE_CFLAGS=""
+			AC_PATH_TOOL([FT2_CONFIG], [freetype-config], [no])
+		fi
+		if test "$FT2_CONFIG" != "x" ; then
+			intFREETYPE_LIBS=`$FT2_CONFIG --libs`
+			intFREETYPE_CFLAGS=`$FT2_CONFIG --cflags`
 		fi
 
 		am_save_CPPFLAGS="$CPPFLAGS"
