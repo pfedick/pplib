@@ -9,7 +9,6 @@ AC_ARG_WITH([freetype2],
 	if test "$freetype2_prefix" != "no"
 	then
 		AC_MSG_RESULT(yes)
-		FT2_CONFIG="x"
 		if test "$freetype_prefix" != "yes"
 		then
 			intFREETYPE_LIBS="-L $freetype_prefix/lib -lfreetype"
@@ -20,7 +19,13 @@ AC_ARG_WITH([freetype2],
 			intFREETYPE_CFLAGS=""
 			AC_PATH_TOOL([FT2_CONFIG], [freetype-config], [no])
 		fi
-		if test "$FT2_CONFIG" != "x" ; then
+		AC_PATH_PROG([PKGCONFIG], [pkg-config], [no])
+		if test "x$PKGCONFIG" != "xno" && `$PKGCONFIG --exists freetype2`
+		then
+			intFREETYPE_LIBS=`$PKGCONFIG --libs freetype2`
+			intFREETYPE_CFLAGS=`$PKGCONFIG --cflags freetype2`
+		fi
+		if test "x$FT2_CONFIG" != "xno" ; then
 			intFREETYPE_LIBS=`$FT2_CONFIG --libs`
 			intFREETYPE_CFLAGS=`$FT2_CONFIG --cflags`
 		fi
