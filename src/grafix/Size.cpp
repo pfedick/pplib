@@ -117,6 +117,11 @@ void Size::setSize(const Size &other)
 }
 
 
+Size Size::invalid()
+{
+	return Size(-1,-1);
+}
+
 Size &Size::operator*= (double factor)
 {
 	width=(int)(width*factor);

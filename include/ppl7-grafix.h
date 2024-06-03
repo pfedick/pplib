@@ -234,6 +234,8 @@ public:
 	Size& operator+= (const Size& size);
 	Size& operator-= (const Size& size);
 	Size& operator/= (double divisor);
+
+	static Size invalid();
 };
 
 bool operator!= (const Size& s1, const Size& s2);
