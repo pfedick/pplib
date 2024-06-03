@@ -937,25 +937,6 @@ public:
 	virtual String description() const;
 };
 
-class FontEngineFont4 : public FontEngine
-{
-private:
-	PFPChunk* selectFont(const FontFile& file, const Font& font);
-	void renderInternal(PFPChunk* c, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
-
-public:
-	FontEngineFont4();
-	virtual ~FontEngineFont4();
-	virtual void init();
-	virtual int ident(FileObject& file) throw();
-	virtual FontFile* loadFont(FileObject& file, const String& fontname);
-	virtual void deleteFont(FontFile* file);
-	virtual void render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color);
-	virtual Size measure(const FontFile& file, const Font& font, const WideString& text);
-	virtual String name() const;
-	virtual String description() const;
-};
-
 class FontEngineFont5 : public FontEngine
 {
 private:
