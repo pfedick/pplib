@@ -591,22 +591,22 @@ static void BltBackgroundOnChromaKey_32(DRAWABLE_DATA& target, const DRAWABLE_DA
 void Grafix::initBlits(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
 {
 	switch (format) {
-	case RGBFormat::A8R8G8B8:		// 32 Bit True Color
-	case RGBFormat::A8B8G8R8:
-	case RGBFormat::X8B8G8R8:
-	case RGBFormat::X8R8G8B8:
-		fn->Blt=Blt_32;
-		fn->BltAlpha=BltAlpha_32;
-		fn->BltAlphaMod=BltAlphaMod_32;
-		fn->BltColorKey=BltColorKey_32;
-		fn->BltDiffuse=BltDiffuse_32;
-		fn->BltBlend=BltBlend_32;
-		fn->BltChromaKey=BltChromaKey_32;
-		fn->BltBackgoundOnChromaKey=BltBackgroundOnChromaKey_32;
-		return;
-	case RGBFormat::GREY8:
-	case RGBFormat::A8:
-		return;
+		case RGBFormat::A8R8G8B8:		// 32 Bit True Color
+		case RGBFormat::A8B8G8R8:
+		case RGBFormat::X8B8G8R8:
+		case RGBFormat::X8R8G8B8:
+			fn->Blt=Blt_32;
+			fn->BltAlpha=BltAlpha_32;
+			fn->BltAlphaMod=BltAlphaMod_32;
+			fn->BltColorKey=BltColorKey_32;
+			fn->BltDiffuse=BltDiffuse_32;
+			fn->BltBlend=BltBlend_32;
+			fn->BltChromaKey=BltChromaKey_32;
+			fn->BltBackgoundOnChromaKey=BltBackgroundOnChromaKey_32;
+			return;
+		case RGBFormat::GREY8:
+		case RGBFormat::A8:
+			return;
 
 	}
 	throw UnsupportedColorFormatException("RGBFormat=%s (%i)", (const char*)format.name(), format.format());
@@ -972,18 +972,18 @@ void Drawable::draw(const ImageList& iml, int nr, int x, int y)
 {
 	Rect r=iml.getRect(nr);
 	switch ((int)iml.method) {
-	case ImageList::BLT:
-		blt(iml, r, x, y);
-		return;
-	case ImageList::ALPHABLT:
-		bltAlpha(iml, r, x, y);
-		return;
-	case ImageList::COLORKEY:
-		bltColorKey(iml, r, x, y, iml.colorkey);
-		return;
-	case ImageList::DIFFUSE:
-		bltDiffuse(iml, r, x, y, iml.diffuse);
-		return;
+		case ImageList::BLT:
+			blt(iml, r, x, y);
+			return;
+		case ImageList::ALPHABLT:
+			bltAlpha(iml, r, x, y);
+			return;
+		case ImageList::COLORKEY:
+			bltColorKey(iml, r, x, y, iml.colorkey);
+			return;
+		case ImageList::DIFFUSE:
+			bltDiffuse(iml, r, x, y, iml.diffuse);
+			return;
 	}
 	throw UnknownBltMethodException();
 }
@@ -1010,18 +1010,18 @@ void Drawable::draw(const ImageList& iml, int nr, int x, int y, const Color& dif
 {
 	Rect r=iml.getRect(nr);
 	switch ((int)iml.method) {
-	case ImageList::BLT:
-		blt(iml, r, x, y);
-		return;
-	case ImageList::ALPHABLT:
-		bltAlpha(iml, r, x, y);
-		return;
-	case ImageList::COLORKEY:
-		bltColorKey(iml, r, x, y, iml.colorkey);
-		return;
-	case ImageList::DIFFUSE:
-		bltDiffuse(iml, r, x, y, diffuse);
-		return;
+		case ImageList::BLT:
+			blt(iml, r, x, y);
+			return;
+		case ImageList::ALPHABLT:
+			bltAlpha(iml, r, x, y);
+			return;
+		case ImageList::COLORKEY:
+			bltColorKey(iml, r, x, y, iml.colorkey);
+			return;
+		case ImageList::DIFFUSE:
+			bltDiffuse(iml, r, x, y, diffuse);
+			return;
 	}
 	throw UnknownBltMethodException();
 }
