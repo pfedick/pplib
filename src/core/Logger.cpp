@@ -774,7 +774,8 @@ void Logger::checkRotate(PRIORITY prio)
 			for (int i=generations;i > 1;i--) {
 				f1.setf("%s.%i", logfilename[prio].getPtr(), i - 1);
 				f2.setf("%s.%i", logfilename[prio].getPtr(), i);
-				File::rename(f1, f2);
+				if (File::exists(f2)) File::unlink(f2);
+				if (File::exists(f1)) File::rename(f1, f2);
 			}
 			f2.setf("%s.1", logfilename[prio].getPtr());
 			File::rename(logfilename[prio], f2);
