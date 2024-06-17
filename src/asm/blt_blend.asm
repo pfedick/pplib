@@ -37,8 +37,8 @@
 SECTION .text
 
 struc BLTDATA
-	src:		PTR		1			; ebp+0
-	tgt:		PTR		1			; ebp+4
+	src:		PTR_TYPE		1			; ebp+0
+	tgt:		PTR_TYPE		1			; ebp+4
 	width:		resd	1			; ebp+8
 	height:		resd	1			; ebp+12
 	pitchsrc:	resd	1			; ebp+16
