@@ -169,6 +169,12 @@ void ConfigParser::selectSection(const String& sectionname)
 	if (!section) throw UnknownSectionException(sectionname);
 }
 
+bool ConfigParser::hasSection(const String& sectionname) const
+{
+	if (findSection(sectionname)) return true;
+	return false;
+}
+
 void* ConfigParser::findSection(const String& sectionname) const
 {
 	SECTION* s=(SECTION*)first;
@@ -344,6 +350,19 @@ String ConfigParser::get(const String& key, const String& defaultvalue) const
 		return defaultvalue;
 	}
 	return ret;
+}
+
+bool ConfigParser::hasKey(const String& key) const
+{
+	if (!section) return false;
+	return ((SECTION*)section)->values.exists(key);
+}
+
+bool ConfigParser::hasKey(const String& section, const String& key) const
+{
+	SECTION* s=(SECTION*)findSection(section);
+	if (!s) return false;
+	return ((SECTION*)s)->values.exists(key);
 }
 
 String ConfigParser::getFromSection(const String& section, const String& key, const String& defaultvalue) const

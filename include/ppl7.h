@@ -1293,6 +1293,7 @@ public:
 	void createSection(const String& name);
 	void setSection(const String& name);
 	void deleteSection(const String& name);
+	bool hasSection(const String& sectionname) const;
 	void add(const String& section, const String& key, const String& value);
 	void add(const String& section, const String& key, const char* value);
 	void add(const String& key, const String& value);
@@ -1303,6 +1304,8 @@ public:
 	void add(const String& section, const String& key, bool value);
 	void deleteKey(const String& key);
 	void deleteKey(const String& section, const String& key);
+	bool hasKey(const String& key) const;
+	bool hasKey(const String& section, const String& key) const;
 	String get(const String& key, const String& defaultvalue=String()) const;
 	bool	getBool(const String& key, bool defaultvalue=false) const;
 	int		getInt(const String& key, int defaultvalue=0) const;
