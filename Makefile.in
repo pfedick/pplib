@@ -907,10 +907,9 @@ memcheck:
 #	$(CXX) -Wall -c -o debug/pplgenresource.o tools/pplgenresource/genresource.cpp $(CFLAGS)
 #
 #
-#res:
-#	-pplgenresource -b resource -c resource/resourcen.lst -t resource/res.h -l PPL7_RESOURCES
-#	-rm -f debug/resourcen.o release/resourcen.o
-
+res:
+	-pplgenresource -b resource -c resource/resourcen.lst -t resource/res.h -l PPL7_RESOURCES
+	-rm -f debug/core_Resourcen.o release/core_Resourcen.o
 
 ###########################################################################
 ### Compile Release Files
