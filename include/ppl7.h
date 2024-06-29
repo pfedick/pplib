@@ -87,6 +87,13 @@
 #include <set>
 #include <list>
 
+#ifdef PPL_WITH_QT6
+#include <QAnyStringView>
+#ifndef WITH_QT
+#define WITH_QT
+#endif
+#endif
+
 #ifdef WITH_QT
 #include <QString>
 #include <QVariant>

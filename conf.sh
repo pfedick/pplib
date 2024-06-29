@@ -75,7 +75,9 @@ case "$SYS:$REL:$KERNEL" in
 		./configure --prefix=$PREFIX \
 		    --without-postgresql --without-mysql \
 		    --enable-gtest=/usr/src/gtest-1.7.0 \
-			--with-freetype2=/ucrt64
+			--with-freetype2=/ucrt64 \
+			--without-sdl-prefix
+
 		;;
 
 	Linux:*)

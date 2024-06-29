@@ -518,6 +518,16 @@ public:
 
 	//@}
 
+#ifdef PPL_WITH_QT6
+	operator QAnyStringView() const {
+#ifdef PPL_QT_STRING_UTF8
+		return QAnyStringView(ptr, stringlen);
+#else
+		return QAnyStringView(ptr, stringlen);
+#endif
+	}
+#endif
+
 #ifdef WITH_QT
 		//! @name Operatoren zur Verwendung der Klasse mit Qt
 		//@{
