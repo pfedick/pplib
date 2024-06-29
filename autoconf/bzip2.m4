@@ -32,7 +32,7 @@ report_have_bzip2="no"
          #include <bzlib.h>
          int main()
          {
-            char* source = "Hello World";
+            char* source;
             char* dest;
             unsigned int destLen = 1000;
             unsigned int sourceLen = 1000;
@@ -49,7 +49,7 @@ report_have_bzip2="no"
       AC_SUBST(BZ2_CFLAGS)
 	  AC_SUBST(BZ2_LIBS)
       report_have_bzip2="yes"
-    
+
       ],
       [
          AC_MSG_RESULT(no)
