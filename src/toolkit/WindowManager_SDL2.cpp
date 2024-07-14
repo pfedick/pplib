@@ -85,23 +85,23 @@ typedef struct {
 static RGBFormat SDL2RGBFormat(const Uint32 f)
 {
 	switch (f) {
-	case SDL_PIXELFORMAT_INDEX8: return RGBFormat::Palette;
-	case SDL_PIXELFORMAT_RGB332: return RGBFormat::R3G3B2;
-	case SDL_PIXELFORMAT_RGB444: return RGBFormat::X4R4G4B4;
-	case SDL_PIXELFORMAT_RGB555: return RGBFormat::X1R5G5B5;
-	case SDL_PIXELFORMAT_BGR555: return RGBFormat::X1B5G5R5;
-	case SDL_PIXELFORMAT_ARGB4444: return RGBFormat::A4R4G4B4;
-	case SDL_PIXELFORMAT_ABGR4444: return RGBFormat::A4B4G4R4;
-	case SDL_PIXELFORMAT_ARGB1555: return RGBFormat::A1R5G5B5;
-	case SDL_PIXELFORMAT_ABGR1555: return RGBFormat::A1B5G5R5;
-	case SDL_PIXELFORMAT_RGB565: return RGBFormat::R5G6B5;
-	case SDL_PIXELFORMAT_BGR565: return RGBFormat::B5G6R5;
-	case SDL_PIXELFORMAT_RGB24: return RGBFormat::R8G8B8;
-	case SDL_PIXELFORMAT_BGR24: return RGBFormat::B8G8R8;
-	case SDL_PIXELFORMAT_RGB888: return RGBFormat::X8R8G8B8;
-	case SDL_PIXELFORMAT_BGR888: return RGBFormat::X8B8G8R8;
-	case SDL_PIXELFORMAT_ARGB8888: return RGBFormat::A8R8G8B8;
-	case SDL_PIXELFORMAT_ABGR8888: return RGBFormat::A8B8G8R8;
+		case SDL_PIXELFORMAT_INDEX8: return RGBFormat::Palette;
+		case SDL_PIXELFORMAT_RGB332: return RGBFormat::R3G3B2;
+		case SDL_PIXELFORMAT_RGB444: return RGBFormat::X4R4G4B4;
+		case SDL_PIXELFORMAT_RGB555: return RGBFormat::X1R5G5B5;
+		case SDL_PIXELFORMAT_BGR555: return RGBFormat::X1B5G5R5;
+		case SDL_PIXELFORMAT_ARGB4444: return RGBFormat::A4R4G4B4;
+		case SDL_PIXELFORMAT_ABGR4444: return RGBFormat::A4B4G4R4;
+		case SDL_PIXELFORMAT_ARGB1555: return RGBFormat::A1R5G5B5;
+		case SDL_PIXELFORMAT_ABGR1555: return RGBFormat::A1B5G5R5;
+		case SDL_PIXELFORMAT_RGB565: return RGBFormat::R5G6B5;
+		case SDL_PIXELFORMAT_BGR565: return RGBFormat::B5G6R5;
+		case SDL_PIXELFORMAT_RGB24: return RGBFormat::R8G8B8;
+		case SDL_PIXELFORMAT_BGR24: return RGBFormat::B8G8R8;
+		case SDL_PIXELFORMAT_RGB888: return RGBFormat::X8R8G8B8;
+		case SDL_PIXELFORMAT_BGR888: return RGBFormat::X8B8G8R8;
+		case SDL_PIXELFORMAT_ARGB8888: return RGBFormat::A8R8G8B8;
+		case SDL_PIXELFORMAT_ABGR8888: return RGBFormat::A8B8G8R8;
 	}
 	throw UnsupportedColorFormatException("format=%d", f);
 }
@@ -116,90 +116,90 @@ static SDL_COLORFORMAT RGBFormat2SDLStruct(const RGBFormat& format)
 	f.Bmask=0;
 	f.Amask=0;
 	switch (format) {
-	case RGBFormat::Palette:
-		f.depth=8;
-		break;
-	case RGBFormat::A8R8G8B8:
-	case RGBFormat::X8R8G8B8:
-		f.depth=32;
-		f.Amask=0xff000000;
-		f.Rmask=0x00ff0000;
-		f.Gmask=0x0000ff00;
-		f.Bmask=0x000000ff;
-		break;
-	case RGBFormat::A8B8G8R8:
-	case RGBFormat::X8B8G8R8:
-		f.depth=32;
-		f.Amask=0xff000000;
-		f.Rmask=0x000000ff;
-		f.Gmask=0x0000ff00;
-		f.Bmask=0x00ff0000;
-		break;
-	case RGBFormat::R5G6B5:
-		f.depth=16;
-		f.Amask=0x00000000;
-		f.Rmask=0x0000f800;
-		f.Gmask=0x000007e0;
-		f.Bmask=0x0000001f;
-		break;
-	case RGBFormat::B5G6R5:
-		f.depth=16;
-		f.Amask=0x00000000;
-		f.Rmask=0x0000001f;
-		f.Gmask=0x000007e0;
-		f.Bmask=0x0000f800;
-		break;
-	case RGBFormat::X1R5G5B5:
-	case RGBFormat::A1R5G5B5:
-		f.depth=16;
-		f.Amask=0x00008000;
-		f.Rmask=0x00007c00;
-		f.Gmask=0x000003e0;
-		f.Bmask=0x0000001f;
-		break;
-	case RGBFormat::X1B5G5R5:
-	case RGBFormat::A1B5G5R5:
-		f.depth=16;
-		f.Amask=0x00008000;
-		f.Rmask=0x0000001f;
-		f.Gmask=0x000003e0;
-		f.Bmask=0x00007c00;
-		break;
-	case RGBFormat::X4R4G4B4:
-	case RGBFormat::A4R4G4B4:
-		f.depth=16;
-		f.Amask=0x0000f000;
-		f.Rmask=0x00000f00;
-		f.Gmask=0x000000f0;
-		f.Bmask=0x0000000f;
-		break;
-	case RGBFormat::R8G8B8:
-		f.depth=24;
-		f.Rmask=0x00ff0000;
-		f.Gmask=0x0000ff00;
-		f.Bmask=0x000000ff;
-		break;
-	case RGBFormat::B8G8R8:
-		f.depth=24;
-		f.Rmask=0x000000ff;
-		f.Gmask=0x0000ff00;
-		f.Bmask=0x00ff0000;
-		break;
-	case RGBFormat::R3G3B2:
-		f.depth=8;
-		f.Rmask=0x00000003;
-		f.Gmask=0x0000001c;
-		f.Bmask=0x000000e0;
-		break;
-	case RGBFormat::A8R3G3B2:
-		f.depth=16;
-		f.Amask=0x0000ff00;
-		f.Rmask=0x00000003;
-		f.Gmask=0x0000001c;
-		f.Bmask=0x000000e0;
-		break;
-	default:
-		throw UnsupportedColorFormatException();
+		case RGBFormat::Palette:
+			f.depth=8;
+			break;
+		case RGBFormat::A8R8G8B8:
+		case RGBFormat::X8R8G8B8:
+			f.depth=32;
+			f.Amask=0xff000000;
+			f.Rmask=0x00ff0000;
+			f.Gmask=0x0000ff00;
+			f.Bmask=0x000000ff;
+			break;
+		case RGBFormat::A8B8G8R8:
+		case RGBFormat::X8B8G8R8:
+			f.depth=32;
+			f.Amask=0xff000000;
+			f.Rmask=0x000000ff;
+			f.Gmask=0x0000ff00;
+			f.Bmask=0x00ff0000;
+			break;
+		case RGBFormat::R5G6B5:
+			f.depth=16;
+			f.Amask=0x00000000;
+			f.Rmask=0x0000f800;
+			f.Gmask=0x000007e0;
+			f.Bmask=0x0000001f;
+			break;
+		case RGBFormat::B5G6R5:
+			f.depth=16;
+			f.Amask=0x00000000;
+			f.Rmask=0x0000001f;
+			f.Gmask=0x000007e0;
+			f.Bmask=0x0000f800;
+			break;
+		case RGBFormat::X1R5G5B5:
+		case RGBFormat::A1R5G5B5:
+			f.depth=16;
+			f.Amask=0x00008000;
+			f.Rmask=0x00007c00;
+			f.Gmask=0x000003e0;
+			f.Bmask=0x0000001f;
+			break;
+		case RGBFormat::X1B5G5R5:
+		case RGBFormat::A1B5G5R5:
+			f.depth=16;
+			f.Amask=0x00008000;
+			f.Rmask=0x0000001f;
+			f.Gmask=0x000003e0;
+			f.Bmask=0x00007c00;
+			break;
+		case RGBFormat::X4R4G4B4:
+		case RGBFormat::A4R4G4B4:
+			f.depth=16;
+			f.Amask=0x0000f000;
+			f.Rmask=0x00000f00;
+			f.Gmask=0x000000f0;
+			f.Bmask=0x0000000f;
+			break;
+		case RGBFormat::R8G8B8:
+			f.depth=24;
+			f.Rmask=0x00ff0000;
+			f.Gmask=0x0000ff00;
+			f.Bmask=0x000000ff;
+			break;
+		case RGBFormat::B8G8R8:
+			f.depth=24;
+			f.Rmask=0x000000ff;
+			f.Gmask=0x0000ff00;
+			f.Bmask=0x00ff0000;
+			break;
+		case RGBFormat::R3G3B2:
+			f.depth=8;
+			f.Rmask=0x00000003;
+			f.Gmask=0x0000001c;
+			f.Bmask=0x000000e0;
+			break;
+		case RGBFormat::A8R3G3B2:
+			f.depth=16;
+			f.Amask=0x0000ff00;
+			f.Rmask=0x00000003;
+			f.Gmask=0x0000001c;
+			f.Bmask=0x000000e0;
+			break;
+		default:
+			throw UnsupportedColorFormatException();
 	}
 
 	return f;
@@ -208,23 +208,23 @@ static SDL_COLORFORMAT RGBFormat2SDLStruct(const RGBFormat& format)
 static Uint32 RGBFormat2SDLFormat(const ppl7::grafix::RGBFormat& format)
 {
 	switch (format) {
-	case ppl7::grafix::RGBFormat::Palette:
-		return SDL_PIXELFORMAT_INDEX8;
-	case ppl7::grafix::RGBFormat::A8R8G8B8:
-		return SDL_PIXELFORMAT_ARGB8888;
-	case ppl7::grafix::RGBFormat::X8R8G8B8:
-		return SDL_PIXELFORMAT_ARGB8888;
-	case ppl7::grafix::RGBFormat::A8B8G8R8:
-		return SDL_PIXELFORMAT_ABGR8888;
-	case ppl7::grafix::RGBFormat::X8B8G8R8:
-		return SDL_PIXELFORMAT_ABGR8888;
+		case ppl7::grafix::RGBFormat::Palette:
+			return SDL_PIXELFORMAT_INDEX8;
+		case ppl7::grafix::RGBFormat::A8R8G8B8:
+			return SDL_PIXELFORMAT_ARGB8888;
+		case ppl7::grafix::RGBFormat::X8R8G8B8:
+			return SDL_PIXELFORMAT_ARGB8888;
+		case ppl7::grafix::RGBFormat::A8B8G8R8:
+			return SDL_PIXELFORMAT_ABGR8888;
+		case ppl7::grafix::RGBFormat::X8B8G8R8:
+			return SDL_PIXELFORMAT_ABGR8888;
 
-	case ppl7::grafix::RGBFormat::R8G8B8:
-		return SDL_PIXELFORMAT_RGB888;
-	case ppl7::grafix::RGBFormat::B8G8R8:
-		return SDL_PIXELFORMAT_BGR888;
-	default:
-		throw ppl7::grafix::UnsupportedColorFormatException();
+		case ppl7::grafix::RGBFormat::R8G8B8:
+			return SDL_PIXELFORMAT_RGB888;
+		case ppl7::grafix::RGBFormat::B8G8R8:
+			return SDL_PIXELFORMAT_BGR888;
+		default:
+			throw ppl7::grafix::UnsupportedColorFormatException();
 	}
 	throw ppl7::grafix::UnsupportedColorFormatException();
 }
@@ -374,6 +374,7 @@ WindowManager_SDL2::WindowManager_SDL2()
 	screenRefreshRate=current.refresh_rate;
 	//printf ("Auflösung: %i x %i, Format: %s, Refresh: %i\n",screenSize.width,screenSize.height,(const char*)screenRGBFormat.name(),screenRefreshRate);
 #endif
+	lastWindowEnterEvent=NULL;
 }
 
 WindowManager_SDL2::~WindowManager_SDL2()
@@ -558,125 +559,137 @@ void WindowManager_SDL2::handleEvents()
 	while (SDL_PollEvent(&sdl_event)) {		// Alle Events verarbeiten
 		//printf ("event vorhanden: %d\n",sdl_event.type);
 		switch (sdl_event.type) {
-		case SDL_QUIT:
-			DispatchQuitEvent(&sdl_event);
-			break;
-		case SDL_WINDOWEVENT:
-			DispatchWindowEvent(&sdl_event);
-			break;
-		case SDL_MOUSEMOTION:
-		case SDL_MOUSEBUTTONDOWN:
-		case SDL_MOUSEBUTTONUP:
-		case SDL_MOUSEWHEEL:
-			DispatchMouseEvent(&sdl_event);
-			break;
-		case SDL_KEYDOWN:
-		case SDL_KEYUP:
-			//printf ("SDL_KEYDOWN or SDL_KEYUP Event\n");
-			DispatchKeyEvent(&sdl_event);
-			break;
-		case SDL_TEXTINPUT:
-		{
-			Widget* keyFocusWidget=getKeyboardFocus();
-			if (keyFocusWidget) {
-				SDL_TextInputEvent* event=(SDL_TextInputEvent*)&sdl_event;
-				TextInputEvent te;
-				te.text.set(event->text);
-				keyFocusWidget->textInputEvent(&te);
+			case SDL_QUIT:
+				DispatchQuitEvent(&sdl_event);
+				break;
+			case SDL_WINDOWEVENT:
+				DispatchWindowEvent(&sdl_event);
+				break;
+			case SDL_MOUSEMOTION:
+			case SDL_MOUSEBUTTONDOWN:
+			case SDL_MOUSEBUTTONUP:
+			case SDL_MOUSEWHEEL:
+				DispatchMouseEvent(&sdl_event);
+				break;
+			case SDL_KEYDOWN:
+			case SDL_KEYUP:
+				//printf ("SDL_KEYDOWN or SDL_KEYUP Event\n");
+				DispatchKeyEvent(&sdl_event);
+				break;
+			case SDL_TEXTINPUT:
+			{
+				Widget* keyFocusWidget=getKeyboardFocus();
+				if (keyFocusWidget) {
+					SDL_TextInputEvent* event=(SDL_TextInputEvent*)&sdl_event;
+					TextInputEvent te;
+					te.text.set(event->text);
+					keyFocusWidget->textInputEvent(&te);
+
+				}
+
+				//printf ("Event: SDL_TEXTINPUT\n");
+				break;
+			}
+			case SDL_TEXTEDITING:
+				//printf("Event: SDL_TEXTEDITING\n");
+				break;
+			case SDL_USEREVENT:
+
+				if (sdl_event.user.code == 1) {	// ClickTimer
+					//printf ("SDL_USEREVENT 1\n");
+					dispatchClickEvent((Window*)sdl_event.user.data1);
+				} else if (sdl_event.user.code == 2) {	// TimerEvent
+					//printf("SDL_USEREVENT 2, windowid=%d\n", sdl_event.user.windowID);
+					Widget* w=(Widget*)sdl_event.user.data1;
+					Event e;
+					e.setWidget(w);
+					w->timerEvent(&e);
+				}
+				break;
+			case SDL_CONTROLLERAXISMOTION:
+			{
+				Widget* gcWidget=getGameControllerFocus();
+				if (gcWidget) {
+					SDL_ControllerAxisEvent* event=(SDL_ControllerAxisEvent*)&sdl_event;
+					GameControllerAxisEvent ev;
+					ev.setType(Event::GameControllerAxisMotion);
+					ev.setWidget(gcWidget);
+					ev.axis=event->axis;
+					ev.value=event->value;
+					gcWidget->gameControllerAxisMotionEvent(&ev);
+					//printf("Event: SDL_CONTROLLERAXISMOTION id=%d, axis=%d, value=%d\n", event->which, event->axis, event->value);
+
+				}
+				break;
+			}
+			case SDL_CONTROLLERBUTTONDOWN:
+			{
+				Widget* gcWidget=getGameControllerFocus();
+				if (gcWidget) {
+					SDL_ControllerButtonEvent* event=(SDL_ControllerButtonEvent*)&sdl_event;
+					GameControllerButtonEvent ev;
+					ev.setType(Event::GameControllerButtonDown);
+					ev.setWidget(gcWidget);
+					ev.button=event->button;
+					ev.state=event->state;
+					gcWidget->gameControllerButtonDownEvent(&ev);
+					//printf("Event: SDL_CONTROLLERBUTTONDOWN, id=%d, button=%d, state=%d\n", event->which, event->button, event->state);
+				}
+				break;
+			}
+			case SDL_CONTROLLERBUTTONUP:
+			{
+				Widget* gcWidget=getGameControllerFocus();
+				if (gcWidget) {
+					SDL_ControllerButtonEvent* event=(SDL_ControllerButtonEvent*)&sdl_event;
+					GameControllerButtonEvent ev;
+					ev.setType(Event::GameControllerButtonUp);
+					ev.setWidget(gcWidget);
+					ev.button=event->button;
+					ev.state=event->state;
+					gcWidget->gameControllerButtonUpEvent(&ev);
+					//printf("Event: SDL_CONTROLLERBUTTONDOWN, id=%d, button=%d, state=%d\n", event->which, event->button, event->state);
+				}
+				break;
+			}
+			case SDL_CONTROLLERDEVICEADDED:
+			{
+				Widget* gcWidget=getGameControllerFocus();
+				if (gcWidget) {
+					SDL_ControllerDeviceEvent* event=(SDL_ControllerDeviceEvent*)&sdl_event;
+					GameControllerEvent ev;
+					ev.setType(Event::GameControllerButtonUp);
+					ev.setWidget(gcWidget);
+					ev.which=event->which;
+					gcWidget->gameControllerDeviceAdded(&ev);
+				}
 
 			}
-
-			//printf ("Event: SDL_TEXTINPUT\n");
 			break;
-		}
-		case SDL_TEXTEDITING:
-			//printf("Event: SDL_TEXTEDITING\n");
-			break;
-		case SDL_USEREVENT:
-
-			if (sdl_event.user.code == 1) {	// ClickTimer
-				//printf ("SDL_USEREVENT 1\n");
-				dispatchClickEvent((Window*)sdl_event.user.data1);
-			} else if (sdl_event.user.code == 2) {	// TimerEvent
-				//printf("SDL_USEREVENT 2, windowid=%d\n", sdl_event.user.windowID);
-				Widget* w=(Widget*)sdl_event.user.data1;
-				Event e;
-				e.setWidget(w);
-				w->timerEvent(&e);
+			case SDL_CONTROLLERDEVICEREMOVED:
+			{
+				Widget* gcWidget=getGameControllerFocus();
+				if (gcWidget) {
+					SDL_ControllerDeviceEvent* event=(SDL_ControllerDeviceEvent*)&sdl_event;
+					GameControllerEvent ev;
+					ev.setType(Event::GameControllerButtonUp);
+					ev.setWidget(gcWidget);
+					ev.which=event->which;
+					gcWidget->gameControllerDeviceRemoved(&ev);
+				}
 			}
-			break;
-		case SDL_CONTROLLERAXISMOTION:
-		{
-			Widget* gcWidget=getGameControllerFocus();
-			if (gcWidget) {
-				SDL_ControllerAxisEvent* event=(SDL_ControllerAxisEvent*)&sdl_event;
-				GameControllerAxisEvent ev;
-				ev.setType(Event::GameControllerAxisMotion);
-				ev.setWidget(gcWidget);
-				ev.axis=event->axis;
-				ev.value=event->value;
-				gcWidget->gameControllerAxisMotionEvent(&ev);
-				//printf("Event: SDL_CONTROLLERAXISMOTION id=%d, axis=%d, value=%d\n", event->which, event->axis, event->value);
-
-			}
-			break;
-		}
-		case SDL_CONTROLLERBUTTONDOWN:
-		{
-			Widget* gcWidget=getGameControllerFocus();
-			if (gcWidget) {
-				SDL_ControllerButtonEvent* event=(SDL_ControllerButtonEvent*)&sdl_event;
-				GameControllerButtonEvent ev;
-				ev.setType(Event::GameControllerButtonDown);
-				ev.setWidget(gcWidget);
-				ev.button=event->button;
-				ev.state=event->state;
-				gcWidget->gameControllerButtonDownEvent(&ev);
-				//printf("Event: SDL_CONTROLLERBUTTONDOWN, id=%d, button=%d, state=%d\n", event->which, event->button, event->state);
-			}
-			break;
-		}
-		case SDL_CONTROLLERBUTTONUP:
-		{
-			Widget* gcWidget=getGameControllerFocus();
-			if (gcWidget) {
-				SDL_ControllerButtonEvent* event=(SDL_ControllerButtonEvent*)&sdl_event;
-				GameControllerButtonEvent ev;
-				ev.setType(Event::GameControllerButtonUp);
-				ev.setWidget(gcWidget);
-				ev.button=event->button;
-				ev.state=event->state;
-				gcWidget->gameControllerButtonUpEvent(&ev);
-				//printf("Event: SDL_CONTROLLERBUTTONDOWN, id=%d, button=%d, state=%d\n", event->which, event->button, event->state);
-			}
-			break;
-		}
-		case SDL_CONTROLLERDEVICEADDED:
-		{
-			Widget* gcWidget=getGameControllerFocus();
-			if (gcWidget) {
-				SDL_ControllerDeviceEvent* event=(SDL_ControllerDeviceEvent*)&sdl_event;
-				GameControllerEvent ev;
-				ev.setType(Event::GameControllerButtonUp);
-				ev.setWidget(gcWidget);
-				ev.which=event->which;
-				gcWidget->gameControllerDeviceAdded(&ev);
+			case SDL_DROPFILE: {
+				//ppl7::PrintDebug("SDL_DROPFILE\n");
+				DropEvent ev;
+				ev.setType(Event::DropFileEvent);
+				ev.text.set(sdl_event.drop.file);
+				//Window* w=getWindow(sdl_event.window.windowID);
+				if (!lastWindowEnterEvent) return;
+				//ppl7::PrintDebug("OK\n");
+				SDL_free(sdl_event.drop.file);
+				lastWindowEnterEvent->dropEvent(&ev);
 			}
 
-		}
-		break;
-		case SDL_CONTROLLERDEVICEREMOVED:
-		{
-			Widget* gcWidget=getGameControllerFocus();
-			if (gcWidget) {
-				SDL_ControllerDeviceEvent* event=(SDL_ControllerDeviceEvent*)&sdl_event;
-				GameControllerEvent ev;
-				ev.setType(Event::GameControllerButtonUp);
-				ev.setWidget(gcWidget);
-				ev.which=event->which;
-				gcWidget->gameControllerDeviceRemoved(&ev);
-			}
-		}
 		}
 	}
 #endif
@@ -708,85 +721,87 @@ void WindowManager_SDL2::DispatchWindowEvent(void* e)
 	if (!w) return;
 
 	switch (event->window.event) {
-	case SDL_WINDOWEVENT_SHOWN:
-		//printf("Window %d shown", event->window.windowID);
-		w->clearScreen();
-		w->drawWidgets();
-		w->presentScreen();
-		break;
-	case SDL_WINDOWEVENT_HIDDEN:
-		//fprintf(stderr, "Window %d hidden", event->window.windowID);
-		break;
-	case SDL_WINDOWEVENT_EXPOSED:
-		//fprintf(stderr, "Window %d exposed", event->window.windowID);
-		/*
-		w->clearScreen();
-		w->drawWidgets();
-		w->presentScreen();
-		*/
-		break;
-	case SDL_WINDOWEVENT_MOVED:
-		//fprintf(stderr, "Window %d moved to %d,%d",
-		//        event->window.windowID, event->window.data1,
-		//        event->window.data2);
-		break;
-	case SDL_WINDOWEVENT_RESIZED:
-		//printf("SDL_WINDOWEVENT_RESIZED on window %d\n", event->window.windowID);
-		//printf("Window %d resized to %dx%d",
-		//	event->window.windowID, event->window.data1,
-		//	event->window.data2);
-	{
-		w->setSize(event->window.data1, event->window.data2);
-		resizeWindow(*w, event->window.data1, event->window.data2);
-		ResizeEvent e;
-		e.setWidget(w);
-		w->resizeEvent(&e);
+		case SDL_WINDOWEVENT_SHOWN:
+			//printf("Window %d shown", event->window.windowID);
+			w->clearScreen();
+			w->drawWidgets();
+			w->presentScreen();
+			break;
+		case SDL_WINDOWEVENT_HIDDEN:
+			//fprintf(stderr, "Window %d hidden", event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_EXPOSED:
+			//fprintf(stderr, "Window %d exposed", event->window.windowID);
+			/*
+			w->clearScreen();
+			w->drawWidgets();
+			w->presentScreen();
+			*/
+			break;
+		case SDL_WINDOWEVENT_MOVED:
+			//fprintf(stderr, "Window %d moved to %d,%d",
+			//        event->window.windowID, event->window.data1,
+			//        event->window.data2);
+			break;
+		case SDL_WINDOWEVENT_RESIZED:
+			//printf("SDL_WINDOWEVENT_RESIZED on window %d\n", event->window.windowID);
+			//printf("Window %d resized to %dx%d",
+			//	event->window.windowID, event->window.data1,
+			//	event->window.data2);
+		{
+			w->setSize(event->window.data1, event->window.data2);
+			resizeWindow(*w, event->window.data1, event->window.data2);
+			ResizeEvent e;
+			e.setWidget(w);
+			w->resizeEvent(&e);
 
-	}
+		}
 
-	break;
-	case SDL_WINDOWEVENT_SIZE_CHANGED:
-		//printf("SDL_WINDOWEVENT_SIZE_CHANGED on window %d\n", event->window.windowID);
 		break;
-	case SDL_WINDOWEVENT_MINIMIZED:
-		//fprintf(stderr, "Window %d minimized", event->window.windowID);
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+			//printf("SDL_WINDOWEVENT_SIZE_CHANGED on window %d\n", event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_MINIMIZED:
+			//fprintf(stderr, "Window %d minimized", event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_MAXIMIZED:
+			//fprintf(stderr, "Window %d maximized", event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_RESTORED:
+			//fprintf(stderr, "Window %d restored", event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_ENTER:
+			//ppl7::PrintDebugTime("SDL_WINDOWEVENT_ENTER\n");
+			lastWindowEnterEvent=w;
+			//fprintf(stderr, "Mouse entered window %d",
+			//        event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_LEAVE:
+			//fprintf(stderr, "Mouse left window %d", event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_FOCUS_GAINED:
+			//fprintf(stderr, "Window %d gained keyboard focus",
+			//        event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_FOCUS_LOST:
+			//fprintf(stderr, "Window %d lost keyboard focus",
+			//        event->window.windowID);
+			break;
+		case SDL_WINDOWEVENT_CLOSE:
+		{
+			Event e(Event::Close);
+			e.setWidget(w);
+			w->closeEvent(&e);
+		}
 		break;
-	case SDL_WINDOWEVENT_MAXIMIZED:
-		//fprintf(stderr, "Window %d maximized", event->window.windowID);
-		break;
-	case SDL_WINDOWEVENT_RESTORED:
-		//fprintf(stderr, "Window %d restored", event->window.windowID);
-		break;
-	case SDL_WINDOWEVENT_ENTER:
-		//fprintf(stderr, "Mouse entered window %d",
-		//        event->window.windowID);
-		break;
-	case SDL_WINDOWEVENT_LEAVE:
-		//fprintf(stderr, "Mouse left window %d", event->window.windowID);
-		break;
-	case SDL_WINDOWEVENT_FOCUS_GAINED:
-		//fprintf(stderr, "Window %d gained keyboard focus",
-		//        event->window.windowID);
-		break;
-	case SDL_WINDOWEVENT_FOCUS_LOST:
-		//fprintf(stderr, "Window %d lost keyboard focus",
-		//        event->window.windowID);
-		break;
-	case SDL_WINDOWEVENT_CLOSE:
-	{
-		Event e(Event::Close);
-		e.setWidget(w);
-		w->closeEvent(&e);
-	}
-	break;
-	case SDL_WINDOWEVENT_TAKE_FOCUS:
-		break;
-	case SDL_WINDOWEVENT_HIT_TEST:
-		break;
-	default:
-		printf("SDL Window %d got unknown event %d\n",
-			event->window.windowID, event->window.event);
-		break;
+		case SDL_WINDOWEVENT_TAKE_FOCUS:
+			break;
+		case SDL_WINDOWEVENT_HIT_TEST:
+			break;
+		default:
+			printf("SDL Window %d got unknown event %d\n",
+				event->window.windowID, event->window.event);
+			break;
 	}
 #endif
 }
@@ -981,56 +996,90 @@ void WindowManager_SDL2::DispatchKeyEvent(void* e)
 	kev.repeat=(bool)event->repeat;
 
 	switch (event->keysym.sym) {
-	case SDLK_UNKNOWN: kev.key=KeyEvent::KEY_UNKNOWN; break;
-	case SDLK_RETURN: kev.key=KeyEvent::KEY_RETURN; break;
-	case SDLK_ESCAPE: kev.key=KeyEvent::KEY_ESCAPE; break;
-	case SDLK_BACKSPACE: kev.key=KeyEvent::KEY_BACKSPACE; break;
-	case SDLK_TAB: kev.key=KeyEvent::KEY_TAB; break;
-	case SDLK_SPACE: kev.key=KeyEvent::KEY_SPACE; break;
-	case SDLK_CAPSLOCK: kev.key=KeyEvent::KEY_CAPSLOCK; break;
-	case SDLK_F1: kev.key=KeyEvent::KEY_F1; break;
-	case SDLK_F2: kev.key=KeyEvent::KEY_F2; break;
-	case SDLK_F3: kev.key=KeyEvent::KEY_F3; break;
-	case SDLK_F4: kev.key=KeyEvent::KEY_F4; break;
-	case SDLK_F5: kev.key=KeyEvent::KEY_F5; break;
-	case SDLK_F6: kev.key=KeyEvent::KEY_F6; break;
-	case SDLK_F7: kev.key=KeyEvent::KEY_F7; break;
-	case SDLK_F8: kev.key=KeyEvent::KEY_F8; break;
-	case SDLK_F9: kev.key=KeyEvent::KEY_F9; break;
-	case SDLK_F10: kev.key=KeyEvent::KEY_F10; break;
-	case SDLK_F11: kev.key=KeyEvent::KEY_F11; break;
-	case SDLK_F12: kev.key=KeyEvent::KEY_F12; break;
-	case SDLK_PRINTSCREEN: kev.key=KeyEvent::KEY_PRINTSCREEN; break;
-	case SDLK_SCROLLLOCK: kev.key=KeyEvent::KEY_SCROLLLOCK; break;
-	case SDLK_PAUSE: kev.key=KeyEvent::KEY_PAUSE; break;
-	case SDLK_INSERT: kev.key=KeyEvent::KEY_INSERT; break;
-	case SDLK_HOME: kev.key=KeyEvent::KEY_HOME; break;
-	case SDLK_PAGEUP: kev.key=KeyEvent::KEY_PAGEUP; break;
-	case SDLK_DELETE: kev.key=KeyEvent::KEY_DELETE; break;
-	case SDLK_END: kev.key=KeyEvent::KEY_END; break;
-	case SDLK_PAGEDOWN: kev.key=KeyEvent::KEY_PAGEDOWN; break;
-	case SDLK_RIGHT: kev.key=KeyEvent::KEY_RIGHT; break;
-	case SDLK_LEFT: kev.key=KeyEvent::KEY_LEFT; break;
-	case SDLK_DOWN: kev.key=KeyEvent::KEY_DOWN; break;
-	case SDLK_UP: kev.key=KeyEvent::KEY_UP; break;
-	case SDLK_LCTRL: kev.key=KeyEvent::KEY_LEFTCTRL; break;
-	case SDLK_LSHIFT: kev.key=KeyEvent::KEY_LEFTSHIFT; break;
-	case SDLK_LALT: kev.key=KeyEvent::KEY_LEFTALT; break;
-	case SDLK_LGUI: kev.key=KeyEvent::KEY_LEFTGUI; break;
-	case SDLK_RCTRL: kev.key=KeyEvent::KEY_RIGHTCTRL; break;
-	case SDLK_RSHIFT: kev.key=KeyEvent::KEY_RIGHTSHIFT; break;
-	case SDLK_RALT: kev.key=KeyEvent::KEY_RIGHTALT; break;
-	case SDLK_RGUI: kev.key=KeyEvent::KEY_RIGHTGUI; break;
-	case SDLK_KP_ENTER: kev.key=KeyEvent::KEY_ENTER; break;
-	case SDLK_NUMLOCKCLEAR: kev.key=KeyEvent::KEY_NUMLOCK; break;
-	case SDLK_MODE: kev.key=KeyEvent::KEY_MODE; break;
-	case SDLK_c: kev.key=KeyEvent::KEY_c; break;
-	case SDLK_v: kev.key=KeyEvent::KEY_v; break;
-	case SDLK_z: kev.key=KeyEvent::KEY_z; break;
-	case SDLK_y: kev.key=KeyEvent::KEY_y; break;
+		case SDLK_UNKNOWN: kev.key=KeyEvent::KEY_UNKNOWN; break;
+		case SDLK_RETURN: kev.key=KeyEvent::KEY_RETURN; break;
+		case SDLK_ESCAPE: kev.key=KeyEvent::KEY_ESCAPE; break;
+		case SDLK_BACKSPACE: kev.key=KeyEvent::KEY_BACKSPACE; break;
+		case SDLK_TAB: kev.key=KeyEvent::KEY_TAB; break;
+		case SDLK_SPACE: kev.key=KeyEvent::KEY_SPACE; break;
+		case SDLK_CAPSLOCK: kev.key=KeyEvent::KEY_CAPSLOCK; break;
+		case SDLK_F1: kev.key=KeyEvent::KEY_F1; break;
+		case SDLK_F2: kev.key=KeyEvent::KEY_F2; break;
+		case SDLK_F3: kev.key=KeyEvent::KEY_F3; break;
+		case SDLK_F4: kev.key=KeyEvent::KEY_F4; break;
+		case SDLK_F5: kev.key=KeyEvent::KEY_F5; break;
+		case SDLK_F6: kev.key=KeyEvent::KEY_F6; break;
+		case SDLK_F7: kev.key=KeyEvent::KEY_F7; break;
+		case SDLK_F8: kev.key=KeyEvent::KEY_F8; break;
+		case SDLK_F9: kev.key=KeyEvent::KEY_F9; break;
+		case SDLK_F10: kev.key=KeyEvent::KEY_F10; break;
+		case SDLK_F11: kev.key=KeyEvent::KEY_F11; break;
+		case SDLK_F12: kev.key=KeyEvent::KEY_F12; break;
+		case SDLK_PRINTSCREEN: kev.key=KeyEvent::KEY_PRINTSCREEN; break;
+		case SDLK_SCROLLLOCK: kev.key=KeyEvent::KEY_SCROLLLOCK; break;
+		case SDLK_PAUSE: kev.key=KeyEvent::KEY_PAUSE; break;
+		case SDLK_INSERT: kev.key=KeyEvent::KEY_INSERT; break;
+		case SDLK_HOME: kev.key=KeyEvent::KEY_HOME; break;
+		case SDLK_PAGEUP: kev.key=KeyEvent::KEY_PAGEUP; break;
+		case SDLK_DELETE: kev.key=KeyEvent::KEY_DELETE; break;
+		case SDLK_END: kev.key=KeyEvent::KEY_END; break;
+		case SDLK_PAGEDOWN: kev.key=KeyEvent::KEY_PAGEDOWN; break;
+		case SDLK_RIGHT: kev.key=KeyEvent::KEY_RIGHT; break;
+		case SDLK_LEFT: kev.key=KeyEvent::KEY_LEFT; break;
+		case SDLK_DOWN: kev.key=KeyEvent::KEY_DOWN; break;
+		case SDLK_UP: kev.key=KeyEvent::KEY_UP; break;
+		case SDLK_LCTRL: kev.key=KeyEvent::KEY_LEFTCTRL; break;
+		case SDLK_LSHIFT: kev.key=KeyEvent::KEY_LEFTSHIFT; break;
+		case SDLK_LALT: kev.key=KeyEvent::KEY_LEFTALT; break;
+		case SDLK_LGUI: kev.key=KeyEvent::KEY_LEFTGUI; break;
+		case SDLK_RCTRL: kev.key=KeyEvent::KEY_RIGHTCTRL; break;
+		case SDLK_RSHIFT: kev.key=KeyEvent::KEY_RIGHTSHIFT; break;
+		case SDLK_RALT: kev.key=KeyEvent::KEY_RIGHTALT; break;
+		case SDLK_RGUI: kev.key=KeyEvent::KEY_RIGHTGUI; break;
+		case SDLK_KP_ENTER: kev.key=KeyEvent::KEY_ENTER; break;
+		case SDLK_NUMLOCKCLEAR: kev.key=KeyEvent::KEY_NUMLOCK; break;
+		case SDLK_MODE: kev.key=KeyEvent::KEY_MODE; break;
+		case SDLK_a: kev.key=KeyEvent::KEY_a; break;
+		case SDLK_b: kev.key=KeyEvent::KEY_b; break;
+		case SDLK_c: kev.key=KeyEvent::KEY_c; break;
+		case SDLK_d: kev.key=KeyEvent::KEY_d; break;
+		case SDLK_e: kev.key=KeyEvent::KEY_e; break;
+		case SDLK_f: kev.key=KeyEvent::KEY_f; break;
+		case SDLK_g: kev.key=KeyEvent::KEY_g; break;
+		case SDLK_h: kev.key=KeyEvent::KEY_h; break;
+		case SDLK_i: kev.key=KeyEvent::KEY_i; break;
+		case SDLK_j: kev.key=KeyEvent::KEY_j; break;
+		case SDLK_k: kev.key=KeyEvent::KEY_k; break;
+		case SDLK_l: kev.key=KeyEvent::KEY_l; break;
+		case SDLK_m: kev.key=KeyEvent::KEY_m; break;
+		case SDLK_n: kev.key=KeyEvent::KEY_n; break;
+		case SDLK_o: kev.key=KeyEvent::KEY_o; break;
+		case SDLK_p: kev.key=KeyEvent::KEY_p; break;
+		case SDLK_q: kev.key=KeyEvent::KEY_q; break;
+		case SDLK_r: kev.key=KeyEvent::KEY_r; break;
+		case SDLK_s: kev.key=KeyEvent::KEY_s; break;
+		case SDLK_t: kev.key=KeyEvent::KEY_t; break;
+		case SDLK_u: kev.key=KeyEvent::KEY_u; break;
+		case SDLK_v: kev.key=KeyEvent::KEY_v; break;
+		case SDLK_w: kev.key=KeyEvent::KEY_w; break;
+		case SDLK_x: kev.key=KeyEvent::KEY_x; break;
+		case SDLK_y: kev.key=KeyEvent::KEY_y; break;
+		case SDLK_z: kev.key=KeyEvent::KEY_z; break;
+		case SDLK_1: kev.key=KeyEvent::KEY_1; break;
+		case SDLK_2: kev.key=KeyEvent::KEY_2; break;
+		case SDLK_3: kev.key=KeyEvent::KEY_3; break;
+		case SDLK_4: kev.key=KeyEvent::KEY_4; break;
+		case SDLK_5: kev.key=KeyEvent::KEY_5; break;
+		case SDLK_6: kev.key=KeyEvent::KEY_6; break;
+		case SDLK_7: kev.key=KeyEvent::KEY_7; break;
+		case SDLK_8: kev.key=KeyEvent::KEY_8; break;
+		case SDLK_9: kev.key=KeyEvent::KEY_9; break;
+		case SDLK_0: kev.key=KeyEvent::KEY_0; break;
 
 
-	default: kev.key=KeyEvent::KEY_UNKNOWN; break;
+
+
+		default: kev.key=KeyEvent::KEY_UNKNOWN; break;
 	}
 	kev.modifier=KeyEvent::KEYMOD_NONE;
 	if (event->keysym.mod & KMOD_LSHIFT) kev.modifier|=KeyEvent::KEYMOD_LEFTSHIFT;
@@ -1200,6 +1249,17 @@ String WindowManager_SDL2::getClipboardText() const
 
 #endif
 
+}
+
+void* WindowManager_SDL2::getSDLWindow(Window& w)
+{
+#ifndef HAVE_SDL2
+	throw UnsupportedFeatureException("SDL2");
+#else
+	SDL_WINDOW_PRIVATE* priv=(SDL_WINDOW_PRIVATE*)w.getPrivateData();
+	if (!priv) return NULL;
+	return priv->win;
+#endif
 }
 
 

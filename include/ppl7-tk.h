@@ -125,7 +125,9 @@ public:
 		GameControllerButtonDown,
 		GameControllerButtonUp,
 		GameControllerDeviceAdded,
-		GameControllerDeviceRemoved
+		GameControllerDeviceRemoved,
+		DropFileEvent,
+		DropTextEvent
 	};
 private:
 	Type t;
@@ -345,6 +347,12 @@ public:
 	int which;
 };
 
+class DropEvent : public Event
+{
+public:
+	ppl7::String text;
+};
+
 
 class EventHandler
 {
@@ -390,6 +398,8 @@ public:
 	virtual void gameControllerButtonUpEvent(GameControllerButtonEvent* event);
 	virtual void gameControllerDeviceAdded(GameControllerEvent* event);
 	virtual void gameControllerDeviceRemoved(GameControllerEvent* event);
+
+	virtual void dropEvent(DropEvent* event);
 
 };
 
@@ -745,6 +755,7 @@ private:
 	int			screenRefreshRate;
 
 	List<Window*>	windows;
+	Window* lastWindowEnterEvent;
 
 	void DispatchSdlActiveEvent(void* e);
 	void DispatchSdlKeyEvent(void* e);
@@ -787,6 +798,7 @@ public:
 
 	void changeWindowMode(Window& w, Window::WindowMode mode);
 	Window::WindowMode getWindowMode(Window& w);
+	void* getSDLWindow(Window& w);
 
 };
 
