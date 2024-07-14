@@ -484,5 +484,10 @@ void EventHandler::gameControllerDeviceRemoved(GameControllerEvent* event)
 	if (handler) handler->gameControllerDeviceRemoved(event);
 }
 
+void EventHandler::dropEvent(DropEvent* event)
+{
+	if (handler) handler->dropEvent(event);
+}
+
 }	// EOF namespace tk
 }	// EOF namespace ppl7
