@@ -678,7 +678,9 @@ void WindowManager_SDL2::handleEvents()
 					gcWidget->gameControllerDeviceRemoved(&ev);
 				}
 			}
-			case SDL_DROPFILE: {
+			break;
+			case SDL_DROPFILE:
+			{
 				//ppl7::PrintDebug("SDL_DROPFILE\n");
 				DropEvent ev;
 				ev.setType(Event::DropFileEvent);
@@ -689,7 +691,7 @@ void WindowManager_SDL2::handleEvents()
 				SDL_free(sdl_event.drop.file);
 				lastWindowEnterEvent->dropEvent(&ev);
 			}
-
+			break;
 		}
 	}
 #endif
