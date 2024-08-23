@@ -233,12 +233,15 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
     //allocateBuffer(4 * num);
     size_t rest=num * 4;
     int bitstream=0;
+    //ppl7::PrintDebug("reading %d samples, which is %d bytes\n", (int)num, (int)rest);
+    char* b=(char*)buffer;
     while (rest > 0) {
-        long bytes_read=ov_read(&oggp->vf, (char*)buffer, rest, 0, 2, 1, &bitstream);
+        long bytes_read=ov_read(&oggp->vf, b, rest, 0, 2, 1, &bitstream);
         //ppl7::PrintDebug("bytes_read: %d, bitstream: %d, rest: %d\n", (int)bytes_read, bitstream, rest);
         if (bytes_read > 0) rest-=bytes_read;
         else if (bytes_read == 0) break;
         else throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
+        b+=bytes_read;
     }
 
     return num - (rest / 4);
