@@ -28,7 +28,7 @@ then
 			if test -d "$enable_gtest/include/gtest"
 			then
 				HAVE_GTEST="yes"
-				if test "$enable_gtest" -eq "$pplibtestgtest"
+				if test "$enable_gtest" = "$pplibtestgtest"
 				then
 					GTEST_PREFIX="$pplibgtest"
 				else
@@ -40,7 +40,7 @@ then
 		if test -f "$enable_gtest/googletest/src/gtest-all.cc"
 		then
 			HAVE_GTEST="yes"
-			if test "$enable_gtest" -eq "$pplibtestgtest"
+			if test "$enable_gtest" = "$pplibtestgtest"
 			then
 				GTEST_PREFIX="$pplibgtest/googletest"
 			else
