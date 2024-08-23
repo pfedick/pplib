@@ -11,12 +11,14 @@ AS_HELP_STRING([--enable-gtest=PATH],
   [enable_gtest="yes"])
 
 HAVE_GTEST="no"
+pplibgtest="googletest-release-1.12.1"
+pplibtestgtest="tests/$pplibgtest"
 
 if test "$enable_gtest" != "no"
 then
 	if test "$enable_gtest" = "yes"
 	then
-		enable_gtest="tests/googletest-release-1.12.1"
+		enable_gtest=$pplibtestgtest
 	fi
 
 	if test -d "$enable_gtest"
@@ -26,14 +28,24 @@ then
 			if test -d "$enable_gtest/include/gtest"
 			then
 				HAVE_GTEST="yes"
-				GTEST_PREFIX="$enable_gtest"
+				if test "$enable_gtest" -eq "$pplibtestgtest"
+				then
+					GTEST_PREFIX="$pplibgtest"
+				else
+					GTEST_PREFIX="$enable_gtest"
+				fi
 				AC_SUBST([GTEST_PREFIX])
 			fi
 		fi
 		if test -f "$enable_gtest/googletest/src/gtest-all.cc"
 		then
 			HAVE_GTEST="yes"
-			GTEST_PREFIX="$enable_gtest/googletest"
+			if test "$enable_gtest" -eq "$pplibtestgtest"
+			then
+				GTEST_PREFIX="$pplibgtest/googletest"
+			else
+				GTEST_PREFIX="$enable_gtest/googletest"
+			fi
 			AC_SUBST([GTEST_PREFIX])
 		fi
 	fi

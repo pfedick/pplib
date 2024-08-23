@@ -1,15 +1,9 @@
 ###############################################################################
 # This file is part of "Patrick's Programming Library", Version 7 (PPL7).
 # Web: http://www.pfp.de/ppl/
-#
-# $Author$
-# $Revision$
-# $Date$
-# $Id$
-#
 ###############################################################################
 #
-# Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+# Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -83,7 +77,8 @@ sinclude(autoconf/ax_gcc_archflag.m4)
 sinclude(autoconf/ldns.m4)
 sinclude(autoconf/mpg123.m4)
 sinclude(autoconf/lame.m4)
-sinclude(autoconf/ogg.m4)
+sinclude(autoconf/vorbis.m4)
+#sinclude(autoconf/opus.m4)
 sinclude(autoconf/shout.m4)
 sinclude(autoconf/imagemagick.m4)
 sinclude(autoconf/libtiff.m4)
@@ -106,7 +101,7 @@ report_have_libtiff="no"
 report_have_curl="no"
 report_have_mpg123="no"
 report_have_lame="no"
-report_have_libogg="no"
+report_have_libvorbis="no"
 report_have_libshout="no"
 report_have_libmad="no"
 report_have_iconv="no"
@@ -509,11 +504,9 @@ AC_CHECK_LIBMP3LAME([3.98.0],
 	AC_SUBST(LAME_LIBS)
 	, :)
 
-XIPH_PATH_OGG(
-	AC_DEFINE(HAVE_LIBOGG, 1, [ Define if you have libogg. ])
-	report_have_libogg="yes"
-	AC_SUBST(OGG_CFLAGS)
-	AC_SUBST(OGG_LIBS)
+XIPH_PATH_VORBIS(
+	AC_DEFINE(HAVE_LIBVORBIS, 1, [ Define if you have libvorbis. ])
+	report_have_libvorbis="yes"
 	, :)
 
 XIPH_PATH_SHOUT(
@@ -772,7 +765,8 @@ AC_SUBST(report_have_sqlite3)
 AC_SUBST(report_have_nasm)
 AC_SUBST(report_have_pthreads)
 AC_SUBST(report_have_ldns)
-AC_SUBST(report_have_libogg)
+#AC_SUBST(report_have_libogg)
+AC_SUBST(report_have_libvorbis)
 AC_SUBST(report_have_libshout)
 AC_SUBST(report_have_libimlib)
 AC_SUBST(report_have_libtiff)
@@ -832,7 +826,7 @@ AC_MSG_RESULT([
 **   SDL2 library:         $report_have_sdl2
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
-**   ogg library:          $report_have_libogg
+**   vorbis library (ogg): $report_have_libvorbis
 **   shout library:        $report_have_libshout
 **   cdio library:         $report_have_libcdio
 **
