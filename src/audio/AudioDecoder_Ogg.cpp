@@ -47,6 +47,7 @@
 namespace ppl7 {
 
 #ifdef HAVE_LIBVORBIS
+
 typedef struct
 {
     OggVorbis_File vf;
@@ -62,18 +63,19 @@ static size_t ppl_read_func(void* ptr, size_t size, size_t nmemb, void* datasour
 
 static int ppl_seek_func(void* datasource, ogg_int64_t offset, int whence)
 {
-    FileObject* ff=(FileObject*)datasource;
     if (whence == SEEK_SET) return static_cast<FileObject*>(datasource)->seek(offset, FileObject::SeekOrigin::SEEKSET);
     if (whence == SEEK_CUR) return static_cast<FileObject*>(datasource)->seek(offset, FileObject::SeekOrigin::SEEKCUR);
     if (whence == SEEK_END) return static_cast<FileObject*>(datasource)->seek(offset, FileObject::SeekOrigin::SEEKEND);
     return -1;
 }
 
+/*
 static int ppl_close_func(void* datasource)
 {
     static_cast<FileObject*>(datasource)->close();
     return 0;
 }
+*/
 
 static long ppl_tell_func(void* datasource)
 {
@@ -88,19 +90,8 @@ static void init_callback(ov_callbacks& callbacks)
     callbacks.tell_func=ppl_tell_func;
 }
 
-#endif
-
-bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
+static void GetVorbisAudioInfo(AudioInfo& info, OggVorbis_File& vf)
 {
-#ifdef HAVE_LIBVORBIS
-    ov_callbacks callbacks;
-    OggVorbis_File vf;
-    memset(&vf, 0, sizeof(OggVorbis_File));
-    init_callback(callbacks);
-    file.seek(0);
-    int res=ov_open_callbacks(&file, &vf, NULL, 0, callbacks);
-    //ppl7::PrintDebug("try read vobis file, result is: %d\n", res);
-    if (res != 0) return false;
     info.Format=AudioInfo::AudioFormat::OGG;
     info.Channels=vf.vi->channels;
     info.Frequency=vf.vi->rate;
@@ -119,8 +110,23 @@ bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
     info.BytesPerSample=4;
     info.Samples=ov_pcm_total(&vf, -1);
     info.Length=info.Samples * 1000 / info.Frequency;
+}
 
+#endif
 
+bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
+{
+#ifdef HAVE_LIBVORBIS
+    ov_callbacks callbacks;
+    OggVorbis_File vf;
+    memset(&vf, 0, sizeof(OggVorbis_File));
+    init_callback(callbacks);
+    file.seek(0);
+    int res=ov_open_callbacks(&file, &vf, NULL, 0, callbacks);
+    //ppl7::PrintDebug("try read vobis file, result is: %d\n", res);
+    if (res != 0) return false;
+    GetVorbisAudioInfo(info, vf);
+    ov_clear(&vf);
     return true;
 
 
@@ -140,9 +146,9 @@ AudioDecoder_Ogg::AudioDecoder_Ogg()
     if (!private_data) throw OutOfMemoryException();
     OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
     init_callback(oggp->callbacks);
-    ff=NULL;
     position=0;
-    samplesize=0;
+    readbuffer=NULL;
+    buffersize=0;
 #endif
 }
 
@@ -152,11 +158,21 @@ AudioDecoder_Ogg::~AudioDecoder_Ogg()
 #ifdef HAVE_LIBVORBIS
     if (private_data) {
         OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
-
-
+        ov_clear(&oggp->vf);
         free(private_data);
     }
+    if (readbuffer) free(readbuffer);
 #endif
+}
+
+void AudioDecoder_Ogg::allocateBuffer(size_t size)
+{
+    if (size != buffersize) {
+        free(readbuffer);
+        readbuffer=(char*)malloc(size);
+        if (!readbuffer) throw OutOfMemoryException();
+        buffersize=size;
+    }
 }
 
 void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
@@ -166,6 +182,9 @@ void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
     file.seek(0);
     int res=ov_open_callbacks(&file, &oggp->vf, NULL, 0, oggp->callbacks);
     if (res != 0) throw UnsupportedAudioFormatException();
+    getAudioInfo(this->info);
+
+    position=0;
 
 
 #endif
@@ -174,22 +193,25 @@ void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
 
 const AudioInfo& AudioDecoder_Ogg::getAudioInfo() const
 {
-    AudioInfo info;
-#ifdef HAVE_LIBVORBIS
-    getAudioInfo(info);
-#endif
     return info;
 }
 
 void AudioDecoder_Ogg::getAudioInfo(AudioInfo& info) const
 {
 #ifdef HAVE_LIBVORBIS
+    OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
+    GetVorbisAudioInfo(info, oggp->vf);
 #endif
 }
 
 void AudioDecoder_Ogg::seekSample(size_t sample)
 {
 #ifdef HAVE_LIBVORBIS
+    OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
+    ov_pcm_seek(&oggp->vf, sample);
+    position=sample;
+
+
 #endif
 
 }
@@ -197,6 +219,7 @@ void AudioDecoder_Ogg::seekSample(size_t sample)
 size_t AudioDecoder_Ogg::getPosition() const
 {
 #ifdef HAVE_LIBVORBIS
+    return position;
 #else
     return 0;
 #endif
@@ -206,6 +229,19 @@ size_t AudioDecoder_Ogg::getPosition() const
 size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
 {
 #ifdef HAVE_LIBVORBIS
+    OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
+    //allocateBuffer(4 * num);
+    size_t rest=num * 4;
+    int bitstream=0;
+    while (rest > 0) {
+        long bytes_read=ov_read(&oggp->vf, (char*)buffer, rest, 0, 2, 1, &bitstream);
+        //ppl7::PrintDebug("bytes_read: %d, bitstream: %d, rest: %d\n", (int)bytes_read, bitstream, rest);
+        if (bytes_read > 0) rest-=bytes_read;
+        else if (bytes_read == 0) break;
+        else throw DecoderException("AudioDecoder_Ogg::getSamples: %d", (int)bytes_read);
+    }
+
+    return num - (rest / 4);
 #else
     return 0;
 #endif
@@ -214,6 +250,16 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
 size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer)
 {
 #ifdef HAVE_LIBVORBIS
+    //OggVorbisPrivateData* oggp=static_cast<OggVorbisPrivateData*>(private_data);
+    allocateBuffer(4 * num);
+    size_t real_num=getSamples(num, (STEREOSAMPLE16*)readbuffer);
+    for (size_t i=0;i < real_num;i++) {
+        buffer[i].left+=((STEREOSAMPLE16*)readbuffer)[i].left;
+        buffer[i].right+=((STEREOSAMPLE16*)readbuffer)[i].right;
+    }
+
+
+    return real_num;
 #else
     return 0;
 #endif
@@ -222,6 +268,8 @@ size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer)
 size_t AudioDecoder_Ogg::getSamples(size_t num, float* left, float* right)
 {
 #ifdef HAVE_LIBVORBIS
+    throw UnsupportedFeatureException("AudioDecoder_Ogg::getSamples(size_t num, float* left, float* right)");
+    return 0;
 #else
     return 0;
 #endif
@@ -230,6 +278,8 @@ size_t AudioDecoder_Ogg::getSamples(size_t num, float* left, float* right)
 size_t AudioDecoder_Ogg::getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)
 {
 #ifdef HAVE_LIBVORBIS
+    throw UnsupportedFeatureException("AudioDecoder_Ogg::getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)");
+    return 0;
 #else
     return 0;
 #endif

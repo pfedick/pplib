@@ -44,10 +44,10 @@ namespace ppl7 {
 
 
 class AudioDecoder_Ogg_Test : public ::testing::Test {
-	protected:
+protected:
 	AudioDecoder_Ogg_Test() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
+		if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+			printf("setlocale fehlgeschlagen\n");
 			throw std::exception();
 		}
 		ppl7::Dir::mkDir("tmp");
@@ -57,8 +57,24 @@ class AudioDecoder_Ogg_Test : public ::testing::Test {
 	}
 };
 
+TEST_F(AudioDecoder_Ogg_Test, DecodeOggVorbis) {
+	ppl7::File file;
+	file.open("testdata/test_44kHz.ogg");
+	ppl7::AudioDecoder_Ogg ogg;
+	ogg.open(file);
+
+
+	STEREOSAMPLE16* samples=(STEREOSAMPLE16*)malloc(sizeof(STEREOSAMPLE16) * 1024);
+	ASSERT_TRUE(samples != NULL);
+	size_t num_read=ogg.getSamples(1024, samples);
+	ASSERT_EQ(num_read, 1024);
+
+
+
+}
+
+
 
 
 
 }	// EOF namespace
-

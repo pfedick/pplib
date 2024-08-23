@@ -603,10 +603,14 @@ class AudioDecoder_Ogg : public AudioDecoder
 {
 private:
 	void* private_data;
-	FileObject* ff;
-	AudioInfo		info;
 	size_t position;
-	size_t samplesize;
+	char* readbuffer;
+	size_t buffersize;
+	AudioInfo info;
+
+
+	void allocateBuffer(size_t size);
+
 
 public:
 	AudioDecoder_Ogg();

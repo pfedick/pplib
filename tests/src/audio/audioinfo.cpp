@@ -214,8 +214,7 @@ TEST_F(AudioInfoTest, IdentOggVorbis) {
 	EXPECT_EQ((uint32_t)173695, info.Samples) << "Unexpected number of samples";
 	EXPECT_EQ((uint32_t)3938, info.Length) << "Unexpected length";
 
-
-
 }
+
 
 }	// EOF namespace
