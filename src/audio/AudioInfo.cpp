@@ -42,6 +42,8 @@
 
 namespace ppl7 {
 
+bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info);
+
 
 AudioDecoder *GetAudioDecoder(FileObject &file)
 {
@@ -231,6 +233,9 @@ bool IdentAudioFile(FileObject &file, AudioInfo &info)
 			}
 		}
 	}
+	if (strncmp(adr,"OggS",4)==0) {
+		return IdentOggVorbisAudioFile(file, info);
+	}
 
 	PPL_MPEG_HEADER mp3;
 	if (IdentMPEG(file,&mp3)) return IdentMP3(file,info,mp3);
@@ -252,6 +257,9 @@ AudioInfo::AudioFormat IdentAudioFile(FileObject &file)
 				if (Peek16(adr+20)==1) return AudioInfo::WAVE;
 			}
 		}
+	}
+	if (strncmp(adr,"OggS",4)==0) {
+		return AudioInfo::OGG;
 	}
 
 	PPL_MPEG_HEADER mp3;

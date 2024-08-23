@@ -41,7 +41,93 @@
 #include "ppl7-audio.h"
 
 
+#include <vorbis/vorbisfile.h>
+
+
 namespace ppl7 {
+
+typedef struct
+{
+    OggVorbis_File oggfile;
+    ov_callbacks callbacks;
+
+} OggVorbisPrivateData;
+
+
+bool IdentOggVorbisAudioFile(FileObject& file, AudioInfo& info)
+{
+    return false;
+}
+
+
+
+AudioDecoder_Ogg::AudioDecoder_Ogg()
+{
+    private_data=calloc(sizeof(OggVorbisPrivateData),1);
+    if (!private_data) throw OutOfMemoryException();
+    ff=NULL;
+    position=0;
+    samplesize=0;
+
+}
+
+
+AudioDecoder_Ogg::~AudioDecoder_Ogg()
+{
+    if (private_data) {
+        OggVorbisPrivateData *oggp=static_cast<OggVorbisPrivateData*>(private_data);
+
+
+        free(private_data);
+    }
+}
+
+void AudioDecoder_Ogg::open(FileObject& file, const AudioInfo* info)
+{
+
+}
+
+const AudioInfo& AudioDecoder_Ogg::getAudioInfo() const
+{
+    AudioInfo info;
+    getAudioInfo(info);
+    return info;
+}
+
+void AudioDecoder_Ogg::getAudioInfo(AudioInfo& info) const
+{
+
+}
+
+void AudioDecoder_Ogg::seekSample(size_t sample)
+{
+
+}
+
+size_t AudioDecoder_Ogg::getPosition() const
+{
+
+}
+
+size_t AudioDecoder_Ogg::getSamples(size_t num, STEREOSAMPLE16* buffer)
+{
+
+}
+
+size_t AudioDecoder_Ogg::addSamples(size_t num, STEREOSAMPLE32* buffer)
+{
+
+}
+
+size_t AudioDecoder_Ogg::getSamples(size_t num, float* left, float* right)
+{
+
+}
+
+size_t AudioDecoder_Ogg::getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)
+{
+
+}
 
 
 }	// EOF namespace ppl7

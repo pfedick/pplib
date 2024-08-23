@@ -602,6 +602,7 @@ public:
 class AudioDecoder_Ogg : public AudioDecoder
 {
 private:
+	void* private_data;
 	FileObject* ff;
 	AudioInfo		info;
 	size_t position;
@@ -616,6 +617,7 @@ public:
 	void seekSample(size_t sample);
 	size_t getPosition() const;
 	size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
+	size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
 	size_t getSamples(size_t num, float* left, float* right);
 	size_t getSamples(size_t num, SAMPLE16* left, SAMPLE16* right);
 };

@@ -35,7 +35,7 @@ CC			= @CC@
 CXX			= @CXX@
 EXTRA_CFLAGS = 
 INCLUDE	= -I. -I$(GTEST_DIR)/include
-CFLAGS	= -ggdb -Wall  $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
+CFLAGS	= -ggdb -Wall  @CFLAGS@ @PTHREAD_CFLAGS@ $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 CPPFLAGS	= @CPPFLAGS@
 CXXFLAGS	= @CXXFLAGS@
 LDFLAGS		= @LDFLAGS@
@@ -70,7 +70,8 @@ OBJECTS_INET =  compile/inet.o compile/resolver.o compile/inet_ipaddress.o compi
 
 OBJECTS_AUDIO = compile/audioinfo.o compile/id3tag.o \
 	compile/audio_decoder_mp3.o compile/audio_decoder_aiff.o compile/audio_decoder_wave.o \
-	compile/audio_encoder_mp3.o compile/audio_encoder_aiff.o compile/audio_encoder_wave.o
+	compile/audio_encoder_mp3.o compile/audio_encoder_aiff.o compile/audio_encoder_wave.o \
+	compile/audio_decoder_ogg.o
 
 
 OBJECTS_PPL6COMPAT = compile/ppl6strings.o compile/ppl6assocarray.o
@@ -208,7 +209,7 @@ gfxreftest: compile/gfxreftest.o ../release/libppl7.a
 
 compile/libgtest.a:
 	mkdir -p compile
-	$(CXX) $(CXXFLAGS) -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
+	$(CXX) $(CXXFLAGS) $(CFLAGS) -I${GTEST_DIR}/include -I${GTEST_DIR} -o compile/gtest-all.o -c ${GTEST_DIR}/src/gtest-all.cc
 	ar -rv compile/libgtest.a compile/gtest-all.o
 
 
@@ -472,6 +473,10 @@ compile/audio_decoder_wave.o: src/audio/audio_decoder_wave.cpp Makefile ppl7-tes
 compile/audio_decoder_mp3.o: src/audio/audio_decoder_mp3.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/audio_decoder_mp3.o -c src/audio/audio_decoder_mp3.cpp $(CFLAGS) $(LIB)
+
+compile/audio_decoder_ogg.o: src/audio/audio_decoder_ogg.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) $(CXXFLAGS) -o compile/audio_decoder_ogg.o -c src/audio/audio_decoder_ogg.cpp $(CFLAGS) $(LIB)
 
 compile/audio_encoder_aiff.o: src/audio/audio_encoder_aiff.cpp Makefile ppl7-tests.h
 	mkdir -p compile
