@@ -51,6 +51,10 @@ AudioDecoder* GetAudioDecoder(FileObject& file)
 	if (!IdentAudioFile(file, info)) return NULL;
 	AudioDecoder* decoder=NULL;
 	if (info.Format == AudioInfo::AIFF) decoder=(AudioDecoder*)new AudioDecoder_Aiff();
+	if (info.Format == AudioInfo::WAVE) decoder=(AudioDecoder*)new AudioDecoder_Wave();
+	if (info.Format == AudioInfo::MP3) decoder=(AudioDecoder*)new AudioDecoder_MP3();
+	if (info.Format == AudioInfo::OGG) decoder=(AudioDecoder*)new AudioDecoder_Ogg();
+
 	if (!decoder) return NULL;
 	decoder->open(file, &info);
 	return decoder;
