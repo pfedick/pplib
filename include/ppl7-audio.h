@@ -606,6 +606,8 @@ private:
 	size_t position;
 	char* readbuffer;
 	size_t buffersize;
+	char* decodebuffer;
+	int decodebuffer_size;
 	AudioInfo info;
 
 
