@@ -72,19 +72,6 @@ find_c_files() {
 		fi
 
 		ADDITIONAL_DEPENDENCY=""
-		if test "$1/$file" = "grafix/CGrafix.cpp"
-		then
-			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl7-tk.h"
-		fi
-		if test "$1/$file" = "grafix/CEngine.cpp"
-		then
-			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl7-tk.h"
-		fi
-		if test "$1/$file" = "grafix/CEngineSDL.cpp"
-		then
-			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl7-tk.h"
-		fi
-
 		if test "$1/$file" = "core/AVLTree.cpp"
 		then
 			ADDITIONAL_DEPENDENCY="	\$(incdir)/ppl7-algorithms.h"
@@ -208,12 +195,6 @@ GFX_DEBUG="$FOUND_DEBUG"
 GFX_COVERAGE="$FOUND_COVERAGE"
 
 
-find_c_files "toolkit" "TOOLKIT" "" "tk_" "\$(incdir)/ppl7-grafix.h \$(incdir)/ppl7-tk.h"
-TK_RELEASE="$FOUND_RELEASE"
-TK_DEBUG="$FOUND_DEBUG"
-TK_COVERAGE="$FOUND_COVERAGE"
-
-
 find_c_files "audio" "AUDIO" "" "audio_" "\$(incdir)/ppl7-audio.h"
 AUDIO_RELEASE="$FOUND_RELEASE"
 AUDIO_DEBUG="$FOUND_DEBUG"
@@ -283,7 +264,6 @@ CFLAGS		=  -I\${incdir} $DEFINES @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ \
 	@ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @OPENSSL_INCLUDES@ @ICONV_CFLAGS@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ \
 	@SQLITE3_CFLAGS@ \
 	@LAME_CFLAGS@ @MPG123_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ @LIBCDIO_CFLAGS@ \
-	@SDL2_CFLAGS@ \
 	@LIBIDN_CFLAGS@ @LIBCURL_CPPFLAGS@ \
 	@FT2_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@
 
@@ -294,7 +274,7 @@ LDFLAGS		= @LDFLAGS@
 LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @IMLIB_LIBS@ \
 	@FT2_LIBS@ @ICONV_LIBS@ @MYSQL_LDFLAGS@ @POSTGRESQL_LDFLAGS@ @SQLITE3_LDFLAGS@ \
 	@LAME_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ \
-	@SDL2_LIBS@ @LIBCURL@ @LIBCDIO_LDFLAGS@ \
+	@LIBCURL@ @LIBCDIO_LDFLAGS@ \
 	@LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@
 
 LIBNAME		= $LIBNAME
@@ -307,7 +287,7 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 ### Object Files RELEASE
 ###########################################################################
 
-RELEASE	= $CORE_RELEASE $CRYPTO_RELEASE $INET_RELEASE $DB_RELEASE $GFX_RELEASE $TK_RELEASE $AUDIO_RELEASE
+RELEASE	= $CORE_RELEASE $CRYPTO_RELEASE $INET_RELEASE $DB_RELEASE $GFX_RELEASE $AUDIO_RELEASE
 
 CORE_RELEASE = $CORE_RELEASE
 
@@ -319,8 +299,6 @@ DB_RELEASE = $DB_RELEASE
 
 GFX_RELEASE = $GFX_RELEASE
 
-TK_RELEASE = $TK_RELEASE
-
 AUDIO_RELEASE = $AUDIO_RELEASE
 
 ASM_OBJ_RELEASE	=	$ASM_RELEASE
@@ -329,7 +307,7 @@ ASM_OBJ_RELEASE	=	$ASM_RELEASE
 ### Object Files DEBUG
 ###########################################################################
 
-DEBUG	= $CORE_DEBUG $CRYPTO_DEBUG $INET_DEBUG $DB_DEBUG $GFX_DEBUG $TK_DEBUG $AUDIO_DEBUG
+DEBUG	= $CORE_DEBUG $CRYPTO_DEBUG $INET_DEBUG $DB_DEBUG $GFX_DEBUG $AUDIO_DEBUG
 
 CORE_DEBUG = $CORE_DEBUG
 
@@ -341,8 +319,6 @@ DB_DEBUG = $DB_DEBUG
 
 GFX_DEBUG = $GFX_DEBUG
 
-TK_DEBUG = $TK_DEBUG
-
 AUDIO_DEBUG = $AUDIO_DEBUG
 
 ASM_OBJ_DEBUG	=	$ASM_DEBUG
@@ -352,7 +328,7 @@ ASM_OBJ_DEBUG	=	$ASM_DEBUG
 ### Object Files COVERAGE
 ###########################################################################
 
-COVERAGE	= $CORE_COVERAGE $CRYPTO_COVERAGE $INET_COVERAGE $DB_COVERAGE $GFX_COVERAGE $TK_COVERAGE $AUDIO_COVERAGE
+COVERAGE	= $CORE_COVERAGE $CRYPTO_COVERAGE $INET_COVERAGE $DB_COVERAGE $GFX_COVERAGE $AUDIO_COVERAGE
 
 ASM_OBJ_COVERAGE	=	$ASM_COVERAGE
 
@@ -365,7 +341,7 @@ ASM_OBJ_COVERAGE	=	$ASM_COVERAGE
 
 release: release/\$(LIBNAME).a release/\$(LIBNAME)-core.a release/\$(LIBNAME)-crypto.a \
          release/\$(LIBNAME)-inet.a release/\$(LIBNAME)-db.a release/\$(LIBNAME)-gfx.a \
-         release/\$(LIBNAME)-tk.a debug/make release/\$(LIBNAME)-audio.a
+         release/make release/\$(LIBNAME)-audio.a
 
 coverage: coverage/\$(LIBNAME).a
 
@@ -400,9 +376,6 @@ release/\$(LIBNAME)-db.a: release/make \$(DB_RELEASE)
 release/\$(LIBNAME)-gfx.a: release/make \$(GFX_RELEASE)
 	ar -r release/\$(LIBNAME)-gfx.a \$(GFX_RELEASE)
 
-release/\$(LIBNAME)-tk.a: release/make \$(TK_RELEASE)
-	ar -r release/\$(LIBNAME)-tk.a \$(TK_RELEASE)
-
 release/\$(LIBNAME)-audio.a: release/make \$(AUDIO_RELEASE)
 	ar -r release/\$(LIBNAME)-audio.a \$(AUDIO_RELEASE)
 
@@ -423,9 +396,6 @@ debug/\$(LIBNAME)-db.a: debug/make \$(DB_DEBUG)
 debug/\$(LIBNAME)-gfx.a: debug/make \$(GFX_DEBUG)
 	ar -r debug/\$(LIBNAME)-gfx.a \$(GFX_DEBUG)
 
-debug/\$(LIBNAME)-tk.a: debug/make \$(TK_DEBUG)
-	ar -r debug/\$(LIBNAME)-tk.a \$(TK_DEBUG)
-
 debug/\$(LIBNAME)-audio.a: debug/make \$(AUDIO_DEBUG)
 	ar -r debug/\$(LIBNAME)-audio.a \$(AUDIO_DEBUG)
 
@@ -444,7 +414,7 @@ coverage/make:
 
 install:	release/\$(LIBNAME).a release/\$(LIBNAME)-core.a release/\$(LIBNAME)-crypto.a \
             release/\$(LIBNAME)-inet.a release/\$(LIBNAME)-db.a release/\$(LIBNAME)-gfx.a \
-            release/\$(LIBNAME)-tk.a debug/make release/\$(LIBNAME)-audio.a
+            release/make release/\$(LIBNAME)-audio.a
 	mkdir -p \$(TARGETLIB) \$(TARGETINCLUDE) \$(TARGETBIN)
 	cp release/\$(LIBNAME)*.a \$(TARGETLIB)
 	cp \$(incdir)/ppl7.h \$(TARGETINCLUDE)
@@ -454,7 +424,6 @@ install:	release/\$(LIBNAME).a release/\$(LIBNAME)-core.a release/\$(LIBNAME)-cr
 	cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-crypto.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
-	cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-ppl6compat.h \$(TARGETINCLUDE)
@@ -471,7 +440,6 @@ install_debug: debug/\$(LIBDEBUG).a
 	cp \$(incdir)/ppl7-exceptions.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-inet.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-grafix.h \$(TARGETINCLUDE)
-	cp \$(incdir)/ppl7-tk.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-audio.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-crypto.h \$(TARGETINCLUDE)
 	cp \$(incdir)/ppl7-db.h \$(TARGETINCLUDE)

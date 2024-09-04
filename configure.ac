@@ -56,7 +56,6 @@ sinclude(autoconf/png.m4)
 sinclude(autoconf/jpeg.m4)
 sinclude(autoconf/libjpeg-turbo.m4)
 sinclude(autoconf/ax_pthread.m4)
-sinclude(autoconf/sdl2.m4)
 sinclude(autoconf/nasm.m4)
 sinclude(autoconf/lib-link.m4)
 sinclude(autoconf/iconv.m4)
@@ -104,7 +103,6 @@ report_have_zlib="no"
 report_have_pcre="no"
 report_have_openssl="no"
 report_have_freetype2="no"
-report_have_sdl2="no"
 report_have_png="no"
 report_have_libimlib="no"
 report_have_mysql="no"
@@ -575,15 +573,6 @@ AC_CHECK_FT2(9.0.0,
 	report_have_freetype2="yes"
 	, :)
 
-dnl Check for SDL
-report_have_sdl2="no"
-AM_PATH_SDL2([2.0.0],
-            AC_DEFINE(HAVE_SDL2, 1, [ Define if you have libsdl2. ])
-            report_have_sdl2="yes"
-			AC_SUBST(SDL2_CFLAGS)
-			AC_SUBST(SDL2_LIBS)
-            ,:)
-
 
 AX_PATH_LIB_IMLIB([1.9.0],
 	AC_DEFINE(HAVE_IMAGEMAGICK, 1, [ Define if you have imlib. ])
@@ -740,7 +729,6 @@ AC_SUBST(report_have_bzip2)
 AC_SUBST(report_have_png)
 AC_SUBST(report_have_jpeg)
 AC_SUBST(report_have_freetype2)
-AC_SUBST(report_have_sdl2)
 AC_SUBST(report_have_lame)
 AC_SUBST(report_have_libmad)
 AC_SUBST(report_have_curl)
@@ -811,7 +799,6 @@ AC_MSG_RESULT([
 **   ImageMagick:          $report_have_libimlib
 **
 ** Multimedia:
-**   SDL2 library:         $report_have_sdl2
 **   Lame library:         $report_have_lame
 **   mpg123 library:       $report_have_mpg123
 **   vorbis library (ogg): $report_have_libvorbis
