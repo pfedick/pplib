@@ -44,7 +44,6 @@
 #include "ppl7-audio.h"
 
 namespace ppl7 {
-#define ENCODESAMPLES	100000
+
 
 } // end of namespace ppl
-
