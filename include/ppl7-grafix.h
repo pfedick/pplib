@@ -404,7 +404,7 @@ private:
 	union {
 		struct { uint8_t a, r, g, b; };
 		uint32_t c;
-};
+	};
 #endif
 
 public:
