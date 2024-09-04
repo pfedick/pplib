@@ -1,45 +1,39 @@
 ###############################################################################
 # This file is part of "Patrick's Programming Library", Version 7 (PPL7).
-# Web: http://www.pfp.de/ppl/
+# Web: https://github.com/pfedick/pplib
 ###############################################################################
-#
 # Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#   1. Redistributions of source code must retain the above copyright notice,
-#      this list of conditions and the following disclaimer.
-#   2. Redistributions in binary form must reproduce the above copyright notice,
-#      this list of conditions and the following disclaimer in the documentation
-#      and/or other materials provided with the distribution.
+#    1. Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER AND CONTRIBUTORS BE
 # LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 # CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 # SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+# THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 
 dnl Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.71])
-AC_INIT([ppl],[7.0.0],[patrick@pfp.de],[ppl-7.0.0.tar.bz2])
+AC_INIT([ppl],[7.1.0],[patrick@pfp.de],[ppl-7.1.0.tar.bz2])
 AC_CONFIG_AUX_DIR(autoconf)
 
 AC_CONFIG_SRCDIR([include/ppl7.h])
 AC_CONFIG_SRCDIR([include/config_ppl7.h.in])
-#AC_CONFIG_SRCDIR([src/core/pplcore.cpp])
-#AC_CONFIG_SRCDIR([src/core/functions.cpp])
-#AC_CONFIG_SRCDIR([src/math/math.cpp])
-
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([tests/Makefile])
 AC_CONFIG_FILES([ppl7-config])
@@ -130,14 +124,8 @@ AC_PROG_CC
 CFLAGS=$OLD_CFLAGS
 AC_PROG_CXX
 
-AX_CXX_COMPILE_STDCXX_11
-dnl AX_CXX_COMPILE_STDCXX(11)
+AX_CXX_COMPILE_STDCXX_17
 
-
-dnl AC_LANG(C++)
-
-dnl AX_GCC_ARCHFLAG
-#AX_CC_MAXOPT
 
 AX_CHECK_COMPILE_FLAG([-no-pie],
     LDFLAGS="-no-pie $LDFLAGS"
