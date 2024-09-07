@@ -849,7 +849,7 @@ private:
 	Mutex		myMutex;
 	List<ImageFilter*>	ImageFilterList;
 	List<FontEngine*>	FontEngineList;
-	AVLTree<String, FontFile*> FontList;
+	std::map<String, FontFile*> FontList;
 
 	ImageFilter* filter_png;
 	ImageFilter* filter_jpeg;
@@ -1161,8 +1161,8 @@ private:
 			surface=other.surface;
 		}
 	};
-	AVLTree<int, SpriteTexture> TextureList;
-	AVLTree<int, SpriteIndexItem> SpriteList;
+	std::map<int, SpriteTexture> TextureList;
+	std::map<int, SpriteIndexItem> SpriteList;
 
 	void loadTexture(PFPChunk* chunk);
 	void loadIndex(PFPChunk* chunk);

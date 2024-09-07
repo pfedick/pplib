@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -71,16 +66,16 @@ Darauf folgt dann pro Sprite ein 22 Byte langer Block mit folgenden Daten:
 Byte 0:  ItemId                                       4 Byte
 Byte 4:  TextureId                                    2 Byte
 Byte 6:  TextureRect                                  8 Byte
-         Byte 6:  left          (2 Byte)
-         Byte 8:  top           (2 Byte)
-         Byte 10: right         (2 Byte)
-         Byte 12: bottom        (2 Byte)
+		 Byte 6:  left          (2 Byte)
+		 Byte 8:  top           (2 Byte)
+		 Byte 10: right         (2 Byte)
+		 Byte 12: bottom        (2 Byte)
 Byte 14: Pivot-Punkt                                  4 Byte
-         Byte 14: x-Koordinate  (2 Byte)
-         Byte 16: y-Koordinate  (2 Byte)
+		 Byte 14: x-Koordinate  (2 Byte)
+		 Byte 16: y-Koordinate  (2 Byte)
 Byte 18: Offset                                       4 Byte
-         Byte 18: x-Koordinate  (2 Byte)
-         Byte 20: y-Koordinate  (2 Byte)
+		 Byte 18: x-Koordinate  (2 Byte)
+		 Byte 20: y-Koordinate  (2 Byte)
 \endcode
 Sämtliche Werte müssen im Little-Endian-Format angegeben werden.
 
@@ -209,7 +204,7 @@ void Sprite::clear()
 	SpriteList.clear();
 }
 
-const Drawable *Sprite::findTexture(int id) const
+const Drawable* Sprite::findTexture(int id) const
 /*!\brief Textur anhand ihrer ID finden
  *
  * \desc
@@ -219,16 +214,14 @@ const Drawable *Sprite::findTexture(int id) const
  * zurückgeliefert, andernfalls NULL.
  */
 {
-	try {
-		const SpriteTexture &tx=TextureList.find(id);
-		return &tx.surface;
-	} catch (...) {
-		throw InvalidSpriteException();
+	auto it=TextureList.find(id);
+	if (it != TextureList.end()) {
+		return &it->second.surface;
 	}
 	return NULL;
 }
 
-void Sprite::loadIndex(PFPChunk *chunk)
+void Sprite::loadIndex(PFPChunk* chunk)
 /*!\brief Laden des Sprite-Index
  *
  * \desc
@@ -240,31 +233,31 @@ void Sprite::loadIndex(PFPChunk *chunk)
  * liefert die Funktion true (1) zurück, andernfalls false (0).
  */
 {
-	char *buffer=(char*)chunk->data();
+	char* buffer=(char*)chunk->data();
 	int num=Peek32(buffer);		// Anzahl Einträge in der Tabelle
-	char *p=buffer+4;
+	char* p=buffer + 4;
 	SpriteIndexItem item;
-	for (int i=0;i<num;i++) {
-		item.id=Peek32(p+0);
-		item.surface=findTexture(Peek16(p+4));
-		item.r.x1=Peek16(p+6+0);
-		item.r.y1=Peek16(p+6+2);
-		item.r.x2=Peek16(p+6+4)+1;
-		item.r.y2=Peek16(p+6+6)+1;
-		item.Pivot.x=Peek16(p+14+0);
-		item.Pivot.y=Peek16(p+14+2);
-		item.Offset.x=Peek16(p+18+0);
-		item.Offset.y=Peek16(p+18+2);
+	for (int i=0;i < num;i++) {
+		item.id=Peek32(p + 0);
+		item.surface=findTexture(Peek16(p + 4));
+		item.r.x1=Peek16(p + 6 + 0);
+		item.r.y1=Peek16(p + 6 + 2);
+		item.r.x2=Peek16(p + 6 + 4) + 1;
+		item.r.y2=Peek16(p + 6 + 6) + 1;
+		item.Pivot.x=Peek16(p + 14 + 0);
+		item.Pivot.y=Peek16(p + 14 + 2);
+		item.Offset.x=Peek16(p + 18 + 0);
+		item.Offset.y=Peek16(p + 18 + 2);
 		/*
 		PrintDebug("Id: %i, (%i/%i)-(%i/%i)\n",
 			item->id,item->r.left,item->r.top,item->r.right,item->r.bottom);
 			*/
-		SpriteList.add(item.id,item);
+		SpriteList.insert(std::pair<int, SpriteIndexItem>(item.id, item));
 		p+=22;
 	}
 }
 
-void Sprite::loadTexture(PFPChunk *chunk)
+void Sprite::loadTexture(PFPChunk* chunk)
 /*!\brief Laden eines Texture-Chunks
  *
  * \desc
@@ -280,39 +273,39 @@ void Sprite::loadTexture(PFPChunk *chunk)
 {
 	Compression Comp;
 	Comp.usePrefix(Compression::Prefix_V2);
-	char *buffer=(char*)chunk->data();
+	char* buffer=(char*)chunk->data();
 	// Textur anlegen
 	SpriteTexture tex;
 	// Zunächst lesen wir dem Header
-	tex.id=Peek16(buffer+0);
-	int rgbformat=Peek8(buffer+2);
+	tex.id=Peek16(buffer + 0);
+	int rgbformat=Peek8(buffer + 2);
 	switch (rgbformat) {
 		case 9: tex.rgbformat=RGBFormat::A8R8G8B8;
-				break;
+			break;
 		default:
 			throw UnsupportedColorFormatException();
 	}
-	tex.bitdepth=Peek8(buffer+3);
-	tex.width=Peek16(buffer+4);
-	tex.height=Peek16(buffer+6);
+	tex.bitdepth=Peek8(buffer + 3);
+	tex.width=Peek16(buffer + 4);
+	tex.height=Peek16(buffer + 6);
 	// Nutzdaten dekomprimieren
 	ByteArray uncompressed;
-	Comp.uncompress(uncompressed,buffer+8,chunk->size()-8);
+	Comp.uncompress(uncompressed, buffer + 8, chunk->size() - 8);
 	buffer=(char*)uncompressed.ptr();
 	// Nun erstellen wir ein neues Surface
-	tex.surface.create(tex.width,tex.height,tex.rgbformat);
-	for (int y=0;y<tex.height;y++) {
-		for (int x=0;x<tex.width;x++) {
-			if (tex.rgbformat==RGBFormat::A8R8G8B8) {
-				tex.surface.putPixel(x,y,Color(Peek8(buffer+2),Peek8(buffer+1),Peek8(buffer),Peek8(buffer+3)));
+	tex.surface.create(tex.width, tex.height, tex.rgbformat);
+	for (int y=0;y < tex.height;y++) {
+		for (int x=0;x < tex.width;x++) {
+			if (tex.rgbformat == RGBFormat::A8R8G8B8) {
+				tex.surface.putPixel(x, y, Color(Peek8(buffer + 2), Peek8(buffer + 1), Peek8(buffer), Peek8(buffer + 3)));
 				buffer+=4;
 			}
 		}
 	}
-	TextureList.add(tex.id,tex);
+	TextureList.insert(std::pair<int, SpriteTexture>(tex.id, tex));
 }
 
-void Sprite::load(const String &filename)
+void Sprite::load(const String& filename)
 /*!\brief Laden einer Textur-Datei
  *
  * \desc
@@ -330,7 +323,7 @@ void Sprite::load(const String &filename)
 	load(ff);
 }
 
-void Sprite::load(FileObject &ff)
+void Sprite::load(FileObject& ff)
 /*!\brief Laden einer Textur-Datei
  *
  * \desc
@@ -347,23 +340,23 @@ void Sprite::load(FileObject &ff)
 	clear();
 	File.load(ff);
 	int major, minor;
-	File.getVersion(&major,&minor);
-	if (File.getID()!="TEXS" || major!=1 || minor!=0) throw InvalidSpriteException();
+	File.getVersion(&major, &minor);
+	if (File.getID() != "TEXS" || major != 1 || minor != 0) throw InvalidSpriteException();
 	// Texture Chunks laden
-	PFPChunk *chunk;
+	PFPChunk* chunk;
 	PFPFile::Iterator it;
 	File.reset(it);
-	while ((chunk=File.findNextChunk(it,"SURF"))) {
+	while ((chunk=File.findNextChunk(it, "SURF"))) {
 		loadTexture(chunk);
 	}
 	// Index Chunks laden
 	File.reset(it);
-	while ((chunk=File.findNextChunk(it,"INDX"))) {
+	while ((chunk=File.findNextChunk(it, "INDX"))) {
 		loadIndex(chunk);
 	}
 }
 
-void Sprite::draw(Drawable &target, int x, int y, int id) const
+void Sprite::draw(Drawable& target, int x, int y, int id) const
 /*!\brief Sprite darstellen
  *
  * \desc
@@ -377,9 +370,12 @@ void Sprite::draw(Drawable &target, int x, int y, int id) const
  */
 {
 	// Sprite im Index finden
-	const SpriteIndexItem &item=SpriteList.find(id);
+	auto it=SpriteList.find(id);
+	if (it != SpriteList.end()) {
+		const SpriteIndexItem& item=it->second;
 
-	target.bltAlpha(*item.surface,item.r,x+item.Offset.x-item.Pivot.x, y+item.Offset.y-item.Pivot.y);
+		target.bltAlpha(*item.surface, item.r, x + item.Offset.x - item.Pivot.x, y + item.Offset.y - item.Pivot.y);
+	}
 }
 
 int Sprite::numTextures() const
@@ -390,7 +386,7 @@ int Sprite::numTextures() const
  * \returns Anzahl Texturen oder 0, wenn keine geladen sind.
  */
 {
-	return (int)TextureList.num();
+	return (int)TextureList.size();
 }
 
 int Sprite::numSprites() const
@@ -401,7 +397,7 @@ int Sprite::numSprites() const
  * \returns Anzahl Sprites oder 0, wenn keine geladen sind.
  */
 {
-	return (int)SpriteList.num();
+	return (int)SpriteList.size();
 }
 
 

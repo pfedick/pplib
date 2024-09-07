@@ -308,7 +308,7 @@ public:
 		QByteArray a=q->toLocal8Bit();
 #endif
 		set((const char*)a);
-}
+	}
 #endif
 #ifdef _PPL6_INCLUDE
 	String(const ppl6::CString& q) {
@@ -318,7 +318,7 @@ public:
 	String(const ppl6::CString* q) {
 		ptr=NULL; stringlen=0; s=0;
 		set(q->GetPtr(), q->Size());
-}
+	}
 #endif
 		//@}
 
@@ -655,7 +655,7 @@ public:
 		QByteArray a=q->toLocal8Bit();
 #endif
 		set((const char*)a);
-}
+	}
 #endif
 		//@}
 

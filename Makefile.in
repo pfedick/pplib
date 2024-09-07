@@ -1,41 +1,30 @@
 ###############################################################################
-###
-### PPL7 Makefile
-###
-###############################################################################
 # This file is part of "Patrick's Programming Library", Version 7 (PPL7).
-# Web: http://www.pfp.de/ppl/
-#
-# $Author: pafe $
-# $Revision: 588 $
-# $Date: 2013-04-26 20:47:43 +0200 (Fr, 26 Apr 2013) $
-# $Id: Makefile.in 588 2013-04-26 18:47:43Z pafe $
-#
+# Web: https://github.com/pfedick/pplib
 ###############################################################################
-#
-# Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+# Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#   1. Redistributions of source code must retain the above copyright notice,
-#      this list of conditions and the following disclaimer.
-#   2. Redistributions in binary form must reproduce the above copyright notice,
-#      this list of conditions and the following disclaimer in the documentation
-#      and/or other materials provided with the distribution.
+#    1. Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS AS IS
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER AND CONTRIBUTORS BE
 # LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 # CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 # SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+# THE POSSIBILITY OF SUCH DAMAGE.
 #
 ###############################################################################
 ### Global Options
@@ -69,8 +58,7 @@ ASMDEBUGFLAGS	= @ASMDEBUGFLAGS@
 ### Object Files RELEASE
 ###########################################################################
 
-RELEASE	= release/core_AVLTree.o \
-	release/core_Compat.o \
+RELEASE	= release/core_Compat.o \
 	release/core_Compression.o \
 	release/core_ConfigParser.o \
 	release/core_Dir.o \
@@ -172,8 +160,7 @@ RELEASE	= release/core_AVLTree.o \
 	release/audio_Icecast.o \
 	release/audio_Mp3.o
 
-CORE_RELEASE = release/core_AVLTree.o \
-	release/core_Compat.o \
+CORE_RELEASE = release/core_Compat.o \
 	release/core_Compression.o \
 	release/core_ConfigParser.o \
 	release/core_Dir.o \
@@ -299,8 +286,7 @@ ASM_OBJ_RELEASE	=	release/asm_blt.o \
 ### Object Files DEBUG
 ###########################################################################
 
-DEBUG	= debug/core_AVLTree.o \
-	debug/core_Compat.o \
+DEBUG	= debug/core_Compat.o \
 	debug/core_Compression.o \
 	debug/core_ConfigParser.o \
 	debug/core_Dir.o \
@@ -402,8 +388,7 @@ DEBUG	= debug/core_AVLTree.o \
 	debug/audio_Icecast.o \
 	debug/audio_Mp3.o
 
-CORE_DEBUG = debug/core_AVLTree.o \
-	debug/core_Compat.o \
+CORE_DEBUG = debug/core_Compat.o \
 	debug/core_Compression.o \
 	debug/core_ConfigParser.o \
 	debug/core_Dir.o \
@@ -530,8 +515,7 @@ ASM_OBJ_DEBUG	=	debug/asm_blt.o \
 ### Object Files COVERAGE
 ###########################################################################
 
-COVERAGE	= coverage/core_AVLTree.o \
-	coverage/core_Compat.o \
+COVERAGE	= coverage/core_Compat.o \
 	coverage/core_Compression.o \
 	coverage/core_ConfigParser.o \
 	coverage/core_Dir.o \
@@ -810,9 +794,6 @@ memcheck:
 ###########################################################################
 
 ### CORE
-release/core_AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
-	$(CXX) -Wall $(CXXFLAGS) -o release/core_AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) 
-
 release/core_Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o release/core_Compat.o -c $(srcdir)/core/Compat.cpp $(CFLAGS) 
 
@@ -1172,9 +1153,6 @@ release/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
 ###########################################################################
 
 ### CORE
-debug/core_AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
-	$(CXX) -Wall $(CXXFLAGS) -o debug/core_AVLTree.o -c $(srcdir)/core/AVLTree.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
-
 debug/core_Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o debug/core_Compat.o -c $(srcdir)/core/Compat.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
@@ -1532,9 +1510,6 @@ debug/asm_rect.o:	$(srcdir)/asm/rect.asm Makefile
 ###########################################################################
 ### Compile Files for CodeCoverage
 ###########################################################################
-
-coverage/core_AVLTree.o:	$(srcdir)/core/AVLTree.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  	$(incdir)/ppl7-algorithms.h
-	$(CXX) -Wall $(CXXFLAGS) -o coverage/core_AVLTree.o -c $(srcdir)/core/AVLTree.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/core_Compat.o:	$(srcdir)/core/Compat.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/core_Compat.o -c $(srcdir)/core/Compat.cpp $(CFLAGS) @GCOV_CFLAGS@ 

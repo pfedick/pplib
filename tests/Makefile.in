@@ -1,39 +1,36 @@
 ###############################################################################
 # This file is part of "Patrick's Programming Library", Version 7 (PPL7).
-# Web: http://www.pfp.de/ppl/
-#
+# Web: https://github.com/pfedick/pplib
 ###############################################################################
-#
-# Copyright (c) 2018, Patrick Fedick <patrick@pfp.de>
+# Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
 # All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #
-#   1. Redistributions of source code must retain the above copyright notice,
-#      this list of conditions and the following disclaimer. 
-#   2. Redistributions in binary form must reproduce the above copyright notice,
-#      this list of conditions and the following disclaimer in the documentation
-#      and/or other materials provided with the distribution. 
+#    1. Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#    2. Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
 # AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER AND CONTRIBUTORS BE
 # LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
 # CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
 # SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
 # INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
-#
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+# THE POSSIBILITY OF SUCH DAMAGE.
 ###############################################################################
 
 GTEST_DIR	= @GTEST_PREFIX@
 CC			= @CC@
 CXX			= @CXX@
-EXTRA_CFLAGS = 
+EXTRA_CFLAGS =
 INCLUDE	= -I. -I$(GTEST_DIR)/include
 CFLAGS	= -ggdb -Wall  @CFLAGS@ @PTHREAD_CFLAGS@ $(INCLUDE) `../ppl7-config --cflags debug source` $(EXTRA_CFLAGS)
 CPPFLAGS	= @CPPFLAGS@
@@ -47,14 +44,14 @@ OBJECTS_COMMON = compile/textsnippets.o compile/wordlist.o
 
 OBJECTS_TESTSUITE = $(OBJECTS_COMMON) compile/main.o compile/libgtest.a
 
-OBJECTS_CORE = compile/array.o compile/assocarray.o compile/avltree.o \
+OBJECTS_CORE = compile/array.o compile/assocarray.o \
 	compile/bytearray.o compile/bytearrayptr.o compile/configparser.o \
 	compile/datetime.o compile/dir.o compile/file.o compile/filestatic.o \
 	compile/functions.o compile/gzfile.o compile/iconv.o compile/list.o \
 	compile/logger.o compile/math.o compile/memorygroup.o compile/memoryheap.o \
 	compile/pointer.o compile/stringfunctions.o compile/strings.o \
 	compile/time.o compile/variant.o compile/widestrings.o \
-	compile/json.o compile/perlhelper.o compile/pythonhelper.o  
+	compile/json.o compile/perlhelper.o compile/pythonhelper.o
 
 OBJECTS_CRYPTO = compile/crypto.o compile/digest.o
 
@@ -78,7 +75,7 @@ OBJECTS_PPL6COMPAT = compile/ppl6strings.o compile/ppl6assocarray.o
 
 OBJECTS_LEGACY = $(OBJECTS_CORE) $(OBJECTS_CRYPTO) $(OBJECTS_GRAFIX) $(OBJECTS_INET) \
 	$(OBJECTS_AUDIO)
- 
+
 
 TESTSUITES = testsuite test_core test_crypto test_database test_audio test_grafix test_inet
 
@@ -86,21 +83,21 @@ all: $(TESTSUITES) toolkit loggertest dbtest gfxreftest stringspeed
 
 
 coverage: $(PROGNAME)_coverage dbtest_coverage
- 
+
 test: $(TESTSUITES)
 	-./test_core
 	-./test_audio
 	-./test_crypto
 	-./test_grafix
 	-./test_inet
-	
+
 xml: $(TESTSUITES)
 	-./test_core --gtest_output=xml:testresult_core.xml
 	-./test_audio --gtest_output=xml:testresult_audio.xml
 	-./test_crypto --gtest_output=xml:testresult_crypto.xml
 	-./test_grafix --gtest_output=xml:testresult_grafix.xml
 	-./test_inet --gtest_output=xml:testresult_inet.xml
-	
+
 memcheck: $(TESTSUITES)
 	valgrind --tool=memcheck --leak-check=full --show-reachable=no --suppressions=valgrind.suppressions --xml=yes --xml-file=testresult_core.valgrind ./testsuite
 
@@ -116,37 +113,37 @@ clean:
 
 test_core: $(OBJECTS_CORE) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_core $(CFLAGS) $(OBJECTS_CORE) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 test_core_coverage: $(OBJECTS_CORE) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_core_coverage $(CFLAGS) $(OBJECTS_CORE) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
 test_crypto: $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_crypto $(CFLAGS) $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 test_crypto_coverage: $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_crypto_coverage $(CFLAGS) $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
 test_database: $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_database $(CFLAGS) $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 test_database_coverage: $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_database_coverage $(CFLAGS) $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
 test_audio: $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_audio $(CFLAGS) $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 test_audio_coverage: $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_audio_coverage $(CFLAGS) $(OBJECTS_AUDIO) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
 test_grafix: $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_grafix $(CFLAGS) $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 test_grafix_coverage: $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_grafix_coverage $(CFLAGS) $(OBJECTS_GRAFIX) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
 test_inet: $(OBJECTS_INET) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_inet $(CFLAGS) $(OBJECTS_INET) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 test_inet_coverage: $(OBJECTS_INET) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o test_inet_coverage $(CFLAGS) $(OBJECTS_INET) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
@@ -160,14 +157,14 @@ test_ppl6: $(OBJECTS_PPL6COMPAT) $(OBJECTS_TESTSUITE) ppl7-tests.h
 
 testsuite: $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o testsuite $(CFLAGS) $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 testsuite_coverage: $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o testsuite_coverage $(CFLAGS) $(OBJECTS_LEGACY) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
 
 dbtest: $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o dbtest $(CFLAGS) $(OBJECTS_DATABASE) $(OBJECTS_TESTSUITE) $(LIBS)
-	
+
 dbtest_coverage: $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -ggdb -o dbtest_coverage $(CFLAGS) $(OBJECTS_CRYPTO) $(OBJECTS_TESTSUITE) $(LIBS_COVERAGE)
 
@@ -185,7 +182,7 @@ compile/stringspeed.o: src/stringspeed.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/stringspeed.o -c src/stringspeed.cpp $(CFLAGS) $(LIB)
 
-	
+
 toolkit: compile/toolkit.o src/toolkit.h ../release/libppl7.a
 	$(CXX) $(CXXFLAGS) -ggdb -o toolkit $(CFLAGS) compile/toolkit.o $(LIBS)
 
@@ -282,10 +279,6 @@ compile/memorygroup.o: src/core/memorygroup.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/memorygroup.o -c src/core/memorygroup.cpp $(CFLAGS) $(LIB)
 
-compile/avltree.o: src/core/avltree.cpp Makefile compile/wordlist.o ppl7-tests.h
-	mkdir -p compile
-	$(CXX) $(CXXFLAGS) -o compile/avltree.o -c src/core/avltree.cpp $(CFLAGS) $(LIB)
-
 compile/assocarray.o: src/core/assocarray.cpp Makefile compile/wordlist.o ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/assocarray.o -c src/core/assocarray.cpp $(CFLAGS) $(LIB)
@@ -360,7 +353,7 @@ compile/inet_sockaddr.o: src/inet/sockaddr.cpp Makefile ppl7-tests.h
 compile/resolver.o: src/inet/resolver.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/resolver.o -c src/inet/resolver.cpp $(CFLAGS) $(LIB)
-	
+
 compile/tcpsocket.o: src/inet/tcpsocket.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/tcpsocket.o -c src/inet/tcpsocket.cpp $(CFLAGS) $(LIB)
@@ -420,11 +413,11 @@ compile/grafix_size.o: src/grafix/grafix_size.cpp Makefile ppl7-tests.h
 compile/toolkit.o: src/toolkit.cpp Makefile ppl7-tests.h src/toolkit.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/toolkit.o -c src/toolkit.cpp $(CFLAGS) $(LIB)
-	
+
 ################################################################################
 # DATABASE
 ################################################################################
-	
+
 compile/db_postgres.o: src/database/db_postgres.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/db_postgres.o -c src/database/db_postgres.cpp $(CFLAGS) $(LIB)
@@ -436,12 +429,12 @@ compile/db_sqlite.o: src/database/db_sqlite.cpp Makefile ppl7-tests.h
 compile/db_mysql.o: src/database/db_mysql.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/db_mysql.o -c src/database/db_mysql.cpp $(CFLAGS) $(LIB)
-	
+
 
 ################################################################################
 # CRYPTO
 ################################################################################
-	
+
 compile/digest.o: src/crypto/digest.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/digest.o -c src/crypto/digest.cpp $(CFLAGS) $(LIB)
@@ -497,10 +490,7 @@ compile/audio_encoder_mp3.o: src/audio/audio_encoder_mp3.cpp Makefile ppl7-tests
 compile/ppl6assocarray.o: src/ppl6/assocarray.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) $(CFLAGS) -o compile/ppl6assocarray.o -c src/ppl6/assocarray.cpp
-	
+
 compile/ppl6strings.o: src/ppl6/strings.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) $(CFLAGS) -o compile/ppl6strings.o -c src/ppl6/strings.cpp
-	
-	
-	

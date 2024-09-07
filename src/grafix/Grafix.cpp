@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -90,13 +85,13 @@ namespace grafix {
  * Instanz der Klasse zu erstellen
  */
 
-static Grafix *pplgfx=NULL;
-char *alphatab=NULL;
+static Grafix* pplgfx=NULL;
+char* alphatab=NULL;
 
 static GRAFIX_FUNCTIONS functions[RGBFormat::MaxIdentifiers];
 
 
-Grafix *GetGrafix()
+Grafix* GetGrafix()
 {
 	if (pplgfx) return pplgfx;
 	throw NoGrafixEngineException();
@@ -108,7 +103,7 @@ Grafix::Grafix()
 	if (pplgfx) {
 		throw DuplicateGrafixEngineException();
 	}
-    //::printf ("Grafix::Grafix()\n");
+	//::printf ("Grafix::Grafix()\n");
 	alphatab=NULL;
 	filter_png=NULL;
 	filter_jpeg=NULL;
@@ -121,10 +116,10 @@ Grafix::Grafix()
 	initAlphatab();
 
 	// Farbformat-abhängige Funktionen initialisieren
-	for (int i=0;i<RGBFormat::MaxIdentifiers;i++) {
+	for (int i=0;i < RGBFormat::MaxIdentifiers;i++) {
 		try {
-			initFunctions(RGBFormat((RGBFormat::Identifier)i),&functions[i]);
-		} catch (UnsupportedColorFormatException &) {
+			initFunctions(RGBFormat((RGBFormat::Identifier)i), &functions[i]);
+		} catch (UnsupportedColorFormatException&) {
 
 		}
 	}
@@ -165,29 +160,29 @@ Grafix::Grafix()
 	addImageFilter(filter_tga);
 
 
-	FontEngineFont5 *font5=new FontEngineFont5;
+	FontEngineFont5* font5=new FontEngineFont5;
 	addFontEngine(font5);
-	FontEngineFont6 *font6=new FontEngineFont6;
+	FontEngineFont6* font6=new FontEngineFont6;
 	addFontEngine(font6);
 
-	#ifdef HAVE_FREETYPE2
-	FontEngineFreeType *freetype=new FontEngineFreeType;
+#ifdef HAVE_FREETYPE2
+	FontEngineFreeType* freetype=new FontEngineFreeType;
 	addFontEngine(freetype);
 #endif
 
-	Resource *res=GetPPLResource();
+	Resource* res=GetPPLResource();
 
-	loadFont(res->getMemory(34),"Default");
-	loadFont(res->getMemory(35),"Default Mono");
-	Toolbar.load(res->getMemory(14),16,16,ImageList::ALPHABLT);
-	Icons32.load(res->getMemory(13),32,32,ImageList::ALPHABLT);
-	ButtonSymbolsSmall.load(res->getMemory(12),9,9,ImageList::DIFFUSE);
+	loadFont(res->getMemory(34), "Default");
+	loadFont(res->getMemory(35), "Default Mono");
+	Toolbar.load(res->getMemory(14), 16, 16, ImageList::ALPHABLT);
+	Icons32.load(res->getMemory(13), 32, 32, ImageList::ALPHABLT);
+	ButtonSymbolsSmall.load(res->getMemory(12), 9, 9, ImageList::DIFFUSE);
 }
 
 
 Grafix::~Grafix()
 {
-    //::printf ("Grafix::~Grafix()\n");
+	//::printf ("Grafix::~Grafix()\n");
 	if (alphatab) free(alphatab);
 
 	if (filter_magick) {
@@ -224,73 +219,69 @@ Grafix::~Grafix()
 		delete filter_tiff;
 	}
 
-    // cleanup fonts
-    {
-        AVLTree<String, FontFile*>::Iterator it;
-        FontList.reset(it);
-        while (FontList.getNext(it)) {
-            FontFile *ff=it.value();
-            if (ff) delete ff;
-        }
-    }
-    // cleanup font engines
-    {
-        List<FontEngine*>::Iterator it;
-        while (FontEngineList.getFirst(it)) {
-            FontEngine *engine=it.value();
-            FontEngineList.erase(engine);
-            delete engine;
-        }
-    }
+	// cleanup fonts
+	for (auto it=FontList.begin();it != FontList.end();++it) {
+		delete it->second;
+	}
+	FontList.clear();
+	// cleanup font engines
+	{
+		List<FontEngine*>::Iterator it;
+		while (FontEngineList.getFirst(it)) {
+			FontEngine* engine=it.value();
+			FontEngineList.erase(engine);
+			delete engine;
+		}
+	}
 
-	if (pplgfx==this) pplgfx=NULL;
+	if (pplgfx == this) pplgfx=NULL;
 }
 
 void Grafix::initAlphatab()
 {
-	uint32_t alpha,i,a;
+	uint32_t alpha, i, a;
 	alphatab=(char*)malloc(65536);
 	if (!alphatab) throw OutOfMemoryException();
-	for (alpha=0;alpha<256;alpha++) {
-		for (i=0;i<256;i++) {
-			a=alpha<<8;
-			alphatab[a+i]=(uint8_t)((i*alpha)>>8);
+	for (alpha=0;alpha < 256;alpha++) {
+		for (i=0;i < 256;i++) {
+			a=alpha << 8;
+			alphatab[a + i]=(uint8_t)((i * alpha) >> 8);
 		}
 	}
 }
 
 
-void Grafix::initFunctions(const RGBFormat &format,GRAFIX_FUNCTIONS *fn)
+void Grafix::initFunctions(const RGBFormat& format, GRAFIX_FUNCTIONS* fn)
 {
-	memset(fn,0,sizeof(GRAFIX_FUNCTIONS));
+	memset(fn, 0, sizeof(GRAFIX_FUNCTIONS));
 	try {
-		initColors(format,fn);
-	} catch (UnsupportedColorFormatException &) {
+		initColors(format, fn);
+	} catch (UnsupportedColorFormatException&) {
 
 	}
 	try {
-		initPixel(format,fn);
-	} catch (UnsupportedColorFormatException &) {
+		initPixel(format, fn);
+	} catch (UnsupportedColorFormatException&) {
 
 	}
 	try {
-		initShapes(format,fn);
-	} catch (UnsupportedColorFormatException &) {
+		initShapes(format, fn);
+	} catch (UnsupportedColorFormatException&) {
 
 	}
 	try {
-		initLines(format,fn);
-	} catch (UnsupportedColorFormatException &) {
+		initLines(format, fn);
+	} catch (UnsupportedColorFormatException&) {
 
 	}
 	try {
-		initBlits(format,fn);
-	} catch (UnsupportedColorFormatException &) {
+		initBlits(format, fn);
+	} catch (UnsupportedColorFormatException&) {
 
 	}
 }
 
-GRAFIX_FUNCTIONS *Grafix::getGrafixFunctions(const RGBFormat &format)
+GRAFIX_FUNCTIONS* Grafix::getGrafixFunctions(const RGBFormat& format)
 {
 	if (format >= RGBFormat::MaxIdentifiers) throw UnknownColorFormatException();
 	return &functions[format];
