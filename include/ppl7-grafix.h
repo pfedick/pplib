@@ -847,8 +847,8 @@ class Grafix
 {
 private:
 	Mutex		myMutex;
-	List<ImageFilter*>	ImageFilterList;
-	List<FontEngine*>	FontEngineList;
+	std::list<ImageFilter*>	ImageFilterList;
+	std::list<FontEngine*>	FontEngineList;
 	std::map<String, FontFile*> FontList;
 
 	ImageFilter* filter_png;

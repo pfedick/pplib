@@ -186,36 +186,27 @@ Grafix::~Grafix()
 	if (alphatab) free(alphatab);
 
 	if (filter_magick) {
-		ImageFilterList.erase(filter_magick);
 		delete filter_magick;
 	}
-
 	if (filter_png) {
-		ImageFilterList.erase(filter_png);
 		delete filter_png;
 	}
 	if (filter_jpeg) {
-		ImageFilterList.erase(filter_jpeg);
 		delete filter_jpeg;
 	}
 	if (filter_bmp) {
-		ImageFilterList.erase(filter_bmp);
 		delete filter_bmp;
 	}
 	if (filter_gif) {
-		ImageFilterList.erase(filter_gif);
 		delete filter_gif;
 	}
 	if (filter_ppm) {
-		ImageFilterList.erase(filter_ppm);
 		delete filter_ppm;
 	}
 	if (filter_tga) {
-		ImageFilterList.erase(filter_tga);
 		delete filter_tga;
 	}
 	if (filter_tiff) {
-		ImageFilterList.erase(filter_tiff);
 		delete filter_tiff;
 	}
 
@@ -225,15 +216,10 @@ Grafix::~Grafix()
 	}
 	FontList.clear();
 	// cleanup font engines
-	{
-		List<FontEngine*>::Iterator it;
-		while (FontEngineList.getFirst(it)) {
-			FontEngine* engine=it.value();
-			FontEngineList.erase(engine);
-			delete engine;
-		}
+	for (auto it=FontEngineList.begin();it != FontEngineList.end();++it) {
+		delete* it;
 	}
-
+	FontEngineList.clear();
 	if (pplgfx == this) pplgfx=NULL;
 }
 

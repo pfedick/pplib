@@ -333,12 +333,11 @@ void Grafix::addFontEngine(FontEngine* engine)
 	engine->init();
 	myMutex.lock();
 	try {
-		FontEngineList.add(engine);
+		FontEngineList.push_back(engine);
 	} catch (...) {
 		myMutex.unlock();
 		throw;
 	}
-	myMutex.unlock();
 }
 
 void Grafix::loadFont(const String& filename, const String& fontname)
@@ -357,13 +356,11 @@ void Grafix::loadFont(const ByteArrayPtr& memory, const String& fontname)
 void Grafix::loadFont(FileObject& ff, const String& fontname)
 {
 	myMutex.lock();
-	List<FontEngine*>::Iterator it;
 	// Passenden Filter finden
-	FontEngineList.reset(it);
 	FontEngine* engine;
 	try {
-		while (FontEngineList.getPrevious(it)) {
-			engine=it.value();
+		for (auto it=FontEngineList.begin();it != FontEngineList.end();++it) {
+			engine=*it;
 			int id=engine->ident(ff);
 			if (id == 1) {
 				FontFile* font=engine->loadFont(ff, fontname);
@@ -388,10 +385,6 @@ void Grafix::loadFont(FileObject& ff, const String& fontname)
 				return;
 			}
 		}
-	} catch (EndOfListException&) {
-		myMutex.unlock();
-		fontname.print();
-		throw NoSuitableFontEngineException();
 	} catch (...) {
 		myMutex.unlock();
 		throw;

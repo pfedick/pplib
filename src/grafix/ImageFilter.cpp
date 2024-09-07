@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,10 +22,11 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
+
 
 #include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
@@ -70,11 +66,11 @@ namespace grafix {
  * - Grafix::UnloadFilter
  * - Grafix::FindFilter
  */
-void Grafix::addImageFilter(ImageFilter *filter)
+void Grafix::addImageFilter(ImageFilter* filter)
 {
 	myMutex.lock();
 	try {
-		ImageFilterList.add(filter);
+		ImageFilterList.push_back(filter);
 	} catch (...) {
 		myMutex.unlock();
 		throw;
@@ -92,11 +88,16 @@ void Grafix::addImageFilter(ImageFilter *filter)
  * \param[in] filter Pointer auf den zu entfernenden Image-Filter
  * \return Bei Erfolg liefert die Funktion 1 zurück, im Fehlerfall 0.
  */
-void Grafix::unloadImageFilter(ImageFilter *filter)
+void Grafix::unloadImageFilter(ImageFilter* filter)
 {
 	myMutex.lock();
 	try {
-		ImageFilterList.erase(filter);
+		for (auto it=ImageFilterList.begin();it != ImageFilterList.end();++it) {
+			if (*it == filter) {
+				ImageFilterList.erase(it);
+				break;
+			}
+		}
 	} catch (...) {
 		myMutex.unlock();
 		throw;
@@ -112,32 +113,23 @@ void Grafix::unloadImageFilter(ImageFilter *filter)
  *
  * \param[in] name Der gesuchte Filter-Name
  * \return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
- * zurück, im Fehlerfall NULL.
+ * zurück, , im Fehlerfall wird eine Exception geworfen.
+ * \exception
+ * UnknownImageFormatException
  */
-ImageFilter *Grafix::findImageFilter(const String &name)
+ImageFilter* Grafix::findImageFilter(const String& name)
 {
 	List<ImageFilter*>::Iterator it;
 	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
-	ImageFilterList.reset(it);
-	try {
-		while (ImageFilterList.getPrevious(it)) {
-			ImageFilter *f=it.value();
-			if (name.strCaseCmp(f->name())==0) {
-				myMutex.unlock();
-				return f;
-			}
+	for (auto it=ImageFilterList.rbegin();it != ImageFilterList.rend();++it) {
+		if (name.strCaseCmp((*it)->name()) == 0) {
+			myMutex.unlock();
+			return *it;
 		}
-	} catch (EndOfListException &) {
-		myMutex.unlock();
-		throw UnknownImageFormatException();
-	} catch (...) {
-		myMutex.unlock();
-		throw;
 	}
 	myMutex.unlock();
 	throw UnknownImageFormatException();
-
 }
 
 /*!\brief Filter anhand des Inhalts einer geöffneten Datei finden
@@ -150,30 +142,21 @@ ImageFilter *Grafix::findImageFilter(const String &name)
  *
  * \param[in] ff Referenz auf die geöffnete Datei
  * \return Bei Erfolg liefert die Funktion einen Pointer auf den gefundenen Filter
- * zurück, im Fehlerfall NULL.
+ * zurück, im Fehlerfall wird eine Exception geworfen.
+ * \exception
+ * UnknownImageFormatException
  */
-ImageFilter *Grafix::findImageFilter(FileObject &ff, IMAGE &img)
+ImageFilter* Grafix::findImageFilter(FileObject& ff, IMAGE& img)
 {
 	List<ImageFilter*>::Iterator it;
 	myMutex.lock();
 	// Wir gehen die Liste rückwärts durch
-	ImageFilterList.reset(it);
-	try {
-		while (ImageFilterList.getPrevious(it)) {
-			ImageFilter *f=it.value();
-			if (f->ident(ff,img)==1) {
-				myMutex.unlock();
-				return f;
-			}
+	for (auto it=ImageFilterList.rbegin();it != ImageFilterList.rend();++it) {
+		if ((*it)->ident(ff, img) == 1) {
+			myMutex.unlock();
+			return *it;
 		}
-	} catch (EndOfListException &) {
-		myMutex.unlock();
-		throw UnknownImageFormatException();
-	} catch (...) {
-		myMutex.unlock();
-		throw;
 	}
-
 	myMutex.unlock();
 	throw UnknownImageFormatException();
 }
@@ -231,40 +214,40 @@ ImageFilter::~ImageFilter()
  * @return Wird das Grafikformat unterstützt, muss die Funktion 1 zurückgegen,
  * andernfalls 0.
  */
-int ImageFilter::ident(FileObject &file, IMAGE &img)
+int ImageFilter::ident(FileObject& file, IMAGE& img)
 {
 	throw UnimplementedVirtualFunctionException();
 }
 
-void ImageFilter::load(FileObject &file, Drawable &surface, IMAGE &img)
+void ImageFilter::load(FileObject& file, Drawable& surface, IMAGE& img)
 {
 	throw UnimplementedVirtualFunctionException();
 }
 
-void ImageFilter::save (const Drawable &surface, FileObject &file, const Rect &area, const AssocArray &param)
+void ImageFilter::save(const Drawable& surface, FileObject& file, const Rect& area, const AssocArray& param)
 {
 	Drawable draw=surface.getDrawable(area);
-	save(draw,file,param);
+	save(draw, file, param);
 }
 
-void ImageFilter::save (const Drawable &surface, FileObject &file, const AssocArray &param)
+void ImageFilter::save(const Drawable& surface, FileObject& file, const AssocArray& param)
 {
 	throw UnimplementedVirtualFunctionException();
 }
 
-void ImageFilter::saveFile (const String &filename, const Drawable &surface, const AssocArray &param)
+void ImageFilter::saveFile(const String& filename, const Drawable& surface, const AssocArray& param)
 {
 	File ff;
-	ff.open(filename,File::WRITE);
-	save(surface,ff,param);
+	ff.open(filename, File::WRITE);
+	save(surface, ff, param);
 }
 
-void ImageFilter::saveFile (const String &filename, const Drawable &surface, const Rect &area, const AssocArray &param)
+void ImageFilter::saveFile(const String& filename, const Drawable& surface, const Rect& area, const AssocArray& param)
 {
 	Drawable draw=surface.getDrawable(area);
 	File ff;
-	ff.open(filename,File::WRITE);
-	save(draw,ff,param);
+	ff.open(filename, File::WRITE);
+	save(draw, ff, param);
 }
 
 String ImageFilter::name()
@@ -281,4 +264,3 @@ String ImageFilter::description()
 
 } // EOF namespace grafix
 } // EOF namespace ppl7
-
