@@ -79,7 +79,7 @@ OBJECTS_LEGACY = $(OBJECTS_CORE) $(OBJECTS_CRYPTO) $(OBJECTS_GRAFIX) $(OBJECTS_I
 
 TESTSUITES = testsuite test_core test_crypto test_database test_audio test_grafix test_inet
 
-all: $(TESTSUITES) toolkit loggertest dbtest gfxreftest stringspeed
+all: $(TESTSUITES) loggertest dbtest gfxreftest stringspeed
 
 
 coverage: $(PROGNAME)_coverage dbtest_coverage
@@ -182,9 +182,6 @@ compile/stringspeed.o: src/stringspeed.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/stringspeed.o -c src/stringspeed.cpp $(CFLAGS) $(LIB)
 
-
-toolkit: compile/toolkit.o src/toolkit.h ../release/libppl7.a
-	$(CXX) $(CXXFLAGS) -ggdb -o toolkit $(CFLAGS) compile/toolkit.o $(LIBS)
 
 loggertest: src/loggertest.cpp ../release/libppl7.a
 	mkdir -p compile
@@ -410,9 +407,6 @@ compile/grafix_size.o: src/grafix/grafix_size.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/grafix_size.o -c src/grafix/grafix_size.cpp $(CFLAGS) $(LIB)
 
-compile/toolkit.o: src/toolkit.cpp Makefile ppl7-tests.h src/toolkit.h
-	mkdir -p compile
-	$(CXX) $(CXXFLAGS) -o compile/toolkit.o -c src/toolkit.cpp $(CFLAGS) $(LIB)
 
 ################################################################################
 # DATABASE
