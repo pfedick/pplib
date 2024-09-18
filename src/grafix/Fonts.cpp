@@ -338,6 +338,7 @@ void Grafix::addFontEngine(FontEngine* engine)
 		myMutex.unlock();
 		throw;
 	}
+	myMutex.unlock();
 }
 
 void Grafix::loadFont(const String& filename, const String& fontname)
