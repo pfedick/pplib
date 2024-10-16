@@ -543,61 +543,6 @@ public:
 
 };
 
-class Webserver
-{
-private:
-	SSLContext	SSL;
-	void* daemon;
-	int			port;
-	AssocArray	res;
-	TCPSocket	Socket;
-	bool		basicAuthentication;
-	bool		SSLEnabled;
-	String		realm;
-	String		sslkey, sslcert;
-
-public:
-	class Request {
-		friend class Webserver;
-	private:
-
-	public:
-		void* connection;
-		void* postprocessor;
-		String url;
-		String method;
-		String version;
-		AssocArray header;
-		AssocArray data;
-		AssocArray auth;
-	};
-	Webserver();
-	virtual ~Webserver();
-	void bind(const String& adr, int port);
-	void loadCertificate(const String& certificate, const String& privatekey, const String& password);
-	void enableSSL(bool enable);
-	bool sslEnabled() const;
-	void start();
-	void stop();
-	void requireBasicAuthentication(bool enable, const String& realm);
-	bool useBasicAuthentication() const;
-	int queueResponse(const Request& req, const String& text, int httpStatus=200);
-	int queueBasicAuthFailedResponse(const Request& req);
-
-	virtual int request(Request& req);
-	virtual int authenticate(const String& username, const String& password, Request& req);
-	virtual String getDenyMessage();
-
-
-
-
-	PPL7EXCEPTION(CouldNotBindToSocket, Exception);
-	PPL7EXCEPTION(InvalidSSLCertificate, Exception);
-	PPL7EXCEPTION(NoAddressSpecified, Exception);
-	PPL7EXCEPTION(CouldNotStartDaemon, Exception);
-	PPL7EXCEPTION(SSLInitializationFailed, Exception);
-
-};
 
 //! \brief CURL-Klasse
 class Curl
