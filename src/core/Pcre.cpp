@@ -35,5 +35,13 @@
 #ifdef HAVE_PCRE2
 #include <pcre2.h>
 #endif
+#include "ppl7.h"
+#include "ppl7-types.h"
 
+namespace ppl7 {
+
+
+
+
+} // EOF namespace ppl7
 

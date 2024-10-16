@@ -87,6 +87,7 @@
 
 #include <set>
 #include <list>
+#include <vector>
 
 #ifdef PPL_WITH_QT6
 #include <QAnyStringView>
@@ -248,6 +249,33 @@ void StrTok(Array& result, const String& string, const String& div=String("\n"))
 
 String GetArgv(int argc, char* argv[], const String& argument);
 bool HaveArgv(int argc, char* argv[], const String& argument);
+
+
+class RegEx {
+	public:
+	class Flags {
+		public:
+		enum {
+			NONE=0,
+			CASELESS=1,
+			ANCHORED=2,
+			MULTILINE=4,
+			EXTENDED=8,
+			DOTALL=16,
+			UNGREEDY=32
+		};
+	};
+
+	static bool match(const String& regex, const String& string, int flags=Flags::NONE);
+	static bool capture(const String& regex, const String& string, std::vector<String>& matches, int flags=Flags::NONE, size_t maxmatches=16);
+
+	static bool match(const WideString& regex, const WideString& string, int flags=Flags::NONE);
+	static bool capture(const WideString& regex, const WideString& string, std::vector<WideString>& matches, int flags=Flags::NONE, size_t maxmatches=16);
+
+	static String replace(const String& regex, const String& string, const String &replacement, int flags=Flags::NONE, int max=0);
+	static WideString replace(const WideString& regex, const WideString& string, const WideString &replacement, int flags=Flags::NONE, int max=0);
+
+};
 
 bool PregMatch(const String& regex, const String& string);
 bool PregMatch(const String& regex, const String& string, Array& matches, size_t maxmatches=16);
