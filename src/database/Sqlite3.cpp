@@ -1,18 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2016, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -22,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -92,11 +92,11 @@ public:
  * \brief Klasse, die das Ergebnis eines SQLite-Results aufnimmt
  *
  * \descr
- * Dies ist eine interne Klasse des SQLite-Datenbankmoduls. Sie ist abgeleitet von ppl6::db::Result
+ * Dies ist eine interne Klasse des SQLite-Datenbankmoduls. Sie ist abgeleitet von ppl7::db::Result
  * und nimmt das Ergebnis eines Datenbank-Selects auf. Mit Ihren Funktionen kann anschließend
  * auf das Ergebnis zugegriffen werden.
  *
- * Die Klasse wird durch Aufruf verschiedener Funktionen innerhalb der Klasse ppl6::db::SQLite erstellt
+ * Die Klasse wird durch Aufruf verschiedener Funktionen innerhalb der Klasse ppl7::db::SQLite erstellt
  * und muss von der aufrufenden Anwendung selbst mit \c delete gelöscht werden.
  *
  */
@@ -262,7 +262,7 @@ bool SQLiteResult::eof()
  * \ingroup PPLGroupDatabases
  * \brief Implementierung einer SQLite-Datenbank
  *
- * \header \#include <ppl6-db.h>
+ * \header \#include <ppl7-db.h>
  *
  * \descr
  * Mit dieser Klasse kann aufe eine lokale Datei mit einer SQLite-Datenbank

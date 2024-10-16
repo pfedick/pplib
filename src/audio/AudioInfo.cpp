@@ -1,17 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -21,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -103,7 +104,7 @@ static bool IdentAIFF(FileObject& file, AudioInfo& info)
 		//printf ("Frame: %s, Size: %u\n",(const char*)ChunkName,size);
 		if (PeekN32(adr) == 0x434f4d4d) {			// COMM-Chunk gefunden
 			//printf ("COMM-Chunk gefunden\n");
-			//ppl6::HexDump((void*)(adr+8),size);
+			//ppl7::HexDump((void*)(adr+8),size);
 			adr=file.map(p, 32);
 			info.Channels=PeekN16(adr + 8);
 			if (info.Channels == 1) info.Mode=AudioInfo::MONO;
@@ -113,7 +114,7 @@ static bool IdentAIFF(FileObject& file, AudioInfo& info)
 			info.BytesPerSample=(PeekN16(adr + 14) * info.Channels) / 8;
 			info.BitsPerSample=PeekN16(adr + 14);
 			long double frequency=44100.0;	// 80 bit IEEE Standard 754 floating point number
-			//ppl6::HexDump(&frequency,sizeof(long double));
+			//ppl7::HexDump(&frequency,sizeof(long double));
 			frequency=0.0;
 			char* f=(char*)&frequency;	// Umwandlung von BE nach LE
 			f[0]=adr[25];
@@ -126,7 +127,7 @@ static bool IdentAIFF(FileObject& file, AudioInfo& info)
 			f[7]=adr[18];
 			f[8]=adr[17];
 			f[9]=adr[16];
-			//ppl6::HexDump(f,sizeof(long double));
+			//ppl7::HexDump(f,sizeof(long double));
 			info.Frequency=(uint32_t)frequency;
 			if (info.Frequency > 0 && info.Samples > 0) info.Length=(uint32_t)((uint64_t)info.Samples * 1000 / info.Frequency);
 			info.Bitrate=((uint64_t)info.Frequency * (uint64_t)info.BytesPerSample * 8 / 1000);

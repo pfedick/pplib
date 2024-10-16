@@ -1,18 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2016, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -22,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -206,7 +206,7 @@ static String calcHash(const AssocArray& param)
  * Optionen gesetzt werden. Mit der Funktion Pool::SetName kann dem Pool ein Name zugewiesen werden.
  *
  * \param[in] connect Die Connect-Parameter in einem Assoziativen Array, wie sie von der Funktion
- * ppl6::db::Connect, bzw. der jeweiligen Datenbank-Klasse unterstützt werden.
+ * ppl7::db::Connect, bzw. der jeweiligen Datenbank-Klasse unterstützt werden.
  * \returns Die Funktion liefert bei Erfolg true (1) zurück, sonst false (0).
  */
 void DBPool::setConnectParams(const AssocArray& connect)
@@ -254,10 +254,6 @@ void DBPool::setOption(const String& Name, const String& Value)
 			Mutex.Unlock();
 			SetError(541,"Pool::SetOption Key=>>%s<<",(const char *)Name);
 			return 0;
-		}
-		if (Log) {
-			Log->Printf(ppl6::LOG::DEBUG,5,"ppl6::db::Pool","SetOption",__FILE__,__LINE__,"Pool %i:%s: Option %s wurde auf %s gesetzt.",
-					Id,(const char*)Name, (const char *)Opt,(const char*)Value);
 		}
 		*/
 }

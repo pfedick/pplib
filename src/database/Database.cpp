@@ -1,18 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2016, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -22,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -209,7 +209,7 @@ Database::Database()
 Database::~Database()
 {
 	//close();
-	if (Log) Log->print(Logger::DEBUG, 1, "ppl6::db::Database", "SetLogfile", __FILE__, __LINE__, "Stop logging of Database-Queries");
+	if (Log) Log->print(Logger::DEBUG, 1, "ppl7::db::Database", "SetLogfile", __FILE__, __LINE__, "Stop logging of Database-Queries");
 }
 
 /*!\brief Querylog aktivieren
@@ -1006,7 +1006,7 @@ void Database::connect(const AssocArray& params)
  *
  * \descr
  * Mit diesem Befehl wird die Verbindung zur Datenbank getrennt. Zu diesem Zeitpunkt sollten keine Query-
- * Results (ppl6::db::Result) mehr vorhanden sein, die mit diesem Datenbank-Connect erstellt wurden. Es
+ * Results (ppl7::db::Result) mehr vorhanden sein, die mit diesem Datenbank-Connect erstellt wurden. Es
  * könnte sonst zu Fehlern kommen.
  *
  * @return Die Funktion liefert 1 zurück, wenn die Verbindung zur Datenbank erfolgreich getrennt wurde,

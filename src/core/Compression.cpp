@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -87,41 +82,6 @@ namespace ppl7 {
  * Anschließend können durch Aufrufe von Compress und Uncompress Daten komprimiert bzw. entpackt
  * werden.
  *
- * \example
-\code
-int main (int argc, char **argv)
-{
-	ppl6::Compression comp;
-	ppl6::CBinary uncompressed;				// Wir verwenden einfach die Quelldatei des
-	if (!uncompressed.Load("main.cpp")) {	// Beispiels zum Komprimieren
-		ppl6::PrintError();
-		return 0;
-	}
-	printf ("Größe der Datei unkomprimiert: %u Bytes\n",uncompressed.Size());
-	// Komprimierungsmethode und Level auswählen
-	if (!comp.Init(ppl6::Compression::Algo_ZLIB, ppl6::Compression::Level_High)) {
-		ppl6::PrintError();
-		return 0;
-	}
-	// Die komprimierten Daten speichern wir in einem CBinary Objekt
-	ppl6::CBinary compressed;
-	if (!comp.Compress(compressed,data,false)) {
-		ppl6::PrintError();
-		return 0;
-	}
-	printf ("Größe der Datei komprimiert ohne Prefix: %u Bytes\n",compressed.Size());
-
-	// Jetzt wieder dekomprimieren
-	ppl6::CBinary recovered;
-	if (!comp.Uncompress(recovered,compressed,false)) {
-		ppl6::PrintError();
-		return 0;
-	}
-	printf ("Größe nach Dekomprimierung:      %u Bytes, MD5: %s\n",recovered.Size(),(char*)chk2);
-	return 1;
-}
-\endcode
-
  * \section Compression_Prefix Komprimierungsprefix
  *
  * Über die Funktion Compression::UsePrefix kann eingestellt werden, ob bei der Komprimierung noch ein

@@ -1,17 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -21,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -190,74 +191,6 @@ bool IdentMPEG(FileObject &file, PPL_MPEG_HEADER * mpg)
 	return (true);
 }
 
-/*
-void MpegHeader2Array(ppl6::CAssocArray &a, const PPL_MPEG_HEADER *mpg)
-{
-	a.Clear();
-	if (!mpg) return;
-	a.Setf("start","%u",mpg->start);
-	a.Setf("end","%u",mpg->end);
-	a.Setf("size","%u",mpg->size);
-	a.Setf("filesize","%u",mpg->filesize);
-	a.Setf("version","%i",mpg->version);
-	a.Setf("layer","%i",mpg->layer);
-	a.Setf("error_protection","%i",mpg->error_protection);
-	a.Setf("bitrate_index","%i",mpg->bitrate_index);
-	a.Setf("bitrate","%i",mpg->bitrate);
-	a.Setf("frequency_index","%i",mpg->frequency_index);
-	a.Setf("frequency","%i",mpg->frequency);
-	a.Setf("padding","%i",mpg->padding);
-	a.Setf("extension","%i",mpg->extension);
-	a.Setf("mode","%i",mpg->mode);
-	a.Setf("mode_ext","%i",mpg->mode_ext);
-	a.Setf("copyright","%i",mpg->copyright);
-	a.Setf("original","%i",mpg->original);
-	a.Setf("emphasis","%i",mpg->emphasis);
-	a.Setf("stereo","%i",mpg->stereo);
-	a.Setf("framesize","%i",mpg->framesize);
-	a.Setf("frames","%i",mpg->frames);
-	a.Setf("mslength","%u",mpg->mslength);
-	a.Setf("length","%u",mpg->length);
-	a.Setf("samples","%u",mpg->samples);
-	a.Setf("vbr","%i",mpg->vbr);
-}
-
-void PrintMpegHeader(const PPL_MPEG_HEADER *mpg)
-{
-	printf ("   MPEG-Kennung gefunden bei Pos. %u: MPEG %u, Layer %u\n",mpg->start,mpg->version,mpg->layer);
-	printf ("   Bitrate: %ukbit, %s\n",mpg->bitrate, (mpg->vbr?"VBR":"CBR"));
-	printf ("   Frequency: %u Hz, %s\n",mpg->frequency,mpg_channels[mpg->stereo]);
-	printf ("   Framesize: %u = %u Frames\n",mpg->framesize, mpg->frames);
-	printf ("   Length: %u ms, %u s = %0d:%0d\n",mpg->mslength,mpg->length, mpg->length/60, mpg->length%60);
-	printf ("   Samples: %u, Datasize: %u\n",mpg->samples,mpg->size);
-	printf ("   Start: %u, End: %u\n",mpg->start,mpg->end);
-}
-*/
-
-/*
-bool IsMPEGHeader(char *header)
-{
-	ppldd temp;
-	int version,layer,bitrate_index,frequency_index;
-	if (!header) return false;
-	temp=((header[0]&255)<<24)+((header[1]&255)<<16)+((header[2]&255)<<8)+(header[3]&255);
-	if (((temp>>20)&0xfff)==0xfff) {		// 12 gesetzte Bits nacheinander
-		// Ist der Header g�ltig?
-		version=MPEGVersion[(header[1] >> 3) & 0x3];
-		//layer = 4 - ((header[1] >> 1) & 0x3);
-		layer = MPEGLayer[(header[1] >> 1) & 0x3];
-
-		bitrate_index = (header[2] >> 4) & 0x0F;
-		frequency_index = (header[2] >> 2) & 0x3;
-		if (version>0 && layer>=2 && layer<=3 &&
-			bitrate_index!=0 && bitrate_index!=15 &&
-			frequency_index!=3) {
-				return true;
-		}
-	}
-	return false;
-}
-*/
 
 void GetMP3Frame(FileObject &file, PPL_MPEG_HEADER &mpg, ByteArray &buffer)
 {

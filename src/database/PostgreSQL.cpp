@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -67,7 +62,7 @@ class Postgres92Result : public ResultSet
 private:
 	PGresult* res;			//!\brief Postgres-spezifisches Result-Handle
 	PGconn* conn;			//!\brief Postgres-spezifisches Handle des Datenbank-Connects, das den Result erzeugt hat
-	PostgreSQL* postgres_class;	//!\brief Die ppl6::db::MySQL-Klasse, die das Result erzeugt hat
+	PostgreSQL* postgres_class;	//!\brief Die ppl7::db::MySQL-Klasse, die das Result erzeugt hat
 	uint64_t	affectedrows;	//!\brief Falls es sich um ein Update/Insert/Replace handelte, steht hier die Anzahl betroffender Datensätze
 	int			num_fields;		//!\brief Anzahl Spalten im Ergebnis
 
@@ -614,7 +609,6 @@ String PostgreSQL::escape(const String& str) const
 	int error;
 	size_t newlength=PQescapeStringConn((PGconn*)conn, buf, (const char*)str, str.size(), &error);
 	if (error == 0) {
-		//ppl6::HexDump(buf,newlength);
 		String ret(buf, newlength);
 		free(buf);
 		return ret;

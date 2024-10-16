@@ -829,7 +829,6 @@ void WikiParser::finalize()
 	// <br> am Ende wollen wir nicht
 	ret.pregReplace("/<br>$/i","");
 	// <br> vor einem </td> oder </th> wollen wir nicht
-	//ret.PregReplace("/<br>\\n(<\\/t[dh]>)/i","$1");		// TODO: BUG in PPL6!!!! $1 scheint Random-Daten einzufügen
 	ret.pregReplace("/<br>\\n(<\\/td>)/i","</td>");
 	ret.pregReplace("/<br>\\n(<\\/th>)/i","</th>");
 	// <br> vor einem <ul> oder <ol> wollen wir nicht
