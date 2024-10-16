@@ -40,13 +40,13 @@ TARGETBIN	?= @bindir@
 TARGETINCLUDE	?= @includedir@
 CC			= @CC@
 CXX			= @CXX@
-CFLAGS		=  -I${incdir} -DPPL7LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ 	@ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @OPENSSL_INCLUDES@ @ICONV_CFLAGS@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ 	@SQLITE3_CFLAGS@ 	@LAME_CFLAGS@ @MPG123_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ @LIBCDIO_CFLAGS@ 	@LIBIDN_CFLAGS@ @LIBCURL_CPPFLAGS@ 	@FT2_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@
+CFLAGS		=  -I${incdir} -DPPL7LIB @CFLAGS@ @DEFS@  @PTHREAD_CFLAGS@ 	@ZLIB_CFLAGS@ @BZ2_CFLAGS@ @PCRE_CFLAGS@ @PCRE2_CFLAGS@ @OPENSSL_INCLUDES@ @ICONV_CFLAGS@ @MYSQL_CFLAGS@ @POSTGRESQL_CFLAGS@ 	@SQLITE3_CFLAGS@ 	@LAME_CFLAGS@ @MPG123_CFLAGS@ @LIBMICROHTTPD_CFLAGS@ @LIBCDIO_CFLAGS@ 	@LIBIDN_CFLAGS@ @LIBCURL_CPPFLAGS@ 	@FT2_CFLAGS@ @LIBLDNS_CFLAGS@ @IMLIB_CFLAGS@
 
 
 CPPFLAGS	= @CPPFLAGS@
 CXXFLAGS	= @CXXFLAGS@
 LDFLAGS		= @LDFLAGS@
-LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @IMLIB_LIBS@ 	@FT2_LIBS@ @ICONV_LIBS@ @MYSQL_LDFLAGS@ @POSTGRESQL_LDFLAGS@ @SQLITE3_LDFLAGS@ 	@LAME_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ 	@LIBCURL@ @LIBCDIO_LDFLAGS@ 	@LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@
+LIBS		= @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @PCRE2_LIBS@ @IMLIB_LIBS@ 	@FT2_LIBS@ @ICONV_LIBS@ @MYSQL_LDFLAGS@ @POSTGRESQL_LDFLAGS@ @SQLITE3_LDFLAGS@ 	@LAME_LIBS@ @LIBLDNS_LIBS@ @MPG123_LIBS@ 	@LIBCURL@ @LIBCDIO_LDFLAGS@ 	@LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@
 
 LIBNAME		= libppl7
 LIBDEBUG	= libppl7-debug
@@ -76,6 +76,7 @@ RELEASE	= release/core_Compat.o \
 	release/core_MemoryGroup.o \
 	release/core_MemoryHeap.o \
 	release/core_Mutex.o \
+	release/core_Pcre.o \
 	release/core_PerlHelper.o \
 	release/core_PFPFile.o \
 	release/core_PythonHelper.o \
@@ -177,6 +178,7 @@ CORE_RELEASE = release/core_Compat.o \
 	release/core_MemoryGroup.o \
 	release/core_MemoryHeap.o \
 	release/core_Mutex.o \
+	release/core_Pcre.o \
 	release/core_PerlHelper.o \
 	release/core_PFPFile.o \
 	release/core_PythonHelper.o \
@@ -302,6 +304,7 @@ DEBUG	= debug/core_Compat.o \
 	debug/core_MemoryGroup.o \
 	debug/core_MemoryHeap.o \
 	debug/core_Mutex.o \
+	debug/core_Pcre.o \
 	debug/core_PerlHelper.o \
 	debug/core_PFPFile.o \
 	debug/core_PythonHelper.o \
@@ -403,6 +406,7 @@ CORE_DEBUG = debug/core_Compat.o \
 	debug/core_MemoryGroup.o \
 	debug/core_MemoryHeap.o \
 	debug/core_Mutex.o \
+	debug/core_Pcre.o \
 	debug/core_PerlHelper.o \
 	debug/core_PFPFile.o \
 	debug/core_PythonHelper.o \
@@ -529,6 +533,7 @@ COVERAGE	= coverage/core_Compat.o \
 	coverage/core_MemoryGroup.o \
 	coverage/core_MemoryHeap.o \
 	coverage/core_Mutex.o \
+	coverage/core_Pcre.o \
 	coverage/core_PerlHelper.o \
 	coverage/core_PFPFile.o \
 	coverage/core_PythonHelper.o \
@@ -842,6 +847,9 @@ release/core_MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incd
 
 release/core_Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o release/core_Mutex.o -c $(srcdir)/core/Mutex.cpp $(CFLAGS) 
+
+release/core_Pcre.o:	$(srcdir)/core/Pcre.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	$(CXX) -Wall $(CXXFLAGS) -o release/core_Pcre.o -c $(srcdir)/core/Pcre.cpp $(CFLAGS) 
 
 release/core_PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o release/core_PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) 
@@ -1199,6 +1207,9 @@ debug/core_MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(incdir
 debug/core_Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o debug/core_Mutex.o -c $(srcdir)/core/Mutex.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/core_Pcre.o:	$(srcdir)/core/Pcre.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	$(CXX) -Wall $(CXXFLAGS) -o debug/core_Pcre.o -c $(srcdir)/core/Pcre.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
+
 debug/core_PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o debug/core_PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
@@ -1553,6 +1564,9 @@ coverage/core_MemoryHeap.o:	$(srcdir)/core/MemoryHeap.cpp $(incdir)/ppl7.h $(inc
 
 coverage/core_Mutex.o:	$(srcdir)/core/Mutex.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/core_Mutex.o -c $(srcdir)/core/Mutex.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/core_Pcre.o:	$(srcdir)/core/Pcre.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
+	$(CXX) -Wall $(CXXFLAGS) -o coverage/core_Pcre.o -c $(srcdir)/core/Pcre.cpp $(CFLAGS) @GCOV_CFLAGS@ 
 
 coverage/core_PerlHelper.o:	$(srcdir)/core/PerlHelper.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile  
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/core_PerlHelper.o -c $(srcdir)/core/PerlHelper.cpp $(CFLAGS) @GCOV_CFLAGS@ 

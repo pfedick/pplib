@@ -123,6 +123,9 @@
 #undef HAVE__BOOL
 #undef FPOS_T_STRUCT
 #undef HAVE_PCRE
+#undef HAVE_PCRE2
+#undef HAVE_PCRE2_CHAR
+#undef HAVE_PCRE2_WCHAR
 #undef HAVE_FLOCK
 #undef HAVE_FCNTL
 #undef HAVE_FPUTS

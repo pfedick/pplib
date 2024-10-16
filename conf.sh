@@ -76,7 +76,7 @@ case "$SYS:$REL:$KERNEL" in
 	    # export CFLAGS="-no-pie "
 		echo "configuring for generic Linux"
 		./configure --prefix=$PREFIX \
-			--with-lame --with-pcre=/usr --with-x --with-openssl=/usr \
+			--with-lame --with-pcre2 --with-x --with-openssl=/usr \
 			--with-mysql  --with-libiconv-prefix --without-nasm \
 			--with-gcrypt=auto --with-ogg=/usr \
 			--with-postgresql \

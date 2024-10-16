@@ -33,7 +33,7 @@ CFLAGS="@CFLAGS@ @PTHREAD_CFLAGS@"
 CPPFLAGS="@CPPFLAGS@"
 LDFLAGS="@LDFLAGS@"
 
-LIBS_CORE="@LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @ICONV_LIBS@"
+LIBS_CORE="@LIBS@ @PTHREAD_CFLAGS@ @PTHREAD_LIBS@ @ZLIB_LIBS@ @BZ2_LIBS@ @PCRE_LIBS@ @PCRE2_LIBS@ @ICONV_LIBS@"
 LIBS_CRYPTO="@OPENSSL_LDFLAGS@ @OPENSSL_LIBS@"
 LIBS_GFX="@JPEG_LIBS@ @PNG_LIBS@ @TIFF_LIBS@ @FT2_LIBS@ @IMLIB_LIBS@"
 LIBS_INET="@LIBCURL@ @LIBLDNS_LIBS@ @LIBMICROHTTPD_LIBS@ @LIBIDN_LIBS@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @WINDOWS_WINSOCK_LIBS@"
@@ -64,7 +64,7 @@ Options:
 	[--libs]
 	[--cflags]
 	[--ppllib]
-	[--features [wanted features, eg: --features zlib bzip2 pcre]]
+	[--features [wanted features, eg: --features zlib bzip2 pcre2]]
 	[--archive]
 Libraries:
 	release | debug
@@ -234,7 +234,8 @@ if test "$listfeatures" = "yes"; then
 	check_feature "mad" "@report_have_libmad@" "$features_wanted"
 	check_feature "curl" "@report_have_curl@" "$features_wanted"
 	check_feature "openssl" "@report_have_openssl@" "$features_wanted"
-	check_feature "pcre" "@report_have_pcre@" "$features_wanted"
+  check_feature "pcre" "@report_have_pcre2@" "$features_wanted"
+	check_feature "pcre2" "@report_have_pcre2@" "$features_wanted"
 	check_feature "iconv" "@report_have_iconv@" "$features_wanted"
 	check_feature "mysql" "@report_have_mysql@" "$features_wanted"
 	check_feature "postgres" "@report_have_postgres@" "$features_wanted"
