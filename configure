@@ -716,8 +716,10 @@ OPENSSL_LIBS
 OPENSSL_INCLUDES
 PCRE2_CFLAGS
 PCRE2_LIBS
-PCRE2_WIDE_LIBS
-PCRE2_WIDE_CFLAGS
+PCRE2_WIDE32_LIBS
+PCRE2_WIDE32_CFLAGS
+PCRE2_WIDE16_LIBS
+PCRE2_WIDE16_CFLAGS
 PCRE2_8_LIBS
 PCRE2_8_CFLAGS
 pcre2config
@@ -961,8 +963,10 @@ libcdio_CFLAGS
 libcdio_LIBS
 PCRE2_8_CFLAGS
 PCRE2_8_LIBS
-PCRE2_WIDE_CFLAGS
-PCRE2_WIDE_LIBS
+PCRE2_WIDE16_CFLAGS
+PCRE2_WIDE16_LIBS
+PCRE2_WIDE32_CFLAGS
+PCRE2_WIDE32_LIBS
 MYSQL_CONFIG'
 
 
@@ -1693,10 +1697,14 @@ Some influential environment variables:
               C compiler flags for PCRE2_8, overriding pkg-config
   PCRE2_8_LIBS
               linker flags for PCRE2_8, overriding pkg-config
-  PCRE2_WIDE_CFLAGS
-              C compiler flags for PCRE2_WIDE, overriding pkg-config
-  PCRE2_WIDE_LIBS
-              linker flags for PCRE2_WIDE, overriding pkg-config
+  PCRE2_WIDE16_CFLAGS
+              C compiler flags for PCRE2_WIDE16, overriding pkg-config
+  PCRE2_WIDE16_LIBS
+              linker flags for PCRE2_WIDE16, overriding pkg-config
+  PCRE2_WIDE32_CFLAGS
+              C compiler flags for PCRE2_WIDE32, overriding pkg-config
+  PCRE2_WIDE32_LIBS
+              linker flags for PCRE2_WIDE32, overriding pkg-config
   MYSQL_CONFIG
               Full path to mysql_config program
 
@@ -19261,14 +19269,6 @@ printf "%s\n" "yes" >&6; }
 		am_save_CPPFLAGS="$CPPFLAGS"
 		am_save_LIBS="$LIBS"
 		am_save_LDFLAGS="$LDFLAGS"
-		am_pcrebits=""
-		if test ${ac_cv_sizeof_wchar_t} -eq 4
-		then
-			am_pcrebits="32"
-		elif test ${ac_cv_sizeof_wchar_t} -eq 2
-		then
-			am_pcrebits="16"
-		fi
 
 
 		if test "$libpcre2_prefix" = "yes" -o "$libpcre2_prefix" = "auto"
@@ -19386,7 +19386,7 @@ fi
 					have_libpng="yes"
 					PCRE2_LIBS=`$pcre2config --libs8`
 					PCRE2_CFLAGS=`$pcre2config --cflags`
-					printf "%s\n" "#define HAVE_PCRE2_CHAR 1" >>confdefs.h
+					printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
 
 				fi
 
@@ -19402,7 +19402,7 @@ printf "%s\n" "no" >&6; }
 					have_libpng="yes"
 					PCRE2_LIBS=`$pcre2config --libs8`
 					PCRE2_CFLAGS=`$pcre2config --cflags`
-					printf "%s\n" "#define HAVE_PCRE2_CHAR 1" >>confdefs.h
+					printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
 
 				fi
 
@@ -19414,25 +19414,27 @@ printf "%s\n" "yes" >&6; }
         have_libpcre2="yes"
 				PCRE2_LIBS="$PCRE2_8_LIBS"
 				PCRE2_CFLAGS="$PCRE2_8_CFLAGS"
-				printf "%s\n" "#define HAVE_PCRE2_CHAR 1" >>confdefs.h
+				printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
 
 
 fi
+			if test ${ac_cv_sizeof_wchar_t} -eq 2
+			then
 
 pkg_failed=no
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libpcre2-$am_pcrebits" >&5
-printf %s "checking for libpcre2-$am_pcrebits... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libpcre2-16" >&5
+printf %s "checking for libpcre2-16... " >&6; }
 
-if test -n "$PCRE2_WIDE_CFLAGS"; then
-    pkg_cv_PCRE2_WIDE_CFLAGS="$PCRE2_WIDE_CFLAGS"
+if test -n "$PCRE2_WIDE16_CFLAGS"; then
+    pkg_cv_PCRE2_WIDE16_CFLAGS="$PCRE2_WIDE16_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpcre2-\$am_pcrebits\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "libpcre2-$am_pcrebits") 2>&5
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpcre2-16\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpcre2-16") 2>&5
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_PCRE2_WIDE_CFLAGS=`$PKG_CONFIG --cflags "libpcre2-$am_pcrebits" 2>/dev/null`
+  pkg_cv_PCRE2_WIDE16_CFLAGS=`$PKG_CONFIG --cflags "libpcre2-16" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -19440,16 +19442,16 @@ fi
  else
     pkg_failed=untried
 fi
-if test -n "$PCRE2_WIDE_LIBS"; then
-    pkg_cv_PCRE2_WIDE_LIBS="$PCRE2_WIDE_LIBS"
+if test -n "$PCRE2_WIDE16_LIBS"; then
+    pkg_cv_PCRE2_WIDE16_LIBS="$PCRE2_WIDE16_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpcre2-\$am_pcrebits\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "libpcre2-$am_pcrebits") 2>&5
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpcre2-16\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpcre2-16") 2>&5
   ac_status=$?
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_PCRE2_WIDE_LIBS=`$PKG_CONFIG --libs "libpcre2-$am_pcrebits" 2>/dev/null`
+  pkg_cv_PCRE2_WIDE16_LIBS=`$PKG_CONFIG --libs "libpcre2-16" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -19470,53 +19472,138 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-                PCRE2_WIDE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libpcre2-$am_pcrebits" 2>&1`
+                PCRE2_WIDE16_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libpcre2-16" 2>&1`
         else
-                PCRE2_WIDE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libpcre2-$am_pcrebits" 2>&1`
+                PCRE2_WIDE16_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libpcre2-16" 2>&1`
         fi
         # Put the nasty error message in config.log where it belongs
-        echo "$PCRE2_WIDE_PKG_ERRORS" >&5
+        echo "$PCRE2_WIDE16_PKG_ERRORS" >&5
 
-        have_libpcre2="no"
-				PCRE2_LIBS=""
-				PCRE2_CFLAGS=""
+        if test  -x "$pcre2config"
+					then
+						have_libpng="yes"
+						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs16`
+						printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
 
-				if test  -x "$pcre2config"
-				then
-					have_libpng="yes"
-					PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs$am_pcrebits`
-					printf "%s\n" "#define HAVE_PCRE2_WCHAR 1" >>confdefs.h
+					fi
 
-				fi
+elif test $pkg_failed = untried; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+        if test  -x "$pcre2config"
+					then
+						have_libpng="yes"
+						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs16`
+						printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
+
+					fi
+
+else
+        PCRE2_WIDE16_CFLAGS=$pkg_cv_PCRE2_WIDE16_CFLAGS
+        PCRE2_WIDE16_LIBS=$pkg_cv_PCRE2_WIDE16_LIBS
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+        PCRE2_LIBS="$PCRE2_LIBS $PCRE2_WIDE16_LIBS"
+					PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE16_CFLAGS"
+					printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
+
+
+fi
+			fi
+			if test ${ac_cv_sizeof_wchar_t} -eq 4
+			then
+
+pkg_failed=no
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libpcre2-32" >&5
+printf %s "checking for libpcre2-32... " >&6; }
+
+if test -n "$PCRE2_WIDE32_CFLAGS"; then
+    pkg_cv_PCRE2_WIDE32_CFLAGS="$PCRE2_WIDE32_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpcre2-32\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpcre2-32") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PCRE2_WIDE32_CFLAGS=`$PKG_CONFIG --cflags "libpcre2-32" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$PCRE2_WIDE32_LIBS"; then
+    pkg_cv_PCRE2_WIDE32_LIBS="$PCRE2_WIDE32_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libpcre2-32\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libpcre2-32") 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_PCRE2_WIDE32_LIBS=`$PKG_CONFIG --libs "libpcre2-32" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+                PCRE2_WIDE32_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libpcre2-32" 2>&1`
+        else
+                PCRE2_WIDE32_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libpcre2-32" 2>&1`
+        fi
+        # Put the nasty error message in config.log where it belongs
+        echo "$PCRE2_WIDE32_PKG_ERRORS" >&5
+
+        if test  -x "$pcre2config"
+					then
+						have_libpng="yes"
+						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs32`
+						printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
+
+					fi
 
 
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-        have_libpcre2="no"
-				PCRE2_LIBS=""
-				PCRE2_CFLAGS=""
+        if test  -x "$pcre2config"
+					then
+						have_libpng="yes"
+						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs32`
+						printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
 
-				if test  -x "$pcre2config"
-				then
-					have_libpng="yes"
-					PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs$am_pcrebits`
-					printf "%s\n" "#define HAVE_PCRE2_WCHAR 1" >>confdefs.h
-
-				fi
+					fi
 
 
 else
-        PCRE2_WIDE_CFLAGS=$pkg_cv_PCRE2_WIDE_CFLAGS
-        PCRE2_WIDE_LIBS=$pkg_cv_PCRE2_WIDE_LIBS
+        PCRE2_WIDE32_CFLAGS=$pkg_cv_PCRE2_WIDE32_CFLAGS
+        PCRE2_WIDE32_LIBS=$pkg_cv_PCRE2_WIDE32_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-        PCRE2_LIBS="$PCRE2_LIBS $PCRE2_WIDE_LIBS"
-				PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE_CFLAGS"
-				printf "%s\n" "#define HAVE_PCRE2_WCHAR 1" >>confdefs.h
+        PCRE2_LIBS="$PCRE2_LIBS $PCRE2_WIDE32_LIBS"
+					PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE32_CFLAGS"
+					printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
 
 
 fi
+			fi
 		else
 			LIBS="-L$libpng_prefix/lib"
 			CFLAGS="-I$libpng_prefix/include"
@@ -19524,7 +19611,7 @@ fi
 			LDFLAGS="-L$libpng_prefix/lib"
 			PCRE2_LIBS="-L$libpcre2_prefix/lib -lpcre2-8"
 			PCRE2_CFLAGS="-I$libpcre2_prefix/include"
-			printf "%s\n" "#define HAVE_PCRE2_CHAR 1" >>confdefs.h
+			printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
 
 		fi
 
