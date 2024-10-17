@@ -33,12 +33,173 @@
 #include "prolog_ppl7.h"
 
 #ifdef HAVE_PCRE2
+#define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 #endif
 #include "ppl7.h"
 #include "ppl7-types.h"
 
 namespace ppl7 {
+
+
+RegEx::Pattern::Pattern()
+{
+    p=NULL;
+    bits=0;
+}
+
+RegEx::Pattern::Pattern(const Pattern &other)
+{
+    p=NULL;
+    bits=other.bits;
+    ppl7::PrintDebug("RegEx::Pattern::Pattern using copy constructor\n");
+    if (other.p) {
+        if (bits==8) {
+            #ifdef HAVE_PCRE2_BITS_8
+            p=pcre2_code_copy_8((pcre2_code_8*)other.p);
+            #endif
+        } else if (bits==16) {
+            #ifdef HAVE_PCRE2_BITS_16
+            p=pcre2_code_copy_16((pcre2_code_16*)other.p);
+            #endif
+        } else if (bits==32) {
+            #ifdef HAVE_PCRE2_BITS_32
+            p=pcre2_code_copy_32((pcre2_code_32*)other.p);
+            #endif
+        }
+        if (!p) throw OutOfMemoryException("copy of RegEx::Pattern failed");
+    }
+}
+
+RegEx::Pattern::Pattern(const Pattern &&other)
+{
+    ppl7::PrintDebug("RegEx::Pattern::Pattern using move constructor\n");
+    p=other.p;
+    bits=other.bits;
+}
+
+RegEx::Pattern::~Pattern()
+{
+    if (p) {
+        #ifdef HAVE_PCRE2_BITS_8
+        if (bits==8) pcre2_code_free_8((pcre2_code_8*)p);
+        #endif
+        #ifdef HAVE_PCRE2_BITS_16
+        if (bits==16) pcre2_code_free_16((pcre2_code_16*)p);
+        #endif
+        #ifdef HAVE_PCRE2_BITS_32
+        if (bits==32) pcre2_code_free_32((pcre2_code_32*)p);
+        #endif
+    }
+    p=NULL;
+    bits=0;
+}
+
+RegEx::Pattern RegEx::compile(const String& regex, int flags)
+{
+#ifndef HAVE_PCRE2
+    throw UnsupportedFeatureException("PCRE2");
+#endif
+#ifndef HAVE_PCRE2_BITS_8
+    throw UnsupportedFeatureException("PCRE2 with 8 bits character width");
+#else
+    PCRE2_SIZE erroffset;
+    int errorcode;
+    int options=PCRE2_UTF|PCRE2_NO_UTF_CHECK;
+    if (flags&Flags::CASELESS) options|=PCRE2_CASELESS;
+    if (flags&Flags::ANCHORED) options|=PCRE2_ANCHORED;
+    if (flags&Flags::MULTILINE) options|=PCRE2_MULTILINE;
+    if (flags&Flags::EXTENDED) options|=PCRE2_EXTENDED;
+    if (flags&Flags::DOTALL) options|=PCRE2_DOTALL;
+    if (flags&Flags::UNGREEDY) options|=PCRE2_UNGREEDY;
+    
+    const char *r=regex.c_str();
+    pcre2_code_8 *re=NULL;
+    if (r[0]=='/') {    // PerlRegEx
+        ByteArray expr=regex;
+        const char* oo=::strrchr((const char*)expr, '/');
+        if (oo) {
+            expr.set(oo - (const char*)expr, 0);
+            oo++;
+            if (::strchr(oo, 'i')) options|=PCRE2_CASELESS;
+            if (::strchr(oo, 'm')) options|=PCRE2_MULTILINE;
+            if (::strchr(oo, 'x')) options|=PCRE2_EXTENDED;
+            if (::strchr(oo, 's')) options|=PCRE2_DOTALL;
+            if (::strchr(oo, 'a')) options|=PCRE2_ANCHORED;
+            if (::strchr(oo, 'u')) options|=PCRE2_UNGREEDY;
+        }
+        re=pcre2_compile_8((PCRE2_SPTR8)expr+1,PCRE2_ZERO_TERMINATED, options,
+            &errorcode,&erroffset, NULL);
+
+    } else {
+        re=pcre2_compile_8((PCRE2_SPTR8)regex.c_str(),PCRE2_ZERO_TERMINATED, options,
+            &errorcode,&erroffset, NULL);
+    }
+    if (!re) throw IllegalRegularExpressionException();
+
+    RegEx::Pattern pattern;
+    pattern.bits=8; 
+    pattern.p=re;
+    return pattern;
+#endif
+}
+
+RegEx::Pattern RegEx::compile(const WideString& regex, int flags)
+{
+    RegEx::Pattern pattern;
+    return pattern;
+}
+
+bool RegEx::match(const String& regex, const String& string, int flags)
+{
+    RegEx::Pattern pattern=RegEx::compile(regex,flags);
+    return RegEx::match(pattern,string);
+}
+
+bool RegEx::match(const Pattern& pattern, const String& string)
+{
+    if (pattern.p==NULL) throw IllegalRegularExpressionException();
+#ifndef HAVE_PCRE2_BITS_8
+    throw UnsupportedFeatureException("PCRE2 with 8 bits character width");
+#else
+    pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pattern.p, NULL);
+    int rc = pcre2_match_8((pcre2_code_8*)pattern.p,(PCRE2_SPTR8)string.c_str(),string.size(),0,0,md,NULL);
+    if (rc<0) {
+        pcre2_match_data_free_8(md);
+        if (rc==PCRE2_ERROR_NOMATCH) return false;
+        throw IllegalRegularExpressionException();
+    }
+    pcre2_match_data_free_8(md);
+    return true;
+#endif
+}
+
+bool RegEx::capture(const String& regex, const String& string, std::vector<String>& matches, int flags)
+{
+    RegEx::Pattern pattern=RegEx::compile(regex,flags);
+    return RegEx::capture(pattern,string,matches);
+}
+
+bool RegEx::capture(const Pattern& pattern, const String& string, std::vector<String>& matches)
+{
+    if (pattern.p==NULL) throw IllegalRegularExpressionException();
+#ifndef HAVE_PCRE2_BITS_8
+    throw UnsupportedFeatureException("PCRE2 with 8 bits character width");
+#else
+    pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pattern.p, NULL);
+    int rc = pcre2_match_8((pcre2_code_8*)pattern.p,(PCRE2_SPTR8)string.c_str(),string.size(),0,0,md,NULL);
+    if (rc<0) {
+        pcre2_match_data_free_8(md);
+        if (rc==PCRE2_ERROR_NOMATCH) return false;
+        throw IllegalRegularExpressionException();
+    }
+    
+
+
+    pcre2_match_data_free_8(md);
+    return true;
+#endif
+}
 
 
 

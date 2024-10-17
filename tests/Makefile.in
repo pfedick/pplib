@@ -51,7 +51,7 @@ OBJECTS_CORE = compile/array.o compile/assocarray.o \
 	compile/logger.o compile/math.o compile/memorygroup.o compile/memoryheap.o \
 	compile/pointer.o compile/stringfunctions.o compile/strings.o \
 	compile/time.o compile/variant.o compile/widestrings.o \
-	compile/json.o compile/perlhelper.o compile/pythonhelper.o
+	compile/json.o compile/perlhelper.o compile/pythonhelper.o compile/pcre.o
 
 OBJECTS_CRYPTO = compile/crypto.o compile/digest.o
 
@@ -242,6 +242,10 @@ compile/bytearrayptr.o: src/core/bytearrayptr.cpp Makefile ppl7-tests.h
 compile/strings.o: src/core/strings.cpp Makefile ppl7-tests.h
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -o compile/strings.o -c src/core/strings.cpp $(CFLAGS) $(LIB)
+
+compile/pcre.o: src/core/pcre.cpp Makefile ppl7-tests.h
+	mkdir -p compile
+	$(CXX) $(CXXFLAGS) -o compile/pcre.o -c src/core/pcre.cpp $(CFLAGS) $(LIB)
 
 compile/stringfunctions.o: src/core/stringfunctions.cpp Makefile ppl7-tests.h
 	mkdir -p compile

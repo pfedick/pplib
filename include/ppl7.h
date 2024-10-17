@@ -266,11 +266,30 @@ class RegEx {
 		};
 	};
 
-	static bool match(const String& regex, const String& string, int flags=Flags::NONE);
-	static bool capture(const String& regex, const String& string, std::vector<String>& matches, int flags=Flags::NONE, size_t maxmatches=16);
+	class Pattern {
+		friend class RegEx;
+		private:
+			void *p;
+			char bits;
+		public:
+			Pattern();
+			Pattern(const Pattern &other);
+			Pattern(const Pattern &&other);
+			~Pattern();
+	};
 
+	static Pattern compile(const String& regex, int flags=Flags::NONE);
+	static Pattern compile(const WideString& regex, int flags=Flags::NONE);
+
+	static bool match(const String& regex, const String& string, int flags=Flags::NONE);
 	static bool match(const WideString& regex, const WideString& string, int flags=Flags::NONE);
-	static bool capture(const WideString& regex, const WideString& string, std::vector<WideString>& matches, int flags=Flags::NONE, size_t maxmatches=16);
+	static bool match(const Pattern& pattern, const String& string);
+	static bool match(const Pattern& pattern, const WideString& string);
+
+	static bool capture(const String& regex, const String& string, std::vector<String>& matches, int flags=Flags::NONE);
+	static bool capture(const Pattern& pattern, const String& string, std::vector<String>& matches);
+	static bool capture(const WideString& regex, const WideString& string, std::vector<WideString>& matches, int flags=Flags::NONE);
+	static bool capture(const Pattern& pattern, const WideString& string, std::vector<WideString>& matches);
 
 	static String replace(const String& regex, const String& string, const String &replacement, int flags=Flags::NONE, int max=0);
 	static WideString replace(const WideString& regex, const WideString& string, const WideString &replacement, int flags=Flags::NONE, int max=0);
