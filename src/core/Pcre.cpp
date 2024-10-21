@@ -242,7 +242,29 @@ pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pat
     return result;
 }
 
+/*! \brief Fügt dem String Escape-Zeichen zu, zur Verwendung in einem Regulären Ausdruck
+ *
+ * \desc
+ * Der Befehl scannt den String nach Zeichen mit besonderer Bedeutung in einer Perl-Regular-Expression und
+ * escaped diese mit einem Backslash. Das Ergebnis kann dann in einer Regular Expression verwendet werden.
+ *
+ * Folgende Zeichen werden escaped: - + \ * /
+ */
+String RegEx::escape(const String subject)
+{
+    if (subject.size() == 0) return subject;
 
+	String t;
+	String compare="-+\\*/";
+	String letter;
+    const char*ptr=subject.c_str();
+	for (size_t i=0;i < subject.size();i++) {
+		letter.set(ptr[i]);
+		if (compare.instr(letter, 0) >= 0) t+="\\";
+		t+=letter;
+	}
+    return t;
+}
 
 
 } // EOF namespace ppl7
