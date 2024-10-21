@@ -2555,6 +2555,8 @@ WideString& WideString::replace(const WideString & search, const WideString & re
 	return set(ms);
 }
 
+#ifdef OBSOLETE_PREG
+
 WideString& WideString::pregEscape()
 /*! \brief Fügt dem String Escape-Zeichen zu, zur Verwendung in einem Match
  *
@@ -2711,6 +2713,7 @@ bool WideString::pregMatch(const WideString & expression, Array & matches, size_
 #endif
 }
 
+#endif //#ifdef OBSOLETE_PREG
 
 
 /*!\brief Kleiner als

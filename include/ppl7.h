@@ -300,13 +300,14 @@ class RegEx {
 	static WideString escape(const WideString subject);
 };
 
+/*
 bool PregMatch(const String& regex, const String& string);
 bool PregMatch(const String& regex, const String& string, Array& matches, size_t maxmatches=16);
 String PregEscape(const String &string);
 WideString PregEscape(const WideString &string);
 String& pregReplace(const String &string, const String& regex, const String& replacement, int max=0);
 WideString& pregReplace(const WideString &string, const WideString& regex, const WideString& replacement, int max=0);
-
+*/
 
 Array Sort(const Array& array, bool unique=false);
 Array SortReverse(const Array& array, bool unique=false);

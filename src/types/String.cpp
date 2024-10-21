@@ -2643,6 +2643,7 @@ String& String::replace(const String & search, const String & replacement)
 	return set(ms);
 }
 
+//#ifdef OBSOLETE_PREG
 String& String::pregEscape()
 /*! \brief Fügt dem String Escape-Zeichen zu, zur Verwendung in einem Match
  *
@@ -2898,6 +2899,8 @@ CString__PregReplace_Restart:
 	return *this;
 #endif
 }
+
+//#endif //#ifdef OBSOLETE_PREG
 
 /*! \brief Schiebt den String nach links
  *

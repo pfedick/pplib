@@ -64,9 +64,7 @@ String PythonHelper::escapeString(const String &s)
 
 String PythonHelper::escapeRegExp(const String &s)
 {
-	String ret=s;
-	ret.pregEscape();
-	return ret;
+	return RegEx::escape(s);
 }
 
 static ppl7::String getValue(const ppl7::String str)

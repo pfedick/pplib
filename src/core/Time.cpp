@@ -435,16 +435,16 @@ ppl_time_t MkTime(const String &iso8601date, PPLTIME *t)
 /*!\ingroup PPLGroupDateTime
  */
 {
-	Array match;
+	std::vector<String> match;
 	struct tm Time;
 	memset(&Time,0,sizeof(Time));
-	if (iso8601date.pregMatch("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\\+([0-9]{2}):([0-9]{2})$/i",match)) {
+	if (RegEx::capture("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\\+([0-9]{2}):([0-9]{2})$/i",iso8601date,match)) {
 		Time.tm_hour = 0-match[7].toInt();
 		Time.tm_min = 0-match[8].toInt();
-	} else if (iso8601date.pregMatch("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\\-([0-9]{2}):([0-9]{2})$/i",match)) {
+	} else if (RegEx::capture("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})\\-([0-9]{2}):([0-9]{2})$/i",iso8601date,match)) {
 		Time.tm_hour = match[7].toInt();
 		Time.tm_min = match[8].toInt();
-	} else if (!iso8601date.pregMatch("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})$/i",match)) {
+	} else if (!RegEx::capture("/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})$/i",iso8601date,match)) {
 		throw InvalidFormatException();
 	}
 	Time.tm_mday = match[3].toInt();

@@ -452,6 +452,8 @@ bool IsTrue(const String& str)
 }
 
 
+#ifdef OBSOLETE_PREG
+
 /*!\brief Der String wird anhand einer Regular Expression durchsucht
  * \relates String
  *
@@ -471,7 +473,7 @@ bool IsTrue(const String& str)
  */
 bool PregMatch(const String& expression, const String& subject)
 {
-	return subject.pregMatch(expression);
+	return RegEx::match(expression,subject);
 }
 
 /*!\brief Der String wird anhand einer Regular Expression durchsucht
@@ -496,9 +498,16 @@ bool PregMatch(const String& expression, const String& subject)
  */
 bool PregMatch(const String& expression, const String& subject, Array& matches, size_t maxmatches)
 {
-	return subject.pregMatch(expression, matches, maxmatches);
+	matches.clear();
+	std::vector<ppl7::String> m;
+	if (RegEx::capture(expression,subject,m,0)) {
+		for (auto it=m.begin();it!=m.end();++it) {
+			matches.add(*it);
+		}
+	}
+	
 }
-
+#endif
 
 /*!\brief String anhand eines Trennzeichens zerlegen
  *

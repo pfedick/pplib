@@ -245,105 +245,105 @@ void DateTime::clear()
 void DateTime::set(const String& datetime)
 {
 	String d=UpperCase(Trim(datetime));
-	Array m;
+	std::vector<String> m;
 	d.replace(",", " ");
 	if (d.isEmpty() == true || d == "T" || d == "0") {
 		clear();
 		return;
 	}
-	if (d.pregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/", m)) {
+	if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})/", d, m)) {
 		// yyyy-mm-ddThh:ii:ss.msecusec[[+-]oo:00]
-		set(m.get(1).toInt(),
-			m.get(2).toInt(),
-			m.get(3).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt(),
-			m.get(7).toInt(),
-			m.get(8).toInt());
-	} else if (d.pregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})/", m)) {
+		set(m.at(1).toInt(),
+			m.at(2).toInt(),
+			m.at(3).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt(),
+			m.at(7).toInt(),
+			m.at(8).toInt());
+	} else if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})/", d, m)) {
 		// yyyy-mm-ddThh:ii:ss.msec[[+-]oo:00]
-		set(m.get(1).toInt(),
-			m.get(2).toInt(),
-			m.get(3).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt(),
-			m.get(7).toInt());
+		set(m.at(1).toInt(),
+			m.at(2).toInt(),
+			m.at(3).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt(),
+			m.at(7).toInt());
 
-	} else if (d.pregMatch("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})/", m)) {
+	} else if (RegEx::capture("/^([0-9]{4})-([0-9]{1,2})-([0-9]{1,2})T([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})/", d,m)) {
 		// yyyy-mm-ddThh:ii:ss[[+-]oo:00]
-		set(m.get(1).toInt(),
-			m.get(2).toInt(),
-			m.get(3).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt());
-	} else if (d.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/", m)) {
+		set(m.at(1).toInt(),
+			m.at(2).toInt(),
+			m.at(3).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt());
+	} else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/", d,m)) {
 		// yyyy.mm.dd hh:ii:ss.msecusec
-		set(m.get(1).toInt(),
-			m.get(2).toInt(),
-			m.get(3).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt(),
-			m.get(7).toInt(),
-			m.get(8).toInt());
-	} else if (d.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", m)) {
+		set(m.at(1).toInt(),
+			m.at(2).toInt(),
+			m.at(3).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt(),
+			m.at(7).toInt(),
+			m.at(8).toInt());
+	} else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", d,m)) {
 		// yyyy.mm.dd hh:ii:ss.msec
-		set(m.get(1).toInt(),
-			m.get(2).toInt(),
-			m.get(3).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt(),
-			m.get(7).toInt());
-	} else if (d.pregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/", m)) {
+		set(m.at(1).toInt(),
+			m.at(2).toInt(),
+			m.at(3).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt(),
+			m.at(7).toInt());
+	} else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{3})([0-9]{3})$/", d,m)) {
 		// dd.mm.yyyy hh:ii:ss.msecusec
-		set(m.get(3).toInt(),
-			m.get(2).toInt(),
-			m.get(1).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt(),
-			m.get(7).toInt(),
-			m.get(8).toInt());
-	} else if (d.pregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", m)) {
+		set(m.at(3).toInt(),
+			m.at(2).toInt(),
+			m.at(1).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt(),
+			m.at(7).toInt(),
+			m.at(8).toInt());
+	} else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})[\\.:]([0-9]{1,3})$/", d,m)) {
 		// dd.mm.yyyy hh:ii:ss.msec
-		set(m.get(3).toInt(),
-			m.get(2).toInt(),
-			m.get(1).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt(),
-			m.get(7).toInt());
-	} else if (d.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", m)) {
+		set(m.at(3).toInt(),
+			m.at(2).toInt(),
+			m.at(1).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt(),
+			m.at(7).toInt());
+	} else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", d,m)) {
 		// yyyy.mm.dd hh:ii:ss
-		set(m.get(1).toInt(),
-			m.get(2).toInt(),
-			m.get(3).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt());
-	} else if (d.pregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", m)) {
+		set(m.at(1).toInt(),
+			m.at(2).toInt(),
+			m.at(3).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt());
+	} else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})\\s+([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$/", d,m)) {
 		// dd.mm.yyyy hh:ii:ss
-		set(m.get(3).toInt(),
-			m.get(2).toInt(),
-			m.get(1).toInt(),
-			m.get(4).toInt(),
-			m.get(5).toInt(),
-			m.get(6).toInt());
-	} else if (d.pregMatch("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})$/", m)) {
+		set(m.at(3).toInt(),
+			m.at(2).toInt(),
+			m.at(1).toInt(),
+			m.at(4).toInt(),
+			m.at(5).toInt(),
+			m.at(6).toInt());
+	} else if (RegEx::capture("/^([0-9]{1,2})[\\.-]([0-9]{1,2})[\\.-]([0-9]{4})$/", d,m)) {
 		// dd.mm.yyyy
-		set(m.get(3).toInt(),
-			m.get(2).toInt(),
-			m.get(1).toInt());
-	} else if (d.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/", m)) {
+		set(m.at(3).toInt(),
+			m.at(2).toInt(),
+			m.at(1).toInt());
+	} else if (RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/", d,m)) {
 		// yyyy.mm.dd
-		set(m.get(1).toInt(),
-			m.get(2).toInt(),
-			m.get(3).toInt());
-	} else if (d.pregMatch("/^null$/i", m)) {
+		set(m.at(1).toInt(),
+			m.at(2).toInt(),
+			m.at(3).toInt());
+	} else if (RegEx::match("/^null$/i", d)) {
 		clear();
 		return;
 	} else {
