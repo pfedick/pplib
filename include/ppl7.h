@@ -292,7 +292,9 @@ class RegEx {
 	static bool capture(const Pattern& pattern, const WideString& subject, std::vector<WideString>& matches);
 
 	static String replace(const String& regex, const String& subject, const String &replacement, int flags=Flags::NONE, int max=0);
+	static String replace(const Pattern& pattern, const String& subject, const String &replacement, int max=0);
 	static WideString replace(const WideString& regex, const WideString& subject, const WideString &replacement, int flags=Flags::NONE, int max=0);
+	static WideString replace(const Pattern& pattern, const WideString& subject, const WideString &replacement, int max=0);
 
 };
 

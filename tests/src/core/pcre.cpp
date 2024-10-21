@@ -114,7 +114,7 @@ TEST_F(PcreTest, MatchPerlRegExPositive) {
 }
 
 
-TEST_F(PcreTest, bool_capture_8) {
+TEST_F(PcreTest, capture_8) {
 	std::vector<ppl7::String> m;
 	ppl7::String s1("2012-05-18");
 	ASSERT_TRUE(ppl7::RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/",s1,m));
@@ -125,15 +125,17 @@ TEST_F(PcreTest, bool_capture_8) {
 	
 }
 
-/*
 
-TEST_F(StringTest, pregReplace) {
+TEST_F(PcreTest, replace_8) {
 	ppl7::String s1("Lorem ipsum dolor sit amet.");
-	ppl7::String s2("Lor3m ipsum dolor sit am3t.");
-	s1.pregReplace("/e/","3");
-	ASSERT_EQ(s2,s1) << "Unexpected result from pregReplace";
+	ppl7::String expected("Lor3m ipsum dolor sit am3t.");
+	ppl7::String result=ppl7::RegEx::replace("/e/",s1,"3");
+	ASSERT_EQ(expected,result) << "Unexpected result from pregReplace";
+
+	ASSERT_EQ(ppl7::String("Lorem --- amet."),ppl7::RegEx::replace("ip.*sit",s1,"---"));
+	ASSERT_EQ(ppl7::String("Lorem  amet."),ppl7::RegEx::replace("ip.*sit",s1,""));
 }
-*/
+
 
 
 

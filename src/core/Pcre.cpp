@@ -207,6 +207,41 @@ bool RegEx::capture(const Pattern& pattern, const String& subject, std::vector<S
 #endif
 }
 
+String RegEx::replace(const String& regex, const String& subject, const String &replacement, int flags, int max)
+{
+    RegEx::Pattern pattern=RegEx::compile(regex,flags);
+    return RegEx::replace(pattern,subject,replacement,max);
+}
+
+String RegEx::replace(const Pattern& pattern, const String& subject, const String &replacement, int max)
+{
+    if (pattern.p==NULL) throw IllegalRegularExpressionException();
+#ifndef HAVE_PCRE2_BITS_8
+    throw UnsupportedFeatureException("PCRE2 with 8 bits character width");
+#else
+#endif
+pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pattern.p, NULL);
+    String result=subject;
+    PCRE2_SIZE offset=0;
+    while (1) {
+        PCRE2_SPTR8 subj=(PCRE2_SPTR8)result.c_str()+offset;
+        int rc = pcre2_match_8((pcre2_code_8*)pattern.p,subj,subject.size(),0,0,md,NULL);
+        if (rc<0) {
+            pcre2_match_data_free_8(md);
+            if (rc==PCRE2_ERROR_NOMATCH) return result;
+            throw IllegalRegularExpressionException();
+        } else if (rc==0) {
+            pcre2_match_data_free_8(md);
+            return result;
+
+        }
+        PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(md);
+        result=result.left(ovector[0]+offset)+replacement+result.mid(offset+ovector[1]);
+        offset=ovector[1];
+    }
+    return result;
+}
+
 
 
 
