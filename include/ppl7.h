@@ -281,18 +281,18 @@ class RegEx {
 	static Pattern compile(const String& regex, int flags=Flags::NONE);
 	static Pattern compile(const WideString& regex, int flags=Flags::NONE);
 
-	static bool match(const String& regex, const String& string, int flags=Flags::NONE);
-	static bool match(const WideString& regex, const WideString& string, int flags=Flags::NONE);
-	static bool match(const Pattern& pattern, const String& string);
-	static bool match(const Pattern& pattern, const WideString& string);
+	static bool match(const String& regex, const String& subject, int flags=Flags::NONE);
+	static bool match(const WideString& regex, const WideString& subject, int flags=Flags::NONE);
+	static bool match(const Pattern& pattern, const String& subject);
+	static bool match(const Pattern& pattern, const WideString& subject);
 
-	static bool capture(const String& regex, const String& string, std::vector<String>& matches, int flags=Flags::NONE);
-	static bool capture(const Pattern& pattern, const String& string, std::vector<String>& matches);
-	static bool capture(const WideString& regex, const WideString& string, std::vector<WideString>& matches, int flags=Flags::NONE);
-	static bool capture(const Pattern& pattern, const WideString& string, std::vector<WideString>& matches);
+	static bool capture(const String& regex, const String& subject, std::vector<String>& matches, int flags=Flags::NONE);
+	static bool capture(const Pattern& pattern, const String& subject, std::vector<String>& matches);
+	static bool capture(const WideString& regex, const WideString& subject, std::vector<WideString>& matches, int flags=Flags::NONE);
+	static bool capture(const Pattern& pattern, const WideString& subject, std::vector<WideString>& matches);
 
-	static String replace(const String& regex, const String& string, const String &replacement, int flags=Flags::NONE, int max=0);
-	static WideString replace(const WideString& regex, const WideString& string, const WideString &replacement, int flags=Flags::NONE, int max=0);
+	static String replace(const String& regex, const String& subject, const String &replacement, int flags=Flags::NONE, int max=0);
+	static WideString replace(const WideString& regex, const WideString& subject, const WideString &replacement, int flags=Flags::NONE, int max=0);
 
 };
 

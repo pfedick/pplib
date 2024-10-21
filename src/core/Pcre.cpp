@@ -150,20 +150,20 @@ RegEx::Pattern RegEx::compile(const WideString& regex, int flags)
     return pattern;
 }
 
-bool RegEx::match(const String& regex, const String& string, int flags)
+bool RegEx::match(const String& regex, const String& subject, int flags)
 {
     RegEx::Pattern pattern=RegEx::compile(regex,flags);
-    return RegEx::match(pattern,string);
+    return RegEx::match(pattern,subject);
 }
 
-bool RegEx::match(const Pattern& pattern, const String& string)
+bool RegEx::match(const Pattern& pattern, const String& subject)
 {
     if (pattern.p==NULL) throw IllegalRegularExpressionException();
 #ifndef HAVE_PCRE2_BITS_8
     throw UnsupportedFeatureException("PCRE2 with 8 bits character width");
 #else
     pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pattern.p, NULL);
-    int rc = pcre2_match_8((pcre2_code_8*)pattern.p,(PCRE2_SPTR8)string.c_str(),string.size(),0,0,md,NULL);
+    int rc = pcre2_match_8((pcre2_code_8*)pattern.p,(PCRE2_SPTR8)subject.c_str(),subject.size(),0,0,md,NULL);
     if (rc<0) {
         pcre2_match_data_free_8(md);
         if (rc==PCRE2_ERROR_NOMATCH) return false;
@@ -174,28 +174,34 @@ bool RegEx::match(const Pattern& pattern, const String& string)
 #endif
 }
 
-bool RegEx::capture(const String& regex, const String& string, std::vector<String>& matches, int flags)
+bool RegEx::capture(const String& regex, const String& subject, std::vector<String>& matches, int flags)
 {
     RegEx::Pattern pattern=RegEx::compile(regex,flags);
-    return RegEx::capture(pattern,string,matches);
+    return RegEx::capture(pattern,subject,matches);
 }
 
-bool RegEx::capture(const Pattern& pattern, const String& string, std::vector<String>& matches)
+bool RegEx::capture(const Pattern& pattern, const String& subject, std::vector<String>& matches)
 {
     if (pattern.p==NULL) throw IllegalRegularExpressionException();
 #ifndef HAVE_PCRE2_BITS_8
     throw UnsupportedFeatureException("PCRE2 with 8 bits character width");
 #else
     pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pattern.p, NULL);
-    int rc = pcre2_match_8((pcre2_code_8*)pattern.p,(PCRE2_SPTR8)string.c_str(),string.size(),0,0,md,NULL);
+    PCRE2_SPTR8 subj=(PCRE2_SPTR8)subject.c_str();
+    int rc = pcre2_match_8((pcre2_code_8*)pattern.p,subj,subject.size(),0,0,md,NULL);
     if (rc<0) {
         pcre2_match_data_free_8(md);
         if (rc==PCRE2_ERROR_NOMATCH) return false;
         throw IllegalRegularExpressionException();
     }
-    
+    matches.clear();
+    PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(md);
+    for (int i=0; i<rc; i++) {
+        PCRE2_SPTR8 substring_start = subj + ovector[2*i];
+        PCRE2_SIZE substring_length = ovector[2*i+1] - ovector[2*i];
+        matches.push_back(String((const char*)substring_start,substring_length));
 
-
+    }
     pcre2_match_data_free_8(md);
     return true;
 #endif

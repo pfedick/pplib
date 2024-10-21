@@ -115,16 +115,25 @@ TEST_F(PcreTest, MatchPerlRegExPositive) {
 
 
 TEST_F(PcreTest, bool_capture_8) {
-
-	ASSERT_NO_THROW({
-
-
-		ppl7::RegEx::Pattern p=ppl7::RegEx::compile("^Hello.*$");
-	}
-	);
+	std::vector<ppl7::String> m;
+	ppl7::String s1("2012-05-18");
+	ASSERT_TRUE(ppl7::RegEx::capture("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/",s1,m));
+	ASSERT_EQ((size_t)4,m.size()) << "Unexpected number auf captures";
+	ASSERT_EQ(2012,m[1].toInt()) << "Unexpected value in capture";
+	ASSERT_EQ(5,m[2].toInt()) << "Unexpected value in capture";
+	ASSERT_EQ(18,m[3].toInt()) << "Unexpected value in capture";
+	
 }
 
+/*
 
+TEST_F(StringTest, pregReplace) {
+	ppl7::String s1("Lorem ipsum dolor sit amet.");
+	ppl7::String s2("Lor3m ipsum dolor sit am3t.");
+	s1.pregReplace("/e/","3");
+	ASSERT_EQ(s2,s1) << "Unexpected result from pregReplace";
+}
+*/
 
 
 
