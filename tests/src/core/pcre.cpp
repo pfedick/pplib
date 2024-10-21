@@ -134,6 +134,8 @@ TEST_F(PcreTest, replace_8) {
 
 	ASSERT_EQ(ppl7::String("Lorem --- amet."),ppl7::RegEx::replace("ip.*sit",s1,"---"));
 	ASSERT_EQ(ppl7::String("Lorem  amet."),ppl7::RegEx::replace("ip.*sit",s1,""));
+	ASSERT_EQ(ppl7::String("Lor4m ipsum dolor sit amet."),ppl7::RegEx::replace("e",s1,"4",0,1));
+	
 }
 
 TEST_F(PcreTest, escape_8) {

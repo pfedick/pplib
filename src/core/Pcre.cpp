@@ -223,6 +223,7 @@ String RegEx::replace(const Pattern& pattern, const String& subject, const Strin
 pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pattern.p, NULL);
     String result=subject;
     PCRE2_SIZE offset=0;
+    int count=0;
     while (1) {
         PCRE2_SPTR8 subj=(PCRE2_SPTR8)result.c_str()+offset;
         int rc = pcre2_match_8((pcre2_code_8*)pattern.p,subj,subject.size(),0,0,md,NULL);
@@ -238,6 +239,8 @@ pcre2_match_data_8 *md=pcre2_match_data_create_from_pattern_8((pcre2_code_8*)pat
         PCRE2_SIZE *ovector = pcre2_get_ovector_pointer(md);
         result=result.left(ovector[0]+offset)+replacement+result.mid(offset+ovector[1]);
         offset=ovector[1];
+        count++;
+        if (max>0 && count>=max) break;
     }
     return result;
 }
