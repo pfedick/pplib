@@ -1,17 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2017, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -21,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -207,23 +208,23 @@ int CDDB::query(AudioCD &cd, std::list<Disc> &list)
 	//header.Print(true);
 	//payload.Print(true);
 
-	if (!header.pregMatch("/^.*200\\s+OK/m")) {
+	if (!RegEx::match("/^.*200\\s+OK/m", header)) {
 		return 0;
 	}
 	Array rows(payload,"\n");
 	bool multiResults=false;
 	for (size_t r=0;r<rows.size();r++) {
 		String row=rows[r];
-		Array matches;
-		if (row.pregMatch("/^200\\s+(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
+		std::vector<String> matches;
+		if (RegEx::capture("/^200\\s+(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",row,matches)) {
 			Disc disc;
 			unsigned int discid=hex2int(matches[2]);
 			getDisc(discid,matches[1],disc);
 			list.push_back(disc);
-		} else if (row.pregMatch("/^210 Found exact matches.*$/")) {
+		} else if (RegEx::match("/^210 Found exact matches.*$/",row)) {
 			multiResults=true;
 		} else if (multiResults==true &&
-				row.pregMatch("/^(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",matches)) {
+				RegEx::capture("/^(.*?)\\s+([0-9a-f]{8})\\s(.*?)\\/(.*?)$/",row, matches)) {
 			Disc disc;
 			unsigned int discid=hex2int(matches[2]);
 			getDisc(discid,matches[1],disc);
@@ -246,8 +247,8 @@ static void parseOffsets(const String &payload, Array &offsets)
 		else if (headerFound) {
 			if (row=="# Track frame offsets:") offsetsFound=true;
 			else if (offsetsFound) {
-				Array matches;
-				if (row.pregMatch("/^#\\s+([0-9]+)$/",matches)) {
+				std::vector<String> matches;
+				if (RegEx::capture("/^#\\s+([0-9]+)$/",row,matches)) {
 					offsets.add(matches[1]);
 				} else break;
 			}
@@ -259,10 +260,10 @@ static void parseOffsets(const String &payload, Array &offsets)
 static void storeDisc(CDDB::Disc &disc, const String &payload)
 {
 	AssocArray a;
-	Array matches;
+	std::vector<String> matches;
 	a.fromTemplate(payload,"\n","=","");
 	String Tmp=a["DTITLE"];
-	if (Tmp.pregMatch("/^(.*?)\\s\\/\\s(.*)$/",matches)) {
+	if (RegEx::capture("/^(.*?)\\s\\/\\s(.*)$/",Tmp,matches)) {
 		disc.Artist=matches[1];
 		disc.Title=matches[2];
 	} else {
@@ -278,8 +279,8 @@ static void storeDisc(CDDB::Disc &disc, const String &payload)
 	disc.genre=a["DGENRE"].toString();
 	disc.genre.trim();
 
-	if (payload.pregMatch("/#\\sDisc\\slength:\\s+([0-9]+)/m",matches)) {
-		disc.length=matches.get(1).toInt();
+	if (RegEx::capture("/#\\sDisc\\slength:\\s+([0-9]+)/m",payload,matches)) {
+		disc.length=matches.at(1).toInt();
 	}
 	Array offsets;
 	parseOffsets(payload,offsets);
@@ -296,10 +297,10 @@ static void storeDisc(CDDB::Disc &disc, const String &payload)
 		}
 		t.Artist=disc.Artist;
 		t.Title=a[Tmp].toString();
-		Array tmatches;
-		if (t.Title.pregMatch("/^(.*?)\\s\\/\\s(.*)$/",tmatches)) {
-			t.Artist=tmatches.get(1);
-			t.Title=tmatches.get(2);
+		std::vector<String> tmatches;
+		if (RegEx::capture("/^(.*?)\\s\\/\\s(.*)$/",t.Title,tmatches)) {
+			t.Artist=tmatches.at(1);
+			t.Title=tmatches.at(2);
 		}
 		t.Artist.trim();
 		t.Title.trim();
@@ -325,10 +326,10 @@ void CDDB::getDisc(unsigned int discId, const String &category, Disc &d)
 	payload.replace("\n\r","\n");
 	payload.replace("\r\n","\n");
 
-	if (!header.pregMatch("/^.*200\\s+OK/m")) {
+	if (!RegEx::match("/^.*200\\s+OK/m",header)) {
 		throw QueryFailed("%s",(const char*)header);
 	}
-	if (!payload.pregMatch("/^210\\s/m")) {
+	if (!RegEx::match("/^210\\s/m",header)) {
 		throw QueryFailed("%s",(const char*)header);
 	}
 

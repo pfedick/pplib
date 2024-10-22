@@ -178,7 +178,7 @@ compile/stringspeed.o: src/stringspeed.cpp Makefile ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -o compile/stringspeed.o -c src/stringspeed.cpp $(CFLAGS) $(LIB)
 
 
-loggertest: src/loggertest.cpp ../release/libppl7.a
+loggertest: src/loggertest.cpp ../debug/libppl7-debug.a
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -ggdb -o loggertest $(CFLAGS) src/loggertest.cpp $(LIBS)
 
@@ -188,7 +188,7 @@ compile/gfxreftest.o: src/gfxreftest.cpp Makefile ppl7-tests.h
 	$(CXX) $(CXXFLAGS) -o compile/gfxreftest.o -c src/gfxreftest.cpp $(CFLAGS) $(LIB)
 
 
-gfxreftest: compile/gfxreftest.o ../release/libppl7.a
+gfxreftest: compile/gfxreftest.o ../debug/libppl7-debug.a
 	mkdir -p compile
 	$(CXX) $(CXXFLAGS) -ggdb -o gfxreftest $(CFLAGS) compile/gfxreftest.o $(LIBS)
 

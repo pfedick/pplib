@@ -422,11 +422,13 @@ public:
 	String& stripSlashes();
 
 	String& replace(const String& search, const String& replacement);
+
+	/*
 	String& pregReplace(const String& expression, const String& replacement, int max=0);
 	String& pregEscape();
-
 	bool pregMatch(const String& expression) const;
 	bool pregMatch(const String& expression, Array& matches, size_t maxmatches=16) const;
+	*/
 	//@}
 
 	//! @name String ausgeben und auslesen
@@ -722,11 +724,14 @@ public:
 	WideString& stripSlashes();
 
 	WideString& replace(const WideString& search, const WideString& replacement);
+
+	/*
 	WideString& pregReplace(const WideString& expression, const WideString& replacement, int max=0);
 	WideString& pregEscape();
-
 	bool pregMatch(const WideString& expression) const;
 	bool pregMatch(const WideString& expression, Array& matches, size_t maxmatches=16) const;
+	*/
+
 	//@}
 
 	//! @name String ausgeben und auslesen

@@ -1,17 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -21,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -1365,8 +1366,8 @@ void ID3Tag::generateId3V1Tag(ByteArray& tag) const
 		text.clear();
 		if (frame->data[0] == 0) text.set(frame->data + 1, frame->Size - 1);
 		if (frame->data[0] == 1) text=Transcode(frame->data + 1, frame->Size - 1, "UTF-16", "ISO-8859-1");
-		Array matches;
-		if (text.pregMatch("/^\\(([0-9]+)\\).*$/", matches)) {
+		std::vector<String> matches;
+		if (RegEx::capture("/^\\(([0-9]+)\\).*$/", text, matches)) {
 			Poke8(buffer + 127, matches[1].toInt());
 		} else {
 			Poke8(buffer + 127, 255);
@@ -1693,8 +1694,8 @@ String ID3Tag::getGenre() const
 
 	// Manchmal beginnt das Genre mit einer in Klammern gesetzten Ziffer.
 	// Diese entspricht der GenreId des ID3v1-Tags
-	Array matches;
-	if (Tmp.pregMatch("/^\\(([0-9]+)\\)(.*)$/", matches)) {
+	std::vector<String> matches;
+	if (RegEx::capture("/^\\(([0-9]+)\\)(.*)$/", Tmp, matches)) {
 		// Wir bevorzugen den Text nach der Klammer
 		r=matches[2];
 		r.trim();
@@ -1704,7 +1705,7 @@ String ID3Tag::getGenre() const
 			r.trim();
 			r=GetID3GenreName(r.toInt());
 		}
-	} else if (Tmp.pregMatch("/^([0-9]+)$/", matches)) {
+	} else if (RegEx::capture("/^([0-9]+)$/", Tmp, matches)) {
 		// Manchmal haben wir aber auch nur eine Genre-Ziffer
 		r=matches[1];
 		r.trim();

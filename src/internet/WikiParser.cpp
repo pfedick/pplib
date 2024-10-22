@@ -233,6 +233,8 @@ ergibt:
  */
 
 
+#ifdef OBSOLETED
+
 WikiParser::WikiParser()
 {
 	init();
@@ -644,9 +646,9 @@ void WikiParser::parseAutoPRE(String &Line)
 
 void WikiParser::parseTable(String &Line)
 {
-	Array Match;
+	std::vector<ppl7::String> Match;
 	String Tmp;
-	if (Line.pregMatch("/^\\{\\|(.*)$/",Match)) {
+	if (RegEx::capture("/^\\{\\|(.*)$/",Line,Match)) {
 		//printf ("Table match: %s\n",(const char*)Line);
 		intable=1;
 		Line.setf("<table %s>\n",(const char*)Match[1]);
@@ -654,7 +656,7 @@ void WikiParser::parseTable(String &Line)
 	}
 	if (intable) {
 		//printf ("Table-Line vorher: >>%s<<\n",(const char *)Line);
-		if (Line.pregMatch("/^\\|\\}(.*)$/", Match)) {
+		if (RegEx::capture("/^\\|\\}(.*)$/", Line, Match)) {
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			if (inrow) Line+="</tr>\n";
@@ -665,7 +667,7 @@ void WikiParser::parseTable(String &Line)
 			Line+=Match[1];
 			nobr=true;
 		}
-		if (Line.pregMatch("/^\\|-(.*)$/u",Match)) {
+		if (RegEx::capture("/^\\|-(.*)$/u",Line,Match)) {
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			if (inrow) Line+="</tr>\n";
@@ -674,7 +676,7 @@ void WikiParser::parseTable(String &Line)
 			Line.appendf("<tr %s>\n",(const char*)Match[1]);
 			nobr=true;
 		}
-		if (Line.pregMatch("/^\\|([^\\|]+)\\|([^\\|].*)$/us",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
+		if (RegEx::capture("/^\\|([^\\|]+)\\|([^\\|].*)$/us",Line,Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
@@ -683,20 +685,20 @@ void WikiParser::parseTable(String &Line)
 			Tmp.trim();
 			if (Tmp.notEmpty()) Line+=Tmp; // Falls Inhalt leer ist, unterdrücken wir den Zeilenumbruch
 			else nobr=true;
-		} else if (Line.pregMatch("/^\\|([^\\|]+)\\|$/us",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
+		} else if (RegEx::capture("/^\\|([^\\|]+)\\|$/us",Line, Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
 			Line.appendf("<td %s>",(const char*)Match[1]);
 			nobr=true;
-		} else if (Line.pregMatch("/^\\|(.*)$/us",Match)) {
+		} else if (RegEx::capture("/^\\|(.*)$/us",Line, Match)) {
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
 			Line+="<td>";
 			Line+=Match[1];
 		}
-		while (Line.pregMatch("/^(.*)\\|\\|(.*)$/us",Match)) {
+		while (RegEx::capture("/^(.*)\\|\\|(.*)$/us",Line,Match)) {
 			Line=Match[1];
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="td";
@@ -704,7 +706,7 @@ void WikiParser::parseTable(String &Line)
 			Line+=Match[2];
 		}
 		//printf ("Table-Line nachher: >>%s<<\n",(const char *)Line);
-		if (Line.pregMatch("/^\\!([^\\|\\!]+)[\\|\\!]([^\\|\\!].*)$/u",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
+		if (RegEx::capture("/^\\!([^\\|\\!]+)[\\|\\!]([^\\|\\!].*)$/u",Line,Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
@@ -713,19 +715,19 @@ void WikiParser::parseTable(String &Line)
 			Tmp.trim();
 			if (Tmp.notEmpty()) Line+=Tmp; // Falls Inhalt leer ist, unterdrücken wir den Zeilenumbruch
 			else nobr=true;
-		} else if (Line.pregMatch("/^\\!([^\\|]+)\\|$/u",Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
+		} else if (RegEx::capture("/^\\!([^\\|]+)\\|$/u",Line,Match)) {		// Spalte mit HTML-Parameter: |parameter=value...|Inhalt
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
 			Line.appendf("<th %s>",(const char*)Match[1]);
 			nobr=true;
-		} else if (Line.pregMatch("/^\\!(.*)$/u",Match)) {
+		} else if (RegEx::capture("/^\\!(.*)$/u",Line,Match)) {
 			Line="";
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
 			Line.appendf("<th>%s",(const char *)Match[1]);
 		}
-		while (Line.pregMatch("/^(.*)\\!\\!(.*)$/us",Match)) {
+		while (RegEx::capture("/^(.*)\\!\\!(.*)$/us",Line,Match)) {
 			Line=Match[1];
 			if (incol.notEmpty()) Line.appendf("</%s>",(const char*)incol);
 			incol="th";
@@ -1093,5 +1095,5 @@ String WikiParser::xmlDiagram2HTML(const String &xml)
 
 	return d;
 }
-
+#endif
 } // namespace ppl7

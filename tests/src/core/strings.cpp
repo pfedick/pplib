@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -1061,54 +1056,6 @@ TEST_F(StringTest, upperCaseWords) {
 	ASSERT_NO_THROW(s1.upperCaseWords());
 	ASSERT_EQ(expected,s1);
 }
-
-
-TEST_F(StringTest, pregMatchPositive) {
-	ppl7::String s1("Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
-	ppl7::String expr("/^Lorem.*$/s");
-	ASSERT_TRUE(s1.pregMatch(expr));
-	expr.set("/^Lorem.*$/is");
-	ASSERT_TRUE(s1.pregMatch(expr));
-	expr.set("/consectetuer/");
-	ASSERT_TRUE(s1.pregMatch(expr));
-	expr.set("/^.*consectetuer.*$/s");
-	ASSERT_TRUE(s1.pregMatch(expr));
-	expr.set("/^.*mus\\.$/m");
-	ASSERT_TRUE(s1.pregMatch(expr));
-}
-
-TEST_F(StringTest, pregMatchNegativ) {
-	ppl7::String s1("Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
-	ppl7::String expr("/^Looorem.*$/s");
-	ASSERT_FALSE(s1.pregMatch(expr));
-	expr.set("/^ipsum.*$/is");
-	ASSERT_FALSE(s1.pregMatch(expr));
-	expr.set("/patrick/");
-	ASSERT_FALSE(s1.pregMatch(expr));
-	expr.set("/^.*patrick.*$/s");
-	ASSERT_FALSE(s1.pregMatch(expr));
-	expr.set("/^.*mus\\.$/");
-	ASSERT_FALSE(s1.pregMatch(expr));
-}
-
-TEST_F(StringTest, pregCapture) {
-	ppl7::Array m;
-	ppl7::String s1("2012-05-18");
-	ASSERT_TRUE(s1.pregMatch("/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/",m));
-	ASSERT_EQ(2012,m[1].toInt()) << "Unexpected value in capture";
-	ASSERT_EQ(5,m[2].toInt()) << "Unexpected value in capture";
-	ASSERT_EQ(18,m[3].toInt()) << "Unexpected value in capture";
-	ASSERT_EQ((size_t)4,m.size()) << "Unexpected number auf captures";
-
-}
-
-TEST_F(StringTest, pregReplace) {
-	ppl7::String s1("Lorem ipsum dolor sit amet.");
-	ppl7::String s2("Lor3m ipsum dolor sit am3t.");
-	s1.pregReplace("/e/","3");
-	ASSERT_EQ(s2,s1) << "Unexpected result from pregReplace";
-}
-
 
 
 #ifndef WIN32
