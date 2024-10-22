@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author: pafe $
- * $Revision: 600 $
- * $Date: 2013-04-26 21:37:49 +0200 (Fr, 26 Apr 2013) $
- * $Id: memorygroup.cpp 600 2013-04-26 19:37:49Z pafe $
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -92,17 +87,6 @@ TEST_F(DigestTest, SetAlgorithmByName) {
 	ASSERT_THROW(dig.setAlgorithm("patrickcrypt"),ppl7::InvalidAlgorithmException);
 }
 
-
-TEST_F(DigestTest, TestMD4) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD4));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("0a5520947c0bca5b9e2cff7ae0df67c7"),result.toHex());
-}
-
-
 TEST_F(DigestTest, TestMD5) {
 	ppl7::Digest dig;
 	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
@@ -158,17 +142,6 @@ TEST_F(DigestTest, TestSHA512) {
 	ASSERT_NO_THROW(result=dig.getDigest());
 	ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827aaec64d5c6c33259260ce9"),result.toHex());
 }
-
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
-TEST_F(DigestTest, TestWhirlpool) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_WHIRLPOOL));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("5df2f2942a455dae96896be1ca9507cbfbf51d284fccc65f59dcb15081035ab3cf4f975d3d8ce68c63dc19132cebeaa6d281f33a9dcfa3e0493e33b121d8420a"),result.toHex());
-}
-#endif
 
 TEST_F(DigestTest, TestRipeMD160) {
 	ppl7::Digest dig;
@@ -387,14 +360,6 @@ TEST_F(DigestTest, TestStaticHashWithAlgorithmName) {
 	ASSERT_NO_THROW({
 		ppl7::String result=ppl7::Digest::hash(data,"sha256").toHex();
 		ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
-	});
-}
-
-TEST_F(DigestTest, TestStaticMd4) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::md4(data).toHex();
-		ASSERT_EQ(ppl7::String("0a5520947c0bca5b9e2cff7ae0df67c7"),result);
 	});
 }
 

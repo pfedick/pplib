@@ -165,9 +165,6 @@ void Digest::setAlgorithm(Algorithm algorithm)
 #else
 
 	switch(algorithm) {
-#ifndef OPENSSL_NO_MD4
-		case Algo_MD4: m=EVP_md4(); break;
-#endif
 #ifndef OPENSSL_NO_MD5
 		case Algo_MD5: m=EVP_md5(); break;
 #endif
@@ -181,11 +178,6 @@ void Digest::setAlgorithm(Algorithm algorithm)
 #ifndef OPENSSL_NO_SHA512
 		case Algo_SHA384: m=EVP_sha384(); break;
 		case Algo_SHA512: m=EVP_sha512(); break;
-#endif
-#ifndef OPENSSL_NO_WHIRLPOOL
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
-		case Algo_WHIRLPOOL: m=EVP_whirlpool(); break;
-#endif
 #endif
 #ifndef OPENSSL_NO_RIPEMD
 		case Algo_RIPEMD160: m=EVP_ripemd160(); break;
