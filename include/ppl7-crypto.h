@@ -131,14 +131,12 @@ private:
 
 public:
     enum Algorithm {
-        Algo_MD4,
         Algo_MD5,
         Algo_SHA1,
         Algo_SHA224,
         Algo_SHA256,
         Algo_SHA384,
         Algo_SHA512,
-        Algo_WHIRLPOOL,
         Algo_RIPEMD160
     };
 
