@@ -872,6 +872,7 @@ const DirEntry& Dir::getNextPattern(Iterator & it, const String & pattern, bool 
 	Pattern=RegEx::escape(pattern);
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
 	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	Pattern.replace(".", "\\.");
 	Pattern.replace("\\*", ".*");
 	Pattern.replace("\\?", ".");
 	Pattern="^" + Pattern;
@@ -978,7 +979,6 @@ bool Dir::getNext(DirEntry & e, Iterator & it) const
 	if (!SortedFiles.getNext(it)) return false;
 	e=*it.value();
 	return true;
-
 }
 
 /*!\brief Erster Verzeichniseintrag, der zu einem bestimmten Muster passt
@@ -1033,10 +1033,10 @@ bool Dir::getFirstPattern(DirEntry & e, Iterator & it, const String & pattern, b
  */
 bool Dir::getNextPattern(DirEntry & e, Iterator & it, const String & pattern, bool ignorecase) const
 {
-
-	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	//printf ("Pattern: %s\n",(const char*)pattern);
 	String Pattern=RegEx::escape(pattern);
-	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	//printf ("Pattern: %s\n",(const char*)Pattern);
+	Pattern.replace(".", "\\.");
 	Pattern.replace("\\*", ".*");
 	Pattern.replace("\\?", ".");
 	Pattern="^" + Pattern;
@@ -1044,13 +1044,12 @@ bool Dir::getNextPattern(DirEntry & e, Iterator & it, const String & pattern, bo
 	int flags=RegEx::Flags::DOTALL;
 	if (ignorecase) flags|=RegEx::Flags::CASELESS;
 	RegEx::Pattern regex=RegEx::compile(Pattern,flags);
-
-	//printf ("Pattern: %ls\n",(const wchar_t*)Pattern);
+	//ppl7::PrintDebug ("final Pattern: %s\n",(const char*)Pattern);
 	while (SortedFiles.getNext(it)) {
 		const DirEntry* de=it.value();
 		// Patternmatch
-		//printf ("Match gegen: %ls\n",(const wchar_t*)Name);
-		if (RegEx::match(pattern,de->Filename)) {
+		//ppl7::PrintDebug ("Match gegen: %s\n",(const char*)de->Filename);
+		if (RegEx::match(regex,de->Filename)) {
 			e=*de;
 			return true;
 		}
