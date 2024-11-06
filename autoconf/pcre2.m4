@@ -49,7 +49,8 @@ AC_ARG_WITH([pcre2],
 					if test [ -x "$pcre2config" ]
 					then
 						have_libpcre2="yes"
-						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs16`
+						libs16=`$pcre2config --libs16`
+						PCRE2_LIBS="$PCRE2_LIBS $libs16"
 						AC_DEFINE(HAVE_PCRE2_BITS_16)
 					fi
 				)
@@ -64,7 +65,8 @@ AC_ARG_WITH([pcre2],
 					if test [ -x "$pcre2config" ]
 					then
 						have_libpcre2="yes"
-						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs32`
+						libs32=`$pcre2config --libs32`
+						PCRE2_LIBS="$PCRE2_LIBS $libs32"
 						AC_DEFINE(HAVE_PCRE2_BITS_32)
 					fi
 
@@ -90,13 +92,15 @@ AC_ARG_WITH([pcre2],
 	fi
 	if test $have_libpcre2 = "yes"
 	then
+		#echo "PCRE2_LIBS=$PCRE2_LIBS"
+		AC_SUBST(PCRE2_LIBS)
+		AC_SUBST(PCRE2_CFLAGS)
+
 		ifelse([$1], , :, [$1])
 	else
 		PCRE2_LIBS=""
 		PCRE2_CFLAGS=""
 		ifelse([$2], , :, [$2])
 	fi
-	AC_SUBST(PCRE2_LIBS)
-	AC_SUBST(PCRE2_CFLAGS)
 
 ])
