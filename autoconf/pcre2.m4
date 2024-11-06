@@ -15,7 +15,7 @@ AC_ARG_WITH([pcre2],
 		am_save_CPPFLAGS="$CPPFLAGS"
 		am_save_LIBS="$LIBS"
 		am_save_LDFLAGS="$LDFLAGS"
-	
+
 
 		if test "$libpcre2_prefix" = "yes" -o "$libpcre2_prefix" = "auto"
 		then
@@ -29,10 +29,10 @@ AC_ARG_WITH([pcre2],
 				have_libpcre2="no"
 				PCRE2_LIBS=""
 				PCRE2_CFLAGS=""
-				
+
 				if test [ -x "$pcre2config" ]
 				then
-					have_libpng="yes"
+					have_libpcre2="yes"
 					PCRE2_LIBS=`$pcre2config --libs8`
 					PCRE2_CFLAGS=`$pcre2config --cflags`
 					AC_DEFINE(HAVE_PCRE2_BITS_8)
@@ -45,10 +45,10 @@ AC_ARG_WITH([pcre2],
 					PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE16_CFLAGS"
 					AC_DEFINE(HAVE_PCRE2_BITS_16)
 					,
-					
+
 					if test [ -x "$pcre2config" ]
 					then
-						have_libpng="yes"
+						have_libpcre2="yes"
 						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs16`
 						AC_DEFINE(HAVE_PCRE2_BITS_16)
 					fi
@@ -63,7 +63,7 @@ AC_ARG_WITH([pcre2],
 					,
 					if test [ -x "$pcre2config" ]
 					then
-						have_libpng="yes"
+						have_libpcre2="yes"
 						PCRE2_LIBS=`$PCRE2_LIBS $pcre2config --libs32`
 						AC_DEFINE(HAVE_PCRE2_BITS_32)
 					fi
@@ -79,7 +79,7 @@ AC_ARG_WITH([pcre2],
 			PCRE2_CFLAGS="-I$libpcre2_prefix/include"
 			AC_DEFINE(HAVE_PCRE2_BITS_8)
 		fi
-		
+
 
 		LIBS="$am_save_LIBS"
 		LDFLAGS="$am_save_LDFLAGS"
@@ -100,6 +100,3 @@ AC_ARG_WITH([pcre2],
 	AC_SUBST(PCRE2_CFLAGS)
 
 ])
-
-
-
