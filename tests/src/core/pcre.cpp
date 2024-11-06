@@ -59,6 +59,8 @@ TEST_F(PcreTest, bool_compile_match_8) {
 		ASSERT_TRUE(ppl7::RegEx::match(p,"Hello World"));
 		ASSERT_FALSE(ppl7::RegEx::match(p,"Helleo World"));
 	}
+	ppl7::RegEx::compile("^.*\\.json$");
+	
 	);
 }
 
@@ -83,6 +85,8 @@ TEST_F(PcreTest, MatchPositive) {
 	ASSERT_TRUE(ppl7::RegEx::match(expr,s1,ppl7::RegEx::Flags::DOTALL));
 	expr.set("^.*mus\\.$");
 	ASSERT_TRUE(ppl7::RegEx::match(expr,s1,ppl7::RegEx::Flags::MULTILINE));
+	ASSERT_TRUE(ppl7::RegEx::match("^.*\\.json$","blah.json"));
+	
 }
 
 TEST_F(PcreTest, MatchNegativ) {
@@ -97,6 +101,7 @@ TEST_F(PcreTest, MatchNegativ) {
 	ASSERT_FALSE(ppl7::RegEx::match(expr,s1,ppl7::RegEx::Flags::DOTALL));
 	expr.set("^.*mus\\.$");
 	ASSERT_FALSE(ppl7::RegEx::match(expr,s1));
+	ASSERT_FALSE(ppl7::RegEx::match("^.*\\.json$","."));
 }
 
 TEST_F(PcreTest, MatchPerlRegExPositive) {
