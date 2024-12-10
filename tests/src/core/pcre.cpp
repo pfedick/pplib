@@ -52,7 +52,7 @@ class PcreTest : public ::testing::Test {
 };
 
 
-TEST_F(PcreTest, bool_compile_match_8) {
+TEST_F(PcreTest, bool_compile_match) {
 
 	ASSERT_NO_THROW({
 		ppl7::RegEx::Pattern p=ppl7::RegEx::compile("^Hello.*$");
@@ -64,7 +64,7 @@ TEST_F(PcreTest, bool_compile_match_8) {
 	);
 }
 
-TEST_F(PcreTest, bool_match_8) {
+TEST_F(PcreTest, bool_match) {
 
 	ASSERT_NO_THROW({
 		ASSERT_TRUE(ppl7::RegEx::match("^Hello.*$","Hello World"));
@@ -147,6 +147,42 @@ TEST_F(PcreTest, escape_8) {
 	ppl7::String s1("Lorem ipsum dolor sit amet.");
 	ASSERT_EQ(ppl7::String("Hello \\+Wor\\/ld"),ppl7::RegEx::escape("Hello +Wor/ld"));
 }
+
+
+class PcreTestWideChar : public ::testing::Test {
+	protected:
+	PcreTestWideChar() {
+		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
+			printf ("setlocale fehlgeschlagen\n");
+			throw std::exception();
+		}
+	}
+	virtual ~PcreTestWideChar() {
+
+	}
+};
+
+TEST_F(PcreTestWideChar, bool_compile) {
+
+	ASSERT_NO_THROW({
+		ppl7::RegEx::Pattern p=ppl7::RegEx::compile(L"^Hello.*$");
+	}
+	);
+	ASSERT_NO_THROW({
+		ppl7::RegEx::compile(L"^.*\\.json$");
+	}
+	);
+}
+
+TEST_F(PcreTestWideChar, bool_match) {
+
+	ASSERT_NO_THROW({
+		ppl7::RegEx::Pattern p=ppl7::RegEx::compile(L"^Hello.*$");
+		ASSERT_TRUE(ppl7::RegEx::match(p,L"Hello World"));
+		ASSERT_FALSE(ppl7::RegEx::match(p,L"Helleo World"));
+	});
+}
+
 
 
 }

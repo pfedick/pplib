@@ -39,6 +39,36 @@
 #include "ppl7.h"
 #include "ppl7-types.h"
 
+#ifdef HAVE_PCRE2_BITS_16
+#define HAVE_PCRE2_WIDE
+#define pcre2_code_wide pcre2_code_16
+#define pcre2_code_copy_wide pcre2_code_copy_16
+#define pcre2_code_free_wide pcre2_code_free_16
+#define pcre2_compile_wide pcre2_compile_16
+#define pcre2_match_data_create_from_pattern_wide pcre2_match_data_create_from_pattern_16
+#define pcre2_match_wide pcre2_match_16
+#define pcre2_match_data_free_wide pcre2_match_data_free_16
+#define pcre2_match_data_wide pcre2_match_data_16
+#define PCRE2_SPTR_WIDE PCRE2_SPTR16
+#define pcre2_bits_wide 16
+
+
+#elif defined HAVE_PCRE2_BITS_32
+#define HAVE_PCRE2_WIDE
+#define pcre2_code_wide pcre2_code_32
+#define pcre2_code_copy_wide pcre2_code_copy_32
+#define pcre2_code_free_wide pcre2_code_free_32
+#define pcre2_compile_wide pcre2_compile_32
+#define pcre2_match_data_create_from_pattern_wide pcre2_match_data_create_from_pattern_32
+#define pcre2_match_wide pcre2_match_32
+#define pcre2_match_data_free_wide pcre2_match_data_free_32
+#define pcre2_match_data_wide pcre2_match_data_32
+#define PCRE2_SPTR_WIDE PCRE2_SPTR32
+#define pcre2_bits_wide 32
+
+#endif
+
+
 namespace ppl7 {
 
 
@@ -58,13 +88,9 @@ RegEx::Pattern::Pattern(const Pattern &other)
             #ifdef HAVE_PCRE2_BITS_8
             p=pcre2_code_copy_8((pcre2_code_8*)other.p);
             #endif
-        } else if (bits==16) {
-            #ifdef HAVE_PCRE2_BITS_16
-            p=pcre2_code_copy_16((pcre2_code_16*)other.p);
-            #endif
-        } else if (bits==32) {
-            #ifdef HAVE_PCRE2_BITS_32
-            p=pcre2_code_copy_32((pcre2_code_32*)other.p);
+        } else {
+            #ifdef HAVE_PCRE2_WIDE
+            p=pcre2_code_copy_wide((pcre2_code_wide*)other.p);
             #endif
         }
         if (!p) throw OutOfMemoryException("copy of RegEx::Pattern failed");
@@ -84,11 +110,8 @@ RegEx::Pattern::~Pattern()
         #ifdef HAVE_PCRE2_BITS_8
         if (bits==8) pcre2_code_free_8((pcre2_code_8*)p);
         #endif
-        #ifdef HAVE_PCRE2_BITS_16
-        if (bits==16) pcre2_code_free_16((pcre2_code_16*)p);
-        #endif
-        #ifdef HAVE_PCRE2_BITS_32
-        if (bits==32) pcre2_code_free_32((pcre2_code_32*)p);
+        #ifdef HAVE_PCRE2_WIDE
+        pcre2_code_free_wide((pcre2_code_wide*)p);
         #endif
     }
     p=NULL;
@@ -146,8 +169,52 @@ RegEx::Pattern RegEx::compile(const String& regex, int flags)
 
 RegEx::Pattern RegEx::compile(const WideString& regex, int flags)
 {
+#ifndef HAVE_PCRE2
+    throw UnsupportedFeatureException("PCRE2");
+#endif
+#ifndef HAVE_PCRE2_WIDE
+    throw UnsupportedFeatureException("PCRE2 with wide character width");
+#else
+    PCRE2_SIZE erroffset;
+    int errorcode;
+    int options=0;
+    if (flags&Flags::CASELESS) options|=PCRE2_CASELESS;
+    if (flags&Flags::ANCHORED) options|=PCRE2_ANCHORED;
+    if (flags&Flags::MULTILINE) options|=PCRE2_MULTILINE;
+    if (flags&Flags::EXTENDED) options|=PCRE2_EXTENDED;
+    if (flags&Flags::DOTALL) options|=PCRE2_DOTALL;
+    if (flags&Flags::UNGREEDY) options|=PCRE2_UNGREEDY;
+    
+    const wchar_t *r=regex.getPtr();
+    pcre2_code_wide *re=NULL;
+    
+    if (r[0]==L'/') {    // PerlRegEx
+        ByteArray expr=regex;
+        const wchar_t* oo=::wcsrchr((const wchar_t*)expr.ptr(), '/');
+        if (oo) {
+            expr.set(oo - (const wchar_t*)expr.ptr(), 0);
+            oo++;
+            if (::wcschr(oo, L'i')) options|=PCRE2_CASELESS;
+            if (::wcschr(oo, L'm')) options|=PCRE2_MULTILINE;
+            if (::wcschr(oo, L'x')) options|=PCRE2_EXTENDED;
+            if (::wcschr(oo, L's')) options|=PCRE2_DOTALL;
+            if (::wcschr(oo, L'a')) options|=PCRE2_ANCHORED;
+            if (::wcschr(oo, L'u')) options|=PCRE2_UNGREEDY;
+        }
+        re=pcre2_compile_wide(((PCRE2_SPTR_WIDE)expr.ptr())+1,PCRE2_ZERO_TERMINATED, options,
+            &errorcode,&erroffset, NULL);
+
+    } else {
+        re=pcre2_compile_wide((PCRE2_SPTR_WIDE)regex.getPtr(),PCRE2_ZERO_TERMINATED, options,
+            &errorcode,&erroffset, NULL);
+    }
+    if (!re) throw IllegalRegularExpressionException();
+
     RegEx::Pattern pattern;
+    pattern.bits=pcre2_bits_wide; 
+    pattern.p=re;
     return pattern;
+#endif
 }
 
 bool RegEx::match(const String& regex, const String& subject, int flags)
@@ -155,6 +222,13 @@ bool RegEx::match(const String& regex, const String& subject, int flags)
     RegEx::Pattern pattern=RegEx::compile(regex,flags);
     return RegEx::match(pattern,subject);
 }
+
+bool RegEx::match(const WideString& regex, const WideString& subject, int flags)
+{
+    RegEx::Pattern pattern=RegEx::compile(regex,flags);
+    return RegEx::match(pattern,subject);
+}
+
 
 bool RegEx::match(const Pattern& pattern, const String& subject)
 {
@@ -170,6 +244,28 @@ bool RegEx::match(const Pattern& pattern, const String& subject)
         throw IllegalRegularExpressionException();
     }
     pcre2_match_data_free_8(md);
+    return true;
+#endif
+}
+
+bool RegEx::match(const Pattern& pattern, const WideString& subject)
+{
+    if (pattern.p==NULL) {
+        ppl7::PrintDebug("debug 1\n");
+        throw IllegalRegularExpressionException();
+    }
+#ifndef HAVE_PCRE2_WIDE
+    throw UnsupportedFeatureException("PCRE2 with wide character width");
+#else
+    pcre2_match_data_wide *md=pcre2_match_data_create_from_pattern_wide((pcre2_code_wide*)pattern.p, NULL);
+    int rc = pcre2_match_wide((pcre2_code_wide*)pattern.p,(PCRE2_SPTR_WIDE)subject.getPtr(),subject.size()*sizeof(wchar_t),0,0,md,NULL);
+    if (rc<0) {
+        pcre2_match_data_free_wide(md);
+        if (rc==PCRE2_ERROR_NOMATCH) return false;
+        ppl7::PrintDebug("debug 2, rc=%d\n", rc);
+        throw IllegalRegularExpressionException();
+    }
+    pcre2_match_data_free_wide(md);
     return true;
 #endif
 }

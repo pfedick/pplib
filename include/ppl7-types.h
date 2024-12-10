@@ -236,6 +236,7 @@ public:
 	ByteArray(const ByteArrayPtr& other);
 	ByteArray(const ByteArray& other);
 	ByteArray(const String& str);
+	ByteArray(const WideString& str);
 	ByteArray(const void* adr, size_t size);
 	ByteArray(size_t size);
 	~ByteArray();
@@ -255,6 +256,7 @@ public:
 	ByteArray& operator=(const ByteArrayPtr& other);
 	ByteArray& operator=(const ByteArray& other);
 	ByteArray& operator=(const String& str);
+	ByteArray& operator=(const WideString& str);
 	operator const void* () const;
 	operator const unsigned char* () const;
 	operator const char* () const;
