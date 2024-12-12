@@ -296,8 +296,8 @@ class RegEx {
 	static WideString replace(const WideString& regex, const WideString& subject, const WideString &replacement, int flags=Flags::NONE, int max=0);
 	static WideString replace(const Pattern& pattern, const WideString& subject, const WideString &replacement, int max=0);
 
-	static String escape(const String subject);
-	static WideString escape(const WideString subject);
+	static String escape(const String &subject);
+	static WideString escape(const WideString &subject);
 };
 
 /*
