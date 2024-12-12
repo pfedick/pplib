@@ -92,7 +92,7 @@ INDEX
      unknown source
    - GIF-Reader
      Copyright 1990, 1991, 1993 by David Koblas
-   - PCRE (http://www.pcre.org/)
+   - PCRE2 (http://www.pcre.org/)
      Copyright (c) 1997-2008 University of Cambridge All rights reserved.
    - Zlib (http://www.zlib.net/)
      Copyright (C) 1995-2005 Jean-loup Gailly and Mark Adler

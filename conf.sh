@@ -48,7 +48,7 @@ case "$SYS:$REL:$KERNEL" in
 		export GCOV_LDFLAGS="-lgcov"
 		./configure --prefix=$PREFIX \
 			--with-lame=/usr/local --with-mpg123=/usr/local \
-			--with-pcre=/usr/local --with-x --with-mysql \
+			--with-pcre2=/usr/local --with-x --with-mysql \
 			--with-openssl=/usr \
 			--with-libiconv-prefix=/usr/local --with-nasm  \
 			--with-libjpegturbo=/usr/local --with-libpng --with-libtiff=/usr/local \

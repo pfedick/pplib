@@ -51,7 +51,6 @@ sinclude(autoconf/ax_lib_mysql.m4)
 sinclude(autoconf/ax_lib_postgresql.m4)
 sinclude(autoconf/ax_lib_sqlite3.m4)
 sinclude(autoconf/freetype.m4)
-sinclude(autoconf/ax_path_lib_pcre.m4)
 sinclude(autoconf/pcre2.m4)
 sinclude(autoconf/png.m4)
 sinclude(autoconf/jpeg.m4)
@@ -101,7 +100,6 @@ report_have_libmad="no"
 report_have_iconv="no"
 report_have_bzip2="no"
 report_have_zlib="no"
-report_have_pcre="no"
 report_have_pcre2="no"
 report_have_openssl="no"
 report_have_freetype2="no"
@@ -536,15 +534,8 @@ AX_CHECK_ZLIB(report_have_zlib="yes"
 dnl do we need to specify -lm explicitly?
 AC_CHECK_FUNC(sin,,[AC_CHECK_LIB(m,sin)])
 
-# PCRE vorhanden?
-AX_PATH_LIB_PCRE(
-            AC_DEFINE(HAVE_PCRE, 1, [ Define if you have pcre. ])
-            report_have_pcre="yes"
-            ,
-            )
 
 # PCRE2 vorhanden?
-
 AC_CHECK_PCRE2(AC_DEFINE(HAVE_PCRE2, 1, [ Define if you have pcre2. ])
             report_have_pcre2="yes"
             ,
@@ -742,7 +733,6 @@ AC_SUBST(report_have_lame)
 AC_SUBST(report_have_libmad)
 AC_SUBST(report_have_curl)
 AC_SUBST(report_have_openssl)
-AC_SUBST(report_have_pcre)
 AC_SUBST(report_have_pcre2)
 AC_SUBST(report_have_iconv)
 AC_SUBST(report_have_mysql)
@@ -832,7 +822,6 @@ AC_MSG_RESULT([
 **   Postgres:             $report_have_postgres
 **
 ** Other:
-**   PCRE:                 $report_have_pcre
 **   PCRE2:                $report_have_pcre2
 **   ICONV:                $report_have_iconv
 **
