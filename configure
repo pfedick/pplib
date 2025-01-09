@@ -19481,7 +19481,7 @@ fi
 
 # PCRE2 vorhanden?
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if we should use pcre2" >&5
+	{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if we should use pcre2" >&5
 printf %s "checking if we should use pcre2... " >&6; }
 
 
@@ -19495,6 +19495,10 @@ esac
 fi
 
 
+	have_libpcre2="no"
+	PCRE2_LIBS=""
+	PCRE2_CFLAGS=""
+
 	if test "$libpcre2_prefix" != "no"
 	then
 		{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
@@ -19503,6 +19507,53 @@ printf "%s\n" "yes" >&6; }
 		am_save_CPPFLAGS="$CPPFLAGS"
 		am_save_LIBS="$LIBS"
 		am_save_LDFLAGS="$LDFLAGS"
+		# Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_PKGCONFIG+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) case $PKGCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKGCONFIG="$PKGCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKGCONFIG="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKGCONFIG" && ac_cv_path_PKGCONFIG="no"
+  ;;
+esac ;;
+esac
+fi
+PKGCONFIG=$ac_cv_path_PKGCONFIG
+if test -n "$PKGCONFIG"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG" >&5
+printf "%s\n" "$PKGCONFIG" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
 
 
 		if test "$libpcre2_prefix" = "yes" -o "$libpcre2_prefix" = "auto"
@@ -19553,6 +19604,8 @@ printf "%s\n" "no" >&6; }
 fi
 
 
+			if test "$PKGCONFIG" != "no"
+			then
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libpcre2-8" >&5
@@ -19612,49 +19665,57 @@ fi
         # Put the nasty error message in config.log where it belongs
         echo "$PCRE2_8_PKG_ERRORS" >&5
 
-        have_libpcre2="no"
-				PCRE2_LIBS=""
-				PCRE2_CFLAGS=""
+        as_fn_error $? "Package requirements (libpcre2-8) were not met:
 
-				if test  -x "$pcre2config"
-				then
-					have_libpcre2="yes"
-					PCRE2_LIBS=`$pcre2config --libs8`
-					PCRE2_CFLAGS=`$pcre2config --cflags`
-					printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
+$PCRE2_8_PKG_ERRORS
 
-				fi
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
 
+Alternatively, you may set the environment variables PCRE2_8_CFLAGS
+and PCRE2_8_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-        have_libpcre2="no"
-				PCRE2_LIBS=""
-				PCRE2_CFLAGS=""
+        { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in '$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
 
-				if test  -x "$pcre2config"
-				then
-					have_libpcre2="yes"
-					PCRE2_LIBS=`$pcre2config --libs8`
-					PCRE2_CFLAGS=`$pcre2config --cflags`
-					printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
+Alternatively, you may set the environment variables PCRE2_8_CFLAGS
+and PCRE2_8_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
 
-				fi
-
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See 'config.log' for more details" "$LINENO" 5; }
 else
         PCRE2_8_CFLAGS=$pkg_cv_PCRE2_8_CFLAGS
         PCRE2_8_LIBS=$pkg_cv_PCRE2_8_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
         have_libpcre2="yes"
-				PCRE2_LIBS="$PCRE2_8_LIBS"
-				PCRE2_CFLAGS="$PCRE2_8_CFLAGS"
-				printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
+					PCRE2_LIBS="$PCRE2_8_LIBS"
+					PCRE2_CFLAGS="$PCRE2_8_CFLAGS"
+					printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
 
 
 fi
+			else
+				if test  -x "$pcre2config"
+				then
+					have_libpcre2="yes"
+					PCRE2_LIBS=`$pcre2config --libs8`
+					PCRE2_CFLAGS=`$pcre2config --cflags`
+					printf "%s\n" "#define HAVE_PCRE2_BITS_8 1" >>confdefs.h
+
+				fi
+			fi
 			if test ${ac_cv_sizeof_wchar_t} -eq 2
 			then
+				if test "$PKGCONFIG" != "no"
+				then
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libpcre2-16" >&5
@@ -19714,41 +19775,57 @@ fi
         # Put the nasty error message in config.log where it belongs
         echo "$PCRE2_WIDE16_PKG_ERRORS" >&5
 
-        if test  -x "$pcre2config"
-					then
-						have_libpcre2="yes"
-						libs16=`$pcre2config --libs16`
-						PCRE2_LIBS="$PCRE2_LIBS $libs16"
-						printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
+        as_fn_error $? "Package requirements (libpcre2-16) were not met:
 
-					fi
+$PCRE2_WIDE16_PKG_ERRORS
 
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables PCRE2_WIDE16_CFLAGS
+and PCRE2_WIDE16_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-        if test  -x "$pcre2config"
-					then
-						have_libpcre2="yes"
-						libs16=`$pcre2config --libs16`
-						PCRE2_LIBS="$PCRE2_LIBS $libs16"
-						printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
+        { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in '$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
 
-					fi
+Alternatively, you may set the environment variables PCRE2_WIDE16_CFLAGS
+and PCRE2_WIDE16_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
 
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See 'config.log' for more details" "$LINENO" 5; }
 else
         PCRE2_WIDE16_CFLAGS=$pkg_cv_PCRE2_WIDE16_CFLAGS
         PCRE2_WIDE16_LIBS=$pkg_cv_PCRE2_WIDE16_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
         PCRE2_LIBS="$PCRE2_LIBS $PCRE2_WIDE16_LIBS"
-					PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE16_CFLAGS"
-					printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
+						PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE16_CFLAGS"
+						printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
 
 
 fi
+				else
+					if test  -x "$pcre2config"
+					then
+						have_libpcre2="yes"
+						libs16=`$pcre2config --libs16`
+						PCRE2_LIBS="$PCRE2_LIBS $libs16"
+						printf "%s\n" "#define HAVE_PCRE2_BITS_16 1" >>confdefs.h
+
+					fi
+				fi
 			fi
 			if test ${ac_cv_sizeof_wchar_t} -eq 4
 			then
+				if test "$PKGCONFIG" != "no"
+				then
 
 pkg_failed=no
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libpcre2-32" >&5
@@ -19808,40 +19885,52 @@ fi
         # Put the nasty error message in config.log where it belongs
         echo "$PCRE2_WIDE32_PKG_ERRORS" >&5
 
-        if test  -x "$pcre2config"
-					then
-						have_libpcre2="yes"
-						libs32=`$pcre2config --libs32`
-						PCRE2_LIBS="$PCRE2_LIBS $libs32"
-						printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
+        as_fn_error $? "Package requirements (libpcre2-32) were not met:
 
-					fi
+$PCRE2_WIDE32_PKG_ERRORS
 
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
 
+Alternatively, you may set the environment variables PCRE2_WIDE32_CFLAGS
+and PCRE2_WIDE32_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-        if test  -x "$pcre2config"
-					then
-						have_libpcre2="yes"
-						libs32=`$pcre2config --libs32`
-						PCRE2_LIBS="$PCRE2_LIBS $libs32"
-						printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
+        { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in '$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
 
-					fi
+Alternatively, you may set the environment variables PCRE2_WIDE32_CFLAGS
+and PCRE2_WIDE32_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
 
-
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See 'config.log' for more details" "$LINENO" 5; }
 else
         PCRE2_WIDE32_CFLAGS=$pkg_cv_PCRE2_WIDE32_CFLAGS
         PCRE2_WIDE32_LIBS=$pkg_cv_PCRE2_WIDE32_LIBS
         { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
         PCRE2_LIBS="$PCRE2_LIBS $PCRE2_WIDE32_LIBS"
-					PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE32_CFLAGS"
-					printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
+						PCRE2_CFLAGS="$PCRE2_CFLAGS $PCRE2_WIDE32_CFLAGS"
+						printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
 
 
 fi
+				else
+					if test  -x "$pcre2config"
+					then
+						have_libpcre2="yes"
+						libs32=`$pcre2config --libs32`
+						PCRE2_LIBS="$PCRE2_LIBS $libs32"
+						printf "%s\n" "#define HAVE_PCRE2_BITS_32 1" >>confdefs.h
+
+					fi
+				fi
 			fi
 		else
 			LIBS="-L$libpng_prefix/lib"
