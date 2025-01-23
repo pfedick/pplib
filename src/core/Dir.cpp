@@ -1194,7 +1194,7 @@ void Dir::open(const char* path, Sort s)
 #ifdef HAVE_OPENDIR
 	DIR* dir=opendir((const char*)Path);
 	if (!dir) {
-		printf("opendir fehlschlag\n");
+		//printf("opendir fehlschlag\n");
 		File::throwErrno(errno, path);
 	}
 	DirEntry de;
