@@ -275,7 +275,7 @@ void SockAddr::setAddr(const IPAddress &ip)
 
 int SockAddr::version() const
 {
-	if (!saddr) throw InvalidIpAddressException("No IP-Address stored");
+	if (!saddr) return 0;
 	if (((struct sockaddr_in*)saddr)->sin_family==AF_INET) return 4;
 	return 6;
 }
