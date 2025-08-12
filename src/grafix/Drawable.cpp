@@ -207,6 +207,7 @@ Drawable::~Drawable()
 
 }
 
+
 void Drawable::clearDrawableData()
 {
 	data.fn=NULL;
@@ -217,6 +218,15 @@ void Drawable::clearDrawableData()
 	data.rgbformat=RGBFormat::unknown;
 }
 
+/*!\brief Kopiert die Daten eines anderen Drawable
+ *
+ * \desc
+ * Diese Funktion kopiert die Daten eines anderen Drawable in dieses. Dabei werden
+ * alle Parameter wie Speicheradresse, Breite, Höhe, Bytes pro Zeile und das Farbformat
+ * kopiert.
+ *
+ * @param other Ein anderes Drawable
+ */
 void Drawable::copyDrawableData(const DRAWABLE_DATA& other)
 {
 	data.fn=other.fn;
@@ -570,12 +580,88 @@ void* Drawable::adr(int x, int y) const
 	throw OutOfBoundsEception();
 }
 
+/*!\brief Ein neues Drawable skalieren
+ *
+ * \desc
+ * Mit dieser Funktion wird die Grafik in ein anderes Drawable skaliert. Dabei kann
+ * die Größe der Grafik angegeben werden. Wenn \p keepAspectRation auf \c true gesetzt ist,
+ * wird das Seitenverhältnis der Grafik beibehalten, andernfalls wird die Grafik auf die
+ * angegebene Größe skaliert.
+ *
+ * @param tgt Ziel-Drawable, in das die Grafik skaliert wird
+ * @param width Neue Breite der Grafik in Pixel
+ * @param height Neue Höhe der Grafik in Pixel
+ * @param keepAspectRation Beibehalten des Seitenverhältnisses?
+ * @param smoothTransform Verwenden von bilinearer Skalierung?
+ */
+/*!\note Wenn \p smoothTransform auf \c true gesetzt ist, wird die Grafik mit
+ * bilinearer Skalierung skaliert, andernfalls wird die Grafik mit der
+ * nächstgelegenen Pixelmethode skaliert. Bei bilinearer Skalierung kann
+ * es zu leichten Unschärfen kommen, da die Pixel interpoliert werden.
+ * Bei der nächstgelegenen Pixelmethode wird jeder Pixel auf den nächstgelegenen
+ * Pixel der Originalgrafik gesetzt, was zu einem schärferen, aber auch
+ * kantigeren Ergebnis führt.
+ */
 Image Drawable::scaled(int width, int height, bool keepAspectRation, bool smoothTransform) const
 {
 	Image img;
 	scale(img, width, height, keepAspectRation, smoothTransform);
 	return img;
 }
+
+void scale_down_bilinear_rgba(const uint8_t *src, int sw, int sh,
+                              uint8_t *dst, int dw, int dh) {
+    float x_ratio = (float)(sw - 1) / dw;
+    float y_ratio = (float)(sh - 1) / dh;
+
+    for (int j = 0; j < dh; j++) {
+        for (int i = 0; i < dw; i++) {
+            float gx = i * x_ratio;
+            float gy = j * y_ratio;
+
+            int gxi = (int)gx;
+            int gyi = (int)gy;
+
+            float tx = gx - gxi;
+            float ty = gy - gyi;
+
+            // Get the four surrounding pixels
+            const uint8_t *p00 = &src[(gyi * sw + gxi) * 4];
+            const uint8_t *p10 = &src[(gyi * sw + (gxi + 1)) * 4];
+            const uint8_t *p01 = &src[((gyi + 1) * sw + gxi) * 4];
+            const uint8_t *p11 = &src[((gyi + 1) * sw + (gxi + 1)) * 4];
+
+            for (int c = 0; c < 4; c++) { // RGBA channels
+                float top = p00[c] * (1 - tx) + p10[c] * tx;
+                float bottom = p01[c] * (1 - tx) + p11[c] * tx;
+                dst[(j * dw + i) * 4 + c] = (uint8_t)(top * (1 - ty) + bottom * ty);
+            }
+        }
+    }
+}
+
+/*!\brief Grafik skalieren
+ *
+ * \desc
+ * Mit dieser Funktion wird die Grafik in ein anderes Drawable skaliert. Dabei kann
+ * die Größe der Grafik angegeben werden. Wenn \p keepAspectRation auf \c true gesetzt ist,
+ * wird das Seitenverhältnis der Grafik beibehalten, andernfalls wird die Grafik auf die
+ * angegebene Größe skaliert.
+ *
+ * @param tgt Ziel-Drawable, in das die Grafik skaliert wird
+ * @param width Neue Breite der Grafik in Pixel
+ * @param height Neue Höhe der Grafik in Pixel
+ * @param keepAspectRation Beibehalten des Seitenverhältnisses?
+ * @param smoothTransform Verwenden von bilinearer Skalierung?
+ */
+/*!\note Wenn \p smoothTransform auf \c true gesetzt ist, wird die Grafik mit
+ * bilinearer Skalierung skaliert, andernfalls wird die Grafik mit der
+ * nächstgelegenen Pixelmethode skaliert. Bei bilinearer Skalierung kann
+ * es zu leichten Unschärfen kommen, da die Pixel interpoliert werden.
+ * Bei der nächstgelegenen Pixelmethode wird jeder Pixel auf den nächstgelegenen
+ * Pixel der Originalgrafik gesetzt, was zu einem schärferen, aber auch
+ * kantigeren Ergebnis führt.	
+ */
 
 void Drawable::scale(Image& tgt, int width, int height, bool keepAspectRation, bool smoothTransform) const
 {
@@ -597,21 +683,38 @@ void Drawable::scale(Image& tgt, int width, int height, bool keepAspectRation, b
 		//::printf ("old: %i x %i, new: %i x %i, new Image: %i x %i\n",ow,oh,width,height,nw,nh);
 		x1=(width - nw) / 2;
 		y1=(height - nh) / 2;
-		for (int y=0;y < nh;y++) {
-			for (int x=0;x < nw;x++) {
-				ox=x * ow / nw;
-				oy=y * oh / nh;
-				tgt.putPixel(x + x1, y + y1, getPixel(ox, oy));
+		Drawable corrected_target=tgt.getDrawable(x1,y1,x1+nw,y1+nh);
+		if (smoothTransform && (nw<=ow || nh<=oh)) {
+			// Use bilinear scaling
+			uint8_t *src = (uint8_t*)data.base8;
+			uint8_t *dst = (uint8_t*)corrected_target.data.base8;
+			scale_down_bilinear_rgba(src, ow, oh, dst, nw, nh);
+		} else {
+			// Use nearest neighbor scaling
+			for (int y=0;y < nh;y++) {
+				for (int x=0;x < nw;x++) {
+					ox=x * ow / nw;
+					oy=y * oh / nh;
+					corrected_target.putPixel(x, y, getPixel(ox, oy));
+				}
 			}
 		}
 	} else {
-		for (int y=0;y < height;y++) {
-			for (int x=0;x < width;x++) {
-				ox=x * ow / width;
-				oy=y * oh / height;
-				tgt.putPixel(x, y, getPixel(ox, oy));
+		if (smoothTransform && (width<=ow || height<=oh)) {
+			// Use bilinear scaling
+			uint8_t *src = (uint8_t*)data.base8;
+			uint8_t *dst = (uint8_t*)tgt.data.base8;
+			scale_down_bilinear_rgba(src, ow, oh, dst, width, height);
+		} else {
+			// Use nearest neighbor scaling
+			for (int y=0;y < height;y++) {
+				for (int x=0;x < width;x++) {
+					ox=x * ow / width;
+					oy=y * oh / height;
+					tgt.putPixel(x, y, getPixel(ox, oy));
+				}
 			}
-		}
+			}
 	}
 }
 
