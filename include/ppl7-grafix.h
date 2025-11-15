@@ -310,7 +310,7 @@ private:
 	int f;
 public:
 	enum Identifier {
-		unknown=0,
+		unknown = 0,
 
 		// 8 Bit
 		Palette,
@@ -409,7 +409,7 @@ private:
 
 public:
 	Color();
-	Color(int red, int green, int blue, int alpha=255);
+	Color(int red, int green, int blue, int alpha = 255);
 	Color(uint32_t rgba);
 	Color(uint32_t rgb, int alpha);
 
@@ -423,15 +423,15 @@ public:
 	int brightness() const;
 	Color grey() const;
 	Color negativ() const;
-	bool match(const Color& other, int tolerance=0) const;
+	bool match(const Color& other, int tolerance = 0) const;
 
 	void setRed(int red);
 	void setGreen(int green);
 	void setBlue(int blue);
 	void setAlpha(int alpha);
-	void set(int red, int green, int blue, int alpha=255);
+	void set(int red, int green, int blue, int alpha = 255);
 	void set(const Color& other);
-	void setColor(int red, int green, int blue, int alpha=255);
+	void setColor(int red, int green, int blue, int alpha = 255);
 	void setColor(uint32_t rgba);
 	void setColor(uint32_t rgb, int alpha);
 
@@ -529,13 +529,13 @@ class Font
 
 private:
 	enum FontFlags {
-		fBold=1,
-		fItalic=2,
-		fAntialias=4,
-		fDrawBorder=8,
-		fDrawShadow=16,
-		fUnderline=32,
-		fMonospace=64
+		fBold = 1,
+		fItalic = 2,
+		fAntialias = 4,
+		fDrawBorder = 8,
+		fDrawShadow = 16,
+		fUnderline = 32,
+		fMonospace = 64
 	};
 
 	String Name;
@@ -548,7 +548,7 @@ private:
 	double		rotationDegrees;
 public:
 	enum Orientation {
-		LEFT =1,
+		LEFT = 1,
 		MIDDLE,
 		RIGHT,
 		TOP,
@@ -574,7 +574,7 @@ public:
 	int size() const;
 	Orientation orientation() const;
 	Size measure(const WideString& text) const;
-	Rect boundary(const WideString& text, int x=0, int y=0) const;
+	Rect boundary(const WideString& text, int x = 0, int y = 0) const;
 	double rotation() const;
 
 	int setName(const String& name);
@@ -613,7 +613,7 @@ private:
 public:
 	/** @name Konstruktoren
 	 */
-	//@{
+	 //@{
 	Drawable();
 	Drawable(const Drawable& other);
 	Drawable(const Drawable& other, const Rect& rect);
@@ -624,7 +624,7 @@ public:
 
 	/** @name Verschiedenes
 	 */
-	//@{
+	 //@{
 	GRAFIX_FUNCTIONS* getFunctions();
 	DRAWABLE_DATA* getData();
 
@@ -643,6 +643,7 @@ public:
 	int bitdepth() const;
 	RGBFormat rgbformat() const;
 	bool isEmpty() const;
+	bool isNull() const;
 	void* adr() const;
 	void* adr(int x, int y) const;
 	void	cls(const Color& c);
@@ -651,20 +652,20 @@ public:
 	Drawable getDrawable(const Rect& rect) const;
 	Drawable getDrawable(const Point& p, const Size& s) const;
 	Drawable getDrawable(int x1, int y1, int x2, int y2) const;
-	Image scaled(int width, int height, bool keepAspectRation=true, bool smoothTransform=false) const;
-	void scale(Image& tgt, int width, int height, bool keepAspectRation=true, bool smoothTransform=false) const;
+	Image scaled(int width, int height, bool keepAspectRation = true, bool smoothTransform = false) const;
+	void scale(Image& tgt, int width, int height, bool keepAspectRation = true, bool smoothTransform = false) const;
 	//@}
 
 	/** @name Farben
 	 */
-	//@{
+	 //@{
 	SurfaceColor rgb(const Color& c) const;
 	SurfaceColor rgb(int r, int g, int b, int alpha) const;
 	//@}
 
 	/** @name Pixel
 	 */
-	//@{
+	 //@{
 	void	putPixel(int x, int y, const Color& c);
 	void	putPixel(const Point& p, const Color& c);
 	void	alphaPixel(int x, int y, const Color& c);
@@ -678,21 +679,21 @@ public:
 
 	/** @name Geometrische Formen
 	 */
-	//@{
+	 //@{
 	void	drawRect(const Rect& rect, const Color& c);
 	void	drawRect(int x1, int y1, int x2, int y2, const Color& c);
 	void	fillRect(const Rect& rect, const Color& c);
 	void	fillRect(int x1, int y1, int x2, int y2, const Color& c);
 	void	floodFill(int x, int y, const Color& color, const Color& border);
-	void	elipse(int x, int y, int radx, int rady, const Color& c, bool fill=false);
+	void	elipse(int x, int y, int radx, int rady, const Color& c, bool fill = false);
 	void	elipse(int x, int y, int radx, int rady, const Color& c, bool fill, const Color& fillcolor, int startangle, int endangle);
-	void	circle(int x, int y, int rad, const Color& c, bool fill=false);
-	void	circle(const Point& p, int rad, const Color& c, bool fill=false);
+	void	circle(int x, int y, int rad, const Color& c, bool fill = false);
+	void	circle(const Point& p, int rad, const Color& c, bool fill = false);
 	//@}
 
 	/** @name Effekte
 	 */
-	//@{
+	 //@{
 	void	xchange(const Rect& rect, const Color& color, const Color& replace);
 	void	invert(const Rect& rect, const Color& color1, const Color& color2);
 	void	negativ(const Rect& rect);
@@ -702,16 +703,16 @@ public:
 
 	/** @name Linien zeichnen
 	 */
-	//@{
+	 //@{
 	void	line(int x1, int y1, int x2, int y2, const Color& c);
 	void	line(const Point& start, const Point& end, const Color& c);
-	void	lineAA(int x1, int y1, int x2, int y2, const Color& c, int strength=1);
-	void	lineAA(const Point& start, const Point& end, const Color& c, int strength=1);
+	void	lineAA(int x1, int y1, int x2, int y2, const Color& c, int strength = 1);
+	void	lineAA(const Point& start, const Point& end, const Color& c, int strength = 1);
 	//@}
 
 	/** @name Textausgabe
 	 */
-	//@{
+	 //@{
 	void	print(const Font& font, int x, int y, const String& text);
 	void	print(const Font& font, int x, int y, const WideString& text);
 	void	printf(const Font& font, int x, int y, const char* fmt, ...);
@@ -720,24 +721,24 @@ public:
 	/** @name Blit-Funktionen
 	 * Kopieren von Grafiken mit verschiedenen Methoden
 	 */
-	//@{
+	 //@{
 	int fitRect(int& x, int& y, Rect& r);
-	void blt(const Drawable& source, int x=0, int y=0);
-	void blt(const Drawable& source, const Rect& srect, int x=0, int y=0);
-	void bltDiffuse(const Drawable& source, int x=0, int y=0, const Color& c=Color());
-	void bltDiffuse(const Drawable& source, const Rect& srect, int x=0, int y=0, const Color& c=Color());
-	void bltColorKey(const Drawable& source, int x=0, int y=0, const Color& c=Color());
-	void bltColorKey(const Drawable& source, const Rect& srect, int x=0, int y=0, const Color& c=Color());
-	void bltAlpha(const Drawable& source, int x=0, int y=0);
-	void bltAlpha(const Drawable& source, const Rect& srect, int x=0, int y=0);
-	void bltAlphaMod(const Drawable& source, const Color& mod, int x=0, int y=0);
-	void bltAlphaMod(const Drawable& source, const Rect& srect, const Color& mod, int x=0, int y=0);
-	void bltBlend(const Drawable& source, float factor, int x=0, int y=0);
-	void bltBlend(const Drawable& source, float factor, const Rect& srect, int x=0, int y=0);
-	void bltChromaKey(const Drawable& source, const Color& key, int tol1, int tol2, int x=0, int y=0);
-	void bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, int tol1, int tol2, int x=0, int y=0);
-	void bltBackgroundOnChromaKey(const Drawable& background, const Color& key, int tol1, int tol2, int x=0, int y=0);
-	void bltBackgroundOnChromaKey(const Drawable& background, const Rect& srect, const Color& key, int tol1, int tol2, int x=0, int y=0);
+	void blt(const Drawable& source, int x = 0, int y = 0);
+	void blt(const Drawable& source, const Rect& srect, int x = 0, int y = 0);
+	void bltDiffuse(const Drawable& source, int x = 0, int y = 0, const Color& c = Color());
+	void bltDiffuse(const Drawable& source, const Rect& srect, int x = 0, int y = 0, const Color& c = Color());
+	void bltColorKey(const Drawable& source, int x = 0, int y = 0, const Color& c = Color());
+	void bltColorKey(const Drawable& source, const Rect& srect, int x = 0, int y = 0, const Color& c = Color());
+	void bltAlpha(const Drawable& source, int x = 0, int y = 0);
+	void bltAlpha(const Drawable& source, const Rect& srect, int x = 0, int y = 0);
+	void bltAlphaMod(const Drawable& source, const Color& mod, int x = 0, int y = 0);
+	void bltAlphaMod(const Drawable& source, const Rect& srect, const Color& mod, int x = 0, int y = 0);
+	void bltBlend(const Drawable& source, float factor, int x = 0, int y = 0);
+	void bltBlend(const Drawable& source, float factor, const Rect& srect, int x = 0, int y = 0);
+	void bltChromaKey(const Drawable& source, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
+	void bltChromaKey(const Drawable& source, const Rect& srect, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
+	void bltBackgroundOnChromaKey(const Drawable& background, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
+	void bltBackgroundOnChromaKey(const Drawable& background, const Rect& srect, const Color& key, int tol1, int tol2, int x = 0, int y = 0);
 
 
 	void draw(const ImageList& iml, int nr, int x, int y);
@@ -753,26 +754,26 @@ private:
 public:
 	/** @name Konstruktoren
 	 */
-	//@{
+	 //@{
 	Image();
 	Image(const Image& other);
 	Image(const Drawable& other);
-	Image(int width, int height, const RGBFormat& format=RGBFormat::A8R8G8B8);
-	Image(const String& Filename, const RGBFormat& format=RGBFormat::unknown);
-	Image(FileObject& file, const RGBFormat& format=RGBFormat::unknown);
-	Image(const ByteArrayPtr& mem, const RGBFormat& format=RGBFormat::unknown);
+	Image(int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
+	Image(const String& Filename, const RGBFormat& format = RGBFormat::unknown);
+	Image(FileObject& file, const RGBFormat& format = RGBFormat::unknown);
+	Image(const ByteArrayPtr& mem, const RGBFormat& format = RGBFormat::unknown);
 	~Image();
 	//@}
 
 	/** @name Verschiedenes
 	 */
-	//@{
+	 //@{
 	void clear();
-	void create(int width, int height, const RGBFormat& format=RGBFormat::A8R8G8B8);
-	void create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format=RGBFormat::A8R8G8B8);
-	void load(const String& Filename, const RGBFormat& format=RGBFormat::unknown);
-	void load(FileObject& file, const RGBFormat& format=RGBFormat::unknown);
-	void load(const ByteArrayPtr& Mem, const RGBFormat& format=RGBFormat::unknown);
+	void create(int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
+	void create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format = RGBFormat::A8R8G8B8);
+	void load(const String& Filename, const RGBFormat& format = RGBFormat::unknown);
+	void load(FileObject& file, const RGBFormat& format = RGBFormat::unknown);
+	void load(const ByteArrayPtr& Mem, const RGBFormat& format = RGBFormat::unknown);
 	void copy(const Drawable& other);
 	void copy(const Drawable& other, const Rect& rect);
 	void copy(const Image& other);
@@ -790,7 +791,7 @@ class ImageList : public Image
 	friend class Drawable;
 public:
 	enum DRAWMETHOD {
-		BLT=1,
+		BLT = 1,
 		COLORKEY,
 		ALPHABLT,
 		DIFFUSE
@@ -891,9 +892,9 @@ public:
 
 	// Fonts
 	void addFontEngine(FontEngine* engine);
-	void loadFont(const String& filename, const String& fontname=String());
-	void loadFont(FileObject& ff, const String& fontname=String());
-	void loadFont(const ByteArrayPtr& memory, const String& fontname=String());
+	void loadFont(const String& filename, const String& fontname = String());
+	void loadFont(FileObject& ff, const String& fontname = String());
+	void loadFont(const ByteArrayPtr& memory, const String& fontname = String());
 	void unloadFont(const String& fontname);
 	FontFile* findFont(const String& fontname);
 	FontFile* findFont(const Font& font);
@@ -1007,13 +1008,13 @@ public:
 	virtual ~ImageFilter();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const Rect& area, const AssocArray& param=AssocArray());
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const Rect& area, const AssocArray& param = AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 
-	void saveFile(const String& filename, const Drawable& surface, const Rect& area, const AssocArray& param=AssocArray());
-	void saveFile(const String& filename, const Drawable& surface, const AssocArray& param=AssocArray());
+	void saveFile(const String& filename, const Drawable& surface, const Rect& area, const AssocArray& param = AssocArray());
+	void saveFile(const String& filename, const Drawable& surface, const AssocArray& param = AssocArray());
 };
 
 class ImageFilter_PNG : public ImageFilter
@@ -1023,7 +1024,7 @@ public:
 	virtual ~ImageFilter_PNG();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1035,7 +1036,7 @@ public:
 	virtual ~ImageFilter_JPEG();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1048,7 +1049,7 @@ public:
 	virtual ~ImageFilter_BMP();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1060,7 +1061,7 @@ public:
 	virtual ~ImageFilter_TIFF();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1072,7 +1073,7 @@ public:
 	virtual ~ImageFilter_ImageMagick();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1086,7 +1087,7 @@ public:
 	virtual ~ImageFilter_GIF();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1099,7 +1100,7 @@ public:
 	virtual ~ImageFilter_PPM();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1111,7 +1112,7 @@ public:
 	virtual ~ImageFilter_TGA();
 	virtual int ident(FileObject& file, IMAGE& img);
 	virtual void load(FileObject& file, Drawable& surface, IMAGE& img);
-	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param=AssocArray());
+	virtual void save(const Drawable& surface, FileObject& file, const AssocArray& param = AssocArray());
 	virtual String name();
 	virtual String description();
 };
@@ -1133,7 +1134,7 @@ private:
 
 		SpriteTexture()
 		{
-			id=width=height=bitdepth=0;
+			id = width = height = bitdepth = 0;
 		}
 		~SpriteTexture()
 		{
@@ -1151,14 +1152,14 @@ private:
 
 		SpriteIndexItem()
 		{
-			id=0;
-			surface=NULL;
+			id = 0;
+			surface = NULL;
 		}
 		SpriteIndexItem(const SpriteIndexItem& other)
 			:r(other.r), Pivot(other.Pivot), Offset(other.Offset)
 		{
-			id=other.id;
-			surface=other.surface;
+			id = other.id;
+			surface = other.surface;
 		}
 	};
 	std::map<int, SpriteTexture> TextureList;
