@@ -68,6 +68,7 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #define popen _popen
 #define pclose _pclose
+#define fileno _fileno
 
 #include <windows.h>
 #ifdef DeleteFile
@@ -102,159 +103,159 @@ namespace ppl7 {
  */
 
 
-/*!\enum File::FileMode
- * \brief Zugriffsmodus beim Öffnen einer Datei
- *
- * \desc
- * Zugriffsmodus beim Öffnen einer Datei mit File::open
- *
- */
+ /*!\enum File::FileMode
+  * \brief Zugriffsmodus beim Öffnen einer Datei
+  *
+  * \desc
+  * Zugriffsmodus beim Öffnen einer Datei mit File::open
+  *
+  */
 
-/*!\var File::FileMode File::READ
- * \brief Datei zum Lesen öffnen, Zeiger wird an den Anfang der Datei gesetzt
- */
+  /*!\var File::FileMode File::READ
+   * \brief Datei zum Lesen öffnen, Zeiger wird an den Anfang der Datei gesetzt
+   */
 
-/*!\var File::FileMode File::WRITE
- * \brief Datei zum Schreiben öffnen. Falls die Datei schon vorhanden ist, wird sie gelöscht.
- */
+   /*!\var File::FileMode File::WRITE
+	* \brief Datei zum Schreiben öffnen. Falls die Datei schon vorhanden ist, wird sie gelöscht.
+	*/
 
-/*!\var File::FileMode File::READWRITE
- * \brief Datei zum Lesen und Schreiben öffnen. Zeiger wird an den Anfang der Datei positioniert.
- */
+	/*!\var File::FileMode File::READWRITE
+	 * \brief Datei zum Lesen und Schreiben öffnen. Zeiger wird an den Anfang der Datei positioniert.
+	 */
 
-/*!\var File::FileMode File::APPEND
- * \brief Datei zum Schreiben öffnen, Zeiger wird ans Ende der Datei positioniert.
- */
-
-
- /*!\class FileAttr
- * \ingroup PPLGroupFileIO
- * \brief Definitionen der Datei-Attribute
- *
- * \desc
- * Die Klasse FileAttr enthält die Definitionen der Datei-Attribute, die mit
- * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
- *
- */
-
-/*!\enum FileAttr::Attributes
- * \brief Definitionen der Datei-Attribute
- *
- * \desc
- * Diese Enumeration enthält die Definitionen der Datei-Attribute, die mit
- * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
- *
- */
-
-/*!\var FileAttr::Attributes FileAttr::IFFILE
- * \brief reguläre Datei
- */
-
-/*!\var FileAttr::Attributes FileAttr::IFSOCK
- * \brief Socket
- */
+	 /*!\var File::FileMode File::APPEND
+	  * \brief Datei zum Schreiben öffnen, Zeiger wird ans Ende der Datei positioniert.
+	  */
 
 
-/*!\var FileAttr::Attributes FileAttr::IFDIR
- * \brief Verzeichnis
- */
+	  /*!\class FileAttr
+	  * \ingroup PPLGroupFileIO
+	  * \brief Definitionen der Datei-Attribute
+	  *
+	  * \desc
+	  * Die Klasse FileAttr enthält die Definitionen der Datei-Attribute, die mit
+	  * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
+	  *
+	  */
 
-/*!\var FileAttr::Attributes FileAttr::IFLINK
- * \brief Symlink
- */
+	  /*!\enum FileAttr::Attributes
+	   * \brief Definitionen der Datei-Attribute
+	   *
+	   * \desc
+	   * Diese Enumeration enthält die Definitionen der Datei-Attribute, die mit
+	   * File::chmod gesetzt oder mit File::stat ausgelesen werden können.
+	   *
+	   */
 
-/*!\var FileAttr::Attributes FileAttr::ISUID
- * \brief SUID-Bit
- */
+	   /*!\var FileAttr::Attributes FileAttr::IFFILE
+		* \brief reguläre Datei
+		*/
 
-/*!\var FileAttr::Attributes FileAttr::ISGID
- * \brief SGID-Bit
- *
- * Das SGID-Bit     (ISGID)     hat      verschiedene      besondere
- *      Nutzungsmöglichkeiten:  Für  ein  Verzeichnis bedeutet es, das die BSD-
- *      Semantik Anwendung findet: Dateien, die in ihm  erzeugt  werden,  erben
- *      die  Gruppen-ID  des  Verzeichnisses und nicht die effektive Gruppen-ID
- *      des erzeugenden Prozesses, und dort erzeugte  Verzeichnisse  haben  das
- *      SGID-Bit ebenfalls gesetzt. Für eine Datei, bei der das Bit für Gruppe‐
- *      nausführungsrechte (GRP_EXECUTE) nicht gesetzt ist, bedeutet es erzwungenes
- *      Locken von Datei/Datensatz.
- *
- */
-
-/*!\var FileAttr::Attributes FileAttr::ISVTX
- * \brief Sticky-Bit
- *
- * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
- *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
- *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
- *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
- */
-
-/*!\var FileAttr::Attributes FileAttr::STICKY
- * \brief Sticky-Bit
- *
- * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
- *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
- *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
- *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
- */
-
-/*!\var FileAttr::Attributes FileAttr::USR_READ
- * \brief Leserechte für Eigentümer
- */
-
-/*!\var FileAttr::Attributes FileAttr::USR_WRITE
- * \brief Schreibrechte für Eigentümer
- */
-
-/*!\var FileAttr::Attributes FileAttr::USR_EXECUTE
- * \brief Ausführrechte  für Eigentümer. Handelt es sich um ein Verzeichnis, darf der Eigentümer das Verzeichnis durchsuchen
- */
-
-/*!\var FileAttr::Attributes FileAttr::GRP_READ
- * \brief Leserechte für Gruppe
- */
-
-/*!\var FileAttr::Attributes FileAttr::GRP_WRITE
- * \brief Schreibrechte für Gruppe
- */
-
-/*!\var FileAttr::Attributes FileAttr::GRP_EXECUTE
- * \brief Ausführrechte  für Gruppe. Handelt es sich um ein Verzeichnis, darf die Gruppe das Verzeichnis durchsuchen
- */
-
-/*!\var FileAttr::Attributes FileAttr::OTH_READ
- * \brief Leserechte für andere
- */
-
-/*!\var FileAttr::Attributes FileAttr::OTH_WRITE
- * \brief Schreibrechte für andere
- */
-
-/*!\var FileAttr::Attributes FileAttr::OTH_EXECUTE
- * \brief Ausführrechte  für andere. Handelt es sich um ein Verzeichnis, dürfen andere das Verzeichnis durchsuchen
- */
+		/*!\var FileAttr::Attributes FileAttr::IFSOCK
+		 * \brief Socket
+		 */
 
 
+		 /*!\var FileAttr::Attributes FileAttr::IFDIR
+		  * \brief Verzeichnis
+		  */
+
+		  /*!\var FileAttr::Attributes FileAttr::IFLINK
+		   * \brief Symlink
+		   */
+
+		   /*!\var FileAttr::Attributes FileAttr::ISUID
+			* \brief SUID-Bit
+			*/
+
+			/*!\var FileAttr::Attributes FileAttr::ISGID
+			 * \brief SGID-Bit
+			 *
+			 * Das SGID-Bit     (ISGID)     hat      verschiedene      besondere
+			 *      Nutzungsmöglichkeiten:  Für  ein  Verzeichnis bedeutet es, das die BSD-
+			 *      Semantik Anwendung findet: Dateien, die in ihm  erzeugt  werden,  erben
+			 *      die  Gruppen-ID  des  Verzeichnisses und nicht die effektive Gruppen-ID
+			 *      des erzeugenden Prozesses, und dort erzeugte  Verzeichnisse  haben  das
+			 *      SGID-Bit ebenfalls gesetzt. Für eine Datei, bei der das Bit für Gruppe‐
+			 *      nausführungsrechte (GRP_EXECUTE) nicht gesetzt ist, bedeutet es erzwungenes
+			 *      Locken von Datei/Datensatz.
+			 *
+			 */
+
+			 /*!\var FileAttr::Attributes FileAttr::ISVTX
+			  * \brief Sticky-Bit
+			  *
+			  * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
+			  *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
+			  *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
+			  *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
+			  */
+
+			  /*!\var FileAttr::Attributes FileAttr::STICKY
+			   * \brief Sticky-Bit
+			   *
+			   * Auf manchen Dateisystemen darf lediglich der Administrator das Sticky-Bit
+			   *   setzen. Das Sticky-Bit kann verschiedene Bedeutungen haben,
+			   *   beispielsweise kann in Verzeichnissen mit gesetztem Sticky-Bit eine
+			   *   Datei nur vom Dateieigentümer oder dem Administrator (root) gelöscht werden.
+			   */
+
+			   /*!\var FileAttr::Attributes FileAttr::USR_READ
+				* \brief Leserechte für Eigentümer
+				*/
+
+				/*!\var FileAttr::Attributes FileAttr::USR_WRITE
+				 * \brief Schreibrechte für Eigentümer
+				 */
+
+				 /*!\var FileAttr::Attributes FileAttr::USR_EXECUTE
+				  * \brief Ausführrechte  für Eigentümer. Handelt es sich um ein Verzeichnis, darf der Eigentümer das Verzeichnis durchsuchen
+				  */
+
+				  /*!\var FileAttr::Attributes FileAttr::GRP_READ
+				   * \brief Leserechte für Gruppe
+				   */
+
+				   /*!\var FileAttr::Attributes FileAttr::GRP_WRITE
+					* \brief Schreibrechte für Gruppe
+					*/
+
+					/*!\var FileAttr::Attributes FileAttr::GRP_EXECUTE
+					 * \brief Ausführrechte  für Gruppe. Handelt es sich um ein Verzeichnis, darf die Gruppe das Verzeichnis durchsuchen
+					 */
+
+					 /*!\var FileAttr::Attributes FileAttr::OTH_READ
+					  * \brief Leserechte für andere
+					  */
+
+					  /*!\var FileAttr::Attributes FileAttr::OTH_WRITE
+					   * \brief Schreibrechte für andere
+					   */
+
+					   /*!\var FileAttr::Attributes FileAttr::OTH_EXECUTE
+						* \brief Ausführrechte  für andere. Handelt es sich um ein Verzeichnis, dürfen andere das Verzeichnis durchsuchen
+						*/
 
 
-/*!\brief Konstruktor der Klasse
- *
- * \desc
- * Konstruktor der Klasse
- */
+
+
+						/*!\brief Konstruktor der Klasse
+						 *
+						 * \desc
+						 * Konstruktor der Klasse
+						 */
 File::File()
 {
 #ifdef USEWIN32
-	hf=0;
+	hf = 0;
 #endif
-	MapBase=NULL;
-	ff=NULL;
-	mysize=pos=0;
-	LastMapStart=LastMapSize=0;
-	LastMapProtection=0;
-	ReadAhead=0;
-	isPopen=false;
+	MapBase = NULL;
+	ff = NULL;
+	mysize = pos = 0;
+	LastMapStart = LastMapSize = 0;
+	LastMapProtection = 0;
+	ReadAhead = 0;
+	isPopen = false;
 }
 
 /*!\brief Konstruktor der Klasse mit gleichzeitigem Öffnen einer Datei
@@ -266,16 +267,16 @@ File::File()
  */
 File::File(const String& filename, FileMode mode)
 {
-	MapBase=NULL;
+	MapBase = NULL;
 #ifdef USEWIN32
-	hf=0;
+	hf = 0;
 #endif
-	ff=NULL;
-	mysize=pos=0;
-	LastMapStart=LastMapSize=0;
-	LastMapProtection=0;
-	ReadAhead=0;
-	isPopen=false;
+	ff = NULL;
+	mysize = pos = 0;
+	LastMapStart = LastMapSize = 0;
+	LastMapProtection = 0;
+	ReadAhead = 0;
+	isPopen = false;
 	open(filename, mode);
 }
 
@@ -288,17 +289,17 @@ File::File(const String& filename, FileMode mode)
  */
 File::File(FILE* handle)
 {
-	MapBase=NULL;
-	ff=NULL;
-	mysize=pos=0;
-	LastMapStart=LastMapSize=0;
-	LastMapProtection=0;
-	ReadAhead=0;
-	isPopen=false;
+	MapBase = NULL;
+	ff = NULL;
+	mysize = pos = 0;
+	LastMapStart = LastMapSize = 0;
+	LastMapProtection = 0;
+	ReadAhead = 0;
+	isPopen = false;
 	if (handle != NULL) {
 		if (ff != NULL) close();
-		ff=handle;
-		mysize=size();
+		ff = handle;
+		mysize = size();
 		this->seek((uint64_t)0);
 	}
 }
@@ -426,16 +427,16 @@ void File::open(const String& filename, FileMode mode)
 	close();
 	if (filename.isEmpty()) throw IllegalArgumentException();
 #ifdef WIN32
-	if ((ff=(FILE*)::_wfopen((const wchar_t*)WideString(filename), fmode(mode))) == NULL) {
+	if ((ff = (FILE*)::_wfopen((const wchar_t*)WideString(filename), fmode(mode))) == NULL) {
 		throwErrno(errno, filename);
 	}
 
 #else
-	if ((ff=(FILE*)::fopen((const char*)filename, fmode(mode))) == NULL) {
+	if ((ff = (FILE*)::fopen((const char*)filename, fmode(mode))) == NULL) {
 		throwErrno(errno, filename);
 	}
 #endif
-	mysize=size();
+	mysize = size();
 	seek(0);
 	setFilename(filename);
 }
@@ -455,15 +456,15 @@ void File::open(const char* filename, FileMode mode)
 	if (filename == NULL || strlen(filename) == 0) throw IllegalArgumentException();
 	close();
 #ifdef WIN32
-	if ((ff=(FILE*)::_wfopen((const wchar_t*)WideString(String(filename)), fmode(mode))) == NULL) {
+	if ((ff = (FILE*)::_wfopen((const wchar_t*)WideString(String(filename)), fmode(mode))) == NULL) {
 		throwErrno(errno, filename);
 	}
 #else
-	if ((ff=(FILE*)::fopen(filename, fmode(mode))) == NULL) {
+	if ((ff = (FILE*)::fopen(filename, fmode(mode))) == NULL) {
 		throwErrno(errno, filename);
 	}
 #endif
-	mysize=size();
+	mysize = size();
 	seek(0);
 	setFilename(filename);
 }
@@ -485,7 +486,7 @@ void File::open(const char* filename, FileMode mode)
 void File::openTemp(const char* filetemplate)
 {
 	if (filetemplate == NULL || strlen(filetemplate) == 0) throw IllegalArgumentException();
-	String t=filetemplate;
+	String t = filetemplate;
 	openTemp(t);
 }
 
@@ -506,18 +507,20 @@ void File::openTemp(const String& filetemplate)
 {
 #ifdef HAVE_MKSTEMP
 	close();
-	String tmpname=filetemplate;
-	int f=::mkstemp((char*)((const char*)tmpname));
+	String tmpname = filetemplate;
+	int f = ::mkstemp((char*)((const char*)tmpname));
 	if (f < 0) throwErrno(errno, filetemplate);
-	FILE* ff=::fdopen(f, "r+b");
+	FILE* ff = ::fdopen(f, "r+b");
 	if (!ff) throwErrno(errno, filetemplate);
 	try {
 		open(ff);
-	} catch (...) {
+	}
+	catch (...) {
 		try {
 			::fclose(ff);
 			::close(f);
-		} catch (...) {
+		}
+		catch (...) {
 
 		}
 		throw;
@@ -549,24 +552,25 @@ void File::close()
 
 	setFilename("");
 	if (ff != NULL) {
-		int ret=1;
+		int ret = 1;
 		if (buffer != NULL) {
 			free(buffer);
-			buffer=NULL;
+			buffer = NULL;
 		}
 #ifdef WIN32FILES
 		CloseHandle((HANDLE)ff);
 #else
 		if (isPopen) {
-			if (::pclose((FILE*)ff) != 0) ret=0;
-		} else {
-			if (::fclose((FILE*)ff) != 0) ret=0;
+			if (::pclose((FILE*)ff) != 0) ret = 0;
+		}
+		else {
+			if (::fclose((FILE*)ff) != 0) ret = 0;
 		}
 #endif
-		isPopen=false;
-		ff=NULL;
-		mysize=0;
-		pos=0;
+		isPopen = false;
+		ff = NULL;
+		mysize = 0;
+		pos = 0;
 		if (ret == 0) throwErrno(errno, filename());
 		return;
 	}
@@ -588,6 +592,12 @@ uint64_t File::size() const
 		if (GetFileInformationByHandle((HANDLE)ff, &info))
 			return (((uint64_t)info.nFileSizeHigh) << 32) + info.nFileSizeLow;
 		throwErrno(errno, filename());	// ???
+#elifdef WIN32
+		struct _stat buf;
+		if ((::_fstat(_fileno((FILE*)ff), &buf)) == 0)
+			return ((uint64_t)buf.st_size);
+		throwErrno(errno, filename());
+
 #else
 		struct stat buf;
 		if ((::fstat(fileno((FILE*)ff), &buf)) == 0)
@@ -619,17 +629,17 @@ void File::popen(const String& command, FileMode mode)
 	close();
 	if (command.isEmpty()) throw IllegalArgumentException();
 #ifdef WIN32
-	if ((ff=(FILE*)::_wpopen((const wchar_t*)WideString(command), fmodepopen(mode))) == NULL) {
+	if ((ff = (FILE*)::_wpopen((const wchar_t*)WideString(command), fmodepopen(mode))) == NULL) {
 		throwErrno(errno, command);
 	}
 
 #else
-	if ((ff=(FILE*)::popen((const char*)command, fmodepopen(mode))) == NULL) {
+	if ((ff = (FILE*)::popen((const char*)command, fmodepopen(mode))) == NULL) {
 		throwErrno(errno, command);
 	}
 #endif
-	isPopen=true;
-	mysize=size();
+	isPopen = true;
+	mysize = size();
 	setFilename(command);
 }
 
@@ -655,16 +665,16 @@ void File::popen(const char* command, FileMode mode)
 	if (command == NULL || strlen(command) == 0) throw IllegalArgumentException();
 	close();
 #ifdef WIN32
-	if ((ff=(FILE*)::_wpopen((const wchar_t*)WideString(String(command)), fmodepopen(mode))) == NULL) {
+	if ((ff = (FILE*)::_wpopen((const wchar_t*)WideString(String(command)), fmodepopen(mode))) == NULL) {
 		throwErrno(errno, command);
 	}
 #else
-	if ((ff=(FILE*)::popen(command, fmodepopen(mode))) == NULL) {
+	if ((ff = (FILE*)::popen(command, fmodepopen(mode))) == NULL) {
 		throwErrno(errno, command);
 	}
 #endif
-	isPopen=true;
-	mysize=size();
+	isPopen = true;
+	mysize = size();
 	setFilename(command);
 }
 
@@ -680,8 +690,8 @@ void File::open(FILE* handle)
 {
 	if (handle == NULL) throw IllegalArgumentException();
 	close();
-	ff=handle;
-	mysize=size();
+	ff = handle;
+	mysize = size();
 	seek(0);
 	setFilename("FILE");
 }
@@ -690,7 +700,7 @@ void File::open(FILE* handle)
 void File::rewind()
 {
 	if (ff != NULL) {
-		pos=0;
+		pos = 0;
 		return;
 	}
 	throw FileNotOpenException();
@@ -703,26 +713,27 @@ void File::seek(uint64_t position)
 	}
 #ifdef WIN32FILES
 	LARGE_INTEGER in, out;
-	in.QuadPart=position;
+	in.QuadPart = position;
 	if (SetFilePointerEx((HANDLE)ff, in, &out, FILE_BEGIN)) {
-		pos=out.QuadPart;
-	} else {
+		pos = out.QuadPart;
+	}
+	else {
 		SetError(11);
 	}
 #else
 	fpos_t p;
 #ifdef FPOS_T_STRUCT
-	p.__pos=(__off64_t)position;
+	p.__pos = (__off64_t)position;
 #else
-	p=(fpos_t)position;
+	p = (fpos_t)position;
 #endif
 	if (::fsetpos((FILE*)ff, &p) != 0) {
-		int errnosave=errno;
-		pos=tell();
-		errno=errnosave;
+		int errnosave = errno;
+		pos = tell();
+		errno = errnosave;
 		throwErrno(errno, filename());
 	}
-	pos=tell();
+	pos = tell();
 #endif
 	if (pos != position) throw FileSeekException();
 	return;
@@ -733,27 +744,27 @@ uint64_t File::seek(int64_t offset, SeekOrigin origin)
 	if (ff == NULL) throw FileNotOpenException();
 #ifdef _HAVE_FSEEKO
 	fpos_t p;
-	p=(fpos_t)offset;
-	int suberr=::fseeko((FILE*)ff, p, origin);
+	p = (fpos_t)offset;
+	int suberr = ::fseeko((FILE*)ff, p, origin);
 #else
-	int o=0;
+	int o = 0;
 	switch (origin) {
 	case File::SEEKCUR:
-		o=SEEK_CUR;
+		o = SEEK_CUR;
 		break;
 	case File::SEEKSET:
-		o=SEEK_SET;
+		o = SEEK_SET;
 		break;
 	case File::SEEKEND:
-		o=SEEK_END;
+		o = SEEK_END;
 		break;
 	default:
 		throw IllegalArgumentException();
 	}
-	int suberr=::fseek((FILE*)ff, (long)offset, o);
+	int suberr = ::fseek((FILE*)ff, (long)offset, o);
 #endif
 	if (suberr == 0) {
-		pos=tell();
+		pos = tell();
 		return pos;
 	}
 	throwErrno(errno, filename());
@@ -765,7 +776,7 @@ uint64_t File::tell()
 	if (ff != NULL) {
 #ifdef WIN32FILES
 		LARGE_INTEGER in, out;
-		in.QuadPart=0;
+		in.QuadPart = 0;
 		if (SetFilePointerEx((HANDLE)ff, in, &out, FILE_CURRENT)) {
 			return out.QuadPart;
 		}
@@ -776,9 +787,9 @@ uint64_t File::tell()
 		if (fgetpos((FILE*)ff, &p) != 0) throwErrno(errno, filename());
 		uint64_t ret;
 #ifdef FPOS_T_STRUCT
-		ret=(int64_t)p.__pos;
+		ret = (int64_t)p.__pos;
 #else
-		ret=(int64_t)p;
+		ret = (int64_t)p;
 #endif
 		return ret;
 #endif
@@ -790,8 +801,8 @@ size_t File::fread(void* ptr, size_t size, size_t nmemb)
 {
 	if (ff == NULL) throw FileNotOpenException();
 	if (ptr == NULL) throw IllegalArgumentException();
-	size_t by=::fread(ptr, size, nmemb, (FILE*)ff);
-	pos+=(by * size);
+	size_t by = ::fread(ptr, size, nmemb, (FILE*)ff);
+	pos += (by * size);
 	if (by != nmemb) {
 		if (::ferror((FILE*)ff)) throwErrno(errno, filename());
 	}
@@ -806,9 +817,9 @@ size_t File::fwrite(const void* ptr, size_t size, size_t nmemb)
 {
 	if (ff == NULL) throw FileNotOpenException();
 	if (ptr == NULL) throw IllegalArgumentException();
-	size_t by=::fwrite(ptr, size, nmemb, (FILE*)ff);
-	pos+=(by * size);
-	if (pos > this->mysize) this->mysize=pos;
+	size_t by = ::fwrite(ptr, size, nmemb, (FILE*)ff);
+	pos += (by * size);
+	if (pos > this->mysize) this->mysize = pos;
 	if (by < nmemb) throwErrno(errno, filename());
 	return by;
 }
@@ -819,14 +830,14 @@ char* File::fgets(char* buffer, size_t num)
 	if (buffer == NULL) throw IllegalArgumentException();
 	//int suberr;
 	char* res;
-	res=::fgets(buffer, num, (FILE*)ff);
+	res = ::fgets(buffer, num, (FILE*)ff);
 	if (res == NULL) {
 		//suberr=::ferror((FILE*)ff);
 		if (::feof((FILE*)ff)) return NULL;
 		else throwErrno(errno, filename());
 	}
-	uint64_t by=(uint64_t)strlen(buffer);
-	pos+=by;
+	uint64_t by = (uint64_t)strlen(buffer);
+	pos += by;
 	return buffer;
 }
 
@@ -839,14 +850,14 @@ wchar_t* File::fgetws(wchar_t* buffer, size_t num)
 #else
 	//int suberr;
 	wchar_t* res;
-	res=::fgetws(buffer, num, (FILE*)ff);
+	res = ::fgetws(buffer, num, (FILE*)ff);
 	if (res == NULL) {
 		//suberr=::ferror((FILE*)ff);
 		if (::feof((FILE*)ff)) return NULL;
 		else throwErrno(errno, filename());
 	}
-	uint64_t by=(uint64_t)wcslen(buffer) * sizeof(wchar_t);
-	pos+=by;
+	uint64_t by = (uint64_t)wcslen(buffer) * sizeof(wchar_t);
+	pos += by;
 	return buffer;
 #endif
 }
@@ -856,8 +867,8 @@ void File::fputs(const char* str)
 	if (ff == NULL) throw FileNotOpenException();
 	if (str == NULL) throw IllegalArgumentException();
 	if (::fputs(str, (FILE*)ff) != EOF) {
-		pos+=strlen(str);
-		if (pos > mysize) mysize=pos;
+		pos += strlen(str);
+		if (pos > mysize) mysize = pos;
 		return;
 	}
 	throwErrno(errno, filename());
@@ -871,8 +882,8 @@ void File::fputws(const wchar_t* str)
 	throw UnsupportedFeatureException("ppl7::File::putws: No fputws available");
 #else
 	if (::fputws(str, (FILE*)ff) != -1) {
-		pos+=wcslen(str) * sizeof(wchar_t);
-		if (pos > mysize) mysize=pos;
+		pos += wcslen(str) * sizeof(wchar_t);
+		if (pos > mysize) mysize = pos;
 		return;
 	}
 	throwErrno(errno, filename());
@@ -883,10 +894,10 @@ void File::fputws(const wchar_t* str)
 void File::fputc(int c)
 {
 	if (ff == NULL) throw FileNotOpenException();
-	int	ret=::fputc(c, (FILE*)ff);
+	int	ret = ::fputc(c, (FILE*)ff);
 	if (ret != EOF) {
 		pos++;
-		if (pos > mysize) mysize=pos;
+		if (pos > mysize) mysize = pos;
 		return;
 	}
 	throwErrno(errno);
@@ -895,7 +906,7 @@ void File::fputc(int c)
 int File::fgetc()
 {
 	if (ff == NULL) throw FileNotOpenException();
-	int ret=::fgetc((FILE*)ff);
+	int ret = ::fgetc((FILE*)ff);
 	if (ret != EOF) {
 		pos++;
 		return ret;
@@ -911,10 +922,10 @@ void File::fputwc(wchar_t c)
 #ifndef HAVE_FPUTWC
 	throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
 #else
-	wint_t ret=::fputwc(c, (FILE*)ff);
+	wint_t ret = ::fputwc(c, (FILE*)ff);
 	if (ret != WEOF) {
-		pos+=sizeof(wchar_t);
-		if (pos > mysize) mysize=pos;
+		pos += sizeof(wchar_t);
+		if (pos > mysize) mysize = pos;
 		return;
 	}
 	throwErrno(errno);
@@ -927,9 +938,9 @@ wchar_t File::fgetwc()
 #ifndef HAVE_FGETWC
 	throw UnsupportedFeatureException("ppl7::File::putwc: No fputwc available");
 #else
-	wint_t ret=::fgetwc((FILE*)ff);
+	wint_t ret = ::fgetwc((FILE*)ff);
 	if (ret != WEOF) {
-		pos+=sizeof(wchar_t);
+		pos += sizeof(wchar_t);
 		return(wchar_t)ret;
 	}
 	if (errno != 0)throwErrno(errno);
@@ -966,7 +977,7 @@ void File::sync()
 {
 	if (ff == NULL) throw FileNotOpenException();
 #ifdef HAVE_FSYNC
-	int ret=fsync(fileno((FILE*)ff));
+	int ret = fsync(fileno((FILE*)ff));
 	if (ret == 0) return;
 	throwErrno(errno);
 #else
@@ -978,10 +989,10 @@ void File::truncate(uint64_t length)
 {
 	if (ff == NULL) throw FileNotOpenException();
 #ifdef HAVE_FTRUNCATE
-	int fd=fileno((FILE*)ff);
-	int ret=::ftruncate(fd, (off_t)length);
+	int fd = fileno((FILE*)ff);
+	int ret = ::ftruncate(fd, (off_t)length);
 	if (ret == 0) {
-		mysize=length;
+		mysize = length;
 		if (pos > mysize) seek(mysize);
 		return;
 	}
@@ -996,23 +1007,23 @@ void File::lockExclusive(bool block)
 {
 	if (ff == NULL) throw FileNotOpenException();
 #if defined HAVE_FCNTL
-	int fd=fileno((FILE*)ff);
-	int cmd=F_SETLK;
-	if (block) cmd=F_SETLKW;
+	int fd = fileno((FILE*)ff);
+	int cmd = F_SETLK;
+	if (block) cmd = F_SETLKW;
 	struct flock f;
-	f.l_start=0;
-	f.l_len=0;
-	f.l_whence=0;
-	f.l_pid=getpid();
-	f.l_type=F_WRLCK;
-	int ret=fcntl(fd, cmd, &f);
+	f.l_start = 0;
+	f.l_len = 0;
+	f.l_whence = 0;
+	f.l_pid = getpid();
+	f.l_type = F_WRLCK;
+	int ret = fcntl(fd, cmd, &f);
 	if (ret != -1) return;
 	throwErrno(errno);
 #elif defined HAVE_FLOCK
-	int fd=fileno((FILE*)ff);
-	int flags=LOCK_EX;
-	if (!block) flags|=LOCK_NB;
-	int ret=flock(fd, flags);
+	int fd = fileno((FILE*)ff);
+	int flags = LOCK_EX;
+	if (!block) flags |= LOCK_NB;
+	int ret = flock(fd, flags);
 	if (ret == 0) return;
 	throwErrno(errno);
 #else
@@ -1024,24 +1035,24 @@ void File::lockShared(bool block)
 {
 	if (ff == NULL) throw FileNotOpenException();
 #if defined HAVE_FCNTL
-	int fd=fileno((FILE*)ff);
-	int cmd=F_SETLK;
-	if (block) cmd=F_SETLKW;
+	int fd = fileno((FILE*)ff);
+	int cmd = F_SETLK;
+	if (block) cmd = F_SETLKW;
 	struct flock f;
-	f.l_start=0;
-	f.l_len=0;
-	f.l_whence=0;
-	f.l_pid=getpid();
-	f.l_type=F_RDLCK;
-	int ret=fcntl(fd, cmd, &f);
+	f.l_start = 0;
+	f.l_len = 0;
+	f.l_whence = 0;
+	f.l_pid = getpid();
+	f.l_type = F_RDLCK;
+	int ret = fcntl(fd, cmd, &f);
 	if (ret != -1) return;
 	throwErrno(errno);
 
 #elif defined HAVE_FLOCK
-	int fd=fileno((FILE*)ff);
-	int flags=LOCK_SH;
-	if (!block) flags|=LOCK_NB;
-	int ret=flock(fd, flags);
+	int fd = fileno((FILE*)ff);
+	int flags = LOCK_SH;
+	if (!block) flags |= LOCK_NB;
+	int ret = flock(fd, flags);
 	if (ret == 0) return;
 	throwErrno(errno);
 #else
@@ -1054,20 +1065,20 @@ void File::unlock()
 {
 	if (ff == NULL) throw FileNotOpenException();
 #if defined HAVE_FCNTL
-	int fd=fileno((FILE*)ff);
+	int fd = fileno((FILE*)ff);
 	struct flock f;
-	f.l_start=0;
-	f.l_len=0;
-	f.l_whence=0;
-	f.l_pid=getpid();
-	f.l_type=F_UNLCK;
-	int ret=fcntl(fd, F_SETLKW, &f);
+	f.l_start = 0;
+	f.l_len = 0;
+	f.l_whence = 0;
+	f.l_pid = getpid();
+	f.l_type = F_UNLCK;
+	int ret = fcntl(fd, F_SETLKW, &f);
 	if (ret != -1) return;
 	throwErrno(errno);
 
 #elif defined HAVE_FLOCK
-	int fd=fileno((FILE*)ff);
-	int ret=flock(fd, LOCK_UN);
+	int fd = fileno((FILE*)ff);
+	int ret = flock(fd, LOCK_UN);
 	if (ret == 0) return;
 	throwErrno(errno);
 #else
@@ -1077,7 +1088,7 @@ void File::unlock()
 
 void File::setMapReadAhead(size_t bytes)
 {
-	ReadAhead=bytes;
+	ReadAhead = bytes;
 }
 
 
@@ -1092,12 +1103,12 @@ const char* File::map(uint64_t position, size_t bytes)
 			if (position > LastMapStart && (bytes + position - LastMapStart) <= LastMapSize) return MapBase + position - LastMapStart;
 			this->munmap(MapBase, (size_t)LastMapSize);
 		}
-		LastMapStart=position;
+		LastMapStart = position;
 		if (ReadAhead > 0 && bytes < ReadAhead) {
-			bytes=ReadAhead;
-			if (position + (uint64_t)bytes > mysize) bytes=(size_t)(mysize - position);
+			bytes = ReadAhead;
+			if (position + (uint64_t)bytes > mysize) bytes = (size_t)(mysize - position);
 		}
-		LastMapSize=bytes;
+		LastMapSize = bytes;
 		return (const char*)this->mmap(position, bytes, 1, 0);
 	}
 	throw OverflowException();
@@ -1117,8 +1128,8 @@ char* File::mapRW(uint64_t position, size_t bytes)
 			this->munmap(MapBase, (size_t)LastMapSize);
 		}
 		if (ReadAhead > 0 && bytes < ReadAhead) {
-			bytes=ReadAhead;
-			if (position + bytes > mysize) bytes=(size_t)(mysize - position);
+			bytes = ReadAhead;
+			if (position + bytes > mysize) bytes = (size_t)(mysize - position);
 		}
 		return (char*)this->mmap(position, bytes, 3, 0);
 	}
@@ -1143,65 +1154,66 @@ int File::munmap(void* addr, size_t len)
 	}
 	free(MapBase);
 #endif
-	LastMapStart=LastMapSize=0;
-	MapBase=NULL;
-	LastMapProtection=0;
+	LastMapStart = LastMapSize = 0;
+	MapBase = NULL;
+	LastMapProtection = 0;
 	return 1;
 }
 
 #ifdef HAVE_SYSCONF
-static int __pagesize=0;
+static int __pagesize = 0;
 #endif
 
 void* File::mmap(uint64_t position, size_t size, int prot, int flags)
 {
 #ifdef HAVE_MMAP
-	int mflags=0;
-	if (prot & 1) mflags|=PROT_READ;
-	if (prot & 2) mflags|=PROT_WRITE;
-	if (prot & 4) mflags|=PROT_EXEC;
-	size_t rest=0;
+	int mflags = 0;
+	if (prot & 1) mflags |= PROT_READ;
+	if (prot & 2) mflags |= PROT_WRITE;
+	if (prot & 4) mflags |= PROT_EXEC;
+	size_t rest = 0;
 #ifdef HAVE_SYSCONF
-	if (!__pagesize) __pagesize=sysconf(_SC_PAGE_SIZE);
+	if (!__pagesize) __pagesize = sysconf(_SC_PAGE_SIZE);
 	// position muss an einer pagesize aligned sein
-	rest=position % __pagesize;
+	rest = position % __pagesize;
 	if (rest) {
 		// Wir müssen alignen
-		size_t multiplyer=position / __pagesize;
-		position=multiplyer * __pagesize;
-		size+=rest;
+		size_t multiplyer = position / __pagesize;
+		position = multiplyer * __pagesize;
+		size += rest;
 	}
 #endif
 
-	void* adr=::mmap(NULL, size, mflags, MAP_PRIVATE, fileno((FILE*)ff), (off_t)position);
+	void* adr = ::mmap(NULL, size, mflags, MAP_PRIVATE, fileno((FILE*)ff), (off_t)position);
 	if (adr == MAP_FAILED) {
-		MapBase=NULL;
-		LastMapSize=0;
+		MapBase = NULL;
+		LastMapSize = 0;
 		throwErrno(errno);
 		return NULL;
 	}
-	LastMapSize=size;
-	LastMapProtection=prot;
-	LastMapStart=position;
-	MapBase=(char*)adr;
+	LastMapSize = size;
+	LastMapProtection = prot;
+	LastMapStart = position;
+	MapBase = (char*)adr;
 	return (MapBase + rest);
 
 #else
 	size_t bytes;
-	char* adr=(char*)malloc((size_t)size + 1);
+	char* adr = (char*)malloc((size_t)size + 1);
 	if (!adr) throw OutOfMemoryException();
 	if (pos != position) seek(position);
 	try {
-		bytes=fread(adr, 1, size);
-	} catch (...) {
+		bytes = fread(adr, 1, size);
+	}
+	catch (...) {
 		free(adr);
 		throw;
 	}
-	adr[bytes]=0;
-	MapBase=adr;
-	LastMapSize=bytes;
-	LastMapProtection=prot;
-	LastMapStart=position;
+	adr[bytes] = 0;
+	MapBase = adr;
+	LastMapSize = bytes;
+	LastMapProtection = prot;
+	LastMapStart = position;
 	return (MapBase);
 #endif
 
@@ -1219,7 +1231,7 @@ void* File::mmap(uint64_t position, size_t size, int prot, int flags)
 void File::erase()
 {
 	if (ff == NULL) throw FileNotOpenException();
-	String Filename=filename();
+	String Filename = filename();
 	close();
 	if (Filename.size() > 0) {
 		remove(Filename);
@@ -1247,14 +1259,14 @@ void File::load(ByteArray& object, const String& filename)
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	File ff;
 	ff.open(filename);
-	char* buffer=(char*)malloc((size_t)ff.mysize + 1);
+	char* buffer = (char*)malloc((size_t)ff.mysize + 1);
 	if (!buffer) throw OutOfMemoryException();
-	size_t by=ff.fread(buffer, 1, ff.mysize);
+	size_t by = ff.fread(buffer, 1, ff.mysize);
 	if (by != ff.mysize) {
 		free(buffer);
 		throw ReadException();
 	}
-	buffer[by]=0;
+	buffer[by] = 0;
 	object.use(buffer, by);
 }
 
@@ -1275,17 +1287,18 @@ void File::load(String& object, const String& filename)
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	File ff;
 	ff.open(filename);
-	char* buffer=(char*)malloc((size_t)ff.mysize + 1);
+	char* buffer = (char*)malloc((size_t)ff.mysize + 1);
 	if (!buffer) throw OutOfMemoryException();
-	size_t by=ff.fread(buffer, 1, ff.mysize);
+	size_t by = ff.fread(buffer, 1, ff.mysize);
 	if (by != ff.mysize) {
 		free(buffer);
 		throw ReadException();
 	}
-	buffer[by]=0;
+	buffer[by] = 0;
 	try {
 		object.set(buffer, by);
-	} catch (...) {
+	}
+	catch (...) {
 		free(buffer);
 		throw;
 	}
@@ -1313,15 +1326,15 @@ void* File::load(const String& filename, size_t* size)
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	File ff;
 	ff.open(filename);
-	char* buffer=(char*)malloc((size_t)ff.mysize + 1);
+	char* buffer = (char*)malloc((size_t)ff.mysize + 1);
 	if (!buffer) throw OutOfMemoryException();
-	size_t by=ff.fread(buffer, 1, ff.mysize);
+	size_t by = ff.fread(buffer, 1, ff.mysize);
 	if (by != ff.mysize) {
 		free(buffer);
 		throw ReadException();
 	}
-	if (size) *size=by;
-	buffer[by]=0;
+	if (size) *size = by;
+	buffer[by] = 0;
 	return buffer;
 
 }
@@ -1365,12 +1378,12 @@ void File::truncate(const String& filename, uint64_t bytes)
 bool File::exists(const String& filename)
 {
 	if (filename.isEmpty()) throw false;
-	FILE* fd=NULL;
+	FILE* fd = NULL;
 	//printf ("buffer=%s\n",buff);
 #ifdef WIN32
-	fd=_wfopen((const wchar_t*)WideString(filename), L"rb");		// Versuchen die Datei zu oeffnen
+	fd = _wfopen((const wchar_t*)WideString(filename), L"rb");		// Versuchen die Datei zu oeffnen
 #else
-	fd=fopen((const char*)filename, "rb");		// Versuchen die Datei zu oeffnen
+	fd = fopen((const char*)filename, "rb");		// Versuchen die Datei zu oeffnen
 #endif
 	if (fd) {
 		fclose(fd);
@@ -1399,15 +1412,15 @@ void File::copy(const String& oldfile, const String& newfile)
 	File f1, f2;
 	f1.open(oldfile, READ);
 	f2.open(newfile, WRITE);
-	uint64_t bsize=1024 * 1024;
-	if (f1.mysize < bsize) bsize=f1.mysize;
-	void* buffer=malloc((size_t)bsize);
+	uint64_t bsize = 1024 * 1024;
+	if (f1.mysize < bsize) bsize = f1.mysize;
+	void* buffer = malloc((size_t)bsize);
 	if (!buffer) throw OutOfMemoryException();
-	uint64_t rest=f1.mysize;
+	uint64_t rest = f1.mysize;
 	while (rest) {
-		uint64_t bytes=bsize;
-		if (bytes > rest) bytes=rest;
-		uint64_t done=f1.fread(buffer, 1, bytes);
+		uint64_t bytes = bsize;
+		if (bytes > rest) bytes = rest;
+		uint64_t done = f1.fread(buffer, 1, bytes);
 		if (done != bytes) {
 			// Sollte eigentlich nicht vorkommen
 			f2.close();
@@ -1415,8 +1428,8 @@ void File::copy(const String& oldfile, const String& newfile)
 			free(buffer);
 			throw ReadException();
 		}
-		done=f2.fwrite(buffer, 1, bytes);
-		rest-=bytes;
+		done = f2.fwrite(buffer, 1, bytes);
+		rest -= bytes;
 	}
 	f1.close();
 	f2.close();
@@ -1469,31 +1482,31 @@ void File::rename(const String& oldfile, const String& newfile)
 #else
 	if (::rename((const char*)oldfile, (const char*)newfile) == 0) {
 #endif
-		FILE* fd=NULL;
+		FILE* fd = NULL;
 		//printf ("buffer=%s\n",buff);
 #ifdef WIN32
-		fd=_wfopen((const wchar_t*)WideString(oldfile), L"rb");		// Ist die alte Datei noch da?
+		fd = _wfopen((const wchar_t*)WideString(oldfile), L"rb");		// Ist die alte Datei noch da?
 #else
-		fd=fopen((const char*)oldfile, "rb");		// Ist die alte Datei noch da?
+		fd = fopen((const char*)oldfile, "rb");		// Ist die alte Datei noch da?
 #endif
 		if (fd) {
 			// Ja, wir löschen sie manuell
 			fclose(fd);
 #ifdef WIN32
-			ppl7::String o1=oldfile.toLowerCase();
-			ppl7::String n1=newfile.toLowerCase();
+			ppl7::String o1 = oldfile.toLowerCase();
+			ppl7::String n1 = newfile.toLowerCase();
 			if (n1 == o1) return;
 			if (::_wunlink((const wchar_t*)WideString(oldfile)) == 0) return;
 #else
 			if (::unlink((const char*)oldfile) == 0) return;
 #endif
-			int saveerrno=errno;
+			int saveerrno = errno;
 #ifdef WIN32
 			::_wunlink((const wchar_t*)WideString(newfile));
 #else
 			::unlink((const char*)newfile);
 #endif
-			errno=saveerrno;
+			errno = saveerrno;
 			throwErrno(errno, desc);
 		}
 		return;
@@ -1621,28 +1634,28 @@ void File::save(const ByteArrayPtr & object, const String & filename)
 
 static mode_t translate_FileAttr(FileAttr::Attributes attr)
 {
-	mode_t m=0;
+	mode_t m = 0;
 #ifdef _WIN32
-	if (attr & FileAttr::USR_READ) m|=_S_IREAD;
-	if (attr & FileAttr::USR_WRITE) m|=_S_IWRITE;
-	if (attr & FileAttr::GRP_READ) m|=_S_IREAD;
-	if (attr & FileAttr::GRP_WRITE) m|=_S_IWRITE;
-	if (attr & FileAttr::OTH_READ) m|=_S_IREAD;
-	if (attr & FileAttr::OTH_WRITE) m|=_S_IWRITE;
+	if (attr & FileAttr::USR_READ) m |= _S_IREAD;
+	if (attr & FileAttr::USR_WRITE) m |= _S_IWRITE;
+	if (attr & FileAttr::GRP_READ) m |= _S_IREAD;
+	if (attr & FileAttr::GRP_WRITE) m |= _S_IWRITE;
+	if (attr & FileAttr::OTH_READ) m |= _S_IREAD;
+	if (attr & FileAttr::OTH_WRITE) m |= _S_IWRITE;
 
 #else
-	if (attr & FileAttr::ISUID) m+=S_ISUID;
-	if (attr & FileAttr::ISGID) m+=S_ISGID;
-	if (attr & FileAttr::STICKY) m+=S_ISVTX;
-	if (attr & FileAttr::USR_READ) m+=S_IRUSR;
-	if (attr & FileAttr::USR_WRITE) m+=S_IWUSR;
-	if (attr & FileAttr::USR_EXECUTE) m+=S_IXUSR;
-	if (attr & FileAttr::GRP_READ) m+=S_IRGRP;
-	if (attr & FileAttr::GRP_WRITE) m+=S_IWGRP;
-	if (attr & FileAttr::GRP_EXECUTE) m+=S_IXGRP;
-	if (attr & FileAttr::OTH_READ) m+=S_IROTH;
-	if (attr & FileAttr::OTH_WRITE) m+=S_IWOTH;
-	if (attr & FileAttr::OTH_EXECUTE) m+=S_IXOTH;
+	if (attr & FileAttr::ISUID) m += S_ISUID;
+	if (attr & FileAttr::ISGID) m += S_ISGID;
+	if (attr & FileAttr::STICKY) m += S_ISVTX;
+	if (attr & FileAttr::USR_READ) m += S_IRUSR;
+	if (attr & FileAttr::USR_WRITE) m += S_IWUSR;
+	if (attr & FileAttr::USR_EXECUTE) m += S_IXUSR;
+	if (attr & FileAttr::GRP_READ) m += S_IRGRP;
+	if (attr & FileAttr::GRP_WRITE) m += S_IWGRP;
+	if (attr & FileAttr::GRP_EXECUTE) m += S_IXGRP;
+	if (attr & FileAttr::OTH_READ) m += S_IROTH;
+	if (attr & FileAttr::OTH_WRITE) m += S_IWOTH;
+	if (attr & FileAttr::OTH_EXECUTE) m += S_IXOTH;
 #endif
 	return m;
 }
@@ -1664,7 +1677,7 @@ static mode_t translate_FileAttr(FileAttr::Attributes attr)
 void File::chmod(const String & filename, FileAttr::Attributes attr)
 {
 	if (filename.isEmpty()) throw IllegalArgumentException();
-	mode_t m=translate_FileAttr(attr);
+	mode_t m = translate_FileAttr(attr);
 #ifdef _WIN32
 	if (_wchmod((const wchar_t*)WideString(filename), m) == 0) return;
 #else
@@ -1689,50 +1702,50 @@ static void getResultFromStat(struct stat& st, DirEntry & result, const ppl7::St
 	result.ATime.setTime_t(st.st_atime);
 	result.CTime.setTime_t(st.st_ctime);
 	result.MTime.setTime_t(st.st_mtime);
-	result.Attrib=FileAttr::NONE;
-	result.Size=st.st_size;
+	result.Attrib = FileAttr::NONE;
+	result.Size = st.st_size;
 	result.File.set(filename);
-	result.Path=File::getPath(result.File);
-	result.Filename=File::getFilename(result.File);
+	result.Path = File::getPath(result.File);
+	result.Filename = File::getFilename(result.File);
 	result.AttrStr.set(L"----------");
-	result.Uid=st.st_uid;
-	result.Gid=st.st_gid;
+	result.Uid = st.st_uid;
+	result.Gid = st.st_gid;
 #ifndef WIN32
-	result.Blocks=st.st_blocks;
-	result.BlockSize=st.st_blksize;
+	result.Blocks = st.st_blocks;
+	result.BlockSize = st.st_blksize;
 #else
-	result.Blocks=0;
-	result.BlockSize=0;
+	result.Blocks = 0;
+	result.BlockSize = 0;
 #endif
-	result.NumLinks=st.st_nlink;
+	result.NumLinks = st.st_nlink;
 
-	if ((st.st_mode & S_IFDIR) == S_IFDIR) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::IFDIR);
-	if ((st.st_mode & S_IFREG) == S_IFREG) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::IFFILE);
+	if ((st.st_mode & S_IFDIR) == S_IFDIR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFDIR);
+	if ((st.st_mode & S_IFREG) == S_IFREG) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFFILE);
 #ifdef S_IFLNK
-	if ((st.st_mode & S_IFLNK) == S_IFLNK) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::IFLINK);
+	if ((st.st_mode & S_IFLNK) == S_IFLNK) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFLINK);
 #endif
 #ifdef S_IFSOCK
-	if ((st.st_mode & S_IFSOCK) == S_IFSOCK) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::IFSOCK);
+	if ((st.st_mode & S_IFSOCK) == S_IFSOCK) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::IFSOCK);
 #endif
 
 #ifdef _WIN32
-	if (st.st_mode & _S_IREAD) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
-	if (st.st_mode & _S_IWRITE) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
-	if (st.st_mode & _S_IEXEC) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_EXECUTE);
+	if (st.st_mode & _S_IREAD) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
+	if (st.st_mode & _S_IWRITE) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
+	if (st.st_mode & _S_IEXEC) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_EXECUTE);
 #else
-	if (st.st_mode & S_IRUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
-	if (st.st_mode & S_IWUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
-	if (st.st_mode & S_IXUSR) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::USR_EXECUTE);
-	if (st.st_mode & S_ISUID) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::ISUID);
+	if (st.st_mode & S_IRUSR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_READ);
+	if (st.st_mode & S_IWUSR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_WRITE);
+	if (st.st_mode & S_IXUSR) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::USR_EXECUTE);
+	if (st.st_mode & S_ISUID) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::ISUID);
 
-	if (st.st_mode & S_IRGRP) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::GRP_READ);
-	if (st.st_mode & S_IWGRP) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::GRP_WRITE);
-	if (st.st_mode & S_IXGRP) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::GRP_EXECUTE);
-	if (st.st_mode & S_ISGID) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::ISGID);
+	if (st.st_mode & S_IRGRP) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::GRP_READ);
+	if (st.st_mode & S_IWGRP) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::GRP_WRITE);
+	if (st.st_mode & S_IXGRP) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::GRP_EXECUTE);
+	if (st.st_mode & S_ISGID) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::ISGID);
 
-	if (st.st_mode & S_IROTH) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::OTH_READ);
-	if (st.st_mode & S_IWOTH) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::OTH_WRITE);
-	if (st.st_mode & S_IXOTH) result.Attrib=(FileAttr::Attributes)(result.Attrib | FileAttr::OTH_EXECUTE);
+	if (st.st_mode & S_IROTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_READ);
+	if (st.st_mode & S_IWOTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_WRITE);
+	if (st.st_mode & S_IXOTH) result.Attrib = (FileAttr::Attributes)(result.Attrib | FileAttr::OTH_EXECUTE);
 #endif
 
 	if (result.Attrib & FileAttr::IFLINK) result.AttrStr.set(0, 'l');
@@ -1772,7 +1785,7 @@ void File::statFile(const String & filename, DirEntry & result)
 	if (filename.isEmpty()) throw IllegalArgumentException();
 #ifdef WIN32
 	struct _stat st;
-	String File=filename;
+	String File = filename;
 	File.replace("/", "\\");
 	if (_wstat((const wchar_t*)WideString(File), &st) != 0) throwErrno(errno, filename);
 #elif defined HAVE_STAT
@@ -1812,7 +1825,7 @@ bool File::tryStatFile(const String & filename, DirEntry & result)
 	if (filename.isEmpty()) return false;
 #ifdef WIN32
 	struct _stat st;
-	String File=filename;
+	String File = filename;
 	File.replace("/", "\\");
 	if (_wstat((const wchar_t*)WideString(File), &st) != 0) return false;
 #elif defined HAVE_STAT
@@ -1839,11 +1852,11 @@ bool File::tryStatFile(const String & filename, DirEntry & result)
 String File::getPath(const String & path)
 {
 	size_t i, l, pos;
-	l=path.len();
-	pos=0;
-	for (i=0;i < l;i++) {
-		char c=path[i];
-		if (c == '/' || c == ':' || c == '\\') pos=i;
+	l = path.len();
+	pos = 0;
+	for (i = 0;i < l;i++) {
+		char c = path[i];
+		if (c == '/' || c == ':' || c == '\\') pos = i;
 	}
 	return path.left(pos);
 }
@@ -1861,11 +1874,11 @@ String File::getPath(const String & path)
 String File::getFilename(const String & path)
 {
 	size_t i, l, pos;
-	l=path.len();
-	pos=0;
-	for (i=0;i < l;i++) {
-		char c=path[i];
-		if (c == '/' || c == ':' || c == '\\') pos=i + 1;
+	l = path.len();
+	pos = 0;
+	for (i = 0;i < l;i++) {
+		char c = path[i];
+		if (c == '/' || c == ':' || c == '\\') pos = i + 1;
 	}
 	return path.mid(pos);
 }
