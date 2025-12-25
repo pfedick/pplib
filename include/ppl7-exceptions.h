@@ -52,6 +52,7 @@ public:
     Exception(const Exception& other) noexcept;
     Exception& operator= (const Exception& other) noexcept;
     Exception(const char* msg, ...) noexcept;
+    Exception(const String& msg) noexcept;
     virtual ~Exception() noexcept;
     virtual const char* what() const noexcept;
     const char* text() const noexcept;
