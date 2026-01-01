@@ -48,27 +48,28 @@ namespace ppl7 {
 
 #ifdef HAVE_MPG123
 static Mutex MPG123_GlobalMutex;
-static uint64_t mpg123_instances=0;
+static uint64_t mpg123_instances = 0;
 #define READBUFFER	1024*1024
 #define OUTBUFF 32768
 #endif
 
 AudioDecoder_MP3::AudioDecoder_MP3()
 {
-	position=0;
-	samplesize=0;
-	ff=NULL;
-	decoder=NULL;
-	readbuffer=NULL;
-	outbuffer=NULL;
-	out_offset=0;
-	out_size=0;
-	isRunning=false;
-	needInput=false;
+	position = 0;
+	samplesize = 0;
+	ff = NULL;
+	decoder = NULL;
+	readbuffer = NULL;
+	outbuffer = NULL;
+	out_offset = 0;
+	out_size = 0;
+	isRunning = false;
+	needInput = false;
+	lastDecodeFormat = MPG123_ENC_SIGNED_16;
 #ifdef HAVE_MPG123
 	MPG123_GlobalMutex.lock();
 	if (!mpg123_instances) {
-		int ret=mpg123_init();
+		int ret = mpg123_init();
 		if (ret != MPG123_OK) {
 			MPG123_GlobalMutex.unlock();
 			throw DecoderInitializationException("mpg123_init: %s", mpg123_plain_strerror(ret));
@@ -107,32 +108,34 @@ void AudioDecoder_MP3::open(FileObject& file, const AudioInfo* info)
 		if (!IdentAudioFile(file, this->info)) {
 			throw UnsupportedAudioFormatException();
 		}
-	} else {
-		this->info=*info;
+	}
+	else {
+		this->info = *info;
 	}
 	if (this->info.Format != AudioInfo::MP3) throw UnsupportedAudioFormatException();
-	position=0;
-	this->ff=&file;
+	position = 0;
+	this->ff = &file;
 	if (decoder) mpg123_delete((mpg123_handle*)decoder);
 	int err;
-	decoder=mpg123_new(NULL, &err);
+	decoder = mpg123_new(NULL, &err);
 	if (!decoder) throw DecoderInitializationException("mpg123_new: %s", mpg123_plain_strerror(err));
-	err=mpg123_open_feed((mpg123_handle*)decoder);
+	err = mpg123_open_feed((mpg123_handle*)decoder);
 	if (err != MPG123_OK) throw DecoderException("mpg123_open_feed: %s", mpg123_plain_strerror(err));
 	//mpg123_param((mpg123_handle*)decoder, MPG123_VERBOSE,2,0);
 	mpg123_format_none((mpg123_handle*)decoder);
 	mpg123_format((mpg123_handle*)decoder, 44100, MPG123_STEREO, MPG123_ENC_SIGNED_16);
-	out_offset=0;
-	out_size=0;
-	isRunning=true;
-	needInput=true;
+	lastDecodeFormat = MPG123_ENC_SIGNED_16;
+	out_offset = 0;
+	out_size = 0;
+	isRunning = true;
+	needInput = true;
 	// Buffer Reservieren, falls noch nicht vorhanden
 	if (!readbuffer) {
-		readbuffer=(uint8_t*)malloc(READBUFFER);
+		readbuffer = (uint8_t*)malloc(READBUFFER);
 		if (!readbuffer) throw OutOfMemoryException();
 	}
 	if (!outbuffer) {
-		outbuffer=(uint8_t*)malloc(OUTBUFF);
+		outbuffer = (uint8_t*)malloc(OUTBUFF);
 		if (!outbuffer) throw OutOfMemoryException();
 	}
 	this->ff->seek(this->info.AudioStart);
@@ -146,17 +149,17 @@ const AudioInfo& AudioDecoder_MP3::getAudioInfo() const
 
 void AudioDecoder_MP3::getAudioInfo(AudioInfo& info) const
 {
-	info=this->info;
+	info = this->info;
 }
 
 void AudioDecoder_MP3::seekSample(size_t sample)
 {
 	if (sample == 0) {
 		ff->seek(info.AudioStart);
-		out_offset=0;
-		out_size=0;
+		out_offset = 0;
+		out_size = 0;
 #ifdef HAVE_MPG123
-		off_t input_offset=0;
+		off_t input_offset = 0;
 		mpg123_feedseek((mpg123_handle*)decoder, 0, SEEK_SET, &input_offset);
 #endif
 		return;
@@ -174,31 +177,33 @@ size_t AudioDecoder_MP3::getPosition() const
 size_t AudioDecoder_MP3::fillDecodeBuffer()
 {
 #ifdef HAVE_MPG123
-	size_t size=0;
+	size_t size = 0;
 	int ret;
 	while (size == 0) {
-		ret=mpg123_read((mpg123_handle*)decoder, outbuffer, OUTBUFF, &size);
+		ret = mpg123_read((mpg123_handle*)decoder, outbuffer, OUTBUFF, &size);
 		if (ret == MPG123_NEED_MORE) {
-			size_t restbytes=ff->size() - ff->tell();
-			size_t maxbytes=READBUFFER;
-			if (maxbytes > restbytes) maxbytes=restbytes;
+			size_t restbytes = ff->size() - ff->tell();
+			size_t maxbytes = READBUFFER;
+			if (maxbytes > restbytes) maxbytes = restbytes;
 			if (maxbytes == 0) return 0;
 			size_t len = ff->read(readbuffer, maxbytes);
 			if (len == 0) return 0;
-			ret=mpg123_feed((mpg123_handle*)decoder, readbuffer, len);
+			ret = mpg123_feed((mpg123_handle*)decoder, readbuffer, len);
 			if (ret != MPG123_OK) {
 				throw DecoderException("mpg123_feed: %s", mpg123_strerror((mpg123_handle*)decoder));
 			}
-		} else if (ret == MPG123_NEW_FORMAT) {
+		}
+		else if (ret == MPG123_NEW_FORMAT) {
 			long rate;
 			int channels, enc;
 			mpg123_getformat((mpg123_handle*)decoder, &rate, &channels, &enc);
-		} else if (ret != MPG123_OK) {
+		}
+		else if (ret != MPG123_OK) {
 			throw DecoderException("mpg123_read: %s", mpg123_strerror((mpg123_handle*)decoder));
 		}
 	}
-	out_size=size;
-	out_offset=0;
+	out_size = size;
+	out_offset = 0;
 	return size;
 #else
 	return 0;
@@ -212,22 +217,43 @@ size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE16* interleafed)
 #ifndef HAVE_MPG123
 	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
-	size_t rest=num;
+	if (lastDecodeFormat != MPG123_ENC_SIGNED_16) {
+		// We need to switch the output format
+		mpg123_format_none((mpg123_handle*)decoder);
+		mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_SIGNED_16);
+		lastDecodeFormat = MPG123_ENC_SIGNED_16;
+		out_offset = 0;
+		out_size = 0;
+		seekSample(0); // Reset decoder
+	}
+	const size_t bytes_per_frame = info.Channels * 2; // 2 bytes per channel (int16)
+	size_t rest = num;
 	while (rest) {
-		size_t av=out_size - out_offset;
+		size_t av = out_size - out_offset;
 		if (av > 0) {
-			size_t s=(int)(av / 4);
-			if (s > rest) s=rest;
-			STEREOSAMPLE16* p=(STEREOSAMPLE16*)(outbuffer + out_offset);
-			memcpy(interleafed, p, s * 4);
-			interleafed+=s;
-			rest-=s;
-			out_offset+=(s * 4);
-		} else {
+			size_t frames = av / bytes_per_frame;
+			if (frames > rest) frames = rest;
+			if (info.Channels == 2) {
+				STEREOSAMPLE16* p = (STEREOSAMPLE16*)(outbuffer + out_offset);
+				memcpy(interleafed, p, frames * bytes_per_frame);
+			}
+			else if (info.Channels == 1) {
+				int16_t* p = (int16_t*)(outbuffer + out_offset);
+				for (size_t i = 0;i < frames;i++) {
+					interleafed[i].left = p[i];
+					interleafed[i].right = p[i];
+				}
+			}
+			else throw UnsupportedAudioFormatException("channels <1 or >2");
+			interleafed += frames;
+			rest -= frames;
+			out_offset += frames * bytes_per_frame;
+		}
+		else {
 			if (!fillDecodeBuffer()) break;
 		}
 	}
-	position+=num - rest;
+	position += num - rest;
 	return num - rest;
 
 #endif
@@ -238,57 +264,174 @@ size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE32* buffer)
 #ifndef HAVE_MPG123
 	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
-	size_t rest=num;
+	if (lastDecodeFormat != MPG123_ENC_SIGNED_16) {
+		// We need to switch the output format
+		mpg123_format_none((mpg123_handle*)decoder);
+		mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_SIGNED_16);
+		lastDecodeFormat = MPG123_ENC_SIGNED_16;
+		out_offset = 0;
+		out_size = 0;
+		seekSample(0); // Reset decoder
+	}
+	const size_t bytes_per_frame = info.Channels * 2; // int16 per channel
+	size_t rest = num;
 	while (rest) {
-		size_t av=out_size - out_offset;
+		size_t av = out_size - out_offset;
 		if (av > 0) {
-			size_t s=(int)(av / 4);
-			if (s > rest) s=rest;
-			STEREOSAMPLE16* p=(STEREOSAMPLE16*)(outbuffer + out_offset);
-			for (size_t i=0;i < s;i++) {
-				buffer[i].left+=p[i].left;
-				buffer[i].right+=p[i].right;
+			size_t frames = av / bytes_per_frame;
+			if (frames > rest) frames = rest;
+			if (info.Channels == 2) {
+				STEREOSAMPLE16* p = (STEREOSAMPLE16*)(outbuffer + out_offset);
+				for (size_t i = 0;i < frames;i++) {
+					buffer[i].left += p[i].left;
+					buffer[i].right += p[i].right;
+				}
 			}
-			//memcpy(interleafed, p,s*4);
-			buffer+=s;
-			rest-=s;
-			out_offset+=(s * 4);
-		} else {
+			else if (info.Channels == 1) {
+				int16_t* p = (int16_t*)(outbuffer + out_offset);
+				for (size_t i = 0;i < frames;i++) {
+					buffer[i].left += p[i];
+					buffer[i].right += p[i];
+				}
+			}
+			else throw UnsupportedAudioFormatException("channels <1 or >2");
+			buffer += frames;
+			rest -= frames;
+			out_offset += frames * bytes_per_frame;
+		}
+		else {
 			if (!fillDecodeBuffer()) break;
 		}
 	}
-	position+=num - rest;
+	position += num - rest;
 	return num - rest;
 
 #endif
 }
 
+size_t AudioDecoder_MP3::getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+{
+#ifndef HAVE_MPG123
+	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#else
+	if (lastDecodeFormat != MPG123_ENC_FLOAT_32) {
+		// We need to switch the output format
+		mpg123_format_none((mpg123_handle*)decoder);
+		mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_FLOAT_32);
+		lastDecodeFormat = MPG123_ENC_FLOAT_32;
+		out_offset = 0;
+		out_size = 0;
+		seekSample(0); // Reset decoder
+	}
+	const size_t bytes_per_frame = info.Channels * 4; // 4 bytes per channel (float)
+	size_t rest = num;
+	while (rest) {
+		size_t av = out_size - out_offset;
+		if (av > 0) {
+			size_t frames = av / bytes_per_frame;
+			if (frames > rest) frames = rest;
+			if (info.Channels == 2) {
+				STEREOSAMPLE_FLOAT* p = (STEREOSAMPLE_FLOAT*)(outbuffer + out_offset);
+				memcpy(buffer, p, frames * bytes_per_frame);
+			}
+			else if (info.Channels == 1) {
+				float* p = (float*)(outbuffer + out_offset);
+				for (size_t i = 0;i < frames;i++) {
+					buffer[i].left = p[i];
+					buffer[i].right = p[i];
+				}
+			}
+			else throw UnsupportedAudioFormatException("channels <1 or >2");
+			buffer += frames;
+			rest -= frames;
+			out_offset += frames * bytes_per_frame;
+		}
+		else {
+			if (!fillDecodeBuffer()) break;
+		}
+	}
+	position += num - rest;
+	return num - rest;
+#endif
+	}
 
+size_t AudioDecoder_MP3::addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer)
+{
+#ifndef HAVE_MPG123
+	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
+#else
+	if (lastDecodeFormat != MPG123_ENC_FLOAT_32) {
+		// We need to switch the output format
+		mpg123_format_none((mpg123_handle*)decoder);
+		mpg123_format((mpg123_handle*)decoder, info.Frequency, info.Channels, MPG123_ENC_FLOAT_32);
+		lastDecodeFormat = MPG123_ENC_FLOAT_32;
+		out_offset = 0;
+		out_size = 0;
+		seekSample(0); // Reset decoder
+	}
+	const size_t bytes_per_frame = info.Channels * 4; // 4 bytes per channel (float)
+	size_t rest = num;
+	while (rest) {
+		size_t av = out_size - out_offset;
+		if (av > 0) {
+			size_t frames = av / bytes_per_frame;
+			if (frames > rest) frames = rest;
+			if (info.Channels == 2) {
+				STEREOSAMPLE_FLOAT* p = (STEREOSAMPLE_FLOAT*)(outbuffer + out_offset);
+				for (size_t i = 0;i < frames;i++) {
+					buffer[i].left += p[i].left;
+					buffer[i].right += p[i].right;
+				}
+			}
+			else if (info.Channels == 1) {
+				float* p = (float*)(outbuffer + out_offset);
+				for (size_t i = 0;i < frames;i++) {
+					buffer[i].left += p[i];
+					buffer[i].right += p[i];
+				}
+			}
+			else throw UnsupportedAudioFormatException("channels <1 or >2");
+			buffer += frames;
+			rest -= frames;
+			out_offset += frames * bytes_per_frame;
+		}
+		else {
+			if (!fillDecodeBuffer()) break;
+		}
+	}
+	position += num - rest;
+	return num - rest;
+#endif
+}
+
+
+/*
 size_t AudioDecoder_MP3::getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)
 {
 #ifndef HAVE_MPG123
 	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3: mpg123");
 #else
-	size_t rest=num;
+	size_t rest = num;
 	while (rest) {
-		size_t av=out_size - out_offset;
+		size_t av = out_size - out_offset;
 		if (av > 0) {
-			size_t s=(int)(av / 4);
-			if (s > rest) s=rest;
-			STEREOSAMPLE16* p=(STEREOSAMPLE16*)(outbuffer + out_offset);
-			for (size_t i=0;i < s;i++) {
-				left[i]=p[i].left;
-				right[i]=p[i].right;
+			size_t s = (int)(av / 4);
+			if (s > rest) s = rest;
+			STEREOSAMPLE16* p = (STEREOSAMPLE16*)(outbuffer + out_offset);
+			for (size_t i = 0;i < s;i++) {
+				left[i] = p[i].left;
+				right[i] = p[i].right;
 			}
-			left+=s;
-			right+=s;
-			rest-=s;
-			out_offset+=(s * 4);
-		} else {
+			left += s;
+			right += s;
+			rest -= s;
+			out_offset += (s * 4);
+		}
+		else {
 			if (!fillDecodeBuffer()) break;
 		}
 	}
-	position+=num - rest;
+	position += num - rest;
 	return num - rest;
 #endif
 }
@@ -297,5 +440,6 @@ size_t AudioDecoder_MP3::getSamples(size_t num, float* left, float* right)
 {
 	throw ppl7::UnsupportedFeatureException("AudioDecoder_MP3::getSamples(size_t num, float *left, float *right)");
 }
+*/
 
 }	// EOF namespace ppl7

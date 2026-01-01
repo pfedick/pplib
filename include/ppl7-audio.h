@@ -182,15 +182,15 @@ public:
 	};
 
 	enum AudioFormat {
-		AF_UNKNOWN=0,
+		AF_UNKNOWN = 0,
 		AF_MP3,
 		AF_AIFF,
 		AF_WAVE
 	};
 
 	enum PictureType {
-		PIC_COVER_FRONT=3,
-		PIC_COVER_BACK=4,
+		PIC_COVER_FRONT = 3,
+		PIC_COVER_BACK = 4,
 	};
 private:
 	String	Filename;
@@ -218,7 +218,7 @@ private:
 	bool trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2);
 	void copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2);
 	void copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2);
-	String getNullPaddedString(ID3Frame* frame, size_t offset=0) const;
+	String getNullPaddedString(ID3Frame* frame, size_t offset = 0) const;
 
 public:
 	ID3Tag();
@@ -243,7 +243,7 @@ public:
 	void 	deleteFrame(ID3Frame* frame);
 	ID3Frame* findFrame(const String& name) const;
 	ID3Frame* findUserDefinedText(const String& description) const;
-	void listFrames(bool hexdump=false) const;
+	void listFrames(bool hexdump = false) const;
 	size_t frameCount() const;
 
 	void setArtist(const String& artist);
@@ -259,7 +259,7 @@ public:
 	void setBPM(const String& bpm);
 	void setKey(const String& key);
 	void setEnergyLevel(const String& energy);
-	void setTextFrame(const String& framename, const String& text, TextEncoding enc=ENC_UTF16);
+	void setTextFrame(const String& framename, const String& text, TextEncoding enc = ENC_UTF16);
 	void setPicture(int type, const ByteArrayPtr& bin, const String& MimeType);
 	void setPopularimeter(const String& email, unsigned char rating);
 
@@ -307,7 +307,7 @@ private:
 public:
 	Icecast();
 	~Icecast();
-	String	getVersion(int* major=NULL, int* minor=NULL, int* patch=NULL) const;
+	String	getVersion(int* major = NULL, int* minor = NULL, int* patch = NULL) const;
 	String version() const;
 	bool	connected();
 	void	setConnection(const String& host, int port, const String& password);
@@ -398,7 +398,7 @@ public:
 	AudioCD();
 	~AudioCD();
 
-	void openDevice(const String& device=String());
+	void openDevice(const String& device = String());
 	void closeDevice();
 	const String& deviceName() const;
 
@@ -464,7 +464,7 @@ public:
 	CDDB();
 	~CDDB();
 
-	void	setHttpServer(const String& server, int port=80);
+	void	setHttpServer(const String& server, int port = 80);
 	void	setQueryPath(const String& path);
 	void	setProxy(const String& hostname, int port);
 	void	setClient(const String& name, const String& version);
@@ -507,19 +507,25 @@ typedef struct tagSTEREOSAMPLE32 {
 	SAMPLE32 right;
 } STEREOSAMPLE32;
 
+typedef struct tagSTEREOSAMPLEFLOAT {
+	float left;
+	float right;
+} STEREOSAMPLE_FLOAT;
+
 class AudioDecoder
 {
 public:
 	virtual ~AudioDecoder() {};
-	virtual void open(FileObject& file, const AudioInfo* info=NULL)=0;
-	virtual const AudioInfo& getAudioInfo() const=0;
-	virtual void getAudioInfo(AudioInfo& info) const=0;
-	virtual void seekSample(size_t sample)=0;
-	virtual size_t getPosition() const=0;
-	virtual size_t getSamples(size_t num, STEREOSAMPLE16* buffer)=0;
-	virtual size_t addSamples(size_t num, STEREOSAMPLE32* buffer)=0;
-	virtual size_t getSamples(size_t num, float* left, float* right)=0;
-	virtual size_t getSamples(size_t num, SAMPLE16* left, SAMPLE16* right)=0;
+	virtual void open(FileObject& file, const AudioInfo* info = NULL) = 0;
+	virtual const AudioInfo& getAudioInfo() const = 0;
+	virtual void getAudioInfo(AudioInfo& info) const = 0;
+	virtual void seekSample(size_t sample) = 0;
+	virtual size_t getPosition() const = 0;
+	virtual size_t getSamples(size_t num, STEREOSAMPLE16* buffer) = 0;
+	virtual size_t addSamples(size_t num, STEREOSAMPLE32* buffer) = 0;
+	virtual size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
+	virtual size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer) = 0;
+
 };
 
 AudioDecoder* GetAudioDecoder(FileObject& file);
@@ -536,15 +542,15 @@ private:
 public:
 	AudioDecoder_Wave();
 	~AudioDecoder_Wave();
-	void open(FileObject& file, const AudioInfo* info=NULL);
+	void open(FileObject& file, const AudioInfo* info = NULL);
 	const AudioInfo& getAudioInfo() const;
 	void getAudioInfo(AudioInfo& info) const;
 	void seekSample(size_t sample);
 	size_t getPosition() const;
 	size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
 	size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-	size_t getSamples(size_t num, float* left, float* right);
-	size_t getSamples(size_t num, SAMPLE16* left, SAMPLE16* right);
+	size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
+	size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
 };
 
 class AudioDecoder_Aiff : public AudioDecoder
@@ -558,15 +564,15 @@ private:
 public:
 	AudioDecoder_Aiff();
 	~AudioDecoder_Aiff();
-	void open(FileObject& file, const AudioInfo* info=NULL);
+	void open(FileObject& file, const AudioInfo* info = NULL);
 	const AudioInfo& getAudioInfo() const;
 	void getAudioInfo(AudioInfo& info) const;
 	void seekSample(size_t sample);
 	size_t getPosition() const;
 	size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
 	size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-	size_t getSamples(size_t num, float* left, float* right);
-	size_t getSamples(size_t num, SAMPLE16* left, SAMPLE16* right);
+	size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
+	size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
 };
 
 class AudioDecoder_MP3 : public AudioDecoder
@@ -583,21 +589,22 @@ private:
 	size_t			out_offset, out_size;
 	bool			isRunning;
 	bool			needInput;
+	int				lastDecodeFormat;
 
 	size_t fillDecodeBuffer();
 
 public:
 	AudioDecoder_MP3();
 	~AudioDecoder_MP3();
-	void open(FileObject& file, const AudioInfo* info=NULL);
+	void open(FileObject& file, const AudioInfo* info = NULL);
 	const AudioInfo& getAudioInfo() const;
 	void getAudioInfo(AudioInfo& info) const;
 	void seekSample(size_t sample);
 	size_t getPosition() const;
 	size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
 	size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-	size_t getSamples(size_t num, float* left, float* right);
-	size_t getSamples(size_t num, SAMPLE16* left, SAMPLE16* right);
+	size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
+	size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
 };
 
 class AudioDecoder_Ogg : public AudioDecoder
@@ -618,15 +625,15 @@ private:
 public:
 	AudioDecoder_Ogg();
 	~AudioDecoder_Ogg();
-	void open(FileObject& file, const AudioInfo* info=NULL);
+	void open(FileObject& file, const AudioInfo* info = NULL);
 	const AudioInfo& getAudioInfo() const;
 	void getAudioInfo(AudioInfo& info) const;
 	void seekSample(size_t sample);
 	size_t getPosition() const;
 	size_t getSamples(size_t num, STEREOSAMPLE16* buffer);
 	size_t addSamples(size_t num, STEREOSAMPLE32* buffer);
-	size_t getSamples(size_t num, float* left, float* right);
-	size_t getSamples(size_t num, SAMPLE16* left, SAMPLE16* right);
+	size_t getSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
+	size_t addSamples(size_t num, STEREOSAMPLE_FLOAT* buffer);
 };
 
 
@@ -685,13 +692,13 @@ private:
 public:
 	AudioEncoder_MP3();
 	~AudioEncoder_MP3();
-	void setVBR(int min=32, int max=320, int quality=2);
-	void setCBR(int kbps=320, int quality=2);
-	void setABR(int kbps=192, int quality=2);
-	void setQuality(int quality=2);
-	void setStereoMode(const AudioInfo::ChannelMode mode=AudioInfo::JOINT_STEREO);
-	void setLowpassFreq(int freq=-1);		// -1=Disabled
-	void setHighpassFreq(int freq=-1);		// -1=Disabled
+	void setVBR(int min = 32, int max = 320, int quality = 2);
+	void setCBR(int kbps = 320, int quality = 2);
+	void setABR(int kbps = 192, int quality = 2);
+	void setQuality(int quality = 2);
+	void setStereoMode(const AudioInfo::ChannelMode mode = AudioInfo::JOINT_STEREO);
+	void setLowpassFreq(int freq = -1);		// -1=Disabled
+	void setHighpassFreq(int freq = -1);		// -1=Disabled
 	void setProgressFunction(void (*ProgressFunc) (int progress, void* priv), void* priv);
 	void startEncode(FileObject& output);
 	void writeID3v2Tag(const ID3Tag& tag);
