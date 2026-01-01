@@ -37,7 +37,7 @@
 #define PPL7_RELEASEDATE	20240904
 #define PPL7_COPYRIGHT		"Copyright (c) 2024 by Patrick Fedick"
 
-// Inlcude PPL7 configuration file
+ // Inlcude PPL7 configuration file
 #ifndef _PPL7_CONFIG
 #ifdef PPL7LIB
 #ifdef MINGW32
@@ -137,10 +137,10 @@ public:
 
 
 	MemoryHeap();
-	MemoryHeap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
+	MemoryHeap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent = 30);
 	~MemoryHeap();
 	void clear();
-	void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent=30);
+	void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent = 30);
 	void* malloc();
 	void* calloc();
 	void free(void* element);
@@ -179,7 +179,7 @@ public:
 
 
 }
- // Inlcude PPL7 Algorithms
+// Inlcude PPL7 Algorithms
 #ifdef PPL7LIB
 #include "ppl7-algorithms.h"
 #else
@@ -228,76 +228,76 @@ String UpperCase(const String& str);
 String LowerCase(const String& str);
 int StrCmp(const String& s1, const String& s2);
 int StrCaseCmp(const String& s1, const String& s2);
-ssize_t Instr(const String& haystack, const String& needle, size_t start=0);
-ssize_t InstrCase(const String& haystack, const String& needle, size_t start=0);
-ssize_t Instr(const char* haystack, const char* needle, size_t start=0);
-ssize_t Instrcase(const char* haystack, const char* needle, size_t start=0);
-ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start=0);
-ssize_t Instrcase(const wchar_t* haystack, const wchar_t* needle, size_t start=0);
+ssize_t Instr(const String& haystack, const String& needle, size_t start = 0);
+ssize_t InstrCase(const String& haystack, const String& needle, size_t start = 0);
+ssize_t Instr(const char* haystack, const char* needle, size_t start = 0);
+ssize_t Instrcase(const char* haystack, const char* needle, size_t start = 0);
+ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start = 0);
+ssize_t Instrcase(const wchar_t* haystack, const wchar_t* needle, size_t start = 0);
 
 String Left(const String& str, size_t num);
 String Right(const String& str, size_t num);
-String Mid(const String& str, size_t start, size_t num=(size_t)-1);
-String SubStr(const String& str, size_t start, size_t num=(size_t)-1);
+String Mid(const String& str, size_t start, size_t num = (size_t)-1);
+String SubStr(const String& str, size_t start, size_t num = (size_t)-1);
 String ToString(const char* fmt, ...);
 String Replace(const String& string, const String& search, const String& replace);
 String Transcode(const char* str, size_t size, const String& fromEncoding, const String& toEncoding);
 String Transcode(const String& str, const String& fromEncoding, const String& toEncoding);
 bool IsTrue(const String& str);
-Array StrTok(const String& string, const String& div=String("\n"));
-void StrTok(Array& result, const String& string, const String& div=String("\n"));
+Array StrTok(const String& string, const String& div = String("\n"));
+void StrTok(Array& result, const String& string, const String& div = String("\n"));
 
 String GetArgv(int argc, char* argv[], const String& argument);
 bool HaveArgv(int argc, char* argv[], const String& argument);
 
 
 class RegEx {
-	public:
+public:
 	class Flags {
-		public:
+	public:
 		enum {
-			NONE=0,
-			CASELESS=1,
-			ANCHORED=2,
-			MULTILINE=4,
-			EXTENDED=8,
-			DOTALL=16,
-			UNGREEDY=32
+			NONE = 0,
+			CASELESS = 1,
+			ANCHORED = 2,
+			MULTILINE = 4,
+			EXTENDED = 8,
+			DOTALL = 16,
+			UNGREEDY = 32
 		};
 	};
 
 	class Pattern {
 		friend class RegEx;
-		private:
-			void *p;
-			char bits;
-		public:
-			Pattern();
-			Pattern(const Pattern &other);
-			Pattern(const Pattern &&other);
-			~Pattern();
+	private:
+		void* p;
+		char bits;
+	public:
+		Pattern();
+		Pattern(const Pattern& other);
+		Pattern(const Pattern&& other);
+		~Pattern();
 	};
 
-	static Pattern compile(const String& regex, int flags=Flags::NONE);
-	static Pattern compile(const WideString& regex, int flags=Flags::NONE);
+	static Pattern compile(const String& regex, int flags = Flags::NONE);
+	static Pattern compile(const WideString& regex, int flags = Flags::NONE);
 
-	static bool match(const String& regex, const String& subject, int flags=Flags::NONE);
-	static bool match(const WideString& regex, const WideString& subject, int flags=Flags::NONE);
+	static bool match(const String& regex, const String& subject, int flags = Flags::NONE);
+	static bool match(const WideString& regex, const WideString& subject, int flags = Flags::NONE);
 	static bool match(const Pattern& pattern, const String& subject);
 	static bool match(const Pattern& pattern, const WideString& subject);
 
-	static bool capture(const String& regex, const String& subject, std::vector<String>& matches, int flags=Flags::NONE);
+	static bool capture(const String& regex, const String& subject, std::vector<String>& matches, int flags = Flags::NONE);
 	static bool capture(const Pattern& pattern, const String& subject, std::vector<String>& matches);
-	static bool capture(const WideString& regex, const WideString& subject, std::vector<WideString>& matches, int flags=Flags::NONE);
+	static bool capture(const WideString& regex, const WideString& subject, std::vector<WideString>& matches, int flags = Flags::NONE);
 	static bool capture(const Pattern& pattern, const WideString& subject, std::vector<WideString>& matches);
 
-	static String replace(const String& regex, const String& subject, const String &replacement, int flags=Flags::NONE, int max=0);
-	static String replace(const Pattern& pattern, const String& subject, const String &replacement, int max=0);
-	static WideString replace(const WideString& regex, const WideString& subject, const WideString &replacement, int flags=Flags::NONE, int max=0);
-	static WideString replace(const Pattern& pattern, const WideString& subject, const WideString &replacement, int max=0);
+	static String replace(const String& regex, const String& subject, const String& replacement, int flags = Flags::NONE, int max = 0);
+	static String replace(const Pattern& pattern, const String& subject, const String& replacement, int max = 0);
+	static WideString replace(const WideString& regex, const WideString& subject, const WideString& replacement, int flags = Flags::NONE, int max = 0);
+	static WideString replace(const Pattern& pattern, const WideString& subject, const WideString& replacement, int max = 0);
 
-	static String escape(const String &subject);
-	static WideString escape(const WideString &subject);
+	static String escape(const String& subject);
+	static WideString escape(const WideString& subject);
 };
 
 /*
@@ -309,8 +309,8 @@ String& pregReplace(const String &string, const String& regex, const String& rep
 WideString& pregReplace(const WideString &string, const WideString& regex, const WideString& replacement, int max=0);
 */
 
-Array Sort(const Array& array, bool unique=false);
-Array SortReverse(const Array& array, bool unique=false);
+Array Sort(const Array& array, bool unique = false);
+Array SortReverse(const Array& array, bool unique = false);
 size_t rand(size_t min, size_t max);
 double randf(double min, double max);
 ByteArray Random(size_t bytes);
@@ -334,11 +334,13 @@ float	PeekFloat(const void* Adresse);
 // Network-Byte-Order
 void PokeN8(void* Adresse, uint8_t Wert);
 void PokeN16(void* Adresse, uint16_t Wert);
+void PokeN24(void* Adresse, uint32_t Wert);
 void PokeN32(void* Adresse, uint32_t Wert);
 void PokeN64(void* Adresse, uint64_t Wert);
 
 uint8_t PeekN8(const void* Adresse);
 uint16_t PeekN16(const void* Adresse);
+uint32_t PeekN24(const void* Adresse);
 uint32_t PeekN32(const void* Adresse);
 uint64_t PeekN64(const void* Adresse);
 
@@ -346,25 +348,25 @@ uint64_t PeekN64(const void* Adresse);
 // cpu.cpp
 namespace CPUCAPS {
 enum {
-	CPU_NONE			= 0x00000000,
-	CPU_HAVE_CPUID		= 0x00000001,
-	CPU_HAVE_MMX		= 0x00000002,
-	CPU_HAVE_MMXExt		= 0x00000004,
-	CPU_HAVE_3DNow		= 0x00000008,
-	CPU_HAVE_3DNowExt	= 0x00000010,
-	CPU_HAVE_SSE		= 0x00000020,
-	CPU_HAVE_SSE2		= 0x00000040,
-	CPU_HAVE_AMD64		= 0x00000080,
-	CPU_HAVE_SSE3		= 0x00000100,
-	CPU_HAVE_SSSE3		= 0x00000200,
-	CPU_HAVE_SSE4a		= 0x00000400,
-	CPU_HAVE_SSE41		= 0x00000800,
-	CPU_HAVE_SSE42		= 0x00001000,
-	CPU_HAVE_AES		= 0x00002000,
-	CPU_HAVE_AVX		= 0x00004000,
-	CPU_HAVE_AVX2		= 0x00008000,
-	CPU_HAVE_AVX512		= 0x00010000,
-	CPU_HAVE_SHA		= 0x00020000,
+	CPU_NONE = 0x00000000,
+	CPU_HAVE_CPUID = 0x00000001,
+	CPU_HAVE_MMX = 0x00000002,
+	CPU_HAVE_MMXExt = 0x00000004,
+	CPU_HAVE_3DNow = 0x00000008,
+	CPU_HAVE_3DNowExt = 0x00000010,
+	CPU_HAVE_SSE = 0x00000020,
+	CPU_HAVE_SSE2 = 0x00000040,
+	CPU_HAVE_AMD64 = 0x00000080,
+	CPU_HAVE_SSE3 = 0x00000100,
+	CPU_HAVE_SSSE3 = 0x00000200,
+	CPU_HAVE_SSE4a = 0x00000400,
+	CPU_HAVE_SSE41 = 0x00000800,
+	CPU_HAVE_SSE42 = 0x00001000,
+	CPU_HAVE_AES = 0x00002000,
+	CPU_HAVE_AVX = 0x00004000,
+	CPU_HAVE_AVX2 = 0x00008000,
+	CPU_HAVE_AVX512 = 0x00010000,
+	CPU_HAVE_SHA = 0x00020000,
 };
 }
 
@@ -388,14 +390,14 @@ int SSleep(uint64_t seconds);
 double GetMicrotime();
 uint64_t GetMilliSeconds();
 
-ppl_time_t MkTime(const String& year, const String& month, const String& day, const String& hour="0", const String& min="0", const String& sec="0");
-ppl_time_t MkTime(int year, int month, int day, int hour=0, int min=0, int sec=0);
-ppl_time_t MkTime(const String& iso8601date, PPLTIME* t=NULL);
+ppl_time_t MkTime(const String& year, const String& month, const String& day, const String& hour = "0", const String& min = "0", const String& sec = "0");
+ppl_time_t MkTime(int year, int month, int day, int hour = 0, int min = 0, int sec = 0);
+ppl_time_t MkTime(const String& iso8601date, PPLTIME* t = NULL);
 ppl_time_t MkTime(const PPLTIME& t);
 
-String MkISO8601Date(ppl_time_t sec=0);
+String MkISO8601Date(ppl_time_t sec = 0);
 String MkISO8601Date(const PPLTIME& t);
-String MkRFC822Date(ppl_time_t sec=0);
+String MkRFC822Date(ppl_time_t sec = 0);
 String MkRFC822Date(const PPLTIME& t);
 String MkDate(const String& format, ppl_time_t sec);
 String MkDate(const String& format, const PPLTIME& t);
@@ -430,7 +432,7 @@ public:
 	void lock();
 	void unlock();
 	bool tryLock() throw();
-	int wait(int milliseconds=0) throw();
+	int wait(int milliseconds = 0) throw();
 	int signal() throw();
 };
 
@@ -441,17 +443,17 @@ class Signal
 private:
 public:
 	enum SignalType {
-		Signal_SIGHUP=1,
-		Signal_SIGINT=2,
-		Signal_SIGQUIT=3,
-		Signal_SIGILL=4,
-		Signal_SIGABRT=6,
-		Signal_SIGFPE=8,
-		Signal_SIGKILL=9,
-		Signal_SIGSEGV=11,
-		Signal_SIGPIPE=13,
-		Signal_SIGALRM=14,
-		Signal_SIGTERM=15,
+		Signal_SIGHUP = 1,
+		Signal_SIGINT = 2,
+		Signal_SIGQUIT = 3,
+		Signal_SIGILL = 4,
+		Signal_SIGABRT = 6,
+		Signal_SIGFPE = 8,
+		Signal_SIGKILL = 9,
+		Signal_SIGSEGV = 11,
+		Signal_SIGPIPE = 13,
+		Signal_SIGALRM = 14,
+		Signal_SIGTERM = 15,
 	};
 
 
@@ -469,7 +471,7 @@ public:
 uint64_t ThreadID();
 void* GetTLSData();
 void	SetTLSData(void* data);
-uint64_t	StartThread(void (*start_routine)(void*), void* data=NULL);
+uint64_t	StartThread(void (*start_routine)(void*), void* data = NULL);
 
 class Thread
 {
@@ -486,7 +488,7 @@ private:
 public:
 
 	enum Priority {
-		UNKNOWN=0,
+		UNKNOWN = 0,
 		LOWEST,
 		BELOW_NORMAL,
 		NORMAL,
@@ -509,14 +511,14 @@ public:
 	size_t	threadRunCount();
 	uint64_t  threadGetID();
 	int		threadShouldStop();
-	void	threadWaitSuspended(int msec=0);
-	void	threadSleep(int msec=0);
-	void	threadDeleteOnExit(int flag=1);
+	void	threadWaitSuspended(int msec = 0);
+	void	threadSleep(int msec = 0);
+	void	threadDeleteOnExit(int flag = 1);
 	int		threadShouldDeleteOnExit();
 	int		threadSetPriority(int priority);
 	int		threadGetPriority();
 	void	threadIdle();
-	int		threadSetStackSize(size_t size=0);
+	int		threadSetStackSize(size_t size = 0);
 	size_t	threadGetStackSize();
 	size_t	threadGetMinimumStackSize();
 	void	threadJoin();
@@ -565,26 +567,26 @@ public:
 class FileAttr {
 public:
 	enum Attributes {
-		IFFILE		= 0x10000,
-		IFSOCK		= 0x20000,
-		IFDIR		= 0x40000,
-		IFLINK		= 0x80000,
-		ISUID		= 0x4000,
-		ISGID		= 0x2000,
-		ISVTX		= 0x1000,
-		STICKY		= 0x1000,
-		USR_READ	= 0x0400,
-		USR_WRITE	= 0x0200,
-		USR_EXECUTE	= 0x0100,
-		GRP_READ	= 0x0040,
-		GRP_WRITE	= 0x0020,
-		GRP_EXECUTE	= 0x0010,
-		OTH_READ	= 0x0004,
-		OTH_WRITE	= 0x0002,
-		OTH_EXECUTE	= 0x0001,
-		CHMOD_755	= 0x0755,
-		CHMOD_644	= 0x0644,
-		NONE		= 0
+		IFFILE = 0x10000,
+		IFSOCK = 0x20000,
+		IFDIR = 0x40000,
+		IFLINK = 0x80000,
+		ISUID = 0x4000,
+		ISGID = 0x2000,
+		ISVTX = 0x1000,
+		STICKY = 0x1000,
+		USR_READ = 0x0400,
+		USR_WRITE = 0x0200,
+		USR_EXECUTE = 0x0100,
+		GRP_READ = 0x0040,
+		GRP_WRITE = 0x0020,
+		GRP_EXECUTE = 0x0010,
+		OTH_READ = 0x0004,
+		OTH_WRITE = 0x0002,
+		OTH_EXECUTE = 0x0001,
+		CHMOD_755 = 0x0755,
+		CHMOD_644 = 0x0644,
+		NONE = 0
 	};
 };
 
@@ -602,7 +604,7 @@ protected:
 
 public:
 	enum SeekOrigin {
-		SEEKCUR=1,
+		SEEKCUR = 1,
 		SEEKEND,
 		SEEKSET
 	};
@@ -616,16 +618,16 @@ public:
 
 	size_t				write(const void* source, size_t bytes, uint64_t fileposition);
 	size_t				write(const void* source, size_t bytes);
-	size_t				write(const ByteArrayPtr& object, size_t bytes=0);
+	size_t				write(const ByteArrayPtr& object, size_t bytes = 0);
 	size_t				read(void* target, size_t bytes, uint64_t fileposition);
 	size_t				read(void* target, size_t bytes);
 	size_t				read(ByteArray& target, size_t bytes);
 	uint64_t			copyFrom(FileObject& quellfile, uint64_t quelloffset, uint64_t bytes, uint64_t zieloffset);
 	uint64_t			copyFrom(FileObject& quellfile, uint64_t bytes);
-	int					gets(String& buffer, size_t num=1024);
-	int					getws(String& buffer, size_t num=1024);
-	String				gets(size_t num=1024);
-	String				getws(size_t num=1024);
+	int					gets(String& buffer, size_t num = 1024);
+	int					getws(String& buffer, size_t num = 1024);
+	String				gets(size_t num = 1024);
+	String				getws(size_t num = 1024);
 	void				putsf(const char* fmt, ...);
 	void				puts(const String& str);
 	void				putws(const WideString& str);
@@ -643,7 +645,7 @@ public:
 	virtual size_t		fread(void* ptr, size_t size, size_t nmemb);
 	virtual size_t		fwrite(const void* ptr, size_t size, size_t nmemb);
 	virtual char* fgets(char* buffer, size_t num);
-	virtual wchar_t* fgetws(wchar_t* buffer, size_t num=1024);
+	virtual wchar_t* fgetws(wchar_t* buffer, size_t num = 1024);
 	virtual void		fputs(const char* str);
 	virtual void		fputws(const wchar_t* str);
 	virtual	void		fputc(int c);
@@ -661,8 +663,8 @@ public:
 	virtual void		sync();
 	virtual void		truncate(uint64_t length);
 	virtual bool		isOpen() const;
-	virtual void		lockShared(bool block=true);
-	virtual void		lockExclusive(bool block=true);
+	virtual void		lockShared(bool block = true);
+	virtual void		lockExclusive(bool block = true);
 	virtual void		unlock();
 };
 
@@ -682,11 +684,11 @@ private:
 public:
 
 	MemFile();
-	MemFile(void* adresse, size_t size, bool writeable=false);
+	MemFile(void* adresse, size_t size, bool writeable = false);
 	MemFile(const ByteArrayPtr& memory);
 	~MemFile();
 
-	void		open(void* adresse, size_t size, bool writeable=false);
+	void		open(void* adresse, size_t size, bool writeable = false);
 	void		open(const ByteArrayPtr& memory);
 	void		openReadWrite(void* adresse, size_t size);
 	char* adr(size_t adresse);
@@ -702,7 +704,7 @@ public:
 	virtual size_t		fread(void* ptr, size_t size, size_t nmemb);
 	virtual size_t		fwrite(const void* ptr, size_t size, size_t nmemb);
 	virtual char* fgets(char* buffer, size_t num);
-	virtual wchar_t* fgetws(wchar_t* buffer, size_t num=1024);
+	virtual wchar_t* fgetws(wchar_t* buffer, size_t num = 1024);
 	virtual	void		fputc(int c);
 	virtual	int			fgetc();
 	virtual	void		fputwc(wchar_t c);
@@ -720,8 +722,8 @@ public:
 	virtual void		sync();
 	virtual void		truncate(uint64_t length);
 	virtual bool		isOpen() const;
-	virtual void		lockShared(bool block=true);
-	virtual void		lockExclusive(bool block=true);
+	virtual void		lockShared(bool block = true);
+	virtual void		lockExclusive(bool block = true);
 	virtual void		unlock();
 };
 
@@ -746,7 +748,7 @@ private:
 public:
 	PPL7EXCEPTION(IllegalFilemodeException, Exception);
 	enum FileMode {
-		READ=1,
+		READ = 1,
 		WRITE,
 		READWRITE,
 		APPEND,
@@ -758,17 +760,17 @@ public:
 	static void throwErrno(int e, const String& filename);
 
 	File();
-	File(const String& filename, FileMode mode=READ);
+	File(const String& filename, FileMode mode = READ);
 	File(FILE* handle);
 	virtual ~File();
 
-	void		open(const String& filename, FileMode mode=READ);
-	void		open(const char* filename, FileMode mode=READ);
+	void		open(const String& filename, FileMode mode = READ);
+	void		open(const char* filename, FileMode mode = READ);
 	void		open(FILE* handle);
 	void		openTemp(const String& filetemplate);
 	void		openTemp(const char* filetemplate);
-	void		popen(const char* command, FileMode mode=READ);
-	void		popen(const String& command, FileMode mode=READ);
+	void		popen(const char* command, FileMode mode = READ);
+	void		popen(const String& command, FileMode mode = READ);
 	void		erase();
 
 	// Virtuelle Funktionen
@@ -782,7 +784,7 @@ public:
 	virtual size_t		fread(void* ptr, size_t size, size_t nmemb);
 	virtual size_t		fwrite(const void* ptr, size_t size, size_t nmemb);
 	virtual char* fgets(char* buffer, size_t num);
-	virtual wchar_t* fgetws(wchar_t* buffer, size_t num=1024);
+	virtual wchar_t* fgetws(wchar_t* buffer, size_t num = 1024);
 	virtual void		fputs(const char* str);
 	virtual void		fputws(const wchar_t* str);
 	virtual	void		fputc(int c);
@@ -794,8 +796,8 @@ public:
 	virtual void		flush();
 	virtual void		sync();
 	virtual void		truncate(uint64_t length);
-	virtual void		lockShared(bool block=true);
-	virtual void		lockExclusive(bool block=true);
+	virtual void		lockShared(bool block = true);
+	virtual void		lockExclusive(bool block = true);
 	virtual void		unlock();
 	virtual void		setMapReadAhead(size_t bytes);
 	virtual const char* map(uint64_t position, size_t size);
@@ -806,7 +808,7 @@ public:
 	// Static Functions
 	static void load(ByteArray& object, const String& filename);
 	static void load(String& object, const String& filename);
-	static void* load(const String& filename, size_t* size=NULL);
+	static void* load(const String& filename, size_t* size = NULL);
 	static void truncate(const String& filename, uint64_t bytes);
 	static bool exists(const String& filename);
 	static void copy(const String& oldfile, const String& newfile);
@@ -852,13 +854,13 @@ private:
 
 public:
 	GzFile();
-	GzFile(const String& filename, File::FileMode mode=File::READ);
+	GzFile(const String& filename, File::FileMode mode = File::READ);
 	GzFile(int fd);
 	virtual ~GzFile();
 
-	void		open(const String& filename, File::FileMode mode=File::READ);
-	void		open(const char* filename, File::FileMode mode=File::READ);
-	void		open(int fd, File::FileMode mode=File::READ);
+	void		open(const String& filename, File::FileMode mode = File::READ);
+	void		open(const char* filename, File::FileMode mode = File::READ);
+	void		open(int fd, File::FileMode mode = File::READ);
 
 	// Virtuelle Funktionen
 	virtual void		close();
@@ -903,7 +905,7 @@ public:
 	bool		isExecutable();
 	DirEntry& operator=(const DirEntry& other);
 	void		toArray(AssocArray& a) const;
-	void		print(const char* label=NULL);
+	void		print(const char* label = NULL);
 };
 
 class Dir
@@ -941,12 +943,12 @@ public:
 	typedef ppl7::List<const DirEntry*>::Iterator Iterator;
 
 	Dir();
-	Dir(const char* path, Sort s=SORT_NONE);
-	Dir(const String& path, Sort s=SORT_NONE);
+	Dir(const char* path, Sort s = SORT_NONE);
+	Dir(const String& path, Sort s = SORT_NONE);
 	~Dir();
-	void open(const char* path, Sort s=SORT_NONE);
-	void open(const String& path, Sort s=SORT_NONE);
-	bool tryOpen(const String& path, Sort s=SORT_NONE);
+	void open(const char* path, Sort s = SORT_NONE);
+	void open(const String& path, Sort s = SORT_NONE);
+	bool tryOpen(const String& path, Sort s = SORT_NONE);
 	void resort(Sort s);
 	void clear();
 	size_t num() const;
@@ -954,15 +956,15 @@ public:
 	void reset(Iterator& it) const;
 	const DirEntry& getFirst(Iterator& it) const;
 	const DirEntry& getNext(Iterator& it) const;
-	const DirEntry& getFirstPattern(Iterator& it, const String& pattern, bool ignorecase=false) const;
-	const DirEntry& getNextPattern(Iterator& it, const String& pattern, bool ignorecase=false) const;
+	const DirEntry& getFirstPattern(Iterator& it, const String& pattern, bool ignorecase = false) const;
+	const DirEntry& getNextPattern(Iterator& it, const String& pattern, bool ignorecase = false) const;
 	const DirEntry& getFirstRegExp(Iterator& it, const String& regexp) const;
 	const DirEntry& getNextRegExp(Iterator& it, const String& regexp) const;
 
 	bool getFirst(DirEntry& e, Iterator& it) const;
 	bool getNext(DirEntry& e, Iterator& it) const;
-	bool getFirstPattern(DirEntry& e, Iterator& it, const String& pattern, bool ignorecase=false) const;
-	bool getNextPattern(DirEntry& e, Iterator& it, const String& pattern, bool ignorecase=false) const;
+	bool getFirstPattern(DirEntry& e, Iterator& it, const String& pattern, bool ignorecase = false) const;
+	bool getNextPattern(DirEntry& e, Iterator& it, const String& pattern, bool ignorecase = false) const;
 	bool getFirstRegExp(DirEntry& e, Iterator& it, const String& regexp) const;
 	bool getNextRegExp(DirEntry& e, Iterator& it, const String& regexp) const;
 
@@ -988,21 +990,21 @@ class Compression
 {
 public:
 	enum Algorithm {
-		Algo_NONE=0,
+		Algo_NONE = 0,
 		Algo_ZLIB,
 		Algo_BZIP2,
-		Unknown=256
+		Unknown = 256
 	};
 
 	enum Level {
-		Level_Fast=0,
+		Level_Fast = 0,
 		Level_Normal,
 		Level_Default,
 		Level_High
 	};
 
 	enum Prefix {
-		Prefix_None=0,
+		Prefix_None = 0,
 		Prefix_V1,
 		Prefix_V2,
 	};
@@ -1025,27 +1027,27 @@ private:
 public:
 
 	Compression();
-	Compression(Algorithm method, Level level=Level_Default);
+	Compression(Algorithm method, Level level = Level_Default);
 	~Compression();
-	void init(Algorithm method, Level level=Level_Default);
+	void init(Algorithm method, Level level = Level_Default);
 	void usePrefix(Prefix prefix);
 
-	void compress(void* dst, size_t* dstlen, const void* src, size_t size, Algorithm a=Unknown);
+	void compress(void* dst, size_t* dstlen, const void* src, size_t size, Algorithm a = Unknown);
 	void compress(ByteArray& out, const void* ptr, size_t size);
 	void compress(ByteArray& out, const ByteArrayPtr& in);
 	ByteArrayPtr compress(const void* ptr, size_t size);
 	ByteArrayPtr compress(const ByteArrayPtr& in);
 
-	void uncompress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a=Unknown);
+	void uncompress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a = Unknown);
 	void uncompress(ByteArray& out, const ByteArrayPtr& data);
-	void uncompress(ByteArray& out, const void* data, size_t size=0);
+	void uncompress(ByteArray& out, const void* data, size_t size = 0);
 	ByteArrayPtr uncompress(const void* ptr, size_t size);
 	ByteArrayPtr uncompress(const ByteArrayPtr& in);
 };
 
-void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level=Compression::Level_Default);
-void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level=Compression::Level_Default);
-void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level=Compression::Level_Default);
+void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level = Compression::Level_Default);
+void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level_Default);
+void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level = Compression::Level_Default);
 void Uncompress(ByteArray& out, const ByteArrayPtr& in);
 
 
@@ -1099,7 +1101,7 @@ public:
 	void setCopyright(const String& copy);
 	void setDescription(const String& descr);
 	void setName(const String& name);
-	void setVersion(int main=0, int sub=0);
+	void setVersion(int main = 0, int sub = 0);
 	void setId(const String& id);
 	void save(const String& filename);
 	void addChunk(PFPChunk* chunk);
@@ -1160,16 +1162,16 @@ public:
 	void load(const String& filename);
 	void load(FileObject& file);
 	void load(const ByteArrayPtr& memory);
-		/* Bei Load wird die gesamte Datei in den Speicher geladen und erst
-		 * beim Loeschen der Resource wieder freigegeben. Die angegebene Datei
-		 * kann vorher geschlossen werden
-		 */
+	/* Bei Load wird die gesamte Datei in den Speicher geladen und erst
+	 * beim Loeschen der Resource wieder freigegeben. Die angegebene Datei
+	 * kann vorher geschlossen werden
+	 */
 	void useMemory(const ByteArrayPtr& memory);
 	void useMemory(void* ptr, size_t size);
-		/* Wird UseMemory benutzt, muss ein Pointer auf einen Speicherbereich
-		 * angegeben werden, der seine Gueltigkeit nicht verlieren darf,
-		 * solange die Instanz von Resource existiert.
-		 */
+	/* Wird UseMemory benutzt, muss ein Pointer auf einen Speicherbereich
+	 * angegeben werden, der seine Gueltigkeit nicht verlieren darf,
+	 * solange die Instanz von Resource existiert.
+	 */
 
 	FileObject* getFile(int id);
 	FileObject* getFile(const String& name);
@@ -1197,7 +1199,7 @@ class PythonHelper
 public:
 	static String escapeString(const String& s);
 	static String escapeRegExp(const String& s);
-	static String toHash(const AssocArray& a, const String& name, int indention=0);
+	static String toHash(const AssocArray& a, const String& name, int indention = 0);
 
 };
 
@@ -1211,18 +1213,18 @@ class Logger
 {
 public:
 	enum PRIORITY {
-		EMERG		= 1,
-		ALERT		= 2,
-		CRIT		= 3,
-		ERR			= 4,
-		WARNING		= 5,
-		NOTICE		= 6,
-		INFO		= 7,
-		DEBUG		= 8
+		EMERG = 1,
+		ALERT = 2,
+		CRIT = 3,
+		ERR = 4,
+		WARNING = 5,
+		NOTICE = 6,
+		INFO = 7,
+		DEBUG = 8
 	};
 
 	enum SYSLOG_FACILITY {
-		SYSLOG_AUTH=1,
+		SYSLOG_AUTH = 1,
 		SYSLOG_AUTHPRIV,
 		SYSLOG_CONSOLE,
 		SYSLOG_CRON,
@@ -1270,8 +1272,8 @@ private:
 
 	bool		shouldPrint(const char* module, const char* function, const char* file, int line, PRIORITY prio, int level);
 	int			isFiltered(const char* module, const char* function, const char* file, int line, int level);
-	void		output(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const String& buffer, bool printdate=true);
-	void		outputArray(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const AssocArray& a, const char* prefix, String* Out=NULL);
+	void		output(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const String& buffer, bool printdate = true);
+	void		outputArray(PRIORITY prio, int level, const char* module, const char* function, const char* file, int line, const AssocArray& a, const char* prefix, String* Out = NULL);
 	void		checkRotate(PRIORITY prio);
 
 public:
@@ -1283,12 +1285,12 @@ public:
 	void	deleteLogHandler(LogHandler* handler);
 	void	setLogfile(PRIORITY prio, const String& filename);
 	void	setLogfile(PRIORITY prio, const String& filename, int level);
-	void	setLogLevel(PRIORITY prio, int level=1);
+	void	setLogLevel(PRIORITY prio, int level = 1);
 	int		getLogLevel(PRIORITY prio);
 	String	getLogfile(PRIORITY prio);
 	void	setLogRotate(uint64_t maxsize, int generations);
-	void	enableConsole(bool flag=true, PRIORITY prio=Logger::DEBUG, int level=1);
-	void	openSyslog(const String& ident, SYSLOG_FACILITY facility=SYSLOG_USER);
+	void	enableConsole(bool flag = true, PRIORITY prio = Logger::DEBUG, int level = 1);
+	void	openSyslog(const String& ident, SYSLOG_FACILITY facility = SYSLOG_USER);
 	void	closeSyslog();
 	void	printException(const Exception& e);
 	void	printException(const char* file, int line, const Exception& e);
@@ -1318,8 +1320,8 @@ public:
 class LogHandler
 {
 public:
-	virtual ~LogHandler()=0;
-	virtual void logMessage(Logger::PRIORITY prio, int level, const String& msg)=0;
+	virtual ~LogHandler() = 0;
+	virtual void logMessage(Logger::PRIORITY prio, int level, const String& msg) = 0;
 };
 
 
@@ -1371,12 +1373,12 @@ public:
 	void deleteKey(const String& section, const String& key);
 	bool hasKey(const String& key) const;
 	bool hasKey(const String& section, const String& key) const;
-	String get(const String& key, const String& defaultvalue=String()) const;
-	bool	getBool(const String& key, bool defaultvalue=false) const;
-	int		getInt(const String& key, int defaultvalue=0) const;
-	String	getFromSection(const String& section, const String& key, const String& defaultvalue=String()) const;
-	bool	getBoolFromSection(const String& section, const String& key, bool defaultvalue=false) const;
-	int		getIntFromSection(const String& section, const String& key, int defaultvalue=0) const;
+	String get(const String& key, const String& defaultvalue = String()) const;
+	bool	getBool(const String& key, bool defaultvalue = false) const;
+	int		getInt(const String& key, int defaultvalue = 0) const;
+	String	getFromSection(const String& section, const String& key, const String& defaultvalue = String()) const;
+	bool	getBoolFromSection(const String& section, const String& key, bool defaultvalue = false) const;
+	int		getIntFromSection(const String& section, const String& key, int defaultvalue = 0) const;
 	void reset();								// Zum Auslesen einer kompletten Section
 	bool getFirst(String& key, String& value);
 	bool getNext(String& key, String& value);

@@ -76,7 +76,7 @@
 
 namespace ppl7 {
 
-static int	printdebug=0;
+static int	printdebug = 0;
 
 /*!\brief Ausgabe für Debug-Output angeben
  *
@@ -89,7 +89,7 @@ static int	printdebug=0;
  */
 void SetGlobalOutput(int type)
 {
-	printdebug=type;
+	printdebug = type;
 }
 
 /*!\brief Interne Funktion zur Ausgabe von Text
@@ -105,7 +105,7 @@ void SetGlobalOutput(int type)
 void PrintDebug(const char* format, ...)
 {
 	if (!format) return;
-	char* buff=NULL;
+	char* buff = NULL;
 	va_list args;
 	va_start(args, format);
 #ifdef HAVE_VASPRINTF
@@ -126,7 +126,8 @@ void PrintDebug(const char* format, ...)
 #elif defined WIN32
 		OutputDebugString(buff);
 #endif
-	} else {
+	}
+	else {
 		printf("%s", buff);
 		fflush(stdout);
 	}
@@ -146,7 +147,7 @@ void PrintDebug(const char* format, ...)
 void PrintDebugTime(const char* format, ...)
 {
 	if (!format) return;
-	char* buff=NULL;
+	char* buff = NULL;
 	va_list args;
 	va_start(args, format);
 #ifdef HAVE_VASPRINTF
@@ -161,8 +162,8 @@ void PrintDebugTime(const char* format, ...)
 	if (!buff) return;
 	DateTime now;
 	now.setCurrentTime();
-	String Time=now.getISO8601withMsec();
-	Time+=": ";
+	String Time = now.getISO8601withMsec();
+	Time += ": ";
 
 	if (printdebug == 1) {
 #ifdef PPLVISUALC
@@ -175,12 +176,13 @@ void PrintDebugTime(const char* format, ...)
 		OutputDebugString((const char*)Time);
 		OutputDebugString(buff);
 #endif
-	} else {
+	}
+	else {
 		printf("%s%s", (const char*)Time, buff);
 		fflush(stdout);
 	}
 	free(buff);
-	}
+}
 
 void HexDump(const void* address, size_t bytes, bool skipheader)
 {
@@ -189,31 +191,31 @@ void HexDump(const void* address, size_t bytes, bool skipheader)
 		printf("HEXDUMP: %zu Bytes starting at Address %p:\n", bytes, address);
 	}
 
-	const char* _adresse=(const char*)address;
-	const char* start_adr=_adresse;
-	int spalte=0;
+	const char* _adresse = (const char*)address;
+	const char* start_adr = _adresse;
+	int spalte = 0;
 	//sprintf (buff,"%p: ",_adresse);
-	buff[0]=0;
+	buff[0] = 0;
 	memset(cleartext, 0, 20);
-	for (size_t i=0;i < bytes;i++) {
+	for (size_t i = 0;i < bytes;i++) {
 		sprintf(tmp, "%02X ", (uint8_t)_adresse[i]);
 		strcat(buff, tmp);
-		if ((uint8_t)_adresse[i] > 31 && (uint8_t)_adresse[i] < 128)  cleartext[spalte]=(uint8_t)_adresse[i];
-		else cleartext[spalte]='.';
+		if ((uint8_t)_adresse[i] > 31 && (uint8_t)_adresse[i] < 128)  cleartext[spalte] = (uint8_t)_adresse[i];
+		else cleartext[spalte] = '.';
 		spalte++;
 		if (spalte > 15) {
-			buff[16 * 3 - 1]=0;
+			buff[16 * 3 - 1] = 0;
 			printf("%p: %s: %s\n", start_adr, buff, cleartext);
-			buff[0]=0;
+			buff[0] = 0;
 			memset(cleartext, 0, 20);
-			spalte=0;
-			start_adr=_adresse + i + 1;
+			spalte = 0;
+			start_adr = _adresse + i + 1;
 		}
 	}
 
 	if (spalte > 0) {
 		strcat(buff, "                                                               ");
-		buff[16 * 3 - 1]=0;
+		buff[16 * 3 - 1] = 0;
 		printf("%p: %s: %s\n", start_adr, buff, cleartext);
 	}
 	if (!skipheader) printf("\n");
@@ -261,21 +263,21 @@ void HexDump(const void* address, size_t bytes)
  */
 
 
-/*!\brief 8-Bit-Wert schreiben
- * \ingroup PPLGroupPeekPoke
- *
- * \desc
- * Die ersten 8 Bit des Wertes werden in die angegebene Speicheradresse
- * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
- * Rechners mit Little- oder Big-Endian arbeitet.
- *
- * @param Adresse Speicheradresse, in die geschrieben werden soll
- * @param Wert Wert, der gespeichert werden soll
- * @see Beschreibung von \ref PPLGroupPeekPoke
- */
+ /*!\brief 8-Bit-Wert schreiben
+  * \ingroup PPLGroupPeekPoke
+  *
+  * \desc
+  * Die ersten 8 Bit des Wertes werden in die angegebene Speicheradresse
+  * im Little-Endian-Format geschrieben. Es spielt keine Rolle, ob die CPU des
+  * Rechners mit Little- oder Big-Endian arbeitet.
+  *
+  * @param Adresse Speicheradresse, in die geschrieben werden soll
+  * @param Wert Wert, der gespeichert werden soll
+  * @see Beschreibung von \ref PPLGroupPeekPoke
+  */
 void Poke8(void* Adresse, uint8_t Wert)
 {
-	((uint8_t*)Adresse)[0]=Wert;
+	((uint8_t*)Adresse)[0] = Wert;
 }
 
 /*!\brief 16-Bit-Wert schreiben
@@ -293,10 +295,10 @@ void Poke8(void* Adresse, uint8_t Wert)
 void Poke16(void* Adresse, uint16_t Wert)
 {
 #ifdef __BIG_ENDIAN__
-	((uint8_t*)Adresse)[0]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 8) & 255);
 #else
-	((uint16_t*)Adresse)[0]=Wert;
+	((uint16_t*)Adresse)[0] = Wert;
 #endif
 
 }
@@ -315,9 +317,9 @@ void Poke16(void* Adresse, uint16_t Wert)
  */
 void Poke24(void* Adresse, uint32_t Wert)
 {
-	((uint8_t*)Adresse)[0]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 8) & 255);
-	((uint8_t*)Adresse)[2]=(uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 16) & 255);
 }
 
 /*!\brief 32-Bit-Wert schreiben
@@ -335,12 +337,12 @@ void Poke24(void* Adresse, uint32_t Wert)
 void Poke32(void* Adresse, uint32_t Wert)
 {
 #ifdef __BIG_ENDIAN__
-	((uint8_t*)Adresse)[0]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 8) & 255);
-	((uint8_t*)Adresse)[2]=(uint8_t)((Wert >> 16) & 255);
-	((uint8_t*)Adresse)[3]=(uint8_t)((Wert >> 24) & 255);
+	((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[3] = (uint8_t)((Wert >> 24) & 255);
 #else
-	((uint32_t*)Adresse)[0]=Wert;
+	((uint32_t*)Adresse)[0] = Wert;
 #endif
 }
 
@@ -359,16 +361,16 @@ void Poke32(void* Adresse, uint32_t Wert)
 void Poke64(void* Adresse, uint64_t Wert)
 {
 #ifdef __BIG_ENDIAN__
-	((uint8_t*)Adresse)[0]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 8) & 255);
-	((uint8_t*)Adresse)[2]=(uint8_t)((Wert >> 16) & 255);
-	((uint8_t*)Adresse)[3]=(uint8_t)((Wert >> 24) & 255);
-	((uint8_t*)Adresse)[4]=(uint8_t)((Wert >> 32) & 255);
-	((uint8_t*)Adresse)[5]=(uint8_t)((Wert >> 40) & 255);
-	((uint8_t*)Adresse)[6]=(uint8_t)((Wert >> 48) & 255);
-	((uint8_t*)Adresse)[7]=(uint8_t)((Wert >> 56) & 255);
+	((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[3] = (uint8_t)((Wert >> 24) & 255);
+	((uint8_t*)Adresse)[4] = (uint8_t)((Wert >> 32) & 255);
+	((uint8_t*)Adresse)[5] = (uint8_t)((Wert >> 40) & 255);
+	((uint8_t*)Adresse)[6] = (uint8_t)((Wert >> 48) & 255);
+	((uint8_t*)Adresse)[7] = (uint8_t)((Wert >> 56) & 255);
 #else
-	((uint64_t*)Adresse)[0]=Wert;
+	((uint64_t*)Adresse)[0] = Wert;
 #endif
 }
 
@@ -386,11 +388,13 @@ void Poke64(void* Adresse, uint64_t Wert)
  */
 void PokeFloat(void* Adresse, float Wert)
 {
-#ifdef __BIG_ENDIAN__
-	((float*)Adresse)[0]=Wert;
-#else
-	((float*)Adresse)[0]=Wert;
-#endif
+	// Immer Little-Endian ablegen, Byte für Byte
+	uint8_t* dst = (uint8_t*)Adresse;
+	uint8_t* src = (uint8_t*)&Wert;
+	dst[0] = src[0];
+	dst[1] = src[1];
+	dst[2] = src[2];
+	dst[3] = src[3];
 }
 
 /*!\brief 8-Bit-Wert auslesen
@@ -424,8 +428,8 @@ uint16_t Peek16(const void* Adresse)
 {
 #ifdef __BIG_ENDIAN__
 	uint8_t wert1, wert2;
-	wert1=((uint8_t*)Adresse)[0];
-	wert2=((uint8_t*)Adresse)[1];
+	wert1 = ((uint8_t*)Adresse)[0];
+	wert2 = ((uint8_t*)Adresse)[1];
 	return((uint32_t)(uint32_t)wert1 + ((uint32_t)wert2 << 8));
 #else
 	return (uint16_t)((uint16_t*)Adresse)[0];
@@ -446,9 +450,9 @@ uint16_t Peek16(const void* Adresse)
 uint32_t Peek24(const void* Adresse)
 {
 	uint8_t wert1, wert2, wert3;
-	wert1=((uint8_t*)Adresse)[0];
-	wert2=((uint8_t*)Adresse)[1];
-	wert3=((uint8_t*)Adresse)[2];
+	wert1 = ((uint8_t*)Adresse)[0];
+	wert2 = ((uint8_t*)Adresse)[1];
+	wert3 = ((uint8_t*)Adresse)[2];
 	return((uint32_t)wert1 + (wert2 << 8) + (wert3 << 16));
 }
 
@@ -467,10 +471,10 @@ uint32_t Peek32(const void* Adresse)
 {
 #ifdef __BIG_ENDIAN__
 	uint8_t wert1, wert2, wert3, wert4;
-	wert1=((uint8_t*)Adresse)[0];
-	wert2=((uint8_t*)Adresse)[1];
-	wert3=((uint8_t*)Adresse)[2];
-	wert4=((uint8_t*)Adresse)[3];
+	wert1 = ((uint8_t*)Adresse)[0];
+	wert2 = ((uint8_t*)Adresse)[1];
+	wert3 = ((uint8_t*)Adresse)[2];
+	wert4 = ((uint8_t*)Adresse)[3];
 
 	return((uint32_t)(uint32_t)wert1 + ((uint32_t)wert2 << 8) + ((uint32_t)wert3 << 16) + ((uint32_t)wert4 << 24));
 #else
@@ -493,14 +497,14 @@ uint64_t Peek64(const void* Adresse)
 {
 #ifdef __BIG_ENDIAN__
 	uint8_t wert1, wert2, wert3, wert4, wert5, wert6, wert7, wert8;
-	wert1=((uint8_t*)Adresse)[0];
-	wert2=((uint8_t*)Adresse)[1];
-	wert3=((uint8_t*)Adresse)[2];
-	wert4=((uint8_t*)Adresse)[3];
-	wert5=((uint8_t*)Adresse)[4];
-	wert6=((uint8_t*)Adresse)[5];
-	wert7=((uint8_t*)Adresse)[6];
-	wert8=((uint8_t*)Adresse)[7];
+	wert1 = ((uint8_t*)Adresse)[0];
+	wert2 = ((uint8_t*)Adresse)[1];
+	wert3 = ((uint8_t*)Adresse)[2];
+	wert4 = ((uint8_t*)Adresse)[3];
+	wert5 = ((uint8_t*)Adresse)[4];
+	wert6 = ((uint8_t*)Adresse)[5];
+	wert7 = ((uint8_t*)Adresse)[6];
+	wert8 = ((uint8_t*)Adresse)[7];
 
 	return((uint64_t)(uint64_t)wert1 + ((uint64_t)wert2 << 8) + ((uint64_t)wert3 << 16) + ((uint64_t)wert4 << 24) + ((uint64_t)wert5 << 32) + ((uint64_t)wert6 << 40) + ((uint64_t)wert7 << 48) + ((uint64_t)wert8 << 56));
 #else
@@ -521,11 +525,15 @@ uint64_t Peek64(const void* Adresse)
  */
 float PeekFloat(const void* Adresse)
 {
-#ifdef __BIG_ENDIAN__
-	return (float)((float*)Adresse)[0];
-#else
-	return (float)((float*)Adresse)[0];
-#endif
+	// Immer aus Little-Endian zusammensetzen
+	float Wert;
+	uint8_t* dst = (uint8_t*)&Wert;
+	const uint8_t* src = (const uint8_t*)Adresse;
+	dst[0] = src[0];
+	dst[1] = src[1];
+	dst[2] = src[2];
+	dst[3] = src[3];
+	return Wert;
 }
 
 /*!\brief 8-Bit-Wert in Network-Byteorder schreiben
@@ -542,7 +550,7 @@ float PeekFloat(const void* Adresse)
  */
 void PokeN8(void* Adresse, uint8_t Wert)
 {
-	((uint8_t*)Adresse)[0]=(uint8_t)(Wert & 255);
+	((uint8_t*)Adresse)[0] = (uint8_t)(Wert & 255);
 }
 
 /*!\brief 16-Bit-Wert in Network-Byteorder schreiben
@@ -562,14 +570,38 @@ void PokeN16(void* Adresse, uint16_t Wert)
 #ifdef __BIG_ENDIAN__
 	// Direktes schreiben löst bei unalignten Adressen unter Solaris einen Bus-Error aus
 	//((uint16_t*)Adresse)[0]=(uint16_t)(Wert & 0xffff);
-	((uint8_t*)Adresse)[1]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[0]=(uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)(Wert & 255);
+	((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 8) & 255);
 #else
-	((uint8_t*)Adresse)[1]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[0]=(uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)(Wert & 255);
+	((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 8) & 255);
 #endif
 
 }
+
+/*!\brief 24-Bit-Wert in Network-Byteorder schreiben
+ * \ingroup PPLGroupPeekPoke
+ *
+ * \desc
+ * Die ersten 24 Bit des Wertes werden in die angegebene Speicheradresse
+ * im Big-Endian-Format (Network-Byteorder) geschrieben. Es spielt keine Rolle, ob die CPU des
+ * Rechners mit Little- oder Big-Endian arbeitet.
+ *
+ * @param Adresse Speicheradresse, in die geschrieben werden soll
+ * @param Wert Wert, der gespeichert werden soll
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+void PokeN24(void* Adresse, uint32_t Wert)
+{
+	// Immer als Big-Endian (Network Order) ablegen: [0]=MSB ... [2]=LSB
+	((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)(Wert & 255);
+
+}
+
+
+
 
 /*!\brief 32-Bit-Wert in Network-Byteorder schreiben
  * \ingroup PPLGroupPeekPoke
@@ -586,15 +618,17 @@ void PokeN16(void* Adresse, uint16_t Wert)
 void PokeN32(void* Adresse, uint32_t Wert)
 {
 #ifdef __BIG_ENDIAN__
-	((uint8_t*)Adresse)[3]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[2]=(uint8_t)((Wert >> 8) & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 16) & 255);
-	((uint8_t*)Adresse)[0]=(uint8_t)((Wert >> 24) & 255);
+	// Big-Endian: [0]=MSB ... [3]=LSB
+	((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 24) & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[3] = (uint8_t)(Wert & 255);
 #else
-	((uint8_t*)Adresse)[3]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[2]=(uint8_t)((Wert >> 8) & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 16) & 255);
-	((uint8_t*)Adresse)[0]=(uint8_t)((Wert >> 24) & 255);
+	// Little-Endian: explizit Big-Endian anordnen
+	((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 24) & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[3] = (uint8_t)(Wert & 255);
 #endif
 
 }
@@ -614,25 +648,25 @@ void PokeN32(void* Adresse, uint32_t Wert)
 void PokeN64(void* Adresse, uint64_t Wert)
 {
 #ifdef __BIG_ENDIAN__
-	// Direktes schreiben löst bei unalignten Adressen unter Solaris einen Bus-Error aus
-	//((uint64_t*)Adresse)[0]=Wert;
-	((uint8_t*)Adresse)[7]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[6]=(uint8_t)((Wert >> 8) & 255);
-	((uint8_t*)Adresse)[5]=(uint8_t)((Wert >> 16) & 255);
-	((uint8_t*)Adresse)[4]=(uint8_t)((Wert >> 24) & 255);
-	((uint8_t*)Adresse)[3]=(uint8_t)((Wert >> 32) & 255);
-	((uint8_t*)Adresse)[2]=(uint8_t)((Wert >> 40) & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 48) & 255);
-	((uint8_t*)Adresse)[0]=(uint8_t)((Wert >> 56) & 255);
+	// Big-Endian: [0]=MSB ... [7]=LSB
+	((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 56) & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 48) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 40) & 255);
+	((uint8_t*)Adresse)[3] = (uint8_t)((Wert >> 32) & 255);
+	((uint8_t*)Adresse)[4] = (uint8_t)((Wert >> 24) & 255);
+	((uint8_t*)Adresse)[5] = (uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[6] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[7] = (uint8_t)(Wert & 255);
 #else
-	((uint8_t*)Adresse)[7]=(uint8_t)(Wert & 255);
-	((uint8_t*)Adresse)[6]=(uint8_t)((Wert >> 8) & 255);
-	((uint8_t*)Adresse)[5]=(uint8_t)((Wert >> 16) & 255);
-	((uint8_t*)Adresse)[4]=(uint8_t)((Wert >> 24) & 255);
-	((uint8_t*)Adresse)[3]=(uint8_t)((Wert >> 32) & 255);
-	((uint8_t*)Adresse)[2]=(uint8_t)((Wert >> 40) & 255);
-	((uint8_t*)Adresse)[1]=(uint8_t)((Wert >> 48) & 255);
-	((uint8_t*)Adresse)[0]=(uint8_t)((Wert >> 56) & 255);
+	// Little-Endian: explizit Big-Endian anordnen
+	((uint8_t*)Adresse)[0] = (uint8_t)((Wert >> 56) & 255);
+	((uint8_t*)Adresse)[1] = (uint8_t)((Wert >> 48) & 255);
+	((uint8_t*)Adresse)[2] = (uint8_t)((Wert >> 40) & 255);
+	((uint8_t*)Adresse)[3] = (uint8_t)((Wert >> 32) & 255);
+	((uint8_t*)Adresse)[4] = (uint8_t)((Wert >> 24) & 255);
+	((uint8_t*)Adresse)[5] = (uint8_t)((Wert >> 16) & 255);
+	((uint8_t*)Adresse)[6] = (uint8_t)((Wert >> 8) & 255);
+	((uint8_t*)Adresse)[7] = (uint8_t)(Wert & 255);
 #endif
 }
 
@@ -666,18 +700,46 @@ uint8_t PeekN8(const void* Adresse)
 uint16_t PeekN16(const void* Adresse)
 {
 #ifdef __BIG_ENDIAN__
-	uint8_t wert1, wert2;
-	wert1=((uint8_t*)Adresse)[1];
-	wert2=((uint8_t*)Adresse)[0];
-	return((uint32_t)(uint32_t)wert1 + ((uint32_t)wert2 << 8));
-
+	return (uint16_t)((uint16_t*)Adresse)[0];
 #else
 	uint8_t wert1, wert2;
-	wert1=((uint8_t*)Adresse)[1];
-	wert2=((uint8_t*)Adresse)[0];
+	wert1 = ((uint8_t*)Adresse)[1];
+	wert2 = ((uint8_t*)Adresse)[0];
 	return((uint16_t)(uint16_t)wert1 + ((uint16_t)wert2 << 8));
 #endif
 }
+
+/*!\brief 24-Bit-Wert in Network-Byteorder auslesen
+ * \ingroup PPLGroupPeekPoke
+ *
+ * \desc
+ * Die ersten 24 Bit der angegebenen Adresse werden im Big-Endian-Format (Network-Byteorder)
+ * ausgelesen und als Wert zurückgegeben
+ *
+ * @param Adresse Speicheradresse, aus der gelesen werden soll
+ * @return Ausgelesener Wert
+ * @see Beschreibung von \ref PPLGroupPeekPoke
+ */
+uint32_t PeekN24(const void* Adresse)
+{
+#ifdef __BIG_ENDIAN__
+	// Big-Endian: Bytes liegen bereits in Network Order
+	// [0] = MSB, [1] = Middle, [2] = LSB
+	uint8_t msb = ((uint8_t*)Adresse)[0];
+	uint8_t mid = ((uint8_t*)Adresse)[1];
+	uint8_t lsb = ((uint8_t*)Adresse)[2];
+	return ((uint32_t)msb << 16) + ((uint32_t)mid << 8) + (uint32_t)lsb;
+#else
+	// Little-Endian: Bytes umdrehen
+	// [0] = LSB, [1] = Middle, [2] = MSB
+	uint8_t msb = ((uint8_t*)Adresse)[2];
+	uint8_t mid = ((uint8_t*)Adresse)[1];
+	uint8_t lsb = ((uint8_t*)Adresse)[0];
+	return ((uint32_t)msb << 16) + ((uint32_t)mid << 8) + (uint32_t)lsb;
+#endif
+}
+
+
 
 /*!\brief 32-Bit-Wert in Network-Byteorder auslesen
  * \ingroup PPLGroupPeekPoke
@@ -693,19 +755,15 @@ uint16_t PeekN16(const void* Adresse)
 uint32_t PeekN32(const void* Adresse)
 {
 #ifdef __BIG_ENDIAN__
-	uint8_t wert1, wert2, wert3, wert4;
-	wert1=((uint8_t*)Adresse)[3];
-	wert2=((uint8_t*)Adresse)[2];
-	wert3=((uint8_t*)Adresse)[1];
-	wert4=((uint8_t*)Adresse)[0];
-	return((uint32_t)(uint32_t)wert1 + ((uint32_t)wert2 << 8) + ((uint32_t)wert3 << 16) + ((uint32_t)wert4 << 24));
-
+	// Big-Endian: Bytes liegen bereits korrekt, direkt lesen
+	return ((uint32_t*)Adresse)[0];
 #else
+	// Little-Endian: Bytes [0][1][2][3] umdrehen
 	uint8_t wert1, wert2, wert3, wert4;
-	wert1=((uint8_t*)Adresse)[3];
-	wert2=((uint8_t*)Adresse)[2];
-	wert3=((uint8_t*)Adresse)[1];
-	wert4=((uint8_t*)Adresse)[0];
+	wert1 = ((uint8_t*)Adresse)[3];
+	wert2 = ((uint8_t*)Adresse)[2];
+	wert3 = ((uint8_t*)Adresse)[1];
+	wert4 = ((uint8_t*)Adresse)[0];
 	return((uint32_t)(uint32_t)wert1 + ((uint32_t)wert2 << 8) + ((uint32_t)wert3 << 16) + ((uint32_t)wert4 << 24));
 #endif
 }
@@ -724,27 +782,17 @@ uint32_t PeekN32(const void* Adresse)
 uint64_t PeekN64(const void* Adresse)
 {
 #ifdef __BIG_ENDIAN__
-	uint8_t wert1, wert2, wert3, wert4, wert5, wert6, wert7, wert8;
-	wert1=((uint8_t*)Adresse)[7];
-	wert2=((uint8_t*)Adresse)[6];
-	wert3=((uint8_t*)Adresse)[5];
-	wert4=((uint8_t*)Adresse)[4];
-	wert5=((uint8_t*)Adresse)[3];
-	wert6=((uint8_t*)Adresse)[2];
-	wert7=((uint8_t*)Adresse)[1];
-	wert8=((uint8_t*)Adresse)[0];
-	return((uint64_t)(uint64_t)wert1 + ((uint64_t)wert2 << 8) + ((uint64_t)wert3 << 16) + ((uint64_t)wert4 << 24) + ((uint64_t)wert5 << 32) + ((uint64_t)wert6 << 40) + ((uint64_t)wert7 << 48) + ((uint64_t)wert8 << 56));
-
+	return ((uint64_t*)Adresse)[0];
 #else
 	uint8_t wert1, wert2, wert3, wert4, wert5, wert6, wert7, wert8;
-	wert1=((uint8_t*)Adresse)[7];
-	wert2=((uint8_t*)Adresse)[6];
-	wert3=((uint8_t*)Adresse)[5];
-	wert4=((uint8_t*)Adresse)[4];
-	wert5=((uint8_t*)Adresse)[3];
-	wert6=((uint8_t*)Adresse)[2];
-	wert7=((uint8_t*)Adresse)[1];
-	wert8=((uint8_t*)Adresse)[0];
+	wert1 = ((uint8_t*)Adresse)[7];
+	wert2 = ((uint8_t*)Adresse)[6];
+	wert3 = ((uint8_t*)Adresse)[5];
+	wert4 = ((uint8_t*)Adresse)[4];
+	wert5 = ((uint8_t*)Adresse)[3];
+	wert6 = ((uint8_t*)Adresse)[2];
+	wert7 = ((uint8_t*)Adresse)[1];
+	wert8 = ((uint8_t*)Adresse)[0];
 	return((uint64_t)(uint64_t)wert1 + ((uint64_t)wert2 << 8) + ((uint64_t)wert3 << 16) + ((uint64_t)wert4 << 24) + ((uint64_t)wert5 << 32) + ((uint64_t)wert6 << 40) + ((uint64_t)wert7 << 48) + ((uint64_t)wert8 << 56));
 #endif
 }
@@ -753,17 +801,18 @@ uint64_t PeekN64(const void* Adresse)
 String GetArgv(int argc, char* argv[], const String & argument)
 {
 	if (argc > 1) {
-		size_t argl=strlen(argument);
-		for (int i=1;i < argc;i++) {
+		size_t argl = strlen(argument);
+		for (int i = 1;i < argc;i++) {
 			if (strncmp(argv[i], argument, argl) == 0) {
-				size_t l=strlen(argv[i]);
+				size_t l = strlen(argv[i]);
 				if (l > argl || argv[i + 1] == NULL) {
-					const char* ret=(argv[i] + argl);
+					const char* ret = (argv[i] + argl);
 					//if (ret[0]=='-') return (char*)"";
 					//if (ret[0]=='\\' && ret[1]=='-') return ret+1;
 					return String(ret);
-				} else {
-					const char* ret=(argv[i + 1]);
+				}
+				else {
+					const char* ret = (argv[i + 1]);
 					if (ret[0] == '-') return String();
 					if (ret[0] == '\\' && ret[1] == '-') return ret + 1;
 					return String(ret);
@@ -777,8 +826,8 @@ String GetArgv(int argc, char* argv[], const String & argument)
 bool HaveArgv(int argc, char* argv[], const String & argument)
 {
 	if (argc > 1) {
-		size_t argl=strlen(argument);
-		for (int i=1;i < argc;i++) {
+		size_t argl = strlen(argument);
+		for (int i = 1;i < argc;i++) {
 			if (strncmp(argv[i], argument, argl) == 0) {
 				return true;
 			}
