@@ -808,7 +808,8 @@ public:
 	// Static Functions
 	static void load(ByteArray& object, const String& filename);
 	static void load(String& object, const String& filename);
-	static void* load(const String& filename, size_t* size = NULL);
+	//static void* load(const String& filename, size_t* size = NULL);
+	static ByteArray load(const String& filename);
 	static void truncate(const String& filename, uint64_t bytes);
 	static bool exists(const String& filename);
 	static void copy(const String& oldfile, const String& newfile);

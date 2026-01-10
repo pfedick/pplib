@@ -1308,35 +1308,28 @@ void File::load(String& object, const String& filename)
 
 
 /*!\ingroup PPLGroupFileIO
- * \brief Kompletten Inhalt einer Datei laden
+ * \brief Datei in ein ByteArray laden
  *
  * \desc
- * Mit dieser Funktion wird die Datei \p filename zum Lesen geöffnet und der komplette Inhalt in den
- * Speicher geladen.
+ * Mit dieser Funktion wird die Datei mit dem Namen \p filename geöffnet und der
+ * kompletten Inhalt in ein ByteArray geladen.
  *
  * @param[in] filename Der Dateiname
- * @param[out] size Wird ein Pointer auf \p size übergeben, wird darin die Größe der geladenen
- * Datei gespeichert.
- * @return Bei Erfolg liefert die Funktion einen Pointer auf den Speicherbereich zurück, in den
- * die Datei geladen wurde. Der Aufrufer ist dafür verantwortlich, dass der Speicher nach Gebrauch
- * mit \c free wieder freigegeben wird. Im Fehlerfall wird eine Exception geworfen.
+ * @return Bei Erfolg liefert die Funktion das ByteArray mit dem Dateiinhalt zurück.
+ * Im Fehlerfall wird eine Exception geworfen.
  */
-void* File::load(const String& filename, size_t* size)
+ByteArray File::load(const String& filename)
 {
 	if (filename.isEmpty()) throw IllegalArgumentException();
 	File ff;
 	ff.open(filename);
-	char* buffer = (char*)malloc((size_t)ff.mysize + 1);
-	if (!buffer) throw OutOfMemoryException();
+	ByteArray ba;
+	void* buffer = ba.malloc((size_t)ff.mysize);
 	size_t by = ff.fread(buffer, 1, ff.mysize);
 	if (by != ff.mysize) {
-		free(buffer);
 		throw ReadException();
 	}
-	if (size) *size = by;
-	buffer[by] = 0;
-	return buffer;
-
+	return ba;
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -1521,7 +1514,7 @@ void File::rename(const String& oldfile, const String& newfile)
 	}
 	throwErrno(errno, desc);
 
-}
+	}
 
 /*!\ingroup PPLGroupFileIO
  * \brief Datei löschen
