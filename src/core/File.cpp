@@ -1359,6 +1359,8 @@ void File::truncate(const String& filename, uint64_t bytes)
 }
 
 
+#include <sys/stat.h>
+
 /*!\ingroup PPLGroupFileIO
  * \brief Prüfen, ob eine Datei existiert
  *
@@ -1370,19 +1372,16 @@ void File::truncate(const String& filename, uint64_t bytes)
  */
 bool File::exists(const String& filename)
 {
-	if (filename.isEmpty()) throw false;
-	FILE* fd = NULL;
-	//printf ("buffer=%s\n",buff);
+	if (filename.isEmpty()) throw IllegalArgumentException("filename is empty");
+
 #ifdef WIN32
-	fd = _wfopen((const wchar_t*)WideString(filename), L"rb");		// Versuchen die Datei zu oeffnen
+	struct _stat buffer;
+	WideString wide_filename(filename);
+	return (_wstat((const wchar_t*)wide_filename, &buffer) == 0);
 #else
-	fd = fopen((const char*)filename, "rb");		// Versuchen die Datei zu oeffnen
+	struct stat buffer;
+	return (stat((const char*)filename, &buffer) == 0);
 #endif
-	if (fd) {
-		fclose(fd);
-		return true;
-	}
-	return false;
 }
 
 /*!\ingroup PPLGroupFileIO
