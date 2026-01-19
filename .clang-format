@@ -1,0 +1,32 @@
+---
+Language: Cpp
+BasedOnStyle: Microsoft
+Standard: Latest
+
+# Einrückung
+IndentWidth: 4
+AccessModifierOffset: -4
+NamespaceIndentation: None
+
+# Konstruktor-Initialisierung (Deine Wunsch-Formatierung)
+BreakConstructorInitializers: BeforeColon
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+PackConstructorInitializers: Never
+
+# Pointer & Referenzen: char* variable
+PointerAlignment: Left
+
+# Zuweisungen: variable=wert (Optional, falls du das wirklich willst)
+# SpaceBeforeAssignmentOperators: false 
+
+# Klammer-Regeln
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+  AfterControlStatement: Never
+  BeforeElse: false
+  AfterClass: true
+
+# Kompakter Code
+AllowShortIfStatementsOnASingleLine: true
+SortIncludes: false
