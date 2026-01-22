@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +27,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 #ifndef PPL7EXCEPTIONS_H_
 #define PPL7EXCEPTIONS_H_
 #include <exception>
 #include <ostream>
 
-namespace ppl7 {
-
-
+namespace ppl7
+{
 
 class String;
 
@@ -47,10 +45,11 @@ class Exception : std::exception
 {
 private:
     char* ErrorText;
+
 public:
     Exception() noexcept;
     Exception(const Exception& other) noexcept;
-    Exception& operator= (const Exception& other) noexcept;
+    Exception& operator=(const Exception& other) noexcept;
     Exception(const char* msg, ...) noexcept;
     Exception(const String& msg) noexcept;
     virtual ~Exception() noexcept;
@@ -64,14 +63,25 @@ public:
 
 std::ostream& operator<<(std::ostream& s, const Exception& e);
 
-
-#define STR_VALUE(arg)      #arg
-#define PPL7EXCEPTION(name,inherit)	class name : public ppl7::inherit { public: \
-    name() noexcept {} \
-    name(const char *msg, ...) noexcept {  \
-        va_list args; va_start(args, msg); copyText(msg,args); \
-        va_end(args); } \
-    virtual const char* what() const noexcept { return (STR_VALUE(name)); } \
+#define STR_VALUE(arg) #arg
+#define PPL7EXCEPTION(name, inherit)                                                                                                       \
+    class name : public ppl7::inherit                                                                                                      \
+    {                                                                                                                                      \
+    public:                                                                                                                                \
+        name() noexcept                                                                                                                    \
+        {                                                                                                                                  \
+        }                                                                                                                                  \
+        name(const char* msg, ...) noexcept                                                                                                \
+        {                                                                                                                                  \
+            va_list args;                                                                                                                  \
+            va_start(args, msg);                                                                                                           \
+            copyText(msg, args);                                                                                                           \
+            va_end(args);                                                                                                                  \
+        }                                                                                                                                  \
+        virtual const char* what() const noexcept                                                                                          \
+        {                                                                                                                                  \
+            return (STR_VALUE(name));                                                                                                      \
+        }                                                                                                                                  \
     };
 
 PPL7EXCEPTION(UnknownException, Exception);
@@ -149,7 +159,6 @@ PPL7EXCEPTION(InvalidSSLCipherException, Exception);
 PPL7EXCEPTION(SSLPrivatKeyException, Exception);
 PPL7EXCEPTION(SSLFailedToReadDHParams, Exception);
 
-
 //! @name IO-Exceptions
 //@{
 PPL7EXCEPTION(IOException, Exception);
@@ -160,80 +169,79 @@ PPL7EXCEPTION(ReadException, IOException);
 PPL7EXCEPTION(WriteException, IOException);
 PPL7EXCEPTION(EndOfFileException, IOException);
 PPL7EXCEPTION(FileOpenException, IOException);
-PPL7EXCEPTION(FileNotFoundException, IOException);					// ENOENT
-PPL7EXCEPTION(InvalidArgumentsException, IOException);				// EINVAL
-PPL7EXCEPTION(InvalidFileNameException, IOException);				// ENOTDIR, ENAMETOOLONG, ELOOP
-PPL7EXCEPTION(PermissionDeniedException, IOException);				// EACCESS, EPERM
-PPL7EXCEPTION(ReadOnlyException, IOException);						// EROFS
-PPL7EXCEPTION(NoRegularFileException, IOException);					// EISDIR
-PPL7EXCEPTION(TooManyOpenFilesException, IOException);				// EMFILE
-PPL7EXCEPTION(UnsupportedFileOperationException, IOException);		// EOPNOTSUPP
-PPL7EXCEPTION(TooManySymbolicLinksException, IOException);			// ELOOP
-PPL7EXCEPTION(FilesystemFullException, IOException);				// ENOSPC
-PPL7EXCEPTION(QuotaExceededException, IOException);					// EDQUOT
-PPL7EXCEPTION(IOErrorException, IOException);						// EIO
-PPL7EXCEPTION(BadFiledescriptorException, IOException);				// EABDF
-PPL7EXCEPTION(BadAddressException, IOException);					// EFAULT
-PPL7EXCEPTION(OverflowException, IOException);						// EOVERFLOW
-PPL7EXCEPTION(FileExistsException, IOException);					// EEXIST
-PPL7EXCEPTION(OperationBlockedException, IOException);				// EAGAIN
-PPL7EXCEPTION(OperationInProgressException, IOException);			// EINPROGRESS
-PPL7EXCEPTION(DeadlockException, IOException);						// EDEADLK
-PPL7EXCEPTION(OperationInterruptedException, IOException);			// EINTR
-PPL7EXCEPTION(TooManyLocksException, IOException);					// ENOLCK
-PPL7EXCEPTION(IllegalOperationOnPipeException, IOException);		// ESPIPE
-PPL7EXCEPTION(NotInitializedException, IOException);				// WSANOTINITIALISED
-PPL7EXCEPTION(SocketOperationOnNonSocketException, IOException);	// ENOTSOCK
-PPL7EXCEPTION(OperationAlreadyInProgressException, IOException);	// EALREADY
-PPL7EXCEPTION(DestinationAddressRequiredException, IOException);	// EDESTADDRREQ
-PPL7EXCEPTION(MessageTooLongException, IOException);				// EMSGSIZE
-PPL7EXCEPTION(ProtocolWrongTypeForSocketException, IOException);	// EPROTOTYPE
-PPL7EXCEPTION(ProtocolNotAvailableException, IOException);			// ENOPROTOOPT
-PPL7EXCEPTION(ProtocolFamilyNotSupportedException, IOException);	// EPFNOSUPPORT
-PPL7EXCEPTION(ProtocolNotSupportedException, IOException);			// EPROTONOSUPPORT
-PPL7EXCEPTION(SocketTypeNotSupportedException, IOException);		// ESOCKTNOSUPPORT
-PPL7EXCEPTION(AddressFamilyNotSupportedException, IOException);		// EAFNOSUPPORT
-PPL7EXCEPTION(AddressAlreadyInUseException, IOException);			// EADDRINUSE
-PPL7EXCEPTION(AddressNotAvailableException, IOException);			// EADDRNOTAVAIL
-PPL7EXCEPTION(NetworkIsDownException, IOException);					// ENETDOWN
-PPL7EXCEPTION(ConnectionAbortedByNetworkException, IOException); 	// ENETRESET
-PPL7EXCEPTION(ConnectionAbortedException, IOException); 			// ECONNABORTED
-PPL7EXCEPTION(ConnectionResetException, IOException); 				// ECONNRESET
-PPL7EXCEPTION(NoBufferSpaceAvailableException, IOException); 		// ENOBUFS
-PPL7EXCEPTION(SocketIsConnectedException, IOException);				// EISCONN
-PPL7EXCEPTION(SocketNotConnectedException, IOException); 			// ENOTCONN
-PPL7EXCEPTION(TransportEndpointHasShutdownException, IOException);	// ESHUTDOWN
-PPL7EXCEPTION(HostIsUnreachableException, IOException); 			// EHOSTUNREACH
-PPL7EXCEPTION(DirectoryNotEmptyException, IOException);				// ENOTEMPTY
-PPL7EXCEPTION(ProcessLimitException, IOException);					// EPROCLIM
-PPL7EXCEPTION(TooManyUsersException, IOException);					// EUSERS
-PPL7EXCEPTION(StaleFileHandleException, IOException);				// ESTALE
-PPL7EXCEPTION(ObjectIsRemoteException, IOException);				// EREMOTE
-PPL7EXCEPTION(NetworkSubsystemUnavailableException, IOException);	// WSASYSNOTREADY
-PPL7EXCEPTION(UnsupportedWinsockVersionException, IOException); 	// WSAVERNOTSUPPORTED
-PPL7EXCEPTION(GracefulShutdownInProgressException, IOException);	// WSAEDISCON
-PPL7EXCEPTION(NoMoreResultsException, IOException); 				// WSAENOMORE, WSA_E_NO_MORE
-PPL7EXCEPTION(CallHasBeenCanceledException, IOException); 			// WSAECANCELLED
-PPL7EXCEPTION(ProcedureCallTableIsInvalidException, IOException); 	// WSAEINVALIDPROCTABLE
-PPL7EXCEPTION(ServiceProviderIsInvalidException, IOException); 		// WSAEINVALIDPROVIDER
+PPL7EXCEPTION(FileNotFoundException, IOException);                      // ENOENT
+PPL7EXCEPTION(InvalidArgumentsException, IOException);                  // EINVAL
+PPL7EXCEPTION(InvalidFileNameException, IOException);                   // ENOTDIR, ENAMETOOLONG, ELOOP
+PPL7EXCEPTION(PermissionDeniedException, IOException);                  // EACCESS, EPERM
+PPL7EXCEPTION(ReadOnlyException, IOException);                          // EROFS
+PPL7EXCEPTION(NoRegularFileException, IOException);                     // EISDIR
+PPL7EXCEPTION(TooManyOpenFilesException, IOException);                  // EMFILE
+PPL7EXCEPTION(UnsupportedFileOperationException, IOException);          // EOPNOTSUPP
+PPL7EXCEPTION(TooManySymbolicLinksException, IOException);              // ELOOP
+PPL7EXCEPTION(FilesystemFullException, IOException);                    // ENOSPC
+PPL7EXCEPTION(QuotaExceededException, IOException);                     // EDQUOT
+PPL7EXCEPTION(IOErrorException, IOException);                           // EIO
+PPL7EXCEPTION(BadFiledescriptorException, IOException);                 // EABDF
+PPL7EXCEPTION(BadAddressException, IOException);                        // EFAULT
+PPL7EXCEPTION(OverflowException, IOException);                          // EOVERFLOW
+PPL7EXCEPTION(FileExistsException, IOException);                        // EEXIST
+PPL7EXCEPTION(OperationBlockedException, IOException);                  // EAGAIN
+PPL7EXCEPTION(OperationInProgressException, IOException);               // EINPROGRESS
+PPL7EXCEPTION(DeadlockException, IOException);                          // EDEADLK
+PPL7EXCEPTION(OperationInterruptedException, IOException);              // EINTR
+PPL7EXCEPTION(TooManyLocksException, IOException);                      // ENOLCK
+PPL7EXCEPTION(IllegalOperationOnPipeException, IOException);            // ESPIPE
+PPL7EXCEPTION(NotInitializedException, IOException);                    // WSANOTINITIALISED
+PPL7EXCEPTION(SocketOperationOnNonSocketException, IOException);        // ENOTSOCK
+PPL7EXCEPTION(OperationAlreadyInProgressException, IOException);        // EALREADY
+PPL7EXCEPTION(DestinationAddressRequiredException, IOException);        // EDESTADDRREQ
+PPL7EXCEPTION(MessageTooLongException, IOException);                    // EMSGSIZE
+PPL7EXCEPTION(ProtocolWrongTypeForSocketException, IOException);        // EPROTOTYPE
+PPL7EXCEPTION(ProtocolNotAvailableException, IOException);              // ENOPROTOOPT
+PPL7EXCEPTION(ProtocolFamilyNotSupportedException, IOException);        // EPFNOSUPPORT
+PPL7EXCEPTION(ProtocolNotSupportedException, IOException);              // EPROTONOSUPPORT
+PPL7EXCEPTION(SocketTypeNotSupportedException, IOException);            // ESOCKTNOSUPPORT
+PPL7EXCEPTION(AddressFamilyNotSupportedException, IOException);         // EAFNOSUPPORT
+PPL7EXCEPTION(AddressAlreadyInUseException, IOException);               // EADDRINUSE
+PPL7EXCEPTION(AddressNotAvailableException, IOException);               // EADDRNOTAVAIL
+PPL7EXCEPTION(NetworkIsDownException, IOException);                     // ENETDOWN
+PPL7EXCEPTION(ConnectionAbortedByNetworkException, IOException);        // ENETRESET
+PPL7EXCEPTION(ConnectionAbortedException, IOException);                 // ECONNABORTED
+PPL7EXCEPTION(ConnectionResetException, IOException);                   // ECONNRESET
+PPL7EXCEPTION(NoBufferSpaceAvailableException, IOException);            // ENOBUFS
+PPL7EXCEPTION(SocketIsConnectedException, IOException);                 // EISCONN
+PPL7EXCEPTION(SocketNotConnectedException, IOException);                // ENOTCONN
+PPL7EXCEPTION(TransportEndpointHasShutdownException, IOException);      // ESHUTDOWN
+PPL7EXCEPTION(HostIsUnreachableException, IOException);                 // EHOSTUNREACH
+PPL7EXCEPTION(DirectoryNotEmptyException, IOException);                 // ENOTEMPTY
+PPL7EXCEPTION(ProcessLimitException, IOException);                      // EPROCLIM
+PPL7EXCEPTION(TooManyUsersException, IOException);                      // EUSERS
+PPL7EXCEPTION(StaleFileHandleException, IOException);                   // ESTALE
+PPL7EXCEPTION(ObjectIsRemoteException, IOException);                    // EREMOTE
+PPL7EXCEPTION(NetworkSubsystemUnavailableException, IOException);       // WSASYSNOTREADY
+PPL7EXCEPTION(UnsupportedWinsockVersionException, IOException);         // WSAVERNOTSUPPORTED
+PPL7EXCEPTION(GracefulShutdownInProgressException, IOException);        // WSAEDISCON
+PPL7EXCEPTION(NoMoreResultsException, IOException);                     // WSAENOMORE, WSA_E_NO_MORE
+PPL7EXCEPTION(CallHasBeenCanceledException, IOException);               // WSAECANCELLED
+PPL7EXCEPTION(ProcedureCallTableIsInvalidException, IOException);       // WSAEINVALIDPROCTABLE
+PPL7EXCEPTION(ServiceProviderIsInvalidException, IOException);          // WSAEINVALIDPROVIDER
 PPL7EXCEPTION(ServiceProviderFailedToInitializeException, IOException); // WSAEPROVIDERFAILEDINIT
-PPL7EXCEPTION(SystemCallFailureException, IOException); 			// WSASYSCALLFAILURE
-PPL7EXCEPTION(ServiceNotFoundException, IOException); 				// WSASERVICE_NOT_FOUND
-PPL7EXCEPTION(ClassTypeNotFoundException, IOException); 			// WSATYPE_NOT_FOUND
-PPL7EXCEPTION(CallWasCanceledException, IOException); 				// WSA_E_CANCELLED
-PPL7EXCEPTION(QueryRefusedException, IOException); 					// WSAEREFUSED
-PPL7EXCEPTION(NonauthoritativeHostNotFound, IOException); 			// WSATRY_AGAIN
-PPL7EXCEPTION(UnrecoverableErrorException, IOException);			// WSANO_RECOVERY
-PPL7EXCEPTION(ObjectNotInSignaledStateException, IOException);		// WSA_IO_INCOMPLETE
-PPL7EXCEPTION(OverlappedOperationPendingException, IOException);	// WSA_IO_PENDING
-PPL7EXCEPTION(QoSException, IOException);							// Windows WSA_QOS_*
+PPL7EXCEPTION(SystemCallFailureException, IOException);                 // WSASYSCALLFAILURE
+PPL7EXCEPTION(ServiceNotFoundException, IOException);                   // WSASERVICE_NOT_FOUND
+PPL7EXCEPTION(ClassTypeNotFoundException, IOException);                 // WSATYPE_NOT_FOUND
+PPL7EXCEPTION(CallWasCanceledException, IOException);                   // WSA_E_CANCELLED
+PPL7EXCEPTION(QueryRefusedException, IOException);                      // WSAEREFUSED
+PPL7EXCEPTION(NonauthoritativeHostNotFound, IOException);               // WSATRY_AGAIN
+PPL7EXCEPTION(UnrecoverableErrorException, IOException);                // WSANO_RECOVERY
+PPL7EXCEPTION(ObjectNotInSignaledStateException, IOException);          // WSA_IO_INCOMPLETE
+PPL7EXCEPTION(OverlappedOperationPendingException, IOException);        // WSA_IO_PENDING
+PPL7EXCEPTION(QoSException, IOException);                               // Windows WSA_QOS_*
 PPL7EXCEPTION(BufferExceedsLimitException, IOException);
 PPL7EXCEPTION(CouldNotOpenDirectoryException, IOException);
 
 //@}
 
-
-PPL7EXCEPTION(HostNotFoundException, Exception);					// WSAHOST_NOT_FOUND
+PPL7EXCEPTION(HostNotFoundException, Exception); // WSAHOST_NOT_FOUND
 PPL7EXCEPTION(TryAgainException, Exception);
 PPL7EXCEPTION(NoResultException, Exception);
 PPL7EXCEPTION(TimeoutException, Exception);
@@ -242,8 +250,6 @@ PPL7EXCEPTION(QueryFailedException, Exception);
 PPL7EXCEPTION(EscapeFailedException, Exception);
 PPL7EXCEPTION(FieldNotInResultSetException, Exception);
 
-
-
-}	// EOF namespace ppl7
+} // namespace ppl7
 
 #endif /* PPL7EXCEPTIONS_H_ */

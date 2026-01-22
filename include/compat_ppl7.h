@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 #ifndef COMPAT_H_
 #define COMPAT_H_
 
@@ -43,7 +42,7 @@
 #include <stdio.h>
 #endif
 
-#ifdef  HAVE_STRINGS_H
+#ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
 
@@ -73,8 +72,10 @@
 
 #endif // _WIN32
 
-namespace ppl7 {
-namespace compat {
+namespace ppl7
+{
+namespace compat
+{
 
 char* trim(char* text);
 
@@ -142,29 +143,27 @@ const char* inet_ntop(int af, const void* src, char* dst, socklen_t size);
 int inet_pton(int af, const char* src, void* dst);
 #endif
 
-
 /*
  * 	const char *strcasestr(const char *haystack, const char *needle);
-	int strcasecmp(const char *s1, const char *s2);
-	int strncasecmp(const char *s1, const char *s2, size_t n);
-	int vasprintf(char **buff, const char *fmt, va_list args);
-	int asprintf(char **buff, const char *format, ...);
-	long htol (const char * wert);
-	long long atoll (const char * wert);
-	int atoi(const char *wert);
-	long atol(const char *wert);
-	double atof(const char *wert);
-	char *strndup(const char *str, size_t len);
-	int strncmp(const char *s1, const char *s2, size_t len);
-	size_t strnlen(const char *str, size_t len);
-	void bcopy(const void *src, void *dst, size_t len);
+    int strcasecmp(const char *s1, const char *s2);
+    int strncasecmp(const char *s1, const char *s2, size_t n);
+    int vasprintf(char **buff, const char *fmt, va_list args);
+    int asprintf(char **buff, const char *format, ...);
+    long htol (const char * wert);
+    long long atoll (const char * wert);
+    int atoi(const char *wert);
+    long atol(const char *wert);
+    double atof(const char *wert);
+    char *strndup(const char *str, size_t len);
+    int strncmp(const char *s1, const char *s2, size_t len);
+    size_t strnlen(const char *str, size_t len);
+    void bcopy(const void *src, void *dst, size_t len);
  *
  */
-} // EOF namespace compat
+} // namespace compat
 
 using namespace compat;
 
-} // EOF namespace ppl7
-
+} // namespace ppl7
 
 #endif /* COMPAT_H_ */

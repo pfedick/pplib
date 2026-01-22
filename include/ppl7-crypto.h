@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 #ifndef PPL7CRYPTO_H_
 #define PPL7CRYPTO_H_
 
@@ -39,7 +38,8 @@
 #endif
 #endif
 
-namespace ppl7 {
+namespace ppl7
+{
 
 PPL7EXCEPTION(UnsupportedAlgorithmException, Exception);
 PPL7EXCEPTION(InvalidAlgorithmException, Exception);
@@ -56,18 +56,21 @@ class Crypt
 {
     friend class Encrypt;
     friend class Decrypt;
+
 private:
     void* ctx;
 
 public:
-    enum Mode {
+    enum Mode
+    {
         Mode_ECB,
         Mode_CBC,
         Mode_CFB,
         Mode_OFB
     };
 
-    enum Algorithm {
+    enum Algorithm
+    {
         Algo_AES_128,
         Algo_AES_192,
         Algo_AES_256,
@@ -130,7 +133,8 @@ private:
     uint64_t bytecount;
 
 public:
-    enum Algorithm {
+    enum Algorithm
+    {
         Algo_MD5,
         Algo_SHA1,
         Algo_SHA224,
@@ -139,7 +143,6 @@ public:
         Algo_SHA512,
         Algo_RIPEMD160
     };
-
 
     Digest();
     Digest(const String& name);
@@ -173,10 +176,8 @@ public:
     static ByteArray sha512(const ByteArrayPtr& data);
     static uint32_t crc32(const ByteArrayPtr& data);
     static uint32_t adler32(const ByteArrayPtr& data);
-
 };
 
-
-} // EOF namespace ppl7
+} // namespace ppl7
 
 #endif /* PPL7CRYPTO_H_ */

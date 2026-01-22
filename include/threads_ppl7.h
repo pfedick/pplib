@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +27,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
 #include "prolog_ppl7.h"
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -44,27 +43,26 @@
 
 #include "ppl7.h"
 
+namespace ppl7
+{
 
-namespace ppl7 {
-
-
-typedef struct tagThreadData {
-	uint64_t	threadId;
+typedef struct tagThreadData
+{
+    uint64_t threadId;
 #ifdef _WIN32
-	HANDLE	thread;
-	DWORD	dwThreadID;
+    HANDLE thread;
+    DWORD dwThreadID;
 #elif defined HAVE_PTHREADS
-	pthread_t thread;
-	pthread_attr_t	attr;
+    pthread_t thread;
+    pthread_attr_t attr;
 #else
-	int	thread;
+    int thread;
 #endif
-	void		(*mysql_thread_end)();
-				// Bit  0: Thread hat MySQL benutzt
-	void* clientData;
+    void (*mysql_thread_end)();
+    // Bit  0: Thread hat MySQL benutzt
+    void* clientData;
 } THREADDATA;
 
 THREADDATA* GetThreadData();
 
-
-} // EOF namespace ppl7
+} // namespace ppl7

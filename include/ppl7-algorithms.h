@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,193 +27,202 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-
 #ifndef PPL7ALGORITHMS_H_
 #define PPL7ALGORITHMS_H_
 
-namespace ppl7 {
-
+namespace ppl7
+{
 
 template <class K> class List
 {
 public:
-	class Iterator;
+    class Iterator;
+
 private:
-	MemoryHeap		MyHeap;
-	class ListItem {
-		friend class List;
-		friend class List::Iterator;
-	private:
-		K item;
-		ListItem* previous, * next, * original;
-		List* owner;
-	public:
-		ListItem() {
-			previous=next=original=NULL;
-			owner=NULL;
-		}
-		void* operator new(size_t, void* p) { return (p); }
-	};
-	ListItem* first, * last;
+    MemoryHeap MyHeap;
+    class ListItem
+    {
+        friend class List;
+        friend class List::Iterator;
+
+    private:
+        K item;
+        ListItem *previous, *next, *original;
+        List* owner;
+
+    public:
+        ListItem()
+        {
+            previous = next = original = NULL;
+            owner = NULL;
+        }
+        void* operator new(size_t, void* p)
+        {
+            return (p);
+        }
+    };
+    ListItem *first, *last;
+
 public:
-	class Iterator
-	{
-		friend class List;
-	private:
-		ListItem* item;
-		bool	init;
-	public:
-		Iterator() { item=NULL; init=false; }
-		K& value() const
-		{
-			if (!item) throw NullPointerException();
-			return (item->item);
-		}
-	};
+    class Iterator
+    {
+        friend class List;
 
-	List() {
-		first=NULL;
-		last=NULL;
-		MyHeap.init(sizeof(ListItem), 0, 100);
-	}
-	~List() {
-		clear();
-	}
+    private:
+        ListItem* item;
+        bool init;
 
-	size_t capacity() const
-	{
-		return (MyHeap.capacity());
-	}
-	size_t itemSize() const
-	{
-		return (sizeof(ListItem));
-	}
-	void reserve(size_t num)
-	{
-		MyHeap.reserve(num);
-	}
+    public:
+        Iterator()
+        {
+            item = NULL;
+            init = false;
+        }
+        K& value() const
+        {
+            if (!item) throw NullPointerException();
+            return (item->item);
+        }
+    };
 
-	K& add(const K& item)
-	{
-		ListItem* it=new (MyHeap.malloc())ListItem;
-		it->item=item;
-		it->original=it;
-		it->previous=last;
-		it->next=NULL;
-		it->owner=this;
-		if (last) last->next=it;
-		if (!first) first=it;
-		last=it;
-		return (it->item);
-	}
+    List()
+    {
+        first = NULL;
+        last = NULL;
+        MyHeap.init(sizeof(ListItem), 0, 100);
+    }
+    ~List()
+    {
+        clear();
+    }
 
-	K& push_front(const K& item)
-	{
-		ListItem* it=new (MyHeap.malloc())ListItem;
-		it->item=item;
-		it->original=it;
-		it->previous=NULL;
-		it->next=first;
-		it->owner=this;
-		if (first) first->previous=it;
-		if (!last) last=it;
-		first=it;
-		return (it->item);
-	}
+    size_t capacity() const
+    {
+        return (MyHeap.capacity());
+    }
+    size_t itemSize() const
+    {
+        return (sizeof(ListItem));
+    }
+    void reserve(size_t num)
+    {
+        MyHeap.reserve(num);
+    }
 
+    K& add(const K& item)
+    {
+        ListItem* it = new (MyHeap.malloc()) ListItem;
+        it->item = item;
+        it->original = it;
+        it->previous = last;
+        it->next = NULL;
+        it->owner = this;
+        if (last) last->next = it;
+        if (!first) first = it;
+        last = it;
+        return (it->item);
+    }
 
+    K& push_front(const K& item)
+    {
+        ListItem* it = new (MyHeap.malloc()) ListItem;
+        it->item = item;
+        it->original = it;
+        it->previous = NULL;
+        it->next = first;
+        it->owner = this;
+        if (first) first->previous = it;
+        if (!last) last = it;
+        first = it;
+        return (it->item);
+    }
 
-	void erase(const K& item)
-	{
-		ListItem* it=first;
-		while (it) {
-			if (it->item == item) {
-				if (it->previous) it->previous->next=it->next;
-				if (it->next) it->next->previous=it->previous;
-				if (it == first) first=it->next;
-				if (it == last) last=it->previous;
-				MyHeap.free(it);
-				return;
-			}
-			it=it->next;
-		}
-	}
+    void erase(const K& item)
+    {
+        ListItem* it = first;
+        while (it) {
+            if (it->item == item) {
+                if (it->previous) it->previous->next = it->next;
+                if (it->next) it->next->previous = it->previous;
+                if (it == first) first = it->next;
+                if (it == last) last = it->previous;
+                MyHeap.free(it);
+                return;
+            }
+            it = it->next;
+        }
+    }
 
-	size_t		num() const
-	{
-		return (MyHeap.count());
-	}
-	size_t		count() const
-	{
-		return (MyHeap.count());
-	}
-	size_t		size() const
-	{
-		return (MyHeap.count());
-	}
+    size_t num() const
+    {
+        return (MyHeap.count());
+    }
+    size_t count() const
+    {
+        return (MyHeap.count());
+    }
+    size_t size() const
+    {
+        return (MyHeap.count());
+    }
 
-	void		clear()
-	{
-		ListItem* it;
-		while (first) {
-			it=first;
-			first=it->next;
-			it->~ListItem();
-		}
-		last=NULL;
-		MyHeap.clear();
-	}
+    void clear()
+    {
+        ListItem* it;
+        while (first) {
+            it = first;
+            first = it->next;
+            it->~ListItem();
+        }
+        last = NULL;
+        MyHeap.clear();
+    }
 
-	void	reset(Iterator& it) const throw()
-	{
-		it.item=NULL;
-		it.init=false;
-	}
-	bool	getFirst(Iterator& it) const throw()
-	{
-		it.item=first;
-		it.init=true;
-		if (first) return (true);
-		return (false);
-	}
-	bool	getNext(Iterator& it) const throw()
-	{
-		if (!it.init) {
-			it.item=first;
-			it.init=true;
-		} else {
-			it.item=it.item->next;
-		}
-		ListItem* item=it.item;
-		if (!item) return (false);
-		return (true);
-	}
-	bool	getLast(Iterator& it) const throw()
-	{
-		it.item=last;
-		it.init=true;
-		if (last) return (true);
-		return (false);
-	}
-	bool	getPrevious(Iterator& it) const throw()
-	{
-		if (!it.init) {
-			it.item=last;
-			it.init=true;
-		} else {
-			it.item=it.item->previous;
-		}
-		ListItem* item=it.item;
-		if (!item) return (false);
-		return (true);
-	}
-
-
+    void reset(Iterator& it) const throw()
+    {
+        it.item = NULL;
+        it.init = false;
+    }
+    bool getFirst(Iterator& it) const throw()
+    {
+        it.item = first;
+        it.init = true;
+        if (first) return (true);
+        return (false);
+    }
+    bool getNext(Iterator& it) const throw()
+    {
+        if (!it.init) {
+            it.item = first;
+            it.init = true;
+        } else {
+            it.item = it.item->next;
+        }
+        ListItem* item = it.item;
+        if (!item) return (false);
+        return (true);
+    }
+    bool getLast(Iterator& it) const throw()
+    {
+        it.item = last;
+        it.init = true;
+        if (last) return (true);
+        return (false);
+    }
+    bool getPrevious(Iterator& it) const throw()
+    {
+        if (!it.init) {
+            it.item = last;
+            it.init = true;
+        } else {
+            it.item = it.item->previous;
+        }
+        ListItem* item = it.item;
+        if (!item) return (false);
+        return (true);
+    }
 };
 
-
-}	// EOF namespace ppl7
-
+} // namespace ppl7
 
 #endif /* PPL7ALGORITHMS_H_ */

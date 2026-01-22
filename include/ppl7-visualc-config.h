@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,18 +48,17 @@
 #define HAVE_WCTYPE_H 1
 #define HAVE_LOCALE_H 1
 #define HAVE_ERRNO_H 1
-//#define HAVE_WIDEC_H 0
+// #define HAVE_WIDEC_H 0
 #define HAVE_SYS_TIME_H 1
 #define HAVE_FCNTL_H 1
-//#define HAVE_SYS_MMAN_H 0
-//#define HAVE_UNISTD_H 0
-//#define HAVE_DIRENT_H 0
-//#define HAVE_SYS_FILE_H 0
+// #define HAVE_SYS_MMAN_H 0
+// #define HAVE_UNISTD_H 0
+// #define HAVE_DIRENT_H 0
+// #define HAVE_SYS_FILE_H 0
 #define HAVE_MATH_H
 #define HAVE_SIGNAL_H
 
 #define HAVE_STAT
-
 
 #define HAVE_STRNCPY_S 1
 #define HAVE_WCSNCPY_S 1
@@ -68,8 +67,8 @@
 #define HAVE_STRERROR_S 1
 
 /*
-* External Features
-*/
+ * External Features
+ */
 #define HAVE_LIBZ 1
 #define HAVE_BZIP2 1
 #define HAVE_X86_ASSEMBLER 1
@@ -77,9 +76,6 @@
 #define HAVE_JPEG 1
 #define HAVE_PNG 1
 #define HAVE_TIFF 1
-
-
-
 
 #define uint8_t unsigned char
 #define int8_t signed char
@@ -92,16 +88,14 @@
 
 #define ppliptr uint64_t
 
-#define pplfloat	float
-#define ppldouble	double
-#define pplbool		bool
-#define pplchar		char
-#define ppluchar	unsigned char
-
+#define pplfloat float
+#define ppldouble double
+#define pplbool bool
+#define pplchar char
+#define ppluchar unsigned char
 
 #define ssize_t long long
 #define mode_t int
-
 
 #define ICONV_UNICODE "UTF-16LE"
 

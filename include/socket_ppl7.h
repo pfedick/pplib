@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,24 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-namespace ppl7 {
+namespace ppl7
+{
 
 #ifdef _WIN32
 int inet_aton(const char* cp, struct in_addr* pin);
 #endif
 
-typedef struct tagPPLSocket {
+typedef struct tagPPLSocket
+{
 #ifdef _WIN32
-	SOCKET	sd;
+    SOCKET sd;
 #else
-	int sd;
+    int sd;
 #endif
-	int proto;
-	char* ipname;
-	int port;
-	//int addrlen;
+    int proto;
+    char* ipname;
+    int port;
+    // int addrlen;
 } PPLSOCKET;
 
-
-
-}
+} // namespace ppl7
