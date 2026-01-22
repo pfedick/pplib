@@ -3266,4 +3266,64 @@ std::ostream& operator<<(std::ostream& s, const String& str)
     return s.write((const char*)str, str.size());
 }
 
+String::iterator String::begin() noexcept
+{
+    return ptr;
+}
+
+String::const_iterator String::begin() const noexcept
+{
+    return ptr;
+}
+
+String::const_iterator String::cbegin() const noexcept
+{
+    return ptr;
+}
+
+String::iterator String::end() noexcept
+{
+    return ptr + stringlen;
+}
+
+String::const_iterator String::end() const noexcept
+{
+    return ptr + stringlen;
+}
+
+String::const_iterator String::cend() const noexcept
+{
+    return ptr + stringlen;
+}
+
+String::reverse_iterator String::rbegin() noexcept
+{
+    return reverse_iterator(end());
+}
+
+String::const_reverse_iterator String::rbegin() const noexcept
+{
+    return const_reverse_iterator(end());
+}
+
+String::const_reverse_iterator String::crbegin() const noexcept
+{
+    return const_reverse_iterator(end());
+}
+
+String::reverse_iterator String::rend() noexcept
+{
+    return reverse_iterator(begin());
+}
+
+String::const_reverse_iterator String::rend() const noexcept
+{
+    return const_reverse_iterator(begin());
+}
+
+String::const_reverse_iterator String::crend() const noexcept
+{
+    return const_reverse_iterator(begin());
+}
+
 } // namespace ppl7

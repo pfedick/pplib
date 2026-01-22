@@ -41,6 +41,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <iterator>
 
 #ifndef true
 #define true 1
@@ -515,6 +516,27 @@ public:
     bool operator>=(const char* str) const;
     bool operator>(const char* str) const;
 
+    //@}
+
+    //! @name Iteratoren
+    //@{
+    typedef char* iterator;
+    typedef const char* const_iterator;
+    typedef std::reverse_iterator<iterator> reverse_iterator;
+    typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+    iterator begin() noexcept;
+    const_iterator begin() const noexcept;
+    const_iterator cbegin() const noexcept;
+    iterator end() noexcept;
+    const_iterator end() const noexcept;
+    const_iterator cend() const noexcept;
+
+    reverse_iterator rbegin() noexcept;
+    const_reverse_iterator rbegin() const noexcept;
+    const_reverse_iterator crbegin() const noexcept;
+    reverse_iterator rend() noexcept;
+    const_reverse_iterator rend() const noexcept;
+    const_reverse_iterator crend() const noexcept;
     //@}
 
 #ifdef PPL_WITH_QT6
