@@ -285,17 +285,16 @@ public:
     //! @name Konstruktoren und Destruktor
     //@{
 
-    String() throw();
+    String() noexcept;
     String(const char* str);
     String(const char* str, size_t size);
-    String(const String* str);
     String(const String& str);
-    String(const WideString* str);
     String(const WideString& str);
     String(const ByteArrayPtr& str);
     String(const std::string& str);
     String(const std::wstring& str);
-    ~String() throw();
+    String(String&& other) noexcept;
+    ~String() noexcept;
 #ifdef WITH_QT
     String(const QString& q)
     {
@@ -330,7 +329,7 @@ public:
     static const char* getGlobalEncoding();
     //@}
 
-    void clear() throw();
+    void clear() noexcept;
     size_t capacity() const;
     void reserve(size_t size);
     size_t len() const;
@@ -355,10 +354,8 @@ public:
     //! @name String setzen und verändern
     //@{
     String& set(const char* str, size_t size = (size_t)-1);
-    String& set(const String* str, size_t size = (size_t)-1);
     String& set(const String& str, size_t size = (size_t)-1);
     String& set(const ByteArrayPtr& str, size_t size = (size_t)-1);
-    String& set(const WideString* str, size_t size = (size_t)-1);
     String& set(const WideString& str, size_t size = (size_t)-1);
     String& set(const std::string& str, size_t size = (size_t)-1);
     String& set(const std::wstring& str, size_t size = (size_t)-1);
@@ -369,7 +366,6 @@ public:
     String& useadr(void* adr, size_t size, size_t stringlen = (size_t)-1);
 
     String& append(const char* str, size_t size = (size_t)-1);
-    String& append(const String* str, size_t size = (size_t)-1);
     String& append(const String& str, size_t size = (size_t)-1);
     String& append(const std::string& str, size_t size = (size_t)-1);
     String& append(const std::wstring& str, size_t size = (size_t)-1);
@@ -378,7 +374,6 @@ public:
     String& append(char c);
 
     String& prepend(const char* str, size_t size = (size_t)-1);
-    String& prepend(const String* str, size_t size = (size_t)-1);
     String& prepend(const String& str, size_t size = (size_t)-1);
     String& prepend(const std::string& str, size_t size = (size_t)-1);
     String& prepend(const std::wstring& str, size_t size = (size_t)-1);
@@ -443,8 +438,8 @@ public:
 
     //! @name String ausgeben und auslesen
     //@{
-    void print(bool withNewline = false) const throw();
-    void printnl() const throw();
+    void print(bool withNewline = false) const noexcept;
+    void printnl() const noexcept;
     void hexDump() const;
     char get(ssize_t pos) const;
     const char* getPtr() const;
@@ -493,12 +488,12 @@ public:
 
     String& operator=(const char* str);
     String& operator=(const wchar_t* str);
-    String& operator=(const String* str);
     String& operator=(const String& str);
     String& operator=(const WideString& str);
     String& operator=(const std::string& str);
     String& operator=(const std::wstring& str);
     String& operator=(char c);
+    String& operator=(String&& other) noexcept;
     String& operator+=(const char* str);
     String& operator+=(const wchar_t* str);
     String& operator+=(const String& str);
@@ -610,16 +605,15 @@ public:
     //! @name Konstruktoren und Destruktor
     //@{
 
-    WideString() throw();
+    WideString() noexcept;
     WideString(const wchar_t* str);
     WideString(const wchar_t* str, size_t size);
-    WideString(const WideString* str);
     WideString(const WideString& str);
-    WideString(const String* str);
     WideString(const String& str);
     WideString(const std::string& str);
     WideString(const std::wstring& str);
-    ~WideString() throw();
+    WideString(WideString&& other) noexcept;
+    ~WideString() noexcept;
 #ifdef WITH_QT
     WideString(const QString& q)
     {
@@ -653,7 +647,7 @@ public:
     static void setGlobalEncoding(const char* encoding);
     //@}
 
-    void clear() throw();
+    void clear() noexcept;
     size_t capacity() const;
     void reserve(size_t size);
     size_t len() const;
@@ -679,9 +673,7 @@ public:
 
     WideString& set(const char* str, size_t size = (size_t)-1);
     WideString& set(const wchar_t* str, size_t size = (size_t)-1);
-    WideString& set(const WideString* str, size_t size = (size_t)-1);
     WideString& set(const WideString& str, size_t size = (size_t)-1);
-    WideString& set(const String* str, size_t size = (size_t)-1);
     WideString& set(const String& str, size_t size = (size_t)-1);
     WideString& set(const std::string& str, size_t size = (size_t)-1);
     WideString& set(const std::wstring& str, size_t size = (size_t)-1);
@@ -691,7 +683,6 @@ public:
 
     WideString& append(const char* str, size_t size = (size_t)-1);
     WideString& append(const wchar_t* str, size_t size = (size_t)-1);
-    WideString& append(const WideString* str, size_t size = (size_t)-1);
     WideString& append(const WideString& str, size_t size = (size_t)-1);
     WideString& append(const std::string& str, size_t size = (size_t)-1);
     WideString& append(const std::wstring& str, size_t size = (size_t)-1);
@@ -700,7 +691,6 @@ public:
 
     WideString& prepend(const char* str, size_t size = (size_t)-1);
     WideString& prepend(const wchar_t* str, size_t size = (size_t)-1);
-    WideString& prepend(const WideString* str, size_t size = (size_t)-1);
     WideString& prepend(const WideString& str, size_t size = (size_t)-1);
     WideString& prepend(const std::string& str, size_t size = (size_t)-1);
     WideString& prepend(const std::wstring& str, size_t size = (size_t)-1);
@@ -756,8 +746,8 @@ public:
 
     //! @name String ausgeben und auslesen
     //@{
-    void print(bool withNewline = false) const throw();
-    void printnl() const throw();
+    void print(bool withNewline = false) const noexcept;
+    void printnl() const noexcept;
     void hexDump() const;
     wchar_t get(ssize_t pos) const;
     const wchar_t* getPtr() const;
@@ -805,13 +795,12 @@ public:
 
     WideString& operator=(const char* str);
     WideString& operator=(const wchar_t* str);
-    WideString& operator=(const WideString* str);
     WideString& operator=(const WideString& str);
-    WideString& operator=(const String* str);
     WideString& operator=(const String& str);
     WideString& operator=(const std::string& str);
     WideString& operator=(const std::wstring& str);
     WideString& operator=(wchar_t c);
+    WideString& operator=(WideString&& other) noexcept;
     WideString& operator+=(const char* str);
     WideString& operator+=(const wchar_t* str);
     WideString& operator+=(const WideString& str);

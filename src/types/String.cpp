@@ -138,7 +138,7 @@ const char* String::getGlobalEncoding()
  * \desc
  * Es wird ein leerer String erstellt.
  */
-String::String() throw()
+String::String() noexcept
 {
     ptr = empty_string;
     stringlen = 0;
@@ -182,22 +182,6 @@ String::String(const char* str, size_t size)
     set(str, size);
 }
 
-/*!\brief Konstruktor aus String-Pointer
- *
- * \desc
- * Ein String wird aus einem anderen String erstellt.
- *
- * @param str Pointer auf einen anderen String
- * @exception OutOfMemoryException
- */
-String::String(const String* str)
-{
-    ptr = empty_string;
-    stringlen = 0;
-    s = 0;
-    set(str);
-}
-
 /*!\brief Konstruktor aus anderem String (Copy-Konstruktor)
  *
  * \desc
@@ -214,6 +198,31 @@ String::String(const String& str)
     set(str);
 }
 
+/*!\brief Move-Konstruktor
+ *
+ * \desc
+ * Ein String wird durch Übernahme der Ressourcen eines anderen Strings erstellt.
+ * Der andere String wird dabei geleert.
+ * @param other Rvalue-Referenz auf einen anderen String
+ * \exception Keine
+ */
+String::String(String&& other) noexcept
+{
+    ptr = other.ptr;
+    stringlen = other.stringlen;
+    s = other.s;
+    other.ptr = empty_string;
+    other.stringlen = 0;
+    other.s = 0;
+}
+
+/*!\brief Konstruktor aus ByteArrayPtr
+ *
+ * \desc
+ * Ein String wird aus einem ByteArrayPtr erstellt.
+ * @param str Referenz auf ByteArrayPtr
+ * \exception OutOfMemoryException
+ */
 String::String(const ByteArrayPtr& str)
 {
     ptr = empty_string;
@@ -257,14 +266,6 @@ String::String(const std::wstring& str)
     set(str.data(), str.size());
 }
 
-String::String(const WideString* str)
-{
-    ptr = empty_string;
-    stringlen = 0;
-    s = 0;
-    set(str);
-}
-
 String::String(const WideString& str)
 {
     ptr = empty_string;
@@ -279,7 +280,7 @@ String::String(const WideString& str)
  * Der Destructor gibt den durch den String belegten Speicher wieder frei.
  *
  */
-String::~String() throw()
+String::~String() noexcept
 {
     if (ptr != empty_string) free(ptr);
 }
@@ -290,7 +291,7 @@ String::~String() throw()
  * Mit dieser Funktion wird der String geleert und der bisher allokierte Speicher wieder
  * freigegeben.
  */
-void String::clear() throw()
+void String::clear() noexcept
 {
     if (ptr != empty_string) free(ptr);
     ptr = empty_string;
@@ -652,34 +653,6 @@ String& String::set(const wchar_t* str, size_t size)
 #endif
 }
 
-/*!\brief String anhand eines String-Pointers setzen
- *
- * \desc
- * Mit dieser Funktion wird der String anhand des Pointers \p str eines anderen
- * Strings gesetzt.
- *
- * \param str Pointer auf einen String
- * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
- * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
- * der angegebene String, wird er ignoriert und der komplette String importiert.
- * \return Referenz auf den String
- * \exception OutOfMemoryException
- */
-String& String::set(const String* str, size_t size)
-{
-    if (!str) {
-        clear();
-        return *this;
-    }
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = str->stringlen;
-    if (inbytes > str->stringlen) inbytes = str->stringlen;
-    return set(str->ptr, inbytes);
-}
-
 /*!\brief Wert eines anderen Strings übernehmen
  *
  * \desc
@@ -712,21 +685,6 @@ String& String::set(const ByteArrayPtr& str, size_t size)
         inbytes = str.size();
     if (inbytes > str.size()) inbytes = str.size();
     return set((const char*)str.adr(), inbytes);
-}
-
-String& String::set(const WideString* str, size_t size)
-{
-    if (!str) {
-        clear();
-        return *this;
-    }
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = str->size();
-    if (inbytes > str->size()) inbytes = str->size();
-    return set(str->getPtr(), inbytes);
 }
 
 String& String::set(const WideString& str, size_t size)
@@ -1012,26 +970,6 @@ String& String::append(const char* str, size_t size)
     return *this;
 }
 
-/*!\brief Fügt einen als Pointer übergebenen String an das Ende des bestehenden an
- *
- * \desc
- * Fügt einen als Pointer übergebenen String an das Ende des bestehenden an. Ist der Pointer
- * NULL oder der Inhalt des Strings leer, wird der bisherige String beibehalten, es erfolgt
- * keine Exception.
- *
- * \param[in] str Pointer auf ein String-Objekt
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
-String& String::append(const String* str, size_t size)
-{
-    if (!str) return *this;
-    return append(str->ptr, size);
-}
-
 /*!\brief Fügt einen String an das Ende des bestehenden an
  *
  * \desc
@@ -1170,30 +1108,6 @@ String& String::prepend(const wchar_t* str, size_t size)
     String a;
     a.set(str, size);
     return prepend((const char*)a.ptr, size);
-}
-
-/*!\brief Fügt einen String am Anfang des bestehenden Strings ein
- *
- * \desc
- * Fügt einen String am Anfang des bestehenden Strings ein
- *
- * \param[in] str Pointer auf einen String
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
-String& String::prepend(const String* str, size_t size)
-{
-    if (!str) return *this;
-    if (ptr == empty_string) {
-        set(str, size);
-        return *this;
-    }
-    String a;
-    a.set(str, size);
-    return prepend(a.ptr, a.stringlen);
 }
 
 /*!\brief Fügt einen String am Anfang des bestehenden Strings ein
@@ -1533,7 +1447,7 @@ char String::operator[](ssize_t pos) const
  * Keine
  *
  */
-void String::print(bool withNewline) const throw()
+void String::print(bool withNewline) const noexcept
 {
     if (stringlen > 0) {
         if (withNewline)
@@ -1557,7 +1471,7 @@ void String::print(bool withNewline) const throw()
  * Keine
  *
  */
-void String::printnl() const throw()
+void String::printnl() const noexcept
 {
     print(true);
 }
@@ -1611,23 +1525,33 @@ String& String::operator=(const wchar_t* str)
  * @param[in] str Zu kopierender String
  * @return Referenz auf diese Instanz der Klasse
  */
-String& String::operator=(const String* str)
+String& String::operator=(const String& str)
 {
     return set(str);
 }
 
-/*!\brief String übernehmen
+/*!\brief String übernehmen (Move-Operator)
  *
  * \desc
- * Mit diesem Operator wird der Angegebene String \p str kopiert. Der Operator
- * ist identisch mit der Funktion String::set
+ * Mit diesem Operator wird der Angegebene String \p str übernommen. Der Operator
+ * verschiebt die internen Daten des Strings in das aktuelle Objekt und setzt
+ * den Quellstring in einen leeren Zustand zurück.
  *
- * @param[in] str Zu kopierender String
+ * @param[in] str Zu übernehmender String
  * @return Referenz auf diese Instanz der Klasse
  */
-String& String::operator=(const String& str)
+String& String::operator=(String&& other)
 {
-    return set(str);
+    if (this != &other) {
+        if (ptr != empty_string) free(ptr);
+        ptr = other.ptr;
+        s = other.s;
+        stringlen = other.stringlen;
+        other.ptr = empty_string;
+        other.s = 1;
+        other.stringlen = 0;
+    }
+    return *this;
 }
 
 String& String::operator=(const WideString& str)
@@ -2073,21 +1997,21 @@ String String::trimmed() const
 
 String String::toLowerCase() const
 {
-    String res(this);
+    String res(*this);
     res.lowerCase();
     return res;
 }
 
 String String::toUpperCase() const
 {
-    String res(this);
+    String res(*this);
     res.upperCase();
     return res;
 }
 
 String String::toUpperCaseWords() const
 {
-    String res(this);
+    String res(*this);
     res.upperCaseWords();
     return res;
 }

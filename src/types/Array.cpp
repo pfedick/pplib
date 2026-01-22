@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,9 +45,8 @@
 
 #include "ppl7.h"
 
-
-namespace ppl7 {
-
+namespace ppl7
+{
 
 /*!\class Array
  * \ingroup PPLGroupDataTypes
@@ -89,13 +88,12 @@ namespace ppl7 {
  * Datenstruktur für jedes Element.
  */
 
-
-typedef struct {
-	String* value;
+typedef struct
+{
+    String* value;
 } ROW;
 
 static String EmptyString;
-
 
 /*!\brief Konstruktor
  *
@@ -104,9 +102,9 @@ static String EmptyString;
  */
 Array::Array()
 {
-	numElements=0;
-	numCapacity=0;
-	rows=NULL;
+    numElements = 0;
+    numCapacity = 0;
+    rows = NULL;
 }
 
 /*!\brief Copy-Konstruktor
@@ -118,10 +116,10 @@ Array::Array()
  */
 Array::Array(const Array& other)
 {
-	numElements=0;
-	numCapacity=0;
-	rows=NULL;
-	add(other);
+    numElements = 0;
+    numCapacity = 0;
+    rows = NULL;
+    add(other);
 }
 
 /*!\brief Konstruktor aus String
@@ -142,10 +140,10 @@ Array::Array(const Array& other)
  */
 Array::Array(const String& str, const String& delimiter, size_t limit, bool skipemptylines)
 {
-	numElements=0;
-	numCapacity=0;
-	rows=NULL;
-	explode(str, delimiter, limit, skipemptylines);
+    numElements = 0;
+    numCapacity = 0;
+    rows = NULL;
+    explode(str, delimiter, limit, skipemptylines);
 }
 
 /*!\brief Destruktor
@@ -155,9 +153,8 @@ Array::Array(const String& str, const String& delimiter, size_t limit, bool skip
  */
 Array::~Array()
 {
-	clear();
+    clear();
 }
-
 
 /*!\brief Array löschen
  *
@@ -167,19 +164,19 @@ Array::~Array()
  */
 void Array::clear()
 {
-	ROW* r=(ROW*)rows;
-	if (r) {
-		for (size_t i=0;i < numCapacity;i++) {
-			if (r[i].value) {
-				delete(r[i].value);
-				r[i].value=NULL;
-			}
-		}
-		free(rows);
-	}
-	rows=NULL;
-	numCapacity=0;
-	numElements=0;
+    ROW* r = (ROW*)rows;
+    if (r) {
+        for (size_t i = 0; i < numCapacity; i++) {
+            if (r[i].value) {
+                delete (r[i].value);
+                r[i].value = NULL;
+            }
+        }
+        free(rows);
+    }
+    rows = NULL;
+    numCapacity = 0;
+    numElements = 0;
 }
 
 /*!\brief Array kopieren
@@ -192,12 +189,12 @@ void Array::clear()
  */
 void Array::copy(const Array& other)
 {
-	clear();
-	reserve(other.numElements);
-	ROW* r=(ROW*)other.rows;
-	for (size_t i=0;i < other.numElements;i++) {
-		if (r[i].value != NULL) set(i, *r[i].value);
-	}
+    clear();
+    reserve(other.numElements);
+    ROW* r = (ROW*)other.rows;
+    for (size_t i = 0; i < other.numElements; i++) {
+        if (r[i].value != NULL) set(i, *r[i].value);
+    }
 }
 
 /*!\brief Array hinzufügen
@@ -209,12 +206,12 @@ void Array::copy(const Array& other)
  */
 void Array::add(const Array& other)
 {
-	ROW* r=(ROW*)other.rows;
-	size_t first=numElements;
-	reserve(numElements + other.numElements);
-	for (size_t i=0;i < other.numElements;i++) {
-		if (r[i].value != NULL) set(first + i, *r[i].value);
-	}
+    ROW* r = (ROW*)other.rows;
+    size_t first = numElements;
+    reserve(numElements + other.numElements);
+    for (size_t i = 0; i < other.numElements; i++) {
+        if (r[i].value != NULL) set(first + i, *r[i].value);
+    }
 }
 
 /*!\brief String anhängen
@@ -226,7 +223,7 @@ void Array::add(const Array& other)
  */
 void Array::add(const String& value)
 {
-	set(numElements, value);
+    set(numElements, value);
 }
 
 /*!\brief Teilstring anhängen
@@ -239,9 +236,9 @@ void Array::add(const String& value)
  */
 void Array::add(const String& value, size_t size)
 {
-	String str;
-	str.set(value, size);
-	set(numElements, str);
+    String str;
+    str.set(value, size);
+    set(numElements, str);
 }
 
 /*!\brief Teilstring anhängen
@@ -254,9 +251,9 @@ void Array::add(const String& value, size_t size)
  */
 void Array::add(const char* value, size_t size)
 {
-	String str;
-	str.set(value, size);
-	set(numElements, str);
+    String str;
+    str.set(value, size);
+    set(numElements, str);
 }
 
 /*!\brief Formatierten String anhängen
@@ -270,12 +267,12 @@ void Array::add(const char* value, size_t size)
  */
 void Array::addf(const char* fmt, ...)
 {
-	String value;
-	va_list args;
-	va_start(args, fmt);
-	value.vasprintf(fmt, args);
-	va_end(args);
-	set(numElements, value);
+    String value;
+    va_list args;
+    va_start(args, fmt);
+    value.vasprintf(fmt, args);
+    va_end(args);
+    set(numElements, value);
 }
 
 /*!\brief Wert eines Elements setzen
@@ -289,28 +286,28 @@ void Array::addf(const char* fmt, ...)
  */
 void Array::set(size_t index, const String& value)
 {
-	ROW* r;
-	if (index >= numCapacity) {
-		// Array muss vergroessert werden
-		size_t newsize=numCapacity / 3;
-		if (newsize < 10) newsize=10;
-		if (newsize < index + 10) newsize=index + 10;
-		reserve(newsize);
-	}
-	r=(ROW*)rows;
-	if ((index + 1) > numElements) numElements=index + 1;
-	if (value.notEmpty()) {
-		if (r[index].value == NULL) {
-			r[index].value=new String;
-			if (!r[index].value) throw OutOfMemoryException();
-		}
-		r[index].value->set(value);
-	} else {
-		if (r[index].value != NULL) {
-			delete r[index].value;
-			r[index].value=NULL;
-		}
-	}
+    ROW* r;
+    if (index >= numCapacity) {
+        // Array muss vergroessert werden
+        size_t newsize = numCapacity / 3;
+        if (newsize < 10) newsize = 10;
+        if (newsize < index + 10) newsize = index + 10;
+        reserve(newsize);
+    }
+    r = (ROW*)rows;
+    if ((index + 1) > numElements) numElements = index + 1;
+    if (value.notEmpty()) {
+        if (r[index].value == NULL) {
+            r[index].value = new String;
+            if (!r[index].value) throw OutOfMemoryException();
+        }
+        r[index].value->set(value);
+    } else {
+        if (r[index].value != NULL) {
+            delete r[index].value;
+            r[index].value = NULL;
+        }
+    }
 }
 
 /*!\brief Formatierten String setzen
@@ -326,14 +323,13 @@ void Array::set(size_t index, const String& value)
  */
 void Array::setf(size_t index, const char* fmt, ...)
 {
-	String value;
-	va_list args;
-	va_start(args, fmt);
-	value.vasprintf(fmt, args);
-	va_end(args);
-	set(index, value);
+    String value;
+    va_list args;
+    va_start(args, fmt);
+    value.vasprintf(fmt, args);
+    va_end(args);
+    set(index, value);
 }
-
 
 /*!\brief Element im Array einfügen
  *
@@ -347,19 +343,19 @@ void Array::setf(size_t index, const char* fmt, ...)
  */
 void Array::insert(size_t index, const String& value)
 {
-	ROW* r=(ROW*)rows;
-	// Zunächst sorgen wir dafür, dass im Array genug Platz ist
-	reserve(numElements + 2);
-	// Nun verschieben wir alle Elemente ab Position index um eins nach hinten
-	if (numElements > index) {
-		for (size_t i=numElements;i > index;i--) {
-			r[i].value=r[i - 1].value;
-		}
-		numElements++;
-		r[index].value=NULL;
-	}
-	// Den neuen Wert einfügen
-	set(index, value);
+    ROW* r = (ROW*)rows;
+    // Zunächst sorgen wir dafür, dass im Array genug Platz ist
+    reserve(numElements + 2);
+    // Nun verschieben wir alle Elemente ab Position index um eins nach hinten
+    if (numElements > index) {
+        for (size_t i = numElements; i > index; i--) {
+            r[i].value = r[i - 1].value;
+        }
+        numElements++;
+        r[index].value = NULL;
+    }
+    // Den neuen Wert einfügen
+    set(index, value);
 }
 
 /*!\brief Array einfügen
@@ -374,30 +370,30 @@ void Array::insert(size_t index, const String& value)
  */
 void Array::insert(size_t index, const Array& other)
 {
-	if (other.numElements == 0) return;	// Anderes Array ist leer
-	// Zunächst sorgen wir dafür, dass im Array genug Platz ist
-	reserve(numElements + other.numElements + 2);
-	ROW* r=(ROW*)rows;
-	// Nun verschieben wir alle Elemente ab Position index um die größe des anderen
-	// Arrays nach hinten
-	if (numElements > index) {
-		for (size_t i=numElements;i > index;--i) {
-			size_t ii=i - 1;
-			r[ii + other.numElements].value=r[ii].value;
-			r[ii].value=NULL;
-		}
-	}
-	// Die neuen Werte einfügen
-	ROW* r2=(ROW*)other.rows;
-	for (size_t i=0;i < other.numElements;i++) {
-		if (r2[i].value != NULL) {
-			r[index + i].value=new String;
-			if (!r[index + i].value) throw OutOfMemoryException();
-			r[index + i].value->set(r2[i].value);
-		}
-	}
-	if (index > numElements) numElements+=(index - numElements);
-	numElements+=other.numElements;
+    if (other.numElements == 0) return; // Anderes Array ist leer
+    // Zunächst sorgen wir dafür, dass im Array genug Platz ist
+    reserve(numElements + other.numElements + 2);
+    ROW* r = (ROW*)rows;
+    // Nun verschieben wir alle Elemente ab Position index um die größe des anderen
+    // Arrays nach hinten
+    if (numElements > index) {
+        for (size_t i = numElements; i > index; --i) {
+            size_t ii = i - 1;
+            r[ii + other.numElements].value = r[ii].value;
+            r[ii].value = NULL;
+        }
+    }
+    // Die neuen Werte einfügen
+    ROW* r2 = (ROW*)other.rows;
+    for (size_t i = 0; i < other.numElements; i++) {
+        if (r2[i].value != NULL) {
+            r[index + i].value = new String;
+            if (!r[index + i].value) throw OutOfMemoryException();
+            r[index + i].value->set(*r2[i].value);
+        }
+    }
+    if (index > numElements) numElements += (index - numElements);
+    numElements += other.numElements;
 }
 
 /*!\brief Element mittels Formatstring einfügen
@@ -414,14 +410,13 @@ void Array::insert(size_t index, const Array& other)
  */
 void Array::insertf(size_t index, const char* fmt, ...)
 {
-	String value;
-	va_list args;
-	va_start(args, fmt);
-	value.vasprintf(fmt, args);
-	va_end(args);
-	insert(index, value);
+    String value;
+    va_list args;
+    va_start(args, fmt);
+    value.vasprintf(fmt, args);
+    va_end(args);
+    insert(index, value);
 }
-
 
 /*!\brief Platz reservieren
  *
@@ -444,21 +439,21 @@ void Array::insertf(size_t index, const char* fmt, ...)
  */
 void Array::reserve(size_t size)
 {
-	if (size > numCapacity) {
-		//PrintDebugTime ("Array::reserve von %zu auf %zu Elemente\n",numCapacity,size);
-		ROW* r;
-		// Array muss vergroessert werden
-		void* newrows=realloc(rows, (size) * sizeof(ROW));
-		if (!newrows) {
-			throw OutOfMemoryException();
-		}
-		r=(ROW*)newrows;
-		for (size_t i=numCapacity;i < size;i++) {
-			r[i].value=NULL;
-		}
-		rows=newrows;
-		numCapacity=size;
-	}
+    if (size > numCapacity) {
+        // PrintDebugTime ("Array::reserve von %zu auf %zu Elemente\n",numCapacity,size);
+        ROW* r;
+        // Array muss vergroessert werden
+        void* newrows = realloc(rows, (size) * sizeof(ROW));
+        if (!newrows) {
+            throw OutOfMemoryException();
+        }
+        r = (ROW*)newrows;
+        for (size_t i = numCapacity; i < size; i++) {
+            r[i].value = NULL;
+        }
+        rows = newrows;
+        numCapacity = size;
+    }
 }
 
 /*!\brief Anzahl Elemente, für die Speicher reserviert ist
@@ -473,7 +468,7 @@ void Array::reserve(size_t size)
  */
 size_t Array::capacity() const
 {
-	return numCapacity;
+    return numCapacity;
 }
 
 /*!\brief Anzahl Elemente im Array
@@ -491,7 +486,7 @@ size_t Array::capacity() const
  */
 size_t Array::count() const
 {
-	return numElements;
+    return numElements;
 }
 
 /*!\brief Anzahl Elemente im Array
@@ -509,7 +504,7 @@ size_t Array::count() const
  */
 size_t Array::size() const
 {
-	return numElements;
+    return numElements;
 }
 
 /*!\brief Array leer?
@@ -520,10 +515,9 @@ size_t Array::size() const
  */
 bool Array::empty() const
 {
-	if (numElements == 0) return true;
-	return false;
+    if (numElements == 0) return true;
+    return false;
 }
-
 
 /*!\brief Inhalt des Arrays ausgeben
  *
@@ -553,24 +547,22 @@ MeinArray,      4: Value 5
  */
 void Array::list(const String& prefix) const
 {
-	ROW* r=(ROW*)rows;
-	if (prefix.isEmpty()) {
-		if ((!rows) || numElements == 0) {
-			PrintDebug("Array ist leer\n");
-		}
-		for (size_t i=0;i < numElements;i++) {
-			if (r[i].value != NULL) PrintDebug("%6zu: %s\n", i, (const char*)r[i].value->getPtr());
-
-		}
-	} else {
-		if ((!rows) || numElements == 0) {
-			PrintDebug("Array \"%s\" ist leer\n", (const char*)prefix);
-		}
-		for (size_t i=0;i < numElements;i++) {
-			if (r[i].value != NULL) PrintDebug("%s, %6zu: %s\n", (const char*)prefix, i, (const char*)r[i].value->getPtr());
-		}
-
-	}
+    ROW* r = (ROW*)rows;
+    if (prefix.isEmpty()) {
+        if ((!rows) || numElements == 0) {
+            PrintDebug("Array ist leer\n");
+        }
+        for (size_t i = 0; i < numElements; i++) {
+            if (r[i].value != NULL) PrintDebug("%6zu: %s\n", i, (const char*)r[i].value->getPtr());
+        }
+    } else {
+        if ((!rows) || numElements == 0) {
+            PrintDebug("Array \"%s\" ist leer\n", (const char*)prefix);
+        }
+        for (size_t i = 0; i < numElements; i++) {
+            if (r[i].value != NULL) PrintDebug("%s, %6zu: %s\n", (const char*)prefix, i, (const char*)r[i].value->getPtr());
+        }
+    }
 }
 
 /*!\brief Element als Konstante auslesen
@@ -585,14 +577,14 @@ void Array::list(const String& prefix) const
  */
 const String& Array::get(ssize_t index) const
 {
-	if (index < 0) {
-		index=numElements + index;
-		if (index < 0) throw OutOfBoundsEception();
-	}
-	ROW* r=(ROW*)rows;
-	if ((size_t)index >= numElements) throw OutOfBoundsEception();
-	if (r[index].value != NULL) return *r[index].value;
-	return EmptyString;
+    if (index < 0) {
+        index = numElements + index;
+        if (index < 0) throw OutOfBoundsEception();
+    }
+    ROW* r = (ROW*)rows;
+    if ((size_t)index >= numElements) throw OutOfBoundsEception();
+    if (r[index].value != NULL) return *r[index].value;
+    return EmptyString;
 }
 
 /*!\brief Element auslesen
@@ -607,14 +599,14 @@ const String& Array::get(ssize_t index) const
  */
 String& Array::get(ssize_t index)
 {
-	if (index < 0) {
-		index=numElements + index;
-		if (index < 0) throw OutOfBoundsEception();
-	}
-	ROW* r=(ROW*)rows;
-	if ((size_t)index >= numElements) throw OutOfBoundsEception();
-	if (r[index].value != NULL) return *r[index].value;
-	return EmptyString;
+    if (index < 0) {
+        index = numElements + index;
+        if (index < 0) throw OutOfBoundsEception();
+    }
+    ROW* r = (ROW*)rows;
+    if ((size_t)index >= numElements) throw OutOfBoundsEception();
+    if (r[index].value != NULL) return *r[index].value;
+    return EmptyString;
 }
 
 /*!\brief Zufälliges Element als Konstante auslesen
@@ -628,11 +620,11 @@ String& Array::get(ssize_t index)
  */
 const String& Array::getRandom() const
 {
-	if (!numElements) return EmptyString;
-	ROW* r=(ROW*)rows;
-	size_t index=ppl7::rand(0, numElements - 1);
-	if (index < numElements && r[index].value != NULL) return *r[index].value;
-	return EmptyString;
+    if (!numElements) return EmptyString;
+    ROW* r = (ROW*)rows;
+    size_t index = ppl7::rand(0, numElements - 1);
+    if (index < numElements && r[index].value != NULL) return *r[index].value;
+    return EmptyString;
 }
 
 /*!\brief Zufälliges Element auslesen
@@ -645,11 +637,11 @@ const String& Array::getRandom() const
  */
 String& Array::getRandom()
 {
-	if (!numElements) return EmptyString;
-	ROW* r=(ROW*)rows;
-	size_t index=ppl7::rand(0, numElements - 1);
-	if (index < numElements && r[index].value != NULL) return *r[index].value;
-	return EmptyString;
+    if (!numElements) return EmptyString;
+    ROW* r = (ROW*)rows;
+    size_t index = ppl7::rand(0, numElements - 1);
+    if (index < numElements && r[index].value != NULL) return *r[index].value;
+    return EmptyString;
 }
 
 /*!\brief char Pointer auf ein Element auslesen
@@ -665,7 +657,7 @@ String& Array::getRandom()
  */
 const char* Array::getPtr(ssize_t index) const
 {
-	return get(index).getPtr();
+    return get(index).getPtr();
 }
 
 /*!\brief Zufälliges Element als char Pointer auslesen
@@ -678,13 +670,12 @@ const char* Array::getPtr(ssize_t index) const
  */
 const char* Array::getRandomPtr() const
 {
-	if (!numElements) return String();
-	ROW* r=(ROW*)rows;
-	size_t index=ppl7::rand(0, numElements - 1);
-	if (index < numElements && r[index].value != NULL) return r[index].value->getPtr();
-	return "";
+    if (!numElements) return String();
+    ROW* r = (ROW*)rows;
+    size_t index = ppl7::rand(0, numElements - 1);
+    if (index < numElements && r[index].value != NULL) return r[index].value->getPtr();
+    return "";
 }
-
 
 /*!\brief Inhalt des Arrays ab einer bestimmten Position als String zurückgeben
  *
@@ -698,15 +689,14 @@ const char* Array::getRandomPtr() const
  */
 String Array::getRest(size_t index, const String& delimiter)
 {
-	String rest;
-	ROW* r=(ROW*)rows;
-	for (size_t i=index;i < numElements;i++) {
-		if (i > index) rest+=delimiter;
-		if (r[i].value != NULL) rest+= *r[i].value;
-	}
-	return rest;
+    String rest;
+    ROW* r = (ROW*)rows;
+    for (size_t i = index; i < numElements; i++) {
+        if (i > index) rest += delimiter;
+        if (r[i].value != NULL) rest += *r[i].value;
+    }
+    return rest;
 }
-
 
 /*!\brief Iterator auf den Anfang setzen
  *
@@ -722,18 +712,18 @@ ppl7::Array::Iterator it;
 ppl7::String value;
 a1.reset(it);
 try {
-	while (1) {
-		value=a1.getNext(it);
-		value.printnl();
-	}
+    while (1) {
+        value=a1.getNext(it);
+        value.printnl();
+    }
 } catch (ppl7::OutOfBoundsEception) {
-	printf ("Keine weiteren Elemente\n");
+    printf ("Keine weiteren Elemente\n");
 }
  * \endcode
  */
 void Array::reset(Iterator& it) const
 {
-	it.pos=0;
+    it.pos = 0;
 }
 
 /*!\brief Referenz auf das erste Element mittels Iterator auslesen
@@ -753,19 +743,19 @@ ppl7::Array::Iterator it;
 ppl7::String value;
 a1.reset(it);
 try {
-	while (1) {
-		value=a1.getNext(it);
-		value.printnl();
-	}
+    while (1) {
+        value=a1.getNext(it);
+        value.printnl();
+    }
 } catch (ppl7::OutOfBoundsEception) {
-	printf ("Keine weiteren Elemente\n");
+    printf ("Keine weiteren Elemente\n");
 }
  * \endcode
  */
 const String& Array::getFirst(Iterator& it) const
 {
-	it.pos=0;
-	return getNext(it);
+    it.pos = 0;
+    return getNext(it);
 }
 
 /*!\brief Referenz auf das nächste Element mittels Iterator auslesen
@@ -784,25 +774,25 @@ ppl7::Array::Iterator it;
 ppl7::String value;
 a1.reset(it);
 try {
-	while (1) {
-		value=a1.getNext(it);
-		value.printnl();
-	}
+    while (1) {
+        value=a1.getNext(it);
+        value.printnl();
+    }
 } catch (ppl7::OutOfBoundsEception) {
-	printf ("Keine weiteren Elemente\n");
+    printf ("Keine weiteren Elemente\n");
 }
  * \endcode
  */
 const String& Array::getNext(Iterator& it) const
 {
-	ROW* r=(ROW*)rows;
-	if (it.pos < numElements) {
-		String* s=r[it.pos].value;
-		it.pos++;
-		if (s != NULL) return *s;
-		return EmptyString;
-	}
-	throw OutOfBoundsEception();
+    ROW* r = (ROW*)rows;
+    if (it.pos < numElements) {
+        String* s = r[it.pos].value;
+        it.pos++;
+        if (s != NULL) return *s;
+        return EmptyString;
+    }
+    throw OutOfBoundsEception();
 }
 
 /*!\brief Das erste Element aus dem Array holen
@@ -822,19 +812,19 @@ const String& Array::getNext(Iterator& it) const
  */
 String Array::erase(size_t index)
 {
-	if (index >= numElements) throw OutOfBoundsEception();
-	String ret;
-	ROW* r=(ROW*)rows;
-	if (r[index].value != NULL) {
-		ret=r[index].value;
-		delete r[index].value;
-	}
-	for (size_t i=index;i < numElements - 1;i++) {
-		r[i].value=r[i + 1].value;
-	}
-	numElements--;
-	r[numElements].value=NULL;
-	return ret;
+    if (index >= numElements) throw OutOfBoundsEception();
+    String ret;
+    ROW* r = (ROW*)rows;
+    if (r[index].value != NULL) {
+        ret = *r[index].value;
+        delete r[index].value;
+    }
+    for (size_t i = index; i < numElements - 1; i++) {
+        r[i].value = r[i + 1].value;
+    }
+    numElements--;
+    r[numElements].value = NULL;
+    return ret;
 }
 
 /*!\brief Das erste Element aus dem Array holen
@@ -853,19 +843,19 @@ String Array::erase(size_t index)
  */
 String Array::shift()
 {
-	if (!numElements) throw EmptyDataException();
-	String ret;
-	ROW* r=(ROW*)rows;
-	if (r[0].value != NULL) {
-		ret=r[0].value;
-		delete r[0].value;
-	}
-	for (size_t i=0;i < numElements - 1;i++) {
-		r[i].value=r[i + 1].value;
-	}
-	numElements--;
-	r[numElements].value=NULL;
-	return ret;
+    if (!numElements) throw EmptyDataException();
+    String ret;
+    ROW* r = (ROW*)rows;
+    if (r[0].value != NULL) {
+        ret = *r[0].value;
+        delete r[0].value;
+    }
+    for (size_t i = 0; i < numElements - 1; i++) {
+        r[i].value = r[i + 1].value;
+    }
+    numElements--;
+    r[numElements].value = NULL;
+    return ret;
 }
 
 /*!\brief Das letzte Element aus dem Array holen
@@ -880,18 +870,17 @@ String Array::shift()
  */
 String Array::pop()
 {
-	if (!numElements) throw EmptyDataException();
-	ROW* r=(ROW*)rows;
-	String ret;
-	if (r[numElements - 1].value != NULL) {
-		ret=r[numElements].value;
-		delete r[numElements - 1].value;
-		r[numElements - 1].value=NULL;
-	}
-	numElements--;
-	return ret;
+    if (!numElements) throw EmptyDataException();
+    ROW* r = (ROW*)rows;
+    String ret;
+    if (r[numElements - 1].value != NULL) {
+        ret = *r[numElements].value;
+        delete r[numElements - 1].value;
+        r[numElements - 1].value = NULL;
+    }
+    numElements--;
+    return ret;
 }
-
 
 /*!\brief Array aus String erzeugen
  *
@@ -917,42 +906,42 @@ String Array::pop()
  */
 Array& Array::explode(const String& text, const String& delimiter, size_t limit, bool skipemptylines)
 {
-	if (text.isEmpty()) return *this;
-	if (delimiter.isEmpty()) return *this;
-	ssize_t p;
-	size_t t=delimiter.len();
-	size_t count=0;
-	const char* del=(const char*)delimiter;
-	char* etext=(char*)text.getPtr();
-	char* _t;
-	String str;
-	while (1) {
-		_t=strstr(etext, del);
-		if (_t) {
-			p=_t - etext;
-			if (p == 0 && skipemptylines == true) {
-				etext+=t;
-				continue;
-			}
-			if (limit > 0 && count >= limit) {
-				return *this;
-			}
-			str.set(etext, p);
-			//add(etext,p);
-			set(numElements, str);
-			etext=etext + p + t;
-			count++;
-		} else {
-			if (skipemptylines == false || strlen(etext) > 0) {
-				count++;
-				if (limit == 0 || count <= limit) {
-					add(etext);
-				}
-			}
-			return *this;
-		}
-	}
-	return *this;
+    if (text.isEmpty()) return *this;
+    if (delimiter.isEmpty()) return *this;
+    ssize_t p;
+    size_t t = delimiter.len();
+    size_t count = 0;
+    const char* del = (const char*)delimiter;
+    char* etext = (char*)text.getPtr();
+    char* _t;
+    String str;
+    while (1) {
+        _t = strstr(etext, del);
+        if (_t) {
+            p = _t - etext;
+            if (p == 0 && skipemptylines == true) {
+                etext += t;
+                continue;
+            }
+            if (limit > 0 && count >= limit) {
+                return *this;
+            }
+            str.set(etext, p);
+            // add(etext,p);
+            set(numElements, str);
+            etext = etext + p + t;
+            count++;
+        } else {
+            if (skipemptylines == false || strlen(etext) > 0) {
+                count++;
+                if (limit == 0 || count <= limit) {
+                    add(etext);
+                }
+            }
+            return *this;
+        }
+    }
+    return *this;
 }
 
 /*!\brief Array zu einem String zusammenfügen
@@ -966,14 +955,13 @@ Array& Array::explode(const String& text, const String& delimiter, size_t limit,
  */
 String Array::implode(const String& delimiter) const
 {
-	String ret;
-	for (size_t i=0;i < numElements;i++) {
-		if (i) ret+=delimiter;
-		ret+=get(i);
-	}
-	return ret;
+    String ret;
+    for (size_t i = 0; i < numElements; i++) {
+        if (i) ret += delimiter;
+        ret += get(i);
+    }
+    return ret;
 }
-
 
 /*!\brief Array aus den Aufrufparametern des Programms erzeugen
  *
@@ -986,11 +974,11 @@ String Array::implode(const String& delimiter) const
  */
 Array& Array::fromArgs(int argc, const char** argv)
 {
-	clear();
-	for (int i=0;i < argc;i++) {
-		add(argv[i]);
-	}
-	return *this;
+    clear();
+    for (int i = 0; i < argc; i++) {
+        add(argv[i]);
+    }
+    return *this;
 }
 
 /*!\brief Array aus dem Aufrufstring des Programms erzeugen
@@ -1003,61 +991,60 @@ Array& Array::fromArgs(int argc, const char** argv)
  */
 Array& Array::fromArgs(const String& args)
 {
-	clear();
-	String buffer(args);
-	String arg;
-	// Kommandozeile in argc und argv[] umwandeln
+    clear();
+    String buffer(args);
+    String arg;
+    // Kommandozeile in argc und argv[] umwandeln
 
-	size_t l=buffer.len();
-	add(args);
-	bool inDoubleQuote=false;
-	bool inSingleQuote=false;
-	size_t start=0;
-	for (size_t i=0;i < l;i++) {
-		if (buffer[i] == 34 && inDoubleQuote == false && inSingleQuote == false) {
-			if (i == 0) {
-				inDoubleQuote=true;
-				start=i + 1;
-			} else if (buffer[i - 1] != '\\') {
-				inDoubleQuote=true;
-				start=i + 1;
-			}
-		} else if (buffer[i] == '\'' && inDoubleQuote == false && inSingleQuote == false) {
-			if (i == 0) {
-				inSingleQuote=true;
-				start=i + 1;
-			} else if (buffer[i - 1] != '\\') {
-				inSingleQuote=true;
-				start=i + 1;
-			}
+    size_t l = buffer.len();
+    add(args);
+    bool inDoubleQuote = false;
+    bool inSingleQuote = false;
+    size_t start = 0;
+    for (size_t i = 0; i < l; i++) {
+        if (buffer[i] == 34 && inDoubleQuote == false && inSingleQuote == false) {
+            if (i == 0) {
+                inDoubleQuote = true;
+                start = i + 1;
+            } else if (buffer[i - 1] != '\\') {
+                inDoubleQuote = true;
+                start = i + 1;
+            }
+        } else if (buffer[i] == '\'' && inDoubleQuote == false && inSingleQuote == false) {
+            if (i == 0) {
+                inSingleQuote = true;
+                start = i + 1;
+            } else if (buffer[i - 1] != '\\') {
+                inSingleQuote = true;
+                start = i + 1;
+            }
 
-		} else if (buffer[i] == 34 && inDoubleQuote == true && buffer[i - 1] != '\\') {
-			inDoubleQuote=false;
-			arg=buffer.mid(start, i - start);
-			if (arg.notEmpty()) add(arg);
+        } else if (buffer[i] == 34 && inDoubleQuote == true && buffer[i - 1] != '\\') {
+            inDoubleQuote = false;
+            arg = buffer.mid(start, i - start);
+            if (arg.notEmpty()) add(arg);
 
-			//if(argv[argc][0]!=0) argc++;
-			start=i + 1;
-		} else if (buffer[i] == '\'' && inSingleQuote == true && buffer[i - 1] != '\\') {
-			inSingleQuote=false;
-			arg=buffer.mid(start, i - start);
-			if (arg.notEmpty()) add(arg);
+            // if(argv[argc][0]!=0) argc++;
+            start = i + 1;
+        } else if (buffer[i] == '\'' && inSingleQuote == true && buffer[i - 1] != '\\') {
+            inSingleQuote = false;
+            arg = buffer.mid(start, i - start);
+            if (arg.notEmpty()) add(arg);
 
-			//if(argv[argc][0]!=0) argc++;
-			start=i + 1;
-		} else if ((buffer[i] == ' ' || buffer[i] == '\t') && inDoubleQuote == false && inSingleQuote == false) {
-			arg=Trim(buffer.mid(start, i - start));
-			if (arg.notEmpty()) add(arg);
-			start=i + 1;
-		}
-	}
-	if (start < l) {
-		arg=Trim(buffer.mid(start, l - start));
-		if (arg.notEmpty()) add(arg);
-	}
-	return *this;
+            // if(argv[argc][0]!=0) argc++;
+            start = i + 1;
+        } else if ((buffer[i] == ' ' || buffer[i] == '\t') && inDoubleQuote == false && inSingleQuote == false) {
+            arg = Trim(buffer.mid(start, i - start));
+            if (arg.notEmpty()) add(arg);
+            start = i + 1;
+        }
+    }
+    if (start < l) {
+        arg = Trim(buffer.mid(start, l - start));
+        if (arg.notEmpty()) add(arg);
+    }
+    return *this;
 }
-
 
 /*!\brief Element aus dem Array auslesen
  *
@@ -1071,7 +1058,7 @@ Array& Array::fromArgs(const String& args)
  */
 String& Array::operator[](ssize_t index)
 {
-	return get(index);
+    return get(index);
 }
 
 /*!\brief Element aus dem Array als Konstante auslesen
@@ -1086,9 +1073,8 @@ String& Array::operator[](ssize_t index)
  */
 const String& Array::operator[](ssize_t index) const
 {
-	return get(index);
+    return get(index);
 }
-
 
 /*!\brief Inhalt eines anderen Arrays übernehmen
  *
@@ -1101,8 +1087,8 @@ const String& Array::operator[](ssize_t index) const
  */
 Array& Array::operator=(const Array& other)
 {
-	copy(other);
-	return *this;
+    copy(other);
+    return *this;
 }
 
 /*!\brief Inhalt eines anderen Arrays hinzufügen
@@ -1117,8 +1103,8 @@ Array& Array::operator=(const Array& other)
  */
 Array& Array::operator+=(const Array& other)
 {
-	add(other);
-	return *this;
+    add(other);
+    return *this;
 }
 
 /*!\brief Prüfen, ob zwei Arrays identisch sind
@@ -1133,10 +1119,10 @@ Array& Array::operator+=(const Array& other)
  */
 bool Array::operator==(const Array& other) const
 {
-	if (numElements != other.numElements) return false;
-	for (size_t i=0;i < numElements;i++)
-		if (get(i) != other.get(i)) return false;
-	return true;
+    if (numElements != other.numElements) return false;
+    for (size_t i = 0; i < numElements; i++)
+        if (get(i) != other.get(i)) return false;
+    return true;
 }
 
 /*!\brief Prüfen, ob zwei Arrays unterschiedlich sind
@@ -1151,12 +1137,11 @@ bool Array::operator==(const Array& other) const
  */
 bool Array::operator!=(const Array& other) const
 {
-	if (numElements != other.numElements) return true;
-	for (size_t i=0;i < numElements;i++)
-		if (get(i) != other.get(i)) return true;
-	return false;
+    if (numElements != other.numElements) return true;
+    for (size_t i = 0; i < numElements; i++)
+        if (get(i) != other.get(i)) return true;
+    return false;
 }
-
 
 /*!\brief Zwei Arrays zusammenaddieren
  * \relates Array
@@ -1171,11 +1156,10 @@ bool Array::operator!=(const Array& other) const
  */
 Array operator+(const Array& a1, const Array& a2)
 {
-	Array ret(a1);
-	ret.add(a2);
-	return ret;
+    Array ret(a1);
+    ret.add(a2);
+    return ret;
 }
-
 
 /*!\class Array::Iterator
  * \brief Iterator zum Durchwandern eines String Array
@@ -1188,9 +1172,8 @@ Array operator+(const Array& a1, const Array& a2)
 
 Array::Iterator::Iterator()
 {
-	pos=0;
+    pos = 0;
 }
-
 
 /*!\brief Elemente nach ihrem Wert sortieren
  *
@@ -1199,14 +1182,14 @@ Array::Iterator::Iterator()
  */
 void Array::sort()
 {
-	std::multiset <ppl7::String> s;
-	for (size_t i=0;i < numElements;i++) {
-		s.insert(get(i));
-	}
-	clear();
-	for (std::multiset<ppl7::String>::const_iterator it = s.begin();it != s.end();++it) {
-		add(*it);
-	}
+    std::multiset<ppl7::String> s;
+    for (size_t i = 0; i < numElements; i++) {
+        s.insert(get(i));
+    }
+    clear();
+    for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+        add(*it);
+    }
 }
 
 /*!\brief Elemente nach ihrem Wert in umgekehrter Reihenfolge sortieren
@@ -1217,14 +1200,14 @@ void Array::sort()
  */
 void Array::sortReverse()
 {
-	std::multiset <ppl7::String> s;
-	for (size_t i=0;i < numElements;i++) {
-		s.insert(get(i));
-	}
-	clear();
-	for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin();it != s.rend();++it) {
-		add(*it);
-	}
+    std::multiset<ppl7::String> s;
+    for (size_t i = 0; i < numElements; i++) {
+        s.insert(get(i));
+    }
+    clear();
+    for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
+        add(*it);
+    }
 }
 
 /*!\brief Elemente nach ihrem Wert sortieren, Duplikate entfernen
@@ -1234,14 +1217,14 @@ void Array::sortReverse()
  */
 void Array::sortUnique()
 {
-	std::set <ppl7::String> s;
-	for (size_t i=0;i < numElements;i++) {
-		s.insert(get(i));
-	}
-	clear();
-	for (std::multiset<ppl7::String>::const_iterator it = s.begin();it != s.end();++it) {
-		add(*it);
-	}
+    std::set<ppl7::String> s;
+    for (size_t i = 0; i < numElements; i++) {
+        s.insert(get(i));
+    }
+    clear();
+    for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+        add(*it);
+    }
 }
 
 /*!\brief Duplikate entfernen
@@ -1256,40 +1239,38 @@ void Array::sortUnique()
  */
 void Array::makeUnique()
 {
-	std::set <String> s;
-	for (size_t i=0;i < numElements;i++) {
-		const String& value=get(i);
-		auto it=s.find(value);
-		if (it == s.end()) {
-			erase(i);
-			i--;
-		} else {
-			s.insert(value);
-		}
-	}
+    std::set<String> s;
+    for (size_t i = 0; i < numElements; i++) {
+        const String& value = get(i);
+        auto it = s.find(value);
+        if (it == s.end()) {
+            erase(i);
+            i--;
+        } else {
+            s.insert(value);
+        }
+    }
 }
 
 size_t Array::indexOf(const String& search)
 {
-	if (!numElements) throw ItemNotFoundException(search);
-	ROW* r=(ROW*)rows;
-	for (size_t i=0;i < numElements;i++) {
-		if (*r[i].value == search) return i;
-	}
-	throw ItemNotFoundException(search);
+    if (!numElements) throw ItemNotFoundException(search);
+    ROW* r = (ROW*)rows;
+    for (size_t i = 0; i < numElements; i++) {
+        if (*r[i].value == search) return i;
+    }
+    throw ItemNotFoundException(search);
 }
 
 bool Array::has(const String& search)
 {
-	if (!numElements) return false;
-	ROW* r=(ROW*)rows;
-	for (size_t i=0;i < numElements;i++) {
-		if (*r[i].value == search) return true;
-	}
-	return false;
+    if (!numElements) return false;
+    ROW* r = (ROW*)rows;
+    for (size_t i = 0; i < numElements; i++) {
+        if (*r[i].value == search) return true;
+    }
+    return false;
 }
-
-
 
 /*!\brief Inhalt eines Arrays alphabetisch sortieren
  * \relates Array
@@ -1304,25 +1285,25 @@ bool Array::has(const String& search)
  */
 Array Sort(const Array& array, bool unique)
 {
-	Array ret;
-	if (unique) {
-		std::set <ppl7::String> s;
-		for (size_t i=0;i < array.size();i++) {
-			s.insert(array.get(i));
-		}
-		for (std::multiset<ppl7::String>::const_iterator it = s.begin();it != s.end();++it) {
-			ret.add(*it);
-		}
-	} else {
-		std::multiset <ppl7::String> s;
-		for (size_t i=0;i < array.size();i++) {
-			s.insert(array.get(i));
-		}
-		for (std::multiset<ppl7::String>::const_iterator it = s.begin();it != s.end();++it) {
-			ret.add(*it);
-		}
-	}
-	return(ret);
+    Array ret;
+    if (unique) {
+        std::set<ppl7::String> s;
+        for (size_t i = 0; i < array.size(); i++) {
+            s.insert(array.get(i));
+        }
+        for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+            ret.add(*it);
+        }
+    } else {
+        std::multiset<ppl7::String> s;
+        for (size_t i = 0; i < array.size(); i++) {
+            s.insert(array.get(i));
+        }
+        for (std::multiset<ppl7::String>::const_iterator it = s.begin(); it != s.end(); ++it) {
+            ret.add(*it);
+        }
+    }
+    return (ret);
 }
 
 /*!\brief Inhalt eines Arrays in umgekehrter Reihenfolge sortieren
@@ -1338,26 +1319,25 @@ Array Sort(const Array& array, bool unique)
  */
 Array SortReverse(const Array& array, bool unique)
 {
-	Array ret;
-	if (unique) {
-		std::set <ppl7::String> s;
-		for (size_t i=0;i < array.size();i++) {
-			s.insert(array.get(i));
-		}
-		for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin();it != s.rend();++it) {
-			ret.add(*it);
-		}
-	} else {
-		std::multiset <ppl7::String> s;
-		for (size_t i=0;i < array.size();i++) {
-			s.insert(array.get(i));
-		}
-		for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin();it != s.rend();++it) {
-			ret.add(*it);
-		}
-	}
-	return(ret);
+    Array ret;
+    if (unique) {
+        std::set<ppl7::String> s;
+        for (size_t i = 0; i < array.size(); i++) {
+            s.insert(array.get(i));
+        }
+        for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
+            ret.add(*it);
+        }
+    } else {
+        std::multiset<ppl7::String> s;
+        for (size_t i = 0; i < array.size(); i++) {
+            s.insert(array.get(i));
+        }
+        for (std::multiset<ppl7::String>::const_reverse_iterator it = s.rbegin(); it != s.rend(); ++it) {
+            ret.add(*it);
+        }
+    }
+    return (ret);
 }
 
-
-} // EOF namespace ppl7
+} // namespace ppl7
