@@ -485,6 +485,7 @@ public:
     operator std::wstring() const;
 
     char operator[](ssize_t pos) const;
+    char& operator[](ssize_t pos);
 
     String& operator=(const char* str);
     String& operator=(const wchar_t* str);

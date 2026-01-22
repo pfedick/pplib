@@ -1434,6 +1434,24 @@ char String::operator[](ssize_t pos) const
     throw OutOfBoundsEception();
 }
 
+/*!\brief Einzelnes Zeichen referenzieren
+ *
+ * \desc
+ * Mit diesem Operator kann eine Referenz auf ein einzelnes Zeichen an der Position
+ * \p pos erhalten werden. Dies ermöglicht Lese- und Schreibzugriff.
+ *
+ * @param pos Position des Zeichens innerhalb des Strings
+ * @return Referenz auf das Zeichen
+ * \exception OutOfBoundsEception Wird geworfen, wenn die angegebene Position \p pos
+ * ausserhalb des Strings liegt oder der String leer ist.
+ */
+char& String::operator[](ssize_t pos)
+{
+    if (pos >= 0 && stringlen > (size_t)pos) return ((char*)ptr)[pos];
+    if (pos < 0 && (size_t)(0 - pos) <= stringlen) return ((char*)ptr)[stringlen + pos];
+    throw OutOfBoundsEception();
+}
+
 /*!\brief String auf STDOUT ausgeben
  *
  * Diese Funktion gibt den aktuellen String auf STDOUT aus. Dazu ist es notwendig den String vom internen
