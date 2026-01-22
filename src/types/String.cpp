@@ -1540,7 +1540,7 @@ String& String::operator=(const String& str)
  * @param[in] str Zu übernehmender String
  * @return Referenz auf diese Instanz der Klasse
  */
-String& String::operator=(String&& other)
+String& String::operator=(String&& other) noexcept
 {
     if (this != &other) {
         if (ptr != empty_string) free(ptr);
