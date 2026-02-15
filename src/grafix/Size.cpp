@@ -42,160 +42,156 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-//#ifdef HAVE_MATH_H
+// #ifdef HAVE_MATH_H
 #include <math.h>
-//#endif
+// #endif
 #include "ppl7-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace ppl7
+{
+namespace grafix
+{
 
 /*!\class Size
  * \ingroup PPLGroupGrafik
  * \brief Repräsentiert Breite und Höhe eines beliebigen Objekts in einem zweidimensionalen Koordinatensystem
  */
 
-
 Size::Size()
 {
-	width=0;
-	height=0;
+    width = 0;
+    height = 0;
 }
 
 Size::Size(int width, int height)
 {
-	this->width=width;
-	this->height=height;
+    this->width = width;
+    this->height = height;
 }
 
-Size::Size(const Size &other)
+Size::Size(const Size& other)
 {
-	width=other.width;
-	height=other.height;
+    width = other.width;
+    height = other.height;
 }
-
 
 bool Size::isNull() const
 {
-	if (height==0 && width==0) return true;
-	return false;
+    if (height == 0 && width == 0) return true;
+    return false;
 }
 
 bool Size::isEmpty() const
 {
-	if (height==0 || width==0) return true;
-	return false;
+    if (height == 0 || width == 0) return true;
+    return false;
 }
 
 bool Size::isValid() const
 {
-	if (width<0) return false;
-	if (height<0) return false;
-	return true;
+    if (width < 0) return false;
+    if (height < 0) return false;
+    return true;
 }
 
 void Size::setHeight(int height)
 {
-	this->height=height;
+    this->height = height;
 }
 
 void Size::setWidth(int width)
 {
-	this->width=width;
+    this->width = width;
 }
 
 void Size::setSize(int width, int height)
 {
-	this->width=width;
-	this->height=height;
+    this->width = width;
+    this->height = height;
 }
 
-void Size::setSize(const Size &other)
+void Size::setSize(const Size& other)
 {
-	width=other.width;
-	height=other.height;
+    width = other.width;
+    height = other.height;
 }
-
 
 Size Size::invalid()
 {
-	return Size(-1,-1);
+    return Size(-1, -1);
 }
 
-Size &Size::operator*= (double factor)
+Size& Size::operator*=(double factor)
 {
-	width=(int)(width*factor);
-	height=(int)(height*factor);
-	return *this;
+    width = (int)(width * factor);
+    height = (int)(height * factor);
+    return *this;
 }
 
-Size &Size::operator+= (const Size &size)
+Size& Size::operator+=(const Size& size)
 {
-	width+=size.width;
-	height+=size.height;
-	return *this;
+    width += size.width;
+    height += size.height;
+    return *this;
 }
 
-Size &Size::operator-= (const Size &size)
+Size& Size::operator-=(const Size& size)
 {
-	width-=size.width;
-	height-=size.height;
-	return *this;
+    width -= size.width;
+    height -= size.height;
+    return *this;
 }
 
-Size &Size::operator/= (double divisor)
+Size& Size::operator/=(double divisor)
 {
-	width=(int)(width/divisor);
-	height=(int)(height/divisor);
-	return *this;
+    width = (int)(width / divisor);
+    height = (int)(height / divisor);
+    return *this;
 }
 
-bool operator!= (const Size &s1, const Size &s2)
+bool operator!=(const Size& s1, const Size& s2)
 {
-	if (s1.width!=s2.width) return true;
-	if (s1.height!=s2.height) return true;
-	return false;
+    if (s1.width != s2.width) return true;
+    if (s1.height != s2.height) return true;
+    return false;
 }
 
-bool operator== (const Size & s1, const Size &s2)
+bool operator==(const Size& s1, const Size& s2)
 {
-	if (s1.width!=s2.width) return false;
-	if (s1.height!=s2.height) return false;
-	return true;
+    if (s1.width != s2.width) return false;
+    if (s1.height != s2.height) return false;
+    return true;
 }
 
-const Size operator* (const Size &size, double factor)
+const Size operator*(const Size& size, double factor)
 {
-	return Size((int)(size.width*factor), (int)(size.height*factor));
+    return Size((int)(size.width * factor), (int)(size.height * factor));
 }
 
-const Size operator* (double factor, const Size &size)
+const Size operator*(double factor, const Size& size)
 {
-	return Size((int)(size.width*factor), (int)(size.height*factor));
+    return Size((int)(size.width * factor), (int)(size.height * factor));
 }
 
-const Size operator+ (const Size &s1, const Size &s2)
+const Size operator+(const Size& s1, const Size& s2)
 {
-	return Size(s1.width+s2.width,s1.height+s2.height);
+    return Size(s1.width + s2.width, s1.height + s2.height);
 }
 
-const Size operator- (const Size &s1, const Size &s2)
+const Size operator-(const Size& s1, const Size& s2)
 {
-	return Size(s1.width-s2.width,s1.height-s2.height);
+    return Size(s1.width - s2.width, s1.height - s2.height);
 }
 
-const Size operator- (const Size &size)
+const Size operator-(const Size& size)
 {
-	return Size(0-size.width,0-size.height);
+    return Size(0 - size.width, 0 - size.height);
 }
 
-const Size operator/ (const Size &size, double divisor)
+const Size operator/(const Size& size, double divisor)
 {
-	return Size((int)(size.width/divisor), (int)(size.height*divisor));
+    return Size((int)(size.width / divisor), (int)(size.height / divisor));
 }
 
-
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace ppl7
