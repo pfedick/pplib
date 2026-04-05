@@ -900,6 +900,11 @@ std::ostream& operator<<(std::ostream& s, const WideString& str);
 class Array
 {
 private:
+    typedef struct
+    {
+        String* value;
+    } ROW;
+
     size_t numElements;
     size_t numCapacity;
     void* rows;
@@ -990,6 +995,60 @@ public:
     Array& operator+=(const Array& other);
     bool operator==(const Array& other) const;
     bool operator!=(const Array& other) const;
+    //@}
+
+    //! @name Iteratoren
+    //@{
+    class ptr_iterator
+    {
+        void* ptr;
+
+    public:
+        typedef std::forward_iterator_tag iterator_category;
+        typedef String value_type;
+        typedef std::ptrdiff_t difference_type;
+        typedef String* pointer;
+        typedef String& reference;
+        ptr_iterator(void* p)
+            : ptr(p)
+        {
+        }
+        reference operator*() const
+        {
+            return *((*(ROW*)ptr).value);
+        }
+        pointer operator->() const
+        {
+            return (*(ROW*)ptr).value;
+        }
+        ptr_iterator& operator++()
+        {
+            ptr = (ROW*)ptr + 1;
+            return *this;
+        }
+        ptr_iterator operator++(int)
+        {
+            ptr_iterator tmp = *this;
+            ptr = (ROW*)ptr + 1;
+            return tmp;
+        }
+        bool operator==(const ptr_iterator& other) const
+        {
+            return ptr == other.ptr;
+        }
+        bool operator!=(const ptr_iterator& other) const
+        {
+            return ptr != other.ptr;
+        }
+    };
+
+    typedef ptr_iterator iterator;
+    typedef const ptr_iterator const_iterator;
+
+    iterator begin() noexcept;
+    const_iterator begin() const noexcept;
+    iterator end() noexcept;
+    const_iterator end() const noexcept;
     //@}
 };
 

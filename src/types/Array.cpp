@@ -88,11 +88,6 @@ namespace ppl7
  * Datenstruktur für jedes Element.
  */
 
-typedef struct
-{
-    String* value;
-} ROW;
-
 static String EmptyString;
 
 /*!\brief Konstruktor
@@ -1338,6 +1333,30 @@ Array SortReverse(const Array& array, bool unique)
         }
     }
     return (ret);
+}
+
+/* Am Ende von src/types/Array.cpp */
+
+Array::iterator Array::begin() noexcept
+{
+    return iterator(rows);
+}
+
+Array::const_iterator Array::begin() const noexcept
+{
+    return const_iterator(rows);
+}
+
+Array::iterator Array::end() noexcept
+{
+    if (!rows) return iterator(NULL);
+    return iterator((Array::ROW*)rows + numElements);
+}
+
+Array::const_iterator Array::end() const noexcept
+{
+    if (!rows) return const_iterator(NULL);
+    return const_iterator((Array::ROW*)rows + numElements);
 }
 
 } // namespace ppl7
