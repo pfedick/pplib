@@ -75,6 +75,9 @@ static int http_timeout = 30; // Sekunden
 static bool verifySsl = true;
 static String CaBundlePath;
 static String CaPath;
+static String ProxyUrl;
+static String ProxyUser;
+static String ProxyPassword;
 static volatile bool CurlInitialized = false;
 static Mutex InitMutex;
 
@@ -166,6 +169,17 @@ void HttpClient::setCaPath(const String& path)
     CaPath = path;
 }
 
+void HttpClient::setProxy(const String& proxy)
+{
+    ProxyUrl = proxy;
+}
+
+void HttpClient::setProxyAuth(const String& user, const String& password)
+{
+    ProxyUser = user;
+    ProxyPassword = password;
+}
+
 enum class HttpMethod
 {
     GET,
@@ -200,11 +214,29 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
     // 3. Curl-Optionen setzen
     curl_easy_setopt(curl, CURLOPT_URL, (const char*)finalUrl);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, (const char*)req.browserString);
+    if (req.referer.notEmpty()) curl_easy_setopt(curl, CURLOPT_REFERER, (const char*)req.referer);
+
+    if (req.username.notEmpty()) {
+        curl_easy_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_ANY);
+        curl_easy_setopt(curl, CURLOPT_USERNAME, (const char*)req.username);
+        if (req.password.notEmpty()) curl_easy_setopt(curl, CURLOPT_PASSWORD, (const char*)req.password);
+    }
+
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, (long)req.timeout);
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, req.verifySsl ? 1L : 0L);
     if (CaBundlePath.notEmpty()) curl_easy_setopt(curl, CURLOPT_CAINFO, (const char*)CaBundlePath);
     if (CaPath.notEmpty()) curl_easy_setopt(curl, CURLOPT_CAPATH, (const char*)CaPath);
+
+    if (ProxyUrl.notEmpty()) {
+        curl_easy_setopt(curl, CURLOPT_PROXY, (const char*)ProxyUrl);
+        if (ProxyUser.notEmpty()) {
+            curl_easy_setopt(curl, CURLOPT_PROXYAUTH, (long)CURLAUTH_ANY);
+            curl_easy_setopt(curl, CURLOPT_PROXYUSERNAME, (const char*)ProxyUser);
+            if (ProxyPassword.notEmpty()) curl_easy_setopt(curl, CURLOPT_PROXYPASSWORD, (const char*)ProxyPassword);
+        }
+    }
+
     if (headerList) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
 
     // Callbacks

@@ -632,6 +632,9 @@ public:
     std::map<String, String> headers;
     ppl7::String body;
     ppl7::String browserString;
+    ppl7::String referer;
+    ppl7::String username;
+    ppl7::String password;
     int timeout;
     bool verifySsl;
     HttpRequest();
@@ -657,6 +660,8 @@ public:
     static void setVerifySsl(bool verify);
     static void setCaBundle(const String& path);
     static void setCaPath(const String& path);
+    static void setProxy(const String& proxy);
+    static void setProxyAuth(const String& user, const String& password);
     static HttpResponse get(const ppl7::String& url, const HttpRequest& req = HttpRequest());
     static HttpResponse post(const ppl7::String& url, const HttpRequest& req = HttpRequest());
 };
