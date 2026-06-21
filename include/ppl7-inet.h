@@ -631,7 +631,7 @@ public:
     std::map<String, String> params;
     std::map<String, String> headers;
     ppl7::String body;
-    ppl7::String browserString;
+    ppl7::String userAgent;
     ppl7::String referer;
     ppl7::String username;
     ppl7::String password;
@@ -655,7 +655,7 @@ class HttpClient
 {
 public:
     static void Init();
-    static void setBrowserString(const String& browser);
+    static void setUserAgent(const String& agent);
     static void setTimeout(int timeout_seconds);
     static void setVerifySsl(bool verify);
     static void setCaBundle(const String& path);

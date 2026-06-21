@@ -69,8 +69,7 @@ static void addParamsToUrl(const ppl7::HttpRequest& req, CURL* curl, ppl7::Strin
 static curl_mime* addPostParams(const ppl7::HttpRequest& req, CURL* curl);
 #endif
 
-static String BrowserString =
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36";
+static String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 static int http_timeout = 30; // Sekunden
 static bool verifySsl = true;
 static String CaBundlePath;
@@ -117,7 +116,7 @@ HttpRequest::HttpRequest()
 {
     timeout = http_timeout;
     this->verifySsl = verifySsl;
-    browserString = BrowserString;
+    userAgent = UserAgent;
 }
 
 extern "C" void curl_cleanup_handler()
@@ -144,9 +143,9 @@ void HttpClient::Init()
 #endif
 }
 
-void HttpClient::setBrowserString(const String& browser)
+void HttpClient::setUserAgent(const String& agent)
 {
-    BrowserString = browser;
+    UserAgent = agent;
 }
 
 void HttpClient::setTimeout(int timeout_seconds)
@@ -221,7 +220,7 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
 
     // 3. Curl-Optionen setzen
     curl_easy_setopt(curl, CURLOPT_URL, (const char*)finalUrl);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, (const char*)req.browserString);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, (const char*)req.userAgent);
     if (req.referer.notEmpty()) curl_easy_setopt(curl, CURLOPT_REFERER, (const char*)req.referer);
 
     if (req.username.notEmpty()) {
