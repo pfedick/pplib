@@ -39,6 +39,7 @@
 #endif
 
 #include <list>
+#include <map>
 
 namespace ppl7
 {
@@ -622,6 +623,42 @@ public:
     void* getCurlHandle() const;
 
     static String getUri(const String& uri);
+};
+
+class HttpRequest
+{
+public:
+    std::map<String, String> params;
+    std::map<String, String> headers;
+    ppl7::String body;
+    ppl7::String browserString;
+    int timeout;
+    bool verifySsl;
+    HttpRequest();
+};
+
+class HttpResponse
+{
+private:
+public:
+    int statusCode;
+    ppl7::String url;
+    ByteArray body;
+    std::map<String, String> headers;
+    ppl7::String error; // Falls Curl-Fehler auftraten
+};
+
+class HttpClient
+{
+public:
+    static void Init();
+    static void setBrowserString(const String& browser);
+    static void setTimeout(int timeout_seconds);
+    static void setVerifySsl(bool verify);
+    static void setCaBundle(const String& path);
+    static void setCaPath(const String& path);
+    static HttpResponse get(const ppl7::String& url, const HttpRequest& req = HttpRequest());
+    static HttpResponse post(const ppl7::String& url, const HttpRequest& req = HttpRequest());
 };
 
 class WikiParser

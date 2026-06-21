@@ -100,6 +100,7 @@ RELEASE	= release/core_Compat.o \
 	release/math_md5.o \
 	release/math_random.o release/crypto_Crypt.o \
 	release/crypto_Digest.o release/inet_curl.o \
+	release/inet_http_client.o \
 	release/inet_inet_functions.o \
 	release/inet_ipaddress.o \
 	release/inet_ipnetwork.o \
@@ -206,6 +207,7 @@ CRYPTO_RELEASE = release/crypto_Crypt.o \
 	release/crypto_Digest.o
 
 INET_RELEASE = release/inet_curl.o \
+	release/inet_http_client.o \
 	release/inet_inet_functions.o \
 	release/inet_ipaddress.o \
 	release/inet_ipnetwork.o \
@@ -327,6 +329,7 @@ DEBUG	= debug/core_Compat.o \
 	debug/math_crc32.o \
 	debug/math_md5.o \
 	debug/math_random.o debug/crypto_Crypt.o \
+	debug/inet_http_client.o \
 	debug/crypto_Digest.o debug/inet_curl.o \
 	debug/inet_inet_functions.o \
 	debug/inet_ipaddress.o \
@@ -434,6 +437,7 @@ CRYPTO_DEBUG = debug/crypto_Crypt.o \
 	debug/crypto_Digest.o
 
 INET_DEBUG = debug/inet_curl.o \
+	debug/inet_http_client.o \
 	debug/inet_inet_functions.o \
 	debug/inet_ipaddress.o \
 	debug/inet_ipnetwork.o \
@@ -557,6 +561,7 @@ COVERAGE	= coverage/core_Compat.o \
 	coverage/math_md5.o \
 	coverage/math_random.o coverage/crypto_Crypt.o \
 	coverage/crypto_Digest.o coverage/inet_curl.o \
+	coverage/inet_http_client.o \
 	coverage/inet_inet_functions.o \
 	coverage/inet_ipaddress.o \
 	coverage/inet_ipnetwork.o \
@@ -930,6 +935,9 @@ release/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/
 release/inet_curl.o:	$(srcdir)/internet/curl.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	$(CXX) -Wall $(CXXFLAGS) -o release/inet_curl.o -c $(srcdir)/internet/curl.cpp $(CFLAGS) 
 
+release/inet_http_client.o:	$(srcdir)/internet/http_client.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	$(CXX) -Wall $(CXXFLAGS) -o release/inet_http_client.o -c $(srcdir)/internet/http_client.cpp $(CFLAGS) 
+
 release/inet_inet_functions.o:	$(srcdir)/internet/inet_functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	$(CXX) -Wall $(CXXFLAGS) -o release/inet_inet_functions.o -c $(srcdir)/internet/inet_functions.cpp $(CFLAGS) 
 
@@ -1289,6 +1297,9 @@ debug/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)/pp
 debug/inet_curl.o:	$(srcdir)/internet/curl.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	$(CXX) -Wall $(CXXFLAGS) -o debug/inet_curl.o -c $(srcdir)/internet/curl.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
+debug/inet_http_client.o:	$(srcdir)/internet/http_client.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	$(CXX) -Wall $(CXXFLAGS) -o debug/inet_http_client.o -c $(srcdir)/internet/http_client.cpp $(CFLAGS) 
+
 debug/inet_inet_functions.o:	$(srcdir)/internet/inet_functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	$(CXX) -Wall $(CXXFLAGS) -o debug/inet_inet_functions.o -c $(srcdir)/internet/inet_functions.cpp -ggdb -D_DEBUG $(CFLAGS) -DDEBUG=DEBUG 
 
@@ -1642,6 +1653,9 @@ coverage/crypto_Digest.o:	$(srcdir)/crypto/Digest.cpp $(incdir)/ppl7.h $(incdir)
 
 coverage/inet_curl.o:	$(srcdir)/internet/curl.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/inet_curl.o -c $(srcdir)/internet/curl.cpp $(CFLAGS) @GCOV_CFLAGS@ 
+
+coverage/inet_http_client.o:	$(srcdir)/internet/http_client.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
+	$(CXX) -Wall $(CXXFLAGS) -o coverage/inet_http_client.o -c $(srcdir)/internet/http_client.cpp $(CFLAGS) 
 
 coverage/inet_inet_functions.o:	$(srcdir)/internet/inet_functions.cpp $(incdir)/ppl7.h $(incdir)/ppl7-exceptions.h $(incdir)/ppl7-types.h $(incdir)/ppl7-config.h Makefile $(incdir)/ppl7-inet.h 
 	$(CXX) -Wall $(CXXFLAGS) -o coverage/inet_inet_functions.o -c $(srcdir)/internet/inet_functions.cpp $(CFLAGS) @GCOV_CFLAGS@ 
