@@ -664,6 +664,10 @@ public:
     static void setProxyAuth(const String& user, const String& password);
     static HttpResponse get(const ppl7::String& url, const HttpRequest& req = HttpRequest());
     static HttpResponse post(const ppl7::String& url, const HttpRequest& req = HttpRequest());
+    static HttpResponse put(const ppl7::String& url, const HttpRequest& req = HttpRequest());
+    static HttpResponse patch(const ppl7::String& url, const HttpRequest& req = HttpRequest());
+    static HttpResponse del(const ppl7::String& url, const HttpRequest& req = HttpRequest());
+    static HttpResponse head(const ppl7::String& url, const HttpRequest& req = HttpRequest());
 };
 
 class WikiParser

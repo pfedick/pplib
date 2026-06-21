@@ -182,8 +182,12 @@ void HttpClient::setProxyAuth(const String& user, const String& password)
 
 enum class HttpMethod
 {
-    GET,
-    POST
+    HTTP_GET,
+    HTTP_POST,
+    HTTP_HEAD,
+    HTTP_PUT,
+    HTTP_PATCH,
+    HTTP_DELETE
 };
 
 static HttpResponse performHttpRequest(const ppl7::String& url, const HttpRequest& req, HttpMethod method)
@@ -200,7 +204,7 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
     ppl7::String finalUrl = url;
 
     // 1. GET-Parameter an URL anhängen
-    if (method == HttpMethod::GET && !req.params.empty()) {
+    if (method == HttpMethod::HTTP_GET && !req.params.empty()) {
         addParamsToUrl(req, curl, finalUrl);
     }
 
@@ -245,11 +249,28 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, header_callback);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &curlData);
 
-    // 4. POST-spezifische Logik
+    // 4. Methoden-spezifische Logik
     curl_mime* mime = nullptr;
-    if (method == HttpMethod::POST) {
+    if (method == HttpMethod::HTTP_POST) {
         mime = addPostParams(req, curl);
+    } else if (method == HttpMethod::HTTP_HEAD) {
+        curl_easy_setopt(curl, CURLOPT_NOBODY, 1L);
+    } else if (method == HttpMethod::HTTP_PUT) {
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PUT");
+        if (!req.body.isEmpty()) {
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)req.body);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)req.body.size());
+        }
+    } else if (method == HttpMethod::HTTP_PATCH) {
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
+        if (!req.body.isEmpty()) {
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, (const char*)req.body);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)req.body.size());
+        }
+    } else if (method == HttpMethod::HTTP_DELETE) {
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
     }
+
     // 5. PERFORM
     CURLcode res = curl_easy_perform(curl);
 
@@ -324,12 +345,32 @@ static void addParamsToUrl(const ppl7::HttpRequest& req, CURL* curl, ppl7::Strin
 
 HttpResponse HttpClient::get(const ppl7::String& url, const HttpRequest& req)
 {
-    return performHttpRequest(url, req, HttpMethod::GET);
+    return performHttpRequest(url, req, HttpMethod::HTTP_GET);
 }
 
 HttpResponse HttpClient::post(const ppl7::String& url, const HttpRequest& req)
 {
-    return performHttpRequest(url, req, HttpMethod::POST);
+    return performHttpRequest(url, req, HttpMethod::HTTP_POST);
+}
+
+HttpResponse HttpClient::put(const ppl7::String& url, const HttpRequest& req)
+{
+    return performHttpRequest(url, req, HttpMethod::HTTP_PUT);
+}
+
+HttpResponse HttpClient::patch(const ppl7::String& url, const HttpRequest& req)
+{
+    return performHttpRequest(url, req, HttpMethod::HTTP_PATCH);
+}
+
+HttpResponse HttpClient::del(const ppl7::String& url, const HttpRequest& req)
+{
+    return performHttpRequest(url, req, HttpMethod::HTTP_DELETE);
+}
+
+HttpResponse HttpClient::head(const ppl7::String& url, const HttpRequest& req)
+{
+    return performHttpRequest(url, req, HttpMethod::HTTP_HEAD);
 }
 
 } // namespace ppl7
