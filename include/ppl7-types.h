@@ -210,6 +210,8 @@ public:
     operator const unsigned char*() const;
     String toHex() const;
     String toBase64() const;
+    String toString() const;
+    WideString toWideString() const;
     const char* toCharPtr() const;
     const char* map(size_t position, size_t size);
     void truncate(size_t position);

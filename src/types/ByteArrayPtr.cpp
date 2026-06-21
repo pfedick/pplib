@@ -43,9 +43,8 @@
 
 #include "ppl7.h"
 
-
-namespace ppl7 {
-
+namespace ppl7
+{
 
 /*!\class ByteArrayPtr
  * \ingroup PPLGroupDataTypes
@@ -90,8 +89,8 @@ namespace ppl7 {
  */
 ByteArrayPtr::ByteArrayPtr()
 {
-	ptradr=NULL;
-	ptrsize=0;
+    ptradr = NULL;
+    ptrsize = 0;
 }
 
 /*!\brief Copy-Konstruktor
@@ -102,22 +101,22 @@ ByteArrayPtr::ByteArrayPtr()
  *
  * @param[in] other Referenz auf eine andere ByteArrayReferenz-Klasse
  */
-ByteArrayPtr::ByteArrayPtr(const ByteArrayPtr &other)
+ByteArrayPtr::ByteArrayPtr(const ByteArrayPtr& other)
 {
-	ptradr=other.ptradr;
-	ptrsize=other.ptrsize;
+    ptradr = other.ptradr;
+    ptrsize = other.ptrsize;
 }
 
-ByteArrayPtr::ByteArrayPtr(const String &data)
+ByteArrayPtr::ByteArrayPtr(const String& data)
 {
-	ptradr=(void*)data.getPtr();
-	ptrsize=data.size();
+    ptradr = (void*)data.getPtr();
+    ptrsize = data.size();
 }
 
-ByteArrayPtr::ByteArrayPtr(const WideString &data)
+ByteArrayPtr::ByteArrayPtr(const WideString& data)
 {
-	ptradr=(void*)data.getPtr();
-	ptrsize=data.size();
+    ptradr = (void*)data.getPtr();
+    ptrsize = data.size();
 }
 
 /*!\brief Konstruktor mit Angabe einer Speicheradresse und Größe
@@ -129,16 +128,16 @@ ByteArrayPtr::ByteArrayPtr(const WideString &data)
  * @param[in] adr Pointer auf den Beginn des Speicherbereichs
  * @param[in] size Größe des Speicherbereichs in Bytes
  */
-ByteArrayPtr::ByteArrayPtr(void *adr, size_t size)
+ByteArrayPtr::ByteArrayPtr(void* adr, size_t size)
 {
-	ptradr=adr;
-	ptrsize=size;
+    ptradr = adr;
+    ptrsize = size;
 }
 
-ByteArrayPtr::ByteArrayPtr(const void *adr, size_t size)
+ByteArrayPtr::ByteArrayPtr(const void* adr, size_t size)
 {
-	ptradr=(void *)adr;
-	ptrsize=size;
+    ptradr = (void*)adr;
+    ptrsize = size;
 }
 
 /*!\brief Prüfen, ob Speicher referenziert ist
@@ -153,8 +152,8 @@ ByteArrayPtr::ByteArrayPtr(const void *adr, size_t size)
  */
 bool ByteArrayPtr::isNull() const
 {
-	if (!ptradr) return true;
-	return false;
+    if (!ptradr) return true;
+    return false;
 }
 
 /*!\brief Prüfen, ob der Referenzierte Speicher eine Größe von 0 hat
@@ -169,11 +168,10 @@ bool ByteArrayPtr::isNull() const
  */
 bool ByteArrayPtr::isEmpty() const
 {
-	if (!ptradr) return true;
-	if (!ptrsize) return true;
-	return false;
+    if (!ptradr) return true;
+    if (!ptrsize) return true;
+    return false;
 }
-
 
 /*!\brief Größe des Speicherblocks auslesen
  *
@@ -184,7 +182,7 @@ bool ByteArrayPtr::isEmpty() const
  */
 size_t ByteArrayPtr::size() const
 {
-	return ptrsize;
+    return ptrsize;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -194,23 +192,24 @@ size_t ByteArrayPtr::size() const
  *
  * @return Adresse des Speicherblocks
  */
-const void *ByteArrayPtr::adr() const
+const void* ByteArrayPtr::adr() const
 {
-	return ptradr;
+    return ptradr;
 }
 
-const char*	ByteArrayPtr::map(size_t position, size_t size)
+const char* ByteArrayPtr::map(size_t position, size_t size)
 {
-	if (position+size>=ptrsize) throw ppl7::OverflowException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)",
-			position,size,position+size,ptrsize);
-	return (const char*)ptradr+position;
+    if (position + size >= ptrsize)
+        throw ppl7::OverflowException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)", position, size,
+                                      position + size, ptrsize);
+    return (const char*)ptradr + position;
 }
 
 void ByteArrayPtr::truncate(size_t position)
 {
-	if (position>ptrsize) throw ppl7::OverflowException("ByteArrayPtr::truncate position exceeds size of ByteArray (%zu > %zu)",
-			position,ptrsize);
-	ptrsize=position;
+    if (position > ptrsize)
+        throw ppl7::OverflowException("ByteArrayPtr::truncate position exceeds size of ByteArray (%zu > %zu)", position, ptrsize);
+    ptrsize = position;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -220,11 +219,10 @@ void ByteArrayPtr::truncate(size_t position)
  *
  * @return Adresse des Speicherblocks
  */
-const void *ByteArrayPtr::ptr() const
+const void* ByteArrayPtr::ptr() const
 {
-	return ptradr;
+    return ptradr;
 }
-
 
 /*!\brief Referenz auf Speicherbereich setzen
  *
@@ -237,10 +235,10 @@ const void *ByteArrayPtr::ptr() const
  * @param[in] size Größe des Speicherbereichs in Bytes
  *
  */
-void ByteArrayPtr::use(void *adr, size_t size)
+void ByteArrayPtr::use(void* adr, size_t size)
 {
-	ptradr=adr;
-	ptrsize=size;
+    ptradr = adr;
+    ptrsize = size;
 }
 
 /*!\brief Referenz auf Speicherbereich von einer anderen ByteArrayPtr-Instanz kopieren
@@ -251,10 +249,10 @@ void ByteArrayPtr::use(void *adr, size_t size)
  *
  * @param[in] other Referenz auf ein anderes ByteArray-Objekt.
  */
-void ByteArrayPtr::use(const ByteArrayPtr &other)
+void ByteArrayPtr::use(const ByteArrayPtr& other)
 {
-	ptradr=other.ptradr;
-	ptrsize=other.ptrsize;
+    ptradr = other.ptradr;
+    ptrsize = other.ptrsize;
 }
 
 /*!\brief Speicherreferenz von anderem ByteArrayPtr-Objekt übernehmen
@@ -266,13 +264,12 @@ void ByteArrayPtr::use(const ByteArrayPtr &other)
  * @param[in] other Referenz auf ein anderes ByteArrayPtr-Objekt.
  * @return Referenz auf das Objekt
  */
-ByteArrayPtr &ByteArrayPtr::operator=(const ByteArrayPtr &other)
+ByteArrayPtr& ByteArrayPtr::operator=(const ByteArrayPtr& other)
 {
-	ptradr=other.ptradr;
-	ptrsize=other.ptrsize;
-	return *this;
+    ptradr = other.ptradr;
+    ptrsize = other.ptrsize;
+    return *this;
 }
-
 
 /*!\brief Adresse des Speicherblocks auslesen
  *
@@ -283,7 +280,7 @@ ByteArrayPtr &ByteArrayPtr::operator=(const ByteArrayPtr &other)
  */
 ByteArrayPtr::operator const void*() const
 {
-	return ptradr;
+    return ptradr;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -295,7 +292,7 @@ ByteArrayPtr::operator const void*() const
  */
 ByteArrayPtr::operator const unsigned char*() const
 {
-	return (const unsigned char*)ptradr;
+    return (const unsigned char*)ptradr;
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -307,7 +304,7 @@ ByteArrayPtr::operator const unsigned char*() const
  */
 ByteArrayPtr::operator const char*() const
 {
-	return (const char*)ptradr;
+    return (const char*)ptradr;
 }
 
 /*!\brief Einzelnes Byte aus dem Speicherbereich auslesen
@@ -325,23 +322,33 @@ ByteArrayPtr::operator const char*() const
  */
 unsigned char ByteArrayPtr::operator[](size_t pos) const
 {
-	if (ptradr!=NULL && pos<ptrsize) return ((unsigned char*)ptradr)[pos];
-	throw OutOfBoundsEception();
+    if (ptradr != NULL && pos < ptrsize) return ((unsigned char*)ptradr)[pos];
+    throw OutOfBoundsEception();
 }
-
 
 void ByteArrayPtr::set(size_t pos, unsigned char value)
 {
-	if (pos<ptrsize) ((unsigned char*)ptradr)[pos]=value;
-	else throw OutOfBoundsEception();
+    if (pos < ptrsize)
+        ((unsigned char*)ptradr)[pos] = value;
+    else
+        throw OutOfBoundsEception();
 }
 
 unsigned char ByteArrayPtr::get(size_t pos) const
 {
-	if (ptradr!=NULL && pos<ptrsize) return ((unsigned char*)ptradr)[pos];
-	throw OutOfBoundsEception();
+    if (ptradr != NULL && pos < ptrsize) return ((unsigned char*)ptradr)[pos];
+    throw OutOfBoundsEception();
 }
 
+String ByteArrayPtr::toString() const
+{
+    return String((const char*)ptradr, ptrsize);
+}
+
+WideString ByteArrayPtr::toWideString() const
+{
+    return WideString((const wchar_t*)ptradr, ptrsize / sizeof(wchar_t));
+}
 
 /*!\brief Speicherbereich als Hexwerte in einen String exportieren
  *
@@ -354,10 +361,11 @@ unsigned char ByteArrayPtr::get(size_t pos) const
  */
 String ByteArrayPtr::toHex() const
 {
-	unsigned char *buff=(unsigned char*)ptradr;
-	String str;
-	for(size_t i=0;i<ptrsize;i++) str.appendf("%02x",buff[i]);
-	return str;
+    unsigned char* buff = (unsigned char*)ptradr;
+    String str;
+    for (size_t i = 0; i < ptrsize; i++)
+        str.appendf("%02x", buff[i]);
+    return str;
 }
 
 /*!\brief Speicherbereich als Base64 in einen String exportieren
@@ -370,7 +378,7 @@ String ByteArrayPtr::toHex() const
  */
 String ByteArrayPtr::toBase64() const
 {
-	return ToBase64(*this);
+    return ToBase64(*this);
 }
 
 /*!\brief Adresse des Speicherblocks auslesen
@@ -382,7 +390,7 @@ String ByteArrayPtr::toBase64() const
  */
 const char* ByteArrayPtr::toCharPtr() const
 {
-	return (const char*)ptradr;
+    return (const char*)ptradr;
 }
 
 /*!\brief CRC32-Prüfsumme berechnen
@@ -394,36 +402,33 @@ const char* ByteArrayPtr::toCharPtr() const
  */
 uint32_t ByteArrayPtr::crc32() const
 {
-	if (ptrsize==0) throw EmptyDataException();
-	return Crc32(ptradr,ptrsize);
+    if (ptrsize == 0) throw EmptyDataException();
+    return Crc32(ptradr, ptrsize);
 }
 
 void ByteArrayPtr::hexDump() const
 {
-	if (ptrsize==0) throw EmptyDataException();
-	PrintDebug ("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n",ptrsize,ptradr);
-	HexDump(ptradr,ptrsize,true);
+    if (ptrsize == 0) throw EmptyDataException();
+    PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", ptrsize, ptradr);
+    HexDump(ptradr, ptrsize, true);
 }
 
 void ByteArrayPtr::hexDump(size_t bytes) const
 {
-	if (ptrsize==0) throw EmptyDataException();
-	if (bytes>ptrsize) bytes=ptrsize;
-	PrintDebug ("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n",bytes,ptradr);
-	HexDump(ptradr,bytes,true);
-
+    if (ptrsize == 0) throw EmptyDataException();
+    if (bytes > ptrsize) bytes = ptrsize;
+    PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", bytes, ptradr);
+    HexDump(ptradr, bytes, true);
 }
 
 void ByteArrayPtr::hexDump(size_t offset, size_t bytes) const
 {
-	if (ptrsize==0) throw EmptyDataException();
-	if (bytes>ptrsize-offset) bytes=ptrsize-offset;
-	char *start=(char*)ptradr+offset;
-	PrintDebug ("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n",bytes,start);
-	HexDump(start,bytes,true);
+    if (ptrsize == 0) throw EmptyDataException();
+    if (bytes > ptrsize - offset) bytes = ptrsize - offset;
+    char* start = (char*)ptradr + offset;
+    PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", bytes, start);
+    HexDump(start, bytes, true);
 }
-
-
 
 /*!\brief Speicher mit bestimmtem Wert füllen
  *
@@ -434,72 +439,70 @@ void ByteArrayPtr::hexDump(size_t offset, size_t bytes) const
  */
 void ByteArrayPtr::memset(int value)
 {
-	::memset(ptradr,value,ptrsize);
+    ::memset(ptradr, value, ptrsize);
 }
 
-
-int ByteArrayPtr::memcmp(const ByteArrayPtr &other) const
+int ByteArrayPtr::memcmp(const ByteArrayPtr& other) const
 {
-	//size_t max=ptrsize;
-	size_t min=ptrsize;
-	//if (other.ptrsize>max) max=other.ptrsize;
-	if (other.ptrsize<min) min=other.ptrsize;
-	for (size_t i=0;i<min;i++) {
-		if ( ((char*)ptradr)[i] < ((char*)other.ptradr)[i] ) return -1;
-		if ( ((char*)ptradr)[i] > ((char*)other.ptradr)[i] ) return 1;
-	}
-	if (ptrsize<other.ptrsize) return -1;
-	if (ptrsize>other.ptrsize) return 1;
-	return 0;
+    // size_t max=ptrsize;
+    size_t min = ptrsize;
+    // if (other.ptrsize>max) max=other.ptrsize;
+    if (other.ptrsize < min) min = other.ptrsize;
+    for (size_t i = 0; i < min; i++) {
+        if (((char*)ptradr)[i] < ((char*)other.ptradr)[i]) return -1;
+        if (((char*)ptradr)[i] > ((char*)other.ptradr)[i]) return 1;
+    }
+    if (ptrsize < other.ptrsize) return -1;
+    if (ptrsize > other.ptrsize) return 1;
+    return 0;
 }
 
-bool ByteArrayPtr::operator<(const ByteArrayPtr &other) const
+bool ByteArrayPtr::operator<(const ByteArrayPtr& other) const
 {
-	int c=memcmp(other);
-	if (c<0) return true;
-	return false;
+    int c = memcmp(other);
+    if (c < 0) return true;
+    return false;
 }
 
-bool ByteArrayPtr::operator<=(const ByteArrayPtr &other) const
+bool ByteArrayPtr::operator<=(const ByteArrayPtr& other) const
 {
-	int c=memcmp(other);
-	if (c<=0) return true;
-	return false;
+    int c = memcmp(other);
+    if (c <= 0) return true;
+    return false;
 }
 
-bool ByteArrayPtr::operator==(const ByteArrayPtr &other) const
+bool ByteArrayPtr::operator==(const ByteArrayPtr& other) const
 {
-	int c=memcmp(other);
-	if (c==0) return true;
-	return false;
+    int c = memcmp(other);
+    if (c == 0) return true;
+    return false;
 }
 
-bool ByteArrayPtr::operator!=(const ByteArrayPtr &other) const
+bool ByteArrayPtr::operator!=(const ByteArrayPtr& other) const
 {
-	int c=memcmp(other);
-	if (c!=0) return true;
-	return false;
+    int c = memcmp(other);
+    if (c != 0) return true;
+    return false;
 }
 
-bool ByteArrayPtr::operator>=(const ByteArrayPtr &other) const
+bool ByteArrayPtr::operator>=(const ByteArrayPtr& other) const
 {
-	int c=memcmp(other);
-	if (c>=0) return true;
-	return false;
+    int c = memcmp(other);
+    if (c >= 0) return true;
+    return false;
 }
 
-bool ByteArrayPtr::operator>(const ByteArrayPtr &other) const
+bool ByteArrayPtr::operator>(const ByteArrayPtr& other) const
 {
-	int c=memcmp(other);
-	if (c>0) return true;
-	return false;
+    int c = memcmp(other);
+    if (c > 0) return true;
+    return false;
 }
 
-std::ostream& operator<<(std::ostream& s, const ByteArrayPtr &ba)
+std::ostream& operator<<(std::ostream& s, const ByteArrayPtr& ba)
 {
-	ppl7::String hex=ba.toHex();
-	return s.write((const char*)hex,hex.size());
+    ppl7::String hex = ba.toHex();
+    return s.write((const char*)hex, hex.size());
 }
 
-
-}	// EOF namespace ppl7
+} // namespace ppl7
