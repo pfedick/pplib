@@ -200,6 +200,10 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
     CURL* curl = curl_easy_init();
     if (!curl) return response;
 
+    char errorBuffer[CURL_ERROR_SIZE];
+    errorBuffer[0] = 0;
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errorBuffer);
+
     CurlData curlData = {&response};
     ppl7::String finalUrl = url;
 
@@ -276,7 +280,11 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
 
     // 6. Ergebnis einsammeln
     if (res != CURLE_OK) {
-        response.error = curl_easy_strerror(res);
+        if (errorBuffer[0] != 0) {
+            response.error = errorBuffer;
+        } else {
+            response.error = curl_easy_strerror(res);
+        }
     } else {
         long response_code;
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
