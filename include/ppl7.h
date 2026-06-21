@@ -271,6 +271,8 @@ public:
         ~Pattern();
     };
 
+    typedef std::vector<String> MatchVector;
+
     static Pattern compile(const String& regex, int flags = Flags::NONE);
     static Pattern compile(const WideString& regex, int flags = Flags::NONE);
 
