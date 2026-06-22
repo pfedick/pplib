@@ -1209,6 +1209,7 @@ public:
     Variant& get(const String& key) const;
     String& getString(const String& key) const;
     String& getString(const String& key, String& default_value) const;
+    const String& getString(const String& key, const String& default_value) const;
     int getInt(const String& key) const;
     int getInt(const String& key, int default_value) const;
     long long getLongLong(const String& key) const;
@@ -1217,6 +1218,7 @@ public:
     AssocArray& getAssocArray(const String& key, AssocArray& default_value) const;
     Array& getArray(const String& key) const;
     Array& getArray(const String& key, Array& default_value) const;
+    bool getBoolean(const String& key, bool default_value) const;
     bool exists(const String& key) const;
     bool isTrue(const String& key) const;
 
