@@ -415,35 +415,23 @@ uint64_t ID3Tag::findId3Tag(FileObject& File)
         return 0;
     else if (myAudioFormat == AF_AIFF) {
         uint64_t p = 12;
-        while (p < File.size()) {
+        while (p + 8 < File.size()) {
             const char* adr = File.map(p, 8);
             if (!adr) break;
-            if (PeekN32(adr) == 0x49443320) {
-                return p + 8;
-            }
-            p += PeekN32(adr + 4) + 8;
+            uint32_t size = PeekN32(adr + 4);
+            if (PeekN32(adr) == 0x49443320) return p + 8;
+            p += size + 8;
+            if (size % 2) p++;
         }
     } else if (myAudioFormat == AF_WAVE) {
-#ifdef ID3DEBUG
-        printf("ID3Tag::findId3Tag: Have WAVE, Filesize: %llu\n", File.size());
-#endif
         uint64_t p = 12;
-        while (p < File.size() - 8) {
+        while (p + 8 < File.size()) {
             const char* adr = File.map(p, 8);
             if (!adr) break;
-#ifdef ID3DEBUG
-            ppl7::HexDump(adr, 8);
-#endif
-            if (Peek32(adr) == 0x20336469) {
-#ifdef ID3DEBUG
-                printf("found id3 tag with size %u\n", Peek32(adr + 4));
-#endif
-                return p + 8;
-            }
-            p += Peek32(adr + 4) + 8;
-#ifdef ID3DEBUG
-            printf("size ist: %u+8, p ist jetzt: %llu\n", Peek32(adr + 4), p);
-#endif
+            uint32_t size = Peek32(adr + 4);
+            if (Peek32(adr) == 0x20336469) return p + 8; // "id3 " (Little Endian)
+            p += size + 8;
+            if (size % 2) p++;
         }
     }
     return (uint64_t)-1;
@@ -923,7 +911,8 @@ void ID3Tag::save()
         saveMP3();
     else if (myAudioFormat == AF_AIFF)
         saveAiff();
-    // else if (myAudioFormat==AF_WAVE) saveWave();
+    else if (myAudioFormat == AF_WAVE)
+        saveWave();
     else
         throw UnsupportedAudioFormatException("FormatId=%d", myAudioFormat);
 }
@@ -1629,6 +1618,110 @@ bool ID3Tag::hasPopularimeter() const
         }
     }
     return false;
+}
+
+bool ID3Tag::trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2)
+{
+    uint32_t qp = 12;
+    while (qp + 8 < o.size()) {
+        const char* adr = o.map(qp, 8);
+        if (!adr) break;
+        uint32_t chunkID = Peek32(adr);
+        uint32_t chunkSize = Peek32(adr + 4);
+        if (chunkID == 0x20336469) { // "id3 "
+            if (chunkSize >= tagV2.size()) {
+                uint32_t max_allowed = tagV2.size() + (tagV2.size() / 10) + PaddingSize;
+                if (chunkSize > max_allowed) break;
+                o.write(tagV2.ptr(), tagV2.size(), qp + 8);
+                if (chunkSize > tagV2.size()) {
+                    ByteArray padding;
+                    padding.calloc(chunkSize - tagV2.size());
+                    o.write(padding);
+                }
+                return true;
+            }
+            break;
+        }
+        qp += chunkSize + 8;
+        if (chunkSize % 2) qp++;
+    }
+    return false;
+}
+
+void ID3Tag::copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2)
+{
+    uint32_t qp = 12, tp = 12, formsize = 4;
+    n.copyFrom(o, 0, 12, 0);
+    while (qp + 8 < o.size()) {
+        const char* adr = o.map(qp, 8);
+        if (!adr) break;
+        uint32_t chunkID = Peek32(adr);
+        uint32_t chunkSize = Peek32(adr + 4);
+        uint32_t physicalSize = chunkSize + 8;
+        if (chunkSize % 2) physicalSize++;
+        if (chunkID != 0x20336469) {
+            n.copyFrom(o, qp, physicalSize, tp);
+            tp += physicalSize;
+            formsize += physicalSize;
+        }
+        qp += physicalSize;
+    }
+    if (tagV2.size() > 0) {
+        uint32_t id3Size = tagV2.size();
+        if (id3Size + PaddingSpace < PaddingSize)
+            id3Size = PaddingSize;
+        else
+            id3Size += PaddingSpace;
+        if (id3Size % 2) id3Size++;
+        char header[8];
+        Poke32(header, 0x20336469); // "id3 "
+        Poke32(header + 4, id3Size);
+        n.write(header, 8, tp);
+        n.write(tagV2.ptr(), tagV2.size(), tp + 8);
+        if (id3Size > tagV2.size()) {
+            ByteArray padding;
+            padding.calloc(id3Size - tagV2.size());
+            n.write(padding);
+        }
+        formsize += id3Size + 8;
+    }
+    char buffer[4];
+    Poke32(buffer, formsize);
+    n.write(buffer, 4, 4); // RIFF-Größen-Update
+}
+
+void ID3Tag::saveWave()
+{
+    String tmpfile = Filename + ".rename.tmp";
+    File n, o;
+    ByteArray tagV2;
+    generateId3V2Tag(tagV2);
+    o.open(Filename, File::READWRITE);
+    if (tagV2.size() > 0) {
+        try {
+            if (trySaveWaveInExistingFile(o, tagV2)) {
+                o.close();
+                return;
+            }
+        }
+        catch (...) {
+        }
+    }
+    n.touch(tmpfile);
+    n.open(tmpfile, File::READWRITE);
+    try {
+        copyWaveToNewFile(o, n, tagV2);
+    }
+    catch (...) {
+        n.close();
+        o.close();
+        File::remove(tmpfile);
+        throw;
+    }
+    o.close();
+    n.close();
+    File::remove(Filename);
+    File::rename(tmpfile, Filename);
 }
 
 } // namespace ppl7
