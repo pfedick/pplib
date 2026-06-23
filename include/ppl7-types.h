@@ -242,6 +242,7 @@ public:
     ByteArray();
     ByteArray(const ByteArrayPtr& other);
     ByteArray(const ByteArray& other);
+    ByteArray(ByteArray&& other);
     ByteArray(const String& str);
     ByteArray(const WideString& str);
     ByteArray(const void* adr, size_t size);
@@ -255,13 +256,13 @@ public:
     void* prepend(void* adr, size_t size);
     void* prepend(const ByteArrayPtr& other);
     void* fromHex(const String& hex);
-    void* fromBase64(const String& base64);
     void* malloc(size_t size);
     void* calloc(size_t size);
     void free();
     void clear();
     ByteArray& operator=(const ByteArrayPtr& other);
     ByteArray& operator=(const ByteArray& other);
+    ByteArray& operator=(ByteArray&& other);
     ByteArray& operator=(const String& str);
     ByteArray& operator=(const WideString& str);
     operator const void*() const;

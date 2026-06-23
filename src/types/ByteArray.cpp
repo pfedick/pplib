@@ -180,16 +180,24 @@ ByteArray::ByteArray(const WideString& str)
  */
 ByteArray::ByteArray(const ByteArray& other)
 {
+    ptradr = NULL;
+    ptrsize = 0;
+
     if (other.ptradr) {
         ptradr = ::malloc(other.ptrsize + 1);
         if (!ptradr) throw OutOfMemoryException();
         memcpy(ptradr, other.ptradr, other.ptrsize);
         ptrsize = other.ptrsize;
         ((char*)ptradr)[ptrsize] = 0;
-    } else {
-        ptradr = NULL;
-        ptrsize = 0;
     }
+}
+
+ByteArray::ByteArray(ByteArray&& other)
+{
+    ptradr = other.ptradr;
+    ptrsize = other.ptrsize;
+    other.ptradr = NULL;
+    other.ptrsize = 0;
 }
 
 /*!\brief Konstruktor mit Angabe einer Speicheradresse und Größe
@@ -491,6 +499,18 @@ ByteArray& ByteArray::operator=(const ByteArrayPtr& other)
 ByteArray& ByteArray::operator=(const ByteArray& other)
 {
     copy(other.ptradr, other.ptrsize);
+    return *this;
+}
+
+ByteArray& ByteArray::operator=(ByteArray&& other)
+{
+    if (this != &other) {
+        ::free(ptradr);
+        ptradr = other.ptradr;
+        ptrsize = other.ptrsize;
+        other.ptradr = NULL;
+        other.ptrsize = 0;
+    }
     return *this;
 }
 
