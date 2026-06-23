@@ -29,24 +29,14 @@
 
 #ifndef _PPL7_INCLUDE_AUDIO
 #define _PPL7_INCLUDE_AUDIO
-#ifndef _PPL7_INCLUDE
-#ifdef PPL7LIB
-#include "ppl7.h"
-#else
 #include <ppl7.h>
-#endif
-#endif
 
-#ifndef PPL7INET_H_
-#ifdef PPL7LIB
-#include "ppl7-inet.h"
-#else
 #include <ppl7-inet.h>
-#endif
-#endif
 
 #include <stdlib.h>
 #include <list>
+
+#include <ppl7/audio/id3tag.h>
 
 namespace ppl7
 {
@@ -143,164 +133,6 @@ public:
 
 bool IdentAudioFile(FileObject& file, AudioInfo& info);
 AudioInfo::AudioFormat IdentAudioFile(FileObject& file);
-String GetID3GenreName(int id);
-
-class ID3Frame
-{
-    friend class ID3Tag;
-    friend class ID3TagTranscode;
-
-private:
-    String ID;
-    int Flags;
-    size_t Size;
-    char* data;
-    ID3Frame *nextFrame, *previousFrame;
-
-public:
-    ID3Frame();
-    ID3Frame(const String& name);
-    ~ID3Frame();
-
-    void setData(const ByteArrayPtr& data);
-    void setFlags(int flags);
-    void hexDump() const;
-    const String& name() const;
-    int flags() const;
-    size_t size() const;
-    void getData(ByteArray& data) const;
-    bool hasData() const;
-};
-
-class ID3Tag
-{
-public:
-    enum TextEncoding
-    {
-        ENC_USASCII,
-        ENC_ISO88591,
-        ENC_UTF16,
-        ENC_UTF8
-    };
-
-    enum AudioFormat
-    {
-        AF_UNKNOWN = 0,
-        AF_MP3,
-        AF_AIFF,
-        AF_WAVE
-    };
-
-    enum PictureType
-    {
-        PIC_COVER_FRONT = 3,
-        PIC_COVER_BACK = 4,
-    };
-
-private:
-    String Filename;
-    String localCharset;
-    int Flags;
-    size_t numFrames;
-    int Size;
-    AudioFormat myAudioFormat;
-    uint32_t PaddingSize, PaddingSpace, MaxPaddingSpace;
-    ID3Frame *firstFrame, *lastFrame;
-    void setTextFrameUtf16(const String& framename, const String& text);
-    void setTextFrameISO88591(const String& framename, const String& text);
-    void setTextFrameUtf8(const String& framename, const String& text);
-
-    void copyAndDecodeText(String& s, const ID3Frame* frame, int offset) const;
-    int decode(const ID3Frame* frame, int offset, int encoding, String& target) const;
-
-    AudioFormat identAudioFormat(FileObject& File);
-    uint64_t findId3Tag(FileObject& File);
-    void saveMP3();
-    void saveAiff();
-    void saveWave();
-    bool trySaveAiffInExistingFile(FileObject& o, ByteArrayPtr& tagV2);
-    bool trySaveWaveInExistingFile(FileObject& o, ByteArrayPtr& tagV2);
-    void copyAiffToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2);
-    void copyWaveToNewFile(FileObject& o, FileObject& n, ByteArrayPtr& tagV2);
-    String getNullPaddedString(ID3Frame* frame, size_t offset = 0) const;
-
-public:
-    ID3Tag();
-    ID3Tag(const String& File);
-    ~ID3Tag();
-
-    void load(const String& filename);
-    void load(FileObject& file);
-    bool loaded(const String& filename);
-    bool loaded(FileObject& file);
-    void clearTags();
-    void clear();
-    void save();
-
-    void setLocalCharset(const String& charset);
-    void setPaddingSize(int bytes);
-    void setPaddingSpace(int bytes);
-    void setMaxPaddingSpace(int bytes);
-
-    void addFrame(ID3Frame* Frame);
-    void removeFrame(ID3Frame* frame);
-    void deleteFrame(ID3Frame* frame);
-    ID3Frame* findFrame(const String& name) const;
-    ID3Frame* findUserDefinedText(const String& description) const;
-    void listFrames(bool hexdump = false) const;
-    size_t frameCount() const;
-
-    void setArtist(const String& artist);
-    void setTitle(const String& title);
-    void setGenre(const String& genre);
-    void setRemixer(const String& remixer);
-    void setLabel(const String& label);
-    void setComment(const String& comment);
-    void setComment(const String& description, const String& comment);
-    void setYear(const String& year);
-    void setAlbum(const String& album);
-    void setTrack(const String& track);
-    void setBPM(const String& bpm);
-    void setKey(const String& key);
-    void setEnergyLevel(const String& energy);
-    void setTextFrame(const String& framename, const String& text, TextEncoding enc = ENC_UTF16);
-    void setPicture(int type, const ByteArrayPtr& bin, const String& MimeType);
-    void setPopularimeter(const String& email, unsigned char rating);
-
-    void generateId3V2Tag(ByteArray& tag) const;
-    void generateId3V1Tag(ByteArray& tag) const;
-
-    String getArtist() const;
-    String getTitle() const;
-    String getGenre() const;
-    String getYear() const;
-    String getComment() const;
-    String getComment(const String& description) const;
-    String getRemixer() const;
-    String getLabel() const;
-    String getAlbum() const;
-    String getTrack() const;
-    String getBPM() const;
-    String getKey() const;
-    String getEnergyLevel() const;
-    ByteArray getPicture(int type) const;
-    bool getPicture(int type, ByteArray& bin) const;
-    bool hasPicture(int type) const;
-    void removePicture(int type);
-
-    bool getPrivateData(ByteArray& bin, const String& identifier) const;
-    ByteArrayPtr getPrivateData(const String& identifier) const;
-
-    unsigned char getPopularimeter(const String& email) const;
-    unsigned char getPopularimeter() const;
-    bool hasPopularimeter(const String& email) const;
-    void getAllPopularimeters(std::map<String, unsigned char>& data) const;
-    void removePopularimeter();
-    bool hasPopularimeter() const;
-
-    static void copyAndDecodeText(String& s, const ID3Frame* frame, int offset, const ppl7::String& charset);
-    static int decode(const ID3Frame* frame, int offset, int encoding, String& target, const ppl7::String& charset);
-};
 
 class Icecast
 {
