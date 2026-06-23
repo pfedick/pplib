@@ -408,22 +408,22 @@ uint32_t ByteArrayPtr::crc32() const
 
 void ByteArrayPtr::hexDump() const
 {
-    if (ptrsize == 0) throw EmptyDataException();
     PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", ptrsize, ptradr);
+    if (ptrsize == 0) return;
     HexDump(ptradr, ptrsize, true);
 }
 
 void ByteArrayPtr::hexDump(size_t bytes) const
 {
-    if (ptrsize == 0) throw EmptyDataException();
     if (bytes > ptrsize) bytes = ptrsize;
     PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", bytes, ptradr);
+    if (bytes == 0) return;
     HexDump(ptradr, bytes, true);
 }
 
 void ByteArrayPtr::hexDump(size_t offset, size_t bytes) const
 {
-    if (ptrsize == 0) throw EmptyDataException();
+    if (offset > ptrsize) offset = ptrsize;
     if (bytes > ptrsize - offset) bytes = ptrsize - offset;
     char* start = (char*)ptradr + offset;
     PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", bytes, start);
