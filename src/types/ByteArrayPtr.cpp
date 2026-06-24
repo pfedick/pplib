@@ -199,7 +199,7 @@ const void* ByteArrayPtr::adr() const
 
 const char* ByteArrayPtr::map(size_t position, size_t size)
 {
-    if (position + size >= ptrsize)
+    if (position > ptrsize || size > ptrsize - position)
         throw ppl7::OverflowException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)", position, size,
                                       position + size, ptrsize);
     return (const char*)ptradr + position;
@@ -328,7 +328,7 @@ unsigned char ByteArrayPtr::operator[](size_t pos) const
 
 void ByteArrayPtr::set(size_t pos, unsigned char value)
 {
-    if (pos < ptrsize)
+    if (ptradr != NULL && pos < ptrsize)
         ((unsigned char*)ptradr)[pos] = value;
     else
         throw OutOfBoundsEception();
@@ -342,11 +342,13 @@ unsigned char ByteArrayPtr::get(size_t pos) const
 
 String ByteArrayPtr::toString() const
 {
+    if (!ptradr) return String();
     return String((const char*)ptradr, ptrsize);
 }
 
 WideString ByteArrayPtr::toWideString() const
 {
+    if (!ptradr) return WideString();
     return WideString((const wchar_t*)ptradr, ptrsize / sizeof(wchar_t));
 }
 
@@ -449,8 +451,8 @@ int ByteArrayPtr::memcmp(const ByteArrayPtr& other) const
     // if (other.ptrsize>max) max=other.ptrsize;
     if (other.ptrsize < min) min = other.ptrsize;
     for (size_t i = 0; i < min; i++) {
-        if (((char*)ptradr)[i] < ((char*)other.ptradr)[i]) return -1;
-        if (((char*)ptradr)[i] > ((char*)other.ptradr)[i]) return 1;
+        if (((unsigned char*)ptradr)[i] < ((unsigned char*)other.ptradr)[i]) return -1;
+        if (((unsigned char*)ptradr)[i] > ((unsigned char*)other.ptradr)[i]) return 1;
     }
     if (ptrsize < other.ptrsize) return -1;
     if (ptrsize > other.ptrsize) return 1;
