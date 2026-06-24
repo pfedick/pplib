@@ -268,14 +268,6 @@ public:
     operator const void*() const;
     operator const unsigned char*() const;
     operator const char*() const;
-    unsigned char operator[](size_t pos) const;
-
-    bool operator<(const ByteArrayPtr& other) const;
-    bool operator<=(const ByteArrayPtr& other) const;
-    bool operator==(const ByteArrayPtr& other) const;
-    bool operator!=(const ByteArrayPtr& other) const;
-    bool operator>=(const ByteArrayPtr& other) const;
-    bool operator>(const ByteArrayPtr& other) const;
 };
 std::ostream& operator<<(std::ostream& s, const ByteArray& ba);
 

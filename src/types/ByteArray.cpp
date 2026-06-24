@@ -116,11 +116,14 @@ ByteArray::~ByteArray()
 ByteArray::ByteArray(const ByteArrayPtr& other)
 {
     if (other.ptradr) {
-        ptradr = ::malloc(other.ptrsize + 1);
+        ptradr = ::malloc(other.ptrsize + 4);
         if (!ptradr) throw OutOfMemoryException();
         memcpy(ptradr, other.ptradr, other.ptrsize);
         ptrsize = other.ptrsize;
         ((char*)ptradr)[ptrsize] = 0;
+        ((char*)ptradr)[ptrsize + 1] = 0;
+        ((char*)ptradr)[ptrsize + 2] = 0;
+        ((char*)ptradr)[ptrsize + 3] = 0;
     } else {
         ptradr = NULL;
         ptrsize = 0;
@@ -137,11 +140,14 @@ ByteArray::ByteArray(const ByteArrayPtr& other)
 ByteArray::ByteArray(const String& str)
 {
     if (str.notEmpty()) {
-        ptradr = ::malloc(str.size() + 1);
+        ptradr = ::malloc(str.size() + 4);
         if (!ptradr) throw OutOfMemoryException();
         memcpy(ptradr, str.getPtr(), str.size());
         ptrsize = str.size();
         ((char*)ptradr)[ptrsize] = 0;
+        ((char*)ptradr)[ptrsize + 1] = 0;
+        ((char*)ptradr)[ptrsize + 2] = 0;
+        ((char*)ptradr)[ptrsize + 3] = 0;
     } else {
         ptradr = NULL;
         ptrsize = 0;
@@ -163,7 +169,7 @@ ByteArray::ByteArray(const WideString& str)
         memcpy(ptradr, str.getPtr(), str.size() * sizeof(wchar_t));
         ptrsize = str.size();
         ((wchar_t*)ptradr)[ptrsize] = 0;
-        ptrsize = str.size() * 4;
+        ptrsize = str.size() * sizeof(wchar_t);
     } else {
         ptradr = NULL;
         ptrsize = 0;
@@ -184,11 +190,14 @@ ByteArray::ByteArray(const ByteArray& other)
     ptrsize = 0;
 
     if (other.ptradr) {
-        ptradr = ::malloc(other.ptrsize + 1);
+        ptradr = ::malloc(other.ptrsize + 4);
         if (!ptradr) throw OutOfMemoryException();
         memcpy(ptradr, other.ptradr, other.ptrsize);
         ptrsize = other.ptrsize;
         ((char*)ptradr)[ptrsize] = 0;
+        ((char*)ptradr)[ptrsize + 1] = 0;
+        ((char*)ptradr)[ptrsize + 2] = 0;
+        ((char*)ptradr)[ptrsize + 3] = 0;
     }
 }
 
@@ -228,10 +237,13 @@ ByteArray::ByteArray(const void* adr, size_t size)
 ByteArray::ByteArray(size_t size)
 {
     ptrsize = 0;
-    ptradr = ::malloc(size + 1);
+    ptradr = ::malloc(size + 4);
     if (!ptradr) throw OutOfMemoryException();
     ptrsize = size;
     ((char*)ptradr)[ptrsize] = 0;
+    ((char*)ptradr)[ptrsize + 1] = 0;
+    ((char*)ptradr)[ptrsize + 2] = 0;
+    ((char*)ptradr)[ptrsize + 3] = 0;
 }
 
 /*!\brief Speicherverwaltung übernehmen
@@ -285,12 +297,7 @@ void* ByteArray::copy(const void* adr, size_t size)
         if (!ptradr) {
             throw OutOfMemoryException();
         }
-        if (memcpy(ptradr, adr, size) != ptradr) {
-            ::free(ptradr);
-            ptradr = NULL;
-            ptrsize = 0;
-            throw Exception();
-        }
+        memcpy(ptradr, adr, size);
         ptrsize = size;
         ((char*)ptradr)[ptrsize] = 0;
         ((char*)ptradr)[ptrsize + 1] = 0;
@@ -351,12 +358,7 @@ void* ByteArray::append(void* adr, size_t size)
     if (!p) throw OutOfMemoryException();
     ptradr = p;
     void* target = (char*)ptradr + ptrsize;
-    if (memcpy(target, adr, size) != target) {
-        ::free(ptradr);
-        ptradr = NULL;
-        ptrsize = 0;
-        throw Exception();
-    }
+    memcpy(target, adr, size);
     ptrsize = newsize;
     ((char*)ptradr)[ptrsize] = 0;
     ((char*)ptradr)[ptrsize + 1] = 0;
@@ -415,21 +417,9 @@ void* ByteArray::prepend(void* adr, size_t size)
     size_t newsize = ptrsize + size;
     void* p = ::malloc(newsize + 4);
     if (!p) throw OutOfMemoryException();
-    if (memcpy(p, adr, size) != p) {
-        ::free(ptradr);
-        ptradr = NULL;
-        ptrsize = 0;
-        ::free(p);
-        throw Exception();
-    }
+    memcpy(p, adr, size);
     void* target = (char*)p + size;
-    if (memcpy(target, ptradr, ptrsize) != target) {
-        ::free(ptradr);
-        ptradr = NULL;
-        ptrsize = 0;
-        ::free(p);
-        throw Exception();
-    }
+    memcpy(target, ptradr, ptrsize);
     ::free(ptradr);
     ptradr = p;
     ptrsize = newsize;
@@ -518,11 +508,14 @@ ByteArray& ByteArray::operator=(const String& str)
 {
     clear();
     if (str.notEmpty()) {
-        ptradr = ::malloc(str.size() + 1);
+        ptradr = ::malloc(str.size() + 4);
         if (!ptradr) throw OutOfMemoryException();
         memcpy(ptradr, str.getPtr(), str.size());
         ptrsize = str.size();
         ((char*)ptradr)[ptrsize] = 0;
+        ((char*)ptradr)[ptrsize + 1] = 0;
+        ((char*)ptradr)[ptrsize + 2] = 0;
+        ((char*)ptradr)[ptrsize + 3] = 0;
     }
     return *this;
 }
@@ -536,7 +529,7 @@ ByteArray& ByteArray::operator=(const WideString& str)
         memcpy(ptradr, str.getPtr(), str.size() * sizeof(wchar_t));
         ptrsize = str.size();
         ((wchar_t*)ptradr)[ptrsize] = 0;
-        ptrsize = str.size() * 4;
+        ptrsize = str.size() * sizeof(wchar_t);
     }
     return *this;
 }
@@ -583,25 +576,6 @@ ByteArray::operator const char*() const
     return (const char*)ptradr;
 }
 
-/*!\brief Einzelnes Byte aus dem Speicherbereich kopieren
- *
- * \desc
- * Mit dem Operator [] kann ein bestimmtes Byte \p pos aus dem Speicherbereich
- * ausgelesen werden. Ist kein Speicher referenziert oder ist \p pos größer als
- * der Speicherblock, wird eine Exception ausgelöst.
- *
- * @param [in] pos Auszulesendes Byte, beginnend mit 0.
- * @return Wert der Speicherstelle
- * \exception OutOfBoundsEception Diese Exception wird geworfen, wenn die mit
- * \p pos angegebene Speicherstelle ausseralb des referenzierten Speichers liegt oder
- * kein Speicher referenziert ist.
- */
-unsigned char ByteArray::operator[](size_t pos) const
-{
-    if (ptradr != NULL && pos < ptrsize) return ((unsigned char*)ptradr)[pos];
-    throw OutOfBoundsEception();
-}
-
 /*!\brief Speicher allokieren
  *
  * \desc
@@ -617,13 +591,16 @@ unsigned char ByteArray::operator[](size_t pos) const
 void* ByteArray::malloc(size_t size)
 {
     ::free(ptradr);
-    ptradr = ::malloc(size + 1);
+    ptradr = ::malloc(size + 4);
     if (ptradr) {
         ptrsize = size;
     } else {
         throw OutOfMemoryException();
     }
     ((char*)ptradr)[ptrsize] = 0;
+    ((char*)ptradr)[ptrsize + 1] = 0;
+    ((char*)ptradr)[ptrsize + 2] = 0;
+    ((char*)ptradr)[ptrsize + 3] = 0;
     return ptradr;
 }
 
@@ -643,7 +620,7 @@ void* ByteArray::malloc(size_t size)
 void* ByteArray::calloc(size_t size)
 {
     ::free(ptradr);
-    ptradr = ::calloc(size + 1, 1);
+    ptradr = ::calloc(size + 4, 1);
     if (ptradr) {
         ptrsize = size;
     } else {
@@ -732,48 +709,6 @@ void* ByteArray::fromHex(const String& hex)
         t[target] = value;
     }
     return ptradr;
-}
-
-bool ByteArray::operator<(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c < 0) return true;
-    return false;
-}
-
-bool ByteArray::operator<=(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c <= 0) return true;
-    return false;
-}
-
-bool ByteArray::operator==(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c == 0) return true;
-    return false;
-}
-
-bool ByteArray::operator!=(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c != 0) return true;
-    return false;
-}
-
-bool ByteArray::operator>=(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c >= 0) return true;
-    return false;
-}
-
-bool ByteArray::operator>(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c > 0) return true;
-    return false;
 }
 
 std::ostream& operator<<(std::ostream& s, const ByteArray& ba)
