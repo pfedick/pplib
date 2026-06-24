@@ -439,10 +439,10 @@ uint64_t ID3Tag::findId3Tag(FileObject& File)
 
 void ID3Tag::load(const String& filename)
 {
+    Filename = filename;
     File ff;
     ff.open(filename, File::READ);
     load(ff);
-    Filename = filename;
 }
 
 static size_t synchronize(unsigned char* adr, size_t size)
@@ -472,7 +472,11 @@ static size_t synchronize(unsigned char* adr, size_t size)
 
 void ID3Tag::load(FileObject& file)
 {
-    clear();
+    frames.clear();
+    myAudioFormat = AF_UNKNOWN;
+    Size = 0;
+    Flags = 0;
+
     // ID3V2 Header einlesen (10 Byte)
     uint64_t p = findId3Tag(file);
     if (p == (uint64_t)-1) {
@@ -581,10 +585,10 @@ void ID3Tag::load(FileObject& file)
 bool ID3Tag::tryLoad(const String& filename)
 {
     try {
+        Filename = filename;
         File ff;
         ff.open(filename, File::READ);
         load(ff);
-        Filename = filename;
         return true;
     }
     catch (...) {
