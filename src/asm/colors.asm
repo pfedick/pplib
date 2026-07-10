@@ -107,8 +107,8 @@ SECTION .text
 		RGBBlend_32_255:			; ground=rcx, top=rdx, intensity=r8
 		or r8,r8					; Alpha=0?
 		jz .useBackground			; Wenn Alpha=0 ist, dann geben wir ground zurück
-			cmp r8, 255             ; intensity == 255?
-			jae .useForeground		; Wenn Alpha=255 ist, dann geben wir top zurück
+			inc r8b
+			jz .useForeground		; Wenn Alpha=255 ist, dann geben wir top zurück
 			pxor mm6,mm6			; mm6 benötigen wir für PUNPCKLBW und muß 0 sein
 			movq mm2,rcx			; Hintergrund nach mm2
 			movq mm3,rdx			; Color nach mm3
@@ -118,10 +118,14 @@ SECTION .text
 			punpcklbw mm3,mm6		; Farbe in mm3 ist jetzt: 0a0r0g0b
 			punpcklbw mm2,mm6		; Hintergrund in mm2: 0a0r0g0b
 			pshufw mm0,mm0,0		; Multiplikator in alle 4 16-Bit Werte
-			psubw mm3,mm2			; src-dst mit Vorzeichen
+			psubsw mm3,mm2			; src-dst mit Vorzeichen
+			mov edx, 0xff
 			pmullw mm3,mm0			; Farbe mit Multiplikator multiplizieren
-			psrlw mm3,8             ; Logischer Shift (behandelt Wert als unsigned), / 256
-			paddw mm3,mm2			; Und den Hintergrund dazuaddieren
+			movq mm7,rdx
+			psraw mm3,8				; Das Ergebnis müssen wir unter Berücksichtigung des Vorzeichens durch 256 teilen...
+			pshufw mm7,mm7,0		; 0x00ff00ff00ff00ff in mm7 zum Maskieren
+			paddsw mm3,mm2			; Und den Hintergrund dazuaddieren
+			pand mm3,mm7			; Die oberen Bytes ausmaskieren
 			packuswb mm3,mm6		; die 4 16-Bit Farbwerte in 32Bit unterbringen
 			movq rax,mm3
 			emms
