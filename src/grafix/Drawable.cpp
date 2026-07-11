@@ -43,15 +43,18 @@
 #include <string.h>
 #endif
 
+#include <math.h>
+
 #include "ppl7.h"
 #include "ppl7-grafix.h"
- //#include "grafix7.h"
+// #include "grafix7.h"
 
- //#undef HAVE_X86_ASSEMBLER
+// #undef HAVE_X86_ASSEMBLER
 
-namespace ppl7 {
-namespace grafix {
-
+namespace ppl7
+{
+namespace grafix
+{
 
 /*!\class Drawable
  * \ingroup PPLGroupGrafik
@@ -106,18 +109,18 @@ namespace grafix {
  * \include Drawable.cpp
  */
 
- /*!\class Konstruktor
-  *
-  * \desc
-  * Mit diesem Konstruktor wird ein leeres Drawable erstellt. Bevor es verwendet werden
-  * kann, muss zunächst mit Drawable::copy eine Kopie eines anderen Drawable oder davon
-  * abgeleiteten Objekts erstellt werden oder mit Drawable::create ein neues Drawable
-  * anhand eines Speicherbereichs erstellt werden.
-  */
+/*!\class Konstruktor
+ *
+ * \desc
+ * Mit diesem Konstruktor wird ein leeres Drawable erstellt. Bevor es verwendet werden
+ * kann, muss zunächst mit Drawable::copy eine Kopie eines anderen Drawable oder davon
+ * abgeleiteten Objekts erstellt werden oder mit Drawable::create ein neues Drawable
+ * anhand eines Speicherbereichs erstellt werden.
+ */
 Drawable::Drawable()
 {
-	clearDrawableData();
-	fn = NULL;
+    clearDrawableData();
+    fn = NULL;
 }
 
 /*!\brief Copy-Konstruktor
@@ -130,8 +133,8 @@ Drawable::Drawable()
  */
 Drawable::Drawable(const Drawable& other)
 {
-	copyDrawableData(other.data);
-	fn = other.fn;
+    copyDrawableData(other.data);
+    fn = other.fn;
 }
 
 /*!\brief Copy-Konstruktor mit Bildausschnitt
@@ -149,7 +152,7 @@ Drawable::Drawable(const Drawable& other)
  */
 Drawable::Drawable(const Drawable& other, const Rect& rect)
 {
-	copy(other, rect);
+    copy(other, rect);
 }
 
 /*!\brief Copy-Konstruktor mit Bildausschnitt
@@ -168,10 +171,9 @@ Drawable::Drawable(const Drawable& other, const Rect& rect)
  */
 Drawable::Drawable(const Drawable& other, const Point& p, const Size& s)
 {
-	Rect r(p, s);
-	copy(other, r);
+    Rect r(p, s);
+    copy(other, r);
 }
-
 
 /*!\brief Konstruktor mit Erstellung aus einem Speicherbereich
  *
@@ -191,9 +193,9 @@ Drawable::Drawable(const Drawable& other, const Point& p, const Size& s)
  */
 Drawable::Drawable(void* base, uint32_t pitch, int width, int height, const RGBFormat& format)
 {
-	clearDrawableData();
-	fn = NULL;
-	create(base, pitch, width, height, format);
+    clearDrawableData();
+    fn = NULL;
+    create(base, pitch, width, height, format);
 }
 
 /*!\brief Destruktor der Klasse
@@ -204,18 +206,16 @@ Drawable::Drawable(void* base, uint32_t pitch, int width, int height, const RGBF
  */
 Drawable::~Drawable()
 {
-
 }
-
 
 void Drawable::clearDrawableData()
 {
-	data.fn = NULL;
-	data.base = NULL;
-	data.pitch = 0;
-	data.width = 0;
-	data.height = 0;
-	data.rgbformat = RGBFormat::unknown;
+    data.fn = NULL;
+    data.base = NULL;
+    data.pitch = 0;
+    data.width = 0;
+    data.height = 0;
+    data.rgbformat = RGBFormat::unknown;
 }
 
 /*!\brief Kopiert die Daten eines anderen Drawable
@@ -229,14 +229,13 @@ void Drawable::clearDrawableData()
  */
 void Drawable::copyDrawableData(const DRAWABLE_DATA& other)
 {
-	data.fn = other.fn;
-	data.base = other.base;
-	data.pitch = other.pitch;
-	data.width = other.width;
-	data.height = other.height;
-	data.rgbformat = other.rgbformat;
+    data.fn = other.fn;
+    data.base = other.base;
+    data.pitch = other.pitch;
+    data.width = other.width;
+    data.height = other.height;
+    data.rgbformat = other.rgbformat;
 }
-
 
 /*!\brief Pointer auf die Grafik-Funktionen für das Farbformat dieses Drawable holen
  *
@@ -250,7 +249,7 @@ void Drawable::copyDrawableData(const DRAWABLE_DATA& other)
  */
 GRAFIX_FUNCTIONS* Drawable::getFunctions()
 {
-	return fn;
+    return fn;
 }
 
 /*!\brief Pointer auf die Datenstruktur des Drawable holen
@@ -265,7 +264,7 @@ GRAFIX_FUNCTIONS* Drawable::getFunctions()
  */
 DRAWABLE_DATA* Drawable::getData()
 {
-	return &data;
+    return &data;
 }
 
 /*!\brief Farbformatabhängige Grafik-Funktionen initialisieren
@@ -279,8 +278,8 @@ DRAWABLE_DATA* Drawable::getData()
  */
 void Drawable::initFunctions(const RGBFormat& format)
 {
-	Grafix* gfx = GetGrafix();
-	fn = data.fn = gfx->getGrafixFunctions(format);
+    Grafix* gfx = GetGrafix();
+    fn = data.fn = gfx->getGrafixFunctions(format);
 }
 
 /*!\brief Grafik von einem anderen Drawable kopieren
@@ -292,8 +291,8 @@ void Drawable::initFunctions(const RGBFormat& format)
  */
 void Drawable::copy(const Drawable& other)
 {
-	copyDrawableData(other.data);
-	fn = other.fn;
+    copyDrawableData(other.data);
+    fn = other.fn;
 }
 
 /*!\brief Ausschnitt von einem anderen Drawable kopieren
@@ -308,18 +307,16 @@ void Drawable::copy(const Drawable& other)
  */
 void Drawable::copy(const Drawable& other, const Rect& rect)
 {
-	Rect o(0, 0, other.data.width, other.data.height);
-	Rect r = o.intersected(rect);
-	clearDrawableData();
-	data.base8 = other.data.base8
-		+ r.top() * other.data.pitch
-		+ r.left() * other.data.rgbformat.bytesPerPixel();
-	data.pitch = other.data.pitch;
-	data.width = r.width();
-	data.height = r.height();
-	data.rgbformat = other.data.rgbformat;
-	fn = other.fn;
-	data.fn = fn;
+    Rect o(0, 0, other.data.width, other.data.height);
+    Rect r = o.intersected(rect);
+    clearDrawableData();
+    data.base8 = other.data.base8 + r.top() * other.data.pitch + r.left() * other.data.rgbformat.bytesPerPixel();
+    data.pitch = other.data.pitch;
+    data.width = r.width();
+    data.height = r.height();
+    data.rgbformat = other.data.rgbformat;
+    fn = other.fn;
+    data.fn = fn;
 }
 
 /*!\brief Ausschnitt von einem anderen Drawable kopieren
@@ -336,10 +333,9 @@ void Drawable::copy(const Drawable& other, const Rect& rect)
  */
 void Drawable::copy(const Drawable& other, const Point& p, const Size& s)
 {
-	Rect r(p, s);
-	copy(other, r);
+    Rect r(p, s);
+    copy(other, r);
 }
-
 
 /*!\brief Drawable anhand einer Speicheradresse initialisieren
  *
@@ -360,17 +356,16 @@ void Drawable::copy(const Drawable& other, const Point& p, const Size& s)
  */
 void Drawable::create(void* base, uint32_t pitch, int width, int height, const RGBFormat& format)
 {
-	if (!base) throw NullPointerException();
-	if (!pitch) throw IllegalArgumentException();
-	if (width == 0 || height == 0) throw IllegalArgumentException();
-	data.base = base;
-	data.pitch = pitch;
-	data.width = width;
-	data.height = height;
-	data.rgbformat = format;
-	initFunctions(format);
+    if (!base) throw NullPointerException();
+    if (!pitch) throw IllegalArgumentException();
+    if (width == 0 || height == 0) throw IllegalArgumentException();
+    data.base = base;
+    data.pitch = pitch;
+    data.width = width;
+    data.height = height;
+    data.rgbformat = format;
+    initFunctions(format);
 }
-
 
 /*!\brief Drawable kopieren
  *
@@ -382,9 +377,9 @@ void Drawable::create(void* base, uint32_t pitch, int width, int height, const R
  */
 Drawable& Drawable::operator=(const Drawable& other)
 {
-	copyDrawableData(other.data);
-	fn = other.fn;
-	return *this;
+    copyDrawableData(other.data);
+    fn = other.fn;
+    return *this;
 }
 
 /*!\brief Rechteck des Drawable auslesen
@@ -397,7 +392,7 @@ Drawable& Drawable::operator=(const Drawable& other)
  */
 Rect Drawable::rect() const
 {
-	return Rect(0, 0, data.width, data.height);
+    return Rect(0, 0, data.width, data.height);
 }
 
 /*!\brief Größe des Drawable auslesen
@@ -409,7 +404,7 @@ Rect Drawable::rect() const
  */
 Size Drawable::size() const
 {
-	return Size(data.width, data.height);
+    return Size(data.width, data.height);
 }
 
 /*!\brief Enthält dieses Drawable eine Grafik?
@@ -424,8 +419,8 @@ Size Drawable::size() const
  */
 bool Drawable::isEmpty() const
 {
-	if (data.base == 0 || data.width == 0 || data.height == 0) return true;
-	return false;
+    if (data.base == 0 || data.width == 0 || data.height == 0) return true;
+    return false;
 }
 
 bool Drawable::isNull() const
@@ -440,10 +435,9 @@ bool Drawable::isNull() const
  * \c false.
  */
 {
-	if (data.base == 0 || data.width == 0 || data.height == 0) return true;
-	return false;
+    if (data.base == 0 || data.width == 0 || data.height == 0) return true;
+    return false;
 }
-
 
 /*!\brief Farbformat des Drawable auslesen
  *
@@ -454,7 +448,7 @@ bool Drawable::isNull() const
  */
 RGBFormat Drawable::rgbformat() const
 {
-	return data.rgbformat;
+    return data.rgbformat;
 }
 
 /*!\brief Breite der Grafik in Pixel
@@ -466,7 +460,7 @@ RGBFormat Drawable::rgbformat() const
  */
 int Drawable::width() const
 {
-	return data.width;
+    return data.width;
 }
 
 /*!\brief Höhe der Grafik in Pixel
@@ -478,7 +472,7 @@ int Drawable::width() const
  */
 int Drawable::height() const
 {
-	return data.height;
+    return data.height;
 }
 
 /*!\brief Bytes pro Zeile
@@ -493,7 +487,7 @@ int Drawable::height() const
  */
 int Drawable::pitch() const
 {
-	return data.pitch;
+    return data.pitch;
 }
 
 /*!\brief Bytes pro Pixel
@@ -506,7 +500,7 @@ int Drawable::pitch() const
  */
 int Drawable::bytesPerPixel() const
 {
-	return data.rgbformat.bitdepth() / 8;
+    return data.rgbformat.bitdepth() / 8;
 }
 
 /*!\brief Bittiefe der Grafik (Bits pro Pixel)
@@ -518,7 +512,7 @@ int Drawable::bytesPerPixel() const
  */
 int Drawable::bitdepth() const
 {
-	return data.rgbformat.bitdepth();
+    return data.rgbformat.bitdepth();
 }
 
 /*!\brief Ein neues Drawable erstellen
@@ -530,7 +524,7 @@ int Drawable::bitdepth() const
  */
 Drawable Drawable::getDrawable() const
 {
-	return *this;
+    return *this;
 }
 
 /*!\brief Ein neues Drawable anhand eines Ausschnitts erstellen
@@ -543,7 +537,7 @@ Drawable Drawable::getDrawable() const
  */
 Drawable Drawable::getDrawable(const Rect& rect) const
 {
-	return Drawable(*this, rect);
+    return Drawable(*this, rect);
 }
 
 /*!\brief Ein neues Drawable anhand eines Ausschnitts erstellen
@@ -560,12 +554,12 @@ Drawable Drawable::getDrawable(const Rect& rect) const
  */
 Drawable Drawable::getDrawable(int x1, int y1, int x2, int y2) const
 {
-	return Drawable(*this, Rect(x1, y1, x2 - x1 + 1, y2 - y1 + 1));
+    return Drawable(*this, Rect(x1, y1, x2 - x1 + 1, y2 - y1 + 1));
 }
 
 Drawable Drawable::getDrawable(const Point& p, const Size& s) const
 {
-	return Drawable(*this, p, s);
+    return Drawable(*this, p, s);
 }
 
 /*!\brief Speicheradresse der Grafik
@@ -578,7 +572,7 @@ Drawable Drawable::getDrawable(const Point& p, const Size& s) const
  */
 void* Drawable::adr() const
 {
-	return data.base;
+    return data.base;
 }
 
 /*!\brief Speicheradresse der angegebenen Koordinaten
@@ -593,8 +587,8 @@ void* Drawable::adr() const
  */
 void* Drawable::adr(int x, int y) const
 {
-	if (x < data.width && y < data.height) return data.base8 + (y * data.pitch) + (x * data.rgbformat.bitdepth() / 8);
-	throw OutOfBoundsEception();
+    if (x < data.width && y < data.height) return data.base8 + (y * data.pitch) + (x * data.rgbformat.bitdepth() / 8);
+    throw OutOfBoundsEception();
 }
 
 /*!\brief Ein neues Drawable skalieren
@@ -611,50 +605,124 @@ void* Drawable::adr(int x, int y) const
  * @param keepAspectRation Beibehalten des Seitenverhältnisses?
  * @param smoothTransform Verwenden von bilinearer Skalierung?
  */
- /*!\note Wenn \p smoothTransform auf \c true gesetzt ist, wird die Grafik mit
-  * bilinearer Skalierung skaliert, andernfalls wird die Grafik mit der
-  * nächstgelegenen Pixelmethode skaliert. Bei bilinearer Skalierung kann
-  * es zu leichten Unschärfen kommen, da die Pixel interpoliert werden.
-  * Bei der nächstgelegenen Pixelmethode wird jeder Pixel auf den nächstgelegenen
-  * Pixel der Originalgrafik gesetzt, was zu einem schärferen, aber auch
-  * kantigeren Ergebnis führt.
-  */
+/*!\note Wenn \p smoothTransform auf \c true gesetzt ist, wird die Grafik mit
+ * bilinearer Skalierung skaliert, andernfalls wird die Grafik mit der
+ * nächstgelegenen Pixelmethode skaliert. Bei bilinearer Skalierung kann
+ * es zu leichten Unschärfen kommen, da die Pixel interpoliert werden.
+ * Bei der nächstgelegenen Pixelmethode wird jeder Pixel auf den nächstgelegenen
+ * Pixel der Originalgrafik gesetzt, was zu einem schärferen, aber auch
+ * kantigeren Ergebnis führt.
+ */
 Image Drawable::scaled(int width, int height, bool keepAspectRation, bool smoothTransform) const
 {
-	Image img;
-	scale(img, width, height, keepAspectRation, smoothTransform);
-	return img;
+    Image img;
+    scale(img, width, height, keepAspectRation, smoothTransform);
+    return img;
 }
 
-void scale_down_bilinear_rgba(const uint8_t* src, int sw, int sh,
-	uint8_t* dst, int dw, int dh) {
-	float x_ratio = (float)(sw - 1) / dw;
-	float y_ratio = (float)(sh - 1) / dh;
+static void scale_down_bilinear_rgba(const uint8_t* src, int sw, int sh, int spitch, uint8_t* dst, int dw, int dh, int dpitch)
+{
+    // Ratio berechnen. Wenn dw=1, dann 0, sonst (sw-1)/(dw-1) für exakte Endpunkt-Abbildung
+    float x_ratio = (dw > 1) ? (float)(sw - 1) / (dw - 1) : 0;
+    float y_ratio = (dh > 1) ? (float)(sh - 1) / (dh - 1) : 0;
 
-	for (int j = 0; j < dh; j++) {
-		for (int i = 0; i < dw; i++) {
-			float gx = i * x_ratio;
-			float gy = j * y_ratio;
+    for (int j = 0; j < dh; j++) {
+        float gy = j * y_ratio;
+        int gyi = (int)gy;
+        float ty = gy - gyi;
 
-			int gxi = (int)gx;
-			int gyi = (int)gy;
+        // Sicherstellen, dass gyi+1 nicht out-of-bounds geht
+        if (gyi >= sh - 1) {
+            gyi = sh - 2;
+            ty = 1.0f;
+        }
+        if (gyi < 0) {
+            gyi = 0;
+            ty = 0.0f;
+        }
 
-			float tx = gx - gxi;
-			float ty = gy - gyi;
+        const uint8_t* row1 = src + gyi * spitch;
+        const uint8_t* row2 = src + (gyi + 1) * spitch;
 
-			// Get the four surrounding pixels
-			const uint8_t* p00 = &src[(gyi * sw + gxi) * 4];
-			const uint8_t* p10 = &src[(gyi * sw + (gxi + 1)) * 4];
-			const uint8_t* p01 = &src[((gyi + 1) * sw + gxi) * 4];
-			const uint8_t* p11 = &src[((gyi + 1) * sw + (gxi + 1)) * 4];
+        for (int i = 0; i < dw; i++) {
+            float gx = i * x_ratio;
+            int gxi = (int)gx;
+            float tx = gx - gxi;
 
-			for (int c = 0; c < 4; c++) { // RGBA channels
-				float top = p00[c] * (1 - tx) + p10[c] * tx;
-				float bottom = p01[c] * (1 - tx) + p11[c] * tx;
-				dst[(j * dw + i) * 4 + c] = (uint8_t)(top * (1 - ty) + bottom * ty);
-			}
-		}
-	}
+            // Sicherstellen, dass gxi+1 nicht out-of-bounds geht
+            if (gxi >= sw - 1) {
+                gxi = sw - 2;
+                tx = 1.0f;
+            }
+            if (gxi < 0) {
+                gxi = 0;
+                tx = 0.0f;
+            }
+
+            // Die 4 Quell-Pixel (RGBA)
+            const uint8_t* p00 = row1 + gxi * 4;
+            const uint8_t* p10 = row1 + (gxi + 1) * 4;
+            const uint8_t* p01 = row2 + gxi * 4;
+            const uint8_t* p11 = row2 + (gxi + 1) * 4;
+
+            uint8_t* d = dst + j * dpitch + i * 4;
+
+            for (int c = 0; c < 4; c++) { // RGBA Kanäle
+                float top = p00[c] * (1.0f - tx) + p10[c] * tx;
+                float bottom = p01[c] * (1.0f - tx) + p11[c] * tx;
+                d[c] = (uint8_t)(top * (1.0f - ty) + bottom * ty);
+            }
+        }
+    }
+}
+
+static void scale_down_area_averaged_rgba(const uint8_t* src, int sw, int sh, int spitch, uint8_t* dst, int dw, int dh, int dpitch)
+{
+    float x_ratio = (float)sw / dw;
+    float y_ratio = (float)sh / dh;
+
+    for (int j = 0; j < dh; j++) {
+        for (int i = 0; i < dw; i++) {
+            // Berechne den Bereich in der Quelle (Floating Point für Genauigkeit)
+            float x_start = i * x_ratio;
+            float y_start = j * y_ratio;
+            float x_end = x_start + x_ratio;
+            float y_end = y_start + y_ratio;
+
+            // Integrations-Variablen
+            float r = 0, g = 0, b = 0, a = 0;
+            float total_weight = 0;
+
+            // Laufe über alle Quellpixel, die diesen Zielpixel beeinflussen
+            for (int sy = (int)y_start; sy < (int)ceil(y_end) && sy < sh; sy++) {
+                float y_weight = 1.0f;
+                if (sy < y_start) y_weight -= (y_start - sy);
+                if (sy + 1 > y_end) y_weight -= (sy + 1 - y_end);
+
+                for (int sx = (int)x_start; sx < (int)ceil(x_end) && sx < sw; sx++) {
+                    float x_weight = 1.0f;
+                    if (sx < x_start) x_weight -= (x_start - sx);
+                    if (sx + 1 > x_end) x_weight -= (sx + 1 - x_end);
+
+                    float weight = x_weight * y_weight;
+                    const uint8_t* p = &src[sy * spitch + sx * 4];
+
+                    r += p[2] * weight; // R
+                    g += p[1] * weight; // G
+                    b += p[0] * weight; // B
+                    a += p[3] * weight; // A
+                    total_weight += weight;
+                }
+            }
+
+            // Ergebnis schreiben
+            uint8_t* d = &dst[j * dpitch + i * 4];
+            d[2] = (uint8_t)(r / total_weight);
+            d[1] = (uint8_t)(g / total_weight);
+            d[0] = (uint8_t)(b / total_weight);
+            d[3] = (uint8_t)(a / total_weight);
+        }
+    }
 }
 
 /*!\brief Grafik skalieren
@@ -671,75 +739,81 @@ void scale_down_bilinear_rgba(const uint8_t* src, int sw, int sh,
  * @param keepAspectRation Beibehalten des Seitenverhältnisses?
  * @param smoothTransform Verwenden von bilinearer Skalierung?
  */
- /*!\note Wenn \p smoothTransform auf \c true gesetzt ist, wird die Grafik mit
-  * bilinearer Skalierung skaliert, andernfalls wird die Grafik mit der
-  * nächstgelegenen Pixelmethode skaliert. Bei bilinearer Skalierung kann
-  * es zu leichten Unschärfen kommen, da die Pixel interpoliert werden.
-  * Bei der nächstgelegenen Pixelmethode wird jeder Pixel auf den nächstgelegenen
-  * Pixel der Originalgrafik gesetzt, was zu einem schärferen, aber auch
-  * kantigeren Ergebnis führt.
-  */
+/*!\note Wenn \p smoothTransform auf \c true gesetzt ist, wird die Grafik mit
+ * bilinearer Skalierung skaliert, andernfalls wird die Grafik mit der
+ * nächstgelegenen Pixelmethode skaliert. Bei bilinearer Skalierung kann
+ * es zu leichten Unschärfen kommen, da die Pixel interpoliert werden.
+ * Bei der nächstgelegenen Pixelmethode wird jeder Pixel auf den nächstgelegenen
+ * Pixel der Originalgrafik gesetzt, was zu einem schärferen, aber auch
+ * kantigeren Ergebnis führt.
+ */
 
 void Drawable::scale(Image& tgt, int width, int height, bool keepAspectRation, bool smoothTransform) const
 {
-	tgt.create(width, height, data.rgbformat);
-	int ow = data.width;
-	int oh = data.height;
-	int ox, oy;
+    tgt.create(width, height, data.rgbformat);
+    int ow = data.width;
+    int oh = data.height;
+    int ox, oy;
 
-	if (keepAspectRation) {
-		int x1, y1, nw, nh;
-		float ratio = (float)data.width / (float)data.height;
-		if (height * ratio > width) {
-			nw = width;
-			nh = (int)((float)nw / ratio);
-		}
-		else {
-			nh = height;
-			nw = (int)((float)nh * ratio);
-		}
-		//::printf ("old: %i x %i, new: %i x %i, new Image: %i x %i\n",ow,oh,width,height,nw,nh);
-		x1 = (width - nw) / 2;
-		y1 = (height - nh) / 2;
-		Drawable corrected_target = tgt.getDrawable(x1, y1, x1 + nw, y1 + nh);
-		if (smoothTransform && (nw <= ow || nh <= oh)) {
-			// Use bilinear scaling
-			uint8_t* src = (uint8_t*)data.base8;
-			uint8_t* dst = (uint8_t*)corrected_target.data.base8;
-			scale_down_bilinear_rgba(src, ow, oh, dst, nw, nh);
-		}
-		else {
-			// Use nearest neighbor scaling
-			for (int y = 0;y < nh;y++) {
-				for (int x = 0;x < nw;x++) {
-					ox = x * ow / nw;
-					oy = y * oh / nh;
-					corrected_target.putPixel(x, y, getPixel(ox, oy));
-				}
-			}
-		}
-	}
-	else {
-		if (smoothTransform && (width <= ow || height <= oh)) {
-			// Use bilinear scaling
-			uint8_t* src = (uint8_t*)data.base8;
-			uint8_t* dst = (uint8_t*)tgt.data.base8;
-			scale_down_bilinear_rgba(src, ow, oh, dst, width, height);
-		}
-		else {
-			// Use nearest neighbor scaling
-			for (int y = 0;y < height;y++) {
-				for (int x = 0;x < width;x++) {
-					ox = x * ow / width;
-					oy = y * oh / height;
-					tgt.putPixel(x, y, getPixel(ox, oy));
-				}
-			}
-		}
-	}
+    if (keepAspectRation) {
+        int x1, y1, nw, nh;
+        float ratio = (float)data.width / (float)data.height;
+        if (height * ratio > width) {
+            nw = width;
+            nh = (int)((float)nw / ratio);
+        } else {
+            nh = height;
+            nw = (int)((float)nh * ratio);
+        }
+        //::printf ("old: %i x %i, new: %i x %i, new Image: %i x %i\n",ow,oh,width,height,nw,nh);
+        x1 = (width - nw) / 2;
+        y1 = (height - nh) / 2;
+        Drawable corrected_target = tgt.getDrawable(x1, y1, x1 + nw, y1 + nh);
+        if (smoothTransform) {
+            // Use bilinear scaling
+            uint8_t* src = (uint8_t*)data.base8;
+            uint8_t* dst = (uint8_t*)corrected_target.data.base8;
+            if (nw < ow || nh < oh) {
+                // Verkleinerung -> Area Averaging verwenden
+                scale_down_area_averaged_rgba(src, ow, oh, data.pitch, dst, nw, nh, corrected_target.data.pitch);
+            } else {
+                // Vergrößerung (oder gleich groß) -> Bilinear verwenden
+                scale_down_bilinear_rgba(src, ow, oh, data.pitch, dst, nw, nh, corrected_target.data.pitch);
+            }
+        } else {
+            // Use nearest neighbor scaling
+            for (int y = 0; y < nh; y++) {
+                for (int x = 0; x < nw; x++) {
+                    ox = x * ow / nw;
+                    oy = y * oh / nh;
+                    corrected_target.putPixel(x, y, getPixel(ox, oy));
+                }
+            }
+        }
+    } else {
+        if (smoothTransform) {
+            // Use bilinear scaling
+            uint8_t* src = (uint8_t*)data.base8;
+            uint8_t* dst = (uint8_t*)tgt.data.base8;
+            if (width < ow || height < oh) {
+                // Verkleinerung -> Area Averaging verwenden
+                scale_down_area_averaged_rgba(src, ow, oh, data.pitch, dst, width, height, tgt.data.pitch);
+            } else {
+                // Vergrößerung (oder gleich groß) -> Bilinear verwenden
+                scale_down_bilinear_rgba(src, ow, oh, data.pitch, dst, width, height, tgt.data.pitch);
+            }
+        } else {
+            // Use nearest neighbor scaling
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    ox = x * ow / width;
+                    oy = y * oh / height;
+                    tgt.putPixel(x, y, getPixel(ox, oy));
+                }
+            }
+        }
+    }
 }
 
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace ppl7
