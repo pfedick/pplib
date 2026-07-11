@@ -630,6 +630,7 @@ class HttpRequest
 public:
     std::map<String, String> params;
     std::map<String, String> headers;
+    std::map<String, String> cookies;
     ppl7::String body;
     ppl7::String userAgent;
     ppl7::String referer;

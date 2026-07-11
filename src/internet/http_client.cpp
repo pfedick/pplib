@@ -69,7 +69,8 @@ static void addParamsToUrl(const ppl7::HttpRequest& req, CURL* curl, ppl7::Strin
 static curl_mime* addPostParams(const ppl7::HttpRequest& req, CURL* curl);
 #endif
 
-static String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+static String UserAgent =
+    "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/605.1.15 (KHTML, like Gecko) Chrome/150.0.7871.102 Safari/605.1.15";
 static int http_timeout = 30; // Sekunden
 static bool verifySsl = true;
 static String CaBundlePath;
@@ -245,6 +246,16 @@ static HttpResponse performHttpRequest(const ppl7::String& url, const HttpReques
     }
 
     if (headerList) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerList);
+
+    // 3b. Cookies
+    if (!req.cookies.empty()) {
+        ppl7::String cookieString;
+        for (auto const& [key, value] : req.cookies) {
+            if (cookieString.notEmpty()) cookieString += "; ";
+            cookieString += key + "=" + value;
+        }
+        curl_easy_setopt(curl, CURLOPT_COOKIE, (const char*)cookieString);
+    }
 
     // Callbacks
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
