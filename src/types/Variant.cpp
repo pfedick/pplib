@@ -42,136 +42,32 @@
 namespace ppl7
 {
 
-/*!\class Variant
- * \ingroup PPLGroupDataTypes
- * \brief Flexibler Datentyp, der verschiedene Datentypen aufnehmen kann
- *
- * \desc
- * Dieser Datentyp kann andere Datentypen aufnehmen. Unterstützt werden:
- *
- * - String
- * - WideString
- * - Array
- * - AssocArray
- * - ByteArray
- * - ByteArrayPtr
- * - DateTime
- * - Pointer
- *
- * \example
- * \code
-void Machwas(const Variant &object)
-{
-    Variant::DataType t=object.type();
-    if (t==Variant::TYPE_BYTEARRAY) {
-            const ppl7::ByteArray &bin= static_cast<const ppl7::ByteArray&>(object);  // Objekt zu ByteArray umwandeln
-            printf ("Es ist ein ByteArray mit %i Bytes an Daten\n",bin.size());
-            return;
-    } else if (t==Variant::TYPE_STRING) {
-            const String &str= static_cast<const String&>(object);  // Objekt zu String umwandeln
-            printf ("Es ist ein String mit folgendem Inhalt: %s\n",(const char*)str);
-            return;
-    } else if (t==Variant::TYPE_ARRAY) {
-            const Array &array= static_cast<const Array&>(object);  // Objekt zu Array umwandeln
-            printf ("Es ist ein Array mit %i Elementen\n",array.count());
-            return;
-    }
-    printf ("Datentyp wird nicht unterstützt\n");
-}
-\endcode
- *
- */
-
-/*!\enum Variant::DataType
- * \brief Enumeration der verschiedenen Datenobjekte, die in der Library verwendet werden
- *
- * Enumeration der verschiedenen Datenobjekte, die in der Library verwendet werden
- */
-
-/*!\var Variant::DataType Variant::TYPE_UNKNOWN
- * \brief Unbekannter Datentyp
- */
-
-/*!\var Variant::DataType Variant::TYPE_STRING
- * \brief Datentyp ist String
- */
-
-/*!\var Variant::DataType Variant::TYPE_WIDESTRING
- * \brief Datentyp ist WideString
- */
-
-/*!\var Variant::DataType Variant::TYPE_BYTEARRAY
- * \brief Datentyp ist ByteArray
- */
-
-/*!\var Variant::DataType Variant::TYPE_BYTEARRAYPTR
- * \brief Datentyp ist ByteArrayPtr
- */
-
-/*!\var Variant::DataType Variant::TYPE_ASSOCARRAY
- * \brief Datentyp ist AssocArray
- */
-
-/*!\var Variant::DataType Variant::TYPE_ARRAY
- * \brief Datentyp ist Array
- */
-
-/*!\var Variant::DataType Variant::TYPE_DATETIME
- * \brief Datentyp ist DateTime
- */
-
-/*!\var Variant::DataType Variant::TYPE_POINTER
- * \brief Datentyp ist Pointer
- */
-
-/*!\var Variant::t
- * \brief Variable, zum Speichern des Datentyps
- */
-
-/*!\var Variant::value
- * \brief Pointer auf den Inhalt des Datentyps
- */
-
-/*!\brief Konstruktor der Klasse
- *
- * \desc
- * Der Konstruktor initialisiert den Typ der Klasse mit Variant::TYPE_UNKNOWN.
- * Es ist aufgabe der abgeleiteten Klasse den korrekten Datentyp zu setzen.
- */
 Variant::Variant()
 {
     value = nullptr;
     t = TYPE_UNKNOWN;
 }
 
-/*!\brief Destruktor
- *
- * \desc
- * Gibt den durch das Objekt belegten Speicher wieder frei.
- */
 Variant::~Variant()
 {
     clear();
 }
 
-/*!\brief Copy-Konstruktor der Klasse
- *
- * \desc
- * Der Inhalt des anderen Variant-Objekts \p value wird kopiert.
- */
-Variant::Variant(const Variant& value)
+Variant::Variant(const Variant& other)
 {
     this->value = nullptr;
     t = TYPE_UNKNOWN;
-    set(value);
+    set(other);
 }
 
-/*!\brief Konstruktor mit Datentyp String
- *
- * Der Inhalt des Strings \p value wird kopiert.
- *
- * @param value
- */
+Variant::Variant(Variant&& other)
+{
+    value = other.value;
+    t = other.t;
+    other.value = nullptr;
+    other.t = TYPE_UNKNOWN;
+}
+
 Variant::Variant(const String& value)
 {
     this->value = nullptr;
@@ -179,12 +75,6 @@ Variant::Variant(const String& value)
     set(value);
 }
 
-/*!\brief Konstruktor mit Datentyp WideString
- *
- * Der Inhalt des WideStrings \p value wird kopiert.
- *
- * @param value
- */
 Variant::Variant(const WideString& value)
 {
     this->value = nullptr;
@@ -192,12 +82,6 @@ Variant::Variant(const WideString& value)
     set(value);
 }
 
-/*!\brief Konstruktor mit Datentyp Array
- *
- * Der Inhalt des Arrays \p value wird kopiert.
- *
- * @param value
- */
 Variant::Variant(const Array& value)
 {
     this->value = nullptr;
@@ -205,12 +89,6 @@ Variant::Variant(const Array& value)
     set(value);
 }
 
-/*!\brief Konstruktor mit Datentyp AssocArray
- *
- * Der Inhalt des AssocArrays \p value wird kopiert.
- *
- * @param value
- */
 Variant::Variant(const AssocArray& value)
 {
     this->value = nullptr;
@@ -218,12 +96,6 @@ Variant::Variant(const AssocArray& value)
     set(value);
 }
 
-/*!\brief Konstruktor mit Datentyp ByteArray
- *
- * Der Inhalt des ByteArrays \p value wird kopiert.
- *
- * @param value
- */
 Variant::Variant(const ByteArray& value)
 {
     this->value = nullptr;
@@ -231,12 +103,6 @@ Variant::Variant(const ByteArray& value)
     set(value);
 }
 
-/*!\brief Konstruktor mit Datentyp ByteArrayPtr
- *
- * Der Inhalt des ByteArrayPtrs \p value wird kopiert.
- *
- * @param value
- */
 Variant::Variant(const ByteArrayPtr& value)
 {
     this->value = nullptr;
@@ -244,12 +110,6 @@ Variant::Variant(const ByteArrayPtr& value)
     set(value);
 }
 
-/*!\brief Konstruktor mit Datentyp DateTime
- *
- * Der Inhalt des DateTimes \p value wird kopiert.
- *
- * @param value
- */
 Variant::Variant(const DateTime& value)
 {
     this->value = nullptr;
@@ -257,12 +117,6 @@ Variant::Variant(const DateTime& value)
     set(value);
 }
 
-/*!\brief Konstruktor mit Datentyp Pointer
- *
- * Der Inhalt des Pointers \p value wird kopiert.
- *
- * @param value
- */
 Variant::Variant(const Pointer& value)
 {
     this->value = nullptr;
@@ -270,12 +124,6 @@ Variant::Variant(const Pointer& value)
     set(value);
 }
 
-/*!\brief Inhalt des Objekts löschen
- *
- * \desc
- * Der im Objekte gespeicherte Datentyp wird gelöscht und sein Speicher
- * freigegeben.
- */
 void Variant::clear()
 {
     if (!value) return;
@@ -311,13 +159,6 @@ void Variant::clear()
     t = TYPE_UNKNOWN;
 }
 
-/*!\brief Wert eines anderen Variant kopieren
- *
- * \desc
- * Der Wert des anderen Variant \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const Variant& value)
 {
     clear();
@@ -360,13 +201,6 @@ void Variant::set(const Variant& value)
     }
 }
 
-/*!\brief Der Wert eines String wird übernommen.
- *
- * \desc
- * Der Wert des Strings \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const String& value)
 {
     clear();
@@ -374,13 +208,6 @@ void Variant::set(const String& value)
     t = TYPE_STRING;
 }
 
-/*!\brief Der Wert eines WideString wird übernommen.
- *
- * \desc
- * Der Wert des WideStrings \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const WideString& value)
 {
     clear();
@@ -388,13 +215,6 @@ void Variant::set(const WideString& value)
     t = TYPE_WIDESTRING;
 }
 
-/*!\brief Der Wert eines Array wird übernommen.
- *
- * \desc
- * Der Wert des Arrays \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const Array& value)
 {
     clear();
@@ -402,13 +222,6 @@ void Variant::set(const Array& value)
     t = TYPE_ARRAY;
 }
 
-/*!\brief Der Wert eines AssocArray wird übernommen.
- *
- * \desc
- * Der Wert des AssocArrays \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const AssocArray& value)
 {
     clear();
@@ -416,13 +229,6 @@ void Variant::set(const AssocArray& value)
     t = TYPE_ASSOCARRAY;
 }
 
-/*!\brief Der Wert eines ByteArray wird übernommen.
- *
- * \desc
- * Der Wert des ByteArrays \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const ByteArray& value)
 {
     clear();
@@ -430,13 +236,6 @@ void Variant::set(const ByteArray& value)
     t = TYPE_BYTEARRAY;
 }
 
-/*!\brief Der Wert eines ByteArrayPtr wird übernommen.
- *
- * \desc
- * Der Wert des ByteArrayPtrs \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const ByteArrayPtr& value)
 {
     clear();
@@ -444,13 +243,6 @@ void Variant::set(const ByteArrayPtr& value)
     t = TYPE_BYTEARRAYPTR;
 }
 
-/*!\brief Der Wert eines DateTime wird übernommen.
- *
- * \desc
- * Der Wert des DateTimes \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const DateTime& value)
 {
     clear();
@@ -458,13 +250,6 @@ void Variant::set(const DateTime& value)
     t = TYPE_DATETIME;
 }
 
-/*!\brief Der Wert eines Pointer wird übernommen.
- *
- * \desc
- * Der Wert des Pointers \p value wird kopiert.
- *
- * \param value
- */
 void Variant::set(const Pointer& value)
 {
     clear();
@@ -472,105 +257,42 @@ void Variant::set(const Pointer& value)
     t = TYPE_POINTER;
 }
 
-/*!\brief Liefert den Datentyp des Objekts zurück
- *
- * \desc
- * Diese Funktion liefert den Datentyp des Objekts zurück.
- *
- * @return ID aus der Enumeration Variant::DataType
- */
-Variant::DataType Variant::type() const
-{
-    return t;
-}
-
-/*!\brief Prüft auf einen bestimmten Datentyp
- *
- * \desc
- * Prüft, ob es sich bei diesem Objekt um den Datentyp \p type handelt.
- *
- * @param type Zu überprüfender Typ. Wert aus der Enumerationr Variant::DataType
- * @return Liefert \c true zurück, wenn es sich um den angegebenen Datentyp \p type handelt,
- * sonst \c false.
- */
 bool Variant::isType(DataType type) const
 {
     if (this->t == type) return true;
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp String handelt
- *
- * \desc
- * Prüft, ob es sich um den Datentyp String handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Datentyp String handelt, sonst \c false.
- */
 bool Variant::isString() const
 {
     if (t == TYPE_STRING) return true;
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp WideString handelt
- *
- * \desc
- * Prüft, ob es sich um den Datentyp WideString handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Datentyp WideString handelt, sonst \c false.
- */
 bool Variant::isWideString() const
 {
     if (t == TYPE_WIDESTRING) return true;
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp Array handelt
- *
- * \desc
- * Prüft, ob es sich um den Datentyp Array handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Datentyp Array handelt, sonst \c false.
- */
 bool Variant::isArray() const
 {
     if (t == TYPE_ARRAY) return true;
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp AssocArray handelt
- *
- * \desc
- * Prüft, ob es sich um den Datentyp AssocArray handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Datentyp AssocArray handelt, sonst \c false.
- */
 bool Variant::isAssocArray() const
 {
     if (t == TYPE_ASSOCARRAY) return true;
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp ByteArray handelt
- *
- * \desc
- * Prüft, ob es sich um den Datentyp ByteArray handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArray handelt, sonst \c false.
- */
 bool Variant::isByteArray() const
 {
     if (t == TYPE_BYTEARRAY) return true;
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
- *
- * \desc
- * Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArrayPtr handelt, sonst \c false.
- */
 bool Variant::isByteArrayPtr() const
 {
     if (t == TYPE_BYTEARRAYPTR) return true;
@@ -578,26 +300,12 @@ bool Variant::isByteArrayPtr() const
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp DateTime handelt
- *
- * \desc
- * Prüft, ob es sich um den Datentyp DateTime handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Datentyp DateTime handelt, sonst \c false.
- */
 bool Variant::isDateTime() const
 {
     if (t == TYPE_DATETIME) return true;
     return false;
 }
 
-/*!\brief Prüft, ob es sich um den Datentyp Pointer handelt
- *
- * \desc
- * Prüft, ob es sich um den Pointer DateTime handelt
- *
- * @return Liefert \c true zurück, wenn es such um den Pointer DateTime handelt, sonst \c false.
- */
 bool Variant::isPointer() const
 {
     if (t == TYPE_POINTER) return true;

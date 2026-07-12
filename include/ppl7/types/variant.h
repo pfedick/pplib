@@ -41,59 +41,296 @@ class ByteArrayPtr;
 class DateTime;
 class Pointer;
 
+/**@class Variant
+ * @ingroup PPLGroupDataTypes
+ * @brief Flexibler Datentyp, der verschiedene Datentypen aufnehmen kann
+ *
+ * Dieser Datentyp kann andere Datentypen aufnehmen. Unterstützt werden:
+ *
+ * - String
+ * - WideString
+ * - Array
+ * - AssocArray
+ * - ByteArray
+ * - ByteArrayPtr
+ * - DateTime
+ *
+ */
 class Variant
 {
 public:
-    enum DataType
+    /// @brief Mögliche Datentypen, die in einem Variant gespeichert werden können
+    enum DataType // TODO: Das sollte eine enum class werden, aber das würde die Kompatibilität zu älteren Versionen brechen
     {
-        TYPE_UNKNOWN = 0,
-        TYPE_STRING = 4,
-        TYPE_ASSOCARRAY = 5,
-        TYPE_BYTEARRAY = 6,
-        TYPE_POINTER = 7,
-        TYPE_WIDESTRING = 8,
-        TYPE_ARRAY = 9,
-        TYPE_DATETIME = 10,
-        TYPE_BYTEARRAYPTR = 12
+        TYPE_UNKNOWN = 0,      /// @brief Unbekannter Datentyp
+        TYPE_STRING = 4,       /// @brief Datentyp ist String
+        TYPE_ASSOCARRAY = 5,   /// @brief Datentyp ist AssocArray
+        TYPE_BYTEARRAY = 6,    /// @brief Datentyp ist ByteArray
+        TYPE_POINTER = 7,      /// @brief Datentyp ist Pointer
+        TYPE_WIDESTRING = 8,   /// @brief Datentyp ist WideString
+        TYPE_ARRAY = 9,        /// @brief Datentyp ist Array
+        TYPE_DATETIME = 10,    /// @brief Datentyp ist DateTime
+        TYPE_BYTEARRAYPTR = 12 /// @brief Datentyp ist ByteArrayPtr
     };
 
 private:
-    void* value;
-    DataType t;
+    void* value; /// @brief Pointer auf den Inhalt des Datentyps
+    DataType t;  /// @brief Variable, zum Speichern des Datentyps
 
 public:
+    /**@brief Konstruktor der Klasse
+     *
+     * Der Konstruktor initialisiert den Typ der Klasse mit Variant::TYPE_UNKNOWN.
+     * Es ist aufgabe der abgeleiteten Klasse den korrekten Datentyp zu setzen.
+     */
     Variant();
-    ~Variant();
-    Variant(const Variant& value);
-    Variant(const String& value);
-    Variant(const WideString& value);
-    Variant(const Array& value);
-    Variant(const AssocArray& value);
-    Variant(const ByteArray& value);
-    Variant(const ByteArrayPtr& value);
-    Variant(const DateTime& value);
-    Variant(const Pointer& value);
 
+    /**@brief Destruktor
+     *
+     * Gibt den durch das Objekt belegten Speicher wieder frei.
+     */
+    ~Variant();
+
+    /**@brief Copy-Konstruktor der Klasse
+     *
+     * Der Inhalt des anderen Variant-Objekts \p value wird kopiert.
+     */
+    Variant(const Variant& other);
+
+    /**@brief Move-Konstruktor der Klasse
+     *
+     * Der Inhalt des anderen Variant-Objekts \p value wird kopiert.
+     */
+    Variant(Variant&& other);
+
+    /**@brief Konstruktor mit Datentyp String
+     *
+     * Der Inhalt des Strings \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const String& value);
+
+    /**@brief Konstruktor mit Datentyp WideString
+     *
+     * Der Inhalt des WideStrings \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const WideString& value);
+
+    /**@brief Konstruktor mit Datentyp Array
+     *
+     * Der Inhalt des Arrays \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const Array& value);
+
+    /**@brief Konstruktor mit Datentyp AssocArray
+     *
+     * Der Inhalt des AssocArrays \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const AssocArray& value);
+
+    /**@brief Konstruktor mit Datentyp ByteArray
+     *
+     * Der Inhalt des ByteArrays \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const ByteArray& value);
+
+    /**@brief Konstruktor mit Datentyp ByteArrayPtr
+     *
+     * Der Inhalt des ByteArrayPtrs \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const ByteArrayPtr& value);
+
+    /**@brief Konstruktor mit Datentyp DateTime
+     *
+     * Der Inhalt des DateTime-Objekts \p value wird kopiert.
+     *
+     * @param value
+     */
+    Variant(const DateTime& value);
+
+    /**@brief Konstruktor mit Datentyp Pointer
+     *
+     * Der Inhalt des Pointer-Objekts \p value wird kopiert.
+     *
+     * @param value
+     */
+    [[deprcated]] Variant(const Pointer& value);
+
+    /**@brief Inhalt des Objekts löschen
+     *
+     * Der im Objekte gespeicherte Datentyp wird gelöscht und sein Speicher
+     * freigegeben.
+     */
     void clear();
+
+    /**@brief Wert eines anderen Variant kopieren
+     *
+     * Der Wert des anderen Variant \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const Variant& value);
+
+    /**@brief Wert eines Strings kopieren
+     *
+     * Der Wert des Strings \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const String& value);
+
+    /**@brief Wert eines WideStrings kopieren
+     *
+     * Der Wert des WideStrings \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const WideString& value);
+
+    /**@brief Wert eines Arrays kopieren
+     *
+     * Der Wert des Arrays \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const Array& value);
+
+    /**@brief Wert eines AssocArrays kopieren
+     *
+     * Der Wert des AssocArrays \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const AssocArray& value);
+
+    /**@brief Wert eines ByteArrays kopieren
+     *
+     * Der Wert des ByteArrays \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const ByteArray& value);
+
+    /**@brief Wert eines ByteArrayPtrs kopieren
+     *
+     * Der Wert des ByteArrayPtrs \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const ByteArrayPtr& value);
+
+    /**@brief Wert eines DateTimes kopieren
+     *
+     * Der Wert des DateTimes \p value wird kopiert.
+     *
+     * \param value
+     */
     void set(const DateTime& value);
+
+    /**@brief Wert eines Pointers kopieren
+     *
+     * Der Wert des Pointers \p value wird kopiert.
+     *
+     * \param value
+     */
+    [[deprecated("Use a different pointer type instead.")]]
     void set(const Pointer& value);
 
-    DataType type() const;
+    /**@brief Liefert den Datentyp des Objekts zurück
+     *
+     * Diese Funktion liefert den Datentyp des Objekts zurück.
+     *
+     * @return ID aus der Enumeration Variant::DataType
+     */
+    inline constexpr DataType type() const
+    {
+        return t;
+    }
+
+    /**@brief Prüft auf einen bestimmten Datentyp
+     *
+     * Prüft, ob es sich bei diesem Objekt um den Datentyp \p type handelt.
+     *
+     * @param type Zu überprüfender Typ. Wert aus der Enumerationr Variant::DataType
+     * @return Liefert \c true zurück, wenn es sich um den angegebenen Datentyp \p type handelt,
+     * sonst \c false.
+     */
     bool isType(DataType type) const;
+
+    /**@brief Prüft, ob es sich um den Datentyp String handelt
+     *
+     * Prüft, ob es sich um den Datentyp String handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp String handelt, sonst \c false.
+     */
     bool isString() const;
+
+    /**@brief Prüft, ob es sich um den Datentyp WideString handelt
+     *
+     * Prüft, ob es sich um den Datentyp WideString handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp WideString handelt, sonst \c false.
+     */
     bool isWideString() const;
+
+    /**@brief Prüft, ob es sich um den Datentyp Array handelt
+     *
+     * Prüft, ob es sich um den Datentyp Array handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp Array handelt, sonst \c false.
+     */
     bool isArray() const;
+
+    /**@brief Prüft, ob es sich um den Datentyp AssocArray handelt
+     *
+     * Prüft, ob es sich um den Datentyp AssocArray handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp AssocArray handelt, sonst \c false.
+     */
     bool isAssocArray() const;
+
+    /**@brief Prüft, ob es sich um den Datentyp ByteArray handelt
+     *
+     * Prüft, ob es sich um den Datentyp ByteArray handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArray handelt, sonst \c false.
+     */
     bool isByteArray() const;
+
+    /**@brief Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
+     *
+     * Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArrayPtr handelt, sonst \c false.
+     */
     bool isByteArrayPtr() const;
+
+    /**@brief Prüft, ob es sich um den Datentyp DateTime handelt
+     *
+     * Prüft, ob es sich um den Datentyp DateTime handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp DateTime handelt, sonst \c false.
+     */
     bool isDateTime() const;
+
+    /**@brief Prüft, ob es sich um den Datentyp Pointer handelt
+     *
+     * Prüft, ob es sich um den Datentyp Pointer handelt
+     *
+     * @return Liefert \c true zurück, wenn es such um den Datentyp Pointer handelt, sonst \c false.
+     */
+    [[deprecated("Use a different pointer type instead.")]]
     bool isPointer() const;
 
     const String& toString() const;
