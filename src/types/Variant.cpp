@@ -28,46 +28,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_WIDEC_H
-#include <widec.h>
-#endif
+#include <ppl7/types/variant.h>
+#include <ppl7/types/pointer.h>
+#include <ppl7/types/bytearrayptr.h>
+#include <ppl7/types/bytearray.h>
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/array.h>
+#include <ppl7/types/assocarray.h>
+#include <ppl7/types/datetime.h>
+#include <ppl7/exceptions.h>
 
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#ifdef HAVE_CTYPE_H
-#include <ctype.h>
-#endif
-#ifdef HAVE_WCHAR_H
-#include <wchar.h>
-#endif
-#ifdef HAVE_WCTYPE_H
-#include <wctype.h>
-#endif
-#ifdef HAVE_LOCALE_H
-#include <locale.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
-
-#include "ppl7.h"
-
-namespace ppl7 {
-
+namespace ppl7
+{
 
 /*!\class Variant
  * \ingroup PPLGroupDataTypes
@@ -89,21 +62,21 @@ namespace ppl7 {
  * \code
 void Machwas(const Variant &object)
 {
-	Variant::DataType t=object.type();
-	if (t==Variant::TYPE_BYTEARRAY) {
-			const ppl7::ByteArray &bin= static_cast<const ppl7::ByteArray&>(object);  // Objekt zu ByteArray umwandeln
-			printf ("Es ist ein ByteArray mit %i Bytes an Daten\n",bin.size());
-			return;
-	} else if (t==Variant::TYPE_STRING) {
-			const String &str= static_cast<const String&>(object);  // Objekt zu String umwandeln
-			printf ("Es ist ein String mit folgendem Inhalt: %s\n",(const char*)str);
-			return;
-	} else if (t==Variant::TYPE_ARRAY) {
-			const Array &array= static_cast<const Array&>(object);  // Objekt zu Array umwandeln
-			printf ("Es ist ein Array mit %i Elementen\n",array.count());
-			return;
-	}
-	printf ("Datentyp wird nicht unterstützt\n");
+    Variant::DataType t=object.type();
+    if (t==Variant::TYPE_BYTEARRAY) {
+            const ppl7::ByteArray &bin= static_cast<const ppl7::ByteArray&>(object);  // Objekt zu ByteArray umwandeln
+            printf ("Es ist ein ByteArray mit %i Bytes an Daten\n",bin.size());
+            return;
+    } else if (t==Variant::TYPE_STRING) {
+            const String &str= static_cast<const String&>(object);  // Objekt zu String umwandeln
+            printf ("Es ist ein String mit folgendem Inhalt: %s\n",(const char*)str);
+            return;
+    } else if (t==Variant::TYPE_ARRAY) {
+            const Array &array= static_cast<const Array&>(object);  // Objekt zu Array umwandeln
+            printf ("Es ist ein Array mit %i Elementen\n",array.count());
+            return;
+    }
+    printf ("Datentyp wird nicht unterstützt\n");
 }
 \endcode
  *
@@ -151,7 +124,6 @@ void Machwas(const Variant &object)
  * \brief Datentyp ist Pointer
  */
 
-
 /*!\var Variant::t
  * \brief Variable, zum Speichern des Datentyps
  */
@@ -168,8 +140,8 @@ void Machwas(const Variant &object)
  */
 Variant::Variant()
 {
-	value=NULL;
-	t=TYPE_UNKNOWN;
+    value = nullptr;
+    t = TYPE_UNKNOWN;
 }
 
 /*!\brief Destruktor
@@ -179,7 +151,7 @@ Variant::Variant()
  */
 Variant::~Variant()
 {
-	clear();
+    clear();
 }
 
 /*!\brief Copy-Konstruktor der Klasse
@@ -187,11 +159,11 @@ Variant::~Variant()
  * \desc
  * Der Inhalt des anderen Variant-Objekts \p value wird kopiert.
  */
-Variant::Variant(const Variant &value)
+Variant::Variant(const Variant& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp String
@@ -200,11 +172,11 @@ Variant::Variant(const Variant &value)
  *
  * @param value
  */
-Variant::Variant(const String &value)
+Variant::Variant(const String& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp WideString
@@ -213,11 +185,11 @@ Variant::Variant(const String &value)
  *
  * @param value
  */
-Variant::Variant(const WideString &value)
+Variant::Variant(const WideString& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp Array
@@ -226,11 +198,11 @@ Variant::Variant(const WideString &value)
  *
  * @param value
  */
-Variant::Variant(const Array &value)
+Variant::Variant(const Array& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp AssocArray
@@ -239,11 +211,11 @@ Variant::Variant(const Array &value)
  *
  * @param value
  */
-Variant::Variant(const AssocArray &value)
+Variant::Variant(const AssocArray& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp ByteArray
@@ -252,11 +224,11 @@ Variant::Variant(const AssocArray &value)
  *
  * @param value
  */
-Variant::Variant(const ByteArray &value)
+Variant::Variant(const ByteArray& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp ByteArrayPtr
@@ -265,11 +237,11 @@ Variant::Variant(const ByteArray &value)
  *
  * @param value
  */
-Variant::Variant(const ByteArrayPtr &value)
+Variant::Variant(const ByteArrayPtr& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp DateTime
@@ -278,11 +250,11 @@ Variant::Variant(const ByteArrayPtr &value)
  *
  * @param value
  */
-Variant::Variant(const DateTime &value)
+Variant::Variant(const DateTime& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Konstruktor mit Datentyp Pointer
@@ -291,11 +263,11 @@ Variant::Variant(const DateTime &value)
  *
  * @param value
  */
-Variant::Variant(const Pointer &value)
+Variant::Variant(const Pointer& value)
 {
-	this->value=NULL;
-	t=TYPE_UNKNOWN;
-	set(value);
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
 }
 
 /*!\brief Inhalt des Objekts löschen
@@ -306,38 +278,37 @@ Variant::Variant(const Pointer &value)
  */
 void Variant::clear()
 {
-	if (!value) return;
-	switch (t) {
-		case TYPE_STRING:
-			delete (static_cast<String*>(value));
-			break;
-		case TYPE_ASSOCARRAY:
-			delete (static_cast<AssocArray*>(value));
-			break;
-		case TYPE_BYTEARRAY:
-			delete (static_cast<ByteArray*>(value));
-			break;
-		case TYPE_POINTER:
-			delete (static_cast<Pointer*>(value));
-			break;
-		case TYPE_WIDESTRING:
-			delete (static_cast<WideString*>(value));
-			break;
-		case TYPE_ARRAY:
-			delete (static_cast<Array*>(value));
-			break;
-		case TYPE_DATETIME:
-			delete (static_cast<DateTime*>(value));
-			break;
-		case TYPE_BYTEARRAYPTR:
-			delete (static_cast<ByteArrayPtr*>(value));
-			break;
-		default:
-			break;
-
-	}
-	value=NULL;
-	t=TYPE_UNKNOWN;
+    if (!value) return;
+    switch (t) {
+    case TYPE_STRING:
+        delete (static_cast<String*>(value));
+        break;
+    case TYPE_ASSOCARRAY:
+        delete (static_cast<AssocArray*>(value));
+        break;
+    case TYPE_BYTEARRAY:
+        delete (static_cast<ByteArray*>(value));
+        break;
+    case TYPE_POINTER:
+        delete (static_cast<Pointer*>(value));
+        break;
+    case TYPE_WIDESTRING:
+        delete (static_cast<WideString*>(value));
+        break;
+    case TYPE_ARRAY:
+        delete (static_cast<Array*>(value));
+        break;
+    case TYPE_DATETIME:
+        delete (static_cast<DateTime*>(value));
+        break;
+    case TYPE_BYTEARRAYPTR:
+        delete (static_cast<ByteArrayPtr*>(value));
+        break;
+    default:
+        break;
+    }
+    value = nullptr;
+    t = TYPE_UNKNOWN;
 }
 
 /*!\brief Wert eines anderen Variant kopieren
@@ -347,46 +318,46 @@ void Variant::clear()
  *
  * \param value
  */
-void Variant::set(const Variant &value)
+void Variant::set(const Variant& value)
 {
-	clear();
-	if (!value.value) return;
-	switch (value.t) {
-		case TYPE_STRING:
-			this->value=new String(*static_cast<String*>(value.value));
-			t=TYPE_STRING;
-			break;
-		case TYPE_ASSOCARRAY:
-			this->value=new AssocArray(*static_cast<AssocArray*>(value.value));
-			t=TYPE_ASSOCARRAY;
-			break;
-		case TYPE_BYTEARRAY:
-			this->value=new ByteArray(*static_cast<ByteArray*>(value.value));
-			t=TYPE_BYTEARRAY;
-			break;
-		case TYPE_POINTER:
-			this->value=new Pointer(*static_cast<Pointer*>(value.value));
-			t=TYPE_POINTER;
-			break;
-		case TYPE_WIDESTRING:
-			this->value=new WideString(*static_cast<WideString*>(value.value));
-			t=TYPE_WIDESTRING;
-			break;
-		case TYPE_ARRAY:
-			this->value=new Array(*static_cast<Array*>(value.value));
-			t=TYPE_ARRAY;
-			break;
-		case TYPE_DATETIME:
-			this->value=new DateTime(*static_cast<DateTime*>(value.value));
-			t=TYPE_DATETIME;
-			break;
-		case TYPE_BYTEARRAYPTR:
-			this->value=new ByteArrayPtr(*static_cast<ByteArrayPtr*>(value.value));
-			t=TYPE_BYTEARRAYPTR;
-			break;
-		default:
-			break;
-	}
+    clear();
+    if (!value.value) return;
+    switch (value.t) {
+    case TYPE_STRING:
+        this->value = new String(*static_cast<String*>(value.value));
+        t = TYPE_STRING;
+        break;
+    case TYPE_ASSOCARRAY:
+        this->value = new AssocArray(*static_cast<AssocArray*>(value.value));
+        t = TYPE_ASSOCARRAY;
+        break;
+    case TYPE_BYTEARRAY:
+        this->value = new ByteArray(*static_cast<ByteArray*>(value.value));
+        t = TYPE_BYTEARRAY;
+        break;
+    case TYPE_POINTER:
+        this->value = new Pointer(*static_cast<Pointer*>(value.value));
+        t = TYPE_POINTER;
+        break;
+    case TYPE_WIDESTRING:
+        this->value = new WideString(*static_cast<WideString*>(value.value));
+        t = TYPE_WIDESTRING;
+        break;
+    case TYPE_ARRAY:
+        this->value = new Array(*static_cast<Array*>(value.value));
+        t = TYPE_ARRAY;
+        break;
+    case TYPE_DATETIME:
+        this->value = new DateTime(*static_cast<DateTime*>(value.value));
+        t = TYPE_DATETIME;
+        break;
+    case TYPE_BYTEARRAYPTR:
+        this->value = new ByteArrayPtr(*static_cast<ByteArrayPtr*>(value.value));
+        t = TYPE_BYTEARRAYPTR;
+        break;
+    default:
+        break;
+    }
 }
 
 /*!\brief Der Wert eines String wird übernommen.
@@ -396,11 +367,11 @@ void Variant::set(const Variant &value)
  *
  * \param value
  */
-void Variant::set(const String &value)
+void Variant::set(const String& value)
 {
-	clear();
-	this->value=new String(value);
-	t=TYPE_STRING;
+    clear();
+    this->value = new String(value);
+    t = TYPE_STRING;
 }
 
 /*!\brief Der Wert eines WideString wird übernommen.
@@ -410,11 +381,11 @@ void Variant::set(const String &value)
  *
  * \param value
  */
-void Variant::set(const WideString &value)
+void Variant::set(const WideString& value)
 {
-	clear();
-	this->value=new WideString(value);
-	t=TYPE_WIDESTRING;
+    clear();
+    this->value = new WideString(value);
+    t = TYPE_WIDESTRING;
 }
 
 /*!\brief Der Wert eines Array wird übernommen.
@@ -424,11 +395,11 @@ void Variant::set(const WideString &value)
  *
  * \param value
  */
-void Variant::set(const Array &value)
+void Variant::set(const Array& value)
 {
-	clear();
-	this->value=new Array(value);
-	t=TYPE_ARRAY;
+    clear();
+    this->value = new Array(value);
+    t = TYPE_ARRAY;
 }
 
 /*!\brief Der Wert eines AssocArray wird übernommen.
@@ -438,11 +409,11 @@ void Variant::set(const Array &value)
  *
  * \param value
  */
-void Variant::set(const AssocArray &value)
+void Variant::set(const AssocArray& value)
 {
-	clear();
-	this->value=new AssocArray(value);
-	t=TYPE_ASSOCARRAY;
+    clear();
+    this->value = new AssocArray(value);
+    t = TYPE_ASSOCARRAY;
 }
 
 /*!\brief Der Wert eines ByteArray wird übernommen.
@@ -452,11 +423,11 @@ void Variant::set(const AssocArray &value)
  *
  * \param value
  */
-void Variant::set(const ByteArray &value)
+void Variant::set(const ByteArray& value)
 {
-	clear();
-	this->value=new ByteArray(value);
-	t=TYPE_BYTEARRAY;
+    clear();
+    this->value = new ByteArray(value);
+    t = TYPE_BYTEARRAY;
 }
 
 /*!\brief Der Wert eines ByteArrayPtr wird übernommen.
@@ -466,11 +437,11 @@ void Variant::set(const ByteArray &value)
  *
  * \param value
  */
-void Variant::set(const ByteArrayPtr &value)
+void Variant::set(const ByteArrayPtr& value)
 {
-	clear();
-	this->value=new ByteArrayPtr(value);
-	t=TYPE_BYTEARRAYPTR;
+    clear();
+    this->value = new ByteArrayPtr(value);
+    t = TYPE_BYTEARRAYPTR;
 }
 
 /*!\brief Der Wert eines DateTime wird übernommen.
@@ -480,11 +451,11 @@ void Variant::set(const ByteArrayPtr &value)
  *
  * \param value
  */
-void Variant::set(const DateTime &value)
+void Variant::set(const DateTime& value)
 {
-	clear();
-	this->value=new DateTime(value);
-	t=TYPE_DATETIME;
+    clear();
+    this->value = new DateTime(value);
+    t = TYPE_DATETIME;
 }
 
 /*!\brief Der Wert eines Pointer wird übernommen.
@@ -494,11 +465,11 @@ void Variant::set(const DateTime &value)
  *
  * \param value
  */
-void Variant::set(const Pointer &value)
+void Variant::set(const Pointer& value)
 {
-	clear();
-	this->value=new Pointer(value);
-	t=TYPE_POINTER;
+    clear();
+    this->value = new Pointer(value);
+    t = TYPE_POINTER;
 }
 
 /*!\brief Liefert den Datentyp des Objekts zurück
@@ -510,7 +481,7 @@ void Variant::set(const Pointer &value)
  */
 Variant::DataType Variant::type() const
 {
-	return t;
+    return t;
 }
 
 /*!\brief Prüft auf einen bestimmten Datentyp
@@ -524,8 +495,8 @@ Variant::DataType Variant::type() const
  */
 bool Variant::isType(DataType type) const
 {
-	if (this->t==type) return true;
-	return false;
+    if (this->t == type) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp String handelt
@@ -537,8 +508,8 @@ bool Variant::isType(DataType type) const
  */
 bool Variant::isString() const
 {
-	if (t==TYPE_STRING) return true;
-	return false;
+    if (t == TYPE_STRING) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp WideString handelt
@@ -550,8 +521,8 @@ bool Variant::isString() const
  */
 bool Variant::isWideString() const
 {
-	if (t==TYPE_WIDESTRING) return true;
-	return false;
+    if (t == TYPE_WIDESTRING) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp Array handelt
@@ -563,8 +534,8 @@ bool Variant::isWideString() const
  */
 bool Variant::isArray() const
 {
-	if (t==TYPE_ARRAY) return true;
-	return false;
+    if (t == TYPE_ARRAY) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp AssocArray handelt
@@ -576,8 +547,8 @@ bool Variant::isArray() const
  */
 bool Variant::isAssocArray() const
 {
-	if (t==TYPE_ASSOCARRAY) return true;
-	return false;
+    if (t == TYPE_ASSOCARRAY) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp ByteArray handelt
@@ -589,8 +560,8 @@ bool Variant::isAssocArray() const
  */
 bool Variant::isByteArray() const
 {
-	if (t==TYPE_BYTEARRAY) return true;
-	return false;
+    if (t == TYPE_BYTEARRAY) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
@@ -602,9 +573,9 @@ bool Variant::isByteArray() const
  */
 bool Variant::isByteArrayPtr() const
 {
-	if (t==TYPE_BYTEARRAYPTR) return true;
-	if (t==TYPE_BYTEARRAY) return true;
-	return false;
+    if (t == TYPE_BYTEARRAYPTR) return true;
+    if (t == TYPE_BYTEARRAY) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp DateTime handelt
@@ -616,8 +587,8 @@ bool Variant::isByteArrayPtr() const
  */
 bool Variant::isDateTime() const
 {
-	if (t==TYPE_DATETIME) return true;
-	return false;
+    if (t == TYPE_DATETIME) return true;
+    return false;
 }
 
 /*!\brief Prüft, ob es sich um den Datentyp Pointer handelt
@@ -629,8 +600,8 @@ bool Variant::isDateTime() const
  */
 bool Variant::isPointer() const
 {
-	if (t==TYPE_POINTER) return true;
-	return false;
+    if (t == TYPE_POINTER) return true;
+    return false;
 }
 
 /*!\brief Typkonvertierung zu: const String
@@ -646,9 +617,9 @@ bool Variant::isPointer() const
  */
 const String& Variant::toString() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_STRING) throw TypeConversionException();
-	return *static_cast<String *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_STRING) throw TypeConversionException();
+    return *static_cast<String*>(value);
 }
 
 /*!\brief Typkonvertierung zu: String
@@ -664,9 +635,9 @@ const String& Variant::toString() const
  */
 String& Variant::toString()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_STRING) throw TypeConversionException();
-	return *static_cast<String *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_STRING) throw TypeConversionException();
+    return *static_cast<String*>(value);
 }
 
 /*!\brief Typkonvertierung zu: const WideString
@@ -682,9 +653,9 @@ String& Variant::toString()
  */
 const WideString& Variant::toWideString() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
-	return *static_cast<WideString *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_WIDESTRING) throw TypeConversionException();
+    return *static_cast<WideString*>(value);
 }
 
 /*!\brief Typkonvertierung zu: WideString
@@ -700,9 +671,9 @@ const WideString& Variant::toWideString() const
  */
 WideString& Variant::toWideString()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_WIDESTRING) throw TypeConversionException();
-	return *static_cast<WideString *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_WIDESTRING) throw TypeConversionException();
+    return *static_cast<WideString*>(value);
 }
 
 /*!\brief Typkonvertierung zu: const Array
@@ -718,9 +689,9 @@ WideString& Variant::toWideString()
  */
 const Array& Variant::toArray() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_ARRAY) throw TypeConversionException();
-	return *static_cast<Array *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_ARRAY) throw TypeConversionException();
+    return *static_cast<Array*>(value);
 }
 
 /*!\brief Typkonvertierung zu: Array
@@ -736,9 +707,9 @@ const Array& Variant::toArray() const
  */
 Array& Variant::toArray()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_ARRAY) throw TypeConversionException();
-	return *static_cast<Array *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_ARRAY) throw TypeConversionException();
+    return *static_cast<Array*>(value);
 }
 
 /*!\brief Typkonvertierung zu: const AssocArray
@@ -754,9 +725,9 @@ Array& Variant::toArray()
  */
 const AssocArray& Variant::toAssocArray() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
-	return *static_cast<AssocArray *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_ASSOCARRAY) throw TypeConversionException();
+    return *static_cast<AssocArray*>(value);
 }
 
 /*!\brief Typkonvertierung zu: AssocArray
@@ -772,9 +743,9 @@ const AssocArray& Variant::toAssocArray() const
  */
 AssocArray& Variant::toAssocArray()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_ASSOCARRAY) throw TypeConversionException();
-	return *static_cast<AssocArray *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_ASSOCARRAY) throw TypeConversionException();
+    return *static_cast<AssocArray*>(value);
 }
 
 /*!\brief Typkonvertierung zu: const ByteArray
@@ -790,9 +761,9 @@ AssocArray& Variant::toAssocArray()
  */
 const ByteArray& Variant::toByteArray() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
-	return *static_cast<ByteArray *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_BYTEARRAY) throw TypeConversionException();
+    return *static_cast<ByteArray*>(value);
 }
 
 /*!\brief Typkonvertierung zu: ByteArray
@@ -808,9 +779,9 @@ const ByteArray& Variant::toByteArray() const
  */
 ByteArray& Variant::toByteArray()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_BYTEARRAY) throw TypeConversionException();
-	return *static_cast<ByteArray *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_BYTEARRAY) throw TypeConversionException();
+    return *static_cast<ByteArray*>(value);
 }
 
 /*!\brief Typkonvertierung zu: const ByteArrayPtr
@@ -826,9 +797,9 @@ ByteArray& Variant::toByteArray()
  */
 const ByteArrayPtr& Variant::toByteArrayPtr() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
-	return *static_cast<ByteArrayPtr *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_BYTEARRAYPTR && t != TYPE_BYTEARRAY) throw TypeConversionException();
+    return *static_cast<ByteArrayPtr*>(value);
 }
 
 /*!\brief Typkonvertierung zu: ByteArrayPtr
@@ -844,9 +815,9 @@ const ByteArrayPtr& Variant::toByteArrayPtr() const
  */
 ByteArrayPtr& Variant::toByteArrayPtr()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_BYTEARRAYPTR && t!=TYPE_BYTEARRAY) throw TypeConversionException();
-	return *static_cast<ByteArrayPtr *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_BYTEARRAYPTR && t != TYPE_BYTEARRAY) throw TypeConversionException();
+    return *static_cast<ByteArrayPtr*>(value);
 }
 
 /*!\brief Typkonvertierung zu: const DateTime
@@ -862,9 +833,9 @@ ByteArrayPtr& Variant::toByteArrayPtr()
  */
 const DateTime& Variant::toDateTime() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_DATETIME) throw TypeConversionException();
-	return *static_cast<DateTime *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_DATETIME) throw TypeConversionException();
+    return *static_cast<DateTime*>(value);
 }
 
 /*!\brief Typkonvertierung zu: DateTime
@@ -880,9 +851,9 @@ const DateTime& Variant::toDateTime() const
  */
 DateTime& Variant::toDateTime()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_DATETIME) throw TypeConversionException();
-	return *static_cast<DateTime *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_DATETIME) throw TypeConversionException();
+    return *static_cast<DateTime*>(value);
 }
 
 /*!\brief Typkonvertierung zu: const Pointer
@@ -898,9 +869,9 @@ DateTime& Variant::toDateTime()
  */
 const Pointer& Variant::toPointer() const
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_POINTER) throw TypeConversionException();
-	return *static_cast<Pointer *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_POINTER) throw TypeConversionException();
+    return *static_cast<Pointer*>(value);
 }
 
 /*!\brief Typkonvertierung zu: Pointer
@@ -916,140 +887,135 @@ const Pointer& Variant::toPointer() const
  */
 Pointer& Variant::toPointer()
 {
-	if (!value) throw EmptyDataException();
-	if (t!=TYPE_POINTER) throw TypeConversionException();
-	return *static_cast<Pointer *>(value);
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_POINTER) throw TypeConversionException();
+    return *static_cast<Pointer*>(value);
 }
-
 
 Variant::operator String() const
 {
-	return toString();
+    return toString();
 }
 
 Variant::operator WideString() const
 {
-	return toWideString();
+    return toWideString();
 }
 
 Variant::operator Array() const
 {
-	return toArray();
+    return toArray();
 }
 
 Variant::operator AssocArray() const
 {
-	return toAssocArray();
+    return toAssocArray();
 }
 
 Variant::operator ByteArray() const
 {
-	return toByteArray();
+    return toByteArray();
 }
 
 Variant::operator ByteArrayPtr() const
 {
-	return toByteArrayPtr();
+    return toByteArrayPtr();
 }
 
 Variant::operator DateTime() const
 {
-	return toDateTime();
+    return toDateTime();
 }
 
 Variant::operator Pointer() const
 {
-	return toPointer();
+    return toPointer();
 }
 
-Variant &Variant::operator=(const Variant &other)
+Variant& Variant::operator=(const Variant& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const String &other)
+Variant& Variant::operator=(const String& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const WideString &other)
+Variant& Variant::operator=(const WideString& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const Array &other)
+Variant& Variant::operator=(const Array& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const AssocArray &other)
+Variant& Variant::operator=(const AssocArray& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const ByteArray &other)
+Variant& Variant::operator=(const ByteArray& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const ByteArrayPtr &other)
+Variant& Variant::operator=(const ByteArrayPtr& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const DateTime &other)
+Variant& Variant::operator=(const DateTime& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-Variant &Variant::operator=(const Pointer &other)
+Variant& Variant::operator=(const Pointer& other)
 {
-	set(other);
-	return *this;
+    set(other);
+    return *this;
 }
 
-bool Variant::operator==(const Variant &other) const
+bool Variant::operator==(const Variant& other) const
 {
-	if (t!=other.t) return false;
-	switch (t) {
-		case TYPE_STRING:
-			return (*static_cast<String*>(value) == *static_cast<String*>(other.value));
-		case TYPE_ASSOCARRAY:
-			return (*static_cast<AssocArray*>(value) == *static_cast<AssocArray*>(other.value));
-		case TYPE_BYTEARRAY:
-			return (*static_cast<ByteArray*>(value) == *static_cast<ByteArray*>(other.value));
-		case TYPE_POINTER:
-			return (*static_cast<Pointer*>(value) == *static_cast<Pointer*>(other.value));
-		case TYPE_WIDESTRING:
-			return (*static_cast<WideString*>(value) == *static_cast<WideString*>(other.value));
-		case TYPE_ARRAY:
-			return (*static_cast<Array*>(value) == *static_cast<Array*>(other.value));
-		case TYPE_DATETIME:
-			return (*static_cast<DateTime*>(value) == *static_cast<DateTime*>(other.value));
-		case TYPE_BYTEARRAYPTR:
-			return (*static_cast<ByteArrayPtr*>(value) == *static_cast<ByteArrayPtr*>(other.value));
-		default:
-			break;
-	}
-	return false;
+    if (t != other.t) return false;
+    switch (t) {
+    case TYPE_STRING:
+        return (*static_cast<String*>(value) == *static_cast<String*>(other.value));
+    case TYPE_ASSOCARRAY:
+        return (*static_cast<AssocArray*>(value) == *static_cast<AssocArray*>(other.value));
+    case TYPE_BYTEARRAY:
+        return (*static_cast<ByteArray*>(value) == *static_cast<ByteArray*>(other.value));
+    case TYPE_POINTER:
+        return (*static_cast<Pointer*>(value) == *static_cast<Pointer*>(other.value));
+    case TYPE_WIDESTRING:
+        return (*static_cast<WideString*>(value) == *static_cast<WideString*>(other.value));
+    case TYPE_ARRAY:
+        return (*static_cast<Array*>(value) == *static_cast<Array*>(other.value));
+    case TYPE_DATETIME:
+        return (*static_cast<DateTime*>(value) == *static_cast<DateTime*>(other.value));
+    case TYPE_BYTEARRAYPTR:
+        return (*static_cast<ByteArrayPtr*>(value) == *static_cast<ByteArrayPtr*>(other.value));
+    default:
+        break;
+    }
+    return false;
 }
 
-bool Variant::operator!=(const Variant &other) const
+bool Variant::operator!=(const Variant& other) const
 {
-	if (*this==other) return false;
-	return true;
+    if (*this == other) return false;
+    return true;
 }
 
-
-
-} // EOF namespace ppl7
-
-
+} // namespace ppl7

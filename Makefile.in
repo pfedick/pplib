@@ -722,6 +722,7 @@ install:	release/$(LIBNAME).a release/$(LIBNAME)-core.a release/$(LIBNAME)-crypt
 	cp $(incdir)/ppl7-audio.h $(TARGETINCLUDE)
 	cp $(incdir)/ppl7-db.h $(TARGETINCLUDE)
 	cp $(incdir)/ppl7-config.h $(TARGETINCLUDE)/ppl7-config.h
+	cp -r $(incdir)/ppl7 $(TARGETINCLUDE)
 	chmod a+x ppl7-config
 	cp ppl7-config $(TARGETBIN)
 
@@ -738,6 +739,7 @@ install_debug: debug/$(LIBDEBUG).a
 	cp $(incdir)/ppl7-crypto.h $(TARGETINCLUDE)
 	cp $(incdir)/ppl7-db.h $(TARGETINCLUDE)
 	cp $(incdir)/ppl7-config.h $(TARGETINCLUDE)/ppl7-config.h
+	cp -r $(incdir)/ppl7 $(TARGETINCLUDE)
 	chmod a+x ppl7-config
 	cp ppl7-config $(TARGETBIN)
 

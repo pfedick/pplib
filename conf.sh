@@ -65,7 +65,7 @@ case "$SYS:$REL:$KERNEL" in
 		export CFLAGS="-DCURL_STATICLIB"
 		./configure --prefix=$PREFIX \
 		    --without-postgresql --without-mysql \
-		    --enable-gtest \
+		    --enable-gtest=tests/googletest-release-1.12.1 \
 			--with-freetype2=/ucrt64 \
 			--without-sdl-prefix
 
