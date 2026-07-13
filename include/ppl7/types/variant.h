@@ -164,8 +164,9 @@ public:
      * Der Inhalt des Pointer-Objekts \p value wird kopiert.
      *
      * @param value
+     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
      */
-    [[deprcated]] Variant(const Pointer& value);
+    [[deprecated]] Variant(const Pointer& value);
 
     /**@brief Inhalt des Objekts löschen
      *
@@ -242,7 +243,8 @@ public:
      *
      * Der Wert des Pointers \p value wird kopiert.
      *
-     * \param value
+     * @param value
+     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
      */
     [[deprecated("Use a different pointer type instead.")]]
     void set(const Pointer& value);
@@ -272,7 +274,7 @@ public:
      *
      * Prüft, ob es sich um den Datentyp String handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp String handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp String handelt, sonst \c false.
      */
     bool isString() const;
 
@@ -280,7 +282,7 @@ public:
      *
      * Prüft, ob es sich um den Datentyp WideString handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp WideString handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp WideString handelt, sonst \c false.
      */
     bool isWideString() const;
 
@@ -288,7 +290,7 @@ public:
      *
      * Prüft, ob es sich um den Datentyp Array handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp Array handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp Array handelt, sonst \c false.
      */
     bool isArray() const;
 
@@ -296,7 +298,7 @@ public:
      *
      * Prüft, ob es sich um den Datentyp AssocArray handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp AssocArray handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp AssocArray handelt, sonst \c false.
      */
     bool isAssocArray() const;
 
@@ -304,7 +306,7 @@ public:
      *
      * Prüft, ob es sich um den Datentyp ByteArray handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArray handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp ByteArray handelt, sonst \c false.
      */
     bool isByteArray() const;
 
@@ -312,7 +314,7 @@ public:
      *
      * Prüft, ob es sich um den Datentyp ByteArrayPtr handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp ByteArrayPtr handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp ByteArrayPtr handelt, sonst \c false.
      */
     bool isByteArrayPtr() const;
 
@@ -320,7 +322,7 @@ public:
      *
      * Prüft, ob es sich um den Datentyp DateTime handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp DateTime handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp DateTime handelt, sonst \c false.
      */
     bool isDateTime() const;
 
@@ -328,35 +330,296 @@ public:
      *
      * Prüft, ob es sich um den Datentyp Pointer handelt
      *
-     * @return Liefert \c true zurück, wenn es such um den Datentyp Pointer handelt, sonst \c false.
+     * @return Liefert \c true zurück, wenn es sich um den Datentyp Pointer handelt, sonst \c false.
+     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
      */
     [[deprecated("Use a different pointer type instead.")]]
     bool isPointer() const;
 
+    /**@brief Typkonvertierung zu: const String
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * String zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf String
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     const String& toString() const;
+
+    /**@brief Typkonvertierung zu: String
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * String zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf String
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     String& toString();
+
+    /**@brief Typkonvertierung zu: const WideString
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * WideString zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf WideString
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     const WideString& toWideString() const;
+
+    /**@brief Typkonvertierung zu: WideString
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * WideString zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf WideString
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     WideString& toWideString();
+
+    /**@brief Typkonvertierung zu: const Array
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * Array zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf Array
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Array handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     const Array& toArray() const;
+
+    /**@brief Typkonvertierung zu: Array
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * Array zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf Array
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Array handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     Array& toArray();
+
+    /**@brief Typkonvertierung zu: const AssocArray
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * AssocArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf AssocArray
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen AssocArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     const AssocArray& toAssocArray() const;
+
+    /**@brief Typkonvertierung zu: AssocArray
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * AssocArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf AssocArray
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen AssocArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     AssocArray& toAssocArray();
+
+    /**@brief Typkonvertierung zu: const ByteArray
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * ByteArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf ByteArray
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     const ByteArray& toByteArray() const;
+
+    /**@brief Typkonvertierung zu: ByteArray
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * ByteArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf ByteArray
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     ByteArray& toByteArray();
+
+    /**@brief Typkonvertierung zu: const ByteArrayPtr
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * ByteArrayPtr zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf ByteArrayPtr
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     const ByteArrayPtr& toByteArrayPtr() const;
+
+    /**@brief Typkonvertierung zu: ByteArrayPtr
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * ByteArrayPtr zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf ByteArrayPtr
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     ByteArrayPtr& toByteArrayPtr();
+
+    /**@brief Typkonvertierung zu: const DateTime
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * DateTime zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf DateTime
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen DateTime handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     const DateTime& toDateTime() const;
+
+    /**@brief Typkonvertierung zu: DateTime
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * DateTime zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf DateTime
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen DateTime handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     DateTime& toDateTime();
+
+    /**@brief Typkonvertierung zu: const Pointer
+     *
+     * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
+     * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return const Referenz auf Pointer
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
+     */
+    [[deprecated("Use a different pointer type instead.")]]
     const Pointer& toPointer() const;
+
+    /**@brief Typkonvertierung zu: Pointer
+     *
+     * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
+     * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
+     * wird eine Exception geworfen.
+     *
+     * @return Referenz auf Pointer
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
+     */
+    [[deprecated("Use a different pointer type instead.")]]
     Pointer& toPointer();
 
+    /**@brief Typkonvertierung zu: String
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten Strings zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten Strings
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     operator String() const;
+
+    /**@brief Typkonvertierung zu: WideString
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten WideStrings zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten WideStrings
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     operator WideString() const;
+
+    /**@brief Typkonvertierung zu: Array
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten Arrays zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten Arrays
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Array handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     operator Array() const;
+
+    /**@brief Typkonvertierung zu: AssocArray
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten AssocArrays zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten AssocArrays
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen AssocArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     operator AssocArray() const;
+
+    /**@brief Typkonvertierung zu: ByteArray
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten ByteArrays zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten ByteArrays
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArray handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     operator ByteArray() const;
+
+    /**@brief Typkonvertierung zu: ByteArrayPtr
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten ByteArrayPtrs zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten ByteArrayPtrs
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     operator ByteArrayPtr() const;
+
+    /**@brief Typkonvertierung zu: DateTime
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten DateTimes zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten DateTimes
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen DateTime handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     */
     operator DateTime() const;
+
+    /**@brief Typkonvertierung zu: Pointer
+     *
+     * Der Aufruf dieser Funktion liefert eine Kopie des gespeicherten Pointers zurück, sofern der Variant diesen Datentyp enthält.
+     * Ist dies nicht der Fall, wird eine Exception geworfen.
+     *
+     * @return Kopie des gespeicherten Pointers
+     * @exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
+     * @exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
+     * @deprecated Pointer ist veraltet und wird demnächst entfernt.
+     */
+    [[deprecated("Use a different pointer type instead.")]]
     operator Pointer() const;
 
     Variant& operator=(const Variant& other);

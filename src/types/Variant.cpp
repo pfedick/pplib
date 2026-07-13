@@ -312,17 +312,6 @@ bool Variant::isPointer() const
     return false;
 }
 
-/*!\brief Typkonvertierung zu: const String
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
- * String zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf String
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const String& Variant::toString() const
 {
     if (!value) throw EmptyDataException();
@@ -330,17 +319,6 @@ const String& Variant::toString() const
     return *static_cast<String*>(value);
 }
 
-/*!\brief Typkonvertierung zu: String
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
- * String zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf String
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen String handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 String& Variant::toString()
 {
     if (!value) throw EmptyDataException();
@@ -348,17 +326,6 @@ String& Variant::toString()
     return *static_cast<String*>(value);
 }
 
-/*!\brief Typkonvertierung zu: const WideString
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
- * WideString zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf WideString
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const WideString& Variant::toWideString() const
 {
     if (!value) throw EmptyDataException();
@@ -366,17 +333,6 @@ const WideString& Variant::toWideString() const
     return *static_cast<WideString*>(value);
 }
 
-/*!\brief Typkonvertierung zu: WideString
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
- * WideString zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf WideString
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen WideString handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 WideString& Variant::toWideString()
 {
     if (!value) throw EmptyDataException();
@@ -384,17 +340,6 @@ WideString& Variant::toWideString()
     return *static_cast<WideString*>(value);
 }
 
-/*!\brief Typkonvertierung zu: const Array
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf das gespeicherten
- * Array zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf Array
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein Array handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const Array& Variant::toArray() const
 {
     if (!value) throw EmptyDataException();
@@ -402,17 +347,6 @@ const Array& Variant::toArray() const
     return *static_cast<Array*>(value);
 }
 
-/*!\brief Typkonvertierung zu: Array
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine Referenz auf das gespeicherten
- * Array zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf Array
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein Array handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 Array& Variant::toArray()
 {
     if (!value) throw EmptyDataException();
@@ -420,17 +354,6 @@ Array& Variant::toArray()
     return *static_cast<Array*>(value);
 }
 
-/*!\brief Typkonvertierung zu: const AssocArray
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf das gespeicherten
- * AssocArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf AssocArray
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein AssocArray handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const AssocArray& Variant::toAssocArray() const
 {
     if (!value) throw EmptyDataException();
@@ -438,17 +361,6 @@ const AssocArray& Variant::toAssocArray() const
     return *static_cast<AssocArray*>(value);
 }
 
-/*!\brief Typkonvertierung zu: AssocArray
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine Referenz auf das gespeicherten
- * AssocArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf AssocArray
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein AssocArray handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 AssocArray& Variant::toAssocArray()
 {
     if (!value) throw EmptyDataException();
@@ -456,17 +368,6 @@ AssocArray& Variant::toAssocArray()
     return *static_cast<AssocArray*>(value);
 }
 
-/*!\brief Typkonvertierung zu: const ByteArray
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf das gespeicherten
- * ByteArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf ByteArray
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein ByteArray handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const ByteArray& Variant::toByteArray() const
 {
     if (!value) throw EmptyDataException();
@@ -474,17 +375,6 @@ const ByteArray& Variant::toByteArray() const
     return *static_cast<ByteArray*>(value);
 }
 
-/*!\brief Typkonvertierung zu: ByteArray
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine Referenz auf das gespeicherten
- * ByteArray zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf ByteArray
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um ein ByteArray handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 ByteArray& Variant::toByteArray()
 {
     if (!value) throw EmptyDataException();
@@ -492,17 +382,6 @@ ByteArray& Variant::toByteArray()
     return *static_cast<ByteArray*>(value);
 }
 
-/*!\brief Typkonvertierung zu: const ByteArrayPtr
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
- * ByteArrayPtr zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf ByteArrayPtr
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const ByteArrayPtr& Variant::toByteArrayPtr() const
 {
     if (!value) throw EmptyDataException();
@@ -510,17 +389,6 @@ const ByteArrayPtr& Variant::toByteArrayPtr() const
     return *static_cast<ByteArrayPtr*>(value);
 }
 
-/*!\brief Typkonvertierung zu: ByteArrayPtr
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
- * ByteArrayPtr zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf ByteArrayPtr
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen ByteArrayPtr handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 ByteArrayPtr& Variant::toByteArrayPtr()
 {
     if (!value) throw EmptyDataException();
@@ -528,17 +396,6 @@ ByteArrayPtr& Variant::toByteArrayPtr()
     return *static_cast<ByteArrayPtr*>(value);
 }
 
-/*!\brief Typkonvertierung zu: const DateTime
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
- * DateTime zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf DateTime
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen DateTime handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const DateTime& Variant::toDateTime() const
 {
     if (!value) throw EmptyDataException();
@@ -546,17 +403,6 @@ const DateTime& Variant::toDateTime() const
     return *static_cast<DateTime*>(value);
 }
 
-/*!\brief Typkonvertierung zu: DateTime
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
- * DateTime zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf DateTime
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen DateTime handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 DateTime& Variant::toDateTime()
 {
     if (!value) throw EmptyDataException();
@@ -564,17 +410,6 @@ DateTime& Variant::toDateTime()
     return *static_cast<DateTime*>(value);
 }
 
-/*!\brief Typkonvertierung zu: const Pointer
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine unveränderliche Referenz auf den gespeicherten
- * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf Pointer
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 const Pointer& Variant::toPointer() const
 {
     if (!value) throw EmptyDataException();
@@ -582,17 +417,6 @@ const Pointer& Variant::toPointer() const
     return *static_cast<Pointer*>(value);
 }
 
-/*!\brief Typkonvertierung zu: Pointer
- *
- * \desc
- * Der Aufruf dieser Funktion liefert eine Referenz auf den gespeicherten
- * Pointer zurück, sofern der Variant diesen Datentyp enthält. Ist dies nicht der Fall,
- * wird eine Exception geworfen.
- *
- * @return Referenz auf Pointer
- * \exception TypeConversionException: Wird geworfen, wenn es sich nicht um einen Pointer handelt.
- * \exception EmptyDataException: Wird geworfen, wenn keine Daten in diesem Variant hinterlegt sind.
- */
 Pointer& Variant::toPointer()
 {
     if (!value) throw EmptyDataException();
