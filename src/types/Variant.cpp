@@ -117,13 +117,6 @@ Variant::Variant(const DateTime& value)
     set(value);
 }
 
-Variant::Variant(const Pointer& value)
-{
-    this->value = nullptr;
-    t = TYPE_UNKNOWN;
-    set(value);
-}
-
 void Variant::clear()
 {
     if (!value) return;
@@ -138,7 +131,10 @@ void Variant::clear()
         delete (static_cast<ByteArray*>(value));
         break;
     case TYPE_POINTER:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         delete (static_cast<Pointer*>(value));
+#pragma GCC diagnostic pop
         break;
     case TYPE_WIDESTRING:
         delete (static_cast<WideString*>(value));
@@ -177,8 +173,11 @@ void Variant::set(const Variant& value)
         t = TYPE_BYTEARRAY;
         break;
     case TYPE_POINTER:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         this->value = new Pointer(*static_cast<Pointer*>(value.value));
         t = TYPE_POINTER;
+#pragma GCC diagnostic pop
         break;
     case TYPE_WIDESTRING:
         this->value = new WideString(*static_cast<WideString*>(value.value));
@@ -250,13 +249,6 @@ void Variant::set(const DateTime& value)
     t = TYPE_DATETIME;
 }
 
-void Variant::set(const Pointer& value)
-{
-    clear();
-    this->value = new Pointer(value);
-    t = TYPE_POINTER;
-}
-
 bool Variant::isType(DataType type) const
 {
     if (this->t == type) return true;
@@ -303,12 +295,6 @@ bool Variant::isByteArrayPtr() const
 bool Variant::isDateTime() const
 {
     if (t == TYPE_DATETIME) return true;
-    return false;
-}
-
-bool Variant::isPointer() const
-{
-    if (t == TYPE_POINTER) return true;
     return false;
 }
 
@@ -410,20 +396,6 @@ DateTime& Variant::toDateTime()
     return *static_cast<DateTime*>(value);
 }
 
-const Pointer& Variant::toPointer() const
-{
-    if (!value) throw EmptyDataException();
-    if (t != TYPE_POINTER) throw TypeConversionException();
-    return *static_cast<Pointer*>(value);
-}
-
-Pointer& Variant::toPointer()
-{
-    if (!value) throw EmptyDataException();
-    if (t != TYPE_POINTER) throw TypeConversionException();
-    return *static_cast<Pointer*>(value);
-}
-
 Variant::operator String() const
 {
     return toString();
@@ -457,11 +429,6 @@ Variant::operator ByteArrayPtr() const
 Variant::operator DateTime() const
 {
     return toDateTime();
-}
-
-Variant::operator Pointer() const
-{
-    return toPointer();
 }
 
 Variant& Variant::operator=(const Variant& other)
@@ -512,12 +479,6 @@ Variant& Variant::operator=(const DateTime& other)
     return *this;
 }
 
-Variant& Variant::operator=(const Pointer& other)
-{
-    set(other);
-    return *this;
-}
-
 bool Variant::operator==(const Variant& other) const
 {
     if (t != other.t) return false;
@@ -529,7 +490,10 @@ bool Variant::operator==(const Variant& other) const
     case TYPE_BYTEARRAY:
         return (*static_cast<ByteArray*>(value) == *static_cast<ByteArray*>(other.value));
     case TYPE_POINTER:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         return (*static_cast<Pointer*>(value) == *static_cast<Pointer*>(other.value));
+#pragma GCC diagnostic pop
     case TYPE_WIDESTRING:
         return (*static_cast<WideString*>(value) == *static_cast<WideString*>(other.value));
     case TYPE_ARRAY:
@@ -549,5 +513,53 @@ bool Variant::operator!=(const Variant& other) const
     if (*this == other) return false;
     return true;
 }
+
+////////////////// Deprecated Pointer Support //////////////////////
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+Variant::Variant(const Pointer& value)
+{
+    this->value = nullptr;
+    t = TYPE_UNKNOWN;
+    set(value);
+}
+void Variant::set(const Pointer& value)
+{
+    clear();
+    this->value = new Pointer(value);
+    t = TYPE_POINTER;
+}
+
+Variant& Variant::operator=(const Pointer& other)
+{
+    set(other);
+    return *this;
+}
+Variant::operator Pointer() const
+{
+    return toPointer();
+}
+
+bool Variant::isPointer() const
+{
+    if (t == TYPE_POINTER) return true;
+    return false;
+}
+const Pointer& Variant::toPointer() const
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_POINTER) throw TypeConversionException();
+    return *static_cast<Pointer*>(value);
+}
+
+Pointer& Variant::toPointer()
+{
+    if (!value) throw EmptyDataException();
+    if (t != TYPE_POINTER) throw TypeConversionException();
+    return *static_cast<Pointer*>(value);
+}
+
+#pragma GCC diagnostic pop
 
 } // namespace ppl7

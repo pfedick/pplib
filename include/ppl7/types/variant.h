@@ -630,7 +630,8 @@ public:
     Variant& operator=(const ByteArray& other);
     Variant& operator=(const ByteArrayPtr& other);
     Variant& operator=(const DateTime& other);
-    Variant& operator=(const Pointer& other);
+
+    [[deprecated("Use a different pointer type instead.")]] Variant& operator=(const Pointer& other);
 
     bool operator==(const Variant& other) const;
     bool operator!=(const Variant& other) const;
