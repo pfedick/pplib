@@ -35,8 +35,11 @@
 #include "prolog_ppl7.h"
 #include "ppl7.h"
 
-namespace ppl7 {
+namespace ppl7
+{
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
 /*!\class Pointer
  * \ingroup PPLGroupDataTypes
@@ -57,7 +60,7 @@ namespace ppl7 {
  */
 Pointer::Pointer()
 {
-	myptr=NULL;
+    myptr = NULL;
 }
 
 /*!\brief Copy-Konstruktor
@@ -68,9 +71,9 @@ Pointer::Pointer()
  * @param other Andere %Pointer-Instanz
  * @return
  */
-Pointer::Pointer(const Pointer &other)
+Pointer::Pointer(const Pointer& other)
 {
-	myptr=other.myptr;
+    myptr = other.myptr;
 }
 
 /*!\brief Konstruktor mit Angabe eines %Pointers
@@ -81,9 +84,9 @@ Pointer::Pointer(const Pointer &other)
  * @param ptr beliebiger Pointer
  * @return
  */
-Pointer::Pointer(void *ptr)
+Pointer::Pointer(void* ptr)
 {
-	myptr=ptr;
+    myptr = ptr;
 }
 
 /*!\brief Ist %Pointer Null?
@@ -94,8 +97,8 @@ Pointer::Pointer(void *ptr)
  */
 bool Pointer::isNull() const
 {
-	if (myptr==NULL) return true;
-	return false;
+    if (myptr == NULL) return true;
+    return false;
 }
 
 /*!\brief %Pointer als "const void *" auslesen
@@ -105,9 +108,9 @@ bool Pointer::isNull() const
  *
  * \return %Pointer als "const void *"
  */
-const void *Pointer::ptr() const
+const void* Pointer::ptr() const
 {
-	return myptr;
+    return myptr;
 }
 
 /*!\brief %Pointer als "const void *" auslesen
@@ -119,7 +122,7 @@ const void *Pointer::ptr() const
  */
 Pointer::operator const void*() const
 {
-	return (const void*)myptr;
+    return (const void*)myptr;
 }
 
 /*!\brief %Pointer als "const char *" auslesen
@@ -131,7 +134,7 @@ Pointer::operator const void*() const
  */
 Pointer::operator const char*() const
 {
-	return (const char*)myptr;
+    return (const char*)myptr;
 }
 
 /*!\brief %Pointer als "const unsigned char *" auslesen
@@ -143,7 +146,7 @@ Pointer::operator const char*() const
  */
 Pointer::operator const unsigned char*() const
 {
-	return (const unsigned char*)myptr;
+    return (const unsigned char*)myptr;
 }
 
 /*!\brief %Pointer setzen
@@ -153,9 +156,9 @@ Pointer::operator const unsigned char*() const
  *
  * @param ptr beliebiger %Pointer
  */
-void Pointer::set(const void *ptr)
+void Pointer::set(const void* ptr)
 {
-	myptr=(void*)ptr;
+    myptr = (void*)ptr;
 }
 
 /*!\brief %Pointer kopieren
@@ -166,10 +169,10 @@ void Pointer::set(const void *ptr)
  * @param other Andere Instanz von %Pointer
  * @return Liefert eine Referenz auf die Klasse selbst zurück
  */
-Pointer &Pointer::operator=(const Pointer &other)
+Pointer& Pointer::operator=(const Pointer& other)
 {
-	myptr=other.myptr;
-	return *this;
+    myptr = other.myptr;
+    return *this;
 }
 
 /*!\brief %Pointer zuweisen
@@ -180,48 +183,48 @@ Pointer &Pointer::operator=(const Pointer &other)
  * @param ptr beliebiger %Pointer
  * @return Liefert eine Referenz auf die Klasse selbst zurück
  */
-Pointer &Pointer::operator=(const void *ptr)
+Pointer& Pointer::operator=(const void* ptr)
 {
-	myptr=(void*)ptr;
-	return *this;
+    myptr = (void*)ptr;
+    return *this;
 }
 
-bool Pointer::operator<(const Pointer &other) const
+bool Pointer::operator<(const Pointer& other) const
 {
-	if (this->myptr<other.myptr) return true;
-	return false;
+    if (this->myptr < other.myptr) return true;
+    return false;
 }
 
-bool Pointer::operator<=(const Pointer &other) const
+bool Pointer::operator<=(const Pointer& other) const
 {
-	if (this->myptr<=other.myptr) return true;
-	return false;
+    if (this->myptr <= other.myptr) return true;
+    return false;
 }
 
-bool Pointer::operator==(const Pointer &other) const
+bool Pointer::operator==(const Pointer& other) const
 {
-	if (this->myptr==other.myptr) return true;
-	return false;
+    if (this->myptr == other.myptr) return true;
+    return false;
 }
 
-bool Pointer::operator!=(const Pointer &other) const
+bool Pointer::operator!=(const Pointer& other) const
 {
-	if (this->myptr!=other.myptr) return true;
-	return false;
+    if (this->myptr != other.myptr) return true;
+    return false;
 }
 
-bool Pointer::operator>=(const Pointer &other) const
+bool Pointer::operator>=(const Pointer& other) const
 {
-	if (this->myptr>=other.myptr) return true;
-	return false;
+    if (this->myptr >= other.myptr) return true;
+    return false;
 }
 
-bool Pointer::operator>(const Pointer &other) const
+bool Pointer::operator>(const Pointer& other) const
 {
-	if (this->myptr>other.myptr) return true;
-	return false;
+    if (this->myptr > other.myptr) return true;
+    return false;
 }
 
+#pragma GCC diagnostic pop
 
-
-} // EOF namespace ppl7
+} // namespace ppl7
