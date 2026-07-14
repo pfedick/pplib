@@ -685,12 +685,12 @@ WideString& WideString::set(const std::wstring& str, size_t size)
  * @param position Position innerhalb des Strings (Zählung beginnt bei 0)
  * @param c Unicode-Wert, der gesetzt werden soll
  * @return Referenz auf den String
- * \throw OutOfBoundsEception: Wird geworfen, wenn \p position größer ist, als die
+ * \throw OutOfBoundsException: Wird geworfen, wenn \p position größer ist, als die
  * Länge des Strings
  */
 WideString& WideString::set(size_t position, wchar_t c)
 {
-    if (position >= stringlen) throw OutOfBoundsEception();
+    if (position >= stringlen) throw OutOfBoundsException();
     ptr[position] = c;
     return *this;
 }
@@ -1352,14 +1352,14 @@ WideString& WideString::fromUCS4(const ByteArrayPtr& bin)
  *
  * @param pos Position des Zeichens innerhalb des Strings
  * @return Unicode-Wert des Zeichens
- * \exception OutOfBoundsEception Wird geworfen, wenn die angegebene Position \p pos
+ * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
  * ausserhalb des Strings liegt oder der String leer ist.
  */
 wchar_t WideString::get(ssize_t pos) const
 {
     if (pos >= 0 && stringlen > (size_t)pos) return ((wchar_t*)ptr)[pos];
     if (pos < 0 && (size_t)(0 - pos) < stringlen) return ((wchar_t*)ptr)[stringlen + pos];
-    throw OutOfBoundsEception();
+    throw OutOfBoundsException();
 }
 
 /*!\brief Einzelnes Zeichen auslesen
@@ -1373,14 +1373,14 @@ wchar_t WideString::get(ssize_t pos) const
  *
  * @param pos Position des Zeichens innerhalb des Strings
  * @return Unicode-Wert des Zeichens
- * \exception OutOfBoundsEception Wird geworfen, wenn die angegebene Position \p pos
+ * \exception OutOfBoundsException Wird geworfen, wenn die angegebene Position \p pos
  * ausserhalb des Strings liegt oder der String leer ist.
  */
 wchar_t WideString::operator[](ssize_t pos) const
 {
     if (pos >= 0 && stringlen > (size_t)pos) return ((wchar_t*)ptr)[pos];
     if (pos < 0 && (size_t)(0 - pos) < stringlen) return ((wchar_t*)ptr)[stringlen + pos];
-    throw OutOfBoundsEception();
+    throw OutOfBoundsException();
 }
 
 /*!\brief String auf STDOUT ausgeben

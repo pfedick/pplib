@@ -45,11 +45,12 @@
 
 #include "ppl7.h"
 #include "ppl7-grafix.h"
-//#include "grafix6.h"
+// #include "grafix6.h"
 
-
-namespace ppl7 {
-namespace grafix {
+namespace ppl7
+{
+namespace grafix
+{
 
 /*!\class ImageList
  * \ingroup PPLGroupGrafik
@@ -59,192 +60,186 @@ namespace grafix {
 
 ImageList::ImageList()
 {
-	method=BLT;
-	width=height=0;
-	numIcons = 0;
-	numX=numY=0;
+    method = BLT;
+    width = height = 0;
+    numIcons = 0;
+    numX = numY = 0;
 }
 
 ImageList::ImageList(const ImageList& other)
 {
-	copy(other);
+    copy(other);
 }
 
 ImageList::ImageList(const Drawable& draw, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(draw, icon_width, icon_height, method);
+    load(draw, icon_width, icon_height, method);
 }
 
 ImageList::ImageList(const String& Filename, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(Filename, icon_width, icon_height, method);
+    load(Filename, icon_width, icon_height, method);
 }
 
 ImageList::ImageList(FileObject& file, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(file, icon_width, icon_height, method);
+    load(file, icon_width, icon_height, method);
 }
 
 ImageList::ImageList(const ByteArrayPtr& mem, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	load(mem, icon_width, icon_height, method);
+    load(mem, icon_width, icon_height, method);
 }
 
 ImageList::~ImageList()
 {
-
 }
 
 void ImageList::clear()
 {
-	method=BLT;
-	width = height = 0;
-	numIcons = 0;
-	numX=numY=0;
+    method = BLT;
+    width = height = 0;
+    numIcons = 0;
+    numX = numY = 0;
 }
 
 void ImageList::copy(const ImageList& other)
 {
-	Image::copy(other);
-	width=other.width;
-	height=other.height;
-	numIcons=other.numIcons;
-	colorkey=other.colorkey;
-	diffuse=other.diffuse;
-	method=other.method;
-	numX=other.numX;
-	numY=other.numY;
+    Image::copy(other);
+    width = other.width;
+    height = other.height;
+    numIcons = other.numIcons;
+    colorkey = other.colorkey;
+    diffuse = other.diffuse;
+    method = other.method;
+    numX = other.numX;
+    numY = other.numY;
 }
 
 void ImageList::load(const Drawable& draw, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	Image::copy(draw);
-	width=icon_width;
-	height=icon_height;
-	this->method=method;
-	numX=Image::width() / width;
-	numY=Image::height() / height;
-	numIcons=numX * numY;
+    Image::copy(draw);
+    width = icon_width;
+    height = icon_height;
+    this->method = method;
+    numX = Image::width() / width;
+    numY = Image::height() / height;
+    numIcons = numX * numY;
 }
 
 void ImageList::load(const String& Filename, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	Image::load(Filename);
-	width=icon_width;
-	height=icon_height;
-	this->method=method;
-	numX=Image::width() / width;
-	numY=Image::height() / height;
-	numIcons=numX * numY;
+    Image::load(Filename);
+    width = icon_width;
+    height = icon_height;
+    this->method = method;
+    numX = Image::width() / width;
+    numY = Image::height() / height;
+    numIcons = numX * numY;
 }
 
 void ImageList::load(FileObject& file, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	Image::load(file);
-	width=icon_width;
-	height=icon_height;
-	this->method=method;
-	numX=Image::width() / width;
-	numY=Image::height() / height;
-	numIcons=numX * numY;
+    Image::load(file);
+    width = icon_width;
+    height = icon_height;
+    this->method = method;
+    numX = Image::width() / width;
+    numY = Image::height() / height;
+    numIcons = numX * numY;
 }
 
 void ImageList::load(const ByteArrayPtr& mem, int icon_width, int icon_height, DRAWMETHOD method)
 {
-	Image::load(mem);
-	width=icon_width;
-	height=icon_height;
-	this->method=method;
-	numX=Image::width() / width;
-	numY=Image::height() / height;
-	numIcons=numX * numY;
+    Image::load(mem);
+    width = icon_width;
+    height = icon_height;
+    this->method = method;
+    numX = Image::width() / width;
+    numY = Image::height() / height;
+    numIcons = numX * numY;
 }
-
 
 void ImageList::setDrawMethod(DRAWMETHOD method)
 {
-	this->method=method;
+    this->method = method;
 }
 
 void ImageList::setColorKey(const Color& key)
 {
-	colorkey=key;
+    colorkey = key;
 }
 
 void ImageList::setDiffuseColor(const Color& c)
 {
-	diffuse=c;
+    diffuse = c;
 }
 
 void ImageList::setIconSize(int width, int height)
 {
-	this->width=width;
-	this->height=height;
-	numX=Image::width() / width;
-	numY=Image::height() / height;
-	numIcons=numX * numY;
+    this->width = width;
+    this->height = height;
+    numX = Image::width() / width;
+    numY = Image::height() / height;
+    numIcons = numX * numY;
 }
-
 
 size_t ImageList::num() const
 {
-	return numIcons;
+    return numIcons;
 }
 
 Size ImageList::iconSize() const
 {
-	return Size(width, height);
+    return Size(width, height);
 }
 
 Rect ImageList::getRect(size_t nr) const
 {
-	Rect r;
-	if (numIcons == 0 || nr >= numIcons) throw OutOfBoundsEception();
-	int h, w;
-	h=(int)(nr / numX);
-	w=(int)(nr % numX);
-	r.setRect(w * width, h * height, width, height);
-	return r;
+    Rect r;
+    if (numIcons == 0 || nr >= numIcons) throw OutOfBoundsException();
+    int h, w;
+    h = (int)(nr / numX);
+    w = (int)(nr % numX);
+    r.setRect(w * width, h * height, width, height);
+    return r;
 }
 
 ImageList::DRAWMETHOD ImageList::drawMethod() const
 {
-	return method;
+    return method;
 }
 
 Drawable ImageList::getDrawable(size_t nr) const
 {
-	Rect r=getRect(nr);
-	return Drawable(*this, r);
+    Rect r = getRect(nr);
+    return Drawable(*this, r);
 }
 
 Image ImageList::getDrawable(size_t nr, const Color& diffuse_color) const
 {
-	Rect r=getRect(nr);
-	Drawable d(*this, r);
-	Image img(d.width(), d.height());
-	img.bltDiffuse(d, 0, 0, diffuse_color);
-	return img;
+    Rect r = getRect(nr);
+    Drawable d(*this, r);
+    Image img(d.width(), d.height());
+    img.bltDiffuse(d, 0, 0, diffuse_color);
+    return img;
 }
 
 Color ImageList::colorKey() const
 {
-	return colorkey;
+    return colorkey;
 }
 
 Color ImageList::diffuseColor() const
 {
-	return diffuse;
+    return diffuse;
 }
 
 ImageList& ImageList::operator=(const ImageList& other)
 {
-	copy(other);
-	return *this;
+    copy(other);
+    return *this;
 }
 
-
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace ppl7

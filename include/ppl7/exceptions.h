@@ -93,7 +93,7 @@ PPL7EXCEPTION(NullPointerException, Exception);
 PPL7EXCEPTION(UnsupportedFeatureException, Exception);
 PPL7EXCEPTION(CharacterEncodingException, Exception);
 PPL7EXCEPTION(UnsupportedCharacterEncodingException, Exception);
-PPL7EXCEPTION(OutOfBoundsEception, Exception);
+PPL7EXCEPTION(OutOfBoundsException, Exception);
 PPL7EXCEPTION(EmptyDataException, Exception);
 PPL7EXCEPTION(TypeConversionException, Exception);
 PPL7EXCEPTION(IllegalArgumentException, Exception);

@@ -312,8 +312,8 @@ TEST_F(ArrayTest, getPtr) {
 	ASSERT_TRUE(strcmp("green",a1.getPtr(-5))==0) << "Element 0 has wrong value";
 	ASSERT_TRUE(strcmp("red",a1.getPtr(-6))==0) << "Element 0 has wrong value";
 
-	ASSERT_THROW(a1.getPtr(6),ppl7::OutOfBoundsEception);
-	ASSERT_THROW(a1.getPtr(-7),ppl7::OutOfBoundsEception);
+	ASSERT_THROW(a1.getPtr(6),ppl7::OutOfBoundsException);
+	ASSERT_THROW(a1.getPtr(-7),ppl7::OutOfBoundsException);
 
 }
 
@@ -326,7 +326,7 @@ TEST_F(ArrayTest, operatorOnIndex) {
 	ASSERT_EQ(ppl7::String("yellow"),a1[3]) << "Element 3 has wrong value";
 	ASSERT_EQ(ppl7::String("black"),a1[4]) << "Element 4 has wrong value";
 	ASSERT_EQ(ppl7::String("white"),a1[5]) << "Element 5 has wrong value";
-	ASSERT_THROW(a1[6],ppl7::OutOfBoundsEception);
+	ASSERT_THROW(a1[6],ppl7::OutOfBoundsException);
 
 	ASSERT_EQ(ppl7::String("white"),a1[-1]) << "Element 5 has wrong value";
 	ASSERT_EQ(ppl7::String("black"),a1[-2]) << "Element 4 has wrong value";
@@ -334,15 +334,15 @@ TEST_F(ArrayTest, operatorOnIndex) {
 	ASSERT_EQ(ppl7::String("blue"),a1[-4]) << "Element 2 has wrong value";
 	ASSERT_EQ(ppl7::String("green"),a1[-5]) << "Element 1 has wrong value";
 	ASSERT_EQ(ppl7::String("red"),a1[-6]) << "Element 0 has wrong value";
-	ASSERT_THROW(a1[-7],ppl7::OutOfBoundsEception);
+	ASSERT_THROW(a1[-7],ppl7::OutOfBoundsException);
 }
 
 TEST_F(ArrayTest, getOutOfBounds) {
 	ppl7::Array a1("red green blue yellow black white"," ");
-	ASSERT_THROW(a1.get(6),ppl7::OutOfBoundsEception);
-	ASSERT_THROW(a1.get(30),ppl7::OutOfBoundsEception);
-	ASSERT_THROW(a1.get(-7),ppl7::OutOfBoundsEception);
-	ASSERT_THROW(a1.get(-30),ppl7::OutOfBoundsEception);
+	ASSERT_THROW(a1.get(6),ppl7::OutOfBoundsException);
+	ASSERT_THROW(a1.get(30),ppl7::OutOfBoundsException);
+	ASSERT_THROW(a1.get(-7),ppl7::OutOfBoundsException);
+	ASSERT_THROW(a1.get(-30),ppl7::OutOfBoundsException);
 }
 
 
@@ -533,7 +533,7 @@ TEST_F(ArrayTest, forwardWalkIterator) {
 	ASSERT_EQ(ppl7::String("yellow"),a1.getNext(it)) << "Element 3 has wrong value";
 	ASSERT_EQ(ppl7::String("black"),a1.getNext(it)) << "Element 4 has wrong value";
 	ASSERT_EQ(ppl7::String("white"),a1.getNext(it)) << "Element 5 has wrong value";
-	ASSERT_THROW(a1.getNext(it),ppl7::OutOfBoundsEception);
+	ASSERT_THROW(a1.getNext(it),ppl7::OutOfBoundsException);
 }
 
 TEST_F(ArrayTest, explode) {

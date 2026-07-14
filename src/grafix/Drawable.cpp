@@ -583,12 +583,12 @@ void* Drawable::adr() const
  * @param x X-Koordinate
  * @param y Y-Koordinate
  * @return Speicheradresse
- * @exception OutOfBoundsEception Wird geworfen, wenn \p x oder \p y außerhalb des Zeichenbereichs liegen
+ * @exception OutOfBoundsException Wird geworfen, wenn \p x oder \p y außerhalb des Zeichenbereichs liegen
  */
 void* Drawable::adr(int x, int y) const
 {
     if (x < data.width && y < data.height) return data.base8 + (y * data.pitch) + (x * data.rgbformat.bitdepth() / 8);
-    throw OutOfBoundsEception();
+    throw OutOfBoundsException();
 }
 
 /*!\brief Ein neues Drawable skalieren

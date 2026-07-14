@@ -138,7 +138,7 @@ TEST_F(WideStringTest, clear)
     ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
     const wchar_t* buf = s1.getPtr();
     ASSERT_TRUE(NULL != buf) << "Class did not return a pointer to a c-string";
-    ASSERT_THROW({ ASSERT_EQ(0, (unsigned char)s1[0]) << "Unexpected Character in string"; }, ppl7::OutOfBoundsEception);
+    ASSERT_THROW({ ASSERT_EQ(0, (unsigned char)s1[0]) << "Unexpected Character in string"; }, ppl7::OutOfBoundsException);
 }
 
 TEST_F(WideStringTest, CapacityAndReserve)

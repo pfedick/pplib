@@ -1367,7 +1367,7 @@ size_t AssocArray::fromTemplate(
         try {
             Line = a.getNext(it);
         }
-        catch (OutOfBoundsEception&) {
+        catch (OutOfBoundsException&) {
             return rows;
         }
         Row = Trim(Line);
@@ -1445,7 +1445,7 @@ size_t AssocArray::fromConfig(
         try {
             Line = a.getNext(it);
         }
-        catch (OutOfBoundsEception&) {
+        catch (OutOfBoundsException&) {
             return rows;
         }
         Row = Trim(Line);

@@ -568,16 +568,16 @@ void Array::list(const String& prefix) const
  *
  * @param index Gewünschtes Element
  * @return Referenz auf den Inhalt des Elements
- * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ * \exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
 const String& Array::get(ssize_t index) const
 {
     if (index < 0) {
         index = numElements + index;
-        if (index < 0) throw OutOfBoundsEception();
+        if (index < 0) throw OutOfBoundsException();
     }
     ROW* r = (ROW*)rows;
-    if ((size_t)index >= numElements) throw OutOfBoundsEception();
+    if ((size_t)index >= numElements) throw OutOfBoundsException();
     if (r[index].value != NULL) return *r[index].value;
     return EmptyString;
 }
@@ -590,16 +590,16 @@ const String& Array::get(ssize_t index) const
  *
  * @param index Gewünschtes Element
  * @return Referenz auf den Inhalt des Elements
- * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ * \exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
 String& Array::get(ssize_t index)
 {
     if (index < 0) {
         index = numElements + index;
-        if (index < 0) throw OutOfBoundsEception();
+        if (index < 0) throw OutOfBoundsException();
     }
     ROW* r = (ROW*)rows;
-    if ((size_t)index >= numElements) throw OutOfBoundsEception();
+    if ((size_t)index >= numElements) throw OutOfBoundsException();
     if (r[index].value != NULL) return *r[index].value;
     return EmptyString;
 }
@@ -648,7 +648,7 @@ String& Array::getRandom()
  *
  * @param index Gewünschtes Element
  * @return Pointer auf den C-String des gewünschten Elements.
- * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ * \exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
 const char* Array::getPtr(ssize_t index) const
 {
@@ -711,7 +711,7 @@ try {
         value=a1.getNext(it);
         value.printnl();
     }
-} catch (ppl7::OutOfBoundsEception) {
+} catch (ppl7::OutOfBoundsException) {
     printf ("Keine weiteren Elemente\n");
 }
  * \endcode
@@ -729,7 +729,7 @@ void Array::reset(Iterator& it) const
  *
  * @param it Iterator
  * @return Wert des ersten Elements
- * \exception OutOfBoundsEception: Wird geworfen, wenn das Array leer ist
+ * \exception OutOfBoundsException: Wird geworfen, wenn das Array leer ist
  *
  * \example
  * \code
@@ -742,7 +742,7 @@ try {
         value=a1.getNext(it);
         value.printnl();
     }
-} catch (ppl7::OutOfBoundsEception) {
+} catch (ppl7::OutOfBoundsException) {
     printf ("Keine weiteren Elemente\n");
 }
  * \endcode
@@ -761,7 +761,7 @@ const String& Array::getFirst(Iterator& it) const
  *
  * @param it Iterator
  * @return Wert des ersten Elements
- * \exception OutOfBoundsEception: Wird geworfen, wenn das Array leer ist
+ * \exception OutOfBoundsException: Wird geworfen, wenn das Array leer ist
  * \example
  * \code
 ppl7::Array a1(L"red green blue yellow black white",L" ");
@@ -773,7 +773,7 @@ try {
         value=a1.getNext(it);
         value.printnl();
     }
-} catch (ppl7::OutOfBoundsEception) {
+} catch (ppl7::OutOfBoundsException) {
     printf ("Keine weiteren Elemente\n");
 }
  * \endcode
@@ -787,7 +787,7 @@ const String& Array::getNext(Iterator& it) const
         if (s != NULL) return *s;
         return EmptyString;
     }
-    throw OutOfBoundsEception();
+    throw OutOfBoundsException();
 }
 
 /*!\brief Das erste Element aus dem Array holen
@@ -799,7 +799,7 @@ const String& Array::getNext(Iterator& it) const
  * Exception geworfen.
  *
  * @return String mit dem Wert, der aus dem Array entfernt wurde
- * \exception OutOfBoundsEception: Wird geworfen, wenn der gewünschte Index größer als
+ * \exception OutOfBoundsException: Wird geworfen, wenn der gewünschte Index größer als
  * die Anzahl Elemente im Array ist.
  * \note
  * Bei großen Arrays ist diese Operation recht teuer, da alle nachfolgenden Elemente
@@ -807,7 +807,7 @@ const String& Array::getNext(Iterator& it) const
  */
 String Array::erase(size_t index)
 {
-    if (index >= numElements) throw OutOfBoundsEception();
+    if (index >= numElements) throw OutOfBoundsException();
     String ret;
     ROW* r = (ROW*)rows;
     if (r[index].value != NULL) {
@@ -1049,7 +1049,7 @@ Array& Array::fromArgs(const String& args)
  *
  * @param index Gewünschtes Element
  * @return Referenz auf den Inhalt des Elements
- * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ * \exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
 String& Array::operator[](ssize_t index)
 {
@@ -1064,7 +1064,7 @@ String& Array::operator[](ssize_t index)
  *
  * @param index Gewünschtes Element
  * @return Referenz auf den Inhalt des Elements
- * \exception OutOfBoundsEception: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
+ * \exception OutOfBoundsException: Wird geworfen, wenn \p index größer als die Anzahl Elemente des Arrays ist
  */
 const String& Array::operator[](ssize_t index) const
 {

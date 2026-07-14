@@ -144,7 +144,7 @@ TEST_F(StringTest, clear)
     ASSERT_EQ((size_t)0, s1.len()) << "String does not have length of 0";
     const char* buf = s1.getPtr();
     ASSERT_TRUE(NULL != buf) << "Class did not return a pointer to a c-string";
-    ASSERT_THROW({ ASSERT_EQ(0, (unsigned char)s1[0]) << "Unexpected Character in string"; }, ppl7::OutOfBoundsEception);
+    ASSERT_THROW({ ASSERT_EQ(0, (unsigned char)s1[0]) << "Unexpected Character in string"; }, ppl7::OutOfBoundsException);
 }
 
 TEST_F(StringTest, CapacityAndReserve)
@@ -1290,7 +1290,7 @@ TEST_F(StringTest, OperatorCharPositionPositiv)
     EXPECT_EQ((char)'d', s1[10]) << "Unexpected Result";
     EXPECT_EQ((char)'!', s1[11]) << "Unexpected Result";
 
-    ASSERT_THROW({ ASSERT_EQ((char)0, s1[12]); }, ppl7::OutOfBoundsEception);
+    ASSERT_THROW({ ASSERT_EQ((char)0, s1[12]); }, ppl7::OutOfBoundsException);
 }
 
 TEST_F(StringTest, OperatorCharPositionNegativ)
@@ -1309,7 +1309,7 @@ TEST_F(StringTest, OperatorCharPositionNegativ)
     EXPECT_EQ((char)'l', s1[-10]) << "Unexpected Result";
     EXPECT_EQ((char)'e', s1[-11]) << "Unexpected Result";
     EXPECT_EQ((char)'H', s1[-12]) << "Unexpected Result";
-    ASSERT_THROW({ ASSERT_EQ((char)0, s1[-13]); }, ppl7::OutOfBoundsEception);
+    ASSERT_THROW({ ASSERT_EQ((char)0, s1[-13]); }, ppl7::OutOfBoundsException);
 }
 
 } // namespace
