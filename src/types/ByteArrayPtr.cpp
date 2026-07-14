@@ -182,6 +182,7 @@ bool ByteArrayPtr::isEmpty() const
  */
 size_t ByteArrayPtr::size() const
 {
+    if (!ptradr) return 0;
     return ptrsize;
 }
 
@@ -197,18 +198,19 @@ const void* ByteArrayPtr::adr() const
     return ptradr;
 }
 
-const char* ByteArrayPtr::map(size_t position, size_t size)
+const char* ByteArrayPtr::map(size_t position, size_t size) const
 {
+    if (!ptradr) throw OutOfBoundsException("ByteArrayPtr::map has no memory assigned");
     if (position > ptrsize || size > ptrsize - position)
-        throw ppl7::OverflowException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)", position, size,
-                                      position + size, ptrsize);
+        throw OutOfBoundsException("ByteArrayPtr::map position (%zu) + size (%zu) exceeds size of ByteArray (%zu > %zu)", position, size,
+                                   position + size, ptrsize);
     return (const char*)ptradr + position;
 }
 
 void ByteArrayPtr::truncate(size_t position)
 {
     if (position > ptrsize)
-        throw ppl7::OverflowException("ByteArrayPtr::truncate position exceeds size of ByteArray (%zu > %zu)", position, ptrsize);
+        throw OutOfBoundsException("ByteArrayPtr::truncate position exceeds size of ByteArray (%zu > %zu)", position, ptrsize);
     ptrsize = position;
 }
 
@@ -316,28 +318,26 @@ ByteArrayPtr::operator const char*() const
  *
  * @param [in] pos Auszulesendes Byte, beginnend mit 0.
  * @return Wert der Speicherstelle
- * \exception OutOfBoundsEception Diese Exception wird geworfen, wenn die mit
+ * \exception OutOfBoundsException Diese Exception wird geworfen, wenn die mit
  * \p pos angegebene Speicherstelle ausseralb des referenzierten Speichers liegt oder
  * kein Speicher referenziert ist.
  */
 unsigned char ByteArrayPtr::operator[](size_t pos) const
 {
     if (ptradr != NULL && pos < ptrsize) return ((unsigned char*)ptradr)[pos];
-    throw OutOfBoundsEception();
+    throw OutOfBoundsException();
 }
 
 void ByteArrayPtr::set(size_t pos, unsigned char value)
 {
-    if (ptradr != NULL && pos < ptrsize)
-        ((unsigned char*)ptradr)[pos] = value;
-    else
-        throw OutOfBoundsEception();
+    if (ptradr == NULL || pos >= ptrsize) throw OutOfBoundsException();
+    ((unsigned char*)ptradr)[pos] = value;
 }
 
 unsigned char ByteArrayPtr::get(size_t pos) const
 {
     if (ptradr != NULL && pos < ptrsize) return ((unsigned char*)ptradr)[pos];
-    throw OutOfBoundsEception();
+    throw OutOfBoundsException();
 }
 
 String ByteArrayPtr::toString() const
@@ -363,10 +363,11 @@ WideString ByteArrayPtr::toWideString() const
  */
 String ByteArrayPtr::toHex() const
 {
-    unsigned char* buff = (unsigned char*)ptradr;
     String str;
+    if (!ptradr || ptrsize == 0) return str;
+    str.reserve(ptrsize * 2);
     for (size_t i = 0; i < ptrsize; i++)
-        str.appendf("%02x", buff[i]);
+        str.appendf("%02x", ((unsigned char*)ptradr)[i]);
     return str;
 }
 
@@ -410,25 +411,27 @@ uint32_t ByteArrayPtr::crc32() const
 
 void ByteArrayPtr::hexDump() const
 {
-    PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", ptrsize, ptradr);
-    if (ptrsize == 0) return;
-    HexDump(ptradr, ptrsize, true);
+    hexDump(0, ptrsize);
 }
 
 void ByteArrayPtr::hexDump(size_t bytes) const
 {
-    if (bytes > ptrsize) bytes = ptrsize;
-    PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", bytes, ptradr);
-    if (bytes == 0) return;
-    HexDump(ptradr, bytes, true);
+    hexDump(0, bytes);
 }
 
 void ByteArrayPtr::hexDump(size_t offset, size_t bytes) const
 {
-    if (offset > ptrsize) offset = ptrsize;
+    if (!ptradr || ptrsize == 0) {
+        PrintDebug("HEXDUMP of ByteArray: No Data, address or size is 0\n");
+        return;
+    }
+    if (offset >= ptrsize) {
+        PrintDebug("HEXDUMP of ByteArray: Offset %zu exceeds size of ByteArray (%zu)\n", offset, ptrsize);
+        return;
+    }
     if (bytes > ptrsize - offset) bytes = ptrsize - offset;
     char* start = (char*)ptradr + offset;
-    PrintDebug("HEXDUMP of ByteArray: %zi Bytes starting at Address %p:\n", bytes, start);
+    PrintDebug("HEXDUMP of ByteArray: %zu Bytes starting at Address %p:\n", bytes, start);
     HexDump(start, bytes, true);
 }
 
@@ -441,64 +444,20 @@ void ByteArrayPtr::hexDump(size_t offset, size_t bytes) const
  */
 void ByteArrayPtr::memset(int value)
 {
-    ::memset(ptradr, value, ptrsize);
+    if (ptradr != NULL && ptrsize > 0) ::memset(ptradr, value, ptrsize);
 }
 
 int ByteArrayPtr::memcmp(const ByteArrayPtr& other) const
 {
-    // size_t max=ptrsize;
     size_t min = ptrsize;
-    // if (other.ptrsize>max) max=other.ptrsize;
     if (other.ptrsize < min) min = other.ptrsize;
-    for (size_t i = 0; i < min; i++) {
-        if (((unsigned char*)ptradr)[i] < ((unsigned char*)other.ptradr)[i]) return -1;
-        if (((unsigned char*)ptradr)[i] > ((unsigned char*)other.ptradr)[i]) return 1;
+    if (min > 0 && ptradr != NULL && other.ptradr != NULL) {
+        int res = ::memcmp(ptradr, other.ptradr, min);
+        if (res != 0) return res;
     }
     if (ptrsize < other.ptrsize) return -1;
     if (ptrsize > other.ptrsize) return 1;
     return 0;
-}
-
-bool ByteArrayPtr::operator<(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c < 0) return true;
-    return false;
-}
-
-bool ByteArrayPtr::operator<=(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c <= 0) return true;
-    return false;
-}
-
-bool ByteArrayPtr::operator==(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c == 0) return true;
-    return false;
-}
-
-bool ByteArrayPtr::operator!=(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c != 0) return true;
-    return false;
-}
-
-bool ByteArrayPtr::operator>=(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c >= 0) return true;
-    return false;
-}
-
-bool ByteArrayPtr::operator>(const ByteArrayPtr& other) const
-{
-    int c = memcmp(other);
-    if (c > 0) return true;
-    return false;
 }
 
 std::ostream& operator<<(std::ostream& s, const ByteArrayPtr& ba)

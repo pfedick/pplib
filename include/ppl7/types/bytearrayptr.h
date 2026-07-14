@@ -69,7 +69,7 @@ public:
     String toString() const;
     WideString toWideString() const;
     const char* toCharPtr() const;
-    const char* map(size_t position, size_t size);
+    const char* map(size_t position, size_t size) const;
     void truncate(size_t position);
     String md5() const;
     uint32_t crc32() const;
@@ -82,12 +82,30 @@ public:
     void memset(int value);
     int memcmp(const ByteArrayPtr& other) const;
 
-    bool operator<(const ByteArrayPtr& other) const;
-    bool operator<=(const ByteArrayPtr& other) const;
-    bool operator==(const ByteArrayPtr& other) const;
-    bool operator!=(const ByteArrayPtr& other) const;
-    bool operator>=(const ByteArrayPtr& other) const;
-    bool operator>(const ByteArrayPtr& other) const;
+    inline bool operator<(const ByteArrayPtr& other) const
+    {
+        return memcmp(other) < 0;
+    }
+    inline bool operator<=(const ByteArrayPtr& other) const
+    {
+        return memcmp(other) <= 0;
+    }
+    inline bool operator>(const ByteArrayPtr& other) const
+    {
+        return memcmp(other) > 0;
+    }
+    inline bool operator>=(const ByteArrayPtr& other) const
+    {
+        return memcmp(other) >= 0;
+    }
+    inline bool operator==(const ByteArrayPtr& other) const
+    {
+        return memcmp(other) == 0;
+    }
+    inline bool operator!=(const ByteArrayPtr& other) const
+    {
+        return memcmp(other) != 0;
+    }
 };
 std::ostream& operator<<(std::ostream& s, const ByteArrayPtr& bap);
 

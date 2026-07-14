@@ -30,3 +30,4 @@
 autoconf/*.m4~
 autoconf/autom4te.cache
 configure~
+.github/copilot-instructions.md
