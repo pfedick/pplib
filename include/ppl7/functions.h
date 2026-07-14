@@ -49,6 +49,7 @@ String ToBase64(const ByteArrayPtr& bin);
 ByteArray FromBase64(const String& str);
 uint32_t Crc32(const void* buffer, size_t size);
 String Md5(const void* buffer, size_t size);
+String Md5(const ByteArrayPtr& buffer);
 double Calc(const String& expression);
 
 String StripSlashes(const String& str);
