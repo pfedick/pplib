@@ -47,11 +47,10 @@
 #include "ppl7.h"
 #include "ppl7-db.h"
 
-
-namespace ppl7 {
-namespace db {
-
-
+namespace ppl7
+{
+namespace db
+{
 
 /*!\class DBPool
  * \ingroup PPLGroupDatabases
@@ -84,7 +83,6 @@ namespace db {
 
  */
 
-
 /*!\var DBPool::Min
  * \brief Gibt an, wieviele Connects mindestens im Pool enthalten sein sollen
  */
@@ -92,7 +90,6 @@ namespace db {
 /*!\var DBPool::Max
  * \brief Gibt an, wieviele Connects maximal geöffnet werden dürfen. Default: 0 (uneingeschränkt)
  */
-
 
 /*!\var DBPool::MinSpare
  * \brief Gibt an, wieviele Freie Connects minimal vorgehalten werden sollen. Default: 0
@@ -108,7 +105,6 @@ namespace db {
  *   Connects mehr im Pool sind oder Pool::MinSpare unterschritten wurde. Es wird immer mindestens eine neue
  *   Verbindung erstellt, aber nicht mehr als Pool::MaxSpare. Default: 1
  */
-
 
 /*!\var DBPool::IdleTimeout
  * \brief Gibt an, nach welcher Zeit in Sekunden eine unbenutzte Verbindung abgebaut werden
@@ -170,32 +166,32 @@ namespace db {
 
 DBPool::DBPool()
 {
-	Id=-1;
-	Min=0;
-	Max=0;
-	MinSpare=0;
-	MaxSpare=0;
-	Grow=1;
-	IdleTimeout=300;
-	UsedTimeout=600;
-	KeepAlive=60;
-	IsInit=false;
-	Log=NULL;
-	LastCheck=0;
-	ConnectParamVersion=0;
+    Id = -1;
+    Min = 0;
+    Max = 0;
+    MinSpare = 0;
+    MaxSpare = 0;
+    Grow = 1;
+    IdleTimeout = 300;
+    UsedTimeout = 600;
+    KeepAlive = 60;
+    IsInit = false;
+    Log = NULL;
+    LastCheck = 0;
+    ConnectParamVersion = 0;
 }
 
 DBPool::~DBPool()
 {
-	clearFreePool();
-	clearUsedPool();
+    clearFreePool();
+    clearUsedPool();
 }
 
 static String calcHash(const AssocArray& param)
 {
-	ByteArray buffer;
-	param.exportBinary(buffer);
-	return buffer.md5();
+    ByteArray buffer;
+    param.exportBinary(buffer);
+    return Md5(buffer);
 }
 
 /*!\brief Datenbank-Pool mit den Connect-Parametern initialisieren
@@ -211,107 +207,108 @@ static String calcHash(const AssocArray& param)
  */
 void DBPool::setConnectParams(const AssocArray& connect)
 {
-	if (Log) Log->print(ppl7::Logger::INFO, 4, "ppl7::db::DBPool", "setConnectParams", __FILE__, __LINE__,
-		ppl7::ToString("Setze Connect Parameter für Pool id=%i, name=\"%s\"", Id, (const char*)Name));
-	PoolMutex.lock();
-	if (calcHash(connect) != calcHash(this->ConnectParam)) {
-		// increment version and remove remaining connections from free pool
-		ConnectParamVersion++;
-		std::list<Database*>::iterator it;
-		for (it=Free.begin();it != Free.end();++it) {
-			delete(*it);
-		}
-		Free.clear();
-	}
-	this->ConnectParam=connect;
-	IsInit=true;
-	PoolMutex.unlock();
+    if (Log)
+        Log->print(ppl7::Logger::INFO, 4, "ppl7::db::DBPool", "setConnectParams", __FILE__, __LINE__,
+                   ppl7::ToString("Setze Connect Parameter für Pool id=%i, name=\"%s\"", Id, (const char*)Name));
+    PoolMutex.lock();
+    if (calcHash(connect) != calcHash(this->ConnectParam)) {
+        // increment version and remove remaining connections from free pool
+        ConnectParamVersion++;
+        std::list<Database*>::iterator it;
+        for (it = Free.begin(); it != Free.end(); ++it) {
+            delete (*it);
+        }
+        Free.clear();
+    }
+    this->ConnectParam = connect;
+    IsInit = true;
+    PoolMutex.unlock();
 }
 
 void DBPool::setOptions(const AssocArray& options)
 {
-	AssocArray::Iterator it;
-	String Key, Value;
-	options.reset(it);
-	while (options.getNext(it, Key, Value)) {
-		setOption(Key, Value);
-	}
+    AssocArray::Iterator it;
+    String Key, Value;
+    options.reset(it);
+    while (options.getNext(it, Key, Value)) {
+        setOption(Key, Value);
+    }
 }
 
 void DBPool::setOption(const String& Name, const String& Value)
 {
-	/*
-	CString Opt=Name;
-		Opt.LCase();
-		if (Opt=="min") Min=Value.ToInt();
-		else if (Opt=="max") Max=Value.ToInt();
-		else if (Opt=="minspare") MinSpare=Value.ToInt();
-		else if (Opt=="maxspare") MaxSpare=Value.ToInt();
-		else if (Opt=="grow") Grow=Value.ToInt();
-		else if (Opt=="timeout") Timeout=Value.ToInt();
-		else if (Opt=="keepalive") KeepAlive=Value.ToInt();
-		else {
-			Mutex.Unlock();
-			SetError(541,"Pool::SetOption Key=>>%s<<",(const char *)Name);
-			return 0;
-		}
-		*/
+    /*
+    CString Opt=Name;
+        Opt.LCase();
+        if (Opt=="min") Min=Value.ToInt();
+        else if (Opt=="max") Max=Value.ToInt();
+        else if (Opt=="minspare") MinSpare=Value.ToInt();
+        else if (Opt=="maxspare") MaxSpare=Value.ToInt();
+        else if (Opt=="grow") Grow=Value.ToInt();
+        else if (Opt=="timeout") Timeout=Value.ToInt();
+        else if (Opt=="keepalive") KeepAlive=Value.ToInt();
+        else {
+            Mutex.Unlock();
+            SetError(541,"Pool::SetOption Key=>>%s<<",(const char *)Name);
+            return 0;
+        }
+        */
 }
 
 void DBPool::setName(const String& Name)
 {
-	this->Name=Name;
+    this->Name = Name;
 }
 
 void DBPool::setId(int id)
 {
-	this->Id=id;
+    this->Id = id;
 }
 
 void DBPool::setMinimumSize(int num)
 {
-	this->Min=num;
+    this->Min = num;
 }
 
 void DBPool::setMaximumSize(int num)
 {
-	this->Max=num;
+    this->Max = num;
 }
 
 void DBPool::setMinSpare(int num)
 {
-	this->MinSpare=num;
+    this->MinSpare = num;
 }
 
 void DBPool::setMaxSpare(int num)
 {
-	this->MaxSpare=num;
+    this->MaxSpare = num;
 }
 
 void DBPool::setGrowth(int num)
 {
-	this->Grow=num;
+    this->Grow = num;
 }
 
 void DBPool::setIdleTimeout(int seconds)
 {
-	this->IdleTimeout=seconds;
+    this->IdleTimeout = seconds;
 }
 
 void DBPool::setUsedTimeout(int seconds)
 {
-	this->UsedTimeout=seconds;
+    this->UsedTimeout = seconds;
 }
 
 void DBPool::setKeepAliveIntervall(int seconds)
 {
-	this->KeepAlive=seconds;
+    this->KeepAlive = seconds;
 }
 
 void DBPool::setLogger(Logger& logger)
 {
-	this->Log=&logger;
+    this->Log = &logger;
 }
 
-}	// EOF namespace db
-}	// EOF namespace ppl7
+} // namespace db
+} // namespace ppl7
