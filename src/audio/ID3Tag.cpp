@@ -687,7 +687,7 @@ void ID3Tag::setTextFrameUtf8(const String& framename, const String& text)
 {
     ByteArray enc;
     Iconv iconv(localCharset, "UTF-8");
-    iconv.transcode(text, enc);
+    iconv.transcode(ByteArrayPtr(text), enc);
     ID3Frame newFrame(framename);
     ID3Frame* frame = findFrame(framename);
     if (!frame) {
@@ -708,7 +708,7 @@ static void toUtf16LE(const String& localCharset, const String& text, ByteArray&
 {
     ByteArray buffer;
     Iconv iconv(localCharset, "UTF-16LE");
-    iconv.transcode(text, buffer);
+    iconv.transcode(ByteArrayPtr(text), buffer);
     char* b = (char*)enc.malloc(2 + buffer.size());
     if (!b) throw ppl7::OutOfMemoryException();
     b[0] = 0xff;
@@ -741,7 +741,7 @@ void ID3Tag::setTextFrameISO88591(const String& framename, const String& text)
 {
     ByteArray enc;
     Iconv iconv(localCharset, "ISO8859-1");
-    iconv.transcode(text, enc);
+    iconv.transcode((ByteArrayPtr)text, enc);
     ID3Frame* frame = findFrame(framename);
     ID3Frame newFrame(framename);
     if (!frame) {

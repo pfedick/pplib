@@ -54,6 +54,13 @@ ByteArray::ByteArray(const ByteArrayPtr& other)
     copy(other.ptradr, other.ptrsize);
 }
 
+ByteArray::ByteArray(const ByteArray& other)
+{
+    ptradr = NULL;
+    ptrsize = 0;
+    copy(other.ptradr, other.ptrsize);
+}
+
 ByteArray::ByteArray(ByteArray&& other)
 {
     ptradr = other.ptradr;

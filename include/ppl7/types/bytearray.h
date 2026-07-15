@@ -88,6 +88,14 @@ public:
      */
     ByteArray(const ByteArrayPtr& other);
 
+    /**@brief Copy-Konstruktor
+     *
+     * Mit diesem Konstruktor wird der Speicherbereich eines anderen ByteArray-Objekts kopiert.
+     *
+     * @param[in] other Referenz auf eine andere ByteArray-Klasse
+     */
+    ByteArray(const ByteArray& other);
+
     /**@brief Move-Konstruktor
      *
      * Mit diesem Konstruktor wird der Speicherbereich eines anderen ByteArray-Objekts übernommen.

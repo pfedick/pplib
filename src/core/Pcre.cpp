@@ -139,7 +139,7 @@ RegEx::Pattern RegEx::compile(const String& regex, int flags)
     const char* r = regex.c_str();
     pcre2_code_8* re = NULL;
     if (r[0] == '/') { // PerlRegEx
-        ByteArray expr = regex;
+        ByteArray expr(regex);
         const char* oo = ::strrchr((const char*)expr, '/');
         if (oo) {
             expr.set(oo - (const char*)expr, 0);
@@ -188,7 +188,7 @@ RegEx::Pattern RegEx::compile(const WideString& regex, int flags)
 
     if (r[0] == L'/') { // PerlRegEx
         WideString r = regex;
-        ByteArray expr = regex;
+        ByteArray expr(regex);
         wchar_t* oo = (wchar_t*)::wcsrchr((const wchar_t*)expr.ptr(), '/');
         if (oo) {
             oo[0] = 0;
