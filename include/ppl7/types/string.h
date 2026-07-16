@@ -40,6 +40,17 @@ class ByteArrayPtr;
 class ByteArray;
 class Array;
 
+/**@class String
+ * @ingroup PPLGroupDataTypes
+ * @ingroup PPLGroupStrings
+ * @brief String-Klasse
+ *
+ * Diese Klasse kann verwendet werden, um beliebige Strings zu speichern und zu verarbeiten. Dabei
+ * braucht sich der Anwender keine Gedanken um den verwendeten Speicher zu machen.
+ * Die einzelnen Zeichen des Strings werden intern im Unicode-Format gespeichert. Bei Übernahme eines
+ * C-Strings wird erwartet, dass dieser im UTF-8 Format vorliegt, mit der statischen Funktion
+ * String::setGlobalEncoding kann jedoch auch eine andere Kodierung vorgegeben werden.
+ */
 class String
 {
 private:
@@ -50,15 +61,116 @@ public:
     //! @name Konstruktoren und Destruktor
     //@{
 
+    /**@brief Default Konstruktor mit leeren String
+     *
+     * Es wird ein leerer String erstellt.
+     */
     String() noexcept;
+
+    /**@brief Konstruktor mit C-String
+     *
+     * Ein String wird aus einem C-String erstellt.
+     *
+     * @param str C-String mit 0-Byte am Ende
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     String(const char* str);
+
+    /**@brief Konstruktor mit C-String und Länge
+     *
+     * Ein String wird aus einem C-String erstellt. Es werden maximal \p size Zeichen übernommen.
+     *
+     * @param str C-String mit 0-Byte am Ende
+     * @param size Maximale Anzahl Zeichen, die übernommen werden sollen
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     String(const char* str, size_t size);
+
+    /**@brief Konstruktor mit anderem String
+     *
+     * Ein String wird aus einem anderen String erstellt.
+     *
+     * @param str Referenz auf einen anderen String
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     String(const String& str);
+
+    /**@brief Konstruktor mit WideString
+     *
+     * Ein String wird aus einem WideString erstellt. Dabei wird der String
+     * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
+     * Der Defaultwert ist UTF-8.
+     *
+     * @param str Referenz auf einen WideString
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     String(const WideString& str);
-    String(const ByteArrayPtr& str);
+
+    /**@brief Konstruktor mit ByteArrayPtr
+     *
+     * Ein String wird aus einem ByteArrayPtr erstellt. Dabei wird der String
+     * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
+     * Der Defaultwert ist UTF-8.
+     *
+     * @param str Referenz auf einen ByteArrayPtr
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
+    explicit String(const ByteArrayPtr& str);
+
+    /**@brief Konstruktor aus Standard-Template String
+     *
+     * \desc
+     * Ein String wird aus einem String der Standard-Template-Library (STL) erstellt.
+     *
+     * @param str Referenz auf String der STL
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     String(const std::string& str);
+
+    /**@brief Konstruktor aus Standard-Template Wide-String
+     *
+     * \desc
+     * Ein String wird aus einem Wide-String der Standard-Template-Library (STL) erstellt.
+     *
+     * @param str Referenz auf Wide-String der STL
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     String(const std::wstring& str);
+
+    /**@brief Move-Konstruktor
+     *
+     * Ein String wird aus einem anderen String erstellt. Dabei wird der Speicher des anderen Strings übernommen.
+     *
+     * @param other Rvalue-Referenz auf einen anderen String
+     * @exception Keine
+     */
     String(String&& other) noexcept;
+
+    /**@brief Destruktor
+     *
+     * Der String wird gelöscht und der Speicher freigegeben.
+     */
     ~String() noexcept;
 #ifdef WITH_QT
     String(const QString& q)
@@ -90,23 +202,180 @@ public:
 
     //! @name Statische Funktionen
     //@{
+
+    /*!\brief Globale Zeichenkodierung festlegen
+     *
+     * Standardmäßig erwartet die String-Klasse bei Übergabe von "const char *", dass
+     * die darin enthaltenen Strings \b UTF-8 kodiert sind. Dieses Verhalten kann man
+     * mit dieser Funktion ändern.
+     *
+     * \param encoding
+     *
+     * \attention
+     * Die Funktion ist nicht Thread-sicher und sollte daher nur einmal am Anfang des
+     * Programms aufgerufen werden.
+     */
     static void setGlobalEncoding(const char* encoding);
+
+    /**\brief Globale Zeichenkodierung abfragen
+     *
+     * Mit dieser Funktion kann die globale Zeichenkodierung abgefragt werden, die mit
+     * String::setGlobalEncoding festgelegt wurde.
+     *
+     * \return
+     * Liefert einen Pointer auf einen C-String, der die globale Zeichenkodierung enthält.
+     */
     static const char* getGlobalEncoding();
     //@}
 
+    /**\brief String löschen
+     *
+     * Mit dieser Funktion wird der String gelöscht und der Speicher freigegeben.
+     */
     void clear() noexcept;
+
+    /**\brief Kapazität des Strings abfragen
+     *
+     * Mit dieser Funktion kann die Kapazität des Strings abgefragt werden. Die Kapazität ist die
+     * Anzahl Zeichen, die der String aufnehmen kann, ohne dass der Speicherbereich vergrößert werden muss.
+     *
+     * \return
+     * Liefert die Anzahl Zeichen, die der String aufnehmen kann.
+     */
     size_t capacity() const;
+
+    /**\brief Speicher für den String reservieren
+     *
+     * Mit dieser Funktion kann Speicher für den String vorab reserviert werden. Dies ist insbesondere dann sinnvoll,
+     * wenn der String während seiner Lebenszeit häufig verlängert wird.
+     *
+     * @param size
+     * Anzahl Zeichen, für die Speicher reserviert werden soll.
+     *
+     * @note
+     * Enthält der String bereits Zeichen, gehen diese nicht verloren, der existierende Speicherbereich kann aber zwecks Vergrößerung
+     * umkopiert werden.
+     */
     void reserve(size_t size);
-    size_t len() const;
-    size_t length() const;
-    size_t size() const;
-    bool isEmpty() const;
-    bool notEmpty() const;
+
+    /**\brief Länge des Strings abfragen
+     *
+     * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
+     *
+     * @return
+     * Liefert die Anzahl Zeichen, die der String aktuell enthält.
+     */
+    inline constexpr size_t len() const
+    {
+        return stringlen;
+    }
+
+    /**\brief Länge des Strings abfragen
+     *
+     * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
+     *
+     * @return
+     * Liefert die Anzahl Zeichen, die der String aktuell enthält.
+     */
+    inline constexpr size_t length() const
+    {
+        return stringlen;
+    }
+
+    /**\brief Länge des Strings abfragen
+     *
+     * Mit dieser Funktion kann die Länge des Strings abgefragt werden. Die Länge ist die Anzahl Zeichen, die der String aktuell enthält.
+     *
+     * @return
+     * Liefert die Anzahl Zeichen, die der String aktuell enthält.
+     */
+    inline constexpr size_t size() const
+    {
+        return stringlen;
+    }
+
+    /**@brief Prüft, ob der String leer ist.
+     *
+     * Diese Funktion prüft, ob der String leer ist.
+     *
+     * @returns Ist der String leer, liefert die Funktion \c true zurück, sonst \c false.
+     * @see String::notEmpty
+     */
+    inline constexpr bool isEmpty() const
+    {
+        return (stringlen == 0);
+    }
+
+    /**@brief Prüft, ob der String Zeichen enthält
+     *
+     * Diese Funktion prüft, ob der String Zeichen enthält.
+     *
+     * @returns Enthält der String Zeichen, liefert die Funktion \c true zurück, sonst \c false.
+     * @see String::isEmpty
+     */
+    inline constexpr notEmpty() const
+    {
+        return (stringlen != 0);
+    }
+
+    /**@brief Prüft, ob der String numerisch ist
+     *
+     * Diese Funktion prüft, ob der String numerisch ist. Ein String ist numerisch, wenn er nur aus Ziffern besteht.
+     * Ein Minuszeichen am Anfang ist erlaubt, ebenso ein Dezimalpunkt oder Komma.
+     *
+     * @return Ist der String numerisch, wird 1 zurückgegeben. Ist er es nicht oder ist der String
+     * leer, wird 0 zurückgegeben.
+     */
     bool isNumeric() const;
+
+    /**@brief Prüft, ob der String einen Integer Wert enthält
+     *
+     * Diese Funktion prüft, ob im String einen integer Wert enthält, also nur die Ziffern
+     * 0-9 und optional ein Minus am Anfang enthalten sind
+     *
+     * @return Ist der String ein Integer, wird true zurückgegeben. Ist er es nicht oder ist der String
+     * leer, wird false zurückgegeben.
+     */
     bool isInteger() const;
+
+    /**@brief Prüft, ob der String "wahr" ist
+     *
+     * Diese Funktion überprüft den aktuellen String, ob er "wahr" ist. Dies ist der Fall,
+     * wenn eine der folgenden Bedingungen erfüllt ist:
+     * - Der String enthält eine Ziffer ungleich 0
+     * - Der String enthält das Wort "true" (Gross- oder Kleingeschrieben)
+     * - Der String enthält das Wort "wahr" (Gross- oder Kleingeschrieben)
+     * - Der String enthält das Wort "yes" (Gross- oder Kleingeschrieben)
+     * - Der String enthält das Wort "ja" (Gross- oder Kleingeschrieben)
+     *
+     * @returns Liefert true zurück, wenn der String "wahr" ist, sonst false. Ein Fehlercode wird nicht gesetzt
+     * @see String::isFalse()
+     */
     bool isTrue() const;
+
+    /**@brief Prüft, ob der String "unwahr" ist
+     *
+     * Diese Funktion überprüft den aktuellen String, ob er "unwahr" ist. Dies ist der Fall,
+     * wenn eine der folgenden Bedingungen erfüllt ist:
+     * - Der String zeigt auf NULL
+     * - Die Länge des Strings ist 0
+     * - Der String enthält die Ziffer 0
+     * - Der String enthält nicht das Wort "true", "wahr", "yes" oder "ja" (Gross-/Kleinschreibung egal)
+     * @returns Liefert true (1) zurück, wenn der String "unwahr" ist, sonst false (0). Ein Fehlercode wird nicht gesetzt
+     * @see String::isTrue()
+     */
     bool isFalse() const;
 
+    /**@brief Vergleicht den String mit einem anderen String
+     *
+     * Mit dieser Funktion kann der aktuelle String mit einem anderen String verglichen werden.
+     *
+     * @param str Referenz auf einen anderen String
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
+     * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
+     * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
+     */
     int strcmp(const String& str, size_t size = (size_t)-1) const;
     int strCaseCmp(const String& str, size_t size = (size_t)-1) const;
     int strcmp(const char* str, size_t size = (size_t)-1) const;
@@ -118,6 +387,22 @@ public:
 
     //! @name String setzen und verändern
     //@{
+
+    /**@brief String anhand eines C-Strings setzen
+     *
+     * Mit dieser Funktion wird der String anhand eines char * gesetzt. Dabei wird er
+     * intern nach Unicode konvertiert.
+     *
+     * @param str Pointer auf einen String
+     * @param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
+     * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
+     * der angegebene String, wird er ignoriert und der komplette String importiert.
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     String& set(const char* str, size_t size = (size_t)-1);
     String& set(const String& str, size_t size = (size_t)-1);
     String& set(const ByteArrayPtr& str, size_t size = (size_t)-1);
@@ -360,7 +645,7 @@ public:
         append((const char*)a);
         return *this;
     }
-    //@}
+//@}
 #endif
 };
 
