@@ -193,12 +193,6 @@ public:
 
     String& replace(const String& search, const String& replacement);
 
-    /*
-    String& pregReplace(const String& expression, const String& replacement, int max=0);
-    String& pregEscape();
-    bool pregMatch(const String& expression) const;
-    bool pregMatch(const String& expression, Array& matches, size_t maxmatches=16) const;
-    */
     //@}
 
     //! @name String ausgeben und auslesen
