@@ -44,6 +44,7 @@
 #include <ppl7/exceptions.h>
 #include <ppl7/functions.h>
 #include <compat_ppl7.h>
+#include <ppl7/core/iconv.h>
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
@@ -478,19 +479,6 @@ String& String::vasprintf(const char* fmt, va_list args)
     }
     free(buff);
     throw Exception();
-}
-
-String& String::useadr(void* adr, size_t size, size_t stringlen)
-{
-    if (adr == NULL || size == 0) throw IllegalArgumentException("adr and size must not be 0");
-    if (ptr != empty_string) free(ptr);
-    ptr = (char*)adr;
-    s = size;
-    ptr[s - 1] = 0;
-    this->stringlen = stringlen;
-    if (stringlen == (size_t)-1) stringlen = strlen(ptr);
-    if (stringlen >= size) stringlen = size - 1;
-    return *this;
 }
 
 String& String::append(const wchar_t* str, size_t size)
@@ -964,7 +952,7 @@ String& String::operator=(String&& other) noexcept
         s = other.s;
         stringlen = other.stringlen;
         other.ptr = empty_string;
-        other.s = 1;
+        other.s = 0;
         other.stringlen = 0;
     }
     return *this;
@@ -1944,7 +1932,7 @@ String& String::repeat(const String& str, size_t num)
     }
     if (ptr != empty_string) free(ptr);
     ptr = buf;
-    stringlen = num;
+    stringlen = num * str.stringlen;
     ptr[stringlen] = 0;
     s = newsize;
     return *this;

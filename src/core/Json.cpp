@@ -335,7 +335,8 @@ void Json::dumps(ppl7::String& json, const ppl7::AssocArray& data)
     file.rewind();
     file.fread(str, size, 1);
     str[size] = 0;
-    json.useadr(str, size + 1, size);
+    json.set((const char*)str, size);
+    free(str);
 }
 
 ppl7::String Json::dumps(const ppl7::AssocArray& data)

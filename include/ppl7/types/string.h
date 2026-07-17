@@ -552,26 +552,6 @@ public:
      */
     static String format(const char* fmt, ...);
 
-    /**@brief String-Speicher übernehmen
-     *
-     * Mit dieser Funktion wird der Klasse die Verwaltung des Speicherbereich mit der Adresse \p adr und der
-     * Größe \p size übergeben. Der Speicher muss zuvor mit "malloc" bzw. "calloc" allokiert worden sein
-     * und darf von der Anwendung selbst nicht mehr freigegeben werden.
-     *
-     * @param[in] adr Startadresse des Speicherbereichs
-     * @param[in] size Größe des Speicherbereichs in Bytes
-     * @param[in] stringlen Optionaler Parameter, der die Länge des Strings innerhalb des übergebenen
-     * Speicherbereichs angibt. Darf maximal \b size-1 groß sein. Ist der Wert nicht angegeben, wird die
-     * Länge des Strings mit \b strlen berechnet
-     *
-     * @note Der String muss mit einem Null-Byte enden. Um dies sicherzustellen überschreibt die Methode
-     * das letzte Byte des übergebenen Speicherbereichs mit 0.
-     *
-     * @return Referenz auf den String
-     *
-     */
-    String& useadr(void* adr, size_t size, size_t stringlen = (size_t)-1);
-
     /**@brief Fügt einen C-String an das Ende des bestehenden an
      *
      * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
