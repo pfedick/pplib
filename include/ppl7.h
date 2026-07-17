@@ -1240,28 +1240,6 @@ public:
     void print() const;
 };
 
-class Iconv
-{
-private:
-    void* iconv_handle;
-
-public:
-    Iconv();
-    Iconv(const String& fromEncoding, const String& toEncoding);
-    ~Iconv();
-    void init(const String& fromEncoding, const String& toEncoding);
-    void transcode(const ByteArrayPtr& from, ByteArray& to);
-    void transcode(const String& from, String& to);
-    String transcode(const String& from);
-    static String fromUnicode(const WideString& from, const String& toEncoding);
-    static WideString toUnicode(const String& from, const String& fromEncoding);
-    static void enumerateCharsets(Array& list);
-    static void enumerateCharsets(std::list<ppl7::String>& list);
-    static String getLocalCharset();
-    static String Utf8ToLocal(const String& text);
-    static String LocalToUtf8(const String& text);
-};
-
 class Json
 {
 public:
@@ -1277,5 +1255,7 @@ public:
 };
 
 }; // namespace ppl7
+
+#include <ppl7/core/iconv.h>
 
 #endif // #ifndef _PPL7_INCLUDE
