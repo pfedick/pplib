@@ -313,7 +313,7 @@ public:
      * @returns Enthält der String Zeichen, liefert die Funktion \c true zurück, sonst \c false.
      * @see String::isEmpty
      */
-    inline constexpr notEmpty() const
+    inline constexpr bool notEmpty() const
     {
         return (stringlen != 0);
     }
