@@ -278,18 +278,6 @@ String& String::set(const char* str, size_t size)
     return *this;
 }
 
-/*!\brief String anhand eines wchar_t* setzen
- *
- * \desc
- * Mit dieser Funktion wird der String anhand eines wchar_t * gesetzt.
- *
- * \param str Pointer auf einen String
- * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
- * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
- * der angegebene String, wird er ignoriert und der komplette String importiert.
- * \return Referenz auf den String
- * \exception OutOfMemoryException
- */
 String& String::set(const wchar_t* str, size_t size)
 {
     if (str == NULL || size == 0) {
@@ -364,18 +352,6 @@ String& String::set(const wchar_t* str, size_t size)
 #endif
 }
 
-/*!\brief Wert eines anderen Strings übernehmen
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings \p str übernommen.
- *
- * \param str Referenz auf einen anderen String
- * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
- * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
- * der angegebene String, wird er ignoriert und der komplette String importiert.
- * \return Referenz auf den String
- * \exception OutOfMemoryException
- */
 String& String::set(const String& str, size_t size)
 {
     size_t inbytes;
@@ -409,18 +385,6 @@ String& String::set(const WideString& str, size_t size)
     return set(str.getPtr(), inbytes);
 }
 
-/*!\brief Wert eines Strings der STL übernehmen
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des STL-Strings \p str übernommen.
- *
- * \param str Referenz auf einen String der Standard Template Library (STL)
- * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
- * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
- * der angegebene String, wird er ignoriert und der komplette String importiert.
- * \return Referenz auf den String
- * \exception OutOfMemoryException
- */
 String& String::set(const std::string& str, size_t size)
 {
     size_t inbytes;
@@ -432,18 +396,6 @@ String& String::set(const std::string& str, size_t size)
     return set((const char*)str.c_str(), inbytes);
 }
 
-/*!\brief Wert eines Wide-Strings der STL übernehmen
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des STL-Wide-Strings \p str übernommen.
- *
- * \param str Referenz auf einen Wide-String der Standard Template Library (STL)
- * \param size Optionaler Parameter, der die Anzahl zu importierender Zeichen angibt.
- * Ist der Wert nicht angegeben, wird der komplette String übernommen. Ist der Wert größer als
- * der angegebene String, wird er ignoriert und der komplette String importiert.
- * \return Referenz auf den String
- * \exception OutOfMemoryException
- */
 String& String::set(const std::wstring& str, size_t size)
 {
     size_t inbytes;
@@ -455,18 +407,6 @@ String& String::set(const std::wstring& str, size_t size)
     return set(str.c_str(), inbytes);
 }
 
-/*!\brief Einzelnes Zeichen ersetzen
- *
- * \desc
- * Mit dieser Funktion wird ein einzelnes Zeichen eines Strings an der Position
- * \p position durch das Zeichen \p c ersetzt.
- *
- * @param position Position innerhalb des Strings (Zählung beginnt bei 0)
- * @param c Unicode-Wert, der gesetzt werden soll
- * @return Referenz auf den String
- * \throw OutOfBoundsException: Wird geworfen, wenn \p position größer ist, als die
- * Länge des Strings
- */
 String& String::set(size_t position, char c)
 {
     if (position >= stringlen) throw OutOfBoundsException();
@@ -474,30 +414,6 @@ String& String::set(size_t position, char c)
     return *this;
 }
 
-/*! \brief Erzeugt einen formatierten String
- *
- * \desc
- * Erzeugt einen String anhand des übergebenen Formatstrings \p fmt
- * und den optionalen Parametern \p ...
- *
- * \param fmt Der Formatstring
- * \param ... Optionale Parameter
- *
- * @return Referenz auf den String
- *
- * \par Example:
- * \code
-int main(int argc, char **argv)
-{
-    String s;
-    s.setf ("Anzahl Parameter: %i\n",argc);
-    s.printnl();
-    return 0;
-}
-\endcode
- *
- * \copydoc sprintf.dox
- */
 String& String::setf(const char* fmt, ...)
 {
     va_list args;
@@ -524,15 +440,16 @@ String& String::setf(const char* fmt, ...)
     throw Exception("String::setf");
 }
 
-/*!\brief Einzelnes ASCII-Zeichen übernehmen
- *
- * \desc
- * Ein einzelnes ASCII-Zeichen \p c wird in den String übernommen.
- *
- * @param c ASCII-Wert des gewünschten Zeichens
- *
- * @return Referenz auf den String
- */
+String String::format(const char* fmt, ...)
+{
+    String s;
+    va_list args;
+    va_start(args, fmt);
+    s.vasprintf(fmt, args);
+    va_end(args);
+    return s;
+}
+
 String& String::set(char c)
 {
     char buffer[2];
@@ -541,29 +458,6 @@ String& String::set(char c)
     return set(buffer, 1);
 }
 
-/*! \brief Erzeugt einen formatierten String
- *
- * Erzeugt einen String anhand des übergebenen Formatstrings \p fmt
- * und den optionalen Parametern in \p args.
- *
- * \param fmt Der Formatstring
- * \param args Pointer auf Liste der Parameter. Muss zuvor mit va_start initialisiert worden sein.
- * @return Referenz auf den String
- * \par Example:
- * \code
-void MyFunction(const char *fmt, ...)
-{
-    String s;
-    va_list args;
-    va_start(args, fmt);
-    s.vasprintf(fmt,args);
-    va_end(args);
-    printf ("Ergebnis: %s",(const char*)s);
-}
-\endcode
- *
- * \copydoc sprintf.dox
- */
 String& String::vasprintf(const char* fmt, va_list args)
 {
     char* buff = NULL;
@@ -586,25 +480,6 @@ String& String::vasprintf(const char* fmt, va_list args)
     throw Exception();
 }
 
-/*!\brief String-Speicher übernehmen
- *
- * \desc
- * Mit dieser Funktion wird der Klasse die Verwaltung des Speicherbereich mit der Adresse \p adr und der
- * Größe \p size übergeben. Der Speicher muss zuvor mit "malloc" bzw. "calloc" allokiert worden sein
- * und darf von der Anwendung selbst nicht mehr freigegeben werden.
- *
- * @param[in] adr Startadresse des Speicherbereichs
- * @param[in] size Größe des Speicherbereichs in Bytes
- * @param[in] stringlen Optionaler Parameter, der die Länge des Strings innerhalb des übergebenen
- * Speicherbereichs angibt. Darf maximal \b size-1 groß sein. Ist der Wert nicht angegeben, wird die
- * Länge des Strings mit \b strlen berechnet
- *
- * \note Der String muss mit einem Null-Byte enden. Um dies sicherzustellen überschreibt die Methode
- * das letzte Byte des übergebenen Speicherbereichs mit 0.
- *
- * \return Referenz auf den String
- *
- */
 String& String::useadr(void* adr, size_t size, size_t stringlen)
 {
     if (adr == NULL || size == 0) throw IllegalArgumentException("adr and size must not be 0");
@@ -618,18 +493,6 @@ String& String::useadr(void* adr, size_t size, size_t stringlen)
     return *this;
 }
 
-/*!\brief Fügt einen Wide-Character String an das Ende des bestehenden an
- *
- * \desc
- * Fügt einen Wide-Character String an das Ende des bestehenden an
- *
- * \param[in] str Pointer auf einen Wide-Character String
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::append(const wchar_t* str, size_t size)
 {
     String a;
@@ -637,24 +500,6 @@ String& String::append(const wchar_t* str, size_t size)
     return append((const char*)a, a.size());
 }
 
-/*!\brief Fügt einen C-String an das Ende des bestehenden an
- *
- * \desc
- * Fügt einen C-String an das Ende des bestehenden an. Der String muss entweder
- * UTF-8 kodiert sein, oder es muss mit der statischen Funktion String::setGlobalEncoding
- * zuvor eine andere Kodierung gesetzt worden sein.
- *
- * \param[in] str Pointer auf einen Wide-Character String
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- * \exception UnsupportedFeatureException
- * \exception UnsupportedCharacterEncodingException
- * \exception CharacterEncodingException
- *
- */
 String& String::append(const char* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
@@ -681,82 +526,24 @@ String& String::append(const char* str, size_t size)
     return *this;
 }
 
-/*!\brief Fügt einen String an das Ende des bestehenden an
- *
- * \desc
- * Fügt einen String an das Ende des bestehenden an.
- *
- * \param[in] str Referenz auf ein String-Objekt
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::append(const String& str, size_t size)
 {
     return append(str.ptr, size);
 }
 
-/*!\brief Fügt einen std::string an das Ende des bestehenden an
- *
- * \desc
- * Fügt einen std::string an das Ende des bestehenden an.
- *
- * \param[in] str Referenz auf ein String-Objekt der STL
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::append(const std::string& str, size_t size)
 {
     if (size == (size_t)-1) return append(str.data(), str.size());
     return append(str.data(), size);
 }
 
-/*!\brief Fügt einen std::wstring an das Ende des bestehenden an
- *
- * \desc
- * Fügt einen std::wstring an das Ende des bestehenden an.
- *
- * \param[in] str Referenz auf ein Wide-String-Objekt der STL
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::append(const std::wstring& str, size_t size)
 {
-    if (size == (size_t)-1) return append(str.data(), str.size());
-    return append(str.data(), size);
+    String a;
+    a.set(str, size);
+    return append(a.ptr, a.stringlen);
 }
 
-/*!\brief Fügt einen Formatierten String an das Ende des bestehenden an
- *
- * Anhand des übergebenen Formatstrings \p fmt und den optionalen Parametern \p ...
- * wird ein neuer String gebildet, der an das Ende des bestehenden angehangen wird
- *
- * \param fmt Der Formatstring
- * \param ... Optionale Parameter
-  * @return Referenz auf den String
- *
- * \par Example:
- * \code
-int main(int argc, char **argv)
-{
-    String s;
-    s="Hallo Welt!";
-    s.appendf (" Es wurden %i Parameter übergeben\n",argc);
-    s.printnl();
-    return 0;
-}
-\endcode
- *
- * \copydoc sprintf.dox
- */
 String& String::appendf(const char* fmt, ...)
 {
     va_list args;
@@ -785,15 +572,6 @@ String& String::appendf(const char* fmt, ...)
     throw Exception();
 }
 
-/*!\brief Einzelnes ASCII-Zeichen anhängen
- *
- * \desc
- * Ein einzelnes ASCII-Zeichen \p c wird in an den String angehangen.
- *
- * @param c ASCII-Wert des gewünschten Zeichens
- *
- * @return Referenz auf den String
- */
 String& String::append(char c)
 {
     char buffer[2];
@@ -802,18 +580,6 @@ String& String::append(char c)
     return append(buffer, 1);
 }
 
-/*!\brief Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
- *
- * \desc
- * Fügt einen Wide-Character String am Anfang des bestehenden Strings ein
- *
- * \param[in] str Pointer auf einen Wide-Character String
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::prepend(const wchar_t* str, size_t size)
 {
     String a;
@@ -821,18 +587,6 @@ String& String::prepend(const wchar_t* str, size_t size)
     return prepend((const char*)a.ptr, size);
 }
 
-/*!\brief Fügt einen String am Anfang des bestehenden Strings ein
- *
- * \desc
- * Fügt einen String am Anfang des bestehenden Strings ein
- *
- * \param[in] str Referenz auf einen String
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::prepend(const String& str, size_t size)
 {
     if (ptr == empty_string) {
@@ -844,18 +598,6 @@ String& String::prepend(const String& str, size_t size)
     return prepend(a.ptr, a.stringlen);
 }
 
-/*!\brief Fügt einen std::string der STL am Anfang des bestehenden Strings ein
- *
- * \desc
- * Fügt einen std::string der Standard Template Library am Anfang des bestehenden Strings ein
- *
- * \param[in] str Referenz auf einen std::string
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::prepend(const std::string& str, size_t size)
 {
     if (ptr == empty_string) {
@@ -867,18 +609,6 @@ String& String::prepend(const std::string& str, size_t size)
     return prepend(a.ptr, a.stringlen);
 }
 
-/*!\brief Fügt einen std::wstring der STL am Anfang des bestehenden Strings ein
- *
- * \desc
- * Fügt einen std::wstring der Standard Template Library am Anfang des bestehenden Strings ein
- *
- * \param[in] str Referenz auf einen std::wstring
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::prepend(const std::wstring& str, size_t size)
 {
     if (ptr == empty_string) {
@@ -890,18 +620,6 @@ String& String::prepend(const std::wstring& str, size_t size)
     return prepend(a.ptr, a.stringlen);
 }
 
-/*!\brief Fügt einen C-String am Anfang des bestehenden Strings ein
- *
- * \desc
- * Fügt einen C-String am Anfang des bestehenden Strings ein
- *
- * \param[in] str Pointer auf einen C-String
- * \param[in] size Optional die Anzahl Zeichen (nicht Bytes) im String, die kopiert werden sollen.
- *
- * \return Referenz auf den String
- *
- * \exception OutOfMemoryException
- */
 String& String::prepend(const char* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
@@ -932,27 +650,6 @@ String& String::prepend(const char* str, size_t size)
     return *this;
 }
 
-/*!\brief Fügt einen Formatierten String am Anfang bestehenden ein
- *
- * Anhand des übergebenen Formatstrings \p fmt und den optionalen Parametern \p ...
- * wird ein neuer String gebildet, der am Anfang des bestehenden eingehangen wird.
- *
- * \param fmt Der Formatstring
- * \param ... Optionale Parameter
- * \par Example:
- * \code
-int main(int argc, char **argv)
-{
-    String s;
-    s="Vielen Dank!\n";
-    s.prependf ("Es wurden %i Parameter übergeben. ",argc);
-    s.printnl();
-    return 0;
-}
-\endcode
- *
- * \copydoc sprintf.dox
- */
 String& String::prependf(const char* fmt, ...)
 {
     va_list args;
@@ -981,16 +678,6 @@ String& String::prependf(const char* fmt, ...)
     throw Exception();
 }
 
-/*!\brief Einzelnes ASCII-Zeichen am Anfang einfügen
- *
- * \desc
- * Ein einzelnes ASCII-Zeichen \p c wird in am Anfang des Strings eingefügt.
- * Die nachfolgenden Zeichen des Strings verschieben sich nach rechts.
- *
- * @param c ASCII-Wert des gewünschten Zeichens
- *
- * @return Referenz auf den String
- */
 String& String::prepend(char c)
 {
     char buffer[2];
