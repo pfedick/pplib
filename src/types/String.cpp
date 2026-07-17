@@ -178,13 +178,13 @@ void String::clear() noexcept
 
 size_t String::capacity() const
 {
-    if (!s) return 0;
-    return (s / sizeof(char)) - 1;
+    if (s == 0) return 0;
+    return s - 1;
 }
 
 void String::reserve(size_t size)
 {
-    size_t bytes = (size + 1) * sizeof(char);
+    size_t bytes = size + 1;
     if (s >= bytes) return; // Nothing to do
     char* p;
     if (ptr == empty_string)
@@ -261,7 +261,7 @@ String& String::set(const char* str, size_t size)
         clear();
         return *this;
     }
-    size_t outbytes = inbytes * sizeof(char) + 1;
+    size_t outbytes = inbytes + 1;
     if (outbytes >= s) {
         if (ptr != empty_string) free(ptr);
         stringlen = 0;
@@ -500,7 +500,7 @@ String& String::append(const char* str, size_t size)
         if (inchars > strlen(str)) inchars = strlen(str);
     } else
         inchars = strlen(str);
-    size_t outbytes = (inchars + stringlen) * sizeof(char) + 1;
+    size_t outbytes = (inchars + stringlen) + 1;
     if (outbytes >= s) {
         size_t newbuffersize = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 16;
         char* t = (char*)realloc(ptr, newbuffersize);
@@ -621,7 +621,7 @@ String& String::prepend(const char* str, size_t size)
         if (inchars > strlen(str)) inchars = strlen(str);
     } else
         inchars = strlen(str);
-    size_t outbytes = (inchars + stringlen) * sizeof(char) + 1;
+    size_t outbytes = inchars + stringlen + 1;
     if (outbytes >= s) {
         size_t newbuffersize = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 16;
         char* t = (char*)realloc(ptr, newbuffersize);
@@ -1379,7 +1379,7 @@ void String::trim()
             }
         }
         ptr[ende + 1] = 0;
-        if (start > 0) memmove(ptr, ptr + start, (ende - start + 2) * sizeof(char));
+        if (start > 0) memmove(ptr, ptr + start, (ende - start + 2));
         stringlen = strlen(ptr);
         ptr[stringlen] = 0;
     }
@@ -1435,7 +1435,7 @@ void String::trimLeft()
                 s = 1; // ende=i;
             }
         }
-        if (start > 0) memmove(ptr, ptr + start, (stringlen - start + 1) * sizeof(char));
+        if (start > 0) memmove(ptr, ptr + start, (stringlen - start + 1));
         stringlen = strlen(ptr);
         ptr[stringlen] = 0;
     }
@@ -1481,7 +1481,7 @@ void String::trimLeft(const String& chars)
             }
         }
         if (start > 0) {
-            memmove(ptr, ptr + start, (stringlen - start + 1) * sizeof(char));
+            memmove(ptr, ptr + start, (stringlen - start + 1));
             stringlen = strlen(ptr);
         }
     }
@@ -1569,7 +1569,7 @@ void String::chopLeft(size_t num)
 {
     if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
-        memmove(ptr, ptr + num, (stringlen - num) * sizeof(char));
+        memmove(ptr, ptr + num, (stringlen - num));
         stringlen -= num;
         ptr[stringlen] = 0;
     }
@@ -1849,7 +1849,7 @@ String& String::repeat(size_t num)
         clear();
         return *this;
     }
-    size_t newsize = (stringlen * num + 16) * sizeof(char);
+    size_t newsize = (stringlen * num + 16);
     char* buf = (char*)malloc(newsize);
     if (!buf) throw OutOfMemoryException();
     char* tmp = buf;
@@ -1885,7 +1885,7 @@ String& String::repeat(char code, size_t num)
         clear();
         return *this;
     }
-    size_t newsize = (num + 16) * sizeof(char);
+    size_t newsize = (num + 16);
     char* buf = (char*)malloc(newsize);
     if (!buf) throw OutOfMemoryException();
     for (size_t i = 0; i < num; i++)
@@ -1914,7 +1914,7 @@ String& String::repeat(const String& str, size_t num)
         clear();
         return *this;
     }
-    size_t newsize = (str.stringlen * num + 16) * sizeof(char);
+    size_t newsize = (str.stringlen * num + 16);
     char* buf = (char*)malloc(newsize);
     if (!buf) throw OutOfMemoryException();
     char* tmp = buf;
