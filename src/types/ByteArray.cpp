@@ -192,6 +192,12 @@ ByteArray& ByteArray::operator=(const ByteArrayPtr& other)
     return *this;
 }
 
+ByteArray& ByteArray::operator=(const ByteArray& other)
+{
+    copy(other.ptradr, other.ptrsize);
+    return *this;
+}
+
 ByteArray& ByteArray::operator=(ByteArray&& other)
 {
     if (this != &other) {

@@ -52,6 +52,13 @@ String Md5(const void* buffer, size_t size);
 String Md5(const ByteArrayPtr& buffer);
 double Calc(const String& expression);
 
+/**@brief Entfernt Backslashes aus einem String
+ * @relates String
+ *
+ * Entfernt Backslashes aus einem String
+ * @param str Eingabe-String
+ * @return Neuer String
+ */
 String StripSlashes(const String& str);
 String EscapeHTMLTags(const String& html);
 String UnescapeHTMLTags(const String& html);
@@ -78,6 +85,17 @@ String Mid(const String& str, size_t start, size_t num = (size_t)-1);
 String SubStr(const String& str, size_t start, size_t num = (size_t)-1);
 String ToString(const char* fmt, ...);
 String Replace(const String& string, const String& search, const String& replace);
+
+/**@brief Wiederholt einen String
+ * @relates String
+ *
+ * Wiederholt einen String \p count mal und gibt den neuen String zurück.
+ * @param str Eingabe-String
+ * @param count Anzahl der Wiederholungen
+ * @return Neuer String
+ */
+String Repeat(const String& str, size_t count);
+
 String Transcode(const char* str, size_t size, const String& fromEncoding, const String& toEncoding);
 String Transcode(const String& str, const String& fromEncoding, const String& toEncoding);
 bool IsTrue(const String& str);

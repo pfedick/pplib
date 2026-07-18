@@ -774,7 +774,8 @@ html:
 	doxygen Doxyfile
 	cp docs/header-bg.png documentation/html
 
-test:
+.PHONY: tests
+tests:
 	cd tests; make xml
 
 memcheck:

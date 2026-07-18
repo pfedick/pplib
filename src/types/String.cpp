@@ -26,10 +26,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-#include <ppl7-config.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdarg.h>
 #include <ctype.h>
 #include <wchar.h>
@@ -43,8 +43,9 @@
 #include <ppl7/types/array.h>
 #include <ppl7/exceptions.h>
 #include <ppl7/functions.h>
-#include <compat_ppl7.h>
 #include <ppl7/core/iconv.h>
+
+#include <config_ppl7.h>
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
@@ -419,26 +420,9 @@ String& String::setf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            set(buff);
-            free(buff);
-        }
-        catch (...) {
-            free(buff);
-            va_end(args);
-            throw;
-        }
-        return *this;
-    }
+    this->vasprintf(fmt, args);
     va_end(args);
-    free(buff);
-    throw Exception("String::setf");
+    return *this;
 }
 
 String String::format(const char* fmt, ...)
@@ -461,24 +445,26 @@ String& String::set(char c)
 
 String& String::vasprintf(const char* fmt, va_list args)
 {
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            set(buff);
-            free(buff);
-        }
-        catch (...) {
-            free(buff);
-            throw;
-        }
-        return *this;
+    va_list args_copy;
+    va_copy(args_copy, args);
+
+    // 1. Benötigte Größe bestimmen (ohne in einen echten Puffer zu schreiben)
+    int size = ::vsnprintf(nullptr, 0, fmt, args_copy);
+    va_end(args_copy);
+
+    if (size < 0) {
+        throw Exception("String::vasprintf failed to format");
     }
-    free(buff);
-    throw Exception();
+
+    // 2. Speicher direkt im String-Objekt reservieren (+1 für das Nullbyte)
+    size_t required_bytes = size + 1;
+    reserve(size + 1);
+
+    // 3. Direkt in den eigenen Puffer schreiben
+    ::vsnprintf(ptr, required_bytes, fmt, args);
+    stringlen = size;
+    ptr[stringlen] = 0;
+    return *this;
 }
 
 String& String::append(const wchar_t* str, size_t size)
@@ -536,28 +522,10 @@ String& String::appendf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            String a;
-            a.set(buff);
-            free(buff);
-            append(a.ptr, a.stringlen);
-        }
-        catch (...) {
-            free(buff);
-            va_end(args);
-            throw;
-        }
-        return *this;
-    }
+    String s;
+    s.vasprintf(fmt, args);
     va_end(args);
-    free(buff);
-    throw Exception();
+    return append(s.ptr, s.stringlen);
 }
 
 String& String::append(char c)
@@ -642,28 +610,10 @@ String& String::prependf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            String a;
-            a.set(buff);
-            free(buff);
-            prepend(a.ptr, a.stringlen);
-        }
-        catch (...) {
-            free(buff);
-            va_end(args);
-            throw;
-        }
-        return *this;
-    }
+    String s;
+    s.vasprintf(fmt, args);
     va_end(args);
-    free(buff);
-    throw Exception();
+    return prepend(s.ptr, s.stringlen);
 }
 
 String& String::prepend(char c)
@@ -734,14 +684,14 @@ ByteArray String::toEncoding(const char* encoding) const
 ByteArray String::toUtf8() const
 {
     const char* l = setlocale(LC_CTYPE, NULL);
-    // printf ("Locale: %s\n",l);
-    //  de_DE.UTF-8
-    if (strcasestr(l, "utf-8")) {
-        return ByteArray(ptr, stringlen);
+    if (l) {
+        String localeStr(l);
+        if (localeStr.instrCase("utf-8") >= 0) {
+            return ByteArray(ptr, stringlen);
+        }
     }
     return toEncoding("UTF-8");
 }
-
 ByteArray String::toUCS4() const
 {
     ByteArray ret;
@@ -1222,7 +1172,7 @@ String String::substr(size_t start, size_t len) const
     return String();
 }
 
-/*! \brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
+/*!\brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
  *
  * \desc
  * Diese Funktion wandelt alle Zeichen des Strings in Kleinbuchstaben um. Die genaue Funktionsweise hängt davon ab,
@@ -1807,30 +1757,6 @@ bool String::has(const String& needle, bool ignoreCase) const
     p = ::strstr(ptr, needle.ptr);
     if (p != NULL) return true;
     return false;
-}
-
-String& String::stripSlashes()
-{
-    if (stringlen == 0) return *this;
-    size_t p = 0, np = 0;
-    char a, lastchar = 0;
-    while ((a = ptr[p])) {
-        if (lastchar != '\\' && p > 0) {
-            ptr[np] = lastchar;
-            np++;
-        }
-        lastchar = a;
-        p++;
-    }
-    if (lastchar) {
-        ptr[np] = lastchar;
-        np++;
-    }
-    ptr[np] = 0;
-    if (stringlen != np) {
-        stringlen = np;
-    }
-    return *this;
 }
 
 /*!\brief String wiederholen

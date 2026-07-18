@@ -41,63 +41,77 @@
 #include <gtest/gtest.h>
 #include "ppl7-tests.h"
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class StringFunctionTest : public ::testing::Test {
-	protected:
-	StringFunctionTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-	}
-	virtual ~StringFunctionTest() {
-
-	}
+class StringFunctionTest : public ::testing::Test
+{
+protected:
+    StringFunctionTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+    }
+    virtual ~StringFunctionTest()
+    {
+    }
 };
 
-//0d,0e,37,42,81,ff,42,00,4c,17,12
-static unsigned char binarydata[]={13,14,55,66,129,255,66,0,76,23,18};
+// 0d,0e,37,42,81,ff,42,00,4c,17,12
+static unsigned char binarydata[] = {13, 14, 55, 66, 129, 255, 66, 0, 76, 23, 18};
 
-TEST_F(StringFunctionTest, ToBase64) {
-	ppl7::ByteArrayPtr b2;
-	b2.use(binarydata,7);
-	EXPECT_EQ(ppl7::String("DQ43QoH/Qo=="),ToBase64(b2));
-	b2.use(binarydata,8);
-	EXPECT_EQ(ppl7::String("DQ43QoH/QgD="),ToBase64(b2));
-	b2.use(binarydata,9);
-	EXPECT_EQ(ppl7::String("DQ43QoH/QgBM"),ToBase64(b2));
-	b2.use(binarydata,10);
-	EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFw=="),ToBase64(b2));
-	b2.use(binarydata,11);
-	EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFxJ="),ToBase64(b2));
+TEST_F(StringFunctionTest, ToBase64)
+{
+    ppl7::ByteArrayPtr b2;
+    b2.use(binarydata, 7);
+    EXPECT_EQ(ppl7::String("DQ43QoH/Qo=="), ToBase64(b2));
+    b2.use(binarydata, 8);
+    EXPECT_EQ(ppl7::String("DQ43QoH/QgD="), ToBase64(b2));
+    b2.use(binarydata, 9);
+    EXPECT_EQ(ppl7::String("DQ43QoH/QgBM"), ToBase64(b2));
+    b2.use(binarydata, 10);
+    EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFw=="), ToBase64(b2));
+    b2.use(binarydata, 11);
+    EXPECT_EQ(ppl7::String("DQ43QoH/QgBMFxJ="), ToBase64(b2));
 }
 
 TEST_F(StringFunctionTest, FromBase64)
 {
-	ppl7::ByteArrayPtr b1;
-	try {
-		b1.use(binarydata,7);
-		EXPECT_EQ(b1,ppl7::FromBase64(ppl7::String("DQ43QoH/Qo==")));
-		b1.use(binarydata,8);
-		EXPECT_EQ(b1,ppl7::FromBase64(ppl7::String("DQ43QoH/QgD=")));
-		b1.use(binarydata,9);
-		EXPECT_EQ(b1,ppl7::FromBase64(ppl7::String("DQ43QoH/QgBM")));
-		b1.use(binarydata,10);
-		EXPECT_EQ(b1,ppl7::FromBase64(ppl7::String("DQ43QoH/QgBMFw==")));
-		b1.use(binarydata,11);
-		EXPECT_EQ(b1,ppl7::FromBase64(ppl7::String("DQ43QoH/QgBMFxJ=")));
-	} catch (const ppl7::Exception &e) {
-		e.print();
-	} catch (const std::exception &e) {
-		printf ("std::exception: %s\n",e.what());
-	}
-
+    ppl7::ByteArrayPtr b1;
+    try {
+        b1.use(binarydata, 7);
+        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/Qo==")));
+        b1.use(binarydata, 8);
+        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgD=")));
+        b1.use(binarydata, 9);
+        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgBM")));
+        b1.use(binarydata, 10);
+        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgBMFw==")));
+        b1.use(binarydata, 11);
+        EXPECT_EQ(b1, ppl7::FromBase64(ppl7::String("DQ43QoH/QgBMFxJ=")));
+    }
+    catch (const ppl7::Exception& e) {
+        e.print();
+    }
+    catch (const std::exception& e) {
+        printf("std::exception: %s\n", e.what());
+    }
 }
 
+TEST_F(StringFunctionTest, StripSlashes)
+{
+    EXPECT_EQ(ppl7::String(""), ppl7::StripSlashes(ppl7::String("")));
+    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo Welt")));
+    EXPECT_EQ(ppl7::String("HalloWelt"), ppl7::StripSlashes(ppl7::String("Hallo\\ Welt")));
+    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\n Welt")));
+    EXPECT_EQ(ppl7::String("Hallo\\Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\\\Welt")));
+    EXPECT_EQ(ppl7::String("allo Welt"), ppl7::StripSlashes(ppl7::String("\\Hallo Welt")));
+    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo Welt\\")));
+}
 
 // ByteArray fromBase64(const String &base64);
 
-} // EOF namespace
-
+} // namespace

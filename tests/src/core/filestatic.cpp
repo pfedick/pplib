@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author: pafe $
- * $Revision: 837 $
- * $Date: 2014-01-23 08:31:34 +0100 (Do, 23 Jan 2014) $
- * $Id: file.cpp 837 2014-01-23 07:31:34Z pafe $
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -324,7 +319,7 @@ TEST_F(FileStaticTest, LoadFileUSAscii2ByteArray)
 {
     ppl7::ByteArray s;
     ASSERT_NO_THROW(ppl7::File::load(s, "testdata/filenameUSASCII.txt")) << "Loading file to string";
-    ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), s.md5()) << "Checking MD5-sum";
+    ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), ppl7::Md5(s)) << "Checking MD5-sum";
     ASSERT_EQ((size_t)1962, s.size()) << "Checking Size";
 }
 
@@ -340,7 +335,7 @@ TEST_F(FileStaticTest, LoadFileLocal2ByteArray)
 {
     ppl7::ByteArray s;
     ASSERT_NO_THROW(ppl7::File::load(s, ppl7::Iconv::Utf8ToLocal("testdata/filenameUTF8äöü.txt"))) << "Loading file to string";
-    ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), s.md5()) << "Checking MD5-sum";
+    ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), ppl7::Md5(s)) << "Checking MD5-sum";
     ASSERT_EQ((size_t)1962, s.size()) << "Checking Size";
 }
 
@@ -351,7 +346,7 @@ TEST_F(FileStaticTest, LoadFileUSAscii2Ptr)
     ASSERT_NO_THROW({ data = ppl7::File::load("testdata/filenameUSASCII.txt"); });
     ASSERT_TRUE(data.ptr() != NULL) << "Loading file to ptr";
     EXPECT_EQ((size_t)1962, data.size()) << "Checking Size";
-    EXPECT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), data.md5()) << "Checking MD5-sum";
+    EXPECT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), ppl7::Md5(data)) << "Checking MD5-sum";
 }
 
 TEST_F(FileStaticTest, LoadFileLocal2Ptr)
@@ -360,7 +355,7 @@ TEST_F(FileStaticTest, LoadFileLocal2Ptr)
     ASSERT_NO_THROW({ data = ppl7::File::load(ppl7::Iconv::Utf8ToLocal("testdata/unicodeUtf8äöü.txt")); });
     ASSERT_TRUE(data.ptr() != NULL) << "Loading file to ptr";
     EXPECT_EQ((size_t)7976, data.size()) << "Checking Size";
-    EXPECT_EQ(ppl7::String("c6767ca956f9e3b65164bed63b93d811"), data.md5()) << "Checking MD5-sum";
+    EXPECT_EQ(ppl7::String("c6767ca956f9e3b65164bed63b93d811"), ppl7::Md5(data)) << "Checking MD5-sum";
 }
 
 TEST_F(FileStaticTest, DeleteFileUSAscii)

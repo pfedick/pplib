@@ -321,16 +321,27 @@ public:
      */
     void clear();
 
-    /**@brief Speicherreferenz von anderem ByteArray- oder ByteArrayPtr-Objekt übernehmen
+    /**@brief Speicherreferenz von anderem ByteArrayPtr-Objekt übernehmen
      *
-     * Mit diesem Operator wird der Speicherbereich eines anderen ByteArray- oder ByteArrayPtr-Objekts
+     * Mit diesem Operator wird der Speicherbereich eines anderen ByteArrayPtr-Objekts
      * kopiert. Er ist identisch zur Funktion ByteArray::copy.
      *
-     * @param[in] other Referenz auf ein anderes ByteArray- oder ByteArrayPtr-Objekt.
+     * @param[in] other Referenz auf ein anderes ByteArrayPtr-Objekt.
      * @return Referenz auf das Objekt
      * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
      */
     ByteArray& operator=(const ByteArrayPtr& other);
+
+    /**@brief Speicherreferenz von anderem ByteArra-Objekt übernehmen
+     *
+     * Mit diesem Operator wird der Speicherbereich eines anderen ByteArray-Objekts
+     * kopiert. Er ist identisch zur Funktion ByteArray::copy.
+     *
+     * @param[in] other Referenz auf ein anderes ByteArray-Objekt.
+     * @return Referenz auf das Objekt
+     * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
+     */
+    ByteArray& operator=(const ByteArray& other);
 
     /**@brief Move-Operator
      *

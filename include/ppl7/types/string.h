@@ -784,8 +784,6 @@ public:
     bool endsWith(const String& suffix, size_t start = 0, size_t end = (size_t)-1) const;
     String join(const ppl7::Array& iterable) const;
 
-    String& stripSlashes();
-
     String& replace(const String& search, const String& replacement);
 
     //@}

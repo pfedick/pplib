@@ -87,7 +87,7 @@ public:
      *
      * @param[in] data Referenz auf eine String-Instanz
      */
-    explicit ByteArrayPtr(const String& data);
+    ByteArrayPtr(const String& data);
 
     /**@brief Konstruktor mit Angabe einer WideString-Instanz
      *
@@ -95,7 +95,7 @@ public:
      *
      * @param[in] data Referenz auf eine WideString-Instanz
      */
-    explicit ByteArrayPtr(const WideString& data);
+    ByteArrayPtr(const WideString& data);
 
     /**@brief Konstruktor mit Angabe einer Speicheradresse und Größe
      *
