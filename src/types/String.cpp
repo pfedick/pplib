@@ -51,17 +51,6 @@
 namespace ppl7
 {
 
-/* TODO:
- * Bei Verwendung von UTF-8 als globaler Kodierung, sollte die Konvertierung zwischen
- * String und WideString, bzw. wchar_t nicht über iconv erfolgen, sondern direkt über
- * mbstowcs und wcstombs oder eigenen code erfolgen. Dies ist schneller und benötigt keine zusätzliche Bibliothek.
- *
- * Das Encoding sollte wohl generell überarbeitet werden.
- *
- */
-
-static size_t InitialBuffersize = 128;
-
 String::String() noexcept
 {
     ptr = nullptr;
@@ -242,8 +231,7 @@ String& String::set(const char* str, size_t size)
     if (outbytes >= s) {
         free(ptr);
         stringlen = 0;
-        s = InitialBuffersize;
-        if (s <= outbytes) s = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 1;
+        s = outbytes;
         ptr = (char*)malloc(s);
         if (!ptr) {
             s = 0;
@@ -403,21 +391,29 @@ String& String::append(const char* str, size_t size)
     if (ptr == nullptr) {
         return set(str, size);
     }
-    size_t inchars;
-    if (size != (size_t)-1) {
-        inchars = size;
-        if (inchars > strlen(str)) inchars = strlen(str);
-    } else
-        inchars = strlen(str);
-    size_t outbytes = (inchars + stringlen) + 1;
-    if (outbytes >= s) {
-        size_t newbuffersize = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 16;
+
+    size_t inchars = (size != (size_t)-1) ? size : ::strlen(str);
+    // Self-Append Schutz: Zeigt "str" auf unseren eigenen Speicher block?
+    String temp_holder;
+    if (str >= ptr && str < ptr + stringlen) {
+        temp_holder.set(str, inchars);
+        str = temp_holder.c_str(); // Zeigt jetzt auf einen sicheren Stack-Puffer
+    }
+
+    size_t required_bytes = stringlen + inchars + 1;
+
+    if (required_bytes >= s) {
+        // Geometrisches Wachstum: Wir verdoppeln die Kapazität
+        size_t newbuffersize = s * 2;
+        if (newbuffersize < required_bytes) {
+            newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
+        }
         char* t = (char*)realloc(ptr, newbuffersize);
         if (!t) throw OutOfMemoryException();
         ptr = t;
         s = newbuffersize;
     }
-    memcpy(((char*)ptr) + stringlen, str, inchars);
+    memcpy(ptr + stringlen, str, inchars);
     stringlen += inchars;
     ptr[stringlen] = 0;
     return *this;
@@ -502,15 +498,22 @@ String& String::prepend(const char* str, size_t size)
     if (ptr == nullptr) {
         return set(str, size);
     }
-    size_t inchars;
-    if (size != (size_t)-1) {
-        inchars = size;
-        if (inchars > strlen(str)) inchars = strlen(str);
-    } else
-        inchars = strlen(str);
-    size_t outbytes = inchars + stringlen + 1;
-    if (outbytes >= s) {
-        size_t newbuffersize = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 16;
+    size_t inchars = (size != (size_t)-1) ? size : ::strlen(str);
+    // Self-Prepend Schutz: Zeigt "str" auf unseren eigenen Speicher block?
+    String temp_holder;
+    if (str >= ptr && str < ptr + stringlen) {
+        temp_holder.set(str, inchars);
+        str = temp_holder.c_str(); // Zeigt jetzt auf einen sicheren Stack-Puffer
+    }
+
+    size_t required_bytes = stringlen + inchars + 1;
+
+    if (required_bytes >= s) {
+        // Geometrisches Wachstum: Wir verdoppeln die Kapazität
+        size_t newbuffersize = s * 2;
+        if (newbuffersize < required_bytes) {
+            newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
+        }
         char* t = (char*)realloc(ptr, newbuffersize);
         if (!t) throw OutOfMemoryException();
         ptr = t;

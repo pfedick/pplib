@@ -74,8 +74,6 @@
 namespace ppl7
 {
 
-static size_t InitialBuffersize = 128;
-
 /*!\class WideString
  * \ingroup PPLGroupDataTypes
  * \ingroup PPLGroupStrings
@@ -537,25 +535,24 @@ WideString& WideString::set(const wchar_t* str, size_t size)
         clear();
         return *this;
     }
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = wcslen(str);
-    size_t outbytes = inbytes * sizeof(wchar_t) + 4;
+    size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+    if (inchars == 0) {
+        clear();
+        return *this;
+    }
+    size_t outbytes = (inchars + 1) * sizeof(wchar_t);
     if (outbytes >= s) {
-        if (ptr) free(ptr);
+        free(ptr);
         stringlen = 0;
-        s = InitialBuffersize;
-        if (s <= outbytes) s = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 4;
+        s = outbytes;
         ptr = (wchar_t*)malloc(s);
         if (!ptr) {
             s = 0;
             throw OutOfMemoryException();
         }
     }
-    wcsncpy((wchar_t*)ptr, str, inbytes);
-    stringlen = inbytes;
+    wcsncpy((wchar_t*)ptr, str, inchars);
+    stringlen = inchars;
     ((wchar_t*)ptr)[stringlen] = 0;
     return *this;
 }
@@ -785,20 +782,26 @@ WideString& WideString::vasprintf(const char* fmt, va_list args)
  */
 WideString& WideString::append(const wchar_t* str, size_t size)
 {
-    if (!str) return *this;
-    if (!ptr) {
-        set(str, size);
-        return *this;
+    if (str == NULL || size == 0) return *this;
+    if (ptr == nullptr) {
+        return set(str, size);
     }
-    size_t inchars;
-    if (size != (size_t)-1) {
-        inchars = size;
-        if (inchars > wcslen(str)) inchars = wcslen(str);
-    } else
-        inchars = wcslen(str);
-    size_t outbytes = (inchars + stringlen) * sizeof(wchar_t) + 4;
-    if (outbytes >= s) {
-        size_t newbuffersize = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 16;
+    size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+
+    // Self-Append Schutz: Zeigt "str" auf unseren eigenen Speicher block?
+    WideString temp_holder;
+    if (str >= ptr && str < ptr + stringlen) {
+        temp_holder.set(str, inchars);
+        str = temp_holder.getPtr(); // Zeigt jetzt auf einen sicheren Stack-Puffer
+    }
+
+    size_t required_bytes = (stringlen + inchars + 1) * sizeof(wchar_t);
+    if (required_bytes >= s) {
+        // Geometrisches Wachstum: Wir verdoppeln die Kapazität
+        size_t newbuffersize = s * 2;
+        if (newbuffersize < required_bytes) {
+            newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
+        }
         wchar_t* t = (wchar_t*)realloc(ptr, newbuffersize);
         if (!t) throw OutOfMemoryException();
         ptr = t;
@@ -972,19 +975,26 @@ WideString& WideString::append(wchar_t c)
  */
 WideString& WideString::prepend(const wchar_t* str, size_t size)
 {
-    if (!str) return *this;
-    if (!ptr) {
-        set(str, size);
-        return *this;
+    if (str == NULL || size == 0) return *this;
+    if (ptr == nullptr) {
+        return set(str, size);
     }
-    size_t inchars;
-    if (size != (size_t)-1 && size <= wcslen(str)) {
-        inchars = size;
-    } else
-        inchars = wcslen(str);
-    size_t outbytes = (inchars + stringlen) * sizeof(wchar_t) + 4;
-    if (outbytes >= s) {
-        size_t newbuffersize = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 16;
+    size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+
+    // Self-Prepend Schutz: Zeigt "str" auf unseren eigenen Speicher block?
+    WideString temp_holder;
+    if (str >= ptr && str < ptr + stringlen) {
+        temp_holder.set(str, inchars);
+        str = temp_holder.getPtr();
+    }
+
+    size_t required_bytes = (stringlen + inchars + 1) * sizeof(wchar_t);
+    if (required_bytes >= s) {
+        // Geometrisches Wachstum: Wir verdoppeln die Kapazität
+        size_t newbuffersize = s * 2;
+        if (newbuffersize < required_bytes) {
+            newbuffersize = required_bytes + 16; // Fallback, falls Verdopplung nicht reicht
+        }
         wchar_t* t = (wchar_t*)realloc(ptr, newbuffersize);
         if (!t) throw OutOfMemoryException();
         ptr = t;

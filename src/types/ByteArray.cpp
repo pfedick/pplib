@@ -31,6 +31,7 @@
 #include <ppl7/exceptions.h>
 #include <ppl7/types/string.h>
 #include <ppl7/types/widestring.h>
+#include <vector>
 
 namespace ppl7
 {
@@ -138,6 +139,13 @@ void* ByteArray::append(const void* adr, size_t size)
     }
 
     if (!ptradr) return copy(adr, size);
+    // Self-Append Schutz: Zeigt adr in unseren eigenen Speicher?
+    std::vector<char> temp_holder;
+    if (adr >= ptradr && adr < (char*)ptradr + ptrsize) {
+        temp_holder.assign((const char*)adr, (const char*)adr + size);
+        adr = temp_holder.data(); // Zeigt jetzt auf einen sicheren Stack-Vektor
+    }
+
     size_t newsize = ptrsize + size;
     void* p = ::realloc(ptradr, newsize + 4);
     if (!p) throw OutOfMemoryException();
@@ -164,6 +172,13 @@ void* ByteArray::prepend(const void* adr, size_t size)
     }
 
     if (!ptradr) return copy(adr, size);
+    // Self-Prepend Schutz: Zeigt adr in unseren eigenen Speicher?
+    std::vector<char> temp_holder;
+    if (adr >= ptradr && adr < (char*)ptradr + ptrsize) {
+        temp_holder.assign((const char*)adr, (const char*)adr + size);
+        adr = temp_holder.data();
+    }
+
     size_t newsize = ptrsize + size;
     void* p = ::malloc(newsize + 4);
     if (!p) throw OutOfMemoryException();
