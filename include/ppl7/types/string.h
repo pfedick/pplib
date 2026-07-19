@@ -97,6 +97,18 @@ public:
      */
     String(const char* str, size_t size);
 
+    /**@brief Konstruktor mit Wide-Character-String
+     *
+     * Ein String wird aus einem Wide-Character-String erstellt. Dabei wird der String
+     * in die globale Kodierung konvertiert, die mit String::setGlobalEncoding festgelegt wurde.
+     * Der Defaultwert ist UTF-8.
+     *
+     * @param str Wide-Character-String mit 0-Wert am Ende
+     * @exception OutOfMemoryException
+     * @exception UnsupportedFeatureException
+     * @exception UnsupportedCharacterEncodingException
+     * @exception CharacterEncodingException
+     */
     explicit String(const wchar_t* str, size_t size = (size_t)-1);
 
     /**@brief Konstruktor mit anderem String
@@ -179,17 +191,14 @@ public:
      * Der String wird gelöscht und der Speicher freigegeben.
      */
     ~String() noexcept;
+
 #ifdef WITH_QT
     String(const QString& q)
     {
         ptr = NULL;
         stringlen = 0;
         s = 0;
-#ifdef PPL_QT_STRING_UTF8
         QByteArray a = q.toUtf8();
-#else
-        QByteArray a = q.toLocal8Bit();
-#endif
         set((const char*)a);
     }
     String(QString* q)
@@ -197,11 +206,7 @@ public:
         ptr = NULL;
         stringlen = 0;
         s = 0;
-#ifdef PPL_QT_STRING_UTF8
         QByteArray a = q->toUtf8();
-#else
-        QByteArray a = q->toLocal8Bit();
-#endif
         set((const char*)a);
     }
 #endif
@@ -970,11 +975,7 @@ public:
 #ifdef PPL_WITH_QT6
     operator QAnyStringView() const
     {
-#ifdef PPL_QT_STRING_UTF8
         return QAnyStringView(ptr, stringlen);
-#else
-        return QAnyStringView(ptr, stringlen);
-#endif
     }
 #endif
 
@@ -983,50 +984,30 @@ public:
     //@{
     operator const QString() const
     {
-#ifdef PPL_QT_STRING_UTF8
         return QString::fromUtf8(ptr, stringlen);
-#else
-        return QString::fromLocal8Bit(ptr, stringlen);
-#endif
     }
 
     operator const QVariant() const
     {
-#ifdef PPL_QT_STRING_UTF8
         QVariant v = QString::fromUtf8(ptr, stringlen);
-#else
-        QVariant v = QString::fromLocal8Bit(ptr, stringlen);
-#endif
         return v;
     }
 
     String& operator=(const QString& q)
     {
-#ifdef PPL_QT_STRING_UTF8
         QByteArray a = q.toUtf8();
-#else
-        QByteArray a = q.toLocal8Bit();
-#endif
         set((const char*)a);
         return *this;
     }
     String& operator=(const QString* q)
     {
-#ifdef PPL_QT_STRING_UTF8
         QByteArray a = q->toUtf8();
-#else
-        QByteArray a = q->toLocal8Bit();
-#endif
         set((const char*)a);
         return *this;
     }
     String& operator+=(const QString& q)
     {
-#ifdef PPL_QT_STRING_UTF8
         QByteArray a = q.toUtf8();
-#else
-        QByteArray a = q.toLocal8Bit();
-#endif
         append((const char*)a);
         return *this;
     }
