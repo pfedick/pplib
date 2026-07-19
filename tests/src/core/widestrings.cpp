@@ -823,6 +823,24 @@ TEST_F(WideStringTest, repeated)
     ASSERT_EQ(s3, s2) << "String has unexpected value";
 }
 
+TEST_F(WideStringTest, repeat_by_count)
+{
+    ppl7::WideString s1(L"_repeat_");
+    s1.repeat(10);
+    ppl7::WideString s3(L"_repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat_");
+    ASSERT_EQ((size_t)80, s1.len()) << "String does not have length of 80";
+    ASSERT_EQ(s3, s1) << "String has unexpected value";
+}
+
+TEST_F(WideStringTest, repeat_with_string)
+{
+    ppl7::WideString s1(L"blah");
+    s1.repeat(ppl7::WideString(L"_repeat_"), 10);
+    ppl7::WideString s3(L"_repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat__repeat_");
+    ASSERT_EQ((size_t)80, s1.len()) << "String does not have length of 80";
+    ASSERT_EQ(s3, s1) << "String has unexpected value";
+}
+
 TEST_F(WideStringTest, trimLeft)
 {
     ppl7::WideString s1(L"\n\n    abc  \n");

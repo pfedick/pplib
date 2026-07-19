@@ -540,6 +540,13 @@ WideString& WideString::set(const wchar_t* str, size_t size)
         clear();
         return *this;
     }
+    // Self-Assignment Schutz
+    WideString temp_holder;
+    if (str >= ptr && str < ptr + stringlen) {
+        temp_holder.set(str, inchars);
+        str = temp_holder.getPtr();
+    }
+
     size_t outbytes = (inchars + 1) * sizeof(wchar_t);
     if (outbytes >= s) {
         free(ptr);
@@ -551,7 +558,7 @@ WideString& WideString::set(const wchar_t* str, size_t size)
             throw OutOfMemoryException();
         }
     }
-    wcsncpy((wchar_t*)ptr, str, inchars);
+    wmemmove(ptr, str, inchars);
     stringlen = inchars;
     ((wchar_t*)ptr)[stringlen] = 0;
     return *this;
@@ -1208,6 +1215,7 @@ ByteArray WideString::toUtf8() const
             buffer[dest_len++] = (char)(0x80 | (codepoint & 0x3F));
         }
     }
+    buffer[dest_len] = 0;
     tmp_buffer.setSize(dest_len);
     return tmp_buffer;
 }
@@ -1244,8 +1252,8 @@ ByteArray WideString::toUCS4() const
     if (stringlen == 0) return ByteArray();
 
     ByteArray ret;
-    // Jedes UCS-4 Zeichen belegt exakt 4 Byte. Wir reservieren Platz für max. stringlen Elemente
-    uint32_t* ucs4 = (uint32_t*)ret.malloc(stringlen * sizeof(uint32_t));
+    // Jedes UCS-4 Zeichen belegt exakt 4 Byte. Wir reservieren Platz für max. stringlen Elemente +1
+    uint32_t* ucs4 = (uint32_t*)ret.malloc((stringlen + 1) * sizeof(uint32_t));
     size_t dest_len = 0;
 
     for (size_t i = 0; i < stringlen; i++) {
@@ -1279,8 +1287,7 @@ WideString& WideString::fromUCS4(const uint32_t* str, size_t size)
     clear();
     if (!str) return *this;
 
-    for (size_t i = 0; str[i] != 0; i++) {
-        if (size != (size_t)-1 && i >= size) break;
+    for (size_t i = 0; (size == (size_t)-1 || i < size) && str[i] != 0; i++) {
         uint32_t codepoint = str[i];
 
 #if defined(_WIN32) || (defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2)
@@ -1328,8 +1335,8 @@ String WideString::toString() const
  */
 wchar_t WideString::get(ssize_t pos) const
 {
-    if (pos >= 0 && stringlen > (size_t)pos) return ((wchar_t*)ptr)[pos];
-    if (pos < 0 && (size_t)(0 - pos) < stringlen) return ((wchar_t*)ptr)[stringlen + pos];
+    if (pos >= 0 && stringlen > (size_t)pos) return ptr[pos];
+    if (pos < 0 && (size_t)(0 - pos) <= stringlen) return ptr[stringlen + pos];
     throw OutOfBoundsException();
 }
 
@@ -1349,8 +1356,8 @@ wchar_t WideString::get(ssize_t pos) const
  */
 wchar_t WideString::operator[](ssize_t pos) const
 {
-    if (pos >= 0 && stringlen > (size_t)pos) return ((wchar_t*)ptr)[pos];
-    if (pos < 0 && (size_t)(0 - pos) < stringlen) return ((wchar_t*)ptr)[stringlen + pos];
+    if (pos >= 0 && stringlen > (size_t)pos) return ptr[pos];
+    if (pos < 0 && (size_t)(0 - pos) <= stringlen) return ptr[stringlen + pos];
     throw OutOfBoundsException();
 }
 
@@ -1452,13 +1459,15 @@ WideString& WideString::operator=(const WideString& str)
 
 WideString& WideString::operator=(WideString&& other) noexcept
 {
-    if (this == &other) return *this;
-    ptr = other.ptr;
-    s = other.s;
-    stringlen = other.stringlen;
-    other.ptr = NULL;
-    other.s = 0;
-    other.stringlen = 0;
+    if (this != &other) {
+        free(ptr);
+        ptr = other.ptr;
+        s = other.s;
+        stringlen = other.stringlen;
+        other.ptr = NULL;
+        other.s = 0;
+        other.stringlen = 0;
+    }
     return *this;
 }
 /*!\brief String übernehmen
@@ -1646,15 +1655,13 @@ int WideString::strcmp(const WideString& str, size_t size) const
  */
 int WideString::strCaseCmp(const WideString& str, size_t size) const
 {
-    const wchar_t* mystr = ptr;
-    const wchar_t* otherstr = str.ptr;
-    if (stringlen == 0) mystr = L"";
-    if (str.stringlen == 0) otherstr = L"";
+    const wchar_t* mystr = ptr ? ptr : L"";
+    const wchar_t* otherstr = str.ptr ? str.ptr : L"";
 #ifdef HAVE_WCSCASECMP
-    if (size) return wcsncasecmp(mystr, otherstr, size);
+    if (size != (size_t)-1) return wcsncasecmp(mystr, otherstr, size);
     return wcscasecmp(mystr, otherstr);
 #elif defined WIN32
-    if (size) return _wcsnicmp(mystr, otherstr, size);
+    if (size != (size_t)-1) return _wcsnicmp(mystr, otherstr, size);
     return _wcsicmp(mystr, otherstr);
 #else
     WideString b = mystr;
@@ -1849,24 +1856,29 @@ void WideString::upperCaseWords()
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
 void WideString::trim()
 {
-    if (ptr != NULL && stringlen > 0) {
-        size_t i, start, ende, s;
-        start = 0;
-        s = 0;
-        ende = stringlen;
-        for (i = 0; i < stringlen; i++) {
-            if (ptr[i] == 13 || ptr[i] == 10 || ptr[i] == 32 || ptr[i] == '\t') {
-                if (s == 0) start = i + 1;
-            } else {
-                s = 1;
-                ende = i;
-            }
-        }
-        ptr[ende + 1] = 0;
-        if (start > 0) memmove(ptr, ptr + start, (ende - start + 2) * sizeof(wchar_t));
-        stringlen = wcslen(ptr);
-        ptr[stringlen] = 0;
+    if (stringlen == 0) return;
+
+    size_t start = 0;
+    while (start < stringlen && (ptr[start] == L' ' || ptr[start] == L'\t' || ptr[start] == L'\r' || ptr[start] == L'\n')) {
+        start++;
     }
+
+    if (start == stringlen) {
+        clear();
+        return;
+    }
+
+    size_t end = stringlen - 1;
+    while (end > start && (ptr[end] == L' ' || ptr[end] == L'\t' || ptr[end] == L'\r' || ptr[end] == L'\n')) {
+        end--;
+    }
+
+    size_t new_len = end - start + 1;
+    if (start > 0) {
+        wmemmove(ptr, ptr + start, new_len);
+    }
+    stringlen = new_len;
+    ptr[stringlen] = 0;
 }
 
 WideString WideString::trimmed() const
@@ -1879,39 +1891,35 @@ WideString WideString::trimmed() const
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab
 void WideString::trimLeft()
 {
-    if (ptr != NULL && stringlen > 0) {
-        size_t i, start, s;
-        start = 0;
-        s = 0;
-        // ende=stringlen;
-        for (i = 0; i < stringlen; i++) {
-            if (ptr[i] == 13 || ptr[i] == 10 || ptr[i] == 32 || ptr[i] == '\t') {
-                if (s == 0) start = i + 1;
-            } else {
-                s = 1; // ende=i;
-            }
-        }
-        if (start > 0) memmove(ptr, ptr + start, (stringlen - start + 1) * sizeof(wchar_t));
-        stringlen = wcslen(ptr);
-        ptr[stringlen] = 0;
+    if (stringlen == 0) return;
+    size_t start = 0;
+    while (start < stringlen && (ptr[start] == L' ' || ptr[start] == L'\t' || ptr[start] == L'\r' || ptr[start] == L'\n')) {
+        start++;
+    }
+
+    if (start == stringlen) {
+        clear();
+        return;
+    }
+    if (start > 0) {
+        size_t new_len = stringlen - start;
+        wmemmove(ptr, ptr + start, new_len + 1); // Kopiert den Null-Terminator mit
+        stringlen = new_len;
     }
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
 void WideString::trimRight()
 {
-    if (ptr != NULL && stringlen > 0) {
-        size_t i, ende;
-        ende = 0;
-        for (i = stringlen; i > 0; i--) {
-            wchar_t w = ptr[i - 1];
-            if (w != 13 && w != 10 && w != 32 && w != '\t') {
-                ende = i;
-                break;
-            }
-        }
-        ptr[ende] = 0;
-        stringlen = wcslen(ptr);
+    if (stringlen == 0) return;
+    size_t end = stringlen;
+    while (end > 0 && (ptr[end - 1] == L' ' || ptr[end - 1] == L'\t' || ptr[end - 1] == L'\r' || ptr[end - 1] == L'\n')) {
+        end--;
+    }
+    if (end == 0) {
+        clear();
+    } else {
+        stringlen = end;
         ptr[stringlen] = 0;
     }
 }
@@ -2248,30 +2256,6 @@ ssize_t WideString::instrCase(const WideString& needle, size_t start) const
     return CaseSearch.instr(CaseNeedle, start);
 }
 
-WideString& WideString::stripSlashes()
-{
-    if (ptr == NULL || stringlen == 0) return *this;
-    size_t p = 0, np = 0;
-    wchar_t a, lastchar = 0;
-    while ((a = ptr[p])) {
-        if (lastchar != '\\' && p > 0) {
-            ptr[np] = lastchar;
-            np++;
-        }
-        lastchar = a;
-        p++;
-    }
-    if (lastchar) {
-        ptr[np] = lastchar;
-        np++;
-    }
-    ptr[np] = 0;
-    if (stringlen != np) {
-        stringlen = np;
-    }
-    return *this;
-}
-
 /*!\brief String wiederholen
  *
  * \desc
@@ -2349,18 +2333,30 @@ WideString& WideString::repeat(const WideString& str, size_t num)
         clear();
         return *this;
     }
-    size_t newsize = (str.stringlen * num + 16) * sizeof(wchar_t);
+
+    // Schutz vor Self-Repeat
+    WideString temp_holder;
+    const wchar_t* src_ptr = str.ptr;
+    if (str.ptr >= ptr && str.ptr < ptr + stringlen) {
+        temp_holder = str;
+        src_ptr = temp_holder.getPtr();
+    }
+
+    size_t new_len = str.stringlen * num;
+    size_t newsize = (new_len + 1) * sizeof(wchar_t);
     wchar_t* buf = (wchar_t*)malloc(newsize);
     if (!buf) throw OutOfMemoryException();
+
     wchar_t* tmp = buf;
     for (size_t i = 0; i < num; i++) {
-        wcsncpy(tmp, str.ptr, str.stringlen);
+        wmemcpy(tmp, src_ptr, str.stringlen); // Schnelles wmemcpy!
         tmp += str.stringlen;
     }
+    buf[new_len] = 0;
+
     free(ptr);
     ptr = buf;
-    stringlen = num;
-    ptr[stringlen] = 0;
+    stringlen = new_len; // Korrekte Länge!
     s = newsize;
     return *this;
 }
