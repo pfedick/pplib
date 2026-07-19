@@ -913,14 +913,18 @@ String& String::operator+=(char c)
  */
 int String::strcmp(const String& str, size_t size) const
 {
-    if (size != (size_t)-1) return ::strncmp(ptr, str.ptr, size);
-    return ::strcmp(ptr, str.ptr);
+    const char* p1 = ptr ? ptr : "";
+    const char* p2 = str.ptr ? str.ptr : "";
+    if (size != (size_t)-1) return ::strncmp(p1, p2, size);
+    return ::strcmp(p1, p2);
 }
 
 int String::strcmp(const char* str, size_t size) const
 {
-    if (size != (size_t)-1) return ::strncmp(ptr, str, size);
-    return ::strcmp(ptr, str);
+    const char* p1 = ptr ? ptr : "";
+    const char* p2 = str ? str : "";
+    if (size != (size_t)-1) return ::strncmp(p1, p2, size);
+    return ::strcmp(p1, p2);
 }
 
 /*!\brief Stringvergleich mit Ignorierung von Gross-/Kleinschreibung
@@ -943,14 +947,18 @@ int String::strcmp(const char* str, size_t size) const
  */
 int String::strCaseCmp(const String& str, size_t size) const
 {
-    if (size != (size_t)-1) return strncasecmp(ptr, str.ptr, size);
-    return strcasecmp(ptr, str.ptr);
+    const char* p1 = ptr ? ptr : "";
+    const char* p2 = str.ptr ? str.ptr : "";
+    if (size != (size_t)-1) return ::strncasecmp(p1, p2, size);
+    return ::strcasecmp(p1, p2);
 }
 
 int String::strCaseCmp(const char* str, size_t size) const
 {
-    if (size != (size_t)-1) return strncasecmp(ptr, str, size);
-    return strcasecmp(ptr, str);
+    const char* p1 = ptr ? ptr : "";
+    const char* p2 = str ? str : "";
+    if (size != (size_t)-1) return ::strncasecmp(p1, p2, size);
+    return ::strcasecmp(p1, p2);
 }
 
 String String::left(size_t len) const
@@ -1651,8 +1659,8 @@ void String::shr(char c, size_t size)
  */
 bool String::operator<(const String& str) const
 {
-    if (::strcmp(ptr, str.ptr) < 0) return true;
-    return false;
+
+    return strcmp(str) < 0;
 }
 
 /*!\brief Kleiner oder gleich
@@ -1741,8 +1749,7 @@ bool String::operator>(const String& str) const
  */
 bool String::operator<(const char* str) const
 {
-    if (strcmp(str) < 0) return true;
-    return false;
+    return strcmp(str) < 0;
 }
 
 /*!\brief Kleiner oder gleich
