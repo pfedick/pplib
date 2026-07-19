@@ -64,9 +64,9 @@ TEST_F(FileStaticTest, StatOnUSAscii)
 TEST_F(FileStaticTest, StatOnUtf8)
 {
     ppl7::DirEntry d;
-    ASSERT_NO_THROW(ppl7::File::statFile(ppl7::Iconv::Utf8ToLocal("testdata/filenameUTF8äöü.txt"), d));
+    ASSERT_NO_THROW(ppl7::File::statFile("testdata/filenameUTF8äöü.txt", d));
     ASSERT_EQ((size_t)1962, d.Size);
-    ASSERT_EQ(ppl7::Iconv::Utf8ToLocal("testdata/filenameUTF8äöü.txt"), d.File);
+    ASSERT_EQ(ppl7::String("testdata/filenameUTF8äöü.txt"), d.File);
 }
 
 TEST_F(FileStaticTest, StatOnNonexistingFile)
@@ -326,7 +326,7 @@ TEST_F(FileStaticTest, LoadFileUSAscii2ByteArray)
 TEST_F(FileStaticTest, LoadFileLocal2CString)
 {
     ppl7::String s;
-    ASSERT_NO_THROW(ppl7::File::load(s, ppl7::Iconv::Utf8ToLocal("testdata/filenameUTF8äöü.txt"))) << "Loading file to string";
+    ASSERT_NO_THROW(ppl7::File::load(s, "testdata/filenameUTF8äöü.txt")) << "Loading file to string";
     ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), s.md5()) << "Checking MD5-sum";
     ASSERT_EQ((size_t)1962, s.size()) << "Checking Size";
 }
@@ -334,7 +334,7 @@ TEST_F(FileStaticTest, LoadFileLocal2CString)
 TEST_F(FileStaticTest, LoadFileLocal2ByteArray)
 {
     ppl7::ByteArray s;
-    ASSERT_NO_THROW(ppl7::File::load(s, ppl7::Iconv::Utf8ToLocal("testdata/filenameUTF8äöü.txt"))) << "Loading file to string";
+    ASSERT_NO_THROW(ppl7::File::load(s, "testdata/filenameUTF8äöü.txt")) << "Loading file to string";
     ASSERT_EQ(ppl7::String("978fd668b5755ce6017256d0ff9e36b2"), ppl7::Md5(s)) << "Checking MD5-sum";
     ASSERT_EQ((size_t)1962, s.size()) << "Checking Size";
 }
@@ -352,7 +352,7 @@ TEST_F(FileStaticTest, LoadFileUSAscii2Ptr)
 TEST_F(FileStaticTest, LoadFileLocal2Ptr)
 {
     ppl7::ByteArray data;
-    ASSERT_NO_THROW({ data = ppl7::File::load(ppl7::Iconv::Utf8ToLocal("testdata/unicodeUtf8äöü.txt")); });
+    ASSERT_NO_THROW({ data = ppl7::File::load("testdata/unicodeUtf8äöü.txt"); });
     ASSERT_TRUE(data.ptr() != NULL) << "Loading file to ptr";
     EXPECT_EQ((size_t)7976, data.size()) << "Checking Size";
     EXPECT_EQ(ppl7::String("c6767ca956f9e3b65164bed63b93d811"), ppl7::Md5(data)) << "Checking MD5-sum";
