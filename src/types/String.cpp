@@ -218,17 +218,21 @@ String& String::set(const char* str, size_t size)
         clear();
         return *this;
     }
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = ::strlen(str);
+    size_t inbytes = (size != (size_t)-1) ? size : ::strlen(str);
     if (inbytes == 0) {
         clear();
         return *this;
     }
+
+    // Self-Assignment Schutz
+    String temp_holder;
+    if (str >= ptr && str < ptr + stringlen) {
+        temp_holder.set(str, inbytes);
+        str = temp_holder.c_str();
+    }
+
     size_t outbytes = inbytes + 1;
-    if (outbytes >= s) {
+    if (outbytes > s) {
         free(ptr);
         stringlen = 0;
         s = outbytes;
@@ -251,6 +255,15 @@ String& String::set(const wchar_t* str, size_t size)
         return *this;
     }
     size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+
+    // Schutz vor Buffer Overread bei Teil-Wide-Strings
+    std::vector<wchar_t> temp_wstr;
+    if (size != (size_t)-1) {
+        temp_wstr.assign(str, str + inchars);
+        temp_wstr.push_back(0);
+        str = temp_wstr.data();
+    }
+
     // Abschätzung der maximalen UTF-8 Bytegröße (1 wchar_t kann maximal 4 UTF-8 Bytes erzeugen)
     size_t outbytes = inchars * 4 + 1;
     reserve(outbytes);
@@ -588,8 +601,8 @@ ByteArray String::toEncoding(const char* encoding) const
  */
 char String::get(ssize_t pos) const
 {
-    if (pos >= 0 && stringlen > (size_t)pos) return ((char*)ptr)[pos];
-    if (pos < 0 && (size_t)(0 - pos) < stringlen) return ((char*)ptr)[stringlen + pos];
+    if (pos >= 0 && stringlen > (size_t)pos) return ptr[pos];
+    if (pos < 0 && (size_t)(0 - pos) <= stringlen) return ptr[stringlen + pos];
     throw OutOfBoundsException();
 }
 
@@ -940,14 +953,6 @@ int String::strCaseCmp(const char* str, size_t size) const
     return strcasecmp(ptr, str);
 }
 
-/*!\brief Linken Teilstring zurückgeben
- *
- * \desc
- * Gibt die ersten \p len Zeichen des Strings als neuen zurück.
- *
- * @param len Länge des Teilstrings
- * @return Neuer String
- */
 String String::left(size_t len) const
 {
     if (stringlen > 0) {
@@ -957,14 +962,6 @@ String String::left(size_t len) const
     return String();
 }
 
-/*!\brief Rechten Teilstring zurückgeben
- *
- * \desc
- * Gibt die letzten \p len Zeichen des Strings als neuen zurück.
- *
- * @param len Länge des Teilstrings
- * @return Neuer String
- */
 String String::right(size_t len) const
 {
     if (stringlen > 0) {
@@ -974,17 +971,6 @@ String String::right(size_t len) const
     return String();
 }
 
-/*!\brief Teilstring zurückgeben
- *
- * \desc
- * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
- * neuen String zurück.
- *
- * @param start Startposition
- * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
- * der komplette String ab Position \p start zurückgegeben.
- * @return Neuer String
- */
 String String::mid(size_t start, size_t len) const
 {
     if (len == (size_t)-1) len = stringlen;
@@ -995,17 +981,6 @@ String String::mid(size_t start, size_t len) const
     return String();
 }
 
-/*!\brief Teilstring zurückgeben
- *
- * \desc
- * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
- * neuen String zurück.
- *
- * @param start Startposition
- * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
- * der komplette String ab Position \p start zurückgegeben.
- * @return Neuer String
- */
 String String::substr(size_t start, size_t len) const
 {
     if (len == (size_t)-1) len = stringlen;
@@ -1074,36 +1049,33 @@ void String::upperCase()
     set(buffer.data(), l);
 }
 
-//! \brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
 void String::trim()
 {
-    if (stringlen > 0) {
-        size_t i, start, ende, s;
-        start = 0;
-        s = 0;
-        ende = stringlen;
-        for (i = 0; i < stringlen; i++) {
-            if (ptr[i] == 13 || ptr[i] == 10 || ptr[i] == 32 || ptr[i] == '\t') {
-                if (s == 0) start = i + 1;
-            } else {
-                s = 1;
-                ende = i;
-            }
-        }
-        ptr[ende + 1] = 0;
-        if (start > 0) memmove(ptr, ptr + start, (ende - start + 2));
-        stringlen = strlen(ptr);
-        ptr[stringlen] = 0;
+    if (stringlen == 0) return;
+
+    size_t start = 0;
+    while (start < stringlen && (ptr[start] == ' ' || ptr[start] == '\t' || ptr[start] == '\r' || ptr[start] == '\n')) {
+        start++;
     }
+
+    if (start == stringlen) {
+        clear();
+        return;
+    }
+
+    size_t end = stringlen - 1;
+    while (end > start && (ptr[end] == ' ' || ptr[end] == '\t' || ptr[end] == '\r' || ptr[end] == '\n')) {
+        end--;
+    }
+
+    size_t new_len = end - start + 1;
+    if (start > 0) {
+        memmove(ptr, ptr + start, new_len);
+    }
+    stringlen = new_len;
+    ptr[stringlen] = 0;
 }
 
-/*!\brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
- *
- * \desc
- * Es wird eine Kopie des Strings angelegt und bei dieser alle Leerzeichen, Tabs, Returns und
- * Linefeeds am Anfang und Ende des Strings abgeschnitten. Das Ergebnis wird als Returnwert
- * zurückgegeben. Der Original-String bleibt unverändert.
- */
 String String::trimmed() const
 {
     String ret = *this;
@@ -1128,39 +1100,35 @@ String String::toUpperCase() const
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab
 void String::trimLeft()
 {
-    if (stringlen > 0) {
-        size_t i, start, s;
-        start = 0;
-        s = 0;
-        // ende=stringlen;
-        for (i = 0; i < stringlen; i++) {
-            if (ptr[i] == 13 || ptr[i] == 10 || ptr[i] == 32 || ptr[i] == '\t') {
-                if (s == 0) start = i + 1;
-            } else {
-                s = 1; // ende=i;
-            }
-        }
-        if (start > 0) memmove(ptr, ptr + start, (stringlen - start + 1));
-        stringlen = strlen(ptr);
-        ptr[stringlen] = 0;
+    if (stringlen == 0) return;
+    size_t start = 0;
+    while (start < stringlen && (ptr[start] == ' ' || ptr[start] == '\t' || ptr[start] == '\r' || ptr[start] == '\n')) {
+        start++;
+    }
+
+    if (start == stringlen) {
+        clear();
+        return;
+    }
+    if (start > 0) {
+        size_t new_len = stringlen - start;
+        memmove(ptr, ptr + start, new_len + 1); // +1 kopiert das Nullbyte direkt mit
+        stringlen = new_len;
     }
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
 void String::trimRight()
 {
-    if (stringlen > 0) {
-        size_t i, ende;
-        ende = 0;
-        for (i = stringlen; i > 0; i--) {
-            char w = ptr[i - 1];
-            if (w != 13 && w != 10 && w != 32 && w != '\t') {
-                ende = i;
-                break;
-            }
-        }
-        ptr[ende] = 0;
-        stringlen = strlen(ptr);
+    if (stringlen == 0) return;
+    size_t end = stringlen;
+    while (end > 0 && (ptr[end - 1] == ' ' || ptr[end - 1] == '\t' || ptr[end - 1] == '\r' || ptr[end - 1] == '\n')) {
+        end--;
+    }
+    if (end == 0) {
+        clear();
+    } else {
+        stringlen = end;
         ptr[stringlen] = 0;
     }
 }
@@ -1168,53 +1136,55 @@ void String::trimRight()
 //! \brief Schneidet die definierten Zeichen am Anfang des Strings ab
 void String::trimLeft(const String& chars)
 {
-    if (stringlen > 0 && chars.stringlen > 0) {
-        size_t i, start, s, z;
-        start = 0;
-        s = 0;
-        for (i = 0; i < stringlen; i++) {
-            int match = 0;
-            for (z = 0; z < chars.stringlen; z++) {
-                if (ptr[i] == chars.ptr[z]) {
-                    if (s == 0) start = i + 1;
-                    match = 1;
-                    break;
-                }
-            }
-            if (!match) {
-                s = 1;
+    if (stringlen == 0 || chars.isEmpty()) return;
+
+    size_t start = 0;
+    while (start < stringlen) {
+        bool match = false;
+        for (size_t z = 0; z < chars.stringlen; z++) {
+            if (ptr[start] == chars.ptr[z]) {
+                match = true;
+                break;
             }
         }
-        if (start > 0) {
-            memmove(ptr, ptr + start, (stringlen - start + 1));
-            stringlen = strlen(ptr);
-        }
+        if (!match) break;
+        start++;
+    }
+
+    if (start == stringlen) {
+        clear();
+        return;
+    }
+    if (start > 0) {
+        size_t new_len = stringlen - start;
+        memmove(ptr, ptr + start, new_len + 1); // Kopiert das Nullbyte direkt mit
+        stringlen = new_len;
     }
 }
 
 //! \brief Schneidet die definierten Zeichen am Ende des Strings ab
 void String::trimRight(const String& chars)
 {
-    if (stringlen > 0 && chars.stringlen > 0) {
-        size_t i, ende, z;
-        ende = 0;
-        for (i = stringlen; i > 0; i--) {
-            char w = ptr[i - 1];
-            int match = 0;
-            for (z = 0; z < chars.stringlen; z++) {
-                if (w == chars.ptr[z]) {
-                    // if (s==0) start=i+1;
-                    match = 1;
-                    break;
-                }
-            }
-            if (!match) {
-                ende = i;
+    if (stringlen == 0 || chars.isEmpty()) return;
+
+    size_t end = stringlen;
+    while (end > 0) {
+        bool match = false;
+        for (size_t z = 0; z < chars.stringlen; z++) {
+            if (ptr[end - 1] == chars.ptr[z]) {
+                match = true;
                 break;
             }
         }
-        ptr[ende] = 0;
-        stringlen = strlen(ptr);
+        if (!match) break;
+        end--;
+    }
+
+    if (end == 0) {
+        clear();
+    } else {
+        stringlen = end;
+        ptr[stringlen] = 0;
     }
 }
 
@@ -1530,51 +1500,62 @@ String& String::repeat(size_t num)
         clear();
         return *this;
     }
-    size_t newsize = (stringlen * num + 16);
+    size_t new_len = stringlen * num;
+    size_t newsize = new_len + 1;
     char* buf = (char*)malloc(newsize);
     if (!buf) throw OutOfMemoryException();
+
     char* tmp = buf;
     for (size_t i = 0; i < num; i++) {
-#ifdef HAVE_STRNCPY_S
-        strncpy_s(tmp, newsize, ptr, stringlen);
-#else
-        strncpy(tmp, ptr, stringlen);
-#endif
+        memcpy(tmp, ptr, stringlen);
         tmp += stringlen;
     }
+    buf[new_len] = 0;
+
     free(ptr);
     ptr = buf;
-    stringlen = stringlen * num;
-    ptr[stringlen] = 0;
+    stringlen = new_len;
     s = newsize;
     return *this;
 }
 
-/*! \brief Füllt den String mit einem Zeichen
+/*!\brief Füllt den String mit einem Zeichen
  *
  * Der String wird mit einem gewünschten Zeichen gefüllt
  * \param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
  * \param num Die Länge des gewünschten Strings
  * \return Referenz auf den neuen String
  */
-String& String::repeat(char code, size_t num)
+String& String::repeat(const String& str, size_t num)
 {
-    if (!code) {
-        throw IllegalArgumentException();
-    }
-    if (!num) {
+    if (str.stringlen == 0 || num == 0) {
         clear();
         return *this;
     }
-    size_t newsize = (num + 16);
+
+    // Genereller Self-Repeat-Schutz
+    String temp_holder;
+    const char* src_ptr = str.ptr;
+    if (str.ptr >= ptr && str.ptr < ptr + stringlen) {
+        temp_holder = str;
+        src_ptr = temp_holder.c_str();
+    }
+
+    size_t new_len = str.stringlen * num;
+    size_t newsize = new_len + 1;
     char* buf = (char*)malloc(newsize);
     if (!buf) throw OutOfMemoryException();
-    for (size_t i = 0; i < num; i++)
-        buf[i] = code;
+
+    char* tmp = buf;
+    for (size_t i = 0; i < num; i++) {
+        memcpy(tmp, src_ptr, str.stringlen);
+        tmp += str.stringlen;
+    }
+    buf[new_len] = 0;
+
     free(ptr);
     ptr = buf;
-    stringlen = num;
-    ptr[stringlen] = 0;
+    stringlen = new_len;
     s = newsize;
     return *this;
 }
@@ -1938,44 +1919,18 @@ String::operator std::string() const
 
 String::operator std::wstring() const
 {
-    if (stringlen == 0) return (std::wstring());
-    size_t buffersize = (stringlen + 1) * sizeof(wchar_t);
-    wchar_t* w = (wchar_t*)malloc(buffersize);
-    if (!w) throw OutOfMemoryException();
-#ifdef HAVE_MBSTOWCS
-    size_t wlen = mbstowcs(w, ptr, buffersize);
+    if (stringlen == 0) return std::wstring();
+
+    // std::vector verwaltet Speicher automatisch (RAII)
+    std::vector<wchar_t> w(stringlen + 1);
+
+    // Korrekte Übergabe der Element-Anzahl (w.size()) statt Byte-Größe!
+    size_t wlen = ::mbstowcs(w.data(), ptr, w.size());
     if (wlen == (size_t)-1) {
-        free(w);
         throw CharacterEncodingException();
     }
-    std::wstring ret(w, wlen);
-    free(w);
-    return (ret);
-    /*
-#elif HAVE_ICONV
-    iconv_t iconvimport=iconv_open(ICONV_UNICODE,GlobalEncoding);
-    if ((iconv_t)(-1)==iconvimport) {
-        throw UnsupportedCharacterEncodingException();
-    }
-    char *outbuf=(char*)ptr;
-    //HexDump(str,inbytes);
-    size_t res=iconv(iconvimport, (ICONV_CONST char **)&str, &inbytes,
-                (char**)&outbuf, &outbytes);
-    iconv_close(iconvimport);
-    if (res==(size_t)(-1)) {
-        ((wchar_t*)ptr)[0]=0;
-        stringlen=0;
-        //SetError(289,"%s",strerror(errno));
-        throw CharacterEncodingException();
-    }
-    ((wchar_t*)outbuf)[0]=0;
-    stringlen=wcslen((wchar_t*)ptr);
-    return *this;
-    */
-#else
-    free(w);
-    throw UnsupportedFeatureException();
-#endif
+
+    return std::wstring(w.data(), wlen);
 }
 
 int String::toInt() const

@@ -361,12 +361,88 @@ public:
      * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
      */
     int strcmp(const String& str, size_t size = (size_t)-1) const;
+
+    /**@brief Vergleicht den String mit einem anderen String, ohne die Gross-/Kleinschreibung zu berücksichtigen
+     *
+     * Mit dieser Funktion kann der aktuelle String mit einem anderen String verglichen werden, ohne die Gross-/Kleinschreibung zu
+     * berücksichtigen.
+     *
+     * @param str Referenz auf einen anderen String
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
+     * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
+     * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
+     */
     int strCaseCmp(const String& str, size_t size = (size_t)-1) const;
+
+    /**@brief Vergleicht den String mit einem C-String
+     *
+     * Mit dieser Funktion kann der aktuelle String mit einem C-String verglichen werden.
+     *
+     * @param str Pointer auf einen C-String
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
+     * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
+     * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
+     */
     int strcmp(const char* str, size_t size = (size_t)-1) const;
+
+    /**@brief Vergleicht den String mit einem C-String, ohne die Gross-/Kleinschreibung zu berücksichtigen
+     *
+     * Mit dieser Funktion kann der aktuelle String mit einem C-String verglichen werden, ohne die Gross-/Kleinschreibung zu
+     * berücksichtigen.
+     *
+     * @param str Pointer auf einen C-String
+     * @param size Optionaler Parameter, der die Anzahl zu vergleichender Zeichen angibt. Ist der Wert nicht angegeben, wird der komplette
+     * String verglichen. Ist der Wert größer als der angegebene String, wird er ignoriert und der komplette String verglichen.
+     * @return Liefert 0 zurück, wenn die Strings gleich sind. Ist der aktuelle String kleiner als \p str, wird ein Wert kleiner 0
+     * zurückgegeben. Ist er größer, wird ein Wert größer 0 zurückgegeben.
+     */
     int strCaseCmp(const char* str, size_t size = (size_t)-1) const;
+
+    /**@brief Linken Teilstring zurückgeben
+     *
+     * Gibt die ersten \p len Zeichen des Strings als neuen zurück.
+     *
+     * @param len Länge des Teilstrings
+     * @return Neuer String
+     */
     String left(size_t len) const;
+
+    /**@brief Rechten Teilstring zurückgeben
+     *
+     * \desc
+     * Gibt die letzten \p len Zeichen des Strings als neuen zurück.
+     *
+     * @param len Länge des Teilstrings
+     * @return Neuer String
+     */
     String right(size_t len) const;
+
+    /**@brief Teilstring zurückgeben
+     *
+     * \desc
+     * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+     * neuen String zurück.
+     *
+     * @param start Startposition
+     * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
+     * der komplette String ab Position \p start zurückgegeben.
+     * @return Neuer String
+     */
     String mid(size_t start, size_t len = (size_t)-1) const;
+
+    /**@brief Teilstring zurückgeben
+     *
+     * \desc
+     * Gibt \p len Zeichen des Strings, beginnend ab Position \p start als
+     * neuen String zurück.
+     *
+     * @param start Startposition
+     * @param len Optionale Länge des Teilstrings. Ist der Parameter nicht angegeben, wird
+     * der komplette String ab Position \p start zurückgegeben.
+     * @return Neuer String
+     */
     String substr(size_t start, size_t len = (size_t)-1) const;
 
     //! @name String setzen und verändern
@@ -774,8 +850,22 @@ public:
      */
     void upperCase();
 
+    /**@brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
+     *
+     * Leerzeichen, Tabs, Returns und Linefeeds werden am Anfang und Ende des Strings abgeschnitten
+     * und der String wird entsprechend verkürzt.
+     */
     void trim();
+
+    /**@brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
+     *
+     * Es wird eine Kopie des Strings angelegt und bei dieser alle Leerzeichen, Tabs, Returns und
+     * Linefeeds am Anfang und Ende des Strings abgeschnitten. Das Ergebnis wird als Returnwert
+     * zurückgegeben.
+     * @return Neuer, gekürzter String
+     */
     String trimmed() const;
+
     String toLowerCase() const;
     String toUpperCase() const;
     void trimLeft();
