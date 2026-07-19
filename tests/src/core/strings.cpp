@@ -370,7 +370,7 @@ TEST_F(StringTest, setSTDStringRefWithSize)
 
 TEST_F(StringTest, setSTDWStringRefWithoutSize)
 {
-    ppl7::String s2(ppl7::Iconv::Utf8ToLocal("äöü, a test string with unicode characters"));
+    ppl7::String s2("äöü, a test string with unicode characters");
     std::wstring s3(L"äöü, a test string with unicode characters");
     ppl7::String s1;
     s1.set(s3);
@@ -380,7 +380,7 @@ TEST_F(StringTest, setSTDWStringRefWithoutSize)
 
 TEST_F(StringTest, setSTDWStringRefWithSize)
 {
-    ppl7::String s2(ppl7::Iconv::Utf8ToLocal("äöü, a tes"));
+    ppl7::String s2("äöü, a tes");
     std::wstring s3(L"äöü, a test string with unicode characters");
     ppl7::String s1;
     s1.set(s3, 10);
@@ -425,8 +425,8 @@ TEST_F(StringTest, vasprintf)
 
 TEST_F(StringTest, appendConstWchartWithoutSize)
 {
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü Second Part"));
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
+    ppl7::String expected("First Part äöü, äöü Second Part");
+    ppl7::String s1("First Part äöü, ");
     s1.append(L"äöü Second Part");
 
     ASSERT_EQ(expected, s1) << "String has unexpected value";
@@ -435,8 +435,8 @@ TEST_F(StringTest, appendConstWchartWithoutSize)
 
 TEST_F(StringTest, appendConstWchartWithSize)
 {
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü S"));
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
+    ppl7::String expected("First Part äöü, äöü S");
+    ppl7::String s1("First Part äöü, ");
     s1.append(L"äöü Second Part", 5);
 
     ASSERT_EQ(expected, s1) << "String has unexpected value";
@@ -505,8 +505,8 @@ TEST_F(StringTest, appendStdStringWithSize)
 
 TEST_F(StringTest, appendStdWStringWithoutSize)
 {
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü Second Part"));
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
+    ppl7::String expected("First Part äöü, äöü Second Part");
+    ppl7::String s1("First Part äöü, ");
     std::wstring s2(L"äöü Second Part");
     s1.append(s2);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
@@ -515,8 +515,8 @@ TEST_F(StringTest, appendStdWStringWithoutSize)
 
 TEST_F(StringTest, appendStdWStringWithSize)
 {
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("First Part äöü, äöü Seco"));
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
+    ppl7::String expected("First Part äöü, äöü Seco");
+    ppl7::String s1("First Part äöü, ");
     std::wstring s2(L"äöü Second Part");
     s1.append(s2, 8);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
@@ -619,8 +619,8 @@ TEST_F(StringTest, prependStdStringWithSize)
 
 TEST_F(StringTest, prependStdWStringWithoutSize)
 {
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("äöü Second PartFirst Part äöü, "));
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
+    ppl7::String expected("äöü Second PartFirst Part äöü, ");
+    ppl7::String s1("First Part äöü, ");
     std::wstring s2(L"äöü Second Part");
     s1.prepend(s2);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
@@ -629,8 +629,8 @@ TEST_F(StringTest, prependStdWStringWithoutSize)
 
 TEST_F(StringTest, prependStdWStringWithSize)
 {
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("äöü SFirst Part äöü, "));
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("First Part äöü, "));
+    ppl7::String expected("äöü SFirst Part äöü, ");
+    ppl7::String s1("First Part äöü, ");
     std::wstring s2(L"äöü Second Part");
     s1.prepend(s2, 5);
     ASSERT_EQ(expected, s1) << "String has unexpected value";
@@ -1040,16 +1040,16 @@ TEST_F(StringTest, substrWithoutLength)
 
 TEST_F(StringTest, lowerCase)
 {
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps over ÄÖÜ"));
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("the quick brown fox jumps over äöü"));
+    ppl7::String s1("The Quick Brown Fox Jumps over ÄÖÜ");
+    ppl7::String expected("the quick brown fox jumps over äöü");
     ASSERT_NO_THROW(s1.lowerCase());
     ASSERT_EQ(expected, s1);
 }
 
 TEST_F(StringTest, upperCase)
 {
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps over äöü"));
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"));
+    ppl7::String s1("The Quick Brown Fox Jumps over äöü");
+    ppl7::String expected("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ");
     ASSERT_NO_THROW(s1.upperCase());
     ASSERT_EQ(expected, s1);
 }
