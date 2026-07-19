@@ -92,6 +92,8 @@ public:
      */
     String(const char* str, size_t size);
 
+    explicit String(const wchar_t* str, size_t size = (size_t)-1);
+
     /**@brief Konstruktor mit anderem String
      *
      * Ein String wird aus einem anderen String erstellt.
@@ -748,14 +750,52 @@ public:
     String& repeat(const String& str, size_t num);
     String repeated(size_t num) const;
 
+    /**@brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
+     *
+     * Diese Funktion wandelt alle Zeichen des Strings in Kleinbuchstaben um. Die genaue Funktionsweise hängt davon ab,
+     * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
+     *
+     * @attention Lokalisierungseinstellungen einer Shell werden nicht automatisch übernommen. In der Regel
+     * wird standardmäßig die Lokalisierung "C" verwendet, wodurch nur US-ASCII (ASCII 32 bis 127) umgewandelt wird.
+     * Man sollte daher bei Programmstart mit "setlocale" die gewünschte Spracheinstellung vornehmen.
+     *
+     * @example
+     * @code
+     * #include <locale.h>
+     * ...
+     * // Lokalisierung explizit setzen
+     * setlocale(LC_CTYPE,"de_DE.UTF-8");
+     * // oder Lokalisierung von den Systemeinstellungen übernehmen
+     * setlocale(LC_CTYPE,"");
+     * @endcode
+     */
     void lowerCase();
+
+    /**@brief Wandelt alle Zeichen des Strings in Großbuchstaben um
+     *
+     * Diese Funktion wandelt alle Zeichen des Strings in Großbuchstaben um. Die genaue Funktionsweise hängt davon ab,
+     * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
+     *
+     * @attention Lokalisierungseinstellungen einer Shell werden nicht automatisch übernommen. In der Regel
+     * wird standardmäßig die Lokalisierung "C" verwendet, wodurch nur US-ASCII (ASCII 32 bis 127) umgewandelt wird.
+     * Man sollte daher bei Programmstart mit "setlocale" die gewünschte Spracheinstellung vornehmen.
+     *
+     * @example
+     * @code
+     * #include <locale.h>
+     * ...
+     * // Lokalisierung explizit setzen
+     * setlocale(LC_CTYPE,"de_DE.UTF-8");
+     * // oder Lokalisierung von den Systemeinstellungen übernehmen
+     * setlocale(LC_CTYPE,"");
+     * @endcode
+     */
     void upperCase();
-    void upperCaseWords();
+
     void trim();
     String trimmed() const;
     String toLowerCase() const;
     String toUpperCase() const;
-    String toUpperCaseWords() const;
     void trimLeft();
     void trimRight();
     void trim(const String& chars);
@@ -968,6 +1008,12 @@ String operator+(const std::wstring& str1, const String& str2);
 String operator+(const String& str1, const std::wstring& str2);
 
 std::ostream& operator<<(std::ostream& s, const String& str);
+
+///@name Google Test Integration
+inline void PrintTo(const String& str, ::std::ostream* os)
+{
+    *os << "\"" << str.c_str() << "\"";
+}
 
 } // namespace ppl7
 

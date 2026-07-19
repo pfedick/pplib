@@ -35,6 +35,7 @@
 #include <wchar.h>
 #include <wctype.h>
 #include <locale.h>
+#include <vector>
 
 #include <ppl7/types/string.h>
 #include <ppl7/types/widestring.h>
@@ -107,6 +108,14 @@ String::String(const char* str)
 }
 
 String::String(const char* str, size_t size)
+{
+    ptr = empty_string;
+    stringlen = 0;
+    s = 0;
+    set(str, size);
+}
+
+String::String(const wchar_t* str, size_t size)
 {
     ptr = empty_string;
     stringlen = 0;
@@ -1172,45 +1181,24 @@ String String::substr(size_t start, size_t len) const
     return String();
 }
 
-/*!\brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
- *
- * \desc
- * Diese Funktion wandelt alle Zeichen des Strings in Kleinbuchstaben um. Die genaue Funktionsweise hängt davon ab,
- * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
- *
- * \attention Unter UNIX (und möglicherweise anderen Betriebssystemen) werden die Lokalisationseinstellungen der
- * Umgebung nicht automatisch übernommen, sondern stehen standardmäßig auf "C". Dadurch werden nur US-ASCII
- * (ASCII 32 bis 127) umgewandelt. Man sollte daher bei Programmstart mit "setlocale" die gewünschte
- * Spracheinstellung vornehmen.
- *
- * \example
- * \code
- * #include <locale.h>
- * ...
- * // Lokalisierung explizit setzen
- * setlocale(LC_CTYPE,"de_DE.UTF-8");
- * // oder Lokalisierung von den Systemeinstellungen übernehmen
- * setlocale(LC_CTYPE,"");
- * \endcode
- * \par
- */
 void String::lowerCase()
 {
     if (stringlen == 0) return;
     // Wir wandeln den String zunächst nach Unicode um
-    wchar_t* buffer = (wchar_t*)malloc((stringlen + 1) * sizeof(wchar_t));
-    if (!buffer) throw OutOfMemoryException();
+    std::vector<wchar_t> buffer(stringlen + 1);
     size_t l;
 #ifdef HAVE_MBSTOWCS_S
-    mbstowcs_s(&l, buffer, stringlen, ptr, stringlen);
-#else
-    l = mbstowcs(buffer, ptr, stringlen);
-#endif
-    if (l == (size_t)-1) {
-        free(buffer);
+    if (::mbstowcs_s(&l, buffer.data(), buffer.size(), ptr, stringlen) != 0) {
         throw CharacterEncodingException();
     }
-    // Umwandeln
+    if (l > 0) l--; // Nullbyte abziehen, da mbstowcs_s dieses mitzählt
+#else
+    l = ::mbstowcs(buffer.data(), ptr, stringlen);
+    if (l == (size_t)-1) {
+        throw CharacterEncodingException();
+    }
+#endif
+    // Umwandeln mittels towlower, das die aktuelle Locale berücksichtigt
     for (size_t i = 0; i < l; i++) {
         wchar_t wc = buffer[i];
         wchar_t c = towlower(wc);
@@ -1219,45 +1207,27 @@ void String::lowerCase()
         }
     }
     // Zurück im String speichern
-    set(buffer, l);
-    free(buffer);
+    set(buffer.data(), l);
 }
 
-/*! \brief Wandelt alle Zeichen des Strings in Grossbuchstaben um
- *
- * \desc
- * Diese Funktion wandelt alle Zeichen des Strings in Großbuchstaben um. Die genaue Funktionsweise hängt davon ab,
- * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
- *
- * \attention Unter UNIX (und möglicherweise anderen Betriebssystemen) werden die Lokalisationseinstellungen der
- * Umgebung nicht automatisch übernommen, sondern stehen standardmäßig auf "C". Dadurch werden nur US-ASCII
- * (ASCII 32 bis 127) umgewandelt. Man sollte daher nach Programmstart mit "setlocale" die gewünschte
- * Spracheinstellung vornehmen.
- *
- * \example
- * \code
- * #include <locale.h>
- * ...
- * setlocale(LC_CTYPE,"de_DE.UTF-8");
- * \endcode
- */
 void String::upperCase()
 {
     if (stringlen == 0) return;
     // Wir wandeln den String zunächst nach Unicode um
-    wchar_t* buffer = (wchar_t*)malloc((stringlen + 1) * sizeof(wchar_t));
-    if (!buffer) throw OutOfMemoryException();
+    std::vector<wchar_t> buffer(stringlen + 1);
     size_t l;
 #ifdef HAVE_MBSTOWCS_S
-    mbstowcs_s(&l, buffer, stringlen, ptr, stringlen);
-#else
-    l = mbstowcs(buffer, ptr, stringlen);
-#endif
-    if (l == (size_t)-1) {
-        free(buffer);
+    if (::mbstowcs_s(&l, buffer.data(), buffer.size(), ptr, stringlen) != 0) {
         throw CharacterEncodingException();
     }
-    // Umwandeln
+    if (l > 0) l--; // Nullbyte abziehen, da mbstowcs_s dieses mitzählt
+#else
+    l = ::mbstowcs(buffer.data(), ptr, stringlen);
+    if (l == (size_t)-1) {
+        throw CharacterEncodingException();
+    }
+#endif
+    // Umwandeln mittels towlower, das die aktuelle Locale berücksichtigt
     for (size_t i = 0; i < l; i++) {
         wchar_t wc = buffer[i];
         wchar_t c = towupper(wc);
@@ -1266,50 +1236,7 @@ void String::upperCase()
         }
     }
     // Zurück im String speichern
-    set(buffer, l);
-    free(buffer);
-}
-
-/*!\brief Anfangsbuchstaben der Wörter groß
- *
- * \desc
- * Diese Funktion wandelt die Anfangsbuchstaben aller im String enthaltenen Wörter in
- * Großbuchstaben um.
- */
-void String::upperCaseWords()
-{
-    if (stringlen == 0) return;
-
-    // Wir wandeln den String zunächst nach Unicode um
-    wchar_t* buffer = (wchar_t*)malloc((stringlen + 1) * sizeof(wchar_t));
-    if (!buffer) throw OutOfMemoryException();
-    size_t l;
-#ifdef HAVE_MBSTOWCS_S
-    mbstowcs_s(&l, buffer, stringlen, ptr, stringlen);
-#else
-    l = mbstowcs(buffer, ptr, stringlen);
-#endif
-    if (l == (size_t)-1) {
-        free(buffer);
-        throw CharacterEncodingException();
-    }
-    bool wordstart = true;
-    for (size_t i = 0; i < l; i++) {
-        wchar_t wc = buffer[i];
-        if (wordstart) {
-            wchar_t c = towupper(wc);
-            if (c != (wchar_t)WEOF) {
-                buffer[i] = c;
-            }
-        }
-        if (wc < 48 || (wc > 57 && wc < 65) || (wc > 90 && wc < 97) || (wc > 122 && wc < 127)) {
-            wordstart = true;
-        } else {
-            wordstart = false;
-        }
-    }
-    set(buffer, l);
-    free(buffer);
+    set(buffer.data(), l);
 }
 
 //! \brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
@@ -1360,13 +1287,6 @@ String String::toUpperCase() const
 {
     String res(*this);
     res.upperCase();
-    return res;
-}
-
-String String::toUpperCaseWords() const
-{
-    String res(*this);
-    res.upperCaseWords();
     return res;
 }
 

@@ -127,14 +127,8 @@ TEST_F(StringTest, ConstructorFromStdWString)
     const char* buf = s2.getPtr();
     ASSERT_TRUE(NULL != buf) << "Class did not return a pointer to a c-string";
     ASSERT_EQ('A', (unsigned char)s2[0]) << "Unexpected Character in string";
-#ifdef WIN32
-    ASSERT_EQ((size_t)42, s2.len()) << "String does not have length of 42";
-    ASSERT_EQ(252, (unsigned char)s2[41]) << "Unexpected Character in string";
-#else
     ASSERT_EQ((size_t)45, s2.len()) << "String does not have length of 45";
     ASSERT_EQ(188, (unsigned char)s2[44]) << "Unexpected Character in string";
-
-#endif
 }
 
 TEST_F(StringTest, clear)
@@ -1057,14 +1051,6 @@ TEST_F(StringTest, upperCase)
     ppl7::String s1(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps over äöü"));
     ppl7::String expected(ppl7::Iconv::Utf8ToLocal("THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"));
     ASSERT_NO_THROW(s1.upperCase());
-    ASSERT_EQ(expected, s1);
-}
-
-TEST_F(StringTest, upperCaseWords)
-{
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("the quick brown fox jumps over äöü"));
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps Over Äöü"));
-    ASSERT_NO_THROW(s1.upperCaseWords());
     ASSERT_EQ(expected, s1);
 }
 

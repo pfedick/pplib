@@ -72,6 +72,8 @@
 #include <iconv.h>
 #endif
 
+#include <vector>
+
 #include "ppl7.h"
 
 namespace ppl7
@@ -242,6 +244,40 @@ String LowerCase(const String& str)
     String ret = str;
     ret.lowerCase();
     return ret;
+}
+
+String UpperCaseWords(const String& str)
+{
+    if (str.size() == 0) return str;
+
+    // Wir wandeln den String zunächst nach Unicode um
+    std::vector<wchar_t> buffer(str.size() + 1);
+    size_t l;
+#ifdef HAVE_MBSTOWCS_S
+    if (::mbstowcs_s(&l, buffer.data(), buffer.size(), str.getPtr(), str.size()) != 0) {
+        throw CharacterEncodingException();
+    }
+    if (l > 0) l--; // Nullbyte abziehen, da mbstowcs_s dieses mitzählt
+#else
+    l = ::mbstowcs(buffer.data(), str.getPtr(), str.size());
+    if (l == (size_t)-1) {
+        throw CharacterEncodingException();
+    }
+#endif
+    bool wordstart = true;
+    for (size_t i = 0; i < l; i++) {
+        wchar_t wc = buffer[i];
+        if (wordstart) {
+            wchar_t c = towupper(wc);
+            if (c != (wchar_t)WEOF) {
+                buffer[i] = c;
+            }
+        }
+        // Wenn es keine Zahl und kein Buchstabe ist, beginnt danach ein neues Wort
+        wordstart = !::iswalnum(wc);
+    }
+    // Zurück im String speichern
+    return String(buffer.data(), l);
 }
 
 int StrCmp(const String& s1, const String& s2)

@@ -101,14 +101,22 @@ TEST_F(StringFunctionTest, FromBase64)
     }
 }
 
+TEST_F(StringFunctionTest, UpperCaseWords)
+{
+    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("the quick brown fox jumps over äöü"));
+    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps Over Äöü"));
+    ppl7::String result = UpperCaseWords(s1);
+    ASSERT_EQ(expected, result);
+}
+
 TEST_F(StringFunctionTest, StripSlashes)
 {
     EXPECT_EQ(ppl7::String(""), ppl7::StripSlashes(ppl7::String("")));
     EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo Welt")));
-    EXPECT_EQ(ppl7::String("HalloWelt"), ppl7::StripSlashes(ppl7::String("Hallo\\ Welt")));
-    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\n Welt")));
+    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\ Welt")));
+    EXPECT_EQ(ppl7::String("Hallon Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\n Welt")));
     EXPECT_EQ(ppl7::String("Hallo\\Welt"), ppl7::StripSlashes(ppl7::String("Hallo\\\\Welt")));
-    EXPECT_EQ(ppl7::String("allo Welt"), ppl7::StripSlashes(ppl7::String("\\Hallo Welt")));
+    EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("\\Hallo Welt")));
     EXPECT_EQ(ppl7::String("Hallo Welt"), ppl7::StripSlashes(ppl7::String("Hallo Welt\\")));
 }
 

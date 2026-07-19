@@ -70,6 +70,17 @@ String UrlDecode(const String& text);
 String Trim(const String& str);
 String UpperCase(const String& str);
 String LowerCase(const String& str);
+
+/**@brief Anfangsbuchstaben der Wörter groß
+ *
+ * Diese Funktion wandelt die Anfangsbuchstaben aller im String enthaltenen Wörter in
+ * Großbuchstaben um.
+ *
+ * @param str Eingabe-String
+ * @return Neuer String
+ *
+ */
+String UpperCaseWords(const String& str);
 int StrCmp(const String& s1, const String& s2);
 int StrCaseCmp(const String& s1, const String& s2);
 ssize_t Instr(const String& haystack, const String& needle, size_t start = 0);
