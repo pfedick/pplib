@@ -45,11 +45,16 @@ class Array;
  * @ingroup PPLGroupStrings
  * @brief String-Klasse
  *
- * Diese Klasse kann verwendet werden, um beliebige Strings zu speichern und zu verarbeiten. Dabei
- * braucht sich der Anwender keine Gedanken um den verwendeten Speicher zu machen.
- * Die einzelnen Zeichen des Strings werden intern im Unicode-Format gespeichert. Bei Übernahme eines
- * C-Strings wird erwartet, dass dieser im UTF-8 Format vorliegt, mit der statischen Funktion
- * String::setGlobalEncoding kann jedoch auch eine andere Kodierung vorgegeben werden.
+ * Diese Klasse repräsentiert einen String, der beliebige Zeichen enthalten kann.
+ * Der String wird intern als C-String mit 0-Byte am Ende gespeichert. Dabei kann es sich
+ * um einen UTF-8 String, einen ASCII-String oder einen String in einer anderen Kodierung handeln.
+ *
+ * @note Bei der Konvertierung zwischen String und WideString wird die eingestellte Kodierung
+ * verwendet, die mit der Funktion setlocale() aus der C-Standardbibliothek festgelegt wurde.
+ * In der Regel ist der Defaultwert "C", daher sollte beim Start des Programms setlocale()
+ * mit der gewünschten Kodierung aufgerufen werden.
+ *
+ * @see WideString
  */
 class String
 {
