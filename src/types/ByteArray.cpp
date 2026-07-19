@@ -186,6 +186,30 @@ void* ByteArray::prepend(const ByteArrayPtr& other)
     return prepend(other.ptradr, other.ptrsize);
 }
 
+void ByteArray::setSize(size_t size)
+{
+    if (size == ptrsize) return;
+    if (size > ptrsize) throw IllegalArgumentException("New size is bigger than current size");
+    ptrsize = size;
+    ((char*)ptradr)[ptrsize] = 0;
+    ((char*)ptradr)[ptrsize + 1] = 0;
+    ((char*)ptradr)[ptrsize + 2] = 0;
+    ((char*)ptradr)[ptrsize + 3] = 0;
+}
+
+void* ByteArray::realloc(size_t size)
+{
+    void* p = ::realloc(ptradr, size + 4);
+    if (!p) throw OutOfMemoryException();
+    ptradr = p;
+    ptrsize = size;
+    ((char*)ptradr)[ptrsize] = 0;
+    ((char*)ptradr)[ptrsize + 1] = 0;
+    ((char*)ptradr)[ptrsize + 2] = 0;
+    ((char*)ptradr)[ptrsize + 3] = 0;
+    return ptradr;
+}
+
 ByteArray& ByteArray::operator=(const ByteArrayPtr& other)
 {
     copy(other.ptradr, other.ptrsize);

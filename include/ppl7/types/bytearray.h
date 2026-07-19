@@ -262,6 +262,32 @@ public:
      */
     void* prepend(const ByteArrayPtr& other);
 
+    /**@brief Größe des Speicherbereichs setzen
+     *
+     * Mit dieser Funktion kann die Größe des Speicherbereichs der ByteArray-Klasse verkleinert
+     * werden. Es ist sichergestellt, dass am Ende des Speicherbereichs immer 4 0-Bytes angehangen werden.
+     * Es findet keine Reallokierung des Speichers statt, sondern nur eine Anpassung der Größe.
+     * Überschüssiger Speicher wird nicht freigegeben.
+     *
+     * @param[in] size Neue Größe des Speicherbereichs in Bytes
+     *
+     * @exception IllegalArgumentException Die neue Größe ist größer als die bisherige Größe
+     */
+    void setSize(size_t size);
+
+    /**@brief Speicherbereich reallokieren
+     *
+     * Mit dieser Funktion wird der Speicherbereich der ByteArray-Klasse auf die Größe \p size Bytes
+     * reallokiert. Es findet eine Reallokierung des Speichers statt, die vorhandenen Daten werden
+     * beibehalten. Es ist sichergestellt, dass am Ende des Speicherbereichs immer 4 0-Bytes angehangen werden.
+     *
+     * @param[in] size Neue Größe des Speicherbereichs in Bytes
+     * @return Pointer auf den Beginn des Speicherbereichs
+     *
+     * @exception OutOfMemoryException Speicher konnte nicht allokiert werden
+     */
+    void* realloc(size_t size);
+
     /**@brief Speicherbereich aus einem Hex-String kopieren
      *
      * Mit dieser Funktion werden die im String \p hex kodierten Hexadezimal-Werte
