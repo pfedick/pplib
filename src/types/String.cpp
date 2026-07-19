@@ -1484,15 +1484,6 @@ bool String::has(const String& needle, bool ignoreCase) const
     return false;
 }
 
-/*!\brief String wiederholen
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings mehrfach wiederholt.
- *
- * @param num Anzahl Wiederholungen. Falls \p num 0 ist, ist der String anschließend leer.
- *
- * @return Referenz auf den verlängerten String.
- */
 String& String::repeat(size_t num)
 {
     if (stringlen == 0) return *this;
@@ -1519,13 +1510,6 @@ String& String::repeat(size_t num)
     return *this;
 }
 
-/*!\brief Füllt den String mit einem Zeichen
- *
- * Der String wird mit einem gewünschten Zeichen gefüllt
- * \param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
- * \param num Die Länge des gewünschten Strings
- * \return Referenz auf den neuen String
- */
 String& String::repeat(const String& str, size_t num)
 {
     if (str.stringlen == 0 || num == 0) {
@@ -1560,56 +1544,28 @@ String& String::repeat(const String& str, size_t num)
     return *this;
 }
 
-/*!\brief String wiederholen
- *
- * \desc
- * Mit dieser Funktion wird der übergebene String \p str \p num mal wiederholt und
- * das Ergebnis in diesem String gespeichert.
- *
- * @param str Der zu wiederholende String
- * @param num Anzahl wiederholungen
- * @return Referenz auf den String
- */
-String& String::repeat(const String& str, size_t num)
+String& String::repeat(char code, size_t num)
 {
-    if (str.stringlen == 0 || num == 0) {
+    if (!code) {
+        throw IllegalArgumentException();
+    }
+    if (!num) {
         clear();
         return *this;
     }
-    size_t newsize = (str.stringlen * num + 16);
+    size_t newsize = (num + 1);
     char* buf = (char*)malloc(newsize);
     if (!buf) throw OutOfMemoryException();
-    char* tmp = buf;
-#ifdef HAVE_STRNCPY_S
-    size_t buffer_left = newsize;
-#endif
-    for (size_t i = 0; i < num; i++) {
-#ifdef HAVE_STRNCPY_S
-        strncpy_s((char*)tmp, buffer_left, str.ptr, str.stringlen);
-        buffer_left -= str.stringlen;
-#else
-        strncpy(tmp, str.ptr, str.stringlen);
-#endif
-        tmp += str.stringlen;
-    }
+    for (size_t i = 0; i < num; i++)
+        buf[i] = code;
     free(ptr);
     ptr = buf;
-    stringlen = num * str.stringlen;
+    stringlen = num;
     ptr[stringlen] = 0;
     s = newsize;
     return *this;
 }
 
-/*!\brief String multiplizieren
- *
- * \desc
- * Der aktuelle String wird \p count mal hintereinander wiederholt und
- * als neuer String zurückgegeben.
- *
- * @param[in] count Anzahl wiederholungen
- * @return Neuer String
- * \exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
- */
 String String::repeated(size_t count) const
 {
     String ret;

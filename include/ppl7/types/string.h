@@ -803,9 +803,45 @@ public:
      */
     String& vasprintf(const char* fmt, va_list args);
 
+    /**@brief String wiederholen
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings mehrfach wiederholt.
+     *
+     * @param num Anzahl Wiederholungen. Falls \p num 0 ist, ist der String anschließend leer.
+     * @return Referenz auf den verlängerten String.
+     * @exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
+     */
     String& repeat(size_t num);
+
+    /**@brief Füllt den String mit einem Zeichen
+     *
+     * Der String wird mit einem gewünschten Zeichen gefüllt
+     * @param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
+     * @param num Die Länge des gewünschten Strings
+     * @return Referenz auf den String
+     * @exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
+     */
     String& repeat(char code, size_t num);
+
+    /**@brief Füllt den String mit einem Zeichen
+     *
+     * Der String wird mit einem gewünschten Zeichen gefüllt
+     * @param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
+     * @param num Die Länge des gewünschten Strings
+     * @return Referenz auf den neuen String
+     * @exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
+     */
     String& repeat(const String& str, size_t num);
+
+    /**@brief String multiplizieren
+     *
+     * Der aktuelle String wird \p count mal hintereinander wiederholt und
+     * als neuer String zurückgegeben.
+     *
+     * @param[in] count Anzahl wiederholungen
+     * @return Neuer String
+     * @exception OutOfMemoryException Tritt auf, wenn kein Speicher mehr verfügbar ist.
+     */
     String repeated(size_t num) const;
 
     /**@brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
