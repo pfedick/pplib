@@ -103,8 +103,8 @@ TEST_F(StringFunctionTest, FromBase64)
 
 TEST_F(StringFunctionTest, UpperCaseWords)
 {
-    ppl7::String s1(ppl7::Iconv::Utf8ToLocal("the quick brown fox jumps over äöü"));
-    ppl7::String expected(ppl7::Iconv::Utf8ToLocal("The Quick Brown Fox Jumps Over Äöü"));
+    ppl7::String s1("the quick brown fox jumps over äöü");
+    ppl7::String expected("The Quick Brown Fox Jumps Over Äöü");
     ppl7::String result = UpperCaseWords(s1);
     ASSERT_EQ(expected, result);
 }
