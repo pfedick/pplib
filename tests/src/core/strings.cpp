@@ -541,6 +541,16 @@ TEST_F(StringTest, appendWchart)
     ASSERT_EQ((size_t)20, s1.size()) << "String has unexpected length";
 }
 
+TEST_F(StringTest, append_same_string)
+{
+    ppl7::String expected("It's me, It's me, It's me, It's me, ");
+    ppl7::String s1("It's me, ");
+    s1.append(s1);
+    s1.append(s1);
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
+}
+
 TEST_F(StringTest, prependConstWchartWithoutSize)
 {
     ppl7::String expected("äöü Second PartFirst Part äöü, ");
@@ -653,6 +663,16 @@ TEST_F(StringTest, prependWchart)
     s1.prepend((wchar_t)'a');
     ASSERT_EQ(expected, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)20, s1.size()) << "String has unexpected length";
+}
+
+TEST_F(StringTest, prepend_same_string)
+{
+    ppl7::String expected("It's me, It's me, It's me, It's me, ");
+    ppl7::String s1("It's me, ");
+    s1.prepend(s1);
+    s1.prepend(s1);
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
 }
 
 TEST_F(StringTest, chopRight)
@@ -825,12 +845,26 @@ TEST_F(StringTest, trim)
     ASSERT_EQ(ppl7::String("abc"), s1);
 }
 
+TEST_F(StringTest, trim_empty)
+{
+    ppl7::String s1;
+    s1.trim();
+    ASSERT_EQ((size_t)0, s1.size());
+    ASSERT_EQ(ppl7::String(), s1);
+}
+
 TEST_F(StringTest, trimmed)
 {
     ppl7::String s1("\n\n    abc  \n");
     ppl7::String s2 = s1.trimmed();
     ASSERT_EQ((size_t)3, s2.size());
     ASSERT_EQ(ppl7::String("abc"), s2);
+
+    ASSERT_EQ(ppl7::String("Hello World"), ppl7::String("Hello World").trimmed());
+    ASSERT_EQ(ppl7::String("Hello World"), ppl7::String("Hello World   ").trimmed());
+    ASSERT_EQ(ppl7::String("Hello World"), ppl7::String("   Hello World").trimmed());
+    ASSERT_EQ(ppl7::String(""), ppl7::String("").trimmed());
+    ASSERT_EQ(ppl7::String(""), ppl7::String("   \n\t   \n").trimmed());
 }
 
 TEST_F(StringTest, trimLeftEmptyResult)
@@ -1054,6 +1088,16 @@ TEST_F(StringTest, upperCase)
     ASSERT_EQ(expected, s1);
 }
 
+TEST_F(StringTest, toLowerCase)
+{
+    ASSERT_EQ(ppl7::String(L"the quick brown fox jumps over äöü"), ppl7::String(L"The Quick Brown Fox Jumps over ÄÖÜ").toLowerCase());
+}
+
+TEST_F(StringTest, toUpperCase)
+{
+    ASSERT_EQ(ppl7::String(L"THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"), ppl7::String(L"The Quick Brown Fox Jumps over äöü").toUpperCase());
+}
+
 TEST_F(StringTest, strchr_ExistingChar)
 {
     ppl7::String s1("The Quick Brown Fox Jumps over äöü");
@@ -1248,6 +1292,16 @@ TEST_F(StringTest, OperatorCharPositionNegativ)
     EXPECT_EQ((char)'e', s1[-11]) << "Unexpected Result";
     EXPECT_EQ((char)'H', s1[-12]) << "Unexpected Result";
     ASSERT_THROW({ ASSERT_EQ((char)0, s1[-13]); }, ppl7::OutOfBoundsException);
+}
+
+TEST_F(StringTest, join)
+{
+    ppl7::Array a;
+    a.add("One");
+    a.add("Two");
+    a.add("Three");
+    ppl7::String s1(",");
+    EXPECT_EQ(ppl7::String("One,Two,Three"), s1.join(a));
 }
 
 } // namespace

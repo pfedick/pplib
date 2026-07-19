@@ -1805,6 +1805,20 @@ void WideString::upperCase()
     }
 }
 
+WideString WideString::toLowerCase() const
+{
+    WideString result = *this;
+    result.lowerCase();
+    return result;
+}
+
+WideString WideString::toUpperCase() const
+{
+    WideString result = *this;
+    result.upperCase();
+    return result;
+}
+
 /*!\brief Anfangsbuchstaben der Wörter groß
  *
  * \desc
@@ -1853,6 +1867,13 @@ void WideString::trim()
         stringlen = wcslen(ptr);
         ptr[stringlen] = 0;
     }
+}
+
+WideString WideString::trimmed() const
+{
+    WideString result = *this;
+    result.trim();
+    return result;
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab

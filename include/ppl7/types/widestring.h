@@ -165,6 +165,11 @@ public:
     void cut(size_t pos);
     void cut(const WideString& letter);
 
+    WideString trimmed() const;
+
+    WideString toLowerCase() const;
+    WideString toUpperCase() const;
+
     WideString strchr(wchar_t c) const;
     WideString strrchr(wchar_t c) const;
     WideString strstr(const WideString& needle) const;
@@ -176,8 +181,6 @@ public:
     bool startsWith(const WideString& prefix, size_t start = 0, size_t end = (size_t)-1) const;
     bool endsWith(const WideString& suffix, size_t start = 0, size_t end = (size_t)-1) const;
     WideString join(const ppl7::Array& iterable) const;
-
-    WideString& stripSlashes();
 
     WideString& replace(const WideString& search, const WideString& replacement);
 

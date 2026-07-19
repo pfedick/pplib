@@ -537,6 +537,16 @@ TEST_F(WideStringTest, appendWchart)
     ASSERT_EQ((size_t)17, s1.size()) << "String has unexpected length";
 }
 
+TEST_F(WideStringTest, append_same_string)
+{
+    ppl7::WideString expected("It's me, It's me, It's me, It's me, ");
+    ppl7::WideString s1("It's me, ");
+    s1.append(s1);
+    s1.append(s1);
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
+}
+
 TEST_F(WideStringTest, prependConstWchartWithoutSize)
 {
     ppl7::WideString expected(L"äöü Second PartFirst Part äöü, ");
@@ -649,6 +659,16 @@ TEST_F(WideStringTest, prependWchart)
     s1.prepend((wchar_t)'a');
     ASSERT_EQ(expected, s1) << "String has unexpected value";
     ASSERT_EQ((size_t)17, s1.size()) << "String has unexpected length";
+}
+
+TEST_F(WideStringTest, prepend_same_string)
+{
+    ppl7::WideString expected("It's me, It's me, It's me, It's me, ");
+    ppl7::WideString s1("It's me, ");
+    s1.prepend(s1);
+    s1.prepend(s1);
+    ASSERT_EQ(expected, s1) << "String has unexpected value";
+    ASSERT_EQ((size_t)36, s1.size()) << "String has unexpected length";
 }
 
 TEST_F(WideStringTest, chopRight)
@@ -825,6 +845,28 @@ TEST_F(WideStringTest, trim)
     s1.trim();
     ASSERT_EQ((size_t)3, s1.size());
     ASSERT_EQ(ppl7::WideString(L"abc"), s1);
+}
+
+TEST_F(WideStringTest, trimEmptyString)
+{
+    ppl7::WideString s1(L"");
+    s1.trim();
+    ASSERT_EQ((size_t)0, s1.size());
+    ASSERT_EQ(ppl7::WideString(L""), s1);
+}
+
+TEST_F(WideStringTest, trimmed)
+{
+    ppl7::WideString s1(L"\n\n    abc  \n");
+    ppl7::WideString s2 = s1.trimmed();
+    ASSERT_EQ((size_t)3, s2.size());
+    ASSERT_EQ(ppl7::WideString("abc"), s2);
+
+    ASSERT_EQ(ppl7::WideString("Hello World"), ppl7::WideString("Hello World").trimmed());
+    ASSERT_EQ(ppl7::WideString("Hello World"), ppl7::WideString("Hello World   ").trimmed());
+    ASSERT_EQ(ppl7::WideString("Hello World"), ppl7::WideString("   Hello World").trimmed());
+    ASSERT_EQ(ppl7::WideString(""), ppl7::WideString("").trimmed());
+    ASSERT_EQ(ppl7::WideString(""), ppl7::WideString("   \n\t   \n").trimmed());
 }
 
 TEST_F(WideStringTest, trimLeftEmptyResult)
@@ -1056,50 +1098,17 @@ TEST_F(WideStringTest, upperCaseWords)
     ASSERT_EQ(expected, s1);
 }
 
-#ifdef DEPRECATED
-TEST_F(WideStringTest, pregMatchPositive)
+TEST_F(WideStringTest, toLowerCase)
 {
-    ppl7::WideString s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum "
-                        L"sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
-    ppl7::WideString expr(L"/^Lorem.*$/s");
-    ASSERT_TRUE(s1.pregMatch(expr));
-    expr.set(L"/^Lorem.*$/is");
-    ASSERT_TRUE(s1.pregMatch(expr));
-    expr.set(L"/consectetuer/");
-    ASSERT_TRUE(s1.pregMatch(expr));
-    expr.set(L"/^.*consectetuer.*$/s");
-    ASSERT_TRUE(s1.pregMatch(expr));
-    expr.set(L"/^.*mus\\.$/m");
-    ASSERT_TRUE(s1.pregMatch(expr));
+    ASSERT_EQ(ppl7::WideString(L"the quick brown fox jumps over äöü"),
+              ppl7::WideString(L"The Quick Brown Fox Jumps over ÄÖÜ").toLowerCase());
 }
 
-TEST_F(WideStringTest, pregMatchNegativ)
+TEST_F(WideStringTest, toUpperCase)
 {
-    ppl7::WideString s1(L"Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\nAenean commodo ligula eget dolor. Aenean massa. Cum "
-                        L"sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.");
-    ppl7::WideString expr(L"/^Looorem.*$/s");
-    ASSERT_FALSE(s1.pregMatch(expr));
-    expr.set(L"/^ipsum.*$/is");
-    ASSERT_FALSE(s1.pregMatch(expr));
-    expr.set(L"/patrick/");
-    ASSERT_FALSE(s1.pregMatch(expr));
-    expr.set(L"/^.*patrick.*$/s");
-    ASSERT_FALSE(s1.pregMatch(expr));
-    expr.set(L"/^.*mus\\.$/");
-    ASSERT_FALSE(s1.pregMatch(expr));
+    ASSERT_EQ(ppl7::WideString(L"THE QUICK BROWN FOX JUMPS OVER ÄÖÜ"),
+              ppl7::WideString(L"The Quick Brown Fox Jumps over äöü").toUpperCase());
 }
-
-TEST_F(WideStringTest, pregCapture)
-{
-    ppl7::Array m;
-    ppl7::WideString s1(L"2012-05-18");
-    ASSERT_TRUE(s1.pregMatch(L"/^([0-9]{4})[\\.-]([0-9]{1,2})[\\.-]([0-9]{1,2})$/", m));
-    ASSERT_EQ(2012, m[1].toInt()) << "Unexpected value in capture";
-    ASSERT_EQ(5, m[2].toInt()) << "Unexpected value in capture";
-    ASSERT_EQ(18, m[3].toInt()) << "Unexpected value in capture";
-    ASSERT_EQ((size_t)4, m.size()) << "Unexpected number auf captures";
-}
-#endif
 
 TEST_F(WideStringTest, Utf8toUtf8)
 {
@@ -1295,6 +1304,16 @@ TEST_F(WideStringTest, ToDouble_182566142_346214893456)
 {
     ppl7::WideString s1(L"182566142.346214893456");
     EXPECT_EQ((double)182566142.346214893456, s1.toDouble()) << "Unexpected Result";
+}
+
+TEST_F(WideStringTest, join)
+{
+    ppl7::Array a;
+    a.add("One");
+    a.add("Two");
+    a.add("Three");
+    ppl7::WideString s1(L",");
+    EXPECT_EQ(ppl7::WideString(L"One,Two,Three"), s1.join(a));
 }
 
 } // namespace
