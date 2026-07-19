@@ -136,6 +136,14 @@ WideString::WideString(const wchar_t* str, size_t size)
     set(str, size);
 }
 
+WideString::WideString(const char* str, size_t size)
+{
+    ptr = NULL;
+    stringlen = 0;
+    s = 0;
+    set(str, size);
+}
+
 /*!\brief Konstruktor aus anderem String (Copy-Konstruktor)
  *
  * \desc
@@ -275,6 +283,7 @@ void WideString::reserve(size_t size)
     if (!p) throw OutOfMemoryException();
     ptr = p;
     s = bytes;
+    // TODO: fehlen hier die 0-Bytes am Ende des Strings?
 }
 
 /*!\brief Länge des Strings
@@ -487,72 +496,27 @@ WideString& WideString::set(const char* str, size_t size)
         clear();
         return *this;
     }
-    size_t inbytes;
-    if (size != (size_t)-1)
-        inbytes = size;
-    else
-        inbytes = strlen(str);
-    size_t outbytes = inbytes * sizeof(wchar_t) + 4;
-    if (outbytes >= s) {
-        if (ptr) free(ptr);
-        stringlen = 0;
-        s = InitialBuffersize;
-        if (s <= outbytes) s = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 4;
-        ptr = (wchar_t*)malloc(s);
-        if (!ptr) {
-            s = 0;
-            throw OutOfMemoryException();
-        }
-    }
-    String GlobalEncoding = String::getGlobalEncoding();
-#ifdef WIN32
-    if (GlobalEncoding.instrCase(".1252") > 0) {
-        GlobalEncoding = "WINDOWS-1252";
-    }
-#endif
-#ifndef WIN32
-#ifdef HAVE_MBSTOWCS
-    if (GlobalEncoding.instrCase("UTF-8") >= 0 || GlobalEncoding.instrCase("UTF8") >= 0 || GlobalEncoding.instrCase("USASCII") >= 0 ||
-        GlobalEncoding.instrCase("US-ASCII") >= 0 || GlobalEncoding.strCaseCmp("C") == 0 || GlobalEncoding.strCaseCmp("POSIX") == 0 ||
-        GlobalEncoding.strCaseCmp("WINDOWS-1252") == 0) {
-        // printf ("DEBUG 2a\n");
-        size_t ret = mbstowcs((wchar_t*)ptr, str, inbytes);
-        if (ret == (size_t)-1) {
-            ((wchar_t*)ptr)[0] = 0;
-            stringlen = 0;
-            // printf ("BAENG!\n");
-            throw CharacterEncodingException();
-        }
-        ((wchar_t*)ptr)[ret] = 0;
-        stringlen = ret;
+    size_t inbytes = (size != (size_t)-1) ? size : ::strlen(str);
+    if (inbytes == 0) {
+        clear();
         return *this;
     }
-#endif
-#endif
-#ifdef HAVE_ICONV
-    // printf ("DEBUG: ICONV: %s\n",(const char*)GlobalEncoding);
-    iconv_t iconvimport = iconv_open(ICONV_UNICODE, (const char*)GlobalEncoding);
-    if ((iconv_t)(-1) == iconvimport) {
-        // printf ("MIST\n");
-        throw UnsupportedCharacterEncodingException(GlobalEncoding);
+    reserve(inbytes);
+    // Temp-Kopie anlegen, falls der Eingabe-String nicht nullterminiert ist
+    String temp_str;
+    if (size != (size_t)-1) {
+        temp_str.set(str, inbytes);
+        str = temp_str.c_str();
     }
-    char* outbuf = (char*)ptr;
-    // HexDump(str,inbytes);
-    size_t res = iconv(iconvimport, (ICONV_CONST char**)&str, &inbytes, (char**)&outbuf, &outbytes);
-    iconv_close(iconvimport);
-    if (res == (size_t)(-1)) {
-        ((wchar_t*)ptr)[0] = 0;
-        stringlen = 0;
-        // SetError(289,"%s",strerror(errno));
-        // printf ("BAENG!\n");
+    size_t ret = ::mbstowcs(ptr, str, inbytes + 1);
+    if (ret == (size_t)-1) {
+        clear();
         throw CharacterEncodingException();
     }
-    ((wchar_t*)outbuf)[0] = 0;
-    stringlen = wcslen((wchar_t*)ptr);
+
+    stringlen = ret;
+    ptr[stringlen] = 0;
     return *this;
-#else
-    throw UnsupportedFeatureException();
-#endif
 }
 
 /*!\brief String anhand eines wchar_t* setzen
@@ -1190,155 +1154,152 @@ WideString& WideString::prepend(wchar_t c)
     return prepend(buffer, 1);
 }
 
-/*!\brief String in UTF8 umwandeln
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings in UTF8 umgewandelt und als
- * ByteArray zurückgegeben.
- *
- * @return ByteArray mit der UTF8-Repräsentation des Strings.
- */
 ByteArray WideString::toUtf8() const
 {
     if (stringlen == 0) return ByteArray();
-#ifndef HAVE_ICONV
-    throw UnsupportedFeatureException();
-#else
-    return toEncoding("UTF-8");
+
+    // 1. Allokieren des maximal benötigten Speichers (max 4 Bytes pro Character)
+    size_t max_bytes = stringlen * 4 + 1;
+    ByteArray tmp_buffer;
+    char* buffer = (char*)tmp_buffer.malloc(max_bytes);
+    size_t dest_len = 0;
+
+    for (size_t i = 0; i < stringlen; i++) {
+        uint32_t codepoint = ptr[i];
+
+// Falls wchar_t 16-Bit ist (Windows), müssen wir Surrogate-Pairs behandeln
+#if defined(_WIN32) || (defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2)
+        if (codepoint >= 0xD800 && codepoint <= 0xDBFF) {
+            // High Surrogate - prüfen ob das nächste Zeichen ein Low Surrogate ist
+            if (i + 1 < stringlen) {
+                uint32_t low = ptr[i + 1];
+                if (low >= 0xDC00 && low <= 0xDFFF) {
+                    codepoint = 0x10000 + ((codepoint - 0xD800) << 10) + (low - 0xDC00);
+                    i++; // Nächstes wchar_t überspringen (da im selben Codepoint verwendet)
+                }
+            }
+        }
 #endif
+
+        // UTF-8 Kodierung schreiben (Direktzugriff)
+        if (codepoint < 0x80) {
+            buffer[dest_len++] = (char)codepoint;
+        } else if (codepoint < 0x800) {
+            buffer[dest_len++] = (char)(0xC0 | (codepoint >> 6));
+            buffer[dest_len++] = (char)(0x80 | (codepoint & 0x3F));
+        } else if (codepoint < 0x10000) {
+            buffer[dest_len++] = (char)(0xE0 | (codepoint >> 12));
+            buffer[dest_len++] = (char)(0x80 | ((codepoint >> 6) & 0x3F));
+            buffer[dest_len++] = (char)(0x80 | (codepoint & 0x3F));
+        } else if (codepoint < 0x200000) {
+            buffer[dest_len++] = (char)(0xF0 | (codepoint >> 18));
+            buffer[dest_len++] = (char)(0x80 | ((codepoint >> 12) & 0x3F));
+            buffer[dest_len++] = (char)(0x80 | ((codepoint >> 6) & 0x3F));
+            buffer[dest_len++] = (char)(0x80 | (codepoint & 0x3F));
+        }
+    }
+    tmp_buffer.setSize(dest_len);
+    return tmp_buffer;
 }
 
-/*!\brief String in Lokale Kodierung umwandeln
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings in in die lokale Kodierung des
- * Betriebssystems umgewandelt, bzw. den Zeichensatz, der über "setlocale" eingestellt
- * wurde. Das Ergebnis wird als ByteArray zurückgegeben.
- *
- * @return ByteArray mit der lokalen Repräsentation des Strings.
- *
- * \example
- * Die aktuelle Lokalisierungs-Einstellung für die String-Konvertierung kann folgendermassen
- * abgefragt werden:
-\code
-printf ("Lokalisierung: %s\n",setlocale(LC_CTYPE,NULL);
-\endcode
- * Und folgendermassen kann sie gesetzt werden:
-\code
-if (!setlocale(LC_CTYPE, "de_DE.ISO8859-15")) {
-    printf ("setlocale fehlgeschlagen\n");
-    throw std::exception();
-}
-printf ("Lokalisierung: %s\n",setlocale(LC_CTYPE,NULL);
-\endcode
- *
- */
 ByteArray WideString::toLocalEncoding() const
 {
     if (stringlen == 0) return ByteArray();
-#ifdef HAVE_WCSTOMBS
     size_t buffersize = stringlen * 4 + 8;
-    char* buffer = (char*)malloc(buffersize);
-    if (!buffer) throw OutOfMemoryException();
+    ByteArray tmp_buffer;
+    char* buffer = (char*)tmp_buffer.malloc(buffersize);
 
     size_t ret = wcstombs(buffer, (const wchar_t*)ptr, buffersize);
     if (ret == (size_t)-1) {
-        free(buffer);
         throw CharacterEncodingException();
     }
-    ByteArray a;
-    try {
-        a.copy(buffer, ret);
-    }
-    catch (...) {
-        free(buffer);
-        throw;
-    }
-    free(buffer);
-    return a;
-#else
-    return toEncoding("UTF-8");
-#endif
+    tmp_buffer.setSize(ret);
+    return tmp_buffer;
 }
 
-/*!\brief String in eine beliebige lokale Kodierung umwandeln
- *
- * \desc
- * Mit dieser Funktion wird der Inhalt des Strings in eine beliebige lokale
- * Kodierung umgewandelt und als ByteArray zurückgegeben.
- *
- * \param[in] encoding Das gewünschte Encoding
- *
- * @return ByteArray mit der UTF8-Repräsentation des Strings.
- *
- * \attention
- * Für diese Funktion wird "Iconv" benötigt. Ist keine Iconv-Bibliothek auf dem
- * System vorhanden, wird eine UnsupportedFeatureException geworfen.
- */
 ByteArray WideString::toEncoding(const char* encoding) const
 {
 #ifndef HAVE_ICONV
-    throw UnsupportedFeatureException();
+    throw UnsupportedFeatureException("Iconv not available, cannot convert to encoding");
 #else
-    iconv_t iconv_handle = iconv_open(encoding, ICONV_UNICODE);
-    if ((iconv_t)(-1) == iconv_handle) {
-        throw UnsupportedCharacterEncodingException();
-    }
-
-    size_t buffersize = (stringlen + 4) * sizeof(wchar_t);
-    char* buffer = (char*)malloc(buffersize);
-    if (!buffer) {
-        iconv_close(iconv_handle);
-        throw OutOfMemoryException();
-    }
-    size_t outbytes = buffersize;
-    char* b = buffer;
-    char* inbuffer = (char*)ptr;
-    size_t inbytes = stringlen * sizeof(wchar_t);
-
-    // hexDump();
-
-    size_t res = iconv((iconv_t)iconv_handle, (ICONV_CONST char**)&inbuffer, &inbytes, (char**)&b, &outbytes);
-    iconv_close(iconv_handle);
-    if (res == (size_t)(-1)) {
-        free(buffer);
-        throw CharacterEncodingException();
-    }
-    b[0] = 0;
-    ByteArray ret(buffer, buffersize - outbytes);
-    free(buffer);
-    return ret;
+    // Step 1: nach UTF-8 konvertieren
+    ByteArray utf8 = toUtf8();
+    // Step 2: UTF-8 nach gewünschtem Encoding konvertieren
+    return Iconv::transcode(utf8, "UTF-8", encoding);
 #endif
 }
 
 ByteArray WideString::toUCS4() const
 {
+    if (stringlen == 0) return ByteArray();
+
     ByteArray ret;
-    if (stringlen) {
-        uint32_t* ucs4 = (uint32_t*)malloc(stringlen * 4 + 4);
-        if (!ucs4) throw OutOfMemoryException();
-        for (size_t i = 0; i < stringlen; i++)
-            ucs4[i] = (uint32_t)ptr[i];
-        ucs4[stringlen] = 0;
-        ret.useadr(ucs4, stringlen * 4);
+    // Jedes UCS-4 Zeichen belegt exakt 4 Byte. Wir reservieren Platz für max. stringlen Elemente
+    uint32_t* ucs4 = (uint32_t*)ret.malloc(stringlen * sizeof(uint32_t));
+    size_t dest_len = 0;
+
+    for (size_t i = 0; i < stringlen; i++) {
+        uint32_t codepoint = ptr[i];
+
+#if defined(_WIN32) || (defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2)
+        if (codepoint >= 0xD800 && codepoint <= 0xDBFF) {
+            // High Surrogate - prüfen ob das nächste Zeichen ein Low Surrogate ist
+            if (i + 1 < stringlen) {
+                uint32_t low = ptr[i + 1];
+                if (low >= 0xDC00 && low <= 0xDFFF) {
+                    codepoint = 0x10000 + ((codepoint - 0xD800) << 10) + (low - 0xDC00);
+                    i++; // Nächstes wchar_t überspringen
+                }
+            }
+        }
+#endif
+        ucs4[dest_len++] = codepoint;
     }
+
+    // Explizite Nullterminierung (UCRT / POSIX kompatibel)
+    ucs4[dest_len] = 0;
+
+    // Logische Größe des ByteArrays in Bytes anpassen
+    ret.setSize(dest_len * sizeof(uint32_t));
     return ret;
 }
 
 WideString& WideString::fromUCS4(const uint32_t* str, size_t size)
 {
     clear();
+    if (!str) return *this;
+
     for (size_t i = 0; str[i] != 0; i++) {
         if (size != (size_t)-1 && i >= size) break;
-        wchar_t c = (wchar_t)str[i];
-        append(c);
+        uint32_t codepoint = str[i];
+
+#if defined(_WIN32) || (defined(__SIZEOF_WCHAR_T__) && __SIZEOF_WCHAR_T__ == 2)
+        if (codepoint > 0xFFFF) {
+            // Encode als UTF-16 Surrogate Pair
+            codepoint -= 0x10000;
+            wchar_t high = (wchar_t)(0xD800 + (codepoint >> 10));
+            wchar_t low = (wchar_t)(0xDC00 + (codepoint & 0x3FF));
+            append(high);
+            append(low);
+        } else {
+            append((wchar_t)codepoint);
+        }
+#else
+        append((wchar_t)codepoint); // Auf Linux/FreeBSD ist wchar_t bereits 32-Bit
+#endif
     }
     return *this;
 }
 
 WideString& WideString::fromUCS4(const ByteArrayPtr& bin)
 {
-    return fromUCS4((uint32_t*)bin.ptr(), bin.size());
+    return fromUCS4((uint32_t*)bin.ptr(), bin.size() / sizeof(uint32_t));
+}
+
+String WideString::toString() const
+{
+    ByteArray local = toLocalEncoding();
+    return String((const char*)local.ptr(), local.size());
 }
 
 /*!\brief Einzelnes Zeichen auslesen
@@ -2953,7 +2914,7 @@ WideString operator+(const WideString& str1, const wchar_t* str2)
  */
 WideString operator+(const std::string& str1, const WideString& str2)
 {
-    WideString s = str1;
+    WideString s(str1);
     s.append(str2);
     return s;
 }

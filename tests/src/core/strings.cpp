@@ -1054,54 +1054,6 @@ TEST_F(StringTest, upperCase)
     ASSERT_EQ(expected, s1);
 }
 
-#ifndef WIN32
-TEST_F(StringTest, Utf8toUtf8)
-{
-    ASSERT_NO_THROW({
-        ppl7::String s1("A test string with unicode characters: äöü");
-        ppl7::ByteArray a = s1.toUtf8();
-        ASSERT_EQ((size_t)45, a.size()) << "String does not have expected length";
-        ASSERT_EQ((unsigned char)'A', (unsigned char)a.get(0)) << "Unexpected Character in string";
-        ASSERT_EQ((unsigned char)188, (unsigned char)a.get(44)) << "Unexpected Character in string";
-    });
-}
-
-#endif
-
-TEST_F(StringTest, ISO88591toUtf8)
-{
-#ifdef WIN32
-    if (setlocale(LC_CTYPE, ".1252") == NULL) {
-        FAIL() << "setlocale fehlgeschlagen\n";
-    }
-#else
-    if (setlocale(LC_CTYPE, "de_DE.ISO8859-1") == NULL) {
-        FAIL() << "setlocale fehlgeschlagen\n";
-    }
-#endif
-    ppl7::String s1;
-    EXPECT_NO_THROW({
-        s1.set("A test string with unicode characters: ");
-        s1.append(0xe4);
-        s1.append(0xf6);
-        s1.append(0xfc);
-    });
-    EXPECT_EQ((size_t)42, s1.size()) << "String does not have expected length";
-    EXPECT_EQ('A', (unsigned char)s1[0]) << "Unexpected Character in string";
-    EXPECT_EQ(228, (unsigned char)s1[39]) << "Unexpected Character in string";
-    ppl7::ByteArray a;
-    EXPECT_NO_THROW({ a = s1.toUtf8(); });
-    // a.hexDump();
-    EXPECT_EQ((size_t)45, a.size()) << "String does not have expected length";
-    EXPECT_EQ((unsigned char)'A', (unsigned char)a.get(0)) << "Unexpected Character in string";
-    EXPECT_EQ(188, (unsigned char)a.get(44)) << "Unexpected Character in string";
-
-    if (setlocale(LC_ALL, "C") == NULL) {
-        printf("setlocale fehlgeschlagen\n");
-        throw std::exception();
-    }
-}
-
 TEST_F(StringTest, strchr_ExistingChar)
 {
     ppl7::String s1("The Quick Brown Fox Jumps over äöü");

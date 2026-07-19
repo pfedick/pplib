@@ -53,9 +53,10 @@ public:
     WideString() noexcept;
     WideString(const wchar_t* str);
     WideString(const wchar_t* str, size_t size);
+    explicit WideString(const char* str, size_t size = (size_t)-1);
     WideString(const WideString& str);
-    WideString(const String& str);
-    WideString(const std::string& str);
+    explicit WideString(const String& str);
+    explicit WideString(const std::string& str);
     WideString(const std::wstring& str);
     WideString(WideString&& other) noexcept;
     ~WideString() noexcept;
@@ -180,13 +181,6 @@ public:
 
     WideString& replace(const WideString& search, const WideString& replacement);
 
-    /*
-    WideString& pregReplace(const WideString& expression, const WideString& replacement, int max=0);
-    WideString& pregEscape();
-    bool pregMatch(const WideString& expression) const;
-    bool pregMatch(const WideString& expression, Array& matches, size_t maxmatches=16) const;
-    */
-
     //@}
 
     //! @name String ausgeben und auslesen
@@ -197,11 +191,53 @@ public:
     wchar_t get(ssize_t pos) const;
     const wchar_t* getPtr() const;
 
+    /**@brief String in UTF-8 umwandeln
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings in UTF-8 umgewandelt und als
+     * ByteArray zurückgegeben. Dabei ist garantiert, dass unabhängig von den eingestellten
+     * locales immer UTF-8 zurückgegeben wird.
+     *
+     * @return ByteArray mit der UTF8-Repräsentation des Strings.
+     */
     ByteArray toUtf8() const;
+
+    /**@brief String in die lokale Kodierung umwandeln
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings in die lokale Kodierung umgewandelt und als
+     * String zurückgegeben. Die lokale Kodierung wird mit der Funktion setlocale() aus der
+     * C-Standardbibliothek festgelegt.
+     *
+     * @return String mit der lokalen Repräsentation des Strings.
+     */
     String toString() const;
+
+    /**@brief String in die lokale Kodierung umwandeln
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings in die lokale Kodierung umgewandelt und als
+     * ByteArray zurückgegeben. Die lokale Kodierung wird mit der Funktion setlocale() aus der
+     * C-Standardbibliothek festgelegt.
+     *
+     * @return ByteArray mit der lokalen Repräsentation des Strings.
+     */
     ByteArray toLocalEncoding() const;
-    String toLocalString() const;
+
+    /**@brief String in eine beliebige lokale Kodierung umwandeln
+     *
+     * Mit dieser Funktion wird der Inhalt des Strings in eine beliebige lokale
+     * Kodierung umgewandelt und als ByteArray zurückgegeben.
+     *
+     * @param[in] encoding Das gewünschte Encoding
+     *
+     * @return ByteArray mit der Lokalen Repräsentation des Strings.
+     *
+     * @attention
+     * Für diese Funktion wird "Iconv" benötigt.
+     *
+     * @exception UnsupportedFeatureException Wird geworfen, wenn keine Iconv-Bibliothek auf dem
+     * System vorhanden ist
+     */
     ByteArray toEncoding(const char* encoding) const;
+
     ByteArray toUCS4() const;
     WideString& fromUCS4(const uint32_t* str, size_t size = (size_t)-1);
     WideString& fromUCS4(const ByteArrayPtr& bin);

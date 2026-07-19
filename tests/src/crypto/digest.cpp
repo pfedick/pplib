@@ -39,395 +39,431 @@
 
 #include <openssl/opensslv.h>
 
-namespace {
+namespace
+{
 
 // The fixture for testing class Foo.
-class DigestTest : public ::testing::Test {
-	protected:
-	DigestTest() {
-		if (setlocale(LC_CTYPE,DEFAULT_LOCALE)==NULL) {
-			printf ("setlocale fehlgeschlagen\n");
-			throw std::exception();
-		}
-	}
-	virtual ~DigestTest() {
-
-	}
+class DigestTest : public ::testing::Test
+{
+protected:
+    DigestTest()
+    {
+        if (setlocale(LC_CTYPE, DEFAULT_LOCALE) == NULL) {
+            printf("setlocale fehlgeschlagen\n");
+            throw std::exception();
+        }
+    }
+    virtual ~DigestTest()
+    {
+    }
 };
 
-TEST_F(DigestTest, ConstructorSimple) {
-	ASSERT_NO_THROW(ppl7::Digest dig);
+TEST_F(DigestTest, ConstructorSimple)
+{
+    ASSERT_NO_THROW(ppl7::Digest dig);
 }
 
-
-TEST_F(DigestTest, ConstructorWithMD5) {
-	ASSERT_NO_THROW(ppl7::Digest dig(ppl7::Digest::Algo_MD5));
+TEST_F(DigestTest, ConstructorWithMD5)
+{
+    ASSERT_NO_THROW(ppl7::Digest dig(ppl7::Digest::Algo_MD5));
 }
 
-TEST_F(DigestTest, ConstructorWithName) {
-	ASSERT_NO_THROW(ppl7::Digest dig("md5"));
-
+TEST_F(DigestTest, ConstructorWithName)
+{
+    ASSERT_NO_THROW(ppl7::Digest dig("md5"));
 }
 
-TEST_F(DigestTest, ConstructorWithUnknownAlgorithm) {
-	ASSERT_THROW({
-		ppl7::Digest dig((ppl7::Digest::Algorithm)65555);
-	},ppl7::InvalidAlgorithmException);
+TEST_F(DigestTest, ConstructorWithUnknownAlgorithm)
+{
+    ASSERT_THROW({ ppl7::Digest dig((ppl7::Digest::Algorithm)65555); }, ppl7::InvalidAlgorithmException);
 }
 
-TEST_F(DigestTest, SetAlgorithmById) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_THROW(dig.setAlgorithm((ppl7::Digest::Algorithm)777),ppl7::InvalidAlgorithmException);
+TEST_F(DigestTest, SetAlgorithmById)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
+    ASSERT_THROW(dig.setAlgorithm((ppl7::Digest::Algorithm)777), ppl7::InvalidAlgorithmException);
 }
 
-TEST_F(DigestTest, SetAlgorithmByName) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm("sha256"));
-	ASSERT_THROW(dig.setAlgorithm("patrickcrypt"),ppl7::InvalidAlgorithmException);
+TEST_F(DigestTest, SetAlgorithmByName)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm("sha256"));
+    ASSERT_THROW(dig.setAlgorithm("patrickcrypt"), ppl7::InvalidAlgorithmException);
 }
 
-TEST_F(DigestTest, TestMD5) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result.toHex());
+TEST_F(DigestTest, TestMD5)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"), result.toHex());
 }
 
-TEST_F(DigestTest, TestSHA1) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
-	ASSERT_EQ((uint64_t)0,dig.bytesHashed());
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((uint64_t)591,dig.bytesHashed());
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result.toHex());
+TEST_F(DigestTest, TestSHA1)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
+    ASSERT_EQ((uint64_t)0, dig.bytesHashed());
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_EQ((uint64_t)591, dig.bytesHashed());
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"), result.toHex());
 }
 
-TEST_F(DigestTest, TestSHA224) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA224));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"),result.toHex());
+TEST_F(DigestTest, TestSHA224)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA224));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"), result.toHex());
 }
 
-TEST_F(DigestTest, TestSHA256) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result.toHex());
+TEST_F(DigestTest, TestSHA256)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result.toHex());
 }
 
-TEST_F(DigestTest, TestSHA384) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA384));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("18a703d3f092003da0443174dbc977516335596a14db4090abe37f2106103f20c4669e3dc3d301c9339bf8913c94ec3e"),result.toHex());
+TEST_F(DigestTest, TestSHA384)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA384));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("18a703d3f092003da0443174dbc977516335596a14db4090abe37f2106103f20c4669e3dc3d301c9339bf8913c94ec3e"),
+              result.toHex());
 }
 
-TEST_F(DigestTest, TestSHA512) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA512));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827aaec64d5c6c33259260ce9"),result.toHex());
+TEST_F(DigestTest, TestSHA512)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA512));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827aaec6"
+                           "4d5c6c33259260ce9"),
+              result.toHex());
 }
 
-TEST_F(DigestTest, TestRipeMD160) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_RIPEMD160));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("7cba3ff0d404943790e16e95b52d78ab502989dc"),result.toHex());
+TEST_F(DigestTest, TestRipeMD160)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_RIPEMD160));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("7cba3ff0d404943790e16e95b52d78ab502989dc"), result.toHex());
 }
 
-TEST_F(DigestTest, TestChangeAlgorithm) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
-	ASSERT_EQ((uint64_t)0,dig.bytesHashed());
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((uint64_t)591,dig.bytesHashed());
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result.toHex());
+TEST_F(DigestTest, TestChangeAlgorithm)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA1));
+    ASSERT_EQ((uint64_t)0, dig.bytesHashed());
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_EQ((uint64_t)591, dig.bytesHashed());
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"), result.toHex());
 
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA224));
-	ASSERT_EQ((uint64_t)0,dig.bytesHashed());
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((uint64_t)591,dig.bytesHashed());
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"),result.toHex());
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA224));
+    ASSERT_EQ((uint64_t)0, dig.bytesHashed());
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_EQ((uint64_t)591, dig.bytesHashed());
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"), result.toHex());
 
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_NO_THROW(result=dig.getDigest());
-	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result.toHex());
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_NO_THROW(result = dig.getDigest());
+    ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result.toHex());
 }
 
-
-TEST_F(DigestTest, TestSaveDigestToString) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::String result;
-	ASSERT_NO_THROW(dig.saveDigest(result));
-	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result);
+TEST_F(DigestTest, TestSaveDigestToString)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::String result;
+    ASSERT_NO_THROW(dig.saveDigest(result));
+    ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"), result);
 }
 
-TEST_F(DigestTest, TestSaveDigestToWideString) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::WideString result;
-	ASSERT_NO_THROW(dig.saveDigest(result));
-	ASSERT_EQ(ppl7::WideString(L"901736df3fbc807121c46f9eaed8ff28"),result);
+TEST_F(DigestTest, TestSaveDigestToWideString)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::WideString result;
+    ASSERT_NO_THROW(dig.saveDigest(result));
+    ASSERT_EQ(ppl7::WideString(L"901736df3fbc807121c46f9eaed8ff28"), result);
 }
 
-TEST_F(DigestTest, TestSaveDigestToByteArray) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::ByteArray result;
-	ASSERT_NO_THROW(dig.saveDigest(result));
-	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result.toHex());
+TEST_F(DigestTest, TestSaveDigestToByteArray)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::ByteArray result;
+    ASSERT_NO_THROW(dig.saveDigest(result));
+    ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"), result.toHex());
 }
 
-TEST_F(DigestTest, TestMultipleMD5) {
-	ppl7::Digest dig;
-	ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
-	ASSERT_NO_THROW(dig.addData(loremipsum,strlen(loremipsum)));
-	ppl7::String result;
-	ASSERT_NO_THROW(dig.saveDigest(result));
-	ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result);
+TEST_F(DigestTest, TestMultipleMD5)
+{
+    ppl7::Digest dig;
+    ASSERT_NO_THROW(dig.setAlgorithm(ppl7::Digest::Algo_MD5));
+    ASSERT_NO_THROW(dig.addData(loremipsum, strlen(loremipsum)));
+    ppl7::String result;
+    ASSERT_NO_THROW(dig.saveDigest(result));
+    ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"), result);
 
-	const char *teststring="Hello World";
-	ASSERT_NO_THROW(dig.addData(teststring,strlen(teststring)));
-	ASSERT_NO_THROW(dig.saveDigest(result));
-	ASSERT_EQ(ppl7::String("b10a8db164e0754105b7a99be72e3fe5"),result);
+    const char* teststring = "Hello World";
+    ASSERT_NO_THROW(dig.addData(teststring, strlen(teststring)));
+    ASSERT_NO_THROW(dig.saveDigest(result));
+    ASSERT_EQ(ppl7::String("b10a8db164e0754105b7a99be72e3fe5"), result);
 
-	teststring="This is a third test";
-	ASSERT_NO_THROW(dig.addData(teststring,strlen(teststring)));
-	ASSERT_NO_THROW(dig.saveDigest(result));
-	ASSERT_EQ(ppl7::String("50e9ccd0e8fc5d8c774404ed3e8c4e8c"),result);
-
+    teststring = "This is a third test";
+    ASSERT_NO_THROW(dig.addData(teststring, strlen(teststring)));
+    ASSERT_NO_THROW(dig.saveDigest(result));
+    ASSERT_EQ(ppl7::String("50e9ccd0e8fc5d8c774404ed3e8c4e8c"), result);
 }
 
-TEST_F(DigestTest, AddDataWithoutAlgorithm) {
-	ppl7::Digest hash;
-	ASSERT_THROW(hash.addData(loremipsum,strlen(loremipsum)),ppl7::NoAlgorithmSpecifiedException);
+TEST_F(DigestTest, AddDataWithoutAlgorithm)
+{
+    ppl7::Digest hash;
+    ASSERT_THROW(hash.addData(loremipsum, strlen(loremipsum)), ppl7::NoAlgorithmSpecifiedException);
 }
 
-
-TEST_F(DigestTest, TestAddDataFromPtr) {
-	ppl7::Digest hash;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
+TEST_F(DigestTest, TestAddDataFromPtr)
+{
+    ppl7::Digest hash;
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addData(loremipsum, strlen(loremipsum)));
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
 }
 
-TEST_F(DigestTest, TestAddDataFromString) {
-	ppl7::Digest hash;
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addData(data));
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
+TEST_F(DigestTest, TestAddDataFromString)
+{
+    ppl7::Digest hash;
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addData(data));
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
 }
 
-TEST_F(DigestTest, TestAddDataFromWideString) {
-	ppl7::Digest hash;
-	ppl7::String original(loremipsum,strlen(loremipsum));
-	ppl7::WideString data=original;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addData(data));
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
+TEST_F(DigestTest, TestAddDataFromWideString)
+{
+    ppl7::Digest hash;
+    ppl7::String original(loremipsum, strlen(loremipsum));
+    ppl7::WideString data(original);
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addData(data));
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
 
 #ifdef WIN32
-	// wchar_t is 2 byte on windows
-	ASSERT_EQ(ppl7::String("8c6d8979fd6c6de310f794f0c5d40b4efc15218d335e1b9c777825845c2342ad"),result);
+    // wchar_t is 2 byte on windows
+    ASSERT_EQ(ppl7::String("8c6d8979fd6c6de310f794f0c5d40b4efc15218d335e1b9c777825845c2342ad"), result);
 #else
-	// wchar_t is 4 byte on unix
-	ASSERT_EQ(ppl7::String("1780fcdeb19fa0435ad20e02720d96dd73f1f417452b8dab0bb4d433ee01531a"),result);
+    // wchar_t is 4 byte on unix
+    ASSERT_EQ(ppl7::String("1780fcdeb19fa0435ad20e02720d96dd73f1f417452b8dab0bb4d433ee01531a"), result);
 #endif
 }
 
-TEST_F(DigestTest, TestAddDataFromByteArray) {
-	ppl7::Digest hash;
-	ppl7::ByteArray data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addData(data));
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
+TEST_F(DigestTest, TestAddDataFromByteArray)
+{
+    ppl7::Digest hash;
+    ppl7::ByteArray data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addData(data));
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
 }
 
-TEST_F(DigestTest, TestAddDataFromByteArrayPtr) {
-	ppl7::Digest hash;
-	ppl7::ByteArrayPtr data((void*)loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addData(data));
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
+TEST_F(DigestTest, TestAddDataFromByteArrayPtr)
+{
+    ppl7::Digest hash;
+    ppl7::ByteArrayPtr data((void*)loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addData(data));
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
 }
 
-TEST_F(DigestTest, TestAddDataFromClosedFile) {
-	ppl7::Digest hash;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ppl7::File ff;
-	ASSERT_THROW(hash.addData(ff),ppl7::FileNotOpenException);
+TEST_F(DigestTest, TestAddDataFromClosedFile)
+{
+    ppl7::Digest hash;
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ppl7::File ff;
+    ASSERT_THROW(hash.addData(ff), ppl7::FileNotOpenException);
 }
 
-TEST_F(DigestTest, TestAddDataFromOpenFile) {
-	ppl7::Digest hash;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ppl7::File ff("testdata/dirwalk/testfile.txt");
-	ASSERT_NO_THROW(hash.addData(ff));
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("e69bd11b9705bd3f3702d943fb7b6f9b640ca212c43e1dfc823b20e820930c52"),result);
+TEST_F(DigestTest, TestAddDataFromOpenFile)
+{
+    ppl7::Digest hash;
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ppl7::File ff("testdata/dirwalk/testfile.txt");
+    ASSERT_NO_THROW(hash.addData(ff));
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("e69bd11b9705bd3f3702d943fb7b6f9b640ca212c43e1dfc823b20e820930c52"), result);
 }
 
-TEST_F(DigestTest, TestAddDataFromFilename) {
-	ppl7::Digest hash;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("e69bd11b9705bd3f3702d943fb7b6f9b640ca212c43e1dfc823b20e820930c52"),result);
+TEST_F(DigestTest, TestAddDataFromFilename)
+{
+    ppl7::Digest hash;
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("e69bd11b9705bd3f3702d943fb7b6f9b640ca212c43e1dfc823b20e820930c52"), result);
 }
 
-TEST_F(DigestTest, TestAddDataFromSeveralFiles) {
-	ppl7::Digest hash;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
-	ASSERT_NO_THROW(hash.addFile("testdata/test.gif"));
-	ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/afile.txt"));
-	ASSERT_EQ((uint64_t)1615253,hash.bytesHashed());
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("327b824bbe2b201c0a59c34e430d0a1523b20683c58309064e14426f53c1b703"),result);
+TEST_F(DigestTest, TestAddDataFromSeveralFiles)
+{
+    ppl7::Digest hash;
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/testfile.txt"));
+    ASSERT_NO_THROW(hash.addFile("testdata/test.gif"));
+    ASSERT_NO_THROW(hash.addFile("testdata/dirwalk/afile.txt"));
+    ASSERT_EQ((uint64_t)1615253, hash.bytesHashed());
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("327b824bbe2b201c0a59c34e430d0a1523b20683c58309064e14426f53c1b703"), result);
 }
 
-TEST_F(DigestTest, TestReset) {
-	ppl7::Digest hash;
-	ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
-	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((uint64_t)2364,hash.bytesHashed());
-	hash.reset();
-	ASSERT_NO_THROW(hash.addData(loremipsum,strlen(loremipsum)));
-	ASSERT_EQ((uint64_t)591,hash.bytesHashed());
-	ppl7::String result;
-	ASSERT_NO_THROW(hash.saveDigest(result));
-	ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
+TEST_F(DigestTest, TestReset)
+{
+    ppl7::Digest hash;
+    ASSERT_NO_THROW(hash.setAlgorithm(ppl7::Digest::Algo_SHA256));
+    ASSERT_NO_THROW(hash.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_NO_THROW(hash.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_NO_THROW(hash.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_NO_THROW(hash.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_EQ((uint64_t)2364, hash.bytesHashed());
+    hash.reset();
+    ASSERT_NO_THROW(hash.addData(loremipsum, strlen(loremipsum)));
+    ASSERT_EQ((uint64_t)591, hash.bytesHashed());
+    ppl7::String result;
+    ASSERT_NO_THROW(hash.saveDigest(result));
+    ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
 }
 
-TEST_F(DigestTest, ResetWithoutAlgorithm) {
-	ppl7::Digest hash;
-	ASSERT_THROW(hash.reset(),ppl7::NoAlgorithmSpecifiedException);
+TEST_F(DigestTest, ResetWithoutAlgorithm)
+{
+    ppl7::Digest hash;
+    ASSERT_THROW(hash.reset(), ppl7::NoAlgorithmSpecifiedException);
 }
 
-
-
-TEST_F(DigestTest, TestStaticHashWithAlgorithmId) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::hash(data,ppl7::Digest::Algo_SHA256).toHex();
-		ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
-	});
+TEST_F(DigestTest, TestStaticHashWithAlgorithmId)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::hash(data, ppl7::Digest::Algo_SHA256).toHex();
+        ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticHashWithAlgorithmName) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::hash(data,"sha256").toHex();
-		ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
-	});
+TEST_F(DigestTest, TestStaticHashWithAlgorithmName)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::hash(data, "sha256").toHex();
+        ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticMd5) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::md5(data).toHex();
-		ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"),result);
-	});
+TEST_F(DigestTest, TestStaticMd5)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::md5(data).toHex();
+        ASSERT_EQ(ppl7::String("901736df3fbc807121c46f9eaed8ff28"), result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticSha1) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::sha1(data).toHex();
-		ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"),result);
-	});
+TEST_F(DigestTest, TestStaticSha1)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::sha1(data).toHex();
+        ASSERT_EQ(ppl7::String("5bad3910a14b84999677b58528bd3d96500f1f94"), result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticSha224) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::sha224(data).toHex();
-		ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"),result);
-	});
+TEST_F(DigestTest, TestStaticSha224)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::sha224(data).toHex();
+        ASSERT_EQ(ppl7::String("026070b0071d458b383f5b91b73b8160c1dbd7e4e49468532c93b2f8"), result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticSha256) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::sha256(data).toHex();
-		ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"),result);
-	});
+TEST_F(DigestTest, TestStaticSha256)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::sha256(data).toHex();
+        ASSERT_EQ(ppl7::String("ff4ef4245da5b09786e3d3de8b430292fa081984db272d2b13ed404b45353d28"), result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticSha384) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::sha384(data).toHex();
-		ASSERT_EQ(ppl7::String("18a703d3f092003da0443174dbc977516335596a14db4090abe37f2106103f20c4669e3dc3d301c9339bf8913c94ec3e"),result);
-	});
+TEST_F(DigestTest, TestStaticSha384)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::sha384(data).toHex();
+        ASSERT_EQ(ppl7::String("18a703d3f092003da0443174dbc977516335596a14db4090abe37f2106103f20c4669e3dc3d301c9339bf8913c94ec3e"), result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticSha512) {
-	ppl7::String data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		ppl7::String result=ppl7::Digest::sha512(data).toHex();
-		ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827aaec64d5c6c33259260ce9"),result);
-	});
+TEST_F(DigestTest, TestStaticSha512)
+{
+    ppl7::String data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        ppl7::String result = ppl7::Digest::sha512(data).toHex();
+        ASSERT_EQ(ppl7::String("9b75ddb74674b45ab738f84f73ef25c833d7d33d7c72d2556f13274d753259187386bf91dadf8e6a735e6111d703d3ffbabf64d827a"
+                               "aec64d5c6c33259260ce9"),
+                  result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticCrc32) {
-	ppl7::ByteArrayPtr data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		uint32_t result=ppl7::Digest::crc32(data);
-		ASSERT_EQ((uint32_t)2852144956,(uint32_t)result);
-	});
+TEST_F(DigestTest, TestStaticCrc32)
+{
+    ppl7::ByteArrayPtr data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        uint32_t result = ppl7::Digest::crc32(data);
+        ASSERT_EQ((uint32_t)2852144956, (uint32_t)result);
+    });
 }
 
-TEST_F(DigestTest, TestStaticAdler32) {
-	ppl7::ByteArrayPtr data(loremipsum,strlen(loremipsum));
-	ASSERT_NO_THROW({
-		uint32_t result=ppl7::Digest::adler32(data);
-		ASSERT_EQ((uint32_t)1871173577,(uint32_t)result);
-	});
+TEST_F(DigestTest, TestStaticAdler32)
+{
+    ppl7::ByteArrayPtr data(loremipsum, strlen(loremipsum));
+    ASSERT_NO_THROW({
+        uint32_t result = ppl7::Digest::adler32(data);
+        ASSERT_EQ((uint32_t)1871173577, (uint32_t)result);
+    });
 }
 
-
-
-}	// EOF namespace
-
+} // namespace

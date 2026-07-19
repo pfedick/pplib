@@ -44,8 +44,10 @@
 #include "ppl7.h"
 #include "ppl7-grafix.h"
 
-namespace ppl7 {
-namespace grafix {
+namespace ppl7
+{
+namespace grafix
+{
 
 /*!\class Font
  * \ingroup PPLGroupGrafik
@@ -56,242 +58,253 @@ namespace grafix {
 
 Font::Font()
 {
-	Name=L"Default";
-	fontSize=12;
-	flags=0;
-	ori=0;
-	rotationDegrees=0.0;
-	cForeground.set(0, 0, 0, 255);
+    Name = L"Default";
+    fontSize = 12;
+    flags = 0;
+    ori = 0;
+    rotationDegrees = 0.0;
+    cForeground.set(0, 0, 0, 255);
 }
 
 Font::Font(const Font& other)
 {
-	Name=other.Name;
-	cForeground=other.cForeground;
-	cBorder=other.cBorder;
-	cShadow=other.cShadow;
-	fontSize=other.fontSize;
-	flags=other.flags;
-	ori=other.ori;
-	rotationDegrees=other.rotationDegrees;
+    Name = other.Name;
+    cForeground = other.cForeground;
+    cBorder = other.cBorder;
+    cShadow = other.cShadow;
+    fontSize = other.fontSize;
+    flags = other.flags;
+    ori = other.ori;
+    rotationDegrees = other.rotationDegrees;
 }
 
 Font& Font::operator=(const Font& other)
 {
-	Name=other.Name;
-	cForeground=other.cForeground;
-	cBorder=other.cBorder;
-	cShadow=other.cShadow;
-	fontSize=other.fontSize;
-	flags=other.flags;
-	ori=other.ori;
-	rotationDegrees=other.rotationDegrees;
-	return *this;
+    Name = other.Name;
+    cForeground = other.cForeground;
+    cBorder = other.cBorder;
+    cShadow = other.cShadow;
+    fontSize = other.fontSize;
+    flags = other.flags;
+    ori = other.ori;
+    rotationDegrees = other.rotationDegrees;
+    return *this;
 }
 
 const String& Font::name() const
 {
-	return Name;
+    return Name;
 }
 
 Color Font::color() const
 {
-	return cForeground;
+    return cForeground;
 }
 
 Color Font::borderColor() const
 {
-	return cBorder;
+    return cBorder;
 }
 
 Color Font::shadowColor() const
 {
-	return cShadow;
+    return cShadow;
 }
 
 bool Font::bold() const
 {
-	if (flags & fBold) return true;
-	return false;
+    if (flags & fBold) return true;
+    return false;
 }
 
 bool Font::italic() const
 {
-	if (flags & fItalic) return true;
-	return false;
+    if (flags & fItalic) return true;
+    return false;
 }
 
 bool Font::antialias() const
 {
-	if (flags & fAntialias) return true;
-	return false;
+    if (flags & fAntialias) return true;
+    return false;
 }
 
 bool Font::drawBorder() const
 {
-	if (flags & fDrawBorder) return true;
-	return false;
+    if (flags & fDrawBorder) return true;
+    return false;
 }
 
 bool Font::drawShadow() const
 {
-	if (flags & fDrawShadow) return true;
-	return false;
+    if (flags & fDrawShadow) return true;
+    return false;
 }
 
 bool Font::drawUnderline() const
 {
-	if (flags & fUnderline) return true;
-	return false;
+    if (flags & fUnderline) return true;
+    return false;
 }
 
 int Font::size() const
 {
-	return fontSize;
+    return fontSize;
 }
 
 Font::Orientation Font::orientation() const
 {
-	return (Orientation)ori;
+    return (Orientation)ori;
 }
 
 double Font::rotation() const
 {
-	return rotationDegrees;
+    return rotationDegrees;
 }
 
 int Font::setName(const String& name)
 {
-	// TODO: Prüfen, ob der Font existiert
-	Name=name;
-	return 1;
+    // TODO: Prüfen, ob der Font existiert
+    Name = name;
+    return 1;
 }
 
 void Font::setColor(const Color& c)
 {
-	cForeground=c;
+    cForeground = c;
 }
 
 void Font::setBorderColor(const Color& c)
 {
-	cBorder=c;
+    cBorder = c;
 }
 
 void Font::setShadowColor(const Color& c)
 {
-	cShadow=c;
+    cShadow = c;
 }
 
 void Font::setColors(const Color& Foreground, const Color& Border, const Color& Shadow)
 {
-	cForeground=Foreground;
-	cBorder=Border;
-	cShadow=Shadow;
+    cForeground = Foreground;
+    cBorder = Border;
+    cShadow = Shadow;
 }
 
 void Font::setBold(bool enable)
 {
-	if (!enable) flags&=(0xff - fBold);
-	else flags|=fBold;
+    if (!enable)
+        flags &= (0xff - fBold);
+    else
+        flags |= fBold;
 }
 
 void Font::setItalic(bool enable)
 {
-	if (!enable) flags&=(0xff - fItalic);
-	else flags|=fItalic;
+    if (!enable)
+        flags &= (0xff - fItalic);
+    else
+        flags |= fItalic;
 }
 
 void Font::setAntialias(bool enable)
 {
-	if (!enable) flags&=(0xff - fAntialias);
-	else flags|=fAntialias;
+    if (!enable)
+        flags &= (0xff - fAntialias);
+    else
+        flags |= fAntialias;
 }
 
 void Font::setDrawBorder(bool enable)
 {
-	if (!enable) flags&=(0xff - fDrawBorder);
-	else flags|=fDrawBorder;
+    if (!enable)
+        flags &= (0xff - fDrawBorder);
+    else
+        flags |= fDrawBorder;
 }
 
 void Font::setDrawShadow(bool enable)
 {
-	if (!enable) flags&=(0xff - fDrawShadow);
-	else flags|=fDrawShadow;
+    if (!enable)
+        flags &= (0xff - fDrawShadow);
+    else
+        flags |= fDrawShadow;
 }
 
 void Font::setDrawUnderline(bool enable)
 {
-	if (!enable) flags&=(0xff - fUnderline);
-	else flags|=fUnderline;
+    if (!enable)
+        flags &= (0xff - fUnderline);
+    else
+        flags |= fUnderline;
 }
 
 void Font::setMonospace(bool enable)
 {
-	if (!enable) flags&=(0xff - fMonospace);
-	else flags|=fMonospace;
+    if (!enable)
+        flags &= (0xff - fMonospace);
+    else
+        flags |= fMonospace;
 }
 
 void Font::setSize(int size)
 {
-	fontSize=size;
+    fontSize = size;
 }
 
 void Font::setOrientation(Orientation o)
 {
-	ori=o;
+    ori = o;
 }
 
 void Font::setRotation(double degrees)
 {
-	rotationDegrees=degrees;
+    rotationDegrees = degrees;
 }
 
 Size Font::measure(const WideString& text) const
 {
-	Size s;
-	Grafix* gfx=GetGrafix();
-	FontFile* file=gfx->findFont(Name);
-	if (!file) return s;
-	if (!file->engine) return s;
-	return file->engine->measure(*file, *this, text);
+    Size s;
+    Grafix* gfx = GetGrafix();
+    FontFile* file = gfx->findFont(Name);
+    if (!file) return s;
+    if (!file->engine) return s;
+    return file->engine->measure(*file, *this, text);
 }
 
 Rect Font::boundary(const WideString& text, int x, int y) const
 {
-	Rect r;
-	Grafix* gfx=GetGrafix();
-	FontFile* file=gfx->findFont(Name);
-	if (!file) return r;
-	if (!file->engine) return r;
-	return file->engine->boundary(*file, *this, text, x, y);
+    Rect r;
+    Grafix* gfx = GetGrafix();
+    FontFile* file = gfx->findFont(Name);
+    if (!file) return r;
+    if (!file->engine) return r;
+    return file->engine->boundary(*file, *this, text, x, y);
 }
 
-
-bool operator!= (const Font& f1, const Font& f2)
+bool operator!=(const Font& f1, const Font& f2)
 {
-	if (f1.Name == f2.Name) return false;
-	if (f1.fontSize == f2.fontSize) return false;
-	if (f1.flags == f2.flags) return false;
-	if (f1.cForeground == f2.cForeground) return false;
-	if (f1.cBorder == f2.cBorder) return false;
-	if (f1.cShadow == f2.cShadow) return false;
-	if (f1.ori == f2.ori) return false;
-	return true;
+    if (f1.Name == f2.Name) return false;
+    if (f1.fontSize == f2.fontSize) return false;
+    if (f1.flags == f2.flags) return false;
+    if (f1.cForeground == f2.cForeground) return false;
+    if (f1.cBorder == f2.cBorder) return false;
+    if (f1.cShadow == f2.cShadow) return false;
+    if (f1.ori == f2.ori) return false;
+    return true;
 }
 
-bool operator== (const Font& f1, const Font& f2)
+bool operator==(const Font& f1, const Font& f2)
 {
-	if (f1.Name != f2.Name) return false;
-	if (f1.fontSize != f2.fontSize) return false;
-	if (f1.flags != f2.flags) return false;
-	if (f1.cForeground != f2.cForeground) return false;
-	if (f1.cBorder != f2.cBorder) return false;
-	if (f1.cShadow != f2.cShadow) return false;
-	if (f1.ori != f2.ori) return false;
-	return true;
+    if (f1.Name != f2.Name) return false;
+    if (f1.fontSize != f2.fontSize) return false;
+    if (f1.flags != f2.flags) return false;
+    if (f1.cForeground != f2.cForeground) return false;
+    if (f1.cBorder != f2.cBorder) return false;
+    if (f1.cShadow != f2.cShadow) return false;
+    if (f1.ori != f2.ori) return false;
+    return true;
 }
-
-
 
 /*!\class FontFile
  * \ingroup PPLGroupGrafik
@@ -299,18 +312,15 @@ bool operator== (const Font& f1, const Font& f2)
  */
 FontFile::FontFile()
 {
-	engine=NULL;
-	priv=NULL;
+    engine = NULL;
+    priv = NULL;
 }
 
 FontFile::~FontFile()
 {
-	if (engine) engine->deleteFont(this);
-	engine=NULL;
+    if (engine) engine->deleteFont(this);
+    engine = NULL;
 }
-
-
-
 
 /*!\brief FontEngine hinzufügen
  *
@@ -329,111 +339,112 @@ FontFile::~FontFile()
  */
 void Grafix::addFontEngine(FontEngine* engine)
 {
-	if (!engine) throw NullPointerException();
-	engine->init();
-	myMutex.lock();
-	try {
-		FontEngineList.push_back(engine);
-	} catch (...) {
-		myMutex.unlock();
-		throw;
-	}
-	myMutex.unlock();
+    if (!engine) throw NullPointerException();
+    engine->init();
+    myMutex.lock();
+    try {
+        FontEngineList.push_back(engine);
+    }
+    catch (...) {
+        myMutex.unlock();
+        throw;
+    }
+    myMutex.unlock();
 }
 
 void Grafix::loadFont(const String& filename, const String& fontname)
 {
-	File ff;
-	ff.open(filename, File::READ);
-	loadFont(ff, fontname);
+    File ff;
+    ff.open(filename, File::READ);
+    loadFont(ff, fontname);
 }
 
 void Grafix::loadFont(const ByteArrayPtr& memory, const String& fontname)
 {
-	MemFile ff(memory);
-	loadFont(ff, fontname);
+    MemFile ff(memory);
+    loadFont(ff, fontname);
 }
 
 void Grafix::loadFont(FileObject& ff, const String& fontname)
 {
-	myMutex.lock();
-	// Passenden Filter finden
-	FontEngine* engine;
-	try {
-		for (auto it=FontEngineList.begin();it != FontEngineList.end();++it) {
-			engine=*it;
-			int id=engine->ident(ff);
-			if (id == 1) {
-				FontFile* font=engine->loadFont(ff, fontname);
-				if (!font) throw InvalidFontException();
-				// Falls ein Font mit gleichem Namen geladen ist, löschen wir
-				// diesen zuerst
-				auto old_it=FontList.find(font->Name);
-				if (old_it != FontList.end()) {
-					FontFile* old=old_it->second;
-					FontList.erase(old_it);
-					old->engine->deleteFont(old);
-
-				}
-				try {
-					FontList.insert(std::pair<ppl7::String, FontFile*>(font->Name, font));
-				} catch (...) {
-					font->engine->deleteFont(font);
-					myMutex.unlock();
-					throw;
-				}
-				myMutex.unlock();
-				return;
-			}
-		}
-	} catch (...) {
-		myMutex.unlock();
-		throw;
-	}
-	myMutex.unlock();
-	throw NoSuitableFontEngineException();
+    myMutex.lock();
+    // Passenden Filter finden
+    FontEngine* engine;
+    try {
+        for (auto it = FontEngineList.begin(); it != FontEngineList.end(); ++it) {
+            engine = *it;
+            int id = engine->ident(ff);
+            if (id == 1) {
+                FontFile* font = engine->loadFont(ff, fontname);
+                if (!font) throw InvalidFontException();
+                // Falls ein Font mit gleichem Namen geladen ist, löschen wir
+                // diesen zuerst
+                auto old_it = FontList.find(font->Name);
+                if (old_it != FontList.end()) {
+                    FontFile* old = old_it->second;
+                    FontList.erase(old_it);
+                    old->engine->deleteFont(old);
+                }
+                try {
+                    FontList.insert(std::pair<ppl7::String, FontFile*>(font->Name, font));
+                }
+                catch (...) {
+                    font->engine->deleteFont(font);
+                    myMutex.unlock();
+                    throw;
+                }
+                myMutex.unlock();
+                return;
+            }
+        }
+    }
+    catch (...) {
+        myMutex.unlock();
+        throw;
+    }
+    myMutex.unlock();
+    throw NoSuitableFontEngineException();
 }
 
 void Grafix::unloadFont(const String& fontname)
 {
-	myMutex.lock();
-	auto it=FontList.find(fontname);
-	if (it != FontList.end()) {
-		FontFile* file=it->second;
-		FontList.erase(it);
-		file->engine->deleteFont(file);
-	}
-	myMutex.unlock();
+    myMutex.lock();
+    auto it = FontList.find(fontname);
+    if (it != FontList.end()) {
+        FontFile* file = it->second;
+        FontList.erase(it);
+        file->engine->deleteFont(file);
+    }
+    myMutex.unlock();
 }
 
 FontFile* Grafix::findFont(const String& fontname)
 {
-	myMutex.lock();
-	auto it=FontList.find(fontname);
-	if (it != FontList.end()) {
-		myMutex.unlock();
-		return it->second;
-	}
-	myMutex.unlock();
-	throw FontNotFoundException(fontname);
+    myMutex.lock();
+    auto it = FontList.find(fontname);
+    if (it != FontList.end()) {
+        myMutex.unlock();
+        return it->second;
+    }
+    myMutex.unlock();
+    throw FontNotFoundException(fontname);
 }
 
 void Grafix::listFonts()
 {
-	myMutex.lock();
-	printf("Available Fonts:\n");
-	for (auto it =FontList.begin();it != FontList.end();++it) {
-		FontFile* ff=it->second;
-		printf("    %s, Engine: %s\n", (const char*)ff->Name, (const char*)ff->engine->name());
-	}
-	myMutex.unlock();
+    myMutex.lock();
+    printf("Available Fonts:\n");
+    for (auto it = FontList.begin(); it != FontList.end(); ++it) {
+        FontFile* ff = it->second;
+        printf("    %s, Engine: %s\n", (const char*)ff->Name, (const char*)ff->engine->name());
+    }
+    myMutex.unlock();
 }
 
 FontFile* Grafix::findFont(const Font& font)
 {
-	return findFont(font.name());
+    return findFont(font.name());
 }
-
 
 /*!\brief Text ausgeben
  *
@@ -448,25 +459,25 @@ FontFile* Grafix::findFont(const Font& font)
  */
 void Drawable::print(const Font& font, int x, int y, const WideString& text)
 {
-	Grafix* gfx=GetGrafix();
-	FontFile* file=gfx->findFont(font.name());
-	if (font.drawShadow()) {
-		file->engine->render(*file, font, *this, x + 2, y + 2, text, font.shadowColor());
-	}
-	if (font.drawBorder()) {
-		for (int a=-1;a < 2;a++) {
-			for (int b=-1;b < 2;b++) {
-				file->engine->render(*file, font, *this, x + a, y + b, text, font.borderColor());
-			}
-		}
-	}
-	file->engine->render(*file, font, *this, x, y, text, font.color());
+    Grafix* gfx = GetGrafix();
+    FontFile* file = gfx->findFont(font.name());
+    if (font.drawShadow()) {
+        file->engine->render(*file, font, *this, x + 2, y + 2, text, font.shadowColor());
+    }
+    if (font.drawBorder()) {
+        for (int a = -1; a < 2; a++) {
+            for (int b = -1; b < 2; b++) {
+                file->engine->render(*file, font, *this, x + a, y + b, text, font.borderColor());
+            }
+        }
+    }
+    file->engine->render(*file, font, *this, x, y, text, font.color());
 }
 
 void Drawable::print(const Font& font, int x, int y, const String& text)
 {
-	WideString s=text;
-	print(font, x, y, s);
+    WideString s(text);
+    print(font, x, y, s);
 }
 
 /*!\brief Formatierten Text ausgeben
@@ -484,15 +495,13 @@ void Drawable::print(const Font& font, int x, int y, const String& text)
  */
 void Drawable::printf(const Font& font, int x, int y, const char* fmt, ...)
 {
-	WideString s;
-	va_list args;
-	va_start(args, fmt);
-	s.vasprintf(fmt, args);
-	va_end(args);
-	print(font, x, y, s);
+    WideString s;
+    va_list args;
+    va_start(args, fmt);
+    s.vasprintf(fmt, args);
+    va_end(args);
+    print(font, x, y, s);
 }
-
-
 
 /*!\class FontEngine
  * \ingroup PPLGroupGrafik
@@ -502,7 +511,6 @@ void Drawable::printf(const Font& font, int x, int y, const char* fmt, ...)
  * - FontEngineFont5
  * - FontEngineFreeType
  */
-
 
 FontEngine::FontEngine()
 {
@@ -514,50 +522,48 @@ FontEngine::~FontEngine()
 
 void FontEngine::init()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 int FontEngine::ident(FileObject& ff) throw()
 {
-	return 0;
+    return 0;
 }
 
 FontFile* FontEngine::loadFont(FileObject& ff, const String& fontname)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 void FontEngine::deleteFont(FontFile* file)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 void FontEngine::render(const FontFile& file, const Font& font, Drawable& draw, int x, int y, const WideString& text, const Color& color)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 Size FontEngine::measure(const FontFile& file, const Font& font, const WideString& text)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 Rect FontEngine::boundary(const FontFile& file, const Font& font, const WideString& text, int x, int y)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 String FontEngine::name() const
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 String FontEngine::description() const
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
-
-
-} // EOF namespace grafix
-} // EOF namespace ppl7
+} // namespace grafix
+} // namespace ppl7

@@ -202,34 +202,6 @@ public:
 #endif
     //@}
 
-    //! @name Statische Funktionen
-    //@{
-
-    /*!\brief Globale Zeichenkodierung festlegen
-     *
-     * Standardmäßig erwartet die String-Klasse bei Übergabe von "const char *", dass
-     * die darin enthaltenen Strings \b UTF-8 kodiert sind. Dieses Verhalten kann man
-     * mit dieser Funktion ändern.
-     *
-     * \param encoding
-     *
-     * \attention
-     * Die Funktion ist nicht Thread-sicher und sollte daher nur einmal am Anfang des
-     * Programms aufgerufen werden.
-     */
-    static void setGlobalEncoding(const char* encoding);
-
-    /**\brief Globale Zeichenkodierung abfragen
-     *
-     * Mit dieser Funktion kann die globale Zeichenkodierung abgefragt werden, die mit
-     * String::setGlobalEncoding festgelegt wurde.
-     *
-     * \return
-     * Liefert einen Pointer auf einen C-String, der die globale Zeichenkodierung enthält.
-     */
-    static const char* getGlobalEncoding();
-    //@}
-
     /**\brief String löschen
      *
      * Mit dieser Funktion wird der String gelöscht und der Speicher freigegeben.
@@ -834,14 +806,49 @@ public:
     void printnl() const noexcept;
     void hexDump() const;
     char get(ssize_t pos) const;
-    const char* getPtr() const;
-    const char* c_str() const;
+
+    /**\brief Pointer auf den internen C-String
+     *
+     * Diese Funktion liefert einen Pointer im Format "const char*" auf den internen
+     * C-String der Klasse zurück. Bei einem leeren String ist sichergestellt, dass ein
+     * Pointer auf einen leeren mit 0-Byte terminierten String zurückgegeben wird. Die
+     * Funktion gibt also niemals NULL zurück.
+     *
+     * @return Pointer auf den internen C-String der Klasse
+     * @see
+     * Die folgenden Funktionen erfüllen den gleichen Zweck:
+     * - const char * String::getPtr() const
+     * - const char * String::c_str() const
+     * - const char * String::toChar() const
+     * - String::operator const char *() const
+     */
+    const char* getPtr() const
+    {
+        return ptr ? ptr : "";
+    }
+
+    /**\brief Pointer auf den internen C-String
+     *
+     * Diese Funktion liefert einen Pointer im Format "const char*" auf den internen
+     * C-String der Klasse zurück. Bei einem leeren String ist sichergestellt, dass ein
+     * Pointer auf einen leeren mit 0-Byte terminierten String zurückgegeben wird. Die
+     * Funktion gibt also niemals NULL zurück.
+     *
+     * @return Pointer auf den internen C-String der Klasse
+     * @see
+     * Die folgenden Funktionen erfüllen den gleichen Zweck:
+     * - const char * String::getPtr() const
+     * - const char * String::c_str() const
+     * - const char * String::toChar() const
+     * - String::operator const char *() const
+     */
+    const char* c_str() const
+    {
+        return ptr ? ptr : "";
+    }
 
     ByteArray toEncoding(const char* encoding) const;
-    ByteArray toUCS4() const;
-    ByteArray toUtf8() const;
-    String& fromUCS4(const uint32_t* str, size_t size = (size_t)-1);
-    String& fromUCS4(const ByteArrayPtr& bin);
+
     String md5() const;
 
     int toInt() const;
@@ -856,14 +863,39 @@ public:
     unsigned long long toUnsignedLongLong() const;
     float toFloat() const;
     double toDouble() const;
-    const char* toChar() const;
+
+    /**\brief Pointer auf den internen C-String
+     *
+     * Diese Funktion liefert einen Pointer im Format "const char*" auf den internen
+     * C-String der Klasse zurück. Bei einem leeren String ist sichergestellt, dass ein
+     * Pointer auf einen leeren mit 0-Byte terminierten String zurückgegeben wird. Die
+     * Funktion gibt also niemals NULL zurück.
+     *
+     * @return Pointer auf den internen C-String der Klasse
+     * @see
+     * Die folgenden Funktionen erfüllen den gleichen Zweck:
+     * - const char * String::getPtr() const
+     * - const char * String::c_str() const
+     * - const char * String::toChar() const
+     * - String::operator const char *() const
+     */
+    const char* toChar() const
+    {
+        return ptr ? ptr : "";
+    }
 
     //@}
 
     //! @name Operatoren
     //@{
-    operator const char*() const;
-    operator const unsigned char*() const;
+    operator const char*() const
+    {
+        return ptr ? ptr : "";
+    }
+    operator const unsigned char*() const
+    {
+        return (const unsigned char*)(ptr ? ptr : "");
+    }
     operator int() const;
     operator unsigned int() const;
     operator bool() const;

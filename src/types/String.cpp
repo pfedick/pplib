@@ -48,10 +48,6 @@
 
 #include <config_ppl7.h>
 
-#ifdef HAVE_ICONV
-#include <iconv.h>
-#endif
-
 namespace ppl7
 {
 
@@ -65,43 +61,17 @@ namespace ppl7
  */
 
 static size_t InitialBuffersize = 128;
-#ifdef WIN32
-static String __GlobalStringEncoding("UTF-8");
-#endif
-
-static char* empty_string = (char*)"";
-
-void String::setGlobalEncoding(const char* encoding)
-{
-    if (!encoding) throw NullPointerException();
-#ifdef WIN32
-    __GlobalStringEncoding.set(encoding);
-#else
-    char* ret = setlocale(LC_CTYPE, encoding);
-    if (!ret) throw UnsupportedCharacterEncodingException();
-#endif
-}
-
-const char* String::getGlobalEncoding()
-{
-#ifdef WIN32
-    return (const char*)__GlobalStringEncoding;
-#else
-    const char* ret = setlocale(LC_CTYPE, NULL);
-    return ret;
-#endif
-}
 
 String::String() noexcept
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
 }
 
 String::String(const char* str)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str);
@@ -109,7 +79,7 @@ String::String(const char* str)
 
 String::String(const char* str, size_t size)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str, size);
@@ -117,7 +87,7 @@ String::String(const char* str, size_t size)
 
 String::String(const wchar_t* str, size_t size)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str, size);
@@ -125,7 +95,7 @@ String::String(const wchar_t* str, size_t size)
 
 String::String(const String& str)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str);
@@ -136,14 +106,14 @@ String::String(String&& other) noexcept
     ptr = other.ptr;
     stringlen = other.stringlen;
     s = other.s;
-    other.ptr = empty_string;
+    other.ptr = nullptr;
     other.stringlen = 0;
     other.s = 0;
 }
 
 String::String(const ByteArrayPtr& str)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str);
@@ -151,7 +121,7 @@ String::String(const ByteArrayPtr& str)
 
 String::String(const std::string& str)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str.data(), str.size());
@@ -159,7 +129,7 @@ String::String(const std::string& str)
 
 String::String(const std::wstring& str)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str.data(), str.size());
@@ -167,7 +137,7 @@ String::String(const std::wstring& str)
 
 String::String(const WideString& str)
 {
-    ptr = empty_string;
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
     set(str, str.size());
@@ -175,13 +145,13 @@ String::String(const WideString& str)
 
 String::~String() noexcept
 {
-    if (ptr != empty_string) free(ptr);
+    free(ptr);
 }
 
 void String::clear() noexcept
 {
-    if (ptr != empty_string) free(ptr);
-    ptr = empty_string;
+    free(ptr);
+    ptr = nullptr;
     stringlen = 0;
     s = 0;
 }
@@ -197,10 +167,7 @@ void String::reserve(size_t size)
     size_t bytes = size + 1;
     if (s >= bytes) return; // Nothing to do
     char* p;
-    if (ptr == empty_string)
-        p = (char*)malloc(bytes);
-    else
-        p = (char*)realloc(ptr, bytes);
+    p = (char*)realloc(ptr, bytes);
     if (!p) throw OutOfMemoryException();
     ptr = p;
     s = bytes;
@@ -273,7 +240,7 @@ String& String::set(const char* str, size_t size)
     }
     size_t outbytes = inbytes + 1;
     if (outbytes >= s) {
-        if (ptr != empty_string) free(ptr);
+        free(ptr);
         stringlen = 0;
         s = InitialBuffersize;
         if (s <= outbytes) s = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 1;
@@ -295,72 +262,19 @@ String& String::set(const wchar_t* str, size_t size)
         clear();
         return *this;
     }
-    size_t inchars;
-    if (size != (size_t)-1)
-        inchars = size;
-    else
-        inchars = wcslen(str);
-    size_t inbytes = inchars * sizeof(wchar_t);
-
-    String GlobalEncoding = String::getGlobalEncoding();
-#ifdef WIN32
-    if (GlobalEncoding.instr(".1252") > 0) {
-        GlobalEncoding = "WINDOWS-1252";
-    }
-#endif
-
-#ifndef WIN32
-    wchar_t* tmpbuffer = NULL;
-    if (size != (size_t)-1) {
-        size_t buffersize = (size + 1) * sizeof(wchar_t);
-        tmpbuffer = (wchar_t*)malloc(buffersize);
-        if (!tmpbuffer) throw OutOfMemoryException();
-#ifdef HAVE_WCSNCPY_S
-        wcsncpy_s(tmpbuffer, buffersize, str, size);
-        str = tmpbuffer;
-#else
-        str = wcsncpy(tmpbuffer, str, size);
-#endif
-        tmpbuffer[size] = 0;
-        inbytes = size;
-    } else {
-        inbytes = wcslen(str);
-    }
-    size_t outbytes = inbytes * sizeof(wchar_t) + 4;
-    if (outbytes >= s) {
-        if (ptr != empty_string) free(ptr);
-        stringlen = 0;
-        s = InitialBuffersize;
-        if (s <= outbytes) s = ((outbytes / InitialBuffersize) + 1) * InitialBuffersize + 4;
-        ptr = (char*)malloc(s);
-        if (!ptr) {
-            s = 0;
-            free(tmpbuffer);
-            throw OutOfMemoryException();
-        }
-    }
-#ifdef HAVE_WCSTOMBS_S
-    wcstombs_s(&stringlen, ptr, s, str, s);
-
-#else
-    stringlen = wcstombs(ptr, str, s);
-#endif
-    free(tmpbuffer);
-    if (stringlen == (size_t)-1) {
-        stringlen = 0;
+    size_t inchars = (size != (size_t)-1) ? size : ::wcslen(str);
+    // Abschätzung der maximalen UTF-8 Bytegröße (1 wchar_t kann maximal 4 UTF-8 Bytes erzeugen)
+    size_t outbytes = inchars * 4 + 1;
+    reserve(outbytes);
+    size_t formatted_bytes = ::wcstombs(ptr, str, outbytes);
+    if (formatted_bytes == (size_t)-1) {
+        clear();
         throw CharacterEncodingException();
     }
+
+    stringlen = formatted_bytes;
+    ptr[stringlen] = 0;
     return *this;
-#endif
-#ifdef HAVE_ICONV
-    Iconv iconv(ICONV_UNICODE, GlobalEncoding);
-    ByteArray buffer(inbytes + 4);
-    iconv.transcode(ByteArrayPtr(str, inbytes), buffer);
-    set((const char*)buffer.ptr(), buffer.size());
-    return *this;
-#else
-    throw UnsupportedFeatureException();
-#endif
 }
 
 String& String::set(const String& str, size_t size)
@@ -486,7 +400,7 @@ String& String::append(const wchar_t* str, size_t size)
 String& String::append(const char* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
-    if (ptr == empty_string) {
+    if (ptr == nullptr) {
         return set(str, size);
     }
     size_t inchars;
@@ -554,9 +468,8 @@ String& String::prepend(const wchar_t* str, size_t size)
 
 String& String::prepend(const String& str, size_t size)
 {
-    if (ptr == empty_string) {
-        set(str, size);
-        return *this;
+    if (ptr == nullptr) {
+        return set(str, size);
     }
     String a;
     a.set(str, size);
@@ -565,9 +478,8 @@ String& String::prepend(const String& str, size_t size)
 
 String& String::prepend(const std::string& str, size_t size)
 {
-    if (ptr == empty_string) {
-        set(str, size);
-        return *this;
+    if (ptr == nullptr) {
+        return set(str, size);
     }
     String a;
     a.set(str, size);
@@ -576,9 +488,8 @@ String& String::prepend(const std::string& str, size_t size)
 
 String& String::prepend(const std::wstring& str, size_t size)
 {
-    if (ptr == empty_string) {
-        set(str, size);
-        return *this;
+    if (ptr == nullptr) {
+        return set(str, size);
     }
     String a;
     a.set(str, size);
@@ -588,9 +499,8 @@ String& String::prepend(const std::wstring& str, size_t size)
 String& String::prepend(const char* str, size_t size)
 {
     if (str == NULL || size == 0) return *this;
-    if (ptr == empty_string) {
-        set(str, size);
-        return *this;
+    if (ptr == nullptr) {
+        return set(str, size);
     }
     size_t inchars;
     if (size != (size_t)-1) {
@@ -652,89 +562,11 @@ ByteArray String::toEncoding(const char* encoding) const
 #ifndef HAVE_ICONV
     throw UnsupportedFeatureException();
 #else
-    iconv_t iconv_handle = iconv_open(encoding, "");
-    if ((iconv_t)(-1) == iconv_handle) {
-        throw UnsupportedCharacterEncodingException();
-    }
-
-    size_t buffersize = (stringlen + 4) * sizeof(wchar_t);
-    char* buffer = (char*)malloc(buffersize);
-    if (!buffer) {
-        iconv_close(iconv_handle);
-        throw OutOfMemoryException();
-    }
-    size_t outbytes = buffersize;
-    char* b = buffer;
-    char* inbuffer = (char*)ptr;
-    size_t inbytes = stringlen;
-
-    size_t res = iconv((iconv_t)iconv_handle, (ICONV_CONST char**)&inbuffer, &inbytes, (char**)&b, &outbytes);
-    iconv_close(iconv_handle);
-    if (res == (size_t)(-1)) {
-        free(buffer);
-        throw CharacterEncodingException();
-    }
-    // b[0]=0;
-    // HexDump(buffer,buffersize-outbytes+4);
-    ByteArray ret(buffer, buffersize - outbytes);
-    // ret.hexDump();
-    free(buffer);
-    return ret;
+    Iconv iconv("UTF-8", encoding);
+    ByteArray to;
+    iconv.transcode(ByteArrayPtr(ptr, stringlen), to);
+    return to;
 #endif
-}
-
-/*!/brief Diese Funktion liefert den String immer UTF-8 kodiert zurück
- *
- * \desc
- * Diese Funktion liefert den String immer UTF-8 kodiert zurück, unabhängig davon, welche
- * Kodierung das System verwendet.
- * @return
- */
-ByteArray String::toUtf8() const
-{
-    const char* l = setlocale(LC_CTYPE, NULL);
-    if (l) {
-        String localeStr(l);
-        if (localeStr.instrCase("utf-8") >= 0) {
-            return ByteArray(ptr, stringlen);
-        }
-    }
-    return toEncoding("UTF-8");
-}
-ByteArray String::toUCS4() const
-{
-    ByteArray ret;
-    if (stringlen) {
-        uint32_t* ucs4 = (uint32_t*)malloc(stringlen * 4 + 4);
-        if (!ucs4) throw OutOfMemoryException();
-        for (size_t i = 0; i < stringlen; i++)
-            ucs4[i] = (uint32_t)ptr[i];
-        ucs4[stringlen] = 0;
-        ret.useadr(ucs4, stringlen * 4);
-    }
-    return ret;
-}
-
-String& String::fromUCS4(const uint32_t* str, size_t size)
-{
-    clear();
-    /*TODO: Muss noch implementiert werden
-     *
-     */
-    throw UnsupportedFeatureException("String::fromUCS not implemented yet");
-    /*
-    for (size_t i=0;str[i]!=0;i++) {
-        if (size!=(size_t)-1 && i>=size) break;
-        wchar_t c=(wchar_t)str[i];
-        append(c);
-    }
-    */
-    return *this;
-}
-
-String& String::fromUCS4(const ByteArrayPtr& bin)
-{
-    return fromUCS4((uint32_t*)bin.ptr(), bin.size());
 }
 
 /*!\brief Einzelnes Zeichen auslesen
@@ -906,11 +738,11 @@ String& String::operator=(const String& str)
 String& String::operator=(String&& other) noexcept
 {
     if (this != &other) {
-        if (ptr != empty_string) free(ptr);
+        free(ptr);
         ptr = other.ptr;
         s = other.s;
         stringlen = other.stringlen;
-        other.ptr = empty_string;
+        other.ptr = nullptr;
         other.s = 0;
         other.stringlen = 0;
     }
@@ -1736,7 +1568,7 @@ String& String::repeat(char code, size_t num)
     if (!buf) throw OutOfMemoryException();
     for (size_t i = 0; i < num; i++)
         buf[i] = code;
-    if (ptr != empty_string) free(ptr);
+    free(ptr);
     ptr = buf;
     stringlen = num;
     ptr[stringlen] = 0;
@@ -1776,7 +1608,7 @@ String& String::repeat(const String& str, size_t num)
 #endif
         tmp += str.stringlen;
     }
-    if (ptr != empty_string) free(ptr);
+    free(ptr);
     ptr = buf;
     stringlen = num * str.stringlen;
     ptr[stringlen] = 0;
@@ -2046,72 +1878,6 @@ bool String::operator>(const char* str) const
 {
     if (strcmp(str) > 0) return true;
     return false;
-}
-
-/*!\brief %Pointer auf den internen C-String
- *
- * \desc
- * Diese Funktion liefert einen %Pointer im Format "const char*" auf den internen
- * C-String der Klasse zurück. Falls der %String leer ist, wird ein
- * %Pointer auf einen leeren %String zurückgegeben. Das Ergebnis kann in \b printf und
- * verwandten Funktionen mit dem Formatstring "%s" verwendet werden.
- *
- * @return %Pointer auf den internen C-String der Klasse
- * \example
- * \code
-void PrintString(const ppl7::String &text)
-{
-    printf ("Der String lautet: %s\n",text.getPtr());
-    // oder mittels Operator:
-    printf ("Der String lautet: %s\n",(const char*)text);
-}
- * \endcode
- * \see
- * Die folgenden Funktionen erfüllen den gleichen Zweck:
- * - const char * String::getPtr() const
- * - const char * String::c_str() const
- * - const char * String::toChar() const
- * - String::operator const char *() const
- */
-const char* String::getPtr() const
-{
-    return (const char*)ptr;
-}
-
-/*!\brief %Pointer auf den internen C-String
- *
- * \copydetails String::getPtr
- */
-const char* String::c_str() const
-{
-    return (const char*)ptr;
-}
-
-/*!\brief %Pointer auf den internen C-String
- *
- * \copydetails String::getPtr
- */
-const char* String::toChar() const
-{
-    return (const char*)ptr;
-}
-
-/*!\brief %Pointer auf den internen C-String
- *
- * \copydetails String::getPtr
- */
-String::operator const char*() const
-{
-    return (const char*)ptr;
-}
-
-/*!\brief %Pointer auf den internen C-String
- *
- * \copydetails String::getPtr
- */
-String::operator const unsigned char*() const
-{
-    return (const unsigned char*)ptr;
 }
 
 String::operator bool() const
