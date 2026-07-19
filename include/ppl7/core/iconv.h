@@ -55,6 +55,8 @@ public:
     static String getLocalCharset();
     static String Utf8ToLocal(const String& text);
     static String LocalToUtf8(const String& text);
+    static ByteArray transcode(const String& text, const String& fromEncoding, const String& toEncoding);
+    static ByteArray transcode(const ByteArrayPtr& text, const String& fromEncoding, const String& toEncoding);
 };
 
 }; // namespace ppl7
