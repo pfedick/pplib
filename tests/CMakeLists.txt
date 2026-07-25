@@ -26,6 +26,7 @@ macro(add_ppl7_test_suite name source_glob link_lib)
         add_executable(${name} ${TEST_SOURCES})
         target_link_libraries(${name} PRIVATE ppl7_test_common ${link_lib})
         gtest_discover_tests(${name}
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
             EXTRA_ARGS "--gtest_output=xml:${CMAKE_BINARY_DIR}/testresult_${name}.xml"
         )
     endif()

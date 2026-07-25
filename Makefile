@@ -38,6 +38,8 @@ debug:
 	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug
 	cmake --build build/debug
 
+configure:
+	cmake -B build/release -DCMAKE_BUILD_TYPE=Release
 
 all:	release debug
 

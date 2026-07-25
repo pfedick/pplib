@@ -1,0 +1,3950 @@
+{
+  "tests": 754,
+  "name": "AllTests",
+  "testsuites": [
+    {
+      "name": "WideStringTest",
+      "tests": 130,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 58
+        },
+        {
+          "name": "ConstructorFromWideCharPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 69
+        },
+        {
+          "name": "ConstructorFromString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 81
+        },
+        {
+          "name": "ConstructorFromWideString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 94
+        },
+        {
+          "name": "ConstructorFromStdString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 107
+        },
+        {
+          "name": "ConstructorFromStdWString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 120
+        },
+        {
+          "name": "clear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 134
+        },
+        {
+          "name": "CapacityAndReserve",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 144
+        },
+        {
+          "name": "len",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 158
+        },
+        {
+          "name": "length",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 164
+        },
+        {
+          "name": "size",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 170
+        },
+        {
+          "name": "isEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 176
+        },
+        {
+          "name": "notEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 184
+        },
+        {
+          "name": "isNumeric",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 192
+        },
+        {
+          "name": "isInteger",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 210
+        },
+        {
+          "name": "isTrue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 232
+        },
+        {
+          "name": "isFalse",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 262
+        },
+        {
+          "name": "setConstCharWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 292
+        },
+        {
+          "name": "setConstCharWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 301
+        },
+        {
+          "name": "setConstWChartWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 310
+        },
+        {
+          "name": "setConstWChartWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 319
+        },
+        {
+          "name": "setStringRefWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 328
+        },
+        {
+          "name": "setStringRefWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 337
+        },
+        {
+          "name": "setSTDStringRefWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 347
+        },
+        {
+          "name": "setSTDStringRefWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 357
+        },
+        {
+          "name": "setSTDWStringRefWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 367
+        },
+        {
+          "name": "setSTDWStringRefWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 377
+        },
+        {
+          "name": "setf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 387
+        },
+        {
+          "name": "setWchart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 396
+        },
+        {
+          "name": "vasprintf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 413
+        },
+        {
+          "name": "appendConstWchartWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 422
+        },
+        {
+          "name": "appendConstWchartWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 432
+        },
+        {
+          "name": "appendConstCharPtrWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 442
+        },
+        {
+          "name": "appendConstCharPtrWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 452
+        },
+        {
+          "name": "appendStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 462
+        },
+        {
+          "name": "appendStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 472
+        },
+        {
+          "name": "appendStdStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 482
+        },
+        {
+          "name": "appendStdStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 492
+        },
+        {
+          "name": "appendStdWStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 502
+        },
+        {
+          "name": "appendStdWStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 512
+        },
+        {
+          "name": "appendf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 522
+        },
+        {
+          "name": "appendWchart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 531
+        },
+        {
+          "name": "append_same_string",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 540
+        },
+        {
+          "name": "prependConstWchartWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 550
+        },
+        {
+          "name": "prependConstWchartWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 559
+        },
+        {
+          "name": "prependConstCharPtrWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 568
+        },
+        {
+          "name": "prependConstCharPtrWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 577
+        },
+        {
+          "name": "prependStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 586
+        },
+        {
+          "name": "prependStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 596
+        },
+        {
+          "name": "prependStdStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 606
+        },
+        {
+          "name": "prependStdStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 616
+        },
+        {
+          "name": "prependStdWStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 626
+        },
+        {
+          "name": "prependStdWStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 636
+        },
+        {
+          "name": "prependf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 646
+        },
+        {
+          "name": "prependWchart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 655
+        },
+        {
+          "name": "prepend_same_string",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 664
+        },
+        {
+          "name": "chopRight",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 674
+        },
+        {
+          "name": "chopLeft",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 694
+        },
+        {
+          "name": "chop",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 713
+        },
+        {
+          "name": "chomp",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 733
+        },
+        {
+          "name": "cut_WithPos",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 745
+        },
+        {
+          "name": "cut_WithPos0",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 754
+        },
+        {
+          "name": "cut_WithPosBeyondStringLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 763
+        },
+        {
+          "name": "cut_WithLetter",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 772
+        },
+        {
+          "name": "cut_WithNonexistingLetter",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 781
+        },
+        {
+          "name": "cut_WithString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 790
+        },
+        {
+          "name": "strstr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 799
+        },
+        {
+          "name": "repeated",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 816
+        },
+        {
+          "name": "repeat_by_count",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 826
+        },
+        {
+          "name": "repeat_with_string",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 835
+        },
+        {
+          "name": "trimLeft",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 844
+        },
+        {
+          "name": "trimRight",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 852
+        },
+        {
+          "name": "trim",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 860
+        },
+        {
+          "name": "trimEmptyString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 868
+        },
+        {
+          "name": "trimmed",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 876
+        },
+        {
+          "name": "trimLeftEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 890
+        },
+        {
+          "name": "trimRightEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 898
+        },
+        {
+          "name": "trimEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 906
+        },
+        {
+          "name": "trimLeftChars",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 914
+        },
+        {
+          "name": "trimRightChars",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 922
+        },
+        {
+          "name": "trimChars",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 930
+        },
+        {
+          "name": "trimLeftCharsEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 938
+        },
+        {
+          "name": "trimRightCharsEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 946
+        },
+        {
+          "name": "trimEmptyCharsResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 954
+        },
+        {
+          "name": "operatorEqualEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 962
+        },
+        {
+          "name": "strcmpEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 969
+        },
+        {
+          "name": "strcmpLower",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 976
+        },
+        {
+          "name": "strcmpLowerWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 983
+        },
+        {
+          "name": "strcmpHigher",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 990
+        },
+        {
+          "name": "strcmpHigherWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 997
+        },
+        {
+          "name": "strcmpEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1004
+        },
+        {
+          "name": "strcasecmpEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1011
+        },
+        {
+          "name": "strcasecmpLower",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1018
+        },
+        {
+          "name": "strcasecmpLowerWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1025
+        },
+        {
+          "name": "strcasecmpHigher",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1032
+        },
+        {
+          "name": "strcasecmpHigherWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1039
+        },
+        {
+          "name": "strcasecmpEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1046
+        },
+        {
+          "name": "left",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1053
+        },
+        {
+          "name": "right",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1060
+        },
+        {
+          "name": "midWithLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1067
+        },
+        {
+          "name": "midWithoutLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1074
+        },
+        {
+          "name": "substrWithLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1081
+        },
+        {
+          "name": "substrWithoutLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1088
+        },
+        {
+          "name": "lowerCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1095
+        },
+        {
+          "name": "upperCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1103
+        },
+        {
+          "name": "upperCaseWords",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1111
+        },
+        {
+          "name": "toLowerCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1119
+        },
+        {
+          "name": "toUpperCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1125
+        },
+        {
+          "name": "Utf8toUtf8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1131
+        },
+        {
+          "name": "ISO88591toUtf8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1142
+        },
+        {
+          "name": "strchr_ExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1169
+        },
+        {
+          "name": "strchr_NonExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1176
+        },
+        {
+          "name": "strrchr_ExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1183
+        },
+        {
+          "name": "strrchr_NonExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1190
+        },
+        {
+          "name": "toInt",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1197
+        },
+        {
+          "name": "toUnsignedInt",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1207
+        },
+        {
+          "name": "toInt64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1217
+        },
+        {
+          "name": "toUnsignedInt64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1227
+        },
+        {
+          "name": "toInt_withoutNumber",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1237
+        },
+        {
+          "name": "toInt_123456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1243
+        },
+        {
+          "name": "ToInt_minus123456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1249
+        },
+        {
+          "name": "toInt_123456_point_567",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1255
+        },
+        {
+          "name": "toInt64_1242346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1261
+        },
+        {
+          "name": "toInt64_minus1242346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1267
+        },
+        {
+          "name": "toBool",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1273
+        },
+        {
+          "name": "ToLong_1124234674",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1303
+        },
+        {
+          "name": "toLongLong_1242346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1309
+        },
+        {
+          "name": "ToFloat_182566142_346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1315
+        },
+        {
+          "name": "ToDouble_182566142_346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1321
+        },
+        {
+          "name": "join",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/widestrings.cpp",
+          "line": 1327
+        }
+      ]
+    },
+    {
+      "name": "VariantTest",
+      "tests": 43,
+      "testsuite": [
+        {
+          "name": "ConstructorWithoutParam",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 65
+        },
+        {
+          "name": "TestWithString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 74
+        },
+        {
+          "name": "TestWithWideString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 95
+        },
+        {
+          "name": "TestWithArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 114
+        },
+        {
+          "name": "TestWithAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 133
+        },
+        {
+          "name": "TestWithByteArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 152
+        },
+        {
+          "name": "TestWithByteArrayPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 175
+        },
+        {
+          "name": "TestWithDateTime",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 199
+        },
+        {
+          "name": "TestWithPointer",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 219
+        },
+        {
+          "name": "TestSetWithEmptyVariant",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 238
+        },
+        {
+          "name": "OperatorVariant",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 246
+        },
+        {
+          "name": "OperatorString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 255
+        },
+        {
+          "name": "OperatorWideString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 264
+        },
+        {
+          "name": "OperatorArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 273
+        },
+        {
+          "name": "OperatorAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 281
+        },
+        {
+          "name": "OperatorByteArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 289
+        },
+        {
+          "name": "OperatorByteArrayPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 299
+        },
+        {
+          "name": "OperatorDateTime",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 310
+        },
+        {
+          "name": "OperatorPointer",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 319
+        },
+        {
+          "name": "isString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 328
+        },
+        {
+          "name": "isWideString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 345
+        },
+        {
+          "name": "isArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 362
+        },
+        {
+          "name": "isAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 378
+        },
+        {
+          "name": "isByteArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 394
+        },
+        {
+          "name": "isByteArrayPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 411
+        },
+        {
+          "name": "isDateTime",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 429
+        },
+        {
+          "name": "isPointer",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 446
+        },
+        {
+          "name": "toString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 463
+        },
+        {
+          "name": "toStringConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 477
+        },
+        {
+          "name": "toWideString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 501
+        },
+        {
+          "name": "toWideStringConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 515
+        },
+        {
+          "name": "toArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 538
+        },
+        {
+          "name": "toArrayConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 550
+        },
+        {
+          "name": "toAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 572
+        },
+        {
+          "name": "toAssocArrayConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 584
+        },
+        {
+          "name": "toByteArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 606
+        },
+        {
+          "name": "toByteArrayConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 623
+        },
+        {
+          "name": "toByteArrayPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 660
+        },
+        {
+          "name": "toByteArrayPtrConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 674
+        },
+        {
+          "name": "toDateTime",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 698
+        },
+        {
+          "name": "toDateTimeConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 711
+        },
+        {
+          "name": "toPointer",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 734
+        },
+        {
+          "name": "toPointerConst",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/variant.cpp",
+          "line": 747
+        }
+      ]
+    },
+    {
+      "name": "TimeTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "MkTime_withIso8601String_withoutTimezone",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/time.cpp",
+          "line": 64
+        },
+        {
+          "name": "MkTime_withIso8601String_withZeroTimeoffset",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/time.cpp",
+          "line": 68
+        },
+        {
+          "name": "MkTime_withIso8601String_withPositiveTimeoffset",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/time.cpp",
+          "line": 73
+        },
+        {
+          "name": "MkTime_withIso8601String_withNegativeTimeoffset",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/time.cpp",
+          "line": 78
+        }
+      ]
+    },
+    {
+      "name": "StringTest",
+      "tests": 128,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 58
+        },
+        {
+          "name": "ConstructorFromCharPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 69
+        },
+        {
+          "name": "ConstructorFromString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 95
+        },
+        {
+          "name": "ConstructorFromStdString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 108
+        },
+        {
+          "name": "ConstructorFromStdWString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 121
+        },
+        {
+          "name": "clear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 134
+        },
+        {
+          "name": "CapacityAndReserve",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 144
+        },
+        {
+          "name": "len",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 158
+        },
+        {
+          "name": "length",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 164
+        },
+        {
+          "name": "size",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 170
+        },
+        {
+          "name": "isEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 176
+        },
+        {
+          "name": "notEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 184
+        },
+        {
+          "name": "isNumeric",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 192
+        },
+        {
+          "name": "isInteger",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 214
+        },
+        {
+          "name": "isTrue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 236
+        },
+        {
+          "name": "isFalse",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 266
+        },
+        {
+          "name": "setConstCharWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 296
+        },
+        {
+          "name": "setConstCharWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 305
+        },
+        {
+          "name": "setConstWChartWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 314
+        },
+        {
+          "name": "setConstWChartWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 323
+        },
+        {
+          "name": "setStringRefWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 332
+        },
+        {
+          "name": "setStringRefWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 341
+        },
+        {
+          "name": "setSTDStringRefWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 351
+        },
+        {
+          "name": "setSTDStringRefWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 361
+        },
+        {
+          "name": "setSTDWStringRefWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 371
+        },
+        {
+          "name": "setSTDWStringRefWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 381
+        },
+        {
+          "name": "setf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 391
+        },
+        {
+          "name": "setWchart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 400
+        },
+        {
+          "name": "vasprintf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 417
+        },
+        {
+          "name": "appendConstWchartWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 426
+        },
+        {
+          "name": "appendConstWchartWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 436
+        },
+        {
+          "name": "appendConstCharPtrWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 446
+        },
+        {
+          "name": "appendConstCharPtrWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 456
+        },
+        {
+          "name": "appendStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 466
+        },
+        {
+          "name": "appendStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 476
+        },
+        {
+          "name": "appendStdStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 486
+        },
+        {
+          "name": "appendStdStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 496
+        },
+        {
+          "name": "appendStdWStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 506
+        },
+        {
+          "name": "appendStdWStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 516
+        },
+        {
+          "name": "appendf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 526
+        },
+        {
+          "name": "appendWchart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 535
+        },
+        {
+          "name": "append_same_string",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 544
+        },
+        {
+          "name": "prependConstWchartWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 554
+        },
+        {
+          "name": "prependConstWchartWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 563
+        },
+        {
+          "name": "prependConstCharPtrWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 572
+        },
+        {
+          "name": "prependConstCharPtrWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 581
+        },
+        {
+          "name": "prependStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 590
+        },
+        {
+          "name": "prependStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 600
+        },
+        {
+          "name": "prependStdStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 610
+        },
+        {
+          "name": "prependStdStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 620
+        },
+        {
+          "name": "prependStdWStringWithoutSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 630
+        },
+        {
+          "name": "prependStdWStringWithSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 640
+        },
+        {
+          "name": "prependf",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 650
+        },
+        {
+          "name": "prependWchart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 659
+        },
+        {
+          "name": "prepend_same_string",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 668
+        },
+        {
+          "name": "chopRight",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 678
+        },
+        {
+          "name": "chopLeft",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 696
+        },
+        {
+          "name": "chop",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 713
+        },
+        {
+          "name": "chomp",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 731
+        },
+        {
+          "name": "cut_WithPos",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 743
+        },
+        {
+          "name": "cut_WithPos0",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 752
+        },
+        {
+          "name": "cut_WithPosBeyondStringLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 761
+        },
+        {
+          "name": "cut_WithLetter",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 770
+        },
+        {
+          "name": "cut_WithNonexistingLetter",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 779
+        },
+        {
+          "name": "cut_WithString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 788
+        },
+        {
+          "name": "strstr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 797
+        },
+        {
+          "name": "repeated",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 814
+        },
+        {
+          "name": "repeat_by_count",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 824
+        },
+        {
+          "name": "repeat_with_string",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 833
+        },
+        {
+          "name": "trimLeft",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 842
+        },
+        {
+          "name": "trimRight",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 850
+        },
+        {
+          "name": "trim",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 858
+        },
+        {
+          "name": "trim_empty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 866
+        },
+        {
+          "name": "trimmed",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 874
+        },
+        {
+          "name": "trimLeftEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 888
+        },
+        {
+          "name": "trimRightEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 896
+        },
+        {
+          "name": "trimEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 904
+        },
+        {
+          "name": "trimLeftChars",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 912
+        },
+        {
+          "name": "trimRightChars",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 920
+        },
+        {
+          "name": "trimChars",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 928
+        },
+        {
+          "name": "trimLeftCharsEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 936
+        },
+        {
+          "name": "trimRightCharsEmptyResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 944
+        },
+        {
+          "name": "trimEmptyCharsResult",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 952
+        },
+        {
+          "name": "operatorEqualEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 960
+        },
+        {
+          "name": "strcmpEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 967
+        },
+        {
+          "name": "strcmpLower",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 974
+        },
+        {
+          "name": "strcmpLowerWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 981
+        },
+        {
+          "name": "strcmpHigher",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 988
+        },
+        {
+          "name": "strcmpHigherWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 995
+        },
+        {
+          "name": "strcmpEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1002
+        },
+        {
+          "name": "strcasecmpEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1009
+        },
+        {
+          "name": "strcasecmpLower",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1016
+        },
+        {
+          "name": "strcasecmpLowerWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1023
+        },
+        {
+          "name": "strcasecmpHigher",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1030
+        },
+        {
+          "name": "strcasecmpHigherWithCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1037
+        },
+        {
+          "name": "strcasecmpEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1044
+        },
+        {
+          "name": "left",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1051
+        },
+        {
+          "name": "right",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1058
+        },
+        {
+          "name": "midWithLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1065
+        },
+        {
+          "name": "midWithoutLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1072
+        },
+        {
+          "name": "substrWithLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1079
+        },
+        {
+          "name": "substrWithoutLength",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1086
+        },
+        {
+          "name": "lowerCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1093
+        },
+        {
+          "name": "upperCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1101
+        },
+        {
+          "name": "toLowerCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1109
+        },
+        {
+          "name": "toUpperCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1114
+        },
+        {
+          "name": "strchr_ExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1119
+        },
+        {
+          "name": "strchr_NonExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1126
+        },
+        {
+          "name": "strrchr_ExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1133
+        },
+        {
+          "name": "strrchr_NonExistingChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1140
+        },
+        {
+          "name": "toInt",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1147
+        },
+        {
+          "name": "toUnsignedInt",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1157
+        },
+        {
+          "name": "toInt64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1167
+        },
+        {
+          "name": "toUnsignedInt64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1177
+        },
+        {
+          "name": "toInt_withoutNumber",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1187
+        },
+        {
+          "name": "toInt_123456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1193
+        },
+        {
+          "name": "ToInt_minus123456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1199
+        },
+        {
+          "name": "toInt_123456_point_567",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1205
+        },
+        {
+          "name": "toInt64_1242346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1211
+        },
+        {
+          "name": "toInt64_minus1242346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1217
+        },
+        {
+          "name": "toBool",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1223
+        },
+        {
+          "name": "ToLong_1124234674",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1253
+        },
+        {
+          "name": "toLongLong_1242346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1259
+        },
+        {
+          "name": "ToFloat_182566142_346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1265
+        },
+        {
+          "name": "ToDouble_182566142_346214893456",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1271
+        },
+        {
+          "name": "OperatorCharPositionPositiv",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1277
+        },
+        {
+          "name": "OperatorCharPositionNegativ",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1296
+        },
+        {
+          "name": "join",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/strings.cpp",
+          "line": 1315
+        }
+      ]
+    },
+    {
+      "name": "StringFunctionTest",
+      "tests": 4,
+      "testsuite": [
+        {
+          "name": "ToBase64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/stringfunctions.cpp",
+          "line": 66
+        },
+        {
+          "name": "FromBase64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/stringfunctions.cpp",
+          "line": 81
+        },
+        {
+          "name": "UpperCaseWords",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/stringfunctions.cpp",
+          "line": 104
+        },
+        {
+          "name": "StripSlashes",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/stringfunctions.cpp",
+          "line": 112
+        }
+      ]
+    },
+    {
+      "name": "PythonHelperTest",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "escapeString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 65
+        },
+        {
+          "name": "escapeStringWithBackslashes",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 74
+        },
+        {
+          "name": "toHashWithEmptyArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 83
+        },
+        {
+          "name": "toHashWithEmptyArrayEmptyKey",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 93
+        },
+        {
+          "name": "toHashNonRecursive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 102
+        },
+        {
+          "name": "toHashNonRecursiveWithQuotationMark",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 128
+        },
+        {
+          "name": "toHashNonRecursiveWithAtChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 146
+        },
+        {
+          "name": "toHashRecursive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 166
+        },
+        {
+          "name": "toHashRecursiveWithQuotationMark",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 190
+        },
+        {
+          "name": "toHashRecursiveWithAtChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pythonhelper.cpp",
+          "line": 218
+        }
+      ]
+    },
+    {
+      "name": "PointerTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pointer.cpp",
+          "line": 60
+        }
+      ]
+    },
+    {
+      "name": "PerlHelperTest",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "escapeString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 65
+        },
+        {
+          "name": "escapeStringWithBackslashes",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 75
+        },
+        {
+          "name": "toHashWithEmptyArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 84
+        },
+        {
+          "name": "toHashWithEmptyArrayEmptyKey",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 94
+        },
+        {
+          "name": "toHashNonRecursive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 103
+        },
+        {
+          "name": "toHashNonRecursiveWithQuotationMark",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 124
+        },
+        {
+          "name": "toHashNonRecursiveWithAtChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 145
+        },
+        {
+          "name": "toHashRecursive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 169
+        },
+        {
+          "name": "toHashRecursiveWithQuotationMark",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 196
+        },
+        {
+          "name": "toHashRecursiveWithAtChar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/perlhelper.cpp",
+          "line": 225
+        }
+      ]
+    },
+    {
+      "name": "PcreTest",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "bool_compile_match",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 57
+        },
+        {
+          "name": "bool_match",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 69
+        },
+        {
+          "name": "MatchPositive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 78
+        },
+        {
+          "name": "MatchNegativ",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 95
+        },
+        {
+          "name": "MatchPerlRegExPositive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 112
+        },
+        {
+          "name": "capture",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 128
+        },
+        {
+          "name": "replace",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 139
+        },
+        {
+          "name": "escape",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 155
+        }
+      ]
+    },
+    {
+      "name": "PcreTestWideChar",
+      "tests": 8,
+      "testsuite": [
+        {
+          "name": "bool_compile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 176
+        },
+        {
+          "name": "bool_match",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 183
+        },
+        {
+          "name": "MatchPositive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 193
+        },
+        {
+          "name": "MatchMultiline",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 207
+        },
+        {
+          "name": "MatchNegativ",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 216
+        },
+        {
+          "name": "capture",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 233
+        },
+        {
+          "name": "replace",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 245
+        },
+        {
+          "name": "escape",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/pcre.cpp",
+          "line": 257
+        }
+      ]
+    },
+    {
+      "name": "MemoryHeapTest",
+      "tests": 13,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 60
+        },
+        {
+          "name": "ConstructorWithInit",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 69
+        },
+        {
+          "name": "Init",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 78
+        },
+        {
+          "name": "malloc",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 88
+        },
+        {
+          "name": "101malloc",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 95
+        },
+        {
+          "name": "1000malloc",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 107
+        },
+        {
+          "name": "1000calloc",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 119
+        },
+        {
+          "name": "1000malloc1000free",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 131
+        },
+        {
+          "name": "2000malloc1500free",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 146
+        },
+        {
+          "name": "1000mallocfreeCleanup",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 162
+        },
+        {
+          "name": "reserve2000",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 179
+        },
+        {
+          "name": "reserve2000and3000",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 187
+        },
+        {
+          "name": "clear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memoryheap.cpp",
+          "line": 196
+        }
+      ]
+    },
+    {
+      "name": "MemoryGroupTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/memorygroup.cpp",
+          "line": 60
+        }
+      ]
+    },
+    {
+      "name": "CalcTest",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "SinglePositiveValue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 60
+        },
+        {
+          "name": "SingleNegativeValue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 68
+        },
+        {
+          "name": "AdditionOfTwoPositiveValues",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 73
+        },
+        {
+          "name": "AdditionOfNegativeAndPositiveValues",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 79
+        },
+        {
+          "name": "AdditionOfPositiveAndNegativeValues",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 82
+        },
+        {
+          "name": "SubtractionOfTwoPositiveValues",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 87
+        },
+        {
+          "name": "SubtractionOfTwoNegativeValues",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 91
+        },
+        {
+          "name": "SubtractionOfPositiveAndNegativeValues",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 95
+        },
+        {
+          "name": "Multiply",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 99
+        },
+        {
+          "name": "Power",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 106
+        },
+        {
+          "name": "BitshiftLeft",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 110
+        },
+        {
+          "name": "BitshiftRight",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 114
+        },
+        {
+          "name": "PunktVorStrich",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 119
+        },
+        {
+          "name": "Bracket",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 124
+        },
+        {
+          "name": "MultiBracket",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/math.cpp",
+          "line": 128
+        }
+      ]
+    },
+    {
+      "name": "LoggerTest",
+      "tests": 1,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/logger.cpp",
+          "line": 60
+        }
+      ]
+    },
+    {
+      "name": "ListTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/list.cpp",
+          "line": 65
+        },
+        {
+          "name": "add",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/list.cpp",
+          "line": 71
+        },
+        {
+          "name": "clear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/list.cpp",
+          "line": 79
+        },
+        {
+          "name": "reset",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/list.cpp",
+          "line": 90
+        },
+        {
+          "name": "getNext",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/list.cpp",
+          "line": 101
+        },
+        {
+          "name": "getPrevious",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/list.cpp",
+          "line": 121
+        },
+        {
+          "name": "addWordlist",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/list.cpp",
+          "line": 141
+        }
+      ]
+    },
+    {
+      "name": "JsonTest",
+      "tests": 14,
+      "testsuite": [
+        {
+          "name": "ParseFromStringWithDictToAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 60
+        },
+        {
+          "name": "ParseFromStringWithArrayToAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 111
+        },
+        {
+          "name": "NegativTest_GarbageBeforeBegin",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 129
+        },
+        {
+          "name": "NegativTest_GarbageAfterEnd",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 136
+        },
+        {
+          "name": "NegativTest_InvalidKey",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 142
+        },
+        {
+          "name": "NegativTest_MissingValue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 148
+        },
+        {
+          "name": "DumpsEmptyArrayToString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 155
+        },
+        {
+          "name": "DumpsSimpleKeyValue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 164
+        },
+        {
+          "name": "DumpsNestetAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 184
+        },
+        {
+          "name": "DumpsSimpleListAtFirstLevel",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 201
+        },
+        {
+          "name": "DumpsNestedListAtFirstLevel",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 215
+        },
+        {
+          "name": "DumpsNestedListAtSecondLevel",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 235
+        },
+        {
+          "name": "DumpsNestedListWithRealArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 250
+        },
+        {
+          "name": "DumpsWithBinary",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/json.cpp",
+          "line": 267
+        }
+      ]
+    },
+    {
+      "name": "IconvTest",
+      "tests": 10,
+      "testsuite": [
+        {
+          "name": "ConstructorWithoutFile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 59
+        },
+        {
+          "name": "enumerateCharsets",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 64
+        },
+        {
+          "name": "enumerateCharsetsStdList",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 77
+        },
+        {
+          "name": "getLocalCharset",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 92
+        },
+        {
+          "name": "initWithKnownCharsets",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 101
+        },
+        {
+          "name": "initWithUnknownCharsetsThrowsException",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 107
+        },
+        {
+          "name": "transcodeWithString_ISO88591_UTF8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 120
+        },
+        {
+          "name": "transcodeByteArray_UTF16BE_UTF8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 130
+        },
+        {
+          "name": "transcodeWithByteArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 141
+        },
+        {
+          "name": "ISO88591toUtf8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/iconv.cpp",
+          "line": 152
+        }
+      ]
+    },
+    {
+      "name": "GzFileTest",
+      "tests": 18,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 57
+        },
+        {
+          "name": "openNonexisting",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 65
+        },
+        {
+          "name": "openExistingUncompressed",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 71
+        },
+        {
+          "name": "openExistingCompressed",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 77
+        },
+        {
+          "name": "sizeThrowsUnimplementedVirtualFunctionException",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 83
+        },
+        {
+          "name": "fread1024_UncompressedFile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 90
+        },
+        {
+          "name": "fread1024_CompressedFile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 105
+        },
+        {
+          "name": "md5_UncompressedFile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 120
+        },
+        {
+          "name": "md5_CompressedFile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 128
+        },
+        {
+          "name": "seekAndTell",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 136
+        },
+        {
+          "name": "rewind",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 148
+        },
+        {
+          "name": "isOpen",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 157
+        },
+        {
+          "name": "freadUntilEof",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 165
+        },
+        {
+          "name": "fgets",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 182
+        },
+        {
+          "name": "fgetsUntilEof",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 197
+        },
+        {
+          "name": "getsAsString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 217
+        },
+        {
+          "name": "fgetc",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 236
+        },
+        {
+          "name": "fgetcUntilEof",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/gzfile.cpp",
+          "line": 265
+        }
+      ]
+    },
+    {
+      "name": "PeekAndPokeTest",
+      "tests": 20,
+      "testsuite": [
+        {
+          "name": "PokeFloat",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 60
+        },
+        {
+          "name": "PeekFloat",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 69
+        },
+        {
+          "name": "Poke8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 75
+        },
+        {
+          "name": "Poke16",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 104
+        },
+        {
+          "name": "Poke24",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 125
+        },
+        {
+          "name": "Poke32",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 155
+        },
+        {
+          "name": "Poke64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 200
+        },
+        {
+          "name": "PokeN8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 269
+        },
+        {
+          "name": "PokeN16",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 298
+        },
+        {
+          "name": "PokeN32",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 319
+        },
+        {
+          "name": "PokeN64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 367
+        },
+        {
+          "name": "Peek8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 436
+        },
+        {
+          "name": "Peek16",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 445
+        },
+        {
+          "name": "Peek24",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 454
+        },
+        {
+          "name": "Peek32",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 463
+        },
+        {
+          "name": "Peek64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 472
+        },
+        {
+          "name": "PeekN8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 481
+        },
+        {
+          "name": "PeekN16",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 490
+        },
+        {
+          "name": "PeekN32",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 499
+        },
+        {
+          "name": "PeekN64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/functions.cpp",
+          "line": 508
+        }
+      ]
+    },
+    {
+      "name": "FileStaticTest",
+      "tests": 37,
+      "testsuite": [
+        {
+          "name": "StatOnUSAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 56
+        },
+        {
+          "name": "StatOnUtf8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 64
+        },
+        {
+          "name": "StatOnNonexistingFile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 72
+        },
+        {
+          "name": "ExistsOnUSAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 78
+        },
+        {
+          "name": "ExistsOnUtf8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 83
+        },
+        {
+          "name": "ExistsNot",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 88
+        },
+        {
+          "name": "md5Hash",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 93
+        },
+        {
+          "name": "CopyFileUSAscii2USAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 98
+        },
+        {
+          "name": "CopyFileUSAscii2Local",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 113
+        },
+        {
+          "name": "CopyFileLocal2Local",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 128
+        },
+        {
+          "name": "CopyFileLocal2UsAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 143
+        },
+        {
+          "name": "TruncateOnUSASCII",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 158
+        },
+        {
+          "name": "TruncateOnLocal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 174
+        },
+        {
+          "name": "MoveFileUSAscii2USAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 190
+        },
+        {
+          "name": "MoveFileUSAscii2Local",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 205
+        },
+        {
+          "name": "MoveFileLocal2USAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 220
+        },
+        {
+          "name": "MoveFileLocal2Local",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 235
+        },
+        {
+          "name": "RenameFileUSAscii2USAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 250
+        },
+        {
+          "name": "RenameFileUSAscii2Local",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 265
+        },
+        {
+          "name": "RenameFileLocal2USAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 280
+        },
+        {
+          "name": "RenameFileLocal2Local",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 295
+        },
+        {
+          "name": "LoadUSAscii2CString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 310
+        },
+        {
+          "name": "LoadFileUSAscii2ByteArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 318
+        },
+        {
+          "name": "LoadFileLocal2CString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 326
+        },
+        {
+          "name": "LoadFileLocal2ByteArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 334
+        },
+        {
+          "name": "LoadFileUSAscii2Ptr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 342
+        },
+        {
+          "name": "LoadFileLocal2Ptr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 352
+        },
+        {
+          "name": "DeleteFileUSAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 361
+        },
+        {
+          "name": "DeleteFileUtf8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 368
+        },
+        {
+          "name": "TouchFileUSAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 375
+        },
+        {
+          "name": "TouchFileLocal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 382
+        },
+        {
+          "name": "SavePtrUSAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 389
+        },
+        {
+          "name": "SavePtrLocal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 400
+        },
+        {
+          "name": "SaveByteArrayPtrUSAscii",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 411
+        },
+        {
+          "name": "SaveByteArrayPtrLocal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 424
+        },
+        {
+          "name": "getPath",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 437
+        },
+        {
+          "name": "getFilename",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/filestatic.cpp",
+          "line": 444
+        }
+      ]
+    },
+    {
+      "name": "FileReadTest",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 57
+        },
+        {
+          "name": "openNonexisting",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 65
+        },
+        {
+          "name": "openNonexistingUtf8",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 71
+        },
+        {
+          "name": "openExisting",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 77
+        },
+        {
+          "name": "openExistingLocal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 83
+        },
+        {
+          "name": "size",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 89
+        },
+        {
+          "name": "openAndClose",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 99
+        },
+        {
+          "name": "openAndCloseNonUSASCIIFilenames",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 109
+        },
+        {
+          "name": "md5",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 119
+        },
+        {
+          "name": "seekAndTell",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 127
+        },
+        {
+          "name": "seek",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 139
+        },
+        {
+          "name": "fread1024",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 153
+        },
+        {
+          "name": "freadUntilEof",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 168
+        },
+        {
+          "name": "fgets",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 185
+        },
+        {
+          "name": "getsAsString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/file.cpp",
+          "line": 200
+        }
+      ]
+    },
+    {
+      "name": "DirTest",
+      "tests": 15,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 74
+        },
+        {
+          "name": "ConstructorWithDir",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 81
+        },
+        {
+          "name": "open",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 88
+        },
+        {
+          "name": "count",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 96
+        },
+        {
+          "name": "clear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 101
+        },
+        {
+          "name": "print",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 110
+        },
+        {
+          "name": "resortByFilenameIgnoreCase",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 118
+        },
+        {
+          "name": "resortByMTime",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 125
+        },
+        {
+          "name": "resortBySize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 132
+        },
+        {
+          "name": "dirWalkFilename",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 139
+        },
+        {
+          "name": "dirWalkSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 209
+        },
+        {
+          "name": "patternWalk",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 276
+        },
+        {
+          "name": "patternWalk2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 308
+        },
+        {
+          "name": "regExpWalk",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 339
+        },
+        {
+          "name": "regExpWalk2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/dir.cpp",
+          "line": 360
+        }
+      ]
+    },
+    {
+      "name": "DateTimeTest",
+      "tests": 64,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 65
+        },
+        {
+          "name": "ConstructorWithDate",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 73
+        },
+        {
+          "name": "ConstructorWithDateTime",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 83
+        },
+        {
+          "name": "ConstructorWithDateTimeMsec1",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 93
+        },
+        {
+          "name": "ConstructorWithDateTimeMsec2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 104
+        },
+        {
+          "name": "ConstructorWithDateTimeMsec3",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 115
+        },
+        {
+          "name": "ConstructorWithDateTimeUsec4",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 126
+        },
+        {
+          "name": "ConstructorWithDateTimeUsec5",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 130
+        },
+        {
+          "name": "ConstructorWithDateTimeUsec6",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 135
+        },
+        {
+          "name": "ConstructorWithISO8601DateTimeMsec1",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 146
+        },
+        {
+          "name": "ConstructorWithISO8601DateTimeMsec2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 157
+        },
+        {
+          "name": "ConstructorWithISO8601DateTimeMsec3",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 168
+        },
+        {
+          "name": "ConstructorWithISO8601DateTimeUsec6",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 179
+        },
+        {
+          "name": "ConstructorWithISO8601DateTimeUsec6TZ",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 190
+        },
+        {
+          "name": "ConstructorWithISO8601DateTimeUsec6TZ1",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 201
+        },
+        {
+          "name": "CopyConstructor",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 213
+        },
+        {
+          "name": "ConstructorWithTime_t",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 223
+        },
+        {
+          "name": "Assignment",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 234
+        },
+        {
+          "name": "getLongInt",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 246
+        },
+        {
+          "name": "setLongInt",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 255
+        },
+        {
+          "name": "toStringWithoutFormat",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 266
+        },
+        {
+          "name": "toStringWithFormat",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 274
+        },
+        {
+          "name": "getISO8601",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 283
+        },
+        {
+          "name": "getISO8601withMsec",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 295
+        },
+        {
+          "name": "getISO8601withMsecNoRoundUp",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 307
+        },
+        {
+          "name": "ReassignmentWithoutMsec",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 320
+        },
+        {
+          "name": "ReassignmentWithMsec",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 329
+        },
+        {
+          "name": "clear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 338
+        },
+        {
+          "name": "LowerThanYear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 350
+        },
+        {
+          "name": "LowerThanMonth",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 359
+        },
+        {
+          "name": "LowerThanDay",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 368
+        },
+        {
+          "name": "LowerThanHour",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 377
+        },
+        {
+          "name": "LowerThanMinute",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 386
+        },
+        {
+          "name": "LowerThanSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 395
+        },
+        {
+          "name": "LowerThanMicroSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 404
+        },
+        {
+          "name": "LowerThanEqualYear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 415
+        },
+        {
+          "name": "LowerThanEqualMonth",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 425
+        },
+        {
+          "name": "LowerThanEqualDay",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 435
+        },
+        {
+          "name": "LowerThanEqualHour",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 445
+        },
+        {
+          "name": "LowerThanEqualMinute",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 455
+        },
+        {
+          "name": "LowerThanEqualSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 465
+        },
+        {
+          "name": "LowerThanEqualMicroSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 475
+        },
+        {
+          "name": "Equal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 488
+        },
+        {
+          "name": "NotEqualYear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 499
+        },
+        {
+          "name": "EqualMonth",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 508
+        },
+        {
+          "name": "EqualDay",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 517
+        },
+        {
+          "name": "EqualHour",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 526
+        },
+        {
+          "name": "EqualMinute",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 535
+        },
+        {
+          "name": "EqualSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 544
+        },
+        {
+          "name": "EqualMicroSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 553
+        },
+        {
+          "name": "GreaterThanYear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 565
+        },
+        {
+          "name": "GreaterThanMonth",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 574
+        },
+        {
+          "name": "GreaterThanDay",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 583
+        },
+        {
+          "name": "GreaterThanHour",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 592
+        },
+        {
+          "name": "GreaterThanMinute",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 601
+        },
+        {
+          "name": "GreaterThanSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 610
+        },
+        {
+          "name": "GreaterThanMicroSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 619
+        },
+        {
+          "name": "GreaterThanEqualYear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 630
+        },
+        {
+          "name": "GreaterThanEqualMonth",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 640
+        },
+        {
+          "name": "GreaterThanEqualDay",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 650
+        },
+        {
+          "name": "GreaterThanEqualHour",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 660
+        },
+        {
+          "name": "GreaterThanEqualMinute",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 670
+        },
+        {
+          "name": "GreaterThanEqualSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 680
+        },
+        {
+          "name": "GreaterThanEqualMicroSecond",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/datetime.cpp",
+          "line": 690
+        }
+      ]
+    },
+    {
+      "name": "ConfigParserTest",
+      "tests": 50,
+      "testsuite": [
+        {
+          "name": "loadFromFile",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 61
+        },
+        {
+          "name": "selectExistingSection_global",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 69
+        },
+        {
+          "name": "selectExistingSectionCaseInsensitiv_global",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 80
+        },
+        {
+          "name": "selectExistingSection_section1",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 91
+        },
+        {
+          "name": "selectExistingSection_foobar",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 102
+        },
+        {
+          "name": "selectExistingSection_emptysection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 113
+        },
+        {
+          "name": "selectExistingSection_lastsection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 124
+        },
+        {
+          "name": "selectNonExistingSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 135
+        },
+        {
+          "name": "getSectionName",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 146
+        },
+        {
+          "name": "getSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 159
+        },
+        {
+          "name": "getEmptySection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 183
+        },
+        {
+          "name": "getLastSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 194
+        },
+        {
+          "name": "iterate",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 205
+        },
+        {
+          "name": "iterateAndCheckValue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 240
+        },
+        {
+          "name": "copySection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 282
+        },
+        {
+          "name": "trimmedValue",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 297
+        },
+        {
+          "name": "getSingleKeyFirstSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 307
+        },
+        {
+          "name": "getKeyCaseInsensitive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 317
+        },
+        {
+          "name": "getDuplicateKey",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 327
+        },
+        {
+          "name": "getSingleKeySecondSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 337
+        },
+        {
+          "name": "spacesInKeyName",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 347
+        },
+        {
+          "name": "nonExistentKeyWithoutDefaultValueString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 356
+        },
+        {
+          "name": "nonExistentKeyWithDefaultValueString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 365
+        },
+        {
+          "name": "nonExistentKeyWithoutDefaultValueBool",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 374
+        },
+        {
+          "name": "nonExistentKeyWithDefaultValueBool",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 383
+        },
+        {
+          "name": "nonExistentKeyWithoutDefaultValueInteger",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 392
+        },
+        {
+          "name": "nonExistentKeyWithDefaultValueInteger",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 401
+        },
+        {
+          "name": "iterateThruSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 411
+        },
+        {
+          "name": "getFromSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 447
+        },
+        {
+          "name": "getBoolFromSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 456
+        },
+        {
+          "name": "getIntFromSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 465
+        },
+        {
+          "name": "deleteSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 475
+        },
+        {
+          "name": "unload",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 491
+        },
+        {
+          "name": "setAndGetSeparator",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 507
+        },
+        {
+          "name": "addWithoutPreviousSectionSelection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 520
+        },
+        {
+          "name": "addAndGetString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 528
+        },
+        {
+          "name": "addAndGetStringOtherSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 541
+        },
+        {
+          "name": "addAndGetInteger",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 555
+        },
+        {
+          "name": "addAndGetIntegerOtherSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 568
+        },
+        {
+          "name": "addAndGetBool",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 581
+        },
+        {
+          "name": "addAndGetBoolOtherSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 594
+        },
+        {
+          "name": "addToUnknownSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 608
+        },
+        {
+          "name": "deleteExistingKey",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 621
+        },
+        {
+          "name": "deleteExistingKeyInExistingSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 634
+        },
+        {
+          "name": "deleteNonExistingKey",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 647
+        },
+        {
+          "name": "deleteNonExistingKeyInExistingSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 661
+        },
+        {
+          "name": "deleteNonExistingKeyInNonExistingSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 672
+        },
+        {
+          "name": "createSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 683
+        },
+        {
+          "name": "createOnExistingSection",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 696
+        },
+        {
+          "name": "save",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/configparser.cpp",
+          "line": 709
+        }
+      ]
+    },
+    {
+      "name": "ByteArrayPtrTest",
+      "tests": 25,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 58
+        },
+        {
+          "name": "ConstructorFromPointerAndSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 66
+        },
+        {
+          "name": "ConstructorFromByteArrayPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 87
+        },
+        {
+          "name": "ConstructorFromString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 98
+        },
+        {
+          "name": "ConstructorFromWideString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 109
+        },
+        {
+          "name": "isNull",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 123
+        },
+        {
+          "name": "isEmpty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 132
+        },
+        {
+          "name": "size",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 142
+        },
+        {
+          "name": "ptr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 150
+        },
+        {
+          "name": "adr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 158
+        },
+        {
+          "name": "toCharPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 166
+        },
+        {
+          "name": "operatorVoidPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 174
+        },
+        {
+          "name": "operatorCharPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 180
+        },
+        {
+          "name": "operatorUnsignedCharPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 186
+        },
+        {
+          "name": "operatorCopy",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 192
+        },
+        {
+          "name": "usePtrAndSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 201
+        },
+        {
+          "name": "useOtherByteArrayPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 209
+        },
+        {
+          "name": "Get",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 218
+        },
+        {
+          "name": "OperatorGet",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 231
+        },
+        {
+          "name": "Set",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 243
+        },
+        {
+          "name": "toHex",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 255
+        },
+        {
+          "name": "toBase64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 261
+        },
+        {
+          "name": "md5",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 279
+        },
+        {
+          "name": "crc32",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 285
+        },
+        {
+          "name": "memset",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 291
+        }
+      ]
+    },
+    {
+      "name": "ByteArrayPtrCompare",
+      "tests": 13,
+      "testsuite": [
+        {
+          "name": "b1ZeroSize_b2ZeroSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 332
+        },
+        {
+          "name": "b1ZeroSize_b2NotZero",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 338
+        },
+        {
+          "name": "b1NotZero_b2ZeroSize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 346
+        },
+        {
+          "name": "b1_eq_b2_samesize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 354
+        },
+        {
+          "name": "b1_lt_b2_samesize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 361
+        },
+        {
+          "name": "b1_gt_b2_samesize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 368
+        },
+        {
+          "name": "b1_lt_b2__b1_shorter_b2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 375
+        },
+        {
+          "name": "b1_gt_b2__b1_shorter_b2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 382
+        },
+        {
+          "name": "b1_lt_b2__b1_longer_b2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 389
+        },
+        {
+          "name": "b1_gt_b2__b1_longer_b2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 396
+        },
+        {
+          "name": "operators_equal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 403
+        },
+        {
+          "name": "operators_lower",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 417
+        },
+        {
+          "name": "operators_greater",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearrayptr.cpp",
+          "line": 432
+        }
+      ]
+    },
+    {
+      "name": "ByteArrayTest",
+      "tests": 7,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearray.cpp",
+          "line": 58
+        },
+        {
+          "name": "CopyConstructorWithEmptyObject",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearray.cpp",
+          "line": 66
+        },
+        {
+          "name": "AssignmentWithEmptyObject",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearray.cpp",
+          "line": 72
+        },
+        {
+          "name": "load_and_base64",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearray.cpp",
+          "line": 85
+        },
+        {
+          "name": "operators_equal",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearray.cpp",
+          "line": 100
+        },
+        {
+          "name": "operators_lower",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearray.cpp",
+          "line": 112
+        },
+        {
+          "name": "operators_greater",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/bytearray.cpp",
+          "line": 124
+        }
+      ]
+    },
+    {
+      "name": "AssocArrayTest",
+      "tests": 33,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 64
+        },
+        {
+          "name": "addStringsLevel1",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 72
+        },
+        {
+          "name": "addStringsMultiLevels",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 83
+        },
+        {
+          "name": "addMixed",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 104
+        },
+        {
+          "name": "append",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 132
+        },
+        {
+          "name": "appendRecursive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 143
+        },
+        {
+          "name": "appendNonExisting",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 154
+        },
+        {
+          "name": "getAssocArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 167
+        },
+        {
+          "name": "addAndDeleteWordlist",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 191
+        },
+        {
+          "name": "fromTemplate",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 215
+        },
+        {
+          "name": "fromConfig",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 242
+        },
+        {
+          "name": "binarySize",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 333
+        },
+        {
+          "name": "exportAndImportBinary",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 341
+        },
+        {
+          "name": "IterateResetGetNextWithoutDatatype",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 402
+        },
+        {
+          "name": "IterateGetFirstGetNextWithoutDatatype",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 413
+        },
+        {
+          "name": "IterateResetGetNextWithDatatypeString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 466
+        },
+        {
+          "name": "IterateGetFirstGetNextWithDatatypeString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 477
+        },
+        {
+          "name": "IterateResetGetNextWithKeyValueParams",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 507
+        },
+        {
+          "name": "IterateGetFirstGetNextWithKeyValueParams",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 518
+        },
+        {
+          "name": "IterateResetGetPreviousWithoutDatatype",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 547
+        },
+        {
+          "name": "IterateGetLastGetPreviousWithoutDatatype",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 557
+        },
+        {
+          "name": "IterateResetGetPreviousWithDatatypeString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 612
+        },
+        {
+          "name": "IterateGetLastGetPreviousWithDatatypeString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 622
+        },
+        {
+          "name": "IterateResetGetPreviousWithKeyValueParams",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 653
+        },
+        {
+          "name": "IterateGetLastGetPreviousWithKeyValueParams",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 665
+        },
+        {
+          "name": "CountNonRecursive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 693
+        },
+        {
+          "name": "CountRecursive",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 713
+        },
+        {
+          "name": "OperatorPlus",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 733
+        },
+        {
+          "name": "OperatorPlusEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 775
+        },
+        {
+          "name": "OperatorEqualEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 810
+        },
+        {
+          "name": "OperatorNotEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 831
+        },
+        {
+          "name": "OperatorElement",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 852
+        },
+        {
+          "name": "ToTemplate",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/assocarray.cpp",
+          "line": 867
+        }
+      ]
+    },
+    {
+      "name": "ArrayTest",
+      "tests": 50,
+      "testsuite": [
+        {
+          "name": "ConstructorSimple",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 60
+        },
+        {
+          "name": "ConstructorFromString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 68
+        },
+        {
+          "name": "ConstructorfromOtherArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 76
+        },
+        {
+          "name": "OperatorEQ",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 85
+        },
+        {
+          "name": "OperatorNE",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 95
+        },
+        {
+          "name": "OperatorCopy",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 106
+        },
+        {
+          "name": "OperatorPlusEqual",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 116
+        },
+        {
+          "name": "add1Element",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 128
+        },
+        {
+          "name": "add3Elements",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 137
+        },
+        {
+          "name": "add100000Elements",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 151
+        },
+        {
+          "name": "addArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 161
+        },
+        {
+          "name": "addPartialString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 178
+        },
+        {
+          "name": "addPartialCString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 186
+        },
+        {
+          "name": "addFormattedCString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 194
+        },
+        {
+          "name": "setWithEmptyString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 201
+        },
+        {
+          "name": "replaceEntriesWithSet",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 209
+        },
+        {
+          "name": "setFormattedCString",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 222
+        },
+        {
+          "name": "count",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 230
+        },
+        {
+          "name": "countAfterSet",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 241
+        },
+        {
+          "name": "set",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 250
+        },
+        {
+          "name": "get",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 264
+        },
+        {
+          "name": "getOnConstArray",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 281
+        },
+        {
+          "name": "getPtr",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 299
+        },
+        {
+          "name": "operatorOnIndex",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 321
+        },
+        {
+          "name": "getOutOfBounds",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 340
+        },
+        {
+          "name": "capacityTest",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 349
+        },
+        {
+          "name": "reserveThrowsOutOfMemory",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 361
+        },
+        {
+          "name": "empty",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 369
+        },
+        {
+          "name": "insertStart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 379
+        },
+        {
+          "name": "insertMiddle",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 395
+        },
+        {
+          "name": "insertEnd",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 411
+        },
+        {
+          "name": "insertAfterEnd",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 427
+        },
+        {
+          "name": "insertArrayStart",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 444
+        },
+        {
+          "name": "insertArrayMiddle",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 464
+        },
+        {
+          "name": "insertArrayEnd",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 483
+        },
+        {
+          "name": "insertArrayBeyondEnd",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 503
+        },
+        {
+          "name": "forwardWalkIterator",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 526
+        },
+        {
+          "name": "explode",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 539
+        },
+        {
+          "name": "explodeWithEmptyElements",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 550
+        },
+        {
+          "name": "explodeWithoutEmptyElements",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 565
+        },
+        {
+          "name": "explodeWithLimitWithinEmptyLines1",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 578
+        },
+        {
+          "name": "explodeWithLimitWithinEmptyLines2",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 589
+        },
+        {
+          "name": "implode",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 601
+        },
+        {
+          "name": "sortWithDupes",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 610
+        },
+        {
+          "name": "sortReverse",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 622
+        },
+        {
+          "name": "sortWithoutDupes",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 634
+        },
+        {
+          "name": "makeUnique",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 646
+        },
+        {
+          "name": "getRest",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 657
+        },
+        {
+          "name": "set_and_clear",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 663
+        },
+        {
+          "name": "copy",
+          "file": "C:\/git\/ppl7\/tests\/src\/core\/array.cpp",
+          "line": 679
+        }
+      ]
+    }
+  ]
+}
