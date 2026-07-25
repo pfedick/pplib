@@ -82,12 +82,11 @@ In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nic
 Kannst Du mir ein CMakeFile.txt für mein Projekt bauen?
 Es soll aus folgenden Modulen bestehen:
 - core: enthält src/core, src/types und /src/math
-- audio: src/audio
-- crypto: src/crypto
-- grafix: src/grafix und eventuell src/asm
-- internet: src/internet
-- database: src/database
+- audio: src/audio (Optional: libmpg123, lame, ogg/vorbis)
+- crypto: src/crypto (braucht openssl)
+- grafix: src/grafix und src/asm (optional: nasm, libjpeg, png, tiff)
+  ImageMagic habe ich nie zu ende gebracht, daher kann das raus
+- internet: src/internet (optional: curl, openssl, libmicrohttpd)
+- database: src/database (Optional: mysql, sqlite3, postgresql)
 
-src/asm wird mit nasm kompiliert, aber nur wenn vorhanden und nicht deaktiviert, im configure gibt es dazu einen Schalter. Nich alles was da drin liegt wäre dem Modul grafix zuzuordnen aber das meisste. Falls nötig könnte ich das später aufteilen.
-
-Achja, meine Tests: wären die dann genau 
+Tests lassen wir erstmal außen vor

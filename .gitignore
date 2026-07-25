@@ -1,5 +1,6 @@
 /debug/
 /release/
+/build/
 /config.log
 /config.status
 /Makefile
