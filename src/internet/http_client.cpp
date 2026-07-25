@@ -57,6 +57,7 @@
 
 #include "ppl7.h"
 #include "ppl7-inet.h"
+#include "ppl7/inet/httpclient.h"
 
 #ifdef HAVE_LIBCURL
 #include <curl/curl.h>

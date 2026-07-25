@@ -625,52 +625,6 @@ public:
     static String getUri(const String& uri);
 };
 
-class HttpRequest
-{
-public:
-    std::map<String, String> params;
-    std::map<String, String> headers;
-    std::map<String, String> cookies;
-    ppl7::String body;
-    ppl7::String userAgent;
-    ppl7::String referer;
-    ppl7::String username;
-    ppl7::String password;
-    int timeout;
-    bool verifySsl;
-    HttpRequest();
-};
-
-class HttpResponse
-{
-private:
-public:
-    int statusCode;
-    ppl7::String url;
-    ByteArray body;
-    std::map<String, String> headers;
-    ppl7::String error; // Falls Curl-Fehler auftraten
-};
-
-class HttpClient
-{
-public:
-    static void Init();
-    static void setUserAgent(const String& agent);
-    static void setTimeout(int timeout_seconds);
-    static void setVerifySsl(bool verify);
-    static void setCaBundle(const String& path);
-    static void setCaPath(const String& path);
-    static void setProxy(const String& proxy);
-    static void setProxyAuth(const String& user, const String& password);
-    static HttpResponse get(const ppl7::String& url, const HttpRequest& req = HttpRequest());
-    static HttpResponse post(const ppl7::String& url, const HttpRequest& req = HttpRequest());
-    static HttpResponse put(const ppl7::String& url, const HttpRequest& req = HttpRequest());
-    static HttpResponse patch(const ppl7::String& url, const HttpRequest& req = HttpRequest());
-    static HttpResponse del(const ppl7::String& url, const HttpRequest& req = HttpRequest());
-    static HttpResponse head(const ppl7::String& url, const HttpRequest& req = HttpRequest());
-};
-
 class WikiParser
 {
 private:
@@ -739,5 +693,7 @@ public:
 };
 
 } // namespace ppl7
+
+#include <ppl7/inet/httpclient.h>
 
 #endif /* PPL7INET_H_ */
