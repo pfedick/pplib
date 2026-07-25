@@ -31,3 +31,5 @@ autoconf/*.m4~
 autoconf/autom4te.cache
 configure~
 .github/copilot-instructions.md
+tests/cmake_test_discovery_*.json
+tests/cmake_test_discovery_04c0110ec6.json

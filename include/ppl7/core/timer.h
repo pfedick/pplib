@@ -27,70 +27,28 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPL7_CONFIG_INTERNAL
-#define _PPL7_CONFIG_INTERNAL
+#ifndef PPL7_CORE_TIMER_H_
+#define PPL7_CORE_TIMER_H_
 
-#cmakedefine MINGW 1
+#include <vector>
+#include <ppl7/types/string.h>
 
-#cmakedefine HAVE_LIBMICROHTTPD 1
-#cmakedefine HAVE_LIBIDN2 1
+namespace ppl7
+{
+//! \brief Timer-Klasse
+class Timer
+{
+private:
+    double startzeit, endzeit, myduration;
 
-#cmakedefine HAVE_OPENSSL 1
-#cmakedefine HAVE_NASM 1
-#cmakedefine HAVE_ICONV 1
-#cmakedefine __BIG_ENDIAN__ 1
-#cmakedefine __LITTLE_ENDIAN__ 1
-#cmakedefine HAVE_LIBZ 1
-#cmakedefine HAVE_ZLIB 1
-#cmakedefine HAVE_BZIP2 1
+public:
+    Timer();
+    ~Timer();
+    double start();
+    double stop();
+    double currentDuration();
+    double duration();
+};
+} // namespace ppl7
 
-#cmakedefine HAVE_LIBCURL 1
-
-#cmakedefine HAVE_LAME 1
-#cmakedefine HAVE_MAD_H 1
-#cmakedefine HAVE_LIBMAD 1
-#cmakedefine HAVE_MPG123 1
-#cmakedefine HAVE_LIBSHOUT 1
-#cmakedefine HAVE_LIBOGG 1
-#cmakedefine HAVE_LIBVORBIS 1
-#cmakedefine HAVE_LIBFLAC 1
-#cmakedefine HAVE_LIBOPUS 1
-#cmakedefine HAVE_LIBCDIO 1
-#cmakedefine HAVE_LIBCDDB 1
-
-#cmakedefine HAVE_PTHREADS 1
-
-#cmakedefine HAVE_TIFF 1
-#cmakedefine HAVE_JPEG 1
-#cmakedefine HAVE_PNG 1
-#cmakedefine HAVE_FREETYPE2 1
-
-/*
- * Databases
- */
-#cmakedefine HAVE_MYSQL 1
-#cmakedefine HAVE_POSTGRESQL 1
-#cmakedefine HAVE_SQLITE3 1
-
-#ifdef _WIN32
-#ifdef _M_ALPHA
-#ifndef __BIG_ENDIAN__
-#define __BIG_ENDIAN__
-#endif
-#else
-#ifndef __LITTLE_ENDIAN__
-#define __LITTLE_ENDIAN__
-#endif
-#endif
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN // Keine MFCs
-#endif
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#endif // _WIN32
-
-#endif // _PPL7_CONFIG_INTERNAL
+#endif /* PPL7_CORE_TIMER_H_ */

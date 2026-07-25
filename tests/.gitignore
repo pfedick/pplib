@@ -22,3 +22,4 @@
 /test_ppl6
 *.exe
 *.tmp
+cmake_test_discovery_*.json

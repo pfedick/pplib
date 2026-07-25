@@ -27,30 +27,52 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPL7_CONFIG
-#define _PPL7_CONFIG
+#ifndef PPL7_CORE_MEMORYHEAP_H_
+#define PPL7_CORE_MEMORYHEAP_H_
 
-#undef HAVE_SYS_TYPES_H
-#undef HAVE_STDLIB_H
-#undef HAVE_STDIO_H
-#undef HAVE_STRINGS_H
-#undef HAVE_STRING_H
-#undef HAVE_STDARG_H
-#undef HAVE_STDINT_H
-#undef HAVE_INTTYPES_H
+#include <ppl7/types/bytearray.h>
+#include <ppl7/types/bytearrayptr.h>
+#include <ppl7/exceptions.h>
 
-#undef MINGW32
+namespace ppl7
+{
+class MemoryHeap
+{
+private:
+    void* blocks;
+    size_t myElementSize, increaseSize;
+    size_t myGrowPercent;
+    size_t blocksAllocated, blocksUsed;
+    size_t mem_allocated;
+    size_t mem_used;
+    size_t freeCount;
 
-#undef size_t
-#undef wchar_t
-#undef int8_t
-#undef int16_t
-#undef int32_t
-#undef int64_t
-#undef uint8_t
-#undef uint16_t
-#undef uint32_t
-#undef uint64_t
-#undef uintptr_t
+    void increase(size_t num);
 
-#endif
+public:
+    PPL7EXCEPTION(NotInitializedException, Exception);
+    PPL7EXCEPTION(AlreadyInitializedException, Exception);
+    PPL7EXCEPTION(HeapCorruptedException, Exception);
+    PPL7EXCEPTION(ElementNotInHeapException, Exception);
+
+    MemoryHeap();
+    MemoryHeap(size_t elementsize, size_t startnum, size_t increase, size_t growpercent = 30);
+    ~MemoryHeap();
+    void clear();
+    void init(size_t elementsize, size_t startnum, size_t increase, size_t growpercent = 30);
+    void* malloc();
+    void* calloc();
+    void free(void* element);
+    size_t memoryUsed() const;
+    size_t memoryAllocated() const;
+    void dump() const;
+    size_t capacity() const;
+    size_t count() const;
+    size_t elementSize() const;
+    void reserve(size_t num);
+    void cleanup();
+};
+
+} // namespace ppl7
+
+#endif // PPL7_CORE_MEMORYHEAP_H_

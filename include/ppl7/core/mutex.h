@@ -6,10 +6,10 @@
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- *    1. Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
  *    2. Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
  *       documentation and/or other materials provided with the distribution.
@@ -27,23 +27,26 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif
+#ifndef PPL7_CORE_MUTEX_H_
+#define PPL7_CORE_MUTEX_H_
 
-#ifndef _PPL7_CONFIG
-#ifdef PPL7LIB
-#ifdef HAVE_CONFIG_H
-#include "config_ppl7.h"
-#else
-#ifdef PPLVISUALC
-#include "ppl7-visualc-config.h"
-#elif defined _WIN32
-#include "ppl7-config.h"
-#endif
-#endif
-#else
-#include <ppl7-config.h>
-#endif
-#endif
-#include "compat_ppl7.h"
+namespace ppl7
+{
+//! \brief Synchronisation von Threads
+class Mutex
+{
+private:
+    void* handle;
+
+public:
+    Mutex();
+    ~Mutex() throw();
+    void lock();
+    void unlock();
+    bool tryLock() throw();
+    int wait(int milliseconds = 0) throw();
+    int signal() throw();
+};
+} // namespace ppl7
+
+#endif /* PPL7_CORE_MUTEX_H_ */

@@ -30,13 +30,7 @@
 #ifndef PPL7DB_H_
 #define PPL7DB_H_
 
-#ifndef _PPL7_INCLUDE
-#ifdef PPL7LIB
-#include "ppl7.h"
-#else
 #include <ppl7.h>
-#endif
-#endif
 
 #include <list>
 

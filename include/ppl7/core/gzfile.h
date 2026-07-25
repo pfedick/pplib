@@ -27,70 +27,53 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPL7_CONFIG_INTERNAL
-#define _PPL7_CONFIG_INTERNAL
+#ifndef PPL7_CORE_GZFILE_H_
+#define PPL7_CORE_GZFILE_H_
 
-#cmakedefine MINGW 1
+#include <ppl7/types/string.h>
+#include <ppl7/types/bytearray.h>
+#include <ppl7/types/bytearrayptr.h>
+#include <ppl7/core/fileobject.h>
+#include <ppl7/core/file.h>
 
-#cmakedefine HAVE_LIBMICROHTTPD 1
-#cmakedefine HAVE_LIBIDN2 1
+namespace ppl7
+{
 
-#cmakedefine HAVE_OPENSSL 1
-#cmakedefine HAVE_NASM 1
-#cmakedefine HAVE_ICONV 1
-#cmakedefine __BIG_ENDIAN__ 1
-#cmakedefine __LITTLE_ENDIAN__ 1
-#cmakedefine HAVE_LIBZ 1
-#cmakedefine HAVE_ZLIB 1
-#cmakedefine HAVE_BZIP2 1
+class GzFile : public FileObject
+{
+private:
+    File* fh;
+    void* ff;
 
-#cmakedefine HAVE_LIBCURL 1
+public:
+private:
+    void throwErrno(int e);
+    void throwErrno(int e, const String& filename);
 
-#cmakedefine HAVE_LAME 1
-#cmakedefine HAVE_MAD_H 1
-#cmakedefine HAVE_LIBMAD 1
-#cmakedefine HAVE_MPG123 1
-#cmakedefine HAVE_LIBSHOUT 1
-#cmakedefine HAVE_LIBOGG 1
-#cmakedefine HAVE_LIBVORBIS 1
-#cmakedefine HAVE_LIBFLAC 1
-#cmakedefine HAVE_LIBOPUS 1
-#cmakedefine HAVE_LIBCDIO 1
-#cmakedefine HAVE_LIBCDDB 1
+public:
+    GzFile();
+    GzFile(const String& filename, File::FileMode mode = File::FileMode::READ);
+    GzFile(int fd);
+    virtual ~GzFile();
 
-#cmakedefine HAVE_PTHREADS 1
+    void open(const String& filename, File::FileMode mode = File::FileMode::READ);
+    void open(const char* filename, File::FileMode mode = File::FileMode::READ);
+    void open(int fd, File::FileMode mode = File::FileMode::READ);
 
-#cmakedefine HAVE_TIFF 1
-#cmakedefine HAVE_JPEG 1
-#cmakedefine HAVE_PNG 1
-#cmakedefine HAVE_FREETYPE2 1
+    // Virtuelle Funktionen
+    virtual void close();
+    virtual void rewind();
+    virtual void seek(uint64_t position);
+    virtual uint64_t seek(int64_t offset, SeekOrigin origin);
+    virtual uint64_t tell();
+    virtual bool eof() const;
+    virtual bool isOpen() const;
+    virtual size_t fread(void* ptr, size_t size, size_t nmemb);
+    virtual char* fgets(char* buffer, size_t num);
+    virtual int fgetc();
+    virtual size_t fwrite(const void* ptr, size_t size, size_t nmemb);
+};
 
-/*
- * Databases
- */
-#cmakedefine HAVE_MYSQL 1
-#cmakedefine HAVE_POSTGRESQL 1
-#cmakedefine HAVE_SQLITE3 1
+} // namespace ppl7
 
-#ifdef _WIN32
-#ifdef _M_ALPHA
-#ifndef __BIG_ENDIAN__
-#define __BIG_ENDIAN__
-#endif
-#else
-#ifndef __LITTLE_ENDIAN__
-#define __LITTLE_ENDIAN__
-#endif
-#endif
-
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN // Keine MFCs
-#endif
-
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0600
-#endif
-
-#endif // _WIN32
-
-#endif // _PPL7_CONFIG_INTERNAL
+#endif /* PPL7_CORE_GZFILE_H_ */

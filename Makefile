@@ -30,6 +30,12 @@
 
 
 
+ifeq ($(OS),Windows_NT)
+    EXE = .exe
+else
+    EXE =
+endif
+
 release:
 	cmake -B build/release -DCMAKE_BUILD_TYPE=Release
 	cmake --build build/release
@@ -43,27 +49,34 @@ configure:
 
 all:	release debug
 
+test_core:
+	cmake --build build/debug --target test_core
+	cp build/debug/tests/test_core$(EXE) tests
+	cd tests && ./test_core$(EXE) --gtest_color=yes --gtest_filter=WideStringTest*
+
 test: debug
-	ctest --test-dir build/debug --output-on-failure
+	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
+	cd tests && ../build/debug/tests/test_core$(EXE) --gtest_color=yes
 
 xml: debug
-	-./build/debug/tests/test_core --gtest_output=xml:testresult_core.xml
-	-./build/debug/tests/test_audio --gtest_output=xml:testresult_audio.xml
-	-./build/debug/tests/test_crypto --gtest_output=xml:testresult_crypto.xml
-	-./build/debug/tests/test_grafix --gtest_output=xml:testresult_grafix.xml
-	-./test_database --gtest_output=xml:testresult_database.xml
-	-./build/debug/tests/test_inet --gtest_output=xml:testresult_inet.xml
+	cmake --build build/debug --target test_core test_audio test_crypto test_grafix test_database test_inet
+	cd tests && ../build/debug/tests/test_core$(EXE) --gtest_output=xml:testresult_core.xml
+	-cd tests && ../build/debug/tests/test_audio$(EXE) --gtest_output=xml:testresult_audio.xml
+	-cd tests && ../build/debug/tests/test_crypto$(EXE) --gtest_output=xml:testresult_crypto.xml
+	-cd tests && ../build/debug/tests/test_grafix$(EXE) --gtest_output=xml:testresult_grafix.xml
+	-cd tests && ../build/debug/tests/test_database$(EXE) --gtest_output=xml:testresult_database.xml
+	-cd tests && ../build/debug/tests/test_inet$(EXE) --gtest_output=xml:testresult_inet.xml
 
 coverage:
 	cmake -B build/coverage -DCMAKE_BUILD_TYPE=Debug -DPPL7_ENABLE_COVERAGE=ON
 	cmake --build build/coverage
-	-ctest --test-dir build/coverage
+	-cd tests && ../build/coverage/tests/test_core$(EXE)
 	gcovr --root . --build-dir build/coverage --xml-pretty -o coverage.xml --exclude 'tests/.*'
 
 clean:
 	-rm -rf build
 	-rm -rf coverage
-	-rm -rf coverage.xml testresult_*.xml
+	-rm -rf coverage.xml tests/testresult_*.xml
 	-rm -rf documentation
 	-cd tests; make clean
 
