@@ -3,7 +3,6 @@
 /build/
 /config.log
 /config.status
-/Makefile
 /ppl7-config
 /autom4te.cache
 /PPL7.config
