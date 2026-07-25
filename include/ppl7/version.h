@@ -27,29 +27,13 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPL7_INCLUDE
-#define _PPL7_INCLUDE
+#ifndef _PPL7_VERSION_H_
+#define _PPL7_VERSION_H_
 
-#include <ppl7/version.h>
-#include <ppl7-exceptions.h>
-#include <ppl7/core/memoryheap.h>
-#include <ppl7/core/memorygroup.h>
-#include <ppl7/types.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/regex.h>
-#include <ppl7/core/timer.h>
-#include <ppl7/core/mutex.h>
-#include <ppl7/core/signal.h>
-#include <ppl7/core/threads.h>
-#include <ppl7/core/fileobject.h>
-#include <ppl7/core/memfile.h>
-#include <ppl7/core/file.h>
-#include <ppl7/core/pfpfile.h>
-#include <ppl7/core/resource.h>
-#include <ppl7/core/logging.h>
-#include <ppl7/core/configparser.h>
-#include <ppl7/core/compression.h>
-#include <ppl7/core/iconv.h>
-#include <ppl7/core/json.h>
+#define PPL7_VERSION_MAJOR 7
+#define PPL7_VERSION_MINOR 2
+#define PPL7_VERSION_BUILD 0
+#define PPL7_RELEASEDATE 20260725
+#define PPL7_COPYRIGHT "Copyright (c) 2026 by Patrick Fedick"
 
-#endif // #ifndef _PPL7_INCLUDE
+#endif /* _PPL7_VERSION_H_ */

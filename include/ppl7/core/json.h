@@ -27,29 +27,24 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPL7_INCLUDE
-#define _PPL7_INCLUDE
+#ifndef PPL7_CORE_JSON_H_
+#define PPL7_CORE_JSON_H_
 
-#include <ppl7/version.h>
-#include <ppl7-exceptions.h>
-#include <ppl7/core/memoryheap.h>
-#include <ppl7/core/memorygroup.h>
-#include <ppl7/types.h>
-#include <ppl7/core/functions.h>
-#include <ppl7/core/regex.h>
-#include <ppl7/core/timer.h>
-#include <ppl7/core/mutex.h>
-#include <ppl7/core/signal.h>
-#include <ppl7/core/threads.h>
-#include <ppl7/core/fileobject.h>
-#include <ppl7/core/memfile.h>
-#include <ppl7/core/file.h>
-#include <ppl7/core/pfpfile.h>
-#include <ppl7/core/resource.h>
-#include <ppl7/core/logging.h>
-#include <ppl7/core/configparser.h>
-#include <ppl7/core/compression.h>
-#include <ppl7/core/iconv.h>
-#include <ppl7/core/json.h>
+namespace ppl7
+{
+class Json
+{
+public:
+    static void loads(ppl7::AssocArray& data, const ppl7::String& json);
+    static void load(ppl7::AssocArray& data, ppl7::FileObject& file);
+    static ppl7::AssocArray loads(const ppl7::String& json);
+    static ppl7::AssocArray load(ppl7::FileObject& file);
 
-#endif // #ifndef _PPL7_INCLUDE
+    static void dumps(ppl7::String& json, const ppl7::AssocArray& data);
+    static void dump(ppl7::FileObject& file, const ppl7::AssocArray& data);
+    static ppl7::String dumps(const ppl7::AssocArray& data);
+    static ppl7::String pp(const ppl7::String& json);
+};
+} // namespace ppl7
+
+#endif /* PPL7_CORE_JSON_H_ */

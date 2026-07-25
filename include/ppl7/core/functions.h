@@ -211,6 +211,22 @@ String MkRFC822Date(const PPLTIME& t);
 String MkDate(const String& format, ppl_time_t sec);
 String MkDate(const String& format, const PPLTIME& t);
 
+class PerlHelper
+{
+public:
+    static String escapeString(const String& s);
+    static String escapeRegExp(const String& s);
+    static String toHash(const AssocArray& a, const String& s);
+};
+
+class PythonHelper
+{
+public:
+    static String escapeString(const String& s);
+    static String escapeRegExp(const String& s);
+    static String toHash(const AssocArray& a, const String& name, int indention = 0);
+};
+
 }; // namespace ppl7
 
 #endif // PPL7_FUNCTIONS_H_

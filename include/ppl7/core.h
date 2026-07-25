@@ -27,8 +27,8 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#ifndef _PPL7_INCLUDE
-#define _PPL7_INCLUDE
+#ifndef PPL7_CORE_H_
+#define PPL7_CORE_H_
 
 #include <ppl7/version.h>
 #include <ppl7-exceptions.h>
@@ -52,4 +52,4 @@
 #include <ppl7/core/iconv.h>
 #include <ppl7/core/json.h>
 
-#endif // #ifndef _PPL7_INCLUDE
+#endif /* PPL7_CORE_H_ */

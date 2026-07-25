@@ -32,6 +32,19 @@
 #include <string>
 #include <stdint.h>
 
+#ifdef PPL_WITH_QT6
+#include <QAnyStringView>
+#ifndef WITH_QT
+#define WITH_QT
+#endif
+#endif
+
+#ifdef WITH_QT
+#include <QString>
+#include <QVariant>
+#include <QByteArray>
+#endif
+
 namespace ppl7
 {
 
