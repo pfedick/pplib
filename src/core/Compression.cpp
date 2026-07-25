@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,11 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <ppl7/core/compression.h>
+#include <ppl7/exceptions.h>
+#include <ppl7/core/functions.h>
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include <time.h>
-#ifdef HAVE_FXNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-
-#include "ppl7.h"
-
-#ifdef HAVE_LIBZ
+#ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
 
@@ -62,116 +39,8 @@
 #include <bzlib.h>
 #endif
 
-
-namespace ppl7 {
-
-/*!\class Compression
- * \ingroup PPL7_COMPRESSION
- * \brief Komprimierung und Dekomprimierung von Daten
- *
- * \descr
- * Mit dieser Klasse können Daten komprimiert und dekomprimiert werden. Zur Zeit werden zwei
- * verschiedene Komprimierungsmethoden unterstüzt:
- * - ZLib (siehe http://www.zlib.net/)
- * - BZip2 (siehe http://www.bzip.org/)
- * \par
- * Um die gewünschte Methode auszuwählen, muss diese entweder im Konstruktor übergeben werden, oder durch
- * Aufruf von Compression::Init, was den Vorteil hat, das man hier auch gleich einen Fehlercode
- * gemeldet bekommt, wenn die gewünschte Methode nicht einkompiliert ist.
- * \par
- * Anschließend können durch Aufrufe von Compress und Uncompress Daten komprimiert bzw. entpackt
- * werden.
- *
- * \section Compression_Prefix Komprimierungsprefix
- *
- * Über die Funktion Compression::UsePrefix kann eingestellt werden, ob bei der Komprimierung noch ein
- * Header vorangestellt werden soll oder nicht. Der Header hat den Vorteil, dass man ihm die Komprimierungs-
- * Methode und die Länge der ursprünglichen unkomprimierten Daten entnehmen kann. Nicht alle Variationen
- * von Compress und Uncompress unterstützen den Prefix, daher ist bei der jeweiligen Funktion vermerkt,
- * ob der Prefix beachtet wird oder nicht.
- *
- * Es gibt zwei Versionen des Headers:
- *
- * \par Version 1 Prefix
- * Bei Version 1 gibt es einen 9-Byte großen Header mit folgendem Aufbau:
- *
-\verbatim
-Byte 0: Kompressions-Flag (siehe oben)
-		Bits 0-2: Kompressionsart
-				  0=keine
-				  1=Zlib
-				  2=Bzip2
-		Bits 3-7: unbenutzt, müssen 0 sein
-Byte 1: Bytes Unkomprimiert (4 Byte)
-Byte 5: Bytes Komprimiert (4 Byte)
-\endverbatim
- * Der erste Wert gibt an, wieviele Bytes der Datenblock unkomprimiert benötigt, der zweite gibt an,
- * wie gross er komprimiert ist. Nach dem Header folgen dann soviele Bytes, wie in "Bytes Komprimiert"
- * angegeben ist.
- *
- * \par Version 2 Prefix
- * Die Länge des Version 2 Headers ist variabel. Er beginnt wieder mit dem Kompressionsflag, diesmal
- * ist jedoch Bit 3 gesetzt und die Bits 4-7 werden ebenfalls verwendet:
- *
-\verbatim
-Byte 0: Kompression-Flag
-		Bits 0-2: Kompressionsart
-				  0=keine
-				  1=Zlib
-				  2=Bzip2
-		Bit 3:    Headerversion
-		Bits 4-5: Bytezahl Uncompressed Value
-				  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
-		Bits 6-7: Bytezahl Compressed Value
-				  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
-Byte 1: Bytes Unkomprimiert (1-4 Byte)
-Byte n: Bytes Komprimiert (1-4 Byte)
-\endverbatim
- * Bei Version 2 folgen eine variable Anzahl von Bytes für die beiden Werte "Bytes Unkomprimiert" und
- * "Bytes Komprimiert". Wieviele Bytes das sind, ist jeweils den Bits 4-5 und 6-7 des
- * Kompressions-Flags zu entnehmen. Bei kleinen Datenblöcken, die unkomprimiert weniger als 255 Bytes
- * benötigen, schrumpft der Prefix somit von 9 auf 3 Byte im Vergleich zum Version 1 Prefix.
- *
- */
-
-
-/*!\enum Compression::Algorithm
- * \brief Unterstütze Komprimierungsmethoden
- *
- * Die Klasse unterstützt folgende Komprimierungsmethoden:
- */
-
-/*!\var Compression::Algorithm Compression::Algo_NONE
- * Keine Komprimierung. Bei Verwendung dieser Methode werden die Daten einfach nur unverändert kopiert.
- */
-
-/*!\var Compression::Algorithm Compression::Algo_ZLIB
- * Zlib ist eine freie Programmbibliothek von Jean-Loup Gailly und Mark Adler (http://www.zlib.net/).
- * Sie verwendet wie gzip den Deflate-Algorithmus um den Datenstrom blockweise zu komprimieren.
- * Die ausgegebenen Blöcke werden durch Adler-32-Prüfsummen geschützt.
- * Das Format ist in den RFC 1950, RFC 1951 und RFC 1952 definiert und gilt quasi als defakto
- * Standard im Unix- und Netzwerkbereich.
- */
-
-/*!\var Compression::Algorithm Compression::Algo_BZIP2
- * bzip2 ist ein frei verfügbares Komprimierungsprogramm zur verlustfreien Kompression
- * von Dateien, entwickelt von Julian Seward. Es ist frei von jeglichen patentierten
- * Algorithmen und wird unter einer BSD-ähnlichen Lizenz vertrieben.
- * Die Kompression mit bzip2 ist oft effizienter, aber meist erheblich langsamer als
- * die Kompression mit Zlib.
- */
-
-/*!\var Compression::Algorithm Compression::Unknown
- * Wird als Defaulteinstellung beim Dekomprimieren verwendet und hat keine eigentliche
- * Funktion.
- */
-
-/*!\enum Compression::Level
- * \brief Kompressionsrate
- *
- * Es werden verschiedene Einstellungen unterstützt, die Einfluß auf die Kompressionsrate
- * aber auch Speicherverbrauch und Geschwindigkeit haben:
- */
+namespace ppl7
+{
 
 /*!\var Compression::Level Compression::Level_Fast
  * Niedrige Kompressionsrate, dafür aber in der Regel sehr schnell
@@ -210,7 +79,6 @@ Byte n: Bytes Komprimiert (1-4 Byte)
  * Es wird ein Version 2 Prefix mit variabler Länge vorangestellt.
  */
 
-
 /*!\var Compression::buffer
  * \brief Interner Speicher, der nach Aufruf von Compress die komprimierten Daten enthält
  *
@@ -241,8 +109,6 @@ Byte n: Bytes Komprimiert (1-4 Byte)
  * Flag, ob und welcher Prefix beim Komprimieren vorangestellt wird
  */
 
-
-
 Compression::Compression()
 /*!\brief Konstruktor der Klasse
  *
@@ -251,11 +117,11 @@ Compression::Compression()
  * dem Default-Level für die Komprimierungsrate.
  */
 {
-	buffer=NULL;
-	uncbuffer=NULL;
-	aaa=Algo_ZLIB;
-	lll=Level_Default;
-	prefix=Prefix_None;
+    buffer = NULL;
+    uncbuffer = NULL;
+    aaa = Algo_ZLIB;
+    lll = Level_Default;
+    prefix = Prefix_None;
 }
 
 Compression::Compression(Algorithm method, Level level)
@@ -269,11 +135,11 @@ Compression::Compression(Algorithm method, Level level)
  * @param level Komprimierungslevel (siehe Compression::Level)
  */
 {
-	buffer=NULL;
-	uncbuffer=NULL;
-	aaa=method;
-	lll=level;
-	prefix=Prefix_None;
+    buffer = NULL;
+    uncbuffer = NULL;
+    aaa = method;
+    lll = level;
+    prefix = Prefix_None;
 }
 
 Compression::~Compression()
@@ -286,8 +152,8 @@ Compression::~Compression()
  * ebenfalls ungültig und darf nicht mehr verwendet werden.
  */
 {
-	if (buffer) free(buffer);
-	if (uncbuffer) free(uncbuffer);
+    if (buffer) free(buffer);
+    if (uncbuffer) free(uncbuffer);
 }
 
 void Compression::usePrefix(Prefix prefix)
@@ -304,7 +170,7 @@ void Compression::usePrefix(Prefix prefix)
  * \see Compression_Prefix
  */
 {
-	this->prefix=prefix;
+    this->prefix = prefix;
 }
 
 void Compression::init(Algorithm method, Level level)
@@ -320,18 +186,18 @@ void Compression::init(Algorithm method, Level level)
  */
 {
 #ifndef HAVE_LIBZ
-	if (method == Algo_ZLIB) {
-		throw UnsupportedFeatureException("Zlib");
-	}
+    if (method == Algo_ZLIB) {
+        throw UnsupportedFeatureException("Zlib");
+    }
 #endif
 #ifndef HAVE_BZIP2
-	if (method == Algo_BZIP2) {
-		throw UnsupportedFeatureException("Bzip2");
-	}
+    if (method == Algo_BZIP2) {
+        throw UnsupportedFeatureException("Bzip2");
+    }
 #endif
 
-	aaa=method;
-	lll=level;
+    aaa = method;
+    lll = level;
 }
 
 void Compression::doNone(void* dst, size_t* dstlen, const void* src, size_t size)
@@ -350,12 +216,12 @@ void Compression::doNone(void* dst, size_t* dstlen, const void* src, size_t size
  * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
  */
 {
-	if (*dstlen < size) {
-		*dstlen=size;
-		throw BufferTooSmallException();
-	}
-	memcpy(dst, src, size);
-	*dstlen=size;
+    if (*dstlen < size) {
+        *dstlen = size;
+        throw BufferTooSmallException();
+    }
+    memcpy(dst, src, size);
+    *dstlen = size;
 }
 
 void Compression::doZlib(void* dst, size_t* dstlen, const void* src, size_t size)
@@ -378,36 +244,37 @@ void Compression::doZlib(void* dst, size_t* dstlen, const void* src, size_t size
  */
 {
 #ifndef HAVE_LIBZ
-	throw UnsupportedFeatureException("Zlib");
+    throw UnsupportedFeatureException("Zlib");
 #else
-	uLongf dstlen_zlib;
-	int zcomplevel;
-	switch (lll) {			// Kompressionslevel festlegen
-	case Level_Fast:
-		zcomplevel=Z_BEST_SPEED;
-		break;
-	case Level_Normal:
-		zcomplevel=5;
-		break;
-	case Level_High:
-		zcomplevel=Z_BEST_COMPRESSION;
-		break;
-	default:
-		zcomplevel=Z_DEFAULT_COMPRESSION;
-		break;
-	}
-	dstlen_zlib=(uLongf)*dstlen;
-	int res=::compress2((Bytef*)dst, (uLongf*)&dstlen_zlib, (const Bytef*)src, (uLong)size, zcomplevel);
-	if (res == Z_OK) {
-		*dstlen=(uint32_t)dstlen_zlib;
-		return;
-	} else if (res == Z_MEM_ERROR) {
-		throw OutOfMemoryException();
-	} else if (res == Z_BUF_ERROR) {
-		*dstlen=(uint32_t)dstlen_zlib;
-		throw BufferTooSmallException();
-	} else if (res == Z_STREAM_ERROR) throw CompressionFailedException();
-	throw CompressionFailedException();
+    uLongf dstlen_zlib;
+    int zcomplevel;
+    switch (lll) { // Kompressionslevel festlegen
+    case Level_Fast:
+        zcomplevel = Z_BEST_SPEED;
+        break;
+    case Level_Normal:
+        zcomplevel = 5;
+        break;
+    case Level_High:
+        zcomplevel = Z_BEST_COMPRESSION;
+        break;
+    default:
+        zcomplevel = Z_DEFAULT_COMPRESSION;
+        break;
+    }
+    dstlen_zlib = (uLongf)*dstlen;
+    int res = ::compress2((Bytef*)dst, (uLongf*)&dstlen_zlib, (const Bytef*)src, (uLong)size, zcomplevel);
+    if (res == Z_OK) {
+        *dstlen = (uint32_t)dstlen_zlib;
+        return;
+    } else if (res == Z_MEM_ERROR) {
+        throw OutOfMemoryException();
+    } else if (res == Z_BUF_ERROR) {
+        *dstlen = (uint32_t)dstlen_zlib;
+        throw BufferTooSmallException();
+    } else if (res == Z_STREAM_ERROR)
+        throw CompressionFailedException();
+    throw CompressionFailedException();
 #endif
 }
 
@@ -431,33 +298,32 @@ void Compression::doBzip2(void* dst, size_t* dstlen, const void* src, size_t siz
  */
 {
 #ifndef HAVE_BZIP2
-	throw UnsupportedFeatureException("Bzip2");
+    throw UnsupportedFeatureException("Bzip2");
 #else
-	int zcomplevel;
-	switch (lll) {
-	case Level_Fast:
-		zcomplevel=1;
-		break;
-	case Level_Normal:
-		zcomplevel=5;
-		break;
-	case Level_High:
-		zcomplevel=9;
-		break;
-	default:
-		zcomplevel=5;
-		break;
-	}
-	int ret=BZ2_bzBuffToBuffCompress((char*)dst, (unsigned int*)dstlen, (char*)src,
-		(int)size, zcomplevel, 0, 30);
-	if (ret == BZ_OK) {
-		return;
-	} else if (ret == BZ_MEM_ERROR) {
-		throw OutOfMemoryException();
-	} else if (ret == BZ_OUTBUFF_FULL) {
-		throw BufferTooSmallException();
-	}
-	throw CompressionFailedException();
+    int zcomplevel;
+    switch (lll) {
+    case Level_Fast:
+        zcomplevel = 1;
+        break;
+    case Level_Normal:
+        zcomplevel = 5;
+        break;
+    case Level_High:
+        zcomplevel = 9;
+        break;
+    default:
+        zcomplevel = 5;
+        break;
+    }
+    int ret = BZ2_bzBuffToBuffCompress((char*)dst, (unsigned int*)dstlen, (char*)src, (int)size, zcomplevel, 0, 30);
+    if (ret == BZ_OK) {
+        return;
+    } else if (ret == BZ_MEM_ERROR) {
+        throw OutOfMemoryException();
+    } else if (ret == BZ_OUTBUFF_FULL) {
+        throw BufferTooSmallException();
+    }
+    throw CompressionFailedException();
 #endif
 }
 
@@ -477,12 +343,12 @@ void Compression::unNone(void* dst, size_t* dstlen, const void* src, size_t srcl
  * Der Parameter \p dstlen enthält nach Auftreten der Exception die tatsächlich benötigten Bytes.
  */
 {
-	if (*dstlen < srclen) {
-		*dstlen=srclen;
-		throw BufferTooSmallException();
-	}
-	memcpy(dst, src, srclen);
-	*dstlen=srclen;
+    if (*dstlen < srclen) {
+        *dstlen = srclen;
+        throw BufferTooSmallException();
+    }
+    memcpy(dst, src, srclen);
+    *dstlen = srclen;
 }
 
 void Compression::unZlib(void* dst, size_t* dstlen, const void* src, size_t srclen)
@@ -507,25 +373,25 @@ void Compression::unZlib(void* dst, size_t* dstlen, const void* src, size_t srcl
  */
 {
 #ifndef HAVE_LIBZ
-	throw UnsupportedFeatureException("Zlib");
+    throw UnsupportedFeatureException("Zlib");
 #else
-	size_t d;
-	uLongf dstlen_zlib;
-	d=*dstlen;
-	dstlen_zlib=(uLongf)d;
-	int ret=::uncompress((Bytef*)dst, &dstlen_zlib, (const Bytef*)src, (uLong)srclen);
-	if (ret == Z_OK) {
-		*dstlen=(uint32_t)dstlen_zlib;
-		return;
-	} else if (ret == Z_MEM_ERROR) {
-		throw OutOfMemoryException();
-	} else if (ret == Z_BUF_ERROR) {
-		*dstlen=(uint32_t)dstlen_zlib;
-		throw BufferTooSmallException();
-	} else if (ret == Z_DATA_ERROR) {
-		throw CorruptedDataException("Z_DATA_ERROR");
-	}
-	throw DecompressionFailedException();
+    size_t d;
+    uLongf dstlen_zlib;
+    d = *dstlen;
+    dstlen_zlib = (uLongf)d;
+    int ret = ::uncompress((Bytef*)dst, &dstlen_zlib, (const Bytef*)src, (uLong)srclen);
+    if (ret == Z_OK) {
+        *dstlen = (uint32_t)dstlen_zlib;
+        return;
+    } else if (ret == Z_MEM_ERROR) {
+        throw OutOfMemoryException();
+    } else if (ret == Z_BUF_ERROR) {
+        *dstlen = (uint32_t)dstlen_zlib;
+        throw BufferTooSmallException();
+    } else if (ret == Z_DATA_ERROR) {
+        throw CorruptedDataException("Z_DATA_ERROR");
+    }
+    throw DecompressionFailedException();
 #endif
 }
 
@@ -551,25 +417,21 @@ void Compression::unBzip2(void* dst, size_t* dstlen, const void* src, size_t src
  */
 {
 #ifndef HAVE_BZIP2
-	throw UnsupportedFeatureException("Bzip2");
+    throw UnsupportedFeatureException("Bzip2");
 #else
-	int ret=BZ2_bzBuffToBuffDecompress((char*)dst, (unsigned int*)dstlen, (char*)src, (int)srclen, 0, 0);
-	if (ret == BZ_OK) {
-		return;
-	} else if (ret == BZ_MEM_ERROR) {
-		throw OutOfMemoryException();
-	} else if (ret == BZ_OUTBUFF_FULL) {
-		throw BufferTooSmallException();
-	} else if (ret == BZ_DATA_ERROR || ret == BZ_DATA_ERROR_MAGIC || ret == BZ_UNEXPECTED_EOF) {
-		throw CorruptedDataException();
-	}
-	throw DecompressionFailedException();
+    int ret = BZ2_bzBuffToBuffDecompress((char*)dst, (unsigned int*)dstlen, (char*)src, (int)srclen, 0, 0);
+    if (ret == BZ_OK) {
+        return;
+    } else if (ret == BZ_MEM_ERROR) {
+        throw OutOfMemoryException();
+    } else if (ret == BZ_OUTBUFF_FULL) {
+        throw BufferTooSmallException();
+    } else if (ret == BZ_DATA_ERROR || ret == BZ_DATA_ERROR_MAGIC || ret == BZ_UNEXPECTED_EOF) {
+        throw CorruptedDataException();
+    }
+    throw DecompressionFailedException();
 #endif
 }
-
-
-
-
 
 void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a)
 /*!\brief Komprimierung eines Speicherbereiches in einen anderen
@@ -601,21 +463,22 @@ void Compression::compress(void* dst, size_t* dstlen, const void* src, size_t sr
  * der privaten Funktionen Compression::doNone, Compression::doZlib oder Compression::doBzip2 auf.
  */
 {
-	if ((!src) || (!dst)) throw NullPointerException();
-	if (dstlen == NULL) throw NullPointerException();
-	if (a == Unknown) a=aaa;
-	switch (a) {
-	case Algo_NONE:
-		doNone(dst, dstlen, src, srclen);
-		return;
-	case Algo_ZLIB:
-		doZlib(dst, dstlen, src, srclen);
-		return;
-	case Algo_BZIP2:
-		doBzip2(dst, dstlen, src, srclen);
-		return;
-	default: throw UnsupportedFeatureException();
-	}
+    if ((!src) || (!dst)) throw NullPointerException();
+    if (dstlen == NULL) throw NullPointerException();
+    if (a == Unknown) a = aaa;
+    switch (a) {
+    case Algo_NONE:
+        doNone(dst, dstlen, src, srclen);
+        return;
+    case Algo_ZLIB:
+        doZlib(dst, dstlen, src, srclen);
+        return;
+    case Algo_BZIP2:
+        doBzip2(dst, dstlen, src, srclen);
+        return;
+    default:
+        throw UnsupportedFeatureException();
+    }
 }
 
 ByteArrayPtr Compression::compress(const void* ptr, size_t size)
@@ -643,77 +506,83 @@ ByteArrayPtr Compression::compress(const void* ptr, size_t size)
  *
  */
 {
-	if (buffer) free(buffer);
-	size_t dstlen=size + 64;
-	buffer=malloc(dstlen + 9);
-	if (!buffer) throw OutOfMemoryException();
-	char* tgt=(char*)buffer + 9;
-	compress(tgt, &dstlen, ptr, size);
-	if (prefix == Prefix_None) {
-		return ByteArrayPtr(tgt, dstlen);
-	} else if (prefix == Prefix_V1) {
-		char* prefix=(char*)buffer;
-		Poke8(prefix, (aaa & 7));	// Nur die unteren 3 Bits sind gültig, Rest 0
-		Poke32(prefix + 1, (int)size);	// Größe Unkomprimiert
-		Poke32(prefix + 5, (int)dstlen);// Größe Komprimiert
-		return ByteArrayPtr(prefix, dstlen + 9);
-	} else if (prefix == Prefix_V2) {
-		// Zuerst prüfen wir, wieviel Bytes wir für die jeweiligen Blöcke brauchen
-		int b_unc=4, b_comp=4;
-		int flag=aaa & 7;					// Nur die unteren 3 Bits sind gültig, Rest 0
-		flag|=8;						// Version 2-Bit setzen
+    if (buffer) free(buffer);
+    size_t dstlen = size + 64;
+    buffer = malloc(dstlen + 9);
+    if (!buffer) throw OutOfMemoryException();
+    char* tgt = (char*)buffer + 9;
+    compress(tgt, &dstlen, ptr, size);
+    if (prefix == Prefix_None) {
+        return ByteArrayPtr(tgt, dstlen);
+    } else if (prefix == Prefix_V1) {
+        char* prefix = (char*)buffer;
+        Poke8(prefix, (aaa & 7));        // Nur die unteren 3 Bits sind gültig, Rest 0
+        Poke32(prefix + 1, (int)size);   // Größe Unkomprimiert
+        Poke32(prefix + 5, (int)dstlen); // Größe Komprimiert
+        return ByteArrayPtr(prefix, dstlen + 9);
+    } else if (prefix == Prefix_V2) {
+        // Zuerst prüfen wir, wieviel Bytes wir für die jeweiligen Blöcke brauchen
+        int b_unc = 4, b_comp = 4;
+        int flag = aaa & 7; // Nur die unteren 3 Bits sind gültig, Rest 0
+        flag |= 8;          // Version 2-Bit setzen
 
-		if (size <= 0xff) b_unc=1;
-		else if (size <= 0xffff) b_unc=2;
-		else if (size <= 0xffffff) b_unc=3;
-		if (dstlen <= 0xff) b_comp=1;
-		else if (dstlen <= 0xffff) b_comp=2;
-		else if (dstlen <= 0xffffff) b_comp=3;
-		int bytes=1 + b_unc + b_comp;
-		char* prefix=tgt - bytes;
-		char* p2=prefix + 1;
+        if (size <= 0xff)
+            b_unc = 1;
+        else if (size <= 0xffff)
+            b_unc = 2;
+        else if (size <= 0xffffff)
+            b_unc = 3;
+        if (dstlen <= 0xff)
+            b_comp = 1;
+        else if (dstlen <= 0xffff)
+            b_comp = 2;
+        else if (dstlen <= 0xffffff)
+            b_comp = 3;
+        int bytes = 1 + b_unc + b_comp;
+        char* prefix = tgt - bytes;
+        char* p2 = prefix + 1;
 
-		// Daten unkomprimiert
-		if (b_unc == 1) {
-			Poke8(prefix + 1, (int)size);
-			p2=prefix + 2;
-		} else if (b_unc == 2) {
-			Poke16(prefix + 1, (int)size);
-			p2=prefix + 3;
-			flag|=16;
-		} else if (b_unc == 3) {
-			Poke24(prefix + 1, (int)size);
-			p2=prefix + 4;
-			flag|=32;
-		} else {
-			Poke32(prefix + 1, (int)size);
-			p2=prefix + 5;
-			flag|=(16 + 32);
-		}
+        // Daten unkomprimiert
+        if (b_unc == 1) {
+            Poke8(prefix + 1, (int)size);
+            p2 = prefix + 2;
+        } else if (b_unc == 2) {
+            Poke16(prefix + 1, (int)size);
+            p2 = prefix + 3;
+            flag |= 16;
+        } else if (b_unc == 3) {
+            Poke24(prefix + 1, (int)size);
+            p2 = prefix + 4;
+            flag |= 32;
+        } else {
+            Poke32(prefix + 1, (int)size);
+            p2 = prefix + 5;
+            flag |= (16 + 32);
+        }
 
-		// Daten komprimiert
-		if (b_comp == 1) {
-			Poke8(p2, (int)dstlen);
-		} else if (b_comp == 2) {
-			Poke16(p2, (int)dstlen);
-			flag|=64;
-		} else if (b_comp == 3) {
-			Poke24(p2, (int)dstlen);
-			flag|=128;
-		} else {
-			Poke32(p2, (int)dstlen);
-			flag|=(128 + 64);
-		}
-		Poke8(prefix, flag);
-		/*
-		printf ("DEBUG\n");
-		printf ("b_unc=%d, b_comp=%d, bytes=%d, flag=%d\n", b_unc, b_comp, bytes, flag);
-		printf ("size unc=%zd, size_comp=%zd\n", size, dstlen);
-		*/
-		return ByteArrayPtr(prefix, dstlen + bytes);
-	}
-	// Bis hierhin sollte es nicht kommen
-	throw UnknownException();
+        // Daten komprimiert
+        if (b_comp == 1) {
+            Poke8(p2, (int)dstlen);
+        } else if (b_comp == 2) {
+            Poke16(p2, (int)dstlen);
+            flag |= 64;
+        } else if (b_comp == 3) {
+            Poke24(p2, (int)dstlen);
+            flag |= 128;
+        } else {
+            Poke32(p2, (int)dstlen);
+            flag |= (128 + 64);
+        }
+        Poke8(prefix, flag);
+        /*
+        printf ("DEBUG\n");
+        printf ("b_unc=%d, b_comp=%d, bytes=%d, flag=%d\n", b_unc, b_comp, bytes, flag);
+        printf ("size unc=%zd, size_comp=%zd\n", size, dstlen);
+        */
+        return ByteArrayPtr(prefix, dstlen + bytes);
+    }
+    // Bis hierhin sollte es nicht kommen
+    throw UnknownException();
 }
 
 ByteArrayPtr Compression::compress(const ByteArrayPtr& in)
@@ -741,7 +610,7 @@ ByteArrayPtr Compression::compress(const ByteArrayPtr& in)
  *
  */
 {
-	return compress(in.ptr(), in.size());
+    return compress(in.ptr(), in.size());
 }
 
 void Compression::compress(ByteArray& out, const void* ptr, size_t size)
@@ -767,8 +636,8 @@ void Compression::compress(ByteArray& out, const void* ptr, size_t size)
  *
  */
 {
-	ByteArrayPtr r=compress(ptr, size);
-	out.copy(r);
+    ByteArrayPtr r = compress(ptr, size);
+    out.copy(r);
 }
 
 void Compression::compress(ByteArray& out, const ByteArrayPtr& in)
@@ -792,7 +661,7 @@ void Compression::compress(ByteArray& out, const ByteArrayPtr& in)
  *
  */
 {
-	compress(out, in.adr(), in.size());
+    compress(out, in.adr(), in.size());
 }
 
 void Compression::uncompress(void* dst, size_t* dstlen, const void* src, size_t srclen, Algorithm a)
@@ -825,22 +694,22 @@ void Compression::uncompress(void* dst, size_t* dstlen, const void* src, size_t 
  * der privaten Funktionen Compression::unNone, Compression::unZlib oder Compression::unBzip2 auf.
  */
 {
-	if ((!src) || (!dst)) throw NullPointerException();
-	if (dstlen == NULL) throw NullPointerException();
-	if (a == Unknown) a=aaa;
-	switch (a) {
-	case Algo_NONE:
-		unNone(dst, dstlen, src, srclen);
-		return;
-	case Algo_ZLIB:
-		unZlib(dst, dstlen, src, srclen);
-		return;
-	case Algo_BZIP2:
-		unBzip2(dst, dstlen, src, srclen);
-		return;
-	default:
-		throw UnsupportedFeatureException();
-	}
+    if ((!src) || (!dst)) throw NullPointerException();
+    if (dstlen == NULL) throw NullPointerException();
+    if (a == Unknown) a = aaa;
+    switch (a) {
+    case Algo_NONE:
+        unNone(dst, dstlen, src, srclen);
+        return;
+    case Algo_ZLIB:
+        unZlib(dst, dstlen, src, srclen);
+        return;
+    case Algo_BZIP2:
+        unBzip2(dst, dstlen, src, srclen);
+        return;
+    default:
+        throw UnsupportedFeatureException();
+    }
 }
 
 ByteArrayPtr Compression::uncompress(const void* ptr, size_t size)
@@ -866,91 +735,107 @@ ByteArrayPtr Compression::uncompress(const void* ptr, size_t size)
  *
  */
 {
-	if (uncbuffer) free(uncbuffer);
-	uncbuffer=NULL;
-	if (prefix == Prefix_None) {
-		size_t bsize=size * 3;
-		while (1) {
-			if (uncbuffer) free(uncbuffer);
-			uncbuffer=malloc(bsize);
-			if (!uncbuffer) throw OutOfMemoryException();
-			// Wir prüfen, ob das Ergebnis in den Buffer passt
-			size_t dstlen=bsize;
-			try {
-				uncompress(uncbuffer, &dstlen, ptr, size);
-				return ByteArrayPtr(uncbuffer, dstlen);
-			} catch (BufferTooSmallException&) {
-				// Der Buffer war nicht gross genug, wir vergrößern ihn
-				bsize+=size;
-			} catch (...) {
-				free(uncbuffer);
-				uncbuffer=NULL;
-				throw;
-			}
-		}
-	} else if (prefix == Prefix_V1) {
-		char* buffer=(char*)ptr;
-		int flag=Peek8(buffer);
-		size_t size_unc=Peek32(buffer + 1);
-		size_t size_comp=Peek32(buffer + 5);
-		//printf ("Flag: %i, unc: %u, comp: %u\n",flag,size_unc, size_comp);
-		if (uncbuffer) free(uncbuffer);
-		uncbuffer=malloc(size_unc);
-		if (!uncbuffer) throw OutOfMemoryException();
-		size_t dstlen=size_unc;
-		try {
-			uncompress(uncbuffer, &dstlen, buffer + 9, size_comp, (Algorithm)(flag & 7));
-			return ByteArrayPtr(uncbuffer, dstlen);
-		} catch (...) {
-			free(uncbuffer);
-			uncbuffer=NULL;
-			throw;
-		}
-	} else if (prefix == Prefix_V2) {
-		char* buffer=(char*)ptr;
-		int flag=Peek8(buffer);
-		Algorithm a=(Algorithm)(flag & 7);
-		if ((flag & 8) == 0) {	// Bit 3 muss aber gesetzt sein
-			throw CorruptedDataException("wrong flag");
-		}
-		int b_unc=4, b_comp=4;
-		if ((flag & 48) == 0) b_unc=1;
-		else if ((flag & 48) == 16) b_unc=2;
-		else if ((flag & 48) == 32) b_unc=3;
-		else b_unc=4;
-		if ((flag & 192) == 0) b_comp=1;
-		else if ((flag & 192) == 64) b_comp=2;
-		else if ((flag & 192) == 128) b_comp=3;
-		else b_comp=4;
+    if (uncbuffer) free(uncbuffer);
+    uncbuffer = NULL;
+    if (prefix == Prefix_None) {
+        size_t bsize = size * 3;
+        while (1) {
+            if (uncbuffer) free(uncbuffer);
+            uncbuffer = malloc(bsize);
+            if (!uncbuffer) throw OutOfMemoryException();
+            // Wir prüfen, ob das Ergebnis in den Buffer passt
+            size_t dstlen = bsize;
+            try {
+                uncompress(uncbuffer, &dstlen, ptr, size);
+                return ByteArrayPtr(uncbuffer, dstlen);
+            }
+            catch (BufferTooSmallException&) {
+                // Der Buffer war nicht gross genug, wir vergrößern ihn
+                bsize += size;
+            }
+            catch (...) {
+                free(uncbuffer);
+                uncbuffer = NULL;
+                throw;
+            }
+        }
+    } else if (prefix == Prefix_V1) {
+        char* buffer = (char*)ptr;
+        int flag = Peek8(buffer);
+        size_t size_unc = Peek32(buffer + 1);
+        size_t size_comp = Peek32(buffer + 5);
+        // printf ("Flag: %i, unc: %u, comp: %u\n",flag,size_unc, size_comp);
+        if (uncbuffer) free(uncbuffer);
+        uncbuffer = malloc(size_unc);
+        if (!uncbuffer) throw OutOfMemoryException();
+        size_t dstlen = size_unc;
+        try {
+            uncompress(uncbuffer, &dstlen, buffer + 9, size_comp, (Algorithm)(flag & 7));
+            return ByteArrayPtr(uncbuffer, dstlen);
+        }
+        catch (...) {
+            free(uncbuffer);
+            uncbuffer = NULL;
+            throw;
+        }
+    } else if (prefix == Prefix_V2) {
+        char* buffer = (char*)ptr;
+        int flag = Peek8(buffer);
+        Algorithm a = (Algorithm)(flag & 7);
+        if ((flag & 8) == 0) { // Bit 3 muss aber gesetzt sein
+            throw CorruptedDataException("wrong flag");
+        }
+        int b_unc = 4, b_comp = 4;
+        if ((flag & 48) == 0)
+            b_unc = 1;
+        else if ((flag & 48) == 16)
+            b_unc = 2;
+        else if ((flag & 48) == 32)
+            b_unc = 3;
+        else
+            b_unc = 4;
+        if ((flag & 192) == 0)
+            b_comp = 1;
+        else if ((flag & 192) == 64)
+            b_comp = 2;
+        else if ((flag & 192) == 128)
+            b_comp = 3;
+        else
+            b_comp = 4;
 
-		size_t size_unc=0;
-		if (b_unc == 1) size_unc=Peek8(buffer + 1);
-		else if (b_unc == 2) size_unc=Peek16(buffer + 1);
-		else if (b_unc == 3) size_unc=Peek24(buffer + 1);
-		else size_unc=Peek32(buffer + 1);
+        size_t size_unc = 0;
+        if (b_unc == 1)
+            size_unc = Peek8(buffer + 1);
+        else if (b_unc == 2)
+            size_unc = Peek16(buffer + 1);
+        else if (b_unc == 3)
+            size_unc = Peek24(buffer + 1);
+        else
+            size_unc = Peek32(buffer + 1);
 
-		if (uncbuffer) free(uncbuffer);
-		uncbuffer=malloc(size_unc);
-		if (!uncbuffer) throw OutOfMemoryException();
-		size_t dstlen=size_unc;
-		size_t bytes=1 + b_unc + b_comp;
-		/*
-		printf ("b_unc=%d, b_comp=%d, bytes=%d, dstlen=%zd, size=%zd\n",
-				b_unc, b_comp, bytes, dstlen,size);
-		if (size==804) {
-			HexDump(buffer,size);
-		}
-		*/
-		try {
-			uncompress(uncbuffer, &dstlen, buffer + bytes, size - bytes, a);
-			return ByteArrayPtr(uncbuffer, dstlen);
-		} catch (...) {
-			free(uncbuffer);
-			uncbuffer=NULL;
-			throw;
-		}
-	}
-	throw DecompressionFailedException();
+        if (uncbuffer) free(uncbuffer);
+        uncbuffer = malloc(size_unc);
+        if (!uncbuffer) throw OutOfMemoryException();
+        size_t dstlen = size_unc;
+        size_t bytes = 1 + b_unc + b_comp;
+        /*
+        printf ("b_unc=%d, b_comp=%d, bytes=%d, dstlen=%zd, size=%zd\n",
+                b_unc, b_comp, bytes, dstlen,size);
+        if (size==804) {
+            HexDump(buffer,size);
+        }
+        */
+        try {
+            uncompress(uncbuffer, &dstlen, buffer + bytes, size - bytes, a);
+            return ByteArrayPtr(uncbuffer, dstlen);
+        }
+        catch (...) {
+            free(uncbuffer);
+            uncbuffer = NULL;
+            throw;
+        }
+    }
+    throw DecompressionFailedException();
 }
 
 ByteArrayPtr Compression::uncompress(const ByteArrayPtr& in)
@@ -975,7 +860,7 @@ ByteArrayPtr Compression::uncompress(const ByteArrayPtr& in)
  *
  */
 {
-	return uncompress(in.ptr(), in.size());
+    return uncompress(in.ptr(), in.size());
 }
 
 void Compression::uncompress(ByteArray& out, const void* ptr, size_t size)
@@ -1000,8 +885,8 @@ void Compression::uncompress(ByteArray& out, const void* ptr, size_t size)
  *
  */
 {
-	ByteArrayPtr b=uncompress(ptr, size);
-	out.copy(b);
+    ByteArrayPtr b = uncompress(ptr, size);
+    out.copy(b);
 }
 
 void Compression::uncompress(ByteArray& out, const ByteArrayPtr& object)
@@ -1024,10 +909,8 @@ void Compression::uncompress(ByteArray& out, const ByteArrayPtr& object)
  *
  */
 {
-	uncompress(out, object.ptr(), object.size());
+    uncompress(out, object.ptr(), object.size());
 }
-
-
 
 /*!\ingroup PPL7_COMPRESSION
  * \brief Speicherbereich komprimieren
@@ -1049,10 +932,10 @@ void Compression::uncompress(ByteArray& out, const ByteArrayPtr& object)
  */
 void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm method, Compression::Level level)
 {
-	Compression comp;
-	comp.init(method, level);
-	comp.usePrefix(Compression::Prefix_V2);
-	comp.compress(out, in);
+    Compression comp;
+    comp.init(method, level);
+    comp.usePrefix(Compression::Prefix_V2);
+    comp.compress(out, in);
 }
 
 /*!\ingroup PPL7_COMPRESSION
@@ -1077,11 +960,10 @@ void Compress(ByteArray& out, const ByteArrayPtr& in, Compression::Algorithm met
  */
 void Uncompress(ByteArray& out, const ByteArrayPtr& in)
 {
-	Compression comp;
-	comp.usePrefix(Compression::Prefix_V2);
-	comp.uncompress(out, in);
+    Compression comp;
+    comp.usePrefix(Compression::Prefix_V2);
+    comp.uncompress(out, in);
 }
-
 
 void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
 /*!\ingroup PPL7_COMPRESSION
@@ -1105,9 +987,8 @@ void CompressZlib(ByteArray& out, const ByteArrayPtr& in, Compression::Level lev
  * \see Compression
  */
 {
-	Compress(out, in, Compression::Algo_ZLIB, level);
+    Compress(out, in, Compression::Algo_ZLIB, level);
 }
-
 
 void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level level)
 /*!\ingroup PPL7_COMPRESSION
@@ -1133,8 +1014,7 @@ void CompressBZip2(ByteArray& out, const ByteArrayPtr& in, Compression::Level le
  * \see Compression
  */
 {
-	Compress(out, in, Compression::Algo_BZIP2, level);
+    Compress(out, in, Compression::Algo_BZIP2, level);
 }
 
-
-} // EOF namespace ppl7
+} // namespace ppl7

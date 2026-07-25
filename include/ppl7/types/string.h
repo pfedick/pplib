@@ -1172,6 +1172,8 @@ inline void PrintTo(const String& str, ::std::ostream* os)
     *os << "\"" << str.c_str() << "\"";
 }
 
+String ToString(const char* fmt, ...);
+
 } // namespace ppl7
 
 #endif /* PPL7_TYPES_STRING_H_ */

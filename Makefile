@@ -42,7 +42,7 @@ release:
 
 debug:
 	cmake -B build/debug -DCMAKE_BUILD_TYPE=Debug
-	cmake --build build/debug
+	cmake --build build/debug -j1
 
 configure:
 	cmake -B build/release -DCMAKE_BUILD_TYPE=Release

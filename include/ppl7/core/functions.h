@@ -34,6 +34,7 @@
 #include <ppl7/types/string.h>
 #include <ppl7/types/bytearrayptr.h>
 #include <ppl7/types/datetime.h>
+#include <ppl7/types/assocarray.h>
 
 namespace ppl7
 {
@@ -90,11 +91,11 @@ ssize_t Instrcase(const char* haystack, const char* needle, size_t start = 0);
 ssize_t Instr(const wchar_t* haystack, const wchar_t* needle, size_t start = 0);
 ssize_t Instrcase(const wchar_t* haystack, const wchar_t* needle, size_t start = 0);
 
+String ToString(const char* fmt, ...);
 String Left(const String& str, size_t num);
 String Right(const String& str, size_t num);
 String Mid(const String& str, size_t start, size_t num = (size_t)-1);
 String SubStr(const String& str, size_t start, size_t num = (size_t)-1);
-String ToString(const char* fmt, ...);
 String Replace(const String& string, const String& search, const String& replace);
 
 /**@brief Wiederholt einen String

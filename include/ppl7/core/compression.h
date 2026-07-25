@@ -35,17 +35,116 @@
 
 namespace ppl7
 {
+
+/*!\class Compression
+ * \ingroup PPL7_COMPRESSION
+ * \brief Komprimierung und Dekomprimierung von Daten
+ *
+ * Mit dieser Klasse können Daten komprimiert und dekomprimiert werden. Zur Zeit werden zwei
+ * verschiedene Komprimierungsmethoden unterstüzt:
+ * - ZLib (siehe http://www.zlib.net/)
+ * - BZip2 (siehe http://www.bzip.org/)
+ *
+ * Um die gewünschte Methode auszuwählen, muss diese entweder im Konstruktor übergeben werden, oder durch
+ * Aufruf von Compression::Init, was den Vorteil hat, das man hier auch gleich einen Fehlercode
+ * gemeldet bekommt, wenn die gewünschte Methode nicht einkompiliert ist.
+ *
+ * Anschließend können durch Aufrufe von Compress und Uncompress Daten komprimiert bzw. entpackt
+ * werden.
+ *
+ * \section Compression_Prefix Komprimierungsprefix
+ *
+ * Über die Funktion Compression::UsePrefix kann eingestellt werden, ob bei der Komprimierung noch ein
+ * Header vorangestellt werden soll oder nicht. Der Header hat den Vorteil, dass man ihm die Komprimierungs-
+ * Methode und die Länge der ursprünglichen unkomprimierten Daten entnehmen kann. Nicht alle Variationen
+ * von Compress und Uncompress unterstützen den Prefix, daher ist bei der jeweiligen Funktion vermerkt,
+ * ob der Prefix beachtet wird oder nicht.
+ *
+ * Es gibt zwei Versionen des Headers:
+ *
+ * \par Version 1 Prefix
+ * Bei Version 1 gibt es einen 9-Byte großen Header mit folgendem Aufbau:
+ *
+\verbatim
+Byte 0: Kompressions-Flag (siehe oben)
+        Bits 0-2: Kompressionsart
+                  0=keine
+                  1=Zlib
+                  2=Bzip2
+        Bits 3-7: unbenutzt, müssen 0 sein
+Byte 1: Bytes Unkomprimiert (4 Byte)
+Byte 5: Bytes Komprimiert (4 Byte)
+\endverbatim
+ * Der erste Wert gibt an, wieviele Bytes der Datenblock unkomprimiert benötigt, der zweite gibt an,
+ * wie gross er komprimiert ist. Nach dem Header folgen dann soviele Bytes, wie in "Bytes Komprimiert"
+ * angegeben ist.
+ *
+ * \par Version 2 Prefix
+ * Die Länge des Version 2 Headers ist variabel. Er beginnt wieder mit dem Kompressionsflag, diesmal
+ * ist jedoch Bit 3 gesetzt und die Bits 4-7 werden ebenfalls verwendet:
+ *
+\verbatim
+Byte 0: Kompression-Flag
+        Bits 0-2: Kompressionsart
+                  0=keine
+                  1=Zlib
+                  2=Bzip2
+        Bit 3:    Headerversion
+        Bits 4-5: Bytezahl Uncompressed Value
+                  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
+        Bits 6-7: Bytezahl Compressed Value
+                  0=1 Byte, 1=2 Byte, 2=3 Byte, 3=4 Byte
+Byte 1: Bytes Unkomprimiert (1-4 Byte)
+Byte n: Bytes Komprimiert (1-4 Byte)
+\endverbatim
+ * Bei Version 2 folgen eine variable Anzahl von Bytes für die beiden Werte "Bytes Unkomprimiert" und
+ * "Bytes Komprimiert". Wieviele Bytes das sind, ist jeweils den Bits 4-5 und 6-7 des
+ * Kompressions-Flags zu entnehmen. Bei kleinen Datenblöcken, die unkomprimiert weniger als 255 Bytes
+ * benötigen, schrumpft der Prefix somit von 9 auf 3 Byte im Vergleich zum Version 1 Prefix.
+ *
+ */
 class Compression
 {
 public:
+    /*!\enum Algorithm
+     * \brief Unterstütze Komprimierungsmethoden
+     *
+     * Die Klasse unterstützt folgende Komprimierungsmethoden:
+     */
     enum Algorithm
     {
+        /**@brief Compression::Algorithm Compression::Algo_NONE
+         * Keine Komprimierung. Bei Verwendung dieser Methode werden die Daten einfach nur unverändert kopiert.
+         */
         Algo_NONE = 0,
+
+        /**@brief Compression::Algorithm Compression::Algo_ZLIB
+         * Zlib ist eine freie Programmbibliothek von Jean-Loup Gailly und Mark Adler (http://www.zlib.net/).
+         * Sie verwendet wie gzip den Deflate-Algorithmus um den Datenstrom blockweise zu komprimieren.
+         * Die ausgegebenen Blöcke werden durch Adler-32-Prüfsummen geschützt.
+         * Das Format ist in den RFC 1950, RFC 1951 und RFC 1952 definiert und gilt quasi als defakto
+         * Standard im Unix- und Netzwerkbereich.
+         */
         Algo_ZLIB,
+
+        /**@brief Compression::Algorithm Compression::Algo_BZIP2
+         * bzip2 ist ein frei verfügbares Komprimierungsprogramm zur verlustfreien Kompression
+         * von Dateien, entwickelt von Julian Seward. Es ist frei von jeglichen patentierten
+         * Algorithmen und wird unter einer BSD-ähnlichen Lizenz vertrieben.
+         * Die Kompression mit bzip2 ist oft effizienter, aber meist erheblich langsamer als
+         * die Kompression mit Zlib.
+         */
         Algo_BZIP2,
-        Unknown = 256
+
+        Unknown = 256 /// Wird als Defaulteinstellung beim Dekomprimieren verwendet und hat keine eigentliche Funktion.
     };
 
+    /*!\enum Compression::Level
+     * \brief Kompressionsrate
+     *
+     * Es werden verschiedene Einstellungen unterstützt, die Einfluß auf die Kompressionsrate
+     * aber auch Speicherverbrauch und Geschwindigkeit haben:
+     */
     enum Level
     {
         Level_Fast = 0,
