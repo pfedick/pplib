@@ -18,6 +18,7 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 - Alle Tests gehen von UTF-8 als locale aus, auch unter Windows
 - pico-pplib integrieren (siehe eigenes Kapitel)?
 - C++17 oder C++20 als Standard?
+- CMake statt autoconf/makefile verwenden?
 - configure abspecken: wir brauchen einen Großteil der Checks auf Header und Funktion nicht, das diese laut Standard in allen modernen Compilern vorhanden sind. Wir brauchen nur noch die Checks auf C++17/C++20, sowie die Checks auf die Plattform (Windows, Linux, FreeBSD)
 
 
@@ -65,6 +66,7 @@ In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nic
 - HttpRequest, HttpResponse, HttpClient
 
 ## Erledigt
+- Umstellung von Autoconf auf CMake
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft
@@ -79,14 +81,3 @@ In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nic
 
 # Auftrag an die KI
 
-Kannst Du mir ein CMakeFile.txt für mein Projekt bauen?
-Es soll aus folgenden Modulen bestehen:
-- core: enthält src/core, src/types und /src/math
-- audio: src/audio (Optional: libmpg123, lame, ogg/vorbis)
-- crypto: src/crypto (braucht openssl)
-- grafix: src/grafix und src/asm (optional: nasm, libjpeg, png, tiff)
-  ImageMagic habe ich nie zu ende gebracht, daher kann das raus
-- internet: src/internet (optional: curl, openssl, libmicrohttpd)
-- database: src/database (Optional: mysql, sqlite3, postgresql)
-
-Tests lassen wir erstmal außen vor

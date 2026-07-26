@@ -27,131 +27,19 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
+#include <filesystem>
 
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_WCHAR_H
-#include <wchar.h>
-#endif
-#include <time.h>
-#ifdef HAVE_UNISTD_H
+#ifndef _WIN32
 #include <unistd.h>
+#include <pwd.h>
 #endif
 
-#ifdef HAVE_SYS_MMAN_H
-#include <sys/mman.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-
-#ifdef HAVE_DIRENT_H
-#include <dirent.h>
-#endif
-
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-
-#include <map>
-
-#ifdef _WIN32
-#include <io.h>
-#define WIN32_LEAN_AND_MEAN // Keine MFCs
-#include <windows.h>
-#include <direct.h>
-#include <shlobj.h>
-#endif
-#include "ppl7.h"
+#include <ppl7/core/dir.h>
+#include <ppl7/exceptions.h>
 
 namespace ppl7
 {
-
-/*!\class Dir
- * \ingroup PPLGroupFileIO
- * \brief Klasse zum Durchsuchen von Verzeichnissen
- *
- * \desc
- * Die Klasse Dir wird zum Lesen von Verzeichnissen verwendet. Dazu muss man zunächst mit
- * Dir::open ein Verzeichnis öffnen oder das gewünschte Verzeichnis gleich im Konstruktor
- * angeben. Anschließend kann man mit den Funktionen Dir::getFirst und Dir::getNext die
- * einzelnen Dateien auslesen.
- * \par
- * Sofern man beim Öffnen des Verzeichnis nicht explizit eine Sortiermethode angegeben hat,
- * sind die Dateien unsortiert, bzw. in der Reihenfolge, wie das Betriebssystem sie
- * zurückgegeben hat. Mit dem Befehl Dir::resort kann man aber jederzeit eine andere
- * Sortierung einstellen.
- * \par
- * Möchte man nur Dateien, die einem bestimmten Muster (Pattern) entsprechen, kann man
- * statt Dir::getFirst und Dir::getNext auch Dir::getFirstPattern und Dir::getNextPattern
- * verwenden, oder falls mal Regular Expressions verwenden möchte, Dir::getFirstRegExp und
- * Dir::getNextRegExp.
- * \example
- * Das folgende Beispiel zeigt, wie das Homeverzeichnis des aktuellen
- * Benutzers ermittelt wird, und dessen Dateien alphabetisch sortiert
- * ausgegeben werden:
- * \code
-#include <ppl7.h>
-int main(int argc, char **argv)
-{
-    // Homeverzeichnis des Users ermitteln
-    ppl7::String Home=ppl7::Dir::homePath();
-    // Verzeichnis öffnen, Dateien nach Dateiname sortieren
-    ppl7::Dir d(Home, ppl7::Dir::SORT_FILENAME);
-    // Iterator zum Durchwandern des Verzeichnisses anlegen
-    ppl7::Dir::Iterator it;
-    d.reset(it);
-    // Variable zum Aufnehmen der Dateinformationen
-    ppl7::DirEntry e;
-
-    // Wir benötigen einen Try-Block, da ppl7::Dir::getNext eine Exception wirft,
-    // wenn das Ende der Dateiliste erreicht ist
-    try {
-        while (1) {
-            // Nächsten Eintrag holen
-            e=d.getNext(it);
-            // Dateinamen ausgeben
-            std::cout << "Datei: " << e.Filename << "\n";
-
-        }
-    } catch (ppl7::EndOfListException) {
-        std::cout << "Ende\n";
-    }
-    return 0;
-\endcode
- * \par
- * Falls wir die Exceptions umgehen wollen, läßt sich die Schleife auch so
- * realisieren:
-\code
-    ppl7::DirEntry e;
-    while (d.getNext(e,it)) {
-        std::cout << "Datei: " << e.Filename << "\n";
-    }
-\endcode
- *
- */
 
 /*!\enum Dir::Sort
  * \brief Sortiermöglichkeiten
@@ -256,34 +144,19 @@ int main(int argc, char **argv)
  */
 String Dir::currentPath()
 {
-    String ret;
-    char* buf = (char*)malloc(2048);
-    if (!buf) throw OutOfMemoryException();
-#ifdef _WIN32
-    if (_getcwd(buf, 2048)) {
-#else
-    if (getcwd(buf, 2048)) {
-#endif
-        ret = buf;
-        free(buf);
-        return ret;
+    std::error_code ec;
+    auto path = std::filesystem::current_path(ec);
+    if (!ec) {
+        return String(path.string());
     }
-    int e = errno;
-    free(buf);
-    switch (e) {
-    case EINVAL:
-        throw IllegalArgumentException();
-    case ENOENT:
+
+    // Gezielte Fehlerbehandlung über std::error_code
+    if (ec == std::errc::no_such_file_or_directory) {
         throw NonexistingPathException();
-    case ENOMEM:
-        throw OutOfMemoryException();
-    case ERANGE:
-        throw PathnameTooLongException();
-    case EACCES:
+    } else if (ec == std::errc::permission_denied) {
         throw PermissionDeniedException();
-    default:
-        throw UnknownException();
     }
+    throw UnknownException("Dir::currentPath failed: %s", ec.message().c_str());
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -299,20 +172,31 @@ String Dir::currentPath()
  */
 String Dir::homePath()
 {
-    String ret;
 #ifdef _WIN32
-    char* homeDir = getenv("HOMEPATH");
-    char* homeDrive = getenv("HOMEDRIVE");
-    ret.setf("%s\\%s", homeDrive, homeDir);
-    return ret;
-#else
-    char* homeDir = getenv("HOME");
-    if (homeDir != NULL && strlen(homeDir) > 0) {
-        ret.set(homeDir);
+    // 1. Bevorzugt USERPROFILE unter Windows
+    if (const char* userProfile = getenv("USERPROFILE"); userProfile && strlen(userProfile) > 0) {
+        return String(userProfile);
+    }
+    // 2. Fallback: HOMEDRIVE + HOMEPATH
+    const char* homeDrive = getenv("HOMEDRIVE");
+    const char* homePath = getenv("HOMEPATH");
+    if (homeDrive && homePath) {
+        String ret;
+        ret.setf("%s%s", homeDrive, homePath);
         return ret;
     }
-    throw UnsupportedFeatureException("Dir::homePath");
+#else
+    // 1. Umgebungsvariable HOME auslesen
+    if (const char* home = getenv("HOME"); home && strlen(home) > 0) {
+        return String(home);
+    }
+    // 2. Fallback: System-Userdatenbank (/etc/passwd) abfragen
+    if (struct passwd* pw = getpwuid(getuid()); pw && pw->pw_dir) {
+        return String(pw->pw_dir);
+    }
 #endif
+
+    throw UnsupportedFeatureException("Dir::homePath: Could not determine user home directory");
 }
 
 /*!\ingroup PPLGroupFileIO
@@ -326,33 +210,22 @@ String Dir::homePath()
  */
 String Dir::tempPath()
 {
-#ifdef WIN32
-    wchar_t* buffer = (wchar_t*)malloc(MAX_PATH * sizeof(wchar_t));
-    if (!buffer) throw OutOfMemoryException();
-    DWORD ret = GetTempPathW(MAX_PATH, buffer);
-    if (ret > MAX_PATH) {
-        free(buffer);
-        buffer = (wchar_t*)malloc(ret * sizeof(wchar_t));
-        if (!buffer) throw OutOfMemoryException();
-        ret = GetTempPathW(ret, buffer);
+    std::error_code ec;
+    auto path = std::filesystem::temp_directory_path(ec);
+    if (!ec) {
+        return String(path.string());
     }
-    if (!ret) {
-        free(buffer);
-        return String();
-    }
-    WideString s(buffer);
-    free(buffer);
-    return String(s);
-#endif
-    const char* dir = getenv("TMPDIR");
-    if (dir != NULL && strlen(dir) > 0) return String(dir);
-#ifdef P_tmpdir
-    dir = P_tmpdir;
-#endif
-    if (dir != NULL && strlen(dir) > 0) return String(dir);
-    return String("/tmp");
-}
 
+    // Fallback für den unwahrscheinlichen Fall eines Fehlers:
+#ifdef _WIN32
+    if (const char* tmp = getenv("TEMP")) return String(tmp);
+    if (const char* tmp = getenv("TMP")) return String(tmp);
+    return String("C:\\Windows\\Temp");
+#else
+    if (const char* tmp = getenv("TMPDIR")) return String(tmp);
+    return String("/tmp");
+#endif
+}
 String Dir::applicationDataPath()
 {
     String path;
@@ -413,78 +286,15 @@ String Dir::documentsPath(const String& company, const String& application)
     return path;
 }
 
-/*!\brief Konstruktor der Klasse
- *
- * \desc
- * Konstruktor der Klasse, ohne ein Verzeichnis zu öffnen.
- */
 Dir::Dir()
 {
-    sort = SORT_NONE;
+    sort = Sort::None;
 }
 
-/*!\brief Konstruktor der Klasse
- *
- * \desc
- * Der Konstruktor sorgt dafür, dass die internen Variablen und Datenstrukturen
- * initialisert werden. Mit dem Parameter \p path wird das zu öffnende
- * Verzeichni angegeben. Optional kann mit \p s eine Sortierreihenfolge vorgegeben
- * werden. Ohne Angabe des Parameters findet keine Sortierung statt.
- *
- * @param[in] path Zu öffnender Pfad (siehe auch Dir::open)
- * @param[in] s gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
- * verwendet.
- */
-Dir::Dir(const char* path, Sort s)
+Dir::Dir(const String& path, Sort sortOrder)
 {
     sort = s;
-    if (path) open(path, s);
-}
-
-/*!\brief Konstruktor der Klasse
- *
- * \desc
- * Der Konstruktor sorgt dafür, dass die internen Variablen und Datenstrukturen
- * initialisert werden. Mit dem Parameter \p path wird das zu öffnende
- * Verzeichni angegeben. Optional kann mit \p s eine Sortierreihenfolge vorgegeben
- * werden. Ohne Angabe des Parameters findet keine Sortierung statt.
- *
- * @param[in] path Zu öffnender Pfad (siehe auch Dir::open)
- * @param[in] s gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
- * verwendet.
- */
-Dir::Dir(const String& path, Sort s)
-{
-    sort = s;
-    if (path.notEmpty()) open(path, s);
-}
-
-/*!\brief Destruktor der Klasse
- *
- * \desc
- * Der Destruktor sorgt dafür, dass der intern reservierte Speicher wieder
- * freigegeben wird.
- */
-Dir::~Dir()
-{
-    clear();
-}
-
-/*!\brief Verzeichnisliste löschen
- *
- * \desc
- * Wird diese Funktion nach Dir::open aufgerufen, wird die interne Dateiliste
- * wieder gelöscht und der durch die Klasse belegte Speicher freigegeben.
- * Die Funktion wird automatisch vom Destruktor und zu Beginn
- * von Dir::open aufgerufen, so dass sich ein manueller Aufruf der Funktion in der Regel
- * erübrigt.
- */
-void Dir::clear()
-{
-    Files.clear();
-    SortedFiles.clear();
-    Path.clear();
-    sort = SORT_NONE;
+    if (path.notEmpty()) open(path, sortOrder);
 }
 
 /*!\brief Verzeichnis-Eintrag auf STDOUT ausgeben
@@ -505,14 +315,6 @@ void Dir::print(const DirEntry& de) const
     printf("%s %s\n", (const char*)de.MTime.get(), (const char*)de.Filename);
 }
 
-/*!\brief Verzeichnis auf STDOUT ausgeben
- *
- * \desc
- * Mit dieser Funktion wird das mit Dir::open oder im Konstruktor ausgewählte Verzeichnis
- * auf STDOUT ausgegeben. Die Ausgabe ist ähnlich der des "ls"-Befehls unter Unix, enthält jedoch
- * nicht die Benutzerrechte. Die Funktion wurde hauptsächlich zu Debuggingzwecken
- * eingebaut.
- */
 void Dir::print() const
 {
     ppl7::List<const DirEntry*>::Iterator it;
@@ -520,52 +322,12 @@ void Dir::print() const
     printf("Total Files: %zu\n", num());
     SortedFiles.reset(it);
     while (SortedFiles.getNext(it)) {
-        print(*it.value());
+        printf("%s %3u ", (const char*)de.AttrStr, de.NumLinks);
+        printf("%5u %5u ", de.Uid, de.Gid);
+        printf("%10llu ", (unsigned long long)de.Size);
+        printf("%s %s\n", (const char*)de.MTime.get(), (const char*)de.Filename);
     }
 }
-
-/*!\brief Anzahl Dateien
- *
- * \desc
- * Diese Funktion liefert die Anzahl Einträge im geöffneten Verzeichnis zurück. Sie
- * gibt daher erst nach Aufruf von Dir::open einen korrekten Wert zurück. Einträge können
- * nicht nur Dateien sein, sondern auch Verzeichnisse und Symlinks.
- *
- * @return Anzahl Einträge im geöffneten Verzeichnis
- */
-size_t Dir::num() const
-{
-    return Files.count();
-}
-
-/*!\brief Anzahl Dateien
- *
- * \desc
- * Diese Funktion liefert die Anzahl Einträge im geöffneten Verzeichnis zurück. Sie
- * gibt daher erst nach Aufruf von Dir::open einen korrekten Wert zurück. Einträge können
- * nicht nur Dateien sein, sondern auch Verzeichnisse und Symlinks.
- *
- * @return Anzahl Einträge im geöffneten Verzeichnis
- */
-size_t Dir::count() const
-{
-    return Files.count();
-}
-
-/*!\brief Sortierung ändern
- *
- * \desc
- * Durch Aufruf dieser Funktion kann die Sortierreihenfolge für die get...-Befehle
- * geändert werden. Standardmäßig werden die Dateien unsortiert zurückgegeben.
- * Die Reihenfolge hängt somit im Wesentlichen davon ab, in welcher Reihenfolge
- * die Dateien erstellt wurden, aber auch von Betriebs- und Filesystemabhängigen
- * Vorgängen.
- * \par
- * Die Sortierreihenfolge läßt sich jederzeit durch Aufruf dieser Funktion ändern.
- *
- * \param[in] s Die gewünschte Sortierreihenfolge. Siehe dazu auch die Enumeration Dir::Sort
- * \exception IllegalArgumentException Wird geworfen, wenn eine ungültige Sortiermethode angegeben wird
- */
 
 void Dir::resort(Sort s)
 {
@@ -596,23 +358,6 @@ void Dir::resort(Sort s)
         throw IllegalArgumentException();
     }
     sort = s;
-}
-
-/*!\brief Dateien unsortiert belassen
- *
- * \desc
- * Diese interne Funktion kopiert lediglich das von Dir::open eingescannte Verzeichnis
- * unsortiert in die von den Iterationsfunktionen verwendete Liste. Die Funktion wird
- * von Dir::resort in Abhängigkeit des eingestellten Sortieralgorithmus aufgerufen.
- */
-void Dir::resortNone()
-{
-    ppl7::List<DirEntry>::Iterator it;
-    Files.reset(it);
-    while (Files.getNext(it)) {
-        SortedFiles.add(&it.value());
-    }
-    return;
 }
 
 /*!\brief Dateien nach Dateiname sortieren
@@ -1133,18 +878,6 @@ void Dir::open(const String& path, Sort s)
     open((const char*)path, s);
 }
 
-/*!\brief Verzeichnis einlesen
- *
- * \desc
- * Mit dieser Funktion wird das mit \p path angegebene Verzeichnis geöffnet,
- * eingelesen und mit der Sortiermethode \p s sortiert.
- *
- * @param[in] path Zu öffnender Pfad (siehe auch CDir::Open)
- * @param[in] s gewünschte Sortierreihenfolge. Defaultmäßig wird keine Sortierung
- * verwendet.
- * @return Die Funktion hat keinen Rückgabewert. Bei Auftreten eines Fehlers wird
- * eine Exception geworfen.
- */
 void Dir::open(const char* path, Sort s)
 {
     clear();
