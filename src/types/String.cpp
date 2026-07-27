@@ -43,7 +43,7 @@
 #include <ppl7/types/bytearray.h>
 #include <ppl7/types/array.h>
 #include <ppl7/exceptions.h>
-#include <ppl7/functions.h>
+#include <ppl7/core/functions.h>
 #include <ppl7/core/iconv.h>
 
 #include <config_ppl7.h>
@@ -999,7 +999,7 @@ String String::substr(size_t start, size_t len) const
     return String();
 }
 
-void String::lowerCase()
+String& String::lowerCase()
 {
     if (stringlen == 0) return;
     // Wir wandeln den String zunächst nach Unicode um
@@ -1026,9 +1026,10 @@ void String::lowerCase()
     }
     // Zurück im String speichern
     set(buffer.data(), l);
+    return *this;
 }
 
-void String::upperCase()
+String& String::upperCase()
 {
     if (stringlen == 0) return;
     // Wir wandeln den String zunächst nach Unicode um
@@ -1055,11 +1056,12 @@ void String::upperCase()
     }
     // Zurück im String speichern
     set(buffer.data(), l);
+    return *this;
 }
 
-void String::trim()
+String& String::trim()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
 
     size_t start = 0;
     while (start < stringlen && (ptr[start] == ' ' || ptr[start] == '\t' || ptr[start] == '\r' || ptr[start] == '\n')) {
@@ -1068,7 +1070,7 @@ void String::trim()
 
     if (start == stringlen) {
         clear();
-        return;
+        return *this;
     }
 
     size_t end = stringlen - 1;
@@ -1082,6 +1084,7 @@ void String::trim()
     }
     stringlen = new_len;
     ptr[stringlen] = 0;
+    return *this;
 }
 
 String String::trimmed() const
@@ -1106,9 +1109,9 @@ String String::toUpperCase() const
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab
-void String::trimLeft()
+String& String::trimLeft()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
     size_t start = 0;
     while (start < stringlen && (ptr[start] == ' ' || ptr[start] == '\t' || ptr[start] == '\r' || ptr[start] == '\n')) {
         start++;
@@ -1116,19 +1119,20 @@ void String::trimLeft()
 
     if (start == stringlen) {
         clear();
-        return;
+        return *this;
     }
     if (start > 0) {
         size_t new_len = stringlen - start;
         memmove(ptr, ptr + start, new_len + 1); // +1 kopiert das Nullbyte direkt mit
         stringlen = new_len;
     }
+    return *this;
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
-void String::trimRight()
+String& String::trimRight()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
     size_t end = stringlen;
     while (end > 0 && (ptr[end - 1] == ' ' || ptr[end - 1] == '\t' || ptr[end - 1] == '\r' || ptr[end - 1] == '\n')) {
         end--;
@@ -1139,12 +1143,12 @@ void String::trimRight()
         stringlen = end;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
-//! \brief Schneidet die definierten Zeichen am Anfang des Strings ab
-void String::trimLeft(const String& chars)
+String& String::trimLeft(const String& chars)
 {
-    if (stringlen == 0 || chars.isEmpty()) return;
+    if (stringlen == 0 || chars.isEmpty()) return *this;
 
     size_t start = 0;
     while (start < stringlen) {
@@ -1161,19 +1165,19 @@ void String::trimLeft(const String& chars)
 
     if (start == stringlen) {
         clear();
-        return;
+        return *this;
     }
     if (start > 0) {
         size_t new_len = stringlen - start;
         memmove(ptr, ptr + start, new_len + 1); // Kopiert das Nullbyte direkt mit
         stringlen = new_len;
     }
+    return *this;
 }
 
-//! \brief Schneidet die definierten Zeichen am Ende des Strings ab
-void String::trimRight(const String& chars)
+String& String::trimRight(const String& chars)
 {
-    if (stringlen == 0 || chars.isEmpty()) return;
+    if (stringlen == 0 || chars.isEmpty()) return *this;
 
     size_t end = stringlen;
     while (end > 0) {
@@ -1194,61 +1198,38 @@ void String::trimRight(const String& chars)
         stringlen = end;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
 //! \brief Schneidet die definierten Zeichen am Anfang und Ende des Strings ab
-void String::trim(const String& chars)
+String& String::trim(const String& chars)
 {
     trimLeft(chars);
     trimRight(chars);
+    return *this;
 }
 
-/*!\brief Schneidet Zeichen am Ende des Strings ab
- *
- * \desc
- * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
- * größer als der String ist, bleibt ein leerer String zurück.
- *
- * @param num Anzahl Zeichen, die abgeschnitten werden sollen
- */
-void String::chopRight(size_t num)
+String& String::chopRight(size_t num)
 {
     if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
         stringlen -= num;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
-/*!\brief Schneidet Zeichen am Ende des Strings ab
- *
- * \desc
- * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
- * größer als der String ist, bleibt ein leerer String zurück.
- *
- * @param num Anzahl Zeichen, die abgeschnitten werden sollen
- *
- * \see
- * Die Funktion ist identisch zu String::chopRight
- */
-void String::chop(size_t num)
+String& String::chop(size_t num)
 {
     if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
         stringlen -= num;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
-/*!\brief Schneidet Zeichen am Anfang des Strings ab
- *
- * \desc
- * Diese Funktion schneidet \p num Zeichen vom Anfang des Strings ab. Falls \p num
- * größer als der String ist, bleibt ein leerer String zurück.
- *
- * @param num Anzahl Zeichen, die abgeschnitten werden sollen
- */
-void String::chopLeft(size_t num)
+String& String::chopLeft(size_t num)
 {
     if (stringlen > 0) {
         if (stringlen < num) num = stringlen;
@@ -1256,48 +1237,34 @@ void String::chopLeft(size_t num)
         stringlen -= num;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
-/*!\brief Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
- *
- * \desc
- * Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
- */
-void String::chomp()
+String& String::chomp()
 {
     trim("\n\r");
+    return *this;
 }
 
-/*!\brief Schneidet den String an einer bestimmten Stelle ab
- *
- * \desc
- * Der String wird an einer bestimmten Stelle einfach abgeschnitten
- * \param pos Die Position, an der der String abgeschnitten wird. Bei Angabe von 0 ist der String anschließend
- * komplett leer. Ist \c pos größer als die Länge des Strings, passiert nichts.
- */
-void String::cut(size_t pos)
+String& String::cut(size_t pos)
 {
-    if (stringlen == 0) return;
-    if (pos > stringlen) return;
+    if (stringlen == 0) return *this;
+    if (pos > stringlen) return *this;
     ptr[pos] = 0;
     stringlen = pos;
+    return *this;
 }
 
-/*! \brief Schneidet den String beim ersten Auftauchen eines Zeichens/Strings ab
- *
- * Der String wird beim ersten Auftauchen eines Zeichens oder eines Strings abgeschnitten.
- * \param[in] letter Buchstabe oder Buchstabenkombination, an der der String abgeschnitten werden
- * soll. Zeigt der Pointer auf NULL oder ist der String leer, passiert nichts.
- */
-void String::cut(const String& letter)
+String& String::cut(const String& letter)
 {
-    if (stringlen == 0) return;
-    if (letter.isEmpty()) return;
+    if (stringlen == 0) return *this;
+    if (letter.isEmpty()) return *this;
     ssize_t p = instr(letter, 0);
     if (p >= 0) {
         ptr[p] = 0;
         stringlen = p;
     }
+    return *this;
 }
 
 String String::strchr(char c) const
@@ -1604,19 +1571,9 @@ String& String::replace(const String& search, const String& replacement)
     return set(ms);
 }
 
-/*! \brief Schiebt den String nach links
- *
- * Der String wird um die mit \c size angegebenen Zeichen nach links verschoben und rechts mit dem durch \c c angegebenen
- * Zeichen aufgefüllt.
- * \param c Das Zeichen, mit dem der String auf der rechten Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
- * Auffüllung statt, d.h. der String verkürzt sich einfach.
- * \param size Die Anzahl Zeichen, um die der String nach links verschoben werden soll. Ist \c size größer als die Länge
- * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
- */
-void String::shl(char c, size_t size)
+String& String::shl(char c, size_t size)
 {
-    if (!stringlen) return;
-    if (!size) return;
+    if (!stringlen || !size) return *this;
     if (size > stringlen) size = stringlen;
     String t = mid(size);
     if (c) {
@@ -1625,27 +1582,19 @@ void String::shl(char c, size_t size)
         t += a;
     }
     set(t);
+    return *this;
 }
 
-/*! \brief Schiebt den String nach rechts
- *
- * Der String wird um die mit \c size angegebenen Zeichen nach rechts verschoben und links mit dem durch \c c angegebenen
- * Zeichen aufgefüllt.
- * \param c Das Zeichen, mit dem der String auf der linken Seite aufgefüllt werden soll. \c c muß größer 0 sein.
- * \param size Die Anzahl Zeichen, um die der String nach rechts verschoben werden soll. Ist \c size größer als die Länge
- * des Strings, wird der String komplett geleert und ist anschließend so groß wie size.
- */
-void String::shr(char c, size_t size)
+String& String::shr(char c, size_t size)
 {
-    if (!stringlen) return;
-    if (!size) return;
-    if (!c) return;
+    if (!stringlen || !size || !c) return *this;
     if (size > stringlen) size = stringlen;
     String t;
     t.repeat(c, size);
     t += left(stringlen - size);
     t.cut(size);
     set(t);
+    return *this;
 }
 
 /*!\brief Kleiner als

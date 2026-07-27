@@ -816,7 +816,8 @@ public:
      */
     String& vasprintf(const char* fmt, va_list args);
 
-    /**@brief String wiederholen
+    /**
+     * @brief String wiederholen
      *
      * Mit dieser Funktion wird der Inhalt des Strings mehrfach wiederholt.
      *
@@ -826,7 +827,8 @@ public:
      */
     String& repeat(size_t num);
 
-    /**@brief Füllt den String mit einem Zeichen
+    /**
+     * @brief Füllt den String mit einem Zeichen
      *
      * Der String wird mit einem gewünschten Zeichen gefüllt
      * @param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
@@ -836,7 +838,8 @@ public:
      */
     String& repeat(char code, size_t num);
 
-    /**@brief Füllt den String mit einem Zeichen
+    /**
+     * @brief Füllt den String mit einem Zeichen
      *
      * Der String wird mit einem gewünschten Zeichen gefüllt
      * @param unicode Der Unicode des Zeichens, mit dem der String gefüllt werden soll
@@ -857,11 +860,14 @@ public:
      */
     String repeated(size_t num) const;
 
-    /**@brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
+    /**
+     * @brief Wandelt alle Zeichen des Strings in Kleinbuchstaben um
      *
      * Diese Funktion wandelt alle Zeichen des Strings in Kleinbuchstaben um. Die genaue Funktionsweise hängt davon ab,
      * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
      *
+     * @return Referenz auf den String
+     *
      * @attention Lokalisierungseinstellungen einer Shell werden nicht automatisch übernommen. In der Regel
      * wird standardmäßig die Lokalisierung "C" verwendet, wodurch nur US-ASCII (ASCII 32 bis 127) umgewandelt wird.
      * Man sollte daher bei Programmstart mit "setlocale" die gewünschte Spracheinstellung vornehmen.
@@ -876,13 +882,16 @@ public:
      * setlocale(LC_CTYPE,"");
      * @endcode
      */
-    void lowerCase();
+    String& lowerCase();
 
-    /**@brief Wandelt alle Zeichen des Strings in Großbuchstaben um
+    /**
+     * @brief Wandelt alle Zeichen des Strings in Großbuchstaben um
      *
      * Diese Funktion wandelt alle Zeichen des Strings in Großbuchstaben um. Die genaue Funktionsweise hängt davon ab,
      * welche Spracheinstellungen aktiv sind, genauer vom Wert "LC_CTYPE".
      *
+     * @return Referenz auf den String
+     *
      * @attention Lokalisierungseinstellungen einer Shell werden nicht automatisch übernommen. In der Regel
      * wird standardmäßig die Lokalisierung "C" verwendet, wodurch nur US-ASCII (ASCII 32 bis 127) umgewandelt wird.
      * Man sollte daher bei Programmstart mit "setlocale" die gewünschte Spracheinstellung vornehmen.
@@ -897,16 +906,20 @@ public:
      * setlocale(LC_CTYPE,"");
      * @endcode
      */
-    void upperCase();
+    String& upperCase();
 
-    /**@brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
+    /**
+     * @brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
      *
      * Leerzeichen, Tabs, Returns und Linefeeds werden am Anfang und Ende des Strings abgeschnitten
      * und der String wird entsprechend verkürzt.
+     *
+     * @return Referenz auf den String
      */
-    void trim();
+    String& trim();
 
-    /**@brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
+    /**
+     * @brief Schneidet Leerzeichen, Tabs, Returns und Linefeeds am Anfang und Ende des Strings ab
      *
      * Es wird eine Kopie des Strings angelegt und bei dieser alle Leerzeichen, Tabs, Returns und
      * Linefeeds am Anfang und Ende des Strings abgeschnitten. Das Ergebnis wird als Returnwert
@@ -917,20 +930,103 @@ public:
 
     String toLowerCase() const;
     String toUpperCase() const;
-    void trimLeft();
-    void trimRight();
-    void trim(const String& chars);
-    void trimLeft(const String& chars);
-    void trimRight(const String& chars);
-    void chopRight(size_t num = 1);
-    void chop(size_t num = 1);
-    void chopLeft(size_t num = 1);
-    void chomp();
-    void cut(size_t pos);
-    void cut(const String& letter);
+    String& trimLeft();
+    String& trimRight();
+    String& trim(const String& chars);
+    String& trimLeft(const String& chars);
+    String& trimRight(const String& chars);
 
-    void shl(char c, size_t size);
-    void shr(char c, size_t size);
+    /**
+     * @brief Schneidet Zeichen am Ende des Strings ab
+     *
+     * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
+     * größer als der String ist, bleibt ein leerer String zurück.
+     *
+     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     * @return Referenz auf den String
+     */
+    String& chopRight(size_t num = 1);
+
+    /**
+     * @brief Schneidet Zeichen am Ende des Strings ab
+     *
+     * Diese Funktion schneidet \p num Zeichen vom Ende des Strings ab. Falls \p num
+     * größer als der String ist, bleibt ein leerer String zurück.
+     *
+     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     * @return Referenz auf den String
+     *
+     * @see
+     * Die Funktion ist identisch zu String::chopRight
+     */
+    String& chop(size_t num = 1);
+
+    /**
+     * @brief Schneidet Zeichen am Anfang des Strings ab
+     *
+     * Diese Funktion schneidet \p num Zeichen vom Anfang des Strings ab. Falls \p num
+     * größer als der String ist, bleibt ein leerer String zurück.
+     *
+     * @param num Anzahl Zeichen, die abgeschnitten werden sollen
+     *
+     * @return Referenz auf den String
+     */
+    String& chopLeft(size_t num = 1);
+
+    /**
+     * @brief Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
+     *
+     * @return Referenz auf den String
+     */
+    String& chomp();
+
+    /**
+     * @brief Schneidet den String an einer bestimmten Stelle ab
+     *
+     * Der String wird an einer bestimmten Stelle einfach abgeschnitten
+     * @param pos Die Position, an der der String abgeschnitten wird. Bei Angabe von 0 ist der String anschließend
+     * komplett leer. Ist \c pos größer als die Länge des Strings, passiert nichts.
+     *
+     * @return Referenz auf den String
+     */
+    String& cut(size_t pos);
+
+    /**
+     * @brief Schneidet den String beim ersten Auftauchen eines Zeichens/Strings ab
+     *
+     * Der String wird beim ersten Auftauchen eines Zeichens oder eines Strings abgeschnitten.
+     * @param[in] letter Buchstabe oder Buchstabenkombination, an der der String abgeschnitten werden
+     * soll. Zeigt der Pointer auf NULL oder ist der String leer, passiert nichts.
+     *
+     * @return Referenz auf den String
+     */
+    String& cut(const String& letter);
+
+    /** @brief Schiebt den String nach links
+     *
+     * Der String wird um die mit \c size angegebenen Zeichen nach links verschoben und rechts mit dem durch \c c angegebenen
+     * Zeichen aufgefüllt.
+     * @param c Das Zeichen, mit dem der String auf der rechten Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
+     * Auffüllung statt, d.h. der String verkürzt sich einfach.
+     * @param size Die Anzahl Zeichen, um die der String nach links verschoben werden soll. Ist \c size größer als die Länge
+     * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
+     *
+     * @return Referenz auf den String
+     */
+    String& shl(char c, size_t size);
+
+    /** @brief Schiebt den String nach rechts
+     *
+     * Der String wird um die mit \c size angegebenen Zeichen nach rechts verschoben und links mit dem durch \c c angegebenen
+     * Zeichen aufgefüllt.
+     * @param c Das Zeichen, mit dem der String auf der linken Seite aufgefüllt werden soll. Wird der Wert 0 verwendet, findet keine
+     * Auffüllung statt, d.h. der String verkürzt sich einfach.
+     * @param size Die Anzahl Zeichen, um die der String nach rechts verschoben werden soll. Ist \c size größer als die Länge
+     * des Strings, wird der String komplett geleert und ist anschließend so groß wie size, sofern c>0 war.
+     *
+     * @return Referenz auf den String
+     */
+    String& shr(char c, size_t size);
 
     String strchr(char c) const;
     String strrchr(char c) const;
