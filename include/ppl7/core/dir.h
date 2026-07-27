@@ -153,7 +153,6 @@ private:
     void resortSize();
     void resortFilename();
     void resortFilenameIgnoreCase();
-    void resortNone();
 
 public:
     PPL7EXCEPTION(PathnameTooLongException, Exception);
@@ -311,6 +310,71 @@ public:
      * eingebaut.
      */
     void print() const;
+
+    /// @name Filterfunktionen
+    // @{
+
+    /**
+     * @brief Liefert alle Einträge zurück, die zu einem Wildcard-Muster (z.B. "*.txt") passen
+     *
+     * @param pattern Wildcard-Muster, wie es auch beim Unix-Befehl "ls" oder mit "dir" unter Windows angegeben werden kann. Dabei sind die
+     * Wildcards "*" und "?" erlaubt. Das Sternchen "*" steht dabei für beliebig viele Zeichen, das Fragezeichen "?" für ein einzelnes.
+     * @param ignorecase Wird diese Variable auf "true" gesetzt, wird Groß- und Kleinschreibung ignoriert. Wird als Pattern beispielsweise
+     * "*.TXT" angegeben, würde auch "*.txt" passen. Der Default ist "false".
+     * @return std::vector<DirEntry> mit allen Einträgen, die zu dem angegebenen Muster passen
+     */
+    std::vector<DirEntry> filterPattern(const String& pattern, bool ignorecase = false) const;
+
+    /**
+     * @brief Liefert alle Einträge zurück, die zu einer Regular Expression passen
+     *
+     * @param regexp Regular Expression, wie sie auch in der C++ Standardbibliothek verwendet wird. Siehe dazu auch std::regex.
+     * @return std::vector<DirEntry> mit allen Einträgen, die zu der angegebenen Regular Expression passen
+     */
+    std::vector<DirEntry> filterRegExp(const String& regexp) const;
+
+    /**
+     * @brief Liefert alle Einträge zurück, für die das Prädikat true zurückgibt
+     *
+     * @example
+     * @code{.cpp}
+     * // Nur lesbare Dateien finden, die größer als 1 MB sind
+     * auto largeFiles = dir.filter([](const DirEntry& e) {
+     *     return e.isFile() && e.Size > 1024 * 1024;
+     *});
+     * @endcode
+     */
+    template <typename Predicate> std::vector<DirEntry> filter(Predicate pred) const
+    {
+        std::vector<DirEntry> result;
+        for (const auto& entry : Files) {
+            if (pred(entry)) {
+                result.push_back(entry);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @brief Sucht den ersten Eintrag, der zum Pattern passt
+     * @return std::optional<DirEntry> mit dem Treffer oder std::nullopt
+     *
+     * @example
+     * @code{.cpp}
+     * auto entry = dir.findPattern("*.txt");
+     * // oder: std::optional<DirEntry> file = dir.findPattern("*.txt");
+     * if (entry) {
+     *    // Zugriff mit * oder -> (genau wie bei einem Pointer)
+     *    std::cout << "Found: " << entry->Filename << std::endl;
+     * } else {
+     *    std::cout << "No match found" << std::endl;}
+     * }
+     * @endcode
+     */
+    std::optional<DirEntry> findPattern(const String& pattern, bool ignorecase = false) const;
+    std::optional<DirEntry> findRegExp(const String& regexp) const;
+
+    // @}
 
     /// @name Statische Funktionen
     // @{
