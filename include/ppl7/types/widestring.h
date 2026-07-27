@@ -103,7 +103,7 @@ public:
 
     //! @name Statische Funktionen
     //@{
-    static void setGlobalEncoding(const char* encoding);
+    static WideString WideString::format(const char* fmt, ...);
     //@}
 
     void clear() noexcept;
@@ -162,21 +162,21 @@ public:
     WideString& repeat(const WideString& str, size_t num);
     WideString repeated(size_t num) const;
 
-    void lowerCase();
-    void upperCase();
-    void upperCaseWords();
-    void trim();
-    void trimLeft();
-    void trimRight();
-    void trim(const WideString& chars);
-    void trimLeft(const WideString& chars);
-    void trimRight(const WideString& chars);
-    void chopRight(size_t num = 1);
-    void chop(size_t num = 1);
-    void chopLeft(size_t num = 1);
-    void chomp();
-    void cut(size_t pos);
-    void cut(const WideString& letter);
+    WideString& lowerCase();
+    WideString& upperCase();
+    WideString& upperCaseWords();
+    WideString& trim();
+    WideString& trimLeft();
+    WideString& trimRight();
+    WideString& trim(const WideString& chars);
+    WideString& trimLeft(const WideString& chars);
+    WideString& trimRight(const WideString& chars);
+    WideString& chopRight(size_t num = 1);
+    WideString& chop(size_t num = 1);
+    WideString& chopLeft(size_t num = 1);
+    WideString& chomp();
+    WideString& cut(size_t pos);
+    WideString& cut(const WideString& letter);
 
     WideString trimmed() const;
 

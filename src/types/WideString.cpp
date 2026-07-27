@@ -27,46 +27,30 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifndef _ISOC99_SOURCE
-#define _ISOC99_SOURCE
-#endif
-#ifdef HAVE_WIDEC_H
-#include <widec.h>
-#endif
-
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#ifdef HAVE_CTYPE_H
-#include <ctype.h>
-#endif
-#ifdef HAVE_WCHAR_H
-#include <wchar.h>
-#endif
-#ifdef HAVE_WCTYPE_H
-#include <wctype.h>
-#endif
-#ifdef HAVE_LOCALE_H
-#include <locale.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
+// #include <wchar.h>
 
-#include "ppl7.h"
+/*
+#include <stdio.h>
+#include <stdlib.h>
+
+#include <stdarg.h>
+#include <ctype.h>
+
+#include <wctype.h>
+#include <locale.h>
+#include <errno.h>
+*/
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/bytearray.h>
+#include <ppl7/types/array.h>
+#include <ppl7/exceptions.h>
+#include <ppl7/core/functions.h>
+#include <ppl7/core/iconv.h>
+
+#include "config_ppl7.h"
+
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
@@ -691,26 +675,19 @@ WideString& WideString::setf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            set(buff);
-            free(buff);
-        }
-        catch (...) {
-            free(buff);
-            va_end(args);
-            throw;
-        }
-        return *this;
-    }
+    this->vasprintf(fmt, args);
     va_end(args);
-    free(buff);
-    throw Exception();
+    return *this;
+}
+
+WideString WideString::format(const char* fmt, ...)
+{
+    WideString s;
+    va_list args;
+    va_start(args, fmt);
+    s.vasprintf(fmt, args);
+    va_end(args);
+    return s;
 }
 
 /*!\brief Einzelnes Unicode-Zeichen übernehmen
@@ -755,24 +732,10 @@ void MyFunction(const char *fmt, ...)
  */
 WideString& WideString::vasprintf(const char* fmt, va_list args)
 {
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            set(buff);
-            free(buff);
-        }
-        catch (...) {
-            free(buff);
-            throw;
-        }
-        return *this;
-    }
-    free(buff);
-    throw Exception();
+    String tmp;
+    tmp.vasprintf(fmt, args);
+    set(tmp);
+    return *this;
 }
 
 /*!\brief Fügt einen Wide-Character String an das Ende des bestehenden an
@@ -927,28 +890,10 @@ WideString& WideString::appendf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            WideString a;
-            a.set(buff);
-            free(buff);
-            append((wchar_t*)a.ptr, a.stringlen);
-        }
-        catch (...) {
-            free(buff);
-            va_end(args);
-            throw;
-        }
-        return *this;
-    }
+    String s;
+    s.vasprintf(fmt, args);
     va_end(args);
-    free(buff);
-    throw Exception();
+    return append(WideString(s));
 }
 
 /*!\brief Einzelnes Unicode-Zeichen anhängen
@@ -1129,28 +1074,10 @@ WideString& WideString::prependf(const char* fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    char* buff = NULL;
-#ifdef HAVE_VASPRINTF
-    if (::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#else
-    if (compat::vasprintf(&buff, (const char*)fmt, args) >= 0 && buff != NULL) {
-#endif
-        try {
-            WideString a;
-            a.set(buff);
-            free(buff);
-            prepend((wchar_t*)a.ptr, a.stringlen);
-        }
-        catch (...) {
-            free(buff);
-            va_end(args);
-            throw;
-        }
-        return *this;
-    }
+    String s;
+    s.vasprintf(fmt, args);
     va_end(args);
-    free(buff);
-    throw Exception();
+    return prepend(WideString(s));
 }
 
 /*!\brief Einzelnes Unicode-Zeichen am Anfang einfügen
@@ -1768,7 +1695,7 @@ WideString WideString::substr(size_t start, size_t len) const
  * \endcode
  * \par
  */
-void WideString::lowerCase()
+WideString& WideString::lowerCase()
 {
     if (ptr != NULL && stringlen > 0) {
         for (size_t i = 0; i < stringlen; i++) {
@@ -1779,6 +1706,7 @@ void WideString::lowerCase()
             }
         }
     }
+    return *this;
 }
 
 /*! \brief Wandelt alle Zeichen des Strings in Grossbuchstaben um
@@ -1799,7 +1727,7 @@ void WideString::lowerCase()
  * setlocale(LC_CTYPE,"de_DE.UTF-8");
  * \endcode
  */
-void WideString::upperCase()
+WideString& WideString::upperCase()
 {
     if (ptr != NULL && stringlen > 0) {
         for (size_t i = 0; i < stringlen; i++) {
@@ -1810,6 +1738,7 @@ void WideString::upperCase()
             }
         }
     }
+    return *this;
 }
 
 WideString WideString::toLowerCase() const
@@ -1832,7 +1761,7 @@ WideString WideString::toUpperCase() const
  * Diese Funktion wandelt die Anfangsbuchstaben aller im String enthaltenen Wörter in
  * Großbuchstaben um.
  */
-void WideString::upperCaseWords()
+WideString& WideString::upperCaseWords()
 {
     if (ptr != NULL && stringlen > 0) {
         bool wordstart = true;
@@ -1851,12 +1780,13 @@ void WideString::upperCaseWords()
             }
         }
     }
+    return *this;
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang und Ende des Strings ab
-void WideString::trim()
+WideString& WideString::trim()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
 
     size_t start = 0;
     while (start < stringlen && (ptr[start] == L' ' || ptr[start] == L'\t' || ptr[start] == L'\r' || ptr[start] == L'\n')) {
@@ -1865,7 +1795,7 @@ void WideString::trim()
 
     if (start == stringlen) {
         clear();
-        return;
+        return *this;
     }
 
     size_t end = stringlen - 1;
@@ -1879,6 +1809,7 @@ void WideString::trim()
     }
     stringlen = new_len;
     ptr[stringlen] = 0;
+    return *this;
 }
 
 WideString WideString::trimmed() const
@@ -1889,9 +1820,9 @@ WideString WideString::trimmed() const
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Anfang des Strings ab
-void WideString::trimLeft()
+WideString& WideString::trimLeft()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
     size_t start = 0;
     while (start < stringlen && (ptr[start] == L' ' || ptr[start] == L'\t' || ptr[start] == L'\r' || ptr[start] == L'\n')) {
         start++;
@@ -1899,19 +1830,20 @@ void WideString::trimLeft()
 
     if (start == stringlen) {
         clear();
-        return;
+        return *this;
     }
     if (start > 0) {
         size_t new_len = stringlen - start;
         wmemmove(ptr, ptr + start, new_len + 1); // Kopiert den Null-Terminator mit
         stringlen = new_len;
     }
+    return *this;
 }
 
 //! \brief Schneidet Leerzeichen, Tabs Returns und Linefeeds am Ende des Strings ab
-void WideString::trimRight()
+WideString& WideString::trimRight()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
     size_t end = stringlen;
     while (end > 0 && (ptr[end - 1] == L' ' || ptr[end - 1] == L'\t' || ptr[end - 1] == L'\r' || ptr[end - 1] == L'\n')) {
         end--;
@@ -1922,10 +1854,11 @@ void WideString::trimRight()
         stringlen = end;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
 //! \brief Schneidet die definierten Zeichen am Anfang des Strings ab
-void WideString::trimLeft(const WideString& chars)
+WideString& WideString::trimLeft(const WideString& chars)
 {
     if (ptr != NULL && stringlen > 0 && chars.stringlen > 0) {
         size_t i, start, s, z;
@@ -1949,10 +1882,11 @@ void WideString::trimLeft(const WideString& chars)
             stringlen = wcslen(ptr);
         }
     }
+    return *this;
 }
 
 //! \brief Schneidet die definierten Zeichen am Ende des Strings ab
-void WideString::trimRight(const WideString& chars)
+WideString& WideString::trimRight(const WideString& chars)
 {
     if (ptr != NULL && stringlen > 0 && chars.stringlen > 0) {
         size_t i, ende, z;
@@ -1975,13 +1909,15 @@ void WideString::trimRight(const WideString& chars)
         ptr[ende] = 0;
         stringlen = wcslen(ptr);
     }
+    return *this;
 }
 
 //! \brief Schneidet die definierten Zeichen am Anfang und Ende des Strings ab
-void WideString::trim(const WideString& chars)
+WideString& WideString::trim(const WideString& chars)
 {
     trimLeft(chars);
     trimRight(chars);
+    return *this;
 }
 
 /*!\brief Schneidet Zeichen am Ende des Strings ab
@@ -1992,13 +1928,14 @@ void WideString::trim(const WideString& chars)
  *
  * @param num Anzahl Zeichen, die abgeschnitten werden sollen
  */
-void WideString::chopRight(size_t num)
+WideString& WideString::chopRight(size_t num)
 {
     if (ptr != NULL && stringlen > 0) {
         if (stringlen < num) num = stringlen;
         stringlen -= num;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
 /*!\brief Schneidet Zeichen am Ende des Strings ab
@@ -2012,13 +1949,14 @@ void WideString::chopRight(size_t num)
  * \see
  * Die Funktion ist identisch zu WideString::chopRight
  */
-void WideString::chop(size_t num)
+WideString& WideString::chop(size_t num)
 {
     if (ptr != NULL && stringlen > 0) {
         if (stringlen < num) num = stringlen;
         stringlen -= num;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
 /*!\brief Schneidet Zeichen am Anfang des Strings ab
@@ -2029,7 +1967,7 @@ void WideString::chop(size_t num)
  *
  * @param num Anzahl Zeichen, die abgeschnitten werden sollen
  */
-void WideString::chopLeft(size_t num)
+WideString& WideString::chopLeft(size_t num)
 {
     if (ptr != NULL && stringlen > 0) {
         if (stringlen < num) num = stringlen;
@@ -2037,6 +1975,7 @@ void WideString::chopLeft(size_t num)
         stringlen -= num;
         ptr[stringlen] = 0;
     }
+    return *this;
 }
 
 /*!\brief Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
@@ -2044,9 +1983,10 @@ void WideString::chopLeft(size_t num)
  * \desc
  * Schneidet Returns und Linefeeds am Anfanng und Ende des Strings ab
  */
-void WideString::chomp()
+WideString& WideString::chomp()
 {
     trim(L"\n\r");
+    return *this;
 }
 
 /*!\brief Schneidet den String an einer bestimmten Stelle ab
@@ -2056,12 +1996,13 @@ void WideString::chomp()
  * \param pos Die Position, an der der String abgeschnitten wird. Bei Angabe von 0 ist der String anschließend
  * komplett leer. Ist \c pos größer als die Länge des Strings, passiert nichts.
  */
-void WideString::cut(size_t pos)
+WideString& WideString::cut(size_t pos)
 {
-    if (ptr == NULL && stringlen == 0) return;
-    if (pos > stringlen) return;
+    if (ptr == NULL && stringlen == 0) return *this;
+    if (pos > stringlen) return *this;
     ptr[pos] = 0;
     stringlen = pos;
+    return *this;
 }
 
 /*! \brief Schneidet den String beim ersten Auftauchen eines Zeichens/Strings ab
@@ -2070,15 +2011,16 @@ void WideString::cut(size_t pos)
  * \param[in] letter Buchstabe oder Buchstabenkombination, an der der String abgeschnitten werden
  * soll. Zeigt der Pointer auf NULL oder ist der String leer, passiert nichts.
  */
-void WideString::cut(const WideString& letter)
+WideString& WideString::cut(const WideString& letter)
 {
-    if (ptr == NULL && stringlen == 0) return;
-    if (letter.isEmpty()) return;
+    if (ptr == NULL && stringlen == 0) return *this;
+    if (letter.isEmpty()) return *this;
     ssize_t p = instr(letter, 0);
     if (p >= 0) {
         ptr[p] = 0;
         stringlen = p;
     }
+    return *this;
 }
 
 WideString WideString::strchr(wchar_t c) const
