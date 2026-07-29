@@ -38,35 +38,152 @@
 #include <ppl7/core/fileobject.h>
 #include <ppl7/core/file.h>
 #include <vector>
+#include <optional>
 
 namespace ppl7
 {
+
+/**
+ * @class DirEntry
+ * @ingroup PPLGroupFileIO
+ * @brief Dateiverzeichnis-Eintrag
+ *
+ * Die Klasse DirEntry wird zum Abbilden von Dateien innerhalb eines Verzeichnisses
+ * verwendet und ist die Basisklasse für alle Directory-Funktionen. Die Klasse CDir
+ * setzt darauf auf.
+ */
+
 class DirEntry
 {
 public:
-    DirEntry();
-    DirEntry(const DirEntry& other);
-    String Filename;
-    String Path;
-    String File;
-    uint64_t Size;
-    FileAttr::Attributes Attrib;
-    uint32_t Uid;
-    uint32_t Gid;
-    uint32_t Blocks;
-    uint32_t BlockSize;
-    uint32_t NumLinks;
+    DirEntry() = default;
+
+    String Filename; /// Beinhaltet den Dateinamen ohne Pfadangaben
+
+    String Path; /// Vollständiger Pfad ohne Dateinamen
+
+    String File; /// Vollständiger Pfad mit Dateinamen
+
+    /**
+     * @brief Lesbare Darstellung der Datei-Attribute und Rechte
+     *
+     * Dieser String enthält eine lesbare Darstellung der Datei-Attribute und
+     * Zugriffsrechte, wie man es vom UNIX-Befehl "ls -l" kennt.
+     */
     String AttrStr;
-    DateTime ATime, CTime, MTime;
-    bool isDir();
-    bool isFile();
-    bool isLink();
-    bool isReadable();
-    bool isWritable();
-    bool isExecutable();
-    DirEntry& operator=(const DirEntry& other);
+
+    /**
+     * @authors Zeit des letzten Dateizugriffs
+     *
+     * Enthält das Datum des letzten Dateizugriffs in UNIX-Time.
+     */
+    DateTime ATime;
+
+    /**
+     * @brief Zeit der Datei-Erstellung
+     *
+     * Enthält das Datum der Erstellung der Datei in UNIX-Time.
+     */
+    DateTime CTime;
+
+    /**
+     * @brief Zeit der letzten Modifizierung
+     *
+     * Enthält das Datum der letzten Modifizierung der Datei in UNIX-Time.
+     */
+    DateTime MTime;
+
+    uint64_t Size = 0;      /// Größe der Datei in Bytes als vorzeichenloser 64-Bit-Wert (uint64_t).
+    uint32_t Uid = 0;       /// Benutzer-ID des Eigentümers der Datei
+    uint32_t Gid = 0;       /// Gruppen-ID des Eigentümers der Datei
+    uint32_t Blocks = 0;    /// Anzahl der Blöcke, die von der Datei belegt werden
+    uint32_t BlockSize = 0; /// Größe der Blöcke auf dem Filesystem, auf dem die Datei liegt
+    uint32_t NumLinks = 0;  /// Anzahl der Hardlinks, die auf die Datei verweisen
+
+    /**
+     * @brief Attribute der Datei
+     *
+     * Die Attribute können auch einzeln mit den Memberfunktionen IsDir, IsFile,
+     * IsLink, IsHidden, IsReadOnly, IsArchiv und IsSystem abgefragt werden.
+     *
+     */
+    FileAttr::Attributes Attrib = FileAttr::NONE;
+
+    /**
+     * @brief Ist aktueller Eintrag ein Verzeichnis?
+     *
+     * Die Funktion prüft, ob der aktuelle Directory-Eintrag ein Verzeichnis ist.
+     *
+     * @return Liefert true (1) oder false (0) zurück.
+     */
+    bool isDir() const;
+
+    /**
+     * @brief Ist aktueller Eintrag eine Datei?
+     *
+     * Die Funktion prüft, ob der aktuelle Directory-Eintrag eine Datei ist.
+     *
+     * @return Liefert true (1) oder false (0) zurück.
+     */
+    bool isFile() const;
+
+    /**
+     * @brief Ist aktueller Eintrag ein Link?
+     *
+     * Die Funktion prüft, ob der aktuelle Directory-Eintrag ein Link ist.
+     *
+     * @return Liefert true (1) oder false (0) zurück.
+     */
+    bool isLink() const;
+
+    /**
+     * @brief Ist aktueller Eintrag lesbar?
+     *
+     * Die Funktion prüft, ob der aktuelle Directory-Eintrag lesbar ist.
+     *
+     * @return Liefert true (1) oder false (0) zurück.
+     */
+    bool isReadable() const;
+
+    /**
+     * @brief Ist aktueller Eintrag schreibbar?
+     *
+     * Die Funktion prüft, ob der aktuelle Directory-Eintrag schreibbar ist.
+     *
+     * @return Liefert true (1) oder false (0) zurück.
+     */
+    bool isWritable() const;
+
+    /**
+     * @brief Ist aktueller Eintrag ausführbar?
+     *
+     * Die Funktion prüft, ob der aktuelle Directory-Eintrag ausführbar ist.
+     *
+     * @return Liefert true (1) oder false (0) zurück.
+     */
+    bool isExecutable() const;
+
+    /**
+     * @brief Eintrag in einem Array speichern
+     *
+     * Mit dieser Funktion können alle Informationen des aktuellen Verzeichnis-Eintrags
+     * in einem Assoziativen Array gespeichert werden.
+     *
+     * \param a Referenz auf ein Assoziatives Array, in dem die Daten gespeichert werden
+     * sollen.
+     *
+     */
     void toArray(AssocArray& a) const;
-    void print(const char* label = NULL);
+
+    /**
+     * @brief Verzeichniseintrag ausgeben
+     *
+     * Gibt den Inhalt des aktuellen Verzeichnis-Eintrags auf STDOUT aus.
+     *
+     * @param label ist ein optionaler String, der bei der Ausgabe jeder Zeile
+     * vorangestellt wird.
+     */
+    void print(const String& label = String("DirEntry")) const;
 };
 
 /**@class Dir
@@ -144,7 +261,7 @@ public:
 private:
     std::vector<DirEntry> Files;
 
-    Sort sort;
+    Sort sort = Sort::None;
     String Path;
 
     void resortMTime();
@@ -155,11 +272,6 @@ private:
     void resortFilenameIgnoreCase();
 
 public:
-    PPL7EXCEPTION(PathnameTooLongException, Exception);
-    PPL7EXCEPTION(NonexistingPathException, Exception);
-    PPL7EXCEPTION(PermissionDeniedException, Exception);
-    PPL7EXCEPTION(CreateDirectoryFailedException, Exception);
-
     /** @brief Default-Konstruktor
      *
      * Mit diesem Konstruktor wird kein Verzeichnis geöffnet. Das Verzeichnis kann später

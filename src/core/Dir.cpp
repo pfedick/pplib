@@ -41,109 +41,20 @@
 #ifndef _WIN32
 #include <unistd.h>
 #include <pwd.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #endif
 
 #include <ppl7/core/dir.h>
 #include <ppl7/exceptions.h>
 #include <ppl7/types/string.h>
 #include <ppl7/types/widestring.h>
+#include <ppl7/types/array.h>
 #include <ppl7/core/regex.h>
+#include <ppl7/core/functions.h>
 
 namespace ppl7
 {
-
-/*!\enum Dir::Sort
- * \brief Sortiermöglichkeiten
- *
- * In dieser Enumeration sind die verschiedenen Sortiermöglichkeiten definiert,
- * die als Parameter der Funktionen Dir::open, Dir::resort und des Konstruktors
- * der Klasse Dir verwendet werden können.
- */
-
-/*!\var Dir::Sort Dir::SORT_NONE
- * Keine Sortierung. Die Reihenfolge der Dateien hängt vom Betriebs- und Filesystem ab.
- */
-
-/*!\var Dir::Sort Dir::SORT_FILENAME
- * Es wird eine Sortierung anhand der Dateinamen vorgenommen. Dabei wird Groß- und Kleinschreibung
- * beachtet. Dateien, die mit einem Großbuchstaben beginnen, werden zuerst aufgelistet, danach
- * Dateien mit Kleinbuchstaben.
- */
-
-/*!\var Dir::Sort Dir::SORT_FILENAME_IGNORCASE
- * Es wird eine Sortierung anhand der Dateinamen vorgenommen. Dabei wird Groß- und Kleinschreibung
- * ignoriert. Dateien mit Großbuchstaben und Kleinbuchstaben werden vermischt ausgegeben, wobei
- * jedoch die Alphabetische Reihenfolge erhalten bleibt.
- */
-
-/*!\var Dir::Sort Dir::SORT_ATIME
- * Es wird eine Sortierung nach dem Datum des letzten Zugriffs vorgenommen.
- */
-
-/*!\var Dir::Sort Dir::SORT_MTIME
- * Es wird eine Sortierung nach dem Datum der letzten Modifikation vorgenommen.
- * Dieser Zeitstempel ändert sich nur bei Neuanlage der Datei oder des Verzeichnisses,
- * oder wenn ein Schreibzugriff stattgefunden hat.
- */
-
-/*!\var Dir::Sort Dir::SORT_CTIME
- * Es wird eine Sortierung nach dem Datum der letzten Statusänderung vorgenommen.
- * Eine Statusänderung besteht nicht nur bei Neuanlage und Schreibzugriff, sondern
- * auch bei Änderung der Zugriffsrechte oder Verlinkung.
- */
-
-/*!\var Dir::Sort Dir::SORT_SIZE
- * Es wird eine Sortierung nach der Größe der Datei vorgenommen.
- */
-
-/*!\typedef ppl7::List<const DirEntry*>::Iterator Dir::Iterator;
- * \brief Iterator zum Durchwandern der Verzeichnisliste
- *
- * \desc
- * Dieser Iterator wird benötigt, wenn man die Verzeichnisliste mit Dir::getNext oder
- * den verwandten Befehlen durchwandern will.
- * \example
-\code
-    ppl7::String Home=ppl7::Dir::homePath();
-    ppl7::Dir d(Home, ppl7::Dir::SORT_FILENAME);
-    // Iterator zum Durchwandern des Verzeichnisses anlegen
-    ppl7::Dir::Iterator it;
-    d.reset(it);
-    ppl7::DirEntry e;
-    while (d.getNext(e,it)) {
-        std::cout << "Datei: " << e.Filename << "\n";
-    }
-\endcode
- */
-
-/*!\var ppl7::List<DirEntry> ppl7::Dir::Files
- * \brief Interne Liste mit den eingelesenen, unsortierten Verzeichniseinträgen
- *
- * \desc
- * Interne Liste mit den eingelesenen, unsortierten Verzeichniseinträgen
- *
- */
-
-/*!\var ppl7::Dir::SortedFiles
- * \brief Interne sortierte Liste mit Pointern auf die Verzeichniseinträgen
- *
- * \desc
- * Interne sortierte Liste mit Pointern auf die Verzeichniseinträgen
- */
-
-/*!\var ppl7::Dir::sort
- * \brief Aktuelle Sortiermethode
- *
- * \desc
- * Aktuelle Sortiermethode
- */
-
-/*!\var ppl7::Dir::Path
- * \brief Pfad des aktuell geöffneten Verzeichnisses
- *
- * \desc
- * Pfad des aktuell geöffneten Verzeichnisses
- */
 
 /****************************************************************
  * Statische Funktionen
@@ -159,7 +70,7 @@ String Dir::currentPath()
 
     // Gezielte Fehlerbehandlung über std::error_code
     if (ec == std::errc::no_such_file_or_directory) {
-        throw NonexistingPathException();
+        throw FileNotFoundException();
     } else if (ec == std::errc::permission_denied) {
         throw PermissionDeniedException();
     }
@@ -257,13 +168,90 @@ String Dir::documentsPath(const String& company, const String& application)
 #endif
 }
 
+bool Dir::exists(const String& dirname)
+{
+    try {
+        DirEntry f;
+        File::statFile(dirname, f);
+        if (f.isDir()) return true;
+        if (f.isLink()) return true;
+        return false;
+    }
+    catch (...) {
+        return false;
+    }
+    return false;
+}
+
+void Dir::mkDir(const String& path, bool recursive)
+{
+#ifdef _WIN32
+    Dir::mkDir(path, 0, recursive);
+#else
+    Dir::mkDir(path, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, recursive);
+#endif
+}
+
+void Dir::mkDir(const String& path, mode_t mode, bool recursive)
+{
+    if (path.isEmpty()) throw IllegalArgumentException("Dir::mkDir got an empty path");
+    // Wenn es das Verzeichnis schon gibt, koennen wir sofort aussteigen
+    if (Dir::exists(path)) return;
+
+    if (!recursive) {
+        // Nicht rekursiv, wir versuchen, das Verzeichnis direkt anzulegen
+#ifdef _WIN32
+        String s = path;
+        s.replace("/", "\\");
+        if (_wmkdir((const wchar_t*)WideString(s)) == 0) return;
+        throwExceptionFromErrno(errno, s);
+#else
+        if (mkdir((const char*)path, mode) == 0) return;
+        throwExceptionFromErrno(errno, path);
+#endif
+    }
+    // Rekursiv: Pfad-Komponenten Schritt für Schritt durchlaufen
+#ifdef _WIN32
+    std::filesystem::path fsPath(WideString(path).getPtr());
+#else
+    std::filesystem::path fsPath(path.c_str());
+#endif
+
+    std::filesystem::path accumulated;
+    for (const auto& element : fsPath) {
+        accumulated /= element;
+
+#ifdef _WIN32
+        String currentPathStr = String(WideString(accumulated.c_str()));
+#else
+        String currentPathStr = accumulated.string();
+#endif
+        if (currentPathStr.isEmpty()) continue;
+
+        // Windows-Laufwerks-Roots wie "C:" oder "C:\" überspringen
+#ifdef _WIN32
+        if (currentPathStr.endsWith(":") || currentPathStr.endsWith(":\\")) continue;
+#endif
+
+        // Jedes fehlende Verzeichnis in der Hierarchie direkt mit "mode" anlegen
+        if (!Dir::exists(currentPathStr)) {
+#ifdef _WIN32
+            currentPathStr.replace("/", "\\");
+            if (_wmkdir((const wchar_t*)WideString(currentPathStr)) != 0) {
+                throwExceptionFromErrno(errno, currentPathStr);
+            }
+#else
+            if (mkdir((const char*)currentPathStr, mode) != 0) {
+                throwExceptionFromErrno(errno, currentPathStr);
+            }
+#endif
+        }
+    }
+}
+
 /***********************************************************************************
  * nicht statische Methoden
  ***********************************************************************************/
-Dir::Dir()
-{
-    sort = Sort::None;
-}
 
 Dir::Dir(const String& path, Sort sortOrder)
 {
@@ -284,7 +272,7 @@ void Dir::print() const
     }
 }
 
-void Dir::resort(Sort s)
+void Dir::resort(Sort s) noexcept
 {
     switch (s) {
     case Sort::None:
@@ -307,8 +295,6 @@ void Dir::resort(Sort s)
     case Sort::Size:
         resortSize();
         break;
-    default:
-        throw IllegalArgumentException();
     }
     sort = s;
 }
@@ -345,7 +331,7 @@ void Dir::resortSize()
 }
 
 // Filter
-std::vector<DirEntry> Dir::filterPattern(const String& pattern, bool ignorecase = false) const
+std::vector<DirEntry> Dir::filterPattern(const String& pattern, bool ignorecase) const
 {
     // Wildcard in RegEx umwandeln
     String Pattern = RegEx::escape(pattern);
@@ -440,7 +426,7 @@ void Dir::open(const String& path, Sort sortOrder)
     auto it = std::filesystem::directory_iterator(fsPath, ec);
     if (ec) {
         if (ec == std::errc::no_such_file_or_directory) {
-            throw NonexistingPathException("%s", (const char*)Path);
+            throw FileNotFoundException("%s", (const char*)Path);
         } else if (ec == std::errc::permission_denied) {
             throw PermissionDeniedException("%s", (const char*)Path);
         }
@@ -510,76 +496,6 @@ bool Dir::tryOpen(const String& path, Sort s)
     catch (...) {
     }
     return false;
-}
-
-bool Dir::exists(const String& dirname)
-{
-    try {
-        DirEntry f;
-        File::statFile(dirname, f);
-        if (f.isDir()) return true;
-        if (f.isLink()) return true;
-        return false;
-    }
-    catch (...) {
-        return false;
-    }
-    return false;
-}
-
-void Dir::mkDir(const String& path, bool recursive)
-{
-#ifdef _WIN32
-    Dir::mkDir(path, 0, recursive);
-#else
-    Dir::mkDir(path, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH, recursive);
-#endif
-}
-
-void Dir::mkDir(const String& path, mode_t mode, bool recursive)
-{
-    String s;
-    if (path.isEmpty()) throw IllegalArgumentException("Dir::mkDir got an empty path");
-    // Wenn es das Verzeichnis schon gibt, koennen wir sofort aussteigen
-    if (Dir::exists(path)) return;
-
-    // printf ("path=%s\n",(const char*)path);
-    //  1=erfolgreich, 0=Fehler
-    if (!recursive) {
-#ifdef _WIN32
-        s = path;
-        s.replace("/", "\\");
-        if (_wmkdir((const wchar_t*)WideString(s)) == 0) return;
-#else
-        if (mkdir((const char*)path, mode) == 0) return;
-#endif
-        throw CreateDirectoryFailedException("%s", (const char*)path);
-    }
-    // Wir hangeln uns von unten nach oben
-    s = path;
-    s.replace("\\", "/");
-    Array tok;
-    StrTok(tok, s, "/");
-    // tok.explode(path,"/");
-    // tok.list("tok");
-    // throw UnknownException();
-    s.clear();
-    if (path[0] == '/') s.append("/");
-    for (size_t i = 0; i < tok.count(); i++) {
-        s.append(tok[i]);
-        // Prüfen, ob das Verzeichnis da ist.
-        if (!Dir::exists(s)) {
-#ifdef _WIN32
-            if (s.right(1) != ":") {
-                s.replace("/", "\\");
-                if (_wmkdir((const wchar_t*)WideString(s)) != 0) throw CreateDirectoryFailedException("%s", (const char*)s);
-            }
-#else
-            if (mkdir((const char*)s, mode) != 0) throw CreateDirectoryFailedException("%s", (const char*)s);
-#endif
-        }
-        s.append("/");
-    }
 }
 
 } // namespace ppl7

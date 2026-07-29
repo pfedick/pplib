@@ -58,7 +58,7 @@ In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nic
 
 - Funktionen
 - File (viele fehlschlagende Unittests)
-- Dir
+
 
 - Makefile überarbeiten
 
@@ -67,6 +67,8 @@ In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nic
 
 ## Erledigt
 - Umstellung von Autoconf auf CMake
+- Dir-Klasse komplett überarbeitet
+- DirEntry-Klasse überarbeitet
 
 ### Datenobjekte (Types)
 - Variant Klasse refakturiert und geprüft

@@ -38,38 +38,6 @@
 namespace ppl7
 {
 
-PPL7EXCEPTION(NetworkException, Exception);
-PPL7EXCEPTION(WinsockInitialisationFailed, Exception);
-PPL7EXCEPTION(IdnConversionException, Exception);
-
-PPL7EXCEPTION(NotConnectedException, NetworkException);
-PPL7EXCEPTION(CouldNotOpenSocketException, NetworkException);      // 393
-PPL7EXCEPTION(IllegalPortException, NetworkException);             // 393
-PPL7EXCEPTION(CouldNotBindToInterfaceException, NetworkException); // 394
-PPL7EXCEPTION(ConnectionRefusedException, NetworkException);       // ECONNREFUSED
-PPL7EXCEPTION(NetworkDownException, NetworkException);
-PPL7EXCEPTION(NetworkUnreachableException, NetworkException); // ENETUNREACH
-PPL7EXCEPTION(NetworkDroppedConnectionOnResetException, NetworkException);
-PPL7EXCEPTION(SoftwareCausedConnectionAbortException, NetworkException);
-PPL7EXCEPTION(ConnectionResetByPeerException, NetworkException);
-PPL7EXCEPTION(NoBufferSpaceException, NetworkException);
-PPL7EXCEPTION(SocketIsAlreadyConnectedException, NetworkException);
-PPL7EXCEPTION(CantSendAfterSocketShutdownException, NetworkException);
-PPL7EXCEPTION(TooManyReferencesException, NetworkException); // ETOOMANYREFS
-PPL7EXCEPTION(HostDownException, NetworkException);          // EHOSTDOWN
-PPL7EXCEPTION(NoRouteToHostException, NetworkException);
-PPL7EXCEPTION(InvalidSocketException, NetworkException);
-PPL7EXCEPTION(UnknownOptionException, NetworkException);
-PPL7EXCEPTION(OutOfBandDataReceivedException, NetworkException);
-PPL7EXCEPTION(BrokenPipeException, NetworkException);
-PPL7EXCEPTION(SSLNotStartedException, NetworkException);
-PPL7EXCEPTION(SSLConnectionFailedException, NetworkException);
-PPL7EXCEPTION(SettingSocketOptionException, NetworkException);
-PPL7EXCEPTION(InvalidIpAddressException, NetworkException);
-PPL7EXCEPTION(InvalidNetworkAddressException, NetworkException);
-PPL7EXCEPTION(InvalidNetmaskOrPrefixlenException, NetworkException);
-PPL7EXCEPTION(ConnectionTimeoutException, NetworkException); // ETIMEDOUT
-
 PPL7EXCEPTION(ResolverException, Exception);
 PPL7EXCEPTION(UnknownHostException, Exception);
 

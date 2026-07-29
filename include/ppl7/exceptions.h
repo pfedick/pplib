@@ -32,6 +32,7 @@
 #include <exception>
 #include <ostream>
 #include <stdarg.h>
+#include <string>
 
 #include <ppl7/types/string.h>
 
@@ -44,7 +45,7 @@ void throwExceptionFromErrno(int e, const String& info);
 void throwSocketException(int e, const String& info);
 void throwExceptionFromEaiError(int ecode, const String& info);
 
-class Exception : std::exception
+class Exception : public std::exception
 {
 private:
     char* ErrorText;
@@ -207,7 +208,7 @@ PPL7EXCEPTION(SocketTypeNotSupportedException, IOException);            // ESOCK
 PPL7EXCEPTION(AddressFamilyNotSupportedException, IOException);         // EAFNOSUPPORT
 PPL7EXCEPTION(AddressAlreadyInUseException, IOException);               // EADDRINUSE
 PPL7EXCEPTION(AddressNotAvailableException, IOException);               // EADDRNOTAVAIL
-PPL7EXCEPTION(NetworkIsDownException, IOException);                     // ENETDOWN
+PPL7EXCEPTION(NetworkDownException, IOException);                       // ENETDOWN
 PPL7EXCEPTION(ConnectionAbortedByNetworkException, IOException);        // ENETRESET
 PPL7EXCEPTION(ConnectionAbortedException, IOException);                 // ECONNABORTED
 PPL7EXCEPTION(ConnectionResetException, IOException);                   // ECONNRESET
@@ -252,6 +253,40 @@ PPL7EXCEPTION(TimeoutException, Exception);
 PPL7EXCEPTION(QueryFailedException, Exception);
 PPL7EXCEPTION(EscapeFailedException, Exception);
 PPL7EXCEPTION(FieldNotInResultSetException, Exception);
+
+//! @name Network-Exceptions
+//@{
+PPL7EXCEPTION(NetworkException, Exception);
+PPL7EXCEPTION(WinsockInitialisationFailed, Exception);
+PPL7EXCEPTION(IdnConversionException, Exception);
+
+PPL7EXCEPTION(NotConnectedException, NetworkException);
+PPL7EXCEPTION(CouldNotOpenSocketException, NetworkException);      // 393
+PPL7EXCEPTION(IllegalPortException, NetworkException);             // 393
+PPL7EXCEPTION(CouldNotBindToInterfaceException, NetworkException); // 394
+PPL7EXCEPTION(ConnectionRefusedException, NetworkException);       // ECONNREFUSED
+PPL7EXCEPTION(NetworkUnreachableException, NetworkException);      // ENETUNREACH
+PPL7EXCEPTION(NetworkDroppedConnectionOnResetException, NetworkException);
+PPL7EXCEPTION(SoftwareCausedConnectionAbortException, NetworkException);
+PPL7EXCEPTION(ConnectionResetByPeerException, NetworkException);
+PPL7EXCEPTION(NoBufferSpaceException, NetworkException);
+PPL7EXCEPTION(SocketIsAlreadyConnectedException, NetworkException);
+PPL7EXCEPTION(CantSendAfterSocketShutdownException, NetworkException);
+PPL7EXCEPTION(TooManyReferencesException, NetworkException); // ETOOMANYREFS
+PPL7EXCEPTION(HostDownException, NetworkException);          // EHOSTDOWN
+PPL7EXCEPTION(NoRouteToHostException, NetworkException);
+PPL7EXCEPTION(InvalidSocketException, NetworkException);
+PPL7EXCEPTION(UnknownOptionException, NetworkException);
+PPL7EXCEPTION(OutOfBandDataReceivedException, NetworkException);
+PPL7EXCEPTION(BrokenPipeException, NetworkException);
+PPL7EXCEPTION(SSLNotStartedException, NetworkException);
+PPL7EXCEPTION(SSLConnectionFailedException, NetworkException);
+PPL7EXCEPTION(SettingSocketOptionException, NetworkException);
+PPL7EXCEPTION(InvalidIpAddressException, NetworkException);
+PPL7EXCEPTION(InvalidNetworkAddressException, NetworkException);
+PPL7EXCEPTION(InvalidNetmaskOrPrefixlenException, NetworkException);
+PPL7EXCEPTION(ConnectionTimeoutException, NetworkException); // ETIMEDOUT
+//@}
 
 } // namespace ppl7
 

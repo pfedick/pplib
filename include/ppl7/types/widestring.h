@@ -103,7 +103,7 @@ public:
 
     //! @name Statische Funktionen
     //@{
-    static WideString WideString::format(const char* fmt, ...);
+    static WideString format(const char* fmt, ...);
     //@}
 
     void clear() noexcept;

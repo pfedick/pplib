@@ -1,17 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2022, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -21,7 +22,7 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
@@ -29,61 +30,40 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "prolog_ppl7.h"
 
-#ifdef HAVE_WCHAR_H
 #include <wchar.h>
-#endif
 #include <time.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
-#ifdef HAVE_SYS_MMAN_H
+#ifndef _WIN32
 #include <sys/mman.h>
 #endif
 
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>
-#endif
-#ifdef HAVE_STDARG_H
 #include <stdarg.h>
-#endif
-#ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif
-#ifdef WIN32
+
+#ifdef _WIN32
 #include <io.h>
 #define WIN32_LEAN_AND_MEAN // Keine MFCs
 #define _CRT_SECURE_NO_WARNINGS 1
 #define popen _popen
 #define pclose _pclose
 #define fileno _fileno
-
 #include <windows.h>
-#ifdef DeleteFile
-#undef DeleteFile
-#endif
 
-#ifdef CopyFile
-#undef CopyFile
-#endif
+#endif // _WIN32
 
-#ifdef MoveFile
-#undef MoveFile
-#endif
+#include <ppl7/exceptions.h>
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/array.h>
 
-#endif
-#include "ppl7.h"
+#include <ppl7/core/file.h>
+#include <ppl7/core/dir.h>
 
 namespace ppl7
 {
@@ -324,32 +304,32 @@ File::~File()
 static const wchar_t* fmode(File::FileMode mode)
 {
     switch (mode) {
-    case File::READ:
+    case File::FileMode::READ:
         return L"rb";
-    case File::WRITE:
+    case File::FileMode::WRITE:
         return L"wb";
-    case File::READWRITE:
+    case File::FileMode::READWRITE:
         return L"r+b";
-    case File::APPEND:
+    case File::FileMode::APPEND:
         return L"ab";
     default:
-        throw File::IllegalFilemodeException();
+        throw IllegalArgumentException();
     }
 }
 #else
 static const char* fmode(File::FileMode mode)
 {
     switch (mode) {
-    case File::READ:
+    case File::FileMode::READ:
         return "rb";
-    case File::WRITE:
+    case File::FileMode::WRITE:
         return "wb";
-    case File::READWRITE:
+    case File::FileMode::READWRITE:
         return "r+b";
-    case File::APPEND:
+    case File::FileMode::APPEND:
         return "ab";
     default:
-        throw File::IllegalFilemodeException();
+        throw IllegalArgumentException();
     }
 }
 #endif
@@ -367,28 +347,28 @@ static const char* fmode(File::FileMode mode)
 const wchar_t* fmodepopen(File::FileMode mode)
 {
     switch (mode) {
-    case File::READ:
+    case File::FileMode::READ:
         return L"r";
-    case File::WRITE:
+    case File::FileMode::WRITE:
         return L"w";
-    case File::READWRITE:
+    case File::FileMode::READWRITE:
         return L"r+";
     default:
-        throw File::IllegalFilemodeException();
+        throw IllegalArgumentException();
     }
 }
 #else
 const char* fmodepopen(File::FileMode mode)
 {
     switch (mode) {
-    case File::READ:
+    case File::FileMode::READ:
         return "r";
-    case File::WRITE:
+    case File::FileMode::WRITE:
         return "w";
-    case File::READWRITE:
+    case File::FileMode::READWRITE:
         return "r+";
     default:
-        throw File::IllegalFilemodeException();
+        throw IllegalArgumentException();
     }
 }
 #endif
@@ -1393,8 +1373,8 @@ void File::copy(const String& oldfile, const String& newfile)
     if (newfile.isEmpty()) throw IllegalArgumentException();
 
     File f1, f2;
-    f1.open(oldfile, READ);
-    f2.open(newfile, WRITE);
+    f1.open(oldfile, FileMode::READ);
+    f2.open(newfile, FileMode::WRITE);
     uint64_t bsize = 1024 * 1024;
     if (f1.mysize < bsize) bsize = f1.mysize;
     void* buffer = malloc((size_t)bsize);
@@ -1569,7 +1549,7 @@ void File::touch(const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
     File ff;
-    ff.open(filename, APPEND);
+    ff.open(filename, FileMode::APPEND);
     ff.close();
 }
 
@@ -1590,7 +1570,7 @@ void File::save(const void* content, size_t size, const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
     File ff;
-    ff.open(filename, WRITE);
+    ff.open(filename, FileMode::WRITE);
     ff.fwrite(content, 1, size);
 }
 
@@ -1609,7 +1589,7 @@ void File::save(const ByteArrayPtr& object, const String& filename)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
     File ff;
-    ff.open(filename, WRITE);
+    ff.open(filename, FileMode::WRITE);
     ff.fwrite(object.ptr(), 1, object.size());
 }
 
@@ -1762,16 +1742,14 @@ static void getResultFromStat(struct stat& st, DirEntry& result, const ppl7::Str
 void File::statFile(const String& filename, DirEntry& result)
 {
     if (filename.isEmpty()) throw IllegalArgumentException();
-#ifdef WIN32
+#ifdef _WIN32
     struct _stat st;
     String File = filename;
     File.replace("/", "\\");
     if (_wstat((const wchar_t*)WideString(File), &st) != 0) throwErrno(errno, filename);
-#elif defined HAVE_STAT
+#else
     struct stat st;
     if (::stat((const char*)filename, &st) != 0) throwErrno(errno, filename);
-#else
-    throw UnsupportedFeatureException("File::statFile");
 #endif
     getResultFromStat(st, result, filename);
 }
