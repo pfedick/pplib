@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,51 +22,30 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_WIDEC_H
-#include <widec.h>
-#endif
-
-#ifdef HAVE_STDIO_H
 #include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
 #include <stdarg.h>
-#endif
-#ifdef HAVE_CTYPE_H
 #include <ctype.h>
-#endif
-#ifdef HAVE_WCHAR_H
 #include <wchar.h>
-#endif
-#ifdef HAVE_WCTYPE_H
 #include <wctype.h>
-#endif
-#ifdef HAVE_LOCALE_H
 #include <locale.h>
-#endif
-#ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif
-#ifdef HAVE_LIMITS_H
 #include <limits.h>
-#endif
-#ifdef WIN32
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN // Keine MFCs
 #include <windows.h>
 #endif
 
-#include "ppl7.h"
+#include <ppl7/core/functions.h>
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
 
 namespace ppl7
 {
@@ -105,32 +79,21 @@ void SetGlobalOutput(int type)
 void PrintDebug(const char* format, ...)
 {
     if (!format) return;
-    char* buff = NULL;
     va_list args;
     va_start(args, format);
-#ifdef HAVE_VASPRINTF
-    if (vasprintf(&buff, format, args) < 0) {
-#else
-    if (compat::vasprintf(&buff, format, args) < 0) {
-#endif
-        va_end(args);
-        return;
-    }
+    String buff;
+    buff.vasprintf(format, args);
     va_end(args);
-    if (!buff) return;
     if (printdebug == 1) {
 #ifdef PPLVISUALC
-        WideString ws;
-        ws.set(buff);
-        OutputDebugString((LPCWSTR)ws);
-#elif defined WIN32
-        OutputDebugString(buff);
+        OutputDebugString((const char*)buff);
+#elif defined _WIN32
+        OutputDebugString((const char*)buff);
 #endif
     } else {
-        printf("%s", buff);
+        buff.print();
         fflush(stdout);
     }
-    free(buff);
 }
 
 /*!\brief Interne Funktion zur Ausgabe von Text
@@ -146,19 +109,11 @@ void PrintDebug(const char* format, ...)
 void PrintDebugTime(const char* format, ...)
 {
     if (!format) return;
-    char* buff = NULL;
     va_list args;
     va_start(args, format);
-#ifdef HAVE_VASPRINTF
-    if (vasprintf(&buff, format, args) < 0) {
-#else
-    if (compat::vasprintf(&buff, format, args) < 0) {
-#endif
-        va_end(args);
-        return;
-    }
+    String buff;
+    buff.vasprintf(format, args);
     va_end(args);
-    if (!buff) return;
     DateTime now;
     now.setCurrentTime();
     String Time = now.getISO8601withMsec();
@@ -166,20 +121,18 @@ void PrintDebugTime(const char* format, ...)
 
     if (printdebug == 1) {
 #ifdef PPLVISUALC
-        WideString ws;
-        ws.set(Time);
-        OutputDebugString((LPCWSTR)ws);
-        ws.set(buff);
-        OutputDebugString((LPCWSTR)ws);
-#elif defined WIN32
         OutputDebugString((const char*)Time);
-        OutputDebugString(buff);
+        OutputDebugString((const char*)buff);
+
+#elif defined _WIN32
+        OutputDebugString((const char*)Time);
+        OutputDebugString((const char*)buff);
+
 #endif
     } else {
-        printf("%s%s", (const char*)Time, buff);
+        printf("%s%s", (const char*)Time, (const char*)buff);
         fflush(stdout);
     }
-    free(buff);
 }
 
 void HexDump(const void* address, size_t bytes, bool skipheader)
