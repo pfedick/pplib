@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,57 +22,22 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <ppl7/core/fileobject.h>
+#include <ppl7/exceptions.h>
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/bytearrayptr.h>
+#include <ppl7/types/bytearray.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+namespace ppl7
+{
 
-#include <time.h>
-
-#include "prolog_ppl7.h"
-#ifdef HAVE_UNISTD_H
-	#include <unistd.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-	#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-	#include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-	#include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_FILE_H
-	#include <sys/file.h>
-#endif
-#ifdef HAVE_STDARG_H
-	#include <stdarg.h>
-#endif
-#ifdef HAVE_ERRNO_H
-	#include <errno.h>
-#endif
-#ifdef _WIN32
-#include <io.h>
-#define WIN32_LEAN_AND_MEAN		// Keine MFCs
-#define popen _popen
-#define pclose _pclose
-
-#include <windows.h>
-#ifdef DeleteFile
-#undef DeleteFile
-#endif
-#endif
-#include "ppl7.h"
-
-namespace ppl7 {
-
-#define COPYBYTES_BUFFERSIZE 1024*1024
+#define COPYBYTES_BUFFERSIZE 1024 * 1024
 
 /*!\class FileObject
  * \ingroup PPLGroupFileIO
@@ -100,7 +60,6 @@ namespace ppl7 {
  *
  */
 
-
 /*!\enum FileObject::SeekOrigin
  * \brief Ausgangsbasis für Bewegung des Dateizeigers
  *
@@ -122,7 +81,6 @@ namespace ppl7 {
  * \brief Ausgehend vom Anfang der Datei
  */
 
-
 /*!\brief Konstruktor der Klasse
  *
  * \desc
@@ -132,7 +90,7 @@ namespace ppl7 {
  */
 FileObject::FileObject()
 {
-	buffer=NULL;
+    buffer = NULL;
 }
 
 /*!\brief Destruktor der Klasse
@@ -142,10 +100,10 @@ FileObject::FileObject()
  */
 FileObject::~FileObject()
 {
-	if (buffer) {
-		free(buffer);
-		buffer=NULL;
-	}
+    if (buffer) {
+        free(buffer);
+        buffer = NULL;
+    }
 }
 
 /*!\brief Dateiname festlegen
@@ -159,13 +117,13 @@ FileObject::~FileObject()
  * \param[in] filename Ein Formatstring oder der Dateiname
  * \param[in] ... beliebig viele Parameter, sofern \p filename ein Formatstring ist
  */
-void FileObject::setFilename(const char *filename)
+void FileObject::setFilename(const char* filename)
 {
-	if (!filename) {
-		MyFilename.clear();
-		return;
-	}
-	MyFilename=filename;
+    if (!filename) {
+        MyFilename.clear();
+        return;
+    }
+    MyFilename = filename;
 }
 
 /*!\brief Dateiname festlegen
@@ -178,9 +136,9 @@ void FileObject::setFilename(const char *filename)
  *
  * \param[in] filename Ein CString, der den Dateinamen enthält.
  */
-void FileObject::setFilename(const String &filename)
+void FileObject::setFilename(const String& filename)
 {
-	MyFilename=filename;
+    MyFilename = filename;
 }
 
 /*!\brief Dateiname auslesen
@@ -194,9 +152,8 @@ void FileObject::setFilename(const String &filename)
  */
 const String& FileObject::filename() const
 {
-	return MyFilename;
+    return MyFilename;
 }
-
 
 /*!\brief Daten schreiben
  *
@@ -212,10 +169,10 @@ const String& FileObject::filename() const
  * @return Bei Erfolg liefert die Funktion die Anzahl geschriebener Bytes zurück, im
  * Fehlerfall wird eine Exception geworfen.
  */
-size_t FileObject::write (const void * source, size_t bytes, uint64_t fileposition)
+size_t FileObject::write(const void* source, size_t bytes, uint64_t fileposition)
 {
-	seek(fileposition);
-	return fwrite(source,1,bytes);
+    seek(fileposition);
+    return fwrite(source, 1, bytes);
 }
 
 /*!\brief Daten schreiben
@@ -231,9 +188,9 @@ size_t FileObject::write (const void * source, size_t bytes, uint64_t filepositi
  * @return Bei Erfolg liefert die Funktion die Anzahl geschriebener Bytes zurück, im
  * Fehlerfall wird eine Exception geworfen.
  */
-size_t FileObject::write (const void * source, size_t bytes)
+size_t FileObject::write(const void* source, size_t bytes)
 {
-	return fwrite(source,1,bytes);
+    return fwrite(source, 1, bytes);
 }
 
 /*!\brief Daten eines von Variant abgeleiteten Objekts schreiben
@@ -250,12 +207,11 @@ size_t FileObject::write (const void * source, size_t bytes)
  * Fehlerfall wird eine Exception geworfen.
  *
  */
-size_t FileObject::write (const ByteArrayPtr &object, size_t bytes)
+size_t FileObject::write(const ByteArrayPtr& object, size_t bytes)
 {
-	if (bytes==0 || bytes>object.size()) bytes=object.size();
-	return fwrite(object.ptr(),1,bytes);
+    if (bytes == 0 || bytes > object.size()) bytes = object.size();
+    return fwrite(object.ptr(), 1, bytes);
 }
-
 
 /*!\brief Daten lesen
  *
@@ -273,10 +229,10 @@ size_t FileObject::write (const ByteArrayPtr &object, size_t bytes)
  * Wenn  ein Fehler  auftritt  oder  das
  * Dateiende erreicht ist, wird eine Exception geworfen.
  */
-size_t FileObject::read (void * target, size_t bytes, uint64_t fileposition)
+size_t FileObject::read(void* target, size_t bytes, uint64_t fileposition)
 {
-	seek(fileposition);
-	return fread(target,1,bytes);
+    seek(fileposition);
+    return fread(target, 1, bytes);
 }
 
 /*!\brief Daten lesen
@@ -295,9 +251,9 @@ size_t FileObject::read (void * target, size_t bytes, uint64_t fileposition)
  * Wenn  ein Fehler  auftritt  oder  das
  * Dateiende erreicht ist, wird eine Exception geworfen.
  */
-size_t FileObject::read (void * target, size_t bytes)
+size_t FileObject::read(void* target, size_t bytes)
 {
-	return fread(target,1,bytes);
+    return fread(target, 1, bytes);
 }
 
 /*!\brief Daten in ein Objekt einlesen
@@ -318,12 +274,12 @@ size_t FileObject::read (void * target, size_t bytes)
  * Dateiende erreicht ist, wird eine Exception geworfen.
  *
  */
-size_t FileObject::read (ByteArray &target, size_t bytes)
+size_t FileObject::read(ByteArray& target, size_t bytes)
 {
-	if (!bytes) throw IllegalArgumentException();
-	target.free();
-	target.malloc(bytes);
-	return fread((void*)target.ptr(),1,bytes);
+    if (!bytes) throw IllegalArgumentException();
+    target.free();
+    target.malloc(bytes);
+    return fread((void*)target.ptr(), 1, bytes);
 }
 
 /*!\brief Daten aus einer anderen Datei kopieren
@@ -343,11 +299,11 @@ size_t FileObject::read (ByteArray &target, size_t bytes)
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
  */
-uint64_t FileObject::copyFrom (FileObject &quellfile, uint64_t quelloffset, uint64_t bytes, uint64_t zieloffset)
+uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t quelloffset, uint64_t bytes, uint64_t zieloffset)
 {
-	quellfile.seek(quelloffset);
-	seek(zieloffset);
-	return FileObject::copyFrom(quellfile,bytes);
+    quellfile.seek(quelloffset);
+    seek(zieloffset);
+    return FileObject::copyFrom(quellfile, bytes);
 }
 
 /*!\brief Daten aus einer anderen Datei kopieren
@@ -365,26 +321,26 @@ uint64_t FileObject::copyFrom (FileObject &quellfile, uint64_t quelloffset, uint
  * \note Die Funktion verwendet einen internen Buffer zum Zwischenspeichern
  * der gelesenen Daten.
  */
-uint64_t FileObject::copyFrom (FileObject &quellfile, uint64_t bytes)
+uint64_t FileObject::copyFrom(FileObject& quellfile, uint64_t bytes)
 {
-	if (buffer==NULL) {
-		buffer=(char *)malloc(COPYBYTES_BUFFERSIZE);
-		if (buffer==NULL) throw OutOfMemoryException();
-	}
-	if (quellfile.size()>quellfile.tell()) {
-		if ((quellfile.tell()+(uint64_t)bytes)>quellfile.size()) {
-			bytes=quellfile.size()-quellfile.tell();
-		}
-		uint64_t rest=bytes;
-		while (rest>0) {
-			uint64_t by=rest;
-			if (by>COPYBYTES_BUFFERSIZE) by=COPYBYTES_BUFFERSIZE;
-			by=quellfile.read (buffer,(size_t)by);
-			write (buffer,(size_t)by);
-			rest-=by;
-		}
-	}
-	return bytes;
+    if (buffer == NULL) {
+        buffer = (char*)malloc(COPYBYTES_BUFFERSIZE);
+        if (buffer == NULL) throw OutOfMemoryException();
+    }
+    if (quellfile.size() > quellfile.tell()) {
+        if ((quellfile.tell() + (uint64_t)bytes) > quellfile.size()) {
+            bytes = quellfile.size() - quellfile.tell();
+        }
+        uint64_t rest = bytes;
+        while (rest > 0) {
+            uint64_t by = rest;
+            if (by > COPYBYTES_BUFFERSIZE) by = COPYBYTES_BUFFERSIZE;
+            by = quellfile.read(buffer, (size_t)by);
+            write(buffer, (size_t)by);
+            rest -= by;
+        }
+    }
+    return bytes;
 }
 
 /*!\brief String lesen
@@ -403,25 +359,26 @@ uint64_t FileObject::copyFrom (FileObject &quellfile, uint64_t bytes)
  * Im Fehlerfall wird eine Exception geworfen.
  * Der Inhalt von \p buffer ist im Fehlerfall undefiniert.
  */
-int FileObject::gets (String &buffer, size_t num)
+int FileObject::gets(String& buffer, size_t num)
 {
-	if (!num) throw IllegalArgumentException();
-	char *b=(char*)malloc(num+1);
-	if (!b) throw OutOfMemoryException();
-	char *ret;
-	try {
-		ret=fgets(b,num);
-	} catch (...) {
-		free(b);
-		throw;
-	}
-	if (ret==NULL) {
-		free(b);
-		return 0;
-	}
-	buffer.set(b);
-	free(b);
-	return 1;
+    if (!num) throw IllegalArgumentException();
+    char* b = (char*)malloc(num + 1);
+    if (!b) throw OutOfMemoryException();
+    char* ret;
+    try {
+        ret = fgets(b, num);
+    }
+    catch (...) {
+        free(b);
+        throw;
+    }
+    if (ret == NULL) {
+        free(b);
+        return 0;
+    }
+    buffer.set(b);
+    free(b);
+    return 1;
 }
 
 /*!\brief String lesen
@@ -437,13 +394,12 @@ int FileObject::gets (String &buffer, size_t num)
  * @return Die Funktion gibt ein String-Objekt mit den gelesenen Daten zurück.
  * Im Fehlerfall (auch bei Dateiende) wird eine Exception geworfen.
  */
-String FileObject::gets (size_t num)
+String FileObject::gets(size_t num)
 {
-	String s;
-	if (!gets(s,num)) throw EndOfFileException();
-	return s;
+    String s;
+    if (!gets(s, num)) throw EndOfFileException();
+    return s;
 }
-
 
 /*!\brief Wide-Character String lesen
  *
@@ -463,25 +419,26 @@ String FileObject::gets (size_t num)
  * Im Fehlerfall wird eine Exception geworfen.
  * Der Inhalt von \p buffer ist im Fehlerfall undefiniert.
  */
-int FileObject::getws (String &buffer, size_t num)
+int FileObject::getws(String& buffer, size_t num)
 {
-	if (!num) throw IllegalArgumentException();
-	wchar_t *b=(wchar_t*)malloc((num+1)*sizeof(wchar_t));
-	if (!b) throw OutOfMemoryException();
-	wchar_t *ret;
-	try {
-		ret=fgetws(b,num);
-	} catch (...) {
-		free(b);
-		throw;
-	}
-	if (ret==NULL) {
-		free(b);
-		return 0;
-	}
-	buffer.set(b);
-	free(b);
-	return 1;
+    if (!num) throw IllegalArgumentException();
+    wchar_t* b = (wchar_t*)malloc((num + 1) * sizeof(wchar_t));
+    if (!b) throw OutOfMemoryException();
+    wchar_t* ret;
+    try {
+        ret = fgetws(b, num);
+    }
+    catch (...) {
+        free(b);
+        throw;
+    }
+    if (ret == NULL) {
+        free(b);
+        return 0;
+    }
+    buffer.set(b);
+    free(b);
+    return 1;
 }
 
 /*!\brief Wide-Character String lesen
@@ -499,13 +456,12 @@ int FileObject::getws (String &buffer, size_t num)
  * @return Die Funktion gibt ein String-Objekt mit den gelesenen Daten zurück.
  * Im Fehlerfall (auch bei Dateiende) wird eine Exception geworfen.
  */
-String FileObject::getws (size_t num)
+String FileObject::getws(size_t num)
 {
-	String s;
-	if (!getws(s,num)) throw EndOfFileException();
-	return s;
+    String s;
+    if (!getws(s, num)) throw EndOfFileException();
+    return s;
 }
-
 
 /*!\brief Formatierten String schreiben
  *
@@ -517,15 +473,15 @@ String FileObject::getws (size_t num)
  * @param ... Optionale Parameter, die im Formatierungsstring verwendet werden.
  * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
-void FileObject::putsf (const char *fmt, ... )
+void FileObject::putsf(const char* fmt, ...)
 {
-	if (!fmt) throw IllegalArgumentException();
-	String str;
-	va_list args;
-	va_start(args, fmt);
-	str.vasprintf(fmt, args);
-	va_end(args);
-	fputs(str);
+    if (!fmt) throw IllegalArgumentException();
+    String str;
+    va_list args;
+    va_start(args, fmt);
+    str.vasprintf(fmt, args);
+    va_end(args);
+    fputs(str);
 }
 
 /*!\brief String schreiben
@@ -537,9 +493,9 @@ void FileObject::putsf (const char *fmt, ... )
  * @param str String-Objekt mit den zu schreibenden Daten
  * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
-void FileObject::puts (const String &str)
+void FileObject::puts(const String& str)
 {
-	return fputs((const char*)str);
+    return fputs((const char*)str);
 }
 
 /*!\brief Wide-Character-String schreiben
@@ -551,9 +507,9 @@ void FileObject::puts (const String &str)
  * @param str String-Objekt mit den zu schreibenden Daten
  * @return Kein Rückgabeparameter, im Fehlerfall wirft die Funktion eine Exception
  */
-void FileObject::putws (const WideString &str)
+void FileObject::putws(const WideString& str)
 {
-	return fputws((const wchar_t*)str);
+    return fputws((const wchar_t*)str);
 }
 
 /*!\brief Datei in den Speicher mappen
@@ -571,9 +527,9 @@ void FileObject::putws (const WideString &str)
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
  * in dem sich die Datei befindet, im Fehlerfall wirft die Funktion eine Exception
  */
-const char *FileObject::map()
+const char* FileObject::map()
 {
-	return map(0,(size_t)size());
+    return map(0, (size_t)size());
 }
 
 /*!\brief Den kompletten Inhalt der Datei laden
@@ -588,24 +544,25 @@ const char *FileObject::map()
  * vom Aufrufer nach Gebrauch mit \c free selbst wieder freigegeben werden.
  * Im Fehlerfall wird eine Exception geworfen.
  */
-char *FileObject::load()
+char* FileObject::load()
 {
-	uint64_t s=size();
-	char *b=(char*)malloc((size_t)s+1);
-	if (!b) throw OutOfMemoryException();
-	uint64_t r=0;
-	try {
-		r=read(b,(size_t)s,0);
-	} catch (...) {
-		free(b);
-		throw;
-	}
-	if (r!=s) {
-		free(b);
-		return NULL;
-	}
-	b[s]=0;
-	return b;
+    uint64_t s = size();
+    char* b = (char*)malloc((size_t)s + 1);
+    if (!b) throw OutOfMemoryException();
+    uint64_t r = 0;
+    try {
+        r = read(b, (size_t)s, 0);
+    }
+    catch (...) {
+        free(b);
+        throw;
+    }
+    if (r != s) {
+        free(b);
+        return NULL;
+    }
+    b[s] = 0;
+    return b;
 }
 
 /*!\brief Den kompletten Inhalt der Datei in ein Objekt laden
@@ -617,30 +574,30 @@ char *FileObject::load()
  * @param[out] object Das gewünschte Zielobjekt
  * @return Liefert 1 zurück, wenn der Inhalt geladen werden konnte, sonst 0.
  */
-int FileObject::load(ByteArray &object)
+int FileObject::load(ByteArray& object)
 {
-	if (!isOpen()) throw FileNotOpenException();
-	uint64_t mysize=size();
-	seek(0);
-	char *buffer=(char*)malloc((size_t)mysize+1);
-	if (!buffer) throw OutOfMemoryException();
-	size_t by=0;
-	try {
-		by=fread(buffer,1,(size_t)mysize);
-	} catch (...) {
-		free(buffer);
-		throw;
-	}
-	if (by!=mysize) {
-		free(buffer);
-		return 0;
-	}
-	buffer[by]=0;
-	object.clear();
-	object.use(buffer,mysize);
-	return 1;
+    if (!isOpen()) throw FileNotOpenException();
+    uint64_t mysize = size();
+    seek(0);
+    char* buffer = (char*)malloc((size_t)mysize + 1);
+    if (!buffer) throw OutOfMemoryException();
+    size_t by = 0;
+    try {
+        by = fread(buffer, 1, (size_t)mysize);
+    }
+    catch (...) {
+        free(buffer);
+        throw;
+    }
+    if (by != mysize) {
+        free(buffer);
+        return 0;
+    }
+    buffer[by] = 0;
+    object.clear();
+    object.use(buffer, mysize);
+    return 1;
 }
-
 
 // Virtuelle Funktionen
 
@@ -654,11 +611,10 @@ int FileObject::load(ByteArray &object)
  * geschrieben. Der zugeordnete Datei-Deskriptor wird geschlossen.
  *
  */
-void FileObject::close ()
+void FileObject::close()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
-
 
 /*!\brief Dateizeiger an den Anfang der Datei bringen
  *
@@ -666,9 +622,9 @@ void FileObject::close ()
  * Diese Funktion bewegt den internen Dateizeiger an den Anfang der Datei
  *
  */
-void FileObject::rewind ()
+void FileObject::rewind()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Dateizeiger auf gewünschte Stelle bringen
@@ -679,9 +635,9 @@ void FileObject::rewind ()
  * \param[in] position Gewünschte Position innerhalb der Datei
  * \exception diverse
  */
-void FileObject::seek (uint64_t position)
+void FileObject::seek(uint64_t position)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Dateizeiger auf gewünschte Stelle bringen
@@ -706,9 +662,9 @@ void FileObject::seek (uint64_t position)
  * ist in diesem Fall undefiniert und sollte mittels FileObject::ftell verifiziert
  * werden.
  */
-uint64_t FileObject::seek (int64_t offset, SeekOrigin origin)
+uint64_t FileObject::seek(int64_t offset, SeekOrigin origin)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Aktuelle Dateiposition ermitteln
@@ -721,7 +677,7 @@ uint64_t FileObject::seek (int64_t offset, SeekOrigin origin)
  */
 uint64_t FileObject::tell()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Lesen eines Datenstroms
@@ -741,9 +697,9 @@ uint64_t FileObject::tell()
  * Dateiende erreicht ist, wird eine Exception geworfen.
  * \exception EndOfFileException: Wird geworfen, wenn das Dateiende erreicht wurde
  */
-size_t FileObject::fread(void * ptr, size_t size, size_t nmemb)
+size_t FileObject::fread(void* ptr, size_t size, size_t nmemb)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Schreiben eines Datenstroms
@@ -759,11 +715,10 @@ size_t FileObject::fread(void * ptr, size_t size, size_t nmemb)
  * Anzahl der Zeichen). Wenn ein Fehler auftritt, wird eine Exception geworfen.
  *
  */
-size_t FileObject::fwrite(const void * ptr, size_t size, size_t nmemb)
+size_t FileObject::fwrite(const void* ptr, size_t size, size_t nmemb)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
-
 
 /*!\brief String lesen
  *
@@ -782,9 +737,9 @@ size_t FileObject::fwrite(const void * ptr, size_t size, size_t nmemb)
  * @return Bei Erfolg wird \p buffer zurückgegeben, bei Dateiende wird NULL
  * zurückgegeben. Im Fehlerfall wird eine Exception geworfen.
  */
-char *FileObject::fgets (char *buffer, size_t num)
+char* FileObject::fgets(char* buffer, size_t num)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Wide-Character String lesen
@@ -808,9 +763,9 @@ char *FileObject::fgets (char *buffer, size_t num)
  * verfügbar. In diesem Fall wird eine \exception UnimplementedVirtualFunctionException
  * geworfen.
  */
-wchar_t *FileObject::fgetws (wchar_t *buffer, size_t num)
+wchar_t* FileObject::fgetws(wchar_t* buffer, size_t num)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief String schreiben
@@ -822,9 +777,9 @@ wchar_t *FileObject::fgetws (wchar_t *buffer, size_t num)
  * @param str Pointer auf den zu schreibenden String
  * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  */
-void FileObject::fputs (const char *str)
+void FileObject::fputs(const char* str)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Wide-Character String schreiben
@@ -840,11 +795,10 @@ void FileObject::fputs (const char *str)
  * verfügbar. In diesem Fall wird Fehlercode 246 zurückgegeben.
  *
  */
-void FileObject::fputws (const wchar_t *str)
+void FileObject::fputws(const wchar_t* str)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
-
 
 /*!\brief Zeichen schreiben
  *
@@ -854,9 +808,9 @@ void FileObject::fputws (const wchar_t *str)
  * @param c Zu schreibendes Zeichen
  * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  */
-void FileObject::fputc (int c)
+void FileObject::fputc(int c)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Zeichen lesen
@@ -869,7 +823,7 @@ void FileObject::fputc (int c)
  */
 int FileObject::fgetc()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Wide-Character Zeichen schreiben
@@ -882,9 +836,9 @@ int FileObject::fgetc()
  * \note Die Funktion ist unter Umständen nicht auf jedem Betriebssystem
  * verfügbar.
  */
-void FileObject::fputwc (wchar_t c)
+void FileObject::fputwc(wchar_t c)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Wide-Character Zeichen lesen
@@ -900,7 +854,7 @@ void FileObject::fputwc (wchar_t c)
  */
 wchar_t FileObject::fgetwc()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Prüfen, ob Dateiende erreicht ist
@@ -913,7 +867,7 @@ wchar_t FileObject::fgetwc()
  */
 bool FileObject::eof() const
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Größe der geöffneten Datei
@@ -925,7 +879,7 @@ bool FileObject::eof() const
  */
 uint64_t FileObject::size() const
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Filenummer der Datei
@@ -939,7 +893,7 @@ uint64_t FileObject::size() const
  */
 int FileObject::getFileNo() const
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Gepufferte Daten schreiben
@@ -956,7 +910,7 @@ int FileObject::getFileNo() const
  */
 void FileObject::flush()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Dateiänderungen sofort auf die Platte schreiben
@@ -977,7 +931,7 @@ void FileObject::flush()
  */
 void FileObject::sync()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Datei abschneiden
@@ -996,7 +950,7 @@ void FileObject::sync()
  */
 void FileObject::truncate(uint64_t length)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Prüfen, ob eine Datei geöffnet ist
@@ -1009,7 +963,7 @@ void FileObject::truncate(uint64_t length)
  */
 bool FileObject::isOpen() const
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Datei zum Lesen sperren
@@ -1027,7 +981,7 @@ bool FileObject::isOpen() const
  */
 void FileObject::lockShared(bool block)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Datei exklusiv sperren
@@ -1041,11 +995,11 @@ void FileObject::lockShared(bool block)
  * zurückkehren soll (block=false).
  * @return Kein Rückgabewert, im Fehlerfall wird eine Exception geworfen.
  *
-* \see Siehe auch File::LockShared und File::Unlock
-*/
+ * \see Siehe auch File::LockShared und File::Unlock
+ */
 void FileObject::lockExclusive(bool block)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Dateisperre aufheben
@@ -1061,7 +1015,7 @@ void FileObject::lockExclusive(bool block)
  */
 void FileObject::unlock()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Minimalgröße des Speicherblocks bei Zugriffen mit FileObject::Map
@@ -1076,7 +1030,7 @@ void FileObject::unlock()
  */
 void FileObject::setMapReadAhead(size_t bytes)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Datei Read-Only in den Speicher mappen
@@ -1098,9 +1052,9 @@ void FileObject::setMapReadAhead(size_t bytes)
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
  * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
  */
-const char *FileObject::map(uint64_t position, size_t size)
+const char* FileObject::map(uint64_t position, size_t size)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Datei Les- und Schreibbar in den Speicher mappen
@@ -1123,9 +1077,9 @@ const char *FileObject::map(uint64_t position, size_t size)
  * @return Bei Erfolg gibt die Funktion einen Pointer auf den Speicherbereich zurück,
  * in dem sich die Datei befindet, im Fehlerfall wird eine Exception geworfen.
  */
-char *FileObject::mapRW(uint64_t position, size_t size)
+char* FileObject::mapRW(uint64_t position, size_t size)
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
 
 /*!\brief Mapping aufheben
@@ -1137,8 +1091,7 @@ char *FileObject::mapRW(uint64_t position, size_t size)
  */
 void FileObject::unmap()
 {
-	throw UnimplementedVirtualFunctionException();
+    throw UnimplementedVirtualFunctionException();
 }
-
 
 } // end of namespace ppl7
