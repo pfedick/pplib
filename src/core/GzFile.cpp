@@ -1,19 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -23,80 +22,37 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <ppl7/core/fileobject.h>
+#include <ppl7/core/file.h>
+#include <ppl7/core/gzfile.h>
+#include <ppl7/exceptions.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <time.h>
-
-#include "prolog_ppl7.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-
-#ifdef HAVE_LIBZ
+#ifdef HAVE_ZLIB
 #include <zlib.h>
 #endif
 
-#ifdef _WIN32
-#include <io.h>
-#define WIN32_LEAN_AND_MEAN		// Keine MFCs
-
-#include <windows.h>
-#ifdef DeleteFile
-#undef DeleteFile
-#endif
-
-#ifdef CopyFile
-#undef CopyFile
-#endif
-
-
-#ifdef MoveFile
-#undef MoveFile
-#endif
-
-#endif
-#include "ppl7.h"
-
-namespace ppl7 {
-
+namespace ppl7
+{
 
 static const char* fmode(File::FileMode mode)
 {
-	switch (mode) {
-	case File::READ: return "rb";
-	case File::WRITE: return "wb";
-	case File::READWRITE: return "r+b";
-	case File::APPEND: return "ab";
-	default:
-		throw File::IllegalFilemodeException();
-	}
+    switch (mode) {
+    case File::FileMode::READ:
+        return "rb";
+    case File::FileMode::WRITE:
+        return "wb";
+    case File::FileMode::READWRITE:
+        return "r+b";
+    case File::FileMode::APPEND:
+        return "ab";
+    default:
+        throw IllegalArgumentException("Filemode");
+    }
 }
 
 /*!\class GzFile
@@ -110,7 +66,6 @@ static const char* fmode(File::FileMode mode)
  *
  */
 
-
 /*!\brief Konstruktor der Klasse
  *
  * \desc
@@ -118,8 +73,8 @@ static const char* fmode(File::FileMode mode)
  */
 GzFile::GzFile()
 {
-	ff=NULL;
-	fh=NULL;
+    ff = NULL;
+    fh = NULL;
 }
 
 /*!\brief Konstruktor der Klasse mit gleichzeitigem Öffnen einer Datei
@@ -131,9 +86,9 @@ GzFile::GzFile()
  */
 GzFile::GzFile(const String& filename, File::FileMode mode)
 {
-	ff=NULL;
-	fh=NULL;
-	open(filename, mode);
+    ff = NULL;
+    fh = NULL;
+    open(filename, mode);
 }
 
 /*!\brief Konstruktor mit Übernahme eines C-Filehandles
@@ -145,9 +100,9 @@ GzFile::GzFile(const String& filename, File::FileMode mode)
  */
 GzFile::GzFile(int fd)
 {
-	ff=NULL;
-	fh=NULL;
-	open(fd);
+    ff = NULL;
+    fh = NULL;
+    open(fd);
 }
 
 /*!\brief Destruktor der Klasse
@@ -159,13 +114,13 @@ GzFile::GzFile(int fd)
 
 GzFile::~GzFile()
 {
-	if (ff != NULL) {
-		this->close();
-	}
-	if (fh != NULL) {
-		fh->close();
-		delete(fh);
-	}
+    if (ff != NULL) {
+        this->close();
+    }
+    if (fh != NULL) {
+        fh->close();
+        delete (fh);
+    }
 }
 
 /*!\brief %Exception anhand errno-Variable werfen
@@ -179,7 +134,7 @@ GzFile::~GzFile()
  */
 void GzFile::throwErrno(int e, const String& filename)
 {
-	throwExceptionFromErrno(e, filename);
+    throwExceptionFromErrno(e, filename);
 }
 
 /*!\brief Exception anhand errno-Variable werfen
@@ -192,7 +147,7 @@ void GzFile::throwErrno(int e, const String& filename)
  */
 void GzFile::throwErrno(int e)
 {
-	throwExceptionFromErrno(e, filename());
+    throwExceptionFromErrno(e, filename());
 }
 
 /*!\brief Datei öffnen
@@ -206,17 +161,17 @@ void GzFile::throwErrno(int e)
  */
 void GzFile::open(const String& filename, File::FileMode mode)
 {
-	if (filename.isEmpty()) throw IllegalArgumentException();
-	close();
-	fh=new File(filename, mode);
-	int dupfd=dup(fh->getFileNo());
-	if ((ff=gzdopen(dupfd, fmode(mode))) == NULL) {
-		int save_errno=errno;
-		::close(dupfd);
-		throwErrno(save_errno, filename);
-	}
-	seek(0);
-	setFilename(filename);
+    if (filename.isEmpty()) throw IllegalArgumentException();
+    close();
+    fh = new File(filename, mode);
+    int dupfd = dup(fh->getFileNo());
+    if ((ff = gzdopen(dupfd, fmode(mode))) == NULL) {
+        int save_errno = errno;
+        ::close(dupfd);
+        throwErrno(save_errno, filename);
+    }
+    seek(0);
+    setFilename(filename);
 }
 
 /*!\brief Datei zum Lesen oder Schreiben öffnen
@@ -231,18 +186,18 @@ void GzFile::open(const String& filename, File::FileMode mode)
  */
 void GzFile::open(const char* filename, File::FileMode mode)
 {
-	if (filename == NULL || strlen(filename) == 0) throw IllegalArgumentException();
-	close();
-	fh=new File;
-	fh->open(filename, mode);
-	int dupfd=dup(fh->getFileNo());
-	if ((ff=gzdopen(dupfd, fmode(mode))) == NULL) {
-		int save_errno=errno;
-		::close(dupfd);
-		throwErrno(save_errno, filename);
-	}
-	seek(0);
-	setFilename(filename);
+    if (filename == NULL || strlen(filename) == 0) throw IllegalArgumentException();
+    close();
+    fh = new File;
+    fh->open(filename, mode);
+    int dupfd = dup(fh->getFileNo());
+    if ((ff = gzdopen(dupfd, fmode(mode))) == NULL) {
+        int save_errno = errno;
+        ::close(dupfd);
+        throwErrno(save_errno, filename);
+    }
+    seek(0);
+    setFilename(filename);
 }
 
 /*
@@ -256,15 +211,14 @@ void GzFile::open(const char* filename, File::FileMode mode)
  */
 void GzFile::open(int fd, File::FileMode mode)
 {
-	if (fd == 0) throw IllegalArgumentException();
-	close();
-	if ((ff=gzdopen(fd, fmode(mode))) == NULL) {
-		throwErrno(errno, "FILE");
-	}
-	seek(0);
-	setFilename("FILE");
+    if (fd == 0) throw IllegalArgumentException();
+    close();
+    if ((ff = gzdopen(fd, fmode(mode))) == NULL) {
+        throwErrno(errno, "FILE");
+    }
+    seek(0);
+    setFilename("FILE");
 }
-
 
 /*!\brief Datei schließen
  *
@@ -281,297 +235,138 @@ void GzFile::open(int fd, File::FileMode mode)
  */
 void GzFile::close()
 {
-	setFilename("");
-	if (buffer != NULL) {
-		free(buffer);
-		buffer=NULL;
-	}
+    setFilename("");
+    if (buffer != NULL) {
+        free(buffer);
+        buffer = NULL;
+    }
 
-	if (ff != NULL) {
-		int ret=gzclose((gzFile)ff);
-		ff=NULL;
-		if (ret != Z_OK) {
-			if (ret == Z_ERRNO) throwErrno(errno, filename());
-			else if (ret == Z_MEM_ERROR) throw ppl7::OutOfMemoryException();
-			throw ppl7::CompressionFailedException();
-		}
-	}
-	if (fh != NULL) {
-		fh->close();
-		delete(fh);
-		fh=NULL;
-	}
+    if (ff != NULL) {
+        int ret = gzclose((gzFile)ff);
+        ff = NULL;
+        if (ret != Z_OK) {
+            if (ret == Z_ERRNO)
+                throwErrno(errno, filename());
+            else if (ret == Z_MEM_ERROR)
+                throw ppl7::OutOfMemoryException();
+            throw ppl7::CompressionFailedException();
+        }
+    }
+    if (fh != NULL) {
+        fh->close();
+        delete (fh);
+        fh = NULL;
+    }
 }
 
 bool GzFile::isOpen() const
 {
-	if (ff != NULL) return true;
-	return false;
+    if (ff != NULL) return true;
+    return false;
 }
 
 void GzFile::rewind()
 {
-	if (ff != NULL) {
-		gzrewind((gzFile)ff);
-		return;
-	}
-	throw FileNotOpenException();
+    if (ff != NULL) {
+        gzrewind((gzFile)ff);
+        return;
+    }
+    throw FileNotOpenException();
 }
 
 void GzFile::seek(uint64_t position)
 {
-	seek(position, SEEKSET);
+    seek(position, SEEKSET);
 }
-
 
 uint64_t GzFile::seek(int64_t offset, SeekOrigin origin)
 {
-	if (ff == NULL) throw FileNotOpenException();
-	int o=0;
-	switch (origin) {
-	case File::SEEKCUR:
-		o=SEEK_CUR;
-		break;
-	case File::SEEKSET:
-		o=SEEK_SET;
-		break;
-	case File::SEEKEND:
-		throw ppl7::UnsupportedFeatureException("GzFile::SEEKEND");
-	default:
-		throw IllegalArgumentException();
-	}
-	int suberr=::gzseek((gzFile)ff, (long)offset, o);
-	if (suberr >= 0) {
-		return tell();
-	}
-	throwErrno(errno, filename());
-	return 0;
+    if (ff == NULL) throw FileNotOpenException();
+    int o = 0;
+    switch (origin) {
+    case File::SEEKCUR:
+        o = SEEK_CUR;
+        break;
+    case File::SEEKSET:
+        o = SEEK_SET;
+        break;
+    case File::SEEKEND:
+        throw ppl7::UnsupportedFeatureException("GzFile::SEEKEND");
+    default:
+        throw IllegalArgumentException();
+    }
+    int suberr = ::gzseek((gzFile)ff, (long)offset, o);
+    if (suberr >= 0) {
+        return tell();
+    }
+    throwErrno(errno, filename());
+    return 0;
 }
 
 uint64_t GzFile::tell()
 {
-	if (ff != NULL) {
-		return (uint64_t)gztell((gzFile)ff);
-	}
-	throw FileNotOpenException();
+    if (ff != NULL) {
+        return (uint64_t)gztell((gzFile)ff);
+    }
+    throw FileNotOpenException();
 }
 
 bool GzFile::eof() const
 {
-	if (ff == NULL) throw FileNotOpenException();
-	if (gzeof((gzFile)ff) != 0) return true;
-	return false;
+    if (ff == NULL) throw FileNotOpenException();
+    if (gzeof((gzFile)ff) != 0) return true;
+    return false;
 }
 
 size_t GzFile::fread(void* ptr, size_t size, size_t nmemb)
 {
-	if (ff == NULL) throw FileNotOpenException();
-	if (ptr == NULL) throw IllegalArgumentException();
-	int by=::gzread((gzFile)ff, ptr, (unsigned int)(size * nmemb));
-	if (by > 0) return by;
-	if (by == 0) throw ppl7::EndOfFileException();
-	int err=0;
-	const char* msg=gzerror((gzFile)ff, &err);
-	throw ppl7::CompressionFailedException("gzread: %s [%d]", msg, err);
+    if (ff == NULL) throw FileNotOpenException();
+    if (ptr == NULL) throw IllegalArgumentException();
+    int by = ::gzread((gzFile)ff, ptr, (unsigned int)(size * nmemb));
+    if (by > 0) return by;
+    if (by == 0) throw ppl7::EndOfFileException();
+    int err = 0;
+    const char* msg = gzerror((gzFile)ff, &err);
+    throw ppl7::CompressionFailedException("gzread: %s [%d]", msg, err);
 }
 
 char* GzFile::fgets(char* buffer, size_t num)
 {
-	if (ff == NULL) throw FileNotOpenException();
-	if (buffer == NULL) throw IllegalArgumentException();
-	//int suberr;
-	char* res;
-	res=::gzgets((gzFile)ff, buffer, (int)num);
-	if (res == NULL) {
-		//suberr=::ferror((FILE*)ff);
-		if (gzeof((gzFile)ff)) throw ppl7::EndOfFileException();
-		else throwErrno(errno, filename());
-	}
-	return buffer;
+    if (ff == NULL) throw FileNotOpenException();
+    if (buffer == NULL) throw IllegalArgumentException();
+    // int suberr;
+    char* res;
+    res = ::gzgets((gzFile)ff, buffer, (int)num);
+    if (res == NULL) {
+        // suberr=::ferror((FILE*)ff);
+        if (gzeof((gzFile)ff))
+            throw ppl7::EndOfFileException();
+        else
+            throwErrno(errno, filename());
+    }
+    return buffer;
 }
 
 int GzFile::fgetc()
 {
-	if (ff == NULL) throw FileNotOpenException();
-	int ret=gzgetc((gzFile)ff);
-	if (ret != -1) {
-		return ret;
-	}
-	throw ppl7::EndOfFileException();
+    if (ff == NULL) throw FileNotOpenException();
+    int ret = gzgetc((gzFile)ff);
+    if (ret != -1) {
+        return ret;
+    }
+    throw ppl7::EndOfFileException();
 }
 
 size_t GzFile::fwrite(const void* ptr, size_t size, size_t nmemb)
 {
-	if (ff == NULL) throw FileNotOpenException();
-	if (ptr == NULL) throw IllegalArgumentException();
-	int by=::gzwrite((gzFile)ff, ptr, (unsigned int)(size * nmemb));
-	if (by > 0) return by;
-	if (by == 0) throw ppl7::EndOfFileException();
-	int err=0;
-	const char* msg=gzerror((gzFile)ff, &err);
-	throw ppl7::CompressionFailedException("gzread: %s [%d]", msg, err);
-
+    if (ff == NULL) throw FileNotOpenException();
+    if (ptr == NULL) throw IllegalArgumentException();
+    int by = ::gzwrite((gzFile)ff, ptr, (unsigned int)(size * nmemb));
+    if (by > 0) return by;
+    if (by == 0) throw ppl7::EndOfFileException();
+    int err = 0;
+    const char* msg = gzerror((gzFile)ff, &err);
+    throw ppl7::CompressionFailedException("gzread: %s [%d]", msg, err);
 }
-
-#ifdef TODO
-size_t File::fwrite(const void* ptr, size_t size, size_t nmemb)
-{
-	if (ff == NULL) throw FileNotOpenException();
-	if (ptr == NULL) throw IllegalArgumentException();
-	size_t by=::fwrite(ptr, size, nmemb, (FILE*)ff);
-	pos+=(by * size);
-	if (pos > this->mysize) this->mysize=pos;
-	if (by < nmemb) throwErrno(errno, filename());
-	return by;
-}
-
-
-void File::fputs(const char* str)
-{
-	if (ff == NULL) throw FileNotOpenException();
-	if (str == NULL) throw IllegalArgumentException();
-	if (::fputs(str, (FILE*)ff) != EOF) {
-		pos+=strlen(str);
-		if (pos > mysize) mysize=pos;
-		return;
-	}
-	throwErrno(errno, filename());
-}
-
-void File::fputc(int c)
-{
-	if (ff == NULL) throw FileNotOpenException();
-	int	ret=::fputc(c, (FILE*)ff);
-	if (ret != EOF) {
-		pos++;
-		if (pos > mysize) mysize=pos;
-		return;
-	}
-	throwErrno(errno);
-}
-
-void File::sync()
-{
-	if (ff == NULL) throw FileNotOpenException();
-#ifdef HAVE_FSYNC
-	int ret=fsync(fileno((FILE*)ff));
-	if (ret == 0) return;
-	throwErrno(errno);
-#else
-	throw UnsupportedFeatureException("ppl7::File::sync: No fsync available");
-#endif
-}
-
-void File::truncate(uint64_t length)
-{
-	if (ff == NULL) throw FileNotOpenException();
-#ifdef HAVE_FTRUNCATE
-	int fd=fileno((FILE*)ff);
-	int ret=::ftruncate(fd, (off_t)length);
-	if (ret == 0) {
-		mysize=length;
-		if (pos > mysize) seek(mysize);
-		return;
-	}
-	throwErrno(errno);
-#else
-	throw UnsupportedFeatureException("ppl7::File::truncate: No ftruncate available");
-#endif
-}
-
-
-void File::lockExclusive(bool block)
-{
-	if (ff == NULL) throw FileNotOpenException();
-#if defined HAVE_FCNTL
-	int fd=fileno((FILE*)ff);
-	int cmd=F_SETLK;
-	if (block) cmd=F_SETLKW;
-	struct flock f;
-	f.l_start=0;
-	f.l_len=0;
-	f.l_whence=0;
-	f.l_pid=getpid();
-	f.l_type=F_WRLCK;
-	int ret=fcntl(fd, cmd, &f);
-	if (ret != -1) return;
-	throwErrno(errno);
-#elif defined HAVE_FLOCK
-	int fd=fileno((FILE*)ff);
-	int flags=LOCK_EX;
-	if (!block) flags|=LOCK_NB;
-	int ret=flock(fd, flags);
-	if (ret == 0) return;
-	throwErrno(errno);
-#else
-	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
-#endif
-}
-
-void File::lockShared(bool block)
-{
-	if (ff == NULL) throw FileNotOpenException();
-#if defined HAVE_FCNTL
-	int fd=fileno((FILE*)ff);
-	int cmd=F_SETLK;
-	if (block) cmd=F_SETLKW;
-	struct flock f;
-	f.l_start=0;
-	f.l_len=0;
-	f.l_whence=0;
-	f.l_pid=getpid();
-	f.l_type=F_RDLCK;
-	int ret=fcntl(fd, cmd, &f);
-	if (ret != -1) return;
-	throwErrno(errno);
-
-#elif defined HAVE_FLOCK
-	int fd=fileno((FILE*)ff);
-	int flags=LOCK_SH;
-	if (!block) flags|=LOCK_NB;
-	int ret=flock(fd, flags);
-	if (ret == 0) return;
-	throwErrno(errno);
-#else
-	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
-
-#endif
-}
-
-void File::unlock()
-{
-	if (ff == NULL) throw FileNotOpenException();
-#if defined HAVE_FCNTL
-	int fd=fileno((FILE*)ff);
-	struct flock f;
-	f.l_start=0;
-	f.l_len=0;
-	f.l_whence=0;
-	f.l_pid=getpid();
-	f.l_type=F_UNLCK;
-	int ret=fcntl(fd, F_SETLKW, &f);
-	if (ret != -1) return;
-	throwErrno(errno);
-
-#elif defined HAVE_FLOCK
-	int fd=fileno((FILE*)ff);
-	int ret=flock(fd, LOCK_UN);
-	if (ret == 0) return;
-	throwErrno(errno);
-#else
-	throw UnsupportedFeatureException("ppl7::File::unlock: No file locking available");
-#endif
-}
-
-
-
-
-
-// ####################################################################
-// Statische Funktionen
-// ####################################################################
-
-
-#endif //TODO
 
 } // end of namespace ppl7

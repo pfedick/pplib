@@ -1,18 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -22,52 +22,30 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_WIDEC_H
-#include <widec.h>
-#endif
-
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#ifdef HAVE_CTYPE_H
-#include <ctype.h>
-#endif
-#ifdef HAVE_WCHAR_H
-#include <wchar.h>
-#endif
-#ifdef HAVE_WCTYPE_H
-#include <wctype.h>
-#endif
-#ifdef HAVE_LOCALE_H
-#include <locale.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef HAVE_LIMITS_H
-#include <limits.h>
-#endif
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/array.h>
+#include <ppl7/types/bytearray.h>
+#include <ppl7/types/bytearrayptr.h>
+#include <ppl7/core/iconv.h>
+#include <ppl7/exceptions.h>
 
 #ifdef HAVE_ICONV
 #include <iconv.h>
 #endif
 
-#include "ppl7.h"
+#ifndef ICONV_UNICODE
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16BE" : "UTF-32BE")
+#else
+#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16LE" : "UTF-32LE")
+#endif
+#endif
 
 namespace ppl7
 {
@@ -125,7 +103,7 @@ void Iconv::transcode(const ByteArrayPtr& from, ByteArray& to)
     char* ret = outbuf;
     // printf ("Iconv::transcode\n");
     // from.hexDump();
-    size_t res = iconv((iconv_t)iconv_handle, (ICONV_CONST char**)&inbuffer, &inbytes, (char**)&outbuf, &outbytes);
+    size_t res = iconv((iconv_t)iconv_handle, (char**)(void*)&inbuffer, &inbytes, (char**)&outbuf, &outbytes);
     if (res == (size_t)(-1)) {
         free(buffer);
         String e = inbuffer;
@@ -385,7 +363,7 @@ String Iconv::LocalToUtf8(const String& text)
     return iconv.transcode(text);
 }
 
-String Iconv::fromUnicode(const WideString& from, const String& toEncoding)
+String Iconv::fromWideString(const WideString& from, const String& toEncoding)
 {
     Iconv iconv(ICONV_UNICODE, toEncoding);
     ByteArray buffer;
@@ -393,7 +371,7 @@ String Iconv::fromUnicode(const WideString& from, const String& toEncoding)
     return String((const char*)buffer.ptr(), buffer.size());
 }
 
-WideString Iconv::toUnicode(const String& from, const String& fromEncoding)
+WideString Iconv::toWideString(const String& from, const String& fromEncoding)
 {
     Iconv iconv(fromEncoding, ICONV_UNICODE);
     ByteArray buffer;
@@ -416,47 +394,5 @@ ByteArray Iconv::transcode(const ByteArrayPtr& text, const String& fromEncoding,
     iconv.transcode(text, buffer);
     return buffer;
 }
-
-#ifdef OLD
-
-String Transcode(const char* str, size_t size, const String& fromEncoding, const String& toEncoding)
-{
-#ifndef HAVE_ICONV
-    throw UnsupportedFeatureException("Iconv");
-#else
-    iconv_t iconv_handle = iconv_open((const char*)toEncoding, (const char*)fromEncoding);
-    if ((iconv_t)(-1) == iconv_handle) {
-        throw UnsupportedCharacterEncodingException();
-    }
-
-    size_t buffersize = (size + 4) * sizeof(wchar_t);
-    char* buffer = (char*)malloc(buffersize);
-    if (!buffer) {
-        iconv_close(iconv_handle);
-        throw OutOfMemoryException();
-    }
-    size_t outbytes = buffersize;
-    char* b = buffer;
-    char* inbuffer = (char*)str;
-    size_t inbytes = size;
-
-    size_t res = iconv((iconv_t)iconv_handle, (ICONV_CONST char**)&inbuffer, &inbytes, (char**)&b, &outbytes);
-    iconv_close(iconv_handle);
-    if (res == (size_t)(-1)) {
-        free(buffer);
-        throw CharacterEncodingException();
-    }
-    String ret(buffer, buffersize - outbytes);
-    free(buffer);
-    return ret;
-#endif
-}
-
-String Transcode(const String& str, const String& fromEncoding, const String& toEncoding)
-{
-    return Transcode(str.c_str(), str.size(), fromEncoding, toEncoding);
-}
-
-#endif
 
 } // namespace ppl7

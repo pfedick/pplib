@@ -48,8 +48,24 @@ public:
     void transcode(const ByteArrayPtr& from, ByteArray& to);
     void transcode(const String& from, String& to);
     String transcode(const String& from);
-    static String fromUnicode(const WideString& from, const String& toEncoding);
-    static WideString toUnicode(const String& from, const String& fromEncoding);
+
+    /**
+     * @brief Konvertiert einen WideString (wchar_t) in einen String mit dem angegebenen Ziel-Encoding
+     *
+     * @param[in] from Der Quell-WideString (UTF-16 unter Windows, UTF-32 unter Linux)
+     * @param[in] toEncoding Das gewünschte Ziel-Encoding (z. B. "UTF-8", "ISO-8859-1")
+     * @return String im angegebenen Ziel-Encoding
+     */
+    static String fromWideString(const WideString& from, const String& toEncoding);
+
+    /**
+     * @brief Konvertiert einen String aus einem angegebenen Quell-Encoding in einen WideString (wchar_t)
+     *
+     * @param[in] from Der Quell-String
+     * @param[in] fromEncoding Das Quell-Encoding des Strings (z. B. "UTF-8", "ISO-8859-1")
+     * @return WideString (UTF-16 unter Windows, UTF-32 unter Linux)
+     */
+    static WideString toWideString(const String& from, const String& fromEncoding);
     static void enumerateCharsets(Array& list);
     static void enumerateCharsets(std::list<ppl7::String>& list);
     static String getLocalCharset();
@@ -57,6 +73,17 @@ public:
     static String LocalToUtf8(const String& text);
     static ByteArray transcode(const String& text, const String& fromEncoding, const String& toEncoding);
     static ByteArray transcode(const ByteArrayPtr& text, const String& fromEncoding, const String& toEncoding);
+
+    [[deprecated("Use fromWideString instead.")]]
+    static inline String fromUnicode(const WideString& from, const String& toEncoding)
+    {
+        return fromWideString(from, toEncoding);
+    }
+    [[deprecated("Use toWideString instead.")]]
+    static inline WideString toUnicode(const String& from, const String& fromEncoding)
+    {
+        return toWideString(from, fromEncoding);
+    }
 };
 
 }; // namespace ppl7
