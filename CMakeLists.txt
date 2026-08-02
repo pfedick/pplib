@@ -3,6 +3,7 @@ project(PPL7 VERSION 7.1.0 LANGUAGES C CXX)
 
 include(CheckIncludeFile)
 include(CheckSymbolExists)
+include(CheckStructHasMember)
 
 # C++ Standard festlegen
 set(CMAKE_CXX_STANDARD 17)
@@ -91,8 +92,11 @@ if(PPL7_ENABLE_CORE)
     target_include_directories(ppl7_core PUBLIC ${PPL7_INCLUDE_DIRS})
     target_compile_definitions(ppl7_core PUBLIC PPL7LIB=1 HAVE_CONFIG_H=1)
 
-    # Standard System-Bibliotheken (z.B. pthreads, zlib, bzip2, pcre2)
 
+    check_struct_has_member("struct tm" tm_gmtoff "time.h" STRUCT_TM_HAS_GMTOFF)
+
+    # Standard System-Bibliotheken (z.B. pthreads, zlib, bzip2, pcre2)
+    
     find_package(Threads REQUIRED)
     if(CMAKE_USE_PTHREADS_INIT AND NOT WIN32)
         set(HAVE_PTHREADS 1)
