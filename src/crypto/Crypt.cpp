@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,30 +22,25 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_STDIO_H
+#include "config_ppl7.h"
+
 #include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #ifdef HAVE_OPENSSL
 #include <openssl/evp.h>
 #endif
 
-#include "ppl7.h"
-#include "ppl7-crypto.h"
+#include <ppl7-crypto.h>
 
-namespace ppl7 {
+namespace ppl7
+{
 
 #ifdef HAVE_OPENSSL
 static const EVP_CIPHER* getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
@@ -287,10 +277,9 @@ static const EVP_CIPHER* getCipher(Crypt::Algorithm algo, Crypt::Mode mode)
 }
 #endif
 
-
 Crypt::Crypt()
 {
-    ctx=nullptr;
+    ctx = nullptr;
 }
 
 Crypt::~Crypt()
@@ -345,8 +334,7 @@ void Crypt::setPadding(bool enabled)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    if (enabled) EVP_CIPHER_CTX_set_padding(static_cast<EVP_CIPHER_CTX*>(ctx), 1);
-    else EVP_CIPHER_CTX_set_padding(static_cast<EVP_CIPHER_CTX*>(ctx), 0);
+    EVP_CIPHER_CTX_set_padding(static_cast<EVP_CIPHER_CTX*>(ctx), enabled ? 1 : 0);
 #endif
 }
 
@@ -356,22 +344,20 @@ void Crypt::setKeyLength(int keylen)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    int ret=EVP_CIPHER_CTX_set_key_length(static_cast<EVP_CIPHER_CTX*>(ctx), keylen);
+    int ret = EVP_CIPHER_CTX_set_key_length(static_cast<EVP_CIPHER_CTX*>(ctx), keylen);
     if (ret != 1) throw InvalidKeyLengthException("%d", keylen);
 #endif
 }
 
-
 /***********************************************************************************************************
- * Enrypt
+ * Encrypt
  ***********************************************************************************************************/
 
 Encrypt::Encrypt(Algorithm algo, Mode mode)
 {
-    ctx=nullptr;
+    ctx = nullptr;
     setAlgorithm(algo, mode);
 }
-
 
 void Encrypt::setAlgorithm(Algorithm algo, Mode mode)
 {
@@ -379,19 +365,18 @@ void Encrypt::setAlgorithm(Algorithm algo, Mode mode)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (ctx) EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-    ctx=EVP_CIPHER_CTX_new();
+    ctx = EVP_CIPHER_CTX_new();
     if (!ctx) throw ppl7::InitializationFailedException("OpenSSL: EVP_CIPHER_CTX_new");
-    const EVP_CIPHER* cipher=getCipher(algo, mode);
+    const EVP_CIPHER* cipher = getCipher(algo, mode);
     if (!cipher) {
         EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+        ctx = nullptr;
         throw UnsupportedAlgorithmException();
     }
-    int ret=EVP_EncryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx),
-        cipher, nullptr, nullptr, nullptr);
+    int ret = EVP_EncryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx), cipher, nullptr, nullptr, nullptr);
     if (ret != 1) {
         EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+        ctx = nullptr;
         throw ppl7::InitializationFailedException("OpenSSL: EVP_EncryptInit_ex");
     }
 #endif
@@ -403,10 +388,8 @@ void Encrypt::setKey(const ByteArrayPtr& key)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    int ret=EVP_EncryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx),
-        nullptr, nullptr,
-        static_cast<const unsigned char*>(key.ptr()),
-        nullptr);
+    int ret =
+        EVP_EncryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx), nullptr, nullptr, static_cast<const unsigned char*>(key.ptr()), nullptr);
     if (ret != 1) throw ppl7::InitializationFailedException("OpenSSL: EVP_EncryptInit_ex, setKey");
 #endif
 }
@@ -417,9 +400,7 @@ void Encrypt::setIV(const ByteArrayPtr& iv)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    int ret=EVP_EncryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx),
-        nullptr, nullptr, nullptr,
-        static_cast<const unsigned char*>(iv.ptr()));
+    int ret = EVP_EncryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx), nullptr, nullptr, nullptr, static_cast<const unsigned char*>(iv.ptr()));
     if (ret != 1) throw ppl7::InitializationFailedException("OpenSSL: EVP_EncryptInit_ex, setIV");
 #endif
 }
@@ -430,18 +411,16 @@ void Encrypt::update(const ByteArrayPtr& in, ByteArray& out)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    unsigned char* outbuf=static_cast<unsigned char*>(malloc(in.size() +
-        static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)))));
-    if (!outbuf) throw ppl7::OutOfMemoryException();
-    int inlen=static_cast<int>(in.size());
-    int outlen=0;
-    if (!EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen,
-        static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+    size_t max_out = in.size() + static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)));
+    ByteArray temp;
+    unsigned char* outbuf = static_cast<unsigned char*>(temp.malloc(max_out));
+
+    int inlen = static_cast<int>(in.size());
+    int outlen = 0;
+    if (!EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
         throw EncryptionFailedException();
     }
-    out.useadr(outbuf, static_cast<size_t>(outlen));
+    out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
 }
 
@@ -451,16 +430,15 @@ void Encrypt::final(ByteArray& out)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    unsigned char* outbuf=static_cast<unsigned char*>(malloc(
-        static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)))));
-    if (!outbuf) throw ppl7::OutOfMemoryException();
-    int outlen=0;
+    size_t max_out = static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)));
+    ByteArray temp;
+    unsigned char* outbuf = static_cast<unsigned char*>(temp.malloc(max_out));
+
+    int outlen = 0;
     if (!EVP_EncryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
         throw EncryptionFailedException();
     }
-    out.useadr(outbuf, static_cast<size_t>(outlen));
+    out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
 }
 
@@ -470,28 +448,22 @@ void Encrypt::encrypt(const ByteArrayPtr& in, ByteArray& out)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    unsigned char* outbuf=static_cast<unsigned char*>(malloc(in.size() +
-        2 * static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)))));
-    if (!outbuf) throw ppl7::OutOfMemoryException();
-    int inlen=static_cast<int>(in.size());
-    int outlen=0;
-    if (!EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen,
-        static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
-        throw EncryptionFailedException();
-    }
-    int outlen_final=0;
+    size_t max_out = in.size() + 2 * static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)));
+    ByteArray temp;
+    unsigned char* outbuf = static_cast<unsigned char*>(temp.malloc(max_out));
 
-    if (!EVP_EncryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf + outlen, &outlen_final)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+    int inlen = static_cast<int>(in.size());
+    int outlen = 0;
+    if (!EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
         throw EncryptionFailedException();
     }
-    out.useadr(outbuf, static_cast<size_t>(outlen + outlen_final));
+    int outlen_final = 0;
+    if (!EVP_EncryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf + outlen, &outlen_final)) {
+        throw EncryptionFailedException();
+    }
+    out.copy(outbuf, static_cast<size_t>(outlen + outlen_final));
 #endif
 }
-
 
 ByteArray Encrypt::encrypt(const ByteArrayPtr& in)
 {
@@ -506,10 +478,9 @@ ByteArray Encrypt::encrypt(const ByteArrayPtr& in)
 
 Decrypt::Decrypt(Algorithm algo, Mode mode)
 {
-    ctx=nullptr;
+    ctx = nullptr;
     setAlgorithm(algo, mode);
 }
-
 
 void Decrypt::setAlgorithm(Algorithm algo, Mode mode)
 {
@@ -517,19 +488,18 @@ void Decrypt::setAlgorithm(Algorithm algo, Mode mode)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (ctx) EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-    ctx=EVP_CIPHER_CTX_new();
+    ctx = EVP_CIPHER_CTX_new();
     if (!ctx) throw ppl7::InitializationFailedException("OpenSSL: EVP_CIPHER_CTX_new");
-    const EVP_CIPHER* cipher=getCipher(algo, mode);
+    const EVP_CIPHER* cipher = getCipher(algo, mode);
     if (!cipher) {
         EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+        ctx = nullptr;
         throw UnsupportedAlgorithmException();
     }
-    int ret=EVP_DecryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx),
-        cipher, nullptr, nullptr, nullptr);
+    int ret = EVP_DecryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx), cipher, nullptr, nullptr, nullptr);
     if (ret != 1) {
         EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+        ctx = nullptr;
         throw ppl7::InitializationFailedException("OpenSSL: EVP_DecryptInit_ex");
     }
 #endif
@@ -541,10 +511,8 @@ void Decrypt::setKey(const ByteArrayPtr& key)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    int ret=EVP_DecryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx),
-        nullptr, nullptr,
-        static_cast<const unsigned char*>(key.ptr()),
-        nullptr);
+    int ret =
+        EVP_DecryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx), nullptr, nullptr, static_cast<const unsigned char*>(key.ptr()), nullptr);
     if (ret != 1) throw ppl7::InitializationFailedException("OpenSSL: EVP_DecryptInit_ex, setKey");
 #endif
 }
@@ -555,9 +523,7 @@ void Decrypt::setIV(const ByteArrayPtr& iv)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    int ret=EVP_DecryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx),
-        nullptr, nullptr, nullptr,
-        static_cast<const unsigned char*>(iv.ptr()));
+    int ret = EVP_DecryptInit_ex(static_cast<EVP_CIPHER_CTX*>(ctx), nullptr, nullptr, nullptr, static_cast<const unsigned char*>(iv.ptr()));
     if (ret != 1) throw ppl7::InitializationFailedException("OpenSSL: EVP_DecryptInit_ex, setIV");
 #endif
 }
@@ -568,18 +534,16 @@ void Decrypt::update(const ByteArrayPtr& in, ByteArray& out)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    unsigned char* outbuf=static_cast<unsigned char*>(malloc(in.size() +
-        static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)))));
-    if (!outbuf) throw ppl7::OutOfMemoryException();
-    int inlen=static_cast<int>(in.size());
-    int outlen=0;
-    if (!EVP_DecryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen,
-        static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+    size_t max_out = in.size() + static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)));
+    ByteArray temp;
+    unsigned char* outbuf = static_cast<unsigned char*>(temp.malloc(max_out));
+
+    int inlen = static_cast<int>(in.size());
+    int outlen = 0;
+    if (!EVP_DecryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
         throw DecryptionFailedException();
     }
-    out.useadr(outbuf, static_cast<size_t>(outlen));
+    out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
 }
 
@@ -589,16 +553,15 @@ void Decrypt::final(ByteArray& out)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    unsigned char* outbuf=static_cast<unsigned char*>(malloc(
-        static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)))));
-    if (!outbuf) throw ppl7::OutOfMemoryException();
-    int outlen=0;
+    size_t max_out = static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)));
+    ByteArray temp;
+    unsigned char* outbuf = static_cast<unsigned char*>(temp.malloc(max_out));
+
+    int outlen = 0;
     if (!EVP_DecryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
         throw DecryptionFailedException();
     }
-    out.useadr(outbuf, static_cast<size_t>(outlen));
+    out.copy(outbuf, static_cast<size_t>(outlen));
 #endif
 }
 
@@ -608,25 +571,20 @@ void Decrypt::decrypt(const ByteArrayPtr& in, ByteArray& out)
     throw ppl7::UnsupportedFeatureException("OpenSSL");
 #else
     if (!ctx) throw ppl7::NotInitializedException();
-    unsigned char* outbuf=static_cast<unsigned char*>(malloc(in.size() +
-        2 * static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)))));
-    if (!outbuf) throw ppl7::OutOfMemoryException();
-    int inlen=static_cast<int>(in.size());
-    int outlen=0;
-    if (!EVP_DecryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen,
-        static_cast<const unsigned char*>(in.ptr()), inlen)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
-        throw DecryptionFailedException();
-    }
-    int outlen_final=0;
+    size_t max_out = in.size() + 2 * static_cast<size_t>(EVP_CIPHER_CTX_block_size(static_cast<EVP_CIPHER_CTX*>(ctx)));
+    ByteArray temp;
+    unsigned char* outbuf = static_cast<unsigned char*>(temp.malloc(max_out));
 
-    if (!EVP_DecryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf + outlen, &outlen_final)) {
-        EVP_CIPHER_CTX_free(static_cast<EVP_CIPHER_CTX*>(ctx));
-        ctx=nullptr;
+    int inlen = static_cast<int>(in.size());
+    int outlen = 0;
+    if (!EVP_DecryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf, &outlen, static_cast<const unsigned char*>(in.ptr()), inlen)) {
         throw DecryptionFailedException();
     }
-    out.useadr(outbuf, static_cast<size_t>(outlen + outlen_final));
+    int outlen_final = 0;
+    if (!EVP_DecryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx), outbuf + outlen, &outlen_final)) {
+        throw DecryptionFailedException();
+    }
+    out.copy(outbuf, static_cast<size_t>(outlen + outlen_final));
 #endif
 }
 
@@ -637,5 +595,4 @@ ByteArray Decrypt::decrypt(const ByteArrayPtr& in)
     return out;
 }
 
-
-}	// EOF namespace ppl7
+} // namespace ppl7
