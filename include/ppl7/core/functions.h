@@ -149,9 +149,82 @@ bool HaveArgv(int argc, char* argv[], const String& argument);
 
 Array Sort(const Array& array, bool unique = false);
 Array SortReverse(const Array& array, bool unique = false);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Zufallszahlengenerator initialisieren
+ *
+ * Mit dieser Funktion wird der Zufallszahlengenerator mit dem Wert \p x initialisiert.
+ * Wird diese Funktion nicht aufgerufen, wird der Generator automatisch mit einem
+ * zufälligen Wert initialisiert.
+ *
+ * @param[in] x Initialisierungswert
+ *
+ * @note Diese Funktion kann mit einem festen Wert aufgerufen werden, um reproduzierbare
+ * Zufallszahlen zu erzeugen.
+ */
+void srand(uint32_t x);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Zufallszahlen erzeugen
+ *
+ * Mit dieser Funktion werden Zufallszahlen im Bereich von \p min bis \p max erzeugt.
+ *
+ * @param min Untere Grenze (inklusive)
+ * @param max Obere Grenze (inklusive)
+ * @return Zufallszahl im Bereich von \p min bis \p max
+ */
 size_t rand(size_t min, size_t max);
-double randf(double min, double max);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Zufallszahlen erzeugen
+ *
+ * Mit dieser Funktion werden Zufallszahlen im Bereich von \p min bis \p max erzeugt.
+ *
+ * @param min Untere Grenze (inklusive)
+ * @param max Obere Grenze (inklusive)
+ * @return Zufallszahl als float im Bereich von \p min bis \p max
+ */
+float randf(float min, float max);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Zufallszahlen erzeugen
+ *
+ * Mit dieser Funktion werden Zufallszahlen im Bereich von \p min bis \p max erzeugt.
+ *
+ * @param min Untere Grenze (inklusive)
+ * @param max Obere Grenze (inklusive)
+ * @return Zufallszahl als double im Bereich von \p min bis \p max
+ */
+double randd(double min, double max);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Zufallsdaten erzeugen
+ *
+ * Mit dieser Funktion werden \p bytes Bytes an Zufallsdaten erzeugt und als
+ * ByteArray Objekt zurückgegeben.
+ *
+ * @param[in] bytes Anzahl Bytes
+ * @return Gibt ein ByteArray Objekt mit der gewünschten Anzahl Zufallsdaten
+ * zurück
+ */
 ByteArray Random(size_t bytes);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Zufallsdaten erzeugen
+ *
+ * Mit dieser Funktion werden \p bytes Bytes an Zufallsdaten erzeugt und im
+ * ByteArray Objekt \p buffer abgelegt.
+ *
+ * @param[in] buffer ByteArray Objekt, in dem die Zufallsdaten abgelegt werden
+ * @param[in] bytes Anzahl Bytes
+ * @return Referenz auf das ByteArray Objekt \p buffer
+ */
 ByteArray& Random(ByteArray& buffer, size_t bytes);
 
 // Speicherzugriff
