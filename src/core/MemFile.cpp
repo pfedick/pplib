@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,57 +22,22 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
+#include <ppl7/core/memfile.h>
+#include <ppl7/core/fileobject.h>
+#include <ppl7/types/bytearray.h>
+#include <ppl7/types/bytearrayptr.h>
+#include <ppl7/exceptions.h>
 
-#include <time.h>
+namespace ppl7
+{
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
-#endif
-#ifdef HAVE_SYS_FILE_H
-#include <sys/file.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
-#ifdef HAVE_ERRNO_H
-#include <errno.h>
-#endif
-#ifdef _WIN32
-#include <io.h>
-#define WIN32_LEAN_AND_MEAN		// Keine MFCs
-#define popen _popen
-#define pclose _pclose
-
-#include <windows.h>
-#ifdef DeleteFile
-#undef DeleteFile
-#endif
-#endif
-#include "ppl7.h"
-
-namespace ppl7 {
-
-#define COPYBYTES_BUFFERSIZE 1024*1024
+#define COPYBYTES_BUFFERSIZE 1024 * 1024
 
 /*!\class MemFile
  * \ingroup PPLGroupFileIO
@@ -103,15 +63,14 @@ namespace ppl7 {
  */
 MemFile::MemFile()
 {
-	buffer=NULL;
-	mysize=0;
-	pos=0;
-	MemBase=NULL;
-	readonly=false;
-	maxsize=0;
-	buffersize=0;
+    buffer = NULL;
+    mysize = 0;
+    pos = 0;
+    MemBase = NULL;
+    readonly = false;
+    maxsize = 0;
+    buffersize = 0;
 }
-
 
 MemFile::MemFile(void* adresse, size_t size, bool writeable)
 /*!\brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
@@ -129,13 +88,13 @@ MemFile::MemFile(void* adresse, size_t size, bool writeable)
  * oder freigegeben werden!
  */
 {
-	mysize=0;
-	pos=0;
-	MemBase=NULL;
-	readonly=false;
-	maxsize=0;
-	buffersize=0;
-	open(adresse, size, writeable);
+    mysize = 0;
+    pos = 0;
+    MemBase = NULL;
+    readonly = false;
+    maxsize = 0;
+    buffersize = 0;
+    open(adresse, size, writeable);
 }
 
 /*!\brief Konstruktor der Klasse mit Angabe eines Speicherbereichs
@@ -149,15 +108,15 @@ MemFile::MemFile(void* adresse, size_t size, bool writeable)
  */
 MemFile::MemFile(const ByteArrayPtr& memory)
 {
-	if (memory.isEmpty()) {
-		throw IllegalArgumentException();
-	}
-	MemBase=(char*)memory.adr();
-	mysize=memory.size();
-	pos=0;
-	readonly=true;
-	maxsize=0;
-	buffersize=0;
+    if (memory.isEmpty()) {
+        throw IllegalArgumentException();
+    }
+    MemBase = (char*)memory.adr();
+    mysize = memory.size();
+    pos = 0;
+    readonly = true;
+    maxsize = 0;
+    buffersize = 0;
 }
 
 MemFile::~MemFile()
@@ -179,24 +138,24 @@ MemFile::~MemFile()
  */
 void MemFile::open(void* adresse, size_t size, bool writeable)
 {
-	//if (adresse==NULL || size==0) throw IllegalArgumentException();
-	if (buffer) {
-		free(buffer);
-		buffer=NULL;
-		buffersize=0;
-	}
-	MemBase=(char*)adresse;
-	mysize=size;
-	pos=0;
+    // if (adresse==NULL || size==0) throw IllegalArgumentException();
+    if (buffer) {
+        free(buffer);
+        buffer = NULL;
+        buffersize = 0;
+    }
+    MemBase = (char*)adresse;
+    mysize = size;
+    pos = 0;
 
-	if (writeable == true) {
-		buffer=MemBase;
-		readonly=false;
-		buffersize=size;
-	} else {
-		buffersize=0;
-		readonly=true;
-	}
+    if (writeable == true) {
+        buffer = MemBase;
+        readonly = false;
+        buffersize = size;
+    } else {
+        buffersize = 0;
+        readonly = true;
+    }
 }
 
 /*!\brief Speicherbereich zum Lesen öffnen
@@ -211,15 +170,15 @@ void MemFile::open(void* adresse, size_t size, bool writeable)
  */
 void MemFile::open(const ByteArrayPtr& memory)
 {
-	if (memory.isEmpty()) throw IllegalArgumentException();
-	if (buffer) {
-		free(buffer);
-		buffer=NULL;
-	}
-	MemBase=(char*)memory.adr();
-	mysize=memory.size();
-	pos=0;
-	readonly=true;
+    if (memory.isEmpty()) throw IllegalArgumentException();
+    if (buffer) {
+        free(buffer);
+        buffer = NULL;
+    }
+    MemBase = (char*)memory.adr();
+    mysize = memory.size();
+    pos = 0;
+    readonly = true;
 }
 
 /*!\brief Speicherbereich zum Schreiben und Lesen öffnen
@@ -238,14 +197,14 @@ void MemFile::open(const ByteArrayPtr& memory)
  */
 void MemFile::openReadWrite(void* adresse, size_t size)
 {
-	if (adresse == NULL || size == 0) throw IllegalArgumentException();
-	if (buffer) free(buffer);
-	MemBase=(char*)adresse;
-	buffer=MemBase;
-	mysize=size;
-	pos=0;
-	readonly=false;
-	buffersize=size;
+    if (adresse == NULL || size == 0) throw IllegalArgumentException();
+    if (buffer) free(buffer);
+    MemBase = (char*)adresse;
+    buffer = MemBase;
+    mysize = size;
+    pos = 0;
+    readonly = false;
+    buffersize = size;
 }
 
 /*!\brief Maximale Dateigröße festlegen
@@ -261,281 +220,283 @@ void MemFile::openReadWrite(void* adresse, size_t size)
  */
 void MemFile::setMaxSize(size_t size)
 {
-	maxsize=size;
+    maxsize = size;
 }
 
 size_t MemFile::maxSize() const
 {
-	return maxsize;
+    return maxsize;
 }
 
 void MemFile::resizeBuffer(size_t size)
 {
-	if (readonly) throw ReadOnlyException();
-	if (maxsize > 0 && size > maxsize) throw BufferExceedsLimitException();
-	size_t newsize=(((size + 8191) >> 13) << 13);
-	if (newsize > buffersize) {
-		//ppl7::PrintDebug("MemFile::resizeBuffer, old size: %d, requested size: %d, new size: %d\n", (int)buffersize, size, newsize);
-		char* buf=(char*)realloc(buffer, newsize);
-		if (!buf) throw OutOfMemoryException();
-		buffer=buf;
-		MemBase=buf;
-		buffersize=newsize;
-	}
-	mysize=size;
-	if (pos > mysize) pos=mysize;
+    if (readonly) throw ReadOnlyException();
+    if (maxsize > 0 && size > maxsize) throw BufferExceedsLimitException();
+    size_t newsize = (((size + 8191) >> 13) << 13);
+    if (newsize > buffersize) {
+        // ppl7::PrintDebug("MemFile::resizeBuffer, old size: %d, requested size: %d, new size: %d\n", (int)buffersize, size, newsize);
+        char* buf = (char*)realloc(buffer, newsize);
+        if (!buf) throw OutOfMemoryException();
+        buffer = buf;
+        MemBase = buf;
+        buffersize = newsize;
+    }
+    mysize = size;
+    if (pos > mysize) pos = mysize;
 }
 
 bool MemFile::isOpen() const
 {
-	if (MemBase != NULL) return true;
-	return false;
+    if (MemBase != NULL) return true;
+    return false;
 }
 
 void MemFile::close()
 {
-	MemBase=NULL;
-	mysize=0;
-	pos=0;
-	if (buffer != 0) {
-		free(buffer);
-		buffer=0;
-	}
+    MemBase = NULL;
+    mysize = 0;
+    pos = 0;
+    if (buffer != 0) {
+        free(buffer);
+        buffer = 0;
+    }
 }
 
 uint64_t MemFile::size() const
 {
-	return (int64_t)mysize;
+    return (int64_t)mysize;
 }
 
 void MemFile::rewind()
 {
-	pos=0;
+    pos = 0;
 }
-
 
 void MemFile::seek(uint64_t position)
 {
-	if (MemBase != NULL || readonly == false) {
-		if (position < mysize) {
-			pos=position;
-		} else if (mysize == 0 && position == 0) {
-			return;
-		} else {
-			throw OverflowException();
-		}
-		return;
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL || readonly == false) {
+        if (position < mysize) {
+            pos = position;
+        } else if (mysize == 0 && position == 0) {
+            return;
+        } else {
+            throw OverflowException();
+        }
+        return;
+    }
+    throw FileNotOpenException();
 }
 
 uint64_t MemFile::seek(int64_t offset, SeekOrigin origin)
 {
-	if (MemBase != NULL || readonly == false) {
-		uint64_t oldpos=pos;
-		switch (origin) {
-			case SEEKCUR:
-				pos+=offset;
-				if (pos < mysize) return pos;
-				if ((int64_t)pos < 0) { pos=0;return pos; }
-				break;
-			case SEEKEND:
-				pos=mysize - offset;
-				if (pos > mysize) return pos;
-				if ((int64_t)pos < 0) { pos=0; return pos; }
-				break;
-			case SEEKSET:
-				pos=offset;
-				if ((int64_t)pos < 0) { pos=0; return pos; }
-				if (pos > mysize) return pos;
-				break;
-		}
-		pos=oldpos;
-		throw FileSeekException("pos=%lld, offset=%lld, origin=%d", pos, offset, origin);
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL || readonly == false) {
+        uint64_t oldpos = pos;
+        switch (origin) {
+        case SEEKCUR:
+            pos += offset;
+            if (pos < mysize) return pos;
+            if ((int64_t)pos < 0) {
+                pos = 0;
+                return pos;
+            }
+            break;
+        case SEEKEND:
+            pos = mysize - offset;
+            if (pos > mysize) return pos;
+            if ((int64_t)pos < 0) {
+                pos = 0;
+                return pos;
+            }
+            break;
+        case SEEKSET:
+            pos = offset;
+            if ((int64_t)pos < 0) {
+                pos = 0;
+                return pos;
+            }
+            if (pos > mysize) return pos;
+            break;
+        }
+        pos = oldpos;
+        throw FileSeekException("pos=%lld, offset=%lld, origin=%d", pos, offset, origin);
+    }
+    throw FileNotOpenException();
 }
 
 uint64_t MemFile::tell()
 {
-	if (MemBase != NULL || readonly == false) {
-		return pos;
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL || readonly == false) {
+        return pos;
+    }
+    throw FileNotOpenException();
 }
-
 
 size_t MemFile::fread(void* ptr, size_t size, size_t nmemb)
 {
-	if (MemBase == NULL) throw FileNotOpenException();
-	size_t by=nmemb;
-	if (pos + (by * size) > mysize) by=(size_t)(mysize - pos) / size;
-	memmove(ptr, MemBase + pos, by * size);
-	pos+=(by * size);
-	if (by < nmemb) throw ReadException();
-	return by;
+    if (MemBase == NULL) throw FileNotOpenException();
+    size_t by = nmemb;
+    if (pos + (by * size) > mysize) by = (size_t)(mysize - pos) / size;
+    memmove(ptr, MemBase + pos, by * size);
+    pos += (by * size);
+    if (by < nmemb) throw ReadException();
+    return by;
 }
 
 size_t MemFile::fwrite(const void* ptr, size_t size, size_t nmemb)
 {
-	if (MemBase == NULL && readonly == true) throw FileNotOpenException();
-	if (readonly) throw ReadOnlyException();
-	size_t bytes=nmemb * size;
-	if (pos + bytes > mysize) resizeBuffer(pos + bytes);
-	memmove(MemBase + pos, ptr, bytes);
-	pos+=bytes;
-	return bytes;
+    if (MemBase == NULL && readonly == true) throw FileNotOpenException();
+    if (readonly) throw ReadOnlyException();
+    size_t bytes = nmemb * size;
+    if (pos + bytes > mysize) resizeBuffer(pos + bytes);
+    memmove(MemBase + pos, ptr, bytes);
+    pos += bytes;
+    return bytes;
 }
 
 char* MemFile::fgets(char* buffer1, size_t num)
 {
-	if (MemBase != NULL) {
-		if (pos >= mysize) throw EndOfFileException();
-		uint64_t by;
-		by=num - 1;
-		if (pos + by > mysize) by=(uint64_t)(mysize - pos);
-		char* ptr=MemBase + pos;
-		uint64_t i;
-		for (i=0;i < by;i++) {
-			if ((buffer1[i]=ptr[i]) == '\n') {
-				i++;
-				break;
-			}
-		}
-		buffer1[i]=0;
-		pos+=i;
-		if (pos >= mysize) throw EndOfFileException();
-		return buffer1;
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL) {
+        if (pos >= mysize) throw EndOfFileException();
+        uint64_t by;
+        by = num - 1;
+        if (pos + by > mysize) by = (uint64_t)(mysize - pos);
+        char* ptr = MemBase + pos;
+        uint64_t i;
+        for (i = 0; i < by; i++) {
+            if ((buffer1[i] = ptr[i]) == '\n') {
+                i++;
+                break;
+            }
+        }
+        buffer1[i] = 0;
+        pos += i;
+        if (pos >= mysize) throw EndOfFileException();
+        return buffer1;
+    }
+    throw FileNotOpenException();
 }
 
 wchar_t* MemFile::fgetws(wchar_t* buffer1, size_t num)
 {
-	if (MemBase != NULL) {
-		if (pos >= mysize) throw EndOfFileException();
-		//uint64_t by;
-		//by=(num-1)*sizeof(wchar_t);
-		//if (pos+by>mysize) by=(uint64_t)(mysize-pos);
-		wchar_t* ptr=(wchar_t*)(MemBase + pos);
-		uint64_t i;
-		for (i=0;i < (num - 1);i++) {
-			if ((buffer1[i]=ptr[i]) == L'\n') {
-				i++;
-				break;
-			}
-		}
-		buffer1[i]=0;
-		pos+=(i * sizeof(wchar_t));
-		if (pos >= mysize) throw EndOfFileException();
-		return buffer1;
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL) {
+        if (pos >= mysize) throw EndOfFileException();
+        // uint64_t by;
+        // by=(num-1)*sizeof(wchar_t);
+        // if (pos+by>mysize) by=(uint64_t)(mysize-pos);
+        wchar_t* ptr = (wchar_t*)(MemBase + pos);
+        uint64_t i;
+        for (i = 0; i < (num - 1); i++) {
+            if ((buffer1[i] = ptr[i]) == L'\n') {
+                i++;
+                break;
+            }
+        }
+        buffer1[i] = 0;
+        pos += (i * sizeof(wchar_t));
+        if (pos >= mysize) throw EndOfFileException();
+        return buffer1;
+    }
+    throw FileNotOpenException();
 }
 
 void MemFile::fputs(const char* str)
 {
-	if (MemBase != NULL || readonly == false) {
-		fwrite((void*)str, 1, (uint32_t)strlen(str));
-		return;
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL || readonly == false) {
+        fwrite((void*)str, 1, (uint32_t)strlen(str));
+        return;
+    }
+    throw FileNotOpenException();
 }
 
 void MemFile::fputws(const wchar_t* str)
 {
-	if (MemBase != NULL || readonly == false) {
-		fwrite(str, 1, (uint32_t)wcslen(str) * sizeof(wchar_t));
-		return;
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL || readonly == false) {
+        fwrite(str, 1, (uint32_t)wcslen(str) * sizeof(wchar_t));
+        return;
+    }
+    throw FileNotOpenException();
 }
 
 void MemFile::fputc(int c)
 {
-	char buf[1];
-	buf[0]=c;
-	fwrite(buf, 1, 1);
+    char buf[1];
+    buf[0] = c;
+    fwrite(buf, 1, 1);
 }
 
 void MemFile::fputwc(wchar_t c)
 {
-	wchar_t buf[1];
-	buf[0]=c;
-	fwrite(buf, sizeof(wchar_t), 1);
+    wchar_t buf[1];
+    buf[0] = c;
+    fwrite(buf, sizeof(wchar_t), 1);
 }
 
 int MemFile::fgetc()
 {
-	if (MemBase == NULL) throw FileNotOpenException();
-	if (pos > mysize) throw OverflowException();
-	return MemBase[pos++];
+    if (MemBase == NULL) throw FileNotOpenException();
+    if (pos > mysize) throw OverflowException();
+    return MemBase[pos++];
 }
 
 wchar_t MemFile::fgetwc()
 {
-	wchar_t buf[1];
-	fread(buf, sizeof(wchar_t), 1);
-	return buf[0];
+    wchar_t buf[1];
+    fread(buf, sizeof(wchar_t), 1);
+    return buf[0];
 }
-
 
 bool MemFile::eof() const
 {
-	if (MemBase != NULL || readonly == false) {
-		if (pos >= mysize) return true;
-		return false;
-
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL || readonly == false) {
+        if (pos >= mysize) return true;
+        return false;
+    }
+    throw FileNotOpenException();
 }
 
 char* MemFile::adr(size_t adresse)
 {
-	if (MemBase != NULL) {
-		return (MemBase + adresse);
-	}
-	throw FileNotOpenException();
+    if (MemBase != NULL) {
+        return (MemBase + adresse);
+    }
+    throw FileNotOpenException();
 }
 
 void MemFile::setMapReadAhead(size_t bytes)
 {
-
 }
-
 
 const char* MemFile::map(uint64_t position, size_t bytes)
 {
-	if (MemBase == NULL) throw FileNotOpenException();
-	if (position + bytes <= mysize) {
-		return (MemBase + position);
-	}
-	return NULL;
+    if (MemBase == NULL) throw FileNotOpenException();
+    if (position + bytes <= mysize) {
+        return (MemBase + position);
+    }
+    return NULL;
 }
 
 char* MemFile::mapRW(uint64_t position, size_t bytes)
 {
-	if (MemBase == NULL) throw FileNotOpenException();
-	if (position + bytes <= mysize) {
-		return (MemBase + position);
-	}
-	return NULL;
+    if (MemBase == NULL) throw FileNotOpenException();
+    if (position + bytes <= mysize) {
+        return (MemBase + position);
+    }
+    return NULL;
 }
 
 void MemFile::unmap()
 {
-	return;
+    return;
 }
-
 
 void MemFile::flush()
 {
-	return;
+    return;
 }
 
 void MemFile::sync()
 {
-	return;
+    return;
 }
 
 /*!\copybrief FileObject::getFileNo
@@ -547,21 +508,21 @@ void MemFile::sync()
  */
 int MemFile::getFileNo() const
 {
-	throw OperationUnavailableException();
+    throw OperationUnavailableException();
 }
-
 
 void MemFile::truncate(uint64_t length)
 {
-	if (readonly) throw ReadOnlyException();
-	if (length < mysize) {
-		resizeBuffer(length);
-		return;
-	} else if (length == mysize) return;
-	size_t oldsize=mysize;
-	size_t increase=length - mysize;
-	resizeBuffer(length);
-	memset(MemBase + oldsize, 0, increase);
+    if (readonly) throw ReadOnlyException();
+    if (length < mysize) {
+        resizeBuffer(length);
+        return;
+    } else if (length == mysize)
+        return;
+    size_t oldsize = mysize;
+    size_t increase = length - mysize;
+    resizeBuffer(length);
+    memset(MemBase + oldsize, 0, increase);
 }
 
 /*!\copybrief FileObject::lockShared
@@ -573,7 +534,7 @@ void MemFile::truncate(uint64_t length)
  */
 void MemFile::lockShared(bool block)
 {
-	throw OperationUnavailableException();
+    throw OperationUnavailableException();
 }
 
 /*!\copybrief FileObject::lockExclusive
@@ -585,7 +546,7 @@ void MemFile::lockShared(bool block)
  */
 void MemFile::lockExclusive(bool block)
 {
-	throw OperationUnavailableException();
+    throw OperationUnavailableException();
 }
 
 /*!\copybrief FileObject::unlock
@@ -597,9 +558,7 @@ void MemFile::lockExclusive(bool block)
  */
 void MemFile::unlock()
 {
-	throw OperationUnavailableException();
+    throw OperationUnavailableException();
 }
-
-
 
 } // end of namespace ppl7
