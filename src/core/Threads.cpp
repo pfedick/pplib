@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2013, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,30 +22,20 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_STDIO_H
-#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
-#include <stdarg.h>
-#endif
+#include <ppl7/core/threads.h>
+
+#include "config_ppl7.h"
 
 #ifdef HAVE_PTHREAD_H
-	#include <pthread.h>
+#include <pthread.h>
 #endif
 #ifdef HAVE_PTHREAD_NP_H
-	#include <pthread_np.h>
+#include <pthread_np.h>
 #endif
 
 #ifdef HAVE_SCHED_H
@@ -58,255 +43,249 @@
 #endif
 
 #ifdef HAVE_LIMITS_H
-	#include <limits.h>
+#include <limits.h>
 #endif
 
-//#define HAVE_HELGRIND
+// #define HAVE_HELGRIND
 #ifdef HAVE_VALGRIND_HELGRIND_H
 #include <valgrind/helgrind.h>
 #endif
 
 #include "ppl7.h"
 #ifdef _WIN32
-#define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
+#define _WINSOCKAPI_ /* Prevent inclusion of winsock.h in windows.h */
 #include <windows.h>
 #endif
 #include "threads_ppl7.h"
 
-namespace ppl7 {
+namespace ppl7
+{
 
-static uint64_t global_thread_id=0;
+static uint64_t global_thread_id = 0;
 static Mutex GlobalThreadMutex;
-
-
 
 #ifdef _WIN32
 Mutex Win32ThreadMutex;
-DWORD Win32ThreadTLS=TLS_OUT_OF_INDEXES;
+DWORD Win32ThreadTLS = TLS_OUT_OF_INDEXES;
 #endif
 
-
-typedef struct {
-	Thread		*threadClass;
-	void 		(*threadFunction)(void *);
-	void 		*data;
-	THREADDATA	*td;
+typedef struct
+{
+    Thread* threadClass;
+    void (*threadFunction)(void*);
+    void* data;
+    THREADDATA* td;
 } THREADSTARTUP;
 
 #ifdef HAVE_TLS
-	__thread THREADDATA *myThreadData=NULL;
+__thread THREADDATA* myThreadData = NULL;
 #else
 #ifdef HAVE_PTHREADS
 static pthread_key_t thread_key;
 static pthread_once_t key_once = PTHREAD_ONCE_INIT;
 static void make_key()
 {
-	//DLOG ("static void make_key()\n");
-	(void) pthread_key_create(&thread_key, NULL);
+    // DLOG ("static void make_key()\n");
+    (void)pthread_key_create(&thread_key, NULL);
 }
 #endif
 #endif
 
-
-static void CreateTLS(THREADDATA *ptr)
+static void CreateTLS(THREADDATA* ptr)
 {
 #ifdef HAVE_TLS
-	myThreadData=ptr;
-#elif defined  HAVE_PTHREADS
-	(void) pthread_once(&key_once, make_key);
-	(void) pthread_setspecific(thread_key, myThreadData);
-#elif defined  _WIN32
-	Win32ThreadMutex.lock();
-	if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
-		Win32ThreadTLS=TlsAlloc();
-		if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
-			::MessageBoxW(NULL,L"TLS_OUT_OF_INDEXES",L"Error: ppl7::CreateTLS",MB_ICONERROR);
-			exit(0);
-		}
-	}
-	ptr->thread=GetCurrentProcess();
-	if (!TlsSetValue(Win32ThreadTLS,ptr)) {
-		::MessageBoxW(NULL,L"TlsSetValue failed",L"Error: ppl7::CreateTLS",MB_ICONERROR);
-		exit(0);
-	}
-	Win32ThreadMutex.unlock();
+    myThreadData = ptr;
+#elif defined HAVE_PTHREADS
+    (void)pthread_once(&key_once, make_key);
+    (void)pthread_setspecific(thread_key, myThreadData);
+#elif defined _WIN32
+    Win32ThreadMutex.lock();
+    if (Win32ThreadTLS == TLS_OUT_OF_INDEXES) {
+        Win32ThreadTLS = TlsAlloc();
+        if (Win32ThreadTLS == TLS_OUT_OF_INDEXES) {
+            ::MessageBoxW(NULL, L"TLS_OUT_OF_INDEXES", L"Error: ppl7::CreateTLS", MB_ICONERROR);
+            exit(0);
+        }
+    }
+    ptr->thread = GetCurrentProcess();
+    if (!TlsSetValue(Win32ThreadTLS, ptr)) {
+        ::MessageBoxW(NULL, L"TlsSetValue failed", L"Error: ppl7::CreateTLS", MB_ICONERROR);
+        exit(0);
+    }
+    Win32ThreadMutex.unlock();
 #else
-	throw NoThreadSupportException();
+    throw NoThreadSupportException();
 #endif
 }
 
-
-THREADDATA * GetThreadData()
+THREADDATA* GetThreadData()
 /*!\ingroup PPLGroupThreads
  */
 {
 #if defined(HAVE_TLS) && defined(HAVE_PTHREADS)
-	if (myThreadData==NULL) {
-		myThreadData = new THREADDATA;
-		memset(myThreadData,0,sizeof(THREADDATA));
-		GlobalThreadMutex.lock();
-		myThreadData->threadId=global_thread_id;
-		global_thread_id++;
-		GlobalThreadMutex.unlock();
-		myThreadData->thread=pthread_self();
-	}
-	return myThreadData;
-#elif defined  HAVE_PTHREADS
-	(void) pthread_once(&key_once, make_key);
-	THREADDATA *ptr;
-	if ((ptr = (THREADDATA*)pthread_getspecific(thread_key)) == NULL) {
-		// Nur der erste Thread kann hier landen, oder Threads die manuell ohne
-		// die Thread-Klasse oder StartThread erstellt wurden
-		ptr = new THREADDATA;
-		memset(ptr,0,sizeof(THREADDATA));
-		ptr->thread=pthread_self();
-		GlobalThreadMutex.lock();
-		ptr->threadid=global_thread_id;
-		global_thread_id++;
-		GlobalThreadMutex.unlock();
-		pthread_attr_init(&ptr->attr);
-		(void) pthread_setspecific(thread_key, ptr);
-	}
-	return ptr;
-#elif defined  _WIN32
-	THREADDATA *ptr;
-	Win32ThreadMutex.lock();
-	if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
-		Win32ThreadTLS=TlsAlloc();
-		if (Win32ThreadTLS==TLS_OUT_OF_INDEXES) {
-			::MessageBoxW(NULL,L"TLS_OUT_OF_INDEXES",L"Error: ppl7::GetThreadData",MB_ICONERROR);
-			exit(0);
-		}
-	}
-	ptr=(THREADDATA*)TlsGetValue(Win32ThreadTLS);
-	if (!ptr) {
-		ptr = new THREADDATA;
-		memset(ptr,0,sizeof(THREADDATA));
-		ptr->thread=GetCurrentProcess();
-		GlobalThreadMutex.lock();
-		ptr->threadId=global_thread_id;
-		global_thread_id++;
-		GlobalThreadMutex.unlock();
-		if (!TlsSetValue(Win32ThreadTLS,ptr)) {
-			::MessageBoxW(NULL,L"TlsSetValue failed",L"Error: ppl7::GetThreadData",MB_ICONERROR);
-			exit(0);
-		}
-	}
-	Win32ThreadMutex.unlock();
-	return ptr;
+    if (myThreadData == NULL) {
+        myThreadData = new THREADDATA;
+        memset(myThreadData, 0, sizeof(THREADDATA));
+        GlobalThreadMutex.lock();
+        myThreadData->threadId = global_thread_id;
+        global_thread_id++;
+        GlobalThreadMutex.unlock();
+        myThreadData->thread = pthread_self();
+    }
+    return myThreadData;
+#elif defined HAVE_PTHREADS
+    (void)pthread_once(&key_once, make_key);
+    THREADDATA* ptr;
+    if ((ptr = (THREADDATA*)pthread_getspecific(thread_key)) == NULL) {
+        // Nur der erste Thread kann hier landen, oder Threads die manuell ohne
+        // die Thread-Klasse oder StartThread erstellt wurden
+        ptr = new THREADDATA;
+        memset(ptr, 0, sizeof(THREADDATA));
+        ptr->thread = pthread_self();
+        GlobalThreadMutex.lock();
+        ptr->threadid = global_thread_id;
+        global_thread_id++;
+        GlobalThreadMutex.unlock();
+        pthread_attr_init(&ptr->attr);
+        (void)pthread_setspecific(thread_key, ptr);
+    }
+    return ptr;
+#elif defined _WIN32
+    THREADDATA* ptr;
+    Win32ThreadMutex.lock();
+    if (Win32ThreadTLS == TLS_OUT_OF_INDEXES) {
+        Win32ThreadTLS = TlsAlloc();
+        if (Win32ThreadTLS == TLS_OUT_OF_INDEXES) {
+            ::MessageBoxW(NULL, L"TLS_OUT_OF_INDEXES", L"Error: ppl7::GetThreadData", MB_ICONERROR);
+            exit(0);
+        }
+    }
+    ptr = (THREADDATA*)TlsGetValue(Win32ThreadTLS);
+    if (!ptr) {
+        ptr = new THREADDATA;
+        memset(ptr, 0, sizeof(THREADDATA));
+        ptr->thread = GetCurrentProcess();
+        GlobalThreadMutex.lock();
+        ptr->threadId = global_thread_id;
+        global_thread_id++;
+        GlobalThreadMutex.unlock();
+        if (!TlsSetValue(Win32ThreadTLS, ptr)) {
+            ::MessageBoxW(NULL, L"TlsSetValue failed", L"Error: ppl7::GetThreadData", MB_ICONERROR);
+            exit(0);
+        }
+    }
+    Win32ThreadMutex.unlock();
+    return ptr;
 #else
-	throw NoThreadSupportException();
+    throw NoThreadSupportException();
 #endif
 }
 
 uint64_t ThreadID()
 {
-	THREADDATA *ptr=GetThreadData();
-	return ptr->threadId;
-
+    THREADDATA* ptr = GetThreadData();
+    return ptr->threadId;
 }
 
-void *GetTLSData()
+void* GetTLSData()
 {
-	THREADDATA *ptr=GetThreadData();
-	return ptr->clientData;
+    THREADDATA* ptr = GetThreadData();
+    return ptr->clientData;
 }
 
-void SetTLSData(void *data)
+void SetTLSData(void* data)
 {
-	THREADDATA *ptr=GetThreadData();
-	ptr->clientData=data;
+    THREADDATA* ptr = GetThreadData();
+    ptr->clientData = data;
 }
-
 
 #ifdef _WIN32
-	static DWORD WINAPI ThreadProc(void *param)
-	{
-		THREADSTARTUP *ts=(THREADSTARTUP *)param;
-		CreateTLS(ts->td);
-		if (ts->threadClass) {
-			ts->threadClass->threadStartUp();
-			if (ts->threadClass->threadShouldDeleteOnExit()) delete ts->threadClass;
-		} else {
-			ts->threadFunction(ts->data);
-		}
-#ifdef HAVE_TLS
-		if (ts->threadClass==NULL) {
-			delete(myThreadData);
-		}
-		myThreadData=NULL;
-#endif
-		free(ts);
-		return 0;
-	}
-#elif defined HAVE_PTHREADS
-	static void *ThreadProc(void *param)
-	{
-		THREADSTARTUP *ts=(THREADSTARTUP *)param;
-		CreateTLS(ts->td);
-		if (ts->threadClass) {
-			ts->threadClass->threadStartUp();
-			if (ts->td->mysql_thread_end) ts->td->mysql_thread_end();
-			if (ts->threadClass->threadShouldDeleteOnExit()) {
-				delete ts->threadClass;
-			}
-		} else {
-			ts->threadFunction(ts->data);
-			if (ts->td->mysql_thread_end) ts->td->mysql_thread_end();
-			pthread_attr_destroy(&ts->td->attr);
-		}
-
-#ifdef HAVE_TLS
-		if (ts->threadClass==NULL) {
-			delete(myThreadData);
-		}
-		myThreadData=NULL;
-#endif
-		free(ts);
-		pthread_exit(NULL);
-		return NULL;
-	}
-#endif
-
-
-uint64_t StartThread(void (*start_routine)(void *),void *data)
+static DWORD WINAPI ThreadProc(void* param)
 {
-	THREADSTARTUP *ts=(THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
-	if (!ts) throw OutOfMemoryException();
-	ts->threadClass=NULL;
-	ts->threadFunction=start_routine;
-	ts->data=data;
-	ts->td=new THREADDATA;
-	if (ts->td==NULL) {
-		free(ts);
-		throw OutOfMemoryException();
-	}
-	memset(ts->td,0,sizeof(THREADDATA));
-	THREADDATA *t=ts->td;
-	// ThreadId festlegen
-	GlobalThreadMutex.lock();
-	t->threadId=global_thread_id;
-	global_thread_id++;
-	GlobalThreadMutex.unlock();
-#ifdef _WIN32
-	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,ts,0,&t->dwThreadID);
-	if (t->thread!=NULL) {
-		return t->threadId;
-	}
-	throw ThreadStartException();
+    THREADSTARTUP* ts = (THREADSTARTUP*)param;
+    CreateTLS(ts->td);
+    if (ts->threadClass) {
+        ts->threadClass->threadStartUp();
+        if (ts->threadClass->threadShouldDeleteOnExit()) delete ts->threadClass;
+    } else {
+        ts->threadFunction(ts->data);
+    }
+#ifdef HAVE_TLS
+    if (ts->threadClass == NULL) {
+        delete (myThreadData);
+    }
+    myThreadData = NULL;
+#endif
+    free(ts);
+    return 0;
+}
 #elif defined HAVE_PTHREADS
-	pthread_attr_init(&t->attr);
-	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,ts);
-	if(ret==0) {
-		pthread_detach(t->thread);
-		return t->threadId;
-	}
-	free(ts);
-	throw ThreadStartException();
+static void* ThreadProc(void* param)
+{
+    THREADSTARTUP* ts = (THREADSTARTUP*)param;
+    CreateTLS(ts->td);
+    if (ts->threadClass) {
+        ts->threadClass->threadStartUp();
+        if (ts->td->mysql_thread_end) ts->td->mysql_thread_end();
+        if (ts->threadClass->threadShouldDeleteOnExit()) {
+            delete ts->threadClass;
+        }
+    } else {
+        ts->threadFunction(ts->data);
+        if (ts->td->mysql_thread_end) ts->td->mysql_thread_end();
+        pthread_attr_destroy(&ts->td->attr);
+    }
+
+#ifdef HAVE_TLS
+    if (ts->threadClass == NULL) {
+        delete (myThreadData);
+    }
+    myThreadData = NULL;
+#endif
+    free(ts);
+    pthread_exit(NULL);
+    return NULL;
+}
+#endif
+
+uint64_t StartThread(void (*start_routine)(void*), void* data)
+{
+    THREADSTARTUP* ts = (THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
+    if (!ts) throw OutOfMemoryException();
+    ts->threadClass = NULL;
+    ts->threadFunction = start_routine;
+    ts->data = data;
+    ts->td = new THREADDATA;
+    if (ts->td == NULL) {
+        free(ts);
+        throw OutOfMemoryException();
+    }
+    memset(ts->td, 0, sizeof(THREADDATA));
+    THREADDATA* t = ts->td;
+    // ThreadId festlegen
+    GlobalThreadMutex.lock();
+    t->threadId = global_thread_id;
+    global_thread_id++;
+    GlobalThreadMutex.unlock();
+#ifdef _WIN32
+    t->thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, ts, 0, &t->dwThreadID);
+    if (t->thread != NULL) {
+        return t->threadId;
+    }
+    throw ThreadStartException();
+#elif defined HAVE_PTHREADS
+    pthread_attr_init(&t->attr);
+    int ret = pthread_create(&t->thread, &t->attr, ThreadProc, ts);
+    if (ret == 0) {
+        pthread_detach(t->thread);
+        return t->threadId;
+    }
+    free(ts);
+    throw ThreadStartException();
 #else
-	throw NoThreadSupportException();
+    throw NoThreadSupportException();
 #endif
-	return true;
+    return true;
 }
 
 /*! \brief Priorität des aktuellen Threads ändern
@@ -318,60 +297,60 @@ uint64_t StartThread(void (*start_routine)(void *),void *data)
 void ThreadSetPriority(Thread::Priority priority)
 {
 #ifdef WIN32
-	HANDLE h=GetCurrentProcess();
-	int p=GetThreadPriority(h);
-	switch(priority) {
-		case Thread::LOWEST:
-			p=THREAD_PRIORITY_LOWEST;
-			break;
-		case Thread::BELOW_NORMAL:
-			p=THREAD_PRIORITY_BELOW_NORMAL;
-			break;
-		case Thread::NORMAL:
-			p=THREAD_PRIORITY_NORMAL;
-			break;
-		case Thread::ABOVE_NORMAL:
-			p=THREAD_PRIORITY_ABOVE_NORMAL;
-			break;
-		case Thread::HIGHEST:
-			p=THREAD_PRIORITY_HIGHEST;
-			break;
-		default:
-			throw IllegalArgumentException();
-	}
-	if (!SetThreadPriority(h,p)) throw ThreadOperationFailedException();
+    HANDLE h = GetCurrentProcess();
+    int p = GetThreadPriority(h);
+    switch (priority) {
+    case Thread::LOWEST:
+        p = THREAD_PRIORITY_LOWEST;
+        break;
+    case Thread::BELOW_NORMAL:
+        p = THREAD_PRIORITY_BELOW_NORMAL;
+        break;
+    case Thread::NORMAL:
+        p = THREAD_PRIORITY_NORMAL;
+        break;
+    case Thread::ABOVE_NORMAL:
+        p = THREAD_PRIORITY_ABOVE_NORMAL;
+        break;
+    case Thread::HIGHEST:
+        p = THREAD_PRIORITY_HIGHEST;
+        break;
+    default:
+        throw IllegalArgumentException();
+    }
+    if (!SetThreadPriority(h, p)) throw ThreadOperationFailedException();
 #elif defined HAVE_PTHREADS
-	struct sched_param s;
-	pthread_t p=pthread_self();
-	int policy,c;
-	c=pthread_getschedparam(p,&policy,&s);
-	if (c!=0) throw ThreadOperationFailedException();
-	int min=sched_get_priority_min(policy);
-	int max=sched_get_priority_max(policy);
-	int normal=(min+max)/2;
-	switch(priority) {
-		case Thread::LOWEST:
-			s.sched_priority=min;
-			break;
-		case Thread::BELOW_NORMAL:
-			s.sched_priority=normal/2;
-			break;
-		case Thread::NORMAL:
-			s.sched_priority=normal;
-			break;
-		case Thread::ABOVE_NORMAL:
-			s.sched_priority=normal+normal/2;
-			break;
-		case Thread::HIGHEST:
-			s.sched_priority=max;
-			break;
-		default:
-			throw IllegalArgumentException();
-	}
-	c=pthread_setschedparam(p,policy,&s);
-	if(c!=0) throw ThreadOperationFailedException();
+    struct sched_param s;
+    pthread_t p = pthread_self();
+    int policy, c;
+    c = pthread_getschedparam(p, &policy, &s);
+    if (c != 0) throw ThreadOperationFailedException();
+    int min = sched_get_priority_min(policy);
+    int max = sched_get_priority_max(policy);
+    int normal = (min + max) / 2;
+    switch (priority) {
+    case Thread::LOWEST:
+        s.sched_priority = min;
+        break;
+    case Thread::BELOW_NORMAL:
+        s.sched_priority = normal / 2;
+        break;
+    case Thread::NORMAL:
+        s.sched_priority = normal;
+        break;
+    case Thread::ABOVE_NORMAL:
+        s.sched_priority = normal + normal / 2;
+        break;
+    case Thread::HIGHEST:
+        s.sched_priority = max;
+        break;
+    default:
+        throw IllegalArgumentException();
+    }
+    c = pthread_setschedparam(p, policy, &s);
+    if (c != 0) throw ThreadOperationFailedException();
 #else
-	throw NoThreadSupportException();
+    throw NoThreadSupportException();
 #endif
 }
 
@@ -383,42 +362,41 @@ void ThreadSetPriority(Thread::Priority priority)
 Thread::Priority ThreadGetPriority()
 {
 #ifdef WIN32
-	HANDLE h=GetCurrentProcess();
-	int p=GetThreadPriority(h);
-	switch(p) {
-		case THREAD_PRIORITY_LOWEST:
-			return Thread::LOWEST;
-		case THREAD_PRIORITY_BELOW_NORMAL:
-			return Thread::BELOW_NORMAL;
-		case THREAD_PRIORITY_NORMAL:
-			return Thread::NORMAL;
-		case THREAD_PRIORITY_ABOVE_NORMAL:
-			return Thread::ABOVE_NORMAL;
-		case THREAD_PRIORITY_HIGHEST:
-			return Thread::HIGHEST;
-	}
-	return Thread::UNKNOWN;
+    HANDLE h = GetCurrentProcess();
+    int p = GetThreadPriority(h);
+    switch (p) {
+    case THREAD_PRIORITY_LOWEST:
+        return Thread::LOWEST;
+    case THREAD_PRIORITY_BELOW_NORMAL:
+        return Thread::BELOW_NORMAL;
+    case THREAD_PRIORITY_NORMAL:
+        return Thread::NORMAL;
+    case THREAD_PRIORITY_ABOVE_NORMAL:
+        return Thread::ABOVE_NORMAL;
+    case THREAD_PRIORITY_HIGHEST:
+        return Thread::HIGHEST;
+    }
+    return Thread::UNKNOWN;
 #elif defined HAVE_PTHREADS
-	struct sched_param s;
-	pthread_t p=pthread_self();
-	int policy,c;
-	c=pthread_getschedparam(p,&policy,&s);
-	if(c!=0) throw ThreadOperationFailedException();
-	int min=sched_get_priority_min(policy);
-	int max=sched_get_priority_max(policy);
-	int normal=(min+max)/2;
+    struct sched_param s;
+    pthread_t p = pthread_self();
+    int policy, c;
+    c = pthread_getschedparam(p, &policy, &s);
+    if (c != 0) throw ThreadOperationFailedException();
+    int min = sched_get_priority_min(policy);
+    int max = sched_get_priority_max(policy);
+    int normal = (min + max) / 2;
 
-	if (s.sched_priority==normal) return Thread::NORMAL;
-	if (s.sched_priority==min) return Thread::LOWEST;
-	if (s.sched_priority==max) return Thread::HIGHEST;
-	if (s.sched_priority<normal) return Thread::BELOW_NORMAL;
-	if (s.sched_priority>normal) return Thread::ABOVE_NORMAL;
-	return Thread::UNKNOWN;
+    if (s.sched_priority == normal) return Thread::NORMAL;
+    if (s.sched_priority == min) return Thread::LOWEST;
+    if (s.sched_priority == max) return Thread::HIGHEST;
+    if (s.sched_priority < normal) return Thread::BELOW_NORMAL;
+    if (s.sched_priority > normal) return Thread::ABOVE_NORMAL;
+    return Thread::UNKNOWN;
 #else
-	throw NoThreadSupportException();
+    throw NoThreadSupportException();
 #endif
 }
-
 
 /*!\class Thread
  * \ingroup PPLGroupThreads
@@ -431,7 +409,6 @@ Thread::Priority ThreadGetPriority()
  *
  */
 
-
 /*! \brief Konstruktor der Thread-Klasse
  *
  * Konstruktor der Thread-Klasse. Es werden interne Variablen allokiert und mit
@@ -441,20 +418,20 @@ Thread::Priority ThreadGetPriority()
  */
 Thread::Thread()
 {
-	flags=0;
-	myPriority=Thread::NORMAL;
-	THREADDATA *t=new THREADDATA;
-	if (!t) throw OutOfMemoryException();
-	memset(t,0,sizeof(THREADDATA));
-	threaddata=t;
-	t->thread=0;
-	IsRunning=0;
-	IsSuspended=0;
-	deleteMe=0;
-	runcount=0;
-	#ifdef HAVE_PTHREADS
-		pthread_attr_init(&t->attr);
-	#endif
+    flags = 0;
+    myPriority = Thread::NORMAL;
+    THREADDATA* t = new THREADDATA;
+    if (!t) throw OutOfMemoryException();
+    memset(t, 0, sizeof(THREADDATA));
+    threaddata = t;
+    t->thread = 0;
+    IsRunning = 0;
+    IsSuspended = 0;
+    deleteMe = 0;
+    runcount = 0;
+#ifdef HAVE_PTHREADS
+    pthread_attr_init(&t->attr);
+#endif
 }
 
 /*! \brief Destruktor der Thread-Klasse
@@ -466,34 +443,32 @@ Thread::Thread()
  */
 Thread::~Thread()
 {
-	threadStop();
-	threadmutex.lock();
-	THREADDATA *t=(THREADDATA *)threaddata;
-	#ifdef HAVE_PTHREADS
-		pthread_attr_destroy(&t->attr);
-	#endif
-	delete t;
-	threadmutex.unlock();
+    threadStop();
+    threadmutex.lock();
+    THREADDATA* t = (THREADDATA*)threaddata;
+#ifdef HAVE_PTHREADS
+    pthread_attr_destroy(&t->attr);
+#endif
+    delete t;
+    threadmutex.unlock();
 #ifdef HAVE_VALGRIND_HELGRIND_H
-	//VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
-	VALGRIND_HG_CLEAN_MEMORY(this,sizeof(Thread));
+    // VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
+    VALGRIND_HG_CLEAN_MEMORY(this, sizeof(Thread));
 #endif
 }
 
-void Thread::threadSetName(const char *name)
+void Thread::threadSetName(const char* name)
 {
-	THREADDATA *t=(THREADDATA *)threaddata;
-	if (!t) return;
-	#ifdef HAVE_PTHREADS
+    THREADDATA* t = (THREADDATA*)threaddata;
+    if (!t) return;
+#ifdef HAVE_PTHREADS
 #ifdef HAVE_PTHREAD_SET_NAME_NP
-		pthread_set_name_np(t->thread,name);
+    pthread_set_name_np(t->thread, name);
 #elif defined HAVE_PTHREAD_SETNAME_NP
-		pthread_setname_np(t->thread,name);
+    pthread_setname_np(t->thread, name);
 #endif
-	#endif
+#endif
 }
-
-
 
 /*! \brief Der Thread wird gestoppt
  *
@@ -510,19 +485,19 @@ void Thread::threadSetName(const char *name)
  */
 void Thread::threadStop()
 {
-	threadmutex.lock();
-	flags|=1;
-	//THREADDATA *t=(THREADDATA *)threaddata;
-	if (IsSuspended) {
-		threadmutex.signal();
-	}
-	while (IsRunning) {
-		threadmutex.unlock();
-		MSleep(1);
-		threadmutex.lock();
-	}
-	flags=flags&0xfffffffe;
-	threadmutex.unlock();
+    threadmutex.lock();
+    flags |= 1;
+    // THREADDATA *t=(THREADDATA *)threaddata;
+    if (IsSuspended) {
+        threadmutex.signal();
+    }
+    while (IsRunning) {
+        threadmutex.unlock();
+        MSleep(1);
+        threadmutex.lock();
+    }
+    flags = flags & 0xfffffffe;
+    threadmutex.unlock();
 }
 
 /*! \brief Dem Thread signalisieren, dass er stoppen soll
@@ -535,14 +510,14 @@ void Thread::threadStop()
  */
 void Thread::threadSignalStop()
 {
-	threadmutex.lock();
-	flags|=1;
-	//THREADDATA *t=(THREADDATA *)threaddata;
-	if (IsSuspended) {
-		threadmutex.signal();
-	} else {
-		threadmutex.unlock();
-	}
+    threadmutex.lock();
+    flags |= 1;
+    // THREADDATA *t=(THREADDATA *)threaddata;
+    if (IsSuspended) {
+        threadmutex.signal();
+    } else {
+        threadmutex.unlock();
+    }
 }
 
 /*! \brief Der Thread wird gestartet
@@ -554,53 +529,53 @@ void Thread::threadSignalStop()
  */
 void Thread::threadStart()
 {
-	if (threadIsRunning()) {
-		throw ThreadAlreadyRunningException();
-	}
-	IsSuspended=0;
-	IsRunning=0;
-	THREADSTARTUP *ts=(THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
-	if (!ts) throw OutOfMemoryException();
-	ts->threadClass=this;
-	ts->threadFunction=NULL;
-	ts->data=NULL;
-	ts->td=(THREADDATA*)threaddata;
-	if (ts->td==NULL) {
-		free(ts);
-		throw OutOfMemoryException();
-	}
-	THREADDATA *t=ts->td;
-	if (t->threadId==0) {
-		GlobalThreadMutex.lock();
-		t->threadId=global_thread_id;
-		global_thread_id++;
-		GlobalThreadMutex.unlock();
-	}
+    if (threadIsRunning()) {
+        throw ThreadAlreadyRunningException();
+    }
+    IsSuspended = 0;
+    IsRunning = 0;
+    THREADSTARTUP* ts = (THREADSTARTUP*)malloc(sizeof(THREADSTARTUP));
+    if (!ts) throw OutOfMemoryException();
+    ts->threadClass = this;
+    ts->threadFunction = NULL;
+    ts->data = NULL;
+    ts->td = (THREADDATA*)threaddata;
+    if (ts->td == NULL) {
+        free(ts);
+        throw OutOfMemoryException();
+    }
+    THREADDATA* t = ts->td;
+    if (t->threadId == 0) {
+        GlobalThreadMutex.lock();
+        t->threadId = global_thread_id;
+        global_thread_id++;
+        GlobalThreadMutex.unlock();
+    }
 #ifdef _WIN32
-	t->thread=CreateThread(NULL,0,(LPTHREAD_START_ROUTINE)ThreadProc,ts,0,&t->dwThreadID);
-	if (t->thread!=NULL) {
-		return;
-	}
-	threadmutex.lock();
-	IsRunning=0;
-	threadmutex.unlock();
-	free(ts);
-	throw ThreadStartException();
+    t->thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)ThreadProc, ts, 0, &t->dwThreadID);
+    if (t->thread != NULL) {
+        return;
+    }
+    threadmutex.lock();
+    IsRunning = 0;
+    threadmutex.unlock();
+    free(ts);
+    throw ThreadStartException();
 #elif defined HAVE_PTHREADS
-	int ret=pthread_create(&t->thread,&t->attr,ThreadProc,ts);
-	if(ret==0) {
-		pthread_detach(t->thread);
-		//printf ("Thread erfolgreich gestartet\n");
-		return;
-	}
-	threadmutex.lock();
-	IsRunning=0;
-	threadmutex.unlock();
-	free(ts);
-	throw ThreadStartException();
+    int ret = pthread_create(&t->thread, &t->attr, ThreadProc, ts);
+    if (ret == 0) {
+        pthread_detach(t->thread);
+        // printf ("Thread erfolgreich gestartet\n");
+        return;
+    }
+    threadmutex.lock();
+    IsRunning = 0;
+    threadmutex.unlock();
+    free(ts);
+    throw ThreadStartException();
 #else
-	free(ts);
-	throw NoThreadSupportException();
+    free(ts);
+    throw NoThreadSupportException();
 #endif
 }
 
@@ -610,18 +585,17 @@ void Thread::threadIdle()
 {
 #ifdef _WIN32
 #elif defined HAVE_PTHREADS
-	#ifdef SOLARIS
-	#else
-		// DEPRECATED, use sched_yield instead
+#ifdef SOLARIS
+#else
+    // DEPRECATED, use sched_yield instead
 #ifdef HAVE_SCHED_YIELD
-		sched_yield();
+    sched_yield();
 #elif defined HAVE_PTHREAD_YIELD
-		pthread_yield();
+    pthread_yield();
 #endif
-	#endif
+#endif
 #endif
 }
-
 
 /*! \brief Der Thread soll pausieren
  *
@@ -637,9 +611,9 @@ void Thread::threadIdle()
  */
 void Thread::threadSuspend()
 {
-	threadmutex.lock();
-	flags|=2;
-	threadmutex.unlock();
+    threadmutex.lock();
+    flags |= 2;
+    threadmutex.unlock();
 }
 
 /*! \brief Der Thread soll weitermachen
@@ -654,17 +628,15 @@ void Thread::threadSuspend()
  */
 void Thread::threadResume()
 {
-	threadmutex.lock();
-	flags=flags&~2;
-	if (IsSuspended) {
-		threadmutex.unlock();
-		threadmutex.signal();
-	} else {
-		threadmutex.unlock();
-	}
+    threadmutex.lock();
+    flags = flags & ~2;
+    if (IsSuspended) {
+        threadmutex.unlock();
+        threadmutex.signal();
+    } else {
+        threadmutex.unlock();
+    }
 }
-
-
 
 /*! \brief Interne Funktion
  *
@@ -679,22 +651,22 @@ void Thread::threadResume()
  */
 void Thread::threadStartUp()
 {
-	threadmutex.lock();
-	runcount++;
-	IsRunning=1;
-	IsSuspended=0;
-	threadmutex.unlock();
-	threadSetPriority(myPriority);
-	run();
-	threadmutex.lock();
-	flags=0;
-	IsRunning=0;
-	IsSuspended=0;
-	threadmutex.unlock();
+    threadmutex.lock();
+    runcount++;
+    IsRunning = 1;
+    IsSuspended = 0;
+    threadmutex.unlock();
+    threadSetPriority(myPriority);
+    run();
+    threadmutex.lock();
+    flags = 0;
+    IsRunning = 0;
+    IsSuspended = 0;
+    threadmutex.unlock();
 #ifdef HAVE_VALGRIND_HELGRIND_H
-	VALGRIND_HG_CLEAN_MEMORY(this,sizeof(Thread));
+    VALGRIND_HG_CLEAN_MEMORY(this, sizeof(Thread));
 #endif
-	//VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
+    // VALGRIND_HG_DISABLE_CHECKING(this,sizeof(Thread));
 }
 
 /*! \brief Flag setzen: Klasse beim Beenden löschen
@@ -709,10 +681,12 @@ void Thread::threadStartUp()
  */
 void Thread::threadDeleteOnExit(int flag)
 {
-	threadmutex.lock();
-	if (flag) deleteMe=1;
-	else deleteMe=0;
-	threadmutex.unlock();
+    threadmutex.lock();
+    if (flag)
+        deleteMe = 1;
+    else
+        deleteMe = 0;
+    threadmutex.unlock();
 }
 
 /*! \brief Interne Funktion
@@ -724,14 +698,14 @@ void Thread::threadDeleteOnExit(int flag)
  * \see Thread::ThreadDeleteOnExit
  * \see \ref PPLGroupThreads
  */
-int  Thread::threadShouldDeleteOnExit()
+int Thread::threadShouldDeleteOnExit()
 {
-	int ret=0;
-	threadmutex.lock();
-	ret=deleteMe;
-	threadmutex.unlock();
-	if (ret) return 1;
-	return 0;
+    int ret = 0;
+    threadmutex.lock();
+    ret = deleteMe;
+    threadmutex.unlock();
+    if (ret) return 1;
+    return 0;
 }
 
 /*! \brief Status abfragen: Läuft der Thread?
@@ -743,11 +717,11 @@ int  Thread::threadShouldDeleteOnExit()
  */
 int Thread::threadIsRunning()
 {
-	int ret;
-	threadmutex.lock();
-	ret=IsRunning;
-	threadmutex.unlock();
-	return ret;
+    int ret;
+    threadmutex.lock();
+    ret = IsRunning;
+    threadmutex.unlock();
+    return ret;
 }
 
 /*! \brief Status abfragen: Schläft der Thread?
@@ -759,11 +733,11 @@ int Thread::threadIsRunning()
  */
 int Thread::threadIsSuspended()
 {
-	int ret;
-	threadmutex.lock();
-	ret=IsSuspended;
-	threadmutex.unlock();
-	return ret;
+    int ret;
+    threadmutex.lock();
+    ret = IsSuspended;
+    threadmutex.unlock();
+    return ret;
 }
 
 /*! \brief Flags des Thread auslesen
@@ -777,11 +751,11 @@ int Thread::threadIsSuspended()
  */
 int Thread::threadGetFlags()
 {
-	int ret;
-	threadmutex.lock();
-	ret=flags;
-	threadmutex.unlock();
-	return ret;
+    int ret;
+    threadmutex.lock();
+    ret = flags;
+    threadmutex.unlock();
+    return ret;
 }
 
 /*! \brief Prüfen, ob der Thread beendet werden soll
@@ -797,16 +771,16 @@ int Thread::threadGetFlags()
  */
 int Thread::threadShouldStop()
 {
-	int ret;
-	threadmutex.lock();
-	ret=flags&1;
-	threadmutex.unlock();
-	return ret;
+    int ret;
+    threadmutex.lock();
+    ret = flags & 1;
+    threadmutex.unlock();
+    return ret;
 }
 
 size_t Thread::threadRunCount()
 {
-	return runcount;
+    return runcount;
 }
 
 /*! \brief Prüfen, ob der Thread schlafen soll
@@ -827,25 +801,24 @@ size_t Thread::threadRunCount()
  */
 void Thread::threadWaitSuspended(int msec)
 {
-	threadmutex.lock();
-	//THREADDATA *t=(THREADDATA *)threaddata;
-	while ((flags&3)==2) {
-		IsSuspended=1;
-		threadmutex.wait(msec);
-	}
-	IsSuspended=0;
-	threadmutex.unlock();
+    threadmutex.lock();
+    // THREADDATA *t=(THREADDATA *)threaddata;
+    while ((flags & 3) == 2) {
+        IsSuspended = 1;
+        threadmutex.wait(msec);
+    }
+    IsSuspended = 0;
+    threadmutex.unlock();
 }
 
 void Thread::threadSleep(int msec)
 {
-	threadmutex.lock();
-	IsSuspended=1;
-	threadmutex.wait(msec);
-	IsSuspended=0;
-	threadmutex.unlock();
+    threadmutex.lock();
+    IsSuspended = 1;
+    threadmutex.wait(msec);
+    IsSuspended = 0;
+    threadmutex.unlock();
 }
-
 
 /*! \brief ThreadID zurückgeben
  *
@@ -856,11 +829,10 @@ void Thread::threadSleep(int msec)
  */
 uint64_t Thread::threadGetID()
 {
-	THREADDATA *t=(THREADDATA *)threaddata;
-	if (!t) return 0;
-	return t->threadId;
+    THREADDATA* t = (THREADDATA*)threaddata;
+    if (!t) return 0;
+    return t->threadId;
 }
-
 
 /*!\brief Einsprungfunktion bei Start des Threads
  *
@@ -878,7 +850,6 @@ uint64_t Thread::threadGetID()
  */
 void Thread::run()
 {
-
 }
 
 /*! \brief Priorität des Threads auslesen
@@ -892,42 +863,42 @@ void Thread::run()
 int Thread::threadGetPriority()
 {
 #ifdef WIN32
-	THREADDATA *t=(THREADDATA *)threaddata;
-	int p=GetThreadPriority(t->thread);
-	switch(p) {
-		case THREAD_PRIORITY_LOWEST:
-			return LOWEST;
-		case THREAD_PRIORITY_BELOW_NORMAL:
-			return BELOW_NORMAL;
-		case THREAD_PRIORITY_NORMAL:
-			return NORMAL;
-		case THREAD_PRIORITY_ABOVE_NORMAL:
-			return ABOVE_NORMAL;
-		case THREAD_PRIORITY_HIGHEST:
-			return HIGHEST;
-	}
+    THREADDATA* t = (THREADDATA*)threaddata;
+    int p = GetThreadPriority(t->thread);
+    switch (p) {
+    case THREAD_PRIORITY_LOWEST:
+        return LOWEST;
+    case THREAD_PRIORITY_BELOW_NORMAL:
+        return BELOW_NORMAL;
+    case THREAD_PRIORITY_NORMAL:
+        return NORMAL;
+    case THREAD_PRIORITY_ABOVE_NORMAL:
+        return ABOVE_NORMAL;
+    case THREAD_PRIORITY_HIGHEST:
+        return HIGHEST;
+    }
 #elif defined HAVE_PTHREADS
-	THREADDATA *t=(THREADDATA *)threaddata;
-	struct sched_param s;
-	int policy,c;
-	c=pthread_getschedparam(t->thread,&policy,&s);
-	if(c!=0) return 0;
-	int min=sched_get_priority_min(policy);
-	int max=sched_get_priority_max(policy);
-	int normal=(min+max)/2;
+    THREADDATA* t = (THREADDATA*)threaddata;
+    struct sched_param s;
+    int policy, c;
+    c = pthread_getschedparam(t->thread, &policy, &s);
+    if (c != 0) return 0;
+    int min = sched_get_priority_min(policy);
+    int max = sched_get_priority_max(policy);
+    int normal = (min + max) / 2;
 
-	if (s.sched_priority==normal) return NORMAL;
-	if (s.sched_priority==min) return LOWEST;
-	if (s.sched_priority==max) return HIGHEST;
-	if (s.sched_priority<normal) return BELOW_NORMAL;
-	if (s.sched_priority>normal) return ABOVE_NORMAL;
-	return UNKNOWN;
+    if (s.sched_priority == normal) return NORMAL;
+    if (s.sched_priority == min) return LOWEST;
+    if (s.sched_priority == max) return HIGHEST;
+    if (s.sched_priority < normal) return BELOW_NORMAL;
+    if (s.sched_priority > normal) return ABOVE_NORMAL;
+    return UNKNOWN;
 
 #else
-	return UNKNOWN;
+    return UNKNOWN;
 #endif
 
-	return UNKNOWN;
+    return UNKNOWN;
 }
 
 /*! \brief Priorität des Threads ändern
@@ -941,64 +912,63 @@ int Thread::threadGetPriority()
  */
 int Thread::threadSetPriority(int priority)
 {
-	THREADDATA *t=(THREADDATA *)threaddata;
-	myPriority=priority;
-	if(!t->thread) return 1;
+    THREADDATA* t = (THREADDATA*)threaddata;
+    myPriority = priority;
+    if (!t->thread) return 1;
 #ifdef WIN32
-	int p=GetThreadPriority(t->thread);
-	switch(priority) {
-		case LOWEST:
-			p=THREAD_PRIORITY_LOWEST;
-			break;
-		case BELOW_NORMAL:
-			p=THREAD_PRIORITY_BELOW_NORMAL;
-			break;
-		case NORMAL:
-			p=THREAD_PRIORITY_NORMAL;
-			break;
-		case ABOVE_NORMAL:
-			p=THREAD_PRIORITY_ABOVE_NORMAL;
-			break;
-		case HIGHEST:
-			p=THREAD_PRIORITY_HIGHEST;
-			break;
-	}
-	if (SetThreadPriority(t->thread,p)) return 1;
-	return 0;
+    int p = GetThreadPriority(t->thread);
+    switch (priority) {
+    case LOWEST:
+        p = THREAD_PRIORITY_LOWEST;
+        break;
+    case BELOW_NORMAL:
+        p = THREAD_PRIORITY_BELOW_NORMAL;
+        break;
+    case NORMAL:
+        p = THREAD_PRIORITY_NORMAL;
+        break;
+    case ABOVE_NORMAL:
+        p = THREAD_PRIORITY_ABOVE_NORMAL;
+        break;
+    case HIGHEST:
+        p = THREAD_PRIORITY_HIGHEST;
+        break;
+    }
+    if (SetThreadPriority(t->thread, p)) return 1;
+    return 0;
 #elif defined HAVE_PTHREADS
-	struct sched_param s;
-	int policy,c;
-	c=pthread_getschedparam(t->thread,&policy,&s);
-	if (c!=0) return 0;
-	int min=sched_get_priority_min(policy);
-	int max=sched_get_priority_max(policy);
-	int normal=(min+max)/2;
-	switch(priority) {
-		case LOWEST:
-			s.sched_priority=min;
-			break;
-		case BELOW_NORMAL:
-			s.sched_priority=normal/2;
-			break;
-		case NORMAL:
-			s.sched_priority=normal;
-			break;
-		case ABOVE_NORMAL:
-			s.sched_priority=normal+normal/2;
-			break;
-		case HIGHEST:
-			s.sched_priority=max;
-			break;
-		default:
-			return 0;
-	}
-	c=pthread_setschedparam(t->thread,policy,&s);
-	if(c==0) return 1;
-	return 0;
+    struct sched_param s;
+    int policy, c;
+    c = pthread_getschedparam(t->thread, &policy, &s);
+    if (c != 0) return 0;
+    int min = sched_get_priority_min(policy);
+    int max = sched_get_priority_max(policy);
+    int normal = (min + max) / 2;
+    switch (priority) {
+    case LOWEST:
+        s.sched_priority = min;
+        break;
+    case BELOW_NORMAL:
+        s.sched_priority = normal / 2;
+        break;
+    case NORMAL:
+        s.sched_priority = normal;
+        break;
+    case ABOVE_NORMAL:
+        s.sched_priority = normal + normal / 2;
+        break;
+    case HIGHEST:
+        s.sched_priority = max;
+        break;
+    default:
+        return 0;
+    }
+    c = pthread_setschedparam(t->thread, policy, &s);
+    if (c == 0) return 1;
+    return 0;
 #else
-	return 0;
+    return 0;
 #endif
-
 }
 
 /*! \brief Stack-Größe des Threads setzen
@@ -1009,19 +979,19 @@ int Thread::threadSetPriority(int priority)
  */
 int Thread::threadSetStackSize(size_t size)
 {
-	#ifdef HAVE_PTHREADS
-		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-			throw UnsupportedFeatureException("Thread::threadSetStackSize");
-		#endif
-		THREADDATA *t=(THREADDATA *)threaddata;
-		if (size==0) size=PTHREAD_STACK_MIN;
-		if (size<(size_t)PTHREAD_STACK_MIN) {
-			throw IllegalArgumentException("Stacksize must not be smaller than %u Bytes",PTHREAD_STACK_MIN);
-			return 0;
-		}
-		if (pthread_attr_setstacksize(&t->attr,size)==0) return 1;
-	#endif
-	return 0;
+#ifdef HAVE_PTHREADS
+#ifndef _POSIX_THREAD_ATTR_STACKSIZE
+    throw UnsupportedFeatureException("Thread::threadSetStackSize");
+#endif
+    THREADDATA* t = (THREADDATA*)threaddata;
+    if (size == 0) size = PTHREAD_STACK_MIN;
+    if (size < (size_t)PTHREAD_STACK_MIN) {
+        throw IllegalArgumentException("Stacksize must not be smaller than %u Bytes", PTHREAD_STACK_MIN);
+        return 0;
+    }
+    if (pthread_attr_setstacksize(&t->attr, size) == 0) return 1;
+#endif
+    return 0;
 }
 
 size_t Thread::threadGetMinimumStackSize()
@@ -1032,13 +1002,13 @@ size_t Thread::threadGetMinimumStackSize()
  * \see \ref PPLGroupThreads
  */
 {
-	#ifdef HAVE_PTHREADS
-		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-			throw UnsupportedFeatureException("Thread::threadGetMinimumStackSize");
-		#endif
-		return PTHREAD_STACK_MIN;
-		#endif
-	return 0;
+#ifdef HAVE_PTHREADS
+#ifndef _POSIX_THREAD_ATTR_STACKSIZE
+    throw UnsupportedFeatureException("Thread::threadGetMinimumStackSize");
+#endif
+    return PTHREAD_STACK_MIN;
+#endif
+    return 0;
 }
 
 /*! \brief Stack-Größe des Threads auslesen
@@ -1049,43 +1019,45 @@ size_t Thread::threadGetMinimumStackSize()
  */
 size_t Thread::threadGetStackSize()
 {
-	#ifdef HAVE_PTHREADS
-		#ifndef _POSIX_THREAD_ATTR_STACKSIZE
-			throw UnsupportedFeatureException("Thread::threadGetStackSize");
-		#endif
-		THREADDATA *t=(THREADDATA *)threaddata;
-		size_t s;
-		if (pthread_attr_getstacksize(&t->attr,&s)==0) return s;
-	#endif
-	return 0;
+#ifdef HAVE_PTHREADS
+#ifndef _POSIX_THREAD_ATTR_STACKSIZE
+    throw UnsupportedFeatureException("Thread::threadGetStackSize");
+#endif
+    THREADDATA* t = (THREADDATA*)threaddata;
+    size_t s;
+    if (pthread_attr_getstacksize(&t->attr, &s) == 0) return s;
+#endif
+    return 0;
 }
 
 void Thread::threadJoin()
 {
 #ifdef WIN32
-	THREADDATA *t=(THREADDATA *)threaddata;
-	DWORD ret=WaitForSingleObject(t->thread,INFINITE);
-	if (ret!=0) {
-		ThreadOperationFailedException();
-	}
+    THREADDATA* t = (THREADDATA*)threaddata;
+    DWORD ret = WaitForSingleObject(t->thread, INFINITE);
+    if (ret != 0) {
+        ThreadOperationFailedException();
+    }
 
-	throw UnsupportedFeatureException("Thread::threadJoin");
+    throw UnsupportedFeatureException("Thread::threadJoin");
 #elif defined HAVE_PTHREADS
-	THREADDATA *t=(THREADDATA *)threaddata;
-	int ret=pthread_join(t->thread, NULL);
-	if (ret!=0) {
-		switch (ret) {
-		case EDEADLK: throw DeadlockException();
-		case EINVAL: ThreadOperationFailedException("Thread is not joinable");
-		case ESRCH: ThreadOperationFailedException("Thread not found");
-		default:
-			ppl7::throwExceptionFromErrno(ret, "Thread is not joinable");
-		}
-	}
+    THREADDATA* t = (THREADDATA*)threaddata;
+    int ret = pthread_join(t->thread, NULL);
+    if (ret != 0) {
+        switch (ret) {
+        case EDEADLK:
+            throw DeadlockException();
+        case EINVAL:
+            ThreadOperationFailedException("Thread is not joinable");
+        case ESRCH:
+            ThreadOperationFailedException("Thread not found");
+        default:
+            ppl7::throwExceptionFromErrno(ret, "Thread is not joinable");
+        }
+    }
 #else
-	throw UnsupportedFeatureException("Thread::threadJoin");
+    throw UnsupportedFeatureException("Thread::threadJoin");
 #endif
 }
 
-
-} // EOF namespace ppl7
+} // namespace ppl7
