@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,98 +27,84 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
+#include <ppl7/core/functions.h>
+#include <ppl7/core/regex.h>
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_STDIO_H
-	#include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
-	#include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
-	#include <string.h>
-#endif
-#ifdef HAVE_STRINGS_H
-	#include <strings.h>
-#endif
-
-
-#include "ppl7.h"
-
-
-
-namespace ppl7 {
-
-
-
-String PythonHelper::escapeString(const String &s)
+namespace ppl7
 {
-	String ret=s;
-	ret.replace("\\","\\\\");
-	ret.replace("\"","\\\"");
-	ret.replace("\n","\\n");
-	ret.replace("\r","\\r");
-	ret.replace("\t","\\t");
-	return ret;
+
+String PythonHelper::escapeString(const String& s)
+{
+    String ret = s;
+    ret.replace("\\", "\\\\");
+    ret.replace("\"", "\\\"");
+    ret.replace("\n", "\\n");
+    ret.replace("\r", "\\r");
+    ret.replace("\t", "\\t");
+    return ret;
 }
 
-String PythonHelper::escapeRegExp(const String &s)
+String PythonHelper::escapeRegExp(const String& s)
 {
-	return RegEx::escape(s);
+    return RegEx::escape(s);
 }
 
 static ppl7::String getValue(const ppl7::String str)
 {
-	ppl7::String lstr=str.toLowerCase();
-	if (str.isNumeric() && (str.instr(",")<0)) return str;
-	else if(lstr=="true") return "True";
-	else if(lstr=="false") return "False";
-	else if(lstr=="null" || lstr=="none") return "None";
-	else return ppl7::ToString("\"%s\"",(const char*)PythonHelper::escapeString(str));
+    ppl7::String lstr = str.toLowerCase();
+    if (str.isNumeric() && (str.instr(",") < 0))
+        return str;
+    else if (lstr == "true")
+        return "True";
+    else if (lstr == "false")
+        return "False";
+    else if (lstr == "null" || lstr == "none")
+        return "None";
+    else
+        return ppl7::ToString("\"%s\"", (const char*)PythonHelper::escapeString(str));
 }
 
-
-static ppl7::String toHashRecurse(const AssocArray &a, int indention)
+static ppl7::String toHashRecurse(const AssocArray& a, int indention)
 {
-	String r;
-	String key;
-	AssocArray::Iterator it;
-	a.reset(it);
-	String indent;
-	indent.repeat(' ',indention);
-	while (a.getNext(it)) {
-		const String &key=it.key();
-		const Variant &res=it.value();
-		if (res.isAssocArray()) {
-			r.appendf("%s\"%s\": {\n",(const char*)indent,(const char*)key);
-			r+=toHashRecurse(res.toAssocArray(),indention+4);
-			r.appendf("%s}\n",(const char*)indent);
-		} else {
-			r.appendf("%s\"%s\": ",(const char*)indent,(const char*)key);
-			r+=getValue(res.toString());
-			r+=",\n";
-		}
-	}
-	r.trimRight(",\n");
-	r+="\n";
-	return r;
+    String r;
+    String key;
+    AssocArray::Iterator it;
+    a.reset(it);
+    String indent;
+    indent.repeat(' ', indention);
+    while (a.getNext(it)) {
+        const String& key = it.key();
+        const Variant& res = it.value();
+        if (res.isAssocArray()) {
+            r.appendf("%s\"%s\": {\n", (const char*)indent, (const char*)key);
+            r += toHashRecurse(res.toAssocArray(), indention + 4);
+            r.appendf("%s}\n", (const char*)indent);
+        } else {
+            r.appendf("%s\"%s\": ", (const char*)indent, (const char*)key);
+            r += getValue(res.toString());
+            r += ",\n";
+        }
+    }
+    r.trimRight(",\n");
+    r += "\n";
+    return r;
 }
 
-String PythonHelper::toHash(const AssocArray &a, const String &name, int indention)
+String PythonHelper::toHash(const AssocArray& a, const String& name, int indention)
 {
-	String ret;
-	String indent;
-	indent.repeat(' ',indention);
+    String ret;
+    String indent;
+    indent.repeat(' ', indention);
 
-	if (name.isEmpty()) return ret;
-	ret.setf("%s%s = {",(const char*)indent,(const char*)name);
-	if (a.count()) {
-		ret+="\n";
-		ret+=toHashRecurse(a,indention+4);
-		ret+=indent;
-	}
-	ret+="}\n";
-	return ret;
+    if (name.isEmpty()) return ret;
+    ret.setf("%s%s = {", (const char*)indent, (const char*)name);
+    if (a.count()) {
+        ret += "\n";
+        ret += toHashRecurse(a, indention + 4);
+        ret += indent;
+    }
+    ret += "}\n";
+    return ret;
 }
 
-}	// EOF namespace 7
+} // namespace ppl7

@@ -32,6 +32,7 @@
 
 #include <list>
 #include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
 
 namespace ppl7
 {

@@ -27,55 +27,49 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include <ppl7/core/functions.h>
-#include <ppl7/core/regex.h>
+#ifndef PPL7_CORE_THREADPOOL_H_
+#define PPL7_CORE_THREADPOOL_H_
+
+#include <stdint.h>
+#include <set>
+#include <ppl7/core/mutex.h>
+#include <ppl7/core/threads.h>
 
 namespace ppl7
 {
 
-String PerlHelper::escapeString(const String& s)
+class ThreadPool
 {
-    String ret = s;
-    ret.replace("\\", "\\\\");
-    ret.replace("\"", "\\\"");
-    ret.replace("@", "\\@");
-    return ret;
-}
+private:
+    std::set<Thread*> threads;
+    ppl7::Mutex mutex;
 
-String PerlHelper::escapeRegExp(const String& s)
-{
-    return RegEx::escape(s);
-}
+public:
+    typedef std::set<Thread*>::iterator iterator;
+    typedef std::set<Thread*>::const_iterator const_iterator;
 
-static String toHashRecurse(const AssocArray& a, const String& name)
-{
-    String r;
-    String key;
-    AssocArray::Iterator it;
-    a.reset(it);
-    while (a.getNext(it)) {
-        const String& key = it.key();
-        const Variant& res = it.value();
-        if (res.isAssocArray()) {
-            String newName;
-            newName = name + "{" + key + "}";
-            r += toHashRecurse(res.toAssocArray(), newName);
-        } else {
-            r += name + "{" + key + "}=\"" + PerlHelper::escapeString(res.toString()) + "\";\n";
-        }
-    }
-    return r;
-}
+    ~ThreadPool();
 
-String PerlHelper::toHash(const AssocArray& a, const String& name)
-{
-    String ret;
-    if (name.isEmpty()) return ret;
-    ret = "my %" + name + ";\n";
-    String n;
-    n = "$" + name;
-    ret += toHashRecurse(a, n);
-    return ret;
-}
+    void addThread(Thread* thread);
+    void removeThread(Thread* thread);
+    void destroyThread(Thread* thread);
+    void clear();
+    void destroyAllThreads();
+    ThreadPool::iterator begin();
+    ThreadPool::const_iterator begin() const;
+    ThreadPool::iterator end();
+    ThreadPool::const_iterator end() const;
+    void signalStopThreads();
+    void stopThreads();
+    void startThreads();
+    size_t size();
+    size_t count();
+    size_t count_running();
+    bool running();
+    void lock();
+    void unlock();
+};
 
 } // namespace ppl7
+
+#endif /* PPL7_CORE_THREADPOOL_H_ */

@@ -1,23 +1,18 @@
 /*******************************************************************************
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
- * Web: http://www.pfp.de/ppl/
- *
- * $Author$
- * $Revision$
- * $Date$
- * $Id$
- *
+ * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2015, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *    1. Redistributions of source code must retain the above copyright notice, this
- *       list of conditions and the following disclaimer.
- *    2. Redistributions in binary form must reproduce the above copyright notice,
- *       this list of conditions and the following disclaimer in the documentation
- *       and/or other materials provided with the distribution.
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *       this list of conditions and the following disclaimer.
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -27,16 +22,18 @@
  * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
  * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
  * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#include "ppl7.h"
+#include <ppl7/core/threads.h>
+#include <ppl7/core/threadpool.h>
+#include <ppl7/exceptions.h>
+#include <ppl7/core/functions.h>
 
-namespace ppl7 {
-
+namespace ppl7
+{
 
 /*!\class ThreadPool
  * \ingroup PPLGroupThreads
@@ -54,7 +51,6 @@ namespace ppl7 {
  *
  */
 
-
 /*!\brief Destruktor
  *
  * \desc
@@ -62,10 +58,9 @@ namespace ppl7 {
  */
 ThreadPool::~ThreadPool()
 {
-	stopThreads();
-	destroyAllThreads();
+    stopThreads();
+    destroyAllThreads();
 }
-
 
 /*!\brief Thread in den Pool hinzufügen
  *
@@ -74,14 +69,13 @@ ThreadPool::~ThreadPool()
  *
  * @param thread Pointer auf dem Thread
  */
-void ThreadPool::addThread(Thread *thread)
+void ThreadPool::addThread(Thread* thread)
 {
-	std::pair<std::set<Thread*>::iterator, bool> ret;
-	mutex.lock();
-	ret = threads.insert(thread);
-	mutex.unlock();
-	if (ret.second == false)
-		throw ThreadAlreadyInPoolException();
+    std::pair<std::set<Thread*>::iterator, bool> ret;
+    mutex.lock();
+    ret = threads.insert(thread);
+    mutex.unlock();
+    if (ret.second == false) throw ThreadAlreadyInPoolException();
 }
 
 /*!\brief Thread aus dem Pool entfernen
@@ -92,11 +86,11 @@ void ThreadPool::addThread(Thread *thread)
  *
  * @param thread Pointer auf dem Thread
  */
-void ThreadPool::removeThread(Thread *thread)
+void ThreadPool::removeThread(Thread* thread)
 {
-	mutex.lock();
-	threads.erase(thread);
-	mutex.unlock();
+    mutex.lock();
+    threads.erase(thread);
+    mutex.unlock();
 }
 
 /*!\brief Thread aus aus dem Pool entfernen und löschen
@@ -107,12 +101,12 @@ void ThreadPool::removeThread(Thread *thread)
  *
  * @param thread Pointer auf dem Thread
  */
-void ThreadPool::destroyThread(Thread *thread)
+void ThreadPool::destroyThread(Thread* thread)
 {
-	mutex.lock();
-	threads.erase(thread);
-	mutex.unlock();
-	delete thread;
+    mutex.lock();
+    threads.erase(thread);
+    mutex.unlock();
+    delete thread;
 }
 
 /*!\brief Alle Threads aus dem Pool entfernen
@@ -125,9 +119,9 @@ void ThreadPool::destroyThread(Thread *thread)
  */
 void ThreadPool::clear()
 {
-	mutex.lock();
-	threads.clear();
-	mutex.unlock();
+    mutex.lock();
+    threads.clear();
+    mutex.unlock();
 }
 
 /*!\brief Alle Threads stoppen, aus dem Pool entfernen und löschen
@@ -139,14 +133,14 @@ void ThreadPool::clear()
  */
 void ThreadPool::destroyAllThreads()
 {
-	stopThreads();
-	mutex.lock();
-	std::set<Thread*>::iterator it;
-	for (it = threads.begin(); it != threads.end(); ++it) {
-		delete (*it);
-	}
-	threads.clear();
-	mutex.unlock();
+    stopThreads();
+    mutex.lock();
+    std::set<Thread*>::iterator it;
+    for (it = threads.begin(); it != threads.end(); ++it) {
+        delete (*it);
+    }
+    threads.clear();
+    mutex.unlock();
 }
 
 /*!\brief Iterator auf den ersten Thread im Pool
@@ -177,14 +171,14 @@ void ThreadPool::destroyAllThreads()
  */
 ThreadPool::iterator ThreadPool::begin()
 {
-	return threads.begin();
+    return threads.begin();
 }
 
 /*!@copydoc ThreadPool::begin()
  */
 ThreadPool::const_iterator ThreadPool::begin() const
 {
-	return threads.begin();
+    return threads.begin();
 }
 
 /*!\brief Iterator auf das Ende des ThreadPools
@@ -198,14 +192,14 @@ ThreadPool::const_iterator ThreadPool::begin() const
  */
 ThreadPool::iterator ThreadPool::end()
 {
-	return threads.end();
+    return threads.end();
 }
 
 /*!@copydoc ThreadPool::end()
  */
 ThreadPool::const_iterator ThreadPool::end() const
 {
-	return threads.end();
+    return threads.end();
 }
 
 /*!\brief Threads auffordern zu stoppen
@@ -217,12 +211,12 @@ ThreadPool::const_iterator ThreadPool::end() const
  */
 void ThreadPool::signalStopThreads()
 {
-	std::set<Thread*>::iterator it;
-	mutex.lock();
-	for (it = threads.begin(); it != threads.end(); ++it) {
-		(*it)->threadSignalStop();
-	}
-	mutex.unlock();
+    std::set<Thread*>::iterator it;
+    mutex.lock();
+    for (it = threads.begin(); it != threads.end(); ++it) {
+        (*it)->threadSignalStop();
+    }
+    mutex.unlock();
 }
 
 /*!\brief Threads stoppen
@@ -236,11 +230,11 @@ void ThreadPool::signalStopThreads()
  */
 void ThreadPool::stopThreads()
 {
-	signalStopThreads();
-	std::set<Thread*>::iterator it;
-	while (running()) {
-		MSleep(1);
-	}
+    signalStopThreads();
+    std::set<Thread*>::iterator it;
+    while (running()) {
+        MSleep(1);
+    }
 }
 
 /*!\brief Threads starten
@@ -250,14 +244,14 @@ void ThreadPool::stopThreads()
  */
 void ThreadPool::startThreads()
 {
-	std::set<Thread*>::iterator it;
-	mutex.lock();
-	for (it = threads.begin(); it != threads.end(); ++it) {
-		if ((*it)->threadIsRunning()==false) {
-			(*it)->threadStart();
-		}
-	}
-	mutex.unlock();
+    std::set<Thread*>::iterator it;
+    mutex.lock();
+    for (it = threads.begin(); it != threads.end(); ++it) {
+        if ((*it)->threadIsRunning() == false) {
+            (*it)->threadStart();
+        }
+    }
+    mutex.unlock();
 }
 
 /*!\brief Anzahl Threads im Pool
@@ -269,10 +263,10 @@ void ThreadPool::startThreads()
  */
 size_t ThreadPool::size()
 {
-	mutex.lock();
-	size_t num=threads.size();
-	mutex.unlock();
-	return num;
+    mutex.lock();
+    size_t num = threads.size();
+    mutex.unlock();
+    return num;
 }
 
 /*!\brief Anzahl Threads im Pool
@@ -284,10 +278,10 @@ size_t ThreadPool::size()
  */
 size_t ThreadPool::count()
 {
-	mutex.lock();
-	size_t num=threads.size();
-	mutex.unlock();
-	return num;
+    mutex.lock();
+    size_t num = threads.size();
+    mutex.unlock();
+    return num;
 }
 
 /*!\brief Anzahl aktiver Threads im Pool
@@ -299,14 +293,14 @@ size_t ThreadPool::count()
  */
 size_t ThreadPool::count_running()
 {
-	std::set<Thread*>::const_iterator it;
-	size_t count=0;
-	mutex.lock();
-	for (it = threads.begin(); it != threads.end(); ++it) {
-		if ((*it)->threadIsRunning()) count++;
-	}
-	mutex.unlock();
-	return count;
+    std::set<Thread*>::const_iterator it;
+    size_t count = 0;
+    mutex.lock();
+    for (it = threads.begin(); it != threads.end(); ++it) {
+        if ((*it)->threadIsRunning()) count++;
+    }
+    mutex.unlock();
+    return count;
 }
 
 /*!\brief Sind im Pool aktive Threads?
@@ -318,16 +312,16 @@ size_t ThreadPool::count_running()
  */
 bool ThreadPool::running()
 {
-	std::set<ppl7::Thread*>::const_iterator it;
-	mutex.lock();
-	for (it = threads.begin(); it != threads.end(); ++it) {
-		if ((*it)->threadIsRunning()) {
-			mutex.unlock();
-			return true;
-		}
-	}
-	mutex.unlock();
-	return false;
+    std::set<ppl7::Thread*>::const_iterator it;
+    mutex.lock();
+    for (it = threads.begin(); it != threads.end(); ++it) {
+        if ((*it)->threadIsRunning()) {
+            mutex.unlock();
+            return true;
+        }
+    }
+    mutex.unlock();
+    return false;
 }
 
 /*!\brief %ThreadPool sperren
@@ -344,7 +338,7 @@ bool ThreadPool::running()
  */
 void ThreadPool::lock()
 {
-	mutex.lock();
+    mutex.lock();
 }
 
 /*!\brief %ThreadPool entsperren
@@ -357,9 +351,7 @@ void ThreadPool::lock()
  */
 void ThreadPool::unlock()
 {
-	mutex.unlock();
+    mutex.unlock();
 }
 
-
-
-}	// EOF namespace ppl7
+} // namespace ppl7
