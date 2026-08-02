@@ -31,7 +31,7 @@
 #include <ppl7/types/bytearrayptr.h>
 #include <ppl7/types/string.h>
 #include <ppl7/types/widestring.h>
-#include <ppl7/functions.h>
+#include <ppl7/core/functions.h>
 #include <ppl7/exceptions.h>
 
 namespace ppl7

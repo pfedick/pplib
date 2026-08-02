@@ -27,23 +27,17 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_STDIO_H
 #include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
 #include <stdarg.h>
-#endif
 
 #include <set>
 
-#include "ppl7.h"
+#include <ppl7/types/array.h>
+#include <ppl7/types/string.h>
+#include <ppl7/exceptions.h>
+#include <ppl7/core/functions.h>
 
 namespace ppl7
 {

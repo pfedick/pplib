@@ -151,7 +151,6 @@ public:
     void set(const String& key, const ByteArray& value);
     void set(const String& key, const ByteArrayPtr& value);
     void set(const String& key, const AssocArray& value);
-    void set(const String& key, const Pointer& value);
     void set(const String& key, const Variant& value);
     void setf(const String& key, const char* fmt, ...);
     //@}

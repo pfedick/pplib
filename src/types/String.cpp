@@ -26,6 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -1001,7 +1002,7 @@ String String::substr(size_t start, size_t len) const
 
 String& String::lowerCase()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
     // Wir wandeln den String zunächst nach Unicode um
     std::vector<wchar_t> buffer(stringlen + 1);
     size_t l;
@@ -1031,7 +1032,7 @@ String& String::lowerCase()
 
 String& String::upperCase()
 {
-    if (stringlen == 0) return;
+    if (stringlen == 0) return *this;
     // Wir wandeln den String zunächst nach Unicode um
     std::vector<wchar_t> buffer(stringlen + 1);
     size_t l;

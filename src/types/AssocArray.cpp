@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,32 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
 
-#include "prolog_ppl7.h"
-#ifdef HAVE_STDIO_H
 #include <stdio.h>
-#endif
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-#ifdef HAVE_STDARG_H
 #include <stdarg.h>
-#endif
-#ifdef HAVE_TYPES_H
-#include <types.h>
-#endif
 
+#include <set>
 #include <ostream>
 
-#include "ppl7.h"
+#include <ppl7/types/array.h>
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/assocarray.h>
+#include <ppl7/types/bytearray.h>
+#include <ppl7/types/bytearrayptr.h>
+#include <ppl7/exceptions.h>
+#include <ppl7/core/functions.h>
+#include <ppl7/core/iconv.h>
+
+#include <config_ppl7.h>
+#ifndef ICONV_UNICODE
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16BE" : "UTF-32BE")
+#else
+#define ICONV_UNICODE (sizeof(wchar_t) == 2 ? "UTF-16LE" : "UTF-32LE")
+#endif
+#endif
 
 namespace ppl7
 {
@@ -492,8 +498,6 @@ void AssocArray::list(const String& prefix) const
         } else if (p->isAssocArray()) {
             pre.setf("%s%s", (const char*)key, (const char*)it->first);
             p->toAssocArray().list(pre);
-        } else if (p->isPointer()) {
-            PrintDebug("%s%s=Pointer, %tu\n", (const char*)key, (const char*)it->first, (std::ptrdiff_t)p->toPointer().ptr());
         } else if (p->isArray()) {
             const Array& a = (const Array&)*p;
             for (size_t i = 0; i < a.size(); i++) {
@@ -676,30 +680,6 @@ void AssocArray::set(const String& key, const Array& value)
  * \exception InvalidKeyException: Ungültiger Schlüssel
  */
 void AssocArray::set(const String& key, const AssocArray& value)
-{
-    Variant* var = new Variant(value);
-    try {
-        createTree(key, var);
-    }
-    catch (...) {
-        delete var;
-        throw;
-    }
-}
-
-/*!\brief %Pointer hinzufügen
- *
- * \desc
- * Diese Funktion fügt den Inhalt des Pointers \p value
- * unter dem Schlüssel \p key in das Assoziative Array ein.
- *
- * \param[in] key Name des Schlüssels
- * \param[in] value Daten
- * \exception std::bad_alloc: Kein Speicher mehr frei
- * \exception OutOfMemoryException: Kein Speicher mehr frei
- * \exception InvalidKeyException: Ungültiger Schlüssel
- */
-void AssocArray::set(const String& key, const Pointer& value)
 {
     Variant* var = new Variant(value);
     try {
