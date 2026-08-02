@@ -37,6 +37,12 @@
 #cmakedefine HAVE_OPENLOG 1
 #cmakedefine HAVE_CLOSELOG 1
 
+// pcre
+#cmakedefine HAVE_PCRE2 1
+#cmakedefine HAVE_PCRE2_BITS_8 1
+#cmakedefine HAVE_PCRE2_BITS_16 1
+#cmakedefine HAVE_PCRE2_BITS_32 1
+
 // other
 #cmakedefine HAVE_LIBMICROHTTPD 1
 #cmakedefine HAVE_LIBIDN2 1

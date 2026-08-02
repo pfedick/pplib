@@ -2,7 +2,7 @@
  * This file is part of "Patrick's Programming Library", Version 7 (PPL7).
  * Web: https://github.com/pfedick/pplib
  *******************************************************************************
- * Copyright (c) 2024, Patrick Fedick <patrick@pfp.de>
+ * Copyright (c) 2026, Patrick Fedick <patrick@pfp.de>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,16 +30,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "prolog_ppl7.h"
+#include "config_ppl7.h"
+#include <ppl7/core/regex.h>
+
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/array.h>
+#include <ppl7/types/bytearray.h>
+#include <ppl7/core/functions.h>
 
 #ifdef HAVE_PCRE2
 #define PCRE2_CODE_UNIT_WIDTH 8
 #include <pcre2.h>
 #endif
-#include "ppl7.h"
-#include "ppl7-types.h"
 
-#ifdef HAVE_PCRE2_BITS_16
+#if defined(HAVE_PCRE2_BITS_16) && (WCHAR_MAX <= 0xffff)
 #define HAVE_PCRE2_WIDE
 #define pcre2_code_wide pcre2_code_16
 #define pcre2_code_copy_wide pcre2_code_copy_16
@@ -53,7 +58,7 @@
 #define PCRE2_SPTR_WIDE PCRE2_SPTR16
 #define pcre2_bits_wide 16
 
-#elif defined HAVE_PCRE2_BITS_32
+#elif defined(HAVE_PCRE2_BITS_32) && (WCHAR_MAX > 0xffff)
 #define HAVE_PCRE2_WIDE
 #define pcre2_code_wide pcre2_code_32
 #define pcre2_code_copy_wide pcre2_code_copy_32
@@ -66,7 +71,6 @@
 #define pcre2_match_data_wide pcre2_match_data_32
 #define PCRE2_SPTR_WIDE PCRE2_SPTR32
 #define pcre2_bits_wide 32
-
 #endif
 
 namespace ppl7
