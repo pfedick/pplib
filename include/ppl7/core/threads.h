@@ -30,6 +30,8 @@
 #ifndef PPL7_CORE_THREADS_H_
 #define PPL7_CORE_THREADS_H_
 
+#include <stdint.h>
+#include <set>
 #include <ppl7/core/mutex.h>
 
 namespace ppl7

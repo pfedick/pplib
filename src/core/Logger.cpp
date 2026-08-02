@@ -32,14 +32,17 @@
 #include <string.h>
 
 #include <ppl7/core/logging.h>
+#include <ppl7/core/threads.h>
+#include <ppl7/types/string.h>
+#include <ppl7/types/array.h>
+#include <ppl7/types/assocarray.h>
+#include <ppl7/types/datetime.h>
 
 #ifdef HAVE_SYSLOG_H
 #include <syslog.h>
 #endif
 
 #include <stdarg.h>
-
-#include "ppl7.h"
 
 namespace ppl7
 {
@@ -451,8 +454,6 @@ void Logger::outputArray(PRIORITY prio,
             Out->appendf("%s%s=%s\n", (const char*)key, (const char*)k, (const char*)v.toString());
         } else if (v.isDateTime()) {
             Out->appendf("%s%s=%s\n", (const char*)key, (const char*)k, (const char*)v.toDateTime().get());
-        } else if (v.isPointer()) {
-            Out->appendf("%s%s=%tu\n", (const char*)key, (const char*)k, ((uintptr_t)v.toPointer().ptr()));
         } else if (v.isAssocArray()) {
             pre.setf("%s%s", (const char*)key, (const char*)k);
             outputArray(prio, level, module, function, file, line, v.toAssocArray(), (const char*)pre, Out);
