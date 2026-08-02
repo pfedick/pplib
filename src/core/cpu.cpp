@@ -26,7 +26,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
-*****************************************************************************/
 
 #include <stdio.h>
 #include <stdint.h>
@@ -35,13 +34,13 @@
 #include <ppl7/core/functions.h>
 
 #ifdef HAVE_NASM
-    extern "C"
+extern "C"
 {
     uint32_t PPL7_GetASMBits();
     uint32_t PPL7_GetCpuCaps();
 }
 #else
-    static uint32_t PPL7_GetCpuCaps()
+static uint32_t PPL7_GetCpuCaps()
 {
     return 0;
 }
