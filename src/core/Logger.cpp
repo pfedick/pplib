@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <config_ppl7.h>
+
 #include <ppl7/core/logging.h>
 #include <ppl7/core/threads.h>
 #include <ppl7/types/string.h>
