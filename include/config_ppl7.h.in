@@ -32,6 +32,8 @@
 
 #cmakedefine MINGW 1
 
+#cmakedefine STRUCT_TM_HAS_GMTOFF 1
+
 // syslog
 #cmakedefine HAVE_SYSLOG_H 1
 #cmakedefine HAVE_OPENLOG 1
