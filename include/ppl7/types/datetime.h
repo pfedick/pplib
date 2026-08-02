@@ -26,6 +26,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
  * THE POSSIBILITY OF SUCH DAMAGE.
  *******************************************************************************/
+
 #ifndef PPL7_TYPES_DATETIME_H_
 #define PPL7_TYPES_DATETIME_H_
 
@@ -78,6 +79,7 @@ public:
     void setEpoch(uint64_t t);
     void setLongInt(uint64_t i);
     void set(const String& datetime);
+    void setWithoutRegex(const String& datetime);
     void set(const DateTime& other);
     void set(const String& date, const String& time);
     void set(const PPLTIME& t);
