@@ -48,9 +48,39 @@ void HexDump(const void* address, size_t bytes, bool skipheader);
 void HexDump(const void* address, size_t bytes);
 String ToBase64(const ByteArrayPtr& bin);
 ByteArray FromBase64(const String& str);
-uint32_t Crc32(const void* buffer, size_t size);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Berechnet den polynomischen CRC32-Wert eines Buffers
+ *
+ * Berechnet die zyklisch redundante polynomische Prüfsumme mit einer Länge von 32-Bit.
+ *
+ *
+ * @param buffer Pointer auf den Beginn der Daten
+ * @param size Länge der Daten in Byte
+ * @param initial_crc Initialwert für die Berechnung. Standardwert ist 0xFFFFFFFF
+ * \return Integer mit der Prüfsumme
+ */
+uint32_t Crc32(const void* buffer, size_t size, uint32_t initial_crc = 0xFFFFFFFF);
+
+/**
+ * @ingroup PPLGroupMath
+ * @brief Berechnet den CRC-16-CCITT Wert eines Buffers
+ *
+ * Berechnet die zyklisch redundante polynomische Prüfsumme mit einer Länge von 16-Bit
+ * (CCITT-Polynom 0x1021).
+ *
+ * @param buffer Pointer auf den Beginn der Daten
+ * @param size Länge der Daten in Byte
+ * @param initial_crc Initialwert (Standard 0xFFFF). Nützlich zum Fortsetzen einer Checksumme.
+ * @return Integer mit der Prüfsumme
+ */
+uint16_t Crc16(const void* buffer, size_t size, uint16_t initial_crc = 0xFFFF);
+
 String Md5(const void* buffer, size_t size);
 String Md5(const ByteArrayPtr& buffer);
+String Sha256(const void* buffer, size_t size);
+String Sha256(const ByteArrayPtr& buffer);
 double Calc(const String& expression);
 
 /**@brief Entfernt Backslashes aus einem String
@@ -189,13 +219,13 @@ uint32_t GetCPUCaps(CPUCaps& cpu);
 uint32_t GetCPUCaps();
 
 // Time
-ppl_time_t GetTime(PPLTIME* t);
+ppl_time_t GetTime(PPLTIME* t = nullptr);
 ppl_time_t GetTime(PPLTIME* t, ppl_time_t tt);
 ppl_time_t GetTime(PPLTIME& t, ppl_time_t tt);
-ppl_time_t GetTime();
-int USleep(uint64_t microseconds); // 1 sec = 1000000 microseconds
-int MSleep(uint64_t milliseconds); // 1 sec = 1000 milliseconds
-int SSleep(uint64_t seconds);
+
+void USleep(uint64_t microseconds); // 1 sec = 1000000 microseconds
+void MSleep(uint64_t milliseconds); // 1 sec = 1000 milliseconds
+void SSleep(uint64_t seconds);
 double GetMicrotime();
 uint64_t GetMilliSeconds();
 
