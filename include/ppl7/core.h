@@ -32,8 +32,6 @@
 
 #include <ppl7/version.h>
 #include <ppl7-exceptions.h>
-#include <ppl7/core/memoryheap.h>
-#include <ppl7/core/memorygroup.h>
 #include <ppl7/types.h>
 #include <ppl7/core/functions.h>
 #include <ppl7/core/regex.h>
