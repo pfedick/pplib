@@ -32,6 +32,12 @@
 
 #cmakedefine MINGW 1
 
+// syslog
+#cmakedefine HAVE_SYSLOG_H 1
+#cmakedefine HAVE_OPENLOG 1
+#cmakedefine HAVE_CLOSELOG 1
+
+// other
 #cmakedefine HAVE_LIBMICROHTTPD 1
 #cmakedefine HAVE_LIBIDN2 1
 

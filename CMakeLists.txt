@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.20)
 project(PPL7 VERSION 7.1.0 LANGUAGES C CXX)
 
+include(CheckIncludeFile)
+include(CheckSymbolExists)
+
 # C++ Standard festlegen
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,6 +28,16 @@ if(PPL7_ENABLE_COVERAGE)
         add_compile_options(--coverage -O0)
         add_link_options(--coverage)
     endif()
+endif()
+
+# Syslog
+check_include_file("syslog.h" HAVE_SYSLOG_H)
+
+# Falls syslog.h existiert, prüfen wir, ob openlog und closelog zur Verfügung stehen
+if(HAVE_SYSLOG_H)
+    # Beachte: Manche Systeme verlangen die Angabe von syslog.h im Check-Kontext
+    check_symbol_exists(openlog "syslog.h" HAVE_OPENLOG)
+    check_symbol_exists(closelog "syslog.h" HAVE_CLOSELOG)
 endif()
 
 # Optionale Abhängigkeiten & Features

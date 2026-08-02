@@ -30,6 +30,11 @@
 #ifndef PPL7_CORE_JSON_H_
 #define PPL7_CORE_JSON_H_
 
+#include <ppl7/types/string.h>
+#include <ppl7/types/widestring.h>
+#include <ppl7/types/assocarray.h>
+#include <ppl7/core/fileobject.h>
+
 namespace ppl7
 {
 class Json
