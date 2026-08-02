@@ -161,7 +161,6 @@ public:
 
     static ByteArray hash(const ByteArrayPtr& data, Algorithm algorithm);
     static ByteArray hash(const ByteArrayPtr& data, const String& algorithmName);
-    static ByteArray md4(const ByteArrayPtr& data);
     static ByteArray md5(const ByteArrayPtr& data);
     static ByteArray sha1(const ByteArrayPtr& data);
     static ByteArray sha224(const ByteArrayPtr& data);
@@ -170,6 +169,49 @@ public:
     static ByteArray sha512(const ByteArrayPtr& data);
     static uint32_t crc32(const ByteArrayPtr& data);
     static uint32_t adler32(const ByteArrayPtr& data);
+};
+
+// TODO: Signaturen Generierung und Prüfung
+// Key-Pairs
+
+// Draft
+class KeyPair
+{
+public:
+    enum Type
+    {
+        Type_RSA,
+        Type_EC_P256,
+        Type_Ed25519
+    };
+
+    static KeyPair generate(Type type);
+    void loadPrivateKeyPEM(const String& pem);
+    void loadPublicKeyPEM(const String& pem);
+    String savePrivateKeyPEM() const;
+    String savePublicKeyPEM() const;
+};
+
+// Draft
+class Signature
+{
+public:
+    static ByteArray sign(const ByteArrayPtr& data, const KeyPair& key);
+    static bool verify(const ByteArrayPtr& data, const ByteArrayPtr& signature, const KeyPair& key);
+};
+
+// Draft
+class KDF
+{
+public:
+    static ByteArray pbkdf2_sha256(const String& password, const ByteArrayPtr& salt, int iterations, size_t keyLen);
+};
+
+// Draft
+class HMAC
+{
+public:
+    static ByteArray sha256(const ByteArrayPtr& data, const ByteArrayPtr& key);
 };
 
 } // namespace ppl7
