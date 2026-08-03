@@ -34,6 +34,14 @@
 
 #cmakedefine STRUCT_TM_HAS_GMTOFF 1
 
+// Threads
+#cmakedefine HAVE_PTHREADS 1
+#cmakedefine HAVE_SCHED_H 1
+#cmakedefine HAVE_SCHED_YIELD 1
+#cmakedefine HAVE_PTHREAD_NP_H 1
+#cmakedefine HAVE_PTHREAD_SETNAME_NP 1
+#cmakedefine HAVE_PTHREAD_SET_NAME_NP 1
+
 // syslog
 #cmakedefine HAVE_SYSLOG_H 1
 #cmakedefine HAVE_OPENLOG 1
@@ -71,8 +79,6 @@
 #cmakedefine HAVE_LIBOPUS 1
 #cmakedefine HAVE_LIBCDIO 1
 #cmakedefine HAVE_LIBCDDB 1
-
-#cmakedefine HAVE_PTHREADS 1
 
 #cmakedefine HAVE_TIFF 1
 #cmakedefine HAVE_JPEG 1

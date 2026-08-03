@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(PPL7 VERSION 7.1.0 LANGUAGES C CXX)
+project(PPL7 VERSION 7.2.0 LANGUAGES C CXX)
 
 include(CheckIncludeFile)
 include(CheckSymbolExists)
@@ -100,6 +100,25 @@ if(PPL7_ENABLE_CORE)
     find_package(Threads REQUIRED)
     if(CMAKE_USE_PTHREADS_INIT AND NOT WIN32)
         set(HAVE_PTHREADS 1)
+    endif()
+
+    check_include_file("sched.h" HAVE_SCHED_H)
+    if(HAVE_SCHED_H)
+        check_symbol_exists(sched_yield "sched.h" HAVE_SCHED_YIELD)
+    endif()
+    if(NOT WIN32)
+        check_include_file("pthread_np.h" HAVE_PTHREAD_NP_H)
+        
+        # Prüfen, welche Variante von pthread_setname_np / pthread_set_name_np existiert
+        set(CMAKE_REQUIRED_LIBRARIES Threads::Threads)
+        
+        check_symbol_exists(pthread_setname_np "pthread.h" HAVE_PTHREAD_SETNAME_NP)
+        
+        if(HAVE_PTHREAD_NP_H)
+            check_symbol_exists(pthread_set_name_np "pthread.h;pthread_np.h" HAVE_PTHREAD_SET_NAME_NP)
+        else()
+            check_symbol_exists(pthread_set_name_np "pthread.h" HAVE_PTHREAD_SET_NAME_NP)
+        endif()
     endif()
 
     find_package(ZLIB QUIET)

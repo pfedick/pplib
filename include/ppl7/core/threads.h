@@ -37,6 +37,17 @@
 namespace ppl7
 {
 
+/**
+ * @class Thread
+ * @ingroup PPLGroupThreads
+ * @brief Klasse zum Verwalten von Threads
+ *
+ * Klasse zum Starten und Verwalten von Threads.
+ * @see \ref PPLGroupThreads
+ * @par Beispiel:
+ * @include Thread_ThreadMain.cpp
+ *
+ */
 class Thread
 {
 private:
@@ -91,8 +102,6 @@ public:
 };
 
 uint64_t ThreadID();
-void* GetTLSData();
-void SetTLSData(void* data);
 uint64_t StartThread(void (*start_routine)(void*), void* data = NULL);
 void ThreadSetPriority(Thread::Priority priority);
 Thread::Priority ThreadGetPriority();
