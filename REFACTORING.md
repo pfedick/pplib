@@ -22,13 +22,17 @@ Einige Klassen sind sehr gut dokumentiert und getestet, andere wiederum eher wen
 - configure abspecken: wir brauchen einen Großteil der Checks auf Header und Funktion nicht, das diese laut Standard in allen modernen Compilern vorhanden sind. Wir brauchen nur noch die Checks auf C++17/C++20, sowie die Checks auf die Plattform (Windows, Linux, FreeBSD)
 
 
-## autoconf / makefile
+## autoconf / makefile vs. CMake
 Das Makefile.in wird im Moment per Script generiert, welches die Dateien in den Verzeichnissen sucht und passende Header als Abhängigkeit einträgt.
 
 - Gibt es Möglichkeiten das Makefile automatisch zu generieren?
 - Abhängigkeit zu den jeweiligen Header-Dateien automatisch finden?
 - Manuell pflegen? So oft kommen keine neuen Dateien hinzu
 - Würden sich die Probleme von selbst erledigen, wenn make die Dateien selbst findet? (z.B. mit wildcards)
+
+Entscheidung: Ich probiere mal CMake aus.
+
+Vielleicht können wir auch beide Varianten anbieten.
 
  
 ## pico-pplib
@@ -40,8 +44,18 @@ Der Code ist inzwischen auseinander gelaufen, so dass es schwierig ist, Änderun
 
 In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nicht benötigt werden. Hierfür wäre ein eigenes Projekt sinnvoll, das die Hardware-spezifischen Klassen enthält und von PPL7 abhängig ist.
 
+## Namespace ppl7, ppl8 oder pplib?
+Der Aufwand alle Programme, die PPL7 verwenden, auf PPL8 zu portieren wäre sehr hoch. Allerdings sind die Überarbeitungen schon recht umfangreich, so dass ein größerer Versionssprung gerechtfertigt wäre. Die Interfaces bleiben weitgehend kompatibel.
+
+Da das GitHub-Repository "pplib" heißt, und ich auch die Domain "pplib.de" besitze, wäre es sinnvoll auf die Version im Namespace zu verzichten und stattdessen den neutralen Namespace "pplib" zu verwenden. "ppl" kollidiert bereits mit dem Namespace "ppl" von Microsoft, der in Visual Studio verwendet wird.
+
+Für die Portierung vorhandener Projekte könnte ein Alias "ppl7" definiert werden, der auf den Namespace "pplib" verweist:
+```cpp
+namespace ppl7 = pplib;
+```
+
+
 ## Fragen
-- Sollen wir auf PPL8 erhöhen? Der Aufwand alle Programme, die ppl7 verwenden, auf PPL8 zu portieren wäre sehr hoch.
 - Sollen wir die Library aufsplitten in mehrere kleinere Module?
   - Core
   - Grafix
@@ -81,5 +95,5 @@ In pico-pplib gibt es auch Hardware-spezifische Klassen/Treiber, die in PPL7 nic
 
 
 
-# Auftrag an die KI
+
 
