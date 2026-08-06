@@ -49,10 +49,10 @@ namespace ppl7::grafix
  */
 class Color
 {
-    friend Color operator*(const Color& size, float factor);
-    friend Color operator*(float factor, const Color& size);
-    friend Color operator+(const Color& color1, const Color& color2);
-    friend Color multiplyWithAlpha(const Color& c, float factor);
+    friend Color operator*(const Color& size, float factor) noexcept;
+    friend Color operator*(float factor, const Color& size) noexcept;
+    friend Color operator+(const Color& color1, const Color& color2) noexcept;
+    friend Color multiplyWithAlpha(const Color& c, float factor) noexcept;
     ;
 
 private:
@@ -80,7 +80,7 @@ public:
      * Mit diesem Konstruktor wird eine Instanz der Klasse erzeugt, und mit dem Farbwert
      * für schwarz initialisiert.
      */
-    Color()
+    Color() noexcept
     {
         c = 0;
     };
@@ -97,7 +97,7 @@ public:
      * @param alpha Optionaler Wert zwischen 0 und 255, der die Transparenz der Farbe
      * festlegt. 0 bedeutet komplett transparent, 255 komplett sichtbar.
      */
-    Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+    Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255) noexcept
     {
         r = red;
         g = green;
@@ -113,7 +113,7 @@ public:
      *
      * @param rgba 32-Bit Farbwert
      */
-    Color(uint32_t rgba)
+    Color(uint32_t rgba) noexcept
     {
         c = rgba;
     }
@@ -124,7 +124,7 @@ public:
      *
      * @return rot-Anteil zwischen 0 und 255
      */
-    constexpr inline uint8_t red() const
+    constexpr inline uint8_t red() const noexcept
     {
         return r;
     }
@@ -135,7 +135,7 @@ public:
      *
      * @return grün-Anteil zwischen 0 und 255
      */
-    constexpr inline uint8_t green() const
+    constexpr inline uint8_t green() const noexcept
     {
         return g;
     }
@@ -146,7 +146,7 @@ public:
      *
      * @return blau-Anteil zwischen 0 und 255
      */
-    constexpr inline uint8_t blue() const
+    constexpr inline uint8_t blue() const noexcept
     {
         return b;
     }
@@ -157,7 +157,7 @@ public:
      *
      * @return alpha-Anteil zwischen 0 und 255
      */
-    constexpr inline uint8_t alpha() const
+    constexpr inline uint8_t alpha() const noexcept
     {
         return a;
     }
@@ -168,7 +168,7 @@ public:
      *
      * @return 32-Bit Farbwert
      */
-    constexpr inline uint32_t rgba() const
+    constexpr inline uint32_t rgba() const noexcept
     {
         return c;
     }
@@ -179,7 +179,7 @@ public:
      *
      * @param red rot-Anteil zwischen 0 und 255.
      */
-    inline void setRed(uint8_t red)
+    inline void setRed(uint8_t red) noexcept
     {
         r = red;
     }
@@ -190,7 +190,7 @@ public:
      *
      * @param green grün-Anteil zwischen 0 und 255.
      */
-    inline void setGreen(uint8_t green)
+    inline void setGreen(uint8_t green) noexcept
     {
         g = green;
     }
@@ -201,7 +201,7 @@ public:
      *
      * @param blue blau-Anteil zwischen 0 und 255.
      */
-    inline void setBlue(uint8_t blue)
+    inline void setBlue(uint8_t blue) noexcept
     {
         b = blue;
     }
@@ -212,7 +212,7 @@ public:
      *
      * @param alpha alpha-Anteil zwischen 0 und 255.
      */
-    inline void setAlpha(uint8_t alpha)
+    inline void setAlpha(uint8_t alpha) noexcept
     {
         a = alpha;
     }
@@ -224,7 +224,7 @@ public:
      *
      * @param rgba 32-Bit Farbwert
      */
-    inline void setColor(uint32_t rgba)
+    inline void setColor(uint32_t rgba) noexcept
     {
         c = rgba;
     }
@@ -240,7 +240,7 @@ public:
      * festlegt. 0 bedeutet komplett transparent, 255 komplett sichtbar. Wird der
      * Parameter nicht angegeben, wird automatisch 255 gesetzt.
      */
-    inline void setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+    inline void setColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255) noexcept
     {
         r = red;
         g = green;
@@ -260,7 +260,7 @@ public:
      * festlegt. 0 bedeutet komplett transparent, 255 komplett sichtbar. Wird der
      * Parameter nicht angegeben, wird automatisch 255 gesetzt.
      */
-    inline void set(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255)
+    inline void set(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha = 255) noexcept
     {
         r = red;
         g = green;
@@ -279,7 +279,7 @@ public:
      * festlegt. 0 bedeutet komplett transparent, 255 komplett sichtbar. Wird der
      * Parameter nicht angegeben, wird automatisch 255 gesetzt.
      */
-    inline void set(const Color& other)
+    inline void set(const Color& other) noexcept
     {
         c = other.c;
     }
@@ -295,7 +295,7 @@ public:
      *
      * @return Helligkeit der Farbe auf einer Skala von 0-255
      */
-    inline uint8_t brightness() const
+    inline uint8_t brightness() const noexcept
     {
         return (r * 11 + g * 16 + b * 5) / 32;
     }
@@ -310,7 +310,7 @@ public:
      *
      * @return Grau-Farbe
      */
-    Color grey() const
+    Color grey() const noexcept
     {
         uint8_t b = brightness();
         return Color(b, b, b, a);
@@ -324,7 +324,7 @@ public:
      *
      * @return Negativ-Farbe
      */
-    inline Color negativ() const
+    inline Color negativ() const noexcept
     {
         return Color(255 - r, 255 - g, 255 - b, a);
     }
@@ -341,7 +341,7 @@ public:
      * von 0-255 angibt. Der Default ist 0
      * @return Stimmen die Farbwerte überein, liefert die Funktion \c true zurück, andernfalls \c false.
      */
-    bool match(const Color& other, uint8_t tolerance = 0) const;
+    bool match(const Color& other, uint8_t tolerance = 0) const noexcept;
 
     /** @brief Farbe in das YCbCr-Farbmodell umrechnen: Grundhelligkeit Y
      *
@@ -354,7 +354,7 @@ public:
      *
      * @return Grundhelligkeit (Y) auf einer Skala von 0-255
      */
-    inline uint8_t getY() const
+    inline uint8_t getY() const noexcept
     {
         // return (uint8_t)round(0.299 * r + 0.587 * g + 0.114 * b);
         return static_cast<uint8_t>((19595 * r + 38470 * g + 7471 * b + 32768) >> 16);
@@ -371,7 +371,7 @@ public:
      *
      * @return Cb-Wert (Blue-Yellow Chrominance)
      */
-    inline uint8_t getYCb() const
+    inline uint8_t getYCb() const noexcept
     {
         // return (uint8_t)round(128 + -0.168736 * r - 0.331264 * g + 0.5 * b);
         int cb = 128 + ((-11059 * r - 21709 * g + 32768 * b + 32768) >> 16);
@@ -391,7 +391,7 @@ public:
      *
      * @return Cr-Wert (Red-Green Chrominance)
      */
-    inline uint8_t getYCr() const
+    inline uint8_t getYCr() const noexcept
     {
         // return (uint8_t)round(128 + 0.5 * r - 0.418688 * g - 0.081312 * b);
         int cr = 128 + ((32768 * r - 27439 * g - 5329 * b + 32768) >> 16);
@@ -411,7 +411,7 @@ public:
      * @param intensity Intensität der Vordergrundfarbe auf einer Skala von 0-255
      * @return Neuer Farbwert
      */
-    Color& blend(const Color& background, const Color& foreground, int intensity);
+    Color& blend(const Color& background, const Color& foreground, int intensity) noexcept;
 
     /** @brief Farben überblenden
      *
@@ -424,7 +424,7 @@ public:
      * @param intensity Intensität der Vordergrundfarbe auf einer Skala von 0.0 bis 1.0
      * @return Neuer Farbwert
      */
-    Color& blendf(const Color& background, const Color& foreground, float intensity);
+    Color& blendf(const Color& background, const Color& foreground, float intensity) noexcept;
 
     /** @brief Lineare Interpolation zwischen zwei Farben
      *
@@ -438,7 +438,7 @@ public:
      * @param factor Gewichtungsfaktor für die erste Farbe auf einer Skala von 0.0 bis 1.0
      * @return Interpolierte Farbe
      */
-    static Color lerp(const Color& c1, const Color& c2, float t);
+    static Color lerp(const Color& c1, const Color& c2, float t) noexcept;
 
     /** @brief Multiplikation der einzelnen Farbkomponenten mit einem Faktor
      *
@@ -450,7 +450,7 @@ public:
      * @param factor Der Multiplikator als float-Wert
      * @return Neuer Farbwert
      */
-    Color& operator*=(float factor);
+    Color& operator*=(float factor) noexcept;
 
     /** @brief Addition zweier Farbwerte
      *
@@ -461,7 +461,7 @@ public:
      * @param other Der zweite Farbwert
      * @return Neuer Farbwert
      */
-    Color& operator+=(const Color& other);
+    Color& operator+=(const Color& other) noexcept;
 
     /** @brief Farbwert als 32-Bit-Wert auslesen
      *
@@ -469,37 +469,37 @@ public:
      *
      * @return 32-Bit Farbwert
      */
-    constexpr inline operator uint32_t() const
+    constexpr inline operator uint32_t() const noexcept
     {
         return c;
     }
 
-    inline bool operator<(const Color& other) const
+    inline bool operator<(const Color& other) const noexcept
     {
         return c < other.c;
     }
 
-    inline bool operator<=(const Color& other) const
+    inline bool operator<=(const Color& other) const noexcept
     {
         return c <= other.c;
     }
 
-    inline bool operator==(const Color& other) const
+    inline bool operator==(const Color& other) const noexcept
     {
         return c == other.c;
     }
 
-    inline bool operator!=(const Color& other) const
+    inline bool operator!=(const Color& other) const noexcept
     {
         return c != other.c;
     }
 
-    inline bool operator>=(const Color& other) const
+    inline bool operator>=(const Color& other) const noexcept
     {
         return c >= other.c;
     }
 
-    inline bool operator>(const Color& other) const
+    inline bool operator>(const Color& other) const noexcept
     {
         return c > other.c;
     }
@@ -517,7 +517,7 @@ public:
      * @param intensity Intensität der Vordergrundfarbe auf einer Skala von 0-255
      * @return Neuer Farbwert
      */
-    static Color getBlended(const Color& background, const Color& foreground, int intensity);
+    static Color getBlended(const Color& background, const Color& foreground, int intensity) noexcept;
 
     /** @brief Farben überblenden
      *
@@ -532,7 +532,7 @@ public:
      * @param intensity Intensität der Vordergrundfarbe auf einer Skala von 0.0 bis 1.0
      * @return Neuer Farbwert
      */
-    static Color getBlendedf(const Color& background, const Color& foreground, float intensity);
+    static Color getBlendedf(const Color& background, const Color& foreground, float intensity) noexcept;
 };
 
 /** @brief Multiplikation einer Farbe mit einem Faktor
@@ -548,7 +548,7 @@ public:
  * @param factor Multiplikations-Faktor
  * @return Neuer Farbwert
  */
-Color multiplyWithAlpha(const Color& c, float factor);
+Color multiplyWithAlpha(const Color& c, float factor) noexcept;
 
 /** @brief Multiplikation einer Farbe mit einem Faktor
  *
@@ -563,7 +563,7 @@ Color multiplyWithAlpha(const Color& c, float factor);
  * @param factor Multiplikations-Faktor
  * @return Neuer Farbwert
  */
-Color operator*(const Color& color, float factor);
+Color operator*(const Color& color, float factor) noexcept;
 
 /** @brief Multiplikation einer Farbe mit einem Faktor
  *
@@ -578,7 +578,7 @@ Color operator*(const Color& color, float factor);
  * @param color Farbwert
  * @return Neuer Farbwert
  */
-Color operator*(float factor, const Color& color);
+Color operator*(float factor, const Color& color) noexcept;
 
 /** @brief Addition zweier Farbwerte
  *
@@ -590,7 +590,7 @@ Color operator*(float factor, const Color& color);
  * @param color2 Zweiter Farbwert
  * @return Neuer Farbwert
  */
-Color operator+(const Color& color1, const Color& color2);
+Color operator+(const Color& color1, const Color& color2) noexcept;
 
 /** @brief Ausgabe eines Farbwertes auf einen Stream
  *

@@ -33,20 +33,20 @@
 namespace ppl7::grafix
 {
 
-static inline uint8_t clamp(int value)
+static inline uint8_t clamp(int value) noexcept
 {
     if (value < 0) return 0;
     if (value > 255) return 255;
     return static_cast<uint8_t>(value);
 }
 
-static inline uint8_t clamp_max(int value)
+static inline uint8_t clamp_max(int value) noexcept
 {
     if (value > 255) return 255;
     return static_cast<uint8_t>(value);
 }
 
-bool Color::match(const Color& other, uint8_t tolerance) const
+bool Color::match(const Color& other, uint8_t tolerance) const noexcept
 {
     if (c == other.c) return true;
     if (std::abs(static_cast<int>(r) - static_cast<int>(other.r)) > tolerance) return false;
@@ -55,7 +55,7 @@ bool Color::match(const Color& other, uint8_t tolerance) const
     return true;
 }
 
-Color& Color::blend(const Color& background, const Color& foreground, int intensity)
+Color& Color::blend(const Color& background, const Color& foreground, int intensity) noexcept
 {
     int i2 = intensity & 255;
     int i1 = 255 - i2;
@@ -66,7 +66,7 @@ Color& Color::blend(const Color& background, const Color& foreground, int intens
     return *this;
 }
 
-Color& Color::blendf(const Color& background, const Color& foreground, float intensity)
+Color& Color::blendf(const Color& background, const Color& foreground, float intensity) noexcept
 {
     float i2 = intensity;
     float i1 = 1.0f - i2;
@@ -77,7 +77,7 @@ Color& Color::blendf(const Color& background, const Color& foreground, float int
     return *this;
 }
 
-Color Color::lerp(const Color& c1, const Color& c2, float factor)
+Color Color::lerp(const Color& c1, const Color& c2, float factor) noexcept
 {
     float i2 = factor;
     float i1 = 1.0f - i2;
@@ -86,7 +86,7 @@ Color Color::lerp(const Color& c1, const Color& c2, float factor)
         clamp((int)(((float)c1.blue() * i1) + ((float)c2.blue() * i2))), clamp((int)(((float)c1.alpha() * i1) + ((float)c2.alpha() * i2))));
 }
 
-Color Color::getBlended(const Color& background, const Color& foreground, int intensity)
+Color Color::getBlended(const Color& background, const Color& foreground, int intensity) noexcept
 {
     Color c;
     int i2 = intensity & 255;
@@ -98,7 +98,7 @@ Color Color::getBlended(const Color& background, const Color& foreground, int in
     return c;
 }
 
-Color Color::getBlendedf(const Color& background, const Color& foreground, float intensity)
+Color Color::getBlendedf(const Color& background, const Color& foreground, float intensity) noexcept
 {
     Color c;
     float i2 = intensity;
@@ -110,7 +110,7 @@ Color Color::getBlendedf(const Color& background, const Color& foreground, float
     return c;
 }
 
-Color multiplyWithAlpha(const Color& c, float factor)
+Color multiplyWithAlpha(const Color& c, float factor) noexcept
 {
     if (factor <= 0.0f) {
         return Color(0, 0, 0, 0);
@@ -119,7 +119,7 @@ Color multiplyWithAlpha(const Color& c, float factor)
                  clamp_max((int)((float)c.a * factor)));
 }
 
-Color& Color::operator*=(float factor)
+Color& Color::operator*=(float factor) noexcept
 {
     if (factor <= 0.0f) {
         r = g = b = 0;
@@ -131,7 +131,7 @@ Color& Color::operator*=(float factor)
     return *this;
 }
 
-Color& Color::operator+=(const Color& other)
+Color& Color::operator+=(const Color& other) noexcept
 {
     r = clamp_max(r + other.r);
     g = clamp_max(g + other.g);
@@ -140,21 +140,21 @@ Color& Color::operator+=(const Color& other)
     return *this;
 }
 
-Color operator*(const Color& color, float factor)
+Color operator*(const Color& color, float factor) noexcept
 {
     if (factor <= 0.0f) return Color(0, 0, 0, color.a);
     return Color(clamp_max((int)((float)color.r * factor)), clamp_max((int)((float)color.g * factor)),
                  clamp_max((int)((float)color.b * factor)), color.a);
 }
 
-Color operator*(float factor, const Color& color)
+Color operator*(float factor, const Color& color) noexcept
 {
     if (factor <= 0.0f) return Color(0, 0, 0, color.a);
     return Color(clamp_max((int)((float)color.r * factor)), clamp_max((int)((float)color.g * factor)),
                  clamp_max((int)((float)color.b * factor)), color.a);
 }
 
-Color operator+(const Color& color1, const Color& color2)
+Color operator+(const Color& color1, const Color& color2) noexcept
 {
     return Color(clamp_max(color1.r + color2.r), clamp_max(color1.g + color2.g), clamp_max(color1.b + color2.b),
                  clamp_max(color1.a + color2.a));
