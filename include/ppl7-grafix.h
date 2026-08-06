@@ -34,6 +34,8 @@
 #include <map>
 #include <list>
 
+#include <ppl7/grafix/color.h>
+
 namespace ppl7
 {
 namespace grafix
@@ -376,91 +378,6 @@ typedef struct
     int colors;
     RGBFormat format;
 } IMAGE;
-
-class Color
-{
-    friend const Color operator*(const Color& size, float factor);
-    friend const Color operator*(float factor, const Color& size);
-    friend const Color operator+(const Color& color1, const Color& color2);
-    friend Color multiplyWithAlpha(const Color& c, float factor);
-    ;
-
-private:
-#ifdef __LITTLE_ENDIAN__
-    union {
-        struct
-        {
-            uint8_t r, g, b, a;
-        };
-        uint32_t c;
-    };
-#else
-    union {
-        struct
-        {
-            uint8_t a, r, g, b;
-        };
-        uint32_t c;
-    };
-#endif
-
-public:
-    Color();
-    Color(int red, int green, int blue, int alpha = 255);
-    Color(uint32_t rgba);
-    Color(uint32_t rgb, int alpha);
-
-    uint32_t color() const;
-    uint32_t rgb() const;
-    uint32_t rgba() const;
-    int red() const;
-    int green() const;
-    int blue() const;
-    int alpha() const;
-    int brightness() const;
-    Color grey() const;
-    Color negativ() const;
-    bool match(const Color& other, int tolerance = 0) const;
-
-    void setRed(int red);
-    void setGreen(int green);
-    void setBlue(int blue);
-    void setAlpha(int alpha);
-    void set(int red, int green, int blue, int alpha = 255);
-    void set(const Color& other);
-    void setColor(int red, int green, int blue, int alpha = 255);
-    void setColor(uint32_t rgba);
-    void setColor(uint32_t rgb, int alpha);
-
-    int getY() const;
-    int getYCb() const;
-    int getYCr() const;
-
-    Color& blend(const Color& background, const Color& foreground, int intensity);
-    Color& blendf(const Color& background, const Color& foreground, float intensity);
-
-    Color& operator*=(float factor);
-    Color& operator+=(const Color& other);
-    operator uint32_t() const;
-    operator int32_t() const;
-
-    bool operator<(const Color& other) const;
-    bool operator<=(const Color& other) const;
-    bool operator==(const Color& other) const;
-    bool operator!=(const Color& other) const;
-    bool operator>=(const Color& other) const;
-    bool operator>(const Color& other) const;
-
-    static Color getBlended(const Color& background, const Color& foreground, int intensity);
-    static Color getBlendedf(const Color& background, const Color& foreground, float intensity);
-};
-
-Color multiplyWithAlpha(const Color& c, float factor);
-
-const Color operator*(const Color& color, float factor);
-const Color operator*(float factor, const Color& color);
-const Color operator+(const Color& color1, const Color& color2);
-std::ostream& operator<<(std::ostream& s, const Color& c);
 
 // ACHTUNG: Bei Änderungen in der Reihenfolge muss auch die Assembler-Struktur
 // in src/asm/common.asminc angepasst werden!
